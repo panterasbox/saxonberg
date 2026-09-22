@@ -34,6 +34,11 @@ import { Template } from "../../../../lib/stuff/Template";
 import { Character } from "../../../../lib/character/Character";
 import { Creature } from "../../../../lib/creature/Creature";
 import Species from "../../species/Species";
+import BodyPlan from "../../species/BodyPlan";
+import Garment from "../../../thing/equipment/Garment";
+import Material from "../../../../lib/material/Material";
+import { Construction } from "../../../../lib/material/Construction";
+import type { Trauma } from "../../Condition";
 import { Quantity } from "../../../../lib/quantity";
 import { Faculty } from "../../../../lib/magic/Faculty";
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from "../../../../lib/magic/Caster";
@@ -129,6 +134,53 @@ function makeBystander(sentient: boolean): TestCharacter {
   stampTemplatePathForTest(actor, `/obj/test/by-${n}`);
   return actor;
 }
+
+/** A woundable target — a Creature with a torso of flesh, so a cast that
+ * reaches the body arm can actually leave a trauma. */
+function makeBodiedTarget(): Creature {
+  const n = seq++;
+  const plan = makeStuff(() => new BodyPlan());
+  plan.setName(`mg-biped-${n}`);
+  plan.setSlots([
+    { name: "torso", accepts: "WearableMixin", capacity: 4, covers: ["body.torso"] },
+  ]);
+  plan.setBodyParts([
+    {
+      key: "body.torso",
+      parent: null,
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 }],
+    },
+  ]);
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/mg-${n}`);
+  const species = makeStuff(() => new Species());
+  species.setBodyPlan(plan);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/mgt-${n}`);
+  const c = makeStuff(() => new Creature());
+  c.setSpecies(species);
+  return c;
+}
+
+/** Clad the target's torso in a garment of the given material + form. */
+function wearTorso(c: Creature, material: Material, form: string): void {
+  const g = makeStuff(() => new Garment());
+  g.setMaterial(material);
+  g.setConstruction(Construction.of(form));
+  stampTemplatePathForTest(g, `/stuff/thing/test/mg-g-${seq++}`);
+  const plan = c.getSpecies()!.getBodyPlan()!.getTemplatePath()!;
+  g.setSlotClaims({ [plan]: ["torso"] });
+  c.occupy(g, "torso");
+}
+
+function steel(): Material {
+  const m = makeStuff(() => new Material());
+  m.setTags(["metal"]);
+  m.setDensity(Quantity.of(7850, "kg/m³"));
+  stampTemplatePathForTest(m, `/stuff/idea/material/test/mg-steel-${seq++}`);
+  return m;
+}
+
+const traumaOf = (c: Creature): Trauma | undefined =>
+  c.getConditions().find((x): x is Trauma => x.kind === "trauma");
 
 let dreadSeed: Condition | null = null;
 function installDreadSeed(): void {
@@ -459,5 +511,66 @@ describe("MagicLogic — the cast pipeline", () => {
     for (const row of view.spells) {
       expect(JSON.stringify(row)).not.toMatch(/\d\d+ ?pt/);
     }
+  });
+
+  // ⭐⭐ The magic-expression seams — magic now reaches every mechanical
+  // channel and, through the substance-contact seam, corrosion. Each cast
+  // goes through the ONE injury door and the ONE fold, so armour answers a
+  // magic blow exactly as it answers a weapon.
+  describe("magic reaches every damage channel", () => {
+    it("stonefist → a BLUNT wound (a contusion on flesh)", async () => {
+      stubBands("novice");
+      const caster = makeCaster();
+      const target = makeBodiedTarget();
+      await caster.resolveCast("stonefist", target);
+      expect(traumaOf(target)?.type).toBe("contusion");
+    });
+
+    it("stone-lance → a POINT wound (a puncture)", async () => {
+      stubBands("novice");
+      const caster = makeCaster();
+      const target = makeBodiedTarget();
+      await caster.resolveCast("stone-lance", target);
+      expect(traumaOf(target)?.type).toBe("puncture");
+    });
+
+    it("windrazor → an EDGE wound (a laceration)", async () => {
+      stubBands("novice");
+      const caster = makeCaster();
+      const target = makeBodiedTarget();
+      await caster.resolveCast("windrazor", target);
+      expect(traumaOf(target)?.type).toBe("laceration");
+    });
+
+    it("all four new workings are discovered, castable, and span the channels", async () => {
+      // Reachability: the rows self-register from the Spell dir (no
+      // manifest), and a novice caster can reach every one — the boot,
+      // data and affordance links a shipped-but-dead spell fails silently.
+      stubBands("novice");
+      const caster = makeCaster();
+      const view = await caster.spellsView();
+      for (const id of ["stonefist", "stone-lance", "windrazor", "acid-splash"]) {
+        const row = view.spells.find((s) => s.spellId === id);
+        expect(row, id).toBeDefined();
+        expect(row!.castable, id).toBe(true);
+      }
+    });
+
+    it("⭐ armour answers a MAGIC blunt blow — a steel plate blunts it", async () => {
+      stubBands("novice");
+      const caster = makeCaster();
+      const bare = makeBodiedTarget();
+      const clad = makeBodiedTarget();
+      wearTorso(clad, steel(), "plate");
+      await caster.resolveCast("stonefist", bare);
+      await caster.resolveCast("stonefist", clad);
+      const bareSev = traumaOf(bare)?.severity ?? 0;
+      const cladSev = traumaOf(clad)?.severity ?? 0;
+      // The blow lands on bare flesh; the plate takes the mechanical
+      // energy the same way it would a mace's — a magic blow is not a
+      // special case, it is the same fold.
+      expect(bareSev).toBeGreaterThan(0);
+      expect(cladSev).toBeLessThan(bareSev);
+    });
   });
 });

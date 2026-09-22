@@ -48,6 +48,23 @@ so a host that forgets one degrades to "no bond".
 naming `/platform/agent/KeptAnimal` with `handling:` and three brains,
 and a species row carrying the dials.
 
+**Why the bond composes per class, not on `Creature`.** The build
+considered moving `BeliefStoreMixin` down to `Creature` so no author's
+tameable animal could fail silent, and rejected it twice over: the studio
+is mixin-aware (`describeClass` / `listMixins` / `scaffoldClass`), so an
+author is not blind at the moment of the mistake; and universal
+composition makes the capability **unfalsifiable** — no row can be *wrong*
+about it, so no gate can check it. *Can it be won over* has three answers
+and the middle one is content: **true** (composes it, species says
+winnable) · **false** (composes it, species says no — the dragon, the
+magic-taming case) · **null** (does not compose it; the question does not
+apply). Composing it everywhere collapses `false` into `true`-with-a-zero
+and destroys `null`. So it composes where the concept is true, on the
+codebase's own idiom (`Livestock`+`Producing`, `WorkingAnimal`+`Handled`),
+and `lint:kept-animals` is what makes the three states safe. Making a pet
+a `Character` instead was also rejected: that stack drags in `Caster`,
+`Vocal` and `Employed` — a sheepdog that casts, speaks and holds a job.
+
 ## The bond — not a new number
 
 `bond = regard/100 × handling`, and only affection counts (regard ≤ 0 is
@@ -219,6 +236,25 @@ so its owner's estate carries it as a *reference* (`EstateEntry.key`,
 [persistence.md](./persistence.md)). ⚠ Four location classes compose
 `Persistable` and this build added none: persisting a container preserves
 its whole tree and is the rare, expensive model.
+
+**Why a keyed clone, and not the two other shapes.** A pet is the third
+instance of `setPersistenceKey`'s own examples (a leased dorm unit, a
+cultivated plant's uuid), coordinated by the owner's estate because it is
+already chattel — nothing was invented for it. Two shapes were rejected.
+*Minting a singleton the way `Avatar` does*: `Avatar`'s templatePath-as-
+identity predates `identityPath`, `Persistable.ts` carries three Avatar
+carve-outs, and it is the worst thing in the tree to pattern-match on;
+worse, identity and durability must arrive together or neither — a unique
+identity path on a non-durable clone would have the belief write-through
+keying durable regard records to dogs that evaporate at reboot, with
+nothing to reap them. *Seed + sparse overlay* (the herdbook's `HeadSeed`
+model): right for a herd, wrong here — a pet's overlay is most of what the
+animal is (name, bond, transcript, who it remembers), and a seed-only
+stray has no container coordinator, so it is not in the room at all and
+nobody can `look` at it. Hence **a stray is an ordinary unkeyed clone and
+naming adds the key** — clone → keyed clone, never clone → singleton or
+seed → snapshot — which is why the name verb is the promotion and not a
+cosmetic.
 
 **What loads it** is [residency.md § the load half](./residency.md):
 `KeptAnimal.pinsResidency()` answers true, the pin is stamped on its

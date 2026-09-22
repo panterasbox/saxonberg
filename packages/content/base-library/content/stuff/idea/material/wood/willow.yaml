@@ -1,0 +1,40 @@
+# Willow — very light, very tough. The cricket bat and the basket.
+#
+# The numbers that make it so: the LOWEST density of the eight and a
+# toughness that has no business at that weight — a willow blade takes a
+# ball at ninety miles an hour and is not marked. Soft (`hardness` 18: a
+# thumbnail dents it), thirsty (`waterAbsorptionCapacity` 40 — it grows
+# with its feet in the river), poor firewood (it smoulders). Pollards
+# and coppices freely; a withy is a willow rod.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at (forestry's `fell`); `hardness` /
+# `toughness` → materials-response (a haft, a waster, a bow);
+# `waterAbsorptionCapacity` → wetness; `autoignitionTemperature` +
+# `heatOfCombustion` → the fire driver (a log in a hearth, a charge in a
+# clamp); `thermalConductivity` / `specificHeat` → thermal.
+# `biologicalSource` names the tree; the species row names its LIVING
+# material (plant tissue) — the wood is what is left when it is felled.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: willow
+  keywords: [willow]
+  density: 420
+  specificHeat: 2000
+  thermalConductivity: 0.12
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 40
+  autoignitionTemperature: 550
+  heatOfCombustion: 15
+  hardness: 18
+  toughness: 60
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/salicaceae/salix/alba
+    tissueType: wood

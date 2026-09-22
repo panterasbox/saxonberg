@@ -137,6 +137,14 @@ export const SHELF_CATALOGUE: readonly ShelfRow[] = [
     source: "live",
   },
   {
+    id: "body",
+    label: "BODY",
+    desc: "what your body is telling you — breath, hunger, thirst",
+    // ⭐ Live from the nutrition-and-fitness build: `bodyState` on the
+    // self card, poked when a band turns over. Words, never a gauge.
+    source: "live",
+  },
+  {
     id: "make",
     label: "MAKE",
     desc: "influence · earned by building",
@@ -316,6 +324,19 @@ export function figureFor(
         return { state: "empty", reason: "nothing being practised" };
       }
       return { state: "live", value: `${c.discipline} · ${c.band}` };
+    }
+    case "body": {
+      const b = figures?.bodyState;
+      if (b === undefined) {
+        return { state: "empty", reason: "the body has not been read yet" };
+      }
+      // The breath word leads; hunger and thirst only when they are
+      // saying something. `fresh · fed · fine` would be three words of
+      // nothing, and *fresh* is the whole of it.
+      const parts = [b.breath];
+      if (b.hunger !== "full" && b.hunger !== "fed") parts.push(b.hunger);
+      if (b.thirst !== "fine") parts.push(b.thirst);
+      return { state: "live", value: parts.join(" · ") };
     }
     default:
       // Unreachable while every `live` row is handled above. A new live

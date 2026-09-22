@@ -31,6 +31,16 @@ and needs no rule.
 | `symmetric` | paired both ways; each side clears the other's back-ref on destruct |
 | `owned` | the holder's lifetime bounds the target's; destruct cascades |
 
+
+**Why this is content's pattern, not an engine nicety** (graduated from
+the reference-lifetime slate, 2026-09): today most cross-object references
+are path strings — identity refs — because most of the world is still
+singletons. That is a property of a young world, not of the design. As
+content grows, most objects are clones instanced all over the place, and
+every one of those relationships is a live ref carrying a cleanup
+obligation — the pattern authors will follow thousands of times, and it
+should be one they cannot get wrong by forgetting four lines.
+
 ### The foundational constraint
 
 **`stuffId` does not survive a reboot.** Everything above follows from
@@ -52,6 +62,17 @@ paid for the lookup. A stuffId handle is what you reach for when the
 lifetime mechanism is missing — it is stringly-typed, loses narrowing,
 and is weak only by convention (nothing stops a caller caching the
 resolved object anyway).
+
+
+**Roads not taken** (from the same slate): a wrapper type (`StuffRef<T>`
+with `.get()`) adds a competing pattern beside R2.3 rather than completing
+it, and puts ceremony at every read site — the declaration keeps the field
+naturally typed and the call sites unchanged. A real `WeakRef<>` is the
+wrong tool specifically: `StuffApi` holds strong refs in its registries
+while an object is registered, so a `WeakRef` could essentially never clear
+while the target is live, and after `unregister` it clears
+nondeterministically on GC timing — importing irreproducible behaviour
+into a residency story that is otherwise deterministic and tested.
 
 ### Declaring it
 

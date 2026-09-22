@@ -2,13 +2,23 @@
 
 > **Status: UNBUILT** — no blood type, no donation, no transfusion door
 > anywhere in the shipped vitals/harm/metabolism stack.
-> **Left:** the genotype/phenotype endowment · the compatibility cost curve
-> · the donation loop + the bag · screening · the trait payoff · the
+> **Left:** the genotype/phenotype endowment (`untested` until tested,
+> per-`Species` allele frequencies + the provenance stamp) · the
+> compatibility cost curve (non-hierarchical across species · graded
+> failure · the volume-expander floor) · draw / store / transfuse over
+> `Bulkable` + the `introduceToxin` seam · donation cost on the biological
+> `Reserve` · the summons + the clinic as demand (named shortages · the
+> recipient→donor loop) · screening · the gift-only credits (chronicle
+> deed · disposition credit · the renown move) · the trait payoff · the
+> consent predicate (implied consent in an emergency) · a `test` for your
+> own type · the
 > Titmuss paid-market lever (designed-for, explicitly not v1). ⭐ Q6 is
 > answered and Q1 has a reader — see the consequence note below.
 > **Size:** a build
+> ⭐ **Sole home for the transfusion design since 2026-09-15** — absorbed
+> physiology-slate § Part 7e (see the section of that name below).
 
-> **Status: design proposed, nothing built.** The transfusion economy —
+> The transfusion economy —
 > blood types, donation, and the supply that the shipped
 > [harm](../../subsystems/harm.md) vertical creates demand for but
 > nothing answers.
@@ -308,6 +318,162 @@ Consequences worth designing for:
 
 ---
 
+## ⭐ Absorbed from physiology-slate § Part 7e (2026-09-15)
+
+> **Merged on contact.** This design lived in two documents — the
+> *mechanism* here (genotype/phenotype, the compatibility graph,
+> `untested` until tested) and the *argument* in
+> [physiology-slate](./physiology-slate.md) § Part 7e. They agreed on
+> every point, including the load-bearing one (**type must not correlate
+> with species**), which is exactly how a duplicate pair survives long
+> enough to diverge. The blood-loss *axis* stays in physiology — it is a
+> vital sign, and that slate owns the body. Everything below is blood's,
+> and this is now its only home.
+
+### ⭐⭐⭐⭐ Transfusion's ingredient is a PERSON
+
+> **Transfusion is the only treatment whose ingredient is another
+> person's body.**
+
+Not a purchased item — someone **present, willing, and paying a real
+cost** (the donor loses volume too). Properties nothing else in the kit
+has: **a gift with a price**, it **requires consent**, and it leaves a
+debt both parties remember.
+
+#### ⭐⭐⭐ The blood bank is an unusual business
+
+> **Its inventory is DONATED, not bought.**
+
+A genuine **civic object** rather than a shop — a public good with a
+**free-rider problem**, where the interesting question is *who gives, and
+why.* A real collective-action problem sitting in a medical building.
+
+### ⚠ Blood types: REVERSED 2026-08-02 — DO
+
+An earlier pass here said **don't**, on two grounds. **Both were wrong, or
+too quick.** *(User: "that's cool science and it's very accessible,
+everyone knows about them… we would need some kind of blood economy and
+people to give blood. that might be fun though for a social game like
+this.")*
+
+**Objection 1 — "it's a matching puzzle."** It assumed the player performs
+the matching. They do not: typing is **a one-time fact about your
+character that a physician reads for you.**
+
+> **Your blood type is not a puzzle to solve. It is a FACT ABOUT YOU that
+> becomes relevant to OTHER PEOPLE.** — the same shape as a scar being
+> identity (§ Part 7c), which this slate already argued *for*.
+
+#### ⭐⭐⭐⭐ The real payoff is a SUMMONS, not a match
+
+> **"Is anyone here B-negative?"**
+
+Mechanically **a broadcast to a room** — exactly the event shape this game
+is built for. Typing does not create matching work; it creates
+**occasions where a SPECIFIC STRANGER becomes necessary**, which almost
+nothing else in the design does. It rides comms, it is urgent, and only
+one kind of person can answer.
+
+It also produces something rare: ⭐ **an UNEARNED distinction.** Everything
+else about you is earned — competence, renown, standing. Your type is just
+*true*, and it can make you the most important person in the room.
+**Universal donors quietly become community assets.**
+
+#### ⭐⭐⭐⭐⭐ Objection 2 — "it reads as blood purity" — INVERTS
+
+The whole thing turns on whether type correlates with **species**. If it
+does, it is blood purity. If it does not:
+
+> **A dwarf and an elf can share blood. Two elves might not.**
+
+Not a mitigation — **the strongest available REFUTATION**: a mechanic
+demonstrating that the meaningful biological category cuts **across** the
+social one. Exactly the note the anti-essentialist species layer wants,
+and **true of real human blood types.**
+
+> ⭐ **RULE: blood type is independent of species.** The hazard was real;
+> the direction was backwards. **Orthogonality turns the same mechanic
+> from the bad note into the good one.**
+
+⚠ **Refined 2026-08-02 →** [species-slate](./species-slate.md). Independent
+-of-species is the **default**, not an absolute: a single authored species
+whose blood is incompatible with the common pool is **more FRAGILE, not
+purer** — a minority medical burden whose answer is **its own donor
+drive**. The governing rule is **difference that COSTS is character;
+difference that RANKS is essentialism.**
+
+### The blood economy
+
+Donation costs: volume down, weak for a while, and **per the recovery
+ratchet it must pay nothing.** So why donate? The same reason people do in
+life — **someone asked**, it is a recorded deed, and the person it saves
+knows your name.
+
+> ⭐⭐⭐ **Blood donation is the cleanest possible TEST OF THE SOFT-SKILLS
+> THESIS** — a costly act, no reward, a public record, a beneficiary who
+> knows who you are. If the chronicle and reception-from-others make that
+> feel worth doing, **those systems work**; if not, we have learned
+> something important cheaply.
+
+#### ⭐⭐ Shelf life makes it a LIVE problem
+
+Blood keeps ~6 weeks, so a bank **cannot hoard** — it needs continuous
+donation, forever.
+
+> **Shelf life turns the free-rider problem from SOLVED into ONGOING.**
+
+A stockpile is a puzzle you beat once; a perishable stock is a **standing
+civic obligation** — and it reuses the spoilage machinery already decided
+for meds (§ Part 7b).
+
+#### ⭐⭐⭐ "Should you be allowed to SELL blood" is a real legislative question
+
+With a real empirical answer: **paid donation historically produced worse
+safety outcomes**, because payment gives donors a reason to conceal things
+about themselves.
+
+A superb legislature object — **a policy debate where the intuitive answer
+(markets clear shortages) loses to evidence** — and **our own
+record-keeping could surface that evidence in-world** rather than
+asserting it. A locality that pays and one that does not become **a
+natural experiment somebody can go read.**
+
+⚠ **Guard: rarity must not become a TAX ON THE RARE.** An uncommon type
+must not mean a donation treadmill — **the ask stays an EVENT, not a
+subscription.** Carry into requirements as a real risk.
+
+### ⭐⭐⭐ Where CONSENT finally lands
+
+Transfusion forces it, but it generalises — **treatment is something done
+TO a body.** Real medicine already has the elegant rule:
+
+> **IMPLIED CONSENT IN AN EMERGENCY.** A dying body may be treated by
+> anyone. A conscious body must agree.
+
+**One predicate on `getConsciousness`**, medically correct, and it
+resolves the awkward case (you cannot ask permission from someone bleeding
+out) **without inventing anything.**
+
+The dark half comes free: **a substance administered without consent is
+harm** — the accountability ledger's existing business, a **producer-side
+append at the administration site**, no chokepoint. **That IS the
+poisoner's vocation, mechanically.**
+
+> ⭐⭐ **The ledger showing who treated whom is simultaneously a
+> malpractice trail and a credential** — same record; which one it is
+> depends entirely on outcomes.
+
+### ⭐⭐⭐ The sequencing insight
+
+Exsanguination's window is **120 s**; real transfusion takes longer. So
+transfusion is **not** the emergency intervention — `treat` already is,
+and mortality is explicit that it leaves you **"rescued, not healed."**
+
+> **The field medic stops you dying. The clinic makes you useful again.**
+
+Two moments, two skill sets, **two businesses** — so the clinic is not a
+slower version of the medic.
+
 ## v1 scope
 
 **In:**
@@ -352,13 +518,7 @@ disease transmission, and any cross-instance concern.
 5. **Do NPCs donate on their own?** The trait-driven answer says yes and
    gives the supply an emergent baseline; it also means NPC transcripts
    and standings start moving without a player involved.
-6. ✅ **Species with no blood — ANSWERED** by the consequence build's
-   **D22**: an effect naming a vital sign a species does not have is a
-   **deliberate no-op with a test**, never an error and never a
-   zero-fill. A construct takes an edge blow, has a wound, and does not
-   bleed. (The test is load-bearing: *"does nothing because nobody wrote
-   the branch"* and *"does nothing because the author said so"* read
-   identically.)
+6. ✅ *Q6 (species with no blood) resolved: [harm.md](../../subsystems/harm.md) — a `vital` effect naming a sign the body does not have is a deliberate silent no-op (`Vitals.hasVitalSign`), with a test; the consequence build's D22.*
 
 ---
 

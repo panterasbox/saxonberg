@@ -1,0 +1,41 @@
+# ⭐⭐ The lime seep — a caustic hazard, and deliberately NOT a trap.
+#
+# ⚠ **It is never concealed, and that is the design.** Every other hazard
+# in this pack is something somebody hid: a spike pit, a step-dart, a
+# pressure-blade. This one is a white crust on a wet floor — you can see
+# it perfectly well, and it will still take the skin off your feet if you
+# walk through it. A world where every dangerous thing is a trap teaches
+# that danger is somebody's fault; a world with weather and chemistry in
+# it teaches that some of it is just there.
+#
+# ⭐ What it demonstrates that nothing else can: a wound that KEEPS
+# WORKING. Every other injury in the game is a record of something that
+# already finished happening. This one is an agent sitting on your skin,
+# growing worse until you rinse it off — which makes `rinse` a decision
+# with a clock on it rather than a tidying-up verb.
+#
+# Placed on the pit floor below the Sunken Delve, where runoff pools and
+# lime leaches out of the mortar. The crossroads hub has a water butt, so
+# the answer exists and is a walk away — which is the shape a consequence
+# should have.
+class: /platform/thing/Trap
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: seep of white crust
+  keywords: [seep, crust, lime, quicklime, caustic, white]
+  register: indefinite
+  longDescription: >
+    Water weeps out of the mortar here and dries into a white, powdery
+    crust across the low end of the floor. It crunches underfoot. Where
+    the damp has taken it, it has eaten pale channels into the stone.
+  fixedInPlace: true
+  # ⚠ NOT concealed. `concealment` is absent on purpose — see the header.
+  trigger: traversal
+  groundTriggered: true
+  delivery:
+    channel: corrosion
+    energy: 1.5
+    # The agent's chemistry, authored beside its magnitude: what the lime
+    # eats. A corrosion delivery naming nothing attacks nothing.
+    corrosiveTo: [organic, tissue, leather, textile]
+    siteSelector: [body.leg.left.foot, body.leg.right.foot]

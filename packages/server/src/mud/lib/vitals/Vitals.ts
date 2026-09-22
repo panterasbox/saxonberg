@@ -54,6 +54,10 @@ import type Condition from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ConditionApi } from '../../api/condition';
+import { ContainmentApi } from '../../api/containment';
+import { FUNCTION_BANDS } from './BodyCapacity';
+import type { BodyCapacity, FunctionBand } from './BodyCapacity';
+import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
@@ -164,6 +168,20 @@ export interface ResolvedBodyPart extends BodyPart {
 }
 
 /** Canonical unit per vital sign. */
+/**
+ * ⭐⭐ The capacities whose GOVERNING organ, once missing, is fatal — the
+ * anatomy death floor (`hasMissingVitalGovernor`). Losing the brain,
+ * the heart or the lungs stops life; losing a hand (`manipulation`) or a
+ * leg (`locomotion`) does not. A body-capacity string set, deliberately
+ * not the `serves` capacities: you die without a heart, not without a
+ * grip.
+ */
+const VITAL_GOVERNED_CAPACITIES: ReadonlySet<string> = new Set([
+  'consciousness',
+  'circulation',
+  'respiration',
+]);
+
 const VITAL_UNITS: Record<VitalSign, Unit> = {
   coreTemperature: 'K',
   heartRate: 'bpm',
@@ -364,6 +382,18 @@ export interface Vitals {
    */
   resetVitalsToSpeciesBaseline(): void;
   /**
+   * ⭐⭐ Restore the anatomy to the species baseline — every part present,
+   * no severed limbs. The corpse/revival counterpart of
+   * {@link resetVitalsToSpeciesBaseline}: a body that comes back from the
+   * passage comes back WHOLE, exactly as it comes back with full blood and
+   * no conditions. ⚠ Without this a decapitated player would reembody
+   * headless and the anatomy death floor would re-kill them on arrival —
+   * the bricking failure `mortality.md` forbids. NOT a living recovery
+   * mechanic (that is the content-facing restore path, slated); this is
+   * what resurrection already means.
+   */
+  resetAnatomyToSpeciesBaseline(): void;
+  /**
    * Postmortem-progression seam. Death is living-stop + postmortem-start:
    * living processes freeze and postmortem changes (algor / rigor / livor
    * / decomposition) would begin here. v1 ships ZERO — returns `[]`; the
@@ -374,7 +404,44 @@ export interface Vitals {
   // ---------- anatomy — resolves instance-delta → BodyPlan ----------
   getParts(): ResolvedBodyPart[];
   getPart(key: string): ResolvedBodyPart | null;
-  getInjuredParts(): ResolvedBodyPart[];
+  /**
+   * The parts this body no longer has. (Was `getInjuredParts`, which named
+   * the wrong thing — it never returned wounded parts, only absent ones.)
+   */
+  getMissingParts(): ResolvedBodyPart[];
+  /**
+   * ⭐⭐ **Take a part off**, permanently — the sever. Marks the part and
+   * **every descendant** missing (sever the arm and the hand goes with it),
+   * then releases whatever was held or worn on the slots that part carried.
+   */
+  severPart(key: string): void;
+  /**
+   * ⭐⭐ **How well one part still works** — the axis a wound costs you.
+   *
+   * `min` along the supply path: a part is only as good as its own tissue,
+   * the limb it hangs off, the nerve that reaches it and the vessel that
+   * feeds it. A crushed arm takes the hand with it; a cut spine takes both.
+   */
+  functionAt(key: string): FunctionBand;
+  /**
+   * ⭐⭐ **How well the body still does a THING** — the surface read.
+   *
+   * `governs` combines by **min** (one brain: lose it, lose the capacity);
+   * `serves` combines by **mean** (two legs: lose one and you hobble). A
+   * capacity nothing governs or serves reads `full` — a body that never had
+   * hands has no `manipulation` to lose, and that is data, not a guard.
+   */
+  capacity(key: BodyCapacity): FunctionBand;
+  /** Can the part behind this slot still close on something? */
+  canGrip(slot: string): boolean;
+  /** Can this body still stand on itself? */
+  canBearWeight(): boolean;
+  /**
+   * Why this slot is refused, in prose a player can act on — or `null` if
+   * it is not. *"your left hand cannot grip — a fracture of
+   * body.arm.left.hand"* rather than "you can't do that."
+   */
+  slotRefusalReason(slot: string): string | null;
   /** Coarse part→slot coupling: a missing part disables its slots. */
   isSlotDisabledByAnatomy(slot: string): boolean;
   /**
@@ -461,12 +528,72 @@ function intensityOf(record: AfflictionRecord): number {
   return Math.max(0, record.stage);
 }
 
+/**
+ * A body part key rendered as prose — `body.arm.left.hand` → *"left hand"*.
+ *
+ * The noun is the last segment; a `left`/`right` segment anywhere in the
+ * path is the side. Keys are authored, stable and lowercase, so this is a
+ * rendering rule and not a lookup table — a body plan that adds a part gets
+ * readable prose without touching the engine.
+ */
+function partPhrase(key: string): string {
+  const segments = key.split('.').filter((seg) => seg !== 'body');
+  const noun = segments[segments.length - 1] ?? key;
+  const side = segments.find((seg) => seg === 'left' || seg === 'right');
+  // `body.arm.left` — the side IS the last segment; the noun is what it
+  // qualifies.
+  if (noun === side) {
+    const stem = segments[segments.length - 2] ?? noun;
+    return `${side} ${stem}`;
+  }
+  return side !== undefined ? `${side} ${noun}` : noun;
+}
+
+/**
+ * ⭐⭐ **A body that has lost something says so when you look at it.**
+ *
+ * Appends *"Missing the left hand."* to a body's long description, listing
+ * only the parts whose loss is not already implied by a larger one: a
+ * severed arm marks its hand missing too, and *"missing the left arm and
+ * the left hand"* reads as two injuries instead of one. The topmost missing
+ * part in each severed subtree is the honest unit.
+ *
+ * ⚠ Perception-neutral by construction — this is the LONG description,
+ * which a viewer only reaches by looking at the body. Whether that body is
+ * recognizable, disguised or in the dark is the presentation layer's
+ * question, and this does not second-guess it.
+ */
+function missingPartsAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+): string {
+  if (!MixinApi.isVitals(host)) return text;
+  const missing = host.getMissingParts();
+  if (missing.length === 0) return text;
+  const topmost = missing.filter(
+    (p) =>
+      p.parent === null || !missing.some((other) => other.key === p.parent),
+  );
+  if (topmost.length === 0) return text;
+  const phrases = topmost.map((p) => `the ${partPhrase(p.key)}`);
+  const list =
+    phrases.length === 1
+      ? phrases[0]
+      : `${phrases.slice(0, -1).join(', ')} and ${phrases[phrases.length - 1]}`;
+  const line = `Missing ${list}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   // A class DECLARATION, not an expression: legacy decorators are only
   // valid on declarations, and `adoptMaterialState` carries a security
   // gate. Same shape as the shipped `ChattelMixin`.
   class VitalsMixin extends Base implements Vitals {
     static _mixinName = 'VitalsMixin';
+
+    /** A lost part is visible on the body — see `missingPartsAugmenter`. */
+    static markupAugmenters: MarkupAugmenter[] = [missingPartsAugmenter];
 
     static fieldMeta: FieldMeta = {
       _coreTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K'), runtimeState: true },
@@ -682,6 +809,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+    public resetAnatomyToSpeciesBaseline(): void {
+      this.bodyPartDeltas = {};
+    }
+
     /**
      * The survivable band for a sign — from the host's species
      * `vitalProfile`, or the universe default. Requires `OrganismMixin`
@@ -766,9 +897,19 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // A floored biological reserve (exhaustion / starvation /
       // dehydration) degrades the body. `isReserved` narrows the host so
       // the reserve surface is type-checked (no duck-typing cast).
+      //
+      // ⚠ Only a reserve that HAS a floor effect has a floor. `wind` and
+      // `alcohol-tolerance` are seeded empty — an untrained body is the
+      // honest baseline, not a degraded one — and `lean` at 0 is gaunt
+      // in the mirror, not sick. A reserve whose `floorEffect` is null
+      // declares that hitting zero means nothing acute.
       if (MixinApi.isReserved(self)) {
         for (const r of self.getReserves().values()) {
-          if (r.theme === 'biological' && r.current.rawValue() <= 0) {
+          if (
+            r.theme === 'biological' &&
+            r.floorEffect !== null &&
+            r.current.rawValue() <= 0
+          ) {
             severity += 1;
           }
         }
@@ -808,21 +949,378 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const spo2Band = this.getVitalBand('spo2');
       const spo2 = this._spo2.rawValue();
 
-      // Significant head trauma forces unconscious.
-      const headTrauma = this.conditions.some(
-        (c) =>
-          c.kind === 'trauma' &&
-          c.site.startsWith('body.head') &&
-          c.severity >= 0.5,
-      );
+      // ⭐ **The brain, when there is one.** A plan that authors a part
+      // governing `consciousness` gets the honest read — the capacity
+      // itself, which a wound to the brain, to the head around it, or to
+      // anything its supply runs through all lower. A plan that does not
+      // keeps the shipped site rule. ⚠ That fork is a DATA fact, not a
+      // guard: nothing asks "is this a biped", it asks "does this body
+      // have something that runs consciousness".
+      const braindead = this.hasGovernorFor('consciousness')
+        ? FUNCTION_BANDS.indexOf(this.capacity('consciousness')) >=
+          FUNCTION_BANDS.indexOf('failing')
+        : this.conditions.some(
+            (c) =>
+              c.kind === 'trauma' &&
+              c.site.startsWith('body.head') &&
+              c.severity >= 0.5,
+          );
       if (
         bvFraction < 0.7 ||
         spo2 <= spo2Band.survivableMin ||
-        headTrauma
+        braindead
       ) {
         return 'unconscious';
       }
       return 'conscious';
+    }
+
+
+    // ---------- ⭐⭐ the function axis (D6) ----------
+
+    /**
+     * A part's OWN function — what its own tissue can still do, before
+     * anything upstream is consulted. `1 − Σ(severity × lossPerSeverity)`
+     * over the wounds sitting on it; `0` if the part is gone.
+     */
+    private ownFunction(key: string): number {
+      if (this.bodyPartDeltas[key]?.missing === true) return 0;
+      let lost = 0;
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma' || c.site !== key) continue;
+        for (const e of TRAUMA_BEHAVIOR[c.type]?.signature ?? []) {
+          if (e.kind !== 'function') continue;
+          lost += Math.max(0, c.severity) * e.lossPerSeverity;
+        }
+      }
+      return Math.max(0, Math.min(1, 1 - lost));
+    }
+
+    /**
+     * What a part upstream still PASSES THROUGH — a conduit's contribution
+     * to whatever depends on it. Not the same as its own function: a
+     * scratched spine works fine as a spine and also carries the arm's
+     * nerve fine, and only a real wound starts cutting the signal.
+     *
+     * Gone → 0. Otherwise it degrades from `CONDUIT_TOLERANCE` to zero over
+     * `CONDUIT_RANGE` of worst-wound severity.
+     */
+    private conduitFunction(key: string): number {
+      if (this.bodyPartDeltas[key]?.missing === true) return 0;
+      let worst = 0;
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma' || c.site !== key) continue;
+        worst = Math.max(worst, c.severity);
+      }
+      const D = HARM_DEFAULTS;
+      const over = (worst - D.CONDUIT_TOLERANCE) / D.CONDUIT_RANGE;
+      return Math.max(0, Math.min(1, 1 - Math.max(0, over)));
+    }
+
+    /**
+     * ⭐⭐ **What still reaches `key` from upstream** — the `min` over every
+     * path into it: the limb it hangs off, the nerve that carries it, the
+     * vessel that feeds it, and recursively whatever reaches THOSE.
+     *
+     * ⚠⚠ **The recursion is the whole point, and it is why this is not a
+     * flat loop.** The arm is what names the spine in `innervatedBy`; the
+     * hand names nothing. A one-level walk therefore asks the arm whether
+     * the arm is hurt (it is not) and never asks what reaches the arm — so
+     * a severed spine would leave the hand gripping happily, which is the
+     * exact case this axis exists to model. A conduit's conduits are your
+     * conduits.
+     *
+     * It also means `innervatedBy` is authored **once, where the supply
+     * path diverges from the tree** (at the arm), rather than repeated on
+     * every descendant — which is D8's rule, and only true if the walk
+     * carries it down.
+     *
+     * ⚠ **The root is excluded** on purpose: a chest wound is terrible for
+     * a hundred reasons and "your hands are weaker" is not one of them.
+     * `visited` guards an authored cycle rather than trusting the data.
+     */
+    private upstreamFunction(
+      key: string,
+      parts: readonly BodyPart[],
+      visited: Set<string>,
+    ): number {
+      if (visited.has(key)) return 1;
+      visited.add(key);
+      const part = parts.find((p) => p.key === key);
+      if (!part) return 1;
+      // The root is a waypoint, never a constraint.
+      let f = part.parent === null ? 1 : this.conduitFunction(key);
+      for (const next of [
+        ...(part.parent !== null ? [part.parent] : []),
+        ...(part.innervatedBy ?? []),
+        ...(part.suppliedBy ?? []),
+      ]) {
+        f = Math.min(f, this.upstreamFunction(next, parts, visited));
+      }
+      return f;
+    }
+
+    /**
+     * The continuous scalar behind {@link functionAt} — the part's own
+     * tissue, capped by everything that reaches it.
+     */
+    private functionScalar(key: string): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return 1;
+      const plan = self.getSpecies()?.getBodyPlan();
+      if (!plan) return 1;
+      const parts = plan.getBodyParts();
+      const part = parts.find((p) => p.key === key);
+      if (!part) return 1;
+
+      const visited = new Set<string>([key]);
+      let f = this.ownFunction(key);
+      for (const next of [
+        ...(part.parent !== null ? [part.parent] : []),
+        ...(part.innervatedBy ?? []),
+        ...(part.suppliedBy ?? []),
+      ]) {
+        f = Math.min(f, this.upstreamFunction(next, parts, visited));
+      }
+      return f;
+    }
+
+    /**
+     * The scalar, banded. `FUNCTION_BANDS` is ordered worst-last.
+     *
+     * ⚠ **The epsilon is load-bearing, not defensive.** Weights and
+     * thresholds are authored as round decimals that are not round in
+     * binary: `1 − 3 × 0.2` is `0.3999999999999999`, which lands a hair
+     * under the `impaired` edge and reads `failing`. A wound would then
+     * band differently depending on whether its severity arrived as one
+     * number or as a sum — which is exactly the sort of thing a player
+     * would notice and could never explain.
+     */
+    private bandOf(f: number): FunctionBand {
+      const EPS = 1e-9;
+      if (f <= 0) return 'lost';
+      if (f >= HARM_DEFAULTS.FUNCTION_BAND_FULL - EPS) return 'full';
+      if (f >= HARM_DEFAULTS.FUNCTION_BAND_IMPAIRED - EPS) return 'impaired';
+      return 'failing';
+    }
+
+    public functionAt(key: string): FunctionBand {
+      this.reconcileConditions();
+      return this.bandOf(this.functionScalar(key));
+    }
+
+    /**
+     * The continuous capacity read — `min` over governors × `mean` over
+     * servers. Exposed only as a band (see {@link capacity}); the limp
+     * needs the scalar, which is why it is separate.
+     */
+    private capacityScalar(key: BodyCapacity): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return 1;
+      const plan = self.getSpecies()?.getBodyPlan();
+      if (!plan) return 1;
+      let governed = 1;
+      let servedSum = 0;
+      let servedCount = 0;
+      for (const part of plan.getBodyParts()) {
+        if (part.governs?.includes(key)) {
+          // ⭐ MIN — one brain. Lose it and the capacity is gone; a second
+          // organ governing the same thing is a redundancy an author can
+          // write, and it correctly does NOT help.
+          governed = Math.min(governed, this.functionScalar(part.key));
+        }
+        if (part.serves?.includes(key)) {
+          // ⭐ MEAN — two legs. One gone is a hobble, not a halt.
+          servedSum += this.functionScalar(part.key);
+          servedCount += 1;
+        }
+      }
+      const served = servedCount > 0 ? servedSum / servedCount : 1;
+      return governed * served;
+    }
+
+    public capacity(key: BodyCapacity): FunctionBand {
+      this.reconcileConditions();
+      return this.bandOf(this.capacityScalar(key));
+    }
+
+    /**
+     * Whether the part behind `slot` can still close on something. The
+     * anatomy gate and the trauma gate, folded: a missing part scores 0 and
+     * a wounded one scores its function, so one read answers both.
+     */
+    public canGrip(slot: string): boolean {
+      const part = this.partForSlot(slot);
+      if (part === null) return true; // a slot with no anatomy behind it
+      return (
+        FUNCTION_BANDS.indexOf(this.functionAt(part)) <
+        FUNCTION_BANDS.indexOf('failing')
+      );
+    }
+
+    public canBearWeight(): boolean {
+      return (
+        FUNCTION_BANDS.indexOf(this.capacity('locomotion')) <
+        FUNCTION_BANDS.indexOf('lost')
+      );
+    }
+
+    public slotRefusalReason(slot: string): string | null {
+      const part = this.partForSlot(slot);
+      if (part === null) return null;
+      if (this.canGrip(slot)) return null;
+      if (this.bodyPartDeltas[part]?.missing === true) {
+        return `you no longer have that — ${part} is gone`;
+      }
+      // Name the worst wound in the way, wherever on the path it sits.
+      let worst: ActiveCondition | null = null;
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma') continue;
+        if (c.site !== part && !part.startsWith(`${c.site}.`)) continue;
+        if (worst === null || c.severity > worst.severity) worst = c;
+      }
+      const cause =
+        worst !== null
+          ? TRAUMA_BEHAVIOR[worst.type].describe(worst)
+          : 'the injury';
+      return `${part} cannot grip — ${cause}`;
+    }
+
+    /**
+     * Whether this body plan authors any part that GOVERNS `key`. The
+     * honest test for "does this body have one of those" — a plan with no
+     * brain is a data fact about that species, never a guard.
+     */
+    /**
+     * ⭐⭐ Does this body have a MISSING part that governs a life-critical
+     * capacity? A severed head takes the brain (`consciousness`); a future
+     * mangle could take the chest (`circulation` / `respiration`). The
+     * anatomy death floor. ⚠ `missing`, not `functionAt === lost`: a
+     * badly WOUNDED brain is the consciousness surface's job (it reads
+     * `unconscious`), and making a wound lethal here would double-count
+     * it. Losing the organ outright is the thing this catches.
+     */
+    private hasMissingVitalGovernor(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      const plan = self.getSpecies()?.getBodyPlan();
+      if (!plan) return false;
+      for (const part of plan.getBodyParts()) {
+        if (this.bodyPartDeltas[part.key]?.missing !== true) continue;
+        for (const cap of part.governs ?? []) {
+          if (VITAL_GOVERNED_CAPACITIES.has(cap)) return true;
+        }
+      }
+      return false;
+    }
+
+    private hasGovernorFor(key: BodyCapacity): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      const plan = self.getSpecies()?.getBodyPlan();
+      if (!plan) return false;
+      return plan.getBodyParts().some((p) => p.governs?.includes(key));
+    }
+
+    /** The `SlotSpec.bodyPart` behind a slot name, or `null`. */
+    private partForSlot(slot: string): string | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return null;
+      const spec = self
+        .getSpecies()
+        ?.getBodyPlan()
+        ?.getSlots()
+        .find((sp) => sp.name === slot);
+      return spec?.bodyPart ?? null;
+    }
+
+    // ---------- ⭐⭐ circulation (D11) ----------
+
+    /**
+     * ⭐⭐ **Blood pressure, derived from blood volume** — and the shape of
+     * the curve is the teaching.
+     *
+     * **Systolic holds, then falls.** Nothing moves until
+     * `SHOCK_COMPENSATED_LOSS` (15 %) is gone; past that it falls on
+     * `SHOCK_BP_SLOPE`. That plateau is ATLS class II, and it is the single
+     * most important fact about haemorrhage: *a patient can be seriously
+     * bled with a normal blood pressure right up until they are not.* A
+     * model that slid the pressure down smoothly would teach the opposite,
+     * and the opposite is what gets people killed.
+     *
+     * **Diastolic rises first, then falls with it.** Through the
+     * compensated phase vasoconstriction pushes the diastolic UP while the
+     * systolic holds, so the gap between them closes — a **narrowing pulse
+     * pressure**, which is the earliest sign there is and the first thing a
+     * clinician actually reads. Past the plateau both fall on the same
+     * slope. Dropping them together from the start would have been one
+     * line shorter and would have taught a simpler, false thing.
+     *
+     * **Shock spawns at 30 % and relieves at 25 %** (a hysteresis band, the
+     * thermal cascade's shape). The dying window opens at 36 %, so shock
+     * always precedes death by a real interval — about 75 seconds at an
+     * open bleed — which is what makes a medic able to matter.
+     *
+     * ⚠ Bloodless clades (no `bloodVolume` sign) fall through untouched.
+     */
+    private deriveCirculation(): void {
+      if (!this.hasVitalSign('bloodVolume')) return;
+      const D = HARM_DEFAULTS;
+      const bvBand = this.getVitalBand('bloodVolume');
+      if (!(bvBand.baseline > 0)) return;
+      const loss = Math.max(
+        0,
+        1 - this._bloodVolume.rawValue() / bvBand.baseline,
+      );
+      const past = Math.max(0, loss - D.SHOCK_COMPENSATED_LOSS);
+      const decompensation = D.SHOCK_BP_SLOPE * past;
+      // The compensated rise saturates at the plateau's edge and then
+      // stops climbing — vasoconstriction is already maximal.
+      const compensation =
+        D.SHOCK_DIASTOLIC_RISE *
+        (Math.min(loss, D.SHOCK_COMPENSATED_LOSS) / D.SHOCK_COMPENSATED_LOSS);
+
+      if (this.hasVitalSign('bloodPressureSystolic')) {
+        const base = this.getVitalBand('bloodPressureSystolic').baseline;
+        this.setVitalSign(
+          'bloodPressureSystolic',
+          Quantity.of(Math.max(0, base * (1 - decompensation)), 'mmHg'),
+        );
+      }
+      if (this.hasVitalSign('bloodPressureDiastolic')) {
+        const base = this.getVitalBand('bloodPressureDiastolic').baseline;
+        this.setVitalSign(
+          'bloodPressureDiastolic',
+          Quantity.of(
+            Math.max(0, base * (1 + compensation - decompensation)),
+            'mmHg',
+          ),
+        );
+      }
+
+      const shock = this.findAfflictionAt(
+        TemplatePaths.circulationHypovolemicShock,
+      );
+      if (loss >= D.SHOCK_LOSS_FRACTION) {
+        if (!shock) {
+          this.afflict({
+            kind: 'affliction',
+            templatePath: TemplatePaths.circulationHypovolemicShock,
+            stage: 0,
+            elapsed: 0,
+          });
+        }
+      } else if (shock && loss < D.SHOCK_RELIEF_FRACTION) {
+        this.relieve(shock);
+      }
+    }
+
+    /** The active affliction record at `path`, or `null`. */
+    private findAfflictionAt(path: string): AfflictionRecord | null {
+      for (const c of this.conditions) {
+        if (c.kind === 'affliction' && c.templatePath === path) return c;
+      }
+      return null;
     }
 
     // ---------- locomotion coupling (the limp) ----------
@@ -830,17 +1328,21 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public drainForLimp(): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isReserved(self) || !self.hasReserve('endurance')) return;
-      let severity = 0;
-      for (const c of this.conditions) {
-        if (c.kind !== 'trauma') continue;
-        if (c.type !== 'laceration' && c.type !== 'avulsion') continue;
-        // Locomotor sites only — a leg / foot wound hobbles; a hand cut
-        // does not. Foot keys (`body.leg.left.foot`) sit under `body.leg`.
-        if (!c.site.startsWith('body.leg')) continue;
-        severity += Math.max(0, c.severity);
-      }
-      if (severity <= 0) return;
-      const cost = HARM_DEFAULTS.LIMP_DRAIN_PER_SEVERITY * severity;
+      // ⭐⭐ **The limp is now the locomotion capacity, not a wound sum.**
+      //
+      // It used to add up laceration + avulsion severity at `body.leg.*`,
+      // which had three separate holes: a FRACTURED leg cost nothing (the
+      // wrong wound types), a MISSING leg cost nothing (a severed part
+      // carries no wound — the avulsion that took it heals and clears),
+      // and a wound to the spine that paralysed the leg cost nothing
+      // (the site was not `body.leg.*`). One read over the capacity
+      // closes all three, because every one of them lowers it.
+      const shortfall = 1 - this.capacityScalar('locomotion');
+      if (shortfall <= 0) return;
+      const cost =
+        HARM_DEFAULTS.LIMP_DRAIN_PER_SEVERITY *
+        HARM_DEFAULTS.LIMP_SHORTFALL_SCALE *
+        shortfall;
       self.adjustReserve('endurance', Quantity.of(-cost, '%'));
     }
 
@@ -881,8 +1383,79 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getParts().find((p) => p.key === key) ?? null;
     }
 
-    public getInjuredParts(): ResolvedBodyPart[] {
+    public getMissingParts(): ResolvedBodyPart[] {
       return this.getParts().filter((p) => p.missing);
+    }
+
+    /**
+     * ⭐⭐ **The sever** — the one writer of `BodyPartDelta.missing`, which
+     * shipped as a persisted field nothing ever set.
+     *
+     * Three things happen, in order:
+     *
+     * 1. **The subtree goes, not the part.** Severing `body.arm.left` marks
+     *    `body.arm.left.hand` missing too — anatomy is a tree and a hand
+     *    with no arm is not a thing a body can have. The walk is transitive
+     *    over `BodyPart.parent`.
+     * 2. **What the part held falls.** Every slot whose `SlotSpec.bodyPart`
+     *    lies in the severed subtree is vacated and its occupants moved to
+     *    wherever the body is — a severed hand drops its sword, it does not
+     *    keep gripping it. `Slotted.canOccupy` already refuses *new*
+     *    occupancy of a missing part's slots; nothing until now evicted the
+     *    occupancy that was already there.
+     * 3. **It persists for free.** `bodyPartDeltas` is already
+     *    `{persistent, runtimeState}`, so the loss rides
+     *    `PersistableApi.capture` through a logout and into a corpse with
+     *    no new storage and no migration.
+     *
+     * Idempotent: severing an already-missing part is a no-op. Unknown keys
+     * are ignored — a body plan that does not have the part cannot lose it.
+     */
+    public severPart(key: string): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const plan = self.getSpecies()?.getBodyPlan();
+      if (!plan) return;
+      const parts = plan.getBodyParts();
+      if (!parts.some((p) => p.key === key)) return;
+
+      // (1) the part and every descendant — a fixpoint over `parent`, so
+      // depth is irrelevant and the authored order does not matter.
+      const severed = new Set<string>([key]);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const p of parts) {
+          if (severed.has(p.key)) continue;
+          if (p.parent !== null && severed.has(p.parent)) {
+            severed.add(p.key);
+            grew = true;
+          }
+        }
+      }
+      for (const k of severed) {
+        const delta = this.bodyPartDeltas[k] ?? {};
+        delta.missing = true;
+        this.bodyPartDeltas[k] = delta;
+      }
+
+      // (2) release what the lost slots were carrying.
+      if (!MixinApi.isSlotted(self)) return;
+      const destination = MixinApi.isContainable(self)
+        ? self.getContainer()
+        : null;
+      for (const spec of plan.getSlots()) {
+        if (spec.bodyPart === undefined) continue;
+        if (!severed.has(spec.bodyPart)) continue;
+        for (const occupant of [...self.getOccupants(spec.name)]) {
+          self.vacate(spec.name, occupant);
+          // A body with nowhere to be (mid-construction, a test fixture)
+          // simply drops the reference — the slot is still released.
+          if (destination !== null && MixinApi.isContainable(occupant)) {
+            ContainmentApi.move(occupant, destination);
+          }
+        }
+      }
     }
 
     public isSlotDisabledByAnatomy(slot: string): boolean {
@@ -955,10 +1528,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             );
             break;
           }
-          // `capability` and `expression` are DERIVED READS — consulted
-          // by `isSlotImpairedByCondition` and `expressionSuppression`,
+          // `function` and `expression` are DERIVED READS — consulted by
+          // `functionAt` / `capacity` and by `expressionSuppression`,
           // never integrated. Listed so the switch stays total.
-          case 'capability':
+          case 'function':
           case 'expression':
             break;
         }
@@ -1003,35 +1576,18 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public isSlotImpairedByCondition(slot: string): boolean {
-      // Same slot→part resolve as the anatomy gate, but the disqualifier
-      // is an active fracture (above the impair threshold) sitting at the
-      // slot's `bodyPart`. A derived read — no stored "impaired" flag; the
-      // affordance returns the moment the fracture heals/clears.
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isOrganism(self)) return false;
-      const spec = self
-        .getSpecies()
-        ?.getBodyPlan()
-        ?.getSlots()
-        .find((s) => s.name === slot);
-      const part = spec?.bodyPart;
-      if (!part) return false;
-      return this.conditions.some((c) => {
-        if (c.kind !== 'trauma' || c.site !== part) return false;
-        // ⭐ The generalized rule: a trauma type whose behaviour DECLARES
-        // a `capability` effect takes the affordances of the part it sits
-        // on, above its declared severity. The fracture rule, made
-        // available to every wound type instead of hard-coded for one.
-        for (const e of TRAUMA_BEHAVIOR[c.type]?.signature ?? []) {
-          if (e.kind !== 'capability') continue;
-          if (e.disables !== 'slots-at-site') continue;
-          if (c.severity >= e.aboveSeverity) return true;
-        }
-        // ⭐ No special case left. Fracture declares its own capability
-        // term on `TRAUMA_BEHAVIOR` like every other type — the rule is
-        // the table's, not this method's.
-        return false;
-      });
+      // ⭐⭐ One read, and no rule of its own: the slot is impaired exactly
+      // when the part behind it cannot grip.
+      //
+      // This was a boolean cliff — a wound either declared a `capability`
+      // effect and crossed its threshold, or the slot was perfectly fine.
+      // Two wounds that each sat just under the line were free, and a
+      // wound on the ARM never touched the hand's slot at all. The
+      // function axis fixes both for nothing: it composes along the path
+      // and it composes across wounds. A missing part folds in too (it
+      // scores 0), so this and `isSlotDisabledByAnatomy` now answer from
+      // the same place.
+      return !this.canGrip(slot);
     }
 
     // ---------- conditions (both kinds, one collection) ----------
@@ -1323,12 +1879,77 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // whole point of W8b: one owner for `stage`, not two.
       this.reconcileBurdenStages();
 
+      // ⭐⭐ **Circulation runs here too, and for the SAME reason** —
+      // above the clock guard, because it needs no clock.
+      //
+      // Blood pressure is a live READ of how much blood is in the body
+      // right now, not a counter integrating over elapsed time. The plan
+      // put this in the bleed-floor tail; the tail sits behind the clock
+      // guard AND the all-empty guard, so a body that had just been bled
+      // would have read a textbook 120/80 until enough game-time passed —
+      // the exact trap the burden-law comment above was written about.
+      //
+      // ⚠ It is a derived WRITE, not a new arm: nothing is stored that
+      // could fall out of sync, and there is nothing to re-arm after an
+      // absence. `check-condition-arms` still reads 5.
+      //
+      // ⚠⚠ **The reentrancy guard is armed by hand here, and it has to
+      // be.** `_reconcilingConditions` is not set until well below this
+      // point, so everything above it runs unguarded — and this derive
+      // WRITES (two vital signs, and an affliction at the threshold),
+      // where the burden law beside it only reads. Each of those writes
+      // re-entered `reconcileConditions`, and the inner pass advanced
+      // every `tickedAt` stamp to now; the outer pass then found zero
+      // elapsed everywhere and integrated nothing. Symptom: 22 game-hours
+      // of a watered body restoring 6 ml of plasma and a shock row
+      // draining no endurance at all — every time-integrating arm in the
+      // body silently doing nothing, with no error.
+      this._reconcilingConditions = true;
+      try {
+        this.deriveCirculation();
+      } finally {
+        this._reconcilingConditions = false;
+      }
+
       // In-session game-time; `null` when no world clock is running
       // (pre-boot / a unit test that hasn't bootstrapped one) → idle.
       if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
         return;
       }
       const nowS = WorldClockApi.getNow().rawValue();
+
+      // ⭐⭐ **Anatomy → death floor**, and it sits ABOVE the all-empty
+      // guard on purpose. A severed part writes no vital sign and its
+      // wound may have clotted to nothing, so a body whose only problem is
+      // a missing head would otherwise reach the guard, find no active
+      // condition, and return whole-signed and immortal — the exact
+      // W-A4 trap (the bleed floor was unreachable the same way).
+      //
+      // A part that GOVERNS a life-critical capacity (consciousness /
+      // circulation / respiration) and is now MISSING ends the body: brain
+      // gone means no breathing drive and no airway, not merely
+      // unconscious. `beginDying`, not instant death, so the two-stage
+      // discipline holds — a bystander's stroke can still be stayed.
+      //
+      // ⚠ Gated on having ANY delta first, so an untouched body (which is
+      // almost every body, almost every read) pays a single map-size
+      // check and skips the plan walk entirely.
+      if (
+        Object.keys(this.bodyPartDeltas).length > 0 &&
+        MixinApi.isOrganism(self) &&
+        !self.isDead() &&
+        this.hasMissingVitalGovernor()
+      ) {
+        this._reconcilingConditions = true;
+        try {
+          this.beginDying(
+            'decerebration',
+            HARM_DEFAULTS.VITAL_ORGAN_LOSS_DYING_WINDOW_SEC,
+          );
+        } finally {
+          this._reconcilingConditions = false;
+        }
+      }
 
       const traumas = this.conditions.filter(
         (c): c is Trauma => c.kind === 'trauma',
@@ -1594,6 +2215,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             );
           }
         }
+
       } finally {
         this._reconcilingConditions = false;
       }

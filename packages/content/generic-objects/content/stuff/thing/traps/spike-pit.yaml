@@ -22,4 +22,12 @@ data:
   delivery:
     channel: point
     energy: 3
-    siteSelector: [body.leg.left.foot, body.leg.right.foot]
+    # ⭐⭐ **The torso is in the list now, and it is the interesting one.**
+    # You do not step delicately onto a spike pit — you FALL into it, and
+    # what a fall onto stakes takes is the gut. With the depth ladder
+    # shipped, a 3-energy point wound to the torso can now reach the liver
+    # under it: an invisible, undressable, bleeding wound that a bandage
+    # will not touch. That is the pit's whole character, and until this
+    # line it could only ever hurt your feet.
+    siteSelector:
+      [body.torso, body.leg.left.foot, body.leg.right.foot]

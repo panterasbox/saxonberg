@@ -564,6 +564,16 @@ Related: a guard that scans source can pass by **matching nothing**.
 Assert what it found (`expect(inspected).toBe(N)`), or a rename
 silently reduces it to `expect([]).toEqual([])`.
 
+> ⚠ **Read a design mock by rendering it, never by extracting its text.**
+> The `docs/design_handoff/*.dc.html` mocks were once audited by stripped
+> text, which preserves *what words appear* and destroys *how they are
+> arranged* — a one-page form was built as a five-screen wizard, a banded
+> hero as a two-column rail, a three-column workspace as a single centred
+> column, and all three were caught only when the built screens were
+> looked at. Render the mock and compare by eye; pin a phase flag in a
+> scratch copy to reach panels behind a step. Reading the source is a
+> supplement, never the audit (graduated from the client slate, 2026-09).
+
 ## ⭐⭐ Two tiers: WIRE and RENDER
 
 Testing splits in two, and the split is about what a test is entitled to
@@ -598,6 +608,16 @@ typing. They paid the full Playwright cost for none of the benefit.
    `expectNote(r, 'controller-rejected', { reason })`. **Never assert a
    refusal by its prose**: prose changes with a copy edit, and the
    render tier checks wording once, in one place.
+   ⚠ **A FORCED command's envelope is not the answer to yours.** The
+   runtime fires commands on the giver's behalf (the auto-`sense` on
+   arrival, a brain, a dialogue effect), each with its own envelope,
+   and a forced one fires *inside* the typed command that caused it —
+   so the sense's `[]` arrived before `run`'s own and the harness,
+   correlating by order, read it as `run`'s outcome and handed `run`'s
+   real envelope to the NEXT command. The nutrition-and-fitness drive
+   saw a `pace-broken` note one command late for this reason. The
+   server stamps `forced: true` on those envelopes and `Session.receive`
+   skips them (2026-09-18).
 2. **`mql-query` — STATE.** A one-shot MQL read over the same socket,
    projected over the same `subscribableFields` the card surface
    renders, resolved AS THE PLAYER — so perception, concealment and

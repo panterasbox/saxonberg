@@ -319,6 +319,8 @@ export default class TeleportController extends CommandController<TeleportModel>
       actor: giver,
       spellId: TELEPORT_SPELL,
       durationMs: (prep.castSeconds ?? 3) * 1000,
+      // A cast tires you like work (arcane-science's ~300 W of shaping).
+      effortW: 300,
       onComplete,
       onAbort: (_reason: AbortReason): void => {
         MessageApi.scene(giver)

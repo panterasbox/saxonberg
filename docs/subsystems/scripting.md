@@ -150,6 +150,17 @@ raw block/condition args. `each` binds `$it` per item. `def name ($p) {…}`
 uses **simple named positional params** (no implicit `it`, no rest /
 defaults) and registers a `ScriptDef` (params + body + captured scope).
 
+### Growing the language
+
+The builtin set (`lib/script/builtins.ts`'s `SCRIPT_BUILTINS`) is
+deliberately fixed and small — it's the interpreter-intrinsic vocabulary
+that needs raw, unevaluated block/condition args (control flow, `def`,
+the temporal ops). **Growing the language means adding affordance verbs
+over the bus** (an ordinary YAML command, dispatched and gated like any
+other), not growing this set. A new intrinsic builtin is rare and
+authored out-of-band, only when a form genuinely needs lazy args the bus
+dispatch path can't give it.
+
 ## Coroutines: scripting in game-time (P5)
 
 A script that says `wait` must not block the prompt. The **`Coroutine`**

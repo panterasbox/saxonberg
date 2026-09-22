@@ -45,3 +45,15 @@ args:
     # The plant OR the ground it grows in — naming a bed resolves to its
     # ripest growing occupant (the put.yaml OR-within-an-entry shape).
     requires: [VisibleMixin, GrowingMixin|CultivableMixin]
+  # ⭐ WHICH TOOL — DECLARED, not hunted for (`lint:instrument-args`).
+  # Only a plant that names a `harvestTool` reads it (a coppice stool
+  # is cut with a billhook; a carrot is pulled by hand and ignores
+  # whatever bound). `cutting` is the one kind any shipped plant asks
+  # for today; a plant wanting another kind names its tool with `with`.
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.cutting]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

@@ -1,11 +1,24 @@
 # Saxonberg city slate — the seat of government, deliberately unfurnished
 
-> **Status: UNBUILT** — no City of Saxonberg locality pack exists; the
-> lounge is the only `/world` root carrying the name.
+> **Status: UNBUILT** — no City of Saxonberg locality pack exists
+> (verified 2026-09-19: the `/world` roots are `eternal · hearthworks ·
+> hearts-delight · terminus · newbie-wilds · rejection · lounge · moor ·
+> practicum · substation`; `OFFICE_APPARATUS` is still the five seats —
+> no `record-archivist`; no `Government` row for the city; no
+> office-keyed tenure anywhere in the residence spine). The substrates it
+> is content over all ship: Locality-declared jurisdiction + `Government`
+> rows (`civics.md`), the committee (`access.md § The committee`),
+> parcel title + the closed six, the TPA network. The stewardship slate
+> it depends on is on master and PARTIAL — land use shipped, **the
+> allowance cascade (the second grant) has not**.
 > **Left:** the Locality + parcel spine · the residential district and
-> its launch stock · the PM's Residence (office-keyed tenure) · the three
-> chamber halls + the Central Bank · the TPA node · the municipal
-> Government row
+> its launch stock (six units) · the four leasable storefront shells ·
+> the second Compact grant (waits on the stewardship cascade) · the
+> PM's Residence (office-keyed tenure — the one novel mechanic) · the
+> three chamber halls + the Central Bank · the Courthouse (no chambers)
+> + the Archive · the `record-archivist` sixth office · the TPA node ·
+> the municipal Government row + the interim `core`-committee sanction ·
+> the empty plinth · the reserved prison parcel
 > **Size:** a build
 
 **Captured 2026-08-01.** The City of Saxonberg: a new TPA destination,

@@ -2,10 +2,20 @@
 
 > **Status: UNBUILT** — the parcel/access exclusion machinery it inverts
 > ships, and mortality's `Incorporeal` lever is reserved for it; nothing
-> of confinement exists.
-> **Left:** `PrisonMixin` (a locality you cannot leave) · the three
-> enforcement tiers in content · the federal facility on its reserved
-> Saxonberg site · terms and the appeal path
+> of confinement exists. Code-verified 2026-09-19: no `prison` / `gaol` /
+> `PrisonMixin` / custody book anywhere under `packages/server/src/mud`,
+> any pack's `src/` or `schema/` (every `custody` hit is chattel
+> custody); no courts / venire primitive; the Saxonberg parcel is still
+> *RESERVED — not built* (`saxonberg-city-slate.md:231`).
+> **Left:** `PrisonMixin` (a locality you cannot leave — the boundary +
+> the custody book, and nothing else) · the three enforcement tiers in
+> content · cells as provisioned shelters on the residence spine ·
+> interior law as the prison's own jurisdiction (no `securityLevel`) ·
+> visitation + appeal over the courts primitive (itself unbuilt) · the
+> federal facility on its reserved Saxonberg site · terms, fines and the
+> appeal path · Q1–Q6 (diegetic prosecution of Compact crimes · what
+> confinement restricts beyond movement · interim committal authority ·
+> escape · fines-vs-terms · mixin placement)
 > **Size:** a build
 
 **Captured 2026-08-01**, out of the Saxonberg city design session
@@ -22,7 +32,8 @@ confinement inverts), [accountability.md](../../subsystems/accountability.md)
 (the harm-consent ledger custody rides),
 [banking.md](../../subsystems/banking.md) (fines),
 [time.md](../../subsystems/time.md) (terms), the courts/venire
-primitive (the appeal path).
+primitive (the appeal path) — now [courts-slate](./courts-slate.md)
+(2026-09-18).
 
 ## The three enforcement tiers — and the guardrail above all of them
 
@@ -128,6 +139,11 @@ Alcatraz-shaped answer the requirements pass can take or leave).
    *honest, visible face* — a place the consequence is legible —
    rather than a role-play destination with trials. Unresolved;
    raised at capture and deliberately left open.
+   *(Pointer, cluster pass 2026-09-21: [courts-slate](./courts-slate.md)
+   puts the Compact's Art. VI court on the same substrate with `/compact`
+   as its jurisdiction, disbarment on its docket list — a partial answer
+   for code-trust abuse; record-tampering and conservation fraud remain
+   as asked.)*
 2. **What does confinement restrict beyond movement?** Comms
    especially — implant/aether reach from a cell (the aether is the
    internet; does the prison have wifi?), market access, forum

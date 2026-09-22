@@ -11,25 +11,6 @@
 > graduate-to-top-level-doctrine call (user's)
 > **Size:** a wave
 
-> ## ⭐ STAGE A SHIPPED (metal chain, 2026-09-02) — the first real field
->
-> `trade-mining`'s `Deposit` is this pattern's first production instance,
-> and it holds: a **total function under a sparse graph** (every cell has
-> a hardness, a mineral and a grade; a handful are authored pins), the
-> **seeded-not-drawn** rule (`Deposit.seedFor(address)` — FNV-1a over the
-> covering Locality's address, stored nowhere, so the same cell answers
-> the same across boots and across an eviction round-trip), and one
-> resolved read folding **pin over lean over procedural**.
->
-> ⭐ The slate's own *"the price of a sample decides scenery-vs-career"*
-> is what the survey channels became: a bearing costs an instrument and a
-> walk, dip is unobtainable from the surface at all, and competence sets
-> the ERROR BAND and never the number.
->
-> **Kept, not retired.** The pattern is general and this is one consumer;
-> weather is another, and the slate's unbuilt space (fields that are not
-> geological, and the discovery-slate seam it names) is untouched. See
-> [mining.md](../../subsystems/mining.md).
 
 > **Captured 2026-08-31**, out of the metal-chain design session, when the
 > user noticed the mine was *"modelling content on negative space — the
@@ -58,27 +39,9 @@ Substrate: [weather](../../subsystems/weather.md) ·
 
 ---
 
-## The shape, already shipped twice
-
-**Weather** ([weather.md](../../subsystems/weather.md)) —
-
-> *"weather stores no state. `weatherAt(time, locality)` is a pure
-> deterministic function — no simulation, no tick, no stored weather
-> state. The same `(time, locality)` always yields the same weather;
-> **tomorrow is computable today.**"*
-
-**Foraging stock** ([discovery-slate](../builds/discovery-slate.md)) —
-
-> *"Nothing spawns. Nothing ticks. The world does not populate itself — it
-> **computes what is there when you arrive** — so an unexplored continent
-> costs exactly nothing to have."*
-
-**And now the mine's geology** — hardness, ore grade and feature seeds as
-a function of `(seed, x, y, z)`, with only mutation stored
-([mining-slate § *The mine's machinery*](../builds/mining-slate.md)).
-
-Three systems, one shape. That is past coincidence, and the third one
-inverts something the first two did not.
+*(The three shipped instances → [weather.md](../../subsystems/weather.md),
+[mining.md](../../subsystems/mining.md) § *The geology field*,
+[soil.md](../../subsystems/soil.md) § *Ground character*.)*
 
 ---
 
@@ -137,63 +100,9 @@ been named.
 
 ## Where a field lives — three layers, all shipped shapes
 
-The user's question was *"is the thing holding these values a Document, an
-Idea, or something else?"* **Not a Document** — it is neither editable
-prose nor path-addressed content. Three layers instead:
-
-| Layer | What | Shipped precedent |
-|---|---|---|
-| **The model** — how this *kind* of ground/sky/place is put together: the lode's strike and dip, the zoning depths, the yield table | a **pure-data `Idea`**, read from `template.data`, never cloned live | `Biome`, `Material`, `Government` |
-| **The instantiation** — *this* place's version | the **`Zone`** (or `Locality`) names the model and carries the authored overrides | `Biome`'s outward-walking chain resolve; Zone field inheritance; discovery-slate's *"author the biome, override the exception"* |
-| **The values** — what is at this exact point | **computed, never stored** | `weatherAt`; `stock(T)` |
-
-And the vocabulary the values are drawn from is **Materials** — the field
-says *"0.55 hematite in slate,"* and hematite and slate are `Material`
-Ideas that already exist. **Nothing new enters the taxonomy.**
-
-### ⭐⭐ The seed is DERIVED FROM IDENTITY, not authored
-
-From the shipped implementation (`WeatherLogic.localitySeed`): the
-per-locality seed is **the covering Locality's claimed address prefix,
-hashed (FNV-1a) and XOR'd with a global base seed**; no covering Locality
-falls back to the global seed alone. **No seed field is stored anywhere.**
-
-> **A place's field is a function of what the place *is*.** Name it and it
-> has weather; rename it and it has different weather.
-
-That is a better answer than the "zone names the Idea *plus a seed*" this
-slate first reached for. Authors do not manage seeds at all — they get
-control through the override tiers below, which are legible, and never
-through a magic number, which is not.
-
-### The precedence ladder, as shipped
-
-`WeatherLogic` resolves in three tiers, and the ordering is the pattern:
-
-1. **Authored hard pin** — resolved by an **outward containment walk**
-   with a depth cap (*"defensive, like biome's"*). *This place is always
-   under storm.* Outranks everything.
-2. **Authored soft lean** — a `ClimateLean` on the covering Locality that
-   **weights the procedural branch** rather than replacing it. The code is
-   explicit that *"an authored hard pin always outranks it."*
-3. **The procedural value** — seed + position.
-
-⭐ A field wants **both** override tiers. The hard pin says *this specific
-place is exceptional*; the soft lean says *this whole region tends
-this way*. The mine's analogue is exact: an authored ore pocket is a pin,
-and *"this district's ground runs rich in copper"* is a lean.
-
-### ⭐⭐ The invariant that makes overrides safe
-
-Weather's spine invariant, and it generalizes verbatim:
-
-> *"every consumer reads the ONE resolved state
-> (`WeatherApi.resolveWeatherFor`), **never the procgen field directly** —
-> so authored and modelled rain are indistinguishable downstream."*
-
-**An authored ore pocket must feed the same assay as a computed one.** If
-any consumer can tell them apart, the override tier has become a second
-system and the field is no longer one thing.
+*(SHIPPED → mining.md § *The geology field*: the three layers, the
+address-derived seed, pin over lean over procedural, one resolved read;
+weather.md for the reference.)*
 
 ---
 

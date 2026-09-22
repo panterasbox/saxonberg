@@ -1,13 +1,17 @@
 # Affordance & suggestion slate — what should this player be offered?
 
-> **Status: PARTIAL** — § 3 and § 6 shipped, better than proposed:
-> `requires:` went on the command def (deleting ~34 validator files) and
-> is CI-gated by `lint:arg-kinds`
-> → [command-spec.md](../../subsystems/command-spec.md)
+> **Status: PARTIAL** — the kind axis (`requires:` on the command def),
+> the three-axis table (kind/relation/state), and the two-tier
+> menu-honesty/dispatch-hygiene gate all shipped, better than proposed
+> → [command-spec.md § `requires:`](../../subsystems/command-spec.md)
+> and [command-routing.md § The gate reports two
+> tiers](../../subsystems/command-routing.md)
 > **Left:** the generative `narrow()` direction (no consumer yet) · the
 > relational axis still only says no · a structured reason on a disabled
-> row · server-side command history · reporting menu-honesty and
-> dispatch-hygiene as two tiers
+> row · server-side command history (retention/privacy/persistence all
+> undecided) · what a "context" is concretely for a target-less caller
+> (CMS, palette) · where relevance ranking lives (server vs
+> server-scores/client-orders)
 > **Size:** a wave
 
 **Captured 2026-08-10**, out of the MR review of the client-server
@@ -16,10 +20,6 @@ surface build (waves 5–6, "affordance honesty"). That build validated
 room. Reviewing it surfaced that **the menu is one consumer of a much
 larger question**, and that the build had solved a fragment while
 borrowing the whole question's justification.
-
-> **Status: design surface, not a build.** Nothing here is scoped. The
-> one cheap, immediately-useful piece is § 6; everything else wants its
-> own requirements + plan.
 
 Related: [command-routing.md](../../subsystems/command-routing.md)
 (the affordance resolver), [command-spec.md](../../subsystems/command-spec.md)
@@ -69,7 +69,10 @@ keeps history — client-side (§ 5).
 ⚠ **Candidacy is already good and should not be redesigned.** The
 recency stack is the answer to "where does a verb come from", it already
 attributes `commandSource`, and content already contributes verbs
-through it. This slate adds stages around it, not under it.
+through it — see
+[command-routing.md § Why discovery is a per-giver recency
+stack](../../subsystems/command-routing.md). This slate adds stages
+around it, not under it.
 
 ## 3. ⭐⭐ The blocker: a validator can only say "no"
 
@@ -86,60 +89,15 @@ satisfy it**. So:
   encode — a second taxonomy, which this project has now refused three
   times.
 
-### ✅ Half of this is now BUILT — `requires:` on the slot
-
-⚠ **This section originally proposed a `ValidatorMeta` interface** —
-bolt an `axis` and a `requires` token onto each of the ~72 validator
-files so the gate could read them. That was working around a missing
-declaration instead of adding one. What shipped instead:
-
-```yaml
-- name: target
-  type: object
-  requires: SealableMixin                     # must compose it
-  requires: [VisibleMixin, ContainableMixin]  # a list is AND
-  requires: CombustibleMixin|FurnaceMixin     # `|` is OR
-  requires: class:Agent                       # the one class escape
-  requires: any                               # deliberately unconstrained
-```
-
-The kind axis moved **onto the command def**, and the ~34 validator
-files that were one `MixinApi.isX` and one sentence are gone — the
-framework synthesises the check at spec-load and prepends it to the
-slot's chain. The refusal sentence lives on the mixin (`MixinRefusals`
-in `lib/mixin.ts`).
-
-What that closed, from this section's original list:
-
-- ✅ **The hardcoded six-name list is gone** from
-  `scripts/check-arg-kinds.ts`. The script reads one field.
-- ✅ **The declaration is checkable.** A mixin name resolves against the
-  `Mixins` registry or the spec does not load. `targetKind: any` was an
-  unfalsifiable promise and **three of its 51 uses were wrong** (`scry
-  --with`, `plant seed`, `wallet freeze card` — each with a real kind
-  refusal in its controller); `plant` was fixed by extracting
-  `PlantableMixin`, and the other two were bookkeeping-only.
-- ✅ **The two-tier report** (§ 4) ships.
-- ✅ **The `state` axis is named** in
-  [command-spec.md](../../subsystems/command-spec.md), not left as a
-  comment on one validator.
-
-### The three axes, and why the third one matters
-
-| Axis | Constrains | Where it lives | Menu behaviour |
-|---|---|---|---|
-| **kind** | what the target **is** | ✅ `requires:` on the slot | stable, cacheable; the only axis a menu can safely precompute |
-| **relation** | the **viewer's relationship** to it — `canReach`, `mustBeInInventory` | a validator | volatile; recomputed every resolve |
-| **state** | its **current condition** — already open, not lit, no charge | the **controller**, permanently | ⚠ deliberately excluded |
-
-⚠⚠ **The `state` axis was a finding from the affordance build that was
-only half-recorded.** The ignition gate deliberately asks "does fire
-apply to this" and never "is it currently lit" — because a thing unlit
-now is ignitable a second later, and a menu must not freeze that into a
-disabled row. That call was written as a one-off comment on one
-validator. Naming it as an axis is what explains, generally, **why some
-refusals belong in controllers permanently** and are not a gap in the
-sweep.
+**The kind axis shipped and closed its half** — `requires:` on the
+command-def slot, the three-axis table (kind/relation/state), the
+`state`-axis exclusion rationale, and the two-tier menu-honesty/
+dispatch-hygiene gate are all now the documented shape:
+[command-spec.md § `requires:` — every object field states what it
+accepts](../../subsystems/command-spec.md) and
+[command-routing.md § The gate reports two
+tiers](../../subsystems/command-routing.md). What follows is what that
+did **not** close.
 
 ### ❌ What `requires:` did NOT close
 
@@ -157,35 +115,12 @@ sweep.
   it discards that and returns prose. Cheap to add when a client wants
   it.
 
-## 4. ⚠ Scope: the menu sees less than you think
+## 4. Scope of the menu gate — shipped
 
-`resolveAffordancesImpl` considers **verb-level object positionals
-only**:
-
-- **options are excluded deliberately** — `cd --mql` would otherwise put
-  every shell verb in the menu of every object in the world;
-- **subcommand args are excluded structurally** —
-  `CommandDefinition.args` is empty for a subcommanded verb.
-
-Measured: **111** fields the menu can ever see, against **157**
-object-typed fields in the tree. So ~46 fields (15 options, ~31
-subcommand args) are validated at dispatch and are **invisible to the
-menu**.
-
-⭐ This resolves a discrepancy the affordance build flagged as unknown:
-its requirements measured **112** and the gate measured **157**. The
-requirements were counting the *menu-relevant* set and were right to.
-
-**Two different gates are hiding in one number:**
-
-| | Scope | Premise |
-|---|---|---|
-| **menu honesty** | verb-level object positionals (~111) | a verb offered against a target it cannot act on is a false figure |
-| **dispatch hygiene** | every object-typed field (157) | `scope:` is a search hint, not a gate, so any arg reaching a controller should declare what it accepts |
-
-Both are legitimate. They are **not the same claim**, and the affordance
-build justified the second with the first's argument. Any future gate
-should report them as two tiers.
+The menu-honesty-vs-dispatch-hygiene split this section proposed
+shipped as the arg-kinds gate's two reported tiers; see
+[command-routing.md § The gate reports two
+tiers](../../subsystems/command-routing.md).
 
 ## 5. Command history — server-side
 
@@ -198,7 +133,7 @@ it has to move server-side, and that is a real decision, not plumbing.
   history is a semantic decision and cannot live in the client;
 - it must survive reconnect, device change, and the multiplexed
   connections a single Avatar can hold;
-- suggestion has to be **viewer-filtered** (§ 7), and only the server
+- suggestion has to be **viewer-filtered** (§ 6), and only the server
   can filter honestly;
 - scripting, macros and "do that again" all want the same record.
 
@@ -232,19 +167,7 @@ better; accountability already has `accountability_events`, provenance
 has `authoring_events`, and merging the three would give one store three
 retention policies and three privacy models.
 
-## 6. ✅ The one cheap piece — BUILT
-
-This section proposed `ValidatorMeta` on the validators. **What shipped
-was better and is described in § 3**: the kind axis went onto the
-command def as `requires:`, which deleted ~34 validator files instead of
-annotating them, and made the declaration checkable rather than merely
-readable.
-
-The remaining cheap piece, if a consumer appears: **let the synthesised
-check return a structured reason** alongside its sentence. It already
-knows which mixin was missing.
-
-## 7. Cross-cutting constraints
+## 6. Cross-cutting constraints
 
 - ⚠⚠ **Every source DELETES; nothing is present-and-flagged.** The
   resolver already follows the honest-fog rule. Suggestion is *more*
@@ -265,20 +188,21 @@ knows which mixin was missing.
   watched. A suggester keys presentation off mode and relevance off
   activity.
 
-## 8. Open questions
+## 7. Open questions
 
-1. ~~Does the two-tier gate (§ 4) become two scripts, one script with
-   two reports, or one number plus a documented caveat?~~ **Answered:**
-   one script, two reports, both gating.
-2. Is the generative direction (filter a candidate set by `requires:`
+*Q1 (the two-tier gate's shape) resolved: one script, two reports, both
+gating — [command-routing.md § The gate reports two
+tiers](../../subsystems/command-routing.md).*
+
+1. Is the generative direction (filter a candidate set by `requires:`
    rather than judging one) worth building before a suggester exists?
    The declaration now makes it *possible*; nothing asks for it yet.
    The relational validators — the ones a suggester most needs to
    generate from — are still rejective and are the harder half.
-3. What is a "context" concretely — a bag the caller fills, or a resolved
+2. What is a "context" concretely — a bag the caller fills, or a resolved
    object the server composes from the Interactive? The second is safer
    (the client cannot claim a focus it does not have) and less flexible.
-4. Does relevance ranking live server-side entirely, or does the server
+3. Does relevance ranking live server-side entirely, or does the server
    ship scored candidates the client orders? The zero-semantics rule
    says the former; latency may argue the latter.
-5. History retention, privacy and persistence (§ 5) — all open.
+4. History retention, privacy and persistence (§ 5) — all open.

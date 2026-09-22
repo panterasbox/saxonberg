@@ -1,0 +1,30 @@
+# The GYM archetype — ⭐ one archetype for every gym: the hall of machines,
+# the corner of a dorm room with a bar on the floor, the office with a
+# mat behind the door. No `industry` (no recipe makes a gym; a room
+# archetype is residue all the way down, like the bedroom beside it), so
+# `survey` reports it in any room, and a room answers "a gym" exactly
+# when something in it is a load you can lift, a pace you can hold, or
+# a surface you can work on.
+#
+# Two slots today — one of the two FAMILIES of training, plus the floor:
+#   - `load` — a thing that offers `load` (a barbell, a sandbag, a
+#     mason's stone): the overload that builds muscle. The smith's bar
+#     is the exemplar (`/trade/smithing/thing/barbell`).
+#   - `mat` — any surface: the floor you stretch, plank and press on.
+#
+# ⚠ The `pace` slot (a treadmill, a rower, a wheel — the sustained work
+# that builds wind) is NOT here yet, and `lint:capabilities` is why: an
+# archetype need is a REQUIREMENT, and a kind nothing in the world
+# offers is a requirement nobody can ever satisfy. The slot lands with
+# the first `pace` device (`{ key: pace, needs: { tool: pace } }`, one
+# line); until then the run on the lane is the sustained work.
+#
+# Reported, never enforced: a room with none of these is a room, not an
+# error; a bar dropped on a dorm floor makes it meet the load slot with
+# no code and no second archetype. No `default:` on any slot — the gym
+# does not furnish itself.
+archetypeId: gym
+label: a gym
+capabilities:
+  - { key: load, needs: { tool: load } }
+  - { key: mat, needs: { surface: true } }

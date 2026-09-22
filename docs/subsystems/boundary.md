@@ -56,7 +56,10 @@ precedent). the `Lock` value class (`api/credential.ts`, the unified credential
 surface) is the callable home: `issueKey` / `issueMasterKey`, and the
 **synchronous** `presentsKey(mover, lock)` — a reachable-wallet scan (implant +
 carried key) safe to call from a door's `canTraverse`; minting a fresh keyway
-(a lock identity) lives on `Lock.mintKeyway()`. **Bearer + re-key:** possession
+(a lock identity) lives on `BoundaryApi.mintKeyway` — **minting is an act on the
+world** (it reaches `SecurityApi.uuid`), so it is the Api's; **issuing is the
+lock answering about itself**, so `issueKeyTo` / `opensFor` stay instance
+methods. **Bearer + re-key:** possession
 is access; a lock is revoked by minting a fresh keyway. First consumer: the
 `DormDoor` (see
 [residence.md](./residence.md)); the substrate is door-agnostic. See

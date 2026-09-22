@@ -8,16 +8,13 @@
 > path, which is the point of it
 > **Size:** a tail
 
-> **Status (2026-09-01): design conversation, captured. Not
-> requirements.** The fourth transport, and the first that is a
-> **community** rather than a platform. Two-way is the point of it — a
-> read-only dgg relay would miss the use case that motivates it.
-
 **Lineage:** sibling of
 [kick-relay-slate.md](./kick-relay-slate.md) and
-[youtube-relay-slate.md](./youtube-relay-slate.md) (Wave N of
-[external-chat-relay-slate.md](./external-chat-relay-slate.md)). Like
-Kick it arrives *after* the unification, so it inherits the shared
+[youtube-relay-slate.md](./youtube-relay-slate.md) (Wave N of the
+retired external-chat-relay-slate, absorbed into youtube-relay-slate.md —
+see
+[cluster-relays.md](../../plans/slate-compaction/cluster-relays.md)).
+Like Kick it arrives *after* the unification, so it inherits the shared
 surface rather than mirroring a parallel one.
 **Sits on:** [streaming.md](../../subsystems/streaming.md) (the shipped
 substrate — read it first) +
@@ -78,24 +75,13 @@ References: [destinygg/chat](https://github.com/destinygg/chat) ·
 
 ## The inherited surface (the copyable 90%)
 
-Everything the unification already provides, unchanged:
-
-- `StreamRelay` channel table, `channelKey(service, key)` composite,
-  presence **edges** (0→1 open / 1→0 close) — dgg is one more service
-  string.
-- `MessageApi.sendMessage` on `world.dgg.message`; the
-  `Events.RelayMessage` overlay-forwarding seam.
-- `StreamLogic.dropPlayer` — the centralized logout drop already covers
-  every reader.
-- **The whole outbound stack**: the token-bucket throttle,
-  echo-suppression, and the three-case `RelaySpeaker` identity bridge.
-  These were built once for Twitch and are the expensive part of writes;
-  dgg reuses them.
-- `cockpit.tuned` + the rail composer branching on **`canPost`** — a
-  server fact, so no client edit when dgg gains posting.
-
-⭐ Structurally it is Twitch-shaped (a persistent socket) **minus** the
-hard part: no EventSub multiplexing, because there is only one channel.
+Shipped and documented — see [streaming.md](../../subsystems/streaming.md)
+§ The relay state, § The transports, § The tuned rail for the channel
+table, the composite `channelKey`, the outbound stack (throttle /
+echo-suppress / `RelaySpeaker`), and `cockpit.tuned`'s `canPost` branch.
+dgg is one more service string on all of it — structurally Twitch-shaped
+(a persistent socket) minus EventSub multiplexing, since there is only
+one channel.
 
 ---
 

@@ -27,6 +27,12 @@
 >    and [language-slate](./language-slate.md) both flagged for
 >    requirements time is **moot**; `Marked` owns the mixin.
 >
+> (Re-verified 2026-09-20, still accurate; point 1's consumer list is
+> now also carried in
+> [activity.md](../../subsystems/activity.md#activity-framework) itself,
+> alongside its negative half — nothing under `platform/idea/cmd/posture/`
+> or the mount/drive controllers registers an engagement yet.)
+>
 > **What remains** is narrower and better-posed than the original bundle:
 > should sit / lie / mount / drive / read become interruptible durative
 > engagements, and does `SlotApi` need `claimPending`. Worth answering
@@ -46,14 +52,6 @@ The activity framework substrate is already shipped — see
 this slate sketches is what mount/sit/lie/drive/read look like
 when they become durative engagements, and the `SlotApi`
 extension that decision requires.
-
-> **Status: deferred.** v1 keeps these verbs synchronous and
-> instant. The atomicity of a single JS tick is enough — only
-> one actor can win a slot per dispatch. `SlotApi.claimPending`
-> only earns its complexity when there's a real duration window
-> between claim and commit (i.e., when these become real
-> activities). When that day arrives, this slate is the starting
-> point.
 
 See also:
 
@@ -271,6 +269,21 @@ on top later.
 ---
 
 ## `ReadActivity`
+
+⚠ **The concrete shape below predates `read`'s actual shipped form and
+is now partially superseded.** `read` shipped as `MarkedMixin` +
+`ReadController` with a **perceive/decode split**
+(`packages/server/src/mud/lib/description/Marked.ts`,
+`.../platform/idea/cmd/perception/ReadController.ts`) — perceive gates
+on light/modality per `senses.md`, decode is a no-op v1 pass (literacy
+is out of scope). There is no `Readable` mixin with
+`getReadText`/`getReadDuration`; `Marked` owns the surface. What's still
+genuinely open — durative reading, and specifically whether "durative"
+should describe the **decode** half only — is unchanged and is the
+actual remaining design question (see the AUDIT block above). The class
+sketch and the walk+read concurrency proof below are kept as the
+still-useful shape of the ANSWER, not as an accurate description of
+today's mixin.
 
 The first non-locomotion, non-host-slot activity. Proves the
 `attention` engagement slot.

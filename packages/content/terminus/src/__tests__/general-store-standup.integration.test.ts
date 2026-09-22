@@ -81,6 +81,10 @@ const GARDEN_LINES = [
   "/trade/farming/thing/seed/cranberry",
   "/trade/farming/thing/seed/grape",
   "/trade/farming/thing/seed/juniper",
+  // ⭐ An orange you can EAT (nutrition-and-fitness D25) — the years
+  // clock needs something a person can buy that is not bread, and the
+  // distributor gets the farm's citrus by consignment, not by par.
+  "/trade/farming/thing/orange",
   // ⭐ The fibre and dye packets (textiles B1) — the chain's left edge
   // on the same counter as the pots and the soil, because the
   // suburban-garden path already starts here.
@@ -148,6 +152,25 @@ const TACKLE_LINES = [
   "/trade/fishing/thing/fish-food",
 ] as const;
 
+// ⭐ The armour + arms line (injury build W-A5 / W-C1 / W-C2) and the
+// corrosion flask (Stage D) — commons `/stuff/thing/` rows stocked
+// cross-pack like the pots. The armour is a `Garment` ladder (padded →
+// plate), the launchers a bow and a musket, and the ammunition
+// (arrow, musket-ball) the one STACKABLE good the store sells — a
+// quantity, not a chattel-stamped instance.
+const ARMS_LINES = [
+  "/stuff/thing/armor/padded-gambeson",
+  "/stuff/thing/armor/hide-jerkin",
+  "/stuff/thing/armor/mail-hauberk",
+  "/stuff/thing/armor/breastplate",
+  "/stuff/thing/armor/leather-boots",
+  "/stuff/thing/arms/hunting-bow",
+  "/stuff/thing/arms/arrow",
+  "/stuff/thing/arms/flintlock-musket",
+  "/stuff/thing/arms/musket-ball",
+  "/stuff/thing/items/flask-of-vitriol",
+] as const;
+
 /**
  * ⭐ Where a shipped row lives, by the prefix of its template path —
  * longest prefix wins, the commons is the fallback. A table rather than
@@ -213,6 +236,7 @@ describe("general-store standup (real seeds)", () => {
       ...MANA_LINES.map(objDoc),
       ...HAULAGE_LINES.map(objDoc),
       ...TACKLE_LINES.map(objDoc),
+      ...ARMS_LINES.map(objDoc),
     ]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
     ModuleApi.registerPackSource(FISHING_SRC, "/trade/fishing");
@@ -239,12 +263,15 @@ describe("general-store standup (real seeds)", () => {
     expect(torch!.getTemplatePath()).toBe(TORCH);
   });
 
-  it("every stocked good is discrete + chattel-stampable (never Stackable)", async () => {
+  it("every stocked good is discrete + chattel-stampable (ammunition excepted)", async () => {
     const counter = await StuffApi.singleton<Stock>(COUNTER);
     const shelf = counter.offeredItems();
     expect(shelf.length).toBeGreaterThan(0);
     for (const good of shelf) {
-      expect(MixinApi.isStackable(good)).toBe(false); // discrete
+      // ⭐ Ammunition is the one stackable good — a quantity you buy by the
+      // sheaf, not a chattel-stamped instance (see general-store-content
+      // .test.ts). Everything else stays discrete + stampable.
+      if (MixinApi.isStackable(good)) continue;
       expect(MixinApi.isChattel(good)).toBe(true); // stampable
     }
   });

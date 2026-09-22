@@ -125,6 +125,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // does not exist: `lint:identity` proves the field is *present*, and
     // this proves it *resolves*. The two gates are halves of one claim.
     'institution',
+    // ⭐ `projectileTemplate` (the injury build) — the ammunition a
+    // launcher takes. `ShootController` matches a carried stack against
+    // it by template path, so a rowless or misspelt one is a bow that
+    // can never be loaded, refusing with "you have nothing to load it
+    // with" forever and naming no cause. Read here rather than added to
+    // `UNREAD_PATH_FIELDS`, because that list only ever shrinks.
+    'projectileTemplate',
     // ⭐ The comminution citations (the grain chain). A mill row names
     // the matter it makes (`productMaterial` / `residueMaterial`), the
     // sacks it fills (`productVessel` / `residueVessel`) and the bin its
@@ -139,8 +146,26 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // where a new live-resolved citation belongs.
     'productMaterial', 'residueMaterial',
     'productVessel', 'residueVessel', 'tollBinPath',
+    // ⭐ The forestry citations. `standardMaterialPath` is what a felled
+    // standard is made of when no stand answers for it — resolved live
+    // at the completion of a felling, and a rowless one is a bole of
+    // nothing. The stand's own `mix[].woodMaterialPath` / `seedPath` /
+    // `speciesPath` are read below, the `props:` way.
+    'standardMaterialPath',
   ] as const) {
     push(f, data[f]);
+  }
+  // ⭐ A Wood row's `mix:` — the species standing on a clearing, each
+  // naming its Species row, the wood a felled one is made of and the seed
+  // it drops. All three resolve live at a felling; a rowless one is a
+  // tree that comes down as nothing.
+  if (Array.isArray(data.mix)) {
+    for (const sp of data.mix as Array<Record<string, unknown>>) {
+      if (!sp || typeof sp !== 'object') continue;
+      push('mix.speciesPath', sp.speciesPath);
+      push('mix.woodMaterialPath', sp.woodMaterialPath);
+      push('mix.seedPath', sp.seedPath);
+    }
   }
 
   // ⚠ `props:` and `cast:` — the born-with fields. They were ONE field
@@ -510,6 +535,13 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
  * real template path nothing currently proves resolves.
  */
 const UNREAD_PATH_FIELDS: readonly string[] = [
+  // A Tangible body-material descriptor (a flask's glass wall), a real
+  // template path, sibling to `material`/`interiorMaterial`/
+  // `surfaceMaterial` below and unread for the same reason. ⚠ It cannot
+  // be taught to `refsOf` by field name: the conjure spell effect also
+  // carries a `bulkMaterial` field holding a BARE name (`water`), not a
+  // path, so a name-keyed read would choke on the effect. Warn-only.
+  'bulkMaterial',
   'businessPath', 'carriedSpellPath', 'charMaterialPath', 'charter',
   'container', 'departments', 'dropDestination', 'effects',
   'feedPath', 'growsIntoPath', 'harvestTemplatePath', 'interiorMaterial',

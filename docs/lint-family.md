@@ -138,13 +138,20 @@ POSITIVE — a violation is found — not merely that a clean tree is clean.
   World-level logic (`Freshness.growthRate`, `CombatNarration.narrate`)
   belongs on a `platform/idea/api/<X>Logic.ts` logic singleton with the
   subsystem's Api forwarding — the split `CLAUDE.md` already calls
-  mandatory. Census-then-ratchet, **ceiling 564** across the kernel's
+  mandatory. Census-then-ratchet, **ceiling 337** (opened at 563; the 2026-09 sweep drove it down — `LIB_STATICS_CEILING`) across the kernel's
   `lib/` and `platform/` plus every pack's `src/`: the population may not
   grow while the sweep moves the world-level half out. ⚠ Statics inside a
   mixin factory's returned class expression are out of scope by
   definition — they are reached through the composed host, which is a
   different question. See
   [value-object-statics-slate](./slates/builds/value-object-statics-slate.md).
+
+**So the ~50 world-level statics in Api-less subsystems stay where they
+are**, and the ratchet stops at ≈50 + the type-level population instead
+of at 0. That is a floor with a name and a reason, not a shortfall:
+`lint:lib-statics` records it, and the number falls to 0 when the
+normalization pass gives those systems faces (from the lib-statics
+dossier, 2026-09).
 
 ## Content, templates & vocabulary
 
@@ -275,6 +282,35 @@ pull (sustained) · countdown (dying) — plus the one affliction arm;
 driving it lower would mean unifying mechanisms that really are distinct.
 `KNOWN_PARALLEL_STORES` is enumerated in the script so a second parallel
 store is a visible diff.
+
+### `lint:spell-cost` — a published science with no reader (2026-09)
+
+⭐⭐ **The rules were binding, and the flagship spell broke them by a
+factor of forty-five.** `docs/arcane-science.md` rule 1 says magic *moves
+and rearranges* and does not manufacture energy; rule 6 caps efficiency at
+`η ≤ 1`. Neither had a reader anywhere in the tree, and `firebolt`
+authored `cost: 20` — 20 kJ committed — against `joules: 900000`
+delivered. Worse, the **content had been tuned to the violation**: the
+practice dummy's mass carried a comment explaining that it was chosen so
+one firebolt's deposit would carry it past oak's autoignition point, and a
+test held that in place.
+
+The gate walks every `Spell`-class row in every pack and holds the
+violation count at **zero**, on the census-then-ratchet shape.
+
+⚠⚠ **Channel-aware, and a flat `η ≤ 1` would have been worse than no gate
+at all** — it would make a heat pump illegal, and rule 4 explicitly
+requires one:
+
+| shape | the check |
+|---|---|
+| **delivery** — `joules` on a depositing channel (`heat`) | `joules ≤ cost × 1000 × η(channel)`, η from the price list |
+| **cooling** — `channel: cold` | ⚠ **not** an η check (a COP above 1 is what a heat pump *means*). The row must declare `costModel: {kind: heat-pump}` — the machine-readable form of rule 4's *"cooling has no fixed price"*. A flat-cost cold spell is itself the physics error. |
+| **no `joules`** — twelve of thirteen shipped spells | outside its jurisdiction. `energy` is an abstract covering-fold token, not a quantity of anything, and checking it against joules would be the dimensional mistake the gate exists to prevent. |
+
+⭐ The η table lives in the script beside its doc citation rather than in a
+row, which is a known duplication — a later build may lift it so the wiki
+and the gate read one source (`capability-magic-slate`).
 
 ### `lint:conditions` — the value gate the effect channel needed (2026-09)
 

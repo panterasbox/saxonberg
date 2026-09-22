@@ -1017,8 +1017,13 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   FKs made optional with an at-least-one invariant, `TwitchProfile`
   (credential-bearing, token fields encrypted via
   `EncryptedStringMarshaller`), account link/unlink routes, and
-  `session.authProvider`. Deferred: chat scopes, account merge,
-  provider-side token revocation, name-refraction, YouTube. Seeding slate:
+  `session.authProvider`. Kick shipped later as a **third** co-equal
+  provider (`KickProfile`, `kickProfileId?` — see § The Cast), and
+  incremental chat-scope reauth (`user:write:chat` via
+  `/auth/twitch/reauth`) shipped with the relay build — see
+  [streaming.md](./streaming.md). Still deferred: account merge,
+  provider-side token revocation, name-refraction, YouTube as a
+  linkable/login provider. Seeding slate:
   [auth-providers-slate.md](../slates/tails/auth-providers-slate.md).
 
 - **Disconnect teardown moved onto `Interactive` (forums build,

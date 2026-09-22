@@ -1,19 +1,26 @@
 # Chat slate (working doc)
 
 > **Status: PARTIAL** — the v1 core shipped (Channel Document, the three
-> kinds, ChannelCatalogue, the Subject retrofit) →
+> kinds, ChannelCatalogue, the Subject retrofit, party + committee chat as
+> *bound* channels, `chat anonymity`) →
 > [chat.md](../../subsystems/chat.md)
-> **Left:** the role overlay · the channel config block · mentions + the
-> offline inbox · group-projected channels (party/guild/zone) ·
-> edit/delete · pinned + announcement mode · directory/search ·
-> channel succession
+> **Left:** the role overlay (projected rank + stored overlay; only
+> `owner` gates today) · the channel config block (`editPolicy` ·
+> per-channel `retention` · `postPermission` · default notification level ·
+> topic) · notification levels + the sane projection default · mentions
+> (`@name`/`@here`/`@channel` + the permission) + the offline inbox ·
+> guild/zone projection + the moderation override layer + the cached
+> derived set · edit/delete + the "(edited)" marker · pinned +
+> announcement mode · directory search + presence notices · the bounded
+> backlog on tune-in · succession / abandonment GC / the creation cap ·
+> per-channel spam throttles · the two anonymity seams (disguise on a
+> `permitted` channel · an authored `anonymity:` on a seeded subject) ·
+> the generative-axes model (a place / an activity binding — unverified
+> against the three-kinds decision) · regional channels (a zone-scoped
+> channel — Q6, absorbed from comms) · `retention: 'logged'` + `chat_log`
+> and the `ordered` procedure's discipline (the chat-surface extensions
+> absorbed from forums, with their bounds/vocabulary questions Q7–Q8)
 > **Size:** a wave
-
-> **Status: architecture set, a few forks leaned.** The channel system —
-> "our own chat app inside the game." Graduates the *channels* half of
-> the comms slate into its own subsystem. Chat is the rich end of the
-> implant transport; comms owns the conversation primitive and the
-> transport, chat owns the channel model on top.
 
 Working slate for **chat channels** — guild chat, party lines, global
 bands, help, trade, ad-hoc groups, DMs-as-the-degenerate-case. It's
@@ -22,42 +29,13 @@ MUD channel heritage — but with one twist that tames the whole thing:
 **most channels aren't created, they're *projected* from the world's
 social structures.**
 
-The load-bearing decisions:
-
-1. **One conversation primitive + a facet model — not a list of channel
-   types.** The type explosion ("persistent vs ad-hoc, group-derived vs
-   created vs synthesized, roled vs flat…") is a *cross-product of
-   orthogonal axes*. Model the axes, not the types.
-
-2. **Channels are mostly a projection over the grouping facade.** Unlike
-   Discord (users create servers), here a guild *is* a group and
-   *affords* a channel; a party forms → party chat materializes →
-   disbands → it's gone. **Groups are primary; channels fall out of
-   them.** You never author "guild chat" — it's emergent. This is the
-   single idea that turns "build a chat app" into "a thin projection
-   layer over social structures + a few standalone channels."
-
-3. **Membership ≠ subscription.** Two separate per-player states:
-   *membership/eligibility* (often **derived** — you're in guild chat
-   because you're in the guild) and *subscription/tuning* (per-player:
-   tuned in/out + notification level). You can't leave a mandatory
-   channel, but you can always mute it — because mute is subscription,
-   not membership.
-
-4. **Chat is conversation; Mudlog is the game narrating.** Game-event
-   feeds (combat log, deaths, world events, trade ticker) are **not**
-   chat channels — they're `MudlogApi` + its topic landscape, which
-   already exists and *is* the feed substrate. Chat is agents talking to
-   agents. Don't conflate the two. (The client console can render a
-   Mudlog buffer beside a chat buffer; underneath they're separate.)
-
-5. **All channels are diegetic** (liberal diegesis): help = a *mentor
-   frequency*, global = the *common band*, a player channel = a *private
-   frequency*. No IC/OOC axis, no `isIC` property, no OOC infrastructure.
-   Every channel is a frequency on the universal implant.
-
-6. **No channel-as-verb.** `chat <channel> <message>` — not the MUD
-   `gossip hello` idiom.
+The load-bearing decisions shipped — see [chat.md](../../subsystems/chat.md):
+three fixed kinds rather than a facet model (superseded — § Three channel
+kinds), channels consume the grouping facade (§ Chat consumes the group
+substrate; party chat is a *bound* channel — § Bound channels),
+membership ≠ subscription (§ Membership ≠ subscription), chat ≠ Mudlog and
+all-diegetic (the intro), `chat <channel> <message>` with no channel-as-verb
+(§ Verb shape and the fallthrough flag).
 
 See also:
 
@@ -92,19 +70,6 @@ See also:
 
 ---
 
-## Principle
-
-1. **Facets, not types.** A channel is the one conversation primitive
-   configured along a few axes (below).
-2. **Projection over the grouping facade.** Groups are primary; channels
-   are their affordance. Standalone + ad-hoc channels are the minority.
-3. **Membership ≠ subscription.** Eligibility (often derived) vs tuning
-   (always yours).
-4. **Chat ≠ Mudlog.** Agents conversing vs the game narrating events.
-5. **All diegetic** (liberally interpreted).
-
----
-
 ## The generative axes
 
 | Axis | Values |
@@ -127,17 +92,10 @@ The four channel **kinds** these generate:
 *(Announcement/broadcast is **not** a kind — it's a `postPermission`
 config value: post restricted to admins, members read.)*
 
-There is deliberately **no feed-channel kind** — game-event feeds are
-`MudlogApi`/topics (decision 4).
-
 ---
 
 ## Membership ≠ subscription (the two-layer split)
 
-- **Membership / eligibility** — are you in the channel's audience? For
-  projected channels this is **derived** (computed from the group/place),
-  not stored. Generally locked (you can't leave guild chat without
-  leaving the guild).
 - **Subscription / tuning** — are you actively listening, and how loudly?
   **Stored per-player-per-channel**: tuned in/out + a notification level
   (`all / mentions-only / ambient / silent`). Always yours, even on a
@@ -163,9 +121,9 @@ touching the *group*. So the channel carries a thin **override layer**:
 writes to it. Same pattern for roles (projected from group rank, with a
 stored overlay) and for config (group defaults + per-channel override).
 
-A projected channel may not even be a heavy object — an affordance on the
-group + the override layer + the per-player subscription rows. Lifetime
-is the group's: group dies → channel dies.
+*(Superseded by the code: a bound channel IS a `Channel` Document on a
+Subject bound to the group's `GroupRef`, minted with the party and
+disbanded with it — chat.md § Bound channels.)*
 
 **Perf:** cache the derived set; dirty it on the group/place membership-
 change events the grouping facade emits (`GroupApi.onMembershipChange`).
@@ -208,20 +166,26 @@ and roles (group defaults + per-channel override):
 - **name / topic / description**.
 - **the role overlay**.
 
----
+### Absorbed from forums-slate — Chat surface (`retention: 'logged'` + `procedure`)
 
-## Command surface
+*Verbatim from forums-slate § Part 0 › Data model (cluster pass: the
+channel config is chat's). Vocabulary as written there; what shipped is
+`Channel.subject` and the `procedure` FLAG as `'open' | 'ordered'`
+(`'ordered'` behavior deferred) — chat.md § Since forums cycle-1,
+forums.md § The four surfaces. `retention: 'logged'` + `chat_log` and the
+ordered discipline itself are the open part; the two open questions that
+ride them are Q7–Q8 below.*
 
-- **Post:** `chat <channel> <message>` — channel required first, rest
-  greedy (unambiguous, same shape as `tell <target> <msg>`). **No
-  channel-as-verb** (`gossip hello` rejected).
-- **Manage:** reserved subcommands — `chat list`, `chat join/leave <ch>`,
-  `chat mute/unmute <ch>`, `chat history <ch>`, `chat who <ch>`,
-  `chat make <name>`. Reserved words checked first; anything else →
-  (channel, message). Only constraint: a channel can't be named a
-  reserved subcommand. Matches the framework's existing subcommand style
-  (`measure <field>`, `prompt cancel`).
-- Per-player short aliases ride the existing alias system.
+- **Chat surface** — the existing `Channel`, extended to carry a `subject`
+  ref, a **`retention`** policy (`'ring'` default, the ephemeral 200-buffer of
+  today; `'logged'` — every frame persisted to a `chat_log` collection), and a
+  **`procedure`** mode (`'free'` default; `'rules-of-order'` — a recognized-
+  speaker / motion-and-second discipline for digital deliberation). Ephemeral
+  subjects default chat to `logged` (so the synchronous floor debate is
+  captured complete and sealed into the archive) and may opt into
+  `rules-of-order`; standing high-volume chat stays `ring` / `free`. (Chat-
+  subsystem extensions, not new machinery; `procedure` is a parked surface
+  policy — design deferred.)
 
 ---
 
@@ -259,10 +223,8 @@ and roles (group defaults + per-channel override):
   messages show an **"(edited)"** marker. Edit-trail-for-moderation
   (catching edit-to-hide-abuse) is heavier → deferred to the moderation
   control plane; v1 keeps just the marker + mod-delete.
-- **Threads / reactions** → the **[reactions slate](../tails/reactions-slate.md)**
-  owns these. Chat only
-  provides the stable **gutter message-id** they (and mentions, and edit)
-  all depend on — the one piece of plumbing chat shares with reactions.
+- *Threads / reactions shipped; the shared message-id is `meta.commandId`
+  (chat.md § Posting, reactions.md).*
 
 ---
 
@@ -275,8 +237,6 @@ The one truly user-authored kind. Guardrails MUDs learned the hard way:
 - **Abandonment GC** — empty channel (no members) → reaped after a grace
   period (or archived).
 - **Limits** — a modest per-player creation cap (anti-squatting).
-- **Naming** — uniqueness rules, no impersonating system channels,
-  reserved words blocked.
 
 ---
 
@@ -301,15 +261,11 @@ The one truly user-authored kind. Guardrails MUDs learned the hard way:
   tuned at mentions-only. `chat guild on the way` posts to every tuned
   member. An officer mutes a spammer → override layer, guild membership
   untouched.
-- **Party line (group-projected, ephemeral):** party forms → party chat
-  materializes; disbands → gone. No one authored it.
-- **Global band (standalone):** `chat global anyone selling iron?` —
-  open-join, moderated, diegetically "the common band."
-- **Help (standalone, diegetic):** a "mentor frequency" — fiction-wrapped,
-  no OOC bracket.
+- *Party line · global band · help — shipped: chat.md § Bound channels,
+  § Three channel kinds, § Bootstrap and seeding.*
 - **Player channel:** `chat make raid-night` → you own it, invite friends;
   you leave → transfers to a mod or dissolves; empty → GC'd.
-- **DM (ad-hoc):** `tell iffy …` — the 2-member degenerate (comms slate).
+- *DM (ad-hoc) — shipped: comms.md § Implant — dm / tell.*
 
 ---
 
@@ -320,26 +276,36 @@ Most forks are leaned; these remain:
 1. **Channel language gating.** Does the comms (ii) lean (implant comms
    are language-bound) apply to channels? *Lean: players share common, so
    not in practice v1; a per-channel language is possible content.*
-2. **Anonymity / pseudonyms** on channels — identified-by-default (it's
-   your implant), but anonymous channels are a possible fork.
+2. *Resolved: `chat anonymity <name> permit|forbid` + `--anon` — chat.md
+   § `anonymity`.*
 3. **`@channel`/`@here` permission model** details (who, rate limits).
 4. **Edit-trail for moderation** — deferred to the moderation control
    plane; confirm at requirements.
 5. **Cross-posting / channel bridging** — almost certainly out; flag if
    wanted.
 
+*Absorbed from comms-slate — Open questions Q3 (cluster pass: chat owns
+the place-binding axis, § The generative axes):*
+
+6. **Regional channels.** A channel scoped to a zone (a bridge between
+   acoustic locality and implant networks)? Worth considering.
+
+*Absorbed from forums-slate — Open questions (the chat-surface
+extensions; the design is § The channel config block › Absorbed from
+forums-slate):*
+
+7. **Procedure mode (`rules-of-order`)** — the digital deliberation discipline
+   (recognized speaker, motion/second/amend). Parked: vocabulary + enforcement
+   TBD; default `free`.
+8. **Chat-log bounds** — does a `logged` chat have any cap / pruning; can a
+   standing subject opt into `logged`; archived-log storage/retention.
+
 ---
 
 ## Build order
 
-Depends on comms (conversation primitive + implant transport) and the
-the grouping facade (groups to project from) existing first.
-
-**Wave 1 — the core.** Group-projection over the implant conversation
-primitive; the membership/subscription split + notification levels; the
-four-kind taxonomy; `chat <channel> <message>` + the management
-subcommands; basic projected/overlay roles; the history ring;
-all-diegetic (no IC/OOC axis).
+*Wave 1 shipped → chat.md. Its notification levels and projected/overlay
+roles did not ship and are carried in the sections above.*
 
 **Wave 2 — config, moderation, player channels.** The channel config
 block (edit/retention/post-permission); the moderation override layer;
@@ -384,8 +350,6 @@ This slate boils down to:
   postPermission / notification default / name+topic / roles), each
   projected-with-override; the perf strategy (cache + dirty on group
   events).
-- The **`chat <channel> <message>`** post surface + the reserved-word
-  management subcommands (no channel-as-verb).
 - **History/catch-up** (bounded backlog + ring + retention) and the
   **offline mention inbox**.
 - **Discovery-via-projection** + directory + `chat who`.
@@ -393,7 +357,6 @@ This slate boils down to:
   mode, per-channel edit (self-only) / delete (self+mod) + "(edited)"
   marker, and the shared gutter message-id (reactions deferred).
 - **All-diegetic** (no IC/OOC axis); **player-channel lifecycle/GC**.
-- The clean **Mudlog separation**.
 - Tests: a guild member is auto-eligible but can mute; a channel mute
   doesn't drop guild membership; an unauthorized poster is refused on an
   announcement channel; a tuned-out player misses ambient but gets
@@ -407,12 +370,7 @@ language gating wait for their own work.
 
 ## ⭐ Tails from the presentation build (2026-09-11)
 
-Chat anonymity shipped: a channel owner sets `chat anonymity <name>
-permit|forbid`, and `chat <name> --anon <message>` renders the poster by
-a short handle ("a weaver") where the channel permits it. ⭐ **The
-channel's setting is checked first, and forbidding never stops anyone
-talking** — `--anon` on a forbidding channel posts you *under your name*
-and tells you so. See
+Chat anonymity shipped → [chat.md § `anonymity`](../../subsystems/chat.md),
 [presentation.md](../../subsystems/presentation.md). Two seams remain.
 
 - **`permitted` + plain still consults the disguise.** A poster who is

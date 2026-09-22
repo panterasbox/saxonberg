@@ -65,6 +65,7 @@ export default class RepairController extends ManualBuildController<RepairModel>
 
     this.engageStep(context, {
       durationMs: this.paceMs(REPAIR_MS, pacer, ['mending', 'anvil']),
+      effortW: 250,
       beginSelf: Mml.compose`You settle in over ${Mml.thing(item)} and set to the repair.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets to repairing ${Mml.thing(item)}.`,
       // No `this` in the closure — the controller clone is destructed

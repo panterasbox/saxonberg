@@ -41,7 +41,8 @@ import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 /** Reference time for one cut, in game ms, at reference hardness. */
 const HEW_MS = 9000;
 /** Endurance one cut costs, in percentage points. */
-const HEW_COST = 4;
+/** Metabolic watts of swinging a pick: (967 − 300) × 9 s / 1500 = the old 4 %. */
+const HEW_EFFORT_W = 967;
 /** Lumps one cut wins. */
 const HEW_LUMPS = 1;
 /**
@@ -108,7 +109,7 @@ export default class HewController extends MiningActController<HewModel> {
     if (chosen.blocked) {
       this.engageAct(context, {
         durationMs: this.paceForGround(HEW_MS, chosen.hardnessMPa),
-        cost: HEW_COST,
+        effortW: HEW_EFFORT_W,
         beginSelf: Mml.compose`You start barring the loose ground out of the ${chosen.direction} face.`,
         beginPeers: Mml.compose`${Mml.actor(giver)} starts clearing a fall.`,
         onComplete: () => {
@@ -142,7 +143,7 @@ export default class HewController extends MiningActController<HewModel> {
 
     this.engageAct(context, {
       durationMs: this.paceForGround(HEW_MS, chosen.hardnessMPa),
-      cost: HEW_COST,
+      effortW: HEW_EFFORT_W,
       beginSelf: Mml.compose`You set the pick to the ${chosen.direction} face and start cutting.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets to the ${chosen.direction} face.`,
       // ⚠⚠ Free functions, NEVER `this.<method>`. A controller is

@@ -1,0 +1,15 @@
+# A length of green timber — one cross-cut off a bole: a round, mine-grade
+# length that the timber-set recipe takes (`category: wood`, matched
+# through the material's tag; ungraded reads as `fair`). Not a `Crop`
+# (nothing grew it in a bed) and not a `Provision` (wood does not spoil).
+# The material is restamped from the bole it came off.
+class: /platform/thing/Thing
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: length of green timber
+  keywords: [timber, length, wood, round, green]
+  register: indefinite
+  longDescription: |
+    A round length of green timber, the bark still on it, cut square at both ends and heavy with sap.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 24

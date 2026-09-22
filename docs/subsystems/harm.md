@@ -51,7 +51,18 @@ reconcile-on-read `tickedAt` anchor (see below — no arming).
 `{ mechanism, site, energy }` (mechanical channel or thermal/tearing
 passthrough) vs the shock variant `{ mechanism:'shock', site, current }` —
 whose magnitude is the *current through the victim* (`Quantity<'A'>`), not an
-energy.
+energy — vs the corrosion variant `{ mechanism:'corrosion', site, energy,
+corrosiveTo }`, which carries the **agent's chemistry** (the material tags
+it eats through) because an energy scalar cannot.
+
+⭐ **The corrosion producer is a substance in contact, not an energy
+channel.** A caustic material delivers through
+`Material.corrodeOnContact(victim, {energy, site})` — it reads its own
+`corrosiveTo` and forwards this variant through the door — which is what
+makes a thrown flask, a conjured acid (the acid-splash spell), and a
+spilled vial all corrode with no bespoke path. The lime-seep hazard is the
+original producer; see [materials-response.md](./materials-response.md) §
+*How corrosion reaches a body*.
 
 - **Gated producer.** `inflict` is a powerful primitive that must not be
   callable by arbitrary content. `ConditionLogic.inflict` carries
@@ -66,6 +77,15 @@ energy.
   else `undefined`) — **never a caller-supplied parameter** (the gated-Api
   actor-from-context rule). Recorded on `Trauma.inflictedBy` for combat's
   future blame ledger; harm records attribution without owning blame.
+  ⭐ The affliction twin: **`AfflictionRecord.inflictedBy`** (the
+  consequence build, W7) is stamped from the same
+  `getActingAuthor()` at the `VitalsMixin.afflict()` door, never
+  overwriting a stamp a producer set deliberately. The gap it closed: a
+  wound had always known who dealt it; an affliction never did — so
+  poisoning, the one kind of harm that is deliberate, premeditated and
+  quiet, was the one kind the world couldn't attribute. An unattributed
+  affliction stays unattributed on purpose (most harm has no author;
+  inventing one would sweep the weather into the crime ledger).
 - **Severity AND type from the response function.** As of the
   materials-response build, `mechanism` is an `InsultKind` — a
   materials-response **`Channel`** (`edge`/`point`/`blunt`) or a legacy
@@ -89,9 +109,9 @@ energy.
   The mechanical fold + the thermal/tearing passthrough stay byte-identical.
   See [electricity.md](./electricity.md).
 
-## The five trauma behaviors
+## The nine trauma behaviors
 
-Live in `lib/vitals/Condition.ts`, co-located with the `Trauma` value in
+Live in `platform/idea/Condition.ts`, co-located with the `Trauma` value in
 the closed `TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior>` roster.
 The interface is `onset` / `tick(host, t, elapsedSec)` / `resolve` (the
 *dress* action) / `reopen` (the *undress* action) / `describe`. Rates live
@@ -108,6 +128,15 @@ in the `HARM_DEFAULTS` const-object (the driver `*_DEFAULTS` convention).
   remove). The gate is a pure boolean-flag machine on the `Trauma` value —
   no dependency on the `DressingMixin`, the `Bandage`, or the verbs (those
   are the consumers that call `resolve`/`reopen`).
+- **puncture** — delegates `onset` / `tick` / `resolve` / `reopen`
+  **wholesale to `LACERATION_BEHAVIOR`**, differing only in `describe`
+  ("a bleeding puncture wound of …"). ⭐ That is the honest model, not a
+  shortcut: a stab and a slash both open a vessel and both answer to
+  pressure and a dressing. The two exist as separate `TraumaType`s
+  because the **channel** that produced them differs (`point` vs `edge`)
+  and because a treatment build will eventually want to tell them apart —
+  a deep narrow tract and a long shallow one are not the same surgical
+  problem — not because they behave differently today.
 - **contusion** — mild, self-resolving severity decay; no bleed.
 - **fracture** — a slow natural heal. **The impairment is a derived read**,
   not a tick effect: `Vitals.isSlotImpairedByTrauma(slot)` folds into
@@ -117,10 +146,203 @@ in the `HARM_DEFAULTS` const-object (the driver `*_DEFAULTS` convention).
   separate un-impair step.
 - **burn** — real behavior: severity + a slow heal at its own rate.
 - **avulsion** — behaves as a **severe laceration** (floors severity via
-  `AVULSION_SEVERITY_FLOOR`, bleeds, shares the clot gate). ► **Deferred
-  seam — the limb-sever / part-promotion** (mark the `BodyPart` missing,
-  cascade slot-disable + presentation) lands at `AVULSION_BEHAVIOR.onset`
-  when the sever build arrives; v1 stops at the severe bleed.
+  `AVULSION_SEVERITY_FLOOR`, bleeds, shares the clot gate) and, at or past
+  `HARM_DEFAULTS.SEVER_SEVERITY`, **takes the part off** — see *The sever*
+  below. Reachable from a weapon since the injury build: the `edge`
+  channel climbs a ladder (`response.edge.avulsionThreshold`) exactly as
+  `blunt` climbs to `fracture`. Before that it arrived only through the
+  `'tearing'` passthrough, which nothing in the game produced.
+- **rupture** *(interior)* — a **torn organ**, and the first wound in the
+  game you cannot treat. Laceration's bleed with `resolve` a no-op (you
+  cannot put pressure on a liver) and `resolution: 'surgery'`, a token
+  nothing offers — `mismatchLine` renders it as *"It wants surgery."*, so
+  the game says exactly what is wrong and exactly why the bandage is no
+  use. Minted by the depth ladder on a `blunt` channel past
+  `response.blunt.ruptureThreshold`.
+- **frostbite** *(reserved — the cold channel)* and **caustic**
+  *(reserved — the corrosion channel)*: see materials-response.md.
+
+## ⭐⭐ The sever — losing a part
+
+`BodyPartDelta.missing` shipped persistent, cascaded through
+`isSlotDisabledByAnatomy`, and **was written by nothing**. Its one writer
+is now `VitalsMixin.severPart(key)`, called from `AVULSION_BEHAVIOR.onset`
+when **three** things are true: the wound is at or past
+`HARM_DEFAULTS.SEVER_SEVERITY`; the body plan marks the part `severable`
+(that field's first production reader — you cannot lop off somebody's
+chest); and the blow was **authorized to maim** (`Trauma.maimAllowed !==
+false`).
+
+⭐⭐ **Maiming respects the fight's terms.** `maimAllowed` is undefined
+for every environmental source — a fall onto spikes, a hazard, a beast's
+cull all take a limb if severe enough, because nature does not ask
+consent. The one producer that suppresses it is **combat between
+sentients**, which sets `maim: false` when the session's terms are not
+`lethal`: a sparring bout leaves a severe avulsion, never a severed part.
+This is the same consent structure the two-stage defeat/coup enforces for
+killing — a maiming is at least as grave as a kill, and must not fall out
+of a non-lethal exchange.
+
+Three things happen, in order:
+
+1. **The subtree goes, not the part.** Severing `body.arm.left` marks
+   `body.arm.left.hand` missing too — a hand with no arm is not a thing a
+   body can have. Transitive over `BodyPart.parent`.
+2. **What the part held falls.** Every slot whose `SlotSpec.bodyPart` lies
+   in the severed subtree is vacated and its occupants moved to wherever
+   the body is. ⚠ `Slotted.canOccupy` only ever refused *new* occupancy of
+   a missing part's slots — a severed hand kept its sword.
+3. **It persists for free.** `bodyPartDeltas` is already
+   `{persistent, runtimeState}`, so the loss rides `PersistableApi.capture`
+   through a logout and into a corpse. No new storage, no migration.
+
+⚠⚠ **`onset` now runs AFTER `afflict`**, at all three terminal paths. The
+old order was harmless only while every `onset` mutated the trauma *value*;
+it stopped being harmless the moment one could act on the *body*. A wound
+a conferred immunity refused must not take an arm with it.
+
+### ⭐⭐ A missing vital organ is lethal — the anatomy death floor
+
+Losing a part that **governs** a life-critical capacity (consciousness,
+circulation, respiration) begins the dying clock:
+`reconcileConditions` calls `beginDying('decerebration',
+VITAL_ORGAN_LOSS_DYING_WINDOW_SEC)` when `hasMissingVitalGovernor()`. A
+severed head is the reachable case today — brain gone means no breathing
+drive and no airway, not merely unconscious, which was the shipped answer
+(it left a decapitated body beating away forever).
+
+⚠ It sits **above the all-empty guard** — a severed part writes no vital
+sign and its wound may have clotted to nothing, so a body whose only
+problem is a missing head would otherwise reach the guard, find no active
+condition, and return whole-signed and immortal (the same trap the bleed
+floor fell into pre-W-A4). Gated on `bodyPartDeltas` being non-empty first,
+so an untouched body — almost every body, almost every read — pays a single
+map-size check.
+
+⚠⚠ **Death clears the anatomy** (`resetAnatomyToSpeciesBaseline`, in
+`divideBody` beside the vital reset). Without it a decapitated player
+reembodies headless and the floor re-kills them on the first read — dead
+on arrival, forever. A body that comes back from the passage comes back
+**whole**, exactly as it comes back with full blood and no conditions;
+resurrection restores the body. A **living** limb-restore — a surgeon, a
+shrine, a prosthetist — is a separate content-facing path, deliberately
+unbuilt (see below).
+
+### ⚠⚠ What this is NOT, and what the next build owes it
+
+Severing shipped as **substrate, not gameplay** — the mechanic is sound
+and the persistence is right, but the design space around it was never
+worked. What exists: a severe enough authorized edge blow to a severable
+part takes it; the function axis reads the loss; it is lethal for the
+head, survivable for a limb; death restores it. What does **not** exist,
+and is the sever-gameplay slate's charter:
+
+- **Reachability.** Combat's `siteFor` returns torso/head only, so the
+  one severable outcome a fight can reach today is **decapitation**. A
+  hand or a leg cannot be targeted — the aim-derived called shot
+  (`combat-slate`) is its prerequisite. Until then, limb loss is
+  effectively hazard-and-cull only.
+- **The living way back.** A content-facing `restorePart(part)` a temple,
+  clinic or prosthetist calls on its own terms — the `reembody` shape, on
+  anatomy. The engine does the part; the world decides the cost and who
+  can. Rare by construction, because someone must author the place.
+- **What a stump MEANS.** A one-handed character's economy, the prosthetic
+  as an augment that re-enables a slot (`augmentation-slate` already has
+  the shape), whether an NPC ever comes at you already maimed.
+
+→ `physiology-slate § Part 7h`.
+
+## ⭐⭐ The depth ladder — what a blow reaches under the skin
+
+A wound past `response.depth.reachThreshold` has excess severity left
+over, and the excess reaches the **interior** parts sitting under the site
+(`BodyPlan.interiorChildrenOf`), **largest cross-section first** — a
+bigger organ presents more of itself to whatever is coming through. Each
+takes `response.depth.stepPerOrgan` out of what remains, so a deeper blow
+reaches **more** organs rather than merely hurting the first one worse.
+
+The channel decides what it does to the organ: `point` → puncture, `edge`
+→ laceration, `blunt` → **rupture** past `response.blunt.ruptureThreshold`
+else contusion (a concussion; a bruised liver). Each interior trauma goes
+through the same `afflict` door and is separately vetoable; they come back
+on `InflictOutcome.reached`.
+
+⚠⚠ **No roll anywhere.** The biggest organ under a site is hit first,
+every time; a deeper wound reaches further, every time; a student can
+derive both from `assess`. A surface-fraction-*weighted* site pick would
+be a roll deciding *what your action did*, which `docs/uncertainty.md`
+bans outright. The honest improvement is aim-derived and deterministic —
+a called shot — and that is a combat build.
+
+**Interior wounds are invisible and undressable.** `assess` gates naming
+on the observer's *real* medicine competence (not the self→expert
+shortcut — what your own liver is doing is not visible to you *because* it
+is you), so an ordinary player reads *"Something is wrong inside; you
+cannot tell what"* and learns more from a competent stranger than from
+looking. `treat` refuses a dressing on an interior site — and the gate is
+on the **site**, not the trauma type, because an interior *puncture*
+resolves by `dressing` like any other bleed.
+
+## ⭐⭐ The function axis — a wound costs a CAPACITY
+
+The build's centre. A wound stops costing a number and starts costing
+grip, gait or consciousness.
+
+- **`VitalsMixin.functionAt(part)`** — `min` over the part's own tissue
+  (`1 − Σ severity × lossPerSeverity`) and everything **upstream** of it:
+  the limb it hangs off, the nerve that carries it, the vessel that feeds
+  it, and recursively whatever reaches those. Banded
+  `full · impaired · failing · lost` (`lib/vitals/BodyCapacity.ts`).
+- **`VitalsMixin.capacity(k)`** — `governs` combines by **min** (one
+  brain: lose it, lose the capacity), `serves` by **mean** (two legs: one
+  gone is a hobble, not a halt). A capacity nothing governs or serves
+  reads `full` — a body that never had hands has no `manipulation` to
+  lose, and that is data, not a guard.
+- ⭐ **Quadriplegia and paraplegia fall out for free**: the lower spine
+  hangs off the upper, so a high cut takes the arms *and* the legs and a
+  low cut takes only the legs. Two `parent` edges and a `min`.
+
+⚠ The recursion is load-bearing. The **arm** names the spine in
+`innervatedBy` and the hand names nothing, so a one-level walk would leave
+a severed spine with a happily gripping hand — and it is what lets
+innervation be authored only where the supply path *diverges* from the
+tree.
+
+**Three consumers, no new guards.** `isSlotImpairedByCondition` is
+`!canGrip(slot)` and nothing else (folding in the anatomy gate, and —
+unlike the old exact site match — a wound on the *arm* now refuses the
+*hand's* slot); `getConsciousness` reads the `consciousness` capacity when
+the plan authors a governor for it; `drainForLimp` is
+`1 − capacityScalar('locomotion')`, which finally catches a fractured leg,
+a missing leg, and a spine wound — all three invisible to the old
+`body.leg*` string sum.
+
+## ⭐⭐ Circulation — shock before death
+
+Blood pressure is **derived from circulating volume** on every reconcile,
+and the shape of the curve is the teaching:
+
+- **Systolic holds, then falls.** Nothing moves until
+  `SHOCK_COMPENSATED_LOSS` (15 %) is gone. That plateau is ATLS class II,
+  and it is the single most important fact about haemorrhage: *a patient
+  can be seriously bled with a normal blood pressure right up until they
+  are not.*
+- **Diastolic rises first.** Vasoconstriction pushes it up while the
+  systolic holds, so the **pulse pressure narrows** — the earliest sign
+  there is. Past the plateau both fall together.
+- **`hypovolemic-shock`** spawns at 30 % loss, relieves at 25 %. The dying
+  window opens at 36 %, so shock always precedes death by a real interval.
+
+⚠ The derive runs **above** the clock guard in `reconcileConditions`,
+beside the burden law and for the same reason: it is a live read of
+present volume, not an integration over elapsed time. It arms
+`_reconcilingConditions` by hand, because that flag is not set until far
+below and this derive *writes* where the burden law only reads.
+
+⚠⚠ It does **not** write `heartRate` — the sustained-shock arm owns that
+sign, and two writers on one vital is the defect `lint:condition-arms`
+exists to prevent. Heart-rate compensation (the tachycardia that precedes
+the pressure drop) is a real sign and a real gap → `blood-slate`.
 
 ## The wound driver — reconcile-on-read
 
@@ -178,7 +400,7 @@ calls after advancing its law:
 |---|---|---|
 | `vital` | integrates `perHour` on a vital sign | per reconcile |
 | `reserve` | integrates `pctPerHour` on a biological reserve | per reconcile |
-| `capability` | a derived slot impairment at the site (the fracture rule, generalized) | read |
+| `function` | what the wound costs the PART it sits on, per unit of severity — the function axis reads it | read |
 | `expression` | competence suppression in bands | read |
 
 ⚠ **`delta` became `perHour` deliberately.** A raw delta has no answer to
@@ -328,6 +550,17 @@ command category plus `assess` in `perception`.
   wound reads "bleeding controlled" and **hides precise severity behind the
   dressing** — an expert can judge through it, else `undress` and look.
   This is the loop that answers "how do I know I'm healed."
+  ⭐ **`analyze patient`** is the trade's diagnostic surface above
+  `assess`, shipped by the `trade-medicine` pack (the stanza is on the
+  platform's `analyze` view, the controller is the pack's — the
+  instrumentation split). Its line: **competence buys what you can SEE,
+  never what you can DO** — an untrained eye knows something is wrong; a
+  novice reads the signs; a competent medic knows which conditions could
+  produce them, *plural and unranked* (that ambiguity is what makes the
+  choice a choice); proficient knows what would treat it and how it
+  spreads; expert reads how far it has gone. Nothing on the ladder makes a
+  treatment work better. The forensic twin, `analyze postmortem`, is
+  [mortality.md](./mortality.md).
   It also carries an **affliction readout** — what is wrong with someone
   that isn't a wound. Trauma was the only thing it could describe, so
   anything *carried* rather than *cut* (a poison, a disease, the mortality

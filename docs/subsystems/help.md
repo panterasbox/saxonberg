@@ -73,6 +73,12 @@ the single source that already assembles verb / aliases / syntax /
 options / subcommands / examples. Commands are flat this wave (`relations
 = []`).
 
+A command view may carry a co-located **`help:` block** — multi-line,
+player-facing prose ([command-spec.md](./command-spec.md) § the YAML
+shape). `getHelpText()` renders it *below* the synthesized syntax, so the
+command topic's body carries the authored prose without a second source,
+and authored prose never restates what the syntax line already says.
+
 ### API projector — first-class mixins, graded kinds, complete roster
 
 Reads the enriched `author-surface.json` (below) and the `Mixins`
@@ -134,6 +140,23 @@ wins over a collection of the same name (so `help wiki` is the verb;
 `help collection.wiki` is the collection). `help verb <name>` stays
 strict and does not fall through — asking for a verb by that name should
 say the verb does not exist, not wander off into the persistence layer.
+
+### The concept projector — authored `HelpConcept` rows
+
+Every projector above reads something that exists for another reason,
+which is why the index could never explain *what nitrogen is*. A
+**`HelpConcept`** (`platform/idea/HelpConcept.ts`) is a player-facing
+topic about a CONCEPT — `key`, `title`, `summary`, `body` (MML),
+`keywords`, `seeAlso` — authored as a template row at
+`<root>/idea/HelpConcept/<key>` and never instanced: the catalogue reads
+the rows (`Template.findByClass`) at `warm` and emits `concept.<key>`
+topics. ⭐ It is a data **Idea, not a document kind**, for the same reason
+`Discipline` is: a concept is reference data, so a pack ships one by
+writing YAML — no new collection, no go-live hook, no installer surface.
+`help api` stays the author surface; the concepts are the pedagogy, and a
+build that adds a whole agronomy owes both. Milling, baking, farming and
+the spoilage build ship the first rows; `help <key>` reaches them through
+the bare fallthrough's concept rung.
 
 ## The enriched `author-surface.json` pipeline
 
@@ -264,6 +287,22 @@ topic") is a clean add, not a rework: a `mixin.<Concept>` id is exactly
 what an inspection card already knows (the mixin name), and the relation
 graph is the navigation substrate. Wiring that bridge is Wave 2 and is not
 built here.
+
+## The line — help vs wiki vs inspection
+
+Everything is an instanced Stuff with state, so the discriminator between
+the three reading surfaces is **does it change at runtime?**
+
+| | Scope | Surface | Maintainer |
+|---|---|---|---|
+| immutable-at-runtime definitions (Species, Clade, units, types) + systems + commands + API + concepts | system / type | **Help** | developer |
+| mutable instances' narrative (this NPC, this area) | instance | **Wiki** ([wiki.md](./wiki.md)) | community |
+| mutable instances' current truth | instance, viewer-relative | **Inspection** (`look` / `analyze`) | the game |
+
+*The goblin as a species* is help; *this goblin bleeding in the corner*
+is inspection; *the legend of the goblin king* is wiki. Mutability
+decides — and it is why help is developer-maintained and co-locates with
+the thing it documents, where the wiki is the community's.
 
 ## Deferred (later waves / non-goals)
 

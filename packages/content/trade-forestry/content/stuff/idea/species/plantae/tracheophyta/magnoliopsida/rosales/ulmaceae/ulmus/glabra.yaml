@@ -1,0 +1,20 @@
+# Ulmus glabra — the wych elm. The wood that will not split (the wheel
+# hub, the chair seat) and does not rot under water (the pipe, the pile).
+# In the vocabulary for the wood it yields; no venue stands it yet.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Ulmus glabra
+  commonNames: ["elm", "wych elm"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  # The LIVING organism's material; the wood is the material row's fact
+  # (`/stuff/idea/material/wood/elm` → `biologicalSource` → this row).
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 350
+  circadianBand: aperiodic
+  diet: photosynthesis

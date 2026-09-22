@@ -59,6 +59,7 @@ export default class MuddleController extends ManualBuildController<MuddleModel>
     const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(MUDDLE_MS, muddler, [MUDDLER]),
+      effortW: 150,
       beginSelf: Mml.compose`You set ${Mml.thing(muddler)} to ${Mml.thing(vessel)} and press.`,
       onComplete: () => {
         built.setBuildMethod("muddled");

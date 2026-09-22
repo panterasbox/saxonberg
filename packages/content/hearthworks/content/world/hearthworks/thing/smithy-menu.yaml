@@ -11,10 +11,16 @@ data:
   register: indefinite
   longDescription: |
     A slate board chalked with the smith's standing offers, prices in a firm hand.
-  offeredRecipes: [fire-poker, cook-pot, smiths-hammer, belt-knife, leather-jerkin]
+  offeredRecipes: [fire-poker, cook-pot, smiths-hammer, belt-knife, leather-jerkin, barbell]
   prices:
     fire-poker: 4
     cook-pot: 8
     smiths-hammer: 12
     belt-knife: 15
     leather-jerkin: 18
+    # ⭐ The barbell — two bars of stock, the smith's answer to a body
+    # that has outgrown the world's load (nutrition-and-fitness D26).
+    # Priced on the smith's own slate: the distributor cannot point at
+    # smithing (a pack cycle through cooking), and the maker's counter
+    # is the honest one anyway.
+    barbell: 14

@@ -52,6 +52,7 @@ export default class StirController extends ManualBuildController<StirModel> {
     const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(STIR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
+      effortW: 150,
       beginSelf: Mml.compose`You begin to ${verb} ${Mml.thing(vessel)}.`,
       onComplete: () => {
         built.setBuildMethod(method);

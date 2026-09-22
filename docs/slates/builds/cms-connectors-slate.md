@@ -3,7 +3,9 @@
 > **Status: PARTIAL** — the surface it adapts shipped (the unified tree,
 > `CmsApi` read/write/stat/listTree, the REST data API, the gating table,
 > save go-live) → [cms.md](../../subsystems/cms.md); no connector exists,
-> and no non-session auth path exists anywhere in the backend.
+> and no non-session auth path exists anywhere in the backend. Captured
+> as a design conversation, not requirements — explicitly NOT a near-term
+> priority (user, 2026-09-01: *"though it's not a big priority yet"*).
 > **Left:** scoped personal access tokens (content-vs-source scope) · the
 > MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over
 > `source` + `document` · read-only WebDAV over `content` · the
@@ -14,13 +16,6 @@
 not: **(a)** edit source/content/documents from your own editor, and
 **(b)** point your own Claude Code account at the runtime and author
 *inside it*, rather than through git push/pull.
-
-> **Status: design conversation, captured. Not requirements — and
-> explicitly NOT a near-term priority** (user: *"though it's not a big
-> priority yet"*). Written down now because the two pieces with real
-> decisions in them — **token scoping** and **content-backend
-> filesystem semantics** — are worth settling before anyone starts,
-> not because the work is queued.
 
 **Provenance:**
 
@@ -50,13 +45,7 @@ gates that make or break this),
 
 `CmsApi` is already a **filesystem primitive set**:
 
-| method | REST |
-|---|---|
-| `listTree` | `GET /api/cms/tree` |
-| `read` | `GET /api/cms/read` |
-| `stat` | `GET /api/cms/stat` |
-| `write` | `POST /api/cms/write` |
-| — | `GET /api/cms/diagnostics`, `GET /api/cms/csrf` |
+*(the method ↔ route table → cms.md § `CmsApi` / `CmsLogic`, § REST data API — six routes, `diagnostics` included)*
 
 Gated server-authoritatively on a **context-derived** actor, per-path
 for content, `isWizard` for source. **Nothing about the connector work

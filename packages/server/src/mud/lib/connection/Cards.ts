@@ -415,5 +415,8 @@ export const SHELF_SUBSCRIPTION: {
   label: 'your own figures',
   query: 'me',
   cardinality: 'one',
-  fields: ['playStanding', 'makeStanding', 'renown', 'practisingCompetence'],
+  // `bodyState` joined when the body learned what working is
+  // (nutrition-and-fitness W8): breath · hunger · thirst · the build, as
+  // words, poked on a band crossing.
+  fields: ['playStanding', 'makeStanding', 'renown', 'practisingCompetence', 'bodyState'],
 };

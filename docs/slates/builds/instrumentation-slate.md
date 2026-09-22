@@ -3,10 +3,31 @@
 > **Status: UNBUILT** — the three-base capability model and the sensory
 > physics it rides both exist, but nothing this slate proposes is built;
 > `analyze` is still ungated and the metal chain had to work around it.
+> Re-verified 2026-09-19: no `MeasuringMixin`, no `readings` verb;
+> `Sextant.commandContributions` still names the whole `measure.yaml`;
+> `MeasureAltitudeController` still checks `instanceof Altimeter` /
+> `Sextant`; the `strike`/`dip` stanzas still sit in the platform view
+> naming `trade-mining` controllers (`measure.yaml` l.127–143). ⚠ The
+> addendum's counts have drifted — eleven instruments in
+> `platform/thing/instrument/`, eighteen kernel `Measure*`/`Analyze*`
+> controllers, and the three mining survey controllers DO band by
+> `geology` — the retrofit's step 1 inventory re-takes them.
 > **Left:** the `analyze`/`measure` channel → capability + competence
-> table · the instrument-declared dial (so a pack contributes a
-> subcommand) · the readout ladder · honest refusals · the author/test
-> bypass, decided before the gates land · the implant rung (Wave 2+)
+> table (the step-1 inventory) · `MeasuringMixin` on a Thing (`channels`
+> + `read`) with one `measure` verb over a string positional, no
+> subcommands · the instrument-declared dial (so a pack contributes a
+> channel, and the `strike`/`dip` platform-view stanzas retire) · the
+> `readings` companion verb · eyeballing as the body's coarse instrument
+> · route-gated `analyze` (each analysis declares which modalities
+> answer; the output names its route) · the readout ladder · honest
+> refusals · the calibration / certification gate · the author/test
+> bypass, decided before the gates land · the implant rung (Wave 2+ —
+> carried upgradeable, mounted frozen at install) · wheel speed on
+> `look` at a working mill (presentation) · the constraints absorbed
+> from sampling-and-labs § Part 7 (the step-1 inventory organised on
+> the portable/bench axis · certification-because-salting · Grade →
+> precision at the bench, portability in the field · the hand-tool rung
+> as step 2's first content)
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the press session's recording
@@ -235,6 +256,24 @@ more, who gets to see more, and what do you give up to keep seeing?**
    whether Grade buys precision, durability, or both.
 7. **The species-intrinsic roster** — which senses any species gets
    natively, and whether that is a balance lever or purely flavor.
+
+## Absorbed from sampling-and-labs-slate — Part 7 — What this answers in the parent slate
+
+> Moved verbatim from [sampling-and-labs-slate](./sampling-and-labs-slate.md) § *Part 7* by the cluster-merge pass (2026-09-21); its "Part 1/2/3" references are that slate's sections.
+
+Resolves, or sharpens, several of
+[instrumentation-slate](./instrumentation-slate.md)'s open questions:
+
+- **Q1 (channel/instrument mapping)** — Part 1 gives the organizing axis:
+  **environment-readers are portable; sample-eaters are bench.** The
+  mapping should be built along that split, not as one flat table.
+- **Q5 (certification authority)** — Part 3: certification exists because
+  **salting** exists. The reason precedes the institution.
+- **Q6 (instrument crafting / does Grade buy precision)** — the three-tier
+  ladder wants Grade to buy **precision** at the bench and **portability**
+  in the field; two different goods from one axis.
+- **Its "where to start" step 2 (author the instrument set)** — Part 2's
+  hand-tool rung is the cheapest, highest-value first content.
 
 ---
 

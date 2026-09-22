@@ -35,6 +35,35 @@ data:
     - { itemTemplatePath: /world/terminus/general-store/thing/clasp-knife, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/lantern, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/whetstone, par: 2 }
+    # ⭐⭐ **Armour, finally BUYABLE.** Six armour rows shipped months ago
+    # and not one was referenced by any `props:`, `cast:` or stock line —
+    # so the whole outside-in covering model (the resist fold, the layer
+    # ladder, per-part insulation) had nothing a player could reach. The
+    # torso slot already carries `capacity: 4`, so layering has always been
+    # possible; this is the reachability it was missing.
+    #
+    # The five are a real ladder in BOTH price and physics: padded soaks a
+    # blunt blow and does nothing against a point, mail is the reverse,
+    # plate turns an edge outright. Wearing all three of the torso pieces
+    # at once is the historical stack and the game now permits it.
+    - { itemTemplatePath: /stuff/thing/armor/padded-gambeson, par: 2 }
+    - { itemTemplatePath: /stuff/thing/armor/hide-jerkin, par: 2 }
+    - { itemTemplatePath: /stuff/thing/armor/mail-hauberk, par: 1 }
+    - { itemTemplatePath: /stuff/thing/armor/breastplate, par: 1 }
+    - { itemTemplatePath: /stuff/thing/armor/leather-boots, par: 2 }
+    # ⭐⭐ **Past the medieval.** A bow and a musket on the same shelf,
+    # priced so the choice between them is a real one rather than a
+    # ladder you climb: the musket carries thirty times the energy and
+    # takes four times as long to make ready, and it costs four times as
+    # much. A new player can afford the bow.
+    - { itemTemplatePath: /stuff/thing/arms/hunting-bow, par: 2 }
+    - { itemTemplatePath: /stuff/thing/arms/arrow, par: 3 }
+    - { itemTemplatePath: /stuff/thing/arms/flintlock-musket, par: 1 }
+    - { itemTemplatePath: /stuff/thing/arms/musket-ball, par: 2 }
+    # ⭐ The corrosion channel's first WEAPON — a thrown glass flask that
+    # shatters and splashes vitriol over the mark. It rides no combat
+    # code: the `throw` splash + the substance-contact seam do the work.
+    - { itemTemplatePath: /stuff/thing/items/flask-of-vitriol, par: 2 }
     # ⚠⚠ **The iron ingot is gone, row and all.** The store stocked bars
     # at 5 apiece, out of nowhere, forever — a faucet the whole metal
     # chain exists to replace. Iron is made now: you walk out to the
@@ -52,6 +81,20 @@ data:
     - { itemTemplatePath: /trade/farming/thing/pot/large, par: 2 }
     - { itemTemplatePath: /stuff/thing/vessel/soil-sack, par: 4 }
     - { itemTemplatePath: /trade/farming/thing/seed/snake-plant, par: 3 }
+    # ⭐ An orange you can EAT (nutrition-and-fitness W4, D25). The
+    # years clock — a body on bread alone for a month gets scurvy — needs
+    # something a person can go and buy that is not bread. The
+    # distributor at Wharfside gets the farm's citrus by CONSIGNMENT (the
+    # hand carries the crates), which is the real chain and not a par; a
+    # general store selling a piece of fruit is what a general store is
+    # until the grocer fragments off it.
+    #
+    # ⚠ ABOVE the seed packets, deliberately: a packet answers to the
+    # bare crop name too (`orange` is a keyword on `seed/orange`, the
+    # farming convention) and `buy` takes the FIRST match — the drive
+    # found `buy orange` handing over a packet of seed. The bare noun is
+    # the fruit; the packet still answers to `orange seed`.
+    - { itemTemplatePath: /trade/farming/thing/orange, par: 6 }
     # The produce seeds (farming A5) — one packet per bar fruit, so the
     # suburban-garden path (D0) starts here: buy a seed, grow the tree,
     # pick the fruit. Trees are dearer than the herb; all reachable on
@@ -147,6 +190,25 @@ data:
     /world/terminus/general-store/thing/clasp-knife: 6
     /world/terminus/general-store/thing/lantern: 10
     /world/terminus/general-store/thing/whetstone: 3
+    # ⚠ Priced against the shipped ladder (stipend 20, wages 4-6 per
+    # game-hour, bed 45, wagon 95), not as a balance claim. The shape is
+    # the claim: boots are an afternoon's wages and a breastplate is a
+    # season's — armour is the most expensive thing a new player wants,
+    # which is why the gambeson exists at 14.
+    /stuff/thing/armor/leather-boots: 8
+    /stuff/thing/armor/hide-jerkin: 12
+    /stuff/thing/armor/padded-gambeson: 14
+    /stuff/thing/armor/mail-hauberk: 40
+    /stuff/thing/armor/breastplate: 55
+    # ⚠ Ammunition is cheap and the launcher is not, which is the shape
+    # that makes running out annoying rather than ruinous.
+    /stuff/thing/arms/hunting-bow: 18
+    /stuff/thing/arms/arrow: 4
+    /stuff/thing/arms/flintlock-musket: 70
+    /stuff/thing/arms/musket-ball: 6
+    # A consumable thrown weapon — cheap like ammunition, since it breaks
+    # on use; the corrosion it delivers is what a caustic costs, not craft.
+    /stuff/thing/items/flask-of-vitriol: 8
     /world/terminus/general-store/thing/sewing-kit: 5
     /world/terminus/general-store/thing/sewing-machine: 18
     # Against the shipped ladder (stipend 20; torch 2, rations 3, waterskin
@@ -171,6 +233,7 @@ data:
     /trade/farming/thing/seed/cranberry: 5
     /trade/farming/thing/seed/grape: 6
     /trade/farming/thing/seed/juniper: 5
+    /trade/farming/thing/orange: 1
     # The homebrew kit: all of it reachable on the stipend across a
     # week's wages (D15) — the still the dearest thing on the shelf.
     /stuff/thing/vessel/carboy: 7

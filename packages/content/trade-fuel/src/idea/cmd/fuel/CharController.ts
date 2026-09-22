@@ -112,6 +112,10 @@ export default class CharController extends CommandController<CharModel> {
       // occupation for three days, and the slot says which.
       slots: ['attention'],
       durationMs: BURN_MS,
+      // ⚠ No `effortW`: a three-day burn is WATCHED, not worked — the
+      // collier eats, cuts wood and walks to the yard while it runs, and
+      // crediting three days of "work" to the body would max its wind
+      // from a single burn. Not work, by the activity's own declaration.
       onComplete: onDone,
       host: pit as unknown as Stuff,
     });

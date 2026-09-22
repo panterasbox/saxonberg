@@ -1,6 +1,6 @@
 # Slates — the design backlog, sorted by what is left
 
-228 slates. Every one carries a **status block** under its title:
+229 slates. Every one carries a **status block** under its title:
 
 ```
 > **Status: PARTIAL** — what shipped → [subsystem.md](…)
@@ -30,7 +30,7 @@ materials-response all shipped, which made the name actively misleading.
 
 ---
 
-## ⭐ Greenfield — nothing shipped yet (57)
+## ⭐ Greenfield — nothing shipped yet (56)
 
 Pick from here for a clean cycle with no existing substrate to respect.
 
@@ -62,7 +62,6 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) … |
 | [fishing](./builds/fishing-slate.md) | the catch-distribution field · the landing contest · the fish and aquatic-harvest roster · the method ladder (rod · trap · net · spear) · the three water regimes … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table … |
-| [forestry](./builds/forestry-slate.md) | the forestry trade pack · felling + conversion verbs · seasoning · the stand-as-record · the silviculture Discipline · estovers + forest law … |
 | [grid](./builds/grid-slate.md) | the service declaration on `ParcelRecord` (default connected, author disconnection) · connection-not-consumption metering … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema · the `guild:` GroupProvider + ranks · focus-tagged `TranscriptEntry` + charter-weighted `Competence` · contract claim gates … |
 | [hydration-framework](./builds/hydration-framework-slate.md) | a `Hydrator` that is mixin-composed like `PersistenceContributor` — one framework for every hydration source (the `data:` block, a record, another collection) · `postRegister` for work AFTER a thing is filled in, not "finish hydrating" (63 of 109 break that) … |
@@ -244,9 +243,10 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [weather](./tails/weather-slate.md) | fog → visibility · snow depth · vector wind · moving fronts · a weather-pin write Api (it blocks the `storm` Discipline) … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth … |
 
-## Tails — small and opportunistic (36)
+## Tails — small and opportunistic (38)
 
 | slate | left to build |
+| [nutrition-and-fitness](./tails/nutrition-and-fitness-slate.md) | the `pace` device (the gym's second slot, held back by `lint:capabilities`) · the real-world bridge as a seam · the menu as a choice · a `{{ body }}` prompt word · the `wind` row's first conferral (the swim) … |
 |---|---|
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — `MudlogApi` is unwired) … |
 | [explicit-targeting](./tails/explicit-targeting-slate.md) | ⭐ SHIPPED `onFiltered: take/warn/error` — the kind axis of ambiguity is declarable · LEFT: the reserved `--strict`/`--loose` per-invocation override · turning `warn` on anywhere (a content question wanting a live drive) … |
@@ -264,6 +264,7 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [electricity](./tails/electricity-slate.md) | AC vs DC · full Kirchhoff current division · hand-chains, damp-not-pooled floors and humidity · Joule→fire · magic `Create·Lightning` · power as a grid |
 | [encumbrance](./tails/encumbrance-slate.md) | per-item placement refinement (a frame pack beating the worn floor) · augment-conferred capacity · gravity/environmental margins · tissue-derived mass · numeric tuning |
 | [external-chat-relay](./tails/external-chat-relay-slate.md) | YouTube outbound |
+| [forestry](./tails/forestry-slate.md) | `analyze wood` + a per-wood roll-up · partial yield below ripe · the Cover seam (Sward + Stand) · a planted standard joining the stand at maturity · the tree-dimension axes · the seeded site character for a Wood … |
 | [host-slot-activities](./tails/host-slot-activities-slate.md) | sit/lie/mount/drive as interruptible durative engagements · `SlotApi.claimPending` · the decode half of `read` as a duration |
 | [incapacity](./tails/incapacity-slate.md) | impound-on-a-claim · the preserving (never improving) receiver · return and reclaim · the docket entry … |
 | [kick-relay](./tails/kick-relay-slate.md) | phase-2 posting (`kick-reauth` + `chat:write` through the existing throttle/echo-suppress) · boot-time webhook-subscription reconciliation · `kick.com/video/…` URL forms |
@@ -305,3 +306,22 @@ Not a cycle of its own. Pull one in when its host build is in flight.
   discovery · argument-map ↔ forums · supply (pack) ↔ power-utility ·
   college ↔ education-integration ↔ eternal-university-narrative.
   Merge on contact rather than letting a third appear.
+
+  ⭐ **The medicine cluster — reconciled 2026-09-15.** Six slates covered
+  one subject and the index did not name them, which is how they drifted.
+  Recorded here so the next reader inherits the boundaries rather than
+  rediscovering them:
+
+  | pair | resolution |
+  |---|---|
+  | physiology § 7e ↔ blood | ✅ **merged into blood** — physiology keeps the blood-loss *axis* (it is a vital sign); blood owns the substance, the compatibility graph and the donation economy |
+  | health-vertical ↔ medic-judgment | ✅ **split by subject** — they gave *opposite* answers to "what is the diagnosis surface." medic-judgment owns the graded act (cues without names, the deed is the decision); health-vertical owns the world it is practised in (institutions, outbreaks, prevention, the vet track) |
+  | physiology § 7b ↔ pharma | ✅ **already declared** — pharma cites physiology for the substance model and owns the industry (extraction, vessels, assay, vocations). No action; recorded so it is not "merged" by someone reading the two titles |
+  | disease ↔ disease (pack) | ⏳ still open, listed above |
+
+  ⚠ **The lesson worth keeping.** The health-vertical/medic-judgment pair
+  was not two documents saying the same thing — it was one asking a
+  question it called *"the vertical's defining design problem"* and the
+  other having already answered it, six weeks apart, with neither citing
+  the other. **A duplicate pair's real cost is not wasted words; it is
+  that one half can be solved while the other half keeps paying for it.**

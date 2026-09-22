@@ -27,6 +27,9 @@ import type { CommandContext } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { Trauma } from '../../../Condition';
 import Condition from '../../../Condition';
+import { AppApi } from '../../../../../api/app';
+import BodyPlan from '../../../species/BodyPlan';
+import Species from '../../../species/Species';
 
 let captured: string;
 function captureBody(): void {
@@ -75,6 +78,7 @@ const footWound = (dressed = false): Trauma => ({
 beforeEach(() => {
   installV1QuantityMarshallers();
   fakeMongo();
+  vi.spyOn(AppApi, 'setting').mockReturnValue('');
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
 });
@@ -237,5 +241,155 @@ describe('AssessController — the affliction readout', () => {
     );
     expect(captured.toLowerCase()).toContain('unwell');
     expect(captured.toLowerCase()).not.toContain('recovering');
+  });
+});
+
+describe('AssessController — the weight in words (nutrition-and-fitness W3)', () => {
+  const bodyOf = (stature: number, kg: number, path: string): Creature => {
+    const c = makeStuff(() => new Creature());
+    stampTemplatePathForTest(c, path);
+    // The controller reads the species for the vital profile and the
+    // body plan too; only the stature is what this block needs.
+    vi.spyOn(c, 'bodyMassIndex').mockReturnValue(kg / (stature * stature));
+    return c;
+  };
+
+  it('self sees the band in words, and no digits anywhere in it', async () => {
+    const me = bodyOf(1.75, 95, '/platform/agent/Avatar/heavy');
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured).toContain('You are heavily overweight.');
+    expect(captured).not.toMatch(/\d/);
+  });
+
+  it('an untrained looker gets no weight line on another body', async () => {
+    const me = makeStuff(() => new Creature());
+    stampTemplatePathForTest(me, '/platform/agent/Avatar/looker');
+    const them = bodyOf(1.75, 95, '/platform/agent/Avatar/heavy2');
+    await makeStuff(() => new AssessController()).execute(targetArg(them), ctxFor(me, null));
+    expect(captured).not.toContain('overweight');
+    expect(captured).not.toContain('healthy weight');
+  });
+
+  it('a healthy frame reads healthy', async () => {
+    const me = bodyOf(1.75, 70, '/platform/agent/Avatar/fine');
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured).toContain('of a healthy weight');
+  });
+});
+
+/* ────── the injury build: interiority + the anatomy block ────── */
+
+/**
+ * A body with a torso, a liver under it, and a left hand — enough to show
+ * an interior wound, a function band and a covering stack.
+ */
+function anatomical(path: string): Creature {
+  const plan = makeStuff(() => new BodyPlan());
+  plan.setName('assess-biped');
+  plan.setBodyParts([
+    {
+      key: 'body.torso',
+      parent: null,
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 20 }],
+    },
+    {
+      key: 'body.torso.liver',
+      parent: 'body.torso',
+      governs: ['clearance'],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1.5 }],
+    },
+    {
+      key: 'body.arm.left.hand',
+      parent: 'body.torso',
+      serves: ['manipulation'],
+      severable: true,
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.4 }],
+    },
+  ]);
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/assess-${path}`);
+  const species = makeStuff(() => new Species());
+  species.setBodyPlan(plan);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/assess-${path}`);
+  const c = makeStuff(() => new Creature());
+  c.setSpecies(species);
+  stampTemplatePathForTest(c, `/platform/agent/Avatar/${path}`);
+  return c;
+}
+
+const liverWound = (): Trauma => ({
+  kind: 'trauma',
+  type: 'rupture',
+  site: 'body.torso.liver',
+  severity: 2,
+  bleeding: true,
+});
+
+describe('AssessController — an interior wound (D10)', () => {
+  it('⭐⭐ SELF is told something is wrong and NOT what', async () => {
+    // The asymmetry the build wants: you know less about your own body
+    // than a competent stranger does.
+    const me = anatomical('self-interior');
+    me.afflict(liverWound());
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured).toContain('Something is wrong inside');
+    // ⚠ The WOUND is unnamed; the PART is still listed, because knowing
+    // you have a liver is not a diagnosis. What must not appear is what
+    // is wrong with it.
+    expect(captured).not.toContain('rupture');
+    expect(captured).not.toContain('torso liver — ');
+  });
+
+  it('⚠ an untrained OTHER sees no sign of it at all', async () => {
+    const me = anatomical('viewer-interior');
+    const them = anatomical('patient-interior');
+    them.afflict(liverWound());
+    await makeStuff(() => new AssessController()).execute(
+      targetArg(them),
+      ctxFor(me, null),
+    );
+    expect(captured).not.toContain('liver');
+    // …and it does not lie by claiming they are unwounded.
+    expect(captured).toContain('cannot read');
+  });
+});
+
+describe('AssessController — the anatomy block (D12)', () => {
+  it('lists parts with their function band', async () => {
+    const me = anatomical('self-anatomy');
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured).toContain('Your body:');
+    expect(captured).toContain('arm left hand');
+    expect(captured).toContain('full');
+  });
+
+  it('⭐ a MISSING part says gone, not a band', async () => {
+    // "left hand — lost" reads as an injury; the hand is not there.
+    const me = anatomical('self-missing');
+    me.severPart('body.arm.left.hand');
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured).toContain('arm left hand — gone');
+  });
+
+  it('⭐⭐ SELF sees its organs LISTED but not BANDED — the drive found this', async () => {
+    // An untrained self-assess showed ten exterior parts and no brain,
+    // spine or liver, because naming an interior part was gated on
+    // medicine competence. "Do I have a liver" is not a diagnosis. What
+    // stays gated is the BAND: `liver — failing` is exactly the
+    // diagnosis D10 says you cannot make about yourself.
+    const me = anatomical('self-organs');
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured).toContain('torso liver');
+    expect(captured).not.toContain('torso liver — ');
+  });
+
+  it('⚠ an untrained reader is not shown the INTERIOR parts', async () => {
+    const me = anatomical('viewer-anatomy');
+    const them = anatomical('patient-anatomy');
+    await makeStuff(() => new AssessController()).execute(
+      targetArg(them),
+      ctxFor(me, null),
+    );
+    expect(captured).toContain('Their body:');
+    expect(captured).not.toContain('liver');
   });
 });

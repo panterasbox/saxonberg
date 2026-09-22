@@ -1,26 +1,24 @@
 # Residence ladder & property condition design pack — the progression spine
 
 > **Status: PARTIAL** — the residences build (2026-08-31) shipped the three
-> rungs, shell-weathering condition and the ascent gate
-> (`residence.ascent.minCondition`, default 0.5) →
+> rungs, shell-weathering condition and the two-part ascent gate (money
+> necessary, condition binding, read over EVERY held unit;
+> `residence.ascent.minCondition`, default 0.5) →
 > [holding.md](../../subsystems/holding.md)
-> **Left:** room condition (dirt · debris · tidiness) as a producer ·
-> folding `Durable` wear and spoilage into `propertyCondition` · the
-> Stewardship Discipline · the neglect consequence ladder · the allowance
-> cascade, still an inert field
+> **Left:** `propertyCondition` as a derived aggregate over room condition ·
+> Durable wear · spoilage — and its reconciliation with the shipped
+> calendar shell clock · the smallholding + farm/ranch rungs' ascent gates ·
+> the Stewardship Discipline · the neglect consequence ladder · the premises
+> money half (metered utilities) · the salvaged apartment seams still here
+> (the compute-as-energy loop → property-slate · the owner-index cache ·
+> spatial carve-outs; rent economics + co-lease moved to tenancy,
+> prose-on-owned-items to dorm-warren) · the blockers (region parcels · the
+> allowance meter · a second city)
 > **Size:** a wave
-
-> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
-> The spine that makes the whole stewardship pillar *matter*: **you rise by
-> tending, and the gate to a bigger place is the condition of the one you
-> already hold.** [stewardship-slate](../builds/stewardship-slate.md) states the ladder
-> and the "condition gates ascent" claim; this pack turns it into a planner-ready
-> spec now that its inputs — [room condition](../builds/room-condition-design-pack.md),
-> [spoilage](./spoilage-design-pack.md), `Durable` wear — are designed.
 
 See also: [stewardship-slate](../builds/stewardship-slate.md) (the ladder, the allowance
 cascade, the Stewardship Discipline) · [stewardship-doctrine](../../stewardship-doctrine.md)
-· [room-condition](../builds/room-condition-design-pack.md) + [spoilage](./spoilage-design-pack.md)
+· [room-condition](../builds/room-condition-design-pack.md) + [spoilage](../../subsystems/spoilage.md)
 (the condition **inputs**) · [furnishing](../../subsystems/furnishing.md) +
 [residence](../../subsystems/residence.md) (the rungs) ·
 [parcel](../../subsystems/parcel.md) (title/tenure) ·
@@ -36,20 +34,10 @@ call](../../stewardship-doctrine.md) (**what may and may not recur**).
 The stewardship pillar's one-line thesis is *"you hold things, and tending them
 well is how you rise."* The ladder is where "how you rise" gets teeth:
 
-> ⭐⭐⭐ **Money is necessary and not sufficient. The binding gate to the next
-> rung is the CONDITION of what you already hold** (stewardship-slate). You do
-> not get a bigger place while the current one is falling apart.
+> *Shipped as the ascent gate — money necessary, condition binding; the
+> read is every held unit, so obligations are the cap →
+> [holding.md § The ascent gate](../../subsystems/holding.md#the-ascent-gate).*
 
-Three things fall out, and they are why this is the spine rather than a feature:
-
-- **The ladder is about capability, not accumulation.** Rising means *demonstrating
-  you can keep up with what you have* — honest (condition is visible, not a hidden
-  stat), and real (this is a landlord reference and a lender's look at how you
-  kept the collateral).
-- ⭐ **Anti-hoarding falls out for free.** Obligations scale with what you hold, so
-  **holding more than you can steward is negative-sum** — no ownership cap needs
-  writing. A manor you can't keep clean drags your condition below the gate and
-  you can't advance *or* live well in it. The obligations *are* the cap.
 - **It is the payoff that makes every producer matter.** Spoilage, room condition,
   Durable wear each become *legible consequences that gate your future*, not
   isolated chores.
@@ -113,17 +101,13 @@ it needs, what it supports, and its gate:
 | **Smallholding** | owned, frontier | agricultural (small) | a field, a few head | money + condition + zoning |
 | **Farm / ranch** | owned, rural | agricultural | scale (the Warren buds) | money + condition + stewardship band |
 
-**The gate is two-part: money (necessary) + condition (binding).** You can afford
-the townhome, but not while your apartment is filthy and its fixtures are broken.
-The condition check is a **band threshold** on your current holding's property
-condition — *"is it above `well-kept`?"* — read the moment you try to ascend.
-
-> **The frontier path is unblocked; the city middle is not.** *Dorm → go west and
-> homestead* rides shipped parcels (a frontier smallholding is one `FolderZone`
-> parcel). *Apartment → townhome → suburb* needs the **region-parcel** primitive
-> (deferred) and the **allowance meter** (ships inert) — so **build the frontier
-> rungs first** (stewardship-slate's own conclusion), and the city rungs land when
-> those two substrates do.
+*The two-part gate shipped — money necessary, the condition band binding,
+read at both chokepoints →
+[holding.md § The ascent gate](../../subsystems/holding.md#the-ascent-gate).
+The frontier-first ordering is superseded: the let rung (Seznick House)
+shipped without a region parcel or the allowance meter →
+[holding.md](../../subsystems/holding.md) ladder table; what the city
+middle still lacks is DENSE suburbia (stewardship-slate § Blockers).*
 
 ---
 
@@ -315,25 +299,13 @@ surface that outlived it. Verbatim below.*
 - **The compute-as-energy / stewardship loop** — property Phase 1; stewardship
   stays derived-on-read, never a flag. This build ships the persisting
   furnished home, not the energy meter over it.
-- **Rent economics** — payment schedules, metered sub-allowance, sublease
-  markets, the proprietor-as-Business P&L. The lease *relationship* ships; the
-  *economics* attach at `settle` + the Business account.
-- **Prose-on-owned-items personalization** (DECISION D5 in requirements) — the
-  whole-document write on an item's expressive prose fields; attaches at a
-  `PROSE_FIELDS` allowlist + the spine (instance state, carried free). Needs
-  chattel (this build) first.
-- **The holodeck portal fixture** — the skinnable wardrobe into `/home/`; its
-  own sandbox slate. The apartment is designed to contain one (a placeable
-  chattel fixture) — attaches as ordinary owned furniture with a
-  `SandboxPortalMixin`.
-- **Owned homes (title, not lease)** — the rung above; `transfer` of the unit
-  parcel title instead of a use-grant. The custody/title axis already carries
-  it.
-- **Pets as ownable `Creature` chattel** — the `owner` stamp bottoms out at
-  `Creature`; v1 scopes to `Thing`. Attaches by lifting the field to the
-  `Creature` branch.
-- **Co-lease / roommate** — a use-grant of a use-grant (property §K sublet);
-  v1 is single-leaseholder.
+- *Rent economics — moved to [tenancy § Absorbed from residence-ladder-design-pack](./tenancy-design-pack.md#absorbed-from-residence-ladder-design-pack--deferred-seams-rent-economics--co-lease--roommate) (2026-09-21 cluster pass; tenure is that pack's subject).*
+- *Prose-on-owned-items personalization — moved to [dorm-warren § Absorbed from residence-ladder-design-pack](./dorm-warren-slate.md#absorbed-from-residence-ladder-design-pack--deferred-seams-prose-on-owned-items-personalization) (2026-09-21 cluster pass; what a player writes onto what they hold is that slate's subject).*
+- *Shipped: the holodeck portal fixture ([sandbox.md](../../subsystems/sandbox.md)
+  — the wardrobe door), owned homes by title ([holding.md](../../subsystems/holding.md)
+  — the Owned rung, `title buy`), and pets as ownable `Creature` chattel
+  ([chattel.md](../../subsystems/chattel.md)).*
+- *Co-lease / roommate — moved to [tenancy § Absorbed from residence-ladder-design-pack](./tenancy-design-pack.md#absorbed-from-residence-ladder-design-pack--deferred-seams-rent-economics--co-lease--roommate), beside its open question 5 (sublet); the roommate SHAPE is [household](./household-design-pack.md) Part 1.*
 - **The owner-index as a persisted rebuildable cache** — v1 warms in-memory at
   boot + maintains at the chokepoint; a `possession`-collection materialized
   cache (the `renown`/`bank_accounts` shape) attaches if boot-scan cost bites.
@@ -345,23 +317,8 @@ surface that outlived it. Verbatim below.*
 
 ## Critical files for implementation
 
-- `packages/server/src/mud/lib/spatial/Thing.ts` — the `owner` stamp + `place`
-  + `itemId` fields + gated write surface (chattel-title's carrier).
-- `packages/server/src/mud/api/possession.ts` +
-  `platform/idea/api/PossessionLogic.ts` — the possession registry (title resolution,
-  the transfer chokepoint, the owner-index) — the one new engine Api.
-- `packages/server/src/mud/platform/idea/api/PersistableLogic.ts` +
-  `lib/persistence/PersistenceSlice.ts` — the owner-keyed capture (the
-  `OwnedChattelSlice` + host-capture skip + place routing) — Phase 2's core.
-- `packages/server/src/mud/world/.../apartments/{ApartmentBuilding,
-  ApartmentRoom,ApartmentDoor}.ts` — the multi-room leased content (the
-  `DormWarren`/`DormRoom`/`DormDoor` precedents, cluster member).
-- `packages/server/src/mud/platform/idea/cmd/inventory/{ClaimController,
-  GiveController}.ts` + `banking/SellController.ts` + `system/{Provision,
-  Unprovision}Controller.ts` — the title-aware furnish + admin verbs.
-- `packages/server/src/mud/lib/location/Warren.ts` +
-  `domain/lounge/LoungeWarren.ts` + the dorm's `DormWarren.ts` — the
-  keyed-Warren precedents (consumed unchanged).
-- `packages/server/src/mud/lib/parcel/` + `api/parcel.ts` — the lease surface
-  (from the dorm build) reused for provisioning/revert.
-</content>
+*Superseded — the build shipped under other names: `ChattelApi` for the
+possession registry, `BuildingWarren` / `HoldingWarren` / `FrontDoorExit`
+for the apartment classes, the `residence` capability pack for the lot →
+[holding.md § The four roles](../../subsystems/holding.md#the-four-roles)
++ [§ The packaging](../../subsystems/holding.md#the-packaging).*

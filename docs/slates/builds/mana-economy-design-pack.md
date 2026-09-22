@@ -2,23 +2,29 @@
 
 > **Status: PARTIAL** — the `arcane-science.md` edit landed 2026-08-11 and
 > the TPA buys and resells mana →
-> [fasttravel.md](../../subsystems/fasttravel.md)
-> **Left:** mana deposits + prospecting/refining · magic water as a traded
-> bulk good · the piped-mana utility tier · the Confluence in Terminus
-> canon · the three vocations
+> [fasttravel.md](../../subsystems/fasttravel.md). **2026-09-21 cluster
+> merge:** the sibling `mana-economy-slate.md` retired into this pack — see
+> *Absorbed from mana-economy-slate.md* below.
+> **Left:** the two Material fields (mana density · mana conductivity — canon
+> in arcane-science.md, no field on `Material` yet) · mana deposits +
+> prospecting/refining (partition + volatility, purity as a `Grade`) ·
+> ambient mana density of place driving recovery · the soil mana reserve +
+> the `mana` meal tag · magic water / the mana crystal as traded bulk goods ·
+> the volume-tiered sale (bulk contract · the piped-mana utility tier) · the
+> mana farm · the Confluence in Terminus canon · the three vocations ·
+> binding devices (a per-second draw that lapses when the reservoir runs
+> dry — `'binding'` is declared on `DrawMode`, nothing reads it) · sited mana
+> NODES on the terminus-condition × access-mode grid (geological/dynamic/
+> celestial/biotic × surface/subsurface-solid/subsurface-fluid) · node
+> title, rent and the first natural monopoly · whether a grid-power node
+> depletes (distinct from the farmed-soil-deposit case above) · demurrage on
+> a GRID vs. only on stored charge · distribution as a tree and the grid
+> edge as an economic boundary · the magic vehicle (a charged `Drivable`
+> priced against feed) · the reserve-that-is-not-a-body call (matter now
+> holds mana by canon, so whether the polity governs a node's `inflow` by
+> quota/rent must be decided deliberately) · the offer layer's currency
+> (`PricedOffer.prices` is bare minor units — owned by supply-chain-slate)
 > **Size:** a build
-
-> **Status: design + a DECISION RECORD, captured 2026-08-11. Not
-> requirements.** Changes one line of the arcane science and follows the
-> consequences: **mana stops being energy and becomes a second conserved
-> quantity that couples to energy at a fixed, one-way rate.** The change is
-> semantic, not numeric — ⭐ *every shipped number stays valid* (Part 0) —
-> and it converts magic from a power-transfer technology into a genuinely
-> separate economy.
->
-> ⚠ **`arcane-science.md` is NOT edited by this pack.** It is coherent as it
-> stands; Part 8 lists exactly what a later edit must touch. Half-changing it
-> is worse than either version.
 
 See also: [arcane-science](../../arcane-science.md) (**the doc this amends** —
 the postulate, Halloway, the price list, the instruments) ·
@@ -53,138 +59,44 @@ Settled with the owner, 2026-08-11:
 
 ## Part 0 — ⭐⭐ What this costs: numerically, nothing
 
-The instinct is that redefining the unit invalidates the numbers. It does
-not, because the coupling constant can simply be **k = 1 kJ/τ**.
-
-> **Every shipped value, every worked example, and every derived figure in
-> `arcane-science.md` stays arithmetically correct.** A firebolt still spends
-> 35.2 τ to deliver 29.9. Conjure-water still works out to ≈ 34 τ and still
-> kills you on the fourth casting. The bands are unchanged.
-
-What changes is **what τ means and what can hold it**:
-
-| | Before | After |
-|---|---|---|
-| τ | *is* a kilojoule | its own conserved quantity; exchanges at k = 1 kJ/τ |
-| Direction | identity, so trivially both ways | ⭐ **one-way**: mana → energy only |
-| Who can hold it | only a caster's body (as glycogen) | ⭐ **any substance with a mana density** |
-| Ceiling | human metabolism — "a quarter of a banana" | what you can source, refine and carry |
-
-That last row is the whole point: the old model capped a mage at their own
-physiology, which is why magic had to be economically irrelevant.
+✅ Landed — [arcane-science.md](../../arcane-science.md)'s 2026-08-11 audit
+entry (*no numbers changed, `k = 1 kJ/τ`*), § Units and quantities, § The
+second quantity; the engine side is
+[magic-items.md](../../subsystems/magic-items.md) § The denominator is τ (the
+`Unit` became the neutral `'pt'`; *no shipped number moved*).
 
 ---
 
 ## Part 1 — ⭐⭐⭐ Halloway was right. The field over-read him.
 
-The founding result currently concludes *"a mana point **is** a kilojoule."*
-It is explicitly framed as the field's Joule paddle-wheel — and **that is
-exactly where the over-reading is**, because it misstates what Joule showed.
-
-> Joule did not show that heat **is** work. He measured the **mechanical
-> equivalent of heat** — a *conversion constant* between two different
-> things. The calorie survived as a unit precisely because it measures
-> something you measure differently.
-
-So Halloway's experiment stands, unmodified and still founding: cast into a
-stone basin of known mass and specific heat, measure ΔT, compare against the
-reserve drawn down. **What the basin measures is the coupling constant**, and
-the field read a fixed exchange rate as an identity.
-
-`E_delivered = η · k · M_spent`
-
-⭐⭐⭐⭐ **And the reason nobody caught it is the best part, because it makes
-the change diegetic rather than a retcon:**
-
-> **You cannot tell a coupling constant from an identity while every mana
-> point you have ever measured came out of a human body.** With one source,
-> the two hypotheses make identical predictions. It takes mana that did *not*
-> come from a caster to distinguish them.
->
-> ⭐ **Magic water is the experiment that breaks Halloway.** The discovery of
-> a mana-bearing substance is what falsifies the identity — which means the
-> in-world field gets a real scientific revolution, and the game gets to
-> *stage* it rather than assert it.
-
-This is also better pedagogy than the current version: conflating two
-quantities that exchange at a fixed rate is one of the most common and most
-consequential errors in the history of science (caloric theory is the
-canonical case), and here a student gets to *find* it.
+✅ Landed — [arcane-science.md](../../arcane-science.md) § Halloway
+Equivalence + § ⚠ And the field over-read it for a century (`E = η·k·M`; the
+basin measures `k`; *it takes mana that did not come from a caster — a
+mana-bearing substance — to tell them apart*).
 
 ---
 
 ## Part 2 — The two quantities
 
-| | Energy | Mana |
-|---|---|---|
-| Conserved | ✅ globally and locally | ✅ globally; ⚠ **locally violated by the postulate**, as before |
-| Unit | J | τ |
-| Stored in matter as | chemical, thermal, electrical, nuclear | ⭐ **mana density** — a material property |
-| Made from inputs | ✅ burn fuel | ⛔ **never** (decision 3) |
-| Converts to the other | ⛔ | ✅ **one-way**, at k, through a coupling |
-
-The postulate is otherwise **unchanged**: a caster relocates between their own
-body and one chosen point, in either direction, without a medium. The caster
-is still always one endpoint. **Magic still never creates matter** — mass is
-not mana either, so conjuration stays *collection* and the dehumidifier
-analysis survives intact.
-
-⭐ `ConduitMixin`'s coupling efficiency stops being an analogy and becomes
-**the actual mechanism**: the coupling is where mana becomes joules, and its
-losses go where losses go — waste heat.
+✅ Landed — [arcane-science.md](../../arcane-science.md) § The second
+quantity (the table's every row; the postulate otherwise unchanged; *magic
+still never creates matter*).
 
 ### ⭐⭐ Decision 6 — nonlocality is ENERGY-ONLY
 
-The postulate grants relocating **energy** between a caster's body and a
-chosen point. It says nothing about relocating *mana*, and **extending it to
-mana would be a second exemption** — which the discipline clause forbids.
-
-> **Nonlocality is energy-only. Mana moves by CONTACT and CONDUCTION, the way
-> charge does.**
-
-This is not a restriction bolted on; it is the postulate read honestly. And it
-preserves everything shipped:
-
-- ✅ **`ConduitMixin` is unchanged.** Pushing your own mana into a wand you are
-  *holding* is conduction through contact — no postulate required, the way
-  touching a wire needs no postulate.
-- ⛔ **Ruled out:** pulling mana out of ore across the room, drawing from a
-  flask you are not touching, or separating mana from its medium by will.
-
-So materials carry **two** fields, not one:
-
-| Field | Answers |
-|---|---|
-| **mana density** | how much this substance *holds* — the store |
-| ⭐ **mana conductivity** | whether it *passes* mana on contact — what makes a conduit a conduit |
-
-Both are fields on the existing closed Material set (decision 4), so neither
-mints a material.
+✅ Landed — [arcane-science.md](../../arcane-science.md) § The second
+quantity (*mana itself moves by contact, not nonlocally… which is why a
+caster must hold a conduit to charge it*; the ⚠ *two clauses point opposite
+ways* box). ⚠ The two **fields** (`manaDensity` / `manaConductivity`) are
+canon properties, not yet fields on `Material` — that build item is Part 7's
+table.
 
 ### ⭐⭐⭐ The corollary law: magic is good at ONCE and terrible at HELD
 
-Kell's Partition already says every magical act is an **impulse** (a delivery,
-after which the world takes over) or a **binding** (a state held away from
-equilibrium, continuously topped up). Voss Decay already says why a binding
-costs. **Nobody has drawn the economic conclusion**, and it is the sharpest
-thing in this pack:
-
-> ⭐⭐⭐⭐ **Magic writes initial and boundary conditions, never laws — so it
-> is excellent at what happens ONCE and terrible at what must be HELD.
-> Structure beats sustained assertion, always.**
-
-A concrete dam is a one-time capital cost and then gravity works for free; a
-magic dam is an operating cost that never ends. The same verdict falls out
-every time: iron lock over magic lock, lamp over glowlight for permanent
-light, furnace over firebolt for sustained heat.
-
-Which hands magic its **actual comparative advantage**, cleanly and without
-special pleading: **impulse, portability, and places you cannot build.** A
-cave, a battlefield, a moment of need.
-
-⚠ This is a **third independent reason magic never industrialized** — and the
-most durable one, because it is structural rather than a matter of scale. It
-belongs in `arcane-science.md` beside Kell's Partition (Part 8).
+✅ Landed — [arcane-science.md](../../arcane-science.md) § Kell's Partition
+(*magic is excellent at what happens ONCE and poor at what must be HELD;
+structure beats sustained assertion*; the comparative advantage: impulse,
+portability, places you cannot build).
 
 ---
 
@@ -233,34 +145,22 @@ Three consequences, and two are nearly free on shipped substrate:
   several reserves (`water`→hydration, `carb`→fast satiation, `fat`→slow). A
   `mana` tag routing to the mana reserve rides the same seam.
 
-⚠ **The anti-chug guard already ships:** metabolism's **digestion buffer**
-releases a meal over time rather than instantly, so mana potions cannot be
-spammed mid-fight. No new rate limit needed.
+⚠ **The anti-chug guard already ships** — the mana potion IS a meal chemistry
+that feeds coupled recovery through the digestion buffer
+([magic-items.md](../../subsystems/magic-items.md) § The mana potion is
+metabolic).
 
 > ⚠ **Recovery rate now depends on WHERE YOU ARE** — ambient mana density is
 > a property of place. That is a new and good mechanic (it gives geography
 > teeth and explains why some sites are worth holding), and it is a real
 > change to how `CasterMixin` recovery reads.
 
-### ⚠ What this does to "recovering is exercise" — mostly preserved
+### What this does to "recovering is exercise"
 
-The current doc's sharpest physiological result is that refilling a reserve
-costs ~300 W, *"about the metabolic cost of walking,"* and that **a caster who
-wants to refill fast should eat, not meditate.** Under one-way coupling the
-body cannot make mana from food, so that line inverts — which would be a real
-loss.
-
-**The split saves it, and arguably improves it:**
-
-- The **mana stock** refills by ambient absorption (so meditating in a rich
-  place *is* how you refill — the traditional magic answer, now rule-bound).
-- The **coupling work is metabolic** — pushing mana through the coupling costs
-  the caster joules, which is where the heat and the hunger come from.
-
-> ⭐ So *"recovering is exercise"* becomes ***"casting** is exercise"* — and
-> the signature result survives untouched: **the mana bar is still not the
-> danger meter**, four conjure-waters is still +4.5 K, and hyperthermia is
-> still what kills you.
+✅ Landed — [arcane-science.md](../../arcane-science.md) § The caster's
+budget (*CASTING is exercise*; the ⚠ *Revised 2026-08-11* box: the stock
+refills by ambient absorption, the coupling work is metabolic; the mana bar
+is still not the danger meter).
 
 ---
 
@@ -354,18 +254,9 @@ discovering a better feedstock.
 
 ### Two utilities, not one
 
-Under the old identity, electricity and mana were **perfect substitutes** —
-one price, one market, and the cheaper input wins everywhere. That is why the
-current doc has to conclude magic never industrialized: coal beats a caster
-100:1.
-
-⭐⭐ **The new industrialization answer is structural and much better:**
-
-> **You cannot build a mana plant. You can only own a mana deposit.**
-
-Magic stays scarce because its input cannot be manufactured — not because a
-caster is a bad generator. That reason survives any future rebalancing, and it
-makes mana the **land** of the magic economy.
+✅ Landed — [arcane-science.md](../../arcane-science.md) § The power level
+(*you cannot build a mana plant; you can only own a mana deposit* — the
+industrialization argument replaced).
 
 ### ⭐⭐⭐ How it is sold: volume-tiered, and industrial gases settle it
 
@@ -619,81 +510,19 @@ immediately and rewrite later. NPCs stay just-in-time.
 
 ## Part 5c — ⭐⭐⭐ Teleportation, TPA, and devices that hold effects
 
-**(Owner, 2026-08-11: the TPA is magic, not electrical; it is to be retrofitted
-to run a real teleport spell with real mana costs, paid by the zorkmid fare and
-afforded by a wired connection in the city or a battery on the frontier, and it
-can go offline when the mana runs out.)**
-
-⚠ **The apparent blocker, and why it is the doc's gap rather than a design
-contradiction.** Read narrowly, `arcane-science.md` seems to forbid this: the
-thirteen nouns contain no Space or Distance, the postulate relocates *energy*,
-and no teleport spell ships. But **TPA already ships and the fiction already
-teleports** — so the taxonomy failed to account for content that predates it.
-The fix below adds **no second exemption**.
-
-### The one exemption is LOCALITY, and teleport is a locality violation
-
-The postulate's own words: *"local conservation of energy fails; global
-conservation holds… the continuity equation is false in this world."*
-
-> ⭐⭐⭐ **Locality is the impossible thing.** Restricting it to *energy* was a
-> narrowing the doc chose, not the exemption itself. Teleportation is a
-> locality violation and nothing else — **the same exemption, applied
-> consistently.**
-
-⭐ And *"magic never creates matter"* survives untouched. Read closely it is an
-**affordability argument about creation** (9 × 10¹⁶ J/kg by E = mc²), not a
-prohibition on transport: conjuration must be *collection* because making mass
-is unaffordable. Nothing in it speaks to **moving** mass.
-
-### ⭐⭐⭐⭐ The cost is SPECIFICATION, not energy — and Landauer is already cited
-
-Relocating a body horizontally costs essentially **zero energy**: no
-acceleration, so no kinetic term and no momentum recoil. That would make
-teleport free, which is wrong.
-
-It is not free, because the cost sits where `arcane-science.md`'s own **"the
-specification problem"** section already puts it — *"for a delivered pattern,
-form is doing nearly all of the work at almost no energetic cost"* — and
-**Landauer's principle** is already in the doc's Real column. Information has a
-thermodynamic price.
-
-> ⭐⭐⭐⭐ **Which explains the shipped content exactly: TPA is a fixed directed
-> graph of registered terminals because a terminal is a PRE-SPECIFIED
-> destination.** The network *is* the specification infrastructure, surveyed
-> once and amortised. You cannot teleport to an arbitrary point because nobody
-> paid the survey cost for it — and `register` is the traveller being specified
-> into the system.
-
-The mechanic was already right. The science now explains it.
-
-### What the fare depends on — and the counterintuitive part is the teachable part
-
-| Factor | Cost |
-|---|---|
-| **Altitude** | ⭐ real `mgh` — arriving at Vionne Heights costs more than Wharfside |
-| **Mass** | scales with `mgh`; a loaded traveller costs more, which stops TPA trivially replacing [freight](./freight-slate.md) |
-| ⭐⭐ **Distance** | **none — locality is what is broken** |
-
-Same fare to the next district as to the far city; the fare moves with **how
-high and how heavy**. That is exactly what a student would get wrong on first
-guess, and it is *derived*, not asserted.
-
-### The vocabulary was already there: Control·Body
-
-*"Control — changes parameters, remains itself."* Position is a parameter; the
-body remains itself. **No fourteenth noun is needed.** The doc's line about
-Control·Body being ruinously expensive was about **accelerating** mass — the
-shove, with its recoil doubling — and relocation has no acceleration and no
-momentum transfer, so it does not inherit that cost.
-
-> ⭐ **And the caster-is-always-one-endpoint clause closes an exploit for
-> free: you can only teleport YOURSELF.** A mage cannot teleport a third
-> party — which is why TPA is a booth you step *into*, and why "teleport the
-> prisoner into the cell" is off the table with nobody having to rule on it.
-
-The traveller is the endpoint; the terminal supplies the **specification and
-the mana**.
+✅ Shipped and landed. The owner's call → [fasttravel.md](../../subsystems/fasttravel.md)
+§ ⭐ What the TPA reform changed (a real `teleport` spell, `m·g·Δh`, paid
+by the fare, fed by a line in the city or cells on the frontier, `dry` when
+the mana runs out). The science → [arcane-science.md](../../arcane-science.md)
+§ The Postulate (revised 2026-08-11: the exemption is LOCALITY; *magic never
+creates matter* survives as an affordability argument about creation),
+§ Control·Body and the terminal network (teleport is Control·Body, no
+fourteenth noun; the cost is SPECIFICATION — a terminal is a pre-specified,
+surveyed destination and `register` is the traveller being specified into
+the system; the fare table: altitude · mass · **no distance**; *you can only
+teleport yourself*). Code: `MagicLogic.relocationCostImpl` (mass + borne
+burden × g × Δh, no distance term), `arcane-library/.../Spell/teleport.yaml`
+(`cost: 40` = the survey floor; `costModel: potential`; AC5).
 
 ### ⭐⭐⭐ The general category: devices that hold effects
 
@@ -705,23 +534,14 @@ already permits the category through **Kell's Partition**, with no new physics:
 > and a **mana reservoir tops it up instead of a person.** When the mana runs
 > out, the binding lapses.
 
-⭐⭐⭐⭐ **And impulse-vs-binding IS the battery-vs-wired distinction** — the two
-supply shapes are not arbitrary, they follow from Kell:
-
-| Device kind | Draw | Supply |
-|---|---|---|
-| **Impulse** — fires, then the world takes over (a teleport, a trap's firebolt) | **per use** | a **battery**: a charge replaced or recharged |
-| **Binding** — a state held from equilibrium (a ward, a held glowlight, a climate vault) | **per second** | a **wired connection**: continuous supply |
-
-**TPA is an impulse device**, so it is battery-shaped by nature — and a busy
-city terminal has enough throughput to justify a wire while a frontier terminal
-does not. **Same device, different supply, chosen on throughput**: the
-industrial-gas tiering from Part 5, unchanged.
-
-⭐ **Going offline is already half-built.** The [supply
-pack](./supply-design-pack.md)'s failure vocabulary has **`dry`**, and
-`FastTravelMixin` already ships an inert `status` seam with a **grey
-out-of-service** state on `TpaTerminal`. There is now a cause for that grey.
+The impulse half shipped: `ManaPoweredMixin` declares `DrawMode = 'impulse' |
+'binding'` (Kell's own distinction) and every shipped device is impulse — a
+battery-shaped draw per use, fed by a cell, the city line, or a person in
+contact, the supply chosen per row (`fasttravel.md` § The gate runs on mana,
+§ The three supplies; Terminus line-fed, the frontier on cells). `status`
+now DERIVES from supply, so the grey light has its cause (§ The condition).
+⚠ Nothing yet reads `'binding'`: no device draws per second and no binding
+lapses when its reservoir runs dry — that half is the build item.
 
 ### ⭐⭐ What this means for a home
 
@@ -751,6 +571,297 @@ build a VOCATION"* — because you genuinely cannot see mana density by looking.
 And the arcane science already ships the instrument shelf (the basin, the
 reserve gauge, the survey meter, the probe detector, the thaumometer) that
 such a trade would use.
+
+---
+
+## Absorbed from mana-economy-slate.md (2026-09-21 cluster merge)
+
+The sibling `mana-economy-slate.md` opened the mana-economy question a week
+before this pack (2026-08-04) on the premise *mana IS energy*; this pack's
+2026-08-11 decisions superseded that premise and this pack absorbed every
+shipped fact the slate carried. What follows is the slate's remaining
+UNBUILT design — moved here verbatim because it is not duplicated above —
+and the slate itself is retired (conservation table:
+`docs/plans/slate-compaction/cluster-mana.md`).
+
+### Absorbed from mana-economy-slate.md — Guard 2: rent: nodes are Ricardian land
+
+## ⭐⭐ Guard 2 — rent: nodes are Ricardian land
+
+A **node** is a site where conversion is *better* — a good fall of water, a
+hot vent. So sites are heterogeneous and the best ones go first.
+
+> **Best site first, then worse ones; the rent on the best site is the
+> difference.** Classic Ricardian rent — which means **the marginal cost of
+> mana RISES with demand**, and a rising supply curve is precisely what
+> stops an input from eating every industry.
+
+⭐ And it needs no new mechanism: a node is a stock with an inflow, the same
+equation [discovery-slate](./discovery-slate.md) already uses for forage
+(inflow = regrowth) and ore (inflow = zero). **A renewable node has an
+inflow; a depletable one does not.**
+
+> ⚠ **The failure to avoid: a manufacturable mana at constant cost.** If
+> more mana can always be made for the same price, it becomes the numéraire
+> and every price in the world tracks it. **Mana must be rent-bearing, not
+> manufacturable.**
+
+⚠ This slate's Q3/Q5 (below, "Absorbed — open questions") extend this guard
+to the node-depletion decision and to node ownership; a **node** here is the
+same kind of thing as this pack's Part 3 **deposit** — the two docs used two
+names for one concept.
+
+### Absorbed from mana-economy-slate.md — the offer layer's currency gap
+
+⚠ **One gap inherited from the same survey:** `PricedOffer.prices` is bare
+minor units while `Charge` carries a currency — so a charger's price is
+denominated **by convention** at the settling site. Harmless at one
+currency; see [supply-chain-slate](../tails/supply-chain-slate.md) § *the
+offer layer has no currency* (⚠ this line item is shared with
+supply-chain-slate, which owns it — recorded here only because the slate
+that carried it retired).
+
+### Absorbed from mana-economy-slate.md — The tension: a city-scale node breaks `S* = inflow / d`
+
+## ⚠⚠⚠ The tension: a city-scale node breaks `S* = inflow / d`
+
+This slate said a node may *"fart out enough energy to power a city."* The
+shipped economy says **all item-charge is caster-sourced and deliberately
+capped** — and the cap is load-bearing, because it is *why* wealth cannot
+corner the channel.
+
+> **An unbounded node inflow sends `S*` to infinity and dissolves the
+> guarantee the item build rests on.**
+
+### ⭐⭐⭐⭐ But the coupling already resolves it, and elegantly
+
+**A node has no reserve, and charge requires a caster's reserve as one of
+its three supplies.** So:
+
+> ⭐⭐⭐ **A node can power a city's MACHINES. It cannot charge a wand.**
+> Items are charged by people, full stop — not by decree, but because the
+> coupling demands an endpoint a node does not have.
+
+Two economies, separated by mechanism rather than by rule:
+
+| | supply | bounded by |
+|---|---|---|
+| **grid / machine power** | nodes, hydro, fire | the site — Ricardian rent |
+| ⭐ **item charge** | **caster labour** | metabolism, and it is *capped* |
+
+⭐⭐ And that yields the best version of Part 7's development arc, now
+*mechanically* true instead of asserted:
+
+> **Magic power is expensive because it is HAND-MADE. The grid is cheap
+> because it is mechanised.** Artisanal → industrial, which is the actual
+> history, and here it is a consequence of the coupling rather than a
+> balance decision.
+
+⚠ **The open call this leaves:** whether anything may ever *be* a reserve
+that is not a body. **Say no and the cap holds forever**; say yes and
+`S* = inflow / d` needs the polity to govern `inflow` — which is exactly the
+quota/rent machinery this slate already describes, so it is answerable
+either way. **But it must be answered deliberately, because it is the one
+decision that can silently undo the item economy.**
+
+⭐ Note the build's own instinct points the same way: `transfer` is
+**gated at `novice` on purpose** — *"it is the part that makes a mage useful
+to other people. Gating it high would turn a service anyone can sell into a
+specialist's monopoly."* **Charge is meant to be a broad labour market, not
+a chokepoint** — which an industrial node would flatten.
+
+⚠⚠ **This section is now partly CONTRADICTED by canon and kept anyway.**
+`arcane-science.md § The second quantity` (landed after this section was
+written) says matter — not only bodies — holds mana, so the premise "a node
+has no reserve" and the ⚠ open call above should be read against that: a
+non-body reserve may already be possible, which is exactly the case this
+section says would force the polity to govern `inflow`. The consequence
+this section names is the live design question; its premise is not settled
+fact. Requirements should read this against Guard 2 and this pack's
+decision 3, not inherit "items are charged by people, full stop" as closed.
+
+### Absorbed from mana-economy-slate.md — The stack
+
+# Part 3 — The stack
+
+```
+  SOURCE            →  CHARGER          →  DISTRIBUTION      →  CONSUMER
+  water / fire /       converts to         grid (tree)          TPA terminal
+  vent / sun           storable charge     or cells (portable)  vehicle
+  (a sited node)       ⭐ a real trade                          refrigeration
+                                                                items / tools
+```
+
+Every arrow is a price, and every box is somebody's business. ⭐ **That is
+the test this design has to pass and does**: a power economy with only one
+paid step is a utility bill, not an industry.
+
+### Absorbed from mana-economy-slate.md — Grid vs. cell is a GEOGRAPHY, not a convenience
+
+# Part 4 — ⭐⭐ Grid vs. cell is a GEOGRAPHY, not a convenience
+
+The user's own two-source sketch — *"something big and central like a gas
+station and something small and portable like a fuel tank"* — maps onto
+things already designed:
+
+| | | |
+|---|---|---|
+| **Central station + grid** | a **utility tree rooted at a source** ([delivery-slate](./delivery-slate.md)) | cheap per unit · fixed · **only where the line reaches** |
+| **Portable cell** | a charged store, filled at a station | expensive per unit · **goes anywhere** |
+
+Exactly gas mains vs. propane bottles, or grid power vs. batteries. And the
+consequence is spatial:
+
+> ⭐⭐⭐ **The grid's edge is an economic boundary.** On-grid is cheap;
+> off-grid pays the cell premium. Von Thünen again — and this time the ring
+> is **built**, not natural.
+
+⭐⭐ **Which finally gives a locality committee something real to do.**
+Extending the line raises the value of every parcel behind it, so
+infrastructure becomes a legible political act with a measurable payoff —
+and it is the first case where a locality's *spending* creates *land value*
+rather than merely regulating it.
+
+⚠ **Status per the code today:** the cell-vs-line price gap is real
+(`tpa.manaRate.cell 0.01` vs `.mains 0.002`), so *on-grid is cheap, off-grid
+pays the premium* already holds at a TPA gate. What has no code is the
+*utility tree rooted at a source* and *extending the line* as a locality's
+act — `ManaMain` is a per-room fixture named by `mainsRef`, not a network.
+
+### Absorbed from mana-economy-slate.md — Mana nodes: terminus conditions × access modes
+
+# Part 6b — ⭐⭐⭐⭐ Mana nodes: terminus conditions × access modes
+
+> **User: "I don't want this to be anything goes — there should be some
+> science behind it. Or rather, the magic science we have should intersect
+> with the other sciences in interesting ways, like the mana spring does
+> with geology. Like maybe it's not material-based at all but mechanical,
+> like hydro is just not based on water. Or based on radiation like solar
+> but not the sun. Or maybe all of the above."**
+
+## The framing that keeps it principled
+
+The postulate already says energy arrives at a place from an unknown far
+end (⚠ "Part 6" in the original slate — its endpoint-clause section, now
+shipped and documented at `fasttravel.md` § 2 · The TPA ride and
+`arcane-science.md` § The Postulate). So the only open question is:
+
+> **What determines WHERE a standing transfer terminates?**
+
+And that question does not belong to magic — it belongs to whichever
+ordinary science governs the place.
+
+> ⭐⭐⭐⭐ **Magic does not get its own science. It gets a FOOTHOLD in every
+> other one.** One postulate, several **terminus conditions**, each of which
+> is a different discipline's question.
+
+## Axis 1 — the terminus condition (the physics)
+
+| condition | output profile | intersects | consequence |
+|---|---|---|---|
+| **Geological** — bound to a vein, intrusion, or structure | ⭐ **constant, depletable** | geology, mining, materials | found by *prospecting*; can be worked out |
+| **Dynamic** — needs persistent motion (a gyre, a race, a standing wind) | **variable, renewable** | ⭐ **weather — already ships as a procedural field** | output swings with storm and season |
+| **Celestial** — fed by incident radiation that is *not* sunlight | ⭐⭐ **periodic, predictable** | astronomy, `CelestialApi` | an **almanac becomes saleable** |
+| **Biotic** — forms where life is dense | **slow, destructible** | ecology | clearing the forest kills the node |
+
+⭐ The celestial row is already half-written: [discovery-slate](./discovery-slate.md)
+says *"astrology needs no special case — it is a **time-varying inflow
+term**, periodic coefficient, predictable, which is what makes it saleable
+as an almanac."* **A celestial node is that term pointed at power.**
+
+## ⭐⭐⭐ Axis 2 — the access mode (the economics)
+
+**Independent of the physics**, and it is what decides who can have one:
+
+| mode | where it is | who can tap it |
+|---|---|---|
+| **Surface** — it simply outcrops or seeps | in the open | ⭐ **anyone — this is the foraging case** |
+| **Subsurface solid** | in rock | a **miner**; capital + a shaft |
+| ⭐ **Subsurface fluid** | under pressure | a **driller**; capital + a well — **and it comes to you** |
+
+> **A mana SPRING is geological × fluid.** Where it surfaces on its own it
+> is foraged; where it does not, you drill for it.
+
+⭐⭐ And that pairing writes its own history:
+
+> **The seep → drill arc is the entire history of oil.** Surface seeps were
+> known for millennia and used at trivial scale; **drilling made the
+> industry.** Free to find, tiny; expensive to reach, enormous.
+
+⭐⭐⭐ Which is also the **frontier → developed** arc: a new settlement uses
+what surfaces, a developed one drills. **Nobody has to author the
+transition — capital does it**, exactly as it did in reality.
+
+## ⭐⭐ The portfolio, and why capacitors stop being optional
+
+Read the profile column and it is a real energy portfolio: **baseload
+(geological), intermittent (dynamic), predictable-variable (celestial),
+slow-and-political (biotic).** Which means grid management becomes a
+genuine engineering problem whose right answer varies by site.
+
+> ⭐⭐⭐⭐ **Intermittent sources require storage. So capacitors are
+> STRUCTURAL, not merely narrative** — and the two justifications reinforce
+> instead of competing.
+
+⚠ **This axis pair (terminus condition × access mode) has no code today** —
+`ManaNode`/`ManaDeposit`/`ambientMana` are 0 hits across the tree. It is the
+finer-grained SOURCE model this pack's Part 3 (deposits, ambient absorption)
+and Part 5b (the Confluence) describe more coarsely; a future build should
+reconcile the two before authoring nodes.
+
+### Absorbed from mana-economy-slate.md — What this does to the wood question (Doctrine)
+
+# Part 7 — What this does to the wood question
+
+The supply-chain thread asked what is possible with wood alone. Answer
+unchanged, but now with an upper storey:
+
+- **Wood alone supports the complete pre-industrial economy** —
+  agriculture, distilling, ironworking (via charcoal, ~1900 K), glass,
+  pottery, textiles. **Coal is needed for RATE, not capability.**
+- ⭐⭐ **Mana does not lift that ceiling, because mana is energy.** A mana
+  grid fed by waterwheels is limited by the rivers, exactly as charcoal is
+  limited by the forest. **The postulate moves the energy you have; it does
+  not make more.**
+- ⭐ **What mana changes is PLACEMENT.** Energy can arrive where no fuel
+  could be carried — which is why its best consumers are
+  **precision-placed, low-quantity, high-value**: ignition, precision heat,
+  and ⭐⭐ **refrigeration** (the postulate is bidirectional, priced by
+  Carnot, and [freight-slate](./freight-slate.md) already calls
+  refrigeration *"the marquee: refrigeration relocates an industry"*).
+
+> ⭐⭐⭐ **Magic does not replace an industry; it relocates one.** That is the
+> honest statement of its economic role, and it is the reason a mana
+> economy makes the world bigger instead of flattening it.
+
+⚠ **The second bullet's premise is now false** (*"because mana is
+energy"* — `arcane-science.md § The second quantity` says the opposite);
+the conclusion survives on the extractive footing instead: a grid fed by
+DEPOSITS is limited by the deposits the way one fed by fuel is limited by
+the fuel. The overall thesis (magic relocates, does not create, an
+industry) still holds and is why it is kept as doctrine rather than cut.
+
+### Absorbed from mana-economy-slate.md — open questions
+
+3. ⭐ **Do nodes deplete?** A renewable node has an inflow; a depletable one
+   does not. **Both should exist** — it is the same wood/coal choice, and
+   having both is what makes siting a real decision. (This extends this
+   pack's own Q3 above, which answers the question for a farmed **soil**
+   deposit; this is the same question asked of a **grid-power** node.)
+4. ⚠ **Does the demurrage rate apply to a GRID, or only to stored charge?**
+   3%/month on a wand is flavour; 3%/month on a utility's inventory is a
+   business model. *Leans: storage decays, flow does not* — which is a
+   real advantage of being on the line and another reason the grid's edge
+   matters.
+5. **Who may own a node?** It is rent-bearing land, so
+   [parcel.md](../../subsystems/parcel.md) title covers it — but a node is
+   the single most contested kind of parcel there could be, and the
+   **first natural monopoly** the legislature will meet.
+6. ⚠ **What is the vehicle?** *"A magic car"* needs a shape: a charged
+   `Drivable` drawing from a cell is the obvious one
+   ([conveyance.md](../../subsystems/conveyance.md) ships
+   Mountable/Drivable), and it competes with a horse on **charge cost vs.
+   feed cost** — which is a genuinely nice comparison to be able to make.
 
 ---
 
@@ -796,36 +907,13 @@ second build. Piped mana is a third and optional.
 
 ## Part 8 — ✅ What the edit to `arcane-science.md` touched
 
-> ✅ **LANDED 2026-08-11.** This was written as a scope list before the edit;
-> the edit has now been made and the table below is the record of what
-> changed. The audit log at the head of `arcane-science.md` carries the
-> summary, and its standing instruction — *re-run the audit against any new
-> numbers or historical claims* — applies to this revision too.
->
-> ⭐ **No numbers changed anywhere** (`k = 1 kJ/τ`), and no second exemption
-> was added.
+✅ **Landed 2026-08-11** — every row of the scope table is in
+[arcane-science.md](../../arcane-science.md) (the audit log at its head
+carries the summary; *no numbers changed*, no second exemption). Fix 1 — the
+Terminus hydro decision — is recorded in
+[power-utility-slate](./power-utility-slate.md) § Generation — DECIDED.
+Still open outside `arcane-science.md`:
 
-| Section | Change |
-|---|---|
-| ⚠⚠ **The Postulate** | **the largest edit on this list.** Restate the exemption over **LOCALITY** rather than over *energy* (Part 5c) — the narrowing to energy is what appeared to forbid teleportation, and TPA already ships. Also: add the second quantity, and state that **mana** moves by contact rather than nonlocally (decision 6). ⭐ Note the two are opposite narrowings and must not be confused: *locality* is general, *mana transport* is contact-only |
-| ⭐ **The thirteen nouns** | **no fourteenth needed** — teleport is **Control·Body** (Part 5c). Add the worked example, and note that Control·Body's "ruinous" cost is about *accelerating* mass, which relocation does not do |
-| ⭐⭐ **The specification problem** | **the load-bearing section for teleport** — the fare is a Landauer/specification cost, not an energy cost, which is why TPA is a fixed graph of surveyed terminals |
-| **"Magic never creates matter"** | ✅ survives untouched — it is an affordability argument about *creation*, and says nothing about *transport*. Worth a clarifying sentence so the next reader does not over-read it as this one did |
-| ⭐⭐⭐ **Kell's Partition** | **ADD the economic corollary** — magic is excellent at ONCE and terrible at HELD; structure beats sustained assertion; magic's comparative advantage is impulse, portability, and places you cannot build (Part 2) |
-| ⭐ **Halloway Equivalence** | **reinterpret, do not delete** — `E = η·k·M`; the basin still measures; add the over-reading and why it survived (Part 1) |
-| **Units and quantities** | τ is its own unit; k = 1 kJ/τ; ⚠ **no number changes** |
-| **The caster's budget** | the reserve is ambient-sourced, not glycogen; recovery depends on place |
-| ⚠ **"The power level, and why it is canon"** | **the industrialization argument must be replaced** — deposit-not-plant (Part 5) |
-| **The price list** | costs stay; the payment path is now through the coupling |
-| **Conjure-water** | ✅ survives unchanged — still collection, still real work, still heat-limited |
-| **Voss Decay, the Reeve Line, Tarn's Rule** | ✅ untouched — they are about coupling and dissipation |
-| **The audit log** | re-run it; the doc asks for this before new numbers land |
-
-⚠ **And two fixes outside `arcane-science.md`:**
-
-1. ✅ [power-utility-slate](./power-utility-slate.md) listed *"who owns
-   supply?"* as genuinely open while **Terminus's hydro had been decided in
-   conversation and never written down.** Recorded there 2026-08-11.
 2. ⚠ [terminus-city](../../staging/terminus-city.md) needs **the Confluence
    as a mana source** (Part 5b) — the deposit, the six claims, and the fog as
    its visible signature. **Deliberately NOT written yet**, for the same

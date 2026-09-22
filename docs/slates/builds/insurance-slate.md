@@ -1,10 +1,27 @@
 # Insurance slate — risk pooling as an industry
 
 > **Status: UNBUILT** — nothing of the register exists; shipped banking
-> and contract escrow are named as substrate only.
-> **Left:** the policy-as-contract + reserve ratio · cargo underwriting ·
-> the mutual · the credit vocation · the ratings agency · the accountant ·
-> the notary/scrivener · innkeeper · veterinarian · ostler · almanac-maker
+> and contract escrow are named as substrate only (`banking.md:34` still
+> calls lending *deferred*; no insurer, policy, rating, accountant,
+> scrivener, inn, vet, stable or almanac in code). The innkeeper's
+> *condition* (NPC schedules) was met by the employment roster —
+> [behavior.md](../../subsystems/behavior.md) § *The roster is the*
+> *schedule* — but the inn itself is unbuilt. *(Compacted 2026-09-19;
+> ledger: `docs/plans/slate-compaction/unlinked-1.md`.)*
+> **Left:** the policy-as-contract + reserve ratio · cargo underwriting
+> first (fire and crops after) · the mutual as the guild's instrument ·
+> prevention priced into the premium · the state's ladder · the credit
+> vocation + the bootstrap ladder (pawn → microloan → unsecured) · the
+> bank run + the lender of last resort (the `central-bank-governor`'s
+> job) · the fractional-reserve bill · the ratings agency (method, not
+> data; publish-if-commissioned) · the accountant + the auditor + the
+> forensic accountant · the scrivener (the notary is rejected) + ceremony
+> as friction on irreversible acts · the innkeeper (the bed as a logout
+> location · liability · the posting inn · the guest register) · the
+> veterinarian (+ the meat inspector, quarantine that closes the roads) ·
+> the ostler + the posting stable + the return inspection · the
+> almanac-maker (celestial / weather split, predictability decays with
+> horizon)
 > **Size:** a build
 
 **Captured 2026-07-31**, named as fire's dependency in
@@ -929,17 +946,7 @@ actually depends on.
 **Record it as conditional with the condition named. More useful than
 either a yes or a no.**
 
-> ⭐ **CONDITION DESIGNED (2026-07-31) →
-> [npc-behavior-slate § NPC schedules](./npc-behavior-slate.md).**
-> *Derive the crowd, simulate the cast* — and **the schedule turns out
-> to already exist: it is the employment SHIFT ROSTER**, so a shop is
-> shut because nobody is rostered, not because of a new system. Which
-> makes **opening hours a business strategy** and the inn's *"we are the
-> one place open"* a rostering choice. ⚠ And the **12× clock** sharpens
-> it: **night is a PULSE, not a demographic** — everyone gets it every
-> session, which is *stronger* demand, but it means closures must be
-> staggered and **the inn is the always-open fallback**. So the
-> innkeeper is justified from the **tuning** side too. **Condition met.**
+> ⭐ **CONDITION MET — shipped.** The schedule is the employment shift roster: `shifts` reads `EmploymentApi.shiftStateOf` and a shop is shut because nobody is rostered — [behavior.md](../../subsystems/behavior.md) § *The roster is the schedule, and that makes opening hours a business strategy*; the 12× clock is [time.md](../../subsystems/time.md) § *Why 12×*. The innkeeper itself is still unbuilt.
 
 ## The veterinarian — not a medic for animals
 

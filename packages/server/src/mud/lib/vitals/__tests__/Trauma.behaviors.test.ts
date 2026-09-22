@@ -161,15 +161,58 @@ describe('the capability term', () => {
     expect(creature.isSlotImpairedByCondition('grip')).toBe(false);
   });
 
-  it('⚠ a wound type that declares no capability term never impairs', () => {
+  it('⭐⭐ a cut costs the grip a LITTLE — and enough of one costs it all', () => {
+    // ⚠ This replaces *"a wound type that declares no capability term
+    // never impairs"*, which pinned the boolean cliff: a wound either
+    // declared a `capability` term and crossed its threshold, or the slot
+    // was perfectly fine. A severity-3 gash on the hand left the grip
+    // untouched, and two wounds each just under the line were free.
+    //
+    // Every type now declares a RATE, and `laceration` is deliberately the
+    // lowest of them (0.2) — a cut is mostly a bleed. So a small one is
+    // free and a terrible one is not, which is the honest shape.
     const creature = anatomicalCreature();
-    creature.afflict({
+    const cut: Trauma = {
       kind: 'trauma',
       type: 'laceration',
       site: 'body.arm.left.hand',
-      severity: 3,
+      severity: 1,
       bleeding: true,
+    };
+    creature.afflict(cut);
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(false);
+
+    // ⚠ 3 lands exactly on `impaired` (1 − 3 × 0.2 = 0.4) and an impaired
+    // hand can still close — the slot goes at `failing`, which is the
+    // band below. It takes a gash past 3 to actually cost the grip.
+    cut.severity = 3;
+    expect(creature.functionAt('body.arm.left.hand')).toBe('impaired');
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(false);
+
+    cut.severity = 4;
+    expect(creature.functionAt('body.arm.left.hand')).toBe('failing');
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(true);
+  });
+
+  it('⭐ …and wounds COMPOSE — two half-wounds are not free', () => {
+    // The cliff's worst case: two wounds that each sat just under the
+    // threshold cost nothing at all, however many of them there were.
+    const creature = anatomicalCreature();
+    creature.afflict({
+      kind: 'trauma',
+      type: 'fracture',
+      site: 'body.arm.left.hand',
+      severity: 0.4,
     });
     expect(creature.isSlotImpairedByCondition('grip')).toBe(false);
+    creature.afflict({
+      kind: 'trauma',
+      type: 'fracture',
+      site: 'body.arm.left.hand',
+      severity: 0.4,
+    });
+    // 2 × 0.4 × 1.2 = 0.96 — the hand is nearly gone, and under the old
+    // rule neither wound had reached 0.5 so both were free.
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(true);
   });
 });

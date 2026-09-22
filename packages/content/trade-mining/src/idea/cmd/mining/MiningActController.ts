@@ -26,14 +26,12 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { WORKING_MIXIN, type Working, type Stability } from '../../../lib/Working';
 
 /** The topic every mining act narrates on. */
 export const MINING_TOPIC = 'act.deed';
 
 /** The reserve labour is paid out of. */
-const ENDURANCE = 'endurance';
 
 /** Hardness (MPa) at which a step takes its reference time. */
 const REFERENCE_MPA = 200;
@@ -44,8 +42,14 @@ export interface MiningStepOptions {
   durationMs: number;
   beginSelf: Composed;
   beginPeers?: Composed;
-  /** Endurance the act costs, in percentage points. */
-  cost: number;
+  /**
+   * ⭐ Metabolic watts the act costs for its duration. The body debits
+   * only the excess over what it can sustain (`ExertingMixin`), so the
+   * watts are chosen to reproduce each act's old felt cost at its
+   * reference duration on a fresh body — and harder ground, which takes
+   * longer, now costs proportionally more.
+   */
+  effortW: number;
   onComplete: () => void;
   onAbort?: (reason: AbortReason) => void;
 }
@@ -109,12 +113,19 @@ export abstract class MiningActController<
   /**
    * Run the act as an engaged activity on the giver's `hands` slot, so
    * the effect lands **at completion** and a barge-in leaves the rock
-   * standing. Spends the endurance up front — the work was done whether
-   * or not the ore came out.
+   * standing. The body pays for the work at completion (pro-rata at a
+   * barge-in) through the scheduler's exertion emit; a body too tired to
+   * finish the act does not start it.
    */
   protected engageAct(context: CommandContext, opts: MiningStepOptions): void {
     const giver = context.commandGiver;
-    this.spend(giver, opts.cost);
+    if (
+      MixinApi.isExerting(giver) &&
+      !giver.canExert(opts.effortW, opts.durationMs / 1000)
+    ) {
+      this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
+      return;
+    }
     if (!MixinApi.isEngaged(giver)) {
       opts.onComplete();
       return;
@@ -123,6 +134,7 @@ export abstract class MiningActController<
       actor: giver,
       slots: ['hands'],
       durationMs: opts.durationMs,
+      effortW: opts.effortW,
       onComplete: opts.onComplete,
       onAbort: opts.onAbort,
     });
@@ -144,12 +156,5 @@ export abstract class MiningActController<
       return;
     }
     this.decline(context, Mml.compose`You can't manage that just now.`, 'start-rejected');
-  }
-
-  /** Spend endurance. A no-op on a body that carries no reserves. */
-  protected spend(giver: Stuff, points: number): void {
-    if (points <= 0 || !MixinApi.isReserved(giver)) return;
-    if (!giver.hasReserve(ENDURANCE)) return;
-    giver.adjustReserve(ENDURANCE, Quantity.of(-points, '%'));
   }
 }

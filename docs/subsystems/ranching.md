@@ -7,6 +7,19 @@ the boundary acts, handling, the taps, and what happens at the end.
 
 ---
 
+## Where it is proved — the campus farm
+
+`packages/content/eternal-university/content/world/eternal/campus-farm.yaml`
+(D103) is **small, real, and working**: modelled on Davis and Cal Poly,
+which teach agriculture with an actual production unit on campus — small
+enough to walk, real enough to sell; students do the work; the unit is a
+teaching facility and a business at once. ⭐ It is the mechanism/expression
+cut's own falsifiable test (AC 62): the farm is authored against the farm
+and byre archetypes with **zero pack code** — every file under
+`campus-farm/` is YAML, and the classes it names are `trade-farming`'s and
+`trade-ranching`'s. The campus field site teaches the loop; the world
+charges for it. (Graduated from the campus-grounds slate, 2026-09.)
+
 ## ⭐ The individual is the base case (D19)
 
 The ranching slate's stance — *"a rancher does not win over a cow"*,
@@ -28,6 +41,11 @@ barren cow), never the mean.
 ---
 
 ## ⭐⭐ The herdbook — you file; you do not hold the pen (D20, D79, P4)
+
+> ⓘ The herdbook is a record filed elsewhere because a herd MOVES. A
+> stand of trees does not, so forestry's stand is NOT the herdbook's
+> fourth consumer — it is `Field`'s second: a cover carried by the
+> place ([forestry.md](./forestry.md)).
 
 A herd is a **record**, not an object in a room: *these head, this
 composition, this age structure, on this ground*. There is no herd-object
@@ -178,6 +196,29 @@ because real-life absence must never starve YOU; a kept animal inheriting
 it would gain nothing across any absence longer than lunch, and the
 winter-feed budget would never bite. Read through the chattel stamp,
 synchronously, on the reconcile path.
+
+⭐ **Why a cascade, and not farming's limiting factor.** Farming's lesson is
+Liebig's minimum — independent inputs, yield set by the scarcest — and a
+ranching that copied it would be farming with legs. Ranching's is one shared
+budget spent in a fixed priority order, so the consequences a designer would
+otherwise write in fall out of the ordering: underfeed and production dies
+first, then growth, then condition, then the animal; a cold snap raises
+maintenance (`ThermalRegulation` spends satiation to hold the setpoint), so
+milk drops at constant feed and shelter is load-bearing rather than
+decorative. Two optimisation idioms on one reconcile engine — a player who
+learns both has learned two real things, not one thing twice. (Graduated
+from the ranching slate, 2026-09-19.)
+
+⚠ **The cascade has no INPUT yet** (verified 2026-09-19). Nothing grazes:
+`Field.swardGrazingDemandPerGameDay()` sums `grazingDemandPerGameDay()` over
+the field's occupants and **no class declares that method** — `Livestock`
+included. Nothing feeds a head: the platform `feed` verb requires a
+`CultivableMixin` target (compost into a bed), and `Livestock` composes no
+`BehavedMixin`, so the `feeds` / `eats` brains never run on it. The
+partition leg therefore runs on whatever satiation a drafted head carries,
+the winter-feed budget above cannot yet bite, and *"a herd eats whether or
+not it produces"* is not yet true of this game. The feed loop is
+[ranching-slate](../slates/builds/ranching-slate.md)'s first `Left` item.
 
 ---
 
@@ -350,6 +391,11 @@ What makes the roles separable is that **the verbs live on capabilities**:
 
 So `WorkingAnimal` adds nothing but a name and an **absence**, and the
 absence is the point.
+
+⚠ Since the pets build (MR !257) the collie is `HandledMixin(KeptAnimal)` —
+it gained the bond, a name, a home and `BehavedMixin` (its `herds` brain had
+never run before that) — see [pets.md](./pets.md). The absence that remains
+is the taps and the carcass.
 
 ### ⚠⚠ What the carcass opens onto — two silent failures, both found live
 

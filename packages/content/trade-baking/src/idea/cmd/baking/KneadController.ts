@@ -88,6 +88,7 @@ export default class KneadController extends ManualBuildController<KneadModel> {
 
     this.engageStep(context, {
       durationMs: KNEAD_MS,
+      effortW: 400,
       beginSelf: Mml.compose`You turn ${Mml.thing(vessel)} out and set to, pushing the heel of your hand through it and folding it back.`,
       onComplete: () => {
         void (async (): Promise<void> => {

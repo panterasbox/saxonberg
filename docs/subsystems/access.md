@@ -129,8 +129,27 @@ The substrate ships these predicates:
    the `wizard grant/revoke <player>` verb (the `requiresArchwizard`
    validator). Archwizard membership itself is operator/root-managed
    (env seed + the `group` verb); the chain is
-   `operator/root → archwizards → wizards`, with a Prime Minister
-   office deferred above `archwizards`.
+   `operator/root → archwizards → wizards`, with the Prime Minister's
+   office above `archwizards` — the derived backstop, next.
+
+### The Prime Minister backstop — code trust follows the seat
+
+Whoever holds the `prime-minister` office **is a wizard and an
+archwizard, derived on every check and never stored**
+(`AccessRegistry.holdsPrimeMinister`, consulted after the group caches
+by both `isWizard` and `isArchwizard`). This is the top of the code-trust
+chain the balance slate settled (2026-08-04) — **PM → archwizards →
+wizards**, the PM seated by the polity: code trust is a *job assignment*,
+grantable and revocable by the executive the polity chose, which is what
+makes an otherwise env-seeded, operator-managed archwizard roster
+politically accountable. Derived is the whole point: a stored grant
+would survive the handoff that was meant to end it — hand the office on
+and the old holder keeps code trust because a group row outlives the
+seat. It is a floor, not a ceiling: an explicit `wizards` membership
+still stands on its own. The world ships with **no** wizards and no
+seeded operator identity — the founder's single credential only makes
+them the default office holder (`OfficeRegistry`); everything downstream
+is the seat.
 
 Plus one helper for slice-aware workspace verbs:
 

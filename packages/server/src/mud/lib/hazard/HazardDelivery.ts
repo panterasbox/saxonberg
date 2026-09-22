@@ -73,6 +73,13 @@ export interface HazardDeliveryOptions {
    * {@link HazardMixin.resolveTraversal}.
    */
   toxin?: ToxinTag;
+  /**
+   * ⭐ The **corrosion** channel only: the material tags this hazard's
+   * agent eats through — authored beside the energy, because what a lime
+   * seep eats is a fact about the lime. Ignored on every other channel;
+   * a corrosion delivery that names nothing attacks nothing.
+   */
+  corrosiveTo?: readonly string[];
   /** The delivery range — `'contact'` (met in place) or `'ranged'`
    * (delivered across a band gap). Defaults to `'contact'`. */
   range?: HazardRange;
@@ -87,6 +94,8 @@ export class HazardDelivery {
   public readonly siteSelector: readonly string[];
   /** An optional injected toxin dose (a poisoned dart). */
   public readonly toxin?: ToxinTag;
+  /** The corrosion channel's agent — see {@link HazardDeliveryOptions}. */
+  public readonly corrosiveTo?: readonly string[];
   /** The delivery range — v1 always `'contact'` (reserved seam). */
   public readonly range: HazardRange;
 
@@ -95,6 +104,7 @@ export class HazardDelivery {
     this.energy = opts.energy;
     this.siteSelector = [...opts.siteSelector];
     this.toxin = opts.toxin;
+    this.corrosiveTo = opts.corrosiveTo;
     // Reserved seam: only 'contact' is honored in v1.
     this.range = opts.range ?? 'contact';
   }
@@ -141,8 +151,21 @@ export class HazardDelivery {
     if (channel === 'shock') {
       return { mechanism: 'shock', site, current: Quantity.of(this.energy, 'A') };
     }
-    // Mechanical channel — edge / point / blunt, all valid non-shock
-    // insult kinds. The covering stack resolves severity + type.
+    // ⭐ A corrosive hazard carries the agent's chemistry — what a lime
+    // seep eats through is a fact about the lime, authored on the hazard
+    // beside its energy. A corrosion delivery that names nothing attacks
+    // nothing and sheds off every layer, so the empty default is honest
+    // rather than a silent failure.
+    if (channel === 'corrosion') {
+      return {
+        mechanism: 'corrosion',
+        site,
+        energy: this.energy,
+        corrosiveTo: this.corrosiveTo ?? [],
+      };
+    }
+    // Mechanical or thermal channel. The covering stack resolves severity
+    // + type (the mechanical fold, or the insulation fold for heat/cold).
     return { mechanism: channel, site, energy: this.energy };
   }
 

@@ -15,8 +15,6 @@
 are as good as your toolkit*; this one says **where the toolkit lives,
 what it costs, and what you carry to it.**
 
-> **Status: design conversation, captured. Not requirements.**
-
 **Provenance:**
 
 > **User: "these tools should be very expensive and player should not
@@ -257,19 +255,7 @@ between a loop and a commute.
 
 ## Part 7 — What this answers in the parent slate
 
-Resolves, or sharpens, several of
-[instrumentation-slate](./instrumentation-slate.md)'s open questions:
-
-- **Q1 (channel/instrument mapping)** — Part 1 gives the organizing axis:
-  **environment-readers are portable; sample-eaters are bench.** The
-  mapping should be built along that split, not as one flat table.
-- **Q5 (certification authority)** — Part 3: certification exists because
-  **salting** exists. The reason precedes the institution.
-- **Q6 (instrument crafting / does Grade buy precision)** — the three-tier
-  ladder wants Grade to buy **precision** at the bench and **portability**
-  in the field; two different goods from one axis.
-- **Its "where to start" step 2 (author the instrument set)** — Part 2's
-  hand-tool rung is the cheapest, highest-value first content.
+Moved verbatim to [instrumentation-slate](./instrumentation-slate.md) § *Absorbed from sampling-and-labs-slate — Part 7* by the cluster-merge pass (2026-09-21): the portable/bench axis for its Q1 mapping, certification-because-salting for Q5, Grade → precision at the bench / portability in the field for Q6, and the hand-tool rung as its step-2 first content.
 
 ---
 

@@ -1,27 +1,16 @@
 # Dorm Warren — the room as authoring on-ramp (slate)
 
 > **Status: PARTIAL** — the dorm shipped (DormWarren/DormRoom, Katie,
-> `provision`, the theme overlay, D1 multi-instance persistence) →
-> [residence.md](../../subsystems/residence.md)
+> `provision`, the vocation theme overlay + `remodel`, D1 multi-instance
+> persistence) → [residence.md](../../subsystems/residence.md)
 > **Left:** the bounded mixin-field editor + the dorm tier filter · the
-> CMS-inspectable lesson rung · the roommate NPC half + its trait
-> tracking · hand-authored custom prose · the sealed/frozen room
+> CMS-inspectable lesson rung · the roommate NPC half (the two
+> expression-slots, the soul/roots field sources, its trait tracking) ·
+> hand-authored custom prose (+ the absorbed prose-on-owned-items seam: a
+> `PROSE_FIELDS` allowlist over the spine, on a good) · the sealed/frozen
+> room · community-authored themes · the private tier's room-level
+> customization (the biome bloom)
 > **Size:** a wave
-
-> **Status: slate / pre-requirements.** A future build. Captures a design pass
-> from 2026-06-27 (designing the EU dorm cast + the sealed room surfaced it).
-> The substrate is built or building — the **Warren / MultiLocation** elastic
-> graph ([location.md](../../subsystems/location.md)), templates + the clone
-> pipeline ([templates.md](../../subsystems/templates.md)), the **CMS**
-> ([cms.md](../../subsystems/cms.md), [cms-slate](../builds/cms-slate.md)), traits, and
-> the per-character **Carries** loadout. This slate designs the dorm-room
-> *content + faculty* over it.
->
-> **Why "Warren":** Duncan Hall is a Warren of **dynamically-generated** rooms,
-> budded per assignment off **Katie's manifest** (the property manager is the
-> diegetic face of the room allocator — see her sheet). Every player passes
-> through the dorm before homesteading out to real estate later; it's the
-> universal first home.
 
 ---
 
@@ -56,7 +45,9 @@ your own bedroom, so you hit the ground running.
 
 ## The faculty (the system)
 
-- **Uniform `DormRoom` template**, Warren-budded via Katie's manifest.
+- *Uniform `DormRoom` template, Warren-budded off Katie's manifest —
+  shipped → [residence.md § The elastic building](../../subsystems/residence.md#the-elastic-building--dormwarren)
+  + § Provisioning.*
 - **Two expression-slots** (the two halves) — the room is a *portrait of its two
   occupants*, never static.
 - **Bounded customization = a *filter* over the object's mixin-fields** — not a
@@ -67,13 +58,9 @@ your own bedroom, so you hit the ground running.
 - **CMS-inspectable, live-running code** — the wiring is a worked example, and
   "live" = the dynamic-expression engine that turns *who lives here* into *what
   the room looks like.*
-- **Storage = hybrid (the document-tree decision, 2026-06-27).** The reusable
-  **base `DormRoom` template** lives in the *template tree* (the inspectable
-  wiring / the "lesson"); your **per-player customization document** lives in the
-  new **document tree** (your choices, owner-scoped). The Warren buds your room by
-  *cloning the base + overlaying the document* — and the `Hydrator` reuses its
-  data path (a document *is* `data`). See
-  [document-store.md](../../subsystems/document-store.md).
+- *Storage — superseded by the code: a room's state persists through the
+  `(scope, key)` spine into `holder_snapshots`, not a document-tree
+  per-player doc → [residence.md § D1](../../subsystems/residence.md#d1--the-multi-instance-persistence-model).*
 
 ## How customization works: field-editing over the object's mixins
 
@@ -101,25 +88,13 @@ So the whole thing collapses to three pieces:
 - **A tier is a *filter*** over that field-surface — *which mixins / fields /
   values* are editable here. That is the only thing "bounded customization" means.
 
-### The theme roster (the launch set)
+### The theme roster
 
-Seven registers Katie offers at move-in (*"a few looks"*), each a recognizable
-genre **anchored to real world content** — plus one unlock. Each *is* a
-cross-mixin field-bundle (description + material + light + scent, in register):
-
-| Theme | Register | World-anchor | A taste |
-|---|---|---|---|
-| **Fantasy** | high-fantasy | the species, the aether | dark wood, candles, a runebook; beeswax & cold stone |
-| **Future** | sci-fi / cyberpunk | the corpos | chrome, a glowing terminal, neon underglow; a fan's hum |
-| **Noir** | hardboiled detective | the murder arc | blind-slat shadow, a desk lamp, a case-board; smoke & old paper |
-| **Gothic** | horror / dread | the undead cast | dark velvet, a cracked mirror, cobweb; a shut-room smell |
-| **Period** | antique / old-world | the classical, dark-academia | leather & brass, an oil lamp, mahogany; old books |
-| **Pastoral** | cozy / cottage | the rustic, the warm | quilts, dried flowers, a plant; woodsmoke & herbs |
-| **Plain** | neorealist (no-theme) | the un-genred EU ("the dorm is a dorm") | institutional bed, a desk, a few posters, fairy lights |
-
-**Unlock — Weird** (eldritch / aether-strange; Gus's "all eyes and angles"):
-angles that don't quite meet, a window onto the wrong sky, ozone. Hardest to make
-*livable* — earned, not handed out at move-in.
+*Superseded by the code: the launch set is by VOCATION (miner · farmer ·
+nautical · merchant · medic · military · scholar), picked from Katie at
+move-in per ROOM; genres are the holodeck's job →
+[residence.md § The shell personalization](../../subsystems/residence.md#the-shell-personalization-theme-overlay).
+The seven-genre table is in git.*
 
 Curated, not the ceiling: themes are field-bundles, so **community-authored
 themes** come later (a player's "synthwave" or "brutalist" bundle — the first
@@ -177,51 +152,13 @@ else lives in); **privacy unlocks deeper finishes; ownership unlocks authoring.*
 
 ### The code
 
-The generic object — its composed mixins define what's customizable:
-
-```yaml
-# /world/eu/dorm/bed
-class: /lib/dorm/Bed       # = Detailed(SmellSource(SoundSource(Tangible(Visible(Thing)))))
-data:
-  short:    "a bed"                     # Visible      (NOT Named — generic)
-  long:     "A standard dorm bed."      # Visible
-  material: /stuff/idea/material/wood/pine     # Tangible
-  # details (Detailed) · smell (SmellSource) · sound (SoundSource) · light (AmbientLit): unset
-```
-
-A theme — a cross-mixin field-bundle, keyed by slot:
-
-```yaml
-# /world/eu/theme/fantasy
-bed:
-  short:    "a great four-poster"                              # Visible
-  long:     "A four-poster, drapes the deep red of old wine."  # Visible
-  details:  { drapes: "heavy velvet, dust sifting from the folds" }   # Detailed
-  material: /stuff/idea/material/wood/blackoak                         # Tangible
-  smell:    "beeswax and cold stone"                           # SmellSource
-  sound:    "charms on the canopy tick in any draft"           # SoundSource
-  light:    { glow: candle, level: dim }                       # AmbientLit
-```
-
-Your half — a sparse *field diff* (any mixin's fields):
-
-```jsonc
-// document tree · /home/p-8f2a/dorm-room
-{
-  "meta": { "schema": "dorm-room@1", "owner": "p-8f2a",
-            "base": "/world/eu/DormRoom", "room": "duncan-hall:r-204", "half": "left" },
-  "theme": "fantasy",
-  "slots": {
-    "bed": {
-      "long":     "Just a cot. But the quilt's the one Gran sewed.",   // Visible
-      "material": "/stuff/idea/material/textile/quilt-cotton",                 // Tangible
-      "details":  { "quilt": "edges gone soft, a coffee stain shaped like Ohio" }, // Detailed
-      "smell":    "faintly of her house — cedar and old coffee"         // SmellSource
-      // short, sound, light: untouched → the fantasy bundle's
-    }
-  }
-}
-```
+*The bed, the theme bundle and the per-player document sketched here
+shipped in a different shape — a real `Bed` Stuff at
+`/world/eternal/duncan-hall/thing/bed`, prose-only theme bundles in
+`dorm-themes.yaml` applied by fixture role, and `holder_snapshots` in
+place of a document-tree doc →
+[residence.md § The shell personalization](../../subsystems/residence.md#the-shell-personalization-theme-overlay)
++ § D1. What follows is the unbuilt half.*
 
 The tier filter — the only thing that makes it "bounded":
 
@@ -243,6 +180,24 @@ your doc is a field-diff, the tier is the filter** — and the CMS shows all of 
 (`from: theme` grayed, yours highlighted), the same editor you'll get unfiltered
 in your sandbox.
 
+## Absorbed from residence-ladder-design-pack — Deferred seams: prose-on-owned-items personalization
+
+*Moved here verbatim by the 2026-09-21 cluster pass from the ladder pack's
+"⭐ Deferred seams, salvaged from the retired apartment plan" list. It is
+the owned-goods half of the custom-prose item this slate's `Left` already
+names ("hand-authored custom prose") — the same deferral
+[residence.md § Deferred](../../subsystems/residence.md) records as *"the
+owned-goods personalization (prose at craft/buy) is the chattel path."*
+Chattel has since shipped ([chattel.md](../../subsystems/chattel.md)), so
+its last sentence's precondition is met; the `PROSE_FIELDS` allowlist it
+names is the shipped `PROSE_SETTERS` allowlist's shape, applied to a good
+rather than a room's fixtures.*
+
+- **Prose-on-owned-items personalization** (DECISION D5 in requirements) — the
+  whole-document write on an item's expressive prose fields; attaches at a
+  `PROSE_FIELDS` allowlist + the spine (instance state, carried free). Needs
+  chattel (this build) first.
+
 ## The thematic payoff (keep it in view)
 
 Your live room is **half you, half a procedural agent** — the who-counts question
@@ -256,9 +211,9 @@ the room you sleep in.
 1. **The tier filter** — finalize which mixin-fields the dorm exposes and their
    value bounds (the `editable` policy); keep it small (the beginner bound + the
    CMS lesson).
-2. **The genre/theme roster** — ***resolved:*** the **seven-register launch set +
-   Weird-as-unlock** (see *The theme roster*), picked from Katie, **per-half**;
-   matching-genre **synergy** kept light; community-authored themes later.
+2. **The genre/theme roster** — *superseded:* shipped as the vocation set,
+   picked from Katie per room →
+   [residence.md § The shell personalization](../../subsystems/residence.md#the-shell-personalization-theme-overlay).
 3. **Trait → field-default mapping** — refine the soul map and the resolution rule
    (player > theme > trait-default > base).
 4. **Roots / origin, near-term** — light bio-derived homeland accents under the
@@ -282,18 +237,18 @@ the room you sleep in.
 - **CMS** — *building* (the inspectability + the authoring surface; the
   schema-driven editor reads an object's mixin-fields; see
   [cms-slate](../builds/cms-slate.md)).
-- **The document tree (the "third tree")** — **decided 2026-06-27**: the
-  per-player customization document lives here, the base template in the template
-  tree (the hybrid). The Warren-constituent storage standard; reuses the Hydrator.
-  See [document-store.md](../../subsystems/document-store.md).
+- **The document tree** — *superseded:* per-player room state rides
+  `holder_snapshots` (D1), not the document tree →
+  [residence.md § D1](../../subsystems/residence.md#d1--the-multi-instance-persistence-model).
 - **The mixin library** — *shipped* (≈100 mixins); it **is** the decoration
   palette and grows for free.
 - **Traits, Carries** — *shipped / designed* (the soul source).
 - **The proc-gen roommate pipeline** — §17.H / llm-content territory; the NPC-half
   generation rides it.
-- **The private-housing + sandbox tiers** — **deferred** (whole-room biome; the
-  full-authoring + metered-compute future). The dorm-room rung is the near-term,
-  demoable on-ramp; nail it first.
+- **The private-housing + sandbox tiers** — *shipped:* the let unit
+  ([holding.md](../../subsystems/holding.md)) and the holodeck
+  ([sandbox.md](../../subsystems/sandbox.md)); the whole-room biome and the
+  filter widening are still this slate's (see *The tier filter*).
 
 ## Cross-references
 

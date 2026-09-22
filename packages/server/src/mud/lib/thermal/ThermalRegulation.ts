@@ -87,6 +87,23 @@ export interface ThermalRegulation {
   cachedHumidity: number;
   /** Game-time (seconds) of the last regulation reconcile; 0 = unseeded. */
   thermalRegStamp: number;
+  /**
+   * ⭐⭐ **Heat the body is carrying that did not come from the weather** —
+   * joules, absorbed by an internal source and not yet shed.
+   *
+   * The regulation model was ambient-only: a body within its comfort band
+   * was pinned to the setpoint at zero cost, which meant heat put INTO it
+   * was erased on the next slice. `Thermal.depositHeat` worked on objects
+   * and did nothing at all to a person.
+   *
+   * ⚠ Its first consumer is magic (a frost caster absorbs everything the
+   * heat pump moved, plus the work), but the field is not magic's: it is
+   * the seam **exertion** wants next, which is why it is a plain load and
+   * not a spell effect.
+   */
+  heatLoadJ: number;
+  /** Add joules to the internal load — see {@link heatLoadJ}. */
+  absorbHeatLoad(joules: number): void;
 
   setSetpointK(value: number): void;
   setEffectiveAmbientK(value: number): void;
@@ -118,12 +135,20 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       effectiveAmbientK: { persistent: true, runtimeState: true },
       cachedHumidity: { persistent: true, runtimeState: true },
       thermalRegStamp: { persistent: true, runtimeState: true },
+      heatLoadJ: { persistent: true, runtimeState: true },
     };
 
     public setpointK: number = THERMAL_DEFAULTS.SETPOINT_K;
     public effectiveAmbientK: number = THERMAL_DEFAULTS.SETPOINT_K;
     public cachedHumidity = 50;
     public thermalRegStamp = 0;
+    /** Internal heat not yet shed (J) — see the interface. */
+    public heatLoadJ = 0;
+
+    public absorbHeatLoad(joules: number): void {
+      if (!Number.isFinite(joules) || joules <= 0) return;
+      this.heatLoadJ = Math.max(0, this.heatLoadJ + joules);
+    }
 
     /** Reentry guard (TypeScript `private` per the proxy constraint). */
     private _thermalRegReconciling = false;
@@ -284,8 +309,12 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       }
 
       if (ambient >= lowBand && ambient <= highBand) {
-        // Within band — pin at setpoint, zero cost.
-        this.setCore(setpoint);
+        // ⭐⭐ Within band — pin at setpoint PLUS whatever the body is
+        // carrying internally. Before this the pin was unconditional, and
+        // that is precisely why heat put into a person vanished: a body in
+        // a comfortable room was set to exactly 310 K on every slice,
+        // whatever had just happened to it.
+        this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
         this._shiverNoted = false;
         this._sweatNoted = false;
         return;
@@ -297,7 +326,12 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         const spend = D.COLD_SPEND_PER_DEGREE * gap * (sliceSec / 60);
         if (this.reserveCurrent("satiation") >= spend && spend > 0) {
           host.adjustReserve("satiation", Quantity.of(-spend, "%"));
-          this.setCore(setpoint);
+          // ⚠ The internal load rides on top of the cold branch too, and
+          // it has to: a caster working hard in a cold room is still
+          // carrying what they absorbed. (Shedding into cold air is
+          // EASIER, which falls out of `shedAndOffset` for free — the
+          // wet-bulb ceiling is nowhere near.)
+          this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
           this.noteShiver();
         } else {
           this.driftCore(core, ambient, sliceSec); // out of fuel → cold
@@ -315,11 +349,74 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const spend = D.HEAT_SPEND_PER_DEGREE * gap * (sliceSec / 60);
       if (this.reserveCurrent("hydration") >= spend && spend > 0) {
         host.adjustReserve("hydration", Quantity.of(-spend, "%"));
-        this.setCore(setpoint);
+        // Already sweating for the ambient; the internal load rides on
+        // top of that and sheds through the same channel.
+        this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
         this.noteSweat();
       } else {
         this.driftCore(core, ambient, sliceSec); // out of water → hot
       }
+    }
+
+    /**
+     * ⭐⭐ **Shed what the body can, and report what is left as a core
+     * offset in kelvin.**
+     *
+     * Shedding is sweating, so it costs hydration on the shipped
+     * `HEAT_SPEND_PER_DEGREE` scale and **stops entirely** in two honest
+     * cases: past the wet-bulb ceiling (sweat cannot evaporate into
+     * saturated air) and with no water left to sweat. A caster who
+     * over-works in a steam-filled cellar has nowhere to put the heat,
+     * which is exactly the lesson.
+     *
+     * ⚠ The remaining load becomes a real temperature: `ΔT = Q / (m·c)`.
+     * A 70 kg body is ≈ 293 kJ/K, so 1 MJ of unshed load is +3.4 K — and
+     * the hyperthermia row spawns at +2.5 K.
+     */
+    protected shedAndOffset(sliceSec: number, ambientK: number): number {
+      const host = this.regHost;
+      const D = THERMAL_DEFAULTS;
+      if (this.heatLoadJ <= 0) return 0;
+
+      const wetBulb = this.wetBulbK(ambientK, this.cachedHumidity);
+      const canSweat =
+        wetBulb <= D.WET_BULB_CEILING_K &&
+        this.reserveCurrent("hydration") > 0;
+      if (canSweat) {
+        // ⭐ Insulation impedes loss both ways. Worn clo sits in series
+        // with the body's own resistance, and flux goes as 1/R — so the
+        // parka that holds warmth in is what stops work-heat getting out.
+        const clo = MixinApi.isAttired(host)
+          ? host.bodyInsulation().rawValue()
+          : 0;
+        const body = D.SHED_BODY_CLO;
+        const damping = body / (body + Math.max(0, clo));
+        const shed = Math.min(
+          this.heatLoadJ,
+          D.HEAT_SHED_W * damping * sliceSec,
+        );
+        if (shed > 0) {
+          this.heatLoadJ -= shed;
+          // Each degree's worth of shedding costs what holding a degree
+          // against the ambient costs — one scale, not a second one.
+          const degrees = shed / this.bodyHeatCapacityJPerK();
+          const spend = D.HEAT_SPEND_PER_DEGREE * degrees;
+          if (spend > 0) {
+            host.adjustReserve("hydration", Quantity.of(-spend, "%"));
+          }
+          if (this.heatLoadJ > 0) this.noteSweat();
+        }
+      }
+      return this.heatLoadJ / this.bodyHeatCapacityJPerK();
+    }
+
+    /** `m · c` for this body (J/K); the specific heat defaults to water. */
+    protected bodyHeatCapacityJPerK(): number {
+      const host = this.regHost as unknown as { getMass?: () => Quantity<'kg'> };
+      const mass =
+        typeof host.getMass === 'function' ? host.getMass().rawValue() : 70;
+      const m = mass > 0 ? mass : 70;
+      return m * THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
     }
 
     /** Passive Newton's drift of the core toward the effective ambient. */
@@ -499,18 +596,27 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         this.clearAffliction(TemplatePaths.thermalTorpor, core, band.survivableMin);
       }
 
-      // Hot edge (lethal for both strategies — the critical-thermal-max).
-      if (core > band.survivableMax) {
+      // ⭐⭐ Hot edge. The ROW spawns at `setpoint + HYPERTHERMIA_ONSET_K`
+      // (+2.5 K) and the LETHAL DWELL still reads `survivableMax` — two
+      // facts an author should be able to tune independently. 315 K is
+      // heat STROKE; clinical hyperthermia is a core above ~38.3 °C, so
+      // the shipped constant named the condition at the wrong temperature.
+      const hyperthermiaOnset = this.setpointK + D.HYPERTHERMIA_ONSET_K;
+      if (core > hyperthermiaOnset) {
         const rec = this.ensureAffliction(TemplatePaths.thermalHyperthermia);
         rec.elapsed += elapsedSec;
-        if (rec.elapsed >= D.THERMAL_LETHAL_SEC) {
+        // ⚠ The dwell accrues from the ONSET but only KILLS past the
+        // survivable maximum — being ill is not the same as dying of it,
+        // and a body that sits at 313 K indefinitely is miserable rather
+        // than doomed.
+        if (core > band.survivableMax && rec.elapsed >= D.THERMAL_LETHAL_SEC) {
           host.beginDying("hyperthermia", THERMAL_DEFAULTS.DYING_WINDOW_SEC);
           return;
         }
       } else {
         this.clearAffliction(
           TemplatePaths.thermalHyperthermia,
-          band.survivableMax,
+          hyperthermiaOnset,
           core,
         );
       }

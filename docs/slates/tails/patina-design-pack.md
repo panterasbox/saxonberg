@@ -8,13 +8,6 @@
 > appraiser reads
 > **Size:** a wave
 
-> **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
-> The stewardship pillar has **no mechanic for anything improving.** Every axis
-> in it is degradation — `Durable` wears, `Keen` dulls, food spoils, rooms soil
-> — so care only ever *resists loss*. This pack adds the missing positive half,
-> which the [doctrine](../../stewardship-doctrine.md) explicitly asks for and
-> nothing delivers.
-
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (**the line
 this closes**) · [crafting](../../subsystems/crafting.md) (`Durable`, `Keen`,
 `Graded`, the repair economy) · [stacks](../../subsystems/stacks.md) (⭐

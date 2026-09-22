@@ -1,34 +1,33 @@
 # Onboarding slate (working doc)
 
-> **Status: PARTIAL** — `enroll`, the lounge, the built campus route and
-> Katie's dorm handover shipped →
-> [char-gen.md](../../subsystems/char-gen.md)
+> **Status: PARTIAL** — `enroll` shipped →
+> [char-gen.md](../../subsystems/char-gen.md); the lounge login-landing +
+> bar shipped → [fasttravel.md](../../subsystems/fasttravel.md),
+> [location.md](../../subsystems/location.md); Katie's dorm handover
+> shipped → [residence.md](../../subsystems/residence.md). The campus
+> route between the crossing and Duncan Hall did **not** ship (only
+> Gus/the crossing exists — no Quad, no Eternal Way, no built path to
+> Duncan Hall), and this slate's own journey/curriculum design for that
+> route is **superseded** by
+> [acquisition-slate.md](./acquisition-slate.md)'s "first-login journey
+> v2" and
+> [demo-content-requirements.md](../../requirements/demo-content-requirements.md)'s
+> unit specs — see the pointers left in place of the cut sections below.
 > **Left:** the `onboarded` flag + lounge-exit routing · Dr. Limen (seat,
-> model-backed brain, the reply contract) · the onboarding-progress flags
-> and their subscription · Gus's first-login greeter variant · the
-> wayfinding signs
+> model-backed brain, the reply contract) + the onboarding-progress flags
+> and their subscription · scoped personal authoring (the dorm
+> customization on-ramp) · the wayfinding signs · the private-house
+> affiliation nudge (rides Limen)
 > **Size:** a build
 
-> **Status: flow set, mostly content.** The new-player journey after
-> char-gen: land in the lounge → fast-travel to campus → a learn-by-doing
-> journey → your dorm → learn to customize it. Almost entirely authored
-> content over existing verbs; the new *systems* it needs are **scoped
-> personal authoring** (every player authors their own space) and the
-> **Orientation guide** (Dr. Limen — an implant-reachable guide NPC + a
-> few onboarding-progress flags + a model-backed brain).
-
-> **Reconciliation note (2026-07-28):** the acquisition deep-drill
-> ([acquisition-slate.md](./acquisition-slate.md)) **supersedes this
-> slate's route details**: the Health Center / "TPA as software
-> update" beat is extinct (travel migrated to a wallet credential
-> record; digitization is the TPA bureau's optional act), the
-> journey now runs over the **built campus** (crossing → open gate →
-> Eternal Way → Quad → Limbo Lane → Duncan), **Gus absorbs the
-> greeter role**, Limen's first contact moves to campus entry
-> (post-Gus; replying must work), and Katie's key handover — now
-> registering a `dorm-key` wallet record — carries the acquisition
-> lesson. The principles below (learn-by-doing, lounge as social
-> landing, first-login-only, authoring climax) stand unchanged.
+> **Superseded** — the route details below are superseded by
+> [acquisition-slate.md](./acquisition-slate.md)'s "first-login journey
+> v2" (Gus absorbs the greeter role; Limen's first contact moves to
+> campus entry post-Gus; Katie's handover digitizes as a `dorm-key`
+> wallet record) and by
+> [demo-content-requirements.md](../../requirements/demo-content-requirements.md)'s
+> unit-level campus spec. The principles below (learn-by-doing, lounge as
+> social landing, first-login-only, authoring climax) stand unchanged.
 
 Working slate for **onboarding** — getting a freshly-enrolled player from
 the intake into the world and competent in it, *diegetically and by
@@ -114,11 +113,10 @@ intake ─▶ LOUNGE (social landing, bar, login spawn, teleport hub)
 
 ### The lounge
 
-A disconnected mini-zone (no foot exits — you arrive by login, leave by
-its terminal), social, with a bar, where **everyone materializes on
-login**. Talk immediately (implant issued). It's the global social
-crossroads *by construction* (everyone passes through). The terminal is
-both-direction (you can fast-TP back to socialize).
+Shipped — see [fasttravel.md](../../subsystems/fasttravel.md) (the
+login-landing terminal + the born-with floor) and
+[location.md](../../subsystems/location.md) (the Lounge/Bar/GlassAlley
+zone).
 
 ### Lounge-exit routing (the one small engine bit)
 
@@ -132,32 +130,14 @@ choose, or auto after a beat — fork).
 
 ### The campus journey (first login)
 
-Diegetic and learn-by-doing: **Dr. Limen** (the Orientation guide — see
-its own section below) is the voice that threads the journey; **signs**
-carry the spatial wayfinding (following them teaches movement); the walk
-teaches the world; and the **Health Center on the
-route** is where you trade a physical **TravelCard** for the **TPA
-installed as an implant software update** — the implant-acquisition lesson,
-concrete and useful instead of a throwaway demo. No mode, no dump — the
-real verbs. Limen carries the *objective list* ("what now"); the signs
-carry *which-way*; an embodied **greeter** (lean: kept) is the first face
-at the gate.
-
-**The born-with loadout + the clinic beat.** You arrive with the implant
-issued and **comms only** (talk/emote over the **aether** — born-with),
-plus a physical **TravelCard** in hand. The Health Center installs the
-**TPA as a software update** on the implant, so you stop carrying the card
-— and that one beat teaches the three things it exists to teach: the
-**aether** (the medium you're already speaking over), the **cranial
-implant** (your own device, like a phone), and **software updates for it**
-(you install the capabilities *you* choose — the college reaches you over
-comms but never preloads itself). It's lore-true that this happens on
-campus: the University is where attunement was *mastered* (see
-[story-bible.md](../../story-bible.md)). Refs:
-[credential-wallet-slate](../tails/credential-wallet-slate.md) (the
-card ⊕ implant-app duality), [fast-travel-slate](../tails/fast-travel-slate.md)
-(the TPA), [augmentation-slate](../tails/augmentation-slate.md) (the install
-flow).
+The journey design and the born-with-loadout / clinic beat that used to
+be here are **superseded** by
+[acquisition-slate.md](./acquisition-slate.md)'s "first-login journey
+v2" — the Health Center/TPA-software-update beat is explicitly retired
+there (no update exists; digitization is the TPA bureau's act; surgery
+isn't a walk-in demo). See that slate for the current route (crossing →
+gate → Eternal Way → the Quad → Limbo Lane → Duncan) and Limen's
+placement in it (post-Gus, at campus entry).
 
 The **private house suggestion** rides Limen — the one affiliation axis that
 touches onboarding (read from your profile) — but **joining is opt-in**: you
@@ -310,44 +290,15 @@ player ignores the nudges and blows through the errands; a newcomer follows
 them, same path. **Required = only the tasks** (finish enrolling, get your
 room); *never* gate progress on "completing a lesson." Help is on-demand.
 
-### The curriculum (C = core / S = secondary / D = defer)
-
-- **A. Cockpit *(client — preliminary)*:** card+focus · breadcrumb ·
-  click-to-explore · command bar+verb grammar · scrollback — all **C** *but
-  client-dependent* (taught when the client exists; terminal exposes the same
-  via commands).
-- **B. Perceiving:** look **C** · sense (gestalt, auto-on-arrival) **C** ·
-  details **C** · single senses (smell/listen/feel/taste) **S** · light/dark **S**.
-- **C. Moving (3-axis grid):** go/exits (planar) **C** · **verticality —
-  up/down/climb/stairs/floors/elevator C** · doors/boundaries **C** · here +
-  zone (the sky-flip) **C** · locomotion modes (walk/climb/swim/fly) **S**.
-- **D. Ontology:** container/containment **C** · agent-vs-object (animacy)
-  **C** · slot **S** · state/properties **S**.
-- **E. Acting:** take/drop **C** · wear/remove **C** · open/close **C** ·
-  put/give **S** · posture (sit/stand/lie/kneel) **S**.
-- **F. Comms:** say **C** · tell/DM **C** · emote (ESP) **C** · channels **S** ·
-  whisper/shout **S**.
-- **G. Finding:** find/locate (MQL) **S**.
-- **H. Making it yours:** author your space (the dorm) **C**.
-- **I. Tuning:** settings/aliases/style **D** (pointed-at, never drilled).
-
-### Location → Core-concept mapping
-
-| Location | Teaches (core) |
-|---|---|
-| **Arrival** | **look · sense** (auto-on-arrival) **· zone** (breadcrumb root flips; the sky reveal) |
-| **Quad / spine + walkways** *(the journey)* | **go/exits** (signs) **· verticality intro** (a staircase/"go up") **· doors/open · agent-vs-object** (greeter + objects) **· details** (examine) **· take · comms** (say/tell/emote — talk to the greeter/NPCs). *The richest teaching space — must be content-curated, not corridor.* |
-| **Student Services** | the service/prompt flow (+ tasks: major, name, housing) |
-| **Health Center / clinic** | **capability/augment** — install the **TPA software update** (trading the born-with TravelCard); teaches **aether / implant / software-updates** |
-| **Campus Store / outfitter** | **wear / slots** (+ appearance, shopping) |
-| **Chapel** | *(opt-in: deity; not core-teaching)* |
-| **Duncan Hall** (lobby → room) | **verticality** (elevator/stairs/floors — the *real* lesson) **· containment · authoring** (the climax) |
-| **Academic hall** | future hook (no v1 teaching; lessons later) |
-| *(cockpit affordances)* | card/focus/click/breadcrumb/scrollback — **preliminary**, taught via the client when built; ambient throughout |
-
-Every Core concept has a home; the **journey carries the bulk of the
-world-basics** (so it's content-rich, not corridor), and the **dorm teaches
-verticality + authoring in one climb.**
+→ **Superseded** by
+[demo-content-requirements.md](../../requirements/demo-content-requirements.md)'s
+unit-level campus content spec (units 1–15: campus geometry, Eternal
+Way, the Quad, Silver Street, Limbo Lane, Student Services, the clinic,
+etc., each worked to authoring depth) and by
+[acquisition-slate.md](./acquisition-slate.md)'s journey v2. Both
+replace the curriculum-to-location table that used to sit here with
+authored, agreed content. The **task-vs-lesson** and **world-first**
+doctrine in the two caveats above still stands.
 
 ## What this reveals (the new system)
 
@@ -370,7 +321,9 @@ Smaller content patterns it surfaces:
   concrete). Full design in *Dr. Limen — the Orientation guide* above.
 - **The lounge landing + routing** — the login-spawn social pocket + the
   state-routed exit (shared with fast-travel).
-- **The demo augment** — a low-stakes implant for the install lesson.
+- ~~The demo augment~~ — retired: [acquisition-slate.md](./acquisition-slate.md)
+  kills the Health-Center-as-install-lesson beat outright (no update
+  exists; digitization is the TPA's; surgery isn't a walk-in demo).
 
 Almost everything else (lounge, bar, campus entry, signs, greeter, path,
 dorm) is **authored content** over existing verbs (move, read, talk,
@@ -386,32 +339,25 @@ install, the author shell).
 2. **Returners: land-and-choose vs auto-teleport home?** *Lean: land in
    the lounge, then a quick affordance (or auto after a beat) home* — so
    the social touchpoint exists without being a chore.
-3. **Lounge "waiting" mechanical or just a lobby?** *Lean: just a social
-   lobby (no gating).*
-4. **The guide — Dr. Limen + a local greeter, or Limen alone?** The
-   Orientation guide (Limen) is now a designed, load-bearing element (see
-   *Dr. Limen — the Orientation guide* above), not optional flavor. Open
-   fork: keep a separate embodied **greeter** as the first face at the gate
-   (*lean: yes — the two honest halves*), or let Limen be the whole welcome.
-   Signs carry spatial wayfinding either way.
+
+Resolved and cut: *"Lounge 'waiting' mechanical or just a lobby?"* — the
+shipped lounge is a plain social lobby, no gating mechanic (see
+[fasttravel.md](../../subsystems/fasttravel.md)). *"The guide — Dr.
+Limen + a local greeter, or Limen alone?"* — decided in
+[acquisition-slate.md](./acquisition-slate.md): Gus formally absorbs the
+greeter role; no separate greeter character.
 
 ---
 
 ## Build order
 
-**Wave 1 — landing + routing + the dorm payoff.** The lounge (zone +
-login spawn + bar) + the lounge-exit routing (onboarded-flag + home/
-recall = dorm lobby); arrival at the dorm lobby → room; the
-**scoped-personal-authoring** on-ramp (light: describe/decorate).
-
-**Wave 2 — the campus journey.** Campus entry + the signs/wayfinding +
-**Dr. Limen** (the Orientation guide: an implant-reachable NPC, the
-onboarding-progress flags with station-keeper writes + Limen's event
-subscription, the model-backed brain) + the optional embodied greeter +
-the demo-augment clinic stop; the learn-by-doing path.
-
-**Wave 3+ — depth.** Richer authoring (build); a fuller campus; richer
-onboarding beats as content grows.
+Superseded — the lounge and Duncan Hall/Katie pieces of "Wave 1" already
+shipped (see the Status block), and
+[acquisition-slate.md](./acquisition-slate.md) owns the sequencing for
+the journey-v2 route (its "Wave 2" replacement). What remains for *this*
+slate — the `onboarded` flag + lounge-exit routing, Dr. Limen, scoped
+personal authoring, wayfinding signs — has no fixed wave order yet; see
+**Left** above.
 
 ---
 
@@ -424,7 +370,8 @@ onboarding beats as content grows.
   scoped personal authoring *consumes* them.
 - **Housing tiers** (freshman dorm → upperclass homedir) — the Eternal
   University content area owns the housing roster; this uses the dorm.
-- **The economy** — the demo augment/clinic is comped; no fees.
+- ~~The economy — the demo augment/clinic is comped; no fees.~~ moot: the
+  demo augment concept is retired, see acquisition-slate.md.
 
 ---
 
@@ -436,9 +383,10 @@ This slate boils down to:
 - The **lounge** (disconnected social login-landing, bar, returnable
   hub) + the **lounge-exit routing** (onboarded-flag + home/recall = dorm
   lobby).
-- The **first-login campus journey** (Dr. Limen the Orientation guide +
-  signs/wayfinding + the optional embodied greeter + the demo-augment
-  install lesson), ending at the dorm lobby → room.
+- ~~The first-login campus journey (… the optional embodied greeter +
+  the demo-augment install lesson)~~ — superseded, see
+  [acquisition-slate.md](./acquisition-slate.md)'s journey v2. Dr. Limen
+  and the wayfinding signs remain open design, tracked in **Left** above.
 - **Scoped personal authoring** as the customization on-ramp (author
   shell + homedir + ownership-gated access), light v1.
 - Tests: login spawns in the lounge; first-login routes to campus +

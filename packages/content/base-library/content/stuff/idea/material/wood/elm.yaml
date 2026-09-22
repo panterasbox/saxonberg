@@ -1,0 +1,40 @@
+# Elm — will not split, and does not rot wet.
+#
+# The number that makes it so is TOUGHNESS at a low density: the grain
+# interlocks, so a wedge will not open it — which is why elm is the wood
+# of the wheel hub, the chair seat and the coffin, and why it is the
+# worst wood to cleave for firewood. Under water it lasts for centuries
+# (a pipe, a pile, a lock gate); in the wet-and-dry it fails. The
+# `waterAbsorptionCapacity` is high for the same reason.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at (forestry's `fell`); `hardness` /
+# `toughness` → materials-response (a haft, a waster, a bow);
+# `waterAbsorptionCapacity` → wetness; `autoignitionTemperature` +
+# `heatOfCombustion` → the fire driver (a log in a hearth, a charge in a
+# clamp); `thermalConductivity` / `specificHeat` → thermal.
+# `biologicalSource` names the tree; the species row names its LIVING
+# material (plant tissue) — the wood is what is left when it is felled.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: elm
+  keywords: [elm]
+  density: 560
+  specificHeat: 2000
+  thermalConductivity: 0.14
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 35
+  autoignitionTemperature: 570
+  heatOfCombustion: 15
+  hardness: 30
+  toughness: 70
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/ulmaceae/ulmus/glabra
+    tissueType: wood

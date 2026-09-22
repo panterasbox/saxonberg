@@ -27,7 +27,7 @@ conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 | **Pot** | `/platform/thing/PlantPot` | a `Slotted` fixture with one `plant` slot **and** a bulk interior holding soil. **Its soil volume is the root ceiling.** Two sizes ship. |
 | **Soil** | `/stuff/idea/material/bulk/potting-soil` | a bulk `Material`. A sack of it is an ordinary bulk holder; you `pour` it into the pot. |
 | **Seed** | `/platform/thing/Seed` | a discrete `Thing` composing `PlantableMixin`, which names the plant template it grows into. Bought, or set by a flowering plant. Consumed on planting. **The capability is the mixin** — a cutting or a tuber is plantable without inheriting `Seed`. |
-| **Plant** | `/platform/thing/Plant` | a `Slottable` `Organism` carrying `GrowingMixin` — **all the state, and the persistence host.** ⚠ The class is a *composition*, not a gate: `harvest` and `repot` narrow on `MixinApi.isGrowing`, never `instanceof Plant`, and the harvest + rooting surface (`harvestTemplatePath`, `nutrientDraw`, `isHarvestable`, `getBed`, `transplantDifficulty`) lives on the mixin for that reason. |
+| **Plant** | `/platform/thing/Plant` | a `Slottable` `Organism` carrying `GrowingMixin` — **all the state, and the persistence host.** ⚠ The class is a *composition*, not a gate: `harvest` and `repot` narrow on `MixinApi.isGrowing`, never `instanceof Plant`, and the harvest + rooting surface (`harvestTemplatePath`, `nutrientDraw`, `isHarvestable`, `getBed`, `transplantDifficulty`) lives on the mixin for that reason. Forestry added two authorable fields beside them: **`harvestTool`** — the capability kind the cut needs (`cutting` for a coppice stool; `''` = by hand; `harvest.yaml` declares a `tool` arg on the `[capability.cutting]` atom and the controller refuses `needs-tool` only for a plant that names one) — and **`discipline`** — what `plant`/`harvest` credit (`horticulture` unless the row says `silviculture`). `Plant` itself gained `standardMaterialPath` (what a felled standard is made of when no stand answers for it). |
 
 **A pot is the density dial at N = 1, not a special case.** The farming
 slate specifies the boutique density as *"a garden bed is a `Slotted`
@@ -667,6 +667,14 @@ and the shipped `competence` verb reports its band.
   [pets](../slates/builds/pets-slate.md)' whole divergence.
 - **No automation ladder.** No hired hand, no self-watering pot. Needs the
   employment engine and a production brain (phase 8).
+  ⚠ *Status 2026-09-19:* both prerequisites now exist — the employment
+  engine ([employment.md](./employment.md)) and a production brain
+  (`/trade/farming/behavior/farms`, tested: tends, picks, consigns) — but
+  **no row names the brain** (`farm-hand.yaml` runs `consigns`; the
+  hearts-delight farmer runs `introduces`/`idles`) and nothing lets a
+  player hire a hand for *their* ground. The ladder is unwired, not
+  unbuilt; the design is [farming-slate § Maintenance & the automation
+  ladder](../slates/tails/farming-slate.md).
 
 ---
 

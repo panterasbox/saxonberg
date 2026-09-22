@@ -289,6 +289,8 @@ export const Mixins = {
   Author: 'AuthorMixin',
   Perceiver: 'PerceiverMixin',
   Scryable: 'ScryableMixin',
+  /** A weapon that stores its energy somewhere other than your arm. */
+  Launcher: 'LauncherMixin',
   Slotted: 'SlottedMixin',
   // The body-plan half of `Slotted` — a host whose slot set is DERIVED
   // from its anatomy rather than authored. Registered here like every
@@ -349,6 +351,8 @@ export const Mixins = {
   Palatable: 'PalatableMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
+  // ⭐ One exertion event, every producer — what working does to a body.
+  Exerting: 'ExertingMixin',
   Respiration: 'RespirationMixin',
   // The cross-cutting wetness gauge — any Thing / body can be wet.
   Wet: 'WetMixin',
@@ -602,6 +606,11 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // phrases are templates: neither of these reads well as a suffix.
   VisibleMixin: "you can't see {}",
   TangibleMixin: "{} isn't tangible",
+
+  // ⭐ A launcher — "you can't shoot with the loaf of bread" beats the
+  // generic sentence, because the useful information is what a launcher
+  // IS, not that this thing is not one.
+  LauncherMixin: "{} doesn't shoot anything",
 
   // Containment & placement.
   ContainerMixin: "{} isn't a place",

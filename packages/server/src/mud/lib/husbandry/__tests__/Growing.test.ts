@@ -188,6 +188,19 @@ describe('GrowingMixin — the growth model', () => {
     WorldClockApi._resetForTesting();
   });
 
+  it('a plant names its tool and its Discipline — by hand and horticulture unless the row says', () => {
+    const f = fixture();
+    expect(f.getHarvestTool()).toBe('');
+    expect(f.getDiscipline()).toBe('horticulture');
+    f.setHarvestTool('cutting');
+    f.setDiscipline('silviculture');
+    expect(f.getHarvestTool()).toBe('cutting');
+    expect(f.getDiscipline()).toBe('silviculture');
+    // An empty Discipline falls back rather than crediting nothing.
+    f.setDiscipline('');
+    expect(f.getDiscipline()).toBe('horticulture');
+  });
+
   it('first touch seeds the stamp and integrates nothing from epoch', () => {
     const f = fixture();
     setNow(10 * DAY); // never read before — the stamp seeds NOW

@@ -37,6 +37,8 @@ export interface ManualBuildStepOptions {
   onAbort?: (reason: AbortReason) => void;
   /** Eager host-destruction hook target; defaults to the actor. */
   host?: Stuff | null;
+  /** Metabolic watts the step costs its actor (see `DurativeActivity.effortW`). */
+  effortW?: number;
 }
 
 export class ManualBuildStep implements DurativeActivity {
@@ -49,6 +51,7 @@ export class ManualBuildStep implements DurativeActivity {
   readonly cancelable = true;
   readonly duration: number;
   readonly replaceableBy: readonly string[] = [];
+  readonly effortW?: number;
 
   private readonly _onComplete: () => void;
   private readonly _onAbort: (reason: AbortReason) => void;
@@ -58,6 +61,7 @@ export class ManualBuildStep implements DurativeActivity {
     this.actor = opts.actor;
     this.slots = new Set(opts.slots);
     this.duration = opts.durationMs;
+    this.effortW = opts.effortW;
     this._onComplete = opts.onComplete;
     this._onAbort = opts.onAbort ?? ((): void => {});
     this._host = opts.host ?? opts.actor;

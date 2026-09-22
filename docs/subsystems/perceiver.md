@@ -80,6 +80,22 @@ runs at execution time through the verb's scope rules, narrowing
 to whatever Visible / Scryable / Locatable thing the binding
 resolves to.
 
+### `read` — the marks substrate (`MarkedMixin`)
+
+`read` (`cmd/perception/read.yaml`) is afforded by **`MarkedMixin`**
+(`lib/description/Marked.ts`, registered `Marked`). A mark carries two
+**independent axes**: `form` — how it is made, inked vs embossed — and
+`markScript` — what system it is in, over a `MARK_SCRIPTS` vocabulary with
+a `COMMON_SCRIPT` default. **`read` decomposes into perceive + decode**:
+inked text needs light; embossed text reads in the dark by touch, so the
+modality falls out of the form. v1 has exactly one script and no literacy;
+a literacy gate slots into `decode` without disturbing `perceive` (the
+spellbook comprehension floor is already a decoding gate in all but
+name). ⭐ Collapsing form and script would make braille and a ciphered
+dispatch inexpressible — the symmetry (embossed common lettering reads by
+touch *and* vision) is why the split ships before any literacy.
+(Graduated from the language slate, 2026-09.)
+
 ## Methods
 
 v1 has none. The mixin's value is verb contributions and the

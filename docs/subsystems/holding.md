@@ -266,6 +266,20 @@ band**. Holding nothing passes; the dorm grant has no gate.
 The rung above is earned by keeping the rung you have — which is a
 statement about upkeep, not about money.
 
+The read is over **every** unit the actor holds a live use-grant on
+(`ParcelApi.heldUnitsOf`), and that decides two things the stewardship
+and tenancy designs asked for. ⭐ **A LET unit's condition gates the
+buy** — the landlord reference: you do not get the house while the flat
+you rent is shabby, and that, not a rule, is why a tenant tends a place
+they will leave. And because the gate reads all of them, **holding more
+than you can keep is what it refuses** — obligations scale with what is
+held, so no ownership cap needs writing; the obligations are the cap.
+Money is necessary and not sufficient: coin buys nothing while the
+condition read fails. The threshold is one universal setting, not
+per-rung. ⚠ A titled house is not a grant — `title buy` transfers title
+and mints none — so today an OWNED holding sits outside the read; the
+gate is honest about leases and silent about the house you already own.
+
 ---
 
 ## Condition — the weathering clock

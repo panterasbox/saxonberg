@@ -1,0 +1,62 @@
+# A hazel stool — the unit of a worked coppice: one root, many poles, cut
+# on a rotation and cut again a game year later.
+#
+# ⭐ **The rotation is the shipped polycarp cycle, and it is ONE GAME
+# YEAR.** Cut the stool (`harvest`, with a billhook — `harvestTool:
+# cutting`), the cycle settles, the next reconcile re-latches flowering
+# and the set fills at the limiting rate over `fruitFillDays: 360`; at
+# full satisfaction the stool is cuttable again in exactly a game year
+# (thirty real days), later if the panel is stressed. Real hazel is
+# seven years; the game's 1:7 ratio puts a stool planted from a nut at
+# cuttable after one game year too (`daysToStage.mature: 360`).
+#
+# ⚠ **Authored READY TO CUT on a fresh boot**, and every field below is
+# one the reconcile could genuinely have produced: mature, thriving
+# (`_vigor` above the 0.8 flowering threshold, so the first re-latch
+# after a cut is immediate), the cycle window open and full. The first
+# read seeds the clock and integrates nothing; `isHarvestable()` is true
+# before anything else happens. A panel that persists (the forestry
+# `Panel`) is what makes the cut STICK across a restart.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: hazel stool
+  keywords: [stool, hazel, coppice]
+  register: indefinite
+  longDescription: |
+    A low knuckle of old root with a dozen straight poles standing out of it, all of an age. Cut it to the ground and it will do the same again.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/corylus/avellana
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  # An established stool — root and a dozen poles. Never authored before
+  # this build, and a stool read as weighing nothing.
+  mass: 12
+  lifecycleState: alive
+  harvestTemplatePath: /trade/forestry/thing/cordwood
+  harvestTool: cutting
+  discipline: silviculture
+  nutrientDraw: 6
+  growthStage: mature
+  _vigor: 0.9
+  _flowering: true
+  _seedSet: true
+  _fruitFill: 1
+  profile:
+    moistureHappyAt: 0.2
+    moistureWiltAt: 0.03
+    litresPerGameDay: 0.15
+    # Shade-tolerant: a thirty-lux clearing and a fifteen-lux ride both
+    # keep a hazel thriving, which is what lets a panel stand under oaks.
+    luxHappyAt: 15
+    luxDarkAt: 2
+    rootDemand:
+      seedling: 0.4
+      young: 2
+      established: 6
+      mature: 14
+    daysToStage:
+      young: 60
+      established: 180
+      mature: 360
+    fruitSetCount: 8
+    # ⭐ One game year — the rotation.
+    fruitFillDays: 360

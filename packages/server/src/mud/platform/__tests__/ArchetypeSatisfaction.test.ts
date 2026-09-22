@@ -193,12 +193,15 @@ describe('archetype satisfaction', () => {
     StuffApi.clearAll();
   });
 
-  it('ships four ROOM archetypes — industry-less, deriving nothing', () => {
+  it('ships five ROOM archetypes — industry-less, deriving nothing', () => {
+    // The gym joined the four in the nutrition-and-fitness build: a room
+    // is a gym when something in it is a load you can lift or a surface
+    // you can work on — no industry, no recipe, like the bedroom.
     const ids = catalogue
       .allArchetypes()
       .map((a) => a.getArchetypeId())
       .sort();
-    expect(ids).toEqual(['bathroom', 'bedroom', 'kitchen', 'living']);
+    expect(ids).toEqual(['bathroom', 'bedroom', 'gym', 'kitchen', 'living']);
     for (const a of catalogue.allArchetypes()) {
       // The distinguishing fact: no recipe makes a bedroom.
       expect(a.getIndustry()).toBeNull();

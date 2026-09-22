@@ -73,6 +73,7 @@ export default class PlateController extends ManualBuildController<PlateModel> {
 
     this.engageStep(context, {
       durationMs: this.paceMs(PLATE_MS, vessel, ['pot']),
+      effortW: 200,
       beginSelf: Mml.compose`You begin plating ${Mml.thing(vessel)} onto ${Mml.thing(dish)}.`,
       onComplete: () => {
         void (async (): Promise<void> => {

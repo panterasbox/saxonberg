@@ -4,17 +4,11 @@
 > `PricedOffer`, the `Stock` counter, consignment over chattel,
 > `buy`/`consign`/`reclaim` → [retail.md](../../subsystems/retail.md)
 > **Left:** S2 the Circulation Reserve (the welfare-floor buy) ·
-> S3 producer + real cost/supply pricing · S4 player-owned storefronts
-> and the market arena · ⚠ **a business never stands DOWN** (below)
+> S3 producer + real cost/supply pricing (the derived stance, then
+> characterization) · S4 player-owned storefronts, franchising and the
+> market arena · ⚠ **a business never stands DOWN** (below) · the
+> standing bar-refresh intent
 > **Size:** a build
-
-> **Status: the retailer archetype, staged across four builds of
-> different magnitude.** The near-term slice (a general store: buy from a
-> bounded stock + consign) is buildable now on shipped substrate and is
-> conservation-clean with zero new economics. Everything richer — the
-> welfare-floor buy, cost/supply pricing, the producer supply chain,
-> player-owned storefronts — waits on two larger substrates landing
-> underneath it, and grows the *same* shop rather than replacing it.
 
 Working slate for the **shop** — the **retailer** business archetype and
 the multi-build arc it lives across. The governing framing, and the
@@ -122,13 +116,6 @@ shop's **stance**, authored on its offer/price-list, exactly as
 `Menu.prices` authors drink prices on the *Menu*, never on the drink.
 Different shop → different price, legitimately.
 
-- **v1 (S1): authored flat stance.** Calibrate the numbers against the
-  three anchors that exist in the shipped world: the **onboarding stipend
-  (20 credits)** — a newbie kits basics for well under it; **wages (4–6
-  credits / game-hour)** — a staple is a fraction of a shift, a splurge a
-  few shifts; **coinage (1 / 5 / 25)** — land on clean coin combos.
-  Relative ladder (torch < rope < rations < pick < lantern) matters more
-  than absolute value.
 - **later (S3): derived stance.** Once there's a real supply chain,
   price *derives* from cost-plus (what the shop paid its supplier) and
   supply/demand (stock level). The `priceFor` seam stays; only its source
@@ -148,48 +135,8 @@ seams, not stubs.
 
 ### S1 — The general store (the retail primitive) · *small–medium* — **SHIPPED (MR!143)**
 
-**SHIPPED** → [retail.md](../../subsystems/retail.md) + [chattel.md](../../subsystems/chattel.md).
-Built property-first as one cycle: the **chattel possession core** (the
-per-instance owner-stamp, `ownerOf(item) = stamp ?? authorOf`, a gated
-registry twin of `parcels` keyed on a durable per-instance id — the
-[property slate](./property-slate.md)'s Phase-0 chattel half) + the general
-store as its **proving consumer**. Goods carry *real* ownership;
-**buy-that-stamps** + **custody-vs-ownership consignment**; the reset sweep
-graduated ([residency.md](../../subsystems/residency.md)); `PricedOfferMixin`
-extracted from the bar's `Menu`; five real system-backed staples. The
-compute/economy of property stays deferred (property slate Phase 1). The
-rest of the arc (S2–S4 below) is unbuilt.
+> **Shipped** → [retail.md](../../subsystems/retail.md) + [chattel.md](../../subsystems/chattel.md): the `Stock` counter, buy-that-stamps, custody-vs-ownership consignment, the reset sweep, `PricedOfferMixin` extracted from the bar's `Menu`, the five staples. One standing intent survives:
 
-The net-new system: the **retail counter** — a priced, bounded,
-depletable stock, with a two-way surface over it.
-
-- **Buy side (the spend loop).** A shelf of authored, priced staples
-  (real Stuff on real shelves); `buy <thing>` → `settle` a `Charge`
-  (banking) → coin to the shop account, item to the buyer, stock
-  decrements. Restock rides the **reset sweep** (below), not a bespoke
-  timer.
-- **Also lands the reset sweep (folded into S1 per option A).** Restock is
-  the first consumer of the deferred **game-time restorative sibling of
-  the eviction sweep** (`ResettableMixin` + `installResetSweep`, the
-  residency "engine informs, object decides" home — see
-  [../../subsystems/residency.md](../../subsystems/residency.md)). The shop
-  is the *ideal* first driver: a warm/resident object can't be
-  culled-and-recloned to refill, so it's exactly where explicit reset earns
-  its keep. Built complete-at-tier (any `ResettableMixin`); respawns /
-  resource nodes (S3 ore) / container repop adopt it later with no
-  substrate change. The shop's `reset()` overrides the presence-skip
-  (restock-while-browsed is fine). Avoids the shadow-timer trap.
-- **Sell side (consignment, P2P).** `consign <thing>` → the shop lists
-  it; when a *real player buyer* buys it, the seller is paid minus a
-  commission (a small new listing/consignment record). **Zero faucet** —
-  the shop never fronts coin. Thin at low DAU (needs a real buyer) — the
-  honest tradeoff of shipping before the reserve.
-- **Reuses (nearly all of it):** `Business` + employment (the shopkeeper
-  is an on-shift employee drawing a wage), Attendant (the counter),
-  banking `settle` / `Charge`, containment (the stock), the bar's `Menu`
-  / `order` offer pattern, Corpo `Branded` (goods carry marks).
-- **Completes:** you buy staples with real coin; you consign surplus to
-  other players. Conservation-clean, no new economics.
 - **Bar-cleanup opportunity:** this is the second retail-shaped venue, so
   it's the moment to extract a shared **storefront / offer / price-list**
   abstraction and refactor Dave's Bar (written long ago) onto it — the
@@ -197,10 +144,6 @@ depletable stock, with a two-way surface over it.
   whole arc:** Dave's Bar is the **living reference venue** — each retail
   build refreshes it onto the newly-generalized patterns so its code never
   drifts stale. Budget bar-refresh work into S1–S4, not just S1.
-- **Deferred out of S1:** instant-coin buy → S2; cost/dynamic pricing +
-  the producer supply → S3; player-run stores → S4.
-- **First content:** one general store (adventuring sundries — torch,
-  rope, rations, a pick, a waterskin), one shopkeeper NPC.
 
 ### S2 — The Circulation Reserve (referenced, not owned) · *large · the city core deliverable*
 

@@ -1,11 +1,24 @@
 # Campus grounds slate — the labs, the archive, the field sites, and enrollment as the door
 
-> **Status: UNBUILT**
-> **Left:** the labs · the archive + literature-substitutes-for-
-> fieldwork · the three teaching field sites · the combat facilities ·
-> the teaching rooms off the Magic 101 chapter list · the eatery and
-> room-and-board · enrollment as the access gate + retention by
-> obligation
+> **Status: PARTIAL** — no lab, archive, lecture hall, salle or eatery
+> exists in the `eternal-university` pack (its content is Duncan Hall,
+> the campus farm and the home field). ⭐ The campus FARM shipped with the
+> farmstead build as a working teaching unit on campus, zero pack code
+> (`content/world/eternal/campus-farm.yaml`, D103 / AC 62 — *modelled on*
+> *Davis and Cal Poly*), which is Part 5's horticulture site in a
+> different shape; the adit, the greenhouse and the reserve are not built.
+> Everything else below is unbuilt. *(Compacted 2026-09-19; ledger:
+> `docs/plans/slate-compaction/unlinked-1.md`.)*
+> **Left:** the four labs (assay · fermentation · agronomy · medical) +
+> the observatory · binding the Practicum · enrollment as the access gate
+> + retention by obligation (which clause keys it) · the adit + the steam
+> tunnels · the greenhouse · the reserve · the archive +
+> literature-substitutes-for-fieldwork + the 5:2:1 shelf ratio · the
+> spellbook shelves (town / archive / guild hall) · the salle, the
+> audience, the drill ground (stakes unresolved) · the lecture hall +
+> seminar room and the walkable study.com demo · the eatery (a
+> front-of-house archetype bound to `kitchen`; where `serve` lives) +
+> room-and-board · the Chancellor seat · lab staff · athletic grounds
 > **Size:** a build
 
 **Captured 2026-09-01.** What goes on the Eternal University grounds —
@@ -23,8 +36,6 @@ you through the three.** Magic 101's chapters map onto them exactly
 Part 8's finding and the strongest corroboration this design has. The
 combat facilities sit alongside as the practicum for a different set of
 disciplines.
-
-> **Status: design conversation, captured. Not requirements.**
 
 **Provenance:**
 
@@ -530,6 +541,21 @@ archive's shelves contain.
 carry them; the author flagged their own uncertain numbers deliberately.
 Do not quietly resolve them into confident values.
 
+### Absorbed from eternal-university-slate — the v1 roster's "An academic hall" bullet + Open question 7
+
+*Moved verbatim by the cluster pass (2026-09-21): the EU place slate's
+scoping of the hall differs from Part 8 in one detail — it ships the hall
+as texture with no lessons in v1 — and that detail is Open question 13
+here, not a settled matter. Kept in the older slate's words so the
+difference is visible.*
+
+> - **An academic hall** — a recognizable lecture building, present as campus
+>   *texture* and a **future hook** where education-vertical content plugs
+>   in. v1 ships **no lessons inside it** (that's the vertical's job).
+
+> 7. **Education-vertical content surface** (lessons inside the academic
+>    hall) — deferred to the education vertical; the hall is the hook.
+
 ---
 
 ## Part 9 — ⭐⭐ The eatery, and the production/consumption asymmetry
@@ -625,6 +651,30 @@ content one.
   revocation, and whether measurement is withheld).
 - **Lab staff** — technicians; and the assayer question of Part 3.
 - **Athletic grounds** — the `sports` discipline's only possible home.
+  ⭐ *(2026-09-18)* **There is no football field — and `vision.md`
+  promises "Athletic Fields & Arts Complex."** Two things, not one:
+  - **Recreation needs nothing.** A field is a location; a ball is a
+    thing; `throw` ships (ranged); people gather. A pickup game
+    *emerges* — lens 3 — and the field belongs here as content: a
+    `FurnishableRoom`-free open location with a ball and a goal, beside
+    the combat facilities of Part 7. Ship it with the grounds.
+  - **Sport is a build of its own** — a match with rules, a winner, and
+    standing conferred by peers or a polity — and the engine already
+    knows its shape: **a match is a combat session with different
+    terms** (the multi-party graph, gambits, tempo × endurance ×
+    competence, beat by beat). It must be *played*, because the
+    uncertainty doctrine bans resolving what your action *did* with a
+    roll. It is also where fitness finally gets *public*: the wind and
+    the lean the gym built, judged — the nutrition & fitness build's
+    "fitness is private; sport is where others say so." Spectacle rides
+    the streaming/display substrate (a match on the tavern's screen —
+    the press ticker, the cup, eventually a book). Sporting goods are
+    crafted things (leather — the ball, the glove — is the saddler's;
+    wood the bat) and the sporting-goods store is retail; lens 6: the
+    sport is the demand, the goods are the fan-out, the venue is the
+    business. → a **sport slate**, unwritten; `sports` stays the
+    ISCED knowledge node it is until that build gives it a skill leaf
+    per game.
 - **A refectory** — ⭐ promoted to its own **Part 9**; it turned out to be
   a finding about the trades, not a campus bullet.
 - **Lecture hall / exam hall / office hours** — already specified by the

@@ -26,7 +26,9 @@ a curve with the channel across the bottom: the **channel** selects the
 **material** (with quality) scales it *up or down*:
 
 - **Channel** (`lib/material/Channel.ts`) — the closed, additively-growable
-  mechanism vocabulary, v1 **`edge` / `point` / `blunt`**. The single shared
+  mechanism vocabulary — **`edge` / `point` / `blunt`** (mechanical),
+  plus **`shock`** (resolves by circuit) and **`heat`** (resolves by
+  insulation). The single shared
   interface a weapon's *delivery*, an armor's *resistance*, and a tissue's
   *failure* all transact over. Not a "damage type" — the *shape of the
   force*. (`crush`/`heat`/`cold`/`corrosion` join as columns when their
@@ -330,15 +332,144 @@ renders MML it is given and holds zero response semantics.
 Authors author **concepts** (a *steel breastplate, fine*), never numbers;
 the tuning constants are operator-only.
 
-## The thermal / tearing passthrough
+## The tearing passthrough
 
-The mechanism vocab is unified into the channel set, but harm ships
-`thermal → burn` and `tearing → avulsion`, whose channels (`heat`, a tearing
-channel) are explicit non-goals. `InsultKind = Channel | 'thermal' |
-'tearing'`: a `Channel` runs the full stack→tissue response; `'thermal'` /
-`'tearing'` take the **legacy magnitude-only passthrough** (direct → burn /
-avulsion, byte-preserving harm's shipped math), the documented seam that
-folds into a `heat` / tearing channel when those land.
+`InsultKind = Channel | 'tearing'`. A `Channel` runs the full
+stack→tissue response; **`'tearing'` is the one remaining
+magnitude-only passthrough** (direct → `avulsion`, byte-preserving
+harm's shipped math), the documented seam that folds into a tearing
+channel when one lands.
+
+⭐ **`'thermal'` used to sit beside it and no longer does** — and that
+transition is the worked example of how this seam is meant to close. It
+did not become "a channel that skips the fold"; it became `heat`, a real
+channel with **its own physics** (a covering attenuates by its material's
+`thermalConductivity` inverted × layer depth) resolving into a tissue
+`burn`. Leather turns a burn; plate conducts it, so a steel gauntlet is
+*worse* than a bare hand. **A passthrough retires by acquiring a
+mechanism, never by being promoted.**
+
+## ⭐⭐ The seven channels, and the THREE folds
+
+The vocabulary is `edge · point · blunt · shock · heat · cold ·
+corrosion`, and what matters is that they do not all resolve the same
+way. There are **three distinct architectures**, and each is the honest
+physics of its own thing rather than one damage formula with different
+labels:
+
+| fold | channels | how a covering answers |
+|---|---|---|
+| **mechanical** | `edge` `point` `blunt` | a shape token × material property height (hardness/toughness) × grade/condition |
+| **thermal** | `heat` `cold` | ⭐ the layer's **real `clo`** (`Wearable.getClo()` — thickness / k_eff, loft and wetness included), as a pulse: `1 − exp(−clo / ref)` |
+| **corrosion** | `corrosion` | ⭐ **material MATCH.** No hardness, no thickness. |
+| *(no fold)* | `shock` | resolves by **circuit** upstream — see below |
+
+**`Channels.FOLDED`** is everything but `shock` — the set that walks the
+covering stack, and the set the legibility surfaces iterate. ⚠ They used
+to iterate `MECHANICAL_CHANNELS`, so a player examining a gambeson was
+told how it answers a sword and never that it is the best thing in the
+game against a burn: a column that exists in the model and not in the
+readout is the same class of defect as one that does not exist.
+
+### ⭐ `cold` — the heat fold run the other way
+
+One fold, two wounds. The insulation arithmetic is **identical** for heat
+and cold, because what a garment does is resist a temperature
+*difference*; the direction is read exactly once, at the end, to name the
+wound (`burn` vs `frostbite`). So leather turns a freeze for the same
+reason it turns a burn, and steel betrays you either way.
+
+⚠ Cold has **one dial of its own** (`response.cold.severityPerResidual`)
+and shares `response.heat.*`, because those describe the **covering**.
+Giving cold its own copy would be two numbers for one fact, and they
+would drift.
+
+### ⭐⭐ One insulation number — the thermal fold reads the garment's `clo`
+
+The thermal fold used to score a layer by a heuristic of its own —
+`refCond / (refCond + thermalConductivity)` × an ordinal "layer depth" —
+while thermoregulation read the garment's derived **`clo`**. Two
+insulation models for one physical fact, from different inputs, and
+nothing asserted they agreed: a wool glove and a wool greatcoat were the
+same number to a firebolt, and a soaked cloak insulated exactly like a
+dry one.
+
+Now the fold reads **`Wearable.getClo()`** — `thickness / k_eff` over the
+garment's actual mass, density, covered area, loft and wetness — the same
+number that widens its wearer's comfort band and damps how fast they shed
+work-heat. **Three readers, one derivation.** So:
+
+- a **thicker** coat of the same cloth stops more of a blow, by exactly
+  the physics (`thickness` is in the number);
+- a **soaked** coat stops *less* — water at 23× air's conductivity floods
+  the loft and the clo collapses. No special case; it fell out of reading
+  the real number;
+- a **worn-through** coat stops less — grade and condition scale the
+  block as they scale the mechanical fold.
+
+⭐ **The reconciliation is the input, not the formula.** Each reader keeps
+its own physics: shedding is *steady-state loss*, a resistance in series
+with the body's own (`THERMAL_DEFAULTS.SHED_BODY_CLO`); a blow is a
+**pulse**, and a thin layer stops a flash disproportionately — which is
+why firefighters wear layers — so the fold is `1 − exp(−clo /
+response.heat.referenceClo)`. At the seeded reference (0.1 clo, a
+t-shirt) a hide jerkin stops ~90 %, a wool coat everything, plate almost
+nothing, a soaked wool coat about half.
+
+⚠ A layer with **no derived clo** — a held shield (Wieldable, not
+Wearable), a preview from material alone, or a Wearable a term was
+missing from (no mass, no density → `getClo()` is honestly `0`) — is
+scored as a **slab** of its material at `response.heat.referenceThicknessM`
+(5 mm), `R = t / k`. "We do not know how thick; assume a typical slab" —
+and it keeps a wooden shield opaque to fire and a steel one transparent.
+The old heuristic's three dials are retired.
+
+### ⭐⭐ `corrosion` — the channel where thickness is irrelevant
+
+Three outcomes, decided by two reads of the layer and no hardness
+anywhere:
+
+- **consumed** — the layer's tags intersect the agent's
+  `Material.corrosiveTo`. It is being eaten, so it stops nothing: the
+  full contact passes, and the layer **wears** for having taken it.
+  (⚠ The inverse of the mechanical wear rule: a mechanical layer wears
+  because it *stopped* something.)
+- **wicks** — not attacked, but absorbent past
+  `response.corrosion.shedAbsorptionMax`. It carries the agent through to
+  the skin. A linen shirt is worse than nothing.
+- **sheds** — not attacked, not absorbent. It runs off.
+
+The claim in one pair: **a steel breastplate sheds lye and is eaten by an
+acid whose row says `corrosiveTo: [metal]`**, and no amount of steel
+changes either answer. For corrosion the armour question is not *how much
+is there* but *what is it made of* — which is why it needed its own
+`InflictSpec` variant: the agent's chemistry cannot ride an energy
+scalar.
+
+⚠ A preview has to assume an agent, because *"how does this answer
+corrosion"* is not a well-formed question without saying against what.
+`response.corrosion.previewCorrosiveTo` names the reference (seeded
+`organic`).
+
+#### ⭐⭐ How corrosion reaches a body — the substance-contact seam
+
+Corrosion is the one channel a weapon blow and a spell's `inject-channel`
+cannot deliver, for the same reason: the insult carries the agent's
+chemistry (`corrosiveTo`), and neither a mechanical energy scalar nor a
+bare channel token can source it. So corrosion arrives by a caustic
+**substance in contact with a body**, not by an energy channel. Producers:
+
+- **the lime-seep hazard** — `HazardDelivery.toInflictSpec` on traversal
+  (the original, and long the only one);
+- **`Material.corrodeOnContact(victim, {energy, site})`** — a caustic
+  material's own capability: it reads *its own* `corrosiveTo` and routes a
+  `CorrosionInflictSpec` through `ConditionApi.inflict`. No-op (false) for
+  any non-caustic material. This is the general seam, and it makes three
+  events deliver corrosion with no second code path — a **thrown flask**
+  that shatters on a body (the `throw` splash), a **conjured caustic** the
+  acid-splash spell puts on the mark (`execConjure`), and a **spilled
+  vial**. Honest across all three: the substance's chemistry does the
+  work; magic only *collects* the caustic, it does not mint "acid damage".
 
 ## The `shock` channel — resolves by circuit, not the fold
 
@@ -358,8 +489,11 @@ out — metal conducts (betrays), rubber insulates. See
 
 ## Deferred (named seams)
 
-- **Combat playstyle + loop** — reach/guard/gambits, shield-as-armor,
-  unarmed/grapple ([combat-slate.md](../slates/builds/combat-slate.md)).
+- **Combat playstyle** — **shipped** (reach/guard/gambits, shield-as-armor
+  — the weapon-playstyle build, MR !140; see
+  [combat.md § Weapon playstyle](./combat.md#weapon-playstyle--the-hand-slot-economy)).
+  Still deferred: the deep grapple/choke control game — unarmed's
+  armor-bypass floor (see [combat.md § Deferred](./combat.md#deferred)).
 - **Ranged / thrown** — the **thrown** half **shipped** (ranged Wave 1 →
   [ranged.md](./ranged.md)): a `DeliveryProfile` derives `channel` +
   `energyJ` from mass × speed and hands the grid an ordinary
@@ -368,13 +502,17 @@ out — metal conducts (betrays), rubber insulates. See
   deferred: **armor's** point→blunt conversion for stopped strikes,
   `penetration` as a profile term, and the launcher families
   ([ranged-slate.md](../slates/builds/ranged-slate.md) W2/W3/W4).
-- **The economic lifecycle tail** — repair (reverse-craft), scrap/reforge,
-  the `Recipe` craft-stamp that carries `{material, construction, grade}`
-  onto made things (the armorer economy). Armor/implements carry their axes
-  as *authored* data for now.
-- **Other channels** — `crush` (structures/destructibility), `heat`/`cold`
-  (thermal `clo`/`burn` unification), `corrosion` — each pulls its
-  channel/construction slice when its consumer lands.
+- **The economic lifecycle** — repair (reverse-craft) and salvage/reforge
+  **shipped** (see
+  [crafting.md § The lifecycle: two wear axes, repair, broken, salvage](./crafting.md#the-lifecycle-two-wear-axes-repair-broken-salvage)).
+  Still deferred: the `Recipe` craft-stamp that carries
+  `{material, construction, grade}` onto made things (the armorer
+  economy) — armor/implements carry their axes as *authored* data for
+  now.
+- **Other channels** — `heat`/`cold` and `corrosion` **shipped** (see
+  § The seven channels, above). Still deferred: `crush`
+  (structures/destructibility) — pulls its channel/construction slice
+  when its consumer lands.
 - **Tissue as a construction axis** — tissue stays material-only v1; the
   tissue-vulnerability severity term at `resolveTrauma` is a named seam.
 - **Avulsion sever / part-promotion** — at `AVULSION_BEHAVIOR.onset` (harm).

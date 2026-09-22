@@ -1,14 +1,18 @@
 # Press slate — the vocation that makes transparency actual
 
 > **Status: PARTIAL** — the publishing substrate shipped: `PublisherMixin`
-> over `OrganizationMixin`, Release documents, the news ticker, the
-> `press` verb, the anonymous press room →
+> over `OrganizationMixin`, appointing-authority-appoints/position-
+> publishes, `/feed/<publisher>/` in the document tree, Release
+> documents (edit + soft retract), the news ticker, the anonymous press
+> room, the `press` verb →
 > [press.md](../../subsystems/press.md)
-> **Left:** the newspaper as an organization + its newsroom roster
-> (publisher → editor-in-chief → editor → reporter) · subscription /
-> push distribution · bylines · the credibility track record · the
-> paywall · sealing + the FOIA docket · source protection · the
-> recording instrument · retraction & correction · the pedagogy pass
+> **Left:** the newsroom roster (publisher → editor-in-chief → editor →
+> reporter, layered on the shipped organization substrate) · bylines ·
+> subscription / push distribution (the aether as delivery) · the
+> credibility track record and whether a correction repairs standing ·
+> the paywall · classification/sealing + the FOIA loop (needs the
+> docket) · source protection + leak traceability · the recording
+> instrument · the journalism Discipline · the pedagogy pass
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the amendment-roster walk
@@ -57,58 +61,26 @@ exactly three paths:
    is genuinely playable here — not as a minigame, but as reading
    what the world already keeps.
 
-## ⭐ A newspaper is an ORGANIZATION that trades and publishes
+## The organization/publisher substrate — shipped
 
-> **Recorded 2026-08 by the organizations build**
-> ([employment.md](../../subsystems/employment.md),
-> [press.md](../../subsystems/press.md)).
-
-The substrate this slate needs is now partly built, and it arrived from a
-direction this slate did not anticipate — through the **org chart**,
-factored out of `Business` so that positions, holders and an appointing
-authority stop being a thing only a *trading* entity can have.
-
-The consequence for the press build is a simplification worth stating
-plainly:
-
-⭐ ***"Who is the editor in chief?"* is the same read as *"who is the
-comms director?"*** — `EmploymentApi.holdersOf(organization, positionKey)`.
-A newspaper is one entity wearing three hats: `OrganizationMixin` (the
-chart), `BusinessMixin` (it sells things and pays people), and
-`PublisherMixin` (it puts things out). Nothing about a masthead needs its
-own machinery — a masthead **is** an org chart, and the reason it looked
-like it needed one is that positions used to live only on Businesses.
-
-What that buys the press build for free:
-
-- **Bylines and beats are positions**, with `reportsTo` giving a real
-  masthead hierarchy (a stringer reports to an editor reports to the
-  editor in chief).
-- **Who may publish under the masthead** is `publishingPositions` — the
-  editorial gate is the same shape as the ministry's, so a press
-  credential later issues to a *position*, not a person.
-- **Ownership vs newsroom is already two different questions.** The
-  appointing authority (who may fill the editor's chair — an owner, a
-  trust, a co-op's committee) is structurally distinct from the position
-  that does the work. That distinction is the whole of press independence,
-  and it is now mechanism rather than fiction.
-- **The publisher's feed branch is a document-tree path it owns**, which
-  is what this slate asked for as `/feed/<publisher>/`.
-
-⚠ Still unbuilt and still this slate's job: subscription (PULL → PUSH),
-the stance action, the paywall, the three source paths, the recording
-instrument, and the docket.
+> **SHIPPED · DOCUMENTED**, out of the organizations build. See
+> [press.md](../../subsystems/press.md) § *The three decisions worth
+> knowing before reading the code* (publisher = organization,
+> appointing-authority-appoints/position-publishes, ownership vs
+> newsroom as two different questions, `/feed/<publisher>/` in the
+> document tree) and § *A press office is not a newsroom* (the struck
+> herald seat; the `publisher → editor-in-chief → editor → reporter`
+> shape still to come). Still unbuilt and still this slate's job:
+> subscription (PULL → PUSH), the stance action, the paywall, the three
+> source paths, the recording instrument, and the docket.
 
 ## What a publication is
 
-⚠ **Revised 2026-08-02.** This section previously read *"mostly
-assembly"* and modelled a publication as a **periodical** — *"issues are
-threads, stories are entries."* **Wrong form.** Substack was the stated
-inspiration and **Substack has no issues**: nobody composes issue #7 out
-of five pieces. You write a post and it goes out.
-
-*(User: "that's not how substack really works. this actually started off
-with wordpress and blogs as the model but no one does that anymore.")*
+> **The unit-is-a-post-not-an-issue decision and the "not the forums"
+> decision are SHIPPED · DOCUMENTED** — see
+> [press.md](../../subsystems/press.md)'s opening definition ("a release
+> is one item… published by an organization") and its "deliberately not
+> the forums" paragraph. Cut here.
 
 ### ⭐⭐⭐⭐⭐ The real evolution is PULL → PUSH
 
@@ -128,29 +100,6 @@ one push surface** — and **the push is what makes it a publication**:
 | **a publication** | ⭐ **it arrives** — **PUSH** |
 
 ### The form, decomposed
-
-- ⭐ **The unit is the POST, not the issue.** No bundling, no assembly, no
-  compose-and-release. **This makes the build substantially cheaper** than
-  a periodical would.
-- ⚠ **A publication does NOT ride the forums' Subject layer.** *(User,
-  2026-08-02: "you're not merging them with forums are you? we talked
-  about that and rejected it.")* **Correct — and this slate contradicted
-  itself**: it said *"a publication rides the forums' Subject layer"* here
-  while § *The structural threat* said `bulletins → /feed/<publisher>/` in
-  the **document tree** "is what this slate needs." **The document tree is
-  the right answer; the forums claim is struck.**
-
-  Three independent reasons, any one sufficient:
-
-  | | |
-  |---|---|
-  | **direction** | forums are **pull** — you go to a board. A publication **arrives** |
-  | **symmetry** | forums are **deliberative** — anyone posts, everyone replies. A publication is **one voice** |
-  | ⭐⭐ **the organizer** | forums' *defining feature* is the per-board **ranking axis** (`popularity` / `argument`). **"No algorithm" is a publication's defining commitment** — riding forums means inheriting the exact thing you must then disable |
-
-  Same shape as [auction-slate](./auction-slate.md)'s rejection: *forums and
-  chat carry **speech**; an auction carries **commitments**.* Here:
-  **forums carry DELIBERATION; a publication carries a BROADCAST.**
 
 - **A post is a Document at a path** — `/feed/<publisher>/<post>`.
   ⭐ **Comments LINK, they do not merge**: a post may point at a forum
@@ -231,8 +180,11 @@ weakness is that nobody finds you. In a world with a real social graph,
   testimony: claims that survive scrutiny accumulate, claims that
   fail do too, and readers see the record. A paper is not trusted
   because it is licensed; it is trusted because it has been right.
-- **The bulletin system is the staff-side sibling** (staff→player
-  news ticker, shipped); the press is the **player-side** one.
+- Superseded by the rename: "the bulletin system is the staff-side
+  sibling" is stale terminology — `bulletins` retired, `PressBoard`/
+  `Release` is now shared substrate for both surfaces, and the staff-vs-
+  player split is the anonymous-vs-authenticated surface split in
+  [press.md](../../subsystems/press.md) § *Reading it*.
 - **A streamer is already a press.** The broadcast track ships the
   out-of-fiction version; this gives the in-fiction one the same
   standing, and the two should share vocabulary where they can.
@@ -257,13 +209,12 @@ a publication a *thing you subscribe to* rather than a board you read:
 | **the docket** | *unedited* chronological events; public, boring, complete. **Nobody reads the Federal Register — that is the point, and precisely why journalism exists** |
 | **the ticker** | a **publication**, therefore it has a **publisher** — you subscribe to one |
 
-So `bulletins → /feed/<publisher>/` (already floated as a tree
-candidate in [legal-code-slate](./legal-code-slate.md)) is what this
-slate needs: **the Compact runs the default publisher; players run
-others.** A press outlet becomes mechanically real as *a publisher
-whose ticker you can subscribe to* — partisan press possible, bias
-possible, the record always there to check against, **no new
-mechanism.**
+> **SHIPPED · DOCUMENTED.** The `/feed/<publisher>/` tree and "the
+> Compact runs the default publisher; players run others" shape landed
+> — see [press.md](../../subsystems/press.md) § *A release lives in the
+> document tree* and § *The seeded publishers*. What remains open below
+> (the events-not-significance rule, the docket, the stance action) is
+> unaffected by that landing.
 
 > **The rule that protects the vocation: the default feed reports
 > *events*, never *significance*.** "Bill X crossed threshold in the
@@ -274,6 +225,26 @@ mechanism.**
 A publisher's ticker **may** carry an inline stance action. That is
 what real media does, it is visible, and pretending otherwise would be
 the dishonest option.
+
+### Absorbed from gazette-slate — And the docket being PULL is by design, not a concession
+
+**(Revised 2026-08-02, after decomposing the Substack form — see the
+*real evolution is PULL → PUSH* section above.)**
+
+An earlier pass framed the state's output as a **wire service** feeding
+the press, on a newspaper analogy. **The analogy was wrong** — Substack has
+no issues and the unit is a post. The distinction that survives is
+simpler, and it is about **direction**:
+
+> **The state publishes to a PLACE. A publisher pushes to PEOPLE.**
+
+A state that pushes to everyone is either propaganda or noise. So the
+gazette being a surface you **go to** is **correct**, not a limitation —
+and the press is **what comes to you about it.**
+
+⭐ **This is also why system news is genuinely the smallest part**: it is
+the only one of the three layers that needs no delivery machinery at
+all.
 
 ## Press freedom — and the emergent that teaches it
 
@@ -495,6 +466,10 @@ context; an instrument cannot lie but has no idea what it missed).
    trace a disclosure (the concealment substrate governs), and
    whether that balance leaves whistleblowing viable.
 7. **The pedagogy pass** — how the vocation teaches; see below.
+8. **Is the docket a new surface or a projection of existing ledgers?**
+   (Moved from gazette-slate.) *Leans projection* — the record already
+   exists; the docket is a chronological read of it with no editorial
+   layer. Still open — the docket itself is unbuilt.
 
 ## The pedagogy pass — deliberately deferred
 

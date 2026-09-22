@@ -21,12 +21,69 @@ import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { Creature } from '../../../../lib/creature/Creature';
 import { ContainmentApi } from '../../../../api/containment';
 import { StuffApi } from '../../../../api/stuff';
-import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../../../lib/security/__tests__/test-setup';
+import Species from '../../species/Species';
+import BodyPlan from '../../species/BodyPlan';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
 
 class MobileCreature extends MobileMixin(Creature) {
   static _mixinName = 'MobileCreature';
+}
+
+// ⚠⚠ **The fixture now needs an ANATOMY, and that is the point.** The limp
+// used to key on the trauma's site STRING (`c.site.startsWith('body.leg')`),
+// so it worked on a body with no body plan at all — and equally failed on a
+// plan whose legs were not spelled `body.leg.*`. It is now a read of the
+// `locomotion` capacity, which a plan DECLARES with `serves`. Every shipped
+// plan with legs authors it (biped, quadruped, avian).
+let planSeq = 0;
+function walker(): MobileCreature {
+  const plan = makeStuff(() => new BodyPlan());
+  plan.setName('test-walker');
+  plan.setBodyParts([
+    { key: 'body.torso', parent: null, tissues: [] },
+    {
+      key: 'body.arm.left',
+      parent: 'body.torso',
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 }],
+    },
+    {
+      key: 'body.leg.left',
+      parent: 'body.torso',
+      serves: ['locomotion'],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 8 }],
+    },
+    {
+      key: 'body.leg.left.foot',
+      parent: 'body.leg.left',
+      serves: ['locomotion'],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.8 }],
+    },
+    {
+      key: 'body.leg.right',
+      parent: 'body.torso',
+      serves: ['locomotion'],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 8 }],
+    },
+    {
+      key: 'body.leg.right.foot',
+      parent: 'body.leg.right',
+      serves: ['locomotion'],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.8 }],
+    },
+  ]);
+  const id = planSeq++;
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/limp-${id}`);
+  const species = makeStuff(() => new Species());
+  species.setBodyPlan(plan);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/limp-${id}`);
+  const c = makeStuff(() => new MobileCreature());
+  c.setSpecies(species);
+  return c;
 }
 
 const endurance = (c: Creature): number =>
@@ -72,13 +129,13 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
   it('a foot laceration drains endurance on traverse, scaling with severity', async () => {
     const here = makeStuff(() => new Location());
 
-    const light = makeStuff(() => new MobileCreature());
+    const light = walker();
     ContainmentApi.move(light, here);
     light.afflict(footLaceration(1));
     const dropLight = await traverse(light);
     expect(dropLight).toBeGreaterThan(0);
 
-    const heavy = makeStuff(() => new MobileCreature());
+    const heavy = walker();
     ContainmentApi.move(heavy, here);
     heavy.afflict(footLaceration(2));
     const dropHeavy = await traverse(heavy);
@@ -87,14 +144,14 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
 
   it('an unwounded body pays no limp cost', async () => {
     const here = makeStuff(() => new Location());
-    const a = makeStuff(() => new MobileCreature());
+    const a = walker();
     ContainmentApi.move(a, here);
     expect(await traverse(a)).toBe(0);
   });
 
   it('the limp clears when the wound heals (severity 0)', async () => {
     const here = makeStuff(() => new Location());
-    const a = makeStuff(() => new MobileCreature());
+    const a = walker();
     ContainmentApi.move(a, here);
     const wound = footLaceration(1.5);
     a.afflict(wound);
@@ -106,7 +163,7 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
 
   it('a non-locomotor (arm) laceration does not limp', async () => {
     const here = makeStuff(() => new Location());
-    const a = makeStuff(() => new MobileCreature());
+    const a = walker();
     ContainmentApi.move(a, here);
     a.afflict({
       kind: 'trauma',

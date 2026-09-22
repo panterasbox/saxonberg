@@ -1,0 +1,32 @@
+# Hypovolemic shock — what losing blood does to you BEFORE it kills you.
+#
+# ⭐⭐ The window. The dying clock opens at 36 % blood loss; this spawns at
+# 30 %, so there is an interval — roughly 75 seconds of open bleed — in
+# which the body is visibly failing and a medic could still matter. Before
+# this build, bleeding produced nothing at all until it produced death.
+#
+# ⚠ `progression: null` — the driver is `VitalsMixin.reconcileConditions`,
+# which derives blood pressure from volume on every read and spawns /
+# relieves this row across a hysteresis band. The row does NOT advance a
+# stage of its own; what it declares is what CARRYING shock costs you.
+#
+# ⚠⚠ It deliberately does NOT touch `heartRate`. The sustained-shock arm
+# already drives that sign toward arrest, and two writers on one vital is
+# the two-owners defect `lint:condition-arms` exists to prevent. Heart-rate
+# compensation (the tachycardia that precedes the pressure drop) is a real
+# sign and a real gap → blood-slate.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: hypovolemic shock
+  # Circulating volume is what carries oxygen to working muscle; lose
+  # enough of it and there is nothing left to spend.
+  signature:
+    - { kind: reserve, reserve: endurance, pctPerHour: -20 }
+  progression: null
+  # Fluid, not a bandage. Dressing the wound stops it getting worse;
+  # it does not put back what is already on the floor.
+  resolution:
+    by: fluid
+  observableSigns: [pale, clammy, faint]
+  contagion: null

@@ -2,8 +2,9 @@
 
 A **Reserve** is a depletable-and-replenishing capacity axis. The
 substrate is broader than biology: the body's biological reserves
-(endurance / satiation / hydration) and, deferred, magic-side reserves
-(a guild's "charge", a tradition's "essence") are all instances of the
+(endurance / satiation / hydration) and the magic-side reserves (`mana`,
+shipped on `CasterMixin`; a guild's "charge", a tradition's "essence")
+are all instances of the
 same axis — they differ only in **what drains them, what replenishes
 them, and their theme**. So the engine ships the *axis* and content
 names the instances.
@@ -30,9 +31,9 @@ are **content** — they ride the value's `theme` and `key`, never the
 engine surface. The engine has reserves; a magic system names its pools
 over them. This is the affliction-vs-trauma authored-content move applied
 to reserves: the substrate ships the axis + the seam; the thematic pools
-are content. (Magic itself is deferred — see
-[capability-magic-slate.md](../slates/builds/capability-magic-slate.md),
-where mana is documented as endurance's mirror riding this axis.)
+are content. (Magic shipped — see [magic.md](./magic.md): `CasterMixin`
+installs `mana` as a `Reserve` (`pt`, theme `'arcane'`), endurance's
+mirror riding this axis.)
 
 ## The value shape
 
@@ -92,6 +93,14 @@ recovery rebuilding endurance) and, when one floors, spawns the
 `collapse`) — clearing it on recovery. Encumbrance drains `endurance`;
 metabolism replenishes it; both layer on the one reserve.
 
+Nine keys since the nutrition-and-fitness build (`flesh` from the
+farmstead; `lean`, `protein`, `wind`, `vitamin-c`, `alcohol-tolerance`
+from nutrition-and-fitness), and ⭐ not all seeded full: `flesh` at 55,
+`lean`/`protein` at 50, `wind`/tolerance at **0** — an untrained body is
+the honest baseline. ⚠ Only a reserve with a `floorEffect` has a floor:
+`Vitals.getConditionBand` skips a floorEffect-less reserve at zero. The
+five stocks and what moves them are in [exertion.md](./exertion.md).
+
 The "what's biological" set is a substrate constant in `Reserve.ts`, not
 auto-installed by `ReservedMixin` itself — so a future non-biological
 reserve host (a magic-only entity) can compose `ReservedMixin` without
@@ -129,14 +138,15 @@ reading, exactly like consciousness reading vitals. See
 ## The authored-thematic seam
 
 `setReserve({ key, capacity, current, theme, floorEffect })` works for
-any non-biological reserve. No magic content ships; the seam is
-demonstrated (a `theme: 'arcane'` reserve can be defined and round-trips)
-and waits for the magic subsystem.
+any non-biological reserve. The magic subsystem is the seam's first
+consumer: `lib/magic/Caster.ts` installs the `mana` reserve (`pt`, theme
+`'arcane'`) this way, and `§ The non-biological instances` above lists
+it.
 
 ## Cross-references
 
 - [vitals.md](./vitals.md) — the band feed; reserves are body-state
 - [quantities.md](./quantities.md) — `Quantity` capacity/current
 - [collections.md](./collections.md) — the keyed-Map surface
-- [capability-magic-slate.md](../slates/builds/capability-magic-slate.md)
-  — mana as a magic-side reserve on this axis
+- [magic.md](./magic.md) — mana as the shipped magic-side reserve on
+  this axis (`CasterMixin`)

@@ -1,27 +1,34 @@
 # Room condition & cleanliness design pack — the "condition model," dissolved
 
-> **Status: UNBUILT** — nothing of the decomposition exists; only `wash`
-> ships, and it came from the libations build
-> **Left:** `SoilableMixin` · the room debris field · `sweep` / `wipe` /
-> `tidy` / `dispose` · the `restQuality` aggregation · the pest threshold
-> · the attributed `(actor, target, extent)` deposit/clear events
+> **Status: UNBUILT** — nothing of the decomposition exists (verified
+> 2026-09-19: no `Soilable` / debris / `getRestQuality` aggregation under
+> `packages/server/src/mud`; no `sweep` / `wipe` / `tidy` / `dispose` /
+> `bathe` view); only `wash` ships, and it came from the libations build.
+> The doctrine correction (Part 2) is **applied** —
+> `stewardship-doctrine.md` files room condition under archetype 1. Two
+> dependents shipped since: the textiles build's soiling seam
+> (`Attired.outermostAt`, [textiles.md](../../subsystems/textiles.md)) is
+> the method this build calls for a body's stain, and spoilage
+> ([spoilage.md](../../subsystems/spoilage.md)) is the first step of the
+> build order, done.
+> **Left:** `SoilableMixin` (items · surfaces · bodies — hands on
+> `Creature`, the attach point absorbed from food-safety 2026-09-21) · the
+> room debris field · `sweep` / `wipe` / `tidy` / `dispose` / `bathe` (the
+> water precondition) · the `restQuality` aggregation (bedding `Soilable` +
+> room condition, and room temperature — absorbed from hearth-and-larder
+> 2026-09-21) · tidiness from placement · the pest threshold · the
+> attributed `(actor, target, extent)` deposit/clear events (a ledger
+> record, never an `EventApi` emit — textiles.md) · the `Resists.factor`
+> immunity wire (after disease)
 > **Size:** a build
-
-> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
-> The genuinely **un-designed** archetype-2-adjacent producer — the *"condition
-> model"* `furnishing.md` keeps deferring room state and `restQuality`-from-
-> tidiness to. This pack designs it outright, and in doing so **corrects the
-> stewardship doctrine's classification of a dirty room** (Part 2). Same
-> per-object format as the [fridge](./fridge-design-pack.md) and
-> [spoilage](../tails/spoilage-design-pack.md) packs.
 
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (**this pack amends
 its archetype table**) · [furnishing](../../subsystems/furnishing.md) (the
 `restQuality` consumer; "cleanliness to items and bodies, not the room") ·
 [disease-slate](./disease-slate.md) (**hygiene → infection; "care is
 immunity"**) · [sanitation-slate](./sanitation-slate.md) (debris → the
-collection pipeline) · [spoilage-design-pack](../tails/spoilage-design-pack.md) (debris
-+ exposed food) · [health-vertical-slate](./health-vertical-slate.md) (the
+collection pipeline) · [spoilage.md](../../subsystems/spoilage.md) (debris
++ exposed food; *the spoilage design pack retired into it*) · [health-vertical-slate](./health-vertical-slate.md) (the
 public-health pedagogy payoff).
 
 ---
@@ -50,7 +57,7 @@ Five pieces, and only two are new gauges:
 
 | Piece | Lives on | Shape | Cleared by |
 |---|---|---|---|
-| ⭐ **`Soilable`** (grease, grime, soiled bedding, dirty hands) | **items / surfaces / bodies** | act-deposited band (`clean/soiled/filthy`) | `wash` / `wipe` / `bathe` |
+| ⭐ **`Soilable`** (grease, grime, soiled bedding, dirty hands) | **items / surfaces / bodies** | act-deposited band (`clean/soiled/filthy`) | `wash` / `wipe` / `bathe` — ⭐ with **soap** clearing grease and water alone not ([rendering-slate § 8](./rendering-slate.md)); **sweat from exertion** is the body's first depositor (the nutrition & fitness build's `exert()`) |
 | ⭐ **Debris** (crumbs, offcuts, litter) | **the room** (room-level field) | act-deposited band | `sweep` / `clean` → a bin |
 | **Pests** | emergent | a **threshold consequence** of debris + exposed food | remove the cause |
 | **Tidiness** | emergent | derived from item **placement** (`place`d vs scattered) | `tidy` (put things away) |
@@ -69,6 +76,19 @@ food above a threshold → pests *appear* (on presence/return) as a disease vect
 and spoilage accelerant. There is deliberately **no field** (furnishing's call)
 and no "your house is overrun while you were away" — that would be exactly the
 tax-on-absence Part 2 forbids.
+
+### Absorbed from food-safety-slate — Hands
+
+*(Moved here at the 2026-09-21 cluster pass: the body-side `Soilable` —
+*"dirty hands"* in the table above, *"a body's own `Soilable` is a
+fomite"* in Part 5 — is this pack's. The food-safety build (MR !244)
+recorded why it shipped no host for it; that record is the constraint on
+this pack's hands rung. "D3" is that build's plan decision.)*
+
+- **Hands.** D3 names one and this build ships no host for it. The attach
+  point is `Creature`; the consumer is the disease build, which needs a
+  body-side carrier for transmission anyway. Composing it here would have
+  bought a *worse* game (every meal a hygiene chore) for no new mechanism.
 
 ### ⭐⭐⭐ Every deposit and every clear carries an ACTOR
 
@@ -128,21 +148,10 @@ attendance meter) *and* honest (real dirt does come from use).
 
 ### The correction to the doctrine
 
-[stewardship-doctrine](../../stewardship-doctrine.md) Part 1 put *"a dirty room"* in
-**archetype 2** (flux — *"runs over absence"*). Building it shows that is wrong:
-
-> ⭐⭐ **A dirty room does not run over absence.** Its driver is *acts*, and no
-> acts happen while you are gone, so it **freezes** — the opposite of the fish.
-> It is **archetype-1-shaped** (act-driven, no clock, cleared by an act), not
-> archetype 2.
-
-The refinement worth folding back into the doctrine: **archetype 2's
-absence-behavior depends on whether the decay process is CONTINUOUS-NATURAL
-(microbes, growth → runs over absence: spoilage, the herd, the plant) or
-ACT-DEPOSITED (dirt, mess, wear → freezes in absence: room condition, Durable).**
-The fish rots because biology runs without you; the kitchen gets dirty only
-because *you* cook in it. Same pillar, opposite clocks — and the difference is
-the driver, not the domain.
+*Applied* — [stewardship-doctrine](../../stewardship-doctrine.md) Part 1's
+archetype table files room condition under archetype 1 (deposition) and
+carries the amendment (*the classifier of absence-behavior is the driver,
+not the domain*) dated 2026-08-06, with a pointer back here.
 
 ---
 
@@ -167,6 +176,18 @@ the driver, not the domain.
 | ✳ **Pest threshold** | a derived check on (debris + exposed food) → a pest consequence; no field | **new (derived)** |
 | ✳ **Disease resistance read** | occupant disease susceptibility reads home condition (Part 6) | **wire into `Resists.factor`** |
 | ⭐ **Actor-attributed deposit/clear events** | `(actor, target, extent)` emitted both directions; blame derives on read, never stamped (Part 1) | **new — required at build time, not retrofittable** |
+
+### Absorbed from hearth-and-larder-design-pack — `restQuality` gains room temperature
+
+*(Moved here at the 2026-09-21 cluster pass: the `restQuality` aggregation
+is this pack's row above, and the hearth pack's second input belongs
+beside it. The mechanism — a hearth warms its room, `ThermalRegulationMixin`
+cascades body temperature into conditions — is
+[hearth-and-larder § Part 1](../tails/hearth-and-larder-design-pack.md).)*
+
+| | Work | State |
+|---|---|---|
+| ✳ **`restQuality` gains room temperature** | a second input beside bedding | **update** |
 
 **4. Verbs & affordances (the stewardship gameplay).** `wash` / `wipe` /
 `bathe` / `sweep` / `clean` / `tidy` / `dispose` — **acts of care, "fought not

@@ -1,0 +1,21 @@
+# Musket balls — lead, 16 mm, and the reason plate stopped being worth
+# wearing.
+#
+# ⭐ The calibre is doing all the work: 1.5 kJ over π·(8 mm)² is about
+# 7.5 MJ/m², against a 2 MJ/m² reference — penetration ≈ 3.7, which
+# divides the breastplate's attenuation and takes its `resist` toward
+# `fail`. A sword thrust carrying a tenth the energy over ten times the
+# area is penetration 1, and the same plate turns it all day.
+class: /platform/thing/equipment/Projectile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: musket ball
+  keywords: [ball, balls, shot, lead]
+  register: indefinite
+  longDescription: >
+    A pouch of cast lead balls, each one a little out of round where it
+    left the mould, dulled grey with handling.
+  _materialPath: /stuff/idea/material/element/lead
+  mass: 0.03
+  calibre: 0.016
+  quantity: 10

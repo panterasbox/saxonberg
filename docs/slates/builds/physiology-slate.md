@@ -1,21 +1,37 @@
 # Physiology slate — the body's second half: function, time, intervention
 
-> **Status: PARTIAL** — only wave 1 shipped: the condition catalogue is
-> live (`ConditionCatalogue`, self-warming) and `ConditionApi.inflict` is
-> the single seam → [harm.md](../../subsystems/harm.md). The function
-> half is untouched — `governsVital` has not become `governs`, and there
-> is still no pain, no perfusion or innervation reader.
+> **Status: PARTIAL** — re-verified 2026-09-20, and much more has shipped
+> than the 2026-09-16 snapshot recorded. **Waves 1–4 are done**: the
+> condition catalogue is live and self-warming; `governsVital` → `governs`
+> renamed everywhere; the organ roster (`body.head.brain`,
+> `body.torso.spine.{upper,lower}`, `body.torso.liver`) is authored on
+> both animate body plans; and the **function axis itself is shipped** —
+> `functionAt`/`capacity` read `governs`/`innervatedBy`/`suppliedBy` for
+> real (min-along-the-path, banded `full·impaired·failing·lost`), not
+> merely as an exclusion filter. The medic vertical (`assess`/`treat`,
+> `resolution.by` treatment-matching, the sever, materials-response armor)
+> is shipped too. See [harm.md](../../subsystems/harm.md) and
+> [vitals.md](../../subsystems/vitals.md).
 > **Left:** per-individual stature + BMI as a banded derived read (its
-> first consumer is body density for buoyancy) · the capacity vocabulary
-> + the `governs` rename (waves 2–3 block the rest) · the organ roster (brain · spine · liver) · the
-> function axis (trauma × tissue × perfusion × innervation) · the alarm
-> clock off `reconcileConditions` · pain as a derived reader · substances
-> (the topical route, inhalation, the liver multiplier) · chems and meds
-> as content · infection · permanence and prosthetics · sleep and beds ·
-> blood, transfusion and consent · the care economy · animal body plans ·
-> `treat <target> <part> with <item>` and `draw` · medicine/surgery
-> disciplines + malpractice · tolerance and withdrawal · the six-spell
-> `control·body` roster
+> first consumer is body density for buoyancy — § Anthropometrics) ·
+> pain as a derived reader · the alarm-clock optimization over
+> `reconcileConditions` (today it is pure reconcile-on-read with no booked
+> next-interesting-time) · substances (the topical route, inhalation, the
+> liver clearance multiplier) · chems and meds as content · wound
+> infection (environmental, not the pathogen/food kind) · permanence and
+> prosthetics · sleep and beds · the care economy · animal/NPC body-plan
+> fidelity · tolerance and withdrawal · medicine-vs-magic and the
+> `control·body` spell roster · site-targeted `treat <part>` and `draw` ·
+> medicine/surgery disciplines + malpractice + licensure · the vocations
+> as content · frostbite from weather (Part 7g, 2026-09-18) · dismemberment
+> gameplay, gated on combat's called shot (Part 7h, 2026-09-18) · two open
+> read-through findings (the 96.8 kg tissue-mass sum, the sensory-port
+> anatomy edge). ⚠ The self-assess-reads-worse-than-others design (former
+> § Part 8d) was cut: the shipped `assess` does the opposite (full fidelity
+> on self) — see the ledger.
+> ⭐ **Blood, transfusion and consent moved OUT (2026-09-15)** →
+> [blood-slate](./blood-slate.md). This slate keeps the blood-loss
+> *axis* (`bloodVolume` is a vital sign); blood owns the substance.
 > **Size:** a build
 
 **Captured 2026-08-02**, out of a chems/meds conversation that turned into
@@ -38,9 +54,9 @@ is killing this body."* Nothing answers *"what can this body still do."*
 > first sketched out vitals and never did."** Correct, and this slate is
 > that conversation.
 
-> **Status: direction set, nothing built. FAST-TRACK.** § Part 3 was
-> driven out against the source on 2026-08-02 and is requirements-ready;
-> the roster is **shape**-urgent, not speed-urgent.
+*(An older narrative status line — "direction set, nothing built,
+FAST-TRACK" — is cut here 2026-09-20 as history superseded by the
+canonical status block above; the one status block rule.)*
 
 Related: [vitals.md](../../subsystems/vitals.md),
 [harm.md](../../subsystems/harm.md),
@@ -160,116 +176,24 @@ model is real; **if it does not, nothing downstream matters.**
 
 ## Part 1 — The inventory
 
-What actually exists, read off the shipped docs rather than from memory.
-
-| System | State |
-|---|---|
-| **circulatory** | **strong** — `bloodVolume` (L), `heartRate`, systolic + diastolic, heart part with `governsVital` |
-| **respiratory** | **strong** — `spo2`, `respiratoryRate`, lungs, `breathableMedia`, asphyxiation |
-| **digestive** | **strong** — digestion buffer, meal chemistry, toxins |
-| **thermoregulatory** | **strong** — `coreTemperature`, Newton cooling |
-| **musculoskeletal** | **partial** — bone/muscle/flesh tissues with per-part **masses**, `fracture` trauma; **no strength reading** |
-| **nervous** | ⚠ **`innervatedBy` declared, NO READER** |
-| **vascular (regional)** | ⚠ **`suppliedBy` declared, NO READER** |
-| **immune** | **absent** (the `contagion: null` seam is cut) |
-| **clearance (hepatic/renal)** | ⚠ **CORRECTED 2026-08-02 — NOT absent.** Per-substance clearance rates ship on the toxin path; what is absent is an **organ** that modulates them. See § Part 7b |
-| **endocrine / reproductive / lymphatic** | **absent** |
-
-Also inert today:
-
-- `TRAUMA_BEHAVIOR` ships a **no-op exemplar for every type** — *"the
-  shape, not live behavior."*
-- **Nothing ticks.** `afflict`/`relieve` are pure add/remove.
-
-### ⭐ What is RIGHT, and must not be disturbed
-
-The expensive-to-change decisions are all correct and all
-additive-friendly:
-
-- **no stored health scalar** — the band is a rendered view;
-- **quantified vital signs in real units** with per-species
-  `vitalProfile` bands;
-- **anatomy as its own axis** — slots *reference* parts, parts know
-  nothing of slots;
-- **instance-deltas over shared `BodyPlan` structure**;
-- **derive-on-read everywhere**.
-
-> **The model is not wrong. It is HALF-READ.** Most of what this slate
-> wants is a *reader* over seams that are already declared.
+*(Cut 2026-09-20 — this was a snapshot of shipped-vs-absent state as of
+2026-08-02. `innervatedBy`/`suppliedBy` now have readers, clearance's
+correction is now just the current fact, and the "what is RIGHT"
+doctrine — no stored health scalar, real-unit vital signs, anatomy as
+its own axis, instance-deltas, derive-on-read — is stated directly in
+[vitals.md](../../subsystems/vitals.md) § *The load-bearing decision*
+and § *Anatomy + tissue*. See that doc for the current inventory.)*
 
 ---
 
 ## Part 2 — ⭐⭐⭐⭐ The missing primitive: a function axis
 
-> **The anatomy already knows where you are hurt, and nothing ever asks it
-> what that means.**
-
-`SlotSpec.bodyPart` consults anatomy only for `missing` — the doc says
-outright it is *"a coarse consult… no-op unless the part is gone."*
-
-> **The body is BINARY where it should be GRADED.** A severed hand
-> disables a slot; a shattered one does nothing at all.
-
-What is absent is **capacity** — a derive-on-read answer to *what can this
-part currently do*, computed from its trauma, tissue damage, perfusion and
-innervation. Same pattern as everything else in the codebase.
-
-**It unblocks four stuck things at once:**
-
-| | |
-|---|---|
-| **combat** | a fractured arm degrades what that arm does — **hit location finally means something** |
-| **medicine** | treatment targets a part and restores **function**, which is what medicine actually is |
-| **masking** | a drug buys function you should not have — *the* chems mechanic |
-| **recovery** | becomes legible: *you can grip again* |
-
-⭐ It is also the substrate the deferred **strength/dexterity** attributes
-were always going to need, and which the per-tissue **masses** were put
-there to feed.
-
-### The specification (driven out 2026-08-02)
-
-#### ⭐⭐⭐ Two tiers, and the words earn their difference
-
-| Tier | Question | Derived from |
-|---|---|---|
-| **function** — per part | *how well is this hand working* | local trauma × tissue loss × **conduction** × **supply** |
-| **capacity** — whole body | *can I walk / grip / stay conscious* | composed from the parts that serve it |
-
-`locomotion = f(function of legs, feet)`; `manipulation = f(arms, hands)`;
-`consciousness = f(brain)`. **The Part 3 roster is just which parts serve
-which capacity.**
-
-#### ⭐⭐⭐ Function is the MINIMUM along the path, not a sum
-
-> **A perfectly healthy hand on a severed nerve is zero.**
-
-Conduction and supply are **chains**, and a chain is as strong as its
-weakest link — literally, not metaphorically. That operator is what makes
-the graph load-bearing instead of decorative, and it is why **paralysis
-and a severed artery come out of the same read.**
-
-#### ⭐⭐⭐ The tier split IS the diagnosis gap
-
-> **Medicine treats PARTS. Gameplay reads CAPACITIES.**
-
-You experience *"I can't walk."* You need an expert to say *"your supply
-is cut, not your bone."* Not a contrivance to give the physician a job —
-the **same competence-buys-information rule `assess` already ships**,
-sitting on a real structural boundary.
-
-#### The surface
-
-Methods on the host (inter-Stuff contract), and **consumers never ask for
-a number**:
-
-- `creature.functionAt('body.arm.left.hand')` → band *(the physician's read)*
-- `creature.capacity('manipulation')` → band *(the composed read)*
-- `creature.canGrip()` / `canBearWeight()` / `isConscious()` → predicates
-  *(what everything else calls)*
-
-**Bands, not scalars** — following the health band's own precedent: *a
-rendered view, never the source of truth.*
+*(Cut 2026-09-20 — SHIPPED·DOCUMENTED. `VitalsMixin.functionAt`/`capacity`
+exist exactly as specified here: min-along-the-path for `governs`, mean
+for `serves`, banded `full·impaired·failing·lost`, `canGrip`/
+`canBearWeight`/`getConsciousness` as the predicate surface. See
+[harm.md § The function axis — a wound costs a CAPACITY](../../subsystems/harm.md)
+and [vitals.md § Anatomy + tissue](../../subsystems/vitals.md).)*
 
 ---
 
@@ -290,129 +214,42 @@ body.torso                    (root)
 └── body.torso.lungs          governsVital: respiratoryRate
 ```
 
-### ⚠ Correcting this slate's own first framing
+*(Cut 2026-09-20 — SHIPPED·DOCUMENTED. Everything from "Correcting this
+slate's own first framing" through "The roster" table below is now the
+shipped state: `governs` replaced `governsVital`, `innervatedBy`/
+`suppliedBy` have readers, and the four-organ roster —
+`body.head.brain` (governs consciousness), `body.torso.spine.upper`/
+`.lower` (conduits, unauthored `governs`), `body.torso.liver` (governs
+clearance) — is authored on `biped.yaml` exactly as specified: same
+keys, same parent edges, same "author the graph only where it diverges
+from the tree" rule. See
+[vitals.md § Anatomy + tissue](../../subsystems/vitals.md) and
+`species-and-names/…/BodyPlan/biped.yaml`. The "deferred, and now
+genuinely free to defer" list — throat/vocalization, eyes-as-parts, gut,
+kidneys, skin — has no reader yet and stays open.)*
 
-An earlier pass here said *"the ROSTER has a deadline."* **Overstated.**
-`body.*` keys reach persisted state two ways (`bodyPartDeltas`,
-`Trauma.site`), but:
+### ⚠ Two findings from the read-through still open
 
-> **ADDING a part is additive and free at any time. RESTRUCTURING existing
-> keys is the migration.**
-
-`body.head.brain` costs nothing to add in a year. What costs is deciding
-later that organs should not hang off their container, or that the spine
-should have been segmented.
-
-> **So the urgency is not "author every organ now" — it is GET THE SHAPE
-> RIGHT NOW, and add only what has a reader.** Which lets us be
-> disciplined instead of greedy.
-
-### ⭐⭐ And the diagnosis is worse than `vitals.md` says
-
-**`governsVital` has NO production reader.** Authored on heart and lungs,
-mentioned in a comment in `Vitals.ts`, read only in tests.
-
-> **The entire anatomy layer has ONE production consumer: the binary
-> `missing` check in `SlottedMixin.canOccupy`.**
-
-`governsVital`, `innervatedBy`, `suppliedBy`, `severable`, `covers` and
-every tissue mass are authored-or-declared and unread. **The anatomy is
-decorative today.**
-
-### ⭐⭐⭐⭐ Which reorders the waves: capacities before roster
-
-`governsVital` points at a **stored vital sign**. Consciousness is not one
-(it is derived from blood volume, SpO₂ and head trauma); neither is
-clearance. So brain and liver cannot use the coupling as it stands — and
-that exposes the real dependency:
-
-> **An organ exists iff it GOVERNS A CAPACITY — so you cannot pick organs
-> before you pick capacities.**
-
-The roster does not come first. **The capacity vocabulary does**, and the
-roster falls out of it mechanically.
-
-### The capacity vocabulary — derived from CONSUMERS, not from biology
-
-| Capacity | Read by | Organ? |
-|---|---|---|
-| **circulation** | vitals, the dying clock | **heart** ✓ shipped |
-| **respiration** | respiration, asphyxiation | **lungs** ✓ shipped |
-| **consciousness** | `getConsciousness`, agency gating, dying | ⭐ **brain** — *live consumer today* |
-| **locomotion** | LocomotionApi, movement modes | **legs/feet** — parts exist |
-| **manipulation** | slots, crafting, combat | **arms/hands** — parts exist |
-| **exertion** | metabolism (drives thirst), encumbrance | **derived** — muscle mass × circulation × respiration |
-| **clearance** | chems, toxins | ⭐ **new** |
-| thermoregulation | thermal | **whole-body, no organ** |
-
-**Half of it is already anatomically covered.** The additions are exactly
-two.
-
-**Minimal field change:** `governsVital: string` → **`governs: string`**
-over a namespace covering both stored signs and derived capacities. Both
-existing rows stay valid unchanged.
-
-### ⭐⭐⭐ GOVERNS vs CONDUCTS — and it needs no new field
-
-The spine governs nothing. It **conducts**. And the fields are already on
-`BodyPart`, declared and never authored:
-
-> **Some parts GOVERN a capacity. Others CONDUCT it.** — `governs` vs
-> `innervatedBy` / `suppliedBy`.
-
-> ⭐ **Paralysis and a severed artery are the SAME MECHANISM at different
-> points in one graph** — and the graph is already typed. Nothing to build
-> but authored data and a reader.
-
-⭐ **The authoring rule that keeps the data tiny:**
-
-> **Author the graph only where it DIVERGES from the tree.**
-
-For limbs the structural tree already *is* the supply path — a hand hangs
-off an arm and is fed through it. The **only** divergence is the spine:
-arms attach at the torso but innervate from the neck.
-
-### The roster
-
-| Key | Parent | Role | Why now |
-|---|---|---|---|
-| `body.head.brain` | `body.head` | **governs: consciousness** | `getConsciousness` already reads head trauma — **a live consumer today** |
-| `body.torso.spine.upper` | `body.torso` | **conduit** — arms + all below | the function axis is a named wave |
-| `body.torso.spine.lower` | `body.torso.spine.upper` | **conduit** — legs | quadriplegia vs paraplegia, the only playable distinction |
-| `body.torso.liver` | `body.torso` | **governs: clearance** | chems have nowhere to live without it |
-
-- **Naming stays containment-based**, matching the shipped convention — so
-  brain is `body.head.brain`, never `body.torso.brain`. ⭐ It also means
-  **decapitation takes the brain through the TREE** rather than by special
-  case.
-- ⭐ **Two spine segments, not one or three.** Asymmetric cost: shipping
-  two and reading one is harmless; shipping one and wanting two is a
-  migration. The parent edge (`lower` under `upper`) encodes *damage high,
-  lose everything below* for free.
-- ⭐ **"Liver", not "clearance organ"** — the recognizability gate. It
-  abstracts the kidneys and nobody will care; a player knows what a liver
-  is for.
-
-**Deferred, and now genuinely free to defer** (additive later): throat /
-vocalization, eyes-as-parts, gut, kidneys, skin. **No reader, no named
-wave, no cost to waiting.**
-
-### ⚠ Three findings from the read-through
-
-1. **Tissue masses sum to 92.9 kg against `baseMass: 70`.** Either they
-   are relative-not-absolute (then say so at the site) or it is wrong —
-   and it will look wrong the first time anything aggregates them, which
-   **the planned strength reading is designed to do**.
+1. **Tissue masses sum to 96.8 kg against `baseMass: 70`** (re-verified
+   2026-09-20 against the current `biped.yaml` — grew from the
+   originally-recorded 92.9 kg as brain/spine/liver were added). Either
+   they are relative-not-absolute (then say so at the site) or it is
+   wrong — and it will look wrong the first time anything aggregates
+   them, which **the planned strength reading is designed to do**.
 2. **`sensoryPorts` and `bodyParts` are two anatomies that do not
-   reference each other.** A port carries no `bodyPart` edge, so **an eye
-   cannot be injured** — the same binary/graded gap in a different place.
-   Cheap fix: one optional field, mirroring `SlotSpec.bodyPart`.
-3. **Does `missing` cascade down the tree?** Instance deltas are per-key.
-   If it does not, you can sever an arm and keep the hand. **A CURRENT
-   correctness question, not a future one.**
-4. **`SlotSpec.covers` has no consumer either** — armor coverage and
-   hit-location are declared seams. **Third instance of the same finding**
-   (after `governsVital` and `innervatedBy`/`suppliedBy`).
+   reference each other.** Re-verified 2026-09-20: `SensoryPort` (in
+   `platform/idea/species/BodyPlan.ts`) still carries no `bodyPart`
+   field, so **an eye cannot be injured** — the same binary/graded gap in
+   a different place. Cheap fix: one optional field, mirroring
+   `SlotSpec.bodyPart`.
+
+*(Findings 3–4 from the original read-through — does `missing` cascade
+down the tree, and does `SlotSpec.covers` have a consumer — are now
+SHIPPED·DOCUMENTED: the sever cascades transitively over `BodyPart.parent`
+and `covers` has four live readers via `getSlotsCovering` plus the
+materials-response covering fold. See
+[harm.md § The sever](../../subsystems/harm.md) and
+[vitals.md § Anatomy + tissue](../../subsystems/vitals.md).)*
 
 ---
 
@@ -502,49 +339,22 @@ property survives because that *is* how bodies work.
 Difficulty gating for free: **the scary things are the ones that produce
 the slow injuries.**
 
-### ⭐⭐⭐⭐ Armor converts STRUCTURAL injury into FUNCTIONAL injury
-
-**(User: *"armor is meant to mitigate a lot of this so things are allowed
-to hurt, it should be impactful otherwise armor is just costume."*)**
-
-Materials-response is already `f(mechanism, material, construction)`, so
-armor does not reduce a number — it **changes which channel gets
-through.** Mail against a blade: the cut never reaches flesh. Mail against
-a mace: the energy transfers anyway.
-
-| | Unarmored | Armored |
-|---|---|---|
-| **you get** | laceration → bleeding → **the dying clock** | contusion → **function loss only** |
-| **timescale** | **days** | **hours** |
-
-> **Armor is what keeps you out of the days-long category.**
-
-Which resolves the worry backwards from how it first looked: the
-function/structure split is **not a softener that undercuts armor — it is
-what makes armor load-bearing.** ⭐ **The severity dial lives entirely on
-the UNARMORED case:** being hit without armor should be genuinely
-frightening; being hit with it should hurt, degrade you, and let you keep
-fighting.
-
-⚠ **`SlotSpec.covers` is declared with no consumer** — *"for future armor
-/ hit-location — declared seam."* **Armor coverage is decorative too**, and
-must light up in the same wave as the function axis: it is the same read —
-*what is at this site, and what is protecting it.*
-
-### The five trauma types differ in SHAPE, not magnitude
-
-The spec the no-op `TRAUMA_BEHAVIOR` table is missing:
-
-| Type | Function | Structure | Signature |
-|---|---|---|---|
-| **laceration** | mild | **bleeding → the dying clock** | blood loss |
-| **fracture** | **severe** | slow (days) | cannot bear weight / grip |
-| **contusion** | moderate | fast (hours) | ⭐ **the armored outcome** |
-| **avulsion** | severe | **tissue is GONE** — permanent without intervention | the surgeon's case |
-| **burn** | moderate | slow **+ infection risk** | the fire channel's output |
-
-**A character each, instead of a severity number** — and a player learns
-them the way you learn real injuries: by which one ruined which week.
+*(Cut 2026-09-20 — SHIPPED·DOCUMENTED, in a different shape than either
+of the two subsections proposed. Armor-as-channel-changer (mail vs blade
+vs mace) is exactly what the materials-response covering fold does —
+`inflict` resolves the covering stack outside-in and the residual energy
+decides both severity and trauma type, so a covered site can turn a
+laceration into a contusion. And the five-trauma-type table's
+qualitative claims are now the shipped `TRAUMA_BEHAVIOR` table itself:
+laceration bleeds, fracture is slow, contusion is the armored/fast
+outcome, avulsion can take tissue permanently (the sever), burn carries
+infection risk. What did NOT ship is the specific two-clock timescale
+this Part argues for below (function on an hours reserve-clock,
+structure on a separate days trauma-clock) — what shipped is a single
+per-wound severity number that both are derived from. See
+[harm.md § The function axis](../../subsystems/harm.md),
+[harm.md § The nine trauma behaviors](../../subsystems/harm.md), and
+[materials-response.md](../../subsystems/materials-response.md).)*
 
 ### ⭐⭐⭐⭐ The cross-build exploit this creates
 
@@ -682,22 +492,13 @@ its expiry.*
 
 ## Part 6 — ⚠ The blocker: the Condition catalogue is not live
 
-From `vitals.md` / `mortality.md`, verbatim:
-
-> **"No Condition Idea is live at any path today"** — seeds are inserted
-> as template ROWS and nothing clones them into Ideas at boot, so
-> `findByTemplatePath` answers `null` for **every** condition.
-> `starvation` as much as `recovering`.
-
-Every consumer quietly tolerates it (`Metabolic.resolveToxinBehavior`
-`?.`-chains, `MagicLogic` null-checks, `assess` falls back to the path
-leaf), which is why it never failed loudly.
-
-**Chems and meds act on conditions.** A drug's entire contract is *arrest
-this, mask that, prevent the other* — and there is currently nothing
-authored for it to name.
-
-> **Instantiating the catalogue is WAVE 1.** Not a nice-to-have.
+*(Cut 2026-09-20 — SHIPPED·DOCUMENTED. `ConditionCatalogue` closed exactly
+this gap — a self-warming `postRegister` stands every authored row up as
+a live singleton at boot, so `findByTemplatePath` resolves every
+condition. See
+[vitals.md § Conditions — the three-kind type system](../../subsystems/vitals.md),
+which keeps the historical banner describing this exact failure mode as
+closed.)*
 
 ---
 
@@ -764,43 +565,15 @@ game.
 
 ## Part 7b — What a med IS as an object (2026-08-02)
 
-### ⚠ Correcting Part 1: the pharmacokinetics are already built
-
-This slate first listed clearance as **absent**. Wrong — metabolism's
-Wave 2 was not read closely enough. What ships on the toxin path:
-
-| Shipped | |
-|---|---|
-| `Material.nutrientAmounts` (tag → mg/serving) + `toxicity: ToxinTag[]` | the **substance profile** |
-| `toxinBurdens` — sparse per-body scalar, created on first exposure | the **body burden** |
-| `burden += absorbed × potency / bodyMass` | **dose normalised by body mass** |
-| `ToxinBehavior` — absorption / **clearance** / potency / **bands** | authored on the **`Condition` seed**, not a code table |
-| *"toxin burdens fall at their clearance rate"* | **clearance exists** |
-| each toxin → **one banded `Condition`** | dose-response, banded |
-| `introduceToxin(type, amount)` — *"the bloodstream seam, past digestion"* | **injection, already there** |
-| the alcohol / BAC exemplar + the Widmark helper | a worked case |
-| `vomit` + antidote | the reversal |
-
-**A complete pharmacokinetic model. It only lacks a sign.**
-
-### ⭐⭐⭐⭐⭐ One substance system — the band decides help or harm
-
-> **A drug is not a different kind of thing from a poison. It is the same
-> thing at a different dose.**
-
-So chems is a **generalisation, not a new system** — and unifying is not a
-shortcut, it is the pedagogically correct model:
-
-> ⭐⭐⭐ **One substance system, where the BAND decides whether it helps or
-> harms. Overdose stops being a special case and becomes automatic.**
-
-⭐⭐ **The therapeutic window falls out for free**: author a substance
-whose low band is beneficial and whose high band is harmful and you have
-expressed **the gap between enough to work and enough to hurt** — the
-central concept of pharmacology — using only the band structure that
-already exists. *Paracetamol is a hepatotoxin at 4 g; alcohol is already
-modelled this way.* **The system was always general; it was authored
-pessimistically.**
+*(Cut 2026-09-20 — SHIPPED·DOCUMENTED. Both the pharmacokinetic-model
+correction and the "one substance system, band decides help or harm"
+generalization are the shipped `ToxinBehavior`/`toxinBurdens` model —
+absorption, clearance, potency and bands authored on the `Condition`
+seed, the Widmark/BAC exemplar, `vomit` as the reversal. See
+[metabolism.md](../../subsystems/metabolism.md), which documents
+`ToxinBehavior`, the Widmark helper and the toxin-burden mechanism in
+full. What did NOT ship: the liver multiplier on clearance — see below,
+still open.)*
 
 ### Routes — and they mirror the function axis exactly
 
@@ -1184,149 +957,20 @@ healed* pattern showing up in a shipped vital sign, for free.
 restore oxygen carriage — is more accurate still. **Over-modelling for
 v1**; noted as a refinement.)*
 
-### ⭐⭐⭐⭐ Transfusion's ingredient is a PERSON
+### ⭐ The rest of this Part moved to blood-slate (2026-09-15)
 
-> **Transfusion is the only treatment whose ingredient is another
-> person's body.**
-
-Not a purchased item — someone **present, willing, and paying a real
-cost** (the donor loses volume too). Properties nothing else in the kit
-has: **a gift with a price**, it **requires consent**, and it leaves a
-debt both parties remember.
-
-#### ⭐⭐⭐ The blood bank is an unusual business
-
-> **Its inventory is DONATED, not bought.**
-
-A genuine **civic object** rather than a shop — a public good with a
-**free-rider problem**, where the interesting question is *who gives, and
-why.* A real collective-action problem sitting in a medical building.
-
-### ⚠ Blood types: REVERSED 2026-08-02 — DO
-
-An earlier pass here said **don't**, on two grounds. **Both were wrong, or
-too quick.** *(User: "that's cool science and it's very accessible,
-everyone knows about them… we would need some kind of blood economy and
-people to give blood. that might be fun though for a social game like
-this.")*
-
-**Objection 1 — "it's a matching puzzle."** It assumed the player performs
-the matching. They do not: typing is **a one-time fact about your
-character that a physician reads for you.**
-
-> **Your blood type is not a puzzle to solve. It is a FACT ABOUT YOU that
-> becomes relevant to OTHER PEOPLE.** — the same shape as a scar being
-> identity (§ Part 7c), which this slate already argued *for*.
-
-#### ⭐⭐⭐⭐ The real payoff is a SUMMONS, not a match
-
-> **"Is anyone here B-negative?"**
-
-Mechanically **a broadcast to a room** — exactly the event shape this game
-is built for. Typing does not create matching work; it creates
-**occasions where a SPECIFIC STRANGER becomes necessary**, which almost
-nothing else in the design does. It rides comms, it is urgent, and only
-one kind of person can answer.
-
-It also produces something rare: ⭐ **an UNEARNED distinction.** Everything
-else about you is earned — competence, renown, standing. Your type is just
-*true*, and it can make you the most important person in the room.
-**Universal donors quietly become community assets.**
-
-#### ⭐⭐⭐⭐⭐ Objection 2 — "it reads as blood purity" — INVERTS
-
-The whole thing turns on whether type correlates with **species**. If it
-does, it is blood purity. If it does not:
-
-> **A dwarf and an elf can share blood. Two elves might not.**
-
-Not a mitigation — **the strongest available REFUTATION**: a mechanic
-demonstrating that the meaningful biological category cuts **across** the
-social one. Exactly the note the anti-essentialist species layer wants,
-and **true of real human blood types.**
-
-> ⭐ **RULE: blood type is independent of species.** The hazard was real;
-> the direction was backwards. **Orthogonality turns the same mechanic
-> from the bad note into the good one.**
-
-⚠ **Refined 2026-08-02 →** [species-slate](./species-slate.md). Independent
--of-species is the **default**, not an absolute: a single authored species
-whose blood is incompatible with the common pool is **more FRAGILE, not
-purer** — a minority medical burden whose answer is **its own donor
-drive**. The governing rule is **difference that COSTS is character;
-difference that RANKS is essentialism.**
-
-### The blood economy
-
-Donation costs: volume down, weak for a while, and **per the recovery
-ratchet it must pay nothing.** So why donate? The same reason people do in
-life — **someone asked**, it is a recorded deed, and the person it saves
-knows your name.
-
-> ⭐⭐⭐ **Blood donation is the cleanest possible TEST OF THE SOFT-SKILLS
-> THESIS** — a costly act, no reward, a public record, a beneficiary who
-> knows who you are. If the chronicle and reception-from-others make that
-> feel worth doing, **those systems work**; if not, we have learned
-> something important cheaply.
-
-#### ⭐⭐ Shelf life makes it a LIVE problem
-
-Blood keeps ~6 weeks, so a bank **cannot hoard** — it needs continuous
-donation, forever.
-
-> **Shelf life turns the free-rider problem from SOLVED into ONGOING.**
-
-A stockpile is a puzzle you beat once; a perishable stock is a **standing
-civic obligation** — and it reuses the spoilage machinery already decided
-for meds (§ Part 7b).
-
-#### ⭐⭐⭐ "Should you be allowed to SELL blood" is a real legislative question
-
-With a real empirical answer: **paid donation historically produced worse
-safety outcomes**, because payment gives donors a reason to conceal things
-about themselves.
-
-A superb legislature object — **a policy debate where the intuitive answer
-(markets clear shortages) loses to evidence** — and **our own
-record-keeping could surface that evidence in-world** rather than
-asserting it. A locality that pays and one that does not become **a
-natural experiment somebody can go read.**
-
-⚠ **Guard: rarity must not become a TAX ON THE RARE.** An uncommon type
-must not mean a donation treadmill — **the ask stays an EVENT, not a
-subscription.** Carry into requirements as a real risk.
-
-### ⭐⭐⭐ Where CONSENT finally lands
-
-Transfusion forces it, but it generalises — **treatment is something done
-TO a body.** Real medicine already has the elegant rule:
-
-> **IMPLIED CONSENT IN AN EMERGENCY.** A dying body may be treated by
-> anyone. A conscious body must agree.
-
-**One predicate on `getConsciousness`**, medically correct, and it
-resolves the awkward case (you cannot ask permission from someone bleeding
-out) **without inventing anything.**
-
-The dark half comes free: **a substance administered without consent is
-harm** — the accountability ledger's existing business, a **producer-side
-append at the administration site**, no chokepoint. **That IS the
-poisoner's vocation, mechanically.**
-
-> ⭐⭐ **The ledger showing who treated whom is simultaneously a
-> malpractice trail and a credential** — same record; which one it is
-> depends entirely on outcomes.
-
-### ⭐⭐⭐ The sequencing insight
-
-Exsanguination's window is **120 s**; real transfusion takes longer. So
-transfusion is **not** the emergency intervention — `treat` already is,
-and mortality is explicit that it leaves you **"rescued, not healed."**
-
-> **The field medic stops you dying. The clinic makes you useful again.**
-
-Two moments, two skill sets, **two businesses** — so the clinic is not a
-slower version of the medic.
+> **Merged on contact.** Transfusion-as-a-person, the blood bank, blood
+> types (the *DO* reversal), the summons, the blood-purity inversion, the
+> economy, shelf life, the sell-blood legislative question, consent, and
+> the field-medic/clinic sequencing all now live in
+> [blood-slate](./blood-slate.md) § *Absorbed from physiology-slate
+> § Part 7e*.
+>
+> ⭐ **The split is principled, not arbitrary:** `bloodVolume` is a vital
+> sign and the blood-loss *axis* is this slate's (above). The *substance*,
+> its compatibility graph, and the economy around donating it are a
+> subject of their own, and that subject already had a slate with the
+> mechanism worked out in more detail than this one carried.
 
 ## Part 7f — The care economy (2026-08-02)
 
@@ -1923,25 +1567,20 @@ natural home for the implied-consent predicate (§ Part 7e). It serves the
 **poisoner** unchanged: drawing something out of someone is the same act
 whoever is doing it.
 
-### ⭐⭐⭐ What the patient knows: you are the worst-placed observer of your own body
+### ⚠ SUPERSEDED — the shipped call went the other way
 
-> **You cannot see your own back, your own pupils, or past your own
-> adrenaline.**
-
-Mechanically: **`assess` on yourself returns a WORSE read than a competent
-other's.** Medically true, socially generative (**it gives you a reason to
-ask someone**), and quietly dramatic — you can be wrong about yourself in
-front of people who are not.
-
-⚠ **The guard that stops it being infuriating:**
-
-> ⭐⭐ **Pain tells you WHAT is wrong. It does not tell you HOW BAD.**
-
-You always know the **loud** things — bleeding, a bone that is wrong. What
-you cannot self-assess is the **quiet** ones: **internal bleeding,
-infection taking hold, how long you have.** Exactly the gap a physician
-fills — and it means **the information vocation has a customer who is
-already competent.**
+*(Cut 2026-09-20.)* This subsection argued **`assess` on yourself should
+return a WORSE read than a competent other's** — you cannot see your own
+back, your own pupils, or past your own adrenaline. **The shipped code
+does the opposite.** `AssessController.ts`'s own header states *"Full
+fidelity on one's own body (self); banded + competence-gated on
+others"* and forces `medBand = 'expert'` for a self-assess judging
+through a dressing. See
+[harm.md § The medic vertical](../../subsystems/harm.md). The design
+argument (pain tells you WHAT, not HOW BAD; the physician's customer is
+already competent) is not disproven by this, just not the call that
+shipped — worth someone reopening deliberately rather than reading as
+still-pending.
 
 ### ⭐⭐⭐⭐ Masking blinds the patient AND the diagnosis
 
@@ -1958,17 +1597,12 @@ sign or the effect?*): **both** — because **a sign IS a signal.**
 
 ## Part 8e — Becoming a medic, and failing as one (2026-08-02)
 
-### ⭐⭐⭐ One competence rule covers both shipped verbs
-
-`assess` grades **information**; `treat` grades **outcomes** (*"the graded
-outcome gates the rescue; a failed attempt spends the dressing without
-holding them"*). Not two rules:
-
-> **Competence buys INFORMATION when you LOOK, and OUTCOMES when you
-> ACT.**
-
-Extends cleanly to `draw`, site-targeted `treat`, and the spells — **so
-nothing in the medical surface needs a bespoke competence policy.**
+*(Cut 2026-09-20 — SHIPPED·DOCUMENTED. `assess` grading information and
+`treat` grading outcomes is exactly [harm.md § The medic
+vertical](../../subsystems/harm.md)'s shipped behavior: outcome quality
+from dressing quality × medicine competence for `treat`; banded,
+competence-sharpened readout for `assess`. The extension to `draw` and
+site-targeted `treat` remains open — neither verb exists yet.)*
 
 ### The Discipline roster, kept small
 
@@ -2056,23 +1690,11 @@ the § Part 7f pattern holds.
 | ⭐ **physician** | **information** |
 | **poisoner** | the same skill, inverted |
 
-### ⭐ The information vocation already ships
-
-`assess` grades by competence — *"a novice sees that someone is going, a
-competent medic names what is taking them, a proficient one says how long
-there is to work with"* — with the rule stated outright:
-
-> **"Competence buys information, not outcomes."**
-
-**Not a proposal — live**, and the model any diagnostic tooling should
-follow rather than reinvent. With hidden condition state and per-viewer
-perception, *knowing what is wrong* is a real epistemic problem, which
-makes the physician the **third information vocation** after the appraiser
-and the auditor.
-
-⭐ **Shelf life** (user-confirmed) is what makes the supply chain a
-**chain** rather than a stockpile, and it is the apothecary's whole
-business problem.
+*(Cut 2026-09-20 — SHIPPED·DOCUMENTED. `assess` grading by competence,
+banded and information-only, is [harm.md § The medic
+vertical](../../subsystems/harm.md)'s shipped `assess`. The physician as a
+third information vocation and the shelf-life-driven apothecary business
+remain content/vocation design, not yet built.)*
 
 ---
 
@@ -2081,22 +1703,13 @@ business problem.
 **Reordered 2026-08-02** — capacities before roster; and the roster is
 *shape*-urgent, not *speed*-urgent (§ Part 3).
 
-1. **The Condition catalogue goes live** — instantiate the Ideas at boot.
-   Unblocks authored signs, names, progression and `toxinBehavior`
-   everywhere; makes `assess` stop falling back to the path leaf.
-   **Prerequisite for everything else.**
-2. **The capacity vocabulary + `governsVital` → `governs`** — the
-   namespace both stored signs and derived capacities live in. **The
-   roster is undecidable before this.** Fold in the three read-through
-   findings (mass sum, sensory-port anatomy edge, `missing` cascade).
-3. **The roster** — `body.head.brain`, `body.torso.spine.{upper,lower}`,
-   `body.torso.liver`; author `innervatedBy` only where it diverges from
-   the tree. Two YAML files.
-4. **The function axis** — per-part capacity derived from trauma ×
-   tissue × perfusion × innervation; readers on `governs` /
-   `innervatedBy` / `suppliedBy`; the graded consult replaces the binary
-   `missing` one. **This is the wave that makes the anatomy stop being
-   decorative.**
+*(Waves 1–4 — the condition catalogue, the capacity vocabulary +
+`governs` rename, the roster, and the function axis — are SHIPPED·
+DOCUMENTED as of 2026-09-20; cut here. See
+[vitals.md](../../subsystems/vitals.md) and
+[harm.md](../../subsystems/harm.md). Numbering below is left as-shipped
+(unrenumbered, per the no-rewrite rule) rather than renumbered from 1.)*
+
 5. **The alarm clock** — `reconcileConditions` returns its next
    interesting time; `ScheduleApi.schedule` books the read. Rebuildable,
    never authoritative.
@@ -2198,10 +1811,11 @@ as two numbers and a stamp — stature is one of them, unnamed).
 
 Three attach points the build left clean rather than filled.
 
-- **The severed limb** — `AVULSION_BEHAVIOR.onset` is authored and does
-  nothing. The build re-authored all 23 condition rows onto a declared
-  `progression.law` + `signature`, so an avulsion now has somewhere to
-  say what it *does*; what it should do is this slate's.
+- ~~**The severed limb**~~ — cut 2026-09-20, SHIPPED·DOCUMENTED:
+  `AVULSION_BEHAVIOR.onset` now severs the part (see
+  [harm.md § The sever](../../subsystems/harm.md)) and this slate's own
+  § Part 7h below already tracks what's still open around it
+  (reachability, the living way back, what a stump means).
 - **The splint** — `fracture` resolves `by: rest` and nothing shortens
   that. The treatment vocabulary is closed and matched against what the
   treater offers (`resolution.by`), so a splint is a row plus one
@@ -2212,3 +1826,141 @@ Three attach points the build left clean rather than filled.
   [instrumentation-slate](./instrumentation-slate.md) owns the general
   shape (⚠ check it first — it is the *"check before any
   measure/analyze/instrument design"* slate).
+
+## Part 7g — ⭐⭐ Frostbite from WEATHER (2026-09-18)
+
+*Handed over by the injury build, which shipped the wound and only one of
+its two causes — and whose `thermal.md` edit overclaimed the other.*
+
+The injury build added `frostbite` as a trauma type and the `cold`
+channel that produces it — but **only a delivered cold blow makes one**.
+A frost spell, a splash of something cryogenic, a hazard authored as
+`channel: cold`: those reach the covering fold at a `body.*` site and
+land frostbite there. **Cold weather does not.** The weather path drives
+`coreTemperature` down and spawns `hypothermia` — a whole-body
+affliction — and never touches a part.
+
+That is backwards from the physiology, and legibly so: on a real cold day
+**your fingers and toes go before your core does.** Frostbite of the
+extremities is the *first* cold injury, hypothermia the last; a body can
+lose a finger to the cold and never have been hypothermic at all. The
+engine currently teaches the opposite.
+
+**What the model wants**, and why it is this slate's:
+
+- **Per-region cold exposure**, read from what thermoregulation already
+  computes. The effective ambient, the wind chill, and — crucially — the
+  **per-part insulation** (`insulationAt(part)`, which already exists for
+  the surface-fraction walk) together say which parts are exposed. Bare
+  hands in a wind at −20 °C are the whole story, and every input is
+  already on the body.
+- **A per-part cold "dose"** that becomes a `frostbite` trauma at that
+  part through `ConditionApi.inflict` on the `cold` channel — the same
+  door a frost spell uses, so the fold and the function axis (a numb
+  hand cannot grip) apply for free. No new trauma, no new behaviour: a
+  new **producer** of an existing wound.
+- **The extremity order falls out of the anatomy**: hands and feet have
+  the smallest mass and therefore the least thermal inertia and the
+  highest surface-to-volume, and they are what a plan covers last. An
+  author who wants a species that loses its ears first authors small,
+  poorly-covered ears.
+- ⚠ **Not before hypothermia is honest.** Today hypothermia spawns at
+  `survivableMin` on the core — the same wrong-temperature problem the
+  injury build fixed for hyperthermia (D16). Mild hypothermia is a core
+  below ~35 °C; `survivableMin` is well past that. Do the onset and the
+  frostbite producer together, so that a cold day teaches the true
+  sequence: extremities → shivering → the row → the dwell.
+
+**Why it is physiology's and not thermal's:** the thermal slate owns how
+heat moves; this is what the *body* does about it, region by region, and
+it is the cold-side twin of Part 4b's exposure ladder. The wound, the
+channel and the door all exist; what is missing is one producer and one
+honest onset.
+
+## Part 7h — ⭐⭐ Dismemberment as GAMEPLAY (2026-09-18)
+
+*The injury build shipped severing as substrate. This is the design it
+never had — raised when the user asked "under what conditions does that
+happen, and how do we come back from it."*
+
+### What shipped, and its one honest reachable outcome
+
+An avulsion at or past `SEVER_SEVERITY` (4.0), on a `severable` part, when
+the blow is authorized to maim (lethal combat, or any environmental
+source), takes the part off — the subtree with it, what it held dropped,
+the function axis reading `lost`, persisted across login and into the
+corpse. A missing vital governor (the head) is lethal through the dying
+clock; death restores the body whole.
+
+⚠⚠ **But combat's `siteFor` returns torso/head only.** Torso is not
+severable. So the *only* sever a fight can reach today is **decapitation**
+— and every hazard targets feet or torso. The "lose a hand, keep playing,
+still do most things" arc (the requirements' AC 5) is **not reachable in
+the shipped world**: the unit tests prove `severPart`, but no producer can
+target a hand. This slate exists because that gap is a design hole, not a
+tuning one.
+
+### The three pieces, in dependency order
+
+**1. Reachability — the called shot.** Limb-severing needs a way to aim
+below torso/head, and it must be **deterministic**, not a weighted roll (a
+roll deciding what your action *did* is banned by `uncertainty.md`; the
+injury plan's Risk 2 established this). The honest form is an
+attacker-chosen called shot priced in poise/tempo — you *commit* to the
+arm, paying for the opening it costs you. This is a **combat build**
+(`combat-slate`), and severing gameplay is gated on it. Until it lands,
+limb loss is hazard-and-cull only and decapitation is the whole story.
+
+**2. The living way back — `restorePart`.** Mirrors `reembody` exactly:
+one content-facing engine call (`restorePart(body, key)`), no route
+registry, no terms vocabulary. A temple, a clinic, a prosthetist, a quest
+calls it when *its* terms are met; the caller decides the cost (banking
+charge, a rare reagent, a Discipline gate) and who can. ⭐ Rare by
+construction — somebody has to author a place that does it. ⚠ NOT death:
+death already restores the body (resurrection is whole-body), and "die to
+regrow a hand" must not be the only path, because for a *non-lethal* loss
+(a hand) it would force self-destruction.
+
+The **prosthetic** is the other half: `augmentation-slate` already has
+"augment re-enables a slot," and a wooden hand that sets a part's function
+above `lost` (rather than clearing `missing`) is that shape — a limb you
+work *around*, not a limb restored.
+
+**3. What a stump MEANS — the reason any of this matters.** A mechanic
+nobody feels is decoration. The economy of a one-handed character (which
+verbs refuse, what a maimed labourer earns), the visible mark
+(`describeFor` already appends "missing the left hand"; does it change how
+you are *regarded*), whether an NPC is ever authored already-maimed (a
+one-eyed mercenary, a beggar with no legs) as a piece of the world's
+history you can read. This is where the pedagogy lands: injury has
+**consequences that persist and cost**, and a world where the wounded are
+visible is a truer one than a world of pristine bodies.
+
+### Players vs NPCs — the accidental asymmetry to decide
+
+There is **no code distinction** — a wolf and a player both lose limbs by
+the same door. But most NPCs re-clone fresh each standup, so a maimed wolf
+is whole tomorrow while a player carries it forever. That asymmetry is
+accidental, not designed. Decide deliberately: is a maimed NPC a
+persistent fact (the mercenary who lost an arm to you *stays* one-armed,
+which is a strong memory mechanic), or does re-cloning wash it? Leans:
+persistence for **named** NPCs (Cast rung), re-clone for **Extras** — the
+same line identity already draws.
+
+### Lenses
+
+- **1 (pedagogy):** consequence and permanence — a wound that costs you
+  something you keep. Strong.
+- **2 (expression):** the content-facing restore is the second-instance
+  win — a second clinic is a row and a call, zero engine.
+- **4 (values):** a maiming is grave; gating it behind lethal consent (the
+  shipped fix) is the same "ending someone is a chosen act" value the coup
+  carries. The restore's cost is where a polity can express mercy.
+
+### Prerequisite
+
+⭐ **The called shot (`combat-slate`) is a hard prerequisite for the
+gameplay.** Without it, this slate can build `restorePart` and the
+prosthetic and the stump-economy, but the *loss* stays decapitation-and-
+hazard only — half a system. Sequence: combat's called shot first, then
+this.

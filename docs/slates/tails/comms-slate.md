@@ -1,66 +1,37 @@
 # Comms slate (working doc)
 
 > **Status: PARTIAL** — wave 1 shipped: the two-transport model,
-> `say`/`whisper`/`shout` with `meta.acousticDb`, `say --to`, the
-> whisper-vs-tell split, `dm`/`tell` over Aether →
+> `say`/`whisper`/`shout` with `meta.acousticDb`, `say --to`/`shout --to`, the
+> whisper-vs-tell split, `dm`/`tell`/`reply`/`broadcast` over the `CommsMixin`
+> hosted update →
 > [comms.md](../../subsystems/comms.md); channels graduated to
-> [chat.md](../../subsystems/chat.md)
-> **Left:** dynamic-reach shout (the voice-projection attribute) ·
-> language gating on acoustic + encoded-cognition implant · regional
-> channels · the first-class conversation primitive · implant security
-> (spoofing/interception) · async mail · the moderation control plane
+> [chat.md](../../subsystems/chat.md); the `<chan>` chip to
+> [message-rendering.md](../../subsystems/message-rendering.md)
+> **Left:** speech on the acoustic reach walk at all (today every speech
+> verb reaches the room and only the room — `acousticDb` is a stamp nothing
+> reads for speech; a shout does not leave the room) · dynamic-reach shout
+> (the voice-projection attribute + the vitals tie) · whisper's redacted
+> overhear form · language gating on acoustic + encoded-cognition
+> implant · the first-class conversation primitive ·
+> implant security (spoofing / interception) + the hardened-baseline
+> guarantee · the implant dependency as written (universal — but only
+> Avatars carry one; the per-NPC implant + remote-NPC `tell` + the
+> `addressed` responder trigger) · DM addressing (Q1) · persistent
+> history lifetime (Q5) · directed-say multi-target (Q8) · the moderation
+> control plane + the trust-tiered policy · async mail
 > **Size:** a wave
-
-> **Status: architecture set, internals open.** The communication
-> substrate — the verb taxonomy, the two transports it spans, and the
-> routing. It defines *what* the comm types are and *how they're
-> addressed*; it delegates the physics (acoustic reach → sound slate),
-> comprehension (→ language slate), the device (→ implant slate),
-> expression (→ emotes slate), and NPC brains (→ npc-dialogue slate).
 
 Working slate for **communication** — how beings talk to each other,
 near and far. It's the integrating spine: speech, DMs, group chats, and
 named channels all live here as a coherent family, with the mechanics
 handed off to the slates that own them.
 
-The load-bearing decisions:
-
-1. **Two transports, honestly distinct.** Communication travels one of
-   two ways, and they are *not* the same medium:
-
-   | | **Acoustic** | **Implant (neural)** |
-   |---|---|---|
-   | comm types | say, whisper, shout | tell/DM, chat channels (+ remote emote perception) |
-   | perceived via | the senses (you *hear* it) | direct cognition (you *know* it — a thought, willed, not sensed) |
-   | gated by | sound physics, hearing, **language** | nothing sensory; **attribution** only |
-   | reach | physical space (distance, walls, masking) | membership / addressing (distance-free) |
-   | privacy | public, overhearable | private/addressed |
-   | feel | atmospheric, in-the-world | a thought arriving, attributed |
-
-   This dichotomy gives both transports a reason to exist: acoustic is
-   local, atmospheric, overhearable, language-bound; implant is distance-
-   free, private, and "magic." Players choose by what they want.
-
-2. **The implant is cybernetic in mechanism, ESP in phenomenology.** A
-   neural interface delivering *coherent thoughts willed into existence*,
-   bypassing the sense organs. That's the single substrate carrying DMs,
-   chat, **and** the remote/ESP perception of emotes — and it's *why*
-   those feel like magic while being tech. (The emote slate's "ESP
-   channel" *is* this implant channel.) The device/system is its own
-   slate; comms defines only the dependency.
-
-3. **Directed speech is an option, not the default.** `say` is
-   undirected ~95% of the time (room chat). Directedness opts in via an
-   option: `say --to barkeep one beer please` — keeping the common case
-   untouched and dodging "is the first word a name or the message"
-   ambiguity. (General rule: **free-prose-tail verbs direct via `--to`;
-   structured-tail verbs direct positionally** — `smile iffy` vs
-   `say --to iffy …`.)
-
-4. **`whisper` is acoustic, not implant.** Today's `tell.yaml` groups
-   `[tell, whisper]`, but they're different transports — `whisper` is a
-   quiet *sound* (sound slate ~25 dB, maskable, overhearable);
-   `tell` is the *implant* private channel. Split them.
+The load-bearing decisions shipped — see [comms.md](../../subsystems/comms.md):
+two honestly distinct transports (§ Two transports — the table), the implant
+as cybernetic in mechanism and ESP in phenomenology (same section), directed
+speech as an option via `--to` (§ Directed speech — `say --to`), and
+`whisper` split out of `tell` as acoustic (§ The verb surface;
+`whisper.yaml` + `dm.yaml`).
 
 See also:
 
@@ -99,31 +70,24 @@ See also:
 
 ## Principle
 
-1. **Two transports, each honest** (acoustic = sensed; implant =
-   willed). The dichotomy above is the spine.
-2. **Diegetic throughout.** No OOC channel overlays — a chat channel is
-   an implant network; a DM is a neural link. The implant is the
-   in-fiction explanation for every non-acoustic channel.
+*1, 2 and 4 shipped → comms.md § Two transports, § `meta.acousticDb`
+stamping (reach is the senses substrate's); chat.md intro (all-diegetic).*
+
 3. **Frictionless baseline.** The implant is universal and always-on, so
    DM/chat are zero-friction; richer media/features are opt-in depth
    (implant slate).
-4. **Routing is the work; physics is delegated.** For the implant family
-   the design is *who's in the conversation* (addressing/membership). For
-   the acoustic family comms just assigns verbs to the sound + language
-   slates and stays out of the way.
 
 ---
 
 ## Acoustic family — say / whisper / shout
 
-One primitive — **vocalize at volume V** — with three presets:
+*`say` / `whisper` / `shout` shipped at 60 / 30 / 90 dB → comms.md § Acoustic.*
+*One whisper design point remains:*
 
 - **whisper** → low dB, short reach, *usually directed* (you whisper to
   someone); overhearers get the redacted form *"X whispers something to
   Y"* — the hidden content is the **words** (a speech feature; contrast
   emotes, which have no hidden content).
-- **say** → normal dB, room reach; undirected by default.
-- **shout** → high dB, multi-room reach.
 
 **Dynamic-reach shout** falls out for free: shout is just a *louder
 sound source*, and the sound slate already computes who hears a loud
@@ -132,18 +96,10 @@ scales with a **voice-projection attribute** (and clarity degrades with
 distance — acoustic attenuation, see senses.md). Nice ties: vitals (exhaustion/lung
 capacity throttles it) and a future oratory/projection skill.
 
-Reach is the **sound slate**; comprehension (do you understand it) is the
-**language slate**. Comms' only acoustic job: define the verb family,
-wire the volume presets + the projection attribute, add the optional
-`--to` addressee, and split `whisper` out of `tell`'s controller.
-
 ### Directed acoustic speech
 
-`say --to <target> <message>` (and `shout --to`): public, but
-*addressed* — the room still hears, the target is marked, and the target
-frame is what signals an NPC it's being spoken to (the dialogue trigger).
-Rendering mirrors emotes: self "You say to the barkeep, …", peers "Bobalu
-says to the barkeep, …", target "Bobalu says to you, …".
+*Shipped → comms.md § Directed speech — `say --to` (`say --to` / `shout --to`,
+public but addressed, the three-audience render, the target-frame seam).*
 
 ---
 
@@ -157,11 +113,6 @@ primitive at different sizes:
 | **DM / tell** | 2 | ad-hoc (generated id) | ephemeral or pinned |
 | **group** | N | ad-hoc id, optionally named | until disbanded |
 | **chat channel** | open / role-scoped | a stable name (`Gossip`, a guild) | persistent |
-
-A DM is an unnamed 2-member conversation; multi-channel chat = you're
-tuned into several at once, each its own conversation/buffer. The current
-`tell` verb is the degenerate 2-member case (now cleanly *implant*, with
-`whisper` moved to acoustic).
 
 **Thoughts willed into existence → attribution is the trust boundary.**
 Because an implant message is a thought appearing in your mind, the
@@ -204,17 +155,9 @@ slate.
 
 ## Provenance & UI
 
-Provenance (room vs channel vs DM vs which channel) is a **tagged label
-in the complete message string** (a `<chan>`-style semantic region — so
-it flattens to the failsafe AND the client renders it as a chip/color/
-placement), **never hokey narrative** ("Over the radio, …" calcifies into
-boilerplate) and **never stripped to bare metadata** (the string must
-stay complete). The full model — tagged-complete-string → flatten/reflow
-— is the [message-rendering slate](../tails/message-rendering-slate.md). The two
-transports have a natural phenomenological distinction the UI can lean on
-(*heard* vs *a thought arriving / known*). Multi-channel chat needs the
-per-conversation buffer/tab model (client-cockpit + console-filtering
-slates).
+*Shipped → message-rendering.md (`<chan id>` chip, `chatTemplate`, the
+tagged-complete-string model), chat.md § Posting (`meta.channelId` routing),
+cockpit.md (the `chat` mode; the client `ChatSurface`).*
 
 ## NPC reachability
 
@@ -273,19 +216,17 @@ a sanitized substitute for speech.
 
 ## Worked scenarios
 
-- **Room chat (acoustic, undirected):** `say hey all` → everyone in
-  earshot hears (acoustic reach, senses.md), comprehension per language slate.
+- *Room chat (acoustic, undirected) — shipped: comms.md § Acoustic.*
 - **Order a drink (acoustic, directed):** `say --to barkeep one beer
   please` → room hears "Bobalu says to the barkeep, …"; the barkeep's
   responder is triggered (dialogue slate).
 - **Shout across the map (acoustic, dynamic reach):** `shout HELP` →
   loud source; projection attribute sets dB; sound slate computes who, in
   which rooms, hears it (faint at the edges).
-- **DM a friend (implant):** `tell iffy meet me at the gate` → a 2-member
-  conversation over the implant; private, distance-free, attributed.
-- **Guild chat (implant channel):** post to `[Guild]` → all tuned
-  members receive it as an attributed thought; renders with the channel
-  chip.
+- *DM a friend (implant) — shipped: comms.md § Implant — dm / tell.*
+- *Guild chat — chat-slate § Worked scenarios ("Guild chat,
+  group-projected"); the attributed-thought delivery and the channel chip
+  shipped (chat.md § Posting, message-rendering.md).*
 - **Remote NPC (implant):** `tell dispatcher status?` → reaches the
   dispatcher's responder over the implant.
 
@@ -296,21 +237,24 @@ a sanitized substitute for speech.
 1. **Addressing.** How you get someone's DM handle — directory / must-
    have-met / contacts list? *Lean: contacts/handle with in-fiction
    acquisition.*
-2. **Channel membership/gating.** open / role / invite / subscription;
-   guild & party channels consume membership defined elsewhere.
-3. **Regional channels.** A channel scoped to a zone (a bridge between
-   acoustic locality and implant networks)? Worth considering.
+2. *Resolved: open (standalone) · roster (a managed group) · bound (a
+   party's or committee's `GroupRef`) — chat.md § Three channel kinds,
+   § Bound channels.*
+3. *Regional channels → moved verbatim to chat-slate § Open questions Q6
+   (cluster pass; chat owns the place-binding axis).*
 4. **Language × implant: (i) vs (ii).** *Lean (ii) — encoded cognition,
    translation-implant stays meaningful.*
 5. **Persistence/history.** Channel logs / DM history as an implant
    *storage* capability (so even history is diegetic). Lifetime?
-6. **Identity / anonymity** on channels (handles/pseudonyms via implant).
+6. *Resolved: `chat anonymity <name> permit|forbid` + `--anon` — chat.md
+   § `anonymity`.*
 7. **Interception/privacy.** Acoustic overhearing (sound slate) vs
    implant hacking/tapping (security gameplay; the spoofing trust
    boundary).
 8. **Directed-say multi-target?** `--to` a small group within the room.
-9. **The implant-system boundary** — confirm what stays in the implant
-   slate vs comms at requirements.
+9. *Resolved: attunement = `AetherMixin` (perceive + host), transmit = the
+   `CommsMixin` hosted update — comms.md § Comms is a hosted update,
+   augmentation.md.*
 
 ---
 
@@ -318,15 +262,11 @@ a sanitized substitute for speech.
 
 Indicative; big subsystem, several cycles.
 
-**Wave 1 — acoustic cleanup + DM.** Wire say/whisper/shout to the sound +
-language slates; add `say --to` / `shout --to`; split `whisper` (acoustic)
-from `tell` (implant); the conversation primitive (DM/group) over the
-baseline implant; subsume the old `tell`.
+*Wave 1 shipped → comms.md. The first-class conversation primitive did
+not — carried in § Implant family.*
 
-**Wave 2 — channels.** Persistent named chat channels + membership
-rules; multi-channel client routing (per-conversation buffers);
-attribution-by-context rendering; the moderation expression-policy
-handoff.
+*Wave 2 shipped → chat.md, message-rendering.md, cockpit.md — except the
+moderation expression-policy handoff (§ Moderation).*
 
 **Wave 3 — depth.** Dynamic-reach shout tuning (projection attribute,
 vitals tie); regional channels; interception/security on richer implant
@@ -357,16 +297,11 @@ the comms side of the moderation control plane.
 
 This slate boils down to:
 
-- The **two-transport model** and the verb→transport assignment
-  (say/whisper/shout = acoustic; tell/chat = implant).
 - The acoustic family wired to sound + language; `--to` directed speech;
   the `whisper`/`tell` split; shout's projection-attribute dynamic reach.
 - The implant family: the conversation primitive (DM/group/channel),
   attribution-as-trust-boundary, the language (ii) lean, the baseline-
   implant dependency + hardened guarantee.
-- Provenance-as-tagged-label rendering (message-rendering slate) +
-  conversation-id frame tagging + the
-  client per-conversation buffers.
 - NPC reachability (acoustic in-person, implant remote) feeding the
   dialogue responders.
 - The moderation handoff (channel identity → expression-policy gate).

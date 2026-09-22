@@ -97,14 +97,15 @@ Creative back-and-forth. Brainstorm shape, scope, edge cases,
 trade-offs. The user drives direction; you surface implications, prior
 art, and antipatterns that constrain choices.
 
-### 4. Run the five lenses
+### 4. Run the six lenses
 
 Read `docs/design-lenses.md` and interrogate the scope against all
-five: pedagogy (which Disciplines, what is derivable) · creative
+six: pedagogy (which Disciplines, what is derivable) · creative
 expression (ordinary case with no code; bespoke without breaking) ·
 immersion & roleplay (what the sim affords without scripting) · values
 (the choice forced; who confers standing) · epochs (the mechanism
-holds, only the dynamics change).
+holds, only the dynamics change) · economy (what it produces and
+consumes, who pays, was the demand there first).
 
 **Scorecard, not a gate** — 1 and 2 pick the winner at a fork, and
 when they do, ⭐ decide it and say which limb chose rather than asking.

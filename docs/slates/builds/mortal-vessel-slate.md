@@ -1,9 +1,21 @@
 # The mortal vessel — selfhood, death, recovery & moderation (working slate)
 
-> **Status: PARTIAL** — the death arc (Theses 6–8) shipped
-> → [mortality.md](../../subsystems/mortality.md)
+> **Status: PARTIAL** — the death arc shipped (Thesis 6, Thesis 8's PC
+> half: the dying clock, stabilization, the corpse, the shade, `reembody`
+> + the `passage` floor) → [mortality.md](../../subsystems/mortality.md)
 > **Left:** Thesis 4, moderation as diegetic capability-state · Thesis 5,
-> the prison ↔ Hades unification · the law-enforcement half of Thesis 3
+> the prison ↔ Hades unification · the law-enforcement half of Thesis 3 ·
+> Thesis 8's NPC half (narrative-level cycling) · the re-embodiment
+> service as content (the temple vs clinic vendors, employer coverage,
+> the price of walking out, and a service's own diminishment lever) · the
+> in-circle death arc (minting a real body from inside a circle) · the
+> passage ladder — Thesis 7's opt-in thresholds + the route catalogue
+> (trial / bargain / Orpheus; what a resurrection business charges and
+> who else sells passage)
+> **Absorbed 2026-09-21:** `mortality-slate.md` (its open remainder — the
+> `## Absorbed from mortality-slate — …` sections below; corpse custody,
+> remains and the coroner economy had already moved to
+> [end-of-life-slate.md](./end-of-life-slate.md) on 2026-09-10)
 > **Size:** a build
 
 > **Status: design-phase, deferred-rpg.** The *architecture of selfhood* on
@@ -16,11 +28,12 @@
 > moderation model are platform-fundamental, the death arc is game design —
 > which is exactly why it needs its own home. Nothing here is a build.
 >
-> **The death half now has a build extract**:
-> [builds/mortality-slate.md](../builds/mortality-slate.md) takes Theses 6–8
-> to a requirements doc (dying, stabilization, the corpse, the shade, the
-> passage floor). This slate remains the **design authority** for all of it,
-> and keeps the **moderation / prison half** (Theses 4–5) unbuilt.
+> **The death half's build extract** (`mortality-slate.md`) took Theses
+> 6–8 to a requirements doc (dying, stabilization, the corpse, the shade,
+> the passage floor) and shipped; its open remainder was absorbed into this
+> slate on 2026-09-21 (the `## Absorbed from mortality-slate — …` sections).
+> This slate remains the **design authority** for all of it, and keeps the
+> **moderation / prison half** (Theses 4–5) unbuilt.
 
 The one-sentence thesis: **the participant is inviolate, the vessel is
 mortal, and everything the world does to your body — wound it, kill it,
@@ -30,57 +43,13 @@ platform first.
 
 ---
 
-## Thesis 1 — The three-layer self
+## Thesis 1 — The three-layer self — shipped
 
-A "player" is three layers, and the platform already half-models them:
+**Shipped as designed** — the Participant/Vessel/Shade split is exactly what mortality.md's shade is. See mortality.md § The shade and connection.md / state-model.md for the `Login`↔`Interactive`↔`Avatar` handoff it names.
 
-- **The Participant / Citizen** — the enduring platform identity: the
-  account, the voter, the chat voice, the audience member, the forum
-  poster, the property owner, the office-holder. Never injured, strangled,
-  unconscious, or dead. This is the `User` / `Login` / `Interactive` /
-  connection layer and the **shared-not-wrapped client frame**
-  (`ConnectionIndicator` / `AccountMenu`) that persists no matter what is on
-  the world card.
-- **The Vessel / Body** — the mortal embodied avatar in the physical sim:
-  vitals, trauma, poise, location, loadout. Disposable, re-mintable. What
-  combat acts on. The `Avatar` / `Character` / vitals layer.
-- **The Shade** — the interstitial self *between* vessels: a Participant
-  with no body. The Hades layer; the answer to "what and where are you
-  while the corpse is processed."
+## Thesis 2 — Function over form — shipped
 
-The split is not new architecture — it is the existing
-`Login`↔`Interactive`↔`Avatar` handoff ([connection.md], [state-model.md])
-named and made load-bearing.
-
----
-
-## Thesis 2 — Function over form (the platform rule)
-
-**Platform functions attach to the Participant and are never severed by
-physical-layer state.** The diegetic simulation is a layer you are
-*embodied into*, not the ground of participation. The honest line:
-
-- **Embodied acts** (require a working vessel): say/shout/whisper across a
-  room, emote, fight, work, carry, move, hold your body's belongings.
-  Strangling you *does* stop these — the fiction working.
-- **Platform acts** (ride the Participant, always available): chat with the
-  livestreamer, vote, post/read forums, DM, watch the stream, be present as
-  audience, hold property and office.
-
-So being strangled means you can't shout across the tavern — but you are
-still fully in the livestream chat and can still vote. Not immersion-
-breaking once **legible**: you are the *audience/citizen* in that moment,
-not the fighter, and the client already models it — the **world card goes
-dark/spectator, the platform frame stays lit**. Losing your vessel dims one
-view; it never logs you out.
-
-This puts the stakes of death in the right place: death costs you your
-**embodied agency** — physical presence, in-world productivity, your body's
-belongings, and the price of rebirth. Heavy. It never costs you your **seat
-as a person.** Death is real without being disenfranchising. (This is where
-*function must win over form* — we lean into platform strengths.)
-
----
+**Shipped as designed** — `requiresEmbodied` is the mechanical form of this rule; a dead player still talks, walks the commons, reads the forums and shows up in `who`. See mortality.md § Function over form, made mechanical.
 
 ## Thesis 3 — Governance integrity *and* law enforcement (two jobs)
 
@@ -146,42 +115,12 @@ prison are two skins on it.**
 
 ---
 
-## Thesis 6 — The death arc
+## Thesis 6 — The death arc — shipped
 
-The three orthogonal axes (from combat-experience): the **arc** is
-invariant (same dramatic shape regardless of stakes); the **stakes = the
-recovery cost** (you do not set abstract stakes, you set how costly the
-recovery is — a bruise recovers in minutes, a maiming in weeks, death is
-the longest arc); the **recovery is its own dramatic arc** (the falling
-action the climax seeds — defeat *starts* a story). Death is simply the
-**longest recovery arc**: not permadeath (kills engagement), not free-
-respawn (no stakes) — severe, costly, diegetic, recoverable.
-
-Answering the two questions:
-
-- **What/where are you while the corpse is processed?** You revert to the
-  **Shade** — a pure Participant, bodiless, in the **interstitial**
-  (underworld/between). *Not offline*: still in chat, still a voter, still a
-  citizen — but you cannot *act* in the physical world (no fighting,
-  earning, producing, owning-new, room presence). That diminishment is
-  deliberate: the interstitial should be a place you want to *leave*, so
-  there is a pull back to embodiment (nobody should prefer to live as a
-  shade). Two clocks run in parallel — the **world** processes your corpse
-  (the coroner economy, decay, the reset sweep) while **you** experience the
-  interstitial; rebirth rejoins them.
-- **When the body comes, what narrative shape?** The **escape-from-Hades**
-  template, *dialable* (see Thesis 7). Its beats: **the passage** (from a
-  trivial "you surface at the temple" up to a full Orpheus quest); **the
-  mint** (a **patron/altar/church grants the new vessel** — the existing
-  altar/sacrifice/patron lore is the diegetic engine; the *terms* of the
-  mint are the recovery cost: a debt, a favor, a mark, a diminished
-  vessel); **the re-embodiment shape** (restored-at-the-temple → a fresh
-  unmarked vessel → a scarred vessel far away carrying a debt). *Which power
-  you are under* shapes it — a harsh patron, a brutal rebirth; a gentle one,
-  a soft landing.
-
-Shape: **death → Shade in the interstitial (Participant intact) → the
-passage → re-embodiment (patron mint, terms = recovery cost).**
+**Shipped as designed** — death → shade in the interstitial (Participant
+intact) → the passage → re-embodiment. See mortality.md § The shade, §
+Coming back. The "coroner economy" clock this thesis names moved to
+[end-of-life-slate.md](../builds/end-of-life-slate.md).
 
 ---
 
@@ -208,12 +147,17 @@ grinding does not). The floor keeps death meaningful; the opt-in ceiling
 makes it playable content instead of a punishment timer. Depth is a
 *choice with a payoff*, tunable per patron/realm.
 
+(The concrete companion — **the route catalogue**: what a resurrection
+business charges, what the Hades journey restores, who else sells passage
+— is § *Absorbed from mortality-slate — Scope — as built (the still-open
+tail)* below.)
+
 ---
 
 ## Thesis 8 — PC vs NPC recovery are different animals
 
-- **PC** — an open-ended, player-driven recovery arc through this substrate
-  (Shade → opt-in passage → patron mint). The player *lives* the arc.
+- **PC** — **shipped**: an open-ended, player-driven recovery arc through
+  the shade → passage → new-body substrate. See mortality.md.
 - **NPC** — cycles at the **narrative level, predictably**, not through the
   shade/rebirth path. A named NPC's death can be *permanent within its
   story* (the villain falls at the climax — that *is* the story) while the
@@ -227,15 +171,76 @@ makes it playable content instead of a punishment timer. Depth is a
 
 ---
 
+## Absorbed from mortality-slate — The re-embodiment service — decided as lore, unbuilt
+
+Ruled 2026-07-31, so the content build inherits it rather than re-deriving it:
+
+- **The metaphysics are contested, and the game never adjudicates.** The
+  kernel performs the transition; the temple and the corpo each insist their
+  account of what just happened is the correct one, and neither is confirmed.
+  This is the pattern the platform already ships — forensics has a stamped
+  cause *and* an examiner who can be wrong; belief has reality *and* per-viewer
+  memory; testimony is claims, not queries. It also means **no theology has to
+  be written before anything is built.**
+- **Two vendors, competing.** A **temple** (a patron mints the vessel; you
+  leave owing a debt, a mark, a favor — the [altar-sacrifice] lore is the
+  engine) and a **clinic** (a body fabricated and the self seated in it;
+  corpo-priced, native to Terminus). Death lands on the Tiebout axis like
+  everything else, and the player's choice — owe a patron or owe a
+  corporation — carries character. The richness ladder emerges from
+  *competition* rather than from a terms schema, which is the other half of
+  why the registry was cut.
+- **Coverage is the hook.** A clinic that resurrects its own employees free
+  and everyone else at a price makes employment matter at the most dramatic
+  moment available, and makes an uninsured death land completely differently.
+- **The aether is not the mechanism.** It is the internet; it is not where a
+  self is stored, and "we restored your backup" is the same category error as
+  a spirit-fabric reading, in a lab coat.
+- **Two constraints the substrate imposes.** The corpse persists on its own
+  clock, so neither story can be "you got up" — both are about *making a new
+  body*, which is cleaner and makes the old one contestable (evidence, relic,
+  property). And the terms must keep death expensive: if the clinic is a
+  routine paid service, death is a toll booth. The stakes live in what is on
+  the corpse and what you owe when you walk out.
+
+## Absorbed from mortality-slate — The recuperation model — resolved
+
+**Resolved, not left open.** What diminishment *should be* was undesigned
+here; the answer shipped as a temporary, fading, across-the-board
+competence-band suppression — never a Transcript rewrite. See
+mortality.md § The recuperation model. Still open: a *better*
+diminishment for a paying service to sell (a wound that heals over time,
+a diminished vessel, a patron's mark), which is really the re-embodiment
+service's own design question, above.
+
+## Absorbed from mortality-slate — Scope — as built (the still-open tail)
+
+Still open, and deliberately downstream:
+
+- **The in-circle death arc** — a circle death ejects, so the full arc
+  can't be rehearsed in a holodeck. Minting a real body from inside a
+  circle is the boundary the sandbox exists to hold; the machinery to do it
+  safely is worth its own design.
+- **Where "wake at your residence" plugs in** — resolved the other way:
+  there is no wake point at all, by design. See mortality.md § The floor.
+- **The route catalogue** — what a resurrection business charges, what the
+  Hades journey restores, and who else sells passage.
+
+---
+
 ## Deferred / boundaries (named at their sites)
 
 - **Adjudication** — the courts / jury-pool primitive that turns a ban into
   a *sentence* (see the courts-judiciary work). This slate assumes it.
 - **The patron-mint economy** — what a rebirth *costs* and who grants it;
-  routes through the altar/sacrifice/patron lore. Its own design.
+  routes through the altar/sacrifice/patron lore. Its own design. → the
+  2026-07-31 ruling is § *Absorbed from mortality-slate — The
+  re-embodiment service — decided as lore, unbuilt* above.
 - **The coroner / scrapper / animal-control labor economy** — the world-side
   corpse/scrap processing (aftermath cycling as *jobs*, the employment
-  engine + material economy); combat-experience owns the framing.
+  engine + material economy); combat-experience owns the framing. Moved
+  2026-09-10 to [end-of-life-slate.md](../builds/end-of-life-slate.md) as a
+  trade question, not a metaphysics one.
 - **The interstitial content** — what the Shade actually experiences; the
   escape-from-Hades set-pieces.
 - **Permadeath** — the opt-in extreme end of the recovery-cost dial.
@@ -265,3 +270,26 @@ makes it playable content instead of a punishment timer. Depth is a
 - The altar/sacrifice/patron lore and the courts/jury-pool primitive — the
   diegetic engines for the mint and the sentence (design memories, not yet
   subsystem docs).
+
+### Absorbed from mortality-slate — See also
+
+See also — the substrate this drives:
+[vitals.md](../../subsystems/vitals.md) (the Agent/Creature/Character split,
+`VitalsMixin`, the death seams) · [harm.md](../../subsystems/harm.md)
+(`ConditionApi.inflict`, the five trauma behaviors, **the medic vertical as
+shipped**) · [race.md](../../subsystems/race.md) (the `lifecycleState`
+machine, `getCauseOfDeath`, the death ≠ destruction rule) ·
+[tails/vitals-slate](../tails/vitals-slate.md) (**§ Layer 6 — Death &
+lifecycle**, which defers exactly this driver, and *the corpse is a forensic
+record*). The machinery it reuses:
+[sandbox.md](../../subsystems/sandbox.md) (**the Forkable substrate + the
+wire-body crossing** — read § *The crossing (as built)*) ·
+[persistence.md](../../subsystems/persistence.md) (the self-persistence
+spine, `shouldPersist`) · [connection.md](../../subsystems/connection.md)
+(`ConnectionApi.transfer`, the Interactive handoff). The ledgers it feeds:
+[chronicle.md](../../subsystems/chronicle.md) ·
+[accountability.md](../../subsystems/accountability.md) ·
+[chattel.md](../../subsystems/chattel.md). Downstream:
+[health-vertical-slate](./health-vertical-slate.md) (the full clinic — this
+build ships only the first-aid seam) ·
+[combat.md](../../subsystems/combat.md) (produces the death *event* only).

@@ -17,7 +17,7 @@ product vision see [docs/vision.md](./docs/vision.md).
 The `docs/` tree is the source of truth for architecture and subsystem
 behavior. Read the relevant doc before editing in its area.
 
-- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE FIVE
+- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE SIX
   LENSES every high-level design is interrogated with**, and the
   standing rule for any fork: 1 **pedagogy** (what Discipline does it
   exercise; is the world derivable) · 2 **creative expression** (the
@@ -27,7 +27,8 @@ behavior. Read the relevant doc before editing in its area.
   (values, not knowledge: what choice does it force, and who confers
   standing) · 5 **technology & magic** (the mechanism holds from ancient
   Rome to New York; only the dynamics change — magic and future tech are
-  one axis). A **scorecard, not a gate**: 1 and 2 decide forks, and
+  one axis) · 6 **economy** (produces · consumes · who pays · was the
+  demand there first). A **scorecard, not a gate**: 1 and 2 decide forks, and
   ⭐ **when they decide one, don't ask — pick it and say which limb
   chose.** Run the pass at the slate and at requirements. ⚠ NOT
   [docs/lenses/](./docs/lenses/README.md), which is the borrowed Schell
@@ -199,7 +200,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty-six shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; the metal chain's trade-mining/trade-fuel/trade-smelting over rejection, a venue pack with no `src/` at all; tpa the teleport network's works behind the kernel's `TravelNode` shape; brains in packs via `src/behavior/`; a pack's own `src/lib/` for inherited substrate; the `archetype` kind; the stub trades; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty-six shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; the metal chain's trade-mining/trade-fuel/trade-smelting over rejection, a venue pack with no `src/` at all — and trade-forestry, whose pack-owned LOCATION class that venue's rows name, so a second wood is rows; tpa the teleport network's works behind the kernel's `TravelNode` shape; brains in packs via `src/behavior/`; a pack's own `src/lib/` for inherited substrate; the `archetype` kind; the stub trades; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -217,11 +218,13 @@ behavior. Read the relevant doc before editing in its area.
   - [party.md](./docs/subsystems/party.md) — the Party Idea + PartyRecord mirror, the fourth GroupProvider, the `sideOf`/`areAllied` combat seam, the `party` verb
   - [reserve.md](./docs/subsystems/reserve.md) — the generalized Reserve capacity axis, ReservedMixin, biological reserves
   - [encumbrance.md](./docs/subsystems/encumbrance.md) — the carry-weight gauge: LoadBearing derived burden, the consequence ladder, the haulage draft term
+  - [exertion.md](./docs/subsystems/exertion.md) — what working does to a body: ONE `exert({durationS, powerW})` event from the scheduler / the traverse / the exchange; the five slow stocks (`lean` · `protein` · `wind` · `vitamin-c` · `alcohol-tolerance`); ⭐ reach as a body read, never a number (the run that breaks, the climb's rest, `lift`); every limit SOFT — work never collapses a body; the mirror (`look`'s body line); the `BODY` shelf row + the `self.body` cue; the `gym` archetype + `LoadDevice`
   - [metabolism.md](./docs/subsystems/metabolism.md) — the intake/chemistry driver: digestion buffer, reconcile-on-read, condition cascades, meal chemistry, toxins
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
   - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
   - [soil.md](./docs/subsystems/soil.md) — ground as a ledger: SoilMixin's four reserves + the sky edge, GroundCharacter (the third seeded field; character prices IMPROVEMENT, never yield), the survey ladder, `Field` + `plot`, the sward, winter
   - [ranching.md](./docs/subsystems/ranching.md) — the animal economy: the herdbook as a filed record (you file, you do not hold the pen), draft/return, `flesh` as a stock, the taps, three ROLES not three classes, ⚠ breeding writes SERVED only
+  - [forestry.md](./docs/subsystems/forestry.md) — the wood as a PLACE: ⭐ the four representations of a tree (place · slot-plant · record-rejected · prop), the `Wood` location that IS ground with a `StandMixin` cover (derive-on-read from its own soil, stamped only by the axe, read by `look` in words), `fell` and the **bole** (a trunk too heavy to lift, cross-cut a length at a time; every felled good stamped AND placed AND the feller captured), the persistable coppice `Panel` on a one-game-year rotation, the deed written by the ground, the closed wood vocabulary, daylight and no night, a second wood as rows only
   - [pets.md](./docs/subsystems/pets.md) — an animal kept for itself: `KeptAnimal` as a rung, the bond as regard × handling (*difficult, not feral*), feeding as a ladder the species declares, ⭐ the offer as a moment the animal decides (`offerRung` + `OfferEngagement`), the ask, naming as the promotion, and the residency pin — what loads a pet
   - [mining.md](./docs/subsystems/mining.md) — ground you cut: the Deposit field (seeded, never drawn), WorkingMixin's four reads, MineWarren carve/shore/promote, the damps + the canary, grade end-to-end to the smelt
   - [spoilage.md](./docs/subsystems/spoilage.md) — food that goes off, and the food that hurts you: ⭐⭐ **spoilage is a CLOCK, contamination is an EVENT** — the microbial LOAD (`μ = μ_max · f_T · f_aw`) with FreshnessMixin on `Provision`, the bands, the kill as an Arrhenius RATE held for a recipe's `holdS`; the per-instance water state (`CuredMixin` — `a_w = base · moisture · (1 − solute)`, hurdles that stack, drying reverses and curing does not); and the SILENT second population (`ContaminableMixin` — event-seeded, no sense reports it, its own kill curve + spore floor, `infect` vs `intoxicate`) with butchering as its one source; `lint:perishable` + `lint:pathogens`
@@ -734,7 +737,9 @@ reason.
   `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`; `lock`/`unlock`
   stay under `boundary`), mining (the metal chain's cutting acts —
   `hew`/`drive`/`sink`/`raise`/`shore`/`stake`), fuel (`char`), smelting
-  (`smelt`). The concealment build added `search` (perception),
+  (`smelt`), forestry (`fell` — a standard, a bole, or a planted tree;
+  the coppice cut is the platform's `harvest` told its tool by the
+  plant). The concealment build added `search` (perception),
   `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
   `look` alias, not its own verb; the farming build made `pick` a
   `harvest` alias (inventory). ⭐ **A verb lives with the pack whose content
@@ -746,7 +751,7 @@ reason.
   `trade-smithing`:
   `forge`/`hammer`/`quench`/`sharpen`; `trade-mining`:
   `hew`/`drive`(`drift`)/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
-  `char`; `trade-smelting`: `smelt`) under `content/<root>/cmd/` +
+  `char`; `trade-smelting`: `smelt`; `trade-forestry`: `fell`) under `content/<root>/cmd/` +
   `src/idea/cmd/`. The libations build added `wash`/`muddle`
   (crafting), `quit` (employment), `house par`/`house stock` (banking) and
   `watch … on <screen>` (stream). ⚠ The metal chain's acts are a `mining`

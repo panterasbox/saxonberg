@@ -29,3 +29,11 @@ requires:
     # what unserviced ground looks like when you stand on it. **No
     # seventh land use.**
     - { extent: /world/rejection/kestrel-road, parentParcel: /world/rejection, holder: { group: rejection }, landUse: wild }
+    # ⭐ The Hanging Wood (forestry): the town's common wood, held by the
+    # settlement's group — *common land* is who holds it. `agricultural`,
+    # NOT `wild`: `wild` admits no cultivation and `plant` refuses on any
+    # fixed ground in it, which would make planting a standard
+    # unreachable; agricultural ("cultivation at scale, livestock and
+    # orchards") is the honest word for a worked common, and ISCED 0821
+    # forestry sits under 08 agriculture. **No seventh land use.**
+    - { extent: /world/rejection/hanging-wood, parentParcel: /world/rejection, holder: { group: rejection }, landUse: agricultural }

@@ -2,7 +2,10 @@
 
 > **Status: UNBUILT** — ⚠ **three independent graph searches already
 > ship**, over three different graphs with three different admission
-> rules, and none knows about the others. No shared primitive exists.
+> rules, and none knows about the others. No shared primitive exists;
+> [logistics.md § Routing](../../subsystems/logistics.md) holds the
+> standing decision *no general pathfinding Api yet — promote the walk
+> when a second edge set needs search*.
 > **Left:** ⭐⭐ decide whether a shared pathfinder should exist at all
 > (the pets build concluded *not for animals*) · the graph vocabulary —
 > exits vs lanes vs conduits vs the elastic Warren · the cost model
@@ -58,27 +61,8 @@ yes, share it"* is not a foregone conclusion.
 
 ## ⭐⭐ What pets did instead, and why it is the more interesting result
 
-The `homes` brain needed *"an animal makes its own way back"*. The BFS
-version worked and was wrong:
-
-> A cat carried across the city computed an **optimal route home through
-> streets it had never seen.** That is a satnav, not a cat — and it
-> quietly made **lost impossible**: any animal within eight hops of home
-> always solved it.
-
-The replacement is **memory, not navigation**. `BondedMixin` keeps a
-trail of the places the animal has been since it was last home, and
-`homes` steps toward the earliest one it can reach from where it stands.
-Revisiting a remembered place rewinds the trail; arriving home clears it.
-
-What that buys, none of which the search gave:
-
-- **an animal carried somewhere it has never been is genuinely lost** —
-  and nothing announces it;
-- it takes any shortcut it *recognises* and never walks away from home;
-- a closed door across the route leaves it standing, which is what being
-  shut out means;
-- and it is less code than the search.
+Shipped as **memory, not navigation** — `BondedMixin.rememberPlace`'s
+trail + the `homes` brain; [pets.md § The brains — `homes`](../../subsystems/pets.md).
 
 ⚠ **So the first question for any pathfinding build is whether its
 consumer wants a path at all.** One of the three walks above turned out

@@ -1,0 +1,14 @@
+# An acorn — what a felled oak drops, and what a standing one sets into
+# its panel once a flowering episode. Plant it in a panel and it grows
+# into `/trade/forestry/thing/plant/oak-standard`: fifteen game years to
+# a standard, stated on that row.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: acorn
+  keywords: [acorn, seed, oak, nut]
+  register: indefinite
+  longDescription: |
+    An acorn, fat and brown, the cup still on it.
+  growsIntoPath: /trade/forestry/thing/plant/oak-standard
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/robur

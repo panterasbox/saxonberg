@@ -1,9 +1,12 @@
 # Pharma slate — the game's first credence good
 
 > **Status: UNBUILT** — direction set 2026-08-02; nothing built.
-> **Left:** the actives/pharmacopoeia content · extraction as a process ·
-> glass vessels · the assay instrument · the apothecary + assayer
-> vocations · the illicit branch · disposal · the batch/recall record
+> **Left:** the actives/pharmacopoeia content · `neutralizedBy` + `rinse
+> [with <substance>]` (the first row of the pharmacopoeia) · extraction as
+> a process · glass vessels · the assay instrument · the apothecary +
+> assayer vocations · the wild→cultivated quota (the first commons) · the
+> illicit branch · disposal · the batch/recall record · the manufactory
+> variant · in-world statistics over the record (Q5)
 > **Size:** a build
 
 **Captured 2026-08-02**, out of the physiology slate's care economy. The
@@ -13,10 +16,6 @@ unusual direction.
 
 > ⭐⭐⭐⭐⭐ **Every industry so far sells something you can EVALUATE. This
 > one doesn't.**
-
-> **Status: direction set, nothing built.** Depends on
-> [physiology-slate](./physiology-slate.md) (the substance model) and
-> [discovery-slate](./discovery-slate.md) (the wild input).
 
 Related: [physiology-slate](./physiology-slate.md) (**substances, the
 therapeutic window, the care economy**),
@@ -265,6 +264,111 @@ in reality, for reasons a player could derive.)*
 | ⭐ **foraging** | **the real gap** → [discovery-slate](./discovery-slate.md) |
 | cultivation | the live farming build |
 | **the assay instrument** | instrumentation slate's shape, unbuilt |
+
+## ⭐⭐ The right substance for the wound — `neutralizedBy`
+
+*Handed over by the injury build (2026-09-17), which shipped the wound
+and the wrong-shaped answer to it.*
+
+The injury build shipped the **corrosion** channel: a `Material` says
+what it eats (`corrosiveTo: [organic, tissue, leather, textile]` on
+quicklime), the covering fold reads that list, and a caustic burn is the
+one wound in the game that is *still happening* — the agent sits on the
+skin and the severity grows until something removes it. The verb that
+removes it is `rinse`, and **`rinse` knows exactly one substance: water.**
+That is the wrong shape, and the reason it is wrong is the same reason
+`corrosiveTo` was right.
+
+**What removes a caustic is a fact about the AGENT.** The verb should
+read it off the material, exactly as the fold reads `corrosiveTo`:
+
+| agent | what stops it | what does nothing |
+|---|---|---|
+| quicklime (an alkali) | **copious** water; a mild acid (vinegar) | spirit / alcohol |
+| an acid | copious water; a base (bicarbonate) | spirit / alcohol |
+| an oil-borne irritant | soap | water alone — it spreads it |
+
+An alcohol sanitizer is a *disinfectant*, not a neutralizer: it does
+nothing to either an acid or an alkali, and a player who reaches for it
+should be told so in words they can learn from — *"spirit does nothing to
+lime."* That refusal is worth more than the rinse.
+
+⚠⚠ **And quicklime is wrong in an interesting way today.** CaO + H₂O is
+**exothermic** — it is slaking, it is how mortar is made — so a damp cloth
+on dry lime cooks you. Real first aid is *brush it off first, then
+flood*. "Copious" is doing real work in the table above, and `rinse` as
+shipped has no way to say it. This is precisely the kind of thing the
+project exists to teach, and the right home for it is the row.
+
+**The shape.** One authored field, the `corrosiveTo` shape run the other
+way:
+
+```yaml
+# quicklime.yaml
+corrosiveTo:   [organic, tissue, leather, textile]   # what it eats
+neutralizedBy: [water, acid]                          # what stops it
+```
+
+Then `rinse [with <substance>]` finds a reachable bulk substance (a
+basin, a jug, a bottle of vinegar, a pot of soap), reads its tags against
+the agent's `neutralizedBy`, and either stops the burn or refuses with the
+reason. Water is one row among several rather than a constant in a
+controller; a second caustic is a row, zero code; a bottle of vinegar
+becomes first aid the day somebody authors it.
+
+Three things this is **not**:
+
+- **Not a per-agent verb.** `rinse`, `neutralize`, `wash off` are one act
+  on one arg. The substance decides what happens.
+- **Not a recipe.** No process, no craft, no time — an act with a
+  substance in reach.
+- **Not the `wash` verb.** `wash` takes a crafted thing (a glass, a
+  garment); this takes a body. The arg-alternation rule keeps them apart
+  (`docs/antipatterns.md`).
+
+**Why it is pharma's and not a patch.** It is the first honest instance
+of *the right substance for the condition*, which is the whole subject of
+this build — every entry in the table is an active with a mechanism
+(dilution, neutralization, saponification), and the wiki reveal question
+(`spoiler: 1` on `corrosiveTo`, decided by the injury build's audit)
+applies to `neutralizedBy` identically. Ship it as the first row of the
+pharmacopoeia, not as a verb fix.
+
+## ⭐ A modern substance the model can already say: GLP-1 (noted 2026-09-18, deliberately WAITING)
+
+The nutrition & fitness planning asked whether the GLP-1 agonists — a
+genuine game-changer in the real world, and very new — belong in the
+world now. The answer is *the model can express them and should not
+yet*, and both halves are worth recording.
+
+**The mechanism maps onto hooks that exist.** One substance system, the
+band decides help or harm: GLP-1's pharmacology is slowed gastric
+emptying and raised satiety per intake — in metabolism's terms a
+substance whose active band scales `absorbPerMin` **down** and
+satiation's yield **up**, so you are full longer and eat less. No new
+machinery; a `Condition` seed with a `toxinBehavior`, like every active.
+
+**What emerges without a special case** — and this is the pedagogy
+worth waiting for: the nutrition build's two body stocks make weight
+loss *without exertion* draw down **both** fat and lean — which is the
+lean-mass loss the real-world data shows — and stopping the drug
+returns absorption to baseline while the appetite it never modelled
+returns with it, so the **rebound** falls out of the months clock. The
+model would say the true things unprompted.
+
+**What it cannot say** is the thing the drug is most discussed for:
+*appetite* — "food noise." The nutrition requirements deliberately
+cannot express appetite, mood or the psychology of eating, and a GLP-1
+whose headline effect is faked is worse than none.
+
+**So: wait.** Three reasons, in order of weight — the real-world picture
+(lean loss, rebound, the cardiovascular and long-term data) is still
+moving and this world should not canonise a 2020s drug's outcomes before
+they are known; the epoch lens (trades ship medieval and advance by
+discipline — a peptide agonist arrives with the discipline that makes
+it, not before); and the appetite gap. Author it into the pharmacopoeia
+as a substance when it is wanted, with the hook mapping above so nobody
+thinks it needs machinery.
 
 ## Open questions (for requirements)
 

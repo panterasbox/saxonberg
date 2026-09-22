@@ -1,0 +1,22 @@
+# The winze ladder — ⭐ the first thing in the game anybody can CLIMB.
+#
+# `climb` and `ClimbableMixin` shipped a year before this row and nothing
+# composed the mixin; the winze head's own header said the shaft "is
+# CLIMBED" and had no way down. The ladder is a THING standing in both
+# rooms (the enablement walk looks at the room's contents), its `axes`
+# say it serves the vertical both ways, and `difficulty: null` means the
+# gate is the body, not a check: a fresh body stops on the way for its
+# breath and a conditioned one does not.
+class: /platform/thing/Ladder
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: winze ladder
+  keywords: [ladder, winze, rungs, "winze ladder"]
+  register: definite
+  longDescription: >-
+    A stemple ladder spiked to the timber at the head of the winze and
+    going straight down out of the light. The rungs are sound as far as
+    you can see them, worn to a shine in the middle by a great many boots.
+  mass: 40
+  axes: [down, up]
+  difficulty: null

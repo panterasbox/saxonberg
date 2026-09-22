@@ -12,7 +12,7 @@ mixins (`Climbable` / `Swimmable` / `Flyable`), the
 |---|---|---|
 | `LocomotionMode` | `lib/locomotion/LocomotionMode.ts` | Singleton Idea — one per mode. Author-data: speed / noise / body-profile / ground-contact / cost / passthrough / conveyance + enablement mixin names / medium |
 | `Enablement` | `lib/locomotion/Enablement.ts` | Shared interface (axes + difficulty + capability gate) implemented by all three per-mode enablement mixins |
-| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate |
+| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate. ⚠ Nothing composed `Climbable` until the nutrition-and-fitness build shipped `platform/thing/Ladder` (`ClimbableMixin(DetailedMixin(Thing))`) and rejection's winze ladder — the first climb in the game's history |
 | `LocomotionApi` | `api/locomotion.ts` | Mode resolution, eligibility, engagement lifecycle, passthrough chain, emission walk, default-mode resolution |
 | `LocomotionControllerBase` | `platform/idea/cmd/movement/LocomotionControllerBase.ts` | Abstract base for the six per-mode verbs and refactored `go` |
 | `Walk` / `Climb` / `Swim` / `Fly` / `Ride` / `DriveController` | `platform/idea/cmd/*.ts` | Concrete controllers — override `modeName()` and (optionally) `composeRejection()` for verb-templated prose |
@@ -181,6 +181,15 @@ note shape and auto-escalation rule.
 
 ## Engagement lifecycle
 
+⭐ **A traverse is work** (nutrition-and-fitness W1). After a successful
+self-powered traverse `engageAround` calls `actor.exertTraverse(mode)`
+(`lib/exertion/Exerting.ts`): the walk's watts × the mode's
+`costMultiplier` (the first reader that knob has ever had — walk 1.0, run
+2.0, climb/swim 2.0, sneak 1.0) × the load factor. The body debits only
+the excess over what it can sustain, so a walk is free and a run costs a
+fresh body 12 % an exit; `canSustainPace(mode)` is what the verb layer
+asks to break a run to a walk (W2).
+
 `engageAround(actor, mode, exit, action)` sets `actor.engagedMode = mode`,
 runs the action, then conditionally clears engagedMode:
 
@@ -197,6 +206,23 @@ runs the action, then conditionally clears engagedMode:
 Errors from `action` propagate; the `finally` clause still clears
 engagement for transient modes, so a failed traversal doesn't leave
 a stale `engagedMode` behind.
+
+## Duration lives in the Journey, not the traverse
+
+A traverse has no duration in the kernel. `go north` is instantaneous
+and must stay so — a duration on ordinary movement would put a real-time
+toll on every step in the game. Where movement *does* take time (a wagon
+to the next town) the time belongs to the transport pack's Journey
+([logistics.md § The Journey](./logistics.md)): a sustained engagement on
+the driver whose every beat issues the same `traverse` a player's `go`
+does, spending `Exit.edgeMinutes × 1/LocomotionMode.speed × loadFactor`
+game minutes per leg. `Exit.edgeMinutes` is authored per EDGE — an event
+budget, not a metric: no `Exit.length`, nothing derived from `coords` —
+and nothing in the kernel reads it. `speed` is the relative multiplier
+vs walk (walk 1.0 · run 2.0 · sneak 0.5), not m/s, and the Journey is its
+one duration consumer. The `defaultDurationMs` / `durationOverrideMs`
+fields the locomotion-as-activity slate designed were never built;
+pedestrian durative movement stays open there.
 
 ## Verb dispatch
 

@@ -3,56 +3,31 @@
 > **Status: PARTIAL** — the farmstead build shipped the keeping: the
 > herdbook, pasture-as-field, boundary acts, handling, the taps, the
 > carcass yield (tallow · hide · bone · meat) and the hazards (hay fire ·
-> slurry pit · fox) → [ranching.md](../../subsystems/ranching.md)
-> **Left:** breeding (gestation · birth · heredity; nothing writes
-> `bornAt`) · bees — the hive, pollination, forage range, swarming (AC 14
-> unmet) · the training/skill axis (working-animal transcripts) · disease
-> · herd UX · the rendering chain this build must leave open (knacker →
-> tanner → chandler — `organic/leather` ships and nothing makes leather)
+> slurry pit · fox) → [ranching.md](../../subsystems/ranching.md).
+> ⚠ The intake side is unwired — nothing grazes (no class declares
+> `grazingDemandPerGameDay`) and nothing feeds a head (compacted
+> 2026-09-19; ledger `docs/plans/slate-compaction/ranching.md`)
+> **Left:** the feed loop — grazing demand on the animal, a way to feed a
+> head, hay as the stored form, the winter-feed budget · the paddock move
+> — `move herd`, paddocks as subdivided fields, the open gate resolved at
+> reconcile, fencing as a bound, the hired-hand cadence with its
+> utilization penalty · breeding (gestation · birth · heredity; nothing
+> writes `bornAt`, no `dam` column; the husbandry-wide genome, also kept
+> in farming-slate) · the nutrients coupling's byre half — muck → midden
+> → field (owned by `return-leg-requirements.md`) · bees — the hive,
+> pollination, forage range, swarming (AC 14 unmet) · the training/skill
+> axis (working-animal transcripts; beside pets) · disease (owned by
+> disease-slate — the husbandry-is-immunity coupling) · herd UX (what
+> `look` shows for a herd; count, split, pen) · the Tier 3 criteria (AC
+> 36–47 — the record read by a buyer, agistment and stud service over
+> contracts, a market day, joint capital, profits à prendre)
 > **Size:** a build
 
-> **Status: conventions + the core loop DECIDED (2026-07-30/31 design sessions);
-> disease DESIGNED; ⭐ breeding BRIEFED (§ Breeding — everything we know,
-> 2026-09-05, after the farmstead build shipped it and it was cut back to
-> honesty); herd UX still open.** Ranching is the
-> **economic** half of owned animals: raising livestock (managed as herds, not
-> befriended as individuals) for renewable products — milk, eggs, wool, meat,
-> hide, draft labor, breeding stock.
->
-> **Session 1** ran ranching against **both** its neighbors at once —
-> [pets](./pets-slate.md) (the relationship half) and
-> [farming](../tails/farming-slate.md) (the plant half) — and settled the five
-> conventions all three must agree on, plus the deliberate divergences.
->
-> **Session 2** designed the loop. Three decisions carry the most weight:
-> ranching's core model is **energy partitioning under a priority cascade** (not
-> farming's limiting factor); **pasture is a field** and grazing is simply a
-> second harvest method, which makes hay mechanically necessary and makes crop
-> rotation through pasture *emerge* from correct soil accounting; and **paddock
-> granularity is the player's dial, not our constant** — subdivision trades
-> utilization against attention exactly as it does in real grazing management.
-
-> ⚠⚠ **SEAM NOTE for the build (2026-09-03) — leave the carcass open.**
-> The [rendering slate](./rendering-slate.md) (knacker → tanner →
-> chandler) is **gated on this build**, and it is the only genuinely new
-> trade the settlement pass produced. Ranching does not need it and must
-> not author it — but it *produces its input*, so three things want
-> getting right here:
->
-> - ⭐ **A dead animal should decompose into NAMED MATERIALS** — `hide`,
->   a fat/tallow precursor, `tissue/bone`, `tissue/muscle` — rather than
->   into a generic corpse or nothing. `tissue/*` already ships; **fat
->   does not.**
-> - ⭐⭐ **A carcass is worth something to somebody**, which is what makes
->   **culling a decision rather than a loss.** That is a ranching-side
->   economics question the moment stock can die, and it is much cheaper to
->   get right now than to retrofit.
-> - ⚠ **Do not author a knacker, a tannery or a chandler here.** Cut at
->   process, per the metal chain.
->
-> The evidence it is real: `organic/leather` ships as a material and so do
-> `hide-stock`, `hide-jerkin`, `leather-boots` and `leather-whip` — **and
-> nothing makes leather.** Seed backwards from shipped sinks.
+> *Seam note (2026-09-03) discharged: the carcass comes apart into named
+> materials — tallow, hide, bone, meat — scaled by condition, and culling is
+> a decision because a carcass is worth something
+> ([ranching.md § What the carcass opens onto](../../subsystems/ranching.md)); no knacker, tannery or
+> chandler was authored. The chain is [rendering-slate](./rendering-slate.md)'s.*
 
 See also: [farming-slate](../tails/farming-slate.md) (**the primary sibling** — same
 guild, same production family; the feed loop + the shared genome) ·
@@ -81,16 +56,11 @@ parcel half; ranching owns land *and* stock)**.
 
 ## The frame — animals as a managed resource, not a relationship
 
-A rancher does not *win over* a cow. Livestock are **owned, fungible-ish,
-managed at scale for yield** — the opposite content stance from a carved,
-bonded pet:
-
-| Axis | **Pet** | **Livestock** |
-|---|---|---|
-| Engine tier | `Character` (rich) | `Creature` (thin) |
-| Content stance | individual **carve** | systemic **herd** |
-| Relationship | **bond** (regard) — *won over* | **yield** — *managed resource* |
-| Domesticability | mid — needs the taming encounter | max — born owned, no encounter |
+*The pet/livestock table is superseded: the individual is the base case
+([ranching.md § The individual is the base case (D19)](../../subsystems/ranching.md)), a pet is a
+`Creature` rung and not a `Character` ([pets.md](../../subsystems/pets.md)),
+and the split is three ROLES on capabilities rather than two engine tiers
+([ranching.md § Three ROLES](../../subsystems/ranching.md)).*
 
 The Creature/Character split **is** the livestock/pet split. Livestock need a
 body, vitals, metabolism, sex, and containment (enough to eat, grow, breed,
@@ -134,105 +104,31 @@ Conventions 1–4 are **substrate**; convention 5 is the **design** they all run
 
 ### 1. Where identity lives — one density dial
 
-Farming already answered ranching's biggest open question. Its **field vs bed**
-split — aggregate matter with coverage, versus a `Slotted` bed where each plant
-is an individual — *is* the **herd vs breeding-stock** split. One dial spans all
-three systems, chosen **per content, not per system**:
-
-> aggregate matter → slotted individual → carved individual
-
-- ~~**Aggregate (default for a production herd).**~~ **CORRECTED by the
-  farmstead build (D19, D20): the INDIVIDUAL is the base case and the
-  aggregate is the compression** — not the other way round.
-
-  > The slate's original stance (livestock are fungible, managed at scale)
-  > is true of a 500-head operation and false of six goats on a quarter
-  > acre, which is the land this game actually has. **Pets settles it:**
-  > there is never a herd of pets, so if the herd were the base case a pet
-  > would be a special case of it, and it obviously is not.
-
-  ⚠⚠ **And the aggregate is a RECORD, not an object** (D20). There is no
-  `Herd` class and there never will be: the herd is a filed document —
-  headcount, composition, ownership, a sparse overlay of what became of
-  the head somebody looked at — and the room's prose describes the
-  animals. There is never a herd-object to `look` at. Drafting mints a
-  `Creature` from `(herdId, index)`; returning destructs it and folds what
-  it became back into the record. **Identity is earned by being
-  measured.** See [ranching.md](../../subsystems/ranching.md).
-- **Slotted individual (breeding stock, the prize bull).** Where identity
-  genuinely matters — lineage, quality, a name — the animal is an instance.
-- **Carved individual** is the pet, the far end of the same dial.
-
-The dial *replaces* the old open question ("do we model 100 `Creature`s or a
-herd abstraction?"). Both, and content picks.
+*Shipped — the individual is the base case and the herd is a filed RECORD,
+each head drafted by `(herdId, index)` and returned into a sparse overlay:
+[ranching.md § The individual is the base case (D19)](../../subsystems/ranching.md), § The herdbook
+(D20, D79, P4), § Draft and return (D21).*
 
 ### 2. Custody — `ChattelMixin` on the Creature stack
 
-**Verified in code:** `ChattelMixin` is composed in exactly one place —
-`lib/stuff/Thing.ts` — and `Creature` descends from `Agent`, not `Thing`. So
-**no animal can be owned today**; `ChattelApi.stamp` refuses a cow or a pet. But
-the chattel gate is *structural* (`MixinApi.isChattel`), not tier-based.
-
-> **Adding `ChattelMixin` to the Creature stack gives pets, livestock, and
-> aquaculture per-instance ownership with chain-of-title, from shipped code.**
-
-This is the whole possession answer, and it retires the pets slate's sketched
-`CompanionMixin` + `ownerPath` — which would have been exactly the pet-shaped
-custody edge that slate's own guardrail warns a hundred cattle can't reuse. The
-property slate already classes a pet as chattel ("real property bottoms out at
-the zone; everything finer is chattel or slots"), so this is consolidation, not
-a new primitive.
-
-Aggregate herds title at the **herd** level; slotted individuals title per head.
+*Shipped — `ChattelMixin` + `BrandedMixin` compose on `Creature`
+(`lib/creature/Creature.ts`); [ranching.md § Ownership, and the two
+one-liners (D22, D98)](../../subsystems/ranching.md). The herd titles on the record
+(`HerdRecord.holderRef`); a drafted head titles per instance.*
 
 ### 3. The clock — nothing freezes but the body you inhabit
 
-**One engine: reconcile-on-read** (metabolism's pattern, which farming already
-copies wholesale). No tick, no per-system time model.
-
-> **Things you own reconcile against world time. The body you inhabit reconciles
-> against played time.**
-
-The avatar's own metabolic clock **keeps freezing** on logout (shipped behavior:
-`isHasInteractive() && isLinkdead()`) — you can't hire someone to eat for you,
-so offline decay of your own body has no fair mitigation. Everything you *own* —
-crops, herds, pets — runs on world time whether or not you're logged in.
-
-> ### ⚠ The far-past guard is BODIES-ONLY. Owned things must not inherit it.
-> **Corrected 2026-07-31** — an earlier draft of this section said the guard
-> "clamps the six-month absence without special-casing anything." **That was
-> wrong twice over**, and it silently negated the convention this section
-> states.
->
-> `MAX_REASONABLE_GAP_SEC` does **not clamp — it DROPS the whole interval**
-> (`Metabolic.ts`: *"a gap this long means absence … drop it, integrate
-> nothing"*), and it is **4 real hours**. An owned herd inheriting it would gain
-> nothing across any absence longer than a lunch break — **exactly the freeze
-> this convention exists to abolish.**
->
-> The guard exists to protect **bodies** ("real absence never starves you").
-> **A herd is not a body. A crop is not a body. Food is not a body.** Owned
-> things **integrate the full gap**; only the inhabited body gets the guard.
-> Bound long absences with a **step/sample cap**, never a time cap.
->
-> *(Note the guard is per-consumer, not one global constant —* `Metabolic.ts`
-> *uses 4h,* `MechanicalMovement.ts` *uses 90 days. Each consumer picks.)*
-
-**This supersedes the pets slate's "offline = freeze / owner-proxy presence"
-line.** The goal that line was protecting — respect the player's time — survives
-intact, because it was never about the clock; it was about the **shape of the
-consequence** (see §4 of the divergence table below).
+*Shipped — [husbandry.md § The clock rule](../../subsystems/husbandry.md)
+(owned things reconcile against world time; no far-past guard) and
+[ranching.md § Condition — `flesh`](../../subsystems/ranching.md) (the guard narrowed to bodies
+nobody owns, read through the chattel stamp — `Metabolic.integratesLongAbsence`).
+The pets-slate's "offline = freeze" line is retired there.*
 
 ### 4. Yield — two shapes, not four systems' worth
 
-| Shape | What it covers | Precedent |
-|---|---|---|
-| **Standing tap** | milk, eggs, wool — *and* an orchard, *and* a deployed fish trap | retail's `Stock.reset()` tops a counter back to authored `par` on the game-time reset sweep (`lib/retail/Stock.ts`, `lib/residency/Resettable.ts`) — structurally milk, and already Law-2-safe (items, not money) |
-| **Terminal harvest** | grain, slaughter, a landed fish | fishing settled `BodyPlan`→parts on cleaning; butchering is that, on land |
-
-Both are **transforms** (feed → product), never faucets — the conserved-economy
-rule. The standing tap is the headline ranching mechanic and does not exist
-today; the reset sweep is the shape it should copy rather than a new driver.
+*Shipped — the standing tap as `ProducingMixin`, copying `Stock`'s reset
+sweep and never its `par` ([ranching.md § The taps (D25, D93)](../../subsystems/ranching.md)); the
+terminal harvest as `butcher` (§ slaughter).*
 
 ### 5. One care model, three outputs **[ADDED 2026-07-31, pets session]**
 
@@ -292,31 +188,12 @@ care-quality-decides-what-it-becomes — lives in
 
 ## The automation ladder — and the one thing it can't do
 
-Farming's anti-idle ladder is **also ranching's offline-care model, and pets'**.
-Each rung changes *who pays*, never *whether*:
-
-| Rung | Who shows up | The cost |
-|---|---|---|
-| **By hand** | you | your real-time attention (participation) |
-| **Hired NPC** | a `Behaved` brain (the employment engine) | **wages out of your account** |
-| **Script** | the command-native interpreter | **metered compute** |
-
-The limit on automation is a principle, not a number:
-
-> **Automation maintains your assets. It cannot maintain your relationships.**
-
-A hired hand feeds the herd, waters the field, and keeps a pet fed and healthy —
-the **material floor** is covered for whoever pays. But **bond is only earned in
-person.** A kennel keeps your dog alive and well; it does not keep your dog
-*yours*. This gives pets a cheap survival floor (what the slate's retracted
-boarding-fee economy was groping for) while keeping the actual pet fantasy
-un-automatable — and it reads correctly in a barn, a field, and a dorm room.
-
-**Compute note:** reconcile-on-read is lazy and scales for free (it computes
-only when someone looks). Anything needing a *live tick* — a brain running, a
-predator raiding the herd while you're offline — is real compute and is what the
-property slate's allowance meter prices. That's the clean line between the two
-scarcities.
+*Documented — [ranching.md § Working animals (D40–D42)](../../subsystems/ranching.md): the ladder
+attention → wages → compute, the dog as its fourth rung, and *automation
+maintains your assets; it cannot maintain your relationships*. The rung table
+with its open rungs is [farming-slate § Maintenance & the automation
+ladder](../tails/farming-slate.md)'s; the compute meter is
+[property-slate](./property-slate.md)'s.*
 
 ---
 
@@ -336,39 +213,12 @@ Same substrate, opposite surface — each with a stated reason:
 
 ## The core model — energy partitioning, not the limiting factor **[DECIDED]**
 
-Farming's central lesson is the **limiting factor**: independent inputs, yield
-set by the scarcest one (Liebig's minimum — the weakest-link `Grade`). **If
-ranching copies that, it is farming with legs.** Ranching's model is one shared
-budget spent in a fixed priority order:
-
-```
-feed intake →  1. maintenance       (scales with body mass — nonnegotiable)
-               2. thermoregulation  (cold raises it)
-               3. growth            (juveniles)
-               4. production        (milk / wool / eggs)
-               5. reproduction      (gestation, lactation)
-```
-
-The priority order is real animal science, and every consequence we want falls
-out of it rather than being written in:
-
-- **Underfeed → production dies first**, then growth, then body condition, then
-  the animal. That is farming's forgiveness curve in animal terms, with no
-  special case.
-- **A cold snap raises maintenance**, so milk drops at constant feed — which
-  makes [thermal](../../subsystems/thermal.md) and shelter genuinely
-  load-bearing instead of decorative.
-- **A pregnant animal partitions to the fetus** and milks less. A real tradeoff
-  the player feels without being told.
-
-> **Farming teaches limiting factors; ranching teaches allocation under a
-> priority cascade.** Two different optimization idioms on one reconcile engine
-> — a player who learns both has learned two real things, not one thing twice.
-
-It also hands ranching its own economics for free: a fallow field costs nothing,
-but **a herd eats whether or not it produces.** Livestock are a depreciating
-asset that consumes. That, not the yield tap, is why ranching *feels* different
-from farming.
+*Shipped — `Metabolic.partitionFlesh` runs LAST in the slice so production
+dies before condition; cold stress spends satiation (`ThermalRegulation`);
+[ranching.md § Condition — `flesh` (D24, P7)](../../subsystems/ranching.md), where the why (two
+optimisation idioms on one reconcile engine) was graduated 2026-09-19.
+⚠ The cascade's INPUT is not built — nothing feeds or grazes a head (see
+`Left`); the reproduction leg is § Breeding's.*
 
 ---
 
@@ -401,40 +251,17 @@ game hands them.
 
 - **Breeding at scale** — the herd-grows loop pets don't have; the substrate for
   selective breeding / stock quality. Rides the **shared genome** (below).
-- **Butchering / slaughter → crafting inputs.** Mechanically settled (fishing's
-  `BodyPlan`→parts); the open part is tone and the meat path's economics.
-- **Predators vs the herd** — a real ranch threat, a fear-axis consumer, and the
-  one live-tick compute consumer probably worth paying for.
+- ~~**Butchering / slaughter → crafting inputs.**~~ Shipped, tone settled — [ranching.md § slaughter](../../subsystems/ranching.md).
+- ~~**Predators vs the herd**~~ shipped as the `raids` brain (the fox) — [ranching.md § Hazard (D45–D52)](../../subsystems/ranching.md).
 
 ---
 
 ## Land use — pasture **is** a field **[DECIDED]**
 
-**Grazing is a second harvest method on the same plot — the animal is the
-harvester instead of you.** A field-room already carries soil reserves plus
-standing biomass; modeling "pasture" as its own system would be a special case
-the engine doesn't need, and it would break the farming interlock. So a
-field-room is a **land-use decision each season**:
-
-| Use | Who harvests | When you get it | The catch |
-|---|---|---|---|
-| **Crop** | you, at maturity | one lump | field committed all season |
-| **Graze** | the animal, continuously | as milk / wool / growth | **can't be stored**; only while grass grows |
-| **Hay** | you cut, the animal eats later | deferred | cutting + storage losses |
-
-> ⚠⚠ **CORRECTED by the farmstead build (D7): these are DESCRIPTIONS, not
-> settings.** The table reads like a seasonal commitment a holder
-> declares. It is not, and nothing in the shipped code declares anything —
-> **there is no `use` field on a field.**
->
-> All of them fall out of **two facts**: *was there a mouth standing on
-> it*, and *did anything get carried off*. Grazing and mowing are the same
-> draw on the same sward; the only difference is where the animal was, and
-> that difference is where the nitrogen goes. So **fertility follows the
-> mouths** is a sentence a player derives from watching rather than a rule
-> they are told, and a field is whatever its history made it rather than
-> whatever its owner declared. See
-> [soil.md](../../subsystems/soil.md) § the sward.
+*The land-use table and its D7 correction: shipped — [soil.md § The sward, and
+the land uses nobody declares (D7)](../../subsystems/soil.md); there is no `use` field, and grazing
+and `mow` are the same draw on the same sward. ⚠ The *graze* row has no mouth
+yet — nothing declares grazing demand (see `Left`).*
 
 This makes **hay mechanically necessary rather than an authored recipe.**
 Grazing is far the most efficient path — no cutting, no hauling, no storage
@@ -445,23 +272,10 @@ not a tax the game invented.
 
 ### The soil consequence — why rotation emerges
 
-The three uses differ in what they do to the **soil**, not just what they yield:
-
-| Use | Nutrient flow | Effect on the field |
-|---|---|---|
-| **Graze** | returned **in place** (the animal eats and deposits on the same ground) | ~neutral; with good rotation, building |
-| **Hay** | **exported** to wherever the animals eat it | depleting |
-| **Crop** | **exported** | depleting |
-
-So a field hayed or cropped hard watches its reserves sag, and the fix — **put
-the herd on the tired field for a season** — is something the player can
-*derive*. That is why real mixed farms rotate land through pasture, and it falls
-out of the model being correct rather than from a "+N grazing bonus."
-(The *player derives it from principles* property, applied to dirt.)
-
-It also splits the manure coupling in two: nutrients **cycle in place** when you
-graze, and are **moved** when you cut and carry. *Where the herd stands is where
-the fertility goes.*
+*Shipped — `Field.cycleGrazedNitrogen` / `onSwardIntegrated` (a grazing mouth
+returns organic matter in place; `mow` and a crop export), `rotation.test.ts`;
+[soil.md § The sward (D7)](../../subsystems/soil.md). ⚠ In play the in-place branch never fires
+yet: no class declares `grazingDemandPerGameDay` (see `Left`).*
 
 ### The gate you left open
 
@@ -515,37 +329,18 @@ clock](../tails/farming-slate.md).
 
 ### The move is a *read*, not a timer
 
-The chore risk is predictability, not frequency — "move every three days" is a
-chore at any interval. The trigger is **sward height**: move at residual, return
-at recovery. That varies from things already simulated (grass grows faster after
-rain, a denser herd eats down quicker, growth slows at the season's shoulders),
-so the same paddock carries the herd a couple of days in a dry spell and most of
-a week after good weather. Same shape as farming's "is this field thirsty," and
-it uses the same instrument tier: eyeball a band, or read a sward stick for a
-number with error bars.
+*Shipped on the sward side — `trade-farming/src/lib/Sward.ts` (move at
+residual, return at recovery; growth varies with rain, season and stocking) and
+the `look` band (`SWARD_BANDS`); [soil.md § Residual and recovery (D9)](../../subsystems/soil.md).
+⚠ The instrument read (a sward stick with error bars) and the move itself are
+not built.*
 
-### Failure is two-sided in both directions
+### Failure is two-sided in both directions · every failure is a slope
 
-| Mistake | Cost |
-|---|---|
-| **Move too early** | grass left ungrazed — utilization loss, invisible unless measured |
-| **Move too late** | grazed below residual → the sward recovers slowly |
-| **Return too soon** | grazing regrowth that hasn't rebuilt reserves — same failure, other end |
-| **Understock** | grass gets ahead of the herd, goes stemmy, **feed quality drops** |
-
-**Understocking mattering is the non-obvious one, and it should ship.** Grass
-not grazed at the right stage is low-nutrition, so stocking rate is a two-sided
-problem rather than a "don't exceed this" cap. True, and it doubles the decision
-space.
-
-### Every failure is a slope, never a cliff
-
-Overgrazing is a **recovery-rate penalty** — it kills neither the sward nor the
-herd. A player away a week returns to a chewed-down paddock and a field that
-will take longer to come back: a real setback, fully recoverable, no death.
-Farming's forgiveness contract honored without a special case, which is what
-lets the reconcile-on-read clock run freely (§ The clock) without absence ever
-being catastrophic.
+*Shipped — [soil.md § Residual and recovery (D9)](../../subsystems/soil.md): overstocking and
+understocking are both faults (`grazed-out` · `ahead-of-them`), the bands say
+which, and overgrazing is a recovery-rate penalty — never a dead field, never a
+dead herd (`Sward.ts`). ⚠ Exercised by `mow` only until something grazes.*
 
 ### The automation valve — and why it doesn't eat the skill
 
@@ -575,12 +370,11 @@ who subdivides absurdly pays in all four. **No maximum needs writing down.**
 
 ### Paddock = room, not slot
 
-Worth being explicit, since farming uses both densities. A **crop is floor
-state** (continuous matter on the field-room's `Floor`); a **herd is room
-occupants** (containment is room-level — slots hold objects, not herds). A
-field-room can carry floor state *and* occupants at once, and **grazing is
-literally "the occupants consume the floor state."** One clean seam, identical
-whether the floor is a sward, a hay crop, or your wheat when the gate was open.
+*Superseded by the code: `Field` composes `SoilMixin` + `SwardMixin` directly
+(no `Floor` surface-bulk), and the mouths are the field's OCCUPANTS —
+`Field.swardGrazingDemandPerGameDay()` sums `grazingDemandPerGameDay()` over
+`getContents()`. ⚠ No class declares that method, so the seam is open on the
+animal's side (see `Left`).*
 
 ---
 
@@ -621,11 +415,9 @@ is the surface verb (`pollinate` vs mate/gestation over `WorldClock`) and which
 parameter set the genome bends. **Aquaculture is the third consumer** (fishing
 names it explicitly), and pet breeding is a latent fourth.
 
-**One catalog shape.** The `Species`/`Clade` taxonomy already spans `animalia`
-*and* `plantae` (a sessile peace-lily row is the proof token). Crops, livestock,
-and pets are one catalog shape — which resolves farming's open question 4 in
-favor of the existing tree rather than a sibling catalog. *(Caveat: the
-peace-lily row is documentation-only today — no seed exists in the tree.)*
+*One catalog shape — shipped: the `Species`/`Clade` tree carries `animalia`
+and `plantae` alike (25 crop rows in `trade-farming`, the roster in
+`trade-ranching`'s `species/` tree); [race.md](../../subsystems/race.md).*
 
 ---
 
@@ -644,29 +436,12 @@ chemistry. Ranching owns:
 | **Farm-management economics** | the winter-feed budget under uncertainty |
 | **Epidemiology** *(later wave — see Open questions)* | density-dependent transmission; a real tension against "stock more for more yield" |
 
-Two things fit the engine's shipped conventions unusually well — we are not
-imposing the house style on the discipline, the discipline already works this
-way:
+*Two of the discipline's own conventions shipped as written: body-condition
+scoring is a band by eye and a number by hand (`handle`), and records earn
+identity — [ranching.md § `handle` — precision costs an act (D24)](../../subsystems/ranching.md),
+§ Draft and return (D21).*
 
-- **Body condition scoring is natively a band.** Real ranchers score animals on
-  a 1–9 scale by eye; it is taught in every animal-science program. A novice
-  reads *thin / good / fat*; an expert with a scale reads kilos **and** a BCS to
-  a quarter point. That is precisely the honest-opacity convention (bands for
-  the estimate, instruments with error bars for the world) arriving pre-built.
-- **Records are the selection game, and they earn identity.** Real animal
-  breeding runs on herdbooks — per-animal production over time is what makes
-  selection possible at all. So the density dial (§1) gets a **diegetic** reason
-  rather than a performance one: **you promote an animal out of the aggregate
-  herd into individual identity precisely when you start recording it as a
-  selection candidate.** *Identity is earned by being measured.* This answers
-  the promotion question the first draft left open.
-
-**The deep payoff worth building toward:** farming's breeder's equation is
-`R = h²·S`, but the animal version divides by **generation interval** —
-`R = h²·S / L`. That single term is *why* animal breeding is slow and why
-selection intensity matters so much more when a generation costs seasons. Real,
-computable, and it makes the two halves of the Grange feel like one discipline
-taught at two speeds.
+*The `R = h²·S / L` payoff: [ranching.md § Breeding (D26)](../../subsystems/ranching.md) and § Breeding below.*
 
 ---
 
@@ -678,30 +453,10 @@ cut back to honesty. This section is the design; the shipped surface is
 
 ### What shipped, and what it is allowed to claim
 
-`breed` **writes SERVED**: she was put to the male, in season, and the
-herdbook records the date. The tally does not move.
-
-⚠⚠ The first cut did more and it was wrong in three ways at once, all of
-which are worth remembering because they are the traps this follow-on
-walks back into:
-
-1. **Gestation was announced and not modelled** — the message said *"it
-   will be 145 days"* and the lambs were in the tally in the same tick.
-2. **Heredity was claimed and absent** — the offspring's character was
-   `hash(herdId#index)`; the parentage was a free-text note nothing read.
-   Breeding the best ewe and the worst gave statistically identical
-   lambs, under a docstring asserting *"selection has real traction"*.
-3. **Offspring were born adult** — every head read a flat 400 days, so a
-   lamb was immediately breedable and the herd was an unbounded faucet
-   for the length of a season.
-
-⭐ **What survived whole is the best idea in the feature, and the
-follow-on must not redesign it:** nobody authors a lambing date. A ewe is
-a short-day breeder, her window is stated in **daylength**, and the
-calendar is real orbital geometry — so lambs arrive in late winter
-because that is when they arrive. The refusal names the daylength, not
-the month: *"the days are still too long, she will not take"* is
-actionable; *"it is not April"* is not.
+*Shipped and documented — [ranching.md § What `breed` does: it writes SERVED](../../subsystems/ranching.md)
+carries the three traps of the first cut (gestation announced not modelled ·
+heredity claimed and absent · offspring born adult) and the daylength refusal
+that the follow-on must not redesign.*
 
 ### ⭐⭐ The two axes, and they are separable
 
@@ -789,32 +544,22 @@ shipping a claim.
 
 ## Gap map — verified against the code (2026-07-30)
 
-| Gap | State | Detail |
-|---|---|---|
-| **Custody** | **CLOSED, one line** | chattel shipped; `ChattelMixin` needs to reach the Creature stack (§2 above) |
-| **Individual persistence** | **mostly CLOSED** | `PersistableMixin` is *not* Avatar-only (a `ConsignmentShelf` and a `DormRoom` compose it), and multi-instance `(scope, key)` hosts shipped with the leased dorm room. No NPC composes it yet, but nothing in it is Avatar-shaped |
-| **Soil / reserves on a place** | **CLOSED, no new substrate** | `SealedCellar extends ReservedMixin(CartesianLocation)` already holds an `air` reserve on a room |
-| **Maturation** | **REAL — the shared gap** | `Organism.age` + `lifecycleState` are persistent fields with *no driver*: `setAge` has zero callers anywhere, and `lifecycleState` only ever transitions to `dead`. `ageCurve` is a reserved comment in `lib/species/Species.ts`. Contained build; forced by ranching (calf→cow) |
-| **Reproduction** | **REAL, attachment points ready** | `SexedMixin` composes into every Creature; `Species.reproductiveMode` is authored + persisted but has **no reader**. Gestation/offspring/breeding: absent |
-| **Genome / genetics** | **ABSENT** | net-new, and husbandry-wide (above) |
-| **Yield tap** | **ABSENT** | net-new; `Stock.reset()` is the shape to copy |
-| **Fear / threat axis** | **ABSENT** | regard is the only attitude axis. The `dread` condition's `observableSigns` is a good precedent for behavior-legible inner state. Partial reuse only (herding, predation) — not central to ranching |
-| **Follow / flee brains** | **ABSENT** | `wanders.ts` is the template (claims `body`, yields to `attention`) |
+*Retired 2026-09-19 — superseded by the shipped state ([ranching.md](../../subsystems/ranching.md)):
+custody, the yield tap, soil-on-a-place and individual persistence closed;
+maturation shipped as derived age + `Species.ageCurve` life stages
+(`Organism.getLifeStage`, `Species.massAt`); reproduction is `breed` → SERVED
+only. Still absent: the genome (§ Breeding, Axis 2) and the fear/threat axis
+([pets-slate](./pets-slate.md)'s `Left`); `follows` / `herds` / `raids` brains
+ship, a flee brain does not.*
 
 ---
 
 ## Open questions (for the deep pass)
 
 - ~~**Disease [the biggest open call].**~~ **DESIGNED 2026-07-31 →
-  [disease-slate](./disease-slate.md)** — its own doc, because it spans farming,
-  ranching, aquaculture, pets and player health. Two findings land here: **good
-  husbandry *is* immunity** (the resist factor reads live off host state, so the
-  condition score becomes the resistance term), and disease is **the
-  counterweight paddock granularity lacks** — subdividing concentrates animals,
-  and concentration is transmission. Ranching is the **second** proving ground;
-  crops go first.
-- **Where yield lives** — a `Produces` mixin on the animal, or a ranch-level
-  production tap? Per-head vs per-herd accounting under the aggregate density.
+  [disease-slate](./disease-slate.md)**, which owns it (the husbandry-is-immunity
+  coupling and density-as-transmission are in its `Left`).
+- ~~**Where yield lives**~~ resolved: `ProducingMixin` on the animal — [ranching.md § Three ROLES](../../subsystems/ranching.md) (the verb table).
 - **Breeding model** — gestation over `WorldClock`; offspring inheriting species
   + genome; how much of the `R = h²S/L` depth lands in v1. **Live tension
     (2026-07-31):** a game year is **30 real days**, so a realistic multi-year
@@ -825,24 +570,14 @@ shipping a claim.
 - **Herd UX** — what `look` shows for an aggregate herd; how you count, split,
   and pen it. *(Promotion out of the aggregate is now answered — records earn
   identity; see Pedagogy. Demotion back down is still open.)*
-- **Slaughter tone** — the meat path's ethics/economics.
-- **Land dependency** — does ranching wait on the parcel/tenure substrate, or
-  ship with the thin custody v1 above? *(Lean: chattel covers the stock; the
-  land rides whatever farming does.)*
-- **Sequence with farming** — the feed loop wants both halves to be meaningful.
-  The [launch worklist](../../launch-worklist.md) ranks farming as an
-  economy-blocking extraction faucet and schedules ranching to ride the farming
-  session; that ordering still looks right. **Note the land-use model now makes
-  the dependency sharper: pasture *is* farming's field-room + soil reserves, so
-  ranching cannot ship its signature verb before farming's plot model exists.**
+- ~~**Slaughter tone**~~ resolved: sober and complete — [ranching.md § slaughter (D28)](../../subsystems/ranching.md).
+- ~~**Land dependency**~~ resolved: the stock rides the chattel stamp on `Creature`; the ground is `trade-farming`'s.
+- ~~**Sequence with farming**~~ resolved: shipped riding the farmstead build; `trade-ranching` depends on `trade-farming`.
 
 ### Dependency — the time-parameterised weather resolve
 
-Pasture growth integrates weather over an elapsed window, which nothing can
-answer today. **Designed, ~2 lines, unbuilt** — shared with farming's ∫weather
-and preservation's spoilage rate. See
-[weather-slate § The resolution](../tails/weather-slate.md). Settle it before
-this builds, or invent a workaround that is silently wrong.
+*Superseded by the code: `WeatherApi.precipitationBetween(t0, t1, locality)`
+shipped — [weather.md § precipitationBetween](../../subsystems/weather.md).*
 
 ### Deferred to a running game (calibration, not design)
 
@@ -921,26 +656,9 @@ shipped price list, which is what D75–D78 asked for.
 
 ## Risks & opens
 
-1. ✅ **Every plan-level decision is settled** (P1–P12). P2 and P3 were
-   corrected after the fact — a location class and a seeded field both belong to
-   the farming pack, following `trade-mining`'s shipped vertical.
-2. ⚠ **`trade-ranching` depends on `trade-farming`** (P9). Declare it in the
-   manifest; a missing pack dependency fails at install, not at build.
-3. ⚠ **P4's read-side prefix check is load-bearing and easy to skip.** A herd
-   read that trusts the `kind` tag reopens the forgery the path titling closes.
-   It belongs in W8's tests, not in a later hardening pass.
-4. **W1 is a refactor of 871 lines of shipped, tested code** on a branch that
-   will absorb two merges. Do it first, prove it with unchanged tests, and never
-   mix feature work into it.
-5. **Wave count is high (17).** If the build runs long, the cut order is: W15
-   (bees), then saffron and turnips out of W11, then W13 — **never** W12, because
-   a build nobody can start is not shippable.
-6. ⚠ **The archetype is *reported, never enforced* (P12)** — the easiest thing
-   in this build to get wrong, because a satisfaction score is the obvious next
-   step and it is forbidden. **Nothing multiplies off a slot.**
-7. **The band vocabularies are the most likely thing to be skimped**, and
-   skimping them fails silently — two bands that read alike collapse the whole
-   honest-opacity model.
-8. **Tier 3's three forward obligations** (D79 record legibility, D82 quality
-   levers, D74 not foreclosing profits à prendre) must be honoured in W8 and W10
-   or tier 3 becomes a rewrite.
+*Retired 2026-09-19 — the farmstead build's plan risks (compaction ledger:
+`docs/plans/slate-compaction/ranching.md`). The pack dependency is declared
+(`trade-ranching/package.json` → `@saxonberg/content-trade-farming`); the
+read-side prefix check shipped (`HerdRegistry.ts`); the archetype is reported,
+never enforced (`archetypes/byre.yaml`); bees were cut in the predicted order.
+Tier 3's forward obligations are the criteria above.*
