@@ -63,7 +63,6 @@ const SQUARE = '/world/terminus/market/square';
 const HEATH = '/world/moor/stormy-heath';
 const MILLSITE = '/world/hearts-delight/location/millsite';
 const PARCEL = '--parcel /world/terminus/market';
-const WHARFSIDE = '--parcel /world/terminus/wharfside';
 /** A fish as the inventory lists it → the keyword a verb reaches it by. */
 const FISH = /\b(brown trout|eel|grey mullet|carp|shore crab|sturgeon)\b/i;
 const KEYWORD: Record<string, string> = {
@@ -721,7 +720,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
     }
   }, 600_000);
 
-  it('⭐ a landed fish in a laid keepnet is alive a minute later; hauled, it is in your hand — and a minute in the hand is a dead fish', async () => {
+  it('⭐ a landed fish in a laid keepnet is alive a minute later — the water takes it back; a minute in the hand and the water will not', async () => {
     const s = await Session.open(handle, { startLocation: BANK, wizard: true });
     try {
       const kept = await fishUntilLanded(s, 'fish with worm using cane', 40);
@@ -730,20 +729,22 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
       await s.drainProse();
       expect(await fishInHand(s)).toBeNull();
       await sleep(60_000);
-      // ⚠ Eval's reach is bounded to the parcel it names, and the keepnet
-      // lies at the bank — under wharfside, not the market (run 21).
-      const alive = await evalOn(s, 'keepnet', 'return [...this.getContents()].map((f) => String(f.isAlive())).join(",")', WHARFSIDE);
-      expect(alive, alive).toMatch(/^true/);
       const haul = await s.cmd('haul keepnet');
       expectOk(haul);
       expect(squash(await haul.said())).toMatch(/take out what you kept/i);
       expect(await fishInHand(s)).toBe(kept);
-      // The control: the same fish, a minute in the air. ⚠ Read it off
-      // MY contents — the bank's floor is littered with step 9's dead
-      // haul, and `--on ${kept}` could answer with one of those.
+      // ⭐ The read is diegetic — no wizard holds the bank: `release`
+      // refuses a dead fish (*the water will not have it back*) and lets
+      // a live one go. Alive after a minute in the keepnet:
+      expectOk(await s.cmd(`release ${kept}`));
+      await s.drainProse();
+      expect(await fishInHand(s)).toBeNull();
+      // The control: the next one, a minute in the air.
+      const held = await fishUntilLanded(s, 'fish with worm using cane', 40);
       await sleep(60_000);
-      const dead = await evalOn(s, 'me', `return [...this.getContents()].filter((f) => f.getKeywords().includes('${kept}')).map((f) => String(f.isAlive())).join(",")`, WHARFSIDE);
-      expect(dead, dead).toMatch(/^false/);
+      const refused = await s.cmd(`release ${held}`);
+      expectRefused(refused);
+      expect(squash(await refused.said())).toMatch(/dead/i);
     } finally {
       s.close();
     }
