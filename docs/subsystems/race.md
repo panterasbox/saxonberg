@@ -542,6 +542,66 @@ pack (`content/lib/species/**`), not the kernel seed tree — see
 | `plantae/.../spathiphyllum/wallisii` | sessile | Plantae | Peace lily; monoecious. |
 | `constructa/metallica/tutor-bot/mk-iv` | biped | Constructa | Robot — `lifecycleStates: powered/unpowered/destroyed`, `sexDeterminationSystem: 'none'`. |
 
+### Why the roster is cast by persona
+
+A species is **casting, not biology.** Pick the species whose
+pop-culture persona pre-loads the role the way a character actor
+pre-loads a part — say *troll* and the gruff, immovable threshold-guardian
+is felt before a line is written; the archetype does the negative-space
+carving an NPC author would otherwise chisel by hand. The test for a
+cast is that the persona rhymes with the role's *function* (Katie is a
+troll because a troll IS a bridge-keeper who decides who crosses).
+The gate is **recognizability, audience-relative**: a reference the
+player does not hold loads nothing, so casts come from the library this
+audience owns — the D&D / Tolkien / NetHack canon, plus the creatures
+that crossed into it (naga, kitsune, oni, djinn, ghoul); obscure
+folklore is spice, never load-bearing; personas from living traditions
+are evoked, not caricatured. Beneath casting sits the *why*: species are
+defamiliarized vehicles for group allegory, and the engine fits it
+because **prejudice is the belief gap** (how a person is seen vs. who
+they are) — a bias is modeled **viewer-side (regard), never as a species
+stat**. The craft that keeps it commentary rather than reproduction: the
+stereotype must be **false as a law** in the fiction (the essentialism
+trap — *orcs really are evil* is a biological alibi); abstract the
+dynamic, never reskin one real people 1:1; leave *is it true?*
+underdetermined; and no *good one who escaped her kind*. That is why
+every NPC-first row above says the "brute" framing is slander, not
+biology (the ghoul is the exemplar: the stigmatized death-caste, the
+contempt is the cover). The aesthetic that rides alongside: lean into
+genre convention hard, up to but not including cliché — ride it, then
+swerve before it goes predictable. Source: `species-expansion-slate`.
+
+### Why species differ without ranking
+
+The rule every species difference is judged by — the one the size pair
+(*paid for*), the no-lifespan-clock decision and the *worse-than-a-real-
+weapon* natural attack already obey: **difference that COSTS is
+character; difference that RANKS is essentialism.** Correlation was
+never the hazard; hierarchy is. The defence against essentialism is
+therefore not sameness but **incomparability** — *can work underwater*
+and *can work in the cold* cannot be ranked against each other, so the
+design leans harder into difference, not softer, provided the
+differences share no scale. The quality criterion: **a good species
+difference changes WHERE YOU CAN GO and WHO YOU NEED — never how hard
+you hit** (*possible-not-optimal*, applied to species); the best ones
+create interdependence — a reason to need someone not like you — and
+some make you need your own kind, and a world with both has real
+communities *and* real cosmopolitanism, which is what stops either
+being the message. Prejudice lives in the beholder: regard is
+per-viewer, so bigotry is authored into specific NPCs and localities
+and is a fact about the bigot; **a species with a low-reputation stat
+would be the game asserting the prejudice is warranted.** Refuse, for
+the same reason: stat modifiers (one scale, therefore a ranking);
+culture as biology (*naturally greedy / warlike* — the genuinely racist
+note); ⭐ a species being BEST at a job (*if a species is optimal for a
+role, species becomes class* — the moment a guild wants a particular
+species, the thing argued against has been built; a SYNERGY is a
+tendency, a CLASS is a prerequisite — water-breathers over-represented
+among divers is fine, a job a non-ideal species *cannot* do is not);
+and long lifespans as a player mechanic (§ *DECIDED — curves without
+lifespans*). Source: `species-slate` § The governing rules · § What to
+refuse.
+
 ---
 
 ### ⭐⭐ Size — `baseMass` + `stature`, and why it is one accessor
