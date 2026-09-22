@@ -161,9 +161,14 @@ a game minute. Each tick accumulates **pressure** — deterministically —
 from every species' `level/capacity` × twilight (the sun within ±10°) ×
 weather (rain or a storm) × the bait's match to the species' role (a
 worm for forage and bait, a baitfish for a predator, a bare hook 0.15,
-crumbs nothing) × the rod's `showing`. At 1, **the one draw** — which
+crumbs nothing) × ⭐ **where the rig presents against where the species
+feeds** (B8: `Rod.presentsAt` vs `Habitat.feedsAt` — the same layer 1,
+one over 0.5, across the column 0.1; a species that authors no layer
+feeds anywhere) × the rod's `showing`. At 1, **the one draw** — which
 species, a seeded unit over the terms; epistemic, never resolutional.
-The individual's length is seeded around the species' stature; `fight =
+The individual's length is seeded around the species' stature; ⭐ **the
+hook selects** — a fish shorter than 8 × `Rod.hookGapeM` nibbles and is
+gone, a tick that prints nothing, the bait still on. `fight =
 fightRating × length/stature`. Under `fishing.contest.fighterAt` the fish
 lands itself; otherwise a `LandingContest` opens. Landed, the fish is
 minted alive into the hand (a body in air — it starts drowning), drawn
@@ -182,11 +187,43 @@ one tick snap a full fighter** and *give when it runs, gain when it
 rests* lands one in 5–8 ticks; the reel/slack prose says which it is
 doing (*the line is singing · the rod is bent hard · it is resting*).
 
+**The rig is numbers on the rod, coupled by the rows** (D26). Three
+rows of one class: the *cane rod* (free line, `mid`, ordinary hook, the
+default line), the *float rod* (`surface`, `showing 1.3`, `breakStrain
+0.4`, a 6 mm hook — the shoal's rig, not the sturgeon's) and the
+*ledger rod* (`bottom`, `showing 0.8`, `breakStrain 0.75`, a 20 mm hook
+— the eel, the carp, the only rod that holds a sturgeon; it takes
+nothing small). Heavy line holds the big one and shows the bait worse;
+fine line bites more and parts. You choose it for what you are fishing
+FOR — the read tells you what is there and where, and the rod is how you
+act on the sentence. ⚠ Swivels, hook numbers, poundage and a separate
+line object are deliberately NOT things: an item with no decision behind
+it is inventory clutter, and the line is the rod row's `breakStrain`.
+
+**What goes on the hook is read from the thing itself**
+(`FishingEngagement.baitKind()`): a `Bait` row says (`worm` · `baitfish`
+· `crumbs` · `lure`); a landed `Fish` ≤ 0.25 m is a baitfish; anything
+whose material carries the `bread` tag is crumbs; anything else is
+nothing. **A lure is worked, not eaten** — the tin spoon draws predators
+only while the angler has `reel`ed within two ticks (`work()`; a spoon
+left to lie is a stone), and survives the take: one spoon, all season.
+Lure fishing is active where bait fishing is patient.
+
 **Traps** reconcile at the haul: `expected = Σ min(level, drawPerHour ×
 hours × level/capacity)` over the roles the trap takes, capped by what
 it holds, the fraction one seeded unit; a laid trap is fixed in place
 and vetoes eviction. A net (30, 20/h) empties the confluence's ~160 in
 five afternoons' lifts; a pot (2, 0.4/h) takes crabs overnight.
+⭐ **A trap is a container** (`BulkableMixin(ContainerMixin(ToolItem))`),
+and a laid one with an interior is **full of the water it lies in**
+(`lay` fills it from `/stuff/idea/material/bulk/water`, `haul` drains it
+and hands over whatever it held). That is the whole of the **keepnet**
+— a Trap row with `drawPerHour: 0`, `capacity: 12`, `interiorBulk:
+true`: `lay keepnet`, `put trout in keepnet`, and the trout breathes
+(respiration reads the vessel a body is inside — the bowl's read, at the
+bank). Keep or let go is the angler's now, not the clock's. No new
+class, no guard: a pot with a crab put back in it hands the crab back
+too.
 
 **Bait is bought or caught, never dug.** Digging a worm out of a bed is
 foraging's act, not fishing's; a `dig` verb shipped in the build and was

@@ -1077,6 +1077,44 @@ other silently. Fishing's is the newcomer, so fishing's renamed:
 keeps its name — it describes the act, not the verb. Recorded here
 rather than rewritten through the waves, as `set` → `lay` was.
 
+### D26 — the rig, the lure, the keepnet: how rich the tackle is (review, B8)
+
+Decided with the user 2026-09-21 on the open MR, through the five
+lenses: *"this build doesn't seem to ship much of any of it — how rich
+do we want this experience?"* The first cut had three tackle dials
+(`showing`, `breakStrain`, `baitKind`) and content that turned none of
+them; the read told you *eels on the bottom, a sturgeon in the deep*
+and nothing on the angler's side could act on either sentence — the
+lesson was written on one side of the water only (lens 1).
+
+**The rule: richness lands as numbers on the tackle that the bite
+reads, coupled by the rows, and every real-world item either maps to
+one or does not exist** (lens 2 — expression is inelastic; an item with
+no decision behind it is inventory clutter):
+
+| the thing | what it honestly is | shipped as |
+|---|---|---|
+| line test | `breakStrain` — already there, unauthored | turned on the rows |
+| hook size | selectivity: a fish shorter than 8 × the gape nibbles and is gone, silently | `Rod.hookGapeM` |
+| bobber / weights | *where you present* against *where it feeds* | `Rod.presentsAt` × kernel `Habitat.feedsAt` (surface · mid · bottom) — same layer 1, one over 0.5, across the column 0.1; unauthored feeds anywhere |
+| lure vs bait | not eaten, *worked*: draws predators only while `reel`ed within two ticks; survives the take | `baitKind: lure`, the tin spoon; `FishingEngagement.work()` on `reel` with nothing on |
+| a caught baitfish | the requirements promised it and the types forbade it (`bait instanceof Bait`) | a `Fish` ≤ 0.25 m on the hook reads as `baitfish`; bread (`hasMaterialTag('bread')`) as `crumbs` |
+| the stringer / keepnet | a vessel IN the water, the immersion read already shipped | `Trap = BulkableMixin(ContainerMixin(ToolItem))`; a laid trap with an interior fills with the reach's water on `lay`, drains on `haul`, hands its contents over; the keepnet is a Trap row with `drawPerHour: 0` |
+| swivels · hook numbers · poundage · a separate line object | nothing a player acts on; the line is the rod row's `breakStrain` — one thing in hand | never |
+
+The coupling that makes it a choice (lens 4): the float rod is fine,
+shows well, parts easily, surface, small hook; the ledger rod is heavy,
+shows poorly, holds the sturgeon, bottom, big hook; the cane rod is
+between. You choose it for what you are fishing FOR. The keepnet is the
+honesty fix (lens 3): a landed fish drowned in the hand and only a bowl
+stopped it — keep or let go is the angler's now, not the clock's.
+
+Kernel: `Habitat.feedsAt?: WaterLayer` + `WATER_LAYERS` (Species.ts),
+carried onto the water pack's standing. ⚠ Not the pet `feedingStyle`
+rung (that is how an animal takes food from a PERSON); where a hook
+finds a fish is a habitat fact. The carp authors both — `surface` for
+the hand, `bottom` for the hook — and they do not collide.
+
 ---
 
 ### D22 — the reach reports every parameter a tank will ever hold (water pack)
@@ -1562,6 +1600,32 @@ Build notes:
   recorded with its output; `lint:drive-scripts` 0.
 - **Commit** `drive(fishing): <what driving found>` then `build(fishing B7): the drive as a wire file; docs/subsystems/fishing.md`.
 
+#### B8 — the rig, the lure, the keepnet, a fish on the hook (review)
+- **Implements** D26. Added in review at the user's call ("fishing is
+  very incomplete"); one MR per build means the build is not done until
+  the feature is.
+- **Kernel** `Species.ts`: `WATER_LAYERS`, `Habitat.feedsAt?`, validated
+  in `setHabitat` (+ test). **Water** `FisheryRegistry.ts`: the standing
+  carries `feedsAt`. **Trade** `FisheryRead.ts` the shape; `Rod`
+  (`presentsAt`, `hookGapeM`, `RIG_LAYERS`); `Bait` (`lure`); `Trap`
+  becomes a bulk container; `FishingEngagement` (`presentation()`, the
+  gape at the take, `work()` / `isLure()`, `baitKind()` reading a `Fish`
+  or bread); `ReelController` works the lure; `LayController` fills an
+  interior with `/stuff/idea/material/bulk/water`; `HaulController`
+  hands over contents and drains. **Rows** `float-rod`, `ledger-rod`,
+  `spoon`, `keepnet`; `rod.yaml` says `presentsAt: mid`; six species
+  author `feedsAt` (mullet surface; trout mid; eel, carp, crab, sturgeon
+  bottom). **Store** four lines + prices (tackle count 10).
+- **Tests** `FishingEngagement.test.ts` (the rig — same / one over /
+  across; the gape; the worked lure; a fish and a big fish on the hook),
+  `traps.test.ts` (the keepnet fills, holds, drains and hands back; a pot
+  hands back what was put in it), `Species.habitat.test.ts`.
+- **Drive** step 17: the ledger over a mullet shoal vs the float; the
+  big hook over crabs (silence, the worm stays) vs the plain hook; the
+  spoon left to lie vs worked; a fish in a laid keepnet alive a minute
+  on, hauled into the hand, dead a minute later.
+- **Commit** `build(fishing B8): the rig, the lure, the keepnet, and a fish on the hook`.
+
 ---
 
 ## Reachability wiring
@@ -1582,6 +1646,9 @@ Each fails closed and silent.
 | the kept fish | `put` / `offer` / `name` (shipped) | `BondedMixin.peers` (inherited) | `/trade/fishing/thing/fish-bowl` (Feeder), `fish-food`; carp `feedingStyle: [surface]`, `biddability: 0` | `Bonded.postRegister` warms the species | `put` target `ContainerMixin` ✓ Feeder; `offer` animal arg — ⚠ its scope must reach INTO an open bowl (Risks) |
 | the fisher | `talk` (shipped) | `Cast` is `Behaved` | the fisher row with `reads-water` at `trigger: engage` and `fishes` at a cadence, `props: [rod]`, on the bank's `cast:` | the room's cast minted at boot | `talk` target `BehavedMixin` ✓ |
 | the fishmonger | `appoint` (shipped) | `Persona.self` | `business.yaml` position + roster, the stall, the Offstage row, the Cast on `stalls.yaml`'s `cast:` | the roster tick (`EmploymentApi.boot`) materializes the Employment | field validator `mustHoldAppointingAuthority` — the committee, founder passes |
+| the rig (B8) | `fish.yaml` (`using <rod>`) | `Rod` (same statics) | `/trade/fishing/thing/{float-rod,ledger-rod}` with `presentsAt` / `hookGapeM`; species rows with `habitat.feedsAt` | the standing carries `feedsAt` per read | `rod` `ToolMixin` in hand |
+| the lure (B8) | `fish.yaml` (`with spoon`), `reel.yaml` (works it) | `Rod` (same statics) | `/trade/fishing/thing/spoon` (`baitKind: lure`) | the live engagement's `workedAtTick` | `bait` `requires: any` |
+| the keepnet (B8) | `lay.yaml`, `haul.yaml`, `put` (shipped) | `Trap.commandContributions` | `/trade/fishing/thing/keepnet` (`interiorBulk: true`, `drawPerHour: 0`); `/stuff/idea/material/bulk/water` | — | `trap` `ToolMixin`; `put`'s target is a Container (Trap is one now) |
 | the Discipline | — | — | `/trade/fishing/idea/Discipline/fishing` | `DisciplineCatalogue` warms by class | — |
 | the deed | — | — | — | `recordDeed` on the persona | — |
 

@@ -275,6 +275,28 @@ Hand, rod-and-line, pot, net ship medieval. The reel, the fly, the trawl
 are later epochs that arrive as tools, so the covenant has something to
 read when it lands. A rod wears with use like any tool.
 
+### ⭐ The rig — added in review (2026-09-21)
+
+*"Bait is just a thing… there's not really different tackle represented
+— bait vs lure, weights and bobbers, hook sizes, line test, the chain
+you keep your catch alive on. How rich do we want this, through all our
+lenses?"* Run through them: the read told the angler *eels on the
+bottom, a sturgeon in the deep* and nothing on the rod let them act on
+either sentence (pedagogy); so richness lands as **numbers on the
+tackle the bite reads, coupled**, never as a tackle box (expression).
+
+A person can now: choose a rod for **where the bait sits** — a float
+rod hangs it at the surface for the mullet, a ledger rod pins it to the
+bottom for the eel and the sturgeon, the plain rod drifts between — and
+feel the trade-off (fine line bites more and parts; heavy line holds
+the big one and shows the bait worse; a big hook takes nothing small,
+silently). **Work a lure** — a spoon fishes only while you reel it, and
+is not eaten. **Put a small landed fish on the hook** as a baitfish,
+or a crust of bread as crumbs. **Keep the catch alive** in a laid
+keepnet until you haul it — keep or let go is yours, not the clock's.
+Not things: swivels, hook numbers, poundage, a separate line object —
+nothing a player decides with.
+
 ### Traps and nets draw passively and cap at the boring reward
 
 `set` a pot or a net at a feature; it takes from the record on a
@@ -458,6 +480,16 @@ sessions; a wizard may skip game-days where a step says so.
 16. (Wizard biases the reach's draw.) `fish` → the contest at full
     fight; land it → `look sturgeon` reads *a royal fish*; the chronicle
     holds the deed; nothing stops you keeping it.
+17. *(Added in review — the rig.)* Buy a float rod, a ledger rod, a
+    spoon and a keepnet. At the confluence: `fish with worm using
+    ledger-rod` over the mullet shoal is a long afternoon; `fish with
+    worm using float-rod` takes a mullet. Over the crabs the ledger's
+    big hook takes nothing and says nothing — the worm is still on;
+    the plain rod takes a crab. `fish with spoon` left to lie takes
+    nothing; `reel` it every minute and a trout strikes, and the spoon
+    is still yours. Land a fish, `lay keepnet`, `put <fish> in
+    keepnet`: a minute later it is alive; `haul keepnet` and it is in
+    your hand; a minute later it is dead.
 
 **The four links**, walked for each of `fish`, `set`, `lift`, `reel`,
 `slack`, `release`: the verb exists; the feature or tool affords it; the
