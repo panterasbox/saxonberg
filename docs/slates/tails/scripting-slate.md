@@ -19,37 +19,10 @@ behavior," and a human-authored content surface in its own right.
 
 The load-bearing decisions:
 
-1. **A designed language, not eval and not a tool-menu.** eval (general TS in
-   a sandbox) is *so* powerful it subsumes everything — which is the problem,
-   not a virtue: it reaches what you never sanctioned. A pre-canned reaction
-   menu is the opposite failure: it caps expression to what was anticipated.
-   The right surface is a **special language whose grammar *is* the boundary**
-   — designed to reach exactly the set you chose. **Designing the grammar is
-   how you bound, by construction, not by subtraction.** This is the honest
-   form of "bounded **affordances**, free **expression**": the grammar's
-   builtins are the affordances; the control flow is the expression; you
-   author both sides of that line.
-
-2. **It conducts the verb bus; it doesn't bypass it.** A statement like
-   `say "..."` or `pour mug` is a **gated dispatch as the actor** — on the
-   bus, attributed, permission-checked (and when the [director](../builds/llm-content-slate.md)
-   forces, force stays bounded by the *target's* perms). The language is a
-   sequencing + control-flow layer **over** dispatch, never a side door
-   around it. The whole command-security model survives unchanged. See
-   [command-routing.md](../../subsystems/command-routing.md),
-   [call-security.md](../../subsystems/call-security.md).
-
-3. **Timing is control flow.** `wait 30s`, `every 2m`, `when <cond>` make a
-   script a **coroutine the scheduler drives** (`ScheduleApi` already wraps
-   callbacks in execution-context). This is the real scheduling answer: not
-   "the LLM files reactive triggers" (that's a script smeared across frames),
-   but "the LLM writes a procedure with `wait` in it." **One generation →
-   multi-stage execution.** Round-trip cost is exactly why the per-beat live
-   loop loses to a script for multi-stage action.
-
-4. **Conditions are MQL.** `if` / `when` predicates are MQL — an existing,
-   bounded, sandboxed query language. Don't reinvent queries. See
-   [mql.md](../../subsystems/mql.md).
+Decisions 1–4 (a designed language, not eval and not a menu · it conducts
+the verb bus · timing is control flow · conditions are MQL) shipped and
+graduated → [scripting.md § Why a designed language — the grammar is the
+boundary](../../subsystems/scripting.md). Still open, kept:
 
 5. **`improv` is the seam back to live generation.** A primitive that
    re-invokes the LLM mid-script for a line it didn't pre-write. This unifies

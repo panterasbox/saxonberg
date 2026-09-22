@@ -19,6 +19,23 @@ as refined by [combat-slate.md](../slates/builds/combat-slate.md)
 captain + roster), [advancement](./advancement.md) (`ActSignature`
 credit), and [accountability](./accountability.md) (the death-row facts).
 
+## Why formations — text, social, AI-native
+
+- **Legible** — one prose line per tactic, watched unfolding. Matches the
+  serial medium instead of fighting it.
+- **Social** — a party-level decision creates coordination, role
+  negotiation, leadership: the social fabric the project leans on.
+- **AI-native** — a mixed human+AI party can run a formation, each member
+  reading the tactic and playing its role through the same command bus.
+  In Master-Apprentice, *the master could be an AI tutor* — the
+  "human interface is the AI interface" keystone and the education
+  vertical, expressed through combat.
+
+This is also the answer to "ranged isn't where these games shine": party
+tactics is. If a combat sentence ever goes in the README or the
+philosophy docs, it should be this, not arrows. *(Graduated from the
+combat-tactics slate, 2026-09.)*
+
 ## The `CombatFormation` Idea
 
 `lib/combat/CombatFormation.ts` — a singleton Idea per preset at
@@ -144,7 +161,11 @@ advances the one discipline you cannot grind solo. **Master-Apprentice
 has no reward knobs**: each actor banks their own signatures; the economy
 holds because defense is generative, openings are ally-exploitable, and
 competence is the exchange rate — the gym proves the mentored apprentice
-survives a foe the same apprentice cannot beat alone.
+survives a foe the same apprentice cannot beat alone. Master-Apprentice
+exists to **codify emergent behaviour rather than fight it**: players
+will power-level, kite and exploit, and in a multiplayer world that
+cannot be stopped — so the preset names the practice and rules it, and
+the mentored pair does it by the engine's rules instead of around them.
 
 ## Surface
 
