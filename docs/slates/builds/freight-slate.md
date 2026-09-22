@@ -48,22 +48,8 @@ Related: [conveyance.md](../../subsystems/conveyance.md),
 
 ## Why the industry exists at all
 
-**Transport exists because production and consumption happen in
-different places.** So the industry's size is a direct function of how
-much **spatial specialization** the production builds create. If
-everything is made where it is used, there is no freight.
+*Homed 2026-09-22 → [settlement-model.md § 8 · the realm layout is already von Thünen](../../settlement-model.md).*
 
-Which makes the payoff one of the great pedagogical objects:
-
-> ⭐ **von Thünen's rings.** Land use organizes around a market by the
-> ratio of **transport cost to land rent** — perishable, heavy, bulky
-> goods locate near the market; durable, light, valuable goods locate
-> far.
-
-That is 1826 economics, and a world with honest geography and honest
-transport cost will **generate** it rather than teach it. The closed
-land-use vocabulary on `ParcelRecord` is what it expresses itself
-through. **Nobody has to author the rings.**
 
 ## Live cargo walks; dead cargo rides
 

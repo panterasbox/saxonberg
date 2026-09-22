@@ -271,23 +271,7 @@ direction.
 
 ### 7.5 ⭐⭐⭐⭐⭐ The required pairing: the can and the blood
 
-The single most valuable thing this curriculum can ship, and it only
-works if the engine stays out of the valuation:
-
-| | **cans** | **blood** |
-|---|---|---|
-| the act | society needs it | society needs it |
-| price it | **works** — return rate tracks deposit size almost exactly; litter falls; a collector's living appears | **backfires** — paying can *reduce* supply by converting a gift into a transaction (Titmuss, *The Gift Relationship*, 1970) |
-| the mechanism | incentive alignment | **crowding-out** — same shape as Gneezy & Rustichini, *A Fine is a Price* (2000): fining late parents made lateness worse, and it stayed worse after the fine was withdrawn |
-
-Two acts a society needs; opposite correct policies. A player who passes
-a deposit on cans, then tries the same trick on blood and watches
-donation **fall**, has learned something most adults never learn — and
-no essay delivers it. See [blood-slate.md](../builds/blood-slate.md).
-
-⚠ **This entire lesson is impossible if the engine credits both with
-standing.** That is the concrete reason the mint question
-([standing-mint-slate.md](../builds/standing-mint-slate.md)) is not ours.
+*Homed 2026-09-22 → [measurement.md § Part 1 · Absorbed from aluminium-can-slate — the can and the blood](../../measurement.md).*
 
 ### 7.6 The guardrail: model the mechanism, never the verdict
 
