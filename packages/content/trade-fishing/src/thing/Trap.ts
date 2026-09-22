@@ -3,11 +3,11 @@
  * They differ by numbers only: how fast each draws, which roles it
  * takes, and how much it holds. There is no `trapKind` branch anywhere.
  *
- * ## Lay, then lift — reconcile at the lift
+ * ## Lay, then haul — reconcile at the haul
  *
  * `lay` moves the trap from your hand into the water (the room), stamps
  * when, where and by whom, fixes it in place and vetoes its eviction: a
- * set trap survives a bounce. `lift` integrates the elapsed game-hours
+ * set trap survives a bounce. `haul` integrates the elapsed game-hours
  * against the reach's record — `Σ min(level, drawPerHour × hours ×
  * level/capacity)` over the roles it takes, capped by what it holds —
  * and hands over that many fish, the fraction decided by one seeded
@@ -26,11 +26,11 @@ export default class Trap extends ToolItem {
   static commandContributions: CommandContributions = {
     self: [],
     // `peers` = whoever stands where it lies (a set trap in the water);
-    // `environment` = whoever holds it. `lay` needs it held; `lift` needs
+    // `environment` = whoever holds it. `lay` needs it held; `haul` needs
     // it set; both views are offered either way and the controllers
     // narrow on state.
-    peers: ['trade/fishing/cmd/fishing/lay.yaml', 'trade/fishing/cmd/fishing/lift.yaml'],
-    environment: ['trade/fishing/cmd/fishing/lay.yaml', 'trade/fishing/cmd/fishing/lift.yaml'],
+    peers: ['trade/fishing/cmd/fishing/lay.yaml', 'trade/fishing/cmd/fishing/haul.yaml'],
+    environment: ['trade/fishing/cmd/fishing/lay.yaml', 'trade/fishing/cmd/fishing/haul.yaml'],
   };
 
   static fieldMeta: FieldMeta = {

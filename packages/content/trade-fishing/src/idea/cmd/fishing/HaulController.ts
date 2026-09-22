@@ -1,5 +1,5 @@
 /**
- * LiftController — `lift <trap>`: what the water put in it since it was
+ * HaulController — `haul <trap>`: what the water put in it since it was
  * set, reconciled now against the reach's record, into your hands. The
  * fraction is one seeded unit; nothing says which was luck.
  */
@@ -22,14 +22,14 @@ import type { SpeciesStanding } from '../../../lib/FisheryRead';
 import Trap from '../../../thing/Trap';
 import Fish from '../../../agent/Fish';
 
-interface LiftModel extends CommandModel {
+interface HaulModel extends CommandModel {
   trap: MqlOneResult;
 }
 
 const AGENT_PREFIX = '/trade/fishing/agent/';
 
-export default class LiftController extends FishingController<LiftModel> {
-  async execute(model: LiftModel, context: CommandContext): Promise<void> {
+export default class HaulController extends FishingController<HaulModel> {
+  async execute(model: HaulModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const trap = model.trap?.stuff as Stuff | undefined;
     if (!trap || !(trap instanceof Trap)) {
@@ -41,7 +41,7 @@ export default class LiftController extends FishingController<LiftModel> {
       return;
     }
     if (!MixinApi.isContainer(giver) || !MixinApi.isContainable(trap)) {
-      this.decline(context, "You can't lift that.", 'not-liftable');
+      this.decline(context, "You can't haul that.", 'not-haulable');
       return;
     }
     const nowS = WorldClockApi.getNow().rawValue();
@@ -78,13 +78,13 @@ export default class LiftController extends FishingController<LiftModel> {
     const scene = MessageApi.scene(giver).topic(FISHING_TOPIC);
     if (took.length === 0) {
       scene
-        .toSelf(Mml.compose`You lift ${Mml.thing(trap)}. Nothing in it.`)
-        .toPeers(Mml.compose`${Mml.actor(giver)} lifts ${Mml.thing(trap)} out of the water, empty.`);
+        .toSelf(Mml.compose`You haul ${Mml.thing(trap)} up. Nothing in it.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} hauls ${Mml.thing(trap)} out of the water, empty.`);
     } else {
       const names = countWords(took);
       scene
-        .toSelf(Mml.compose`You lift ${Mml.thing(trap)}. ${names} in it.`)
-        .toPeers(Mml.compose`${Mml.actor(giver)} lifts ${Mml.thing(trap)} out of the water, with something in it.`);
+        .toSelf(Mml.compose`You haul ${Mml.thing(trap)} up. ${names} in it.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} hauls ${Mml.thing(trap)} out of the water, with something in it.`);
     }
     scene.send();
   }

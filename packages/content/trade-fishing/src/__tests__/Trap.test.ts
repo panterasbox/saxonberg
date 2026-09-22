@@ -1,5 +1,5 @@
 /**
- * Trap (fishing D13) — one class, two rows, reconcile at the lift.
+ * Trap (fishing D13) — one class, two rows, reconcile at the haul.
  */
 
 import '@saxonberg/server/test-bootstrap';

@@ -1066,6 +1066,17 @@ The alternative — a platform `dig` whose yield the ground declares —
 *is* the foraging build's distribution table, and does not get built
 inside a fishing MR to keep one verb.
 
+### D25 — `haul`, not `lift`: the barbell got there first
+
+At the catch-up merge from master (2026-09-21) `lint:verb-collisions`
+failed: the nutrition build (MR !269) shipped `device/lift` — *lift a
+chosen load on a load device* — and two views on one verb shadow each
+other silently. Fishing's is the newcomer, so fishing's renamed:
+**`lay` / `haul`** (`HaulController`, `haul.yaml`; you *haul* pots and
+*haul in* a net). Prose, tests and the drive follow; `Trap.markLifted()`
+keeps its name — it describes the act, not the verb. Recorded here
+rather than rewritten through the waves, as `set` → `lay` was.
+
 ---
 
 ### D22 — the reach reports every parameter a tank will ever hold (water pack)

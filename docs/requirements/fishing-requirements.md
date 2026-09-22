@@ -239,9 +239,11 @@ rooted.
 ### The verb is `fish`; `cast` stays with the mages
 
 `fish` at a fishable feature, optionally naming the bait. `set` and
-`lift` for a pot and a net. `reel` and `slack` inside the contest
-(`give` is the inventory verb). `look`
-at the water is the read.
+`lift` for a pot and a net — ⚠ **shipped as `lay` and `haul`**: `set`
+is a scripting builtin (plan D23.8), and `lift` is the barbell's verb
+from the nutrition build, which landed on master during review (plan
+D25). `reel` and `slack` inside the contest (`give` is the inventory
+verb). `look` at the water is the read.
 
 ### The bite is the fish's decision
 

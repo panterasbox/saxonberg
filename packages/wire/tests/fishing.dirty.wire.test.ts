@@ -29,7 +29,7 @@
  * that finish a beat after the tick that landed it.
  *
  * Run: `WIRE_BOOT=1 WIRE_PORT=<yours> WIRE_FRAME_TIMEOUT=60000 npx vitest
- * run tests/fishing.dirty.wire.test.ts` — a net lift mints thirty live
+ * run tests/fishing.dirty.wire.test.ts` — a net haul mints thirty live
  * animals in one dispatch, which is more than the default 30 s frame
  * budget in a room already full of drowning fish.
  */
@@ -323,7 +323,7 @@ suite('7 · release', () => {
 });
 
 suite('8 · the pot', () => {
-  it('lay it, let a game-hour pass, lift it — a crab, or nothing, and nothing says which was luck', async () => {
+  it('lay it, let a game-hour pass, haul it — a crab, or nothing, and nothing says which was luck', async () => {
     const set = await me.cmd('lay crab-pot');
     expectOk(set);
     expect(squash(await set.said())).toMatch(/lay .* in the water/i);
@@ -337,10 +337,10 @@ suite('8 · the pot', () => {
     expectOk(await me.cmd('south'));
     await me.drainProse();
     await me.prose(`eval ${PARCEL} --on crab-pot return (this.setAtS = 1, 1)`);
-    const lift = await me.cmd('lift crab-pot');
-    expectOk(lift);
-    const said = squash(await lift.said());
-    expect(said).toMatch(/lift/i);
+    const haul = await me.cmd('haul crab-pot');
+    expectOk(haul);
+    const said = squash(await haul.said());
+    expect(said).toMatch(/haul/i);
     expect(said).not.toMatch(/luck|chance|roll/i);
     expect(await inventory(me)).toMatch(/crab pot/i);
   }, 120_000);
@@ -352,14 +352,14 @@ suite('9 · the net empties the reach; the fisher says so; it recovers', () => {
   // the minutes there are — the stamp back to the first second, the
   // draw rate up. What is under test is the RECORD emptying and
   // recovering, not the arithmetic of hours (the pack's own suite pins that).
-  /** Lay the net, let the wizard's afternoon pass, lift it: how many came up. */
-  const liftAfterAnAfternoon = async (): Promise<number> => {
+  /** Lay the net, let the wizard's afternoon pass, haul it: how many came up. */
+  const haulAfterAnAfternoon = async (): Promise<number> => {
     const before = await fishCount(me);
     expectOk(await me.cmd('lay net'));
     // ⚠ `--on` is REACHABLE scope: the eval runs where the net lies.
     await me.prose(`eval ${PARCEL} --on net return (this.setAtS = 1, this.drawPerHour = 1000, 1)`);
     await me.drainProse();
-    expectOk(await me.cmd('lift net'));
+    expectOk(await me.cmd('haul net'));
     return (await fishCount(me)) - before;
   };
   const dropTheHaul = async (): Promise<void> => {
@@ -371,10 +371,10 @@ suite('9 · the net empties the reach; the fisher says so; it recovers', () => {
     await me.drainProse();
   };
 
-  it('⭐ lift after lift the reach thins and then is empty; the fisher says so and names nobody', async () => {
+  it('⭐ haul after haul the reach thins and then is empty; the fisher says so and names nobody', async () => {
     const hauls: number[] = [];
     for (let i = 0; i < 8; i++) {
-      hauls.push(await liftAfterAnAfternoon());
+      hauls.push(await haulAfterAnAfternoon());
       if (hauls[hauls.length - 1] === 0) break;
       await dropTheHaul();
     }
@@ -391,7 +391,7 @@ suite('9 · the net empties the reach; the fisher says so; it recovers', () => {
     // Recovery is reconcile-on-read from the record's stamp; a wizard
     // turns the half-life dial to seconds, reads, and turns it back.
     expectOk(await me.cmd('config water.fishery.recoveryHalfLifeDays 0.00001'));
-    const haul = await liftAfterAnAfternoon();
+    const haul = await haulAfterAnAfternoon();
     expectOk(await me.cmd('config water.fishery.recoveryHalfLifeDays 2'));
     expect(haul).toBeGreaterThan(0);
     expect(await talkToTheFisher(me)).toMatch(/Eels run on the ebb|in this water/i);

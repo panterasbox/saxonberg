@@ -146,8 +146,11 @@ deployment manifest — or `PackLogic` never discovers it).
 
 **The instrument affords the verb**, as class statics: `Rod` (`fish` /
 `reel` / `slack`, `environment` = whoever holds it), `Trap` (`lay` /
-`lift`, both axes; the pot and the net are rows of one class — numbers,
-never a `trapKind`), `Fish` (`release`). ⚠ `lay`, not
+`haul`, both axes; the pot and the net are rows of one class — numbers,
+never a `trapKind`), `Fish` (`release`). ⚠ `haul`, not `lift`: `lift`
+is the barbell's (`device/lift`, the nutrition build) and two views on
+one verb shadow each other silently — `lint:verb-collisions` caught it
+at the catch-up merge. ⚠ `lay`, not
 `set`: `set` is a **scripting builtin** (`lib/script/builtins.ts`) and
 the interpreter takes the line before dispatch; `lint:verb-collisions`
 now counts the builtins as claims.
@@ -179,7 +182,7 @@ one tick snap a full fighter** and *give when it runs, gain when it
 rests* lands one in 5–8 ticks; the reel/slack prose says which it is
 doing (*the line is singing · the rod is bent hard · it is resting*).
 
-**Traps** reconcile at the lift: `expected = Σ min(level, drawPerHour ×
+**Traps** reconcile at the haul: `expected = Σ min(level, drawPerHour ×
 hours × level/capacity)` over the roles the trap takes, capped by what
 it holds, the fraction one seeded unit; a laid trap is fixed in place
 and vetoes eviction. A net (30, 20/h) empties the confluence's ~160 in
