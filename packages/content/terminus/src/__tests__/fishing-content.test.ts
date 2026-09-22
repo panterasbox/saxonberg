@@ -127,7 +127,7 @@ describe('the store', () => {
   it('every tackle line is a row that exists, priced against the ladder', () => {
     const counter = data('/world/terminus/general-store/counter') as { stockLines: Array<{ itemTemplatePath: string }>; prices: Record<string, number> };
     const tackle = counter.stockLines.map((l) => l.itemTemplatePath).filter((p) => p.startsWith('/trade/fishing/'));
-    expect(tackle).toHaveLength(6);
+    expect(tackle).toHaveLength(10);
     for (const p of tackle) {
       expect(rowExists(p), p).toBe(true);
       expect(counter.prices[p], p).toBeGreaterThan(0);

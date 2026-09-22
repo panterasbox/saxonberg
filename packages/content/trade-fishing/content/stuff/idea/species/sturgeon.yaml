@@ -61,6 +61,9 @@ data:
     role: apex
     abundance: 2
     fightRating: 1.0
+    # ⭐ Where it feeds (B8): the bottom of the deep water. Nobody
+    # floats for a sturgeon.
+    feedsAt: bottom
   butcheryYield:
     - { cut: /trade/fishing/thing/fillet, units: 8 }
     - { cut: /trade/fishing/thing/roe, units: 3 }

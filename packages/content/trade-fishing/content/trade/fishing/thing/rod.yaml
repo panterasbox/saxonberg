@@ -1,7 +1,10 @@
-# A cane rod — the tackle. `capabilities: [angling]` is what the `fish`
-# view's rod argument finds; `epoch: medieval` is a stamp the land-use
-# covenant will read. `showing: 1` is an ordinary rod; a finer one
-# shows the bait better and bites more.
+# A cane rod — the plain tackle: a free line (`presentsAt: mid`), an
+# ordinary hook, the default line. `capabilities: [angling]` is what
+# the `fish` view's rod argument finds; `epoch: medieval` is a stamp
+# the land-use covenant will read. ⭐ The rig is numbers on the rod
+# (B8): the float rod and the ledger rod are the same class with the
+# numbers turned, and the trade-off between them is authored here —
+# never coded.
 class: /trade/fishing/thing/Rod
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -15,4 +18,5 @@ data:
   capabilities: [angling]
   epoch: medieval
   showing: 1
+  presentsAt: mid
   _materialPath: /stuff/idea/material/wood/oak

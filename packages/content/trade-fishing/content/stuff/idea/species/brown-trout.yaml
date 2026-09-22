@@ -60,6 +60,9 @@ data:
     role: predator
     abundance: 30
     fightRating: 0.5
+    # ⭐ Where it feeds (B8): a trout takes anywhere in the column — a
+    # free line finds it; a float and a ledger each find it half the time.
+    feedsAt: mid
   butcheryYield:
     - { cut: /trade/fishing/thing/fillet, units: 2 }
     - { cut: /trade/fishing/thing/roe, units: 1 }

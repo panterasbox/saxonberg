@@ -16,8 +16,12 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { FishingController, FISHING_TOPIC } from './FishingController';
 import Trap from '../../../thing/Trap';
+
+const WATER = '/stuff/idea/material/bulk/water';
 
 interface LayModel extends CommandModel {
   trap: MqlOneResult;
@@ -48,6 +52,16 @@ export default class LayController extends FishingController<LayModel> {
     }
     ContainmentApi.move(trap as Stuff & Containable, room as Stuff & Container);
     trap.markSet(WorldClockApi.getNow().rawValue(), reach, giver.getIdentityPath() ?? '');
+    // ⭐ A laid trap with an interior is full of the water it lies in —
+    // which is what keeps a keepnet's fish alive (B8).
+    if (trap.hasInteriorBulk()) {
+      const capacity = trap.getInteriorCapacity();
+      const water = StuffApi.findByTemplatePath<Material>(WATER);
+      if (capacity !== null && water) {
+        trap.setBulkMaterial('interior', water);
+        trap.setBulkAmount('interior', capacity);
+      }
+    }
     MessageApi.scene(giver)
       .topic(FISHING_TOPIC)
       .toSelf(Mml.compose`You lay ${Mml.thing(trap)} in the water and mark the spot.`)

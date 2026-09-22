@@ -150,6 +150,10 @@ const TACKLE_LINES = [
   "/trade/fishing/thing/net",
   "/trade/fishing/thing/fish-bowl",
   "/trade/fishing/thing/fish-food",
+  "/trade/fishing/thing/float-rod",
+  "/trade/fishing/thing/ledger-rod",
+  "/trade/fishing/thing/spoon",
+  "/trade/fishing/thing/keepnet",
 ] as const;
 
 // ⭐ The armour + arms line (injury build W-A5 / W-C1 / W-C2) and the

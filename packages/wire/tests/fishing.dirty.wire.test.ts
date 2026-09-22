@@ -47,8 +47,8 @@ import {
 
 export const DIRTY_REASON =
   'issues coin, opens two accounts, buys tackle at the general store, draws the ' +
-  'confluence’s record down with a net, consigns and buys a fish, names a carp — ' +
-  'none of it produced again';
+  'confluence’s record down with a net, consigns and buys a fish, names a carp, ' +
+  'biases four species’ abundance for the rig — none of it produced again';
 
 declareFile({
   file: 'fishing.dirty.wire.test.ts',
@@ -149,6 +149,18 @@ async function evalOn(s: Session, target: string, expr: string): Promise<string>
  * gain when the rod nods — which lands every fighter the contest opens.
  */
 async function fishUntilLanded(s: Session, line = 'fish with worm', maxTicks = 60): Promise<string> {
+  const landed = await castFor(s, line, maxTicks);
+  if (landed === null) throw new Error(`nothing took in ${maxTicks} ticks`);
+  return landed;
+}
+
+/**
+ * Cast and play for `maxTicks`; the keyword of what landed, or `null`
+ * when nothing took — which is an answer (B8: a float over a bottom
+ * feeder, a big hook over crabs). `work` reels every waiting tick, which
+ * is how a lure fishes at all.
+ */
+async function castFor(s: Session, line: string, maxTicks: number, work = false): Promise<string | null> {
   await reelIn(s);
   // Empty hands first: a fish already held (a dead one from an earlier
   // step) would read as this cast's landing.
@@ -169,10 +181,10 @@ async function fishUntilLanded(s: Session, line = 'fish with worm', maxTicks = 6
       await s.drainProse();
       return held;
     }
-    const act = strainHigh === null || strainHigh ? 'slack' : 'reel';
+    const act = strainHigh === null ? (work ? 'reel' : 'slack') : strainHigh ? 'slack' : 'reel';
     const r = await s.cmd(act);
     const spoke = squash(await r.said());
-    if (/Nothing is on it/i.test(spoke)) continue; // still waiting
+    if (/Nothing is on it|work the lure/i.test(spoke)) continue; // still waiting
     if (/no line out/i.test(spoke)) {
       const landed = await fishInHand(s);
       if (landed) return landed;
@@ -180,7 +192,8 @@ async function fishUntilLanded(s: Session, line = 'fish with worm', maxTicks = 6
     }
     strainHigh = /singing|bent hard/i.test(spoke);
   }
-  throw new Error(`nothing took in ${maxTicks} ticks`);
+  await reelIn(s);
+  return null;
 }
 
 beforeAll(async () => {
@@ -200,7 +213,7 @@ beforeAll(async () => {
   s = await Session.open(handle, { startLocation: STORE, wizard: true });
   // ⚠ `pot` alone is the farming pack's clay pot at this counter; the
   // crab pot answers to `crab-pot`.
-  for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food']) {
+  for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food', 'float-rod', 'ledger-rod', 'spoon', 'keepnet']) {
     expectOk(await s.cmd(`buy ${good}`));
   }
   s.close();
@@ -215,7 +228,7 @@ suite('1 · the store', () => {
   it('each is a real thing in hand; `look rod` names no number', async () => {
     await me.drainProse();
     const inv = await inventory(me);
-    for (const w of ['rod', 'worm', 'crab pot', 'net', 'bowl', 'fish food']) expect(inv).toMatch(new RegExp(w, 'i'));
+    for (const w of ['rod', 'worm', 'crab pot', 'net', 'bowl', 'fish food', 'float rod', 'ledger rod', 'spoon', 'keepnet']) expect(inv).toMatch(new RegExp(w, 'i'));
     const rod = await peek(me, 'rod');
     expect(rod).toMatch(/cane rod/i);
     noDigits(rod);
@@ -540,6 +553,16 @@ suite('13b · the millsite', () => {
   }, 120_000);
 });
 
+/** The wizard sets one species' abundance back to a number. */
+async function setAbundance(s: Session, species: string, abundance: number): Promise<void> {
+  const said = squash(
+    await s.prose(
+      `eval ${PARCEL} return (sp => (sp.setHabitat({ ...sp.getHabitat(), abundance: ${abundance} }), sp.getHabitat().abundance))(StuffApi.findByTemplatePath("/stuff/idea/species/${species}"))`,
+    ),
+  );
+  expect(said, said).toMatch(new RegExp(String(abundance)));
+}
+
 /** The wizard biases the draw: one species made the water's most abundant, for a wait. */
 async function bias(s: Session, species: string, fightRating: number): Promise<void> {
   const said = squash(
@@ -619,4 +642,74 @@ suite('16 · the sturgeon', () => {
       s.close();
     }
   }, 900_000);
+});
+
+suite('17 · the rig, the lure and the keepnet (B8)', () => {
+  it('⭐ the rig is where the bait sits: a ledger over a surface shoal is a long afternoon; the float takes a mullet', async () => {
+    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    try {
+      await setAbundance(s, 'sturgeon', 2);
+      await bias(s, 'grey-mullet', 0.1);
+      // The ledger pins the worm to the bottom; the mullet feed at the top.
+      expect(await castFor(s, 'fish with worm using ledger-rod', 10)).not.toBe('mullet');
+      // The float hangs it where they are.
+      expect(await fishUntilLanded(s, 'fish with worm using float-rod', 30)).toBe('mullet');
+    } finally {
+      s.close();
+    }
+  }, 600_000);
+
+  it('⭐ the hook selects: a big hook over crabs takes nothing, silently; the plain hook takes a crab', async () => {
+    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    try {
+      await setAbundance(s, 'grey-mullet', 50);
+      await bias(s, 'shore-crab', 0.1);
+      // Ledgered right on the bottom where they are — and a hook a crab
+      // cannot get round. Nothing prints; the worm stays.
+      expect(await castFor(s, 'fish with worm using ledger-rod', 6)).toBeNull();
+      expect(await inventory(s)).toMatch(/worm/i);
+      expect(await fishUntilLanded(s, 'fish with worm using rod', 30)).toBe('shore-crab');
+    } finally {
+      s.close();
+    }
+  }, 600_000);
+
+  it('⭐ a spoon fishes only while it is worked; it takes a trout and is still on the line after', async () => {
+    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    try {
+      await setAbundance(s, 'shore-crab', 60);
+      await bias(s, 'brown-trout', 0.1);
+      // Left to lie, a spoon is a stone.
+      expect(await castFor(s, 'fish with spoon using rod', 8)).toBeNull();
+      // Worked every minute, it takes — and it is not eaten.
+      expect(await castFor(s, 'fish with spoon using rod', 40, true)).toBe('trout');
+      expect(await inventory(s)).toMatch(/spoon/i);
+    } finally {
+      s.close();
+    }
+  }, 600_000);
+
+  it('⭐ a landed fish in a laid keepnet is alive a minute later; hauled, it is in your hand — and a minute in the hand is a dead fish', async () => {
+    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    try {
+      const kept = await fishUntilLanded(s, 'fish with worm using rod', 40);
+      expectOk(await s.cmd('lay keepnet'));
+      expectOk(await s.cmd(`put ${kept} in keepnet`));
+      await s.drainProse();
+      expect(await fishInHand(s)).toBeNull();
+      await sleep(60_000);
+      const alive = await evalOn(s, 'keepnet', 'return [...this.getContents()].map((f) => String(f.isAlive())).join(",")');
+      expect(alive, alive).toMatch(/^true/);
+      const haul = await s.cmd('haul keepnet');
+      expectOk(haul);
+      expect(squash(await haul.said())).toMatch(/take out what you kept/i);
+      expect(await fishInHand(s)).toBe(kept);
+      // The control: the same fish, a minute in the air.
+      await sleep(60_000);
+      const dead = await evalOn(s, kept, 'return String(this.isAlive())');
+      expect(dead, dead).toMatch(/^false/);
+    } finally {
+      s.close();
+    }
+  }, 600_000);
 });

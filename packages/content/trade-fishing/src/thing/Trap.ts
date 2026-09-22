@@ -1,7 +1,19 @@
 /**
- * Trap — **a pot and a net are one class and two rows** (fishing D13).
- * They differ by numbers only: how fast each draws, which roles it
- * takes, and how much it holds. There is no `trapKind` branch anywhere.
+ * Trap — **a pot, a net and a keepnet are one class and three rows**
+ * (fishing D13, B8). They differ by numbers only: how fast each draws,
+ * which roles it takes, and how much it holds. There is no `trapKind`
+ * branch anywhere.
+ *
+ * ## A trap is a container, and a laid one is full of water (B8)
+ *
+ * A trap holds what is in it — what the water put there, or what you
+ * put there. The **keepnet** is the trap that draws nothing
+ * (`drawPerHour: 0`) and is only ever filled by hand: `put trout in
+ * keepnet` while it is laid, and the trout lives, because a laid trap
+ * with an interior (`interiorBulk: true`) is full of the reach's water
+ * and respiration reads the vessel a body is inside. `haul` drains it
+ * and hands you what it held. No new machinery: the bowl's immersion
+ * read, the trap's lay/haul.
  *
  * ## Lay, then haul — reconcile at the haul
  *
@@ -15,6 +27,8 @@
  */
 
 import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -22,7 +36,9 @@ import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { HabitatRole } from '@saxonberg/server/mud/platform/idea/species/Species';
 import { HABITAT_ROLES } from '@saxonberg/server/mud/platform/idea/species/Species';
 
-export default class Trap extends ToolItem {
+const TrapBase = BulkableMixin(ContainerMixin(ToolItem));
+
+export default class Trap extends TrapBase {
   static commandContributions: CommandContributions = {
     self: [],
     // `peers` = whoever stands where it lies (a set trap in the water);

@@ -1,0 +1,24 @@
+# A ledger rod — a stout rod, a heavy gut line and a lead weight that
+# pins the bait to the BOTTOM (B8): the eel rig, the carp rig, and the
+# only rod here that holds a sturgeon (`breakStrain: 0.75`). Heavy
+# line shows the bait poorly (`showing: 0.8`), and the big hook takes
+# nothing small. You choose it for what you are fishing FOR.
+class: /trade/fishing/thing/Rod
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [rod, ledger-rod, ledger, tackle]
+  primaryKeyword: ledger-rod
+  shortDescription: ledger rod
+  register: indefinite
+  longDescription: >-
+    A stout rod with a heavy gut line, a lead weight a hand's length
+    above a big hook. The weight sits on the bottom and the bait sits
+    beside it.
+  mass: 1.4
+  capabilities: [angling]
+  epoch: medieval
+  showing: 0.8
+  breakStrain: 0.75
+  presentsAt: bottom
+  hookGapeM: 0.02
+  _materialPath: /stuff/idea/material/wood/oak

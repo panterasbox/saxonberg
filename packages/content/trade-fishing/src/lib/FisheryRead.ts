@@ -24,6 +24,8 @@ export interface SpeciesStanding {
   stocked: boolean;
   role: 'bait' | 'forage' | 'predator' | 'apex';
   fightRating: number;
+  /** Where in the column it feeds; absent = anywhere (B8). */
+  feedsAt?: 'surface' | 'mid' | 'bottom';
 }
 
 export interface FisheryStanding {

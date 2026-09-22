@@ -19,6 +19,16 @@ export default class ReelController extends FishingController<CommandModel> {
       return;
     }
     if (!live.isFighting()) {
+      // ⭐ A lure is worked, not waited on: reeling with nothing on the
+      // line is how a spoon fishes at all (B8).
+      if (live.work()) {
+        MessageApi.scene(giver)
+          .topic(FISHING_TOPIC)
+          .toSelf(Mml.compose`You work the lure back through the water, a turn at a time.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} works the line back in, a turn at a time.`)
+          .send();
+        return;
+      }
       MessageApi.scene(giver).topic(FISHING_TOPIC).toSelf(Mml.compose`You take in a little line. Nothing is on it.`).send();
       return;
     }

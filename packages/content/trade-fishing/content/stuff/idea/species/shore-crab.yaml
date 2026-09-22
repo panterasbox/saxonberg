@@ -56,6 +56,8 @@ data:
     role: bait
     abundance: 60
     fightRating: 0.1
+    # ⭐ Where it feeds (B8): the bottom, where the pot is.
+    feedsAt: bottom
   butcheryYield:
     - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-

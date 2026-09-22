@@ -13,7 +13,9 @@ help: |
 
   A pot takes the small things that crawl — crabs, mostly. A net takes
   everything, fast, and a reach netted an afternoon is a reach with
-  nothing left in it for days.
+  nothing left in it for days. A keepnet takes nothing: `lay keepnet`
+  and `put` what you land in it, and it lives there until you `haul`
+  it — keep or let go is yours, not the clock's.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

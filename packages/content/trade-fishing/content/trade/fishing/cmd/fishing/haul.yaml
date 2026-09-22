@@ -4,7 +4,9 @@ description: "Haul a set pot or net"
 help: |
   `haul pot` brings a set pot or net out of the water with whatever the
   water put in it. Nothing tells you what was luck. (`lift` is what you
-  do to a bar.)
+  do to a bar.) `haul keepnet` brings up what you kept in it, alive —
+  a laid keepnet is full of the water it lies in, and what you `put`
+  in it swims.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

@@ -177,6 +177,101 @@ describe('the wait', () => {
   });
 });
 
+describe('the rig (B8)', () => {
+  const full = (over: Partial<SpeciesStanding>) => ({ reachRef: 'kestrel:confluence', species: [species({ fightRating: 0.1, ...over })], water: WATER, contamination: null });
+  /** Minutes to the first bite, capped. */
+  async function minutesToBite(e: FishingEngagement, cap = 200): Promise<number> {
+    let m = 0;
+    while (sent.length === 0 && m < cap) {
+      await minute(e);
+      m += 1;
+    }
+    return m;
+  }
+
+  it('⭐ where the rig presents against where the species feeds: a float over a bottom feeder is a long afternoon; the same float over a surface feeder is the whole bite; a species that authors no layer feeds anywhere', async () => {
+    rod.setPresentsAt('surface');
+    const onTheBottom = await minutesToBite(engagement(makeStuff(() => new Angler()), registry(full({ feedsAt: 'bottom' })), makeStuff(() => new Bait())));
+    sent = [];
+    const atTheSurface = await minutesToBite(engagement(makeStuff(() => new Angler()), registry(full({ feedsAt: 'surface' })), makeStuff(() => new Bait())));
+    sent = [];
+    const anywhere = await minutesToBite(engagement(makeStuff(() => new Angler()), registry(full({})), makeStuff(() => new Bait())));
+    expect(atTheSurface).toBeLessThanOrEqual(12);
+    expect(anywhere).toBe(atTheSurface);
+    expect(onTheBottom).toBeGreaterThan(atTheSurface * 5);
+    // A free line finds a bottom feeder half the time.
+    sent = [];
+    rod.setPresentsAt('mid');
+    const freeLined = await minutesToBite(engagement(makeStuff(() => new Angler()), registry(full({ feedsAt: 'bottom' })), makeStuff(() => new Bait())));
+    expect(freeLined).toBeGreaterThan(atTheSurface);
+    expect(freeLined).toBeLessThan(onTheBottom);
+  });
+
+  it('⭐ the hook selects: a big gape and a small fish is a nibble that prints nothing and keeps the bait; a small gape takes it', async () => {
+    rod.setHookGapeM(0.03); // takes a fish 24 cm and up; the stub's stature is 0.4 × (0.6..1.6)
+    vi.spyOn(StuffApi, 'singleton').mockImplementation((async () => ({ getStature: () => 0.02 })) as never); // minnows
+    const bait = makeStuff(() => new Bait());
+    const reg = registry(full({}));
+    const e = engagement(makeStuff(() => new Angler()), reg, bait);
+    for (let i = 0; i < 40; i++) await minute(e);
+    expect(sent).toEqual([]);
+    expect(reg.drawn).toEqual([]);
+    expect(bait.isDestroyed()).toBe(false);
+    rod.setHookGapeM(0.002);
+    const e2 = engagement(makeStuff(() => new Angler()), reg, bait);
+    for (let i = 0; i < 40 && sent.length === 0; i++) await minute(e2);
+    expect(reg.drawn).toHaveLength(1);
+  });
+
+  it('⭐ a lure fishes only while it is worked, draws predators only, and is not consumed at the take', async () => {
+    const spoon = makeStuff(() => new Bait());
+    spoon.setBaitKind('lure');
+    const predator = full({ role: 'predator', name: 'brown trout' });
+    // Unworked: a spoon on the bottom is a stone.
+    const idle = engagement(makeStuff(() => new Angler()), registry(predator), spoon);
+    for (let i = 0; i < 40; i++) await minute(idle);
+    expect(sent).toEqual([]);
+    // Worked every minute: it takes.
+    const angler = makeStuff(() => new Angler());
+    const reg = registry(predator);
+    const worked = engagement(angler, reg, spoon);
+    let m = 0;
+    while (sent.length === 0 && m < 40) {
+      expect(worked.work()).toBe(true);
+      await minute(worked);
+      m += 1;
+    }
+    expect(reg.drawn).toHaveLength(1);
+    expect(spoon.isDestroyed()).toBe(false);
+    // A forage fish never strikes a spoon, worked or not.
+    sent = [];
+    const forage = engagement(makeStuff(() => new Angler()), registry(full({ role: 'forage' })), spoon);
+    for (let i = 0; i < 40; i++) {
+      forage.work();
+      await minute(forage);
+    }
+    expect(sent).toEqual([]);
+    // No lure: nothing to work.
+    expect(engagement(makeStuff(() => new Angler()), reg, makeStuff(() => new Bait())).work()).toBe(false);
+  });
+
+  it('⭐ a small landed fish on the hook is a baitfish; a big one is nothing', async () => {
+    const minnow = makeStuff(() => new Fish());
+    minnow.setLengthM(0.1);
+    const reg = registry(full({ role: 'predator' }));
+    const e = engagement(makeStuff(() => new Angler()), reg, minnow);
+    for (let i = 0; i < 20 && sent.length === 0; i++) await minute(e);
+    expect(reg.drawn).toHaveLength(1);
+    expect(minnow.isDestroyed()).toBe(true);
+    sent = [];
+    const big = makeStuff(() => new Fish());
+    big.setLengthM(0.6);
+    const e2 = engagement(makeStuff(() => new Angler()), registry(full({ role: 'predator' })), big);
+    for (let i = 0; i < 40; i++) await minute(e2);
+    expect(sent).toEqual([]);
+  });
+});
+
 describe('the bite', () => {
   it('⭐ a small fish lands itself into the hand, is drawn from the record, and its size is words', async () => {
     const angler = makeStuff(() => new Angler());

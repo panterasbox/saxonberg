@@ -266,6 +266,14 @@ export const HABITAT_ROLES = ['bait', 'forage', 'predator', 'apex'] as const;
 export type HabitatRole = (typeof HABITAT_ROLES)[number];
 
 /**
+ * Where in the column a species feeds — what a float rig, a free line
+ * and a ledger rig each put a bait in front of (fishing B8). Absent =
+ * anywhere (unmodelled is not zero).
+ */
+export const WATER_LAYERS = ['surface', 'mid', 'bottom'] as const;
+export type WaterLayer = (typeof WATER_LAYERS)[number];
+
+/**
  * What a species needs of a water, and what it is worth in one. A
  * species authors ONLY what distinguishes it: an absent parameter is
  * factor 1 (soil's rule — *unmodelled is not zero*).
@@ -279,6 +287,8 @@ export interface Habitat {
   abundance: number;
   /** `0..1` — what a hooked one does; drives the contest and the size band. */
   fightRating: number;
+  /** Where in the column it feeds; absent = anywhere. */
+  feedsAt?: WaterLayer;
 }
 
 /** What `fitIn` answers: the fit, and the one thing that limits it. */
@@ -841,6 +851,12 @@ export default class Species extends SingletonMixin(
       this.habitat = null;
       return;
     }
+    if (value.feedsAt !== undefined && !(WATER_LAYERS as readonly string[]).includes(value.feedsAt)) {
+      throw new Error(
+        `Species.setHabitat: '${String(value.feedsAt)}' is not a water ` +
+          `layer. One of: ${WATER_LAYERS.join(', ')}.`,
+      );
+    }
     if (!(HABITAT_ROLES as readonly string[]).includes(value.role)) {
       throw new Error(
         `Species.setHabitat: '${String(value.role)}' is not a habitat ` +
@@ -868,6 +884,7 @@ export default class Species extends SingletonMixin(
       role: value.role,
       abundance: Math.max(0, Number(value.abundance) || 0),
       fightRating: Math.max(0, Math.min(1, Number(value.fightRating) || 0)),
+      ...(value.feedsAt !== undefined ? { feedsAt: value.feedsAt } : {}),
     };
   }
 

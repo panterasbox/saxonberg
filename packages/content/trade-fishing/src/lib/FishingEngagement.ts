@@ -8,7 +8,11 @@
  * Each tick the engagement asks the water pack's record what the reach
  * holds and accumulates **pressure** — deterministically — from every
  * species' level, the hour (dawn and dusk), the weather (rain on the
- * water), whether the bait suits the species' role, and the tackle.
+ * water), whether the bait suits the species' role, ⭐ where the rig
+ * presents it against where the species feeds (B8: a float over a
+ * bottom feeder is a long wait), and the tackle. A hook a fish cannot
+ * get its mouth round takes nothing from that species. A **lure** adds
+ * pressure only while it is being worked (`reel` during the wait).
  * When pressure crosses one there is a take, and **the one draw** in
  * the whole act decides which species: a seeded unit weighted by each
  * species' term. Epistemic, not resolutional — what the water held under
@@ -58,7 +62,14 @@ import type { FisheryRegistry, FisheryStanding, SpeciesStanding } from './Fisher
 import type { FeedFactors } from '../idea/Waters';
 import Fish from '../agent/Fish';
 import Bait from '../thing/Bait';
-import Rod from '../thing/Rod';
+import Rod, { type RigLayer } from '../thing/Rod';
+
+/** A `Fish` this long or shorter goes on a hook as a baitfish. */
+const BAITFISH_MAX_M = 0.25;
+/** A fish takes a hook when it is at least this many gapes long. */
+const GAPES_PER_FISH = 8;
+/** A worked lure draws for this many ticks after the last `reel`. */
+const LURE_WORKED_TICKS = 2;
 
 export const FISHING_TYPE = 'fishing';
 export const FISHING_TOPIC = 'act.deed';
@@ -113,6 +124,8 @@ export class FishingEngagement implements SustainedEngagement {
   private contest: LandingContest | null = null;
   private hooked: SpeciesStanding | null = null;
   private hookedLengthM = 0;
+  /** The tick the lure was last worked, `-1` never. */
+  private workedAtTick = -1;
 
   constructor(spec: FishingSpec) {
     this.actor = spec.actor;
@@ -178,6 +191,21 @@ export class FishingEngagement implements SustainedEngagement {
     return this.resolve(this.contest.slack());
   }
 
+  /**
+   * ⭐ `reel` with nothing on the line **works the lure**: a spoon only
+   * fishes while it moves. `true` when there is a lure to work.
+   */
+  public work(): boolean {
+    if (!this.isLure()) return false;
+    this.workedAtTick = this.tickIndex;
+    return true;
+  }
+
+  /** Is a lure on the hook? */
+  public isLure(): boolean {
+    return this.bait instanceof Bait && !this.bait.isDestroyed() && this.bait.getBaitKind() === 'lure';
+  }
+
   /* ─────────────────────────── the beat ─────────────────────────── */
 
   private async tick(): Promise<void> {
@@ -236,13 +264,16 @@ export class FishingEngagement implements SustainedEngagement {
    * the draw (its LEVEL — how many of them are there).
    */
   private terms(standing: FisheryStanding, factors: FeedFactors): Array<{ species: SpeciesStanding; term: number; weight: number }> {
-    const showing = this.rod instanceof Rod ? this.rod.getShowing() : 1;
+    const rod = this.rod instanceof Rod ? this.rod : null;
+    const showing = rod?.getShowing() ?? 1;
     const out: Array<{ species: SpeciesStanding; term: number; weight: number }> = [];
     for (const s of standing.species) {
       if (s.capacity <= 0 || s.level <= 0) continue;
       const match = this.baitMatch(s.role);
       if (match <= 0) continue;
-      const factor = factors.twilight * factors.weather * match * showing;
+      const presented = presentation(rod?.getPresentsAt() ?? 'mid', s.feedsAt);
+      if (presented <= 0) continue;
+      const factor = factors.twilight * factors.weather * match * presented * showing;
       out.push({
         species: s,
         term: (s.level / s.capacity) * factor,
@@ -256,28 +287,53 @@ export class FishingEngagement implements SustainedEngagement {
   private baitMatch(role: SpeciesStanding['role']): number {
     const matched = dial('fishing.bite.match', 1);
     if (this.bait === null || this.bait.isDestroyed()) return dial('fishing.bite.bareHook', 0.15);
-    if (!(this.bait instanceof Bait)) return 0; // crumbs, a boot — nothing takes it
-    switch (this.bait.getBaitKind()) {
+    switch (this.baitKind()) {
       case 'worm':
         return role === 'bait' || role === 'forage' ? matched : role === 'predator' ? matched * 0.5 : matched * 0.3;
       case 'baitfish':
         return role === 'predator' || role === 'apex' ? matched : role === 'forage' ? matched * 0.3 : 0;
+      case 'lure':
+        // A spoon fishes only while it moves: predators strike at the
+        // flash, and a lure lying on the bottom is a stone.
+        if (this.tickIndex - this.workedAtTick > LURE_WORKED_TICKS) return 0;
+        return role === 'predator' || role === 'apex' ? matched : 0;
       case 'crumbs':
-        return 0;
+      case null:
+        return 0; // a scrap, a boot — nothing takes it
     }
+  }
+
+  /**
+   * What is on the hook, read from the thing itself: a `Bait` row says;
+   * a small landed `Fish` is a baitfish; anything that is bread is
+   * crumbs; anything else is nothing.
+   */
+  private baitKind(): 'worm' | 'baitfish' | 'crumbs' | 'lure' | null {
+    const bait = this.bait;
+    if (bait === null || bait.isDestroyed()) return null;
+    if (bait instanceof Bait) return bait.getBaitKind();
+    if (bait instanceof Fish) return bait.effectiveLengthM() <= BAITFISH_MAX_M ? 'baitfish' : null;
+    if (MixinApi.isTangible(bait) && bait.hasMaterialTag('bread')) return 'crumbs';
+    return null;
   }
 
   /** The take: consume the bait, size the fish, land it or open the fight. */
   private async take(species: SpeciesStanding, nowS: number): Promise<FishingEvent | null> {
-    if (this.bait !== null && !this.bait.isDestroyed()) {
-      StuffApi.destruct(this.bait);
-      this.bait = null;
-    }
     // The individual's length, seeded around the species' stature — the
     // ordinal is how many this wait has taken, so no two are alike.
     const stature = await this.statureOf(species.speciesPath);
     const spread = Seeded.unit(hashString(`${this.reachRef}|${species.speciesPath}`), this.tickIndex + 7);
     this.hookedLengthM = stature * (0.6 + spread);
+    // ⭐ The hook selects: a fish that cannot get its mouth round the
+    // gape nibbles and is gone — a tick that prints nothing, which is
+    // exactly what it feels like. The bait stays.
+    const gape = this.rod instanceof Rod ? this.rod.getHookGapeM() : 0;
+    if (gape > 0 && this.hookedLengthM < gape * GAPES_PER_FISH) return null;
+    // A lure is worked, not eaten; everything else is gone at the take.
+    if (this.bait !== null && !this.bait.isDestroyed() && !this.isLure()) {
+      StuffApi.destruct(this.bait);
+      this.bait = null;
+    }
     const fight = species.fightRating * (stature > 0 ? this.hookedLengthM / stature : 1);
 
     if (fight < dial('fishing.contest.fighterAt', 0.45)) {
@@ -449,6 +505,19 @@ export class FishingEngagement implements SustainedEngagement {
 }
 
 /* ───────────────────────── module-private ───────────────────────── */
+
+/**
+ * ⭐ Where the rig puts the bait against where the species feeds: the
+ * same layer is the whole bite, the next layer over half of it, the
+ * far side of the column almost none — a float over an eel is a long
+ * afternoon. A species that authors no layer feeds anywhere.
+ */
+function presentation(rig: RigLayer, feedsAt: SpeciesStanding['feedsAt']): number {
+  if (feedsAt === undefined) return 1;
+  if (rig === feedsAt) return 1;
+  if (rig === 'mid' || feedsAt === 'mid') return 0.5;
+  return 0.1;
+}
 
 function dial(key: string, fallback: number): number {
   try {

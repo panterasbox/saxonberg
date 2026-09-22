@@ -123,6 +123,8 @@ export interface SpeciesStanding {
   stocked: boolean;
   role: Habitat['role'];
   fightRating: number;
+  /** Where in the column it feeds; absent = anywhere (fishing B8). */
+  feedsAt?: Habitat['feedsAt'];
 }
 
 /** What a reach holds — the whole read, for a trade, a brain or a test. */
@@ -199,6 +201,7 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
         stocked: stock !== undefined,
         role: habitat.role,
         fightRating: habitat.fightRating,
+        ...(habitat.feedsAt !== undefined ? { feedsAt: habitat.feedsAt } : {}),
       });
     }
     return { reachRef, species, water, flow, contamination };

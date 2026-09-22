@@ -1,7 +1,9 @@
 /**
  * HaulController — `haul <trap>`: what the water put in it since it was
  * set, reconciled now against the reach's record, into your hands. The
- * fraction is one seeded unit; nothing says which was luck.
+ * fraction is one seeded unit; nothing says which was luck. ⭐ And
+ * whatever was already IN it — a keepnet's fish — comes up with it and
+ * into your hands too; the water it held drains away (B8).
  */
 
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
@@ -11,6 +13,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -72,11 +75,24 @@ export default class HaulController extends FishingController<HaulModel> {
         took.push(species.name);
       }
     }
+    // What it already held comes out into your hands — a keepnet's
+    // fish, a crab somebody put back in the pot.
+    const held: string[] = [];
+    for (const item of [...trap.getContents()]) {
+      if (!MixinApi.isContainable(item)) continue;
+      ContainmentApi.move(item as Stuff & Containable, giver as Stuff & Container);
+      held.push(item.getPresentation());
+    }
+    if (trap.hasInteriorBulk()) trap.setBulkAmount('interior', Quantity.of(0, 'L'));
     trap.markLifted();
     ContainmentApi.move(trap as Stuff & Containable, giver as Stuff & Container);
 
     const scene = MessageApi.scene(giver).topic(FISHING_TOPIC);
-    if (took.length === 0) {
+    if (took.length === 0 && held.length > 0) {
+      scene
+        .toSelf(Mml.compose`You haul ${Mml.thing(trap)} up and take out what you kept in it: ${held.join(', ')}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} hauls ${Mml.thing(trap)} out of the water and takes something out of it.`);
+    } else if (took.length === 0) {
       scene
         .toSelf(Mml.compose`You haul ${Mml.thing(trap)} up. Nothing in it.`)
         .toPeers(Mml.compose`${Mml.actor(giver)} hauls ${Mml.thing(trap)} out of the water, empty.`);

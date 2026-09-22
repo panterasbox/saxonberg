@@ -46,6 +46,17 @@ describe('setHabitat', () => {
     expect(s.getHabitat()).toBeNull();
   });
 
+  it('⭐ feedsAt — where in the column it feeds — rides the habitat; absent is anywhere; an unknown layer is refused (fishing B8)', () => {
+    const s = makeStuff(() => new Species());
+    s.setHabitat({ tolerances: {}, role: 'forage', abundance: 1, fightRating: 0, feedsAt: 'bottom' });
+    expect(s.getHabitat()?.feedsAt).toBe('bottom');
+    s.setHabitat({ tolerances: {}, role: 'forage', abundance: 1, fightRating: 0 });
+    expect(s.getHabitat()?.feedsAt).toBeUndefined();
+    expect(() =>
+      s.setHabitat({ tolerances: {}, role: 'forage', abundance: 1, fightRating: 0, feedsAt: 'deep' as never }),
+    ).toThrow(/not a water layer/);
+  });
+
   it('⚠ refuses an unknown parameter word rather than dropping it', () => {
     const s = makeStuff(() => new Species());
     expect(() =>

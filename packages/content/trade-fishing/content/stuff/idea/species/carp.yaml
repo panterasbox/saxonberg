@@ -62,6 +62,10 @@ data:
     role: forage
     abundance: 30
     fightRating: 0.3
+    # ⭐ Where it feeds (B8): the bottom, rooting in the mud — `surface`
+    # above is the HAND rung (it comes up for what you drop), not where
+    # a hook finds it.
+    feedsAt: bottom
   butcheryYield:
     - { cut: /trade/fishing/thing/fillet, units: 2 }
     - { cut: /trade/fishing/thing/roe, units: 1 }

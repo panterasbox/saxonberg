@@ -4,9 +4,18 @@ description: "Cast a line and wait"
 help: |
   `fish` casts out with the rod in your hands, bare-hooked. `fish with
   worm` baits the hook first — and what you put on it decides what comes
-  to it: a worm for the small fish that feed on the bottom, a baitfish
-  for the ones that hunt them. Where there is more than one water in
-  reach, `fish at the bank` says which.
+  to it: a worm for the small fish that feed on the bottom, a small fish
+  you landed for the ones that hunt them, a crust of bread for what
+  comes up for crumbs, a spoon for the hunters — but a spoon only fishes
+  while you `reel` it. Where there is more than one water in reach,
+  `fish at the bank` says which; `fish using float-rod` says which rod.
+
+  The rod is the rig. A float rod hangs the bait at the surface on a
+  fine line; a ledger rod pins it to the bottom on a heavy one; the
+  plain cane rod drifts between. Fish feed where they feed — a float
+  over an eel is a long afternoon — and a hook a fish cannot get its
+  mouth round takes nothing from it, silently. Heavy line holds the big
+  one and shows the bait worse; fine line bites more and parts.
 
   Then you wait. The line stays slack for a while and nothing tells you
   why. A small fish comes in on its own; a big one runs, and the rod

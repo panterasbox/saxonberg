@@ -2,7 +2,11 @@
  * Bait — what goes on the hook. One class, rows for the kinds: a worm
  * suits forage and bait fish, a baitfish suits a predator, and what
  * suits what is the species' `role` read against `baitKind` at the
- * bite. Consumed at the take.
+ * bite. Consumed at the take — ⭐ except a **lure** (B8): a spoon is not
+ * eaten, it is *worked* — it only draws a predator while the angler is
+ * reeling it, so lure fishing is active where bait fishing is patient.
+ * A landed small `Fish` on the hook reads as `baitfish`, and bread as
+ * `crumbs`; neither needs a row here.
  */
 
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
@@ -10,7 +14,7 @@ import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /** The kinds a bait can be, and what each suits — see `FishingEngagement`. */
-export const BAIT_KINDS = ['worm', 'baitfish', 'crumbs'] as const;
+export const BAIT_KINDS = ['worm', 'baitfish', 'crumbs', 'lure'] as const;
 export type BaitKind = (typeof BAIT_KINDS)[number];
 
 const BaitBase = DetailedMixin(Thing);

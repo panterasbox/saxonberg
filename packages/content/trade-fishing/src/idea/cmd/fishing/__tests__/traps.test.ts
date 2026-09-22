@@ -12,10 +12,8 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Material from '@saxonberg/server/mud/lib/material/Material';
 import Locality from '@saxonberg/server/mud/platform/idea/Locality';
-import PlantPot from '@saxonberg/server/mud/platform/thing/PlantPot';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
-import { SOIL_ORGANIC_MATTER_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
@@ -149,3 +147,50 @@ describe('lay and haul', () => {
   });
 });
 
+describe('the keepnet (B8)', () => {
+  function heldKeepnet(): Trap {
+    const k = makeStuff(() => new Trap());
+    k.setDrawPerHour(0);
+    k.setTakesRoles([]);
+    k.setCapacity(12);
+    k.interiorBulk = true;
+    k.setInteriorCapacity(Quantity.of(60, 'L'));
+    ContainmentApi.move(k as never, angler as never);
+    return k;
+  }
+
+  it('⭐ laid, it fills with the water it lies in; a fish put in it is immersed in water; hauled, it drains and hands the fish back', async () => {
+    makeStuffAtPath(() => new Material(), '/stuff/idea/material/bulk/water');
+    const keepnet = heldKeepnet();
+    expect(keepnet.getBulkAmount('interior').rawValue()).toBe(0);
+    expect(rejected(await run(LayController as never, { trap: { stuff: keepnet, raw: 'keepnet' } }, angler, room, 'lay keepnet'))).toBeNull();
+    expect(keepnet.getBulkAmount('interior').rawValue()).toBe(60);
+    expect(keepnet.getBulkMaterialPath('interior')).toBe('/stuff/idea/material/bulk/water');
+
+    const trout = makeStuff(() => new Fish());
+    ContainmentApi.move(trout as never, keepnet as never);
+    // What respiration reads: the nearest vessel with a bulk interior.
+    expect([...keepnet.getContents()]).toContain(trout);
+
+    WorldClockApi._advanceForTesting?.(3600);
+    const ctx = await run(HaulController as never, { trap: { stuff: keepnet, raw: 'keepnet' } }, angler, room, 'haul keepnet');
+    expect(rejected(ctx)).toBeNull();
+    expect(drawn).toEqual([]); // it draws nothing of its own
+    expect([...angler.getContents()]).toContain(trout);
+    expect([...keepnet.getContents()]).not.toContain(trout);
+    expect(keepnet.getBulkAmount('interior').rawValue()).toBe(0);
+    expect(keepnet.isSet()).toBe(false);
+    expect(sent.join(' ')).toMatch(/take out what you kept/);
+  });
+
+  it('a pot has no interior: laid, it holds no water; hauled with a crab somebody put back in it, the crab comes up too', async () => {
+    const pot = heldPot();
+    expect(rejected(await run(LayController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'lay pot'))).toBeNull();
+    expect(pot.hasInteriorBulk()).toBe(false);
+    const crabBack = makeStuff(() => new Fish());
+    ContainmentApi.move(crabBack as never, pot as never);
+    standing = [crab(0)];
+    await run(HaulController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'haul pot');
+    expect([...angler.getContents()]).toContain(crabBack);
+  });
+});
