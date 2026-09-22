@@ -67,22 +67,7 @@ on a constant.
 
 # ⭐⭐⭐ The load-bearing find: dye is not a cosmetics input
 
-It is a **textiles** input, and cosmetics is a *second* customer of the
-same chain.
-
-The [trade roster](../tails/trade-roster-slate.md) already needs `textiles` and
-`leatherwork` (both in its gap report), and `tailor` is a rostered trade
-in Terminus. Cloth is dyed. Leather is dyed. Hair is dyed. **One chain,
-four demands.**
-
-> **A trade pack is complete when its output has a consumer.** This one
-> has four before it ships, which is the strongest form of that test the
-> content-packs slate offers.
-
-⭐ So cosmetics does **not** want its own industry. It wants to be a
-customer of the dyer's, and the register's `barber / tailor` GAP is
-downstream of a chain nobody has built rather than a vocation waiting on
-demand.
+*Graduated 2026-09-21 → [textiles.md § The chain, as it ships](../../subsystems/textiles.md) (dye is a textiles input; cosmetics is a second customer of the same chain — no cosmetics industry, hair dye the dye chain's next customer behind lineage's appearance substrate, leather's behind a hide faucet).*
 
 ---
 
