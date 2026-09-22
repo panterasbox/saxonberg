@@ -30,8 +30,22 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⚠ ORDER: the binder fills positionals in order and a preposition
+  # skips FORWARD, never back — so `fish with worm using cane` needs the
+  # bait declared before the rod (B8's drive found it as a
+  # shape-fall-through the moment there were three rods in hand).
+  # Anything you are carrying can go on a hook. The engagement decides
+  # what a species makes of it — a worm, a small fish, a crust, a
+  # spoon, or nothing.
+  - name: bait
+    type: object
+    required: false
+    prepositions: [with]
+    scope: ["inventory"]
+    requires: any
   # ⭐ WHICH ROD — declared, not hunted for. `[capability.angling]` asks
   # for the thing you can fish with; `me:i` is in hand, as a rod must be.
+  # With more than one rod in hand the default PROMPTS: say `using cane`.
   - name: rod
     type: object
     required: false
@@ -39,14 +53,6 @@ args:
     default: "me:i:[capability.angling]"
     scope: ["inventory"]
     requires: [ToolMixin]
-  # Anything you are carrying can go on a hook. The engagement decides
-  # what a species makes of it — a worm, a scrap, or nothing.
-  - name: bait
-    type: object
-    required: false
-    prepositions: [with]
-    scope: ["inventory"]
-    requires: any
   # ⭐ WHICH WATER — a Shore in reach, or none: then the Locality's own
   # reach is fished, which is how a valley nobody wrote fishing for has
   # fish.

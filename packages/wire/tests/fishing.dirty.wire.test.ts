@@ -148,7 +148,7 @@ async function evalOn(s: Session, target: string, expr: string): Promise<string>
  * lands itself; a fighter is played by feel — give when the line sings,
  * gain when the rod nods — which lands every fighter the contest opens.
  */
-async function fishUntilLanded(s: Session, line = 'fish with worm', maxTicks = 60): Promise<string> {
+async function fishUntilLanded(s: Session, line = 'fish with worm using cane', maxTicks = 60): Promise<string> {
   const landed = await castFor(s, line, maxTicks);
   if (landed === null) throw new Error(`nothing took in ${maxTicks} ticks`);
   return landed;
@@ -229,7 +229,9 @@ suite('1 · the store', () => {
     await me.drainProse();
     const inv = await inventory(me);
     for (const w of ['rod', 'worm', 'crab pot', 'net', 'bowl', 'fish food', 'float rod', 'ledger rod', 'spoon', 'keepnet']) expect(inv).toMatch(new RegExp(w, 'i'));
-    const rod = await peek(me, 'rod');
+    // ⚠ Three rods in hand now (B8): `rod` alone PROMPTS — which one? —
+    // and a prompt is not a dispatch-response. Name it, as a player would.
+    const rod = await peek(me, 'cane');
     expect(rod).toMatch(/cane rod/i);
     noDigits(rod);
   });
@@ -254,7 +256,7 @@ suite('2 · the water read', () => {
 
 suite('3–4 · the wait, and a fish that lands itself', () => {
   it('`fish with worm` begins the wait; `say` works during it; nothing explains the silence', async () => {
-    const r = await me.cmd('fish with worm');
+    const r = await me.cmd('fish with worm using cane');
     expectOk(r);
     expectNote(r, 'engagement-started');
     expect(squash(await r.said())).toMatch(/cast out/i);
@@ -284,9 +286,9 @@ suite('5–6 · the contest', () => {
     let snapped = false;
     for (let attempt = 0; attempt < 8 && !snapped; attempt++) {
       await reelIn(me);
-      const started = await me.cmd('fish with worm');
+      const started = await me.cmd('fish with worm using cane');
       if (started.status !== 'ok') {
-        expectOk(await me.cmd('fish')); // out of worms: a bare hook
+        expectOk(await me.cmd('fish using cane')); // out of worms: a bare hook
       }
       let fighting = false;
       for (let i = 0; i < 60 && !fighting; i++) {
@@ -317,7 +319,7 @@ suite('5–6 · the contest', () => {
   }, 900_000);
 
   it('⭐ reel / slack by feel and a fighter, or the next small one, is landed', async () => {
-    const name = await fishUntilLanded(me, 'fish');
+    const name = await fishUntilLanded(me, 'fish using cane');
     expect(Object.values(KEYWORD)).toContain(name);
   }, 600_000);
 });
@@ -417,7 +419,7 @@ suite('10 · below the outfall', () => {
     // which, and a prompt hangs a wire session.
     await goTo(me, 'bank');
     while ((await fishCount(me)) > 1) expectOk(await me.cmd(`drop ${await fishInHand(me)}`));
-    if ((await fishCount(me)) === 0) await fishUntilLanded(me, 'fish');
+    if ((await fishCount(me)) === 0) await fishUntilLanded(me, 'fish using cane');
     await me.drainProse();
     // To the square: the wizard's evals reach only inside the market parcel.
     await goTo(me, 'square');
@@ -434,7 +436,7 @@ suite('11–12 · the stall', () => {
   it('⭐ consign a fresh fish; a second character buys it; the consignor is paid', async () => {
     if ((await fishCount(me)) === 0) {
       await goTo(me, 'bank');
-      await fishUntilLanded(me, 'fish');
+      await fishUntilLanded(me, 'fish using cane');
     }
     await goTo(me, 'square');
     const name = (await fishInHand(me))!;
@@ -494,7 +496,7 @@ suite('11–12 · the stall', () => {
   it('⭐ a fish held a game-day has turned: refused as turned', async () => {
     // Back to the water for one more, then up to the square.
     await goTo(me, 'bank');
-    await fishUntilLanded(me, 'fish');
+    await fishUntilLanded(me, 'fish using cane');
     await goTo(me, 'square');
     const name = (await fishInHand(me))!;
     expect(name).toBeTruthy();
@@ -542,7 +544,7 @@ suite('13b · the millsite', () => {
   it("⭐ nobody authored fishing here: `fish` from the millsite is afforded by the rod in hand and draws from the Delight's flats", async () => {
     const g = await Session.open(handle, { startLocation: MILLSITE, wizard: true });
     try {
-      const r = await g.cmd('fish');
+      const r = await g.cmd('fish using cane');
       expectOk(r);
       expectNote(r, 'engagement-started');
       expectOk(await g.cmd('cancel fishing'));
@@ -580,7 +582,7 @@ suite('14–15 · the kept carp', () => {
     try {
       await bias(k, 'carp', 0.1);
       for (let i = 0; i < 6 && landed !== 'carp'; i++) {
-        landed = await fishUntilLanded(k, 'fish');
+        landed = await fishUntilLanded(k, 'fish using cane');
         if (landed !== 'carp') {
           expectOk(await k.cmd(`release ${landed}`));
           await k.drainProse();
@@ -627,7 +629,7 @@ suite('16 · the sturgeon', () => {
       await bias(s, 'sturgeon', 0.3);
       let landed = '';
       for (let i = 0; i < 3 && landed !== 'sturgeon'; i++) {
-        landed = await fishUntilLanded(s, 'fish');
+        landed = await fishUntilLanded(s, 'fish using cane');
         if (landed !== 'sturgeon') {
           expectOk(await s.cmd(`release ${landed}`));
           await s.drainProse();
@@ -668,7 +670,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
       // cannot get round. Nothing prints; the worm stays.
       expect(await castFor(s, 'fish with worm using ledger-rod', 6)).toBeNull();
       expect(await inventory(s)).toMatch(/worm/i);
-      expect(await fishUntilLanded(s, 'fish with worm using rod', 30)).toBe('shore-crab');
+      expect(await fishUntilLanded(s, 'fish with worm using cane', 30)).toBe('shore-crab');
     } finally {
       s.close();
     }
@@ -680,9 +682,9 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
       await setAbundance(s, 'shore-crab', 60);
       await bias(s, 'brown-trout', 0.1);
       // Left to lie, a spoon is a stone.
-      expect(await castFor(s, 'fish with spoon using rod', 8)).toBeNull();
+      expect(await castFor(s, 'fish with spoon using cane', 8)).toBeNull();
       // Worked every minute, it takes — and it is not eaten.
-      expect(await castFor(s, 'fish with spoon using rod', 40, true)).toBe('trout');
+      expect(await castFor(s, 'fish with spoon using cane', 40, true)).toBe('trout');
       expect(await inventory(s)).toMatch(/spoon/i);
     } finally {
       s.close();
@@ -692,7 +694,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
   it('⭐ a landed fish in a laid keepnet is alive a minute later; hauled, it is in your hand — and a minute in the hand is a dead fish', async () => {
     const s = await Session.open(handle, { startLocation: BANK, wizard: true });
     try {
-      const kept = await fishUntilLanded(s, 'fish with worm using rod', 40);
+      const kept = await fishUntilLanded(s, 'fish with worm using cane', 40);
       expectOk(await s.cmd('lay keepnet'));
       expectOk(await s.cmd(`put ${kept} in keepnet`));
       await s.drainProse();
