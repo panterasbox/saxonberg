@@ -26,19 +26,10 @@ pass — the conveyance / path-constraint family).
 
 ## Dealbreakers
 
-1. **No simulation, no tick, no stored state.** Procedural, computed-on-read.
-   The moment we store-and-tick weather, we've rebuilt the sim we rejected — the
-   lazy-compute discipline IS the guardrail.
-2. **Nothing may depend on weather.** Enrichment, never a gate or required
-   input; every subsystem must work with weather flat or absent (thermal already
-   does, on static biome authoring). No "wait for rain to proceed." The most
-   important one.
-3. **Stay a thin driver.** Weather doesn't own atmospheric *state* (biome) or
-   seasons / day-night (celestial) — it only *deviates* biome's reads.
-4. **No global-coordinate dependency, and no inter-zone geographic embedding.**
-   Coherence rides the addressing locality tree (logical), never zone geometry.
-5. *(Softer)* **game-time, not the in-session clock** (it rains whether you're
-   logged in); **ambient, not a chore.**
+*Graduated (doctrine-homing pass, 2026-09-21) → [weather.md § Why the
+dealbreakers bind every consumer](../../subsystems/weather.md). The
+operational restatement for the family consumers stays below (§ The rule
+every family consumer must honour).*
 
 ---
 

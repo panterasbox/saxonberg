@@ -74,36 +74,7 @@ model everything else already uses.**
 
 ## ⚠ The aether line — a modem is not a sense organ
 
-**(User correction, 2026-07-31 — load-bearing, and adjacent to a
-standing repeat-correction: the aether is just the internet, nothing
-more.)**
-
-The aether implant **mediates the aether**. That is its entire
-purpose: communication and information unbounded by physical space.
-A light meter is the *opposite* kind of device — it must **transduce
-physical reality at a location**. Nothing about connecting to a
-network gives you a photodiode.
-
-> **Rule: physical sensing can never ride the aether base.**
-
-Corrected base assignments:
-
-| Base | Carries | Never carries |
-|---|---|---|
-| **Aether (`Idea`)** | comms, the credential wallet, records access, **reference lookup** | any physical measurement |
-| **Corporeal (`Thing`)** | instruments that actually measure — **carried** in a pack or **installed** in a body slot (the difference is the slot, not the base) | — |
-| **Intrinsic** | species senses | — |
-
-**And the line pays for itself pedagogically, which is why it is the
-right line:** over the aether you can look up *what granite's
-conductivity is supposed to be.* You cannot tell whether **this rock**
-is granite without an instrument.
-
-> **The aether is the textbook; the instrument is the lab.**
-
-Reference knowledge vs. measurement — and the competent player does
-**both and compares**, which is literally how science works. The
-practicum thesis, living inside a single implant.
+*Homed 2026-09-22 → [augmentation.md § The three-base capability model · the base-assignment rule](../../subsystems/augmentation.md).*
 
 ## The three gates
 
@@ -316,13 +287,9 @@ Every symptom follows from that one gap:
 
 ## One thing that is accidentally right, and should be doctrine
 
-`Avatar.commandContributions` includes `analyze` on **`self`** — and
-**not** `measure`. `measure` is afforded solely by the ten instruments in
-`platform/thing/instrument/`. So the split this slate wants half-exists
-already, by accident:
-
-> **`analyze` is what you can work out. `measure` is what an instrument
-> tells you.**
+*Graduated (doctrine-homing pass, 2026-09-21): the `analyze`-on-self /
+`measure`-on-instrument split and its rule now live in
+[command-routing.md § Affordance attribution](../../subsystems/command-routing.md).*
 
 ## ⭐⭐ The model: the instrument holds the capability, not the view
 
