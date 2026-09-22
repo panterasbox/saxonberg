@@ -700,11 +700,18 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (blame && !existing.accountability) existing.accountability = blame;
         return;
       }
+      // ⭐ The window starts NOW, not at the first read: `tickedAt` used
+      // to be stamped by the first reconcile, so a body nobody looked at
+      // never moved toward death — a fish drowning in a hand stayed
+      // "dying" indefinitely, and `release` put it back as a live count
+      // (the fishing drive, run 23). The clock that does not freeze on
+      // linkdead must not freeze on being unobserved either.
       const record: DyingRecord = {
         kind: 'dying',
         cause,
         windowSec: windowSec ?? HARM_DEFAULTS.DYING_WINDOW_SEC_DEFAULT,
         elapsed: 0,
+        tickedAt: WorldClockApi.getNow().rawValue(),
       };
       if (blame) record.accountability = blame;
       this.afflict(record);

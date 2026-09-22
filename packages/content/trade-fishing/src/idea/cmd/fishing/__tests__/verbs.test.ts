@@ -26,6 +26,8 @@ import FishController from '../FishController';
 import ReelController from '../ReelController';
 import SlackController from '../SlackController';
 import ReleaseController from '../ReleaseController';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import Waters, { WATERS_PATH } from '../../../Waters';
 import Rod from '../../../../thing/Rod';
 import Fish from '../../../../agent/Fish';
@@ -176,5 +178,23 @@ describe('release', () => {
     const live = makeStuff(() => new Fish());
     expect(rejected(await run(ReleaseController as never, { fish: { stuff: live, raw: 'fish' } }, angler, room, 'release fish'))).toBe('no-water');
     expect(live.isDestroyed()).toBe(false);
+  });
+
+  it('⭐ a fish whose dying window has run out is dead, however lazily: release reconciles before it looks (drive run 23)', async () => {
+    localityWith('kestrel:confluence');
+    // The dying clock reads game time only while a WorldClockRegistry is
+    // registered (the branch harness runs the clock without the row).
+    if (!StuffApi.findByTemplatePath('/platform/idea/WorldClockRegistry')) {
+      makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+    }
+    const drowned = makeStuff(() => new Fish());
+    drowned.setLifecycleState('alive');
+    // The drain's last act: a dying record, then it cancels itself and
+    // nothing reads the fish again — `isDead()` alone still says alive.
+    drowned.beginDying('asphyxiation', 90);
+    expect(drowned.isDead()).toBe(false);
+    WorldClockApi._advanceForTesting(200_000);
+    expect(rejected(await run(ReleaseController as never, { fish: { stuff: drowned, raw: 'fish' } }, angler, room, 'release fish'))).toBe('dead');
+    expect(drowned.isDestroyed()).toBe(false);
   });
 });

@@ -166,7 +166,7 @@ describe('RespirationMixin — the crisis core', () => {
 
     // Sustained anoxia opens the DYING window — the clock kills from
     // here, not the threshold, so a rescuer has this long to reach them.
-    tick(80);
+    tick(40); // ⭐ the window runs from beginDying now, not the first read: read it inside the window
     expect(c.isDying()).toBe(true);
     expect(c.getLifecycleState()).not.toBe('dead');
 

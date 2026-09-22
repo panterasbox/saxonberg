@@ -34,7 +34,16 @@ export default class ReleaseController extends FishingController<ReleaseModel> {
       this.decline(context, 'There is no water here to release it into.', 'no-water');
       return;
     }
-    if (MixinApi.isOrganism(fish) && fish.isDead()) {
+    // ⚠ Death is LAZY: the drain ends by opening a `dying` record and
+    // cancelling itself, and that clock only advances when somebody
+    // reads it (`look` does; `isDead()` does not). Ask the reconciling
+    // read first, or a fish ten minutes dead in the hand goes "back"
+    // into the record as a live count. The drive found it (run 23).
+    // (`getDyingRemainingSec` reconciles; the death it expires fires a
+    // beat later, async — a window with nothing left IS a dead fish.)
+    const remaining = MixinApi.isVitals(fish) ? fish.getDyingRemainingSec() : null;
+    const dead = (MixinApi.isOrganism(fish) && fish.isDead()) || (remaining !== null && remaining <= 0);
+    if (dead) {
       this.decline(context, 'It is dead. The water will not have it back.', 'dead');
       return;
     }

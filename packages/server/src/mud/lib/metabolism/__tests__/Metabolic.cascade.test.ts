@@ -118,8 +118,10 @@ describe("MetabolicMixin cascade — reserves → conditions", () => {
     c.adjustReserve("hydration", Q(-100));
     c.getReserve("endurance"); // seed
     // Past dehydration's lethal accrual (8 game-hours) but before
-    // starvation's (24) — so the body dies of thirst first.
-    advance(c, 31000);
+    // starvation's (24) — so the body dies of thirst first. ⭐ The dying
+    // window runs from `beginDying` (the 30,000 s read), not from the
+    // first read after it, so read INSIDE the 600 s window.
+    advance(c, 30300);
     // Crossing the threshold now opens the DYING window rather than
     // killing outright (the clock kills, not the threshold), and the
     // window names the cause it will stamp.
