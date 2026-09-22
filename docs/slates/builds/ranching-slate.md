@@ -89,11 +89,12 @@ reconcile-on-read with no tick · a `Grade` band on the harvested thing ·
 `BodyPlan`→parts on cleaning · an **automation ladder that caps at the boring
 reward**. Ranching is a full member.
 
-**Pets shares *substrate* with ranching (an owned, individually-identified
-animal) but not *experience*.** The design goal is therefore **one shared
-substrate under two distinct experiences** — not one unified system. Where the
-two touch (custody, maturation, persistence, the clock) they must be
-*identical*; where they part (bond vs yield) they part completely.
+*One shared substrate under two distinct experiences* — realised and
+documented: `KeptAnimal` is a rung over the same `Creature`, custody /
+handling / persistence are kernel and identical, and the split is three
+ROLES on capabilities where bond and yield part completely
+([pets.md § The shape of it](../../subsystems/pets.md),
+[ranching.md § Three ROLES](../../subsystems/ranching.md)).
 
 ---
 

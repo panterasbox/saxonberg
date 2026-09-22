@@ -210,10 +210,11 @@ own estate slice and your own chattel, and:
 Only **jointly acquired** property is genuinely contested, which is precisely
 what a contract clause covers, or failing that a court (deferred).
 
-> ⭐⭐ **And this is a SAFETY property, not a convenience.** A person holding a
-> grant rather than title can be **evicted**, but cannot be **stripped** —
-> their possessions survive the revocation by construction. Preserve that
-> property under any future change to eviction; it is load-bearing for Part 8.
+> ⭐⭐ *Evicted, never stripped* is shipped and documented: the lease-end
+> sweep parks goods in storage — intact, titled, recoverable, never
+> destructed ([furnishing.md § Restore routing](../../subsystems/furnishing.md));
+> held goods evacuate rather than destruct on eviction
+> ([chattel.md](../../subsystems/chattel.md)). Part 8 leans on it.
 
 ---
 

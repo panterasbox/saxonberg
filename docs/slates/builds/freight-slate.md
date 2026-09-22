@@ -201,59 +201,12 @@ cross-cuts, so it lives with connection rather than here.
 system — is freight the same?"*)** No, and being precise about why
 changes what gets built.
 
-### Utilities are trees rooted at a source
-
-Not really hub-and-spoke: water runs plant → trunk mains →
-distribution → service lines; **sewer is the *inverted* tree** (many
-sources converging on one outfall); power is a hybrid, **meshed at
-transmission, radial at distribution.** What they share:
-
-> **A utility network has a source, and the substance flows one way.**
-> Direction is *intrinsic* — water does not run backwards up a main.
-
-### Freight is a categorically different object
-
-- **No source** — every node is both origin and destination; a farm
-  ships grain *and* receives tools.
-- **Bidirectional on every edge** — wagons go both ways on one road.
-- **Many-to-many** — utilities are one-to-many (distribution) or
-  many-to-one (sewer); freight is a full **origin-destination matrix**.
-
-Mathematically these are not the same shape: a **single-source flow**
-versus a **multi-commodity flow**. **So do not model freight as
-hub-and-spoke.**
-
-### ⭐⭐ But freight *organizes itself* into hub-and-spoke
-
-An **economic** result, not a topological one:
-
-> **N origins and N destinations need N² direct routes, or 2N through a
-> hub.** The hub costs a **detour** and buys **load factor** — full
-> wagons instead of half-empty ones.
-
-That is the whole history of logistics — the sorting office, the
-classification yard, the container port. **Hub-and-spoke is an emergent
-optimization, never a requirement.**
-
-**⭐ And the switch is CAPACITY — the same line that already separated
-mail from freight for the TPA.** A full wagonload of grain goes
-**direct**, farm to mill; a crate of nails goes to the depot,
-consolidates, and rides with everything else. Which is why
-[delivery-slate](./delivery-slate.md)'s mail design **is** already
-hub-and-spoke (post office → trunk → post office → carrier) while
-freight should not be: **mail is small and fragmented, so it always
-consolidates.**
-
-### Three networks, three costs of distance
-
-| Network | Shape | Distance costs | Source? |
-|---|---|---|---|
-| **utility** | tree from a source, meshed core | pressure / loss | **yes** |
-| **freight** | O-D matrix over the road graph | **time and money** | no |
-| **TPA** | authored directed graph | **nothing** | no |
-
-Why they do not merge — and a decent sanity check on future designs: if
-something fits none of the three, it wants its own answer.
+> The argument — utilities are trees from a source; freight is a
+> source-less origin-destination matrix and must not be modelled as
+> hub-and-spoke; the hub is an emergent economic optimization (N² vs 2N)
+> whose switch is CAPACITY; three networks, three costs of distance —
+> graduated to [logistics.md § The depot](../../subsystems/logistics.md)
+> (*Why point-to-point, and why the hub is emergent*).
 
 ### ⭐⭐ The consequence that matters most: the monopoly is at the HUB, not the LINK
 
@@ -378,18 +331,10 @@ class.**
 
 ### The line is capacity, not goods
 
-Goods-versus-no-goods is unenforceable anyway — you are carrying things
-right now. So:
-
-> **The TPA moves people and what they can carry. Encumbrance already
-> draws the line.**
-
-Which sorts the two industries cleanly and historically: a courier with
-a satchel of letters rides the network, so **mail is fast**; a steer
-does not fit in a satchel, so **freight is slow**. Airmail and container
-ships, with **no special rule** — and the delivery slate's carrier may
-legitimately use the TPA while freight cannot. The two systems **serve
-different goods rather than competing.**
+> Graduated to [logistics.md § The teleport defect, fixed](../../subsystems/logistics.md)
+> (*Why the line is capacity, not goods*): the TPA moves people and what
+> they can carry; encumbrance draws the line; mail fast, freight slow, no
+> special rule.
 
 ### ⭐ For vehicles: don't write an exclusion — site terminals where wheels can't go
 
