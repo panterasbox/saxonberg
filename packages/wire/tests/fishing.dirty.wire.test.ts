@@ -63,6 +63,7 @@ const SQUARE = '/world/terminus/market/square';
 const HEATH = '/world/moor/stormy-heath';
 const MILLSITE = '/world/hearts-delight/location/millsite';
 const PARCEL = '--parcel /world/terminus/market';
+const WHARFSIDE = '--parcel /world/terminus/wharfside';
 /** A fish as the inventory lists it → the keyword a verb reaches it by. */
 const FISH = /\b(brown trout|eel|grey mullet|carp|shore crab|sturgeon)\b/i;
 const KEYWORD: Record<string, string> = {
@@ -140,8 +141,8 @@ async function reelIn(s: Session): Promise<void> {
  * value after `: `. `--all` because a haul holds several of a species,
  * and the first line answers.
  */
-async function evalOn(s: Session, target: string, expr: string): Promise<string> {
-  const line = squash(await s.prose(`eval ${PARCEL} --on ${target} --all ${expr}`));
+async function evalOn(s: Session, target: string, expr: string, parcel = PARCEL): Promise<string> {
+  const line = squash(await s.prose(`eval ${parcel} --on ${target} --all ${expr}`));
   const i = line.indexOf(': ');
   if (i < 0) return line;
   const rest = line.slice(i + 2);
@@ -294,6 +295,11 @@ suite('3–4 · the wait, and a fish that lands itself', () => {
 
 suite('5–6 · the contest', () => {
   it('⭐ reel fast against a fighter and the line SNAPS; the rod stays; the message says nothing about you', async () => {
+    // ⚠ A weak fighter LANDS before five reels can part the line, and
+    // the confluence's fighters are mostly weak: run 21 cast eight times
+    // and snapped nothing. The wizard makes the full fighter the water's
+    // commonest fish for this step, as the sturgeon step does.
+    await bias(me, 'sturgeon', 1.0);
     let snapped = false;
     for (let attempt = 0; attempt < 8 && !snapped; attempt++) {
       await reelIn(me);
@@ -327,6 +333,7 @@ suite('5–6 · the contest', () => {
     expect(snapped).toBe(true);
     expect(await inventory(me)).toMatch(/rod/i);
     expectRefused(await me.cmd('reel'));
+    await setAbundance(me, 'sturgeon', 2);
   }, 900_000);
 
   it('⭐ reel / slack by feel and a fighter, or the next small one, is landed', async () => {
@@ -723,7 +730,9 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
       await s.drainProse();
       expect(await fishInHand(s)).toBeNull();
       await sleep(60_000);
-      const alive = await evalOn(s, 'keepnet', 'return [...this.getContents()].map((f) => String(f.isAlive())).join(",")');
+      // ⚠ Eval's reach is bounded to the parcel it names, and the keepnet
+      // lies at the bank — under wharfside, not the market (run 21).
+      const alive = await evalOn(s, 'keepnet', 'return [...this.getContents()].map((f) => String(f.isAlive())).join(",")', WHARFSIDE);
       expect(alive, alive).toMatch(/^true/);
       const haul = await s.cmd('haul keepnet');
       expectOk(haul);
@@ -733,7 +742,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
       // MY contents — the bank's floor is littered with step 9's dead
       // haul, and `--on ${kept}` could answer with one of those.
       await sleep(60_000);
-      const dead = await evalOn(s, 'me', `return [...this.getContents()].filter((f) => f.getKeywords().includes('${kept}')).map((f) => String(f.isAlive())).join(",")`);
+      const dead = await evalOn(s, 'me', `return [...this.getContents()].filter((f) => f.getKeywords().includes('${kept}')).map((f) => String(f.isAlive())).join(",")`, WHARFSIDE);
       expect(dead, dead).toMatch(/^false/);
     } finally {
       s.close();
