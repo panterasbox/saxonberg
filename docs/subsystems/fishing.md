@@ -296,6 +296,38 @@ moved vessel restores loose, and a dropped chattel restores to inventory
 ([pets.md](./pets.md), Risk 7 — so *the carp is in its bowl after a
 restart* is the one acceptance line not met).
 
+**The LIVE drive (a browser, 2026-09-22).** The wire drive asserts the
+dispatch ENVELOPE; a browser shows what a player is shown. Driven in
+Chromium against `pnpm dev` (fresh DB, `AUTH_MODE=test`): buy the whole
+rig at the general store, walk south to the bank, Ambrose Tull
+introduces himself, `look edge`, eat, cast, play and land an eel, lay
+the keepnet, put the eel in it, haul it, release it, talk to the fisher.
+It found three things wire could not:
+
+1. ⭐ **A bare shelf refused as *"float-rod" isn't for sale here*** while
+   the counter's own description lists the line — every new tackle row is
+   `par: 1`, so the second run of any drive hits it. Fixed where it was
+   found: `Stock.carriesLine()` + a `sold-out` refusal
+   ([retail.md](./retail.md)). ⚠ The wire drive resets the database every
+   run, so its shelf is never bare — this class is invisible to it.
+2. ⚠ **`look edge` prints nothing in the transcript**: the read arrives
+   as a card, the card column does not scroll to it, and with two older
+   cards above it the card the player just asked for sits **below the
+   fold** (measured: card top 794 px, viewport 720 px, the column at
+   `scrollTop: 0`). The build's centrepiece read is one silent scroll
+   away. The card surface's, not fishing's — recorded on
+   [card-surface.md](./card-surface.md).
+3. ⚠ **`look cane` prompts with two buttons both labelled *a cane rod***
+   (the shelf's `par: 2`) — a choice that cannot be made. The
+   `distinguishing` form exists for exactly this
+   ([presentation.md](./presentation.md)); the prompt does not use it.
+
+Also seen, already recorded: **"You're shivering."** greets a player on
+arrival (the thermal dials — `thermal-slate`), and a `get` of coins in a
+bank till surfaces a raw internal error with a module path
+(*"Something went wrong in /platform/idea/cmd/inventory/GetController:
+canRemoveContainable veto…"*).
+
 **Acceptance observed live, and not.** Eleven of the requirements'
 thirteen lines were observed by the drive. Not observed live: the carp's
 bowl after a restart (above); *eaten raw it sickens* and *a fillet keeps
