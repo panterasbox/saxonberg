@@ -223,9 +223,10 @@ Someone who tests potency and **sells the verdict**. The credence-good
 thesis producing a job directly, and the **fourth information vocation**
 after the appraiser, the auditor and the physician.
 
-⭐ Worth noticing the pattern: **this game keeps generating information
-vocations because it has real hidden state.** Most games cannot support
-them, because nothing is genuinely unknown.
+⭐ The pattern this is one instance of — *information vocations exist
+because the world has real hidden state; if one side knows more, build a
+VOCATION* — is stated in [vocations.md](../../vocations.md) § *the
+information-asymmetry family* (doctrine homed 2026-09-21).
 
 ### ⭐⭐ The assayer's instrument
 
