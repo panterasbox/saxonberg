@@ -204,13 +204,12 @@ describe("general-store content integrity", () => {
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.
     "/system/residence/thing/HouseholdersKit",
-    // The tackle line (fishing B6): a rod, a pot/net and a trowel are
+    // The tackle line (fishing B6): a rod and a pot/net are
     // `ToolItem` subclasses in the fishing pack (the instrument affords
     // the verb), a worm a bare Detailed Thing, the bowl a `Feeder` and
     // the fish food a `Provision` — all discrete, none Stackable.
     "/trade/fishing/thing/Rod",
     "/trade/fishing/thing/Trap",
-    "/trade/fishing/thing/Trowel",
     "/trade/fishing/thing/Bait",
   ]);
 

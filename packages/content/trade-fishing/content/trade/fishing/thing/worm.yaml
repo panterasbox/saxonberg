@@ -1,5 +1,5 @@
 # A worm — bait for the small fish that feed on the bottom, and for the
-# crab. Dug from any ground you can cultivate (`dig`), or bought.
+# crab. Bought at the general store; digging one up is foraging's act.
 class: /trade/fishing/thing/Bait
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

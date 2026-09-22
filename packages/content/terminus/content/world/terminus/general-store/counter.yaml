@@ -130,15 +130,14 @@ data:
     - { itemTemplatePath: /system/transport/thing/sledge, par: 1 }
     - { itemTemplatePath: /system/transport/thing/dray, par: 1 }
     - { itemTemplatePath: /system/transport/thing/wagon, par: 1 }
-    # ⭐ The tackle line (fishing B6): a rod, a worm, a pot, a net, a
-    # trowel, a bowl and a twist of fish food — inputs, which is what a
+    # ⭐ The tackle line (fishing B6): a rod, a worm, a pot, a net, a bowl
+    # and a twist of fish food — inputs, which is what a
     # general store sells. What comes out of the river is consigned at
     # the market, never sold here.
     - { itemTemplatePath: /trade/fishing/thing/rod, par: 2 }
     - { itemTemplatePath: /trade/fishing/thing/worm, par: 6 }
     - { itemTemplatePath: /trade/fishing/thing/pot, par: 2 }
     - { itemTemplatePath: /trade/fishing/thing/net, par: 1 }
-    - { itemTemplatePath: /trade/fishing/thing/trowel, par: 2 }
     - { itemTemplatePath: /trade/fishing/thing/fish-bowl, par: 2 }
     - { itemTemplatePath: /trade/fishing/thing/fish-food, par: 4 }
   prices:
@@ -224,6 +223,5 @@ data:
     /trade/fishing/thing/worm: 1
     /trade/fishing/thing/pot: 7
     /trade/fishing/thing/net: 15
-    /trade/fishing/thing/trowel: 3
     /trade/fishing/thing/fish-bowl: 5
     /trade/fishing/thing/fish-food: 1

@@ -1,5 +1,5 @@
 /**
- * set / lift / dig (fishing B4) — a pot goes into the water and comes
+ * set / lift (fishing B4) — a pot goes into the water and comes
  * out with what the record put in it; a worm costs the ground.
  */
 
@@ -23,7 +23,6 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import { TestActor, makeContext, completeStep, standUpBranchHarness } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import LayController from '../LayController';
 import LiftController from '../LiftController';
-import DigController from '../DigController';
 import Waters, { WATERS_PATH } from '../../../Waters';
 import Trap from '../../../../thing/Trap';
 import Bait from '../../../../thing/Bait';
@@ -150,40 +149,3 @@ describe('lay and lift', () => {
   });
 });
 
-describe('dig', () => {
-  function bed(organic: number): PlantPot {
-    return makeStuff(() => {
-      const pot = new PlantPot();
-      pot.interiorBulk = true;
-      pot.setInteriorCapacity(Quantity.of(5, 'L'));
-      pot.setInteriorAmount(Quantity.of(5, 'L'));
-      pot.setReserve(new Reserve(SOIL_ORGANIC_MATTER_RESERVE_KEY, Quantity.of(100, '%'), Quantity.of(organic, '%'), 'cultivation', null));
-      return pot;
-    });
-  }
-
-  it('⭐ two game minutes, then a worm in hand — and the ground has less in it', async () => {
-    const ground = bed(0.5);
-    ContainmentApi.move(ground as never, room as never);
-    const before = ground.organicMatterFraction()!;
-    const ctx = await run(DigController as never, { ground: { stuff: ground, raw: 'bed' } }, angler, room, 'dig');
-    expect(rejected(ctx)).toBeNull();
-    expect([...angler.getContents()].some((t) => t instanceof Bait)).toBe(false); // not yet
-    await completeStep(2 * 60 * 1000);
-    for (let i = 0; i < 6; i++) await new Promise<void>((r) => setTimeout(r, 0));
-    expect([...angler.getContents()].some((t) => t instanceof Bait)).toBe(true);
-    expect(ground.organicMatterFraction()!).toBeLessThan(before);
-  });
-
-  it('⚠ worked-out ground refuses, and says so', async () => {
-    const ground = bed(0);
-    ContainmentApi.move(ground as never, room as never);
-    const ctx = await run(DigController as never, { ground: { stuff: ground, raw: 'bed' } }, angler, room, 'dig');
-    expect(rejected(ctx)).toBe('worked-out');
-  });
-
-  it('no cultivable ground: refused', async () => {
-    const rock = makeStuff(() => new Location());
-    expect(rejected(await run(DigController as never, { ground: { stuff: rock, raw: 'rock' } }, angler, room, 'dig'))).toBe('no-ground');
-  });
-});

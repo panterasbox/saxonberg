@@ -8,9 +8,9 @@ description: >-
   catalogue reports*, and that record is the WATER pack's
   (`/system/water/idea/FisheryRegistry`): fish are in the river whether
   or not anybody fishes. What this pack owns is the TAKING — the tackle
-  (a rod, a pot, a net, a trowel for bait), the wait and the bite and the
+  (a rod, a pot, a net), the wait and the bite and the
   landing contest (`fish` / `reel` / `slack`), the traps (`lay` / `lift`),
-  `dig` for worms, `release`, the fish as an individual you can keep in a
+  `release`, the fish as an individual you can keep in a
   bowl, the fisher's two brains, and the trade's Discipline.
   ⚠ The SPECIES rows ship here but land in the commons taxonomy at
   /stuff/idea/species (the trade-farming precedent): a trout exists

@@ -59,8 +59,3 @@ settings:
   - key: fishing.contamination.loadPerUnit
     value: "2.0"
 
-  # ── bait (D12) ───────────────────────────────────────────────────
-  # Organic matter one worm costs the ground, in the soil reserve's
-  # units. The soil's own ledger is the cooldown.
-  - key: fishing.dig.organicPerWorm
-    value: "0.05"

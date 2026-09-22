@@ -315,11 +315,14 @@ royal fish*. **Nothing stops you keeping it today** — the covenant that
 makes it the crown's is a later build, and until then the chronicle
 remembers you took it, which is how a law gets its first case.
 
-### Bait is both
+### Bait is bought, or caught
 
-Dig worms from any ground you may dig (`dig` on a bed yields bait), or
-buy the general store's floor. Bait is a stance: worms for the bottom
-feeders, a caught baitfish for the predators.
+Buy worms off the general store's floor, or fish a baitfish out of the
+water. Bait is a stance: worms for the bottom feeders, a caught baitfish
+for the predators. ⚠ **Digging worms out of the ground is not fishing's
+act** — it is foraging's, and it waits for that build (`discovery-slate`);
+the `dig` verb this build first shipped was withdrawn in review (plan
+D24).
 
 ### The Discipline is `fishing`
 

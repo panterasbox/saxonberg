@@ -200,7 +200,7 @@ beforeAll(async () => {
   s = await Session.open(handle, { startLocation: STORE, wizard: true });
   // ⚠ `pot` alone is the farming pack's clay pot at this counter; the
   // crab pot answers to `crab-pot`.
-  for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food', 'trowel']) {
+  for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food']) {
     expectOk(await s.cmd(`buy ${good}`));
   }
   s.close();
@@ -215,7 +215,7 @@ suite('1 · the store', () => {
   it('each is a real thing in hand; `look rod` names no number', async () => {
     await me.drainProse();
     const inv = await inventory(me);
-    for (const w of ['rod', 'worm', 'crab pot', 'net', 'bowl', 'fish food', 'trowel']) expect(inv).toMatch(new RegExp(w, 'i'));
+    for (const w of ['rod', 'worm', 'crab pot', 'net', 'bowl', 'fish food']) expect(inv).toMatch(new RegExp(w, 'i'));
     const rod = await peek(me, 'rod');
     expect(rod).toMatch(/cane rod/i);
     noDigits(rod);

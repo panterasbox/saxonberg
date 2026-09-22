@@ -147,7 +147,7 @@ deployment manifest — or `PackLogic` never discovers it).
 **The instrument affords the verb**, as class statics: `Rod` (`fish` /
 `reel` / `slack`, `environment` = whoever holds it), `Trap` (`lay` /
 `lift`, both axes; the pot and the net are rows of one class — numbers,
-never a `trapKind`), `Trowel` (`dig`), `Fish` (`release`). ⚠ `lay`, not
+never a `trapKind`), `Fish` (`release`). ⚠ `lay`, not
 `set`: `set` is a **scripting builtin** (`lib/script/builtins.ts`) and
 the interpreter takes the line before dispatch; `lint:verb-collisions`
 now counts the builtins as claims.
@@ -185,9 +185,10 @@ it holds, the fraction one seeded unit; a laid trap is fixed in place
 and vetoes eviction. A net (30, 20/h) empties the confluence's ~160 in
 five afternoons' lifts; a pot (2, 0.4/h) takes crabs overnight.
 
-**`dig`** costs the ground: `Soil.drawOrganicMatter()` (the twin of
-`drawNutrient`) — the soil's own ledger is the cooldown, and a worked-out
-bed says so.
+**Bait is bought or caught, never dug.** Digging a worm out of a bed is
+foraging's act, not fishing's; a `dig` verb shipped in the build and was
+withdrawn in review (the design — the ground's own reserve as the
+cooldown — went to the discovery slate).
 
 **The kept fish.** `Fish = ContaminableMixin(KeptAnimal)` (every fish can
 carry a load; nothing else kept can — the `Weapon` lesson), `lengthM`,

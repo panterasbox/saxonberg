@@ -1049,6 +1049,23 @@ lenses, conventions, the nearest pattern — and none stopped for.
     boots on 2012 attach to each other's world and kill each other's
     server.
 
+### D24 — `dig` withdrawn in review: digging is foraging's act, not fishing's
+
+Decided with the user 2026-09-21 on the open MR. Digging something out of
+the ground for food or use is not a fishing concern; it is the nearest
+thing to foraging, which is unbuilt and waiting on the RGO designs
+(`discovery-slate`). Cut: the `dig` view + `DigController` (+ its row),
+`Trowel` (class, row, the store's line and price), the
+`fishing.dig.organicPerWorm` dial, and the kernel seam
+`Soil.drawOrganicMatter` (a method with no consumer is inert — it comes
+back with foraging). D12 stays in the plan as history; its design (the
+ground's own ledger is the cooldown; the instrument affords, the ground
+is the argument, the yield is the ground's to say) is recorded on the
+discovery slate. Worms are bought — which is what the drive always did.
+The alternative — a platform `dig` whose yield the ground declares —
+*is* the foraging build's distribution table, and does not get built
+inside a fishing MR to keep one verb.
+
 ---
 
 ### D22 — the reach reports every parameter a tank will ever hold (water pack)
@@ -1359,8 +1376,9 @@ Build notes:
   learnable if you can feel which. ⭐ **The wait ends at a landing**
   (drive finding: the next `fish` said *already fishing*).
   `Respiration.onMoved` swallows a failed fire-and-forget re-check.
-- **B4.** `Soil.drawOrganicMatter()` (the twin of `drawNutrient`) is the
-  kernel seam `dig` costs the ground through. ⚠ **`set` is a SCRIPTING
+- **B4.** `Soil.drawOrganicMatter()` (the twin of `drawNutrient`) was the
+  kernel seam `dig` cost the ground through — **`dig`, the trowel and the
+  seam were withdrawn in review (D24)**. ⚠ **`set` is a SCRIPTING
   BUILTIN** (`lib/script/builtins.ts`: `set x y` binds a shell variable)
   and the interpreter takes the line before dispatch — `set pot` answered
   with silence; the verb is **`lay`**, and `lint:verb-collisions` now
@@ -1466,7 +1484,7 @@ Build notes:
 - **Commit** `build(fishing B3): fish, reel, slack, release — the bite is the fish's decision`.
 
 #### B4 — the pot, the net, the trowel, the bowl
-- **Implements** D12, D13.
+- **Implements** D12, D13. *(D12's `dig` + trowel withdrawn in review — D24.)*
 - **Creates** `src/thing/{Trap,Trowel}.ts`, controllers + views
   `set`/`lift`/`dig`, rows `thing/{pot,net,trowel,fish-bowl,fish-food}.yaml`
   (`fish-bowl`: `/platform/thing/Feeder`, `feederKind: bowl`,

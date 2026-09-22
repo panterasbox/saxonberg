@@ -163,8 +163,8 @@ Drawn **by the act, not the medium**:
   fishing v1 needs **no underwater room** to be complete, and the
   underwater build gets to be places-first.
 
-Bait is a small supply chain (dig worms, a caught baitfish, the shop's
-floor) and a stance knob on the fish's appraisal. Junk (the old boot) is
+Bait is a small supply chain (the shop's floor, a caught baitfish; digging
+worms is foraging's act — discovery-slate) and a stance knob on the fish's appraisal. Junk (the old boot) is
 rare, a garnish.
 
 ## 6. ⭐⭐ Layers, and the reach as the bus

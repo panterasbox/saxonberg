@@ -53,7 +53,7 @@ const DIST_DIR = fileURLToPath(new URL("../../../trade-distilling/content/trade/
 // menu.test precedent: register the pack source so the clone resolves.
 const DIST_SRC = fileURLToPath(new URL("../../../trade-distilling/src", import.meta.url));
 // The tackle line (fishing B6): the fishing pack's rows and its Rod /
-// Trap / Trowel / Bait classes, stocked cross-pack.
+// Trap / Bait classes, stocked cross-pack.
 const FISHING_DIR = fileURLToPath(new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url));
 const FISHING_SRC = fileURLToPath(new URL("../../../trade-fishing/src", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
@@ -144,7 +144,6 @@ const TACKLE_LINES = [
   "/trade/fishing/thing/worm",
   "/trade/fishing/thing/pot",
   "/trade/fishing/thing/net",
-  "/trade/fishing/thing/trowel",
   "/trade/fishing/thing/fish-bowl",
   "/trade/fishing/thing/fish-food",
 ] as const;
