@@ -123,6 +123,12 @@ async function goTo(s: Session, where: 'bank' | 'square'): Promise<void> {
   await s.drainProse();
 }
 
+/** A ration, so the day's fishing does not end in a faint. */
+async function eat(s: Session): Promise<void> {
+  expectOk(await s.cmd('eat rations'));
+  await s.drainProse();
+}
+
 /** Any wait still out is brought in before a new cast. */
 async function reelIn(s: Session): Promise<void> {
   await s.cmd('cancel fishing');
@@ -213,7 +219,12 @@ beforeAll(async () => {
   s = await Session.open(handle, { startLocation: STORE, wizard: true });
   // ⚠ `pot` alone is the farming pack's clay pot at this counter; the
   // crab pot answers to `crab-pot`.
-  for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food', 'float-rod', 'leger-rod', 'spoon', 'keepnet']) {
+  // ⚠ A day's fishing is eight game hours, and a body burns food to stay
+  // warm (the thermal cold branch): the angler eats a ration at each
+  // afternoon's start (`eat()`), as anyone fishing all day would. Run 19
+  // found the angler COLLAPSED at the seventh hour — and every unfed
+  // Cast in the world with it (recorded on the plan; not fishing's).
+  for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food', 'float-rod', 'leger-rod', 'spoon', 'keepnet', 'rations', 'rations', 'rations', 'rations', 'rations']) {
     expectOk(await s.cmd(`buy ${good}`));
   }
   s.close();
@@ -387,6 +398,7 @@ suite('9 · the net empties the reach; the fisher says so; it recovers', () => {
   };
 
   it('⭐ haul after haul the reach thins and then is empty; the fisher says so and names nobody', async () => {
+    await eat(me);
     const hauls: number[] = [];
     for (let i = 0; i < 8; i++) {
       hauls.push(await haulAfterAnAfternoon());
@@ -434,6 +446,7 @@ suite('10 · below the outfall', () => {
 
 suite('11–12 · the stall', () => {
   it('⭐ consign a fresh fish; a second character buys it; the consignor is paid', async () => {
+    await eat(me);
     if ((await fishCount(me)) === 0) {
       await goTo(me, 'bank');
       await fishUntilLanded(me, 'fish using cane');
@@ -580,6 +593,7 @@ suite('14–15 · the kept carp', () => {
     let k = await Session.open(handle, { startLocation: BANK, wizard: true });
     let landed = '';
     try {
+      await eat(k);
       await bias(k, 'carp', 0.1);
       for (let i = 0; i < 6 && landed !== 'carp'; i++) {
         landed = await fishUntilLanded(k, 'fish using cane');
@@ -625,6 +639,7 @@ suite('16 · the sturgeon', () => {
   it('⭐ a practised reader is told a royal fish lies in the confluence; landed, its catch is a deed', async () => {
     const s = await Session.open(handle, { startLocation: BANK, wizard: true });
     try {
+      await eat(s);
       expect(await talkToTheFisher(s)).toMatch(/royal fish|sturgeon/i);
       await bias(s, 'sturgeon', 0.3);
       let landed = '';
@@ -650,6 +665,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
   it('⭐ the rig is where the bait sits: a leger over a surface shoal is a long afternoon; the float takes a mullet', async () => {
     const s = await Session.open(handle, { startLocation: BANK, wizard: true });
     try {
+      await eat(s);
       await setAbundance(s, 'sturgeon', 2);
       await bias(s, 'grey-mullet', 0.1);
       // The leger pins the worm to the bottom; the mullet feed at the top.
