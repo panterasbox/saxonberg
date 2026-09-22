@@ -56,7 +56,7 @@ data:
     abundance: 40
     fightRating: 0.35
     # ⭐ Where it feeds (B8): the bottom. A float over an eel is a long
-    # afternoon; a ledger weight is the eel rig.
+    # afternoon; a leger weight is the eel rig.
     feedsAt: bottom
   butcheryYield:
     - { cut: /trade/fishing/thing/fillet, units: 2 }

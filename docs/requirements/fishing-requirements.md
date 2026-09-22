@@ -286,7 +286,7 @@ either sentence (pedagogy); so richness lands as **numbers on the
 tackle the bite reads, coupled**, never as a tackle box (expression).
 
 A person can now: choose a rod for **where the bait sits** — a float
-rod hangs it at the surface for the mullet, a ledger rod pins it to the
+rod hangs it at the surface for the mullet, a leger rod pins it to the
 bottom for the eel and the sturgeon, the plain rod drifts between — and
 feel the trade-off (fine line bites more and parts; heavy line holds
 the big one and shows the bait worse; a big hook takes nothing small,
@@ -480,10 +480,10 @@ sessions; a wizard may skip game-days where a step says so.
 16. (Wizard biases the reach's draw.) `fish` → the contest at full
     fight; land it → `look sturgeon` reads *a royal fish*; the chronicle
     holds the deed; nothing stops you keeping it.
-17. *(Added in review — the rig.)* Buy a float rod, a ledger rod, a
+17. *(Added in review — the rig.)* Buy a float rod, a leger rod, a
     spoon and a keepnet. At the confluence: `fish with worm using
-    ledger-rod` over the mullet shoal is a long afternoon; `fish with
-    worm using float-rod` takes a mullet. Over the crabs the ledger's
+    leger-rod` over the mullet shoal is a long afternoon; `fish with
+    worm using float-rod` takes a mullet. Over the crabs the leger's
     big hook takes nothing and says nothing — the worm is still on;
     the plain rod takes a crab. `fish with spoon` left to lie takes
     nothing; `reel` it every minute and a trout strikes, and the spoon

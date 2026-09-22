@@ -57,7 +57,7 @@ data:
     abundance: 50
     fightRating: 0.4
     # ⭐ Where it feeds (B8): the surface — the one fish here a float
-    # rig is FOR; ledgered bait under a mullet shoal takes nothing.
+    # rig is FOR; legered bait under a mullet shoal takes nothing.
     feedsAt: surface
   butcheryYield:
     - { cut: /trade/fishing/thing/fillet, units: 2 }

@@ -183,11 +183,11 @@ data:
     - { itemTemplatePath: /trade/fishing/thing/net, par: 1 }
     - { itemTemplatePath: /trade/fishing/thing/fish-bowl, par: 2 }
     - { itemTemplatePath: /trade/fishing/thing/fish-food, par: 4 }
-    # ⭐ The rig (fishing B8): a float rod for the surface, a ledger rod
+    # ⭐ The rig (fishing B8): a float rod for the surface, a leger rod
     # for the bottom and the big fish, a spoon to work, a keepnet to
     # keep the catch alive in. Numbers on the same classes as above.
     - { itemTemplatePath: /trade/fishing/thing/float-rod, par: 1 }
-    - { itemTemplatePath: /trade/fishing/thing/ledger-rod, par: 1 }
+    - { itemTemplatePath: /trade/fishing/thing/leger-rod, par: 1 }
     - { itemTemplatePath: /trade/fishing/thing/spoon, par: 2 }
     - { itemTemplatePath: /trade/fishing/thing/keepnet, par: 1 }
   prices:
@@ -296,6 +296,6 @@ data:
     /trade/fishing/thing/fish-bowl: 5
     /trade/fishing/thing/fish-food: 1
     /trade/fishing/thing/float-rod: 11
-    /trade/fishing/thing/ledger-rod: 14
+    /trade/fishing/thing/leger-rod: 14
     /trade/fishing/thing/spoon: 4
     /trade/fishing/thing/keepnet: 6

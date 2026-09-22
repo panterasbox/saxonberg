@@ -151,7 +151,7 @@ const TACKLE_LINES = [
   "/trade/fishing/thing/fish-bowl",
   "/trade/fishing/thing/fish-food",
   "/trade/fishing/thing/float-rod",
-  "/trade/fishing/thing/ledger-rod",
+  "/trade/fishing/thing/leger-rod",
   "/trade/fishing/thing/spoon",
   "/trade/fishing/thing/keepnet",
 ] as const;

@@ -191,7 +191,7 @@ doing (*the line is singing · the rod is bent hard · it is resting*).
 rows of one class: the *cane rod* (free line, `mid`, ordinary hook, the
 default line), the *float rod* (`surface`, `showing 1.3`, `breakStrain
 0.4`, a 6 mm hook — the shoal's rig, not the sturgeon's) and the
-*ledger rod* (`bottom`, `showing 0.8`, `breakStrain 0.75`, a 20 mm hook
+*leger rod* (`bottom`, `showing 0.8`, `breakStrain 0.75`, a 20 mm hook
 — the eel, the carp, the only rod that holds a sturgeon; it takes
 nothing small). Heavy line holds the big one and shows the bait worse;
 fine line bites more and parts. You choose it for what you are fishing

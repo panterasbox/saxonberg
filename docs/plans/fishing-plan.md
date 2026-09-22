@@ -1103,7 +1103,7 @@ no decision behind it is inventory clutter):
 | swivels · hook numbers · poundage · a separate line object | nothing a player acts on; the line is the rod row's `breakStrain` — one thing in hand | never |
 
 The coupling that makes it a choice (lens 4): the float rod is fine,
-shows well, parts easily, surface, small hook; the ledger rod is heavy,
+shows well, parts easily, surface, small hook; the leger rod is heavy,
 shows poorly, holds the sturgeon, bottom, big hook; the cane rod is
 between. You choose it for what you are fishing FOR. The keepnet is the
 honesty fix (lens 3): a landed fish drowned in the hand and only a bowl
@@ -1612,7 +1612,7 @@ Build notes:
   gape at the take, `work()` / `isLure()`, `baitKind()` reading a `Fish`
   or bread); `ReelController` works the lure; `LayController` fills an
   interior with `/stuff/idea/material/bulk/water`; `HaulController`
-  hands over contents and drains. **Rows** `float-rod`, `ledger-rod`,
+  hands over contents and drains. **Rows** `float-rod`, `leger-rod`,
   `spoon`, `keepnet`; `rod.yaml` says `presentsAt: mid`; six species
   author `feedsAt` (mullet surface; trout mid; eel, carp, crab, sturgeon
   bottom). **Store** four lines + prices (tackle count 10).
@@ -1620,7 +1620,7 @@ Build notes:
   across; the gape; the worked lure; a fish and a big fish on the hook),
   `traps.test.ts` (the keepnet fills, holds, drains and hands back; a pot
   hands back what was put in it), `Species.habitat.test.ts`.
-- **Drive** step 17: the ledger over a mullet shoal vs the float; the
+- **Drive** step 17: the leger over a mullet shoal vs the float; the
   big hook over crabs (silence, the worm stays) vs the plain hook; the
   spoon left to lie vs worked; a fish in a laid keepnet alive a minute
   on, hauled into the hand, dead a minute later.
@@ -1646,7 +1646,7 @@ Each fails closed and silent.
 | the kept fish | `put` / `offer` / `name` (shipped) | `BondedMixin.peers` (inherited) | `/trade/fishing/thing/fish-bowl` (Feeder), `fish-food`; carp `feedingStyle: [surface]`, `biddability: 0` | `Bonded.postRegister` warms the species | `put` target `ContainerMixin` ✓ Feeder; `offer` animal arg — ⚠ its scope must reach INTO an open bowl (Risks) |
 | the fisher | `talk` (shipped) | `Cast` is `Behaved` | the fisher row with `reads-water` at `trigger: engage` and `fishes` at a cadence, `props: [rod]`, on the bank's `cast:` | the room's cast minted at boot | `talk` target `BehavedMixin` ✓ |
 | the fishmonger | `appoint` (shipped) | `Persona.self` | `business.yaml` position + roster, the stall, the Offstage row, the Cast on `stalls.yaml`'s `cast:` | the roster tick (`EmploymentApi.boot`) materializes the Employment | field validator `mustHoldAppointingAuthority` — the committee, founder passes |
-| the rig (B8) | `fish.yaml` (`using <rod>`) | `Rod` (same statics) | `/trade/fishing/thing/{float-rod,ledger-rod}` with `presentsAt` / `hookGapeM`; species rows with `habitat.feedsAt` | the standing carries `feedsAt` per read | `rod` `ToolMixin` in hand |
+| the rig (B8) | `fish.yaml` (`using <rod>`) | `Rod` (same statics) | `/trade/fishing/thing/{float-rod,leger-rod}` with `presentsAt` / `hookGapeM`; species rows with `habitat.feedsAt` | the standing carries `feedsAt` per read | `rod` `ToolMixin` in hand |
 | the lure (B8) | `fish.yaml` (`with spoon`), `reel.yaml` (works it) | `Rod` (same statics) | `/trade/fishing/thing/spoon` (`baitKind: lure`) | the live engagement's `workedAtTick` | `bait` `requires: any` |
 | the keepnet (B8) | `lay.yaml`, `haul.yaml`, `put` (shipped) | `Trap.commandContributions` | `/trade/fishing/thing/keepnet` (`interiorBulk: true`, `drawPerHour: 0`); `/stuff/idea/material/bulk/water` | — | `trap` `ToolMixin`; `put`'s target is a Container (Trap is one now) |
 | the Discipline | — | — | `/trade/fishing/idea/Discipline/fishing` | `DisciplineCatalogue` warms by class | — |

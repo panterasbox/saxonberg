@@ -213,7 +213,7 @@ beforeAll(async () => {
   s = await Session.open(handle, { startLocation: STORE, wizard: true });
   // ⚠ `pot` alone is the farming pack's clay pot at this counter; the
   // crab pot answers to `crab-pot`.
-  for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food', 'float-rod', 'ledger-rod', 'spoon', 'keepnet']) {
+  for (const good of ['rod', 'worm', 'worm', 'worm', 'worm', 'worm', 'worm', 'crab-pot', 'net', 'bowl', 'fish-food', 'float-rod', 'leger-rod', 'spoon', 'keepnet']) {
     expectOk(await s.cmd(`buy ${good}`));
   }
   s.close();
@@ -228,7 +228,7 @@ suite('1 · the store', () => {
   it('each is a real thing in hand; `look rod` names no number', async () => {
     await me.drainProse();
     const inv = await inventory(me);
-    for (const w of ['rod', 'worm', 'crab pot', 'net', 'bowl', 'fish food', 'float rod', 'ledger rod', 'spoon', 'keepnet']) expect(inv).toMatch(new RegExp(w, 'i'));
+    for (const w of ['rod', 'worm', 'crab pot', 'net', 'bowl', 'fish food', 'float rod', 'leger rod', 'spoon', 'keepnet']) expect(inv).toMatch(new RegExp(w, 'i'));
     // ⚠ Three rods in hand now (B8): `rod` alone PROMPTS — which one? —
     // and a prompt is not a dispatch-response. Name it, as a player would.
     const rod = await peek(me, 'cane');
@@ -647,13 +647,13 @@ suite('16 · the sturgeon', () => {
 });
 
 suite('17 · the rig, the lure and the keepnet (B8)', () => {
-  it('⭐ the rig is where the bait sits: a ledger over a surface shoal is a long afternoon; the float takes a mullet', async () => {
+  it('⭐ the rig is where the bait sits: a leger over a surface shoal is a long afternoon; the float takes a mullet', async () => {
     const s = await Session.open(handle, { startLocation: BANK, wizard: true });
     try {
       await setAbundance(s, 'sturgeon', 2);
       await bias(s, 'grey-mullet', 0.1);
-      // The ledger pins the worm to the bottom; the mullet feed at the top.
-      expect(await castFor(s, 'fish with worm using ledger-rod', 10)).not.toBe('mullet');
+      // The leger pins the worm to the bottom; the mullet feed at the top.
+      expect(await castFor(s, 'fish with worm using leger-rod', 10)).not.toBe('mullet');
       // The float hangs it where they are.
       expect(await fishUntilLanded(s, 'fish with worm using float-rod', 30)).toBe('mullet');
     } finally {
@@ -668,7 +668,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
       await bias(s, 'shore-crab', 0.1);
       // Ledgered right on the bottom where they are — and a hook a crab
       // cannot get round. Nothing prints; the worm stays.
-      expect(await castFor(s, 'fish with worm using ledger-rod', 6)).toBeNull();
+      expect(await castFor(s, 'fish with worm using leger-rod', 6)).toBeNull();
       expect(await inventory(s)).toMatch(/worm/i);
       expect(await fishUntilLanded(s, 'fish with worm using cane', 30)).toBe('shore-crab');
     } finally {
@@ -706,9 +706,11 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
       expectOk(haul);
       expect(squash(await haul.said())).toMatch(/take out what you kept/i);
       expect(await fishInHand(s)).toBe(kept);
-      // The control: the same fish, a minute in the air.
+      // The control: the same fish, a minute in the air. ⚠ Read it off
+      // MY contents — the bank's floor is littered with step 9's dead
+      // haul, and `--on ${kept}` could answer with one of those.
       await sleep(60_000);
-      const dead = await evalOn(s, kept, 'return String(this.isAlive())');
+      const dead = await evalOn(s, 'me', `return [...this.getContents()].filter((f) => f.getKeywords().includes('${kept}')).map((f) => String(f.isAlive())).join(",")`);
       expect(dead, dead).toMatch(/^false/);
     } finally {
       s.close();

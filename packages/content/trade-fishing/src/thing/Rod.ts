@@ -7,7 +7,7 @@
  * coupled by the rows** (B8): `showing` (how well the tackle shows the
  * bait), `breakStrain` (the line test — where it parts), `presentsAt`
  * (where in the column the bait sits: a float holds it at the surface,
- * a free line drifts mid-water, a ledger weight pins it to the bottom —
+ * a free line drifts mid-water, a leger weight pins it to the bottom —
  * read against each species' `feedsAt`), and `hookGapeM` (the hook: a
  * fish much smaller than the gape cannot take it). A heavy rig holds
  * the sturgeon and shows more; a fine one bites more and parts. The
