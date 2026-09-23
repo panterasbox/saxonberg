@@ -61,8 +61,8 @@ ledger** — nobody judges.
 | rung | who lends | secured by | the gate | the verb |
 |---|---|---|---|---|
 | **0 · supplier terms** | the supplier | the goods — title stays the supplier's until sale | none | `consign … --ask <price>` at a counter whose `purchasing` is `terms` |
-| **1 · inventory finance** | a chartered bank, funded at the window | the goods, with the bank's lien on the pledged counter | `reserve.ladder.termsRequired` **completed purchases**, no defaulted loan | `bank borrow <n> --for stock` |
-| **2 · working capital** | a chartered bank, from its own balance | unsecured, capped at `reserve.ladder.workingCapitalCap` | `reserve.ladder.loansRequired` rung-1 loans repaid, none defaulted | `bank borrow <n> --for wages`, or the wage seam's automatic draw |
+| **1 · inventory finance** | a chartered bank, funded at the window | the goods, with the bank's lien on the pledged counter | `reserve.ladder.termsRequired` **completed purchases**, no defaulted loan *still owed* | `bank borrow <n> --for stock` |
+| **2 · working capital** | a chartered bank, from its own balance | unsecured, capped at `reserve.ladder.workingCapitalCap` | `reserve.ladder.loansRequired` rung-1 loans repaid, no default still owed | `bank borrow <n> --for wages`, or the wage seam's automatic draw |
 
 ### Rung 0 is consignment grown up
 
@@ -114,6 +114,38 @@ counter the borrower owns goes to the lender's own counter — and the
 window advance behind it is written off. The reserve's **default rate**
 (`reserve` prints it) is the inflation dial the Governor watches:
 window paper that defaulted over window paper advanced.
+
+### ⭐⭐ The record is permanent; the exclusion is not
+
+A breached row **stays breached for good**. The default happened, the
+papers keep saying so, and that record is what a credit history *is* —
+it is also exactly what a future rating needs, because the two facts a
+rating turns on are both on the row: that it defaulted, and whether it
+has since cleared.
+
+What lifts is the **bar**. `defaultedLoansOf` counts breached loans that
+are **still owed**, so:
+
+- the creditor's claim on the borrower's inflows **continues past the
+  default** — the security did not cover the debt and the lender is
+  still out of pocket, so the same share keeps coming out of every sale;
+- **interest stops at the breach.** The shortfall is a fixed sum to
+  clear. A debt that kept compounding would outrun the borrower and the
+  lift would be a lift in name only;
+- when it reaches zero the row is marked **`satisfied`** — an event, not
+  a state change. It is never `settled`: *settled* would erase the
+  default, and nothing here erases a deed;
+- the reserve's default rate counts what the window is **still** out of
+  pocket, so a cured default stops feeding a policy dial with a loss the
+  reserve has already got back.
+
+⚠ It shipped the other way for one review round: nothing could repay a
+breached row (`recordRepayment` returned early unless the state was
+`open`) and nothing cleared the count, so a single default ended a
+business's access to credit **permanently, with no way to pay its way
+back**. Nobody chose that — it fell out of the gate being a bare count
+of breaches, which is how the harshest rule in a system arrives without
+an author. **A refusal is only honest if something lifts it.**
 
 ### Rates are Terms
 

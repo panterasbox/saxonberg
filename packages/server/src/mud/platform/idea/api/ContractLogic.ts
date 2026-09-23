@@ -1215,9 +1215,32 @@ async function settledLoansOf(borrowerKey: string, rung: CreditRung): Promise<nu
 }
 
 /** Loans the borrower has defaulted on (ever). */
-async function defaultedLoansOf(borrowerKey: string): Promise<number> {
+async function breachedLoansOf(borrowerKey: string): Promise<ContractRecord[]> {
   const rows = await ContractRecord.findByKind("loan", "breached");
-  return rows.filter((r) => r.issuer.templatePath === borrowerKey).length;
+  return rows.filter((r) => r.issuer.templatePath === borrowerKey);
+}
+
+/**
+ * ⭐⭐ The loans that still BAR this borrower: breached **and still owed**.
+ *
+ * The breach itself never leaves the record — the row stays `breached`
+ * for good, and the papers keep saying so, because the deed happened and
+ * a credit history is exactly that record. What lifts is the **bar**,
+ * and it lifts when the lender is made whole: the creditor's claim on
+ * this borrower's inflows continues past default (see
+ * `repaymentSplitsForImpl`), so a house that keeps trading pays down
+ * what the security did not cover and can borrow again.
+ *
+ * ⚠ It shipped without this: nothing could repay a breached row and
+ * nothing cleared the count, so one default ended a business's access to
+ * credit permanently, with no way to pay its way back. Nobody chose
+ * that — it fell out of the gate being a bare count of breaches. **A
+ * refusal is only honest if something lifts it.** What a future rating
+ * wants is both facts, and both are on the row: it defaulted, and
+ * whether it has since cleared.
+ */
+async function defaultedLoansOf(borrowerKey: string): Promise<number> {
+  return (await breachedLoansOf(borrowerKey)).filter((r) => r.owedMinor > 0).length;
 }
 
 /** The share a lender posts, clamped to the reserve's bounds. */
@@ -1261,9 +1284,14 @@ async function issueLoanImpl(spec: IssueLoanSpec): Promise<IssueLoanResult> {
   const currency = BankingApi.compactCurrency();
 
   // The gates — numbers of ledger events, named in the refusal.
-  const defaulted = await defaultedLoansOf(borrowerKey);
-  if (defaulted > 0) {
-    return { ok: false, reason: "ladder-gate", detail: `a defaulted loan stands on the book: ${GrammarApi.inWords(defaulted)}` };
+  const standing = (await breachedLoansOf(borrowerKey)).filter((r) => r.owedMinor > 0);
+  if (standing.length > 0) {
+    const outstanding = standing.reduce((n, r) => n + r.owedMinor, 0);
+    return {
+      ok: false,
+      reason: "ladder-gate",
+      detail: `a defaulted loan stands on the book: ${GrammarApi.inWords(standing.length)}, ${moneyInWords(outstanding)} still owed — the bar lifts when it is paid`,
+    };
   }
   let security: CreditSecurity = { kind: "none" };
   let windowAdvanceMinor = 0;
@@ -1611,13 +1639,26 @@ async function repaymentSplitsForImpl(
   if (!active() || amountMinor <= 0) return [];
   const ownerKey = await BankingApi.ownerKeyOf(payeeAccountId);
   if (!ownerKey) return [];
-  const loans = await ContractRecord.findOpenByIssuer(ownerKey, "loan");
+  // ⭐ Open loans AND a defaulted one still owed: the security did not
+  // cover the debt, the lender is still out of pocket, and the claim on
+  // this borrower's inflows does not end because the row says
+  // `breached`. This is what lets a default be CURED by trading — see
+  // `defaultedLoansOf`.
+  const loans = [
+    ...(await ContractRecord.findOpenByIssuer(ownerKey, "loan")),
+    ...(await breachedLoansOf(ownerKey)).filter((r) => r.owedMinor > 0),
+  ];
   const out: Array<RemittanceSplit & { contractId: string }> = [];
   let left = amountMinor;
   for (const loan of loans) {
     if (left <= 0 || !loan.holder || !loan.terms) continue;
-    accrue(loan);
-    await saveRecord(loan);
+    // ⚠ Interest STOPS at the breach. A shortfall that keeps compounding
+    // outruns the borrower and the lift above would be a lift in name
+    // only; the debt after default is a fixed sum to clear.
+    if (loan.state === "open") {
+      accrue(loan);
+      await saveRecord(loan);
+    }
     const creditor = await accountOfParty(loan.holder);
     if (!creditor || creditor === payeeAccountId) continue;
     const take = Math.min(loan.owedMinor, Math.round(amountMinor * loan.terms.share), left);
@@ -1643,7 +1684,10 @@ async function repaymentSplitsForImpl(
 async function recordRepaymentImpl(contractId: string, amountMinor: number, txId: string): Promise<void> {
   if (!active()) return;
   const record = await ContractRecord.findByContractId(contractId);
-  if (!record || record.state !== "open" || !record.terms) return;
+  // `open` or a `breached` row still owed — the cure. Anything else is
+  // closed and takes nothing.
+  if (!record || !record.terms) return;
+  if (record.state !== "open" && !(record.state === "breached" && record.owedMinor > 0)) return;
   accrue(record);
   const before = record.owedMinor;
   record.owedMinor = Math.max(0, record.owedMinor - amountMinor);
@@ -1661,8 +1705,22 @@ async function recordRepaymentImpl(contractId: string, amountMinor: number, txId
     }
   }
   if (record.owedMinor <= 0) {
-    record.state = "settled";
     record.closedAt = worldSeconds();
+    if (record.state === "breached") {
+      // ⭐⭐ NOT `settled`: the default happened and the row keeps saying
+      // so for good. What changes is that nothing is owed on it any
+      // more, which is what lifts the bar on borrowing again.
+      await appendEvent(contractId, "satisfied", {
+        memo: "the shortfall after the security was paid in full; the default stands on the record",
+      });
+      await saveRecord(record);
+      await appendToPapers(
+        record,
+        "Satisfied: what the security did not cover has been paid. The default remains on this record — it is history, not a debt.",
+      );
+      return;
+    }
+    record.state = "settled";
     await appendEvent(contractId, "settled", { memo: "repaid in full; the lien is released" });
     await saveRecord(record);
     await appendToPapers(record, "Repaid in full. The lien is released.");
@@ -1766,7 +1824,13 @@ async function windowDefaultRateImpl(currency: string): Promise<WindowDefaultRat
       : r.terms.windowAdvanceMinor;
     const original = Number(/window (\d+)/.exec(events.find((e) => e.event === "advanced")?.memo ?? "")?.[1] ?? NaN);
     advanced += Number.isFinite(original) ? original : behind;
-    if (r.state === "breached") defaulted += behind;
+    // ⭐ What the reserve is STILL out of pocket, not what it was out of
+    // pocket the day the loan broke. A borrower who cures a default pays
+    // down the loan, the bank repays the window its share as it comes in
+    // (see `recordRepaymentImpl`), and this dial falls with it. Reading
+    // the figure at default would leave a rate that feeds POLICY
+    // permanently overstating a loss the reserve has since got back.
+    if (r.state === "breached") defaulted += Math.min(behind, r.terms.windowAdvanceMinor);
   }
   return { currency, advanced, defaulted, rate: advanced > 0 ? defaulted / advanced : 0 };
 }
@@ -1788,7 +1852,18 @@ async function instrumentsOfImpl(ownerKey: string): Promise<InstrumentLine[]> {
   const out: InstrumentLine[] = [];
   const money = moneyInWords;
   for (const kind of ["note", "loan", "unclaimed"] as const) {
-    for (const r of await ContractRecord.findOpenByIssuer(ownerKey, kind)) {
+    // ⭐ A defaulted loan still owed is listed with the open ones: it is
+    // money this borrower owes, the bar it carries lifts when it is
+    // paid, and a book that hides it is the one read that would leave
+    // them unable to find out why the window says no.
+    const rows =
+      kind === "loan"
+        ? [
+            ...(await ContractRecord.findOpenByIssuer(ownerKey, kind)),
+            ...(await breachedLoansOf(ownerKey)).filter((r) => r.owedMinor > 0),
+          ]
+        : await ContractRecord.findOpenByIssuer(ownerKey, kind);
+    for (const r of rows) {
       accrue(r);
       const other = r.holder ? labelOfParty(r.holder) : "";
       const rate = r.terms && r.terms.ratePerGameYear > 0 ? `at ${percentInWords(r.terms.ratePerGameYear)} per cent a game-year` : "at no interest";
@@ -1796,7 +1871,9 @@ async function instrumentsOfImpl(ownerKey: string): Promise<InstrumentLine[]> {
         kind === "note"
           ? `You hold an Arrival Note for ${money(r.terms?.principalMinor ?? 0)}, ${rate}, to ${other}.`
           : kind === "loan"
-            ? `You owe ${other} ${money(r.owedMinor)} ${rate}${r.terms?.rung === "opening" ? " (the Treasury's opening advance)" : ""}.`
+            ? r.state === "breached"
+              ? `IN DEFAULT to ${other}: ${money(r.owedMinor)} still owed after the security. No interest runs on it, and paying it lifts the bar on borrowing again.`
+              : `You owe ${other} ${money(r.owedMinor)} ${rate}${r.terms?.rung === "opening" ? " (the Treasury's opening advance)" : ""}.`
             : `The Treasury holds ${money(r.owedMinor)} of yours, unclaimed — reclaimable on return.`;
       out.push({ contractId: r.contractId, kind, role: "owes", counterparty: other, owedMinor: r.owedMinor, principalMinor: r.terms?.principalMinor ?? 0, rung: r.terms?.rung ?? 1, state: r.state, words });
     }

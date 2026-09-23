@@ -34,6 +34,11 @@ export const CONTRACT_EVENT_KINDS = [
   "recovered",
   "escheated",
   "reclaimed",
+  // ⭐ The cure: a defaulted loan whose shortfall has since been paid in
+  // full. NOT `settled` — the row stays `breached` and the default stays
+  // on the record; this says only that nothing is owed on it any more,
+  // which is what lifts the bar on borrowing again.
+  "satisfied",
 ] as const;
 
 export type ContractEventKind = (typeof CONTRACT_EVENT_KINDS)[number];

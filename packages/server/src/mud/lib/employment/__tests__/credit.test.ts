@@ -313,6 +313,63 @@ describe("the credit ladder", () => {
     if (!again.ok) expect(again.detail).toMatch(/defaulted loan/);
   });
 
+  it("⭐⭐ the default is CURED by trading: the claim survives the breach, the bar lifts when the lender is whole, and the record keeps the default", async () => {
+    await BankingApi.mint(bankAccount, zm(50), "harness");
+    await completeTerms(2);
+    const granted = await ContractApi.issueLoan({ borrower: shop as never, counter: bankCounter, principalMinor: 100, rung: 1 });
+    if (!granted.ok) throw new Error("not granted");
+    // Nothing on the counter to take, so the security covers none of it:
+    // the whole debt survives the default as a shortfall.
+    advanceClock(31 * GAME_DAY_S);
+    expect(await ContractApi.reconcileLoans(SHOP)).toBe(1);
+    const owedAtDefault = (await ContractApi.contractById(granted.contractId))?.owedMinor ?? 0;
+    expect(owedAtDefault).toBeGreaterThan(0);
+    await BankingApi.mint(bankAccount, zm(1000), "harness");
+    expect((await ContractApi.issueLoan({ borrower: shop as never, counter: bankCounter, principalMinor: 10, rung: 1 })).ok).toBe(false);
+
+    // ⚠ Interest STOPS at the breach — a shortfall that kept compounding
+    // would outrun the borrower and the cure would be a cure in name only.
+    advanceClock(400 * GAME_DAY_S);
+    expect((await ContractApi.contractById(granted.contractId))?.owedMinor).toBe(owedAtDefault);
+
+    // The shop keeps trading, and the creditor's share keeps coming out
+    // of its inflows even though the row says `breached`.
+    const patronAcct = await BankingApi.ensureVenueAccount(PATRON, BankingApi.defaultCustodianBank(), "", BankingApi.compactCurrency());
+    await BankingApi.mint(patronAcct, zm(4000), "harness");
+    const patron = cardHolder(PATRON, patronAcct);
+    const sale = async (n: number): Promise<void> => {
+      await as(patron, () =>
+        BankingApi.settle(
+          { amount: zm(n), reason: "a sale", presented: true, payeeAccountId: shopAccount, category: "sales" },
+          { kind: "credential" },
+        ),
+      );
+    };
+    await sale(200);
+    const part = await ContractApi.contractById(granted.contractId);
+    expect(part?.owedMinor).toBeLessThan(owedAtDefault);
+    expect(part?.state).toBe("breached"); // still in default, still barred
+    expect((await ContractApi.issueLoan({ borrower: shop as never, counter: bankCounter, principalMinor: 10, rung: 1 })).ok).toBe(false);
+
+    // Paid off: the bar lifts.
+    for (let i = 0; i < 8 && ((await ContractApi.contractById(granted.contractId))?.owedMinor ?? 0) > 0; i += 1) {
+      await sale(400);
+    }
+    const cured = await ContractApi.contractById(granted.contractId);
+    expect(cured?.owedMinor).toBe(0);
+    // ⭐ The row is NOT `settled`: the default happened and says so for
+    // good. What changed is that nothing is owed on it.
+    expect(cured?.state).toBe("breached");
+    expect((await ContractApi.eventsFor(granted.contractId)).map((e) => e.event)).toContain("satisfied");
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
+    // ⭐⭐ And the window's loss falls with it — the reserve got its money
+    // back, so the dial that feeds policy stops reporting a live loss.
+    expect((await ContractApi.windowDefaultRate(BankingApi.compactCurrency())).defaulted).toBe(0);
+    await completeTerms(3);
+    const again = await ContractApi.issueLoan({ borrower: shop as never, counter: bankCounter, principalMinor: 10, rung: 1 });
+    expect(again.ok).toBe(true);
+  });
+
   it("rung 2 needs M repaid inventory loans, lends from the bank's own balance, and is capped", async () => {
     await BankingApi.mint(bankAccount, zm(1000), "harness");
     await completeTerms(2);
