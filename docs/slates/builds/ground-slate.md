@@ -5,23 +5,15 @@
 > in three vocabularies owned by three different places, the kernel holds two
 > citation slots for it and interprets neither, and **a Location has no material
 > field at all.**
-> **Left:** ⚠⚠ **the posture bug is CONFIRMED — driven 2026-09-23 over the real
-> socket, as a brand-new player in the Lounge (`defaultStartLocation`): `sit`,
-> `lie` and `kneel` ALL decline `empty-result[target]`, and so do `look ground`
-> and `look floor`. A new player cannot sit down in the first room they see.**
-> ⭐ A second, separate defect fell out of the same probe: **`sit on ground`
-> declines `command-rejected: shape-fall-through`** — the prepositional form a
-> person would naturally type is not a recognised shape, so even naming the
-> ground explicitly does not reach it. ·
-> **floors as universal Things** (an adornment every Location gets unless it
-> authors one) · **the **four-rung** underfoot ladder** · **the `onGrade` flag, on
-> the floor rather than the Location** · **`/system/ground`**: the column and the
-> seeded surface character unified as one substrate read at a depth ·
-> `GroundCharacter` out of the farming trade · the floor's first real consumer
-> (`dig` asks *what is underfoot* and *is this on grade*) · ⭐⭐ **the closed
-> ground-kind vocabulary, DERIVED from `f(material, onGrade)` and never chosen** ·
-> **the two-part census** (every Location's resolved kind, and every room whose
-> PROSE claims a ground nothing backs — the second list may only shrink)
+> **Left:** ⚠⚠ the ground postures cannot bind — `sit`/`lie`/`kneel` and `look
+> floor` all decline in the Lounge, driven and confirmed (body below) · floors as
+> universal Things (`adornments:` is already authorable on every Location) · the
+> four-rung underfoot ladder, with the `onGrade` and `worked` flags carried by the
+> floor · `f(material, onGrade, worked)` → a closed ground kind, derived and never
+> chosen · `/system/ground` — the column and the seeded character under one owner,
+> `GroundCharacter` out of the farming trade · `dig` as the floor's first consumer ·
+> the two-part census (every Location's kind; every room whose PROSE claims a
+> ground nothing backs — ceiling 64, measured)
 > **Size:** a build
 
 See also: [extraction-slate](./extraction-slate.md) (⭐⭐ **the build this one

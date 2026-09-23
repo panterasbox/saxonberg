@@ -1,23 +1,23 @@
 # Extraction slate — the ground cut from above, and the yield a place concentrates
 
-> **Status: UNBUILT — design closed 2026-09-23, ready for `/requirements`.**
+> **Status: UNBUILT — design closed, requirements + plan WRITTEN 2026-09-23.**
+> ⚠ **Blocked on [ground-slate](./ground-slate.md)**, which supersedes this
+> build's W0. ⭐ It became ONE build, not two: salt folded into it (all three
+> sources) and the hive left for a **ranching wave** (`ranching.md § ⚠ Not
+> built: bees (D34–D39)`), so the old Stage B is gone.
 > The five shipped RGOs (mining · farming · ranching ·
 > fishing · forestry, plus water as the sixth) cover the planted, the kept,
 > the standing and the sunk. Nothing cuts the ground from the surface, and
 > nothing takes a yield the surroundings concentrate for you.
-> **Left:** ⭐ **Stage A — the open working**: **W0, the open air dries what
-> you leave in it** (the `dry` act's rate reads the weather — peat, the
-> saltern, hay and a ham on a line, all one term) · ground cut from above
-> (overburden as the gate, the dressed block as forestry's bole, rubble as
-> bulk) · stone · clay · sand · limestone → the limekiln → the smelt's missing
-> **flux** · coal · peat (a field that does not renew, cut wet and dried) ·
-> rock salt · the `quarrying` Discipline · ⭐ **Stage B — the concentrated
-> yield**: the saltern (a `MaturationProfile` with `mechanism: evaporative` on
-> a Bulkable pan, riding W0) · **the hive** (yield = f(a neighbourhood you do
-> not own) — the one genuinely new shape, and the one that gates the
-> unification) + pollination scaling `fruitSetCount` at SET · honey · beeswax →
-> the candle
-> **Size:** two builds
+> **Left:** the open working — ground cut from above, overburden as the gate, the
+> dressed block as forestry's bole · W0, the open air dries what you leave in it
+> (one weather-read rate serving peat, the salt pans, hay and a ham on a line) ·
+> stone · clay · limestone → the limekiln → the smelt's missing flux · coal as a
+> hearth fuel (raw coal makes bad iron, so coke stays metal-chain's) · peat, cut
+> wet and dried, on ground that does not come back · salt from all three of its
+> sources — a face, the pans, boiled brine · the `quarrying` Discipline ·
+> `Improvable` promoted so a turbary can be drained
+> **Size:** a build
 
 See also: ⭐⭐ [ground-slate](./ground-slate.md) (**the build that must land
 first** — floors as universal Things, the underfoot ladder, and `/system/ground`

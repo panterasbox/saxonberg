@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**231 slates.** 51 greenfield · 81 continuations · 55 waves · 44 tails.
+**233 slates.** 53 greenfield · 81 continuations · 55 waves · 44 tails.
 
-## ⭐ Greenfield — nothing shipped yet (51)
+## ⭐ Greenfield — nothing shipped yet (53)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -64,8 +64,10 @@ respect.
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field … |
 | [estate-nesting](./builds/estate-nesting-slate.md) | ⭐⭐ decide what an estate entry should CARRY — a reference, a copy, or a copy under a cap · the 16 MB document ceiling and what happens at it · whether a good's state belongs in the owner's record at all now that `EstateEntry.key` proves it need not · the migration for entries already written |
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
+| [extraction](./builds/extraction-slate.md) | the open working — ground cut from above, overburden as the gate, the dressed block as forestry's bole · W0, the open air dries what you leave in it (one weather-read rate serving peat, the salt pans, hay and a ham on a line) · stone · clay … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
+| [ground](./builds/ground-slate.md) | ⚠⚠ the ground postures cannot bind — `sit`/`lie`/`kneel` and `look floor` all decline in the Lounge, driven and confirmed (body below) · floors as universal Things (`adornments:` is already authorable on every Location) · the four-rung underfoot ladder, with the `onGrade` and `worked` flags carried by the floor · `f(material, onGrade, worked)` → a closed ground kind, derived and never chosen … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
 | [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |
 | [hydration-framework](./builds/hydration-framework-slate.md) | ⭐⭐ the census + ratchet on the `postRegister` implementations that load state (63 → 67, ungated) · the finishing-hydration vs warming-a-roster ruling the census feeds · ⭐ let a `PersistenceContributor` name its own SOURCE (so a layer can restore from a collection that is not `holder_snapshots`) · pre- vs post-register for a source-naming contributor (Q1) … |
@@ -161,7 +163,7 @@ are the named remainders.
 | [onboarding](./builds/onboarding-slate.md) | the `onboarded` flag + lounge-exit routing · Dr. Limen (seat, model-backed brain, the reply contract) + the onboarding-progress flags and their subscription · scoped personal authoring (the dorm customization on-ramp) · the wayfinding signs … |
 | [persistence-architecture](./builds/persistence-architecture-slate.md) | Wave 3 — un-Stuff `PersistentHydrator`, the marshallers and `platform/idea/hooks/` (`DomainHook` + `hooks.yaml`) into path-resolved, lazy, re-resolved modules on the shipped brain pattern (verified unstarted 2026-08-08: `PersistentHydrator` still `extends Idea`) · Wave 4's tail — per-field prose on `fieldMeta`, Mongo-side JSON Schema validators (see Wave 4 below) |
 | [pets](./builds/pets-slate.md) | the fear/threat axis + the wild taming encounter (Wave 2) · the pet shop (a `Stock` over animal rows + the mint at purchase) · the accept/refuse appraisal for `pet` / `call` / `stay` (today only `offer` reads temperament × state × regard) · fetch / BUC-sniff / guard brains + training as the animal's own Discipline transcript … |
-| [physiology](./builds/physiology-slate.md) | per-individual stature + BMI as a banded derived read (its first consumer is body density for buoyancy — § Anthropometrics) · pain as a derived reader · the alarm-clock optimization over `reconcileConditions` (today it is pure reconcile-on-read with no booked next-interesting-time) · substances (the topical route, inhalation, the liver clearance multiplier) … |
+| [physiology](./builds/physiology-slate.md) | per-individual stature (BMI itself shipped; stature is still a **species** figure, so two bodies of one species cannot differ in height — § Anthropometrics) · pain as a derived reader · the alarm-clock optimization over `reconcileConditions` (today it is pure reconcile-on-read with no booked next-interesting-time) · substances (the topical route, inhalation, the liver clearance multiplier) … |
 | [policing](./builds/policing-slate.md) | Terminus as Peelers + the Tiebout spread of policing modes · the police bundle and the department roster (constable · sergeant · inspector … |
 | [power-utility](./builds/power-utility-slate.md) | the supply reference on `Energized` fixtures · outage propagation + directional network failure over exit edges · gas as the second conduit commodity · the kitchen as residential demand case … |
 | [press](./builds/press-slate.md) | the newsroom roster (publisher → editor-in-chief → editor → reporter, layered on the shipped organization substrate) · bylines · subscription / push distribution (the aether as delivery) · the credibility track record and whether a correction repairs standing … |
