@@ -36,7 +36,7 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
-import { MakerMixin } from '../../../../lib/craft/Maker';
+import { EmployedMixin } from '../../../../lib/employment/Employed';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import {
@@ -47,7 +47,7 @@ import {
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomComposition';
 }
-class TestCook extends MakerMixin(
+class TestCook extends EmployedMixin(
   NamedMixin(ThermalMixin(ContainableMixin(Idea))),
 ) {
   static _mixinName = 'TestCookComposition';
@@ -58,8 +58,14 @@ class TestCook extends MakerMixin(
   reachableHeatK(): number {
     return this._heatK;
   }
-  getConferredMixinNames(): readonly string[] {
-    return ['MakerMixin'];
+  // ⭐ Stands in for an on-shift holder of a `fulfills` seat. The real
+  // read is three conditions (on shift · the seat marks `fulfills` · the
+  // house operates where you stand) and is proved as a truth table in
+  // `lib/employment/__tests__/conferral.test.ts`; here the fulfiller is
+  // scenery, so the seam is stubbed exactly as the old `MakerMixin`
+  // conferral was.
+  isFulfilling(): boolean {
+    return true;
   }
 }
 

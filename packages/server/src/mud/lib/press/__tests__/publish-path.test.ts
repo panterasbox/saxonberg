@@ -86,7 +86,7 @@ function publisher(
   org.visibility = visibility;
   org.feedPath = feed;
   org.positions = [
-    { key: DIRECTOR, label: 'speaking', wageRate: 0, confers: [] },
+    { key: DIRECTOR, label: 'speaking', wageRate: 0 },
   ];
   org.publishingPositions = [DIRECTOR];
   org.rosterSlots = [

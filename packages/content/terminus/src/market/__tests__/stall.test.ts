@@ -142,7 +142,7 @@ function stubSeeds(): void {
         const b = new BusinessEntity();
         const o = opts?.dataOverlay ?? {};
         b.proprietorPath = '';
-        b.positions = [{ key: 'keeper', noun: 'keeper', label: 'keeping a market stall', wageRate: 0, confers: [], purchases: true } as never];
+        b.positions = [{ key: 'keeper', noun: 'keeper', label: 'keeping a market stall', wageRate: 0, purchases: true } as never];
         b.appointingAuthority = o.appointingAuthority as never;
         b.banksAt = String(o.banksAt ?? '');
         b.operatingLocations = [...((o.operatingLocations as string[]) ?? [])];

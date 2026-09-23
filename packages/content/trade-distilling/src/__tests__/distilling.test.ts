@@ -453,14 +453,14 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
 
     const host = makeStuffAtPath(() => new BusinessEntity(), HOST_BIZ);
     host.proprietorPath = '';
-    host.positions = [{ key: 'clerk', label: 'clerking', wageRate: 5, confers: [] }];
+    host.positions = [{ key: 'clerk', label: 'clerking', wageRate: 5 }];
     host.operatingLocations = [COUNTER, COUNTER_ROOM];
     host.banksAt = BankingApi.defaultCustodianBank();
     hostAccount = await EmploymentApi.operatingAccountOf(host);
 
     outfit = makeStuffAtPath(() => new BusinessEntity(), OUTFIT);
     outfit.proprietorPath = '';
-    outfit.positions = [{ key: 'hand', label: 'running the floor', wageRate: 3, confers: [], purchases: true }];
+    outfit.positions = [{ key: 'hand', label: 'running the floor', wageRate: 3, purchases: true }];
     outfit.operatingLocations = [FLOOR_ROOM, FLOOR_STOCK];
     outfit.banksAt = BankingApi.defaultCustodianBank();
     outfitAccount = await EmploymentApi.operatingAccountOf(outfit);

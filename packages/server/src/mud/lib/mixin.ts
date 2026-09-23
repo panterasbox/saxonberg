@@ -430,7 +430,6 @@ export const Mixins = {
   Keen: 'KeenMixin',
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
-  Maker: 'MakerMixin',
   ManualBuild: 'ManualBuildMixin',
   Bank: 'BankMixin',
   // The unified credential holder — one keyed store of credentials-as-data,

@@ -17,7 +17,6 @@ data:
       noun: hand
       label: running the bottling floor's floor
       wageRate: 3
-      confers: []
       purchases: true
   rosterSlots:
     - positionKey: hand

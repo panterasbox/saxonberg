@@ -15,11 +15,19 @@
  * `endShift`/`beginCover`/`endCover` are the callers), with a narrow
  * janitorial arm for the employment engine.
  *
- * `getConferredMixinNames()` is the knowing→doing seam the augment
- * substrate reads: the union of every **on-shift** Employment's Position
- * `confers` list. `MixinApi.collectAugmentConferralNames` picks it up via a
- * structural soft-lookup (no import), so an on-shift bartender's gated
- * `MakerMixin` goes active — and an off-shift one's goes inert.
+ * ⭐ `isFulfilling()` is the knowing→doing seam: *am I the on-duty hand
+ * HERE?* It is what `order` routes on, and it is three conditions —
+ * on shift, in a seat the house marked `fulfills`, standing somewhere
+ * that house operates. Employer-bounded, which is the honest reading:
+ * an on-shift bartender who walks into the smithy does not fulfil smithy
+ * orders.
+ *
+ * ⚠ Until the trades-and-labor build this was `getConferredMixinNames()`
+ * — a Position's `confers: ['MakerMixin']` list that the AUGMENT walk
+ * folded in by structural soft-lookup, so a job went through the implant
+ * mechanism. Augment gating is for physical implants and innate gifts;
+ * a job is not one, and the marker it named was one no player could
+ * compose, which made every position grant unreachable to a player.
  *
  * ## ⭐ And **who answers for you** — {@link Employed.institutionPath}
  *
@@ -190,8 +198,12 @@ export interface Employed {
   getActiveEmployments(): readonly Employment[];
   /** True iff any employment is currently on shift (sync hot-path read). */
   isOnShift(): boolean;
-  /** Mixin names conferred by every on-shift Employment's Position. */
-  getConferredMixinNames(): readonly string[];
+  /**
+   * ⭐ Is this actor the on-duty hand HERE — the one an `order` at this
+   * venue is served by? On shift, in a seat its house marked `fulfills`,
+   * standing somewhere that house operates. See {@link Employed}.
+   */
+  isFulfilling(): boolean;
   /**
    * ⭐ **What the job calls its holder** — `'bartender'`, `'clerk'` —
    * from the first ACTIVE employment's Position, or `null`.
@@ -331,30 +343,45 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return (this.employments ?? []).some((e) => e.status === 'on-shift');
     }
 
-    public getConferredMixinNames(): readonly string[] {
+    public isFulfilling(): boolean {
       const store = this.employments ?? [];
-      if (store.length === 0) return [];
-      const out = new Set<string>();
+      if (store.length === 0) return false;
+      // Where the actor actually stands, plus the identity paths of
+      // everything standing in it — a house names its shop floor, or the
+      // counter on it, and either is "here" (the `resolveHouse` walk).
+      const self = this as unknown as Stuff;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const here = new Set<string>();
+      if (room) {
+        const roomPath = room.getTemplatePath();
+        if (roomPath) here.add(roomPath);
+        if (MixinApi.isContainer(room)) {
+          for (const c of room.getContents()) {
+            const p = c.getIdentityPath();
+            if (p) here.add(p);
+          }
+        }
+      }
       for (const e of store) {
         if (e.status !== 'on-shift') continue;
         const organization = StuffApi.findByTemplatePath(recordKey(e));
-        // ⚠ `MixinApi.isOrganization`, not `typeof x.getPosition ===
-        // 'function'`. The duck-type predates the predicate — this build
-        // is what added `Mixins.Organization` — and it narrows by shape,
-        // so anything that happens to expose a `getPosition` would satisfy
-        // it while a genuine organization behind a shadow might not.
         if (!organization || !MixinApi.isOrganization(organization)) continue;
-        const position = organization.getPosition(e.positionKey);
-        if (!position) continue;
-        for (const name of position.confers) out.add(name);
+        if (organization.getPosition(e.positionKey)?.fulfills !== true) continue;
+        // ⚠ The "here" leg. A house with no operating locations at all
+        // fulfils nowhere — which is what an organization that keeps no
+        // premises honestly means.
+        if (!MixinApi.isBusiness(organization)) continue;
+        for (const where of organization.getOperatingLocations()) {
+          if (here.has(where)) return true;
+        }
       }
-      return [...out];
+      return false;
     }
 
     /** See {@link Employed.getPositionNoun}. */
     public getPositionNoun(): string | null {
-      // The same walk `getConferredMixinNames` makes, taken once against
-      // the first active record: employment → organization → position.
+      // The same walk `isFulfilling` makes, taken once against the first
+      // active record: employment → organization → position.
       const employment = this.getActiveEmployment();
       if (!employment) return null;
       const organization = StuffApi.findByTemplatePath(

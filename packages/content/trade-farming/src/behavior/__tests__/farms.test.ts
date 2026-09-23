@@ -281,7 +281,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
     farmBiz = makeStuffAtPath(() => new BusinessEntity(), FARM_BIZ);
     farmBiz.proprietorPath = '';
     farmBiz.positions = [
-      { key: 'hand', label: 'working the grove', wageRate: 3, confers: [], purchases: true },
+      { key: 'hand', label: 'working the grove', wageRate: 3, purchases: true },
     ];
     farmBiz.operatingLocations = [GROVE];
     farmBiz.banksAt = BankingApi.defaultCustodianBank();

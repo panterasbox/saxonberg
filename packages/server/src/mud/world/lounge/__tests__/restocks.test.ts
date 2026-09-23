@@ -279,14 +279,14 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     floorStock = stock('/world/terminus/goods-yards/veshko/thing/stock', 'stock');
     ContainmentApi.move(floorStock as never, floor as never);
 
-    business(DISTRIBUTION, [{ key: 'clerk', label: 'clerking', wageRate: 5, confers: [] }], [CASH_AND_CARRY, COUNTER]);
-    outfit = business(OUTFIT, [{ key: 'hand', label: 'running the floor', wageRate: 3, confers: [], purchases: true }], [FLOOR]);
+    business(DISTRIBUTION, [{ key: 'clerk', label: 'clerking', wageRate: 5 }], [CASH_AND_CARRY, COUNTER]);
+    outfit = business(OUTFIT, [{ key: 'hand', label: 'running the floor', wageRate: 3, purchases: true }], [FLOOR]);
     outfitAccount = await EmploymentApi.operatingAccountOf(outfit);
     barBiz = business(
       BAR_BIZ,
       [
-        { key: 'bartender', label: 'tending bar', wageRate: 4, confers: [] },
-        { key: 'keeper', label: 'keeping the bar', wageRate: 0, confers: [], purchases: true },
+        { key: 'bartender', label: 'tending bar', wageRate: 4 },
+        { key: 'keeper', label: 'keeping the bar', wageRate: 0, purchases: true },
       ],
       [BAR],
     );

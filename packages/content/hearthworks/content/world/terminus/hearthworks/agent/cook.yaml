@@ -1,6 +1,7 @@
-# Odo — the Hearthworks cook: a Crafter (MakerMixin gated by his rostered
-# position; on shift he fulfills `order` at the cookhouse). Human.
-class: /platform/agent/Crafter
+# Odo — the Hearthworks cook. On shift in the house's `fulfills` cook
+# seat, standing in the cookhouse, he is who an `order` there is served
+# by. Human.
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Odo

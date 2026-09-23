@@ -26,7 +26,6 @@ data:
       noun: fishmonger
       label: keeping the fish stall
       wageRate: 4
-      confers: []
   rosterSlots:
     - positionKey: monger
       assignee: /world/terminus/market/agent/fishmonger

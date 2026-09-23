@@ -10,7 +10,7 @@ data:
       noun: farmer
       label: working the bench
       wageRate: 3
-      confers: [MakerMixin]
+      fulfills: true
   rosterSlots:
     - positionKey: farmer
       assignee: /world/terminus/hearts-delight/agent/farmer

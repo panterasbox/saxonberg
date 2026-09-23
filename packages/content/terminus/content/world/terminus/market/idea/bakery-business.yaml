@@ -10,7 +10,7 @@ data:
       noun: baker
       label: at the oven
       wageRate: 4
-      confers: [MakerMixin]
+      fulfills: true
   rosterSlots:
     - positionKey: baker
       assignee: /world/terminus/market/agent/baker

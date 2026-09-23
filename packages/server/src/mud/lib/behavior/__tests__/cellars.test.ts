@@ -255,7 +255,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     outfit = makeStuffAtPath(() => new BusinessEntity(), OUTFIT);
     outfit.proprietorPath = '';
     outfit.positions = [
-      { key: 'hand', label: 'the cellar hand', wageRate: 3, confers: [], purchases: true },
+      { key: 'hand', label: 'the cellar hand', wageRate: 3, purchases: true },
     ];
     outfit.operatingLocations = [FLOOR];
     outfit.banksAt = BankingApi.defaultCustodianBank();

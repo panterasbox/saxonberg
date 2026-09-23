@@ -7,12 +7,12 @@ describe('Position', () => {
       key: 'bartender',
       label: 'tending bar',
       wageRate: 12,
-      confers: ['MakerMixin'],
+      fulfills: true,
     });
     expect(p.key).toBe('bartender');
     expect(p.label).toBe('tending bar');
     expect(p.wageRate).toBe(12);
-    expect(p.confers).toEqual(['MakerMixin']);
+    expect(p.fulfills).toBe(true);
   });
 
   it('coerces a loosely-typed (hydrated) blob', () => {
@@ -23,7 +23,7 @@ describe('Position', () => {
     expect(p.key).toBe('cook');
     expect(p.label).toBe('');
     expect(p.wageRate).toBe(9);
-    expect(p.confers).toEqual([]);
+    expect(p.fulfills).toBe(false);
   });
 
   it('round-trips through serialize/fromData', () => {
@@ -31,16 +31,35 @@ describe('Position', () => {
       key: 'server',
       label: 'serving',
       wageRate: 10,
-      confers: ['MakerMixin'],
+      fulfills: true,
     });
     const back = Position.fromData(p.serialize());
     expect(back.serialize()).toEqual(p.serialize());
   });
 
-  it('does not alias the confers array', () => {
-    const confers = ['MakerMixin'];
-    const p = Position.of({ key: 'k', label: 'l', wageRate: 1, confers });
-    confers.push('Injected');
-    expect(p.confers).toEqual(['MakerMixin']);
+  it('⭐ a grant is a FLAG on the seat, never a list of mixin names', () => {
+    // The old `confers: string[]` let a row name any mixin at all — an
+    // open-ended capability grant from content, gated through the augment
+    // walk. The two grants that exist are booleans on the position, and a
+    // row cannot invent a third.
+    const p = Position.of({
+      key: 'keeper',
+      label: 'keeping shop',
+      wageRate: 4,
+      purchases: true,
+      fulfills: true,
+    });
+    expect(p.purchases).toBe(true);
+    expect(p.fulfills).toBe(true);
+    expect(Position.fromData(p.serialize()).serialize()).toEqual(p.serialize());
+  });
+
+  it('a seat with neither grant serializes neither key', () => {
+    const p = Position.of({ key: 'clerk', label: 'clerking', wageRate: 5 });
+    expect(p.serialize()).toEqual({
+      key: 'clerk',
+      label: 'clerking',
+      wageRate: 5,
+    });
   });
 });

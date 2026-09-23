@@ -135,8 +135,8 @@ async function makeBarBusiness(
   const biz = makeStuffAtPath(() => new BusinessEntity(), BAR_BIZ);
   biz.proprietorPath = proprietor;
   biz.positions = [
-    { key: "bartender", label: "tending bar", wageRate: 12, confers: [] },
-    { key: "keeper", label: "keeping the bar", wageRate: 0, confers: [], purchases: true },
+    { key: "bartender", label: "tending bar", wageRate: 12 },
+    { key: "keeper", label: "keeping the bar", wageRate: 0, purchases: true },
   ];
   biz.operatingLocations = ["/stuff/test/bar/room"];
   biz.banksAt = BankingApi.defaultCustodianBank();

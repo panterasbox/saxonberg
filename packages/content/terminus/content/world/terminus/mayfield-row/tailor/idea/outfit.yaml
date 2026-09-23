@@ -15,7 +15,6 @@ data:
       noun: tailor
       label: at the bench
       wageRate: 6
-      confers: []
       purchases: true
   rosterSlots:
     - positionKey: tailor

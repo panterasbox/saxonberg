@@ -10,7 +10,7 @@ function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), PATH);
   b.proprietorPath = '/world/lounge/agent/dave';
   b.positions = [
-    { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
+    { key: 'bartender', label: 'tending bar', wageRate: 12, fulfills: true },
   ];
   b.rosterSlots = [
     {
@@ -42,7 +42,7 @@ describe('BusinessEntity', () => {
     const b = seedBusiness();
     expect(b.getPositions().map((p) => p.key)).toEqual(['bartender']);
     expect(b.getPosition('bartender')?.wageRate).toBe(12);
-    expect(b.getPosition('bartender')?.confers).toEqual(['MakerMixin']);
+    expect(b.getPosition('bartender')?.fulfills).toBe(true);
     expect(b.getPosition('nope')).toBeUndefined();
   });
 

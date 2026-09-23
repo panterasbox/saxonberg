@@ -3,11 +3,17 @@
  *
  * A value object (the `Money` / `Charge` / `Credential` precedent): plain
  * data plus `serialize` / `fromData`, no `Stuff`, no identity. A Business
- * authors its `positions`; an `Employment` references one by `key`. The
- * `confers` list is the knowing→doing seam — the mixin names an on-shift
- * holder's Position grants via the augment substrate (v1:
- * `['MakerMixin']` for the bartender, so an on-shift bartender becomes a
- * valid `order` fulfiller and an off-shift one stops being one).
+ * authors its `positions`; an `Employment` references one by `key`.
+ *
+ * ⭐ **What a seat GRANTS is data on the seat, never a marker mixin.**
+ * `purchases` says the holder may spend the house's money; `fulfills`
+ * says the holder is who an `order` here is served by. Both are the
+ * position's, both are read off the shift, and neither composes anything
+ * on anybody — an Avatar and an NPC answer identically. (Until the
+ * trades-and-labor build this was a `confers: ['MakerMixin']` list that
+ * folded a JOB into the AUGMENT walk; augment gating is for physical
+ * implants and innate gifts, not for a means test, and the marker it
+ * named was one no player could ever compose.)
  *
  * `wageRate` is denominated in banking **minor units per game-hour**; the
  * shift-end settlement multiplies it by the shift's game-hour span.
@@ -50,8 +56,24 @@ export interface PositionData {
   noun?: string;
   /** Wage in banking minor units per game-hour on shift. */
   wageRate: number;
-  /** Mixin names this Position confers while its holder is on shift. */
-  confers: readonly string[];
+  /**
+   * ⭐ A **fulfilling** position: its holder, while on shift and standing
+   * somewhere the organization operates, is who an `order` at this venue
+   * is served by. The bartender behind the bar, the cook at the hearth,
+   * the goods-yard hand on the floor that actually makes the thing.
+   *
+   * ⚠ Not derivable, which is why it is authored. `order` serves both a
+   * customer at a bar and a production hand on a floor, and the outfits'
+   * own rows are what say which hands do the work: the brewing,
+   * crowsfoot and vintner hands fulfil; bottling, hollis, veshko, farm
+   * and pantry's do not. No other field separates them —
+   * `serverPositionKeys` is *who attends the counter*, a different
+   * question, and `noun` / `wageRate` / `purchases` say nothing about it.
+   *
+   * Absent = false: a seat that does not fulfil (what `confers: []` used
+   * to say on forty of the forty-nine shipped seats).
+   */
+  fulfills?: boolean;
   /**
    * The compensation basis (additive; absent = the shipped time-wage —
    * `wageRate` behaves exactly as before). See {@link Compensation}.
@@ -81,14 +103,14 @@ export class Position {
     public readonly label: string,
     /** Wage in banking minor units per game-hour on shift. */
     public readonly wageRate: number,
-    /** Mixin names conferred while the holder is on shift. */
-    public readonly confers: readonly string[],
     /** The compensation term, or undefined (= the time default). */
     public readonly compensation?: CompensationData,
     /** The position this one reports to, or undefined. */
     public readonly reportsTo?: string,
     /** Whether the holder buys for the organization (default false). */
     public readonly purchases: boolean = false,
+    /** Whether the holder serves an `order` here on shift (default false). */
+    public readonly fulfills: boolean = false,
     /** What one holder is CALLED, or undefined. See {@link PositionData.noun}. */
     public readonly noun?: string,
   ) {}
@@ -99,10 +121,10 @@ export class Position {
       data.key,
       data.label,
       data.wageRate,
-      [...data.confers],
       data.compensation,
       data.reportsTo,
       data.purchases === true,
+      data.fulfills === true,
       data.noun,
     );
   }
@@ -117,7 +139,6 @@ export class Position {
       String(data.key ?? ''),
       String(data.label ?? ''),
       Number(data.wageRate ?? 0),
-      Array.isArray(data.confers) ? data.confers.map(String) : [],
       data.compensation && typeof data.compensation === 'object'
         ? {
             basis: COMP_BASES.includes(data.compensation.basis as CompBasis)
@@ -135,6 +156,7 @@ export class Position {
         ? data.reportsTo
         : undefined,
       data.purchases === true,
+      data.fulfills === true,
       typeof data.noun === 'string' && data.noun.length > 0
         ? data.noun
         : undefined,
@@ -152,10 +174,10 @@ export class Position {
       key: this.key,
       label: this.label,
       wageRate: this.wageRate,
-      confers: [...this.confers],
       ...(this.compensation ? { compensation: { ...this.compensation } } : {}),
       ...(this.reportsTo ? { reportsTo: this.reportsTo } : {}),
       ...(this.purchases ? { purchases: true } : {}),
+      ...(this.fulfills ? { fulfills: true } : {}),
       ...(this.noun ? { noun: this.noun } : {}),
     };
   }

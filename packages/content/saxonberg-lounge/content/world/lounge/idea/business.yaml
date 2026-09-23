@@ -26,15 +26,15 @@ data:
     path: /world/lounge/agent/dave
   # The one position v1. `wageRate` is minor units per game-hour on shift
   # (a tuning placeholder — an 8h shift ~ 32, a modest labor line against
-  # the deliberately-red P&L). `confers` is the on-shift capability grant:
-  # while on shift the holder's gated MakerMixin goes active, so the present
-  # bartender fulfills `order`.
+  # the deliberately-red P&L). `fulfills: true` is the on-shift capability
+  # grant: while on shift and standing somewhere this house operates, the
+  # holder is who an `order` at the bar is served by.
   positions:
     - key: bartender
       noun: bartender
       label: tending bar
       wageRate: 4
-      confers: [MakerMixin]
+      fulfills: true
     # The keeper — the seat that BUYS for the house. `purchases: true` is
     # what lets its holder `wallet use house` (the operating account
     # becomes the one they trade as) and run `house stock` / `house par`.
@@ -45,7 +45,6 @@ data:
       noun: keeper
       label: keeping the bar
       wageRate: 0
-      confers: []
       purchases: true
   # The roster — the single source of truth for who tends and when. The
   # schedules are lifted verbatim from what each NPC's `shifts` brain read

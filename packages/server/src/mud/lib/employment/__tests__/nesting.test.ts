@@ -36,7 +36,6 @@ function position(
     key,
     label: key,
     wageRate: 0,
-    confers: [],
     ...(reportsTo ? { reportsTo } : {}),
   };
 }

@@ -794,7 +794,7 @@ function stockSheetForImpl(
  * Begin a proprietor's cover: upsert a **transient, on-shift** Employment
  * against the business's (first) position — reusing the whole on-shift→
  * confer path, so the covering proprietor gains the Position's capability
- * (`MakerMixin` for the bar). Unpaid by construction: the wage settlement
+ * (a `fulfills` seat, for the bar). Unpaid by construction: the wage settlement
  * skips a proprietor-held Employment, and the roster tick never governs the
  * proprietor (they hold no roster slot), so the cover is never resurrected
  * or paid. Idempotent-ish: a re-begin just refreshes the record.
@@ -827,7 +827,7 @@ function tipRecipientForImpl(patron: Stuff): Stuff | null {
   const loc = patron.getContainer();
   if (!loc || !MixinApi.isContainer(loc)) return null;
   for (const c of loc.getContents()) {
-    if (c !== patron && MixinApi.isMaker(c)) return c;
+    if (c !== patron && MixinApi.isEmployed(c) && c.isFulfilling()) return c;
   }
   return null;
 }
@@ -1344,7 +1344,7 @@ export class EmploymentLogic extends ApiLogic {
    * skips them (`… is not live`) and nothing re-runs it when they appear.
    * The result, found by driving the Hearthworks cookhouse: the cook stands
    * at his own hearth with **no employment record at all**, so nothing
-   * confers `MakerMixin`, and `order` answers *"There's no one on hand to
+   * marks `fulfills`, and `order` answers *"There's no one on hand to
    * make that"* — until the next scheduled tick, a whole game-hour later.
    *
    * `ensureOperatorAt` was already written to prevent exactly this ("a cold
@@ -1600,7 +1600,7 @@ export class EmploymentLogic extends ApiLogic {
       // pass; a cast NPC is spawned by residency only when a player walks
       // in, so the boot pass logged `… is not live` and skipped them, and
       // nothing re-ran it once they existed. The cook then stood at his own
-      // hearth uncontracted — no `MakerMixin`, `order` → "There's no one on
+      // hearth uncontracted — nobody fulfilling, `order` → "There's no one on
       // hand to make that" — for up to a whole game-hour.
       //
       // One venue's roster, not the realm's, and idempotent: `ensureRostered`

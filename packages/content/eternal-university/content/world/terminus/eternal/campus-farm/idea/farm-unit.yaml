@@ -17,7 +17,7 @@
 # output is small, seasonal and real, which is what keeps it a transform
 # rather than a faucet (D105).
 #
-# ⚠ The `labourer` position confers nothing and requires nothing. There
+# ⚠ The `labourer` position grants nothing and requires nothing. There
 # is no gate, no prerequisite and no application: a character with an
 # empty wallet in their first session can take it, and the acts they do
 # for the wage are the same acts a holder does on their own ground.
@@ -33,7 +33,6 @@ data:
       noun: labourer
       label: working on the university farm
       wageRate: 2
-      confers: []
       purchases: false
   banksAt: goodkin
   operatingLocations:

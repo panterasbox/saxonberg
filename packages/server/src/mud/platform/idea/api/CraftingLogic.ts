@@ -165,7 +165,9 @@ function toView(recipe: Recipe): RecipeView {
 /**
  * Resolve the maker from the execution context — **never** off the wire.
  * `'self'` → the command giver (serve/mix). `'fulfilling-bartender'` → a
- * present `MakerMixin` agent in the giver's (the patron's) location (order).
+ * present FULFILLING agent in the giver's (the patron's) location — on
+ * shift, in a seat its house marked `fulfills`, and standing somewhere
+ * that house operates (`Employed.isFulfilling`).
  */
 function resolveMaker(mode: MakerMode): Stuff | null {
   const giver = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
@@ -176,7 +178,7 @@ function resolveMaker(mode: MakerMode): Stuff | null {
   const loc = giver.getContainer();
   if (!loc || !MixinApi.isContainer(loc)) return null;
   for (const c of loc.getContents()) {
-    if (c !== giver && MixinApi.isMaker(c)) return c;
+    if (c !== giver && MixinApi.isEmployed(c) && c.isFulfilling()) return c;
   }
   return null;
 }
@@ -344,8 +346,7 @@ function isItemCandidate(c: Stuff): boolean {
     (!MixinApi.isCrafted(c) || isEdibleMatter(c)) &&
     !MixinApi.isContainer(c) &&
     !MixinApi.isBulkable(c) &&
-    !MixinApi.isOrganism(c) &&
-    !MixinApi.isMaker(c)
+    !MixinApi.isOrganism(c)
   );
 }
 
@@ -445,7 +446,6 @@ async function gatherMatter(
     if (
       MixinApi.isContainer(c) &&
       !MixinApi.isOrganism(c) &&
-      !MixinApi.isMaker(c) &&
       !MixinApi.isCrafted(c) &&
       (!MixinApi.isSealable(c) || c.isOpen())
     ) {

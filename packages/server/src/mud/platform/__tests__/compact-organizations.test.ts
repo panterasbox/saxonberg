@@ -34,7 +34,7 @@ interface PositionSeed {
   key: string;
   label: string;
   wageRate: number;
-  confers: string[];
+  fulfills?: boolean;
   reportsTo?: string;
 }
 

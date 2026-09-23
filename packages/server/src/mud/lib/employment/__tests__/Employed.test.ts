@@ -10,12 +10,19 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { SecurityError } from '../../security/errors';
+import { ContainableMixin } from '../../spatial/Containable';
+import { ContainerMixin } from '../../spatial/Container';
+import { ContainmentApi } from '../../../api/containment';
 
-class EmployedHost extends EmployedMixin(Idea) {
+class EmployedHost extends EmployedMixin(ContainableMixin(Idea)) {
   static _mixinName = 'EmployedHost';
+}
+class EmployedTestRoom extends ContainerMixin(Idea) {
+  static _mixinName = 'EmployedTestRoom';
 }
 
 const BUSINESS = '/world/lounge/idea/business';
+const BAR = '/world/lounge/location/bar';
 
 function rec(over: Partial<EmploymentData> = {}): EmploymentData {
   return {
@@ -39,7 +46,7 @@ describe('EmployedMixin', () => {
     expect(a.getEmployment(BUSINESS)).toBeUndefined();
     expect(a.getActiveEmployment()).toBeUndefined();
     expect(a.isOnShift()).toBe(false);
-    expect(a.getConferredMixinNames()).toEqual([]);
+    expect(a.isFulfilling()).toBe(false);
   });
 
   it('reads stored records as value objects', () => {
@@ -57,20 +64,24 @@ describe('EmployedMixin', () => {
     expect(a.getActiveEmployment()).toBeUndefined();
   });
 
-  it('confers a Position mixin only while on shift', () => {
-    // A live Business the on-shift employment resolves its confers off.
+  it('fulfils only while on shift', () => {
+    // A live Business the on-shift employment resolves its seat off, with
+    // the host standing somewhere it operates. (The full three-condition
+    // truth table, employer-bounding included, is `conferral.test.ts`.)
     const biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     biz.positions = [
-      { key: 'bartender', label: 'bar', wageRate: 1, confers: ['MakerMixin'] },
+      { key: 'bartender', label: 'bar', wageRate: 1, fulfills: true },
     ];
+    biz.operatingLocations = [BAR];
+    const bar = makeStuffAtPath(() => new EmployedTestRoom(), BAR);
 
     const a = makeStuff(() => new EmployedHost());
+    ContainmentApi.move(a as never, bar as never);
     a.employments = [rec({ status: 'on-shift', onShiftSince: 1 })];
-    expect(a.getConferredMixinNames()).toEqual(['MakerMixin']);
+    expect(a.isFulfilling()).toBe(true);
 
-    // Off shift → nothing conferred.
     a.employments = [rec({ status: 'off-shift' })];
-    expect(a.getConferredMixinNames()).toEqual([]);
+    expect(a.isFulfilling()).toBe(false);
   });
 
   describe('privileged mutators rejected outside the engine', () => {

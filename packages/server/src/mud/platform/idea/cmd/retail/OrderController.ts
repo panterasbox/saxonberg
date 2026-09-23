@@ -2,7 +2,7 @@
  * OrderController — `order <cocktail> [with <brand>]`.
  *
  * The customer side. Resolves the order off the present `Menu`, then has the
- * fulfilling bartender (a present `MakerMixin` agent, resolved inside
+ * fulfilling bartender (a present on-shift `fulfills` holder, resolved inside
  * `CraftingLogic`) make it — the maker is **never** off the wire (the giver
  * here is the patron). The drink is handed to the patron.
  */
@@ -126,7 +126,7 @@ export default class OrderController extends CraftController<OrderModel> {
     // Stand the venue's operator up BEFORE resolving the maker: the
     // Business is derived + stood up lazily (no standup hook), and its
     // on-shift conferral is what makes the present crafter an active
-    // `MakerMixin` — a cold venue's first customer must find the roster
+    // its `fulfills` seat — a cold venue's first customer must find the roster
     // already on shift, not a no-maker decline.
     const venuePathForMaker = context.location?.getTemplatePath();
     if (venuePathForMaker) {

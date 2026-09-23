@@ -402,7 +402,13 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       nowRaw: number,
     ): Employment | null {
       const organizationPath = this.getOrganizationPath();
-      const positionKey = this.positions[0]?.key;
+      // ⭐ The seat a cover COVERS is a fulfilling one — the proprietor
+      // steps behind the bar to serve, not into the bookkeeping. Falls
+      // back to the first seat when the house marks none (which is what
+      // `positions[0]` meant before `fulfills` existed).
+      const positionKey =
+        (this.positions.find((p) => p.fulfills === true) ?? this.positions[0])
+          ?.key;
       if (!organizationPath || !positionKey) return null;
       const record: EmploymentData = {
         organizationPath,

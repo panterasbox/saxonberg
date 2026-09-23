@@ -7,7 +7,7 @@
 # does drift out front the old stage habits (a wink, a polished glass,
 # that impression) resurface — the "annoying script" as fond homage.
 # Human (canon).
-class: /platform/agent/Crafter
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Dave
@@ -59,8 +59,9 @@ data:
       trigger: arrival
     # Dave is the proprietor, not a rostered assignee — he covers the bar
     # when no rostered bartender is on shift. The `covers` brain begins a
-    # transient, unpaid cover that confers MakerMixin, so an `order` still
-    # finds a fulfiller. Shift scheduling lives on the Business roster now.
+    # transient, unpaid cover on the house's `fulfills` seat, so an
+    # `order` still finds a fulfiller. Shift scheduling lives on the
+    # Business roster now.
     - brain: /lib/behavior/covers
       trigger: cadence:30s
       config: {}

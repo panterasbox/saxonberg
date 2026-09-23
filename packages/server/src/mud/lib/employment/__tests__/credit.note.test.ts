@@ -107,7 +107,7 @@ function standUpShop(): BusinessEntity {
     const b = new BusinessEntity();
     b.banksAt = "goodkin";
     b.operatingLocations = [SHOP_COUNTER];
-    b.positions = [{ key: "keeper", label: "keeping", wageRate: 10, confers: [] }];
+    b.positions = [{ key: "keeper", label: "keeping", wageRate: 10 }];
     return b;
   }, SHOP);
   makeStuffAtPath(() => {

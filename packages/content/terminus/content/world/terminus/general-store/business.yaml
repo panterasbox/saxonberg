@@ -19,7 +19,6 @@ data:
       noun: clerk
       label: working the general-store counter
       wageRate: 5
-      confers: []
     # ⭐ The keeper KEEPS the shop (economic bootstrap D14): the
     # `purchases` position her `stocks` beat trades as — dealt the house
     # card at hire, she buys the supplied lines at the cash-and-carry
@@ -29,7 +28,6 @@ data:
       noun: keeper
       label: keeping the general store
       wageRate: 0
-      confers: []
       purchases: true
   rosterSlots:
     - positionKey: clerk

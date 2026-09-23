@@ -129,8 +129,12 @@ export abstract class BankingControllerBase<
     return mine[0] ?? null;
   }
 
-  /** A present bartender (an active MakerMixin agent) — the house's rep. */
+  /** A present bartender (whoever is on shift and fulfilling here) — the house's rep. */
   protected presentBartender(context: CommandContext): Stuff | null {
-    return this.peers(context).find((s) => MixinApi.isMaker(s)) ?? null;
+    return (
+      this.peers(context).find(
+        (s) => MixinApi.isEmployed(s) && s.isFulfilling(),
+      ) ?? null
+    );
   }
 }
