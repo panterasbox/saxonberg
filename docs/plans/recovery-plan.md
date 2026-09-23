@@ -688,9 +688,31 @@ Every wave is independently landable and ends at
 
 ### Stage A â the wiring core: the clinic works
 
-#### W-A0 â Merge, the affordance finding, the drive's wound sources
+#### W-A0 â Merge, the affordance finding, the drive's wound sources ✅ DONE
 **Goal:** a branch that can be built on, and proof the medical verbs are
 reachable at all.
+
+> ✅ **W-A0 landed (2026-09-23).** Base caught up to master (fishing merged â
+> `pnpm install` was required; stale `node_modules` failed every pack suite at
+> collection with a `content-trade-fishing` "Cannot find module" â the known
+> pack-rename trap). `Exerting.ts` confirmed present. **Affordance finding
+> CONFIRMED by grep** â nothing contributed `medical/treat.yaml` /
+> `medical/undress.yaml`; `VitalsMixin` had no `commandContributions` at all.
+> Fixed per D6: `VitalsMixin.commandContributions = { self: [treat, undress] }`
+> (the `MetabolicMixin.eat` shape). 126 vitals tests green.
+>
+> **D18 refined â the wound sources, corrected from empirical anatomy.**
+> `HazardDelivery.resolveSite` is **first-anatomy-match, deterministic**, and
+> the spike-pit's selector leads with `body.torso`, so its point delivery
+> reaches the liver → an **undressable interior rupture** (its whole
+> documented character). It is therefore the **rupture** source, never a
+> fracture. The **fracture** source is a **new `traps/deadfall.yaml`** (blunt,
+> energy 6, `siteSelector: [body.leg.left, body.leg.right]` â a leg carries
+> bone and has no interior organ, so a blunt blow past the 1.5 fracture
+> threshold BREAKS it), placed in `delve/corridor-3.yaml`. So the drive's
+> step 1 (fracture) springs the **deadfall** and step 5 (rupture) springs the
+> **spike-pit** â the reverse of the plan-time guess; W-A8 confirms both
+> energies on the wire and tunes if needed.
 - `git merge origin/master` — the base already includes nutrition-fitness (merged `81caf517f`); confirm
   `lib/exertion/Exerting.ts` exists; `pnpm install`; `pnpm test:near`
   on `lib/vitals`.

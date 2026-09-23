@@ -35,6 +35,7 @@ import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
+import type { CommandContributions } from '../../api/command';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -594,6 +595,27 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** A lost part is visible on the body — see `missingPartsAugmenter`. */
     static markupAugmenters: MarkupAugmenter[] = [missingPartsAugmenter];
+
+    /**
+     * ⭐⭐ **The body affords its own first aid.** `treat` and `undress`
+     * shipped with NO affordance at all — the views and controllers
+     * existed, but nothing anywhere contributed the verbs, so no player
+     * could type `treat` at any body in any room (a grep of every
+     * `commandContributions` named `medical/rinse.yaml` once and `treat`
+     * / `undress` never). The `MetabolicMixin.eat` precedent exactly: a
+     * body with a wound is what can dress it, so the affordance lives on
+     * the body. Grown by later recovery waves (`tend` · `dose`).
+     *
+     * ⚠ `self`-scoped — a verb you invoke targeting any reachable body
+     * (yourself by default). Inert without a `CommandGiver`, exactly as
+     * `eat` is on an animal: a frog composes VitalsMixin and never types.
+     */
+    static commandContributions: CommandContributions = {
+      self: [
+        'platform/cmd/medical/treat.yaml',
+        'platform/cmd/medical/undress.yaml',
+      ],
+    };
 
     static fieldMeta: FieldMeta = {
       _coreTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K'), runtimeState: true },
