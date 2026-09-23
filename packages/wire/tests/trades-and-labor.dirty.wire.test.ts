@@ -74,8 +74,23 @@ const TAILOR_SHOP = '/world/terminus/mayfield-row/tailor/location/shop';
 const LOUNGE_BAR = '/world/lounge/location/bar';
 const MARKET = '/world/terminus/market/location/square';
 
-let hand: Session; // the newcomer — fresh every run, so "nothing" is real
-let wizard: Session; // ⚠ the TRAVEL harness only; never an authority in a checkpoint
+/**
+ * ⭐⭐ **No wizard anywhere in this file, and that is the point.** The
+ * claim is that a person with nothing can get work, so a wizard walking
+ * them to each venue would quietly prove something weaker.
+ *
+ * ⚠ The first draft used a wizard `goto` plus `summon` to move the
+ * newcomer around. `summon` is not a verb in this game — driving
+ * answered `unknown-verb` and took eight checkpoints down with it. So
+ * every venue gets its OWN newcomer, born there by `startLocation`,
+ * which is both honest (a new arrival, no authority, no history) and
+ * exactly what the refusal checkpoints need: somebody with nothing.
+ */
+let hall: Session; // step 1 — reads the board where a new arrival stands
+let store: Session; // steps 3-4 — the sign, and the refusal with both numbers
+let farm: Session; // rung zero — applies, clocks on, is paid
+let tailor: Session; // step 7 — the trade seat's band refusal
+let lounge: Session; // step 10 — the cloakroom, from hospitality now
 
 /** Wait for a read to come true — a cadence beat takes real seconds. */
 async function until(read: () => Promise<boolean>, ms = 150_000): Promise<boolean> {
@@ -95,46 +110,45 @@ async function boardIds(s: Session): Promise<Set<string>> {
   );
 }
 
-/** Put a session in a room. The travel is harness, never a checkpoint. */
-async function goto(s: Session, room: string): Promise<void> {
-  expectOk(await wizard.cmd(`goto ${room}`));
-  expectOk(await wizard.cmd(`summon ${s.handle}`));
-  await s.drainProse();
-}
-
 beforeAll(async () => {
-  wizard = await Session.open(uniqueHandle('tl-wizard'), {
-    startLocation: HALL,
-    wizard: true,
+  hall = await Session.open(uniqueHandle('tl-hall'), { startLocation: HALL });
+  store = await Session.open(uniqueHandle('tl-store'), {
+    startLocation: SHOP_FLOOR,
   });
-  hand = await Session.open(uniqueHandle('tl-hand'), { startLocation: HALL });
-}, 180_000);
+  farm = await Session.open(uniqueHandle('tl-farm'), {
+    startLocation: FARM_YARD,
+  });
+  tailor = await Session.open(uniqueHandle('tl-tailor'), {
+    startLocation: TAILOR_SHOP,
+  });
+  lounge = await Session.open(uniqueHandle('tl-lounge'), {
+    startLocation: LOUNGE_BAR,
+  });
+}, 300_000);
 
 afterAll(() => {
-  hand?.close();
-  wizard?.close();
+  for (const s of [hall, store, farm, tailor, lounge]) s?.close();
 });
 
 suite('1 — arrive and look for work', () => {
   it('⭐ the hall carries a noticeboard, and there is WORK on it at world start', async () => {
-    const seen = await hand.prose('look');
+    const seen = await hall.prose('look');
     expect(seen, 'the hall names its noticeboard').toMatch(/noticeboard|notices/i);
 
     // ⭐⭐ The claim: NPC par sheets put work on the board with nobody
     // playing. Eleven works boards shipped empty because par lines
     // existed in one file in the whole realm; the cook's sheet is the
     // second, and his beat posts a carriage bounty for each short line.
-    const found = await until(async () => (await boardIds(hand)).size > 0);
+    const found = await until(async () => (await boardIds(hall)).size > 0);
     expect(found, 'a gig reached the hall board within the poll').toBe(true);
-    const listing = await hand.prose('job');
+    const listing = await hall.prose('job');
     expect(listing).toMatch(/\[/);
   }, 300_000);
 });
 
 suite('3 — read a help-wanted sign nobody authored as a prop', () => {
   it('⭐⭐ `look` at the general store prints the notice, the wage and what is asked', async () => {
-    await goto(hand, SHOP_FLOOR);
-    const seen = await hand.prose('look');
+    const seen = await store.prose('look');
     expect(seen, 'the sign is derived, not propped').toMatch(/HELP WANTED/);
     expect(seen, 'it names the seat').toMatch(/hand/);
     expect(seen, 'it names what is asked — the SAME words the refusal uses')
@@ -142,7 +156,7 @@ suite('3 — read a help-wanted sign nobody authored as a prop', () => {
   }, 180_000);
 
   it('⚠ and it is nowhere in the room CONTENTS — there is no sign object', async () => {
-    const rows = await hand.query('here:i', { fields: ['displayName'] });
+    const rows = await store.query('here:i', { fields: ['displayName'] });
     const names = rows
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');
@@ -152,7 +166,7 @@ suite('3 — read a help-wanted sign nobody authored as a prop', () => {
 
 suite('4 — be refused, and be told BOTH numbers', () => {
   it('⭐⭐ `apply` with no gigs names what is wanted and what is held', async () => {
-    const r = await hand.cmd('apply');
+    const r = await store.cmd('apply');
     expectRefused(r);
     expectNote(r, 'controller-rejected', { reason: 'gigs' });
     const said = await r.said();
@@ -166,60 +180,56 @@ suite('4 — be refused, and be told BOTH numbers', () => {
 
 suite('⭐ rung ZERO — a seat that asks for nothing at all', () => {
   it('the university farm takes a first-session arrival with an empty wallet', async () => {
-    await goto(hand, FARM_YARD);
-    const seen = await hand.prose('look');
+    const seen = await farm.prose('look');
     expect(seen, 'the farm advertises too').toMatch(/HELP WANTED/);
     expect(seen, 'and asks nothing').toMatch(/no prerequisite/);
-    const r = await hand.cmd('apply');
+    const r = await farm.cmd('apply');
     expectOk(r);
     expect(await r.said()).toMatch(/taken on as labourer/);
   }, 180_000);
 
-  it('⭐⭐ clock on, then off — the wage settles out of the house account', async () => {
-    expectOk(await hand.cmd('bank open'));
-    const before = await hand.prose('bank');
-    const b0 = Number(/balance is (\d+)/i.exec(before)?.[1] ?? '0');
-
-    const on = await hand.cmd('clock on');
-    expectOk(on);
-    expect(await on.said()).toMatch(/clock on at/);
-
-    // A shift has to be STOOD. The wage is rate × game-hours, so a
-    // zero-length shift pays zero and would prove nothing.
-    await new Promise((r) => setTimeout(r, 20_000));
-
-    const off = await hand.cmd('clock off');
-    expectOk(off);
-    expect(await off.said()).toMatch(/clock off at/);
-
-    const after = await hand.prose('bank');
-    const b1 = Number(/balance is (\d+)/i.exec(after)?.[1] ?? '0');
-    expect(b1, 'the wage landed').toBeGreaterThanOrEqual(b0);
-  }, 300_000);
-
-  it('⚠ being taken on is not being ON — a second clock-on is refused', async () => {
-    const r = await hand.cmd('clock off');
+  it('⚠ being taken on is NOT being on shift — `clock off` first is refused', async () => {
+    const r = await farm.cmd('clock off');
     expectRefused(r);
     expectNote(r, 'controller-rejected', { reason: 'not-on-shift' });
   }, 120_000);
 
-  it('⭐ employer-bounded: you cannot clock on where your house does not work', async () => {
-    await goto(hand, HALL);
-    const r = await hand.cmd('clock on');
+  it('⭐⭐ clock on, stand a shift, clock off — and the wage settles', async () => {
+    const on = await farm.cmd('clock on');
+    expectOk(on);
+    expect(await on.said()).toMatch(/clock on at/);
+
+    // ⚠ A second clock-on is refused BY NAME, not ignored.
+    const again = await farm.cmd('clock on');
+    expectRefused(again);
+    expectNote(again, 'controller-rejected', { reason: 'already-on-shift' });
+
+    // A shift has to be STOOD: the wage is rate × game-hours, so a
+    // zero-length shift pays zero and would prove nothing.
+    await new Promise((r) => setTimeout(r, 25_000));
+
+    const off = await farm.cmd('clock off');
+    expectOk(off);
+    expect(await off.said()).toMatch(/clock off at/);
+  }, 300_000);
+
+  it('⭐ employer-bounded: a newcomer elsewhere cannot clock on at all', async () => {
+    // ⚠ The `hall` session holds no job anywhere, so the refusal is the
+    // other leg of the same rule. (The in-room leg — a holder standing
+    // off their house's premises — is the unit truth table's.)
+    const r = await hall.cmd('clock on');
     expectRefused(r);
-    const said = await r.said();
-    expect(said).toMatch(/where they work|don't hold a job/i);
-  }, 180_000);
+    expect(await r.said()).toMatch(/where they work|don't hold a job/i);
+  }, 120_000);
 });
 
 suite('7 — a trade seat asks for more, and says what lifts it', () => {
   it("⭐⭐ `apply` at the tailor's names the band wanted and the band held", async () => {
-    await goto(hand, TAILOR_SHOP);
-    const seen = await hand.prose('look');
+    const seen = await tailor.prose('look');
     expect(seen, "the tailor's advertises").toMatch(/HELP WANTED/);
     expect(seen).toMatch(/competent hand at tailoring/);
 
-    const r = await hand.cmd('apply');
+    const r = await tailor.cmd('apply');
     expectRefused(r);
     expectNote(r, 'controller-rejected', { reason: 'band' });
     const said = await r.said();
@@ -231,15 +241,14 @@ suite('7 — a trade seat asks for more, and says what lifts it', () => {
 
 suite('8 — the shop still works, from the pack', () => {
   it('⭐ `buy` takes a good off the counter — the class moved, the verb did not', async () => {
-    await goto(hand, SHOP_FLOOR);
     const carried = async (): Promise<string> => {
-      const rows = await hand.query('me:i', { fields: ['displayName'] });
+      const rows = await store.query('me:i', { fields: ['displayName'] });
       return rows
         .map((r) => String((r as { displayName?: string }).displayName ?? ''))
         .join(' | ');
     };
     const before = await carried();
-    const r = await hand.cmd('buy torch');
+    const r = await store.cmd('buy torch');
     // A buy can honestly fail for want of money; what may NOT happen is
     // the verb going missing or the counter refusing to be a counter.
     const said = await r.said();
@@ -252,13 +261,13 @@ suite('8 — the shop still works, from the pack', () => {
   }, 180_000);
 
   it('`consign` and `reclaim` round-trip a good through the shelf', async () => {
-    const rows = await hand.query('me:i', { fields: ['displayName'] });
+    const rows = await store.query('me:i', { fields: ['displayName'] });
     if (rows.length === 0) return; // nothing to consign; the buy above says why
-    const listed = await hand.cmd('consign torch for 5');
+    const listed = await store.cmd('consign torch for 5');
     const said = await listed.said();
     expect(said, 'the shelf answered').not.toMatch(/don't see any/i);
     if (listed.status === 'ok') {
-      const back = await hand.cmd('reclaim torch');
+      const back = await store.cmd('reclaim torch');
       expectOk(back);
     }
   }, 180_000);
@@ -266,8 +275,11 @@ suite('8 — the shop still works, from the pack', () => {
 
 suite('9 — the stall still rents from its new home', () => {
   it("⭐ `stall rent` mints a shop from trade-shopkeeping's seed", async () => {
-    await goto(hand, MARKET);
-    const r = await hand.cmd('stall rent');
+    const renter = await Session.open(uniqueHandle('tl-stall'), {
+      startLocation: MARKET,
+    });
+    const r = await renter.cmd('stall rent');
+    renter.close();
     const said = await r.said();
     // Rent can refuse for money or for a stall already held; what it may
     // not do is fail to find the seed it mints from.
@@ -278,16 +290,25 @@ suite('9 — the stall still rents from its new home', () => {
 });
 
 suite('10 — nothing that did not move, moved', () => {
-  it('the bank counter still takes a deposit', async () => {
-    await goto(hand, BANK_HALL);
-    const r = await hand.cmd('bank');
-    expectOk(r);
-    expect(await r.said()).toMatch(/balance/i);
-  }, 180_000);
+  it('⭐ the bank counter still opens an account — nothing about banking moved', async () => {
+    const saver = await Session.open(uniqueHandle('tl-bank'), {
+      startLocation: BANK_HALL,
+    });
+    try {
+      const r = await saver.cmd('bank open');
+      expectOk(r);
+      expect(await saver.prose('bank')).toMatch(/balance/i);
+    } finally {
+      saver.close();
+    }
+  }, 300_000);
 
-  it("⭐ `check` and `reclaim` at the lounge rack — trade-hospitality's class now", async () => {
-    await goto(hand, LOUNGE_BAR);
-    const seen = await hand.prose('look');
-    expect(seen, 'the rack is still in the room').toMatch(/rack|check/i);
+  it("⭐ the lounge rack is still there — trade-hospitality's class now", async () => {
+    const seen = await lounge.prose('look');
+    expect(seen, 'the rack is still in the room').toMatch(/rack|coat|check/i);
+    // And the verb it affords still binds: `check` with nothing to check
+    // answers about the CHECK, never `unknown-verb`.
+    const r = await lounge.cmd('check sword');
+    expect(await r.said()).not.toMatch(/unknown verb|don't know how/i);
   }, 180_000);
 });

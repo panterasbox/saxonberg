@@ -1261,4 +1261,71 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+Run against a world booted on a **freshly dropped** database — the only
+honest way to answer *"does the board carry work at world start?"*, which
+is the question the whole labor market rests on.
+
+### ⭐⭐ What driving found that ~6,600 tests could not
+
+**1. The cook's beat posted into the void, silently, forever.**
+
+```
+[dispatch] Odo "job post supply 6 /stuff/thing/items/root-vegetables to
+  /trade/haulage/thing/receiving-bench for 30 --bounty --business --from
+  /world/terminus/counting-houses/cash-and-carry"
+  → declined: command-rejected:unknown-verb(job)
+```
+
+`job` is afforded by a **`JobBoard` in the room** —
+`JobBoard.commandContributions.peers`, and `peers` only. The cookhouse
+propped a receiving bench and a table but no board, so the beat fired
+every 90 seconds and every posting was refused as an unknown verb. The
+hall's board stayed empty; a new arrival would have found no work at
+all, which is the one thing this build exists to prevent.
+
+⭐ Nothing could have caught this but a drive. Every unit test in B4
+asserts the par sheet, the seat and the sign; none of them types `job
+post` as an NPC standing in a kitchen. It is the **affordance** link of
+the reachability chain — *a verb nothing confers* — failing exactly the
+way that link always fails: closed and silent.
+
+**The fix**: the cookhouse props `/world/terminus/terminal/thing/job-board`.
+⭐ It is the SAME board, not a second one — a gig is posted to a board's
+**template path**, so every room propping that row shares one pool. That
+is precisely the mechanism the nine works boards already run on (nine
+floors, one pool), applied to the hall's public board: the cook writes
+his docket at the rail, and a newcomer reads it where they actually
+stand. A brain must not walk to a board; the board comes to the floor
+(logistics D11).
+
+**2. ⭐⭐ `apply` and `clock` had no CONTROLLER ROWS — the verbs died on
+dispatch.** A `controller:` value is a **template path**, resolved
+through a row like any other Idea. Both controllers shipped with their
+views, their affordances on `Persona.self`, and **fifteen green
+controller tests** — and answered `controller-error` to every player.
+
+⚠ Invisible to the entire suite by construction: a controller test
+instantiates the class directly, and a view test parses YAML. Nothing
+between the two asks *does this path resolve*.
+
+**The fix**: the two rows, plus ⭐ **`lint:controller-rows`, ceiling 0** —
+309 `controller:` refs across every pack's command views, every one
+checked against the set of shipped rows, verified to FIRE by removing
+one. This is the reachability chain's **data** link in its purest form,
+and it had no gate until now.
+
+**3. A business can be boot-pinned and its ROOM not be.** `goto` at the
+campus farm yard answered `unknown-target`: the farm-unit was a `boot:`
+producer, the yard it operates was not, so the sign existed in a room
+nothing had reached. Pinned.
+
+**4. Harness findings (mine, not the product's).** The first draft moved
+one newcomer around with a wizard `goto` plus `summon`. **`summon` is
+not a verb in this game** — it answered `unknown-verb` and took eight
+checkpoints down with it, which is how a drive punishes a harness that
+assumes. Rewritten so every venue gets its **own** newcomer, born there
+by `startLocation`: no wizard appears in the file at all, which is what
+the claim actually needs — *a person with nothing* — rather than a
+wizard escorting somebody with nothing.
+
+*(the run's own output follows)*

@@ -50,6 +50,23 @@ data:
     # wanted it. The bench is empty by construction.
     - /trade/haulage/thing/receiving-bench
     - /stuff/thing/fixture/table
+    # ⭐⭐ **The hall's public noticeboard, on the kitchen wall** — and it
+    # is the SAME board, not a second one. A gig is posted to a board's
+    # TEMPLATE PATH, so every room propping this row shares one pool:
+    # exactly the mechanism the nine works boards already run on (nine
+    # floors, one pool). The cook writes his docket here and a newcomer
+    # reads it in the terminal hall, which is where somebody looking for
+    # work actually stands.
+    #
+    # ⚠ It is load-bearing, not decoration, and driving is what found
+    # that out: `job` is afforded by a `JobBoard` **in the room**
+    # (`JobBoard.commandContributions.peers`), so without this line the
+    # cook's beat fires every 90 s and every posting answers
+    # `unknown-verb(job)` — silently, forever, with the board that a new
+    # arrival reads staying empty. A brain must not walk to a board; the
+    # board comes to the floor. That is the works-board doctrine
+    # (logistics D11) applied to a kitchen.
+    - /world/terminus/terminal/thing/job-board
     - /world/terminus/hearthworks/thing/pantry-chest
     # Working stock out on the table (the DIY floor's hand-reach; the
     # chest holds the dear cuts the gather walk reaches for a craft —

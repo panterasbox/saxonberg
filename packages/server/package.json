@@ -36,6 +36,7 @@
     "lint:committees-are-players": "tsx scripts/check-committees-are-players.ts --lint",
     "lint:condition-arms": "tsx scripts/check-condition-arms.ts",
     "lint:conditions": "tsx scripts/check-conditions.ts",
+    "lint:controller-rows": "tsx scripts/check-controller-rows.ts",
     "lint:counters": "tsx scripts/check-counters.ts",
     "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
     "lint:dispositions": "tsx scripts/check-dispositions.ts",
