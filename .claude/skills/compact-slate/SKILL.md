@@ -137,6 +137,30 @@ The ledger is the audit trail. A reviewer must be able to read it and
 know, for every line that left the slate, where it went and why — and
 recover it from git if the call was wrong.
 
+### ⚠⚠ A slate kept back for an in-flight build is NOT compacted
+
+When a build is in flight on a slate, the honest classification is *keep
+it, this may ship next week* — and that is right. But it leaves a slate
+the pass has **certified without checking**, and the certificate outlives
+the exception. `physiology-slate` was compacted three minutes before the
+build it was told to ignore merged; the slate then told a planning agent
+weeks later that shipped work was still to build.
+
+So an in-flight exception is a **debt, not a decision**:
+
+1. Name it in the ledger's findings AND in the slate's status block —
+   *"§ X kept pending <branch>/<MR>"* — so the next reader sees the hole.
+2. **The build's own `/finalize` sweep compacts every slate it DREW
+   FROM**, not just the slates it edited. A build that reads a slate and
+   ships half of it has made that slate wrong; the sweep is the only
+   moment anyone knows which half.
+3. A slate carrying such a note is re-compacted when that build merges —
+   a delta pass against the build's diff, not a redo.
+
+⚠ The second rule is the one that actually holds, because the sweep
+happens whether or not anybody remembers the slate. Rules 1 and 3 are
+what make it cheap.
+
 ⚠ **Write the ledger incrementally — per slate, as each slate's cuts
 land, never as one write at the end.** A wave-2 rate limit killed six
 agents mid-run; two of them had already cut 660 and 1,072 lines with no
