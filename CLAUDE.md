@@ -27,8 +27,9 @@ behavior. Read the relevant doc before editing in its area.
   (values, not knowledge: what choice does it force, and who confers
   standing) · 5 **technology & magic** (the mechanism holds from ancient
   Rome to New York; only the dynamics change — magic and future tech are
-  one axis) · 6 **economy** (produces · consumes · who pays · was the
-  demand there first). A **scorecard, not a gate**: 1 and 2 decide forks, and
+  one axis) · 6 **economy & governance** (produces · consumes · who pays ·
+  was the demand there first · and when it judges a PERSON — name the
+  criterion and the appeal). A **scorecard, not a gate**: 1 and 2 decide forks, and
   ⭐ **when they decide one, don't ask — pick it and say which limb
   chose.** Run the pass at the slate and at requirements. ⚠ NOT
   [docs/lenses/](./docs/lenses/README.md), which is the borrowed Schell
