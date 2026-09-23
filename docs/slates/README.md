@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**232 slates.** 51 greenfield · 83 continuations · 55 waves · 43 tails.
+**233 slates.** 52 greenfield · 83 continuations · 55 waves · 43 tails.
 
-## ⭐ Greenfield — nothing shipped yet (51)
+## ⭐ Greenfield — nothing shipped yet (52)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -75,6 +75,7 @@ respect.
 | [insurance](./builds/insurance-slate.md) | the policy-as-contract + reserve ratio · cargo underwriting first (fire and crops after) · the mutual as the guild's instrument · prevention priced into the premium … |
 | [intervention](./builds/intervention-slate.md) | the sideless participant · a relation whose object is a |
 | [legibility](./builds/legibility-slate.md) | `extends:` on template rows (runtime-resolved, single parent, an ordinary row, folded into access.md's transitive set — and the `cp`/`mv` D5 relaxation it delivers) · the `props:` entry shape (`count` + `as`) · the instruction-field merge rule · contents **grouping** beside `looseContents`, consumed by the same three call sites … |
+| [live-drive](./builds/live-drive-slate.md) | the sidecar that holds the agent session · the channel bridge (prompts in, replies out) · the agent's own character + how it logs in · the approval posture for a live audience … |
 | [llm-content](./builds/llm-content-slate.md) | the director agent + its locality prompt · the salience gate + the active-cast set · the forced-cast command-bus seam (no `force` exists) · the ambient narrator … |
 | [map](./builds/map-slate.md) | the 2D per-floor grid + the player minimap · the 2D node-graph · the 3D procedural box render · the draft-template and live-Stuff adapters … |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
