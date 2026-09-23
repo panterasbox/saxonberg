@@ -22,7 +22,7 @@ cascade, the Stewardship Discipline) · [stewardship-doctrine](../../stewardship
 (the condition **inputs**) · [furnishing](../../subsystems/furnishing.md) +
 [residence](../../subsystems/residence.md) (the rungs) ·
 [parcel](../../subsystems/parcel.md) (title/tenure) ·
-[credit-slate](../builds/credit-slate.md) (the property floor — never seized) ·
+[credit-slate](credit-slate.md) (the property floor — never seized) ·
 [banking](../../subsystems/banking.md) (the money gate; metered utilities) ·
 [stewardship-doctrine § the recurring-charge
 call](../../stewardship-doctrine.md) (**what may and may not recur**).

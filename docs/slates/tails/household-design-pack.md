@@ -37,9 +37,9 @@ structural answer**) · [residence](../../subsystems/residence.md) +
 [advancement](../../subsystems/advancement.md) (the individual half) ·
 [access](../../subsystems/access.md). Rulings honored:
 [diegetic-government §9](../../staging/diegetic-government.md) (**marriage**) ·
-[credit-slate](../builds/credit-slate.md) (the property floor) ·
+[credit-slate](credit-slate.md) (the property floor) ·
 [insurance-slate](../builds/insurance-slate.md) (the scrivener thesis) ·
-[gazette-slate](../builds/gazette-slate.md) (*aggregate, never report*) ·
+[gazette-slate](gazette-slate.md) (*aggregate, never report*) ·
 [motivation lens](../../lenses/motivation.md) (cheap exit).
 
 ---
@@ -150,7 +150,7 @@ Presence is still never the meter, for either of them.
 Care acts are acts, so the split is **inherently visible** — the chronicle
 publishes deeds, and participation/authoring events carry an actor. There is no
 honest way to pretend the record does not exist. The line to draw is the
-[gazette slate](../builds/gazette-slate.md)'s, verbatim:
+[gazette slate](gazette-slate.md)'s, verbatim:
 
 > ⭐⭐ **The household AGGREGATES; it never REPORTS.**
 
@@ -294,7 +294,7 @@ access, and can evict is modeling something with a dark real-world version.
 existing guardrails are the right ones and should be treated as constraints
 rather than incidental properties:
 
-- the **property floor** — title is never seized ([credit-slate](../builds/credit-slate.md));
+- the **property floor** — title is never seized ([credit-slate](credit-slate.md));
 - the **cheap exit** — leaving is always one act;
 - **chattel survives eviction** (Part 5) — you can be put out, never stripped;
 - **no mechanical advantage** accrues to holding another player's tenure.

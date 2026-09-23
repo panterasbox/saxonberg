@@ -8,7 +8,7 @@
 > disbarment. ⭐ The conspicuous record of wizard reads/impersonations —
 > the one non-retrofittable piece, which the bar is worthless without —
 > is the parent's break-glass extension and is counted in
-> [wizard-duty-slate](./wizard-duty-slate.md)'s `Left`, not here
+> [wizard-duty-slate](../builds/wizard-duty-slate.md)'s `Left`, not here
 > (2026-09-21 cluster pass).
 > **Size:** a wave — the record is the engine work and it is the
 > parent's; what remains is authored text (the standard), a roster read
@@ -24,22 +24,22 @@ hosting and turned into what a wizard *is*:
 > for wizards is a little bit of an oddball. It's definitely a statement
 > on what we believe wizardry to mean."**
 
-[wizard-duty-slate](./wizard-duty-slate.md) established the law —
+[wizard-duty-slate](../builds/wizard-duty-slate.md) established the law —
 **wizardry is a fiduciary role, not a permission** — and named exactly
 what was missing: the **duty**, the **process**, and ⚠ the **safe
 harbour**. Enforcement already ships (the PM may revoke any wizard). This
 slate is the **process**, and it argues the safe harbour is the product.
 
-Related: [wizard-duty-slate](./wizard-duty-slate.md) (**the parent** —
+Related: [wizard-duty-slate](../builds/wizard-duty-slate.md) (**the parent** —
 the premise, break-glass, the recursion, the mechanism ranking),
-[guild-slate](./guild-slate.md) (§ *Wizards and the Worldwrights* — the
+[guild-slate](../builds/guild-slate.md) (§ *Wizards and the Worldwrights* — the
 credential-never-clearance wall this leans on),
-[balance-slate](./balance-slate.md) (the PM chain; **burden ok /
+[balance-slate](../builds/balance-slate.md) (the PM chain; **burden ok /
 exemption = capture**), [access.md](../../subsystems/access.md) (the six
 orthogonal axes; `isWizard` as a fact about a *principal*),
-[record-integrity-slate](./record-integrity-slate.md) (anchoring),
-[agency-slate](./agency-slate.md) (`su` as agency),
-[land-compute-and-license](./land-compute-and-license.md) (the
+[record-integrity-slate](../builds/record-integrity-slate.md) (anchoring),
+[agency-slate](../builds/agency-slate.md) (`su` as agency),
+[land-compute-and-license](../builds/land-compute-and-license.md) (the
 necessity-kernel test this slate applies to itself).
 
 ---
@@ -63,7 +63,7 @@ this institution**, and the corpus already split them:
 > for the *capability*. Keeping them apart is what stops either from
 > being strange.
 
-The wall between them is [guild-slate](./guild-slate.md)'s, unchanged and
+The wall between them is [guild-slate](../builds/guild-slate.md)'s, unchanged and
 load-bearing: **guild rank never confers `isWizard`.** A Worldwrights'
 mastership is evidence an archwizard consults — *the bar exam, not the
 judgeship*. An in-world social process must never mint out-of-fiction
@@ -71,7 +71,7 @@ root access.
 
 ## ⭐⭐ The test that keeps the bar clean
 
-[balance-slate](./balance-slate.md), applied directly:
+[balance-slate](../builds/balance-slate.md), applied directly:
 
 > **A body that imposes BURDEN on its members is fine. A body that grants
 > them EXEMPTION is capture.**
@@ -95,7 +95,7 @@ non-wizards). ⭐ **The request is the tell.**
 > **Once you have a word for the other 99%, you have built a caste.**
 
 The MUD tradition proved it — `wizard`/`mortal` is why those worlds felt
-feudal — and it is the same essentialism [species-slate](./species-slate.md)
+feudal — and it is the same essentialism [species-slate](../builds/species-slate.md)
 already rules out (*difference that COSTS is character; difference that
 RANKS is essentialism*).
 
@@ -150,7 +150,7 @@ founding decision about the meaning of wizardry, and got back:
 
 > **User: "this feels like configuration not kernel level stuff."**
 
-Correct, and [land-compute-and-license](./land-compute-and-license.md)
+Correct, and [land-compute-and-license](../builds/land-compute-and-license.md)
 already said so: *almost none* of these regimes is constitutional, even
 the firewall floor is chosen, **"Ch 7's amendment-roster logic all the
 way down."** The operative test:
@@ -196,7 +196,7 @@ parts that must be right before there is a second wizard:
 
 Inherited from the parent, so this slate cannot be read as solving it.
 Two of the three limits are stated once, in
-[wizard-duty-slate](./wizard-duty-slate.md) — *an operator defeats any
+[wizard-duty-slate](../builds/wizard-duty-slate.md) — *an operator defeats any
 in-system control* (§ *The mechanisms, ranked*) and *it is a good-faith
 instrument* (§ *The honest limit, and why it is acceptable*); the
 restatements were cut here 2026-09-21 (cluster pass). What the bar adds

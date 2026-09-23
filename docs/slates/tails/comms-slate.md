@@ -35,7 +35,7 @@ speech as an option via `--to` (§ Directed speech — `say --to`), and
 
 See also:
 
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — acoustic propagation/
+- [docs/slates/senses-slate.md](../builds/senses-slate.md) — acoustic propagation/
   reach/masking (the *hearing* channel of the unified `PerceptionChannel`
   substrate, which absorbed the sound slate); `say`/`whisper`/`shout` are
   sound sources it models. Comms *consumes* this for the acoustic family.
@@ -50,9 +50,9 @@ See also:
   model, membership/subscription, roles, config, the `chat <channel>`
   surface. Comms defines the conversation primitive + transport; chat
   owns the channel model on top.
-- [docs/slates/emotes-slate.md](../tails/emotes-slate.md) — expression riding
+- [docs/slates/emotes-slate.md](../builds/emotes-slate.md) — expression riding
   the implant/ESP channel; emotes are perceived near or far over it.
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — **ESP is a
+- [docs/slates/senses-slate.md](../builds/senses-slate.md) — **ESP is a
   sense-channel family** (verbal = language-gated, emotive = language-
   free); the implant is its organ. Reception *is* sensing; comms delivers
   *on* these channels. (Acoustic speech rides the hearing channel.)
@@ -205,7 +205,7 @@ out-of-band moderation floor under the in-fiction gradient.
 
 **Explicitly dropped:** the old "emotes as a constrained safe-mode
 fallback for low-trust senders" idea. Emotes are a full first-class ESP
-channel (emotes-are-magic; [emotes-slate.md](../tails/emotes-slate.md)), not a
+channel (emotes-are-magic; [emotes-slate.md](../builds/emotes-slate.md)), not a
 moderation safe-mode — a narrowed sender isn't pushed into emote-only as
 a sanitized substitute for speech.
 

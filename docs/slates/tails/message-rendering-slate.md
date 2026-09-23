@@ -33,7 +33,7 @@ See also:
   formed") and adds the rendering/flatten model; it doesn't redefine the
   composer.
 - [comms-slate.md](../tails/comms-slate.md) / [chat-slate.md](../tails/chat-slate.md) /
-  [emotes-slate.md](../tails/emotes-slate.md) — the message *types* this renders
+  [emotes-slate.md](../builds/emotes-slate.md) — the message *types* this renders
   (say/tell/chat/emote); each is a per-type render template.
 - [access-slate.md](../tails/access-slate.md) — **authorization gates** layout
   tags and channel presentational stylesheets (system/authors free;

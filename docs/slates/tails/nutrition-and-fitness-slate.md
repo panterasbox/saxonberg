@@ -526,7 +526,7 @@ below is a clean attach point, not a stub.
 - **Sweat as body soiling** — `depositWorkHeat` is where an exertion
   deposits on a `Soilable` body. → [rendering-slate § 8](../builds/rendering-slate.md).
 - **The beauty canon** — the `Character` body augmenter is the attach
-  point. → [cosmetics-slate § Beauty](../builds/cosmetics-slate.md).
+  point. → [cosmetics-slate § Beauty](cosmetics-slate.md).
 
 **Findings the drive filed for other trades:** `draw <amount>` is refused
 by its own `mustBeNumber` (a positional `type: number` reaches

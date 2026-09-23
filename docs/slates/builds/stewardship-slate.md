@@ -17,7 +17,7 @@
 
 See also: [property-slate](./property-slate.md) (**the parent** — title, tenure,
 the compute-allowance thesis, the residence ladder's forward sketch in §L) ·
-[farming](../tails/farming-slate.md) · [ranching](./ranching-slate.md) ·
+[farming](farming-slate.md) · [ranching](./ranching-slate.md) ·
 [pets](./pets-slate.md) (the three consumers) ·
 [power-utility-slate](./power-utility-slate.md) (utilities as a premises
 obligation; independently arrived at the parcel as the billing unit) ·

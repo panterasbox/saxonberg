@@ -41,7 +41,7 @@ compound by experiment IS science.
 
 See also:
 
-- [docs/slates/tails/magic-items-slate.md](./magic-items-slate.md) —
+- [docs/slates/tails/magic-items-slate.md](../tails/magic-items-slate.md) —
   the **orthogonal axis**. This slate is item *identity* (class-level,
   deductive: "a blue potion" → "healing"); that one is *BUC* (per-instance:
   blessed/uncursed/cursed as potency). Both ride belief; different facts,

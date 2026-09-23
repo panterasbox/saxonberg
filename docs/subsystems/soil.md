@@ -337,7 +337,7 @@ header says *a field's crop is not four `Slottable`s in a bed* — and
 has no caller. So a field today grows **sward** — hay and grazing — and
 arable crops grow in pots and beds. The row describes the nutrient flow an
 arable field WILL have (exported); the aggregate density that fills it is
-[farming-slate § The land model](../slates/tails/farming-slate.md)'s open
+[farming-slate § The land model](../slates/builds/farming-slate.md)'s open
 item, not shipped behaviour.
 
 ⚠ **The *graze* row has no mouth yet either** (verified 2026-09-19).

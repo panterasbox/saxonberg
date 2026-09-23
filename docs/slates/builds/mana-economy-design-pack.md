@@ -29,7 +29,7 @@
 See also: [arcane-science](../../arcane-science.md) (**the doc this amends** —
 the postulate, Halloway, the price list, the instruments) ·
 [magic](../../subsystems/magic.md) (the shipped mechanism) ·
-[supply-design-pack](./supply-design-pack.md) (⭐ **mana becomes its third
+[supply-design-pack](../tails/supply-design-pack.md) (⭐ **mana becomes its third
 commodity**) · [magic-items](../../subsystems/magic-items.md) (`ChargedMixin`,
 the `S* = inflow/d` charge economy) ·
 [crafting](../../subsystems/crafting.md) (`Grade`, the refining chain) ·
@@ -884,7 +884,7 @@ industry) still holds and is why it is kept as doctrine rather than cut.
 | ✳ **Ambient mana density of place** | drives innate recovery | **new (derived, per place)** |
 | ✳ **Refining** | a crafting transform; cost in real joules | **rides [crafting](../../subsystems/crafting.md) + [fire](../../subsystems/fire.md)** |
 | ✳ **Deposits** | ownable ground | **rides [parcel](../../subsystems/parcel.md)** |
-| ✳ **Mana as a supply commodity** | the third one; ⭐ **volume-tiered** — retail / bulk contract / pipe (Part 5) | **rides [supply](./supply-design-pack.md)** |
+| ✳ **Mana as a supply commodity** | the third one; ⭐ **volume-tiered** — retail / bulk contract / pipe (Part 5) | **rides [supply](../tails/supply-design-pack.md)** |
 | ✳ **Mana-fertilised cropping** | soil mana as a `feed`-able input; the premium rides bioavailability + extended release | **rides smallholding + metabolism** |
 | ⭐⭐ **Device mana reservoirs** | impulse → battery (per use) · binding → wired (per second); a lapsed binding when it runs dry | **new — `ChargedMixin` is most of the battery half** |
 | ⭐ **TPA retrofit** | teleport as a real Control·Body effect: fare = `mgh` (altitude × mass), **distance-free**; supply per terminal; the `status` seam gains `dry` | **rides [fasttravel](../../subsystems/fasttravel.md) — the status seam + grey light already ship** |

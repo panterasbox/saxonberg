@@ -233,7 +233,7 @@ procedures are verbs, sensorium and instruments are one continuum.
 
 **Related design:** [discovery-slate](../builds/discovery-slate.md) ·
 [field-substrate-slate](./field-substrate-slate.md) (seeded vs derived;
-the price of a sample) · [magic-items-slate](../builds/magic-items-slate.md).
+the price of a sample) · [magic-items-slate](magic-items-slate.md).
 
 **Shipped substrate:**
 [concealment.md](../../subsystems/concealment.md) (the gate, the bands,

@@ -11,9 +11,9 @@
 > sit beside governance/contracts; no owning slate exists yet ([open
 > question Q5](#open-questions)) · the **necropolis** is still a stub
 > inside Terminus and wants to be a sixth locality
-> ([towns-slate](./towns-slate.md)) with a real vertical
-> ([end-of-life-slate](./end-of-life-slate.md)) · de-escalation's act-half
-> lives in [intervention-slate.md](./intervention-slate.md) · blood/
+> ([towns-slate](../builds/towns-slate.md)) with a real vertical
+> ([end-of-life-slate](../builds/end-of-life-slate.md)) · de-escalation's act-half
+> lives in [intervention-slate.md](../builds/intervention-slate.md) · blood/
 > transfusion, filling `g(composure)`, and the client `CombatCard` are
 > each already tracked as open on their owning slate/doc (see § Not in
 > scope)
@@ -129,12 +129,12 @@ BKT floor — `combat.md` § Advancement), and Q9 (diminishment —
   [combat.md § Poise](../../subsystems/combat.md#poise--the-one-new-subsystem).
 - **The terms/consent lift** — Q5 above; unowned, needs a slate.
 - **Blood, transfusion and the donation loop** — its own build; tracked
-  on [blood-slate.md](./blood-slate.md).
+  on [blood-slate.md](../builds/blood-slate.md).
 - **Filling `g(composure)`** — the hook shipped inert; the axis belongs
   to `traits-stress`, tracked on
-  [combat-experience-slate.md](./combat-experience-slate.md) T5 and
+  [combat-experience-slate.md](../builds/combat-experience-slate.md) T5 and
   combat-slate.md's `Left`.
-- **A `CombatCard`** — tracked on [combat-slate.md](./combat-slate.md)'s
+- **A `CombatCard`** — tracked on [combat-slate.md](../builds/combat-slate.md)'s
   `Left`.
 - **The limb-sever / part-promotion seam** at `AVULSION_BEHAVIOR.onset`
   — unbuilt, no owning slate identified.

@@ -15,7 +15,7 @@
 > **Size:** a build
 
 
-See also: [daves-bar](./daves-bar-slate.md) · [farming](../tails/farming-slate.md) ·
+See also: [daves-bar](./daves-bar-slate.md) · [farming](farming-slate.md) ·
 [livelihood](./livelihood-slate.md) (the labor-market spine mining plugs into —
 no kill-loot, income from work) · [advancement](./advancement-slate.md)
 (competence = the specialization engine) ·

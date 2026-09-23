@@ -60,7 +60,7 @@ See also:
   *now space*, same model, different paths).
 - [docs/slates/client-cockpit-slate.md](../tails/client-cockpit-slate.md) — the
   game **minimap is a cockpit panel**; the map is a component it hosts.
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) /
+- [docs/slates/senses-slate.md](senses-slate.md) /
   [fast-travel-slate.md](../tails/fast-travel-slate.md) — **discovery / fog-of-war**
   for the game minimap (show only what the player has perceived/discovered);
   wayfinding.

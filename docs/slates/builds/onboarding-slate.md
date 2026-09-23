@@ -143,7 +143,7 @@ The **private house suggestion** rides Limen — the one affiliation axis that
 touches onboarding (read from your profile) — but **joining is opt-in**: you
 research and choose, and your real-world origin (school/state) never leaks
 (a private, attributed nudge ≠ exposure; the abstract many-to-one house
-anonymizes). See [affiliation-slate.md](./affiliation-slate.md).
+anonymizes). See [affiliation-slate.md](../tails/affiliation-slate.md).
 
 ### The dorm + customization (the climax)
 

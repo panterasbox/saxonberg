@@ -70,7 +70,7 @@ Substrate: [conveyance](../../subsystems/conveyance.md) ·
 Doctrine this build is bound by: [measurement.md](../../measurement.md)
 (the three layers; *the mirror is never a gauge*) ·
 [settlement-model.md](../../settlement-model.md) § 8 (the six networks) ·
-[gazette-slate](./gazette-slate.md) (*the state aggregates, never
+[gazette-slate](../tails/gazette-slate.md) (*the state aggregates, never
 reports*) · [balance-slate](./balance-slate.md) (*the denominator is
 where the design is*).
 

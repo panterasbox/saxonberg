@@ -822,7 +822,7 @@ requires two people to run one room.
   recommending is the epistemic gate the vocations register wants; no
   new measurement.
 - **Deferred, cleanly**: the tab/check (pay-at-order ships; deferred
-  payment is the [credit slate](./credit-slate.md)'s), reservations
+  payment is the [credit slate](../tails/credit-slate.md)'s), reservations
   and the host stand (content, whenever a venue wants them).
 
 ### Takeout & delivery: the vessel pool's stress test, and a gig

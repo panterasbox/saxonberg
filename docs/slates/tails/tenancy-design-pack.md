@@ -24,7 +24,7 @@ call) · substrates: [parcel](../../subsystems/parcel.md) (`UseGrant`, live) ·
 [contract](../../subsystems/contract.md) (escrow) ·
 [furnishing](../../subsystems/furnishing.md) + [chattel](../../subsystems/chattel.md)
 (the structure/contents split, already modelled) ·
-[credit-slate](../builds/credit-slate.md) (the property floor) ·
+[credit-slate](credit-slate.md) (the property floor) ·
 [diegetic-government §8](../../staging/diegetic-government.md) (**the
 shelter** — the floor under eviction).
 
@@ -142,7 +142,7 @@ slate](../builds/insurance-slate.md)'s scrivener thesis paying off twice.
 
 The [recurring-charge call](../../stewardship-doctrine.md) says non-payment's
 ceiling is **credit and comfort, never the asset**. The
-[credit-slate](../builds/credit-slate.md) property floor says title is **never
+[credit-slate](credit-slate.md) property floor says title is **never
 seized**. But a tenant evicted for non-payment loses their home — which looks
 like exactly what those rules forbid.
 

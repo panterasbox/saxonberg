@@ -37,7 +37,7 @@ copies), [smallholding.md](../../subsystems/smallholding.md),
 gigs), [employment.md](../../subsystems/employment.md),
 [content-packs-slate](../builds/content-packs-slate.md) (⭐ *pack = a TRADE*; *seed
 backwards from sinks*), [freight-slate](../builds/freight-slate.md),
-[credit-slate](../builds/credit-slate.md) (the cold start),
+[credit-slate](credit-slate.md) (the cold start),
 [vocations.md](../../vocations.md).
 
 ---

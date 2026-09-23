@@ -42,7 +42,7 @@ Related: [conveyance.md](../../subsystems/conveyance.md),
 [contract.md](../../subsystems/contract.md),
 [chattel.md](../../subsystems/chattel.md),
 [ranching-slate](./ranching-slate.md),
-[farming-slate](../tails/farming-slate.md),
+[farming-slate](farming-slate.md),
 [policing-slate](./policing-slate.md),
 [map-slate](./map-slate.md).
 

@@ -28,7 +28,7 @@ deliberately a **bootstrapping instrument** for a world of dozens of
 concurrent players, mostly in one time zone, with an economy that must
 run for ten hours a day with nobody logged in.
 
-Seeded by [credit-slate](../slates/builds/credit-slate.md) (the fiscal
+Seeded by [credit-slate](../slates/tails/credit-slate.md) (the fiscal
 apparatus; this doc supersedes its Part 2 on the seat), and by the
 banking substrate in [banking.md](../subsystems/banking.md).
 
@@ -587,7 +587,7 @@ Observable from outside the code.
 
 ## Cross-references
 
-- [credit-slate](../slates/builds/credit-slate.md) — seeds this; Part 2
+- [credit-slate](../slates/tails/credit-slate.md) — seeds this; Part 2
   superseded (the seat is kept), Parts 3–6 and 8–9 carried, step 6
   (personal packs) and step 7 (local underwriting) deferred to their own
   builds.

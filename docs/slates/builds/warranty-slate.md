@@ -23,7 +23,7 @@ the lemons problem and the winner's curse, and the appraiser is this slate's
 natural ally) · farmstead plan *(retired artifact)*
 (**D79** the herdbook as a sales document · **D81** producer trade · **D48** the
 hay that burns the barn) · [legal-code-slate](./legal-code-slate.md) (**where the
-polity chooses**) · [credit-slate](./credit-slate.md) ·
+polity chooses**) · [credit-slate](../tails/credit-slate.md) ·
 [reputation-slate](./reputation-slate.md) · [identification-slate](./identification-slate.md).
 Substrates: [contract.md](../../subsystems/contract.md) (**the mechanism —
 clauses over verifiable conditions, escrow**) ·

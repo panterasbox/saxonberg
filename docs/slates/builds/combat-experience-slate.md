@@ -247,7 +247,7 @@ project-wide (CLAUDE.md's derive-don't-track / bands-not-numbers rules)
 and not combat-specific decisions to graduate. The "honest limit" —
 balance empirically, contain the rest with the consequence web — is
 argued concretely in this slate's own **Thesis 11** aftermath section
-and in [consequence-slate.md](./consequence-slate.md).
+and in [consequence-slate.md](../tails/consequence-slate.md).
 
 ## Thesis 10 — NPCs ≈ PCs (the same combat model)
 

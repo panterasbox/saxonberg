@@ -35,7 +35,7 @@
 > [rejection-slate](./rejection-slate.md) +
 > [metal-chain-slate](./metal-chain-slate.md) +
 > [mining-slate](./mining-slate.md) own the mine.
-> [farming-slate](../tails/farming-slate.md) owns the orchard and the field.
+> [farming-slate](farming-slate.md) owns the orchard and the field.
 > [property-slate](./property-slate.md) +
 > [residence-ladder-design-pack](../tails/residence-ladder-design-pack.md) own
 > title and tenure. This slate owns **what those industries make of the
