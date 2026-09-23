@@ -69,6 +69,10 @@ import { MagicGrid } from '../magic/Grid';
 import { MaterialApi } from '../../api/material';
 import { MagicApi } from '../../api/magic';
 import { CombatApi } from '../../api/combat';
+import { ScheduleApi } from '../../api/schedule';
+import type { ScheduleHandle } from '../../api/schedule';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { POSTURE_REST_BASE } from '../character/Posed';
 
 /** Alias for readability at the magic arm's call sites. */
@@ -530,6 +534,10 @@ export interface Vitals {
   /** Link/unlink the tending carer + their medicine band (a live fact;
    * `TendingEngagement` owns this — not persisted). */
   _setCarer(carer: Stuff | null, band?: string): void;
+  /** ⭐ The next game-time this body silently changes (D19) — the soonest
+   * pending transition, or null. A PURE read; the notify alarm is booked
+   * from it. */
+  nextInterestingAt(): number | null;
   /** Release a sustained magical effect: un-realize, destruct any bound
    * emitter, drop the condition. Expiry and tag-keyed dispel both land here. */
   releaseSustained(s: SustainedEffect): void;
@@ -737,6 +745,16 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _carer: Stuff | null = null;
     private _carerBand = 'untrained';
+
+    /**
+     * ⭐ **The notify alarm's handle** (D19) — a ONE-SHOT booked at the next
+     * interesting transition (a wound-sepsis becoming symptomatic), so the
+     * body can tell you it changed instead of the change sitting invisible
+     * until you next `look`. Transient; canceled and rebooked on state
+     * change. `null` when nothing is pending — a healthy body holds no
+     * handle. ⚠ NEVER a recurring timer / cadence / sweep.
+     */
+    private _notifyHandle: ScheduleHandle | null = null;
 
     // ---------- vital signs ----------
 
@@ -2705,6 +2723,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       // Pure add this build — no onset()/tick() invocation, nothing ticks.
       this.conditions.push(condition);
+      // D19 — a new condition may move the notify horizon (e.g. a sepsis
+      // seed with a symptomsAt). Rebook the one-shot alarm.
+      this.rescheduleNotify();
       return true;
     }
 
@@ -2712,6 +2733,8 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const i = this.conditions.indexOf(condition);
       if (i === -1) return false;
       this.conditions.splice(i, 1);
+      // D19 — clearing a condition may remove the pending transition.
+      this.rescheduleNotify();
       return true;
     }
 
@@ -2788,6 +2811,90 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             HARM_DEFAULTS.SEPSIS_INCUBATION_FALLBACK_SEC),
       });
       return true;
+    }
+
+    /**
+     * ⭐⭐ **The next interesting transition** (D19) — a PURE read returning
+     * the soonest future game-time at which this body silently changes, or
+     * `null` when nothing is pending. Today: a wound-sepsis crossing its
+     * `symptomsAt` (the infection deadline becoming visible — C5's whole
+     * teaching). Mutates NOTHING; the alarm is booked from it, and death /
+     * every other truth is still pure derive-on-read, so this only ever
+     * buys TIMELINESS.
+     */
+    public nextInterestingAt(): number | null {
+      const nowS = WorldClockApi.getNow().rawValue();
+      // ⚠ Array methods, not a `for…of` — this is a PURE READ, not a
+      // progression arm, and `lint:condition-arms` counts a `for…of` over a
+      // condition subset with a game-time cursor as an arm. There is no
+      // mutation here; the alarm is booked FROM this.
+      const times = this.conditions
+        .filter(
+          (c): c is AfflictionRecord =>
+            c.kind === 'affliction' &&
+            c.symptomsAt !== undefined &&
+            (c.pathogenLoad ?? 0) > 0,
+        )
+        .map((c) => c.symptomsAt as number)
+        .filter((at) => at > nowS);
+      return times.length === 0 ? null : Math.min(...times);
+    }
+
+    /**
+     * D19 — cancel the current alarm and book a fresh one-shot at the next
+     * interesting transition. A no-op that clears the handle when nothing is
+     * pending (a healthy body holds none). Called on every state change that
+     * can move the horizon (`afflict`/`relieve`) and by the alarm itself
+     * after it fires (to chase the next transition).
+     */
+    private rescheduleNotify(): void {
+      if (this._notifyHandle) {
+        ScheduleApi.cancel(this._notifyHandle);
+        this._notifyHandle = null;
+      }
+      // ⭐ The alarm is a COURTESY to a player watching their own body; a
+      // body nobody controls (an NPC, a test creature) needs none — it is
+      // read when something reads it, and derive-on-read is already correct.
+      // Gating here is also what keeps the suite from leaking real timers.
+      if (!MixinApi.isHasInteractive(this as unknown as Stuff)) return;
+      const nextAt = this.nextInterestingAt();
+      if (nextAt === null) return;
+      const nowS = WorldClockApi.getNow().rawValue();
+      const scale = WorldClockApi.getScale();
+      // Game-seconds until the transition → real milliseconds.
+      const delayMs = Math.max(0, ((nextAt - nowS) / scale) * 1000);
+      this._notifyHandle = ScheduleApi.schedule(delayMs, () =>
+        this.onNotifyFire(),
+      );
+    }
+
+    /**
+     * D19 — the alarm callback. Runs a normal reconcile (computes NOTHING a
+     * `look` would not), pushes a line for any transition it now observes,
+     * and rebooks the next one. ⚠ Correctness is independent of this firing:
+     * dropped or delayed, the next real read reaches the identical state.
+     */
+    private onNotifyFire(): void {
+      this._notifyHandle = null;
+      const nowS = WorldClockApi.getNow().rawValue();
+      this.reconcileConditions();
+      const festering = this.conditions.some(
+        (c) =>
+          c.kind === 'affliction' &&
+          c.templatePath.endsWith(WOUND_SEPSIS_KEY) &&
+          (c.pathogenLoad ?? 0) > 0 &&
+          nowS >= (c.symptomsAt ?? Infinity),
+      );
+      if (festering) {
+        MessageApi.scene(this as unknown as Stuff)
+          .topic('act.deed')
+          .toSelf(
+            Mml.compose`One of your wounds has turned bad — it is hot and swollen, and it smells.`,
+          )
+          .send();
+      }
+      // Chase the next transition.
+      this.rescheduleNotify();
     }
   }
   return VitalsMixin;

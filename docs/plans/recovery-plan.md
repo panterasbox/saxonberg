@@ -1023,7 +1023,31 @@ reachable at all.
 - **Commit:** `build(recovery W-A6): a carer buys rate â and Aldis finally
   practises`.
 
-#### W-A7 — The notify layer (the alarm, not a heartbeat) (D19)
+#### W-A7 — The notify layer (the alarm, not a heartbeat) (D19) ✅ DONE
+
+> ✅ **W-A7 landed.** `Vitals.nextInterestingAt(): number | null` — a PURE
+> read (array methods, NOT a `for…of`, so `lint:condition-arms` stays 5/5)
+> returning the soonest future wound-sepsis `symptomsAt`, or null.
+> `_notifyHandle` transient; `rescheduleNotify()` cancels + books ONE
+> `ScheduleApi.schedule(delayMs, cb)` at that time (game-seconds → real-ms
+> via the scale); `onNotifyFire()` runs `reconcileConditions`, pushes a
+> 'wound has turned bad' line, and rebooks. Booked from `afflict`/`relieve`.
+> ⚠ No recurring, no cadence, no sweep.
+>
+> **Gate on HasInteractive:** the alarm is a courtesy to a PLAYER watching
+> their own body — an NPC / test creature books nothing (derive-on-read is
+> already correct for them). This is also what keeps the suite from leaking
+> real `setTimeout`s (`ScheduleApi` uses real timers; the fake clock only
+> drives game-time).
+>
+> **Scope note:** W-A7 books on the sepsis DEADLINE (C5's teaching — the
+> plan's stated primary purpose). The wound-clear ("has knit") and the mend
+> spell's end (W-B1) are clean extensions of `nextInterestingAt` but were
+> left out — computing an exact clear time means re-deriving the mend law
+> (rate × k) outside Condition.ts, two owners of one number; deferred until
+> a consumer needs it. Tests: `Vitals.notify.test.ts` (5) — nextInterestingAt,
+> healthy=null, past=null, ⭐ timeliness-not-validity (fire vs plain reconcile
+> at the same clock → identical), fire-is-idempotent. 233 tests + 46 gates green.
 - `Vitals.nextInterestingAt(): number | null` — a **pure read** returning the
   soonest transition time across active conditions (a wound reaching
   `CLEARED_SEVERITY`, a sepsis record crossing `symptomsAt` / a stage boundary,
