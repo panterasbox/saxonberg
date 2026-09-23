@@ -525,6 +525,11 @@ export interface Vitals {
   /** ⭐⭐ The per-body convalescence factor `k` (D1/D2) — one number a bed,
    * a carer and a spell pay into; `0` when the body is not safe (D3a). */
   convalescenceFactor(): number;
+  /** The carer currently tending this body, or null (D8). */
+  getCarer(): Stuff | null;
+  /** Link/unlink the tending carer + their medicine band (a live fact;
+   * `TendingEngagement` owns this — not persisted). */
+  _setCarer(carer: Stuff | null, band?: string): void;
   /** Release a sustained magical effect: un-realize, destruct any bound
    * emitter, drop the condition. Expiry and tag-keyed dispel both land here. */
   releaseSustained(s: SustainedEffect): void;
@@ -654,6 +659,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/medical/treat.yaml',
         'platform/cmd/medical/undress.yaml',
         'platform/cmd/medical/dose.yaml',
+        'platform/cmd/medical/tend.yaml',
       ],
     };
 
@@ -721,6 +727,16 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * intent-agnostic answer to combat-logging. Undefined until first harm.
      */
     private _lastHarmedAt: number | undefined = undefined;
+
+    /**
+     * ⭐ **The carer currently tending this body** (D8), and their medicine
+     * band captured at tend-time. Transient — a carer is a LIVE fact, never
+     * persisted; a `TendingEngagement` sets and clears it. Read by
+     * `convalescenceFactor`, gated on the carer still being present,
+     * conscious and holding the engagement.
+     */
+    private _carer: Stuff | null = null;
+    private _carerBand = 'untrained';
 
     // ---------- vital signs ----------
 
@@ -1111,12 +1127,55 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
 
-      // Stubs until their waves land (W-A6 carer, W-B1 conditions).
-      const carer = 1;
+      // The carer term (D8) — a live tending engagement adds `1 + bonus`;
+      // conditions is a stub until W-B1 (the mend spell).
+      const carer = 1 + this.carerBonus();
       const conditions = 1;
 
       const k = postureBase * restQuality * clinical * carer * conditions;
       return Math.max(D.CONVALESCENCE_FLOOR, k);
+    }
+
+    /**
+     * D8 — the bonus a live carer adds to `k`, by their medicine band.
+     * Zero unless the carer is present (same container), conscious, and
+     * still holds the `medical-tending` engagement — so the read stays
+     * honest even between the abort firing and the engagement clearing.
+     */
+    private carerBonus(): number {
+      const carer = this._carer;
+      if (!carer) return 0;
+      const self = this as unknown as Stuff;
+      // Present: the same container.
+      if (
+        !MixinApi.isContainable(carer) ||
+        !MixinApi.isContainable(self) ||
+        carer.getContainer() !== self.getContainer()
+      ) {
+        return 0;
+      }
+      // Not dead (a corpse tends nobody).
+      const lifecycle = (
+        carer as unknown as { getLifecycleState?: () => string }
+      ).getLifecycleState?.();
+      if (lifecycle === 'dead') return 0;
+      // Still holding the tending engagement.
+      if (
+        !MixinApi.isEngaged(carer) ||
+        carer.getEngagementByType('medical-tending') === undefined
+      ) {
+        return 0;
+      }
+      return HARM_DEFAULTS.CARER_BONUS_BY_BAND[this._carerBand] ?? 0;
+    }
+
+    public getCarer(): Stuff | null {
+      return this._carer;
+    }
+
+    public _setCarer(carer: Stuff | null, band = 'untrained'): void {
+      this._carer = carer;
+      this._carerBand = carer ? band : 'untrained';
     }
 
     /**

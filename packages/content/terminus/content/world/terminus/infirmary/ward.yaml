@@ -35,5 +35,10 @@ data:
     # (clean hands between patients), `rinse` and `cool`. The prose already
     # names a basin; this makes it a working water source.
     - /stuff/thing/fixture/basin
+    # The clinic's dressing supply — real bandages the nurse's brain dresses
+    # wounds with, and that RUN OUT (each is spent by one dressing).
+    - /world/terminus/infirmary/thing/bandage-1
+    - /world/terminus/infirmary/thing/bandage-2
+    - /world/terminus/infirmary/thing/bandage-3
   cast:
     - /world/terminus/infirmary/agent/physician

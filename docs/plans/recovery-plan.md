@@ -978,7 +978,36 @@ reachable at all.
 - **Commit:** `build(recovery W-A5): clean hands â a wound can go bad on
   a clock`.
 
-#### W-A6 â Nursing and the physician who practises (D8, D9)
+#### W-A6 â Nursing and the physician who practises (D8, D9) ✅ DONE
+
+> ✅ **W-A6 landed.** `TendingEngagement` (the AttendanceEngagement shape,
+> `medical-tending` on the carer's `attention` slot) links `patient._setCarer`
+> on start, clears on abort (only if it still points at that carer).
+> `Vitals._carer` + `_carerBand` (transient) + the carer term in
+> `convalescenceFactor` (`1 + CARER_BONUS_BY_BAND[band]`), gated on the carer
+> being present, not-dead, and still holding the engagement. `tend`/`nurse`
+> verb (VitalsMixin.self) + `TendController`.
+>
+> **Sync-band decision:** `convalescenceFactor` is sync and cannot await
+> `competenceBandFor`, so the carer's band is CAPTURED at tend-time and
+> carried on the link (`_setCarer(carer, band)`; the engagement passes it
+> through). Stale until re-tend — acceptable.
+>
+> **D9:** `trade-medicine/src/behavior/nurses.ts` — on cadence, on shift,
+> triages the room (dying > open bleed by severity > worst untreated > worst
+> infection) and dresses the top patient's wound from real supply (scrubbing
+> first) or tends them; through `applyTreatment`/`TendingEngagement`, no roll.
+> `physician.yaml` gains `{brain: /trade/medicine/behavior/nurses, cadenceMs:
+> 20000}`. Supply = three real `Bandage` rows in the ward props that RUN OUT
+> (each spent by one dressing) — placed as room props, not cabinet
+> `contents:` (container back-ref auto-cloning of standalone rows is
+> unverified; props are definitely placed and the nurse's findDressing scans
+> room contents).
+>
+> Tests: TendingEngagement (6, scheduler-free — onStart/onAbort + carerBonus
+> gating directly; the scheduler needs the event framework), nurses (3:
+> dresses + spends supply, triages worse-first, idle off-shift). 188 server +
+> 116 terminus + 17 pack tests green; all 46 lint gates pass.
 - `lib/vitals/TendingEngagement.ts`; `Vitals._carer`, `_setCarer`, the
   carer term in `convalescenceFactor`; `medical/tend.yaml` (`tend`,
   `nurse`) + `TendController` (starts the engagement; refuses a body
