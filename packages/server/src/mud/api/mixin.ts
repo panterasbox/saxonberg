@@ -81,7 +81,6 @@ import type { Dyed } from '../lib/material/Dyed';
 import type { Organism } from '../lib/species/Organism';
 import type { Vitals } from '../lib/vitals/Vitals';
 import type { Hygiene } from '../lib/vitals/Hygiene';
-import type { Prosthetic } from '../lib/slot/Prosthetic';
 import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Incorporeal } from '../lib/mortality/Incorporeal';
 import type { Reserved } from '../lib/reserve';
@@ -1208,12 +1207,6 @@ export class MixinApi {
    * treatment (recovery build). */
   public static isHygiene(obj: Stuff): obj is Stuff & Hygiene {
     return this.hasMixin(obj, Mixins.Hygiene);
-  }
-
-  /** A worn thing that stands in for a missing body part (recovery build).
-   * `Vitals.ownFunction` reads its `restores` for the part it covers. */
-  public static isProsthetic(obj: Stuff): obj is Stuff & Prosthetic {
-    return this.hasMixin(obj, Mixins.Prosthetic);
   }
 
   /**

@@ -1168,7 +1168,22 @@ reachable at all.
 - **Commit:** `build(recovery W-B3): a body remembers â scars, and the
   bone that was not ready`.
 
-#### W-B4 â What is gone: the prosthetic (D16) ✅ DONE
+#### W-B4 â What is gone: the prosthetic (D16) ❌ CUT FROM THIS MR
+
+> ❌ **W-B4 CUT (2026-09-23, user decision).** `restores: 0.6` is the
+> boring answer, and prosthetics were never designed here. The
+> augmentation-slate ALREADY owns them as a **"replace" augment** — vitals
+> owns the loss (`severPart`, `ownFunction → 0`), augmentation owns the
+> replacement (slot-confers-capability, a capability PROFILE not a scalar,
+> the `limb` slot region, install-as-surgery, power/failure/enhancement
+> axes, the epoch×magic axis). Shipping a standalone `ProstheticMixin` with
+> a `restores` scalar would be a competing model the augment build must tear
+> out. Reverted in full: `lib/slot/Prosthetic.ts`, `Mixins.Prosthetic` /
+> `isProsthetic`, the `ownFunction` prosthetic branch, the pack `Prosthesis`
+> + peg-leg/hook-hand rows, the fitting-shelf, the `assess` stand-in line,
+> the tests. → build prosthetics inside the augmentation build (a one-line
+> deferral note added to `augmentation-slate.md`). The six-lens pass that
+> forced this is in the review thread.
 
 > ✅ **W-B4 landed.** `ProstheticMixin` (`lib/slot/Prosthetic.ts`,
 > `Mixins.Prosthetic`, `isProsthetic`): `forParts` + `restores`, `fitsSlot`

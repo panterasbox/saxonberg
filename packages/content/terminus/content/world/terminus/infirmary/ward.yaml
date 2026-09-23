@@ -40,9 +40,5 @@ data:
     - /world/terminus/infirmary/thing/bandage-1
     - /world/terminus/infirmary/thing/bandage-2
     - /world/terminus/infirmary/thing/bandage-3
-    # ⭐ The fitting shelf — buy a peg leg, a hook hand, a vial, a splint
-    # (recovery D16). A patient who has lost a part walks out with a
-    # stand-in.
-    - /world/terminus/infirmary/thing/fitting-shelf
   cast:
     - /world/terminus/infirmary/agent/physician

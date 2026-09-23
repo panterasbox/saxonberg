@@ -346,23 +346,6 @@ export default class AssessController extends CommandController<AssessModel> {
       blocks.push(Mml.escape(`Scars: ${lines.join('; ')}.`));
     }
 
-    // ⭐ Prosthetics (D16) — a worn stand-in for a lost part.
-    if (MixinApi.isSlotted(target)) {
-      const standIns: string[] = [];
-      for (const slot of target.getSlotNames()) {
-        for (const occ of target.getOccupants(slot)) {
-          const item = occ as unknown as Stuff;
-          if (MixinApi.isProsthetic(item)) {
-            standIns.push(item.getPresentation());
-          }
-        }
-      }
-      if (standIns.length > 0) {
-        blocks.push(
-          Mml.escape(`Fitted with ${standIns.join(', ')}.`),
-        );
-      }
-    }
 
     // ⭐⭐ **The anatomy block** (D12) — one line per part: what it is,
     // how well it still works, and what is over it, outside-in.

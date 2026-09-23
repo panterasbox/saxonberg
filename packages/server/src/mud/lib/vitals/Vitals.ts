@@ -1259,12 +1259,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     private ownFunction(key: string): number {
-      if (this.bodyPartDeltas[key]?.missing === true) {
-        // ⭐ D16 — a lost part is 0, UNLESS a worn prosthetic stands in for
-        // it, in which case its `restores` is the derived function. No
-        // stored anatomy state: take the prosthetic off and this drops.
-        return this.prostheticRestoreFor(key);
-      }
+      if (this.bodyPartDeltas[key]?.missing === true) return 0;
       let lost = 0;
       for (const c of this.conditions) {
         if (c.kind !== 'trauma' || c.site !== key) continue;
@@ -1274,26 +1269,6 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
       return Math.max(0, Math.min(1, 1 - lost));
-    }
-
-    /**
-     * D16 — the best `restores` of any worn prosthetic standing in for a
-     * missing `key`, or 0. Scans worn occupants; only ever reached for a
-     * MISSING part (rare), so the walk is not on the hot path.
-     */
-    private prostheticRestoreFor(key: string): number {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isSlotted(self)) return 0;
-      let best = 0;
-      for (const slot of self.getSlotNames()) {
-        for (const occ of self.getOccupants(slot)) {
-          const item = occ as unknown as Stuff;
-          if (MixinApi.isProsthetic(item) && item.getForParts().includes(key)) {
-            best = Math.max(best, item.getRestores());
-          }
-        }
-      }
-      return best;
     }
 
     /**
