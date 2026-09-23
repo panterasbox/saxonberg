@@ -1,0 +1,28 @@
+verbs: [operate, surgery]
+controller: /trade/medicine/idea/cmd/medical/OperateController
+description: "Operate on an internal wound with a surgeon's kit"
+help: |
+  Operate on an internal wound — a rupture, the one wound a bandage cannot
+  reach. `operate alice`, with a surgeon's kit in hand.
+
+  Two things it demands that no other treatment does: the patient must be
+  lying still, and you must actually know how — `competent` in medicine or
+  better. A rupture is the one wound where a clumsy hand does harm, so an
+  untrained one is refused rather than risked.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  - name: kit
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.surgery]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

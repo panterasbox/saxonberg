@@ -890,7 +890,28 @@ reachable at all.
 - **Commit:** `build(recovery W-A3): every wound has a treatment â dose,
   warm, cool, and the one primitive`.
 
-#### W-A4 â The instruments: `set` and `operate` (trade-medicine)
+#### W-A4 â The instruments: `set` and `operate` (trade-medicine) ✅ DONE
+
+> ✅ **W-A4 landed.** Two pack instruments on the Whetstone shape:
+> `Splint` (`capability.splint`, `environment` bucket → `set.yaml`) and
+> `SurgicalKit` (`capability.surgery` → `operate.yaml`), both `ToolItem +
+> AudibleMixin`. Controllers `SetController`/`OperateController` call
+> `applyTreatment` and credit a graded deed; `operate` is gated — the
+> patient must be lying and the surgeon `competent`+, refused by name
+> otherwise. Rows `splint.yaml` / `surgical-kit.yaml`; ward `props:` gains
+> both + the antivenin vial. `terminus/package.json` now depends on
+> `trade-medicine` (`pnpm install` run).
+>
+> ⚠ **The verb is `splint`, not `set`** — `set` is a scripting builtin
+> (`lint:verb-collisions` caught it; the fishing-build memory flagged the
+> same). The wound's mismatch line already points at it (*"It wants
+> setting, with a splint."*). `lint:binder-models` also caught a hand-built
+> model omitting the always-bound `splint` arg — fixed with an empty
+> result, not omission.
+>
+> Tests: `instruments.test.ts` (set: applies + refuses no-splint/no-fracture;
+> operate: closes a rupture on a lying patient, refuses untrained + not-lying).
+> 14 pack tests green; terminus 116 green; all 46 lint gates pass.
 - `trade-medicine/src/thing/Splint.ts`, `SurgicalKit.ts` (`ToolItem` +
   `AudibleMixin` per Whetstone; `capabilities: ['splint']` /
   `['surgery']`; `commandContributions.environment` = their view).

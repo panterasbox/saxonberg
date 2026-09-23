@@ -23,5 +23,13 @@ data:
     - /world/terminus/infirmary/thing/tariff
     - /world/terminus/infirmary/thing/cot
     - /world/terminus/infirmary/thing/dressing-cabinet
+    # ⭐ The trade's instruments (recovery build) — the splint backs `set`,
+    # the surgeon's kit backs `operate`, and a vial of antivenin backs
+    # `dose`. Kept here so the ward can actually treat every wound, not
+    # just dress the ones a bandage reaches. Rows are trade-medicine's
+    # (terminus now depends on it).
+    - /trade/medicine/thing/splint
+    - /trade/medicine/thing/surgical-kit
+    - /trade/medicine/thing/antivenin-vial
   cast:
     - /world/terminus/infirmary/agent/physician
