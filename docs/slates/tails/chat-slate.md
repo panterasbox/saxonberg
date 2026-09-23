@@ -51,7 +51,7 @@ See also:
   facade itself.
 - [augmentation-slate.md](../tails/augmentation-slate.md) — the device carrying every
   channel; history framed as its storage.
-- [emotes-slate.md](../tails/emotes-slate.md) — sibling expression channel; the
+- [emotes-slate.md](../builds/emotes-slate.md) — sibling expression channel; the
   reactions hook (`tags`) and the gutter message-id are shared.
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) —
   **`MudlogApi` + topics: the game-event feed, explicitly NOT chat.**

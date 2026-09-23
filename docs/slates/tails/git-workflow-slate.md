@@ -22,12 +22,12 @@ GitLab, and does so **without violating the authoring permission model**.
 
 See also:
 
-- [provenance-slate](./provenance-slate.md) — the **parent**: this is its
+- [provenance-slate](../builds/provenance-slate.md) — the **parent**: this is its
   reserved *in-runtime VCS* remainder. The shipped `AuthoringEvent` ledger
   ([provenance.md](../../subsystems/provenance.md)) is both the per-avatar
   authorship mirror and the **path→author** key that later powers
   author-scoped review.
-- [cms-slate](./cms-slate.md) — the surface that produces the edits; its
+- [cms-slate](../builds/cms-slate.md) — the surface that produces the edits; its
   deferred **law==code forums-review gate** is where finer-than-branch
   review lands (Wave 2 here). Its *Forward constraint (decision A)*:
   the review/versioning model stays **storage-agnostic**.

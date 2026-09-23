@@ -71,7 +71,7 @@ See also:
 - [grouping subsystem](../../subsystems/grouping.md) — `GroupApi`; **group-role is
   a capability source** (control-via-groups). The facade pattern this
   slate mirrors.
-- [chat-slate.md](../tails/chat-slate.md) / [emotes-slate.md](../tails/emotes-slate.md)
+- [chat-slate.md](../tails/chat-slate.md) / [emotes-slate.md](../builds/emotes-slate.md)
   — consumers: channel post/moderate roles; the **expression-policy /
   emote-only gag** is `can(actor, 'speak', channel)`.
 - [docs/subsystems/properties.md](../../subsystems/properties.md) — field-

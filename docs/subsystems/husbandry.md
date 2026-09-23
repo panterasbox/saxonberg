@@ -13,7 +13,7 @@ it dies. Nothing is harvested for money and nothing is farmed — the plant
 exists to prove the growth model and the object shape the rest of the family
 inherits.
 
-Seeded by [farming-slate § Houseplants](../slates/tails/farming-slate.md)
+Seeded by [farming-slate § Houseplants](../slates/builds/farming-slate.md)
 and governed by [ranching-slate § The five shared
 conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 [living-world-roadmap.md](../living-world-roadmap.md).
@@ -688,7 +688,7 @@ band is read by instruments, not by the plant.
   hearts-delight farmer runs `introduces`/`idles`) and nothing lets a
   player hire a hand for *their* ground. The ladder is unwired, not
   unbuilt; the design is [farming-slate § Maintenance & the automation
-  ladder](../slates/tails/farming-slate.md).
+  ladder](../slates/builds/farming-slate.md).
 
 ---
 
@@ -700,7 +700,7 @@ band is read by instruments, not by the plant.
 [retail.md](./retail.md) · [time.md](./time.md) ·
 [quantities.md](./quantities.md) ·
 [command-spec.md](./command-spec.md) ·
-[farming-slate](../slates/tails/farming-slate.md) ·
+[farming-slate](../slates/builds/farming-slate.md) ·
 [ranching-slate](../slates/builds/ranching-slate.md) ·
 [living-world-roadmap](../living-world-roadmap.md)
 

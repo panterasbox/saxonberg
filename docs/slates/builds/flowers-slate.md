@@ -28,12 +28,12 @@
 
 See also: farmstead plan *(retired artifact)*
 (the industrial half, and D44's unifying fact) ·
-[farming-slate](../tails/farming-slate.md) (the `_flowering` latch, breeding) ·
-[cosmetics-slate](./cosmetics-slate.md) (scent, and dye as a textiles chain) ·
+[farming-slate](farming-slate.md) (the `_flowering` latch, breeding) ·
+[cosmetics-slate](../tails/cosmetics-slate.md) (scent, and dye as a textiles chain) ·
 [standing-mint-slate](./standing-mint-slate.md) (what a scalar of social worth
 does) · [currency-slate](./currency-slate.md) +
 [balance-slate](./balance-slate.md) (*every global ledger is a currency*) ·
-[gazette-slate](./gazette-slate.md) (the state aggregates, never reports).
+[gazette-slate](../tails/gazette-slate.md) (the state aggregates, never reports).
 Substrates: [measurement.md](../../measurement.md) (**the governing doc** —
 engine measures · subject values · polity imposes) ·
 [wiki.md](../../subsystems/wiki.md) · [chronicle.md](../../subsystems/chronicle.md) ·

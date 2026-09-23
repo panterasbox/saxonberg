@@ -144,7 +144,7 @@ consume weather:
 > depending on it.
 
 **Status of the designed consumers: all designed, none built.**
-[farming](./farming-slate.md) (∫weather, GDD) ·
+[farming](../builds/farming-slate.md) (∫weather, GDD) ·
 [ranching](../builds/ranching-slate.md) (pasture, thermoregulation, winter feed)
 · [fishing](../tails/fishing-slate.md) (the catch distribution — claims first)
 · [preservation](./preservation-slate.md) (the spoilage rate) · travel /

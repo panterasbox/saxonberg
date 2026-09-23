@@ -20,11 +20,11 @@ assume the baseline comm implant exists.
 
 See also:
 
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — **sensor augments
+- [docs/slates/senses-slate.md](../builds/senses-slate.md) — **sensor augments
   *are* `PerceptionChannel`s**; the implant is the **ESP sense-organ**
   (verbal + emotive channels). Augments add channels to the sensorium.
 - [docs/slates/comms-slate.md](../tails/comms-slate.md) /
-  [docs/slates/emotes-slate.md](../tails/emotes-slate.md) — the baseline implant
+  [docs/slates/emotes-slate.md](../builds/emotes-slate.md) — the baseline implant
   carries DM/chat (verbal) + emote perception (emotive). The DM-as-
   tutorial on-ramp.
 - [vitals-slate.md](./vitals-slate.md) — **install/remove is

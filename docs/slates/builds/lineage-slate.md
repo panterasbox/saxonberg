@@ -1448,7 +1448,7 @@ with a supply curve like everything else.
 
 That is a dial too, but it is the dial that decides whether cosmetics is
 a **money sink** or a **trade**. Explored in
-[cosmetics-slate](./cosmetics-slate.md).
+[cosmetics-slate](../tails/cosmetics-slate.md).
 
 ### Phase 2 — the generator, after the packs
 

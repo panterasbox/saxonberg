@@ -12,7 +12,7 @@
 > impersonation (the conspicuous record — `wizard-bar-slate` leans on it
 > from here) · `su` as an agency consumer · the duty text in the wizard
 > grant (the safe harbour's TEXT is
-> [wizard-bar-slate](./wizard-bar-slate.md)'s) · subject notification on
+> [wizard-bar-slate](../tails/wizard-bar-slate.md)'s) · subject notification on
 > record access · the "people who can see everything" appendix. ⚠ The
 > axis re-gating (`provision` / `unprovision` / `lease` / `unlease` /
 > `config` / `practice`) and the Katie `dispatch provision` live drive
@@ -265,7 +265,7 @@ persuade in a way descriptions cannot.
 # ⚠⚠ Axis hygiene — `requiresWizard` is doing work that is not its job
 
 **Captured 2026-08-04**, found while designing
-[credit-slate](./credit-slate.md).
+[credit-slate](../tails/credit-slate.md).
 
 > **Merged 2026-09-21 (cluster pass):** the rule as the user stated it,
 > the `reserve` precedent, the per-site classification table and the
@@ -297,7 +297,7 @@ persuade in a way descriptions cannot.
 2. ⚠ **What is the safe harbour?** Without a business-judgment equivalent
    the role is unfillable — a wizard who breaks something in good faith
    must not be treated as one who snooped. → the harbour is
-   [wizard-bar-slate](./wizard-bar-slate.md)'s *product* (§ *What the bar
+   [wizard-bar-slate](../tails/wizard-bar-slate.md)'s *product* (§ *What the bar
    does*); its text is that slate's Q2.
 3. **Is the duty written into the constitution, or into the wizard grant
    itself?** *Leans the grant* — you accept it when you take the

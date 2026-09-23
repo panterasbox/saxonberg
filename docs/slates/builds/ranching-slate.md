@@ -29,7 +29,7 @@
 > ([ranching.md § What the carcass opens onto](../../subsystems/ranching.md)); no knacker, tannery or
 > chandler was authored. The chain is [rendering-slate](./rendering-slate.md)'s.*
 
-See also: [farming-slate](../tails/farming-slate.md) (**the primary sibling** — same
+See also: [farming-slate](farming-slate.md) (**the primary sibling** — same
 guild, same production family; the feed loop + the shared genome) ·
 [pets-slate](./pets-slate.md) (the *substrate* sibling — an owned animal, but a
 different experience; see The family placement) ·
@@ -193,7 +193,7 @@ care-quality-decides-what-it-becomes — lives in
 attention → wages → compute, the dog as its fourth rung, and *automation
 maintains your assets; it cannot maintain your relationships*. The rung table
 with its open rungs is [farming-slate § Maintenance & the automation
-ladder](../tails/farming-slate.md)'s; the compute meter is
+ladder](farming-slate.md)'s; the compute meter is
 [property-slate](./property-slate.md)'s.*
 
 ---
@@ -326,7 +326,7 @@ alongside fencing, allowance, and attention. It also promotes the hired hand
 from convenience to structure: **subdividing past ~weekly residency is what
 actually makes hiring necessary**, which is the automation ladder doing its job
 rather than a balance patch. Full clock math in [farming § The
-clock](../tails/farming-slate.md).
+clock](farming-slate.md).
 
 ### The move is a *read*, not a timer
 
@@ -363,7 +363,7 @@ working ranch; the difference is output per acre, never access.
 **Fencing** (materials + labor, and it wears — which finally gives fence
 maintenance something to be other than a gauge; a **grown hedge** is the cheap-
 in-materials, expensive-in-time third option — see [farming § Pests, thorns, and
-navigability](../tails/farming-slate.md)) · **compute allowance** (each paddock is a
+navigability](farming-slate.md)) · **compute allowance** (each paddock is a
 room, and the property substrate prices persistent simulation, so subdividing
 spends the game's real scarcity currency) · **attention** (the whole point) ·
 **the clock** (above — residency below ~a game week can't be hand-run). A player
@@ -407,7 +407,7 @@ problem too. **That is the interlock made mechanical rather than thematic**, and
 it is what makes farm+ranch complementary by construction instead of by bonus
 multiplier.
 
-**The shared genome.** [Farming](../tails/farming-slate.md) already claims the
+**The shared genome.** [Farming](farming-slate.md) already claims the
 `Genome` / reaction-norm genetics layer is **husbandry-wide**, not crop-only: an
 animal has a `Species` + `BodyPlan` + vital-profile parameters, and
 genes-as-reaction-norms bend *those* curves exactly as they bend a crop's

@@ -20,7 +20,7 @@ residence ladder, property condition, the Stewardship Discipline) ·
 keystone) · [disease-slate](./slates/builds/disease-slate.md) (contagion,
 hygiene) · [ranching](./slates/builds/ranching-slate.md) ·
 [pets-slate](./slates/builds/pets-slate.md) ·
-[farming-slate](./slates/tails/farming-slate.md).
+[farming-slate](./slates/builds/farming-slate.md).
 Shipped substrates:
 [husbandry](./subsystems/husbandry.md) · [smallholding](./subsystems/smallholding.md)
 · [crafting](./subsystems/crafting.md) (`Durable`/`Keen`) ·
@@ -220,7 +220,7 @@ for the compute substrate, and the reasoning transfers whole:
 |---|---|---|---|
 | **1** | ⭐ **Meter on USE — never on connection, never on ownership** | per-unit consumption (kWh, litres); service fees at the point of a service rendered | a fixed **standing/connection charge** (rent on owned space with the serial numbers filed off); an **ad-valorem holding tax** |
 | **2** | ⭐⭐ **Dischargeable WITHOUT attendance** | capital, a standing order, an income stream that runs while you are away | any bill whose only antidote is logging in — the inviolable floor, restated for money |
-| **3** | ⭐⭐⭐ **Non-payment's ceiling is credit and comfort, NEVER the asset** | *"credit gets harder / you live worse"* | seizure, eviction-for-arrears, loss of the holding ([credit-slate](./slates/builds/credit-slate.md)'s property floor) |
+| **3** | ⭐⭐⭐ **Non-payment's ceiling is credit and comfort, NEVER the asset** | *"credit gets harder / you live worse"* | seizure, eviction-for-arrears, loss of the holding ([credit-slate](./slates/tails/credit-slate.md)'s property floor) |
 
 Rule 3 is the load-bearing one. Law 2's real fear is **loss you can only avert
 by showing up**; if non-payment can never take the thing, a recurring bill

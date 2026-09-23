@@ -26,7 +26,7 @@
 > in-world ability channels it leans on are
 > [capability-magic-slate](./capability-magic-slate.md)
 > (conditioning / skill / knowledge); the social-structure side is
-> [affiliation-slate](./affiliation-slate.md) (guilds /
+> [affiliation-slate](../tails/affiliation-slate.md) (guilds /
 > houses). This slate synthesizes those into one buildable build and adds
 > the model that ties them to learning science.
 

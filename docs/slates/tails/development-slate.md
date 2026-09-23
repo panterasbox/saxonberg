@@ -19,7 +19,7 @@ See also: [property-slate](../builds/property-slate.md) (the two conserved
 scarcities this adds a leg to) · [zoning-slate](../builds/zoning-slate.md)
 (⭐ per-location extent, and who regulates these ratios) ·
 [stewardship-slate](../builds/stewardship-slate.md) (land use, the closed six) ·
-[farming-slate](./farming-slate.md) (the first consumer) ·
+[farming-slate](../builds/farming-slate.md) (the first consumer) ·
 [furnishing.md](../../subsystems/furnishing.md) (acreage as shipped) ·
 [husbandry.md](../../subsystems/husbandry.md) (limiting factors) ·
 [parcel.md](../../subsystems/parcel.md) · [zone.md](../../subsystems/zone.md).

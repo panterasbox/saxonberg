@@ -461,7 +461,7 @@ genuinely bad, collapses the whole question back to a solved one.
 ## Cross-references
 
 **Consumed / discharged:**
-[cosmetics-slate](./cosmetics-slate.md) (⭐⭐⭐ *dye is a textiles input*;
+[cosmetics-slate](../tails/cosmetics-slate.md) (⭐⭐⭐ *dye is a textiles input*;
 open questions 1, 2, 4 and 9 carried forward) ·
 [trade-roster-slate](../tails/trade-roster-slate.md) (`textiles` + `leatherwork`
 GAP rows; `tailor`/`tanner` rostered) · [vocations.md](../../vocations.md)

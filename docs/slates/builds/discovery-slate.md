@@ -45,12 +45,12 @@ and confirmed by a grep: **there is no foraging or gathering anywhere in
 the codebase.** Fishing has a slate, mining has a slate; the third
 gathering vertical was never written.
 
-*(Sits above [spawn-distribution-slate](./spawn-distribution-slate.md) and beside [magic-items-slate](./magic-items-slate.md), [identification-slate](./identification-slate.md), [pharma-slate](./pharma-slate.md).)*
+*(Sits above [spawn-distribution-slate](./spawn-distribution-slate.md) and beside [magic-items-slate](../tails/magic-items-slate.md), [identification-slate](./identification-slate.md), [pharma-slate](./pharma-slate.md).)*
 
 Related: [fishing-slate](../tails/fishing-slate.md) (**the sibling — and the
 contrast**), [mining-slate](./mining-slate.md),
 [pharma-slate](./pharma-slate.md) (**the demanding consumer**),
-[farming-slate](../tails/farming-slate.md) (where foraging goes when demand
+[farming-slate](farming-slate.md) (where foraging goes when demand
 outgrows the wild), [sanitation-slate](./sanitation-slate.md) (**the
 boundary — scavenging is not foraging**),
 [biome.md](../../subsystems/biome.md) (where things grow),

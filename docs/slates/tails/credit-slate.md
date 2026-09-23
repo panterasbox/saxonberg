@@ -40,15 +40,15 @@ finished financial system.**
 
 Related: [banking.md](../../subsystems/banking.md) (**the substrate — read
 it first**), [governance.md](../../subsystems/governance.md) (the Office
-apparatus; the Governor seat), [currency-slate](./currency-slate.md) (the
+apparatus; the Governor seat), [currency-slate](../builds/currency-slate.md) (the
 deferral this closes; quantity-not-price),
-[land-compute-and-license](./land-compute-and-license.md) (⭐ **the
+[land-compute-and-license](../builds/land-compute-and-license.md) (⭐ **the
 entitlement function — it decides the collateral question**),
-[content-packs-slate](./content-packs-slate.md) (kit ⊗ premises; the
+[content-packs-slate](../builds/content-packs-slate.md) (kit ⊗ premises; the
 relocation answer), [parcel.md](../../subsystems/parcel.md),
 [chattel.md](../../subsystems/chattel.md),
 [incapacity-slate](../tails/incapacity-slate.md) (impound on a claim),
-[cooperative-slate](./cooperative-slate.md) (the mutual-credit lineage),
+[cooperative-slate](../builds/cooperative-slate.md) (the mutual-credit lineage),
 [behavior.md](../../subsystems/behavior.md) +
 [npc-dialogue.md](../../subsystems/npc-dialogue.md) (the brain + the
 `dispatch` seam).
@@ -184,7 +184,7 @@ arrival plaza; there is no second one.
 
 > **You are not buying compute. You are buying footfall.**
 
-Von Thünen — which [freight-slate](./freight-slate.md) already expects to
+Von Thünen — which [freight-slate](../builds/freight-slate.md) already expects to
 emerge rather than be authored. ⭐ It makes collateral **self-regulating**:
 a prime lot is real security because anyone can put a shop there and draw
 traffic; a remote lot is worth ~nothing, and a lender who took one learns
@@ -211,7 +211,7 @@ something.
 kinder option — **it is what a rational creditor does when the collateral is
 specific.** Someone who actually wants the shop buys the paper at a
 discount and works it out with the owner. Machinery mostly designed: a debt
-is a claim, [auction-slate](./auction-slate.md) rides contracts, and
+is a claim, [auction-slate](../builds/auction-slate.md) rides contracts, and
 [contract.md](../../subsystems/contract.md) already does escrow and breach.
 
 ⭐ The matching real-world default is **equity of redemption** — after

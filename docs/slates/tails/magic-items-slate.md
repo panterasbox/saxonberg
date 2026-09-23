@@ -63,7 +63,7 @@ before spec'ing the catalog — **it decides what an item must declare.** ·
 [pharma-slate](../builds/pharma-slate.md) (**potions and scrolls are pharma's
 product line**; the credence-good thesis covers the whole consumable
 category) ·
-[identification-slate](./identification-slate.md) (**the sibling
+[identification-slate](../builds/identification-slate.md) (**the sibling
 axis** — item *identity*, "a blue potion" → "a potion of healing", the
 deductive class-level game; BUC is the orthogonal *instance* axis) ·
 [belief.md](../../subsystems/belief.md) (recognition/identification/regard
@@ -80,7 +80,7 @@ combat) · combat (being designed separately — the deferred half of the catalo
 
 ## Two axes, kept apart
 
-*Shipped — identity is the per-viewer belief store, BUC a per-instance `BlessingBucket` on the item (not a belief realm): [magic-items.md](../../subsystems/magic-items.md) § Blessed means EFFICIENT, § BUC and merge behaviour; the identity axis is [identification-slate](./identification-slate.md)'s.*
+*Shipped — identity is the per-viewer belief store, BUC a per-instance `BlessingBucket` on the item (not a belief realm): [magic-items.md](../../subsystems/magic-items.md) § Blessed means EFFICIENT, § BUC and merge behaviour; the identity axis is [identification-slate](../builds/identification-slate.md)'s.*
 
 ## The effect substrate (Gap 0) — what "using an item" does
 
@@ -341,7 +341,7 @@ already walked (done / encumbrance / thematic Bucket D).
 
 ### Foci perish too — pattern rot
 
-*Superseded — `Focus` was cut before merge and D9's pattern-rot clock went with it: [magic-items.md](../../subsystems/magic-items.md) § The mana potion is metabolic (the ⚠ box), [implements-slate](./implements-slate.md).*
+*Superseded — `Focus` was cut before merge and D9's pattern-rot clock went with it: [magic-items.md](../../subsystems/magic-items.md) § The mana potion is metabolic (the ⚠ box), [implements-slate](../builds/implements-slate.md).*
 
 ### What it costs to build
 

@@ -40,13 +40,13 @@ See also:
   (in-person barkeep = acoustic `say`; remote dispatcher = implant DM),
   the `whisper`/`tell` reclassification. Dialogue *consumes* directed
   speech; it doesn't define it.
-- [emotes-slate.md](../tails/emotes-slate.md) — the parallel expression
+- [emotes-slate.md](../builds/emotes-slate.md) — the parallel expression
   channel; NPCs emote through the same `SoulMixin` path. Dialogue +
   emotes compose (an NPC frowns *and* speaks).
 - [docs/slates/language-slate.md](../tails/language-slate.md) — comprehension
   gating on acoustic NPC speech (`Vocal.speechLanguage`); a translation
   implant dissolves it.
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — acoustic reach for
+- [docs/slates/senses-slate.md](../builds/senses-slate.md) — acoustic reach for
   in-person dialogue (who hears the exchange) — the hearing channel of
   the unified perception substrate (absorbed the sound slate).
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) /
@@ -227,7 +227,7 @@ social-graph links; ambient barks / NPC initiative depth.
 - **The comms transport** — directed speech, acoustic vs implant, the
   `whisper`/`tell` split → [comms-slate.md](../tails/comms-slate.md). Dialogue
   consumes it.
-- **The emote channel** → [emotes-slate.md](../tails/emotes-slate.md). NPCs
+- **The emote channel** → [emotes-slate.md](../builds/emotes-slate.md). NPCs
   emote through that; dialogue composes with it but doesn't own it.
 - **Prompt + engagement substrate internals** — consumed from prompt.md
   / activity.md, not redefined.

@@ -17,7 +17,7 @@
 > **Size:** a tail
 
 See also: [water-design-pack](../tails/water-design-pack.md) (the first consumer) ·
-[power-utility-slate](./power-utility-slate.md) (**the supply-ref this
+[power-utility-slate](../builds/power-utility-slate.md) (**the supply-ref this
 generalizes**) · [stewardship-doctrine § the recurring-charge
 call](../../stewardship-doctrine.md) (what may be metered) ·
 [household-design-pack](../tails/household-design-pack.md) (**the commons argument,
@@ -27,7 +27,7 @@ reused at Part 3**) · substrates:
 [reserve](../../subsystems/reserve.md) · [weather](../../subsystems/weather.md) ·
 [address](../../subsystems/address.md) (the locality resolve) ·
 [husbandry](../../subsystems/husbandry.md) (the sync reconcile that forced
-Part 4) · [delivery-slate](./delivery-slate.md) (*coverage is legal,
+Part 4) · [delivery-slate](../builds/delivery-slate.md) (*coverage is legal,
 connection is physical*).
 
 ---
@@ -39,7 +39,7 @@ connection is physical*).
 | Act | Means | State |
 |---|---|---|
 | **Draw** — take matter into a vessel or a body | `fill` / `drink` | ✅ ships |
-| **Connect** — bind a consumer to a source | `plug` / `unplug` (or `switch`) | proposed by the [fridge pack](./fridge-design-pack.md) |
+| **Connect** — bind a consumer to a source | `plug` / `unplug` (or `switch`) | proposed by the [fridge pack](../builds/fridge-design-pack.md) |
 
 **One read.** `analyze <source>` answers the same four things for a tap, a
 well and a substation: *what it yields · how deep it is · what it depends on ·
@@ -53,7 +53,7 @@ why it is not supplying.* No per-utility verb, no bespoke phrasing.
 | **dry** | the source is exhausted | the generator is out of fuel |
 | **cut** | the main is severed upstream | the line is down |
 | **frozen** | the pipe is iced | — |
-| **fouled** | contaminated (→ [disease](./disease-slate.md)) | — |
+| **fouled** | contaminated (→ [disease](../builds/disease-slate.md)) | — |
 | **off** | the stopcock is closed | switched off |
 | **overdrawn** | the well is drawn down (rivalry, Part 3) | the substation is browned out |
 
@@ -66,7 +66,7 @@ why it is not supplying.* No per-utility verb, no bespoke phrasing.
 
 ## Part 6 — The two instances
 
-**Power** ([power slate](./power-utility-slate.md)). An `Energized` fixture
+**Power** ([power slate](../builds/power-utility-slate.md)). An `Energized` fixture
 declares its upstream ref; the source's state gates dependents; the
 distribution walk rides *coverage is legal, connection is physical*, so
 outages are **local and directional**. Nothing above changes for power — this

@@ -146,7 +146,7 @@ Everything past the middle tier is polity + economy design:
   >    must be able to pay it. *"The bill is paid in engagement + capital,
   >    never in showing up."*
   > 3. **Non-payment's ceiling is credit and comfort, never the asset**
-  >    ([credit-slate](./credit-slate.md)'s property floor). This is what
+  >    ([credit-slate](../tails/credit-slate.md)'s property floor). This is what
   >    makes 1–2 safe.
   >
   > The framing that makes this natural rather than a restriction:

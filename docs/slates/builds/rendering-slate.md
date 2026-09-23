@@ -32,7 +32,7 @@ Substrate: [crafting](../../subsystems/crafting.md) ·
 Siblings: [ranching](./ranching-slate.md) (**the gate**) ·
 [zoning](./zoning-slate.md) (⭐ the nuisance trades) ·
 [preservation](../tails/preservation-slate.md) ·
-[textiles](./cosmetics-slate.md) *(fibre's sibling — leather is not fibre)* ·
+[textiles](../tails/cosmetics-slate.md) *(fibre's sibling — leather is not fibre)* ·
 [../../settlement-model.md](../../settlement-model.md) § 1
 
 ---
@@ -185,7 +185,7 @@ salts and a glycerol. Potash lye makes *soft* soap; salting it out
 (sodium displacing potassium) makes the *hard* bar — which is why the
 bar needs the salt trade and the soft soap does not. The byproduct,
 **glycerin**, is a second product with its own customer
-([cosmetics](./cosmetics-slate.md) — soap is a chain cosmetics is a
+([cosmetics](../tails/cosmetics-slate.md) — soap is a chain cosmetics is a
 second customer of, as dye already is).
 
 **Surfactants**: water does not cut grease; a soap molecule has a head

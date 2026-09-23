@@ -10,7 +10,7 @@ prose form. The substrate ships as part of the social-cluster build
 catalog backed by MongoDB, a `SoulCatalogue` singleton holding the
 runtime verb→Emote cache, and a thin `SoulApi` facade consulted by
 the verb dispatcher. The slate at
-[emotes-slate.md](../slates/tails/emotes-slate.md) stays live as the
+[emotes-slate.md](../slates/builds/emotes-slate.md) stays live as the
 register of design space not yet built.
 
 ## What emotes are vs. what they aren't
@@ -131,7 +131,7 @@ lets a strict emote-only mode admit no user bytes at all; moderation
 was deferred, so the kind went with it. A moderation build that wants
 that structural guarantee revives `enum` as a third `SlotKind` beside a
 per-actor expression-policy gate — the design is still in
-[emotes-slate.md](../slates/tails/emotes-slate.md) § Typed grammar
+[emotes-slate.md](../slates/builds/emotes-slate.md) § Typed grammar
 slots and § Moderation.
 
 ```typescript
@@ -518,7 +518,7 @@ does. See [reactions.md § The emote picker](./reactions.md).
 
 ## What's deferred
 
-Each of the following stays in [emotes-slate.md](../slates/tails/emotes-slate.md)
+Each of the following stays in [emotes-slate.md](../slates/builds/emotes-slate.md)
 for a future build. The data shape ships now where deferring would
 later force a migration; the **behavior** doesn't run in v1.
 

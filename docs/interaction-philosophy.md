@@ -214,7 +214,7 @@ is text, so the medium that is literally made of conversation is the
 natural substrate for a social world. The non-verbal half of social
 presence isn't lost either: gesture and expression fold into text
 through the natural-language emote system (see
-[emotes-slate.md](./slates/tails/emotes-slate.md)), so the social substrate is
+[emotes-slate.md](./slates/builds/emotes-slate.md)), so the social substrate is
 *complete* in text. Everything two participants do to each other
 socially — speak, gesture, react — reduces to strings. The ultimate
 abstraction, pointed at people instead of objects.

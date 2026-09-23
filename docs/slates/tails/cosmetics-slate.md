@@ -14,7 +14,7 @@
 > **Size:** a wave — rides lineage phase 1's appearance substrate; the
 > chain it needed has shipped
 
-**Captured 2026-08-25**, out of the [lineage](./lineage-slate.md)
+**Captured 2026-08-25**, out of the [lineage](../builds/lineage-slate.md)
 phase-1 card discussion. Char-gen settled that **appearance is inherited
 only** — no editor at creation — which relocates all appearance change
 into the world as a purchase:
@@ -32,11 +32,11 @@ And the framing that this slate exists to serve:
 > cosmetics in Saxonberg and see dollar signs. **The platform has no
 > opinion on this.**"**
 
-Related: [lineage-slate](./lineage-slate.md) (the char-gen decision this
+Related: [lineage-slate](../builds/lineage-slate.md) (the char-gen decision this
 serves), [trade-roster-slate](../tails/trade-roster-slate.md) (the `textiles` /
 `leatherwork` / `apothecary` gaps below),
 [vocations.md](../../vocations.md) (the `barber / tailor` **GAP** row),
-[content-packs-slate](./content-packs-slate.md) (*a trade pack is
+[content-packs-slate](../builds/content-packs-slate.md) (*a trade pack is
 complete when its output has a consumer*),
 [crafting.md](../../subsystems/crafting.md),
 [bulk.md](../../subsystems/bulk.md),
@@ -136,7 +136,7 @@ hair; it simply shows.
 
 ## ⭐⭐⭐ Why this does not collide with *never selectable*
 
-It looks like it contradicts [lineage-slate](./lineage-slate.md) §
+It looks like it contradicts [lineage-slate](../builds/lineage-slate.md) §
 *describable, never selectable*. It does not, and the distinction is
 worth stating outright because someone will otherwise read that rule as
 banning socially-legible grooming too:
@@ -197,7 +197,7 @@ Two payoffs:
 ⚠ Which is a real consequence to weigh, not free: it makes eye colour
 the one appearance axis that could be *acted on*. It must still never be
 **selectable** — no MQL predicate, never a `GroupProvider` — per
-[lineage-slate](./lineage-slate.md) § *describable, never selectable*.
+[lineage-slate](../builds/lineage-slate.md) § *describable, never selectable*.
 
 ---
 
@@ -207,7 +207,7 @@ the one appearance axis that could be *acted on*. It must still never be
   opinion.
 - **Whether an operator monetizes cosmetics for real money.** Also not
   the platform's call — see
-  [land-compute-and-license](./land-compute-and-license.md) for where
+  [land-compute-and-license](../builds/land-compute-and-license.md) for where
   that question actually lives.
 - **Whether `barber` is promoted from GAP to a vocation.** That is
   [vocations.md](../../vocations.md)'s demand test to run *after* the
@@ -246,7 +246,7 @@ the one appearance axis that could be *acted on*. It must still never be
    downward with time it is a repeat customer *and* a reason grooming is
    ongoing rather than a one-time purchase — but it also means your
    appearance changes without you acting, which touches
-   [lineage-slate](./lineage-slate.md)'s `Looks` cell. Related to
+   [lineage-slate](../builds/lineage-slate.md)'s `Looks` cell. Related to
    question 4.
 8. **Can you grade a *self*-applied change above `poor`?** A competent
    `personal-services` practitioner cutting their own hair is a real
@@ -263,7 +263,7 @@ the one appearance axis that could be *acted on*. It must still never be
 
 Came out of the nutrition & fitness planning: *"surprised we've come all
 this way and never really talked about beauty as an abstractable
-concept."* The reason is in [lineage](./lineage-slate.md): **appearance
+concept."* The reason is in [lineage](../builds/lineage-slate.md): **appearance
 is not modelled anywhere** — there was nothing to be beautiful. This
 section decides the abstraction before the `Looks` cell lands, so the
 cell is built for it. Two forks were put to the user and both are
@@ -380,7 +380,7 @@ susceptibility — stay their own subsystems; beauty is one leg.
 
 **What the polity may do about it** is the polity's: whether hiring, a
 shop counter or a court may be moved by regard is a
-[legal-code](./legal-code-slate.md) question, and a law against it is
+[legal-code](../builds/legal-code-slate.md) question, and a law against it is
 content — which is exactly where that argument belongs, and the values
 lens's answer to "who says so."
 
@@ -388,7 +388,7 @@ lens's answer to "who says so."
 
 Beauty is the *market* this slate's vocations already exist for: the
 dye chain, the tailor's cut and fit, the barber's graded cut, scented
-soap and glycerin ([rendering § 8](./rendering-slate.md)), and — the
+soap and glycerin ([rendering § 8](../builds/rendering-slate.md)), and — the
 part the nutrition build adds — the body itself, which now has an input
 (work, food, the gym) and a visible output. A canon is what makes those
 purchases *mean* something to a viewer, and two canons are what make

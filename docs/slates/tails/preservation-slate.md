@@ -13,7 +13,7 @@
 
 See also — the chain: [fishing](../tails/fishing-slate.md) (the driver) ·
 [mining](../builds/mining-slate.md) (**salt** — the counterplay and a taxed staple) ·
-[farming](./farming-slate.md) (winter is meaningless without this) ·
+[farming](../builds/farming-slate.md) (winter is meaningless without this) ·
 [ranching](../builds/ranching-slate.md) (meat + dairy) ·
 [crafting](../builds/crafting-slate.md) (the preserving branch) ·
 [economy](../builds/economy-slate.md) (**Law 2** — read it first) ·
@@ -134,7 +134,7 @@ organises itself with nothing scripted:
 > Preservation is the bridge, and autumn is when you build it.**
 
 Emergent rather than authored — the inversion falls out of a temperature-driven
-rate against [farming § Winter](./farming-slate.md)'s 7.5-real-day, globally
+rate against [farming § Winter](../builds/farming-slate.md)'s 7.5-real-day, globally
 synchronised season.
 
 **It also solves the fridge problem.** If cold storage were cheap year-round,

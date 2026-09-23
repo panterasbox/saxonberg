@@ -234,7 +234,7 @@ of silently).
 > it has a full requirements doc,
 > [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md),
 > seeded by the (now-compacted)
-> [credit-slate](./credit-slate.md). The rename-frees-the-word-`credit`
+> [credit-slate](../tails/credit-slate.md). The rename-frees-the-word-`credit`
 > argument is history — the rename already shipped.
 
 # Open questions

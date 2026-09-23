@@ -77,7 +77,7 @@ See also:
 - [docs/subsystems/twitch-relay.md](../../subsystems/twitch-relay.md)
   — the Twitch binding (inbound reader); the same integration surface
   the dono webhook lands on.
-- [docs/slates/deferred-rpg/affiliation-slate.md](./affiliation-slate.md)
+- [docs/slates/deferred-rpg/affiliation-slate.md](../tails/affiliation-slate.md)
   — **distinct from this.** Houses / guilds / corps are *social*
   organization (the class system, in-group cooperation + rivalry). The
   cooperative is *governmental* — the polity over all of them. Don't

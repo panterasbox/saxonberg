@@ -43,7 +43,7 @@ The load-bearing decisions:
 
 See also:
 
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — the **percept
+- [docs/slates/senses-slate.md](../builds/senses-slate.md) — the **percept
   revelation-condition** model this extends (sense/skill conditions +
   now progress/integrity).
 - [docs/slates/access-slate.md](../tails/access-slate.md) — the unifying shape

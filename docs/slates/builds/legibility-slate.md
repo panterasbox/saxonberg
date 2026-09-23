@@ -43,7 +43,7 @@ See also:
   are *not* the answer to the bar's six stools.
 - [senses.md](../../subsystems/senses.md) — the multi-sense substrate
   that Part D discovers has never been used by a single content row.
-- [senses-slate.md](../tails/senses-slate.md) — the *physics*
+- [senses-slate.md](senses-slate.md) — the *physics*
   deferrals (smell trails, echolocation, ESP walk). Disjoint from Part D,
   which is about the verbs.
 
