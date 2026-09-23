@@ -120,3 +120,54 @@ settings:
   # which is the third rung of the counterplay ladder doing its job.
   - key: water.fouledAt
     value: "0.35"
+
+  # ── the reach's water (fishing D22) ──────────────────────────────
+  # The chemistry seed where a course row's `water:` block is silent:
+  # neutral, moderately hard, lightly fed. Every shipped course authors
+  # its own; these are the fallback for a river nobody characterised.
+  - key: water.chemistry.pH
+    value: "7.2"
+  - key: water.chemistry.hardnessDgh
+    value: "8"
+  - key: water.chemistry.nitrateMgL
+    value: "1"
+
+  # ── the fishery (fishing D1/D3/D15) ──────────────────────────────
+  # ⭐ The Discipline whose competence band gates the SPECIES read at a
+  # shore — a template path, and the one word of a trade the water pack
+  # speaks, as a setting so it never has to. When the row it names is
+  # not installed the read is physical only, which is honest for a realm
+  # with water and no fishing trade.
+  - key: water.fishery.readDiscipline
+    value: "/trade/fishing/idea/Discipline/fishing"
+
+  # Kilometres of river a reach stands for, for capacity:
+  # `round(fit × abundance × reachLengthKm)`. Abundance is authored per
+  # species per km; this is the one number that scales every reach.
+  # ⭐ ONE kilometre — the stretch you can fish from where you stand, not
+  # the whole reach between two nodes: at 3 the confluence held eight
+  # hundred fish and no net could empty it in an afternoon (the drive).
+  - key: water.fishery.reachLengthKm
+    value: "1"
+
+  # Recovery: what has been drawn down decays toward nothing with this
+  # half-life in game DAYS. A net empties a reach in an afternoon; the
+  # reach recovers over days — this is the days.
+  - key: water.fishery.recoveryHalfLifeDays
+    value: "2"
+
+  # A species whose level is under this fraction of its capacity reads
+  # as fished out.
+  - key: water.fishery.read.emptyBelow
+    value: "0.1"
+
+  # Salinity, parts per thousand: the sea, the brackish reach one hop
+  # above it, and the elevation below which a reach that low reads
+  # brackish rather than fresh. Fresh water reads 0.3. ⚠ The one function
+  # a tide clock replaces.
+  - key: water.fishery.salinity.sea
+    value: "33"
+  - key: water.fishery.salinity.brackish
+    value: "15"
+  - key: water.fishery.brackishBelowM
+    value: "50"

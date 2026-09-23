@@ -962,6 +962,14 @@ slate and stay refused — do not re-propose:
   surface; *what does my character know* is the epistemic half above,
   a separate concern.
 
+The authoring rule that falls out of the first refusal (graduated from
+the wiki slate, 2026-09): **transclude, don't copy — and a page exists
+only if it is editorial.** Wiki *content* is editorial prose; structured
+data appears only as a live transclusion from its canonical home (`help`
+for systems, `composition` for a template's data). If a topic is
+*purely* the structured view with nothing editorial to add, it is not a
+wiki page at all — it lives at its source and the wiki links to it.
+
 The cost of refusing the gazetteer is the classic cold start — the wiki
 begins with what `wiki-starter` ships and grows as people write it. That
 was accepted at the slate: community maintenance *is* the point, and the

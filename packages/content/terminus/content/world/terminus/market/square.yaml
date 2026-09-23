@@ -45,6 +45,11 @@ data:
       destination: /world/terminus/market/bakery
   props:
     - /world/terminus/market/stalls
+    # ⭐ The fish stall — a second consignment counter (fishing D11),
+    # kept by the fishmonger on the market's roster.
+    - /world/terminus/market/thing/fish-stall
+  cast:
+    - /world/terminus/market/agent/fishmonger
   details:
     bunting:
       keywords: [bunting, canvas, awnings]

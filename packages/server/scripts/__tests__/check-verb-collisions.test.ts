@@ -83,6 +83,16 @@ describe("the collision itself", () => {
     expect(collisionsIn(claimsIn(allViews(root))).size).toBe(0);
   });
 
+  it("⭐ a view claiming a SCRIPTING BUILTIN collides with the interpreter — `set` never reaches dispatch", () => {
+    // The fishing build shipped `set <trap>`; `set x y` is the shell's
+    // variable binding and the interpreter takes the line first. Typed,
+    // it answered with silence. One view, one verb — and a collision.
+    const root = tree([{ pack: "p", where: "trade/fishing/cmd/fishing/set", verbs: ["set"] }]);
+    const bad = collisionsIn(claimsIn(allViews(root)));
+    expect([...bad.keys()]).toEqual(["set"]);
+    expect(bad.get("set")!.some((f) => f.includes("builtins"))).toBe(true);
+  });
+
   it("distinct verbs never collide", () => {
     const root = tree([
       { pack: "p", where: "platform/cmd/x", verbs: ["go"] },

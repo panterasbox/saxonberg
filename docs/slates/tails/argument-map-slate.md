@@ -131,13 +131,7 @@ The model is simple; *scale* is where the work is:
 - **Editing & refactoring** — can a claim be edited (versioned/archived)? Who
   may re-parent / merge / split nodes, and how it's tracked.
 
-## Open problems — deferred to scale
-
-- **Claim dedup / canonicalization** (assisted curation) — the make-or-break
-  scale problem.
-- **Integrity-grade map-summarization** (grounded, drillable, reproducible).
-- **Automated convergence-detection** (+ the anti-railroad minimum).
-- **Mass-scale moderation** of claim quality (the curation pipeline).
-- **Proposal version-control + map re-anchoring.**
-- A full surface doc: done — [forums.md § The argument
-  organizer](../../subsystems/forums.md#the-argument-organizer-cycle-2).
+*§ Open problems — deferred to scale: cut in the cluster pass as an
+internal duplicate of § The hard problems (the open work) above, which
+carries every item in fuller form. Surface doc: done — [forums.md § The
+argument organizer](../../subsystems/forums.md#the-argument-organizer-cycle-2).*

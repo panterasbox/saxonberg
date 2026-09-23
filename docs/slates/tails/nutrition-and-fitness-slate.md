@@ -60,7 +60,7 @@ changes stops fitting its clothes) ·
 — the portrait is how the mirror shows you) ·
 [measurement.md](../../measurement.md) (no gauges; *the mirror shows you*)
 · [cooking-slate](../builds/cooking-slate.md) (the kitchen family; slices) ·
-[fishing-underwater design](../builds/fishing-slate.md) (buoyancy is body
+[fishing-underwater design](../tails/fishing-slate.md) (buoyancy is body
 density's first mechanical consumer) · the gamification-mirror thesis
 (the real-world bridge is REWARD-ONLY; build the loop against in-game
 input and keep the seam).
@@ -526,7 +526,7 @@ below is a clean attach point, not a stub.
 - **Sweat as body soiling** — `depositWorkHeat` is where an exertion
   deposits on a `Soilable` body. → [rendering-slate § 8](../builds/rendering-slate.md).
 - **The beauty canon** — the `Character` body augmenter is the attach
-  point. → [cosmetics-slate § Beauty](../builds/cosmetics-slate.md).
+  point. → [cosmetics-slate § Beauty](cosmetics-slate.md).
 
 **Findings the drive filed for other trades:** `draw <amount>` is refused
 by its own `mustBeNumber` (a positional `type: number` reaches

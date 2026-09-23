@@ -66,24 +66,11 @@ See also:
 
 ## Principle
 
-**Client declares; server notifies.** The client says "tell me
-about X, here are the fields I want." The server runs MQL once
-for the initial result, then watches for the events that could
-make the answer different and ships a diff each time it does.
-
-Three corollaries:
-
-1. **Wire schema is small and stable.** Message types in the
-   single digits. The wire doesn't grow per widget; what each
-   widget cares about lives in its query string + field-set.
-2. **MQL is the lingua franca.** Players type MQL in the prompt.
-   Authors write MQL in NPC behavior / quest gates / validators.
-   The client's widgets subscribe via MQL. One language across
-   the whole engine.
-3. **Read-only.** Subscriptions deliver state; mutation goes
-   through the command bus. No "PATCH me.hp" via subscription.
-   This keeps the security model clean and avoids re-implementing
-   the verb / validator stack on a second channel.
+Shipped → [mql-subscription.md § Why this shape](../../subsystems/mql-subscription.md#why-this-shape)
+(*client declares; server notifies* + the three corollaries — small stable
+wire · MQL the one language · read-only). ⚠ The first sentence is
+half-superseded by the card surface: the SERVER declares cards now
+([card-surface.md § One birth path](../../subsystems/card-surface.md)).
 
 ---
 

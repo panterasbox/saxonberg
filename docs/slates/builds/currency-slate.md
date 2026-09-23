@@ -7,11 +7,16 @@
 > [banking.md](../../subsystems/banking.md) §§ Currency / Conservation.
 > **Read that doc first** — most of this slate's own analysis is now
 > history there. What's left is entirely about a *second* currency, which
-> v1 deliberately never registers.
-> **Left:** a second issuer + who may authorize a mint · opt-in acceptance
-> lists / corpo scrip · the peg as a redeemable standing offer (designed,
-> not built — no second currency exists to redeem) · wages-in-scrip
-> consent
+> v1 deliberately never registers. **Cluster-merged 2026-09-21** with
+> [tails/multi-currency-slate.md](../tails/multi-currency-slate.md) — its
+> Half B mechanics (rate source, the bureau-de-change walkthrough, the
+> `convert`-verb seam) and its issuer-structure question are absorbed
+> below; that tail now points here.
+> **Left:** a second issuer + who may authorize a mint, and whether one
+> issuer mints every currency or each gets its own · opt-in acceptance
+> lists / corpo scrip · the peg as a redeemable standing offer · the
+> money-changer's mechanics (rate source, settlement, the `convert` seam)
+> · wages-in-scrip consent
 > **Size:** a build (much smaller than it reads — the substrate shipped;
 > what remains is a second currency's content and policy, not machinery)
 
@@ -131,10 +136,44 @@ machinery at all:
 > authoritative rate for free. **The rate belongs to the issuer's
 > standing offer, not to the money.**
 
-⚠ **Action:** the tail's Half B should be amended to match, and its
-"inert `convert` seam" reframed from *deferred* to *closed*. Left
-unamended, the two documents will disagree again the moment somebody
-builds from the tail without reading this.
+✅ **Action completed 2026-09-21** — the cluster-merge pass absorbed the
+tail's Half B mechanics below and re-pointed the tail here; the two
+documents no longer disagree.
+
+## Absorbed from multi-currency-slate — Half B mechanics
+
+1. **Rate source.**
+   - **Fixed peg** (config / governed rate) — a day's work; the CB or an
+     author declares "1 scrip = 4 credits"; educational for pegs, currency
+     boards, devaluation-as-a-policy-event.
+   - **Live market** (order book, price discovery, market makers) — a
+     whole build; educational for spreads, floats, arbitrage, speculation.
+     This is the capital-markets-adjacent apex and shares its "build the
+     underlying first" caution (economy-slate § *Capital markets*).
+
+2. **A conservation-correct conversion.** The honest model is **not** a
+   currency-crossing mint. It is a **bureau-de-change / money-changer**
+   (an NPC or CB window) that **holds reserves of both currencies** and
+   does **two same-currency transfers**: it debits your `credit` account
+   to its own `credit` reserve, and credits your `scrip` account from its
+   own `scrip` reserve, at the day's rate (keeping the spread). Each leg is
+   same-currency, so per-currency conservation holds untouched — the
+   changer's *inventory* of each currency is the thing that moves, exactly
+   like a bounded merchant's coin float. The **spread is the changer's
+   margin** (a fee, an ordinary transfer), and a changer can **run out** of
+   a currency (bounded, like every other participant). This reuses the
+   attendant + bounded-participant patterns already shipped; it mints no
+   new conservation rule.
+
+3. **The `convert` verb + seam.** Half A lays an inert `convert` path at
+   the conservation chokepoint that **throws "cross-currency conversion
+   not yet supported."** Half B replaces the throw with the two-transfer
+   changer settlement above.
+
+Educational payoff (why it's worth eventually): pegs vs. floats, the bid/
+ask spread, why you lose money round-tripping, reserves and convertibility,
+devaluation as a governed event. All of it rides the conserved,
+auditable ledger — no printed FX faucet.
 
 ---
 
@@ -195,7 +234,7 @@ of silently).
 > it has a full requirements doc,
 > [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md),
 > seeded by the (now-compacted)
-> [credit-slate](./credit-slate.md). The rename-frees-the-word-`credit`
+> [credit-slate](../tails/credit-slate.md). The rename-frees-the-word-`credit`
 > argument is history — the rename already shipped.
 
 # Open questions
@@ -215,6 +254,11 @@ retired `sovereign`/`crown` names had never been seen by a player"*).
    interesting: *a locality may run its own currency only with the
    Compact's leave*, which is realistic and worth being deliberate about
    rather than defaulting into.
+
+   **Absorbed from multi-currency-slate — Q2 (issuer structure):** One CB
+   mints all currencies, or does each currency have its own issuer (a
+   corpo for a scrip)? Governance call (governance.md); doesn't block
+   Half A.
 3. **Does acceptance default to "credit only" or "anything"?** *Leans
    zorkmid-only* — an opt-in list, so nobody accidentally accepts scrip.
 4. **Do wages paid in scrip require consent at hiring?** The truck system

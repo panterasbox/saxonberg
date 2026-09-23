@@ -44,6 +44,17 @@ seed, one producer. And `getCarryCapacity` gains a **lean margin** (`×
 0.6 + 0.8 × lean/100`, 1.0 at the seed) — the strength read the tape, the
 water and the lift gate all share. See `lib/exertion/Exerting.ts`.
 
+**Why there is no `PorterMixin`** (graduated from the encumbrance slate,
+2026-09). *Another bearer* — a pack mule, a hired porter — is not a term
+of the gauge. The bearer is any Creature; load routes onto its own gauge;
+whether it is driven by a player, a brain, or nothing is invisible to
+encumbrance, and a mule is just a Creature with a small capacity. The
+porter who sets the crate down and refuses the last hill is a **brain**
+deciding to drop load — behavior, not encumbrance. The only genuinely
+new sliver is the **handoff**, and even that splits into two existing
+primitives: the *transfer* is containment onto the other bearer, the
+*come along* is following or leading. Nothing encumbrance-specific.
+
 ### Borne burden — the weighted tree-walk
 
 `getBorneBurden` walks **both** carried stores and sums a weighted

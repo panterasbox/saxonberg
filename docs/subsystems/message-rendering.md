@@ -891,7 +891,7 @@ sweep distilled them to:
   — real `BucketResolver` source (stubbed neutral in v1).
 - [docs/slates/tails/recognition-slate.md](../slates/tails/recognition-slate.md)
   — `DescribeApi` v2 names; the renderer is forward-compat.
-- [docs/slates/tails/emotes-slate.md](../slates/tails/emotes-slate.md) — future
+- [docs/slates/tails/emotes-slate.md](../slates/builds/emotes-slate.md) — future
   emote build; honors the SoulMixin + AetherMixin composition gate
   for remote emotes documented above.
 - [docs/antipatterns.md](../antipatterns.md) — `no-new-apis-default`,

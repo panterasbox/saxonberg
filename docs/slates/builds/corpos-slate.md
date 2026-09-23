@@ -32,7 +32,7 @@ See also:
 / Corporations," tentative) · [advancement-slate](./advancement-slate.md)
 (**corp = the cross-cutting third social axis**, guild/party/corp) ·
 [daves-bar-slate](./daves-bar-slate.md) (the first consumer — the back-bar's
-booze is corpo-owned) · [affiliation-slate](./affiliation-slate.md)
+booze is corpo-owned) · [affiliation-slate](../tails/affiliation-slate.md)
 (related deferred faction/org work) ·
 [institutions-slate](./institutions-slate.md) (the entity-form/charter
 rewrite of the roster, Part 6 — unbuilt). Substrate:

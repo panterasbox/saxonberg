@@ -1,0 +1,22 @@
+# A cane rod — the plain tackle: a free line (`presentsAt: mid`), an
+# ordinary hook, the default line. `capabilities: [angling]` is what
+# the `fish` view's rod argument finds; `epoch: medieval` is a stamp
+# the land-use covenant will read. ⭐ The rig is numbers on the rod
+# (B8): the float rod and the leger rod are the same class with the
+# numbers turned, and the trade-off between them is authored here —
+# never coded.
+class: /trade/fishing/thing/Rod
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [rod, cane, fishing-rod, tackle]
+  shortDescription: cane rod
+  register: indefinite
+  longDescription: >-
+    A cane rod, taped at the joints, with a horsehair line wound on a
+    wooden reel and a hook at the end of it. It has caught fish before.
+  mass: 0.9
+  capabilities: [angling]
+  epoch: medieval
+  showing: 1
+  presentsAt: mid
+  _materialPath: /stuff/idea/material/wood/oak

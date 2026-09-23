@@ -172,6 +172,33 @@ ironmonger/cutler/farrier/locksmith/cooper; the infirmary into
 physician/apothecary/surgeon/midwife; the hall into temples/**undertaker**/
 **monumental mason**.
 
+### Absorbed from towns-slate — The frame: every town is two halves
+
+> **The functional half is why the town exists. The support half is what
+> the work does to the people who do it.**
+
+This is economic base theory, and naming it matters because it makes the
+"creative" half *non-arbitrary*. The basic sector exports — ore, fruit,
+labor. The non-basic sector exists to serve the people the basic sector
+employs. A mining town has a boarding house because miners are single men
+on rotation. A fruit valley has a packing house because fruit rots.
+
+So the generator for each town's second half is **one question**, and it
+is not "what would be cool here":
+
+> *What does this work do to the people who do it?*
+
+That constraint is what makes the support half both **teachable** (it is
+real economic geography, not decoration) and **expressive** (the answer
+is different in every town, and the difference is character).
+
+⚠ **Both halves are content, but they are not the same KIND of work.**
+The functional half is mostly mechanism and mostly shipped — it wants
+substrate, brains and gates. The support half is mostly rooms, cast and
+prose, and it wants almost no engine work at all. That asymmetry is why
+the towns slate is cheap relative to its payoff, and why it can be cut
+into per-town slices that ship independently.
+
 ---
 
 ## 4. ⭐⭐⭐ Zoning exists because of density, not because of order
@@ -221,6 +248,33 @@ civic · wild` — and a seventh should be resisted. What is missing is
 > currently an inert field. It is the dial that lets `residential` mean *a
 > bed and a workbench* in one polity and *a bed only* in another —
 > without touching the vocabulary, and **with the locality setting it.**
+
+### Absorbed from stewardship-slate — The doctrine line: zoning governs use, never self-expression
+
+The property slate rules, twice and emphatically:
+
+> **Two throttles replace the permit:** the release gate + the compute
+> allowance… Governance is reserved for the **commons + shared rules** only —
+> **never your couch.**
+
+and *"Personal customization is not a governance act."* Any land-use system has
+to survive that rule, and it does — but only if scoped precisely. That rule was
+aimed at **authoring and self-expression**: may you decorate, script, build.
+Land use answers a different question: does this activity consume shared
+capacity, or spill onto people who did not consent?
+
+Rearranging your furniture affects nobody. Forty head of cattle in a city
+apartment affects everybody. That is the line real zoning draws — nuisance and
+externality, not taste — and it sits squarely inside "commons + shared rules."
+
+**The rule to hold: zoning governs land use, never self-expression.** Tier 0
+decorating stays ungoverned forever. What gets governed is capacity and
+externality.
+
+**Corollary (already ruled, keep it):** property *types* — apartment / townhome
+/ manor — are "**content + a `prestige`/`class` attribute; not substrate**."
+Prestige flavors; land use gates mechanics. Two different attributes that
+correlate. Only the second earns a place in the substrate.
 
 ---
 
@@ -334,6 +388,30 @@ authored content.** The market is the on-ramp to the generative street.
 Rung 4 is never purchasable: in the valley it is *water seniority*
 (first-in-time), in Rejection the orebody, in a node town the **position**.
 
+### Absorbed from supply-chain-slate — the stepping stone: spot market → contracts → the firm
+
+Each stage is **already a shipped subsystem**, so the progression needs
+nothing invented. What changes is only which is *cheapest*:
+
+| Stage | Mechanism | Cost it removes | Cost it adds |
+|---|---|---|---|
+| **1 — Spot market** | consignment + `buy` at the store | ⭐ **no capital to sell; no counterparty risk** | the store's commission; the walk |
+| **2 — Direct purchase** | `buy` at the farm | the commission | **counterparty risk** returns; you must find each other |
+| **3 — Forward contract** | [contract.md](./subsystems/contract.md) clauses + escrow | ⭐ **harvest uncertainty** | capital locked in escrow |
+| **4 — Vertical integration** | employment + parcel title | the market entirely | you now run a farm |
+
+> ⭐⭐⭐ **The driver of the whole progression is TRANSACTION COST — which is
+> literally Coase.** The firm exists because using the market has costs.
+> Here the commission and the haul **are** those costs, so vertical
+> integration emerges exactly when organising internally is cheaper than
+> transacting. **Not a metaphor — the actual mechanism, and it will be
+> observable.**
+
+⭐ Stage 3 is the one agriculture historically *invented*, and for the reason
+the game supplies free: **harvests are lumpy** (crops mature on a clock)
+while a distillery wants steady input. A forward contract is the answer, and
+`contract.md` already does clauses over verifiable conditions.
+
 ---
 
 ## 8. Connective tissue — ⭐ there is not one network, there are six
@@ -358,6 +436,111 @@ where every story lives**:
 You always know the price in the city; getting your ore there is the whole
 problem. That is true *by construction* already, and it is the design space
 freight sits in.
+
+### Absorbed from towns-slate — Terminus is the clearing house
+
+The relation that was missing from every prior locality doc:
+
+> **The towns do not trade with Terminus. They trade with each other
+> THROUGH Terminus.**
+
+| town | sends the city | takes from the city |
+|---|---|---|
+| **Rejection** | ingots — the input to every tool, rig, fixture and fitting | tools, timber, food, wages, and *people* (nobody is born there) |
+| **Hinkley Hills** | nothing material — **labor**, and demand | everything; its income *is* Terminus wages |
+| **Heart's Delight** | food — the only town that feeds the city | equipment, capital, the market, seasonal hands |
+
+Rejection's storekeeper sells food grown in the valley. The valley's
+cannery buys tin smelted at Rejection. **They never meet.** Terminus is
+the room they meet in — which is what makes the market square
+load-bearing rather than scenery: it is not where you shop, it is where
+the realm clears.
+
+Three ways the city is already the centre in **shipped** content, none of
+them said out loud until now:
+
+- **Capital.** Rejection's businesses declare `banksAt: goodkin` — the
+  counting-houses. Every town's money is in a Terminus vault. That is not
+  a convenience; it is why a river authority would ever have teeth, since
+  the institution that can freeze an account can settle a diversion
+  fight.
+- **Entry.** The only arrival terminal is in Terminus
+  (`/world/terminus/terminal/thing/arrival-terminal`). Every player lands
+  in the city; every other town is somewhere you *choose* to go. The
+  towns are destinations, never origins.
+- **Knowledge.** The university is in the city. Every Discipline the
+  towns exercise gets **credentialed** somewhere else.
+
+⭐ So the city holds the money, the door and the schooling; the towns hold
+the ground, the ore and the food. That is a real political geometry, and
+it is the reason Terminus — founded by people who wanted no governing —
+ends up governing anyway without ever passing a law.
+
+### Absorbed from towns-slate, supply-chain-slate and freight-slate — the realm layout is already von Thünen
+
+**Transport exists because production and consumption happen in
+different places.** So the industry's size is a direct function of how
+much **spatial specialization** the production builds create. If
+everything is made where it is used, there is no freight.
+
+Which makes the payoff one of the great pedagogical objects:
+
+> ⭐ **von Thünen's rings.** Land use organizes around a market by the
+> ratio of **transport cost to land rent** — perishable, heavy, bulky
+> goods locate near the market; durable, light, valuable goods locate
+> far.
+
+That is 1826 economics, and a world with honest geography and honest
+transport cost will **generate** it rather than teach it. The closed
+land-use vocabulary on `ParcelRecord` is what it expresses itself
+through. **Nobody has to author the rings.** And the three towns are
+*necessary* rather than arbitrary because the realm layout is **already
+von Thünen** — nobody has cashed it:
+
+- heavy, low-value, loses mass on processing → **process at the source.**
+  Rejection smelts on site rather than shipping ore. Already true, already
+  right, and it happened by good instinct rather than by rule.
+- perishable, high-value, short window → **preserve, or be close.** Heart's
+  Delight gets the cannery and the drying yards for exactly this reason.
+- residential outbids agriculture near the centre → **Hinkley is the near
+  ring** and grows gardens, not fields.
+
+Freight is the *optimization*, not the prerequisite:
+[freight-slate](./slates/builds/freight-slate.md) earns its place when
+volume exceeds a backpack — a cart carries more than a person, and
+**vehicles are durative**, so time is the cost. The further from market,
+the more of a crop's value is eaten by haulage — so land use sorts by
+distance, unauthored. **The supply chain is what makes it happen.**
+
+### Absorbed from delivery-slate — The unifying concept: natural monopoly
+
+The **turnpike trust and the utility are the same business** — high
+fixed cost, low marginal cost, one network serving everyone more
+cheaply than two could. That is *why* roads, water, power and rail are
+**rate-regulated rather than competitive**, and why the toll schedule
+being a **`parameter` clause in law** generalizes directly to **the
+tariff**.
+
+> **The polity learns "natural monopoly" by meeting it three times** —
+> the turnpike, the utility, and then the freight corpo, which is when
+> someone finally notices it is a *pattern* and legislates the general
+> rule.
+
+> **⭐⭐ And the three BUSINESSES teach three different monopoly SHAPES**
+> — completed in [sanitation-slate § The salvage yard as a
+> business](./slates/builds/sanitation-slate.md). The **turnpike**'s power
+> is **geographic** → **rate cap**; the **depot**'s is a **network
+> effect** → **common carrier / non-discrimination**; the
+> **salvage-and-materials** arm's is **vertical integration** (own the
+> mines *and* the scrapyards) → **structural separation**. *Three
+> monopolies, three remedies — a polity that meets all three has been
+> taught competition policy by living in it.*
+>
+> **And a fourth business teaches the flip side: the SECOND-HAND MARKET
+> has no monopoly shape at all**, because its inventory is
+> **non-fungible and locally sourced** — you cannot corner a market
+> where every unit is different. **Monopoly needs fungibility and
+> scale; uniqueness defends competition.**
 
 ### ⭐⭐ The cadences are the character
 

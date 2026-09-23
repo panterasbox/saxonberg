@@ -70,7 +70,7 @@ Substrate: [conveyance](../../subsystems/conveyance.md) ·
 Doctrine this build is bound by: [measurement.md](../../measurement.md)
 (the three layers; *the mirror is never a gauge*) ·
 [settlement-model.md](../../settlement-model.md) § 8 (the six networks) ·
-[gazette-slate](./gazette-slate.md) (*the state aggregates, never
+[gazette-slate](../tails/gazette-slate.md) (*the state aggregates, never
 reports*) · [balance-slate](./balance-slate.md) (*the denominator is
 where the design is*).
 
@@ -153,11 +153,12 @@ standing to sue whom** and should be written down now.
 
 ## The cost surface, and why every rung survives
 
-Anachronism is not a conceit. Right now a container ship, a freight
-train, a truck, a bike courier and a man with a handcart all exist and
-all make money. It only looks anachronistic if you assume technologies
-*replace* each other — and they do not, because they do not compete on
-one axis.
+> The argument (*capacity and reach move in opposite directions,
+> monotonically; no rung dominates another, so no rung goes extinct; the
+> railroad does not go to your door; every anachronism must be
+> economically motivated*) is in
+> [logistics.md § The lane](../../subsystems/logistics.md), *Why an
+> incumbent, and why no tech ladder*. The surface itself:
 
 | mode | capacity | reach | cost | who takes it |
 |---|---|---|---|---|
@@ -168,16 +169,6 @@ one axis.
 | rail | enormous | **the line only** | a tariff you do not set | the corpo, and whoever pays |
 | TPA | one person + carry | the star's nodes | mana | anyone with a card |
 | a spell | small | ⭐ **arbitrary** | dear | a courier, never a freighter |
-
-> ⭐⭐ **Capacity and reach move in opposite directions, monotonically.**
-> The bottom rung reaches everywhere and carries nothing; the top rungs
-> carry everything and reach almost nowhere. **No rung dominates
-> another, so no rung goes extinct** — and that needs no rule, no
-> "primitive tech" flag and no era gating. It is the shape of the table.
-
-Which gives the permanent, honest reason a handcart survives a railroad:
-**the railroad does not go to your door.** Last mile is a topological
-niche, not a nostalgic one.
 
 ⭐ **Magic is a point on the surface, not a tier above it** — dear,
 small, arbitrary reach. Which makes it the courier's tool and never the
@@ -198,15 +189,11 @@ the smallholder cannot get.
 
 ## ⚠ The one guard that keeps this from reading as slop
 
-> **Every anachronism must be economically motivated.** A cart beside a
-> railroad is right because the cart does what the railroad cannot. A
-> cart beside a railroad *doing the same job on the same route* is set
-> dressing.
-
-Rail is the trunk; everything else feeds it or reaches where it does
-not. Then a player who sees a barrow and a locomotive in one room reads
-**stratification**, not confusion — and the world gets to be visibly
-unequal in a way that is about **who can afford which row.**
+> *Every anachronism must be economically motivated* — documented with the
+> decision in [logistics.md § The lane](../../subsystems/logistics.md).
+> What the guard buys: a player who sees a barrow and a locomotive in one
+> room reads **stratification**, not confusion — the world is visibly
+> unequal in a way that is about **who can afford which row.**
 
 ---
 
@@ -415,16 +402,14 @@ with a body.
 
 ## ⚠ Two doctrine constraints, from measurement.md
 
-**1. The engine may publish quantities. Never a verdict, never a gauge.**
-No "economic health: 78%." An *index* is a weighted basket, therefore a
-**valuation**, therefore layer 2. Per the corrected rule (*the engine
-measures and may publish; it must never be the only rater*) the engine
-may publish an aggregate **provided the weights are published and it is
-not the only rater.**
-
-**2. The gazette publishes; the state aggregates.** Returns are a record
-*in a place*; turning them into news is **a person holding a seat**,
-which is where significance legitimately enters.
+> Both are [measurement.md](../../measurement.md)'s (*the engine measures
+> and may publish; it must never be the only rater* — Part 1; *the mirror
+> is never a gauge* — Part 6) and [press.md](../../subsystems/press.md)'s
+> (*the state aggregates, never reports*). Applied here: no *"economic
+> health: 78%"* — an index is a weighted basket, therefore a valuation,
+> therefore layer 2, publishable only with its weights published and
+> never as the sole rating; returns are a record *in a place*, and turning
+> them into news is a person holding a seat.
 
 ## Rival indices
 
@@ -760,9 +745,7 @@ on, a scale, and `coldStorage` with no default.
 
 > Superseded by the build: roads and freight ship (`logistics.md`); rail is designed only, as the `edges[]` authored-lane hatch the Ferrow tramway proves. ⚠ [settlement-model.md § 8](../../settlement-model.md) still reads *roads: three rooms · freight: designed* — the corrected rows are in the compaction ledger's Handoff.
 
-> ⭐⭐⭐ **Information is a complete graph. Goods are a star.** Perfect
-> information, imperfect delivery. You always know the price in the city;
-> getting your ore there is the whole problem.
-
-That was true by construction before this build. **After it, the second
-half stops being an assertion and becomes something a player does.**
+> *Information is a complete graph. Goods are a star.* — verbatim in
+> [settlement-model.md § 8](../../settlement-model.md). After this build
+> the second half stops being an assertion and becomes something a player
+> does.

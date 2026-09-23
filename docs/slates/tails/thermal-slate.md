@@ -11,6 +11,21 @@
 > cold storage / the ice economy, freezing content, condensation) ·
 > weather-driven per-region frostbite (tracked at physiology-slate) ·
 > the `clo` / covering-fold reconciliation
+> ⚠⚠ **DEFECT, found by the fishing drive 2026-09-21 — every unfed Cast
+> in the world collapses by game-hour ~7 and dies.** A probe on a fresh
+> body at the market square: satiation falls **24 %/h**, linear, to 0 at
+> hour 4.5; `starvation`; the core drifts. The cold branch spends
+> `COLD_SPEND_PER_DEGREE` 0.05 %/min per K below a floor of
+> `310 − BAND_HALF_WIDTH_K(8) − CLO_TO_KELVIN(2.5)·clo`: a naked body at
+> 294 K (21 °C) has an 8 K gap; the student outfit (~0.6 clo) buys 1.5 K.
+> Out of fuel → drift → death by exposure at room temperature. **No Cast
+> row wears anything.** Two dials are ~10× off physiology: 1 clo is
+> *defined* as comfort at 21 °C seated → ~7 K per clo, not 2.5; shivering
+> peaks near 5× basal (basal is 1.2 %/h of satiation here) → ~0.01
+> %/min/K, not 0.05. Plus a content sweep: dress the cast. Wire test
+> characters were minted naked too (fixed: `TestHooks` dresses them).
+> Recorded on the fishing plan's drive record and MR !268; the fix is
+> this slate's owner's.
 > **Size:** a tail
 
 The generic `Thermal` heat-exchange capability this slate designed is

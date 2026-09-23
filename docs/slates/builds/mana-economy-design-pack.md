@@ -2,7 +2,9 @@
 
 > **Status: PARTIAL** — the `arcane-science.md` edit landed 2026-08-11 and
 > the TPA buys and resells mana →
-> [fasttravel.md](../../subsystems/fasttravel.md)
+> [fasttravel.md](../../subsystems/fasttravel.md). **2026-09-21 cluster
+> merge:** the sibling `mana-economy-slate.md` retired into this pack — see
+> *Absorbed from mana-economy-slate.md* below.
 > **Left:** the two Material fields (mana density · mana conductivity — canon
 > in arcane-science.md, no field on `Material` yet) · mana deposits +
 > prospecting/refining (partition + volatility, purity as a `Grade`) ·
@@ -11,13 +13,23 @@
 > the volume-tiered sale (bulk contract · the piped-mana utility tier) · the
 > mana farm · the Confluence in Terminus canon · the three vocations ·
 > binding devices (a per-second draw that lapses when the reservoir runs
-> dry — `'binding'` is declared on `DrawMode`, nothing reads it)
+> dry — `'binding'` is declared on `DrawMode`, nothing reads it) · sited mana
+> NODES on the terminus-condition × access-mode grid (geological/dynamic/
+> celestial/biotic × surface/subsurface-solid/subsurface-fluid) · node
+> title, rent and the first natural monopoly · whether a grid-power node
+> depletes (distinct from the farmed-soil-deposit case above) · demurrage on
+> a GRID vs. only on stored charge · distribution as a tree and the grid
+> edge as an economic boundary · the magic vehicle (a charged `Drivable`
+> priced against feed) · the reserve-that-is-not-a-body call (matter now
+> holds mana by canon, so whether the polity governs a node's `inflow` by
+> quota/rent must be decided deliberately) · the offer layer's currency
+> (`PricedOffer.prices` is bare minor units — owned by supply-chain-slate)
 > **Size:** a build
 
 See also: [arcane-science](../../arcane-science.md) (**the doc this amends** —
 the postulate, Halloway, the price list, the instruments) ·
 [magic](../../subsystems/magic.md) (the shipped mechanism) ·
-[supply-design-pack](./supply-design-pack.md) (⭐ **mana becomes its third
+[supply-design-pack](../tails/supply-design-pack.md) (⭐ **mana becomes its third
 commodity**) · [magic-items](../../subsystems/magic-items.md) (`ChargedMixin`,
 the `S* = inflow/d` charge economy) ·
 [crafting](../../subsystems/crafting.md) (`Grade`, the refining chain) ·
@@ -562,6 +574,297 @@ such a trade would use.
 
 ---
 
+## Absorbed from mana-economy-slate.md (2026-09-21 cluster merge)
+
+The sibling `mana-economy-slate.md` opened the mana-economy question a week
+before this pack (2026-08-04) on the premise *mana IS energy*; this pack's
+2026-08-11 decisions superseded that premise and this pack absorbed every
+shipped fact the slate carried. What follows is the slate's remaining
+UNBUILT design — moved here verbatim because it is not duplicated above —
+and the slate itself is retired (conservation table:
+`docs/plans/slate-compaction/cluster-mana.md`).
+
+### Absorbed from mana-economy-slate.md — Guard 2: rent: nodes are Ricardian land
+
+## ⭐⭐ Guard 2 — rent: nodes are Ricardian land
+
+A **node** is a site where conversion is *better* — a good fall of water, a
+hot vent. So sites are heterogeneous and the best ones go first.
+
+> **Best site first, then worse ones; the rent on the best site is the
+> difference.** Classic Ricardian rent — which means **the marginal cost of
+> mana RISES with demand**, and a rising supply curve is precisely what
+> stops an input from eating every industry.
+
+⭐ And it needs no new mechanism: a node is a stock with an inflow, the same
+equation [discovery-slate](./discovery-slate.md) already uses for forage
+(inflow = regrowth) and ore (inflow = zero). **A renewable node has an
+inflow; a depletable one does not.**
+
+> ⚠ **The failure to avoid: a manufacturable mana at constant cost.** If
+> more mana can always be made for the same price, it becomes the numéraire
+> and every price in the world tracks it. **Mana must be rent-bearing, not
+> manufacturable.**
+
+⚠ This slate's Q3/Q5 (below, "Absorbed — open questions") extend this guard
+to the node-depletion decision and to node ownership; a **node** here is the
+same kind of thing as this pack's Part 3 **deposit** — the two docs used two
+names for one concept.
+
+### Absorbed from mana-economy-slate.md — the offer layer's currency gap
+
+⚠ **One gap inherited from the same survey:** `PricedOffer.prices` is bare
+minor units while `Charge` carries a currency — so a charger's price is
+denominated **by convention** at the settling site. Harmless at one
+currency; see [supply-chain-slate](../tails/supply-chain-slate.md) § *the
+offer layer has no currency* (⚠ this line item is shared with
+supply-chain-slate, which owns it — recorded here only because the slate
+that carried it retired).
+
+### Absorbed from mana-economy-slate.md — The tension: a city-scale node breaks `S* = inflow / d`
+
+## ⚠⚠⚠ The tension: a city-scale node breaks `S* = inflow / d`
+
+This slate said a node may *"fart out enough energy to power a city."* The
+shipped economy says **all item-charge is caster-sourced and deliberately
+capped** — and the cap is load-bearing, because it is *why* wealth cannot
+corner the channel.
+
+> **An unbounded node inflow sends `S*` to infinity and dissolves the
+> guarantee the item build rests on.**
+
+### ⭐⭐⭐⭐ But the coupling already resolves it, and elegantly
+
+**A node has no reserve, and charge requires a caster's reserve as one of
+its three supplies.** So:
+
+> ⭐⭐⭐ **A node can power a city's MACHINES. It cannot charge a wand.**
+> Items are charged by people, full stop — not by decree, but because the
+> coupling demands an endpoint a node does not have.
+
+Two economies, separated by mechanism rather than by rule:
+
+| | supply | bounded by |
+|---|---|---|
+| **grid / machine power** | nodes, hydro, fire | the site — Ricardian rent |
+| ⭐ **item charge** | **caster labour** | metabolism, and it is *capped* |
+
+⭐⭐ And that yields the best version of Part 7's development arc, now
+*mechanically* true instead of asserted:
+
+> **Magic power is expensive because it is HAND-MADE. The grid is cheap
+> because it is mechanised.** Artisanal → industrial, which is the actual
+> history, and here it is a consequence of the coupling rather than a
+> balance decision.
+
+⚠ **The open call this leaves:** whether anything may ever *be* a reserve
+that is not a body. **Say no and the cap holds forever**; say yes and
+`S* = inflow / d` needs the polity to govern `inflow` — which is exactly the
+quota/rent machinery this slate already describes, so it is answerable
+either way. **But it must be answered deliberately, because it is the one
+decision that can silently undo the item economy.**
+
+⭐ Note the build's own instinct points the same way: `transfer` is
+**gated at `novice` on purpose** — *"it is the part that makes a mage useful
+to other people. Gating it high would turn a service anyone can sell into a
+specialist's monopoly."* **Charge is meant to be a broad labour market, not
+a chokepoint** — which an industrial node would flatten.
+
+⚠⚠ **This section is now partly CONTRADICTED by canon and kept anyway.**
+`arcane-science.md § The second quantity` (landed after this section was
+written) says matter — not only bodies — holds mana, so the premise "a node
+has no reserve" and the ⚠ open call above should be read against that: a
+non-body reserve may already be possible, which is exactly the case this
+section says would force the polity to govern `inflow`. The consequence
+this section names is the live design question; its premise is not settled
+fact. Requirements should read this against Guard 2 and this pack's
+decision 3, not inherit "items are charged by people, full stop" as closed.
+
+### Absorbed from mana-economy-slate.md — The stack
+
+# Part 3 — The stack
+
+```
+  SOURCE            →  CHARGER          →  DISTRIBUTION      →  CONSUMER
+  water / fire /       converts to         grid (tree)          TPA terminal
+  vent / sun           storable charge     or cells (portable)  vehicle
+  (a sited node)       ⭐ a real trade                          refrigeration
+                                                                items / tools
+```
+
+Every arrow is a price, and every box is somebody's business. ⭐ **That is
+the test this design has to pass and does**: a power economy with only one
+paid step is a utility bill, not an industry.
+
+### Absorbed from mana-economy-slate.md — Grid vs. cell is a GEOGRAPHY, not a convenience
+
+# Part 4 — ⭐⭐ Grid vs. cell is a GEOGRAPHY, not a convenience
+
+The user's own two-source sketch — *"something big and central like a gas
+station and something small and portable like a fuel tank"* — maps onto
+things already designed:
+
+| | | |
+|---|---|---|
+| **Central station + grid** | a **utility tree rooted at a source** ([delivery-slate](./delivery-slate.md)) | cheap per unit · fixed · **only where the line reaches** |
+| **Portable cell** | a charged store, filled at a station | expensive per unit · **goes anywhere** |
+
+Exactly gas mains vs. propane bottles, or grid power vs. batteries. And the
+consequence is spatial:
+
+> ⭐⭐⭐ **The grid's edge is an economic boundary.** On-grid is cheap;
+> off-grid pays the cell premium. Von Thünen again — and this time the ring
+> is **built**, not natural.
+
+⭐⭐ **Which finally gives a locality committee something real to do.**
+Extending the line raises the value of every parcel behind it, so
+infrastructure becomes a legible political act with a measurable payoff —
+and it is the first case where a locality's *spending* creates *land value*
+rather than merely regulating it.
+
+⚠ **Status per the code today:** the cell-vs-line price gap is real
+(`tpa.manaRate.cell 0.01` vs `.mains 0.002`), so *on-grid is cheap, off-grid
+pays the premium* already holds at a TPA gate. What has no code is the
+*utility tree rooted at a source* and *extending the line* as a locality's
+act — `ManaMain` is a per-room fixture named by `mainsRef`, not a network.
+
+### Absorbed from mana-economy-slate.md — Mana nodes: terminus conditions × access modes
+
+# Part 6b — ⭐⭐⭐⭐ Mana nodes: terminus conditions × access modes
+
+> **User: "I don't want this to be anything goes — there should be some
+> science behind it. Or rather, the magic science we have should intersect
+> with the other sciences in interesting ways, like the mana spring does
+> with geology. Like maybe it's not material-based at all but mechanical,
+> like hydro is just not based on water. Or based on radiation like solar
+> but not the sun. Or maybe all of the above."**
+
+## The framing that keeps it principled
+
+The postulate already says energy arrives at a place from an unknown far
+end (⚠ "Part 6" in the original slate — its endpoint-clause section, now
+shipped and documented at `fasttravel.md` § 2 · The TPA ride and
+`arcane-science.md` § The Postulate). So the only open question is:
+
+> **What determines WHERE a standing transfer terminates?**
+
+And that question does not belong to magic — it belongs to whichever
+ordinary science governs the place.
+
+> ⭐⭐⭐⭐ **Magic does not get its own science. It gets a FOOTHOLD in every
+> other one.** One postulate, several **terminus conditions**, each of which
+> is a different discipline's question.
+
+## Axis 1 — the terminus condition (the physics)
+
+| condition | output profile | intersects | consequence |
+|---|---|---|---|
+| **Geological** — bound to a vein, intrusion, or structure | ⭐ **constant, depletable** | geology, mining, materials | found by *prospecting*; can be worked out |
+| **Dynamic** — needs persistent motion (a gyre, a race, a standing wind) | **variable, renewable** | ⭐ **weather — already ships as a procedural field** | output swings with storm and season |
+| **Celestial** — fed by incident radiation that is *not* sunlight | ⭐⭐ **periodic, predictable** | astronomy, `CelestialApi` | an **almanac becomes saleable** |
+| **Biotic** — forms where life is dense | **slow, destructible** | ecology | clearing the forest kills the node |
+
+⭐ The celestial row is already half-written: [discovery-slate](./discovery-slate.md)
+says *"astrology needs no special case — it is a **time-varying inflow
+term**, periodic coefficient, predictable, which is what makes it saleable
+as an almanac."* **A celestial node is that term pointed at power.**
+
+## ⭐⭐⭐ Axis 2 — the access mode (the economics)
+
+**Independent of the physics**, and it is what decides who can have one:
+
+| mode | where it is | who can tap it |
+|---|---|---|
+| **Surface** — it simply outcrops or seeps | in the open | ⭐ **anyone — this is the foraging case** |
+| **Subsurface solid** | in rock | a **miner**; capital + a shaft |
+| ⭐ **Subsurface fluid** | under pressure | a **driller**; capital + a well — **and it comes to you** |
+
+> **A mana SPRING is geological × fluid.** Where it surfaces on its own it
+> is foraged; where it does not, you drill for it.
+
+⭐⭐ And that pairing writes its own history:
+
+> **The seep → drill arc is the entire history of oil.** Surface seeps were
+> known for millennia and used at trivial scale; **drilling made the
+> industry.** Free to find, tiny; expensive to reach, enormous.
+
+⭐⭐⭐ Which is also the **frontier → developed** arc: a new settlement uses
+what surfaces, a developed one drills. **Nobody has to author the
+transition — capital does it**, exactly as it did in reality.
+
+## ⭐⭐ The portfolio, and why capacitors stop being optional
+
+Read the profile column and it is a real energy portfolio: **baseload
+(geological), intermittent (dynamic), predictable-variable (celestial),
+slow-and-political (biotic).** Which means grid management becomes a
+genuine engineering problem whose right answer varies by site.
+
+> ⭐⭐⭐⭐ **Intermittent sources require storage. So capacitors are
+> STRUCTURAL, not merely narrative** — and the two justifications reinforce
+> instead of competing.
+
+⚠ **This axis pair (terminus condition × access mode) has no code today** —
+`ManaNode`/`ManaDeposit`/`ambientMana` are 0 hits across the tree. It is the
+finer-grained SOURCE model this pack's Part 3 (deposits, ambient absorption)
+and Part 5b (the Confluence) describe more coarsely; a future build should
+reconcile the two before authoring nodes.
+
+### Absorbed from mana-economy-slate.md — What this does to the wood question (Doctrine)
+
+# Part 7 — What this does to the wood question
+
+The supply-chain thread asked what is possible with wood alone. Answer
+unchanged, but now with an upper storey:
+
+- **Wood alone supports the complete pre-industrial economy** —
+  agriculture, distilling, ironworking (via charcoal, ~1900 K), glass,
+  pottery, textiles. **Coal is needed for RATE, not capability.**
+- ⭐⭐ **Mana does not lift that ceiling, because mana is energy.** A mana
+  grid fed by waterwheels is limited by the rivers, exactly as charcoal is
+  limited by the forest. **The postulate moves the energy you have; it does
+  not make more.**
+- ⭐ **What mana changes is PLACEMENT.** Energy can arrive where no fuel
+  could be carried — which is why its best consumers are
+  **precision-placed, low-quantity, high-value**: ignition, precision heat,
+  and ⭐⭐ **refrigeration** (the postulate is bidirectional, priced by
+  Carnot, and [freight-slate](./freight-slate.md) already calls
+  refrigeration *"the marquee: refrigeration relocates an industry"*).
+
+> ⭐⭐⭐ **Magic does not replace an industry; it relocates one.** That is the
+> honest statement of its economic role, and it is the reason a mana
+> economy makes the world bigger instead of flattening it.
+
+⚠ **The second bullet's premise is now false** (*"because mana is
+energy"* — `arcane-science.md § The second quantity` says the opposite);
+the conclusion survives on the extractive footing instead: a grid fed by
+DEPOSITS is limited by the deposits the way one fed by fuel is limited by
+the fuel. The overall thesis (magic relocates, does not create, an
+industry) still holds and is why it is kept as doctrine rather than cut.
+
+### Absorbed from mana-economy-slate.md — open questions
+
+3. ⭐ **Do nodes deplete?** A renewable node has an inflow; a depletable one
+   does not. **Both should exist** — it is the same wood/coal choice, and
+   having both is what makes siting a real decision. (This extends this
+   pack's own Q3 above, which answers the question for a farmed **soil**
+   deposit; this is the same question asked of a **grid-power** node.)
+4. ⚠ **Does the demurrage rate apply to a GRID, or only to stored charge?**
+   3%/month on a wand is flavour; 3%/month on a utility's inventory is a
+   business model. *Leans: storage decays, flow does not* — which is a
+   real advantage of being on the line and another reason the grid's edge
+   matters.
+5. **Who may own a node?** It is rent-bearing land, so
+   [parcel.md](../../subsystems/parcel.md) title covers it — but a node is
+   the single most contested kind of parcel there could be, and the
+   **first natural monopoly** the legislature will meet.
+6. ⚠ **What is the vehicle?** *"A magic car"* needs a shape: a charged
+   `Drivable` drawing from a cell is the obvious one
+   ([conveyance.md](../../subsystems/conveyance.md) ships
+   Mountable/Drivable), and it competes with a horse on **charge cost vs.
+   feed cost** — which is a genuinely nice comparison to be able to make.
+
+---
+
 ## Part 7 — Designed to the format
 
 **1–2. What it is / composition.** A **unit-semantics change** plus a
@@ -581,7 +884,7 @@ such a trade would use.
 | ✳ **Ambient mana density of place** | drives innate recovery | **new (derived, per place)** |
 | ✳ **Refining** | a crafting transform; cost in real joules | **rides [crafting](../../subsystems/crafting.md) + [fire](../../subsystems/fire.md)** |
 | ✳ **Deposits** | ownable ground | **rides [parcel](../../subsystems/parcel.md)** |
-| ✳ **Mana as a supply commodity** | the third one; ⭐ **volume-tiered** — retail / bulk contract / pipe (Part 5) | **rides [supply](./supply-design-pack.md)** |
+| ✳ **Mana as a supply commodity** | the third one; ⭐ **volume-tiered** — retail / bulk contract / pipe (Part 5) | **rides [supply](../tails/supply-design-pack.md)** |
 | ✳ **Mana-fertilised cropping** | soil mana as a `feed`-able input; the premium rides bioavailability + extended release | **rides smallholding + metabolism** |
 | ⭐⭐ **Device mana reservoirs** | impulse → battery (per use) · binding → wired (per second); a lapsed binding when it runs dry | **new — `ChargedMixin` is most of the battery half** |
 | ⭐ **TPA retrofit** | teleport as a real Control·Body effect: fare = `mgh` (altitude × mass), **distance-free**; supply per terminal; the `status` seam gains `dry` | **rides [fasttravel](../../subsystems/fasttravel.md) — the status seam + grey light already ship** |

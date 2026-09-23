@@ -127,6 +127,17 @@ So the dying arm opts out of **both**, commented loudly at the site.
 by copying the adjacent `if (linkdead)` block, the freeze assertions still
 pass and only the dying ones fail, naming the reason.
 
+⭐ **And the window starts at `beginDying`, not at the first read.** Until
+2026-09-22 the record's `tickedAt` was stamped by the first
+`reconcileConditions` *after* `beginDying`, so a body nobody read never
+moved toward death — the principle held only for watched bodies. A fish
+drowning in a hand stayed "dying" indefinitely (the drain's last act
+opens the record and cancels itself; nothing reads a fish), and fishing's
+`release` put it back into the fishery record as a live count. The stamp
+is at `beginDying` now; a reader that needs the expiry in the same
+dispatch asks `getDyingRemainingSec()` (the expiry's `ConditionApi.die`
+fires async, a beat later) and treats a window with nothing left as dead.
+
 The far-past guard is skipped for the same reason. Elsewhere a huge elapsed
 gap produces an absurd result, so it is dropped; here it produces the
 *correct* one — you were dying, nobody came, and the reading resolves that
@@ -639,7 +650,8 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
   was the real cost of the cut feature.
 - **The re-embodiment service** — decided as lore, unbuilt: contested
   metaphysics, two competing vendors (temple and clinic), coverage as the
-  hook. See [mortality-slate](../slates/builds/mortality-slate.md). The
+  hook. See [mortal-vessel-slate § Absorbed from mortality-slate — The
+  re-embodiment service](../slates/builds/mortal-vessel-slate.md). The
   seam it needs is already open: `reembody` returns the body, so a service
   applies its own terms to it.
 - ⚠ **The recuperation model — RESOLVED, not deferred.** This bullet used
@@ -654,7 +666,9 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
 - **The in-circle death arc** — a circle death ejects, so the full arc
   cannot be rehearsed in a holodeck.
 - **Corpse custody** (a titled body), **remains** after terminal decay, and
-  the coroner economy.
+  the coroner economy —
+  [end-of-life-slate](../slates/builds/end-of-life-slate.md) owns all
+  three (since 2026-09-10).
 - **Declarative reference lifetimes** —
   [reference-lifetime-slate](../slates/tails/reference-lifetime-slate.md),
   surfaced by this build. `MortalArc` holds **no handle to the corpse**:

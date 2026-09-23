@@ -45,12 +45,12 @@ and confirmed by a grep: **there is no foraging or gathering anywhere in
 the codebase.** Fishing has a slate, mining has a slate; the third
 gathering vertical was never written.
 
-*(Sits above [spawn-distribution-slate](./spawn-distribution-slate.md) and beside [magic-items-slate](./magic-items-slate.md), [identification-slate](./identification-slate.md), [pharma-slate](./pharma-slate.md).)*
+*(Sits above [spawn-distribution-slate](./spawn-distribution-slate.md) and beside [magic-items-slate](../tails/magic-items-slate.md), [identification-slate](./identification-slate.md), [pharma-slate](./pharma-slate.md).)*
 
-Related: [fishing-slate](./fishing-slate.md) (**the sibling — and the
+Related: [fishing-slate](../tails/fishing-slate.md) (**the sibling — and the
 contrast**), [mining-slate](./mining-slate.md),
 [pharma-slate](./pharma-slate.md) (**the demanding consumer**),
-[farming-slate](../tails/farming-slate.md) (where foraging goes when demand
+[farming-slate](farming-slate.md) (where foraging goes when demand
 outgrows the wild), [sanitation-slate](./sanitation-slate.md) (**the
 boundary — scavenging is not foraging**),
 [biome.md](../../subsystems/biome.md) (where things grow),
@@ -199,49 +199,13 @@ it is worth a week later.**
 
 ## ⭐⭐⭐⭐ The function IS the design
 
-**(User: *"the motivation behind the function here is that I want magic
-capability to be available to people who don't have that discipline
-trained for it… we also want something a little more egalitarian. some
-randomness to level the playing field."*)**
+*Homed 2026-09-22 → [magic-items.md § Why items exist — access, not loot](../../subsystems/magic-items.md).*
 
-> **Items are how magic reaches people who did not spend the hours.**
-
-Not a loot system — an **access** system. Everyone can cast, competence
-comes from practice, and **Tarn's Rule** caps you at your weaker leg, so
-in principle magic is open and in practice it is a club. **Items are what
-keep that from being true.**
-
-> **Competence gates what you can DO. An item gates nothing.**
-
-The wand does not make you a caster. **You are not casting at all — you
-are using a thing.**
-
-### ⭐⭐⭐⭐ Which resolves against the arcane science with no second exemption
-
-*Shipped — [magic-items.md](../../subsystems/magic-items.md): "an item is not a new physics, it is stored labour — a maker paid earlier, and the user spends it."*
-
-> ⭐⭐⭐⭐⭐ **Potions and scrolls are [pharma](./pharma-slate.md)'s product
-> line** — made by the skilled, used by anyone, unidentifiable until
-> tested. **The credence-good thesis covers the whole consumable
-> category**, not just medicine. **One industry, not two.**
 
 ## Variance as an equity mechanism
 
-The slot machine is the point, not a concession — but the reason is worth
-stating:
+*Homed 2026-09-22 → [magic-items.md § Why items exist — access, not loot](../../subsystems/magic-items.md) (the upsets paragraph + the wealth guard).*
 
-> ⭐⭐⭐ **In a game where competence is hours practised, randomness is the
-> only thing that produces UPSETS.**
-
-**A found wand is the only way a newcomer does something a veteran
-cannot** — brief inversions of a hierarchy that is otherwise strictly
-monotonic in time spent.
-
-⚠ **Guard:** if items are the only untrained access, **wealth becomes the
-new gate.** The **found** channel must stay meaningful beside the
-**bought** one — which random distribution plus unidentifiability handles
-by itself, since **you cannot buy what nobody has and cannot price what
-nobody can assess.**
 
 ## ⭐⭐⭐⭐⭐ Astrology — a subject we have never taught, and should
 
@@ -353,16 +317,8 @@ there because nobody walked that far. **One rule, both halves.**
 
 ## ⭐⭐⭐⭐ The hard constraint
 
-> **The distribution reads the WORLD, never the PLAYER.**
+*Homed 2026-09-22 → [magic-items.md § Distribution · The hard constraint](../../subsystems/magic-items.md).*
 
-Even accepting the slot machine: **a slot machine that reads you is a
-RIGGED slot machine, and players detect it.** Level-scaled loot is the
-fastest way to make a world stop feeling like a place — **the moment the
-world reflects you, it stops existing independently.**
-
-⭐ **Legitimate exception — SITUATION, not person.** A besieged town short
-of medicine is **economics**, a property of the world. *"You are
-low-level, here is a low-level wand"* is not.
 
 ## Astrology needs no special case
 
@@ -777,3 +733,29 @@ world.**
 11. **Does the biome table inherit ADDITIVELY or by override?** Zone field
     inheritance is override-shaped; a bog inside a marsh probably wants
     *both* tables. **Worth deciding before authoring starts.**
+
+## ⭐ A first forage act, designed and withdrawn (fishing, 2026-09-21)
+
+The fishing build shipped `dig [<ground>] [with <trowel>]` — two game
+minutes on your hands, then a worm, and the ground has a little less in
+it — and withdrew it in review: digging something out of the ground for
+food or use is not a fishing concern, it is this slate's. What it settled
+is worth keeping:
+
+- **The ground's own ledger is the cooldown.** The yield drew on the
+  soil's `organicMatter` reserve (`Soil.drawOrganicMatter`, the twin of
+  `drawNutrient`); a bed dug over every morning gives less, a worked-out
+  one gives nothing and says so. No new state — the *decline as you take*
+  rule this slate already wants, on a ledger the soil already keeps.
+- **The instrument affords the verb** (`digging` — the farming spade and
+  the mining shovel already claim it); **the ground is the argument**
+  (`requires: [CultivableMixin]`); **what comes up is the ground's to
+  say** — and that last part is the missing piece: the yield was
+  hard-coded to a fishing worm, which is why it could not stay. The
+  biome-authored distribution table (§ open 11) is what makes `dig` a
+  forage verb rather than a fishing one.
+
+The controller and view are in the branch history at MR !268
+(`packages/content/trade-fishing/…/DigController.ts`, cut in review) if
+the shape is wanted back.
+

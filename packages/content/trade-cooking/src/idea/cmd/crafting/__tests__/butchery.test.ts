@@ -206,6 +206,28 @@ describe('butchery — the act, over the shipped rows', () => {
     expect(Freshness.bandFor(inTheCellar)).toBe('fresh');
   });
 
+  it('⭐ a carcass\'s OWN load rides onto every cut, before the gut spill (fishing D20)', () => {
+    // A fish landed below the outfall is stamped with the water's
+    // organism at landing; the controller's `transferContaminationTo`
+    // hands that onto each cut whatever the hand that made it. A clean
+    // body hands over nothing, and the transfer never touches a cut that
+    // cannot carry a load.
+    const body = makeStuff(() => new Provision()); // any Contaminable host
+    body.setPathogenLoads({ 'e-coli': 0.6 }); // the landing stamp's shape
+    const cut = makeStuff(() => new Provision());
+    body.transferContaminationTo(cut);
+    expect(cut.getPathogenLoad('e-coli')).toBeCloseTo(0.6, 6);
+    // Then the gut spill adds its own — the two stack, neither replaces.
+    cut.contaminate('salmonella', 0.15);
+    expect(cut.getPathogenLoad('e-coli')).toBeCloseTo(0.6, 6);
+    expect(cut.getPathogenLoad('salmonella')).toBeGreaterThan(0);
+
+    const clean = makeStuff(() => new Provision());
+    const other = makeStuff(() => new Provision());
+    clean.transferContaminationTo(other);
+    expect(Contamination.isClean(other.getPathogenLoads())).toBe(true);
+  });
+
   // ---- the gut spill, and the route out ----
 
   it('⭐ an unskilled hand deposits MORE than a practised one', () => {

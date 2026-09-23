@@ -19,7 +19,7 @@ See also:
 above this mechanism**: what the weights are actually based on, who may
 tune what, and how far the substrate extends (foraging · consumables ·
 creature spawn · ore as the zero-inflow case) ·
-[magic-items-slate](./magic-items-slate.md) (the two consumers: BUC blessing
+[magic-items-slate](../tails/magic-items-slate.md) (the two consumers: BUC blessing
 sampled at spawn; create-monster = a player-triggered spawn) ·
 [content-packs.md](../../subsystems/content-packs.md) (content-as-data; the
 `populates: onto` static seeding this is the dynamic sibling of) ·
@@ -65,6 +65,12 @@ populace.
 This is the **dynamic** form: runtime populate, respawn, on-demand spawn (a scroll
 of create-monster, a re-stocked room, a wandering-population tick). Shares the
 "what belongs here" question; adds tuning, respawn, and a runtime draw.
+
+> ⚠ *Vocabulary is stale: `populates:` is retired — the static form is the
+> `props:` / `cast:` designation (`PopulatesMixin`'s two once-flags,
+> `templates.md` § the appliers). The item half of the dynamic form shipped as
+> the recurring spawn sweep (`residency.md § The sweep is a faucet`); the
+> creature half (on-demand spawn, a wandering-population tick) has not.*
 
 ## Consumers
 

@@ -120,6 +120,24 @@ export const DOCUMENT_KINDS = {
    */
   herd: { kind: 'herd', naturalKey: null, contentDir: 'herds', ext: 'yaml', onVanish: 'keep' },
   /**
+   * A **fishery** — what a reach has been drawn down by, and when it was
+   * last reconciled (fishing D1). Everything else about a reach's fish —
+   * which species, how many at full — DERIVES from the species'
+   * habitats and the water the catalogue reports, so the record holds
+   * only what cannot: the draw.
+   *
+   * ⚠ Runtime-written, on the `water-right` pattern: no pack ships one;
+   * the water pack's register get-or-creates it on the first draw.
+   * Path-keyed (`/system/water/fisheries/<course>/<node>`) because a
+   * basin's book is `list(prefix)`. `onVanish: 'keep'` for the herd's
+   * reason: it is a record of what happened to a reach, and no absent
+   * file may restock a river.
+   *
+   * The KIND is the platform's; what a legitimate record looks like is
+   * the water pack's (`FisheryRegistry`).
+   */
+  fishery: { kind: 'fishery', naturalKey: null, contentDir: 'fisheries', ext: 'yaml', onVanish: 'keep' },
+  /**
    * A **bill of lading** — what, how much, from where, to where, whose,
    * and at what declared value, filed by a completed carriage.
    *

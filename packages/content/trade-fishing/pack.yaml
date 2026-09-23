@@ -1,0 +1,26 @@
+id: trade-fishing
+version: 0.1.0          # reserved; nothing reads/enforces it
+root: /trade/fishing
+description: >-
+  The fishing trade — taking what a water holds, as distinct from the
+  water holding it. ⭐ The signature claim is *the fishery is a record on
+  a reach, derived from the species' habitats and the water the
+  catalogue reports*, and that record is the WATER pack's
+  (`/system/water/idea/FisheryRegistry`): fish are in the river whether
+  or not anybody fishes. What this pack owns is the TAKING — the tackle
+  (a rod, a pot, a net), the wait and the bite and the
+  landing contest (`fish` / `reel` / `slack`), the traps (`lay` / `lift`),
+  `release`, the fish as an individual you can keep in a
+  bowl, the fisher's two brains, and the trade's Discipline.
+  ⚠ The SPECIES rows ship here but land in the commons taxonomy at
+  /stuff/idea/species (the trade-farming precedent): a trout exists
+  whether or not anybody fishes. A second water needs ZERO pack code —
+  the Shore is the water pack's, and a locality with a reach and no Shore
+  fishes through its Locality. That is the falsifiable line.
+requires:
+  groups:
+    - name: fishing
+      purpose: the fishing trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/fishing, holder: { group: fishing } }

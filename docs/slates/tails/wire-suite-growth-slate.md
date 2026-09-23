@@ -73,11 +73,10 @@ across 11 files on the first green run). The census is a MEASUREMENT
 today; no ceiling is enforced. Freeze today's count as the ceiling once
 the ports settle — the `lint:object-verbs` census-then-ratchet pattern.
 
-⚠ Before ratcheting, check whether the residue is really render-only. A
-prose read that exists because no `subscribableFields` descriptor
-reaches the fact is a **card-surface** finding, and the fix belongs
-there — a wire file may never add a descriptor to make itself
-assertable.
+⚠ Before ratcheting, check whether the residue is really render-only —
+the rule (*a wire file may not add a `subscribableFields` descriptor to
+make itself assertable*; an unreachable fact is a card-surface finding)
+lives at `testing.md § The three assertion channels`.
 
 ### 7. A Mongo snapshot/restore reset path — measured, not obvious
 Seeding is ~150s of a 250s cold boot, so a snapshot/restore WOULD attack

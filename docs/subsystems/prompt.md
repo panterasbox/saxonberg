@@ -115,6 +115,25 @@ The two surfaces stay separate; reach for `PromptApi`'s validator
 when you have a prompt, for command validators when you're guarding
 field shape.
 
+#### Why the kind canon is small — compose, don't invent
+
+*(Graduated from prompt-stack-slate § Compose vs. custom, 2026-09-21.)*
+A prompt is inherently free-form — a string comes back and the caller
+interprets it — so without discipline every author rolls their own
+parsing, retry and UX, and the player meets a dozen subtly different
+prompt shapes. The discipline is **a small canon of structured kinds,
+each with one fixed UX pattern, plus the validator hook.** Authors
+**compose** canonical kinds — character creation, crafting, a
+conversation tree, a multi-step wizard are all sequences of `choice` /
+`text` / `confirm` / `mqlObject` / `mqlMany`, each await deciding the
+next step — and the player sees consistent UX through the whole flow.
+A new kind is canonized sparingly and only through slate review, because
+every kind added expands the player's prompt-recognition load and dulls
+the *"I know what this is and how to answer"* reflex. When a one-off flow
+genuinely needs custom interpretation, the escape valve is `text` with a
+caller-side `validate` and branching logic: the UX shape stays a text
+input and the variation lives in what the caller does with the answer.
+
 ### Two-channel inbound
 
 ```

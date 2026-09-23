@@ -358,6 +358,25 @@ with no depot on it. Routing is point-to-point over the graph, and
 consolidation is a decision a hauler makes because it pays, never a
 topology the engine imposes.
 
+**Why point-to-point, and why the hub is emergent** (graduated from the
+freight slate's *Topology*, 2026-09). A utility network has a *source*
+and its substance flows one way — water plant → mains → service lines,
+sewer the same tree inverted — so direction is intrinsic and the shape
+is a tree. Freight has **no source**: every node is both origin and
+destination, every edge is bidirectional, and the whole is a full
+origin-destination matrix — a multi-commodity flow, not a single-source
+one, so it must not be modelled as hub-and-spoke. It *organizes itself*
+into hub-and-spoke for an economic reason, never a topological one: N
+origins and N destinations need N² direct routes or 2N through a hub,
+and the hub costs a detour and buys load factor. ⭐ The switch is
+**capacity** — the same line that separates mail from freight: a full
+wagonload goes direct, farm to mill; a crate of nails consolidates and
+rides with everything else, which is why mail is always hub-and-spoke
+and freight is not. Three networks, three costs of distance: a utility
+(tree from a source; pressure and loss), freight (O-D matrix over the
+road graph; time and money), the TPA (authored directed graph; nothing)
+— a design that fits none of the three wants its own answer.
+
 ## The paper
 
 Three document kinds, all rows in `documents` — **no new collection** —
@@ -827,6 +846,16 @@ come apart together.
 
 > **Teleport ripples what is *on* you and severs what you are *attached
 > to* — and says so.**
+
+**Why the line is capacity, not goods** (graduated from the freight
+slate, 2026-09). Goods-versus-no-goods is unenforceable anyway — you
+are carrying things right now. So **the TPA moves people and what they
+can carry, and encumbrance already draws the line.** That sorts the two
+industries cleanly and historically: a courier with a satchel of letters
+rides the network, so mail is fast; a steer does not fit in a satchel,
+so freight is slow — airmail and container ships, with no special rule.
+The delivery carrier may legitimately ride the TPA while freight cannot;
+the two serve different goods rather than competing.
 
 Worn gear and a pack are contents and come along; slot occupants ripple
 (a mount teleporting brings its rider); a **hitched** hauler and a

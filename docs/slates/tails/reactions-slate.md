@@ -19,7 +19,7 @@ system notice), not chat-only.
 
 See also:
 
-- [emotes-slate.md](../tails/emotes-slate.md) — the reaction vocabulary
+- [emotes-slate.md](../builds/emotes-slate.md) — the reaction vocabulary
   (`SoulApi`) + the reserved hooks: aggregation `tags` and the shared
   message-id. A reaction *is* an emote with a message target.
 - [chat-slate.md](../tails/chat-slate.md) — the at-scale consumer; the gutter

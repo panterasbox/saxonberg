@@ -561,6 +561,20 @@ command category plus `assess` in `perception`.
   spreads; expert reads how far it has gone. Nothing on the ladder makes a
   treatment work better. The forensic twin, `analyze postmortem`, is
   [mortality.md](./mortality.md).
+  **Why the diagnosis loop is a trainer, not a script.** Three shipped
+  decisions combine: honest opacity (no gauges — you read the world, not a
+  stat); every `Condition` carries prose `observableSigns`; and the
+  catalogue's two dozen rows have *overlapping* signs. So **differential
+  diagnosis emerges rather than being scripted** — flushed, sweating and
+  disoriented is consistent with hyperthermia, with a toxin burden and
+  with an infection, and separating them takes more signs, a history or an
+  instrument. That is what scripted clinical sims structurally cannot do:
+  their scenarios have one correct answer fixed in advance, while this
+  patient's state derives from a model, so the reasoning is real even when
+  the case is unremarkable. The anti-wiki rule carries over from farming
+  verbatim: knowing a condition's sign set never tells you that *this
+  patient* has it — knowledge is portable, the assessment is not
+  skippable. *(Graduated from the health-vertical slate, 2026-09.)*
   It also carries an **affliction readout** — what is wrong with someone
   that isn't a wound. Trauma was the only thing it could describe, so
   anything *carried* rather than *cut* (a poison, a disease, the mortality

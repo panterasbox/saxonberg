@@ -1,9 +1,21 @@
 # The mortal vessel — selfhood, death, recovery & moderation (working slate)
 
-> **Status: PARTIAL** — the death arc (Theses 6–8) shipped
-> → [mortality.md](../../subsystems/mortality.md)
+> **Status: PARTIAL** — the death arc shipped (Thesis 6, Thesis 8's PC
+> half: the dying clock, stabilization, the corpse, the shade, `reembody`
+> + the `passage` floor) → [mortality.md](../../subsystems/mortality.md)
 > **Left:** Thesis 4, moderation as diegetic capability-state · Thesis 5,
-> the prison ↔ Hades unification · the law-enforcement half of Thesis 3
+> the prison ↔ Hades unification · the law-enforcement half of Thesis 3 ·
+> Thesis 8's NPC half (narrative-level cycling) · the re-embodiment
+> service as content (the temple vs clinic vendors, employer coverage,
+> the price of walking out, and a service's own diminishment lever) · the
+> in-circle death arc (minting a real body from inside a circle) · the
+> passage ladder — Thesis 7's opt-in thresholds + the route catalogue
+> (trial / bargain / Orpheus; what a resurrection business charges and
+> who else sells passage)
+> **Absorbed 2026-09-21:** `mortality-slate.md` (its open remainder — the
+> `## Absorbed from mortality-slate — …` sections below; corpse custody,
+> remains and the coroner economy had already moved to
+> [end-of-life-slate.md](./end-of-life-slate.md) on 2026-09-10)
 > **Size:** a build
 
 > **Status: design-phase, deferred-rpg.** The *architecture of selfhood* on
@@ -16,11 +28,12 @@
 > moderation model are platform-fundamental, the death arc is game design —
 > which is exactly why it needs its own home. Nothing here is a build.
 >
-> **The death half now has a build extract**:
-> [builds/mortality-slate.md](../builds/mortality-slate.md) takes Theses 6–8
-> to a requirements doc (dying, stabilization, the corpse, the shade, the
-> passage floor). This slate remains the **design authority** for all of it,
-> and keeps the **moderation / prison half** (Theses 4–5) unbuilt.
+> **The death half's build extract** (`mortality-slate.md`) took Theses
+> 6–8 to a requirements doc (dying, stabilization, the corpse, the shade,
+> the passage floor) and shipped; its open remainder was absorbed into this
+> slate on 2026-09-21 (the `## Absorbed from mortality-slate — …` sections).
+> This slate remains the **design authority** for all of it, and keeps the
+> **moderation / prison half** (Theses 4–5) unbuilt.
 
 The one-sentence thesis: **the participant is inviolate, the vessel is
 mortal, and everything the world does to your body — wound it, kill it,
@@ -134,6 +147,11 @@ grinding does not). The floor keeps death meaningful; the opt-in ceiling
 makes it playable content instead of a punishment timer. Depth is a
 *choice with a payoff*, tunable per patron/realm.
 
+(The concrete companion — **the route catalogue**: what a resurrection
+business charges, what the Hades journey restores, who else sells passage
+— is § *Absorbed from mortality-slate — Scope — as built (the still-open
+tail)* below.)
+
 ---
 
 ## Thesis 8 — PC vs NPC recovery are different animals
@@ -153,12 +171,71 @@ makes it playable content instead of a punishment timer. Depth is a
 
 ---
 
+## Absorbed from mortality-slate — The re-embodiment service — decided as lore, unbuilt
+
+Ruled 2026-07-31, so the content build inherits it rather than re-deriving it:
+
+- **The metaphysics are contested, and the game never adjudicates.** The
+  kernel performs the transition; the temple and the corpo each insist their
+  account of what just happened is the correct one, and neither is confirmed.
+  This is the pattern the platform already ships — forensics has a stamped
+  cause *and* an examiner who can be wrong; belief has reality *and* per-viewer
+  memory; testimony is claims, not queries. It also means **no theology has to
+  be written before anything is built.**
+- **Two vendors, competing.** A **temple** (a patron mints the vessel; you
+  leave owing a debt, a mark, a favor — the [altar-sacrifice] lore is the
+  engine) and a **clinic** (a body fabricated and the self seated in it;
+  corpo-priced, native to Terminus). Death lands on the Tiebout axis like
+  everything else, and the player's choice — owe a patron or owe a
+  corporation — carries character. The richness ladder emerges from
+  *competition* rather than from a terms schema, which is the other half of
+  why the registry was cut.
+- **Coverage is the hook.** A clinic that resurrects its own employees free
+  and everyone else at a price makes employment matter at the most dramatic
+  moment available, and makes an uninsured death land completely differently.
+- **The aether is not the mechanism.** It is the internet; it is not where a
+  self is stored, and "we restored your backup" is the same category error as
+  a spirit-fabric reading, in a lab coat.
+- **Two constraints the substrate imposes.** The corpse persists on its own
+  clock, so neither story can be "you got up" — both are about *making a new
+  body*, which is cleaner and makes the old one contestable (evidence, relic,
+  property). And the terms must keep death expensive: if the clinic is a
+  routine paid service, death is a toll booth. The stakes live in what is on
+  the corpse and what you owe when you walk out.
+
+## Absorbed from mortality-slate — The recuperation model — resolved
+
+**Resolved, not left open.** What diminishment *should be* was undesigned
+here; the answer shipped as a temporary, fading, across-the-board
+competence-band suppression — never a Transcript rewrite. See
+mortality.md § The recuperation model. Still open: a *better*
+diminishment for a paying service to sell (a wound that heals over time,
+a diminished vessel, a patron's mark), which is really the re-embodiment
+service's own design question, above.
+
+## Absorbed from mortality-slate — Scope — as built (the still-open tail)
+
+Still open, and deliberately downstream:
+
+- **The in-circle death arc** — a circle death ejects, so the full arc
+  can't be rehearsed in a holodeck. Minting a real body from inside a
+  circle is the boundary the sandbox exists to hold; the machinery to do it
+  safely is worth its own design.
+- **Where "wake at your residence" plugs in** — resolved the other way:
+  there is no wake point at all, by design. See mortality.md § The floor.
+- **The route catalogue** — what a resurrection business charges, what the
+  Hades journey restores, and who else sells passage.
+
+---
+
 ## Deferred / boundaries (named at their sites)
 
 - **Adjudication** — the courts / jury-pool primitive that turns a ban into
   a *sentence* (see the courts-judiciary work). This slate assumes it.
 - **The patron-mint economy** — what a rebirth *costs* and who grants it;
-  routes through the altar/sacrifice/patron lore. Its own design.
+  routes through the altar/sacrifice/patron lore. Its own design. → the
+  2026-07-31 ruling is § *Absorbed from mortality-slate — The
+  re-embodiment service — decided as lore, unbuilt* above.
 - **The coroner / scrapper / animal-control labor economy** — the world-side
   corpse/scrap processing (aftermath cycling as *jobs*, the employment
   engine + material economy); combat-experience owns the framing. Moved
@@ -193,3 +270,26 @@ makes it playable content instead of a punishment timer. Depth is a
 - The altar/sacrifice/patron lore and the courts/jury-pool primitive — the
   diegetic engines for the mint and the sentence (design memories, not yet
   subsystem docs).
+
+### Absorbed from mortality-slate — See also
+
+See also — the substrate this drives:
+[vitals.md](../../subsystems/vitals.md) (the Agent/Creature/Character split,
+`VitalsMixin`, the death seams) · [harm.md](../../subsystems/harm.md)
+(`ConditionApi.inflict`, the five trauma behaviors, **the medic vertical as
+shipped**) · [race.md](../../subsystems/race.md) (the `lifecycleState`
+machine, `getCauseOfDeath`, the death ≠ destruction rule) ·
+[tails/vitals-slate](../tails/vitals-slate.md) (**§ Layer 6 — Death &
+lifecycle**, which defers exactly this driver, and *the corpse is a forensic
+record*). The machinery it reuses:
+[sandbox.md](../../subsystems/sandbox.md) (**the Forkable substrate + the
+wire-body crossing** — read § *The crossing (as built)*) ·
+[persistence.md](../../subsystems/persistence.md) (the self-persistence
+spine, `shouldPersist`) · [connection.md](../../subsystems/connection.md)
+(`ConnectionApi.transfer`, the Interactive handoff). The ledgers it feeds:
+[chronicle.md](../../subsystems/chronicle.md) ·
+[accountability.md](../../subsystems/accountability.md) ·
+[chattel.md](../../subsystems/chattel.md). Downstream:
+[health-vertical-slate](./health-vertical-slate.md) (the full clinic — this
+build ships only the first-aid seam) ·
+[combat.md](../../subsystems/combat.md) (produces the death *event* only).

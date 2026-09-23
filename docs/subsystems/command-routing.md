@@ -1800,3 +1800,12 @@ opening for a command.
 - [antipatterns.md](../antipatterns.md) — `ContainmentApi.move` /
   `mover.traverse(exit)` patterns command controllers prefer over
   raw containment juggling.
+
+## `peers` affordances reach one level into an open container (fishing B7, 2026-09)
+
+`CommandLogic.applyContainmentDeltaImpl` walks one level into an open
+container standing in the room, both ways — as the MQL `peers` scope
+already did (`scope-walk.ts`). Before this a carp in a bowl on the floor
+could be *named* by the MQL walk and afforded nothing to name it with.
+It is a dispatch change every verb sees; `look` and `put` were the drive's
+witnesses. Detail: [fishing.md](./fishing.md).

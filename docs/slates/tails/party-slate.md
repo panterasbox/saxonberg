@@ -52,13 +52,8 @@ See also:
 
 ## Principle
 
-1. **Small and operational.** A party is a squad (≈2–6), not an army —
-   because party-level tactic presets are legible *only* because parties are
-   small (the text-medium requirement). It's the **disposable axis**: you
-   form and dissolve parties constantly.
-2. **General-operational; combat is one facet.** You party up to travel,
-   explore, work a contract, *and* fight. The tactic is just the combat
-   facet, dormant otherwise.
+> **Graduated** to [party.md § Why the party is small, operational, and nothing else](../../subsystems/party.md#why-the-party-is-small-operational-and-nothing-else)
+> (small and operational · general-operational, combat is one facet).
 
 ---
 
@@ -71,19 +66,8 @@ See also:
 
 ## The three-axis wall — party ≠ guild ≠ corp
 
-The most important thing to hold, because it's what stops the party
-swallowing the design:
-
-| Axis | Answers | Scale | Nature |
-|---|---|---|---|
-| **Party** | *who I'm doing this task with* | small | operational / tactical |
-| **Guild** | *where I learned my craft* | large | educational / professional |
-| **Corp** | *who I work for* | large | economic / affiliation |
-
-A party of people from different **guilds** can work a contract for a
-**corp**. A party does **not** teach you and does **not** employ you. The
-party is fluid and disposable; guild/corp membership is durable and
-consequential.
+> **Graduated** to [party.md § Why the party is small, operational, and nothing else](../../subsystems/party.md#why-the-party-is-small-operational-and-nothing-else)
+> (the three-axis table; a party neither teaches nor employs).
 
 ## Party vs. combat-side — two layers
 

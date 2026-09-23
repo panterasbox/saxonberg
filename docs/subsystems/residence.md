@@ -222,7 +222,8 @@ that a dialogue `dispatch`'s `forceCommand` bypasses the verb-level
 validators ([npc-dialogue.md § The `dispatch` effect](./npc-dialogue.md),
 proven by experiment 2026-08-04). So Katie's `provision` dispatch is gated
 by a wizard check she cannot pass; the re-gate to the agency axis belongs to
-[wizard-duty-slate § Axis hygiene](../slates/builds/wizard-duty-slate.md).
+[wizard-axis-cleanup-slate § The inventory](../slates/builds/wizard-axis-cleanup-slate.md)
+(the *probable live defect* subsection absorbed from wizard-duty-slate).
 The `execute()` rule as written: allowed iff the actor `isWizard` (operator) **or is an agent of
 the dorms owner** — a member of the `duncan-hall` group. The agency check does
 NOT use `AccessApi.can` (it fails closed for NPCs, which have no `playerId`);

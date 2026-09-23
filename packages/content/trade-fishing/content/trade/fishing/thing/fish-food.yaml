@@ -1,0 +1,11 @@
+# Fish food — crumbs. A Provision over the shipped trail-ration material
+# (no new material for crumbs): a carp comes up for it, a hook baited
+# with it takes nothing.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: twist of fish food
+  keywords: [crumbs, feed, fish-food, food, twist]
+  register: indefinite
+  _materialPath: /stuff/idea/material/food/trail-ration
+  mass: 0.02

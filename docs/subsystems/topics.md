@@ -11,6 +11,26 @@ description, a family, and six facets. The cockpit's tabbed terminal,
 filter drawer, and gutter tooltips all consume that resolution; the
 future help system will tap the same catalogue.
 
+## Why the filter lives on the client
+
+**The server prints everything; the client decides what to show.** The
+server's job is to emit cleanly categorized frames with a stable topic
+and its facets; the client's job is to give the player tools to slice
+that stream however suits them. Always-print on the server,
+always-categorize on the wire, always-filterable on the client: the same
+prose is available to anything that wants it (audit trails, replay, log
+capture), and a player's session view is only a filter over the
+firehose. Filtering is cheap precisely because it lives there — no
+round-trip, no policy negotiation, instant feedback.
+
+The shipped shape confirms it rather than merely permitting it: a
+cockpit tab is a named predicate evaluated at render over the whole
+buffer ([client-shell.md § One strip, and every tab is a VIEW over the
+whole buffer](./client-shell.md)), and a rule change re-sorts history
+only because the server never withheld a frame in the first place. The
+delivery-time routing stamp that was retired failed on exactly this
+point. *(Graduated from the console-filtering slate, 2026-09.)*
+
 ## ⭐⭐ The tree carries subject matter; the facets carry everything else
 
 **The single governing rule.** A topic path answers exactly one

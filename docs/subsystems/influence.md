@@ -275,6 +275,18 @@ The math:
   the Schedule's `influence.cap_curve` / `regen_rate` still describe a
   reservoir; the shipped, entrenched rule is this one.
 
+  **Why the weight is a fading number times a growing one** (graduated
+  from the legal-code slate's *The vote as spectacle*, 2026-09): the
+  tally multiplies **standing, which decays in real time** (all three
+  stocks — `participation.decayHalfLife`, `producer.decayHalfLife`,
+  renown's half-lives) by **conviction, which only builds**. Two
+  consequences fall out unaided: the obvious exploit dies — park a
+  position, walk away, return at maximum conviction, and find your
+  standing decayed out from under it, so **conviction rewards patience,
+  never absence**; and every chamber is structurally a chamber of the
+  currently present — veterans who left cannot hold the floor, and
+  nobody had to design a term limit.
+
 ### Present vs absent (quorum) — abstain
 
 The **existence** of a `Position` row means the holder **cast a vote**

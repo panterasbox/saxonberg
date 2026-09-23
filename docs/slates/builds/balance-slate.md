@@ -1029,7 +1029,7 @@ owns that publisher.
 ### ⭐⭐⭐ Authority is required to PUSH, never to PUBLISH
 
 The rule underneath all three cases, and **the third time it has
-appeared** — [gazette-slate](./gazette-slate.md) reached it as *"the
+appeared** — [gazette-slate](../tails/gazette-slate.md) reached it as *"the
 state publishes to a PLACE; a publisher pushes to PEOPLE."*
 
 > **Anyone may speak. Only a position may make everyone hear it.**

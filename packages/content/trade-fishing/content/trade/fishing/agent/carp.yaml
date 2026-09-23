@@ -1,0 +1,22 @@
+# A carp — ⭐ the fish you can keep. `handling: 0.25` puts it at the
+# bottom of its species' range, which is `flighty`: it will not come up
+# for a stranger's hand until it knows one. Food at the surface is the
+# ladder, and three fed days in a bowl are the home.
+#
+# ⚠ No `follows`, no `homes`: a fish does not walk. `feeds` alone, at a
+# cadence — it eats what is in its bowl and asks nobody.
+class: /trade/fishing/agent/Fish
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/carp
+  lifecycleState: alive
+  shortDescription: carp
+  register: indefinite
+  primaryKeyword: carp
+  keywords: [carp, fish]
+  longDescription: >-
+    A carp, bronze-scaled and deep in the body, its soft mouth working at nothing.
+  handling: 0.25
+  behaviors:
+    - brain: /lib/behavior/feeds
+      trigger: cadence:60s

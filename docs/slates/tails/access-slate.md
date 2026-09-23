@@ -71,7 +71,7 @@ See also:
 - [grouping subsystem](../../subsystems/grouping.md) — `GroupApi`; **group-role is
   a capability source** (control-via-groups). The facade pattern this
   slate mirrors.
-- [chat-slate.md](../tails/chat-slate.md) / [emotes-slate.md](../tails/emotes-slate.md)
+- [chat-slate.md](../tails/chat-slate.md) / [emotes-slate.md](../builds/emotes-slate.md)
   — consumers: channel post/moderate roles; the **expression-policy /
   emote-only gag** is `can(actor, 'speak', channel)`.
 - [docs/subsystems/properties.md](../../subsystems/properties.md) — field-
@@ -201,6 +201,14 @@ events aren't wired to `MudlogApi`. Route **authorization denies + every
 `forceX` use** to the Mudlog audit sink. This *also* satisfies the
 moderation control plane's audit need: one stream for "who was denied /
 who force-bypassed / who was gagged."
+
+> Sibling, not the same instrument:
+> [call-security-pass-slate § The audit rail](../builds/call-security-pass-slate.md)
+> designs the PERMIT side — `@Audited`, a sampled record of allowed
+> sensitive calls with their runtime args into `audit_events`. This
+> section is the DENY side (denies + `forceX` uses). One audit build
+> should carry both; neither slate restates the other (cluster pass
+> 2026-09-21).
 
 ---
 

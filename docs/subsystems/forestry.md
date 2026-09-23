@@ -337,6 +337,49 @@ estate and the room's overlay (`followCustody`). To see an EDITED row
 (`mix:`, a panel's `props:`), drop the DB: a template-path move or a
 tuned block is a drop, never a migration.
 
+## Why the wood is shaped this way
+
+**Two crops, two timescales, one piece of ground.** A worked wood runs a
+coppice (cut to the stool, regrown from the stump, a short rotation —
+poles, rods, fuel, charcoal) and standards (scattered trees left for
+decades into structural timber) on the same ground; *coppice with
+standards* is the sharpest multi-timescale decision the game offers,
+because every standard left shades the coppice beneath it. A game year
+is 30 real days, so the rotations compress the absolute scale and
+preserve the ratio — real hazel 7 years to real oak 80–120, near 1:15 —
+into one game year and fifteen. Hence the panel's `fruitFillDays: 360`
+and the sapling's `daysToStage.mature: 5400`: **coppice is a crop you
+can complete; timber is a crop you inherit.** Forestry is the only
+industry whose full cycle one player cannot close, and that is the
+content rather than a limitation — planting a standard is an act of
+faith for a player who does not exist yet, which is why the deed goes to
+the chronicle and never to a reward.
+
+**A wood may be destroyed.** A forest is renewable only while the cut
+rate stays under the growth rate, and that inequality is the subject. So
+`cut` takes from a derived stock with no floor and no soft cap, and the
+increment is the only thing that puts a tree back: a locality can eat
+its wood and arrive at a fuel price and a cold winter — the documented
+history of the salt towns, the navies, and **coal replacing charcoal
+because the wood ran out**. A player can be *made to discover why coal*
+instead of being told it. A regrowth timer that outran demand would
+teach nothing, which is why there is none.
+
+**An authored wood is always a wood.** The forest — its Locality, its
+clearings, its paths — is written by an author and is the same after
+every reboot; nothing carves rooms at runtime and nothing converts land
+use. The stand is the one dynamic thing, and it is a cover on the ground
+rather than a filed record so that rain, drought and `look` reach it
+where the trees are. Its terminal state is an empty wood: the prose
+still says trees, the record says there is nothing worth the axe — the
+depleted-seam shape the mine already has, needing no conversion. The
+lifecycle is abstracted to what a player can act on (two stages and an
+increment) because the antipattern this exists to make unwriteable is
+the MUD forest, forty rooms of *"You are in a forest. Exits: n s e w."*
+Getting lost is a venue an author writes, not an engine that
+materializes wood off the path; **assarting** is what an author does
+when they write a farm where the wood used to be, not a verb.
+
 ## Deferred seams
 
 - **The Cover seam** — `SwardMixin` + `StandMixin` → a kernel

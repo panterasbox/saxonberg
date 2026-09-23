@@ -12,7 +12,15 @@
 > `resolution.by` treatment-matching, the sever, materials-response armor)
 > is shipped too. See [harm.md](../../subsystems/harm.md) and
 > [vitals.md](../../subsystems/vitals.md).
-> **Left:** pain as a derived reader · the alarm-clock optimization over
+> ⚠ **Re-verified 2026-09-23** against the nutrition-and-fitness build
+> (MR !269), which merged three minutes after the 2026-09-20 pass read
+> this file: **BMI, its bands and body density shipped** with it — see
+> [exertion.md](../../subsystems/exertion.md). Nothing else in `Left`
+> moved.
+> **Left:** per-individual stature (BMI itself shipped; stature is still
+> a **species** figure, so two bodies of one species cannot differ in
+> height — § Anthropometrics) ·
+> pain as a derived reader · the alarm-clock optimization over
 > `reconcileConditions` (today it is pure reconcile-on-read with no booked
 > next-interesting-time) · substances (the topical route, inhalation, the
 > liver clearance multiplier) · chems and meds as content · wound
@@ -67,7 +75,7 @@ Related: [vitals.md](../../subsystems/vitals.md),
 [activity.md](../../subsystems/activity.md),
 [residency.md](../../subsystems/residency.md),
 [inquiry-slate](./inquiry-slate.md) (the science of magic),
-[magic-items-slate](./magic-items-slate.md),
+[magic-items-slate](../tails/magic-items-slate.md),
 [pharma-slate](./pharma-slate.md) (**the industry this opens**),
 [discovery-slate](./discovery-slate.md) (the wild input),
 [mind-slate](./mind-slate.md) (the mental layer).
@@ -94,14 +102,19 @@ Already the house pattern — the model now *uses* it all the way up.
 
 ### The layers
 
-| Layer | Status |
-|---|---|
-| **substrate** — 7 quantified vital signs, per-species profiles, anatomy tree + tissue masses, three condition kinds, reserves | **shipped** |
-| **couplings** — `governs` · `innervatedBy` · `suppliedBy` · `covers` | **declared, ALL FOUR UNREAD** |
-| **readers** — function per part (min along the path), capacity, pain | designed |
-| **time** — derive-on-read for truth, alarms for consequence, offline healing | designed |
-| **intervention** — five verbs, two payment methods, one extended command | designed |
-| **economy** — labour-restored pricing, perishable stock, the free floor | designed |
+*(Cut 2026-09-23 — SHIPPED·DOCUMENTED, and it had gone actively WRONG.
+The table's Status column said the four couplings were "declared, ALL
+FOUR UNREAD" and the readers/intervention layers "designed" — while the
+status block sixty lines above says `functionAt`/`capacity` read
+`governs`/`innervatedBy`/`suppliedBy` for real and the medic vertical
+ships. Two contradicting answers in one file is worse than a stale one,
+because a reader who starts at the body believes the wrong half: a
+planning agent did, 2026-09-23. The current layer state is
+[vitals.md](../../subsystems/vitals.md) § *Anatomy + tissue* / § *Reserves*,
+[harm.md](../../subsystems/harm.md) § *The function axis* and
+[exertion.md](../../subsystems/exertion.md). ⚠ The first pass kept this
+under the no-rewrite rule, which was a misread: that rule forbids
+PARAPHRASING a kept section, not cutting one the code has falsified.)*
 
 ### ⭐⭐⭐ Every addition is ADDITIVE
 
@@ -1753,6 +1766,34 @@ DOCUMENTED as of 2026-09-20; cut here. See
     (`control·sense`), `wake` (`control·mind`), `diagnose`
     (`perceive·body`). **`transfuse` cut — the postulate moves energy,
     not matter.** No new verbs: **a second payment method.**
+
+## ⭐ Anthropometrics — stature and BMI (2026-09-18)
+
+> **User:** *"I think we need BMI on a person's vitals. don't think we
+> have that anywhere and it's gonna be important for some experiences to
+> land right."*
+
+*(The "State (verified)" paragraph and two of the three Shape bullets
+are cut 2026-09-23 — SHIPPED·DOCUMENTED by MR !269. **BMI as a banded
+derived read** (`BMI_BANDS`, `Creature.bodyMassIndex()`/
+`bodyMassIndexBand()`, spoken by `assess`, the number rendered nowhere)
+and **body density** (`getBodyDensity()`, fat 900 against lean 1100
+kg/m³, its consumer still the water) both shipped. See
+[exertion.md § The mirror](../../subsystems/exertion.md).)*
+
+**Shape:**
+
+- **per-individual stature** — set at char-gen (the dossier carries it;
+  the species' `stature` is the prior), persistent on `Creature`;
+
+⚠ That bullet is the half that did NOT ship: `bodyMassIndex()` reads
+`getSpecies()?.getStature()`, so stature is a **species** figure and two
+bodies of one species cannot differ in height.
+
+Which experiences it is for beyond the water: the char-gen card as a
+stat block, a physician reading a body, the `thin`/`fat` prose finally
+having a height behind it, and clothing fit (textiles already models fit
+as two numbers and a stamp — stature is one of them, unnamed).
 
 ## Open questions (for requirements)
 

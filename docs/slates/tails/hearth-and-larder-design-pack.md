@@ -4,10 +4,11 @@
 > (salt/dry/smoke/butcher over `Cured` + `Freshness`) →
 > [spoilage.md](../../subsystems/spoilage.md)
 > **Left:** the indoor room-ambient bump (a hearth that warms its room,
-> named a follow-on in [thermal.md](../../subsystems/thermal.md)) ·
-> `restQuality` gains room temperature · the compost heap
-> (`CompostingMixin`, `turn`) + its nitrogen loop into smallholding · the
-> victualler vocation + the machine-devalues-the-craft story (Part 2)
+> named a follow-on in [thermal.md](../../subsystems/thermal.md)) · the
+> compost heap (`CompostingMixin`, `turn`) + its nitrogen loop into
+> smallholding · the victualler vocation + the machine-devalues-the-craft
+> story (Part 2). *(`restQuality` gains room temperature → moved to
+> [room-condition](../builds/room-condition-design-pack.md), 2026-09-21.)*
 > **Size:** a wave
 
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (the pillar) ·
@@ -191,8 +192,8 @@ object** (the heap). No new subsystem.
 |---|---|---|
 | ⭐ **Room-ambient bump from heat sources** | thermal's own named Wave-2 follow-on; one room, no airflow | **new (small) — the substrate ships** |
 | ⭐⭐ **`CompostingMixin`** | a container that converts organic input → `compost` bulk on a continuous clock, at a `Grade` | **new — the one genuinely missing piece** |
-| ✳ **Preservation recipes** | dry · salt · smoke · pickle; each extends a `Freshness` clock | **rides [crafting](../../subsystems/crafting.md) + spoilage** |
-| ✳ **`restQuality` gains room temperature** | a second input beside bedding | **update** |
+| ✳ **Preservation recipes** | → dry · salt · smoke shipped ([spoilage.md](../../subsystems/spoilage.md) § The water state); pickle = the `f_pH` lever, owned by [preservation-slate](./preservation-slate.md) § Terms, not methods | — |
+| ✳ **`restQuality` gains room temperature** | → moved to [room-condition](../builds/room-condition-design-pack.md) § Part 3 (*Absorbed from hearth-and-larder*), the owner of the `restQuality` aggregation | — |
 | ✳ **Scraps as compost input** | spoiled food + debris are already objects | **rides spoilage + room-condition** |
 | ⛔ **Whole-house thermal envelope / inter-room airflow** | — | **refused by thermal's non-goals; not reopened** |
 

@@ -705,7 +705,7 @@ ground is **not plantable** until it has been cleared.
 yet. `plant`/`sow` require a `CultivableMixin` target and a `Field`
 composes none, so a cleared field grows sward (hay, grazing) and arable
 crops still grow in beds and pots. The arable field crop is the
-[farming slate](../slates/tails/farming-slate.md)'s open item (verified
+[farming slate](../slates/builds/farming-slate.md)'s open item (verified
 2026-09).
 
 See [soil.md](./soil.md) for the field, the ledger, ground character and

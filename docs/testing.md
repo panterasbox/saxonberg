@@ -682,6 +682,20 @@ stale wire server. It gets no database of its own (one database per
 worktree stands), so locally it REPLACES a dev server rather than
 joining one.
 
+⚠⚠ **Each worktree owns a `WIRE_PORT`** (fishing, 2026-09-18): two
+owned boots on 2012 from sibling worktrees attach to EACH OTHER's world
+(the first probe answers from the sibling's server — no fishing pack in
+their world — while your own log shows no logins) and `bootOwnedWorld`'s
+preflight kills whatever holds the port, i.e. the sibling's drive.
+build-2 runs `WIRE_PORT=2013`; check `pgrep -f preload.js` +
+`readlink /proc/<pid>/cwd` before a boot. And **a wire test character is
+DRESSED** (`TestHooks` puts the first aspiration's outfit on it, as
+`enroll` does a real one — 2026-09-21): a naked body burns food on cold
+at room temperature and starves in ~4.5 game hours, and the fishing
+drive's angler collapsed at the seventh. A drive longer than that still
+has to feed its character (`eat rations`) until the thermal dials are
+right (`docs/slates/tails/thermal-slate.md`).
+
 ⚠⚠ The spawned server must not inherit `VITEST`: `preload.js` registers
 the call-security loader only when it is unset, so a leaked env makes
 the world boot with no module provenance and die on the first

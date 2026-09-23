@@ -1,0 +1,50 @@
+# Crustacean — a shore crab's plan: a carapace, eight legs and two claws,
+# and gills that work in air for a while. It walks and it swims.
+#
+# ⭐ `breathableMedia: [water, air]` is what makes a crab a crab and not a
+# fish: a pot lifted onto the bank holds crabs that are still alive an
+# hour later, and a bowl is not the only place one can be kept. The
+# shore crab is the `bait` role of the fishery and the one species here
+# that will not drown in your hand.
+class: /platform/idea/species/BodyPlan
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: crustacean
+  slots: []
+  locomotionModes:
+    - walk
+    - swim
+  defaultLocomotionMode: walk
+  breathableMedia: [water, air]
+  respires: true
+  sensoryPorts:
+    - { modality: vision, count: 2, position: frontal }
+    - { modality: touch, count: 1, position: circumferential }
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.04 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.04 }
+    - key: body.claw.left
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.005 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.005 }
+    - key: body.claw.right
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.005 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.005 }
+    - key: body.torso.heart
+      parent: body.torso
+      governs: [heartRate]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.001 }
+    - key: body.torso.gills
+      parent: body.torso
+      governs: [respiratoryRate]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.002 }

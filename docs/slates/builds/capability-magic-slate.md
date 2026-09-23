@@ -55,7 +55,7 @@ See also:
 - [docs/subsystems/quantities.md](../../subsystems/quantities.md) — the
   `Quantity<U>` + instrument + `analyze` pattern magic reuses
   wholesale.
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — the
+- [docs/slates/senses-slate.md](senses-slate.md) — the
   `PerceptionChannel` generalization (which absorbed the sound slate);
   magic joins as another channel.
 - [docs/subsystems/race.md § Material substrate](../../subsystems/race.md) —

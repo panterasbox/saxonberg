@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Regenerate docs/slates/README.md from the slates' own status blocks.
+
+The index is DERIVED. Every slate carries, under its H1:
+
+    > **Status: PARTIAL** — what shipped → [subsystem.md](…)
+    > **Left:** the named things that remain
+    > **Size:** a build · a wave · a tail
+
+This reads those three keys and emits the four tables. Nothing here
+decides anything: if a row looks wrong, the slate's block is wrong, and
+that is where it gets fixed.
+
+    ./tools/slate-index          # rewrite README.md between the markers
+    ./tools/slate-index --check  # non-zero if the file is stale (CI-able)
+    ./tools/slate-index --audit  # report unparsable blocks and stop
+
+⚠ The README is a SWEPT file (CLAUDE.md § Worktrees rule 5) — run this at
+a sweep, not from four sessions at once.
+"""
+
+import re
+import sys
+import pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+SLATES = ROOT / "docs" / "slates"
+README = SLATES / "README.md"
+
+BEGIN = "<!-- BEGIN GENERATED — ./tools/slate-index -->"
+END = "<!-- END GENERATED -->"
+
+# Both spellings are in the tree and both are fine:
+#   > **Status: PARTIAL** — …        (value inside the bold)
+#   > **Status:** PARTIAL — …        (value after it)
+STATUS = re.compile(r"^> \*\*Status:?\*?\*?\s*([A-Za-z]+)", re.M)
+LEFT = re.compile(r"^> \*\*Left[^*]*:?\*\*[ \t]*(.*?)(?=^> \*\*|\Z)", re.M | re.S)
+SIZE = re.compile(r"^> \*\*Size:?\*\*[ \t]*(.+)$", re.M)
+
+# Which bucket a slate lands in. `Size` decides the folder; `Status`
+# decides greenfield vs continuation. ⚠ The possessive is not a size:
+# "a build's tail" is a TAIL, and reading the first word makes it a
+# build — which is how `fishing` landed in the wrong column once.
+SIZE_WORD = re.compile(r"\b(build|wave|tail)\b(?!'s)")
+
+
+def size_of(raw: str) -> str | None:
+    """First size word in the Size line — the rest is the slate's reasoning."""
+    hit = SIZE_WORD.search(raw.lower())
+    return hit.group(1) if hit else None
+
+
+def clean(text: str, limit: int = 4) -> str:
+    """The Left list as one line: unwrap, strip the blockquote, cap items.
+
+    ⚠ Links inside a `Left` list are written relative to the SLATE; pasted
+    into the README one directory up they all break. The link text is what
+    carries meaning in a one-line summary, so the target is dropped — the
+    slate itself is already linked in the first column.
+    """
+    text = re.sub(r"^> ?", "", text, flags=re.M)
+    text = " ".join(text.split())
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    text = text.replace("|", "\\|")
+    if not text:
+        return "—"
+    parts = [p.strip() for p in text.split("·") if p.strip()]
+    out = " · ".join(parts[:limit])
+    return out + (" …" if len(parts) > limit else "")
+
+
+def read_slates():
+    rows, broken = [], []
+    for path in sorted(SLATES.glob("*/*.md")):
+        if path.name == "README.md":
+            continue
+        body = path.read_text()
+        status = STATUS.search(body)
+        left = LEFT.search(body)
+        size = SIZE.search(body)
+        if not (status and left and size):
+            broken.append((path, bool(status), bool(left), bool(size)))
+            continue
+        key = size_of(size.group(1))
+        if key is None:
+            broken.append((path, True, True, False))
+            continue
+        rows.append(
+            {
+                "name": path.stem.removesuffix("-slate"),
+                "href": f"./{path.relative_to(SLATES)}",
+                "status": status.group(1).upper(),
+                "left": clean(left.group(1)),
+                "size": key,
+                "folder": path.parent.name,
+            }
+        )
+    return rows, broken
+
+
+def table(rows, header: str) -> list[str]:
+    out = [f"| slate | {header} |", "|---|---|"]
+    for r in sorted(rows, key=lambda r: r["name"]):
+        out.append(f"| [{r['name']}]({r['href']}) | {r['left']} |")
+    return out
+
+
+def sections(rows) -> str:
+    green = [r for r in rows if r["size"] == "build" and r["status"] == "UNBUILT"]
+    cont = [r for r in rows if r["size"] == "build" and r["status"] != "UNBUILT"]
+    waves = [r for r in rows if r["size"] == "wave"]
+    tails = [r for r in rows if r["size"] == "tail"]
+    misfiled = [
+        r
+        for r in rows
+        if (r["size"] == "build") != (r["folder"] == "builds")
+    ]
+
+    out = [
+        BEGIN,
+        "",
+        f"**{len(rows)} slates.** "
+        f"{len(green)} greenfield · {len(cont)} continuations · "
+        f"{len(waves)} waves · {len(tails)} tails.",
+        "",
+        f"## ⭐ Greenfield — nothing shipped yet ({len(green)})",
+        "",
+        "Pick from here for a clean cycle with no existing substrate to",
+        "respect.",
+        "",
+        *table(green, "left to build"),
+        "",
+        f"## ⭐ Continuations — substrate shipped, a build's worth remains ({len(cont)})",
+        "",
+        "The subsystem doc is the reference for what already ships; these",
+        "are the named remainders.",
+        "",
+        *table(cont, "left to build"),
+        "",
+        f"## Waves — rides another build ({len(waves)})",
+        "",
+        *table(waves, "left"),
+        "",
+        f"## Tails — small and opportunistic ({len(tails)})",
+        "",
+        *table(tails, "left"),
+        "",
+    ]
+    if misfiled:
+        out += [
+            "## ⚠ Misfiled — the folder disagrees with the size",
+            "",
+            "The folder is derived: a build lives in `builds/`, a wave or a",
+            "tail in `tails/`. These need moving or re-stamping.",
+            "",
+            "| slate | size | folder |",
+            "|---|---|---|",
+            *(
+                f"| [{r['name']}]({r['href']}) | a {r['size']} | `{r['folder']}/` |"
+                for r in sorted(misfiled, key=lambda r: r["name"])
+            ),
+            "",
+        ]
+    out.append(END)
+    return "\n".join(out)
+
+
+def main() -> int:
+    mode = sys.argv[1] if len(sys.argv) > 1 else ""
+    rows, broken = read_slates()
+
+    if broken:
+        print(f"⚠ {len(broken)} slate(s) with an unreadable status block:")
+        for path, st, left, size in broken:
+            missing = [
+                k
+                for k, ok in (("Status", st), ("Left", left), ("Size", size))
+                if not ok
+            ]
+            print(f"  {path.relative_to(ROOT)} — no {', '.join(missing)}")
+        if mode == "--audit":
+            return 1
+        print("  (excluded from the index; fix the block in the slate)")
+    elif mode == "--audit":
+        print(f"✓ all {len(rows)} status blocks parse")
+        return 0
+
+    generated = sections(rows)
+    current = README.read_text()
+    if BEGIN not in current or END not in current:
+        print(f"✗ {README.relative_to(ROOT)} has no generated block markers")
+        return 2
+    head, rest = current.split(BEGIN, 1)
+    _, tail = rest.split(END, 1)
+    updated = head + generated + tail
+
+    if mode == "--check":
+        stale = updated != current
+        print("✗ README is stale — run ./tools/slate-index" if stale else "✓ README is current")
+        return 1 if stale else 0
+
+    README.write_text(updated)
+    print(f"✓ wrote {README.relative_to(ROOT)} — {len(rows)} slates")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

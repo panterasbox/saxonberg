@@ -377,6 +377,13 @@ function pushDetails(
  *
  * The exact rules:
  *   - Exact name match on a single-word query: 100
+ *   - ⭐ Every query word is a WHOLE word of the name: 60 — `net` is a
+ *     word of "a net" and a substring of "a keepnet"; `edge` a word of
+ *     "the river's edge" and a substring of "a ledger rod". Without
+ *     this tier both scored 50 and the tie fell to pool order, so
+ *     `haul net` with a keepnet in hand hauled the keepnet (the fishing
+ *     drive found it three times over: creel/eel, ledger/edge,
+ *     keepnet/net).
  *   - Whole-name AND-narrow on lowercased name: 50
  *   - Word-of-name AND-narrow: 40
  *   - Keywords AND-narrow (all matched): 25
@@ -392,9 +399,17 @@ export function scoreCandidate(
 
   if (queryWords.length === 1 && nameLower === queryWords[0]) return 100;
 
+  const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 0);
+  if (
+    nameWords.length > 0 &&
+    queryWords.length > 0 &&
+    queryWords.every((qw) => nameWords.some((nw) => nw === qw))
+  ) {
+    return 60;
+  }
+
   if (nameLower && queryWords.every((w) => nameLower.includes(w))) return 50;
 
-  const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 0);
   const nameMatches = queryWords.filter((qw) =>
     nameWords.some((nw) => nw.includes(qw))
   );

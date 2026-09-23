@@ -32,7 +32,7 @@ Substrate: [crafting](../../subsystems/crafting.md) ·
 Siblings: [ranching](./ranching-slate.md) (**the gate**) ·
 [zoning](./zoning-slate.md) (⭐ the nuisance trades) ·
 [preservation](../tails/preservation-slate.md) ·
-[textiles](./cosmetics-slate.md) *(fibre's sibling — leather is not fibre)* ·
+[textiles](../tails/cosmetics-slate.md) *(fibre's sibling — leather is not fibre)* ·
 [../../settlement-model.md](../../settlement-model.md) § 1
 
 ---
@@ -90,18 +90,11 @@ than a convenience — which is the point.
 
 ## 4. ⚠ The demand is honest, and that had to be checked
 
-`vocations.md`'s governing warning is **NEVER INVENT A NEED TO CREATE A
-MARKET** — *if a vocation requires a new player obligation to exist, the
-demand was fabricated.*
-
-- **Light** passes cleanly: darkness is **already** an obstacle, and the
-  mine already teaches the light dependency out loud at Provisioning. No
-  new obligation.
-- **Leather** passes trivially: the goods ship; something has to make them.
-- ⚠ **Waste** passes *only if framed as an externality.* "Your house
-  accumulates filth, pay somebody" would be fabricated. A carcass is not:
-  it is a thing that exists, that somebody wants gone, and that somebody
-  else can profit from.
+DUPLICATE — the check as applied to light and waste is carried, near-verbatim, by
+[settlement-model.md § 1 The sixteen needs](../../settlement-model.md) (the
+*REVISED 2026-09-03* box: *NEVER INVENT A NEED* against light · waste · care)
+and the rule itself is `vocations.md`'s (the five-criteria table). Leather
+passes trivially: the goods ship; something has to make them.
 
 ## 5. ⚠⚠ The ranching seam — leave it open, do not build it
 
@@ -192,7 +185,7 @@ salts and a glycerol. Potash lye makes *soft* soap; salting it out
 (sodium displacing potassium) makes the *hard* bar — which is why the
 bar needs the salt trade and the soft soap does not. The byproduct,
 **glycerin**, is a second product with its own customer
-([cosmetics](./cosmetics-slate.md) — soap is a chain cosmetics is a
+([cosmetics](../tails/cosmetics-slate.md) — soap is a chain cosmetics is a
 second customer of, as dye already is).
 
 **Surfactants**: water does not cut grease; a soap molecule has a head

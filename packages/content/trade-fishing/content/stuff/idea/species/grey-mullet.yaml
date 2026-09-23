@@ -1,0 +1,68 @@
+# Grey mullet — the fish of the brackish reach: the estuary, the
+# confluence below the tide's reach, the wharf. Wants salt, wants slow
+# water, and is not there in winter.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Chelon labrosus
+  commonNames: ["grey mullet", "mullet"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/fish
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/food/fish-flesh
+  vitalProfile:
+    coreTemperature: { baseline: 285, survivableMin: 274, survivableMax: 303 }
+    heartRate: { baseline: 40, survivableMin: 10, survivableMax: 120 }
+    respiratoryRate: { baseline: 60, survivableMin: 20, survivableMax: 150 }
+    bloodPressureSystolic: { baseline: 40, survivableMin: 20, survivableMax: 80 }
+    bloodPressureDiastolic: { baseline: 25, survivableMin: 10, survivableMax: 60 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 0.06, survivableMin: 0.04, survivableMax: 0.06 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  adultMass: 1.5
+  stature: 0.45
+  lifespanMin: 0
+  lifespanMax: 15
+  ageCurve: { weanedAt: 30, matureAt: 1400, agedAt: 4000, senescentAt: 5000 }
+  circadianBand: crepuscular
+  diet: omnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  olfactoryProfile:
+    acuity: dull
+  handlingRange: { floor: 0, ceiling: 0.15 }
+  # ⚠ `lint:kept-animals`: a Bonded class's species must declare one.
+  # A fish is not askable at all.
+  biddability: 0
+  # ⭐ What it needs of a water (fishing D4) — the whole distribution
+  # derives from this and the catalogue's water; no table anywhere.
+  habitat:
+    tolerances:
+      temperatureK: { min: 281, max: 298, margin: 6 }
+      oxygenMgL: { min: 4, margin: 2 }
+      currentMps: { max: 0.5, margin: 0.3 }
+      salinityPpt: { min: 5, margin: 4 }
+      contamination: { max: 0.3, margin: 2 }
+      # ⭐ The tank's numbers, inert in a river (fishing D22): every fish
+      # authors what ammonia and nitrite it can stand, so the home aquarium
+      # build reads the same tolerance a reach does and never reopens
+      # this row.
+      ammoniaMgL: { max: 0.02, margin: 0.5 }
+      nitriteMgL: { max: 0.1, margin: 1 }
+    seasons: [spring, summer, fall]
+    role: forage
+    abundance: 50
+    fightRating: 0.4
+    # ⭐ Where it feeds (B8): the surface — the one fish here a float
+    # rig is FOR; legered bait under a mullet shoal takes nothing.
+    feedsAt: surface
+  butcheryYield:
+    - { cut: /trade/fishing/thing/fillet, units: 2 }
+    - { cut: /trade/fishing/thing/roe, units: 1 }
+    - { cut: /stuff/thing/items/offal, units: 1 }
+  longDescription: >-
+    A grey mullet, thick-lipped and silver-grey, the kind that noses along a harbour wall.
+  nameBankKeys: []

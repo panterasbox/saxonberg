@@ -47,6 +47,7 @@ import { StuffApi } from "../../../../api/stuff";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { ShelfStuff } from "../../../thing/ConsignmentShelf";
+import { Freshness } from "../../../../lib/material/Freshness";
 
 const TOPIC = "act.deed";
 
@@ -211,6 +212,21 @@ export default class ConsignController extends CommandController<ConsignModel> {
       return;
     }
 
+    // ⭐ No shelf lists what has TURNED (fishing D11) — a provision past
+    // its freshness band, or a carcass whose flesh has (a dead fish is a
+    // body, not food, and `Postmortem.freshnessLoad` is the same law).
+    // A rule of every shelf, not the fish stall's: no shopkeeper lists a
+    // turned loaf either. A state read of the good, never a host
+    // narrowing; a live body is fresh.
+    if (this.hasTurned(item)) {
+      this.reject(giver, context, Mml.compose`${Mml.thing(item)} has turned; nobody will list that.`, {
+        kind: "controller-rejected",
+        reason: "turned",
+        detail: model.thing?.raw ?? "",
+      });
+      return;
+    }
+
     // Take one unit off the stack. `split` short-circuits to the source
     // when the lot IS the whole stack, so a one-unit stack and a
     // discrete good travel the same path from here.
@@ -271,6 +287,19 @@ export default class ConsignController extends CommandController<ConsignModel> {
     return mine.includes(live) ? live : null;
   }
 
+
+  /**
+   * Whether the good has turned — its freshness band is past `fresh`
+   * (`Bonded.wouldEat`'s rule, so an animal and a shelf refuse the same
+   * thing): a provision's own gauge, or a dead body's flesh.
+   */
+  private hasTurned(item: Stuff): boolean {
+    if (MixinApi.isFresh(item)) return item.getFreshnessBand() !== "fresh";
+    if (MixinApi.isPostmortem(item) && item.sinceDeath() !== null) {
+      return Freshness.bandFor(item.freshnessLoad()) !== "fresh";
+    }
+    return false;
+  }
 
   private listingCap(): number {
     try {

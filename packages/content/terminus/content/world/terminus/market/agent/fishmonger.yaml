@@ -1,0 +1,44 @@
+# Hessa Vane — the fishmonger. Keeps the fish stall for the market: a
+# rostered position under the market's committee-appointed business, on
+# a shift (`shifts` with an Offstage to go to), replaceable through
+# `appoint` like any other seat. Sells nothing of her own — the stall is
+# consignment, and her job is the slab, the ice and the chalk.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Hessa Vane
+  keywords: [hessa, vane, fishmonger, monger]
+  shortDescription: fishmonger
+  register: definite
+  longDescription: >-
+    A broad woman in a rubber apron with a knife on a string round her
+    neck and hands red to the wrist from the cold slab, who can tell you
+    what a fish is, where it came from and when it died by looking at
+    its eye.
+  archetype: fishmonger
+  prologue:
+    - "Ran a barrow of eels up from the wharf before there was a stall to run."
+    - "Will not have a turned fish on her slab and does not care whose it is."
+  competence:
+    - { discipline: fishing, asserting: competent }
+    - { discipline: cooking, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: 55 }
+    - { disposition: diligence, valence: 80 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /world/terminus/market/square
+        offstage: /world/terminus/market/offstage
+    - brain: /lib/behavior/idles
+      trigger: cadence:45s
+      config:
+        pool:
+          - { kind: free, value: "sluices the slab down and the water runs pink into the gutter." }
+          - { kind: free, value: "turns a fish over to look at its other eye." }
+          - { kind: free, value: "says \"Fresh is a thing you can smell. Everything else is a story.\"" }

@@ -1,0 +1,19 @@
+# A spoon — a lure (B8): a curved spoon-bowl of hammered tin on a
+# swivel, with a hook. Not eaten; WORKED. It fishes only while you are
+# reeling it (`reel` during the wait), and it draws predators — the
+# trout, the sturgeon — never the bottom-feeders. It is not consumed at
+# a take: one spoon, all season.
+class: /trade/fishing/thing/Bait
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [spoon, lure, tin-spoon]
+  primaryKeyword: spoon
+  shortDescription: tin spoon lure
+  register: indefinite
+  longDescription: >-
+    A curved spoon-bowl of hammered tin with a hook hung off one end.
+    Drawn through the water it flashes and wobbles like something
+    small and hurt.
+  mass: 0.02
+  baitKind: lure
+  _materialPath: /stuff/idea/material/element/tin

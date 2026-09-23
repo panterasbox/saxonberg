@@ -1,0 +1,10 @@
+verbs: [reel]
+controller: /trade/fishing/idea/cmd/fishing/ReelController
+description: "Take line in"
+help: |
+  `reel` takes line in against whatever is on it. Gain when the fish
+  rests; reel against a running fish and the line parts.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args: []

@@ -58,7 +58,7 @@ below).
 > Shipped: the pack is `/trade/cooking`; the baker pack (`trade-milling` + `trade-baking`, `baking` `specializes: cooking`, staling in the baker's own `lib/`) → [spoilage.md § Staling](../../subsystems/spoilage.md). ⚠ **Butchery shipped in a different shape** — `butcher`/`dress` live in `trade-cooking`, not a trade of their own, afforded by a `ButcherBlock` that is `peers`-only and fixed, so *you cannot field-dress a boar in the woods* (the slate's "domestic rule" is contradicted); the corpse-is-not-a-recipe finding, the cuts inheriting the carcass's age and the `render-tallow` bootstrap all landed → [crafting.md § Verbs — `butcher`/`dress`](../../subsystems/crafting.md), [spoilage.md](../../subsystems/spoilage.md).
 
 **Fish and seafood: already spoken for — and our W0 is *their*
-dependency.** The [fishing slate](./fishing-slate.md) is a thorough
+dependency.** The [fishing slate](../tails/fishing-slate.md) is a thorough
 third extraction vertical (upstream acquisition, like butchery:
 cooking consumes the catch via a category tag), and the
 [preservation slate](../tails/preservation-slate.md)'s v1 scope is literally
@@ -145,7 +145,7 @@ look.** Neither is cooking's to build; both feed it by category tag
 like every other acquisition trade.
 
 - ⭐ **Foraging is fishing on land.** The
-  [fishing slate](./fishing-slate.md)'s one genuinely-new primitive is
+  [fishing slate](../tails/fishing-slate.md)'s one genuinely-new primitive is
   a **catch-distribution model read through the weather/time fog** —
   which is exactly what foraging wants (what is available *here, now*
   as a function of place × season × weather). Build it once and
@@ -822,7 +822,7 @@ requires two people to run one room.
   recommending is the epistemic gate the vocations register wants; no
   new measurement.
 - **Deferred, cleanly**: the tab/check (pay-at-order ships; deferred
-  payment is the [credit slate](./credit-slate.md)'s), reservations
+  payment is the [credit slate](../tails/credit-slate.md)'s), reservations
   and the host stand (content, whenever a venue wants them).
 
 ### Takeout & delivery: the vessel pool's stress test, and a gig

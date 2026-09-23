@@ -12,7 +12,7 @@
 > reads for speech; a shout does not leave the room) · dynamic-reach shout
 > (the voice-projection attribute + the vitals tie) · whisper's redacted
 > overhear form · language gating on acoustic + encoded-cognition
-> implant · regional channels · the first-class conversation primitive ·
+> implant · the first-class conversation primitive ·
 > implant security (spoofing / interception) + the hardened-baseline
 > guarantee · the implant dependency as written (universal — but only
 > Avatars carry one; the per-NPC implant + remote-NPC `tell` + the
@@ -35,7 +35,7 @@ speech as an option via `--to` (§ Directed speech — `say --to`), and
 
 See also:
 
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — acoustic propagation/
+- [docs/slates/senses-slate.md](../builds/senses-slate.md) — acoustic propagation/
   reach/masking (the *hearing* channel of the unified `PerceptionChannel`
   substrate, which absorbed the sound slate); `say`/`whisper`/`shout` are
   sound sources it models. Comms *consumes* this for the acoustic family.
@@ -50,9 +50,9 @@ See also:
   model, membership/subscription, roles, config, the `chat <channel>`
   surface. Comms defines the conversation primitive + transport; chat
   owns the channel model on top.
-- [docs/slates/emotes-slate.md](../tails/emotes-slate.md) — expression riding
+- [docs/slates/emotes-slate.md](../builds/emotes-slate.md) — expression riding
   the implant/ESP channel; emotes are perceived near or far over it.
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — **ESP is a
+- [docs/slates/senses-slate.md](../builds/senses-slate.md) — **ESP is a
   sense-channel family** (verbal = language-gated, emotive = language-
   free); the implant is its organ. Reception *is* sensing; comms delivers
   *on* these channels. (Acoustic speech rides the hearing channel.)
@@ -115,14 +115,11 @@ primitive at different sizes:
 | **chat channel** | open / role-scoped | a stable name (`Gossip`, a guild) | persistent |
 
 **Thoughts willed into existence → attribution is the trust boundary.**
-Because an implant message is a thought appearing in your mind, the
-baseline's most important guarantee is unmistakable attribution ("this
-thought is Bobalu's, not yours"). The high-end threat is therefore
-**spoofing** (a hacked implant injecting a thought you mistake for your
-own, or impersonating someone) — espionage/horror gameplay for later. It
-follows that the baseline empathic layer must be **hardened**: casual
-jamming can't touch basic DM/chat/emotes; only exotic attacks reach the
-trust boundary.
+Stated in [comms.md § Two transports](../../subsystems/comms.md) (implant
+comms are *gated by attribution only; no sensory gate*) and § Deferred
+(*Implant security*: spoofing is the high-end threat; the baseline is
+hardened against casual jamming by design; the espionage/horror layer is
+its own wave — the backlog half, in `Left`).
 
 **Language still applies (lean).** Two readings of "willed thought":
 (i) pure pre-linguistic *meaning* (implant transcends language), or
@@ -208,7 +205,7 @@ out-of-band moderation floor under the in-fiction gradient.
 
 **Explicitly dropped:** the old "emotes as a constrained safe-mode
 fallback for low-trust senders" idea. Emotes are a full first-class ESP
-channel (emotes-are-magic; [emotes-slate.md](../tails/emotes-slate.md)), not a
+channel (emotes-are-magic; [emotes-slate.md](../builds/emotes-slate.md)), not a
 moderation safe-mode — a narrowed sender isn't pushed into emote-only as
 a sanitized substitute for speech.
 
@@ -224,9 +221,9 @@ a sanitized substitute for speech.
   loud source; projection attribute sets dB; sound slate computes who, in
   which rooms, hears it (faint at the edges).
 - *DM a friend (implant) — shipped: comms.md § Implant — dm / tell.*
-- **Guild chat (implant channel):** post to `[Guild]` → all tuned
-  members receive it as an attributed thought; renders with the channel
-  chip.
+- *Guild chat — chat-slate § Worked scenarios ("Guild chat,
+  group-projected"); the attributed-thought delivery and the channel chip
+  shipped (chat.md § Posting, message-rendering.md).*
 - **Remote NPC (implant):** `tell dispatcher status?` → reaches the
   dispatcher's responder over the implant.
 
@@ -240,8 +237,8 @@ a sanitized substitute for speech.
 2. *Resolved: open (standalone) · roster (a managed group) · bound (a
    party's or committee's `GroupRef`) — chat.md § Three channel kinds,
    § Bound channels.*
-3. **Regional channels.** A channel scoped to a zone (a bridge between
-   acoustic locality and implant networks)? Worth considering.
+3. *Regional channels → moved verbatim to chat-slate § Open questions Q6
+   (cluster pass; chat owns the place-binding axis).*
 4. **Language × implant: (i) vs (ii).** *Lean (ii) — encoded cognition,
    translation-implant stays meaningful.*
 5. **Persistence/history.** Channel logs / DM history as an implant

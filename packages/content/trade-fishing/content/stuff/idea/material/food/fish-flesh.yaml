@@ -1,0 +1,31 @@
+# Fish flesh — what a fish is made of, and what a fillet is.
+#
+# ⭐ `tags: [food, meat, fish]` — `meat` is what lets the shipped cure,
+# smoke and dry recipes accept a fillet unchanged (their input slot
+# matches by category), so a smoked fillet needs no recipe of its own.
+# Fish-specific recipes are the noun wave's.
+#
+# ⚠ It spoils FASTER than red meat: a lower activation energy means the
+# rate is already high at cellar temperature — which is why fish was
+# salted at the quay and not in the kitchen. The one number that makes
+# *a fillet spoils on the shipped clock and keeps when smoked* true.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: fish flesh
+  keywords: [fish, flesh, fillet]
+  appearance: pale, close-grained flesh that flakes along its lines
+  density: 1040
+  thermalConductivity: 0.5
+  specificHeat: 3500
+  edibility: true
+  tastes: [umami, salty]
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
+  nutrients: [protein, fat]
+  nutrientAmounts:
+    protein: 20000
+    fat: 8000
+  tags: [food, meat, fish, raw]
+  composition: []
+  biologicalSource: null

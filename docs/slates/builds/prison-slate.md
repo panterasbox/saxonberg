@@ -32,7 +32,8 @@ confinement inverts), [accountability.md](../../subsystems/accountability.md)
 (the harm-consent ledger custody rides),
 [banking.md](../../subsystems/banking.md) (fines),
 [time.md](../../subsystems/time.md) (terms), the courts/venire
-primitive (the appeal path).
+primitive (the appeal path) — now [courts-slate](./courts-slate.md)
+(2026-09-18).
 
 ## The three enforcement tiers — and the guardrail above all of them
 
@@ -138,6 +139,11 @@ Alcatraz-shaped answer the requirements pass can take or leave).
    *honest, visible face* — a place the consequence is legible —
    rather than a role-play destination with trials. Unresolved;
    raised at capture and deliberately left open.
+   *(Pointer, cluster pass 2026-09-21: [courts-slate](./courts-slate.md)
+   puts the Compact's Art. VI court on the same substrate with `/compact`
+   as its jurisdiction, disbarment on its docket list — a partial answer
+   for code-trust abuse; record-tampering and conservation fraud remain
+   as asked.)*
 2. **What does confinement restrict beyond movement?** Comms
    especially — implant/aether reach from a cell (the aether is the
    internet; does the prison have wifi?), market access, forum

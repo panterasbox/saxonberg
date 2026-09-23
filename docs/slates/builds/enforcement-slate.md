@@ -26,7 +26,8 @@ Related: [civics.md](../../subsystems/civics.md),
 [trait.md](../../subsystems/trait.md),
 [accountability.md](../../subsystems/accountability.md),
 [concealment.md](../../subsystems/concealment.md), the courts/venire
-primitive, the trusted-recording seed.
+primitive — now [courts-slate](./courts-slate.md) (2026-09-18), the
+trusted-recording seed.
 
 **Institutional sibling:** [policing-slate](./policing-slate.md) —
 crime (organized vs. ordinary, corpos, the alignment orthogonality)
@@ -73,9 +74,7 @@ legible law.
 
 ## The evidence firewall
 
-**The kernel's omniscience serves exactly two masters — the
-record's integrity, and meta-moderation. Diegetic law enforcement
-gets none of it.** In-fiction justice gathers evidence in-fiction:
+*The why → [measurement.md § Tier A · Absorbed from enforcement-slate — the evidence firewall](../../measurement.md) (homed 2026-09-22).* In-fiction justice gathers evidence in-fiction:
 
 - **witnesses** — the belief substrate; what each person actually
   perceived, per-viewer, honestly foggy;
@@ -83,11 +82,6 @@ gets none of it.** In-fiction justice gathers evidence in-fiction:
   attestation devices that exist as *objects* (placeable, visible,
   ownable, smashable, contestable);
 - **confession**, and the physical traces the world already keeps.
-
-Concealment stays load-bearing: **a crime genuinely unseen is
-genuinely unproven**, and that is a feature — a world where guilt is
-always provable needs no courts, values no reputation, and has no
-game in it.
 
 **The attunement equilibrium (today's world, reproduced):** everyone
 is attuned; everyone can capture and report instantly — exactly like
@@ -156,18 +150,7 @@ question.
 
 ## The two layers — intrinsic vs. social **[the session's crown cut]**
 
-**(User, 2026-07-31: "traits are intrinsic — they represent who you
-are when no one else is around, so those interactions can be
-completely private and hardwired with no adjudication.")** This
-names a split the codebase has been observing without a word for it:
-
-| | **Intrinsic layer** | **Social layer** |
-|---|---|---|
-| **Measures** | what you *are* | what others *know* |
-| **Authority** | kernel — it knows what happened | per-viewer, contested |
-| **Truth** | exact | honestly foggy |
-| **Adjudication** | **none, ever** — nobody is being sanctioned; this is characterization, not judgment | courts, process, appeal |
-| **Members** | traits (`disposition_events`), alignment, competence (`transcripts`) | belief, regard, renown, testimony, the record-as-evidence |
+*The split + the rule between the layers → [measurement.md § Part 1 · Absorbed from enforcement-slate — the two layers](../../measurement.md) (homed 2026-09-22). Still open here:*
 
 So: **a lie moves your `honesty` axis the moment you tell it, unseen
 and unadjudicated** — a `disposition_event` written from ground
@@ -175,14 +158,6 @@ truth, because the trait ledger is not a courtroom and nothing is
 being *done to* you. Same shape as practicing archery alone in the
 woods and having the transcript know: the world simply records what
 occurred.
-
-**The rule between the layers: the intrinsic layer is never
-admissible in the social layer.** No court subpoenas your traits; no
-constable reads your disposition ledger. But the intrinsic layer
-**colors** the social one — traits already feed the regard baseline
-— so people *sense* something about you without ever proving it.
-"He seems shifty" is honest inference; "the ledger proves he lied"
-is inadmissible. Which is exactly how character works in life.
 
 ## Open questions (for requirements)
 

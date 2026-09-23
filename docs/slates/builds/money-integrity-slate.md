@@ -81,12 +81,11 @@ caught. Vault float is now *reported* (labelled "backed on-ledger") and
 excluded from the identity, which is what the original `continue` was
 doing all along.
 
-⭐ **The lesson worth keeping:** a term that looks like a missing reservoir
-may be a *duplicate* of one already counted elsewhere. Before adding
-anything to a conservation identity, ask what else already represents it.
-Finding 2's snapshot term has the same hazard in a different costume — a
-snapshot is a **copy** of state that may also be live, so it counts only
-for holders that are not currently resident.
+*The lesson (a term that looks like a missing reservoir may be a duplicate
+of one already counted — ask what already represents it before adding it to
+a conservation identity; the snapshot term is the same hazard) is housed at
+`banking.md § Open-choice decisions log` #12 and `§ Reporting consumers`
+(`fullReconcile`'s two subtleties).*
 
 # ⭐⭐ The reframe: the threat is an unreviewed call site, not an attacker
 

@@ -9,10 +9,11 @@
 > Durable wear · spoilage — and its reconciliation with the shipped
 > calendar shell clock · the smallholding + farm/ranch rungs' ascent gates ·
 > the Stewardship Discipline · the neglect consequence ladder · the premises
-> money half (metered utilities) · the salvaged apartment seams (rent
-> economics · prose-on-owned-items · co-lease · the owner-index cache ·
-> spatial carve-outs) · the blockers (region parcels · the allowance meter ·
-> a second city)
+> money half (metered utilities) · the salvaged apartment seams still here
+> (the compute-as-energy loop → property-slate · the owner-index cache ·
+> spatial carve-outs; rent economics + co-lease moved to tenancy,
+> prose-on-owned-items to dorm-warren) · the blockers (region parcels · the
+> allowance meter · a second city)
 > **Size:** a wave
 
 See also: [stewardship-slate](../builds/stewardship-slate.md) (the ladder, the allowance
@@ -21,7 +22,7 @@ cascade, the Stewardship Discipline) · [stewardship-doctrine](../../stewardship
 (the condition **inputs**) · [furnishing](../../subsystems/furnishing.md) +
 [residence](../../subsystems/residence.md) (the rungs) ·
 [parcel](../../subsystems/parcel.md) (title/tenure) ·
-[credit-slate](../builds/credit-slate.md) (the property floor — never seized) ·
+[credit-slate](credit-slate.md) (the property floor — never seized) ·
 [banking](../../subsystems/banking.md) (the money gate; metered utilities) ·
 [stewardship-doctrine § the recurring-charge
 call](../../stewardship-doctrine.md) (**what may and may not recur**).
@@ -192,10 +193,9 @@ exit (clean it up) is always cheap.
 The ladder is where stewardship teaches the **most transferable** real-life skills
 in the whole pillar:
 
-- ⭐ **Don't buy more than you can maintain.** "Obligations scale with what you
-  hold → over-holding is negative-sum" is a *personal-finance lesson lived rather
-  than lectured* — the single most common real-world money mistake (the
-  house/car/lifestyle you can't keep up), rendered as an honest mechanic.
+- ⭐ **Don't buy more than you can maintain.** — graduated 2026-09-21 to
+  [holding.md](../../subsystems/holding.md) § *Why the gate is condition
+  and not coin* (the shipped ascent gate's lesson).
 - **Property, tenure, and underwriting** — lease vs own, the landlord reference,
   the lender's look at how you kept the collateral. Why condition gates credit is
   *real* (a maintained asset is better security).
@@ -298,19 +298,13 @@ surface that outlived it. Verbatim below.*
 - **The compute-as-energy / stewardship loop** — property Phase 1; stewardship
   stays derived-on-read, never a flag. This build ships the persisting
   furnished home, not the energy meter over it.
-- **Rent economics** — payment schedules, metered sub-allowance, sublease
-  markets, the proprietor-as-Business P&L. The lease *relationship* ships; the
-  *economics* attach at `settle` + the Business account.
-- **Prose-on-owned-items personalization** (DECISION D5 in requirements) — the
-  whole-document write on an item's expressive prose fields; attaches at a
-  `PROSE_FIELDS` allowlist + the spine (instance state, carried free). Needs
-  chattel (this build) first.
+- *Rent economics — moved to [tenancy § Absorbed from residence-ladder-design-pack](./tenancy-design-pack.md#absorbed-from-residence-ladder-design-pack--deferred-seams-rent-economics--co-lease--roommate) (2026-09-21 cluster pass; tenure is that pack's subject).*
+- *Prose-on-owned-items personalization — moved to [dorm-warren § Absorbed from residence-ladder-design-pack](./dorm-warren-slate.md#absorbed-from-residence-ladder-design-pack--deferred-seams-prose-on-owned-items-personalization) (2026-09-21 cluster pass; what a player writes onto what they hold is that slate's subject).*
 - *Shipped: the holodeck portal fixture ([sandbox.md](../../subsystems/sandbox.md)
   — the wardrobe door), owned homes by title ([holding.md](../../subsystems/holding.md)
   — the Owned rung, `title buy`), and pets as ownable `Creature` chattel
   ([chattel.md](../../subsystems/chattel.md)).*
-- **Co-lease / roommate** — a use-grant of a use-grant (property §K sublet);
-  v1 is single-leaseholder.
+- *Co-lease / roommate — moved to [tenancy § Absorbed from residence-ladder-design-pack](./tenancy-design-pack.md#absorbed-from-residence-ladder-design-pack--deferred-seams-rent-economics--co-lease--roommate), beside its open question 5 (sublet); the roommate SHAPE is [household](./household-design-pack.md) Part 1.*
 - **The owner-index as a persisted rebuildable cache** — v1 warms in-memory at
   boot + maintains at the chokepoint; a `possession`-collection materialized
   cache (the `renown`/`bank_accounts` shape) attaches if boot-scan cost bites.

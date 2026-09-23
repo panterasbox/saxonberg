@@ -13,7 +13,7 @@ it dies. Nothing is harvested for money and nothing is farmed — the plant
 exists to prove the growth model and the object shape the rest of the family
 inherits.
 
-Seeded by [farming-slate § Houseplants](../slates/tails/farming-slate.md)
+Seeded by [farming-slate § Houseplants](../slates/builds/farming-slate.md)
 and governed by [ranching-slate § The five shared
 conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 [living-world-roadmap.md](../living-world-roadmap.md).
@@ -626,6 +626,20 @@ supposed to open.
 The row is still live rather than decorative: it accrues real evidence today,
 and the shipped `competence` verb reports its band.
 
+### Why competence sharpens instruments and never multiplies yield
+
+*(Graduated from farming-slate § Numbers, instruments, competence,
+2026-09-21.)* The standing rule behind *no conferrals* and behind the
+survey ladder's per-viewer error band ([soil.md § D5](./soil.md)):
+**competence buys precision and coverage — a better reading, an
+instrument the novice cannot use — and never a multiplier on the
+harvest.** The field always obeys physics; the human always supplies the
+reasoning. A `Farming Lv20 = +40% yield` bonus is rejected because it lets
+a player grind *past* the science instead of *through* it — the yield
+would then measure the odometer, not the understanding — which is why
+`Grade` stays a weakest-link function of the world and `horticulture`'s
+band is read by instruments, not by the plant.
+
 ---
 
 ## Deferred seams — attach points, not stubs
@@ -674,7 +688,7 @@ and the shipped `competence` verb reports its band.
   hearts-delight farmer runs `introduces`/`idles`) and nothing lets a
   player hire a hand for *their* ground. The ladder is unwired, not
   unbuilt; the design is [farming-slate § Maintenance & the automation
-  ladder](../slates/tails/farming-slate.md).
+  ladder](../slates/builds/farming-slate.md).
 
 ---
 
@@ -686,7 +700,7 @@ and the shipped `competence` verb reports its band.
 [retail.md](./retail.md) · [time.md](./time.md) ·
 [quantities.md](./quantities.md) ·
 [command-spec.md](./command-spec.md) ·
-[farming-slate](../slates/tails/farming-slate.md) ·
+[farming-slate](../slates/builds/farming-slate.md) ·
 [ranching-slate](../slates/builds/ranching-slate.md) ·
 [living-world-roadmap](../living-world-roadmap.md)
 

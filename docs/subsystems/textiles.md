@@ -435,6 +435,17 @@ would drift from the first (`trade-textiles/src/thing/TextileStock.ts`).
 staple. `yarnCount` is the one number only yarn carries, because the
 count is `spin`'s whole decision.
 
+⭐ **Dyeing is a textiles trade with a second customer waiting**
+(graduated from the cosmetics slate, 2026-09). Dye is not a cosmetics
+input — it is a *textiles* input, and cosmetics is a second customer of
+the same chain: cloth is dyed, hair is dyed, leather is dyed. So there is
+no cosmetics industry and there will not be one; hair dye is the dye
+chain's next customer once lineage ships an appearance substrate, and
+leather's once something produces hide. *A trade pack is complete when
+its output has a consumer* — `trade-dyeing` had cloth on the day it
+shipped and two more demands queued behind it, which is the strongest
+form of that test.
+
 ⚠ The fitting stanza is `measure figure`, and it shipped for a day as
 `measure customer`. Every other stanza on that view names the CHANNEL
 being read (`light`, `density`, `strike`, `dip`); `customer` named the
@@ -588,6 +599,32 @@ A spinner on 3/hr earns 24 a day, so a stock coat is **~8 days of her
 own labour** and a bespoke one is a month. ⭐ **A bolt is capital**
 (~480 minor ≈ 20 unskilled days ≈ 4 coats), which is what makes `cut`'s
 waste decision bite. ⚠⚠ **The numbers move together or not at all.**
+
+### ⭐ Why the shape is buyer-side
+
+*(Graduated from the textiles slate's Decision 12, 2026-09.)* The
+closest real analogue is FFXIV's glamour market, where a minority of
+crafters supplies nearly everyone — expect **overwhelmingly buy, not
+make**, and that is good: if everyone made their own clothes there would
+be no tailor and no livelihood. The businesses above are sized for that
+majority (the mill consigns to where the buyer already shops; `measure`
+is free), and a buyer's real want is to **change their look without
+re-buying** — which is why **dyeing, not tailoring, is the customization
+market's core loop**. You buy a garment rarely and recolour it often, so
+`dye` is the highest-frequency player-facing verb in the chain and the
+wash/fade loop is a retention mechanic rather than an attrition one.
+Hence the household pot as rung zero (`DyeVat.ts`): **evenness is what
+the dyehouse sells**; you go to a tailor to be measured but recolour
+your own coat at home, and that asymmetry — dyeing the domestic trade,
+tailoring the professional one — is what makes "recolour often" often.
+
+⚠ What the market may NOT be is a mint. A Fortnite skin is created from
+nothing and sold; this economy is conserved, and importing that model
+would punch a faucet through the middle of the chain. The appeal
+transfers anyway, and improves — a skin is desirable for scarcity plus
+provenance, and here both are real (the chain; the maker's mark on
+`CraftedMixin` and `authoring_events`). *A garment here can mean more
+than a skin, because somebody actually made it.*
 
 ## ⭐ Siting — the textile chain IS the nuisance-trade chain
 

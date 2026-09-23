@@ -32,7 +32,7 @@ See also:
 - [reputation-slate.md](./reputation-slate.md) /
   [../../subsystems/renown.md](../../subsystems/renown.md) — **credibility**
   as a renown consumer.
-- [farming-slate.md](../tails/farming-slate.md), the University content, and the
+- [farming-slate.md](farming-slate.md), the University content, and the
   gamification-mirror thesis — the pedagogy this is the engine for.
 
 ---

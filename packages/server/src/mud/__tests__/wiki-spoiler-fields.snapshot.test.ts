@@ -63,6 +63,23 @@
  *     its siblings `requiresHeatK` and `holdS`. ⭐ The split is the
  *     point: *that a working has a ceiling* is public, and *what the
  *     number is* is recipe knowledge you earn.
+ *
+ * **Fishing (3 fields).** All level 0:
+ *
+ *   - `Species.habitat` — what a species needs of a water and where in
+ *     its food web it sits. ⭐ This is the natural history a player is
+ *     MEANT to learn: the whole pedagogy claim of the fishery is that
+ *     where a fish is found is derivable from what it needs, and the
+ *     in-game read prints the limiter in words (*too warm for trout*)
+ *     and never a number. A panel printing the tolerances is the field
+ *     guide the angler is supposed to have read. `fightRating` rides
+ *     inside it and is not a weakness — it is what a hooked one does.
+ *   - `BondedMixin.homeEarnedDay` — a clock, beside its siblings
+ *     `homeCandidateDays` and `homeCandidateLastDay`, all level 0: when
+ *     an animal's home last moved is not a secret about the species.
+ *   - `ToolMixin.epoch` — which era an instrument is from (forestry's
+ *     hunk, pasted verbatim here so the two branches meet on it). A
+ *     stamp you can read off the tool by looking at it.
  */
 
 import { describe, it, expect } from 'vitest';

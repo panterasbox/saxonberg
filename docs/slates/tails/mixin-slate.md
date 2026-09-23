@@ -35,6 +35,16 @@ would only ever exist as a flag, it's a property on
 sim-physics layer collapses to property tags on `Thing`, and the
 affordance / state-effect / vehicle layers stay as mixins.
 
+*⚠ Contradicted in part (doctrine-homing pass, 2026-09-21): the
+first sentence is the live test, but the "flag ⇒ property" half is
+not how the tree went — a prop is only for a slot whose key is
+computed at runtime, and anything authored in YAML or narrowed on is a
+mixin field (`CLAUDE.md` § Go Through the API Layer, the props row);
+a pure flag that exists for a cross-cutting lookup is a legitimate
+**marker mixin** (`mixins.md` § Marker mixins); and the sim-physics
+layer shipped as per-domain substrate, not property tags (§ Properties
+on Thing, below). Kept as the argument, not the rule.*
+
 ---
 
 ## Properties on Thing

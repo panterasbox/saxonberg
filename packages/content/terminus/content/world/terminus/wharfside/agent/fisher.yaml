@@ -1,0 +1,51 @@
+# Ambrose Tull — the fisher on the bank, and ⭐ a reader with a rod, not a
+# supplier. He fishes the confluence bare-hooked on his own cadence and
+# lets everything go; ask him and he reads the water aloud FROM THE
+# RECORD, at the practised band — before your own eye can see it, and
+# with nothing about who emptied it when it is empty, because the record
+# holds no names.
+#
+# `props: [rod]` — his own tackle, which the `fishes` brain finds in his
+# inventory (the ask-the-owner rung). `reads-water` on `engage` is what
+# `talk fisher` reaches.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Ambrose Tull
+  keywords: [ambrose, tull, fisher, fisherman, angler]
+  shortDescription: fisher
+  register: definite
+  longDescription: >-
+    A narrow old man on an upturned crate at the top of the steps, a
+    cane rod across his knees and a line out in the brown water, who
+    has not looked at the float in the time you have been watching him
+    and would know the instant it moved.
+  archetype: fisher
+  prologue:
+    - "Has fished the confluence since the intake was a rumour, and says so."
+    - "Eats what he catches and sells nothing; has never once explained why."
+  competence:
+    - { discipline: fishing, asserting: expert }
+  dispositions:
+    - { disposition: sociability, valence: 30 }
+    - { disposition: composure, valence: 90 }
+  props:
+    - /trade/fishing/thing/rod
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /trade/fishing/behavior/fishes
+      trigger: cadence:90s
+      config:
+        shore: /world/terminus/wharfside/thing/river-edge
+    - brain: /trade/fishing/behavior/reads-water
+      trigger: engage
+      config:
+        shore: /world/terminus/wharfside/thing/river-edge
+        lines:
+          empty: "Nothing in it. Nothing. Somebody has had the lot, and it will be days."
+          thin: "Thin today. {{read}} Give it a day or two."
+          holds: "Eels run on the ebb, and the mullet come up with the tide. {{read}}"
+          apex: "{{read}} And there is a big one lies under the far bank. I have had him on twice."

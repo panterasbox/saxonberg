@@ -285,40 +285,11 @@ textiles.md § The presentation,
 
 ### ⚠ The market: Fortnite's model is a MINT, and cannot be imported
 
-A skin in Fortnite is **created from nothing and sold**. This economy is
-conserved — every good comes from the chain. Importing that model means
-punching a faucet through the middle of the thing.
-
-⭐ **But the appeal transfers, and improves.** What makes a skin
-desirable is scarcity plus provenance — *"I paid,"* or *"I was there in
-season three."* This world has **real** scarcity (the chain) and **real**
-provenance (`authoring_events` ships). So:
-
-> **A garment here can mean more than a skin, because somebody actually
-> made it.**
-
-That is Decision 9's costly signalling with the customization market as
-its payoff, rather than a cosmetic layer bolted beside the economy.
+*Graduated 2026-09-21 → [textiles.md § Why the shape is buyer-side](../../subsystems/textiles.md) (a conserved economy cannot import a skin mint; scarcity + provenance are real here — a garment can mean more than a skin because somebody made it).*
 
 ### ⚠⚠ Re-sort the build around the BUYER
 
-The closest real analogue is FFXIV, where glamour is enormous and a
-minority of crafters supply nearly everyone. Expect the same shape here —
-**overwhelmingly buy, not make** — and that is *good*: if everyone made
-their own clothes there would be no tailor and no livelihood.
-
-⚠ **But every wave in the original plan is producer-side.** The slate
-optimized for the person at the loom, which is the wrong majority. A
-buyer needs to find clothes they like, know what they are getting,
-commission something specific — and above all **change their look without
-re-buying.**
-
-⭐⭐ **Which reprioritizes one pack sharply: dyeing is the customization
-market's core loop, not tailoring.** You buy a garment rarely and
-recolour it often, so dyeing is the **highest-frequency player-facing
-surface in the entire chain** — not the third-listed customer of the
-other two. It is also where the wash/fade loop (Decision 7) becomes a
-retention mechanic rather than an attrition one.
+*Graduated 2026-09-21 → [textiles.md § Why the shape is buyer-side](../../subsystems/textiles.md) (overwhelmingly buy, not make; dyeing is the customization market's core loop — the domestic trade, rung zero at home; tailoring the professional one).*
 
 ### ⭐⭐ The skin economy, done honestly
 
@@ -490,7 +461,7 @@ genuinely bad, collapses the whole question back to a solved one.
 ## Cross-references
 
 **Consumed / discharged:**
-[cosmetics-slate](./cosmetics-slate.md) (⭐⭐⭐ *dye is a textiles input*;
+[cosmetics-slate](../tails/cosmetics-slate.md) (⭐⭐⭐ *dye is a textiles input*;
 open questions 1, 2, 4 and 9 carried forward) ·
 [trade-roster-slate](../tails/trade-roster-slate.md) (`textiles` + `leatherwork`
 GAP rows; `tailor`/`tanner` rostered) · [vocations.md](../../vocations.md)

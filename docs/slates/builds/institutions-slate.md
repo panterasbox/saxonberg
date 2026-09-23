@@ -45,7 +45,7 @@ See also:
 - [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
   — the money layer this sits on: the reserve's two lanes, the credit
   ladder, the Arrival Note, the player life-cycle and situs.
-- [credit-slate](./credit-slate.md) — the fiscal apparatus; its Part 6
+- [credit-slate](../tails/credit-slate.md) — the fiscal apparatus; its Part 6
   (local underwriting) lands at Goodkin here.
 - [corpos-slate](./corpos-slate.md) — the marks and the faction axis;
   **Part 6 below supersedes its roster's lore**, not its mechanics.

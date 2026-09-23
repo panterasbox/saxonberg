@@ -12,6 +12,8 @@ data:
   key: holloway
   name: the Holloway
   basin: holloway
+  # Soft and acid — the moor's peat. Cold, fast and thin: trout water.
+  water: { pH: 6.0, hardnessDgh: 3, nitrateMgL: 0.5 }
   nodes:
     - { name: head, elevation: 1100, catchmentKm2: 300 }
     - { name: vale, elevation: 300, channelWidthM: 14, catchmentKm2: 180 }

@@ -1107,6 +1107,25 @@ get a reason instead of being arbitrary, and the walk up the valley —
 35 m at the towpath, 130 m at the stop — is how a player learns the
 watershed.
 
+## The fishery record, and the tank's parameters (fishing B1, 2026-09)
+
+Two things the fishing build put on this pack. **`WatercourseCatalogue.
+waterStateAt(reach)`** reports every parameter a tank will ever hold —
+temperature (floored 274 K), current by hydraulic geometry when the
+channel is unauthored (`w = 5√Q`, `d = 0.4·Q^0.4`), salinity by distance
+to the sea, oxygen as saturation-at-temperature × turbulence, pH /
+hardness / nitrate seeded per course (`water:` blocks on the Watercourse
+rows) and flow-weighted at joins, ammonia and nitrite 0 in a river,
+contamination from `contaminationAt`. ⚠ Nothing consumes oxygen or nitrate
+in a river; they are reads (the BOD term that would let an outfall kill a
+reach is offered on the respiration tail slate). **`FisheryRegistry`**
+(`/system/water/idea/FisheryRegistry`, the `fishery` document kind) is the
+DERIVED population: one document per reach holding only `drawn` per
+species and `reconciledAtS`; capacity = habitat fit × abundance × reach
+length, recovery by half-life, `standingAt` / `readFor(band)` / `draw` /
+`release`. A node's `stocks:` overrides it. The trade meets it over a shape
+(`FisheryRead.ts`), never the class. Detail: [fishing.md](./fishing.md).
+
 ## Where the code lives
 
 | | |

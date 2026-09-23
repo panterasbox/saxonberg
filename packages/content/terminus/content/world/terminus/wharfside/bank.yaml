@@ -78,6 +78,11 @@ data:
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall
+    # ⭐ The river's edge — the water pack's `Shore`, and what makes the
+    # bank fishable: the city's Locality declares no reach (fishing D15).
+    - /world/terminus/wharfside/thing/river-edge
+  cast:
+    - /world/terminus/wharfside/agent/fisher
   details:
     river:
       keywords: [river, kestrel, water, confluence, delight]

@@ -1,0 +1,26 @@
+# A keepnet — the trap that draws nothing (B8). A long net bag on a
+# hoop, laid in the water beside you; what you land goes in it and
+# LIVES, because a laid trap with an interior is full of the water it
+# lies in and respiration reads the vessel a body is inside. `haul` it
+# and take them home — or open it and let them go. Keep or kill is
+# yours now, not the clock's.
+class: /trade/fishing/thing/Trap
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [keepnet, keep-net, net-bag]
+  primaryKeyword: keepnet
+  shortDescription: keepnet
+  register: indefinite
+  longDescription: >-
+    A long bag of knotted net on a wooden hoop, with a cord to stake it
+    to the bank. In the water it hangs open; what is put in it swims,
+    and stays.
+  mass: 1.2
+  capabilities: [trapping]
+  epoch: medieval
+  drawPerHour: 0
+  takesRoles: []
+  capacity: 12
+  interiorBulk: true
+  interiorCapacity: 60
+  _materialPath: /stuff/idea/material/textile/linen

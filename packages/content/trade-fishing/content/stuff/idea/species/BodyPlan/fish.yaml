@@ -1,0 +1,53 @@
+# Fish — the body plan of a thing that breathes WATER. One torso, a head,
+# a tail, gills where a lung would be; it swims and nothing else.
+#
+# ⚠ `breathableMedia: [water]` is the load-bearing line. `Respiration`
+# reads the body plan, not the species, and a plan that left the default
+# would read `['air']` — so a landed fish would be perfectly comfortable
+# in your hand and drown in its bowl. The species test pins it.
+#
+# It ships here rather than in the species commons because a pack owns
+# the rows it has a reason for (the `avian` precedent in trade-mining);
+# the path is the commons path, so nothing moves if it finds a permanent
+# home later.
+class: /platform/idea/species/BodyPlan
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: fish
+  slots: []
+  locomotionModes:
+    - swim
+  defaultLocomotionMode: swim
+  breathableMedia: [water]
+  respires: true
+  sensoryPorts:
+    - { modality: vision, count: 2, position: lateral }
+    - { modality: touch, count: 1, position: circumferential }
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.15 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.5 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.25 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.04 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.03 }
+    - key: body.tail
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.05 }
+    - key: body.torso.heart
+      parent: body.torso
+      governs: [heartRate]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.005 }
+    - key: body.torso.gills
+      parent: body.torso
+      governs: [respiratoryRate]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.01 }

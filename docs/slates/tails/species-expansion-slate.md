@@ -16,78 +16,9 @@
 
 ---
 
-## The principle: cast species by persona
-
-A species is **not** primarily biology in this design — it is **casting.** Pick
-a species whose **pop-culture persona** instantly characterizes the role, the
-way casting a known character actor pre-loads a part. Say "troll" and the player
-already feels the gruff, territorial, immovable threshold-guardian before a line
-is written. **The archetype does the negative-space carving work for free** — it
-carries the parts you'd otherwise chisel by hand (and NPC carves are expensive,
-so this is leverage).
-
-The test for a good cast: **the archetype matches the role's *function.*** Katie
-reads as a *troll* not randomly but because a troll *is* a bridge-keeper who
-decides who crosses and can be won over — which is exactly her job (she holds
-the keys, gates the room, "gang when she wants, boss when she has to"). When the
-persona and the function rhyme, the casting feels inevitable.
-
-## The gate: recognizability (audience-relative)
-
-The persona only does its work **if the audience holds it.** A reference the
-player doesn't recognize loads *nothing* — the shortcut fails and you've spent a
-"weird" slot for no payoff. And recognition is **audience-relative**: for this
-game's audience (Western, gamer, NetHack/D&D-literate), the shared vocabulary is
-essentially the **D&D / Tolkien / NetHack canon.** Cast from the library they
-actually own.
-
-This does **not** mean a monocultural world. Diversity comes from:
-
-1. **The breadth of the canon itself** — it's deep and full of distinct personas.
-2. **Mainstreamed global creatures** — ones that crossed into recognition
-   *through* D&D / anime / games and now read instantly: **naga, kitsune, oni,
-   djinn, ghoul.** These keep the world genuinely cross-cultural *without*
-   betting on obscurity.
-3. **Obscure folklore as *spice*** — domovoi, rusalka, kappa, leshy, selkie,
-   tengu, banshee, draugr, peri… used **only** when a *specific character*
-   carries the recognition load (the species isn't doing it alone) or with
-   in-world support. Never as load-bearing instant-cast. The cross-cultural
-   sentiment is on-brand; it's just subordinate to recognizability.
-
-**Respectful casting:** for personas from **living or sacred traditions** (naga,
-rakshasa, djinn, the spider-trickster), cast the *archetype* with care — evoke
-it, don't caricature a faith.
-
-## The allegory layer: stereotypes at a safe remove
-
-Beneath casting sits the *why*. Species are **defamiliarized vehicles for racial
-/ group allegory**: a real-world stereotype gets to *express itself* through a
-species' traits, so the game can **comment on** prejudice without dragging in
-real-life politics directly (the Le Guin move; §5's "strip the tribal triggers so
-people actually reason"). The engine fits it — **belief/recognition is "how a
-person is seen vs. who they are," and prejudice *is* that gap** (a viewer's
-projection), so a group bias is modeled **viewer-side, never as a species stat.**
-
-The craft that keeps it *commentary* and not *reproduction* (load-bearing):
-
-1. **The essentialism trap.** The allegory dies — and validates the bigotry —
-   the moment the stereotype is **true in the fiction** (orcs really evil = a
-   biological alibi). The prejudice must live as **projection, false-as-a-law.**
-2. **Abstract the dynamic; never reskin a real group 1:1** (caricature — and it
-   collapses the protective remove). A species carries the *mechanism* of a
-   prejudice, not a costume over one people.
-3. **Honest underdetermination** (§5) — leave "is it true?" unresolved
-   (*true-of-some, false-as-a-law* — how prejudice is actually wrong).
-4. **No "good one who escaped her kind"** (the model-minority trap) — an
-   admirable member is excellent *as* their kind, not by transcending it.
-
-Exemplar: **the ghoul** = the stigmatized death-caste (Dr. Vance) — necessary
-death-work, despised for its deathliness, falsely feared as predatory; *the
-contempt is the cover.* See her [sheet](../../staging/eternal-university/npcs/medical-examiner.md).
-
-A general aesthetic rides alongside: **lean into genre conventions hard, up to
-but not including cliché** — ride the recognizable convention, then swerve right
-before it goes predictable.
+> **Casting doctrine — graduated.** The principle (cast species by
+> persona), the recognizability gate, and the allegory layer's craft rules
+> now live in [race.md § Why the roster is cast by persona](../../subsystems/race.md#why-the-roster-is-cast-by-persona).
 
 ## Why this is the who-counts canvas, not just flavor
 

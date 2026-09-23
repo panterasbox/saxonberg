@@ -23,7 +23,11 @@
 > refusals · the calibration / certification gate · the author/test
 > bypass, decided before the gates land · the implant rung (Wave 2+ —
 > carried upgradeable, mounted frozen at install) · wheel speed on
-> `look` at a working mill (presentation)
+> `look` at a working mill (presentation) · the constraints absorbed
+> from sampling-and-labs § Part 7 (the step-1 inventory organised on
+> the portable/bench axis · certification-because-salting · Grade →
+> precision at the bench, portability in the field · the hand-tool rung
+> as step 2's first content)
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the press session's recording
@@ -70,36 +74,7 @@ model everything else already uses.**
 
 ## ⚠ The aether line — a modem is not a sense organ
 
-**(User correction, 2026-07-31 — load-bearing, and adjacent to a
-standing repeat-correction: the aether is just the internet, nothing
-more.)**
-
-The aether implant **mediates the aether**. That is its entire
-purpose: communication and information unbounded by physical space.
-A light meter is the *opposite* kind of device — it must **transduce
-physical reality at a location**. Nothing about connecting to a
-network gives you a photodiode.
-
-> **Rule: physical sensing can never ride the aether base.**
-
-Corrected base assignments:
-
-| Base | Carries | Never carries |
-|---|---|---|
-| **Aether (`Idea`)** | comms, the credential wallet, records access, **reference lookup** | any physical measurement |
-| **Corporeal (`Thing`)** | instruments that actually measure — **carried** in a pack or **installed** in a body slot (the difference is the slot, not the base) | — |
-| **Intrinsic** | species senses | — |
-
-**And the line pays for itself pedagogically, which is why it is the
-right line:** over the aether you can look up *what granite's
-conductivity is supposed to be.* You cannot tell whether **this rock**
-is granite without an instrument.
-
-> **The aether is the textbook; the instrument is the lab.**
-
-Reference knowledge vs. measurement — and the competent player does
-**both and compares**, which is literally how science works. The
-practicum thesis, living inside a single implant.
+*Homed 2026-09-22 → [augmentation.md § The three-base capability model · the base-assignment rule](../../subsystems/augmentation.md).*
 
 ## The three gates
 
@@ -253,6 +228,24 @@ more, who gets to see more, and what do you give up to keep seeing?**
 7. **The species-intrinsic roster** — which senses any species gets
    natively, and whether that is a balance lever or purely flavor.
 
+## Absorbed from sampling-and-labs-slate — Part 7 — What this answers in the parent slate
+
+> Moved verbatim from [sampling-and-labs-slate](./sampling-and-labs-slate.md) § *Part 7* by the cluster-merge pass (2026-09-21); its "Part 1/2/3" references are that slate's sections.
+
+Resolves, or sharpens, several of
+[instrumentation-slate](./instrumentation-slate.md)'s open questions:
+
+- **Q1 (channel/instrument mapping)** — Part 1 gives the organizing axis:
+  **environment-readers are portable; sample-eaters are bench.** The
+  mapping should be built along that split, not as one flat table.
+- **Q5 (certification authority)** — Part 3: certification exists because
+  **salting** exists. The reason precedes the institution.
+- **Q6 (instrument crafting / does Grade buy precision)** — the three-tier
+  ladder wants Grade to buy **precision** at the bench and **portability**
+  in the field; two different goods from one axis.
+- **Its "where to start" step 2 (author the instrument set)** — Part 2's
+  hand-tool rung is the cheapest, highest-value first content.
+
 ---
 
 # Session addendum — 2026-09-01: the mechanism, and why the retrofit is now urgent
@@ -294,13 +287,9 @@ Every symptom follows from that one gap:
 
 ## One thing that is accidentally right, and should be doctrine
 
-`Avatar.commandContributions` includes `analyze` on **`self`** — and
-**not** `measure`. `measure` is afforded solely by the ten instruments in
-`platform/thing/instrument/`. So the split this slate wants half-exists
-already, by accident:
-
-> **`analyze` is what you can work out. `measure` is what an instrument
-> tells you.**
+*Graduated (doctrine-homing pass, 2026-09-21): the `analyze`-on-self /
+`measure`-on-instrument split and its rule now live in
+[command-routing.md § Affordance attribution](../../subsystems/command-routing.md).*
 
 ## ⭐⭐ The model: the instrument holds the capability, not the view
 

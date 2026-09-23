@@ -60,7 +60,8 @@ was the obvious third service and it is unbuildable as an `order`:
 *"Death costs embodied agency and the price of coming back; it never
 costs a seat as a person."* A shade cannot purchase anything. The two
 routes out — a third-party payer, or an option on `passage` — are both
-real design, and neither is decided in passing. → mortality-slate.
+real design, and neither is decided in passing. → mortal-vessel-slate
+(§ *Absorbed from mortality-slate — The re-embodiment service*).
 
 ## The shared price-list (`PricedOfferMixin`)
 
@@ -117,6 +118,25 @@ Unlike the bar — which floats an unpaid drink — a store hands **nothing**
 over unless payment clears. The store account is the **Business** account
 (income + wages on one P&L), ensured lazily off `operatingLocations` via
 `EmploymentApi.ensureOperatorAt` (the `OrderController.charge` shape).
+
+⭐ **A bare shelf is SOLD OUT, not "isn't for sale here"** (the fishing
+build's live browser drive, 2026-09-22). `resolveBuy` only sees what is
+physically on the shelf, so a carried-but-empty line used to be refused
+as *"float-rod" isn't for sale here* — while the counter's own
+`getLong()` still listed it ("On the shelves: float-rod (11), keepnet
+(6)"). `Stock.carriesLine(keyword)` answers *does a stock LINE carry
+this word*, matched against the template **leaf** — which is exactly
+what that description prints — and `BuyController` refuses a carried
+line with reason `sold-out` and prose that says so. ⚠ The match is the
+leaf only: a player who types a keyword the shelf list does not print
+(`cane` for `…/thing/rod`) still falls through to `not-on-shelf`. Every
+`par: 1` line hits this the moment somebody buys the last one.
+
+⭐ **`buy` calls `item.followCustody()` after the stamp** (fishing B7,
+2026-09) — every other custody verb did; `buy` never had, and a bought rod
+vanished at the next restart. Both branches (a stock buy and a consignment
+buy). The fish stall (`market/thing/fish-stall.yaml`) is a second
+consignment counter with no lines of its own — self-service, capacity 40.
 
 ## Consignment — custody-vs-ownership (`consign` / `reclaim`)
 

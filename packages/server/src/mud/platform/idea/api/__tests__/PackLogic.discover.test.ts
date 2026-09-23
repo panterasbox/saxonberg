@@ -60,10 +60,11 @@ describe('the shipped packs (real discovery, no install)', () => {
   it('forty-seven ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); ranching after farming (farmstead P9 — pasture is a field); the lanes and the haulier after transport (logistics); the textile chain after farming; the city after every trade whose premises it hosts (economic bootstrap D6)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
     // ⭐ 43 → 46: the grain chain adds `trade-milling`, `trade-baking`
-    // and `hearts-delight`; 46 → 47: forestry adds `trade-forestry`. A
+    // and `hearts-delight`; 46 → 47: forestry adds `trade-forestry`;
+    // 47 → 48: fishing adds `trade-fishing`. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(47);
+    expect(ids).toHaveLength(48);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
@@ -117,6 +118,14 @@ describe('the shipped packs (real discovery, no install)', () => {
     for (const trade of ['trade-textiles', 'trade-dyeing', 'trade-tailoring', 'trade-cooking', 'trade-bottling', 'trade-distilling', 'trade-brewing', 'trade-farming', 'trade-winemaking', 'distribution']) {
       expect(ids.indexOf('terminus'), trade).toBeGreaterThan(ids.indexOf(trade));
     }
+
+    // ⭐ The fishing cut: the trade reads the water pack's register by
+    // path and ships nothing the water pack names, so it orders after
+    // water; Terminus casts the fisher with the trade's rod and brains,
+    // so it orders after the trade. The moor's mere is a WATER class in
+    // world-seed — no edge to the trade at all.
+    expect(ids.indexOf('trade-fishing')).toBeGreaterThan(ids.indexOf('water'));
+    expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-fishing'));
 
     // The watershed cut: the three packs whose content names the water
     // pack's classes (`/system/water/thing/Conduit`, `StorageNode`) or its

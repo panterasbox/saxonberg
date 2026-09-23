@@ -55,7 +55,7 @@ or a builder's trade. What remains commons is short: `Coin`, `Key`,
 
 The line that keeps this small: **a bottle comes from a trade; water
 comes down a pipe.** Utilities have their own model already — the
-[supply design pack](../builds/supply-design-pack.md) (planner-ready, unbuilt):
+[supply design pack](supply-design-pack.md) (planner-ready, unbuilt):
 *coverage is legal, connection is physical*; a source answers *"is
 anything coming out right now, and if not, why not"*; the recurring
 charge rides the stewardship doctrine. The bar must not get a bespoke

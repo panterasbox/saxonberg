@@ -1,0 +1,37 @@
+# ⚠ `lay`, not `set`: `set` is a SCRIPTING BUILTIN (`lib/script/builtins.ts`
+# — `set x y` binds a shell variable) and the interpreter takes every
+# line that starts with it before command dispatch ever sees a verb.
+# `lint:verb-collisions` now knows the builtins; the drive found this one
+# by typing `set pot` and getting silence.
+verbs: [lay]
+controller: /trade/fishing/idea/cmd/fishing/LayController
+description: "Lay a pot or a net in the water"
+help: |
+  `lay pot` puts the pot you are holding into the water here and marks
+  the spot; `lay net at the bank` says which water. Walk away. What the
+  water puts in it while you are gone is there when you `haul` it.
+
+  A pot takes the small things that crawl — crabs, mostly. A net takes
+  everything, fast, and a reach netted an afternoon is a reach with
+  nothing left in it for days. A keepnet takes nothing: `lay keepnet`
+  and `put` what you land in it, and it lives there until you `haul`
+  it — keep or let go is yours, not the clock's.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH TRAP — declared. `[capability.trapping]` in hand.
+  - name: trap
+    type: object
+    required: false
+    default: "me:i:[capability.trapping]"
+    scope: ["inventory"]
+    requires: [ToolMixin]
+  - name: shore
+    type: object
+    required: false
+    prepositions: [at, in]
+    default: "reachable:[class.Shore]"
+    scope: ["reachable"]
+    requires: any

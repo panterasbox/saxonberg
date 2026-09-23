@@ -26,19 +26,10 @@ pass — the conveyance / path-constraint family).
 
 ## Dealbreakers
 
-1. **No simulation, no tick, no stored state.** Procedural, computed-on-read.
-   The moment we store-and-tick weather, we've rebuilt the sim we rejected — the
-   lazy-compute discipline IS the guardrail.
-2. **Nothing may depend on weather.** Enrichment, never a gate or required
-   input; every subsystem must work with weather flat or absent (thermal already
-   does, on static biome authoring). No "wait for rain to proceed." The most
-   important one.
-3. **Stay a thin driver.** Weather doesn't own atmospheric *state* (biome) or
-   seasons / day-night (celestial) — it only *deviates* biome's reads.
-4. **No global-coordinate dependency, and no inter-zone geographic embedding.**
-   Coherence rides the addressing locality tree (logical), never zone geometry.
-5. *(Softer)* **game-time, not the in-session clock** (it rains whether you're
-   logged in); **ambient, not a chore.**
+*Graduated (doctrine-homing pass, 2026-09-21) → [weather.md § Why the
+dealbreakers bind every consumer](../../subsystems/weather.md). The
+operational restatement for the family consumers stays below (§ The rule
+every family consumer must honour).*
 
 ---
 
@@ -53,7 +44,7 @@ remaining problem is not a shortage of effects. It is sharper than that:
 > is raining are to type `analyze weather` or to notice a barometer. A world
 > whose sky is a *query* is not a world with weather in it yet.
 
-[fishing-slate](../builds/fishing-slate.md) claims the title of *"the first real
+[fishing-slate](../tails/fishing-slate.md) claims the title of *"the first real
 gameplay consumer of weather-as-a-system"*, and it is right to — everything
 downstream today is physical (temperature, wetness, puddles, light, shock
 conductivity), never a decision.
@@ -153,9 +144,9 @@ consume weather:
 > depending on it.
 
 **Status of the designed consumers: all designed, none built.**
-[farming](./farming-slate.md) (∫weather, GDD) ·
+[farming](../builds/farming-slate.md) (∫weather, GDD) ·
 [ranching](../builds/ranching-slate.md) (pasture, thermoregulation, winter feed)
-· [fishing](../builds/fishing-slate.md) (the catch distribution — claims first)
+· [fishing](../tails/fishing-slate.md) (the catch distribution — claims first)
 · [preservation](./preservation-slate.md) (the spoilage rate) · travel /
 crafting / combat (**genuinely zero coupling today** — confirmed by grep, and
 `LocomotionMode.costMultiplier` has no production reader at all).

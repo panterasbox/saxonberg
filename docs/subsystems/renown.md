@@ -14,6 +14,25 @@ Successor to reactions: it consumes the purpose-built `ReactionFiredEvent`
 that reactions shipped with no consumer, and adds a second input — passive
 *reception*.
 
+## Why measure, don't assign
+
+(Graduated from the reputation slate, 2026-09.) In tabletop you *roll*
+Charisma because you cannot actually be eloquent on command; the die
+stands in for a silver tongue. In a game where you **type your actual
+words**, the eloquence is real and present, and abstracting it into a
+stat would throw away the signal. So charisma cannot be an *input* here
+— only an output you observe — and once that is committed to, D&D's one
+scalar **unbundles into three things, none of which is a charisma stat**:
+**regard** (per-viewer attitude — a facet on the belief store beside
+`knownAs`), **renown** (the measured, signed aggregate) and
+**susceptibility** (how easily *this NPC* is swayed — the one authored
+knob, and it lives on the NPC, never on the player). The conflation was
+the only thing that made them look like one number. The corollary is
+the family's standing rule: **no die-gating of player social actions** —
+an argument works on its merits plus the NPC's susceptibility; renown and
+regard *feed* an NPC's decision, they never gate the player's input (the
+resolutional ban of [uncertainty.md](../uncertainty.md)).
+
 ## Where renown sits — the reputation family
 
 Two **axes** (esteem / orientation) over two **layers** (subjective /

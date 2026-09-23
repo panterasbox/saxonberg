@@ -33,6 +33,7 @@
     "@saxonberg/content-trade-textiles": "workspace:*",
     "@saxonberg/content-trade-winemaking": "workspace:*",
     "@saxonberg/content-transport": "workspace:*",
+    "@saxonberg/content-trade-fishing": "workspace:*",
     "@saxonberg/content-water": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

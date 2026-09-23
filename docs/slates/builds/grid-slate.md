@@ -35,8 +35,10 @@ a topology question, a land-development question, and a review question.
 
 Related: [delivery-slate](./delivery-slate.md) (⭐⭐ **the topology — read §
 Distribution first**), [power-utility-slate](./power-utility-slate.md) (the
-supply ref; the middle tier), [mana-economy-slate](./mana-economy-slate.md)
-(sources, nodes, capacitors), [parcel.md](../../subsystems/parcel.md)
+supply ref; the middle tier),
+[mana-economy-design-pack](./mana-economy-design-pack.md) (sources, nodes,
+capacitors — `mana-economy-slate.md` retired into it 2026-09-21),
+[parcel.md](../../subsystems/parcel.md)
 (`subdivide` / `transfer` — the dedication primitives),
 [address.md](../../subsystems/address.md),
 [boundary.md](../../subsystems/boundary.md) (exits carry the service),

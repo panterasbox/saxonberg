@@ -1,0 +1,19 @@
+# A crab pot — wicker, weighted, with a funnel mouth. The pot and the net
+# are one class and two rows: this one is slow, takes only what crawls,
+# and holds two.
+class: /trade/fishing/thing/Trap
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [pot, crab-pot, trap]
+  shortDescription: crab pot
+  register: indefinite
+  longDescription: >-
+    A wicker pot weighted with a stone, with a funnel mouth things go
+    into and do not come out of. A rope on a ring at the top.
+  mass: 2
+  capabilities: [trapping]
+  epoch: medieval
+  drawPerHour: 0.4
+  takesRoles: [bait, forage]
+  capacity: 2
+  _materialPath: /stuff/idea/material/wood/oak

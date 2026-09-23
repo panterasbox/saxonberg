@@ -1,0 +1,25 @@
+# The fish stall — ⭐ a consignment counter, not a buyer (fishing D11).
+# A Stock with NO stockLines that composes the consignment shelf, the
+# produce stalls' shape exactly: nobody pays anybody until a buyer buys.
+# `consign mullet --ask 4` lists it; a buyer's `buy` splits the ask to
+# the consignor's account less the market's commission; `reclaim` takes
+# an unsold fish back. And no shelf lists what has turned.
+#
+# `staffingPolicy: self-service` — the monger keeps the stall (the
+# roster, the shift), but their absence never blocks a consignment.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: fish stall
+  keywords: [fish-stall, fishmonger, slab, marble, fish, stall]
+  register: definite
+  longDescription: |
+    A marble slab under a striped awning, wet and cold, with a gutter cut along the front edge and a bucket under it. What is on it came out of the river this morning or it is not on it, and the chalk by each fish is its owner's ask.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [monger]
+  businessPath: /world/terminus/market/business
+  stockLines: []
+  prices: {}
+  listingCapOverride: 40

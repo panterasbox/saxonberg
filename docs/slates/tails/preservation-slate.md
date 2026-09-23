@@ -4,19 +4,22 @@
 > Cured), salt, the salt-cure recipe and drying all shipped
 > → [spoilage.md](../../subsystems/spoilage.md)
 > **Left:** the acidity term `f_pH` (pickling as a `MaturationProfile` row
-> + one read) · the sealing decision (binary until a consumer wants a
+> + one read; ⚠ inherits the fermentation/spoilage `Vat` collision —
+> absorbed from food-safety 2026-09-21) · the sealing decision (binary until a consumer wants a
 > hurdle multiplier, never a flora model) · the agricultural year (winter
 > stores) · the trade geography spoilage creates · salt as a mined and
 > taxed staple
 > **Size:** a wave
 
-See also — the chain: [fishing](../builds/fishing-slate.md) (the driver) ·
+See also — the chain: [fishing](../tails/fishing-slate.md) (the driver) ·
 [mining](../builds/mining-slate.md) (**salt** — the counterplay and a taxed staple) ·
-[farming](./farming-slate.md) (winter is meaningless without this) ·
+[farming](../builds/farming-slate.md) (winter is meaningless without this) ·
 [ranching](../builds/ranching-slate.md) (meat + dairy) ·
 [crafting](../builds/crafting-slate.md) (the preserving branch) ·
 [economy](../builds/economy-slate.md) (**Law 2** — read it first) ·
-[disease](../builds/disease-slate.md) (**the same equation** — see below). Substrates:
+[disease](../builds/disease-slate.md) (**the same equation** — see below) ·
+[food-safety](../builds/food-safety-slate.md) (the endeavour half, shipped;
+its `f_pH` attach point absorbed here 2026-09-21). Substrates:
 [metabolism.md](../../subsystems/metabolism.md) (the toxicity socket
 + `ptomaine`) · [weather.md](../../subsystems/weather.md) (**the wetness
   gauge**) · [thermal.md](../../subsystems/thermal.md) ·
@@ -85,6 +88,20 @@ Two consequences:
    demands sealing physics it lands as a hurdle multiplier, never a
    flora model.
 
+#### Absorbed from food-safety-slate — the `f_pH` attach point
+
+*(Moved here at the 2026-09-21 cluster pass; this section is the lever's
+one home. The collision it names is documented at
+[spoilage.md](../../subsystems/spoilage.md) § ⚠⚠ Fermentation is the one
+collision to watch — a vat that tabulates an `Ea` will read its own
+ferment as rot — and the profile class is `MaturationProfile` today
+([maturation.md](../../subsystems/maturation.md)); the moved text's
+`FermentProfile` is its older name.)*
+
+- **`f_pH`** — the fourth hurdle beside temperature, water activity and time.
+  A `FermentProfile` row plus one read. ⚠ Inherits the unresolved `Vat`
+  name collision.
+
 **Completeness, concretely: the term set is small and finishes in two
 builds** — `f_T` + `f_aw` in the spoilage core, the kill step with
 cooking, `f_pH` here. After that any method anyone names — authored or
@@ -117,7 +134,7 @@ organises itself with nothing scripted:
 > Preservation is the bridge, and autumn is when you build it.**
 
 Emergent rather than authored — the inversion falls out of a temperature-driven
-rate against [farming § Winter](./farming-slate.md)'s 7.5-real-day, globally
+rate against [farming § Winter](../builds/farming-slate.md)'s 7.5-real-day, globally
 synchronised season.
 
 **It also solves the fridge problem.** If cold storage were cheap year-round,
@@ -132,7 +149,7 @@ winter and dear in summer — the pressure inverts exactly when it must.
 > have a *range*, and preserved goods can cross it.**
 
 That is why salt cod existed — and both [mining](../builds/mining-slate.md) and
-[fishing](../builds/fishing-slate.md) already name the salt-cod route as their
+[fishing](../tails/fishing-slate.md) already name the salt-cod route as their
 interlock. Preservation converts a map into a **trade geography**: local markets
 for the fresh, long routes for the cured, and a real industry sitting between
 them.

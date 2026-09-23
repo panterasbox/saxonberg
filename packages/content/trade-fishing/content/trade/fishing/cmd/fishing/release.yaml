@@ -1,0 +1,22 @@
+verbs: [release]
+controller: /trade/fishing/idea/cmd/fishing/ReleaseController
+description: "Let a fish go"
+help: |
+  `release <fish>` puts a fish you are holding back into the water here.
+  It goes back into what the reach holds. A dead fish cannot be released.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: fish
+    type: object
+    required: true
+    scope: ["inventory"]
+    requires: any
+  - name: shore
+    type: object
+    required: false
+    prepositions: [at, in, into]
+    default: "reachable:[class.Shore]"
+    scope: ["reachable"]
+    requires: any

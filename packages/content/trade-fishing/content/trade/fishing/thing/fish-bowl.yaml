@@ -1,0 +1,21 @@
+# A fish bowl — ⭐ a Feeder with a bigger interior, and nothing else: a
+# carp in it breathes the water it holds (respiration reads the vessel
+# it is inside), eats the crumbs put in it (a feeder of its rung), and
+# earns its home there (three fed days), on entirely shipped machinery.
+#
+# `interiorCapacity: 4` litres; fill it from a tank or a standpipe. A
+# bowl of fouled water is a bowl a fish does not breathe in.
+class: /platform/thing/Feeder
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: glass fish bowl
+  register: indefinite
+  primaryKeyword: bowl
+  keywords: [bowl, fish-bowl, fishbowl, glass]
+  longDescription: >-
+    A round glass bowl, a little green at the base, big enough for a
+    fish that does not want to go anywhere.
+  mass: 1.5
+  feederKind: bowl
+  interiorBulk: true
+  interiorCapacity: 4

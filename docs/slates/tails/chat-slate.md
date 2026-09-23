@@ -16,7 +16,10 @@
 > per-channel spam throttles · the two anonymity seams (disguise on a
 > `permitted` channel · an authored `anonymity:` on a seeded subject) ·
 > the generative-axes model (a place / an activity binding — unverified
-> against the three-kinds decision)
+> against the three-kinds decision) · regional channels (a zone-scoped
+> channel — Q6, absorbed from comms) · `retention: 'logged'` + `chat_log`
+> and the `ordered` procedure's discipline (the chat-surface extensions
+> absorbed from forums, with their bounds/vocabulary questions Q7–Q8)
 > **Size:** a wave
 
 Working slate for **chat channels** — guild chat, party lines, global
@@ -48,7 +51,7 @@ See also:
   facade itself.
 - [augmentation-slate.md](../tails/augmentation-slate.md) — the device carrying every
   channel; history framed as its storage.
-- [emotes-slate.md](../tails/emotes-slate.md) — sibling expression channel; the
+- [emotes-slate.md](../builds/emotes-slate.md) — sibling expression channel; the
   reactions hook (`tags`) and the gutter message-id are shared.
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) —
   **`MudlogApi` + topics: the game-event feed, explicitly NOT chat.**
@@ -163,6 +166,27 @@ and roles (group defaults + per-channel override):
 - **name / topic / description**.
 - **the role overlay**.
 
+### Absorbed from forums-slate — Chat surface (`retention: 'logged'` + `procedure`)
+
+*Verbatim from forums-slate § Part 0 › Data model (cluster pass: the
+channel config is chat's). Vocabulary as written there; what shipped is
+`Channel.subject` and the `procedure` FLAG as `'open' | 'ordered'`
+(`'ordered'` behavior deferred) — chat.md § Since forums cycle-1,
+forums.md § The four surfaces. `retention: 'logged'` + `chat_log` and the
+ordered discipline itself are the open part; the two open questions that
+ride them are Q7–Q8 below.*
+
+- **Chat surface** — the existing `Channel`, extended to carry a `subject`
+  ref, a **`retention`** policy (`'ring'` default, the ephemeral 200-buffer of
+  today; `'logged'` — every frame persisted to a `chat_log` collection), and a
+  **`procedure`** mode (`'free'` default; `'rules-of-order'` — a recognized-
+  speaker / motion-and-second discipline for digital deliberation). Ephemeral
+  subjects default chat to `logged` (so the synchronous floor debate is
+  captured complete and sealed into the archive) and may opt into
+  `rules-of-order`; standing high-volume chat stays `ring` / `free`. (Chat-
+  subsystem extensions, not new machinery; `procedure` is a parked surface
+  policy — design deferred.)
+
 ---
 
 ## History, catch-up, offline
@@ -259,6 +283,22 @@ Most forks are leaned; these remain:
    plane; confirm at requirements.
 5. **Cross-posting / channel bridging** — almost certainly out; flag if
    wanted.
+
+*Absorbed from comms-slate — Open questions Q3 (cluster pass: chat owns
+the place-binding axis, § The generative axes):*
+
+6. **Regional channels.** A channel scoped to a zone (a bridge between
+   acoustic locality and implant networks)? Worth considering.
+
+*Absorbed from forums-slate — Open questions (the chat-surface
+extensions; the design is § The channel config block › Absorbed from
+forums-slate):*
+
+7. **Procedure mode (`rules-of-order`)** — the digital deliberation discipline
+   (recognized speaker, motion/second/amend). Parked: vocabulary + enforcement
+   TBD; default `free`.
+8. **Chat-log bounds** — does a `logged` chat have any cap / pruning; can a
+   standing subject opt into `logged`; archived-log storage/retention.
 
 ---
 

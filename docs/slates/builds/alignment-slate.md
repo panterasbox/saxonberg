@@ -11,11 +11,14 @@
 > (self-view · ambient tilt via the register cascade · focal omens),
 > reflection-only · NPC gravity seeded as claim-evidence + the legibility ×
 > honesty grid · `Corpo` → `Faction` with role-weighted gravity and
-> dot-product reception · per-faction standing over renown
+> dot-product reception · per-faction standing over renown · the
+> interdependent-roles / co-op community-health design (the DRG lesson,
+> needs reconciling with shipped consented PvP)
 > **Size:** a build
 
-*(Supersedes the preliminary
-[alignment-religion-slate](./alignment-religion-slate.md).)*
+*(Supersedes the preliminary alignment-religion-slate, retired
+2026-09-21 — its one remaining item, the DRG community-health design, is
+absorbed above.)*
 
 Alignment is the world's read on *what a soul serves*. It is a **derive-on-read
 consumer**, never a stored stat — the [chronicle](../../subsystems/chronicle.md)
@@ -288,6 +291,34 @@ virtue is a capture-tell; true presence is quiet). The only residual is an
 authored **per-NPC** performativity brushstroke — characterization, bounded, not
 a player-facing economy.
 
+## Absorbed from alignment-religion-slate — Alignment (the DRG lesson)
+
+**Harm lives OFF the alignment grid.** The Law axis is *order ↔ freedom* (a
+**stance**), not a harm-ledger — "a good killed a good → unlawful?" is a
+category error. Community-health is a **mechanics problem, not a
+morality-classification problem** (the **Deep Rock Galactic** lesson):
+
+- conflict points **outward at the *other*** (= evil-as-antagonist; the
+  same reason Eternal City's PvP kill-zone Heart was rejected);
+- **interdependence** makes cooperation the winning play — the **aspiration
+  archetypes are complementary roles** (Healer / Guardian / Builder /
+  Seeker / Mentor / Founder = a DRG-style squad);
+- **shared goals, reviving/help mechanics, camaraderie rituals**
+  (ESP-emotes → a "Rock and Stone" salute culture).
+
+So "no evil players" and "a DRG-quality community" are the *same design*:
+everyone's on the good side, the enemy is out there, the mechanics reward
+pulling together. (Conflict model = fundamentally **PvE-narrative** —
+load-bearing for the eventual combat/quest/wilderness design.)
+
+*(Moved verbatim from the retired alignment-religion-slate § Alignment. ⚠
+**Flagged, not reconciled:** the closing *PvE-narrative* framing predates
+shipped **consented PvP** — [combat.md](../../subsystems/combat.md) § Terms
+& consent, the bar-fight build's consent/blame ledger. The community-health
+mechanics — interdependence, reviving/help, camaraderie ritual — are not
+contradicted by that; the *PvE-only* conclusion is. A future co-op/party
+build must reconcile rather than inherit it.)*
+
 ## What ships (fidelity)
 
 Surface the **headlines** (a Good-row cell + a Law↔Chaos band, as bands/prose);
@@ -307,6 +338,10 @@ conviction verbs; the mirror ships reflection-only.
   own session; the grid above is the canon skeleton).
 - **Per-god valence authoring at scale** — only a starter set of dual-use domains
   rides measured direction at first.
+- **The interdependent-roles / co-op party design** (the DRG mechanics,
+  absorbed from alignment-religion-slate) — reconcile its *PvE-narrative*
+  framing with shipped consented PvP before building; owned by no other
+  slate today.
 - **Richer estimators** — cross-component propagation, explicit drift-inertia
   (inherited from trait's deferred list).
 - Whether **Aletheia** is pickable at creation or Chapel-only — a char-gen content
@@ -340,4 +375,6 @@ from factions) · [governance](../../subsystems/governance.md) /
 register cascade) · [story-bible.md](../../story-bible.md) §Alignment/§Gods (the
 canon) · [eternal-university-narrative-slate](./eternal-university-narrative-slate.md)
 (the honest count / the Registrar) · [corpos-slate](./corpos-slate.md) ·
-[reputation-slate](./reputation-slate.md) · [cooperative-slate](./cooperative-slate.md).
+[reputation-slate](./reputation-slate.md) · [cooperative-slate](./cooperative-slate.md) ·
+[combat](../../subsystems/combat.md) (consented PvP — the DRG block's
+*PvE-narrative* framing needs reconciling with it).

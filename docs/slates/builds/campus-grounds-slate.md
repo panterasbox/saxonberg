@@ -541,6 +541,21 @@ archive's shelves contain.
 carry them; the author flagged their own uncertain numbers deliberately.
 Do not quietly resolve them into confident values.
 
+### Absorbed from eternal-university-slate — the v1 roster's "An academic hall" bullet + Open question 7
+
+*Moved verbatim by the cluster pass (2026-09-21): the EU place slate's
+scoping of the hall differs from Part 8 in one detail — it ships the hall
+as texture with no lessons in v1 — and that detail is Open question 13
+here, not a settled matter. Kept in the older slate's words so the
+difference is visible.*
+
+> - **An academic hall** — a recognizable lecture building, present as campus
+>   *texture* and a **future hook** where education-vertical content plugs
+>   in. v1 ships **no lessons inside it** (that's the vertical's job).
+
+> 7. **Education-vertical content surface** (lessons inside the academic
+>    hall) — deferred to the education vertical; the hall is the hook.
+
 ---
 
 ## Part 9 — ⭐⭐ The eatery, and the production/consumption asymmetry

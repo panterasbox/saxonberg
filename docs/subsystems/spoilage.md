@@ -778,6 +778,20 @@ ale starts to be spoilable. That is a fermentation build's decision, not
 this one's, and it is written down here so it is a decision rather than a
 surprise.
 
+## A carcass, and its cuts (fishing A3/A5, 2026-09)
+
+**`Postmortem.freshnessLoad()`** — a dead body's flesh spoils on the
+shipped law from its `diedAtGameSec`, so a landed fish that dies in the
+hand reads *dead, and fresh* → *beginning to turn* → *turned* → *rotten*
+in the shipped band words (fishing's `turnedLine`), and a shelf refuses
+past `fresh` ("turned" = not `fresh` — `Bonded.wouldEat`'s rule, so an
+animal and a shelf agree). **`ButcherController` carries the carcass's own
+contamination onto every cut** — a fish landed below the outfall carries
+the city's `e-coli` in its flesh (`Fish = ContaminableMixin(KeptAnimal)`;
+nothing else kept can — the `Weapon` lesson), and the fillet inherits it.
+⚠ `butcher` is afforded by the cookhouse block only; the transfer is a unit
+test, not a driven act.
+
 ## Deliberate deferrals
 
 - **Wetness does not feed water activity.** A rain-soaked biscuit really

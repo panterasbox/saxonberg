@@ -280,7 +280,7 @@ authored by three rows, and was read by nothing… This is the arm that
 fills it."* Somebody found a declared-and-unread field and **added an
 arm** — and `signature`, `resolution` and `contagion` are three more such
 fields, which the
-[consequence build](./slates/builds/consequence-slate.md) is about to
+[consequence build](./slates/tails/consequence-slate.md) is about to
 wire. So the gate ships in that build's **W0**, before any of it.
 
 The rule it enforces: a condition's **progression law** (decay · logistic

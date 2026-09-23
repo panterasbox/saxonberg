@@ -25,7 +25,7 @@ land-use power). Stage + pedagogy: [demo-slate](./demo-slate.md) (**the aid
 post** — "the wishbook's clinical daily loop made real"; the health-cohort cut)
 · [eternal-university-slate](./eternal-university-slate.md) ("a nursing
 scenario" as a named vertical the un-genre campus hosts) ·
-[farming-slate](../tails/farming-slate.md) (§ *The University & the external-mastery
+[farming-slate](farming-slate.md) (§ *The University & the external-mastery
 seam* — the credential design this vertical is the best fit for) ·
 [advancement.md](../../subsystems/advancement.md) (the `medicine` Discipline,
 shipped).
@@ -57,28 +57,7 @@ already committed to for other reasons.
 
 ## The clinical-reasoning trainer we built by accident
 
-Three shipped decisions combine into one:
-
-1. **Honest opacity** — no gauges; you read the world, not a stat.
-2. **`observableSigns`** — every `Condition` already carries prose signs
-   (`[nauseous, cramping, sweating]`).
-3. **A catalog with overlapping signs** — **eleven authored conditions ship
-   today**: hyperthermia, hypothermia, torpor, asphyxiation, starvation,
-   ptomaine, lead, venom, alcohol, dread, overchannel-strain.
-
-> **Differential diagnosis therefore *emerges* rather than being scripted.**
-> Flushed, sweating and disoriented is consistent with hyperthermia, with a
-> toxin burden, and (once disease lands) with an infection. Separating them
-> takes more signs, a history, or an instrument.
-
-That is the thing scripted clinical sims structurally cannot do, because their
-scenarios have one correct answer fixed in advance. Ours has a **simulated
-patient whose state derives from a model**, so the reasoning is real even when
-the case is unremarkable.
-
-**The anti-wiki rule carries over verbatim from farming:** knowing influenza's
-sign set never tells you that *this patient* has it. Knowledge is portable; the
-assessment is not skippable.
+*Homed 2026-09-22 → [harm.md § The medic vertical · why the diagnosis loop is a trainer](../../subsystems/harm.md).*
 
 ---
 
@@ -113,7 +92,7 @@ incomplete observation** — the scientific method with a deadline.
 
 The game's loop *is* that loop: observe signs → hypothesise → gather more
 (instrument, history) → intervene → evaluate whether it worked. Which is the
-same shape [farming](../tails/farming-slate.md) teaches with soil and
+same shape [farming](farming-slate.md) teaches with soil and
 [ranching](./ranching-slate.md) teaches with body condition.
 
 > **The transferable skill is not "nursing." It is structured diagnostic
@@ -213,7 +192,7 @@ and it is the thing a content committee would actually run.
 
 ## Where the education thesis lands best
 
-[farming-slate](../tails/farming-slate.md) designed the **external-mastery seam**:
+[farming-slate](farming-slate.md) designed the **external-mastery seam**:
 complete real course material → get trained in-game; demonstrate real, proctored
 mastery → capability feeds back, riding the shipped
 [credential](../../subsystems/credential.md) substrate, with the chronicle's

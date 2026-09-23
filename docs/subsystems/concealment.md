@@ -326,6 +326,18 @@ capacity, `search`, and `disarm`. **No `conferrals`** — `search` / `look` /
 `disarm` are universally afforded; competence only *grades* them, it doesn't
 gate the menu. See [advancement.md](./advancement.md).
 
+### Why a secret is a reward, never a path — the content discipline
+
+*(Absorbed from `concealment-detection-slate` § Thesis 3, 2026-09-21.)*
+The gate above is a competence check a viewer can FAIL, so what authors
+put behind it is a rule, not a taste: **secrets are rewards and
+shortcuts, not required paths.** The immersive-sim multi-pathway — a
+secret door is *a* way, never *the* way; no critical content sits behind
+a hard perception wall, or if it must, it is heavily hinted and
+deducible (the `concealmentHint` line exists for exactly this). A locked
+`hidden` exit that is the only route forward turns a Discipline into a
+toll. **Discovery is a beat, not a tax.**
+
 ## The care↔speed detection axis
 
 Two new `LocomotionMode` singletons (`seeds/lib/locomotion/sneak.yaml`,

@@ -63,6 +63,11 @@ Markers used below: **[DECIDED]** locked in the conversation ·
    un-underwritten arrangement. This is the **anti-magic / anti-exploit**
    keystone — see §5.
 
+*Items 2 · 3 · 5 · 6 are shipped and their why is housed:
+[contract.md](../../subsystems/contract.md) (opening paragraph; § Why — the
+labor market routes fun; the engine verifies only what it simulates). The
+spine stays whole here as the frame §§6–8 still hang off.*
+
 See also:
 
 - [combat-tactics-slate](../tails/combat-tactics-slate.md) — the
@@ -274,11 +279,9 @@ resorting to "the agent just magically knows."
   confirmed* (the bounty authority certifies the kill). Engine omniscience
   stays backstage; the player only ever meets grounded verification. **If
   you can't ground it, that's the signal it isn't contractible.**
-- **[DECIDED] The agent's real job is specify / pay / react /
-  bear-spec-risk** — the significance layer (§1's "can't code
-  significance"), *never* witness. A badly-specified condition (deliver an
-  empty box that satisfies the letter) is the agent's risk to eat and
-  learn from.
+- *The agent's real job (specify / pay / react / bear-spec-risk — never
+  witness) shipped as the issuer's side of the gig and is housed at
+  [contract.md](../../subsystems/contract.md) § Why.*
 
 ### 5.3 The gig (an achieve clause that settles)
 
