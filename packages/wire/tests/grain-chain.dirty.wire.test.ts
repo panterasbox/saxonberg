@@ -55,7 +55,7 @@ declareFile({
 });
 
 const CROSSROADS = '/world/terminus/delight-road/crossroads';
-const MILLSITE = '/world/hearts-delight/location/millsite';
+const MILLSITE = '/world/terminus/hearts-delight/location/millsite';
 const BAKERY = '/world/terminus/market/bakery';
 const WHARFSIDE = '/world/terminus/wharfside/bank';
 

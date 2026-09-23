@@ -11,9 +11,8 @@ description: >-
   same stand cuts the timber the mine shores with — two consumers, one
   supply.
 requires:
-  groups:
-    - name: fuel
-      purpose: the fuel trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/fuel, holder: { group: fuel } }
+    - { extent: /trade/fuel, holder: { organization: /compact/trade } }

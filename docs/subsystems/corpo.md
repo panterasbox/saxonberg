@@ -167,7 +167,7 @@ is now a real bottle in a trade or corpo pack.
   (independent — empty `owner`).
 - The branded bottles are real floor product, and they live in the
   **trade** pack: Volk and the unbranded Veshko liquid under
-  `/trade/distilling/location/veshko-yard/thing/` (resolves to Veshko), Old Hollis /
+  `/world/terminus/goods-yards/veshko/thing/` (resolves to Veshko), Old Hollis /
   Hollis Cane under `/trade/distilling/thing/`, and Crowsfoot under
   `/trade/distilling/thing/` (resolves to a null corpo) — end-to-end mark
   resolution + the derived perception line on a working `Bottle`. The

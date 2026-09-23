@@ -310,8 +310,13 @@ actually refused — an ordinary command pays nothing for the lookup.
   floor. v1 ships the `holdsOffice` check surface those consult but wires
   only the Governor.
 - **Chambers as populations**, **terms / tenure / term-limits**, and a
-  *generic* "requires office X" validator (deferred to the second
-  office-gated verb — v1 uses the specific `requiresGovernor`).
+  *generic* "requires office X" validator. ⚠ **The condition this
+  deferral named has been met**: the economic bootstrap shipped the
+  second office-gated verb, and with it a second hand-written twin
+  (`requiresFinanceMinister` beside `requiresGovernor`). A third copy is
+  the signal to parameterize; what stops it today is that a view's
+  `validators:` entry is a bare path with nowhere to put the office key,
+  so the parameterized form needs a schema change, not just a factory.
 
 
 ## ⚠ Open: `office assign` cannot find an online player
@@ -349,6 +354,17 @@ founder-default seat at once. That is a blunter instrument than the
 design intends and is marked INTERIM at `e2e/tests/helpers.ts`; the
 intended shape (seat one ordinary character in one office) returns as
 soon as this is fixed.
+
+## Three more seats (economic bootstrap, 2026-09)
+
+`Office` gains `minister-of-finance` (appropriates from the treasury —
+`treasury appropriate`; `requiresFinanceMinister`), `minister-of-trade`
+(the organization `/compact/trade` holds every `/trade/<x>` and `/stuff*`
+extent — the trade groups are gone) and `registrar-of-corporations` (owns
+each corpo's `<key>-committee` group; the committee appoints the corpo's
+business). The Governor of the Reserve reads and sets `reserve.*` only.
+Committees are title holders, players only — `lint:committees-are-players`
+holds the count at zero. See [credit.md](./credit.md).
 
 ## History
 

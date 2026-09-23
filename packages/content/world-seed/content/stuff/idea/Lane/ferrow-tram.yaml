@@ -34,11 +34,11 @@ data:
   mode: ""
   seeds: []
   edges:
-    - { from: /world/rejection/location/adit, to: /world/rejection/location/pithead-yard }
-    - { from: /world/rejection/location/pithead-yard, to: /world/rejection/location/adit }
+    - { from: /world/terminus/rejection/location/adit, to: /world/terminus/rejection/location/pithead-yard }
+    - { from: /world/terminus/rejection/location/pithead-yard, to: /world/terminus/rejection/location/adit }
   # Both ends are stops: a tramway with a halt in the middle would be a
   # different lane, and this one is two points and the iron between them.
   stops:
-    - /world/rejection/location/adit
-    - /world/rejection/location/pithead-yard
+    - /world/terminus/rejection/location/adit
+    - /world/terminus/rejection/location/pithead-yard
   operator: ""

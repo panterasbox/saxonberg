@@ -16,14 +16,14 @@ describe('the domain-local provision verb', () => {
     // path (`getCommand` resolves that against MUD_ROOT, not `cmd/`). The
     // Duncan Hall dorm `provision` verb is an exemplar.
     const cmd = CommandApi.getCommand(
-      'world/eternal/duncan-hall/cmd/provision.yaml'
+      'world/terminus/eternal/duncan-hall/cmd/provision.yaml'
     );
     expect(cmd, 'domain-local provision.yaml must load').not.toBeNull();
     expect(cmd!.verbs).toContain('provision');
     // Its resolved controller is the content-namespace template path
     // (dispatch clones it directly).
     expect(cmd!.resolvedController).toBe(
-      '/world/eternal/duncan-hall/idea/cmd/ProvisionController'
+      '/world/terminus/eternal/duncan-hall/idea/cmd/ProvisionController'
     );
   });
 });

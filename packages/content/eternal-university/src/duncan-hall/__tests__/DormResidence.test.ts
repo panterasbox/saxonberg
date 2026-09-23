@@ -45,6 +45,7 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
+import { CompactApi } from '@saxonberg/server/mud/api/compact';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -68,9 +69,9 @@ function col(collection: string): Doc[] {
 // The born-with fixtures a DormRoom seeds, declared as `props:` data (the
 // same list the real dormroom.yaml carries) — no longer a class const.
 const FIXTURES = [
-  '/world/eternal/duncan-hall/thing/bed',
-  '/world/eternal/duncan-hall/thing/desk',
-  '/world/eternal/duncan-hall/thing/footlocker',
+  '/world/terminus/eternal/duncan-hall/thing/bed',
+  '/world/terminus/eternal/duncan-hall/thing/desk',
+  '/world/terminus/eternal/duncan-hall/thing/footlocker',
 ];
 
 function seedDomain(): void {
@@ -78,33 +79,33 @@ function seedDomain(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
-  add(DormWarren.WARREN_PATH, '/world/eternal/duncan-hall/idea/DormWarren');
+  add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren');
   // ⭐ The theme catalogue is a SINGLETON Idea now, not a class of statics
   // — so the test world has to seed its row like any other singleton.
-  add(DormThemes.CATALOGUE_PATH, '/world/eternal/duncan-hall/idea/DormThemes');
+  add(DormThemes.CATALOGUE_PATH, '/world/terminus/eternal/duncan-hall/idea/DormThemes');
   // D16 step 2: the unit's degenerate one-room programme row.
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
     floorplan: [{ room: DormRoom.SCOPE, entry: true }],
     upkeepTerm: 'institution-all',
   });
-  add(DormRoom.SCOPE, '/world/eternal/duncan-hall/location/DormRoom', {
+  add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/location/DormRoom', {
     shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
     props: FIXTURES,
   });
-  add(DormWarren.CORRIDOR_TEMPLATE, '/world/eternal/duncan-hall/location/Corridor', {
+  add(DormWarren.CORRIDOR_TEMPLATE, '/world/terminus/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'a dorm corridor',
   });
-  add(DormWarren.LOBBY_PATH, '/world/eternal/duncan-hall/location/Corridor', {
+  add(DormWarren.LOBBY_PATH, '/world/terminus/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'the lobby',
   });
-  add(FIXTURES[0]!, '/world/eternal/duncan-hall/thing/Bed', {
+  add(FIXTURES[0]!, '/world/terminus/eternal/duncan-hall/thing/Bed', {
     shortDescription: 'a narrow bed',
   });
-  add(FIXTURES[1]!, '/world/eternal/duncan-hall/thing/Desk', {
+  add(FIXTURES[1]!, '/world/terminus/eternal/duncan-hall/thing/Desk', {
     shortDescription: 'a plain desk',
   });
-  add(FIXTURES[2]!, '/world/eternal/duncan-hall/thing/Footlocker', {
+  add(FIXTURES[2]!, '/world/terminus/eternal/duncan-hall/thing/Footlocker', {
     shortDescription: 'a footlocker',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
@@ -225,11 +226,10 @@ function reset(): void {
    */
   vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
-  // ⭐ The dorms-staff check is `AccessApi.isAgentOf` since the statics
-  // sweep (it was `ProvisionController.isDormsAgent`, duplicated
-  // verbatim in terminus). Stub the question being asked, not the
-  // wizard short-circuit inside it.
-  vi.spyOn(AccessApi, 'isAgentOf').mockResolvedValue(true);
+  // ⭐ The dorms-staff check is `HallController.mayProvision` (economic
+  // bootstrap D8): staff of the college, or the hall's committee. Stub
+  // the committee arm — the question being asked, not a wizard bit.
+  vi.spyOn(CompactApi, 'isCommitteeMember').mockResolvedValue(true);
 }
 
 const snapshots = () => col('holder_snapshots');

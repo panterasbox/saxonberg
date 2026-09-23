@@ -1,0 +1,22 @@
+# Quist's farm — the Business entity behind the shelf.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hearts-delight/agent/farmer
+  positions:
+    - key: farmer
+      noun: farmer
+      label: working the bench
+      wageRate: 3
+      confers: [MakerMixin]
+  rosterSlots:
+    - positionKey: farmer
+      assignee: /world/terminus/hearts-delight/agent/farmer
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/hearts-delight/location/farmstead-yard
+    - /world/terminus/hearts-delight/bench-field/location/upper-bench

@@ -1,6 +1,6 @@
 # Onboarding slate (working doc)
 
-> **Status: PARTIAL** — `enroll` shipped →
+> **Status: PARTIAL** — `embody` shipped →
 > [char-gen.md](../../subsystems/char-gen.md); the lounge login-landing +
 > bar shipped → [fasttravel.md](../../subsystems/fasttravel.md),
 > [location.md](../../subsystems/location.md); Katie's dorm handover

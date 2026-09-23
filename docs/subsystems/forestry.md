@@ -426,7 +426,7 @@ when they write a farm where the wood used to be, not a verb.
 | `…/content/stuff/idea/species/plantae/…` | the eight trees |
 | `…/content/stuff/idea/biome/outdoor/woodland.yaml` | the woodland biome (at the commons path; the base library's biome directory is a pinned demonstrative set) |
 | `packages/content/base-library/content/stuff/idea/material/wood/*` | the eight woods |
-| `packages/content/rejection/content/world/rejection/hanging-wood{.yaml,/}` | the venue: zone, treeline, ride, oak-clearing, hazel-cant, `thing/panel-{north,west}` |
+| `packages/content/rejection/content/world/terminus/rejection/hanging-wood{.yaml,/}` | the venue: zone, treeline, ride, oak-clearing, hazel-cant, `thing/panel-{north,west}` |
 | `packages/server/src/mud/lib/husbandry/Growing.ts` | `harvestTool`, `discipline` |
 | `packages/server/src/mud/platform/thing/Plant.ts` | `standardMaterialPath` |
 | `packages/server/src/mud/lib/craft/Tooled.ts` | `epoch` |

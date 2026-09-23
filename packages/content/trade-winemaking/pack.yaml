@@ -13,12 +13,8 @@ description: >-
   at target — the floor-bottle faucet is retired, every bottle is a
   batch the cellars beat made); and three pours.
 requires:
-  groups:
-    - name: winemaking
-      purpose: the winemaking trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/winemaking, holder: { group: winemaking } }
-boot:
-  - { template: /trade/winemaking/location/vintner-floor, role: producer, reason: "the outfit's yard — its Stock is the home container the floor bottles spawn into, and its hand runs the consigns brain" }
-  - { template: /trade/winemaking/idea/vintner-outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+    - { extent: /trade/winemaking, holder: { organization: /compact/trade } }

@@ -232,7 +232,7 @@ of silently).
 > v1 shipped with exactly one currency, no exchange. *Credit — WANTED,
 > deferred, not rejected* — superseded: credit is no longer just wanted,
 > it has a full requirements doc,
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md),
+> [credit.md](../../subsystems/credit.md),
 > seeded by the (now-compacted)
 > [credit-slate](../tails/credit-slate.md). The rename-frees-the-word-`credit`
 > argument is history — the rename already shipped.

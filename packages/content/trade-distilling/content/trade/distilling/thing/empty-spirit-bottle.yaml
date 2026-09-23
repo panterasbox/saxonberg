@@ -11,4 +11,4 @@ data:
   category: spirit-bottle
   censusKey: vessel:spirit-bottle
   regionTarget: 10
-  container: /trade/distilling/thing/crowsfoot-stock
+  container: /world/terminus/goods-yards/crowsfoot/thing/stock

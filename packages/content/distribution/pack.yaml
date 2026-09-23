@@ -18,14 +18,10 @@ description: >-
   brewer's mash and the distiller's wash draw from until a malting
   trade earns its pack (the vocations demand test).
 requires:
-  groups:
-    - name: distribution
-      purpose: the distribution trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/distribution, holder: { group: distribution } }
-boot:
-  # ⚠ The ROOM's boot entry lives in `terminus`, with the room. A
-  # showroom on a named avenue is a place; the counter, the clerk and the
-  # racking in it are still this pack's.
-  - { template: /trade/distribution/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }
+    - { extent: /trade/distribution, holder: { organization: /compact/trade } }
+# The premises' boot entries moved to `terminus` with the rows (economic
+# bootstrap D6): a trade is placeless; its floor is the city's.

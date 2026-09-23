@@ -9,11 +9,19 @@ description: >-
   `parentOrganization` points here. Veshko MAKES — in the trade pack.
 maintainers: { organization: /corpo/veshko }
 requires:
-  # The organization holds its own branch — which is what makes it the
-  # committee over /corpo/veshko (the subsidiaries' appointing authority)
-  # — the only extent a corpo pack holds (a branch or an HQ would be
-  # another; a yard is the trade's, a franchised store its neighborhood's).
+  groups:
+    # ⭐ The corpo's COMMITTEE (economic bootstrap D7; the institutions
+    # slate's committee/show split): the concept gets an officer, the
+    # instance gets a committee. The Registrar of Corporations owns this
+    # group and seats it (the `soul` precedent — the seat adds members
+    # with the `group` verb; players only, never by being hired). Empty
+    # at boot → the founder, through the Registrar's seat.
+    - name: veshko-committee
+      purpose: the committee over Veshko — who answers when the corpo fails
+      owner: { office: registrar-of-corporations }
+  # The committee holds the corpo's branch; the organization is the show.
+  # A hired clerk is staff; the showrunner may also play the CEO.
   title:
-    - { extent: /corpo/veshko }
+    - { extent: /corpo/veshko, holder: { group: veshko-committee } }
 boot:
   - { template: /corpo/veshko, role: producer, reason: appoint and the chart reads resolve the organization by templatePath }

@@ -89,8 +89,8 @@ describe('the publishing entitlement', () => {
   it('⭐ AC 8 — a committee member holding no publishing position is REFUSED', async () => {
     stubTitle();
     vi.spyOn(GroupApi, 'isMember').mockImplementation(
-      async (playerId: string, ref: string) =>
-        ref === GROUP_REF && playerId === 'member',
+      async (memberKey: string, ref: string) =>
+        ref === GROUP_REF && memberKey === '/platform/agent/Avatar/member',
     );
     const org = makePressOffice();
     const member = makeAvatar('member');

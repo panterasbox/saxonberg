@@ -3,10 +3,13 @@ controller: /platform/idea/cmd/governance/OfficeController
 description: "Inspect government offices; the founder hands seats off"
 help: |
   The seats of government — a fixed apparatus of named offices, each held
-  by a single officeholder. There are five: the Prime Minister, the three
-  House Speakers (Producer / Patron / Consumer), and the Governor of the
-  Central Bank. Every office is held by the founder by default until it is
-  explicitly handed off; vacating a seat reverts it to the founder.
+  by a single officeholder. There are eight: the Prime Minister, the three
+  House Speakers (Producer / Capital / Consumer), the Governor of the
+  Central Bank, the Minister of Finance (the Treasury), the Minister of
+  Trade (the trades and the commons) and the Registrar of Corporations
+  (the corpos' committees). Every office is held by the founder by default
+  until it is explicitly handed off; vacating a seat reverts it to the
+  founder.
 
   `offices` (or `office list`) shows the public roster — every office, its
   branch and origin, and who currently holds it. The roster is public:

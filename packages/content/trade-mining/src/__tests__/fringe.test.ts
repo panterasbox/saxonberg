@@ -31,7 +31,7 @@ import Deposit from '../idea/Deposit';
 import type { Point } from '../idea/Deposit';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const REJECTION = join(HERE, '..', '..', '..', 'rejection', 'content', 'world', 'rejection');
+const REJECTION = join(HERE, '..', '..', '..', 'rejection', 'content', 'world', 'terminus', 'rejection');
 
 const GOETHITE = '/stuff/idea/material/mineral/goethite';
 const SIDERITE = '/stuff/idea/material/mineral/siderite';
@@ -205,7 +205,7 @@ describe('the claim geometry the fringe rooms were placed to satisfy', () => {
 
     // The independent walked out here first, and first come is the rule.
     expect(claimFor(cellOf('location/fringe-claim.yaml'))?.parcelExtent)
-      .toBe('/world/rejection/ferrow/claims/2');
+      .toBe('/world/terminus/rejection/ferrow/claims/2');
     // Further on, nobody has spoken for it.
     expect(claimFor(cellOf('location/far-fringe.yaml'))).toBeNull();
   });

@@ -50,6 +50,6 @@ data:
       destination: /world/terminus/counting-houses/avenue-block
   props:
     - /trade/distribution/thing/racking
-    - /trade/distribution/thing/counter
+    - /world/terminus/counting-houses/distributor/thing/counter
   cast:
-    - /trade/distribution/agent/clerk
+    - /world/terminus/counting-houses/distributor/agent/clerk

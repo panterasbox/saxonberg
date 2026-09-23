@@ -32,7 +32,7 @@ See also:
 - [economy-slate](./economy-slate.md) — Law 1 / Law 2, the conservation
   loop, employment as an agent-agnostic slot, the value-add rule. The
   substrate this rides.
-- [credit-slate](../tails/credit-slate.md) — the fiscal apparatus, the enroll
+- [credit-slate](../tails/credit-slate.md) — the fiscal apparatus, the arrival
   stipend, the standing facility, the guardrails (discharge, property
   floor, the 13th module).
 - [../../vocations.md](../../vocations.md) — the demand test, the four
@@ -145,7 +145,7 @@ onto vocations.md's four payment shapes:
   disburse), which vocations.md already flags as *"not one gap among four
   — the gap that unlocks an entire class of work,"* the public teacher
   included.
-- The **enroll stipend** (credit-slate: one of only three mint sites) is
+- The **embody stipend** (credit-slate: one of only three mint sites) is
   the launch faucet — fine to bootstrap a new student, but minted, so not
   the model.
 

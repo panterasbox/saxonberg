@@ -58,6 +58,12 @@
  * materialized on demand), `ask` minor units by census key, `defaultAsk`
  * for a good whose key the table lacks (default 10), `batch` goods per
  * beat (default 6).
+ *
+ * ⭐ The listing's BASIS is the counter's policy, not this config's
+ * (economic bootstrap D11): at a `purchasing: terms` counter the `--ask`
+ * is the supplier's price — what the outfit is owed at sale — and the
+ * shop prices the good itself; at a consignment counter it is the ask.
+ * A counter that carries a stock LINE for the good takes only to par.
  */
 
 import { MixinApi } from '../../api/mixin';
@@ -73,6 +79,7 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
 import type { Employed } from '../employment/Employed';
+import Stock from '../../platform/thing/Stock';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
@@ -117,15 +124,24 @@ export const brain = class {
     const outfits = await (hand as unknown as Stuff & Employed).buysFor();
     const outfit = outfits[0];
     if (!outfit) return;
-    const cap = listingCap();
+    // The shelf's own cap where it authors one (the cash-and-carry, the
+    // produce stalls), else the global dial — the same rule `consign`
+    // itself applies, or the hand stops carrying under a ceiling the
+    // counter does not have.
+    const cap = shelf.getListingCapOverride() ?? listingCap();
     const headroom =
       cap > 0
         ? Math.max(0, cap - shelf.activeListingCount(outfit.getTemplatePath() ?? ''))
         : Number.POSITIVE_INFINITY;
     if (headroom <= 0) return;
     const batch = Math.min(positiveInt(ctx.config.batch, DEFAULT_BATCH), headroom);
+    // ⭐ A shelf that carries a LINE for the good (economic bootstrap
+    // D11/D14: a `terms` counter with a par) takes only up to par — the
+    // supplier fills the shortfall, never the shop's back room. A good
+    // with no line on the shelf is a brokerage listing as before.
+    const room = shelfHeadroom(shelf);
     const goods = (stock.getContents() as Stuff[])
-      .filter((g) => MixinApi.isChattel(g) && MixinApi.isPerceptible(g))
+      .filter((g) => MixinApi.isChattel(g) && MixinApi.isPerceptible(g) && room.take(g))
       .slice(0, batch);
     if (goods.length === 0) return;
     const counterRoom = shelf.getContainer();
@@ -175,8 +191,9 @@ export const brain = class {
     // goods in hand; they are still the outfit's, and the next beat
     // carries them to the board rather than stranding them.
     void before;
+    const room2 = shelfHeadroom(shelf);
     const carried = (hand.getContents() as Stuff[])
-      .filter((c) => MixinApi.isChattel(c) && !MixinApi.isCredentialWallet(c)) // the house card is chattel too — not for sale
+      .filter((c) => MixinApi.isChattel(c) && !MixinApi.isCredentialWallet(c) && room2.take(c)) // the house card is chattel too — not for sale
       .slice(0, Number.isFinite(headroom) ? headroom : undefined);
     if (carried.length === 0) return;
 
@@ -237,11 +254,40 @@ export const brain = class {
   }
 } satisfies BrainStatics;
 
+/**
+ * A keyword the good ANSWERS TO. ⚠ The primary keyword is not always one:
+ * a `Bottle`'s constructor names itself `bottle` and a row that authors
+ * `keywords: [coffee, sack, beans]` leaves that primary standing outside
+ * its own list — so `get 1 bottle` found nothing, the beat stopped at its
+ * first good, and the pantry never delivered a sack. Found by the
+ * economic bootstrap's drive.
+ */
 function keywordOf(good: Stuff): string | null {
   if (!MixinApi.isPerceptible(good)) return null;
   const primary = good.getPrimaryKeyword();
-  if (primary) return primary;
-  return good.getKeywords()[0] ?? null;
+  if (primary && good.hasKeyword(primary)) return primary;
+  return good.getKeywords()[0] ?? primary ?? null;
+}
+
+/**
+ * The shelf's per-line headroom (`par − onHand`) for goods the shelf
+ * carries a stock line for, counted down as goods are taken; a good with
+ * no line is unbounded here (the per-consignor cap still applies).
+ */
+function shelfHeadroom(shelf: Stuff): { take: (good: Stuff) => boolean } {
+  const left = new Map<string, number>();
+  return {
+    take: (good: Stuff): boolean => {
+      if (!(shelf instanceof Stock)) return true;
+      const path = good.getTemplatePath() ?? '';
+      const line = shelf.lineFor(path);
+      if (!line) return true;
+      const n = left.get(path) ?? Math.max(0, line.par - shelf.onHand(path));
+      if (n <= 0) return false;
+      left.set(path, n - 1);
+      return true;
+    },
+  };
 }
 
 /** The ask for a good: its census key in the table, else the default. */
@@ -288,6 +334,15 @@ function positiveInt(v: unknown, fallback: number): number {
  * blocked**: the goods stay in hand and the next beat tries again.
  * Nothing here routes around anything, because auto-routing would hide
  * the geography the road was built to make real.
+ *
+ * ⚠⚠ **This is the ONE non-vehicle caller of the lane router, and it is
+ * deliberately not shared.** Its errand is genuinely cross-district (a
+ * producer's yard to a city counter); a shop's keeper crossing its own
+ * street walks AUTHORED directions instead (`stocks`), because a search
+ * over a freight network to reach the building opposite is not a route,
+ * it is a category error. Whether one pathfinder should serve every
+ * consumer is open — docs/slates/builds/pathfinding-slate.md — and until
+ * it is answered nothing promotes this out of the brain that needs it.
  */
 async function walkTo(hand: Hand, targetPath: string): Promise<void> {
   const here = hand.getContainer()?.getTemplatePath() ?? '';

@@ -86,7 +86,7 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
     for (const l of lines ?? []) {
       expect(["L", "count", "kg"], l.category).toContain(l.unit);
       expect(l.level, l.category).toBeGreaterThan(0);
-      if (l.supplier) expect(l.supplier).toBe("/trade/distribution/idea/business");
+      if (l.supplier) expect(l.supplier).toBe("/world/terminus/counting-houses/distributor/idea/business");
     }
     expect(lines?.find((l) => l.category === "coupe")?.level).toBe(12);
     expect(lines?.find((l) => l.category === "ice")?.unit).toBe("kg");

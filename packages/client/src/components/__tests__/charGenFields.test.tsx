@@ -8,7 +8,7 @@
  * have:
  *
  *   a field the client's screen config does not mention could be
- *   silently DROPPED, while still gating `enroll confirm` through
+ *   silently DROPPED, while still gating `embody confirm` through
  *   `missing` — leaving the player on a Continue button that never
  *   enables, with nothing on screen explaining why.
  *
@@ -140,7 +140,7 @@ describe('char-gen renders what the server sends', () => {
     // It names the field and the escape hatch, so the player is never
     // stuck without a way to set it.
     expect(hatched.textContent).toMatch(/point budget/);
-    expect(hatched.textContent).toMatch(/enroll budget/);
+    expect(hatched.textContent).toMatch(/embody budget/);
   });
 
   /**

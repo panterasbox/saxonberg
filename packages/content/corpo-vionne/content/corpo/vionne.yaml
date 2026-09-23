@@ -32,9 +32,13 @@ class: /platform/idea/Organization
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   label: Vionne
+  # The corpo's committee appoints (economic bootstrap D7): whoever holds
+  # /corpo/vionne — the `vionne-committee` group, seated through the Registrar of
+  # Corporations, the founder by default — fills the chart. Being hired
+  # onto it confers no seat on the committee.
   appointingAuthority:
-    kind: office
-    office: prime-minister
+    kind: committee
+    parcel: /corpo/vionne
   positions:
     # One position, and it is the one the docs kept promising an answer to.
     - key: chief-executive

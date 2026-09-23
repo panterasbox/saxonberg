@@ -1,0 +1,19 @@
+# The Crowsfoot outfit's stock — the Stock the floor product spawns INTO (every crowsfoot row's
+# `container:`). No `stockLines` (the spawn sweep is the faucet, never a
+# reset), no prices (nothing is sold here — the hand carries it to the
+# cash-and-carry and consigns it). Composes the shelf mixin like every
+# Stock, unused here.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: crowsfoot stock
+  keywords: [stock, cases, pallet, bottles, crowsfoot]
+  register: definite
+  longDescription: A pallet of cased bottles waiting for the dray — the Crowsfoot outfit's run, stacked by the door.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /world/terminus/goods-yards/crowsfoot/idea/outfit
+  stockLines: []
+  prices: {}

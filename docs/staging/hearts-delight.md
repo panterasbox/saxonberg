@@ -1,7 +1,7 @@
 # Heart's Delight — the locality (design, staging)
 
 > **Target seeds:** a new pack, `packages/content/hearts-delight/` ·
-> `content/world/hearts-delight/**` · a `Locality` row at
+> `content/world/terminus/hearts-delight/**` · a `Locality` row at
 > `world-seed/.../Locality/hearts-delight.yaml` · ⚠ it must claim its own
 > namespace root if it ships any `src/` (`classFileOf` resolves by longest
 > prefix).

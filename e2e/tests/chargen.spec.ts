@@ -96,7 +96,7 @@ test('a new player creates a character and spawns into the world', async ({
 
     // Step — species. Each step's options are driven by the server's
     // `system.charactergen.state` frame; clicking a card sends the literal
-    // `enroll <field> <value>`. Auto-wait covers the first state frame
+    // `embody <field> <value>`. Auto-wait covers the first state frame
     // still being in flight. `human` is used because its Species template
     // (sapiens, sex-determination `xy`) reliably exposes the conditional
     // sex step below, so this spec exercises every step.
@@ -122,7 +122,7 @@ test('a new player creates a character and spawns into the world', async ({
       'Lifespan',
     );
 
-    // Live-fire: clicking a card sends `enroll species human` immediately.
+    // Live-fire: clicking a card sends `embody species human` immediately.
     // The pick round-trips through the server, so wait for the card to
     // register as selected (aria-pressed) before Continue — otherwise the
     // client's canAdvance gate is still false and Continue is disabled.

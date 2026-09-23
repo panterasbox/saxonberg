@@ -15,9 +15,8 @@ description: >-
   A venue supplies the orebody, the room prose and the ecology; that is
   the falsifiable line — a second mining town needs ZERO pack code.
 requires:
-  groups:
-    - name: mining
-      purpose: the mining trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/mining, holder: { group: mining } }
+    - { extent: /trade/mining, holder: { organization: /compact/trade } }

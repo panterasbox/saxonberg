@@ -115,6 +115,10 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // `requiresWizard`, so a non-author sees nothing (no employment
         // relationship yet — operator == wizard in v1).
         'platform/cmd/banking/reserve.yaml',
+        // The Treasury's surface (economic bootstrap D9) — the Minister of
+        // Finance's book and appropriation; `requiresFinanceMinister`
+        // gates the act, the affordance sits beside the reserve's.
+        'platform/cmd/banking/treasury.yaml',
         'platform/cmd/banking/house.yaml',
         // The content-pack installer's operator surface — `pack status /
         // install --dry-run / sync / diff / resolve / pin`. Afforded on the

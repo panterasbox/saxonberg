@@ -46,7 +46,7 @@ data:
     # nothing, which is what "the last counted mile" is supposed to feel
     # like on the way in.
     south:
-      destination: /world/rejection/kestrel-road/yard-gate
+      destination: /world/terminus/rejection/kestrel-road/yard-gate
       media: [ground]
       edgeMinutes: 12
   details:

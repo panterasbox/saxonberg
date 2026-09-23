@@ -20,7 +20,7 @@
  * campus every beat would be a lot of walking for a putty knife).
  *
  * config: `{ extent: string, batch?: number }` — the parcel extent whose
- * holdings this agent keeps (`/world/eternal/duncan-hall/units`,
+ * holdings this agent keeps (`/world/terminus/eternal/duncan-hall/units`,
  * `/world/terminus/mayfield-row/seznick-house/units`), and how many
  * holdings to work per beat (default 3, so a big building is covered
  * over several beats rather than in one thundering pass).

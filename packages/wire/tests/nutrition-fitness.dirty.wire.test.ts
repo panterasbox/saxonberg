@@ -63,10 +63,10 @@ declareFile({
 
 const CROSSROADS = '/world/terminus/delight-road/crossroads';
 const BANK = '/world/terminus/counting-houses/banking-hall';
-const SMITHY = '/world/hearthworks/location/smithy';
+const SMITHY = '/world/terminus/hearthworks/location/smithy';
 const STORE = '/world/terminus/general-store/shop-floor';
 const BAKERY = '/world/terminus/market/bakery';
-const WINZE_HEAD = '/world/rejection/ferrow/winze-head';
+const WINZE_HEAD = '/world/terminus/rejection/ferrow/winze-head';
 
 /** The dials the season turns, and what they are turned to. */
 const SEASON: Record<string, string> = {

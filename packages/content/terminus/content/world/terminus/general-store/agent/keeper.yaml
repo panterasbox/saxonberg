@@ -1,5 +1,6 @@
-# Odell Marrow — the general store's keeper (the Business proprietor). Not on
-# the roster: she covers the till unpaid (the proprietor draws no wage), an old
+# Odell Marrow — the general store's keeper (the Business proprietor). On the
+# roster in the unwaged `keeper` seat (the proprietor draws no wage) so the
+# house card is dealt to her and her `stocks` beat trades as the house; an old
 # hand who's outfitted three generations of delvers and buried some of them.
 # Dry, fair, unsentimental about money and quietly sentimental about the trade.
 class: /platform/agent/Cast
@@ -33,6 +34,35 @@ data:
     - { discipline: appraisal, asserting: proficient }
     - { discipline: business-administration, asserting: competent }
   behaviors:
+    # ⭐ The keeper STOCKS the counter (economic bootstrap D14): each beat,
+    # every supplied line short of par sends her to the cash-and-carry to
+    # buy the shortfall on terms as the house — `wallet use house`, `buy
+    # limes` — borrowing `bank borrow … --for stock` at Goodkin's window
+    # first when the till is short (rung 1, the real-bills rung: the loan
+    # buys goods, the goods secure the loan, the sale repays it), then
+    # home to `put` them on the counter. Every step the literal verb; a
+    # refusal at the window is the ladder working. Runs with nobody
+    # online, which is why the shop floor is `boot:`-pinned.
+    - brain: /lib/behavior/stocks
+      trigger: cadence:90s
+      config:
+        counter: /world/terminus/general-store/counter
+        # ⭐⭐ The ways she knows. Odell's shop is ON the block: out the
+        # door is the avenue, the window is one west of it and the
+        # wholesaler one south. She walks those directions the way a
+        # person who has kept this shop for thirty years walks them —
+        # authored, like a patrol's beat — and nothing searches a graph
+        # to cross the road. `back` is written out, never reversed: a
+        # named turning and a one-way door do not reverse.
+        # ⚠ A supplier added without a way here is a supplier she never
+        # visits; the shop quietly stops restocking that line.
+        ways:
+          - to: /world/terminus/counting-houses/banking-hall
+            go: [south, west]
+            back: [east, north]
+          - to: /world/terminus/counting-houses/cash-and-carry
+            go: [south, south]
+            back: [north, north]
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/idles

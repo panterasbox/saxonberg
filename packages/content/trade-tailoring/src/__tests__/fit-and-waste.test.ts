@@ -21,6 +21,8 @@ import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-set
 
 const here = dirname(fileURLToPath(import.meta.url));
 const TAILORING = join(here, "..", "..", "content", "trade", "tailoring");
+// The shop's PREMISES sit in the city since the economic bootstrap (D6).
+const SHOP = join(here, "..", "..", "..", "terminus", "content", "world", "terminus", "mayfield-row", "tailor", "location", "shop.yaml");
 
 function row(kind: string, name: string): Record<string, unknown> {
   const doc = YAML.parse(
@@ -251,7 +253,7 @@ describe("⭐⭐ the instrument affords the verb, never the furniture", () => {
      * the verb simply stops being offered rather than failing.
      */
     const shop = YAML.parse(
-      readFileSync(join(TAILORING, "location", "shop.yaml"), "utf-8"),
+      readFileSync(SHOP, "utf-8"),
     ) as { data?: { props?: string[] } };
     const props = shop.data?.props ?? [];
     expect(props).toContain("/trade/tailoring/thing/needle-case");

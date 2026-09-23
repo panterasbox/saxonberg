@@ -2,7 +2,9 @@
  * The Hearthworks demonstrators, end-to-end. The three fire scenes stood up
  * the way their seeds place them declaratively, but built directly here (the
  * faked-Mongo test has no clone pipeline — the substation precedent), so the
- * real content classes (`Firewood` / `Ingot` / `Forge` / `SealedCellar`) drive
+ * real content classes (`Firewood` / `Ingot` / `Forge`) and a sealed room
+ * (the Hearthworks pack's `SealedCellar` shape — `ReservedMixin` over a
+ * location, composed here locally because the class ships in the pack) drive
  * the shipped `FireApi` behaviours in a room-shaped scene:
  *
  *  - the woodshed — a lit log spreads to a dry neighbour, a wet one resists;
@@ -21,8 +23,8 @@ import Firewood from '../../../platform/thing/Firewood';
 import Ingot from '../../../platform/thing/Ingot';
 import Forge from '../../../platform/thing/Forge';
 import Floor from '../../../platform/thing/Floor';
-import SealedCellar from '../SealedCellar';
-import { Reserve } from '../../../lib/reserve';
+import SingletonCartesianLocation from '../../../lib/location/SingletonCartesianLocation';
+import { Reserve, ReservedMixin } from '../../../lib/reserve';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
 import { FireApi } from '../../../api/fire';
@@ -166,6 +168,7 @@ describe('The Hearthworks — the fire demonstrators', () => {
 
   it('the sealed cellar: an enclosed fire smokes and self-smothers', async () => {
     const zone = makeStuff(() => new CartesianZone());
+    class SealedCellar extends ReservedMixin(SingletonCartesianLocation) {}
     const cellar = makeStuff(() => new SealedCellar());
     zone.addLocation(cellar, 2, 0, 0);
     cellar.setReserve(

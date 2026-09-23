@@ -1,0 +1,44 @@
+# The sealed cellar — the CO-death / ventilation lesson. A `SealedCellar` with
+# a finite `air` Reserve. A fire lit here starves as it eats the air: it burns
+# incomplete (smoke + carbon monoxide), the medium turns un-breathable, and it
+# self-smothers — an enclosed fire kills by CO, not flame.
+class: /world/terminus/hearthworks/location/SealedCellar
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: sealed cellar
+  keywords: [cellar, sealed]
+  register: indefinite
+  longDescription: |
+    A cramped stone cellar behind a heavy, ill-fitting door. The air is close and still; there is no window, no flue.
+  # ⚠⚠ **An interior with no authored ambient and nothing lit inside it
+  # is PITCH BLACK, and only its contents go nameless.** Every `Location`
+  # composes `AmbientLitMixin`, whose `ambientIntensity` defaults to 0;
+  # `VisionModality.signalAt` then sums only what is actually emitting,
+  # so an unlit room falls under the band `canSee` needs for a figure and
+  # `RecognitionLogic.obscured()` renders every object as "something".
+  # The room's own prose still reads normally, which is what makes it so
+  # quiet a failure.
+  #
+  # ⭐ The trap this closes is circular: the cookhouse's only light was
+  # the hearth, and the hearth is UNLIT until somebody lights it — so a
+  # cook walked into a dark room whose one fix was an object they could
+  # not see to name. A banked fire, a lamp on a hook, an open shed side:
+  # every one of these rooms has a reason to be dim rather than blind,
+  # and the shipped kitchen archetype (35 lux) and a dozen Terminus rooms
+  # already author exactly this.
+  # Here: one lamp on a hook — a cellar is dim by nature, not blind.
+  ambientIntensity: 15
+  ambientColorTemperature: 2400
+  coords:
+    x: 2
+    y: 0
+    z: 0
+  reserves:
+    air:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: atmosphere
+      floorEffect: null
+  props:
+    - /stuff/thing/items/dry-log

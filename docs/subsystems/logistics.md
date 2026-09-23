@@ -575,6 +575,23 @@ for both:
 | `consigns` | **yes**, since this build | walks to the counter and consigns | consignment is **sale-or-return**: the producer is paid *on resale, out of its own listing*. A crate hauled there by somebody else is a crate **nobody has listed**, and no shipped mechanism lets a carrier — or the distributor's clerk — list goods on the producer's behalf. Posting this leg would have quietly stopped paying six producers. |
 | `restocks` | **no** | posts, and receives | its host is the Lounge bar, and *"Saxonberg and the Lounge joining the map"* is a stated non-goal. Its leg is closed by the hauler **buying and being reimbursed**. |
 
+⭐⭐ **The walk stays IN `consigns`, and the promotion trigger is a second
+EDGE SET — not a second caller** (economic bootstrap, 2026-09-23). That
+build gave an NPC shop keeper errands to her bank and her wholesaler and
+hoisted this walk onto `NPC.walkTo` so both brains could take it, which
+put *an NPC routes itself* on the kernel base class in reach of every
+Cast. It came back out in review, and the reason is worth keeping: the
+keeper's whole errand is **two rooms** — her shop is on the
+counting-house block, the window one west and the wholesaler one south —
+so she walks **authored directions** (`ways` on her row, the `patrols`
+shape) and searches nothing. Running a breadth-first search over a
+compiled inter-city freight network to cross the road is a category
+error, not a route. `consigns` remains the **one non-vehicle caller** of
+`planRoute`, because its errand really is cross-district. Whether one
+pathfinder should serve every consumer is
+[the pathfinding slate](../slates/builds/pathfinding-slate.md); a second
+consumer of the SAME edge set does not answer it.
+
 ⚠ **The surfaced seam: there is no wholesale purchase.** A distributor
 cannot buy a producer's goods outright, and a carrier cannot list goods
 it is only carrying. Until one of those exists, a producer→distributor

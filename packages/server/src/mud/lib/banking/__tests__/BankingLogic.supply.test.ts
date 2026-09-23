@@ -40,7 +40,7 @@ describe("BankingApi — supply query + reconciliation", () => {
 
   it("reconciles: supply == Σ account balances (Phase-1, no coin bridge)", async () => {
     await BankingApi.mint("acct-a", Money.of(1000, BankingApi.compactCurrency()));
-    await BankingApi.float("acct-b", Money.of(500, BankingApi.compactCurrency()));
+    await BankingApi.mint("acct-b", Money.of(500, BankingApi.compactCurrency()), "harness");
     await BankingApi.drain("acct-a", Money.of(200, BankingApi.compactCurrency()));
     // transfers conserve, so move some between accounts via two postings is
     // a Phase-2 op; here mint/drain/float already exercise both sign changes.

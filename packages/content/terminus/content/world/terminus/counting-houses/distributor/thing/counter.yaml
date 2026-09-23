@@ -1,0 +1,65 @@
+# The cash-and-carry counter — the distributor's Stock fixture with ONE
+# stocked line (the malt sack — the imported-input faucet, topped to par
+# on the reset sweep; fermentation D10) atop the consignment shelf it
+# composes (one counter is both). Everything else on it came in ON TERMS — from a producer's floor hand trading as its outfit (the
+# `consigns` brain), from a corpo's, from a player. A venue's keeper buys here
+# (`wallet use house`, `buy gin`), and each sale splits to the consignor's
+# operating account. Self-service and instant, like the general store's.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: cash-and-carry counter
+  keywords: [counter, shelf, shelves, goods, stock, till, cash-and-carry]
+  register: definite
+  longDescription: |
+    A long scarred counter with a till at one end and a chalkboard of consignors' asks above it — every case on the shelves behind came in on somebody's dray and goes out on somebody else's. Bottles stand ranked by house: the plain paper labels of the floor generics, a few hand-numbered small-batch bottles, and whatever the corpos' hands brought in this morning.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [clerk]
+  businessPath: /world/terminus/counting-houses/distributor/idea/business
+  # ⭐⭐ Rung 0 of the credit ladder (economic bootstrap D11): this counter
+  # takes goods on SUPPLIER TERMS, not consignment. A hand's `consign …
+  # --ask 6` here is the outfit's PRICE — what it is owed when the crate
+  # sells — and the distributor sets its own ask on the shelf (the
+  # supplier's price plus the Schedule's `retail.termsMargin` until
+  # `house price` says otherwise) and keeps the margin. Title stays the
+  # outfit's until sale; an unpaid crate can be `reclaim`ed by its hand.
+  # Each sale posts twice: the buyer's payment to the distributor, then the
+  # distributor's `terms` leg to the outfit — the leg the ladder's rung-1
+  # gate counts.
+  purchasing: terms
+  # ⭐ A WHOLESALE shelf: six producers' floors, ten families of produce
+  # apiece, and every crate a listing. Under the global per-consignor cap
+  # (twenty-four) the farm's hand stopped carrying with the limes still on
+  # the floor — the cap counted the crates nobody had bought yet — and the
+  # general store's supplied line went unfilled. The produce stalls'
+  # precedent: an authored, per-venue fact, never a global raise.
+  listingCapOverride: 120
+  stockLines:
+    - { itemTemplatePath: /trade/distribution/thing/malt-sack, par: 6 }
+    # ⭐⭐ Grist beside the malt, at a MARKUP — the retrofit's whole
+    # compatibility story in one line. The mash wants milled malt now
+    # (the grain chain, D16), and a brewer who has never heard of a mill
+    # buys it here and carries on exactly as before.
+    #
+    # ⭐ And the markup is what makes the mill worth walking to: whole
+    # malt at 5 plus your own time at a quern, against grist at 7 with
+    # no time at all. That is a real arithmetic a player can do, and it
+    # is the first time in this game that owning capital has had a
+    # number attached to it.
+    - { itemTemplatePath: /trade/milling/thing/grist-sack, par: 6 }
+    # ⚠ No orange par line here, deliberately (nutrition-and-fitness
+    # D25). The farm's hand already CONSIGNS its crates of citrus onto
+    # this counter — the real supply chain — and the distributor is the
+    # hub every producing trade points at, which must not point back
+    # (a `trade-farming` dependency here is a pack cycle). The par line a
+    # person can count on is the general store's. (The same is true of
+    # the smith's barbell: smithing reaches this pack through cooking,
+    # so the bar is priced on the smithy's own slate at Hearthworks.)
+  prices:
+    # Against the shipped ladder (stipend 20; soil-sack 2, small pot 3):
+    # a brew day's grain, reachable on the stipend with change left for
+    # the carboy.
+    /trade/distribution/thing/malt-sack: 5
+    /trade/milling/thing/grist-sack: 7

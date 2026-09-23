@@ -12,7 +12,7 @@ data:
   censusKey: produce:mint
   regionTarget: 4
   materialTags: [produce, mint]
-  container: /trade/farming/thing/farm-stock
+  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - /trade/farming/thing/mint
     - /trade/farming/thing/mint

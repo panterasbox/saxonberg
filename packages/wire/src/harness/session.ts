@@ -62,6 +62,14 @@ const WS_URL = (): string => SERVER_URL().replace(/^http/, 'ws');
 
 /** How long any single frame may take to arrive before we call it lost. */
 const FRAME_TIMEOUT_MS = Number(process.env.WIRE_FRAME_TIMEOUT ?? 30_000);
+/**
+ * How long a prose read waits for the socket to fall quiet, and the cap on
+ * that wait. A world under load (a boot-heavy heap, a GC pause between a
+ * command's envelope and its scene) can land a command's prose seconds
+ * after its envelope; a run that expects that raises these.
+ */
+const SETTLE_QUIET_MS = Number(process.env.WIRE_SETTLE_QUIET ?? 200);
+const SETTLE_CAP_MS = Number(process.env.WIRE_SETTLE_CAP ?? 4_000);
 
 /** Whichever answer a `subscribe()` got first. */
 export type SubscribeOutcome =
@@ -176,7 +184,7 @@ export const plain = (s: string): string =>
 /** POST the test-auth seam and return the session cookie header. */
 async function login(
   handle: string,
-  opts: { startLocation?: string; wizard?: boolean } = {}
+  opts: { startLocation?: string; wizard?: boolean; withCharacter?: boolean } = {}
 ): Promise<string> {
   const server = SERVER_URL();
   const res = await fetch(`${server}/auth/test-login`, {
@@ -189,7 +197,7 @@ async function login(
     },
     body: JSON.stringify({
       handle,
-      withCharacter: true,
+      withCharacter: opts.withCharacter ?? true,
       ...(opts.startLocation ? { startLocation: opts.startLocation } : {}),
       ...(opts.wizard ? { wizard: true } : {}),
     }),
@@ -275,6 +283,71 @@ export class Session {
 
     const playerId = await s.awaitRoster();
     await s.enterWorld(playerId);
+    s.proseFrames.length = 0;
+    return s;
+  }
+
+  /**
+   * ⭐ ARRIVE: log in with NO character and walk char-gen itself —
+   * `embody species …`, `embody name …`, `embody pronouns …`,
+   * `embody aspiration …`, `embody confirm` — the way a real newcomer
+   * does (economic bootstrap: the Arrival Note is written at `embody
+   * confirm`, so a drive of it cannot skip intake). `confirm` hands the
+   * socket off to the new avatar and destructs the Login, so its
+   * envelope has nowhere to land — the arrival is probed with `look`,
+   * exactly as `play` is. The picks default to a human named after the
+   * handle, `they`, the striver's road.
+   */
+  static async embody(
+    handle: string,
+    picks: { species?: string; name?: string; pronouns?: string; aspiration?: string } = {}
+  ): Promise<Session> {
+    await assertPacksPresent();
+    const cookie = await login(handle, { withCharacter: false });
+    const s = new Session();
+    s.handle = handle;
+    s.ws = new WebSocket(WS_URL(), { headers: { cookie } });
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error(`wire: socket never opened at ${WS_URL()}`)),
+        FRAME_TIMEOUT_MS
+      );
+      s.ws.once('open', () => {
+        clearTimeout(timer);
+        resolve();
+      });
+      s.ws.once('error', (err) => {
+        clearTimeout(timer);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      });
+    });
+    s.ws.on('message', (data) => s.receive(String(data)));
+    await s.settle();
+    const given = (picks.name ?? handle).replace(/[^A-Za-z]/g, '').slice(0, 12) || 'Newcomer';
+    const species = picks.species ?? 'human';
+    for (const text of [
+      `embody species ${species}`,
+      `embody sex female`,
+      `embody name ${given}`,
+      `embody pronouns ${picks.pronouns ?? 'they'}`,
+      `embody aspiration ${picks.aspiration ?? 'something-better'}`,
+    ]) {
+      const r = await s.cmd(text);
+      if (r.status !== 'ok') {
+        throw new Error(`wire: '${text}' answered ${r.status} for '${handle}' — ${JSON.stringify(r.notes)}`);
+      }
+    }
+    s.ws.send(JSON.stringify({ type: 'command', payload: { text: 'embody confirm' } }));
+    await s.settle();
+    const deadline = Date.now() + FRAME_TIMEOUT_MS;
+    for (;;) {
+      const look = await s.cmd('look');
+      if (look.status === 'ok') break;
+      if (Date.now() > deadline) {
+        throw new Error(`wire: '${handle}' never arrived after embody confirm — look still answers ${look.status}.`);
+      }
+      await pause(250);
+    }
     s.proseFrames.length = 0;
     return s;
   }
@@ -507,7 +580,7 @@ export class Session {
       said: async () => {
         countProseRead();
         if (snapshot === null) {
-          await this.settle(200, 4_000);
+          await this.settle(SETTLE_QUIET_MS, SETTLE_CAP_MS);
           capture();
         }
         return plain((snapshot ?? []).join('\n'));
@@ -702,7 +775,7 @@ export class Session {
    * this is only needed before a PROSE read.
    */
   async drainProse(): Promise<void> {
-    await this.settle(200, 4_000);
+    await this.settle(SETTLE_QUIET_MS, SETTLE_CAP_MS);
     this.captureLast?.();
     this.captureLast = null;
     this.proseFrames.length = 0;

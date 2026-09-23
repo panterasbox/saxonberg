@@ -1,0 +1,37 @@
+# The Ministry of Trade — the seat over the physics of trade and the
+# commons (economic bootstrap D6/D7; the requirements' "trades are
+# placeless").
+#
+# A recipe yield, a material density, a tool's epoch — changing one
+# changes the world for everyone, the way the window rate does. So
+# `/trade/*` and `/stuff/*` do NOT belong to committees the way a
+# locality does; they belong to a SEAT: one officer, rules published,
+# discretion recorded. Every trade pack's title claim and the commons'
+# name this organization as their holder, and its appointing authority is
+# the Minister of Trade's office — so the Minister acts through title
+# (`canAtPath` admits the organization's authority) and needs no
+# validator of its own. The trades' PREMISES sit in the world under
+# locality committees, where they can be liable; the trade itself is
+# nobody's property.
+#
+# Ships with no positions filled: the Ministry's acts are the Minister's.
+# Realm `ooc`; visibility `members`.
+class: /platform/idea/Organization
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: office
+    office: minister-of-trade
+  positions:
+    - key: clerk
+      noun: clerk
+      label: keeping the Ministry of Trade's register
+      wageRate: 0
+      confers: []
+  rosterSlots: []
+  label: "the Ministry of Trade"
+  realm: ooc
+  visibility: members
+  feedPath: /compact/trade/feed
+  publishingPositions:
+    - clerk

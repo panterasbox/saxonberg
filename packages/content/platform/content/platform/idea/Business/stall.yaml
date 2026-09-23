@@ -1,0 +1,24 @@
+# The seed a player's SHOP is minted from (economic bootstrap D15): a
+# Business with one seat — `keeper`, purchasing — and nothing authored
+# that belongs to a person. `stall rent` clones it with the renter's
+# identity and overlays what is theirs: the appointing authority (the
+# renter, as an entity), the bank (wherever their primary account is),
+# the operating location (their minted counter). Never stood up as
+# itself.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "a market stall"
+  appointingAuthority:
+    kind: entity
+    path: ""
+  positions:
+    - key: keeper
+      noun: keeper
+      label: keeping a market stall
+      wageRate: 0
+      confers: []
+      purchases: true
+  rosterSlots: []
+  banksAt: ""
+  operatingLocations: []

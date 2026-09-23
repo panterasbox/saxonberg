@@ -16,4 +16,4 @@ data:
   censusKey: mixer:grapefruit-soda
   regionTarget: 8
   materialTags: ["mixer", "grapefruit-soda"]
-  container: /trade/bottling/thing/bottling-stock
+  container: /world/terminus/goods-yards/bottling/thing/stock

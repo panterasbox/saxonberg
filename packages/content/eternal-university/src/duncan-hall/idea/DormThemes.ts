@@ -65,7 +65,7 @@ const DormThemesBase = SingletonMixin(Idea);
 export default class DormThemes extends DormThemesBase {
   /** The seeded row every caller resolves the catalogue through. */
   static readonly CATALOGUE_PATH =
-    '/world/eternal/duncan-hall/idea/dorm-themes';
+    '/world/terminus/eternal/duncan-hall/idea/dorm-themes';
 
   /** Test seam: raw catalogue YAML standing in for the shipped
    *  `dorm-themes.yaml`. `null` (the default) reads the real file. Source

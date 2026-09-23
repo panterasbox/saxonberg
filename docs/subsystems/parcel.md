@@ -591,6 +591,17 @@ Acreage landed. See [furnishing.md](./furnishing.md) § Acreage.
 - Unmeasured land is not policed — a parcel with no declared area
   subdivides exactly as it did before these fields existed.
 
+## Escheat walks the title tree (economic bootstrap, 2026-09)
+
+When a member's estate passes (`PlayerApi.escheat`, [credit.md](./credit.md)
+§ The escheat), every extent they hold as a player (`extentsHeldBy`)
+**transfers** to the covering parent parcel's owner (or to a named, active
+beneficiary), and every use-grant they hold (`heldUnitsOf`) is revoked;
+after each revocation the enclosing zone's `onUseGrantRevoked(extent,
+holder)` hook fires — a no-op terminal on `Zone` that a landlord zone
+overrides to do what its own end-of-lease verb does. The nightly
+reprovision never re-grants a transferred player title.
+
 ## The document store's gate
 
 `ownerOf` is also what the **document store** gates on (content-packs

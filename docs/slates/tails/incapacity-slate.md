@@ -3,7 +3,7 @@
 > **Status: UNBUILT** — and the slate retracts its own motivating case
 > (escrowed contracts turned out already solved), so no live case stands.
 > **Left:** impound-on-a-claim (⚠ contradicted for a DEPARTED player by
-> `docs/requirements/economic-bootstrap-requirements.md § Three states of
+> [credit.md](../../subsystems/credit.md) § Three states of
 > a player` — a last-seen clock, dormant 30 / escheat 180 real days,
 > derived on read) · the harm-scoped remedy · the preserving (never improving) receiver ·
 > return and reclaim · confinement answered by the confining authority ·

@@ -109,6 +109,13 @@ shape: the engine drives cadence and **informs** each point (`point.evictIdleLea
   service (a plain deposit) is instant. See [banking.md](./banking.md).
 - **The TPA ticket office** — a formal counter (retrofit deferred; identical in
   shape to the bar).
+- **A rented market stall** (terminus `market/thing/stall`) — a `Stock`
+  minted per renter with no authored `businessPath`; `stall rent` binds it
+  with `setBusinessPath(<the renter's house>)` the moment it is minted, so
+  the closed sign (`Business.isClosed` → `requestAttention` answers
+  `closed`, `buy` refuses `unattended`) reaches a stall whose keeper has
+  gone absent. See [credit.md](./credit.md) and
+  [employment.md](./employment.md).
 
 ## Deferred seams (named)
 

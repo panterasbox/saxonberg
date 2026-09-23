@@ -79,6 +79,8 @@
     "lint:spell-cost": "tsx scripts/check-spell-cost.ts",
     "lint:schema": "tsx scripts/check-schema-docs.ts --lint",
     "lint:untitled": "tsx scripts/check-untitled-paths.ts --lint",
+    "lint:committees-are-players": "tsx scripts/check-committees-are-players.ts --lint",
+    "lint:no-authored-faucet": "tsx scripts/check-no-authored-faucet.ts --lint",
     "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify"
   },
   "dependencies": {

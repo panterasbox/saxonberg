@@ -29,7 +29,7 @@ import type { Slottable } from "@saxonberg/server/mud/lib/slot/Slottable";
 
 class Body extends PosedMixin(SlottableMixin(Thing)) {}
 
-const BED_PATH = "/world/eternal/duncan-hall/thing/bed";
+const BED_PATH = "/world/terminus/eternal/duncan-hall/thing/bed";
 
 function makeBed(): Bed {
   const bed = makeStuffAtPath(() => new Bed(), BED_PATH);
@@ -96,7 +96,7 @@ describe("the dorm fixtures earn their classes", () => {
     expect(
       (Desk as unknown as { commandContributions: { peers: string[] } })
         .commandContributions.peers,
-    ).toContain("world/eternal/duncan-hall/cmd/remodel.yaml");
+    ).toContain("world/terminus/eternal/duncan-hall/cmd/remodel.yaml");
     // 2. DormThemes.roleOf discriminates on `instanceof` to pick which
     //    theme prose slot a fixture fills.
     expect(MixinApi.hasMixin(Desk, Mixins.Surfaced)).toBe(true);
@@ -110,7 +110,7 @@ describe("the dorm fixtures earn their classes", () => {
       readFileSync(
         fileURLToPath(
           new URL(
-            "../../../../eternal-university/content/world/eternal/duncan-hall/thing/tap.yaml",
+            "../../../../eternal-university/content/world/terminus/eternal/duncan-hall/thing/tap.yaml",
             import.meta.url,
           ),
         ),

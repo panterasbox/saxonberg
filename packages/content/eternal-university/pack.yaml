@@ -1,11 +1,11 @@
 id: eternal-university
 version: 0.1.0
-root: /world/eternal
+root: /world/terminus/eternal
 description: >-
   Eternal University — the CAMPUS locality, homed whole out of the
   transitional world-seed (residences D18): Duncan Hall, the dorm that is
   the residence ladder's first rung. A locality pack's src/ registers
-  against its extent, so the class paths (/world/eternal/…) are unchanged
+  against its extent, so the class paths (/world/terminus/eternal/…) are unchanged
   by the move.
 
   ⚠ University Avenue is NOT here, and the boundary is the campus wall.
@@ -13,7 +13,7 @@ description: >-
   onto, named after the university the way Lombard Street is named for
   the Lombards — so it ships in the terminus pack at
   /world/terminus/university-avenue. The first cut homed it here because
-  it shared the /world/eternal path root, which is a fact about the
+  it shared the /world/terminus/eternal path root, which is a fact about the
   filesystem rather than about the world; the crossing's own prose
   (travellers spilling out of the Terminus terminal) and the campus's own
   Locality row (`_address: terminus/city/campus` — a district INSIDE the
@@ -25,17 +25,25 @@ description: >-
   content lands here and the exit repoints.
 requires:
   groups:
-    # The landlord's staff — Katie's membership is CONFERRED here by the
-    # owner (never self-enrolled); her row sits under the pack's own
-    # /world/eternal/duncan-hall claim, which the NPC-only fence requires.
+    # The landlord — the group that HOLDS Duncan Hall. Players only
+    # (economic bootstrap D8): Katie used to be enrolled here, and an NPC
+    # on a committee is doctrine 2 broken. She is staff of the
+    # `duncan-hall/idea/college` Organization now; this group is empty at
+    # boot and falls to the founder until the Compact seats it.
     - name: duncan-hall
-      purpose: the landlord's staff
-      members:
-        - { id: /world/eternal/duncan-hall/agent/katie, role: member }
+      purpose: the landlord of Duncan Hall
   title:
     # Duncan Hall: the landlord holds the building (so Katie's row is under
     # the pack's own claim) and the dorms wing the leased units subdivide under.
-    - { extent: /world/eternal/duncan-hall,       holder: { group: duncan-hall } }
-    - { extent: /world/eternal/duncan-hall/dorms, parentParcel: /world/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
+    # Under the realm root (economic bootstrap D5): the campus sits inside
+    # the city, so its parcels' parent is the realm's committee.
+    - { extent: /world/terminus/eternal/duncan-hall,       parentParcel: /world/terminus, holder: { group: duncan-hall } }
+    - { extent: /world/terminus/eternal/duncan-hall/dorms, parentParcel: /world/terminus/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
+    # The campus farm and the home field (economic bootstrap, retrofit
+    # step 3): the University's ground, held by its one group today — a
+    # `campus` group is a rename the Compact can make.
+    - { extent: /world/terminus/eternal/campus-farm,  parentParcel: /world/terminus, holder: { group: duncan-hall }, landUse: agricultural }
+    - { extent: /world/terminus/eternal/campus-field, parentParcel: /world/terminus, holder: { group: duncan-hall }, landUse: agricultural }
 boot:
-  - { template: /world/eternal/duncan-hall/idea/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
+  - { template: /world/terminus/eternal/duncan-hall/idea/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
+  - { template: /world/terminus/eternal/duncan-hall/idea/college, role: producer, reason: "Duncan Hall's staff — provision/unprovision ask whether the actor holds a position here, read off the authored roster" }

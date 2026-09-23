@@ -87,7 +87,7 @@ out to be the second question; **who calls it** is the first.)*
 |---|---|---|
 | async persistence lookups — `NameBank.byKey`/`resolve`, `CreditRouting.resolve`, `OuterWarren.conditionOf`/`admitFor`, `HoldingWarren.entryRowOf`, `LaneCatalogue.exitBetween`, `Census.takeCensus` | 7 | are these record finders by another name (→ approved, stay) or Api surface? **They are not `Document` subclasses**, which is the only reason they are not already settled |
 | singleton accessors — `DormWarren.resolve()`, `WikiRegistry.instance()`, `Realtor.offers()` | 3 | `X.resolve(): Promise<X>` is a singleton getter. `StuffApi.singletonSync` is the sanctioned path — do these route through it? |
-| controller statics — `EnrollController.loadConfig`, `LeaseController.ascentRefusal`, `Login.generateGuestName` | 3 | controller-internal helpers; `private` or `@internal` unless a sibling calls them |
+| controller statics — `EmbodyController.loadConfig`, `LeaseController.ascentRefusal`, `Login.generateGuestName` | 3 | controller-internal helpers; `private` or `@internal` unless a sibling calls them |
 | settings/idiom reads — `Currency.compact`, `ConcealmentLevels.hiddenDefault` (`AppApi`), `Account.newId` (`SecurityApi.uuid`), `Light.bandFor` (`QuantityApi`) | 4 | ⭐ `Account.newId` is the same shape as `Lock.mintKeyway`, which **stayed**. Is reading a dial "the world"? |
 | genuinely world-reading — `Freshness.nowSeconds`, `Appearance.currentGeneration` (clock), `Contamination.behaviorOf`, `BankingControllerBase.businessNamed` (registry) | 4 | these read the live world from a "pure" signature |
 

@@ -38,7 +38,7 @@ declareFile({
 // second run makes a second channel instead of colliding with the first.
 
 const BAR = '/world/lounge/location/bar';
-const LOBBY = '/world/eternal/duncan-hall/location/lobby';
+const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
 
 let bar: Session;
 let lobby: Session;

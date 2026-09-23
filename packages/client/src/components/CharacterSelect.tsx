@@ -840,7 +840,7 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
       </RosterList>
       <MakeNewRow
         data-testid="roster-create"
-        onClick={() => onSendCommand("enroll")}
+        onClick={() => onSendCommand("embody")}
         aria-label="Make someone new"
       >
         <PlusBox aria-hidden="true">+</PlusBox>
@@ -850,7 +850,7 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
             Runs the same Articles of Enrolment.
           </CharacterMeta>
         </span>
-        <SendsAs>sends as enroll</SendsAs>
+        <SendsAs>sends as embody</SendsAs>
       </MakeNewRow>
     </div>
   );

@@ -13,6 +13,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LeaseController from '../idea/cmd/LeaseController';
 import Walter from '../agent/Walter';
 import UnleaseController from '../idea/cmd/UnleaseController';
+import { AGENCY_PATH } from '../idea/cmd/LeaseController';
+import OrganizationEntity from '@saxonberg/server/mud/platform/idea/Organization';
 import type BuildingWarren from '@saxonberg/content-residence/src/idea/BuildingWarren';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
@@ -472,6 +474,25 @@ describe('Seznick House — the lease loop', () => {
     cond.mockResolvedValue({ condition: 0.95, band: 'sound' });
     const ctx2 = await run(makeStuff(() => new LeaseController()), walter, tenant, 'lease');
     expect(reasons(ctx2)).not.toContain('ascent-condition');
+  });
+
+  it('⭐ the AGENCY arm: a holder of the agent position may let, off the authored roster; a stranger may not (economic bootstrap D8)', async () => {
+    // Walter is STAFF of Mayfield Holdings, not a member of the landlord
+    // group — an NPC is never on a committee. The gate admits whoever
+    // holds the agency's `agent` position (read off `rosterSlots`, no
+    // employment write) or sits on the building's committee.
+    await building();
+    const staff = makeAvatar('agent-test');
+    const stranger = makeAvatar('stranger-test');
+    const agency = makeStuffAtPath(() => new OrganizationEntity(), AGENCY_PATH);
+    agency.positions = [{ key: 'agent', label: 'letting', wageRate: 0, confers: [] }];
+    agency.rosterSlots = [{ positionKey: 'agent', assignee: staff.getIdentityPath()!, schedule: [] }];
+    const t1 = makeAvatar('t-staff');
+    const ok = await run(makeStuff(() => new LeaseController()), staff, t1, 'lease');
+    expect(reasons(ok)).not.toContain('not-authorized');
+    const t2 = makeAvatar('t-stranger');
+    const no = await run(makeStuff(() => new LeaseController()), stranger, t2, 'lease');
+    expect(reasons(no)).toContain('not-authorized');
   });
 
   it('a random principal is refused; capacity refuses at the cap', async () => {

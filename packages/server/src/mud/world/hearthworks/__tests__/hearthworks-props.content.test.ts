@@ -16,7 +16,7 @@ import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 
 const CONTENT = fileURLToPath(new URL('../../../../../../content/', import.meta.url));
-const VENUE = join(CONTENT, 'hearthworks/content/world/hearthworks');
+const VENUE = join(CONTENT, 'hearthworks/content/world/terminus/hearthworks');
 
 /** Every `.yaml` under the venue, recursively (branch subdirs). */
 function walk(dir: string): string[] {
@@ -69,10 +69,10 @@ describe('the hearthworks venue pack props/cast rows the packs ship at those pat
       '/stuff/thing/items/plated-dish', '/stuff/thing/items/platter', '/stuff/thing/items/prime-cut',
       '/stuff/thing/items/ration-stock', '/stuff/thing/items/root-vegetables', '/stuff/thing/items/stew-meat', '/stuff/thing/items/wet-log',
     ]);
-    expect([...seen].filter((p) => p.startsWith('/world/hearthworks/')).sort()).toEqual([
-      '/world/hearthworks/agent/cook', '/world/hearthworks/agent/smith',
-      '/world/hearthworks/thing/kitchen-menu', '/world/hearthworks/thing/pantry-chest', '/world/hearthworks/thing/smithy-menu',
-      '/world/hearthworks/thing/smithy-tariff',
+    expect([...seen].filter((p) => p.startsWith('/world/terminus/hearthworks/')).sort()).toEqual([
+      '/world/terminus/hearthworks/agent/cook', '/world/terminus/hearthworks/agent/smith',
+      '/world/terminus/hearthworks/thing/kitchen-menu', '/world/terminus/hearthworks/thing/pantry-chest', '/world/terminus/hearthworks/thing/smithy-menu',
+      '/world/terminus/hearthworks/thing/smithy-tariff',
     ]);
   });
 });

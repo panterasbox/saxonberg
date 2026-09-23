@@ -24,7 +24,7 @@ The distilling trade — a **capability** pack (it ships `src/`).
 - `content/trade/distilling/agent/` — the clerk and the two hands (the
   kernel's `consigns` brain, configured to the counter).
 
-- `content/trade/distilling/location/veshko-yard.yaml` + `location/veshko-yard/{location,thing,agent,idea}/` — **Veshko's yard**:
+- `content/world/terminus/goods-yards/veshko.yaml` + `location/veshko-yard/{location,thing,agent,idea}/` — **Veshko's yard**:
   the zone that authors `stocks:` (the exemplar), the distillery floor,
   Veshko Distilling (`idea/outfit`, `parentOrganization: /corpo/veshko`),
   its stock, its hand, and the floor rows — Volk and the unbranded
@@ -38,7 +38,7 @@ The distilling trade — a **capability** pack (it ships `src/`).
 A corpo pack supplies capital + the mark; a corpo-owned producer is a
 product of the trade and lives here, pointing UP at its owner. The trade
 names nobody downstream. Every stub trade names
-`/trade/distribution/thing/counter` in its hand's `consigns` config.
+`/world/terminus/counting-houses/distributor/thing/counter` in its hand's `consigns` config.
 
 ## ⭐ The roster — who makes what, and why it is legible
 

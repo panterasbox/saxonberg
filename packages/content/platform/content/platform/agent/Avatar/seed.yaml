@@ -24,7 +24,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   pronouns: they
   # NOTE: `startLocation` is no longer a seed literal. Every avatar-mint
-  # site (EnrollController.commit, Application.createDefaultAvatarTemplate,
+  # site (EmbodyController.commit, Application.createDefaultAvatarTemplate,
   # Login.mintRandomGuestAvatar) stamps it at clone time from the
   # `defaultStartLocation` app setting (default the lounge Warren), so an
   # operator can move the new-player spawn in-game without a deploy. The

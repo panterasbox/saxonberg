@@ -92,6 +92,12 @@ interface BehaviorWiring {
  */
 export interface Behaved {
   getBehaviors(): readonly BehaviorSpec[];
+  /**
+   * Fire the cadence beat wired for `brainPath` NOW — the author's seam
+   * (a wizard `eval`, a drive) onto the same beat the timer runs, gates
+   * and all. False when no live wiring names that brain.
+   */
+  fireBeat(brainPath: string): Promise<boolean>;
 }
 
 export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
@@ -138,6 +144,30 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getBehaviors(): readonly BehaviorSpec[] {
       return this.behaviors;
+    }
+
+    /**
+     * See the interface: one beat, on demand, through the timer's own
+     * path. ⚠ Scheduled, never inline: a beat is a ROOT of its own (the
+     * cadence timer's callback runs under `ScheduleApi`'s root wrapper),
+     * and a caller's context — a governed `eval`, bound to a parcel —
+     * must not leak into it, or the hand's read of its outfit's roster
+     * dies at the sandbox boundary. The promise still resolves when the
+     * beat is done, so a caller can wait on it.
+     */
+    public fireBeat(brainPath: string): Promise<boolean> {
+      const wiring = this._wiring.find(
+        (w) => w.live && w.spec.brain === brainPath
+      );
+      if (!wiring) return Promise.resolve(false);
+      return new Promise<boolean>((resolve) => {
+        ScheduleApi.schedule(1, () => {
+          this._fireCadence(wiring).then(
+            () => resolve(true),
+            () => resolve(true)
+          );
+        });
+      });
     }
 
     /**

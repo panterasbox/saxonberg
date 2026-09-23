@@ -26,4 +26,4 @@ data:
   censusKey: spirit:rum-light
   regionTarget: 12
   materialTags: [spirit, rum, light-rum]
-  container: /trade/distilling/location/veshko-yard/thing/stock
+  container: /world/terminus/goods-yards/veshko/thing/stock

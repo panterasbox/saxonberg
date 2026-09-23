@@ -1,0 +1,43 @@
+# ⭐⭐ The fringe outfit — a Business with ONE position and ONE man in it.
+#
+# **A sole trader is an independent, and the fiction and the title agree
+# on that.** The co-op is the other shape: a roster, an appointing
+# authority, a tally kept at the adit, and a hewer who owns none of what
+# he cuts. This is what the same substrate looks like when the man who
+# swings the pick is also the man who signs for the ground — one
+# position, no wage, and `purchases: true`, so he buys and sells as
+# himself-the-firm.
+#
+# ⚠ It exists for a mechanical reason as much as a narrative one.
+# `delves` — the shipped brain, running here completely unchanged —
+# refuses to work unless `buysFor()` returns an outfit, because ore has
+# to belong to somebody before it can be consigned. Giving him a firm is
+# what lets him keep iron arriving at the counter on a quiet night; it is
+# not a special case in the brain and there is no branch for him
+# anywhere.
+#
+# ⭐ `wageRate: 0` is the honest number. Nobody pays him. He gets what
+# the ore fetches, which is the entire difference between tutwork and
+# working your own claim, stated as a field.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the fringe outfit"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/rejection/agent/independent
+  positions:
+    - key: hewer
+      noun: hewer
+      label: on his own ground at the fringe
+      wageRate: 0
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: hewer
+      assignee: /world/terminus/rejection/agent/independent
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/rejection/location/fringe-claim

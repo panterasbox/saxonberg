@@ -64,4 +64,6 @@ export interface SettlementReceipt {
   accountId?: string;
   /** The routing account's corpo affiliation (credential method). */
   corpoKey?: string;
+  /** The `bank_ledger` transaction the legs rode — the link a contract event records (economic bootstrap D12). */
+  txId?: string;
 }

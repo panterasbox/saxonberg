@@ -22,4 +22,4 @@ data:
   # the demand test.
   censusKey: vessel:wine-bottle
   regionTarget: 10
-  container: /trade/winemaking/thing/vintner-stock
+  container: /world/terminus/goods-yards/vintner/thing/stock

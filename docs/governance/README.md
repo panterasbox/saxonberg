@@ -15,6 +15,11 @@ produces and references.
   **self-binding commitment**, in force from the first dollar (the
   instance-specific instrument Art. XI's founding-stake bound requires).
   Binding by code + publication + exit, not law.
+- [glossary.md](./glossary.md) — the Compact's **names**, applied
+  universally: the machine gets no titles, the humans in the loop get
+  familiar prestigious ones (the ministerial family; Governor where a
+  seat steers a mechanism); the markedness rule holds for the nouns,
+  not the titles.
 
 The open-ended governance *design* lives in
 [cooperative-slate.md](../slates/builds/cooperative-slate.md) and

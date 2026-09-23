@@ -480,6 +480,21 @@ async function induce(
   note: (path: string) => void,
   problems: string[],
 ): Promise<void> {
+  // ⚠⚠ Load the MODE before the walk. `Exit.allowsMode` asks the sync
+  // `LocomotionApi.modeOf`, which answers only for a mode singleton that
+  // is already live — and a mode is first-touched by somebody walking.
+  // Compiled at boot, before anyone had, every lane came out as its seed
+  // alone with "names mode 'walk', which no LocomotionMode row declares",
+  // and the index cached that forever: no hand ever walked to the
+  // cash-and-carry, and `journey` said "no road runs from here" at the
+  // seed itself. Found by the economic bootstrap's drive.
+  if ((await LocomotionApi.loadMode(d.mode).catch(() => null)) === null) {
+    problems.push(
+      `lane '${d.key}' names mode '${d.mode}', which no LocomotionMode ` +
+        `row declares — no exit can admit it, so the lane is empty`,
+    );
+    return;
+  }
   const wheeled = d.mode === 'wheeled';
   const seen = new Set<string>();
   const queue = [...d.seeds];
@@ -527,11 +542,5 @@ async function induce(
       link(path, to);
       if (!seen.has(to)) queue.push(to);
     }
-  }
-  if (LocomotionApi.modeOf(d.mode) === null) {
-    problems.push(
-      `lane '${d.key}' names mode '${d.mode}', which no LocomotionMode ` +
-        `row declares — no exit can admit it, so the lane is empty`,
-    );
   }
 }

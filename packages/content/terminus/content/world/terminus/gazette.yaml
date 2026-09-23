@@ -1,0 +1,28 @@
+# The Terminus Gazette — the realm's paper (economic bootstrap D20): a
+# publisher Organization, public, whose editor prints the price index each
+# edition. The state AGGREGATES, never reports — this is a paper on the
+# committee's chart, not the Compact's own press room, and its editor is an
+# NPC on a roster who could be replaced by a member tomorrow.
+class: /platform/idea/Organization
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus
+  positions:
+    - key: editor
+      noun: editor
+      label: editing the Terminus Gazette
+      wageRate: 0
+      confers: []
+  rosterSlots:
+    - positionKey: editor
+      assignee: /world/terminus/gazette/agent/editor
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  label: "the Terminus Gazette"
+  realm: world
+  visibility: public
+  feedPath: /world/terminus/gazette/feed
+  publishingPositions:
+    - editor

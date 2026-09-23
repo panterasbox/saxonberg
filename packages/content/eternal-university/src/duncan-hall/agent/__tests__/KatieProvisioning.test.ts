@@ -18,7 +18,9 @@ import AccessRegistry from '@saxonberg/server/mud/platform/idea/AccessRegistry';
 import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
 import Katie from '../Katie';
 import ProvisionController from '../../idea/cmd/ProvisionController';
-import { GroupApi } from '@saxonberg/server/mud/api/group';
+import { CompactApi } from '@saxonberg/server/mud/api/compact';
+import OrganizationEntity from '@saxonberg/server/mud/platform/idea/Organization';
+import { HALL_EXTENT, COLLEGE_PATH } from '../../../lib/HallController';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
@@ -28,32 +30,16 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { DialogueTreeSchema } from '@saxonberg/server/mud/lib/npc/tree';
 import { type ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import { ProxyApi } from '@saxonberg/server/mud/api/proxy';
 
-/**
- * What the eternal-university pack's `requires.groups` block does at install
- * (content-packs wave 3): the landlord's group is ensured and Katie's
- * row is enrolled BY THE OWNER'S AUTHORED DATA — the conferral the
- * retired GroupSeeder used to make. The member write is the installer's
- * seam (gated to PackLogic), reached here on the raw logic.
- */
-async function conferDormsStaff(): Promise<void> {
-  const { ref } = await GroupApi.ensureGroup('duncan-hall', { kind: 'system' });
-  // The logic singleton's class is reached through the loader rather
-  // than an import: `platform/idea/api/**` is deliberately off the
-  // server's exports map (the pack import profile), and the class path
-  // resolves the same file the kernel serves.
-  const GroupLogicCls = (await StuffApi.loadClassByPath(
-    '/platform/idea/api/GroupLogic',
-  )) as new () => Stuff;
-  const logic = ProxyApi.unwrap(
-    StuffApi.singletonSync('/platform/idea/api/group', () => new GroupLogicCls()) as unknown as Stuff,
-  ) as unknown as {
-    ensureMember(ref: unknown, id: string, role: string): Promise<unknown>;
-  };
-  await logic.ensureMember(ref, '/world/eternal/duncan-hall/agent/katie', 'member');
-}
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { parse as parseYaml } from 'yaml';
+
+/** The pack's manifest and the college row, read as files (the authored facts). */
+const MANIFEST = fileURLToPath(new URL('../../../../pack.yaml', import.meta.url));
+const COLLEGE_ROW = fileURLToPath(
+  new URL('../../../../content/world/terminus/eternal/duncan-hall/idea/college.yaml', import.meta.url),
+);
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 
@@ -122,8 +108,8 @@ function installStore(): void {
 function seedDormsParcel(): void {
   col('parcels').push({
     _id: `seed-${++idCounter}`,
-    extent: '/world/eternal/duncan-hall/dorms',
-    zonePath: '/world/eternal/duncan-hall/dorms',
+    extent: '/world/terminus/eternal/duncan-hall/dorms',
+    zonePath: '/world/terminus/eternal/duncan-hall/dorms',
     owner: DORMS_OWNER,
     parentParcel: null,
     grants: [],
@@ -162,18 +148,23 @@ describe('Katie — the dorms-agent authorization boundary', () => {
   });
   afterEach(reset);
 
-  it('is conferred dorms-agent membership from authored group data (the pack\'s requires), not self-enrolled', async () => {
-    await bootWithAccess();
-    // The landlord's `duncan-hall` group and Katie's membership are authored
-    // in eternal-university's pack.yaml (requires.groups) and applied by the
-    // installer — the owner confers it. Katie's class runs no enrollment code.
-    await conferDormsStaff();
-
-    const ref = await ParcelApi.resolveOwnerRef(DORMS_OWNER);
-    expect(ref).not.toBeNull();
-    expect(
-      await GroupApi.isMember('/world/eternal/duncan-hall/agent/katie', ref!),
-    ).toBe(true);
+  it('⭐ is NOT a member of the landlord group — an NPC is never on a committee (economic bootstrap D8)', async () => {
+    // The `duncan-hall` group HOLDS the hall (players only, the founder by
+    // default). Katie's authority is a JOB: the `hall-manager` position at
+    // the college Organization, on its authored roster — never a seat.
+    const manifest = parseYaml(readFileSync(MANIFEST, 'utf8')) as {
+      requires: { groups: Array<{ name: string; members?: Array<{ id: string }> }> };
+    };
+    const landlord = manifest.requires.groups.find((g) => g.name === 'duncan-hall')!;
+    expect(landlord.members ?? []).toEqual([]);
+    const college = parseYaml(readFileSync(COLLEGE_ROW, 'utf8')) as {
+      data: { appointingAuthority: unknown; rosterSlots: Array<{ positionKey: string; assignee: string }> };
+    };
+    expect(college.data.appointingAuthority).toEqual({ kind: 'committee', parcel: HALL_EXTENT });
+    expect(college.data.rosterSlots).toContainEqual({
+      positionKey: 'hall-manager',
+      assignee: '/world/terminus/eternal/duncan-hall/agent/katie',
+    });
   });
 
   it('composes PopulatesMixin so her master ring is an authored loadout, not self-issued', () => {
@@ -183,7 +174,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // working pin-tumbler master in lib/lock/__tests__/Lock.test.ts).
     const katie = makeStuffAtPath(
       () => new Katie(),
-      '/world/eternal/duncan-hall/agent/katie',
+      '/world/terminus/eternal/duncan-hall/agent/katie',
     );
     expect(MixinApi.hasMixin(katie, Mixins.Populates)).toBe(true);
   });
@@ -194,8 +185,8 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // their `world/`-prefixed view key, and those keys resolve to real
     // definitions (the domain-local `getCommand` branch).
     const env = Katie.commandContributions.peers ?? [];
-    expect(env).toContain('world/eternal/duncan-hall/cmd/provision.yaml');
-    expect(env).toContain('world/eternal/duncan-hall/cmd/unprovision.yaml');
+    expect(env).toContain('world/terminus/eternal/duncan-hall/cmd/provision.yaml');
+    expect(env).toContain('world/terminus/eternal/duncan-hall/cmd/unprovision.yaml');
     // Nothing preloaded views from a store here, so the keys resolve to
     // the pack's own view files (offline = the pack files).
     CommandApi.clearCache();
@@ -204,26 +195,31 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     }
   });
 
-  it('authorizes Katie (a dorms agent) and refuses a random principal', async () => {
+  it('authorizes Katie (the hall manager, staff of the college) and refuses a random principal', async () => {
     seedDormsParcel();
     await bootWithAccess();
 
     const katie = makeStuffAtPath(
       () => new Katie(),
-      '/world/eternal/duncan-hall/agent/katie',
+      '/world/terminus/eternal/duncan-hall/agent/katie',
     );
-    // Membership is conferred by the owner's authored group data (the
-    // pack's requires), not by Katie enrolling herself.
-    await conferDormsStaff();
-    // Katie is an agent of the dorms owner → authorized (not via a wizard
-    // bit — an NPC has no playerId, so isWizard is false; the group is why).
+    // The college Organization, as its authored row stands it up: Katie
+    // holds `hall-manager` off the roster — no employment write, no
+    // group membership, no wizard bit.
+    const college = makeStuffAtPath(() => new OrganizationEntity(), COLLEGE_PATH);
+    college.positions = [{ key: 'hall-manager', label: 'managing', wageRate: 0, confers: [] }];
+    college.rosterSlots = [
+      { positionKey: 'hall-manager', assignee: '/world/terminus/eternal/duncan-hall/agent/katie', schedule: [] },
+    ];
     expect(await AccessApi.isWizard(katie)).toBe(false);
-    expect(await AccessApi.isAgentOf(katie, DORMS_OWNER)).toBe(true);
+    expect(college.employs(katie)).toBe(true);
 
-    // A random online player, neither wizard nor dorms staff → refused.
+    // The gate itself, through the verb: Katie may provision; a random
+    // online player, neither staff nor on the hall's committee, may not.
     const stranger = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/stranger');
     stranger.setPlayerId('stranger');
-    expect(await AccessApi.isAgentOf(stranger, DORMS_OWNER)).toBe(false);
+    expect(college.employs(stranger)).toBe(false);
+    expect(await CompactApi.isCommitteeMember(stranger, HALL_EXTENT)).toBe(false);
   });
 });
 

@@ -114,9 +114,10 @@ describe("CompactApi — the committee reads", () => {
   });
 
   it("isCommitteeMember: group member true, outsider false", async () => {
+    // Members are keyed by IDENTITY PATH — what `group add` writes.
     vi.spyOn(GroupApi, "isMember").mockImplementation(
-      async (playerId: string, ref: string) =>
-        ref === GROUP_REF && playerId === "bob"
+      async (memberKey: string, ref: string) =>
+        ref === GROUP_REF && memberKey === "/platform/agent/Avatar/bob"
     );
     const bob = makeAvatar("bob");
     const eve = makeAvatar("eve");

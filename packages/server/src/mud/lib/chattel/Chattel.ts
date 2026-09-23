@@ -34,6 +34,7 @@ import { MixinApi } from "../../api/mixin";
 // eslint-disable-next-line no-restricted-imports -- the F1 object face: a good's chattelOwner()/stampChattel()/transferChattel() forward into the chattel logic singleton exactly as the api/chattel facade does (the Combustible/Energized precedent)
 import { ChattelLogic } from "../../platform/idea/api/ChattelLogic";
 import type { ChattelOwner } from "./ChattelRecord";
+import type { MarkupAugmenter } from "../../api/mml";
 
 /** The outcome of a stamp/transfer — the minted id, or a refusal reason. */
 export type ChattelStampResult =
@@ -100,11 +101,28 @@ export interface Chattel {
   transferChattel(newOwner: Stuff): Promise<ChattelStampResult>;
 }
 
+/**
+ * ⭐ The title line a good on a COUNTER appends to its own `look`
+ * (economic bootstrap D11): *held on the farm outfit's terms until sold;
+ * the shop asks …* — or *on consignment for … at …*. The shelf knows the
+ * listing; the good asks its container. A good in nobody's shop says
+ * nothing. Sync and pure, like every augmenter.
+ */
+function titleLineAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  const shelf = MixinApi.isContainable(host) ? host.getContainer() : null;
+  if (!shelf) return text;
+  const line = (shelf as { termsLineFor?: (item: Stuff) => string }).termsLineFor?.(host) ?? "";
+  return line ? `${text} ${line}` : text;
+}
+
 export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
   class ChattelMixin extends Base implements Chattel {
     static _mixinName = "ChattelMixin";
+
+    /** The title line for a good on a counter — see {@link titleLineAugmenter}. */
+    static markupAugmenters: MarkupAugmenter[] = [titleLineAugmenter];
 
     static fieldMeta: FieldMeta = {
       _chattelId: { persistent: true },

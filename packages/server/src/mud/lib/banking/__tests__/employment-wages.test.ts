@@ -76,6 +76,12 @@ function shift(onSince: number): Employment {
   });
 }
 
+/** Fund the house (a harness mint) — a wage is solvency-checked since the economic bootstrap. */
+async function fundHouse(biz: BusinessEntity, minor: number): Promise<void> {
+  const acct = await EmploymentApi.operatingAccountOf(biz);
+  await BankingApi.mint(acct, Money.of(minor, BankingApi.compactCurrency()), 'harness');
+}
+
 async function balanceOf(ownerKey: string): Promise<number> {
   const acct = await BankingApi.primaryAccountIdOf(ownerKey);
   return acct ? BankingApi.balanceOf(acct).minor : 0;
@@ -96,6 +102,7 @@ describe('employment shift-wage settlement', () => {
     const mara = makeStuffAtPath(() => new Person(), MARA);
     await asOwner(mara, () => BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()));
 
+    await fundHouse(biz, 200);
     // onShiftSince = 0, now = 8h  →  8 game-hours × 12 = 96
     await EmploymentApi.settleShiftWage(biz, MARA, shift(0));
 
@@ -110,6 +117,7 @@ describe('employment shift-wage settlement', () => {
     const mara = makeStuffAtPath(() => new Person(), MARA);
     await asOwner(mara, () => BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()));
 
+    await fundHouse(biz, 200);
     // onShiftSince = 5h, now = 8h  →  3 game-hours × 12 = 36
     await EmploymentApi.settleShiftWage(biz, MARA, shift(5 * HOUR));
     expect(await balanceOf(MARA)).toBe(36);

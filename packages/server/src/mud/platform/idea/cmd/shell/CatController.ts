@@ -22,6 +22,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
 import { AccessApi } from '../../../../api/access';
 import { Template } from '../../../../lib/stuff/Template';
+import { DocumentApi } from '../../../../api/document';
 import { ZoneApi } from '../../../../api/zone';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -111,7 +112,29 @@ export default class CatController extends CommandController<CatModel> {
     path: string,
   ): Promise<void> {
     const tpl = await Template.findByPath(path);
-    if (!tpl) return this.fail(context, `no template at ${path}`);
+    if (!tpl) {
+      // ⭐ The third path-addressed tree: a DOCUMENT at the path — a
+      // member's papers (`/home/<key>/papers/arrival-note`, an
+      // instrument), a filed record — reads where a template would
+      // (economic bootstrap D10: "reading the note in your own records
+      // gives every term in words"). An instrument's face and history
+      // are printed as prose; any other kind as its data.
+      const doc = await DocumentApi.read(path);
+      if (!doc) return this.fail(context, `no template or document at ${path}`);
+      const data = (doc.data ?? {}) as Record<string, unknown>;
+      if (doc.kind === 'instrument') {
+        const face = typeof data.face === 'string' ? data.face : '';
+        const history = Array.isArray(data.history)
+          ? data.history.filter((h): h is string => typeof h === 'string')
+          : [];
+        this.tell(context, `\n${face}${history.length ? `\n\n${history.join('\n')}` : ''}\n`);
+        return;
+      }
+      const lines = [`path:  ${doc.path}`, `kind:  ${doc.kind}`, 'data:'];
+      for (const [k, v] of Object.entries(data)) lines.push(`  ${k}: ${this._formatValue(v)}`);
+      this.tell(context, `\n${lines.join('\n')}\n`);
+      return;
+    }
     const isFolder = await ZoneApi.isFolderClass(tpl.class);
     if (isFolder) {
       this.tell(

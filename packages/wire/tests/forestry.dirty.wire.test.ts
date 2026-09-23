@@ -55,10 +55,10 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const FUEL_YARD = '/world/rejection/location/fuel-yard';
+const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
 const HAZEL = '/stuff/idea/material/wood/hazel';
 const OAK = '/stuff/idea/material/wood/oak';
-const RIDE = '/world/rejection/hanging-wood/ride';
+const RIDE = '/world/terminus/rejection/hanging-wood/ride';
 
 /** Walk a route, failing loudly on the step that does not exist. */
 async function walk(s: Session, route: readonly string[]): Promise<void> {

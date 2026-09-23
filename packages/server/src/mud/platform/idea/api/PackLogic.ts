@@ -581,7 +581,7 @@ function resolvePack(root: string): ResolvedPack {
  * The namespace roots a pack's `src/` backs: its manifest root + every
  * title claim — minus any root that lies UNDER another root of the same
  * pack. A locality pack claims extents inside its own root
- * (`/world/eternal` claims `/world/eternal/duncan-hall`), and a
+ * (`/world/terminus/eternal` claims `/world/terminus/eternal/duncan-hall`), and a
  * descendant root would misdirect longest-prefix class resolution into
  * the wrong `src/` subpath (`duncan-hall/DormWarren` would be looked up
  * as `DormWarren`). One `src/`, one covering root.

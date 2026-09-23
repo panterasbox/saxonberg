@@ -1,7 +1,7 @@
 # distribution
 
 The cash-and-carry — the distributor as its own pack (fermentation
-D10). The counter at `/trade/distribution/thing/counter` is the
+D10). The counter at `/world/terminus/counting-houses/distributor/thing/counter` is the
 consignment shelf every producing trade's floor hand consigns onto
 (the `consigns` brain) and every venue's keeper buys from
 (`wallet use house`, `buy gin`). It moved here from trade-distilling

@@ -1,0 +1,39 @@
+# Hesper Quill — the Gazette's editor. On the roster in the unwaged `editor`
+# seat; her `prints` beat reads the reserve's price index and puts the
+# number in print as the Gazette, once an edition window (economic
+# bootstrap D20). She stands in the counting-houses' avenue block — a
+# `boot:` entry, because a paper that prints with nobody reading it is
+# the point.
+class: /world/terminus/gazette/agent/Editor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Hesper Quill
+  keywords: [editor, hesper, quill, ink-stained, notebook]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: [hesper, quill, editor]
+  shortDescription: ink-stained editor with a notebook
+  register: indefinite
+  longDescription: |
+    A lean woman with ink on two fingers and a notebook she never closes, reading the chalkboards along the row the way other people read faces. She asks what things cost, writes it down, and does not argue with the answer.
+  dispositions:
+    - { disposition: diligence, valence: 65 }
+  archetype: clerk
+  competence:
+    - { discipline: finance, asserting: competent }
+  behaviors:
+    # The edition: on a real cadence, skipping until the Schedule's game
+    # hours have passed since the last one she remembers.
+    - brain: /lib/behavior/prints
+      trigger: cadence:2m
+      config:
+        publisher: /world/terminus/gazette
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/idles
+      trigger: cadence:53s
+      config:
+        pool:
+          - { kind: free, value: "copies a price off a chalkboard into her notebook." }
+          - { kind: say, value: "A hundred is par. Everything else is news." }

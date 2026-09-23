@@ -1,0 +1,27 @@
+# Duncan Hall — the college's dorm STAFF, the Organization Katie works
+# for (economic bootstrap D8, applied to the dorm the way it was to
+# Seznick House: an NPC is never on a committee).
+#
+# ⭐ A committee assignment is governance; a position is a job. The TITLE
+# to Duncan Hall sits with the `duncan-hall` group (players only; the
+# founder by default until the Compact seats it); Katie holds the
+# `hall-manager` position HERE, off the authored roster, and that is what
+# authorizes `provision`/`unprovision` — staff acts, or the owner (a
+# committee member) acts. The appointing authority is the building's
+# committee: whoever holds the hall hires and fires the manager.
+class: /platform/idea/Organization
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Duncan Hall
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus/eternal/duncan-hall
+  positions:
+    - key: hall-manager
+      noun: hall-manager
+      label: managing Duncan Hall's dorms
+      wageRate: 0
+      confers: []
+  rosterSlots:
+    - positionKey: hall-manager
+      assignee: /world/terminus/eternal/duncan-hall/agent/katie

@@ -10,18 +10,15 @@ description: >-
   buys fastness and repeatability, never a brighter hue: the dye decides
   the colour, the craft decides whether it stays.
 requires:
-  groups:
-    - name: dyeing
-      purpose: the dyeing trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/dyeing, holder: { group: dyeing } }
+    - { extent: /trade/dyeing, holder: { organization: /compact/trade } }
 boot:
   # ⭐ Reference Ideas are INERT AT BOOT unless something warms them —
   # a rule that has bitten three times. The dyestuff roster is read
   # synchronously by `dye`, so it is stood up eagerly here.
   - { template: /trade/dyeing/idea/dyestuff-catalogue, role: sync-read, reason: "the dyestuff roster DyeController resolves synchronously (self-warming — no Api.boot)" }
-  # The dyehouse is a walk-in SERVICE, so its counter's attendance
-  # queue and its dyer's position want a live business from boot.
-  - { template: /trade/dyeing/location/dyehouse, role: producer, reason: "the dyehouse floor — its counter is the attendance point customers queue at" }
-  - { template: /trade/dyeing/idea/dyehouse, role: producer, reason: "the dyer's position is materialized over a live business" }
+  # The dyehouse's own boot entries moved to `terminus` with the rows
+  # (economic bootstrap D6): a trade is placeless; its floor is the city's.

@@ -14,3 +14,15 @@ settings:
 
   - key: retail.consignment.commissionRate
     value: "0.15"
+
+  # The stocking rule's elasticity (economic bootstrap D14): a `stocking`
+  # line asks base × (1 + e × (1 − onHand/par)) — an empty shelf asks
+  # half again, a shelf at par asks base, one over par asks less. The
+  # market-maker's ask: an offer, never an oracle.
+  - key: retail.stockingElasticity
+    value: "0.5"
+
+  # The margin a shop asks over a supplier's price on a terms good it has
+  # not priced itself (`house price <thing> <ask>` overrides).
+  - key: retail.termsMargin
+    value: "0.25"

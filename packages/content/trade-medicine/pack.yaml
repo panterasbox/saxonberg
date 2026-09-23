@@ -19,9 +19,8 @@ description: >-
   a cot — in whatever locality wants one, which is the second-instance
   test: a second clinic needs ZERO pack code.
 requires:
-  groups:
-    - name: medicine
-      purpose: the medical trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/medicine, holder: { group: medicine } }
+    - { extent: /trade/medicine, holder: { organization: /compact/trade } }

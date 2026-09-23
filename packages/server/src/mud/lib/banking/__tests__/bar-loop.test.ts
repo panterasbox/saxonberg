@@ -1,8 +1,8 @@
 /**
  * The whole money loop, end to end (the bar demo, AC): open an account →
  * deposit cash → buy a drink (a presented Charge settled from the implant) →
- * the bar pays cogs + a wage and runs RED → the central bank mints subsidy to
- * cover it → the P&L shows the deficit → the reconciliation invariant holds
+ * the bar pays a wage within its takings; one beyond them is REFUSED (the
+ * floor) → the P&L shows the lines → the reconciliation invariant holds
  * throughout. (Pay-per-drink only — no tab; the soft-credit tab was retired.)
  */
 
@@ -75,7 +75,7 @@ describe("The bar money loop (end to end)", () => {
     teardownBankingHarness();
   });
 
-  it("open → deposit → buy → wages/cogs run red → subsidy covers", async () => {
+  it("open → deposit → buy → a wage within the takings pays, one beyond them is refused", async () => {
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
       b.setCorpoKey("goodkin");
@@ -114,21 +114,25 @@ describe("The bar money loop (end to end)", () => {
     expect(BankingApi.balanceOf(patronAcct).minor).toBe(240);
     expect(BankingApi.balanceOf(barAcct).minor).toBe(60);
 
-    // 3. the bar pays a wage that exceeds its takings → it runs RED
+    // 3. a wage that exceeds the takings is REFUSED (economic bootstrap D3:
+    //    the floor) — the house borrows or the proprietor reads why; it
+    //    never runs red against nobody.
     await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
-    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(150, BankingApi.compactCurrency()));
-    expect(BankingApi.balanceOf(barAcct).minor).toBe(-90); // red by design
+    await expect(
+      BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(150, BankingApi.compactCurrency())),
+    ).rejects.toThrow(/holds less than/);
+    expect(BankingApi.balanceOf(barAcct).minor).toBe(60);
+    // …a wage within the takings posts.
+    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(50, BankingApi.compactCurrency()));
 
-    // 4. the P&L shows the deficit
+    // 4. the P&L shows the lines
     const pnl = await BankingApi.profitAndLoss(barAcct);
     expect(pnl.lines.sales).toBe(60);
-    expect(pnl.lines.wages).toBe(-150);
-    expect(pnl.balance).toBe(-90);
+    expect(pnl.lines.wages).toBe(-50);
+    expect(pnl.balance).toBe(10);
 
-    // 5. the central bank mints subsidy to cover the red — logged + visible
-    const red = -BankingApi.balanceOf(barAcct).minor;
-    await BankingApi.mint(barAcct, Money.of(red, BankingApi.compactCurrency()), "deficit subsidy", "subsidy");
-    expect(BankingApi.balanceOf(barAcct).minor).toBe(0);
+    // 5. no subsidy exists any more: the overdraft line reads zero
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).overdraft).toBe(0);
 
     // 6. the conservation invariant holds across the whole loop
     expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);

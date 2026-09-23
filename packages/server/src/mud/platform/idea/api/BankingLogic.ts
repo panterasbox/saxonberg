@@ -48,6 +48,8 @@ import { StackableApi } from "../../../api/stackable";
 import { MixinApi } from "../../../api/mixin";
 import { MqlApi } from "../../../api/mql";
 import { StuffApi } from "../../../api/stuff";
+import { PlayerApi } from "../../../api/player";
+import { ContractApi } from "../../../api/contract";
 import { TemplatePaths } from "../../../lib/paths";
 import { Property } from "../../../lib/stuff/Propertied";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -269,17 +271,10 @@ async function openAccountImpl(
   // Auto-register the new account onto the owner's implant wallet (the
   // implant links all the owner's accounts; first opened becomes active).
   autoLinkToWallet(actingPrincipal(), row.accountId);
-  // Lazily capitalize the branch on its first customer: seed the opening vault
-  // float (idempotent, best-effort). The counter is guaranteed live here (the
-  // customer is standing at it), which a boot-time seed can't guarantee. A
-  // no-op in tests (the float AppSetting is unwarmed → 0).
-  const floatMinor = openingFloatMinor();
-  const branch = findBranchOf(bank);
-  if (floatMinor > 0 && branch) {
-    await seedFloatImpl(branch, Money.of(floatMinor, BankingApi.compactCurrency())).catch(() => {
-      /* best-effort — a float failure never blocks opening an account */
-    });
-  }
+  // ⭐ No opening float (economic bootstrap D9). The till used to be
+  // stocked by a MINT paired with a credit to the branch — an authored
+  // faucet. A till fills from deposits now, and a withdrawal past what it
+  // holds is refused "till low", which is honest.
   return row.accountId;
 }
 
@@ -366,7 +361,6 @@ async function ensureVenueAccountImpl(
   bank: string,
   corpoKey: string,
   currency: string,
-  openingCapital?: number,
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.ensureVenueAccount: no persistence");
@@ -392,30 +386,13 @@ async function ensureVenueAccountImpl(
   row.currency = currency;
   await row.save();
   AccountBalance.putCached(row.accountId, 0, currency);
-  // ⭐ Capitalize on FIRST materialization — the `openingFloat` pattern one
-  // tier down, and idempotent for the same reason: the `existing` guard
-  // above means this line is reached exactly once per (owner, bank).
-  //
-  // `undefined` takes the configured default; an explicit `0` declines it,
-  // which is how a WORKER's payer-derived account opens (a worker earns
-  // wages, they are not capitalized). Best-effort: a capital failure must
-  // never block opening the account — an uncapitalized venue is a venue
-  // that cannot buy, not a venue that cannot exist.
-  const capital = openingCapital ?? openingCapitalMinor();
-  if (capital > 0) {
-    await postTransaction("mint", [
-      {
-        currency,
-        from: Account.ISSUANCE,
-        to: row.accountId,
-        amount: capital,
-        memo: "opening capital",
-        category: "subsidy",
-      },
-    ]).catch(() => {
-      /* best-effort — see above */
-    });
-  }
+  // ⭐ It opens on NOTHING (economic bootstrap D9). Opening capital used to
+  // be minted here — an authored number becoming money, the faucet
+  // `lint:no-authored-faucet` now refuses. A business's capital is the
+  // TREASURY'S ADVANCE: a 0% loan the employment seam asks the contract
+  // face for on a history-less account (`ContractApi.openingAdvance`),
+  // funded from what the perpetual rule bought, filed under the business's
+  // branch. The ledger says who got what; nothing here does.
   return row.accountId;
 }
 
@@ -584,50 +561,483 @@ async function ensureCorpoTreasuryImpl(
   return ensureVenueAccountImpl(`corpo:${corpoKey}`, bank, corpoKey, currency);
 }
 
+/* ─────────── the treasury · the reserve's two rules · the override ─────────── */
+
+/** The Treasury organization — the owner of the state's one account. */
+const TREASURY_PATH = "/compact/treasury";
+
 /**
- * Seed a live branch's opening vault float: mint coin into the till AND credit
- * the branch's own operating account against it (founding capital, backed 1:1
- * → conservation holds). Best-effort + idempotent (a no-op if the branch isn't
- * live or already has a balance). Returns whether it seeded.
+ * The treasury's account id — the ONE state account, owned by
+ * `/compact/treasury` and custodied at the Central Bank (only an organ of
+ * the polity banks at the CB). Opened on first touch, on nothing; the
+ * perpetual rule fills it. Economic bootstrap D9.
  */
-async function seedFloatImpl(
-  bank: Stuff & Bank,
+async function treasuryAccountIdImpl(currency: string): Promise<string> {
+  return ensureVenueAccountImpl(
+    TREASURY_PATH,
+    Account.CENTRAL_BANK_INSTITUTION,
+    "",
+    currency,
+  );
+}
+
+/** A dial read as a non-negative number, 0 if unset/pre-warm. */
+function dialNumber(key: string): number {
+  try {
+    const raw = Number(AppApi.setting(key));
+    return Number.isFinite(raw) && raw > 0 ? raw : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Σ amount over the treasury's `mint` legs of `category` (the lane's outstanding). */
+async function laneOutstandingImpl(
+  currency: string,
+  category: PnlCategory,
+): Promise<number> {
+  if (!active()) return 0;
+  // A warmed running sum per lane (kept by every mint / drain post) —
+  // never a scan of the ledger, which grows with every keeper's beat.
+  return SupplyAggregate.cachedLane(currency, category);
+}
+
+export interface PerpetualReconcile {
+  currency: string;
+  activeMembers: number;
+  target: number;
+  outstanding: number;
+  minted: number;
+}
+
+/**
+ * ⭐ **The perpetual rule** — lane two, permanent money for the state
+ * (economic bootstrap D9). The treasury issues a perpetual — a claim the
+ * state pays on forever and never redeems — and the reserve buys it by
+ * rule: `reserve.moneyPerActiveMember × active members`. If what it has
+ * bought so far is short of that, it buys the difference: one `mint`
+ * leg, ISSUANCE → the treasury, category `perpetual`, memo the member
+ * count it was computed from. It never redeems. Runs on every treasury
+ * touch — observe-first, no scheduler — and a member can read the
+ * Schedule and predict it, which is the test for a rule versus an act.
+ */
+async function reconcilePerpetualImpl(
+  currency: string,
+): Promise<PerpetualReconcile> {
+  const perMember = Math.floor(dialNumber(AppSettingKeys.reserveMoneyPerActiveMember));
+  const activeMembers = await PlayerApi.activeMemberCount();
+  const target = perMember * activeMembers;
+  const outstanding = await laneOutstandingImpl(currency, "perpetual");
+  let minted = 0;
+  if (active() && target > outstanding) {
+    const treasury = await treasuryAccountIdImpl(currency);
+    minted = target - outstanding;
+    await postTransaction("mint", [
+      {
+        currency,
+        from: Account.ISSUANCE,
+        to: treasury,
+        amount: minted,
+        memo: `perpetual: ${activeMembers} active member(s) at ${perMember}`,
+        category: "perpetual",
+      },
+    ]);
+  }
+  return { currency, activeMembers, target, outstanding: outstanding + minted, minted };
+}
+
+/**
+ * ⭐ **The window** — lane one, temporary money for credit (economic
+ * bootstrap D9/D12). A chartered bank that has made a secured loan
+ * presents the paper here and receives an advance against it: one `mint`
+ * leg, ISSUANCE → the bank's account, category `window`, memo the
+ * contract. The haircut and the rate are the contract face's (the caller
+ * passes the advance already cut); this is the faucet lint's one
+ * lending mint. `windowRepayImpl` is its reversal: when the borrower
+ * repays the bank, the bank repays the reserve and the money is
+ * extinguished — a `drain`, same category, same memo.
+ */
+async function windowAdvanceImpl(
+  bankAccountId: string,
   amount: Money,
-): Promise<boolean> {
-  if (amount.minor <= 0) return false;
-  const branchAccount = await resolveBranchAccountImpl(bank, amount.currency);
-  if (balanceMinor(branchAccount) > 0) return false;
-  await issueCashImpl(bank as unknown as Stuff & Container, amount, "float");
-  await postTransaction("deposit", [
+  contractId: string,
+): Promise<void> {
+  if (amount.minor <= 0) return;
+  await postTransaction("mint", [
     {
-    currency: amount.currency,
-      from: Account.CASH_BRIDGE,
-      to: branchAccount,
+      currency: amount.currency,
+      from: Account.ISSUANCE,
+      to: bankAccountId,
       amount: amount.minor,
-      category: "float",
+      memo: `window: ${contractId}`,
+      category: "window",
     },
   ]);
-  return true;
 }
 
-/** The configured opening float (minor units), 0 if unset/pre-warm. */
-function openingFloatMinor(): number {
-  try {
-    const raw = Number(AppApi.setting(AppSettingKeys.bankingOpeningFloat));
-    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
-  } catch {
-    return 0;
-  }
+async function windowRepayImpl(
+  bankAccountId: string,
+  amount: Money,
+  contractId: string,
+): Promise<void> {
+  if (amount.minor <= 0) return;
+  const minor = Math.min(amount.minor, balanceMinor(bankAccountId));
+  if (minor <= 0) return;
+  await postTransaction("drain", [
+    {
+      currency: amount.currency,
+      from: bankAccountId,
+      to: Account.ISSUANCE,
+      amount: minor,
+      memo: `window: ${contractId}`,
+      category: "window",
+    },
+  ]);
 }
 
-/** The configured default opening capital (minor units), 0 if unset/pre-warm. */
-function openingCapitalMinor(): number {
-  try {
-    const raw = Number(AppApi.setting(AppSettingKeys.bankingOpeningCapital));
-    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
-  } catch {
-    return 0;
+/**
+ * The Governor's **emergency override** — the ONE hand-typed number left
+ * (economic bootstrap D9). A `mint` into a named account, category
+ * `override`, memo the reason, actor the officer from context: the ledger
+ * records it as the officer's act, the dashboard prints overrides
+ * outstanding as its own line, and `lint:no-authored-faucet` allowlists
+ * exactly this site. A member reading the Schedule could not have
+ * predicted it — which is why it is a person's act and the record says so.
+ */
+async function overrideImpl(
+  toAccountId: string,
+  amount: Money,
+  reason: string,
+): Promise<void> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.override: amount must be positive");
   }
+  if (!reason.trim()) {
+    throw new Error("BankingLogic.override: an override needs a reason on the record");
+  }
+  await postTransaction("mint", [
+    {
+      currency: amount.currency,
+      from: Account.ISSUANCE,
+      to: toAccountId,
+      amount: amount.minor,
+      memo: reason.trim(),
+      category: "override",
+    },
+  ]);
+}
+
+/**
+ * **Appropriate** — the Minister of Finance spends from the treasury's
+ * account to a named destination (economic bootstrap D9): one
+ * `appropriation` leg, treasury → the payee's primary account. The
+ * perpetual rule reconciles first (a treasury touch); the floor refuses
+ * a spend the account cannot cover. Returns the transaction id.
+ */
+async function appropriateImpl(
+  toOwnerKey: string,
+  amount: Money,
+  memo: string,
+): Promise<string> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.appropriate: amount must be positive");
+  }
+  await reconcilePerpetualImpl(amount.currency);
+  const treasury = await treasuryAccountIdImpl(amount.currency);
+  const owned = await accountsOfImpl(toOwnerKey);
+  const to = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId ?? null;
+  if (!to) {
+    throw new Error(`BankingLogic.appropriate: ${toOwnerKey} has no account to receive into`);
+  }
+  if (balanceMinor(treasury) < amount.minor) {
+    throw new Error(
+      `BankingLogic.appropriate: the treasury holds less than ${amount.render()}`,
+    );
+  }
+  const txId = await postTransaction("appropriation", [
+    {
+      currency: amount.currency,
+      from: treasury,
+      to,
+      amount: amount.minor,
+      memo,
+      category: "appropriation",
+    },
+  ]);
+  touchEstateOfAccount(to);
+  return txId;
+}
+
+/**
+ * **Disburse** — cash genesis as a WITHDRAWAL (economic bootstrap D9): one
+ * `withdraw` leg from a real account to the cash bridge, plus the coin
+ * into `into`. Supply-neutral, floor-checked. Its consumers: the Arrival
+ * Note's principal (treasury → the newcomer's hands) and a branch's till
+ * float (its own balance → its vault). `issueCash` — the mint — survives
+ * for the banking test harness only.
+ */
+async function disburseImpl(
+  accountId: string,
+  into: Stuff & Container,
+  amount: Money,
+  category: PnlCategory,
+): Promise<Stuff> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.disburse: amount must be positive");
+  }
+  if (balanceMinor(accountId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.disburse: ${accountId} holds less than ${amount.render()}`,
+    );
+  }
+  await postTransaction("withdraw", [
+    {
+      currency: amount.currency,
+      from: accountId,
+      to: Account.CASH_BRIDGE,
+      amount: amount.minor,
+      memo: "disbursement",
+      category,
+    },
+  ]);
+  return dispenseCoin(into, amount);
+}
+
+export interface PriceIndex {
+  /** The basket counters that answered (template paths). */
+  counters: string[];
+  /** The mean of ask ÷ base over every priced key, as a whole percentage of base (100 = par). */
+  percent: number;
+  /** Per-key lines, for the Gazette's copy. */
+  lines: Array<{ counter: string; key: string; ask: number; base: number }>;
+}
+
+/**
+ * ⭐ The price index — inflation you can see (economic bootstrap D20). For
+ * each counter named in `reserve.indexBasket`, every priced key's current
+ * ask divided by its authored base; the index is the mean ratio as a
+ * whole-number percentage of base. An index over NPC shops' posted asks is
+ * journalism, never an oracle: a shop following a stocking rule is still a
+ * party posting a price. A basket nobody stocks reads par.
+ */
+function priceIndexImpl(): PriceIndex {
+  const raw = (() => {
+    try {
+      return AppApi.setting(AppSettingKeys.reserveIndexBasket) || "";
+    } catch {
+      return "";
+    }
+  })();
+  const counters = raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+  const lines: PriceIndex["lines"] = [];
+  for (const path of counters) {
+    const counter = StuffApi.findByTemplatePath(path);
+    if (!counter || !MixinApi.isPricedOffer(counter)) continue;
+    for (const key of counter.pricedKeys()) {
+      const base = counter.basePriceFor(key);
+      const ask = counter.priceFor(key);
+      if (base === null || ask === null || base <= 0) continue;
+      lines.push({ counter: path, key, ask, base });
+    }
+  }
+  const percent =
+    lines.length === 0
+      ? 100
+      : Math.round((lines.reduce((n, l) => n + l.ask / l.base, 0) / lines.length) * 100);
+  return { counters, percent, lines };
+}
+
+/**
+ * A creditor funds a borrower — one `advance` leg, real→real, floor-
+ * checked (economic bootstrap D2/D12): a bank's loan, the treasury's
+ * opening advance, a working-capital draw. Returns the transaction id
+ * for the contract event that records it.
+ */
+async function advanceImpl(
+  fromAccountId: string,
+  toAccountId: string,
+  amount: Money,
+  memo: string,
+): Promise<string> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.advance: amount must be positive");
+  }
+  if (balanceMinor(fromAccountId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.advance: ${fromAccountId} holds less than ${amount.render()}`,
+    );
+  }
+  return postTransaction("advance", [
+    {
+      currency: amount.currency,
+      from: fromAccountId,
+      to: toAccountId,
+      amount: amount.minor,
+      memo,
+      category: "advance",
+    },
+  ]);
+}
+
+/**
+ * ⭐ The share of an inflow taken for the payee's creditors (economic
+ * bootstrap D12) — asked of the contract face at every `settle`, and
+ * appended to the charge's splits so the ONE transaction conserves. After
+ * it posts, each split is recorded on its loan.
+ */
+async function withRepaymentSplits(
+  charge: Charge,
+): Promise<{ charge: Charge; repayments: Array<{ contractId: string; amount: number }> }> {
+  if (!charge.payeeAccountId || charge.amount.minor <= 0) return { charge, repayments: [] };
+  const existing = charge.splits ?? [];
+  const existingTotal = existing.reduce((s, x) => s + x.amount.minor, 0);
+  const net = charge.amount.minor - existingTotal;
+  if (net <= 0) return { charge, repayments: [] };
+  const splits = await ContractApi.repaymentSplitsFor(charge.payeeAccountId, net);
+  if (splits.length === 0) return { charge, repayments: [] };
+  const repayments = new Map<string, number>();
+  for (const sp of splits) repayments.set(sp.contractId, (repayments.get(sp.contractId) ?? 0) + sp.amount.minor);
+  return {
+    charge: { ...charge, splits: [...existing, ...splits.map(({ contractId: _c, ...rest }) => rest)] },
+    repayments: [...repayments].map(([contractId, amount]) => ({ contractId, amount })),
+  };
+}
+
+/**
+ * A shop pays its supplier for a terms good that sold (economic
+ * bootstrap D11): one `payment` leg, the shop's account → the supplier's,
+ * category `terms` — the shop's P&L reads it as cogs, the supplier's as
+ * sales, and the ladder's rung-1 gate counts it as a completed term. No
+ * ownership check: the buyer's own transaction already cleared and the
+ * verb pays AS the house; the floor still applies.
+ */
+/**
+ * ⭐ ESCHEAT (economic bootstrap D17): a real account's balance, or a part
+ * of it, to the treasury — kind `escheat`, category `escheat` (the
+ * estate passing) or `recovery` (an open note recovered from the balance
+ * that secured it). Real → real, conserving; posted as the state. `min`
+ * of the balance is the caller's arithmetic — this refuses only an
+ * amount the account does not hold.
+ */
+async function escheatImpl(
+  fromAccountId: string,
+  amount: Money,
+  category: "escheat" | "recovery",
+  memo: string,
+): Promise<string> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.escheat: amount must be positive");
+  }
+  if (balanceMinor(fromAccountId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.escheat: ${fromAccountId} holds less than ${amount.render()}`,
+    );
+  }
+  const treasury = await treasuryAccountIdImpl(amount.currency);
+  return postTransaction("escheat", [
+    {
+      currency: amount.currency,
+      from: fromAccountId,
+      to: treasury,
+      amount: amount.minor,
+      memo,
+      category,
+    },
+  ]);
+}
+
+/**
+ * ⭐ RECLAIM (economic bootstrap D17): unclaimed property paid back by the
+ * treasury to the member who returned, or passed to a beneficiary — kind
+ * `repayment`, category `unclaimed`. The treasury cannot refuse: the
+ * perpetual rule reconciles first, so the floor is met.
+ */
+async function reclaimImpl(
+  toAccountId: string,
+  amount: Money,
+  memo: string,
+): Promise<string> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.reclaim: amount must be positive");
+  }
+  await reconcilePerpetualImpl(amount.currency);
+  const treasury = await treasuryAccountIdImpl(amount.currency);
+  if (balanceMinor(treasury) < amount.minor) {
+    throw new Error(
+      `BankingLogic.reclaim: the treasury holds less than ${amount.render()}`,
+    );
+  }
+  return postTransaction("repayment", [
+    {
+      currency: amount.currency,
+      from: treasury,
+      to: toAccountId,
+      amount: amount.minor,
+      memo,
+      category: "unclaimed",
+    },
+  ]);
+}
+
+async function payTermsImpl(
+  shopAccountId: string,
+  supplierAccountId: string,
+  amount: Money,
+  memo: string,
+): Promise<string> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.payTerms: amount must be positive");
+  }
+  if (balanceMinor(shopAccountId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.payTerms: the shop holds less than ${amount.render()}`,
+    );
+  }
+  return postTransaction("payment", [
+    {
+      currency: amount.currency,
+      from: shopAccountId,
+      to: supplierAccountId,
+      amount: amount.minor,
+      memo,
+      category: "terms",
+    },
+  ]);
+}
+
+export interface ReserveDashboard {
+  currency: string;
+  activeMembers: number;
+  moneyPerActiveMember: number;
+  supply: number;
+  perpetualOutstanding: number;
+  windowOutstanding: number;
+  overridesOutstanding: number;
+  treasuryBalance: number;
+}
+
+/**
+ * The Governor's three numbers, per currency and never totalled: money per
+ * active member (the issuance rule's own input, read back from supply),
+ * the two lanes' outstanding, the overrides on the record, and the
+ * treasury's balance. The default rate and the price index are the
+ * contract face's and the index read's — the dashboard composes them.
+ */
+async function reserveDashboardImpl(currency: string): Promise<ReserveDashboard> {
+  const perpetual = await reconcilePerpetualImpl(currency);
+  const treasury = await treasuryAccountIdImpl(currency);
+  const supply = SupplyAggregate.cachedSupply(currency);
+  return {
+    currency,
+    activeMembers: perpetual.activeMembers,
+    moneyPerActiveMember:
+      perpetual.activeMembers > 0 ? Math.floor(supply / perpetual.activeMembers) : supply,
+    supply,
+    perpetualOutstanding: perpetual.outstanding,
+    windowOutstanding: await laneOutstandingImpl(currency, "window"),
+    overridesOutstanding: await laneOutstandingImpl(currency, "override"),
+    treasuryBalance: balanceMinor(treasury),
+  };
 }
 
 /**
@@ -806,11 +1216,28 @@ function autoLinkToWallet(actor: Stuff | null, accountId: string): void {
  * Returns a receipt the scene reads to name what was tapped.
  */
 async function settleImpl(
-  charge: Charge,
+  original: Charge,
   method: SettlementMethod,
 ): Promise<SettlementReceipt> {
   const payer = actingPrincipal();
   if (!payer) throw new Error("BankingLogic.settle: no acting payer");
+  // ⭐ The payee's creditors take their share of this inflow as rider
+  // splits inside the same transaction (economic bootstrap D12).
+  const { charge, repayments } = await withRepaymentSplits(original);
+  const receipt = await settleLegs(payer, charge, method);
+  for (const r of repayments) {
+    await ContractApi.recordRepayment(r.contractId, r.amount, receipt.txId ?? "");
+  }
+  if (charge.payeeAccountId) touchEstateOfAccount(charge.payeeAccountId);
+  for (const sp of charge.splits ?? []) touchEstateOfAccount(sp.accountId);
+  return receipt;
+}
+
+async function settleLegs(
+  payer: Stuff,
+  charge: Charge,
+  method: SettlementMethod,
+): Promise<SettlementReceipt> {
 
   if (method.kind === "cash") {
     if (!MixinApi.isContainer(payer)) {
@@ -878,8 +1305,8 @@ async function settleImpl(
         memo: charge.reason,
       });
     }
-    await postTransaction("deposit", bridgeLegs);
-    return { method: "cash", accountId: charge.payeeAccountId };
+    const txId = await postTransaction("deposit", bridgeLegs);
+    return { method: "cash", accountId: charge.payeeAccountId, txId };
   }
 
   // credential method
@@ -905,6 +1332,10 @@ async function settleImpl(
     throw new Error(
       "BankingLogic.settle: the credential declined (frozen or over its cap)",
     );
+  }
+  {
+    const frozen = await frozenReasonOf(routingAccount);
+    if (frozen) throw new Error(`BankingLogic.settle: ${frozen}`);
   }
   if (balanceMinor(routingAccount) < charge.amount.minor) {
     throw new Error("BankingLogic.settle: insufficient balance");
@@ -937,9 +1368,9 @@ async function settleImpl(
       memo: charge.reason,
     });
   }
-  await postTransaction("payment", legs);
+  const txId = await postTransaction("payment", legs);
   const corpoKey = (await accountByIdImpl(routingAccount))?.corpoKey ?? "";
-  return { method: "credential", accountId: routingAccount, corpoKey };
+  return { method: "credential", accountId: routingAccount, corpoKey, txId };
 }
 
 /**
@@ -948,6 +1379,21 @@ async function settleImpl(
  * (out of scope). Throws if the worker has no account or the employer is
  * short.
  */
+/**
+ * ⭐ A credit LANDED on `accountId` — the estate touch (economic bootstrap
+ * D16): when the account is a member's, their estate is read, and past the
+ * long clock it passes. Fire-and-forget on purpose: the credit is posted
+ * either way, and an estate read must never fail a wage or a sale.
+ */
+function touchEstateOfAccount(accountId: string): void {
+  void (async () => {
+    const row = await accountByIdImpl(accountId);
+    const owner = row?.owner ?? "";
+    if (!owner || !PlayerApi.isAvatarIdentityPath(owner)) return;
+    await PlayerApi.touchEstate(owner);
+  })().catch((err) => console.warn(`BankingLogic: the estate touch failed for ${accountId}: ${String(err)}`));
+}
+
 async function payWageImpl(
   employerAccountId: string,
   workerKey: string,
@@ -960,10 +1406,17 @@ async function payWageImpl(
   if (!workerAccount) {
     throw new Error("BankingLogic.payWage: the worker has no account");
   }
-  // No employer-solvency check: a venue runs its P&L red by design (the
-  // deficit-as-target), with the CB subsidy covering it. The wage is owed
-  // regardless; blocking it would defeat the deficit model. (A future
-  // employment build can gate player employers on solvency.)
+  // ⭐ The employer must hold the wage (economic bootstrap D3/D18): the
+  // floor is structural, and a wage the house cannot cover is a
+  // working-capital draw the employment seam takes FIRST, or a refusal the
+  // proprietor reads and an arrears line on the book — never a balance
+  // driven red against no creditor. The deficit model this used to serve
+  // is gone with the subsidy that covered it.
+  if (active() && balanceMinor(employerAccountId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.payWage: the employer holds less than ${amount.render()}`,
+    );
+  }
   await postTransaction("wage", [
     {
     currency: amount.currency,
@@ -974,6 +1427,7 @@ async function payWageImpl(
       memo,
     },
   ]);
+  touchEstateOfAccount(workerAccount);
 }
 
 /* ─────────────────── escrow · draw · custodian restamp ─────────────────── */
@@ -1108,6 +1562,30 @@ async function escrowCloseImpl(contractId: string): Promise<void> {
  * model), the draw is **solvency-checked**: a proprietor pocketing from an
  * insolvent business is exactly what the distinct kind exists to expose.
  */
+/**
+ * ⭐ The FREEZE (economic bootstrap D16): why an outflow from `accountId`
+ * is refused, or null. A member's account whose estate is dormant or
+ * escheated pays nobody; a house's account whose house is closed pays
+ * nobody. Credits always land — this is asked only where money LEAVES on
+ * somebody's say-so (withdraw, transfer, draw, a settled charge), never
+ * at the chokepoint, because the estate's own passage (an escheat leg, a
+ * repayment split) must still move it.
+ */
+async function frozenReasonOf(accountId: string): Promise<string | null> {
+  const row = await accountByIdImpl(accountId);
+  const owner = row?.owner ?? "";
+  if (!owner) return null;
+  if (PlayerApi.isAvatarIdentityPath(owner)) {
+    const state = await PlayerApi.estateStateOf(owner);
+    return state === "active" ? null : `the account is frozen — its holder is ${state}`;
+  }
+  const live = StuffApi.findByTemplatePath(owner);
+  if (live && MixinApi.isBusiness(live) && live.isClosed()) {
+    return "the house is closed — its keeper is away";
+  }
+  return null;
+}
+
 async function payDrawImpl(
   businessAccountId: string,
   proprietorKey: string,
@@ -1115,6 +1593,10 @@ async function payDrawImpl(
 ): Promise<void> {
   if (amount.minor <= 0) {
     throw new Error("BankingLogic.payDraw: amount must be positive");
+  }
+  {
+    const frozen = await frozenReasonOf(businessAccountId);
+    if (frozen) throw new Error(`BankingLogic.payDraw: ${frozen}`);
   }
   if (
     active() &&
@@ -1158,7 +1640,6 @@ async function payDrawImpl(
  */
 async function restampCustodiansImpl(): Promise<void> {
   if (!active()) return;
-  const treasuryId = demoTaxConfig().treasury;
   const custodian = defaultCustodianBankImpl();
   for (const row of await AccountBalance.find<AccountBalance>({})) {
     if (Account.isEscrowAccount(row.accountId)) continue;
@@ -1179,9 +1660,9 @@ async function restampCustodiansImpl(): Promise<void> {
       row.bankPath = "";
       dirty = true;
     }
-    // The treasury (the legislature's fisc, the sole state account) banks
-    // at the CB.
-    if (row.accountId === treasuryId) {
+    // The treasury (the sole state account, `/compact/treasury`'s) banks
+    // at the CB — stamped so at opening (economic bootstrap D9).
+    if (row.owner === TREASURY_PATH) {
       if (row.bank !== Account.CENTRAL_BANK_INSTITUTION) {
         row.bank = Account.CENTRAL_BANK_INSTITUTION;
         dirty = true;
@@ -1202,15 +1683,13 @@ async function restampCustodiansImpl(): Promise<void> {
 }
 
 /** The authored/inert demo tax rate + treasury account, or rate 0 if absent. */
-function demoTaxConfig(): { rate: number; treasury: string } {
+function demoTaxConfig(): { rate: number } {
   try {
     const r = AppApi.setting(AppSettingKeys.bankingSalesTaxRate);
     const rate = r ? Number(r) : 0;
-    const treasury =
-      AppApi.setting(AppSettingKeys.bankingTreasuryAccount) || "treasury";
-    return { rate: Number.isFinite(rate) && rate > 0 ? rate : 0, treasury };
+    return { rate: Number.isFinite(rate) && rate > 0 ? rate : 0 };
   } catch {
-    return { rate: 0, treasury: "treasury" }; // AppSettings not warmed
+    return { rate: 0 }; // AppSettings not warmed
   }
 }
 
@@ -1218,18 +1697,22 @@ function demoTaxConfig(): { rate: number; treasury: string } {
  * Remit the demo sales tax on a sale of `saleAmount` from the seller's
  * account to the placeholder treasury — a `tax`/`tax` posting at the
  * authored, inert rate. The seller-collected model: the tax shows in the
- * seller's P&L (a `tax` line) and the treasury merely accumulates (no
- * appropriation path). Returns the tax remitted (zero when the rate is
- * absent). No solvency check — the venue may run red (the CB subsidizes).
+ * seller's P&L (a `tax` line) and the treasury accumulates it beside the
+ * perpetual (the Minister of Finance appropriates from it). Returns the
+ * tax remitted (zero when the rate is absent). Runs after the sale landed,
+ * so the floor cannot fail it.
  */
 async function remitDemoTaxImpl(
   sellerAccountId: string,
   saleAmount: Money,
 ): Promise<Money> {
-  const { rate, treasury } = demoTaxConfig();
+  const { rate } = demoTaxConfig();
   if (rate <= 0) return Money.zero(BankingApi.compactCurrency());
   const tax = Math.floor(saleAmount.minor * rate);
   if (tax <= 0) return Money.zero(BankingApi.compactCurrency());
+  // ⭐ To the treasury's real account — `/compact/treasury`'s, at the CB
+  // (economic bootstrap D9) — never a raw string id nobody owns.
+  const treasury = await treasuryAccountIdImpl(saleAmount.currency);
   await postTransaction("tax", [
     {
     currency: saleAmount.currency,
@@ -1267,9 +1750,17 @@ async function issueCashImpl(
       category,
     },
   ]);
-  // Dispense largest-first: a real cash faucet hands out efficient coins
-  // (25s, then 5s, then 1s), not a heap of ones. Each denomination is its own
-  // stack (they never merge — stack identity is `(currency, denomination)`).
+  return dispenseCoin(into, amount);
+}
+
+/**
+ * Put `amount` of coin into `into` — the physical half of a cash movement
+ * the ledger has already recorded (a mint to the bridge, or a withdrawal
+ * to it). Dispense largest-first: a real till hands out efficient coins
+ * (25s, then 5s, then 1s), not a heap of ones. Each denomination is its
+ * own stack (they never merge — stack identity is `(currency, denomination)`).
+ */
+async function dispenseCoin(into: Stuff & Container, amount: Money): Promise<Stuff> {
   const lines = Coinage.dispense(amount.currency, amount.minor);
   let representative: Stuff | null = null;
   for (const line of lines) {
@@ -1326,8 +1817,12 @@ async function snapshotCoinOf(currency: string): Promise<number> {
   // counting the snapshot too would double them — found by driving, when the
   // audit reported a bottom-up exceeding supply. Only a holder that is NOT
   // materialized is represented solely by its record.
+  // ⚠ `findAllByTemplatePath`, not the singleton read: a keyed scope
+  // (`/trade/farming/thing/plant/wheat`, one row, many instances) made the
+  // singleton read THROW inside the audit, which took `reserve supply`
+  // down with it — found by driving the bootstrap.
   const isResident = (scope: string): boolean =>
-    scope !== "" && StuffApi.findByTemplatePath(scope) !== undefined;
+    scope !== "" && StuffApi.findAllByTemplatePath(scope).length > 0;
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
       for (const child of node) visit(child);
@@ -1423,13 +1918,15 @@ async function fullReconcileImpl(
   const base = reconcileImpl(currency);
   const { vault } = liveCoinOf(currency);
   const snapshotCoin = await snapshotCoinOf(currency);
-  // ⚠⚠ VAULT FLOAT IS REPORTED BUT NOT ADDED. `seedFloat` mints coin into the
-  // till AND credits the branch's own operating account 1:1 against it, so
-  // the float is ALREADY represented on the ledger by that balance. Adding
-  // `vault` to the bottom-up term would double-count it by exactly the float
-  // — which is why the original `reconcile` skipped vault cash. That skip was
-  // load-bearing accounting, not an oversight; found by driving, when the
-  // audit reported a bottom-up EXCEEDING supply.
+  // ⚠⚠ VAULT COIN IS REPORTED BUT NOT ADDED — and the economic bootstrap
+  // kept it that way on purpose. Every coin in a vault got there by a
+  // DEPOSIT, whose `deposit` leg credited the depositor's balance 1:1, so
+  // the vault is already represented on the ledger by those balances
+  // (M1 excludes vault cash for the same reason). The retired opening
+  // float minted coin AND credited the branch against it, which fit this
+  // identity but was an authored faucet; the bootstrap's answer is that a
+  // till fills from deposits and a withdrawal past the till is refused
+  // "till low" — honest, and nothing here to double-count.
   //
   // `snapshotCoin` is different in kind: coin captured into `holder_snapshots`
   // has no on-ledger counterpart at all, so it is a genuinely missing
@@ -1540,6 +2037,32 @@ async function postTransaction(
   }
   if (!active()) return "";
 
+  // ⭐⭐ THE FLOOR (economic bootstrap D3) — structural, at the chokepoint.
+  //
+  // No real account goes below zero. Every posting's net effect per
+  // paying account is projected against the warmed cache (the circle
+  // overlay included) BEFORE any row is written, and a posting that would
+  // take one under is refused whole. A wage the house cannot cover is a
+  // loan naming a creditor or a refusal the proprietor reads — never a
+  // balance driven red against nobody. Callers that refuse gracefully
+  // (`settle`, `payDraw`, `payWage`, `disburse`) keep doing so upstream;
+  // this is the backstop nothing gets around.
+  const net = new Map<string, number>();
+  for (const leg of legs) {
+    if (!Account.isSentinel(leg.from)) net.set(leg.from, (net.get(leg.from) ?? 0) - leg.amount);
+    if (!Account.isSentinel(leg.to)) net.set(leg.to, (net.get(leg.to) ?? 0) + leg.amount);
+  }
+  for (const [accountId, delta] of net) {
+    if (delta >= 0) continue;
+    const held = balanceMinor(accountId);
+    if (held + delta < 0) {
+      throw new Error(
+        `BankingLogic.postTransaction: account '${accountId}' holds ${held} and ` +
+          `the posting takes ${-delta} — no account goes below zero (the floor)`,
+      );
+    }
+  }
+
   const at = WorldClockApi.getNow().rawValue();
   const realAt = Date.now();
   const actor = actingActorKey();
@@ -1585,12 +2108,12 @@ async function postTransaction(
   }
 
   if (circleScope === null) {
-    const { currency, minted, drained } = BankTransaction.supplyDelta(
+    const { currency, minted, drained, lanes } = BankTransaction.supplyDelta(
       kind,
       legs,
     );
     if (minted !== 0 || drained !== 0) {
-      await bumpSupply(currency, minted, drained);
+      await bumpSupply(currency, minted, drained, lanes);
     }
   }
   return txId;
@@ -1615,6 +2138,14 @@ function defaultCategory(kind: LedgerKind): PnlCategory {
       return "escrow";
     case "draw":
       return "draw";
+    case "advance":
+      return "advance";
+    case "repayment":
+      return "repayment";
+    case "appropriation":
+      return "appropriation";
+    case "escheat":
+      return "escheat";
     default:
       return "other";
   }
@@ -1669,6 +2200,7 @@ async function bumpSupply(
   currency: string,
   minted: number,
   drained: number,
+  lanes: Record<string, { minted: number; drained: number }> = {},
 ): Promise<void> {
   const prior = _supplyWrites.get(currency) ?? Promise.resolve();
   const next = prior
@@ -1683,6 +2215,12 @@ async function bumpSupply(
       if (!existing) row.currency = currency;
       row.minted += minted;
       row.drained += drained;
+      const perLane = { ...(row.lanes ?? {}) };
+      for (const [category, delta] of Object.entries(lanes)) {
+        const cur = perLane[category] ?? { minted: 0, drained: 0 };
+        perLane[category] = { minted: cur.minted + delta.minted, drained: cur.drained + delta.drained };
+      }
+      row.lanes = perLane;
       await row.save();
       await SupplyAggregate.warm();
     });
@@ -1719,7 +2257,7 @@ async function recomputeSupplyImpl(): Promise<void> {
   const rows = await LedgerEntry.find<LedgerEntry>({});
   // Group the full scan by currency: conservation is N independent domains,
   // so the rebuild produces one row per currency, not one headline.
-  const totals = new Map<string, { minted: number; drained: number }>();
+  const totals = new Map<string, { minted: number; drained: number; lanes: Record<string, { minted: number; drained: number }> }>();
   for (const r of rows) {
     if (r.kind !== "mint" && r.kind !== "drain") continue;
     const currency = r.currency;
@@ -1730,18 +2268,26 @@ async function recomputeSupplyImpl(): Promise<void> {
           `(packages/server/scripts/migrate-currency.ts --apply)`,
       );
     }
-    const seen = totals.get(currency) ?? { minted: 0, drained: 0 };
-    if (r.kind === "mint") seen.minted += r.amount;
-    else seen.drained += r.amount;
+    const seen = totals.get(currency) ?? { minted: 0, drained: 0, lanes: {} };
+    const lane = seen.lanes[r.category] ?? { minted: 0, drained: 0 };
+    if (r.kind === "mint") {
+      seen.minted += r.amount;
+      lane.minted += r.amount;
+    } else {
+      seen.drained += r.amount;
+      lane.drained += r.amount;
+    }
+    seen.lanes[r.category] = lane;
     totals.set(currency, seen);
   }
   const existing = await SupplyAggregate.find<SupplyAggregate>({});
   const byCurrency = new Map(existing.map((r) => [r.currency, r]));
-  for (const [currency, { minted, drained }] of totals) {
+  for (const [currency, { minted, drained, lanes }] of totals) {
     const row = byCurrency.get(currency) ?? new SupplyAggregate();
     row.currency = currency;
     row.minted = minted;
     row.drained = drained;
+    row.lanes = lanes;
     await row.save();
   }
   await SupplyAggregate.warm();
@@ -1826,19 +2372,118 @@ export class BankingLogic extends ApiLogic {
     ]);
   }
 
-  /** See {@link BankingApi.float}. Convenience over mint (category `float`). */
+  /** See {@link BankingApi.advance}. */
   @CallSecurity(BankingApiCallers)
-  public async float(accountId: string, amount: Money): Promise<void> {
-    await postTransaction("mint", [
-      {
-      currency: amount.currency,
-        from: Account.ISSUANCE,
-        to: accountId,
-        amount: amount.minor,
-        memo: "float liquidity",
-        category: "float",
-      },
-    ]);
+  public async advance(
+    fromAccountId: string,
+    toAccountId: string,
+    amount: Money,
+    memo: string,
+  ): Promise<string> {
+    return advanceImpl(fromAccountId, toAccountId, amount, memo);
+  }
+
+  /** See {@link BankingApi.escheat}. */
+  @CallSecurity(BankingApiCallers)
+  public async escheat(
+    fromAccountId: string,
+    amount: Money,
+    category: "escheat" | "recovery",
+    memo: string,
+  ): Promise<string> {
+    return escheatImpl(fromAccountId, amount, category, memo);
+  }
+
+  /** See {@link BankingApi.reclaim}. */
+  @CallSecurity(BankingApiCallers)
+  public async reclaim(toAccountId: string, amount: Money, memo: string): Promise<string> {
+    return reclaimImpl(toAccountId, amount, memo);
+  }
+
+  /** See {@link BankingApi.payTerms}. */
+  @CallSecurity(BankingApiCallers)
+  public async payTerms(
+    shopAccountId: string,
+    supplierAccountId: string,
+    amount: Money,
+    memo: string,
+  ): Promise<string> {
+    return payTermsImpl(shopAccountId, supplierAccountId, amount, memo);
+  }
+
+  /** See {@link BankingApi.treasuryAccountId}. */
+  @CallSecurity(BankingApiCallers)
+  public async treasuryAccountId(currency: string): Promise<string> {
+    return treasuryAccountIdImpl(currency);
+  }
+
+  /** See {@link BankingApi.reconcilePerpetual}. */
+  @CallSecurity(BankingApiCallers)
+  public async reconcilePerpetual(currency: string): Promise<PerpetualReconcile> {
+    return reconcilePerpetualImpl(currency);
+  }
+
+  /** See {@link BankingApi.windowAdvance}. */
+  @CallSecurity(BankingApiCallers)
+  public async windowAdvance(
+    bankAccountId: string,
+    amount: Money,
+    contractId: string,
+  ): Promise<void> {
+    return windowAdvanceImpl(bankAccountId, amount, contractId);
+  }
+
+  /** See {@link BankingApi.windowRepay}. */
+  @CallSecurity(BankingApiCallers)
+  public async windowRepay(
+    bankAccountId: string,
+    amount: Money,
+    contractId: string,
+  ): Promise<void> {
+    return windowRepayImpl(bankAccountId, amount, contractId);
+  }
+
+  /** See {@link BankingApi.override}. */
+  @CallSecurity(BankingApiCallers)
+  public async override(
+    toAccountId: string,
+    amount: Money,
+    reason: string,
+  ): Promise<void> {
+    return overrideImpl(toAccountId, amount, reason);
+  }
+
+  /** See {@link BankingApi.appropriate}. */
+  @CallSecurity(BankingApiCallers)
+  public async appropriate(
+    toOwnerKey: string,
+    amount: Money,
+    memo: string,
+  ): Promise<string> {
+    return appropriateImpl(toOwnerKey, amount, memo);
+  }
+
+  /** See {@link BankingApi.disburse}. */
+  @CallSecurity(BankingApiCallers)
+  public async disburse(
+    accountId: string,
+    into: Stuff & Container,
+    amount: Money,
+    category: PnlCategory,
+  ): Promise<Stuff> {
+    return disburseImpl(accountId, into, amount, category);
+  }
+
+  /** See {@link BankingApi.priceIndex}. */
+  @CallSecurity(BankingApiCallers)
+  public priceIndex(): PriceIndex {
+    return priceIndexImpl();
+  }
+
+  /** See {@link BankingApi.reserveDashboard}. */
+  @CallSecurity(BankingApiCallers)
+  public async reserveDashboard(currency: string): Promise<ReserveDashboard> {
+    return reserveDashboardImpl(currency);
   }
 
   /** See {@link BankingApi.balanceOf}. Sync warm read. */
@@ -1984,6 +2629,10 @@ export class BankingLogic extends ApiLogic {
     if (!account) {
       throw new Error("BankingLogic.withdraw: no account here");
     }
+    {
+      const frozen = await frozenReasonOf(account.accountId);
+      if (frozen) throw new Error(`BankingLogic.withdraw: ${frozen}`);
+    }
     const terms = bank.getTerms();
     const fee = terms.getTransactionFee();
     const balance = balanceMinor(account.accountId);
@@ -2086,6 +2735,10 @@ export class BankingLogic extends ApiLogic {
     if (from.owner !== actingActorKey()) {
       throw new Error("BankingLogic.transfer: that isn't your account");
     }
+    {
+      const frozen = await frozenReasonOf(fromAccountId);
+      if (frozen) throw new Error(`BankingLogic.transfer: ${frozen}`);
+    }
     // A wire fee (Terms) on movement/convenience — the only live Goodkin fee.
     // Intra-bank (same branch) is free; cross-*bank* (same corpo) costs the
     // wire fee; cross-*corpo* costs the (heavier) cross-corpo fee — rivalry
@@ -2187,7 +2840,9 @@ export class BankingLogic extends ApiLogic {
     toAccountId: string,
     amount: Money,
   ): Promise<string> {
-    return escrowMoveImpl("escrow-release", contractId, toAccountId, amount);
+    const txId = await escrowMoveImpl("escrow-release", contractId, toAccountId, amount);
+    touchEstateOfAccount(toAccountId);
+    return txId;
   }
 
   /** See {@link BankingApi.escrowRevert}. Escrow → the issuer. */
@@ -2276,15 +2931,8 @@ export class BankingLogic extends ApiLogic {
     bank: string,
     corpoKey: string,
     currency: string,
-    openingCapital?: number,
   ): Promise<string> {
-    return ensureVenueAccountImpl(
-      ownerPath,
-      bank,
-      corpoKey,
-      currency,
-      openingCapital,
-    );
+    return ensureVenueAccountImpl(ownerPath, bank, corpoKey, currency);
   }
 
   /** See {@link BankingApi.ensureCorpoTreasury}. The corpo's royalty account. */
@@ -2297,11 +2945,10 @@ export class BankingLogic extends ApiLogic {
     return ensureCorpoTreasuryImpl(corpoKey, bank, currency);
   }
 
-  // The opening float (seedFloatImpl) and the withdrawal-quota reader
-  // (withdrawnTodayImpl) are NOT public Api methods: the float triggers lazily
-  // on the first openAccount, and the quota is read inside withdraw. Both are
-  // module-internal — exposing them would put internal ops on the author
-  // surface (callable == visible == cared-about) with no author consumer.
+  // The withdrawal-quota reader (withdrawnTodayImpl) is NOT a public Api
+  // method: the quota is read inside withdraw. Module-internal — exposing
+  // it would put an internal op on the author surface (callable ==
+  // visible == cared-about) with no author consumer.
 
   /**
    * See {@link BankingApi.enrollCircle}. Enrol `ownerKey`'s account at a

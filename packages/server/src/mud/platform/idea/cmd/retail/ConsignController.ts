@@ -32,6 +32,7 @@ import ConsignmentShelf from "../../../thing/ConsignmentShelf";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
+import Stock from "../../../thing/Stock";
 import { Mml } from "../../../../api/mml";
 import { ChattelApi } from "../../../../api/chattel";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
@@ -160,12 +161,20 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // house's to put up.
     const chain = house
       ? (house as Stuff & Organization).organizationChain().map(
-          (o) => o.getTemplatePath(),
+          (o) => o.getOrganizationPath(),
         )
       : [];
+    // ⭐ And UNSTAMPED means nobody's, whatever the parcel derives: since
+    // the trades' extents are held by the Ministry of Trade (economic
+    // bootstrap W2, an organization rather than a group), every floor
+    // crate the sweep stood in an outfit's stock derived to the Ministry
+    // and no hand in the realm could consign — the drive found six
+    // producers refused `not-owner` on every beat.
+    const unstamped = MixinApi.isChattel(item) && !item.isStamped();
     const ownedByPrincipal =
       ownedBy(consignorKey) ||
       owner === null ||
+      unstamped ||
       owner.kind === "group" ||
       (owner.kind === "organization" && chain.includes(owner.templatePath)) ||
       ownedBy(giver.getIdentityPath());
@@ -234,19 +243,32 @@ export default class ConsignController extends CommandController<ConsignModel> {
       await (listed as unknown as Stuff & Chattel).stampChattel(principal);
     }
 
+    // ⭐ The BASIS is the counter's policy (economic bootstrap D11): at a
+    // `terms` counter the `--ask` is the supplier's PRICE — what the
+    // consignor is owed at sale — and the SHOP sets the ask on the shelf
+    // and keeps the margin; at a consignment counter it is the
+    // consignor's own ask, and the shop takes a commission. Title stays
+    // with the consignor either way until the good sells.
+    const basis = shelf instanceof Stock ? shelf.getPurchasing() : "consignment";
+
     // Custody → the shop's shelf; the owner-stamp stays put.
     ContainmentApi.move(listed, shelf as unknown as Stuff & Container);
-    shelf.recordListing(listed.getChattelId(), consignorKey, ask);
+    shelf.recordListing(listed.getChattelId(), consignorKey, ask, basis);
 
     const kept = stack && listed !== item ? stack.getQuantity() : 0;
+    const money = Money.of(ask, BankingApi.compactCurrency()).render();
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        kept > 0
-          ? Mml.compose`You put ${Mml.thing(listed)} up for sale at ${Money.of(ask, BankingApi.compactCurrency()).render()}, and keep ${String(kept)} back. It's still yours until it sells.`
-          : Mml.compose`You put ${Mml.thing(listed)} up for sale at ${Money.of(ask, BankingApi.compactCurrency()).render()}. It's still yours until it sells.`,
+        basis === "terms"
+          ? kept > 0
+            ? Mml.compose`You leave ${Mml.thing(listed)} on the shop's terms — it owes you ${money} when it sells and sets its own price — and keep ${String(kept)} back. It's still yours until then.`
+            : Mml.compose`You leave ${Mml.thing(listed)} on the shop's terms — it owes you ${money} when it sells and sets its own price. It's still yours until then.`
+          : kept > 0
+            ? Mml.compose`You put ${Mml.thing(listed)} up for sale at ${money}, and keep ${String(kept)} back. It's still yours until it sells.`
+            : Mml.compose`You put ${Mml.thing(listed)} up for sale at ${money}. It's still yours until it sells.`,
       )
-      .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(listed)} on the consignment shelf.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(listed)} on the ${basis === "terms" ? "counter" : "consignment shelf"}.`)
       .send();
   }
 
