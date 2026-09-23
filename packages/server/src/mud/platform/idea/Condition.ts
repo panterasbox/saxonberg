@@ -207,6 +207,17 @@ export interface Trauma {
    * stamp — no re-arm seam. Undefined until the first read stamps it.
    */
   tickedAt?: number;
+  /**
+   * ⭐⭐ **The HEALING clock's stamp** (D3) — the game-time (seconds) the
+   * wound's `mend` last ran, kept SEPARATE from `tickedAt` because the two
+   * halves integrate under opposite absence rules. The harm arm
+   * (`tickedAt`) freezes on linkdead and drops a far-past gap — *being
+   * away must never bleed you*. The mend arm (`mendedAt`) does NEITHER —
+   * *being away must never COST you, and mending is never a cost* — so a
+   * body knits across a logout at whatever `k` it reads on return.
+   * Stamped at `inflict` beside `tickedAt`; undefined until first read.
+   */
+  mendedAt?: number;
 }
 
 /**

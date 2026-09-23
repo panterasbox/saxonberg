@@ -2110,51 +2110,55 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         // (D3a): recently harmed or in a live fight → nothing knits.
         const k = this.convalescenceFactor();
         for (const t of traumas) {
-          // First touch: seed the stamp so a fresh wound doesn't integrate
-          // a giant gap from epoch.
+          // ── The HARM arm (`tickedAt`) ── freezes on linkdead and drops
+          // a far-past gap: real-life absence never bleeds you.
           if (t.tickedAt === undefined) {
+            // First touch: seed the stamp so a fresh wound doesn't
+            // integrate a giant gap from epoch.
             t.tickedAt = nowS;
-            continue;
-          }
-          if (linkdead) {
+          } else if (linkdead) {
             t.tickedAt = nowS;
-            continue;
-          }
-          const elapsed = nowS - t.tickedAt;
-          if (elapsed <= 0) {
+          } else {
+            const elapsed = nowS - t.tickedAt;
             t.tickedAt = nowS;
-            continue;
+            // Integrate only a real, bounded interval; a far-past gap means
+            // absence, and absence never bleeds you.
+            if (elapsed > 0 && elapsed <= HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+              // ⚠ The intensity is the severity the wound had **during**
+              // the interval, not after the tick healed it — read post-mend
+              // (below), a wound that cleared in the same slice would
+              // contribute nothing, silently losing every effect on a
+              // fast-healing type.
+              const carried = t.severity;
+              TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
+              // ⭐ …and what CARRYING the wound does, over and above its
+              // own tick — the Kind-B half of the effect channel, through
+              // the same interpreter a Kind-A row's `signature` uses.
+              this.applyEffects(
+                TRAUMA_BEHAVIOR[t.type].signature,
+                carried,
+                elapsed,
+              );
+            }
           }
-          // Far-past guard: a gap this long means absence — integrate
-          // nothing (real-life absence never bleeds you).
-          if (elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
-            t.tickedAt = nowS;
-            continue;
+
+          // ── The MEND arm (`mendedAt`) ── D3: a SECOND stamp, with NO
+          // linkdead freeze and NO far-past drop — the dying arm's
+          // discipline, for the opposite reason. Being away must never
+          // COST you, and mending is never a cost, so a body knits across
+          // a logout at whatever `k` it reads on return (`k = 0` when it
+          // is not safe — D3a — is what stops a body dropped mid-fight
+          // from knitting). Kept inside this one loop so `lint:condition-
+          // arms` still counts a single arm.
+          if (t.mendedAt === undefined) {
+            t.mendedAt = nowS;
+          } else {
+            const mendElapsed = nowS - t.mendedAt;
+            t.mendedAt = nowS;
+            if (mendElapsed > 0) {
+              TRAUMA_BEHAVIOR[t.type].mend(this, t, mendElapsed, k);
+            }
           }
-          t.tickedAt = nowS;
-          // ⚠ The intensity is the severity the wound had **during** the
-          // interval, not after the tick healed it. A burn that clears
-          // inside one reconcile still wept for the time it was there —
-          // read post-tick, a wound that healed to zero in the same slice
-          // contributes nothing, which silently loses every effect on a
-          // fast-healing type.
-          const carried = t.severity;
-          TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
-          // ⭐ …and what CARRYING the wound does, over and above its own
-          // tick. The Kind-B half of the effect channel, through the same
-          // interpreter a Kind-A row's `signature` goes through — so a
-          // burn's plasma weep and a bruise's stiffness are declared
-          // beside the decay law rather than hard-coded somewhere else.
-          this.applyEffects(
-            TRAUMA_BEHAVIOR[t.type].signature,
-            carried,
-            elapsed,
-          );
-          // ⭐ …and the HEALING half — the severity decay, scaled by the
-          // convalescence factor. Split from `tick` (D1) so care can buy
-          // rate and being away can mend you (W-A2) without ever changing
-          // what a wound does TO you.
-          TRAUMA_BEHAVIOR[t.type].mend(this, t, elapsed, k);
         }
 
         // Sustained shock — the being-shocked circuit. Same presence-freeze

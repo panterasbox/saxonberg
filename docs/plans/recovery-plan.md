@@ -784,7 +784,35 @@ reachable at all.
 - **Commit:** `build(recovery W-A1): the convalescence seam â a bed, a
   carer and a spell pay one number`.
 
-#### W-A2 â The offline carve (D3)
+#### W-A2 â The offline carve (D3) ✅ DONE
+
+> ✅ **W-A2 landed.** `Trauma.mendedAt` added. The trauma loop now has
+> TWO arms inside the one `for…of` (so `lint:condition-arms` still counts
+> 5/5): the HARM arm (`tickedAt`) keeps the linkdead freeze + far-past
+> drop; the MEND arm (`mendedAt`) has NEITHER, integrating the full gap at
+> whatever `k` the body reads on return. `ConditionLogic.inflict` stamps
+> `mendedAt` beside `tickedAt` at all four sites.
+>
+> **Re-seat on restore (Risk 3) — resolved by mirroring metabolism, not
+> fudged.** `convalescenceFactor` reads the surface through
+> `getOccupiedHost()`, the SAME read `Metabolic.currentRestQuality` makes,
+> so the two drivers always agree on which surface a body is on. The real
+> sleep-as-logout path is **linkdead**: the body stays in-world still
+> occupying the cot, so occupancy — and cot-rate mending — is preserved
+> across a logout/login (`Session.open` twice). Only a FULL snapshot
+> restore (server restart) loses the occupancy link, degrading BOTH
+> stamina recovery and wound mending to floor rate identically — a shared
+> metabolism+vitals concern, not made worse here. Re-occupying a posture
+> slot on materialize (the bed must be re-cloned first) is left as a
+> deferred seam on `Posed`'s restore path, benefiting both drivers; W-A8's
+> drive logs off/on (linkdead) and confirms cot-rate mending holds.
+>
+> Tests: `Vitals.offline-mend.test.ts` — a dressed wound knits while
+> logged off and never bleeds; a 3-day gap heals a fracture to clear (no
+> far-past drop on mend); a bleeding undressed wound loses no blood and
+> does not knit (far-past still drops harm; mend holds an open bleed). 174
+> vitals+ConditionLogic tests green; condition-arms 5/5.
+
 - `Trauma.mendedAt`; the mend block in the trauma loop moves onto it with
   no linkdead re-stamp and no far-past drop; the harm block untouched.
   `ConditionLogic.inflict` stamps `mendedAt` beside `tickedAt` (@1019,
