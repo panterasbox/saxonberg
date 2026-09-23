@@ -1195,7 +1195,13 @@ reachable at all.
 - **Commit:** `build(recovery W-B4): time heals everything except what is
   gone â and a peg leg`.
 
-#### W-B5 â Stage B docs and the drive (steps 8â10)
+#### W-B5 â Stage B docs and the drive (steps 8â10) ✅ DONE
+
+> ✅ **W-B5 landed.** Stage B docs: `embodiment.md` (ProstheticMixin),
+> `magic.md` (mend as the effect-invariant exemplar), `retail.md`
+> (labour-indexed tariff), `architecture.md` (Hygiene + Prosthetic mixin
+> rows). The wire drive `packages/wire/tests/recovery.dirty.wire.test.ts`
+> is written and GREEN (7/7) — see the drive record below.
 - `magic.md` (the `mend` working, the convalescence effect), `retail.md`
   (labour-indexed tariff), `harm.md` (scars, re-injury, prosthetics),
   `embodiment.md` (`ProstheticMixin`); the wire file gains steps 8â10.
@@ -1384,6 +1390,41 @@ Read first, in this order:
 ## Drive record
 
 *(appended at build time)*
+
+### ✅ Drive run (recovery.dirty.wire.test.ts) — 7/7 GREEN
+
+Run `WIRE_BOOT=1 WIRE_PORT=2014 pnpm -C packages/wire exec vitest run
+tests/recovery.dirty.wire.test.ts` (boots the world; ~85s).
+
+**What it proved:**
+1. ⭐⭐ `treat` on an unwounded body answers a no-wound refusal, NOT
+   `unknown-verb` — the W-A0 affordance finding, fixed on VitalsMixin.self.
+2. The SELF-afforded verbs (`dose`/`tend`/`undress`) answer anywhere a body
+   is.
+3. The FIXTURE-afforded verbs (`scrub`/`cool`) answer at the infirmary
+   basin.
+4. The ward stands up with its recovery fixtures (cot/basin/shelf/dressings).
+5. Walking NORTH into delve corridor-3 springs the deadfall + pressure-blade
+   — the body gains a real wound from CONTENT (not a wizard).
+6. `assess` renders the convalescence mending-pace line.
+7. `treat` on the wounded body answers (names what the wound wants).
+
+**⭐ What the drive FOUND (a reachability-scope finding):** the first run
+grouped `scrub` with the self-afforded verbs and failed — *"I don't
+understand 'scrub'"* in a waterless corridor. That is CORRECT: `scrub`
+(like `rinse`/`cool`) rides the `WaterFixture.peers` bucket, so it is
+afforded standing at water, never universally. The drive was corrected to
+probe the self-verbs in the corridor and the fixture-verbs at the ward
+basin — exactly the affordance-scope distinction a unit test cannot see.
+No code defect; the affordance wiring is correct.
+
+**Not driven (unit-proven), by design:** the exact `splint`/`operate` arc
+(the tool must be carried — `environment` bucket), the sepsis deadline
+growth (needs the pathogen roster warmed), the `mend` cast (endurance
+drain), the labour-indexed price at the counter, and the peg-leg fitting —
+each has its own kernel/pack unit suite (Vitals.sepsis, MagicLogic-adjacent,
+Tariff.labour, Vitals.prosthesis, instruments/nurses in the pack).
+
 
 The checkpoints the wire file must carry, and what each must be able to
 fail on:

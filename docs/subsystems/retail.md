@@ -46,6 +46,16 @@ sale; credential first, then cash. ⚠ **Every failure is "on the house",
 never a throw** — no operator, no bank, no funds: the customer is served
 and nothing is taken.
 
+> ⭐⭐ **`Tariff.labourIndexed` — care priced by the labour it restores**
+> (recovery build, D13). When authored true, a `treatment` service's
+> `priceFor` bends by `1 + LABOUR_INDEX × (wage / REFERENCE_WAGE) ×
+> shortfall`, read off the ACTING CUSTOMER (both the wage and the harm
+> shortfall `1 − Vitals.minCapacityScalar`), so `menu` quotes *your* price
+> and the clinic-near-the-mine emerges from who walks in. An unemployed or
+> unhurt body pays the base; the humane floor needs no code, because an
+> unpaid body still recovers at the free convalescence floor. `labourIndexFor(body)`
+> is the unit-tested multiplier; `priceFor` composes it.
+
 ### ⚠⚠ The customer is the one who asks
 
 `BankingLogic.settle` derives the payer from **execution context** and

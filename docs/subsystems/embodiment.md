@@ -150,6 +150,23 @@ passes, so the candidate gets the final say.
 Subclasses override `fitsSlot` for richer rules (a magic boot that
 only fits Elven feet, etc.).
 
+### ⭐⭐ `ProstheticMixin` — a stand-in for what is gone (recovery build)
+
+`lib/slot/Prosthetic.ts` (`Mixins.Prosthetic`) is a `Wearable` that
+stands in for a **missing** body part: a peg leg, a hook hand. Its
+`fitsSlot` override adds a candidate-side gate on top of the wear claim —
+the host must be `Vitals` and MISSING one of the prosthetic's `forParts`,
+so you cannot strap a peg leg over a whole leg.
+
+⭐ **Its function is DERIVED, never stored.** There is no
+`BodyPartDelta.prosthetic` field: `Vitals.ownFunction` reads the best worn
+prosthetic's `restores` when the part it covers is missing, and takes it
+off → the read drops with no residue. That is the whole reason it needs
+nothing on the persistence side — `severPart` writes the loss, and the
+stand-in is a live read over the worn item. See
+[harm.md § Recovery](./harm.md#recovery--care-buys-rate-the-recovery-build).
+The `Prosthesis` class + rows (peg-leg, hook-hand) are `trade-medicine`'s.
+
 ## Multi-slot atomicity
 
 A wearable claiming multiple slots (boots → both feet, longbow →
