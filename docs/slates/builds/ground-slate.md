@@ -14,7 +14,7 @@
 > person would naturally type is not a recognised shape, so even naming the
 > ground explicitly does not reach it. ·
 > **floors as universal Things** (an adornment every Location gets unless it
-> authors one) · **the five-rung underfoot ladder** · **the `onGrade` flag, on
+> authors one) · **the **four-rung** underfoot ladder** · **the `onGrade` flag, on
 > the floor rather than the Location** · **`/system/ground`**: the column and the
 > seeded surface character unified as one substrate read at a depth ·
 > `GroundCharacter` out of the farming trade · the floor's first real consumer
@@ -167,18 +167,23 @@ wholesale and takes its floor with it, and a floor whose composition is *derived
 carries no record to keep. One extra Stuff per loaded room, against a room that
 is already a Stuff with props that are Stuff.
 
-## The five-rung ladder
+## The four-rung ladder
+
+⚠⚠ **It was five at slate time and one rung was illegal.** *"An authored field on
+the Location"* contradicts a doctrine the engine states outright — *"A Location
+represents space, not matter — so it is NOT Tangible (rooms have no material or
+mass; nothing ever read them)"* (`lib/stuff/Location.ts:32-35`). Putting a
+material on a room is the one thing this build must not do, and the floor's own
+authored material was always the authored rung. Corrected 2026-09-23.
 
 What is underfoot resolves in the authored-beats-derived shape used everywhere
 in this codebase:
 
 1. **the floor's own authored material** — flagstone, board, ice. Always wins.
-2. **an authored field on the Location** — the cheap override for a room that
-   wants no bespoke floor row.
-3. ⭐ **the ground's top band** — *only* where the floor declares itself
+2. ⭐ **the ground's top band** — *only* where the floor declares itself
    `onGrade`. This is the rung the quarry, the heath and the field use.
-4. **the archetype or zone default** — a building's boards, the dorm's floor.
-5. **the universal default** — the `default-floor` row that already exists and
+3. **the archetype or zone default** — a building's boards, the dorm's floor.
+4. **the universal default** — the `default-floor` row that already exists and
    is currently attached to nothing.
 
 **`onGrade` belongs to the FLOOR, not the Location** — and that is the detail
@@ -254,10 +259,22 @@ rooms and one designed one were run against it:
 | Hinkley's lane | *"**a made road** with nothing on it"*, grass growing through | ⚠ **ambiguous** — paving? gravel? graded earth? An author must guess |
 | ⭐ **Limbo Lane** (designed) | *"an odd pink material paves it — **soft, rubbery, faintly aglow**, and it **springs underfoot**"* | ⛔ **BREAKS IT.** Paved, on the ground, and nothing like paving. Either the road lies about itself or the closed list is forced open. |
 
-> ⭐⭐⭐ **So the kind is WORKED OUT, not asserted: `f(material, onGrade)`.** The
-> material already knows whether it is set stone, loam, timber, plate or
-> odd-pink-rubbery. Limbo Lane then needs **no vocabulary edit at all** — tag the
-> material and the kind falls out.
+> ⭐⭐⭐ **So the kind is WORKED OUT, not asserted.** The material already knows
+> whether it is set stone, loam, timber, plate or odd-pink-rubbery. Limbo Lane
+> then needs **no vocabulary edit at all** — tag the material and the kind falls
+> out.
+
+⚠⚠ **`f(material, onGrade)` turned out to be one input short** (found at plan
+time, 2026-09-23). **Nothing about a material separates living rock from set
+paving** — a quarry floor and a flagged courtyard are both granite, both on the
+ground. And the material may not be taught the difference: `wool.yaml:9-11` states
+the rule — *"A material must not assert a CONSTRUCTION — `woven` is a form a
+garment carries, not something wool IS."*
+
+> **So the fold is `f(material, onGrade, worked)`** — *worked* meaning dressed,
+> laid or rammed by somebody rather than lying as it fell. It is construction, so
+> it is the floor's own property beside `onGrade`, and what it carries is real:
+> **you can lift a flag; you must win a rock shelf.**
 
 What that buys, and each of these was a stated requirement:
 
@@ -327,17 +344,35 @@ it presses back, patient, like it's done this before"*).
    build **is** a bug fix with a substrate attached, and its drive leads with the
    four commands a new player cannot use. `sit on ground`'s parse failure joins
    the scope.
-2. **Where does the floor come from — a prop or a class default?** A `props:`
-   entry every Location inherits, or the location class minting one at
-   registration. The second cannot be overridden by an author as easily; the
-   first has to survive a room that authors its own floor without getting two.
-   **Lean: the class mints iff no authored floor is present**, which is the
-   `restoreOrSeed` shape.
+2. ✅ **CLOSED — neither: `adornments:`.** The survey settled it.
+   `AdornableMixin` composes on **base `Location`**, so `adornments:` is already an
+   authorable instruction field on **every** Location with no new mixin; it has
+   **no once-guard** and `captureSlice` stores nothing, so floors rebuild from the
+   row every hydrate at **zero disk cost**. ⭐⭐ And it is the **only** lever the
+   warren-generated starting room has: `props:` on the lounge template would
+   **throw**, because that class composes no `PopulatesMixin`. What remains for the
+   plan is only *how the default gets attached when no row authors one* — and
+   `default-floor.yaml` already documents a `noDefaultFloor: true` opt-out that no
+   code reads, so v1 specified the default and skipped the mechanism.
 3. **Does `Floor` stay the class name?** It is about to cover the ground outdoors
    as well as boards indoors, and *floor* reads indoor. `Ground` collides with
    the keyword; `Underfoot` is a read, not a thing. **Lean: keep `Floor`** — a
    quarry floor and a cave floor are both called floors in English, and renaming
    touches six shipped rows for a word.
-4. **Do the three ground postures keep `default: "ground"`?** If every floor row
-   carries the `ground` keyword the default works untouched, which argues for
-   putting the keyword on the class's seed rather than per row.
+4. ✅ **CLOSED, and it is subtler than the question assumed.** An arg `default:`
+   is **not MQL and not a keyword match** — it runs through shell variable
+   interpolation only, so `"ground"` lands as the literal word a player might have
+   typed and is resolved afterwards with the `requires:` filter. So yes, the
+   default stays untouched **iff something in reach is keyworded `ground` and bears
+   a posture**. ⚠ And there is a trap: **`default-floor`'s own keywords are
+   `[floor, featureless, plain]` — no `ground`** (only its *detail* keywords have
+   it), so attaching that row everywhere may not fix `sit` by itself. The keyword
+   set is part of the fix.
+5. ⭐ **And two defects the survey found, now in the build:** `sit on ground`
+   fails because the posture views declare no `prepositions:`, so `on` binds as the
+   target and the leftover word trips *"too many arguments"*; and
+   ⚠⚠ **`AdornmentMixin.canEvict` does not exist** although
+   `residency.md:218` promises it does — presence cannot keep a fixture warm
+   (fixtures are not contents), so 150+ floors with no veto and eviction in
+   `enforce` mode means a floor culled from under a standing player, the exact
+   failure `Exit.canEvict` was written to prevent.

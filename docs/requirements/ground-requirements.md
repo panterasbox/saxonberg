@@ -255,11 +255,19 @@ visited is not loaded, and its floor is not either; a floor nobody has changed
 has nothing worth remembering. This build does not add a thing to the world's
 permanent furniture — it adds one to each room that is *currently in use*.
 
-### What it is made of: a ladder, authored first
+### What it is made of: a ladder, authored first — **four rungs, not five**
 
-In order: **what this floor says it is** → **what the room says its floor is** →
-**what the ground beneath says**, if this floor is on the ground → **what rooms of
-this kind use** → **the plain default**. The first answer wins.
+In order: **what this floor says it is** → **what the ground beneath says**, if
+this floor is on the ground → **what rooms of this kind use** → **the plain
+default**. The first answer wins.
+
+⚠⚠ **Corrected at plan time.** The first version had a second rung — *"what the
+room says its floor is"* — and it contradicts a stated doctrine: a Location is
+**deliberately not made of matter**. The engine says so in as many words:
+*"A Location represents space, not matter — so it is NOT Tangible (rooms have no
+material or mass; nothing ever read them)."* Putting a material on a room would
+have been the one thing this build must not do. **The floor's own authored
+material is the authored rung** — there was never a second one to have.
 
 That shape is how everything else in this world resolves, and it means the
 derived case never fights an author.
@@ -268,8 +276,20 @@ derived case never fights an author.
 
 There is a closed list of kinds — earth · rock · loose · mire · set paving ·
 beaten floor · boards · slab · plate · contrived — but **an author never picks
-from it.** A floor's kind follows from two things: **what it is made of**, which
-the material already knows, and **whether the ground continues beneath it**.
+from it.** A floor's kind follows from **three** things: **what it is made of**,
+which the material already knows; **whether the ground continues beneath it**; and
+**whether the ground was worked** — dressed, laid or rammed by somebody, or lying
+as it fell.
+
+⚠⚠ **The third input was found at plan time, and it was missing.** The first
+version said two things were enough. They are not: **nothing about a material
+separates living rock from set paving.** A quarry floor and a flagged courtyard
+are both granite and both sit on the ground. Nor may the material be taught the
+difference — a shipped row states the rule that forbids it: *"A material must not
+assert a CONSTRUCTION — `woven` is a form a garment carries, not something wool
+IS."* So *worked* is the floor's own property, sitting beside *on the ground*, and
+the distinction it carries is real: **you can lift a flag and you must win a rock
+shelf.**
 
 This was settled by stress-testing the design against the city's own road prose,
 and one room broke the alternative outright. Limbo Lane is designed as *"an odd
