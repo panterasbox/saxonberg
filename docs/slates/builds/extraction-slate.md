@@ -19,7 +19,10 @@
 > the candle
 > **Size:** two builds
 
-See also: [mining-slate](./mining-slate.md) (*"Quarrying (stone, flux) —
+See also: ⭐⭐ [ground-slate](./ground-slate.md) (**the build that must land
+first** — floors as universal Things, the underfoot ladder, and `/system/ground`
+holding both halves of ground; it removes this build's largest unknown by making
+the ground a bindable target `dig` can read) · [mining-slate](./mining-slate.md) (*"Quarrying (stone, flux) —
 open-pit bulk"* is on its Left; the underground half of coal and rock salt is
 its `Deposit`) · [ranching-slate](./ranching-slate.md) (**AC 37–39 already
 specify the saltern, peat and the bog**) · [flowers-slate](./flowers-slate.md)

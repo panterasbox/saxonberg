@@ -16,6 +16,47 @@ opened this cycle.
 
 ---
 
+> ## ⚠⚠ STOP — W0 IS SUPERSEDED. READ THIS BEFORE EXECUTING ANYTHING.
+>
+> **Amended 2026-09-23, after the plan's review.** W0 as written below creates
+> `/system/ground` holding only the **geology** half. The review found that
+> ground is modelled in **three** vocabularies owned by three different places,
+> that **a Location has no material field at all** (180 Location rows; 27 mention
+> a floor), and that the kernel already carries two *uninterpreted* citation
+> slots for ground (`SpatialZone.deposit` and `.groundCharacter`) because a pack
+> cannot add a field to a kernel class.
+>
+> It also found a probable live defect that has nothing to do with quarrying:
+> **`sit`, `lie` and `kneel` all default to the keyword `ground` requiring
+> `PosturedMixin`**, `ground` is not a special MQL keyword, **no Location
+> composes `PosturedMixin`**, nothing attaches the `default-floor` row, and **the
+> dorm room where every new player wakes has no floor.**
+>
+> **Therefore the ground work is its own build, and it lands FIRST** →
+> [ground-slate](../slates/builds/ground-slate.md). It ships: floors as
+> universal Things, the five-rung *underfoot* ladder, the `onGrade` flag on the
+> floor rather than the Location, and `/system/ground` holding the column **and**
+> the seeded character (so `GroundCharacter` also leaves the farming trade).
+>
+> **What that does to this plan:**
+> - **W0 does not run as written.** The ground build supersedes it; a build agent
+>   starting here should confirm the ground build has landed and then treat W0 as
+>   *done elsewhere*.
+> - **`dig` gets easier, not harder** (D9): the ground is already a bindable
+>   `Stuff` with a composition and an `onGrade` answer, so `dig` reads the floor
+>   instead of inventing a target. ⭐ This was the plan's largest unknown and the
+>   ground build removes it.
+> - **W1–W7 are unaffected in substance.** W3 gains the floor read as a
+>   dependency and loses the need to invent one.
+> - Sequencing for the whole roadmap: **ground → extraction → the bees wave on
+>   ranching → the RGO-interface unification → foraging/hunting.** The
+>   unification shrinks again, because the ground build does its hardest half.
+>
+> Nothing else in this document is stale. The 21 decisions, the other seven
+> waves, the acceptance map and the risks all stand.
+
+---
+
 ## Grounding
 
 Condensed from the grounding brief; every fact was read out of the file
@@ -401,7 +442,13 @@ root's `idea/maturation/` subtree — a pack row needs no boot entry.
 Numbered so waves and commits can cite them. Where a design lens decided
 a fork, the limb is named.
 
-**D1 — `/system/ground` exists, and this build creates it.** The geology
+**D1 — `/system/ground` exists.** ⚠⚠ **Amended: the GROUND BUILD creates it,
+not this one, and it holds both halves of ground rather than only geology** →
+[ground-slate](../slates/builds/ground-slate.md). The reasoning below is why the
+pack must exist and is unchanged; what changed is *who ships it* and *how much it
+holds*. Read the banner at the top of this plan first. The original text follows.
+
+**D1 (as originally written) — `/system/ground` exists, and this build creates it.** The geology
 field's model leaves `trade-mining` for a capability pack `ground`
 (`@saxonberg/content-ground`, `root: /system/ground`). *Why a system and
 not a trade dependency:* the deposit **row** a locality authors names the
@@ -957,7 +1004,19 @@ each touched pack's `pnpm -C packages/content/<pkg> test` +
 `pnpm -C packages/server lint:family`; the full suite runs once before
 the MR.
 
-### W0 — the ground pack: the field's model leaves the trade (D1)
+### W0 — ⛔ SUPERSEDED: the ground build ships this (see the banner at the top)
+
+> ⛔ **Do not execute this wave.** The ground work grew past a wave and is its
+> own build → [ground-slate](../slates/builds/ground-slate.md): universal floors,
+> the underfoot ladder, the `onGrade` flag, and `/system/ground` holding the
+> column **and** the seeded character. Confirm that build has landed, then treat
+> W0 as done elsewhere and start at W1. The text below is kept because the ground
+> build's requirements will reuse most of it verbatim — the pack skeleton, the
+> `Deposit` move, the `Strata` extraction, the five mining files that switch
+> imports, the ferrow row's `class:` change, the pack-count bump and the DB drop
+> are all still exactly right; the ground build simply does more.
+
+### W0 (superseded text) — the ground pack: the field's model leaves the trade (D1)
 
 *Goal:* `/system/ground` exists; `Deposit` and the ground-position reads
 live there; mining behaves identically.
