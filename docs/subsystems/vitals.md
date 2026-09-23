@@ -363,8 +363,23 @@ Endurance / satiation / hydration are biological instances of the
 generalized **`Reserve`** substrate (`lib/reserve.ts`) — see
 [reserve.md](./reserve.md). A floored biological reserve feeds the
 derived `getConditionBand` (a derived reading, like consciousness reads
-vitals). The reserve *producers* (consumption, exertion wiring) are
-deferred.
+vitals).
+
+> **Update (nutrition-and-fitness, MR !269).** The reserve *producers*
+> are no longer deferred, and the roster is no longer three: `flesh`
+> joined by `lean` · `protein` · `wind` · `vitamin-c` ·
+> `alcohol-tolerance`, drained and replenished by metabolism's slice and
+> by one exertion event — see [exertion.md](./exertion.md) and
+> [metabolism.md](./metabolism.md).
+>
+> ⚠ The vitals-side rule that came with them: **`getConditionBand`
+> counts a floored biological reserve only when that reserve HAS a
+> `floorEffect`.** A reserve seeded empty is *untrained*, not degraded —
+> `wind` and `alcohol-tolerance` start at zero and a body at zero `lean`
+> is gaunt in the mirror, not sick. A null `floorEffect` is a row
+> declaring that hitting zero means nothing acute; without the guard,
+> every fresh body would have read as degraded on the day the stocks
+> landed.
 
 ## What's deferred (the applications)
 
@@ -377,10 +392,11 @@ deferred.
 > (`assess` / `treat` / `undress` + `DressingMixin`/`Bandage`). No longer
 > deferred. The remainder below still is.
 
-Remaining deferred: reserve drain/replenish producers, disease/poison/
-affliction content, measure-on-patient instruments, the physical-attribute
+Remaining deferred: disease/poison/affliction content,
+measure-on-patient instruments, the physical-attribute
 readings, the anatomy graph + part-promotion (avulsion sever — see
-harm.md), postmortem fidelity, and contagion.
+harm.md), postmortem fidelity, and contagion. *(Reserve drain/replenish
+producers left this list with MR !269 — see § Reserves above.)*
 
 **Mechanism of injury — LANDED (materials-response).** The parked "with
 combat" seam is now built: `afflict()` is still the door an insult comes

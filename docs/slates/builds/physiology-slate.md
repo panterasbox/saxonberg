@@ -12,8 +12,14 @@
 > `resolution.by` treatment-matching, the sever, materials-response armor)
 > is shipped too. See [harm.md](../../subsystems/harm.md) and
 > [vitals.md](../../subsystems/vitals.md).
-> **Left:** per-individual stature + BMI as a banded derived read (its
-> first consumer is body density for buoyancy — § Anthropometrics) ·
+> ⚠ **Re-verified 2026-09-23** against the nutrition-and-fitness build
+> (MR !269), which merged three minutes after the 2026-09-20 pass read
+> this file: **BMI, its bands and body density shipped** with it — see
+> [exertion.md](../../subsystems/exertion.md). Nothing else in `Left`
+> moved.
+> **Left:** per-individual stature (BMI itself shipped; stature is still
+> a **species** figure, so two bodies of one species cannot differ in
+> height — § Anthropometrics) ·
 > pain as a derived reader · the alarm-clock optimization over
 > `reconcileConditions` (today it is pure reconcile-on-read with no booked
 > next-interesting-time) · substances (the topical route, inhalation, the
@@ -1762,23 +1768,22 @@ DOCUMENTED as of 2026-09-20; cut here. See
 > have that anywhere and it's gonna be important for some experiences to
 > land right."*
 
-**State (verified):** `flesh` is a reserve with `bodyConditionBand()`
-(emaciated → thin → good → fleshy → fat) on `Creature`; `getMass()` is
-real; `Species.stature` exists — but **no individual has a height**, so
-BMI (mass ÷ height²) cannot be computed for a person.
+*(The "State (verified)" paragraph and two of the three Shape bullets
+are cut 2026-09-23 — SHIPPED·DOCUMENTED by MR !269. **BMI as a banded
+derived read** (`BMI_BANDS`, `Creature.bodyMassIndex()`/
+`bodyMassIndexBand()`, spoken by `assess`, the number rendered nowhere)
+and **body density** (`getBodyDensity()`, fat 900 against lean 1100
+kg/m³, its consumer still the water) both shipped. See
+[exertion.md § The mirror](../../subsystems/exertion.md).)*
 
 **Shape:**
 
 - **per-individual stature** — set at char-gen (the dossier carries it;
   the species' `stature` is the prior), persistent on `Creature`;
-- **BMI as a derived read** on `Creature`, **banded** on the vitals card
-  and in a physician's `analyze patient` — a measurement an instrument
-  makes, never a gauge the player watches (measurement.md);
-- ⭐ **the first mechanical consumer is body density** — fat floats,
-  muscle sinks — the buoyancy term in the underwater slate's ascent
-  Journey. BMI is the honest proxy for body composition the game already
-  tracks as `flesh`, and body density falls out of it with no second
-  number.
+
+⚠ That bullet is the half that did NOT ship: `bodyMassIndex()` reads
+`getSpecies()?.getStature()`, so stature is a **species** figure and two
+bodies of one species cannot differ in height.
 
 Which experiences it is for beyond the water: the char-gen card as a
 stat block, a physician reading a body, the `thin`/`fat` prose finally
