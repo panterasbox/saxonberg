@@ -293,13 +293,9 @@ choice; framework supports.
 
 ### "Sleeping body in the doorway"
 
-The user's question. Answer per the design philosophy:
-
-- **No sub-room positioning in v1.** A sleeping body in the
-  room is "in the room" but doesn't physically obstruct exits.
-- **You walk past trivially.** No prompt, no bump, no detour.
-- **The room description can flavor**: *"Bob is sleeping by
-  the east door."*
+The user's question. The default answer (no sub-room positioning;
+you walk past trivially; the description may flavor it) is
+[design-philosophy.md § How this lands for collisions and blocking](../../design-philosophy.md).
 
 If specific content wants an obstacle: the body's author gives
 it `BlockerBehavior` while unconscious, with `unblockCondition:

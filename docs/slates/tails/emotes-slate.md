@@ -102,31 +102,7 @@ See also:
 
 ## Principle
 
-Three claims:
-
-1. **Natural language is the medium; immersion is the reason.** Every
-   emote's primary representation is author-supplied prose, attributed
-   to the actor structurally (`<name stuff-id=…>`). Natural language
-   makes each emote distinct, scales to a huge vocabulary, supports
-   abstraction (the `bogleg` lineage — a typo'd `boggle` that became
-   its own word, then `bog`, `boglegged`, `almightybogleg`), and keeps
-   NPC expression in-fiction instead of in the uncanny valley.
-
-2. **An emote is a diegetic act, not a chat affordance.** Emoting is
-   something a *being* does in the world — so the capability lives on
-   the being (a mixin method, parallel to `VocalMixin.say`), reachable
-   by players, NPCs, combat, and scheduled behaviors alike. It is *not*
-   a client-side message decoration bolted onto chat. It mutates no
-   world state (this is the clean line against the posture subsystem;
-   see *What emotes are NOT*).
-
-3. **Emoji is a presentation layer, chosen by the recipient.** Where an
-   emote carries a glyph at all, that glyph is one rendering of the
-   prose, selected by the *viewer's* per-channel setting (text / emoji /
-   both) — Principle 3, the same engine-calculates-once /
-   serialization-differs discipline as the pedagogical seam. The sender
-   never forces a glyph onto the reader, and a reader can keep emoji
-   from players while suppressing them from NPCs.
+*The three claims — natural language is the medium; an emote is a diegetic act, not a chat affordance; emoji is a presentation layer chosen by the recipient — graduated 2026-09-21 → [emotes.md § What emotes are vs. what they aren't](../../subsystems/emotes.md) (*Why prose is primary*). Claim 3's recipient-side half — the per-channel client toggle — is Layer 2, still deferred (`emotes.md` § What's deferred).*
 
 *The substrate decision — `SoulMixin` on `Character`, the `Emote` record, `SoulCatalogue` + `SoulApi` — shipped → [emotes.md](../../subsystems/emotes.md).*
 

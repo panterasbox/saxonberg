@@ -39,55 +39,9 @@ dossier), [physiology-slate](./physiology-slate.md) (the worked example).
 
 ## The governing rules
 
-### ⭐⭐⭐⭐⭐ Difference that COSTS is character; difference that RANKS is essentialism
-
-The whole design turns on this. It arrived by correcting a rule this
-project had written badly (below).
-
-**Correlation was never the hazard. HIERARCHY is.**
-
-### ⭐⭐ Incomparability is the actual anti-essentialism mechanism
-
-*"Can work underwater"* and *"can work in the cold"* **cannot be ranked
-against each other.**
-
-> **The defence against essentialism is not SAMENESS. It is
-> INCOMPARABILITY.**
-
-Which is stronger than making everyone identical — and it means we can
-lean **harder** into difference, not softer, provided the differences do
-not share a scale.
-
-### ⭐⭐⭐⭐ The quality criterion
-
-> **A good species difference changes WHERE YOU CAN GO and WHO YOU NEED —
-> never how hard you hit.**
-
-The *possible-not-optimal* doctrine applied to species. It rejects the bad
-ideas automatically.
-
-### ⭐⭐⭐ The best differences create INTERDEPENDENCE
-
-> **The best species difference gives you a reason to need someone who is
-> not like you.**
-
-The allegory layer's thesis as a mechanic rather than a theme. And its
-mirror is equally good:
-
-> **Some differences make you need your own kind. Some make you need
-> others. A world with both has real COMMUNITIES *and* real
-> COSMOPOLITANISM.**
-
-**Having both is what stops either one being the message.**
-
-### ⭐⭐⭐ Prejudice lives in the beholder, never in the species
-
-Regard is **per-viewer**, so bigotry is authored into **specific NPCs and
-localities** — making it **a fact about the bigot**, which is both the
-anti-essentialist framing and the more interesting one.
-
-> ⚠ **A species with a low-reputation STAT would be the game asserting
-> the prejudice is warranted.** Never do this.
+> **Graduated** to [race.md § Why species differ without ranking](../../subsystems/race.md#why-species-differ-without-ranking)
+> — difference that costs vs. difference that ranks · incomparability ·
+> the quality criterion · interdependence · prejudice lives in the beholder.
 
 ---
 
@@ -193,25 +147,8 @@ anyone being written as unfriendly.**
 
 ## ⚠ What to refuse
 
-| | Why |
-|---|---|
-| **stat modifiers** (`+2 CON`) | boring **and** the exact essentialism being avoided — one scale, therefore a ranking |
-| **culture as biology** — "naturally greedy / warlike / stoic" | **the genuinely racist note**, and the one fantasy does worst |
-| ⭐ **a species being BEST at a job** | **if a species is optimal for a role, SPECIES BECOMES CLASS** — re-creating the caste system the allegory exists to refuse, and killing *anyone can be anything* |
-| **a reputation stat** | see § *Prejudice lives in the beholder* |
-| **long lifespans as a mechanic** | ⚠ classic and a trap — nobody plays two hundred years. May matter for **NPCs and the chronicle**; not for players |
-
-> **The sharpest test is the third: the moment a guild wants a particular
-> species, we have built the thing we are arguing against.**
-
-⭐ **Refinement (user): "of course there will be synergies."** Correct, and
-it sharpens rather than weakens the rule:
-
-> **A SYNERGY is a tendency. A CLASS is a prerequisite.**
-
-Water-breathers will be over-represented among divers — **fine and true.**
-The failure is only when a non-ideal species **cannot** do the job, or the
-gap is so wide **nobody else bothers.**
+> **Graduated** to [race.md § Why species differ without ranking](../../subsystems/race.md#why-species-differ-without-ranking)
+> (the refusal table + *a synergy is a tendency, a class is a prerequisite*).
 
 ## Open questions (for requirements)
 

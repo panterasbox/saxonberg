@@ -114,29 +114,7 @@ documented in
 
 # Part 4 — ⭐⭐⭐ The stepping stone: spot market → contracts → the firm
 
-> **User: "is that a stepping stone to a different model?"**
-
-Yes — and each stage is **already a shipped subsystem**, so the progression
-needs nothing invented. What changes is only which is *cheapest*:
-
-| Stage | Mechanism | Cost it removes | Cost it adds |
-|---|---|---|---|
-| **1 — Spot market** | consignment + `buy` at the store | ⭐ **no capital to sell; no counterparty risk** | the store's commission; the walk |
-| **2 — Direct purchase** | `buy` at the farm | the commission | **counterparty risk** returns; you must find each other |
-| **3 — Forward contract** | [contract.md](../../subsystems/contract.md) clauses + escrow | ⭐ **harvest uncertainty** | capital locked in escrow |
-| **4 — Vertical integration** | employment + parcel title | the market entirely | you now run a farm |
-
-> ⭐⭐⭐ **The driver of the whole progression is TRANSACTION COST — which is
-> literally Coase.** The firm exists because using the market has costs.
-> Here the commission and the haul **are** those costs, so vertical
-> integration emerges exactly when organising internally is cheaper than
-> transacting. **Not a metaphor — the actual mechanism, and it will be
-> observable.**
-
-⭐ Stage 3 is the one agriculture historically *invented*, and for the reason
-the game supplies free: **harvests are lumpy** (crops mature on a clock)
-while a distillery wants steady input. A forward contract is the answer, and
-`contract.md` already does clauses over verifiable conditions.
+*Homed 2026-09-22 → [settlement-model.md § 7 · Absorbed from supply-chain-slate — the stepping stone](../../settlement-model.md).*
 
 ⚠ **Verified 2026-09-20: stage 1 shipped** (the farmers-market spot
 market — consignment stalls off the counting-houses, per-shelf caps) **and
@@ -165,14 +143,8 @@ see `docs/plans/slate-compaction/logistics.md`).
 
 ## Freight is the OPTIMIZATION, not the prerequisite
 
-[freight-slate](../builds/freight-slate.md) earns its place when volume exceeds a
-backpack: a cart carries more than a person, and **vehicles are durative**,
-so time is the cost.
+*Homed 2026-09-22 → [settlement-model.md § 8 · the realm layout is already von Thünen](../../settlement-model.md) (the closing paragraph).*
 
-> ⭐⭐ **Von Thünen falls straight out**: the further from market, the more of
-> a crop's value is eaten by haulage — so land use sorts by distance,
-> unauthored. The freight slate already expects this; **the supply chain is
-> what makes it happen.**
 
 ---
 

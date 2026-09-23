@@ -70,39 +70,14 @@ gated behind content demand) — see
 
 ### Compose vs. custom
 
-**Compose**: the expected pattern. Character creation, crafting,
-conversation trees, multi-step wizards — all sequences of canonical
-prompts, with each await result determining the next step:
-
-```ts
-const archetype = await PromptApi.choice(iact, "Pick archetype", presets);
-const name      = await PromptApi.text(iact, "Name?", { validate: nameRules });
-const accept    = await PromptApi.confirm(iact, `Create ${name} as ${archetype}?`);
-if (!accept) return abort();
-await applyAvatar(name, archetype);
-```
-
-Clear, sequential, each prompt is a known kind, the player sees
-consistent UX through the whole flow.
-
-**Custom**: avoid. If an author thinks they need a new kind, it
-goes through slate review. Every new kind expands the player's
-prompt-recognition load; we canonize sparingly so the
-"oh, I know what this is and how to respond" reflex stays tight.
-
-If a one-off flow genuinely needs custom interpretation, the escape
-valve is `text` with a caller-side validator + branching logic. The
-UX shape stays consistent (a text input); the variation is in what
-the caller does with the response. This is preferable to inventing
-a new kind.
+> *Graduated 2026-09-21* → [prompt.md § Why the kind canon is small — compose, don't invent](../../subsystems/prompt.md).
 
 ---
 
 ## Non-goals
 
-- **Custom prompt kinds outside the canon** — Tier 1-3 are the
-  surface. New kinds require slate review. The escape valve is
-  `text` + caller-side validator + branching logic.
+- **Custom prompt kinds outside the canon** — see
+  [prompt.md § Why the kind canon is small](../../subsystems/prompt.md).
 - **`async`-command flag** — the shipped `foreground: false` opt-out
   (PromptApi's `passive` case) is shaped to support eventual
   `--async` commands but the flag itself is not v1.

@@ -242,66 +242,8 @@ collision slate. **v1 tracks discrete and bulk capacity independently.**
 
 ## Material fidelity — demand-driven, not aspirational
 
-> **Forward-looking principle.** Not a thermos-slice deliverable, but it
-> governs how `Material` gets *used* the moment content arrives. Banked
-> so future-us doesn't over-model a cup of coffee.
-
-The `Material` substrate carries real chemistry (formula, molar mass,
-atomic number, `composition` weight-fractions for mixtures/alloys,
-edibility/toxicity). That depth is a **capacity, not a mandate.** The
-governing rule:
-
-> **Model a substance at the granularity its interactions actually read.**
-
-Coffee's interactions need: a liquid, an appearance, a caffeine effect
-(via `ingest`), and "hot" (when Thermal lands). All flat. None read a
-water-fraction — so **coffee is a flat Material; the water in it is
-*presumed*.** Decompose into constituents (water + solubles) **only**
-when some interaction needs to see them, which for a drink is ~never.
-The capacity to model a solution exists; the default never uses it.
-
-Two distinctions this clears up:
-
-- **Different substance vs. different phase.** Bean → brewed coffee is
-  *two Materials* related by a process (extraction), not one Material in
-  two states — the bean isn't coffee-frozen. Ice ↔ water *is* one
-  Material (H₂O) in two phases (the phase-transition hook). Don't conflate
-  a chemical transformation with a phase change.
-- **Capacity ≠ mandate.** The danger is letting the substrate's *ability*
-  to model deep chemistry leak into *forced* fidelity. It mustn't.
-
-The three-layer stack that keeps it honest:
-
-1. **Substrate** — Materials, bulk, surfaces, `transfer`, effects. The
-   chemistry-set's *elements*. Built here. Can go deep; defaults shallow.
-2. **The game** — a *curated, legible rule layer* on top (oil pool +
-   flame → fire spreads; poison coats a blade; water conducts). This is
-   where the fun lives, and it's **authored, not simulated** — emergence
-   from a small learnable rule set, not from physics fidelity.
-3. **The education dial** — because a vertical could *be* chemistry, the
-   real fidelity (H₂O, molar mass, composition) is an **opt-in dial** the
-   teaching content turns up. Same substrate, vertical-agnostic; Gus's
-   coffee stays "coffee," a chemistry lesson models the solution.
-
-### Influences (the design DNA)
-
-- **Zork / MUDs** — the parser and the prose; rooms as stagecraft.
-  The command pipeline + MQL are the heir. The skeleton.
-- **NetHack** — the "everything interacts" density. But NetHack
-  hand-authored thousands of special cases; Saxonberg's bet is to get
-  that density through **composition** (capabilities + materials +
-  effects compose; interactions *fall out*) rather than per-case code.
-- **Larian / D:OS** — the *legible* chemistry set: small element set,
-  memorable combinable rules, emergent tactics. And its signature
-  mechanic — **surfaces and clouds** (oil puddles, poison clouds,
-  electrified water, spreading fire) — *is* this slate's surface-bulk /
-  spill / coat / drain machinery. Proof that the substrate we're building
-  is fun **when the rule layer on top stays legible.**
-
-The through-line: MUD bones, NetHack interaction-density via composition,
-Larian's emergent-but-legible chemistry through surfaces and materials,
-plus the educational fidelity dial none of the three had — all on one
-substrate.
+> **Graduated** to [bulk.md § Why a Material is modelled at the granularity its interactions read](../../subsystems/bulk.md#why-a-material-is-modelled-at-the-granularity-its-interactions-read)
+> (the rule, substance-vs-phase, capacity ≠ mandate, the three-layer stack, the design DNA).
 
 ---
 
@@ -334,15 +276,8 @@ discrete underlying operation.
 
 ## Authoring guidance — discrete `Thing` vs `bulk`
 
-This is a **content-developer best practice**, not an engine decision —
-the engine supports both; the author picks per object:
-
-- **Discrete `Stuff`** when a unit has *shape and identity* and players
-  treat it as countable — a loaf, an apple, a wheel of cheese, a coin.
-  (Fungible + countable → also `Stackable`.)
-- **`bulk`** when it's a *formless measured amount that conforms to its
-  holder* — water, flour, sand, oil. The linguistic tell: "three Xs"
-  (discrete) vs "some X" / "200 g of X" (bulk).
+> **Graduated** to [bulk.md § Authoring — discrete `Thing` vs `bulk`](../../subsystems/bulk.md#authoring--discrete-thing-vs-bulk)
+> (which to pick, and the linguistic tell).
 
 The same substance can be **both**, and the verbs that *cross the line*
 are the interesting ones. Cheese is a wheel (`Thing`) you `cut`, or

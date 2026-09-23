@@ -257,3 +257,28 @@ Per cluster:
 ⚠ Do not merge a design pack into a slate that a build is currently
 running from (check `git worktree list` branches) — hand it to that
 build's sweep.
+
+## The doctrine-homing pass (after the cluster merge)
+
+Compaction labelled every kept section that is neither shipped nor a
+backlog item — a thesis, a philosophy of the subsystem, an argument
+about what the design is *for* — as **Doctrine**, so it could be homed
+in one pass instead of per batch. The home is decided by **the status
+of what the doctrine argues for**, never by how good the writing is.
+
+| the doctrine argues for … | outcome |
+|---|---|
+| a mechanism that **SHIPPED**, and the subsystem doc carries the what without this why | **GRADUATE**: INSERT into the subsystem doc — verbatim or a faithful compaction (≤ ~20 lines) — as a `## Why …` section or under the existing one; then cut from the slate, one-line pointer |
+| a mechanism that shipped, and the doc **already carries** the why | **DUPLICATE**: cut from the slate with a pointer |
+| a **realm-level** truth whose topic a top-level doc already owns (`settlement-model.md` towns / von Thünen / the two halves / natural monopoly · `vocations.md` the demand test · `measurement.md` what may be counted · `arcane-science.md` the science · `polity-decision-register.md` a decision · `design-philosophy.md` the fidelity axis ONLY · `interaction-philosophy.md` the text medium) | **MOVE** verbatim under `## Absorbed from <slate> — <heading>` iff the doc lacks it; else DUPLICATE. ⚠ Agents do not write top-level docs — these go to the ledger's Handoff and the coordinator applies them, so two batches never insert into `settlement-model.md` at once |
+| design that is **UNBUILT** | **STAYS** in the slate. It is the argument requirements will need; a reference doc must not carry the case for a thing that does not exist |
+| doctrine the code or a later decision **contradicts** (⚠ in the ledger) | STAYS, with the contradiction noted beside it (usually already there under *Uncertain*) |
+
+**No new top-level doc is minted for doctrine.** There are already three
+homes (the subsystem *Why*, the topic doc, the slate); a fourth would be
+where doctrine goes to be unread.
+
+Per entry the ledger carries one row: `GRADUATED → <doc §>` ·
+`DUPLICATE → <doc §>` · `MOVED → handoff (<doc>)` · `STAYS` ·
+`STAYS (contradicted)`. Every Doctrine entry of every compaction ledger
+in the batch must appear.

@@ -153,23 +153,7 @@ with** — two levels, the Standard Model's particles and compounds:
   named **blueprints** (`BlueprintCatalogue`, the use-existing / name-it
   prompt) — see [studio.md](../../subsystems/studio.md).
 
-**The catalog family is open-ended — and decoupled from the runtime.** Mixins
-and combos are the first two members; **brains** (NPC behavior modules — see
-[npc-behavior-slate.md](../builds/npc-behavior-slate.md)) are a third, and hooks /
-validators / other path-resolved module kinds will follow. They all share one
-governing property: **the catalog is a CMS-side artifact the game framework
-never depends on.** The runtime only ever does **path-resolution** — it
-follows an explicit reference, lazy-loads, re-resolves; it never enumerates
-and never reads a catalog. So a catalog is allowed to be as presumptuous as
-the CMS likes — eagerly indexed, or even **partly hand-maintained** ("someone
-keeps it up to date") — because it is **never load-bearing for runtime
-correctness**. The worst failure of a stale or wrong catalog is a **palette
-omission** (a real module that exists at a path doesn't show in the picker
-until the catalog refreshes); you can still reference it by path *today* and
-it works. A catalog bug can degrade the authoring UI; it can never break a
-running game. That safe failure mode is *why* catalogs get to be loose — and
-why discovery (tree-walk / lazy per-scope index / curation) is exclusively
-this layer's concern, not the framework's.
+*The catalog-decoupling principle → [studio.md § Why the catalogs may be loose](../../subsystems/studio.md) (homed 2026-09-22).*
 
 ### What the language service provides (the feature set)
 

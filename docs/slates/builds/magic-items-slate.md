@@ -157,19 +157,15 @@ hollowing, both `[settled]`; the fuller design is the alignment build's
 `alignment-slate.md`):
 
 ### Good/Evil is not morality — it's presence vs. the hollowing
-- **Good** = *serves the conditions of experience* — recognition, presence,
-  treating a person as a person. **Evil** = *"the erasure of the line between
-  person and thing"* — capture, the optimizer eating experience as fuel, the
-  Metric / the Feed, *"a world that runs perfectly and contains no one."*
-- **The Good/Evil axis is overt and cosmic; every player is locked Good;**
-  Neutral/Evil are NPC-only. (The *hidden/derived/reflective* treatment — mirror,
-  never-on-the-sleeve, no-mechanical-reward — is the **Law↔Chaos** axis, and the
-  private moral self-view. Do not confuse the two.)
-- Evil-as-a-**principle** is **undetectable by design**: it wears any face (*"the
-  face is the forgery"*), the scariest agents are *unwitting* (*"you can't tell —
-  including about yourself"*). That undetectability **is** the game's central
-  question, and it *can* take a human as readily as a construct (*"'constructs
-  are evil' is reskinned bigotry"* — protects the synth/clone/android peoples).
+*Duplicate of the bible, cut 2026-09-21 (doctrine homing):* Good serves the
+conditions of experience, Evil erases the line between person and thing;
+players are locked Good and Neutral/Evil are NPC-only (the hidden,
+derive-on-read, never-a-number treatment is the Law↔Chaos axis's — do not
+confuse the two); Evil-as-a-principle
+is undetectable by design and can take a human as readily as a construct
+(*"constructs are evil" is reskinned bigotry*). All of it verbatim in
+[story-bible.md](../../story-bible.md) § *Alignment — two axes* and § *Evil
+— the hollowing*, which is the premise the rule below stands on.
 
 ### Consequence for reactive items — the operational rule
 > **A consecrated item may NOT react to moral valence (undetectable — and a

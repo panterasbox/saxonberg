@@ -79,71 +79,14 @@ Siblings: [freight](./freight-slate.md) · [delivery](./delivery-slate.md) ·
 
 ## ⭐ The frame: every town is two halves
 
-> **The functional half is why the town exists. The support half is what
-> the work does to the people who do it.**
+*Homed 2026-09-22 → [settlement-model.md § 3 · Absorbed from towns-slate — every town is two halves](../../settlement-model.md).*
 
-This is economic base theory, and naming it matters because it makes the
-"creative" half *non-arbitrary*. The basic sector exports — ore, fruit,
-labor. The non-basic sector exists to serve the people the basic sector
-employs. A mining town has a boarding house because miners are single men
-on rotation. A fruit valley has a packing house because fruit rots.
-
-So the generator for each town's second half is **one question**, and it
-is not "what would be cool here":
-
-> *What does this work do to the people who do it?*
-
-That constraint is what makes the support half both **teachable** (it is
-real economic geography, not decoration) and **expressive** (the answer
-is different in every town, and the difference is character).
-
-⚠ **Both halves are content, but they are not the same KIND of work.**
-The functional half is mostly mechanism and mostly shipped — it wants
-substrate, brains and gates. The support half is mostly rooms, cast and
-prose, and it wants almost no engine work at all. That asymmetry is why
-this slate is cheap relative to its payoff, and why it can be cut into
-per-town slices that ship independently.
 
 ---
 
 ## ⭐⭐ The realm geometry — Terminus is the clearing house
 
-The relation that was missing from every prior locality doc:
-
-> **The towns do not trade with Terminus. They trade with each other
-> THROUGH Terminus.**
-
-| town | sends the city | takes from the city |
-|---|---|---|
-| **Rejection** | ingots — the input to every tool, rig, fixture and fitting | tools, timber, food, wages, and *people* (nobody is born there) |
-| **Hinkley Hills** | nothing material — **labor**, and demand | everything; its income *is* Terminus wages |
-| **Heart's Delight** | food — the only town that feeds the city | equipment, capital, the market, seasonal hands |
-
-Rejection's storekeeper sells food grown in the valley. The valley's
-cannery buys tin smelted at Rejection. **They never meet.** Terminus is
-the room they meet in — which is what makes the market square
-load-bearing rather than scenery: it is not where you shop, it is where
-the realm clears.
-
-Three ways the city is already the centre in **shipped** content, none of
-them said out loud until now:
-
-- **Capital.** Rejection's businesses declare `banksAt: goodkin` — the
-  counting-houses. Every town's money is in a Terminus vault. That is not
-  a convenience; it is why a river authority would ever have teeth, since
-  the institution that can freeze an account can settle a diversion
-  fight.
-- **Entry.** The only arrival terminal is in Terminus
-  (`/world/terminus/terminal/thing/arrival-terminal`). Every player lands
-  in the city; every other town is somewhere you *choose* to go. The
-  towns are destinations, never origins.
-- **Knowledge.** The university is in the city. Every Discipline the
-  towns exercise gets **credentialed** somewhere else.
-
-⭐ So the city holds the money, the door and the schooling; the towns hold
-the ground, the ore and the food. That is a real political geometry, and
-it is the reason Terminus — founded by people who wanted no governing —
-ends up governing anyway without ever passing a law.
+*Homed 2026-09-22 → [settlement-model.md § 8 · Absorbed from towns-slate — Terminus is the clearing house](../../settlement-model.md).*
 
 ### The second geometry, and it is deliberately misaligned
 
@@ -582,17 +525,7 @@ price, which is an ending rather than a phase.
 
 ## The connective tissue — goods and services in and out
 
-This is not a separate feature. It is what makes the three towns
-*necessary* rather than arbitrary, and the realm layout is **already von
-Thünen** — nobody has cashed it:
-
-- heavy, low-value, loses mass on processing → **process at the source.**
-  Rejection smelts on site rather than shipping ore. Already true, already
-  right, and it happened by good instinct rather than by rule.
-- perishable, high-value, short window → **preserve, or be close.** Heart's
-  Delight gets the cannery and the drying yards for exactly this reason.
-- residential outbids agriculture near the centre → **Hinkley is the near
-  ring** and grows gardens, not fields.
+*Homed 2026-09-22 → [settlement-model.md § 8 · the realm layout is already von Thünen](../../settlement-model.md).*
 
 *Freight shipped → [logistics.md](../../subsystems/logistics.md) (the
 haulage market; ⚠ the cost surface is **opt-in** — § The cost surface is

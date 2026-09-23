@@ -115,14 +115,11 @@ primitive at different sizes:
 | **chat channel** | open / role-scoped | a stable name (`Gossip`, a guild) | persistent |
 
 **Thoughts willed into existence → attribution is the trust boundary.**
-Because an implant message is a thought appearing in your mind, the
-baseline's most important guarantee is unmistakable attribution ("this
-thought is Bobalu's, not yours"). The high-end threat is therefore
-**spoofing** (a hacked implant injecting a thought you mistake for your
-own, or impersonating someone) — espionage/horror gameplay for later. It
-follows that the baseline empathic layer must be **hardened**: casual
-jamming can't touch basic DM/chat/emotes; only exotic attacks reach the
-trust boundary.
+Stated in [comms.md § Two transports](../../subsystems/comms.md) (implant
+comms are *gated by attribution only; no sensory gate*) and § Deferred
+(*Implant security*: spoofing is the high-end threat; the baseline is
+hardened against casual jamming by design; the espionage/horror layer is
+its own wave — the backlog half, in `Left`).
 
 **Language still applies (lean).** Two readings of "willed thought":
 (i) pure pre-linguistic *meaning* (implant transcends language), or

@@ -332,6 +332,32 @@ which a sim could never offer.
   scheduler and is re-derived from `getNow()` at boot. Weather
   reconstructs everything from game-time.
 
+## Why the dealbreakers bind every consumer
+
+The properties above are not descriptions of Wave 1 — they are the
+standing constraints any new weather consumer (farming's GDD integral,
+ranching's pasture, fishing's catch, preservation's spoilage rate) must
+keep, and each has a reason:
+
+1. **No simulation, no tick, no stored state.** The moment weather is
+   stored-and-ticked, the rejected sim has been rebuilt; lazy
+   compute-on-read *is* the guardrail (§ Why procedural).
+2. **Nothing may depend on weather — the most important one.**
+   Enrichment, never a gate or required input; every consumer must work
+   with weather flat or absent (thermal does, on static biome
+   authoring). No *"wait for rain to proceed."* This is what lets
+   weather be added to any system without that system depending on it.
+3. **Stay a thin driver.** Weather owns neither atmospheric *state*
+   (biome) nor seasons / day-night (celestial); it only deviates biome's
+   reads.
+4. **No global-coordinate dependency, no inter-zone geographic
+   embedding.** Coherence rides the addressing Locality tree (logical),
+   never zone geometry (§ Locality binding).
+5. *(Softer)* **Game-time, not the session clock** — it rains whether you
+   are logged in — and **ambient, not a chore.**
+
+(Graduated from the weather slate § Dealbreakers, 2026-09-21.)
+
 ## Wave 2 — the coexistence resolve
 
 The governing decision of Wave 2: **how authored and procedural weather

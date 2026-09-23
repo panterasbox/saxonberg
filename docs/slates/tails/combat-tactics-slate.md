@@ -48,20 +48,16 @@ See also:
 
 ## Principle
 
-1. **Combat is a relationship graph, not a coordinate space.** The atomic
-   fact is "actor A is *engaged* with actor B" — a single edge between two
-   actors, no position. Everything tactical (who can hit whom, who's
-   protected, who's free) is a property of that graph.
+Principles 1, 3 and 4 shipped and are stated once — *a relationship graph,
+not a coordinate space* → combat.md (`CombatGraph`) + ranged.md § Bands are
+relationships, not positions; *party-level presets, not per-character
+scripts* + *rides existing substrate* → combat-formations.md (intro:
+set-policy-then-watch; § The `CombatFormation` Idea). Kept:
+
 2. **Codify emergent behavior; don't fight it.** Players will
    power-level, kite, and exploit. In a multiplayer world you can't stop
    them — so name it, rule it, and tune its rewards. Make them do it *by
    your rules.*
-3. **Tactics are party-level presets, not per-character scripts.** One
-   legible choice the party adopts, not a wall of per-actor IF/THEN
-   gambits. Legibility is a text-medium requirement, not a nicety.
-4. **It rides existing substrate.** Engagement framework + grouping +
-   status effects + `Idea` singletons. No new geometry, no new
-   coordinate model, no registry.
 
 ---
 
@@ -97,19 +93,7 @@ Idea, § The `command` Discipline, § Deferred, § History).
 
 ### Why this is text/social/AI-native
 
-- **Legible** — one prose line per tactic, watched unfolding. Matches the
-  serial medium instead of fighting it.
-- **Social** — a party-level decision creates coordination, role
-  negotiation, leadership: the social fabric the project leans on.
-- **AI-native** — a mixed human+AI party can run a formation, each member
-  reading the tactic and playing its role through the same command bus.
-  In Master-Apprentice, *the master could be an AI tutor* — the
-  "human interface is the AI interface" keystone and the education
-  vertical, expressed through combat.
-
-This is also the answer to "ranged isn't where these games shine": party
-tactics is. If a combat sentence ever goes in the README or the
-philosophy docs, it should be this, not arrows.
+*Homed 2026-09-22 → [combat-formations.md § Why formations — text, social, AI-native](../../subsystems/combat-formations.md).*
 
 ---
 

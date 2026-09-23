@@ -77,20 +77,9 @@ See also (read before building — these are the substrate this leans on):
 
 ## What is *not* special: bearers
 
-"Another bearer" (pack mule, hired porter) is **not a new term.** The
-bearer is *any Creature*; load routes onto its gauge; whether it's
-driven by a player, a brain, or nothing is invisible to encumbrance. A
-mule is just a Creature with a small capacity. **There is no
-`PorterMixin`.**
-
-The porter who sets the crate down and refuses the last hill is a
-**brain** deciding to drop load — pure behavior, **out of scope** here
-(rides [npc-behavior](../builds/npc-behavior-slate.md)). The only genuinely-new
-sliver is the **handoff** — moving load from your gauge onto another
-creature's — and even that splits: the *transfer* is just containment
-onto the other bearer (an existing primitive), the *come along* is
-following/leading (conveyance or automation). Nothing
-encumbrance-specific.
+> Graduated to [encumbrance.md § The gauge](../../subsystems/encumbrance.md)
+> (*Why there is no `PorterMixin`*): the bearer is any Creature; a porter
+> refusing the hill is a brain; the handoff is containment + following.
 
 ---
 

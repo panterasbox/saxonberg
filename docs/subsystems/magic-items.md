@@ -14,6 +14,27 @@ Governed throughout by [arcane-science.md](../arcane-science.md): **an
 item is not a new physics, it is stored labour** — a maker paid earlier,
 and the user spends it.
 
+## Why items exist — access, not loot
+
+**Items are how magic reaches people who did not spend the hours.**
+Everyone can cast, competence comes from practice, and Tarn's Rule caps
+you at your weaker leg — so in principle magic is open and in practice
+it is a club. Items are what keep that from being true. **Competence
+gates what you can DO; an item gates nothing.** The wand does not make
+you a caster: you are not casting at all, you are using a thing.
+
+The randomness in distribution is the point, not a concession. **In a
+game where competence is hours practised, randomness is the only thing
+that produces UPSETS** — a found wand is the only way a newcomer does
+something a veteran cannot, a brief inversion of a hierarchy that is
+otherwise strictly monotonic in time spent.
+
+⚠ **Guard:** if items are the only untrained access, wealth becomes the
+new gate. The *found* channel must stay meaningful beside the *bought*
+one — which random distribution plus unidentifiability handles by
+itself, since you cannot buy what nobody has and cannot price what
+nobody can assess. *(Graduated from the discovery slate, 2026-09.)*
+
 ---
 
 
@@ -1109,6 +1130,22 @@ stock causes a *cataloguing backlog*, not a rush.
 ---
 
 ## Distribution
+
+### The hard constraint
+
+> **The distribution reads the WORLD, never the PLAYER.**
+
+Even accepting the slot machine: **a slot machine that reads you is a
+RIGGED slot machine, and players detect it.** Level-scaled loot is the
+fastest way to make a world stop feeling like a place — **the moment the
+world reflects you, it stops existing independently.**
+
+⭐ **Legitimate exception — SITUATION, not person.** A besieged town short
+of medicine is **economics**, a property of the world. *"You are
+low-level, here is a low-level wand"* is not. The shipped sweep obeys
+this: `ResidencyLogic.runSpawnSweep` reads region stocks, tag affinity,
+blessing odds and the census — never a player. *(Graduated from the
+discovery slate, 2026-09.)*
 
 **Rarity derives; there is no authored rarity table.** Spawn weight is
 the **inverse of stored labour**, read off the grid cell through
