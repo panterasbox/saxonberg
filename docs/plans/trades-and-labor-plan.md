@@ -660,8 +660,15 @@ The full `pnpm test` runs once, before the MR.
 
 ### Stage A — the sweep
 
-**A1 — the kernel keeps the mechanism** (`build(trades-and-labor A1): the
-counter's mechanism to lib/retail — kernel narrows on the base`)
+**A1 — the kernel keeps the mechanism** ✅ **DONE** (`be4eaddba`)
+
+> **Build note.** Landed as planned. Three importers (`CheckController`,
+> `ReclaimController`, `BuyController`) turned out to import the classes
+> as VALUES and never use them — dead imports, deleted. ⚠ **The plan's
+> `lint:field-meta --snapshot` step is a no-op and was not run**: that
+> golden is a deliberately frozen pre-codemod capture and the gate in
+> `lint:family` is `--lint`, which is path-agnostic and stays clean. Do
+> not regenerate it. 60 files / 373 tests green, 48 gates pass.
 
 - Create `packages/server/src/mud/lib/retail/Stock.ts`: today's
   `platform/thing/Stock.ts` in full (doc comment, imports re-pathed,
@@ -693,7 +700,41 @@ counter's mechanism to lib/retail — kernel narrows on the base`)
   file imports `platform/thing/{Stock,ConsignmentShelf,CheckRack}`
   except the three twins themselves.
 
-**A2 — `trade-shopkeeping`** (`build(trades-and-labor A2): trade-shopkeeping
+**A2 + A3 — `trade-shopkeeping`, and the cloakroom** ✅ **DONE** (one commit)
+
+> **Build note.** A2 and A3 landed together: the lounge's rack row is
+> re-classed in the same sweep as the 21 counter rows, so splitting them
+> would have left one commit with a row pointing at a class that had not
+> moved yet. Everything else is as planned.
+>
+> Decisions this wave took that the plan did not:
+> - **The brains narrow on the kernel BASE, not the pack twin.** The plan
+>   said `Stock` from `../thing/Stock`; `instanceof` against
+>   `lib/retail/Stock` matches the twin too and also matches any future
+>   trade's counter, so it is strictly more general at no cost.
+> - **`lint:counters` needed a wider census than D9 specified.** The four
+>   markers D9 named found only 2 of the 4 kernel counters: `BankCounter`
+>   composes `BankMixin` (not `AttendantMixin`) and `Menu` reaches the
+>   offer surface by INHERITANCE (`extends CommerceMenu`). Both were
+>   added; the gate now reads exactly 4 against a ceiling of 4. A census
+>   that reads 2 where the truth is 4 is a ceiling that means nothing.
+> - **The `stocks` brain test may not import `platform/idea/api/**`** —
+>   the server's `exports` map blocks it (a logic singleton is not pack
+>   surface). Its `EmploymentLogic.prototype` spy goes through
+>   `StuffApi.loadClassByPath`, the SeznickHouse precedent.
+> - **`HouseStockCard.test.ts` now drives `HouseShopController`**, and
+>   `HouseAccount.test.ts`'s not-staff proof moved from `house stock` to
+>   `house roster` (the claim is about the SEAT, on any subcommand).
+> - **The dev DB was dropped** (D8) and `pnpm install` run after the pack
+>   was added. The live boot check is folded into B5's drive, which boots
+>   a fresh DB and exercises `buy` / `consign` / `stall rent` anyway.
+>
+> Pack suite 5 files / 22 tests green; terminus 21 files green;
+> trade-textiles, trade-distilling, trade-farming, trade-hospitality green.
+
+<details><summary>the original A2 wave text</summary>
+
+(`build(trades-and-labor A2): trade-shopkeeping
 — the counter, the shelf, the brains, the shop's house subcommands, the
 stall seed, the shop archetype; 21 rows re-classed; the dev DB is
 dropped`)
@@ -772,7 +813,51 @@ CheckRack to trade-hospitality; lint:counters holds the kernel at four`)
 
 ### Stage B — the labor market
 
-**B0 — the maker retires** (`refactor(employment): MakerMixin retires —
+**B0 — the maker retires** ✅ **DONE**
+
+> ⚠⚠ **Re-planned in place: D17 was wrong about the augment fold, and the
+> fold STAYS.** Grounding said `collectAugmentConferralNames`'s
+> `getConferredMixinNames` soft-lookup was employment's alone. It is not:
+> **`Shade` overrides it** (`platform/agent/Shade.ts`) to confer
+> `AetherMixin` intrinsically — a shade is attuned with no implant and no
+> slot, and species `innateMixins` is shared reference data a shade
+> cannot write without corrupting the species. That is a *genuine* augment
+> conferral and exactly what the seam is for.
+>
+> So the seam is kept and re-documented as the **per-host intrinsic
+> conferral** leg, with one consumer; what was deleted is
+> `EmployedMixin`'s implementation of it, i.e. the thing that put a JOB
+> through the implant mechanism. `Shade` declares the method outright now
+> instead of `override`-ing an inherited one. The D17 claim that survives
+> intact — *augment gating is for implants and innate gifts, not a means
+> test* — is the whole reason the employment leg had to go, and it did.
+>
+> Other build decisions:
+> - **Test doubles stub `isFulfilling()` rather than standing up a
+>   business.** The plan asked for a business with a `fulfills` seat per
+>   file. In the eight crafting/tips/venue files the fulfiller is
+>   *scenery* and the double was already stubbing the shift seam (it
+>   overrode `getConferredMixinNames` to fake being on shift); the seam
+>   changed name, not honesty. The doubles now compose `EmployedMixin` and
+>   return `true` from `isFulfilling`, and the REAL three-condition read
+>   is proved as a truth table in `lib/employment/__tests__/conferral.test.ts`
+>   — including employer-bounding, the fixture-as-"here" case, and that an
+>   Avatar-shaped and an NPC-shaped body answer identically.
+> - **The shipped-content proofs were NOT stubbed.** `employment-seed.test.ts`
+>   (Dave's Bar) now stands its staff behind the real bar and asserts the
+>   seed authors `fulfills: true` **and** names `operatingLocations` — the
+>   two halves the "here" leg needs, which is the regression this wave
+>   could most easily have shipped silently.
+> - **`beginCover` covers the first `fulfills` seat**, falling back to
+>   `positions[0]` (what it meant before the flag existed).
+> - Rows: 9 × `confers: [MakerMixin]` → `fulfills: true`; 40 × `confers: []`
+>   deleted; 7 × `class: /platform/agent/Crafter` → `/platform/agent/Cast`;
+>   `lib/craft/Maker.ts`, `platform/agent/Crafter.ts`, `Mixins.Maker` and
+>   `MixinApi.isMaker` deleted.
+
+<details><summary>the original B0 wave text</summary>
+
+(`refactor(employment): MakerMixin retires —
 who fulfils an order is the position's flag, read off the shift; the
 augment walk carries augments only`)
 
@@ -821,6 +906,8 @@ Lands first because every later wave's "grant" language rests on it.
   the cookhouse routes to the cook, a goods-yard hand's production
   `order` still fulfils, the teller lookup at the counting-house still
   finds the teller.
+
+</details>
 
 **B1 — the opening and the criterion** (`build(trades-and-labor B1):
 headcount + requires on Position; openings derived; considerApplicant;
