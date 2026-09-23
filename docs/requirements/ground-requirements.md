@@ -399,12 +399,22 @@ what varies is what it is made of and whether anything is beneath it. *On the
 ground* is precisely the axis that survives every epoch — a spacecraft's deck is
 not on the ground, and neither is a fourth-floor flat.
 
-**6 · Economy.** Produces nothing directly and is not meant to. It is the
-precondition for quarrying, for foraging's patches, and for every act that cares
-what it is standing on. It consumes one thing per room in use, paid back by every
-consumer that would otherwise invent its own ground. ⚠ **The demand is not
+**6 · Economy & governance.** Produces nothing directly and is not meant to. It is
+the precondition for quarrying, for foraging's patches, and for every act that
+cares what it is standing on. It consumes one thing per room in use, paid back by
+every consumer that would otherwise invent its own ground. ⚠ **The demand is not
 speculative: three shipped verbs are asking for this right now and being
 refused.**
+
+⭐ **Who can be wronged, on what basis, and can they answer?** (Lens 6's
+governance limb, added to the rubric after this doc was first written.) This build
+refuses a person exactly one thing: **you may not dig this floor** — because it is
+planks, or because there is a storey underneath. Nobody is wronged by that; the
+criterion is physical and it is **stated in the refusal itself**, which is what the
+limb asks for. The one honest caution is the inverse: a refusal that says only
+*"you can't do that here"* would be an unwritten criterion, so **the words are part
+of the acceptance, not decoration** — see AC 2 and the drive's steps 3–5. Nothing
+in this build gates anybody on who they are, so no appeal is owed.
 
 ---
 

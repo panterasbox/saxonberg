@@ -392,6 +392,20 @@ waste you move for nothing. Who pays: the smelter for flux, the household for
 turf, the cook for salt, and the mason when that trade lands. Nobody's
 obligation was invented to make any of it wanted.
 
+⭐⭐ **Who can be wronged, on what basis, and can they answer?** (Lens 6's
+governance limb, added to the rubric after this doc was first written — and it
+lands hard here.) **The turbary is the case.** Whoever drains the ground upslope
+destroys a neighbour's fuel without entering their land, and **today the neighbour
+cannot answer**: there is no mechanism that couples one room's ditch to another's
+water, so the wrong is real in the fiction and absent from the model. The limb
+makes that gap sharper than "AC 12 is met weakly" did, and names its home — the
+watershed's rights, where prior appropriation is already recorded and an
+appropriation can already be contested. ⚠ **Do not paper it over with a refusal**:
+forbidding the ditch would invent a criterion nobody chose. The honest ship is the
+externality without the remedy, *said out loud*, and the remedy owed to the
+watershed. The other refusals this build adds — no tool, still buried, no face
+above you — are physical, stated in words, and wrong nobody.
+
 **Gap, recorded as a gap:** the consumers of building stone are all *authored
 presets* — a wall, a whetstone, a bowl. Until masonry ships, stone's only live
 buyer is whoever wants the prose to be true. That is the weakest leg of lens 6

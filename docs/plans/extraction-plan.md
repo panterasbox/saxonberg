@@ -83,11 +83,11 @@ named. Line numbers are current at plan time.
   (`getDeposit()/setDeposit()`, a citation string the kernel never
   interprets — the `Locality._reach` contract). Rejection declares it
   once on the region zone (`rejection/content/world/rejection.yaml:46`,
-  `deposit: /world/rejection/idea/deposit/ferrow`, `cellSize: 10`,
+  `deposit: /world/terminus/rejection/idea/deposit/ferrow`, `cellSize: 10`,
   `address: terminus/rejection`) and every sub-zone inherits it by the
   outward walk (`hanging-wood.yaml:6`, `kestrel-road.yaml:13`).
 - The venue's row names the CLASS:
-  `rejection/content/world/rejection/idea/deposit/ferrow.yaml` —
+  `rejection/content/world/terminus/rejection/idea/deposit/ferrow.yaml` —
   `class: /trade/mining/idea/Deposit`, stratigraphy slate to −60 then
   granite, `waterTable: -45`, lode, four grade bands, one depletion box,
   one feature pin. **The only `Deposit` row in the game.**
@@ -846,7 +846,7 @@ of it, a spade's depth of drift on top, and the face is barely touched"*
 **D18 — The pit is claimed through the counter people already use.**
 `ClaimsRegister` gains an authorable field `surfaceWorkings:
 Array<{ path, keywords }>` (rejection authors `[{ path:
-/world/rejection/quarry/pit, keywords: [pit, quarry] }]`); `stake <word>`
+/world/terminus/rejection/quarry/pit, keywords: [pit, quarry] }]`); `stake <word>`
 that matches a keyword takes a **second fork** in `StakeController`:
 `ParcelApi.ownerOf(path)` non-null → `already-claimed`; else
 `ParcelApi.subdivide(path, '/world/rejection', { kind: 'player',
@@ -856,15 +856,15 @@ longest-prefix resolution answers directly (mining.md § Title) — no
 warren, no block. The three-number fork is untouched.
 
 **D19 — Rejection authors the pit as its own zone with its own column.**
-`rejection/content/world/rejection/quarry.yaml` (`CartesianZone`,
-`cellSize: 10`, `deposit: /world/rejection/idea/deposit/quarry-hill` —
+`rejection/content/world/terminus/rejection/quarry.yaml` (`CartesianZone`,
+`cellSize: 10`, `deposit: /world/terminus/rejection/idea/deposit/quarry-hill` —
 the outward walk makes the nearest `deposit` win, so the Ferrow is not
 re-authored and the galleries' hardness is untouched),
 `quarry/pit.yaml` (`class: /trade/quarrying/location/OpenWorking`,
-`coords {0,0,0}`, exit `south → /world/rejection/location/old-workings`,
+`coords {0,0,0}`, exit `south → /world/terminus/rejection/location/old-workings`,
 `props: [/trade/quarrying/thing/limekiln]`, `spoilTo:
-/world/rejection/kestrel-road/tips`, `faceRunM: 20`, daylight 8000),
-`old-workings.yaml` gains `north → /world/rejection/quarry/pit`, and
+/world/terminus/rejection/kestrel-road/tips`, `faceRunM: 20`, daylight 8000),
+`old-workings.yaml` gains `north → /world/terminus/rejection/quarry/pit`, and
 `idea/deposit/quarry-hill.yaml` (`class: /system/ground/idea/Deposit`,
 no lode, `waterTable: -12`) with the column **drift 0…−1 · clay −1…−2 ·
 granite −2…−6 (block) · limestone −6…−9 · coal −9…−10 · halite −10…−12 ·
@@ -1172,7 +1172,7 @@ W4; until then the kiln is a fixture that lights and holds heat.
 *Acceptance:* the pack's suite; `test:near`; `lint:family`
 (`lint:capabilities` — `winning` consumed, `digging` consumed by `dig`;
 `lint:instrument-args`; `lint:arg-kinds`; `lint:untitled` —
-`/trade/quarrying` claimed, `/world/rejection/quarry` under the town's
+`/trade/quarrying` claimed, `/world/terminus/rejection/quarry` under the town's
 claim; `lint:census` — every `wins:`/host/props path resolves;
 `lint:locations`); the mining suite still green (the `hew` tool arg).
 

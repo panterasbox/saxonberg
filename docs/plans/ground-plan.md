@@ -565,7 +565,7 @@ Checked at plan time against the tree, not recalled.
   (*true whether or not anyone digs*): classes `/system/ground/idea/Deposit`,
   `/system/ground/idea/GroundCharacter`, `/system/ground/lib/Strata`; its one
   row `/system/ground/idea/default-character`; the realm's deposit stays at
-  `/world/rejection/idea/deposit/ferrow` (a pack's classes, the realm's
+  `/world/terminus/rejection/idea/deposit/ferrow` (a pack's classes, the realm's
   instances). Kernel substrate at `lib/ground/{Floor,GroundSource,GroundKind}.ts`
   — a new **subsystem folder**, not a `lib/mixins/`; nothing instances `/lib/`.
 - **Module scope declares; lifecycles initialize** — the floor attaches in

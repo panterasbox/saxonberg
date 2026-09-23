@@ -91,7 +91,7 @@ into existence**, which is the shape of a chain with no root.
 a producer — do not let them into scope.
 
 ⭐ **And one thinness finding, which is content and not mechanism:** the entire
-mining sector is **one deposit row** (`world/rejection/idea/deposit/ferrow`).
+mining sector is **one deposit row** (`world/terminus/rejection/idea/deposit/ferrow`).
 Fishing is six species. The substrate is fine; the world is thin. That belongs
 to the localities, not here.
 
