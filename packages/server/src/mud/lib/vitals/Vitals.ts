@@ -49,7 +49,8 @@ import type {
   AfflictionRecord,
   DyingRecord,
 } from '../../platform/idea/Condition';
-import { HARM_DEFAULTS, TRAUMA_BEHAVIOR, BLEED_FAMILY, WOUND_SEPSIS_KEY } from '../../platform/idea/Condition';
+import { HARM_DEFAULTS, TRAUMA_BEHAVIOR, BLEED_FAMILY, WOUND_SEPSIS_KEY, SCARRING_TYPES } from '../../platform/idea/Condition';
+import type { ScarRecord } from '../../platform/idea/Condition';
 import type { VitalEffect, ProgressionLaw } from '../../platform/idea/Condition';
 import type Condition from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
@@ -529,6 +530,11 @@ export interface Vitals {
    * credit and the prose stay caller-side, and verbs stay on the body.
    */
   applyTreatment(wound: Trauma, opts: TreatmentOpts): TreatmentResult;
+  /** The healed-over scars this body keeps (D14) — never a penalty. */
+  getScars(): readonly ScarRecord[];
+  /** ⭐ D15 — re-break every half-knit fracture under mechanical work
+   * `powerW`; returns the wounds it re-broke. Called by `Exerting.exert`. */
+  stressStructures(powerW: number): Trauma[];
   /** ⭐⭐ The per-body convalescence factor `k` (D1/D2) — one number a bed,
    * a carer and a spell pay into; `0` when the body is not safe (D3a). */
   convalescenceFactor(): number;
@@ -641,6 +647,17 @@ function missingPartsAugmenter(
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
+/** ⭐ D14 — one sentence about a body's most prominent scar, appended to
+ * `look`. Never a penalty; the body wears what it survived. */
+function scarsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isVitals(host)) return text;
+  const scars = host.getScars();
+  if (scars.length === 0) return text;
+  const worst = [...scars].sort((a, b) => b.peak - a.peak)[0]!;
+  const line = `A pale scar marks the ${partPhrase(worst.site)}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   // A class DECLARATION, not an expression: legacy decorators are only
   // valid on declarations, and `adoptMaterialState` carries a security
@@ -648,8 +665,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   class VitalsMixin extends Base implements Vitals {
     static _mixinName = 'VitalsMixin';
 
-    /** A lost part is visible on the body — see `missingPartsAugmenter`. */
-    static markupAugmenters: MarkupAugmenter[] = [missingPartsAugmenter];
+    /** A lost part is visible on the body; so is a scar (D14). */
+    static markupAugmenters: MarkupAugmenter[] = [
+      missingPartsAugmenter,
+      scarsAugmenter,
+    ];
 
     /**
      * ⭐⭐ **The body affords its own first aid.** `treat` and `undress`
@@ -685,6 +705,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       causeOfDeath: { persistent: true, runtimeState: true },
       bodyPartDeltas: { persistent: true, runtimeState: true },
       conditions: { persistent: true, runtimeState: true },
+      scars: { persistent: true, runtimeState: true },
     };
 
     // ---------- storage; defaults are the universe-default baselines ----------
@@ -720,6 +741,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public causeOfDeath: string | null = null;
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
     public conditions: ActiveCondition[] = [];
+    /** ⭐ Healed-over scars the body keeps (D14) — never a penalty, read by
+     * `assess` and `look`. Written at the clear sweep from a wound's `peak`. */
+    public scars: ScarRecord[] = [];
 
     /**
      * Reconcile-on-read reentrancy guard — a plain transient flag, never
@@ -2282,6 +2306,8 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
               // contribute nothing, silently losing every effect on a
               // fast-healing type.
               const carried = t.severity;
+              // ⭐ D14 — the body remembers the worst it got.
+              t.peak = Math.max(t.peak ?? carried, carried);
               TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
               // ⭐ …and what CARRYING the wound does, over and above its
               // own tick — the Kind-B half of the effect channel, through
@@ -2448,9 +2474,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           this.progressAffliction(a, elapsed, nowS);
         }
 
-        // Relieve any wound healed to (near) zero severity.
+        // Relieve any wound healed to (near) zero severity — leaving a scar
+        // if it ever got grave enough (D14). Not a game-time arm (no cursor),
+        // so `lint:condition-arms` does not count it.
         for (const t of traumas) {
-          if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) this.relieve(t);
+          if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) {
+            this.maybeScar(t, nowS);
+            this.relieve(t);
+          }
         }
 
         // ── the dying clock ────────────────────────────────────────────
@@ -2812,6 +2843,60 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (treater && MixinApi.isHygiene(treater)) treater.soil();
       }
       return { treated: true, by: opts.by, seededInfection };
+    }
+
+    public getScars(): readonly ScarRecord[] {
+      return this.scars;
+    }
+
+    /**
+     * ⭐ D14 — a wound clearing leaves a scar if it ever got grave enough
+     * and is a scarring type. Never a penalty (scars are description); the
+     * deed is fired fire-and-forget for a persona (the `expireDying → die`
+     * precedent). Called from the clear sweep.
+     */
+    private maybeScar(t: Trauma, nowS: number): void {
+      const peak = t.peak ?? t.severity;
+      if (peak < HARM_DEFAULTS.SCAR_SEVERITY || !SCARRING_TYPES.has(t.type)) {
+        return;
+      }
+      this.scars.push({ site: t.site, type: t.type, peak, at: nowS });
+      const self = this as unknown as Stuff;
+      if (MixinApi.isPersona(self)) {
+        void self.recordDeed({
+          text: `carries a scar — a healed ${t.type} of ${t.site}`,
+          tags: ['scar', t.site],
+        });
+      }
+    }
+
+    /**
+     * ⭐⭐ D15 — real work re-breaks a half-knit bone. Every fracture whose
+     * FUNCTION has come back (severity below the impair threshold) but whose
+     * STRUCTURE has not (severity still above zero) is re-broken when the
+     * work is hard enough (`powerW ≥ REBREAK_POWER_W`): floored to
+     * `REBREAK_SEVERITY`, un-set, its care forgotten, its peak raised.
+     * Deterministic; no roll. Returns the wounds it re-broke (for narration).
+     * Called by `Exerting.exert`.
+     */
+    public stressStructures(powerW: number): Trauma[] {
+      if (powerW < HARM_DEFAULTS.REBREAK_POWER_W) return [];
+      const rebroken: Trauma[] = [];
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma' || c.type !== 'fracture') continue;
+        if (
+          c.severity <= 0 ||
+          c.severity >= HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY
+        ) {
+          continue;
+        }
+        c.severity = Math.max(c.severity, HARM_DEFAULTS.REBREAK_SEVERITY);
+        c.dressed = false;
+        c.careQuality = undefined;
+        c.peak = Math.max(c.peak ?? c.severity, c.severity);
+        rebroken.push(c);
+      }
+      return rebroken;
     }
 
     /**

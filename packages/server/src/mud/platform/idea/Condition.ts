@@ -238,6 +238,14 @@ export interface Trauma {
   /** ⭐ Guard so the open-wound sepsis seed fires at most once per wound
    * (D11). Reset when the wound is dressed. */
   septicSeeded?: boolean;
+  /**
+   * ⭐ **The worst this wound ever got** (D14) — the max severity seen,
+   * stamped at inflict and raised in the arm. Read at the clear sweep: a
+   * wound that peaked past `SCAR_SEVERITY` leaves a permanent scar. A grave
+   * wound scars even after it heals to nothing, because the BODY remembers
+   * what the current severity has forgotten.
+   */
+  peak?: number;
 }
 
 /**
@@ -446,6 +454,18 @@ export const HARM_DEFAULTS = {
   SEPSIS_OPEN_ONSET_SEC: 12 * 60 * 60,
   /** Incubation fallback (game-seconds) if the row's is unreadable. */
   SEPSIS_INCUBATION_FALLBACK_SEC: 6 * 60 * 60,
+
+  /* ── scars and re-injury (D14, D15) ──────────────────────────────────
+   * A body REMEMBERS: a grave wound leaves a scar, and a half-knit bone
+   * re-breaks under real load. Neither is a penalty to `ownFunction` — a
+   * scar is description, a re-break is a wound like any other.
+   */
+  /** Peak severity at/above which a healed wound leaves a permanent scar. */
+  SCAR_SEVERITY: 1.5,
+  /** Mechanical work (watts) past which a half-knit fracture re-breaks. */
+  REBREAK_POWER_W: 350,
+  /** The severity a re-broken fracture is floored to. */
+  REBREAK_SEVERITY: 1.0,
 
   /* ── circulation: what losing blood does to the pressure ─────────────
    * ⭐⭐ **The compensated plateau is the single most important fact about
@@ -1347,6 +1367,35 @@ export const BLEED_FAMILY: ReadonlySet<TraumaType> = new Set<TraumaType>([
 
 /** The pathogen key of the wound-sepsis Condition row (D11). */
 export const WOUND_SEPSIS_KEY = 'wound-sepsis';
+
+/**
+ * ⭐ The trauma types that leave a **scar** (D14) — everything but a
+ * bruise. A contusion is a fee, not an injury; the rest, taken badly
+ * enough, mark the body for good.
+ */
+export const SCARRING_TYPES: ReadonlySet<TraumaType> = new Set<TraumaType>([
+  'laceration',
+  'puncture',
+  'avulsion',
+  'burn',
+  'caustic',
+  'frostbite',
+  'rupture',
+  'fracture',
+]);
+
+/** ⭐ A healed-over scar the body keeps (D14). Never a penalty — read by
+ * `assess` and `look`, contributes nothing to `ownFunction`. */
+export interface ScarRecord {
+  /** The `body.*` part it sits on. */
+  site: string;
+  /** The wound type that left it. */
+  type: TraumaType;
+  /** The worst the wound reached. */
+  peak: number;
+  /** Game-time (seconds) it healed and scarred. */
+  at: number;
+}
 
 // ---------- Kind-A: the Condition Idea template ----------
 

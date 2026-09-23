@@ -336,6 +336,16 @@ export default class AssessController extends CommandController<AssessModel> {
       );
     }
 
+    // ⭐ Scars (D14) — what the body survived. Read to anyone; never a
+    // penalty, just a history written on the skin.
+    const scars = (target as Stuff & Vitals).getScars();
+    if (scars.length > 0) {
+      const lines = scars.map(
+        (sc) => `a healed ${sc.type} of ${sc.site}`,
+      );
+      blocks.push(Mml.escape(`Scars: ${lines.join('; ')}.`));
+    }
+
     // ⭐⭐ **The anatomy block** (D12) — one line per part: what it is,
     // how well it still works, and what is over it, outside-in.
     //

@@ -1143,7 +1143,21 @@ reachable at all.
 - **Commit:** `build(recovery W-B2): care priced by the labour it
   restores â and the free floor stays free`.
 
-#### W-B3 â Structure remembers: scars and re-injury (D14, D15)
+#### W-B3 â Structure remembers: scars and re-injury (D14, D15) ✅ DONE
+
+> ✅ **W-B3 landed.** `Trauma.peak` (raised in the harm arm each reconcile);
+> `Vitals.scars: ScarRecord[]` + `getScars()`; the clear sweep writes a scar
+> when a cleared wound peaked past `SCAR_SEVERITY` and is a `SCARRING_TYPES`
+> (fires `recordDeed` for a persona, fire-and-forget). `scarsAugmenter` adds
+> a `look` sentence; `assess` lists scars. `Vitals.stressStructures(powerW)`
+> re-breaks a half-knit fracture (`0 < severity < impair`) at `powerW ≥
+> REBREAK_POWER_W` — floors to `REBREAK_SEVERITY`, un-sets, clears care,
+> raises peak; `Exerting.exert` calls it (step 5) + narrates. Never a penalty
+> (scars don't touch `ownFunction`). Tests: scars (grave scars + no-penalty,
+> bruise/shallow don't), rebreak (400W re-breaks & un-sets, 150W nothing,
+> still-impairing nothing, whole bone never). ⚠ A 4th duplicate scar test
+> flaked on ORDER (passed alone) — folded its assertion into test 1. 181
+> vitals+assess tests + 46 gates green.
 - `Trauma.peak`; `Vitals.scars`; the clear-sweep scar write + deed;
   `assess` scars; the `Creature` description sentence.
 - `Vitals.stressStructures`; the call + narration in `Exerting.exert`.
