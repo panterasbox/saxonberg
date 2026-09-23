@@ -16,6 +16,7 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
+import { WorldClockApi } from '../../../../api/worldclock';
 import { CombatApi, type CombatAssessResult } from '../../../../api/combat';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -310,6 +311,29 @@ export default class AssessController extends CommandController<AssessModel> {
               ? 'The wounds are mending steadily.'
               : 'The wounds are mending slowly.';
       blocks.push(Mml.escape(pace));
+    }
+
+    // ⭐ **A festering wound** (D11) — a symptomatic wound-sepsis reads even
+    // when the wound itself has closed. The one clinical read that says the
+    // infection deadline is running.
+    const now = WorldClockApi.getNow().rawValue();
+    const septic = (target as Stuff & Vitals)
+      .getConditions()
+      .some(
+        (c) =>
+          c.kind === 'affliction' &&
+          c.templatePath.endsWith('/wound-sepsis') &&
+          (c.pathogenLoad ?? 0) > 0 &&
+          now >= (c.symptomsAt ?? Infinity),
+      );
+    if (septic) {
+      blocks.push(
+        Mml.escape(
+          isSelf
+            ? 'One of your wounds is festering — hot, swollen, and starting to smell.'
+            : `One of ${target.getPresentation()}'s wounds is festering.`,
+        ),
+      );
     }
 
     // ⭐⭐ **The anatomy block** (D12) — one line per part: what it is,

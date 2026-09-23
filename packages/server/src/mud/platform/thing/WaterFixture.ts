@@ -56,6 +56,8 @@ export default class WaterFixture extends UnboundedReceptacle {
       'platform/cmd/medical/rinse.yaml',
       // ⭐ …and you cool a burn at water the same way (recovery build).
       'platform/cmd/medical/cool.yaml',
+      // ⭐ …and you scrub your hands clean at it (recovery build, D10).
+      'platform/cmd/medical/scrub.yaml',
     ],
   };
 }

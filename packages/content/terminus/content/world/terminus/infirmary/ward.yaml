@@ -31,5 +31,9 @@ data:
     - /trade/medicine/thing/splint
     - /trade/medicine/thing/surgical-kit
     - /trade/medicine/thing/antivenin-vial
+    # ⭐ The basin is REAL water now (recovery build) — it affords `scrub`
+    # (clean hands between patients), `rinse` and `cool`. The prose already
+    # names a basin; this makes it a working water source.
+    - /stuff/thing/fixture/basin
   cast:
     - /world/terminus/infirmary/agent/physician

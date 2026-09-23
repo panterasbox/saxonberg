@@ -32,7 +32,7 @@ import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../../lib/vitals/Vitals';
 import type { Dressing } from '../../../../lib/vitals/Dressing';
-import { TRAUMA_BEHAVIOR } from '../../Condition';
+import { TRAUMA_BEHAVIOR, HARM_DEFAULTS } from '../../Condition';
 import type { Trauma, AfflictionRecord } from '../../Condition';
 import type { Difficulty, Outcome } from '../../../../lib/advancement/ActSignature';
 
@@ -612,11 +612,17 @@ export default class TreatController extends CommandController<TreatModel> {
           : score >= 1
             ? 'partial'
             : 'failure';
-    // Knock the population back by what the hand is worth. A failure is a
-    // failure: you sat with them, and nothing changed.
-    const knock = [0, 0.35, 0.6, 0.85, 1][score] ?? 0;
+    // Knock the population back by what the hand is worth — ⭐ SCALED BY
+    // how CLEAN the hand is (D11): a filthy hand knocks nothing, and a
+    // properly dirty one re-inoculates as it tends. A failure is a failure.
+    const hands = MixinApi.isHygiene(giver) ? giver.handsCleanliness() : 1;
+    const knock = ([0, 0.35, 0.6, 0.85, 1][score] ?? 0) * hands;
     const before = infection.pathogenLoad ?? 0;
-    infection.pathogenLoad = Math.max(0, before * (1 - knock));
+    let next = before * (1 - knock);
+    if (hands < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD) {
+      next += HARM_DEFAULTS.SEPSIS_INOCULUM * (1 - hands);
+    }
+    infection.pathogenLoad = Math.min(1, Math.max(0, next));
     const cleared = infection.pathogenLoad <= 0.01;
     if (cleared) target.relieve(infection);
 

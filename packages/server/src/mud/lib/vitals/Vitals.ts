@@ -49,7 +49,7 @@ import type {
   AfflictionRecord,
   DyingRecord,
 } from '../../platform/idea/Condition';
-import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../platform/idea/Condition';
+import { HARM_DEFAULTS, TRAUMA_BEHAVIOR, BLEED_FAMILY, WOUND_SEPSIS_KEY } from '../../platform/idea/Condition';
 import type { VitalEffect, ProgressionLaw } from '../../platform/idea/Condition';
 import type Condition from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
@@ -522,6 +522,9 @@ export interface Vitals {
    * credit and the prose stay caller-side, and verbs stay on the body.
    */
   applyTreatment(wound: Trauma, opts: TreatmentOpts): TreatmentResult;
+  /** ⭐⭐ The per-body convalescence factor `k` (D1/D2) — one number a bed,
+   * a carer and a spell pay into; `0` when the body is not safe (D3a). */
+  convalescenceFactor(): number;
   /** Release a sustained magical effect: un-realize, destruct any bound
    * emitter, drop the condition. Expiry and tag-keyed dispel both land here. */
   releaseSustained(s: SustainedEffect): void;
@@ -2174,6 +2177,28 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
                 carried,
                 elapsed,
               );
+              // ⭐ D11 — a bleed-family wound left open above the clot
+              // threshold goes bad on its own after SEPSIS_OPEN_ONSET_SEC.
+              // Part of the HARM arm (being away does not fester you).
+              if (
+                BLEED_FAMILY.has(t.type) &&
+                t.dressed !== true &&
+                t.severity > HARM_DEFAULTS.CLOT_SEVERITY
+              ) {
+                if (t.openSince === undefined) {
+                  t.openSince = nowS;
+                } else if (
+                  t.septicSeeded !== true &&
+                  nowS - t.openSince > HARM_DEFAULTS.SEPSIS_OPEN_ONSET_SEC
+                ) {
+                  this.seedSepsis(HARM_DEFAULTS.SEPSIS_INOCULUM);
+                  t.septicSeeded = true;
+                }
+              } else {
+                // Dressed or clotted below the threshold → reset the clock.
+                t.openSince = undefined;
+                t.septicSeeded = false;
+              }
             }
           }
 
@@ -2644,10 +2669,66 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     ): TreatmentResult {
       TRAUMA_BEHAVIOR[wound.type].resolve(this, wound);
       wound.careQuality = Math.max(0, Math.min(1, opts.efficacy));
-      // D11 (W-A5) — a dirty treatment on a bleed-family wound inoculates
-      // it. Wired when HygieneMixin lands; for now nothing seeds.
-      const seededInfection = false;
+      // Dressing a wound resets its open-wound sepsis clock (D11).
+      wound.openSince = undefined;
+      wound.septicSeeded = false;
+
+      // ⭐ D11 — a DIRTY treatment of a bleed-family wound inoculates it.
+      let seededInfection = false;
+      if (BLEED_FAMILY.has(wound.type)) {
+        const treater = opts.treater;
+        const hands =
+          treater && MixinApi.isHygiene(treater)
+            ? treater.handsCleanliness()
+            : 1;
+        const dirty =
+          hands < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD ||
+          opts.efficacy < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD;
+        if (dirty) {
+          seededInfection = this.seedSepsis(
+            HARM_DEFAULTS.SEPSIS_INOCULUM * (1 - hands),
+          );
+        }
+        // Handling a bleeding wound soils the treater's hands.
+        if (treater && MixinApi.isHygiene(treater)) treater.soil();
+      }
       return { treated: true, by: opts.by, seededInfection };
+    }
+
+    /**
+     * ⭐ D11 — inoculate this body with wound sepsis, or add to an existing
+     * infection. Mirrors `Metabolic.ingest`'s seed exactly (the affliction
+     * record + incubation from the pathogen row); the shipped logistic
+     * in-host arm grows it from there. Returns whether a load landed.
+     */
+    private seedSepsis(load: number): boolean {
+      if (load <= 0) return false;
+      const behavior = MaterialApi.pathogenBehaviorOf(WOUND_SEPSIS_KEY);
+      const path = TemplatePathPrefixes.pathogenCondition + WOUND_SEPSIS_KEY;
+      const nowS = WorldClockApi.getNow().rawValue();
+      const existing = this.conditions.find(
+        (c): c is AfflictionRecord =>
+          c.kind === 'affliction' && c.templatePath === path,
+      );
+      if (existing) {
+        existing.pathogenLoad = Math.min(
+          1,
+          (existing.pathogenLoad ?? 0) + load,
+        );
+        return true;
+      }
+      this.afflict({
+        kind: 'affliction',
+        templatePath: path,
+        stage: 0,
+        elapsed: 0,
+        pathogenLoad: Math.min(1, load),
+        symptomsAt:
+          nowS +
+          (behavior?.incubationSec ??
+            HARM_DEFAULTS.SEPSIS_INCUBATION_FALLBACK_SEC),
+      });
+      return true;
     }
   }
   return VitalsMixin;

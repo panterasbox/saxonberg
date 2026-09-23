@@ -228,6 +228,16 @@ export interface Trauma {
    * while `dressed`.
    */
   careQuality?: number;
+  /**
+   * ⭐ **When a bleed-family wound went (and stayed) open** (game-seconds,
+   * D11). A wound above the clot threshold left undressed past
+   * `SEPSIS_OPEN_ONSET_SEC` goes bad on its own — this is the clock. Set
+   * when the wound is first seen open, cleared when it is dressed.
+   */
+  openSince?: number;
+  /** ⭐ Guard so the open-wound sepsis seed fires at most once per wound
+   * (D11). Reset when the wound is dressed. */
+  septicSeeded?: boolean;
 }
 
 /**
@@ -419,6 +429,23 @@ export const HARM_DEFAULTS = {
   RUPTURE_TREATED_HEAL_PER_SEC: 0.004,
   BURN_TREATED_HEAL_PER_SEC: 0.012,
   FROSTBITE_TREATED_HEAL_PER_SEC: 0.01,
+
+  /* ── wound infection (D11) ───────────────────────────────────────────
+   * The inoculum a treatment (or an open wound) deposits, and the clean-
+   * enough thresholds. The infection then grows through the shipped
+   * logistic in-host arm — nothing new drives it.
+   */
+  /** Base pathogen load a dirty treatment / an open wound deposits (≥ the
+   * row's `infectiousDose`, so it takes). Scaled by `1 − cleanliness`. */
+  SEPSIS_INOCULUM: 0.1,
+  /** Below this cleanliness (hands) or care quality, a treatment is dirty
+   * enough to inoculate a bleed-family wound. */
+  SEPSIS_DIRTY_THRESHOLD: 0.5,
+  /** How long (game-seconds) a bleed-family wound above the clot threshold
+   * may sit undressed before it goes bad on its own — twelve game-hours. */
+  SEPSIS_OPEN_ONSET_SEC: 12 * 60 * 60,
+  /** Incubation fallback (game-seconds) if the row's is unreadable. */
+  SEPSIS_INCUBATION_FALLBACK_SEC: 6 * 60 * 60,
 
   /* ── circulation: what losing blood does to the pressure ─────────────
    * ⭐⭐ **The compensated plateau is the single most important fact about
@@ -1291,6 +1318,21 @@ export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   frostbite: FROSTBITE_BEHAVIOR,
   caustic: CAUSTIC_BEHAVIOR,
 };
+
+/**
+ * ⭐ The **bleed family** — the wound types that break the skin and can be
+ * inoculated (D11). A dirty dressing or a wound left open goes septic;
+ * a burn or a bruise does not (the skin is the barrier, not the wound).
+ */
+export const BLEED_FAMILY: ReadonlySet<TraumaType> = new Set<TraumaType>([
+  'laceration',
+  'puncture',
+  'avulsion',
+  'rupture',
+]);
+
+/** The pathogen key of the wound-sepsis Condition row (D11). */
+export const WOUND_SEPSIS_KEY = 'wound-sepsis';
 
 // ---------- Kind-A: the Condition Idea template ----------
 

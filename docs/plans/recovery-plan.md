@@ -933,7 +933,36 @@ reachable at all.
 - **Commit:** `build(recovery W-A4): a splint and a surgeon's kit â the
   trade's own steps`.
 
-#### W-A5 â Hygiene and the festering wound (D10, D11)
+#### W-A5 â Hygiene and the festering wound (D10, D11) ✅ DONE
+
+> ✅ **W-A5 landed.** `HygieneMixin` (`lib/vitals/Hygiene.ts`,
+> `Mixins.Hygiene`, `isHygiene` predicate) — one `washedAt` stamp,
+> `handsCleanliness()` decaying over `HYGIENE_SOIL_SEC` (6h), `soil()` /
+> `scrub()` (the Serviceable shape). Composed on `Creature` beside Vitals.
+> `scrub` verb (WaterFixture.peers) + `ScrubController`.
+>
+> `wound-sepsis.yaml` (`Condition/pathogen/`, `reach: infect`, the salmonella
+> template). `Vitals.applyTreatment` seeds it when a bleed-family wound is
+> dressed with dirty hands or poor care (D11 seed 1); the harm arm seeds an
+> open bleed-family wound past `SEPSIS_OPEN_ONSET_SEC` (seed 2). `seedSepsis`
+> mirrors `Metabolic.ingest` (affliction record + incubation from the row).
+> Treating a bleed SOILS the treater. `tendInfection` knock scaled by hands
+> (dirty hands re-inoculate). `assess` reads a festering wound.
+>
+> **Deviation from D11, recorded:** wound-sepsis carries only the hydration
+> drain (the deadline mechanism) + `feverish`/`swollen`/`foul-smelling`
+> signs, NOT a `coreTemperature` push — thermal regulation pins an
+> endotherm's core, so a vital-temp term would be re-pinned to nothing each
+> reconcile (the salmonella pattern). Seed 2 has a real blood/heal tension
+> (a bleeding wound bleeds out, a clotted one heals below the clot line
+> before 12h) so it fires only for a wound genuinely stuck open — covered
+> by the drive, not a fragile unit test.
+>
+> Ward `props:` gain the basin (real water → scrub/rinse/cool) + the
+> trade-medicine instruments. ⚠ Fixed a latent type error: `convalescenceFactor`
+> was never on the `Vitals` interface (vitest is transpile-only, so W-A1
+> slipped it; tsc caught it here). Tests: Hygiene (3), Vitals.sepsis (5).
+> 228 server + 116 terminus tests green; all 46 lint gates pass.
 - `lib/vitals/Hygiene.ts` + `Mixins.Hygiene`; compose on `Creature`.
 - `medical/scrub.yaml` + `ScrubController` (water like `rinse`); afforded
   by `WaterFixture`. The ward already has a basin in prose â `ward.yaml`
