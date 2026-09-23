@@ -124,6 +124,25 @@ const ByEmployingOrganization = SecurityPolicies.AnyOf(
  * Public method surface (methods only). `employments` is public for the
  * Hydrator but is not the contract surface.
  */
+/**
+ * What `clock on` / `clock off` did, or why it did not. ⭐ Every refusal
+ * names a reason a player can act on — *you hold no job here*, *you are
+ * already on*, *this house does not work out of this room*.
+ */
+export type ClockResult =
+  | { ok: true; organizationPath: string; positionKey: string }
+  | {
+      ok: false;
+      reason:
+        | 'not-employed-here'
+        | 'ambiguous-house'
+        | 'not-on-premises'
+        | 'already-on-shift'
+        | 'not-on-shift';
+      /** The houses in play, for the prose (an ambiguity names them). */
+      houses?: readonly string[];
+    };
+
 export interface Employed {
   /** The authored institution override, or `null`. */
   getInstitution(): string | null;
@@ -180,6 +199,14 @@ export interface Employed {
 
   // The actor face (F4) — forwards into EmploymentLogic.
   quitJob(organizationPath: string): Promise<void>;
+  /**
+   * ⭐ Start a shift at a house that employs you, where you stand. A
+   * shift is something you CHOOSE to start: holding a job puts you on
+   * the chart, not on the clock. Refuses with a reason.
+   */
+  clockOn(organizationPath?: string): Promise<ClockResult>;
+  /** End the shift and settle the wage out of the house's account. */
+  clockOff(organizationPath?: string): Promise<ClockResult>;
   buysFor(): Promise<BusinessStuff[]>;
   beginCovering(business: OrganizationStuff): Employment | null;
   endCovering(business: OrganizationStuff): void;
@@ -441,6 +468,20 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Quit `organizationPath` (status → quit; unlinks the house account). */
     public quitJob(organizationPath: string): Promise<void> {
       return employedLogic().quit(this as unknown as Stuff, organizationPath);
+    }
+
+    public clockOn(organizationPath?: string): Promise<ClockResult> {
+      return employedLogic().clockOn(
+        this as unknown as Stuff,
+        organizationPath ?? '',
+      );
+    }
+
+    public clockOff(organizationPath?: string): Promise<ClockResult> {
+      return employedLogic().clockOff(
+        this as unknown as Stuff,
+        organizationPath ?? '',
+      );
     }
 
     /** Every Business this actor buys for (position `purchases: true`). */

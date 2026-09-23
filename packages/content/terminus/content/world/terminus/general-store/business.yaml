@@ -29,6 +29,28 @@ data:
       label: keeping the general store
       wageRate: 0
       purchases: true
+    # ⭐⭐ **The newcomer's seat** (trades-and-labor D16). The demand is
+    # real and it is the demand test the authoring rule asks for: Odell
+    # KEEPS the shop and STOCKS it — she walks to the cash-and-carry,
+    # buys the short lines on terms and carries them home — while Pemby
+    # works the counter. The shop's work exceeds its hands, so a hand is
+    # honestly wanted.
+    #
+    # The criterion is two completed gigs: work off a noticeboard, which
+    # a newcomer with twenty coin and no trade can do this afternoon. It
+    # is a rung, not a wall — and the refusal says which number you are
+    # short and by how much.
+    #
+    # No `purchases` (the house card is the keeper's; a hand does not
+    # spend the shop's money) and no `fulfills` (nobody orders anything
+    # made at a general store — its goods are bought over the counter).
+    - key: hand
+      noun: hand
+      label: hauling and shelving for the general store
+      wageRate: 4
+      headcount: 1
+      requires:
+        gigs: 2
   rosterSlots:
     - positionKey: clerk
       assignee: /world/terminus/general-store/agent/clerk

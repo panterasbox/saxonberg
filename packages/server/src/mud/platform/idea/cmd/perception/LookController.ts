@@ -38,6 +38,7 @@ import { ContainmentApi } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { CardApi } from '../../../../api/card';
 import { BulkableApi } from '../../../../api/bulk';
+import { EmploymentApi } from '../../../../api/employment';
 import { PerceptionApi } from '../../../../api/perception';
 import { SocialApi } from '../../../../api/social';
 import { Mml } from '../../../../api/mml';
@@ -223,6 +224,15 @@ export default class LookController extends CommandController<LookModel> {
     const puddle = BulkableApi.floorPuddleSummary(location);
     if (puddle) {
       body = Mml.compose`${body}\n${puddle}`;
+    }
+    // ⭐⭐ The help-wanted sign (trades-and-labor D11). Derived, exactly
+    // like the puddle above: there is no sign OBJECT and no mixin, so a
+    // venue with an open seat CANNOT fail to advertise — the notice comes
+    // off the same arithmetic that decides the seat is open at all
+    // (`headcount − holders`). One memo read per look; a room with no
+    // business costs a miss.
+    for (const opening of EmploymentApi.noticesAt(location)) {
+      body = Mml.compose`${body}\nA notice here: ${opening.describe()}`;
     }
     if (hasExits) {
       const exitsLine = this.formatExits(location.obviousExitsFor(actor));

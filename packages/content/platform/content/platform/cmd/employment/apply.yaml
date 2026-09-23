@@ -1,0 +1,49 @@
+verbs: [apply]
+controller: /platform/idea/cmd/employment/ApplyController
+description: "Ask for a job that is going here"
+help: |
+  Ask for work. Bare `apply` takes the one opening where you stand; name
+  the seat with `apply for <position>`, or the house with `apply at
+  <organization>` when several are hiring.
+
+  ⭐ **You move first.** Openings are advertised on a card where you can
+  read them — `look` in a room prints every notice going there — and you
+  ask. Nobody sizes you up and makes you an offer; that is not how
+  getting a job works, and a house that could pick you out of a crowd
+  could also pass you over for reasons it never has to say.
+
+  **What a house may ask of you, and it is the whole list:**
+
+  - **completed gigs** — work you have finished off a noticeboard. Two
+    of anything counts as two.
+  - **a competence band in a named discipline** — *a competent hand at
+    tailoring*. Practising lifts it.
+
+  Nothing else. A seat cannot ask what species you are, who your people
+  were, what anybody thinks of you, or what is in your account. If you
+  are refused, the refusal says **which number you are short and by how
+  much**, because a refusal you cannot answer is not a rule, it is a
+  wall.
+
+  Being taken on does not put you to work: you are on the chart, not on
+  shift. `clock on` starts the shift and the wage; `clock off` ends it
+  and pays.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+examples:
+  - cmd: apply
+    note: Take the one opening going where you stand
+  - cmd: apply for hand
+    note: Name the seat when the house has more than one going
+  - cmd: apply for tailor at /world/terminus/mayfield-row/tailor/idea/outfit
+    note: Name the house too
+args:
+  - name: position
+    type: string
+    required: false
+    prepositions: [for]
+  - name: organization
+    type: string
+    required: false
+    prepositions: [at]

@@ -42,6 +42,14 @@ data:
     # cookhouse without a water source cannot boil a stew.
     - /stuff/thing/fixture/water-butt
     - /world/terminus/hearthworks/thing/kitchen-menu
+    # ⭐ The receiving bench and the table the cook clears it onto
+    # (trades-and-labor D16). The bench exists for a MECHANICAL reason: a
+    # gig is refused when its condition already holds, and a kitchen
+    # short of a line usually still has some on the table — so an order
+    # aimed at the table would be refused precisely when the kitchen most
+    # wanted it. The bench is empty by construction.
+    - /trade/haulage/thing/receiving-bench
+    - /stuff/thing/fixture/table
     - /world/terminus/hearthworks/thing/pantry-chest
     # Working stock out on the table (the DIY floor's hand-reach; the
     # chest holds the dear cuts the gather walk reaches for a craft —

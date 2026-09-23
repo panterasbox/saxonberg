@@ -11,11 +11,27 @@ data:
     kind: office
     office: prime-minister
   positions:
+    # ⭐ **The TRADE seat** (trades-and-labor D16): two places, and the
+    # second is open. Unlike the general store's hand, what this one asks
+    # for is competence held rather than work finished — *a competent
+    # hand at tailoring* — because a shop that pays 6 for fit precision
+    # is buying knowledge about a specific body, and a first-day arrival
+    # does not have it.
+    #
+    # ⭐⭐ It is still not a wall: practising LIFTS it, the refusal says
+    # which band is asked and which is held, and the discipline is one
+    # anybody can take up. That is the difference between a criterion and
+    # a gate — a bare COUNT nothing can move is the harshest rule with no
+    # author.
     - key: tailor
       noun: tailor
       label: at the bench
       wageRate: 6
       purchases: true
+      headcount: 2
+      requires:
+        discipline: tailoring
+        band: competent
   rosterSlots:
     - positionKey: tailor
       assignee: /world/terminus/mayfield-row/tailor/agent/tailor

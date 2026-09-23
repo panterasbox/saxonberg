@@ -215,6 +215,20 @@ for (const row of rows) {
       if (!Number.isInteger(n) || n < 1) {
         say(row, `position '${key}': \`headcount\` must be a whole number ≥ 1`);
       }
+      // ⭐ A waged seat needs somewhere the wage comes FROM. A house with
+      // no `banksAt` has no operating account, so `clock off` reaches the
+      // pay path and throws — the shift stands, the worker is not paid,
+      // and nothing anywhere said the job was unpayable. Found by driving
+      // the clock against a test house that authored none.
+      if (Number(p.wageRate ?? 0) > 0 && !data.banksAt) {
+        say(
+          row,
+          `position '${key}' advertises a WAGE but this house authors no ` +
+            `\`banksAt\`.\n    ⚠ There is no operating account for the wage to ` +
+            `come out of: the shift settles into a throw, and the worker is ` +
+            `never paid.`,
+        );
+      }
       const boot = bootByPack.get(row.pack) ?? new Set<string>();
       if (!boot.has(row.path)) {
         say(

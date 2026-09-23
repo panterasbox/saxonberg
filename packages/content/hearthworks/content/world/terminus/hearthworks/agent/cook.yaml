@@ -41,6 +41,24 @@ data:
       config:
         behindBar: /world/terminus/hearthworks/location/cookhouse
         offstage: /world/terminus/hearthworks/location/offstage
+    # ⭐ He ORDERS the shortfall and RECEIVES what a hauler leaves on the
+    # bench — he does not go and get it (logistics D11). Each short par
+    # line becomes a carriage bounty on the TERMINAL HALL's noticeboard,
+    # which is where a new arrival actually stands.
+    #
+    # ⚠ The cadence is 90 s, not the bar's 15 m: this board is the one a
+    # newcomer reads in their first session, and an empty board is a
+    # labor market that does not exist yet. It still orders no faster
+    # than the road can answer — the carter's beat is 4 m and the gig
+    # window is six game-hours.
+    - brain: /lib/behavior/restocks
+      trigger: cadence:90s
+      config:
+        # The scrubbed table down the middle: where receipts land.
+        shelf: /stuff/thing/fixture/table
+        board: /world/terminus/terminal/thing/job-board
+        bench: /trade/haulage/thing/receiving-bench
+        reward: 30
     - brain: /lib/behavior/idles
       trigger: cadence:20s
       config:

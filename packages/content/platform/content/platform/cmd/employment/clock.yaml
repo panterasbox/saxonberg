@@ -1,0 +1,43 @@
+verbs: [clock]
+controller: /platform/idea/cmd/employment/ClockController
+description: "Start or end a shift at a house that employs you"
+help: |
+  `clock on` starts a shift; `clock off` ends it and settles the wage.
+
+  ⭐ **A shift is something you choose to start.** Holding a job puts you
+  on the chart; it does not put you on the clock. A wage for merely
+  existing somewhere is not a wage for working, and a rota that pays you
+  whether you turned up or not is a rota that pays nobody honestly.
+
+  You must be somewhere the house operates — behind its counter, on its
+  floor, in its kitchen. On shift in a seat that does the work, you are
+  who an `order` at that venue is served by; off shift, you are not.
+
+  The wage is the seat's rate times the game-hours you stood. It settles
+  at `clock off`, out of the house's own account, and a house that cannot
+  meet it says so rather than paying into the red.
+
+  An NPC on a rota is governed by the rota, not by this.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+examples:
+  - cmd: clock on
+    note: Start a shift where you stand
+  - cmd: clock off
+    note: End it — the wage settles
+subcommands:
+  on:
+    description: "Start a shift"
+    args:
+      - name: organization
+        type: string
+        required: false
+        prepositions: [at]
+  off:
+    description: "End the shift and settle the wage"
+    args:
+      - name: organization
+        type: string
+        required: false
+        prepositions: [at]

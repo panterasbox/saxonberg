@@ -464,12 +464,21 @@ importers:
       '@saxonberg/content-corpo-goodkin':
         specifier: workspace:*
         version: link:../corpo-goodkin
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-terminus':
+        specifier: workspace:*
+        version: link:../terminus
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
+      '@saxonberg/content-trade-haulage':
+        specifier: workspace:*
+        version: link:../trade-haulage
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../trade-smithing
@@ -942,6 +951,9 @@ importers:
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling
+      '@saxonberg/content-trade-shopkeeping':
+        specifier: workspace:*
+        version: link:../trade-shopkeeping
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
