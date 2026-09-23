@@ -28,7 +28,7 @@
 
 > **Captured 2026-09-18**, out of the economic-bootstrap requirements
 > conversation. The money layer went into
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md);
+> [credit.md](../../subsystems/credit.md);
 > this is the **institutional layer above it** — who may own what, who
 > may be chartered to do what, who runs the show, and what happens when
 > they leave. Design conversation, captured; not requirements.
@@ -42,7 +42,7 @@
 
 See also:
 
-- [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
+- [credit.md](../../subsystems/credit.md)
   — the money layer this sits on: the reserve's two lanes, the credit
   ladder, the Arrival Note, the player life-cycle and situs.
 - [credit-slate](../tails/credit-slate.md) — the fiscal apparatus; its Part 6

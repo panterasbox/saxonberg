@@ -310,8 +310,13 @@ actually refused — an ordinary command pays nothing for the lookup.
   floor. v1 ships the `holdsOffice` check surface those consult but wires
   only the Governor.
 - **Chambers as populations**, **terms / tenure / term-limits**, and a
-  *generic* "requires office X" validator (deferred to the second
-  office-gated verb — v1 uses the specific `requiresGovernor`).
+  *generic* "requires office X" validator. ⚠ **The condition this
+  deferral named has been met**: the economic bootstrap shipped the
+  second office-gated verb, and with it a second hand-written twin
+  (`requiresFinanceMinister` beside `requiresGovernor`). A third copy is
+  the signal to parameterize; what stops it today is that a view's
+  `validators:` entry is a bare path with nowhere to put the office key,
+  so the parameterized form needs a schema change, not just a factory.
 
 
 ## ⚠ Open: `office assign` cannot find an online player

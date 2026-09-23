@@ -5,7 +5,7 @@
 > window, default-and-cure all run live → [credit.md](../../subsystems/credit.md),
 > [banking.md](../../subsystems/banking.md). This slate's own
 > reserve/treasury/lanes/ladder design is superseded by
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
+> [credit.md](../../subsystems/credit.md)
 > (2026-09-18) — **read that doc first for anything it covers.**
 > ⭐⭐ **What the build did NOT answer is now written down in
 > [Part 11](#part-11--what-lending-actually-ships-and-the-gaps-2026-09-23)
@@ -58,7 +58,7 @@ relocation answer), [parcel.md](../../subsystems/parcel.md),
 ---
 
 > **Parts 0–3 cut 2026-09-20 — carried into
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md).**
+> [credit.md](../../subsystems/credit.md).**
 > The mint survey → its *What already exists* table (and `banking.md`).
 > Art. V §9 / the reserve-vs-treasury test → its *The reserve has one
 > officer and two rules* (same test, adopted). The Governor→Treasurer
@@ -74,8 +74,8 @@ relocation answer), [parcel.md](../../subsystems/parcel.md),
 > The first four subsections here (CB-doesn't-set-prime, where a rate may
 > live, no rate in v1 + the penalty window, the ~5%/game-year number) are
 > cut 2026-09-20 — carried verbatim into
-> [economic-bootstrap-requirements § Rates are the lender's own standing
-> offer](../../requirements/economic-bootstrap-requirements.md).
+> [credit.md § Rates are Terms](../../subsystems/credit.md) — the rate
+> is the lender's own standing offer.
 
 ## ⭐⭐⭐⭐ And the reason the rate matters more than lending does
 
@@ -104,7 +104,7 @@ land prices fall, in a world where anyone can check.
 ---
 
 > **Parts 4–5 cut 2026-09-20 — carried into
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md).**
+> [credit.md](../../subsystems/credit.md).**
 > The lanes/risk table → its *Lane one — the window* / *Lane two — the
 > perpetual* / *The ladder — four rungs*. The subsidy taper + automatic
 > stabilizers → its *NPC businesses borrow first* (the stocking rule
@@ -163,6 +163,17 @@ exit*). **Social pressure is fine; enforceable joint liability is not.**
 ---
 
 # Part 7 — Default, and what is actually worth seizing
+
+> ⚠ **Handed over by the economic bootstrap (2026-09-23), unbuilt:**
+> **chattel lying in the world when an estate passes.** Escheat moves
+> titles, the balance and a kept house's counters, and a repossession
+> takes the goods off a *pledged counter* — but a crate the member left
+> on a floor somewhere is touched by neither. **Finders-keepers is the
+> default and is probably right**; the open question is whether a
+> locality may say otherwise (a lost-property office, an impound), which
+> makes it the locality's call rather than the engine's. See
+> [chattel.md](../../subsystems/chattel.md) and
+> [credit.md § the estate](../../subsystems/credit.md).
 
 > **User: "what actually happens when someone defaults? the best thing
 > would be if someone else bought the debt and we can create a market for
@@ -265,15 +276,15 @@ anyway.")*
 
 > **Parts 8–9 cut 2026-09-20.** The deposit guarantee and limited-liability
 > guardrails → carried into
-> [economic-bootstrap-requirements § Banks lend what they hold / § Debts
-> first, then situs](../../requirements/economic-bootstrap-requirements.md)
+> [credit.md](../../subsystems/credit.md) — banks lend what they hold;
+> debts first, then situs
 > (both decided: on by default). The bank/corpo indirection → already
 > shipped and documented, `banking.md` § Custodial bank ops (*"a bank is
 > affiliated to a corpo, not a branded product"*). The property floor →
 > `docs/stewardship-doctrine.md`. The 13th module barring debt bondage →
 > `docs/governance/eotl-history.md`. Authorship-inalienable-as-capacity →
 > `balance-slate.md`. *Credit obliges discharge* → resolved: the
-> requirements doc's Enrollment Note is non-recourse and business debt
+> requirements doc's Arrival Note is non-recourse and business debt
 > stops at the business, so the 13th-module obligation is met by
 > construction; a discharge *procedure* still waits on a debt that needs
 > one (requirements § Non-goals).
@@ -411,7 +422,7 @@ also the order to build them:
 banks → business credit.**
 
 Steps 1, 2, 3 and 5 cut 2026-09-20 — superseded by
-[economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md):
+[credit.md](../../subsystems/credit.md):
 the reserve/treasury shape they proposed is decided there directly
 (the officer seat is kept, not retired). Steps 4, 6, 7, 8 remain the
 governance backlog / content-packs-slate / cooperative-slate handoffs.
@@ -428,7 +439,7 @@ governance backlog / content-packs-slate / cooperative-slate handoffs.
 # Open questions
 
 Q1, 2, 3, 5, 6 and 7 resolved 2026-09-20 by
-[economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md):
+[credit.md](../../subsystems/credit.md):
 two institutions (reserve + treasury, separate levers); no debt ceiling
 (the consequence stated as the treasury's budget constraint); money per
 active member is the denominator (Lane two); limited liability on by

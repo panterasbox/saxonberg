@@ -270,22 +270,22 @@ export class TestHooks {
   }
 
   /**
-   * ⭐ Dress the test character as `enroll` dresses a real one — the
+   * ⭐ Dress the test character as `embody` dresses a real one — the
    * first aspiration's outfit from `char-gen.yaml`, worn. A naked body
    * spends food on cold at room temperature (`ThermalRegulation`'s
    * cold branch), starves in ~4.5 game hours and then loses its core
    * temperature: the fishing drive's angler collapsed at the seventh
    * hour, and no player is naked. Tolerant of missing garments, as
-   * enroll is.
+   * `embody` is.
    */
   static async #dress(avatar: Avatar): Promise<void> {
-    const { default: EnrollController } = await import(
-      '../mud/platform/idea/cmd/charactergen/EnrollController'
+    const { default: EmbodyController } = await import(
+      '../mud/platform/idea/cmd/charactergen/EmbodyController'
     );
     const { StuffApi } = await import('../mud/api/stuff');
     const { MixinApi } = await import('../mud/api/mixin');
     const { ContainmentApi } = await import('../mud/api/containment');
-    const outfit = EnrollController.loadConfig().aspirations[0]?.outfit ?? [];
+    const outfit = EmbodyController.loadConfig().aspirations[0]?.outfit ?? [];
     const bodyPlanPath = MixinApi.isOrganism(avatar)
       ? (avatar.getSpecies()?.getBodyPlanPath() ?? null)
       : null;

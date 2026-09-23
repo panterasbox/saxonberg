@@ -358,7 +358,7 @@ describe('7. the ladder, from the counter', () => {
     expectOk(await founder.cmd('reserve override 100 to founder "drive: the grower\'s float"'));
     expectOk(await wizard.cmd(`goto ${HALL}`));
     expectOk(await wizard.cmd('bank open'));
-    expectOk(await founder.cmd(`reserve override 100 to ${wizard.handle} "drive: the customer\'s float"`));
+    expectOk(await founder.cmd(`reserve override 100 to ${wizard.handle} "drive: the customer's float"`));
     // Oranges, not limes: the farm grows four crates of each and the
     // general store's keeper has the limes.
     for (let i = 0; i < 3; i += 1) {

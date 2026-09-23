@@ -5114,3 +5114,54 @@ stacks compose the marker above `FixtureMixin` / `Character` / a
 `Detailed` layer; whether any of those has a `postRegister` beneath the
 marker is a census worth running before a lint ratchets it —
 [lint-family.md](./lint-family.md).
+
+## A bare COUNT as a permanent gate — a refusal nothing can lift
+
+⭐⭐ **Counting *events* and gating on the count turns the harshest rule
+in the system into an accident: whatever the count measures becomes
+permanent, and nobody chose it.**
+
+A gate wants to know *are you in trouble right now*. The easy write is a
+count of the trouble ever recorded — and because the record is
+append-only (correctly), the count never falls. What shipped as "you
+cannot borrow while you are in default" silently became **"one default
+and you may never borrow again, ever, with no way to pay your way
+back."**
+
+```ts
+// WRONG — the row is `breached` for good, so this bars forever
+async function defaultedLoansOf(key: string): Promise<number> {
+  const rows = await ContractRecord.findByKind("loan", "breached");
+  return rows.filter((r) => r.issuer.templatePath === key).length;
+}
+
+// RIGHT — the record is permanent; the EXCLUSION is derived from the
+// live condition, so something can lift it
+async function defaultedLoansOf(key: string): Promise<number> {
+  return (await breachedLoansOf(key)).filter((r) => r.owedMinor > 0).length;
+}
+```
+
+**The test, and it is one question: *what lifts this?*** If the honest
+answer is *nothing*, the gate is measuring history where it meant to
+measure state. Both facts usually already exist on the row — *it
+happened*, and *whether it is still true* — and the second is the gate's
+business. Keeping them separate is also what a later rating or reputation
+read needs, because "defaulted once, cleared" and "defaulted once, still
+owing" are different facts about a person.
+
+⚠ **Lifting the bar is not enough on its own — the cure has to be
+reachable.** The economic bootstrap also had to stop interest accruing at
+the breach and let the creditor keep taking its share of inflows
+*after* default: without the first the debt outruns the borrower, and
+without the second there is no mechanism to pay it down at all. A cure
+that cannot be performed is the same refusal wearing a better comment.
+
+**What it cost (economic bootstrap, 2026-09-23).** Caught at MR review by
+the user asking how credit risk was being reasoned about — not by any
+test, because every test asserted the *bar*, which worked. See
+[credit.md § The record is permanent; the exclusion is not](./subsystems/credit.md).
+
+**Related:** *a refusal is only honest if something lifts it* (pets
+build); [chronicle.md](./subsystems/chronicle.md) — the deed is
+append-only, which is exactly why the gate must not be.

@@ -1137,7 +1137,7 @@ raises the question of what happens to it.
 
 ### The slot exists and is inert
 
-*Superseded by the code — age is a DATE now, not an inert counter: `OrganismMixin.bornAt`, `getAgeDays()` derived on read, and char-gen stamps `bornAt` at commit (`EnrollController.ts:709`). See [race.md](../../subsystems/race.md) § *Age is a DATE, and what it confers is the whole design*.*
+*Superseded by the code — age is a DATE now, not an inert counter: `OrganismMixin.bornAt`, `getAgeDays()` derived on read, and char-gen stamps `bornAt` at commit (`EmbodyController.ts`). See [race.md](../../subsystems/race.md) § *Age is a DATE, and what it confers is the whole design*.*
 
 ### The birthday
 

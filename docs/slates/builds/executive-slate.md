@@ -48,7 +48,7 @@ See also:
 - [wizard-duty-slate](./wizard-duty-slate.md) — *a covert operator act
   produces no event*; wizardry as a fiduciary role. The log is its
   missing half.
-- [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
+- [credit.md](../../subsystems/credit.md)
   — the first build that mints Schedule rows in numbers; the reserve's
   three instruments are the first report.
 - [measurement.md](../../measurement.md) — *the mirror shows you*; the

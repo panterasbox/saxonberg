@@ -7,7 +7,7 @@
 > [banking.md](../../subsystems/banking.md); §1's death arc shipped
 > separately → [mortality.md](../../subsystems/mortality.md); the
 > author-budget macro (§4) is superseded by
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md).
+> [credit.md](../../subsystems/credit.md).
 > **Left:** §1's death salience-by-place + the lethal-cost debt, and old
 > age/succession · §2's whole adjudication stack (target standing ×
 > authorization legitimacy, institutions, liability-laundering, frontier
@@ -208,9 +208,9 @@ See also:
   [banking.md](../../subsystems/banking.md) *(conservation as a hard
   invariant; the single governed-but-logged central-bank mint).*
 - *Each author runs a personal "Narnia account" — superseded by*
-  [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
+  [credit.md](../../subsystems/credit.md)
   *§ Surface decisions: money reaches content through a **Business**
-  account funded by treasury-issued credit (the Enrollment Note's
+  account funded by treasury-issued credit (the Arrival Note's
   business-side twin — opening capital as a treasury advance secured by
   the business's own account), not a per-author budget. The faucet/sink
   balancing this bullet and the next describe is likewise superseded —
@@ -227,7 +227,7 @@ See also:
   [contract.md](../../subsystems/contract.md) *(*`ContractParty`*: player
   | business, either funds escrow the same way).*
 - *The real monetary lever relocates to CB allocation policy — resolved
-  by* [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
+  by* [credit.md](../../subsystems/credit.md)
   *§ Surface decisions ("The reserve has one officer and two rules, and is
   independent"): the Governor sets the rows the two published lanes read
   and holds a recorded emergency override; `reserve mint` at a venue is
@@ -782,7 +782,7 @@ the schedule — `EmploymentApi.boot()` is the arming precedent.
 ships; no authored Position carries the basis. The miner's whole arrangement —
 piece-rate + self-directed — is *already waiting* for a venue.
 
-> *Correction 1 (`payWage` has no employer-solvency check) — superseded by [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md) § Goals / § Collisions: no account goes negative without a named creditor; Dave's Bar becomes the first borrower for wages, or a refused wage with a reason.*
+> *Correction 1 (`payWage` has no employer-solvency check) — superseded by [credit.md](../../subsystems/credit.md) § Goals / § Collisions: no account goes negative without a named creditor; Dave's Bar becomes the first borrower for wages, or a refused wage with a reason.*
 
 > #### ⚠ Correction 2 — §8's floor is counter-cyclical against a *different*
 > cycle §8.2 is explicitly counter-cyclical against the **business cycle** —

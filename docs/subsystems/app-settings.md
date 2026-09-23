@@ -226,6 +226,15 @@ check the text first). See [credit.md](./credit.md).
 
 ## Deferred
 
+A **`treasury set`** for the fiscal rows (economic bootstrap): the
+Governor writes `reserve.*` through `reserve set`, which refuses any
+other prefix — the independence clause — and the treasury's own rows
+(`treasury.*`, `estate.*`, `employment.absenceVacatesAfterDays`) have no
+equivalent seat-gated writer, so today they move only through the wizard
+`config` verb. The seat that spends should be able to set its own dials
+without being able to touch the rules, which is the same split one layer
+over.
+
 A richer typed schema (per-setting value types, validation, migration — à
 la `SettingsSchemaEntry`); more app-wide knobs (MOTD, world feature flags,
 the lounge distribution dials); and the further `AppApi` operations
