@@ -112,6 +112,16 @@ be. None is a second owner.
   a command can act on the ground without acting on the location.
 - **`dig` has something to dig.** The extraction build asks a floor two
   questions — what are you, and are you on the ground — and gets answers.
+- ⭐⭐ **Two rooms whose ground is the same behave the same, by construction and
+  not by anybody remembering to make it so.** There is a **closed set of ground
+  kinds** — the finite list of things ground can be in this world — and a floor's
+  kind is **worked out** from what it is made of and whether the ground continues
+  beneath it, never hand-picked. An author who invents a new material gets a kind
+  for free.
+- **Somebody can see the whole picture at once.** A build-time census lists every
+  Location and the ground it resolved to — and separately, **every room whose
+  description makes a claim about the ground that nothing backs up.** The second
+  list is the worksheet for the content pass, and its length may only fall.
 - **Nothing gets slower or heavier for it**: a room nobody is in costs nothing
   extra, and a floor nobody changed remembers nothing.
 
@@ -142,6 +152,13 @@ be. None is a second owner.
 - **Quarrying, digging, and anything that takes material out of the ground** →
   [extraction-slate](../slates/builds/extraction-slate.md), the build directly
   after this one.
+- **The behaviour of an exotic ground** — Limbo Lane's bounce, ice's slipperiness,
+  a floor that glows. The **material is modelled** and the behaviour stays prose,
+  which is what the demo-content design already committed to: *"no bounce
+  mechanics in v1 — the material is modeled, the behavior stays prose, stated
+  honestly."* → whichever subsystem eventually owns the effect
+  ([locomotion.md](../subsystems/locomotion.md) for spring and slip,
+  [light.md](../subsystems/light.md) for a glow).
 - **The three things in the starting room that render as "something"** → recorded
   under Collisions for whoever owns it; not fixed here.
 
@@ -193,6 +210,23 @@ authored line. A second village with its own ground needs rows only.
   geology.
 - **The holodeck** — a circle is a room too, and its floor must not claim to be
   earth.
+- ⭐⭐ **The city's road prose, which is where this design was stress-tested.**
+  Four shipped rooms and one designed one, each describing its ground, and every
+  one of them must come out right:
+  - **the university crossing** — *"underfoot the stone is swept but worn in a
+    diagonal track"*: set paving, on the ground, **and a durable wear fact the
+    prose commits to**;
+  - **the market square** — *"a cobbled square"*: the clean case;
+  - **the goods yard** — *"a long cobbled strip … with a gutter running the
+    length of it"*: paving plus a drainage feature, and doors *"a different height
+    off the ground"*;
+  - **Hinkley's lane** — *"a made road with nothing on it"*, with grass growing
+    through: ⚠ the ambiguous one, and the reason kinds are worked out rather than
+    chosen;
+  - ⭐ **Limbo Lane** (designed, not built) — *"an odd pink material… soft,
+    rubbery, faintly aglow, and it springs underfoot"*: paved, on the ground, and
+    nothing like paving. **This is the case that must work without the list
+    changing.**
 - ⚠ **Three of twelve reachable things in the starting room render as
   "something"** — observed while driving. Not this build's, but somebody should
   look: in a lit room that reads like missing descriptions rather than darkness.
@@ -230,6 +264,35 @@ this kind use** → **the plain default**. The first answer wins.
 That shape is how everything else in this world resolves, and it means the
 derived case never fights an author.
 
+### ⭐⭐ Ground kinds are worked out, never chosen
+
+There is a closed list of kinds — earth · rock · loose · mire · set paving ·
+beaten floor · boards · slab · plate · contrived — but **an author never picks
+from it.** A floor's kind follows from two things: **what it is made of**, which
+the material already knows, and **whether the ground continues beneath it**.
+
+This was settled by stress-testing the design against the city's own road prose,
+and one room broke the alternative outright. Limbo Lane is designed as *"an odd
+pink material… soft, rubbery, faintly aglow, and it springs underfoot"* — a road,
+on the ground, and nothing like paving in any way that matters. Had the kind been
+a category an author chooses, that road either lies about itself or forces the
+list open. Because the kind is worked out, **the author writes what the road is
+made of and the answer follows**, with no list to edit.
+
+Three things fall out, and all three are what the goal asked for:
+
+- **The same ground behaves the same by construction.** Two cobbled squares
+  cannot diverge, because nothing was chosen for either of them.
+- **Subclassing costs one line** — name a material. That is the cheapest
+  authoring act in this world and the one authors already know.
+- **The list stops being a gate.** It describes the common cases and can never
+  refuse an odd floor.
+
+⚠ And it removes a real ambiguity the stress test found: Hinkley's *"made road"*
+in newly surveyed country is not obviously paving, gravel or graded earth, and an
+author asked to pick a category would have to guess. Asked what it is made of,
+they already know.
+
 ### On the ground is a property of the floor, not the room
 
 The rung that reads the strata applies only to a floor that says it sits on the
@@ -237,6 +300,19 @@ ground. ⭐ **This is the whole reason the model works indoors:** a cottage's
 earth floor is on the ground and its loft's boards are not, in the same building,
 under the same sky. An interior, an upper storey, a ship's deck and a holodeck
 circle simply never reach that rung, and nothing has to special-case them.
+
+### Wear, gutters and worn tracks are details, not kinds
+
+The prose already commits to durable facts about the ground: the city crossing's
+stone is *"swept but worn in a diagonal track, the way a hundred thousand
+arrivals have already crossed it"*; the goods yard has *"a gutter running the
+length of it"*. **None of these is a kind and none may be allowed to become
+one** — a list that grows a member for every worn flagstone is not a closed list.
+
+They are **details on the floor**, which is a thing that can already carry them.
+⭐ The demo-content design reached the same conclusion independently, specifying
+the pink lane's `paving` as a detail with a touch slot — *"press it and it presses
+back"*. So the mechanism exists and nothing new is needed.
 
 ### One thing called ground, sampled at three depths
 
@@ -251,6 +327,21 @@ excludes every interior.
 `sit` with no argument still means *sit on the ground here*. The fix is that the
 ground is now there to be sat on. ⭐ And `sit on the ground` — the form a person
 naturally types, which currently is not even understood — must work too.
+
+### The census is two lists, and the second is the useful one
+
+The first list is every Location and the ground it resolved to — proof that all
+180 are accounted for, and a flag on any that fell through to the plain default.
+
+⭐⭐ The second list is **every room whose description makes a claim about the
+ground that nothing backs up**, found by reading the prose rather than the rows.
+The crossing says *"underfoot the stone…"*; an alley says *"broken bottles
+underfoot"*; a yard describes its gutter. Each is the world promising something
+the model cannot answer — the same class of gap as the wall built *"out of the
+bigger pieces"* with no building stone in the game.
+
+That second list is what the content pass actually needs, and **its length may
+only fall**, never rise.
 
 ### What this build does not decide
 
@@ -335,6 +426,22 @@ failures; they must become successes.
     field could.
 19. In a room whose zone has no described ground at all, `look floor` → still a
     sensible answer, and nothing errors.
+20. **The road walk.** `look floor` in the university crossing, the market square,
+    the goods yard and Hinkley's lane. Each answers, each matches what its own
+    description already says, and the two cobbled ones read the same as each
+    other.
+21. In the crossing, `look paving` (or the detail the prose names) → the worn
+    diagonal track answers as a detail of the floor, not as a separate kind of
+    ground.
+22. Author a floor of an invented material — the pink of Limbo Lane — in a test
+    room. `look floor` answers, `sit` works, and **nothing in the closed list had
+    to change** to allow it.
+23. Author a second room with the same material and the same on-grade answer.
+    Both behave identically without anybody having chosen anything.
+24. Read the census. Every Location appears with the ground it resolved to, and
+    the second list names the rooms whose prose claims a ground nothing backs —
+    including the crossing's *underfoot*, the alley's broken bottles and the
+    yard's gutter, unless this build has already answered them.
 
 ---
 
@@ -366,6 +473,18 @@ Observable from outside the code, by a person playing.
 15. A person's own floor survives logging out and back in without duplicating.
 16. **Nothing a player does gets noticeably slower**, and an unvisited room costs
     nothing.
+17. **Two rooms made of the same ground read and behave the same**, and nobody had
+    to choose that — the two cobbled rooms are the shipped proof.
+18. ⭐ **A floor of an invented material works without the closed list changing** —
+    it can be looked at, sat on, and described, and it reports a ground kind.
+19. The ground a room's description already claims is the ground the game reports:
+    the crossing's stone reads as stone, the cobbled square as cobble, and neither
+    contradicts its own prose.
+20. A worn track, a gutter and similar durable facts are reachable as details of
+    the floor, and none of them is a separate kind of ground.
+21. **The census exists and can be read**: every Location with the ground it
+    resolved to, plus the rooms whose prose claims a ground nothing backs. The
+    second list's length may only fall.
 
 ---
 

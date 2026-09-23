@@ -18,7 +18,10 @@
 > the floor rather than the Location** · **`/system/ground`**: the column and the
 > seeded surface character unified as one substrate read at a depth ·
 > `GroundCharacter` out of the farming trade · the floor's first real consumer
-> (`dig` asks *what is underfoot* and *is this on grade*)
+> (`dig` asks *what is underfoot* and *is this on grade*) · ⭐⭐ **the closed
+> ground-kind vocabulary, DERIVED from `f(material, onGrade)` and never chosen** ·
+> **the two-part census** (every Location's resolved kind, and every room whose
+> PROSE claims a ground nothing backs — the second list may only shrink)
 > **Size:** a build
 
 See also: [extraction-slate](./extraction-slate.md) (⭐⭐ **the build this one
@@ -230,6 +233,63 @@ game, and it is why the extraction build is what surfaced all of this.
    quarrying, for foraging's patches, and for any act that cares what it is
    standing on. Consumes one Stuff per loaded room, paid back by every consumer
    that stops inventing its own ground.
+
+---
+
+## ⭐⭐⭐ Ground kinds are derived, not chosen — and the city's roads proved it
+
+**Added 2026-09-23**, after stress-testing the design against the Eternal
+city's own road descriptions (the user's suggestion, and it broke the first
+version).
+
+The first version had a **closed list an author picks from**: earth · rock ·
+loose · mire · paving · beaten · board · slab · plate · contrived. Four shipped
+rooms and one designed one were run against it:
+
+| room | its own prose | verdict |
+|---|---|---|
+| the market square | *"a cobbled square"* | ✅ clean |
+| the university crossing | *"underfoot the stone is swept but **worn in a diagonal track**"* | ✅ paving — ⚠ but the wear is a durable fact with nowhere to live |
+| the goods yard | *"a long cobbled strip … with **a gutter** running the length of it"* | ✅ paving — ⚠ plus a drainage feature |
+| Hinkley's lane | *"**a made road** with nothing on it"*, grass growing through | ⚠ **ambiguous** — paving? gravel? graded earth? An author must guess |
+| ⭐ **Limbo Lane** (designed) | *"an odd pink material paves it — **soft, rubbery, faintly aglow**, and it **springs underfoot**"* | ⛔ **BREAKS IT.** Paved, on the ground, and nothing like paving. Either the road lies about itself or the closed list is forced open. |
+
+> ⭐⭐⭐ **So the kind is WORKED OUT, not asserted: `f(material, onGrade)`.** The
+> material already knows whether it is set stone, loam, timber, plate or
+> odd-pink-rubbery. Limbo Lane then needs **no vocabulary edit at all** — tag the
+> material and the kind falls out.
+
+What that buys, and each of these was a stated requirement:
+
+- **the same ground behaves the same BY CONSTRUCTION** — two cobbled squares
+  cannot diverge, because nothing was chosen for either;
+- **subclassing costs one line** — name a material, the cheapest authoring act
+  in this world;
+- **the list can never refuse an odd floor** — it describes the common cases
+  instead of gating them;
+- **the "made road" guess disappears** — an author asked what it is made of
+  already knows.
+
+⚠ **`onGrade` stays asserted**, because it cannot come from a material: flagstone
+sits on the earth in a courtyard and on joists in a hall. So material is derived
+or authored; **on-grade is always the floor's own property**, defaulting sensibly.
+
+⚠ **And wear, gutters and worn tracks are DETAILS, never kinds.** A list that
+grows a member per worn flagstone is not closed. The floor can already carry
+details, and the demo-content design reached the same answer independently —
+specifying the pink lane's `paving` as a detail with a touch slot (*"press it and
+it presses back, patient, like it's done this before"*).
+
+### The census is two lists, and the second is the useful one
+
+1. every Location and the ground it resolved to — proof all 180 are accounted
+   for, with anything falling through to the plain default flagged;
+2. ⭐⭐ **every room whose DESCRIPTION claims a ground nothing backs** — read out
+   of the prose, not the rows. The crossing's *underfoot*, `GlassAlley`'s broken
+   bottles, the yard's gutter. This is the same gap class as `old-workings`' wall
+   built *"out of the bigger pieces"* with no building stone in the game, and it
+   is the worksheet the 1.0 content pass actually needs. **Its length may only
+   fall.**
 
 ---
 
