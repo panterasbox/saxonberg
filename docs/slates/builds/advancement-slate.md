@@ -1,13 +1,19 @@
 # Advancement slate (working doc) — learning as a science
 
-> **Status: PARTIAL** — Catalog, Transcript, derive-on-read Competence
-> bands and conferrals shipped →
+> **Status: PARTIAL** — Catalog (`Discipline` + the typed edges), the
+> Transcript, `ActSignature`, derive-on-read Competence bands, conferrals
+> and the seeded Dave's-Bar slice shipped →
 > [advancement.md](../../subsystems/advancement.md)
 > **Left:** the loadout (capacity-not-decay + warm-up) · guilds (venue,
-> mentors, credential, membership-as-affordance) · the Reserve-shaped
-> stakes engine · declared focus · graph-propagated evidence over
-> `requires`/`synergizes` · estimator choice + tuning · the
-> learning-platform sensor bridge
+> mentors, credential, membership-as-affordance; a seed Bartenders' Guild —
+> the institution design is [guild-slate](./guild-slate.md)'s) · declared
+> focus (the focus-tagged Transcript) · the Reserve-shaped stakes engine ·
+> graph-propagated evidence over `requires`/`synergizes` + the three
+> transfer profiles · estimator choice + tuning, the skill-signature review
+> gate + learned signatures · the raw-θ spoiler view · the social verbs
+> `read`/`persuade` over regard · fork / canonize / brand of the Catalog ·
+> the world-level permanence distro · the learning-platform sensor bridge
+> (the `claim` producer)
 > **Size:** a build
 
 > **Layer: the game.** This is the *game-system* half of "learning as
@@ -20,7 +26,7 @@
 > in-world ability channels it leans on are
 > [capability-magic-slate](./capability-magic-slate.md)
 > (conditioning / skill / knowledge); the social-structure side is
-> [affiliation-slate](./affiliation-slate.md) (guilds /
+> [affiliation-slate](../tails/affiliation-slate.md) (guilds /
 > houses). This slate synthesizes those into one buildable build and adds
 > the model that ties them to learning science.
 
@@ -45,9 +51,6 @@ illustration. The test for "is this physics": **does it know what a sword
 is?** If yes, it's content; if no, it's what this build owns.
 
 **In scope (the physics):**
-- The **Catalog / Transcript / Competence** substrate — the typed
-  content-graph, the append-only evidence ledger, the derive-on-read
-  estimator (family/tuning deferred).
 - The **loadout** mechanism — capacity-not-decay, the savings-effect
   warm-up, the readiness cap.
 - **Credit assignment as an authoring discipline** — Subject-tagged
@@ -91,24 +94,6 @@ into a machine the play already runs. The classroom plugs in; it is never
 required. (It also defuses the headline edtech risk the motivation lens
 names — **overjustification** — because the reward is *capability you
 chose to build*, not a carrot dangled for studying.)
-
-## Why "spend EXP on stats" is the anti-pattern
-
-The classic MUD/D&D model (earn fungible XP, spend it bumping numbers)
-feels nothing like learning, and the failures are specific — each one a
-lever we flip:
-
-| XP-model failure | Reality | The lever it becomes |
-|---|---|---|
-| **Fungible** — one currency, spend anywhere | competence is domain-locked | non-fungible skill → real specialization |
-| **Monotonic** — only goes up, forever | skill plateaus and needs upkeep | (see "capacity, not decay" — we take the *build-crafting* of this without the time-tax) |
-| **No topology** — buy rank 5 raw | knowledge is a dependency graph | the **skill tree** falls out for free |
-| **Instant** — click, number up | learning resists cramming | time-distributed practice (rides [Activity](../../subsystems/activity.md)) |
-| **Frictionless** — always succeeds | learning lives at the edge of failure | difficulty-matched practice (Flow / ZPD) |
-| **Decontextualized** — abstract number | skill is situated | learn botany in the garden, not on a sheet |
-
-Honesty and fun point the *same* way here: every realism-fix is also a
-better mechanic.
 
 ## The build-crafting guarantee
 
@@ -172,28 +157,13 @@ beloved mechanic in its own right — GW skill bar, Elden Ring memory slots.)
 
 ## Skills as a content-graph — extensibility is the architecture
 
-Skills are **content, not code.** The engine knows the *primitives* (a
-skill, a prerequisite edge, a guild); the *content* (which skills, which
-tree) is authored data, hot-loaded — the whole point of the
-templates/Hydrator/clone pipeline. Concretely a **typed graph of template
-documents**, the shape the argument-map organizer already ships
-([forums.md](../../subsystems/forums.md)):
-
-- **Nodes** = skills / disciplines / guilds — authored templates (like
-  Topics, Channels, Species), not a TS class per skill. Ship two seed
-  guilds; everything else is data added at runtime.
-- **Edges** = typed relations: `requires` (prerequisite), `specializes`
-  (discipline under a school), `synergizes-with` (the combo links).
+> *Shipped* — the typed `Discipline` graph (`requires` /
+> `specializes` / `synergizes` as fields on the node, keyed on `key`
+> rather than templatePath) → [advancement.md § Catalog](../../subsystems/advancement.md).
+> Edges are stored, unread.
 
 The extensibility properties the build *must* have, and how they fall out:
 
-- **Grows without disturbing a running world.** Player competence is keyed
-  on the durable `templatePath` (the same Phase-0 discipline renown /
-  participation / producer all use), *not* on tree position. So **additive
-  evolution is free** — new branches, new specializations, re-parenting —
-  and existing learned skills stay valid. Only *destructive* edits (delete
-  a learned skill, change a prerequisite under someone) need migration,
-  same as every template.
 - **Fork.** Clone a template subtree into your own `/home/` scope (full
   write access — see [scoped-authoring-slate](../tails/scoped-authoring-slate.md))
   with [provenance](../../subsystems/provenance.md) tracking who forked
@@ -208,40 +178,15 @@ The extensibility properties the build *must* have, and how they fall out:
 
 ## The measurement substrate — Catalog, Transcript, Competence
 
-The content-graph above has a name and a measurement model behind it,
-worked out in an earlier pass and folded in here. Three pieces, governed by
-the same **derive-don't-track** discipline as renown / participation /
-producer:
-
-- **Catalog** — the content-graph *is* the **Catalog**: a faceted,
-  reality-seeded field-of-study taxonomy (an ISCED-F spine), each node a
-  **Subject**; the finest-grained Subject is a *knowledge component* — a
-  **referent, never a quantity.** (A `Catalogue`-of-`Idea`, like
-  TopicCatalogue / SoulCatalogue; "Topic" is taken by messaging, hence
-  "Subject.") The impersonal, shared-canon map guilds project over.
-- **Transcript** — the per-character **evidence ledger**: append-only
-  learning-events, a **chronicle realm** (or sibling —
-  [chronicle.md](../../subsystems/chronicle.md)), reusing the provenance
-  split wholesale: a **`deed`** is a world demonstration (you *did* the
-  thing), a **`claim`** is a classroom/LMS attestation (you *studied* it).
-  The Transcript is *what happened* — never the score.
-- **Competence** — **derived on read** over (Subject × Transcript), never
-  stored: a BKT/IRT-style estimator turns the evidence into a current
-  estimate. This is the mechanism *behind* "felt proficiency, no stat
-  readout" — the scalar exists internally (with a referent: competence *in
-  a Subject*) but never surfaces as an authoritative number. The honesty
-  firewall is **"no quantity without a referent,"** not "no numbers":
-  instruments and institutions may read honest scalars; the *player* sees
-  capability, bands, and revealed performance.
+> *Shipped* as `Discipline` / `TranscriptEntry` / `Competence` — the
+> *Subject* → `Discipline` rename, the Transcript a SIBLING store rather
+> than a chronicle realm, per-Discipline BKT surfaced as bands only, the
+> `deed` / `claim` split with the `claim` producer deferred →
+> [advancement.md](../../subsystems/advancement.md) § Three pieces,
+> § Catalog, § Transcript, § Competence.
 
 Three properties make this the right substrate for *this* build:
 
-- **Two faucets, one estimator.** Competence is fed by **passive
-  world-use** (you got better by *doing* — the no-classroom path) ⊕
-  **active deliberate study** (the academy / LMS — the optional fuel),
-  routed into **one source-agnostic estimator.** The faucets map the
-  procedural-by-doing vs. conceptual-by-study split (Bloom / Kolb); the
-  academy faucet *is* the learning-platform sensor bridge (below).
 - **One honesty rule, three transfer profiles.** What a learning-event
   *transfers to* depends on its kind: **facts** (knowledge — broadly
   transferable), **invented-structure** (a game's own lawful systems —
@@ -266,37 +211,13 @@ re-derives fast because the Transcript evidence never left.*
 
 ### Credit assignment — decomposing a composite act
 
-The load-bearing input-integrity question: one messy in-world act (a deal,
-a fight, a synthesis) exercises *several* Subjects at once, at *different*
-difficulties, with **localized outcomes** — Wren's failed deal *succeeded*
-at Appraisal, *failed* at Logistics and Market-reading; a single global
-"failure" would wrongly tank the Appraisal she nailed. So the act must
-decompose into per-Subject `{subject, difficulty, outcome}` triples. (This
-is the **Q-matrix** problem from cognitive diagnostic models crossed with
-RL credit-assignment — known prior art, not novel.)
-
-The move that dissolves it: **the decomposition isn't inferred after the
-fact — it's how the action was built.** Model each action as a composition
-of Subject-tagged **sub-checks** — a "skill signature" authored onto the
-verb / recipe / deal-structure (an authored Q-matrix). The engine *already*
-runs those sub-checks to resolve the action; the Transcript just records
-each as its own per-Subject row. Credit assignment becomes an **authoring
-discipline** (model the action as its component competence-checks), nearly
-free because you already had to author the outcome. **The same signature also
-carries a *disposition-valence*** (a lie is +Deceitful/−Honest, a generous tip
-+Generous/−Greedy) — because **traits are competence-for-dispositions**: the
-identical derive-from-a-behavior-ledger architecture, applied to character
-instead of skill. One signature, two outputs (skill-Subjects + dispositions).
-See [npc-behavior-slate](./npc-behavior-slate.md) § *Traits*.
+> *Shipped* as `ActSignature` — the authored Q-matrix; `creditSignature`
+> explodes it into per-Discipline rows; `dispositionValence` declared but
+> unpopulated; difficulty a world-measurement →
+> [advancement.md § The act-signature](../../subsystems/advancement.md).
 
 Two properties make it anti-gameable:
 
-- **Difficulty is a world-measurement, not a tag.** The logistics
-  difficulty *is* the actual route (length, hazard, perishability clock);
-  the appraisal difficulty *is* the lot's ambiguity; the market difficulty
-  *is* the live competition. You can't farm a hard attempt by relabeling —
-  to get hard evidence you must do a hard thing in a hard world (the same
-  **endogenous difficulty** that gives non-combat professions their ladder).
 - **The graph propagates evidence, and information-weighting kills grind
   for free.** Evidence flows along `requires` / `synergizes` (a Bayesian
   net over the KC graph — knowledge-space theory): a composite act credits
@@ -335,53 +256,11 @@ whoever breaks the fiction, priced by the room.
 
 ## Guilds — institutions *over* the taxonomy, not the taxonomy itself
 
-> **Superseded + extended by [guild-slate](./guild-slate.md)**
-> (2026-07-28) — the full institution design: chartered-not-derived
-> domains, mysteries/calls/marks, the formation rule (vocation =
-> discipline × livelihood), the four layers + corpo wings, no magic
-> guild, tiers (associate/member/master), the **chartered uniform
-> training budget** (which replaces this section's uniform-flat focus
-> with charter-allocated primary/secondary weights — the § Declared
-> focus *substrate* below still stands verbatim), boards, the balance
-> ledger, wizards, the charter schema, and lifecycle. This section and
-> § Declared focus remain as the mechanic's rationale.
-
-The old MUD fused two things; split them and the guild snaps into focus in
-a model where you learn by doing:
-
-- **The skill taxonomy is the map** — impersonal, the "physics," the
-  shared canon of what swordsmanship or botany *is*.
-- **A guild is an institution that claims a region of it** — providing
-  **access, sequencing, instruction, and a credential**. Its relationship
-  to the taxonomy: a guild is a **curated projection over a subgraph**.
-
-So a guild's identity (beyond membership) is the bundle: the **venue**
-(dojo/lab/range — a place in the world where practice is safe, sequenced,
-accelerated), the **mentors** (NPCs + seniors who keep you at the right
-difficulty — ZPD institutionalized), the **credential** (rank others
-recognize — ties to [belief](../../subsystems/belief.md) /
-[renown](../../subsystems/renown.md)), and the **culture / special member
-mechanics** (perks, obligations, politics). You *do* "train at a guild" —
-"train" just means *afforded, instructed practice in its venue*, not
-buying ranks from an NPC. Mechanically, **guild membership is an affordance
-source** (like an augment — see
-[augmentation](../../subsystems/augmentation.md) /
-[command-routing § affordances](../../subsystems/command-routing.md)): it
-grants *access* and *unlocks verbs*, never bumps a number.
-
-- **Brands / branches.** Two branches of a fighters' guild teach the same
-  canonical subgraph but differ in venue, pedagogy, prestige, culture,
-  perks. Knowledge stays unified; *institutions compete*.
-- **Corporate-sponsored branches.** The under-used corp notion gets a job:
-  a corporation **charters/funds** an institution ("the Acme Combat
-  Academy").
-- **Open fork (decide before building):** is all skill-knowledge **open
-  canon** (guilds compete only on *how well* they teach), or can
-  institutions own **proprietary/secret** techniques (membership gates
-  *what you can learn at all*)? Open is cleaner "physics"; proprietary
-  gives guilds + corps real IP to hoard and ties into the
-  [spoiler](../tails/spoiler-slate.md) thread, at the cost of
-  fragmenting the shared map. *Open.*
+> **Superseded by [guild-slate](./guild-slate.md)** (2026-07-28) — the
+> institution design (venue / mentors / credential /
+> membership-as-affordance, tiers, the chartered training budget that
+> replaces this section's uniform focus, the *Open* canon resolution)
+> lives there; § Declared focus below is the substrate it cites.
 
 ## Declared focus — deliberate practice, the honest heir to the guild-unlock
 
@@ -485,13 +364,8 @@ falls right out.
 
 ## Every profession is a first-class path
 
-Combat must **not** be the only game in town: a merchant, scholar, or
-diplomat must "level up" as fully as a fighter. The model delivers this
-**by construction**, because competence is **play-loop-neutral** — one
-substrate (Catalog / Transcript / Competence), many *consumer loops*
-(combat, trade, research, diplomacy) that each write `deed`s and read θ to
-gate their verbs. Nothing in the estimator knows what a sword is; appraisal
-and riposte are the same shape.
+> *Shipped* — play-loop neutrality: nothing in the estimator knows what
+> a sword is → [advancement.md § The act-signature](../../subsystems/advancement.md).
 
 The deeper point inverts the usual RPG hierarchy. Combat is "the only game"
 in most RPGs because its difficulty ladder is *easy to author* (spawn a
@@ -678,42 +552,15 @@ character's play/make/fund composition **drifts** over its life):
 
 ## A worked Catalog slice — Dave's Bar
 
-The first concrete **Catalog** content, and a *better* test of the content-graph
-than an abstract "Botany tree" because the Subjects are **heterogeneous** (five
-facets, all three channels) and the **roles overlap.** Channels tagged: **skill**
-(technique) · **knowledge** (know-what) · **conditioning** (the body adapts).
-(Full venue context: [daves-bar-slate](./daves-bar-slate.md).)
-
-- **Bartending (the craft):** *Mixology* (skill — control: technique, balance,
-  speed) · *Recipe knowledge* (knowledge — which cocktails, banked via the
-  make-it-once-to-learn-it loop) · *Spirits & ingredient lore* (knowledge —
-  brands, grades, pairings).
-- **Running the bar (commerce/management):** *Inventory management* (skill —
-  reading par, anticipating run-outs; ties to leadership) · *Bookkeeping /
-  reconciliation* (skill — the till, over/short) · *Appraisal* (skill — judging
-  quality/value) · *Salesmanship / upsell* (skill).
-- **The social floor (interpersonal):** *Reading people* (skill — mood, trouble)
-  · *Persuasion / rapport* (skill — defuse, build regard).
-- **Games & recreation:** *Darts* (skill) · *Pool* (skill) · *Cards / dice*
-  (skill + knowledge).
-- **Physical (conditioning):** *Alcohol tolerance* — **conditioning, not skill**
-  (bounded, bidirectional; the body adapts, lay off and it fades) — the cleanest
-  example at the bar of why the channels are distinct.
-
-Edges: *Mixology* `requires` basic *Recipe knowledge*; *Appraisal* `synergizes`
-*Spirits lore*; *Darts* is a standalone leaf. Out of scope: bouncing (combat),
-performance.
-
-**The role-spread is the point** — the same room exercises different professions:
-a **bartender** (NPC or hired player) runs mixology + recipe-knowledge +
-spirits-lore + inventory + bookkeeping + upsell + reading-people; a **patron**
-levels darts / pool / cards / tolerance / persuasion *just by hanging out*
-(combat-free leveling — profession-neutrality); a **manager** (Mara) adds
-inventory + bookkeeping + leadership; a **merchant** passing through practices
-appraisal + negotiation — a *different profession in the same space* (the
-interlock). The bar is the whole model in one room. (Subjects sit at different
-scopes — mixology/inventory core to the bar, darts/tolerance ancillary flavor
-that can follow.)
+> *Superseded by the code* — the seeded slice is `bartending` ·
+> `mixology` · `recipe-knowledge` · `appraisal` · `darts` ·
+> `alcohol-tolerance` (+ `sports`, `retail-sales`,
+> `business-administration` as ISCED-F spine nodes) →
+> [advancement.md § The proof harness](../../subsystems/advancement.md).
+> The commerce / social leaves this slice also named (spirits lore,
+> inventory, bookkeeping, salesmanship, reading-people, persuasion, pool,
+> cards) are unminted content — see
+> [trade-roster-slate](../tails/trade-roster-slate.md) § the gap report.
 
 ## Sensing the social Subjects — `regard` is the (inert) primitive
 
@@ -753,29 +600,15 @@ validates the read, or they actually do the pitched thing) — never compulsion.
 
 ## Buildable now — a first vertical slice
 
-The substrate is largely shipped: [Reserve](../../subsystems/reserve.md)
-(practice energy), [Activity](../../subsystems/activity.md) (a practice
-session = sustained engagement), affordance attribution (a skill grants
-verbs), [Persona](../../subsystems/belief.md) (identity), templatePath
-keying (durable progress), zones/access (the authoring/ownership stack).
-
 A first slice that proves the feel before the content sprawls:
 
-- **A small Catalog**: a handful of Subjects from the **Dave's Bar slice**
-  above (e.g. Mixology, Recipe-knowledge, Darts, Alcohol-tolerance — a
-  heterogeneous mix across facets/channels), authored as graph nodes with
-  `requires` / `specializes` / `synergizes` edges.
 - **Situated practice → Transcript**: competence grows as a side effect of
   *doing the thing* in context (mixing a drink, throwing darts) — each
   demonstration a `deed` on the per-character Transcript — gated by the
   Reserve and run through Activity.
-- **A Competence estimator**: derive-on-read over (Subject × Transcript),
-  a simple BKT to start; surfaced only as capability and bands.
 - **The loadout**: a small active-readiness cap over the estimated
   Subjects; the rusty-then-snaps-back warm-up on dormant skills (the
   Transcript evidence never leaves, so re-derivation is fast).
-- **Competence revealed through performance** — no stat readout; the
-  legible planning tree + felt proficiency.
 - A seed guild (a Bartenders' Guild over the craft Subjects: venue + mentor +
   credential + membership-as-affordance), to exercise the institution model.
 

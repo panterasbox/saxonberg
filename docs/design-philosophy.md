@@ -180,6 +180,22 @@ range opts into range bands. A chemistry lab opts into named
 bench positions. The framework supports all five but commits
 authoring effort to none by default.
 
+### Absorbed from forestry-slate — expression is an inelastic resource
+
+⭐ **The doctrine underneath, worth carrying to every extractive
+industry:** expression is an **inelastic resource** — NetHack, Dwarf
+Fortress and the board games spend a fixed alphabet with great care —
+and the game's dynamism comes from *everyone being an author*, so the
+code is always changing, not from one codebase simulating every
+outcome. Abstract the parts of a lifecycle that are meaningful to the
+player and that the platform can persist and compute; leave the rest to
+the next author.
+
+That is the same judgement the fidelity ladder above asks for, stated
+from the author's side rather than the engine's: the question is never
+*how much could be modelled*, it is *how much of the alphabet this costs
+and who spends what is left*.
+
 ---
 
 ## Four principles, in detail

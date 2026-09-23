@@ -1,22 +1,24 @@
 # Economy slate (working doc)
 
-> **Status: PARTIAL** — the v1 currency slice shipped and then some: Coin,
-> the two-tier ledger + conservation chokepoint, vendors, consignment
-> retail, employment, crafting → [banking.md](../../subsystems/banking.md)
-> **Left:** faucet/sink + inflation balance · the bazaar · market
-> aggregation · the currency-reset event · bonds-before-equity capital
-> markets — all deliberately parked for a running game
-> **Size:** a build
-
-> **Status: physics settled, build the currency slice; macro deferred to
-> a real game.** The *micro-physics* of value — how it enters the world,
-> how it's carried, how a transaction clears — is worked out far enough
-> to build a basic currency system. The *macro-economics* — faucet/sink
-> balance, inflation, whether the loops actually hold at population scale
-> — is explicitly parked. Those are tuning problems, and you can't tune
-> an economy against physics; you tune it against a running game with
-> real players in it. Build the honest substrate now; solve the balance
-> when there's something to measure.
+> **Status:** PARTIAL — the currency slice and then some shipped: Coin,
+> the two-tier ledger + conservation chokepoint, the custodial bank, the
+> priced offer / Stock counter / consignment, employment + compensation
+> bases, crafting with Grade + condition → [banking.md](../../subsystems/banking.md),
+> [retail.md](../../subsystems/retail.md), [employment.md](../../subsystems/employment.md),
+> [crafting.md](../../subsystems/crafting.md). Lending, the treasury and the
+> credit ladder are now [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md).
+> **Left:** faucet/sink + inflation balance · the safe bilateral trade
+> handshake · bespoke barter clearing + NPC stances as characterization ·
+> observer-relative quality verdicts · the skill seam (`_control`) ·
+> player shops + the bazaar (retail S4) · corpo franchised retail (retail
+> S4) · idle activities · the reserve-governed labor faucet/sink · wages as
+> monetary policy + paying for governance roles · the later lending science
+> (runs, failure, deposit insurance) · bank choice as corpo-affiliation +
+> player-run banks · the grey market · education-vertical anchoring of
+> craft skill · the currency-reset event · bonds-before-equity capital
+> markets
+> **Size:** a build (an umbrella — each `Left` item is its own cycle or
+> rides one; nothing here ships as one MR)
 
 Working slate for the **economy** — currency, value, crafting inputs,
 and trade. The governing claim, and the reason this isn't filed under
@@ -243,16 +245,9 @@ and notably what makes it fail*).
 
 **Cash vs. accounts — and large cash is untenable by *physics*, not rule.**
 
-- **Cash** — the soft coin is **physical matter** (`Stackable`, with per-coin
-  **mass**): hand-to-hand, immersive, small, **off-ledger**, **robbable**, and
-  **self-limiting** — a big enough stack blows past your carry capacity (the
-  shipped `LoadBearing`/encumbrance), so you *can't* practically haul a fortune
-  in coins. No arbitrary cash cap; the honest physics *is* the cap. The
-  **denomination ceiling** is the tuning dial (keep it modest → large value =
-  large mass → cash stays small).
-- **Accounts** — weightless **balances** on the **auditable ledger**, where the
-  real economy lives (payroll, large purchases, the till, the reserve). A
-  **bank** bridges the two (`deposit` cash → balance, `withdraw` → cash).
+- *Cash as massive physical coin, weightless account balances, the bank
+  as the 1:1 bridge — shipped → banking.md § The money model, § Custodial
+  bank ops, § The Attendant + Goodkin cycle (coinage 1/5/25, the mass cap).*
 - **The payoff:** discouraging large cash *forces the big economy onto the
   governed, auditable ledger* — **anti-laundering by mass**, no rule required.
   "Off the books" means off the in-world *governed ledger* (dodges in-world
@@ -264,10 +259,10 @@ and notably what makes it fail*).
 
 **Two kinds of bank, firewalled.**
 
-- **Central bank = the reserve**, operated **totally independently** from the
-  commercial banks: monetary policy, the **only mint**, the auditable supply,
-  and the **insurer / lender of last resort**
-  ([cooperative-slate](./cooperative-slate.md) § *The reserve as central bank*).
+- *The reserve as the only mint, independent of the commercial banks —
+  shipped → banking.md § Conservation, governance.md (the Governor seat);
+  its lender-of-last-resort / insurer role is now the window lane + the
+  deposit guarantee in economic-bootstrap-requirements § Surface decisions.*
 - **Commercial banks = corpo-run** — a **competitive, ethos-flavored vertical**
   (Goodkin's warm retail bank · Vionne's elite private bank · Aevex's fintech ·
   Veshko's ruthless lender — [corpos-slate](./corpos-slate.md)). Because your
@@ -279,9 +274,8 @@ and notably what makes it fail*).
 
 **Phasing — safe rails now, the real finance science later.**
 
-- **v1: custodial + payments.** Banks hold deposits 1:1 and move money. No
-  lending, no creditworthiness needed — and a purely-custodial bank **can't
-  fail** (your money's in the vault). The rails.
+- *v1 custodial + payments — shipped → banking.md § Custodial bank ops
+  ("a bank bridges cash and accounts 1:1 and can't fail").*
 - **Later: lending** (gated on the reputation system → creditworthiness):
   fractional reserve, interest, the spread, credit creation — and with it the
   **real finance science: bank runs, insolvency, failure.** A bank *can* fail,
@@ -320,13 +314,11 @@ false. The honest decomposition:
   let consequences be in-world events, no damage spreadsheet. This is the
   guardrail that keeps the economy out of RPG-balance territory.
 
-**Honesty discipline (props real or cut): don't model a property nothing
-reads.** Edge-angle is vapor until cutting exists to consume it. So the
-v1 surface is tiny — *material grade* (carries provenance + sets the
-achievable envelope) and *condition* (the entropy state from Law 2).
-Richer properties accrete only as the systems that read them ship
-(combat mints edge and brittleness; cooking mints freshness and heat-
-tolerance).
+*The v1 surface — material `Grade` + `condition` — shipped, and richer
+properties have accreted only with their readers (edge → `KeenMixin`,
+freshness → spoilage) → crafting.md § Value-objects & vocabulary, § The
+lifecycle; the "props real or cut" rule is stated at crafting.md § Deferred
+("a field nothing reads is a field every author has to think about").*
 
 ### The skill seam (the boundary with the deferred layer)
 
@@ -351,11 +343,9 @@ membrane and don't collide.
 > (when designed) skill rank. Nothing is a free 0–100 dial. That's one
 > house rule, not four.
 
-Provenance does the work a quality number can't: because you can't read
-quality off an object, **who made it becomes the signal** — exactly why
-real history used maker's marks and hallmarks. Reputation attaches to
-the maker; a master's mark can't be farmed or printed (anti-inflation,
-and intensely NPC-flavored).
+*Provenance as the signal a quality number can't be — shipped
+(`CraftedMixin.maker`, the mark) → crafting.md § "Grade is the only
+quality axis", provenance.md, corpo.md.*
 
 ---
 
@@ -635,11 +625,9 @@ the risk — "player business is the apex"); employees are the risk-averse,
 capital-poor, and role-seekers; **NPCs backfill the jobs players won't
 take.** Two corollaries:
 
-- **Contract structure dissolves "output > wage."** Pay a **share/royalty**
-  ("keep 60% of what you mine, I take 40% rent for the claim"), not a flat
-  wage — even an optimizer takes that, keeping most of the value and
-  paying the owner only for access. Sharecropping/commission is the
-  classic fix.
+- *Share/royalty in place of a flat wage — shipped as the compensation
+  bases (`time` · `per-settlement` · `share-of-flow` · `residual`) →
+  employment.md § Compensation bases.*
 - **Employment concentrates where it's strong.** Raw extraction from a
   commons is the *weakest* case (self-employment dominates); employment is
   strongest in **transformation and services** (the workshop, the bar),
@@ -653,31 +641,14 @@ be NPC-run or restructured as a profit-share.
 
 ### Crafting venues — the concrete value-add (Dave's Bar)
 
-> A full crafting design is a **separate future doc**; this is only the
-> economy-relevant hook.
-
-Dave's Bar is the concrete form of "the employer adds value beyond the
-labor." A **crafting venue** aggregates the four things a substantial
-craft needs — **inputs, tools, recipes, and (optional) skilled labor** —
-so the output is feasible *there* and infeasible *at home*: spirits +
-mixers, shaker + glassware, cocktail recipes, bartenders. Generalize the
-four-tuple per domain (smithy, kitchen, alchemy lab, loom) and it's the
-spine of the whole crafting subsystem.
-
-Why it crystallizes the economy: the venue **is** the employer's
-value-add (why you buy a cocktail instead of making one at home, and why
-Dave employing a bartender beats self-employment, have the *same*
-answer); it's the **transformation-margin node** (buy inputs wholesale →
-transform → sell retail); and it rides substrate you have (an owned
-**locality**, the liquids as **bulk**, staff as **employment** slots). It
-commits you to **place-based crafting** — you craft *at venues*, scaled by
-complexity (trivial crafts anywhere, substantial crafts at the venue) —
-which makes the *world* the economy's substrate rather than a backpack
-menu. And it offers two paths at every venue: **buy the output** (the
-bartender makes it — the employment path) or **rent the means and DIY**
-(use the bar's stock yourself — the self-employment path), the
-employ-vs-self-employ sort made concrete. NPC Dave is the bootstrap floor;
-player-owned venues are the apex that grows on top.
+*Superseded by the code — crafting is **location-agnostic**
+(crafting.md § The model): there is no venue concept and no
+`CraftingVenueMixin`; feasibility is the reachability of tools + inputs
+from an on-shift maker, and Dave's Bar is emergent (a room containing a
+`Menu`, a maker and the matter). The employer-adds-value thesis it
+illustrated stays in § When is employment viable? above; the DIY path
+shipped as the by-hand manual build (crafting.md § The manual build), its
+stock-pricing still deferred.*
 
 ### Wages as monetary policy — the dual mandate, and paying for roles
 
@@ -718,38 +689,24 @@ So if you pay for roles, structure it not to break:
 
 ### Substrate
 
-Minimal: NPCs and players are both **Agents**, so the relationship is a
-role with two *agent-typed* ends, indifferent to which side a connection
-vs a routine drives. NPCs actually *performing* jobs depend on the
-**[npc-behavior](./npc-behavior-slate.md)** brains (the real dependency,
-deferred); **access/groups** handle who-may-act-where; the role-slot is a
-small engine primitive, and the P2P case rides it informally — **no labor
-market to build.** And where employment exists, so do **labor disputes**
-(→ the appeals judiciary) and **labor policy** (→ a legislative domain):
-employment is one of the seams where the economy and the polity touch.
+*Superseded by the code: the role-slot with two agent-typed ends shipped
+as `EmployedMixin` on `Character` (employment.md), NPC job performance
+as the `shifts`/`covers` brains (behavior.md), and — contrary to "no
+labor market to build" — a gig board did ship (`job`/`fulfill`,
+contract.md § The board). Labor disputes → the courts slate; labor
+policy → the legislature (amendment-library).*
 
 ## Buildable now — the currency slice (v1)
 
-Enough is settled to ship a **basic currency system** without touching
-the deferred macro/advancement problems:
-
-- **Coin as a `Stackable`** (already exists) — carry, split, merge,
-  count. No price display anywhere.
-- **NPC vendor as a located stance-holder** — bounded stock + coin,
-  owner-set stances expressed as characterization (flat by who-you-are
-  for now; recognition enriches later).
-- **The clearing interaction** — person-to-person, no aggregation. The
-  open call is whether v1 includes the safe-trade *handshake window* or
-  just "both drop goods in a room."
-- **`condition`** as the first entropy field (Law 2), and **material
-  grade** as the first quality band — the only two property surfaces
-  until systems that read more of them ship.
-
-What v1 deliberately does **not** ship: crafting (needs the skill seam's
-far side), the player-owned shop (needs scoped-authoring + the handshake),
-regrowth/extraction tuning, and any market aggregation.
+*Shipped, and past it: Coin (`platform/thing/Coin.ts`, banking.md), the
+located stance-holder (`Stock` / `Menu` / `Tariff`, retail.md, crafting.md
+§ The offer), person-to-person clearing with no aggregation (`buy`,
+retail.md § The buy loop), `condition` + material `Grade` (crafting.md).
+Crafting itself shipped too. The one open call it named — the safe-trade
+handshake — stays open in § Speech is free; settlement is sacred.*
 
 ---
+
 
 ## Open problems — deferred to a real game
 
@@ -761,12 +718,13 @@ game with real players to measure:
   whether entropy actually drains enough to offset extraction, whether
   bounded NPCs hold the line at population scale. These are tuning
   problems with no right answer in the abstract.
-- **The whole advancement / skill system.** Tied to gamification,
-  deliberately undesigned. The economy only consumes it through the one
-  skill seam.
-- **Recipes as knowledge.** How the *ability* to make things spreads
-  (taught / earned-by-doing / discovered) is advancement-adjacent —
-  deferred with the skill system.
+- *The advancement system — superseded: it shipped (advancement.md:
+  Discipline catalog, Transcript, derive-on-read Competence bands); the
+  economy's one consumer of it, the skill seam's `_control`, is still
+  crafting's declared next wave (§ The skill seam above).*
+- *Recipes as knowledge — shipped as the open-canon / earned-shorthand
+  ladder (crafting.md § The knowledge ladder, generalized); the spread
+  vectors beyond watching are named at crafting.md § Deferred.*
 - **Standalone vs. education-vertical anchoring.** The same craft skill
   is pure-play endogenous value in the standalone game (fine, arbitrary)
   but must anchor to real mastery when a vertical is attached. The
@@ -776,14 +734,13 @@ game with real players to measure:
   directory.** Held off (per "don't port classic MUD ergonomics" and
   "build when a real player demands it") rather than pre-built. Watch
   item, not a build.
-- **Banking beyond custodial rails** (see *Banking* above). v1 ships
-  custodial accounts + payments (can't fail). Deferred: **lending** (gated
-  on the reputation system → creditworthiness), and with it the real
-  finance science — **interest/the spread, bank runs, insolvency, failure,
-  and deposit insurance**; **player-run banks** (the apex/independent path);
-  the **denomination ceiling** (the cash-disincentive dial); and whether to
-  lean into an off-books **grey market** as gameplay (smuggling/tax-dodging)
-  or leave it inert friction.
+- *Banking beyond custodial rails — superseded by
+  [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md):
+  lending is the ledger-gated ladder over two reserve lanes; banks lend
+  what they hold, so runs / failure / deposit insurance are a later
+  banking build by decision (its Non-goals), as are interest on deposits;
+  player-run banks and the grey market stay in banking.md § Deferred seams.
+  The design of that later lending science is § Banking above.*
 - **Multiple currencies — dismissed 2026-07, ⭐ REFINED 2026-08-04.** See
   [currency-slate](./currency-slate.md). **The two positions do not
   actually conflict, once stated precisely** — and the distinction is the

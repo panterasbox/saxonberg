@@ -3,70 +3,26 @@
 > **Status: PARTIAL** — the v1 engine shipped 2026-06 →
 > [scripting.md](../../subsystems/scripting.md)
 > **Left:** the piping model over the built `Pipeline` AST node + the
-> value→field binder · the block forks (`it`-only vs explicit params) ·
-> the `improv` seam · LLM-director authoring
+> value→field binder + the two-channel/ByValue compatibility design ·
+> the block-value fork (`it`-only vs explicit params on the generic
+> `Block` value — `def`'s named params are a separate mechanism and
+> already shipped) · the `improv` seam · LLM-director authoring ·
+> actor-binding's "director forcing" half (llm-content-slate's remit) ·
+> on-event hooks vs. polling (only `when`'s poll shipped) · error
+> semantics + authoring-intelligence understanding of the grammar
 > **Size:** a tail
-
-> **Status: v1 engine SHIPPED (2026-06)** → graduated to
-> [scripting.md](../../subsystems/scripting.md). A **purpose-built scripting
-> language** — our grammar, our semantics — is the medium for procedural
-> content behavior. It promotes [npc-behavior-slate](../builds/npc-behavior-slate.md)'s
-> deferred `scripted-behavior` tail to a first-class subsystem, and it's the
-> language the [LLM director](../builds/llm-content-slate.md) authors in. It is the
-> **special** language (reaches only what the grammar grants), distinct from
-> the **general** TS `EvalScript` (reaches everything). The block /
-> execution-model / `( )` sublanguage / scope forks this slate framed are all
-> **resolved and built**. This file is retained as a **tail** for the deferred
-> design surface only (see *Remaining work* immediately below).
 
 Working slate for **the scripting language** — the long-intended MUD
 soft-scripting layer. It's the code-tier rung the behavior ladder always
 pointed at, the answer to "how does an LLM express multi-stage / scheduled
 behavior," and a human-authored content surface in its own right.
 
-> **Remaining work (deferred tail).** The v1 engine — interpreter +
-> coroutines + both surfaces + demonstration-capture + the chronicle
-> knowledge-ladder + the path-addressed document store — is live. What's
-> deferred: the **piping model** (multi-stage pipelines over the built
-> `Pipeline` AST node + the general value→field binder + the
-> two-channel/ByValue compatibility design), the open **block forks**
-> (`it`-only vs explicit params), the `improv` seam, and LLM-director
-> authoring. The rest of this doc is the original design record; read
-> [scripting.md](../../subsystems/scripting.md) for what actually shipped.
-
 The load-bearing decisions:
 
-1. **A designed language, not eval and not a tool-menu.** eval (general TS in
-   a sandbox) is *so* powerful it subsumes everything — which is the problem,
-   not a virtue: it reaches what you never sanctioned. A pre-canned reaction
-   menu is the opposite failure: it caps expression to what was anticipated.
-   The right surface is a **special language whose grammar *is* the boundary**
-   — designed to reach exactly the set you chose. **Designing the grammar is
-   how you bound, by construction, not by subtraction.** This is the honest
-   form of "bounded **affordances**, free **expression**": the grammar's
-   builtins are the affordances; the control flow is the expression; you
-   author both sides of that line.
-
-2. **It conducts the verb bus; it doesn't bypass it.** A statement like
-   `say "..."` or `pour mug` is a **gated dispatch as the actor** — on the
-   bus, attributed, permission-checked (and when the [director](../builds/llm-content-slate.md)
-   forces, force stays bounded by the *target's* perms). The language is a
-   sequencing + control-flow layer **over** dispatch, never a side door
-   around it. The whole command-security model survives unchanged. See
-   [command-routing.md](../../subsystems/command-routing.md),
-   [call-security.md](../../subsystems/call-security.md).
-
-3. **Timing is control flow.** `wait 30s`, `every 2m`, `when <cond>` make a
-   script a **coroutine the scheduler drives** (`ScheduleApi` already wraps
-   callbacks in execution-context). This is the real scheduling answer: not
-   "the LLM files reactive triggers" (that's a script smeared across frames),
-   but "the LLM writes a procedure with `wait` in it." **One generation →
-   multi-stage execution.** Round-trip cost is exactly why the per-beat live
-   loop loses to a script for multi-stage action.
-
-4. **Conditions are MQL.** `if` / `when` predicates are MQL — an existing,
-   bounded, sandboxed query language. Don't reinvent queries. See
-   [mql.md](../../subsystems/mql.md).
+Decisions 1–4 (a designed language, not eval and not a menu · it conducts
+the verb bus · timing is control flow · conditions are MQL) shipped and
+graduated → [scripting.md § Why a designed language — the grammar is the
+boundary](../../subsystems/scripting.md). Still open, kept:
 
 5. **`improv` is the seam back to live generation.** A primitive that
    re-invokes the LLM mid-script for a line it didn't pre-write. This unifies
@@ -121,57 +77,20 @@ See also:
   intended; the behavior ladder and the `scripted` rung were placeholders for
   it.
 
-## The first use case — recipes as banked command-scripts (Dave's Bar)
+## The first use case — recipes as banked command-scripts (Dave's Bar) — SHIPPED
 
-This slate's "next conversation" (*what needs we have around scripting*) has its
-first concrete, bounded answer, and it's the **gentlest rung the language could
-launch on.** In [Dave's Bar](../builds/daves-bar-slate.md), a player learns a cocktail
-by **making it once for real** (programming by demonstration): the sequence of
-verbs they perform — `pour gin into shaker` · `add vermouth` · `stir` ·
-`strain into glass` · `garnish with olive` · `serve` — is **banked as a named
-recipe**, and afterward `make martini` *replays it.* Reading the recipe from a
-book is a `claim`; *making* it is the `deed` that banks it (the advancement
-model's knowing→doing / procedural-vs-conceptual, felt — the book isn't enough,
-the hands have to learn it).
+Built exactly as designed here: demonstration capture (`Transcriber`),
+the chronicle knowledge ladder (`known-of` claim / `can-make` deed), and
+the authored Dave's Bar demo content. See scripting.md §§
+*Demonstration capture (P8)*, *The chronicle knowledge ladder (P9)*,
+*Authored demo content (P10)*.
 
-Why it's the right MVP:
+## Safe by grammar, not by trust — SHIPPED
 
-- **It exercises the spine, none of the forks.** A recipe is a **linear sequence
-  of gated verbs** — command-native, *conducts the verb bus* (decision #2),
-  sequencing-over-dispatch — with **no** blocks, control flow, `wait`, MQL
-  conditions, director, or `improv`. Plus exactly **one** parameter (the brand,
-  `pour $gin` → `make martini with Vionne`) — the tamest touch of the
-  `$`-value feature. The whole thesis, validated on the easiest possible case.
-- **Replay is pre-bound, not re-parsed.** The banked script rides the piping
-  model's `{command, model}` path — **skip match/assemble, run resolve +
-  execute** — so replay skips the text re-parse (fast) but still
-  resolve+validate+executes through the bus (gated, attributed, scope-rechecked
-  every time). Real commands without the tedium; "piping skips parsing, not
-  resolve."
-- **It's the most accessible on-ramp the language could have.** Players author
-  scripts by *doing*, never knowing they're scripting (decision #6, "humans
-  author it too," at its gentlest) — and the banked script is *commands*, so
-  it's inspectable and later editable: do → get a script → tweak it (the seam to
-  recipe invention) → write scripts. The bar teaches what a script *is*.
-
-**Decision:** build Dave's Bar's recipe shorthand **script-shaped from the
-start** — so the bar is the scripting language's first home (alongside Activity
-and metabolism), pulling forward only the **tamest rung** (banked linear
-command-macros + one substitution), never the language's blocks / coroutines /
-director. The language gets designed against a real bounded consumer instead of
-in the abstract.
-
-## Safe by grammar, not by trust
-
-eval's sandbox exposes everything and is gated by *who you are* (developer).
-This language's sandbox exposes **only the verb/affordance surface + scheduler
-primitives**, so even untrusted authors can write it: the worst a script can
-do is call gated verbs (themselves permission-checked) in a loop. The
-residual risks shift from "arbitrary execution" to **resource exhaustion**
-(loops → step/time/instruction limits) and **auditability** (a procedure vs a
-single call). Both are bounded mechanically. Growing the world = adding
-**builtins/verbs** to the grammar (authored, out-of-band), never handing the
-live LLM raw code.
+See scripting.md § Resource governance (the sandbox): the
+`AppSettings`-tiered `sliceSteps` / `maxSteps` / `maxDispatch` /
+`maxDepth` limits, exactly the resource-exhaustion-not-arbitrary-
+execution split described here.
 
 ---
 
@@ -282,89 +201,35 @@ invented here.
 
 ---
 
-## The grammar: command-native
+## The grammar: command-native — SHIPPED
 
-**Decided: command-native, in the Tcl / expect lineage — everything is a
-command.** Flow control and functions are *not* grammar; they're commands that
-take `{ }` blocks. So the grammar is ≈ the command grammar already parsed, plus
-**pipes**, **blocks**, and **named values**:
+The command-native grammar (pipeline/command/arg/script), flow control
+as ordinary block-taking commands, the two Tcl warts avoided (blocks as
+parsed scoped values not re-scanned strings; infix confined to the `( )`
+island), and all four follow-on decisions (blocks, values/substitution,
+the `( )` sublanguage, scope) are built exactly as designed here — see
+scripting.md §§ *Grammar & the parser (P1)*, *The block keystone and
+`( )` island*, *Scope, frames & `$`*. Code: `lib/script/ast.ts`,
+`lib/script/Block.ts`, `lib/script/Scope.ts`, `lib/script/Expression.ts`,
+`lib/command/parsers/script.ts`.
 
-```
-pipeline := command ( "|" command )*
-command  := word arg*
-arg      := literal | "$" name | "(" expr ")" | "{" block "}" | objectref
-script   := pipeline ( sep pipeline )*
-```
+### Blocks (keystone) — the direction shipped; three forks still open
 
-Flow control falls out as ordinary commands:
+The closure shape, first-class-value status, child-scope invocation +
+coroutine-suspendability, and last-value yield are all shipped as
+designed here — see scripting.md § The block keystone and `( )` island
+and § Control flow as commands. One nuance not yet true: `it`-binding
+on `each-item` is shipped; `pipe-value` / `expect-match` binding waits
+on the piping model and `expect` above (both still open).
 
-```
-if (gus angry) { say "Easy, friend." } else { greet gus }
-each (npcs in room) { glare at it }
-while (shop open) { tend_bar }
-def haggle { ... }          # defines a command, invoked like any verb
-```
-
-`if` / `else` / `while` / `each` / `def` are verbs taking a block. No separate
-statement grammar, no whole-language precedence parser — **the smaller the
-grammar, the more the language *is* the command bus** (the prime criterion).
-
-**Build:** extend the `CommandLineApi` tokenizer (`{}`, `()`, `$`, `|`,
-statement separators, nesting, multi-line) and add a small recursive-descent
-**`Parser` impl** — the pluggable parser interface already anticipates exactly
-this. Not a from-scratch language; the command tokenizer + MQL do most of it.
-
-### Two Tcl warts to avoid
-
-Command-native done naively *is* Tcl, which earned its reputation from two
-specific mistakes:
-
-1. **Blocks are parsed, scoped *values* — not re-scanned strings.** Tcl
-   re-parses `{}` on every use (its quoting hell). Ours is a first-class block
-   value: parsed once, carries its scope, executed by the command it's passed
-   to. This is the **keystone** — flow-control-as-commands and `wait`-suspension
-   both sit on it.
-2. **Infix expressions live inside `( )`.** Pure prefix (`if [< $hp 0.2]`) is
-   the other wart. `( )` is an **expression / query context**: it's where
-   **MQL** lives (`(npcs in room)`, `(gus angry)`) *and* where infix
-   comparison/logic reads naturally (`(hp < 0.2)`). Commands stay the spine;
-   `( )` is the small expression island inside an arg.
-
-### Follow-on decisions (dependency order)
-
-1. **Blocks** (keystone) — the parsed block value, scope capture, how a command
-   invokes one. *(in progress)*
-2. **Values / substitution** — `set x (look)` to capture, `$x` to read; clean
-   explicit interpolation (not Tcl rescanning); `look | set x` to capture from a
-   pipe.
-3. **The `( )` sublanguage** — MQL predicates + infix comparison/logic; how an
-   MQL set's emptiness reads as truthiness for `if` / `while`.
-4. **Scope** — lexical, per-script frame; must survive suspension (ties into the
-   execution model, #6).
-
-### Blocks (keystone) — current direction, not yet decided
-
-Explored to a direction; forks left open (build is not near-term):
-
-- A block is a **closure** — a parsed body (a script fragment) + a captured
-  **lexical** scope; inert until a command invokes it.
-- It's a **first-class value**, unifying control-flow bodies, lambdas, event
-  handlers, and **functions** (`def name {block}` = a named block invoked like
-  a verb — "commands and functions are the same," literally).
-- Invoked by the receiving command in a **child scope** (lexical parent = the
-  closure env); `if` / `each` / `while` are just commands that invoke their
-  block. Invoking a block **may suspend** (it can contain `wait` / `expect`),
-  so blocks ride the script's coroutine.
-- The block's subject is the **MQL pronoun `it`**, bound by the enclosing
-  command (each-item / pipe-value / expect-match); nesting captures it with
-  `set` (so blocks and `set` arrive together).
-- A block **yields its last command's value**, so `if` can work in value
-  position (`set x (if (c) {a} else {b})`).
-
-**Open forks (deferred):** (1) `it`-only vs. explicit block params; (2) how
-fully first-class the v1 *surface* is (store/pass/handlers vs. inline-only);
-(3) suspension persistence — in-memory vs. durable across restart. These want a
-deeper scripting-language pass before they're settled.
+**Open forks (deferred):** (1) `it`-only vs. explicit block params —
+note `def`'s named positional params (shipped) are a *separate*
+mechanism (`ScriptDef`, not a generic `Block`), so this fork is really
+about whether the generic `Block` value itself should ever take named
+params beyond `it`; (2) how fully first-class the v1 *surface* is
+(store/pass/handlers vs. inline-only); (3) suspension persistence —
+in-memory vs. durable across restart. These want a deeper
+scripting-language pass before they're settled.
 
 ---
 
@@ -373,34 +238,34 @@ deeper scripting-language pass before they're settled.
 The **piping model** and the **command-native grammar** above are now resolved.
 What remains open:
 
-1. **Primitive vocabulary** — which verbs/effects are first-class builtins;
-   how the grammar's builtin set relates to the engine's verb catalog (is a
-   builtin a thin shim over a dispatched verb?); how it grows.
+Primitive vocabulary (#1), conditions (#3), execution model (#6),
+resource & isolation (#7), and HMR/path-resolution (#9) are now all
+shipped — see scripting.md §§ *Grammar & the parser*, *The block
+keystone and `( )` island* (MQL-emptiness-as-falsiness centralized in
+`isTruthy`), *Coroutines*, *Resource governance*, *The store*.
+`builtins.ts`'s own docstring answers #1's "how it grows": *"growing
+the language is adding affordance verbs (over the bus) or, rarely, a
+new intrinsic builtin (authored, out-of-band)."*
+
+Still open:
+
 2. **Control flow** — pipe-composition *and* the syntax (flow control =
-   commands taking blocks) are resolved (above); still open: block/scope
-   mechanics (the keystone, in progress), the temporal ops (`wait` / `every` /
-   `when`), and `on`-event hooks vs. polling (reuse the event bus, per
-   npc-behavior's "triggers are a selector, not a DSL").
-3. **Conditions** — *home resolved: the `( )` expression island (MQL + infix
-   logic, above).* Still open: how an MQL set's emptiness reads as truthiness,
-   and how `( )` values bind into args.
-4. **Actor binding** — a script runs *as* an actor; how it binds to the host
-   (an NPC running its own script) vs. the **director forcing** an actor;
-   what `self` / the acting identity resolves to.
+   commands taking blocks) are resolved (above); block/scope mechanics and
+   the temporal ops (`wait` / `every` / `when`) shipped; still open:
+   `on`-event hooks vs. polling (only `when`'s poll is built; reuse the
+   event bus, per npc-behavior's "triggers are a selector, not a DSL").
+4. **Actor binding** — a script runs *as* an actor (shipped — the
+   Interpreter takes the actor as a constructor param, and P10's
+   `invokeByPath` is how an NPC runs its own script); still open: the
+   **director forcing** an actor (llm-content-slate's remit) and what
+   `self` resolves to when forced rather than run as the host.
 5. **The `improv` seam** — its signature (intent in, line out), how it
    re-invokes the director, what context it carries, latency/cost shape.
-6. **Execution model** — scripts as coroutines on the scheduler; suspension
-   across `wait`; **interruption / cancellation** (a player barges in
-   mid-script → yield, abort, or `improv` a reaction); the `AbortReason`
-   vocabulary; concurrency with engagement slots.
-7. **Resource & isolation** — step/time/instruction limits; how the existing
-   `EvalScript` isolation is reused with a narrowed grammar; the relationship
-   (shared runtime? distinct interpreter?) to `EvalScript`.
+   Confirmed unbuilt: no `improv` anywhere in `lib/script/`.
 8. **Grammar & semantics surface** — *syntax resolved (command-native,
-   above).* Still open: the type/value model, error semantics, and how
-   authoring intelligence (LSP / save-gate validation) understands it.
-9. **HMR / path-resolution** — scripts as path-resolved brain config,
-   re-resolved per invocation (npc-behavior's grain) → edit-to-live loop.
+   above); the type/value model shipped (`Value.ts`).* Still open:
+   error semantics, and how authoring intelligence (LSP / save-gate
+   validation) understands it.
 
 ---
 
@@ -412,5 +277,5 @@ What remains open:
   [npc-behavior-slate.md](../builds/npc-behavior-slate.md).
 - **Authoring intelligence over the language** (completions, diagnostics) →
   [authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md).
-- **The concrete grammar** — deliberately open; that's the next conversation
-  ("what needs we have around scripting").
+- ~~The concrete grammar — deliberately open~~ — superseded: the grammar
+  shipped (command-native, above; scripting.md § Grammar & the parser).

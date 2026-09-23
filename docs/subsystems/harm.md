@@ -77,6 +77,15 @@ original producer; see [materials-response.md](./materials-response.md) §
   else `undefined`) — **never a caller-supplied parameter** (the gated-Api
   actor-from-context rule). Recorded on `Trauma.inflictedBy` for combat's
   future blame ledger; harm records attribution without owning blame.
+  ⭐ The affliction twin: **`AfflictionRecord.inflictedBy`** (the
+  consequence build, W7) is stamped from the same
+  `getActingAuthor()` at the `VitalsMixin.afflict()` door, never
+  overwriting a stamp a producer set deliberately. The gap it closed: a
+  wound had always known who dealt it; an affliction never did — so
+  poisoning, the one kind of harm that is deliberate, premeditated and
+  quiet, was the one kind the world couldn't attribute. An unattributed
+  affliction stays unattributed on purpose (most harm has no author;
+  inventing one would sweep the weather into the crime ledger).
 - **Severity AND type from the response function.** As of the
   materials-response build, `mechanism` is an `InsultKind` — a
   materials-response **`Channel`** (`edge`/`point`/`blunt`) or a legacy
@@ -541,6 +550,31 @@ command category plus `assess` in `perception`.
   wound reads "bleeding controlled" and **hides precise severity behind the
   dressing** — an expert can judge through it, else `undress` and look.
   This is the loop that answers "how do I know I'm healed."
+  ⭐ **`analyze patient`** is the trade's diagnostic surface above
+  `assess`, shipped by the `trade-medicine` pack (the stanza is on the
+  platform's `analyze` view, the controller is the pack's — the
+  instrumentation split). Its line: **competence buys what you can SEE,
+  never what you can DO** — an untrained eye knows something is wrong; a
+  novice reads the signs; a competent medic knows which conditions could
+  produce them, *plural and unranked* (that ambiguity is what makes the
+  choice a choice); proficient knows what would treat it and how it
+  spreads; expert reads how far it has gone. Nothing on the ladder makes a
+  treatment work better. The forensic twin, `analyze postmortem`, is
+  [mortality.md](./mortality.md).
+  **Why the diagnosis loop is a trainer, not a script.** Three shipped
+  decisions combine: honest opacity (no gauges — you read the world, not a
+  stat); every `Condition` carries prose `observableSigns`; and the
+  catalogue's two dozen rows have *overlapping* signs. So **differential
+  diagnosis emerges rather than being scripted** — flushed, sweating and
+  disoriented is consistent with hyperthermia, with a toxin burden and
+  with an infection, and separating them takes more signs, a history or an
+  instrument. That is what scripted clinical sims structurally cannot do:
+  their scenarios have one correct answer fixed in advance, while this
+  patient's state derives from a model, so the reasoning is real even when
+  the case is unremarkable. The anti-wiki rule carries over from farming
+  verbatim: knowing a condition's sign set never tells you that *this
+  patient* has it — knowledge is portable, the assessment is not
+  skippable. *(Graduated from the health-vertical slate, 2026-09.)*
   It also carries an **affliction readout** — what is wrong with someone
   that isn't a wound. Trauma was the only thing it could describe, so
   anything *carried* rather than *cut* (a poison, a disease, the mortality

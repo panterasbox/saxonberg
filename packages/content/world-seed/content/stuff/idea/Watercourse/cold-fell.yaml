@@ -24,6 +24,8 @@ data:
   key: cold-fell
   name: Cold Fell
   basin: cold-fell
+  # High granite: soft, faintly acid, next to nothing in it.
+  water: { pH: 6.8, hardnessDgh: 5, nitrateMgL: 0.5 }
   nodes:
     # A tarn under the ridge — snowmelt and rain, and nobody upstream of
     # it at all, which is exactly what makes it worth an aqueduct.

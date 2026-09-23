@@ -1,0 +1,17 @@
+# A shore crab — what a pot takes. It breathes air on the bank for a
+# while (its body plan says so), so a lifted pot is full of live crabs.
+class: /trade/fishing/agent/Fish
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/shore-crab
+  lifecycleState: alive
+  shortDescription: shore crab
+  register: indefinite
+  primaryKeyword: crab
+  keywords: [crab, shore, shore-crab]
+  longDescription: >-
+    A shore crab, green-brown, sidling, claws up.
+  handling: 0.0
+  behaviors:
+    - brain: /lib/behavior/feeds
+      trigger: cadence:60s

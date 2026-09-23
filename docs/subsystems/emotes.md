@@ -10,7 +10,7 @@ prose form. The substrate ships as part of the social-cluster build
 catalog backed by MongoDB, a `SoulCatalogue` singleton holding the
 runtime verb→Emote cache, and a thin `SoulApi` facade consulted by
 the verb dispatcher. The slate at
-[emotes-slate.md](../slates/tails/emotes-slate.md) stays live as the
+[emotes-slate.md](../slates/builds/emotes-slate.md) stays live as the
 register of design space not yet built.
 
 ## What emotes are vs. what they aren't
@@ -24,12 +24,33 @@ when present, ride as a payload glyph (`👋`) for the client to
 render alongside or in place of the prose — never as the primary
 representation.
 
+**Why prose is primary** (graduated from the emotes slate, 2026-09):
+natural language makes each emote distinct, scales to a huge
+vocabulary, supports abstraction — the `bogleg` lineage, a typo'd
+`boggle` that became its own word, then `bog`, `boglegged`,
+`almightybogleg` — and keeps NPC expression in-fiction instead of in
+the uncanny valley. And the glyph, where there is one, is **chosen by
+the recipient**, not the sender: the server emits both shapes once and
+the viewer's `social.emote.render` setting picks (the same
+calculate-once / serialize-differently discipline as the pedagogical
+seam), so a reader can keep emoji from players while suppressing them
+from NPCs. The sender never forces a glyph onto the reader. (The
+per-channel client toggle is Layer 2 — *What's deferred*.)
+
 Emotes are NOT speech. Speech rides `VocalMixin` (acoustic, propagates
 through the `SoundModality` walk, gated by atmospheric medium and
 hearing organs); emotes ride the **ESP carrier** stamped as
 `meta.modality = 'emotive-esp'` and gated at
 `SensorMixin.filterMessage` by whether the recipient's sensorium
 includes that modality.
+
+Emotes are NOT state changes. An emote mutates zero world state —
+`emote()` composes and sends a Scene and does nothing else. That is the
+line against the posture subsystem (`sit` / `stand` / `kneel` / `lie`
+change occupancy and `Posed` — [posture.md](./posture.md)): `bow` the
+expression is an emote though it rhymes with a posture, and a posture
+verb that happens to narrate is still not an emote. If an action changes
+the world, it is not an emote.
 
 `SoulMixin` is **composed natively** on every `Character` (Avatar +
 NPC) and is not augment-gated. The diegetic story is that *making*
@@ -101,6 +122,18 @@ binder + renderer. Two slot kinds: `stuff` slots resolve via MQL to
 a `Stuff` ref (typically the emote target), `free` slots accept
 arbitrary text (manner clauses, adjectives, fragments).
 
+Why two, not the slate's four. The slate's `literal` and `enum` kinds
+were dropped when this shipped (`EmoteGrammar.ts`): `literal` is
+redundant — it is the template text the author already writes — and
+`enum` (a closed manner vocabulary the user picks from, supplying no
+text) existed only as the **moderation foundation**, the slot kind that
+lets a strict emote-only mode admit no user bytes at all; moderation
+was deferred, so the kind went with it. A moderation build that wants
+that structural guarantee revives `enum` as a third `SlotKind` beside a
+per-actor expression-policy gate — the design is still in
+[emotes-slate.md](../slates/builds/emotes-slate.md) § Typed grammar
+slots and § Moderation.
+
 ```typescript
 export type SlotKind = 'stuff' | 'free';
 
@@ -156,6 +189,12 @@ ensures Mml fragments emit verbatim while raw strings (slot fills)
 get the five-entity escape.
 
 ## `SoulMixin` — rendering and verb-side send
+
+The name is the LPMud term of art: on soul-lineage MUDs the emote /
+feelings subsystem is *the soul*. `Soul` names the capability
+(`SoulMixin`, `interface Soul`, `SoulApi`, `SoulCatalogue`); `Emote`
+names the record and the act (`class Emote`, `emote()`, the `emote`
+verb), so the two never collide.
 
 `SoulMixin` composes onto `Character` and exposes two render
 methods plus two send methods:
@@ -216,7 +255,9 @@ The rendering surface (`renderEmote` / `renderFreeForm`) lives on
 the mixin **regardless of routing**. Channel-routed and
 DM-handle-routed emote paths call the render methods to get the
 triple, then compose their own `Scene` with a different audience
-(channel members instead of in-room peers). The mixin is not a
+(channel members instead of in-room peers) — that is the contract for
+them; **no such path is wired yet** (`renderEmote` / `renderFreeForm`
+have no caller outside the mixin — see *What's deferred*). The mixin is not a
 router; rendering consistency lives in the mixin, audience
 computation lives at the dispatch site.
 
@@ -477,7 +518,7 @@ does. See [reactions.md § The emote picker](./reactions.md).
 
 ## What's deferred
 
-Each of the following stays in [emotes-slate.md](../slates/tails/emotes-slate.md)
+Each of the following stays in [emotes-slate.md](../slates/builds/emotes-slate.md)
 for a future build. The data shape ships now where deferring would
 later force a migration; the **behavior** doesn't run in v1.
 
@@ -491,15 +532,22 @@ later force a migration; the **behavior** doesn't run in v1.
   `Emote`, no predicate seam. When the first real entitlement
   source ships, it brings its own schema field; document migration
   for one optional field is cheap.
-- **Layer 4 reactions + tags aggregation.** The `tags` field on
-  `Emote` reserves the aggregation hook, but no `react` verb,
-  message-id surfacing, or client aggregation UI ships.
-- **Echo routing.** The `Emote.echo` field and the parallel
-  `social.emote.echo` setting reserve the data shape, but the
+- **Layer 4 reactions + tags aggregation** — *since shipped*: the
+  `react` verb, the gutter number → `commandId`, act-scoped tallies and
+  chips grouped by `tags[0]` are [reactions.md](./reactions.md).
+- **Channel / remote-audience emotes.** No dispatch path composes an
+  emote to a channel's members or a DM's parties; only a directed
+  *target* crosses rooms (§ Universal ESP target delivery). The
+  render/route split above is the seam such a path plugs into; the
+  audience design (in-room · channel · directed-remote) and the
+  provenance label are in the slate's § Reach / § Provenance.
+- **Echo routing.** The `Emote.echo` field reserves the data shape
+  (the slate's `social.emote.echo` setting is **not** declared — only
+  `social.emote.render` is in `SoulMixin.settings`), and the
   *second-audience shadow performance* — bystanders in Bobalu's
   current room seeing him performing a wave even though the wave
-  was a channel emote — doesn't run in v1. The canonical
-  channel / DM audience ships now; the in-room echo waits.
+  was a channel emote — doesn't run in v1. It waits on the channel
+  path above.
 - **Live cross-process HMR.** Author edits via `soul edit`
   invalidate the local-process cache write-through; multi-process
   authoring needs a restart in v1.

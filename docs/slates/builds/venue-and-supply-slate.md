@@ -1,21 +1,22 @@
 # Venue & supply slate — sellable businesses, archetypes, and the input graph
 
 > **Status: PARTIAL** — the substrate the slate audits already ships: the
-> `archetype` document kind (nine rows, `describe`/`materialize`), the
-> parameterized `PlatBook`, and the going-concern loop (`wallet use
-> house` + `buy` + `restocks`)
-> → [content-packs.md](../../subsystems/content-packs.md)
-> **Left:** V6 — `needs` past the closed six (ground/water/sun) and
-> producer `yields` · V5 `lint:supply` · V4 the five support archetypes ·
-> V2 the uniform `kind: office` sweep · what a business is worth
-> (`appraisal` has nothing to appraise)
+> `archetype` document kind (fifteen rows, `describe`/`materialize`), the
+> parameterized `PlatBook`, the going-concern loop (`wallet use
+> house` + `buy` + `restocks`), `trade-ranching`, and a `needs` vocabulary
+> of eleven keys → [content-packs.md](../../subsystems/content-packs.md)
+> **Left:** V6 producer `yields` (the `needs` vocabulary now admits
+> `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support
+> archetypes (only the depot ships) · V2 the uniform `kind: office` sweep
+> (16 `entity` rows remain) · what a business is worth (`appraisal` has
+> nothing to appraise) · the six farm shapes as archetypes (`farm` and
+> `byre` ship) · the universal ladder · the warehouse receipt as
+> collateral · the valley's hills + the range
 > **Size:** a build
 
 > **Captured 2026-09-03**, out of the towns design session, in answer to
 > one goal: **NPC-run businesses that can be easily sold to players when
 > the time comes for players to run them.**
->
-> **Status: direction decided, nothing built.**
 >
 > ⭐ **Its own slate rather than a section of
 > [towns-slate](./towns-slate.md), deliberately.** None of this is about
@@ -49,7 +50,7 @@ document kind) · [crafting](../../subsystems/crafting.md) (Recipe docs) ·
 
 Siblings: [towns-slate](./towns-slate.md) ·
 [ranching](./ranching-slate.md) (⚠ **ships first** — § 8) ·
-[farming](../tails/farming-slate.md) · [stewardship](./stewardship-slate.md) ·
+[farming](farming-slate.md) · [stewardship](./stewardship-slate.md) ·
 [economy](./economy-slate.md) · [supply-chain](../tails/supply-chain-slate.md) ·
 [corpos](./corpos-slate.md) · [freight](./freight-slate.md) ·
 [vocations](../../vocations.md)
@@ -156,13 +157,7 @@ has none. The connective tissue and the player on-ramp in one object.
 
 ### The archetype substrate ships
 
-The `archetype` document kind is real:
-`{ archetypeId, label, industry, capabilities: [{ key, needs, default? }] }`,
-warmed into `ArchetypeCatalogue`, and ⭐ **an archetype describes and
-materializes itself** (`archetype.describe()` is the effective floor,
-`archetype.materialize()` builds a venue). Nine ship: `mining`,
-`brewhouse`, `hospitality`, `winery`, `still-house`, plus `kitchen`,
-`living`, `bathroom`, `bedroom`.
+> *Cut 2026-09-18 (slate compaction) — documented → [content-packs.md](../../subsystems/content-packs.md) § Content-kind dispatch (the archetype row); fifteen archetypes ship now (`farm` · `byre` · `depot` · the transport four added since).*
 
 ⚠ **But `needs` is a closed six** — `tool · heatK · bulkSource · surface ·
 seating · coldStorage` — with **no word for ground, water, or sun.** A
@@ -273,78 +268,17 @@ substrates.
 
 ## 6. ⭐⭐ The going-concern model — and the loop already runs
 
-> **You do not found a business. You buy one that already works.**
-
-⭐ **This ships**, and it is stronger than the design conversation
-assumed:
-
-- **`wallet use house`** links a business's operating account into the
-  holder's `PaymentCredential` and makes it active — resolved via
-  `actor.buysFor()` (every Business where you hold a non-exited
-  `purchases` position, plus one you are proprietor of).
-- **While active, `buy` stamps the chattel to the business** and
-  `consign` consigns *as* the business.
-- **`/lib/behavior/restocks`** ships as a brain (one live use): count the
-  rail against par, buy the shortfall on the business's account, stock it.
-
-⭐⭐ So an NPC business with an account, a par manifest and a `restocks`
-beat is **DAU-independent** — it runs with nobody watching. A player then
-takes the seat and inherits something that already works.
-
-Better onboarding than an empty shop, how small business actually
-transfers, and it means **every venue authored does double duty**: economy
-floor now, player business later.
-
-⚠ Correction for the record: this was described in conversation as
-`buy --for <business>`, "the one gap supply-chain Part 3 named." That was
-the *slate's proposed* shape; what shipped is the wallet conferral above.
-The gap is closed.
+> *Cut 2026-09-18 (slate compaction) — shipped and documented: `actor.buysFor()`, `wallet use house`, `buy` stamping chattel to the business, the `restocks` brain → [employment.md](../../subsystems/employment.md) (`buysFor`, `purchases`), [behavior.md](../../subsystems/behavior.md) (`restocks`, `consigns`), [banking.md](../../subsystems/banking.md) (`wallet use house`).*
 
 ---
 
 ## 6b. ⭐⭐ One `PlatBook`, four land uses
 
-`PlatBook` is already fully parameterized — `parentExtent`, `lotBranch`,
-`lotPrefix`, `priceMinor`, `areaM2`, **`landUse`**, `holderPath` — so every
-growth case in the realm is one shipped mechanism:
-
-| plat | `landUse` | `areaM2` | sells |
-|---|---|---|---|
-| Hinkley Hills | `residential` | 1 000 | house lots |
-| Heart's Delight | `agricultural` | 40 000 – 400 000 | farm ground |
-| Terminus — West Bank | `commercial` | 200 – 2 000 | working frontage, **cheap** |
-| Terminus — East Bank | `commercial` | 200 – 2 000 | prestige frontage, **dear** |
-| Terminus — Wharfside | `industrial` | ≥ 100 | workshop premises |
-| the necropolis | `civic` | ⭐ ~4 | **plots** |
-
-⭐ A cemetery *is* a subdivision — numbered plots, sold, in rows.
-
-**And a street is authored when it is full and generative when it is
-not.** ⭐⭐ *The street does not decide; the parcel does* — "authored and
-generative streets" is one mechanism at two stages, visible on the ground
-as empty lots. ⚠ Two axes that correlate but are not the same: **frontage
-availability** (a fact about the plat) and **venue kind** (bespoke or
-archetype — a fact about the business). And ⚠ **availability is not
-cheapness**: reclaimed fill is cheap, a burned block is cheap, **new money
-is dear.**
-
-Lifecycle, needing no new systems: *new ground → frontage for sale → built
-out → secondary market → high street.* A generative street **matures into**
-an authored one; whoever got in early holds an appreciating asset. That is
-`PlatBook` capacity plus title transfer.
-
-⭐ **Three land markets**: **stake** (first come against a register —
-Rejection, the frontier condition, and it *ships*) · **sell** (a plat with
-capacity and a price) · **transfer** (secondary, once built out).
-
-Full model: [../../settlement-model.md](../../settlement-model.md).
+> *Cut 2026-09-18 (slate compaction) — documented verbatim → [settlement-model.md](../../settlement-model.md) § 6 One `PlatBook`, four land uses.*
 
 ## 6c. ⭐⭐⭐ The warehouse receipt — storage is a financial instrument
 
-`freight-slate` already carries the shape, and it is better than "a box you
-rent": a warehouseman is a **bailee** — holds your goods, owes a **duty of
-care**, and **issues a receipt.** ⭐ **A warehouse receipt is a document of
-title.**
+> *Cut 2026-09-18 (slate compaction) — shipped as a RECORD (the `warehouse-receipt` document kind; the bearer `Thing` cut before merge for proving nothing) → [logistics.md](../../subsystems/logistics.md) § The warehouse receipt. The three jobs below are what the record does not yet do.*
 
 It does three jobs at once, and only the first is storage:
 
@@ -364,10 +298,6 @@ It does three jobs at once, and only the first is storage:
 
 > ⭐ **Warehouses are not storage furniture. They are the lever that
 > shrinks the Gray.**
-
-⚠ Which also means the warehouseman is a **vocation with a duty** rather
-than a container — and the duty (bailment) is the thing that makes losing
-somebody's goods a real event.
 
 ## 7. Scaling discipline for 10× content
 
@@ -511,26 +441,7 @@ or extends the valley's.
 
 ## 10. Grounding (verified 2026-09-03, at `4e25aeb93`)
 
-- **`appointingAuthority` kinds**: `entity` · `office` · `committee`.
-  Shipped content is almost entirely `entity`; `committee` is used by the
-  counting-houses and the registry; `office` appears only in tests.
-- **Recipes** declare `inputSlots[].category` (+ `minGrade`, `measureL`)
-  and `outputMaterial` / `outputTemplate` / `outputResidue`. `mash` needs
-  category `malt`; nothing outputs malt.
-- **Archetypes**: the `archetype` document kind, nine shipped;
-  `needs` ∈ `tool · heatK · bulkSource · surface · seating · coldStorage`;
-  `describe()` / `materialize()`; ⭐ **there is no `ArchetypeApi`**.
-- **Nitrogen**: a reserve on **beds only** (percentage points); harvesting
-  exports, `feed` restores. No declared producer.
-- **`ranching-slate`**: core loop DECIDED; *pasture is a field*; rotation
-  emerges from soil accounting; disease/breeding/herd-UX still open.
-- **The business-account loop ships**: `actor.buysFor()`,
-  `wallet use house`, `buy` stamping chattel to the business, `consign` as
-  the business, and `/lib/behavior/restocks` (one live use).
-- **`appraisal`** is a shipped Discipline.
-- **34 content packs** ship, incl. 11 trades and 5 corpos.
-- **Species gaps**: no barley, no fibre crop, no apricot/plum (cherry
-  `prunus avium` ships).
+> *Cut 2026-09-18 (slate compaction) — history: a snapshot at `4e25aeb93`, four bullets of which no longer hold (47 packs; `needs` has eleven keys; barley and flax ship in `trade-farming`; 18 `kind: office` rows). The compaction ledger carries the 2026-09-18 grounding.*
 
 ---
 

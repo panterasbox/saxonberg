@@ -17,7 +17,7 @@ product vision see [docs/vision.md](./docs/vision.md).
 The `docs/` tree is the source of truth for architecture and subsystem
 behavior. Read the relevant doc before editing in its area.
 
-- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE FIVE
+- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE SIX
   LENSES every high-level design is interrogated with**, and the
   standing rule for any fork: 1 **pedagogy** (what Discipline does it
   exercise; is the world derivable) · 2 **creative expression** (the
@@ -27,7 +27,8 @@ behavior. Read the relevant doc before editing in its area.
   (values, not knowledge: what choice does it force, and who confers
   standing) · 5 **technology & magic** (the mechanism holds from ancient
   Rome to New York; only the dynamics change — magic and future tech are
-  one axis). A **scorecard, not a gate**: 1 and 2 decide forks, and
+  one axis) · 6 **economy** (produces · consumes · who pays · was the
+  demand there first). A **scorecard, not a gate**: 1 and 2 decide forks, and
   ⭐ **when they decide one, don't ask — pick it and say which limb
   chose.** Run the pass at the slate and at requirements. ⚠ NOT
   [docs/lenses/](./docs/lenses/README.md), which is the borrowed Schell
@@ -217,12 +218,14 @@ behavior. Read the relevant doc before editing in its area.
   - [party.md](./docs/subsystems/party.md) — the Party Idea + PartyRecord mirror, the fourth GroupProvider, the `sideOf`/`areAllied` combat seam, the `party` verb
   - [reserve.md](./docs/subsystems/reserve.md) — the generalized Reserve capacity axis, ReservedMixin, biological reserves
   - [encumbrance.md](./docs/subsystems/encumbrance.md) — the carry-weight gauge: LoadBearing derived burden, the consequence ladder, the haulage draft term
+  - [exertion.md](./docs/subsystems/exertion.md) — what working does to a body: ONE `exert({durationS, powerW})` event from the scheduler / the traverse / the exchange; the five slow stocks (`lean` · `protein` · `wind` · `vitamin-c` · `alcohol-tolerance`); ⭐ reach as a body read, never a number (the run that breaks, the climb's rest, `lift`); every limit SOFT — work never collapses a body; the mirror (`look`'s body line); the `BODY` shelf row + the `self.body` cue; the `gym` archetype + `LoadDevice`
   - [metabolism.md](./docs/subsystems/metabolism.md) — the intake/chemistry driver: digestion buffer, reconcile-on-read, condition cascades, meal chemistry, toxins
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
   - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
   - [soil.md](./docs/subsystems/soil.md) — ground as a ledger: SoilMixin's four reserves + the sky edge, GroundCharacter (the third seeded field; character prices IMPROVEMENT, never yield), the survey ladder, `Field` + `plot`, the sward, winter
   - [ranching.md](./docs/subsystems/ranching.md) — the animal economy: the herdbook as a filed record (you file, you do not hold the pen), draft/return, `flesh` as a stock, the taps, three ROLES not three classes, ⚠ breeding writes SERVED only
   - [forestry.md](./docs/subsystems/forestry.md) — the wood as a PLACE: ⭐ the four representations of a tree (place · slot-plant · record-rejected · prop), the `Wood` location that IS ground with a `StandMixin` cover (derive-on-read from its own soil, stamped only by the axe, read by `look` in words), `fell` and the **bole** (a trunk too heavy to lift, cross-cut a length at a time; every felled good stamped AND placed AND the feller captured), the persistable coppice `Panel` on a one-game-year rotation, the deed written by the ground, the closed wood vocabulary, daylight and no night, a second wood as rows only
+  - [fishing.md](./docs/subsystems/fishing.md) — taking what a water holds: ⭐⭐ the fishery as a DERIVED record on a reach (the water pack's; capacity = Liebig habitat fit × abundance × length, only `drawn` is state, recovery by half-life), the reach reporting every parameter a tank will ever hold, the `Shore` read banded by competence, the bite as the fish's decision (one epistemic draw), the pure landing contest, ⭐ the rig as numbers on the rod coupled by the rows (present-at × where it feeds, the hook's gape, the lure worked not eaten, the keepnet a trap full of water), traps that reconcile at the haul, the fish as a `Contaminable` kept animal alive until it is not, the fisher and the fishmonger
   - [pets.md](./docs/subsystems/pets.md) — an animal kept for itself: `KeptAnimal` as a rung, the bond as regard × handling (*difficult, not feral*), feeding as a ladder the species declares, ⭐ the offer as a moment the animal decides (`offerRung` + `OfferEngagement`), the ask, naming as the promotion, and the residency pin — what loads a pet
   - [mining.md](./docs/subsystems/mining.md) — ground you cut: the Deposit field (seeded, never drawn), WorkingMixin's four reads, MineWarren carve/shore/promote, the damps + the canary, grade end-to-end to the smelt
   - [spoilage.md](./docs/subsystems/spoilage.md) — food that goes off, and the food that hurts you: ⭐⭐ **spoilage is a CLOCK, contamination is an EVENT** — the microbial LOAD (`μ = μ_max · f_T · f_aw`) with FreshnessMixin on `Provision`, the bands, the kill as an Arrhenius RATE held for a recipe's `holdS`; the per-instance water state (`CuredMixin` — `a_w = base · moisture · (1 − solute)`, hurdles that stack, drying reverses and curing does not); and the SILENT second population (`ContaminableMixin` — event-seeded, no sense reports it, its own kill curve + spore floor, `infect` vs `intoxicate`) with butchering as its one source; `lint:perishable` + `lint:pathogens`

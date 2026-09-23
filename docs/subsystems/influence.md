@@ -264,6 +264,29 @@ The math:
   independently; a consumer stake and a producer stake on one target are
   distinct rows).
 
+  **Why no pool** (graduated from the cooperative slate, 2026-09): a
+  reservoir is a *simulated* scarcity stacked on a real one — attention —
+  and a budget turns politics into portfolio management, which is
+  swing-voter leverage moved one level up. No-pool is also what keeps the
+  system scale-invariant: `support = tally / totalStanding(stock)`, so
+  doubling everyone's standing doubles both sides and absolute magnitude
+  never appears anywhere; a reservoir reintroduces absolute numbers and a
+  permanent tuning burden. ⚠ The draft constitution's Art. IV §2/§7 and
+  the Schedule's `influence.cap_curve` / `regen_rate` still describe a
+  reservoir; the shipped, entrenched rule is this one.
+
+  **Why the weight is a fading number times a growing one** (graduated
+  from the legal-code slate's *The vote as spectacle*, 2026-09): the
+  tally multiplies **standing, which decays in real time** (all three
+  stocks — `participation.decayHalfLife`, `producer.decayHalfLife`,
+  renown's half-lives) by **conviction, which only builds**. Two
+  consequences fall out unaided: the obvious exploit dies — park a
+  position, walk away, return at maximum conviction, and find your
+  standing decayed out from under it, so **conviction rewards patience,
+  never absence**; and every chamber is structurally a chamber of the
+  currently present — veterans who left cannot hold the floor, and
+  nobody had to design a term limit.
+
 ### Present vs absent (quorum) — abstain
 
 The **existence** of a `Position` row means the holder **cast a vote**

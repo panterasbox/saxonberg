@@ -4,8 +4,10 @@
 > build: `TabStrip`, `FilterDrawer`, `GutterStripe`, and the
 > `Topic`/`TopicCatalogue` substrate
 > → [topics.md](../../subsystems/topics.md)
-> **Left:** transcript search · sender filter · compact mode ·
-> timestamps · brief mode / `prose.verbose` · per-room verbosity memory
+> **Left:** transcript search · sender filter · family mute (collapse a
+> topic family to a count badge) · author/admin frames toggle · compact
+> mode · timestamps · brief mode / `prose.verbose` · per-room verbosity
+> memory
 > **Size:** a wave
 
 Working slate for **console filtering** — the suite of client-side
@@ -64,17 +66,7 @@ See also:
 
 ## Principle
 
-**The server prints everything; the client decides what to show.**
-Filtering is cheap because it lives on the client — no server
-round-trip, no policy negotiation, instant feedback. The server's
-job is to emit cleanly-categorized frames with stable topics; the
-client's job is to give the player tools to slice that stream
-however suits them.
-
-Always-print on the server, always-categorize on the wire, always-
-filterable on the client. The same prose is available to anyone
-who wants it (audit trails, replay, log capture); the player's
-session view is just a filter on the firehose.
+*Graduated to [topics.md](../../subsystems/topics.md) § *Why the filter lives on the client* — the server prints everything, categorizes on the wire, and the client filters; the shipped named-predicate views are retroactive because the server never withholds a frame.*
 
 ---
 
@@ -91,29 +83,29 @@ and survives here as the live remainder: **search** (Ctrl-F), **sender
 filter**, **family mute / compact mode**, **timestamps**, **brief mode
 / `prose.verbose` verbosity**, and **per-room verbosity memory**.
 
-### Topic toggles
+### Topic toggles — shipped, and on a different vocabulary than listed here
 
-Per-topic on/off controls. Server topics today (partial list):
+Per-topic on/off controls shipped as the `FilterDrawer` over the
+`TabStrip` in the console-foundations build, then went further: a tab is
+a **named predicate** over the whole buffer (facets + a topic-mute
+allowlist/denylist), not a flat topic checkbox tree — see
+[client-shell.md § One strip, and every tab is a VIEW over the whole
+buffer](../../subsystems/client-shell.md#-one-strip-and-every-tab-is-a-view-over-the-whole-buffer).
 
-- `world.speech.{say,tell}` — speech
-- `world.perception.{look,inventory,scry,locate}` — perception output
-- `world.narration.{movement,teleport,action}` — narration
-- `world.identity.change` — identity changes
-- `system.shell.{fs,author,help,movement}` — system replies
-- `system.command.error` — dispatcher errors
-- `system.log.command.{info,warn}` — local echoes
+⚠ **The example topic list below is STALE — the vocabulary it names is
+gone.** The S2 topic-taxonomy build collapsed the ~89-topic tree this
+slate was written against (`world.speech.*`, `world.perception.*`,
+`system.shell.*`, …) into **seven roots and 29 leaves** with the
+cross-cutting axes (who's talking, who it's for, how loud) moved to
+**facets**. See [topics.md § The seven
+roots](../../subsystems/topics.md#the-seven-roots). Read every topic
+string in this slate (below, and in the UI sketch) as illustrative of
+the mechanism, not as current vocabulary.
 
-UI shape: a collapsible filter panel (gear icon? sidebar drawer?)
-with a tree of topics, each with a checkbox. Default all on.
-Player can uncheck to mute. Per-topic checkbox shows a small count
-badge of frames muted since this session started. **Shipped** as the
-`FilterDrawer` over the `TabStrip` in the console-foundations build.
-
-Mute state persists per-tab so it survives reconnect. **Correction
-(what shipped):** the per-tab `muted` lists route through
-`ClientStateMixin` — server-persisted client-view state keyed per tab
-— **not** a flat `console.filters.muted: string[]` *settings* key as
-this slate originally proposed. Per-tab mute is client-UI state, not a
+Mute state persists per-tab so it survives reconnect, through
+`ClientStateMixin` — server-persisted client-view state keyed per tab —
+**not** a flat `console.filters.muted: string[]` *settings* key as this
+slate originally proposed. Per-tab mute is client-UI state, not a
 player-tunable `settings` knob; see the Settings keyspace correction
 below.
 
@@ -277,43 +269,25 @@ the player's display layer.
 
 ## UI sketch
 
-The filter surface should be unobtrusive — most players will never
-touch it. A small gear / sliders icon on the terminal header opens
-a side drawer:
+⚠ **The drawer/tree part of this sketch is superseded by what shipped**
+— the actual `FilterDrawer` editor is a per-view facet editor (three
+facet axes with live per-value counts, a `SHOWING n of m` readout, a
+topic-mute tree beneath it) opened from the active tab in `TabStrip`,
+not a standalone gear-icon panel with a flat topic checkbox tree. See
+[client-shell.md § Composing one](../../subsystems/client-shell.md#composing-one).
+Kept below for the parts still unbuilt: **search**, **timestamps**,
+**compact mode**, and the right-click discovery surface.
 
 ```
-┌── Terminal ─────────────────────────────────[⚙]──┐
-│ ...                                              │
-│ (terminal output)                                │
-│ ...                                              │
-└──────────────────────────────────────────────────┘
-
-Drawer (when opened):
-┌── Filters ───────────────────────────────────────┐
-│ ☑ World                                          │
-│   ☑ Speech (say, tell)                           │
-│   ☑ Perception (look, inv, scry)                 │
-│   ☑ Narration (movement, action)                 │
-│   ☑ Identity                                     │
-│ ☐ System (mute all 14 frames)                    │
-│   ☐ Shell                                        │
-│   ☐ Errors                                       │
-│   ☑ Command echoes                               │
-│                                                  │
-│ Search: [____________________]                   │
-│ ☐ Timestamps                                     │
-│ ☐ Compact mode                                   │
-│                                                  │
-│ Verbosity: ( ) brief  (•) full                   │
-└──────────────────────────────────────────────────┘
+Search: [____________________]
+☐ Timestamps
+☐ Compact mode
 ```
-
-Lightweight. Doesn't take terminal space when closed.
 
 Right-click on any frame in the scroll opens a quick context menu:
 "mute this topic," "show only sender X," "search forward / back,"
-etc. — the right-click is the discovery surface; the drawer is the
-configuration surface.
+etc. — the right-click is the discovery surface; the shipped facet
+editor is the configuration surface.
 
 ---
 
@@ -341,8 +315,12 @@ configuration surface.
 1. **Default filter state** — anything off by default? Probably
    no — fresh players should see everything until they decide to
    trim. But author / admin frames maybe default off for non-admin.
-2. **Mute granularity** — per-topic or per-topic-family? Both?
-   Lean both, tree-shaped UI.
+2. **Mute granularity** — per-topic or per-topic-family? Both? Lean
+   both, tree-shaped UI. **Resolved, and the lean held:** the shipped
+   view model carries both — a per-tab topic-mute tree AND a
+   facet-based allowlist (`FacetFilter.topics`) per named view. See
+   [client-shell.md § `Aether` is a topic list, and that is a
+   finding](../../subsystems/client-shell.md#-aether-is-a-topic-list-and-that-is-a-finding).
 3. **Search across muted content** — if a topic is muted, does
    search still find it (with a "found in muted topic, unmute to
    show?" prompt)? Or does muting hide from search too? Lean
@@ -368,8 +346,10 @@ configuration surface.
 
 ## Dependencies
 
-- **MessageApi topic vocabulary** (existing) — the categorization
-  anchor for all topic-based filtering.
+- **The topic vocabulary** — the categorization anchor for all
+  topic-based filtering. Now `TopicCatalogue` over the seven-root/29-leaf
+  tree, not the ~89-topic `MessageApi` vocabulary this slate was
+  drafted against. See [topics.md](../../subsystems/topics.md).
 - **EnvironmentMixin settings** — the player-tunable `console.*` view
   knobs and `prose.*` (server emit verbosity) live here.
 - **ClientStateMixin** — per-tab `muted` / `collapsed` view state
@@ -385,8 +365,10 @@ configuration surface.
 
 ## Suggested build order
 
-1. **Topic toggles + drawer UI** — the load-bearing 80% surface.
-   Client-only; subscribes to all, renders per filter state.
+*(Step 1 — topic toggles + drawer UI — shipped, in a more capable shape
+than sketched here: named predicate views, not a flat drawer. See
+`### Topic toggles` above.)*
+
 2. **`console.*` settings keyspace** — wire the existing
    `settings` verb to read/write the filter list.
 3. **`prose.verbose = brief | full` setting + `LookController`

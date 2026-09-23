@@ -141,7 +141,7 @@ configured" and nothing subscribes.
 ## Deferred
 
 - **YouTube** and any second service — `TwitchClient` is Twitch-specific;
-  the [external-chat-relay slate](../slates/tails/external-chat-relay-slate.md)
+  the [youtube-relay slate](../slates/tails/youtube-relay-slate.md)
   holds the generalization (live-only + quota constraints).
 - **Live-stream video overlay** — the client video half of "tune into a
   streamer"; this build is the chat half.

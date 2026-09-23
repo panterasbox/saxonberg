@@ -1,5 +1,19 @@
 # Wire-suite growth — the tail
 
+> **Status: UNBUILT** — the tier itself shipped (MR!251;
+> [testing.md § The two tiers](../../testing.md)) and has grown to
+> twenty flow files under `packages/wire/tests/` without building any
+> seam below: `declareFile({ packs })` still boots one world, the prose
+> census is still a measurement, farming's growth arc is still a manual
+> drive, and nothing purges wire litter.
+> **Left:** boot groups · the compressed-clock group (farming's arc as
+> its first customer) · farming's yard legs (the one-actor problem) ·
+> metal-chain's provisioning leg · the crafting cookhouse scene moved to
+> `cooking.dirty` · the prose-census ratchet · a Mongo snapshot/restore
+> reset path · a wire-litter purge · the content-findings handoff table
+> (each row owned elsewhere)
+> **Size:** a tail
+
 The wire tier shipped (MR for `design/wire-tests`, 2026-09-08): a
 `packages/wire` harness, eleven flow files, its own command and CI job.
 This is what it deliberately did NOT build, and the findings it handed
@@ -59,11 +73,10 @@ across 11 files on the first green run). The census is a MEASUREMENT
 today; no ceiling is enforced. Freeze today's count as the ceiling once
 the ports settle — the `lint:object-verbs` census-then-ratchet pattern.
 
-⚠ Before ratcheting, check whether the residue is really render-only. A
-prose read that exists because no `subscribableFields` descriptor
-reaches the fact is a **card-surface** finding, and the fix belongs
-there — a wire file may never add a descriptor to make itself
-assertable.
+⚠ Before ratcheting, check whether the residue is really render-only —
+the rule (*a wire file may not add a `subscribableFields` descriptor to
+make itself assertable*; an unreachable fact is a card-surface finding)
+lives at `testing.md § The three assertion channels`.
 
 ### 7. A Mongo snapshot/restore reset path — measured, not obvious
 Seeding is ~150s of a 250s cold boot, so a snapshot/restore WOULD attack

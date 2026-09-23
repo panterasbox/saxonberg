@@ -1,22 +1,20 @@
 # Authoring intelligence slate (working doc)
 
-> **Status: UNBUILT** — Monaco ships with stock language support only,
-> and cms.md lists this as explicitly not covered
+> **Status: PARTIAL** — Monaco ships with stock language support only
+> (`cms.md § What this build does not do`, `studio.md § Deferred`), and no
+> language server, VS Code extension or `.d.ts` pipeline exists (verified
+> 2026-09-19). The **two catalogs** shipped in the Studio build in a
+> different shape — `StudioApi.listMixins` / `describeMixin` /
+> `describeClass` over `@authorable` TSDoc, and named **blueprints** with
+> the use-existing / name-it prompt ([studio.md](../../subsystems/studio.md));
+> composition-rule metadata (`@requires` / `@conflicts`) is still not
+> authored.
 > **Left:** the platform-semantic model (template-path completion,
-> reference validation, mixin-composition rules, lease scope) · the LSP
-> server · the VS Code extension · the engine `.d.ts` pipeline · the
-> shared core with the save-gate
+> reference validation, mixin-composition rules + their declared source,
+> scope awareness over the titled extent) · the LSP server · the VS Code
+> extension · the engine `.d.ts` pipeline · the shared core with the
+> save-gate
 > **Size:** a build
-
-> **Status: architecture set; it's a brain, not a feature.** The
-> content-semantics intelligence — the layer that *understands the engine's
-> content model* and answers "what's valid / what completes / what's wrong"
-> for authored content. **One semantic model, surfaced three ways:** live in
-> the **web code editor**, live in **external editors** (via LSP), and
-> **authoritatively** at the server **save-gate** (the access layer's
-> validation). LSP is just the delivery mechanism to editors; the
-> *intelligence* is the substance, and it's the same brain as the access
-> layer's content-validation.
 
 Working slate for **authoring intelligence** — the brains behind authoring:
 the completions, diagnostics, hovers, navigation, and validation that
@@ -151,32 +149,11 @@ with** — two levels, the Standard Model's particles and compounds:
   composition; **any editor** uses it to render the right fields for a
   class's **effective mixin set** (so `Weapon` ≡ `Weaponable(Thing)` to the
   editor).
-- **The combo catalog (named compounds).** A hierarchy of named
-  compositions (`Weapon` = a thin composition-class). It **grows from
-  authoring** — composing in the code tooling triggers a **use-existing /
-  name-it** prompt (dedup + capture) — and feeds the content editor's
-  **archetype picker** (discovery + reuse) and the composition tooling
-  (familiarization). Behavior stays in the mixins; combos are thin
-  composition. (Full authoring flow: [cms-slate.md](../builds/cms-slate.md) §
-  *Composition & the combo catalog*.)
+- **The combo catalog** — *superseded by the Studio build*: shipped as
+  named **blueprints** (`BlueprintCatalogue`, the use-existing / name-it
+  prompt) — see [studio.md](../../subsystems/studio.md).
 
-**The catalog family is open-ended — and decoupled from the runtime.** Mixins
-and combos are the first two members; **brains** (NPC behavior modules — see
-[npc-behavior-slate.md](../builds/npc-behavior-slate.md)) are a third, and hooks /
-validators / other path-resolved module kinds will follow. They all share one
-governing property: **the catalog is a CMS-side artifact the game framework
-never depends on.** The runtime only ever does **path-resolution** — it
-follows an explicit reference, lazy-loads, re-resolves; it never enumerates
-and never reads a catalog. So a catalog is allowed to be as presumptuous as
-the CMS likes — eagerly indexed, or even **partly hand-maintained** ("someone
-keeps it up to date") — because it is **never load-bearing for runtime
-correctness**. The worst failure of a stale or wrong catalog is a **palette
-omission** (a real module that exists at a path doesn't show in the picker
-until the catalog refreshes); you can still reference it by path *today* and
-it works. A catalog bug can degrade the authoring UI; it can never break a
-running game. That safe failure mode is *why* catalogs get to be loose — and
-why discovery (tree-walk / lazy per-scope index / curation) is exclusively
-this layer's concern, not the framework's.
+*The catalog-decoupling principle → [studio.md § Why the catalogs may be loose](../../subsystems/studio.md) (homed 2026-09-22).*
 
 ### What the language service provides (the feature set)
 

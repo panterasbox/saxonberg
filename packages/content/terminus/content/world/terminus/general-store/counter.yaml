@@ -81,6 +81,20 @@ data:
     - { itemTemplatePath: /trade/farming/thing/pot/large, par: 2 }
     - { itemTemplatePath: /stuff/thing/vessel/soil-sack, par: 4 }
     - { itemTemplatePath: /trade/farming/thing/seed/snake-plant, par: 3 }
+    # ⭐ An orange you can EAT (nutrition-and-fitness W4, D25). The
+    # years clock — a body on bread alone for a month gets scurvy — needs
+    # something a person can go and buy that is not bread. The
+    # distributor at Wharfside gets the farm's citrus by CONSIGNMENT (the
+    # hand carries the crates), which is the real chain and not a par; a
+    # general store selling a piece of fruit is what a general store is
+    # until the grocer fragments off it.
+    #
+    # ⚠ ABOVE the seed packets, deliberately: a packet answers to the
+    # bare crop name too (`orange` is a keyword on `seed/orange`, the
+    # farming convention) and `buy` takes the FIRST match — the drive
+    # found `buy orange` handing over a packet of seed. The bare noun is
+    # the fruit; the packet still answers to `orange seed`.
+    - { itemTemplatePath: /trade/farming/thing/orange, par: 6 }
     # The produce seeds (farming A5) — one packet per bar fruit, so the
     # suburban-garden path (D0) starts here: buy a seed, grow the tree,
     # pick the fruit. Trees are dearer than the herb; all reachable on
@@ -159,6 +173,23 @@ data:
     - { itemTemplatePath: /system/transport/thing/sledge, par: 1 }
     - { itemTemplatePath: /system/transport/thing/dray, par: 1 }
     - { itemTemplatePath: /system/transport/thing/wagon, par: 1 }
+    # ⭐ The tackle line (fishing B6): a rod, a worm, a pot, a net, a bowl
+    # and a twist of fish food — inputs, which is what a
+    # general store sells. What comes out of the river is consigned at
+    # the market, never sold here.
+    - { itemTemplatePath: /trade/fishing/thing/rod, par: 2 }
+    - { itemTemplatePath: /trade/fishing/thing/worm, par: 6 }
+    - { itemTemplatePath: /trade/fishing/thing/pot, par: 2 }
+    - { itemTemplatePath: /trade/fishing/thing/net, par: 1 }
+    - { itemTemplatePath: /trade/fishing/thing/fish-bowl, par: 2 }
+    - { itemTemplatePath: /trade/fishing/thing/fish-food, par: 4 }
+    # ⭐ The rig (fishing B8): a float rod for the surface, a leger rod
+    # for the bottom and the big fish, a spoon to work, a keepnet to
+    # keep the catch alive in. Numbers on the same classes as above.
+    - { itemTemplatePath: /trade/fishing/thing/float-rod, par: 1 }
+    - { itemTemplatePath: /trade/fishing/thing/leger-rod, par: 1 }
+    - { itemTemplatePath: /trade/fishing/thing/spoon, par: 2 }
+    - { itemTemplatePath: /trade/fishing/thing/keepnet, par: 1 }
   prices:
     /world/terminus/general-store/thing/torch: 2
     /world/terminus/general-store/thing/rations: 3
@@ -209,6 +240,7 @@ data:
     /trade/farming/thing/seed/cranberry: 5
     /trade/farming/thing/seed/grape: 6
     /trade/farming/thing/seed/juniper: 5
+    /trade/farming/thing/orange: 1
     # The homebrew kit: all of it reachable on the stipend across a
     # week's wages (D15) — the still the dearest thing on the shelf.
     /stuff/thing/vessel/carboy: 7
@@ -254,3 +286,16 @@ data:
     /system/transport/thing/sledge: 14
     /system/transport/thing/dray: 60
     /system/transport/thing/wagon: 95
+    # ⭐ The tackle ladder, against the same anchors: a rod and a worm
+    # inside a stipend with change for rations, a net the dear one —
+    # because a net is a business and a rod is an afternoon.
+    /trade/fishing/thing/rod: 9
+    /trade/fishing/thing/worm: 1
+    /trade/fishing/thing/pot: 7
+    /trade/fishing/thing/net: 15
+    /trade/fishing/thing/fish-bowl: 5
+    /trade/fishing/thing/fish-food: 1
+    /trade/fishing/thing/float-rod: 11
+    /trade/fishing/thing/leger-rod: 14
+    /trade/fishing/thing/spoon: 4
+    /trade/fishing/thing/keepnet: 6

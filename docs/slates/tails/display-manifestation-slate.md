@@ -5,7 +5,9 @@
 > [display.md](../../subsystems/display.md)
 > **Left:** driver policy off the closed `pairing` enum and onto
 > `AccessApi.can` · the network / channel / guide addressing layer ·
-> multiple simultaneous sources per screen
+> multiple simultaneous sources per screen · one shared wire shape for
+> display projection (video push / card push / prose-read stay three
+> mechanisms)
 > **Size:** a wave
 
 *Design slate, 2026-08-30, from the libations review (MR !206). The
@@ -16,54 +18,7 @@ context compact deliberately, so the design survives in the repo rather
 than in a conversation summary — the same rule every other ruling in
 this review followed.*
 
-## The founder's model, which is the right one
-
-> There is a notion of a **display** in the game: any screen, anywhere.
-> The **contents** of that screen can manifest in a number of ways.
->
-> - **Video** rendered in the client — live, or prerecorded. The game
->   *may* model broadcast or other networks to organise content, but
->   **video is video**.
-> - **A card** — most akin to a mobile app, with controls and feedback.
-> - **Prose** — it just renders as text, like any other game interaction.
->
-> In the world all three are happening on screens. Depending on the
-> content, they manifest in **different components in the client**.
-
-## What shipped instead — four axes fused into one mixin
-
-`DisplayMixin` (`lib/display/Display.ts`) currently carries all of:
-
-| # | axis | how it shipped | verdict |
-|---|---|---|---|
-| 1 | **the screen as an object** | a Thing with a location, look-at | ✅ legitimately the mixin's job, and thin |
-| 2 | **authority** — who may drive | `pairing: held\|remote\|staff\|open` + `principal` + `remote` | ⚠ an access policy, unrelated to content; and a **closed kernel enum** |
-| 3 | **what is showing** | `showing: DisplaySource \| null` | ✅ fine as state |
-| 4 | **how the client renders it** | *not modelled* — two hardcoded paths | ❌ the actual gap |
-
-And `sourcePolicy: 'any' \| 'cards' \| 'streams'` straddles 2 and 4: a
-**permission field whose values are rendering kinds**.
-
-### The gap, precisely
-
-There are two hardcoded manifestation paths and no third:
-
-- a `stream` source writes the viewer's `cockpit.watch` clientState;
-- a `card` source calls `CardApi.push`;
-- **prose has no arm at all.**
-
-### ⭐ The symptom that proves it
-
-**The TPA terminal's departures board is prose, and it ships as a card
-containing prose.** Not because a board is an app with controls and
-feedback — it plainly is not — but because *card was the only non-video
-arm that existed*. The third manifestation is not under-modelled; it is
-absent, and its one real instance is wearing a costume.
-
-The second inference: the client decides a display is *shared* by
-sniffing a `display` marker bolted onto `WatchTarget`.
-
-### ⚠ And `pairing` is a fourth kernel list
+## ⚠ `pairing` is a fourth kernel list
 
 A closed four-value enum the kernel owns, so a pack that wants a fifth
 pairing edits the kernel. That is structurally identical to three things
@@ -88,78 +43,25 @@ Network / channel         OPTIONAL, LATER: how content is organised and found
                           (a guide, a feed) — addressing, never rendering
 ```
 
-**The one move that unlocks it:** make the kind **explicit, carried, and
-total across three arms**, and let the client dispatch on it — instead of
-two bespoke mechanisms plus a fudge. A screen then stops declaring *"I do
-cards"*; it shows content, and **the content knows how it manifests**.
-`sourcePolicy` becomes an honest policy over kinds *if* a venue actually
-needs one, rather than being the mechanism.
-
 ### Consequences worth stating
 
 - **One projection, one wire shape.** "The display you can see shows X"
   becomes a single per-viewer projection carrying a discriminated kind,
   rather than `cockpit.watch` for one arm and `CardApi.push` for another.
-  The `display` marker on `WatchTarget` stops being an inference.
-- **Prose becomes real**, and the terminal board stops pretending. This
-  is the acceptance test for the whole change.
-- **Video stays dumb.** Live vs prerecorded is a property of the content;
-  networks and guides are a *later* addressing layer that sits above it
-  and changes nothing here. `watch <handle> on <tv>` remains v1.
+  The `display` marker on `WatchTarget` stops being an inference. Still
+  open — [display.md](../../subsystems/display.md) § *What the client
+  changed* confirms this consolidation "stays open, and would be its own
+  build."
 - **Driver policy leaves the kernel enum.** Either authored on the row,
   or expressed through `AccessApi.can(actor, action, resource)` — which
   is already the project's answer to "who may do this to that."
 
-## Scope
-
-**This MR (!206), because the founder asked for it here — ✅ BUILT
-(`a2e61c402`, `55bd90606`):**
-
-1. ✅ The three-arm content kind, explicit and total. `DisplayKind =
-   video | card | prose`; `project` switches exhaustively. `stream` →
-   `video`: a stream is a *transport*, video is the *manifestation*.
-2. ✅ Prose as a real arm, and the terminal board moved onto it.
-3. ✅ `sourcePolicy` → `shows: DisplayKind[]`, defaulting to all three
-   rather than to an `'any'` sentinel (a sentinel has to be taught about
-   every new kind).
-4. ✅ …by dissolving, not by building. See the answer to Q1.
-
-**Deferred, with reasons:**
-
-- **The network / channel layer.** Addressing, not rendering; nothing
-  needs a guide yet.
-- **Driver policy off the kernel enum.** Real, and the same finding as
-  three others this review — but it is an *access* change, and bundling
-  it with a rendering change would make both harder to review. Its own
-  commit at least; possibly its own build.
-
 ## ⚠ Open questions the build must answer
 
 1. **Does prose project per-viewer, or is it an ordinary scene message?**
-   — ✅ **ANSWERED: neither. Prose does not project at all.**
-
-   The guess in this slate was close and not quite right. Prose is not a
-   scene message either, because a *message* is an event and a screen's
-   contents are *state you can go and read*. The answer is
-   `readScreen(viewer)`: what a screen says is **read off it**, at look
-   time, per viewer. `LookController` calling that is the entire wiring;
-   the arm is thinner than a mechanism, exactly as hoped.
-
-   ⭐ **And the departures board proved it the hard way.**
-   `renderDepartures(viewer)` annotates each route against the READER's
-   own travel credential ("— not yet registered") — so the shipped
-   card, projected to everyone who could see the terminal, showed the
-   whole room whichever traveller last touched it. A per-viewer render
-   can never be one shared payload. That is not a rendering nicety; it
-   was a live defect, and it is the reason prose is pulled rather than
-   pushed.
-
-   ⭐ **This is also why (4) dissolved.** Once prose is read rather than
-   pushed, there is no third wire shape for the client to dispatch on:
-   each arm already reaches its own component, and `StreamEmbed` reads
-   the `display` marker off the target it is handed rather than inferring
-   it. The client changed **nothing**. The "one projection, one wire
-   shape" consolidation below stays open as its own build.
+   — Answered: neither. Prose does not project at all — see
+   [display.md](../../subsystems/display.md) §§ *Prose has no projection,
+   and that is the finding* and the `teleport` verb entry.
 2. **What happens when a viewer cannot render a kind?** A text client
    and a video source; an interactive card pushed to something with no
    rail. The kind being explicit is what makes this answerable at all.

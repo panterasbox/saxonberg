@@ -2,27 +2,22 @@
 
 > **Status: PARTIAL** — the feature merged: `who` (with `--here`/
 > `--friends`/`--country`), `profile`/`finger`, `score`/`me`,
-> `SocialApi.composeRow`/`composeCard`, `privacy.showStatus`, and the
-> Who's Online rail card → [social-graph.md](../../subsystems/social-graph.md)
-> + [cockpit.md](../../subsystems/cockpit.md)
+> `SocialApi.composeRow`/`composeCard`, `privacy.showStatus`, the
+> new-arrival badge, and the static `who` card →
+> [card-surface.md](../../subsystems/card-surface.md) +
+> [cockpit.md](../../subsystems/cockpit.md) (⚠ the disclosure model is
+> documented nowhere — handed off to social-graph.md via the ledger)
 > **Left:** the `who --group <g>` filter · the `privacy.showSpecies`
 > threshold (Q2) · the `profile` card rendered into the inspection card
 > with a per-viewer subscribable projection (Q6 — no `opens_card` today) ·
-> account age on the card (Q4) · deferred: invisibility as per-pair
-> fidelity floored to zero
+> `who` at scale (Q7) · deferred: invisibility as per-pair fidelity
+> floored to zero (⚠ check against concealment.md)
 > **Size:** a tail
 
 The player-facing **inspection surface** over the identity & social
 substrate: a `who` roster of who's online, a `profile`/`finger` card for
 inspecting another player, and a `score`/`me` self-dashboard. Plus the
 **disclosure model** that governs what one player learns about another.
-
-> **Status: design captured, not built.** This is a tail of the shipped
-> identity & social-perception substrate (recognition + belief +
-> connection-origin + contacts + the social-graph attention layer). It
-> adds **no new subsystem** — every data source already exists; what's
-> missing is the player-facing read surface and the disclosure dial that
-> gates it. Next step: `/requirements`.
 
 The framing insight: a MUD `who` list and a `finger`/`score` card are
 the oldest social affordances there are, but this game has no admin
@@ -58,68 +53,13 @@ See also:
 
 ---
 
-## Principle — three kinds of "values about a person"
-
-The load-bearing distinction (and the reason this is *not* one fat
-`score` command): there are three different kinds of fact about a person,
-with three different owners and three different privacy semantics.
-
-| Layer | Examples | Owner | Privacy semantics |
-|---|---|---|---|
-| **Identity facts** | persona/name-as-presented, species-as-presented, country of origin, account age, online/idle status | The person | Disclosure dial (below). Country exempt — always public. |
-| **Measured standing** | renown, influence (play/make/fund), competence, traits | The world (derived) | Outward measures public; internal measures self-only. |
-| **Private opinion** | your regard for them, your contacts label for them | *The observer* | Always private to the observer; never on the subject's card. |
-
-The codebase already votes for keeping these separate — there is no
-monolithic score verb; there are `standing`, `traits`, `competence`,
-`chronicle`, each a thin per-subsystem self-view. This slate adds the
-**identity-facts surface** (the card + the roster) and a self-dashboard
-that *digests and links to* the standing verbs rather than absorbing
-them. Private opinion stays on the observer's side.
+## Principle — three kinds of "values about a person" — shipped as designed (`ProfileLogic.composeCard`: identity facts by disclosure · outward standing bands · private opinion never on the subject's card); the table is in the compaction ledger's handoff for social-graph.md.
 
 ---
 
 ## The disclosure model (the heart of this slate)
 
-Privacy is **not** a set of hide-flags. The model:
-
-1. **Presence is a public fact.** If you are online, you are on the `who`
-   list. Always. There is no "appear offline" toggle. Hiding your
-   *existence* is a future, privileged, conditional capability
-   (invisibility — see Deferred), never an ordinary setting.
-
-2. **Fidelity is per-(observer, observed) pair.** What a given viewer
-   sees about you is a function of the *relationship* — have they been
-   introduced to you (recognition), are you in their contacts, do you
-   share a group — layered over a baseline. A stranger sees you as "a
-   tall stranger — from Brazil"; someone you've introduced yourself to
-   sees "Duncan — from Brazil." Same presence row, different resolution.
-   This is exactly the `RecognitionApi.describe` lens, applied to the
-   roster and the card.
-
-3. **Privacy is what you offer *without friction*.** A privacy setting is
-   the *floor* of disclosure — what any stranger gets by default. It
-   never reaches "nobody," and it is not a per-field boolean. The shape
-   is a **per-attribute disclosure threshold**: each soft attribute names
-   the relationship tier that unlocks it (`anyone` / `introduced+` /
-   `contacts+`). Raising a specific person above the floor is an *act* —
-   which is what `introduce` already is.
-
-   > **`introduce` is the first disclosure consumer because it *is* the
-   > model in miniature.** Disclosure is an act you direct at someone
-   > (handing them your name); the "setting" is just the default for
-   > everyone you haven't performed that act toward.
-
-4. **Country is exempt — pinned at maximum, non-overridable.** Given the
-   political premise of the game, country of origin is load-bearing
-   world-fact, not a personal detail to curtain. It shows on every card
-   and every roster line, to everyone, always. No `privacy.showCountry`.
-
-5. **Inbound vs outbound — don't conflate.** `social.verbosity` (shipped)
-   is the *observer's* preference for how much presence-noise they
-   receive. The disclosure dial is the *observed's* control over how much
-   of themselves others receive. Same surface area, opposite directions.
-   They are distinct settings.
+Shipped as designed — presence always public (`who.yaml`), fidelity per (observer, observed) pair via `describeFor`, `privacy.showStatus` = `anyone | contacts+` as the disclosure FLOOR (`NotifyPolicyMixin`), country pinned public with no setting, inbound `social.verbosity` distinct from the outbound dial. The five points are in the compaction ledger's handoff for social-graph.md.
 
 ### Settings shape (sketch)
 
@@ -146,17 +86,8 @@ anything — that's what `introduce` is for).
 
 ## The verb surface
 
-| Verb | Target | What it is |
-|---|---|---|
-| `who` | server-wide | The online roster, lensed per-viewer. Always lists every online player; fidelity varies by relationship. |
-| `profile <player>` (alias `finger`) | another player | Their identity card, redacted by their disclosure dial + your recognition of them. |
-| `score` / `me` / `profile` (no arg) | yourself | The same card, fully unredacted, **plus the standing digest** — the MUD `score`, identity-anchored. |
-
 ### `who` — the roster
 
-- **Always lists every online player.** No hide. Each row lensed through
-  `RecognitionApi.describe` (known by name, strangers by salient
-  features), with country always appended.
 - **Filters narrow only on already-public facts.** `who --here`,
   `who --friends`, `who --group <g>` (relationship-scoped), and
   `who --country <c>` — the last is legitimate precisely *because*
@@ -166,77 +97,15 @@ anything — that's what `introduce` is for).
 - Stranger collapse / density aggregation is the social-graph occupant
   lens's job; `who` reuses it rather than reinventing it.
 
-### `profile <player>` / `finger` — the card
-
-One card renderer, redacted by target:
-
-- **Name / persona** — gated by *recognition*. Stranger ⇒ "a tall
-  stranger" (salient features), recognized ⇒ their name. You *can*
-  profile a stranger; the card is real but heavily redacted, and
-  recognition progressively unlocks fields.
-- **Country** — always shown.
-- **Soft identity facts** (status, species-as-presented) — gated by their
-  disclosure dial against your relationship tier.
-- **Outward standing** — renown band + competence band (observable
-  reputation / skill). See the standing-split decision below.
-- **Your private read** — your regard / contacts label for them appears
-  as *your* annotation on the card (layer 3 — observer-owned, never part
-  of their disclosure).
-
-### `score` / `me` — the self-dashboard
-
-The same card on yourself, nothing redacted, plus a **read-only standing
-digest**: band-level summaries of renown / influence / competence /
-traits, each line linking out (hover-previews `standing`, `traits`,
-`competence`, `chronicle`). It is the MUD `score`, but it *digests and
-points to* the detail verbs — it does not reimplement them. Identity
-stays identity; advancement stays in its own verbs.
-
-### The standing split — what shows on *others'* cards
-
-Recommended default (open to revision):
-
-| Measure | On self-card | On others' card |
-|---|---|---|
-| Renown | band | **band** (reputation is inherently outward) |
-| Competence | band | **band** (observable skill — "a skilled bartender") |
-| Influence (play/make/fund) | band | **self only** (political/economic standing isn't others' business) |
-| Traits | band | **self only**; others instead get *your* compatibility read (the regard-baseline layer-3 read), never their internal estimate |
-
 ---
 
-## Server design
-
-- **Three controllers under `social/`** (presence is social-graph's
-  turf): `WhoController`, `ProfileController`, and `score`/`me` as YAML
-  aliasing onto `ProfileController` with a self-default target. All
-  read-only, in the `StandingController` mold (single-token, zero/one
-  arg, `MessageApi.scene(actor).topic(...).send()`).
-- **Data sources (all shipped):**
-  - online set → `PlayerApi.getAllAvatars()` for v1; **promote a thin
-    `PresenceApi.online()` accessor** once the live `who` card needs a
-    single privacy-filtered read rather than every consumer re-scanning.
-  - country → `ConnectionApi.originOf(playerId) → { country? }`.
-  - viewer-aware naming → `RecognitionApi.describe(viewer, target)`.
-  - standing bands → `RenownApi` / `InfluenceApi` / `AdvancementApi`
-    (bands-only) / `TraitApi`.
-- **New `privacy.*` settings** via the static-`settings`-on-mixin pattern
-  `social.verbosity` already uses (`NotifyPolicyMixin` / EnvironmentMixin
-  schema-on-owner). Likely a sibling or the same mixin.
-- **The card is one viewer-aware composer** — the redaction logic lives
-  in one place (a `ProfileApi.composeCard(viewer, target)` style seam,
-  the cardinality-one sibling of the social-graph occupant formatter), so
-  `who` rows, the `profile` card, and the live card all share it.
+## Server design — shipped in a different shape: `WhoController` + `ProfileController` (`score`/`me` alias onto it), the one redaction seam is **`SocialApi.composeCard` / `composeRow`** on `ProfileLogic` (not a `ProfileApi`), the online set is **`SocialApi.online()`** (no `PresenceApi`), and `privacy.showStatus` lives on `NotifyPolicyMixin`'s settings.
 
 ---
 
 ## Client design
 
-- **`who` — a live card.** A "Who's Online" cockpit card, fed off the
-  presence deltas the relay already emits (`PlayerLoggedIn` /
-  `Reconnected` / `LoggedOut` / `Disconnected`). Rows are the viewer-lensed
-  roster. This is the consumer that justifies promoting
-  `PresenceApi.online()`.
+- ~~`who` — a live card~~ — superseded: `who` ships as a **static** card with a refresh, because nothing wakes on connect/disconnect and a live `who` would be permanently wrong while looking right → [card-surface.md § Inspection is ONE row](../../subsystems/card-surface.md).
 - **`profile` — the inspection card.** Render the card into the existing
   right-column inspection card (already MQL-subscription-backed and
   cardinality-polymorphic). The honest tradeoff:
@@ -250,10 +119,6 @@ Recommended default (open to revision):
     renderer viewer-aware from the start, so live is the default and
     "refresh" is the degraded path if the per-viewer projection proves
     fiddly. Same renderer either way.
-- **Clickable, command-previewing.** Every name in the `who` roster is
-  clickable and **hover-previews `profile <name>`** in the command bar;
-  standing-digest lines on the self-card hover-preview `standing` /
-  `traits` / etc. (the global "clickables preview their command" rule).
 
 ---
 
@@ -303,15 +168,6 @@ axis. Park it.
 ---
 
 ## Build order (sketch)
-
-**Wave 1 — the card + the roster, command-only.**
-
-- `ProfileApi.composeCard(viewer, target)` viewer-aware composer (the one
-  redaction seam), reading recognition + country + the standing bands.
-- `WhoController` (rides `getAllAvatars()` + the composer), `who` filters.
-- `ProfileController` + `score`/`me` self-alias.
-- `privacy.*` settings (status, species threshold) on the social mixin.
-- Country pinned unconditional; the standing-split default.
 
 **Wave 2 — the live client cards.**
 

@@ -1,12 +1,15 @@
 # The aluminium can — a stress test of every system, one object at a time
 
 > **Status: PARTIAL** — the vessel roster, aluminium, the empty↔product
-> `category` and the state-derived census key landed in the libations MR
-> → [bulk.md](../../subsystems/bulk.md)
+> vessel kind (`category`, now on `VesselKindMixin`) and the state-derived
+> census key landed in the libations MR → [bulk.md](../../subsystems/bulk.md)
+> § `category`
 > **Left:** the granular bulk phase (`requiredClosureFor`, so a sack is
 > honestly open) · the deposit as law + a contract leg · the `fill`
-> recipe · `remelt` + `Recipe.energyKWh` · carbonation going flat · a
-> `category` home a `Crate` can reach · the pallet, with freight
+> (canning) recipe · `remelt` + `Recipe.energyKWh` + smelting · the
+> metal-forming trade · carbonation going flat · caffeine on the mixers ·
+> `Crate` composes the vessel kind (empties converge on `vessel:crate`) ·
+> the pallet, with freight · the `can` wiki article
 > **Size:** a wave
 
 *Design slate, 2026-08-29, on `design/libations`. A conversation, not a
@@ -129,31 +132,7 @@ shipped and incorrect.
 
 ## 4. The ideal can, as rows
 
-```yaml
-# trade-bottling/content/trade/bottling/thing/can.yaml — the EMPTY vessel
-class: /platform/thing/Bottle
-data:
-  shortDescription: "a can"
-  longDescription: "A 330 mL aluminium can — drawn in one piece, lined, the lid seamed on. It weighs almost nothing."
-  primaryKeyword: can
-  keywords: ["can", "tin", "empty"]
-  material: /stuff/idea/material/element/aluminium
-  interiorBulk: true
-  interiorCapacity: 0.33
-  closure: sealed          # construction: gas-tight — it keeps fizz
-  open: true               # state: an empty can is an opened can
-  censusKey: can           # the EMPTY's own census (the returns market's count)
-
-# thing/can-of-cola.yaml — the PRODUCT: the same vessel, filled and seamed
-  …everything above, plus…
-  shortDescription: "a can of cola"
-  interiorMaterial: /trade/bottling/idea/material/cola
-  interiorAmount: 0.33
-  open: false
-  censusKey: mixer:cola-can   # derives back to `can` when drained (the census fix)
-  regionTarget: 24
-  container: /trade/bottling/thing/bottling-stock
-```
+*Shipped — `packages/content/trade-bottling/content/trade/bottling/thing/can.yaml` + `can-of-cola.yaml`, tied by `category: can` ([bulk.md § `category`](../../subsystems/bulk.md)). Two authoring differences from the sketch: the material rides `_materialPath`, and the empty authors no `censusKey` — an emptied vessel derives `vessel:<category>`.*
 
 ## 5. The wooden pallet (the other perfect object) — one row
 
@@ -169,33 +148,7 @@ named here because the can and the pallet are the two objects whose
 
 ## 6. What to do now (this MR) vs later
 
-**✅ DONE in the libations MR (`3bc9c8d3b`, `68a878d0c`):** aluminium as
-an element row; the eight vessel rows as a real standard
-(construction-only descriptions, `open: true`, aluminium/steel/oak,
-`sealed` on the can + keg + capped bottles, `liquidTight` kept on the
-cask because it breathes, `open` on the sack; crate and basket described
-as open containers, not vessels); `can-of-cola` as the standard *used*;
-`Bottle.getCensusKey()` derives from state, so an empty reports
-`vessel:<keyword>` and a drunk-dry floor restocks; the bottling README as
-the contract. ⚠ The derive immediately caught an unfaithful mock — the
-distilling sweep test cloned its bottles EMPTY, which a real clone never
-is.
-
-✅ **The empty↔product relationship is now expressed** (`category`, the
-vessel kind, lifted from `CraftVessel` onto `BulkableMixin`). The
-question *"deplete the cola and what are you left with?"* had no good
-answer: the two rows were strangers, a drained can still described
-itself as *"a can of cola, the lid unbroken"*, and the census derive
-returned `vessel:cola` — so drained cans never joined the empty cans.
-The glass pool had already solved this the right way (a coupe is ONE
-row, empty or full, tied by `category`), and the can had been authored
-against the pattern. Now every vessel row and every product row over it
-declares the kind; an emptied vessel counts as `vessel:<kind>` and reads
-*"The can is empty."* **No new mixin field was needed — the field
-existed on the wrong class.**
-
-✅ **`jute` added to the fibre vocabulary** (founder's call) — hessian is
-jute, and all four sack rows now name it.
+*The libations MR's ✅ items (aluminium row; the eight vessel rows as construction-only exemplars; `can-of-cola`; the state-derived census key; the empty↔product tie; `jute`) shipped — [bulk.md § `category`](../../subsystems/bulk.md), [residency.md](../../subsystems/residency.md) (the census). The tie was later moved off `BulkableMixin` onto `VesselKindMixin` (bulk.md § `category` ⚠).*
 
 ⚠ **And it exposed a substrate gap worth naming:** the sacks ship
 `closure: liquidTight`, which is a lie about hessian, because
@@ -318,23 +271,7 @@ direction.
 
 ### 7.5 ⭐⭐⭐⭐⭐ The required pairing: the can and the blood
 
-The single most valuable thing this curriculum can ship, and it only
-works if the engine stays out of the valuation:
-
-| | **cans** | **blood** |
-|---|---|---|
-| the act | society needs it | society needs it |
-| price it | **works** — return rate tracks deposit size almost exactly; litter falls; a collector's living appears | **backfires** — paying can *reduce* supply by converting a gift into a transaction (Titmuss, *The Gift Relationship*, 1970) |
-| the mechanism | incentive alignment | **crowding-out** — same shape as Gneezy & Rustichini, *A Fine is a Price* (2000): fining late parents made lateness worse, and it stayed worse after the fine was withdrawn |
-
-Two acts a society needs; opposite correct policies. A player who passes
-a deposit on cans, then tries the same trick on blood and watches
-donation **fall**, has learned something most adults never learn — and
-no essay delivers it. See [blood-slate.md](../builds/blood-slate.md).
-
-⚠ **This entire lesson is impossible if the engine credits both with
-standing.** That is the concrete reason the mint question
-([standing-mint-slate.md](../builds/standing-mint-slate.md)) is not ours.
+*Homed 2026-09-22 → [measurement.md § Part 1 · Absorbed from aluminium-can-slate — the can and the blood](../../measurement.md).*
 
 ### 7.6 The guardrail: model the mechanism, never the verdict
 

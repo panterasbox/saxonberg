@@ -128,6 +128,27 @@ not in this Api.
 
 ## What Makes a Mixin Well-Formed
 
+### Before proposing a mixin — capability or relation?
+
+(Graduated from the property slate, 2026-09; the sibling of
+[antipatterns.md § Custody Is a Relationship](../antipatterns.md).)
+
+1. **Capability or relation?** A *capability* is intrinsic ("this KIND of
+   thing can be worn / contains / is a portal") → a mixin on the templates
+   that have it (`Wearable`, `Container`, `SandboxPortal`). A *relation* is
+   runtime ("this instance is owned-by / regarded-by / authored-by that
+   one") → a **registry keyed on identity, never a mixin** (`belief`,
+   `regard`, `renown`, `authoring_events` — none is a `RegardableMixin` on
+   its target).
+2. **If a mixin: does *every* instance of the base have it?** If yes it is
+   base-class, not a mixin; if only some, it is opt-in.
+3. **Where does the concept bottom out** in the hierarchy?
+
+Possession fails #1 — **being owned is a relation, not a capability** →
+there is no `PossessableMixin`. (Contrast: the wardrobe's
+`SandboxPortalMixin` confers *behavior* → a legitimate mixin. The test
+discriminates.)
+
 Five conventions. Skip any of them and other subsystems silently treat
 the mixin as if it weren't there.
 

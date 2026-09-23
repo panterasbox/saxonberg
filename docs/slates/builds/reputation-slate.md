@@ -3,21 +3,13 @@
 > **Status: PARTIAL** — the renown leg shipped: per-scope signed
 > standing, the reaction + reception signal generators, the value
 > function, log-saturation → [renown.md](../../subsystems/renown.md)
-> **Left:** susceptibility · the NPC consumers · the governance-influence
-> coupling · the substance economy's brand-trust · the
-> anonymity/disguise counterweight · per-circle consumers · eigenvector
-> trust-weighting
+> **Left:** susceptibility · the NPC↔NPC consumers · the substance
+> economy's brand-trust · the notoriety/disguise counterweight (the
+> wanted-profile, `getDisguise().covers`, mutable `distinctiveFeatures`)
+> · eigenvector trust-weighting · the revised measurement feed (repeat
+> interaction, tips-by-distinct-tipper, contacts-weighted-by-use,
+> tenure/re-rostering, being-sought)
 > **Size:** a build
-
-> **Status: game-design layer, renown leg SHIPPED.** The **renown
-> substrate has shipped** — see
-> [renown.md](../../subsystems/renown.md) (measured per-scope signed
-> standing, the reaction + reception signal generators, the per-emote +
-> AppSettings value-function, log-saturation). The rest (susceptibility,
-> NPC consumers, governance influence, the substance economy's
-> brand-trust, the anonymity/disguise counterweight, per-circle consumers,
-> the eigenvector trust-weighting) stays deferred: settled in shape,
-> captured but not queued.
 
 Working slate for the platform's answer to the D&D **charisma** stat —
 and its dark twin, **notoriety**. The short version: charisma here is
@@ -35,42 +27,7 @@ Built on [recognition](../tails/recognition-slate.md) + the
 
 ## Principle — measure, don't assign
 
-In tabletop you *roll* Charisma because you can't actually be eloquent on
-command; the die stands in for your character's silver tongue. In a game
-where you **type your actual words**, the eloquence is real and present —
-abstracting it into a stat would throw away the actual signal. So
-charisma can't be an *input* here; it can only be an **output you
-observe**. For players especially, their charisma *is* their
-communication — there's nothing left to model as a number.
-
-And once you commit to "measure, don't assign," D&D's single scalar
-**unbundles into three things, none of which is a charisma stat:**
-
-- **Regard** — per-viewer attitude (does Alice like / trust / find Bob
-  persuasive). Per-pair, keyed by the subject → **a facet on the belief
-  store**, a sibling of recognition's `knownAs`. This *is* the
-  social-graph relationship layer (`knownAs` is one facet of Alice's
-  record for Bob; `regard` is the next).
-- **Renown** — the global/aggregate standing (Bob is broadly
-  influential). **Measured** from real outcomes; **signed** (esteem ↔
-  notoriety); **per-circle** for social/game, with a single
-  cooperative-wide roll-up for governance (see below). Feeds **fame**, which is a
-  recognition *trigger* (the famous are pre-known to all). Renown and
-  recognition close a loop.
-- **Susceptibility** — how easily a *particular NPC* is swayed. The one
-  **authored** knob, and it lives on the **NPC**, not on "the player's
-  charisma." When a player persuades a guard, what resolves it is the
-  guard's susceptibility + the player's renown + the per-viewer regard —
-  never a player CHA roll.
-
-So the stat dissolves into regard (per-viewer, belief store) + renown
-(measured aggregate) + susceptibility (authored, NPC-side). The
-conflation was the only thing that made it look like one number.
-
-**No die-gating of player social actions.** A good argument works on its
-merits + the NPC's authored susceptibility, never blocked by a low roll.
-Renown/regard *feed* an NPC's decision (npc-behavior); they don't gate
-player input.
+*Graduated 2026-09-21 → [renown.md § Why measure, don't assign](../../subsystems/renown.md) (you type your actual words, so charisma is an output; the scalar unbundles into regard · renown · susceptibility; no die-gating of player social actions). Susceptibility itself is still the deferred authored NPC knob (`renown.md` § Where renown sits).*
 
 ---
 
@@ -88,10 +45,9 @@ what makes the whole reputation system *matter*, because it is the
 > Antisocial play costs you the exact anonymity everyone else gets free.
 > *Serves them right.*
 
-**Propagation asymmetry (flavour):** esteem is slow and fragile (earned
-by word of mouth, bleeds off if you stop contributing); notoriety is
-**fast and sticky** (a kill is witnessed, dramatic, retold immediately;
-decays slowly or needs active redemption).
+*Propagation asymmetry shipped: [renown.md](../../subsystems/renown.md)
+§ The value-function's `renown.decayHalfLives` knob is exactly
+esteem-fast/fragile vs notoriety-slow/sticky.*
 
 **Fame/notoriety symmetry:** they're the *same* anonymity-erosion
 mechanic, opposite valence. The legendary hero also can't walk a market
@@ -99,11 +55,11 @@ unnoticed — same machinery, the crowd just reacts with adulation instead
 of alarm. The celebrity and the outlaw are mechanically the same
 creature: *people who became their description.*
 
-**Frontier reset:** reputation rides the same channels as recognition
-(aether broadcast, word of mouth, wanted-posters). An unattuned frontier
-with no coverage is a **reputation blank slate** — the outlaw flees to
-the edge of the map and stays clean until his notoriety goes *global*
-(cross-circle). The outlaw arc falls out of the plumbing.
+*Frontier reset shipped in shape: [renown.md](../../subsystems/renown.md)
+§ Scope derives a subject's materialized scopes from their own events —
+an unvisited locality has none, so `renownOf` there reads neutral `0`
+until notoriety crosses into it. The "flees to the edge of the map"
+narrative is that mechanism read diegetically.*
 
 ---
 
@@ -164,23 +120,13 @@ same kill is **esteem** among the bandits and **notoriety** among the
 lawful, because renown is aggregated from each circle's reactions. (This
 per-circle vector is the **social / game** renown; *governance* renown is
 a single cooperative-wide roll-up — only persons vote, and they vote in
-one polity. See the [cooperative slate](./cooperative-slate.md).) Two
-kinds of circle — but only **one** is a renown scope:
-
-- **Objective groups** (the Thieves' Guild, a class cohort — real shared
-  `Group`s via `GroupApi`, where membership is *conferred*, not
-  self-declared) are the **only scope renown aggregates over.** Renown
-  partitions by the objective groups you and the subject *share* —
-  objective membership is the only circle carrying information about
-  anyone but its own declarer.
-- **Egocentric circles** (my friends/foes-as-I-see-them; the shipped
-  `ContactsMixin`) are **NOT a renown input.** Membership is unilateral
-  self-declaration — zero objective signal — so it can never weight
-  another player's standing without reopening the self-dealing / Sybil
-  hole. Their only job is **my own attention lens** (recognition
-  render-verbosity, notification policy). The weight my reaction carries
-  in your renown is **my own renown** (system-derived), never a function
-  of my contacts list.
+one polity. See the [cooperative slate](./cooperative-slate.md).) The
+objective-groups-only / egocentric-circles-excluded split shipped exactly
+as designed: [renown.md](../../subsystems/renown.md) § Scope partitions
+on the objective `Group`s source & subject share
+(`GroupApi.sharedManagedGroups`) plus locality, and `ContactsMixin`
+"feeds nothing" (§ Where renown sits) — a renown input, that is; contacts
+still do their own job as an attention lens (social-graph).
 
 The bridge: **my reaction to you counts toward your reputation, weighted
 by my own renown and partitioned by the objective groups we share.** One
@@ -191,15 +137,10 @@ single cooperative-wide roll-up that governance reads).
 
 ## Measurement — what feeds renown
 
-- **Reactions / agreement** on message frames (the
-  [reactions](../tails/reactions-slate.md) substrate, via emotes) — who
-  agrees with you, rallies to you.
-- **Recognition-spread itself** is a charisma *sensor*: how fast and
-  widely your `knownAs` propagates (introductions, being talked about,
-  sought out) is renown. Recognition isn't just downstream of charisma —
-  it measures it.
-- **Being sought / followed** — people addressing you (`--to`),
-  following your lead.
+*Superseded by the § Revisited 2026-08-02 pass below, which reworks this
+list — reactions shipped (see [renown.md](../../subsystems/renown.md) §
+The two signal kinds); recognition-spread-as-sensor and being-sought are
+folded into the revised feed table's still-open rows.*
 
 **Anti-gaming = recursion:** weight each agreement by the agreer's own
 renown — you're influential if *influential people* respond to you. That
@@ -321,10 +262,13 @@ being a reinterpretation of the other.
 
 ## Open questions
 
-1. Valence richness — one signed axis, or distinct facets (respect /
-   fear / infamy)? Lean signed + per-circle now; facet-richness later.
-2. Decay rates — esteem fast/fragile vs notoriety slow/sticky; redemption
-   mechanics. Tuning.
+1. Resolved as leaned: [renown.md](../../subsystems/renown.md) ships one
+   signed axis (esteem ↔ notoriety), per-scope. Facet-richness (respect /
+   fear / infamy) stays open if ever wanted.
+2. Resolved in shape: decay is a legislated half-life
+   (`renown.decayHalfLives`), esteem fast/fragile vs notoriety
+   slow/sticky, re-legislatable without touching the log. Redemption
+   mechanics beyond decay are still open.
 3. The eigenvector weighting — how far to take it before it's not worth
    the cost. Shape now, tuning much later.
 4. New-identity / alias laundering (the deep counter-play) — how, if at

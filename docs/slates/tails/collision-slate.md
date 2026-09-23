@@ -2,9 +2,15 @@
 
 > **Status: PARTIAL** — the `'blocked'` rejection gate and
 > source-attributed refusal prose ship →
-> [locomotion.md](../../subsystems/locomotion.md)
-> **Left:** the `guards` brain (agentive third-party blocking) · room
-> capacity as a field + validator · the `push` verb and its activity
+> [locomotion.md](../../subsystems/locomotion.md); conscious shoving
+> shipped as the combat `shove` gambit; slot capacity as
+> `SlotSpec.capacity`. Nothing else here is built.
+> **Left:** room capacity as a `capacities` field + validator, re-checked
+> at activity completion · the `guards` brain's decision half (block
+> targets · reason · unblock predicate over NPC memory · multi-blocker UX ·
+> start-and-completion timing — the brain itself is npc-behavior-slate's) ·
+> `Pushable` + the `push` verb + `PushActivity` · the unconscious-body-as-
+> `Pushable` opt-in
 > **Size:** a tail
 
 > **Status: decomposed — not a standalone build (resolved 2026-06-10).**
@@ -103,9 +109,10 @@ elevator-car.capacities:
 
 ### Slot capacity
 
-The embodiment slate's "one occupant per slot in v1" stays
-unchanged. Slot capacity is its own concern, distinct from
-containment-scope capacity.
+*Superseded by the code — slot capacity shipped as `SlotSpec.capacity`
+(default 1, authored higher; [slot.md § Capacity](../../subsystems/slot.md)).
+It stays a separate concern from containment-scope capacity, which is
+still open.*
 
 ### Capacity check timing
 
@@ -275,9 +282,9 @@ re-emit position-change events.
 
 ### Shoving conscious actors — deferred
 
-Pushing a conscious NPC who doesn't consent is a hostile
-action; combat-adjacent. Belongs in a future combat slate. v1
-doesn't ship this verb.
+*Resolved: conscious-actor shoving shipped as the `shove` combat gambit
+(`fight shove`, [combat.md](../../subsystems/combat.md) § gambits) — a
+consented fight, not a movement verb.*
 
 The intermediate case — pushing an unconscious or asleep actor
 out of the way — composes naturally if the body declares
@@ -286,13 +293,9 @@ choice; framework supports.
 
 ### "Sleeping body in the doorway"
 
-The user's question. Answer per the design philosophy:
-
-- **No sub-room positioning in v1.** A sleeping body in the
-  room is "in the room" but doesn't physically obstruct exits.
-- **You walk past trivially.** No prompt, no bump, no detour.
-- **The room description can flavor**: *"Bob is sleeping by
-  the east door."*
+The user's question. The default answer (no sub-room positioning;
+you walk past trivially; the description may flavor it) is
+[design-philosophy.md § How this lands for collisions and blocking](../../design-philosophy.md).
 
 If specific content wants an obstacle: the body's author gives
 it `BlockerBehavior` while unconscious, with `unblockCondition:

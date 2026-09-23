@@ -72,7 +72,28 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     // First-touch on a fresh server otherwise fails the body-plan
     // gate or the sync mode lookup.
     await LocomotionApi.preloadActorAnatomy(actor);
-    const mode = await LocomotionApi.loadMode(this.modeName(context));
+    let mode = await LocomotionApi.loadMode(this.modeName(context));
+
+    // ⭐ Reach is a body read. A mode faster than a walk is asked of the
+    // body FIRST: a fresh body that cannot hold the run drops to a walk
+    // with a winded line and a `pace-broken` note, and the traverse goes
+    // on under the walk. Only modes with `speed > 1` are asked — breaking
+    // TO a walk means something only when you are going faster than one
+    // (a sneak or a walk never trips it). A conditioned body is never
+    // asked twice: its sustainable power covers the run.
+    if (
+      mode.getSpeed() > 1 &&
+      MixinApi.isExerting(actor) &&
+      !actor.canSustainPace(mode)
+    ) {
+      const walk = await LocomotionApi.loadMode('walk');
+      context.note({ kind: 'pace-broken', from: mode.getName(), to: walk.getName() });
+      MessageApi.scene(actor)
+        .topic('shell.result')
+        .toSelf(Mml.compose`You're winded — you drop to a walk.`)
+        .send();
+      mode = walk;
+    }
 
     const target = model.target;
     if (!target || target.stuff === null) {

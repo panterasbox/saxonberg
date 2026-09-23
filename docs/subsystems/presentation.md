@@ -93,6 +93,12 @@ viewer.
 | `concise` | the ordinary identity | act lines, emotes — most prose |
 | `presence` | + what they are doing | the room survey |
 | `distinguishing` | + what they are wearing | targeting, disambiguation |
+<!-- ⚠ The disambiguation PROMPT does not use this form yet: the fishing
+     build's live drive typed `look cane` in front of a shelf holding two
+     cane rods (`par: 2`) and was offered two buttons both labelled *a
+     cane rod* — a choice a player cannot make. Either render the choices
+     in the `distinguishing` form, or collapse identical candidates into
+     one. -->
 | `formal` | the full name, honorific and suffix | profiles, documents |
 
 An emitter asks for one: `Mml.actor(speaker, { form: 'presence' })`. The

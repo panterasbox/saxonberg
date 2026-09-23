@@ -3,18 +3,21 @@
 > **Status: UNBUILT** — the threat graph, `redirect`, `defend <ally>`,
 > `intervene`, the control gambits and per-edge terms all ship as its
 > substrate; the *ambient* half (onlookers pressing morale) shipped in
-> the consequence build.
+> the consequence build. Verified 2026-09-19: `CombatantState.side` is
+> still a bare `string` (`lib/combat/CombatSession.ts:123`),
+> `LETHALITIES` is still `non-lethal | lethal` (`CombatTerms.ts:24`), no
+> pair-relation in `CombatGraph`. ⚠ One thing the table below missed: the
+> `enforces` brain (bar-fight build, 2026-09-02;
+> [behavior.md](../../subsystems/behavior.md)) already has a proprietor
+> wade in `subdue`-first — the bouncer shipped **partisan**, on the
+> substrate this slate says cannot say what he is doing.
 > **Left:** the sideless participant · a relation whose object is a
 > **pair** · restraint terms (force authorized to stop force) · the
 > interposition act and what it costs · going-through-a-peacemaker as a
-> distinct act on the ledger · who has standing · the bouncer /
+> distinct act on the ledger · who has standing · what a broken-up fight
+> resolves AS · the bouncer (rehost `enforces` on the new substrate) /
 > constable / regulars content
 > **Size:** a build
-
-> **Status: design surface, unbuilt, no phase gate passed.** Spun out of
-> the consequence build's MR review (MR!254, 2026-09-10), where
-> `fight parley` was cut and the question *"so how does a fight actually
-> stop?"* got a better answer than the one that shipped.
 
 ---
 
@@ -258,6 +261,8 @@ only `employment.md` (positions). The cheaper answer is positions.
   produces the events; adjudicating them is → `legal-code-slate.md`.
   ⚠ There is no courts/judiciary slate in the tree, and this build will
   hand one a reason to exist.
+  *(Cluster pass 2026-09-21: there is now — [courts-slate](./courts-slate.md),
+  2026-09-18; the offence is still legal-code's, the hearing is courts'.)*
 - **Crowd behaviour as a simulation** — a room that riots, a mob. Nothing
   here models the onlookers as agents; they are a count. → nowhere,
   deliberately.

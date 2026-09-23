@@ -33,7 +33,6 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import GroundCharacter, { type GroundSample, type ImprovementCost } from '../../GroundCharacter';
 import type Field from '../../../location/Field';
 
@@ -41,7 +40,6 @@ import type Field from '../../../location/Field';
 export const FIELD_TOPIC = 'act.deed';
 
 /** The reserve labour is paid out of. */
-const ENDURANCE = 'endurance';
 
 /** The Discipline field labour credits. */
 export const AGRICULTURE = 'agriculture';
@@ -63,7 +61,14 @@ export interface FieldStepOptions {
   durationMs: number;
   beginSelf: Composed;
   beginPeers?: Composed;
-  /** Endurance the act costs, in percentage points. */
+  /**
+   * Endurance the act costs a FRESH body, in percentage points — the
+   * felt cost, kept as the authored figure because a field act's
+   * duration is an abstraction (four seconds to lime a field). The base
+   * converts it to metabolic watts through the body
+   * (`wattsForFeltCost`), so the plough still costs what it cost and a
+   * conditioned body feels it as less.
+   */
   cost: number;
   onComplete: () => void;
   onAbort?: (reason: AbortReason) => void;
@@ -145,7 +150,15 @@ export abstract class FieldWorkController<
    */
   protected engageAct(context: CommandContext, opts: FieldStepOptions): void {
     const giver = context.commandGiver;
-    this.spend(giver, opts.cost);
+    const durationS = opts.durationMs / 1000;
+    let effortW: number | undefined;
+    if (MixinApi.isExerting(giver)) {
+      effortW = giver.wattsForFeltCost(opts.cost, durationS);
+      if (!giver.canExert(effortW, durationS)) {
+        this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
+        return;
+      }
+    }
     if (!MixinApi.isEngaged(giver)) {
       opts.onComplete();
       return;
@@ -154,6 +167,7 @@ export abstract class FieldWorkController<
       actor: giver,
       slots: ['hands'],
       durationMs: opts.durationMs,
+      effortW,
       onComplete: opts.onComplete,
       onAbort: opts.onAbort,
     });
@@ -171,13 +185,6 @@ export abstract class FieldWorkController<
       return;
     }
     this.decline(context, Mml.compose`You can't manage that just now.`, 'start-rejected');
-  }
-
-  /** Spend endurance. A no-op on a body that carries no reserves. */
-  protected spend(giver: Stuff, points: number): void {
-    if (points <= 0 || !MixinApi.isReserved(giver)) return;
-    if (!giver.hasReserve(ENDURANCE)) return;
-    giver.adjustReserve(ENDURANCE, Quantity.of(-points, '%'));
   }
 
   /**

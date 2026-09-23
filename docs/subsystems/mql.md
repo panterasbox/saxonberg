@@ -495,7 +495,10 @@ order).
 Lives in `scope-walk.ts:scoreCandidate`. Rules:
 
 - Exact-name match (case-insensitive, single-word query): 100
-- Whole-name AND-narrow on lowercased name: 50
+- ⭐ Every query word a WHOLE word of the name: 60 (fishing B8) — `net`
+  is a word of *a net* and a substring of *a keepnet*; `edge` a word of
+  *the river's edge* and a substring of *a ledger rod*
+- Whole-name AND-narrow on lowercased name (substring): 50
 - Word-of-name AND-narrow: 40
 - Keywords AND-narrow (all matched): 25
 - Partial keyword match: 10 × matched-count
@@ -505,6 +508,18 @@ The rule that matters: **all query keywords must match for a
 candidate to be considered.** AND-narrow, no exceptions. The exact
 multipliers are arbitrary; they preserve Phase-4 behavior so existing
 tests keep passing.
+
+⚠⚠ **The scorer was inert for every `scope:word` query until 2026-09-22.**
+A scope seed (`reachable` / `inventory` / `peers` — the default arg
+shape of most verbs) stamps each candidate 100, and the keyword narrow
+(`filterByKeywords`) kept `max(prior, keyword)` — always 100 — so every
+`reachable:net` tied and the `top` policy fell to **pool order**
+(inventory before the room): `haul net` with a keepnet in hand hauled
+the keepnet however the scorer ranked them, and every "substring
+collision" the drives kept finding (creel/eel, ledger/edge, keepnet/net)
+was really this. The narrow now carries the keyword's own score
+(`scope-walk.score.test.ts` resolves it in situ). The scores above only
+mean something because of that.
 
 ### Scope-walk (`mql/scope-walk.ts`)
 
@@ -599,6 +614,13 @@ same query inside the granted environment. So nothing in the binder
 knows the grammar, a new place `world` can appear is covered the day it
 exists, and an ordinary command never pays for the authority lookup.
 
+⚠ **The grant is one-shot by construction.** It lives on a frame around
+a single dispatch's retry; a subscription's re-resolve runs on no such
+frame, so `world:` is refused on every subscribing surface for everyone,
+the seat included — a standing rescan nobody would remember starting is
+worse than the query it began as (see [governance.md § What else the
+seat confers](./governance.md)).
+
 ⭐ **The engine's registry reads are not here.** `StuffApi.findByMixin`
 is where they live, gated to its own `(template, method)` pair list —
 because a wide read of the registry is the registry's business, not the
@@ -609,6 +631,22 @@ query language's, and the eleven callers never wanted a query.
 **composed-only**: a mixin granted by a shadow or conferred by an
 augment does not bucket its host, which is what `world:[mixin.X]` has
 always meant. A runtime-grant selector would be its own thing.
+
+⭐ **Why one index, and why it is composition.** A registry index is
+legitimate when it describes an axis of the *substrate* — every Stuff
+has a mixin composition, so `byMixin` describes the type system, not one
+subsystem's content. That is the test for any future one: *does this
+describe every object, or does it describe my feature?* ⛔ A
+`byClassName` index was rejected on exactly that test, so the
+`[class.X]` readers went to their owners' rosters (`residence.md §
+ResidenceCatalogue`, `antipatterns.md § Bespoke Object-Search
+Algorithms`). The index is cheap because `hasMixin` is a pure function
+of the constructor: `MixinApi` memoizes the lowercased name set per
+class (`#lowercaseMemo`, a `WeakMap` keyed on the ctor), so the bucket
+insert at `register` costs a set lookup. ⛔ A global event bus feeding
+per-cache subscribers was rejected as the alternative: it taxes every
+object creation with N predicate dispatches, and a subscriber's answer
+to *"what existed before I subscribed?"* is the scan itself.
 
 `here` deliberately does NOT include peers; that's `peers`' job. The
 split lets `get` declare the surgical scope it actually wants
@@ -782,6 +820,19 @@ then *do* with a match is decided where it always was — by the verb:
 the destination's extent, a mutation on the covering parcel's holder.
 Enumeration is not capability; capability is title over a resource.
 
+**Nor is resolving feasibility.** The same split holds for the physical
+question. A view's `scope:` is a search hint — the try-list is tried in
+order and the first non-empty result wins — never a guarantee: explicit
+MQL bypasses it, and `eat online:bob:i:cake` resolves the cake wherever
+it is. So the **per-verb validator is the contract**, and it must assume
+nothing about how the target was named. `canReach`
+(`lib/command/validators/canReach.ts`) is the exemplar — a membership
+predicate over `PerceptionApi.canReach`, run on whatever was bound — and
+a validator returns a *reason string*, not a boolean, because the prose
+lives there: *sealed*, *out of reach* and *not food* are different lines.
+See [perception.md § `canReach`](./perception.md) for the one
+definition of reach.
+
 What was retired: the `ctx.permission` snapshot (`isAuthor` /
 `coreMemberIds`) the dispatcher stamped, `gateAuthor`, the
 `PermissionTier` field on `MqlPredicate`, and the `:admin` predicate
@@ -950,6 +1001,27 @@ Documented decisions worth not re-litigating:
   `living`, etc.) are English. Architecture allows for it later.
 - **English-only natural-language layer.** Article stripping and
   ordinal-prefix work on English forms only.
+
+### What MQL can and cannot see — the three storage shapes
+
+Three storage shapes, three answers, and the middle row surprises
+people (graduated from the pets slate, 2026-09):
+
+| storage shape | examples | MQL |
+|---|---|---|
+| Stuff + keyed snapshot | cultivated plants, a holding's rooms, pets | ✔ visible; `mixin.X` + `[key=…]` |
+| **Document** | herds, water rights, bills of lading, rate cards | ✘ **not queryable at all** — MQL is over Stuff |
+| **Seeded, unmeasured** | heads before `draft`, deposit samples, ground character | ✘ **invisible by construction** — not in the registry |
+
+⚠ **The herdbook is not MQL-able.** Herds are filed records read through
+their register; no query reaches them. Know this before designing a verb
+that assumes otherwise.
+
+⚠ **Do not infer state from key presence.** `has` is a documented no-op
+outside `prop.K`, so key-presence is not cleanly testable in the grammar
+— and inferring state from storage is the same dishonesty the city-watch
+decision rejects. A state like *tamed* is a mixin or a property, so the
+query language can see it and the abstraction carries it.
 
 ## Cross-references
 

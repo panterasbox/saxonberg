@@ -14,6 +14,27 @@ Governed throughout by [arcane-science.md](../arcane-science.md): **an
 item is not a new physics, it is stored labour** — a maker paid earlier,
 and the user spends it.
 
+## Why items exist — access, not loot
+
+**Items are how magic reaches people who did not spend the hours.**
+Everyone can cast, competence comes from practice, and Tarn's Rule caps
+you at your weaker leg — so in principle magic is open and in practice
+it is a club. Items are what keep that from being true. **Competence
+gates what you can DO; an item gates nothing.** The wand does not make
+you a caster: you are not casting at all, you are using a thing.
+
+The randomness in distribution is the point, not a concession. **In a
+game where competence is hours practised, randomness is the only thing
+that produces UPSETS** — a found wand is the only way a newcomer does
+something a veteran cannot, a brief inversion of a hierarchy that is
+otherwise strictly monotonic in time spent.
+
+⚠ **Guard:** if items are the only untrained access, wealth becomes the
+new gate. The *found* channel must stay meaningful beside the *bought*
+one — which random distribution plus unidentifiability handles by
+itself, since you cannot buy what nobody has and cannot price what
+nobody can assess. *(Graduated from the discovery slate, 2026-09.)*
+
 ---
 
 
@@ -356,6 +377,34 @@ perfect blades and faded rings. (D9's pattern-rot clock was the
 `Focus` half of that and went with the class; a conduit has no pattern
 to rot, only a tool's ordinary wear.)
 
+#### Why a home has no line, and why the cell is a story
+
+(Graduated from the mana-economy design pack, 2026-09.) **Impulse vs
+binding is the battery-vs-wired distinction**, and it follows from the
+science rather than convention: an *impulse* device fires and the world
+takes over (a teleport, a trap's firebolt) — it draws per use, so a
+**battery** suits it; a *binding* device holds a state against
+equilibrium (a ward, a held glowlight, a climate vault) — it draws per
+second, so it wants a **wired** supply. The TPA is an impulse device and
+battery-shaped by nature; a busy city terminal has the throughput to
+justify a wire and a frontier terminal does not — same device, different
+supply, chosen on throughput.
+
+So **domestic devices are impulse devices** — a lock that opens, a lamp
+you light — topped up by contact from the resident's own pool, which is
+what the `mana-lamp` row's *a resident is a sufficient battery* means. A
+home needs no mana connection, and the reason is not "homes do not use
+magic" but "homes use impulses." ⚠ *Binding devices need a real supply,
+and those are institutional* — a permanent ward is a guild's problem —
+which is the unbuilt half (`DrawMode` declares `'binding'`; nothing reads
+it yet).
+
+And the cell is a **narrative primitive** before it is an economy: a
+battery decouples power from place, which is what lets an author put a
+powered thing on the frontier without lying about it — the cost is a
+clock, and the clock is the story. It also mints the *dead battery*: a
+failure that is nobody's fault and is recoverable.
+
 ### Recharging: three things, and a coupling that loses some
 
 `recharge` used to move a caster's reserve into a shell on the strength
@@ -607,6 +656,22 @@ needs multi-target, which does not ship, so the high end is deliberately
 the same cure and its value is **certainty**: you cannot read a scroll's
 band before reading it, so blessed is the one you know will not turn on
 you. The real high end stays named for when multi-target lands.
+
+> ✅ **Multi-target landed the same day** (`c3d624536`), and the
+> paragraph above is now history. `adjust-blessing` and `sense` carry an
+> optional **`scope`** — an MQL query naming the SET the effect acts on
+> instead of the aimed target, band-varying like any field, resolved
+> against the **actor** so `inventory` means the reader's own pack
+> (`lib/magic/Effect.ts`, `MagicLogic`'s scoped branch). Both shipped
+> scrolls use it at the blessed band: `remove-curse.yaml` `scope: [null,
+> null, inventory]` — blessed sweeps everything you carry, which is the
+> *more of the same act* the slate asked for — and `identify.yaml`
+> `sense: [misidentify, identify-item, identify-item]` + the same scope,
+> so identify's own axis runs **plant a false identification · name one
+> thing · name everything you carry**. The query names the set and the
+> EFFECT filters it (`mixin.` filters are author-gated in MQL, and a
+> content-authored scope must not need author powers), so a blessed
+> remove-curse over a pack of spoons touches nothing.
 
 A cursed scroll of remove curse **lays** a curse. Not a weaker cure —
 the opposite act, because that is the low end of *remove-curse's own*
@@ -1065,6 +1130,22 @@ stock causes a *cataloguing backlog*, not a rush.
 ---
 
 ## Distribution
+
+### The hard constraint
+
+> **The distribution reads the WORLD, never the PLAYER.**
+
+Even accepting the slot machine: **a slot machine that reads you is a
+RIGGED slot machine, and players detect it.** Level-scaled loot is the
+fastest way to make a world stop feeling like a place — **the moment the
+world reflects you, it stops existing independently.**
+
+⭐ **Legitimate exception — SITUATION, not person.** A besieged town short
+of medicine is **economics**, a property of the world. *"You are
+low-level, here is a low-level wand"* is not. The shipped sweep obeys
+this: `ResidencyLogic.runSpawnSweep` reads region stocks, tag affinity,
+blessing odds and the census — never a player. *(Graduated from the
+discovery slate, 2026-09.)*
 
 **Rarity derives; there is no authored rarity table.** Spawn weight is
 the **inverse of stored labour**, read off the grid cell through

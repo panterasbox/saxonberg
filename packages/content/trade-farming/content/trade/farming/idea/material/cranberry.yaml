@@ -20,7 +20,9 @@ data:
   # Acidic and firm-skinned — cranberries keep notably longer than soft fruit.
   spoilActivationEnergy: 60000
   waterActivity: 0.9
-  nutrients: ["water", "sugar"]
+  # mg per kg — real figures; the `vitamin-c` tag fills the body's store.
+  nutrients: ["water", "sugar", "vitamin-c"]
+  nutrientAmounts: {water: 870000, sugar: 40000, vitamin-c: 130}
   toxicity:
     []
   tags: ["solid", "food", "produce", "cranberry", "fruit"]

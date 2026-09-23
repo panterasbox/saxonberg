@@ -4,16 +4,13 @@
 > corpse and the shade ship (mortality); `Postmortem.interIn` / `interred`,
 > `analyze postmortem`, the `forensics` Discipline and burial as a priced
 > `Tariff` service shipped in the consequence build (MR!254).
-> **Left:** custody of the body · the **rite as an event people attend** ·
-> the monument + the `masonry` Discipline that does not exist · potter's
-> field and who pays · the coroner economy · what a death does to the
+> **Left:** custody of the body + terminal decay → **remains** · the
+> **rite as an event people attend** (an ATTENDANCE primitive, a funeral
+> its first consumer) · the monument (no `chronicle` hook exists) + the
+> `masonry` Discipline that does not exist · potter's field and who pays ·
+> the coroner economy · the burial club · what a death does to the
 > people left standing
 > **Size:** a build
-
-> **Status: design surface, unbuilt, no phase gate passed.** Spun out of
-> the consequence build's MR review (MR!254, 2026-09-10) — *"the
-> necropolis is pretty underbuilt … the whole end of life cycle and death
-> services need real design."* Correct: what shipped is 122 lines.
 
 ---
 
@@ -70,22 +67,11 @@ what your death costs **everybody still standing**.
 
 ## What already exists
 
-Verified against the tree at slate time.
-
-| what | where |
-|---|---|
-| the rescuable `dying` clock, stabilization, one `die` transition | `mortality.md` |
-| the corpse as a **forensic `Creature`** with a decay curve | `mortality.md § The corpse` |
-| the shade, `reembody`, the `passage` floor | `mortality.md` |
-| `interIn(grave)` + `interred` — burial stops the eviction objection | `lib/mortality/Postmortem.ts` |
-| `analyze postmortem` — reads a corpse, banded by competence | `trade-medicine` pack |
-| the **`forensics`** Discipline | `content/platform/…/Discipline/forensics.yaml` |
-| burial as a priced service (`SERVICE_KINDS = repair · treatment · burial`) | `platform/thing/Tariff.ts` |
-| the necropolis — 122 lines, one room, ⚠ inside Terminus | `content/terminus/…/necropolis/` |
-| per-instance ownership of movables | `chattel.md` |
-| the append-only identity ledger — deeds and claims | `chronicle.md` |
-| the quantity half of standing | `participation_events` |
-| priced land in numbered plots (⭐ *"Colma is a plat book"*) | `smallholding.md`, `settlement-model.md` |
+*(The substrate table was cut in the 2026-09-19 compaction — every row
+is shipped and documented: `mortality.md § The grave` / `§ The corpse` /
+`§ The shade`, `chattel.md`, `chronicle.md`, `participation.md`,
+`smallholding.md`; the necropolis stub at
+`packages/content/terminus/content/world/terminus/necropolis/`.)*
 
 ⭐ **Therefore what is genuinely new here is** everything between *the
 body stops* and *somebody is remembered* — three stages, none of which
@@ -100,9 +86,10 @@ A corpse is a `Creature` with a decay clock and an eviction opinion.
 this* — and every real funerary practice on earth is downstream of that
 question.
 
-`chattel.md` ships per-instance ownership; `mortality-slate` has *"corpse
-custody (a titled body)"* in its Left, and it belongs here now — custody
-is a **trade** question, not a metaphysics one.
+`chattel.md` ships per-instance ownership; `mortality-slate` (since
+absorbed into `mortal-vessel-slate`) had *"corpse custody (a titled
+body)"* in its Left, and it belongs here now — custody is a **trade**
+question, not a metaphysics one.
 
 ⭐⭐ **And the conflict is free, because both halves already ship.**
 Forensics wants the body **unburied** — it is evidence, and
@@ -176,7 +163,8 @@ Two hard gaps under that:
 `Tariff` already prices `burial` and the undertaker already banks it. The
 open economics:
 
-- **The coroner economy** — moved here from `mortality-slate`'s Left. Who
+- **The coroner economy** — moved here from `mortality-slate`'s Left (that
+  slate is since absorbed into `mortal-vessel-slate`). Who
   is paid to handle a body nobody claims, and by whom.
 - **Potter's field as the floor.** Free, undignified, and always
   available — the `passage`-floor shape applied to the body instead of
@@ -185,9 +173,10 @@ open economics:
   existed to bury their members; `insurance-slate` has policy-as-contract
   and the mutual, and this is its most honest first product — you pay a
   little every week against a thing that is certain and unscheduled.
-- ⚠ **Not employer coverage** — that is `mortality-slate`'s
-  re-embodiment vendor question, and it is about coming back, not about
-  the body.
+- ⚠ **Not employer coverage** — that is `mortal-vessel-slate`'s
+  re-embodiment vendor question (§ *Absorbed from mortality-slate — The
+  re-embodiment service*), and it is about coming back, not about the
+  body.
 
 ---
 
@@ -242,15 +231,19 @@ open economics:
 
 - **Coming back** — the shade, `passage`, `reembody`, the temple-vs-clinic
   vendors, employer coverage, what diminishment IS. →
-  `mortality-slate.md`. ⭐ The line: mortality is what happens to **you**;
+  `mortal-vessel-slate.md` (which absorbed `mortality-slate.md`
+  2026-09-21). ⭐ The line: mortality is what happens to **you**;
   this is what your death costs **everyone else**.
 - **The necropolis as a town** — the LULU mechanism, the sixth locality,
   the plat book, the impunity hole, and the fact that the shipped stub is
   in the wrong place. → `towns-slate.md § The necropolis`.
 - **Aging and lifespans** — decided in `race.md`, deliberately inert.
   Not this build's, not any build's until succession is solved.
-- **Inheritance and probate** — needs kinship and a court, and has
-  neither. → `lineage-slate.md` (households), `legal-code-slate.md`.
+- **Inheritance and probate** — *superseded by
+  `docs/requirements/economic-bootstrap-requirements.md § Beneficiaries` +
+  `§ Debts first, then situs`* (a player's estate passes to a named
+  beneficiary, debts first, the rest by situs; no kinship model or court
+  is required).
 - **The underworld** — cut with reasoning, and what it actually needs is
   a traversal gate on incorporeality. → `mortality.md § Deferred`.
 - **Murder, blame and prosecution** — `accountability_events` already
@@ -270,7 +263,8 @@ open economics:
   `care` need; *"Colma is a plat book"*
 - `docs/vocations.md` — the **monument mason**, listed as a GAP
 - `docs/slates/builds/towns-slate.md` — the necropolis as a locality
-- `docs/slates/builds/mortality-slate.md` — the other half of dying
+- `docs/slates/builds/mortal-vessel-slate.md` — the other half of dying
+  (absorbed `mortality-slate.md` 2026-09-21)
 - `docs/slates/builds/insurance-slate.md` — the mutual, for the burial club
 - [mortality.md § The grave](../../subsystems/mortality.md) — what
   `interIn`/`interred` actually do (⚠ the consequence plan is retired)

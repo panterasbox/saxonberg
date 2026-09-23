@@ -1,10 +1,17 @@
 # Tradition slate — schools of thought as research programmes
 
 > **Status: UNBUILT** — it rides inquiry, and inquiry has not shipped
-> either; no `Law` or `Tradition` row exists.
-> **Left:** the `Law` catalog · the Law/Tenet split · `Tradition` as an
-> Idea carrying an attention order · null laws · the notebook · what
-> lands in the Transcript · atheism as a first-class Tradition
+> either (inquiry-slate is PARTIAL on the instrument seam alone); no
+> `Law`, `Tradition`, notebook document kind or `predict` gate exists in
+> code. *(Compacted 2026-09-19 — nothing to cut; ledger:
+> `docs/plans/slate-compaction/unlinked-1.md`.)*
+> **Left:** the `Law` catalog (inquiry's) · the Law/Tenet split ·
+> `Tradition` as a data Idea carrying tenets + an attention order, and
+> its `TraditionCatalogue` · null laws · the notebook (`StoredDocument`
+> kind + the `notebook` verb + `analyze --log`) · what lands in the
+> Transcript (a refutation graded `success`) · how a `Law` row points at
+> its evaluator (needs sign-off) · atheism as a first-class Tradition ·
+> the three Tradition rows + three Law rows as seeds
 > **Size:** a wave
 
 > **Status: sketch / pre-requirements.** A **Tradition** is an inherited
@@ -76,31 +83,7 @@ What survives is a **split** the old draft collapsed.
 
 ## The split: Law vs Tenet
 
-| | **Law** — positive | **Tenet** — normative |
-|---|---|---|
-| says | *what the world does* | *what matters; what is worth doing* |
-| adjudicated by | **the sim**, via the predict gate | **nothing, ever** |
-| can be false | yes — and it dies on verification | category error |
-| owner | [inquiry-slate](../builds/inquiry-slate.md) | this slate |
-
-A tradition that makes **positive** claims is picking a fight with the
-evaluator and will lose — which is precisely the god-of-the-gaps failure
-the codex describes, now with a build date attached.
-
-A tradition that makes **normative** claims makes no prediction, so
-nothing can refute it. *"Tend the hurt"* is not wrong. It is not right
-either. It is not that kind of sentence.
-
-> ⭐⭐ This is the **positive/normative split the Compact course already
-> grades on** ([compact-political-science.md](../../compact-political-science.md)),
-> pointed at religion instead of politics. Same distinction, same reason:
-> it is the line between what can be settled and what must be chosen.
-
-**So a Tradition is two things, and neither is a fact table:**
-
-1. a set of **normative tenets** — prose, values, never adjudicated;
-2. an **attention order over the `Law` catalog** — which questions this
-   account thinks are worth asking first.
+*Homed at [uncertainty.md](../../uncertainty.md) § *Law vs Tenet* — the table, the positive/normative line the Compact course grades on, and *a framework is (a) normative tenets + (b) an attention order over the shared `Law` catalog*. Ownership: `Law` is [inquiry-slate](../builds/inquiry-slate.md)'s; the Tenet + attention order is this slate's.*
 
 ---
 
@@ -149,16 +132,7 @@ is exactly what the propaganda test requires.
 
 ### ⭐⭐⭐⭐ And this is why there is no truth table to datamine
 
-The codex flagged datamining as the likeliest killer. The null-law model
-removes the target:
-
-> **Nothing in the authored data says true or false. The evaluator is the
-> only oracle.**
-
-`Law` carries no `isNull` field. A tradition's `attends` list is public
-and *tells you nothing* — the only way to learn whether a candidate
-relationship is real is to measure it, which is the activity. The
-abstraction law is satisfied by construction.
+*Homed at [uncertainty.md](../../uncertainty.md) § *The superstition ladder* (the pairing guard, corrected form): nothing in the data marks a null law, **the evaluator is the only oracle**, so there is no truth table to datamine and the only way to learn is to measure. The `Law` row carries no `isNull` field and a Tradition's `attends` list is public.*
 
 ⚠ **Honest caveat:** the source is AGPL, so a determined reader can read
 the evaluator. That is true of every sim law and the inquiry design

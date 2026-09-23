@@ -1,23 +1,28 @@
 # Locomotion as activity (working slate)
 
-> **Status: PARTIAL** — `sneak` shipped via the concealment build, and
-> freight took the vehicular half →
-> [locomotion.md](../../subsystems/locomotion.md)
-> **Left:** the durative `TraverseActivity` promotion · the sync/async
-> split · the duration model · the `engagedMode` storage migration · the
-> three retirements (and the CLAUDE.md antipattern-table edit they force) ·
-> `crawl`, if still wanted
+> **Status: PARTIAL** — `sneak` shipped via the concealment build
+> ([locomotion.md § The care↔speed axis](../../subsystems/locomotion.md));
+> the vehicular half and the duration source shipped as the transport
+> pack's Journey over `Exit.edgeMinutes × 1/speed`
+> ([locomotion.md § Duration lives in the Journey](../../subsystems/locomotion.md),
+> [logistics.md](../../subsystems/logistics.md)); the `Exit` sync getter
+> and the trap hook exist. Pedestrian movement is still synchronous and
+> nothing below is built; the framework has live consumers to copy — see
+> [host-slot-activities-slate](./host-slot-activities-slate.md)'s audit.
+> **Left:** the durative `TraverseActivity` promotion (mode-name as
+> engagement type) · the sync/async split (`Mobile.traverseSync` +
+> `TraverseActivity.beginFor`) · the `engagedMode` storage migration onto
+> `EngagedMixin` · the three retirements (`engageAround` ·
+> `traverseWithDefault` · `isTransientEngagement`, and the CLAUDE.md
+> antipattern-table edit they force) · the per-mode controller refactor to
+> the shared `beginFor` shape · `crawl`, if still wanted · Q1–Q5 (the
+> replacement set · cancel prose · the NPC-AI initiator · footstep
+> emissions · the restart lifecycle)
 > **Size:** a wave
 
 > **⚠ AUDIT 2026-08-08 — partial delivery.** Checked against the tree when
 > GitLab #10 was closed here.
 >
-> - ✅ **The sneak mode shipped** — `seeds/platform/idea/LocomotionMode/sneak.yaml`,
->   alongside walk, run, climb, swim, fly, ride, drive, aerial, wheeled and
->   sailed. It arrived via the **concealment build**
->   ([stealth.md](../../subsystems/stealth.md),
->   [concealment.md](../../subsystems/concealment.md)) with `sneak`/`run`
->   as pace verbs under movement — not via this slate.
 > - ❌ **`crawl` did not ship.** No `crawl.yaml`, no crawl mode anywhere.
 >   **Open question before anyone builds it:** is it still wanted, given
 >   `sneak` plus [posture.md](../../subsystems/posture.md) may cover
@@ -28,12 +33,6 @@
 >   `CLAUDE.md`'s antipattern table.** So the three retirements this slate
 >   proposes are a change to *documented guidance* as well as to code, and
 >   whoever does it owns that edit too.
->
-> Remaining scope: the durative `TraverseActivity` promotion, the
-> sync/async split, the duration model, the `engagedMode` storage
-> migration, the three retirements, and `crawl` if still wanted. The
-> framework now has live consumers to copy — see
-> [host-slot-activities-slate](./host-slot-activities-slate.md)'s audit.
 
 Working slate for promoting movement verbs (walk, run, sneak,
 crawl, climb, swim, fly, ride) from synchronous instant-commit
@@ -45,29 +44,10 @@ slate sketches is the **consumer side**: what locomotion looks like
 when it earns a slot in the engagement framework, and the
 infrastructure changes that decision pulls along.
 
-> **⭐ UPDATE 2026-07-31 — the consumer arrived, and it is FREIGHT.**
-> [freight-slate § The Journey](../builds/freight-slate.md) is the home
-> this slate has been waiting for, and it resolves the deferral without
-> reversing it: **pedestrian movement stays synchronous; *vehicular*
-> movement becomes durative.** So the responsiveness argument below is
-> preserved intact — walking one room is a step, driving a wagon to the
-> next town is a journey. Design landed there: a `SustainedEngagement`
-> with a per-leg `ScheduledEmission` (respiration's shape, not a
-> `DurativeActivity` — a journey's duration is not trustworthy up
-> front); **arrival is a completion, not an abort**; the journey
-> **issues the same `traverse` a player would** rather than moving
-> anything itself; and it takes the **`hands`** slot, which is what
-> makes *you cannot drive and fight* — and therefore the escort job —
-> fall out of the shipped slot vocabulary.
-
-> **Status: deferred *for pedestrians*.** v1 keeps walking, climbing,
-> etc. synchronous and instant. Game responsiveness is a selling point; durative
-> movement only earns its slot when content design calls for it
-> (sneak as a stealth mechanic with detection windows, climb as a
-> skill-check arc with mid-event interrupts, long-corridor
-> traversal with mid-traversal observability). This slate
-> preserves the design space so the implementer doesn't start
-> from scratch.
+> *The vehicular half shipped — the transport pack's Journey
+> ([logistics.md § The Journey](../../subsystems/logistics.md)); the split
+> it settled (pedestrian movement stays synchronous, and why) is
+> [locomotion.md § Duration lives in the Journey](../../subsystems/locomotion.md).*
 
 See also:
 
@@ -198,62 +178,23 @@ relies on — available, not encouraged.
 `traverseSync` throws, the scheduler's watchdog catches and
 fires `onAbort('thrown')`. Acceptable failure mode.
 
-The Exit needs a sync cached-destination getter
-(`getCachedDestination(): (Stuff & Container) | null` or
-equivalent) if it doesn't have one. The resolution cache (the
-singleton index) already exists internally; this is exposing a
-synchronous accessor.
+*The sync cached-destination getter exists: `Exit.getDestination()`
+throws when the destination is not loaded —
+[boundary.md § Lazy Exit destination resolution](../../subsystems/boundary.md).*
 
 ---
 
 ## Duration source — time-based, not distance-based
 
-The world model has **no room-to-room distance**. Rooms are
-atomic places with effectively-spaceless boundaries; the
-author's intuition is "walking through a typical room feels
-like four seconds," not "a typical room is 5.6 meters across."
-
-That kills the dimensionally-honest `length / speed` derivation
-an earlier draft proposed. The substrate that fits the model is:
-
-| Where | Field | Units | Role |
-|---|---|---|---|
-| `LocomotionMode` | `speed` | m/s | **Real gait speed.** Surfaced via `analyze`; consumed by future chase / stamina / pathfinder ETA systems. Does NOT drive duration. |
-| `LocomotionMode` | `defaultDurationMs` | ms | Time to cross a typical exit at this gait. Authors set this — they have time intuition. |
-| `Exit` | `durationOverrideMs?` | ms | Optional per-exit override for atypical exits (long corridors). Falls through to `mode.defaultDurationMs` when null. |
-
-`TraverseActivity.duration =
-exit.getDurationOverrideMs() ?? mode.getDefaultDurationMs()`.
-
-The two-channel split honors
-[design-philosophy.md § Principle 2](../../design-philosophy.md):
-real measurements stay real (gait speed in m/s, gait cadence in
-ms when the sound subsystem ships); fictional measurements
-(room-to-room distance) don't get invented to keep a derivation
-looking honest.
-
-**Internally-consistent v1 values** for a notional ~5.6m "typical
-room" (a curious student can verify the arithmetic):
-
-| Mode | `speed` (m/s) | `defaultDurationMs` (ms) | Notes |
-|---|---|---|---|
-| walk | 1.4 | 4000 | human walking baseline |
-| run | 3.0 | 1900 | human jog/run |
-| sneak | 0.6 | 9300 | crouched cautious walk |
-| crawl | 0.3 | 18700 | hands-and-knees |
-| climb | 0.3 | 18700 | hand-over-hand vertical |
-| swim | 1.0 | 5600 | front-crawl stroke |
-| fly | 5.0 | 1100 | mid-range body-plan wingbeat |
-| ride | 5.0 | 1100 | horse-walk under a rider; passthrough |
-| drive | 10.0 | 600 | vehicle-defined |
-
-The framework does NOT enforce the relationship. Authors of new
-modes pick `defaultDurationMs` from gameplay feel; the m/s
-`speed` is descriptive metadata.
-
-**No `Exit.length` field.** Authors who want a long-corridor case
-set `durationOverrideMs` directly in time units, or split the
-corridor into multiple Locations.
+*Superseded by the code. The principle held — time, not distance; no
+`Exit.length` — but the fields did not: duration shipped as
+`Exit.edgeMinutes` (game minutes, authored per EDGE, default
+`transport.defaultEdgeMinutes`, read by nothing in the kernel) ×
+`1/LocomotionMode.speed` (a relative multiplier vs walk — walk 1.0 · run
+2.0 · sneak 0.5 — not m/s) × load factor, spent by the transport pack's
+Journey. No `defaultDurationMs`, no `durationOverrideMs`, no m/s speeds.
+[locomotion.md § Duration lives in the Journey](../../subsystems/locomotion.md)
+· [logistics.md § The metronome and the score](../../subsystems/logistics.md).*
 
 ---
 
@@ -352,17 +293,11 @@ bundle the refactor.
 
 ## Trap subsystem hook
 
-The slate calls out trap activation on `TraverseActivity.onComplete`
-as an integration point. The trap subsystem is paper today; when
-it ships, the integration is one line inside `onComplete`:
-
-```ts
-TrapApi.fireOnArrival(this.actor, this.exit.getDestination());
-```
-
-The activity framework's lifecycle hooks (start, complete, abort,
-emissions) are the only seam traps need. No prior coordination
-required.
+*Superseded by the code — traps shipped and fire inside `Mobile.traverse`
+at the post-move `onEntered` site (the scan over destination · deployed
+hazards · the exit itself), not on an activity's `onComplete`:
+[hazard.md § `Trap` + the trigger hook](../../subsystems/hazard.md). A
+future `TraverseActivity` inherits it through `traverseSync` for free.*
 
 ---
 
@@ -437,8 +372,6 @@ positions if any content earns it.
 - **Combat-specific timing** — combat slate territory.
 - **The sound subsystem** — its own slate; emits no `SoundEvent`
   in this wave.
-- **The trap subsystem** — its own slate; integration point
-  documented above.
 - **NPC AI** — its own subsystem; uses `TraverseActivity.beginFor`
   when it ships.
 
@@ -451,10 +384,9 @@ This slate boils down to:
   canonical traversal initiator.
 - `Mobile.traverseSync(exit, mode): void` sibling alongside the
   unchanged async `Mobile.traverse`.
-- `Exit` sync cached-destination getter (if not already present).
-- `LocomotionMode.defaultDurationMs: number` field; reauthor
-  `speed` as m/s; reauthor all nine modes per the duration table.
-- Optional `Exit.durationOverrideMs: number | null` field.
+- *(the `Exit` sync getter exists; `defaultDurationMs` /
+  `durationOverrideMs` are superseded by `Exit.edgeMinutes × 1/speed` —
+  see § Duration source above)*
 - `Mobile.engagedMode` storage migration onto `EngagedMixin`.
 - `LocomotionApi.engageAround` / `traverseWithDefault` /
   `isTransientEngagement` retirement.

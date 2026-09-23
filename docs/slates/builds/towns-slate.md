@@ -1,19 +1,31 @@
 # Towns slate — the realm outside Terminus
 
-> **Status: PARTIAL** — 13 Locality rows ship; Rejection (39 files) and
-> Hinkley Hills (tenure, lease tier, land use) are authored →
+> **Status: PARTIAL** — 14 Locality rows ship; Rejection (72 files, incl.
+> the Kestrel road), Hinkley Hills (tenure, lease tier, land use) and
+> Heart's Delight's **functional half** (a static authored farm + the mill,
+> the `hearts-delight` pack) are authored; winter, the valley road, the
+> crossroads depot and freight shipped ([soil.md](../../subsystems/soil.md) ·
+> [logistics.md](../../subsystems/logistics.md)); the cast residency veto
+> shipped ([residency.md](../../subsystems/residency.md)) →
 > [address.md](../../subsystems/address.md)
-> **Left:** Rejection Act I + the inert `stocks:` table · Heart's Delight
-> (gated on winter) · Hinkley facades/neighbours/the Death Man + `knock` ·
-> Rejection's support half · homes off `Offstage` · depots + the valley
-> road · **the necropolis as a SIXTH LOCALITY** (⚠ a 122-line stub
-> shipped *inside* Terminus — see the section) · freight
+> **Left:** Rejection Act I + the inert `stocks:` table · Heart's Delight's
+> support half (the Cannery Row town — the tower, the co-op, the pack +
+> seasonal employment, Halloran's founding, Hendy's yard, the eight farms) ·
+> Hinkley facades / neighbours / the Death Man + `knock` + a rule for D22 ·
+> Rejection's support half (the Rest, the Tallow, the Institute, the print
+> shop, the infirmary, the sharpening shop, a burial ground) · homes off
+> `Offstage` + the commute budget · the per-town depots (only the
+> crossroads depot ships) · **the necropolis as a SIXTH LOCALITY** (⚠ still
+> `/world/terminus/necropolis` — see the section) · the teaching venues'
+> re-homing (campus-grounds) · the three civic roads (D4 / D14 — the
+> charter petition, the District's first use, the co-op vs the aquifer) ·
+> the unanswered list (river authority · subsidence · seasonal employment ·
+> lot variation · the wood contest)
 > **Size:** a build
 
 > **Captured 2026-09-02**, design session in the `master` worktree while
 > textiles (`design/textiles`), TPA reform (`design/tpa-reform`) and
 > cooking (`build/cooking`) were in flight.
-> **Status: decided direction, pre-requirements.**
 >
 > This slate owns **the towns as places to live** — the half of each
 > settlement that is not its industry, the trade relation that binds the
@@ -23,7 +35,7 @@
 > [rejection-slate](./rejection-slate.md) +
 > [metal-chain-slate](./metal-chain-slate.md) +
 > [mining-slate](./mining-slate.md) own the mine.
-> [farming-slate](../tails/farming-slate.md) owns the orchard and the field.
+> [farming-slate](farming-slate.md) owns the orchard and the field.
 > [property-slate](./property-slate.md) +
 > [residence-ladder-design-pack](../tails/residence-ladder-design-pack.md) own
 > title and tenure. This slate owns **what those industries make of the
@@ -67,79 +79,19 @@ Siblings: [freight](./freight-slate.md) · [delivery](./delivery-slate.md) ·
 
 ## ⭐ The frame: every town is two halves
 
-> **The functional half is why the town exists. The support half is what
-> the work does to the people who do it.**
+*Homed 2026-09-22 → [settlement-model.md § 3 · Absorbed from towns-slate — every town is two halves](../../settlement-model.md).*
 
-This is economic base theory, and naming it matters because it makes the
-"creative" half *non-arbitrary*. The basic sector exports — ore, fruit,
-labor. The non-basic sector exists to serve the people the basic sector
-employs. A mining town has a boarding house because miners are single men
-on rotation. A fruit valley has a packing house because fruit rots.
-
-So the generator for each town's second half is **one question**, and it
-is not "what would be cool here":
-
-> *What does this work do to the people who do it?*
-
-That constraint is what makes the support half both **teachable** (it is
-real economic geography, not decoration) and **expressive** (the answer
-is different in every town, and the difference is character).
-
-⚠ **Both halves are content, but they are not the same KIND of work.**
-The functional half is mostly mechanism and mostly shipped — it wants
-substrate, brains and gates. The support half is mostly rooms, cast and
-prose, and it wants almost no engine work at all. That asymmetry is why
-this slate is cheap relative to its payoff, and why it can be cut into
-per-town slices that ship independently.
 
 ---
 
 ## ⭐⭐ The realm geometry — Terminus is the clearing house
 
-The relation that was missing from every prior locality doc:
-
-> **The towns do not trade with Terminus. They trade with each other
-> THROUGH Terminus.**
-
-| town | sends the city | takes from the city |
-|---|---|---|
-| **Rejection** | ingots — the input to every tool, rig, fixture and fitting | tools, timber, food, wages, and *people* (nobody is born there) |
-| **Hinkley Hills** | nothing material — **labor**, and demand | everything; its income *is* Terminus wages |
-| **Heart's Delight** | food — the only town that feeds the city | equipment, capital, the market, seasonal hands |
-
-Rejection's storekeeper sells food grown in the valley. The valley's
-cannery buys tin smelted at Rejection. **They never meet.** Terminus is
-the room they meet in — which is what makes the market square
-load-bearing rather than scenery: it is not where you shop, it is where
-the realm clears.
-
-Three ways the city is already the centre in **shipped** content, none of
-them said out loud until now:
-
-- **Capital.** Rejection's businesses declare `banksAt: goodkin` — the
-  counting-houses. Every town's money is in a Terminus vault. That is not
-  a convenience; it is why a river authority would ever have teeth, since
-  the institution that can freeze an account can settle a diversion
-  fight.
-- **Entry.** The only arrival terminal is in Terminus
-  (`/world/terminus/terminal/thing/arrival-terminal`). Every player lands
-  in the city; every other town is somewhere you *choose* to go. The
-  towns are destinations, never origins.
-- **Knowledge.** The university is in the city. Every Discipline the
-  towns exercise gets **credentialed** somewhere else.
-
-⭐ So the city holds the money, the door and the schooling; the towns hold
-the ground, the ore and the food. That is a real political geometry, and
-it is the reason Terminus — founded by people who wanted no governing —
-ends up governing anyway without ever passing a law.
+*Homed 2026-09-22 → [settlement-model.md § 8 · Absorbed from towns-slate — Terminus is the clearing house](../../settlement-model.md).*
 
 ### The second geometry, and it is deliberately misaligned
 
-`Locality/rejection.yaml` already says this and it is the best sentence in
-the content tree: the **address tree is political containment**
-(`terminus/rejection`), the **watershed is hydrological ordering**
-(Rejection → Heart's Delight → Terminus). Terminus governs its own streets
-and has no say over what Rejection puts in the water.
+*The address-tree / watershed misalignment is shipped doctrine →
+[watershed.md § A Locality declares its water](../../subsystems/watershed.md).*
 
 | | Rejection | Hinkley Hills | Heart's Delight |
 |---|---|---|---|
@@ -278,9 +230,8 @@ its own**, for deniability. Three facts:
 **The Pinkertons are the reason you need a sheriff**, and the corpo would
 prefer the town stayed unchartered. The interests invert cleanly.
 
-⭐ Policing mode: Rejection runs **the hue and cry** (the frontier, per
-policing-slate's Tiebout axis) against Terminus's **Peelers**. Two
-arguments about law, one road between them, felt by walking.
+*Policing mode (hue and cry vs Peelers) → [settlement-model.md § How law
+is enforced, per settlement](../../settlement-model.md).*
 
 
 ## Hinkley Hills — tenure
@@ -413,26 +364,16 @@ nine-house scale, and the same theme as Rejection Act III.
 > sequence, the tower and the cast are staged under `docs/staging/`. This
 > section holds the decisions and why.
 
-**It does not exist.** No Locality row, no zone, no rooms — only its
-hydrology (`Watercourse/delight`: spring 720 m → **the flats, 180 m**,
-240 km² → mouth 35 m). The flats node's own comment: *"the diversion
-fight, when it comes, is here."*
-
-⭐⭐ **The Stage B gate is CLEARED** — `roadmap.md` and `farming-plan.md`
-§Stage B both name residences Waves 0–5, and those shipped. B0 re-grounds
-first.
-
-### ⚠⚠ But winter does not exist for plants
-
-The **clock** has seasons (`DefaultCalendar`, `CelestialApi.seasonFor`,
-`SEASON_BIAS` in weather). Husbandry does not: *"no bloom, no season of
-readiness"*, *"with no global season, supply arrives in pulses."* And
-`farming-slate` lists winter **first** among what is unbuilt.
-
-⭐ **That is the reason to build the valley, not to defer it.** Greenhouses
-are what winter is for; a fruit valley is what a *season* is for. One
-piece of substrate per town: Rejection needs the `stocks:` fix, Hinkley
-needs `knock`, the valley needs winter.
+*Superseded by the code (farmstead, 2026-09-06): the valley's **functional
+half** ships — the `hearts-delight` pack (17 files: a farmer and a miller,
+the farm and mill businesses, the farmstead yard, the barn, the bench field
+on thin junior-water ground, the millsite at the fall, the valley gate off
+the crossroads) and the Locality row `terminus/hearts-delight`; **winter
+ships** ([soil.md § Winter](../../subsystems/soil.md), [husbandry.md §
+cold](../../subsystems/husbandry.md), [time.md §
+Daylength](../../subsystems/time.md)). The `stocks:` fix (Rejection) and
+`knock` (Hinkley) remain — see Sequencing. Everything below is the
+**support half**, unbuilt.*
 
 ### Sources — and ⚠ Chinatown is the wrong one
 
@@ -584,58 +525,29 @@ price, which is an ending rather than a phase.
 
 ## The connective tissue — goods and services in and out
 
-This is not a separate feature. It is what makes the three towns
-*necessary* rather than arbitrary, and the realm layout is **already von
-Thünen** — nobody has cashed it:
+*Homed 2026-09-22 → [settlement-model.md § 8 · the realm layout is already von Thünen](../../settlement-model.md).*
 
-- heavy, low-value, loses mass on processing → **process at the source.**
-  Rejection smelts on site rather than shipping ore. Already true, already
-  right, and it happened by good instinct rather than by rule.
-- perishable, high-value, short window → **preserve, or be close.** Heart's
-  Delight gets the cannery and the drying yards for exactly this reason.
-- residential outbids agriculture near the centre → **Hinkley is the near
-  ring** and grows gardens, not fields.
-
-All three follow from one condition: **transport costing something.**
-[freight-slate](./freight-slate.md) has direction set, teamster/drover
-designed, wainwright flagged as a gap, and says explicitly that it is the
-slate which pulls locomotion-as-activity. That is the build which turns
-the map into an argument.
+*Freight shipped → [logistics.md](../../subsystems/logistics.md) (the
+haulage market; ⚠ the cost surface is **opt-in** — § The cost surface is
+OPT-IN); the remainder is [freight-slate](./freight-slate.md)'s.*
 
 ### ⭐ The depot — one room per town, and it is the character piece
 
-The concrete deliverable: **a depot in each town** — the single room where
-goods enter and leave. Same function, three rooms that could not look less
-alike, each saying what its town is in one `look`:
-
-| town | the depot is… |
-|---|---|
-| Rejection | a weighbridge and a tally board at the adit mouth |
-| Hinkley Hills | a rail platform with a shelter and a noticeboard |
-| Heart's Delight | a loading dock on the packing house, stacked with empty trays |
-
-`consign` already works ([retail](../../subsystems/retail.md)), so the
-depot rides shipped substrate and needs **no new verb**.
+*The three depots (a weighbridge · a rail platform · a loading dock) are
+restated in [settlement-model.md § 8](../../settlement-model.md), which also
+**withdrew** "`consign`, no new verb" — carriage is `ship`
+([logistics.md](../../subsystems/logistics.md)). The **crossroads depot**
+ships (`trade-haulage`'s `depot` archetype at
+`/world/terminus/delight-road/crossroads`); the per-town depots are content
+still to author.*
 
 ### The valley road
 
-Today every town is a TPA spoke off Terminus — Rejection has *no inbound
-exit wired at all*, Hinkley has a rail stop. The watershed is the only
-thing that genuinely relates the three, and it is invisible because you
-never travel along it.
-
-⭐ **Make the Delight valley the road.** Rejection upstream, Heart's
-Delight the middle reach, Terminus at the mouth. One road down one valley
-and the fouling becomes something you *walk past*: you leave the pithead,
-you follow the water that leaves it, you see what it does to the flats,
-you arrive at the city drinking it. Hinkley stays on the side slope,
-looking down at all of it, which is why it has a tank.
-
-That converts three separate demonstrations of a water model into a single
-legible argument, for one build's worth of rooms.
-
-⚠ It does **not** remove TPA. Fast travel stays the default; the road is
-what a hauler uses and what a player walks once.
+*Shipped as designed — the Delight road (Terminus → the ford → the
+milestone → the drove → the flats → the crossroads), the Kestrel road up
+over the pass to Rejection, the valley gate to Heart's Delight; TPA stays
+→ [logistics.md § The corridors](../../subsystems/logistics.md), § There is
+no `tpa` lane.*
 
 ---
 
@@ -736,24 +648,11 @@ keyed programme** a player buys into. Then:
 Highest-value version of the idea, at roughly a sixth of the cost of doing
 it everywhere.
 
-### ⚠⚠ The residency hazard to prove before building
-
-`canEvict` is overridden on ~20 classes and **every one of them is a
-singleton or catalogue** (`ResetWarden`, `MaterialCatalogue`,
-`Interactive`, `HelpCatalogue`, …). **No agent class overrides it.** An
-NPC idle at home in a room no player visits is a cold-tail eviction
-candidate by the default rule.
-
-What appears to save it: the security gate refreshes `lastTouched` on the
-raw target **on every successful dispatch**, so a beating brain keeps its
-own host warm. Which means the profile most at risk is precisely the one
-this slate creates — ⚠ **an NPC whose only brain is `shifts` at a slow
-cadence, asleep at home, off-camera.** And it would fail *silently*, at
-03:00.
-
-⭐ **Prove this before authoring homes, not after.** It is a one-test
-question and the answer decides whether "cast gets a home" needs a
-`canEvict` veto on the cast designation.
+*The residency hazard is answered by the code: `BehavedMixin.canEvict`
+vetoes any host carrying a behavior spec (`lib/behavior/Behaved.ts`), and
+an emitter pins itself with `Persistable.pinsResidency()` →
+[residency.md](../../subsystems/residency.md) (the veto table's `Behaved`
+row; § the pin). D13 is resolved.*
 
 ---
 
@@ -956,8 +855,8 @@ social happens. The rite, the mourners, the monument and the money are
 - **D2 — Terminus is a clearing house, not a trading partner.** The towns
   trade with each other through it. Content that has Rejection selling
   directly to Heart's Delight is wrong.
-- **D3 — The address tree and the watershed stay misaligned.** Already
-  shipped doctrine (`Locality/rejection.yaml`); this slate depends on it.
+- **D3** — shipped doctrine → [watershed.md § A Locality declares its
+  water](../../subsystems/watershed.md).
 - **D4 — Each town reaches its polity by a different road**, and they are
   three *failure modes*, not three instances. Rejection needs public
   authority and cannot get it; Hinkley has it and will not use it; the
@@ -976,18 +875,19 @@ social happens. The rite, the mourners, the monument and the money are
 - **D7 — Hinkley's support half is a facade, then a civic room.** The
   owner-authored exterior + sign rendered into the lane comes before the
   hall.
-- **D8 — One depot per town**, riding shipped `consign`. No new verb.
-- **D9 — The valley road is authored; TPA stays.** The road is what a
-  hauler uses and what a player walks once, not a replacement for fast
-  travel.
+- **D8 — One depot per town** — *"no new verb" WITHDRAWN* by
+  [settlement-model.md § 8](../../settlement-model.md): carriage is `ship`
+  ([logistics.md](../../subsystems/logistics.md)). Only the crossroads depot
+  ships.
+- **D9** — shipped → [logistics.md § The corridors](../../subsystems/logistics.md).
 - **D10 — NPCs get homes; `Offstage` becomes a real addressed room with a
   door.** Cheap, historically exact, and most of the payoff.
 - **D11 — Commuting is a character trait, not a world rule**, and the
   budget is spent in Hinkley Hills.
 - **D12 — Props never get a residence.** Structural, off the shipped
   designation.
-- **D13 — Prove the residency/eviction interaction before authoring
-  homes.** ⚠ Silent failure mode.
+- **D13** — resolved: `BehavedMixin.canEvict` →
+  [residency.md](../../subsystems/residency.md).
 - **D14 — ⭐⭐⭐ Rejection's charter is only worth what Terminus says it is
   worth.** *De facto* authority is the town's to take; *de jure* is
   Terminus's to grant, discretionarily, by an office a player can hold.
@@ -1004,9 +904,8 @@ social happens. The rite, the mourners, the monument and the money are
 - **D16 — Private force has capacity and no authority.** Authority comes
   from an office. The frightening agent is the *deputized* one, and
   Rejection has no office to deputize into — which is worse, not safer.
-- **D17 — Rejection runs the hue and cry; Terminus runs Peelers.** The
-  policing slate's aesthetic arc is a Tiebout axis; two arguments about
-  law with one road between them.
+- **D17** — restated in [settlement-model.md § How law is enforced, per
+  settlement](../../settlement-model.md).
 - **D18 — ⭐⭐⭐ The Death Man is permanently ambiguous, and the ambiguity
   lives in the man, not the ground.** The garden is resolvable; he is not.
   ⚠ Nothing is hidden in the source — this is an AGPL repo, and an
@@ -1052,17 +951,17 @@ social happens. The rite, the mourners, the monument and the money are
   what a village smith cannot make — a hoist, a pump, a stamp mill — and
   metal-chain Stage A shipped none. Author a yard with rail frontage and
   no building; the works arrives later *in response to an event*.
-- **D27 — ⚠⚠ The valley is gated on WINTER.** The clock has seasons; the
-  crop does not (*"no bloom, no season of readiness"*). ⭐ That is the
-  reason to build the valley rather than defer it — a fruit valley is what
-  a season is *for*.
+- **D27** — the gate is CLEARED: winter shipped (farmstead) →
+  [soil.md § Winter](../../subsystems/soil.md).
 
 ---
 
 ## Grounding (verified 2026-09-02, at `053c891a2`)
 
-- **13 Locality rows ship.** Heart's Delight is not among them and has no
-  content of any kind; only `Watercourse/delight` exists.
+*⚠ A dated snapshot. Bullets the tree has since falsified were cut on
+2026-09-19 (the Locality count, the `canEvict` claim, the Stage B gate,
+the seasons) — the compaction ledger has each with its pointer.*
+
 - **Content volume:** Rejection 39 files, Hinkley Hills 14, Hearthworks
   12, Practicum 7, Moor 4, Substation 4.
 - **Rejection**: 8 surface rooms, all workplaces; 8 workings rooms; the
@@ -1078,14 +977,8 @@ social happens. The rite, the mourners, the monument and the money are
 - **Shift schedules**: only the Lounge, the budget, the general store and
   the counting-houses have non-24/7 rosters. Rejection and Hearthworks are
   24/7, so their `Offstage` rooms are **never used in practice**.
-- **`canEvict` overrides**: ~20, all singletons/catalogues; **no agent
-  class**. `lastTouched` refreshed by the security gate on every
-  successful dispatch.
 - **Hearthworks / Practicum / Substation**: zero `_address` declarations
   anywhere in their trees.
-- **Stage B gate**: `roadmap.md:27` + `farming-plan.md:28` name residences
-  Waves 0–5; those shipped. ⚠ Both docs still read as though it is
-  pending — fix at sweep time.
 - **`banksAt: goodkin`** on Rejection's fuel-yard and provisioning
   businesses.
 - **Only TPA arrival terminal**: `/world/terminus/terminal/thing/arrival-terminal`.
@@ -1120,11 +1013,6 @@ social happens. The rite, the mourners, the monument and the money are
   shipped roster (which holds 24, incl. `horticulture`).
 - **The Hinkley house programme** already ships the house door
   `locked: true` to the lot's keyway.
-- **Seasons**: the clock has them (`DefaultCalendar` 360d/12mo/4 seasons,
-  pure `CelestialApi.seasonFor`, `SEASON_BIAS` in weather transitions).
-  ⚠ **Husbandry does not** — *"no bloom, no season of readiness"*, *"with
-  no global season, supply arrives in pulses."* `farming-slate` lists
-  **winter first** among what is unbuilt and argues to keep it hard.
 - **`AddressRegistry`**: *"One Locality per prefix — a duplicate claim is
   an authoring error."*
 - **The tower** composes two shipped systems and needs no new code:
@@ -1157,7 +1045,12 @@ Rough order, each independently shippable:
    D13's proof.
 5. **Depots + the valley road** — cheap to author, inert until freight
    makes travel cost something, and a good room either way.
-6. **Freight** — pulls the whole von Thünen payoff. Its own build.
+6. ~~**Freight**~~ — shipped → [logistics.md](../../subsystems/logistics.md).
+
+*Compaction note (2026-09-19): step 1's winter gate is CLEARED and the
+valley's functional half ships (the `hearts-delight` pack) — its support
+half is what remains; step 5's road and the crossroads depot ship
+(logistics.md) — the per-town depots remain; step 4's D13 proof is done.*
 
 ⚠ Steps 2–5 are each far smaller than a normal build cycle. They are
 candidates for riding another build's branch rather than opening one.

@@ -140,6 +140,7 @@ export default class ScutchController extends ManualBuildController<ScutchModel>
 
     this.engageStep(context, {
       durationMs,
+      effortW: 400,
       beginSelf: hard
         ? Mml.compose`You set to ${Mml.thing(source)} hard, beating the boon out of it.`
         : Mml.compose`You work ${Mml.thing(source)} steadily against the board.`,

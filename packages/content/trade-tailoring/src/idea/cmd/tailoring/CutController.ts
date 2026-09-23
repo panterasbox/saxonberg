@@ -130,6 +130,7 @@ export default class CutController extends ManualBuildController<CutModel> {
 
     this.engageStep(context, {
       durationMs,
+      effortW: 250,
       beginSelf: measured
         ? spoilage > 0
           ? Mml.compose`You lay ${Mml.thing(cloth)} out as flat as you can manage and mark it to ${Mml.actor(subject!)}'s measure. Without a bench under it, some of this is going to be waste.`

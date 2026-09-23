@@ -1,11 +1,14 @@
 # Branch-policy slate — `writers` on the document tree
 
 > **Status: UNBUILT** — no `policy` document kind; `DocumentKinds` is
-> closed and does not carry one
+> closed and does not carry one (re-verified 2026-09-19: `DOCUMENT_KINDS`
+> has no `policy`, nothing reads a `writers` list, `DocumentApi.save`'s
+> gate still answers only *who owns a path*)
 > **Left:** the `policy` kind + the `writers` allowlist · the
-> longest-prefix resolve at `DocumentApi.save` · nearest-wins +
-> self-amendment · set-time validation via the `lint:gates` resolver ·
-> the wizard break-glass log
+> longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens
+> invariant · nearest-wins + self-amendment · the pack-declared policy
+> requirement (the per-institution mitigation) · set-time validation via
+> the `lint:gates` resolver · the wizard break-glass log
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the legal-code session. The document

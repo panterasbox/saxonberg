@@ -135,6 +135,8 @@ async function creditSignatureImpl(
  * lib does not import the platform class), or `null` before it warms. */
 function catalogue(): {
   getConferrals(discipline: string): { band: CompetenceBandName; verbs: string[] }[];
+  getStock(discipline: string): string;
+  allDisciplines(): { key: string; stock: string }[];
 } | null {
   return (
     (StuffApi.findByTemplatePath(
@@ -143,15 +145,61 @@ function catalogue(): {
       getConferrals(
         discipline: string
       ): { band: CompetenceBandName; verbs: string[] }[];
+      getStock(discipline: string): string;
+      allDisciplines(): { key: string; stock: string }[];
     } | null) ?? null
   );
 }
 
-/** Group an owner's evidence by Discipline and derive each band. */
-async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
-  if (!transcriptActive()) return [];
+/**
+ * ⭐ **The conditioning branch** — a Discipline that names a body `stock`
+ * has its band read off the body, not the Transcript. Overlaid on the
+ * transcript fold at every read surface: for each catalogued Discipline
+ * with a stock the owner carries, one `{discipline, band}` replaces any
+ * transcript-derived row for the same key. `wind` fades while you play
+ * and freezes while you are away because the STOCK does; nothing here
+ * is stored and nothing is appended.
+ */
+function withConditioning(owner: Stuff, rows: DisciplineBand[]): DisciplineBand[] {
+  const cat = catalogue();
+  if (!cat || !MixinApi.isExerting(owner) || !MixinApi.isReserved(owner)) {
+    return rows;
+  }
+  const out = new Map<string, DisciplineBand>(rows.map((r) => [r.discipline, r]));
+  for (const { key, stock } of cat.allDisciplines()) {
+    if (!stock || !owner.hasReserve(stock)) continue;
+    const band = owner.conditioningBand(stock);
+    // ⭐ The floor is implicit, as it is for the transcript fold: a stock
+    // at `untrained` is not listed. The browser drive's `competence` on a
+    // fresh character opened with *alcohol-tolerance — untrained*, which
+    // is a zero wearing a costume.
+    if (band === 'untrained') {
+      out.delete(key);
+      continue;
+    }
+    out.set(key, { discipline: key, band });
+  }
+  return [...out.values()].sort((a, b) => a.discipline.localeCompare(b.discipline));
+}
+
+/**
+ * Group an owner's evidence by Discipline and derive each band — the
+ * transcript fold, with the conditioning stocks overlaid unless the
+ * caller asks for the fold alone. ⚠ `practisingCache` asks for the fold
+ * alone: *the competence you are practising* is a thing you DO, and a
+ * body stock is not practised — the browser drive found a fresh
+ * character's shelf reading `SKILL alcohol-tolerance · untrained`
+ * because the overlay's first row sorted ahead of nothing.
+ */
+async function bandsForImpl(
+  owner: Stuff,
+  opts: { stocks: boolean } = { stocks: true },
+): Promise<DisciplineBand[]> {
+  const overlay = (rows: DisciplineBand[]): DisciplineBand[] =>
+    opts.stocks ? withConditioning(owner, rows) : rows;
+  if (!transcriptActive()) return overlay([]);
   const ownerId = ownerKeyOf(owner);
-  if (!ownerId) return [];
+  if (!ownerId) return overlay([]);
   const entries = await TranscriptEntry.find({ owner: ownerId });
   const byDiscipline = new Map<string, TranscriptEntry[]>();
   for (const e of entries) {
@@ -159,12 +207,13 @@ async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
     bucket.push(e);
     byDiscipline.set(e.discipline, bucket);
   }
-  return [...byDiscipline.entries()]
+  const folded = [...byDiscipline.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([discipline, rows]) => ({
       discipline,
       band: Competence.bandOf(rows),
     }));
+  return overlay(folded);
 }
 
 /**
@@ -196,7 +245,8 @@ const practisingCache = new DerivedStandingCache<DisciplineBand | null>(
   async (subject) => {
     const owner = StuffApi.findByTemplatePath(subject);
     if (!owner) return null;
-    const bands = await bandsForImpl(owner);
+    // The fold alone — what is PRACTISED. A stock's band is not practice.
+    const bands = await bandsForImpl(owner, { stocks: false });
     return bands[0] ?? null;
   },
   (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)
@@ -459,6 +509,12 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
     public async competenceBandFor(
       discipline: string
     ): Promise<CompetenceBandName> {
+      // ⭐ A conditioning Discipline short-circuits to its body stock.
+      const self = this as unknown as Stuff;
+      const stock = catalogue()?.getStock(discipline) ?? "";
+      if (stock && MixinApi.isExerting(self)) {
+        return this.suppressed(self.conditioningBand(stock));
+      }
       if (!transcriptActive()) return CompetenceBand.FLOOR;
       const ownerId = ownerKeyOf(this as unknown as Stuff);
       if (!ownerId) return CompetenceBand.FLOOR;
@@ -552,7 +608,11 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
       const key = ownerKeyOf(this as unknown as Stuff);
       if (key === null) return undefined;
       const rows = digestCache.get(key);
-      return rows ? this.suppressAll(rows) : rows;
+      // The fold cache is invalidated by the ledger; the conditioning
+      // rows move with the body, so they are re-overlaid at the read.
+      return rows
+        ? this.suppressAll(withConditioning(this as unknown as Stuff, rows))
+        : rows;
     }
   }
   return AdvancementMixin;

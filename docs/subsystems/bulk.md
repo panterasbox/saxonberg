@@ -205,6 +205,19 @@ or player-typed `cup` / `mL` measures convert to litres at the boundary
 (`Quantity.parse` / `Quantity.to`); the converters live in
 `lib/quantity.ts`. `cup` / `mL` are tagless volume units (like `m³`).
 
+### Authoring — discrete `Thing` vs `bulk`
+
+A content-author choice, not an engine one — the engine supports both:
+**discrete `Stuff`** when a unit has shape and identity and players
+treat it as countable (a loaf, an apple, a wheel of cheese, a coin;
+fungible + countable → also `Stackable`); **`bulk`** when it is a
+formless measured amount that conforms to its holder (water, flour,
+sand, oil). The linguistic tell: *three Xs* (discrete) vs *some X* /
+*200 g of X* (bulk). The same substance can be both (a wheel of cheese
+and grated cheese); the shipped crossing is § `Container` + `Bulkable`'s
+melt/solidify, and the conversion verbs are the slate's. Source:
+`bulkable-slate` § Authoring guidance.
+
 ### `BulkSlot` — the live handle
 
 `host.getBulk(affordance?)` returns a `BulkSlot` handle that reads and
@@ -239,6 +252,24 @@ v1 bulk is all liquid (`requiredClosureFor → 'liquidTight'`), so an
 `open` vessel doesn't retain it — it **drains through** (below).
 `sealed` (gas) and the phase→required-level mapping are defined on the
 scale but unexercised until gas content lands.
+
+### `Container` + `Bulkable` — orthogonal slots
+
+Within one affordance, bulk and discrete contents are **independent**: a
+`Container` holds its `contents` (a `Set<Containable>`) and its interior
+slot, and neither touches the other. `CraftVessel`
+(`Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))`) is the shipped
+case — the olive is a `Containable` in `contents`, the martini is the
+interior slot; `drink` drains the slot and the garnish stays. `Feeder`,
+`PlantPot` and `GardenBed` compose the same pair. There is no constraint
+to police (the inverse of `Stackable ⊥ Container`): a vessel that holds
+formless matter is the expected composer of both. Ice is NOT the discrete
+half — it is `ice` bulk moved from an ice bin, and its melt is a bulk
+credit on the same slot with the temperature clamped at the melting point
+([crafting.md § The glass pool](./crafting.md)). The slate's *a
+`Containable` becomes bulk* hook shipped for cast Things instead: a
+`Meltable` destructs into a molten floor pool and a vessel's liquid
+solidifies to a cast Thing ([thermal.md](./thermal.md)).
 
 ## `BulkableApi.transfer` (`api/bulk.ts`)
 
@@ -312,6 +343,59 @@ material keywords never leak into room scope.
 Demo Materials (`coffee`, `water`) are **flat** — appearance + keywords
 only, no composition / chemistry depth (fidelity is demand-driven;
 nothing in this slice reads past appearance + keywords).
+
+#### Why a Material is modelled at the granularity its interactions read
+
+`Material` carries real chemistry (formula, molar mass, `composition`
+weight-fractions, edibility/toxicity — [race.md](./race.md)); that depth
+is a **capacity, not a mandate**. The rule: **model a substance at the
+granularity its interactions actually read.** Coffee's interactions need
+a liquid, an appearance, a caffeine effect and *hot* — none reads a
+water-fraction — so coffee is a flat Material and the water in it is
+*presumed*; decompose into constituents only when some interaction has
+to see them, which for a drink is ~never. Two distinctions this fixes:
+**different substance vs. different phase** (bean → brewed coffee is two
+Materials related by a process, extraction; ice ↔ water is one Material
+in two phases — never conflate a chemical transformation with a phase
+change), and **capacity ≠ mandate** (the substrate's *ability* to model
+deep chemistry must never leak into *forced* fidelity). What keeps it
+honest is a three-layer stack: the **substrate** (materials, bulk,
+surfaces, `transfer`, effects — can go deep, defaults shallow); the
+**game**, a curated *legible* rule layer on top (oil pool + flame →
+spread; poison coats a blade; water conducts) that is **authored, not
+simulated** — emergence from a small learnable rule set, not from
+physics fidelity; and the **education dial**, the real chemistry an
+opt-in the teaching content turns up (Gus's coffee stays *coffee*; a
+chemistry lesson models the solution). The general principle is
+[design-philosophy.md § The principle](../design-philosophy.md); the
+design DNA is MUD bones (the parser, rooms as stagecraft), NetHack's
+everything-interacts density got through **composition** rather than
+per-case code, and Larian's legible chemistry set — whose surfaces and
+clouds ARE this doc's surface-bulk / spill / coat / drain machinery, and
+the proof the substrate is fun when the rule layer on top stays legible.
+Source: `bulkable-slate` § Material fidelity · § Influences.
+
+### `getContentsDescriptionFor` — the contents augmenter
+
+How a bulk-bearing vessel names itself: **mechanism and presentation are
+separate layers.** The vessel + `Material` split is how the thing works
+(drink, pour, decant, deplete); the **short is authored per row** and
+never composed from them — *"a can of cola"*, *"a healing potion"*, *"a
+waterskin"* are literary choices, and *"a vial of X"* is never forced.
+The **long** is where the contents show: `bulkContentsAugmenter` (a
+`MarkupAugmenter` on every long-description path) appends one sentence
+per non-empty slot — *"It holds <contents>."* / *"A puddle of <contents>
+pools here."* — and an empty interior slot on a host with a vessel kind
+says *"The <kind> is empty."*, so a drained can stops reciting its
+authored row. The phrase is `host.getContentsDescriptionFor(viewer,
+affordance?)`, **per viewer**: an `Identifiable` material routes through
+`describeFor` (a stranger reads *"an iridescent crimson potion"*, a
+learner *"a veiling draught"* — [magic-items.md § Potions ride the
+MATERIAL](./magic-items.md)); otherwise the blend payload's `appearance`
+first (a mixed drink names itself, not its base material), then the
+material's own. It reads the payload, not `BlendIdentity`, because
+`lib/bulk` may not import `lib/craft`. Amount-aware phrasing (*a splash /
+a glass / a pool*) is not built — the slate's open tail.
 
 ### `BulkPayload` — what a blend IS, and nothing else
 
@@ -410,6 +494,18 @@ whenever a Bulkable is reachable — not minted from a bespoke verb mixin.
 | `drink X` | holder → discard sink | all; fires `ingest` |
 | `sip X` | holder → discard sink | a fixed small measure; fires `ingest` |
 
+Four verbs joined the category later, each still a direction over
+`transfer`: **`eat X`** — the solid analog of `drink`, a discrete edible
+item handed to `ingest` as solid intake via `BulkableApi.ingestSolid`
+([metabolism.md](./metabolism.md)); **`water <plant> [with <source>]`** —
+`drink` with the plant's moisture reserve in place of `ingest`
+([husbandry.md](./husbandry.md)); **`feed <bed> [with <source>]`** —
+`water`'s twin, line for line, crediting compost to the ground's nitrogen
+reserve ([smallholding.md](./smallholding.md)); **`vomit`** — the
+voluntary purge of the digestion buffer's un-absorbed pools
+([metabolism.md](./metabolism.md)). `scoop` (surface → carried holder)
+was designed and is not built; none of the bulk verbs is durative.
+
 ### The ingest seam (`lib/creature/Creature.ts`)
 
 `drink` / `sip` hand the consumed `{ material, amount }` to
@@ -417,6 +513,17 @@ whenever a Bulkable is reachable — not minted from a bespoke verb mixin.
 deliberate **no-op** — the socket exists; nothing is plugged in. A
 future `Metabolic` / `Digestive` capability overrides it. Per-entity
 method, not a registry (substrate has no content hooks).
+
+⭐ **Plugged in since the metabolism build.** `MetabolicMixin` (composed
+on `Creature`) overrides `ingest(material, amount, phase, payload)`: it
+reconciles first, caps intake by the digestion buffer's liquid / solid
+sub-volume, returns the litres actually accepted (the `eat` verb consumes
+a discrete item only on full acceptance) and routes the material's tags
+to their handlers — [metabolism.md § The digestion
+buffer](./metabolism.md). Arcana's `PotableMixin` duck-types the same
+bridge, so a draught's effect fires on every ingestion route without bulk
+importing magic ([magic-items.md](./magic-items.md)). The seam's shape
+above held; only the no-op is history.
 
 The [respiration](./respiration.md) **air tank** (`obj/AirTank.ts`, a worn
 `Bulkable` whose `interior` is `air`) is another consumer of this surface:
@@ -443,13 +550,13 @@ Each lands in a named home later; none is in this slice.
   required-level mapping (gas → `sealed`, granular → `open`).
 - **The "everything is on a surface" containment inversion** — this
   build adds surface-*bulk*, not the discrete-resting refactor.
-- **`Container` + `Bulkable`** (ice cube in water) — documented, not
-  built; the demo vessels are fluid-only.
+- **`Container` + `Bulkable`** (ice cube in water) — **shipped** as
+  `CraftVessel` (§ `Container` + `Bulkable` above); the demo vessels stay fluid-only.
 - **Universal auto-compose** into Containers / Surfaces.
 - **Amount-aware `appearance`**, capacity↔collision unification,
   food-prep conversion verbs, thermal (hot coffee staying hot).
-- **Consumption consequences** — the `ingest` seam stays a no-op until
-  Dave's bar.
+- **Consumption consequences** — **shipped**: `MetabolicMixin.ingest`
+  ([metabolism.md](./metabolism.md)); see § The ingest seam.
 
 ## File map
 

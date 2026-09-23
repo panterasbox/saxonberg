@@ -700,11 +700,18 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (blame && !existing.accountability) existing.accountability = blame;
         return;
       }
+      // ⭐ The window starts NOW, not at the first read: `tickedAt` used
+      // to be stamped by the first reconcile, so a body nobody looked at
+      // never moved toward death — a fish drowning in a hand stayed
+      // "dying" indefinitely, and `release` put it back as a live count
+      // (the fishing drive, run 23). The clock that does not freeze on
+      // linkdead must not freeze on being unobserved either.
       const record: DyingRecord = {
         kind: 'dying',
         cause,
         windowSec: windowSec ?? HARM_DEFAULTS.DYING_WINDOW_SEC_DEFAULT,
         elapsed: 0,
+        tickedAt: WorldClockApi.getNow().rawValue(),
       };
       if (blame) record.accountability = blame;
       this.afflict(record);
@@ -897,9 +904,19 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // A floored biological reserve (exhaustion / starvation /
       // dehydration) degrades the body. `isReserved` narrows the host so
       // the reserve surface is type-checked (no duck-typing cast).
+      //
+      // ⚠ Only a reserve that HAS a floor effect has a floor. `wind` and
+      // `alcohol-tolerance` are seeded empty — an untrained body is the
+      // honest baseline, not a degraded one — and `lean` at 0 is gaunt
+      // in the mirror, not sick. A reserve whose `floorEffect` is null
+      // declares that hitting zero means nothing acute.
       if (MixinApi.isReserved(self)) {
         for (const r of self.getReserves().values()) {
-          if (r.theme === 'biological' && r.current.rawValue() <= 0) {
+          if (
+            r.theme === 'biological' &&
+            r.floorEffect !== null &&
+            r.current.rawValue() <= 0
+          ) {
             severity += 1;
           }
         }

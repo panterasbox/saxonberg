@@ -3,10 +3,14 @@
 > **Status: UNBUILT** — written at the close of the Api OO sweep
 > (MR !228, 2026-09-02), which merged with a knowingly permissive gate
 > posture. Nothing here is built.
-> **Left:** the `@Audited` permit-and-watch rail · re-gating the ~35
-> ungated-and-sealed mutators · a caller-template + caller-function
-> trust primitive · the enumerated pass over every call-security site ·
-> the acceptance shape
+> **Left:** the `@Audited` permit-and-watch rail (+ the one
+> `audit_events` collection, raised deliberately) · re-gating the ~35
+> ungated-and-sealed mutators · the `FromMixin`-marker question (bless as
+> the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) ·
+> hoisting the copy-pasted self-subject `where` into
+> `SecurityPolicies.SelfSubject(argIndex)` · `FromIdentity` ·
+> pack-contributed gate participants · interface-based admission · the
+> enumerated pass over every call-security site · the acceptance shape
 > **Size:** a build
 
 > Written at the close of the Api OO sweep (MR !228, 2026-09-02), which
@@ -162,47 +166,19 @@ chain summary, commandId/causingCommandId, timestamp}` into an
   deliberately with the user; the alternative (document tree) is wrong
   here because audit rows are cross-parcel, queryable, and reaped by
   age.
+- Sibling: [access-slate § Audit (a free win)](../tails/access-slate.md)
+  is the DENY side of the same Pillar 5 gap — authorization denies +
+  every `forceX` use → `MudlogApi`. This rail is the PERMIT side. One
+  audit build should carry both (cluster pass 2026-09-21).
 
 ## Future gate primitives to design (not yet built)
 
-1. **`FromTemplateMethod(templatePath, methodName, opts?)`** — the
-   user's preferred combined basis. ✅ **Being built by the world-scan
-   build as its first consumer** — see
-   [world-scan-perf-slate § D3a](../tails/world-scan-perf-slate.md).
-
-   ⭐ **Correction to this entry (2026-09-08): no frame change is
-   needed.** Every gated dispatch pushes `(caller, target, method)`
-   (`SecurityApi.#pushFrame()(caller, cls, methodName, …)`), and the
-   policy is evaluated **before** the callee's frame is pushed — so at
-   `allows()` time the **TOP** frame is the caller's own, and
-   `top.method` IS the calling function's name. The primitive is
-   `FromTemplate`'s existing hard `#templatePath` read plus one
-   top-of-stack lookup; no new frame field.
-
-   ⚠⚠ **An earlier version of this correction said the frame *below* the
-   top (`frames[n-2]`). That was wrong** — it assumed the callee's frame
-   was already pushed when the policy runs. Verified in
-   `api/security.ts`: `policy.allows(...)` precedes `#pushFrame()`.
-
-   ⚠ **Attribution is a guard, not a guarantee, and the gap is
-   load-bearing**: `top.target === caller` (plus excluding a synthetic
-   `Root` frame) is the check, but **an un-dispatched caller inherits the
-   nearest dispatched frame**. So a free function called from a permitted
-   method IS admitted — deliberate, and how a module-level helper on a
-   permitted path qualifies — while a brain's `act()` is attributed to
-   the NPC's tick and can never qualify. The gate is therefore *"the
-   nearest dispatched (template, method)"*, not *"exactly this
-   function"*.
-
-   **Decided with the user 2026-09-08:** (a) **fail closed** on no
-   template stamp / no adjacent frame / attribution mismatch — never
-   guess a function name; the accepted consequence is that an
-   un-intercepted caller (a free function, a module-scope call, **a
-   brain's `act()`**) can never hold this gate. (b) The **module term is
-   OPTIONAL**, a third opt-in argument used only to disambiguate an
-   ambiguous function name — always-on module matching would re-import
-   the basis this slate calls secondary and redundant once template +
-   function are checked.
+1. **`FromTemplateMethod`** — ✅ *shipped by the world-scan build
+   (`lib/security/SecurityPolicies.ts`, consumers in `api/stuff.ts`);
+   the frame-order finding, the nearest-dispatched-frame attribution,
+   fail-closed and the optional module term are all recorded in
+   `call-security.md § The calling function — FromTemplateMethod` — cut
+   here 2026-09-19.*
 2. **`FromIdentity`** — already doctrine'd in call-security.md: MUST
    read the raw identity stamp, never the overridable
    `getIdentityPath()` (the FromTemplate/#templatePath reasoning).

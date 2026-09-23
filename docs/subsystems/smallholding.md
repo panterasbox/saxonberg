@@ -227,6 +227,12 @@ furniture.
 > limiting-factor minimum and nowhere else. Do not reimplement it as a
 > yield multiplier; there is a test asserting the draw is inert to growth.
 
+The draw is the missing leg of a wider doctrine, not a bespoke rule: land
+prices *production*, compute (residency/liveness) prices *presence*, and
+the two conserved scarcities are never collapsed — they couple only at
+the parcel. See
+[property-slate](../slates/builds/property-slate.md).
+
 ### The gate applies to GROUND, not to furniture
 
 `Cultivable.fixedGround` (authored data, not a class check) decides.
@@ -694,6 +700,13 @@ bulk interior of soil.
 The land draw still rides the productive object; what is new is that a
 field draws against the parcel's declared yard, and that newly plotted
 ground is **not plantable** until it has been cleared.
+
+⚠ *Plantable* here is `Improvable.isPlantable` — a gate with no caller
+yet. `plant`/`sow` require a `CultivableMixin` target and a `Field`
+composes none, so a cleared field grows sward (hay, grazing) and arable
+crops still grow in beds and pots. The arable field crop is the
+[farming slate](../slates/builds/farming-slate.md)'s open item (verified
+2026-09).
 
 See [soil.md](./soil.md) for the field, the ledger, ground character and
 the survey ladder, and [ranching.md](./ranching.md) for what eats it.

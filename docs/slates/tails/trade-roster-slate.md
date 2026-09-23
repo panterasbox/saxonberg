@@ -1,31 +1,17 @@
 # Trade roster slate — the gallery's generative vocabulary
 
-> **Status: PARTIAL** — ~7 of the 22 gap Disciplines now ship beside
-> their trade packs (stockmanship · mining · smelting · textiles ·
-> brewing · butchery · teamstering)
-> → [advancement.md](../../subsystems/advancement.md)
-> **Left:** the 15 unminted Disciplines (foraging · fuelcraft ·
-> electrical-work · carpentry · masonry · leatherwork · ceramics ·
-> glasswork · baking · bookkeeping · apothecary · midwifery · letters ·
-> wayfinding · mechanisms) · the trade × locality × `Means` grid itself ·
-> the lineage gallery that consumes it
+> **Status: PARTIAL** — 8 of the 22 gap Disciplines now ship beside their
+> trade packs, four under other names (stockmanship ← animal-husbandry ·
+> mining ← extraction · colliery ← fuelcraft · teamstering ← haulage ·
+> textiles · baking · brewing · butchery; `smelting` shipped too but closes
+> no roster row)
+> → [advancement.md § Disciplines the trade packs seeded](../../subsystems/advancement.md)
+> **Left:** the 14 unminted Disciplines (foraging · metallurgy-as-knowledge
+> · electrical-work · carpentry · masonry · leatherwork · ceramics ·
+> glasswork · bookkeeping · apothecary · midwifery · letters · wayfinding ·
+> mechanisms) · the trade × locality × `Means` grid itself · the lineage
+> gallery that consumes it
 > **Size:** a wave
-
-> **Status: content design, buildable.** The closed vocabulary the
-> [lineage](../builds/lineage-slate.md) gallery generates households from. Written
-> 2026-08-11 to unblock building the gallery, which needs real data before
-> it needs more design.
->
-> **The join rule that makes the grid generatable:**
->
-> > ⭐ **Trade is not free text. Each trade names its Disciplines,
-> > its plausible localities, its `Means` type and its hook shapes.**
->
-> Without it the generator produces ward nurses who know smithing. With
-> it, `Knows` falls out of `Trade`, and **the Discipline gaps fall out
-> too** — they are exactly the Disciplines some trade needs and nothing
-> provides (§ the gap report, which is the most actionable part of this
-> doc).
 
 See also: [lineage-slate](../builds/lineage-slate.md) (the gallery, the card
 schema, the incomparability doctrine) · [vocations.md](../../vocations.md)

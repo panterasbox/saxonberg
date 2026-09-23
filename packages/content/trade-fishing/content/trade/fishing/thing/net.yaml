@@ -1,0 +1,20 @@
+# A net — the other row of the trap class, and the one that empties a
+# reach. Fast, takes every role, holds thirty. Nothing about it is a
+# class; a reach netted an afternoon is fished out because the record
+# says so, and recovers over days because the record says that too.
+class: /trade/fishing/thing/Trap
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [net, seine, trap]
+  shortDescription: net
+  register: indefinite
+  longDescription: >-
+    A seine net, corks along the top and lead along the foot, bundled
+    for carrying. Laid across a reach it takes what swims into it.
+  mass: 6
+  capabilities: [trapping]
+  epoch: medieval
+  drawPerHour: 20
+  takesRoles: [bait, forage, predator, apex]
+  capacity: 30
+  _materialPath: /stuff/idea/material/wood/oak

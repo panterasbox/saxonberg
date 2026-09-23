@@ -1,12 +1,17 @@
 # Record-integrity slate — tamper-evidence, for real
 
 > **Status: UNBUILT** — every ledger is still append-only by convention;
-> the guarantee is entrenched in Art. VII and implemented nowhere.
+> the guarantee is entrenched in Art. VII and implemented nowhere
+> (re-verified 2026-09-19: no `prevHash` / Merkle / beacon anywhere under
+> `packages/server/src`; `positions` still upserts in place —
+> `schema/positions.yaml:18` *"the write is an upsert"*; no
+> `position_events`, docket or roll collection under `schema/`).
 > **Left:** event-source `positions` → `position_events` · `prevHash`
-> chaining with canonical serialization · the Merkle checkpoint ·
+> chaining with canonical serialization + the single-writer append
+> discipline · the Merkle checkpoint ·
 > anchoring via `GitApi` to third-party hosts · the published export +
 > standalone verifier · the member self-audit view · an external beacon
-> for draws
+> for draws (the grinding attack named in requirements)
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the government design run. The

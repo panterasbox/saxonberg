@@ -2,19 +2,23 @@
 
 > **Status: UNBUILT** — no guild exists; the substrate it maps onto
 > (advancement, contract, employment, credential, parcel) ships.
-> **Left:** the `Guild` Idea + charter schema · the `guild:`
-> GroupProvider + ranks · focus-tagged `TranscriptEntry` +
-> charter-weighted `Competence` · contract claim gates · the hall and the
-> job board · the 10 day-one institutions + 8 standing charters
+> **Left:** the `Guild` Idea + charter schema (+ the charter validation
+> pass) · the `guild:` GroupProvider + ranks · the three membership tiers
+> + the witnessed rank exam · focus-tagged `TranscriptEntry` +
+> charter-weighted `Competence` · the advancement gym · contract claim
+> gates · the hall (group-titled parcel + keyway tiers) and the job board
+> · lifecycle (founding paths · schism · dormancy · merger · standing
+> charters) · the Marshalcy credential + writ-contract stream + the calls
+> mechanism · the Worldwrights on-ramp · the 10 day-one institutions + 8
+> standing charters
 > **Size:** a build
 
-> **Status: design settled in conversation (2026-07-28), pre-requirements.**
 > This slate is the institution-level guild design. It **supersedes and
 > extends** [advancement-slate § Guilds + § Declared focus](./advancement-slate.md)
 > — the focus-tagged-Transcript *mechanic* designed there stands as the
 > substrate, but one framing there is corrected here: a guild's domain is
 > **chartered and authored**, never derived from member behavior. The
-> old [affiliation-slate § Guild](./affiliation-slate.md)
+> old [affiliation-slate § Guild](../tails/affiliation-slate.md)
 > sketch is two supersessions deep; both now point here.
 
 ## What a guild is
@@ -548,7 +552,7 @@ law**; harm to *people* is **meta-state** (moderation) — the membrane.
 | **The Factors** | retail S3–S4 (producer pricing, player shops, multi-market trade) | appraisal, brokerage, audit. **Demoted by the audit**: the engine is the notary (engine-verified contracts) and the ledger the auditor; brokerage is thin at one-city scale. Reopens when trade outgrows the engine's automation |
 | **The Carriers** | retail S3 closes the mine→ore→shop loop | carting, draft-beasts, routes. The reset-sweep **self-restock currently erases their paymaster**; real logistics opens the hall |
 | **The Delvers' Union** | the mines open (Ferrow Delving) | mining, prospecting, shoring/hazard; *earth*; the safety code is the oath. Opening **ends the metal-import era** — an economic event |
-| **The Watermen** | the waterways/fishing loop (design captured at mining/farming grade — [fishing-slate](./fishing-slate.md)) | fishing (protein to the Victuallers — metabolism again), pilotage, diving; *water*; the `angling` Discipline is pre-specified; the net wave's overfishing→quota lever = more polity paper; the **salt-cod interlock** ties their reopening to the Delvers' (two dormant halls opening into one trade route) |
+| **The Watermen** | the waterways/fishing loop (design captured at mining/farming grade — [fishing-slate](../tails/fishing-slate.md)) | fishing (protein to the Victuallers — metabolism again), pilotage, diving; *water*; the `angling` Discipline is pre-specified; the net wave's overfishing→quota lever = more polity paper; the **salt-cod interlock** ties their reopening to the Delvers' (two dormant halls opening into one trade route) |
 | **The Advocates** | the courts convene | what survives the honest engine: **interpretation and persuasion** — blame/terms disputes, sortition-jury advocacy, the argument-map organizer as their instrument. Engine-verifiable contract work is precisely what they *don't* do |
 | **The Warding Order** | the evil-realm content | the service-army fantasy homed in alignment: frontier warding against the hollow; exclusive-loyalty, faith + polity frontier contracts |
 | **A contemplative Order** | the alignment layer | composure, serenity — the faculty axes magic reads live, trained for their own sake. *Possibly one Order with warding + contemplative faces — decide when alignment lands* |
@@ -681,7 +685,7 @@ Three practical payoffs beyond the fiction:
 [advancement-slate](./advancement-slate.md) (the focus mechanic + the
 superseded § Guilds) · [advancement.md](../../subsystems/advancement.md)
 (Catalog / Transcript / Competence, the estimator's difficulty math) ·
-[affiliation-slate](./affiliation-slate.md) (axes; house /
+[affiliation-slate](../tails/affiliation-slate.md) (axes; house /
 religion siblings) · [corpos-slate](./corpos-slate.md) (sponsorship,
 labor/capital) · [party.md](../../subsystems/party.md) (the
 Idea-backed-by-Document shape; form/join/earn) ·

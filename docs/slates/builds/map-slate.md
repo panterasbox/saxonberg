@@ -6,17 +6,6 @@
 > live-Stuff adapters · `SphericalZone.canPlace` non-overlap
 > **Size:** a build
 
-> **Status: direction set; 2D first, 3D earned.** A shared **map renderer**
-> that visualizes the engine's *honest spatial model* (real-meter
-> coordinates) in multiple modes — **2D** (per-floor grid, node-graph,
-> player minimap) and **3D** (procedural box render) — all from **one
-> coordinate dataset**, serving three consumers: the **game** (player's
-> spatial companion to the prose), the **CMS zone editor** (its canvas),
-> and **demos** (the flythrough). It's "layered presentation for space":
-> the same honest data, multiple rendering paths. **Not a v1 functional
-> blocker** — the editor and game work without it (list/connectivity
-> fallback); the map is an enhancement, built when earned.
-
 Working slate for **the map** — how the world's spatial structure gets
 *shown*. The engine already models space honestly (a `CartesianZone` is a
 3D integer grid with real `cellSize`; rooms carry `(x,y,z)`; exits connect
@@ -71,7 +60,7 @@ See also:
   *now space*, same model, different paths).
 - [docs/slates/client-cockpit-slate.md](../tails/client-cockpit-slate.md) — the
   game **minimap is a cockpit panel**; the map is a component it hosts.
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) /
+- [docs/slates/senses-slate.md](senses-slate.md) /
   [fast-travel-slate.md](../tails/fast-travel-slate.md) — **discovery / fog-of-war**
   for the game minimap (show only what the player has perceived/discovered);
   wayfinding.

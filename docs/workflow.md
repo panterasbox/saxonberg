@@ -90,7 +90,7 @@ measured rework class:
 4. **Write the drive script** — what a person does, in order, and what
    they should see. It becomes Phase 3's exit criterion.
 
-⭐ **Run the five lenses** ([design-lenses.md](./design-lenses.md)) over
+⭐ **Run the six lenses** ([design-lenses.md](./design-lenses.md)) over
 the scope before converging, and carry a short lens pass into the
 artifact. Lenses 1 (pedagogy) and 2 (author expressiveness) decide
 forks — when they do, decide, don't ask.

@@ -65,6 +65,14 @@ Two terms, and each is the honest one:
   meat ≈ 0.99, a hard ration ≈ 0.64, honey ≈ 0.60, dried salt ≈ 0.15.
   Below the floor (`freshness.awFloor`, 0.60) nothing grows at all.
 
+Above the floor `f_aw` is a **linear ramp** — `(a_w − 0.60) / 0.40`, full
+rate at 1.0, nothing at the floor — so 0.99 → 0.80 roughly halves the
+rate, 0.70 quarters it, and 0.60 stops it dead. Partial treatment earns
+honest partial credit and full treatment is a cliff, with nothing added
+to make hurdle stacking pay off. (A Gibson-type square-root term is the
+real model; the ramp keeps its monotone shape without pretending to a
+precision the tabulated `a_w` values do not have.)
+
 ⭐ **That floor is the whole preservation curriculum in one number.**
 Salt, sugar, drying and candying are not four mechanisms; they are one —
 take the water away and the population cannot start. Nothing in the
@@ -170,6 +178,24 @@ why `Provision` — the class every food row is over — composes
 `ThermalMixin` alongside `FreshnessMixin`; the two travel together. A cold larder and a warm windowsill are then different
 answers to the same question, for free.
 
+⭐ **The clock starts at an ACT, never at ownership** — and that is the
+Law-2 clearance (*never tax absence; never demand scheduled
+maintenance*), by construction rather than by policy. An unharvested
+crop is a plant and a live animal is a `Creature`; neither is a
+`Provision`, so neither carries the gauge. Harvest, kill, butcher and
+cook each hand matter onto a class that rots, and that is the moment the
+clock begins — *you put it in flux*. The same host narrowing is why gear
+never rusts in a pack: a blade is not a `Provision`, so no flag is needed
+to say it does not spoil.
+
+**Freshness never touches `Grade`.** `Grade` is the maker's verdict and
+the load is entropy; `MaterialApi.gradeConditionScale` already multiplies
+grade × condition, and freshness is a **third gauge** beside those two,
+not a decrement of either. A masterwork rots like anything else and stays
+a masterwork. (`Freshness.ts` references no grade at all; the one place
+heat writes a grade down is doneness's *ruined*, below, which is the
+working's own verdict.)
+
 ## The blend half
 
 Bulk matter carries the same gauge on `BulkPayload.freshness`
@@ -182,6 +208,14 @@ the first time anybody asks, and nothing else does. The shadow payload
 written at that moment mirrors the Material field for field
 (`Freshness.materialShadow`), so every `payload ?? material` reader is
 unaffected by its arrival.
+
+Each gauge declares its **own** payload field from its own module —
+`freshness` from `Freshness.ts`, `pathogens` + `pathogenStamp` from
+`Contaminable.ts`, `moisture`/`solute` from `Cured.ts` — rather than
+sharing one `{ load, stamp }`. A shared shape could not hold the
+pathogens' per-organism map, and per-module declaration is what lets the
+pour blend and the material shadow keep working as each subsystem adds a
+field: each declares and blends its own.
 
 ⭐ **Transfers blend loads by mass on every pour** — unlike the payload's
 identity, which rides into an empty vessel only. That asymmetry is
@@ -427,6 +461,18 @@ equilibrium, read synchronously through `BiomeApi.localHumidityFor`. So a
 dry store is worth building and a steamy kitchen is the worst place to
 hang a ham.
 
+⭐⭐⭐ **Curing preserves the contamination.** Lowering water activity
+suspends *every* population, pathogens included — `Contaminable` reads
+the same `a_w` and returns a zero rate under each organism's own floor —
+and it kills nothing. A cured ham from clean meat keeps forever; a cured
+ham from dirty meat is a **shelf-stable poison** still dangerous next
+winter. That is the mirror of the cooking rule (*heat kills the
+population; it does not destroy what the population made*): **heat kills
+but does not clean; curing cleans nothing and kills nothing — it only
+stops the clock.** Neither half of "cook it or cure it" is safe alone,
+which is why traditional curing is a *sequence* — salt the sound animal,
+promptly — and never a rescue.
+
 ⚠ **The passive arm only ever RAISES moisture.** Nothing dries on its
 own: drying is an *act*, and a gauge that quietly dried everything in the
 pantry would both undo that and change how every shipped row behaves. An
@@ -437,6 +483,13 @@ returns before it touches the clock.
 timber and grain are all dried and none of them rot on a microbial curve;
 folding water activity into the spoilage gauge would make a tannery
 compose a microbial load in order to express drying.
+
+⚠ **And not on `WetMixin`, which is the gauge that looks free.** Wetness
+models *surface* saturation and drains toward ambient on its own — it is
+built to return to dry. Internal moisture must not: hang `a_w` on it and
+a dried fish walks through fog and comes back fresh. The honest coupling
+runs the other way and is much weaker — humid storage slowly raises
+`moisture` (the passive arm above) — a term, not the carrier.
 
 The acts are `trade-cooking`'s: `cure` (salt, consumed from a sack),
 `dry` (time only), `smoke` (a fire, deliberately **13 K under the kill**
@@ -699,7 +752,7 @@ having.
 
 ## ⚠⚠ Fermentation is the one collision to watch
 
-`Vat` composes **both** `FermentingMixin` and `BulkableMixin`, so a
+`Vat` composes **both** `MaturingMixin` and `BulkableMixin`, so a
 fermenting vessel's slot is also a spoilage-gauge slot. Fermentation *is*
 deliberate microbial growth; spoilage is the undeliberate kind. Two
 microbial models, one slot.
@@ -717,13 +770,27 @@ load while deliberately fermenting, and the ferment's own product will
 read as rotten.
 
 **Before adding a spoilage constant to any fermentable, decide which
-model owns the vessel.** The likely answer is that `FermentingMixin`
+model owns the vessel.** The likely answer is that `MaturingMixin`
 suppresses the gauge for as long as a ferment is live — a working culture
 IS the flora, and it out-competes what would otherwise grow — and hands
 back over when the ferment completes, which is exactly when a finished
 ale starts to be spoilable. That is a fermentation build's decision, not
 this one's, and it is written down here so it is a decision rather than a
 surprise.
+
+## A carcass, and its cuts (fishing A3/A5, 2026-09)
+
+**`Postmortem.freshnessLoad()`** — a dead body's flesh spoils on the
+shipped law from its `diedAtGameSec`, so a landed fish that dies in the
+hand reads *dead, and fresh* → *beginning to turn* → *turned* → *rotten*
+in the shipped band words (fishing's `turnedLine`), and a shelf refuses
+past `fresh` ("turned" = not `fresh` — `Bonded.wouldEat`'s rule, so an
+animal and a shelf agree). **`ButcherController` carries the carcass's own
+contamination onto every cut** — a fish landed below the outfall carries
+the city's `e-coli` in its flesh (`Fish = ContaminableMixin(KeptAnimal)`;
+nothing else kept can — the `Weapon` lesson), and the fillet inherits it.
+⚠ `butcher` is afforded by the cookhouse block only; the transfer is a unit
+test, not a driven act.
 
 ## Deliberate deferrals
 

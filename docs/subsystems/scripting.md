@@ -19,6 +19,28 @@ Built by `docs/plans/scripting-mvp-plan.md` (P0–P10) over
 `docs/requirements/scripting-mvp-requirements.md`. The integrating demo is
 cocktail-making at Dave's Bar.
 
+## Why a designed language — the grammar is the boundary
+
+Absorbed from `scripting-slate` § *The load-bearing decisions* (1–4);
+the LLM-director and `improv` halves stay in the slate until they exist.
+
+A designed language was chosen over the two obvious surfaces because
+each fails in the opposite direction. `eval` (general TypeScript in a
+sandbox) is *so* powerful it subsumes everything — which is the problem:
+it reaches what nobody sanctioned. A pre-canned reaction menu caps
+expression at what was anticipated. A grammar designed to reach exactly
+the chosen set **bounds by construction, not by subtraction** — the
+builtins are the affordances, the control flow is the expression, and
+both sides of that line are authored. That is why it is a *command*
+surface: the atoms are the verbs already on the bus, so it conducts the
+bus rather than bypassing it (above) and the command-security model
+survives unchanged. Timing is control flow for the same reason —
+`wait` / `every` / `when` make one authored procedure a coroutine the
+scheduler drives, so multi-stage behaviour is *one script*, never a set
+of triggers smeared across frames. And conditions are MQL because a
+bounded, sandboxed query language already existed; reinventing one
+inside the script grammar would have been a second boundary to defend.
+
 ## What the engine gives you (the surface)
 
 ```
@@ -149,6 +171,17 @@ like commands, branched inside `evalCommand` *before* `bindCommand`, taking
 raw block/condition args. `each` binds `$it` per item. `def name ($p) {…}`
 uses **simple named positional params** (no implicit `it`, no rest /
 defaults) and registers a `ScriptDef` (params + body + captured scope).
+
+### Growing the language
+
+The builtin set (`lib/script/builtins.ts`'s `SCRIPT_BUILTINS`) is
+deliberately fixed and small — it's the interpreter-intrinsic vocabulary
+that needs raw, unevaluated block/condition args (control flow, `def`,
+the temporal ops). **Growing the language means adding affordance verbs
+over the bus** (an ordinary YAML command, dispatched and gated like any
+other), not growing this set. A new intrinsic builtin is rare and
+authored out-of-band, only when a form genuinely needs lazy args the bus
+dispatch path can't give it.
 
 ## Coroutines: scripting in game-time (P5)
 

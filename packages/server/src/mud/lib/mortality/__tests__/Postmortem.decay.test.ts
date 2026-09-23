@@ -18,8 +18,12 @@ import { MORTALITY_DEFAULTS } from '../MortalArc';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import Material from '../../material/Material';
+import { Quantity } from '../../quantity';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { Freshness } from '../../material/Freshness';
+import { MixinApi } from '../../../api/mixin';
 
 const SCALE = 12;
 let real = 0;
@@ -102,6 +106,36 @@ describe('PostmortemMixin — the corpse clock', () => {
     // Not destroyed — merely no longer objecting. The ordinary residency
     // sweep decides from here.
     expect(c.canEvict(ctx).ok).toBe(true);
+  });
+
+  it('⭐ freshnessLoad — the flesh spoils on the shipped law, from the moment of death (fishing D9)', () => {
+    const c = corpse();
+    const flesh = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('test-flesh');
+      m.setSpoilActivationEnergy(Quantity.of(60_000, 'J/mol'));
+      m.setWaterActivity(0.99);
+      return m;
+    }, '/test/mortality/flesh') as unknown as Material;
+    if (MixinApi.isTangible(c)) c.setMaterial(flesh);
+    const material = MixinApi.isTangible(c) ? c.getMaterial() : null;
+    expect(material).toBe(flesh);
+    expect(c.freshnessLoad()).toBeCloseTo(Freshness.inoculum(), 9);
+    advance(6 * 3600);
+    const load = c.freshnessLoad();
+    expect(load).toBeGreaterThan(Freshness.inoculum());
+    // The same arithmetic butchering runs on a cut, at the same inputs.
+    expect(load).toBeCloseTo(
+      Freshness.advance(Freshness.inoculum(), c.sinceDeath()!, material, Freshness.hostTemperatureK(c)),
+      9,
+    );
+    advance(6 * 3600);
+    expect(c.freshnessLoad()).toBeGreaterThan(load);
+  });
+
+  it('freshnessLoad is 0 on a living body', () => {
+    const c = makeStuff(() => new Creature());
+    expect(c.freshnessLoad()).toBe(0);
   });
 
   it('is completely inert on a LIVING body', () => {

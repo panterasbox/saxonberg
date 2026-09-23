@@ -28,7 +28,7 @@ needs."*
 
 1. The **requirements doc** — if it settles it, that is the answer.
 2. The **plan** — including its decisions (D1, D2…) and Grounding.
-3. **`docs/design-lenses.md`** — the five lenses. Lenses 1 (pedagogy)
+3. **`docs/design-lenses.md`** — the six lenses. Lenses 1 (pedagogy)
    and 2 (author expressiveness) decide forks. ⭐ When they decide one,
    decide it; say in one line which limb chose.
 4. **`CLAUDE.md` + `docs/antipatterns.md`** — the conventions.

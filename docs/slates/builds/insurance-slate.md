@@ -1,10 +1,27 @@
 # Insurance slate — risk pooling as an industry
 
 > **Status: UNBUILT** — nothing of the register exists; shipped banking
-> and contract escrow are named as substrate only.
-> **Left:** the policy-as-contract + reserve ratio · cargo underwriting ·
-> the mutual · the credit vocation · the ratings agency · the accountant ·
-> the notary/scrivener · innkeeper · veterinarian · ostler · almanac-maker
+> and contract escrow are named as substrate only (`banking.md:34` still
+> calls lending *deferred*; no insurer, policy, rating, accountant,
+> scrivener, inn, vet, stable or almanac in code). The innkeeper's
+> *condition* (NPC schedules) was met by the employment roster —
+> [behavior.md](../../subsystems/behavior.md) § *The roster is the*
+> *schedule* — but the inn itself is unbuilt. *(Compacted 2026-09-19;
+> ledger: `docs/plans/slate-compaction/unlinked-1.md`.)*
+> **Left:** the policy-as-contract + reserve ratio · cargo underwriting
+> first (fire and crops after) · the mutual as the guild's instrument ·
+> prevention priced into the premium · the state's ladder · the credit
+> vocation + the bootstrap ladder (pawn → microloan → unsecured) · the
+> bank run + the lender of last resort (the `central-bank-governor`'s
+> job) · the fractional-reserve bill · the ratings agency (method, not
+> data; publish-if-commissioned) · the accountant + the auditor + the
+> forensic accountant · the scrivener (the notary is rejected) + ceremony
+> as friction on irreversible acts · the innkeeper (the bed as a logout
+> location · liability · the posting inn · the guest register) · the
+> veterinarian (+ the meat inspector, quarantine that closes the roads) ·
+> the ostler + the posting stable + the return inspection · the
+> almanac-maker (celestial / weather split, predictability decays with
+> horizon)
 > **Size:** a build
 
 **Captured 2026-07-31**, named as fire's dependency in
@@ -15,7 +32,7 @@ cargo is where it should start.
 Related: [contract.md](../../subsystems/contract.md) (**a policy is a
 contract**), [banking.md](../../subsystems/banking.md) (**reserves**),
 [freight-slate](./freight-slate.md) (cargo risk),
-[farming-slate](../tails/farming-slate.md) (crop risk — the correlated case),
+[farming-slate](farming-slate.md) (crop risk — the correlated case),
 [guild-slate](./guild-slate.md) (**the mutual**),
 [sanitation-slate](./sanitation-slate.md) (the lemons family),
 [auction-slate](./auction-slate.md) (the winner's-curse sibling),
@@ -269,24 +286,7 @@ Holding and settling are *utility* functions and stay automatic.
 
 ## ⭐⭐⭐⭐⭐ The rule the whole register has been circling
 
-Assessing a borrower is **adverse selection** — the borrower knows
-their prospects, the lender does not. **Fourth instance:**
-
-| Market | Asymmetry | Vocation |
-|---|---|---|
-| second-hand | condition | **appraiser** |
-| auction | value between bidders | **assayer** |
-| insurance | risk | **underwriter** |
-| **banking** | **creditworthiness** | **the banker** |
-| **credit reporting** | **prospects** | **the credit surveyor** *(below)* |
-
-> **If both sides know the same things, build a MENU. If one side knows
-> more, build a VOCATION.**
-
-A general test — and it **explains** the gated-capability criterion
-rather than sitting beside it: **the gate is almost always an epistemic
-advantage.** Information asymmetry is the most productive generator in
-the design.
+*The rule — if both sides know the same things build a MENU, if one side knows more build a VOCATION — and the five-market asymmetry table are homed at [vocations.md](../../vocations.md) § *Working notes*.*
 
 **⭐⭐ And unsecured credit is where REPUTATION BECOMES MONEY.** Secured
 lending exists twice already (the turnpike bond on toll revenue, the
@@ -635,20 +635,7 @@ so the fees came from the audited.
 
 ### ⭐⭐⭐⭐⭐ Audit has the IDENTICAL disease to ratings — which generalizes
 
-The audited party picks and pays the auditor: **issuer-pays with a
-different hat.** Same two cures — **mandatory publication** (*if you
-commission it, it publishes*) and **structural separation.**
-
-Which is now a **class**, not two coincidences:
-
-> **ANY ASSESSMENT PAID FOR BY THE ASSESSED HAS ONE CONFLICT AND TWO
-> REMEDIES.**
-
-Ratings · audits · insurance surveys · building inspections ·
-appraisals. **One conflict, one remedy pair** — worth stating once in
-[vocations.md](../../vocations.md) rather than rediscovering per
-industry.
-
+*Homed at [vocations.md](../../vocations.md) § *Working notes* — the assessed-pays conflict is a CLASS (one conflict, two remedies).*
 ### ⭐⭐⭐ Demand comes from the BANKER, not the business owner
 
 What makes the vocation pass the register's demand test. **Nobody hires
@@ -733,12 +720,7 @@ not a job* — **it is not a vocation here.**
 
 ### ⭐⭐⭐⭐ The disposal technique this yields (add to the method)
 
-> **When a real-world vocation does not fit, DECOMPOSE it — the parts
-> land in different places.** Never accept or reject wholesale.
-
-The notary decomposes into four; **one is a vocation, one is
-constitutional, one is a friction mechanic, one is free.**
-
+*Homed at [vocations.md](../../vocations.md) § *And the disposal technique: DECOMPOSE, never accept or reject wholesale* (the notary as its worked example).*
 ### ⭐⭐⭐ Drafting is the real vocation — THE SCRIVENER
 
 The **civil-law** notary, not the common-law one, and it survives for a
@@ -806,18 +788,7 @@ as *conditional* rather than yes or no.**
 
 ### ⚠ The objection that killed the first draft
 
-**(User, 2026-07-31: "players don't *need* to sleep and the day/night
-cycle is purely decorative. The exception is NPCs I guess.")**
-
-The first pass justified the inn with sleep and recovery. **That is
-backwards** — inventing a sleep *need* to justify a vocation is
-**manufacturing demand**, which is criterion 1 failing in disguise:
-
-> **⭐⭐ NEVER INVENT A NEED TO CREATE A MARKET.** If a vocation requires
-> a new player obligation in order to exist, the demand was fabricated.
-
-Belongs in [vocations.md](../../vocations.md) beside the odometer rule.
-
+*The rule — NEVER INVENT A NEED TO CREATE A MARKET, with the innkeeper as its worked example — is homed at [vocations.md](../../vocations.md) § *What makes a vocation real — five criteria* (the ⚠ rows).*
 ### ⭐⭐⭐ The real function: the bed is a LOGOUT LOCATION
 
 Not a sleep mechanic. The question is not *"what does sleeping do"* but
@@ -929,17 +900,7 @@ actually depends on.
 **Record it as conditional with the condition named. More useful than
 either a yes or a no.**
 
-> ⭐ **CONDITION DESIGNED (2026-07-31) →
-> [npc-behavior-slate § NPC schedules](./npc-behavior-slate.md).**
-> *Derive the crowd, simulate the cast* — and **the schedule turns out
-> to already exist: it is the employment SHIFT ROSTER**, so a shop is
-> shut because nobody is rostered, not because of a new system. Which
-> makes **opening hours a business strategy** and the inn's *"we are the
-> one place open"* a rostering choice. ⚠ And the **12× clock** sharpens
-> it: **night is a PULSE, not a demographic** — everyone gets it every
-> session, which is *stronger* demand, but it means closures must be
-> staggered and **the inn is the always-open fallback**. So the
-> innkeeper is justified from the **tuning** side too. **Condition met.**
+> ⭐ **CONDITION MET — shipped.** The schedule is the employment shift roster: `shifts` reads `EmploymentApi.shiftStateOf` and a shop is shut because nobody is rostered — [behavior.md](../../subsystems/behavior.md) § *The roster is the schedule, and that makes opening hours a business strategy*; the 12× clock is [time.md](../../subsystems/time.md) § *Why 12×*. The innkeeper itself is still unbuilt.
 
 ## The veterinarian — not a medic for animals
 
@@ -1075,16 +1036,7 @@ a proprietor with real judgment: which horses are fit, which need a day,
 what the fleet can turn tomorrow. **Inventory management of living
 assets with condition variance** is a genuine business skill.
 
-Which yields a register-level finding:
-
-> **⭐⭐ Most vocations are LADDERS where only the upper rungs qualify.**
-> The bottom of every trade is a chore you do for wages.
-
-A useful brake — it stops the register inflating job titles into
-professions, and it is why **the teller, the ceremonial witness and the
-stable-hand** all belong as **texture under** a real vocation rather
-than beside it.
-
+*The register-level finding this yielded — most vocations are LADDERS where only the upper rungs qualify — is homed at [vocations.md](../../vocations.md) § *What makes a vocation real — five criteria* (the ⚠ rows).*
 ### ⭐⭐⭐⭐ Road capacity is STABLE capacity
 
 You can build the finest turnpike in the realm and it moves nothing

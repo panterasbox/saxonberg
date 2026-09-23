@@ -33,7 +33,8 @@ import type { Cell, Face } from '../../../lib/Working';
 /** Reference time to cut one cell, in game ms, at reference hardness. */
 const DRIVE_MS = 40000;
 /** Endurance one heading costs, in percentage points. */
-const DRIVE_COST = 12;
+/** Metabolic watts of driving a heading: (750 − 300) × 40 s / 1500 = the old 12 %. */
+const DRIVE_EFFORT_W = 750;
 
 interface DriveModel extends CommandModel {
   direction?: string;
@@ -102,7 +103,7 @@ export default class DriveController extends MiningActController<DriveModel> {
     const medium = this.edgeMedium();
     this.engageAct(context, {
       durationMs: this.paceForGround(DRIVE_MS, face.hardnessMPa),
-      cost: DRIVE_COST,
+      effortW: DRIVE_EFFORT_W,
       beginSelf: Mml.compose`You start driving a heading ${direction}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts driving a heading ${direction}.`,
       // ⚠⚠ **Nothing in here touches `this`.** The controller is

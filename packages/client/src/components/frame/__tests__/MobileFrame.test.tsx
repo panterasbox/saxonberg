@@ -215,6 +215,7 @@ describe('MobileFrame', () => {
         'PLAY',
         'RENOWN',
         'SKILL',
+        'BODY',
         'MAKE',
         'COIN',
         'STATUS',

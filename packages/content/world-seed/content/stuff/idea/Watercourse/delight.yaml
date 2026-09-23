@@ -18,6 +18,9 @@ data:
   name: the Delight
   basin: kestrel
   branchesFrom: kestrel:confluence
+  # The farming valley: neutral, moderately hard, and the highest
+  # nitrate of the four — the fields feed it (the leaching seam).
+  water: { pH: 7.4, hardnessDgh: 9, nitrateMgL: 8 }
   nodes:
     - { name: spring, elevation: 720, catchmentKm2: 190 }
     # The alluvial flats — the diversion fight, when it comes, is here.

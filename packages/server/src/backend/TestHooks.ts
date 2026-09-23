@@ -259,6 +259,7 @@ export class TestHooks {
       { user, playerId },
       { dataOverlay: data, asIdentityPath: path }
     );
+    await TestHooks.#dress(avatar);
     // Belt to postRegister's first capture — a second capture of a live,
     // fully-formed avatar is a cheap no-op-shaped write.
     await avatar.save();
@@ -266,5 +267,40 @@ export class TestHooks {
       `TestHooks: provisioned test character ${path} (snapshot-backed, resident)`
     );
     return playerId;
+  }
+
+  /**
+   * ⭐ Dress the test character as `enroll` dresses a real one — the
+   * first aspiration's outfit from `char-gen.yaml`, worn. A naked body
+   * spends food on cold at room temperature (`ThermalRegulation`'s
+   * cold branch), starves in ~4.5 game hours and then loses its core
+   * temperature: the fishing drive's angler collapsed at the seventh
+   * hour, and no player is naked. Tolerant of missing garments, as
+   * enroll is.
+   */
+  static async #dress(avatar: Avatar): Promise<void> {
+    const { default: EnrollController } = await import(
+      '../mud/platform/idea/cmd/charactergen/EnrollController'
+    );
+    const { StuffApi } = await import('../mud/api/stuff');
+    const { MixinApi } = await import('../mud/api/mixin');
+    const { ContainmentApi } = await import('../mud/api/containment');
+    const outfit = EnrollController.loadConfig().aspirations[0]?.outfit ?? [];
+    const bodyPlanPath = MixinApi.isOrganism(avatar)
+      ? (avatar.getSpecies()?.getBodyPlanPath() ?? null)
+      : null;
+    for (const garmentPath of outfit) {
+      try {
+        const garment = await StuffApi.clone(garmentPath);
+        if (!MixinApi.isContainable(garment)) continue;
+        ContainmentApi.move(garment, avatar);
+        if (bodyPlanPath && MixinApi.isWearable(garment)) {
+          const slots = garment.getSlotClaim(bodyPlanPath);
+          if (slots.length) avatar.occupyAll(garment, slots);
+        }
+      } catch {
+        /* skip this garment */
+      }
+    }
   }
 }

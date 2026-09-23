@@ -1,43 +1,23 @@
 # Stewardship slate — land use, the allowance cascade, and the residence ladder
 
 > **Status: PARTIAL** — land use, the frontier smallholding, condition +
-> the ascent gate, and the let rung shipped →
-> [holding.md](../../subsystems/holding.md)
+> the two-part ascent gate (read over every held unit), and the let rung
+> shipped → [holding.md](../../subsystems/holding.md) +
+> [smallholding.md](../../subsystems/smallholding.md)
 > **Left:** premises + utilities (the lease's money leg) · the allowance
-> meter · the cascade + the zoning authority · the Stewardship Discipline
+> meter · the cascade + the zoning authority (who decides · the two checks
+> · Tiebout) · the ranching/pets land-use ceilings + the leash law · the
+> smallholding + farm rungs' ascent gates · the Stewardship Discipline ·
+> condition's consequence ladder
 > **Size:** a build
 
-> **⭐ PARTLY SHIPPED (2026-08-01).** Hinkley Hills took the **land-use
-> enabler** out of this slate and built it: the closed six-entry
-> vocabulary on `ParcelRecord`, the longest-prefix resolve, and the
-> cultivation gate that reads it — see
-> [smallholding.md](../../subsystems/smallholding.md) and
-> [parcel.md](../../subsystems/parcel.md). What remains here is unbuilt:
-> the **allowance cascade** (still an inert field), the **residence
-> ladder** and its ascent gate, and zoning as an act of *governance*
-> rather than a fact on a row.
-
-> **Status: design captured 2026-07-31, not built.** The layer between the
-> shipped [parcel](../../subsystems/parcel.md) title and the activity systems
-> that sit on land — [farming](../tails/farming-slate.md),
-> [ranching](./ranching-slate.md), [pets](./pets-slate.md), and the home itself.
-> It answers the question none of those can answer alone: **how much of this may
-> you do, where, and what does holding it oblige you to?**
->
-> Two things here are genuinely new. **Land use** — a closed vocabulary typing
-> what a parcel admits — does not exist anywhere in the corpus today; a parcel
-> is structurally typed and categorically untyped. And **the allowance cascade**
-> — the Compact grants a locality a bundle, the locality apportions it to
-> parcels on its own terms — makes land scarcity *real* rather than asserted,
-> and makes settling somewhere a political act.
->
 > **Stewardship** is the player-facing name for all of it: holding property and
 > being answerable for it, the same way you are in life. You can be good at it
 > or bad at it.
 
 See also: [property-slate](./property-slate.md) (**the parent** — title, tenure,
 the compute-allowance thesis, the residence ladder's forward sketch in §L) ·
-[farming](../tails/farming-slate.md) · [ranching](./ranching-slate.md) ·
+[farming](farming-slate.md) · [ranching](./ranching-slate.md) ·
 [pets](./pets-slate.md) (the three consumers) ·
 [power-utility-slate](./power-utility-slate.md) (utilities as a premises
 obligation; independently arrived at the parcel as the billing unit) ·
@@ -56,32 +36,7 @@ Idea, Locality-declared jurisdiction, seats-as-positions) ·
 
 ## The doctrine line — zoning governs use, never self-expression
 
-The property slate rules, twice and emphatically:
-
-> **Two throttles replace the permit:** the release gate + the compute
-> allowance… Governance is reserved for the **commons + shared rules** only —
-> **never your couch.**
-
-and *"Personal customization is not a governance act."* Any land-use system has
-to survive that rule, and it does — but only if scoped precisely. That rule was
-aimed at **authoring and self-expression**: may you decorate, script, build.
-Land use answers a different question:
-
-> **Does this activity consume shared capacity, or spill onto people who did not
-> consent?**
-
-Rearranging your furniture affects nobody. Forty head of cattle in a city
-apartment affects everybody. That is the line real zoning draws — nuisance and
-externality, not taste — and it sits squarely inside "commons + shared rules."
-
-**The rule to hold: zoning governs land use, never self-expression.** Tier 0
-decorating stays ungoverned forever. What gets governed is capacity and
-externality.
-
-**Corollary (already ruled, keep it):** property *types* — apartment / townhome
-/ manor — are "**content + a `prestige`/`class` attribute; not substrate**."
-Prestige flavors; land use gates mechanics. Two different attributes that
-correlate. Only the second earns a place in the substrate.
+*Homed 2026-09-22 → [settlement-model.md § 4 · Absorbed from stewardship-slate](../../settlement-model.md).*
 
 ---
 
@@ -97,15 +52,11 @@ use and allowance turned out to be one decision (below).
 | **Premises** | what holding it obliges you to (utilities, upkeep, tax) | absent; where [power-utility](./power-utility-slate.md) lands |
 | **Stewardship** | how well you meet those obligations | absent; rides shipped advancement |
 
-**No new Api.** Land use is a field on `ParcelRecord` and reads go through
-`ParcelApi`, on the same longest-prefix coverage walk `ownerOf` already does.
-(The house rule: concepts ride existing facades; a new Api is an explicit ask.)
-
-**The shape already exists in sketch.** The property slate's §L seam 3 proposes
-"safer neighborhoods" as "a per-zone **policy** attribute … riding
-`Zone.lookupField` inheritance (district sets it, lots inherit)" — **not yet
-built**. Land use is that same mechanism with a bigger job, and the two should
-share one implementation.
+*Land use shipped as a field on `ParcelRecord` read through
+`ParcelApi.landUseOf` by longest prefix — no new Api, and not the
+`Zone.lookupField` sketch →
+[parcel.md § Land use and area](../../subsystems/parcel.md#land-use-and-area-living-world-phase-2)
++ [smallholding.md § Land use](../../subsystems/smallholding.md#land-use--the-closed-six-and-it-refuses).*
 
 ---
 
@@ -124,21 +75,8 @@ of a use classification. So a city government's actual act is **one thing** —
 
 ### The vocabulary is closed
 
-Six uses cover everything the game has:
-
-| Use | Admits | Notes |
-|---|---|---|
-| **residential** | dwelling, companions, small cultivation | the ladder's spine; density is the sub-axis |
-| **agricultural** | cultivation at scale, livestock, orchards | farming + ranching's home |
-| **commercial** | retail, venues, attendance | retail/employment already shipped |
-| **industrial** | workshops, forges, furnaces | the crafting tier; Hearthworks |
-| **civic** | offices, gaol, parks, the commons | the locality's own; treasury-subsidized |
-| **wild** | ~nothing built; passage and gathering | the frontier default, unserviced |
-
-A closed set is the house pattern twice over — **Module Categories** ("DO NOT
-INVENT NEW ONES") and the curated **Material library**. A Locality can no more
-mint a land use than it can mint a new module category; inventing one is
-inventing a mechanic.
+*Shipped: `lib/parcel/LandUse.ts`, the closed six →
+[smallholding.md § Land use — the closed six](../../subsystems/smallholding.md#land-use--the-closed-six-and-it-refuses).*
 
 ### What a use declares, and who asks
 
@@ -170,11 +108,10 @@ and it gives pets' "someone else has been feeding your cat" outcome an actual
 
 ### A farm is ONE parcel
 
-The property slate rules it explicitly and this slate honors it: "farm beds are
-**slots, not sub-parcels** … part of the host parcel, not separate ownership."
-So **scale is rooms-and-capacity within a parcel, never accumulated parcels.**
-The Warren budding field-rooms is growth *inside* a ceiling the land use sets.
-This keeps the title layer small and the coverage trie shallow.
+*Shipped: a field is a room hung on the holding (`admitPlot`), its area
+summed against the parcel's yard →
+[soil.md § `plot`](../../subsystems/soil.md#plot-and-the-field-ceilings-first-consumer)
++ [holding.md § The floorplan is the INITIAL mint](../../subsystems/holding.md#the-floorplan-is-the-initial-mint-never-the-closed-set).*
 
 ---
 
@@ -284,23 +221,9 @@ not allocate it"). The jurisdiction hook shipped; the power is new.
 
 ## The residence ladder **[SHIPPED 2026-08-31 — the first three rungs]**
 
-> ✅ **The residences build shipped rungs 1–3 and their gate.** Granted (the
-> dorm), let (Seznick House on Mayfield Row) and owned (a house on a bought
-> Hinkley lot) all ride one two-tier substrate; condition is a real,
-> reconciled-on-read shell state with five bands and a cause line; the
-> ascent gate reads the condition of what you already hold at BOTH
-> chokepoints and refuses below a shipped threshold, naming the band. The
-> design claim below — *money is necessary and not sufficient; the binding
-> gate is the condition of what you already hold* — is now mechanism, not
-> proposal. See **[holding.md](../../subsystems/holding.md)**.
->
 > Still proposal: the smallholding and farm/ranch rungs' ASCENT (the ground
 > itself is buyable and farmable today — that is the farming build — but no
 > gate ties those rungs to the ladder), and every allocation procedure.
-
-The property slate states the ladder twice and inconsistently — the body says
-*dorm → plot → estate → district*; §L says *dorm (rented) → apartment →
-townhome → single-family home → manor*. **§L is the real one.**
 
 | Rung | Tenure | Land use | Supports | Gate to next |
 |---|---|---|---|---|
@@ -312,18 +235,9 @@ townhome → single-family home → manor*. **§L is the real one.**
 
 ### The design claim
 
-> **Money is necessary and not sufficient. The binding gate is the condition of
-> what you already hold.**
-
-You do not get a bigger place while the current one is falling apart. It is
-honest (condition is visible, not a hidden stat), it is real (underwriting,
-landlord references), and it makes the ladder about **capability** rather than
-accumulation.
-
-**Anti-hoarding falls out for free.** Because obligations scale with what you
-hold, **holding more than you can steward is negative-sum** — no ownership cap
-needs writing down. Same move as ranching's paddock dial: the obligations *are*
-the cap.
+*Shipped and documented — money necessary, condition binding, the read
+over every held unit so the obligations are the cap →
+[holding.md § The ascent gate](../../subsystems/holding.md#the-ascent-gate).*
 
 ---
 
@@ -347,9 +261,9 @@ agricultural**, so stewardship, farming, and husbandry rows all land together in
 the "vanilla discipline pack" already on the launch worklist as a **T1
 pure-data** item. (Each needs an ISCED-F field code, per the seed shape.)
 
-**This is entirely net-new.** No decay-through-neglect exists anywhere today;
-the only current decay path is economic — insolvent or over-deficit → freeze →
-evict, "a fallow parcel goes to seed diegetically and is reclaimed physically."
+*The "no decay-through-neglect exists" premise is superseded: the shell
+weathers on the calendar →
+[holding.md § Condition](../../subsystems/holding.md#condition--the-weathering-clock).*
 
 ---
 
@@ -411,8 +325,9 @@ use**:
   un-designed. Until it exists, "prestige = a bigger allowance" means nothing —
   **and so does the whole cascade above.** The cascade is a *policy* over a
   meter that must be built first.
-- **No allocation procedure exists at all** — no auction, no application, no
-  land office queue. Phase 2, deferred, contingent on Offices maturing.
+- *No allocation procedure* — superseded: the plat book at an authored
+  price, first come, a land agent at one counter (the box above) →
+  [holding.md](../../subsystems/holding.md).
 - **One city.** The political layer needs a rival locality to be more than
   theatre.
 
@@ -420,33 +335,12 @@ use**:
 
 ## Where to start
 
-**Land use is the smallest piece that unblocks the most.** One field, one closed
-vocabulary, one read on an existing facade. It needs **neither the allowance
-meter nor region parcels**, and it immediately gates farming, ranching, and pets
-— which is what actually stands between us and those builds.
-
-**And the blockers point at a build order.** The frontier path is unblocked
-while the city middle is not: the frontier tier is already "infinite, ~free,
-homestead cheap," and a frontier smallholding is a single `FolderZone` parcel —
-no region parcels required. So **_dorm → go west and farm_ ships well before
-_apartment → townhome → suburb_.** Given that farming and ranching are the
-destination, that is the order the substrate is offering.
-
 Suggested sequence — **re-ordered 2026-08-31 to what actually shipped**:
 
-1. ✅ **Land use** — shipped (the closed six + the parcel field + the three
-   consumer gates). [smallholding.md](../../subsystems/smallholding.md)
-2. ✅ **The frontier smallholding** — shipped (Hinkley Hills; the plat book,
-   the lot holder, `title`).
-3. ✅ **Condition + the ladder's gate** — shipped (the weathering clock, five
-   bands, `survey`, `maintain`, the ascent gate at both chokepoints).
-   **Note what did NOT ship with it: the stewardship *Discipline*.**
-   Condition is a property of a PLACE, reconciled on read; nothing yet
-   measures a person's care of it, and the slate's Discipline half is
-   untouched. [holding.md](../../subsystems/holding.md)
-4. ✅ **The let rung** — shipped (Seznick House), which the sequence did not
-   anticipate: the middle city rung turned out to need no region parcel
-   either, because a building's units subdivide under the building.
+1–4. ✅ **shipped** — land use, the frontier smallholding, condition + the
+   gate (NOT the Discipline), the let rung →
+   [smallholding.md](../../subsystems/smallholding.md) +
+   [holding.md](../../subsystems/holding.md).
 5. **Premises + utilities** — obligations, on the money side. **Now the
    next thing**: a lease with no money leg is the ladder's biggest
    remaining fiction, and the contract substrate is where rent belongs.

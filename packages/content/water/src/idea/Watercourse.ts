@@ -99,6 +99,40 @@ export interface WatercourseNode {
    * is not a thing that can be done honestly.
    */
   catchmentKm2?: number;
+  /**
+   * Mean depth of the channel in metres, for the current read
+   * (`flow / (width × depth)`). Authored where an author cares; derived
+   * from the flow by hydraulic geometry otherwise, as an unauthored
+   * width is.
+   */
+  meanDepthM?: number;
+  /**
+   * ⭐ **The aquaculture seam** (fishing D3): a stocked species' capacity
+   * is the authored number regardless of fit, and the fishery read says
+   * so. No shipped row authors one; a population that never exists as
+   * objects until drawn, so this is NOT the zone's spawn `stocks:`.
+   */
+  stocks?: WatercourseStock[];
+}
+
+/** One stocked species on a reach — a species template path and a count. */
+export interface WatercourseStock {
+  species: string;
+  capacity: number;
+}
+
+/**
+ * ⭐ What a course's water is LIKE where nothing derives it (fishing
+ * D22): the chemistry a catchment's ground gives its river. Seeded on
+ * the course row; every node inherits it; flow-weighted where a
+ * tributary joins. The join to the catchment's `GroundCharacter` (the
+ * moor's peat is soft and acid, the ore country's limestone hard) is the
+ * RGO unification pass's — this is the authored stance until then.
+ */
+export interface WatercourseWater {
+  pH?: number;
+  hardnessDgh?: number;
+  nitrateMgL?: number;
 }
 
 /** The authored shape of a watercourse row's `data` block. */
@@ -121,6 +155,8 @@ export interface WatercourseDescriptor {
    * trunk. ONE field for both, because direction is derived.
    */
   branchesFrom: string | null;
+  /** See {@link WatercourseWater}; absent = the dials' defaults. */
+  water?: WatercourseWater;
 }
 
 export default class Watercourse extends Idea {
@@ -133,6 +169,7 @@ export default class Watercourse extends Idea {
     basin: { persistent: true, authorable: true },
     nodes: { persistent: true, authorable: true },
     branchesFrom: { persistent: true, authorable: true },
+    water: { persistent: true, authorable: true },
   };
 
   protected name = '';
@@ -140,6 +177,7 @@ export default class Watercourse extends Idea {
   protected basin = '';
   protected nodes: WatercourseNode[] = [];
   protected branchesFrom: string | null = null;
+  protected water: WatercourseWater | null = null;
 
   public getName(): string {
     return this.name;
@@ -174,5 +212,12 @@ export default class Watercourse extends Idea {
   }
   public setBranchesFrom(value: string | null): void {
     this.branchesFrom = value === '' ? null : value;
+  }
+
+  public getWater(): WatercourseWater | null {
+    return this.water === null ? null : { ...this.water };
+  }
+  public setWater(value: WatercourseWater | null): void {
+    this.water = value && typeof value === 'object' ? { ...value } : null;
   }
 }

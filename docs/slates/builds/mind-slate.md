@@ -1,11 +1,22 @@
 # Mind slate — the equilibrium, and what disturbs it
 
 > **Status: UNBUILT** — the trait substrate it builds on shipped, but
-> nothing of the equilibrium has.
+> nothing of the equilibrium has: `Sharpness`'s `g(composure)` is still the
+> inert `traits-stress` seam (`≡ 1`, [combat.md](../../subsystems/combat.md)
+> § the sharpness law), and the consequence build's `Morale` deliberately
+> did NOT fill it (`lib/combat/Morale.ts`). No equanimity Reserve, no
+> emote-distribution read, no situational or persistent condition in
+> code. *(Compacted 2026-09-19 — one stale status block cut, body kept
+> whole; ledger: `docs/plans/slate-compaction/unlinked-1.md`.)*
 > **Left:** the equanimity Reserve + the stress equilibrium (the deferred
-> `traits-stress` build named in trait.md) · the dials that configure
-> "yourself" · situational conditions · persistent conditions + shapes ·
-> the evidence channel through emotes and regard
+> `traits-stress` build named in trait.md) · the start/stop axis on
+> `AbortReason` · emotes as evidence about the ACTOR (rate · range ·
+> drift, no new metadata) + where the per-actor emote history lives ·
+> reactive vs oscillatory disturbance, derive-on-read · state as a
+> relationship (regard-visible, never a readout) · the dials that
+> configure "yourself" · situational conditions · persistent conditions
+> + shapes · magic as the manifestation channel (the Reeve Line's hole) ·
+> the refusals list
 > **Size:** a build
 
 **Captured 2026-08-02**, out of the physiology slate's admission that
@@ -20,10 +31,6 @@ The subject is **not** mental illness. It is **the mental state everyone
 has**, of which illness is a perturbation — which is both the honest
 framing and the one that is entirely codable without settling a single
 question about any named condition.
-
-> **Status: design direction, nothing built.** Foundation is the
-> **deferred `traits-stress` build**, already specified in
-> [trait.md](../../subsystems/trait.md).
 
 Related: [trait.md](../../subsystems/trait.md) (**the foundation**),
 [reserve.md](../../subsystems/reserve.md) (the equanimity Reserve),

@@ -489,8 +489,11 @@ out — metal conducts (betrays), rubber insulates. See
 
 ## Deferred (named seams)
 
-- **Combat playstyle + loop** — reach/guard/gambits, shield-as-armor,
-  unarmed/grapple ([combat-slate.md](../slates/builds/combat-slate.md)).
+- **Combat playstyle** — **shipped** (reach/guard/gambits, shield-as-armor
+  — the weapon-playstyle build, MR !140; see
+  [combat.md § Weapon playstyle](./combat.md#weapon-playstyle--the-hand-slot-economy)).
+  Still deferred: the deep grapple/choke control game — unarmed's
+  armor-bypass floor (see [combat.md § Deferred](./combat.md#deferred)).
 - **Ranged / thrown** — the **thrown** half **shipped** (ranged Wave 1 →
   [ranged.md](./ranged.md)): a `DeliveryProfile` derives `channel` +
   `energyJ` from mass × speed and hands the grid an ordinary
@@ -499,13 +502,17 @@ out — metal conducts (betrays), rubber insulates. See
   deferred: **armor's** point→blunt conversion for stopped strikes,
   `penetration` as a profile term, and the launcher families
   ([ranged-slate.md](../slates/builds/ranged-slate.md) W2/W3/W4).
-- **The economic lifecycle tail** — repair (reverse-craft), scrap/reforge,
-  the `Recipe` craft-stamp that carries `{material, construction, grade}`
-  onto made things (the armorer economy). Armor/implements carry their axes
-  as *authored* data for now.
-- **Other channels** — `crush` (structures/destructibility), `heat`/`cold`
-  (thermal `clo`/`burn` unification), `corrosion` — each pulls its
-  channel/construction slice when its consumer lands.
+- **The economic lifecycle** — repair (reverse-craft) and salvage/reforge
+  **shipped** (see
+  [crafting.md § The lifecycle: two wear axes, repair, broken, salvage](./crafting.md#the-lifecycle-two-wear-axes-repair-broken-salvage)).
+  Still deferred: the `Recipe` craft-stamp that carries
+  `{material, construction, grade}` onto made things (the armorer
+  economy) — armor/implements carry their axes as *authored* data for
+  now.
+- **Other channels** — `heat`/`cold` and `corrosion` **shipped** (see
+  § The seven channels, above). Still deferred: `crush`
+  (structures/destructibility) — pulls its channel/construction slice
+  when its consumer lands.
 - **Tissue as a construction axis** — tissue stays material-only v1; the
   tissue-vulnerability severity term at `resolveTrauma` is a named seam.
 - **Avulsion sever / part-promotion** — at `AVULSION_BEHAVIOR.onset` (harm).

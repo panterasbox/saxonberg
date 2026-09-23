@@ -33,6 +33,14 @@ makes the gating transparent — callers see a single
 `MixinApi.is<MixinName>` predicate that answers the active question
 uniformly across both kinds.
 
+Later builds reused the same `_augmentGated` flag for conferral sources
+that never touch a slot at all: `CasterMixin` (magic faculty,
+`lib/magic/Caster.ts` — conferred by `Species.innateMixins` or an
+augment) and `MakerMixin` (the order-fulfiller role,
+`lib/craft/Maker.ts` — conferred by an on-shift employment `Position`,
+see the third conferral leg below) are both `_augmentGated` and route
+through `isActive` today, not hypothetical future rows.
+
 ## Substrate
 
 ### `AugmentMixin.confers()`
@@ -89,6 +97,16 @@ active when composed AND (a slot augment confers it **OR** the actor's
 species confers it intrinsically — see *Species intrinsic conferral*
 below). This mirrors what the sensorium already does for bodyplan senses
 and `defaultModeFor` does for the bodyplan locomotion tier.
+
+**A third leg joined later: employment conferral.** An on-shift
+`Position`'s `confers` mixins surface through `EmployedMixin.
+getConferredMixinNames`, read by `collectAugmentConferralNames`
+(`api/mixin.ts`) via the same structural soft-lookup as the slot and
+species legs — no import of the employment layer. The role marker
+`MakerMixin` (`lib/craft/Maker.ts`) is `_augmentGated`, so a bartender's
+`isMaker()` reads active only while on shift; off-shift the same
+Crafter is composed-but-inactive. See
+[employment.md](./employment.md).
 
 For un-gated mixins the behavior is identical to today's
 `hasMixin`. For gated ones the predicate reflects the
@@ -222,6 +240,28 @@ framework change, only:
 capability whose payload is a host that aether `Idea`s (updates) plug
 into. Comms and the credential wallet are hosted updates; the physical
 `TravelCard` / `PaymentCard` (and a future radio) are their corporeal twins.
+
+**The base-assignment rule: physical sensing can never ride the aether
+base.** The aether implant *mediates the aether* — communication and
+information unbounded by physical space. An instrument is the opposite
+kind of device: it must **transduce physical reality at a location**,
+and nothing about connecting to a network gives you a photodiode. So:
+
+| Base | Carries | Never carries |
+|---|---|---|
+| **Aether (`Idea`)** | comms, the credential wallet, records access, **reference lookup** | any physical measurement |
+| **Corporeal (`Thing`)** | instruments that actually measure — **carried** in a pack or **installed** in a body slot (the difference is the slot, not the base) | — |
+| **Intrinsic** | species senses | — |
+
+The line pays for itself pedagogically, which is why it is the right
+line: over the aether you can look up *what granite's conductivity is
+supposed to be*; you cannot tell whether **this rock** is granite
+without an instrument. **The aether is the textbook; the instrument is
+the lab** — reference knowledge vs. measurement, and the competent
+player does both and compares. (The sensorium walk leaves
+`_grantsModalities` open on hosted updates as substrate; this rule is
+what says no *physical* modality may ever be granted that way.)
+*(Graduated from the instrumentation slate, 2026-09-21.)*
 
 ### The hosting relation (distinct from containment)
 

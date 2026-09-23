@@ -500,7 +500,45 @@ layer. The push order is the dispatch order, so the concrete class's
 override of a mixin verb wins. This is the same composition order
 `MixinApi.queryMixins` uses for predicate dispatch.
 
+### Why there is no `static affords`, and why MML carries no verb list
+
+(Graduated from the client slate § 4.2, 2026-09.) The client spec once
+proposed a `static affords` beside `fieldMeta` on every verb-conferring
+mixin. **Not built**: `static commandContributions` is already
+directional and recursive (`self` · `inventory` · `environment` ·
+`peers`), authored across the whole tree and introspectable, and it
+carries reach semantics `affords` would not. A second taxonomy describing
+what the first already knows is the exact error the spec itself rejected
+in its earlier `kind` registry.
+
+**MML must not carry the verb list**, for three reasons that each
+suffice: *bloat* (twenty tagged nouns × a dozen verbs dwarfs the prose),
+*staleness* (a frame sits in scrollback forever; a door tagged `unlock`
+ten minutes ago is now a lie), and *viewer-dependence* (the true menu is
+a function of `(id, viewer, now)`, and MML is a snapshot of *then*). The
+radial therefore opens on a stable skeleton and resolves the volatile
+half live — unavailable verbs dim with their reason, new ones fill in —
+and the category slots never reflow (perception north, manipulation
+east, social west, movement south), so muscle memory survives a menu
+whose verbs you have never seen.
+
+**The `mx` composition digest was cut for the same three reasons.**
+Composition is not stable either — `getActiveMixins` unions in augments,
+implants, species innates and on-shift conferral — so a digest in
+scrollback goes stale exactly as a verb list would; it is redundant with
+the `stuff-id` beside it; and hand-authored `<thing mx="…">` is reachable
+through the `item` Liquid filter and `Mml.fromMarkup`, so it could drift
+irreconcilably. A bitvector over 149 mixins was longer than the sparse
+list. Composition rides the resolver, cached per `stuff-id`.
+
 ### Affordance attribution — source, not category
+
+> **`analyze` is what you can work out. `measure` is what an instrument
+> tells you.** `Avatar.commandContributions` affords `analyze` on `self`
+> and not `measure`; `measure` is afforded solely by the instruments in
+> `platform/thing/instrument/`. A new instrument affords `measure`;
+> nothing should ever put `measure` on a body (graduated from the
+> instrumentation slate, 2026-09).
 
 Every binding records the **source Stuff** that afforded it
 (`RecencyEntry.source`). When a verb can be granted by more than one
@@ -945,7 +983,11 @@ checks at the call sites.
 
 Each entry runs through `ShellApi.expandVariables` (synthetic vars
 like `$focus` and stored vars expand at bind time) and is tried
-in order; first non-empty result wins. The array form is the
+in order; first non-empty result wins — **and with a `requires:` on the
+slot, first scope holding an *admissible* match wins**, not first
+non-empty: `talk dave` with `$focus` on the room *Dave's Bar* would
+otherwise bind the room, fail the validator, and never reach the barkeep
+(graduated from the explicit-targeting slate, 2026-09). The array form is the
 explicit fallback chain — a verb that wants drill-first-then-broad
 semantics declares `scope: ['$focus', 'reachable']` so a drilled
 player searches the focus first, with the room as fallback. Verbs
@@ -1221,6 +1263,19 @@ or cancel/abort uses engagement, not `async`). The reserved
 `deferred-dispatch` phase-effect handler remains a documented
 placeholder; v1 threads the async decision directly, not through a phase
 effect.
+
+**The concurrency guardrail is the author's, not the framework's.**
+Detaching means two commands from the same actor can be in flight at
+once — a slow async one plus a fast one typed right after — which
+crosses the implicit "one command at a time" assumption a lot of
+controller code leans on (the focus stack, engagement slots, actor-state
+mutation). This is not a new hazard: a detached script coroutine already
+dispatches commands "as" the actor while the player keeps typing, so
+async extends an already-tolerated interleave to the front of the
+command rather than inventing one. `async: true` is the author's claim
+that the command is interleave-safe (read-mostly, or self-contained side
+effects); a command needing exclusive actor access uses engagement
+(slots), not async.
 
 The **`script` verb** is an ordinary command that runs its greedy `body`
 via `ScriptApi.run` through `_executeOne`, so it inherits `--async` /
@@ -1745,3 +1800,12 @@ opening for a command.
 - [antipatterns.md](../antipatterns.md) — `ContainmentApi.move` /
   `mover.traverse(exit)` patterns command controllers prefer over
   raw containment juggling.
+
+## `peers` affordances reach one level into an open container (fishing B7, 2026-09)
+
+`CommandLogic.applyContainmentDeltaImpl` walks one level into an open
+container standing in the room, both ways — as the MQL `peers` scope
+already did (`scope-walk.ts`). Before this a carp in a bowl on the floor
+could be *named* by the MQL walk and afforded nothing to name it with.
+It is a dispatch change every verb sees; `look` and `put` were the drive's
+witnesses. Detail: [fishing.md](./fishing.md).

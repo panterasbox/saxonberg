@@ -1,24 +1,19 @@
 # Property slate (working doc) — possession, real estate, and the two scarcities
 
-> **Status: PARTIAL** — the title substrate, chattel, and the first land
-> market (`title` / `PlatBook` / `LotHolder`) all ship
-> → [parcel.md](../../subsystems/parcel.md)
-> **Left:** the compute-allowance scarcity (the field is inert) ·
-> dormancy-as-reclamation · un-fusing author from owner · real-estate
-> above one lot (resale, leases, valuation)
+> **Status: PARTIAL** — the title substrate, chattel, the use-grant, the
+> wardrobe and the first land market (`title` / `PlatBook` / `LotHolder`)
+> all ship → [parcel.md](../../subsystems/parcel.md)
+> **Left:** the compute economy (Phase 1 — predicted heartbeat budget,
+> measured degradation, cost-owner attribution; `allowance` is inert) ·
+> dormancy-as-reclamation for insolvency / over-deficit · governance
+> allocation (Phase 2 — fiscal cycle, commons subsidy, frontier/center
+> curve, over-subscription) · tenancy economics (Phase 3 — rent as a
+> recurring charge, sublet, valuation + resale) · the general
+> `give`/`sell`/`claim` surface + lease-on-chattel · the release gate for
+> unreleased power + home-personalization Tier 2 · coord-region parcels +
+> zone-proliferation perf · prestige-as-allowance + the safer-neighbourhood
+> policy attribute · credit routing on a furnished sale
 > **Size:** a build
-
-> **⭐ PARTLY SHIPPED.** The title substrate this slate called for is
-> built ([parcel.md](../../subsystems/parcel.md)), and Hinkley Hills gave
-> it the **verb it lacked** plus the first market for it: `title` /
-> `title list` / `title buy` over a `PlatBook` catalogue and a
-> `LotHolder` provisioner, with the sale riding banking's settle
-> chokepoint — see
-> [smallholding.md](../../subsystems/smallholding.md). Chattel shipped
-> too ([chattel.md](../../subsystems/chattel.md)). Still unbuilt and the
-> reason this slate stays: the **compute-allowance** scarcity (the field
-> is inert), **dormancy-as-reclamation**, the author↔owner un-fusing, and
-> real-estate mechanics above a single lot (resale, leases, valuation).
 
 > **Status: design explored deep across a full session; not yet requirements.**
 > The foundational substrate under pets, ranching, farming, and the economy +
@@ -123,46 +118,15 @@ capacity-credit, distinct from the currency, whose total *is* the hardware.
 
 ## The parcel — the missing noun (the join of two trees)
 
-The stress-test's key structural finding: **boundaries and holdings are
-*unrelated trees* today.** The model can already answer "where does subdivision A
-end and B begin" *three* ways — the zone-break invariant (`zone.md`), the address
-longest-prefix coverage walk (`address.md`), and physical door/window conduits
-(`boundary.md`) — but **no boundary edge coincides with an ownable extent.**
-
-So the net-new primitive is the **parcel**: an ownable extent whose edge aligns
-with one of the existing boundary trees **and carries a title.** It's a *join*,
-not an invention — the noun that makes one boundary coincide with one holding.
-
-- **Title, not group-ACL.** Ownership today is `Zone.ownerGroup` (a group holding
-  the `'owner'` role) — an access-control stamp, not a per-holding deed. The
-  parcel needs a real title (a registry of who-owns-which-extent), on top of the
-  ACL that already enforces access.
-- **Author holds *rights* to the parcel.** The title is the *right to the parcel*,
-  cleanly distinct from *authorship* of what's on it — which forces the un-fusing
-  below.
-- **Transfer as a transaction.** Alienation today is degenerate — you can hand-edit
-  a zone's `ownerGroup` via the `write` verb (gated by `canMutateZone`), but
-  there's no first-class transfer verb and **no market/rent/consideration path at
-  all**. First-class, economic transfer is net-new.
+> ✅ SHIPPED — the titled parcel (`ParcelRecord`), the coverage trie,
+> `subdivide` / `transfer` under bilateral consent:
+> [parcel.md](../../subsystems/parcel.md).
 
 ## Author ≠ owner — brick zero
 
-Probe finding: **author and owner are fused today.** For any content path, "owner"
-= `authorOf` = the *immutable earliest `AuthoringEvent`*. There is no distinct,
-transferable owner field anywhere; the only other axis (Zone `ownerGroup`) is
-orthogonal to authorship and never reconciled with it.
-
-**Un-fusing them is the first brick.** "I built a shop on your land — you own the
-plot, I own the shop, you charge me rent" is *unrepresentable* today. And the
-seams already exist for exactly this:
-
-- provenance's deferred **"ownership hierarchy"** (nested / multi-author ownership
-  + the `CreditShare[]` team-split) — the *ownership* half;
-- the CMS's deferred **"lease model"** (lease-scoped trees + group-managed content
-  + op-log versioning + a forums-review publish gate) — the *tenancy* half.
-
-Those two deferrals are the two halves of tenancy. Building property *cashes
-checks the architecture already wrote.*
+> ✅ SHIPPED — there is no author rung: authoring confers credit
+> (`authoring_events`), title is held or absent
+> ([parcel.md § `ownerOf`](../../subsystems/parcel.md)); the tenancy half is `grants[]`.
 
 ## The compute model — two layers, plan vs. actual
 
@@ -271,14 +235,10 @@ residency and reclamation are the same lever.
 The teeth of property and the compute reclamation are the *same act*. We already
 have half of it:
 
-- **Freeze (built).** Driver presence-freeze (metabolism/thermal/respiration/
-  weather are reconcile-on-read on game-time — "zero work when empty") + lazy
-  first-use instantiation. This is the CPU-reclamation primitive.
-- **Evict (net-new).** The world is **resident once materialized** — nothing is
-  ever unloaded (`lifecycle.md` defers idle eviction outright; `unregister` fires
-  only via explicit destruct). Full reclamation needs idle-eviction / dormant-zone
-  unload. **"Freeze" ≠ "unload"** — freeze stops driver ticks; eviction frees
-  memory.
+> superseded by the code — eviction shipped as the residency sweep: an
+> abandoned `Stuff` evicts itself and reclaims the cold tail
+> ([residency.md](../../subsystems/residency.md)); freeze is the reconcile-on-read
+> pattern. What remains is the TRIGGER below.
 
 Property enforcement = extend the freeze trigger from "no one present" to "owner
 insolvent / over-deficit," then evict. A fallow parcel *goes to seed* diegetically
@@ -308,24 +268,13 @@ unified as a capacity-allocation authority — stress-testing whether Offices ar
 
 ## The gap map (from three probes)
 
-| Area | Exists | Net-new |
-|---|---|---|
-| **Boundaries** | ✅ three mechanisms (zone-break / address longest-prefix / doors) | — (more than enough) |
-| **Ownership** | group-ACL (`ownerGroup` + `owner` role, walked) | per-holding **title** + a **registry** + the **parcel** join |
-| **Transfer** | degenerate (hand-edit `ownerGroup` via `write`) | first-class economic **transfer/market** |
-| **Author vs owner** | **fused** (owner = immutable earliest author) | **un-fuse** (transferable owner ≠ author) |
-| **Authoring namespace** | `HomeZone` root + document-store self-home + Warren budding | the **dorm/parcel** as an owned unit (all *unwired*) |
-| **Money economy** | conserved, CB mint, P&L, governor-gated mint | **parcel tax**; a fiscal-cycle **budget allocation** (manual mint only) |
-| **Compute metering** | scripting per-execution limits; the Proxy + ExecutionContext seams | a **content cost model** + per-parcel **attribution** (nothing charges for existence today — Law 2) |
-| **Dormancy** | driver **freeze** + lazy instantiation | **idle eviction / dormant-zone** unload |
+> superseded by *§ Phase re-slice & readiness* below — five of these eight
+> rows have since shipped.
 
 ## Build waves (the four-phase spine)
 
-- **Phase 0 — Possession core.** Un-fuse author from owner · the parcel primitive ·
-  per-holding title + registry · first-class transfer. **Pure property, no economy
-  yet.** Unblocks pets/ranching/goods immediately (custody = a degenerate parcel);
-  mostly the join of existing trees + the title. The starter sandbox-home
-  (`HomeZone` realized) is the first parcel.
+- **Phase 0 — Possession core.** ✅ SHIPPED — [parcel.md](../../subsystems/parcel.md)
+  (0a) + [chattel.md](../../subsystems/chattel.md) (0b).
 - **Phase 1 — The compute economy.** The predicted heartbeat-budget (CMS gauge) +
   the parcel tax + dormancy (freeze → **evict**). Start with the crudest cost model
   (flat per-brain/driver, generous limits); calibrate later; defer the sophisticated
@@ -390,55 +339,17 @@ unified as a capacity-allocation authority — stress-testing whether Offices ar
 
 ### A. The zone tree *is* the ownership tree (corrects "two unrelated trees")
 
-The body claims "boundaries and holdings are unrelated trees; no boundary edge
-coincides with an ownable extent." **Reading the code, that's wrong.** There is
-no zone-less content: every path belongs to the Zone hierarchy (`FolderZone`
-for organizational areas, `CartesianZone`/`SphericalZone` for coordinate rooms).
-The lounge is a **`FolderZone` at `/world/lounge`** (+ `/stuff/idea/lounge`) with
-`ownerGroup = managed:<lounge>`, stamped by `AccessRegistry.seedLoungeSlice`;
-`'core'` owns the root. ("Zone-less" in the lounge comments means only "no
-`Stuff.zone` *spatial* stamp" — the non-coordinate social pockets still belong
-to the `/world/lounge` FolderZone for ownership/access/inheritance.)
-
-So the FolderZone edge **already coincides with an ownable extent** (`ownerGroup`,
-walked closest-first by `AccessApi.can`, filesystem-ACL semantics), and
-"managed independently" is **already true** (the lounge group owns its subtree;
-EU/Terminus each get their own owning group). Consequences:
-
-- **A parcel is always a Zone** (a FolderZone for an area, a spatial zone for a
-  grid). The "namespace vs zone" question is a false dichotomy — the zone
-  hierarchy *is* path-addressed.
-- **Parcels form their own hierarchy — a *sparse overlay* on the zone tree.**
-  Not every zone is a parcel; a zone with no parcel record inherits its
-  governing parcel from the nearest parcel-bearing ancestor (longest-prefix). A
-  finer zone nested inside a parcel can carry its **own** parcel record → a
-  carve-out sub-parcel (`parentParcel` edge). This makes **nested ownership /
-  tenancy a Phase-0 structural property**, not a Phase-3 deferral.
+> ✅ SHIPPED · DOCUMENTED — a parcel is a Zone + a title record; the sparse
+> overlay + `parentParcel` carve-outs:
+> [parcel.md § The sparse hierarchy](../../subsystems/parcel.md).
 
 ### B. Ownership + authorship + allowance live in a *separate* collection
 
-Privilege separation: `ownerGroup`/`accessGroups` are currently stored on the
-Zone **template** — a row in the `domain` collection, the very collection whose
-access they gate. Whoever can edit the zone template can rewrite its own owner
-and seize the subtree. **These must live apart from the content they govern.**
-
-- New **`parcels`** registry collection:
-  `{ parcelId, extents: string[], parentParcel, owner, accessGrants, allowance }`
-  + a prefix→parcel coverage index (the `AddressRegistry` pattern) for
-  longest-prefix resolution.
-- **`parcelId` + `extents[]`** (not a bare domain-path key) is justified by
-  "own the whole operation end to end": a parcel spans its content root **and**
-  its code root — the lounge already owns `/world/lounge` **and** `/stuff/idea/lounge`.
-- **Full migration:** the Zone becomes pure content/geometry (extent, coordinate
-  frame, inheritance defaults) with **zero** access info. `AccessApi.can`
-  repoints its read from `zone.data` → the `parcels` registry;
-  `seedLoungeSlice` writes a parcel row instead of mutating `domain.data`.
-- **Author ≠ owner via two collections** (resolves brick zero, no migration):
-  `authoring_events` (immutable **credit**, already ships) + `parcels` (mutable
-  **possession**). `ownerOf(path) = parcels-title (longest-prefix) ?? authorOf`.
-  Owner *defaults* to author; a transfer writes a title row that overrides. The
-  body slightly overstated the fusion — `ownerGroup` already exists and is
-  mutable; the real fusion was provenance treating earliest-author as owner.
+> ✅ SHIPPED · DOCUMENTED — the gated `parcels` collection is the governing
+> security invariant, `AccessApi.can` reads `ParcelApi.ownerOf`, author≠owner
+> via `authoring_events` ⊕ `parcels` ([parcel.md](../../subsystems/parcel.md),
+> [access.md § Ownership: the parcel layer](../../subsystems/access.md)).
+> ⚠ `ownerOf = title ?? authorOf` did NOT ship — there is no author rung (R2a).
 
 ### C. Compute attribution = spawn-provenance ("cost-owner"), not backing class
 
@@ -467,20 +378,10 @@ instance to exist**:
 
 The real seam is **author-vs-play**, not **home-vs-sandbox**:
 
-- **One invariant:** *material* state is domain-local; *epistemic/social* state
-  is global. The **published world** is the maximal material-canonical domain
-  (portable within — both ends passed the publish/review gate). A private
-  parcel/clique is a **magic circle**: material state is real inside but **does
-  not cross out** — and the boundary is **symmetric** (binds the owner too, so
-  the owner can't be the cheater).
-- **Mechanism = scoped ledger quarantine, not world-instancing.** Because
-  character power is ledger-derived + timestamped (Transcript/renown/bank/…),
-  "rollback" = discard the circle-scoped ledger appends on exit. Everyone stays
-  in the same room; only their *writes* are scoped — cheaper than per-visitor
-  instances (preserves presence-never-the-meter).
-- **Allowlist principle:** epistemic persists (chronicle / contacts /
-  recognition — *what you learned, whom you met*); material reverts (loot /
-  levels / money / buffs / vitals — *what you gained*).
+> ✅ shipped as the holodeck's circle-scope taint + the merge allowlist
+> (`Contacts` is the one epistemic entry) —
+> [sandbox.md § The scope taint](../../subsystems/sandbox.md).
+
 - **The gamified home is canonical, NOT a sandbox.** Pet care (real `regard`
   substrate), electricity/upkeep (real compute + money economy) are *playing*
   with published mechanisms → real and game-affecting everywhere, dwelling
@@ -490,10 +391,6 @@ The real seam is **author-vs-play**, not **home-vs-sandbox**:
   pet. The rollback magic-circle shrinks to a **testbed** for unreleased builds —
   a granular **sandbox sub-zone** (workshop) nested inside the canonical dwelling
   (the parcel hierarchy from §A carries it).
-- **Consistency note (checked):** gamified-home mechanics that "happen while
-  you're away" (pet drifts feral, plants grow, meter ticks) use
-  **reconcile-on-read** (the metabolism/farming pattern), *not* a live tick — so
-  they affect durable state **without** violating presence-freeze.
 
 ### E. Home personalization = capability tiers, not a governance permit
 
@@ -542,59 +439,11 @@ Governing principle: **review the vocabulary (primitives), not the sentence
 - **Instancing** (only if used beyond ledger-quarantine): the snapshot split +
   who pays the per-visitor compute.
 
-### Net (phase-sequencing impact)
-
-Core theses **survive intact** (two scarcities, pay-to-run, presence-never-the-
-meter, author≠owner, dormancy enforcement, governance-allocates). Three things
-change how Phase 0 is scoped: **(1)** the parcel is "a Zone + title + allowance,"
-not a net-new join — reuse the zone tree; **(2)** ownership/allowance data moves
-to a **separate `parcels` collection** (a refactor of the shipped access
-substrate — repoint `AccessApi.can`); **(3)** the **parcel hierarchy** (nested
-sub-parcels) is foundational, pulling structural tenancy forward from Phase 3.
-The sandbox/anti-cheat resolves to the **released gate + trust domains** (largely
-reusing the augment `isActive` seam), and home personalization to **capability
-tiers**, neither of which needs new governance machinery.
-
 ### F. Sub-zone granularity — "parcel = zone" and the second ownership axis
 
-Does "parcel = zone" hold at *player scale* (own a shop / a room / an object),
-where the lounge exemplar (a whole team subtree) gives no guidance? **It holds
-for real property — and reaches further down than expected — but only by handing
-everything below the zone to a second ownership axis.**
-
-- The **cardinal-only-intra-zone invariant already makes every interior its own
-  zone** (you `enter` a door → non-cardinal exit → zone break). So the things a
-  player owns as real property are *already* zones: a house, a shop-in-a-district
-  (a sub-parcel nested at its `enter` door), an apartment (each unit `enter`-ed),
-  a dorm (`HomeZone`), a farm (beds are **slots**, not sub-parcels). Parcel =
-  zone. ✓
-- **Coarser than a zone** is covered by `extents[]` (one parcel spans several
-  zones — the lounge's `/world/lounge` + `/stuff/idea/lounge`). **Finer than a zone is
-  NOT a parcel:**
-  - **Chattel** — movable/placeable objects (sword, pet, market stall, a
-    supplier's counter dropped in your shop). Owned per-instance (an owner-stamp),
-    *not* titled as real property, *not* allowance-bearing; compute billed to a
-    parcel via **cost-owner**. ("Rent a stall" = place your owned stall-fixture in
-    the hall's zone — chattel, no sub-zone.)
-  - **Slots** — internal structure of a zone you already own (farm beds,
-    workbenches). Part of the host parcel, not separate ownership.
-- **Bright line:** *real property bottoms out at the zone; everything finer is
-  chattel or slots.*
-
-**Key output — Phase 0 possession core is TWO registries, not one:**
-
-| | Parcel title (real property) | Chattel possession (goods) |
-|---|---|---|
-| Unit | a Zone (extent) | a Stuff instance |
-| Keyed on | zone path / `parcelId` + `extents[]` | a durable instance id |
-| Allowance | yes | no (billed to a parcel via cost-owner) |
-| Un-fuse from author | `ownerOf(path) = title ?? authorOf` | `ownerOf(item) = stamp ?? authorOf` |
-
-The pets-slate gap ("no owner-stamp on goods; `Charge` has no debtor") **is the
-chattel half** — and it belongs here, since the slate already claims to be the
-general possession substrate ("custody is a degenerate case of possession").
-Both halves un-fuse owner from author, meet compute at cost-owner, and go inert
-in canon if unreleased.
+> ✅ SHIPPED — graduated to
+> [parcel.md § What is a parcel, and what is not](../../subsystems/parcel.md); the two
+> registries are [parcel.md](../../subsystems/parcel.md) + [chattel.md](../../subsystems/chattel.md).
 
 **Two tensions:**
 1. **Zone proliferation** for fine ownership (a city of 10k homes = 10k zones +
@@ -613,37 +462,10 @@ in canon if unreleased.
 
 ### G. The wardrobe — the sandbox is a placeable portal fixture, not a parcel mode
 
-The keystone reframe that collapses §D + §E into one diegetic, **composable**
-thing: **the sandbox is a placeable portal fixture (chattel) that mints a linked
-magic-circle zone (a parcel) you author freely and publish from.** (Narnia
-wardrobe / holodeck gate / summoning circle — skinnable.)
-
-- **`SandboxPortalMixin` + a content skin** = a Tier-0 composable primitive you
-  place in your canonical, data-driven home (same act as hanging a painting; the
-  skin is pure `Visible`/`Detailed` data — no new module category).
-- **Placing / first-entering mints the linked sandbox zone** (the runtime
-  subdivide/claim primitive from §F): a parcel you own, a magic-circle domain, an
-  unreleased namespace (`/home` → already "unreleased" per the released gate), its
-  own allowance. **Both ownership axes in one object:** you own the *wardrobe*
-  (chattel) + the *linked sandbox zone* (parcel + authoring authority).
-- **Portal-crossing invariant** (corrected in §H): a sandbox wires *no*
-  **non-portal** exit back to canon, and **every** canon↔sandbox crossing is a
-  reconcile checkpoint — which is what makes the "every exit must reconcile" hard
-  part tractable (multiple portals to one zone are allowed; see §H).
-
-**Two orthogonal gates; the wardrobe opens only one:**
-
-| Gate | Protects | Wardrobe opens it? |
-|---|---|---|
-| **Release / balance** | game balance (unreviewed content power in canon) | **Yes** — unreleased content *works* inside; rollback contains balance leaks. |
-| **Code-trust (`isWizard`)** | server security (executing arbitrary TypeScript) | **No** — TS stays wizard-gated everywhere. |
-
-Rollback contains *game state*, not *code execution* — a malicious TS class could
-exfiltrate/melt the box before any exit-rollback (that's `isolated-vm`'s job, a
-different mechanism). So **"absolute authoring authority" = absolute over
-*content*** (compose/configure/script/author unreleased templates), **not over
-*code*.** A non-wizard gets a full creative sandbox; new TypeScript is still the
-wizard axis, unchanged.
+> ✅ SHIPPED — `SandboxCrossing` (Thing-tier, chattel-identified,
+> `linkedSandboxPath`; the wardrobe is a skin ROW), the public-booth rule,
+> guest access over `grants[]`, `isWizard` untouched by the circle:
+> [sandbox.md § The door, the aperture, the harness](../../subsystems/sandbox.md).
 
 **Two exits (why "build it in the wardrobe and publish" isn't a cheat):**
 1. **Walk out** → material rollback (keep nothing — symmetric, applies to you too).
@@ -652,12 +474,6 @@ wizard axis, unchanged.
 
 Neither smuggles power out. The wardrobe cleanly separates *playing with
 unreleased toys* (rollback) from *contributing a reviewed primitive* (publish).
-
-**Architectural payoff:** the wardrobe is **what makes the compose-only canonical
-home acceptable.** Unbounded authoring isn't forbidden — it's *routed* into a
-sandbox where it can't hurt anyone, with a reviewed path to canon. The valve, not
-the wall; the dorm-warren player→author ladder made physical (decorate → step
-into the wardrobe to author → publish → your word joins everyone's dictionary).
 
 **Edges (resolve cleanly):** allowance-gated size (bigger holodeck costs budget;
 empty → freeze; rollback reclaims memory on exit) · invite guests = the
@@ -668,39 +484,10 @@ published — the release gate applies regardless of author) · lazy/dormant zon
 
 ### H. Wardrobe ↔ zone lifecycle — decouple *access* (chattel) from *asset* (parcel)
 
-Binding the movable wardrobe 1:1-rigidly to its durable zone makes both fragile.
-Split them — the **storage-unit-and-key** model:
-
-- **Wardrobe (chattel) = the access.** Carries a `linkedSandboxPath` ref.
-- **Sandbox zone (parcel) = the asset** (authored work + allowance).
-- **The zone's exit-to-canon resolves *live* to the wardrobe's current location**
-  (resolve-on-read) — the portal is wherever the wardrobe is.
-
-Lifecycle then falls out:
-
-- **Move** (rearrange / carry to a friend's house) → the portal relocates, the
-  zone travels with its door — a **portable pocket dimension**. Compute stays
-  billed to the owner via cost-owner regardless of physical location (carrying it
-  into a friend's house doesn't bill their parcel).
-- **Sell** → **two separable transfers**: *empty* (chattel only; buyer's portal
-  mints a fresh zone on first entry — blank wardrobes as a durable good) vs
-  *furnished* (chattel **+ a parcel transfer**: title + allowance-liability move
-  to the buyer — a curated holodeck as premium content). The empty/furnished
-  prompt is where the "cost-owner re-stamp: automatic vs consented" thread is
-  answered.
-- **Destroy** → **evacuate occupants first** (force reconcile-exit to the shipped
-  `evacuationFallback` AppSetting — else they're trapped, since the exit resolved
-  through the now-gone wardrobe), then **orphan, don't destroy** (the asset
-  outlives its access; re-bind a new wardrobe to reclaim it). Truly-abandoned
-  zones follow the normal parcel **dormancy → eviction** path — no wardrobe
-  special case.
-
-**Invariant correction to §G:** not "exactly one portal" but "**every**
-canon↔sandbox crossing is a reconcile checkpoint, and no *non-portal* exit
-reaches canon." **Multiple wardrobes → one zone is allowed**, because the
-reconcile keys on the *visitor's entry snapshot*, not the door (enter via A, exit
-via B → reconcile against the A-entry snapshot). Airtight regardless of door
-count.
+> ✅ SHIPPED — the door re-seats wherever the fixture is (`onMoved`), an
+> owned door links its OWNER's circle on first entry (sell-empty works),
+> destroy reaps occupants via `closeSession` and orphans the re-bindable
+> zone, doors are concurrent: [sandbox.md § The door](../../subsystems/sandbox.md).
 
 **Interactions carried forward:**
 - **Authorship vs. ownership on a furnished sale.** Buyer gets the *parcel title*
@@ -711,124 +498,16 @@ count.
 - **Allowance-liability** follows the parcel on a furnished transfer; stays with
   the seller on an empty sale.
 
-**Payoff:** decoupling access from asset yields a **durable-good + content
-market** (blank wardrobes manufactured as product; furnished pocket-dimensions
-sold as premium authored content) *and* protects authored work from accidental
-loss (the key is not the vault). No new module category — a ref field on the
-wardrobe, a live-resolved exit on the zone, and the existing transfer + dormancy
-+ evacuation machinery.
-
 ### I. Chattel, persistence, and the capability-vs-relation correction (supersedes §F's chattel half)
 
-§F proposed a `PossessableMixin` + a `possessions` registry-as-store. Both were
-mis-scoped. The corrected model is smaller and reuses more.
-
-**The guardrail — a mixin test (adopt this project-wide).** Before proposing any
-mixin, ask:
-1. **Capability or relation?** A *capability* is intrinsic ("this KIND of thing
-   can be worn / contains / is a portal") → a mixin on the templates that have it
-   (`Wearable`, `Container`, `SandboxPortal`). A *relation* is runtime ("this
-   instance is owned-by / regarded-by / authored-by that one") → a **registry
-   keyed on identity, never a mixin** (`belief`, `regard`, `renown`,
-   `authoring_events` — none is a `RegardableMixin` on its target).
-2. **If a mixin: does *every* instance of the base have it?** If yes it's
-   base-class, not a mixin; if only some, it's opt-in.
-3. **Where does the concept bottom out** in the hierarchy?
-
-Possession fails #1 — **being owned is a relation, not a capability** → **there is
-no `PossessableMixin`.** (Contrast: the wardrobe's `SandboxPortalMixin` confers
-*behavior* → a legit mixin. The test discriminates.)
-
-**The real substrate is `PersistableHolder`** — a *capability* (passes #1): a
-container that snapshots/restores a **bounded set of contained state across a
-boundary**. Three consumers, one mechanism:
-
-- **Avatar** (carried inventory across logout — the shipped instance),
-- **Container / chest** (stashed contents across restart),
-- **Owned-parcel room** (placed fixtures — the fridge that won't fit in a chest).
-
-And crucially, the **sandbox rollback is the same capability** (restore the
-pre-entry snapshot). Unowned/ephemeral rooms are *not* holders — they only
-populate (see below), which is why dropping a valuable in the street loses it.
-"Your stuff persists where you have a persistent claim" is a *consequence* of
-this, not an authored rule.
-
-**One shared serialization boundary contract** (identical for logout / stash /
-sandbox-exit — design once):
-
-- ✅ **Contained items that fit** — *bulk-limited* (the fridge-in-chest constraint
-  is just container capacity).
-- ⚠️ **Equipped/worn → unequip.** Slot bindings are body-plan-dependent and
-  shadow-carrying; v1 round-trips only un-equipped inventory (best-effort re-equip
-  later).
-- ❌ **Shadows** (buffs / augment effects / disguises / polymorph / per-viewer
-  overrides) — runtime-only, dropped.
-- ❌ **Live-refs to session instances** — nulled on restore (the R2 rules).
-
-This is the **same allowlist as the sandbox material-vs-epistemic split**,
-generalized.
-
-**Possession is one field, not a store.** Each item's snapshot carries
-`{ templatePath, stateDelta, owner, id }`; `owner` rides wherever the item is held
-(Avatar / chest / owned room). The `possessions` collection demotes to a
-**rebuildable owner-*index*** over holders (the banking ledger→cache shape) — for
-"what/where do I own," not for storage. **Persistence ≠ ownership:** carrying a
-generic item into your persistent room makes it *persist*, not become *yours*;
-ownership changes only by `claim`/transfer (a stamp) or by authored-under-extent.
-
-**Ownership resolution — the same rule as §C cost-owner:**
-
-```
-ownerOf(item) =
-  explicit owner stamp                                   // titled chattel — travels with it
-  ?? (templatePath under a parcel extent → that parcel)  // authored parcel-content (fixtures)
-  ?? unowned                                             // generic, unclaimed
-```
-
-Because the derivation keys on **templatePath, not location**, an authored fixture
-stays titled to its parcel even when displaced → displacing it is **theft**
-(custody ≠ owner), recoverable; only an explicit stamp transfers it.
-
-**Ownership bottoms out at `Creature`** (the vitals.md `Creature → Character`
-split *is* the chattel↔person line): `Thing`/`Creature` are ownable chattel;
-`Character`/`NPC`/`Avatar` are self-owned persons; `Location`/`Zone` are the
-real-property axis; `Stuff` owns nothing. Avatars already have durable identity +
-persist-back *because* they're self-owned individuated persons — the same
-capability owned chattel needs, triggered by personhood instead of ownership.
-
-**Three mechanisms, cleanly layered (not one tangled thing):**
-
-| Mechanism | Job | Source of truth |
-|---|---|---|
-| **Populates** | *seed* a room's initial contents | the template (`container:`/`PopulatesMixin`) |
-| **Persistence** | *maintain* ongoing contents | a snapshot — **only for persistable holders** |
-| **Ownership** | *attribute* who owns each item | the `owner` field (`stamp ?? extent ?? unowned`) |
-
-- **Seed-then-persist handoff**, gated by "is this a persistable holder": a holder
-  runs populates **once** to seed its first snapshot, then persistence is
-  authoritative (no respawn); an ephemeral room has **no snapshot**, so populates
-  re-runs every materialization (restocking) and runtime additions are wiped. This
-  is the mechanistic reason the street loses your dropped sword.
-- **One-shot vs. restocking populates** is a per-declaration knob: one-shot
-  (fixtures — seeded then persisted, no duplicate on displacement) vs. restocking
-  (shop wares / ambient — always respawned, typically ephemeral & unowned). Titled
-  chattel is always the one-shot kind. (The shipped `Avatar.enter` live-ref
-  consultation already leans one-shot/idempotent.)
-
-**Net scope (replaces §F's chattel-registry-as-store):** **no new persistence
-system.** Generalize the shipped holder-snapshot to **chests + owned rooms**
-(room persistence **corrected in §K** — it uses the dorm's *document-store
-customization-doc*, base-template + delta, **not** the legacy Avatar-snapshot)
-under **one serialization boundary contract**; possession is a **field** on each
-item's snapshot plus a **rebuildable owner-index**; a **durable per-item id** is
-conferred by ownership (for the index + cross-move/theft tracking), a small field,
-not a mechanism. `PossessableMixin` is deleted; `PersistableHolder` is the one new
-capability.
-
-> **Today's state (honest scope):** no room persists runtime additions —
-> persistence is Avatar-only, rooms only populate. The build's actual new work is
-> making **owned parcel-rooms + chests** persistable holders, which is what
-> *creates* the seed-then-persist handoff.
+> ✅ SHIPPED · DOCUMENTED — chattel is a stamp + a rebuildable index, never a
+> mixin ([chattel.md](../../subsystems/chattel.md)); the holder is `PersistableMixin`
+> over `holder_snapshots` ([persistence.md § The self-persistence spine](../../subsystems/persistence.md));
+> `ownerOf = stamp ?? parcel-extent ?? authorOf` and seed-then-persist
+> ([furnishing.md](../../subsystems/furnishing.md)); ownership bottoms out at `Creature`
+> ([ranching.md](../../subsystems/ranching.md)). ⚠ The boundary contract shipped wider
+> than v1 here (worn gear round-trips). The capability-vs-relation mixin
+> test is handed off to mixins.md (compaction ledger).
 
 ### J. Verb generality (custody vs. title) + what a shop belongs to
 
@@ -844,25 +523,13 @@ capability.
   (title-only stamp), `sell` (title + custody + payment), and the **parcel
   operations** (you can't carry a zone).
 
-Architecturally: the shared things are the **operation primitives**
-(`ContainmentApi.move` / the title chokepoint / banking `settle`); **verbs are
-thin controllers composing them.** Chattel rides the containment-verb family
-(made title-aware); **real property gets its own verb/category** (no custody).
-`sell` is polymorphic-on-target or split. Discriminator: *does the target have
-custody?*
+> ✅ SHIPPED — `ChattelApi.transfer` + banking `settle` are the primitives,
+> verbs are thin controllers, and the SALE is what promotes a stock good to
+> titled chattel (`buy` stamps the buyer) — [chattel.md](../../subsystems/chattel.md),
+> [retail.md § The buy loop](../../subsystems/retail.md). Unowned litter has no row.
+> Still deferred: the general `give`/`sell`/`claim` player surface
+> (chattel.md § Deferred).
 
-**"Possessions" is a sparse minority, not most objects** (restating §I): floor
-junk, shelf mugs, ambient stuff are unowned ephemeral `populates` clones with no
-row. Possessions = *claimed valuables* + *extent-derived fixtures*. Ownership is
-opt-in via `claim`, which is what keeps the registry cheap.
-
-**Shops are a primary consumer, but it's invisible until point-of-sale:** stock
-is *not* individually titled (restock / bulk); a **sale** is where possession
-fires — `sell`/`order` **promotes** the item (stamp title to buyer + `settle`
-payment, atomically). **Dave's Bar already does this** (`OrderController` settles
-the Menu's `priceFor` as a `Charge`).
-
-**What a shop belongs to — three separable layers, three (possibly different)
 owners:**
 
 | Layer | Is | Owned by |
@@ -881,97 +548,14 @@ decision (not a venue mixin) is exactly what makes this three-way split work.
 
 ### K. Dorms — the proto-parcel; Warren ownership; and rent vs. own
 
-The dorm shipped before this design, so it's the reality-check. **What shipped:**
-`HomeZone` (`lib/home/HomeZone.ts`) — a per-player namespace root at
-`/home/<playerId>/`, a *non-spatial* Zone — plus the **document-store self-home
-ownership base case** (`DocumentLogic`: "an owner always owns their own
-`/home/<self>/`"). **What did NOT ship:** the *lived, customizable* dorm — gating
-"waits on the permission framework"; `kind:'dorm'` customization is "(future)".
-So the dorm's *foundations* predate this; the dorm-as-home is still deferred.
-
-**The dorm is the proto-parcel, and it independently anticipated four decisions:**
-§A (per-player runtime zone = `HomeZone`), §B (ownership by **identity** in the
-document/access layer, *not* on the `domain` template), §D (`/home/` = unreleased,
-so dorm content is already inert in canon), §E/§I (customization = base-template +
-per-player customization-doc). Independent convergence — a good sign.
-
-**Two decisions the dorm forces:**
-
-1. **The self-home case is the *implicit default parcel*** (the `office_holders`
-   sparse-default precedent): every player owns `/home/<self>/` **by identity, with
-   no `parcels` row**; the registry only stores *explicit / transferred /
-   real-estate* parcels. 0a generalizes the self-home base case into exactly this.
-2. **Room persistence = the document-store customization-doc, NOT the legacy
-   Avatar-snapshot** (corrects §I). The dorm was always designed as base-template
-   (seed) + `kind:'dorm'` customization-doc (persisted delta) in the **document
-   store** — the *intended future* store (`Avatar = legacy per-player-template,
-   migrate later`). So **owned-room** persistence adopts the dorm's doc model;
-   **carried inventory / chest contents** keep the holder-snapshot (Avatar
-   mechanism, legacy, migrate later). Two flavors, dorm points at the better one.
-
-**Thread 1 — ownership on a Warren.** Warren rooms **share one templatePath**
-(elastic clones, not singletons), so §I's extent-derivation can't tell one
-resident's room from another's. Root cause: the Warren mechanism (elastic,
-interchangeable, *ephemeral*) was the **lounge's** choice — a mismatch for a dorm
-(persistent, personal). Two resolutions:
-
-- **(A, recommended) Dorms aren't Warrens.** Each resident's room is a
-  **per-resident stable extent** under `/home/<resident>/dorm/`, **lazily
-  instantiated + dormant-when-empty.** The property model's own **dormancy +
-  lazy-first-use** already delivers the Warren's *only* real benefit (only occupied
-  rooms cost anything) *without* bud/reap/merge and *without* the shared-templatePath
-  ownership problem. Given parcels + dormancy exist, revisit whether dorms need the
-  Warren at all.
-- **(B) If Warren-dorms stay:** ownership keys on the durable **assignment**
-  (resident ↔ room-slot) + the customization-doc, **not** the room instance; the
-  instance is a **lazy materialization stamped from the assignment**.
-
-Either way, the principle — **ownership lives on the title/claim in the registry,
-never on the instance** — *confirms* §B (the Warren just makes instance ≠ title
-visible).
-
-**Thread 2 — rent vs. own** = the custody/title axis, generalized to real property:
-
-| Relationship | Is | Analog of |
-|---|---|---|
-| **Own** | hold the **title** (registry owner) — customize / transfer / subdivide / collect rent | title |
-| **Rent / lease** | a **time-bounded use-right** (occupy + customize + persist your stuff) **without** the title | *custody without title* — the legit, paid sibling of chattel **lending** |
-| **Visit** | presence only | — |
-
-The **dorm is a lease**: the university/commons **owns the building**; each
-resident **holds a room-lease** (customizes, keeps their stuff *during the lease*,
-**reverts on leave/graduation**). Renting threads through: **§J** (shop premises
-leased); the **compute allowance** (landlord holds the allowance + liability, tenant
-pays rent — *flat-absorb-and-cap* vs. *metered sub-allowance*, which **is** the
-sublet-rollup fork made concrete); **sublet** = a use-grant *of* a use-grant.
-**Phasing split:** the **lease *relationship*** (use-grant + expiry + revert) is
-needed **early, for the dorm** (0b-adjacent, and a dorm may be tuition-covered so it
-needs *no* payment); the **rent *economics*** (payment, metered sub-allowance,
-sublease markets) stay **Phase 3**.
-
-**The unifying upgrade — the registry becomes a *claims-and-grants* layer.** Thread
-1 forces "ownership is on the claim, not the instance"; thread 2 forces "there are
-*use-grants* distinct from *titles*." So §B's `parcels` shape grows one notch:
-
-```
-parcels: {
-  parcelId, extents[], parentParcel,
-  owner,                                              // the TITLE
-  grants: [ { holder, kind:'lease'|'sublease', expires, terms } ],  // USE-RIGHTS, not title
-  accessGrants, allowance
-}
-```
-
-`ownerOf` resolves the title; a new `useRightOf(parcel, actor)` resolves grants (am
-I a tenant here?). **Custody/title (chattel) and title/use-grant (parcels) are the
-same axis** on the two registries.
-
-**Phasing impact:** 0a generalizes the self-home base case into the **implicit
-default parcel** + adopts the **claims-and-grants** registry shape; **0a directly
-unblocks the dorm's long-deferred gating**; the **minimal lease relationship** rides
-0a/0b; the **`dorm-warren` slate becomes a named consumer-slice** of property (its
-first proof case, per `StoredDocument`'s "dorm = first consumer"); and we should
-**revisit Warren-for-dorms** in favor of per-resident dormant parcels.
+> ✅ SHIPPED — the implicit default parcel (`selfHomeOwnerOf`), `grants[]` as
+> the use-grant/lease with `hasUseGrant` / `heldUnitsOf`, and the
+> Granted / Let / Owned ladder: [parcel.md § `grants[]`](../../subsystems/parcel.md),
+> [holding.md](../../subsystems/holding.md), [residence.md](../../subsystems/residence.md).
+> ⚠ Two leans did NOT ship as written: dorms stayed Warrens, keyed on the
+> unit parcel (resolution B, not A); rooms persist through the
+> `(scope, key)` spine into `holder_snapshots`, not a document-store
+> customization doc. Rent economics remain deferred (holding.md § deferred).
 
 ---
 
@@ -986,18 +570,6 @@ not explore further. "Phase 0 — possession core" grew into two builds; re-slic
 | **0b — Chattel & persistence** | `PersistableHolder` (holder-snapshot for chests + **document-doc** for owned rooms) + the **serialization boundary contract** + seed-then-persist + possession field/index + title-aware containment verbs (`claim`/`give`/`sell`) + the **minimal lease relationship** (use-grant + revert) | **SHIPPED** — the persistence half (MR!129, [persistence.md](../../subsystems/persistence.md)) + the **chattel possession half** (MR!143, [chattel.md](../../subsystems/chattel.md): the owner-stamp registry + `ownerOf = stamp ?? authorOf` + `transfer`, proven by the general store). Remaining: the general `give`/`sell` player surface + the lease-on-chattel relationship (thin adds over the shipped `transfer` primitive) |
 | **1 — Compute economy** | predicted heartbeat-budget + runtime degradation ordering (the two-scarcity headline) | **needs a design pass** — we did *attribution* (cost-owner), never *metering/degradation* |
 | **later consumers** | sandbox/wardrobe (design done), governance allocation, tenancy **economics** (rent/sublease markets), coord-region parcels | deferred — downstream of 0a+0b+the release gate |
-
-**Why 0a first:** it's a prerequisite for 0b (chattel's extent-derivation and
-owned-room persistence both need titled parcels), it's the lowest-risk slice (no
-persistence generalization), it establishes the primitive the whole build-order
-list points up to, and it **lights up the half-built dorm** as its first proof case.
-
-**The one risk to scope first in 0a requirements — the `AccessApi.can` blast
-radius.** Moving `ownerGroup`/`accessGroups` out of `domain` touches *shipped*
-access substrate. Requirements should open by enumerating **what reads
-`zone.data.ownerGroup` today** (`resolveSourceFolderZone`, the shell write verbs,
-`CmsLogic`, `AccessRegistry.seedLoungeSlice`, …) and confirm the repoint +
-lounge-stamp migration is non-breaking.
 
 **Firm (decided, in §A–§K):** parcel = a Zone · sparse parcel hierarchy · ownership
 in a separate claims-and-grants registry · author≠owner via two collections · cost-
@@ -1018,8 +590,6 @@ parcels · Warren-for-dorms revisit.
 **Still open — blocking for their own slice:** 0b → the serialization
 boundary-contract list + the seed-then-persist gate; Phase 1 → the entire
 budget/degradation design.
-
-**Next action: `/requirements` on Phase 0a.**
 
 ---
 
@@ -1047,12 +617,10 @@ that the substrate **accommodates it** and to name the seams to preserve.
 
 **Seams to preserve (so we don't foreclose it):**
 
-1. **Chain-of-title — `transfer` leaves a trail, never a destructive overwrite.** The
-   "once owned by nobility" prestige *is* the lineage. So the parcels registry is
-   **log-backed** (the `bank_ledger→bank_accounts` / `renown_events→renown` pattern): an
-   append-only `parcel_events` trail + a rebuildable current-owner. **This is the one seam
-   that touches 0a** — cheap now, needs a migration to retrofit — so it's in the 0a plan
-   (write the trail; rebuild + lineage readout deferred).
+1. ✅ **Chain-of-title** — shipped: `parcel_events` is append-only and
+   `transfer` never overwrites
+   ([parcel.md § Chain of title](../../subsystems/parcel.md)); the lineage readout is
+   still deferred.
 2. **The membrane — prestige buys *resources*, never *security relaxation*.** Prestige =
    more allowance, better location, more slots, safety, lineage — all *within* the rules.
    It must **never** mean a fancier home relaxes the release gate / lets home-forged power

@@ -258,6 +258,24 @@ viewer, runs the `look` + projection paths, and asserts the concealed
 thing's `stuffId` / `displayName` appear in **no** emitted frame or
 projection payload — then `recordDiscovery` and asserts it now appears.
 
+### Known tension: `perceives` vs `canSee`
+
+`LookController`'s room-contents list runs every item through `perceives`
+(above) before rendering. The lazy per-item renderer then asks a
+**second** gate — `VisionModality.canSee`, a light read anchored on the
+*target's* container — and the two disagree: in an unlit interior
+`canSee` fails and the item renders `something` while the room's own
+already-resolved prose reads in full, and `canSee`'s one-level container
+walk cannot see into a creature's own inventory at all (everything in an
+NPC's pockets reads `something`). The fix taken: a `toSelf` `look`
+render's item list is resolved **eagerly, viewer-blind**, because
+`perceives` already settled this viewer's perception — asking `canSee`
+again gates the same render twice. Every other caller of the recognition
+face is untouched. **`perceives` and `canSee` remain two gates with one
+job**; full reconciliation (or teaching `canSee` to walk more than one
+container level) is not yet done — the local, viewer-blind fix above
+holds in the meantime.
+
 ### Deliberate v1 boundaries
 
 - **Acoustic / olfactory propagation is not concealment-gated.** The
@@ -307,6 +325,18 @@ seeded as **pure data** (the bartending / melee-combat precedent — the
 capacity, `search`, and `disarm`. **No `conferrals`** — `search` / `look` /
 `disarm` are universally afforded; competence only *grades* them, it doesn't
 gate the menu. See [advancement.md](./advancement.md).
+
+### Why a secret is a reward, never a path — the content discipline
+
+*(Absorbed from `concealment-detection-slate` § Thesis 3, 2026-09-21.)*
+The gate above is a competence check a viewer can FAIL, so what authors
+put behind it is a rule, not a taste: **secrets are rewards and
+shortcuts, not required paths.** The immersive-sim multi-pathway — a
+secret door is *a* way, never *the* way; no critical content sits behind
+a hard perception wall, or if it must, it is heavily hinted and
+deducible (the `concealmentHint` line exists for exactly this). A locked
+`hidden` exit that is the only route forward turns a Discipline into a
+toll. **Discovery is a beat, not a tax.**
 
 ## The care↔speed detection axis
 

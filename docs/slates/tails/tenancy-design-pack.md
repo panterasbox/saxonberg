@@ -1,24 +1,18 @@
 # Tenancy design pack — stewardship of what you don't own
 
-> **Status: PARTIAL** — the rented rungs, the `UPKEEP_TERMS` vocabulary
-> and the shell-condition clock shipped
+> **Status: PARTIAL** — the rented rungs, the `UPKEEP_TERMS` vocabulary,
+> the shell-condition clock and the landlord REFERENCE (a let unit's
+> condition gates the buy) shipped
 > → [holding.md](../../subsystems/holding.md)
-> **Left:** room-condition attribution `(actor, target, extent)` · the
-> check-in condition snapshot at `grantedAt` · the deposit as a contract
-> escrow leg · the eviction act · rent as a recurring money leg
+> **Left:** the term-bounded attribution query over
+> [room-condition](../builds/room-condition-design-pack.md)'s attributed
+> `(actor, target, extent)` events (the constraint itself is that pack's) ·
+> the check-in condition snapshot at `grantedAt` · the deposit as a contract
+> escrow leg · the habitability claim · the eviction act (+ the shelter
+> floor) · common parts as the landlord's obligation · rent as a recurring
+> money leg + the absorbed rent economics (schedules · sublease markets · the
+> proprietor-as-Business P&L) · co-lease / sublet (Q5 + the absorbed seam)
 > **Size:** a wave
-
-> **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
-> Closes a hole *inside* work already written. The
-> [residence ladder](./residence-ladder-design-pack.md) ships **two
-> non-ownership rungs** (dorm, apartment) and the
-> [household pack](./household-design-pack.md) draws the **tenure vs
-> domicile** distinction — so a reader of both immediately asks *who is
-> answerable for condition when the holder is not the occupant*, and finds
-> nothing.
->
-> ⭐ **It turns out to be nearly free**, because the attribution constraint
-> room-condition already carries is the whole mechanism (Part 2).
 
 See also: [residence-ladder](./residence-ladder-design-pack.md) (**the rented
 rungs, and the "landlord reference" it already names**) ·
@@ -30,7 +24,7 @@ call) · substrates: [parcel](../../subsystems/parcel.md) (`UseGrant`, live) ·
 [contract](../../subsystems/contract.md) (escrow) ·
 [furnishing](../../subsystems/furnishing.md) + [chattel](../../subsystems/chattel.md)
 (the structure/contents split, already modelled) ·
-[credit-slate](../builds/credit-slate.md) (the property floor) ·
+[credit-slate](credit-slate.md) (the property floor) ·
 [diegetic-government §8](../../staging/diegetic-government.md) (**the
 shelter** — the floor under eviction).
 
@@ -40,11 +34,7 @@ shelter** — the floor under eviction).
 
 The ladder's gate is *"the condition of what you already hold."* Its rungs:
 
-| Rung | Tenure | Gate to next |
-|---|---|---|
-| **Dorm** | granted lease | none — the tutorial |
-| **Apartment** | **rented** | money |
-| **Townhome** | owned | money **+ condition of the last** |
+*→ the rungs table is [residence-ladder Part 2](./residence-ladder-design-pack.md#part-2--the-ladder-and-the-two-part-gate); "that third row" below is its Townhome / house row (owned — money **+ condition of the last**).*
 
 ⭐ Read that third row carefully: **"the condition of the last" means the
 condition of the apartment you RENTED.** The ladder already gates ascent on
@@ -62,18 +52,11 @@ exists.
 
 ## Part 1 — The split already exists in the persistence model
 
-Real tenancy divides responsibility, and the division is what every deposit
-dispute is about. The game does not need a new one — **it already stores
-things this way:**
-
-| | Who is answerable | Already modelled as |
-|---|---|---|
-| **The structure** — the room, its fixtures, the roof | ⭐ **the landlord** | the **parcel** and its fixtures |
-| **The contents and the mess** — your furniture, your dirt | ⭐ **the tenant** | the **estate slice** ([furnishing](../../subsystems/furnishing.md) persists by owner) + [chattel](../../subsystems/chattel.md) |
-
-> **The estate slice is the tenant's; the room is the landlord's.** That line
-> is already drawn by the persistence layer, for entirely unrelated reasons,
-> and it is exactly the line tenancy needs.
+*Shipped, and documented: the `landlord-shell` term (the landlord keeps
+the shell; what you put in it is yours) and owner-side persistence of
+goods draw exactly this line →
+[holding.md § Terms](../../subsystems/holding.md#terms--who-owes-the-upkeep)
++ [§ Owned goods in a holding](../../subsystems/holding.md#owned-goods-in-a-holding).*
 
 **Habitability falls out of it.** If a landlord will not repair the roof, the
 damp is *structural* and is not the tenant's to answer for. A tenant is
@@ -124,7 +107,7 @@ still feels another:
 
 | Incentive | Kind | Mechanism |
 |---|---|---|
-| **You live there** | **immediate comfort** | filthy rooms cost `restQuality`; a dirty home is lower immunity ([disease](../builds/disease-design-pack.md)) |
+| **You live there** | **immediate comfort** | filthy rooms cost `restQuality`; a dirty home is lower immunity ([disease](../builds/disease-slate.md)) |
 | ⭐ **The reference** | **delayed progression** | the ladder gate reads the condition of the place you held — **neglecting a rental blocks your ascent** |
 | **The deposit** | **contractual money** | escrow at risk (Part 4) |
 
@@ -159,7 +142,7 @@ slate](../builds/insurance-slate.md)'s scrivener thesis paying off twice.
 
 The [recurring-charge call](../../stewardship-doctrine.md) says non-payment's
 ceiling is **credit and comfort, never the asset**. The
-[credit-slate](../builds/credit-slate.md) property floor says title is **never
+[credit-slate](credit-slate.md) property floor says title is **never
 seized**. But a tenant evicted for non-payment loses their home — which looks
 like exactly what those rules forbid.
 
@@ -278,12 +261,30 @@ keep it on the right side.
 
 ---
 
+## Absorbed from residence-ladder-design-pack — Deferred seams: rent economics · co-lease / roommate
+
+*Moved here verbatim by the 2026-09-21 cluster pass from the ladder pack's
+"⭐ Deferred seams, salvaged from the retired apartment plan" list (itself
+extracted 2026-09-06 when `apartment-plan.md` was retired). Both bullets are
+tenure design: the first is the money leg this pack's `Left` already named,
+the second is open question 5 below in its earlier form (the roommate SHAPE
+— one owner + N grants — is [household](./household-design-pack.md) Part 1;
+the "v1 is single-leaseholder" fact is shipped: `ProvisionController`
+refuses a double provision and `UseGrant` is single-holder).*
+
+- **Rent economics** — payment schedules, metered sub-allowance, sublease
+  markets, the proprietor-as-Business P&L. The lease *relationship* ships; the
+  *economics* attach at `settle` + the Business account.
+- **Co-lease / roommate** — a use-grant of a use-grant (property §K sublet);
+  v1 is single-leaseholder.
+
+---
+
 ## Open questions
 
-1. ⭐ **Does the ladder read a rented place's condition at all, or only an
-   owned one?** The rungs table implies rented condition *does* gate (the
-   townhome reads "the last," which was the apartment). *Lean: it gates* —
-   that is the reference, and it is the whole reason a tenant tends.
+1. *Resolved — it gates: `heldUnitsOf` is every live use-grant, so a let
+   unit's condition is read at `title buy` →
+   [holding.md § The ascent gate](../../subsystems/holding.md#the-ascent-gate).*
 2. **Is the condition snapshot a band or the full derived read?** *Lean: the
    band* — a dispute is about crossing a threshold, and storing a scalar
    invites false precision about a derived value.

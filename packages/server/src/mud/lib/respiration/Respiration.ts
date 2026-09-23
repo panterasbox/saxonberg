@@ -41,6 +41,7 @@ import type { Engaged } from '../activity/Engaged';
 import type Exit from '../boundary/Exit';
 import type { AfflictionRecord } from '../../platform/idea/Condition';
 import type { BulkSlot } from '../bulk/Bulkable';
+import type { Container } from '../spatial/Container';
 import { MixinApi } from '../../api/mixin';
 import { SchedulerApi } from '../../api/scheduler';
 import { BiomeApi } from '../../api/biome';
@@ -138,6 +139,8 @@ export interface Respiration {
   reassess(): Promise<void>;
   /** The traverse hook (the `Mobile.onTraversed` shape) — fires `reassess` on every move. */
   onTraversed(via: Exit): void;
+  /** The containment-move hook — every move re-checks the medium (fishing D8). */
+  onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void;
 
   /** Emission body of the drain engagement (delegated from `RespirationDrain`). */
   respirationDrainTick(drain: RespirationDrain): void;
@@ -215,21 +218,59 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * The surrounding-medium tag. While swimming you are *in* the medium
-     * you swim through (the engaged-mode `medium` wins); otherwise the
-     * atmosphere resolved outward from the body's containment chain.
+     * you swim through (the engaged-mode `medium` wins); then ⭐ **the
+     * liquid you are immersed in** — the nearest containing vessel that
+     * holds a bulk interior answers with its material's name (a carp in
+     * a bowl of water breathes `water`; a man in a vat of ale breathes
+     * nothing; a fish in *fouled water* does not breathe either, which is
+     * the honest answer); otherwise the atmosphere resolved outward from
+     * the body's containment chain.
+     *
+     * Immersion lives HERE and not in the atmosphere walk because the
+     * atmosphere is the air over a place — temperature, pressure and
+     * humidity ride that walk — and only respiration asks what a body is
+     * immersed in. Put in `syncChainWalk`, a bowl's water would become
+     * the room's air temperature.
      */
-    private async resolveCurrentMedium(): Promise<string> {
+    private async resolveCurrentMedium(): Promise<{
+      medium: string;
+      /** True when the medium is a LIQUID the body sits in, not an atmosphere. */
+      immersed: boolean;
+    }> {
       const self = this as unknown as Stuff;
       if (MixinApi.isMobile(self)) {
         const m = self.getEngagedMode()?.getMedium();
-        if (m) return m;
+        if (m) return { medium: m, immersed: false };
       }
       // Not placed in a container → no environment to threaten it. A body
       // is both Containable (it has a container) and a Container (the scope
       // the atmosphere chain walks outward from) — narrow to both.
-      if (!MixinApi.isContainable(self) || !self.getContainer()) return 'air';
-      if (!MixinApi.isContainer(self)) return 'air';
-      return BiomeApi.resolveAtmosphereFor(self);
+      if (!MixinApi.isContainable(self) || !self.getContainer()) {
+        return { medium: 'air', immersed: false };
+      }
+      const immersed = this.immersedIn();
+      if (immersed !== null) return { medium: immersed, immersed: true };
+      if (!MixinApi.isContainer(self)) return { medium: 'air', immersed: false };
+      return { medium: await BiomeApi.resolveAtmosphereFor(self), immersed: false };
+    }
+
+    /**
+     * The liquid this body is immersed in, or `null` when it is in none:
+     * the first ancestor on the containment chain that holds a bulk
+     * interior with anything in it answers with that material's name.
+     */
+    private immersedIn(): string | null {
+      const self = this as unknown as Stuff;
+      let at: Stuff | null = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const seen = new Set<Stuff>();
+      while (at && !seen.has(at)) {
+        seen.add(at);
+        if (MixinApi.isBulkable(at) && at.getBulkAmount('interior').rawValue() > 0) {
+          return at.getBulkMaterial('interior')?.getName() ?? null;
+        }
+        at = MixinApi.isContainable(at) ? at.getContainer() : null;
+      }
+      return null;
     }
 
     /**
@@ -273,18 +314,27 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       exchanging: boolean;
       cause: RespirationCause | null;
     }> {
-      const medium = await this.resolveCurrentMedium();
-      const set = this.getBreathableMedia();
-      if (set.includes(medium)) return { exchanging: true, cause: null };
+      const { medium, immersed } = await this.resolveCurrentMedium();
+      // ⚠ Destructed during the await above (a released fish, mid-drain):
+      // the proxy is inert now and every read answers `undefined`.
+      const set = this.getBreathableMedia() as readonly string[] | undefined;
+      if (!set || set.includes(medium)) return { exchanging: true, cause: null };
 
       // Medium not in this body's set. Confirm it is a *known* atmosphere
       // (`breathableOf` throws on unknown) — an unmodeled medium raises no
       // crisis. This is the engine's read of the biome breathable column.
-      let known = true;
-      try {
-        BiomeApi.breathableOf(medium);
-      } catch {
-        known = false;
+      // ⚠ An IMMERSION is exempt from the exemption: a liquid the body
+      // sits in is a liquid whether or not the biome table names it — a
+      // man in a vat of ale, a fish in fouled water — and neither
+      // breathes it.
+      let known = immersed;
+      if (!known) {
+        try {
+          BiomeApi.breathableOf(medium);
+          known = true;
+        } catch {
+          known = false;
+        }
       }
       if (!known) return { exchanging: true, cause: null };
 
@@ -310,7 +360,9 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!MixinApi.isMetabolic(self)) return;
       let contaminant: string | null = null;
       try {
-        const medium = await this.resolveCurrentMedium();
+        const { medium, immersed } = await this.resolveCurrentMedium();
+        // A liquid is not in the biome's contaminant column.
+        if (immersed) return;
         contaminant = BiomeApi.contaminantOf(medium);
       } catch {
         return;
@@ -325,6 +377,11 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public async reassess(): Promise<void> {
       const self = this as unknown as Stuff;
+      // ⚠ A body destructed mid-drain (a released fish) still has a tick
+      // or a move hook in flight; an inert proxy answers every read with
+      // `undefined`, and `undefined.includes` was an unhandled rejection
+      // that took the server down (found by the fishing drive).
+      if (self.isDestroyed()) return;
 
       // Constructs never engage; a corpse never drowns again — tear down
       // any active engagement in both cases.
@@ -359,6 +416,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // `replaceableBy` respiration (or this start would no-op on
       // conflict, silently suppressing the crisis).
       const { exchanging, cause } = await this.assessExchange();
+      if (self.isDestroyed()) return;
       // Inhaled-contaminant fold (the fire driver's first consumer of the
       // biome `contaminant` seam): a body breathing a contaminated medium
       // (smoke → carbon monoxide) takes on the toxin as a metabolism burden,
@@ -393,7 +451,30 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     public onTraversed(via: Exit): void {
       void via;
       // Fire-and-forget — the move reassess seam (#7, Risk #1).
-      void this.reassess();
+      void this.reassess().catch(() => {});
+    }
+
+    /**
+     * ⭐ Every containment move re-checks the medium (fishing D8): a
+     * landed fish starts drowning in the hand, stops in the bowl, and a
+     * person carried into a flooded cell is not exempt. Chains any inner
+     * `onMoved` witness first (the `Thermal` shape).
+     */
+    public onMoved(
+      from: (Stuff & Container) | null,
+      to: (Stuff & Container) | null,
+    ): void {
+      const sup = (Base.prototype as {
+        onMoved?: (
+          f: (Stuff & Container) | null,
+          t: (Stuff & Container) | null,
+        ) => void;
+      }).onMoved;
+      if (typeof sup === 'function') sup.call(this, from, to);
+      // Fire-and-forget, and a failed re-check (no biome loaded, a
+      // torn-down room) must not surface as an unhandled rejection from
+      // inside a containment move.
+      void this.reassess().catch(() => {});
     }
 
     /* ──────────────────── engagement tick bodies ──────────────────── */

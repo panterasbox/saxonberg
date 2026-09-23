@@ -36,6 +36,10 @@ See:
 | `packages/server/src/backend/inbound/prompt.ts` | Inbound prompt routes (`handlePromptResponse` / `handlePromptCancel`), dispatched via `inboundHandlers` in `backend/inbound/index.ts` |
 | `packages/server/src/backend/inbound/command.ts` | Empty-command short-circuit + `renderPromptRefresh` call (`:29-41`) |
 | `packages/server/src/backend/Application.ts` | Disconnect cleanup (`handleUserDisconnect` triggers `interactive.teardownSubstrateState`, which runs `cancelPrompts`) |
+| `packages/client/src/store/index.ts` | `PromptEntry` union + `EchoSnapshot`; store fields `prompts`, `activeSlot`, `basePrompt`; actions `pushPrompt` / `dismissPrompt` / `setActiveSlot` / `pushEchoSnapshot` / `shiftEchoSnapshot` |
+| `packages/client/src/components/CommandBar.tsx` | The **active** slot: slot-picker dropdown (base + every pending prompt), per-kind chip affordances, the `compose` textarea, Esc-backs-out-without-killing |
+| `packages/client/src/components/PromptStrip.tsx` | The **waiting** queue: one card per non-active prompt, `askedBy` attribution, the `×` (per-prompt) vs `prompt cancel` (all) split |
+| `packages/client/src/components/PromptFormatBar.tsx` | Renders the server-sent `basePrompt` string + token-append chips for `prompt.format` |
 
 ## Surface
 
@@ -110,6 +114,25 @@ non-awkward home.
 The two surfaces stay separate; reach for `PromptApi`'s validator
 when you have a prompt, for command validators when you're guarding
 field shape.
+
+#### Why the kind canon is small — compose, don't invent
+
+*(Graduated from prompt-stack-slate § Compose vs. custom, 2026-09-21.)*
+A prompt is inherently free-form — a string comes back and the caller
+interprets it — so without discipline every author rolls their own
+parsing, retry and UX, and the player meets a dozen subtly different
+prompt shapes. The discipline is **a small canon of structured kinds,
+each with one fixed UX pattern, plus the validator hook.** Authors
+**compose** canonical kinds — character creation, crafting, a
+conversation tree, a multi-step wizard are all sequences of `choice` /
+`text` / `confirm` / `mqlObject` / `mqlMany`, each await deciding the
+next step — and the player sees consistent UX through the whole flow.
+A new kind is canonized sparingly and only through slate review, because
+every kind added expands the player's prompt-recognition load and dulls
+the *"I know what this is and how to answer"* reflex. When a one-off flow
+genuinely needs custom interpretation, the escape valve is `text` with a
+caller-side `validate` and branching logic: the UX shape stays a text
+input and the variation lives in what the caller does with the answer.
 
 ### Two-channel inbound
 
@@ -371,6 +394,22 @@ slot; the rest keep waiting.
 running command, so the verb, its description and how long it has waited
 are all knowable at push time — they ride the envelope. That is what
 makes an abandoned prompt judgeable.
+
+### Slot picker, not sigils
+
+The slate that designed this proposed an explicit two-mode input (a `>`
+vs `?` sigil, Esc to switch modes). What shipped instead: `CommandBar`
+always shows a **slot picker** — base plus every pending prompt in one
+dropdown — and clicking a row makes that slot active; Esc backs out to
+base without killing the prompt underneath. Same guarantees (visible
+mode, non-destructive back-out), one fewer vocabulary the player has to
+learn (a list to pick from, not a mode to remember you're in).
+
+The slate also proposed a three-way push priority (`demanding` /
+`passive` / `toast`). Shipped as a boolean `PromptOpts.foreground`
+instead: `true` (default) seizes the input slot, `false` joins the
+waiting queue. `toast` — not even on the stack, a scrolling
+acknowledgement — never shipped; nothing has asked for it.
 
 ### ⚠⚠ Two cancels, and they are different acts
 

@@ -117,6 +117,7 @@ function animal(o: AnimalOpts = {}) {
     rememberPlace: (p: string) => remembered.push(p),
     creditHomeCandidate: (place: string, day: number) =>
       credited.push({ place, day }),
+    homeKeyOf: (c: Stuff) => (c as unknown as { stuffId: string }).stuffId,
     reconcileSenescence: () => {
       senescenceChecked += 1;
     },
@@ -338,6 +339,36 @@ describe('feeds', () => {
     expect(ate).toHaveLength(1);
     expect(ate[0]!.offerer).toBeNull(); // credits NOBODY
     expect((a as never as { _credited: unknown[] })._credited).toHaveLength(1);
+  });
+
+  it('⭐ an animal INSIDE a feeder of its rung eats from it and earns its home there (fishing D10)', async () => {
+    // A fish in its bowl: the bowl is its container, not a thing beside
+    // it, and the room-scan never saw it. Now the thing it is inside
+    // counts, and the home credit names the BOWL.
+    const food = edibleThing('crumbs');
+    const bowl = {
+      stuffId: 'bowl',
+      contents: [] as Stuff[],
+      exits: [],
+      getContents: () => [food],
+      getExits: () => ({ values: () => [] }),
+      getFeederKind: () => 'bowl',
+      offerings: () => [food],
+      isEdible: () => false,
+      getMaterial: () => null,
+    } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isFeeder').mockImplementation(
+      (s: Stuff) => (s as unknown as { stuffId: string }).stuffId === 'bowl',
+    );
+    vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true);
+    const a = animal({ styles: ['bowl', 'surface'] });
+    (a as unknown as { getContainer: () => Stuff }).getContainer = () => bowl;
+
+    await feeds.act(ctx(a));
+    expect((a as never as { _ate: unknown[] })._ate).toHaveLength(1);
+    const credited = (a as never as { _credited: { place: string }[] })._credited;
+    expect(credited).toHaveLength(1);
+    expect(credited[0]!.place).toBe('bowl');
   });
 
   it('⚠ food on the FLOOR feeds it but does not move home', async () => {

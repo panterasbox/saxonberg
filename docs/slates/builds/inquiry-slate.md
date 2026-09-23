@@ -5,22 +5,9 @@
 > [advancement.md](../../subsystems/advancement.md)
 > **Left:** the `Law` catalog Idea · the `predict` lab-notebook loop ·
 > knowledge banking of confirmed laws · the publish + replicate library ·
-> the evidential range and the overreach paper
+> the evidential range and the overreach paper · deferred: credibility as
+> a renown consumer, the published refutation, misinformation-as-crime
 > **Size:** a build
-
-> **Status: sketch / pre-requirements.** A design pass, not a spec. Spun
-> out of [capability-magic-slate.md](./capability-magic-slate.md)
-> Part IV on 2026-07-15, when the "how a student discovers a magical law"
-> thread grew into something that isn't magic-specific at all: a
-> **platform substrate for how *sim-native knowledge* is discovered,
-> verified, trusted, and corrupted.** Magic is the vivid *showcase*, not
-> the owner — the same loop serves physics, medicine, crafting, farming,
-> any honest-sim discipline.
->
-> **Why it's its own thing:** it realizes the gamification-mirror thesis's
-> deepest claim — teach not just *what is true* but ***how to know***. The
-> scientific method (and its failure modes) is the most transferable
-> real-world skill there is, and here it's learned by *doing*, not lecture.
 
 See also:
 
@@ -45,7 +32,7 @@ See also:
 - [reputation-slate.md](./reputation-slate.md) /
   [../../subsystems/renown.md](../../subsystems/renown.md) — **credibility**
   as a renown consumer.
-- [farming-slate.md](../tails/farming-slate.md), the University content, and the
+- [farming-slate.md](farming-slate.md), the University content, and the
   gamification-mirror thesis — the pedagogy this is the engine for.
 
 ---

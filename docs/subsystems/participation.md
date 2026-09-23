@@ -17,6 +17,12 @@ without discarding data. See the
 the engagement-meter requirements doc was retired at the pre-merge sweep
 and its decisions live in the register.
 
+**Why the product.** Reputation alone is a *popularity contest* (charisma
+wins, presence doesn't); engagement alone is an *idle-farm / no-life
+grind* (raw hours, bots, AFK); **engagement × reputation** demands both —
+substantial participation *and* regard for it (graduated from the
+cooperative slate, 2026-09).
+
 ## The pipeline (mirrors renown, shares no code)
 
 ```

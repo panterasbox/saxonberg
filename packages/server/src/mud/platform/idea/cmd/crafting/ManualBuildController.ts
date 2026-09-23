@@ -36,6 +36,14 @@ type Composed = ReturnType<typeof Mml.compose>;
 export interface BuildStepOptions {
   /** Game-time the step occupies the `hands` slot, in (game) ms. */
   durationMs: number;
+  /**
+   * ⭐ Metabolic watts the step costs its actor for its duration —
+   * REQUIRED, so the compiler is the census of every step verb. Under
+   * ~300 W (a walk) it costs no endurance; above, the excess debits, and
+   * the body refuses a step that would leave it under the exhaustion
+   * floor. See `lib/exertion/Exerting.ts`.
+   */
+  effortW: number;
   /** Self-prose shown when the step begins. */
   beginSelf: Composed;
   /** Optional peer-prose shown when the step begins. */
@@ -59,6 +67,15 @@ export abstract class ManualBuildController<
    */
   protected engageStep(context: CommandContext, opts: BuildStepOptions): void {
     const giver = context.commandGiver;
+    // The double shift: a body too tired to finish the step does not
+    // start it. The mixin owns the one refusal line.
+    if (
+      MixinApi.isExerting(giver) &&
+      !giver.canExert(opts.effortW, opts.durationMs / 1000)
+    ) {
+      this.declineStep(context, Mml.fromMarkup(giver.exhaustionRefusal()), "too-tired");
+      return;
+    }
     if (!MixinApi.isEngaged(giver)) {
       opts.onComplete();
       return;
@@ -67,6 +84,7 @@ export abstract class ManualBuildController<
       actor: giver,
       slots: ["hands"],
       durationMs: opts.durationMs,
+      effortW: opts.effortW,
       onComplete: opts.onComplete,
       onAbort: opts.onAbort,
     });

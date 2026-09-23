@@ -235,6 +235,11 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   > the sync resolve-on-read seams hit from the first frame. ⭐ The
   > durable lesson is the one the banner keeps: the reads all
   > `?.`-chained past a null, **so CI was green over a dead subsystem**.
+  > ⚠ Still open: `ConditionCatalogue.warm()` selects by the
+  > `/platform/idea/Condition` path prefix + the exact kernel class, not
+  > by *`extends Condition` wherever it lives* (the `MaterialCatalogue`
+  > filter) — so a capability pack cannot ship a condition row of its own
+  > today; the `trade-medicine` pack ships none for that reason.
 - **Kind B — trauma** (the `Trauma` value in `platform/idea/Condition.ts`):
   a parameterized value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
   with a closed `TraumaType` union (`laceration | fracture | contusion |

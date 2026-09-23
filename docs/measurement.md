@@ -64,6 +64,29 @@ The platform separates three things that most software fuses:
 > **The engine counts. You say what counts. Someone else says what
 > everyone must.**
 
+### Absorbed from enforcement-slate — the two layers, intrinsic vs. social
+
+Traits are intrinsic — they represent who you are when no one else is
+around, so those interactions can be completely private and hardwired
+with no adjudication. That names a split the codebase observed without a
+word for it:
+
+| | **Intrinsic layer** | **Social layer** |
+|---|---|---|
+| **Measures** | what you *are* | what others *know* |
+| **Authority** | kernel — it knows what happened | per-viewer, contested |
+| **Truth** | exact | honestly foggy |
+| **Adjudication** | **none, ever** — nobody is being sanctioned; this is characterization, not judgment | courts, process, appeal |
+| **Members** | traits (`disposition_events`), alignment, competence (`transcripts`) | belief, regard, renown, testimony, the record-as-evidence |
+
+**The rule between the layers: the intrinsic layer is never
+admissible in the social layer.** No court subpoenas your traits; no
+constable reads your disposition ledger. But the intrinsic layer
+**colors** the social one — traits already feed the regard baseline
+— so people *sense* something about you without ever proving it.
+"He seems shifty" is honest inference; "the ledger proves he lied"
+is inadmissible. Which is exactly how character works in life.
+
 ⚠ **An earlier draft said "the polity" and "amendable," flat.** Both were
 wrong, and enumerating layer 3 (Part 10) is what exposed it: a third of
 it is not amendable by the polity, and some of it is not amendable at
@@ -109,6 +132,27 @@ volume, low per-transaction stakes — and never manufacture one where it
 does not.
 
 The failure mode this renames: not *publication*, but **monopoly**.
+
+### Absorbed from aluminium-can-slate — the required pairing: the can and the blood
+
+The single most valuable thing the civic curriculum can ship, and it only
+works if the engine stays out of the valuation:
+
+| | **cans** | **blood** |
+|---|---|---|
+| the act | society needs it | society needs it |
+| price it | **works** — return rate tracks deposit size almost exactly; litter falls; a collector's living appears | **backfires** — paying can *reduce* supply by converting a gift into a transaction (Titmuss, *The Gift Relationship*, 1970) |
+| the mechanism | incentive alignment | **crowding-out** — same shape as Gneezy & Rustichini, *A Fine is a Price* (2000): fining late parents made lateness worse, and it stayed worse after the fine was withdrawn |
+
+Two acts a society needs; opposite correct policies. A player who passes
+a deposit on cans, then tries the same trick on blood and watches
+donation **fall**, has learned something most adults never learn — and
+no essay delivers it. See [blood-slate.md](./slates/builds/blood-slate.md).
+
+⚠ **This entire lesson is impossible if the engine credits both with
+standing.** That is the concrete reason the mint question
+([standing-mint-slate.md](./slates/builds/standing-mint-slate.md)) is not
+ours.
 
 ## The same structure, three times
 
@@ -394,6 +438,15 @@ just a number someone set; drop A7 or A11 and provenance is a lie; drop
 A8 and none of the others survive contact with a modified client. They
 are not values — they are the preconditions for having values that mean
 anything.
+
+#### Absorbed from enforcement-slate — the evidence firewall (why A15)
+
+**The kernel's omniscience serves exactly two masters — the record's
+integrity, and meta-moderation. Diegetic law enforcement gets none of
+it.** In-fiction justice gathers evidence in-fiction. Concealment stays
+load-bearing: **a crime genuinely unseen is genuinely unproven**, and
+that is a feature — a world where guilt is always provable needs no
+courts, values no reputation, and has no game in it.
 
 ### ⚠ Audit — 2026-08-11
 

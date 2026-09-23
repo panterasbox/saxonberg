@@ -37,6 +37,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "fs";
 import { join, sep } from "path";
 import YAML from "yaml";
 import { CONTENT } from "./pack-roots";
+import { SCRIPT_BUILTINS } from "../src/mud/lib/script/builtins";
 
 /** Every `cmd/**\/*.yaml` that is a command VIEW (not a controller row). */
 function commandViews(root: string): string[] {
@@ -122,10 +123,23 @@ export function claimsIn(files: string[]): Claim[] {
   return out;
 }
 
+/**
+ * ⭐ The scripting interpreter's builtins are claims too — on EVERY line.
+ * `set x y` binds a shell variable and the interpreter takes any line
+ * that starts with `set` before command dispatch ever sees a verb, so a
+ * view claiming one of these is unreachable by its own name and nothing
+ * fails. The fishing build shipped `set <trap>`, typed it, and got
+ * silence — this is the gate that would have said so.
+ */
+const BUILTIN_CLAIMS: Claim[] = SCRIPT_BUILTINS.map((verb) => ({
+  verb,
+  file: `<lib/script/builtins.ts: the '${verb}' builtin>`,
+}));
+
 /** Verbs claimed by more than one view, with the files that claim them. */
 export function collisionsIn(claims: Claim[]): Map<string, string[]> {
   const byVerb = new Map<string, string[]>();
-  for (const c of claims) {
+  for (const c of [...BUILTIN_CLAIMS, ...claims]) {
     const list = byVerb.get(c.verb) ?? [];
     if (!list.includes(c.file)) list.push(c.file);
     byVerb.set(c.verb, list);

@@ -1,0 +1,19 @@
+# The river's edge at the confluence bank — ⭐ a `Shore` from the WATER
+# pack, authored in the city's content: the thing in the room that says
+# *this room is beside that water*. The city's Locality (`terminus/city`)
+# declares no reach of its own, so this row is what makes the bank
+# fishable at all, and what `look` reads the water off.
+#
+# `reachRef: kestrel:confluence` — the same reach the intake draws from
+# and the outfall discharges into. One reach cannot tell above the arch
+# from below it (the water slate's finding); what is landed here
+# carries what the city put in.
+class: /system/water/thing/Shore
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: river's edge
+  keywords: [edge, water, river, shore, bank, shallows, confluence]
+  register: definite
+  longDescription: |
+    The last of the steps goes under, and the river takes over: brown water sliding past the stone with a sound like breathing, weed streaming from the lowest step, and out past it the whole width of the confluence moving south.
+  reachRef: kestrel:confluence

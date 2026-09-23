@@ -85,6 +85,7 @@ export default class MordantController extends ManualBuildController<MordantMode
 
     this.engageStep(context, {
       durationMs: dial(MordantController.BASE_MS_KEY, MordantController.BASE_MS),
+      effortW: 250,
       beginSelf: Mml.compose`You set ${Mml.thing(target)} in the ${key} bath.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets something in a mordant bath.`,
       onComplete: () => {

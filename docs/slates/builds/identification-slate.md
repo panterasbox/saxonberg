@@ -3,22 +3,14 @@
 > **Status: PARTIAL** — the `IDENTIFICATION` belief realm,
 > `IdentifiableMixin` and the scroll-carried `identify` shipped 2026-06 →
 > [belief.md](../../subsystems/belief.md)
-> **Left:** the instrument seam (`analyze X with Y`) · partial
-> identification (`identificationLevel`) · the experience/social ID verbs
-> (`taste`, `learn from`) · misidentification + cursed items
+> **Left:** the instrument seam that WRITES to belief (`analyze X with
+> Y` — the readout verb exists, the identification write doesn't) ·
+> appearance-keying (one template, many appearances) · the
+> experience/social ID verbs (`taste`/`drink`/`wear`, `learn from
+> teacher`, `compare`) · item illusion / mimic disguise · place-memory
+> · common-knowledge defaults · identification as quest reward ·
+> forced-identification-by-ownership · cross-character sharing
 > **Size:** a build
-
-> **Status (2026-06):** the **substrate has shipped** — type-keyed belief
-> memory (the `IDENTIFICATION` realm), the `IdentifiableMixin` type axis,
-> the scroll-carried `identify` trigger (binary), and the two-axis compose
-> in `RecognitionApi.describe` graduated to
-> [belief.md](../../subsystems/belief.md). What remains here is the
-> genuinely large deferred surface: the **pedagogical instrument seam**
-> (`analyze X with Y` — spectrometer / pH-meter / hardness-kit, real
-> Material-substrate chemistry), partial identification
-> (`identificationLevel`, "probably a healing potion"), experience-/social-
-> ID verbs (`taste` / `drink` / `learn from teacher`), and
-> misidentification (belief-vs-truth, cursed items, illusion content).
 
 > ⭐⭐ **This slate is the *epistemic* half of a pair, and the other half
 > already shipped.** The [wiki's reveal
@@ -49,7 +41,7 @@ compound by experiment IS science.
 
 See also:
 
-- [docs/slates/tails/magic-items-slate.md](./magic-items-slate.md) —
+- [docs/slates/tails/magic-items-slate.md](../tails/magic-items-slate.md) —
   the **orthogonal axis**. This slate is item *identity* (class-level,
   deductive: "a blue potion" → "healing"); that one is *BUC* (per-instance:
   blessed/uncursed/cursed as potency). Both ride belief; different facts,
@@ -77,114 +69,22 @@ See also:
 
 ---
 
-## Principle
-
-Item identification is **per-viewer memory of item classes**.
-
-Two structural differences from actor recognition:
-
-1. **Granularity is by class, not by instance.** Identifying
-   one blue potion typically identifies all blue potions of
-   the same class. The store keys by an *identification
-   signature* (template + visible appearance), not by
-   individual Stuff.
-
-2. **Identification verbs are domain-specific** and varied:
-   reading a scroll of identify, analyzing with an
-   instrument, tasting (risky), drinking (revealing),
-   learning from a teacher, observing an experiment.
-
-Otherwise the pattern mirrors recognition: per-viewer state;
-DescribeApi-shaped composition; layered presentation;
-persistence requirements.
-
-> **Naming:** the describe pipeline is being renamed `DescribeApi`
-> → `PerceptionApi.describe` / `Stuff.getPresentation()` per
-> recognition-slate; treat the "DescribeApi v2" references below as
-> that surface.
-
----
-
-## The identification store — viewer-side
-
-```ts
-interface IdentificationRecord {
-  signature: IdSignature;           // class key (template + appearance)
-  knownAs: string;                  // 'a potion of healing' (when identified)
-                                    // 'a blue potion' (when not)
-  knownAttributes: Set<string>;     // facts the viewer knows
-  identificationLevel: number;      // 0..1; partial knowledge possible
-  firstSeen: Timestamp;
-  identifiedAt?: Timestamp;
-  identifiedBy?: 'reading' | 'experiment' | 'taught' | 'experience';
-  notes?: string;
-}
-
-viewer.identifiedItemTypes: Map<IdSignature, IdentificationRecord>
-```
-
-### Identification signature
-
-The key into the store. Must distinguish "items that should be
-identified together" from "items that just look similar."
-
-```ts
-interface IdSignature {
-  templatePath: string;             // canonical class
-  appearance: string;               // visible appearance descriptor
-  // optional: context-modifiers (lab origin, magical aura, etc.)
-}
-```
-
-Examples:
-
-| Item | templatePath | appearance |
-|---|---|---|
-| Blue potion of healing | `/lib/item/potion/healing` | 'blue' |
-| Blue potion of poison | `/lib/item/potion/poison` | 'blue' |
-| Red potion of healing | `/lib/item/potion/healing` | 'red' |
-| Crystal vial of acid | `/lib/item/potion/acid` | 'crystal-clear' |
-
-A blue-potion-of-healing and a blue-potion-of-poison have the
-SAME appearance but DIFFERENT templatePath — visually
-indistinguishable, mechanically distinct. **Identification by
-appearance alone is unreliable.** Identifying a blue potion you
-encountered as healing doesn't mean every blue potion is healing.
-
-This is the design choice that makes identification a real
-gameplay (and pedagogical) feature: appearance is suggestive
-but not definitive; experiment / reading / consultation reveal
-true class.
-
-### Partial identification
-
-`identificationLevel: 0..1` and `knownAttributes: Set<string>`
-support partial knowledge:
-
-- `0.0`: completely unknown (fresh observation)
-- `0.3`: some attributes guessed ("this looks like alcohol; smells
-  like ethanol")
-- `0.7`: most attributes known ("this is some kind of healing
-  potion; not sure of the strength")
-- `1.0`: fully identified
-
-`knownAttributes` carries the specific facts known: `'flammable'`,
-`'liquid'`, `'restores-health'`, `'made-by-elven-druids'`. Each
-verb-trigger updates a subset.
-
----
-
 ## Identification triggers
 
 The verbs that update identification state:
 
-### `read scroll of identify`
-
-The classic. Player reads a magical scroll on a target item;
-target's full IdentificationRecord populates. `identifiedBy:
-'reading'`.
-
 ### `analyze X with Y`
+
+⚠ **Overlaps the instrumentation slate.** The platform ships a generic
+`analyze`/`measure` readout verb family today (`analyze chemistry`,
+`measure acidity`, `measure density` — real numbers off the Material
+substrate), but as pure READOUTS: they write nothing to the
+`IDENTIFICATION` belief realm. This section's design is *the write* —
+an instrument reveal that also updates what the viewer knows about the
+item's class — which the shipped `analyze` verb does not do. The
+instrument SHAPE (the verb, its subcommands, the real-chemistry
+backing) is the instrumentation slate's; kept in both, see this batch's
+ledger.
 
 Use a scientific instrument:
 
@@ -227,45 +127,18 @@ remember, but the smell is different."*
 
 ---
 
-## DescribeApi v2 integration
-
-When a viewer perceives an item, DescribeApi v2 follows a
-parallel pipeline to actors:
-
-```
-1. Visibility gate (same as actor)
-
-2. Resolve presented identity
-   • check for disguise/illusion on item
-   • compute presented appearance
-
-3. Identification lookup
-   • V.identifiedItemTypes.get(signature)
-   • if identified (level >= threshold):
-       use record.knownAs ('a potion of healing')
-   • if partially identified:
-       compose: appearance + known-attributes
-       ('a blue potion that smells of mint')
-   • if unidentified:
-       use raw appearance ('a blue potion')
-
-4. Decoration (state, ownership, condition)
-
-5. Combine: identity + decoration → MML
-```
-
-### Examples
-
-| State | Display |
-|---|---|
-| Unknown blue potion | "a blue potion" |
-| Partially identified (smelled, tasted) | "a blue potion that smells minty and tastes sweet" |
-| Fully identified by reading scroll | "a potion of healing (blue, lesser)" |
-| Identified but disguised by illusion | "a blue potion" (illusion overrides) |
-
----
-
 ## Item disguise / illusion
+
+⚠ **The proposed mechanism is likely the wrong shape.** This describes
+an item-side `IllusionOverlay` as a *shadow* on the presented identity —
+the same shadow-based design belief.md explicitly rejects for creature
+disguise (*"disguise is NOT a shadow on the synthesizer — it's
+`getPresentation` deferring to `getDisguise`"*). No item-illusion code
+exists at all yet (belief.md: *"the masking mechanism supports
+item-identity illusion by design but no illusion content ships"*), so
+this is genuinely unbuilt — kept, but whoever builds it should design
+against the creature precedent's baseline-defers-to-a-resolver shape,
+not this section's shadow.
 
 Same Wearable-shadow pattern as actor disguise. An item can
 have an illusion overlay that overrides its presented appearance:
@@ -284,33 +157,6 @@ gated — you can't identify what you can't perceive correctly.
 Dispel illusion (verb / item) removes the overlay; subsequent
 perception lookups reveal the true item, which the viewer may
 now identify.
-
----
-
-## Misidentification
-
-Two ways:
-
-**1. False identification.** A player believes a blue potion is
-healing because they identified one before, but THIS blue
-potion is actually poison (different templatePath, same
-appearance). The signature matches by appearance but the
-template differs.
-
-The display should reflect the player's belief, not the truth:
-*"a potion of healing"* (because that's what the viewer's
-record says about blue potions). The player drinks it; the
-actual effect (poison) plays out; the record updates to record
-"appearance is unreliable."
-
-This is a **rich gameplay scenario** — alchemy with mimicry,
-deception, the stakes of careless identification. Pedagogically
-honest: real-world chemicals can look alike and behave
-differently.
-
-**2. Identification expires / decays (v2).** Long-term not in
-v1 scope. `identificationLevel` could decrement over time
-without reinforcement, especially for complex chemistry.
 
 ---
 
@@ -401,23 +247,6 @@ changes needed; the substrate is forward-compatible by design.
 Measurement-based identification consumes `Quantity<T>` values
 (pH, density, refractive index, etc.). Already aligned.
 
-### Recognition slate
-
-Sister substrate; shares the `PerceptionMemoryRecord` pattern
-(or a variant). Not a hard dependency — the records can be
-typed differently per-domain.
-
-### Disguise / illusion (recognition slate, embodiment slate)
-
-Same shadow mechanism. Wearable / Adornable / Stuff disguises
-work uniformly across actors and items.
-
-### Persistence
-
-Same long-term-memory considerations as recognition.
-Per-player; thousands of records over time; lazy hydration
-recommended.
-
 ### Activity slate
 
 `AnalyzeActivity` for instrument-based ID is a concrete
@@ -429,10 +258,11 @@ short ones (quick reading) might be near-instant.
 
 ## Open questions
 
-1. **Identification signature shape** — `templatePath +
-   appearance` is the lean. What about modifiers (lab origin,
-   magical aura)? Per-content; signature could include them
-   when relevant.
+1. **Identification signature shape** — resolved differently: v1 keys
+   on the item's `templatePath` alone (belief.md § Identification);
+   **appearance-keying** (one template, many appearances — a blue vs.
+   red potion of the same class) explicitly **defers**, still open.
+   Modifiers (lab origin, magical aura) remain unaddressed either way.
 2. **Cross-character identification sharing** — a player's
    chemistry-class character has identified a thousand
    compounds; their adventurer character starts fresh? Lean
@@ -440,10 +270,11 @@ short ones (quick reading) might be near-instant.
 3. **Mimics and disguised items** — a chest-shaped item is
    actually a creature. Does identification ever reveal this?
    Probably not by appearance-match; needs interaction.
-4. **Cursed items** that auto-misidentify — a sword shows as
-   "a sword of light" but is actually "a cursed sword of
-   draining"? IllusionOverlay handles it. Discovering the
-   curse is a gameplay event.
+4. Cursed items that auto-misidentify resolved, shipped — **not** by
+   `IllusionOverlay` (unbuilt) but by `payload.believedName`: a cursed
+   identify plants a false-but-plausible name naming a different real
+   thing; discovering the curse is finding out the belief was wrong
+   (magic-items.md § `knownAttributes`, and the hedge).
 5. **Knowledge transfer between players** — Bob teaches Mara
    that blue potion is healing. Mara's record updates with
    `identifiedBy: 'taught'`. Knowledge can be wrong if Bob's
@@ -455,10 +286,12 @@ short ones (quick reading) might be near-instant.
    sword auto-identifies its name? Or just by holding /
    wielding? Lean: holding doesn't ID; wielding for a turn
    does (you feel its weight, balance).
-8. **Identification confidence intervals** — partial level
-   reflects uncertainty. Should the display say "probably a
-   healing potion" vs "a healing potion"? Lean yes for
-   `identificationLevel < 1.0`.
+8. Identification confidence intervals resolved differently, shipped —
+   there is no continuous confidence level to display; instead a
+   **generation stamp** hedges a stale belief (*"a blue potion — you
+   once knew blue to mean healing"*) rather than a probability
+   ("probably a healing potion" phrasing doesn't apply). See
+   magic-items.md § `knownAttributes`, and the hedge.
 9. **Identification of *places*** (place-memory) — a parallel
    case. Defer; the pattern extends naturally if we want.
 10. **Pedagogical-seam pacing** — how long do `analyze X with
@@ -475,16 +308,11 @@ short ones (quick reading) might be near-instant.
 
 ## Build order
 
-**Wave 1** — substrate.
+**Wave 2** — basic verbs (partially shipped: `read scroll of identify`
+shipped as the binary `IdentifiableMixin` trigger; `examine X` did not
+ship as a level-bumping visual-ID step — `examine` is now a plain `look`
+alias with no identification effect).
 
-- `IdentificationRecord` + `viewer.identifiedItemTypes: Map`.
-- `IdentificationApi` (`identifies`, `record`, `lookup`).
-- DescribeApi v2 integration for items (parallel pipeline).
-
-**Wave 2** — basic verbs.
-
-- `read scroll of identify` (magical full-ID).
-- `examine X` (basic visual ID; bumps level a notch).
 - `taste X`, `drink X`, `wear X` (experience-based).
 
 **Wave 3** — instrument-based pedagogical analysis.
@@ -493,18 +321,16 @@ short ones (quick reading) might be near-instant.
 - First instruments: spectrometer, pH-meter, hardness-kit.
 - Per-instrument attribute reveal mapping.
 
-**Wave 4** — social transmission + advanced.
+**Wave 4** — social transmission + advanced (misidentification handling
+shipped — see Open Questions #4 — the rest remains open).
 
 - `learn from teacher` verb.
 - Identification propagation between actors.
-- Misidentification handling (cursed/disguised items).
 - Common-knowledge defaults.
 
 **Adjacent / future**:
 
 - Place-memory (parallel pattern for locations).
-- Identification decay (v2 memory rule).
-- Partial-confidence display.
 
 ---
 

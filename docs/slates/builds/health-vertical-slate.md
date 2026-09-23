@@ -5,27 +5,12 @@
 > → [harm.md](../../subsystems/harm.md)
 > **Left:** ⚠ the diagnosis surface is **no longer this slate's** — see
 > [medic-judgment](./medic-judgment-slate.md), which answered it (2026-09-15) ·
-> a `resolution.by` dispatcher · medicine materials + the apothecary ·
-> outbreak and contagion content · the public-health department + the
-> College of Physic · the aid post · the veterinary track
+> medicine materials + the apothecary (no antidote item, no medicine
+> `Material`) · outbreak and contagion content · the public-health
+> department + the College of Physic · the aid post · the veterinary
+> track · **still open**: a pack cannot ship its own `Condition` row
+> (`ConditionCatalogue.warm` selects by template-path prefix, not class)
 > **Size:** a build
-
-> **Status: design captured 2026-07-31, not built.** The **vertical** that sits
-> on top of [disease](./disease-slate.md) and [harm](../../subsystems/harm.md) —
-> clinical assessment, diagnosis, treatment, prevention, and public health,
-> across **people and animals both**. Its own doc because it spans four layers
-> that no single existing slate owns: the **engine** (disease/harm), the
-> **institutions** (a government department + the College of Physic), the **demo
-> set** (the aid post, the health-cohort cut), and the **teaching seam** (the
-> external-mastery credential).
->
-> **The one-line differentiator:** in every prior game the healer's question is
-> *"how much healing do I apply?"* — **ours is "what is wrong with them?"**
->
-> This is a commercially load-bearing vertical (health is a large academic
-> field, and its graduates go into far more than bedside nursing), so
-> **accuracy here is doubly load-bearing.** Nothing in this doc should overclaim
-> what the game teaches or what a credential means.
 
 See also — the engine: [disease-slate](./disease-slate.md) (**read first** — the
 burden-that-grows model, `ContagionSpec`, host range, husbandry-as-immunity) ·
@@ -40,7 +25,7 @@ land-use power). Stage + pedagogy: [demo-slate](./demo-slate.md) (**the aid
 post** — "the wishbook's clinical daily loop made real"; the health-cohort cut)
 · [eternal-university-slate](./eternal-university-slate.md) ("a nursing
 scenario" as a named vertical the un-genre campus hosts) ·
-[farming-slate](../tails/farming-slate.md) (§ *The University & the external-mastery
+[farming-slate](farming-slate.md) (§ *The University & the external-mastery
 seam* — the credential design this vertical is the best fit for) ·
 [advancement.md](../../subsystems/advancement.md) (the `medicine` Discipline,
 shipped).
@@ -72,28 +57,7 @@ already committed to for other reasons.
 
 ## The clinical-reasoning trainer we built by accident
 
-Three shipped decisions combine into one:
-
-1. **Honest opacity** — no gauges; you read the world, not a stat.
-2. **`observableSigns`** — every `Condition` already carries prose signs
-   (`[nauseous, cramping, sweating]`).
-3. **A catalog with overlapping signs** — **eleven authored conditions ship
-   today**: hyperthermia, hypothermia, torpor, asphyxiation, starvation,
-   ptomaine, lead, venom, alcohol, dread, overchannel-strain.
-
-> **Differential diagnosis therefore *emerges* rather than being scripted.**
-> Flushed, sweating and disoriented is consistent with hyperthermia, with a
-> toxin burden, and (once disease lands) with an infection. Separating them
-> takes more signs, a history, or an instrument.
-
-That is the thing scripted clinical sims structurally cannot do, because their
-scenarios have one correct answer fixed in advance. Ours has a **simulated
-patient whose state derives from a model**, so the reasoning is real even when
-the case is unremarkable.
-
-**The anti-wiki rule carries over verbatim from farming:** knowing influenza's
-sign set never tells you that *this patient* has it. Knowledge is portable; the
-assessment is not skippable.
+*Homed 2026-09-22 → [harm.md § The medic vertical · why the diagnosis loop is a trainer](../../subsystems/harm.md).*
 
 ---
 
@@ -128,7 +92,7 @@ incomplete observation** — the scientific method with a deadline.
 
 The game's loop *is* that loop: observe signs → hypothesise → gather more
 (instrument, history) → intervene → evaluate whether it worked. Which is the
-same shape [farming](../tails/farming-slate.md) teaches with soil and
+same shape [farming](farming-slate.md) teaches with soil and
 [ranching](./ranching-slate.md) teaches with body condition.
 
 > **The transferable skill is not "nursing." It is structured diagnostic
@@ -228,7 +192,7 @@ and it is the thing a content committee would actually run.
 
 ## Where the education thesis lands best
 
-[farming-slate](../tails/farming-slate.md) designed the **external-mastery seam**:
+[farming-slate](farming-slate.md) designed the **external-mastery seam**:
 complete real course material → get trained in-game; demonstrate real, proctored
 mastery → capability feeds back, riding the shipped
 [credential](../../subsystems/credential.md) substrate, with the chronicle's
@@ -251,55 +215,23 @@ most legible.
 
 ---
 
-## What already exists
+## What already exists / what's missing
 
-Encouragingly, the stage is partly built or already planned:
+**Shipped and documented, further than this 2026-07-31 table claimed** —
+`treat` now dispatches by `resolution.by` (dressing / fluid / bare-hands
+medicine / rest), so it is no longer bandage-only and can treat an
+illness; stabilization (`treat` on a dying body) shipped; 24 condition
+rows ship, not 11; `assess` lives at
+`content/platform/…/cmd/perception/assess.yaml`. See harm.md §
+`resolution.by`, § The medic vertical, and mortality.md § Stabilization.
 
-| Piece | State |
-|---|---|
-| **The aid post** | planned content in [demo-slate](./demo-slate.md) — "a room, a stock of dressings, patients arriving via the existing harm/hazard systems. *V2's stage; the health-cohort cut's set*" |
-| **The health-cohort video cut** | already on the education-video track |
-| **"A nursing scenario"** | named in [eternal-university-slate](./eternal-university-slate.md) as a vertical the un-genre campus hosts |
-| **`medicine` Discipline** | ships (`seeds/lib/advancement/Discipline/medicine.yaml`) |
-| **`assess`** | ships (`cmd/perception/assess.yaml`) — the assessment verb |
-| **11 authored conditions** | ship, with overlapping `observableSigns` |
-| **`treat` + dressings** | ships — but see the gap list |
+Still true, and still open:
 
----
-
-## What's missing (verified 2026-07-31)
-
-Stated honestly, because the medic vertical reads richer than it is:
-
-- **`treat` is bandage-only.** It filters to `kind === 'trauma'` and only
-  arrests bleeding lacerations/punctures/avulsions. Contusion, fracture and burn
-  have no-op resolves. **It structurally cannot see an affliction.**
-- **There is no diagnosis surface.** `assess` reads; nothing lets a player
-  be evaluated on their reading of a patient. The diagnose half of the loop
-  is the largest single gap.
-  ⚠⚠ **But not in the shape this slate first proposed, and the answer lives
-  elsewhere.** [medic-judgment](./medic-judgment-slate.md) resolves it, and
-  rules *out* recording a hypothesis: *"Judgment is gated by **action on the
-  patient**, not by stating the diagnosis. No NLP, no naming the condition
-  for credit."* You recognise the cue, prioritise, and intervene; the honest
-  body confirms or refutes. **The deed is the decision; the body is the
-  grade.** Naming a condition for credit is a memorisation test — it asks
-  whether the player knows the engine's own condition vocabulary, which
-  fails the pedagogy lens exactly the way a lookup table dressed as
-  chemistry does.
-- **`resolution.by` has no dispatcher.** Every Condition authors it
-  (`antitoxin`, `rest`, `food`, `air`, `warmth`) and **nothing reads it**. It is
-  dead prose — and therefore a free, well-shaped hook for "what cures this."
-- **`applyAntidote` is the only clearance primitive**, with no verb, no item,
-  and no medicine `Material`.
-- **No revive or stabilise-the-downed** anywhere; rescue of the fallen is social
-  (`intervene`), not medical.
-- **An affliction cannot be inflicted through `ConditionApi`** — `inflict` is
-  trauma-only (see harm.md's 2026-07-31 correction).
-
-> **Read positively:** the treatment half is close to greenfield, so it can be
-> designed *as clinical practice* from the start rather than retrofitted around
-> a healing-potion economy that does not exist yet.
+- **No medicine `Material`, no antidote item.** `applyAntidote` is the
+  only clearance primitive, with no verb and nothing to administer it
+  through — the apothecary gap.
+- **An affliction cannot be inflicted through `ConditionApi`** — `inflict`
+  is trauma-only (see harm.md's `ConditionApi` section).
 
 ---
 
@@ -320,15 +252,6 @@ Stated honestly, because the medic vertical reads richer than it is:
 
 ## Open questions
 
-- ✅ **ANSWERED, and moved out (2026-09-15).** *What the diagnose surface
-  actually is — a verb that commits to a hypothesis? a chart object?* →
-  **none of those.** [medic-judgment](./medic-judgment-slate.md) owns this
-  and closed it: cues without names, the player *acts*, and the sim grades
-  the decision. This slate stops designing the diagnosis surface and keeps
-  the world it is practised in — institutions, outbreaks, prevention, the
-  veterinary track.
-- **Does `resolution.by` become the cure dispatcher**, and is that this build's
-  job or the deferred medicine branch's?
 - **How much epidemiology surfaces to a player** — R₀ and prevalence as
   instrument reads (the farming error-bar tier), or bands only?
 - **Human/animal asymmetry** — how much do normal ranges, signs, and the

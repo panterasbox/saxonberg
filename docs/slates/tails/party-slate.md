@@ -1,18 +1,21 @@
 # Party system (working slate)
 
-> **Status: PARTIAL** — the party core shipped: the `Party` Idea, the
-> fourth `GroupProvider`, roster/captain, the combat `sideOf` seam →
-> [party.md](../../subsystems/party.md)
-> **Left:** the party purse + payout split · the crew's durable name
-> (renown-as-subject over a party chronicle) · the odometer layer · party
-> morale · the client party card · NPC-only crews
+> **Status:** PARTIAL — the party core shipped: the `Party` Idea, the
+> fourth `GroupProvider`, roster/captain/formation/roles, the combat
+> `sideOf`/`areAllied` seam, captain succession (FIFO to `memberIds[0]`,
+> no election) → [party.md](../../subsystems/party.md). Multi-party
+> alliance is resolved too, but not as a formal concept — a captain
+> `setSide`s to a shared key manually. ⚠ **Captain is not actually
+> optional**: `form` always sets one and departure always auto-succeeds
+> one while the party is non-empty — the "leaderless/egalitarian" design
+> below has no shipped counterpart. See the Uncertain note in the
+> compaction ledger.
+> **Left:** the party purse + payout/loot-split policy + contract-binding ·
+> the crew's durable name (renown-as-subject over a party chronicle) ·
+> the odometer layer · party morale · the client party card · NPC-only
+> crews (companions/followers; an NPC-vs-NPC crew with no player)
 > **Size:** a wave
 
-> **Status: design-phase, deferred-rpg.** The **party** is the social axis
-> the combat design leaned on throughout (tactics are "party-level,"
-> master-apprentice, coup attribution, crew contracts, payout split) without
-> ever being defined. This slate defines it. Nothing here is a build.
->
 > **The governing discipline: keep the party small and *operational*.** The
 > biggest risk is scope-creep — a party wanting to become a **guild** (teach
 > you), a **corp** (employ you), or an **XP treadmill** (level up as a
@@ -49,33 +52,13 @@ See also:
 
 ## Principle
 
-1. **Small and operational.** A party is a squad (≈2–6), not an army —
-   because party-level tactic presets are legible *only* because parties are
-   small (the text-medium requirement). It's the **disposable axis**: you
-   form and dissolve parties constantly.
-2. **General-operational; combat is one facet.** You party up to travel,
-   explore, work a contract, *and* fight. The tactic is just the combat
-   facet, dormant otherwise.
-3. **One primitive, two lifetimes.** Durable (a named crew you re-form) vs
-   ad-hoc (spun up for one task, disbanded) is a *lifetime*, not a type.
-4. **Reuse membership, add only the operational facet.** Membership is a
-   managed group (`GroupApi`); the party adds a thin bundle (captain, tactic,
-   loot-policy, contract-binding, identity).
+> **Graduated** to [party.md § Why the party is small, operational, and nothing else](../../subsystems/party.md#why-the-party-is-small-operational-and-nothing-else)
+> (small and operational · general-operational, combat is one facet).
 
 ---
 
 ## Ontology — Party is first-class Stuff
 
-A `Party` is a **first-class Stuff** that *references a managed group* for
-membership (DRY over `GroupApi`) and carries the operational facet: an
-optional **captain**, the **tactic**, a **loot-split policy**, an optional
-**contract-binding**, and (for durable parties) a persistent **identity**
-(name + founding + a deeds chronicle). Being Stuff is what lets it *hold* an
-identity and accrue a reputation/odometer over its lifetime — a facet on a
-bare group couldn't.
-
-- **You are actively in one party at a time** — one tactic can govern you.
-  Durable memberships you're not currently formed-up-with are dormant.
 - **Durable vs ad-hoc** is lifetime: a durable party persists (named,
   re-forms, accrues reputation); an ad-hoc crew dissolves after the task. The
   contract's staffing model (hire-a-formed-crew vs hire-and-compose) picks
@@ -83,19 +66,8 @@ bare group couldn't.
 
 ## The three-axis wall — party ≠ guild ≠ corp
 
-The most important thing to hold, because it's what stops the party
-swallowing the design:
-
-| Axis | Answers | Scale | Nature |
-|---|---|---|---|
-| **Party** | *who I'm doing this task with* | small | operational / tactical |
-| **Guild** | *where I learned my craft* | large | educational / professional |
-| **Corp** | *who I work for* | large | economic / affiliation |
-
-A party of people from different **guilds** can work a contract for a
-**corp**. A party does **not** teach you and does **not** employ you. The
-party is fluid and disposable; guild/corp membership is durable and
-consequential.
+> **Graduated** to [party.md § Why the party is small, operational, and nothing else](../../subsystems/party.md#why-the-party-is-small-operational-and-nothing-else)
+> (the three-axis table; a party neither teaches nor employs).
 
 ## Party vs. combat-side — two layers
 
@@ -131,15 +103,9 @@ container).
 
 ## Membership & leadership
 
-Standard group lifecycle over the grouping substrate — **form / invite /
-accept / leave / kick / disband** (invite works like introductions). The
-party-specific part is **leadership — both forms coexist:**
-
 - An optional **captain** with **command authority**: sets the tactic, holds
   the **coup decision** + **command responsibility** for blame
   (combat-slate Thesis 7), manages membership.
-- **Tactic-assigned member roles** (master / vanguard / medic), distinct
-  from the captain role.
 
 Leaderless/egalitarian = no captain, collective defaults (the coup-call goes
 to whoever's engaged). Leadership itself advances the **command
@@ -216,8 +182,6 @@ making no capability claim.
 
 Human + NPC + AI, each reusing substrate:
 
-- **Hire a merc** — an NPC into the crew via an *employment contract* (you're
-  the employer; the NPC runs a brain following the party tactic).
 - **Companions / followers** — a rescued ally, a bought-in beast.
 - **The mixed human+AI formation** (the combat-tactics keystone); and **the
   master can be an AI tutor** — the education vertical expressed through the
@@ -227,32 +191,12 @@ Human + NPC + AI, each reusing substrate:
 
 ## Settled decisions
 
-1. **Party is first-class Stuff** referencing a managed group for membership.
-2. **Both** an optional captain (command authority) *and* tactic-assigned
+1. **Both** an optional captain (command authority) *and* tactic-assigned
    member roles; leaderless/egalitarian is captain-absent.
-3. **One active party at a time**; durable memberships otherwise dormant.
-4. **One primitive, two lifetimes** (durable / ad-hoc).
-5. **The three-axis wall** — party (operational) ≠ guild (educational) ≠
-   corp (economic); the party is the disposable axis.
-6. **Party ≠ combat-side** — persistent group vs per-session alignment.
-7. **No party-XP** — competence individual (firewall), synergy emergent;
-   party-level progression is reputation (slow) + odometer (fast).
-8. **Reputation attaches to the name, not the roster** — provenance-grounded
-   via the party chronicle; the halo is recognition, not renown transfer.
-9. **Payout is a split *policy*, not a loot scramble** (the anti-loot-economy
-   payoff), riding banking's remittance-split.
 
 ## Open questions
 
-1. **Reputation v1 scope** — identity + basic contract-gating reputation now,
-   the multi-valent faction-vector / notoriety / halo deferred? (Lean yes.)
-2. **Party purse / stash** — deferred behind the banking joint-account +
-   co-owned-container seams, or v1?
-3. **Captain succession** — founder-is-captain + transfer? election? What
-   happens on the captain's departure (auto-promote / dissolve / leaderless)?
-4. **Multi-party alliances** — a formal "allied sides" concept, or purely a
-   per-fight combat-side alignment of independent parties?
-5. **Odometer/reputation credit gate** — exactly what counts as "operating as
+1. **Odometer/reputation credit gate** — exactly what counts as "operating as
    the party" (formed up) for double-attribution.
 
 ## What this slate does NOT cover
@@ -268,27 +212,3 @@ Human + NPC + AI, each reusing substrate:
   the party is one subject of it.
 - **The employment relationship** — hiring an NPC is an employment contract
   (the economy/employment engine); the party is the crew it joins.
-
-## Once shaped into formal requirements
-
-1. The **`Party`** Stuff — a managed-group reference + the operational facet
-   (captain, tactic, loot-split policy, contract-binding) + durable identity
-   (name / founding / chronicle).
-2. **Membership lifecycle** (form/invite/accept/leave/kick/disband) + the
-   **captain** authority and **tactic role** assignment; one-active-party.
-3. **Loot-split policy** over the banking remittance-split; contract-binding
-   routing payout + blame to the party for hire-a-crew contracts.
-4. **Party-as-subject** wiring for the odometer (fast) and a **basic
-   renown-as-subject** over the party chronicle (slow), gating contract
-   access.
-5. **NPC party membership** (employment hire → a brain following the tactic).
-
-Tests gating: a party forms and disbands over the grouping substrate; a
-crew contract routes payout to the party and splits per policy; a deed done
-as the party double-bumps the party and members' odometers; reputation
-persists across a roster change and starts fresh on a re-founding; a captain
-sets the tactic that governs the combat side; an NPC merc joins and follows
-the party tactic.
-
-The multi-valent faction reputation, party purse/stash, and formal
-multi-party alliances wait for their own waves.

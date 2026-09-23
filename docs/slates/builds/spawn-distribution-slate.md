@@ -1,27 +1,25 @@
 # Spawn-distribution slate (working doc) — the dynamic populate substrate
 
-> **Status: PARTIAL** — the item half shipped (`SpatialZone.stocks` /
-> `favours` / `blessingOdds`, read by the residency spawn sweep) →
+> **Status: PARTIAL** — the item half shipped as the residency **spawn
+> sweep**: `SpatialZone.stocks` / `favours` / `blessingOdds`,
+> template-derived candidates, draw-until-decline per region, on a
+> recurring game-time cadence (not a one-shot boot fill) →
 > [residency.md](../../subsystems/residency.md)
 > **Left:** the creature half — a procgen-NPC generator over the NameBank
-> / species dossier / `PersonaMixin` · create-monster · the respawn clock
-> + faucet economics · determinism/seeding · the depth and rarity curves
+> / species dossier / `PersonaMixin` · create-monster · creature respawn
+> economics · a true weighted-rarity draw with depth/biome/tag
+> eligibility (shipped item half is region-scoped counts, not this) ·
+> reproducible/seeded spawns · an authoring surface for the tables ·
+> global-table balance across many local biases · the hollow-bestiary /
+> world-fauna content waiting on this + combat
 > **Size:** a build
-
-> **Status (2026-07): named, not designed — spun out of the magic-items walk.**
-> A **weighted-table populate substrate**: the *dynamic/runtime sibling* of the
-> static `populates: onto` seeding. Generic locations (and effects) draw **what
-> spawns** — items **and** creatures — from a tunable distribution, with per-item
-> opt-in weights and a per-location *bias-and-renormalize* overlay. Emerged from
-> two consumers (BUC-state-at-spawn + create-monster) and generalizes far past
-> both — it's the world-population substrate.
 
 See also:
 ⭐ **[discovery-slate](./discovery-slate.md) (2026-08-02) — the DESIGN layer
 above this mechanism**: what the weights are actually based on, who may
 tune what, and how far the substrate extends (foraging · consumables ·
 creature spawn · ore as the zero-inflow case) ·
-[magic-items-slate](./magic-items-slate.md) (the two consumers: BUC blessing
+[magic-items-slate](../tails/magic-items-slate.md) (the two consumers: BUC blessing
 sampled at spawn; create-monster = a player-triggered spawn) ·
 [content-packs.md](../../subsystems/content-packs.md) (content-as-data; the
 `populates: onto` static seeding this is the dynamic sibling of) ·
@@ -35,28 +33,19 @@ the named cast is **outside** the table).
 
 ---
 
-## The model — three parts
-
-From the BUC-economy discussion, the substrate is a weighted distribution over
-spawnables with three moving pieces:
-
-- **Entity side** — **opt-in participation**: a template declares it participates
-  in generic spawning, with a **rarity weight** + **eligibility** (depth / biome /
-  tags). Opt-out is the default-off; an entity can also say *"spawn me here,
-  balanced against the rest."*
-- **Location side** — a generic location **draws from the global distribution**,
-  or **opts out** entirely.
-- **The clever bit — bias-and-renormalize.** A location expresses a **local bias**
-  (boost a subset, or **pin** "one of these must appear") and the system **folds
-  it into the global table and renormalizes** — a **weighted overlay, not a hard
-  override** that would lose global coherence. (Think prior + local evidence, not
-  replacement.)
-
 ## Two output kinds, one substrate
 
-- **Items (loot).** The BUC consumer: an item is selected, then its **blessing is
-  sampled** from a (tunable, maybe depth-varying) distribution — one more drawn
-  axis on the roll. Generalizes to loot/treasure tables.
+(The item half's design — opt-in participation, a location drawing from a
+distribution, bias-and-renormalize — shipped as the residency spawn sweep,
+in a plainer shape than sketched here: region-scoped `stocks`/`favours`
+counts and overlays, not per-item rarity weights with depth/biome/tag
+eligibility. See [residency.md § Zone fields the spawn sweep
+reads](../../subsystems/residency.md#zone-fields-the-spawn-sweep-reads)
+and [§ The sweep is a faucet](../../subsystems/residency.md). The BUC
+blessing-sampling half shipped too — `rollBlessing` at mint time inside
+the sweep, never in `StuffApi.clone` — see
+[magic-items.md § The census](../../subsystems/magic-items.md).)
+
 - **Creatures (procgen NPCs).** The create-monster consumer. Spawning a creature
   needs a **procgen-NPC generator** — compose species + traits + name + behavior +
   appearance from the distribution, **reusing char-gen's `NameBank` /
@@ -77,6 +66,12 @@ This is the **dynamic** form: runtime populate, respawn, on-demand spawn (a scro
 of create-monster, a re-stocked room, a wandering-population tick). Shares the
 "what belongs here" question; adds tuning, respawn, and a runtime draw.
 
+> ⚠ *Vocabulary is stale: `populates:` is retired — the static form is the
+> `props:` / `cast:` designation (`PopulatesMixin`'s two once-flags,
+> `templates.md` § the appliers). The item half of the dynamic form shipped as
+> the recurring spawn sweep (`residency.md § The sweep is a faucet`); the
+> creature half (on-demand spawn, a wandering-population tick) has not.*
+
 ## Consumers
 
 BUC item-spawn · create-monster · generic-location population · loot/treasure
@@ -89,8 +84,6 @@ which is why it's spun out.
 - **Tuning** — the "how common / how potent at each depth" the BUC walk bracketed
   as *"a different problem."* This is that problem: the depth/biome curves, the
   BUC-by-depth distribution, the rarity bands.
-- **Respawn vs one-shot** — does a populated location re-fill? On what clock?
-  (Economy implications — respawned loot is a faucet.)
 - **Determinism / seeding** — reproducible spawns (per-locality seed, like the
   weather field) vs. fresh RNG each draw?
 - **Authoring surface** — who tunes the tables (CMS?), and how the
@@ -101,8 +94,9 @@ which is why it's spun out.
 ## Deferred
 
 - The full **tuning/balancing pass** (curves, bands, depth-scaling).
-- **Respawn economics** (faucet/sink interaction with the conserved economy).
-- **Determinism/seeding** model.
+- **Creature respawn economics** (faucet/sink interaction with the
+  conserved economy) — the item half's is shipped and documented (see
+  above); the creature half is untouched.
 - A **hollow bestiary** or any large creature-population content (waits on combat
   + the [presence-hollowing](./presence-hollowing-slate.md) substrate for what
   the spawned things *are*).

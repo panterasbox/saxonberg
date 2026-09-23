@@ -131,6 +131,7 @@ export default class SpinController extends ManualBuildController<SpinModel> {
 
     this.engageStep(context, {
       durationMs,
+      effortW: 250,
       beginSelf:
         overreach > 0
           ? Mml.compose`You draw ${Mml.thing(stock)} out finer than you have any business doing, and feel the thread thin under your fingers.`

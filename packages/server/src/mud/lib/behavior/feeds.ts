@@ -53,7 +53,6 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { WorldClockApi } from '../../api/worldclock';
-import { PersistableApi } from '../../api/persistable';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -153,12 +152,23 @@ export const brain = class {
         const day = Math.floor(
           WorldClockApi.getNow().rawValue() / SECONDS_PER_GAME_DAY,
         );
-        host.creditHomeCandidate(PersistableApi.placeIdOf(room), day);
+        host.creditHomeCandidate(host.homeKeyOf(room), day);
       }
     }
     if (MixinApi.isOrganism(host)) host.reconcileSenescence();
   }
 } satisfies BrainStatics;
+
+/**
+ * ⭐ The vessels this animal could eat from: what is beside it, and the
+ * thing it is INSIDE — an animal living in a feeder of its rung (a fish
+ * in its bowl, a bird in a hopper) eats from it, and earns its home
+ * there (fishing D10).
+ */
+function vesselsAround(here: readonly Stuff[], host: Stuff & Bonded): Stuff[] {
+  const own = MixinApi.isContainable(host) ? host.getContainer() : null;
+  return own && MixinApi.isFeeder(own) ? [own, ...here] : [...here];
+}
 
 /** ⭐ The thing answers. See `Tangible.isEdible`. */
 function edible(thing: Stuff): boolean {
@@ -167,7 +177,7 @@ function edible(thing: Stuff): boolean {
 
 /** A feeder of this animal's rung with nothing in it — where it goes to ask. */
 function emptyFeeder(here: readonly Stuff[], host: Stuff & Bonded): Stuff | null {
-  for (const thing of here) {
+  for (const thing of vesselsAround(here, host)) {
     if (!MixinApi.isFeeder(thing)) continue;
     if (!host.feedsBy(thing.getFeederKind())) continue;
     if (thing.offerings().length === 0) return thing;
@@ -184,7 +194,7 @@ function emptyFeeder(here: readonly Stuff[], host: Stuff & Bonded): Stuff | null
  * horse trough is not a fed canary.
  */
 function foodInVessel(here: readonly Stuff[], host: Stuff & Bonded): Stuff | null {
-  for (const thing of here) {
+  for (const thing of vesselsAround(here, host)) {
     if (!MixinApi.isFeeder(thing)) continue;
     if (!host.feedsBy(thing.getFeederKind())) continue;
     const offered = thing.offerings();

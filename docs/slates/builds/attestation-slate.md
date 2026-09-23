@@ -1,11 +1,16 @@
 # Attestation slate — review as a tool, so the process can be anyone's
 
 > **Status: UNBUILT** — no attestation ledger exists; `authoring_events`
-> records who wrote, nothing records who vouched.
-> **Left:** the `attestation_events` collection · the closed assertion
-> vocabulary (`approves`/`objects`/`notes`) · the go-live predicate on the
-> CMS save/publish split · the per-group policy grammar (data, not code) ·
-> the pack-release + Art. VI judiciary consumers
+> records who wrote, nothing records who vouched. Code-verified 2026-09-19:
+> no `attestation` under `packages/server/src/mud`, `schema/` or any pack;
+> `record-layer.md § The window` explicitly defers clips + attestation here.
+> **Left:** the `attestation_events` collection (Q1: its own, or a facet of
+> `authoring_events`) · the closed assertion vocabulary
+> (`approves`/`objects`/`notes` — `objects` non-blocking by default;
+> superseded, never retracted) · the go-live predicate on the CMS
+> save/publish split · the per-group policy grammar (data, not code — Q2) ·
+> the consumers: pack release · Art. VI judiciary · wizard-duty
+> review-after · parcel inspections / certificates of occupancy
 > **Size:** a build
 
 **Captured 2026-08-05**, out of the grid thread. The question *"who checks
@@ -17,10 +22,6 @@ governance question wearing a utility costume.
 > under the 9th and 10th. Committees probably want their own review, so it
 > needs to be generalized so anyone can adopt the process — **or at least
 > the tools do, and the process is marked by tool use.**"**
-
-> **Status: design conversation, captured. Not requirements.** ⭐ The last
-> clause is the whole design and it is the user's own: **build tools that
-> leave marks; let any group compose a process out of them.**
 
 Related: [cms.md](../../subsystems/cms.md) (⭐⭐ **the save / go-live split —
 the natural gate**), [git-workflow.md](../../subsystems/git-workflow.md),

@@ -1,12 +1,29 @@
 # MQL subscription substrate (working doc)
 
 > **Status: PARTIAL** — the server substrate shipped →
-> [mql-subscription.md](../../subsystems/mql-subscription.md)
-> **Left:** the client-side subscription lifecycle in the cockpit ·
-> widget composition + cache coherence · shadow-aware projection ·
-> `mql-subscribe-update` · the heartbeat / `closed` envelope ·
-> `mixins[]` / `capabilities[]` wire fields
+> [mql-subscription.md](../../subsystems/mql-subscription.md); the client
+> half shipped as the server-pushed card feed, not as widget-owned
+> subscriptions → [card-surface.md](../../subsystems/card-surface.md) (the client opens exactly
+> one subscription, `chrome: 'self'`)
+> **Left:** `mql-subscribe-update` (re-bind + `refresh: true`, the
+> `reason: 'initial' | 'refresh'` result) · the frameId heartbeat +
+> the `'closed'` envelope · frameId gap detection + the client resync
+> policy · the silent ↻ beside *look again* · hover detail on chips ·
+> the `ShadowChangedEvent` firing site (shadow-aware projection) · the
+> client-side shadow model (normalizer + freshness + topology; the
+> mini-map) + the selector seam · `iconKind` (HasIcon + the hint
+> chain) · `options.coarse` + `debounce` / `throttle` · composite
+> queries · the per-Interactive cap + the initial-result performance
+> contract · permission churn mid-session · field-set `extend` ·
+> subscription introspection · throttling on the initial result ·
+> the `activity.md` state-sync wording
 > **Size:** a wave
+> **Compacted 2026-09-19.** Everything that shipped — the channel
+> split, the wire shapes, field projection, the lifecycle, the
+> dependency index + micro-batch, the diff, per-viewer projection —
+> is in [mql-subscription.md](../../subsystems/mql-subscription.md); the client half in
+> [card-surface.md](../../subsystems/card-surface.md). Ledger:
+> `docs/plans/slate-compaction/mql-subscription.md`.
 
 Working slate for the **client-driven live-state substrate** —
 how the client knows what's happening in the world without the
@@ -17,15 +34,6 @@ result-shape declaration; the server resolves it, sends the
 initial result, watches `EventApi` for changes that could affect
 the result, and pushes diffs as deltas. Read-only in v1;
 mutation stays on the command-bus channel.
-
-**Status.** Server substrate has shipped — see
-[docs/subsystems/mql-subscription.md](../../subsystems/mql-subscription.md)
-for the implemented surface. This slate stays alive for the
-**client-side** half (subscription lifecycle in the cockpit,
-widget composition patterns, cache coherence with imperative
-state) and **future server-side waves** (shadow-aware projection,
-selector seam for cardinality narrowing, derived synthetic
-fields).
 
 **Supersedes** the prior `state-sync-slate.md` (since retired; this
 slate is the historical record of the rejected fixed-delta-taxonomy
@@ -58,55 +66,21 @@ See also:
 
 ## Principle
 
-**Client declares; server notifies.** The client says "tell me
-about X, here are the fields I want." The server runs MQL once
-for the initial result, then watches for the events that could
-make the answer different and ships a diff each time it does.
-
-Three corollaries:
-
-1. **Wire schema is small and stable.** Message types in the
-   single digits. The wire doesn't grow per widget; what each
-   widget cares about lives in its query string + field-set.
-2. **MQL is the lingua franca.** Players type MQL in the prompt.
-   Authors write MQL in NPC behavior / quest gates / validators.
-   The client's widgets subscribe via MQL. One language across
-   the whole engine.
-3. **Read-only.** Subscriptions deliver state; mutation goes
-   through the command bus. No "PATCH me.hp" via subscription.
-   This keeps the security model clean and avoids re-implementing
-   the verb / validator stack on a second channel.
+Shipped → [mql-subscription.md § Why this shape](../../subsystems/mql-subscription.md#why-this-shape)
+(*client declares; server notifies* + the three corollaries — small stable
+wire · MQL the one language · read-only). ⚠ The first sentence is
+half-superseded by the card surface: the SERVER declares cards now
+([card-surface.md § One birth path](../../subsystems/card-surface.md)).
 
 ---
 
 ## Two channels, distinct concerns
 
-The server↔client wire has two protocol families that **share a
-connection but are separate channels** with separate dispatchers:
-
-```
-Command bus                   MQL channel
-─────────────                 ───────────────
-• command                     • mql-query              (one-shot)
-                              • mql-subscribe          (live)
-                              • mql-subscribe-update   (re-bind / refresh)
-                              • mql-unsubscribe
-                              • mql-query-result
-                              • mql-subscription-result
-                              • mql-subscription-delta
-                              • mql-subscription-error
-                              • heartbeat              (bidirectional)
-```
-
-The mental model:
-
-- **Command bus** answers *"the player wants the world to do
-  something."* Verbs, side effects, validators, controllers, prose,
-  envelope notes. Player intent.
-- **MQL channel** answers *"the client wants to know about the
-  world (now, or whenever it changes)."* Pure reads. No side
-  effects on the world. No prose output. No verb dispatch. No
-  validators.
+Shipped → [mql-subscription.md](../../subsystems/mql-subscription.md) (intro) —
+`packages/server/src/backend/inbound/index.ts` routes `mql-subscribe` /
+`mql-unsubscribe` / `mql-query` beside `command` and `ping`. Of the
+designed messages, `mql-subscribe-update` and `heartbeat` did not
+ship — see *Wire shape* below.
 
 The MQL channel also accommodates **client-initiated traffic that
 isn't a player command** — gap-detected resyncs, hover-tooltip
@@ -116,50 +90,14 @@ they shouldn't ride the command bus because they're not intents and
 shouldn't generate prose / events / echoes. They ride the MQL
 channel because they're reads.
 
-Crucially: the MQL channel's message types all share the same
-underlying mechanism (parser, projector, per-viewer scoping,
-permission gates). A `mql-query` is just a single-resolve without
-listener registration; a `mql-subscribe` is the same resolve plus
-listener registration + delta loop. The mechanism doesn't
-duplicate.
-
 ---
 
 ## Why MQL fits
 
-The substrate exists, fully formed. We're not building a query
-language — we're wiring an existing one to a subscription
-mechanism.
-
-- **Resolution pipeline** — MQL already parses, resolves, and
-  walks the scope tree per-viewer. Subscriptions reuse it.
-- **Per-viewer scoping** — every MQL query runs in a viewer's
-  perception scope. Subscriptions inherit this: a player only
-  sees subscription results their viewer would have seen via a
-  one-shot query.
-- **Permission gates** — admin-tier predicates already exist in
-  MQL. Subscriptions inherit them; admin subscriptions resolve
-  fields non-admin subscriptions can't see.
-- **Authoring symmetry** — content authors writing
-  `target=mql:'all sleeping things in here'` on a content
-  validator are writing the same shape the client widget uses
-  for `subscribe: 'all sleeping things in here'`.
-- **Composability** — MQL chains, filters, pronouns. Widgets
-  can be precise without server-side cooperation.
-- **Change source** — `EventApi` fires on every meaningful state
-  change. Subscriptions hook here for re-resolution triggers.
-
-What's missing on MQL today:
-
-- **Result-shape declaration.** MQL today returns matched Stuff;
-  it doesn't say "give me these fields." Subscriptions need a
-  declarative field-set so the wire doesn't ship every property
-  of every match.
-- **Subscription / change-detection layer.** Single-shot today;
-  subscriptions need re-evaluation + diff + emit.
-
-Both are additive. The grammar gets a `select { ... }` clause
-(or similar); a new `MqlSubscriptionApi` owns the lifecycle.
+Shipped → [mql-subscription.md](../../subsystems/mql-subscription.md) (both
+additions landed: the field-set is a separate `fields` parameter, not
+a grammar clause; `MqlSubscriptionApi` + `MqlSubscriptionRegistry` own
+the lifecycle).
 
 ---
 
@@ -170,6 +108,14 @@ dispatcher routes by `type`. Mix of outbound (client → server)
 and inbound (server → client) shapes below.
 
 ### Outbound (client → server)
+
+⚠ Shipped shapes differ: `MqlQueryMessage` / `MqlSubscribeMessage` /
+`MqlUnsubscribeMessage` landed with `cardinality: 'one' | 'many'`
+required, `fields?: string[] | 'ref' | 'detail'`, `detailKey?`, the
+`focusDependent` / `locationDependent` flags and `chrome?: 'self'`, and
+no `options` — [mql-subscription.md § Surface](../../subsystems/mql-subscription.md).
+`MqlSubscribeUpdateMessage` and `HeartbeatMessage` did not ship; the
+block is kept whole for them.
 
 ```ts
 interface MqlQueryMessage {
@@ -206,13 +152,6 @@ interface HeartbeatMessage {
 }
 ```
 
-`mql-query` is the **one-shot** form. Same parser, same projector,
-same per-viewer scoping as `mql-subscribe`; no listener registers,
-no `lastResult` stored on the server, no delta loop. Server runs
-the query once and responds. Used for hover tooltips, paginated
-detail fetches, MQL-tab snapshots — anywhere the client wants
-data once with no obligation to track it.
-
 `mql-subscribe-update` with `refresh: true` is the **explicit
 resync** form. Server re-resolves the subscription's current
 binding (no re-binding required) and ships a fresh
@@ -235,6 +174,13 @@ on visibility-restore) without server-driven proactive resync;
 reconciliation lands when needed.
 
 ### Inbound (server → client)
+
+⚠ Shipped shapes differ: the result envelopes carry `result` (no
+`cardinality`, no `reason`), the error envelope carries `detail?` (not
+`message`), and `'closed'` is in the `reason` union though nothing
+emits it yet — [mql-subscription.md § Surface](../../subsystems/mql-subscription.md),
+`packages/types/src/index.ts`. The block is kept whole for the
+unshipped `reason?` field.
 
 ```ts
 interface MqlQueryResultEnvelope {
@@ -290,219 +236,65 @@ processes client ones.
 
 ### Change ops
 
-```ts
-type Change =
-  | { op: 'add';    record: Record }              // new item joined the result
-  | { op: 'remove'; key: string }                 // item left the result
-  | { op: 'update'; key: string; fields: Partial<Record> }  // field-level patch
-  | { op: 'replace'; record: Record }             // single-cardinality re-evaluation
-```
-
-`key` is the stuffId for Stuff-shaped records; for non-Stuff
-records (e.g., `here.atmosphere`) it's a synthetic key derived
-from the query path.
+Shipped → [mql-subscription.md § Diff algorithm](../../subsystems/mql-subscription.md) —
+`Change` is `{ op, key, fields? }` (`add` / `replace` carry the full
+record in `fields`; an identity change is `remove` **and** `replace`).
+The synthetic key for non-Stuff records is superseded: MQL speaks only
+Stuff (§ *The two structural findings*).
 
 ### Field sets
 
-A client either names a pre-canned field alias OR declares
-explicit fields:
-
-```ts
-type FieldAlias = 'ref' | 'detail' | 'minimal';
-
-interface FieldSet {
-  include: string[];               // e.g., ['displayName', 'iconKind', 'capabilities']
-  // Future: nested field shapes for contents, slots, etc.
-}
-```
-
-Pre-canned aliases keep the common case ergonomic; explicit
-field-sets let widgets ask for exactly what they need.
+Superseded by the code — `fields?: string[] | 'ref' | 'detail'`; no
+`'minimal'`, no `{ include }` object
+([mql-subscription.md § Field-set aliases](../../subsystems/mql-subscription.md)).
 
 ---
 
 ## Result records
 
-Two canonical record shapes plus a structured fallback. The
-`fields` declaration selects which fields appear in the record.
-
-### Reference record (`'ref'` alias)
-
-For collection-shaped queries returning multiple Stuff items.
-Light, list-friendly.
-
-```ts
-interface StuffRefRecord {
-  stuffId: string;
-  displayName: string;             // per-viewer-rendered
-  iconKind?: 'item' | 'npc' | 'player' | 'container' | 'door' | 'feature' | 'fixture';
-  quantity?: number;               // stackable stacks
-  capabilities?: string[];         // verbs this actor can issue against this target
-}
-```
-
-### Detail record (`'detail'` alias)
-
-For single-cardinality queries returning one focused Stuff. The
-inspection card's primary food source.
-
-```ts
-interface StuffDetailRecord extends StuffRefRecord {
-  shortDescription?: string;
-  longDescription?: string;        // MML
-  properties?: Record<string, PropertyValue>;
-  slots?: SlotSummary[];
-  contents?: StuffRefRecord[];     // refs, not nested details
-  material?: MaterialSummary;
-  lighting?: LightingSummary;
-  atmosphere?: AtmosphereSummary;
-  admin?: AdminMetadata;           // role-gated
-}
-```
-
-### Structured / path records
-
-For queries that resolve to non-Stuff values — atmosphere
-readings, vitals scalars, time values. The record's shape is
-the resolved structure, with a synthetic `key` for diff
-addressing.
-
-```ts
-interface PathRecord {
-  key: string;                     // query path or synthetic id
-  value: unknown;                  // the resolved value
-}
-```
-
-Example: `here.atmosphere.temperature` resolves to a single
-PathRecord with `key: 'here.atmosphere.temperature'` and
-`value: <Quantity instance serialized>`.
+Superseded by the code — `StuffRefRecord` is `{ stuffId, displayName,
+quantity?, primaryKeyword? }` (no `iconKind`, no `capabilities`);
+`StuffDetailRecord` adds `shortDescription`, `longDescription`,
+`illustration`, `details`, `bulkMaterial`, `mass`, `contents`, `worn`,
+`exits` (no `properties` / `slots` / `lighting` / `atmosphere` /
+`admin`); there is no `PathRecord` — MQL speaks only Stuff
+([mql-subscription.md § Field-set aliases, § Where descriptors live](../../subsystems/mql-subscription.md)).
+The missing readings are a per-mixin descriptor to-do (§ *The two
+structural findings*); the admin projection is listed unbuilt in
+[card-surface.md § What ships unbuilt](../../subsystems/card-surface.md).
 
 ---
 
 ## Field projection — mixin-declared surface
 
-Records get populated by walking the resolved Stuff's mixin
-composition and collecting **subscribable field descriptors**.
-There is no central catalogue, no `FIELD_HANDLERS` table to
-maintain alongside the mixins, no schema registry. Each mixin
-declares the wire projection of its own state. The substrate
-is generic over the descriptors.
-
-This is the same pattern the codebase already uses for
-`static persistentFields`, `static defaultAliases`,
-`static commandContributions`, and `static fieldMarshallers`:
-mixin-owned, collected via composition walk at the consumption
-site.
+Shipped → [mql-subscription.md § Descriptor mechanism](../../subsystems/mql-subscription.md)
+(*no substrate-private synthetic table; one mechanism, uniformly
+declared*).
 
 ### The descriptor shape
 
-```ts
-type SubscribableFieldDescriptor =
-  | { name: string; getter: string; changes: ChangeSource[] }     // dynamic
-  | { name: string; getter: string; static: true };                // intrinsic
-
-interface ChangeSource {
-  on: EventClass;   // event class whose fires might change this field
-  by: string;       // event attribute that selects matching descriptors
-}
-```
-
-Three things the descriptor binds together that the mixin
-already knows:
-
-1. **What to read** — `getter` names the method (`getHp`,
-   `getIconKind`, `getDisplayName`). The substrate calls
-   `stuff[getter]()` at projection time.
-2. **What to listen for (dynamic only)** — `changes` is an array
-   of `ChangeSource` entries. Each names an event class whose
-   fires could change this field's value
-   (`PropertyChangedEvent`, `NameChangedEvent`,
-   `ShadowChangedEvent`, …) along with the filter attribute that
-   selects this descriptor.
-3. **How to filter the event** — the `by` attribute on each
-   `ChangeSource` names the event field that should match this
-   descriptor's `name` (for property-shaped events) or that
-   should match `target == stuffId` (for shadow / containment
-   events). The meta-bus uses the filter for index lookup.
-
-`static: true` says "compute once on subscribe, no listener,
-never emit a delta for this field." Used for intrinsic-to-class
-data: `iconKind`, `templatePath`, the mixin composition list.
-
-The `changes` array lets a field declare **multiple change
-sources** — important for fields whose getters route through
-the shadow chain (a disguise overriding `displayName` changes
-the perceived value without firing `NameChangedEvent`).
-See [Shadow interactions](#shadow-interactions) below.
+Superseded by the code — the shipped descriptor is `{ name, read?,
+perDetailRead?, dependsOnFields?, changes?, static?, durableKey? }`:
+`getter` strings became `read` closures, field wakes ride
+`FieldChangedEvent` via `dependsOnFields`, and ledger-keyed figures use
+`durableKey` because a `ChangeSource` cannot match a durable key
+([mql-subscription.md § Descriptor mechanism, § `durableKey`](../../subsystems/mql-subscription.md)).
 
 ### Fact-mixin vs behavior-mixin
 
-State-owning ("fact") mixins are named for what they HAVE; they
-own the subscribable surface for that state. Behavior-owning
-("behavior") mixins are named for what the host CAN DO; they
-expose affordances but don't generally own ad-hoc state of their
-own.
-
-Existing fact-mixins: `NamedMixin` (has a name), `VisibleMixin`
-(has short/long descriptions), `PropertiedMixin` (has the bag),
-`TangibleMixin` (has weight, material).
-
-Existing behavior-mixins: `Containable`, `Container`, `Mobile`,
-`Posed`, `Wieldable`, `Slotted`.
-
-When subscribable state has no natural home on an existing
-behavior-mixin, the right move is a new fact-mixin named for
-the state. iconKind → `HasIcon`; vitals (`hp` / `mv`) → a
-`Vitals` mixin; sound emission state → `EmitsSound`; etc.
-These mixins own the storage, the getter/setter, the event
-emission, AND the `subscribableFields` declaration end-to-end.
+Superseded by the code — the placement rule shipped as *a descriptor
+lives on the mixin that owns the gate; universal renders on `Stuff`*,
+and the *mint a new fact-mixin for homeless state* prescription was
+declined for the standing figures (*a `StandingMixin` for five fields
+on one class would be per-feature minting*) —
+[mql-subscription.md § Where descriptors live, § Ledger-derived fields](../../subsystems/mql-subscription.md).
 
 ### Worked example: dynamic scalar (Vitals)
 
-```ts
-class Vitals {
-  static persistentFields = ['hp', 'mv', 'maxhp', 'maxmv'];
-
-  static subscribableFields = [
-    { name: 'hp',    getter: 'getHp',    changes: [{ on: PropertyChangedEvent, by: 'property' }] },
-    { name: 'mv',    getter: 'getMv',    changes: [{ on: PropertyChangedEvent, by: 'property' }] },
-    { name: 'maxhp', getter: 'getMaxhp', changes: [{ on: PropertyChangedEvent, by: 'property' }] },
-    { name: 'maxmv', getter: 'getMaxmv', changes: [{ on: PropertyChangedEvent, by: 'property' }] },
-  ];
-
-  // Note: hp's getter is direct (no shadow routing in this v1 sketch).
-  // If buffs ship as shadows that override perceived hp, this
-  // descriptor grows a `ShadowChangedEvent` entry in `changes`.
-
-  protected hp = 0;
-  protected mv = 0;
-  // ...
-
-  getHp(): number { return this.hp; }
-  setHp(value: number): void {
-    if (value === this.hp) return;
-    const old = this.hp;
-    this.hp = value;
-    EventApi.fire(new PropertyChangedEvent({
-      target: this, property: 'hp', oldValue: old, newValue: value,
-    }));
-  }
-}
-```
-
-A subscription with `fields: ['hp']`:
-
-- Reads via `stuff.getHp()` at resolve time
-- Derives dependency `PropertyChangedEvent` filtered to
-  `target == stuffId && property == 'hp'`
-- Registers in the meta-bus index, awaits fires, diffs, ships
-  deltas
-
-Adding `hp` to a different mixin (say `RechargeableBattery`'s
-`charge` field) needs zero substrate changes — the new mixin
-declares its own `subscribableFields`, the substrate picks it
-up via the composition walk.
+Superseded by the code — the descriptor shape and the event differ
+(above), and `lib/vitals/Vitals.ts` declares no `subscribableFields`;
+every undeclared reading is one descriptor on the mixin that owns it
+([mql-subscription.md § The two structural findings](../../subsystems/mql-subscription.md)).
 
 ### Worked example: intrinsic-to-class field (HasIcon)
 
@@ -563,238 +355,50 @@ with explicit storage + intrinsic default only.
 
 ### The composition walk + dependency derivation
 
-```ts
-function collectSubscribableFields(stuff: Stuff)
-  : Map<string, SubscribableFieldDescriptor>
-{
-  const out = new Map();
-  for (const cls of MixinApi.walkComposition(stuff.constructor)) {
-    const fields = (cls as any).subscribableFields;
-    if (!fields) continue;
-    for (const d of fields) out.set(d.name, d);
-  }
-  return out;
-}
-
-function projectFields(
-  stuff: Stuff,
-  fieldNames: string[],
-  viewer: Sensor,
-): Record<string, unknown> {
-  const descriptors = collectSubscribableFields(stuff);
-  const out: Record<string, unknown> = { stuffId: stuff.stuffId };
-  for (const name of fieldNames) {
-    const d = descriptors.get(name);
-    if (!d) continue;
-    out[name] = (stuff as any)[d.getter]();
-  }
-  return out;
-}
-
-function deriveDependencies(
-  stuff: Stuff,
-  fieldNames: string[],
-): DependencyFilter[] {
-  const descriptors = collectSubscribableFields(stuff);
-  const out: DependencyFilter[] = [];
-  for (const name of fieldNames) {
-    const d = descriptors.get(name);
-    if (!d || !('changes' in d)) continue;   // static field; no listener
-    for (const source of d.changes) {
-      out.push({
-        event: source.on,
-        filter: { target: stuff.stuffId, [source.by]: name },
-      });
-    }
-  }
-  return out;
-}
-```
-
-Three small functions. No central registry. Adding a new
-subscribable field anywhere in the engine = one entry on the
-mixin's `subscribableFields`. Nothing else changes.
+Shipped → `MixinApi.getAllSubscribableFields` +
+`MqlSubscriptionApi.projectFields` +
+`MqlSubscriptionRegistry.deriveAndInstallDependencies`
+([mql-subscription.md § Descriptor mechanism, § Meta-bus dependency index](../../subsystems/mql-subscription.md)).
 
 ### The (one) substrate-side synthetic field
 
-`capabilities` is the exception — the only truly synthetic field
-projected by the substrate rather than by any single mixin. It
-exists because the verbs an actor can issue against a target
-depend on BOTH the actor's state (mixins, skills, possessions,
-posture) AND the target's state (mixins, properties). No single
-mixin owns the answer; it's a cross-mixin computation.
-
-The substrate provides the projector for `capabilities` directly.
-The recency-stack affordance attribution feeds into it (which
-verbs apply to this composition, given this actor's
-affordances — see [command-routing § Affordance attribution](../../subsystems/command-routing.md)).
-Coarse category bits on `ref` records, full verb
-list on `detail` records, per the earlier capability discussion.
-
-Adding ANY other cross-mixin synthetic field in the future would
-follow the same pattern: substrate-side projector + integration
-with whatever mechanisms feed into it. But these should be rare
-and explicit — the strong default is fact-mixin-owned state.
+Superseded — `capabilities` shipped as the one-shot `affordance-resolve`
+channel (`packages/server/src/backend/inbound/affordance.ts`), not a
+subscription field ([mql-subscription.md § What doesn't ship at all](../../subsystems/mql-subscription.md),
+[card-surface.md § The card's action row](../../subsystems/card-surface.md)).
 
 ---
 
 ## Subscription lifecycle (server-side)
 
-```ts
-class MqlSubscriptionApi {
-  // Per-Interactive registry
-  static #subscriptions = new Map<Interactive, Map<string, SubscriptionState>>();
-}
-
-interface SubscriptionState {
-  query: string;
-  ast: MqlAst;                     // parsed once, reused
-  fields: FieldSet;
-  cardinality: 'single' | 'collection';
-  lastResult: Record[];            // for diff against next eval
-  dependencies: EventDependencySet; // which EventApi kinds + filters
-  throttle?: ThrottleState;
-}
-```
-
-### Subscribe lifecycle
-
-1. Inbound `mql-subscribe`.
-2. Parse the query (cached AST). On parse failure, send
-   `mql-subscription-error` with `reason: 'parse'`.
-3. Resolve once, in the viewer's perception scope. On resolve
-   failure, send error.
-4. Project the result through the field-set into records.
-5. Register `EventApi` listeners for the dependency set (see
-   below). Cache the AST and last-result on the subscription
-   state.
-6. Send `mql-subscription-result` with initial records.
-
-### Change lifecycle
-
-1. `EventApi` fires (e.g., `ContainmentChangedEvent`).
-2. Subscription registry routes the event to listeners.
-3. For each affected subscription:
-   - Check dependency match (was the event in scope for this
-     query?). If no, skip.
-   - Re-resolve the AST.
-   - Project to records.
-   - Diff against `lastResult`. Compute `Change[]`.
-   - Update `lastResult`.
-   - Send `mql-subscription-delta` with the changes.
-4. Throttling (see below) may coalesce multiple events in a
-   tick before re-resolution.
-
-### Unsubscribe / disconnect
-
-- Explicit unsubscribe: remove the state, unregister listeners.
-- Disconnect: `cancelAll(interactive)` removes every subscription
-  for that interactive in one pass.
+Shipped → [mql-subscription.md § Surface, § Meta-bus dependency index](../../subsystems/mql-subscription.md),
+§ *Disconnect cleanup* — state lives on the `MqlSubscriptionRegistry`
+singleton Idea (HMR-safe), not a static map on the Api.
 
 ---
 
 ## Change detection — dependency tracking
 
-The naive implementation re-resolves every subscription on
-every event. That's `O(events × subscriptions)` per tick and is
-not viable past a handful of either.
-
-The mechanism: a **meta-bus** layered on `EventApi` that indexes
-subscriptions by their declared dependencies, looks up matching
-subscriptions per event in `O(matched)`, and coalesces all
-re-resolves for a tick into one pass per subscription.
-
-### The meta-bus and the dependency index
-
-`EventApi` itself stays simple — typed events, subscribe with
-a handler. The subscription substrate adds an index on top:
-
-```ts
-// Two-level map: event kind → filter-value → subscriptions
-type DependencyIndex = Map<
-  EventKind,
-  Map<string /* filter key */, Set<SubscriptionId>>
->;
-```
-
-When an event fires, the meta-bus:
-
-1. Looks up `EventKind` in the outer map.
-2. For each filter attribute on the event (`target.stuffId`,
-   `property`, `from`, `to`, etc.), looks up the matching
-   subscription set in the inner map.
-3. Unions the matched sets, marks each `dirty`, schedules the
-   tick's re-resolve pass if not already scheduled.
-
-Per-event work is bounded by the actual number of interested
-subscriptions, not by total count. A single event fires only
-into the subscriptions that asked for it.
-
-### The re-resolve pass (micro-batch)
-
-The pass runs once per Node event-loop tick via `setImmediate`:
-
-1. Walk the dirty set.
-2. For each dirty subscription: re-resolve its AST in the
-   viewer's scope, project through the field-set, diff against
-   `lastResult`, emit one delta.
-3. Clear dirty flags.
-
-The key invariant: events that happen in the same synchronous
-chain of mutations (a `drop all` firing 10 `ContainmentChanged`
-events) generate one re-resolve per affected subscription, not
-ten. The micro-batch boundary aligns with the engine's
-existing event-fire-after-mutation discipline.
+Shipped → [mql-subscription.md § Meta-bus dependency index + scheduler](../../subsystems/mql-subscription.md)
+(the 3-level `(KIND, attribute, value)` index, refcounted listeners,
+the `setImmediate` dirty-set drain).
 
 ### Coarse dependencies (v1)
 
-Each MQL query AST is walked at parse time to derive a coarse
-dependency set:
-
-- `all things in here` → depends on `ContainmentChangedEvent`
-  with `to == viewer.location` OR `from == viewer.location`,
-  AND `ContainmentChangedEvent` with `subject == viewer`
-  (because "here" itself re-resolves if the viewer moves).
-- `me.hp` → depends on `PropertyChangedEvent` with
-  `target == viewer` AND `property == 'hp'`.
-- `all sleeping things in here` → depends on the above
-  containment change AND `LifecycleStateChangedEvent` on the
-  in-scope set (see "Dynamic dependency sets" below).
-- `$focus` (detail) → depends on changes to whatever the focus
-  points at AND `FocusChangedEvent` for the viewer.
-
-This is conservative — sometimes re-evaluates when not strictly
-necessary — but cheap and correct. The dependency-set is a
-small interpreter walk over the AST; well-understood.
+Superseded by the code — dependencies are not derived from an AST
+walk; they are installed from each result Stuff's descriptors, plus
+the holder-level `focusDependent` / `locationDependent` flags, and
+field-keyed firing is global
+([mql-subscription.md § Holder-level dependency flags, § Conservative-coarse dispatch policy](../../subsystems/mql-subscription.md)).
 
 ### Dynamic dependency sets
 
-The hard case: a query whose dependency set depends on its own
-results. `all sleeping things in here` needs lifecycle-change
-notifications on **whatever is currently in the room**, which
-changes as things enter and leave.
-
-Two strategies:
-
-- **Conservative coarse** (v1): subscribe to
-  `LifecycleStateChanged` on ANY stuffId. Re-resolve naturally
-  filters in-query. Wasteful but correct, simple to implement.
-- **Adaptive** (Tier 2): after each resolve, derive the
-  "currently interested" stuffId set and update the meta-bus
-  listeners (subscribe to new, unsubscribe from old). Bounded
-  but adds bookkeeping; the AST walker also needs to emit
-  "interest sets" alongside the static dependency set.
-
-v1 ships conservative. The architectural seam (the AST walker
-can produce both static and dynamic dependency sets, the
-meta-bus accepts mid-life listener updates) is shaped so
-adaptive lands without a rewrite.
+Superseded by the code — the *adaptive* strategy shipped: the
+dependency set is torn down and re-derived from the new result set
+after every re-resolve
+([mql-subscription.md § Meta-bus dependency index + scheduler](../../subsystems/mql-subscription.md)).
 
 ### Race conditions and ordering
-
-`EventApi` fires synchronously after the state change (existing
-witness-pattern discipline). Re-resolution therefore sees
-consistent post-change state — no read-your-write hazards.
 
 Cross-subscription ordering, however, is **not contracted.**
 Two subscriptions affected by the same event (e.g.,
@@ -808,32 +412,12 @@ ships independent subscriptions only.
 
 ### Capability fields and their dependencies
 
-The `capabilities` field on `StuffRef` ("verbs the actor can
-currently issue against this target") is per-emission expensive
-AND has wide dependency surface: actor mixins, target mixins,
-body-plan slots, possessions, skills, posture all feed into it.
-
-Granularity choice:
-
-- **Coarse on `ref`**: category bits like `actionable`,
-  `talkable`, `wearable`, `examinable`. Cheap to compute,
-  stable, sufficient for right-click menus and chip styling.
-- **Full on `detail`**: complete per-target verb list when the
-  player focuses. Expensive but rare; the detail fetch is the
-  natural place to pay.
-
-This split also limits the dependency blast radius. The coarse
-bits depend only on TARGET-side mixin presence (rarely changes
-during a session). The full verb list depends on ACTOR state
-(equipment, skills, posture) — those changes only force re-
-resolve for the focused detail subscription, not for every ref
-in every list.
-
-`CapabilityChangedEvent` fires when actor state shifts in ways
-that affect what they can do (donning lockpicks → `pick`
-appears against doors). Detail subscriptions hooked on this
-event re-resolve; ref subscriptions do not (coarse bits are
-target-driven, not actor-driven).
+Superseded — `capabilities` is not a subscription field; the action
+row and the radial ask `affordance-resolve` on demand and
+`clearAffordances` runs on every command send, which is the staleness
+answer ([card-surface.md § The card's action row](../../subsystems/card-surface.md),
+`packages/client/src/services/websocket.ts`). No
+`CapabilityChangedEvent` exists.
 
 ### Catch-all events
 
@@ -846,32 +430,20 @@ under a wildcard key.
 
 ### Resolution failures mid-stream
 
-A subscription on `me.locked-thing.contents` — if `locked-thing`
-gets destroyed, the resolution path errors. Policy:
-
-1. Emit `mql-subscription-error` with `reason: 'resolve'` and a
-   diagnostic message.
-2. Auto-cancel the subscription (deregister from the index,
-   release `lastResult`).
-3. Client may re-subscribe with an updated query.
-
-Tempting alternative — keep the subscription alive and emit an
-empty result — leaves the client guessing why. Explicit error
-is easier to reason about.
+Shipped → [mql-subscription.md § Surface](../../subsystems/mql-subscription.md) (*mid-stream resolve
+throws → emit `reason`, auto-cancel*; a vanished holder cancels
+silently).
 
 ---
 
 ## Throttling and batching
 
-Multiple events in the same tick (e.g., a player puts down 10
-items in one `drop all` command) shouldn't trigger 10
-re-resolutions. Coalesce.
+Shipped — the `setImmediate` micro-batch
+([mql-subscription.md § Meta-bus dependency index + scheduler](../../subsystems/mql-subscription.md));
+the two options below did not.
 
 Per-subscription throttle:
 
-- **Default**: micro-batch — coalesce events within one Node
-  event-loop tick (`setImmediate` boundary). Re-resolve once per
-  tick.
 - **`options.debounce: ms`** — debounce changes to once per
   `ms`. Useful for high-churn widgets (atmosphere readings,
   weather) where the player doesn't need sub-second precision.
@@ -885,107 +457,38 @@ windows where appropriate.
 
 ## Canonical subscription kinds (v1 catalogue)
 
-These are the patterns content authors and the cockpit widgets
-copy. The substrate is general; the canon keeps the common
-shapes ergonomic.
-
-| Name | Query | Field-set | Used by |
-|---|---|---|---|
-| `inventory` | `all things in me` | `ref` | Inventory widget |
-| `things-here` | `all things in here` | `ref` | Pre-inspection-card things-here, NPCs / players in room |
-| `exits` | `all exits of here` | `ref` (with `iconKind: 'door'` semantics) | Inspection card exits row |
-| `slots` | `all slots of me` | custom (`occupant`, `slot.name`, `accepts`) | Slot map widget |
-| `focus-detail` | `$focus` | `detail` | Inspection card body |
-| `atmosphere-here` | `here.atmosphere` | structured | Atmosphere readout |
-| `lighting-here` | `here.lighting` | structured | Lighting band, sources |
-| `vitals` | `me.{ hp, maxhp, mv, maxmv }` | structured | Prompt format tokens (future) |
-| `engagement` | `me.engagement` | structured | Engagement indicator |
-| `posture` | `me.posture` | structured (scalar) | Prompt token (future) |
-| `clock` | `world.time` | structured | Status header time |
-
-v1 client widgets reach for these names; the substrate resolves
-each to the corresponding (MQL, field-set) pair. New widgets
-either use a canonical kind or declare their own (still MQL,
-just authored ad-hoc).
+Superseded — the named-kind registry shipped in Wave 1 and was retired
+during MR review; clients send the raw spec
+([mql-subscription.md § Build history](../../subsystems/mql-subscription.md)). Its non-Stuff rows
+(`here.atmosphere`, `me.{ hp, … }`, `world.time`) cannot resolve —
+MQL speaks only Stuff; the prompt-token rows are
+[prompt-stack-slate.md](../tails/prompt-stack-slate.md)'s.
 
 ---
 
 ## Worked example: inventory widget
 
-```
-1. Client mounts the inventory widget.
-2. Sends:
-     { type: 'mql-subscribe',
-       subscriptionId: 'inv-1',
-       query: 'all things in me',
-       fields: 'ref' }
-3. Server parses, resolves (returns 3 stuff items for the
-   actor's inventory).
-4. Server registers listeners on ContainmentChangedEvent with
-   filter (to == actor || from == actor).
-5. Server sends mql-subscription-result with 3 ref records.
-6. Client renders inventory chips.
-7. Player issues `drop sword`.
-8. ContainmentChangedEvent fires (sword: actor → location).
-9. Subscription's dependency check passes.
-10. Re-resolves: now 2 items.
-11. Diff: { op: 'remove', key: '<sword-stuffId>' }
-12. Sends mql-subscription-delta.
-13. Client patches its local ref list, re-renders.
-14. Player picks up the same sword.
-15. ContainmentChangedEvent fires again.
-16. Re-resolve, diff: { op: 'add', record: { stuffId, displayName, iconKind, ... } }
-17. Client patches + re-renders.
-```
+Superseded — there is no inventory widget; `contents` / `worn` on the
+subject card are the shipped shape, fed by `FieldChangedEvent`
+(`contents`, `occupants`) from the containment / slot primitives
+([mql-subscription.md § Where descriptors live](../../subsystems/mql-subscription.md),
+[card-surface.md § `worn` vs `contents`](../../subsystems/card-surface.md)).
 
 ---
 
 ## Worked example: inspection card
 
-The card subscribes to `$focus` with `detail` fields. When focus
-changes:
-
-```
-1. Player runs `examine thermometer`.
-2. FocusController calls setFocus → FocusChangedEvent fires.
-3. The card's subscription on `$focus` is triggered.
-4. Re-resolves: now returns the thermometer Stuff.
-5. Projects detail fields (long desc, properties, material, ...).
-6. Server diffs against the previous focused thing's detail.
-7. Sends mql-subscription-delta with `op: 'replace'` (single-
-   cardinality semantics).
-8. Client renders the new detail in the card body.
-
-Subsequent mutations on the thermometer (e.g., setProperty)
-emit PropertyChangedEvent; the subscription re-resolves;
-diffs only the changed properties; ships an `op: 'update'`
-with the patched fields.
-```
-
-This is exactly the inspection-card slate's "header/body
-decouple" semantics implemented as a subscription: header
-follows live focus (because the FocusChangedEvent updates the
-subscription's resolved target); body shows the current
-detail (because the subscription's result is the detail
-projection).
+Shipped → [mql-subscription.md § `focusDependent`](../../subsystems/mql-subscription.md) (the holder-level
+`FieldChangedEvent { field: 'focus' }` entry; no `FocusChangedEvent`)
+and [card-surface.md § Inspection is ONE row](../../subsystems/card-surface.md).
 
 ---
 
 ## Client cache and lifecycle
 
-The client maintains a flat cache of subscription results:
-
-```ts
-Map<SubscriptionId, {
-  lastResult: Record[];
-  lastFrameId: number;
-  kind: 'single' | 'collection';
-}>
-```
-
-That's it (for v1). No object normalization, no schema layer,
-no separate per-Stuff cache. The subscription IS the cache,
-scoped to the widget's view of the world.
+Superseded by the code — the client keeps each card's records on the
+feed (`useCardFeed.applyChanges`) plus a normalized `stuffRegistry`
+slice ([card-surface.md § Client stuff registry, § Reconnect behavior](../../subsystems/card-surface.md)).
 
 **Widgets read via selectors, not directly.** Even though the v1
 cache is per-subscription, widgets call hooks like
@@ -1111,34 +614,20 @@ neither subsumes the other.
 
 ### Widget mount / unmount
 
-Widget mounts → opens a subscription (or re-uses a shared one if
-the same query is already live). Widget unmounts → unsubscribes
-(or decrements ref-count on the shared subscription, closing
-when zero).
-
-No subscription survives the widget being unmounted unless
-another widget is referencing the same query. Memory bounded by
-visible widgets.
+Superseded — cards are server-born and *live* is scoped to attention
+(the newest of a kind holds the subscription); there is no
+widget-owned open / refcounted share
+([card-surface.md § One birth path, § One sweep](../../subsystems/card-surface.md)).
 
 ### MQL-query results in a card tab
 
-User runs `mql 'all sleeping things in here'` and wants results
-in a card tab. Default to **one-shot** (`mql-query`): a snapshot
-that's stale immediately but cheap. Tab UI has a "Make live"
-toggle that promotes to a subscription on demand. Matches the
-player's mental model of a query as a single-shot operation.
+Superseded — `find` renders to the terminal, and *the client supplies
+an identity, never a query*, so a *Make live* toggle is out
+([card-surface.md § `find` verb, § What ships unbuilt](../../subsystems/card-surface.md)).
 
 ### Cascading focus updates
 
-Player examines a thing in the inventory chip strip. The
-`inspection` subscription's `$focus` re-resolves to the new
-target. The chip strip itself doesn't change (still showing the
-same inventory). Card body shifts. Two subscriptions affected,
-no cross-coupling — they're independent.
-
-Same when the player walks: `things-here` re-resolves, but
-`inventory` doesn't (no events match its dependency filters).
-The independence is what makes this model scale.
+Shipped → [mql-subscription.md § `focusDependent`, § `locationDependent`](../../subsystems/mql-subscription.md).
 
 ---
 
@@ -1374,25 +863,9 @@ seam that preserves it.
 
 ## Per-viewer everything
 
-MQL resolves in the viewer's perception scope already. The
-subscription substrate inherits this for free:
-
-- Disguise — `displayName` field varies per viewer; the same
-  subscription on `all players in here` returns different
-  names to different viewers.
-- Identification — `material.identifiedAs` (or whatever the
-  recognition slate ships) varies; subscription respects the
-  recognition state of each viewer.
-- Permission — admin metadata fields only project for admin
-  viewers; same query, different field-sets in effect.
-- Perception — things outside the viewer's perception don't
-  appear in their subscription result.
-
-This means **per-viewer rendering is the substrate's tax** —
-every projection happens with the viewer threaded through.
-Servers that want shared subscriptions across many clients
-need to be careful here; the model assumes per-Interactive
-subscriptions, evaluated independently.
+Shipped → [mql-subscription.md § `displayName` routes through `Stuff.getPresentation()`](../../subsystems/mql-subscription.md)
+(`projectFields` renders through `describeFor(viewer, stuff)`; every
+subscription is per-Interactive) and [belief.md](../../subsystems/belief.md).
 
 ---
 
@@ -1417,13 +890,10 @@ A new event kind fires whenever any shadow attaches to or
 detaches from a target, OR mutates in a way that affects what
 the shadow returns:
 
-```ts
-interface ShadowChangedEventPayload {
-  target: Stuff;            // the host whose perceived state changed
-  shadow: Stuff;            // the shadow that attached/detached/mutated
-  cause: 'attached' | 'detached' | 'mutated';
-}
-```
+The class shipped, declared but unfired —
+`lib/events/ShadowChangedEvent.ts` (`{ target: string, shadow: string,
+cause: 'attach' | 'detach' | 'mutate' }`;
+[mql-subscription.md § Event-class pattern, § What ships unfired](../../subsystems/mql-subscription.md)).
 
 Emitted by the shadow lifecycle (whatever owns shadow
 attach/detach today; probably a small surface in `ShadowApi`
@@ -1432,26 +902,9 @@ event with the affected host's stuffId.
 
 ### Descriptor evolution: multi-source `changes`
 
-A field whose getter routes through the shadow chain has TWO
-change sources: the underlying state-change event AND
-`ShadowChangedEvent`. The descriptor's `changes` array (per
-[Field projection](#field-projection--mixin-declared-surface))
-declares both:
-
-```ts
-class NamedMixin {
-  static subscribableFields = [
-    {
-      name: 'displayName',
-      getter: 'getDisplayName',
-      changes: [
-        { on: NameChangedEvent,   by: 'target' },
-        { on: ShadowChangedEvent, by: 'target' },
-      ],
-    },
-  ];
-}
-```
+Shipped — the multi-source `changes` array, with `ShadowChangedEvent`
+on `Stuff.displayName`, Named, Visible, Detailed and Tangible
+([mql-subscription.md § What ships unfired](../../subsystems/mql-subscription.md)).
 
 The substrate registers listeners for both. When EITHER event
 fires with `target == subscribedStuffId`, the subscription
@@ -1477,45 +930,10 @@ template paths, mixin composition) stay single-source.
 
 ### Reverse-index challenge
 
-The meta-bus index is keyed by event filter attributes. For
-`ShadowChangedEvent { target: <alice-id> }` to dispatch
-correctly, the substrate has to know which subscriptions
-include Alice in their CURRENT RESULT.
-
-That's not derivable from the query (`all things in here`
-doesn't name Alice statically). It's derivable from the
-**resolved result**, which changes as contents enter/leave the
-room.
-
-Two strategies, paralleling the dynamic-dependency discussion:
-
-**v1 conservative-coarse.** `ShadowChangedEvent` dispatches to
-any subscription whose result might include the target — for
-collection queries, that's any subscription whose viewer-scope
-includes the affected stuffId. Re-resolve filters in-query.
-Same `O(matched-subscriptions)` shape as the rest of the
-substrate, just with a wider matching net.
-
-Server cost: a shadow attaching in a busy room re-resolves the
-subscriptions of every observer in that room. For low-shadow-
-churn worlds, fine. For shadow-heavy scenes (a stealthed
-infiltrator working a crowd), more wasted re-resolution than
-ideal.
-
-**v1.5 selective per-result.** Substrate maintains a reverse
-index: `stuffId → subscriptions including it in lastResult`.
-After each re-resolve, diff the in-result set; update the
-reverse index (add new ids, drop departed ones).
-`ShadowChangedEvent` looks up only the subscriptions actually
-containing the target. Real bookkeeping but `O(actually-
-affected)` cost.
-
-Ship conservative-coarse for shadows in v1; graduate to
-selective per-result when shadow churn becomes a perf issue.
-The architectural seam — descriptors declaring
-`ShadowChangedEvent` as a change source — is what locks in now;
-the index efficiency comes later without touching descriptors
-or wire shape.
+Superseded by the code — the *v1.5 selective per-result* index
+shipped: `by: 'target'` entries are installed under each result
+Stuff's id and re-derived after every re-resolve
+([mql-subscription.md § Meta-bus dependency index + scheduler](../../subsystems/mql-subscription.md)).
 
 ### Worked example: disguise on / off
 
@@ -1635,11 +1053,10 @@ mechanism alongside the underlying state.
 - **Mutation via subscription channel.** No `mql-mutate`
   message. Commands stay on the command bus. Keeps the
   security model clean.
-- **Arbitrary client-authored MQL queries.** v1 ships the
-  pre-canned subscription kinds only. The mechanism is
-  general — a future flag could enable freeform — but
-  exposing arbitrary MQL to untrusted clients is a security
-  decision worth its own pass.
+- **Arbitrary client-authored MQL queries.** Superseded by the code:
+  the named-kind registry was retired and `mql-subscribe` accepts a
+  raw `query`, gated by MQL's own per-viewer scoping and
+  `MqlPermissionError` ([mql-subscription.md § Surface](../../subsystems/mql-subscription.md)).
 - **Cross-subscription reactive joins.** Subscriptions are
   independent. No "when subscription A's result updates,
   invalidate subscription B" semantics. Each is its own
@@ -1650,9 +1067,9 @@ mechanism alongside the underlying state.
   v1 requirement.
 - **Fine-grained dependency tracking.** Coarse dependency
   sets only; fine-grained per-stuffId tracking is Tier 2.
-- **Subscriptions surviving disconnect.** Disconnect cancels
-  all subscriptions; reconnect re-subscribes. No mid-session
-  state persistence.
+- **Subscriptions surviving disconnect.** Shipped as designed →
+  [mql-subscription.md § Disconnect cleanup](../../subsystems/mql-subscription.md),
+  [card-surface.md § Reconnect behavior](../../subsystems/card-surface.md).
 - **Optimistic mutation reflection.** When the client sends a
   `take sword` command, the inventory subscription's update
   arrives back via the normal subscription delta path — there's
@@ -1663,33 +1080,18 @@ mechanism alongside the underlying state.
 
 ## Open questions
 
-1. **`select { ... }` grammar.** Where does the field-set
-   declaration go syntactically? As a clause on the MQL query
-   (`all things in me select { displayName, capabilities }`),
-   or as a separate parameter on the subscribe message
-   (`{ query: '...', fields: { include: [...] } }`)? Lean the
-   separate parameter — keeps MQL grammar untouched, easier
-   to evolve field-sets without grammar changes.
+1. Resolved: the field-set is a separate `fields` parameter on the
+   message, not a grammar clause — [mql-subscription.md § Surface](../../subsystems/mql-subscription.md).
 2. **Permission churn mid-session.** A player gets promoted to
    admin role mid-session. Existing subscriptions don't
    automatically include the now-newly-visible fields. Force
    re-subscribe? Auto-extend? Lean force re-subscribe — explicit
    is simpler than implicit. Document the requirement.
-3. **Capability staleness.** A subscription's `capabilities`
-   field reflects the actor's affordances at evaluation time.
-   When the actor's affordances change (puts on lockpicks,
-   learns a skill — i.e. a source pushes/pops on the recency
-   stack), do all open subscriptions re-emit with refreshed
-   capabilities? Probably yes via a `CapabilitiesChangedEvent`
-   that triggers re-resolution; the recency-stack push/pop
-   already fires the underlying schema-change signal (see
-   command-routing § Schema delivery).
-4. **Result identity for non-Stuff records.** PathRecords use
-   a synthetic key from the query path. Two subscriptions on
-   the same path use the same synthetic key — fine, they
-   project independently. But complex queries that resolve to
-   computed values need a clear key convention. Pin at impl
-   time.
+3. Superseded: `capabilities` is not a subscription field; the
+   radial / action row ask `affordance-resolve` and `clearAffordances`
+   runs on every command send ([card-surface.md § The card's action row](../../subsystems/card-surface.md)).
+4. Superseded: there are no non-Stuff records — MQL speaks only Stuff
+   ([mql-subscription.md § The two structural findings](../../subsystems/mql-subscription.md)).
 5. **Bandwidth ceilings.** A pathological subscription on a
    busy room could emit hundreds of deltas a second. Is there
    a per-subscription rate cap? Per-Interactive cap? Server
@@ -1736,95 +1138,34 @@ build cycle starts, not midway.
 
 ## Dependencies
 
-- **MQL** ([mql.md](../../subsystems/mql.md)) — the substrate
-  this slate sits on. v1 ships with current grammar; the
-  field-set declaration is a separate parameter, not a
-  grammar extension.
-- **EventApi** — the change source. Subscriptions register
-  listeners; existing event vocabulary covers most needs.
-  Some new events will need to be added (e.g.,
-  `FocusChangedEvent`, `CapabilitiesChangedEvent`,
-  `PropertyChangedEvent` if not already present).
-- **Per-viewer rendering / Sensor / Visible** — already
-  present; subscriptions inherit.
-- **Recognition slate** — once shipped, identification
-  state per viewer affects what subscription fields project.
-- **Verb-provisioning slate** — capabilities field is the
-  client-facing projection of provisioning.
+All shipped or superseded: the field-set is a parameter
+([mql-subscription.md § Surface](../../subsystems/mql-subscription.md)); the events are
+`FieldChangedEvent` (`field: 'focus'` replaces `FocusChangedEvent`) +
+`PropertyChangedEvent` (§ *Event-class pattern*); recognition lands at
+projection via `describeFor` ([belief.md](../../subsystems/belief.md)); `capabilities` is the
+`affordance-resolve` channel ([card-surface.md](../../subsystems/card-surface.md)). No
+`CapabilitiesChangedEvent` exists.
 
 ---
 
 ## Suggested build order
 
-The first goal isn't "all the canonical kinds" — it's **one end-
-to-end live round-trip** against the simplest possible query, to
-prove the meta-bus + diff + delta loop works. Everything else
-layers on once that's solid.
+Waves 1–11 shipped — the substrate as
+[mql-subscription.md](../../subsystems/mql-subscription.md), the client as the
+server-pushed card feed ([card-surface.md](../../subsystems/card-surface.md)), the capabilities
+wave as `affordance-resolve`; wave 13 (adaptive dependency sets)
+shipped as the per-re-resolve re-derivation. What remains:
 
-1. **Substrate skeleton + one query** — `MqlSubscriptionApi`,
-   the registry, subscribe / unsubscribe. Target ONE query shape:
-   `me.<scalar>` (e.g., `me.hp`). Single-shot resolve, no
-   change-detection yet. Proves the wire end-to-end with a stub
-   "emit on demand" trigger.
-2. **Diff algorithm** — generic per record type. Small (~50 LoC).
-   Wire the result + delta envelopes.
-3. **Meta-bus + EventApi integration** for the
-   `PropertyChangedEvent` case. Subscribe the registry; on fire,
-   look up affected subs, mark dirty.
-4. **Re-resolve pass + setImmediate batching** — first real
-   round-trip. Change `me.hp` server-side, watch the delta land.
-   This is the milestone that proves the architecture works.
-5. **Coarse dependency derivation — collection-shaped queries**:
-   `all things in here`. Adds containment-change dependency
-   handling; introduces the dynamic-set-via-conservative-coarse
-   strategy.
-6. **Canonical subscription kinds (server)** — pre-canned
-   query + field-set pairs registered with friendly names
-   (`inventory`, `things-here`, `slots`, etc.). Each is just
-   a query + field-set tuple; the substrate is already general.
-7. **Capability computation** — coarse bits in refs; build the
-   per-ref evaluator that checks target mixins for category
-   flags.
-8. **Client subscription infrastructure** — Zustand slice
-   managing live subscriptions, applying deltas, cleaning up on
-   disconnect.
-9. **First consumer widgets** — inventory chip strip; slot map;
-   atmosphere readout. ~50-150 LoC each against the slice.
-10. **Inspection card consumer** — `$focus` subscription
-    re-binds as focus shifts; renders detail records.
-11. **`CapabilityChangedEvent` + full capabilities in detail
-    records** — actor-side capability tracking, dependency
-    integration. Lands when the source-preserving affordance
-    accessor does (command-routing § Affordance attribution).
 12. **Composite queries / joined snapshots** (Tier 2) — when
     a widget needs cross-result consistency.
-13. **Adaptive dependency sets** (Tier 2) — when conservative-
-    coarse pushes the perf envelope.
-
-Waves 1-4 are the architectural milestone (one query, end-to-
-end, with real change detection). Waves 5-7 are the substrate
-generalization. 8-10 are the client. 11+ are polish + future.
-10. **Tier 2 polish** — fine-grained dependency tracking, longer
-    debounce options, subscription introspection.
-
-Waves 1-4 are the load-bearing build (probably 2-3 sessions).
-Waves 5-6 are the canon + client. Waves 7+ ship per widget.
 
 ---
 
 ## What this changes upstream
 
-- **Cockpit slate's "state-sync consumer" section** rewrites to
-  "MQL-subscription consumer" with the same intent.
-- **Inspection card slate's wire shape (`InspectionFrame`)
-  goes away** — replaced by a `focus-detail` subscription. The
-  panel just subscribes to `$focus` with `detail` fields and
-  renders the result. Less protocol, same behavior.
-- **Prompt-stack slate's "Future Wave 8: state-sync-driven base
-  prompt format"** becomes "Future: prompt-format token
-  subscriptions." Same idea, sharper mechanism.
-- **The fixed-delta `state-sync-slate.md`** is superseded.
-  Suggest deleting it or marking it explicitly as historical.
+The cockpit, inspection-card and prompt-stack rewrites happened;
+`state-sync-slate.md` is gone. One item is still open:
+
 - **Activity subsystem doc** (`docs/subsystems/activity.md`)
   describes completion mutations as flowing through "the state-
   sync channel." Under the new model, completion side effects

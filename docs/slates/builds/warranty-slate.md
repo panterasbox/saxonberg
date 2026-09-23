@@ -1,8 +1,11 @@
 # Warranty slate — the claim you make about the thing you sell
 
-> **Status: UNBUILT** — verified gap 2026-09-03; contracts, escrow,
+> **Status: UNBUILT** — verified gap 2026-09-03, re-verified 2026-09-19
+> (`CLAUSE_SHAPES` is still `achieve · maintain`; no claim / warranty /
+> representation noun anywhere in code or content); contracts, escrow,
 > accountability, renown, chain-of-title and BUC all exist, but nothing
-> represents a *claim about the thing sold*.
+> represents a *claim about the thing sold*. Found by the farmstead
+> multiplayer pass, which needed producers to sell to each other.
 > **Left:** the representation/assertion primitive · post-delivery clause
 > verification on [contract.md](../../subsystems/contract.md) · the
 > remedy ladder (rescission · replacement · damages · reputation) · the
@@ -10,17 +13,6 @@
 > the proof case
 > **Size:** a build
 
-> **Status: design surface, unbuilt, no phase gate passed.** Found 2026-09-03 by
-> the farmstead *(retired artifact)* multiplayer pass,
-> which needed producers to sell to each other and discovered they cannot say
-> anything binding about what they are selling.
->
-> ⚠ **Verified gap.** Checked against the three docs that would own it —
-> [contract.md](../../subsystems/contract.md),
-> [retail.md](../../subsystems/retail.md),
-> [accountability.md](../../subsystems/accountability.md). **None of them has a
-> representation primitive.** The game has *sale*; it has no *claim*.
->
 > **This is not a farming feature.** It is crafted goods, magic items, livestock,
 > land, second-hand gear, and anything anybody ever sells with a sentence
 > attached. It was found by farming because farming is where producers first had
@@ -31,7 +23,7 @@ the lemons problem and the winner's curse, and the appraiser is this slate's
 natural ally) · farmstead plan *(retired artifact)*
 (**D79** the herdbook as a sales document · **D81** producer trade · **D48** the
 hay that burns the barn) · [legal-code-slate](./legal-code-slate.md) (**where the
-polity chooses**) · [credit-slate](./credit-slate.md) ·
+polity chooses**) · [credit-slate](../tails/credit-slate.md) ·
 [reputation-slate](./reputation-slate.md) · [identification-slate](./identification-slate.md).
 Substrates: [contract.md](../../subsystems/contract.md) (**the mechanism —
 clauses over verifiable conditions, escrow**) ·

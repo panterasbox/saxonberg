@@ -2,23 +2,12 @@
 
 > **Status: UNBUILT** — no quest template, beat or genre exists.
 > **Left:** the template primitive · the beat + condition-detection seam ·
-> the choice function (utility, not a tree) · the genre library · the
-> diegetic director + the multi-party hold
+> the cast surface (typed slot binding, save-gate validated, the two
+> authoring tiers) · one genre cast end-to-end (Mystery, against the
+> forensic win) · the choice function (utility, not a tree) · the genre
+> library · the diegetic director + the multi-party hold · the party
+> deduction board
 > **Size:** a build
-
-> **Status:** foundational design (first pass, 2026-06-29). A *model*,
-> not a build. Captures how we model narrative — the abstraction a
-> content author casts, the runtime that drives it, and the library of
-> genres. Validated by hand against the **Eternal University** arc
-> (onboarding + "An Honest Count"); deliberately **not** scheduled.
-> **Kind:** the eventual generalization of the objective/trace system
-> the [onboarding slate](./onboarding-slate.md) defers as "instance #1."
-> Its own caution governs here: **resist building the framework off
-> N=1.** This slate earns a build by surviving contact with *several*
-> real authored instances — which is what §12 is for.
-> **Retire when:** promoted to formal requirements (the template
-> primitive + the detection seam + one cast genre), or folded into the
-> advancement/objective build that consumes it.
 
 This slate owns the **narrative model**: what a quest *is*, why it takes
 the shape it does, and what an author actually builds. It is engine-

@@ -3,26 +3,34 @@
 > **Status: PARTIAL** — the logistics build shipped (2026-09): real
 > corridors between localities, the induced `Lane` graph, `Route`, the
 > Journey engagement on a game-minute metronome, the bill of lading +
-> rate card, the depot, wagon/team/barge, the haulage labor market, and
-> the teleport-ripple fix → [logistics.md](../../subsystems/logistics.md).
-> Four of § 12's open questions were answered there.
-> **Left:** piracy · live cargo and drovers (the steer walks, the carcass
-> rides) · infrastructure politics — tollgate, turnpike trust, barricade,
-> banditry, congestion, road wear · rail and the ore train (a data
-> addition on the lane substrate) · customs and tariffs (⚠ blocked on a
-> statute engine, not deferred) · warehousing as a business · the
-> wainwright · navigation as a discipline · a passenger market · the
-> entrenchment tier for free movement · the Delight/Kestrel inconsistency
+> rate card, the depot, wagon/team/barge/coach, the haulage labor market,
+> `teamstering`, and the teleport-ripple fix →
+> [logistics.md](../../subsystems/logistics.md). Four of § 12's open
+> questions were answered there.
+> **Left:** piracy + turmoil (a road is safe if help arrives) · live cargo
+> and drovers (the steer walks, the carcass rides) · infrastructure politics
+> — tollgate, turnpike trust, the barricade on a lane edge, banditry,
+> congestion, road wear · rail and the ore train (a data addition on the
+> lane substrate; the train robbery is its integration test; ship with
+> trains or arrive as a shock) · the operator rung — scheduled lines over
+> `ServiceRoute` rows (nothing runs them yet) and a passenger market ·
+> customs and tariffs — the placed checkpoint, registration + tariff,
+> forfeiture, the smuggling rate (⚠ blocked on a statute engine, not
+> deferred; inspection → the enforcement build) · D9 + the entrenchment
+> tier for free movement · trade reporting — customs returns, the O-D
+> matrix, rival indices, returns public by default, the operator view +
+> the coverage ratio · standards (D11) — a slot dimension, weights and
+> measures, the weighbridge · warehousing as a business (record vs
+> reality; mass as the metric) · Heart's Delight the town (a farm and a
+> mill ship; the crossroads depot, packing house and co-op do not) · the
+> demo-content purge (Moor · Practicum · Substation · Hearthworks) · the
+> Delight/Kestrel inconsistency
 > **Size:** a build
 
 **Captured 2026-09-03**, out of *"I wanna start designing and building
 our logistics trade… cooking and tailoring and ranching/farming are
 building now and they all need logistics for the supply chain to be
 complete."*
-
-> **Status: design conversation settled. Requirements not written.**
-> Every ⭐ decision below was taken in the conversation, not proposed.
-> The open questions in § 12 are the ones deliberately left.
 
 ## Relationship to the two existing slates
 
@@ -62,7 +70,7 @@ Substrate: [conveyance](../../subsystems/conveyance.md) ·
 Doctrine this build is bound by: [measurement.md](../../measurement.md)
 (the three layers; *the mirror is never a gauge*) ·
 [settlement-model.md](../../settlement-model.md) § 8 (the six networks) ·
-[gazette-slate](./gazette-slate.md) (*the state aggregates, never
+[gazette-slate](../tails/gazette-slate.md) (*the state aggregates, never
 reports*) · [balance-slate](./balance-slate.md) (*the denominator is
 where the design is*).
 
@@ -75,30 +83,7 @@ Localities: [hearts-delight](../../staging/hearts-delight.md) ·
 
 # Part 0 — ⭐⭐⭐ The finding: the supply chain already runs on teleport
 
-`consigns` and `restocks` are live brains (libations D4 / D7) and they
-work. A producer's floor hand carries stock to a distributor's counter;
-a venue's keeper reads a par sheet and buys the shortfall. Every act is
-a literal verb through `forceCommand`, gated exactly as a typed line is.
-
-And both carry this line in their own headers:
-
-> *"Movement between the floor and the counter is a `teleport` (the
-> `shifts` shape — a walk is the locomotion slate's)."*
-
-**So distance is free today.** That is the same class of magic as the
-bar's `populates:` bottles that [supply-chain-slate](../tails/supply-chain-slate.md)
-went after, one level up the chain and still standing.
-
-⚠ **And there is nowhere to walk.** Every `destination:` in every
-shipped locality was checked: **zero exits cross a locality boundary.**
-Terminus, Hinkley Hills, Rejection, the Moor, the Practicum, the
-University, the Lounge and newbie-wilds are islands stitched together
-only by TPA terminals. The freight slate's centrepiece — *"you do not
-author roads, you author which exits admit `wheeled`, and the road
-network is the induced subgraph"* — has no graph to induce from.
-
-> ⭐⭐ **The realm has teleportation and no roads. That is the hole, and
-> both halves of it are this build's.**
+> Shipped → [logistics.md](../../subsystems/logistics.md) (the intro; § The forcing function): the mainland is contiguous, `consigns` walks the road and `restocks` posts and receives — neither teleports.
 
 ---
 
@@ -124,32 +109,9 @@ Eleven decisions, all taken in conversation. Detail follows.
 
 # Part 2 — D1/D2: the realm, contiguous
 
-**User: "I want all content in the game (except for Saxonberg locality)
-to be contiguous at this point. We'll have other TPA-only nodes later
-but for now I want to shape one world."**
-
-⭐ Saxonberg is the **diegetic seat of the Compact**, and it does not
-exist because it is content meant to be built by decree of the pact
-itself. It is excluded by design, not by omission. The Lounge is
-TPA-only for its own reasons and stays that way.
-
 ## The map, and most of it was already drawn
 
-The water build authored the hydrology and
-[hearts-delight](../../staging/hearts-delight.md) authored the valley.
-Put them together and the freight spine is already decided:
-
-```
-   ▲ REJECTION — the headwaters (1400 m), the snowpack, the ore
-   │        ↑ the pass Halloran came over
-   │   ═════╪══════ the valley road ═════════════════▶ TERMINUS (35 m)
-   │   the crossroads: depot · packing house · store · co-op · the tower
-   ▼ the Delight ──▶ the confluence (30 m) ──▶ TERMINUS ──▶ the estuary
-```
-
-> *"The road Halloran came down is the same valley road that now carries
-> ore to the city."* — ⭐ **one line on the map carrying the watershed,
-> the freight route and the founding.**
+> Shipped → [logistics.md § The corridors](../../subsystems/logistics.md) (the spine end to end; the Lounge and Saxonberg TPA-only by design).
 
 | place | where | note |
 |---|---|---|
@@ -169,33 +131,11 @@ corridor destination; that was wrong.
 
 ## Two corridors carry the whole economy
 
-- **the valley road** — ore and produce down, capital and manufactures
-  up;
-- **the navigable Kestrel below Terminus** — the export road to the sea.
-
-Everything above the confluence is **road-only**, and the authored
-hydrology is what says so. `kestrel.yaml`, in its own comments:
-
-> **gorge** — *"Steep enough that no boat has ever been up it."*
-> **confluence** — *"Wide enough for a boat most of the year, and the
-> build authors no boats — the fact simply sits here waiting for the
-> wave that wants it."*
-
-**This is that wave.**
+> Shipped → [logistics.md § Three lanes ship](../../subsystems/logistics.md): `spine` (wheeled, stops at the pass) and `estuary` (sailed, below the confluence — the lane inherits the gorge rather than restating it).
 
 ## ⭐ What "enough geography" means — the corridor
 
-The abstraction the build needs is the **corridor**, and it needs
-exactly four things: which places it joins, **what modes it admits**,
-roughly **how long**, and **whose jurisdiction** (or nobody's). Journey
-duration, freight rates, tolls, banditry and von Thünen all read off
-those four. Nothing needs metres-per-room and no final survey is
-required.
-
-The shipped valley road is the exemplar — five ordinary rooms, walkable
-both ways, **following the river because rivers cut the only gradeable
-path** (watershed D21). Corridors get a reason instead of being
-arbitrary.
+> Shipped → [logistics.md § The corridors](../../subsystems/logistics.md) (*length is an event budget, not a distance*; three lanes; one corridor covered and one not — § Addresses, and the jurisdictional gap).
 
 ⚠ **One inconsistency to resolve before it hardens.**
 [hearts-delight](../../staging/hearts-delight.md) says *"the ore town's
@@ -209,51 +149,16 @@ standing to sue whom** and should be written down now.
 
 # Part 3 — D3/D4: there is no tech ladder, there is a cost surface
 
-**User: "I want this realm to be intentionally anachronistic. Just
-because there's rail travel doesn't mean people don't also use carts. It
-depends where they land on the economic ladder, with technology and
-magic also playing a role."**
-
-## The realm is not medieval, and Heart's Delight already proved it
-
-The staging doc ships a **railroad**, and it is not set dressing: it is
-the town's origin. Halloran gives the right-of-way *because he had once
-been trapped on the wrong side of a mountain in winter.* The depot's
-**railroad paperwork** is a document-quest; the Hendy site is *"a yard
-with rail frontage and no building."*
-
-⚠ So the standing doctrine — *trades ship medieval and advance as
-players exercise disciplines* (user, 2026-08-31; farming plan P10) —
-needed sharpening rather than applying flat. It is about
-**a trade's kit — what a practitioner holds in their hands.** It was
-never about the world's infrastructure. **You can ride a train without
-being able to build one.**
-
-## ⭐⭐ The resolution
-
-> **The player-operable ladder is the low one and stays there forever.
-> Rail and the TPA are incumbent infrastructure — you buy passage on
-> them, you never operate them.**
-
-| | who runs it | what a player does |
-|---|---|---|
-| back · pack animal · handcart · **wagon + team** · **barge** | **players** | operate it, hire it out, compete on it |
-| **rail** | a corpo holding a right-of-way | pay the tariff, resent it, **legislate it** |
-| **TPA** | the Teleport Authority | pay the mana — and it will not take your cargo anyway |
-
-This keeps the trades doctrine intact instead of contradicting it, and
-it **pre-loads the freight slate's antitrust arc for free**: the teamster
-does not lose to the railroad because a villain was authored. He loses on
-the trunk route because a railroad is genuinely better at trunk routes,
-and he wins on everything the rail does not reach.
+> Graduated → [logistics.md § The lane](../../subsystems/logistics.md), *Why an incumbent, and why no tech ladder*: the player-operable ladder is the low one, permanently; rail and the TPA are incumbents you buy passage on; *trades ship medieval* is about a practitioner's KIT, never the world's infrastructure. What follows is the cost-surface argument itself, kept as doctrine.
 
 ## The cost surface, and why every rung survives
 
-Anachronism is not a conceit. Right now a container ship, a freight
-train, a truck, a bike courier and a man with a handcart all exist and
-all make money. It only looks anachronistic if you assume technologies
-*replace* each other — and they do not, because they do not compete on
-one axis.
+> The argument (*capacity and reach move in opposite directions,
+> monotonically; no rung dominates another, so no rung goes extinct; the
+> railroad does not go to your door; every anachronism must be
+> economically motivated*) is in
+> [logistics.md § The lane](../../subsystems/logistics.md), *Why an
+> incumbent, and why no tech ladder*. The surface itself:
 
 | mode | capacity | reach | cost | who takes it |
 |---|---|---|---|---|
@@ -264,16 +169,6 @@ one axis.
 | rail | enormous | **the line only** | a tariff you do not set | the corpo, and whoever pays |
 | TPA | one person + carry | the star's nodes | mana | anyone with a card |
 | a spell | small | ⭐ **arbitrary** | dear | a courier, never a freighter |
-
-> ⭐⭐ **Capacity and reach move in opposite directions, monotonically.**
-> The bottom rung reaches everywhere and carries nothing; the top rungs
-> carry everything and reach almost nowhere. **No rung dominates
-> another, so no rung goes extinct** — and that needs no rule, no
-> "primitive tech" flag and no era gating. It is the shape of the table.
-
-Which gives the permanent, honest reason a handcart survives a railroad:
-**the railroad does not go to your door.** Last mile is a topological
-niche, not a nostalgic one.
 
 ⭐ **Magic is a point on the surface, not a tier above it** — dear,
 small, arbitrary reach. Which makes it the courier's tool and never the
@@ -294,117 +189,17 @@ the smallholder cannot get.
 
 ## ⚠ The one guard that keeps this from reading as slop
 
-> **Every anachronism must be economically motivated.** A cart beside a
-> railroad is right because the cart does what the railroad cannot. A
-> cart beside a railroad *doing the same job on the same route* is set
-> dressing.
-
-Rail is the trunk; everything else feeds it or reaches where it does
-not. Then a player who sees a barrow and a locomotive in one room reads
-**stratification**, not confusion — and the world gets to be visibly
-unequal in a way that is about **who can afford which row.**
+> *Every anachronism must be economically motivated* — documented with the
+> decision in [logistics.md § The lane](../../subsystems/logistics.md).
+> What the guard buys: a player who sees a barrow and a locomotive in one
+> room reads **stratification**, not confusion — the world is visibly
+> unequal in a way that is about **who can afford which row.**
 
 ---
 
 # Part 4 — D5: how a mode manifests
 
-**User: "there's two opposing treatments: pathfinding where you actually
-visit every node, and teleportation where you just go from source to
-destination… this isn't a binary choice, there's grades in between. Our
-locations and containers are the atomic units of travel, that's our
-quantum layer. But then we can build graphs on top of those nodes that
-represent different lanes for different transports — kind of the way
-Scotland Yard works."**
-
-## ⭐⭐ `ExitableVessel` is a railway carriage
-
-Spatial ships `Vessel` (a container-object at any scale, bag → cart →
-ship; `Tangible` + `Atmospheric` + `Container` + `Containable`) and
-`ExitableVessel` (one with a **navigable interior** — its own exits, a
-door, `Adornable` fixtures). *"Anything with navigable interior is a
-Vessel."* Compose `Mobile` and the conveyance ripple already carries
-whoever is inside.
-
-So the middle treatment is not a compromise between the two. It is a
-third thing that dominates both:
-
-> ⭐⭐⭐ **You do not skip the journey. You sit in a room that makes it.**
-> Boarding is `move(you, carriage)`. Your avatar never moves again until
-> you get off — but the *carriage* is genuinely in each node it passes,
-> so the world moves past you.
-
-Which buys, for free: fellow passengers, a door that opens at stops,
-cargo in the same container as you, and the one that matters — **you can
-be robbed on a train**, because the train is a real place.
-
-## The dial is on the lane, not on the traveller
-
-Two independent numbers per lane; the experience falls out of them.
-
-| | **stop density** — where you may board/alight | **duration** — game time per edge |
-|---|---|---|
-| foot | every node | short per edge, many edges |
-| road coach | inns and villages | real |
-| barge | landings | real, ⭐ asymmetric up/down |
-| rail | depots only | real |
-| **TPA** | **no intermediate stops** | **zero** |
-
-> ⭐⭐ **Teleportation stops being a special case — it is the limit: a
-> lane with no intermediate stops and no duration.** One mechanism from
-> walking to the TPA.
-
-The two dials must stay independent, and that is the important part: an
-express train has *few stops and real time*, and that gap is where the
-experience lives. **A journey you cannot get off of but which takes an
-hour is a place you are for an hour.** A journey that takes zero time is
-nothing at all — which is why the TPA is correctly boring and must not be
-made interesting.
-
-That is Scotland Yard exactly: one node set, several edge sets. The taxi
-has two hundred stops; the underground has three. **Sparse lanes are
-fast because they stop less**, not because they were given a speed stat.
-
-## Route = an ordered node sequence + a stop set
-
-Express versus local is the same lane with a different stop set. That is
-a real timetable and it costs one small object.
-
-⭐ It also settles observability: an edge may **pass through** nodes it
-does not stop at, so people at the crossroads watch the ore train go by
-without being able to board it.
-
-> ⭐⭐ **And it means we never carpet the region in rooms.** Author the
-> valley road at walkable density (5–8 real places per corridor); the
-> rail lane rides the same nodes with two stops on it.
-
-## The four experiences — and they are four verbs
-
-| | you are | the "during" is | who this is for |
-|---|---|---|---|
-| **drive** | the driver — **hands engaged**, cannot fight | every road node, in real time | the teamster; the RPG |
-| **ride** | a passenger — ⭐ **no engagement at all**, so you are free | a moving room with strangers in it | the coach, the barge deck, the carriage |
-| **consign** | ⭐ **not travelling** | your goods, in a real container, genuinely at risk | **the industry** |
-| **teleport** | alone, with what you can carry | nothing, deliberately | anyone with a card |
-
-⭐ **Freight and passenger are one mechanism — a freight journey is a
-passenger journey where the passenger is a crate.** Custody is
-containment; theft in transit is taking something out of a moving
-container. All shipped.
-
-**D6: consign ships first**, because the interesting decision is *which
-carrier, at what rate, against what risk* — not whether you enjoyed the
-ride.
-
-## ⭐ No ghost logistics
-
-`EngagedMixin` is on `Character`, so every moving service has somebody
-driving it — an NPC if not a player.
-
-> **Every service is a payroll.**
-
-Freight is therefore a *job*, wages are a real cost line, and a
-teamsters' guild striking against a freight corpo actually stops
-something. The labour/capital fault line gets teeth instead of flavour.
+> Shipped → [logistics.md](../../subsystems/logistics.md): § The vehicles (`Coach` is the `ExitableVessel` consumer; passengers are contents, so an open rig shows you the road), § The Route (one lane, two stop sets; the TPA as the limit case is stated, not stored — § There is no `tpa` lane), § The labor market (the four verbs; *every service is a payroll*), § Players and NPCs do not travel the same way (`go <vehicle>` / `out`). Consign shipped first, as `ship`.
 
 ## What the colony games teach
 
@@ -431,37 +226,13 @@ both scales.
 
 # Part 5 — D7: duration is priced in vulnerability
 
-**User: "if it's too long, people will just use movement scripts to walk
-everywhere because it's faster. That only applies to players though —
-the real place it matters is for NPCs, since time in transit is time
-you're potentially vulnerable."**
-
-The competition is not what it looks like. Walking is free, universal,
-and carries ~20 kg. A service carries 400.
-
-> ⭐ **A service never has to beat walking for a person. It competes with
-> walking for a person carrying forty crates — and there, walking is not
-> slower, it is impossible.**
+> Graduated → [logistics.md § The metronome and the score](../../subsystems/logistics.md), *Why the number is what it is*: a journey takes time so that there is a window in which the cargo is on the road and can be taken, taxed, inspected or lost. ⚠ The paragraph kept below is contradicted by § The cost surface is OPT-IN — a hitched rig follows `go` in zero game time, so encumbrance alone does not kill the incentive to script the walk.
 
 Encumbrance already draws that line, exactly where the industry lives,
 so the incentive to script the walk evaporates. And for a bare person,
 **walking should win** — historically the coach carried people who could
 afford not to walk. **Riding is a purchase of comfort and safety, not of
 time**, which is the economic-ladder texture again.
-
-Then the rule that sets the number:
-
-> ⭐⭐ **A journey takes time so that there is a window in which the cargo
-> is on the road and can be taken, taxed, inspected or lost.**
-
-Which makes it derivable rather than a taste call: **transit must be long
-enough that someone who learns a shipment is moving can reach the road
-and act on it.** If reaching the corridor takes two minutes, transit is
-several. Player patience never enters into it.
-
-⚠ This composes with the freight slate's ⭐⭐⭐⭐ invariant — *no economic
-entitlement may depend on the rate at which a member's commands are
-processed.* Reports and rates are on **game time**, never wall-clock.
 
 ---
 
@@ -473,15 +244,7 @@ economic implications."**
 
 ## A border is derived, not authored
 
-`AddressApi.resolveLocalityFor` and `coverageChainOf` ship, with
-`GovernmentApi.governmentAt(address)` on top. Therefore:
-
-> **Any exit whose two sides resolve to different localities *is* a
-> border crossing.** Nobody authors one. There are already hundreds.
-
-And the coverage walk can return **nothing** — a road between two
-localities may belong to neither. The realm already has three kinds of
-ground: *inside a jurisdiction*, *between two*, and *outside all*.
+> Shipped and derivable → [logistics.md § Addresses, and the jurisdictional gap](../../subsystems/logistics.md), [address.md](../../subsystems/address.md): three kinds of ground — inside a jurisdiction, between two, outside all.
 
 ## ⭐⭐ The border is everywhere; the checkpoint is somewhere
 
@@ -609,20 +372,7 @@ its own reasons.**
 | **customs declaration** | the duty must be assessed on something | imports and exports by locality |
 | **consignment / `PricedOffer`** | ✅ already ships | price, by commodity, by place |
 
-> ⭐⭐⭐ **The reports are queries over instruments that had to exist
-> anyway.** Nothing here is a reporting subsystem: the bill of lading
-> *is* the datum, and MQL is already the query language.
-
-⭐ It also lands on the right side of the no-new-collections rule — these
-are **Documents** under the owning parcel, not a new ledger. And the
-warehouse receipt is the freight slate's borrowable instrument, so the
-bearer/registered split from
-[credential.md](../../subsystems/credential.md) applies unchanged: **a
-bearer receipt is a Thing you can steal; a registered receipt is a record
-you cannot.**
-
-**D10: the bill of lading ships in wave 1.** It is the datum for
-everything below and expensive to retrofit.
+> *Reports are queries over instruments that had to exist anyway* shipped → [logistics.md § Reporting is a query over the paper](../../subsystems/logistics.md) (`WaybillRegistry.freightOf` / `trafficOf`, `house freight`). ⚠ The bearer/registered split did NOT ship: the receipt is a RECORD only and the bearer `Thing` was cut before merge → § The warehouse receipt. The customs declaration is Part 6's.
 
 ## What falls out
 
@@ -652,16 +402,14 @@ with a body.
 
 ## ⚠ Two doctrine constraints, from measurement.md
 
-**1. The engine may publish quantities. Never a verdict, never a gauge.**
-No "economic health: 78%." An *index* is a weighted basket, therefore a
-**valuation**, therefore layer 2. Per the corrected rule (*the engine
-measures and may publish; it must never be the only rater*) the engine
-may publish an aggregate **provided the weights are published and it is
-not the only rater.**
-
-**2. The gazette publishes; the state aggregates.** Returns are a record
-*in a place*; turning them into news is **a person holding a seat**,
-which is where significance legitimately enters.
+> Both are [measurement.md](../../measurement.md)'s (*the engine measures
+> and may publish; it must never be the only rater* — Part 1; *the mirror
+> is never a gauge* — Part 6) and [press.md](../../subsystems/press.md)'s
+> (*the state aggregates, never reports*). Applied here: no *"economic
+> health: 78%"* — an index is a weighted basket, therefore a valuation,
+> therefore layer 2, publishable only with its weights published and
+> never as the sole rating; returns are a record *in a place*, and turning
+> them into news is a person holding a seat.
 
 ## Rival indices
 
@@ -855,10 +603,6 @@ and neither decision was made with the other in mind.**
 which is warehousing… what is a warehouse. It's just a really really big
 container. But that bigness gives it certain properties and needs."*
 
-> **Status: design captured, deliberately DEFERRED.** The logistics build
-> ships the receipt and the bailee's duty and nothing else of this. → the
-> **warehouse build**.
-
 ## ⭐⭐ A small container is a thing; a big one is a PLACE
 
 Bigness is not a container property. It is **the point at which you stop
@@ -955,35 +699,7 @@ on, a scale, and `coldStorage` with no default.
 
 # Part 11 — inventory: what ships, what is new
 
-## Already shipped (verified in this pass)
-
-| | where |
-|---|---|
-| `Hauler` / `Haulable`, `passageMode`, `hitch` / `unhitch` | `lib/slot/`, `platform/idea/cmd/movement/` |
-| `Handcart`, `HaulingCreature` | `platform/thing/equipment/`, `platform/agent/` |
-| `LocomotionMode` — `wheeled` · `ride` · `drive` | platform pack content |
-| `Vessel` / `ExitableVessel` — navigable interior, door, fixtures | `lib/stuff/`, `lib/boundary/` |
-| the conveyance ripple (occupants move with the host) | `Mobile.traverse` |
-| per-location **extent** override | shipped by the ranged build |
-| encumbrance / `LoadBearing` | `lib/encumbrance/` |
-| `AddressApi.resolveLocalityFor` · `coverageChainOf` · `GovernmentApi.governmentAt` | `api/address.ts`, civics |
-| contract gigs — clauses, escrow, board, the custodian rule | `contract.md` |
-| chattel chain-of-title · the attendant queue · `Business` + positions · `PricedOffer` + consignment | as documented |
-| the five-room **valley road** Terminus ↔ Hinkley Hills | `terminus` pack |
-| the hydrology — reaches, elevations, derived navigability | `world-seed`, water pack |
-
-## New in this build
-
-| | note |
-|---|---|
-| **corridors** — real exits between localities | content, the bulk of the world work |
-| **lane graph + `Route`** (ordered nodes + stop set) | small; the one genuinely new object |
-| **the Journey** — a `SustainedEngagement`, per-leg `traverse` | fully designed in [freight-slate](./freight-slate.md) § *The Journey*; not built |
-| **the bill of lading** (+ warehouse receipt) | Documents; the datum for all reporting |
-| **the checkpoint** — registration + tariff | inspection deferred |
-| **the depot** | attendant queue + warehouse + `Business` — shipped shapes |
-| **wagon + team, barge** | vehicles above the handcart |
-| ⚠ **the teleport-ripple defect** | teleport while mounted or hitched silently leaves the horse/cart behind. Recorded in [conveyance.md](../../subsystems/conveyance.md); squarely in this build's path. |
+> History: the pre-build audit and the build inventory. Everything in both tables shipped (retired `logistics-plan.md`, W0–W9 all ✅) except the **checkpoint**, whose design is Part 6's → [logistics.md](../../subsystems/logistics.md).
 
 ---
 
@@ -995,12 +711,10 @@ on, a scale, and `coldStorage` with no default.
 > politics, the railway, the entrenchment tier — is design surface the
 > build never touched, and § 8–11 above go with them.
 
-1. ✅ **Rates** — ANSWERED (logistics build): a published `rate-card`
-   document, visible to a non-employee and settable by the carrier. See
-   [logistics.md](../../subsystems/logistics.md) § The rate card.
-2. ✅ **Load model** — ANSWERED: **both**, on one rig. `HaulageRig` is
-   `Bulkable(Haulable(Vessel))` — discrete cargo in the vessel, continuous
-   matter in bulk slots, "because half of freight is not countable".
+1. Q1 resolved: a published, superseding rate card on a board →
+   [logistics.md § The rate card](../../subsystems/logistics.md).
+2. Q2 resolved: both, on one rig — `HaulageRig` is `Bulkable(Haulable(Vessel))`
+   → § The vehicles.
 3. **Live cargo / drovers** — the steer walks and the carcass rides, the
    marquee case. Deferred in conversation because ranching is in flight;
    **not formally ruled out.**
@@ -1008,10 +722,8 @@ on, a scale, and `coldStorage` with no default.
    warehouse receipt come nearly free with the bill of lading. The
    tollgate, the turnpike trust and the barricade/banditry cluster are a
    bigger bite. Where is the line?
-5. ✅ **Journey duration** — ANSWERED, and in GAME minutes rather than
-   real: `edgeMinutes × modeFactor × loadFactor`, spent on a
-   one-game-minute metronome. ⚠ The build's own AC had to be corrected
-   from real hours to game hours mid-flight; the ratio is 12×.
+5. Q5 resolved: GAME minutes, `edgeMinutes × modeFactor × loadFactor` on a
+   one-game-minute metronome → § The metronome and the score.
 6. **Does the rail ship with trains, or arrive as a shock?** User wants
    as much built or designed as possible. Building the road economy first
    and *then* landing the railroad on it is the nineteenth century
@@ -1020,11 +732,8 @@ on, a scale, and `coldStorage` with no default.
 7. **Entrenchment tier for free movement.** D9 ships without the rule; if
    fragmentation stalls the economy, is the mitigation a Compact-tier
    default the polity may repeal, or a C-tier the polity must enact?
-8. ✅ **Can a passenger perceive out of a moving vessel?** ANSWERED, and
-   it needed no seam: an open rig is an **open container**, and
-   `MixinApi.isOpenContainer` is the single rule `canReach`, the MQL
-   `peers` walk and `VisionModality` all already ask. Open conveyance =
-   you watch the road go by; sealed = you do not.
+8. Q8 resolved: an open rig is an open container, and `MixinApi.isOpenContainer`
+   is the one rule → § The vehicles.
 9. **Does the barricade reference exits or lane edges?** § 10 needs the
    latter; the freight slate left exits-vs-directions open.
 10. ⚠ **The Delight/Kestrel inconsistency** (§ 2) — the locality build's
@@ -1034,24 +743,9 @@ on, a scale, and `coldStorage` with no default.
 
 # Appendix — the six networks, updated
 
-[settlement-model.md](../../settlement-model.md) § 8 named six. This
-build changes two rows:
+> Superseded by the build: roads and freight ship (`logistics.md`); rail is designed only, as the `edges[]` authored-lane hatch the Ferrow tramway proves. ⚠ [settlement-model.md § 8](../../settlement-model.md) still reads *roads: three rooms · freight: designed* — the corrected rows are in the compaction ledger's Handoff.
 
-| network | shape | state |
-|---|---|---|
-| the watershed | a tree, flowing one way | ✅ ships |
-| the address tree | political containment | ✅ ships |
-| TPA | a star | ✅ ships |
-| banking | a star | ✅ ships |
-| the aether | ⭐ a **complete graph** | ✅ ships |
-| the press | broadcast, one → many | ✅ ships |
-| **roads** | a graph, walkable, costly | ⚠ three rooms → **this build** |
-| **freight** | lanes over the road graph | designed → **this build** |
-| **rail** | ⭐ a sparse lane, incumbent-owned | **new — designed here** |
-
-> ⭐⭐⭐ **Information is a complete graph. Goods are a star.** Perfect
-> information, imperfect delivery. You always know the price in the city;
-> getting your ore there is the whole problem.
-
-That was true by construction before this build. **After it, the second
-half stops being an assertion and becomes something a player does.**
+> *Information is a complete graph. Goods are a star.* — verbatim in
+> [settlement-model.md § 8](../../settlement-model.md). After this build
+> the second half stops being an assertion and becomes something a player
+> does.

@@ -208,6 +208,84 @@ describe('the naming gate', () => {
   });
 });
 
+describe('⭐⭐ hasChosen — the naming gate has two routes home (fishing D10)', () => {
+  /** A bonded animal: steady handling, devoted regard. */
+  function devoted(): { a: Animal; me: Stuff } {
+    const a = animal(species({ biddability: 0.1, floor: 0.15, ceiling: 0.9 }));
+    a.handling = 0.9;
+    const me = person('/platform/agent/Avatar/me');
+    a.setRegard(me, 90);
+    expect(a.bondWith(me)).toBeGreaterThanOrEqual(NAME_BOND);
+    return { a, me };
+  }
+
+  it('no bond, no choice — whatever the route', () => {
+    const a = animal(species({ floor: 0.15, ceiling: 0.9 }));
+    const me = person('/platform/agent/Avatar/me');
+    a.rememberFollowed(me);
+    a.homeEarnedDay = 3;
+    expect(a.hasChosen(me)).toBe(false);
+  });
+
+  it('a follower has chosen you', () => {
+    const { a, me } = devoted();
+    expect(a.hasChosen(me)).toBe(false);
+    a.rememberFollowed(me);
+    expect(a.hasChosen(me)).toBe(true);
+  });
+
+  it('⚠ a SEEDED home is not an earned one — born somewhere is not choosing it', () => {
+    const { a, me } = devoted();
+    // The birthplace seed: home is set, homeEarnedDay is not.
+    a.setHome('/test/lane');
+    expect(a.homeEarnedDay).toBe(-1);
+    expect(a.hasChosen(me)).toBe(false);
+  });
+
+  it('⭐ three distinct fed days in one place earn it — and it must be THERE', () => {
+    const { a, me } = devoted();
+    const bowl = makeStuffAtPath(() => new Thing(), '/test/bowl');
+    const key = a.homeKeyOf(bowl);
+    expect(key).toBe('/test/bowl');
+    a.creditHomeCandidate(key, 1);
+    a.creditHomeCandidate(key, 2);
+    expect(a.hasChosen(me)).toBe(false); // two days: not yet
+    a.creditHomeCandidate(key, 3);
+    expect(a.homeEarnedDay).toBe(3);
+    // Earned, but it is not in that place right now.
+    vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true as never);
+    (a as unknown as { getContainer: () => Stuff | null }).getContainer = () => null;
+    expect(a.hasChosen(me)).toBe(false);
+    (a as unknown as { getContainer: () => Stuff | null }).getContainer = () => bowl;
+    expect(a.hasChosen(me)).toBe(true);
+  });
+
+  it('⭐ a stamped chattel is a home by its CHATTEL id, never its template path', () => {
+    const a = animal();
+    const bowl = {
+      getChattelId: () => 'abc',
+      isStamped: () => true,
+    } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isChattel').mockReturnValue(true as never);
+    expect(a.homeKeyOf(bowl)).toBe('chattel:abc');
+  });
+});
+
+describe('takesFromHand — the surface rung is the water\'s hand rung', () => {
+  it('a hand-fed species takes from the hand; a surface feeder does too; a hopper bird does not', () => {
+    expect(animal(speciesFeeding(['hand'])).takesFromHand()).toBe(true);
+    expect(animal(speciesFeeding(['surface'])).takesFromHand()).toBe(true);
+    expect(animal(speciesFeeding(['hopper'])).takesFromHand()).toBe(false);
+    expect(animal().takesFromHand()).toBe(false);
+  });
+
+  it('offerRung treats a surface feeder as it treats a hand feeder', () => {
+    const a = animal(speciesFeeding(['surface']));
+    a.handling = 0.7;
+    expect(a.offerRung(person('/platform/agent/Avatar/x'))).toBe('hand');
+  });
+});
+
 describe('composition', () => {
   it('is Bonded, and a bare Thing is not', () => {
     expect(MixinApi.isBonded(animal())).toBe(true);

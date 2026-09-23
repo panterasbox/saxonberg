@@ -469,7 +469,42 @@ export default class SchedulerRegistry extends Idea {
     }
   }
 
+  /**
+   * ⭐ The exertion emit — the one place every durative activity's work
+   * reaches the body. An activity that declares `effortW` cost its actor
+   * that power for its duration; at completion the whole of it, at a
+   * cancel the fraction that elapsed. Narrowed on `isExerting` exactly as
+   * the envelopes narrow on `isSensor`. Runs BEFORE the completion
+   * closure so a too-tired state is visible to whatever the step does.
+   *
+   * ⚠ The pro-rata fraction uses wall elapsed × the clock scale against
+   * a game-ms duration; a paused world clock over-credits a cancelled
+   * step slightly. Acceptable — a cancel is the rare path.
+   */
+  private emitExertion(e: DurativeActivity, fraction: number): void {
+    if (!e.effortW || e.effortW <= 0 || e.duration <= 0) return;
+    if (!MixinApi.isExerting(e.actor)) return;
+    const f = Math.max(0, Math.min(1, fraction));
+    if (f <= 0) return;
+    try {
+      e.actor.exert({ durationS: (e.duration / 1000) * f, powerW: e.effortW });
+    } catch (err) {
+      console.error(
+        `SchedulerApi: exert threw for engagement '${e.engagementId}' ` +
+          `(type '${e.type}')`,
+        err,
+      );
+    }
+  }
+
+  private elapsedFraction(e: DurativeActivity): number {
+    if (e.duration <= 0 || !e.startedAt) return 0;
+    const gameMs = (Date.now() - e.startedAt) * WorldClockApi.getScale();
+    return gameMs / e.duration;
+  }
+
   private runOnCompleteInPlace(e: DurativeActivity): void {
+    this.emitExertion(e, 1);
     try {
       this.dispatchOnComplete(e);
     } catch (err) {
@@ -493,6 +528,7 @@ export default class SchedulerRegistry extends Idea {
   private completeFromTimer(e: DurativeActivity): void {
     this.clearTimersAndSubs(e.engagementId);
     this.deregister(e);
+    this.emitExertion(e, 1);
     this.safeInvokeComplete(e);
   }
 
@@ -500,6 +536,13 @@ export default class SchedulerRegistry extends Idea {
     if (!this.engagementsById.has(e.engagementId)) return;
     this.clearTimersAndSubs(e.engagementId);
     this.deregister(e);
+    // A step you were barged out of still cost you the part you did.
+    if (
+      isDurativeActivity(e) &&
+      (reason === 'cancelled' || reason === 'replaced' || reason === 'preconditions-changed')
+    ) {
+      this.emitExertion(e, this.elapsedFraction(e));
+    }
     try {
       this.dispatchOnAbort(e, reason);
     } catch (err) {

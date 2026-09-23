@@ -6,6 +6,37 @@ fight as one side. It is the party half of the multi-party combat cycle
 (the combat half is [combat.md](./combat.md)); the two are joined by one
 narrow seam.
 
+## Why the party is small, operational, and nothing else
+
+The governing discipline is **keep the party small and *operational***:
+a party is *"who I'm doing this with right now,"* full stop. The biggest
+risk to the design is scope-creep — a party wanting to become a
+**guild** (teach you), a **corp** (employ you), or an **XP treadmill**
+(level up as a group) — and the shipped shape refuses all three by
+carrying none of their surfaces. Two principles follow. **Small and
+operational**: a squad (≈2–6), not an army — party-level tactic presets
+([combat-formations.md](./combat-formations.md)) are legible *only*
+because parties are small (the text-medium requirement), and the party
+is the **disposable axis**, formed and dissolved constantly (no size cap
+is enforced in code; the smallness is a design property the presets
+depend on, not a gate). **General-operational; combat is one facet**:
+you party up to travel, explore, work a contract *and* fight — which is
+why `form`/`accept`/`muster` are not combat-gated and the tactic is the
+combat facet only, dormant otherwise. The wall that keeps it from
+swallowing the design is three axes that never merge:
+
+| Axis | Answers | Scale | Nature |
+|---|---|---|---|
+| **Party** | *who I'm doing this task with* | small | operational / tactical |
+| **Guild** | *where I learned my craft* | large | educational / professional |
+| **Corp** | *who I work for* | large | economic / affiliation |
+
+A party of people from different guilds can work a contract for a corp;
+a party does **not** teach you and does **not** employ you (employment is
+the `Business`, [employment.md](./employment.md)). The party is fluid and
+disposable; guild/corp membership is durable and consequential. Source:
+`party-slate` § Principle · § The three-axis wall.
+
 ## The governing decision: a party owns its own membership
 
 A party is **not** a managed `Group`. The grouping subsystem
@@ -37,6 +68,13 @@ in the object graph — whose state is **encapsulated on the object**:
 | `combatSide` | the alignment key members share; `''` = the party's own `party:<path>` (the default) |
 | `durable` | ad-hoc (Idea-only) vs durable (mirrored to a record) |
 | `channelRef` | the party chat channel's name, or `''` |
+
+**Succession is FIFO, not elected.** `Party.release` (called by `leave`/
+`kick`) repoints `captainId` to `memberIds[0]` whenever the departing
+member was captain — no election, no vote. There is no leaderless mode:
+`form` always sets the founder as captain, and a non-empty party always
+has one. Only `settleAfterDeparture`'s empty-party terminus clears
+`captainId` (durable: dormant; ad-hoc: `StuffApi.destruct`ed).
 
 Being an Idea (rather than a bare `Document`) buys three things: the
 state lives on the object (no external store holding it); the party is

@@ -253,6 +253,65 @@ describe('the target\'s own verbs vs the viewer\'s', () => {
 });
 
 /**
+ * A thing that posts its verb to its PEERS — the animal's shape: every
+ * pet verb is a `peers` contribution of the animal itself.
+ */
+class Pet extends VisibleMixin(
+  TangibleMixin(NamedMixin(ContainableMixin(Idea))),
+) {
+  static commandContributions = {
+    self: [],
+    inventory: [],
+    environment: [],
+    peers: ['platform/cmd/social/pet.yaml'],
+  };
+}
+/** An open container standing in the room — a bowl. */
+class Bowl extends VisibleMixin(
+  TangibleMixin(NamedMixin(ContainerMixin(ContainableMixin(Idea)))),
+) {}
+
+describe('⭐ peers reach one level into an OPEN container standing in the room (fishing)', () => {
+  const verbsOf = (v: Viewer): string[] =>
+    viewerOf(v).getAvailableCommands().flatMap((c) => c.verbs);
+
+  it('a peers verb from inside a bowl on the floor reaches whoever stands there — both ways', () => {
+    const room = makeStuff(() => new Room());
+    const viewer = makeAnimateViewer();
+    const bowl = makeStuff(() => new Bowl());
+    const pet = makeStuff(() => new Pet());
+    ContainmentApi.move(viewer, room);
+    ContainmentApi.move(bowl, room);
+    expect(verbsOf(viewer)).not.toContain('pet');
+    // The animal goes INTO the bowl: the room's people get its verb.
+    ContainmentApi.move(pet, bowl);
+    expect(verbsOf(viewer)).toContain('pet');
+    // And somebody arriving later gets it too.
+    const later = makeAnimateViewer();
+    ContainmentApi.move(later, room);
+    expect(verbsOf(later)).toContain('pet');
+    // Out of the bowl and out of the room: gone.
+    ContainmentApi.move(pet, makeStuff(() => new Room()));
+    expect(verbsOf(viewer)).not.toContain('pet');
+    expect(verbsOf(later)).not.toContain('pet');
+  });
+
+  it('⚠ a CLOSED container hides its contents\' verbs, as the scope hides the things', () => {
+    // A command giver is never an "open container" — its contents are
+    // its inventory, not the room's: an animal in your ARMS is
+    // `environment` business, not `peers`.
+    const room = makeStuff(() => new Room());
+    const viewer = makeAnimateViewer();
+    const other = makeAnimateViewer();
+    const pet = makeStuff(() => new Pet());
+    ContainmentApi.move(viewer, room);
+    ContainmentApi.move(other, room);
+    ContainmentApi.move(pet, other);
+    expect(verbsOf(viewer)).not.toContain('pet');
+  });
+});
+
+/**
  * A thing whose nature is not obvious — the spoiler case. An
  * unidentified wand must not advertise `recharge`.
  */

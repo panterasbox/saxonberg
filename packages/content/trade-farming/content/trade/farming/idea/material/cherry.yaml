@@ -19,7 +19,9 @@ data:
   # water a microbe can actually use. Under the 0.60 floor nothing grows.
   spoilActivationEnergy: 65000
   waterActivity: 0.97
-  nutrients: ["water", "sugar"]
+  # mg per kg — real figures; the `vitamin-c` tag fills the body's store.
+  nutrients: ["water", "sugar", "vitamin-c"]
+  nutrientAmounts: {water: 820000, sugar: 130000, vitamin-c: 70}
   toxicity:
     []
   tags: ["solid", "food", "produce", "cherry", "fruit"]

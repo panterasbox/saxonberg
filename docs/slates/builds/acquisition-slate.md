@@ -1,11 +1,14 @@
 # Acquisition slate — capability onboarding, the credential itinerary, the update economy
 
-> **Status: PARTIAL** — the credential wallet, the travel credential and
-> the physical TravelCard shipped →
+> **Status: PARTIAL** — the credential wallet, the travel credential, the
+> physical TravelCard, and dorm-key issuance (a `KeyCredential` wallet
+> entry alongside a physical `Key`, via `Lock.issueKeyTo` — broader than
+> this slate's wallet-only ruling, see below) all shipped →
 > [credential.md](../../subsystems/credential.md)
-> **Left:** forums leaving the default loadout · the `dorm-key` record +
-> the `presentsKey` wallet read · the payment credential required at hire
-> · the conferral certificate · Dr. Limen · the journey-v2 route
+> **Left:** forums leaving the default loadout · the payment credential
+> required at hire · the conferral certificate · the journey-v2 route
+> *(Dr. Limen's build is [onboarding-slate](./onboarding-slate.md)'s; this
+> slate keeps its rulings on it — cluster pass 2026-09-21)*
 > **Size:** a build
 
 **Captured 2026-07-28** from a deep-drill session inside the
@@ -57,12 +60,19 @@ campus. Companion sessions running in parallel: city government
   bank visit need-fired in every player's week one.
 - **No physical conferral certificate** — wallet record only
   (nobody would care; unit 11 of demo-content already record-only).
-- **Dorm access digitizes now** — the key becomes a `dorm-key`
-  wallet record Katie registers at the handover; `presentsKey`
-  learns wallet-record presentation; no physical key object. The
-  moments list already said it: "the door knows you now."
+- ~~Dorm access digitizes now — wallet record only, no physical
+  key object.~~ **Superseded by the code**: Katie's
+  `ProvisionController` issues a key via `Lock.issueKeyTo`, which
+  hands out an implant-keychain `KeyCredential` entry **and** a
+  physical `Key` Thing — broader than this ruling asked for, not
+  narrower. See [credential.md](../../subsystems/credential.md) §
+  "The records" (`KeyCredential`) and `residence.md` (the dorm door
+  consumer).
 - **TravelCard stays physical at intake** (the terminal works from
-  minute one; the card makes credentials tangible).
+  minute one; the card makes credentials tangible). Shipped: the
+  ticket clerk's `procure card` verb clones a `TravelCard`; see
+  [credential.md § The three
+  holders](../../subsystems/credential.md).
   **Digitization is the TPA bureau's act and is optional
   convenience** — deliberately NOT a journey stop; the first live
   demonstration of seek-when-you-care.
@@ -147,9 +157,20 @@ Limen goes quiet.
   session owns).
 - Pricing numbers (subscriptions, elective augments) — economy
   pass.
-- `presentsKey` wallet-read depth + the dorm-key migration
-  (intersects demo-content unit 13 — noted there).
-- The Limen build (brain, seat, the reply contract).
+- `presentsKey` wallet-read depth (the dorm-key migration itself
+  shipped — see the ruling above; unclear whether the *depth*
+  concern is fully resolved by the shipped MQL `person`-pool scan or
+  still needs a look; intersects demo-content unit 13 — noted
+  there).
+- ~~The Limen build (brain, seat, the reply contract).~~ →
+  [onboarding-slate § Dr. Limen — the Orientation
+  guide](./onboarding-slate.md) owns the build (seat, model-backed brain,
+  the reply contract, the progress flags). The rulings above (first contact
+  post-Gus at campus entry; replying to Limen's DM must work) and § journey
+  v2's *"Onboarding dissolves; Limen goes quiet"* are this slate's
+  requirements ON that build — ⚠ they sit in tension with onboarding's
+  proactive, `onboarded`-flag-keyed two-mode model; unresolved, requirements
+  reconciles.
 - Onboarding-slate reconciliation beyond the dated note (route
   rewrite rides the onboarding build).
 
@@ -159,9 +180,9 @@ Limen goes quiet.
 · [augmentation-slate](../tails/augmentation-slate.md) +
 [augmentation.md](../../subsystems/augmentation.md) (three-base
 model, hosted updates) ·
-[credential-wallet-slate](../tails/credential-wallet-slate.md) +
 [credential.md](../../subsystems/credential.md) (records, cards,
-issuer ledgers) · [fasttravel.md](../../subsystems/fasttravel.md)
+issuer ledgers — the credential-wallet slate it grew from is retired)
+· [fasttravel.md](../../subsystems/fasttravel.md)
 · [banking.md](../../subsystems/banking.md) (Terms — recurring
 fees) · [comms.md](../../subsystems/comms.md) ·
 [demo-content-requirements.md](../../requirements/demo-content-requirements.md)

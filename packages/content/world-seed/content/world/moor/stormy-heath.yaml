@@ -27,3 +27,7 @@ data:
   # The (initially dry) Floor pool the rain fills — a fixture.
   adornments:
     - /world/moor/heath-floor
+  # ⭐ The mere — the water pack's `Shore` on the Holloway's head; what
+  # makes the heath fishable, and what `look` reads the water off.
+  props:
+    - /world/moor/heath-mere

@@ -197,6 +197,11 @@ export default class ButcherController extends CraftController<ButcherModel> {
       for (let i = 0; i < units; i++) {
         const cut = await StuffApi.clone<Stuff>(line.cut);
         this.ageAtKill(cut, agedS, carcassK);
+        // ⭐ The body's OWN load rides onto every cut (fishing D20): a
+        // fish landed below the outfall carries the city's water onto
+        // its fillet, whatever the hand that cut it. Any Contaminable
+        // carcass; today the only one is a fish.
+        if (MixinApi.isContaminable(body)) body.transferContaminationTo(cut);
         this.spillGut(cut, mess);
         if (here && MixinApi.isContainer(here) && MixinApi.isContainable(cut)) {
           ContainmentApi.move(cut, here);

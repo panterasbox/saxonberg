@@ -346,6 +346,20 @@ Concurrency rides the shared `EngagedMixin` slot map
 `requiresFree` in its descriptor (brain-declared, not author-set — the
 spec stays `{ brain, trigger, config }`).
 
+The four slots are **abstract capacity axes, not anatomy** — the same
+four for every agent: `hands` is manipulation capacity (a telekinetic
+engages it handless), `voice` is communicative output (an intercom
+engages it mouthless), `body` is locomotion/posture, `attention` is
+focus. An agent that *lacks* an affordance still has the slot; it is
+permanently unfillable and therefore trivially free (a wall-turret's
+`body` is never claimable), so contention logic stays uniform and
+variation lives in *which brains a host can run*, not in the slot set.
+Anatomical variety is the physical slot subsystem's (body-plan-derived
+wield/wear/posture sockets — [slot.md](./slot.md)), a different system.
+Non-agent hosts have no slots and run their one brain with zero
+contention. *Limit:* one coarse `hands` slot cannot model a four-armed
+creature doing two manipulations at once; per-slot capacity is deferred.
+
 - A **cadence** brain **yields** a tick if any of its `requiresFree`
   slots is occupied in the host's engagement map.
 - A **witness** brain that `claims` a slot holds it briefly via a
@@ -438,6 +452,14 @@ active on-shift maker is present it `beginCover`s a transient unpaid
 `MakerMixin`-conferring shift so an `order` still finds a fulfiller. This is
 presence/migration only — the in-room shift-*change* ritual (count-out,
 reconcile, hand-off) is a later scripting wave.
+
+⭐ **The roster is the schedule, and that makes opening hours a business
+strategy.** There is no NPC scheduling system and none is planned: a
+shop is closed at night because nobody is rostered, not because a clock
+said so. A player-owned business therefore *chooses* its hours and pays
+for them — night trade against night wages — so the 24-hour city is
+something you build, not a default, and *"the one place open all night"*
+is literally a rostering choice, never a carve-out.
 
 ⭐ **`consigns` and `restocks` are the first brains that dispatch
 commands.** Neither calls an Api that moves money: every act is a literal

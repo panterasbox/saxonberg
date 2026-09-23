@@ -27,6 +27,19 @@ time and cannot go stale.
 
 ---
 
+### Why the wiki is out-of-fiction, and why it is ours
+
+(Graduated from the delivery slate, 2026-09.) There are two animals:
+**comms** — chat, DM, forums — are *agents communicating*, diegetic, and
+ride the aether implant; the **wiki** and `help` are a *reference reading
+surface*, deliberately out-of-fiction, not aether, not comms. *You talk
+in-world; you look things up out-of-world.* And canonical is always ours:
+an external service attaches only as an optional mirror (the relay
+pattern), never as a front-end or source of truth — diegesis, bus primacy
+(everything flows through the command bus so systems can react) and the
+in-client integration (live MML transclusion, spoiler tiers, the cockpit)
+none of which survive on an external host.
+
 ## Where the code lives
 
 | Concern | Home |
@@ -874,6 +887,13 @@ quietly drift back into, so `wikiSearch.test.tsx` asserts no input
 element exists at all. The field names the way in that *does* exist: the
 tree.
 
+> ⚠ **Since superseded.** The hatch is gone: the card's search box sends
+> `recall --scope wiki <terms>` — `recall` is the search verb, over three
+> corpora, and `wikiSearch.test.tsx` now greps the client source for the
+> retired hatch string. See [record-layer.md](./record-layer.md) § `recall
+> --scope` is wired to the wiki card. The paragraph above is kept as the
+> record of why a disabled input was refused.
+
 **Four blocks are CUT, not hatched.** The handoff's page furniture —
 the `OFFICIAL` standing badge, *what it affords*, *seen in play*, and
 *composed by* — has no server half at all:
@@ -924,6 +944,36 @@ available" would put a lie in `help wiki`), an `<mql>` component
 handing a component), and `recordAuthoring` wiring (`wiki_revisions`
 *is* the wiki's authorship ledger, with the same context-derived author
 rule).
+
+### Rejected, not deferred
+
+(Graduated from the wiki slate, 2026-09.) Two shapes were refused at the
+slate and stay refused — do not re-propose:
+
+- **A generated gazetteer** — a page auto-projected per entity from
+  gamestate. It would force wiki-only fields onto game models and couple
+  the wiki to live world state. Every page is authored (by a person or,
+  through the installer, by a pack). The distinction that survives is
+  `composition`: an *authored* page may transclude a template's data at
+  read time, gated by the field's own `spoiler` level — read, never
+  copied, so the game carries no wiki field.
+- **A personal codex** projected from recognition / identification. The
+  wiki reads no per-player store and is not a knowledge-projection
+  surface; *what does my character know* is the epistemic half above,
+  a separate concern.
+
+The authoring rule that falls out of the first refusal (graduated from
+the wiki slate, 2026-09): **transclude, don't copy — and a page exists
+only if it is editorial.** Wiki *content* is editorial prose; structured
+data appears only as a live transclusion from its canonical home (`help`
+for systems, `composition` for a template's data). If a topic is
+*purely* the structured view with nothing editorial to add, it is not a
+wiki page at all — it lives at its source and the wiki links to it.
+
+The cost of refusing the gazetteer is the classic cold start — the wiki
+begins with what `wiki-starter` ships and grows as people write it. That
+was accepted at the slate: community maintenance *is* the point, and the
+gazetteer would only have papered over it.
 
 ---
 

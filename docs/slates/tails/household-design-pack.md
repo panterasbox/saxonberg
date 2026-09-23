@@ -8,20 +8,17 @@
 > derive-on-read domicile → [civics.md](../../subsystems/civics.md).
 > **Left:** `ParcelApi.householdOf(extent)` — the domicile ∩ extent read ·
 > the gate made COLLECTIVE plus the leave-and-ascend-alone exit ·
-> household contract clauses over the derived condition read ·
-> co-ownership as a managed group `ParcelOwner` · the marriage bundle +
-> registry record · Q2 (does an expired grant drop you from the
-> household?)
+> household contract clauses over the derived condition read
+> (a condition-band template in contract's closed vocabulary) ·
+> co-ownership as a managed group `ParcelOwner` (the owner kind ships; the
+> household flow over it is undriven) · the marriage bundle + registry
+> record · primary-home designation across two holdings · Q2 (does an
+> expired grant drop you from the household?). ⚠ Hard dependency, owned
+> elsewhere: the act-deposited condition producer with `(actor, target,
+> extent)` attribution is
+> [room-condition-design-pack](../builds/room-condition-design-pack.md)'s
+> `Left` (the shipped axis is the shell clock only) — Part 9 points there.
 > **Size:** a wave
-
-> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
-> The stewardship pillar's unit of analysis is **the household**, and every
-> household in the family so far has exactly one person in it. This pack
-> designs the multi-occupant case — roommates, spouses, a commune — and finds
-> that it needs **no new primitive**. Same per-object format as the
-> [room-condition](../builds/room-condition-design-pack.md),
-> [spoilage](./spoilage-design-pack.md) and
-> [residence-ladder](./residence-ladder-design-pack.md) packs.
 
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (the pillar) ·
 [residence-ladder](./residence-ladder-design-pack.md) (**the direct parent** —
@@ -40,9 +37,9 @@ structural answer**) · [residence](../../subsystems/residence.md) +
 [advancement](../../subsystems/advancement.md) (the individual half) ·
 [access](../../subsystems/access.md). Rulings honored:
 [diegetic-government §9](../../staging/diegetic-government.md) (**marriage**) ·
-[credit-slate](../builds/credit-slate.md) (the property floor) ·
+[credit-slate](credit-slate.md) (the property floor) ·
 [insurance-slate](../builds/insurance-slate.md) (the scrivener thesis) ·
-[gazette-slate](../builds/gazette-slate.md) (*aggregate, never report*) ·
+[gazette-slate](gazette-slate.md) (*aggregate, never report*) ·
 [motivation lens](../../lenses/motivation.md) (cheap exit).
 
 ---
@@ -99,23 +96,10 @@ chain."* Tenure rides `ParcelApi` on the coverage walk `ownerOf` already does.
 The household read is a new **surface** on `ParcelApi` (`householdOf(extent)`),
 never a new Api — concepts ride existing facades.
 
-### The tenure substrate is built, and the doc says otherwise
-
-Verified in code, 2026-08-06:
-
-- `ParcelRecord.grants: UseGrant[]` is a **live** array —
-  `{kind, holder, grantedAt, expiresAt}`, holder-keyed, one grant per holder,
-  replace-on-regrant.
-- `ParcelRegistry.grantUse` / `revokeUse` / `hasUseGrant` are **built, gated
-  (`ParcelApiCallers`), sandbox-guarded, and persisted**. Expiry is honored
-  (`ParcelRecord.hasActiveGrant(record, holder, now)`).
-- `revokeUse` already **reaps a revoked occupant from the extent's sandbox
-  circle** — eviction has an implemented consequence path.
-- `heldUnitOf(holder)` is the reverse index (⚠ with a v1 assumption — Part 7).
-
-> ⚠ **`parcel.md` still calls `grants[]` an "INERT 0a seam."** That is stale —
-> 0b landed. A doc fix for whoever is next in that file; the design below
-> assumes the built behavior.
+*The tenure substrate — live `grants[]`, `grantUse` / `revokeUse` /
+`hasUseGrant` (expiry-honoring), the sandbox reap on revoke, `heldUnitsOf` —
+is stated in [parcel.md § `grants[]`](../../subsystems/parcel.md), whose
+"inert" claim was corrected 2026-08-06.*
 
 ### The two shapes of household are the two shapes of tenure
 
@@ -166,7 +150,7 @@ Presence is still never the meter, for either of them.
 Care acts are acts, so the split is **inherently visible** — the chronicle
 publishes deeds, and participation/authoring events carry an actor. There is no
 honest way to pretend the record does not exist. The line to draw is the
-[gazette slate](../builds/gazette-slate.md)'s, verbatim:
+[gazette slate](gazette-slate.md)'s, verbatim:
 
 > ⭐⭐ **The household AGGREGATES; it never REPORTS.**
 
@@ -226,10 +210,11 @@ own estate slice and your own chattel, and:
 Only **jointly acquired** property is genuinely contested, which is precisely
 what a contract clause covers, or failing that a court (deferred).
 
-> ⭐⭐ **And this is a SAFETY property, not a convenience.** A person holding a
-> grant rather than title can be **evicted**, but cannot be **stripped** —
-> their possessions survive the revocation by construction. Preserve that
-> property under any future change to eviction; it is load-bearing for Part 8.
+> ⭐⭐ *Evicted, never stripped* is shipped and documented: the lease-end
+> sweep parks goods in storage — intact, titled, recoverable, never
+> destructed ([furnishing.md § Restore routing](../../subsystems/furnishing.md));
+> held goods evacuate rather than destruct on eviction
+> ([chattel.md](../../subsystems/chattel.md)). Part 8 leans on it.
 
 ---
 
@@ -309,7 +294,7 @@ access, and can evict is modeling something with a dark real-world version.
 existing guardrails are the right ones and should be treated as constraints
 rather than incidental properties:
 
-- the **property floor** — title is never seized ([credit-slate](../builds/credit-slate.md));
+- the **property floor** — title is never seized ([credit-slate](credit-slate.md));
 - the **cheap exit** — leaving is always one act;
 - **chattel survives eviction** (Part 5) — you can be put out, never stripped;
 - **no mechanical advantage** accrues to holding another player's tenure.
@@ -322,26 +307,15 @@ household read must not become two notification streams.
 
 ## Part 9 — ⭐⭐⭐ The one hard constraint on the room-condition build
 
-Room condition is designed and **unbuilt**. When it lands:
-
-> **Deposits and clears must both ATTRIBUTE to the actor, not merely mutate a
-> band** — `(actor, target, extent)` in both directions.
-
-Everything in this pack rests on it — the individual transcript (Part 2), the
-aggregate read (Part 3), and any contract clause over who kept the premises
-(Part 4) are all unreachable without actor attribution. It is nearly free to
-include at build time and expensive to retrofit onto a producer that only
-mutates state.
-
-⚠ **Attributing only the clears is the trap**, and it is the easy mistake: it
-yields a record that knows who cleaned but not who made the mess — half a
-commons, and the half that flatters whoever tidies last.
-
-✅ **Landed 2026-08-06** in the [room-condition
-pack](../builds/room-condition-design-pack.md) Part 1, together with the guard that
-keeps it from becoming a blame ledger — [accountability](../../subsystems/accountability.md)'s
-shape, reused: events carry their actor, **blame derives on read and is never
-stamped.**
+*Carried, in full, by the pack that builds it: `(actor, target, extent)` on
+every deposit AND every clear (the only-the-clears trap included), nearly
+free now and expensive later, with the accountability guard — blame
+derives on read and is never stamped →
+[room-condition § Every deposit and every clear carries an ACTOR](../builds/room-condition-design-pack.md#-every-deposit-and-every-clear-carries-an-actor)
++ [§ And it must NOT become a blame ledger](../builds/room-condition-design-pack.md#-and-it-must-not-become-a-blame-ledger--the-accountability-shape-reused).
+Still unbuilt there (its `Left` names the attributed events); everything in
+this pack — Parts 2, 3 and 4 — waits on it. Cut to this pointer by the
+2026-09-21 cluster pass.*
 
 ---
 

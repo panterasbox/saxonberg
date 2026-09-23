@@ -374,11 +374,20 @@ Four archetypes ship, and they are four *different kinds of answer*:
 |---|---|---|
 | **bedroom** | **function** | sleep is the logout state; the bed is the substrate's first real rest surface |
 | **kitchen** | **bundle** | cooking is conferred by heat + pot; the room collapses an errand |
-| **bathroom** | **presence** | a residence without one reads broken; what it is *for* is not modelled |
+| **bathroom** | **presence** | a residence without one reads broken; what it is *for* is not modelled — **and no waste, as a standing decision**: characters do not excrete; omitting it costs nothing, simulating it costs dignity (the uncanny is asymmetric); the door is closed but labelled — if pedagogy ever wants the excretory system, metabolism already teaches intake honestly (graduated from the bathroom slate, 2026-09) |
 | **living** | **audience** | the room you bring a visitor into — and it ships **empty**, because filling it is the point |
 
 They add **zero new classes, mixins or verbs** — a test enumerates the six
 shipped classes every fixture uses.
+
+A fifth, **gym** (`generic-objects/archetypes/gym.yaml`, nutrition-and-
+fitness), is a **function** archetype like the bedroom: a room is a gym
+exactly when something in it is a `load` you can lift or a surface you
+can work on — a barbell dropped on a dorm floor makes the corner a gym
+with no code and no second archetype, and `survey` reports it in any
+room. Its `load` slot is met by `platform/thing/LoadDevice` (the smith's
+barbell); its `pace` slot waits for the first treadmill. See
+[exertion.md](./exertion.md).
 
 **Three trade bundles** joined them in libations, each a `FurnishableRoom`
 row with a `props:` of the trade's own fixtures: hospitality's

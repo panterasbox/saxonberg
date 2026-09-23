@@ -31,55 +31,20 @@
 
 ---
 
-## ⭐ What already ships — audited 2026-09-02
+## ⭐ What already ships — audited 2026-09-02, re-verified 2026-09-20
 
-**Concealment is a scale, not a boolean.** `ConcealmentLevel` is a
-monotone five-band vocabulary, ordered weakest→strongest:
-
-```
-obvious ─ subtle ─ hidden ─ deep ─ buried      (index 0..4)
-   0        2        4       7      11         ← AppSettings dials, not code
-```
-
-The band *names* live in code; the *magnitude* each demands is
-`concealment.level.<band>`, a dial with a seeded-literal fallback. So the
-detection curve is tunable without a code edit.
-
-**The resolution rule is already the one the framing describes:**
-
-```
-effectivePerception = capacityOf(viewer) + attention + lightConditions
-perceives           = effectivePerception ≥ requirementFor(concealment)
-```
-
-`capacityOf` is the **`awareness` Discipline** band. It carries **no
-conferrals** — `search` / `look` / `disarm` are universally afforded, and
-competence only *grades* them. Nothing is gated behind progression.
-
-**Implicit search already exists — twice over:**
-
-1. **Passive hints on entry.** `LookController` renders
-   `PerceptionApi.hintsFor` into the room description: anything whose
-   `requirement − effectivePerception` falls within a dial surfaces its
-   authored `concealmentHint` — *"a draft," "the bookshelf sits oddly"* —
-   **never naming the concealed thing** (honest fog). Attention is
-   *directed*, and **you never have to type `search` to know something is
-   there.**
-2. **Movement is an attention axis.** sneak / walk / run carry
-   `movement.attention` deltas read by `PerceptionLogic.modeAttention`,
-   so *how you move through a room decides what you notice*. Over the
-   same concealed trap, a sneaker steps around what a walker is baseline
-   on and a runner springs. An implicit search pattern keyed on posture
-   rather than on a verb.
-
-**And the rest of the loop is sound:** `search` is a costed engaged act
-holding the searcher's `hands` for `concealment.searchSeconds` game-time,
-resolving at completion — so a barge-in mid-rummage aborts it and finds
-nothing (genuinely ambushable), while `voice` stays free so you can still
-talk. No arg = broad-shallow room scan; `search <target>` = narrow-deep.
-`look`/`examine` fold into one controller with a cheap `'glance'` depth.
-Discovery sticks per-viewer in a `DISCOVERY` belief realm, so **once
-found, always seen** — nothing makes you re-search.
+Confirmed still true against code: the five-band `ConcealmentLevel` scale
+(`obvious─subtle─hidden─deep─buried`, tunable via `concealment.level.<band>`
+dials); the `effectivePerception = capacityOf(viewer) + attention +
+lightConditions` resolution rule with `capacityOf` reading the `awareness`
+Discipline band (no conferrals — `search`/`look`/`disarm` are universally
+afforded, competence only grades); the two implicit-search paths (passive
+`hintsFor` on entry, and movement as an attention axis via
+`PerceptionLogic.modeAttention`); and the costed `search` activity +
+per-viewer `DISCOVERY` belief persistence. All documented in
+[concealment.md](../../subsystems/concealment.md) — §§ "The gate", "The
+detection surface", "Passive hints + active search", "The `awareness`
+Discipline", "The care↔speed detection axis".
 
 > **So of the three things the framing asks for, the implicit search
 > pattern largely ships.** What is missing is the *equipment* half — and
@@ -268,7 +233,7 @@ procedures are verbs, sensorium and instruments are one continuum.
 
 **Related design:** [discovery-slate](../builds/discovery-slate.md) ·
 [field-substrate-slate](./field-substrate-slate.md) (seeded vs derived;
-the price of a sample) · [magic-items-slate](../builds/magic-items-slate.md).
+the price of a sample) · [magic-items-slate](magic-items-slate.md).
 
 **Shipped substrate:**
 [concealment.md](../../subsystems/concealment.md) (the gate, the bands,

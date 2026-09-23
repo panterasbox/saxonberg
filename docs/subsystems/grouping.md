@@ -16,6 +16,15 @@ The three v1 sources are:
 - **Per-Avatar contacts** — a named list stored on the owning
   Avatar via `ContactsMixin`.
 
+⭐ **A fourth provider shipped with the party build:** `PartyGroupProvider`
+(`lib/party/PartyGroupProvider.ts`, `source: 'party'`). A `Party` owns its
+own roster rather than backing onto a managed `Group` — see
+[party.md](./party.md) § *The governing decision: a party owns its own
+membership* — and registers `party:<path>` so combat, chat, and any other
+`GroupRef` consumer resolve party membership through this same facade,
+unchanged. The provider is stateless: the id in a `party:<path>` ref is
+the `Party` Idea's own `templatePath`.
+
 These are not the same shape under the hood (one is a Document, one
 is a query string, one is mixin state on Avatar). The grouping
 substrate is what lets `GroupApi.membersOf` return a
@@ -149,7 +158,7 @@ threads through the security gate.
 singleton; the `forceDestruct` escape hatch is the only way to
 take it down.
 
-## The three providers
+## The four providers
 
 ### Managed (`source: 'managed'`)
 
@@ -223,6 +232,16 @@ command context bypass the gate — only the verb path is privacy-gated.
 Placing the check on the provider means any cross-cutting consumer
 (audience computation in chat, future targeting verbs) gets the
 same privacy guarantee for free.
+
+### Party (`source: 'party'`)
+
+Read-only, stateless. A `Party` Idea owns its own roster rather than
+backing onto a managed `Group` — the `party:<path>` id is the Party's own
+`templatePath`, so `members(id)` resolves straight through the object
+graph with no separate store to keep in sync. See
+[party.md](./party.md) for the full shape (roster, roles, combat-side
+resolution); this facade entry is the whole of what grouping needs to
+know.
 
 ## The `Group` Document
 

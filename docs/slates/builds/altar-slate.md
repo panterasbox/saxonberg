@@ -2,18 +2,16 @@
 
 > **Status: UNBUILT** — no altar, no rite, no sacrifice; only the
 > substrates it rides (chronicle, belief, renown, contract) are shipped
+> (re-verified 2026-09-19: no `AltarMixin`, no patron name in any pack, no
+> `swear` / `offer` / `consecrate` / `dedicate` view; `renown.md` keys
+> standing on persons, not objects)
 > **Left:** `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` ·
-> accreted weight as renown-of-the-object · the patron taxonomy + taint ·
-> the prophet's wilderness altar · sacrifice tuning
+> accreted weight as renown-of-the-object · the butcher-or-offer fork +
+> the recognition-never-reward guardrail · the patron taxonomy + taint ·
+> consecration / desecration / cleansing · non-kill offerings · the
+> prophet's wilderness altar (+ his valence) · sacrifice tuning · the
+> reformed "altar" as the honest count
 > **Size:** a build
-
-> **Status: design captured, not built.** The altar as an **object + a system**,
-> and **sacrifice** as a mechanic — the concrete instrument of the worship/
-> alignment cluster. Grew out of "start from a concrete place with a history"
-> (the wilderness altar of a John-the-Baptist forerunner). The *theology* (the
-> blood → presence → Feed arc; sentient-sacrifice as the evil-definition) is
-> banked in [story-bible](../../story-bible.md) *§ Sacrifice*; **this slate holds
-> the mechanics.**
 
 See also: [story-bible](../../story-bible.md) (*Sacrifice*, *the gods and
 demigods*, *Worship in practice*, *Evil*, *the Ordinance*) ·

@@ -427,7 +427,7 @@ meant to die with the `core` group.
 | Wave | Covers |
 |---|---|
 | **W2 — cover & armor** | authored cover (directional, destructible, capacity-leased) · overturnable furnishings · armor on the response grid, point→blunt conversion · suppression / held aim · formation band preference · the readout ladder + cross-reading split · the lingering residue hazard · the `vapour` route · ~~`DeliveryProfile.penetration`~~ **SHIPPED** (injury build) |
-| **W3 — bows, crossbows, less-lethal, acoustics** | graded archery fit · ~~readiness~~ **one number shipped** (see below) · the bow's hold window and dry-fire · `elasticity` as a material property · the incapacitation rung + the less-lethal family · per-metre sound attenuation · the four NPC doctrines + morale + NPC ammunition |
+| **W3 — bows, crossbows, less-lethal, acoustics** | graded archery fit · ~~readiness~~ **one number shipped** (see below) · the bow's hold window and dry-fire · `elasticity` as a material property · the incapacitation rung + the less-lethal family · per-metre sound attenuation · the four NPC doctrines + ~~morale~~ **shipped as a derived combat read** ([combat.md § Morale](./combat.md); the ammo-dry trigger is still open) + NPC ammunition |
 | **W4 — guns** | ~~the field model~~ **one musket shipped** (see below) · reliability-vs-output degradation · the generalized fast-wear axis · components · pattern keys · grade buys reliability · catastrophic failure on the readable-state rail · registration as the chattel ledger · the negligent-discharge leg |
 | **Content** | the Practicum range · the armory · guard patrol density · the accessory catalogue · the installed launch regime |
 

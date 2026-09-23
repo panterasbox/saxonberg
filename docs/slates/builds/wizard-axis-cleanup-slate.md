@@ -1,12 +1,21 @@
 # The wizard-axis cleanup — one credential, one meaning (slate)
 
 > **Status: UNBUILT** — the leaks named on 2026-09-03 are all still in
-> the tree (`LeaseController.ts:151`, `ProvisionController.ts:208`,
-> `MagicLogic` execScript); no `lint:wizard-axis` in the lint family.
-> **Left:** W0 `lint:wizard-axis` allowlist · W1 the four lease/provision
-> `isWizard` bypasses + the `execScript` verdict · W2 the code-door folds
-> (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C
-> tier tags + Tier C routed to an office · W4 the reads/reveals
+> the tree; no `lint:wizard-axis` in the lint family; no tier tag on any
+> setting key. Re-verified 2026-09-19: the two controllers' `isWizard`
+> bypasses were deleted (`34cd4be5d`) and re-homed as the leading
+> short-circuit in `AccessLogic.isAgentOf` (`AccessLogic.ts:147`, whose
+> comment defers to this slate); the four lease/provision views still
+> carry `requiresWizard`; `MagicLogic.execScript` (`:2090`) and
+> `practice.yaml` still ship.
+> **Left:** W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard
+> short-circuit + the four lease/provision views' `requiresWizard` (a
+> dorms-agent / ownership validator that says what it means, and the
+> Katie `dispatch provision` live drive — absorbed from wizard-duty-slate
+> 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2
+> the code-door folds (reload/git/cms/studio/Template/Document) · W3
+> `AppSettingKeys` B/C tier tags + Tier C routed to an office + the
+> tier-totality check · W4 the reads/reveals
 > **Size:** a build
 
 > Written 2026-09-03, out of MR !231 (cooking), where a live drive
@@ -80,6 +89,52 @@ is "fold them in", the fold should keep both halves.
 | `cmd/system/config.yaml` | retuning the world | **split the keyspace** — see below |
 | `api/MagicLogic.ts:1670` (`execScript`) | running arbitrary commands through `forceCommand`, as a SPELL | ⚠⚠ its own comment calls it *"the one non-diegetic gate"*. This is a command-injection primitive in a spell costume; the question is whether it should exist, not what gates it. |
 | `cmd/author/practice.yaml` | writing fabricated Transcript deeds | a dev harness. Should it ship at all? |
+
+### Absorbed from wizard-duty-slate — ⚠⚠ Axis hygiene (the 2026-08-04 classification)
+
+> Moved verbatim by the 2026-09-21 cluster pass. This is the earlier form
+> of the inventory above: `house` has since been seat-gated and `pack`
+> rides `requiresPackInstaller`; `lease` / `unlease` / `cms` / `studio` are
+> not in it. Kept for the two things the tables above lack — the `reserve`
+> precedent, and a `config` verdict (*an administrative axis*) that differs
+> from the Tier B/C split below.
+
+⭐ **The correction already has a precedent in the codebase.** banking.md:
+*"`reserve` is now Governor-gated… no longer `requiresWizard`: minting money
+is a **monetary-authority act, not a code-trust one**."* That re-gating is
+the template; it was simply never generalized.
+
+**Every `requiresWizard` call site, classified:**
+
+| Verb | Really code-trust? |
+|---|---|
+| `author/eval` — run a code snippet | ✅ **yes** — the axis exists for this |
+| `author/reload` — hot-reload a template/instance | ✅ yes |
+| `system/git` — engine source VCS | ✅ yes |
+| `author/pack` — reconcile a content pack | ◐ borderline — packs may name `class:`, which *is* code-trust |
+| `author/practice` — record an advancement deed | ⚠ **no** — a dev/debug harness |
+| `system/config` — app settings | ⚠ **no** — an *administrative* axis (PM / ops) |
+| `banking/house` — venue P&L + payroll | ⚠ **no** — **ownership.** Should ride `AccessApi.can` / parcel title. banking.md consciously parked it: *"(`house` stays operator-gated.)"* |
+| `provision` / `unprovision` — dorm leasing | ⚠⚠ **no** — pure property + agency |
+
+### Absorbed from wizard-duty-slate — ⚠⚠⚠ And one of them is a probable live defect
+
+`provision` carries verb-level `requiresWizard`; **Katie is deliberately not
+a wizard** (`KatieProvisioning.test` asserts `isWizard(katie) === false`);
+her intake dialogue `dispatch`es `provision $player`. The authorization was
+moved to `execute()` (`isDormsAgent` — *wizard OR agent of the dorms owner*,
+the **correct** predicate) on the belief that a forced dispatch skips YAML
+validators. **It does not** — proven by experiment 2026-08-04, see
+[npc-dialogue.md § dispatch](../../subsystems/npc-dialogue.md).
+
+⚠ **The fix is the re-gate, NOT deleting the validator.** An earlier
+suggestion to "just drop `requiresWizard` from the verb" was the wrong
+shape: it leaves the verb ungated at the YAML layer and keeps treating the
+axis as noise. **`provision` should carry a dorms-agent/ownership validator
+that says what it means** — the same move `reserve` already made.
+
+⭐ Needs **live-driving**, not another green test: the existing test calls
+`isDormsAgent` directly and never dispatches through the chain.
 
 ### ? Reads and reveals — decide what they should key on
 

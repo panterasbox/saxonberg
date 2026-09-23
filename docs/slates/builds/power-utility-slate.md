@@ -17,24 +17,12 @@ model electricity as a utility?" — deferred deliberately, captured
 here. This is greater-Terminus design (economy + governance), not a
 content beat.
 
-## Where the model stands
-
-Electricity is **local physics, no network**: each `Energized`
-thing carries its own potential ([electricity.md](../../subsystems/electricity.md)
-— the Ohm's-law core, the conduction walk, SustainedShock, the
-FloodedCell). Honest at the fixture; nothing connects the lamp to
-the substation. The demo-content build keeps it that way (the
-lamppost is locally Energized; its plate carries a **maker's mark +
-"120 V"**, not a utility's name — nothing canonized by signage).
-
 ## Where the fiction already leans utility-ward
 
-1. **The substation exists as content** (`seeds/world/substation/`
-   — Foundry Row's flooded switch-cell).
-2. **The electrician's daily loop** (wishbook): "walk the row's
+1. **The electrician's daily loop** (wishbook): "walk the row's
    fixtures, `analyze` for wear and wet, swap what's failing,
    invoice the parcels' owners" — that is utility maintenance work.
-3. **The storm contract** (wishbook vignette 2 / video cohort cut):
+2. **The storm contract** (wishbook vignette 2 / video cohort cut):
    "re-energize the substation before the front" — a gig whose
    *point* is restoring supply. With no network, completing it
    changes nothing anywhere else; the stakes are narration, not
@@ -158,7 +146,7 @@ Everything past the middle tier is polity + economy design:
   >    must be able to pay it. *"The bill is paid in engagement + capital,
   >    never in showing up."*
   > 3. **Non-payment's ceiling is credit and comfort, never the asset**
-  >    ([credit-slate](./credit-slate.md)'s property floor). This is what
+  >    ([credit-slate](../tails/credit-slate.md)'s property floor). This is what
   >    makes 1–2 safe.
   >
   > The framing that makes this natural rather than a restriction:

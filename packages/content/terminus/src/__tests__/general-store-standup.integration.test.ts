@@ -52,6 +52,10 @@ const DIST_DIR = fileURLToPath(new URL("../../../trade-distilling/content/trade/
 // The small still's CLASS ships in the distilling pack's src/ — the
 // menu.test precedent: register the pack source so the clone resolves.
 const DIST_SRC = fileURLToPath(new URL("../../../trade-distilling/src", import.meta.url));
+// The tackle line (fishing B6): the fishing pack's rows and its Rod /
+// Trap / Bait classes, stocked cross-pack.
+const FISHING_DIR = fileURLToPath(new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url));
+const FISHING_SRC = fileURLToPath(new URL("../../../trade-fishing/src", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -77,6 +81,10 @@ const GARDEN_LINES = [
   "/trade/farming/thing/seed/cranberry",
   "/trade/farming/thing/seed/grape",
   "/trade/farming/thing/seed/juniper",
+  // ⭐ An orange you can EAT (nutrition-and-fitness D25) — the years
+  // clock needs something a person can buy that is not bread, and the
+  // distributor gets the farm's citrus by consignment, not by par.
+  "/trade/farming/thing/orange",
   // ⭐ The fibre and dye packets (textiles B1) — the chain's left edge
   // on the same counter as the pots and the soil, because the
   // suburban-garden path already starts here.
@@ -133,6 +141,21 @@ const HAULAGE_LINES = [
   "/system/transport/thing/wagon",
 ] as const;
 
+// ⭐ The tackle line (fishing B6): inputs, which is what a general store
+// sells — what comes out of the river is consigned at the market.
+const TACKLE_LINES = [
+  "/trade/fishing/thing/rod",
+  "/trade/fishing/thing/worm",
+  "/trade/fishing/thing/pot",
+  "/trade/fishing/thing/net",
+  "/trade/fishing/thing/fish-bowl",
+  "/trade/fishing/thing/fish-food",
+  "/trade/fishing/thing/float-rod",
+  "/trade/fishing/thing/leger-rod",
+  "/trade/fishing/thing/spoon",
+  "/trade/fishing/thing/keepnet",
+] as const;
+
 // ⭐ The armour + arms line (injury build W-A5 / W-C1 / W-C2) and the
 // corrosion flask (Stage D) — commons `/stuff/thing/` rows stocked
 // cross-pack like the pots. The armour is a `Garment` ladder (padded →
@@ -166,6 +189,7 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/winemaking/", dir: () => WINE_DIR },
   { prefix: "/trade/brewing/", dir: () => BREW_DIR },
   { prefix: "/trade/distilling/", dir: () => DIST_DIR },
+  { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
 
@@ -215,9 +239,11 @@ describe("general-store standup (real seeds)", () => {
       ...HOMEBREW_LINES.map(objDoc),
       ...MANA_LINES.map(objDoc),
       ...HAULAGE_LINES.map(objDoc),
+      ...TACKLE_LINES.map(objDoc),
       ...ARMS_LINES.map(objDoc),
     ]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
+    ModuleApi.registerPackSource(FISHING_SRC, "/trade/fishing");
     ModuleApi.registerPackSource(ARCANA_SRC, "/system/arcana");
     ModuleApi.registerPackSource(TRANSPORT_SRC, "/system/transport");
     installV1QuantityMarshallers();

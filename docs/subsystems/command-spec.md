@@ -1,5 +1,20 @@
 # Command Spec — Author Guide
 
+> **Verbs are for physical acts; operations are apps.** A verb earns a
+> word when a body does something to matter — `muddle`, `pour`, `wash`.
+> Counting stock, setting par, the P&L, which account pays are *apps*,
+> and apps have homes: `house`, `wallet`, `job`. So no `stocktake` (`house
+> stock`), no `par` verb (`house par`), no `buy --for` (a purchasing
+> position puts the house account in your wallet — `wallet use house`),
+> no `bus` (`get`/`put`). And **no verb exists that only an NPC can
+> use**: Mara's restock is the same three things a player does (graduated
+> from the libations slate, 2026-09).
+
+> **A word occupies the global verb namespace only if it is the PRIMARY
+> NAME OF A DISTINCT ACT.** Synonyms belong to the catalogue; preferences
+> belong to per-character aliases (graduated from the content-packs
+> slate, 2026-09).
+
 How to add a verb. This is the prescriptive companion to
 [command-routing.md](./command-routing.md) (the pipeline) and
 [command-parsing.md](./command-parsing.md) (the tokenizer). Read those

@@ -6,12 +6,25 @@
 > press releases, and conviction hold/flip/tally
 > ([influence.md](../../subsystems/influence.md)). ⚠ civics.md states the
 > doctrine plainly — **no legal machinery, no statute engine**.
-> **Left:** the append-only Roll + the derived Code · the instrument
-> taxonomy + the closed clause-`kind` vocabulary · prose⊗clause authoring
-> tooling and its lint · sunsets · the docket · the enactment check
-> (three weight resolvers) + the passage rule (two ratios over
-> `totalStanding`) · delegation · the disenfranchisement roll · the
-> `writers` branch policy · citation format · drafting the founding corpus
+> **Left:** the extent-rooted placement (`<extent>/law/`) + re-deriving the
+> realm/city tier against the address model · the instrument taxonomy + the
+> closed clause-`kind` vocabulary · received law (`process: founding`) ·
+> prose + typed clauses, the prose⊗clause authoring tooling (interpolated
+> values) and its lint · the append-only Roll + the derived Code + the
+> `LawCatalogue` clause index + the codification lint · deliberation
+> pointers · the charter-declared enactment process + the declared
+> precedence relation (Compact-vs-locality, public-vs-proprietary) · the
+> docket (the sweep, hysteresis, the closed kind vocabulary, `government
+> docket`) · sunsets · the Compact's own law store + the `writers` branch
+> policy (branch-policy-slate) + per-institution recipe books · the catalog
+> + adoption (presets, declared parameters, version pinning) · the enactment
+> check (three weight resolvers, the proposals branch, `LawApi.vote`/`enact`,
+> the process snapshot, veto-raises-the-threshold, deadlock upward) + the
+> passage rule (two ratios over `totalStanding`, breadth⊗depth, the latch)
+> + the Art. IV §4 rewrite for no-pool · delegation (cooperative-slate) ·
+> the disenfranchisement roll · the spectacle surfaces (the countdown gauge
+> as an MQL subscription, the stance from the ticker, the play chamber's
+> quorum floor) · citation format · drafting the founding corpus
 > **Size:** a build
 
 **Captured 2026-07-31.** We have designed a great deal *about* law —
@@ -842,11 +855,9 @@ decide-by-weight does not).
 The same principle flags current collections that are
 division-of-labor-shaped rather than cross-cutting:
 
-- **`bulletins`** — with [press-slate](./press-slate.md), a feed is
-  **per-publisher**; `/feed/<publisher>/` is tree-shaped, and the
-  single collection exists mainly because there was exactly one
-  publisher (staff). Plural publishers make the tree the better
-  home.
+- ~~`bulletins`~~ — *shipped as proposed: releases live in the document tree
+  under the publisher's `feedPath`, the `bulletins` collection retired —
+  [press.md § A release lives in the document tree](../../subsystems/press.md).*
 - **Per-institution recipe books** — the global `recipes` catalog is
   genuinely cross-cutting reference data, but a **guild's
   proprietary recipes** belong under its branch with a `writers`
@@ -1082,36 +1093,12 @@ structure** instead of inventing an admin override.
 > conviction substrate is **shipped and tested**
 > ([influence.md](../../subsystems/influence.md) § Conviction).
 
-**What exists:** `ConvictionApi` → `ConvictionLogic` with `hold` /
-`flip` / `drop` / `abstain` / `positionOf` / `tally` /
-`quorumWeight`, over `Position` rows in `positions`, with a
-deterministic clock seam and `conviction.buildPeriodSeconds` as the
-dial.
-
-```
-conviction = clamp01((now − realSince) / buildPeriod)          # linear ramp
-tally(stock, target) = Σ standingOf(holder, stock).scalar × conviction × (yea − nay)
-```
-
-### Four commitments the shipped math already makes
-
-Load-bearing, and not to be re-litigated by accident:
-
-- **Full weight, no pool** — each position spends the holder's
-  *whole* standing scalar; `hold` never consults other targets. You
-  are **never rationed** (exactly Ch 3's promise). No strategic
-  budgeting across bills.
-- **Non-fungible by stock** — the three houses tally
-  **independently**; a consumer stake and a producer stake on one
-  bill are distinct rows. **Co-equal chambers made structural**
-  rather than asserted.
-- **Presence and direction are separate** — `abstain` is a
-  *present, net-zero* stake counting for quorum at **full standing**
-  while contributing 0 to the decision. Elegant solve for a real
-  problem: **a founder with a supermajority can decline to take a
-  side without starving quorum.**
-- **Quorum is conviction-independent** — you do not build conviction
-  to show up. Showing up and mattering are different things.
+*What exists — `hold` / `flip` / `drop` / `abstain` / `positionOf` / `tally` /
+`quorumWeight` over `positions`, the linear ramp, the deterministic clock
+seam, and the four entrenched commitments (full weight / no pool ·
+non-fungible by stock · `abstain` present-and-net-zero · quorum
+conviction-independent) — is stated in
+[influence.md § Conviction](../../subsystems/influence.md).*
 
 ### What was missing: the passage rule — **RESOLVED**, see below
 
@@ -1246,20 +1233,10 @@ an assumption baked in where nobody can argue with it.
 
 ### Every stake is a fading number times a growing one
 
-Checked against the shipped substrate: **all three stocks decay in
-real time** (`participation.decayHalfLife`, `producer.decayHalfLife`,
-renown's half-lives). Conviction, meanwhile, only builds. So:
-
-> **weight = standing (decaying) × conviction (building).**
-
-Two consequences worth having on the record:
-
-1. **The obvious exploit dies unaided.** Park a position, walk away,
-   return at maximum conviction — and find your standing decayed out
-   from under it. **Conviction rewards patience, never absence.**
-2. **Every chamber is structurally a chamber of the currently
-   present.** Veterans who left cannot hold the floor. Nobody had to
-   design a term limit.
+> Graduated to [influence.md § Conviction](../../subsystems/influence.md)
+> (*Why the weight is a fading number times a growing one*): standing
+> decays, conviction builds; park-and-return dies unaided; every chamber
+> is a chamber of the currently present.
 
 ### What this means for the play chamber
 

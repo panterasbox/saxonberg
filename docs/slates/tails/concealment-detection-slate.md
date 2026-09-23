@@ -1,33 +1,21 @@
 # Concealment & detection — stealth, searching & secrets (working slate)
 
-> **Status: PARTIAL** — Theses 1–3 shipped (MR!142 + MR!145) →
-> [concealment.md](../../subsystems/concealment.md)
+> **Status: PARTIAL** — Thesis 1 fully shipped; Theses 2–3 substantially
+> shipped with real gaps remaining (below) → MR!142 + MR!145,
+> [concealment.md](../../subsystems/concealment.md) ·
+> [stealth.md](../../subsystems/stealth.md)
 > **Left:** the knowledge economy (sharing / selling / transferring
 > found secrets, maps as currency) · `frisk` and searching a downed
 > body · player-placed concealment beyond pick-up-your-own ·
-> ranged / remote / linked traps · resettable / rearming traps
+> ranged / remote / linked traps · resettable / rearming traps ·
+> graded awareness states (safe→threat-present→threat-located) as the
+> ambush initiation seam · ambush's interaction with morale + the
+> two-stage-death (coup) compression · multi-sense (channel-specific)
+> hiding · a detection net (allies/lookout/a keen-sensed pet) ·
+> deduction-from-clues search · the out-of-combat threat read (name
+> collision: `assess` already means the combat/medical condition
+> readout) · reconciling `perceives`/`canSee` as one gate
 > **Size:** a wave
-
-> **Status: MOSTLY SHIPPED (MR!142 + MR!145).** **Thesis 1** (one concealment
-> gate on every perceivable) and **Thesis 3** (searching) shipped as the
-> concealment/detection + traps build — see
-> [concealment.md](../../subsystems/concealment.md) +
-> [hazard.md](../../subsystems/hazard.md). **Thesis 2** — the *hiding* half
-> of stealth (actor-face self-concealment, motion-degrades-concealment, NPC
-> detection/response, surprise/ambush initiation, the player-trapper) —
-> shipped as the **stealth & deployables** build (MR!145), see
-> [stealth.md](../../subsystems/stealth.md) +
-> [accountability.md](../../subsystems/accountability.md). **Deferred and
-> retained here:** only the **knowledge economy** (sharing/selling/transferring
-> found secrets as social currency, `frisk`, player-placed concealment beyond
-> pick-up-your-own, ranged/remote/resettable traps). A perception substrate
-> — the *sibling of combat, parent of stealth* — surfaced by the stealth and
-> searching interrogations off
-> [combat-experience-slate.md](../builds/combat-experience-slate.md). Combat consumes
-> it (trap-spotting, stealth-detection, frisking, searching the downed) but
-> it is broader — the exploration/perception layer. It leans entirely on
-> shipped substrate (perception, belief, senses, light, the activity
-> framework).
 
 The one-sentence thesis: **every perceivable thing carries a *concealment*,
 and what you perceive is concealment vs. your perception resolved by
@@ -37,26 +25,11 @@ and detecting are verb-surfaces over it.**
 
 ---
 
-## Thesis 1 — One concealment gate on every perceivable
+## Thesis 1 — One concealment gate on every perceivable — ✅ shipped
 
-Today everything on a room/item is obvious *except* some exits — concealment
-lives only on exits. **Generalize it.** Give every perceivable a
-**concealment** level, and a single mechanic subsumes five separate ideas:
-
-- secret door = concealed **exit**
-- hidden compartment / cache = concealed **container**
-- stashed item / clue = concealed **object**
-- hidden lever / inscription / keyhole = concealed **detail** (Detailed mixin)
-- concealed trap = concealed **deployable** (the arrangement thread)
-- stealthed creature = concealed **actor** (the stealth thread)
-- poisoned drink that looks fine = concealed **property/state**
-
-All of it is **concealment vs. perception → a belief update, resolved by
-directing attention.** We don't build a "searching system" or a "stealth
-system" — we build the **concealment gate**, and searching, stealth,
-trap-spotting, disguise-piercing, and noticing-the-poison are all consumers.
-Searching is the *environmental* face of the exact contest stealth is the
-*actor* face of.
+See [concealment.md](../../subsystems/concealment.md) § "The gate —
+`ConcealableMixin` + `ConcealmentLevel`" (composed on `Thing`/`Creature`/
+`Exit`) and § "Honest fog — the enumeration seams".
 
 ---
 
@@ -70,12 +43,6 @@ Searching is the *environmental* face of the exact contest stealth is the
 Stealth is **managing others' belief about you** — the fog engine pointed at
 your own presence/location/intent. Not a stat-vs-stat roll.
 
-- **The honest surprise attack:** poise is your guard, and a guard requires
-  *awareness*. **An unaware target has no poise defense** — surprise *denies
-  the poise contest*, it does not add a damage multiplier. The first strike
-  lands into an **open** target (the earned crit / called shot, full
-  materials-response severity), *deterministically*, because you struck an
-  unguarded body. Surprise buys free, uncontested tempo until awareness.
 - **Awareness is the pivot / the initiation seam:** a fight has a
   pre-awareness window → mutual awareness ("on"). Awareness is *graded*
   (`safe → threat present → threat located`), each step raising guard. The
@@ -100,12 +67,6 @@ your own presence/location/intent. Not a stat-vs-stat roll.
   alert bodyguard), the detection net (allies / lookout / **keen-sensed
   pet**), environment (light/open ground — the arrangement-vs-initiative
   balance). A lone target is assassin-bait; a guarded one is protected.
-- **PC/NPC asymmetry:** the server is authoritative on perception and the
-  client never gets hidden data — so an **undetected attacker is simply not
-  shown** to a PC (or shown as vague unease) until perception crosses the
-  threshold (the honest fog, no metagaming). Being ambushed imposes the
-  *situation* (flat-footed → broken poise) but never the *response* (state,
-  not will).
 - **Blame/initiation:** you don't consent to an ambush → opening a session
   with the target unaware marks the ambusher as the aggressor (the initiation
   record). Ambush is legibly aggression — potent but marked.
@@ -118,18 +79,6 @@ Searching is **buying down your fog about the place** — the same fog engine,
 aimed at rooms/objects. A hidden thing is one not in your belief until
 perception crosses concealment.
 
-- **Passive vs. active:** passive perception catches the obvious (and, for a
-  perceptive character, *hints* at the hidden — "the bookshelf sits oddly,"
-  "a draft"); active `search`/`examine` directs attention to raise *effective
-  perception* against concealment, in a *scope* (room → desk → drawer;
-  broad-shallow → narrow-deep).
-- **Honest resolution (anti-slots + anti-tedium):** effective perception =
-  capacity + attention + conditions/tools vs. concealment; **deterministic-
-  given-effort** (no re-roll spam — you find it if you look well enough;
-  persistence is monotonic to a ceiling, never a slot machine); **hints
-  direct attention** (search where the world points, not every tile — kills
-  pixel-hunting); searching is a **costed engaged act** (time + exposure —
-  ambushable mid-rummage).
 - **Multi-modal + tools + deduction:** search by sense (tap for the hollow,
   feel the draft); tools (light, glass, probe); and — the Andy-Weir angle —
   **deduce** secrets from clues (the draft *implies* a passage; fresh
@@ -144,10 +93,9 @@ perception crosses concealment.
   concealment = your *hide* competence; finders must beat it. Searching is
   dynamic (find other players' hidden things), and extends to **frisking** a
   person / a downed body (concealed weapon or loot vs. your search).
-- **Content discipline (non-negotiable):** secrets are **rewards and
-  shortcuts, not required paths** (the immsim multi-pathway — a secret door
-  is *a* way, never *the* way); no critical content behind a hard perception
-  wall (or heavily hinted + deducible). Discovery is a *beat*, not a tax.
+- **Content discipline (non-negotiable):** graduated 2026-09-21 to
+  [concealment.md](../../subsystems/concealment.md) § *Why a secret is a
+  reward, never a path* (the shipped gate's authoring rule).
 
 ---
 
@@ -180,13 +128,15 @@ threat-scoped, no new substrate.
 
 ## Deferred / boundaries
 
-- **Belief generalization** — from identity memory to world-facts ("I know
-  the loose stone by the hearth"); a natural extension of the store.
 - **The knowledge economy** — sharing/selling secrets; its own consumer.
 - **Combat's slice** — trap-spotting, stealth-detection, frisking, searching
-  the downed. Cycle-1 combat is a *declared* 1v1 (both aware); surprise/
-  ambush is a deferred *alternate initiation* (leave the seam:
-  `session.opened` carries awareness; surprise = start with broken poise).
+  the downed — superseded: combat is no longer a *declared* 1v1 (multi-party
+  `CombatGraph` ships, see [combat.md](../../subsystems/combat.md)), and
+  surprise/ambush already shipped as the poise-denial opening, not a
+  deferred alternate initiation (see
+  [stealth.md](../../subsystems/stealth.md) § "Ambush denies the poise
+  contest"). The remaining unbuilt slice (frisking, searching the downed)
+  is carried in `Left`, above.
 
 ## Cross-references
 
@@ -206,31 +156,8 @@ threat-scoped, no new substrate.
 
 ---
 
-## ⭐⭐ Tail from the presentation build (2026-09-11) — the two gates disagree
+## Open: `perceives` vs `canSee`
 
-Thesis 1 says *one* concealment gate on every perceivable. The
-presentation build's live drive found that there are two, and they answer
-differently about the same object:
-
-- `LookController` filters a room's contents through
-  **`PerceptionApi.perceives(actor, item)`** — everything in the list has
-  already been judged perceivable.
-- `describeFor` then asks **`VisionModality.canSee`**, which reads the
-  light band at the **target's** container. In an unlit interior that
-  fails and the item renders `obscured` → **`something`**.
-- Worse for a container: `canSee` walks up **one** level, so the contents
-  of an NPC's own inventory land on the NPC — who carries no light — and
-  every one of them reads `something`.
-
-The symptom in the drive was the documented tell for an unlit interior:
-the room's prose read in full while every piece of its furniture was
-anonymous. The build **refused the second gate** rather than reverting
-its own change — `look`'s two item lists resolve eagerly and viewer-blind,
-which is what they always did, because they are `toSelf` renders for one
-viewer whose perception was already resolved. Every other caller of the
-recognition face is untouched.
-
-⭐ That is a local fix, and the finding is not settled: **`perceives` and
-`canSee` are two gates with one job**, and `canSee`'s one-level walk
-cannot see into a creature's inventory at all. Reconciling them is this
-slate's, under Thesis 1.
+The local fix and its rationale are recorded in
+[concealment.md § Known tension: `perceives` vs `canSee`](../../subsystems/concealment.md).
+Full reconciliation of the two gates is still open — see `Left`, above.

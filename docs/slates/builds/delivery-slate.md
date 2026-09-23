@@ -1,21 +1,25 @@
 # Delivery & addressing slate (working doc)
 
-> **Status: PARTIAL** — the addressing foundation shipped →
-> [address.md](../../subsystems/address.md); carriage and the freight
-> market shipped → [logistics.md](../../subsystems/logistics.md)
-> **Left:** providers + coverage + metering (power, aether) · the
-> aether-line ↔ comms unification · post/mail to an address · the
-> broadcast/field carry
+> **Status: PARTIAL** — the addressing foundation + the realm's scheme
+> shipped → [address.md](../../subsystems/address.md); carriage and the
+> freight market → [logistics.md](../../subsystems/logistics.md); forums +
+> the Subject layer → [forums.md](../../subsystems/forums.md). ⚠ Two
+> utilities shipped **without** the provider substrate designed here: water
+> as `Conduit` over a template-path extent with the six-word `SupplyState`
+> ([watershed.md](../../subsystems/watershed.md)), and the "aether line" as
+> **mana** — `ManaMain` + `ManaPoweredMixin`
+> ([fasttravel.md](../../subsystems/fasttravel.md),
+> [magic-items.md](../../subsystems/magic-items.md))
+> **Left:** providers + coverage + metering as ONE substrate (⚠ reconcile
+> with the two shipped shapes) · anchors + catchment-vs-delivery · per-service
+> off-grid + service grades · the delivery overlay + trunking (Q5) · the
+> network walk / lines on exits / the easement (⚠ `cut` shipped STORED) ·
+> post — the `delivers` brain, the carrier round, mailboxes · the aether-line
+> ↔ comms unification (⚠ contradicted: the line is mana; the aether is the
+> internet) · aether-mail + the inbox · the broadcast / field carry + the
+> zone-varying ambient field · per-parcel billing (the boundary) · Q2 · Q3 ·
+> Q7's mail / broadcast half
 > **Size:** a build
-
-> **Status: systems architecture proposed; internals open.** The substrate
-> for getting *things and services to addressed places* — mail, parcels,
-> utilities (power / water / cable / phone), an "aether line," and the
-> broadcast contrast. The thesis: this is **one substrate asked many
-> times**, and the engine already ships two special cases of it (the comms
-> acoustic/implant split; the biome-style outward resolve-walk). This slate
-> names the whole design so the eventual builds don't fragment; it does
-> **not** prescribe a build sequence (that's deferred by decision).
 
 > **Forum factoring superseded by [forums-slate.md](../tails/forums-slate.md)
 > (2026-06):** the § *Layer 2* "social forum is a chat facet" framing is
@@ -48,7 +52,7 @@ See also:
   subject-tree borrows its `FolderZone` + `AccessApi` namespace pattern.
 - [reactions-slate.md](../tails/reactions-slate.md) — **threading** + the gutter
   message-id the forum thread-tree rides.
-- [external-chat-relay-slate.md](../tails/external-chat-relay-slate.md) — the
+- [docs/subsystems/streaming.md](../../subsystems/streaming.md) — the
   **binding pattern** (an in-game model mirrored from external reality) the
   gamification seam generalizes.
 - [docs/subsystems/location.md](../../subsystems/location.md) — the **exit
@@ -138,25 +142,14 @@ many-to-many: they are nodes in different graphs, bridged by an anchor.
 
 ### Addressing (the namespace)
 
-**Decided:**
+**Decided:** *(the namespace, the path shape and the PathTrie index
+shipped → [address.md § Three independent namespaces](../../subsystems/address.md),
+§ The coverage index; the one-address-per-place decision graduated to
+§ The realm's scheme, as shipped)*
 
-- The **address namespace is its own rooted, named tree**, independent of
-  both `templatePath` and the zone tree. A building's seed declares *both*
-  its templatePath (engine identity) and its address (delivery identity),
-  with **no required correspondence** — the drift is real (a mailing
-  address isn't a filesystem path). **(Diverge from zones, day one.)**
-- An address is **a path in that tree** — mechanically the same animal as
-  `templatePath`, so routing reuses the engine's path machinery (PathTrie,
-  prefix-match, nearest-ancestor walks).
 - **Routing is longest-prefix-match** over provider-claimed subtrees: local
   delivery within your subtree; cross-locality climbs to a common ancestor
   and trunks. Overlap → the more-specific provider wins; gaps → off-grid.
-- **One shared physical address per place** (Layer 1). Power, post, water,
-  aether all terminate at the *same* address. (Per-substance physical IDs
-  rejected — "shared is simpler," and one-building-one-address is how people
-  think.) Layer-2 **handles** (phone number, DM handle, channel name) are
-  *separate* namespaces — the phone **line** is the shared physical address;
-  the phone **number** is a portable Layer-2 handle.
 - **Catchment vs delivery are different relations.** *Catchment* (which
   Locations belong to an address) is genuinely many-to-many and stays fuzzy.
   *Delivery* stays a **clean function**: Address → one **anchor** → one
@@ -164,21 +157,10 @@ many-to-many: they are nodes in different graphs, bridged by an anchor.
   Locations behind one anchor. The anchor keeps routing unambiguous while
   catchment stays honest.
 
-**Proposed (the *scheme* is content, neutral substrate underneath):**
-
-- The substrate is just **named nesting down to a deliverable leaf** —
-  nodes can be *any kind* of place (a dungeon level, a tower floor, a
-  glade — **not** an urban street assumption). Real-life street addresses
-  are explicitly *not* the model; the Saxonberg scheme is content authored
-  later.
-- **Tier roles, not fixed levels** (variable depth — use what applies):
-  **Region** (realm / Campus / the Wilds) › **Locality** (settlement /
-  outpost / dungeon-complex / campus-cluster) › *optional* **Block**
-  (district / wing / dungeon-level / grove) › **Spot** (building / room /
-  chamber / campsite). **Locality is the one load-bearing tier** — the unit
-  a provider covers and the trunk hands off between; it's also where the
-  address tree and a (grid) zone *tend to rhyme* for pathfinding, though
-  declared separately.
+*The proposed tier roles shipped as ONE `Locality` concept at variable
+depth (no `Region` / `Block` / `Spot` classes) and the scheme shipped as
+content under `terminus/` → [address.md § The Locality
+node](../../subsystems/address.md), § The realm's scheme, as shipped.*
 
 **Off-grid (decided — "I like modeling real-life wrinkles that engage").**
 A place no provider covers is **unaddressable / unserved by default** — not
@@ -339,33 +321,7 @@ incidentally, is a LULU.
 
 #### ⭐⭐ The unifying concept: natural monopoly
 
-The **turnpike trust and the utility are the same business** — high
-fixed cost, low marginal cost, one network serving everyone more
-cheaply than two could. That is *why* roads, water, power and rail are
-**rate-regulated rather than competitive**, and why the toll schedule
-being a **`parameter` clause in law** generalizes directly to **the
-tariff**.
-
-> **The polity learns "natural monopoly" by meeting it three times** —
-> the turnpike, the utility, and then the freight corpo, which is when
-> someone finally notices it is a *pattern* and legislates the general
-> rule.
-
-> **⭐⭐ And the three BUSINESSES teach three different monopoly SHAPES**
-> — completed in [sanitation-slate § The salvage yard as a
-> business](./sanitation-slate.md). The **turnpike**'s power is
-> **geographic** → **rate cap**; the **depot**'s is a **network
-> effect** → **common carrier / non-discrimination**; the
-> **salvage-and-materials** arm's is **vertical integration** (own the
-> mines *and* the scrapyards) → **structural separation**. *Three
-> monopolies, three remedies — a polity that meets all three has been
-> taught competition policy by living in it.*
->
-> **And a fourth business teaches the flip side: the SECOND-HAND MARKET
-> has no monopoly shape at all**, because its inventory is
-> **non-fungible and locally sourced** — you cannot corner a market
-> where every unit is different. **Monopoly needs fungibility and
-> scale; uniqueness defends competition.**
+*Homed 2026-09-22 → [settlement-model.md § 8 · Absorbed from delivery-slate — natural monopoly](../../settlement-model.md).*
 
 ⚠ **Boundary:** **metering and per-parcel billing belong to the
 property/residences build** (service to titled property, the
@@ -418,8 +374,8 @@ Layer 2 over it.)
 ### The vertical seam (gamification — validation lens, not a build)
 
 "Model your real home, put a game over it" is the **binding pattern** the
-[external-chat-relay](../tails/external-chat-relay-slate.md) already proved one
-layer up (a `Channel` mirrored from Twitch). A service point with an
+[stream relay](../../subsystems/streaming.md) already proved one
+layer up (an external channel mirrored into the game). A service point with an
 `externalBinding` to a real smart meter mirrors real consumption as in-game
 state; the game layer (penalty for lights left on) sits on the mirror. It
 demands exactly what the diegetic design already wants — a **first-class,
@@ -443,99 +399,47 @@ substrate, and where forums/email land relative to chat.
 
 ### Two animals — comms vs reference
 
-- **Comms** (chat, DM, email, forum) — *agents communicating*. **Diegetic,
-  rides the aether/implant**: every channel is a frequency on the universal
-  implant, history is implant storage (chat-slate). Email/forums are Layer-2
-  payloads over the aether transport.
-- **Wiki / help** — a *reference reading surface*, **deliberately
-  out-of-fiction** (wiki-slate Principle 2), **not** aether, **not** comms.
-
-The line: **you talk in-world (diegetic, aether); you look things up
-out-of-world (a tool).** Don't merge them.
+*Shipped as decided — forums and chat ride the aether implant
+([forums.md](../../subsystems/forums.md) l.3, [chat.md](../../subsystems/chat.md)),
+the wiki is ours and out-of-fiction ([wiki.md](../../subsystems/wiki.md)).
+⚠ No subsystem doc states the WHY (talk in-world, look things up
+out-of-world); the cut text is verbatim in the compaction ledger's Handoff →
+`docs/plans/slate-compaction/address.md`.*
 
 ### Build-vs-integrate — own it, top to bottom
 
-Canonical + diegetic is **always ours**; an external service attaches only as
-an optional **binding-facet mirror** (the relay pattern), never a front-end or
-source of truth. So: **not** a Reddit front-end, **not** an external-wiki
-front-end. The reasons are already in the slates:
-
-- **Diegesis** — a forum is an aether board; an external service isn't our
-  world and can't be the canonical store.
-- **Bus primacy** — everything flows through the command bus so NPCs / quests
-  / systems can *react*; an off-platform service is a parallel channel the
-  game is blind to.
-- **The in-client integration *is* the value** (wiki-slate) — live MML
-  transclusion, spoiler tiers, source-at-L3, the cockpit — none survive on an
-  external host.
-- **Cheap on our substrate** — Documents, Channels, grouping/facade,
-  messaging, MQL-subscription, reactions-threading, the offline inbox,
-  AccessApi are all shipped or slated.
-
-Reddit fails both tests the Twitch relay passed (no diegetic fit, no adjacent
-use-case pull); an external wiki fails wiki-slate's own-not-external call.
+*Shipped as decided — own forums, own wiki; an external service attaches
+only as a mirror ([streaming.md](../../subsystems/streaming.md),
+[twitch-relay.md](../../subsystems/twitch-relay.md)). ⚠ The four reasons
+(diegesis · bus primacy · the in-client integration is the value · cheap on
+our substrate) are in no subsystem doc; verbatim in the ledger's Handoff.*
 
 ### Email and forums are facets, not new subsystems
 
-They're the async / threaded corners of the **one conversation primitive**
-(chat-slate's "facets, not types"), decomposed along four orthogonal layers —
-and the three things that all sounded like "topic" live at three different
-ones:
-
-| Layer | What | Concept | Shared / divergent |
-|---|---|---|---|
-| **L0** | frame genre | engine **`Topic`** (`world.chat.message` / `world.mail.*` / `world.forum.*`) — filter/render/Mudlog | shared (every frame carries one) |
-| **L1** | audience + roles | a **`GroupRef`** via the `GroupApi` facade | **shared** — chat/email/forum alike |
-| **L2** | durable artifact + organization | stream ring / inbox / subject-board | divergent (the forum subject-tree lives here) |
-| **L3** | interaction | blurt / compose / browse | divergent |
-
-- **Engine `Topic` ≠ audience ≠ forum subject.** Genre (L0) is not
-  who-receives (L1) is not what-it's-about (L2): a gossip *chat* line and a
-  gossip *forum* post share a subject but carry different genres.
-- **Share L0–L1, keep L2–L3 distinct.** That's **not** Google Wave (which
-  fused the artifacts and failed) — one *primitive*, distinct *products*.
-- The **forum subject-tree** is structurally a **wiki namespace**
-  (`FolderZone` + `AccessApi`), *not* an engine `Topic` and *not* a channel.
+*Superseded by the code: the forum half shipped as `Subject → Board →
+Thread → Post` with `grain` / `parentSubject` organizers, not a `FolderZone`
+namespace ([forums.md](../../subsystems/forums.md)); the genre is the closed
+root `publication.forum`, there is no `world.forum.*` / `world.mail.*`
+([topics.md](../../subsystems/topics.md)); L1 is `Subject.groupRef`. The
+email / inbox half is UNBUILT — carried by § The three products below.*
 
 ### Surfaces bind a `GroupRef` + an override layer
 
-The unifying mechanism is chat-slate's projection + override (already how
-guild chat works), generalized to **every** comms surface:
-
-- A **surface** (channel or forum) **binds a `GroupRef`** and reads
-  membership/roles **read-only through the `GroupApi` facade** —
-  provider-agnostic (a managed `Group` Document / MQL / contacts / a future
-  guild provider; the surface neither knows nor cares).
-- **Surface-specific** governance (mods-beyond-rank, a forum-only ban, pins,
-  config) lives on the **surface's own artifact Document** as a thin override:
-  `effective = (projected from the ref) ± (override)` — empty 99% of the time.
-- **There is no "Subject" entity.** What gives a subject's surfaces real
-  *state* is whatever backs the ref; the subject *label* (`"gossip"`) is just
-  the backing group's `name` (data).
-  - **Open-join standing subjects** (gossip / auction / help) — no
-    pre-existing social structure, so **mint a managed `Group`** to *be* the
-    identity (curated mods/bans). Precedent: `chat make` already mints a
-    backing managed Group per channel.
-  - **Pre-existing groups** (a guild forum, a party board) — **bind the
-    existing ref, mint nothing**; the guild may have *no Document at all*
-    (MQL/contacts/provider) and the surface still works through the facade.
-- **Linking = co-projection from one ref.** A subject's channel and forum are
-  *siblings under the shared ref*, not coupled to each other: one follow, one
-  role/moderation set, one discovery. **Group-level changes cascade** (kicked
-  from the guild → gone from its forum); **surface bans are local.** Affordance
-  is **à la carte** — a group declares which surfaces it manifests (gossip =
-  channel + forum; patch-notes = forum-only; a fast trade band = channel-only).
+*Shipped as the Subject layer — `curated` / `bound` / `open` audiences,
+à-la-carte surfaces under one `groupRef`, group-level changes cascading;
+the "there is no Subject entity" call was REVERSED (a thin `Subject`
+Document, `forum_subjects`) → [forums.md § The Subject layer — the linking
+spine](../../subsystems/forums.md).*
 
 ### The three products (all over the aether; distinct artifacts)
 
-- **Chat** — ephemeral stream (shipped/slated): channel + ring buffer, live.
+- ~~**Chat**~~ — shipped → [chat.md](../../subsystems/chat.md).
 - **Email / aether-mail** — the DM/ad-hoc primitive + a **persistent inbox**
   Document, **addressed to a person**, async. (Physical **postal** mail —
   carrying *objects* to a mailbox — is the Layer-1 *conveyance* sibling above;
   aether-mail is message-only.)
-- **Forum** — a channel + **threading** (reactions-slate) + high retention +
-  **subject-board** organization (wiki-namespace-shaped) + a **browse** view;
-  audience via the group, async.
+- ~~**Forum**~~ — shipped → [forums.md](../../subsystems/forums.md) (⚠ the
+  organizer is `open` / `ordered`, not wiki-namespace-shaped).
 
 What's genuinely *new* to build is small: a **persistent thread-tree board
 Document** + an **inbox Document** (each in its own collection), the
@@ -555,9 +459,10 @@ has-receiver, no address. Open: the **ambient aether field** uniform vs
 
 ## Open questions
 
-1. **The Saxonberg address scheme** (content) — concrete Regions /
-   Localities, the tier vocabulary's flavor, the human-typable form +
-   disambiguation. *Substrate is settled: named nesting + prefix routing.*
+1. ~~**The Saxonberg address scheme**~~ — resolved: fourteen Localities under
+   `terminus/` → [address.md § The realm's scheme, as
+   shipped](../../subsystems/address.md); the typable form + disambiguation
+   is `resolvePlace` (§ The resolve chain).
 2. **Provider class shape** — one `Provider` with a kind discriminator +
    facet fields/mixins, vs separate conveyance/source classes. *Lean: one
    concept, facet composed where real (don't pre-split).*
@@ -565,12 +470,11 @@ has-receiver, no address. Open: the **ambient aether field** uniform vs
    billing (scheduler); metered-infinite grid vs finite local store
    (battery / charged crystal); service-absent **gates fixtures off**
    (augmentation-style active-gating). *Leans noted; unbuilt.*
-4. **Subsystem name + home** — a new `lib/<subsystem>/`; candidates
-   `delivery` / `service` / `grid` / `infrastructure`. Neutral/descriptive.
+4. ~~**Subsystem name + home**~~ — resolved: `lib/address/`, `AddressApi`
+   ([address.md](../../subsystems/address.md)).
 5. **Trunk hierarchy** — flat v1 vs regional sorting hubs.
-6. **Address node reification** — *resolved-lean:* the tree is **implied**
-   by claimed address-strings (like templatePath); only **providers** (and
-   anchors) are reified — no `AddressNode` per segment.
+6. ~~**Address node reification**~~ — resolved: only the `Locality` tier is
+   reified ([address.md § The Locality node](../../subsystems/address.md)).
 7. **Layer-2 designs** (mail / forums / broadcast) — their own slates/waves.
 
 ---
@@ -580,14 +484,8 @@ has-receiver, no address. Open: the **ambient aether field** uniform vs
 Not an ordering — the natural seams, to be sequenced when build strategy is
 discussed:
 
-- **Addressing foundation** — **shipped** (the namespace + the
-  Locality tier + the upward longest-prefix walk) →
-  [../../subsystems/address.md](../../subsystems/address.md). Carved to
-  exactly the weather-enabling core; resolves Q4 (named `address` /
-  `AddressApi` / `Locality`, `lib/address/`) and Q6 (the **Locality**
-  tier is reified, finer/coarser segments stay implied) for this unit.
-  Anchors + provider-grade off-grid remain deferred (they belong with
-  providers/conveyance, not the namespace).
+- ~~**Addressing foundation**~~ — shipped → [address.md](../../subsystems/address.md);
+  anchors + provider-grade off-grid stay with providers, below.
 - **Providers + coverage + one *source* service end-to-end** (power or
   aether) — metering, presence-gating, the two-level override.
 - **The aether-line ↔ comms unification** (ambient field + municipal feed).

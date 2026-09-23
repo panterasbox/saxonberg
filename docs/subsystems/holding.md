@@ -266,6 +266,34 @@ band**. Holding nothing passes; the dorm grant has no gate.
 The rung above is earned by keeping the rung you have — which is a
 statement about upkeep, not about money.
 
+The read is over **every** unit the actor holds a live use-grant on
+(`ParcelApi.heldUnitsOf`), and that decides two things the stewardship
+and tenancy designs asked for. ⭐ **A LET unit's condition gates the
+buy** — the landlord reference: you do not get the house while the flat
+you rent is shabby, and that, not a rule, is why a tenant tends a place
+they will leave. And because the gate reads all of them, **holding more
+than you can keep is what it refuses** — obligations scale with what is
+held, so no ownership cap needs writing; the obligations are the cap.
+Money is necessary and not sufficient: coin buys nothing while the
+condition read fails. The threshold is one universal setting, not
+per-rung. ⚠ A titled house is not a grant — `title buy` transfers title
+and mints none — so today an OWNED holding sits outside the read; the
+gate is honest about leases and silent about the house you already own.
+
+#### Why the gate is condition and not coin — the lesson it carries
+
+*(Absorbed from `residence-ladder-design-pack` § Part 6 — Pedagogy,
+2026-09-21.)* The ladder is where stewardship teaches the most
+transferable real-life skill in the pillar: ⭐ **don't buy more than you
+can maintain.** *Obligations scale with what you hold → over-holding is
+negative-sum* is a personal-finance lesson **lived rather than
+lectured** — the single most common real-world money mistake (the
+house, car or lifestyle you cannot keep up), rendered as an honest
+mechanic rather than a warning. That is why the read is over every held
+unit and why coin alone never passes it: the gate is the calculation
+*"you can afford the manor — can you keep it above the band?"*, asked by
+the world instead of a tutor.
+
 ---
 
 ## Condition — the weathering clock

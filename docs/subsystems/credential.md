@@ -29,6 +29,17 @@ The travel credential only ever did authorization — its verbs (`register`,
 `teleport`) come from the terminal and the general verb set, not the
 credential. The payment credential did both.
 
+## Why a presentation, not a source of truth (§8)
+
+The wallet is implant software, and the aether is **identity-blind** (EU
+§8) — so the network can't vouch for what's in your wallet. Validity is
+always the *issuer's* to confirm (a ledger lookup where reachable,
+physical/social trust where not); carrying a credential is not the same
+as it being true. That is why every record above is a *presentation*
+and the issuer's own authorization state is the source of truth — the
+engine's expression of the personhood-as-paperwork spine of *An Honest
+Count*, not an incidental implementation choice.
+
 ## The records — `lib/credential/Credential.ts`
 
 `CredentialKind` is a vocabulary (`payment` | `travel` | `key`);
@@ -171,19 +182,25 @@ new collection — the records live in the holder's `data.credentials`.
 Cross-restart durability rides future persistence work (aug-state
 colocation; inventory persist-back).
 
-## Deferred (the slate's remaining surface)
+## Deferred
 
-The [credential-wallet slate](../slates/tails/credential-wallet-slate.md) is
-**not fully absorbed** — this build shipped the holder + migrated payment and
-travel; these remain its design space:
+The credential-wallet slate that designed this substrate is retired
+(fully absorbed here, 2026-09-20) — this build shipped the holder +
+migrated payment and travel; these remain the design space:
 
 - **Deputization** as a native tenant (the slate's first intended tenant,
   descoped from this build) — wired to `AccessApi` via an MQL group over a
-  derive-on-read authorization ledger.
+  derive-on-read authorization ledger. Its driver is the EU murder arc's
+  proctors-office pathway (`eternal-university-narrative-slate.md` §14,
+  the registrar/morgue access immsim).
 - **The issuer-authorization ledger** — the slate's "credential is a
   *presentation*, not the source of truth": validity derived from the
   issuer's append-only `authorize`/`revoke` ledger, the record being the
   boarding pass, not the clearance. v1 records ARE the source of truth.
+  Still open: whether it lands as one shared `authorization_events`-style
+  ledger keyed by `{issuer, kind}` or a per-issuer ledger (the slate's
+  lean was per-issuer — each authority owns its own grants; deputization's
+  would live with the proctors).
 - **A single `CredentialCard`** — the slate's "one card, polymorphic on its
   record." v1 keeps two thin per-kind subclasses (the affordance constraint
   above); collapsing to one class waits on per-instance `self`/`inventory`
@@ -220,5 +237,3 @@ Registry: `Mixins.CredentialWallet` (`lib/mixin.ts`),
   anchored-spell forks read no credential at all.
 - [augmentation.md](./augmentation.md) — the three-base capability model and
   the aether hosting relation the wallet update rides.
-- [credential-wallet-slate.md](../slates/tails/credential-wallet-slate.md) —
-  the design surface; the deferred portion above.

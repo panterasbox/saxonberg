@@ -48,6 +48,23 @@ so a host that forgets one degrades to "no bond".
 naming `/platform/agent/KeptAnimal` with `handling:` and three brains,
 and a species row carrying the dials.
 
+**Why the bond composes per class, not on `Creature`.** The build
+considered moving `BeliefStoreMixin` down to `Creature` so no author's
+tameable animal could fail silent, and rejected it twice over: the studio
+is mixin-aware (`describeClass` / `listMixins` / `scaffoldClass`), so an
+author is not blind at the moment of the mistake; and universal
+composition makes the capability **unfalsifiable** — no row can be *wrong*
+about it, so no gate can check it. *Can it be won over* has three answers
+and the middle one is content: **true** (composes it, species says
+winnable) · **false** (composes it, species says no — the dragon, the
+magic-taming case) · **null** (does not compose it; the question does not
+apply). Composing it everywhere collapses `false` into `true`-with-a-zero
+and destroys `null`. So it composes where the concept is true, on the
+codebase's own idiom (`Livestock`+`Producing`, `WorkingAnimal`+`Handled`),
+and `lint:kept-animals` is what makes the three states safe. Making a pet
+a `Character` instead was also rejected: that stack drags in `Caster`,
+`Vocal` and `Employed` — a sheepdog that casts, speaks and holds a job.
+
 ## The bond — not a new number
 
 `bond = regard/100 × handling`, and only affection counts (regard ≤ 0 is
@@ -220,6 +237,25 @@ so its owner's estate carries it as a *reference* (`EstateEntry.key`,
 `Persistable` and this build added none: persisting a container preserves
 its whole tree and is the rare, expensive model.
 
+**Why a keyed clone, and not the two other shapes.** A pet is the third
+instance of `setPersistenceKey`'s own examples (a leased dorm unit, a
+cultivated plant's uuid), coordinated by the owner's estate because it is
+already chattel — nothing was invented for it. Two shapes were rejected.
+*Minting a singleton the way `Avatar` does*: `Avatar`'s templatePath-as-
+identity predates `identityPath`, `Persistable.ts` carries three Avatar
+carve-outs, and it is the worst thing in the tree to pattern-match on;
+worse, identity and durability must arrive together or neither — a unique
+identity path on a non-durable clone would have the belief write-through
+keying durable regard records to dogs that evaporate at reboot, with
+nothing to reap them. *Seed + sparse overlay* (the herdbook's `HeadSeed`
+model): right for a herd, wrong here — a pet's overlay is most of what the
+animal is (name, bond, transcript, who it remembers), and a seed-only
+stray has no container coordinator, so it is not in the room at all and
+nobody can `look` at it. Hence **a stray is an ordinary unkeyed clone and
+naming adds the key** — clone → keyed clone, never clone → singleton or
+seed → snapshot — which is why the name verb is the promotion and not a
+cosmetic.
+
 **What loads it** is [residency.md § the load half](./residency.md):
 `KeptAnimal.pinsResidency()` answers true, the pin is stamped on its
 `chattel` row, and `ResidencyWarden` stands every pinned good up once at
@@ -277,3 +313,35 @@ digest, home range, pet combat staging, breeding. Findings offered:
 nothing on Hinkley Lane yields food a stray would take (the producer gap,
 recorded green in the wire file); a plain room's `cast:` re-mints its
 stray on every load once the first is named.
+
+**Findings from the fishing drive (2026-09-18), for the pets/furnishing
+tail:**
+
+- **A kept animal in a vessel does not travel with the vessel.** Its
+  placement is captured at naming (the bowl, on the square's floor, by
+  `via`); carry the bowl away and the next boot's pin roll stands the
+  animal up at the last captured placement — loose in the room, since
+  the anchor is gone — while the bowl restores into the owner's
+  `inventory`. Two boots, reproduced twice. The vessel's move should
+  recapture (or re-place) what is keyed inside it.
+- **A dropped chattel on a public floor restores into the owner's
+  inventory**, not where it was dropped (the same two boots).
+- **`PersistableMixin.cleanupOnDestruct` on a destructed unkeyed
+  animal** logs `host.getDeepContents is not a function` — every
+  released fish; the capture backstop runs on an inert proxy.
+- `find … mine` and the `inventory` scope do not reach into a carried
+  open container: a carp in a bowl in your hand cannot be named by MQL.
+- The kernel change this build made: `peers` affordances now reach one
+  level into an open container standing in the room, both ways
+  (`CommandLogic.applyContainmentDeltaImpl`), as the `peers` scope
+  already did.
+
+**From the fishing review round (2026-09-22):** `KeptAnimal` gained a
+second naming gate — `Bonded.hasChosen()` = bond + followed **or** an
+earned home (`homeEarnedDay`: three distinct fed days in one vessel move
+`home` there) and there now; `homeKeyOf(container)` keys a stamped chattel
+by its chattel id (every fish bowl was one home by template path);
+`takesFromHand` is what the `'surface'` feeding rung means for a carp. The
+fish is the first kept animal that is also `Contaminable`. ⚠ Risk 7 stands:
+a keyed animal inside a moved vessel restores loose, and a dropped chattel
+restores to inventory (the drive's restart step).

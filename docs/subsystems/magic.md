@@ -23,7 +23,7 @@ the target's live Composure.
 > be *taught as a college course* — a spell authored off the price
 > list silently makes the curriculum a lie.
 
-Design source: `docs/slates/deferred-rpg/capability-magic-slate.md`
+Design source: `docs/slates/builds/capability-magic-slate.md`
 Part IV (the locked model). Consumers this build deliberately does NOT
 include: the inquiry substrate (discovery/publishing), the magic-items
 tier (Consumable/BUC), Transform/polymorph — each its own later build
@@ -107,6 +107,19 @@ gated** at execution.
 | Verbs | `cmd/magic/{cast,spells}.yaml` | the `magic` command category |
 | Loci | the arcane library's `src/thing/GlowlightMote.ts` / `SparkLocus.ts` | glowlight's held mote / spark's transient energized locus — named by the spell row's required `locus:`; the executor clones what it is told (capability packs, D3) |
 | Demonstrator | `world-seed/content/world/practicum*` | casting yard / conductive gallery / warded cell |
+
+### The grid is a lens, never an effect-builder
+
+What a spell *does* is its `effects` — real Api calls, open-ended: you
+build anything the engine can already do, and you never translate an
+idea into grid vocabulary to build it ("glue an item to the floor" is a
+`move` veto, authored directly). The grid governs only **who can cast it
+and how well**: a spell draws on two Disciplines (its verb + its noun),
+and the cell address is *derived from what the effects do*, stamped
+after, never a hoop. Even tabletop Ars Magica's grid computes no
+outcome. The consistency players feel ("fire always burns") is inherited
+from the **subsystems**, never imposed by the grid — which is why a new
+spell row is content and a new grid cell is not.
 
 ## The cast pipeline
 
@@ -212,8 +225,29 @@ Every effect is one of two **families**, derived from its kind:
   `Disguisable` disguise. Expiry / dispel → `releaseSustained`
   (un-realize, destruct the bound emitter, drop the record).
 
+*Why pull, and when not.* The rule the item slate settled on (kept there
+too): **fact → `Condition`; realize by *pull* by default; use a *shadow*
+(push) only when the affected behavior is owner-less.** Pull — a
+driver/getter reads the condition record and folds it in (vitals band,
+metabolic drain, thermal/damage intake) — is how the condition system was
+already designed, is cheap, and covers poison, disease, trauma,
+resistances, regeneration, slow digestion. Push — a method-override so
+every caller sees modified behavior without knowing conditions exist —
+is needed only when the target method is scattered across many call sites
+with no single owner (perceivability, i.e. invisibility; ~3–4 effects in
+the whole catalog). Neither subsumes the other: a shadow can't be the
+fact-store (attachment doesn't persist, so progression evaporates on
+reload) and a condition can't cleanly override diffuse behavior. So the
+condition is always the substrate, and a shadow is an optional
+realization re-materialized from the persisted condition on load. ⚠ The
+push half is unbuilt, and the one case the slate predicted for it —
+disguise — shipped as a *pulled* `Disguisable` disguise (the veil above),
+so its remaining candidate is invisibility.
+
 **Provenance**: everything magic produces is stamped
-`MagicProvenance = {verb, noun, spellId, caster}` — on `Trauma`,
+`MagicProvenance = {verb, noun, spellId, specifiedBy, firedBy}` (the
+maker and the user — one field until items pulled them apart;
+[magic-items.md § Provenance carries two ids](./magic-items.md)) — on `Trauma`,
 `AfflictionRecord` (both optional `magicOrigin`) and `SustainedEffect`
 (required). Read by:
 

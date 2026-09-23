@@ -127,6 +127,17 @@ So the dying arm opts out of **both**, commented loudly at the site.
 by copying the adjacent `if (linkdead)` block, the freeze assertions still
 pass and only the dying ones fail, naming the reason.
 
+⭐ **And the window starts at `beginDying`, not at the first read.** Until
+2026-09-22 the record's `tickedAt` was stamped by the first
+`reconcileConditions` *after* `beginDying`, so a body nobody read never
+moved toward death — the principle held only for watched bodies. A fish
+drowning in a hand stayed "dying" indefinitely (the drain's last act
+opens the record and cancels itself; nothing reads a fish), and fishing's
+`release` put it back into the fishery record as a live count. The stamp
+is at `beginDying` now; a reader that needs the expiry in the same
+dispatch asks `getDyingRemainingSec()` (the expiry's `ConditionApi.die`
+fires async, a beat later) and treats a window with nothing left as dead.
+
 The far-past guard is skipped for the same reason. Elsewhere a huge elapsed
 gap produces an absurd result, so it is dropped; here it produces the
 *correct* one — you were dying, nobody came, and the reading resolves that
@@ -504,15 +515,16 @@ Two properties the diminishment must keep, and a service's must too:
   a competent medic names the condition. (`AssessController`.)
 
   It degrades on purpose. `observableSigns` and the real name come off the
-  authored `Condition` Idea — but **no Condition Idea is live at any path
-  today**: the seeds are inserted as template ROWS and nothing clones them
-  into Ideas at boot, so `findByTemplatePath` answers null for every one
-  of them, `starvation` as much as `recovering`. That is pre-existing and
-  world-wide (`Metabolic.resolveToxinBehavior` and `MagicLogic` already
-  swallow the same null), and instantiating the catalogue is its own
-  build. Until then the readout falls back to the template path's leaf, so
-  it works now and gets strictly better — authored signs, real names — the
-  moment the Ideas exist.
+  authored `Condition` Idea.
+
+  > **⚠ HISTORICAL — closed by `ConditionCatalogue`.** This paragraph used
+  > to say "no Condition Idea is live at any path today," which was true
+  > when written and is not any more: a self-warming `postRegister` now
+  > stands every authored row up as a live singleton at boot, so
+  > `findByTemplatePath` resolves `recovering` (and every other condition)
+  > from the first frame. See vitals.md § Conditions for the full account
+  > — this doc's degrade-to-the-path-leaf fallback is now dead code on the
+  > happy path, kept only as the not-found floor.
 
 The competitive axis is therefore *how little you are diminished*, and it
 needs no engine work: content calls `reembody`, gets the body back, and
@@ -638,21 +650,25 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
   was the real cost of the cut feature.
 - **The re-embodiment service** — decided as lore, unbuilt: contested
   metaphysics, two competing vendors (temple and clinic), coverage as the
-  hook. See [mortality-slate](../slates/builds/mortality-slate.md). The
+  hook. See [mortal-vessel-slate § Absorbed from mortality-slate — The
+  re-embodiment service](../slates/builds/mortal-vessel-slate.md). The
   seam it needs is already open: `reembody` returns the body, so a service
   applies its own terms to it.
-- **The recuperation model.** The floor ships one crude cost — drained
-  reserves plus a self-clearing `recovering` affliction. What diminishment
-  should actually *be* is undesigned: a temporary competence penalty, a
-  wound that heals over time, a diminished vessel in the mortal-vessel
-  sense, or something a patron marks you with. The `recovering` condition
-  is deliberately a near-empty seed (no `signature`, no staged prose) so it
-  can grow into whichever of those wins without a migration. The dial
-  (`RECOVERY_RESERVE_COST`) is a placeholder, not a balance decision.
+- ⚠ **The recuperation model — RESOLVED, not deferred.** This bullet used
+  to say what diminishment should *be* was undesigned. It is designed and
+  shipped: a temporary, fading, across-the-board competence-band
+  suppression (`expressionSuppression()`), never a Transcript rewrite. See
+  § *The recuperation model* at the top of this doc. Still open: a
+  *better* diminishment for a paid service to sell beyond the one
+  `recovering`-at-a-later-stage lever already shown there (a wound that
+  heals over time, a diminished vessel, a patron's mark) — and the dial
+  (`RECOVERY_RESERVE_COST`) remains a placeholder, not a balance decision.
 - **The in-circle death arc** — a circle death ejects, so the full arc
   cannot be rehearsed in a holodeck.
 - **Corpse custody** (a titled body), **remains** after terminal decay, and
-  the coroner economy.
+  the coroner economy —
+  [end-of-life-slate](../slates/builds/end-of-life-slate.md) owns all
+  three (since 2026-09-10).
 - **Declarative reference lifetimes** —
   [reference-lifetime-slate](../slates/tails/reference-lifetime-slate.md),
   surfaced by this build. `MortalArc` holds **no handle to the corpse**:
@@ -662,8 +678,36 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
   resolve after the restart the field exists to survive). Every field in
   the arc is a durable scalar; nothing in it can be stale by the time it
   is read.
-- **Forensic examination verbs** — the readability curve ships; nothing
-  consumes it yet.
+- ⚠ **Corrected — no longer true.** This used to read "the readability
+  curve ships; nothing consumes it yet." The `trade-medicine` pack's
+  `analyze postmortem` is now that consumer — see § *Forensic
+  examination* below.
+
+## ⭐⭐ Forensic examination — `analyze postmortem`
+
+The consequence build (MR!254) shipped the readability curve's first
+reader: `analyze postmortem <body>` (`trade-medicine` pack,
+`AnalyzePostmortemController`), gated to a dead `PostmortemMixin` +
+`Vitals` host.
+
+⭐⭐ **The cause is inferred from the wounds, never read off the stamp.**
+The body knows its own `causeOfDeath`; an examiner does not, and handing
+that over would make forensics a lookup. The controller shows
+`ceil(readability × wounds)` of the trauma list, worst first, and
+*infers* a cause from what's visible — the same evidence-vs-answer-key
+gap mortality.md's design always intended: the reading can be wrong, and
+gets worse as `getForensicReadability()` falls with decay stage
+(`fresh 1 · stale 0.6 · decomposed 0.25 · spent 0`). Difficulty is
+`1 − readability`, a measurement of the world, not a tag. Competence
+gates *what* the examiner can additionally say (the mechanism family at
+`competent`, the inferred cause at `proficient`, time-since-death at
+`expert`) — the same "competence buys information, not outcomes" rule
+stabilization uses. A graded `forensics` `ActSignature` credits the
+attempt (`forensics` Discipline, `specializes: [medicine]`).
+
+`analyze patient` (the live diagnostic half, unranked candidates) ships
+alongside it in the same pack but belongs to harm.md's medic vertical,
+not here.
 
 ## A corpse's own identity (2026-09) — #40 unblocked
 
