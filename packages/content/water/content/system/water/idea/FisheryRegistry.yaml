@@ -1,0 +1,11 @@
+# /system/water/idea/FisheryRegistry — the register of what every reach
+# holds, and ⭐ it is kept by the WATER system, not by any trade.
+#
+# Pure data: everything it knows is derived from the species rows'
+# habitats and the catalogue's water, and the only thing it writes is
+# how far a reach has been drawn down (the `fishery` document kind,
+# filed at /system/water/fisheries/<course>/<node>). Lazily cloned on
+# first use — no boot step to forget, and a reach nobody has fished has
+# no document at all.
+class: /system/water/idea/FisheryRegistry
+data: {}

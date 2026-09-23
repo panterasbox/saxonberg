@@ -1,0 +1,20 @@
+# Fishing — reading a water and taking what it holds.
+#
+# ⭐ A Discipline is a FIELD OF STUDY, not a job title; ISCED-F 0831 is
+# fisheries, which is the field. It is what the water pack's `Shore`
+# gates the species read on (`water.fishery.readDiscipline` names this
+# row), so an untrained eye sees a river and a practised one sees what is
+# in it — and, further up, the one factor that limits what is not.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: fishing
+  channel: skill
+  label: Fishing
+  iscedf: "0831"  # ISCED-F 2013: fisheries
+  description: >-
+    Reading a water for what it holds and where, choosing the bait and
+    the hour, feeling a take through the line and knowing when to give
+    and when to gain. Improves by doing; the water is an honest marker,
+    and it never says why.
+  requires: []

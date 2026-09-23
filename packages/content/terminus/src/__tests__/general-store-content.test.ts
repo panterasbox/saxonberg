@@ -52,6 +52,9 @@ const ARCANA_DIR = fileURLToPath(
 const TRANSPORT_DIR = fileURLToPath(
   new URL("../../../transport/content/system/transport/", import.meta.url),
 );
+const FISHING_DIR = fileURLToPath(
+  new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url),
+);
 
 /**
  * ⭐ Where a stocked good's row lives, by the prefix of its template
@@ -72,6 +75,7 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/distilling/", dir: () => DIST_DIR },
   { prefix: "/system/arcana/", dir: () => ARCANA_DIR },
   { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
+  { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   // The commons — the generic-objects pack, and the fallback.
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
@@ -208,6 +212,13 @@ describe("general-store content integrity", () => {
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.
     "/system/residence/thing/HouseholdersKit",
+    // The tackle line (fishing B6): a rod and a pot/net are
+    // `ToolItem` subclasses in the fishing pack (the instrument affords
+    // the verb), a worm a bare Detailed Thing, the bowl a `Feeder` and
+    // the fish food a `Provision` — all discrete, none Stackable.
+    "/trade/fishing/thing/Rod",
+    "/trade/fishing/thing/Trap",
+    "/trade/fishing/thing/Bait",
   ]);
 
   // ⭐ Ammunition is the ONE stackable good the store sells, and rightly:

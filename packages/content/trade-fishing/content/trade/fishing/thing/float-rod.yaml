@@ -1,0 +1,25 @@
+# A float rod — a quill float on a fine horsehair line, a small hook
+# (B8). The bait hangs where the float sets it: at the SURFACE, in front
+# of the mullet and whatever else comes up. Fine line shows the bait
+# well (`showing: 1.3`) and parts easily (`breakStrain: 0.4`): the
+# rig for the shoal, not for the sturgeon. The small hook takes small
+# fish a bigger one would miss.
+class: /trade/fishing/thing/Rod
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [rod, float-rod, float, quill, tackle]
+  primaryKeyword: float-rod
+  shortDescription: float rod
+  register: indefinite
+  longDescription: >-
+    A light cane rod with a quill float on a fine horsehair line and a
+    small hook under it. Set the float and the bait hangs just below
+    the surface.
+  mass: 0.7
+  capabilities: [angling]
+  epoch: medieval
+  showing: 1.3
+  breakStrain: 0.4
+  presentsAt: surface
+  hookGapeM: 0.006
+  _materialPath: /stuff/idea/material/wood/oak

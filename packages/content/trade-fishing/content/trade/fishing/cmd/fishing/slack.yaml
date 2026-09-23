@@ -1,0 +1,10 @@
+verbs: [slack]
+controller: /trade/fishing/idea/cmd/fishing/SlackController
+description: "Give line"
+help: |
+  `slack` gives line to whatever is on it. Give when the fish runs;
+  leave the line slack too long and it throws the hook.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args: []

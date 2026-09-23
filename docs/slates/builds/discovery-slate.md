@@ -47,7 +47,7 @@ gathering vertical was never written.
 
 *(Sits above [spawn-distribution-slate](./spawn-distribution-slate.md) and beside [magic-items-slate](./magic-items-slate.md), [identification-slate](./identification-slate.md), [pharma-slate](./pharma-slate.md).)*
 
-Related: [fishing-slate](./fishing-slate.md) (**the sibling — and the
+Related: [fishing-slate](../tails/fishing-slate.md) (**the sibling — and the
 contrast**), [mining-slate](./mining-slate.md),
 [pharma-slate](./pharma-slate.md) (**the demanding consumer**),
 [farming-slate](../tails/farming-slate.md) (where foraging goes when demand
@@ -733,3 +733,29 @@ world.**
 11. **Does the biome table inherit ADDITIVELY or by override?** Zone field
     inheritance is override-shaped; a bog inside a marsh probably wants
     *both* tables. **Worth deciding before authoring starts.**
+
+## ⭐ A first forage act, designed and withdrawn (fishing, 2026-09-21)
+
+The fishing build shipped `dig [<ground>] [with <trowel>]` — two game
+minutes on your hands, then a worm, and the ground has a little less in
+it — and withdrew it in review: digging something out of the ground for
+food or use is not a fishing concern, it is this slate's. What it settled
+is worth keeping:
+
+- **The ground's own ledger is the cooldown.** The yield drew on the
+  soil's `organicMatter` reserve (`Soil.drawOrganicMatter`, the twin of
+  `drawNutrient`); a bed dug over every morning gives less, a worked-out
+  one gives nothing and says so. No new state — the *decline as you take*
+  rule this slate already wants, on a ledger the soil already keeps.
+- **The instrument affords the verb** (`digging` — the farming spade and
+  the mining shovel already claim it); **the ground is the argument**
+  (`requires: [CultivableMixin]`); **what comes up is the ground's to
+  say** — and that last part is the missing piece: the yield was
+  hard-coded to a fishing worm, which is why it could not stay. The
+  biome-authored distribution table (§ open 11) is what makes `dig` a
+  forage verb rather than a fishing one.
+
+The controller and view are in the branch history at MR !268
+(`packages/content/trade-fishing/…/DigController.ts`, cut in review) if
+the shape is wanted back.
+

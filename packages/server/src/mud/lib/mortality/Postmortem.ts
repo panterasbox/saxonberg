@@ -36,6 +36,7 @@ import { ContainmentApi } from '../../api/containment';
 import type { Container } from '../spatial/Container';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
+import { Freshness } from '../material/Freshness';
 import {
   DECAY_STAGES,
   MORTALITY_DEFAULTS,
@@ -67,6 +68,17 @@ export interface Postmortem {
    * composes no `FreshnessMixin`.
    */
   sinceDeath(): number | null;
+  /**
+   * ⭐ The microbial load this body's FLESH has reached since death, on
+   * the shipped spoilage law (fishing D9) — `0` while it lives. Exactly
+   * the arithmetic butchering runs on a cut (`Freshness.advance` from
+   * the inoculum over `sinceDeath()` at the body's temperature), now
+   * answered by the carcass itself, so a shelf refusing a turned body
+   * and a `look` that says it has turned read one number. Reads; never
+   * writes — a corpse composes no `FreshnessMixin`, and the two clocks
+   * stay separate (the forensic stage bands on its own cadence).
+   */
+  freshnessLoad(): number;
   /**
    * ⭐⭐ **Lay this body to rest in `grave`.** Moves it in, records a
    * chronicle deed on the deceased's identity, and stops the corpse
@@ -120,6 +132,19 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
       }
       const now = WorldClockApi.getNow().rawValue();
       return Math.max(0, now - this.diedAtGameSec);
+    }
+
+    public freshnessLoad(): number {
+      const self = this as unknown as Stuff;
+      const elapsed = this.sinceDeath();
+      if (elapsed === null) return 0;
+      const material = MixinApi.isTangible(self) ? self.getMaterial() : null;
+      return Freshness.advance(
+        Freshness.inoculum(),
+        elapsed,
+        material,
+        Freshness.hostTemperatureK(self),
+      );
     }
 
     public getDecayStage(): DecayStage {

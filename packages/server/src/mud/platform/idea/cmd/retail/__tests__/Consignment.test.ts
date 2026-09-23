@@ -38,6 +38,12 @@ import { ContainableMixin } from "../../../../../lib/spatial/Containable";
 import { NamedMixin } from "../../../../../lib/description/Named";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import Location from "../../../../../lib/stuff/Location";
+import Provision from "../../../../thing/Provision";
+import Material from "../../../../../lib/material/Material";
+import { Freshness } from "../../../../../lib/material/Freshness";
+import { Creature } from "../../../../../lib/creature/Creature";
+import { WorldClockApi } from "../../../../../api/worldclock";
+import WorldClockRegistry from "../../../WorldClockRegistry";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
 import { CommandApi, type CommandContext } from "../../../../../api/command";
 import type { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -210,6 +216,105 @@ describe("Consignment — sell loop over real ownership", () => {
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(1); // commission
     expect(shelf.activeListingCount("/platform/agent/Avatar/alice")).toBe(0); // listing cleared
     expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
+  });
+
+  describe("⭐ no shelf lists what has turned (fishing A4)", () => {
+    let fleshSeq = 0;
+    function flesh(): Material {
+      fleshSeq += 1;
+      return makeStuffAtPath(() => {
+        const m = new Material();
+        m.setName("test-flesh");
+        m.setSpoilActivationEnergy(Quantity.of(60_000, "J/mol"));
+        m.setWaterActivity(0.99);
+        return m;
+      }, `/test/retail/flesh-${fleshSeq}`) as unknown as Material;
+    }
+    function provision(owner: Stuff, load: number): Provision {
+      const p = makeStuffAtPath(() => {
+        const p = new Provision();
+        p.setKeywords(["loaf"]);
+        p.setMass(Quantity.of(1, "kg"));
+        p.setMaterial(flesh());
+        p.setStampedTemperatureK(293);
+        p.setLastAmbientK(293);
+        return p;
+      }, `/test/retail/loaf-${fleshSeq}`);
+      p.setMicrobialLoad(load);
+      ContainmentApi.move(p as never, owner as never);
+      return p;
+    }
+    async function consign(who: TestGiver, loc: Location, shelf: ConsignmentShelf, item: Stuff, raw: string) {
+      const c = ctx(who, loc, shelf, "consign");
+      await asOwner(who, () =>
+        makeStuff(() => new ConsignController()).execute(
+          { thing: { stuff: item as never, raw }, ask: "4", shelf: { stuff: shelf as never, raw: "shelf" } },
+          c,
+        ),
+      );
+      return c;
+    }
+
+    it("a fresh provision lists; a spoiled one is refused `turned` and stays in hand", async () => {
+      const loc = makeStuff(() => new Location());
+      const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
+      ContainmentApi.move(shelf as never, loc as never);
+      const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
+      ContainmentApi.move(alice as never, loc as never);
+
+      const fresh = provision(alice, 0);
+      await asOwner(alice, () => fresh.stampChattel(alice));
+      await consign(alice, loc, shelf, fresh, "loaf");
+      expect(fresh.getContainer()).toBe(shelf);
+
+      const bad = provision(alice, 0.9);
+      await asOwner(alice, () => bad.stampChattel(alice));
+      expect(bad.getFreshnessBand()).not.toBe("fresh");
+      const c = await consign(alice, loc, shelf, bad, "loaf");
+      expect(bad.getContainer()).toBe(alice);
+      expect(c.getNotes().some((n) => n.kind === "controller-rejected" && (n as { reason?: string }).reason === "turned")).toBe(true);
+    });
+
+    it("a LIVE body lists; a body whose flesh has turned is refused", async () => {
+      WorldClockApi._resetForTesting();
+      let real = 100_000;
+      WorldClockApi._setNowProviderForTesting(() => real);
+      makeStuffAtPath(() => new WorldClockRegistry(), "/platform/idea/WorldClockRegistry");
+      const loc = makeStuff(() => new Location());
+      const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
+      ContainmentApi.move(shelf as never, loc as never);
+      const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
+      ContainmentApi.move(alice as never, loc as never);
+
+      const fish = makeStuffAtPath(() => {
+        const c = new Creature();
+        c.setKeywords(["fish"]);
+        c.setMaterial(flesh());
+        return c;
+      }, "/test/retail/fish");
+      ContainmentApi.move(fish as never, alice as never);
+      await asOwner(alice, () => fish.stampChattel(alice));
+      // Alive: fresh by definition.
+      await consign(alice, loc, shelf, fish, "fish");
+      expect(fish.getContainer()).toBe(shelf);
+
+      const dead = makeStuffAtPath(() => {
+        const c = new Creature();
+        c.setKeywords(["fish"]);
+        c.setMaterial(flesh());
+        return c;
+      }, "/test/retail/dead-fish");
+      ContainmentApi.move(dead as never, alice as never);
+      await asOwner(alice, () => dead.stampChattel(alice));
+      dead.setLifecycleState("dead");
+      dead.markDeceasedAt(WorldClockApi.getNow().rawValue());
+      real += (2 * 86_400 / 12) * 1000; // two game-days at the default scale
+      expect(Freshness.bandFor(dead.freshnessLoad())).not.toBe("fresh");
+      const c = await consign(alice, loc, shelf, dead, "fish");
+      expect(dead.getContainer()).toBe(alice);
+      expect(c.getNotes().some((n) => n.kind === "controller-rejected" && (n as { reason?: string }).reason === "turned")).toBe(true);
+      WorldClockApi._resetForTesting();
+    });
   });
 
   it("consign without a bank account nudges; nothing moves", async () => {

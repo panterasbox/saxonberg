@@ -119,7 +119,7 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | **miner** | **shipped** ([mining](./subsystems/mining.md)) | skill + tools | the smelter, through the assay shed — ⭐ *or nobody: with an adit and no shaft, a claim-holder walks their own ore out and owes the co-op nothing* |
 | farmer | **in build** | land + skill | produce buyers |
 | rancher | **in build** | land + stock | livestock buyers |
-| fisher | designed ([fishing](./slates/builds/fishing-slate.md)) | tackle + skill | market |
+| fisher | **shipped** ([fishing.md](./subsystems/fishing.md); tail at [fishing](./slates/tails/fishing-slate.md)) | tackle + skill | market |
 | **forester / woodcutter** | **shipped** ([forestry](./subsystems/forestry.md)) | a felling axe + common land | the collier (cordwood) and the mine (timber) — ⭐ *the stand is the PLACE: a clearing that is ground with a standing cover on it, felled to nothing and refilled only by the years and by planting; what comes down is a bole too heavy to lift, and the sawyer's seam is that trunk on the floor* |
 | **coppicer** | **shipped** ([forestry](./subsystems/forestry.md)) | a billhook + a panel | the collier — *a one-game-year rotation on a persistable panel; six smelts a panel a year, and that number is the lesson, not a dial* |
 | **prospector** | **shipped** ([mining](./subsystems/mining.md)) | **assay** (instrument + competence) | speculative — ⭐⭐ *and the survey record itself is the asset: a per-viewer DISCOVERY belief you can trade, which is why negative knowledge still sells* |

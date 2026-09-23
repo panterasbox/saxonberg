@@ -1,0 +1,26 @@
+{
+  "name": "@saxonberg/content-trade-fishing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The fishing trade — taking what a water holds: the tackle (rod, pot, net), the wait and the bite and the landing contest, a fish you can keep, six aquatic species shipped into the commons, and the trade's Discipline. The fishery RECORD is the water pack's.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-species-and-names": "workspace:*",
+    "@saxonberg/content-water": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

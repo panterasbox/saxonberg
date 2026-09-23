@@ -89,7 +89,7 @@ export default class OfferController extends CommandController<OfferModel> {
         .send();
       context.note({
         kind: 'controller-rejected',
-        reason: animal.feedsBy('hand') ? 'too-wild-for-a-hand' : 'no-hand-rung',
+        reason: animal.takesFromHand() ? 'too-wild-for-a-hand' : 'no-hand-rung',
         detail: animal.stuffId,
       });
       return;

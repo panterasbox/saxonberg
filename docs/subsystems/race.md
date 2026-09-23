@@ -679,6 +679,23 @@ starts fitting its clothes differently the moment lineage ships, with no
 code in either subsystem touched. `Wearable.fit.test.ts` asserts it by
 changing only `getMass()`.
 
+### ⭐ Habitat — what a species needs of a water (fishing A2/B8, 2026-09)
+
+`Species.habitat` (`Habitat`): `tolerances` over the closed
+`WATER_PARAMETERS` vocabulary (each a `Tolerance {min?, max?, margin?}`),
+`seasons?`, `role` (`bait · forage · predator · apex`), `abundance`
+(individuals per km of reach at a perfect fit), `fightRating`, and
+`feedsAt?` (`surface · mid · bottom` — where a hook finds it; absent =
+anywhere). `fitIn(state, season?) → {fit, limiting}` is **Liebig's
+minimum**: each authored tolerance is a factor in `0..1`, the season `0/1`,
+the fit their minimum, and the limiter is NAMED — which is the whole
+pedagogy of the water read. Unauthored = factor 1 (soil's rule); a null
+habitat = 0. ⚠ `feedsAt` is a habitat fact, deliberately not the pet
+`feedingStyle` rung (how an animal takes food from a PERSON); the carp
+authors both. `'surface'` was added to `FEEDING_STYLES` for the same carp.
+The fishery record that derives a reach's population from this is the
+water pack's ([fishing.md](./fishing.md)).
+
 ## OrganismMixin — runtime biology
 
 Composing `OrganismMixin` declares: "this Stuff is a member of a

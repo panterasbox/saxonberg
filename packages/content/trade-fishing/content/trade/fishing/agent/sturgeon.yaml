@@ -1,0 +1,19 @@
+# A sturgeon — an individual drawn out of a reach's record by a hook, a
+# pot or a net. Alive until it is not: in a hand it drowns on the shipped
+# clock; in a bowl of water it lives. Nothing about it says what water
+# it came from or what it carries.
+class: /trade/fishing/agent/Fish
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/sturgeon
+  lifecycleState: alive
+  shortDescription: sturgeon
+  register: indefinite
+  primaryKeyword: sturgeon
+  keywords: [sturgeon, royal, fish]
+  longDescription: >-
+    A sturgeon, long and armoured along the back in bony plates, a fish out of an older river.
+  handling: 0.0
+  behaviors:
+    - brain: /lib/behavior/feeds
+      trigger: cadence:60s

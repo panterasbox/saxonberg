@@ -34,6 +34,7 @@ import { Faculty } from '../../../lib/magic/Faculty';
 import type { NaturalAttackSpec } from '../../../lib/combat/NaturalAttack';
 import { NaturalAttack } from '../../../lib/combat/NaturalAttack';
 import type { FieldMeta } from '../../../lib/mixin';
+import type { Season } from '../../../lib/time/CelestialProfile';
 import { SpeciesApi } from '../../../api/species';
 
 /** A suggested character name (given + optional surname). */
@@ -209,6 +210,8 @@ export const FEEDING_STYLES = [
   'bowl',
   'trough',
   'hopper',
+  /** an animal in water that comes up to the hand — a rung, not a vessel */
+  'surface',
 ] as const;
 
 export type FeedingStyle = (typeof FEEDING_STYLES)[number];
@@ -216,6 +219,85 @@ export type FeedingStyle = (typeof FEEDING_STYLES)[number];
 /** The vessel kinds — the subset of {@link FEEDING_STYLES} a `Feeder` is. */
 export const FEEDER_KINDS = ['bowl', 'trough', 'hopper'] as const;
 export type FeederKind = (typeof FEEDER_KINDS)[number];
+
+/**
+ * ⭐ The closed vocabulary of what a body of water REPORTS. A reach
+ * derives every word of it (the water pack's `waterStateAt`); a tank
+ * will one day ledger the same words; a species authors tolerances
+ * against them and nothing else. Adding a word here is a kernel MR —
+ * that is the point: the wild water and the home tank speak one
+ * language, so the tank build never reopens the river.
+ *
+ * `contamination` is the shipped contamination LEVEL (watershed.md),
+ * carried in the same record so a species' sensitivity to it is one
+ * more tolerance and not a second mechanism.
+ */
+export const WATER_PARAMETERS = [
+  'temperatureK',
+  'currentMps',
+  'salinityPpt',
+  'oxygenMgL',
+  'pH',
+  'hardnessDgh',
+  'nitrateMgL',
+  'ammoniaMgL',
+  'nitriteMgL',
+  'contamination',
+] as const;
+export type WaterParameter = (typeof WATER_PARAMETERS)[number];
+
+/** One reading of a water — every parameter, always. */
+export type WaterState = Record<WaterParameter, number>;
+
+/**
+ * A tolerance on one parameter: `1` inside `[min, max]`, falling
+ * linearly to `0` across `margin` beyond either bound. An absent bound
+ * is unbounded; an absent margin is a cliff. A toxin is a `max` with a
+ * margin — that IS a dose response, and there is no second shape.
+ */
+export interface Tolerance {
+  min?: number;
+  max?: number;
+  margin?: number;
+}
+
+/** Where a species sits in a water's food web. */
+export const HABITAT_ROLES = ['bait', 'forage', 'predator', 'apex'] as const;
+export type HabitatRole = (typeof HABITAT_ROLES)[number];
+
+/**
+ * Where in the column a species feeds — what a float rig, a free line
+ * and a ledger rig each put a bait in front of (fishing B8). Absent =
+ * anywhere (unmodelled is not zero).
+ */
+export const WATER_LAYERS = ['surface', 'mid', 'bottom'] as const;
+export type WaterLayer = (typeof WATER_LAYERS)[number];
+
+/**
+ * What a species needs of a water, and what it is worth in one. A
+ * species authors ONLY what distinguishes it: an absent parameter is
+ * factor 1 (soil's rule — *unmodelled is not zero*).
+ */
+export interface Habitat {
+  tolerances: Partial<Record<WaterParameter, Tolerance>>;
+  /** The seasons it is in the water at all; absent = all year. */
+  seasons?: Season[];
+  role: HabitatRole;
+  /** Individuals per km of reach at perfect fit. */
+  abundance: number;
+  /** `0..1` — what a hooked one does; drives the contest and the size band. */
+  fightRating: number;
+  /** Where in the column it feeds; absent = anywhere. */
+  feedsAt?: WaterLayer;
+}
+
+/** What `fitIn` answers: the fit, and the one thing that limits it. */
+export interface HabitatFit {
+  /** `0..1`. */
+  fit: number;
+  /** The parameter at the minimum, `'season'` out of season, `null` at a perfect fit. */
+  limiting: WaterParameter | 'season' | null;
+}
 
 export interface HandlingRange {
   /** Handling never decays below this. The species' memory of people. */
@@ -543,6 +625,12 @@ export default class Species extends SingletonMixin(
   protected butcheryYield: ButcheryYield[] = [];
 
   /**
+   * What this species needs of a water (fishing D4). `null` — not in
+   * any water: the cat, the pig, the collie. See {@link Habitat}.
+   */
+  protected habitat: Habitat | null = null;
+
+  /**
    * The species' **natural attacks** — its innate combat vocabulary
    * (bite / claw / tail…), each a `NaturalAttackSpec`
    * `{key, channel, reach?, massKg?, lengthM?}`. Multiple attacks rotate
@@ -666,6 +754,13 @@ export default class Species extends SingletonMixin(
     nameBankKeys: { persistent: true },
     sentient: { persistent: true },
     butcheryYield: { persistent: true, authorable: true },
+    // ⭐ Level 0: natural history a player is MEANT to learn — the whole
+    // pedagogy claim of the fishery is that where a species is found is
+    // derivable from what it needs (fishing D4). The game shows the
+    // limiter in words (*too warm for trout this month*) and never a
+    // number, and a wiki panel printing the tolerances is the field
+    // guide the angler is supposed to have read.
+    habitat: { persistent: true, authorable: true },
 
     // ── What you learn by meeting it ──
     vitalProfile: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -737,6 +832,107 @@ export default class Species extends SingletonMixin(
   }
   public setButcheryYield(value: ButcheryYield[]): void {
     this.butcheryYield = Array.isArray(value) ? value : [];
+  }
+
+  /** See {@link Habitat}. `null` — the species lives in no water. */
+  public getHabitat(): Habitat | null {
+    return this.habitat;
+  }
+
+  /**
+   * Declare the habitat. ⚠ Refuses an unknown parameter word or role
+   * rather than dropping it, for `setFeedingStyle`'s reason: a typo'd
+   * tolerance would read as "this species does not care about that",
+   * which is indistinguishable from a deliberate omission and would be
+   * found only by a fish thriving in water that should kill it.
+   */
+  public setHabitat(value: Habitat | null): void {
+    if (!value) {
+      this.habitat = null;
+      return;
+    }
+    if (value.feedsAt !== undefined && !(WATER_LAYERS as readonly string[]).includes(value.feedsAt)) {
+      throw new Error(
+        `Species.setHabitat: '${String(value.feedsAt)}' is not a water ` +
+          `layer. One of: ${WATER_LAYERS.join(', ')}.`,
+      );
+    }
+    if (!(HABITAT_ROLES as readonly string[]).includes(value.role)) {
+      throw new Error(
+        `Species.setHabitat: '${String(value.role)}' is not a habitat ` +
+          `role. One of: ${HABITAT_ROLES.join(', ')}.`,
+      );
+    }
+    const tolerances: Partial<Record<WaterParameter, Tolerance>> = {};
+    for (const [word, tol] of Object.entries(value.tolerances ?? {})) {
+      if (!(WATER_PARAMETERS as readonly string[]).includes(word)) {
+        throw new Error(
+          `Species.setHabitat: '${word}' is not a water parameter. ` +
+            `One of: ${WATER_PARAMETERS.join(', ')}.`,
+        );
+      }
+      if (!tol) continue;
+      tolerances[word as WaterParameter] = {
+        ...(tol.min !== undefined ? { min: tol.min } : {}),
+        ...(tol.max !== undefined ? { max: tol.max } : {}),
+        ...(tol.margin !== undefined ? { margin: Math.max(0, tol.margin) } : {}),
+      };
+    }
+    this.habitat = {
+      tolerances,
+      ...(value.seasons ? { seasons: [...value.seasons] } : {}),
+      role: value.role,
+      abundance: Math.max(0, Number(value.abundance) || 0),
+      fightRating: Math.max(0, Math.min(1, Number(value.fightRating) || 0)),
+      ...(value.feedsAt !== undefined ? { feedsAt: value.feedsAt } : {}),
+    };
+  }
+
+  /**
+   * ⭐ How well this species fits a water — **the one law every RGO
+   * shares** (fishing D22): each authored tolerance is a factor in
+   * `0..1`, the season is `0/1`, and the fit is the MINIMUM of them —
+   * Liebig's law, the rule husbandry already takes over water, light
+   * and root. The minimum is what lets the read NAME the limiter (*too
+   * warm for trout this month*), which is the whole pedagogy of the
+   * field and of the tank; a product cannot say which factor and a mean
+   * hides it. Interactions live in the derivation of the STATE (warm
+   * water holds less oxygen), never in the combining rule.
+   *
+   * A `null` habitat is fit `0` — not in any water. An unauthored
+   * parameter is factor `1`. `season` omitted ⇒ the season is not
+   * checked.
+   */
+  public fitIn(state: WaterState, season?: Season): HabitatFit {
+    const habitat = this.habitat;
+    if (!habitat) return { fit: 0, limiting: null };
+    let fit = 1;
+    let limiting: HabitatFit['limiting'] = null;
+    if (season && habitat.seasons && !habitat.seasons.includes(season)) {
+      return { fit: 0, limiting: 'season' };
+    }
+    for (const word of WATER_PARAMETERS) {
+      const tol = habitat.tolerances[word];
+      if (!tol) continue;
+      const f = Species.toleranceFactor(state[word], tol);
+      if (f < fit) {
+        fit = f;
+        limiting = word;
+      }
+    }
+    return { fit, limiting };
+  }
+
+  /** `1` inside the band, linear to `0` across the margin beyond it. */
+  private static toleranceFactor(x: number, tol: Tolerance): number {
+    if (!Number.isFinite(x)) return 1;
+    const margin = tol.margin ?? 0;
+    let over = 0;
+    if (tol.min !== undefined && x < tol.min) over = tol.min - x;
+    else if (tol.max !== undefined && x > tol.max) over = x - tol.max;
+    if (over <= 0) return 1;
+    if (margin <= 0) return 0;
+    return Math.max(0, 1 - over / margin);
   }
 
   public getBodyPlan(): BodyPlan | null {

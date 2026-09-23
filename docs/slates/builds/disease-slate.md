@@ -20,7 +20,7 @@ health, the College of Physic, and the teaching seam — the *pedagogical* payof
 of everything below).
 Consumers: [farming](../tails/farming-slate.md) (blight; rotation's *true* reason) · [ranching](./ranching-slate.md) (**where this question started** —
 herd disease was its "biggest open call") · [pets](./pets-slate.md) (the
-individual case; the zoonotic bridge) · [fishing](./fishing-slate.md)
+individual case; the zoonotic bridge) · [fishing](../tails/fishing-slate.md)
 (aquaculture; its *Water composition* section already routes contamination
 through `Condition.toxinBehavior`) · [stewardship](./stewardship-slate.md)
 (density is zoned). Substrates: [harm.md](../../subsystems/harm.md) ·

@@ -59,7 +59,7 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
      wants the bellows; tin has chemistry but no ore, which is what keeps
      bronze a later stage; and salt-as-preservation-staple is untouched.
      *Serves: Delvers, Ironwrights.*
-   - **Fishing v1** [T2 — [fishing-slate](./slates/builds/fishing-slate.md)] — the accessible
+   - **Fishing v1** [T2 — [fishing-slate](./slates/tails/fishing-slate.md)] — the accessible
      income floor (the body's rest); first real gameplay consumer of
      weather; drives perishability; the salt-cod interlock with
      mining; the net wave's commons/quota = more polity paper.

@@ -1,0 +1,65 @@
+verbs: [fish, angle]
+controller: /trade/fishing/idea/cmd/fishing/FishController
+description: "Cast a line and wait"
+help: |
+  `fish` casts out with the rod in your hands, bare-hooked. `fish with
+  worm` baits the hook first — and what you put on it decides what comes
+  to it: a worm for the small fish that feed on the bottom, a small fish
+  you landed for the ones that hunt them, a crust of bread for what
+  comes up for crumbs, a spoon for the hunters — but a spoon only fishes
+  while you `reel` it. Where there is more than one water in reach,
+  `fish at the bank` says which; `fish using float-rod` says which rod.
+
+  The rod is the rig. A float rod hangs the bait at the surface on a
+  fine line; a leger rod pins it to the bottom on a heavy one; the
+  plain cane rod drifts between. Fish feed where they feed — a float
+  over an eel is a long afternoon — and a hook a fish cannot get its
+  mouth round takes nothing from it, silently. Heavy line holds the big
+  one and shows the bait worse; fine line bites more and parts.
+
+  Then you wait. The line stays slack for a while and nothing tells you
+  why. A small fish comes in on its own; a big one runs, and the rod
+  bends — `reel` when it rests, `slack` when it runs, and you learn the
+  difference by losing a few. `cancel fishing` brings the line in.
+
+  ⚠ What you land is alive, and it is in your hand. A fish out of water
+  is a fish that is drowning; a bowl of water is the only thing that
+  stops it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠ ORDER: the binder fills positionals in order and a preposition
+  # skips FORWARD, never back — so `fish with worm using cane` needs the
+  # bait declared before the rod (B8's drive found it as a
+  # shape-fall-through the moment there were three rods in hand).
+  # Anything you are carrying can go on a hook. The engagement decides
+  # what a species makes of it — a worm, a small fish, a crust, a
+  # spoon, or nothing.
+  - name: bait
+    type: object
+    required: false
+    prepositions: [with]
+    scope: ["inventory"]
+    requires: any
+  # ⭐ WHICH ROD — declared, not hunted for. `[capability.angling]` asks
+  # for the thing you can fish with; `me:i` is in hand, as a rod must be.
+  # With more than one rod in hand the default PROMPTS: say `using cane`.
+  - name: rod
+    type: object
+    required: false
+    prepositions: [using]
+    default: "me:i:[capability.angling]"
+    scope: ["inventory"]
+    requires: [ToolMixin]
+  # ⭐ WHICH WATER — a Shore in reach, or none: then the Locality's own
+  # reach is fished, which is how a valley nobody wrote fishing for has
+  # fish.
+  - name: shore
+    type: object
+    required: false
+    prepositions: [at, in, from]
+    default: "reachable:[class.Shore]"
+    scope: ["reachable"]
+    requires: any

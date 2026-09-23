@@ -173,6 +173,23 @@ data:
     - { itemTemplatePath: /system/transport/thing/sledge, par: 1 }
     - { itemTemplatePath: /system/transport/thing/dray, par: 1 }
     - { itemTemplatePath: /system/transport/thing/wagon, par: 1 }
+    # ⭐ The tackle line (fishing B6): a rod, a worm, a pot, a net, a bowl
+    # and a twist of fish food — inputs, which is what a
+    # general store sells. What comes out of the river is consigned at
+    # the market, never sold here.
+    - { itemTemplatePath: /trade/fishing/thing/rod, par: 2 }
+    - { itemTemplatePath: /trade/fishing/thing/worm, par: 6 }
+    - { itemTemplatePath: /trade/fishing/thing/pot, par: 2 }
+    - { itemTemplatePath: /trade/fishing/thing/net, par: 1 }
+    - { itemTemplatePath: /trade/fishing/thing/fish-bowl, par: 2 }
+    - { itemTemplatePath: /trade/fishing/thing/fish-food, par: 4 }
+    # ⭐ The rig (fishing B8): a float rod for the surface, a leger rod
+    # for the bottom and the big fish, a spoon to work, a keepnet to
+    # keep the catch alive in. Numbers on the same classes as above.
+    - { itemTemplatePath: /trade/fishing/thing/float-rod, par: 1 }
+    - { itemTemplatePath: /trade/fishing/thing/leger-rod, par: 1 }
+    - { itemTemplatePath: /trade/fishing/thing/spoon, par: 2 }
+    - { itemTemplatePath: /trade/fishing/thing/keepnet, par: 1 }
   prices:
     /world/terminus/general-store/thing/torch: 2
     /world/terminus/general-store/thing/rations: 3
@@ -269,3 +286,16 @@ data:
     /system/transport/thing/sledge: 14
     /system/transport/thing/dray: 60
     /system/transport/thing/wagon: 95
+    # ⭐ The tackle ladder, against the same anchors: a rod and a worm
+    # inside a stipend with change for rations, a net the dear one —
+    # because a net is a business and a rod is an afternoon.
+    /trade/fishing/thing/rod: 9
+    /trade/fishing/thing/worm: 1
+    /trade/fishing/thing/pot: 7
+    /trade/fishing/thing/net: 15
+    /trade/fishing/thing/fish-bowl: 5
+    /trade/fishing/thing/fish-food: 1
+    /trade/fishing/thing/float-rod: 11
+    /trade/fishing/thing/leger-rod: 14
+    /trade/fishing/thing/spoon: 4
+    /trade/fishing/thing/keepnet: 6

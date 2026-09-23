@@ -388,6 +388,19 @@ situation. A card about a THING has to be anchored to that thing, and
 nothing about the query text can express that — the anchor has to be
 the subject id, carried on the subscription.
 
+## ⚠ The column does not scroll to the card you just asked for
+
+Found by the fishing build's live browser drive (2026-09-22). A player
+at the river's edge types `look edge`: the transcript prints **nothing**
+(a `look` at a thing renders as a card, by design), the read arrives as
+a card — and with two older cards above it the new one sits below the
+fold. Measured: the card's top at 794 px against a 720 px viewport, the
+column at `scrollTop: 0` with `scrollHeight` 854 over `clientHeight`
+583. Nothing is broken; nothing is shown either, and the player has no
+cue that scrolling is what is wanted. *Newest at the bottom* is the
+LOG's shape (above) — it wants the column pinned to the bottom as the
+transcript is, or a cue when a card lands off-screen.
+
 ## ⚠ No migration ships, and here is why
 
 This build renamed the stored key (`cockpit.panes` → `cockpit.cards`),

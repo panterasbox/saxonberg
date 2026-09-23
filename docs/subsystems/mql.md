@@ -495,7 +495,10 @@ order).
 Lives in `scope-walk.ts:scoreCandidate`. Rules:
 
 - Exact-name match (case-insensitive, single-word query): 100
-- Whole-name AND-narrow on lowercased name: 50
+- ⭐ Every query word a WHOLE word of the name: 60 (fishing B8) — `net`
+  is a word of *a net* and a substring of *a keepnet*; `edge` a word of
+  *the river's edge* and a substring of *a ledger rod*
+- Whole-name AND-narrow on lowercased name (substring): 50
 - Word-of-name AND-narrow: 40
 - Keywords AND-narrow (all matched): 25
 - Partial keyword match: 10 × matched-count
@@ -505,6 +508,18 @@ The rule that matters: **all query keywords must match for a
 candidate to be considered.** AND-narrow, no exceptions. The exact
 multipliers are arbitrary; they preserve Phase-4 behavior so existing
 tests keep passing.
+
+⚠⚠ **The scorer was inert for every `scope:word` query until 2026-09-22.**
+A scope seed (`reachable` / `inventory` / `peers` — the default arg
+shape of most verbs) stamps each candidate 100, and the keyword narrow
+(`filterByKeywords`) kept `max(prior, keyword)` — always 100 — so every
+`reachable:net` tied and the `top` policy fell to **pool order**
+(inventory before the room): `haul net` with a keepnet in hand hauled
+the keepnet however the scorer ranked them, and every "substring
+collision" the drives kept finding (creel/eel, ledger/edge, keepnet/net)
+was really this. The narrow now carries the keyword's own score
+(`scope-walk.score.test.ts` resolves it in situ). The scores above only
+mean something because of that.
 
 ### Scope-walk (`mql/scope-walk.ts`)
 

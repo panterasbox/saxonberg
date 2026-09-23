@@ -19,7 +19,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { ReservedMixin, Reserve } from '../../reserve';
-import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY, SOIL_RESERVE_THEME } from '../Soil';
+import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY, SOIL_ORGANIC_MATTER_RESERVE_KEY, SOIL_RESERVE_THEME } from '../Soil';
 import { MixinApi } from '../../../api/mixin';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -91,6 +91,7 @@ describe('SoilMixin — the ground half, on its own', () => {
     expect(ground.soilMoistureFraction()).toBeCloseTo(0.25, 6);
     expect(ground.nutrientFraction()).toBeCloseTo(0.5, 6);
   });
+
 
   it('⭐ the two host hooks default to zero — nobody drinks, no sky is caught', () => {
     const ground = makeGround();

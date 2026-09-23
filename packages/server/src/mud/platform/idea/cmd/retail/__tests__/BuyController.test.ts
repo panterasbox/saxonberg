@@ -352,4 +352,33 @@ describe("BuyController — buy that stamps", () => {
     expect(await torch.chattelOwner()).toBeNull(); // unstamped, unauthored
     expect(stock.onHand(TORCH)).toBe(1);
   });
+
+  it("⭐ a bare shelf is SOLD OUT, not 'isn't for sale' — the counter lists what it carries (the fishing live drive)", async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/bare");
+    ContainmentApi.move(giver as never, loc as never);
+    const { stock, torch } = makeStore({
+      attendDurationMs: 0,
+      staffingPolicy: "self-service",
+      price: 5,
+    });
+    // The line is carried; the shelf is empty (somebody bought the last one).
+    StuffApi.destruct(torch);
+    expect(stock.onHand(TORCH)).toBe(0);
+    expect(stock.carriesLine("torch")).toBe(true);
+    expect(stock.carriesLine("harpsichord")).toBe(false);
+
+    const controller = makeStuff(() => new BuyController());
+    const ctx = makeContext(giver, loc, stock);
+    await asOwner(giver, () =>
+      controller.execute(
+        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
+        ctx,
+      ),
+    );
+    const reason = ctx
+      .getNotes()
+      .find((n) => n.kind === "controller-rejected") as { reason?: string } | undefined;
+    expect(reason?.reason).toBe("sold-out");
+  });
 });

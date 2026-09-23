@@ -33,7 +33,7 @@ See also: [farming-slate](../tails/farming-slate.md) (**the primary sibling** �
 guild, same production family; the feed loop + the shared genome) ·
 [pets-slate](./pets-slate.md) (the *substrate* sibling — an owned animal, but a
 different experience; see The family placement) ·
-[fishing-slate](./fishing-slate.md) (aquaculture is ranching's aquatic casting;
+[fishing-slate](../tails/fishing-slate.md) (aquaculture is ranching's aquatic casting;
 `BodyPlan`→parts on cleaning is settled there) ·
 [mining-slate](./mining-slate.md) (the commons-renewal counterpoint) ·
 [stewardship-slate](./stewardship-slate.md) (**the gate** — land use decides

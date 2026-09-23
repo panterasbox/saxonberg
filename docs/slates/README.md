@@ -30,7 +30,7 @@ materials-response all shipped, which made the name actively misleading.
 
 ---
 
-## ⭐ Greenfield — nothing shipped yet (56)
+## ⭐ Greenfield — nothing shipped yet (55)
 
 Pick from here for a clean cycle with no existing substrate to respect.
 
@@ -60,7 +60,6 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [estate-nesting](./builds/estate-nesting-slate.md) | ⭐⭐ decide what an estate entry should CARRY — a reference, a copy, or a copy under a cap · the 16 MB document ceiling and what happens at it · whether a good's state belongs in the owner's record at all now that `EstateEntry.key` proves it need not … |
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) … |
-| [fishing](./builds/fishing-slate.md) | the catch-distribution field · the landing contest · the fish and aquatic-harvest roster · the method ladder (rod · trap · net · spear) · the three water regimes … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table … |
 | [grid](./builds/grid-slate.md) | the service declaration on `ParcelRecord` (default connected, author disconnection) · connection-not-consumption metering … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema · the `guild:` GroupProvider + ranks · focus-tagged `TranscriptEntry` + charter-weighted `Competence` · contract claim gates … |
@@ -93,7 +92,7 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [wizard-bar](./builds/wizard-bar-slate.md) | ⭐ the conspicuous record of wizard reads/impersonations (the one non-retrofittable piece) · the safe-harbour standard text · admit (exam + archwizard flip) … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | re-gating those four off the code-trust axis · break-glass declared-purpose logging for reads and impersonation · `su` as an agency consumer … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (79)
+## ⭐ Continuations — substrate shipped, a build's worth remains (80)
 
 Pick from here to deepen something that already works. Cheaper to start
 (the ground is proven) and the slate says exactly where the edge is.
@@ -108,10 +107,10 @@ Pick from here to deepen something that already works. Cheaper to start
 | [balance](./builds/balance-slate.md) | the jurisdiction stamp on the 4 unstamped ledgers (#0a-0c) · the cross-jurisdiction enumeration · the void-at-write validity predicate · the `bound` instrument … |
 | [capability-magic](./builds/capability-magic-slate.md) | the `Transform` primitive's Api (polymorph is its own build) · multi-cell spell composition · wards as a mitigator layer · the frontier nouns Storm / Spirit / Time … |
 | [cast-archetype](./builds/cast-archetype-slate.md) | the archetype rows themselves (closed `role` + `temperament` kinds, open entries) · the lens-vs-seed dual compilation · the `requires` config gate + its lint … |
-| [cms](./builds/cms-slate.md) | lease-scoped trees + `domain_history` versioning · the draft/changeset overlay + atomic publish · the law==code review gate … |
 | [cms-connectors](./builds/cms-connectors-slate.md) | scoped personal access tokens (content-vs-source scope) · the MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over `source` + `document` … |
-| [combat](./builds/combat-slate.md) | pursuit / the chase · rout & rally retreat · the morale + de-escalation suite · the `guards` intervention brain · the client `CombatCard` · NPC-vs-NPC crews … |
+| [cms](./builds/cms-slate.md) | lease-scoped trees + `domain_history` versioning · the draft/changeset overlay + atomic publish · the law==code review gate … |
 | [combat-experience](./builds/combat-experience-slate.md) | T5 composure/luck (`traits-stress`; `g(composure)` is inert) · T7/T8 loadout-as-chemistry · T11 aftermath · T12 de-escalation · T13 morale & surrender … |
+| [combat](./builds/combat-slate.md) | pursuit / the chase · rout & rally retreat · the morale + de-escalation suite · the `guards` intervention brain · the client `CombatCard` · NPC-vs-NPC crews … |
 | [content-packs](./builds/content-packs-slate.md) | the unbuilt trades (butchery · milling · forestry · fishing · medicine · sanitation · funerary · repair · papermaking · insurance) · localities-as-compositions … |
 | [cooking](./builds/cooking-slate.md) | the tending wave (durative cook · braise) · cold storage/icebox · compost · preservation + the victualler · slices (a food that yields N portions) · staling promoted to the kernel on the third-pack signal |
 | [cooperative](./builds/cooperative-slate.md) | the capital faucet / stake ledger · Twitch identity binding · the three chambers + the ballot · delegation guardrails · the in-world reserve + the budget process … |
@@ -122,12 +121,13 @@ Pick from here to deepen something that already works. Cheaper to start
 | [currency](./builds/currency-slate.md) | a second issuer + who may authorize a mint · opt-in acceptance lists / corpo scrip · the peg as a redeemable standing offer · wages-in-scrip consent |
 | [daves-bar](./builds/daves-bar-slate.md) | the succession arc · tabs + customer records (regular / 86'd) · corpo faction-approval standing · the Scene composer's crowd aggregation for a full room … |
 | [delivery](./builds/delivery-slate.md) | providers + coverage + metering (power, aether) · the aether-line ↔ comms unification · post/mail to an address · the broadcast/field carry |
-| [disease](./builds/disease-slate.md) | `ContagionSpec` (routes · host range · reservoir) — `Condition.contagion` is still `null` with no consumer · the husbandry-is-immunity coupling · quarantine … |
 | [disease (pack)](./builds/disease-design-pack.md) | `ContagionSpec` itself · the two unifications (one burden engine · one hygiene read) · the room-condition half of immunity, which is also unbuilt … |
+| [disease](./builds/disease-slate.md) | `ContagionSpec` (routes · host range · reservoir) — `Condition.contagion` is still `null` with no consumer · the husbandry-is-immunity coupling · quarantine … |
 | [eager-residency](./builds/eager-residency-slate.md) | the pin's governance: ⭐⭐ two tiers of account and the may/may-not table (player · maker · funder) · three-party admission (object · owner · parcel) over the allowance · the degradation order · the lapse · the never-fault gate · the keyless good in a public room … |
 | [economy](./builds/economy-slate.md) | faucet/sink + inflation balance · the bazaar · market aggregation · the currency-reset event … |
 | [eternal-university](./builds/eternal-university-slate.md) | the arrival gate · the Quad + the walkway spine · Student Services (registrar + housing office) · the Health Center clinic · the Campus Store · the academic hall … |
 | [fire-combustion](./builds/fire-combustion-slate.md) | the fire service (§ below) — the brigade, prevention, and fire insurance · arson-as-crime · map-scale wildfire · burning-DoT as a combat weapon … |
+| [fishing](./tails/fishing-slate.md) | the tank (the vessel's ledger + the keeper; the reach already reports its parameters) · ⭐ the named apex as an individual in the record · the stew pond · the boat regime · the fishery right + covenant rows · noun breadth · a released fish keeps no identity … |
 | [food-safety](./builds/food-safety-slate.md) | molds (Part 10) — the second population's visible surface |
 | [freight](./builds/freight-slate.md) | the barricade · the tollgate + turnpike trust · warehousing as a business · the wainwright · rail + timetables · navigation as a discipline · customs and tariffs |
 | [fridge (pack)](./builds/fridge-design-pack.md) | the cold-container substrate (`CoolboxMixin` + atmosphere on `Container`) · the icebox … |
@@ -143,8 +143,8 @@ Pick from here to deepen something that already works. Cheaper to start
 | [logistics](./builds/logistics-slate.md) | piracy · live cargo and drovers (the steer walks, the carcass rides) · infrastructure politics — tollgate, turnpike trust, barricade, banditry, congestion, road wear … |
 | [lounge](./builds/lounge-slate.md) | the pizza-as-consensus toy · the TV/remote standing signal + the derived channel lineup · the jukebox · the social minigames · emergent-personality Dave |
 | [magic-items](./builds/magic-items-slate.md) | the item-by-item catalog walk, shipped as CONTENT packs — and ⚠ the cut is undecided (horizontal "twenty wands" vs a vertical "everything one shop stocks") … |
-| [mana-economy](./builds/mana-economy-slate.md) | the SOURCE — sited mana nodes on the terminus-condition × access-mode grid (a `ManaMain` just refills today) · the CHARGER as a trade … |
 | [mana-economy (pack)](./builds/mana-economy-design-pack.md) | mana deposits + prospecting/refining · magic water as a traded bulk good · the piped-mana utility tier · the Confluence in Terminus canon · the three vocations |
+| [mana-economy](./builds/mana-economy-slate.md) | the SOURCE — sited mana nodes on the terminus-condition × access-mode grid (a `ManaMain` just refills today) · the CHARGER as a trade … |
 | [medic-judgment](./builds/medic-judgment-slate.md) | stop auto-selecting (player picks target + modality) · cues without names on `assess`/`analyze` · triage under the deterioration clocks … |
 | [metal-chain](./builds/metal-chain-slate.md) | Stage B, below the water table — shaft/hoist/pump · the drainage commons + the hoist toll · sulfides and roasting · collapse, entrapment, rescue · **Stage C: tin at the granite contact, bronze as a second dissolved constituent** · a charcoal producer for the fuel yard … |
 | [mining](./builds/mining-slate.md) | everything below the water table — shaft/hoist/pump · the drainage commons + hoist toll · sulfides and roasting · collapse entrapment + the rescue clock … |

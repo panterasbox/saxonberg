@@ -11,7 +11,7 @@
 > taxed staple
 > **Size:** a wave
 
-See also — the chain: [fishing](../builds/fishing-slate.md) (the driver) ·
+See also — the chain: [fishing](../tails/fishing-slate.md) (the driver) ·
 [mining](../builds/mining-slate.md) (**salt** — the counterplay and a taxed staple) ·
 [farming](./farming-slate.md) (winter is meaningless without this) ·
 [ranching](../builds/ranching-slate.md) (meat + dairy) ·
@@ -149,7 +149,7 @@ winter and dear in summer — the pressure inverts exactly when it must.
 > have a *range*, and preserved goods can cross it.**
 
 That is why salt cod existed — and both [mining](../builds/mining-slate.md) and
-[fishing](../builds/fishing-slate.md) already name the salt-cod route as their
+[fishing](../tails/fishing-slate.md) already name the salt-cod route as their
 interlock. Preservation converts a map into a **trade geography**: local markets
 for the fresh, long routes for the cured, and a real industry sitting between
 them.

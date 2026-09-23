@@ -31,7 +31,7 @@ data:
     - { disposition: diligence, valence: 80 }
   behaviors:
     - brain: /lib/behavior/introduces
-      trigger: witness:arrival
+      trigger: arrival
     - brain: /lib/behavior/idles
       trigger: cadence:40s
       config:

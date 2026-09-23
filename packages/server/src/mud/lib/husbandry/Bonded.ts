@@ -252,6 +252,10 @@ export interface Bonded {
   rememberFollowed(person: Stuff): void;
   /** Credit a meal eaten in `placeId` toward moving home there. */
   creditHomeCandidate(placeId: string, gameDay: number): void;
+  /** The place key a container is known by as a home — see {@link Bonded.homeKeyOf}. */
+  homeKeyOf(container: Stuff): string;
+  /** ⭐ The naming gate: has it chosen `person`? Either route home counts. */
+  hasChosen(person: Stuff): boolean;
   /** The places it has been since it was last home, oldest first. */
   getTrail(): readonly string[];
   /** Note where it is now. Revisiting a remembered place rewinds to it. */
@@ -262,6 +266,8 @@ export interface Bonded {
   eatFood(food: Stuff, offerer: Stuff | null): Promise<boolean>;
   /** Does this animal's species feed by `style`? */
   feedsBy(style: FeedingStyle): boolean;
+  /** Will it take food from a held-out hand — the `hand` rung, or the `surface` one. */
+  takesFromHand(): boolean;
   /** How it answers `person`'s held-out hand. See {@link OfferRung}. */
   offerRung(person: Stuff): OfferRung;
   /** Is it hungry enough to ask? (`HUNGRY_SATIATION`) */
@@ -309,6 +315,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       homeCandidate: { persistent: true },
       homeCandidateDays: { persistent: true },
       homeCandidateLastDay: { persistent: true },
+      homeEarnedDay: { persistent: true },
     };
 
     /** Where it returns to. A `PersistableApi.placeIdOf` string. */
@@ -335,6 +342,14 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public homeCandidate = '';
     public homeCandidateDays = 0;
     public homeCandidateLastDay = -1;
+    /**
+     * The game day `home` last MOVED by being fed there — `-1` while home
+     * is only the seeded birthplace. ⭐ The second naming gate (fishing
+     * D10): an animal that cannot follow you home can still choose you
+     * by being kept — and `home !== ''` alone cannot mean that, because
+     * every animal is born with one.
+     */
+    public homeEarnedDay = -1;
 
     public bondWith(person: Stuff): number {
       const self = this as unknown as Stuff;
@@ -423,7 +438,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!MixinApi.isContainable(self)) return;
       const room = self.getContainer();
       if (!room) return;
-      this.home = PersistableApi.placeIdOf(room);
+      this.home = this.homeKeyOf(room);
     }
 
     /**
@@ -449,9 +464,19 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * never reaches `steady`, and a species with no `hand` rung answers
      * `after-you-go` to everyone — a hopper bird does not eat from hands.
      */
+    /**
+     * ⭐ The hand rung, or the water's version of it: a fish that comes
+     * up to the surface for what a hand drops is taking from the hand
+     * as surely as a cat is. `surface` is a rung and not a vessel kind,
+     * so nothing about feeders changes.
+     */
+    public takesFromHand(): boolean {
+      return this.feedsBy('hand') || this.feedsBy('surface');
+    }
+
     public offerRung(person: Stuff): OfferRung {
       const self = this as unknown as Stuff;
-      if (!this.feedsBy('hand')) return 'after-you-go';
+      if (!this.takesFromHand()) return 'after-you-go';
       if (!MixinApi.isHandling(self)) return 'after-you-go';
       const regard = MixinApi.isBeliefStore(self) ? self.regardFor(person) : 0;
       if (regard < 0) return 'after-you-go';
@@ -577,10 +602,45 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.homeCandidateDays += 1;
       if (this.homeCandidateDays >= HOME_DAYS) {
         this.home = placeId;
+        this.homeEarnedDay = gameDay;
         this.homeCandidate = '';
         this.homeCandidateDays = 0;
         this.homeCandidateLastDay = -1;
       }
+    }
+
+    /**
+     * ⭐ The key a container is known by as a home. A room is its place
+     * id (`PersistableApi.placeIdOf`). A **stamped chattel** — the bowl
+     * a fish lives in — is its chattel id, because an unminted Thing's
+     * place id is its template path and every fish bowl would be one
+     * home. An unstamped vessel falls back to the place id.
+     */
+    public homeKeyOf(container: Stuff): string {
+      if (MixinApi.isChattel(container) && container.isStamped()) {
+        return `chattel:${container.getChattelId()}`;
+      }
+      return PersistableApi.placeIdOf(container);
+    }
+
+    /**
+     * ⭐⭐ **Has it chosen `person`?** The naming gate, in one place so
+     * `name` and anything after it agree. Two routes, either suffices
+     * beside the bond: it has **followed** `person` home, or its home
+     * was **earned** — fed in one place for `HOME_DAYS` distinct days —
+     * and it is there now. The second is the only route an animal that
+     * cannot walk has; ⚠ it widens the cat's gate too, honestly: a stray
+     * fed at one door three days running has chosen it.
+     */
+    public hasChosen(person: Stuff): boolean {
+      const self = this as unknown as Stuff;
+      if (this.bondWith(person) < NAME_BOND) return false;
+      const key = person.getIdentityPath() ?? '';
+      if (key && this.followedKeys.includes(key)) return true;
+      if (this.homeEarnedDay < 0) return false;
+      if (!MixinApi.isContainable(self)) return false;
+      const here = self.getContainer();
+      return !!here && this.home === this.homeKeyOf(here);
     }
 
     /**

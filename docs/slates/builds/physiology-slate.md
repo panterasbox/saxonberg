@@ -12,7 +12,9 @@
 > `resolution.by` treatment-matching, the sever, materials-response armor)
 > is shipped too. See [harm.md](../../subsystems/harm.md) and
 > [vitals.md](../../subsystems/vitals.md).
-> **Left:** pain as a derived reader · the alarm-clock optimization over
+> **Left:** per-individual stature + BMI as a banded derived read (its
+> first consumer is body density for buoyancy — § Anthropometrics) ·
+> pain as a derived reader · the alarm-clock optimization over
 > `reconcileConditions` (today it is pure reconcile-on-read with no booked
 > next-interesting-time) · substances (the topical route, inhalation, the
 > liver clearance multiplier) · chems and meds as content · wound
@@ -1753,6 +1755,35 @@ DOCUMENTED as of 2026-09-20; cut here. See
     (`control·sense`), `wake` (`control·mind`), `diagnose`
     (`perceive·body`). **`transfuse` cut — the postulate moves energy,
     not matter.** No new verbs: **a second payment method.**
+
+## ⭐ Anthropometrics — stature and BMI (2026-09-18)
+
+> **User:** *"I think we need BMI on a person's vitals. don't think we
+> have that anywhere and it's gonna be important for some experiences to
+> land right."*
+
+**State (verified):** `flesh` is a reserve with `bodyConditionBand()`
+(emaciated → thin → good → fleshy → fat) on `Creature`; `getMass()` is
+real; `Species.stature` exists — but **no individual has a height**, so
+BMI (mass ÷ height²) cannot be computed for a person.
+
+**Shape:**
+
+- **per-individual stature** — set at char-gen (the dossier carries it;
+  the species' `stature` is the prior), persistent on `Creature`;
+- **BMI as a derived read** on `Creature`, **banded** on the vitals card
+  and in a physician's `analyze patient` — a measurement an instrument
+  makes, never a gauge the player watches (measurement.md);
+- ⭐ **the first mechanical consumer is body density** — fat floats,
+  muscle sinks — the buoyancy term in the underwater slate's ascent
+  Journey. BMI is the honest proxy for body composition the game already
+  tracks as `flesh`, and body density falls out of it with no second
+  number.
+
+Which experiences it is for beyond the water: the char-gen card as a
+stat block, a physician reading a body, the `thin`/`fat` prose finally
+having a height behind it, and clothing fit (textiles already models fit
+as two numbers and a stamp — stature is one of them, unnamed).
 
 ## Open questions (for requirements)
 

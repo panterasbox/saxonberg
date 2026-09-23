@@ -1,0 +1,75 @@
+# Carp — the fish you can keep. Slow water, warm water, muddy water:
+# it does not mind. ⭐ The only fish here with a feeding rung
+# (`surface`): a carp comes up for what a hand drops, which is the
+# water's version of taking from the hand, and the reason it is the one
+# a bowl can hold and a name can be given to. Its handling ceiling is
+# where a fish stops being wild.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Cyprinus carpio
+  commonNames: ["carp"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/fish
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/food/fish-flesh
+  vitalProfile:
+    coreTemperature: { baseline: 285, survivableMin: 274, survivableMax: 303 }
+    heartRate: { baseline: 40, survivableMin: 10, survivableMax: 120 }
+    respiratoryRate: { baseline: 60, survivableMin: 20, survivableMax: 150 }
+    bloodPressureSystolic: { baseline: 40, survivableMin: 20, survivableMax: 80 }
+    bloodPressureDiastolic: { baseline: 25, survivableMin: 10, survivableMax: 60 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 0.08, survivableMin: 0.05, survivableMax: 0.08 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  adultMass: 2.5
+  stature: 0.5
+  lifespanMin: 0
+  lifespanMax: 30
+  ageCurve: { weanedAt: 30, matureAt: 1200, agedAt: 8000, senescentAt: 10000 }
+  circadianBand: crepuscular
+  diet: omnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  olfactoryProfile:
+    acuity: dull
+  feedingStyle: [surface]
+  # ⭐ The ceiling is what lets a carp be NAMED at all: the bond is regard
+  # × handling and naming wants 0.6 of it, so a ceiling of 0.6 needed a
+  # perfect regard (the drive). 0.75 is a carp that knows the hand.
+  handlingRange: { floor: 0.1, ceiling: 0.75 }
+  # ⚠ `lint:kept-animals`: a Bonded class's species must declare one.
+  # A fish is not askable at all.
+  biddability: 0
+  # ⭐ What it needs of a water (fishing D4) — the whole distribution
+  # derives from this and the catalogue's water; no table anywhere.
+  habitat:
+    tolerances:
+      temperatureK: { min: 277, max: 300, margin: 4 }
+      oxygenMgL: { min: 3, margin: 2 }
+      currentMps: { max: 0.3, margin: 0.4 }
+      salinityPpt: { max: 8, margin: 10 }
+      contamination: { max: 1, margin: 3 }
+      # ⭐ The tank's numbers, inert in a river (fishing D22): every fish
+      # authors what ammonia and nitrite it can stand, so the home aquarium
+      # build reads the same tolerance a reach does and never reopens
+      # this row.
+      ammoniaMgL: { max: 0.02, margin: 0.5 }
+      nitriteMgL: { max: 0.1, margin: 1 }
+    role: forage
+    abundance: 30
+    fightRating: 0.3
+    # ⭐ Where it feeds (B8): the bottom, rooting in the mud — `surface`
+    # above is the HAND rung (it comes up for what you drop), not where
+    # a hook finds it.
+    feedsAt: bottom
+  butcheryYield:
+    - { cut: /trade/fishing/thing/fillet, units: 2 }
+    - { cut: /trade/fishing/thing/roe, units: 1 }
+    - { cut: /stuff/thing/items/offal, units: 1 }
+  longDescription: >-
+    A carp, deep-bodied and bronze-scaled, with a soft mouth that works at the surface when it thinks something is coming.
+  nameBankKeys: []

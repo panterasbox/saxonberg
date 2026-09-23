@@ -1,0 +1,18 @@
+# The mere on the heath — ⭐ a `Shore` from the WATER pack, in the realm
+# seed's content, with no code and no trade dependency: world-seed
+# already depends on water. It cites the Holloway's HEAD — 1100 m up,
+# cold, fast, fresh, soft and acid — and the trout is here and the
+# mullet is not because the species' tolerances say so, not because
+# anybody wrote a table for the moor (fishing D15).
+#
+# ⚠ The moor's Locality cites `holloway:vale`; the feature wins over
+# the locality by design, and nothing on the moor row changes.
+class: /system/water/thing/Shore
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: black mere
+  keywords: [mere, water, pool, tarn, shore, edge, holloway]
+  register: definite
+  longDescription: |
+    A mere of black peat-water lying in a fold of the heath, rain-pocked and wind-scoured, spilling at its lower lip into a beck that goes off white down the moor. Cold enough to ache. Something moves under the surface and is gone.
+  reachRef: holloway:head
