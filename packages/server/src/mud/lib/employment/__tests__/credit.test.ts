@@ -24,7 +24,7 @@ import { Quantity } from "../../quantity";
 import { Idea } from "../../stuff/Idea";
 import BusinessEntity from "../../../platform/idea/Business";
 import BankCounter from "../../../platform/thing/BankCounter";
-import Stock from "../../../platform/thing/Stock";
+import StockBase from "../../retail/Stock";
 import Crate from "../../../platform/thing/Crate";
 import PaymentCard from "../../../platform/thing/PaymentCard";
 import { ContainerMixin } from "../../spatial/Container";
@@ -40,6 +40,10 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../banking/__tests__/banking-test-harness";
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 const SHOP = "/test/credit/shop/idea/outfit";
 const SHOP_COUNTER = "/test/credit/shop/thing/counter";

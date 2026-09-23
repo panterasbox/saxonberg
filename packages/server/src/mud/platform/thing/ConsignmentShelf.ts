@@ -17,16 +17,8 @@ import { DetailedMixin } from "../../lib/description/Detailed";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { ConsignmentShelfMixin } from "../../lib/retail/Consignment";
-import { MqlApi } from "../../api/mql";
-import { MixinApi } from "../../api/mixin";
-import type { CommandContext, CommandContributions } from "../../api/command";
+import type { CommandContributions } from "../../api/command";
 import type { FieldMeta } from "../../lib/mixin";
-import type { Stuff } from "../../lib/stuff/Stuff";
-import type { Container } from "../../lib/spatial/Container";
-import type { ConsignmentShelf as ConsignmentShelfSurface } from "../../lib/retail/Consignment";
-
-/** Any fixture that brokers listings — this class, or a `Stock` counter. */
-export type ShelfStuff = Stuff & Container & ConsignmentShelfSurface;
 
 const ConsignmentShelfBase = PersistableMixin(
   ConsignmentShelfMixin(PostRegistrationMixin(DetailedMixin(Vessel))),

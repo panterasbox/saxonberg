@@ -28,7 +28,7 @@ import type { Display } from "../../../../lib/display/Display";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { StuffApi } from "../../../../api/stuff";
 import { MixinApi } from "../../../../api/mixin";
-import Stock from "../../../thing/Stock";
+import Stock from "../../../../lib/retail/Stock";
 
 const TOPIC = "act.deed";
 

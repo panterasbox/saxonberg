@@ -40,7 +40,7 @@ import JobController from '../../../platform/idea/cmd/work/JobController';
 import JobBoard from '../../../platform/thing/JobBoard';
 import ConsignController from '../../../platform/idea/cmd/retail/ConsignController';
 import WalletController from '../../../platform/idea/cmd/banking/WalletController';
-import Stock from '../../../platform/thing/Stock';
+import StockBase from "../../../lib/retail/Stock";
 import Bottle from '../../../platform/thing/Bottle';
 import CraftVessel from '../../../platform/thing/CraftVessel';
 import Coin from '../../../platform/thing/Coin';
@@ -99,6 +99,10 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from '../../../lib/banking/__tests__/banking-test-harness';
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 const BANK = '/stuff/test/lounge/bank-counter';
 const BAR = '/world/lounge/location/bar';

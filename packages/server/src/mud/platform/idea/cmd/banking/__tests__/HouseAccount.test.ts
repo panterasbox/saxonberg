@@ -21,8 +21,12 @@ import ReclaimController from "../../retail/ReclaimController";
 import WalletController from "../WalletController";
 import HouseController from "../HouseController";
 import QuitController from "../../employment/QuitController";
-import Stock from "../../../../thing/Stock";
-import ConsignmentShelf from "../../../../thing/ConsignmentShelf";
+import StockBase from "../../../../../lib/retail/Stock";
+import { Vessel } from "../../../../../lib/stuff/Vessel";
+import { DetailedMixin } from "../../../../../lib/description/Detailed";
+import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
+import { PostRegistrationMixin } from "../../../../../lib/stuff/PostRegistration";
+import { ConsignmentShelfMixin } from "../../../../../lib/retail/Consignment";
 import Thing from "../../../../../lib/stuff/Thing";
 import Coin from "../../../../thing/Coin";
 import BankCounter from "../../../../thing/BankCounter";
@@ -58,6 +62,18 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+
+// The brokerage shelf is a composition of kernel mixins; the instanceable
+// class ships in `/trade/shopkeeping`, which the kernel may not import.
+// The composition line IS the fixture.
+class ConsignmentShelf extends PersistableMixin(
+  ConsignmentShelfMixin(PostRegistrationMixin(DetailedMixin(Vessel))),
+) {}
+
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 const BANK = "/stuff/test/bank-counter";
 const STORE = "/stuff/test/store/counter";

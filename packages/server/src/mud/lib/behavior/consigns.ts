@@ -79,7 +79,7 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
 import type { Employed } from '../employment/Employed';
-import Stock from '../../platform/thing/Stock';
+import Stock from '../retail/Stock';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;

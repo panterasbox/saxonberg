@@ -26,7 +26,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as stocks } from '../stocks';
 import type { BrainContext } from '../brain';
 import Extra from '../../../platform/agent/Extra';
-import Stock from '../../../platform/thing/Stock';
+import StockBase from "../../retail/Stock";
 import Thing from '../../../platform/thing/Thing';
 import BankCounter from '../../../platform/thing/BankCounter';
 import BusinessEntity from '../../../platform/idea/Business';
@@ -45,6 +45,10 @@ import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 const SHOP = '/test/stocks/location/shop';
 const MARKET = '/test/stocks/location/market';

@@ -35,7 +35,7 @@ import type { Organization } from '../../../lib/employment/Organization';
 import type { PrincipalRef } from '../../../lib/employment/Authority';
 import type { Employed } from '../../../lib/employment/Employed';
 import { ParLine } from '../../../lib/employment/ParLine';
-import type Stock from '../../thing/Stock';
+import type Stock from '../../../lib/retail/Stock';
 import {
   Employment,
   EXITED_STATUSES,

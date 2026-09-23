@@ -56,7 +56,7 @@ import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
 import type { Employed } from '../employment/Employed';
 import type { Exitable } from '../boundary/Exitable';
-import Stock from '../../platform/thing/Stock';
+import Stock from '../retail/Stock';
 
 const DEFAULT_BATCH = 6;
 
