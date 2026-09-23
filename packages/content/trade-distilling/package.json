@@ -17,6 +17,7 @@
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-trade-milling": "workspace:*",
+    "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

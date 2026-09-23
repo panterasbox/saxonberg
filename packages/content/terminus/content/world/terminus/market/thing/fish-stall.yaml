@@ -7,7 +7,7 @@
 #
 # `staffingPolicy: self-service` — the monger keeps the stall (the
 # roster, the shift), but their absence never blocks a consignment.
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fish stall

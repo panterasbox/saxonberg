@@ -12,13 +12,13 @@
  * sit — `buy`.
  */
 
-import { Vessel } from "../../lib/stuff/Vessel";
-import { DetailedMixin } from "../../lib/description/Detailed";
-import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
-import { ConsignmentShelfMixin } from "../../lib/retail/Consignment";
-import type { CommandContributions } from "../../api/command";
-import type { FieldMeta } from "../../lib/mixin";
+import { Vessel } from "@saxonberg/server/mud/lib/stuff/Vessel";
+import { DetailedMixin } from "@saxonberg/server/mud/lib/description/Detailed";
+import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
+import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
+import { ConsignmentShelfMixin } from "@saxonberg/server/mud/lib/retail/Consignment";
+import type { CommandContributions } from "@saxonberg/server/mud/api/command";
+import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
 const ConsignmentShelfBase = PersistableMixin(
   ConsignmentShelfMixin(PostRegistrationMixin(DetailedMixin(Vessel))),

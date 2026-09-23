@@ -17,7 +17,6 @@ data:
       noun: keeper
       label: keeping a market stall
       wageRate: 0
-      confers: []
       purchases: true
   rosterSlots: []
   banksAt: ""

@@ -21,30 +21,29 @@
  * ⚠ SYNTHETIC fixtures under `/test/**`, never the general store's rows.
  */
 
-import '../../../../test-bootstrap';
+import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as stocks } from '../stocks';
-import type { BrainContext } from '../brain';
-import Extra from '../../../platform/agent/Extra';
-import StockBase from "../../retail/Stock";
-import Thing from '../../../platform/thing/Thing';
-import BankCounter from '../../../platform/thing/BankCounter';
-import BusinessEntity from '../../../platform/idea/Business';
-import Location from '../../stuff/Location';
-import CartesianLocation from '../../../platform/location/CartesianLocation';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import { StuffApi } from '../../../api/stuff';
-import { BankingApi } from '../../../api/banking';
-import { EmploymentApi } from '../../../api/employment';
-import { AppApi } from '../../../api/app';
-import { ContainmentApi } from '../../../api/containment';
-import { LocomotionApi } from '../../../api/locomotion';
-import { MixinApi } from '../../../api/mixin';
-import { Money } from '../../banking/Money';
-import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
-import type { Stuff } from '../../stuff/Stuff';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+import Extra from '@saxonberg/server/mud/platform/agent/Extra';
+import StockBase from "@saxonberg/server/mud/lib/retail/Stock";
+import Thing from '@saxonberg/server/mud/platform/thing/Thing';
+import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
+import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
+import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { Money } from '@saxonberg/server/mud/lib/banking/Money';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 // The counter mechanism is kernel substrate; the instanceable twin is
 // the shopkeeping pack's, which the kernel may not import. A local
 // fixture over the base is the whole of what these tests need.
@@ -223,7 +222,15 @@ beforeEach(async () => {
   // direction, and the exit it hands over is the real one.
   walked = [];
   vi.spyOn(LocomotionApi, 'traverseWithDefault').mockImplementation(step as never);
-  vi.spyOn(EmploymentLogic.prototype, 'buysFor').mockResolvedValue([house as never]);
+  // ⚠ A pack may not import `platform/idea/api/**` (the server's exports
+  // map blocks it — a logic singleton is not pack surface), so the class
+  // comes off the class table by path, the SeznickHouse shape.
+  const EmploymentLogicCls = (await StuffApi.loadClassByPath(
+    '/platform/idea/api/EmploymentLogic',
+  )) as unknown as { prototype: Record<string, unknown> };
+  vi.spyOn(EmploymentLogicCls.prototype as never, 'buysFor' as never).mockResolvedValue(
+    [house] as never,
+  );
   vi.spyOn(EmploymentApi, 'operatingAccountOf').mockResolvedValue('acct-house');
   vi.spyOn(BankingApi, 'balanceOf').mockImplementation(() => Money.of(balance, 'zorkmid' as never));
   vi.spyOn(BankingApi, 'branchOf').mockReturnValue(bank as never);

@@ -462,9 +462,12 @@ describe("the house account in the wallet (D6)", () => {
     const pat = await fundedGiver("/platform/agent/Avatar/pat", 0);
     ContainmentApi.move(pat as never, loc as never);
     await makeBarBusiness("", 0);
-    const c = ctx(pat, loc, null, "house stock");
+    // ⚠ `roster`, not `stock` — `house stock` is trade-shopkeeping's since
+    // the trades-and-labor split. The claim is unchanged: a non-staff
+    // giver is refused on the SEAT, on any subcommand of the house app.
+    const c = ctx(pat, loc, null, "house roster");
     await asOwner(pat, () =>
-      makeStuff(() => new HouseController()).execute({ subcommand: "stock" } as never, c),
+      makeStuff(() => new HouseController()).execute({ subcommand: "roster" } as never, c),
     );
     expect(rejections(c)).toEqual(["not-staff"]);
   });

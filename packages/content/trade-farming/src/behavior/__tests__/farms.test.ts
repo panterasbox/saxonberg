@@ -20,7 +20,9 @@ import WaterController from '@saxonberg/server/mud/platform/idea/cmd/bulk/WaterC
 import HarvestController from '@saxonberg/server/mud/platform/idea/cmd/inventory/HarvestController';
 import ConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ConsignController';
 import WalletController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletController';
-import Stock from '@saxonberg/server/mud/platform/thing/Stock';
+import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
+
+class Stock extends StockBase {}
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import GardenBed from '@saxonberg/server/mud/platform/thing/GardenBed';

@@ -16,7 +16,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import StallController, { STALL_SEED, STALL_BUSINESS_SEED, MARKET_BUSINESS } from '../idea/cmd/StallController';
 import MarketStalls from '../thing/MarketStalls';
-import Stock from '@saxonberg/server/mud/platform/thing/Stock';
+import Stock from '@saxonberg/content-trade-shopkeeping/src/thing/Stock';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
 import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
@@ -24,7 +24,7 @@ import Coin from '@saxonberg/server/mud/platform/thing/Coin';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import ConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ConsignController';
-import HouseController from '@saxonberg/server/mud/platform/idea/cmd/banking/HouseController';
+import HouseShopController from '@saxonberg/content-trade-shopkeeping/src/idea/cmd/banking/HouseShopController';
 import { BankingApi, Money } from '@saxonberg/server/mud/api/banking';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -282,7 +282,7 @@ describe('a player shop is a rented market stall', () => {
     // Alice, the keeper, sets her own ask.
     const priced = ctx(alice, square, counter, 'house price torch 12');
     await asOwner(alice, () =>
-      makeStuff(() => new HouseController()).execute(
+      makeStuff(() => new HouseShopController()).execute(
         { subcommand: 'price', thing: { stuff: torch as never, raw: 'torch' }, ask: '12' } as never,
         priced,
       ),

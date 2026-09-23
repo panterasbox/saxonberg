@@ -43,7 +43,7 @@ data:
     # home to `put` them on the counter. Every step the literal verb; a
     # refusal at the window is the ladder working. Runs with nobody
     # online, which is why the shop floor is `boot:`-pinned.
-    - brain: /lib/behavior/stocks
+    - brain: /trade/shopkeeping/behavior/stocks
       trigger: cadence:90s
       config:
         counter: /world/terminus/general-store/counter

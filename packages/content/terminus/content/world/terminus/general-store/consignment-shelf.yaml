@@ -4,7 +4,7 @@
 # consigned goods + their chattel ids into a durable record, so a consigned
 # good survives a relog while in the shop's custody. Affords consign / reclaim
 # / buy (a listing can be bought where it sits).
-class: /platform/thing/ConsignmentShelf
+class: /trade/shopkeeping/thing/ConsignmentShelf
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: consignment shelf

@@ -52,7 +52,7 @@ data:
         fromHour: 6
         toHour: 10
         spendFraction: 0.25
-    - brain: /lib/behavior/consigns
+    - brain: /trade/shopkeeping/behavior/consigns
       trigger: cadence:4m
       config:
         stock: /world/terminus/goods-yards/pantry/thing/stock

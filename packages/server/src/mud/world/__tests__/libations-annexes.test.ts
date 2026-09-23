@@ -152,7 +152,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
       expect(typeof r.data.regionTarget, r.path).toBe('number');
       const home = byPath.get(r.data.container as string);
       expect(home, `${r.path} container ${String(r.data.container)}`).toBeDefined();
-      expect(home!.class, r.path).toBe('/platform/thing/Stock');
+      expect(home!.class, r.path).toBe('/trade/shopkeeping/thing/Stock');
       expect(home!.pack, r.path).toBe('terminus');
       expect(home!.path.startsWith(PREMISES), r.path).toBe(true);
       expect(home!.data.stockLines, `${home!.path} must not reset`).toEqual([]);
@@ -221,7 +221,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
 describe('libations annexes — the hands name the host', () => {
   const hands = annexRows.filter((r) =>
     Array.isArray(r.data.behaviors) &&
-    (r.data.behaviors as Array<{ brain: string }>).some((b) => b.brain === '/lib/behavior/consigns'),
+    (r.data.behaviors as Array<{ brain: string }>).some((b) => b.brain === '/trade/shopkeeping/behavior/consigns'),
   );
 
   it('one consigning hand per faucet annex; each names the distribution counter and asks for every key homed in its stock', () => {
@@ -231,7 +231,7 @@ describe('libations annexes — the hands name the host', () => {
     expect(hands.length).toBe(ANNEXES.length - 2 + DISTILLING_FLOORS.length);
     for (const hand of hands) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
-        (b) => b.brain === '/lib/behavior/consigns',
+        (b) => b.brain === '/trade/shopkeeping/behavior/consigns',
       )!;
       expect(spec.config.shelf, hand.path).toBe(COUNTER);
       const stock = byPath.get(spec.config.stock as string);

@@ -23,7 +23,12 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import Surface from '@saxonberg/server/mud/platform/thing/Surface';
 import WaterFixture from '@saxonberg/server/mud/platform/thing/WaterFixture';
 import Chair from '@saxonberg/server/mud/platform/thing/Chair';
-import Stock from '@saxonberg/server/mud/platform/thing/Stock';
+import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
+
+// The counter MECHANISM is kernel substrate; the class a row names is
+// trade-shopkeeping's. `fixedInPlace` is the mechanism's claim, so the
+// base is what this asserts against.
+class Stock extends StockBase {}
 import BarStation from '../thing/BarStation';
 import GlassRack from '../thing/GlassRack';
 import IceBin from '../thing/IceBin';

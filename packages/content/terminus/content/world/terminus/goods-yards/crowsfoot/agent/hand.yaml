@@ -70,7 +70,7 @@ data:
           gin: 12
           grappa: 11
           brandy: 14
-    - brain: /lib/behavior/consigns
+    - brain: /trade/shopkeeping/behavior/consigns
       trigger: cadence:4m
       config:
         stock: /world/terminus/goods-yards/crowsfoot/thing/stock
