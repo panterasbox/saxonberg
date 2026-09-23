@@ -1168,7 +1168,22 @@ reachable at all.
 - **Commit:** `build(recovery W-B3): a body remembers â scars, and the
   bone that was not ready`.
 
-#### W-B4 â What is gone: the prosthetic (D16)
+#### W-B4 â What is gone: the prosthetic (D16) ✅ DONE
+
+> ✅ **W-B4 landed.** `ProstheticMixin` (`lib/slot/Prosthetic.ts`,
+> `Mixins.Prosthetic`, `isProsthetic`): `forParts` + `restores`, `fitsSlot`
+> refuses a whole body (candidate-side). `Vitals.ownFunction` derives a
+> missing part's function from the best worn prosthetic's `restores`
+> (`prostheticRestoreFor`, scanned only for a MISSING part) — NO stored
+> anatomy state, so removing it drops the read with no residue. `assess`
+> reads a fitted stand-in. Pack `Prosthesis` class = ProstheticMixin(
+> WearableMixin(SlottableMixin(DetailedMixin(Thing)))); rows peg-leg
+> (legs, 0.6) + hook-hand (hands, 0.35); `fitting-shelf` Stock counter sells
+> both + the antivenin vial + a splint from the infirmary business, added to
+> ward props. ⚠ `override` removed from the mixin's `fitsSlot` (generic
+> base). Tests: Vitals.prosthesis (refuses whole, accepts missing, derives
+> 0.6→impaired & drops with no residue), pack prosthesis (rows hydrate). 360
+> vitals/slot + 116 terminus + 19 pack tests + 46 gates green.
 - `lib/slot/Prosthetic.ts` + `Mixins.Prosthetic`; `Vitals.ownFunction`'s
   derived read; `Prosthesis.ts`, `peg-leg.yaml`, `hook-hand.yaml`,
   `fitting-shelf.yaml` (a `Stock` counter stocking both + the antivenin

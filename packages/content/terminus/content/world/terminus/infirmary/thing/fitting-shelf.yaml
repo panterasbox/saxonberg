@@ -1,0 +1,28 @@
+# ⭐ The fitting shelf — the infirmary's retail counter (recovery D16). A
+# `Stock` fixture that sells what a patient carries away: the prosthetics
+# (a peg leg, a hook hand), a vial of antivenin, and a splint. Self-service
+# and instant, like the general store; the sale settles into the
+# infirmary's own business account (`businessPath`).
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: fitting shelf
+  keywords: [shelf, fitting, prosthetics, counter]
+  register: definite
+  longDescription: |
+    A low shelf and a fitting bench by the wall, with a peg leg and an iron hook hung on pegs above, a rack of stoppered vials, and a bundle of splints in graded sizes. A small slate of prices hangs beside them.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [physician]
+  businessPath: /world/terminus/infirmary/business
+  stockLines:
+    - { itemTemplatePath: /trade/medicine/thing/peg-leg, par: 1 }
+    - { itemTemplatePath: /trade/medicine/thing/hook-hand, par: 1 }
+    - { itemTemplatePath: /trade/medicine/thing/antivenin-vial, par: 2 }
+    - { itemTemplatePath: /trade/medicine/thing/splint, par: 2 }
+  prices:
+    /trade/medicine/thing/peg-leg: 30
+    /trade/medicine/thing/hook-hand: 25
+    /trade/medicine/thing/antivenin-vial: 8
+    /trade/medicine/thing/splint: 5

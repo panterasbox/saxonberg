@@ -249,6 +249,9 @@ export const Mixins = {
   // Body cleanliness: a `washedAt` stamp that decays to "dirty", read by
   // wound treatment (dirty hands infect a wound) — the recovery build.
   Hygiene: 'HygieneMixin',
+  // A worn thing that stands in for a missing body part — a peg leg, a
+  // hook hand. Function is DERIVED by `Vitals.ownFunction`, never stored.
+  Prosthetic: 'ProstheticMixin',
   // What a body does after it stops: the decay clock, the forensic
   // readability curve, and the eviction veto that keeps a corpse in the
   // world long enough to be studied.
