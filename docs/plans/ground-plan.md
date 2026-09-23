@@ -256,6 +256,42 @@ floor from the same line an authored room does. Rejected: `props:` (per-class,
 throws on the Lounge); a Hydrator hook (fires only on a present key); lazy mint
 on read (the binder's scope walk is synchronous and never asks).
 
+⚠⚠ **D1a — and it must answer to
+[hydration-framework-slate](../slates/builds/hydration-framework-slate.md),
+which is ratcheting `postRegister` DOWN.** (Raised by the user at plan review.)
+That slate exists because of this instruction, quoted in it verbatim:
+
+> *"the point was to use a common framework for all that 'hydration step' logic
+> and keep `postRegister` for actual post-hydration stuff not just 'finish
+> hydrating'."*
+
+Its **Left** opens with *"the census + ratchet on the `postRegister`
+implementations that load state (63 → 67, ungated)"*. So D1 owes an answer, and
+the answer is that **`ensureFloor` is not one of them**, on both the letter and
+the spirit:
+
+- **The letter.** The census script greps a `postRegister` body for
+  `\.find\(|findByScope|hydrate|rebuildIndex|warm\(|restore|load`.
+  ⚠ **`ensureFloor` must be written so it matches none of them** — clone the
+  template and attach the fixture; resolve the material ladder **lazily inside
+  `FloorMixin.getMaterial()`** (D8/D9 already put it there), never eagerly in the
+  hook. If a later edit pulls a `findByTemplatePath` into the hook's body, the
+  ratchet's number moves and this decision is void.
+- **The spirit.** The slate's ruling splits two cases — *finishing hydration*
+  (a host filling in **its own state**, keyed on its own identity) and *warming a
+  roster* (a singleton reading a collection that is nobody's per-instance state).
+  ⭐ **`ensureFloor` is neither: it constructs a companion object the world
+  requires, and loads nothing.** It is the same act as `Lounge.postRegister`'s
+  `verifyOutboundExits()` — structural completion, which is exactly what the
+  slate wants `postRegister` **kept for**.
+
+⭐ **A contribution back to that slate, recorded there too:** its taxonomy has
+two limbs and needs a third — **structural completion** — or every honest use of
+the hook reads as a census entry. ⚠ **And one coordination note for it:** after
+this build the **entire Location tree depends on base-level `postRegister`**, so
+a hydration build that changes how the hook is composed or invoked has one more
+consumer, at the root of the biggest class family in the game.
+
 **D2 — `ensureFloor()` is idempotent and authored-wins.** If `getFloor()`
 already answers (an `adornments:` row hydrated before `postRegister`), do
 nothing but resolve its ladder; if `noDefaultFloor: true`, do nothing; else

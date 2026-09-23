@@ -130,11 +130,37 @@ ruling: the build has to separate
 - **finishing hydration** — this host filling in its own state (the
   `Cast` belief load; anything keyed on the host's own identity), from
 - **warming a roster** — a singleton reading a collection that is nobody's
-  per-instance state (`MaterialCatalogue`, `RecipeCatalogue`).
+  per-instance state (`MaterialCatalogue`, `RecipeCatalogue`), and
+- ⭐⭐ **structural completion** — *added 2026-09-23, from the ground build's
+  review*: the host **constructing a companion object the world requires**, and
+  loading no state at all. `Lounge.postRegister`'s `verifyOutboundExits()` is the
+  shipped example; the ground build's `Location.postRegister` → `ensureFloor()`
+  (clone the default floor, attach it as a fixture) is the new one.
 
 The first belongs in the framework. The second may legitimately stay.
+**The third is what `postRegister` is FOR** — it is the residue the user's
+instruction protects (*"keep `postRegister` for actual post-hydration stuff"*),
+and without naming it every honest use of the hook reads as a census entry.
 ⭐ Gate the number at today's count and let it fall — the pattern
 `lint:family` documents.
+
+⚠⚠ **A coordination note from the ground build
+([ground-plan](../../plans/ground-plan.md) D1/D1a, ground-slate).** That build
+moves `PostRegistrationMixin` **down into `Location`'s base stack** and strips it
+from the six Location classes that compose it above, because the mixin's default
+no-op does not chain and an upper layer silently replaces the base's
+implementation. Two consequences for this slate:
+
+- **After it lands, the entire Location tree depends on base-level
+  `postRegister`** — the biggest class family in the game, where before only
+  eight classes used the hook. A framework that changes how the hook is composed
+  or invoked has that many more consumers.
+- **`ensureFloor` is deliberately written to match none of the census script's
+  trigger words** (`\.find\(`, `hydrate`, `warm\(`, `restore`, `load`, …) — the
+  material ladder resolves lazily in the floor's own getter, not eagerly in the
+  hook. So it does **not** move the 67, and the number stays honest. If a later
+  edit pulls a lookup into that hook's body, this note is the place it was
+  promised not to.
 
 ---
 
