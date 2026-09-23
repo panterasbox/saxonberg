@@ -1,6 +1,7 @@
 # Extraction slate — the ground cut from above, and the yield a place concentrates
 
-> **Status: UNBUILT** — the five shipped RGOs (mining · farming · ranching ·
+> **Status: UNBUILT — design closed 2026-09-23, ready for `/requirements`.**
+> The five shipped RGOs (mining · farming · ranching ·
 > fishing · forestry, plus water as the sixth) cover the planted, the kept,
 > the standing and the sunk. Nothing cuts the ground from the surface, and
 > nothing takes a yield the surroundings concentrate for you.
@@ -202,6 +203,11 @@ lens-6 pass available: the demand was there first, measurably.
   warren in Stage A. When a pit is deep enough that a bench is genuinely a
   heading, that is a promotion, not a rewrite — mining.md states `MineWarren`
   is *"shaped for a BASE SWAP, not a redesign."*
+- ⭐ **Cutting does NOT grow the parcel.** Depth is a number on the working and
+  the widening is prose; `areaM2` stays [smallholding](../../subsystems/smallholding.md)'s
+  and this build does not reach into the land record. (Decided — the tempting
+  version, *what has been taken IS how big the hole is*, buys one honest number
+  at the price of pulling the land market into an extraction build.)
 - ⭐⭐ **W0 — the open air dries what you leave in it.** ⚠ Peat cannot dry
   passively: `spoilage.md` is explicit that *"the passive arm only ever RAISES
   moisture. Nothing dries on its own: drying is an act"*, because a gauge that
@@ -286,6 +292,14 @@ on land that belongs to other people.
   SET**: one term at a named seam, where `_worstLimiting` already re-seeds.
   Ship it in Stage B — without the return leg the hive is a honey vending
   machine and the lens-1 payoff is gone.
+- ⭐ **The floor is `0.3`, not zero** (decided). An insect-pollinated crop with
+  no hive in range still sets three tenths of its authored count, because *wild
+  pollinators exist*. A zero is realistic and it is a trap: it makes clover and
+  the orchards unplayable until somebody keeps bees, which is a **new player
+  obligation invented to create a market** — the failure
+  [vocations.md](../../vocations.md) names as criterion 1 failing in disguise.
+  The floor keeps the hive a **premium**, which is what an externality should
+  be.
 - **Honey closes `sugar`** — the census's second unrooted root, and the
   honest medieval answer to it.
 - **Beeswax opens the candle** — one recipe, and it feeds
@@ -370,32 +384,22 @@ requirements phase does not re-open them.**
 | 4 | pollination in Stage B, or held? | **In — and at SET, not as a limiting factor.** A multiplier on `fruitSetCount`, because poor pollination gives fewer fruits rather than slower ones. |
 | 5 | how many packs? | **`trade-quarrying` (Stage A + the saltern) · `trade-apiculture` (the hive).** The reason improved: after Q2 the saltern and peat **share W0's drying term**, so they want the same pack whatever salt feels like. |
 | 6 | `quarrying`, or a band of `extraction`? | ⛔ **Moot.** `extraction` was never minted — it is a row in trade-roster's *gap report*, and `trade-mining` shipped `mining` + `geology`. There is nothing to be a band of. |
+| 7 | should the hole visibly widen? | **No — do not grow the parcel** (user, 2026-09-23). Depth is a number on the working, width is prose. `areaM2` stays smallholding's, and an extraction build does not reach into the land record. |
+| 8 | unpollinated crop: zero, or a floor? | **A floor of `0.3`** (user, 2026-09-23) — *wild pollinators exist*. A zero would make clover and the orchards unplayable without a hive in range, which is manufactured demand. |
 
 ---
 
 ## Open questions
 
-Two remain, and both are the user's call rather than the code's.
+**None.** The six-question pass closed four against the shipped code, moved one
+into Stage A's W0, and struck one as moot; the user closed the remaining two on
+2026-09-23. ⭐ **This slate is ready for `/requirements`.**
 
-1. ⭐ **Should the hole visibly WIDEN as it is worked?** A Location carries no
-   extent; `areaM2` lives on the parcel record
-   ([smallholding.md](../../subsystems/smallholding.md)). Growing the parcel's
-   area as you cut would be the honest ledger — *what has been taken IS how big
-   the hole is*, one number for depletion and for the physical fact — but it
-   pulls smallholding into an extraction build. **Lean: depth as a number,
-   width as prose, the parcel untouched in Stage A.**
-2. ⭐ **Does an unpollinated insect-pollinated crop set ZERO, or a floor?** Zero
-   is real, and it is a brutal trap for a first-time farmer who planted an
-   orchard with no hive in range. **Lean: a floor around 0.3 — *wild
-   pollinators exist* — because a zero makes clover and the orchards
-   unplayable without a hive, and that is manufactured demand, which
-   [vocations.md](../../vocations.md) says never to build.**
+One residual is recorded rather than asked, because it is a different subject:
 
-And one residual worth a sentence rather than a decision:
-
-- **Is there ever a `trade-salt`?** Only if salt gets a *trade* rather than
-  just a source — the salter, and above all **the salt tax**, which was
-  historically enormous and would make a genuinely good governance object. If
-  that is ever wanted, salt wants its own pack; until then it rides
-  `trade-quarrying`. → [institutions-slate](./institutions-slate.md) /
+- **Is there ever a `trade-salt`?** Only if salt gets a *trade* rather than just
+  a source — the salter, and above all **the salt tax**, which was historically
+  enormous and would make a genuinely good governance object. If that is ever
+  wanted, salt wants its own pack; until then it rides `trade-quarrying`. →
+  [institutions-slate](./institutions-slate.md) /
   [legal-code-slate](./legal-code-slate.md) if the tax is what appeals.
