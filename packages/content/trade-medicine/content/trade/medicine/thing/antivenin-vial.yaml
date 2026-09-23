@@ -1,0 +1,18 @@
+# A vial of antivenin — a plain kernel `Receptacle` holding 0.25 L of the
+# antivenin Material (D7). `dose` reads the interior matter's
+# `antidote:venom` tag and spends 0.05 L a dose, so a full vial is five
+# doses. The vial says only what it looks like and what is in it; the
+# remedy is the LIQUID (the identity + the working live on the Material,
+# the potion-flask pattern).
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: small stoppered vial
+  keywords: [vial, antivenin, antivenom, stoppered, small]
+  register: indefinite
+  longDescription: >
+    A small stoppered glass vial, its pale amber contents catching the light. A paper label reads ANTIVENIN in a careful hand.
+  interiorBulk: true
+  interiorCapacity: 0.25
+  interiorMaterial: /trade/medicine/idea/material/antivenin
+  interiorAmount: 0.25

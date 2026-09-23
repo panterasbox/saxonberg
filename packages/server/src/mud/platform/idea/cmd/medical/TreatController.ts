@@ -160,6 +160,11 @@ function mismatchLine(offered: string, wanted: string | null): string {
     warmth: 'warmth',
     cooling: 'cooling',
     air: 'air',
+    // ⭐ The mechanical wounds' treatments (D4). A broken bone wants
+    // SETTING (a splint); a torn organ wants SURGERY — tokens the trade's
+    // instruments answer, and until one is to hand `treat` says so.
+    setting: 'setting, with a splint',
+    surgery: 'surgery',
     // ⭐ A caustic is still eating. What it wants is not a treatment you
     // apply but the REMOVAL of the cause — which is why `rinse` is a verb
     // of its own rather than another thing to carry.
@@ -279,11 +284,17 @@ export default class TreatController extends CommandController<TreatModel> {
     const outcome = outcomeFor(band, quality);
 
     // Mechanical effect. A dressing arrests the bleed and begins the clot
-    // through the trauma's own `resolve`; fluid is DRUNK, through the
+    // through the ONE treatment primitive (D5) — which runs the wound's
+    // `resolve` and stamps `careQuality` (the dressing's quality) so `mend`
+    // heals it at the graded treated rate. Fluid is DRUNK, through the
     // shipped ingest path, which is what makes it a real supply that runs
     // out rather than a gesture.
     if (wound && treatment.by === 'dressing') {
-      TRAUMA_BEHAVIOR[wound.type].resolve(target, wound);
+      target.applyTreatment(wound, {
+        by: 'dressing',
+        efficacy: quality,
+        treater: giver,
+      });
     } else if (wound && treatment.by === 'fluid') {
       this.pourInto(target, (treatment as { item: Stuff }).item);
     }

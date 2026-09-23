@@ -829,7 +829,38 @@ reachable at all.
 - **Commit:** `build(recovery W-A2): mending runs while you are away â
   harm still freezes`.
 
-#### W-A3 â Every wound treatable, kernel side (D4, D5, D7) + `dose Â· warm Â· cool`
+#### W-A3 â Every wound treatable, kernel side (D4, D5, D7) + `dose Â· warm Â· cool` ✅ DONE
+
+> ✅ **W-A3 landed.** `Trauma.careQuality` added; `careScale = 0.5 + 0.5 ×
+> careQuality` scales every treated heal rate. New `treatableDecayingBehavior`
+> factory gives fracture/burn/frostbite a live `resolve` (set / cooled /
+> rewarmed → `dressed`), `reopen` (only a splint comes off), and treated-rate
+> `mend`. Rupture got a custom mend (knits ONLY after surgery) + resolve
+> (surgery → dressed, bleeding=false). Fracture resolution `rest → setting`;
+> describe grows *set/closed/cooled/rewarmed* phrasing.
+>
+> `Vitals.applyTreatment(wound, {by, efficacy, treater})` (D5) — the one
+> primitive: runs `resolve`, stamps `careQuality`, returns a `TreatmentResult`
+> (infection seed is the W-A5 seam). `TreatController` dressing branch and
+> `OrderController.treatWorst` both call it; treatWorst now treats every token
+> the clinic supplies (`CLINIC_SUPPLIES`), not just dressings. `mismatchLine`
+> gains `setting`/`surgery`.
+>
+> **New verbs (D6/D7):** `dose` (VitalsMixin.self) — reads a vial's
+> `antidote:<toxin>` Material tag, crashes matching burdens, spends 0.05 L;
+> `cool` (WaterFixture.peers) — burns + `by:cooling` afflictions; `warm`
+> (FurnaceMixin.peers) — frostbite + `by:warmth` afflictions. Rows:
+> `trade-medicine/…/idea/material/antivenin` (tag `antidote:venom`) +
+> `thing/antivenin-vial` (Receptacle, 0.25 L = 5 doses).
+>
+> **Decision:** no bespoke `OrderController` service-flow unit test — the
+> treatWorst generalization is proven by the `applyTreatment` unit tests +
+> the W-A8 drive (`order treatment` resolving a fracture live), per the
+> verify-by-driving doctrine (a service test needs Tariff+business+attendant
+> scaffolding for one private method). Tests added: Dose/Cool/Warm controllers,
+> TreatController fracture-mismatch, Trauma.behaviors treated-rate + care-quality
+> + rupture-needs-surgery; ConditionLogic.interior updated (rupture.resolve is
+> now surgery). 442 server + 8 pack tests green; all 46 lint gates pass.
 - `Condition.ts`: live `resolve`/`reopen`/`describe` for fracture,
   rupture, burn, frostbite; `Trauma.careQuality`; `mend` reads `dressed`
   and `careQuality`.

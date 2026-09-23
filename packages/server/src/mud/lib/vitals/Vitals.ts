@@ -301,6 +301,30 @@ function assertVitalQuantity(value: unknown, sign: VitalSign): void {
   }
 }
 
+/** Inputs to {@link Vitals.applyTreatment} (D5). */
+export interface TreatmentOpts {
+  /** The resolution token being applied (`dressing` · `setting` · `cooling`
+   * · `warmth` · `surgery` · …) — matches the wound's `resolution`. */
+  by: string;
+  /** How well it was done, `[0, 1]` — the treater's skill × the supply.
+   * Stamped onto `Trauma.careQuality`; `mend` scales the treated rate by
+   * `0.5 + 0.5 × careQuality`. */
+  efficacy: number;
+  /** The body doing the treating (for the infection seed's cleanliness read
+   * and deed attribution) — absent for an environmental / self path. */
+  treater?: Stuff;
+}
+
+/** Outcome of {@link Vitals.applyTreatment}. */
+export interface TreatmentResult {
+  /** Whether the treatment was applied (the wound's `resolve` ran). */
+  treated: boolean;
+  /** The resolution token applied. */
+  by: string;
+  /** Whether a wound-infection seed landed (D11 — dirty care on a bleed). */
+  seededInfection: boolean;
+}
+
 export interface Vitals {
   // ---------- vital signs ----------
   getVitalSign(sign: VitalSign): Quantity<Unit>;
@@ -488,6 +512,16 @@ export interface Vitals {
   afflict(condition: ActiveCondition): boolean;
   /** Remove a condition by reference; true if it was present. */
   relieve(condition: ActiveCondition): boolean;
+  /**
+   * ⭐⭐ **The one treatment primitive** (D5) — apply a treatment to a
+   * wound: run the wound's own `resolve` (dress / set / cool / rewarm /
+   * operate), stamp its `careQuality` from `efficacy` (which `mend` reads
+   * to scale the treated rate), and seed wound infection when the care was
+   * dirty (D11, W-A5). Every consumer — `TreatController`,
+   * `OrderController.treatWorst`, the nurse's brain — calls THIS; the deed
+   * credit and the prose stay caller-side, and verbs stay on the body.
+   */
+  applyTreatment(wound: Trauma, opts: TreatmentOpts): TreatmentResult;
   /** Release a sustained magical effect: un-realize, destruct any bound
    * emitter, drop the condition. Expiry and tag-keyed dispel both land here. */
   releaseSustained(s: SustainedEffect): void;
@@ -616,6 +650,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       self: [
         'platform/cmd/medical/treat.yaml',
         'platform/cmd/medical/undress.yaml',
+        'platform/cmd/medical/dose.yaml',
       ],
     };
 
@@ -2594,6 +2629,25 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (i === -1) return false;
       this.conditions.splice(i, 1);
       return true;
+    }
+
+    /**
+     * ⭐⭐ **The one treatment primitive** (D5). Runs the wound's own
+     * `resolve` (the type decides what "treated" means — a dressing, a
+     * splint, a cooling, a rewarming, surgery), stamps `careQuality` so
+     * `mend` heals it at the graded treated rate, and returns what
+     * happened. The infection seed (D11) lands in W-A5; the seam is here.
+     */
+    public applyTreatment(
+      wound: Trauma,
+      opts: TreatmentOpts,
+    ): TreatmentResult {
+      TRAUMA_BEHAVIOR[wound.type].resolve(this, wound);
+      wound.careQuality = Math.max(0, Math.min(1, opts.efficacy));
+      // D11 (W-A5) — a dirty treatment on a bleed-family wound inoculates
+      // it. Wired when HygieneMixin lands; for now nothing seeds.
+      const seededInfection = false;
+      return { treated: true, by: opts.by, seededInfection };
     }
   }
   return VitalsMixin;

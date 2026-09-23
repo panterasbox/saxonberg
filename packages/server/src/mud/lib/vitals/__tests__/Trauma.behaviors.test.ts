@@ -106,6 +106,76 @@ describe('Trauma behaviors — contusion / burn / avulsion', () => {
   });
 });
 
+describe('treated wounds knit faster (recovery D4/D5)', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  it('⭐ a SET fracture knits faster than an unset one', () => {
+    const host = makeStuff(() => new Creature());
+    const unset: Trauma = {
+      kind: 'trauma',
+      type: 'fracture',
+      site: 'body.leg.left',
+      severity: 2,
+    };
+    const set: Trauma = {
+      kind: 'trauma',
+      type: 'fracture',
+      site: 'body.leg.right',
+      severity: 2,
+      dressed: true,
+      careQuality: 1,
+    };
+    TRAUMA_BEHAVIOR.fracture.mend(host, unset, 100, 1);
+    TRAUMA_BEHAVIOR.fracture.mend(host, set, 100, 1);
+    // The set fracture decays at the treated rate; the unset at the slower
+    // natural one — so it lost more severity over the same interval.
+    expect(2 - set.severity).toBeGreaterThan(2 - unset.severity);
+  });
+
+  it('⭐ a rupture does not knit until SURGERY closes it', () => {
+    const host = makeStuff(() => new Creature());
+    const rupture: Trauma = {
+      kind: 'trauma',
+      type: 'rupture',
+      site: 'body.torso.liver',
+      severity: 3,
+      bleeding: true,
+    };
+    // Untreated: an interior bleed knits nothing.
+    TRAUMA_BEHAVIOR.rupture.mend(host, rupture, 100, 1);
+    expect(rupture.severity).toBe(3);
+    // Surgery closes it — now it heals.
+    TRAUMA_BEHAVIOR.rupture.resolve(host, rupture);
+    expect(rupture.dressed).toBe(true);
+    TRAUMA_BEHAVIOR.rupture.mend(host, rupture, 100, 1);
+    expect(rupture.severity).toBeLessThan(3);
+  });
+
+  it('⭐ care quality scales the treated rate — a good dressing beats a poor one', () => {
+    const host = makeStuff(() => new Creature());
+    const good: Trauma = {
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.left',
+      severity: 2,
+      dressed: true,
+      careQuality: 1,
+    };
+    const poor: Trauma = {
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.right',
+      severity: 2,
+      dressed: true,
+      careQuality: 0,
+    };
+    TRAUMA_BEHAVIOR.laceration.mend(host, good, 20, 1);
+    TRAUMA_BEHAVIOR.laceration.mend(host, poor, 20, 1);
+    expect(2 - good.severity).toBeGreaterThan(2 - poor.severity);
+  });
+});
+
 describe('Fracture impairs affordances via canOccupy', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());

@@ -54,6 +54,8 @@ export default class WaterFixture extends UnboundedReceptacle {
       // `wash`'s arg is a CRAFTED thing, and widening it to also accept a
       // body would delete a check (see `RinseController`'s header).
       'platform/cmd/medical/rinse.yaml',
+      // ⭐ …and you cool a burn at water the same way (recovery build).
+      'platform/cmd/medical/cool.yaml',
     ],
   };
 }
