@@ -4,14 +4,18 @@
 > fishing · forestry, plus water as the sixth) cover the planted, the kept,
 > the standing and the sunk. Nothing cuts the ground from the surface, and
 > nothing takes a yield the surroundings concentrate for you.
-> **Left:** ⭐ **Stage A — the open working**: ground cut from above
+> **Left:** ⭐ **Stage A — the open working**: **W0, the open air dries what
+> you leave in it** (the `dry` act's rate reads the weather — peat, the
+> saltern, hay and a ham on a line, all one term) · ground cut from above
 > (overburden as the gate, the dressed block as forestry's bole, rubble as
 > bulk) · stone · clay · sand · limestone → the limekiln → the smelt's missing
 > **flux** · coal · peat (a field that does not renew, cut wet and dried) ·
 > rock salt · the `quarrying` Discipline · ⭐ **Stage B — the concentrated
-> yield**: the saltern (yield = f(weather, elapsed)) · the hive (yield = f(a
-> neighbourhood you do not own) + pollination back into farming) · honey ·
-> beeswax → the candle
+> yield**: the saltern (a `MaturationProfile` with `mechanism: evaporative` on
+> a Bulkable pan, riding W0) · **the hive** (yield = f(a neighbourhood you do
+> not own) — the one genuinely new shape, and the one that gates the
+> unification) + pollination scaling `fruitSetCount` at SET · honey · beeswax →
+> the candle
 > **Size:** two builds
 
 See also: [mining-slate](./mining-slate.md) (*"Quarrying (stone, flux) —
@@ -34,7 +38,8 @@ knacker/chandler built on the candle). Substrates:
 carve/shore/promote) · [forestry.md](../../subsystems/forestry.md) (⭐ **the
 place-with-a-cover and the bole** — Stage A's two nearest precedents) ·
 [soil.md](../../subsystems/soil.md) · [weather.md](../../subsystems/weather.md)
-· [husbandry.md](../../subsystems/husbandry.md) (min-of-four) ·
+· [husbandry.md](../../subsystems/husbandry.md) (⭐ the polycarp cycle's
+**latch → set → fill → ripe** — pollination attaches at SET) ·
 [spoilage.md](../../subsystems/spoilage.md) (`CuredMixin.moisture` — *drying
 reverses and curing does not*, which is exactly peat) ·
 [maturation.md](../../subsystems/maturation.md) (the durative transform on a
@@ -112,23 +117,23 @@ families:
 
 ---
 
-## ⭐⭐⭐ The two shapes, and why they gate the unification
+## ⭐⭐⭐ The ONE new shape, and why it gates the unification
 
-Every one of the five shipped RGOs derives its yield **from the parcel, reach
-or stand under your feet**. That is the abstraction a unified RGO interface
-would be drawn from — and it would be wrong, because two of the four families
-here do not fit it:
+Every one of the six shipped RGOs derives its yield **from the parcel, reach or
+stand under your feet**. That is the abstraction a unified RGO interface would
+be drawn from — and exactly one family here does not fit it:
 
 | family | new mechanism? | why |
 |---|---|---|
 | quarry · claypit · sandpit · limestone | **no** | mining's `Deposit` + forestry's bole. Rows on a shape that exists. |
 | coal · peat | **no** | a deposit row; peat is a field that does not renew, which is how `Deposit` already behaves |
-| **salt (the saltern)** | ⭐ **yes** | production by **evaporation, under weather, over elapsed time**. Nothing among the five is an open-air durative transform. |
-| **apiculture (the hive)** | ⭐⭐ **yes** | yield derived from a **neighbourhood you do not own**. The only RGO that reads outward instead of downward. |
+| salt (the saltern) | **no** — ⚠ *corrected 2026-09-23* | a `MaturationProfile` with a new `mechanism` value on a Bulkable pan. `MaturationProfile` already declares `mechanism` as the extension point (*"the same move `Dyestuff.chemistry` makes"*), the rate is already credited at the host's reconciled `ThermalMixin` temperature, and weather already stamps temperature/humidity/wind onto every SkyExposed scope. **A profile row, a pan row and a humidity term** — not a mechanism. |
+| **apiculture (the hive)** | ⭐⭐ **yes, and alone** | yield derived from a **neighbourhood you do not own**. The only RGO that reads *outward* instead of downward. |
 
 **Therefore the order is A → B → unify → foraging/hunting.** Stage B must land
-*before* the unification wave, or the interface gets drawn from five instances
-of one shape and grows a guard the first time it meets a sixth. This is the
+*before* the unification wave — not for the saltern, which rides shipped
+substrate, but for **the hive**: draw the interface from six instances of one
+shape and it grows a guard the first time it meets the seventh. This is the
 same argument [field-substrate-slate](../tails/field-substrate-slate.md) makes
 from the other end: it wants *"a home for the pin walk
 (`stepOutwardForPin`, now copied three times)"*, and **the hive is the fourth
@@ -176,14 +181,40 @@ lens-6 pass available: the demand was there first, measurably.
 | **sand** | `glass` at 5 sites | one furnace recipe (sand + lime) → `glass` |
 | **limestone** | `quicklime` (ships, 1 consumer) **and the smelt's missing flux** — [metal-chain-slate](./metal-chain-slate.md): *"flux stops being a recipe ingredient"* | the limekiln (a fixture + one recipe) |
 | **coal** | every forge, kiln and smelt — today the fuel chain roots on **wood alone** | none; the fuel slot already exists |
-| **peat** | the same fuel slot; the poor household's fuel | ⭐ cut **wet**, then dried — `CuredMixin.moisture` already models drying, and *drying reverses* is exactly a turf stack in the rain |
+| **peat** | the same fuel slot; the poor household's fuel | ⭐ cut **wet**, then dried by the shipped `dry` act over W0's weather term — and *drying reverses* is exactly a turf stack caught in the rain |
 | **rock salt** | `salt` (the shipped `cure` hurdle) | none |
 
 ### Design notes
 
-- **A working is a Location with a field and a face, not a warren.** Lean, not
-  settled (see open questions): a quarry is one hole, and the warren shape
-  earns itself underground because getting lost and drowning are the hazards.
+- ⭐⭐ **A working is a Location with a field and a face, not a warren —
+  settled by the shipped doctrine.** `mining.md`'s governing split is *"reads
+  go to the space, mutation goes to the warren"*: every read lives on
+  `WorkingMixin` and derives from the room and its zone, and `MineWarren` owns
+  only **carve · abandon · the tier ledger · seal-and-reap**. The precedent is
+  already a class: `AuthoredWorking = WorkingMixin(SingletonCartesianLocation)`,
+  seven rows at Rejection, added **because driving found** the authored
+  galleries had no faces, no stability and no acts.
+  ⭐ **The real question was never Location-vs-Warren — it is whether a quarry
+  grows by ADDING ROOMS.** A mine does, because you drive headings into unknown
+  ground and navigation *is* the hazard. A quarry does not: **the face retreats
+  and the floor drops — one place changing, not new places appearing.** So a
+  `QuarryMixin` sibling of `WorkingMixin` on an authored singleton, and no
+  warren in Stage A. When a pit is deep enough that a bench is genuinely a
+  heading, that is a promotion, not a rewrite — mining.md states `MineWarren`
+  is *"shaped for a BASE SWAP, not a redesign."*
+- ⭐⭐ **W0 — the open air dries what you leave in it.** ⚠ Peat cannot dry
+  passively: `spoilage.md` is explicit that *"the passive arm only ever RAISES
+  moisture. Nothing dries on its own: drying is an act"*, because a gauge that
+  quietly dried the pantry would change how every shipped row behaves. So peat
+  dries by the **shipped `dry` act** — which today is *"time only."*
+  **The primitive: `dry`'s rate reads the weather.** That does not breach the
+  prohibition (you asked for the act), and it is the same term the saltern
+  needs, so it belongs at the front of Stage A rather than in Stage B. It
+  serves four things immediately: peat, the saltern, a ham or a fish dried in
+  the open, and **haymaking** (`food/hay` ships and ranching makes it).
+  ⭐ `CuredMixin` is the right carrier and welcomes this: it lives at
+  `lib/material/Cured.ts` and its own doc says *"leather, timber and grain are
+  all dried and none of them rot on a microbial curve."*
 - **Peat's field does not renew on a human timescale.** That is not a
   limitation to apologize for — it is the depletion lesson, and `Deposit`
   already behaves this way. The turbary is where a player watches a commons
@@ -191,16 +222,21 @@ lens-6 pass available: the demand was there first, measurably.
 - **Coal and rock salt are rows on BOTH mechanisms.** Opencast here, adit in
   mining's existing `Deposit`. One good, two sources, different economics —
   and that is the honest model, not a duplication to eliminate.
-- **`quarrying` as a Discipline of its own**, minted here.
-  [trade-roster-slate](../tails/trade-roster-slate.md)'s gap report has
-  `extraction` for the delver; surface and underground are genuinely different
-  competence, and masonry, ceramics and glasswork will all read the surface one.
+- **`quarrying` as a Discipline of its own**, minted here — `channel: skill`.
+  ⚠ [trade-roster-slate](../tails/trade-roster-slate.md)'s gap report lists an
+  `extraction` key, but **it was never minted**: `trade-mining` shipped
+  `mining` (ISCED-F 0724) + `geology`, `trade-forestry` shipped `silviculture`
+  (0821), `trade-fishing` shipped `fishing` (0831). Every RGO pack ships its
+  own, so `quarrying` follows the precedent and there is no `extraction` for it
+  to be a band of. ⚠ **Verify the ISCED-F code against a source before
+  seeding** — trade-roster's own standing warning.
 
 ---
 
 ## Stage B — the concentrated yield
 
-> **Two mechanisms, two goods, and the shapes the unification needs to see.**
+> **Two goods, one new shape.** The saltern rides shipped substrate; the hive
+> is what the unification must see before it is drawn.
 
 ### The saltern
 
@@ -209,10 +245,20 @@ wind concentrate brine, rain sets you back. [ranching-slate](./ranching-slate.md
 AC 37 already states it: *"a saltern yields salt as a function of weather over
 elapsed time, with no …"*.
 
-- **Lean on the host:** `MaturingMixin` on the pan. Maturation is already *the
-  durative transform on a vessel*; what is new is a **rate read from the
-  weather field** rather than from a cellar's stable conditions. If that holds,
-  Stage B's first half is small.
+- ⭐⭐ **The host is settled: `MaturingMixin` on the pan, and it needs almost
+  nothing new.** The mixin composes on a **Bulkable** host
+  (composition-validated), which a pan holding brine is exactly; a
+  `MaturationProfile` already declares its **`mechanism`** as the extension
+  point (*"the same move `Dyestuff.chemistry` makes: one substrate, two
+  mechanisms"*) — so the saltern is `mechanism: evaporative`; and the rate is
+  already *"credited at the vessel's own reconciled `ThermalMixin`
+  temperature — the cold cellar is a PLACE, never a rule"*, which for an
+  outdoor pan is already weather-driven. **What Stage B adds is a profile row,
+  a pan row, and W0's humidity/wind term.** This is why the saltern is not a
+  new mechanism.
+- ⭐ **And the rain setback is free.** The pan is a vessel, so rain filling it
+  is ordinary bulk transfer — no special case, and the dilution falls out of
+  the same arithmetic that concentrated it.
 - **Salt with two sources is the point.** Rock salt is a face you cut (Stage A);
   bay salt is weather you wait on. Same good, opposite risk profile — inland
   versus coastal, capital versus patience. That is a real economic geography
@@ -229,11 +275,17 @@ on land that belongs to other people.
   a neighbour's land use, and their yield (via pollination) depends on your
   hive. Nobody is cheating; the interests are simply entangled. Lens 4 rarely
   gets a case this clean.
-- **Pollination goes back into farming.**
-  [flowers-slate](./flowers-slate.md) D35 has it as a positive externality and
-  D43 has clover as the bee plant; husbandry's **min-of-four** limiting factor
-  is where it lands. Lean: **ship it in Stage B**. Without the return leg the
-  hive is a honey vending machine and the lens-1 payoff is gone.
+- ⭐⭐ **Pollination goes back into farming — and it attaches at SET, not as a
+  limiting factor.** [flowers-slate](./flowers-slate.md) D35 has it as a
+  positive externality and D43 has clover as the bee plant. Husbandry's polycarp
+  cycle is **latch → set → fill → ripe**, and `_fruitFill` already scales by
+  `limiting` — so a sixth limiting factor would make poor pollination fill
+  *slower*, which is wrong. **Poor pollination gives you fewer fruits, not
+  slower ones.** Step 2 sets a crop of authored count and step 4 mints
+  `fruitSetCount` items, so pollination is **a multiplier on `fruitSetCount` at
+  SET**: one term at a named seam, where `_worstLimiting` already re-seeds.
+  Ship it in Stage B — without the return leg the hive is a honey vending
+  machine and the lens-1 payoff is gone.
 - **Honey closes `sugar`** — the census's second unrooted root, and the
   honest medieval answer to it.
 - **Beeswax opens the candle** — one recipe, and it feeds
@@ -304,23 +356,46 @@ on land that belongs to other people.
 
 ---
 
+## ⭐⭐ Decided — the open-questions pass, 2026-09-23
+
+Six questions went in; four came out settled against the shipped code, one
+changed the staging, and one turned out to be moot. **Recorded here so the
+requirements phase does not re-open them.**
+
+| # | question | decided |
+|---|---|---|
+| 1 | working = Location, or Warren? | **Location.** `mining.md`'s *reads-to-the-space / mutation-to-the-warren* split already settles it, and `AuthoredWorking` is the shipped precedent. ⭐ The real question was *does a quarry grow by adding rooms* — it does not; the face retreats and the floor drops. `QuarryMixin` on an authored singleton, no warren; a bench-deep pit is a later base swap. |
+| 2 | peat drying — `CuredMixin` or its own clock? | **`CuredMixin`, via the shipped `dry` ACT**, never passively — *"nothing dries on its own"* is a stated prohibition with a stated reason. ⭐ **And the weather term moved to Stage A W0**, because the saltern needs the identical primitive. |
+| 3 | saltern host = `MaturingMixin`? | **Yes, and it needs almost nothing new** — a Bulkable pan, `mechanism: evaporative`, the rate already credited at the host's `ThermalMixin` temperature. ⚠ **This demoted the saltern from a new mechanism to a profile**, which is why only the hive gates the unification. |
+| 4 | pollination in Stage B, or held? | **In — and at SET, not as a limiting factor.** A multiplier on `fruitSetCount`, because poor pollination gives fewer fruits rather than slower ones. |
+| 5 | how many packs? | **`trade-quarrying` (Stage A + the saltern) · `trade-apiculture` (the hive).** The reason improved: after Q2 the saltern and peat **share W0's drying term**, so they want the same pack whatever salt feels like. |
+| 6 | `quarrying`, or a band of `extraction`? | ⛔ **Moot.** `extraction` was never minted — it is a row in trade-roster's *gap report*, and `trade-mining` shipped `mining` + `geology`. There is nothing to be a band of. |
+
+---
+
 ## Open questions
 
-1. ⭐ **Is a working a Location with a face, or a Warren that grows downward?**
-   Lean: a Location with a field and a face. A quarry is one hole; the warren
-   shape earns itself underground because navigation *is* the hazard there. But
-   a deep quarry has benches, and a bench is arguably a heading.
-2. **Does peat's drying reuse `CuredMixin.moisture`, or want its own clock?**
-   Lean: reuse. *Drying reverses* is already modelled and a rain-soaked turf
-   stack is the same fact.
-3. **Is the saltern's host `MaturingMixin`?** Lean: yes, with the rate read
-   from the weather field. If that fails, Stage B doubles.
-4. **Pollination in Stage B, or held?** Lean: **in.** Without it the hive is a
-   vending machine.
-5. **How many packs?** Lean: `trade-quarrying` for Stage A (stone, clay, sand,
-   limestone, coal, peat, rock salt — one mechanism, one pack) and
-   `trade-apiculture` for the hive. ⚠ **The saltern's home is the real
-   question**: salt is one good with two sources, and the pack that owns the
-   good should probably own both — which argues the saltern rides
-   `trade-quarrying` despite having nothing to do with cutting.
-6. **`quarrying` Discipline, or a band of `extraction`?** Lean: its own key.
+Two remain, and both are the user's call rather than the code's.
+
+1. ⭐ **Should the hole visibly WIDEN as it is worked?** A Location carries no
+   extent; `areaM2` lives on the parcel record
+   ([smallholding.md](../../subsystems/smallholding.md)). Growing the parcel's
+   area as you cut would be the honest ledger — *what has been taken IS how big
+   the hole is*, one number for depletion and for the physical fact — but it
+   pulls smallholding into an extraction build. **Lean: depth as a number,
+   width as prose, the parcel untouched in Stage A.**
+2. ⭐ **Does an unpollinated insect-pollinated crop set ZERO, or a floor?** Zero
+   is real, and it is a brutal trap for a first-time farmer who planted an
+   orchard with no hive in range. **Lean: a floor around 0.3 — *wild
+   pollinators exist* — because a zero makes clover and the orchards
+   unplayable without a hive, and that is manufactured demand, which
+   [vocations.md](../../vocations.md) says never to build.**
+
+And one residual worth a sentence rather than a decision:
+
+- **Is there ever a `trade-salt`?** Only if salt gets a *trade* rather than
+  just a source — the salter, and above all **the salt tax**, which was
+  historically enormous and would make a genuinely good governance object. If
+  that is ever wanted, salt wants its own pack; until then it rides
+  `trade-quarrying`. → [institutions-slate](./institutions-slate.md) /
+  [legal-code-slate](./legal-code-slate.md) if the tax is what appeals.
