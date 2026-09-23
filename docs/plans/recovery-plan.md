@@ -585,6 +585,23 @@ model, the safest possible shape.
 
 ---
 
+**D20 - `scrub` folded into bare `wash` (post-review, 2026-09-23).** Review
+flagged that `scrub` (wash your hands) and `wash` (clean a glass/pot/garment)
+are the same act - apply reachable water to clean a thing - differing only in
+target. They are reconciled to ONE verb: **bare `wash` (no object) washes your
+hands**; `wash <thing>` cleans that thing. The medic's `scrub` verb, its
+`ScrubController`, and its seed are deleted. This is safe where `rinse` was not:
+hygiene has NO object arg (the hands are always the giver's own body), so making
+`wash`'s crafted-object arg optional and routing a null target to the hygiene
+path widens no `requires` check - a body never reaches the gate. `rinse` takes a
+body ARG (`patient`, `VitalsMixin`) and so stays a separate verb (widening
+`wash` to accept it WOULD delete a check). `wash` stays a platform `crafting`
+verb (it already spans serviceware, contamination, and dye-fade); hands are just
+another target, so it does not move to `medical`. The `Hygiene.scrub()` METHOD
+keeps its name; only the verb changed. `WaterFixture.peers` now affords `wash`
+for the hygiene half (it already listed it for glassware). Drive updated
+(scrub -> bare wash at the basin); 7/7 green, 48 lint gates green.
+
 ## â­â­ Host placement
 
 Every new field, mixin and class; what composing it claims about the rest
@@ -1237,7 +1254,7 @@ each fails closed and silent.
 | dose | `medical/dose.yaml` | `VitalsMixin.self` | `antivenin` material + vial row; stocked on the shelf | `MaterialCatalogue` warms `/trade/medicine/idea/material/` by infix â | `with` = `BulkableMixin` (the vial is a `Vessel`) |
 | warm | `medical/warm.yaml` | `FurnaceMixin.peers` (+ campfire class if not a Furnace) | â | none | `source` = `CombustibleMixin`; narrows on `isBurning()` |
 | cool | `medical/cool.yaml` | `WaterFixture.peers` | â | none | `water` = `BulkableMixin` (the `rinse` shape) |
-| scrub | `medical/scrub.yaml` | `WaterFixture.peers` | the ward gains a basin row | none | `water` = `BulkableMixin` |
+| wash your hands | bare `wash` (`crafting/wash.yaml`, optional target) | `WaterFixture.peers` | the ward gains a basin row | none | no target = hygiene; `water` = `BulkableMixin` (D20 - folded in from `scrub`) |
 | set | `trade/medicine/cmd/medical/set.yaml` | `Splint.environment` | `splint.yaml` in the ward's `props:` | pack installed; terminus depends on trade-medicine | `splint` arg `[capability.splint]` â the row declares it |
 | operate | `â¦/operate.yaml` | `SurgicalKit.environment` | `surgical-kit.yaml` in `props:` | as above | `kit` `[capability.surgery]` |
 | the clinic's treatment | `retail/order.yaml` (shipped) | `Tariff` (shipped) | `services: treatment` (shipped) | business stands up lazily (shipped) | n/a |

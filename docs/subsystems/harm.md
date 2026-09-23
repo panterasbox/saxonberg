@@ -697,8 +697,11 @@ treated rate, graded by `Trauma.careQuality`. `Vitals.applyTreatment(wound,
 nurse); it runs `resolve`, stamps `careQuality`, and seeds infection.
 
 The verbs, and what affords each: **`treat`/`undress`/`dose`/`tend`** on
-`VitalsMixin.self` (the body affords its own first aid); **`cool`/`scrub`**
-on `WaterFixture.peers`; **`warm`** on `FurnaceMixin.peers`;
+`VitalsMixin.self` (the body affords its own first aid); **`cool`** on
+`WaterFixture.peers` — and bare **`wash`** (no object) washes your hands
+there, the hygiene half folded into the platform `wash` verb rather than a
+separate `scrub` (hands have no object arg, so nothing was widened; `rinse`
+takes a body ARG and stays separate); **`warm`** on `FurnaceMixin.peers`;
 **`splint`/`operate`** on the trade's `Splint`/`SurgicalKit` instruments
 (`trade-medicine`). `dose` reads an `antidote:<toxin>` **Material tag** off
 a vial and crashes the matching burden (D7 — an antidote is a substance
@@ -708,8 +711,9 @@ with a tag, no new mixin). ⚠ The bone-setting verb is `splint`, not
 ### Hygiene and the festering wound
 
 `HygieneMixin` (on `Creature`) is one `washedAt` stamp with a derived
-`handsCleanliness()` that decays over `HYGIENE_SOIL_SEC`; `scrub()` cleans,
-`soil()` dirties (treating a bleed soils the treater). **Wound sepsis**
+`handsCleanliness()` that decays over `HYGIENE_SOIL_SEC`; `scrub()` cleans
+(bare `wash` at water drives it), `soil()` dirties (treating a bleed soils
+the treater). **Wound sepsis**
 (`Condition/pathogen/wound-sepsis`, `reach: infect`) is the shipped
 in-host infection arm with a new SOURCE: `applyTreatment` seeds it when a
 bleed-family wound is dressed with dirty hands or poor care, and the harm

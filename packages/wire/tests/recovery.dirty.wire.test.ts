@@ -32,7 +32,7 @@ declareFile({
 
 // Corridor 2 of the delve — walk NORTH into corridor 3 to spring its traps.
 const CORRIDOR_2 = '/world/newbie-wilds/delve/corridor-2';
-// The infirmary ward — has the basin (water) that affords `scrub`/`cool`.
+// The infirmary ward — has the basin (water) that affords `wash`/`cool`.
 const WARD = '/world/terminus/infirmary/ward';
 
 let player: Session;
@@ -78,12 +78,13 @@ suite('the medical verbs are AFFORDED — the body affords its own first aid', (
 });
 
 suite('the FIXTURE-afforded verbs answer where the fixture is', () => {
-  it('⭐ `scrub` and `cool` answer at the infirmary basin (WaterFixture affords them)', async () => {
-    // ⚠ Drive finding: these are NOT self-afforded — `scrub` in a waterless
+  it('⭐ bare `wash` and `cool` answer at the infirmary basin (WaterFixture affords them)', async () => {
+    // ⚠ Drive finding: these are NOT self-afforded — `wash`/`cool` in a waterless
     // corridor is correctly "I don't understand" — they ride the
     // WaterFixture's `peers` bucket, so they answer standing at water. The
     // ward's basin is real water now (recovery build).
-    for (const verb of ['scrub', 'cool']) {
+    // ⭐ Bare `wash` washes your hands here — the old `scrub`, folded in.
+    for (const verb of ['wash', 'cool']) {
       const said = await (await patient.cmd(verb)).said();
       expect(afforded(said), `${verb} at the basin: ${said}`).toBe(true);
     }
