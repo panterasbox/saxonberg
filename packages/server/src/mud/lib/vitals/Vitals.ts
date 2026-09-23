@@ -2377,6 +2377,16 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           // arms` still counts a single arm.
           if (t.mendedAt === undefined) {
             t.mendedAt = nowS;
+          } else if (linkdead) {
+            // ⭐ Freeze on linkdead, like every other arm — the broad
+            // "a linkdead body integrates nothing" invariant (electricity,
+            // the dying-disconnect discipline). Offline mend is delivered by
+            // the LOGGED-OFF path instead: an evicted body is not reconciled
+            // while away, so on RECONNECT (no longer linkdead) `mendedAt`
+            // still sits at logout and the big gap integrates in one read —
+            // with NO far-past drop (below), which is the piece that makes
+            // "log off on the cot, come back mended" true.
+            t.mendedAt = nowS;
           } else {
             const mendElapsed = nowS - t.mendedAt;
             t.mendedAt = nowS;

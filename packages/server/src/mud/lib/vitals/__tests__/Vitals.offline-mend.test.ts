@@ -85,13 +85,15 @@ describe('mending runs while you are away — harm still freezes', () => {
     advance(c, 1); // first-touch: seed both stamps
     const sev0 = traumaOf(c)!.severity;
 
-    goDark(c);
-    advance(c, SAFE); // past the safety delay, while logged off
+    // ⭐ The LOGGED-OFF reconnect: an evicted body is not reconciled while
+    // away, then reconciles ONE big gap on return (NOT linkdead — you are
+    // back). The mend arm integrates it; the harm arm far-past-drops.
+    advance(c, SAFE);
 
     const t = traumaOf(c);
-    // It knitted (mend ran while away)…
+    // It knitted across the gap…
     expect(t!.severity).toBeLessThan(sev0);
-    // …and it never bled (harm frozen, and it was dressed anyway).
+    // …and it never bled (dressed, and the harm arm drops a far gap anyway).
     expect(c.getVitalSign('bloodVolume').rawValue()).toBe(blood0);
   });
 
@@ -106,13 +108,32 @@ describe('mending runs while you are away — harm still freezes', () => {
     advance(c, 1); // seed
     expect(traumaOf(c)?.type).toBe('fracture');
 
-    goDark(c);
-    // A gap MANY times the far-past guard — the harm arm integrates
-    // nothing across it, but the mend arm integrates the whole thing.
+    // A gap MANY times the far-past guard, integrated on the reconnect read
+    // (not linkdead): the harm arm integrates nothing across it, but the
+    // mend arm integrates the whole thing (no far-past drop).
     advance(c, 3 * 24 * 60 * 60);
 
     // The fracture healed to clear and was swept off the body.
     expect(traumaOf(c)).toBeUndefined();
+  });
+
+  it('⭐⭐ a LINKDEAD body in-world freezes BOTH arms — the broad invariant', () => {
+    // Unlike a logged-off (evicted) body, a linkdead body lingering in the
+    // world integrates NOTHING while reconciled by others — neither harm nor
+    // mend. Offline mend is the reconnect path, not this one.
+    const c = lyingBody();
+    c.afflict({
+      kind: 'trauma',
+      type: 'fracture',
+      site: 'body.leg.left',
+      severity: 1,
+    });
+    advance(c, 1); // seed
+    const sev0 = traumaOf(c)!.severity;
+    goDark(c);
+    advance(c, SAFE + 1000); // a long linkdead gap
+    // Frozen: the fracture is neither healed nor gone.
+    expect(traumaOf(c)?.severity).toBe(sev0);
   });
 
   it('⚠ a bleeding UNDRESSED wound across the same gap loses no blood, and does not knit', () => {

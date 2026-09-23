@@ -417,7 +417,7 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // them. This count is a real assertion about what the pack
     // ships, so it moves when the pack does.
     const arcane = results.find((r) => r.packId === 'arcane-library');
-    expect(arcane!.inserted).toHaveLength(40);
+    expect(arcane!.inserted).toHaveLength(41);
     expect(arcane!.inserted).toContain('/stuff/idea/magic/Spell/glowlight');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/glowlight-mote');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/ring-of-veil');

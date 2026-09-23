@@ -671,16 +671,19 @@ identically online, linkdead or logged off. See the
 
 ### The offline carve
 
-`Trauma` carries TWO stamps. The **harm arm** (`tickedAt`) freezes on
-linkdead and drops a far-past gap — *being away must never bleed you*. The
-**mend arm** (`mendedAt`) does NEITHER — *being away must never COST you,
-and mending is never a cost* — so a body knits across a logout at whatever
-`k` it reads on return. Both arms live inside the ONE trauma `for…of`, so
-`lint:condition-arms` still counts a single arm. This IS the shipped
-sleep-as-logout mechanism given a convalescence purpose; the mend depends
-on the body re-occupying its rest surface, which the linkdead logout path
-preserves (a full snapshot restore degrades to floor rate — a shared
-metabolism+vitals seam on `Posed`'s restore path).
+`Trauma` carries TWO stamps. **Both** freeze on linkdead — the broad "a
+linkdead body integrates nothing" invariant every other arm (dying,
+electricity) keeps — but they differ on the FAR-PAST gap: the **harm arm**
+(`tickedAt`) drops it (*being away must never bleed you*), the **mend arm**
+(`mendedAt`) INTEGRATES it (*being away must never cost you, and mending is
+never a cost*). So offline mend is the LOGGED-OFF reconnect: an evicted
+body is not reconciled while away, so on return (no longer linkdead) its
+big gap integrates in one read. Both arms live inside the ONE trauma
+`for…of`, so `lint:condition-arms` still counts a single arm. This IS the
+shipped sleep-as-logout mechanism given a convalescence purpose; the mend
+depends on the body re-occupying its rest surface (a full snapshot restore
+degrades to floor rate — a shared metabolism+vitals seam on `Posed`'s
+restore path).
 
 ### Every wound treatable
 

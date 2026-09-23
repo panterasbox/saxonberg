@@ -209,13 +209,14 @@ export interface Trauma {
   tickedAt?: number;
   /**
    * ⭐⭐ **The HEALING clock's stamp** (D3) — the game-time (seconds) the
-   * wound's `mend` last ran, kept SEPARATE from `tickedAt` because the two
-   * halves integrate under opposite absence rules. The harm arm
-   * (`tickedAt`) freezes on linkdead and drops a far-past gap — *being
-   * away must never bleed you*. The mend arm (`mendedAt`) does NEITHER —
-   * *being away must never COST you, and mending is never a cost* — so a
-   * body knits across a logout at whatever `k` it reads on return.
-   * Stamped at `inflict` beside `tickedAt`; undefined until first read.
+   * wound's `mend` last ran, kept SEPARATE from `tickedAt`. Both arms
+   * freeze on linkdead (the broad "a linkdead body integrates nothing"
+   * invariant), but they differ on the FAR-PAST gap: the harm arm drops it
+   * (*being away must never bleed you*), the mend arm INTEGRATES it (*being
+   * away must never cost you, and mending is never a cost*). So offline
+   * mend is the LOGGED-OFF reconnect: an evicted body is not reconciled
+   * while away, and its big gap integrates on return. Stamped at `inflict`
+   * beside `tickedAt`; undefined until first read.
    */
   mendedAt?: number;
   /**
