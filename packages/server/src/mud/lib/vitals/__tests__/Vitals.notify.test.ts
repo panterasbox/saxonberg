@@ -100,8 +100,9 @@ describe('the notify alarm — a courtesy on top of derive-on-read', () => {
 
     // Fire the alarm on one (reconcile + the message push).
     (fired as unknown as { onNotifyFire(): void }).onNotifyFire();
-    // The other never fires — just a normal read.
-    unfired.reconcileConditions();
+    // The other never fires — just a normal read. `getConditions()` is
+    // the public reconcile-on-read seam (it calls the private reconcile).
+    unfired.getConditions();
 
     // Both derive the identical festering truth. The alarm added no authority.
     expect(isFestering(fired, nowS)).toBe(isFestering(unfired, nowS));
@@ -116,7 +117,7 @@ describe('the notify alarm — a courtesy on top of derive-on-read', () => {
 
     (c as unknown as { onNotifyFire(): void }).onNotifyFire();
     const afterFire = c.getConditions().length;
-    c.reconcileConditions();
+    // A second plain read (getConditions reconciles on read); idempotent.
     const afterReconcile = c.getConditions().length;
     // Idempotent: a second read after the fire changes nothing.
     expect(afterReconcile).toBe(afterFire);
