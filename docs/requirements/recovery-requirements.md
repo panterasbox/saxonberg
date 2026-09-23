@@ -118,7 +118,7 @@ Every one names where it lives instead.
   [pharma-slate](../slates/builds/pharma-slate.md). We *apply* care and *dose*
   an antidote; we do not manufacture the drug.
 - **Catching a disease from someone — contagion, epidemics, quarantine** →
-  [disease-design-pack](../slates/builds/disease-design-pack.md). Our infection
+  [disease-slate](../slates/builds/disease-slate.md). Our infection
   is your own wound going bad, needing no one else.
 - **Transfusion, blood types, the blood bank; fully restoring lost blood by
   resting** → [blood-slate](../slates/builds/blood-slate.md). Rest brings blood
@@ -297,11 +297,11 @@ Observable from outside the code.
 - **Boundary owners (non-goals):**
   [medic-judgment-slate](../slates/builds/medic-judgment-slate.md),
   [pharma-slate](../slates/builds/pharma-slate.md),
-  [disease-design-pack](../slates/builds/disease-design-pack.md),
+  [disease-slate](../slates/builds/disease-slate.md),
   [blood-slate](../slates/builds/blood-slate.md),
   [health-vertical-slate](../slates/builds/health-vertical-slate.md),
   [bathroom-slate](../slates/builds/bathroom-slate.md)
 - ⚠ **Sequencing:** build-3 is building **nutrition & fitness**
   (`design/nutrition-fitness`) on the same body substrate. This build should
-  **begin after that one merges**, or carve an explicitly non-overlapping
+  **begin after that one merges** — ✅ build-3 **MERGED 2026-09-23**, so this is now **UNGATED**; the overlap is in the base, or carve an explicitly non-overlapping
   surface first — two branches editing one subsystem is the worktree hazard.

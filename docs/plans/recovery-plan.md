@@ -22,6 +22,19 @@ fourth consumer of it and needs **no new effect kind**.
 
 ## Sequencing â read this before branching
 
+> ✅ **GATE RESOLVED 2026-09-23.** build-3 (nutrition-fitness) **MERGED** to
+> master (`81caf517f`); this branch is caught up (merge `049608a20`). The
+> overlap below is now **in the base** — branch `build/recovery` off current
+> master and it already carries build-3's Vitals/Metabolic changes and
+> `Exerting.ts` (verified present). **No rebase dance.** ⚠ The line numbers in
+> this plan predate the merge and shifted — `coupledRecovery` 994→1154,
+> `reconcileConditions` 1848→1865, the `expireDying` call 2172→2189,
+> `ownFunction` 977→993, `POSTURE_BASE` 240→244, `applyAntidote` 1448→1608,
+> `severPart` 1404→**1421**, `afflict` 2416→2433 — re-confirm from source
+> (§ Critical files). The mortality fix `e9ebffd41` (dying window anchors at
+> `beginDying`) does **not** affect D3/D19: death is still derive-on-read and
+> the dying arm still keeps its linkdead-exemption.
+
 â â  **build-3 (`design/nutrition-fitness`, 142 files, +6851) edits the same
 kernel surface.** Verified against `origin/design/nutrition-fitness` this
 cycle. The requirements say this build begins **after that one merges**,
@@ -42,7 +55,7 @@ What build-3 touches that we touch, by file (their hunk â ours):
 | `platform/idea/SchedulerRegistry.ts` | `effortW` at completion | none | none |
 
 **Stance:** W-A0 is the merge check. Stage B (L3 specifically) is
-unbuildable before `Exerting.ts` exists on master.
+now **buildable** — `Exerting.ts` is on master (build-3 merged 2026-09-23).
 
 ---
 
@@ -678,7 +691,7 @@ Every wave is independently landable and ends at
 #### W-A0 â Merge, the affordance finding, the drive's wound sources
 **Goal:** a branch that can be built on, and proof the medical verbs are
 reachable at all.
-- `git merge origin/master` after nutrition-fitness lands; confirm
+- `git merge origin/master` — the base already includes nutrition-fitness (merged `81caf517f`); confirm
   `lib/exertion/Exerting.ts` exists; `pnpm install`; `pnpm test:near`
   on `lib/vitals`.
 - **Wire probe** (a throwaway `it` that becomes the drive's step 0):
@@ -1034,7 +1047,7 @@ Clean attach points, each leaving as the slate that owns it.
   may read the same pool later"*) â `metabolism-slate`. Seam: one more
   term in `convalescenceFactor`.
 - **A wand of mending** â `magic-items` (one row, plus its bands).
-- **Contagion from a septic wound** â `disease-design-pack`. Seam: the
+- **Contagion from a septic wound** â `disease-slate`. Seam: the
   sepsis row's `contagion: null`.
 - **Soiling producers beyond treatment** (butchering, mining, the sewer)
   â `bathroom-slate`. Seam: `HygieneMixin.soil()`.

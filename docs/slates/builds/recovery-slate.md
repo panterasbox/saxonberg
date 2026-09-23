@@ -80,7 +80,7 @@ slate touches **none** of their ground; it fills the operational gap
 | **medic-judgment-slate** | the **diagnosis / graded-decision** surface (settled 2026-09-15): cues-without-names, triage-under-the-clock, clinical judgment. We consume `assess` and ship only a **thin** NPC brain (runs the treat loop over a queue); the *graded judgment* stays theirs. It flags the hole this slate fills: *"the NPC medic — the missing half of paid treatment."* |
 | **health-vertical-slate** | **institutions**: the aid post, public-health department, College of Physic, the veterinary track, outbreak reporting. We price the **shipped** infirmary business; we do not build the institution. |
 | **pharma-slate** | the **medicine industry**: credence goods, statistics-at-scale, the supply chain, brands/recalls, the assayer, the therapeutic window's economics. |
-| **disease-design-pack** | **contagion / immunity / epidemiology**: `ContagionSpec`, R0, transmission, quarantine. ⭐ We ship **wound infection without contagion** — physiology says it *"ships BEFORE disease."* |
+| **disease-slate** | **contagion / immunity / epidemiology**: `ContagionSpec`, R0, transmission, quarantine. ⭐ We ship **wound infection without contagion** — physiology says it *"ships BEFORE disease."* |
 | **blood-slate** | **transfusion / red cells / the blood bank.** ⚠ This build must **not** raise `PLASMA_RESTORE_CEILING_FRAC` (0.85) — that ceiling is deliberately blood-slate's premise. |
 
 > ⭐ The un-owned subject, stated once: **the mechanics that turn "a body that
@@ -249,7 +249,7 @@ clinic needs **zero pack code** — the test passes.
   buildable subject legible and cites physiology as the doctrine owner.
 - **Hygiene (C5) is IN** — richest pedagogy + values.
 - **All five lens extensions IN**, L4 flagged splittable.
-- **Sequence AFTER build-3 merges** — scope-max widens the vitals/metabolism
+- **✅ Sequence gate RESOLVED — build-3 (nutrition-fitness) MERGED 2026-09-23 (`81caf517f`); UNGATED** (was: sequence after build-3 merges) — scope-max widens the vitals/metabolism
   overlap with nutrition-fitness; two branches on one subsystem is the
   worktree hazard. build-3's session is not messageable now; the branch is the
   coordination point.
@@ -297,7 +297,7 @@ Physiology's proof, made concrete and lens-maxed:
   [health-vertical-slate](./health-vertical-slate.md),
   [pharma-slate](./pharma-slate.md),
   [blood-slate](./blood-slate.md),
-  [disease-design-pack](./disease-design-pack.md)
+  [disease-slate](./disease-slate.md)
 - Consumed seams: [bathroom-slate](./bathroom-slate.md) (washing state),
   [metabolism-slate](../tails/metabolism-slate.md) (`restQuality`, protein→healing,
   antidote→treatment), [reserve.md](../../subsystems/reserve.md),
