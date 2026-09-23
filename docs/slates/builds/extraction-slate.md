@@ -182,7 +182,7 @@ lens-6 pass available: the demand was there first, measurably.
 | **sand** | `glass` at 5 sites | one furnace recipe (sand + lime) → `glass` |
 | **limestone** | `quicklime` (ships, 1 consumer) **and the smelt's missing flux** — [metal-chain-slate](./metal-chain-slate.md): *"flux stops being a recipe ingredient"* | the limekiln (a fixture + one recipe) |
 | **coal** | every forge, kiln and smelt — today the fuel chain roots on **wood alone** | none; the fuel slot already exists |
-| **peat** | the same fuel slot; the poor household's fuel | ⭐ cut **wet**, then dried by the shipped `dry` act over W0's weather term — and *drying reverses* is exactly a turf stack caught in the rain |
+| **peat** | the same fuel slot; the poor household's fuel | ⭐ cut **wet**, then dried **by exposure** in a stack — ⚠ *corrected at plan time*: not by the `dry` act, which stays the rack-hanging act (a turf stack is not a drying rack). Turves dry because they are out in the air, and *drying reverses* is exactly a stack caught in the rain |
 | **rock salt** | `salt` (the shipped `cure` hurdle) | none |
 
 ### Design notes

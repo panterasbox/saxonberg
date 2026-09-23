@@ -501,9 +501,9 @@ damp cellar preserves nothing; a dry loft preserves slowly"*), and the
 ~62 % crossing is arithmetic off shipped numbers.
 
 **D6 — The shared rate is a value object; the world is read by the
-Api.** `lib/material/Air.ts` — a **named value object** (the `Light`
-category): `Air { humidityPct, windMs, tempK }`, constructed with
-`new Air(humidityPct, windMs, tempK)` and **carrying no statics at all**
+Api.** `lib/material/Evaporation.ts` — a **named value object** (the `Light`
+category): `Evaporation { humidityPct, windMs, tempK }`, constructed with
+`new Evaporation(humidityPct, windMs, tempK)` and **carrying no statics at all**
 — `scripts/check-lib-statics.ts:48–94` counts *every* public static on an
 exported `lib/` class against `LIB_STATICS_CEILING = 337`, type-level or
 not, so a construction static would raise the ceiling — with instance
@@ -511,7 +511,7 @@ methods
 `evaporationFactor(equilibriumRhPct = 100) = max(0, (eq − h) / eq) ×
 (1 + windMs / AIR_WIND_REF_MS) × 2^((min(tempK, 373) − 293) / 10)` (the
 boil cap: a liquid does not exceed 373 K) and `rewets(): boolean`.
-Reading the world is `BiomeApi.airFor(scope): Air` (sync — the
+Reading the world is `BiomeApi.airFor(scope): Evaporation` (sync — the
 containment walk's authored `_humidity`/`_wind` overrides and biome
 defaults, plus the **weather deviation** when the first sky-exposed scope
 knows its Locality) and `BiomeApi.airSegmentsFor(scope, t0S, t1S):
@@ -698,14 +698,37 @@ keyed on the material path, so the falling amount is not a fresh fill
 (the payload rule). The `stalled` read still comes from `stallBelowK`
 (273 K — ice).
 
-**D14 — The kiln is charged and fired on the smelt's shape.** The kernel
-`Kiln` is not a Container (`Forge` is not either; smelting ships
-`ContainerMixin(Forge)`), so a kiln you can *charge* is a thin trade
-subclass: `trade-quarrying/src/thing/LimeKiln.ts = ContainerMixin(Kiln)`
-(import `@saxonberg/server/mud/platform/thing/Kiln`), row
-`content/trade/quarrying/thing/limekiln.yaml` copying the generic
-`/stuff/thing/Kiln` row's numbers (1200 K, bellows ×1.25). The generic
-row stays where it is for the ceramics build. **The act is `fire`**
+**D14 — ⭐⭐ A kiln IS an oven: the `Kiln` CLASS is deleted and a kiln
+becomes a ROW.** (User's question, 2026-09-23, and the code settles it.)
+`platform/thing/Forge.ts` and `platform/thing/Kiln.ts` are **byte-identical**
+— the same imports and the same composition
+`FurnaceMixin(LightSourceMixin(ReservedMixin(ThermalMixin(Thing))))` — so
+the forge/kiln distinction is two class names over one behaviour and a
+row's dials. `platform/thing/Oven.ts` differs for a **documented and
+correct** reason (`Oven.ts:27-29`): *"`ContainerMixin` INSIDE
+`ThermalMixin`: an oven is a chamber you put bread in. A `Forge` and a
+`Kiln` are deliberately NOT containers — a forge is a fire you bring a
+workpiece to."* ⭐ **That reasoning is right and the classification
+contradicts it: you stack ware in a kiln and shut it, so a kiln is on the
+OVEN side and the forge is the odd one out.** `Kiln` was cloned from the
+wrong parent, and that clone is exactly why it cannot hold a charge.
+
+So: **delete `platform/thing/Kiln.ts`**; retarget the generic
+`generic-objects/content/stuff/thing/Kiln.yaml` row's `class:` to
+`/platform/thing/Oven` (keeping its 1200 K / bellows ×1.25 — the dials
+were always what made it a kiln); ship the limekiln as a **row**,
+`content/trade/quarrying/thing/limekiln.yaml`, `class:
+/platform/thing/Oven`. **No trade subclass at all.** The difference
+between baking bread and calcining limestone stops being a class name and
+becomes temperature doing real work, which is lens 1 paying out; and the
+once-orphaned generic Kiln row now resolves to a class something else
+already uses. ⚠ Record but do not change: `trade-smelting`'s
+`SmeltingFurnace = ContainerMixin(Forge)` is the same smell one trade over
+— a smelting furnace is also charged — and is a candidate for the same
+collapse, on `metal-chain-slate`. ⚠ `Oven` is now narrower than its class
+(rows: oven · range · kiln · limekiln); renaming it to a
+loaded-chamber name is a separate, purely cosmetic change and is **not**
+in this build. **The act is `fire`**
 (free), view `trade/quarrying/cmd/quarrying/fire.yaml` (`kiln` arg
 `default: "reachable:[mixin.FurnaceMixin]"`, `requires: [FurnaceMixin]`),
 `FireController` on `QuarryActController`: the kiln must be lit and hold
@@ -718,13 +741,27 @@ charge refuses `one-charge-at-a-time`; runs as an engagement
 (`FIRE_MS = 60_000`), minted in the kiln, credited `quarrying`
 (`standard`). Afforded by the working (D10) — *a limekiln stands at a
 quarry because you burn lime where you dig the stone*; a potter's shed
-affording `fire` is the ceramics build's `Pottery` class. ⚠ `make` is
+affording `fire` is the ceramics build's own class. ⚠ `make` is
 deed-gated and script-driven and `order` needs a maker on shift, so
 neither is an honest route for a lone quarrier; two recipe rows
 (`content/recipes/{burn-lime,fire-pot}.yaml`, `requiresHeatK` 1170 /
 1100, `maxHeatK` 1500 for `lint:doneness`, `discipline: quarrying`) are
 shipped **for the ladder and `help`** (the `trade-fuel/recipes/charcoal.yaml`
 precedent) while the act does the work.
+
+**D14a — ⭐ Quicklime DOES lime a field, and the requirements were wrong
+to say otherwise.** (Decided by lens 1 on the user's instruction to settle
+it against the lenses.) `soil.md` already carries the seam — `lime` reads
+the `liming` tag *"so a kiln's output works the day somebody ships one"* —
+and in the world quicklime **is** agricultural lime: more aggressive than
+marl, faster, and it costs fuel. The requirements forbade the tag to stop
+the kiln becoming a worse marl; the honest model is better than the
+prohibition, because marl and quicklime become **a real choice rather than
+a rule**: marl is slow and needs no fire, quicklime is fast and burnt, and
+lens 6 confirms marl survives as the cheap path. So the quicklime lump row
+carries `liming` and `lime` accepts it. ⚠ This reverses a line in
+`extraction-requirements.md § Collisions`; the requirements doc is
+corrected in the same commit rather than left disagreeing with the plan.
 
 **D15 — Limestone is flux; coal is sulfur.** `SmeltController`: `flux =
 contents.filter(isFlux)` (material tag `flux`), destructed with the fuel;
@@ -839,12 +876,12 @@ claims about everything else on that host.
 | `improvementBill()` hook | the composer (`Field`, `Turbary`) | the ground says what it owes; the kernel never imports a seeded model. |
 | `Diggable` (D9) | a **shape**, not a mixin — answered by `OpenWorkingMixin` and `Turbary` | the kernel verb declares what it will talk to; nothing in the kernel composes it, so no kernel host carries a method nothing uses. |
 | kernel `Spade` (D9) | `platform/thing/`; farming's `Spade` extends it; the mining shovel row names it | *a spade in hand affords digging anywhere* — and the ground decides what comes up. Not on `ToolItem` (a hammer does not dig). |
-| `Air` (D6) | a value object, `lib/material/` | no host. |
+| `Evaporation` (D6) | a value object, `lib/material/` | no host. |
 | `_weatherLocalityPath` (D6) | `SkyExposedMixin` | *a scope under the sky knows whose weather it is under.* Not on `Location` generally — an indoor room's air is authored, not weathered. |
 | the two-way arm (D5) | `CuredMixin` (unchanged host set: `Provision`, now `Turf`) | *exposed matter exchanges water with the air in both directions.* Gated by exposure, not by a host list. |
 | `Combustible.wetPenaltyK` cured term (D21) | `CombustibleMixin`, reading `MixinApi.isCured(self)` | *internal water resists ignition as surface water does.* No host change. |
 | `'evaporative'`, `productFraction` (D13) | `MaturationProfile` rows; the branch in `MaturingMixin` | the vessel is still the host (`Vat`), the Bulkable gate stands. |
-| `Block`, `Lump`, `Turf`, `LimeKiln` | `thing/` of `trade-quarrying` | `Block`: Tangible, Containable, Chattel, affords its split — the bole's claim. `Turf`: a `Firewood` that also has a water state. `LimeKiln`: a `Kiln` that holds a charge and affords nothing itself (the working affords `fire`). |
+| `Block`, `Lump`, `Turf` | `thing/` of `trade-quarrying` | `Block`: Tangible, Containable, Chattel, affords its split — the bole's claim. `Turf`: a `Firewood` that also has a water state. ⭐ **No kiln class** — the limekiln is a ROW on `/platform/thing/Oven` (D14), and the working affords `fire`. |
 | `coal` | a `Firewood` **row** | no new class; the material does the work (`fuel`, `carbon`, `sulfurous`). |
 | `surfaceWorkings` (D18) | `ClaimsRegister` | *the counter keeps a book of surface workings open to claim.* Content authors it. |
 | `quarrying` Discipline | a row in the trade pack | every RGO trade ships its own. |
@@ -884,7 +921,7 @@ Checked at plan time against the current tree, not recalled.
   gates in pack code are absolute strings (`lint:gates`).
 - **No new module category, no free helper, no Api, no logic singleton
   in a pack.** New kernel files fall in existing categories: mixin
-  (`lib/ground/Improvable.ts`), named value object (`lib/material/Air.ts`),
+  (`lib/ground/Improvable.ts`), named value object (`lib/material/Evaporation.ts`),
   a shape + thin static holder (`lib/ground/Diggable.ts`, the
   `TravelNode` category), Stuff class (`platform/thing/Spade.ts`),
   controllers, command YAML. ⚠ `lib/ground/` is a **new `lib/<subsystem>/`
@@ -959,7 +996,7 @@ mechanism exists; wet fuel refuses the flame. First consumers: the
 cookhouse rack (AC 11) now; turves (W6) and pans (W5) later in this
 build.
 
-Files: `lib/material/Air.ts` (+ test computing the factor table: 30 %
+Files: `lib/material/Evaporation.ts` (+ test computing the factor table: 30 %
 RH windy summer vs 95 % RH still autumn vs 100 %); `lib/biome/SkyExposed.ts`
 (`_weatherLocalityPath` runtimeState + `weatherLocality()`, the Soil
 shape); `api/biome.ts` + `platform/idea/api/BiomeLogic.ts`
@@ -993,8 +1030,8 @@ otherwise be told the opposite of what the code does).
 
 *Acceptance:* the five Cured pins; the evaporative test; `test:near`;
 `pnpm -C packages/content/trade-cooking test`; `lint:family`
-(`lint:lib-statics` unchanged — `Air.of` must classify as type-level; if
-the script's classifier counts it, fold construction into `new Air(...)`
+(`lint:lib-statics` unchanged — `Evaporation.of` must classify as type-level; if
+the script's classifier counts it, fold construction into `new Evaporation(...)`
 rather than raising the ceiling); `food-safety.dirty.wire.test.ts`'s
 `dry` checkpoint still passes.
 
@@ -1085,8 +1122,10 @@ claim; `lint:census` — every `wins:`/host/props path resolves;
 *Goal:* limestone changes a smelt; coal lights and ruins iron; the kiln
 burns lime and fires a pot.
 
-Files: `trade-quarrying/src/thing/LimeKiln.ts`,
-`content/trade/quarrying/thing/{limekiln,coal,limestone,quicklime}.yaml`,
+Files: `platform/thing/Kiln.ts` **deleted** + `generic-objects/content/stuff/thing/Kiln.yaml`
+`class:` → `/platform/thing/Oven` (D14),
+`content/trade/quarrying/thing/{limekiln,coal,limestone,quicklime}.yaml`
+(limekiln `class: /platform/thing/Oven`; quicklime tagged `liming`, D14a),
 `content/stuff/thing/clay-pot.yaml`,
 `content/trade/quarrying/cmd/quarrying/fire.yaml`,
 `src/idea/cmd/quarrying/FireController.ts`,
@@ -1224,7 +1263,7 @@ absorbed.
 ## Test & gate strategy
 
 - **Unit (pack and kernel suites):** every decision with arithmetic —
-  the `Air` factor table, the five Cured pins, the evaporative pan
+  the `Evaporation` factor table, the five Cured pins, the evaporative pan
   (concentrate / dilute / finish / boil), the cured ignition term's
   boundary at the `dried` band, the column reads (`exposedBands`,
   `isBuried`, capacity, `at-the-water`, `no-face-above`), the block's
@@ -1260,23 +1299,27 @@ absorbed.
 Things the user should price or decide; the build should not guess at
 them silently.
 
-1. **The Rejection column is a mineral museum (D19).** Granite over
-   limestone over coal over rock salt in one hillside makes every drive
-   step reachable at one pit and fails lens 1's *derivable world* for a
-   geologist. The alternative is two or three small rooms in the quarry
-   zone with honest columns each (stone pit; lime-and-coal cut; a salt
-   spring) — more rows, no more code, and the drive walks between them.
-   **The plan authors one pit; say if you want the honest spread.**
-2. **Quicklime does not lime fields (D12).** soil.md records a *stated
-   seam* (`lime` reads the `liming` tag "so a kiln's output works the day
-   somebody ships one"); the requirements say the kiln must not become a
-   worse marl. The plan follows the requirements and leaves quicklime
-   untagged. Confirm.
-3. **Passive drying now touches every exposed `Provision` (D5).** A roast
-   on a table dries; a biscuit in dry air reads *dried*. This is the
-   requirements' lifted prohibition, and the enclosed case keeps the
-   sparse store — but it is a behaviour change across every food row,
-   not only the ham.
+1. ⭐ **DECIDED (user, 2026-09-23): one pit stands, and the density
+   problem is a later content pass.** Granite over limestone over coal over
+   rock salt in one hillside does fail lens 1's *derivable world* for a
+   geologist, and the honest alternative (two or three small rooms with
+   honest columns each) is more rows and no more code. The user is planning
+   a dedicated content pass to *"address this kind of density problem and
+   really build out the content we want to ship with 1.0 for real"*, so the
+   build authors one pit and **the spread is that pass's work** — recorded
+   on `rejection-slate.md` so the pass finds it. Do not re-litigate it here.
+2. ⭐ **RESOLVED → D14a.** Quicklime **does** lime a field: it carries the
+   `liming` tag soil.md's seam is waiting for. Lens 1 decided it (quicklime
+   is agricultural lime, faster than marl and burnt), and lens 6 confirms
+   marl survives as the fuel-free path — so the pair becomes a choice
+   instead of a rule. The requirements doc is corrected, not left
+   disagreeing.
+3. ⭐ **ACCEPTED as scope (user, 2026-09-23: "blast away").** Passive
+   drying touches **every exposed `Provision`**, not only the ham — a roast
+   on a table dries; a biscuit in dry air reads *dried*. The enclosed case
+   (anything in a sack, chest, pack, pot or body) is what keeps the sparse
+   store and keeps the blast radius bounded. Build it; do not narrow it to
+   the rows this feature needed.
 4. **`ImprovableMixin` is not on the stone pit (D4).** The requirements'
    *"you ditch a road, a yard and a quarry"* is honoured as the reason
    for the kernel home, not as a shipped act on `OpenWorking`. If you
@@ -1287,28 +1330,32 @@ them silently.
    do (labour is not title-gated — the farming rule). The externality
    sentence is true in the fiction and not yet in the mechanism; the
    honest home is the watershed's `Conduit`/reach rights, a later wave.
-6. **The kiln needs a trade subclass (D14).** The requirements said the
-   Kiln stays generic; the kernel `Kiln` cannot hold a charge (smelting
-   met the same fact and shipped `ContainerMixin(Forge)`). The generic
-   row stays unreferenced; the class gets its first consumer. If you
-   would rather the kernel `Kiln` become a Container, that is a two-line
-   kernel edit with a kernel precedent (`Oven` already composes
-   `ContainerMixin`, `platform/thing/Oven.ts:27–29`) and the subclass then
-   carries only the affordance.
+6. ⭐⭐ **RESOLVED, and better than either option on the table → D14.**
+   Neither a trade subclass nor a Container edit: **`Forge` and `Kiln` are
+   byte-identical**, and `Oven`'s own comment gives the only real
+   distinction — *a chamber you load* versus *a fire you bring work to* —
+   which puts a kiln on the **oven** side and makes the forge the odd one
+   out. The `Kiln` CLASS is deleted; a kiln is a row and the limekiln is a
+   row. ⚠ `SmeltingFurnace = ContainerMixin(Forge)` is the same smell one
+   trade over and is recorded on `metal-chain-slate`, not changed here.
+
 7. **Nothing refuels a furnace.** Drive step 15's *"the fuel is gone"*
    observes the hearth's own reserve falling while lit; coal and turf
    burn as `ignite`d combustibles and drop into recipe fuel slots, but no
    act puts a lump into a furnace's `fuel` reserve. A `stoke` act is out
    of scope and recorded.
-8. **`Air` as a name** collides in the mind with the `bulk/air` material
-   and the cellar's `air` reserve. `MoistAir`/`DryingAir` are the
-   alternatives; the plan uses `Air`.
+8. ⭐ **RESOLVED (user, 2026-09-23): the value object is `Evaporation`.**
+   `Air` collided in the head with the `bulk/air` material and the cellar's
+   `air` reserve, and it named the input rather than the thing computed.
+   `Evaporation.factor()` says what it is. The `BiomeApi.airFor` /
+   `airSegmentsFor` READ names stay — they answer *what is the air here*,
+   which is honest.
 9. **`reconcileCellarAir` gated to microbial (D13)** also stops a
    bleaching green (photochemical) draining its room's air — a latent
    textiles defect fixed as a side effect. Say if you want it left as is.
 10. **`lint:lib-statics` — resolved at plan time, recorded so nobody
     re-litigates it:** the gate counts every public static on an exported
-    `lib/` class (`check-lib-statics.ts:48–94`, ceiling 337), so `Air`
+    `lib/` class (`check-lib-statics.ts:48–94`, ceiling 337), so `Evaporation`
     ships with a constructor and no statics, and the two-way arm extends
     the existing `Cure.advanceMoisture` rather than adding a static. The
     ceiling must not rise.

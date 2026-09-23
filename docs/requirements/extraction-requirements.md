@@ -226,9 +226,15 @@ is what makes coastal patience and inland capital different choices.
 - ⚠ **`grub` already turns out stone and marl on limy ground**, and a
   field-stone already ships. Building stone must not duplicate it: what a pit
   yields is a block too heavy to lift and rubble, not another field stone.
-- ⚠ **`marl` is already soil's no-kiln pH lever.** So **limestone is for mortar
-  and flux, never for liming fields** — the two must stay distinct or the kiln
-  becomes a worse way to do something that already needs no fuel.
+- ⚠ **`marl` is already soil's no-kiln pH lever** — and ⭐⭐ **the first version
+  of this line was wrong.** It said limestone must never lime a field, so the
+  kiln could not become a worse marl. **Corrected 2026-09-23 against the
+  lenses:** in the world **quicklime IS agricultural lime**, faster and more
+  aggressive than marl, and `soil.md` already ships the seam for it (`lime`
+  reads a `liming` tag *"so a kiln's output works the day somebody ships one"*).
+  So quicklime carries the tag, and marl and quicklime become **a choice rather
+  than a rule** — marl is slow and needs no fire, quicklime is fast and burnt.
+  Lens 1 decided it; lens 6 confirms marl survives as the fuel-free path.
 
 ### Cooking's three preserving fixtures
 

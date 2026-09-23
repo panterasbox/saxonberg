@@ -10,7 +10,17 @@
 > hazard-pay clauses and claim-price risk premia · the Veshko buyout arc (the
 > temporal mirror) · jurisdictional isolation of the claim field · tribute
 > pitches and the setting-day auction · high-grading as an OFFENCE (needs an
-> adjudicator) · the on-site governance surface · the old prospector
+> the on-site governance surface · the old prospector ·
+> ⭐⭐ **the quarry column's DENSITY (added 2026-09-23, extraction build)** —
+> the extraction build authors ONE pit whose column stacks granite over
+> limestone over coal over rock salt in a single hillside, so every drive step
+> is reachable in one place. That is a mineral museum and it fails lens 1's
+> *derivable world* for anybody who knows geology. **The honest spread is two
+> or three small rooms with an honest column each** (a stone pit · a
+> lime-and-coal cut · a salt spring) — more rows, **no more code**, and the
+> drive walks between them. Deliberately deferred by the user to a dedicated
+> content pass that builds out what 1.0 ships for real; this is that pass's
+> work.
 > **Size:** a build
 
 Mechanics: [mining-slate](./mining-slate.md) — the four play layers, the
