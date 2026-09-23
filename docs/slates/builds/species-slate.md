@@ -98,6 +98,18 @@ rules.**
 
 ### ⭐⭐⭐ The ectotherm — and it already ships
 
+> ⚠ **The heading and the first sentence are FALSE, verified
+> 2026-09-19 and again 2026-09-23.** `thermalStrategy` and
+> `ThermalRegulationMixin`'s ecto/endo branch are real and shipped, but
+> **no species row anywhere in `packages/content` authors an
+> ectotherm** — the bullfrog defaults to `endotherm` like every other
+> body plan, and the only ectotherm artifact in content is the `torpor`
+> condition row. The *design* below is unbuilt and still wanted; what is
+> not true is that a worked example exists to build from. Left in place
+> rather than rewritten (the sentence is the slate's, not a compaction
+> agent's, to reword) — but flagged here, not only in the ledger, so a
+> requirements pass cannot inherit the premise by reading the body.
+
 The bullfrog is authored as an ectotherm with distinct bands. A
 cold-blooded **playable** species means **capability varies by biome and
 by hour** — sluggish at dawn, sharp at noon, in real trouble in the north.
