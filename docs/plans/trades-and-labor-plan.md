@@ -909,7 +909,25 @@ Lands first because every later wave's "grant" language rests on it.
 
 </details>
 
-**B1 — the opening and the criterion** (`build(trades-and-labor B1):
+**B1 — the opening and the criterion** ✅ **DONE** (`c86263eb6`)
+
+> **Build note.** As planned. Two decisions the plan did not make:
+> - **`Opening` has a public constructor and NO `of` static.**
+>   `lint:lib-statics` is a ratchet whose population may not grow, and
+>   it fired on `Opening.of` (338 against a ceiling of 337). An Opening
+>   has no coercion to do, so `new` says everything `of` would. ⭐ The
+>   gate was right and the ceiling was not raised.
+> - **`lint:openings` grew a FIFTH arm during B3** (below): a house that
+>   advertises a waged seat must author `banksAt`.
+>
+> All four planned arms were verified to FIRE by probing shipped rows —
+> `renown` as a criterion, `skilled` as a band, `nosuchthing` as a
+> discipline, and a `headcount` on the un-pinned campus farm-unit. A
+> gate nobody has seen fail is a gate nobody knows works.
+
+<details><summary>the original B1 wave text</summary>
+
+(`build(trades-and-labor B1):
 headcount + requires on Position; openings derived; considerApplicant;
 settledGigsBy; lint:openings`)
 
@@ -935,7 +953,24 @@ settledGigsBy; lint:openings`)
 - Acceptance: `test:near` green; `lint:openings` green on today's rows
   (none author `headcount` yet).
 
-**B2 — the sign** (`build(trades-and-labor B2): the help-wanted line —
+</details>
+
+**B2 — the sign** ✅ **DONE**
+
+> **Build note.** As planned: `operatorsAt` lifted out of
+> `BankingControllerBase.resolveHouse` into `EmploymentLogic` so one
+> candidate walk has two consumers, and `noticesAt` over it. The
+> `look` line reads *A notice here: HELP WANTED — hand, four zorkmids a
+> game-hour; two completed gigs asked.*
+>
+> ⭐ The test captures the real `MessageApi.scene` body rather than
+> asserting the read — it proves the SIGN reaches the player, and that
+> it stops the moment the seat is filled. (First draft asserted only
+> `noticesAt`, which would have passed with the `look` line deleted.)
+
+<details><summary>the original B2 wave text</summary>
+
+(`build(trades-and-labor B2): the help-wanted line —
 noticesAt on the employment engine, printed by look`)
 
 - `EmploymentLogic.noticesAtImpl(locationPath)` + `EmploymentApi.noticesAt`
@@ -953,7 +988,25 @@ noticesAt on the employment engine, printed by look`)
   live → no line (and the lint rule that makes that honest is B1's).
 - Acceptance: `look` in a test room prints the line; `test:near` green.
 
-**B3 — `apply` and `clock`** (`build(trades-and-labor B3): apply — the
+</details>
+
+**B3 — `apply` and `clock`** ✅ **DONE**
+
+> **Build note.** As planned (D12/D15). `clock` is a subcommand view
+> (`on`/`off`), not a two-word verb. ⭐ `clock on` names what the shift
+> GRANTS when the seat is `fulfills` — *"You're the one an order here is
+> served by now"* — because otherwise a player has no way to learn it.
+>
+> ⭐⭐ **The drive found a gap before the drive ran.** Driving `clock off`
+> against a test house that authored no `banksAt` threw out of the pay
+> path: the shift stands, the worker is never paid, and nothing anywhere
+> said the job was unpayable. That is `lint:openings`'s fifth arm now —
+> a house advertising a WAGE must author the bank the wage comes from.
+> Probed against the general store with its `banksAt` removed.
+
+<details><summary>the original B3 wave text</summary>
+
+(`build(trades-and-labor B3): apply — the
 player moves first, refused with a number; clock on/off — the applied-for
 seat pays`)
 
@@ -975,6 +1028,8 @@ seat pays`)
   leaves a clocked-on player alone).
 - Acceptance: `test:near` + `lint:binder-models` + `lint:arg-kinds`
   green; `apply` and `clock` appear in `help`.
+
+</details>
 
 **B4 — the houses** (`build(trades-and-labor B4): openings on three houses;
 par lines on two; the hall board carries work`)
