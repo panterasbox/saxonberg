@@ -102,14 +102,19 @@ Already the house pattern — the model now *uses* it all the way up.
 
 ### The layers
 
-| Layer | Status |
-|---|---|
-| **substrate** — 7 quantified vital signs, per-species profiles, anatomy tree + tissue masses, three condition kinds, reserves | **shipped** |
-| **couplings** — `governs` · `innervatedBy` · `suppliedBy` · `covers` | **declared, ALL FOUR UNREAD** |
-| **readers** — function per part (min along the path), capacity, pain | designed |
-| **time** — derive-on-read for truth, alarms for consequence, offline healing | designed |
-| **intervention** — five verbs, two payment methods, one extended command | designed |
-| **economy** — labour-restored pricing, perishable stock, the free floor | designed |
+*(Cut 2026-09-23 — SHIPPED·DOCUMENTED, and it had gone actively WRONG.
+The table's Status column said the four couplings were "declared, ALL
+FOUR UNREAD" and the readers/intervention layers "designed" — while the
+status block sixty lines above says `functionAt`/`capacity` read
+`governs`/`innervatedBy`/`suppliedBy` for real and the medic vertical
+ships. Two contradicting answers in one file is worse than a stale one,
+because a reader who starts at the body believes the wrong half: a
+planning agent did, 2026-09-23. The current layer state is
+[vitals.md](../../subsystems/vitals.md) § *Anatomy + tissue* / § *Reserves*,
+[harm.md](../../subsystems/harm.md) § *The function axis* and
+[exertion.md](../../subsystems/exertion.md). ⚠ The first pass kept this
+under the no-rewrite rule, which was a misread: that rule forbids
+PARAPHRASING a kept section, not cutting one the code has falsified.)*
 
 ### ⭐⭐⭐ Every addition is ADDITIVE
 

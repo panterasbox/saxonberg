@@ -66,6 +66,17 @@ would be needed, keep the whole paragraph.
 
 ### 3. Cuts are cuts; inserts are inserts
 
+⚠⚠ **The no-rewrite rule forbids PARAPHRASING a kept section. It does
+not protect a section the code has falsified.** `physiology-slate`'s
+layer table said four couplings were *"ALL FOUR UNREAD"* and the readers
+*"designed"* sixty lines below a status block saying both shipped; the
+pass saw it, wrote *"now understating what shipped — left unedited per
+the no-rewrite rule"* in its ledger, and kept it. That is the
+SHIPPED·DOCUMENTED case wearing a Doctrine label: **cut it with a
+pointer.** Two contradicting answers in one file are worse than one
+stale answer, because a reader who starts at the body believes the wrong
+half — a planning agent did, four days later.
+
 - **Never rewrite a slate.** Delete whole sections or whole paragraphs.
   Do not re-render the file from scratch, do not reflow, do not
   "improve" what stays. A wholesale rewrite silently deleted a wave's
