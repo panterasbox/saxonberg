@@ -648,6 +648,13 @@ Commit: `build(ground W1): the floor is a capability — FloorMixin, the derived
 *Goal:* a brand-new player can sit down in the Lounge; no room has two floors;
 the void has none.
 
+⚠ **Rung 3 of the ladder is inert until W3.** This wave ships the ladder and the
+first, third and fourth rungs; *the ground's top band* has no owner to ask until
+`/system/ground` exists, so an on-grade floor over uncited ground falls through to
+the archetype/zone default here and starts answering from the column in W3. That
+is expected at this wave's acceptance — **do not "fix" it**, and do not hold W2
+for W3.
+
 Files: `lib/stuff/Location.ts` (`PostRegistrationMixin` composed into
 `LocationBase`; `fieldMeta { floor, noDefaultFloor }`; `getFloorSpec/setFloorSpec`,
 `isNoDefaultFloor/setNoDefaultFloor`; `postRegister()` → `ensureFloor()`;
@@ -904,10 +911,16 @@ verbs, that is a scope note under Risks, not a gap in the plan.
 
 **Could break:**
 
-- ⚠⚠ **`postRegister` overrides that do not chain.** Three are known
-  (Grounding H); pack classes may hide more (`DormRoom`, `Bar`, `GlassAlley`,
-  `MineRoom`). The W2 roster test is the guard; a class it cannot instantiate
-  from a literal row is a finding to record, not to skip.
+- ⚠⚠ **`postRegister` overrides that do not chain — MEASURED at review, and it
+  is SIX, not three.** Counting `super.postRegister` per file across the Location
+  family: **zero** in `CartesianLocation.ts`, **`Warren.ts`**,
+  `SphericalLocation.ts`, `Bar.ts`, `GlassAlley.ts`, `Lounge.ts`; **one** in
+  `Wood.ts` and `Field.ts` (these two already chain). ⭐ **`Warren.ts` is the one
+  W2's file list omits** — decide whether a Warren is on the Location path at all;
+  if it is, it needs the `super` call, and if it is not, say so in the wave so the
+  next reader does not re-derive it. The W2 roster test remains the guard for
+  anything else; a class it cannot instantiate from a literal row is a finding to
+  record, not to skip.
 - **Boot cost.** One extra Thing clone per room clone. Measure at W2 with
   `pnpm bench`; if over the ±6% noise floor, the fallback is minting the
   default floor lazily on the first `getFloor()` **and** in the binder's
