@@ -56,7 +56,7 @@ import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ConditionApi } from '../../api/condition';
 import { ContainmentApi } from '../../api/containment';
-import { FUNCTION_BANDS } from './BodyCapacity';
+import { FUNCTION_BANDS, BODY_CAPACITIES } from './BodyCapacity';
 import type { BodyCapacity, FunctionBand } from './BodyCapacity';
 import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
@@ -463,6 +463,9 @@ export interface Vitals {
    * hands has no `manipulation` to lose, and that is data, not a guard.
    */
   capacity(key: BodyCapacity): FunctionBand;
+  /** The worst capacity scalar `[0,1]` across the body — 1 whole, 0 gone.
+   * The labour-indexed tariff prices the shortfall `1 − this` (D13). */
+  minCapacityScalar(): number;
   /** Can the part behind this slot still close on something? */
   canGrip(slot: string): boolean;
   /** Can this body still stand on itself? */
@@ -1390,6 +1393,18 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public capacity(key: BodyCapacity): FunctionBand {
       this.reconcileConditions();
       return this.bandOf(this.capacityScalar(key));
+    }
+
+    /**
+     * ⭐ The worst capacity scalar `[0, 1]` across every {@link
+     * BODY_CAPACITIES} — how impaired the MOST impaired thing this body
+     * does is (1 = whole, 0 = gone). Read by the labour-indexed tariff
+     * (D13): the shortfall `1 − this` is how much the harm is costing the
+     * body, which the clinic prices against.
+     */
+    public minCapacityScalar(): number {
+      this.reconcileConditions();
+      return Math.min(...BODY_CAPACITIES.map((c) => this.capacityScalar(c)));
     }
 
     /**

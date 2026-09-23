@@ -1123,7 +1123,18 @@ reachable at all.
   carries `mending`; the target's `k` triples; dispel removes it).
 - **Commit:** `build(recovery W-B1): mend â a bill paid in self`.
 
-#### W-B2 â The bill fits the harm (D13)
+#### W-B2 â The bill fits the harm (D13) ✅ DONE
+
+> ✅ **W-B2 landed.** `Tariff.labourIndexed` (authorable, default false) +
+> `labourIndexFor(body)` = `1 + LABOUR_INDEX × (wage/REFERENCE_WAGE) ×
+> shortfall` (wage = the body's highest current position wage, 0 unemployed;
+> shortfall = `1 − minCapacityScalar`, 0 unhurt) + a `priceFor` override that
+> bends only a `treatment` service, off the acting customer, so `menu`
+> quotes YOUR price. `Vitals.minCapacityScalar()` added (public, the
+> shortfall source). Infirmary `tariff.yaml` authors `labourIndexed: true`.
+> The humane floor needs no code (unpaid → base; the free convalescence
+> floor is W-A1's). Tests: Tariff.labour (unhurt=1, unemployed=1, wage-6 ×
+> half-lost = 1.5×, flat-when-off). 53 tests + 46 gates green.
 - `Tariff.labourIndexed`, `labourIndexFor(body)`, the `priceFor` override;
   the infirmary `tariff.yaml` authors `labourIndexed: true`.
 - **Tests:** `Tariff.labour.test.ts` (a wage-6 body with a failing leg
