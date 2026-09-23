@@ -15,19 +15,37 @@
  * it. A refusal there is the ladder working, not a defect; the beat
  * buys what it can afford and tries again next time.
  *
+ * ⭐⭐ **The keeper knows her own street.** Every walk is an AUTHORED list
+ * of directions on her row (`ways`) — the shipped `patrols` shape — and
+ * nothing here searches a graph. It searched one until the pathfinding
+ * review: a shop's whole errand is *out the door, one west to the
+ * window, one south to the wholesaler*, and running a breadth-first
+ * search over a compiled inter-city freight network to cross the road is
+ * a category error rather than a route. A shopkeeper knows her
+ * neighbourhood; she does not compute it. ⚠ A room no `ways` row names
+ * is a room she does not go to — an authoring gap that shows up as a
+ * shop that never restocks, and is fixed where it was made. The one
+ * honest caller of the lane router is `consigns`, whose errand really is
+ * cross-district; whether one pathfinder should serve every consumer is
+ * open (docs/slates/builds/pathfinding-slate.md).
+ *
  * ⭐ Every step is the LITERAL verb through `forceCommand`, as `consigns`
  * and `restocks` do — an NPC following a rule is still a party posting a
- * price. Nothing here mints, nothing teleports (the walk is `NPC.walkTo`),
- * and the beat is bounded by `batch` (default 6 goods).
+ * price. Nothing here mints, nothing teleports, nothing routes around a
+ * blocked door, and the beat is bounded by `batch` (default 6 goods).
  *
  * Config: `{ counter: <the host counter's path>, bank?: <the lender's
- * counter path — the branch of the house's bank when omitted>, batch? }`.
+ * counter path — the branch of the house's bank when omitted>, batch?,
+ * ways?: [{ to: <room path>, go: [<direction>…], back: [<direction>…] }] }`.
+ * ⭐ `back` is authored, never derived by reversing `go`: a named exit
+ * ("mayfield") and a one-way door do not reverse.
  * The host is a `boot:`-pinned NPC — a brain on an unspawned NPC never
  * fires, and this one must run with nobody online.
  */
 
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { LocomotionApi } from '../../api/locomotion';
 import { EmploymentApi } from '../../api/employment';
 import { BankingApi } from '../../api/banking';
 import type { CommandGiver } from '../command/CommandGiver';
@@ -37,12 +55,15 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
 import type { Employed } from '../employment/Employed';
-import NPC from '../npc/NPC';
+import type { Exitable } from '../boundary/Exitable';
 import Stock from '../../platform/thing/Stock';
 
 const DEFAULT_BATCH = 6;
 
-type Keeper = NPC & Stuff & Mobile & Containable & Container & CommandGiver & Employed;
+type Keeper = Stuff & Mobile & Containable & Container & CommandGiver & Employed;
+
+/** A way the keeper knows: where it goes, and how she walks it either way. */
+type Way = { to: string; go: readonly string[]; back: readonly string[] };
 
 export const brain = class {
   static label = 'stocks';
@@ -53,7 +74,6 @@ export const brain = class {
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host;
     if (
-      !(host instanceof NPC) ||
       !MixinApi.isMobile(host) ||
       !MixinApi.isContainer(host) ||
       !MixinApi.isCommandGiver(host) ||
@@ -77,6 +97,29 @@ export const brain = class {
     );
     if (!house) return;
 
+    // The ways she knows — authored, in order of nothing: looked up by
+    // the room a step of this beat needs to reach.
+    const ways = waysOf(ctx);
+    const wayTo = (path: string): Way | null =>
+      ways.find((w) => w.to === path) ?? null;
+
+    // ⚠ Standing somewhere else means last beat's walk home was refused
+    // (a shut door, a blocked step). Come back the way she went, and
+    // only then trade — a keeper does not shop from a neighbour's floor.
+    const standing = keeper.getContainer()?.getTemplatePath() ?? '';
+    if (standing !== homePath) {
+      const back = wayTo(standing);
+      if (!back || !(await walkRoute(keeper, back.back))) return;
+      if (keeper.getContainer()?.getTemplatePath() !== homePath) return;
+    }
+
+    // ⚠ Anything already in hand goes on the counter FIRST, before any
+    // decision to shop: a beat that ended stranded comes home holding
+    // goods, and shelving them is not part of the shopping. (It was, and
+    // a beat that found nothing short returned with the goods still in
+    // her hands — where they stayed.)
+    await shelve(keeper, counter, homePath);
+
     const short = counter.shortSuppliedLines();
     if (short.length === 0) return;
     const batch = positiveInt(ctx.config.batch, DEFAULT_BATCH);
@@ -91,6 +134,11 @@ export const brain = class {
       if (!supplierCounter) continue;
       const room = supplierCounter.getContainer();
       if (!room) continue;
+      // ⚠ Before the money is counted, not after: a supplier she has no
+      // authored way to is not an errand, and borrowing for goods she
+      // cannot go and fetch would put real paper on the book for a trip
+      // that never happens.
+      if (!wayTo(room.getTemplatePath() ?? '')) continue;
       const each = supplierCounter.priceFor(line.itemTemplatePath) ?? 0;
       const available = supplierCounter.onHand(line.itemTemplatePath);
       const count = Math.min(line.shortfall, left, available);
@@ -111,12 +159,12 @@ export const brain = class {
           : BankingApi.branchOf(house.getBanksAt())?.getTemplatePath() ?? '';
       const bankCounter = bankCounterPath ? StuffApi.findByTemplatePath(bankCounterPath) : undefined;
       const bankRoom = bankCounter && MixinApi.isContainable(bankCounter) ? bankCounter.getContainer() : null;
-      if (bankRoom) {
-        const there = await keeper.walkTo(bankRoom.getTemplatePath() ?? '');
-        if (there) {
-          await keeper.forceCommand('wallet use house');
-          await keeper.forceCommand(`bank borrow ${wanted - held} --for stock`);
-        }
+      const way = bankRoom ? wayTo(bankRoom.getTemplatePath() ?? '') : null;
+      if (way && (await walkRoute(keeper, way.go)) && atRoom(keeper, way.to)) {
+        await keeper.forceCommand('wallet use house');
+        await keeper.forceCommand(`bank borrow ${wanted - held} --for stock`);
+        // Home before the shopping: out and back, one errand at a time.
+        await walkRoute(keeper, way.back);
       }
     }
 
@@ -124,8 +172,11 @@ export const brain = class {
     // it home onto the counter.
     try {
       for (const e of errands) {
-        const there = await keeper.walkTo(e.supplierRoom.getTemplatePath() ?? '');
-        if (!there) break;
+        // Each errand leaves from home and comes back to it.
+        if (!atRoom(keeper, homePath)) break;
+        const way = wayTo(e.supplierRoom.getTemplatePath() ?? '');
+        if (!way) continue; // unreachable errands were dropped above
+        if (!(await walkRoute(keeper, way.go)) || !atRoom(keeper, way.to)) break;
         await keeper.forceCommand('wallet use house');
         const kw = keywordOfTemplate(e.supplierCounter, e.template);
         if (!kw) continue;
@@ -135,22 +186,84 @@ export const brain = class {
           await keeper.forceCommand(`buy ${kw}`);
           if (keeper.getContents().length <= before) break; // a refused buy — stop
         }
+        await walkRoute(keeper, way.back);
       }
     } finally {
-      // Home, on its own feet, and the goods onto the counter.
-      const home = await keeper.walkTo(homePath);
-      if (home) {
-        const counterKw = keywordOf(counter as unknown as Stuff) ?? 'counter';
-        for (const good of [...keeper.getContents()] as Stuff[]) {
-          if (!MixinApi.isChattel(good) || MixinApi.isCredentialWallet(good)) continue;
-          const kw = keywordOf(good);
-          if (!kw) continue;
-          await keeper.forceCommand(`put ${kw} in ${counterKw}`);
-        }
-      }
+      // The goods onto the counter — if she got home with them. If she
+      // did not, they stay in her hands and the guard at the top of the
+      // next beat walks her back. ⚠ Blocked means blocked.
+      await shelve(keeper, counter, homePath);
     }
   }
 } satisfies BrainStatics;
+
+/**
+ * Everything in hand onto the counter, if she is standing at it. Goods
+ * only — the house card is chattel too and is not for sale.
+ */
+async function shelve(keeper: Keeper, counter: Stock, homePath: string): Promise<void> {
+  if (!atRoom(keeper, homePath)) return;
+  const counterKw = keywordOf(counter as unknown as Stuff) ?? 'counter';
+  for (const good of [...keeper.getContents()] as Stuff[]) {
+    if (!MixinApi.isChattel(good) || MixinApi.isCredentialWallet(good)) continue;
+    const kw = keywordOf(good);
+    if (!kw) continue;
+    await keeper.forceCommand(`put ${kw} in ${counterKw}`);
+  }
+}
+
+/** Is the keeper standing in this room? */
+function atRoom(keeper: Keeper, path: string): boolean {
+  return keeper.getContainer()?.getTemplatePath() === path;
+}
+
+/**
+ * The authored ways on the host's row. A malformed row is simply not a
+ * way — the keeper does not go there, which reads as a shop that never
+ * restocks and is fixed in the content that got it wrong.
+ */
+function waysOf(ctx: BrainContext): Way[] {
+  const rows = Array.isArray(ctx.config.ways) ? ctx.config.ways : [];
+  const dirs = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((d): d is string => typeof d === 'string') : [];
+  const out: Way[] = [];
+  for (const row of rows) {
+    if (typeof row !== 'object' || row === null) continue;
+    const r = row as { to?: unknown; go?: unknown; back?: unknown };
+    if (typeof r.to !== 'string' || r.to === '') continue;
+    const way = { to: r.to, go: dirs(r.go), back: dirs(r.back) };
+    if (way.go.length === 0 || way.back.length === 0) continue;
+    out.push(way);
+  }
+  return out;
+}
+
+/**
+ * Walk an authored list of directions, one door at a time — the
+ * `patrols` shape, through `LocomotionApi` so the mode and the
+ * engagement bookkeeping are the ones every other walker uses.
+ *
+ * ⚠ Stops at the first door that refuses and says so. **Blocked means
+ * blocked**: nothing re-routes, because a keeper who finds another way
+ * round a shut door hides the door.
+ */
+async function walkRoute(
+  keeper: Keeper,
+  directions: readonly string[],
+): Promise<boolean> {
+  for (const direction of directions) {
+    const room = keeper.getContainer();
+    if (!room || !MixinApi.isExitable(room)) return false;
+    const exit = (room as Stuff & Exitable).getExits().get(direction);
+    if (!exit) return false;
+    try {
+      await LocomotionApi.traverseWithDefault(keeper, exit);
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
 
 /** The supplier's counter: the first Stock among the supplier Business's operating locations. */
 async function supplierCounterOf(supplierPath: string): Promise<Stock | null> {

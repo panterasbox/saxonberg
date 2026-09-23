@@ -79,13 +79,12 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
 import type { Employed } from '../employment/Employed';
-import NPC from '../npc/NPC';
 import Stock from '../../platform/thing/Stock';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
 
-type Hand = NPC & Stuff & Mobile & Containable & Container & CommandGiver;
+type Hand = Stuff & Mobile & Containable & Container & CommandGiver;
 
 export const brain = class {
   static label = 'consigns';
@@ -97,7 +96,6 @@ export const brain = class {
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host;
     if (
-      !(host instanceof NPC) ||
       !MixinApi.isMobile(host) ||
       !MixinApi.isContainer(host) ||
       !MixinApi.isCommandGiver(host)
@@ -229,7 +227,7 @@ export const brain = class {
     const homePath = home.getTemplatePath() ?? '';
     if (counterPath === '' || homePath === '') return;
 
-    await hand.walkTo(counterPath);
+    await walkTo(hand, counterPath);
     if (hand.getContainer() !== counterRoom) {
       // ⚠ Blocked means blocked. The goods stay in hand and the next
       // beat tries again; nothing teleports around the problem, which is
@@ -251,7 +249,7 @@ export const brain = class {
       // Home again, on its own feet. ⚠ In a `finally` for the reason the
       // teleport was: a beat that dies at the counter must not leave the
       // hand standing in somebody else's shop forever.
-      await hand.walkTo(homePath);
+      await walkTo(hand, homePath);
     }
   }
 } satisfies BrainStatics;
@@ -318,3 +316,66 @@ function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : fallback;
 }
 
+/**
+ * Walk to a room, one `go <direction>` at a time.
+ *
+ * ⚠ **`go`, not `journey`.** `journey` is afforded by a VEHICLE — content
+ * affords content — and a floor hand pushing goods by hand has none. So
+ * the hand walks the way a person without a cart walks, which is also
+ * the way a player would.
+ *
+ * ⭐ The route comes from the transport pack's `LaneCatalogue`, reached
+ * **by shape** and never by import (the `TravelNode` /
+ * `AnalyzeWaterController` idiom — the mudlib does not import packs). An
+ * install with no roads has a hand that simply does not travel, which is
+ * the honest degradation: without the pack there is nowhere to walk.
+ *
+ * ⚠ Bounded, and it stops on the first refused step. **Blocked means
+ * blocked**: the goods stay in hand and the next beat tries again.
+ * Nothing here routes around anything, because auto-routing would hide
+ * the geography the road was built to make real.
+ *
+ * ⚠⚠ **This is the ONE non-vehicle caller of the lane router, and it is
+ * deliberately not shared.** Its errand is genuinely cross-district (a
+ * producer's yard to a city counter); a shop's keeper crossing its own
+ * street walks AUTHORED directions instead (`stocks`), because a search
+ * over a freight network to reach the building opposite is not a route,
+ * it is a category error. Whether one pathfinder should serve every
+ * consumer is open — docs/slates/builds/pathfinding-slate.md — and until
+ * it is answered nothing promotes this out of the brain that needs it.
+ */
+async function walkTo(hand: Hand, targetPath: string): Promise<void> {
+  const here = hand.getContainer()?.getTemplatePath() ?? '';
+  if (here === '' || here === targetPath) return;
+
+  const catalogue = await StuffApi.singleton<Stuff>(
+    '/system/transport/idea/LaneCatalogue',
+  ).catch(() => null);
+  const planner = catalogue as unknown as {
+    planRoute?: (
+      from: string,
+      to: string,
+      lane: string,
+    ) => Promise<{ nodes: readonly string[] } | null>;
+  } | null;
+  if (!planner || typeof planner.planRoute !== 'function') return;
+
+  const route = await planner.planRoute(here, targetPath, 'city');
+  if (!route) return;
+
+  for (let i = 0; i + 1 < route.nodes.length; i += 1) {
+    const room = hand.getContainer();
+    if (!room || !MixinApi.isExitable(room)) return;
+    const next = route.nodes[i + 1]!;
+    let direction = '';
+    for (const [dir, exit] of room.getExits().entries()) {
+      if (exit.getDestinationTemplatePath() === next) {
+        direction = dir;
+        break;
+      }
+    }
+    if (direction === '') return;
+    await hand.forceCommand(`go ${direction}`);
+    if (hand.getContainer()?.getTemplatePath() !== next) return;
+  }
+}

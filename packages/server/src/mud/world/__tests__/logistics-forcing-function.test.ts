@@ -39,9 +39,6 @@ import { parse } from 'yaml';
 const CONSIGNS = fileURLToPath(
   new URL('../../lib/behavior/consigns.ts', import.meta.url),
 );
-const NPC_WALK = fileURLToPath(
-  new URL('../../lib/npc/NPC.ts', import.meta.url),
-);
 const RESTOCKS = fileURLToPath(
   new URL('../../lib/behavior/restocks.ts', import.meta.url),
 );
@@ -69,13 +66,17 @@ describe('⭐ AC15 — the brains stop teleporting', () => {
     // one that keeps paying the producer, because consignment is
     // sale-or-return and no shipped mechanism lets a carrier list goods
     // on somebody else's behalf.
-    // ⭐ The walk itself is `NPC.walkTo` since the economic bootstrap (W7):
-    // one walk, hoisted, that `consigns` and `stocks` both take.
+    // ⭐ The walk lives in the brain that needs it and nowhere else. It
+    // was briefly a method on the kernel's `NPC` (economic bootstrap W7)
+    // so a second brain could take it; that put "an NPC routes itself"
+    // on the base class ahead of the design that should decide it, and
+    // it came back out. The shop keeper walks AUTHORED directions
+    // instead — see `stocks` — so this stays the ONE non-vehicle caller
+    // of the lane router. docs/slates/builds/pathfinding-slate.md.
     const code = codeOf(CONSIGNS);
-    expect(code).toMatch(/hand\.walkTo\(/);
-    const walk = codeOf(NPC_WALK);
-    expect(walk).toMatch(/forceCommand\(`go \$\{/);
-    expect(walk).toMatch(/planRoute/);
+    expect(code).toMatch(/async function walkTo\(/);
+    expect(code).toMatch(/forceCommand\(`go \$\{/);
+    expect(code).toMatch(/planRoute/);
   });
 
   it('⭐⭐ NEITHER brain calls `teleport`, anywhere, at all', () => {

@@ -184,7 +184,19 @@ describe('2. the cash-and-carry', () => {
     expect(await a.prose('bank')).toMatch(/Your balance is 20 zorkmids/);
     await walk(a, 'east', 'south');
     expect(await a.prose('look')).toMatch(/cash-and-carry/i);
-    const crate = await a.prose('look limes:[1]');
+    // ⚠⚠ The general store's keeper buys limes HERE, on her own cadence,
+    // with nobody driving her — so the crate this step saw arrive can be
+    // gone by the time the newcomer reaches the shelf. That is the market
+    // working, not a defect: keep the farm supplying until a crate is on
+    // the shelf while she is standing at it. A crate that never arrives
+    // still fails this checkpoint.
+    let crate = '';
+    expect(
+      await fireUntil(FARM_YARD, 'hand', '/lib/behavior/consigns', async () => {
+        crate = await a.prose('look limes:[1]');
+        return /Held on the farm outfit's terms/.test(crate);
+      }),
+    ).toBe(true);
     expect(crate).toMatch(/Held on the farm outfit's terms until sold; the shop asks 8 zorkmids/);
     // Twenty banked, eight for the crate.
     const bought = await a.prose('buy limes');
@@ -395,11 +407,19 @@ describe('9. a borrower stops trading', () => {
     // The stall stocks on the advance: a crate bought as the house at the
     // cash-and-carry and put on the counter — the security the loan named.
     expect(await fireUntil(FARM_YARD, 'hand', '/lib/behavior/consigns', async () => (await onHand(CASH_AND_CARRY_COUNTER, 'oranges')) > 0)).toBe(true);
+    // ⚠ A player WALKS — `goto` is a wizard's verb. Step 7 left her at
+    // the window, so: out to the avenue, south to the wholesaler. Each
+    // arrival is asserted, so a wrong turn fails AT the turn instead of
+    // three lines later as something that reads like a broken feature.
+    expect(await a.prose('look')).toMatch(/banking hall/i);
     await walk(a, 'east', 'south');
+    expect(await a.prose('look')).toMatch(/cash-and-carry/i);
     expect(await a.prose('buy oranges')).toMatch(/You buy/);
     await walk(a, 'north', 'southwest');
+    expect(await a.prose('look')).toMatch(/square/i);
     // On THEIR stall — `stall` alone binds the produce stalls first.
-    expect(await a.prose(`put oranges in ${stem}`)).not.toMatch(/can't|cannot|don't/i);
+    expect(await a.prose(`put oranges in ${stem}`)).toMatch(/You put|You place/);
+    expectOk(await wizard.cmd('goto /world/terminus/market/square'));
     expect(await wizard.prose(`look ${stem}`)).toMatch(/crate of oranges/);
     // The horizon collapsed to now; the next read of the book reveals it.
     expectOk(await wizard.cmd('config reserve.defaultHorizonGameDays 0'));
@@ -411,8 +431,9 @@ describe('9. a borrower stops trading', () => {
     // The officer's dashboard: the rate is no longer zero.
     const board = await founder.prose('reserve');
     expect(board).toMatch(/default rate on window paper: (?!zero)/);
-    // Back to the hall for the estate steps.
+    // Back to the window, where the estate steps need her.
     await walk(a, 'northeast', 'west');
+    expect(await a.prose('look')).toMatch(/banking hall/i);
   }, 300_000);
 });
 
@@ -426,7 +447,12 @@ describe('10. a player goes dormant', () => {
     // are here, beside the authored teller.
     expectOk(await wizard.cmd('goto /world/terminus/market/square'));
     expect(await founder.prose('house roster')).toMatch(new RegExp(`teller: ${aName}`));
-    const before = await a.prose('bank');
+    // At the window, where `bank` is afforded — and the read has to BE a
+    // balance before it is worth comparing to anything.
+    const balanceOf = (said: string): string =>
+      said.match(/balance is (\d+)/)?.[1] ?? 'no balance read';
+    const before = balanceOf(await a.prose('bank'));
+    expect(before).toMatch(/^\d+$/);
     // The clocks, shortened to seconds; the newcomer logs out — the
     // capture on the way out is the row the clocks read.
     expectOk(await wizard.cmd(`config estate.dormantAfterDays ${SECONDS_IN_DAYS(3)}`));
@@ -443,7 +469,10 @@ describe('10. a player goes dormant', () => {
     // restore what absence took.
     a = await Session.open(aHandle, { startLocation: HALL });
     await sleep(3_000);
-    expect(await a.prose('bank')).toBe(before);
+    // ⚠ The NUMBER, not the prose: a fresh login's frames settle into the
+    // read as trailing blank lines, and whitespace is not the claim. The
+    // claim is that the freeze took nothing.
+    expect(balanceOf(await a.prose('bank'))).toBe(before);
     expect(await founder.prose('house roster')).not.toMatch(new RegExp(`teller: ${aName}`));
     expectOk(await wizard.cmd(`config employment.absenceVacatesAfterDays 14`));
   }, 120_000);

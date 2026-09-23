@@ -154,10 +154,10 @@ class TestLaneCatalogue extends Idea {
 }
 
 /**
- * ⚠ A real NPC rung, not a synthetic host: `consigns` narrows its host to
- * `NPC` because the walk is `NPC.walkTo` (economic bootstrap W7 hoisted it
- * out of the brain so `stocks` could take the same road). An `Extra` is
- * the thinnest thing that IS one.
+ * A real NPC rung rather than a synthetic host — an `Extra` is the
+ * thinnest thing that is one, and the brain's real mixin narrowing
+ * (Mobile · Container · CommandGiver) holds on it without a fixture that
+ * has to be kept in step with the brain.
  */
 class TestHand extends Extra {
   static _mixinName = 'TestHand';

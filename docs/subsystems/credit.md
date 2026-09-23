@@ -176,8 +176,11 @@ overfull one less. An offer, never an oracle — and the **price index**
 reads it.
 
 Every step is the literal verb through `forceCommand`, on the real road
-(`NPC.walkTo`, over the transport pack's lane), with the house card
-dealt at hire. The general store's keeper is the shipped exemplar: the
+— the keeper walks the **authored directions** on her own row (`ways`,
+the `patrols` shape: her shop is on the block, the window one west and
+the wholesaler one south) rather than planning a route, because a search
+over the freight network to cross the road is not one — with the house
+card dealt at hire. The general store's keeper is the shipped exemplar: the
 shop floor and the business are `boot:` producers so she stocks with
 nobody online; her purchase history is the ladder's first climb.
 

@@ -7,10 +7,16 @@
  *
  * ⭐ Controller-free, the `restocks` shape: `forceCommand` is a stub
  * dispatcher whose physical verbs (`buy` / `put`) are their containment
- * effect and whose money verbs (`bank borrow`) move a number; `walkTo` is
- * a teleport. What the beat TYPES is the thing under test — an NPC
- * following a rule is still a party posting a price, and every step is
- * the literal verb a player would type.
+ * effect and whose money verbs (`bank borrow`) move a number. What the
+ * beat TYPES is the thing under test — an NPC following a rule is still
+ * a party posting a price, and every step is the literal verb a player
+ * would type.
+ *
+ * ⭐ The WALK is not stubbed away: the fixture is a real three-room
+ * neighbourhood with real doors, and the keeper finds her way by the
+ * authored directions on her row. Only `traverseWithDefault` is mocked
+ * (it writes through the persistence layer), so a wrong direction fails
+ * here exactly as it would fail the shop.
  *
  * ⚠ SYNTHETIC fixtures under `/test/**`, never the general store's rows.
  */
@@ -25,11 +31,14 @@ import Thing from '../../../platform/thing/Thing';
 import BankCounter from '../../../platform/thing/BankCounter';
 import BusinessEntity from '../../../platform/idea/Business';
 import Location from '../../stuff/Location';
+import CartesianLocation from '../../../platform/location/CartesianLocation';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { StuffApi } from '../../../api/stuff';
 import { BankingApi } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
 import { AppApi } from '../../../api/app';
 import { ContainmentApi } from '../../../api/containment';
+import { LocomotionApi } from '../../../api/locomotion';
 import { MixinApi } from '../../../api/mixin';
 import { Money } from '../../banking/Money';
 import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
@@ -50,9 +59,23 @@ const COFFEE = '/test/stocks/thing/coffee-sack';
 
 class Crate extends Thing {}
 
-let shop: Location;
-let market: Location;
-let hall: Location;
+/** The rooms she walked into, in order — the authored way, observed. */
+let walked: string[] = [];
+
+/** One door, taken: the containment half of a traverse, without Mongo. */
+async function step(
+  mover: unknown,
+  exit: { getDestinationTemplatePath: () => string },
+): Promise<void> {
+  const path = exit.getDestinationTemplatePath();
+  const dest = StuffApi.findByTemplatePath(path);
+  if (!dest) throw new Error(`no room at ${path}`);
+  ContainmentApi.move(mover as never, dest as never);
+  walked.push(path);
+}
+let shop: CartesianLocation;
+let market: CartesianLocation;
+let hall: CartesianLocation;
 let counter: Stock;
 let supplierCounter: Stock;
 let keeper: Extra;
@@ -60,10 +83,16 @@ let house: BusinessEntity;
 let balance = 0;
 let typed: string[] = [];
 
+/** The ways the keeper's row authors: to the window, and to the wholesaler. */
+const WAYS = [
+  { to: HALL, go: ['west'], back: ['east'] },
+  { to: MARKET, go: ['south'], back: ['north'] },
+];
+
 function ctxFor(config: Record<string, unknown> = {}): BrainContext {
   return {
     host: keeper as never,
-    config: { counter: COUNTER, ...config },
+    config: { counter: COUNTER, ways: WAYS, ...config },
     state: {},
     trigger: { source: 'cadence', raw: 'cadence:90s' },
     say: () => {},
@@ -136,9 +165,19 @@ beforeEach(async () => {
   vi.spyOn(AppApi, 'setting').mockImplementation(((key: string) =>
     key === 'retail.stockingElasticity' ? '0.5' : key === 'retail.termsMargin' ? '0.25' : '') as never);
 
-  shop = makeStuffAtPath(() => new Location(), SHOP);
-  market = makeStuffAtPath(() => new Location(), MARKET);
-  hall = makeStuffAtPath(() => new Location(), HALL);
+  // ⭐ A real little neighbourhood, because the keeper now walks AUTHORED
+  // directions through real doors — the walk is not mocked away, so a
+  // wrong direction on her row fails the test the way it fails the shop.
+  const zone = makeStuff(() => new CartesianZone());
+  zone.setCellSize(1);
+  shop = makeStuffAtPath(() => new CartesianLocation(), SHOP);
+  market = makeStuffAtPath(() => new CartesianLocation(), MARKET);
+  hall = makeStuffAtPath(() => new CartesianLocation(), HALL);
+  zone.addLocation(shop, 0, 0, 0);
+  zone.addLocation(hall, -1, 0, 0); // the window, one west
+  zone.addLocation(market, 0, -1, 0); // the wholesaler, one south
+  await shop.addBidirectionalExit(hall, 'west');
+  await shop.addBidirectionalExit(market, 'south');
 
   counter = makeStuffAtPath(() => {
     const s = new Stock();
@@ -175,12 +214,11 @@ beforeEach(async () => {
   keeper = makeStuff(() => new Extra());
   ContainmentApi.move(keeper as never, shop as never);
   vi.spyOn(keeper, 'forceCommand').mockImplementation(dispatch as never);
-  vi.spyOn(keeper, 'walkTo').mockImplementation(async (path: string) => {
-    const room = StuffApi.findByTemplatePath(path);
-    if (!room) return false;
-    ContainmentApi.move(keeper as never, room as never);
-    return true;
-  });
+  // ⚠ The traverse writes through the persistence layer, so it is mocked
+  // HERE and not one layer up: the brain still has to find the authored
+  // direction, and the exit it hands over is the real one.
+  walked = [];
+  vi.spyOn(LocomotionApi, 'traverseWithDefault').mockImplementation(step as never);
   vi.spyOn(EmploymentLogic.prototype, 'buysFor').mockResolvedValue([house as never]);
   vi.spyOn(EmploymentApi, 'operatingAccountOf').mockResolvedValue('acct-house');
   vi.spyOn(BankingApi, 'balanceOf').mockImplementation(() => Money.of(balance, 'zorkmid' as never));
@@ -240,6 +278,64 @@ describe('⭐ the keeper stocks the counter — buys the shortfall as the house,
     expect(supplierCounter.onHand(LIMES)).toBe(1);
     expect(balance).toBe(1);
     expect(keeper.getContainer()).toBe(shop);
+  });
+
+  it('⭐⭐ she walks the AUTHORED way and comes back — out one door, in the next, no search', async () => {
+    for (let i = 0; i < 3; i += 1) good(LIMES, 'limes', supplierCounter);
+    balance = 4; // short: the window first, then the wholesaler
+    await stocks.act(ctxFor());
+    // Home → the window → home → the wholesaler → home. Each leg is one
+    // authored direction through a real door; nothing planned a route.
+    expect(walked).toEqual([HALL, SHOP, MARKET, SHOP]);
+    expect(keeper.getContainer()).toBe(shop);
+  });
+
+  it('⚠ a room no `ways` row names is a room she does not go to — the shop simply never restocks', async () => {
+    for (let i = 0; i < 3; i += 1) good(LIMES, 'limes', supplierCounter);
+    balance = 100;
+    // The wholesaler's way unauthored (an author added a supplier and
+    // not the way there): she stays in, and the till is untouched.
+    await stocks.act(ctxFor({ ways: [{ to: HALL, go: ['west'], back: ['east'] }] }));
+    expect(walked).toEqual([]);
+    expect(typed).toEqual([]);
+    expect(counter.onHand(LIMES)).toBe(0);
+    expect(keeper.getContainer()).toBe(shop);
+  });
+
+  it("⚠ and she does not BORROW for a trip she can't make", async () => {
+    for (let i = 0; i < 3; i += 1) good(LIMES, 'limes', supplierCounter);
+    balance = 0; // she would have to borrow to buy
+    // The window is reachable; the wholesaler is not. Nothing is owed
+    // for goods she was never going to be able to fetch.
+    await stocks.act(ctxFor({ ways: [{ to: HALL, go: ['west'], back: ['east'] }] }));
+    expect(typed.filter((t) => t.startsWith('bank borrow'))).toEqual([]);
+    expect(walked).toEqual([]);
+  });
+
+  it('⚠ a door that refuses leaves her where she stands, and the NEXT beat walks her home', async () => {
+    for (let i = 0; i < 3; i += 1) good(LIMES, 'limes', supplierCounter);
+    balance = 100;
+    // The way back from the wholesaler is shut on the first beat.
+    let shut = true;
+    vi.spyOn(LocomotionApi, 'traverseWithDefault').mockImplementation((async (
+      mover: unknown,
+      exit: { getDestinationTemplatePath: () => string },
+    ) => {
+      if (shut && exit.getDestinationTemplatePath() === SHOP && walked.includes(MARKET)) {
+        throw new Error('the door is shut');
+      }
+      await step(mover, exit);
+    }) as never);
+    await stocks.act(ctxFor());
+    expect(keeper.getContainer()).toBe(market); // stranded, holding the goods
+    expect(counter.onHand(LIMES)).toBe(0); // nothing shelved from a foreign floor
+    // Next beat: the door opens, and the first thing she does is come home.
+    shut = false;
+    walked = [];
+    await stocks.act(ctxFor());
+    expect(walked[0]).toBe(SHOP);
+    expect(keeper.getContainer()).toBe(shop);
+    expect(counter.onHand(LIMES)).toBe(3);
   });
 
   it('a counter at par sends nobody anywhere', async () => {

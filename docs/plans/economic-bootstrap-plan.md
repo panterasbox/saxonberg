@@ -1082,6 +1082,25 @@ Checked at plan time against the tree, not recalled:
   object) if the build finds the `consigns` route code is host-shaped;
   otherwise duplicated inside the brain with a note. **Never a
   `lib/behavior/util.ts`.**
+  ⭐⭐ **RESOLVED — and the plan's two options were both wrong.** The
+  build first took the host-method branch (`NPC.walkTo`), which put *an
+  NPC routes itself* on the kernel base class ahead of the design that
+  should decide it — the `Mobile.firstStepToward` move one layer up, and
+  the user stopped it in review for the same reason. Neither option was
+  needed: **the keeper's errand is two rooms.** The general store is on
+  the block — out the door, one west to the window, one south to the
+  wholesaler — so `stocks` walks **authored directions** (`ways` on her
+  row, the shipped `patrols` shape) and searches nothing. Running a
+  breadth-first search over a compiled inter-city freight network to
+  cross the road is a category error, not a route. `consigns` keeps its
+  own module-private `walkTo` exactly as logistics shipped it: its
+  errand really is cross-district, and it stays the ONE non-vehicle
+  caller of the lane router, which is what `logistics.md § Routing`
+  already describes (*promote when a second EDGE SET needs search* — a
+  second consumer of the same edge set is not that trigger). Whether one
+  pathfinder should serve every consumer is
+  `docs/slates/builds/pathfinding-slate.md`, and this build leaves it
+  open rather than answering it by accident.
 - **Verbs on objects** — `business.isClosed()`, `business.stockSheetFor`,
   `stock.priceFor`, `avatar.estateState()` are instance methods;
   orchestration (`appropriate`, `issueLoan`, `escheat`) is Api.
@@ -1555,9 +1574,9 @@ item, not only on the counter); `ConsignController` basis = the
 counter's policy; `BuyController.buyListing` two posts (sales, then
 `payment`/`terms` shop → supplier, posted as the house);
 `ReclaimController` admits the house an actor buys for;
-`NPC.walkTo(targetPath, lane)` hoisted from `consigns` (both brains
-take it; `consigns` narrows its host to `NPC`, so the distilling pack's
-test hand became an `Extra`); `lib/behavior/stocks.ts`; `house price
+`stocks` walks the authored `ways` on the keeper's row (`consigns` keeps
+its own module-private walk, untouched from logistics — see the module-
+categories note above for why the hoist to `NPC.walkTo` was reverted); `lib/behavior/stocks.ts`; `house price
 <thing> <ask>`; `stockSheetFor` unions operated Stocks' supplied lines
 (by SHAPE — a value import of `Stock` into `EmploymentLogic` is an
 evaluation cycle through `PricedOffer`). Content: the general store's
