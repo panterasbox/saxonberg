@@ -429,6 +429,34 @@ incidental: the seeded **Topic** the client subscribes to by name, and the
 harmless, untidy). `NewsTickerCard` keeps its name: it is a ticker, not a
 bulletin.
 
+## The Gazette prints the index (economic bootstrap, 2026-09)
+
+Nothing new in the substrate. The terminus pack ships a second publisher,
+**the Terminus Gazette** (`/world/terminus/gazette`: an `Organization`
+with the publisher fields, `realm: world`, `visibility: public`, an
+`editor` seat in `publishingPositions`, the committee over
+`/world/terminus` appointing) with an NPC editor on its roster whose
+`prints` beat (`lib/behavior/prints.ts`) runs `press post "Prices: the
+basket stands at … against a base of one hundred" --as
+/world/terminus/gazette --kind notice` once every
+`press.indexEditionGameHours` of GAME time. `press.frontPage` lists the
+Gazette beside the Compact's own room; an install without terminus skips
+the entry with the boot line. ⭐ The state aggregates, never reports —
+`reserve` prints the same index to the Governor; the paper prints it to
+everyone. See [credit.md](./credit.md).
+
+⚠ **The print is the first brain verb dispatched NON-forced.** Every
+other beat runs `forceCommand`, and a forced frame is unattributable by
+design (`ExecutionContextApi.getActingAuthor` returns null on any forced
+frame — the stamp keeps a driven act off a player's name), while a
+release derives its author from the frame and fails closed without one.
+The editor's beat is their own act, so `prints` calls `executeCommand`
+and the release carries Hesper Quill as its author. The editor is a
+terminus class (`src/gazette/agent/Editor`) that affords the platform
+`press` view on self: a `Cast` with the platform bundle finds the
+crafting `press` first (the verb-collision rule — the paper's chart is
+the instrument here, not a machine).
+
 ## Cross-references
 
 [employment.md](./employment.md) (the organization chart a publisher wears

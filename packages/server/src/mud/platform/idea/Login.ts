@@ -4,23 +4,23 @@
  *
  * Login owns the Interactive for the pre-world window. On `enter()` it
  * branches on how many characters the user has:
- *   - **0** → char-gen: Login hosts the `enroll` flow (it's a real
- *     `CommandGiver`), accumulating picks in an `EnrollmentDraft` until
- *     `enroll confirm` commits a fresh Avatar. Login then destructs.
+ *   - **0** → char-gen: Login hosts the `embody` flow (it's a real
+ *     `CommandGiver`), accumulating picks in an `CharacterDraft` until
+ *     `embody confirm` commits a fresh Avatar. Login then destructs.
  *   - **≥1** → the character-select roster: Login emits the roster and
  *     stays alive; the `play <playerId>` verb hands off to the chosen
  *     Avatar and destructs Login.
  *
  * Login is a real `CommandGiver` (so char-gen runs on the genuine
  * command pipeline — the player meets our CLI from keystroke one) with
- * a tight verb allowlist (`enroll`/`play`), and a `Sensor` (so the
+ * a tight verb allowlist (`embody`/`play`), and a `Sensor` (so the
  * de-emphasized char-gen terminal shows system/narration frames). It is
  * locationless by design; the dispatch location-guard was relaxed to
  * allow incorporeal givers (see CommandGiver.executeCommand).
  *
  * Lifetime: constructed once per login; destructed at handoff (play) or
  * char-gen commit. As a transient Idea it's the natural zero-cleanup
- * home for the in-progress `EnrollmentDraft`.
+ * home for the in-progress `CharacterDraft`.
  */
 
 import { SecurityApi } from "../../api/security";
@@ -66,9 +66,9 @@ function pickRandom<T>(arr: readonly T[]): T | undefined {
 /**
  * In-progress char-gen picks. Held on the transient Login (GC'd at
  * commit → no draft persistence, no completion flag). Mutated by
- * `EnrollController`; read by its commit.
+ * `EmbodyController`; read by its commit.
  */
-export interface EnrollmentDraft {
+export interface CharacterDraft {
   /** The player's real (Google) given name — seeds the name suggester. */
   realName?: string;
   /** The player's account display name (Google `displayName`) — shown on
@@ -106,7 +106,7 @@ export default class Login extends LoginBase {
    * HasInteractiveMixin; harmless.)
    */
   static commandContributions: CommandContributions = {
-    self: ["platform/cmd/charactergen/enroll.yaml", "platform/cmd/charactergen/play.yaml"],
+    self: ["platform/cmd/charactergen/embody.yaml", "platform/cmd/charactergen/play.yaml"],
     peers: [],
     environment: [],
   };
@@ -116,14 +116,14 @@ export default class Login extends LoginBase {
    * jobs: it makes guest-ness legible in plain text wherever the Named
    * name appears (speech/emote attribution, look, logs — a UI badge
    * can't reach those), and it is withheld from real character naming
-   * (the char-gen `enroll` denylist imports it) so a real player can't
+   * (the char-gen `embody` denylist imports it) so a real player can't
    * impersonate a guest. Lives here on the guest-mint site. Exact-word
    * only; fuzzy/homoglyph near-misses are out of scope.
    */
   static readonly GUEST_RESERVED_WORD = "Guest";
 
   private readonly interactive: Interactive;
-  private enrollmentDraft: EnrollmentDraft | null = null;
+  private characterDraft: CharacterDraft | null = null;
 
   constructor(interactive: Interactive) {
     super();
@@ -132,12 +132,12 @@ export default class Login extends LoginBase {
   }
 
   /** The in-progress char-gen draft (null outside char-gen). */
-  public getEnrollmentDraft(): EnrollmentDraft | null {
-    return this.enrollmentDraft;
+  public getCharacterDraft(): CharacterDraft | null {
+    return this.characterDraft;
   }
 
-  public setEnrollmentDraft(draft: EnrollmentDraft): void {
-    this.enrollmentDraft = draft;
+  public setCharacterDraft(draft: CharacterDraft): void {
+    this.characterDraft = draft;
   }
 
   /**
@@ -215,11 +215,11 @@ export default class Login extends LoginBase {
 
   /**
    * Mint a randomized guest avatar — the no-char-gen fast path. Mirrors
-   * `EnrollController.commit`'s avatar build, but: every pick is random
+   * `EmbodyController.commit`'s avatar build, but: every pick is random
    * (species, a non-intersex sex, an aspiration → bio + themed outfit),
    * pronouns are always they/them, and the name is the reserved-word
    * guest name. The roster + sex-set knowledge is read from
-   * `EnrollController` (`loadConfig` / `validSexSet`) so the two paths
+   * `EmbodyController` (`loadConfig` / `validSexSet`) so the two paths
    * stay in agreement; the build itself lives here, at the guest-mint
    * site.
    *
@@ -230,12 +230,12 @@ export default class Login extends LoginBase {
    * path, so there's no seed-clone concurrency hazard.
    */
   private static async mintRandomGuestAvatar(user: User): Promise<Avatar> {
-    // Read the char-gen rosters + sex-set rule from EnrollController via a
+    // Read the char-gen rosters + sex-set rule from EmbodyController via a
     // lazy import (it dynamic-imports nothing back, so no static cycle).
-    const { default: EnrollController, validSexSet } = await import(
-      "./cmd/charactergen/EnrollController"
+    const { default: EmbodyController, validSexSet } = await import(
+      "./cmd/charactergen/EmbodyController"
     );
-    const cfg = EnrollController.loadConfig();
+    const cfg = EmbodyController.loadConfig();
     const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
     if (!seed) {
       throw new Error("Login.mintRandomGuestAvatar: no Avatar seed template.");
@@ -320,23 +320,23 @@ export default class Login extends LoginBase {
   /**
    * Begin char-gen: seed the draft with the player's real name (for the
    * name suggester) and emit the initial state frame by dispatching the
-   * bare `enroll` verb through the real command pipeline.
+   * bare `embody` verb through the real command pipeline.
    */
   public async enterCharGen(): Promise<void> {
     const { realName, accountName } = await this.resolveNames();
-    this.enrollmentDraft = {
+    this.characterDraft = {
       ...(realName ? { realName } : {}),
       ...(accountName ? { accountName } : {}),
     };
     MessageApi.scene(this)
       .topic("session.identity")
       .toSelf(
-        Mml.compose`Welcome to enrollment. Let's get you a body and a name.`,
+        Mml.compose`Welcome. Let's get you a body and a name.`,
       )
       .send();
     // Dispatch the bare verb to emit the first char-gen-state frame via
-    // EnrollController — same pipeline the player will use.
-    await this.executeCommand("enroll", { interactive: this.interactive });
+    // EmbodyController — same pipeline the player will use.
+    await this.executeCommand("embody", { interactive: this.interactive });
   }
 
   /**
@@ -378,7 +378,7 @@ export default class Login extends LoginBase {
 
   /**
    * Emit the character-select roster frame. Login stays alive awaiting
-   * a `play <playerId>` (or `enroll` to create a new character).
+   * a `play <playerId>` (or `embody` to create a new character).
    */
   private async presentRoster(avatars: Avatar[]): Promise<void> {
     const characters: CharGenRosterEntry[] = avatars.map((a) => ({

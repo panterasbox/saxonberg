@@ -1,6 +1,6 @@
 id: hearts-delight
 version: 0.1.0
-root: /world/hearts-delight
+root: /world/terminus/hearts-delight
 description: >-
   Heart's Delight — the valley that feeds the city. ⭐ A STATIC AUTHORED
   farm rather than a managed one: it runs no framework, it is content
@@ -17,6 +17,8 @@ requires:
       purpose: the valley's own body
       owner: { office: prime-minister }
   title:
-    - extent: /world/hearts-delight
+    # Under the realm root (economic bootstrap D5): situs walks up to terminus.
+    - extent: /world/terminus/hearts-delight
+      parentParcel: /world/terminus
       holder: { group: hearts-delight }
       landUse: agricultural

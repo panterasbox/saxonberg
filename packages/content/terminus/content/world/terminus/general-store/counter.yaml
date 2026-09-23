@@ -173,6 +173,19 @@ data:
     - { itemTemplatePath: /system/transport/thing/sledge, par: 1 }
     - { itemTemplatePath: /system/transport/thing/dray, par: 1 }
     - { itemTemplatePath: /system/transport/thing/wagon, par: 1 }
+    # ⭐⭐ The SUPPLIED lines (economic bootstrap D11/D14) — the first
+    # goods on this counter that come from somewhere. A line with a
+    # `supplier` is never cloned by the reset sweep: the keeper's `stocks`
+    # beat walks to the cash-and-carry, buys the shortfall on terms as the
+    # house (borrowing at Goodkin's window when the till is short — the
+    # real-bills rung), carries it home and shelves it. The limes are the
+    # farm outfit's, the coffee the pantry's; both reach the distributor
+    # on THEIR hands' terms and reach here on the distributor's. Priced
+    # `stocking`: the ask is the market-maker's — an empty shelf asks
+    # half again the base, a full one the base — an offer, never an
+    # oracle, and the Reserve's price index reads it.
+    - { itemTemplatePath: /trade/farming/thing/crate-of-limes, par: 3, supplier: /world/terminus/counting-houses/distributor/idea/business, pricing: stocking }
+    - { itemTemplatePath: /trade/cooking/thing/coffee-sack, par: 2, supplier: /world/terminus/counting-houses/distributor/idea/business, pricing: stocking }
     # ⭐ The tackle line (fishing B6): a rod, a worm, a pot, a net, a bowl
     # and a twist of fish food — inputs, which is what a
     # general store sells. What comes out of the river is consigned at
@@ -286,6 +299,12 @@ data:
     /system/transport/thing/sledge: 14
     /system/transport/thing/dray: 60
     /system/transport/thing/wagon: 95
+    # ⭐ The supplied lines' BASE — what the shelf at par asks. Against
+    # the supplier's price (the farm's lime at 6 through the distributor's
+    # margin; coffee at 22) with a retail margin over it, so the sale
+    # repays the terms and leaves the house something.
+    /trade/farming/thing/crate-of-limes: 10
+    /trade/cooking/thing/coffee-sack: 32
     # ⭐ The tackle ladder, against the same anchors: a rod and a worm
     # inside a stipend with change for rations, a net the dear one —
     # because a net is a business and a rod is an afternoon.

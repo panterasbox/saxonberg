@@ -1356,7 +1356,7 @@ title/end cards. Nothing else.
   claim of a dense simulated population — NPCs are just-in-time carves. The
   demo needs its three venues staffed, not a living city.
 - **The insight inventory** — in the script: the wish (implicit in the
-  enroll flow), drift/matchmaking, the authored probe, churn cause +
+  embody flow), drift/matchmaking, the authored probe, churn cause +
   diegetic rescue, the mirror, the funnel flip. Held for the deck: demand
   attribution + transfer, persistence & help-seeking, peer effects, the
   honest ZPD.

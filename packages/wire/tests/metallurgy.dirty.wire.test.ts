@@ -50,12 +50,12 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const PITHEAD = '/world/rejection/location/pithead-yard';
-const OFFICE = '/world/rejection/location/claims-office';
-const FAR_FRINGE = '/world/rejection/location/far-fringe';
-const FRINGE_CLAIM = '/world/rejection/location/fringe-claim';
-const SMELTER = '/world/rejection/location/smelter';
-const FUEL_YARD = '/world/rejection/location/fuel-yard';
+const PITHEAD = '/world/terminus/rejection/location/pithead-yard';
+const OFFICE = '/world/terminus/rejection/location/claims-office';
+const FAR_FRINGE = '/world/terminus/rejection/location/far-fringe';
+const FRINGE_CLAIM = '/world/terminus/rejection/location/fringe-claim';
+const SMELTER = '/world/terminus/rejection/location/smelter';
+const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
 const STORE = '/world/terminus/general-store/shop-floor';
 
 /** Walk a route, failing loudly on the step that does not exist. */

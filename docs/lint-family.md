@@ -170,6 +170,29 @@ dossier, 2026-09).
   root lies within some pack's `requires.title` claim. The title roots
   are **derived** from the claims themselves, so a new root needs no
   kernel edit. An unclaimed path is one nobody can ever edit.
+- **`lint:committees-are-players`** — ⭐ no group that holds title enrols
+  an NPC (economic bootstrap, retrofit gate 1). A committee IS whoever
+  holds title; committees are players only — a committee assignment is
+  governance, a position is a job. Reads every manifest's
+  `requires.title[]` `{group}` holders against every manifest's
+  `requires.groups[].members[]` (a claim may name a host's group) and
+  reports any member id with an `/agent/` segment that is not a player's
+  `/platform/agent/Avatar/…`. Ceiling **0**: Walter and Katie — the two
+  NPC seats 1.0 shipped — became staff of Organizations in the commit
+  that added the gate.
+- **`lint:no-authored-faucet`** — ⭐ no authored number becomes money
+  (economic bootstrap, retrofit gate 2; the institutions slate's rule).
+  Three populations summed: an `openingCapital:` key in any shipped row;
+  the three retired settings keys (`banking.onboardingStipend`,
+  `banking.openingCapital`, `banking.openingFloat`) wherever a
+  `settings/*.yaml` still declares them; and every code line in the
+  kernel or a pack `src/` that posts a `mint` or issues coin, attributed
+  to its enclosing function and matched against a `file#function`
+  allowlist naming exactly the sites the requirements permit — the two
+  rules (`reconcilePerpetualImpl`, `windowAdvanceImpl`), the recorded
+  override (`overrideImpl`) and the harness seams (`issueCashImpl`,
+  `issueCash`, `mint`; a call to them from anywhere else counts). Census
+  10 at W3 of the bootstrap; **0** at W6, where the gate holds.
 - **`lint:locations`** — three checks over the location vocabulary: the
   `FurnishableRoom` roster and the minted `CartesianLocation` roster are
   enumerated (adding a row is a design question a reviewer should see),

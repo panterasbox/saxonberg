@@ -12,7 +12,7 @@ data:
   censusKey: produce:lemon
   regionTarget: 4
   materialTags: [produce, lemon]
-  container: /trade/farming/thing/farm-stock
+  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - /trade/farming/thing/lemon
     - /trade/farming/thing/lemon

@@ -13,9 +13,8 @@ description: >-
   use at runtime; only the record on the place changes. Two customers
   ship already — the collier's clamp and the mine's timber set.
 requires:
-  groups:
-    - name: forestry
-      purpose: the forestry trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/forestry, holder: { group: forestry } }
+    - { extent: /trade/forestry, holder: { organization: /compact/trade } }

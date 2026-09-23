@@ -11,7 +11,7 @@ data:
   censusKey: produce:juniper
   regionTarget: 3
   materialTags: [produce, juniper]
-  container: /trade/farming/thing/farm-stock
+  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - /trade/farming/thing/juniper-berries
     - /trade/farming/thing/juniper-berries

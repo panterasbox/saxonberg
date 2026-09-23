@@ -1,6 +1,6 @@
 id: hearthworks
 version: 0.1.0
-root: /world/hearthworks
+root: /world/terminus/hearthworks
 description: >-
   The Hearthworks — a VENUE pack: the smithy, the cookhouse, the cellar,
   the woodshed and the forge floor, the business that staffs them, Berta
@@ -15,4 +15,5 @@ requires:
       purpose: the Hearthworks' staff
       owner: { office: prime-minister }
   title:
-    - { extent: /world/hearthworks, holder: { group: hearthworks } }
+    # Under the realm root (economic bootstrap D5): situs walks up to terminus.
+    - { extent: /world/terminus/hearthworks, parentParcel: /world/terminus, holder: { group: hearthworks } }

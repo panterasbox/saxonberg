@@ -182,6 +182,7 @@ import type { Charged } from '../lib/magic/Charged';
 import type { Blessable } from '../lib/magic/Blessable';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
+import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
 import type { Publisher } from '../lib/press/Publisher';
@@ -1744,6 +1745,11 @@ export class MixinApi {
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {
     return this.hasMixin(obj, Mixins.Bank);
+  }
+
+  /** A fixture that prices and collects — a `Menu`, a `Tariff`, a `Stock` counter. */
+  public static isPricedOffer(obj: Stuff): obj is Stuff & PricedOffer {
+    return this.hasMixin(obj, Mixins.PricedOffer);
   }
 
   /**

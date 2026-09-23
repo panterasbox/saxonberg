@@ -85,8 +85,8 @@ function lump(kgEach: number, count: number, grade: number, mineral = MALACHITE)
   stampTemplatePathForTest(
     o,
     mineral === MALACHITE
-      ? '/world/rejection/thing/copper-ore'
-      : '/world/rejection/thing/iron-ore',
+      ? '/world/terminus/rejection/thing/copper-ore'
+      : '/world/terminus/rejection/thing/iron-ore',
   );
   o.setQuantity(count);
   o.setGrade(grade);

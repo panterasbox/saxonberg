@@ -44,7 +44,7 @@ data:
     # good light. Siting is a real decision in this chain, and the
     # answer differs at each end of it.
     tailor:
-      destination: /trade/tailoring/location/shop
+      destination: /world/terminus/mayfield-row/tailor/location/shop
   details:
     plate:
       keywords: [plate, brass, sign]

@@ -26,7 +26,7 @@ export default class Desk extends DeskBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['world/eternal/duncan-hall/cmd/remodel.yaml'],
+    peers: ['world/terminus/eternal/duncan-hall/cmd/remodel.yaml'],
     environment: [],
   };
 }

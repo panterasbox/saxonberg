@@ -163,6 +163,13 @@ export function AttendantMixin<TBase extends MixinConstructor<Stuff>>(
     public getBusinessPath(): string {
       return this.businessPath;
     }
+    /**
+     * Bind this counter to a house after the fact — a rented stall is
+     * one counter under whichever business rents it this week.
+     */
+    public setBusinessPath(path: string): void {
+      this.businessPath = path;
+    }
     public getSkin(key: string): string {
       return this.skin[key] ?? DEFAULT_SKINS[key] ?? "";
     }
@@ -190,6 +197,17 @@ export function AttendantMixin<TBase extends MixinConstructor<Stuff>>(
       customerKey: string,
       server?: Stuff & Engaged,
     ): AttendResult {
+      // ⭐ The closed sign (economic bootstrap D16): a counter whose house is
+      // closed — its keeper absent past the short clock, nobody else on a
+      // position — attends nobody, whatever its staffing policy says. The
+      // sign is a STATE the roster tick writes, not an absence: the house
+      // still stands up, its book still reads, `reclaim` still works.
+      if (this.businessPath) {
+        const house = StuffApi.findByTemplatePath(this.businessPath);
+        if (house && MixinApi.isBusiness(house) && house.isClosed()) {
+          return { status: "closed" };
+        }
+      }
       // Already attended → refresh recency, stay attended (idempotent re-entry).
       if (this._leases.has(customerKey)) {
         this.bumpLease(customerKey);

@@ -263,7 +263,7 @@ in a chain that reads backwards:
 wallet use house → unknown-verb(wallet)   ← no house card; employment
                                             boots ~200 log lines later
 → the hand falls back to trading as ITSELF
-→ consign syrup --ask 6 → no-account(/trade/cooking/agent/pantry-hand)
+→ consign syrup --ask 6 → no-account(/world/terminus/goods-yards/pantry/agent/hand)
 ```
 
 Eight trades, every beat. Nothing was wrong with the content —

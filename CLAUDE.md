@@ -27,8 +27,9 @@ behavior. Read the relevant doc before editing in its area.
   (values, not knowledge: what choice does it force, and who confers
   standing) · 5 **technology & magic** (the mechanism holds from ancient
   Rome to New York; only the dynamics change — magic and future tech are
-  one axis) · 6 **economy** (produces · consumes · who pays · was the
-  demand there first). A **scorecard, not a gate**: 1 and 2 decide forks, and
+  one axis) · 6 **economy & governance** (produces · consumes · who pays ·
+  was the demand there first · and when it judges a PERSON — name the
+  criterion and the appeal). A **scorecard, not a gate**: 1 and 2 decide forks, and
   ⭐ **when they decide one, don't ask — pick it and say which limb
   chose.** Run the pass at the slate and at requirements. ⚠ NOT
   [docs/lenses/](./docs/lenses/README.md), which is the borrowed Schell
@@ -198,6 +199,7 @@ behavior. Read the relevant doc before editing in its area.
   - [attendant.md](./docs/subsystems/attendant.md) — storefront attention: queue + lease on AttendantMixin, AttendanceEngagement, idle-eviction sweep
   - [employment.md](./docs/subsystems/employment.md) — the Business Idea, positions/roster/shifts/wages/tips, on-shift MakerMixin conferral
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
+  - [credit.md](./docs/subsystems/credit.md) — money that is owed: the three-rung ladder (terms → inventory finance → working capital) gated on the borrower's own ledger, the reserve's window and the two rules, the Arrival Note, rates as the lender's posted Terms, default revealed-not-scheduled and cured by trading, and the estate — dormant · escheated · reclaimed
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
   - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty-six shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; the metal chain's trade-mining/trade-fuel/trade-smelting over rejection, a venue pack with no `src/` at all — and trade-forestry, whose pack-owned LOCATION class that venue's rows name, so a second wood is rows; tpa the teleport network's works behind the kernel's `TravelNode` shape; brains in packs via `src/behavior/`; a pack's own `src/lib/` for inherited substrate; the `archetype` kind; the stub trades; no seeders)

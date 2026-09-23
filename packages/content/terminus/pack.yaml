@@ -13,39 +13,47 @@ description: >-
   University Avenue is the city street the university gate opens onto —
   it runs from the terminal mouth past the campus wall down to the
   Counting-Houses, and every room on it is somewhere a traveller passes
-  through. It first shipped under /world/eternal because it shared a path
+  through. It first shipped under /world/terminus/eternal because it shared a path
   root with the campus; the path is now what the world already said.
   Behind the gate is Eternal University's, and it is a different pack.
 requires:
   groups:
     - name: terminus
       purpose: the Terminus municipality
-    # The landlord's staff — Walter's membership is CONFERRED here by
-    # the owner (the Katie pattern; never self-enrolled). His row sits
-    # under the pack's own seznick-house claim, per the NPC-only fence.
+    # The landlord — the group that HOLDS Seznick House. Players only
+    # (economic bootstrap D8): Walter used to be enrolled here, and an
+    # NPC on a committee is doctrine 2 broken. He is staff of the
+    # `mayfield-row/idea/agency` Organization now; this group is empty at
+    # boot and falls to the founder until the Compact seats it.
     - name: mayfield-holdings
-      purpose: the Mayfield Holdings letting staff
-      members:
-        - { id: /world/terminus/mayfield-row/agent/walter, role: member }
+      purpose: the landlord of Seznick House
   title:
+    # ⭐ The REALM root (economic bootstrap D5): Terminus the realm holds
+    # every piece of 1.0 content — the city's districts below, and the
+    # localities that re-rooted under it (rejection, eternal, hearthworks,
+    # hearts-delight, hinkley-hills). The title tree IS the situs tree:
+    # a player's estate escheats UP it, so every district names this as
+    # its parent. The realm committee and the city committee are one
+    # group until the Compact subdivides — deliberately.
+    - { extent: /world/terminus, holder: { group: terminus }, landUse: civic }
     # The Terminus municipality's ground.
-    - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
-    - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
-    - { extent: /world/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/terminal,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/counting-houses, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/general-store,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
     # The farmers market — the produce square off the counting-houses.
-    - { extent: /world/terminus/market,          holder: { group: terminus }, landUse: commercial }
-    - { extent: /world/terminus/registry,        holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/market,          parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/registry,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
     # University Avenue — the city street the campus gate fronts. Civic
     # like every other public street the municipality keeps.
-    - { extent: /world/terminus/university-avenue, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/university-avenue, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
     # Mayfield Row (residences D9): the municipality holds the street;
     # the private landlord holds the building the units subdivide under.
-    - { extent: /world/terminus/mayfield-row, holder: { group: terminus }, landUse: residential }
+    - { extent: /world/terminus/mayfield-row, parentParcel: /world/terminus, holder: { group: terminus }, landUse: residential }
     - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential }
     # The land agents' shopfront (residences D14). Commercial, and the
     # municipality's like the rest of the built city — the office SELLS
     # ground, it does not own the ground it sells.
-    - { extent: /world/terminus/realty, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/realty, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
     # ⭐ The two corridors (logistics D18/D20): a road corridor is
     # SUBDIVIDED AS ITS OWN PARCEL, so the road across somebody's flats
     # is the road's ground and not theirs — which is what makes
@@ -56,16 +64,73 @@ requires:
     # `civic` — "offices, parks and THE COMMONS" — is the public highway.
     # The estuary towpath is the city's own working waterfront and is
     # kept by the municipality like any other street.
-    - { extent: /world/terminus/estuary, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/estuary, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
     # ⚠ `wild` — "unserviced ground: PASSAGE and gathering only" — is the
     # Delight road, which crosses ground nobody's municipality maintains.
     # The civic/wild split IS the toll-versus-obstruction distinction
     # already: a gate on ground you hold is legitimate, a barricade on
     # the commons is not. No mechanic, no new entry, decided.
-    - { extent: /world/terminus/delight-road, holder: { group: terminus }, landUse: wild }
+    - { extent: /world/terminus/delight-road, parentParcel: /world/terminus, holder: { group: terminus }, landUse: wild }
+    # ⭐ The orphans, claimed (economic bootstrap, retrofit step 3): these
+    # four resolved to the platform's `/world` — the executive — which is
+    # exactly what doctrine 1 exists to prevent. Wharfside is the
+    # workshop district (the mill and the dyehouse); the goods yards hold
+    # the producers' floors; the infirmary and the necropolis are the
+    # city's civic ground.
+    - { extent: /world/terminus/wharfside,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial }
+    - { extent: /world/terminus/goods-yards, parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial }
+    - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
 boot:
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
+  - { template: /world/terminus/mayfield-row/idea/agency, role: producer, reason: "Mayfield Holdings — the letting agency; lease/unlease ask whether the actor holds its agent position, read off the authored roster" }
   # ⚠ Moved here with the room from `trade-distilling`: a showroom on the
   # avenue is a PLACE, so the locality holds it. Everything IN it is
   # still the distilling trade's — the racking, the counter, the clerk.
   - { template: /world/terminus/counting-houses/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the trades' hands to consign onto it and for the boot spawn sweep to have a census" }
+  # ⭐ The one chartered bank (economic bootstrap D19): the window presents
+  # its paper, `bank borrow` resolves it as the lender, and `appoint … at`
+  # its chart needs it resident — a business stood up lazily is a business
+  # nobody can be appointed to until somebody trades at it.
+  - { template: /world/terminus/counting-houses/business, role: producer, reason: "Goodkin's chartered business — the lender every `bank borrow` at the hall resolves, and the chart the Registrar's committee appoints to" }
+  # ⭐ The trade premises' producers (economic bootstrap D6): a floor's
+  # Stock is the home container its trade's rows spawn into, and an
+  # outfit's hand runs its brain over a live Business. Moved here WITH the
+  # rows — a `boot:` entry belongs to the pack that ships the template.
+  - { template: /world/terminus/wharfside/mill/location/floor, role: producer, reason: "the mill floor — its Stock is the home container bolts spawn into, and its weaver runs the consigns brain" }
+  - { template: /world/terminus/wharfside/mill/idea/outfit, role: producer, reason: "the weaver's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/wharfside/dyehouse/location/floor, role: producer, reason: "the dyehouse floor — its counter is the attendance point customers queue at" }
+  - { template: /world/terminus/wharfside/dyehouse/idea/outfit, role: producer, reason: "the dyer's position is materialized over a live business" }
+  - { template: /world/terminus/goods-yards/crowsfoot/location/floor, role: producer, reason: "the Crowsfoot outfit's yard — same shape as the floor's, one small-batch label" }
+  - { template: /world/terminus/goods-yards/veshko/location/distillery, role: producer, reason: "Veshko's yard — its Stock is the home container the Volk and unbranded rows spawn into (the zone's stocks: sets the counts), and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/hollis/location/floor, role: producer, reason: "Hollis's bottling floor — its Stock is the home container the private-label rows spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/crowsfoot/idea/outfit, role: producer, reason: "the Crowsfoot hand's `purchases` position likewise" }
+  - { template: /world/terminus/goods-yards/veshko/idea/outfit, role: producer, reason: "Veshko Distilling (parentOrganization /corpo/veshko) — the hand's purchases position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/hollis/idea/outfit, role: producer, reason: "Hollis Bottling (parentOrganization /corpo/hollis) — likewise" }
+  - { template: /world/terminus/goods-yards/bottling/location/floor, role: producer, reason: "the outfit's yard — its Stock is the home container the mixers and ice spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/bottling/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/pantry/location/floor, role: producer, reason: "the pantry outfit's storeroom — its Stock is the home container the sacks spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/pantry/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/brewing/location/floor, role: producer, reason: "the outfit's yard — its Stock is the home container the floor kegs spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/brewing/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized by the roster tick over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/brewing/location/cold-store, role: producer, reason: "the lager line lives here — the cold vats, the cold culture, and the cellars beat that kegs it" }
+  - { template: /world/terminus/goods-yards/farm/location/yard, role: producer, reason: "the farm — its Stock is the home container the crates spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/farm/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/vintner/location/floor, role: producer, reason: "the outfit's yard — its Stock is the home container the floor bottles spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/vintner/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/mayfield-row/tailor/location/shop, role: producer, reason: "the shop floor — its counter is the appointment point, and the measurement book lives on it" }
+  - { template: /world/terminus/mayfield-row/tailor/idea/outfit, role: producer, reason: "the tailor's position is materialized over a live business" }
+  - { template: /world/terminus/counting-houses/distributor/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }
+  # ⭐ The general store as a PRODUCER (economic bootstrap D14): its keeper
+  # runs the `stocks` beat — buying the supplied lines at the cash-and-carry
+  # on terms, borrowing at the window when short, shelving what she carries
+  # home — with nobody online. A brain on an unspawned NPC never fires, and
+  # a business stood up lazily deals no house card until somebody trades.
+  - { template: /world/terminus/general-store/shop-floor, role: producer, reason: "the general store's floor — its keeper runs the stocks beat over the counter, and the counter is where the supplied lines land" }
+  - { template: /world/terminus/general-store/business, role: producer, reason: "the keeper's `purchases` seat is materialized over a live business; the stocks beat trades as it" }
+  # ⭐ The Gazette (economic bootstrap D20): its editor stands on the avenue
+  # block and prints the price index once an edition window, as the
+  # paper, with nobody online — the room carries her, the organization
+  # carries her seat.
+  - { template: /world/terminus/counting-houses/avenue-block, role: producer, reason: "the avenue block — the Gazette's editor stands here and runs the prints beat" }
+  - { template: /world/terminus/gazette, role: producer, reason: "the Gazette's roster puts its editor in the seat that may publish as it" }

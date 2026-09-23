@@ -16,12 +16,12 @@
  *      certificate title block and the record line.
  *   3. **The log** — the Login's narration and the player's own command
  *      echoes, with the server's `still missing:` list and the
- *      `enroll confirm` action at its foot.
+ *      `embody confirm` action at its foot.
  *
  * The command bar sits beneath all three (CLI-as-backbone). Every
  * affordance is a thin wrapper over `sendCommand`: a species chip sends
- * `enroll species elf`, a name field flushes `enroll name <given>
- * <surname>` on blur, the confirm button sends `enroll confirm`. The
+ * `embody species elf`, a name field flushes `embody name <given>
+ * <surname>` on blur, the confirm button sends `embody confirm`. The
  * server owns all option computation and validation; the client renders
  * what the `session.identity` frame carries and forwards tokens back.
  *
@@ -199,7 +199,7 @@ const PlateEmpty = styled.div`
 
 /**
  * ⚠ The record line, from the art. It is not decoration: it states the
- * two facts that make enrolment feel like an act rather than a form —
+ * two facts that make embodying feel like an act rather than a form —
  * whose record this enters, and that only they can strike it.
  */
 const RecordLine = styled.div`
@@ -518,7 +518,7 @@ const SpoilerDetails = styled.details`
  * and that was wrong twice over. It carried forward the OLD client's
  * shape rather than the design's — the reference art lists every field
  * group in a single panel under the copy *"Fill the fields in any
- * order"*, with `still missing:` and `enroll confirm` standing at the
+ * order"*, with `still missing:` and `embody confirm` standing at the
  * bottom throughout.
  *
  * And more than a layout preference: **the server is deliberately
@@ -672,7 +672,7 @@ export function CharGenStage({
     const a = d.a.trim();
     if (!a) return;
     const b = isTwoPart(f) ? d.b.trim() : "";
-    const cmd = `enroll ${f.field} ${[a, b].filter(Boolean).join(" ")}`;
+    const cmd = `embody ${f.field} ${[a, b].filter(Boolean).join(" ")}`;
     if (cmd === lastSent.current[f.field]) return;
     lastSent.current[f.field] = cmd;
     onSendCommand(cmd);
@@ -686,7 +686,7 @@ export function CharGenStage({
 
   // Setting a field is a LIVE command (fires + echoes immediately).
   const setField = (name: string, value: string) =>
-    onSendCommand(`enroll ${name} ${value}`);
+    onSendCommand(`embody ${name} ${value}`);
 
   /**
    * ⚠ The confirm gate reads the server's `missing` and NOTHING else —
@@ -694,7 +694,7 @@ export function CharGenStage({
    * which fields exist and in what order they are required.
    *
    * ⭐ A text field reaches the server on blur, so the sequence is
-   * self-correcting: type → blur → `enroll name …` → the server drops
+   * self-correcting: type → blur → `embody name …` → the server drops
    * `name` from `missing` → confirm enables. There is no way to click
    * confirm before the value has actually landed.
    */
@@ -726,7 +726,7 @@ export function CharGenStage({
               onClick={() => setField(f.field, opt.value)}
               onMouseEnter={() => {
                 setFocused({ field: f.field, value: opt.value });
-                onCommandPreview(`enroll ${f.field} ${opt.value}`);
+                onCommandPreview(`embody ${f.field} ${opt.value}`);
               }}
               onMouseLeave={() => {
                 setFocused(null);
@@ -841,7 +841,7 @@ export function CharGenStage({
           <Chip
             type="button"
             data-testid="chargen-reroll"
-            onClick={() => onSendCommand(`enroll ${f.field} reroll`)}
+            onClick={() => onSendCommand(`embody ${f.field} reroll`)}
           >
             suggest another
           </Chip>
@@ -856,7 +856,7 @@ export function CharGenStage({
   /**
    * ⚠ A field whose `kind` this client does not know renders HATCHED
    * with its reason — never nothing. An omitted field would still gate
-   * `enroll confirm` through `missing`, stranding the player on a
+   * `embody confirm` through `missing`, stranding the player on a
    * Continue button that never enables and giving them no way to see
    * why.
    */
@@ -868,7 +868,7 @@ export function CharGenStage({
       <FieldGroupHeading>{f.label}</FieldGroupHeading>
       <OptionDesc>
         This client does not know how to show a “{f.kind}” field yet. You can
-        still set it from the command line: <code>enroll {f.field} …</code>
+        still set it from the command line: <code>embody {f.field} …</code>
       </OptionDesc>
     </UnbuiltGround>
   );
@@ -1013,23 +1013,23 @@ export function CharGenStage({
               $primary
               data-testid="chargen-confirm"
               disabled={!canConfirm}
-              onClick={() => onSendCommand("enroll confirm")}
-              onMouseEnter={() => onCommandPreview("enroll confirm")}
+              onClick={() => onSendCommand("embody confirm")}
+              onMouseEnter={() => onCommandPreview("embody confirm")}
               onMouseLeave={() => onCommandPreview(null)}
             >
-              enroll confirm ⏎
+              embody confirm ⏎
             </StageButton>
           </LogColumn>
         </StageInner>
       </StageBody>
 
-      {/* The one preview surface — previews the `enroll …` an affordance
+      {/* The one preview surface — previews the `embody …` an affordance
           runs. Intake keeps it because intake renders command-sending
           affordances, and the axiom does not switch off during it. This
           site and App's are mutually exclusive phases, so exactly one
           bar is mounted at any instant. */}
       <StatusBar />
-      {/* The command bar is the backbone — typed `enroll …` always works. */}
+      {/* The command bar is the backbone — typed `embody …` always works. */}
       <CommandBar
         barId="chargen"
         onSendCommand={onSendCommand}

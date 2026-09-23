@@ -508,7 +508,7 @@ does everywhere else.
 
 #### ⚠ The disconnect reset — real, and NOT fatal
 
-The `EnrollmentDraft` is *"a **transient, never-persisted** scratch
+The `CharacterDraft` is *"a **transient, never-persisted** scratch
 object"* on `Login`
 ([char-gen.md](../../subsystems/char-gen.md)) — deliberately, since it
 is what makes *"an abandoned or disconnected char-gen leaves no playable
@@ -1029,7 +1029,7 @@ row discriminator. **The seeding surface is one third built:**
 
 | ledger | seeder | wired to char-gen |
 |---|---|---|
-| `chronicles` | ✅ `ChronicleApi.seedClaims(owner, {text, order}[])` | ✅ `EnrollController:753` |
+| `chronicles` | ✅ `ChronicleApi.seedClaims(owner, {text, order}[])` | ✅ `EmbodyController:753` |
 | `disposition_events` | ✅ `TraitApi.seedClaims(owner, {disposition, valence}[])` — ⚠ needs a `when` (below) | ❌ NPCs only (`Behaved._seedDispositions`) |
 | `transcripts` | ❌ **missing** | ❌ |
 
@@ -1137,7 +1137,7 @@ raises the question of what happens to it.
 
 ### The slot exists and is inert
 
-*Superseded by the code — age is a DATE now, not an inert counter: `OrganismMixin.bornAt`, `getAgeDays()` derived on read, and char-gen stamps `bornAt` at commit (`EnrollController.ts:709`). See [race.md](../../subsystems/race.md) § *Age is a DATE, and what it confers is the whole design*.*
+*Superseded by the code — age is a DATE now, not an inert counter: `OrganismMixin.bornAt`, `getAgeDays()` derived on read, and char-gen stamps `bornAt` at commit (`EmbodyController.ts`). See [race.md](../../subsystems/race.md) § *Age is a DATE, and what it confers is the whole design*.*
 
 ### The birthday
 
@@ -1217,7 +1217,7 @@ recording now so it is not designed by accident:
 ## Friction — check the funnel first
 
 Auth happens **before** char-gen: signup creates zero avatars, and
-`Login` runs the enroll flow once a session exists. There is already a
+`Login` runs the embody flow once a session exists. There is already a
 `mintRandomGuestAvatar` on the guest path, sharing config with char-gen.
 
 **So char-gen abandonment is not a lost signup — it is a registered user
@@ -1644,7 +1644,7 @@ than re-opened.
 
 ## Cross-references
 
-- [char-gen.md](../../subsystems/char-gen.md) — the `enroll` draft
+- [char-gen.md](../../subsystems/char-gen.md) — the `embody` draft
   machine this restructures, and its **§ Forward compatibility** section:
   what the client rebuild should do *now* so this lands cheaply later
   (keep server-authoritative whole-state re-emit; generalize the

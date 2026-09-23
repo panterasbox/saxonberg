@@ -30,12 +30,19 @@ requires:
   # listed. Every one is held by the executive unless said otherwise.
   title:
     - { extent: /platform }        # its documents: settings, subjects, blueprints
-    - { extent: /stuff }           # the commons; the object packs claim their own branchesr branches under it
+    # The commons — held by the Ministry of Trade (economic bootstrap D7):
+    # the torches and chests are the physics of things, a seat's and never
+    # a committee's. The object packs claim their own branches under it.
+    - { extent: /stuff, holder: { organization: /compact/trade } }
     - { extent: /blueprints }      # publishBlueprint's mint branch — publishing a curated blueprint is a platform act
     - { extent: /compact }         # the publications namespace
     - { extent: /studio }          # the sandbox's group-cell namespace
     - { extent: /home }            # the personal workspaces' root (each /home/<key> is its player's, rung 2)
     - { extent: /world }          # the world's root; every locality claims its own extent under it
+    # /world/saxonberg — the second city, a parcel TO BE SEATED BY THE
+    # COMPACT (economic bootstrap D5). Declared, held by the executive by
+    # default like every other unheld claim, and empty until then.
+    - { extent: /world/saxonberg }
     - { extent: /wiki, holder: { group: wiki-editors } }   # kept — the same holder as before
 
 # Eager at boot — the union of every applied pack's list is what
@@ -51,6 +58,11 @@ boot:
   - { template: /platform/idea/BlueprintCatalogue, role: producer, reason: rebuilds the derived skeleton and warms from the curated blueprints at postRegister }
   - { template: /compact/press, role: producer, reason: appoint and the publish path resolve the organization by templatePath }
   - { template: /compact/executive, role: producer, reason: "appoint, the publish path and every organization-held title resolve it by templatePath" }
+  # The economic bootstrap's two seat-held organizations: an
+  # organization-held title admits nobody until the org is resident, and
+  # the Treasury's account is keyed on this row's path.
+  - { template: /compact/treasury, role: producer, reason: "the Treasury: the Arrival Note's counterparty, the treasury account's owner, the escheat's recipient — resolved by templatePath at every fiscal touch" }
+  - { template: /compact/trade, role: producer, reason: "the Ministry of Trade holds every /trade and /stuff title; an organization-held title admits nobody until the org is resident" }
   - { template: /platform/idea/PressBoard, role: producer, reason: the news-ticker window warms from the release documents at postRegister, dependsOn: [/compact/press, /compact/executive] }
   - { template: /platform/idea/DisciplineCatalogue, role: sync-read, reason: the advancement Catalog's descriptor cache }
   - { template: /platform/idea/MaturationProfileCatalogue, role: sync-read, reason: "stands the maturation-profile roster up for the vat reconcile's sync match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }

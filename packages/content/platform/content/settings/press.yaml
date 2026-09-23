@@ -25,5 +25,18 @@ settings:
   # listed here puts a publisher on the front door and says nothing about
   # who may read a given release. An entry that doesn't resolve is skipped
   # and logged at boot — a typo must not silently empty the page.
+  #
+  # ⭐ The Terminus Gazette rides the front door too (economic bootstrap
+  # D20): the realm's paper, and the one that prints the price index. On
+  # an install without the terminus pack the entry does not resolve and is
+  # skipped with a boot line, as the comment above says.
   - key: press.frontPage
-    value: "/compact/press"
+    value: "/compact/press,/world/terminus/gazette"
+
+  # ⭐ The Gazette's edition window (economic bootstrap D20): GAME hours
+  # between two printings of the price index. The editor's beat runs on a
+  # real cadence and skips until this much game time has passed since the
+  # last edition it remembers — journalism on the world's clock, not the
+  # server's.
+  - key: press.indexEditionGameHours
+    value: "6"

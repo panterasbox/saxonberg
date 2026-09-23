@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url));
-const REJECTION = join(CONTENT, 'rejection', 'content', 'world', 'rejection');
+const REJECTION = join(CONTENT, 'rejection', 'content', 'world', 'terminus', 'rejection');
 const WOOD = join(REJECTION, 'hanging-wood');
 
 interface Row {
@@ -87,8 +87,8 @@ describe('the Hanging Wood', () => {
       }
     }
     const hillside = row(join(REJECTION, 'location', 'hillside.yaml'));
-    expect(hillside.data.exits!.north!.destination).toBe('/world/rejection/hanging-wood/treeline');
-    expect(row(join(WOOD, 'treeline.yaml')).data.exits!.south!.destination).toBe('/world/rejection/location/hillside');
+    expect(hillside.data.exits!.north!.destination).toBe('/world/terminus/rejection/hanging-wood/treeline');
+    expect(row(join(WOOD, 'treeline.yaml')).data.exits!.south!.destination).toBe('/world/terminus/rejection/location/hillside');
   });
 
   it('every room plots on its own cell, and no two rooms prop one panel', () => {
@@ -136,7 +136,7 @@ describe('the Hanging Wood', () => {
     const pack = YAML.parse(readFileSync(join(CONTENT, 'rejection', 'pack.yaml'), 'utf8')) as {
       requires: { title: Array<{ extent: string; landUse?: string; holder: { group?: string } }> };
     };
-    const wood = pack.requires.title.find((t) => t.extent === '/world/rejection/hanging-wood')!;
+    const wood = pack.requires.title.find((t) => t.extent === '/world/terminus/rejection/hanging-wood')!;
     expect(wood).toBeDefined();
     expect(wood.landUse).toBe('agricultural');
     expect(wood.holder.group).toBe('rejection');

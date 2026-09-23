@@ -139,7 +139,7 @@ export interface Organization {
     nowRaw: number,
   ): Employment | null;
   /** Flip `actor`'s record with this organization to a terminal status. */
-  endEmployment(actor: Stuff & Employed, status: 'fired' | 'quit'): void;
+  endEmployment(actor: Stuff & Employed, status: 'fired' | 'quit' | 'vacated'): void;
   /** The existing record, or a lazily-materialized off-shift one. */
   ensureRostered(
     actor: Stuff & Employed,
@@ -267,7 +267,9 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     public rosterSlots: RosterAssignment[] = [];
 
     public getOrganizationPath(): string {
-      return (this as unknown as Stuff).getTemplatePath() ?? '';
+      // The identity path — the template path for every content row, the
+      // minted identity for a business stood up from a seed (D15).
+      return (this as unknown as Stuff).getIdentityPath() ?? '';
     }
 
     public getAppointingAuthority(): PrincipalRef | null {
@@ -357,7 +359,7 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     @CallSecurity(OrganizationSurface)
     public endEmployment(
       actor: Stuff & Employed,
-      status: 'fired' | 'quit',
+      status: 'fired' | 'quit' | 'vacated',
     ): void {
       actor._setEmploymentStatus(this.getOrganizationPath(), status);
     }

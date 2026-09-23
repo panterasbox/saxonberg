@@ -21,6 +21,9 @@ describe('Employment', () => {
       'off-shift',
       'quit',
       'fired',
+      // Vacated by absence (economic bootstrap D16) — a terminal exit
+      // nobody chose.
+      'vacated',
     ]);
   });
 

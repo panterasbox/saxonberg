@@ -16,4 +16,4 @@ data:
   censusKey: ice:bag
   regionTarget: 10
   materialTags: ["ice"]
-  container: /trade/bottling/thing/bottling-stock
+  container: /world/terminus/goods-yards/bottling/thing/stock

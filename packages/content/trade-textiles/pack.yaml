@@ -11,17 +11,10 @@ description: >-
   to spin it, how close to weave it — and ⭐⭐ spinning is the
   bottleneck, which is a lesson rather than a tuning accident.
 requires:
-  groups:
-    - name: textiles
-      purpose: the textile trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/textiles, holder: { group: textiles } }
-boot:
-  # ⚠ A venue whose floor holds a `Stock` and whose cast runs a
-  # `consigns` beat has to be EAGER: lazily-cloned rooms mean the
-  # weaver never starts carrying bolts to the store and the trade
-  # produces into a room nobody has opened. `trade-farming` records the
-  # same pair for the same reason.
-  - { template: /trade/textiles/location/mill, role: producer, reason: "the mill floor — its Stock is the home container bolts spawn into, and its weaver runs the consigns brain" }
-  - { template: /trade/textiles/idea/mill, role: producer, reason: "the weaver's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+    - { extent: /trade/textiles, holder: { organization: /compact/trade } }
+# The premises' boot entries moved to `terminus` with the rows (economic
+# bootstrap D6): a trade is placeless; its floor is the city's.

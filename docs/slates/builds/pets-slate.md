@@ -6,7 +6,12 @@
 > a moment the animal decides, the ask, naming as the promotion, the
 > residency pin. The substrate under it landed with ranching →
 > [ranching.md](../../subsystems/ranching.md).
-> **Left:** the fear/threat axis + the wild taming encounter (Wave 2) ·
+> **Left:** ⚠ **an animal whose keeper's estate passes** (handed over by
+> the economic bootstrap, 2026-09-23 — escheat moves titles, balances and
+> a kept house's counters, and says nothing about a living thing that was
+> being fed; the pound keeper is the shape, and it is a *who feeds it
+> now* question before it is a property one) · the fear/threat axis + the
+> wild taming encounter (Wave 2) ·
 > the pet shop (a `Stock` over animal rows + the mint at purchase) · the
 > accept/refuse appraisal for `pet` / `call` / `stay` (today only `offer`
 > reads temperament × state × regard) · fetch / BUC-sniff / guard brains +

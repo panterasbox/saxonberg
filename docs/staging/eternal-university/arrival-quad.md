@@ -59,7 +59,7 @@ public-street / civic / device systems). Two rules:
 > (per `terminus-city.md` §2). The earlier "east=terminal / west=campus"
 > wording in this section was the stale frame and is replaced by the below.
 
-- **Room:** `/world/eternal/university-avenue/crossing` — a
+- **Room:** `/world/terminus/eternal/university-avenue/crossing` — a
   `CartesianLocation` in the `university-avenue` `CartesianZone` (renamed
   from `plaza`; `primaryKeyword: crossing`, `shortDescription` stays
   `University Avenue`).

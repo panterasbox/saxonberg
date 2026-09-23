@@ -15,6 +15,10 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # What the branch calls itself on paper — the lender's name on every loan
+  # it holds (`bank book`: *Goodkin holds: …*). Unnamed, a Business
+  # presents as "something", and so did the bank.
+  name: "Goodkin"
   # ⭐ GOODKIN's board hires Goodkin's tellers — not the city.
   #
   # The city owns the district this counter stands in
@@ -58,5 +62,9 @@ data:
   # custodied at Goodkin (the legitimate self-custody: the custodian IS
   # a bank).
   banksAt: goodkin
+  # ⭐ CHARTERED (economic bootstrap D19): Goodkin may lend, take deposits
+  # and present secured paper at the reserve's window. The one member of
+  # the closed vocabulary; the only chartered bank at launch.
+  charter: [bank]
   operatingLocations:
     - /world/terminus/counting-houses/bank-counter

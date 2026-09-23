@@ -42,7 +42,7 @@ See also:
   a sibling: it consumes gamestate internally with full trust and
   emits a *narrower, unauthed* projection.
 - [char-gen.md](../../subsystems/char-gen.md) *(shipped; slate retired)* + the `feature/char-gen-wave1`
-  implementation (`CharGenStage`, `enroll`/`EnrollController`) — the
+  implementation (`CharGenStage`, `embody`/`EmbodyController`) — the
   pre-world char-gen flow the start screen hands off to. (Supersedes
   the cockpit slate's modal Track 3.)
 - [lounge-slate.md](../builds/lounge-slate.md) — the **first room**, locked in

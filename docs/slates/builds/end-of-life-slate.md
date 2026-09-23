@@ -240,7 +240,7 @@ open economics:
 - **Aging and lifespans** — decided in `race.md`, deliberately inert.
   Not this build's, not any build's until succession is solved.
 - **Inheritance and probate** — *superseded by
-  `docs/requirements/economic-bootstrap-requirements.md § Beneficiaries` +
+  [credit.md § the estate](../../subsystems/credit.md) +
   `§ Debts first, then situs`* (a player's estate passes to a named
   beneficiary, debts first, the rest by situs; no kinship model or court
   is required).

@@ -1,6 +1,6 @@
 /**
  * RemodelController — the `remodel` verb (a Duncan Hall *content* verb —
- * content namespace `world/eternal/duncan-hall/`, not a core command
+ * content namespace `world/terminus/eternal/duncan-hall/`, not a core command
  * category): the tenant's **local** shell-personalization commit. Standing in
  * your own dorm
  * room, `remodel` opens a `PromptApi.choice` wheel of authored styles; picking

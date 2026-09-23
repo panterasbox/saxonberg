@@ -15,6 +15,8 @@ import CheckRack from "../../../thing/CheckRack";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
+import { BankingApi } from "../../../../api/banking";
+import { StuffApi } from "../../../../api/stuff";
 import { Mml } from "../../../../api/mml";
 import { ChattelApi } from "../../../../api/chattel";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
@@ -58,14 +60,18 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
       return;
     }
 
-    // You reclaim what you own (custody is with the shop; ownership is yours).
+    // You reclaim what you own (custody is with the shop; ownership is
+    // yours) — or what the HOUSE you act for owns (economic bootstrap
+    // D11: a supplier outfit's hand takes an unpaid crate back off a
+    // shop's counter — rung 0's repossession, a query over who owns it).
     const owner = MixinApi.isChattel(item)
       ? await item.chattelOwner()
       : null;
-    if (
-      owner?.kind !== "player" ||
-      owner.templatePath !== giver.getIdentityPath()
-    ) {
+    const house = await this.activeHouse(giver);
+    const mine =
+      (owner?.kind === "player" && owner.templatePath === giver.getIdentityPath()) ||
+      (owner?.kind === "organization" && house !== null && owner.templatePath === house.getIdentityPath());
+    if (!mine) {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to take.`, {
         kind: "controller-rejected",
         reason: "not-owner",
@@ -85,6 +91,22 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
       .toSelf(Mml.compose`You take ${Mml.thing(item)} back off the shelf.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} takes ${Mml.thing(item)} back off the consignment shelf.`)
       .send();
+  }
+
+  /**
+   * The Business whose operating account is the wallet's active one, if the
+   * giver buys for it — the house they act as right now (the `consign`
+   * controller's own rule). Null = personal.
+   */
+  private async activeHouse(giver: Stuff): Promise<Stuff | null> {
+    const active = BankingApi.activeCredential()?.getActiveAccount() ?? null;
+    if (!active) return null;
+    const ownerKey = await BankingApi.ownerKeyOf(active);
+    if (!ownerKey || ownerKey === giver.getIdentityPath()) return null;
+    const live = StuffApi.findByTemplatePath(ownerKey);
+    if (!live || !MixinApi.isBusiness(live)) return null;
+    const mine = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
+    return mine.includes(live) ? live : null;
   }
 
   private reject(

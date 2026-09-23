@@ -127,6 +127,11 @@ describe("the leg-kind vocabulary — no untyped legs", () => {
       "escrow-release": { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
       "escrow-revert": { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
       draw: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
+      // The economic bootstrap's four (D2): all real→real.
+      advance: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
+      repayment: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
+      appropriation: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
+      escheat: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
     };
     for (const kind of LEDGER_KINDS) {
       expect(() =>
@@ -147,16 +152,24 @@ describe("the leg-kind vocabulary — no untyped legs", () => {
 describe("BankTransaction.supplyDelta — only mint/drain change supply", () => {
   it("mint adds, drain removes, everything else is neutral", () => {
     const legs = [{ from: "a", to: "b", amount: 100, currency: BankingApi.compactCurrency() }];
+    // …and the same sums PER LANE, by the leg's category (an unlabelled
+    // leg lands in `other`) — the warmed read behind "what the window has
+    // outstanding" (economic bootstrap W9).
     expect(BankTransaction.supplyDelta("mint", legs)).toEqual({
       currency: BankingApi.compactCurrency(),
       minted: 100,
       drained: 0,
+      lanes: { other: { minted: 100, drained: 0 } },
     });
     expect(BankTransaction.supplyDelta("drain", legs)).toEqual({
       currency: BankingApi.compactCurrency(),
       minted: 0,
       drained: 100,
+      lanes: { other: { minted: 0, drained: 100 } },
     });
+    expect(
+      BankTransaction.supplyDelta("mint", [{ ...legs[0]!, category: "window" }]).lanes,
+    ).toEqual({ window: { minted: 100, drained: 0 } });
     for (const kind of [
       "transfer",
       "payment",
@@ -171,8 +184,9 @@ describe("BankTransaction.supplyDelta — only mint/drain change supply", () => 
     ] as const) {
       expect(BankTransaction.supplyDelta(kind, legs)).toEqual({
         currency: BankingApi.compactCurrency(),
-      minted: 0,
+        minted: 0,
         drained: 0,
+        lanes: {},
       });
     }
   });

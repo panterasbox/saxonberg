@@ -1,8 +1,8 @@
 /**
  * Login tests — the pre-world charter: branch on character count
- * (0 → char-gen, ≥1 → roster), host the `enroll`/`play` verbs as a real
+ * (0 → char-gen, ≥1 → roster), host the `embody`/`play` verbs as a real
  * CommandGiver, receive frames as a Sensor, and hand off to a chosen
- * Avatar. The enroll flow itself is tested in EnrollController.test.ts;
+ * Avatar. The embody flow itself is tested in EmbodyController.test.ts;
  * Avatar session-start lives in Avatar.test.ts.
  */
 
@@ -62,11 +62,11 @@ describe('Login', () => {
       expect([...login.getInteractives()]).toEqual([interactive]);
     });
 
-    it('exposes the enroll/play verbs but no world verbs (recency-stack sandbox)', () => {
+    it('exposes the embody/play verbs but no world verbs (recency-stack sandbox)', () => {
       const verbs = login
         .getAvailableCommands()
         .flatMap((d) => (d.verbs as string[]) ?? []);
-      expect(verbs).toContain('enroll');
+      expect(verbs).toContain('embody');
       expect(verbs).toContain('play');
       expect(verbs).not.toContain('go');
       expect(verbs).not.toContain('say');

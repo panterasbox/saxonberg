@@ -1,0 +1,46 @@
+# The hazel cant — a clearing given over to coppice, a few standards
+# left over it. A STAND (`/trade/forestry/location/Wood`); see the ride's
+# header for the rules.
+class: /trade/forestry/location/Wood
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: hazel cant
+  keywords: [cant, "hazel cant", coppice, hazel, clearing, wood, "hanging wood"]
+  register: definite
+  woodName: the Hanging Wood
+  areaM2: 100
+  _biomePath: /stuff/idea/biome/outdoor/woodland
+  # Lit — the canopy opened for the coppice.
+  ambientIntensity: 3500
+  ambientColorTemperature: 5800
+  longDescription: |
+    West of the ride the wood has been worked: a cant of hazel stools in rough rows, cut to the knuckle and standing at the same height because of it, with a few oaks and ashes left standing over them for timber the way a coppice with standards is meant to be. The tops and brash of the last cut are heaped at the edge, going grey.
+
+    This is where the yard's cordwood comes from, and has for longer than the yard.
+  coords: { x: -1, y: 1, z: 0 }
+  mix:
+    - speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/robur
+      name: oak
+      woodMaterialPath: /stuff/idea/material/wood/oak
+      seedPath: /trade/forestry/thing/seed/acorn
+      standing: 4
+      capacity: 6
+      incrementPerYear: 1
+    - speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/oleaceae/fraxinus/excelsior
+      name: ash
+      woodMaterialPath: /stuff/idea/material/wood/ash
+      seedPath: /trade/forestry/thing/seed/ash-key
+      standing: 4
+      capacity: 4
+      incrementPerYear: 1
+  exits:
+    east:
+      destination: /world/terminus/rejection/hanging-wood/ride
+      edgeMinutes: 2
+  props:
+    - /world/terminus/rejection/hanging-wood/thing/panel-west
+  details:
+    brash:
+      keywords: [brash, tops, heap, edge]
+      description: |
+        The tops off the last cut, heaped at the edge of the cant and going grey. Nobody wants them and nobody has burned them.

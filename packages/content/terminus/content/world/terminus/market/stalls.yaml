@@ -9,9 +9,18 @@
 # generous per-consignor cap while every other shelf keeps the global
 # `retail.consignment.listingCap`. An authored, per-venue fact — never a
 # global raise.
-class: /platform/thing/Stock
+#
+# ⭐ `MarketStalls` (economic bootstrap D15): the same counter, plus the
+# square's one fact — `rentMinor`, what a stall of your own costs — and
+# the `stall` verb it affords to whoever stands here. A rented stall is a
+# plain `Stock` minted from `thing/stall` with the renter's identity.
+class: /world/terminus/market/thing/MarketStalls
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # Against the ladder (stipend 20; a lantern 10, a bed 45): a week's
+  # pitch on the square is an evening's wages — the lowest rung of
+  # owning a shop has to be reachable on day one.
+  rentMinor: 5
   shortDescription: produce stalls
   keywords: [stall, stalls, produce, trestle, counter]
   register: definite

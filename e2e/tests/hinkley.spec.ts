@@ -286,7 +286,7 @@ test('⭐ BUY A LOT — minted by the one office allowed to mint', async ({
     // makes the rest of the test mean something.
     await sendUntil(
       ordinary.page,
-      'reserve issue 6000',
+      'reserve override 6000 to founder "e2e"',
       ordinary.page.getByText(/must hold the Governor/i).first()
     );
   } finally {
@@ -302,8 +302,12 @@ test('⭐ BUY A LOT — minted by the one office allowed to mint', async ({
     // ⭐ …and it opens for the Governor. Same verb, same validator.
     await sendUntil(
       page,
-      'reserve issue 6000',
-      page.getByText(/fresh currency into your hands/i).first()
+      // economic bootstrap: the reserve issues no coin by hand — the
+      // founder funds their own ACCOUNT by recorded override (an open
+      // account at Goodkin is assumed; the render tier is not in the
+      // validate gate and this flow was updated by text — see the plan).
+      'reserve override 6000 to founder "e2e funding"',
+      page.getByText(/on your override/i).first()
     );
 
     await sendUntil(

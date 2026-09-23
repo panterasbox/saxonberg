@@ -10,7 +10,7 @@
 > pointers (Change 2) · deviations — the declared delta subsuming role
 > suppression, and the drift readout · elsewhere / seasonal / borrowed
 > roles (the calendar axis) · the expander extracted out of
-> `EnrollController.commit` + `Login` (kit for NPCs; the three selectors)
+> `EmbodyController.commit` + `Login` (kit for NPCs; the three selectors)
 > · `role`/`temperament` as char-gen fields · the lineage re-reading
 > **Size:** a build
 
@@ -337,7 +337,7 @@ data:
     everything twice.
   roleConfig:
     consigns:
-      stock: /trade/cooking/thing/pantry-stock
+      stock: /world/terminus/goods-yards/pantry/thing/stock
       shelf: /trade/distilling/thing/counter
       ask: { pantry:sugar: 8, pantry:salt: 5, pantry:coffee: 22, pantry:syrup: 6 }
     idles:
@@ -608,7 +608,7 @@ Same structure. Different name, player-side, one kind.
 
 ## ⚠⚠ The expander exists — and is already duplicated
 
-`EnrollController.commit` step 5 performs exactly an archetype expansion:
+`EmbodyController.commit` step 5 performs exactly an archetype expansion:
 clone each garment, `ContainmentApi.move`, `getSlotClaim`,
 `SlotApi.occupyAll`, skipping tolerantly on mismatch — then
 `ChronicleApi.seedClaims(avatar, aspiration.claimSeeds)`.
@@ -626,7 +626,7 @@ creature."* True from where he stands, false about the codebase —
 controller and unreachable from a template row.
 
 So `kit` is not a new axis to design. It is an existing mechanism that
-needs a caller other than `enroll`.
+needs a caller other than `embody`.
 
 ## ⭐⭐ And the procedural selector already ships
 
@@ -643,7 +643,7 @@ with a different selector:
 | selector | who chooses | shipped? |
 |---|---|---|
 | **authored** | the NPC template's `archetypes: [...]` | this build |
-| **picked** | `enroll aspiration <key>` | ✅ |
+| **picked** | `embody aspiration <key>` | ✅ |
 | **drawn** | `pickRandom` over the roster | ✅ (guests) |
 
 Three selectors, one expansion. The `NameBank` suggester is already the
@@ -758,7 +758,7 @@ Per rung:
   anything. Purity is not a goal and Dave is the proof.
 - **`kit` is not a missing axis.** `AspirationRosterEntry.outfit` is the
   declarative gear path Gus's header says does not exist; it needs a
-  caller other than `enroll`, not a design.
+  caller other than `embody`, not a design.
 - **Char-gen is not an adjacent system to integrate with.** It is the
   shipped implementation of this design for one kind. Build against it;
   do not build a parallel expander.
@@ -819,7 +819,7 @@ Per rung:
   is an archetype picker — but does not design it.
 - **The build order past the first move.** Only the first move is
   asserted: **extract the duplicated expander** out of
-  `EnrollController.commit` / `Login`, which stands on its own merits
+  `EmbodyController.commit` / `Login`, which stands on its own merits
   before any NPC consumes it.
 - **Location archetypes.** Shipped, different subsystem, borrowed only as
   precedent.

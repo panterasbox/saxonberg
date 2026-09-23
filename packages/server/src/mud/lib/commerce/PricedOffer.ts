@@ -30,8 +30,10 @@ export interface Collected {
 
 /** The public price-list surface a priced-offer venue exposes. */
 export interface PricedOffer {
-  /** The authored price (minor units) for `key`, or null if unpriced. */
+  /** The ask (minor units) for `key`, or null if unpriced — derived by a Stock's stocking rule, authored elsewhere. */
   priceFor(key: string): number | null;
+  /** The AUTHORED base price for `key` (what `priceFor` derives from), or null. */
+  basePriceFor(key: string): number | null;
   /** Author/adjust the price for `key`, in minor units. */
   setPrice(key: string, minorUnits: number): void;
   /** The keys this offer prices. */
@@ -64,6 +66,10 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
     public prices: Record<string, number> = {};
 
     public priceFor(key: string): number | null {
+      return this.prices[key] ?? null;
+    }
+
+    public basePriceFor(key: string): number | null {
       return this.prices[key] ?? null;
     }
 

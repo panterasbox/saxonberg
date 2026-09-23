@@ -26,6 +26,11 @@ invariants:
     PASS under the sandbox: the spine is the mechanism's own store, and a
     scoped snapshot would be a host that restores differently depending on
     where you stood.
+  - >-
+    `writtenAt` is the epoch-ms of the last capture — for an Avatar, its
+    last logout — and the one number a member's estate state (active,
+    dormant, escheated) derives from. The row is never opened to learn
+    when somebody was last seen.
 sandbox: pass
 reset: wipe
 indexes:
@@ -43,3 +48,7 @@ indexes:
       The single-record capture upsert. Unique because two rows for one
       (scope, owner) would make a restore ambiguous, and the pair is exactly
       one host's slice.
+  - keys: { writtenAt: 1 }
+    why: |
+      The active-member count and the estate reads: every avatar row
+      written since a cutoff, without touching `state`.

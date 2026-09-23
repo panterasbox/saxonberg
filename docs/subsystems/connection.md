@@ -691,7 +691,7 @@ socketId, then switches on `message.type`:
 never `instanceof` — and anything else gets a `No active character`
 error. **Both `Avatar` (in-world) and `Login` (pre-world char-gen /
 roster) are `CommandGiver`s**, so the same path serves both; the
-char-gen `enroll`/`play` verbs ride this exact pipeline (see
+char-gen `embody`/`play` verbs ride this exact pipeline (see
 [char-gen.md](./char-gen.md)). The placeless guard (holder has no
 container) is **Avatar-only** — a `Login` is intentionally locationless
 and still dispatches. The handler builds the `CommandContext` and calls

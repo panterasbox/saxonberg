@@ -1,0 +1,32 @@
+verbs: [treasury]
+controller: /platform/idea/cmd/banking/TreasuryController
+description: "The Treasury — the Minister of Finance's book, and appropriation"
+help: |
+  The Treasury's surface, gated on the `minister-of-finance` office (the
+  founder by default, or a handed-off holder). The Treasury is the state's
+  one account, at the Central Bank: the perpetual lands in it, the demo tax
+  accumulates in it, and everything fiscal is spent FROM it — the Arrival
+  Note's principal, a business's opening advance, and whatever the Minister
+  appropriates.
+
+  Bare `treasury` reads the book: the balance, the perpetual outstanding,
+  opening advances outstanding, unclaimed property held. `treasury
+  appropriate <amount> to <target>` spends from the account to a named
+  business or member — the Minister's act, and it names its destination.
+  Nothing mints here: the supply does not move when the Treasury spends.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresFinanceMinister
+subcommands:
+  appropriate:
+    description: "Spend from the treasury's account: <amount> to <target>"
+    args:
+      - name: amount
+        type: string
+        required: true
+      - name: to
+        type: string
+        required: true
+      - name: target
+        type: string
+        required: true

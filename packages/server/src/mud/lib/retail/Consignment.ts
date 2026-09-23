@@ -114,10 +114,22 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
   return HeldGoodsMixin;
 }
 
+/**
+ * The basis a good sits on a counter under (economic bootstrap D11).
+ * `consignment`: the consignor's own ask; the shop takes a commission at
+ * sale. `terms`: supplier terms — the SHOP sets the ask and keeps the
+ * margin; `askMinor` is what the supplier is OWED at sale (title retained
+ * until paid). Rung 0 of the credit ladder: consignment grown up.
+ */
+export const LISTING_BASES = ["consignment", "terms"] as const;
+export type ListingBasis = (typeof LISTING_BASES)[number];
+
 /** A consignment listing — a held good offered for **sale** at a price. */
 export interface ConsignmentListing extends HeldGood {
-  /** The asking price, in minor units. */
+  /** The asking price (consignment) or the supplier's price owed at sale (terms), in minor units. */
   askMinor: number;
+  /** The basis it sits here under; absent on a row written before the bootstrap reads as `consignment`. */
+  basis?: ListingBasis;
 }
 
 /**
@@ -139,10 +151,13 @@ export interface ConsignmentShelf extends HeldGoodsShelf {
     itemChattelId: string,
     consignorKey: string,
     askMinor: number,
+    basis?: ListingBasis,
   ): ConsignmentListing;
   removeListing(itemChattelId: string): void;
   listingFor(itemChattelId: string): ConsignmentListing | null;
   listingsOf(consignorKey: string): ConsignmentListing[];
+  /** Every live listing on the shelf, any consignor, any basis. */
+  allListings(): ConsignmentListing[];
   activeListingCount(consignorKey: string): number;
   /** A shelf good, matched by keyword, that carries a live listing. */
   resolveConsigned(keyword: string): (Stuff & Containable) | null;
@@ -193,13 +208,19 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       itemChattelId: string,
       consignorKey: string,
       askMinor: number,
+      basis: ListingBasis = "consignment",
     ): ConsignmentListing {
       const listing = this.recordHolding(
         itemChattelId,
         consignorKey,
       ) as ConsignmentListing;
       listing.askMinor = askMinor;
+      listing.basis = basis;
       return listing;
+    }
+
+    public allListings(): ConsignmentListing[] {
+      return [...this.heldGoods] as ConsignmentListing[];
     }
 
     public removeListing(itemChattelId: string): void {

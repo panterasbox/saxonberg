@@ -10,7 +10,7 @@ import { TestHooks } from '../TestHooks';
 import Avatar from '../../mud/platform/agent/Avatar';
 import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
-import EnrollController from '../../mud/platform/idea/cmd/charactergen/EnrollController';
+import EmbodyController from '../../mud/platform/idea/cmd/charactergen/EmbodyController';
 import { StuffApi } from '../../mud/api/stuff';
 import { User } from '../../mud/lib/identity/User';
 import { AppApi } from '../../mud/api/app';
@@ -81,7 +81,7 @@ describe('TestHooks.provisionCharacter', () => {
     // ⭐ One avatar clone, then the first aspiration's outfit — the test
     // character is dressed as an enrolled one (a naked body starves at
     // room temperature; the fishing drive found it).
-    const outfit = EnrollController.loadConfig().aspirations[0]?.outfit ?? [];
+    const outfit = EmbodyController.loadConfig().aspirations[0]?.outfit ?? [];
     expect(clone).toHaveBeenCalledTimes(1 + outfit.length);
     for (const [i, garment] of outfit.entries()) {
       expect(clone.mock.calls[1 + i]![0]).toBe(garment);

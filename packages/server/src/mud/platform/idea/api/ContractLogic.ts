@@ -17,6 +17,7 @@ import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { StuffApi } from "../../../api/stuff";
+import LedgerEntry from "../../../lib/banking/LedgerEntry";
 import { Template } from "../../../lib/stuff/Template";
 import { MixinApi } from "../../../api/mixin";
 import { Currency, BankingApi, Money, Account } from "../../../api/banking";
@@ -50,6 +51,19 @@ import type {
 } from "../../../api/contract";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import { CategoryMeasure } from '../../../lib/employment/CategoryMeasure';
+import { ContainmentApi } from "../../../api/containment";
+import { DocumentApi } from "../../../api/document";
+import { GrammarApi } from "../../../api/grammar";
+import type { Bank } from "../../../lib/banking/Bank";
+import type { Container } from "../../../lib/spatial/Container";
+import type { Containable } from "../../../lib/spatial/Containable";
+import type {
+  ContractKind,
+  CreditRung,
+  CreditSecurity,
+  CreditTermsData,
+} from "../../../lib/employment/CreditTerms";
+import type { RemittanceSplit } from "../../../lib/banking/Charge";
 
 const ContractApiCallers = SecurityPolicies.FromModule(
   "/api/contract#ContractApi",
@@ -843,14 +857,13 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
     if (!custodian) {
       return { ok: false, reason: "the stake's bank can't be resolved" };
     }
-    // ⚠ Opening capital 0: this is a PAYEE opening an account to receive a
-    // gig's stake, not a venue being capitalized to trade.
+    // A PAYEE opening an account to receive a gig's stake; it opens on
+    // nothing, like every account.
     payee = await BankingApi.ensureVenueAccount(
       key,
       custodian,
       "",
       BankingApi.compactCurrency(),
-      0,
     );
   }
 
@@ -944,6 +957,939 @@ function originOfPoster(poster: Stuff): string {
   return poster.getContainer()?.getTemplatePath() ?? "";
 }
 
+
+/* ═══════════════════ the credit face (economic bootstrap) ═══════════════════ */
+
+/** Game-seconds in a game-year (the calendar's 360-day year at 86,400 game-s a day). */
+const GAME_YEAR_S = 360 * 86_400;
+/** The Treasury organization — the Note's counterparty, the standing facility's lender. */
+const TREASURY_PATH = "/compact/treasury";
+/** The papers directory every instrument files under. */
+const PAPERS_DIR = "papers";
+
+export type LoanRefusal = { ok: false; reason: string; detail: string };
+export type IssueLoanResult = { ok: true; contractId: string; advanced: number } | LoanRefusal;
+
+export interface IssueLoanSpec {
+  /** The borrower — a Business (the house). */
+  borrower: Stuff & BusinessShape;
+  /** The lender's counter — its Terms carry the rate and the share. */
+  counter: Stuff & Bank;
+  principalMinor: number;
+  rung: 1 | 2;
+}
+
+export interface WindowDefaultRate {
+  currency: string;
+  /** Σ window advances behind loans since boot (open + closed), minor units. */
+  advanced: number;
+  /** Σ window advances behind loans that defaulted, minor units. */
+  defaulted: number;
+  /** defaulted ÷ advanced, or 0. */
+  rate: number;
+}
+
+export interface TreasuryPaper {
+  currency: string;
+  openingAdvancesOwed: number;
+  notesOwed: number;
+  unclaimedHeld: number;
+}
+
+/** A readable line per instrument, for `wallet`, `house book`, `bank book`. */
+export interface InstrumentLine {
+  contractId: string;
+  kind: ContractKind;
+  role: "owes" | "holds";
+  counterparty: string;
+  owedMinor: number;
+  principalMinor: number;
+  rung: CreditRung;
+  state: string;
+  words: string;
+}
+
+function party(kind: ContractParty["kind"], templatePath: string): ContractParty {
+  return { kind, templatePath };
+}
+
+/** The Business a party names, when it is resident. */
+function businessOf(p: ContractParty): (Stuff & BusinessShape) | null {
+  const live = StuffApi.findByTemplatePath(p.templatePath);
+  return live && MixinApi.isBusiness(live) ? (live as Stuff & BusinessShape) : null;
+}
+
+/** The primary account a party's money lands in, or null. */
+async function accountOfParty(p: ContractParty): Promise<string | null> {
+  if (p.kind === "business") {
+    const biz = businessOf(p);
+    if (biz) return EmploymentApi.operatingAccountOf(biz);
+  }
+  return BankingApi.primaryAccountIdOf(p.templatePath);
+}
+
+/** What a party is called, for a paper. */
+function labelOfParty(p: ContractParty): string {
+  if (p.templatePath === TREASURY_PATH) return "the Treasury";
+  const live = StuffApi.findByTemplatePath(p.templatePath);
+  if (live && MixinApi.isOrganization(live)) return EmploymentApi.organizationLabel(live);
+  return live?.getPresentation() ?? p.templatePath;
+}
+
+/** The branch a party's papers file under, and the path of one instrument's paper. */
+function paperPathFor(p: ContractParty, contractId: string, leaf?: string): string {
+  const branch = p.kind === "player"
+    ? `/home/${p.templatePath.split("/").filter(Boolean).pop() ?? ""}`
+    : p.templatePath;
+  return `${branch}/${PAPERS_DIR}/${leaf ?? contractId}`;
+}
+
+/** An amount in WORDS with its unit — *twenty zorkmids* — the no-gauge rule for a paper a person reads. */
+function moneyInWords(minor: number): string {
+  const record = Currency.of(BankingApi.compactCurrency());
+  const unit = minor === 1 ? record.unit : record.plural;
+  return `${GrammarApi.inWords(minor)} ${unit}`;
+}
+
+function percentInWords(fraction: number): string {
+  const pct = fraction * 100;
+  const whole = Math.round(pct);
+  return Math.abs(pct - whole) < 1e-9 ? GrammarApi.inWords(whole) : `${pct}`;
+}
+
+/** The instrument's face, in words — what a person reads. */
+function faceOf(record: ContractRecord): string {
+  const t = record.terms;
+  if (!t) return "";
+  const money = moneyInWords;
+  const lines: string[] = [];
+  if (record.kind === "note") {
+    lines.push(
+      `An Arrival Note. ${labelOfParty(record.issuer)} issues this note to the Treasury of the Compact.`,
+      `Principal: ${money(t.principalMinor)} — money entered the world against this promise.`,
+      `Rate: none — the Compact's rate for newcomers.`,
+      `Discharge: forgiven on the first wage earned, or after ${GrammarApi.inWords(t.dischargeAfterGameDays)} game-days, whichever comes first. You earn it into being yours.`,
+      `Security: the balance it funded, and nothing else.`,
+      `Recourse: none beyond the security. Walk away and the worst case is the unspent balance goes home. No labor is ever owed.`,
+    );
+  } else if (record.kind === "loan") {
+    const secured =
+      t.security.kind === "inventory"
+        ? "the goods on the counter, title retained by the lender until paid"
+        : t.security.kind === "account"
+          ? "the balance it funded"
+          : "nothing — unsecured";
+    lines.push(
+      `A loan. ${labelOfParty(record.issuer)} owes ${labelOfParty(record.holder ?? record.issuer)}.`,
+      `Principal: ${money(t.principalMinor)}${t.rung === "opening" ? " — the Treasury's standing advance on a new house's first account" : ""}.`,
+      `Rate: ${t.ratePerGameYear > 0 ? `${percentInWords(t.ratePerGameYear)} per cent a game-year (a real month)` : "none"}.`,
+      `Repaid as ${percentInWords(t.share)} per cent of each inflow to the borrower's account until principal and interest are cleared. No due date.`,
+      `Secured by ${secured}.`,
+      `Default: no inflows for the Schedule's horizon while a balance is outstanding; the lender may then act on the security. Nothing chases the borrower beyond it.`,
+    );
+  } else if (record.kind === "unclaimed") {
+    lines.push(
+      `Unclaimed property. The Treasury holds ${money(t.principalMinor)} for ${labelOfParty(record.holder ?? record.issuer)}, reclaimable on return, whenever that is. The state cannot default.`,
+    );
+  }
+  return lines.join("\n");
+}
+
+/** Write (or rewrite) an instrument's paper under each party's branch. */
+async function fileInstrument(record: ContractRecord, appended: string[] = []): Promise<void> {
+  const data = {
+    contractId: record.contractId,
+    kind: record.kind,
+    state: record.state,
+    issued: record.postedAt,
+    face: faceOf(record),
+    owedMinor: record.owedMinor,
+    history: appended,
+  };
+  const parties: ContractParty[] = [record.issuer];
+  if (record.holder) parties.push(record.holder);
+  for (const p of parties) {
+    const leaf = record.kind === "note" && p.kind === "player" ? "arrival-note" : record.contractId;
+    try {
+      await DocumentApi.saveInstrument(p.templatePath, paperPathFor(p, record.contractId, leaf), data);
+    } catch {
+      /* a party with no branch (a raw test key) keeps no paper — the row is the claim */
+    }
+  }
+}
+
+/** Append a dated line to an instrument's papers. */
+async function appendToPapers(record: ContractRecord, line: string): Promise<void> {
+  const history: string[] = [];
+  const first = record.holder ?? record.issuer;
+  const leaf = record.kind === "note" && record.issuer.kind === "player" ? "arrival-note" : record.contractId;
+  const existing = await DocumentApi.read(paperPathFor(record.issuer, record.contractId, leaf)).catch(() => null);
+  const prior = (existing?.data as { history?: unknown } | undefined)?.history;
+  if (Array.isArray(prior)) history.push(...prior.filter((x): x is string => typeof x === "string"));
+  void first;
+  history.push(line);
+  await fileInstrument(record, history);
+}
+
+/**
+ * ⭐ Accrual is stamp-forward on every touch: `owed *= (1 + r)^(Δ game-years)`,
+ * the continuous-compounding approximation over the interval since the
+ * last stamp, in integer minor units. A 0% instrument only re-stamps.
+ */
+function accrue(record: ContractRecord): void {
+  const now = worldSeconds();
+  const t = record.terms;
+  if (!t || record.owedMinor <= 0) {
+    record.owedStampS = now;
+    return;
+  }
+  const dt = Math.max(0, now - record.owedStampS);
+  if (t.ratePerGameYear > 0 && dt > 0) {
+    const years = dt / GAME_YEAR_S;
+    record.owedMinor = Math.round(record.owedMinor * Math.pow(1 + t.ratePerGameYear, years));
+  }
+  record.owedStampS = now;
+}
+
+/** A new instrument row, common to every kind. */
+function newInstrument(
+  kind: ContractKind,
+  issuer: ContractParty,
+  holder: ContractParty,
+  terms: CreditTermsData,
+): ContractRecord {
+  const record = new ContractRecord();
+  record.contractId = SecurityApi.uuid();
+  record.kind = kind;
+  record.state = "open";
+  record.issuer = issuer;
+  record.holder = holder;
+  record.terms = terms;
+  record.owedMinor = terms.principalMinor;
+  record.owedStampS = worldSeconds();
+  record.postedAt = worldSeconds();
+  return record;
+}
+
+/* ── the gates: reads of the borrower's own ledger ── */
+
+/**
+ * Completed supplier terms — the borrower's PURCHASE HISTORY (the
+ * requirements' rung-1 borrower is *"a shop with a clean purchase
+ * history"*): `payment` legs OUT of the borrower's account that paid a
+ * supplier for goods. Two shapes, one event: a `terms` leg (the shop
+ * paying a consignor at sale — rung 0 completed) and a `sales` leg to
+ * another HOUSE's account (the keeper paying at a supplier's counter —
+ * the same term, settled on the spot). ⭐ Build decision (W7): the plan's
+ * gate read only the `terms` leg, under which a shop that buys for cash
+ * at the cash-and-carry — every keeper's `stocks` beat — could never
+ * climb, and the NPC borrower the drive watches would have been dead.
+ */
+async function completedTermsOf(borrowerAccountId: string): Promise<number> {
+  const rows = await BankingApi.entriesFor(borrowerAccountId);
+  const houses = new Map<string, boolean>();
+  let n = 0;
+  for (const r of rows) {
+    if (r.fromAccount !== borrowerAccountId || r.kind !== "payment") continue;
+    if (r.category === "terms") {
+      n += 1;
+      continue;
+    }
+    if (r.category !== "sales" || !r.toAccount) continue;
+    let isHouse = houses.get(r.toAccount);
+    if (isHouse === undefined) {
+      const owner = await BankingApi.ownerKeyOf(r.toAccount);
+      const live = owner ? StuffApi.findByTemplatePath(owner) : null;
+      isHouse = live !== undefined && live !== null && MixinApi.isBusiness(live);
+      houses.set(r.toAccount, isHouse);
+    }
+    if (isHouse) n += 1;
+  }
+  return n;
+}
+
+/** Loans of `rung` the borrower has fully repaid. */
+async function settledLoansOf(borrowerKey: string, rung: CreditRung): Promise<number> {
+  const rows = await ContractRecord.findByKind("loan", "settled");
+  return rows.filter((r) => r.issuer.templatePath === borrowerKey && r.terms?.rung === rung).length;
+}
+
+/** Loans the borrower has defaulted on (ever). */
+async function breachedLoansOf(borrowerKey: string): Promise<ContractRecord[]> {
+  const rows = await ContractRecord.findByKind("loan", "breached");
+  return rows.filter((r) => r.issuer.templatePath === borrowerKey);
+}
+
+/**
+ * ⭐⭐ The loans that still BAR this borrower: breached **and still owed**.
+ *
+ * The breach itself never leaves the record — the row stays `breached`
+ * for good, and the papers keep saying so, because the deed happened and
+ * a credit history is exactly that record. What lifts is the **bar**,
+ * and it lifts when the lender is made whole: the creditor's claim on
+ * this borrower's inflows continues past default (see
+ * `repaymentSplitsForImpl`), so a house that keeps trading pays down
+ * what the security did not cover and can borrow again.
+ *
+ * ⚠ It shipped without this: nothing could repay a breached row and
+ * nothing cleared the count, so one default ended a business's access to
+ * credit permanently, with no way to pay its way back. Nobody chose
+ * that — it fell out of the gate being a bare count of breaches. **A
+ * refusal is only honest if something lifts it.** What a future rating
+ * wants is both facts, and both are on the row: it defaulted, and
+ * whether it has since cleared.
+ */
+async function defaultedLoansOf(borrowerKey: string): Promise<number> {
+  return (await breachedLoansOf(borrowerKey)).filter((r) => r.owedMinor > 0).length;
+}
+
+/** The share a lender posts, clamped to the reserve's bounds. */
+function clampShare(posted: number): number {
+  const min = dial(AppSettingKeys.reserveRepaymentShareMin, 0.1);
+  const max = dial(AppSettingKeys.reserveRepaymentShareMax, 0.5);
+  const share = posted > 0 ? posted : min;
+  return Math.min(max, Math.max(min, share));
+}
+
+/**
+ * ⭐ **Issue a loan** — rungs 1 and 2 (economic bootstrap D12). Every gate
+ * is a read of the borrower's own ledger, and a refusal names the number.
+ * Rung 1 (inventory finance): the bank advances the principal from its
+ * own balance, then presents the paper at the window and is advanced
+ * `(1 − h) × principal` back — so the bank need only hold the haircut
+ * share. Rung 2 (working capital): from the bank's own balance only,
+ * unsecured, bounded by the Schedule's cap.
+ */
+async function issueLoanImpl(spec: IssueLoanSpec): Promise<IssueLoanResult> {
+  if (!active()) return { ok: false, reason: "offline", detail: "" };
+  const { borrower, counter, principalMinor, rung } = spec;
+  if (!Number.isInteger(principalMinor) || principalMinor <= 0) {
+    return { ok: false, reason: "bad-amount", detail: String(principalMinor) };
+  }
+  const terms = counter.getTerms();
+  if (!terms.lends()) {
+    return { ok: false, reason: "no-lending-terms", detail: counter.getBank() };
+  }
+  const counterPath = counter.getTemplatePath() ?? "";
+  const lender = counterPath ? await EmploymentApi.ensureOperatorAt(counterPath) : null;
+  if (!lender) {
+    return { ok: false, reason: "no-lender", detail: counterPath };
+  }
+  if (!lender.isChartered("bank")) {
+    return { ok: false, reason: "not-chartered", detail: lender.getTemplatePath() ?? "" };
+  }
+  const borrowerKey = borrower.getAccountPath();
+  const borrowerAccount = await EmploymentApi.operatingAccountOf(borrower);
+  const lenderAccount = await EmploymentApi.operatingAccountOf(lender);
+  const currency = BankingApi.compactCurrency();
+
+  // The gates — numbers of ledger events, named in the refusal.
+  const standing = (await breachedLoansOf(borrowerKey)).filter((r) => r.owedMinor > 0);
+  if (standing.length > 0) {
+    const outstanding = standing.reduce((n, r) => n + r.owedMinor, 0);
+    return {
+      ok: false,
+      reason: "ladder-gate",
+      detail: `a defaulted loan stands on the book: ${GrammarApi.inWords(standing.length)}, ${moneyInWords(outstanding)} still owed — the bar lifts when it is paid`,
+    };
+  }
+  let security: CreditSecurity = { kind: "none" };
+  let windowAdvanceMinor = 0;
+  if (rung === 1) {
+    const need = Math.max(0, Math.floor(dial(AppSettingKeys.reserveLadderTermsRequired, 3)));
+    const have = await completedTermsOf(borrowerAccount);
+    if (have < need) {
+      return {
+        ok: false,
+        reason: "ladder-gate",
+        detail: `${GrammarApi.inWords(need)} completed supplier terms are required; you have ${GrammarApi.inWords(have)}`,
+      };
+    }
+    const counters = borrower.getOperatingLocations().filter((p) => {
+      const live = StuffApi.findByTemplatePath(p);
+      return live !== undefined && MixinApi.isConsignmentShelf(live);
+    });
+    const secured = counters[0];
+    if (!secured) {
+      return { ok: false, reason: "no-security", detail: "the house operates no counter to pledge" };
+    }
+    security = { kind: "inventory", counterPath: secured };
+    const haircut = dial(AppSettingKeys.reserveHaircut, 0.2);
+    windowAdvanceMinor = Math.floor(principalMinor * (1 - haircut));
+    const bankMustHold = principalMinor - windowAdvanceMinor;
+    if (BankingApi.balanceOf(lenderAccount).minor < bankMustHold) {
+      return {
+        ok: false,
+        reason: "lender-short",
+        detail: `the bank must hold the haircut share, ${Money.of(bankMustHold, currency).render()}`,
+      };
+    }
+  } else {
+    const need = Math.max(0, Math.floor(dial(AppSettingKeys.reserveLadderLoansRequired, 2)));
+    const have = await settledLoansOf(borrowerKey, 1);
+    if (have < need) {
+      return {
+        ok: false,
+        reason: "ladder-gate",
+        detail: `${GrammarApi.inWords(need)} repaid inventory loans are required; you have ${GrammarApi.inWords(have)}`,
+      };
+    }
+    const cap = Math.floor(dial(AppSettingKeys.reserveLadderWorkingCapitalCap, 5000));
+    const drawn = (await ContractRecord.findOpenByIssuer(borrowerKey, "loan"))
+      .filter((r) => r.terms?.rung === 2)
+      .reduce((n, r) => n + r.owedMinor, 0);
+    if (drawn + principalMinor > cap) {
+      return {
+        ok: false,
+        reason: "ladder-gate",
+        detail: `the working-capital line is capped at ${Money.of(cap, currency).render()}; ${Money.of(drawn, currency).render()} is drawn`,
+      };
+    }
+    if (BankingApi.balanceOf(lenderAccount).minor < principalMinor) {
+      return { ok: false, reason: "lender-short", detail: "the bank lends working capital from its own balance only" };
+    }
+  }
+
+  // The bank must hold the whole principal at the moment it advances; the
+  // window refills (1 − h) of it a breath later. So a rung-1 lender whose
+  // balance is between the haircut share and the principal is bridged by
+  // the window FIRST — the paper exists (the row is written below) before
+  // the mint, and the mint is memo'd to it.
+  const record = newInstrument(
+    "loan",
+    party("business", borrowerKey),
+    party("business", lender.getTemplatePath() ?? ""),
+    {
+      rung,
+      ratePerGameYear: terms.getLoanRatePerGameYear(),
+      share: clampShare(terms.getRepaymentShare()),
+      security,
+      principalMinor,
+      windowAdvanceMinor,
+      dischargeOnFirstWage: false,
+      dischargeAfterGameDays: 0,
+    },
+  );
+  await saveRecord(record);
+  if (windowAdvanceMinor > 0) {
+    await BankingApi.windowAdvance(lenderAccount, Money.of(windowAdvanceMinor, currency), record.contractId);
+  }
+  const txId = await BankingApi.advance(lenderAccount, borrowerAccount, Money.of(principalMinor, currency), `loan ${record.contractId}`);
+  await appendEvent(record.contractId, "advanced", {
+    counterparty: borrowerKey,
+    txId,
+    memo: rung === 1 ? `inventory finance; window ${windowAdvanceMinor}` : "working capital",
+  });
+  await fileInstrument(record);
+  return { ok: true, contractId: record.contractId, advanced: principalMinor };
+}
+
+/**
+ * The standing facility (economic bootstrap D9): a business's OPENING
+ * ADVANCE — a 0% loan from the Treasury on its first account, secured by
+ * that account, repaid as a share of inflows like any loan. Refused (a
+ * value) when the treasury cannot cover it. Idempotent per borrower.
+ */
+async function openingAdvanceImpl(businessKey: string): Promise<IssueLoanResult> {
+  if (!active()) return { ok: false, reason: "offline", detail: "" };
+  const live = StuffApi.findByTemplatePath(businessKey);
+  if (!live || !MixinApi.isBusiness(live)) return { ok: false, reason: "no-business", detail: businessKey };
+  const business = live as Stuff & BusinessShape;
+  const borrowerKey = business.getAccountPath();
+  const already = (await ContractRecord.findOpenByIssuer(borrowerKey, "loan")).some((r) => r.terms?.rung === "opening");
+  if (already) return { ok: false, reason: "already-advanced", detail: borrowerKey };
+  const principalMinor = Math.floor(dial(AppSettingKeys.treasuryOpeningAdvance, 0));
+  if (principalMinor <= 0) return { ok: false, reason: "no-facility", detail: "" };
+  const currency = BankingApi.compactCurrency();
+  await BankingApi.reconcilePerpetual(currency);
+  const treasury = await BankingApi.treasuryAccountId(currency);
+  // ⚠ The PRIMARY account read, not `operatingAccountOf` — that seam is
+  // what asked for this advance, and asking it back would recurse until
+  // the heap went (found the first time it ran).
+  const borrowerAccount = await BankingApi.primaryAccountIdOf(borrowerKey);
+  if (!borrowerAccount) return { ok: false, reason: "no-account", detail: borrowerKey };
+  if (BankingApi.balanceOf(treasury).minor < principalMinor) {
+    return { ok: false, reason: "treasury-short", detail: Money.of(principalMinor, currency).render() };
+  }
+  const record = newInstrument(
+    "loan",
+    party("business", borrowerKey),
+    party("organization", TREASURY_PATH),
+    {
+      rung: "opening",
+      ratePerGameYear: 0,
+      share: clampShare(0),
+      security: { kind: "account", accountId: borrowerAccount },
+      principalMinor,
+      windowAdvanceMinor: 0,
+      dischargeOnFirstWage: false,
+      dischargeAfterGameDays: 0,
+    },
+  );
+  await saveRecord(record);
+  const txId = await BankingApi.advance(treasury, borrowerAccount, Money.of(principalMinor, currency), `opening advance ${record.contractId}`);
+  await appendEvent(record.contractId, "advanced", { counterparty: borrowerKey, txId, memo: "opening advance" });
+  await fileInstrument(record);
+  return { ok: true, contractId: record.contractId, advanced: principalMinor };
+}
+
+export type IssueNoteResult = { ok: true; contractId: string; principal: number; paperPath: string } | LoanRefusal;
+
+/**
+ * ⭐ **The Arrival Note** (economic bootstrap D10). At `embody confirm`
+ * the member ISSUES a note to the Treasury and receives the principal as
+ * coin in hand — money entered the world against this promise. Rate 0
+ * (the Compact's rate for newcomers); discharged by the first wage or by
+ * the Schedule's game-days, whichever first; secured by the balance it
+ * funded and nothing else; NO RECOURSE beyond it. Written by the machine,
+ * filed in the member's own papers at `/home/<key>/papers/arrival-note`.
+ * No character in the fiction hands it over. Idempotent per member.
+ */
+async function issueNoteImpl(key: string): Promise<IssueNoteResult> {
+  if (!active()) return { ok: false, reason: "offline", detail: "" };
+  if (!key) return { ok: false, reason: "no-identity", detail: "" };
+  // The member, resident: an Avatar by its player id, else whatever is
+  // registered at the key (a fixture).
+  const playerId = key.startsWith("/platform/agent/Avatar/") ? key.split("/").filter(Boolean).pop() ?? "" : "";
+  const live = (playerId ? PlayerApi.findAvatarByPlayerId(playerId) : undefined) ?? StuffApi.findByTemplatePath(key);
+  if (!live || !MixinApi.isContainer(live)) return { ok: false, reason: "no-hands", detail: key };
+  const avatar = live as Stuff & Container;
+  const already = await ContractRecord.findOpenByIssuer(key, "note");
+  if (already.length > 0) return { ok: false, reason: "already-issued", detail: key };
+  const principal = Math.floor(dial(AppSettingKeys.treasuryArrivalPrincipal, 0));
+  if (principal <= 0) return { ok: false, reason: "no-facility", detail: "" };
+  const currency = BankingApi.compactCurrency();
+  await BankingApi.reconcilePerpetual(currency);
+  const treasury = await BankingApi.treasuryAccountId(currency);
+  if (BankingApi.balanceOf(treasury).minor < principal) {
+    return { ok: false, reason: "treasury-short", detail: Money.of(principal, currency).render() };
+  }
+  const record = newInstrument(
+    "note",
+    party("player", key),
+    party("organization", TREASURY_PATH),
+    {
+      rung: "note",
+      ratePerGameYear: 0,
+      share: 0,
+      security: { kind: "account", accountId: "" },
+      principalMinor: principal,
+      windowAdvanceMinor: 0,
+      dischargeOnFirstWage: true,
+      dischargeAfterGameDays: Math.floor(dial(AppSettingKeys.treasuryNoteDischargeGameDays, 0)),
+    },
+  );
+  await saveRecord(record);
+  await BankingApi.disburse(treasury, avatar, Money.of(principal, currency), "arrival");
+  await appendEvent(record.contractId, "advanced", { counterparty: key, memo: "the Arrival Note's principal, in hand" });
+  await fileInstrument(record);
+  return { ok: true, contractId: record.contractId, principal, paperPath: paperPathFor(record.issuer, record.contractId, "arrival-note") };
+}
+
+/** Discharge a note: forgiven, the row settled, the paper appended. */
+async function dischargeNote(record: ContractRecord, why: string): Promise<void> {
+  record.state = "settled";
+  record.owedMinor = 0;
+  record.closedAt = worldSeconds();
+  await saveRecord(record);
+  await appendEvent(record.contractId, "discharged", { memo: why });
+  await appendToPapers(record, `Discharged: ${why}. The balance is yours.`);
+}
+
+/**
+ * ⭐ A wage landed for `workerKey` — the Note's discharge (economic
+ * bootstrap D10): every open note the worker issued is forgiven. Returns
+ * the discharged note ids so the payroll can tell them, if resident.
+ */
+async function onWageLandedImpl(workerKey: string): Promise<string[]> {
+  if (!active() || !workerKey) return [];
+  const notes = await ContractRecord.findOpenByIssuer(workerKey, "note");
+  const out: string[] = [];
+  for (const note of notes) {
+    if (!note.terms?.dischargeOnFirstWage) continue;
+    await dischargeNote(note, "the first wage was earned");
+    out.push(note.contractId);
+  }
+  return out;
+}
+
+/**
+ * ⭐ RECOVER an open Arrival Note from the balance that secured it
+ * (economic bootstrap D17, step 2): `min(balance, owed)` moves primary →
+ * treasury as a `recovery` leg, the row settles, the paper is appended.
+ * Non-recourse means exactly this — nothing beyond the security is
+ * touched, and a balance short of the principal ends the matter. Returns
+ * the amount recovered (0 when there is no note, no account, no balance).
+ */
+async function recoverNoteImpl(memberKey: string): Promise<number> {
+  if (!active() || !memberKey) return 0;
+  const notes = await ContractRecord.findOpenByIssuer(memberKey, "note");
+  if (notes.length === 0) return 0;
+  const primary = await BankingApi.primaryAccountIdOf(memberKey);
+  let recovered = 0;
+  for (const note of notes) {
+    const owed = Math.max(0, note.owedMinor);
+    const held = primary ? BankingApi.balanceOf(primary).minor : 0;
+    const take = Math.min(owed, held);
+    let txId = "";
+    if (take > 0 && primary) {
+      txId = await BankingApi.escheat(
+        primary,
+        Money.of(take, BankingApi.compactCurrency()),
+        "recovery",
+        `recovered: the Arrival Note, from the balance that secured it`,
+      );
+      recovered += take;
+    }
+    note.state = "settled";
+    note.owedMinor = 0;
+    note.closedAt = worldSeconds();
+    await saveRecord(note);
+    await appendEvent(note.contractId, "recovered", { txId, memo: take > 0 ? `${moneyInWords(take)} recovered from the balance` : "nothing to recover" });
+    await appendToPapers(note, `Recovered: the estate passed; ${take > 0 ? `${moneyInWords(take)} taken from the balance that secured it` : "the balance held nothing"}. No recourse beyond the security — the matter ends here.`);
+  }
+  return recovered;
+}
+
+/**
+ * ⭐ UNCLAIMED PROPERTY (D17, step 6): a row the treasury issues and the
+ * member holds — `owedMinor` is what the state holds for them, at no
+ * rate, reclaimable on return, whenever that is. The paper is filed in
+ * their own records so the claim is readable from the first login back.
+ */
+async function writeUnclaimedImpl(memberKey: string, amountMinor: number): Promise<string | null> {
+  if (!active() || !memberKey || amountMinor <= 0) return null;
+  const record = newInstrument(
+    "unclaimed",
+    party("organization", TREASURY_PATH),
+    party("player", memberKey),
+    {
+      rung: "note",
+      ratePerGameYear: 0,
+      share: 0,
+      security: { kind: "none" },
+      principalMinor: amountMinor,
+      windowAdvanceMinor: 0,
+      dischargeOnFirstWage: false,
+      dischargeAfterGameDays: 0,
+    },
+  );
+  await saveRecord(record);
+  await appendEvent(record.contractId, "escheated", { counterparty: memberKey, memo: `${moneyInWords(amountMinor)} held unclaimed` });
+  await fileInstrument(record);
+  return record.contractId;
+}
+
+/**
+ * ⭐ RECLAIM (D17): every open `unclaimed` row `memberKey` holds is paid by
+ * the treasury to their primary account — the treasury cannot refuse —
+ * the rows settle, the papers say so. Returns the total paid.
+ */
+async function reclaimUnclaimedImpl(memberKey: string): Promise<number> {
+  if (!active() || !memberKey) return 0;
+  const rows = await ContractRecord.findOpenByHolder(memberKey, "unclaimed");
+  if (rows.length === 0) return 0;
+  const primary = await BankingApi.primaryAccountIdOf(memberKey);
+  if (!primary) return 0;
+  let paid = 0;
+  for (const row of rows) {
+    const owed = Math.max(0, row.owedMinor);
+    let txId = "";
+    if (owed > 0) {
+      txId = await BankingApi.reclaim(primary, Money.of(owed, BankingApi.compactCurrency()), "reclaimed: unclaimed property, on return");
+      paid += owed;
+    }
+    row.state = "settled";
+    row.owedMinor = 0;
+    row.closedAt = worldSeconds();
+    await saveRecord(row);
+    await appendEvent(row.contractId, "reclaimed", { txId, counterparty: memberKey, memo: `${moneyInWords(owed)} reclaimed` });
+    await appendToPapers(row, `Reclaimed: the Treasury paid ${moneyInWords(owed)} on your return.`);
+  }
+  return paid;
+}
+
+/** The lazy discharge: a note past its game-days active is forgiven on any touch. */
+async function reconcileNotesImpl(issuerKey: string): Promise<string[]> {
+  if (!active() || !issuerKey) return [];
+  const notes = await ContractRecord.findOpenByIssuer(issuerKey, "note");
+  const out: string[] = [];
+  const now = worldSeconds();
+  for (const note of notes) {
+    const days = note.terms?.dischargeAfterGameDays ?? 0;
+    if (days <= 0) continue;
+    if (now - note.postedAt < days * 86_400) continue;
+    await dischargeNote(note, `${GrammarApi.inWords(days)} game-days active`);
+    out.push(note.contractId);
+  }
+  return out;
+}
+
+/**
+ * The share of an inflow taken for the payee's creditors — the rider
+ * splits `settle` appends (economic bootstrap D12): for each open loan
+ * the payee has issued (oldest first), `share × amount` up to what is
+ * owed, to the creditor's account, category `repayment`; accrued interest
+ * first as `interest`. One transaction, conserving.
+ */
+async function repaymentSplitsForImpl(
+  payeeAccountId: string,
+  amountMinor: number,
+): Promise<Array<RemittanceSplit & { contractId: string }>> {
+  if (!active() || amountMinor <= 0) return [];
+  const ownerKey = await BankingApi.ownerKeyOf(payeeAccountId);
+  if (!ownerKey) return [];
+  // ⭐ Open loans AND a defaulted one still owed: the security did not
+  // cover the debt, the lender is still out of pocket, and the claim on
+  // this borrower's inflows does not end because the row says
+  // `breached`. This is what lets a default be CURED by trading — see
+  // `defaultedLoansOf`.
+  const loans = [
+    ...(await ContractRecord.findOpenByIssuer(ownerKey, "loan")),
+    ...(await breachedLoansOf(ownerKey)).filter((r) => r.owedMinor > 0),
+  ];
+  const out: Array<RemittanceSplit & { contractId: string }> = [];
+  let left = amountMinor;
+  for (const loan of loans) {
+    if (left <= 0 || !loan.holder || !loan.terms) continue;
+    // ⚠ Interest STOPS at the breach. A shortfall that keeps compounding
+    // outruns the borrower and the lift above would be a lift in name
+    // only; the debt after default is a fixed sum to clear.
+    if (loan.state === "open") {
+      accrue(loan);
+      await saveRecord(loan);
+    }
+    const creditor = await accountOfParty(loan.holder);
+    if (!creditor || creditor === payeeAccountId) continue;
+    const take = Math.min(loan.owedMinor, Math.round(amountMinor * loan.terms.share), left);
+    if (take <= 0) continue;
+    const interest = Math.max(0, loan.owedMinor - loan.terms.principalMinor);
+    const asInterest = Math.min(interest, take);
+    if (asInterest > 0) {
+      out.push({ contractId: loan.contractId, accountId: creditor, amount: Money.of(asInterest, BankingApi.compactCurrency()), category: "interest" });
+    }
+    if (take - asInterest > 0) {
+      out.push({ contractId: loan.contractId, accountId: creditor, amount: Money.of(take - asInterest, BankingApi.compactCurrency()), category: "repayment" });
+    }
+    left -= take;
+  }
+  return out;
+}
+
+/**
+ * Record a repayment that landed: reduce what is owed, append `repaid`,
+ * repay the window pro rata, and settle the row when it clears (the lien
+ * releases with it).
+ */
+async function recordRepaymentImpl(contractId: string, amountMinor: number, txId: string): Promise<void> {
+  if (!active()) return;
+  const record = await ContractRecord.findByContractId(contractId);
+  // `open` or a `breached` row still owed — the cure. Anything else is
+  // closed and takes nothing.
+  if (!record || !record.terms) return;
+  if (record.state !== "open" && !(record.state === "breached" && record.owedMinor > 0)) return;
+  accrue(record);
+  const before = record.owedMinor;
+  record.owedMinor = Math.max(0, record.owedMinor - amountMinor);
+  const principalPaid = Math.min(amountMinor, record.terms.principalMinor);
+  record.terms = { ...record.terms, principalMinor: Math.max(0, record.terms.principalMinor - principalPaid) };
+  await appendEvent(contractId, "repaid", { txId, memo: `${amountMinor} of ${before}` });
+  // The window: the bank repays the reserve the same fraction of the advance.
+  if (record.terms.windowAdvanceMinor > 0 && record.holder) {
+    const lenderAccount = await accountOfParty(record.holder);
+    const originalPrincipal = record.terms.principalMinor + principalPaid;
+    const windowShare = originalPrincipal > 0 ? Math.round(record.terms.windowAdvanceMinor * (principalPaid / originalPrincipal)) : 0;
+    if (lenderAccount && windowShare > 0) {
+      await BankingApi.windowRepay(lenderAccount, Money.of(windowShare, BankingApi.compactCurrency()), contractId);
+      record.terms = { ...record.terms, windowAdvanceMinor: Math.max(0, record.terms.windowAdvanceMinor - windowShare) };
+    }
+  }
+  if (record.owedMinor <= 0) {
+    record.closedAt = worldSeconds();
+    if (record.state === "breached") {
+      // ⭐⭐ NOT `settled`: the default happened and the row keeps saying
+      // so for good. What changes is that nothing is owed on it any
+      // more, which is what lifts the bar on borrowing again.
+      await appendEvent(contractId, "satisfied", {
+        memo: "the shortfall after the security was paid in full; the default stands on the record",
+      });
+      await saveRecord(record);
+      await appendToPapers(
+        record,
+        "Satisfied: what the security did not cover has been paid. The default remains on this record — it is history, not a debt.",
+      );
+      return;
+    }
+    record.state = "settled";
+    await appendEvent(contractId, "settled", { memo: "repaid in full; the lien is released" });
+    await saveRecord(record);
+    await appendToPapers(record, "Repaid in full. The lien is released.");
+    return;
+  }
+  await saveRecord(record);
+}
+
+/** The newest inflow (a credit) to `accountId`, in game-seconds, or 0. */
+async function lastInflowAt(accountId: string): Promise<number> {
+  // The newest credit only — one indexed, sorted, limited read, not every
+  // row the account ever touched (a busy house has hundreds).
+  const [newest] = await LedgerEntry.find<LedgerEntry>(
+    { toAccount: accountId },
+    { sort: { at: -1 }, limit: 1 },
+  );
+  return newest?.at ?? 0;
+}
+
+/**
+ * ⭐ Default is REVEALED on read, never scheduled (economic bootstrap
+ * D12): a loan whose borrower has had no inflows for the Schedule's
+ * horizon while a balance is outstanding is in default. The creditor's
+ * rule then acts — repossession of the pledged counter's goods to the
+ * lender's counter — and the window advance behind it is written off on
+ * the record (the reserve's default rate reads it). Returns how many
+ * loans defaulted on this read.
+ */
+async function reconcileLoansImpl(borrowerKey: string | null): Promise<number> {
+  if (!active()) return 0;
+  const horizonDays = dial(AppSettingKeys.reserveDefaultHorizonGameDays, 30);
+  const horizonS = horizonDays * 86_400;
+  const open = borrowerKey
+    ? await ContractRecord.findOpenByIssuer(borrowerKey, "loan")
+    : await ContractRecord.findByKind("loan", "open");
+  let defaulted = 0;
+  const now = worldSeconds();
+  for (const loan of open) {
+    if (!loan.terms || loan.owedMinor <= 0) continue;
+    const account = await accountOfParty(loan.issuer);
+    if (!account) continue;
+    const last = Math.max(await lastInflowAt(account), loan.postedAt);
+    if (now - last < horizonS) continue;
+    accrue(loan);
+    loan.state = "breached";
+    loan.closedAt = now;
+    await saveRecord(loan);
+    await appendEvent(loan.contractId, "defaulted", {
+      memo: `no inflows for ${GrammarApi.inWords(Math.floor(horizonDays))} game-days; window ${loan.terms.windowAdvanceMinor}`,
+    });
+    defaulted += 1;
+    await repossess(loan);
+    await appendToPapers(loan, "In default: no inflows for the horizon. The lender has acted on the security.");
+  }
+  return defaulted;
+}
+
+/** The creditor's rule on default: every good on the pledged counter the borrower owns goes to the lender's counter. */
+async function repossess(loan: ContractRecord): Promise<void> {
+  const t = loan.terms;
+  if (!t || t.security.kind !== "inventory" || !loan.holder) return;
+  const shelf = StuffApi.findByTemplatePath(t.security.counterPath);
+  const lender = businessOf(loan.holder);
+  if (!shelf || !MixinApi.isContainer(shelf) || !lender) return;
+  const lenderCounter = lender
+    .getOperatingLocations()
+    .map((p) => StuffApi.findByTemplatePath(p))
+    .find((s): s is Stuff & Container => s !== undefined && MixinApi.isContainer(s) && MixinApi.isBank(s));
+  if (!lenderCounter) return;
+  let taken = 0;
+  for (const item of [...shelf.getContents()]) {
+    if (!MixinApi.isChattel(item)) continue;
+    const owner = await item.chattelOwner();
+    if (!owner || owner.kind === "group" || owner.templatePath !== loan.issuer.templatePath) continue;
+    await item.transferChattel(lender as unknown as Stuff);
+    ContainmentApi.move(item as unknown as Stuff & Containable, lenderCounter);
+    if (MixinApi.isConsignmentShelf(shelf)) shelf.removeListing(item.getChattelId());
+    taken += 1;
+  }
+  await appendEvent(loan.contractId, "repossessed", { memo: `${taken} good(s) taken to the lender's counter` });
+}
+
+/** The reserve's default rate on window paper: Σ defaulted window advances ÷ Σ window advances. */
+async function windowDefaultRateImpl(currency: string): Promise<WindowDefaultRate> {
+  if (!active()) return { currency, advanced: 0, defaulted: 0, rate: 0 };
+  const rows = await ContractRecord.find<ContractRecord>({ kind: "loan" });
+  let advanced = 0;
+  let defaulted = 0;
+  for (const r of rows) {
+    if (r.terms?.rung !== 1) continue;
+    // The window advance BEHIND the paper is the figure at issue. A live
+    // or settled row carries what is still outstanding on it; a defaulted
+    // one wrote the figure it was written off at onto its `defaulted`
+    // event. The advance ORIGINALLY made rides the `advanced` event's
+    // memo? No — it rides the `window` mint leg; the row's terms are
+    // enough here: outstanding-at-default is what the reserve ate.
+    const events = await ContractEvent.findByContractId(r.contractId);
+    const wroteOff = events.find((e) => e.event === "defaulted");
+    const behind = wroteOff
+      ? Number(/window (\d+)/.exec(wroteOff.memo)?.[1] ?? r.terms.windowAdvanceMinor)
+      : r.terms.windowAdvanceMinor;
+    const original = Number(/window (\d+)/.exec(events.find((e) => e.event === "advanced")?.memo ?? "")?.[1] ?? NaN);
+    advanced += Number.isFinite(original) ? original : behind;
+    // ⭐ What the reserve is STILL out of pocket, not what it was out of
+    // pocket the day the loan broke. A borrower who cures a default pays
+    // down the loan, the bank repays the window its share as it comes in
+    // (see `recordRepaymentImpl`), and this dial falls with it. Reading
+    // the figure at default would leave a rate that feeds POLICY
+    // permanently overstating a loss the reserve has since got back.
+    if (r.state === "breached") defaulted += Math.min(behind, r.terms.windowAdvanceMinor);
+  }
+  return { currency, advanced, defaulted, rate: advanced > 0 ? defaulted / advanced : 0 };
+}
+
+/** The Treasury's paper: what it is owed on opening advances and notes, and what it holds unclaimed. */
+async function treasuryPaperImpl(currency: string): Promise<TreasuryPaper> {
+  if (!active()) return { currency, openingAdvancesOwed: 0, notesOwed: 0, unclaimedHeld: 0 };
+  const held = await ContractRecord.findOpenByHolder(TREASURY_PATH, "loan");
+  const notes = await ContractRecord.findOpenByHolder(TREASURY_PATH, "note");
+  const unclaimed = await ContractRecord.findOpenByIssuer(TREASURY_PATH, "unclaimed");
+  const sum = (rows: ContractRecord[]) => rows.reduce((n, r) => n + r.owedMinor, 0);
+  return { currency, openingAdvancesOwed: sum(held), notesOwed: sum(notes), unclaimedHeld: sum(unclaimed) };
+}
+
+/** Every open instrument `ownerKey` issues or holds, as readable lines. */
+async function instrumentsOfImpl(ownerKey: string): Promise<InstrumentLine[]> {
+  if (!active() || !ownerKey) return [];
+  await reconcileNotesImpl(ownerKey);
+  const out: InstrumentLine[] = [];
+  const money = moneyInWords;
+  for (const kind of ["note", "loan", "unclaimed"] as const) {
+    // ⭐ A defaulted loan still owed is listed with the open ones: it is
+    // money this borrower owes, the bar it carries lifts when it is
+    // paid, and a book that hides it is the one read that would leave
+    // them unable to find out why the window says no.
+    const rows =
+      kind === "loan"
+        ? [
+            ...(await ContractRecord.findOpenByIssuer(ownerKey, kind)),
+            ...(await breachedLoansOf(ownerKey)).filter((r) => r.owedMinor > 0),
+          ]
+        : await ContractRecord.findOpenByIssuer(ownerKey, kind);
+    for (const r of rows) {
+      accrue(r);
+      const other = r.holder ? labelOfParty(r.holder) : "";
+      const rate = r.terms && r.terms.ratePerGameYear > 0 ? `at ${percentInWords(r.terms.ratePerGameYear)} per cent a game-year` : "at no interest";
+      const words =
+        kind === "note"
+          ? `You hold an Arrival Note for ${money(r.terms?.principalMinor ?? 0)}, ${rate}, to ${other}.`
+          : kind === "loan"
+            ? r.state === "breached"
+              ? `IN DEFAULT to ${other}: ${money(r.owedMinor)} still owed after the security. No interest runs on it, and paying it lifts the bar on borrowing again.`
+              : `You owe ${other} ${money(r.owedMinor)} ${rate}${r.terms?.rung === "opening" ? " (the Treasury's opening advance)" : ""}.`
+            : `The Treasury holds ${money(r.owedMinor)} of yours, unclaimed — reclaimable on return.`;
+      out.push({ contractId: r.contractId, kind, role: "owes", counterparty: other, owedMinor: r.owedMinor, principalMinor: r.terms?.principalMinor ?? 0, rung: r.terms?.rung ?? 1, state: r.state, words });
+    }
+    for (const r of await ContractRecord.findOpenByHolder(ownerKey, kind)) {
+      accrue(r);
+      const other = labelOfParty(r.issuer);
+      const words =
+        kind === "unclaimed"
+          ? `The Treasury holds ${money(r.owedMinor)} for you, unclaimed — reclaimable on return.`
+          : `${other} owes you ${money(r.owedMinor)}${r.terms?.security.kind === "inventory" ? " — a lien on their counter's goods" : ""}.`;
+      out.push({ contractId: r.contractId, kind, role: "holds", counterparty: other, owedMinor: r.owedMinor, principalMinor: r.terms?.principalMinor ?? 0, rung: r.terms?.rung ?? 1, state: r.state, words });
+    }
+  }
+  return out;
+}
+
 @Unshadowable
 export class ContractLogic extends ApiLogic {
   /** See {@link ContractApi.post}. */
@@ -1033,6 +1979,95 @@ export class ContractLogic extends ApiLogic {
   public async eventsFor(contractId: string): Promise<ContractEvent[]> {
     if (!active()) return [];
     return ContractEvent.findByContractId(contractId);
+  }
+
+  /* ── the credit face (economic bootstrap) ── */
+
+  /** See {@link ContractApi.issueLoan}. */
+  @CallSecurity(ContractApiCallers)
+  public async issueLoan(spec: IssueLoanSpec): Promise<IssueLoanResult> {
+    return issueLoanImpl(spec);
+  }
+
+  /** See {@link ContractApi.openingAdvance}. */
+  @CallSecurity(ContractApiCallers)
+  public async openingAdvance(businessKey: string): Promise<IssueLoanResult> {
+    return openingAdvanceImpl(businessKey);
+  }
+
+  /** See {@link ContractApi.issueNote}. */
+  @CallSecurity(ContractApiCallers)
+  public async issueNote(memberKey: string): Promise<IssueNoteResult> {
+    return issueNoteImpl(memberKey);
+  }
+
+  /** See {@link ContractApi.onWageLanded}. */
+  @CallSecurity(ContractApiCallers)
+  public async onWageLanded(workerKey: string): Promise<string[]> {
+    return onWageLandedImpl(workerKey);
+  }
+
+  /** See {@link ContractApi.reconcileNotes}. */
+  @CallSecurity(ContractApiCallers)
+  public async reconcileNotes(issuerKey: string): Promise<string[]> {
+    return reconcileNotesImpl(issuerKey);
+  }
+
+  /** See {@link ContractApi.recoverNote}. */
+  @CallSecurity(ContractApiCallers)
+  public async recoverNote(memberKey: string): Promise<number> {
+    return recoverNoteImpl(memberKey);
+  }
+
+  /** See {@link ContractApi.writeUnclaimed}. */
+  @CallSecurity(ContractApiCallers)
+  public async writeUnclaimed(memberKey: string, amountMinor: number): Promise<string | null> {
+    return writeUnclaimedImpl(memberKey, amountMinor);
+  }
+
+  /** See {@link ContractApi.reclaimUnclaimed}. */
+  @CallSecurity(ContractApiCallers)
+  public async reclaimUnclaimed(memberKey: string): Promise<number> {
+    return reclaimUnclaimedImpl(memberKey);
+  }
+
+  /** See {@link ContractApi.repaymentSplitsFor}. */
+  @CallSecurity(ContractApiCallers)
+  public async repaymentSplitsFor(
+    payeeAccountId: string,
+    amountMinor: number,
+  ): Promise<Array<RemittanceSplit & { contractId: string }>> {
+    return repaymentSplitsForImpl(payeeAccountId, amountMinor);
+  }
+
+  /** See {@link ContractApi.recordRepayment}. */
+  @CallSecurity(ContractApiCallers)
+  public async recordRepayment(contractId: string, amountMinor: number, txId: string): Promise<void> {
+    return recordRepaymentImpl(contractId, amountMinor, txId);
+  }
+
+  /** See {@link ContractApi.reconcileLoans}. */
+  @CallSecurity(ContractApiCallers)
+  public async reconcileLoans(borrowerKey: string | null): Promise<number> {
+    return reconcileLoansImpl(borrowerKey);
+  }
+
+  /** See {@link ContractApi.windowDefaultRate}. */
+  @CallSecurity(ContractApiCallers)
+  public async windowDefaultRate(currency: string): Promise<WindowDefaultRate> {
+    return windowDefaultRateImpl(currency);
+  }
+
+  /** See {@link ContractApi.treasuryPaper}. */
+  @CallSecurity(ContractApiCallers)
+  public async treasuryPaper(currency: string): Promise<TreasuryPaper> {
+    return treasuryPaperImpl(currency);
+  }
+
+  /** See {@link ContractApi.instrumentsOf}. */
+  @CallSecurity(ContractApiCallers)
+  public async instrumentsOf(ownerKey: string): Promise<InstrumentLine[]> {
+    return instrumentsOfImpl(ownerKey);
   }
 }
 

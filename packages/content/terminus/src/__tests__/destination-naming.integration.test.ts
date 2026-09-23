@@ -105,8 +105,8 @@ const STUBS: Doc[] = [
   // the whole mining town to satisfy two exits would drag its trades in
   // behind it. The road itself is asserted in the transport pack and in
   // `logistics-corridors`.
-  { path: "/world/rejection/kestrel-road/lower-climb", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lower climb" } },
-  { path: "/world/rejection/kestrel-road/yard-gate", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the yard gate" } },
+  { path: "/world/terminus/rejection/kestrel-road/lower-climb", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lower climb" } },
+  { path: "/world/terminus/rejection/kestrel-road/yard-gate", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the yard gate" } },
 ];
 
 describe("destination naming + crossroads (real seeds)", () => {

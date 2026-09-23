@@ -339,9 +339,10 @@ describe('EmploymentApi.holdsAuthority — the four-kind matrix', () => {
 
   it('committee — a member of the title-holding group, and nobody else', async () => {
     stubTitle();
+    // Members are keyed by IDENTITY PATH — what `group add` writes.
     vi.spyOn(GroupApi, 'isMember').mockImplementation(
-      async (playerId: string, ref: string) =>
-        ref === GROUP_REF && playerId === 'member',
+      async (memberKey: string, ref: string) =>
+        ref === GROUP_REF && memberKey === '/platform/agent/Avatar/member',
     );
     const member = makeAvatar('member');
     const outsider = makeAvatar('outsider');

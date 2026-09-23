@@ -1,22 +1,24 @@
 # Credit slate — standing up lending, and the autopilot that runs the mint
 
-> **Status: PARTIAL** — the money substrate ships (two-tier money, the
-> conservation chokepoint, per-currency ledgers) → [banking.md](../../subsystems/banking.md).
-> This slate's own reserve/treasury/lanes/ladder design is superseded by
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
-> (2026-09-18), which carries Parts 3–5 and 8–9 and corrects Part 2 (the
-> officer seat is KEPT, a treasurer chartered beside it) — **read that doc
-> first for anything it covers.** What remains here is what the
-> requirements doc explicitly still defers: local underwriting at the
-> committee (Part 6), the parcel-as-collateral / personal-pack design
-> (Part 7 remainder), NPC principal-path offices (Part 10), and two open
-> questions (parcel pledgeability, taxes).
-> **Left:** local underwriting at the committee · relocatable content /
-> personal packs (the foreclosure-on-authored-content design) · NPC
-> principal-path offices + the eligibility guard · whether the parcel
-> stays pledgeable · where taxes come from
-> **Size:** a tail (rides the economic-bootstrap build, or waits for
-> cooperative-slate / content-packs-slate)
+> **Status: PARTIAL — LENDING SHIPS (economic bootstrap, MR !272).** The
+> money substrate, the reserve and treasury, the three-rung ladder, the
+> window, default-and-cure all run live → [credit.md](../../subsystems/credit.md),
+> [banking.md](../../subsystems/banking.md). This slate's own
+> reserve/treasury/lanes/ladder design is superseded by
+> [credit.md](../../subsystems/credit.md)
+> (2026-09-18) — **read that doc first for anything it covers.**
+> ⭐⭐ **What the build did NOT answer is now written down in
+> [Part 11](#part-11--what-lending-actually-ships-and-the-gaps-2026-09-23)
+> with the seam each gap attaches to**, and it is the most useful part of
+> this file for whoever picks it up.
+> **Left:** ⭐⭐ risk — a rating, a bureau, risk-based pricing (Part 11) ·
+> ⭐⭐ the secondary market (buying paper) · personal credit + guarantees ·
+> ⚠ nothing hires autonomously, which binds new-player absorption harder
+> than credit does · local underwriting at the committee (Part 6) ·
+> relocatable content / personal packs (Part 7 remainder) · NPC
+> principal-path offices (Part 10) · whether the parcel stays pledgeable ·
+> where taxes come from
+> **Size:** ⭐ **a build** for the risk half (Part 11); the rest a tail
 
 **Captured 2026-08-04.** Opened as *"can we seat an NPC in the Governor's
 chair"* and became the whole fiscal apparatus, because the honest answer
@@ -56,7 +58,7 @@ relocation answer), [parcel.md](../../subsystems/parcel.md),
 ---
 
 > **Parts 0–3 cut 2026-09-20 — carried into
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md).**
+> [credit.md](../../subsystems/credit.md).**
 > The mint survey → its *What already exists* table (and `banking.md`).
 > Art. V §9 / the reserve-vs-treasury test → its *The reserve has one
 > officer and two rules* (same test, adopted). The Governor→Treasurer
@@ -72,8 +74,8 @@ relocation answer), [parcel.md](../../subsystems/parcel.md),
 > The first four subsections here (CB-doesn't-set-prime, where a rate may
 > live, no rate in v1 + the penalty window, the ~5%/game-year number) are
 > cut 2026-09-20 — carried verbatim into
-> [economic-bootstrap-requirements § Rates are the lender's own standing
-> offer](../../requirements/economic-bootstrap-requirements.md).
+> [credit.md § Rates are Terms](../../subsystems/credit.md) — the rate
+> is the lender's own standing offer.
 
 ## ⭐⭐⭐⭐ And the reason the rate matters more than lending does
 
@@ -102,7 +104,7 @@ land prices fall, in a world where anyone can check.
 ---
 
 > **Parts 4–5 cut 2026-09-20 — carried into
-> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md).**
+> [credit.md](../../subsystems/credit.md).**
 > The lanes/risk table → its *Lane one — the window* / *Lane two — the
 > perpetual* / *The ladder — four rungs*. The subsidy taper + automatic
 > stabilizers → its *NPC businesses borrow first* (the stocking rule
@@ -161,6 +163,17 @@ exit*). **Social pressure is fine; enforceable joint liability is not.**
 ---
 
 # Part 7 — Default, and what is actually worth seizing
+
+> ⚠ **Handed over by the economic bootstrap (2026-09-23), unbuilt:**
+> **chattel lying in the world when an estate passes.** Escheat moves
+> titles, the balance and a kept house's counters, and a repossession
+> takes the goods off a *pledged counter* — but a crate the member left
+> on a floor somewhere is touched by neither. **Finders-keepers is the
+> default and is probably right**; the open question is whether a
+> locality may say otherwise (a lost-property office, an impound), which
+> makes it the locality's call rather than the engine's. See
+> [chattel.md](../../subsystems/chattel.md) and
+> [credit.md § the estate](../../subsystems/credit.md).
 
 > **User: "what actually happens when someone defaults? the best thing
 > would be if someone else bought the debt and we can create a market for
@@ -263,15 +276,15 @@ anyway.")*
 
 > **Parts 8–9 cut 2026-09-20.** The deposit guarantee and limited-liability
 > guardrails → carried into
-> [economic-bootstrap-requirements § Banks lend what they hold / § Debts
-> first, then situs](../../requirements/economic-bootstrap-requirements.md)
+> [credit.md](../../subsystems/credit.md) — banks lend what they hold;
+> debts first, then situs
 > (both decided: on by default). The bank/corpo indirection → already
 > shipped and documented, `banking.md` § Custodial bank ops (*"a bank is
 > affiliated to a corpo, not a branded product"*). The property floor →
 > `docs/stewardship-doctrine.md`. The 13th module barring debt bondage →
 > `docs/governance/eotl-history.md`. Authorship-inalienable-as-capacity →
 > `balance-slate.md`. *Credit obliges discharge* → resolved: the
-> requirements doc's Enrollment Note is non-recourse and business debt
+> requirements doc's Arrival Note is non-recourse and business debt
 > stops at the business, so the 13th-module obligation is met by
 > construction; a discharge *procedure* still waits on a debt that needs
 > one (requirements § Non-goals).
@@ -314,6 +327,92 @@ All mint security is the one YAML validator. **Belt-and-braces at
 
 ---
 
+# Part 11 — ⭐⭐ What lending actually ships, and the gaps (2026-09-23)
+
+Written at the economic bootstrap's MR review, from the code rather than
+the plan, in answer to *"does anything actually issue credit in the game
+now, and how are we reasoning about who to issue it to?"*
+
+## What ships, and runs with nobody online
+
+| who lends | to whom | when | underwritten? |
+|---|---|---|---|
+| Treasury | every new house | at `bank open` — `treasury.openingAdvance` (50) | **no** — it is the float |
+| Treasury | every new player | at `embody confirm` — the Arrival Note, 20 at zero rate, discharged by the first wage | **no** — a grant with a paper trail |
+| a chartered bank (Goodkin) | a business | `bank borrow`, or the shop keeper's own beat | **yes** — the ladder |
+| the reserve | a chartered bank | `(1 − haircut)` of any rung-1 paper presented at the window | no — it is the collateral rule |
+| a house | its own worker | an arrear, when it cannot pay a wage | n/a |
+
+⭐ **Not test-only.** The general store's keeper runs the borrowing loop
+on her own cadence with nobody connected; drive step 6 is that loop end
+to end on a fresh world, and step 7 is a player through the same gate via
+a rented market stall.
+
+## The underwriting, in full
+
+Four reads of the borrower's own ledger. **There is no score anywhere.**
+
+- **no defaulted loan still owed** (see *the cure*, below);
+- **rung 1**: `reserve.ladder.termsRequired` (3) completed supplier
+  terms, a counter to pledge, and the bank holds the haircut (20%);
+- **rung 2**: `reserve.ladder.loansRequired` (2) repaid rung-1 loans,
+  capped at `reserve.ladder.workingCapitalCap` (5000), from the bank's
+  own balance;
+- **price**: the lender's posted `Terms.loanRatePerGameYear` — *the same
+  for every borrower*;
+- **repayment**: a share of every inflow (the bank posts it, bounded
+  10–50%);
+- **default**: revealed, never scheduled — `reserve.defaultHorizonGameDays`
+  (30) with no inflows while a balance stands; the lender repossesses the
+  pledged counter's goods. **Cured by paying the shortfall**; the breach
+  stays on the record for good.
+
+## ⭐⭐ All credit is BUSINESS credit — there is no personal lending
+
+`bank borrow` answers *"You keep no house to borrow for."* A player
+borrows **as the proprietor of a house** (the market stall is exactly
+that), and `issueLoan` writes `party("business", …)`. So the NPC/player
+risk split does not exist in the underwriting, **because the borrower's
+kind is not an input to it** — what is underwritten is a business's
+trading record.
+
+⭐ The player-specific risk is priced at a different seam: players can
+leave and NPCs cannot (D23). The estate rules are the answer — dormancy
+freezes the account, escheat reconciles the loans, recovers the Note and
+repossesses. **Whether that is the right place for it is a real question**
+and it is the first one a personal-credit design has to answer.
+
+## The gaps, each with the seam it attaches to
+
+| gap | what exists to attach it to |
+|---|---|
+| ⭐⭐ **No score, no bureau, no ratings agency.** The score is two counts and a binary. | Both facts a rating turns on are already on the row — *it defaulted* and *whether it has cleared*. A rating is a **derive-on-read over the contracts rows and their events**, the same shape as renown standing and competence bands. ⚠ Who publishes it is a design question, not a storage one: a ratings agency is an **organization with a chart and a seat**, and the state aggregates, never reports ([gazette](gazette-slate.md)). |
+| ⭐⭐ **No risk-based pricing.** One rate per bank. | `Terms.loanRatePerGameYear` is already the lender's own posted standing offer (Part 3b — and *no benchmark-rate object, ever*). Risk pricing is a per-borrower read where there is a per-bank constant, inside `issueLoanImpl`. |
+| ⭐⭐ **No secondary market.** Nobody can buy or sell paper. | `ContractRecord.holder` is the creditor and `accountOfParty(holder)` already routes every repayment, so an assignment is *the holder changing* plus an event. The debt market itself is claimed by [auction-slate](../builds/auction-slate.md); this build made the paper it would trade. ⚠ An assignment also has to decide what happens to the **window advance** behind rung-1 paper. |
+| **No personal credit, guarantees, or cosigning.** | `party("player", …)` already exists (the Arrival Note uses it). The shape is there; the *gate* is the open question, and it is the one that needs the risk half above. |
+| **No term structure.** Every loan is open-ended; default is revealed by inactivity rather than a missed date. | A due date is a field on `terms` and a second rule in `reconcileLoans`. ⚠ Deliberate for now: a repayment share of inflows is honest for a shop and needs no calendar. |
+| **One chartered bank.** | `charter: [bank]` is one row. Veshko is designed as the real bank against Goodkin's credit union ([institutions-slate](../builds/institutions-slate.md)) and is not chartered — so **competition on rate and terms is content, not code.** |
+| **A new house cannot borrow to pay its first wage.** Rung 2 needs repaid rung-1 loans, which need 3 completed supplier terms. | Deliberate (the ladder is a ladder), but it means a young business pays wages from the 50-zorkmid opening advance and then owes arrears. If wage credit for young houses is wanted, it is a **fourth rung with its own security**, not a loosening of rung 2. |
+| ⚠⚠ **Nothing hires autonomously.** | There is no `hires` brain. A player gets a seat when somebody with authority appoints them, or takes a gig from the `job` board. **For new-player absorption this binds harder than credit does** — an NPC house with a working-capital line and no way to offer a job employs nobody. It belongs with [livelihood-slate](../builds/livelihood-slate.md) (§3's NPC need-generator) and it is the prerequisite for the thesis below. |
+
+## ⭐⭐⭐ The thesis this is all actually for
+
+> **User, 2026-09-23: "it's not really player credit directly that's
+> first up, it's like npc credit on a business that's employing players
+> and needs to pay them. so the business needs the credit but the money
+> goes to the player. hopefully I wanna have enough unemployment so that
+> new players will have no trouble getting off the ground if they're
+> willing to learn and work a trade."**
+
+The money path for that **already exists**: `EmploymentApi.payHouseWage`
+tries a rung-2 draw and only writes an arrear if it cannot. What is
+missing is the two ends of it — **a business that can hire without a
+player-with-authority in the room**, and **a young business that can
+borrow against wages before it has a trading record**. Neither is a
+money problem; both are in the table above.
+
+---
+
 # Build order
 
 Each stage only becomes necessary when the previous has volume — which is
@@ -323,7 +422,7 @@ also the order to build them:
 banks → business credit.**
 
 Steps 1, 2, 3 and 5 cut 2026-09-20 — superseded by
-[economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md):
+[credit.md](../../subsystems/credit.md):
 the reserve/treasury shape they proposed is decided there directly
 (the officer seat is kept, not retired). Steps 4, 6, 7, 8 remain the
 governance backlog / content-packs-slate / cooperative-slate handoffs.
@@ -340,7 +439,7 @@ governance backlog / content-packs-slate / cooperative-slate handoffs.
 # Open questions
 
 Q1, 2, 3, 5, 6 and 7 resolved 2026-09-20 by
-[economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md):
+[credit.md](../../subsystems/credit.md):
 two institutions (reserve + treasury, separate levers); no debt ceiling
 (the consequence stated as the treasury's budget constraint); money per
 active member is the denominator (Lane two); limited liability on by

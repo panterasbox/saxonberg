@@ -27,7 +27,14 @@ export type EmploymentStatus =
   | 'on-shift'
   | 'off-shift'
   | 'quit'
-  | 'fired';
+  | 'fired'
+  /**
+   * ⭐ Vacated by ABSENCE (economic bootstrap D16): the holder was away
+   * past `employment.absenceVacatesAfterDays`. A terminal exit like
+   * `quit` — never resurrected by the roster — that nobody chose: the
+   * chart could not wait.
+   */
+  | 'vacated';
 
 /** The validation array for {@link EmploymentStatus}. */
 export const EMPLOYMENT_STATUSES: readonly EmploymentStatus[] = [
@@ -36,7 +43,11 @@ export const EMPLOYMENT_STATUSES: readonly EmploymentStatus[] = [
   'off-shift',
   'quit',
   'fired',
+  'vacated',
 ] as const;
+
+/** The terminal (no-longer-working) statuses — an exit, however it came. */
+export const EXITED_STATUSES: readonly EmploymentStatus[] = ['quit', 'fired', 'vacated'] as const;
 
 /** The stored / wire shape of an {@link Employment}. */
 export interface EmploymentData {

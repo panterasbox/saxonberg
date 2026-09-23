@@ -453,10 +453,10 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * for.
  */
 export const WARREN_PLACED = [
-  "rejection/content/world/rejection/ferrow/face.yaml",
-  "rejection/content/world/rejection/ferrow/fall.yaml",
-  "rejection/content/world/rejection/ferrow/junction.yaml",
-  "rejection/content/world/rejection/ferrow/stope.yaml",
+  "rejection/content/world/terminus/rejection/ferrow/face.yaml",
+  "rejection/content/world/terminus/rejection/ferrow/fall.yaml",
+  "rejection/content/world/terminus/rejection/ferrow/junction.yaml",
+  "rejection/content/world/terminus/rejection/ferrow/stope.yaml",
   "trade-farming/content/trade/farming/location/field.yaml",
 ];
 

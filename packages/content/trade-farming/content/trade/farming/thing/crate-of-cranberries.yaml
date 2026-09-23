@@ -12,7 +12,7 @@ data:
   censusKey: produce:cranberry
   regionTarget: 4
   materialTags: [produce, cranberry]
-  container: /trade/farming/thing/farm-stock
+  container: /world/terminus/goods-yards/farm/thing/stock
   props:
     - /trade/farming/thing/cranberry
     - /trade/farming/thing/cranberry

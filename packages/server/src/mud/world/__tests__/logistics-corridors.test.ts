@@ -141,8 +141,8 @@ function reachable(start: string, admits: (e: ExitSpec) => boolean): Set<string>
 const MARKET = '/world/terminus/market/square';
 const BANK = '/world/terminus/wharfside/bank';
 const CROSSROADS = '/world/terminus/delight-road/crossroads';
-const PASS = '/world/rejection/kestrel-road/the-pass';
-const YARD = '/world/rejection/location/pithead-yard';
+const PASS = '/world/terminus/rejection/kestrel-road/the-pass';
+const YARD = '/world/terminus/rejection/location/pithead-yard';
 const WILDS = '/world/newbie-wilds/crossroads/hub';
 const ESTUARY_MOUTH = '/world/terminus/estuary/estuary-mouth';
 const TOWPATH = '/world/terminus/valley-road/towpath';
@@ -155,11 +155,11 @@ const DELIGHT_ROAD = [
   CROSSROADS,
 ];
 const KESTREL_ROAD = [
-  '/world/rejection/kestrel-road/lower-climb',
-  '/world/rejection/kestrel-road/upper-climb',
+  '/world/terminus/rejection/kestrel-road/lower-climb',
+  '/world/terminus/rejection/kestrel-road/upper-climb',
   PASS,
-  '/world/rejection/kestrel-road/tips',
-  '/world/rejection/kestrel-road/yard-gate',
+  '/world/terminus/rejection/kestrel-road/tips',
+  '/world/terminus/rejection/kestrel-road/yard-gate',
 ];
 const ESTUARY = [
   '/world/terminus/estuary/lower-towpath',
@@ -184,8 +184,8 @@ describe('the realm is contiguous', () => {
     const wheeled = reachable(BANK, admitsWheels);
     // The wagon's road: Terminus to the valley crossroads, every room.
     for (const room of DELIGHT_ROAD) expect(wheeled.has(room)).toBe(true);
-    expect(wheeled.has('/world/rejection/kestrel-road/lower-climb')).toBe(true);
-    expect(wheeled.has('/world/rejection/kestrel-road/upper-climb')).toBe(true);
+    expect(wheeled.has('/world/terminus/rejection/kestrel-road/lower-climb')).toBe(true);
+    expect(wheeled.has('/world/terminus/rejection/kestrel-road/upper-climb')).toBe(true);
     // …and no further. Bulk breaks at the crossroads, which is the
     // depot's product doing real economic work rather than being a
     // service nobody needs.
@@ -348,7 +348,7 @@ function corridorClaims(): Array<{ extent: string; landUse: string }> {
   const wanted = [
     '/world/terminus/delight-road',
     '/world/terminus/estuary',
-    '/world/rejection/kestrel-road',
+    '/world/terminus/rejection/kestrel-road',
   ];
   for (const pack of readdirSync(CONTENT)) {
     const manifest = join(CONTENT, pack, 'pack.yaml');

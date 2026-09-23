@@ -1307,7 +1307,7 @@ export const useStore = create<StoreState>((set, get) => ({
     set(() => ({
       charGenState,
       // A char-gen state frame means we're mid-creation. The in-world
-      // flip rides the `session.link` that `enroll
+      // flip rides the `session.link` that `embody
       // confirm` fires after commit (setConnected), not a state frame.
       connectionPhase: "char-gen" as const,
     })),
@@ -1371,7 +1371,7 @@ export const useStore = create<StoreState>((set, get) => ({
     set((state) => ({
       // Entering the world from char-gen or the roster starts a fresh
       // terminal — drop the buffer (and its unread/muted bookkeeping) so
-      // the player doesn't carry the `enroll …` command echoes into the
+      // the player doesn't carry the `embody …` command echoes into the
       // world, and seed it from the server's record instead of from
       // nothing. A reconnect (already in-world) keeps its scrollback and
       // takes only what it MISSED: frames delivered while it was

@@ -46,6 +46,7 @@ export class PersistedRecord extends Document {
     owner: { persistent: true },
     state: { persistent: true },
     place: { persistent: true },
+    writtenAt: { persistent: true },
   };
 
   /** The host's singleton `templatePath` — identity + re-clone base. */
@@ -66,6 +67,19 @@ export class PersistedRecord extends Document {
    * once wrote to the avatar template.
    */
   place: HostPlacement | null = null;
+
+  /**
+   * ⭐ Epoch ms of the last capture (economic bootstrap D16). For an Avatar
+   * the last capture is its logout / linkdead save, so this IS "last seen"
+   * without opening the opaque `state` — the one number the three estate
+   * states (active · dormant · escheated) derive from. Stamped by
+   * `PersistableLogic` on every write; 0 on a row written before it existed.
+   */
+  writtenAt: number = 0;
+
+  getWrittenAt(): number {
+    return this.writtenAt;
+  }
 
   getScope(): string {
     return this.scope;

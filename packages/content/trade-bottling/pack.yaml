@@ -9,12 +9,8 @@ description: >-
   the outfit that consigns them onto the cash-and-carry, and the mixer
   pour. The filling line is a later build.
 requires:
-  groups:
-    - name: bottling
-      purpose: the bottling trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/bottling, holder: { group: bottling } }
-boot:
-  - { template: /trade/bottling/location/bottling-floor, role: producer, reason: "the outfit's yard — its Stock is the home container the mixers and ice spawn into, and its hand runs the consigns brain" }
-  - { template: /trade/bottling/idea/bottling-outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+    - { extent: /trade/bottling, holder: { organization: /compact/trade } }

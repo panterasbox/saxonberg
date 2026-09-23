@@ -18,9 +18,8 @@ description: >-
   Hearthworks smithy is the teaching venue and Rejection's smelter now
   has an anvil of its own.
 requires:
-  groups:
-    - name: smithing
-      purpose: the smithing trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/smithing, holder: { group: smithing } }
+    - { extent: /trade/smithing, holder: { organization: /compact/trade } }

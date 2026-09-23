@@ -41,7 +41,7 @@ data:
     # ⚠ Cross-pack, and authored on BOTH sides: the far half lives in the
     # rejection pack. Neither pack reaches into the other's files.
     west:
-      destination: /world/rejection/kestrel-road/lower-climb
+      destination: /world/terminus/rejection/kestrel-road/lower-climb
       media: [ground]
       edgeMinutes: 10
     # ⭐ The road south, which this row's own prose has promised since it
@@ -52,7 +52,7 @@ data:
     # exit being invented. ⚠ Authored on BOTH sides: the far half is in
     # the `hearts-delight` pack and neither pack reaches into the other.
     south:
-      destination: /world/hearts-delight/location/valley-gate
+      destination: /world/terminus/hearts-delight/location/valley-gate
       media: [ground]
       edgeMinutes: 10
       wheelPassable: true
