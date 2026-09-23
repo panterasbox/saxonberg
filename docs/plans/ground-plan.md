@@ -372,6 +372,36 @@ the Lounge are not. An author who knows better says so (`onGrade: true` on a
 cottage's earth floor) and is obeyed. This is what makes AC 7/8/12 fall out
 without a special case per class.
 
+⚠⚠ **D8a — `onGrade` answers the WRONG QUESTION for mid-air and mid-water, and
+D8's heuristic gets both backwards.** (Raised by the user at plan review.) There
+are two separate questions and D8 conflates them:
+
+1. **Is there a floor here at all?** — is this place *standable*;
+2. **Does the ground continue beneath it?** — `onGrade`.
+
+D8's derivation answers (2) and then leaks into (1). Two cases break it:
+
+- **mid-air.** A flying-only location **is sky-exposed**, so D8 would derive
+  `onGrade: true` and hand it an *earth* floor. You would be able to sit down on
+  the sky.
+- **underwater.** A mid-column water band **sits below datum**, so D8 derives
+  `onGrade: true` and floors the open water. Only the **bed** has ground under it;
+  the column does not.
+
+**The rule: a floor exists where the place is standable, and existence defaults
+to yes.** Mid-air and mid-water locations declare `noDefaultFloor: true` — the
+mechanism W2 already builds for the void row, used for two more cases. `onGrade`
+is then only ever asked of a floor that exists, which is what makes it honest.
+
+⚠ **Neither case is in the game yet** — there is no flying-only room, and the
+water column is [underwater-slate](../slates/builds/underwater-slate.md)'s
+unbuilt design (*"the column — bands as zones, `depth` as a zone field"*). So this
+build ships **no** mid-air or underwater rows. What it owes them is the
+**declaration and a test**: W2's roster test gains a literal sky-exposed row with
+`noDefaultFloor: true` and asserts **no floor and a refused `sit`**, so the seam is
+proven before either builder arrives. ⭐ And the underwater build inherits one
+sentence: *a band is not standable; its bed is* — recorded on that slate.
+
 **D9 — The ladder resolves once at attach and stamps runtime-only state.**
 Rung 3 needs `await zone.lookupField(...)` + `StuffApi.singleton(...)`, and every
 consumer of the floor's material is synchronous (`getMaterial()`, the three
@@ -989,6 +1019,47 @@ the wire file's route to the dorm.
 ---
 
 ## Deferred seams
+
+### ⭐⭐ Combat — the fourth consumer, and it was missing from the roster
+
+No combat pass had been run on this design (raised by the user at plan review).
+Three findings, none of them this build's work, all of them its consequences:
+
+1. ⚠ **Combat's `prone` is a session flag, not a posture.**
+   `lib/combat/CombatFlags.ts` carries `disarmed` / `prone` / `grappled` /
+   `inspired`, *"set by control gambits, gone at session end"* — a parallel model
+   of the same fact the posture system owns.
+2. ⚠⚠ **The one place combat touches a real posture writes the FIELD, not the
+   slot.** `CombatLogic`'s bum's rush ends
+   `if (MixinApi.isPosed(target)) target.setPosture(Postures.Lie);` — `setPosture`,
+   never `transferPosture`. So a rushed body's `posture` reads *lie* while it
+   occupies **no posture-bearing slot**: it is lying on nothing, with no
+   `restingOnPath` and no `restingSlot`. That "works" today **only because there is
+   no floor to be on**. ⭐ After this build there is one, so the rush can become
+   honest by calling `transferPosture` — a one-line change owned by combat, and the
+   first thing that makes a floor's material matter in a fight (landing on
+   flagstone is not landing on mire).
+3. ⚠ **`combat.md:539` claims the rush *"lands `Postures.Lie`"*** without saying it
+   bypasses the slot — a doc promising more coupling than the code has, the same
+   shape as `residency.md:218` promising `Adornment.canEvict`. Corrected in that
+   doc by this build; the mechanism is combat's to change.
+
+⭐ **And the Larian surface question, answered honestly: two of those interactions
+already ship.** A spill pools in the floor's surface-bulk slot (the water surface),
+and **electricity conducts through a floor puddle** (`ElectricityLogic.findFloor` +
+`conductivePoolOf`, with `FloodedCell`) — the flagship water-plus-lightning
+interaction, in the game now. What this build adds is the floor's **material**,
+which is the input the rest of them need: fire spreading across boards
+([fire.md](../subsystems/fire.md)), a body landing on stone versus mud
+([materials-response.md](../subsystems/materials-response.md) —
+`response = f(mechanism, material, construction)`, and a floor is exactly a
+material plus a construction), and slip
+([locomotion.md](../subsystems/locomotion.md)). **Grease, ice, blood and clouds are
+each a surface this build makes expressible and none that it ships** →
+[combat-slate](../slates/builds/combat-slate.md) and
+[blood-slate](../slates/builds/blood-slate.md).
+
+### The rest
 
 Clean attach points, each with the slate it leaves as.
 

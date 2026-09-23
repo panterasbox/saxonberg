@@ -309,6 +309,22 @@ it presses back, patient, like it's done this before"*).
   [rejection-slate](./rejection-slate.md)'s 1.0 content pass and the localities.
 - **Column density** — whether one hillside may stack four useful bands →
   [rejection-slate](./rejection-slate.md), already recorded there.
+- ⭐⭐ **COMBAT — the fourth consumer, and it was missing from this list until the
+  plan review.** Two of Larian's surface interactions **already ship**: a spill
+  pools in the floor's surface slot, and electricity conducts through that puddle.
+  What the floor's *material* then unlocks is a body landing on flagstone rather
+  than mire, fire crossing a board floor, and slip. ⚠ And one live oddity it makes
+  fixable: combat's bum's rush sets the posture field to *lie* without occupying a
+  slot — a body lying on nothing, which passes only because there is no floor to
+  lie on. → [combat-slate](./combat-slate.md) ·
+  [materials-response.md](../../subsystems/materials-response.md) ·
+  [blood-slate](./blood-slate.md).
+- ⚠ **Mid-air and underwater have NO floor** — a flying-only room and a
+  mid-column water band are not standable, and only the sea **bed** is. Both are
+  `noDefaultFloor` cases and **neither exists in the game yet**, so this build
+  ships the declaration and a test rather than a row. ⭐ The underwater build
+  inherits one sentence: *a band is not standable; its bed is* →
+  [underwater-slate](./underwater-slate.md).
 - **The other consumers the read unlocks** — traction and slipping · footstep
   sound · fire spreading across a board floor · tracks in mud · `GlassAlley`'s
   bare feet. Each is a small wiring job once the read exists, and each belongs to
