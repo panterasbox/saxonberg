@@ -246,6 +246,22 @@ export class ContractRecord extends Document {
     return rows.filter((r) => r.holder?.templatePath === key).sort((a, b) => a.postedAt - b.postedAt);
   }
 
+  /**
+   * ⭐ How many gigs `key` has COMPLETED — the one criterion a newcomer
+   * can satisfy on their first afternoon, and therefore the entry rung of
+   * the labor market. `settledBy` is stamped at settlement and never
+   * cleared, so this counts finished work and nothing else: a claimed gig
+   * in flight does not count, and neither does a breached one.
+   */
+  static async findSettledBy(key: string): Promise<ContractRecord[]> {
+    if (!key) return [];
+    return ContractRecord.find<ContractRecord>({
+      kind: 'gig',
+      state: 'settled',
+      settledBy: key,
+    });
+  }
+
   /** Every row of `kind` in `state`. */
   static async findByKind(kind: ContractKind, state: ContractState): Promise<ContractRecord[]> {
     return ContractRecord.find<ContractRecord>({ kind, state });

@@ -59,6 +59,7 @@
     "lint:module-scope": "tsx scripts/check-module-scope.ts",
     "lint:no-authored-faucet": "tsx scripts/check-no-authored-faucet.ts --lint",
     "lint:object-verbs": "tsx scripts/check-object-verbs.ts",
+    "lint:openings": "tsx scripts/check-openings.ts",
     "lint:pathogens": "tsx scripts/check-pathogens.ts",
     "lint:perishable": "tsx scripts/check-perishable.ts",
     "lint:person-keys": "tsx scripts/check-person-keys.ts",

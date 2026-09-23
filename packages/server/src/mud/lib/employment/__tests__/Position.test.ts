@@ -63,3 +63,84 @@ describe('Position', () => {
     });
   });
 });
+
+describe('⛔ the hiring criterion vocabulary is CLOSED', () => {
+  it('round-trips headcount and every criterion', () => {
+    const p = Position.of({
+      key: 'tailor',
+      label: 'cutting cloth',
+      wageRate: 6,
+      headcount: 2,
+      requires: { gigs: 2, discipline: 'tailoring', band: 'competent' },
+    });
+    expect(p.headcount).toBe(2);
+    expect(p.requires).toEqual({
+      gigs: 2,
+      discipline: 'tailoring',
+      band: 'competent',
+    });
+    expect(Position.fromData(p.serialize()).serialize()).toEqual(p.serialize());
+  });
+
+  it('⛔ THROWS on a criterion outside the vocabulary — never coerces it away', () => {
+    // A seat may ask for work done or competence held. It may not ask who
+    // somebody IS. Dropping the key silently would ship a sign that lies
+    // and a refusal that never fires.
+    expect(() =>
+      Position.fromData({
+        key: 'k',
+        label: 'l',
+        wageRate: 1,
+        requires: { renown: 3 } as never,
+      }),
+    ).toThrow(/not a hiring criterion/);
+    for (const bad of ['species', 'lineage', 'trait', 'wealth']) {
+      expect(() =>
+        Position.fromData({
+          key: 'k',
+          label: 'l',
+          wageRate: 1,
+          requires: { [bad]: 1 } as never,
+        }),
+        bad,
+      ).toThrow(/not a hiring criterion/);
+    }
+  });
+
+  it('throws on a band outside the ladder, and on a band with no discipline', () => {
+    expect(() =>
+      Position.fromData({
+        key: 'k',
+        label: 'l',
+        wageRate: 1,
+        requires: { discipline: 'tailoring', band: 'skilled' as never },
+      }),
+    ).toThrow(/not a competence band/);
+    expect(() =>
+      Position.fromData({
+        key: 'k',
+        label: 'l',
+        wageRate: 1,
+        requires: { band: 'competent' },
+      }),
+    ).toThrow(/asks nothing/);
+  });
+
+  it('a headcount must be a whole number ≥ 1; anything else advertises nothing', () => {
+    const bad = (headcount: unknown) =>
+      Position.fromData({ key: 'k', label: 'l', wageRate: 1, headcount: headcount as never })
+        .headcount;
+    expect(bad(0)).toBeUndefined();
+    expect(bad(-1)).toBeUndefined();
+    expect(bad(1.5)).toBeUndefined();
+    expect(bad('two')).toBeUndefined();
+    expect(bad(3)).toBe(3);
+  });
+
+  it('a seat that authors neither stays byte-identical to today', () => {
+    const p = Position.of({ key: 'clerk', label: 'clerking', wageRate: 5 });
+    expect(p.headcount).toBeUndefined();
+    expect(p.requires).toBeUndefined();
+    expect(p.serialize()).toEqual({ key: 'clerk', label: 'clerking', wageRate: 5 });
+  });
+});

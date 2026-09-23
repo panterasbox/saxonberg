@@ -35,6 +35,11 @@ import { CallSecurity } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Authority, type PrincipalRef } from './Authority';
 import { Position, type PositionData } from './Position';
+import { Opening } from './Opening';
+import { ContractApi } from '../../api/contract';
+import { MixinApi } from '../../api/mixin';
+import { CompetenceBand } from '../advancement/CompetenceBand';
+import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import { Roster, type RosterAssignment } from './Roster';
 import {
   Employment,
@@ -68,6 +73,25 @@ const OrganizationSurface = SecurityPolicies.AnyOf(
  * Hydrator can reflect into them, but they are NOT the contract surface —
  * external code goes through these methods.
  */
+/**
+ * Why a house did or did not take an applicant. Every refusal carries the
+ * two numbers the prose must name — what was asked and what is held — so
+ * the player learns what LIFTS it, not merely that it is shut.
+ */
+export type ApplicationVerdict =
+  | { ok: true }
+  | { ok: false; kind: 'already-held' }
+  | { ok: false; kind: 'no-opening' }
+  | { ok: false; kind: 'not-employable' }
+  | { ok: false; kind: 'gigs'; wanted: number; held: number }
+  | {
+      ok: false;
+      kind: 'band';
+      discipline: string;
+      wanted: CompetenceBandName;
+      held: CompetenceBandName;
+    };
+
 export interface Organization {
   // The org face (F4) — forwards into EmploymentLogic.
   /** Hire `actor` into `positionKey` (the `appoint` verb's act). */
@@ -111,6 +135,27 @@ export interface Organization {
   getPositions(): readonly Position[];
   /** The position with `key`, or undefined. */
   getPosition(key: string): Position | undefined;
+  /**
+   * ⭐ How many places of `positionKey` are unfilled: the authored
+   * `headcount` minus whoever holds it. **Derived, never stored** — so
+   * nothing can decrement it wrong, and a hire, a `quit` and a `vacated`
+   * all move it by arithmetic. A seat with no `headcount` advertises
+   * nothing and returns 0.
+   */
+  openingsFor(positionKey: string): number;
+  /** Every seat here with an unfilled place, as {@link Opening}s. */
+  openings(): Opening[];
+  /**
+   * ⭐ Would this house take `applicant` for `positionKey`? The verdict
+   * carries WHY and BY HOW MUCH, because a refusal that names no number
+   * is a wall — see `docs/antipatterns.md § A bare COUNT as a permanent
+   * gate`. Standing is conferred by the employer: the organization
+   * decides, the applicant asks.
+   */
+  considerApplicant(
+    applicant: Stuff,
+    positionKey: string,
+  ): Promise<ApplicationVerdict>;
   /** The roster (schedule) value object. */
   getRoster(): Roster;
   /** The roster assignments in list order. */
@@ -477,6 +522,73 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
         principal,
         this as unknown as OrganizationStuff,
       );
+    }
+
+    public openingsFor(positionKey: string): number {
+      const position = this.getPosition(positionKey);
+      if (!position?.headcount) return 0;
+      return Math.max(0, position.headcount - this.holdersOf(positionKey).length);
+    }
+
+    public openings(): Opening[] {
+      const path = this.getOrganizationPath();
+      if (!path) return [];
+      const label = EmploymentApi.organizationLabel(
+        this as unknown as OrganizationStuff,
+      );
+      const out: Opening[] = [];
+      for (const position of this.getPositions()) {
+        const open = this.openingsFor(position.key);
+        if (open > 0) out.push(new Opening(path, position, open, label));
+      }
+      return out;
+    }
+
+    public async considerApplicant(
+      applicant: Stuff,
+      positionKey: string,
+    ): Promise<ApplicationVerdict> {
+      const path = this.getOrganizationPath();
+      const who = applicant.getIdentityPath() ?? '';
+      if (!MixinApi.isEmployed(applicant) || !path || !who) {
+        return { ok: false, kind: 'not-employable' };
+      }
+      // Already holding it is not a refusal about WORTH — say so first,
+      // before any criterion, or a returning holder gets told they are
+      // short of gigs they already did.
+      if (this.holdersOf(positionKey).includes(who)) {
+        return { ok: false, kind: 'already-held' };
+      }
+      if (this.openingsFor(positionKey) <= 0) {
+        return { ok: false, kind: 'no-opening' };
+      }
+      const requires = this.getPosition(positionKey)?.requires;
+      if (!requires) return { ok: true };
+      // ⭐ Gigs before band, deliberately: one refusal names ONE number,
+      // and the cheaper lift goes first — a newcomer can complete a gig
+      // this afternoon, where a band takes practice.
+      if (requires.gigs != null && requires.gigs > 0) {
+        const held = await ContractApi.settledGigsBy(who);
+        if (held < requires.gigs) {
+          return { ok: false, kind: 'gigs', wanted: requires.gigs, held };
+        }
+      }
+      if (requires.discipline) {
+        const wanted = requires.band ?? CompetenceBand.FLOOR;
+        const held = MixinApi.isAdvancing(applicant)
+          ? await applicant.competenceBandFor(requires.discipline)
+          : CompetenceBand.FLOOR;
+        if (!CompetenceBand.atOrAbove(held, wanted)) {
+          return {
+            ok: false,
+            kind: 'band',
+            discipline: requires.discipline,
+            wanted,
+            held,
+          };
+        }
+      }
+      return { ok: true };
     }
 
     /** Every actor holding `positionKey` here (durable templatePaths). */

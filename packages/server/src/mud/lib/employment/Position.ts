@@ -27,6 +27,37 @@
 
 import type { CompBasis, CompensationData } from './Compensation';
 import { COMP_BASES } from './Compensation';
+import { CompetenceBand } from '../advancement/CompetenceBand';
+import type { CompetenceBandName } from '../advancement/CompetenceBand';
+
+/**
+ * ⛔ **The closed vocabulary of what a seat may ask of an applicant, and
+ * it is closed on purpose.**
+ *
+ * A hiring criterion is a judgement about a PERSON, so lens 6's
+ * governance limb applies: name the criterion, and name the appeal.
+ * Both of these are things a player can go and DO — complete gigs,
+ * practise a discipline — which is what makes the refusal honest rather
+ * than a wall. Nothing here can read species, lineage, trait, renown or
+ * wealth, and `fromData` THROWS on an unknown key rather than silently
+ * coercing it away, so a row cannot invent a third criterion quietly.
+ */
+export const POSITION_REQUIREMENT_KEYS = [
+  'gigs',
+  'discipline',
+  'band',
+] as const;
+export type PositionRequirementKey = (typeof POSITION_REQUIREMENT_KEYS)[number];
+
+/** What a seat asks of an applicant. Every field optional; all must pass. */
+export interface PositionRequirementData {
+  /** Completed (settled) gigs the applicant must have to their name. */
+  gigs?: number;
+  /** A Discipline key the applicant must have competence in. */
+  discipline?: string;
+  /** The band `discipline` must be held at or above. Default: the floor. */
+  band?: CompetenceBandName;
+}
 
 /** The stored / wire shape of a {@link Position}. */
 export interface PositionData {
@@ -75,6 +106,20 @@ export interface PositionData {
    */
   fulfills?: boolean;
   /**
+   * ⭐ **How many places this seat has.** Absent — the shipped default —
+   * means *no opening is ever advertised*: exactly today's behaviour for
+   * every seat that does not author it. A house with `headcount: 2` on a
+   * seat one person holds is advertising one place, derived, so nothing
+   * decrements and a `quit` reopens it by arithmetic.
+   */
+  headcount?: number;
+  /**
+   * What the seat asks of an applicant. See
+   * {@link POSITION_REQUIREMENT_KEYS} — the vocabulary is closed, and
+   * every criterion in it is something a player can go and do.
+   */
+  requires?: PositionRequirementData;
+  /**
    * The compensation basis (additive; absent = the shipped time-wage —
    * `wageRate` behaves exactly as before). See {@link Compensation}.
    */
@@ -111,6 +156,10 @@ export class Position {
     public readonly purchases: boolean = false,
     /** Whether the holder serves an `order` here on shift (default false). */
     public readonly fulfills: boolean = false,
+    /** How many places the seat has, or undefined (= advertises none). */
+    public readonly headcount?: number,
+    /** What the seat asks of an applicant, or undefined (= nothing). */
+    public readonly requires?: PositionRequirementData,
     /** What one holder is CALLED, or undefined. See {@link PositionData.noun}. */
     public readonly noun?: string,
   ) {}
@@ -125,6 +174,8 @@ export class Position {
       data.reportsTo,
       data.purchases === true,
       data.fulfills === true,
+      Position.coerceHeadcount(data.headcount),
+      Position.coerceRequires(data.requires),
       data.noun,
     );
   }
@@ -157,10 +208,80 @@ export class Position {
         : undefined,
       data.purchases === true,
       data.fulfills === true,
+      Position.coerceHeadcount(data.headcount),
+      Position.coerceRequires(data.requires),
       typeof data.noun === 'string' && data.noun.length > 0
         ? data.noun
         : undefined,
     );
+  }
+
+  /** An integer ≥ 1, or undefined. Anything else is not a headcount. */
+  private static coerceHeadcount(value: unknown): number | undefined {
+    if (value == null) return undefined;
+    const n = Number(value);
+    return Number.isInteger(n) && n >= 1 ? n : undefined;
+  }
+
+  /**
+   * ⛔ Coerce a `requires` blob, **throwing** on a key outside the closed
+   * vocabulary or a band outside the ladder.
+   *
+   * ⚠ A throw, not a drop. Silently coercing an unknown criterion away
+   * would turn a content typo — `requires: { renown: 3 }`, or
+   * `band: 'skilled'` — into a seat that advertises a bar and then
+   * enforces nothing, which is the worst of both: the sign lies and the
+   * refusal never fires. `lint:openings` catches it before boot does.
+   */
+  private static coerceRequires(
+    value: unknown,
+  ): PositionRequirementData | undefined {
+    if (value == null) return undefined;
+    if (typeof value !== 'object') {
+      throw new Error(
+        `Position.requires: expected an object, got ${typeof value}`,
+      );
+    }
+    const raw = value as Record<string, unknown>;
+    for (const key of Object.keys(raw)) {
+      if (!(POSITION_REQUIREMENT_KEYS as readonly string[]).includes(key)) {
+        throw new Error(
+          `Position.requires: '${key}' is not a hiring criterion ` +
+            `(expected one of ${POSITION_REQUIREMENT_KEYS.join(', ')}). ` +
+            `A seat may ask for work done or competence held — never who ` +
+            `somebody is.`,
+        );
+      }
+    }
+    const out: PositionRequirementData = {};
+    if (raw.gigs != null) {
+      const n = Number(raw.gigs);
+      if (!Number.isInteger(n) || n < 0) {
+        throw new Error(
+          `Position.requires.gigs: expected a whole number, got '${String(raw.gigs)}'`,
+        );
+      }
+      if (n > 0) out.gigs = n;
+    }
+    if (raw.discipline != null) {
+      const d = String(raw.discipline).trim();
+      if (d.length > 0) out.discipline = d;
+    }
+    if (raw.band != null) {
+      if (!CompetenceBand.isBand(raw.band)) {
+        throw new Error(
+          `Position.requires.band: '${String(raw.band)}' is not a competence band`,
+        );
+      }
+      out.band = raw.band;
+    }
+    if (out.band && !out.discipline) {
+      throw new Error(
+        `Position.requires.band: a band with no discipline asks nothing — ` +
+          `name the discipline it is held in`,
+      );
+    }
+    return Object.keys(out).length === 0 ? undefined : out;
   }
 
   /** The pay basis — absent `compensation` reads as the shipped time-wage. */
@@ -178,6 +299,8 @@ export class Position {
       ...(this.reportsTo ? { reportsTo: this.reportsTo } : {}),
       ...(this.purchases ? { purchases: true } : {}),
       ...(this.fulfills ? { fulfills: true } : {}),
+      ...(this.headcount != null ? { headcount: this.headcount } : {}),
+      ...(this.requires ? { requires: { ...this.requires } } : {}),
       ...(this.noun ? { noun: this.noun } : {}),
     };
   }
