@@ -215,7 +215,7 @@ index.
 | `Containable` | inside a `HasInteractive` holder | protects a disconnected-but-in-memory avatar's inventory that presence-touch can't reach |
 | `HasInteractive` | always (Avatar / Login) | the session holder itself; lifecycle owned by connection teardown |
 | shadow | its host is alive | one-directional (checks `host.isDestroyed()`, never `host.canEvict()` — no recursion); orphaned shadow culls |
-| `Exit` / `Adornment` | its source room / wall is alive | R2.1 owned — else an exit is culled out from under a live room |
+| `Exit` / `Adornment` | its source room / host is alive | R2.1 owned — else an exit is culled out from under a live room, or the floor out from under a room somebody is sitting on. ⚠ Presence cannot substitute: `presenceWalkImpl` walks `getDeepContents()` and a fixture is **not** contents, so a warm room says nothing about its fixtures. `Adornment.canEvict` was written down here for two builds before it existed in code — the ground build added it (2026-09-23) |
 | `Behaved` | it holds a behavior spec | authored NPC cast; re-clone would erase it |
 | `WarrenMember` | it's in a live warren (`getWarren() !== null`) | culling a satellite out from under the elastic graph (host designation, hub exits, migration) is the Warren's call, not residency's |
 

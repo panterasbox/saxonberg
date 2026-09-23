@@ -638,7 +638,7 @@ gating is `pnpm test:near` + each touched pack's `pnpm -C packages/content/<pkg>
 + `pnpm -C packages/server lint:family`. The full suite runs **once**, before
 the MR. Push every turn.
 
-### W0 — the veto and the binder (D4, D14)
+### W0 — the veto and the binder (D4, D14) — ✅ DONE
 
 *Goal:* a fixture cannot be culled from under a live host; the prepositional
 posture form parses. Two latent defects closed on their own.
@@ -657,6 +657,27 @@ line 218 now true (one word: none needed) — leave the rest to the sweep.
 *Acceptance:* the three veto cases; `sit on the <thing>` and `sit <thing>`
 both bind; `lint:family` green (`lint:arg-kinds`, `lint:binder-models`).
 Commit: `build(ground W0): a fixture stays resident while its host lives; the posture verbs take a preposition`.
+
+**✅ Done.** `AdornmentMixin.canEvict` in the mixin shape (no `override` —
+every mixin-level `canEvict` in the tree omits it, since the generic base
+makes the modifier unresolvable); 3 veto cases green. All four views took
+`prepositions: [on, at, in, upon]` + `greedy: true`.
+
+⭐ **What surprised me, and it is load-bearing for W1's D3 check:** the view
+`default:` is applied **at assembly**, not after it — `bind('sit')` returns
+`{ target: 'ground' }` straight out of `CommandApi.assemble`. So `greedy`
+did not cost the bare form its default (the regression I was braced for),
+and the *whole* of the original defect is downstream of the binder: the word
+`ground` was reaching MQL all along and matching nothing. That is exactly
+D3's claim, now measured rather than reasoned — and it means W1's keyword
+union is the only thing standing between a new player and sitting down.
+
+Also measured: the prepositional target binds **with its article**
+(`'the ground'`), and the desugar's article drop is what makes it resolve —
+so the binder test asserts `'the ground'`, not `'ground'`. 18 binder
+assertions across the four verbs; `residency.md`'s `Adornment` row is now
+true and says why presence could never have done the job. `lint:family`:
+all 48 gates pass.
 
 ### W1 — the floor is a capability (D3, D5, D6, D9, D13, D15–D19)
 
