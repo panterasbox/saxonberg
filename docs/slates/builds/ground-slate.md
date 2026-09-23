@@ -5,9 +5,14 @@
 > in three vocabularies owned by three different places, the kernel holds two
 > citation slots for it and interprets neither, and **a Location has no material
 > field at all.**
-> **Left:** ⚠ **confirm the posture bug by DRIVING first** (`sit` · `lie` ·
-> `kneel` all default to the keyword `ground` requiring `PosturedMixin`, which
-> nothing but a `Floor` composes — and 153 of 180 Locations have no floor) ·
+> **Left:** ⚠⚠ **the posture bug is CONFIRMED — driven 2026-09-23 over the real
+> socket, as a brand-new player in the Lounge (`defaultStartLocation`): `sit`,
+> `lie` and `kneel` ALL decline `empty-result[target]`, and so do `look ground`
+> and `look floor`. A new player cannot sit down in the first room they see.**
+> ⭐ A second, separate defect fell out of the same probe: **`sit on ground`
+> declines `command-rejected: shape-fall-through`** — the prepositional form a
+> person would naturally type is not a recognised shape, so even naming the
+> ground explicitly does not reach it. ·
 > **floors as universal Things** (an adornment every Location gets unless it
 > authors one) · **the five-rung underfoot ladder** · **the `onGrade` flag, on
 > the floor rather than the Location** · **`/system/ground`**: the column and the
@@ -104,10 +109,24 @@ world, including a new player's first room.** That is the fifth reachability
 link — a view's `requires:` naming a mixin its real targets do not compose, the
 `hammer`/`DurableMixin` failure again.
 
-> ⚠ **This is one command in a live game to confirm.** It is the build's first
-> act and it belongs in the drive — *not* another round of grepping. If it turns
-> out something resolves it (a fallback the reading missed), the rest of this
-> slate still stands on targetability alone.
+> ✅ **CONFIRMED by driving, 2026-09-23** — a fresh world on the wire suite's own
+> port, a brand-new character, the Lounge:
+>
+> | typed | result |
+> |---|---|
+> | `sit` · `lie` · `kneel` | **declined** — `empty-result[target]` |
+> | `look ground` · `look floor` | **declined** — `empty-result[target]` |
+> | `sit on ground` | **declined** — `command-rejected: shape-fall-through` |
+> | `stand` | ok (vacates a slot; needs no target) |
+>
+> So the reading was right and the scope is wider than it looked: the bare form
+> cannot bind **and** the prepositional form does not parse. Both are in the
+> build.
+>
+> ⭐ Observed in the same probe and **not this build's**: three of the twelve
+> reachable things in the starting room render as *"something"*. In a lit room
+> that reads as missing descriptions rather than darkness. Recorded for whoever
+> owns it.
 
 ---
 
@@ -244,9 +263,10 @@ game, and it is why the extraction build is what surfaced all of this.
 
 ## Open questions
 
-1. ⚠ **Does the posture bug reproduce?** The build's first act. Everything else
-   in the slate stands regardless, but the answer decides whether this build is
-   *also* a bug fix and how loudly its drive leads with it.
+1. ✅ **CLOSED — the posture bug reproduces**, driven 2026-09-23 (above). This
+   build **is** a bug fix with a substrate attached, and its drive leads with the
+   four commands a new player cannot use. `sit on ground`'s parse failure joins
+   the scope.
 2. **Where does the floor come from — a prop or a class default?** A `props:`
    entry every Location inherits, or the location class minting one at
    registration. The second cannot be overridden by an author as easily; the
