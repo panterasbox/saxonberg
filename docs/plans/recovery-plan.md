@@ -511,7 +511,7 @@ from a new infirmary `Stock` counter row (`thing/fitting-shelf.yaml`,
 `/platform/thing/Stock`) beside the tariff. `assess` reads *"a peg leg
 stands in for the left leg"*.
 
-**D17 â Staging and MR shape: ONE MR (user-decided 2026-09-19).** Stage A (W-A0â¦W-A7) is *"the
+**D17 â Staging and MR shape: ONE MR (user-decided 2026-09-19).** Stage A (W-A0â¦W-A8) is *"the
 clinic works"* and satisfies acceptance lines 1â5 alone; Stage B (W-B1â¦
 W-B5) is the identity/economic layer and touches a different reviewer
 surface (`Exerting`, `Slotted`/`Wearable`, `Tariff`). Land Stage A as one
@@ -528,6 +528,47 @@ the fracture and rupture thresholds) placed in `delve/corridor-3.yaml`.
 Rupture: the same deadfall (blunt torso past `ruptureThreshold`) â there
 is no other reachable source. Poison: `step-dart` (venom 4). The wire
 drive is `.dirty.` (traps are one-shot).
+
+**D19 — The notify layer: an alarm, never a heartbeat.** Recovery's new
+mechanics (offline mend, the infection deadline, convalescence) advance
+*silently* under pure derive-on-read — a body changes only when
+`reconcileConditions` runs (a `look`/`assess`). That makes the infection
+**deadline** invisible until manually inspected, which guts C5's teaching. The
+fix is a **notification**: book a one-shot read at the next interesting
+transition and push a message (*"the wound has festered / has knit / your fever
+broke"*).
+
+⭐ **It is an ALARM, not a heartbeat — the distinction is load-bearing and
+contractual:**
+- **One-shot, per pending transition** — `ScheduleApi.schedule(msUntilNext, cb)`
+  (precedent: `CombatLogic.ts:5051`'s window-expiry and `RenownLogic.ts:414`'s
+  seed-fold — *one-shots*), booked when a wound is dressed or a sepsis seed
+  lands, held on a `ScheduleHandle`, canceled and rebooked when state changes.
+  ⚠ **Never `ScheduleApi.recurring`, never a cadence, never a per-body sweep.**
+  A body with nothing pending books nothing.
+- **The callback calls ONLY `reconcileConditions` + the message push** — no
+  bespoke advance logic on the fired path; it computes nothing a `look` wouldn't.
+- **Correctness is independent of it firing.** Death itself is already pure
+  derive-on-read — `Vitals.expireDying` is called *inside*
+  `reconcileConditions` (`Vitals.ts:2172`) when the window has elapsed; there is
+  no death scheduler, a dying body resolves on its next read. So the notify
+  layer adds **no authority**: dropped, delayed or never-fired, the next real
+  read computes the same truth. It buys **timeliness, never validity.**
+- **Never persisted as authority; rebuildable from state** — the
+  next-interesting-time is a pure function of current condition state.
+
+⚠ **The acceptance gate that keeps it from drifting into a heartbeat:**
+*delete the scheduler and the game is still correct, only less timely.* Encoded
+as a test (a wound reconciled with the alarm dropped reaches the identical state
+on the next manual read) plus a check that the notify callback body calls only
+`reconcileConditions` / the message API. The 'what it is / what it isn't'
+contract is written into `harm.md` at doc time (W-A8).
+
+⭐ **Verified correction:** an earlier assumption that mortality *books* death
+via the scheduler is false (death is derive-on-read, `Vitals.ts:2172`) — which
+makes recovery's notify purely a courtesy on top of an already-correct lazy
+model, the safest possible shape.
+
 
 ---
 
@@ -782,7 +823,31 @@ reachable at all.
 - **Commit:** `build(recovery W-A6): a carer buys rate â and Aldis finally
   practises`.
 
-#### W-A7 â Stage A docs and the drive (steps 1â7)
+#### W-A7 — The notify layer (the alarm, not a heartbeat) (D19)
+- `Vitals.nextInterestingAt(): number | null` — a **pure read** returning the
+  soonest transition time across active conditions (a wound reaching
+  `CLEARED_SEVERITY`, a sepsis record crossing `symptomsAt` / a stage boundary,
+  the `mending` spell ending), or `null` when nothing is pending. Mutates
+  nothing.
+- Book a one-shot on every state change that moves the horizon —
+  `applyTreatment`, the sepsis seed, `inflict`/`relieve` — via a
+  `ScheduleHandle` held transiently on `VitalsMixin` (`_notifyHandle`), canceled
+  and rebooked each time. The callback runs `reconcileConditions` and, for any
+  transition it *observes*, pushes an MML line to the body's observers
+  (present-but-not-looking players; a logged-off player derives the same state on
+  next read). Reuse the `ScheduleApi.schedule` + `ScheduleHandle` cancel shape
+  (`CombatLogic.ts:5051`).
+- ⚠ **No `recurring`, no cadence, no sweep. A healthy body holds no handle.**
+- **Tests:** `Vitals.notify.test.ts` — the alarm fires the message at the
+  transition; ⭐ **the drop-the-alarm test** (cancel the handle; a manual
+  `reconcileConditions` at the same clock reaches the identical state — proves
+  timeliness-not-validity); the callback mutates nothing beyond what a read does;
+  a body with no pending transition books no handle.
+- **Commit:** `build(recovery W-A7): the body tells you when it changes — an
+  alarm, never a heartbeat`.
+
+
+#### W-A8 â Stage A docs and the drive (steps 1â7)
 - `docs/subsystems/harm.md` Â§ *Recovery* (the seam, the carve, the
   treatments, hygiene, the carer); `vitals.md` (the new fields);
   `attendant.md` one-line cross-ref; `content-packs.md`'s trade-medicine
@@ -792,7 +857,7 @@ reachable at all.
   Drive record below lists each checkpoint and what it must be able to
   fail on). Run it; record the output.
 - `pnpm test` once; open the Stage A MR.
-- **Commit:** `build(recovery W-A7): Stage A docs, and the drive proves the
+- **Commit:** `build(recovery W-A8): Stage A docs, and the drive proves the
   clinic works` then `drive(recovery): â¦`.
 
 ### Stage B â the lens extensions (a second MR off master)
