@@ -7,35 +7,27 @@
 > planting a standard with the deed written by the ground, eight woods
 > + eight trees, `silviculture`, the Hanging Wood above Rejection as rows
 > only, `ToolMixin.epoch` (a closed vocabulary, unread).
-> **Left:** `analyze wood` + a per-wood roll-up · partial yield below
-> ripe · the Cover seam (Sward + Stand → a kernel `lib/husbandry/Cover`
-> on the third instance; the stand's moisture factor integrated
-> stepwise) · a planted standard folding into `mix[].standing` at
-> maturity · the tree-dimension axes in § Dimensions of a tree (leaf
-> habit → `coldStopK`, masting, a reader for `sexDeterminationSystem`,
-> shade, browse, form as a stamp, the nursery ladder, hauling the bole,
-> fire on the stand) · the seeded site character for a Wood (soil.md's
-> third-consumer rule). Conversion (`trade-sawing` — the bole is its
-> attach point; the timber set's by-hand path goes with it), forest law
-> (the [covenant](../builds/land-use-covenant-slate.md)) and carpentry
-> are their own builds.
-> **Size:** a tail — several small ones, none blocking the next trade
-
-> *(the original framing, kept for the record)* Written
-> 2026-09-03 out of the farmstead *(retired artifact)*
-> land-use pass, which found that **wood has more consumers than any other
-> material in the game and no producer designed for it.**
->
-> ⚠ **Partly built already, and by accident.** `trade-fuel` ships a coppice
-> because charcoal needed one — and its README names the seam this slate is
-> for, verbatim: *"the coppice — authored beds over the shipped
-> `CultivableMixin`/`GrowingMixin` … **a cut-and-regrow rotation is the seam a
-> later build widens.**"* Farmstead **D70** widens it; this slate is the
-> industry around it.
->
-> **There is no forestry vocation in the register.** The only wood entry is
-> *charcoal burner / collier*, marked shipped — which is a customer, not a
-> producer.
+> **Left:** the four seams the doc defers, which have no body section
+> here — `analyze wood` + a per-wood roll-up · partial yield below ripe ·
+> the Cover seam (Sward + Stand → a kernel `lib/husbandry/Cover`; the
+> stand's moisture factor integrated stepwise) · a planted standard
+> folding into `mix[].standing` at maturity — plus this slate's own open
+> design: multi-product wood (oak bark → the tanner, mast → pannage, the
+> spring spike) · the silviculture curriculum (species by site, thinning,
+> regeneration, browse, stool longevity) · conversion + seasoning ·
+> forest law — estovers, the woodward · the seeded half of the seeded ×
+> derived model (the site character for a Wood, soil.md's third-consumer
+> rule) · the wayfinding Discipline's home · a woodward seat for
+> Rejection · a second authored wood · the tree's anatomy tail (the
+> `hanging` posture, the tree-in-a-stand, the treehouse column, *there is
+> no under*) · fire on the stand · the tree axes (leaf habit →
+> `coldStopK`, masting, a reader for `sexDeterminationSystem`, form as a
+> stamp, the nursery ladder) · shade, age structure, hauling the bole.
+> **Size:** a tail — several small ones, none blocking the next trade.
+> Conversion (`trade-sawing` — the bole is its attach point; the timber
+> set's by-hand path goes with it), forest law (the
+> [covenant](../builds/land-use-covenant-slate.md)) and carpentry are
+> their own builds.
 
 See also: farmstead plan *(retired artifact)*
 (**D63** winter fuel · **D70** woodland as a land use · **D74** the commons
@@ -52,64 +44,14 @@ Substrates: [husbandry.md](../../subsystems/husbandry.md) (`GrowingMixin`) ·
 [watershed.md](../../subsystems/watershed.md) (**water power**) ·
 [field-substrate-slate](../tails/field-substrate-slate.md).
 
----
-
-## What actually ships today
-
-| | State |
-|---|---|
-| `trade/fuel/thing/hazel-stool` | a `Plant` with `harvestTemplatePath: cordwood`, **authored already-grown**, with the rotation named as a seam on the species row |
-| `trade/fuel/thing/cordwood` | a `Provision` — *"the ONE supply two trades compete for: the collier chars it and the mine shores with it"* |
-| `corylus/avellana` | the hazel species row |
-| `charcoal`, `ash`, `brands`, `clamp` | the burn, both as things and as material rows |
-| `TimberSet` (mining) | a placed `Durable` that decays and is repaired — ground support as an object |
-| `material/wood/oak` | ⚠ **the only wood material in the game** |
-
-> ⚠⚠ **A content defect to fix in passing:** `cordwood.yaml` describes *"a
-> straight length of hazel"* and carries `_materialPath: …/wood/oak`. Hazel
-> cordwood made of oak. It is invisible today because oak is the only wood row
-> that exists — which is itself the finding.
-
-**One wood species is the real gap.** Wood is not one material: oak for
-structure and tannin, ash for anything that takes shock, hazel for hurdles and
-wattle, willow for baskets, elm for water pipes because it does not rot wet,
-pine for cheap boards. `materials-response` already models response as
-`f(mechanism, material, construction)`, so the substrate is waiting; only the
-rows are missing.
-
----
-
-## ⭐⭐⭐ The crop you inherit — and it dissolves the timescale problem
-
-A worked wood produces **two crops on two timescales from one piece of ground**,
-which is the structural fact of pre-industrial forestry:
-
-- **Coppice** — cut to the stool, regrows from the stump, a short rotation.
-  Poles, rods, fuel, charcoal, hurdles, withies.
-- **Standards** — scattered trees left to grow, for decades, into structural
-  timber.
-
-*Coppice with standards* is one stand doing both, and it is the sharpest
-multi-timescale decision available to a player: every standard you leave shades
-the coppice beneath it.
-
-The clock is the obvious objection. A game year is **30 real days**, so a
-seven-year hazel rotation is seven real months and an oak standard is
-unreachable in a human lifetime of play. Farmstead **D23** already set the
-policy — *compress the absolute scale, preserve the ratios* — and here it
-resolves into something better than a dial:
-
-> **Coppice is a crop you can complete. Timber is a crop you inherit.**
->
-> A mature stand was planted by somebody long dead. You manage it, you harvest
-> it, you decide how fast to spend it — and planting a standard is an act of
-> faith for a player who does not exist yet.
-
-**Forestry is the only industry in the game whose full cycle a single player
-cannot close**, and that is not a limitation to engineer around. It is the
-content. It gives the chronicle something real to hold, it makes an inherited
-holding materially different from a bought one, and it is the honest reason
-forests were governed by institutions rather than owners.
+⭐ **What shipped, and where it is written down** — the pack, the `Wood`
+that is ground, the stand, the bole, the panel's one-game-year rotation,
+the four representations of a tree, the eight woods and the deed:
+[forestry.md](../../subsystems/forestry.md), whose *§ Why the wood is
+shaped this way* now carries the crop-you-inherit and let-a-wood-be-
+destroyed arguments this slate used to hold. The vocation rows are in
+[vocations.md](../../vocations.md) (*forester / woodcutter* · *coppicer*
+· the *sawyer* gap).
 
 ---
 
@@ -136,27 +78,6 @@ rises and the bark peels — so it is a real labour spike, not a stock you draw 
 timber, hearth firewood, and construction. `cordwood.yaml` already calls the
 two-way version *"the whole reason the fuel yard is a business rather than a
 prop."*
-
----
-
-## ⭐⭐ Deforestation is the lesson, and it must be allowed to happen
-
-A forest is renewable **only while the cut rate stays under the growth rate**,
-and that inequality is the entire subject. Exceed it and you get the documented
-history: the salt towns ate their woods, navies panicked about oak, and
-**coal replaced charcoal because the wood ran out.**
-
-The game has a mining chain. So the arc is available end to end:
-
-> **A player can be made to discover *why coal*** — not told it, driven to it by
-> a stand that could not keep up.
-
-Which means the design must **let a wood be destroyed.** Not a warning, not a
-soft cap, not a regrowth timer that quietly outruns demand. A stand cut past its
-increment declines, and the consequence arrives as a fuel price and a cold
-winter. This is farmstead D45's cliff/slope distinction applied at the scale of
-a locality rather than a player, and it is the commons problem in its most
-consequential form.
 
 ---
 
@@ -220,35 +141,10 @@ slates should share their enforcement design rather than inventing two.
 
 ---
 
-## ⭐ A stand is a record — the pattern's fourth consumer
-
-Herd (farmstead **D20**) → hive (**D34**) → wild population
-([hunting-slate](./hunting-slate.md)) → **stand.** You do not instance five
-hundred trees. A stand is **a population with an age structure and a species mix
-over an area**, from which an individual materializes when you engage it — you
-fell it, or it is the named oak everybody navigates by.
-
-Its halves compose the way soil's do: **seeded character** (what grows here,
-from site and biome) × **derived state** (what is left, from what has been cut).
-
-⚠ **No regrowth timers.** Growth is an increment against a standing stock, which
-is what makes the cut-rate-versus-growth-rate lesson expressible at all.
-
----
-
-## Where it lives
-
-**A `trade-forestry` pack, with the coppice moving out of `trade-fuel`**, which
-becomes its customer. That is the metal chain's shipped precedent —
-`trade-mining` / `trade-fuel` / `trade-smelting` as three packs over one
-locality — and it is the honest supply chain: **a forester and a collier are
-different trades**, and the collier buying cordwood rather than growing it is
-what makes the contest real.
-
-The **forester / woodward** is the register's missing vocation, and its demand
-test passes on the consumer table above without needing a single new customer.
-
----
+*(§ A stand is a record — **superseded by the code**: the stand
+shipped as a COVER on the ground, not a filed record. See
+[forestry.md § The four representations of a tree](../../subsystems/forestry.md)
+and § The stand — `StandMixin`.)*
 
 ## What must not happen
 
@@ -261,58 +157,11 @@ test passes on the consumer table above without needing a single new customer.
 - **No single "wood" material.** Species differ, and `materials-response` is
   already built to express that.
 
-## ⚠ What the metallurgy drive handed over (2026-09-16)
-
-Found by charring in a live browser, not by a test. Two of the three are
-this slate's to answer; the first is already fixed.
-
-- ✅ **The coppice afforded nothing.** `harvest` is contributed by
-  `CultivableMixin`, not by `Plant`, so the fuel yard's loose-propped
-  `hazel-stool` answered *"I don't understand 'harvest'."* to everybody.
-  Cordwood — *"the ONE supply two trades compete for"* — was unreachable
-  by any route, which is why four authored charcoal baskets were the
-  realm's entire fuel economy and one player could end iron-making for
-  that world permanently. Fixed with `trade/fuel/thing/coppice-panel`, a
-  six-slot `GardenBed` whose own `props:` seat the stools. ⭐ The lesson
-  to carry: **a crop propped on the floor is scenery** — the growth model
-  only reaches it through ground.
-
-- ⚠⚠ **Nothing in the game authors a GROWN plant, and this slate needs
-  it.** `growthStage` is `persistent` but not `authorable`, and **zero
-  shipped rows set it** — so every authored plant begins at `seedling`,
-  the starter pot's peace lily included. `hazel-stool.yaml` carries a
-  comment saying it is *"authored ALREADY GROWN under the
-  model-consistency rule"*; nothing implements that. ⭐ This is load-
-  bearing for *"timber is a crop you inherit"*: an inherited stand is
-  **exactly** a plant somebody must be able to author mature. Whatever
-  the mechanism is (an authorable stage, a `plantedAtGameDay`, a seeded
-  age from the site), it is this build's to design — and it is the
-  difference between a coppice you inherit and one you plant and outlive.
-
-- ⚠ **The rotation is uncompressed, so the panel cannot yield.**
-  `daysToStage.mature: 2500` is ≈208 REAL days at
-  `WorldClockApi.DEFAULT_SCALE = 12`, and `fruitFillDays: 120` is ten
-  more on top. That is the § Open questions lean — *"coppice ≈ one game
-  year, so a player can complete one"* — meeting a shipped row that
-  predates it. ⭐ The numbers are now concrete rather than hypothetical:
-  **a smelt wants ≥2 baskets, a burn is 3 game days (6 real hours), and
-  `yieldFor` turns cordwood into baskets** — so the rotation, the panel
-  density and the realm's iron ceiling are ONE arithmetic chain this
-  slate gets to set end to end.
-
 ## Open questions — decided by the lens pass (2026-09-17)
 
 Each carries the limb that chose it. Sequencing and content calls that
 the lenses do not decide are marked *(user)*.
 
-- **How compressed are the rotations?** ⭐ **Coppice = one game year;
-  a standard = fifteen.** Real hazel is 7 years, real oak 80–120, a
-  ratio near 1:15 — *preserve the ratio* (farmstead D23) is what lens 1
-  requires, and one game year (30 real days) is what makes a coppice a
-  crop a player can complete. Fifteen game years is 450 real days, which
-  is *inherited* in every sense that matters and still reachable by a
-  realm that lasts. The shipped `hazel-stool` row (`mature: 2500`
-  game-days ≈ 208 real days) is replaced, not tuned. **Lens 1.**
 - **Seeded field or derived stock?** ⭐ **Both, composed** — species
   and site quality from the seeded field (the mine's `Deposit` shape,
   derived from the address, nothing stored); volume and age structure
@@ -321,11 +170,6 @@ the lenses do not decide are marked *(user)*.
   a timer, and it is what the mine already does. **Lens 1**, and it
   answers field-substrate's open *"do seeded and derived compose?"* with
   yes.
-- **Does planting a standard need a mechanism?** ⭐ **No. It is a deed.**
-  The stand's record carries the planting with the planter's identity
-  (`getIdentityPath()`), the chronicle records the deed, and the payoff
-  is to the chronicle and to whoever holds the wood fifteen game years
-  on. Any reward machinery here would be a gauge on faith. **Lens 4.**
 - **Where does the sawmill sit?** ⭐ **In `trade-sawing`, a separate
   conversion trade, and NOT in this build.** The chain generalizes the
   metal chain's three packs — *RGO trade → conversion trade → maker
@@ -342,8 +186,6 @@ the lenses do not decide are marked *(user)*.
   season and *no chainsaws* are rows of it. This build ships only the
   cheap half: instruments declared as arguments and stamped with an
   `epoch`. The law itself waits for the covenant build. **Lens 2.**
-- **The hazel/oak `cordwood` mismatch** — ⭐ **fixed here**, because the
-  wood species rows are this build's and `wood/hazel` is one of them.
 - **Where is the first forest?** *(user, decided 2026-09-17)* ⭐ **The
   hill above Rejection**, from `hillside.yaml` up — no new town. Both
   shipped consumers (the collier, the mine's timber sets) are in the
@@ -353,77 +195,11 @@ the lenses do not decide are marked *(user)*.
   of the settlement (`landUse: wild`, group-titled), which is what makes
   the deforestation arc a commons problem and not a landlord's. Newbie-
   wilds' dark wood is the *second* forest — the zero-code test.
-- **The Discipline.** *Lean:* one, **silviculture** — the management of
-  a stand is the skill; felling is the craft it exercises, the way
-  `geology` is exercised by `hew`. A second (felling / conversion craft)
-  is `trade-sawing`'s to name if it needs one.
-
----
-
-## ⭐⭐ The structural bet — an authored forest is a forest; the stand is the one thing that moves
-
-Decided 2026-09-17 in the forests-as-venue conversation, and then
-**cut back the same day** when the first draft reached for runtime
-land-use conversion. The user's constraint, standing:
-
-> *"if someone authors a forest, it's always going to be a forest … I
-> don't want to try to program something that simulates the biology of
-> every living organism in the game … we pick and choose where we want
-> to spend our expressiveness."*
-
-So:
-
-- **The forest is authored, and invariant.** Its Locality, its rooms,
-  its clearings and paths are written by an author and are the same
-  after every reboot. A clearing is a room because an author wrote one;
-  nothing carves rooms at runtime, and nothing turns a wood into a field
-  or a field into anything else. If authors ever want conversion of land
-  use at runtime, that is a system built then, on request — not here.
-- **The stand is the one dynamic thing** — species mix and standing
-  timber, drawn down by felling and restored by the increment. ⭐
-  Revised 2026-09-17: it is not a filed record but **a cover on the
-  ground**, the way a field's sward is — each clearing is a persistable
-  location that IS soil (a sky edge, a moisture ledger), and its stand
-  is a mixin on the room, so rain and drought reach the trees and
-  `look` reads it as the room's own prose. A wood is the sum of its
-  clearings. Its terminal state is **an empty forest**: the prose still
-  says trees, the record says there is nothing left to cut, and the
-  collier's baskets stop filling. That is the whole deforestation lesson
-  and it needs no conversion — a depleted seam is still a mine, and the
-  mine already works exactly this way.
-- **The lifecycle is abstracted to what a player can act on.** A
-  coppice is *cut → regrowing → ready* on a one-game-year rotation; a
-  standard is *sapling → mature* over fifteen, plus the deed of having
-  planted it. Two stages and an increment. Nothing per tree, no
-  succession model, no biome drift.
-- **The forest-as-field survives only as numbers rooms READ** — canopy
-  for the light model, species-by-site for what grows there, the
-  stand's volume — the way rooms already read a biome. It never creates
-  a room. *Getting lost* is a venue outcome an author writes (a lean on
-  the address walk, a room with no landmark), not an engine that
-  materializes wood off the path.
-- **Assarting** — the medieval clearing of woodland for farmland — is a
-  word the pedagogy teaches and a thing an *author* does when they write
-  a farm where the wood used to be. It is not a verb.
-
-**Why lenses 1 and 2 still choose this.** Honest (lens 1): darkness,
-concealment and the year the wood fails all derive from values the
-stand and the biome carry, nothing asserted in prose. Expressive (lens
-2): the ordinary case is a biome row, a stand row and a handful of
-clearings, no code; a second forest is a second Locality; and the
-bespoke case — the grove, the talking oak, the wood that will not let
-you leave — is an author's room, not an engine feature. ⚠ The
-antipattern it exists to make unwriteable is still the MUD forest —
-forty rooms of *"You are in a forest. Exits: n s e w."* — and the
-answer is fewer, better clearings over one stand, not a generator.
-
-⭐ **The doctrine underneath, worth carrying to every RGO:** expression
-is an **inelastic resource** — NetHack, Dwarf Fortress and the board
-games spend a fixed alphabet with great care — and the game's dynamism
-comes from *everyone being an author*, so the code is always changing,
-not from one codebase simulating every outcome. Abstract the parts of a
-lifecycle that are meaningful to the player and that the platform can
-persist and compute; leave the rest to the next author.
+- *Resolved by the build, cut from this list:* the rotations (coppice =
+  one game year, a standard = fifteen) and planting-as-a-deed →
+  [forestry.md § The panel](../../subsystems/forestry.md) + *§ Coppice
+  with standards*; the hazel/oak `cordwood` mismatch → fixed in the row;
+  the Discipline → `silviculture` (ISCED-F 0821).
 
 ---
 
@@ -495,19 +271,6 @@ land-use conversion was ruled out by the user. Nothing else moved.
 Run after the plan, when the user asked what *bigness* forces and
 whether every dimension of a tree has a home. The answers, and the
 gaps, so nobody re-derives them.
-
-### ⭐ A tree has three representations, and each answers different questions
-
-| representation | what it is | use it for |
-|---|---|---|
-| **a record** | a number in a stand — *twenty-four oaks* | inherited stock; anything never looked at singly |
-| **a slot-plant** | a real `Plant` in a bed slot, on the growth model | anything tended, cut or planted — *yours* |
-| **a prop** | a `Plant` (or a detail) propped in a room | the landmark oak, the hanging tree — scenery **by design**; never harvested, never a record |
-| ⭐ **a place** | a **column of Locations** sharing the tree's `x, y` at `z: 0, 1, 2…`, joined by `climb` exits | the treehouse — see § Anatomy below; the tree at its foot is a *prop*, so nobody can fell a tree with a house in it |
-
-Every later question — can it burn, can I climb it, can a deer eat it,
-does it seed — has a different answer per representation. The forestry
-doc opens with this table.
 
 ### ⭐ Anatomy — a tree's parts are five primitives, not one class
 
@@ -622,17 +385,6 @@ is their storm, not a verb.
   prose; later, a standard in a panel lowers the panel's sampled light.
 - **Browse** — *grazing a wood stops it being a wood* wants a sixth
   limiting factor that hunting and ranching drive.
-- **The bole is not persisted** and no act hauls it — a felled trunk
-  left in the wood is the wood's again after a restart, and moving one
+- **No act hauls the bole** — it persists where it fell (`followCustody`,
+  [forestry.md § `fell`](../../subsystems/forestry.md)), but moving one
   is the transport pack's day.
-
-## Scope guardrails
-
-- **Reuse the growth model.** `GrowingMixin` and `CultivableMixin` already run
-  plants on reconcile-on-read; a stand is a density decision, not a new engine.
-- **No new Mongo collections.**
-- **The wood species rows are the cheapest high-value work here** — one material
-  row per species unlocks `materials-response` behaviour that is already built.
-- **If this is cut for scope, cut conversion before the stand.** The stand and
-  the cut-rate-versus-growth-rate inequality are the lesson; sawing is a
-  convenience on top of it.
