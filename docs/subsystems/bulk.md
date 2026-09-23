@@ -205,6 +205,19 @@ or player-typed `cup` / `mL` measures convert to litres at the boundary
 (`Quantity.parse` / `Quantity.to`); the converters live in
 `lib/quantity.ts`. `cup` / `mL` are tagless volume units (like `m³`).
 
+### Authoring — discrete `Thing` vs `bulk`
+
+A content-author choice, not an engine one — the engine supports both:
+**discrete `Stuff`** when a unit has shape and identity and players
+treat it as countable (a loaf, an apple, a wheel of cheese, a coin;
+fungible + countable → also `Stackable`); **`bulk`** when it is a
+formless measured amount that conforms to its holder (water, flour,
+sand, oil). The linguistic tell: *three Xs* (discrete) vs *some X* /
+*200 g of X* (bulk). The same substance can be both (a wheel of cheese
+and grated cheese); the shipped crossing is § `Container` + `Bulkable`'s
+melt/solidify, and the conversion verbs are the slate's. Source:
+`bulkable-slate` § Authoring guidance.
+
 ### `BulkSlot` — the live handle
 
 `host.getBulk(affordance?)` returns a `BulkSlot` handle that reads and
@@ -330,6 +343,37 @@ material keywords never leak into room scope.
 Demo Materials (`coffee`, `water`) are **flat** — appearance + keywords
 only, no composition / chemistry depth (fidelity is demand-driven;
 nothing in this slice reads past appearance + keywords).
+
+#### Why a Material is modelled at the granularity its interactions read
+
+`Material` carries real chemistry (formula, molar mass, `composition`
+weight-fractions, edibility/toxicity — [race.md](./race.md)); that depth
+is a **capacity, not a mandate**. The rule: **model a substance at the
+granularity its interactions actually read.** Coffee's interactions need
+a liquid, an appearance, a caffeine effect and *hot* — none reads a
+water-fraction — so coffee is a flat Material and the water in it is
+*presumed*; decompose into constituents only when some interaction has
+to see them, which for a drink is ~never. Two distinctions this fixes:
+**different substance vs. different phase** (bean → brewed coffee is two
+Materials related by a process, extraction; ice ↔ water is one Material
+in two phases — never conflate a chemical transformation with a phase
+change), and **capacity ≠ mandate** (the substrate's *ability* to model
+deep chemistry must never leak into *forced* fidelity). What keeps it
+honest is a three-layer stack: the **substrate** (materials, bulk,
+surfaces, `transfer`, effects — can go deep, defaults shallow); the
+**game**, a curated *legible* rule layer on top (oil pool + flame →
+spread; poison coats a blade; water conducts) that is **authored, not
+simulated** — emergence from a small learnable rule set, not from
+physics fidelity; and the **education dial**, the real chemistry an
+opt-in the teaching content turns up (Gus's coffee stays *coffee*; a
+chemistry lesson models the solution). The general principle is
+[design-philosophy.md § The principle](../design-philosophy.md); the
+design DNA is MUD bones (the parser, rooms as stagecraft), NetHack's
+everything-interacts density got through **composition** rather than
+per-case code, and Larian's legible chemistry set — whose surfaces and
+clouds ARE this doc's surface-bulk / spill / coat / drain machinery, and
+the proof the substrate is fun when the rule layer on top stays legible.
+Source: `bulkable-slate` § Material fidelity · § Influences.
 
 ### `getContentsDescriptionFor` — the contents augmenter
 

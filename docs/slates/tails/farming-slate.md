@@ -481,16 +481,12 @@ Grange and the Landwrights. Excellent polity-paper material.
 
 ## Numbers, instruments, competence
 
-- **World quantities are numeric, read with error bars.** A cheap
-  thermometer reads ±3 °C; a master's calibrated rig reads ±0.1 °C *and*
-  can measure soil water potential the novice can't access at all.
-  Leveling buys **precision + coverage**, teaching measurement under
-  uncertainty (calibration, precision-vs-accuracy, the limiting
-  instrument) — real experimental science.
-- **Competence sharpens instruments and widens access — it never
-  multiplies yield.** The field always obeys physics; the human always
-  supplies the reasoning. (Reject "Farming Lv20 = +40% yield" — it lets
-  you grind *past* the science instead of *through* it.)
+> *Graduated 2026-09-21.* The first two bullets — world quantities read with
+> error bars; competence sharpens instruments and never multiplies yield —
+> → [husbandry.md § Why competence sharpens instruments and never multiplies
+> yield](../../subsystems/husbandry.md) and [soil.md § D5 — the survey is
+> per-viewer](../../subsystems/soil.md).
+
 - **What stops it becoming a wiki-lookup game:** procedural weather
   variance (no memorizable "plant on day 3" — you must read *this*
   season) + the fact that a known equation *still* needs this plot's live

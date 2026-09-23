@@ -340,6 +340,33 @@ operation):
 Controllers are thin (model → the `ContractApi` call; Scene + note);
 every actor is context-derived inside the gated logic.
 
+## Why — the labor market routes fun; the engine verifies only what it simulates
+
+Two of the livelihood slate's load-bearing decisions are the reason the
+substrate has the shape it has (graduated from
+[livelihood-slate.md](../slates/builds/livelihood-slate.md) § *Load-bearing
+decisions (the spine)*, items 3 · 5 · 6):
+
+- **The labor market routes fun, it doesn't generate it.** A contract or
+  a job is a motivation-and-payment wrapper around an underlying systemic
+  activity — it is only as good as the activity beneath it. That is why
+  every shipped template (`delivery`, `supply`, `watch`) names something
+  the world already models and no template invents an activity of its own.
+- **The engine verifies; it only verifies what it simulates.** A clause is
+  checked against modeled world-state, never an agent's diegetic witness;
+  judgment lives at *specification* time (defining the condition), not
+  *verification* time. You may only escrow a condition the engine can
+  verify — anything fuzzier falls back to an informal, un-underwritten
+  arrangement. This is the anti-magic / anti-exploit keystone behind the
+  closed `CONDITION_TEMPLATES`, and it is why a badly-specified condition
+  (deliver an empty box that satisfies the letter) is the issuer's risk to
+  eat and learn from.
+- **You cannot code significance.** Whether anyone *cares* lives in the
+  humans, not the avatar; the engine's job is to make facts true, legible
+  and attributable and then get out of the way — which is why breach
+  writes a durable row and a regard nudge and *no global reputation*, and
+  why settlement tells the issuer and nobody else.
+
 ## Dials
 
 `contract.claimExpiryGameHours` (48) · `contract.postingExpiryDefaultGameHours`

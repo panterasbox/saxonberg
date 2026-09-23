@@ -36,32 +36,7 @@ Idea, Locality-declared jurisdiction, seats-as-positions) ·
 
 ## The doctrine line — zoning governs use, never self-expression
 
-The property slate rules, twice and emphatically:
-
-> **Two throttles replace the permit:** the release gate + the compute
-> allowance… Governance is reserved for the **commons + shared rules** only —
-> **never your couch.**
-
-and *"Personal customization is not a governance act."* Any land-use system has
-to survive that rule, and it does — but only if scoped precisely. That rule was
-aimed at **authoring and self-expression**: may you decorate, script, build.
-Land use answers a different question:
-
-> **Does this activity consume shared capacity, or spill onto people who did not
-> consent?**
-
-Rearranging your furniture affects nobody. Forty head of cattle in a city
-apartment affects everybody. That is the line real zoning draws — nuisance and
-externality, not taste — and it sits squarely inside "commons + shared rules."
-
-**The rule to hold: zoning governs land use, never self-expression.** Tier 0
-decorating stays ungoverned forever. What gets governed is capacity and
-externality.
-
-**Corollary (already ruled, keep it):** property *types* — apartment / townhome
-/ manor — are "**content + a `prestige`/`class` attribute; not substrate**."
-Prestige flavors; land use gates mechanics. Two different attributes that
-correlate. Only the second earns a place in the substrate.
+*Homed 2026-09-22 → [settlement-model.md § 4 · Absorbed from stewardship-slate](../../settlement-model.md).*
 
 ---
 

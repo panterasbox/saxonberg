@@ -1233,20 +1233,10 @@ an assumption baked in where nobody can argue with it.
 
 ### Every stake is a fading number times a growing one
 
-Checked against the shipped substrate: **all three stocks decay in
-real time** (`participation.decayHalfLife`, `producer.decayHalfLife`,
-renown's half-lives). Conviction, meanwhile, only builds. So:
-
-> **weight = standing (decaying) × conviction (building).**
-
-Two consequences worth having on the record:
-
-1. **The obvious exploit dies unaided.** Park a position, walk away,
-   return at maximum conviction — and find your standing decayed out
-   from under it. **Conviction rewards patience, never absence.**
-2. **Every chamber is structurally a chamber of the currently
-   present.** Veterans who left cannot hold the floor. Nobody had to
-   design a term limit.
+> Graduated to [influence.md § Conviction](../../subsystems/influence.md)
+> (*Why the weight is a fading number times a growing one*): standing
+> decays, conviction builds; park-and-return dies unaided; every chamber
+> is a chamber of the currently present.
 
 ### What this means for the play chamber
 

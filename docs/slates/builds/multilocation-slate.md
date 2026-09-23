@@ -102,16 +102,15 @@ See also:
 
 ## Principle
 
-1. **Elastic, not sharded.** One template, many instances, connected into
-   one graph that grows and merges — not parallel hard shards.
-2. **Membership is orthogonal to spatial scope.** `Zone` owns neither the
-   graph nor its coordination.
-3. **One brain per graph, and it isn't a room.** The `Warren` coordinates;
-   a persistent host seats it; members are ephemeral.
+*Principles 1–3 and 5 (elastic not sharded · membership orthogonal to
+`Zone` · one brain per graph that is not a room · thin consumers over a
+working base) shipped and are stated with their why in
+[location.md § Core model](../../subsystems/location.md) + § Base
+mechanism vs lounge policy (doctrine-homing pass, 2026-09-21). The two
+that remain are the unbuilt half:*
+
 4. **Heterogeneous by role + cardinality.** Singleton and elastic are two
    settings of one knob, not two substrates.
-5. **Thin consumers over a working base.** The base is a functioning
-   generic overflow-instancer; subclasses override only decisions.
 6. **Drain, don't slam.** Growth is diegetic ("a doorway opens"); collapse
    is gentle (drain-then-collapse).
 

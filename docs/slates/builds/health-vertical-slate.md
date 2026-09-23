@@ -57,28 +57,7 @@ already committed to for other reasons.
 
 ## The clinical-reasoning trainer we built by accident
 
-Three shipped decisions combine into one:
-
-1. **Honest opacity** — no gauges; you read the world, not a stat.
-2. **`observableSigns`** — every `Condition` already carries prose signs
-   (`[nauseous, cramping, sweating]`).
-3. **A catalog with overlapping signs** — **eleven authored conditions ship
-   today**: hyperthermia, hypothermia, torpor, asphyxiation, starvation,
-   ptomaine, lead, venom, alcohol, dread, overchannel-strain.
-
-> **Differential diagnosis therefore *emerges* rather than being scripted.**
-> Flushed, sweating and disoriented is consistent with hyperthermia, with a
-> toxin burden, and (once disease lands) with an infection. Separating them
-> takes more signs, a history, or an instrument.
-
-That is the thing scripted clinical sims structurally cannot do, because their
-scenarios have one correct answer fixed in advance. Ours has a **simulated
-patient whose state derives from a model**, so the reasoning is real even when
-the case is unremarkable.
-
-**The anti-wiki rule carries over verbatim from farming:** knowing influenza's
-sign set never tells you that *this patient* has it. Knowledge is portable; the
-assessment is not skippable.
+*Homed 2026-09-22 → [harm.md § The medic vertical · why the diagnosis loop is a trainer](../../subsystems/harm.md).*
 
 ---
 

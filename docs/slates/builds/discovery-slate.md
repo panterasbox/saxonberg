@@ -199,49 +199,13 @@ it is worth a week later.**
 
 ## ⭐⭐⭐⭐ The function IS the design
 
-**(User: *"the motivation behind the function here is that I want magic
-capability to be available to people who don't have that discipline
-trained for it… we also want something a little more egalitarian. some
-randomness to level the playing field."*)**
+*Homed 2026-09-22 → [magic-items.md § Why items exist — access, not loot](../../subsystems/magic-items.md).*
 
-> **Items are how magic reaches people who did not spend the hours.**
-
-Not a loot system — an **access** system. Everyone can cast, competence
-comes from practice, and **Tarn's Rule** caps you at your weaker leg, so
-in principle magic is open and in practice it is a club. **Items are what
-keep that from being true.**
-
-> **Competence gates what you can DO. An item gates nothing.**
-
-The wand does not make you a caster. **You are not casting at all — you
-are using a thing.**
-
-### ⭐⭐⭐⭐ Which resolves against the arcane science with no second exemption
-
-*Shipped — [magic-items.md](../../subsystems/magic-items.md): "an item is not a new physics, it is stored labour — a maker paid earlier, and the user spends it."*
-
-> ⭐⭐⭐⭐⭐ **Potions and scrolls are [pharma](./pharma-slate.md)'s product
-> line** — made by the skilled, used by anyone, unidentifiable until
-> tested. **The credence-good thesis covers the whole consumable
-> category**, not just medicine. **One industry, not two.**
 
 ## Variance as an equity mechanism
 
-The slot machine is the point, not a concession — but the reason is worth
-stating:
+*Homed 2026-09-22 → [magic-items.md § Why items exist — access, not loot](../../subsystems/magic-items.md) (the upsets paragraph + the wealth guard).*
 
-> ⭐⭐⭐ **In a game where competence is hours practised, randomness is the
-> only thing that produces UPSETS.**
-
-**A found wand is the only way a newcomer does something a veteran
-cannot** — brief inversions of a hierarchy that is otherwise strictly
-monotonic in time spent.
-
-⚠ **Guard:** if items are the only untrained access, **wealth becomes the
-new gate.** The **found** channel must stay meaningful beside the
-**bought** one — which random distribution plus unidentifiability handles
-by itself, since **you cannot buy what nobody has and cannot price what
-nobody can assess.**
 
 ## ⭐⭐⭐⭐⭐ Astrology — a subject we have never taught, and should
 
@@ -353,16 +317,8 @@ there because nobody walked that far. **One rule, both halves.**
 
 ## ⭐⭐⭐⭐ The hard constraint
 
-> **The distribution reads the WORLD, never the PLAYER.**
+*Homed 2026-09-22 → [magic-items.md § Distribution · The hard constraint](../../subsystems/magic-items.md).*
 
-Even accepting the slot machine: **a slot machine that reads you is a
-RIGGED slot machine, and players detect it.** Level-scaled loot is the
-fastest way to make a world stop feeling like a place — **the moment the
-world reflects you, it stops existing independently.**
-
-⭐ **Legitimate exception — SITUATION, not person.** A besieged town short
-of medicine is **economics**, a property of the world. *"You are
-low-level, here is a low-level wand"* is not.
 
 ## Astrology needs no special case
 

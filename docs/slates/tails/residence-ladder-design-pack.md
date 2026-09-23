@@ -193,10 +193,9 @@ exit (clean it up) is always cheap.
 The ladder is where stewardship teaches the **most transferable** real-life skills
 in the whole pillar:
 
-- ⭐ **Don't buy more than you can maintain.** "Obligations scale with what you
-  hold → over-holding is negative-sum" is a *personal-finance lesson lived rather
-  than lectured* — the single most common real-world money mistake (the
-  house/car/lifestyle you can't keep up), rendered as an honest mechanic.
+- ⭐ **Don't buy more than you can maintain.** — graduated 2026-09-21 to
+  [holding.md](../../subsystems/holding.md) § *Why the gate is condition
+  and not coin* (the shipped ascent gate's lesson).
 - **Property, tenure, and underwriting** — lease vs own, the landlord reference,
   the lender's look at how you kept the collateral. Why condition gates credit is
   *real* (a maintained asset is better security).

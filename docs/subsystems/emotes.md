@@ -24,6 +24,19 @@ when present, ride as a payload glyph (`👋`) for the client to
 render alongside or in place of the prose — never as the primary
 representation.
 
+**Why prose is primary** (graduated from the emotes slate, 2026-09):
+natural language makes each emote distinct, scales to a huge
+vocabulary, supports abstraction — the `bogleg` lineage, a typo'd
+`boggle` that became its own word, then `bog`, `boglegged`,
+`almightybogleg` — and keeps NPC expression in-fiction instead of in
+the uncanny valley. And the glyph, where there is one, is **chosen by
+the recipient**, not the sender: the server emits both shapes once and
+the viewer's `social.emote.render` setting picks (the same
+calculate-once / serialize-differently discipline as the pedagogical
+seam), so a reader can keep emoji from players while suppressing them
+from NPCs. The sender never forces a glyph onto the reader. (The
+per-channel client toggle is Layer 2 — *What's deferred*.)
+
 Emotes are NOT speech. Speech rides `VocalMixin` (acoustic, propagates
 through the `SoundModality` walk, gated by atmospheric medium and
 hearing organs); emotes ride the **ESP carrier** stamped as

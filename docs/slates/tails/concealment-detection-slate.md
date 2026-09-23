@@ -93,10 +93,9 @@ perception crosses concealment.
   concealment = your *hide* competence; finders must beat it. Searching is
   dynamic (find other players' hidden things), and extends to **frisking** a
   person / a downed body (concealed weapon or loot vs. your search).
-- **Content discipline (non-negotiable):** secrets are **rewards and
-  shortcuts, not required paths** (the immsim multi-pathway — a secret door
-  is *a* way, never *the* way); no critical content behind a hard perception
-  wall (or heavily hinted + deducible). Discovery is a *beat*, not a tax.
+- **Content discipline (non-negotiable):** graduated 2026-09-21 to
+  [concealment.md](../../subsystems/concealment.md) § *Why a secret is a
+  reward, never a path* (the shipped gate's authoring rule).
 
 ---
 

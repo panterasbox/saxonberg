@@ -83,10 +83,11 @@ page model (the typed `subject`; no marker mixin, no wiki field on any game
 class), § Why the wiki is out-of-fiction, and why it is ours, § Where the
 code lives. Principle 2 stays as doctrine.*
 
-2. **Function over form.** A reference surface, not diegetic content. The
-   knowledge lives in the exposed data layer, so a narrative front (a
-   librarian NPC, a journal item) can be a *later consumer* — not built
-   here.
+2. *Function over form — duplicate of [wiki.md § Why the wiki is
+   out-of-fiction, and why it is ours](../../subsystems/wiki.md) (a
+   reference reading surface, deliberately out-of-fiction); cut
+   2026-09-21. A narrative front (a librarian NPC, a journal item) would
+   be a later consumer of the same data layer — not built.*
 
 ---
 
@@ -127,12 +128,9 @@ resolved: § Markup additions. Still open:*
   developer-gated.
 - image / page-card / cross-link, etc.
 
-**Transclude, don't copy — and a page exists only if it's editorial.**
-Wiki *content* is purely editorial prose; structured data appears only as
-a live transclusion from its canonical home (help for systems, the game
-model for entity data, MQL for taxonomies). If a topic is *purely* the
-structured view with nothing editorial to add, it isn't a wiki page at
-all — it lives at its source and the wiki just links.
+*The editorial test — transclude, don't copy; a page exists only if it
+is editorial — graduated 2026-09-21 → [wiki.md § Rejected, not
+deferred](../../subsystems/wiki.md).*
 
 ---
 

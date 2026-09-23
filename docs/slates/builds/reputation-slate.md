@@ -27,42 +27,7 @@ Built on [recognition](../tails/recognition-slate.md) + the
 
 ## Principle — measure, don't assign
 
-In tabletop you *roll* Charisma because you can't actually be eloquent on
-command; the die stands in for your character's silver tongue. In a game
-where you **type your actual words**, the eloquence is real and present —
-abstracting it into a stat would throw away the actual signal. So
-charisma can't be an *input* here; it can only be an **output you
-observe**. For players especially, their charisma *is* their
-communication — there's nothing left to model as a number.
-
-And once you commit to "measure, don't assign," D&D's single scalar
-**unbundles into three things, none of which is a charisma stat:**
-
-- **Regard** — per-viewer attitude (does Alice like / trust / find Bob
-  persuasive). Per-pair, keyed by the subject → **a facet on the belief
-  store**, a sibling of recognition's `knownAs`. This *is* the
-  social-graph relationship layer (`knownAs` is one facet of Alice's
-  record for Bob; `regard` is the next).
-- **Renown** — the global/aggregate standing (Bob is broadly
-  influential). **Measured** from real outcomes; **signed** (esteem ↔
-  notoriety); **per-circle** for social/game, with a single
-  cooperative-wide roll-up for governance (see below). Feeds **fame**, which is a
-  recognition *trigger* (the famous are pre-known to all). Renown and
-  recognition close a loop.
-- **Susceptibility** — how easily a *particular NPC* is swayed. The one
-  **authored** knob, and it lives on the **NPC**, not on "the player's
-  charisma." When a player persuades a guard, what resolves it is the
-  guard's susceptibility + the player's renown + the per-viewer regard —
-  never a player CHA roll.
-
-So the stat dissolves into regard (per-viewer, belief store) + renown
-(measured aggregate) + susceptibility (authored, NPC-side). The
-conflation was the only thing that made it look like one number.
-
-**No die-gating of player social actions.** A good argument works on its
-merits + the NPC's authored susceptibility, never blocked by a low roll.
-Renown/regard *feed* an NPC's decision (npc-behavior); they don't gate
-player input.
+*Graduated 2026-09-21 → [renown.md § Why measure, don't assign](../../subsystems/renown.md) (you type your actual words, so charisma is an output; the scalar unbundles into regard · renown · susceptibility; no die-gating of player social actions). Susceptibility itself is still the deferred authored NPC knob (`renown.md` § Where renown sits).*
 
 ---
 

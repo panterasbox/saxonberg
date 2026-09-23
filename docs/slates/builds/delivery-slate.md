@@ -321,33 +321,7 @@ incidentally, is a LULU.
 
 #### ⭐⭐ The unifying concept: natural monopoly
 
-The **turnpike trust and the utility are the same business** — high
-fixed cost, low marginal cost, one network serving everyone more
-cheaply than two could. That is *why* roads, water, power and rail are
-**rate-regulated rather than competitive**, and why the toll schedule
-being a **`parameter` clause in law** generalizes directly to **the
-tariff**.
-
-> **The polity learns "natural monopoly" by meeting it three times** —
-> the turnpike, the utility, and then the freight corpo, which is when
-> someone finally notices it is a *pattern* and legislates the general
-> rule.
-
-> **⭐⭐ And the three BUSINESSES teach three different monopoly SHAPES**
-> — completed in [sanitation-slate § The salvage yard as a
-> business](./sanitation-slate.md). The **turnpike**'s power is
-> **geographic** → **rate cap**; the **depot**'s is a **network
-> effect** → **common carrier / non-discrimination**; the
-> **salvage-and-materials** arm's is **vertical integration** (own the
-> mines *and* the scrapyards) → **structural separation**. *Three
-> monopolies, three remedies — a polity that meets all three has been
-> taught competition policy by living in it.*
->
-> **And a fourth business teaches the flip side: the SECOND-HAND MARKET
-> has no monopoly shape at all**, because its inventory is
-> **non-fungible and locally sourced** — you cannot corner a market
-> where every unit is different. **Monopoly needs fungibility and
-> scale; uniqueness defends competition.**
+*Homed 2026-09-22 → [settlement-model.md § 8 · Absorbed from delivery-slate — natural monopoly](../../settlement-model.md).*
 
 ⚠ **Boundary:** **metering and per-parcel billing belong to the
 property/residences build** (service to titled property, the

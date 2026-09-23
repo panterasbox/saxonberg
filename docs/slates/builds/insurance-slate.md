@@ -286,24 +286,7 @@ Holding and settling are *utility* functions and stay automatic.
 
 ## ⭐⭐⭐⭐⭐ The rule the whole register has been circling
 
-Assessing a borrower is **adverse selection** — the borrower knows
-their prospects, the lender does not. **Fourth instance:**
-
-| Market | Asymmetry | Vocation |
-|---|---|---|
-| second-hand | condition | **appraiser** |
-| auction | value between bidders | **assayer** |
-| insurance | risk | **underwriter** |
-| **banking** | **creditworthiness** | **the banker** |
-| **credit reporting** | **prospects** | **the credit surveyor** *(below)* |
-
-> **If both sides know the same things, build a MENU. If one side knows
-> more, build a VOCATION.**
-
-A general test — and it **explains** the gated-capability criterion
-rather than sitting beside it: **the gate is almost always an epistemic
-advantage.** Information asymmetry is the most productive generator in
-the design.
+*The rule — if both sides know the same things build a MENU, if one side knows more build a VOCATION — and the five-market asymmetry table are homed at [vocations.md](../../vocations.md) § *Working notes*.*
 
 **⭐⭐ And unsecured credit is where REPUTATION BECOMES MONEY.** Secured
 lending exists twice already (the turnpike bond on toll revenue, the
@@ -652,20 +635,7 @@ so the fees came from the audited.
 
 ### ⭐⭐⭐⭐⭐ Audit has the IDENTICAL disease to ratings — which generalizes
 
-The audited party picks and pays the auditor: **issuer-pays with a
-different hat.** Same two cures — **mandatory publication** (*if you
-commission it, it publishes*) and **structural separation.**
-
-Which is now a **class**, not two coincidences:
-
-> **ANY ASSESSMENT PAID FOR BY THE ASSESSED HAS ONE CONFLICT AND TWO
-> REMEDIES.**
-
-Ratings · audits · insurance surveys · building inspections ·
-appraisals. **One conflict, one remedy pair** — worth stating once in
-[vocations.md](../../vocations.md) rather than rediscovering per
-industry.
-
+*Homed at [vocations.md](../../vocations.md) § *Working notes* — the assessed-pays conflict is a CLASS (one conflict, two remedies).*
 ### ⭐⭐⭐ Demand comes from the BANKER, not the business owner
 
 What makes the vocation pass the register's demand test. **Nobody hires
@@ -750,12 +720,7 @@ not a job* — **it is not a vocation here.**
 
 ### ⭐⭐⭐⭐ The disposal technique this yields (add to the method)
 
-> **When a real-world vocation does not fit, DECOMPOSE it — the parts
-> land in different places.** Never accept or reject wholesale.
-
-The notary decomposes into four; **one is a vocation, one is
-constitutional, one is a friction mechanic, one is free.**
-
+*Homed at [vocations.md](../../vocations.md) § *And the disposal technique: DECOMPOSE, never accept or reject wholesale* (the notary as its worked example).*
 ### ⭐⭐⭐ Drafting is the real vocation — THE SCRIVENER
 
 The **civil-law** notary, not the common-law one, and it survives for a
@@ -823,18 +788,7 @@ as *conditional* rather than yes or no.**
 
 ### ⚠ The objection that killed the first draft
 
-**(User, 2026-07-31: "players don't *need* to sleep and the day/night
-cycle is purely decorative. The exception is NPCs I guess.")**
-
-The first pass justified the inn with sleep and recovery. **That is
-backwards** — inventing a sleep *need* to justify a vocation is
-**manufacturing demand**, which is criterion 1 failing in disguise:
-
-> **⭐⭐ NEVER INVENT A NEED TO CREATE A MARKET.** If a vocation requires
-> a new player obligation in order to exist, the demand was fabricated.
-
-Belongs in [vocations.md](../../vocations.md) beside the odometer rule.
-
+*The rule — NEVER INVENT A NEED TO CREATE A MARKET, with the innkeeper as its worked example — is homed at [vocations.md](../../vocations.md) § *What makes a vocation real — five criteria* (the ⚠ rows).*
 ### ⭐⭐⭐ The real function: the bed is a LOGOUT LOCATION
 
 Not a sleep mechanic. The question is not *"what does sleeping do"* but
@@ -1082,16 +1036,7 @@ a proprietor with real judgment: which horses are fit, which need a day,
 what the fleet can turn tomorrow. **Inventory management of living
 assets with condition variance** is a genuine business skill.
 
-Which yields a register-level finding:
-
-> **⭐⭐ Most vocations are LADDERS where only the upper rungs qualify.**
-> The bottom of every trade is a chore you do for wages.
-
-A useful brake — it stops the register inflating job titles into
-professions, and it is why **the teller, the ceremonial witness and the
-stable-hand** all belong as **texture under** a real vocation rather
-than beside it.
-
+*The register-level finding this yielded — most vocations are LADDERS where only the upper rungs qualify — is homed at [vocations.md](../../vocations.md) § *What makes a vocation real — five criteria* (the ⚠ rows).*
 ### ⭐⭐⭐⭐ Road capacity is STABLE capacity
 
 You can build the finest turnpike in the realm and it moves nothing
