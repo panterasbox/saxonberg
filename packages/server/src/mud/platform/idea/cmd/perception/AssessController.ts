@@ -294,6 +294,22 @@ export default class AssessController extends CommandController<AssessModel> {
           ),
         );
       }
+      // ⭐ **How fast it is knitting** — one line from the convalescence
+      // factor `k` (recovery build). A bed, a carer and a spell all raise
+      // it; being freshly hurt or in a fight drops it to nothing (D3a).
+      // The same read every wound's `mend` uses, said in words.
+      const k = (target as Stuff & Vitals).convalescenceFactor();
+      const pace =
+        k <= 0
+          ? isSelf
+            ? 'Nothing is knitting yet — too soon, or you are not safe.'
+            : `${target.getPresentation()} is not mending — too recently hurt, or not safe.`
+          : k >= 1.5
+            ? 'The wounds are mending well.'
+            : k >= 0.5
+              ? 'The wounds are mending steadily.'
+              : 'The wounds are mending slowly.';
+      blocks.push(Mml.escape(pace));
     }
 
     // ⭐⭐ **The anatomy block** (D12) — one line per part: what it is,

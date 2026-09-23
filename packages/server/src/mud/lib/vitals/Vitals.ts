@@ -68,6 +68,8 @@ import { Suppressions } from '../magic/Suppression';
 import { MagicGrid } from '../magic/Grid';
 import { MaterialApi } from '../../api/material';
 import { MagicApi } from '../../api/magic';
+import { CombatApi } from '../../api/combat';
+import { POSTURE_REST_BASE } from '../character/Posed';
 
 /** Alias for readability at the magic arm's call sites. */
 function magicDial(key: string, fallback: number): number {
@@ -672,6 +674,16 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _reconcilingConditions = false;
 
+    /**
+     * ⭐ **D3a — the last game-time (seconds) this body took acute harm**
+     * (a trauma or a shock landed). Transient, never persisted: safety is
+     * a live fact, and a body reloaded after an hours-long absence is safe
+     * by definition. Read by `convalescenceFactor` to gate mending on
+     * *being safe*, identically online, linkdead or logged off — the
+     * intent-agnostic answer to combat-logging. Undefined until first harm.
+     */
+    private _lastHarmedAt: number | undefined = undefined;
+
     // ---------- vital signs ----------
 
     public getVitalSign(sign: VitalSign): Quantity<Unit> {
@@ -1012,6 +1024,78 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * anything upstream is consulted. `1 − Σ(severity × lossPerSeverity)`
      * over the wounds sitting on it; `0` if the part is gone.
      */
+    /**
+     * ⭐⭐ **The per-body convalescence factor `k`** — the one number a
+     * bed, a carer and a spell all pay into. Read once per reconcile and
+     * multiplied into every wound's `mend` (the healing half of the split
+     * — see `Condition.ts` D1). Time is the free heal; care buys RATE.
+     *
+     *   `k = postureBase × surface.restQuality × surface.convalescence
+     *        × (1 + carerBonus) × Π conditionFactors`, floored at
+     *   `CONVALESCENCE_FLOOR` — standing on bare ground still knits, slowly.
+     *
+     * ⭐ **D3a — but only when SAFE.** A body in a live fight, or one
+     * harmed within `CONVALESCENCE_SAFE_DELAY`, reads `0` (overriding the
+     * floor): it mends nothing. Intent is undetectable — an escaper who
+     * force-quits reads exactly like a bad connection — so we never
+     * adjudicate intent; we gate on the *situation*, identically whether
+     * the player is present, linkdead, or logged off. The gate only
+     * delays the START of mending, invisible across an hours-long logout.
+     *
+     * The carer term is `1` until W-A6 wires the tending engagement; the
+     * condition-factor term is `1` until W-B1 adds the `convalescence`
+     * effect kind (the mend spell).
+     */
+    public convalescenceFactor(): number {
+      const self = this as unknown as Stuff;
+      // D3a — convalescence requires safety. Same rule online / away.
+      if (!this.isConvalescenceSafe()) return 0;
+
+      const D = HARM_DEFAULTS;
+      // Posture: lying recovers best, standing least.
+      const posture = MixinApi.isPosed(self) ? self.getPosture() : 'stand';
+      const postureBase =
+        POSTURE_REST_BASE[posture] ?? POSTURE_REST_BASE.stand!;
+
+      // The rest surface — its restQuality (also read by stamina recovery)
+      // AND its separate `convalescence` (read only here). Same three reads
+      // `Metabolic.currentRestQuality` makes, so the two drivers agree on
+      // which surface a body is on, without Vitals importing metabolism.
+      let restQuality = 1.0;
+      let clinical = 1.0;
+      const restingOnNothing =
+        MixinApi.isPosed(self) && !self.getRestingOnPath();
+      if (MixinApi.isSlottable(self) && !restingOnNothing) {
+        const host = self.getOccupiedHost();
+        if (host && MixinApi.isPostured(host)) {
+          restQuality = host.getRestQuality();
+          clinical = host.getConvalescence();
+        }
+      }
+
+      // Stubs until their waves land (W-A6 carer, W-B1 conditions).
+      const carer = 1;
+      const conditions = 1;
+
+      const k = postureBase * restQuality * clinical * carer * conditions;
+      return Math.max(D.CONVALESCENCE_FLOOR, k);
+    }
+
+    /**
+     * D3a — is this body safe enough to mend? Not in a live combat
+     * session, and not harmed within `CONVALESCENCE_SAFE_DELAY`. A pure
+     * read; the harm stamp is set in `afflict`.
+     */
+    private isConvalescenceSafe(): boolean {
+      const self = this as unknown as Stuff;
+      if (CombatApi.sessionFor(self) !== undefined) return false;
+      if (this._lastHarmedAt !== undefined) {
+        const sinceHarm = WorldClockApi.getNow().rawValue() - this._lastHarmedAt;
+        if (sinceHarm < HARM_DEFAULTS.CONVALESCENCE_SAFE_DELAY) return false;
+      }
+      return true;
+    }
+
     private ownFunction(key: string): number {
       if (this.bodyPartDeltas[key]?.missing === true) return 0;
       let lost = 0;
@@ -2020,6 +2104,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       this._reconcilingConditions = true;
       try {
+        // ⭐⭐ The convalescence factor, computed ONCE per reconcile (D2) —
+        // a bed, a carer and a spell all pay into this one number, and
+        // every wound's `mend` reads it. `0` when the body is not safe
+        // (D3a): recently harmed or in a live fight → nothing knits.
+        const k = this.convalescenceFactor();
         for (const t of traumas) {
           // First touch: seed the stamp so a fresh wound doesn't integrate
           // a giant gap from epoch.
@@ -2061,6 +2150,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             carried,
             elapsed,
           );
+          // ⭐ …and the HEALING half — the severity decay, scaled by the
+          // convalescence factor. Split from `tick` (D1) so care can buy
+          // rate and being away can mend you (W-A2) without ever changing
+          // what a wound does TO you.
+          TRAUMA_BEHAVIOR[t.type].mend(this, t, elapsed, k);
         }
 
         // Sustained shock — the being-shocked circuit. Same presence-freeze
@@ -2458,6 +2552,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // through the proxy `this` so a shadow can veto too.
       const verdict = (this as unknown as Vitals).canAfflict(condition);
       if (!verdict.ok) return false;
+      // ⭐ **D3a — acute harm resets the safety clock.** A trauma or a
+      // shock landing marks the body unsafe for `CONVALESCENCE_SAFE_DELAY`,
+      // so it mends nothing while a fight is (or just was) happening —
+      // identically whether the player is present, linkdead or logged off.
+      // Not afflictions: a poison is slow harm, and the mend spell is an
+      // affliction that must not reset its own patient's clock.
+      if (condition.kind === 'trauma' || condition.kind === 'shock') {
+        this._lastHarmedAt = WorldClockApi.getNow().rawValue();
+      }
       // ⭐⭐ **Stamp who did this, at the door every driver already uses.**
       //
       // A wound has always recorded its inflicter; an affliction never

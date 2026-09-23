@@ -347,6 +347,58 @@ export const HARM_DEFAULTS = {
    */
   CAUSTIC_MAX_SEVERITY: 4,
 
+  /* ── convalescence: what CARE buys the healing rate ──────────────────
+   * ⭐⭐ **The keystone.** Every wound's `mend` law multiplies its heal by
+   * the body's per-reconcile convalescence factor `k` — a bed, a carer and
+   * a spell are three payers of that one number. `tick` keeps what HARMS
+   * (the bleed, the weep, the caustic's growth); `mend` is the healing
+   * half, and the only half `k` scales. See `Vitals.convalescenceFactor`.
+   */
+  /**
+   * ⭐ **Time is the free heal.** Even standing on bare ground a wound
+   * knits — slowly. The floor is what a body with no rest surface, no
+   * carer and no clinic still gets, so recovery is never *impossible*,
+   * only *slow*. (A body that is not SAFE reads 0 — see D3a; that is a
+   * different gate, not this floor.)
+   */
+  CONVALESCENCE_FLOOR: 0.2,
+  /**
+   * ⭐ **D3a — how long after taking harm a body stays "unsafe"** and mends
+   * nothing (game-seconds). Short: long enough that a fight is genuinely
+   * over, invisible across an hours-long logout. The intent-agnostic
+   * combat-log answer — a body dropped mid-fight heals nothing (recently
+   * harmed) exactly as a present one would, and the escaper and the
+   * bad-connection player are treated identically because only the
+   * SITUATION is read.
+   */
+  CONVALESCENCE_SAFE_DELAY: 5 * 60,
+  /**
+   * ⭐ **What a carer's skill is worth**, as a bonus to `k` while a
+   * `TendingEngagement` is live (`convalescenceFactor` adds `1 + bonus`).
+   * By the carer's MEDICINE competence band — the same vocabulary
+   * `assess` and `treat` read. An untrained sitter helps not at all; a
+   * practised physician doubles the rate.
+   */
+  CARER_BONUS_BY_BAND: {
+    untrained: 0,
+    novice: 0.25,
+    competent: 0.5,
+    proficient: 0.75,
+    expert: 1.0,
+  } as Record<string, number>,
+  /**
+   * ⭐ **The treated heal rates** — what a wound decays at once its
+   * treatment is ON it (`Trauma.dressed`, generalized to "its treatment is
+   * applied"), faster than its natural rate. `mend` scales the treated
+   * rate by care quality (`0.5 + 0.5 × careQuality`). Laceration keeps
+   * `DRESSED_HEAL_PER_SEC`; these are the mechanical types made treatable
+   * (set fracture, closed rupture, cooled burn, rewarmed frostbite).
+   */
+  FRACTURE_TREATED_HEAL_PER_SEC: 0.006,
+  RUPTURE_TREATED_HEAL_PER_SEC: 0.004,
+  BURN_TREATED_HEAL_PER_SEC: 0.012,
+  FROSTBITE_TREATED_HEAL_PER_SEC: 0.01,
+
   /* ── circulation: what losing blood does to the pressure ─────────────
    * ⭐⭐ **The compensated plateau is the single most important fact about
    * haemorrhage, and it is modelled on purpose.** A patient can be
@@ -659,7 +711,21 @@ export interface ProgressionSpec {
  */
 export interface TraumaBehavior {
   onset(host: Vitals, t: Trauma): void;
+  /**
+   * The HARM half of progression — what carrying the wound *does to you*
+   * over the interval and cannot be sped up by care: the bleed drain, the
+   * caustic's growth. Frozen on absence like every reconcile arm.
+   * ⚠ No longer heals: the severity decay moved to {@link mend}.
+   */
   tick(host: Vitals, t: Trauma, elapsedSec: number): void;
+  /**
+   * ⭐⭐ The HEALING half, split from `tick` — the severity decay, scaled
+   * by the body's convalescence factor `k` (`Vitals.convalescenceFactor`).
+   * A bed, a carer and a spell all pay into that one number. Runs on the
+   * offline `mendedAt` stamp (W-A2), so being away mends you but never
+   * costs you. A `k` of 0 (a body that is not safe — D3a) heals nothing.
+   */
+  mend(host: Vitals, t: Trauma, elapsedSec: number, k: number): void;
   resolve(host: Vitals, t: Trauma): void;
   /** The undress action — remove a dressing; reopen the bleed if un-clotted. */
   reopen(host: Vitals, t: Trauma): void;
@@ -690,6 +756,7 @@ const noop = (): void => {};
 export const NOOP_BEHAVIOR: TraumaBehavior = {
   onset: noop,
   tick: noop,
+  mend: noop,
   resolve: noop,
   reopen: noop,
   describe: (t: Trauma): string => `${t.type} of ${t.site}`,
@@ -724,16 +791,24 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
   },
   tick(host: Vitals, t: Trauma, elapsedSec: number): void {
     const D = HARM_DEFAULTS;
+    // ⚠ The HARM half only: an open, undressed bleed drains blood. The
+    // severity decay is the HEALING half and lives in `mend`, where the
+    // convalescence factor scales it — see the split (D1).
     if (t.bleeding && !t.dressed) {
       const lost = D.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec;
       setBloodLitres(host, bloodLitres(host) - lost);
-      return; // an open bleed holds its severity until dressed
     }
+  },
+  mend(_host: Vitals, t: Trauma, elapsedSec: number, k: number): void {
+    // An open, undressed bleed HOLDS its severity — nothing knits while it
+    // is still bleeding; you must dress it (or it must clot) first.
+    if (t.bleeding && !t.dressed) return;
+    const D = HARM_DEFAULTS;
     // Dressed (fast clot/heal) or clotted-open (slow heal to clear).
     const rate = t.dressed
       ? D.DRESSED_HEAL_PER_SEC
       : D.LACERATION_HEAL_PER_SEC;
-    t.severity = Math.max(0, t.severity - rate * elapsedSec);
+    t.severity = Math.max(0, t.severity - rate * elapsedSec * k);
   },
   resolve(_host: Vitals, t: Trauma): void {
     t.dressed = true;
@@ -777,8 +852,12 @@ function decayingBehavior(
 ): TraumaBehavior {
   return {
     onset: noop,
-    tick(_host: Vitals, t: Trauma, elapsedSec: number): void {
-      t.severity = Math.max(0, t.severity - ratePerSec * elapsedSec);
+    // No harm of its own — a bruise, a burn or a freeze just heals over
+    // time, and that heal is the convalescence-scaled `mend`. (A burn's
+    // plasma weep is a `signature` effect the reconcile applies, not here.)
+    tick: noop,
+    mend(_host: Vitals, t: Trauma, elapsedSec: number, k: number): void {
+      t.severity = Math.max(0, t.severity - ratePerSec * elapsedSec * k);
     },
     resolve: noop,
     reopen: noop,
@@ -919,6 +998,7 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
     host.severPart(t.site);
   },
   tick: LACERATION_BEHAVIOR.tick,
+  mend: LACERATION_BEHAVIOR.mend,
   resolve: LACERATION_BEHAVIOR.resolve,
   reopen: LACERATION_BEHAVIOR.reopen,
   describe(t: Trauma): string {
@@ -949,6 +1029,7 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
 export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
   onset: LACERATION_BEHAVIOR.onset,
   tick: LACERATION_BEHAVIOR.tick,
+  mend: LACERATION_BEHAVIOR.mend,
   resolve: LACERATION_BEHAVIOR.resolve,
   reopen: LACERATION_BEHAVIOR.reopen,
   describe(t: Trauma): string {
@@ -998,6 +1079,7 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
 export const RUPTURE_BEHAVIOR: TraumaBehavior = {
   onset: LACERATION_BEHAVIOR.onset,
   tick: LACERATION_BEHAVIOR.tick,
+  mend: LACERATION_BEHAVIOR.mend,
   // ⭐ NOT laceration's. You cannot put pressure on a liver.
   resolve: noop,
   reopen: noop,
@@ -1065,18 +1147,25 @@ export const CAUSTIC_BEHAVIOR: TraumaBehavior = {
   onset(_host: Vitals, t: Trauma): void {
     t.agentActive = true;
   },
-  tick(host: Vitals, t: Trauma, elapsedSec: number): void {
+  tick(_host: Vitals, t: Trauma, elapsedSec: number): void {
     const D = HARM_DEFAULTS;
+    // ⭐ The one wound that HARMS on tick: while the agent is still on you
+    // it GROWS. Once rinsed, the heal is `mend`'s (convalescence-scaled).
     if (t.agentActive) {
       t.severity = Math.min(
         D.CAUSTIC_MAX_SEVERITY,
         t.severity + D.CAUSTIC_GROWTH_PER_SEC * elapsedSec,
       );
-      return;
     }
-    // Rinsed — now it is an ordinary chemical burn, healing at burn's
-    // own rate.
-    t.severity = Math.max(0, t.severity - D.BURN_HEAL_PER_SEC * elapsedSec);
+  },
+  mend(_host: Vitals, t: Trauma, elapsedSec: number, k: number): void {
+    // Still eating? Nothing knits — that is `tick`'s growth, not a heal.
+    if (t.agentActive) return;
+    // Rinsed: now an ordinary chemical burn, healing at burn's own rate.
+    t.severity = Math.max(
+      0,
+      t.severity - HARM_DEFAULTS.BURN_HEAL_PER_SEC * elapsedSec * k,
+    );
   },
   resolve(_host: Vitals, t: Trauma): void {
     t.agentActive = false;

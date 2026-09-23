@@ -60,10 +60,15 @@ describe('Trauma behaviors — contusion / burn / avulsion', () => {
       site: 'body.torso',
       severity: 1,
     };
+    // ⭐ The split (D1): `tick` is the HARM half (a bruise does nothing —
+    // no bleed, no blood lost), `mend` is the healing half (the decay,
+    // scaled by the convalescence factor `k`).
     TRAUMA_BEHAVIOR.contusion.tick(host, t, 60);
-    expect(t.severity).toBeLessThan(1);
     expect(t.bleeding).toBeUndefined();
     expect(host.getVitalSign('bloodVolume').rawValue()).toBe(start);
+    expect(t.severity).toBe(1); // tick alone no longer heals
+    TRAUMA_BEHAVIOR.contusion.mend(host, t, 60, 1);
+    expect(t.severity).toBeLessThan(1);
   });
 
   it('burn carries a real, decaying behavior', () => {
@@ -74,7 +79,9 @@ describe('Trauma behaviors — contusion / burn / avulsion', () => {
       site: 'body.arm.left',
       severity: 1.5,
     };
-    TRAUMA_BEHAVIOR.burn.tick(host, t, 60);
+    // The severity decay is the healing half (`mend`); `tick` carries only
+    // the burn's weep, which is a `signature` effect the reconcile applies.
+    TRAUMA_BEHAVIOR.burn.mend(host, t, 60, 1);
     expect(t.severity).toBeLessThan(1.5);
     expect(TRAUMA_BEHAVIOR.burn.describe(t)).toContain('burn');
   });

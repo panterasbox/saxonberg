@@ -173,8 +173,12 @@ describe('the caustic keeps working until it is rinsed', () => {
     expect(burn.agentActive).toBe(false);
     // Still a real burn at the severity it reached…
     expect(burn.severity).toBe(2);
-    // …and now it decays like one, instead of growing.
+    // …and now it decays like one, instead of growing. The post-rinse
+    // decay is the HEALING half (`mend`, split from `tick` in D1); `tick`
+    // only ever GREW it while the agent was on.
     TRAUMA_BEHAVIOR.caustic.tick(c, burn, 60);
+    expect(burn.severity).toBe(2); // tick no longer heals a rinsed caustic
+    TRAUMA_BEHAVIOR.caustic.mend(c, burn, 60, 1);
     expect(burn.severity).toBeLessThan(2);
   });
 });

@@ -27,6 +27,26 @@ import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 
 /**
+ * ⭐ **The posture → rest-base table** — how much a posture lets a body
+ * recover, lying (1.0) down through standing (0.2). The posture
+ * vocabulary owns it, because it is a fact about postures read by TWO
+ * drivers: metabolism's stamina recovery (`Metabolic.coupledRecovery`)
+ * and the wound driver's convalescence (`Vitals.convalescenceFactor`).
+ *
+ * Hoisted here from `METABOLIC_DEFAULTS.POSTURE_BASE` (which now
+ * re-references this, byte-identical) so the wound driver can read the
+ * same table without importing metabolism's module — the two drivers
+ * compose on the same body but neither owns the posture table.
+ */
+export const POSTURE_REST_BASE: Record<string, number> = {
+  lie: 1.0,
+  sit: 0.6,
+  kneel: 0.5,
+  stand: 0.2,
+  mounted: 0.3,
+};
+
+/**
  * The transfer's discriminated result (moved with the verbs):
  * `'no-posture-slot'` when the target accepts no slot for this posture,
  * `'occupied'` when every candidate slot is full, `'transfer-failed'`

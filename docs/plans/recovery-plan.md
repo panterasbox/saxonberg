@@ -732,7 +732,34 @@ reachable at all.
   by a player. **Commit:** `build(recovery W-A0): treat was never afforded
   â the body affords its own first aid`.
 
-#### W-A1 â The convalescence seam (D1, D2)
+#### W-A1 â The convalescence seam (D1, D2) ✅ DONE
+
+> ✅ **W-A1 landed.** The keystone split: `TraumaBehavior.mend(host, t,
+> elapsedSec, k)` carries the severity decay (the healing half), `tick`
+> keeps only HARM (the bleed drain, the caustic's growth). Every behavior
+> got `mend`; the three composed ones (avulsion/puncture/rupture) reuse
+> `LACERATION_BEHAVIOR.mend`. `Vitals.convalescenceFactor()` computes `k`
+> once per reconcile = `postureBase × restQuality × convalescence ×
+> carer(1) × conditions(1)`, floored at `CONVALESCENCE_FLOOR` (0.2). The
+> reconcile loop calls `mend(this, t, elapsed, k)` after `tick`.
+>
+> **D3a wired in this wave** (the plan said it would): `_lastHarmedAt`
+> transient stamped in `afflict` for trauma/shock kinds; `isConvalescenceSafe`
+> returns false in a live `CombatApi.sessionFor` OR within
+> `CONVALESCENCE_SAFE_DELAY` (300s) of harm → `k = 0`. Intent-agnostic,
+> identical online/linkdead/logged-off.
+>
+> **Hoist:** `POSTURE_REST_BASE` now lives in `lib/character/Posed.ts`;
+> `METABOLIC_DEFAULTS.POSTURE_BASE` re-references it (byte-identical —
+> metabolism suite green). `PosturedMixin.convalescence` field added
+> (default 1.0, setter > 0). `cot.yaml`: `restQuality 0.7 → 1.5`,
+> `convalescence: 2.0`, and its slot postures `[lying,sitting] → [lie,sit]`
+> (a latent bug — the cot was un-liable). `assess` gains a mending-pace
+> line from `k`. Tests: `Vitals.convalescence.test.ts` (5, incl. cot>bed and
+> the D3a resume); `Trauma.behaviors`/`RinseController` updated for the
+> split. 498 affected tests green; all 46 lint gates pass (condition-arms
+> did NOT rise — mend is inside the existing loop).
+
 - `Condition.ts`: `TraumaBehavior.mend(host, t, elapsedSec, k)`; move every
   severity-decay line out of `tick` into `mend` (laceration family: the
   open-bleed hold stays in `mend` as *no decay while bleeding-undressed*;
