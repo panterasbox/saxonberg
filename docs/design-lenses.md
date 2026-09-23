@@ -239,10 +239,12 @@ different machine.
 
 ---
 
-## 6 · Economy — what does it produce, consume, and who pays?
+## 6 · Economy & governance — what does it produce, who pays, and who can be wronged?
 
 *What does this feature put into the economy, what does it take out,
-who pays for it, and did the demand exist before the feature did?*
+who pays for it, did the demand exist before the feature did — and when
+it decides something **about a person**, on what basis, and can they see
+it and answer it?*
 
 Every feature is a producer or a consumer or both, whether or not it
 was designed as one. A gym consumes an hour a person could have sold; a
@@ -251,7 +253,7 @@ and the butcher notices. The lens asks for those flows to be **named**,
 so a feature never quietly creates a sink with no source, a source with
 no sink, or a need that had to be invented for the market to exist.
 
-The four questions, each with its doctrine already written:
+The five questions, each with its doctrine already written:
 
 - **What does it produce, and for whom?** Goods, capacity, information,
   standing. ⭐ *A vocation exists iff there is unmet demand*
@@ -271,16 +273,44 @@ The four questions, each with its doctrine already written:
   fabricated. The honest justification is always a want that was
   already there, or a producer that is already producing into nothing
   (the wire suite's dirty reasons are a list of those).
+- ⭐⭐ **Who can be wronged by it, on what basis, and can they answer?**
+  A great many economic mechanisms decide something **about a person** —
+  who is hired, who is lent to, who is let a room, who is admitted to a
+  committee. Every such decision has a **criterion**, whether or not
+  anybody wrote it down, and an unwritten criterion is still a policy;
+  it is just one nobody can read, argue with or amend. Name it, make the
+  refusal say it, and say what lifts it. Where the criterion ought to be
+  the polity's rather than the code's, say which tier it sits in
+  ([measurement.md](./measurement.md) § layer 3) — A is amendable by
+  nobody, B by whoever ships the code, C by the polity.
 
 > **The test.** Name the flows: what goes in, what comes out, who pays,
-> and was anyone asking before we built it?
+> and was anyone asking before we built it? Then: **when it judges a
+> person, name the criterion and name the appeal.**
 
 **Failing looks like:** a manufactured need (an inn justified by a sleep
 *requirement*); a sink with no source (a fee nobody's income can meet);
 a source with no sink (a byre producing milk nothing takes); a vocation
 nobody would pay; standing that money can reach; a reward for time
 rather than for judgment wearing an economic costume (a wage for
-existing).
+existing) — **and, on the governance limb: a criterion nobody can read,
+a refusal that names no number, a bar that nothing lifts, or a rule the
+polity cannot amend that was never entrenched on purpose.**
+
+⭐⭐ **Worked example — the default that could not be cured.** The
+economic bootstrap shipped a lending gate that counted a borrower's
+defaults and refused anyone above zero. The count read an append-only
+record, so it never fell: **one default ended a business's access to
+credit permanently, with no way to pay its way back.** Every flow in
+that feature was sound — the money came from somewhere, went somewhere,
+and somebody paid — so the economic limb passed it, and the four
+questions as they then stood had nothing to ask. It was caught by a
+human reading the merge request. The fifth question is here because that
+is not a reliable way to catch it: a decision was being made about a
+person, on a criterion nobody had written down, with no appeal and
+nothing that lifted it. See
+[antipatterns.md § A bare COUNT as a permanent gate](./antipatterns.md)
+and [credit.md](./subsystems/credit.md).
 
 ⭐ **Worked example — the gym.** Work produces goods *and* a body; a gym
 produces only the body. So the gym's price is the wage foregone, the
@@ -306,7 +336,8 @@ slate and again in the requirements doc:
 3. Immersion — <what the sim affords without scripting>
 4. Values — <the choice forced; who confers standing>
 5. Epochs — <what changes across the five; what must not>
-6. Economy — <what it produces and consumes; who pays; was the demand there>
+6. Economy & governance — <what it produces and consumes; who pays; was the demand
+   there; and when it judges a person — the criterion, and the appeal>
 ```
 
 If a heading is hard to fill, that is the finding — write the gap down

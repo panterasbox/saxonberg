@@ -207,7 +207,7 @@ One subheading each: the question, the answer, the reasoning, and
 
 ## Lens pass
 
-Five short entries against `docs/design-lenses.md`. Gaps recorded
+Six short entries against `docs/design-lenses.md`. Gaps recorded
 as gaps.
 
 ## The drive
