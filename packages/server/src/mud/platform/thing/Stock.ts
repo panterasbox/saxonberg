@@ -122,6 +122,12 @@ export default class Stock extends StockBase {
    * description lists it — a flat contradiction the fishing build's
    * live browser drive hit on its second run, because every new tackle
    * line is `par: 1`.
+   *
+   * ⚠ The leaf is the whole match: a player who types a word the shelf
+   * list does not print (`cane` for `…/thing/rod`) still gets the
+   * honest `not-on-shelf` refusal. Matching a row's keywords would want
+   * the template, which is an async read this refusal path does not
+   * have.
    */
   carriesLine(keyword: string): boolean {
     const want = keyword.trim().toLowerCase().replace(/[-_]/g, " ");

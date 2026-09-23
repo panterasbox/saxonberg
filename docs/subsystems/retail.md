@@ -119,6 +119,19 @@ over unless payment clears. The store account is the **Business** account
 (income + wages on one P&L), ensured lazily off `operatingLocations` via
 `EmploymentApi.ensureOperatorAt` (the `OrderController.charge` shape).
 
+⭐ **A bare shelf is SOLD OUT, not "isn't for sale here"** (the fishing
+build's live browser drive, 2026-09-22). `resolveBuy` only sees what is
+physically on the shelf, so a carried-but-empty line used to be refused
+as *"float-rod" isn't for sale here* — while the counter's own
+`getLong()` still listed it ("On the shelves: float-rod (11), keepnet
+(6)"). `Stock.carriesLine(keyword)` answers *does a stock LINE carry
+this word*, matched against the template **leaf** — which is exactly
+what that description prints — and `BuyController` refuses a carried
+line with reason `sold-out` and prose that says so. ⚠ The match is the
+leaf only: a player who types a keyword the shelf list does not print
+(`cane` for `…/thing/rod`) still falls through to `not-on-shelf`. Every
+`par: 1` line hits this the moment somebody buys the last one.
+
 ⭐ **`buy` calls `item.followCustody()` after the stamp** (fishing B7,
 2026-09) — every other custody verb did; `buy` never had, and a bought rod
 vanished at the next restart. Both branches (a stock buy and a consignment
