@@ -3,8 +3,9 @@
 **Kind:** feature
 **Leads from:** kernel — first consumers are the thirty-two reads that
 already ship across six trades (mining, farming, haulage, medicine,
-tailoring, water), every one of which is retrofitted by this build. It
-does not wait for content that does not exist.
+tailoring, water), every one of which is retrofitted by this build; and
+the prospector's round trip, which is mining's field survey handed a
+bench to answer to. It does not wait for content that does not exist.
 
 The game models an enormous amount of state, and it is deliberately
 honest about modelling it — anyone can author content, so everyone needs
@@ -25,9 +26,19 @@ untrusted: it is the world's actual epistemics, of which `eval` is the
 out-of-band cheat.
 
 Being choosy about **what** is legible, **at what fidelity**, **when**,
-and **who else knows you looked** is the entire design surface. Seeds:
-[instrumentation-slate](../slates/builds/instrumentation-slate.md), which
-absorbed sampling-and-labs § Part 7.
+and **who else knows you looked** is the entire design surface.
+
+And fidelity has a **place** as well as a price. Some facts you can read
+where you stand; some you must carry back to a bench that eats the
+sample to answer. That round trip is not friction — it is the build's
+sharpest lesson, because **deciding what is worth measuring is the
+expertise**, and you cannot carry fifty rocks to campus. The field read's
+job is choosing the three.
+
+Seeds: [instrumentation-slate](../slates/builds/instrumentation-slate.md)
+and [sampling-and-labs-slate](../slates/builds/sampling-and-labs-slate.md)
+— the parent says *you are as good as your toolkit*; the companion says
+*where the toolkit lives, what it costs, and what you carry to it*.
 
 ---
 
@@ -86,6 +97,30 @@ nothing reads a tool's quality for precision. Where precision varies it
 varies by competence alone, and the balance's own documentation defers
 per-instrument calibration *"until content motivates it."*
 
+**Nothing is bench-bound, and eight of the instruments never can be.**
+Sort them by what they read: the thermometer, barometer, photometer,
+hygrometer, altimeter, sextant, gravity meter and sundial read **the
+environment where you stand** — you cannot carry the light level at the
+mine face to a laboratory. Only the balance and the gas analyzer read **a
+thing, or a captured medium**. So the field/bench split is not a cost
+tier bolted on top; it is a **property of the fact being read**, and it
+already partitions the shipped roster eight to two.
+
+**A sample needs almost no new machinery.** Ore grade is already a real
+composition fraction on the material, so a rock sample is a small
+quantity of that material and a bench reads its actual composition — no
+snapshot, no second source of truth. ⭐ The one genuinely new thing is
+**provenance**: which seam it came from. *"17.3% magnetite"* means
+nothing without *"from face three, gallery two."*
+
+**There is no `assay` verb.** Mining's shipped "honest assay" is grade
+carried truthfully through pooling and splitting, not an act anybody
+performs. The name is free, and no shipped mining design needs renaming.
+
+**A venue is already a place a trade declares and a locality binds** —
+fourteen archetypes ship across the packs, the gym being the most recent.
+A laboratory needs no new concept, only a new archetype.
+
 **Three reads are broken, and one of them is the slate's own worked
 example.**
 
@@ -101,12 +136,14 @@ example.**
   credits experience without letting competence buy anything.
 
 **Therefore what is genuinely new here is** the ladder itself — that the
-same fact is reachable by several routes at different costs and
-fidelities, that skill alone is one of those routes, and that a reading
-is an act in the world which can be recorded and sold. The verbs, the
-banding pattern, the declarative instrument argument and the record are
-all shipped somewhere; none of them is anybody's, and the free read is
-not yet honest.
+same fact is reachable by several routes at different costs, fidelities
+and *places*; that skill alone is one of those routes; that a reading is
+an act in the world which can be recorded, sold and lied about; and that
+one field, provenance, turns a measurement into evidence. The verbs, the
+banding pattern, the declarative instrument argument, the record, the
+composition fraction and the venue archetype are all shipped somewhere;
+none of them is anybody's, the free read is not yet honest, and nothing
+in the world has ever had to be carried anywhere to be understood.
 
 ---
 
@@ -136,6 +173,19 @@ not yet honest.
 - **Every refusal names what is missing**, never fails silently.
 - **The three broken reads work**, and no read gates on an instrument
   that cannot exist.
+- **A fact that cannot be read where you stand can be carried to a place
+  that can read it.** A sample is a real quantity of the real material,
+  and it remembers where it came from.
+- **A bench exists as a place somebody owns** — with hours, an owner and
+  a queue — and it can be built anywhere, not only on a campus.
+- **Assay services are worth paying for**, because the instrument is
+  expensive, the trip costs time, and somebody else already has both.
+- **Sampling is a skill with a visible hit rate.** A prospector can see
+  how well their judgment about what to sample has been tracking reality.
+- **The round trip is priced, never merely endured** — batched, timed,
+  couriered or bought out of entirely.
+- **A measurement can be defrauded** the way it really is: not by forging
+  a record, but by submitting a sample you lie about.
 
 ---
 
@@ -147,11 +197,15 @@ Every one names where it lands.
   [augmentation-slate](../slates/tails/augmentation-slate.md) (a wave).
   Only one augment ships and the biped admits only a cranial site; the
   anatomy must exist before an instrument can mount in it.
-- **The sample object, bench instruments, the lab as a place, and the
-  certified assayer vocation** →
-  [sampling-and-labs-slate](../slates/builds/sampling-and-labs-slate.md)
-  (a build). This build names the bench rung in the ladder and ships
-  nothing that stands still.
+- **Campus governance, enrolment, and who may use a university's lab** →
+  [eternal-university-slate](../slates/builds/eternal-university-slate.md)
+  and [college-slate](../slates/builds/college-slate.md). This build says
+  only that a lab is a place with an owner and hours.
+- **The other three campus labs and the observatory** (fermentation,
+  agronomy, medical) →
+  [campus-grounds-slate](../slates/builds/campus-grounds-slate.md). We
+  ship the archetype and one instance; binding the rest is content and
+  must need no pack code.
 - **Certification as an institution** — who certifies, whether they may
   refuse, and what an attestation buys legally → needs a credential kind
   that does not exist and a governing seat;
@@ -206,9 +260,21 @@ channel is a stanza inside the two platform views, naming a controller
 the pack ships, so in an install without that trade the reading is
 advertised and dies on dispatch.
 
+**A laboratory is a venue archetype**, declared by the trade whose
+instruments it houses and bound by whatever locality wants one. The
+campus gets the first assay lab because that is where the story starts,
+not because the campus is special.
+
+**Bench instruments belong to the trade that reads with them**, alongside
+the samples they eat. The kernel owns only that a bench is a place, a
+sample is carried to it, and the act consumes both time and the sample.
+
 ⭐ **Does a second instance need code?** A new instrument reading
 existing channels is a **row**. A new instrument reading a new channel is
-a small class and a row, in its own pack. Neither touches the platform.
+a small class and a row, in its own pack. **A second laboratory — a
+mining company's own assay office, a rival town's — is a locality
+binding the archetype and nothing else.** None of it touches the
+platform.
 
 ---
 
@@ -239,6 +305,22 @@ a small class and a row, in its own pack. Neither touches the platform.
 - **The tailor's measure book is a reading of a person that is free on
   purpose.** It is the precedent that not everything should band, and it
   should survive this build unbanded.
+- **Mining's field survey is amended, never overturned.** Prospecting as
+  deduction, the pre-reveal of sensed-but-unvisited ground, and
+  competence conferring the survey acts all survive intact as the
+  *qualitative* tier. The bench is added above them.
+- **The campus already has four labs and an observatory promised to it**
+  by another slate. We ship the archetype and the assay lab; the rest
+  must be bindable without us.
+- **Sample integrity rides shipped clocks.** Spoilage and thermal
+  behaviour already exist and already govern how a perishable thing
+  travels. A sample that degrades must use them, not a second clock.
+- **The courier lever is freight's.** "Never walk it yourself" is demand
+  pointed at a haulage market that already ships; this build creates the
+  demand and must not grow its own delivery mechanism.
+- **A lab is a workplace**, so it meets the shipped employment substrate
+  — an assayer with a position, a wage and a queue — rather than being a
+  bespoke NPC.
 
 ---
 
@@ -406,6 +488,120 @@ who is allowed to certify anything.
 empty answer. The two dead reads in this document exist because a gate
 failed closed and quietly.
 
+### D13 — Where a fact can be read is a property of the fact
+
+⭐⭐ The field/bench split is **not** a cost tier laid over the ladder. It
+falls out of what is being read: you can carry a rock to a laboratory and
+you cannot carry the light level at the mine face. Eight of the ten
+shipped instruments read the environment where you stand, and **a bench
+rung does not exist for them** — an environment reader locked in a lab
+can only ever measure the lab.
+
+So each channel's available routes are decided by its subject, honestly,
+and the ladder is ragged on purpose. Light has a trained eye and a meter
+and no bench. An ore body has all five rungs. A captured medium — a
+sealed flask of mine air — is the interesting middle: the medium travels
+even though the field never does.
+
+**This is also the answer to a balance question.** Nobody has to decide
+which facts are "lab facts"; physics decides, and the decision cannot
+drift.
+
+### D14 — Three tiers, and the middle one is the characterful purchase
+
+**Naked eye** (free, competence-only) → **hand tool** (cheap, portable, a
+lens or a streak plate or a hardness kit) → **bench** (expensive,
+stationary, eats the sample).
+
+The middle rung is the one the design would otherwise skip, and it earns
+its place twice: qualitative field identification really does use tools,
+and it gives a new player an early affordable purchase that makes them
+*read* as a prospector long before a laboratory is conceivable.
+
+### D15 — A sample is the real material, plus where it came from
+
+Not a snapshot, not a record of a reading — a small quantity of the
+actual material, which a bench reads for its actual composition. The
+composition fraction is already shipped substrate, so there is no second
+source of truth to drift.
+
+⭐ **Provenance is the one new field, and it is load-bearing far past
+bookkeeping**: it is what makes an assay evidence rather than trivia, and
+it is what makes the fraud below possible.
+
+### D16 — A reading is a channel; a procedure is a verb
+
+A reading is instant, non-destructive and repeatable — point the thing,
+get a number. **A procedure costs time, material or risk to produce
+knowledge.** So the bench act is a verb of its own (`assay` is free — no
+such verb ships), it takes game-time, and it consumes what it reads.
+
+The shipped field survey keeps its own acts unchanged. Nothing in mining
+is renamed.
+
+### D17 — The record is truthful; people are not
+
+The provenance stamp cannot be forged. **Salting is social fraud over an
+honest record** — nothing compels you to submit the sample you claim to
+be submitting, and swapping a rich stone's origin onto a worthless claim
+is the oldest fraud in the trade.
+
+This is the project's standing shape — records are honest, people lie —
+and it is why certification will one day have a *reason* rather than
+being an abstraction: the certified assayer exists because salting does.
+
+### D18 — Laboratories are not the university's monopoly
+
+A lab is a venue archetype; a mining company's own assay office is a
+locality binding it. The campus gets the first one because that is where
+the story starts.
+
+⚠ **This is required, not merely permitted.** A single laboratory would
+be a monopoly on every access-only fact in the game, which the
+anti-kingmaker rule of D6 forbids outright. *Who owns the means of
+measurement* is a political question, and the honest answer is that it
+can be contested.
+
+### D19 — A spoiled sample reads wrong, and the bench is what catches it
+
+A rock does not degrade; a biological or chemical sample does. A sample
+that travelled badly — unsealed, too long, too warm — **reads wrong
+rather than reading nothing**, because that is what actually happens and
+because it is the crueller, better lesson.
+
+⭐ And it gives competence at the bench something to buy besides
+precision: a good assayer notices the sample is spoiled. A poor one
+reports the wrong number with a straight face.
+
+### D20 — The calibration mirror ships, and it is self-only
+
+A prospector can see how their judgment has been tracking reality —
+what they predicted a sample would show against what it showed. This is
+the one place a number about *yourself* is allowed, and doctrine already
+draws that line: **the feed hides the measurement; the mirror shows
+you.**
+
+It is what turns sample selection from a character's stat into a
+**player's** skill, which was the strongest argument for the split in the
+first place. Nobody else may read it, and it appears nowhere but the
+mirror.
+
+### D21 — The round trip is a decision with a price, not a commute
+
+A pure walk-there-walk-back loop is a chore. Four levers, each of which
+adds world rather than removing it, and each riding something already
+shipped:
+
+**batch** (carry several, assay together) · **the assay takes game-time**
+(drop off, go and do something else, collect) · **courier it** (demand
+pointed at the haulage market) · **pay somebody who has the bench**
+(which is the vocation).
+
+⭐ Each rung of the capital ladder — field read, hand tool, someone
+else's bench, rented kit, owned kit — **buys time**, which is precisely
+what the round trip spends. That is a legible reason to accumulate
+capital that is not a bigger number.
+
 ---
 
 ## Lens pass
@@ -420,6 +616,16 @@ the world stays derivable, because the instrument reports the same model
 the world runs on. The trained-eye rung teaches the deepest thing in it:
 **the expert's estimate beats the novice's instrument**, which is true
 and which no stat system can express.
+
+⭐⭐ And the round trip is the scientific method itself rather than a
+metaphor for it: **the field read forms a hypothesis, the assay tests it,
+the result revises your model of the deposit.** Qualitative field
+identification versus quantitative laboratory analysis is a real
+epistemological divide that geology, chemistry and biology students all
+actually learn. Sampling is itself a skill — where, how many,
+representative or biased — which is experimental design smuggled into
+mining and badly under-taught everywhere. And one field carries a lesson
+few games ever land: **a measurement without provenance is worthless.**
 
 **2 · Expression.** A trade adds a reading with no platform content
 edited — that is the test this build must pass and today fails. A channel
@@ -440,9 +646,14 @@ to a stat sheet, and it must read like the spell list (*within you* /
 knowing precisely?** Buying the dial, walking the sample back, or backing
 your own eye is a judgment about what being wrong will cost — and it is
 the first choice in the game that money and skill both address, in
-different currencies. Standing is conferred by being **right** and being
-known to be: the reading you recorded is checkable, so a reputation for
-accuracy is earnable and losable.
+different currencies. ⭐ The round trip sharpens it into the sentence the
+whole build turns on: *you cannot carry fifty rocks to campus, so
+deciding which three are worth the trip **is** the expertise.* Standing
+is conferred by being **right** and being known to be: the reading you
+recorded is checkable, so a reputation for accuracy is earnable and
+losable — and salting is the way it is lost. The calibration mirror is
+the honest, self-only version of the same measurement, which is exactly
+the shape doctrine reserves for a mirror.
 
 **5 · Epochs.** Clean. A shadow and a stick, a sextant, a barometer, a
 gas analyzer, an implanted sensor — one mechanism, five epochs, only the
@@ -450,20 +661,34 @@ dynamics change. The trained eye exists in every one of them, which is a
 good sign the model sits at the level of the physics rather than the
 technology.
 
-**6 · Economy & governance.** **Produces** information, which is
-tradeable, perishable and forgeable — a genuinely new good class for this
-economy. **Consumes** money, time, hands, and the years behind a
-Discipline. **Who pays:** whoever needs to be right, and they may pay in
+**6 · Economy & governance.** **Produces** information — tradeable,
+perishable and defraudable, a genuinely new good class for this economy —
+and ⭐ **a vocation**: lab-bound expensive instruments plus samples that
+must travel is unmet demand for assay services, which is the stated test
+for whether a vocation is real. It also produces demand for the haulage
+market (courier the samples) without inventing a delivery mechanism of
+its own. **Consumes** money, time, hands, the sample itself, and the
+years behind a Discipline. **Who pays:** whoever needs to be right, in
 money (the instrument), in time (the walk to the bench), or in skill (the
-years). **Was the demand there first?** Yes, and it is measurable — an
+years) — and the capital ladder is legible precisely because every rung
+buys back time. **Was the demand there first?** Yes, and measurably: an
 ore body's grade, a soil's acidity and a patient's state are already
-decisions people make badly. ⚠ **When it judges a person** — the
-person-facing read decides something about somebody. The criterion is
-their observable condition and the reader's competence, both nameable;
-the refusal must say which is missing; and ⭐ the subject can tell they
-were read. What this build does **not** do is let a reading confer
-standing — a reading is evidence, and who is allowed to attest is
-deliberately left to the institution that will own it.
+decisions people make badly, and the prospector who cannot tell a rich
+seam from a poor one is already losing money.
+
+⚠ **When it judges a person** — the person-facing read decides something
+about somebody. The criterion is their observable condition and the
+reader's competence, both nameable; the refusal must say which is
+missing; and ⭐ the subject can tell they were read.
+
+⚠⚠ **And there is a second judgment, easy to miss: the bench decides
+whose claim is worth anything.** If one institution held every
+laboratory, it would hold a veto over every access-only fact in the
+economy — a criterion nobody voted for, exercised by whoever owns the
+campus. D18 is that appeal: **a lab can be built by somebody else.** What
+this build does **not** do is let a reading confer standing; a reading is
+evidence, and who is allowed to *attest* is deliberately left to the
+institution that will own it.
 
 ---
 
@@ -519,43 +744,99 @@ requirement.
 13. Run the same read against something lacking that property. Expect a
     refusal that names the missing property, not a crash and not silence.
 
-**F. The record and aggregation**
+**F. The ladder is ragged, and honestly so**
 
-14. Take a reading that can be written down; write it down. Expect the
-    record to name **who read it, with what, and how well**.
-15. Take too few readings and ask for the aggregate. Expect an honest
-    *not enough yet*, naming how many more.
-16. Take enough; ask again. Expect the aggregate fact the individual
-    readings do not contain.
+14. Ask what routes exist for a **place-bound** fact — the light level,
+    the temperature where you stand. Expect **no bench rung offered**,
+    and if you ask to take a sample of it, a refusal that says why: you
+    cannot carry this anywhere.
+15. Ask the same of an ore face. Expect the full ladder — eye, hand tool,
+    and a sample you may carry.
 
-**G. Reading a person**
+**G. The field read is for choosing what to sample**
 
-17. `analyze` another character. Expect a banded, wordy read of their
+16. At a mine face, take the free field read. Expect a qualitative,
+    hedged judgment — *ore-bearing*, not a number.
+17. Take the same read with a hand tool (a lens or a streak plate).
+    Expect a better qualitative answer, still not a number.
+18. Collect samples from three faces. Confirm you **cannot** carry an
+    unreasonable number of them — the judgment must be forced.
+
+**H. The bench, and the round trip priced**
+
+19. `assay` a sample **in the field**, with no bench. Expect a refusal
+    naming what is missing: not here, and where a bench is.
+20. Carry the samples to a laboratory and `assay` one. Expect it to
+    **take game-time**, to **consume the sample**, and to yield an actual
+    number.
+21. Walk away during the assay and come back. Expect to collect a result
+    you did not stand and watch.
+22. Assay several at once. Expect the trip to be **amortized** — the
+    batch costs less than the sum of the parts.
+23. Instead of assaying it yourself, **pay the assayer**. Expect a price,
+    a queue, and a result you did not need the instrument for.
+
+**I. The record, provenance and aggregation**
+
+24. Inspect a sample. Expect it to say **where it came from**.
+25. Read the assay result. Expect it to name **who assayed it, with what,
+    and how well they read**.
+26. Present too few results and ask for the deposit's shape. Expect an
+    honest *not enough yet*, naming how many more.
+27. Present enough; ask again. Expect the aggregate fact no single assay
+    contains.
+
+**J. Salting**
+
+28. Take a rich sample from one claim and submit it as having come from
+    a worthless one. Expect **the world to let you**, and the assay to
+    honestly report the rich stone.
+29. Confirm the provenance stamp itself **could not be edited** — the
+    fraud is in what you handed over, never in a forged record.
+
+**K. The spoiled sample**
+
+30. Take a perishable sample, carry it badly — unsealed, slowly, warm —
+    and assay it. Expect a **wrong** number, not a refusal.
+31. Have a competent assayer handle the same spoiled sample. Expect them
+    to **notice**, and say so.
+
+**L. The calibration mirror**
+
+32. After several assays, consult the mirror. Expect a read of how your
+    predictions have tracked reality, in words, **visible to nobody
+    else**.
+
+**M. Reading a person**
+
+33. `analyze` another character. Expect a banded, wordy read of their
     observable condition — **no numbers, no traits asserted**.
-18. Confirm the subject can **tell they were read**.
-19. As a novice, repeat. Expect a vaguer read, and confirm it may be
+34. Confirm the subject can **tell they were read**.
+35. As a novice, repeat. Expect a vaguer read, and confirm it may be
     **honestly wrong** in the way combat's fog already is.
 
-**H. A trade adds a reading with no platform edit**
+**N. A trade adds a reading with no platform edit**
 
-20. In an install **without** a given trade installed, confirm that
+36. In an install **without** a given trade installed, confirm that
     trade's channel is **not advertised** and does not appear.
-21. Install it; confirm the channel appears and works, and that **no
+37. Install it; confirm the channel appears and works, and that **no
     platform content file changed** to make that true.
 
-**I. Engine meta has left**
+**O. A second laboratory needs no code**
 
-22. Confirm the namespace and debug reads are **no longer `analyze`
+38. Stand up a second lab somewhere that is not the campus, as content
+    only. Expect it to work identically, and expect **no pack code** to
+    have been written for it.
+
+**P. Engine meta has left, and discoverability**
+
+39. Confirm the namespace and debug reads are **no longer `analyze`
     channels**, and that an ordinary player is neither offered them nor
     refused them confusingly.
-
-**J. Discoverability**
-
-23. Run the companion listing. Expect what you can find out and **how
+40. Run the companion listing. Expect what you can find out and **how
     surely**, in words — *within you* / *beyond you yet* — and **no table
     of error bars**.
 
----
 
 ## Acceptance criteria
 
@@ -586,6 +867,26 @@ Observable from outside the code, by a person playing.
 12. For every reading in the game, a player can say **what decision it
     improves and what being wrong would have cost** — and any reading
     where that cannot be answered has been cut or left deliberately free.
+13. A player can take a **sample** of something, carry it somewhere else,
+    and have that place tell them what it is — and the sample says where
+    it came from.
+14. A player who tries to sample something that cannot be carried is
+    **told why**, in terms of the thing rather than the rules.
+15. The assay **takes time the player can spend elsewhere**, and costs
+    the sample. A player who wants the answer sooner has at least three
+    ways to buy it: carry more at once, pay a courier, or pay somebody
+    who already owns the bench.
+16. A player with no instrument, no laboratory and no money can still
+    make a living prospecting — **worse, but not blocked** — by being
+    good at choosing what to sample.
+17. A player can **make a fraudulent claim about where a sample came
+    from**, and the record will not contradict them.
+18. A perishable sample carried badly produces a **wrong** answer, and a
+    competent assayer says the sample was no good.
+19. A player can see **how well their own judgment has been tracking
+    reality**, and nobody else can see it.
+20. A second laboratory, built by somebody who is not the university,
+    works exactly as well as the first.
 
 ---
 
@@ -622,20 +923,41 @@ water, weather.
 **Record-backed rather than world-facing:** soil and ground both read
 recorded samples. They are the existing record rung and the model for it.
 
+**Samplable or not — the split that decides which reads get a bench.**
+Place-bound, and therefore no bench rung ever: light, temperature,
+pressure, humidity, gravity, altitude, shadow, sky, weather. Thing-bound
+or medium-bound, and therefore carryable: chemistry, density, atmosphere
+(a sealed flask travels even though the air does not), ore grade, soil,
+and anything read off a made object. The patient is the honest third
+case — carryable in principle, but the carrying is a different problem
+and belongs to medicine.
+
 ---
 
 ## Cross-references
 
-- **Seeding slate:**
-  [instrumentation-slate](../slates/builds/instrumentation-slate.md)
-  (absorbed sampling-and-labs § Part 7)
+- **Seeding slates:**
+  [instrumentation-slate](../slates/builds/instrumentation-slate.md) (the
+  parent — the three gates, the aether line, siting by anatomy) and
+  [sampling-and-labs-slate](../slates/builds/sampling-and-labs-slate.md)
+  (the field/bench split, the sample, the round trip, salting). Both are
+  absorbed by this build except where the non-goals say otherwise.
+- **Amended, not overturned:**
+  [mining-slate](../slates/builds/mining-slate.md) and
+  [mining.md](../subsystems/mining.md) — the field survey becomes the
+  qualitative tier and keeps every act it has.
 - **Companions named as non-goals:**
-  [sampling-and-labs](../slates/builds/sampling-and-labs-slate.md) ·
   [augmentation](../slates/tails/augmentation-slate.md) ·
   [senses](../slates/builds/senses-slate.md) ·
   [identification](../slates/builds/identification-slate.md) ·
   [deduction](../slates/builds/deduction-slate.md) ·
-  [capability-magic](../slates/builds/capability-magic-slate.md)
+  [capability-magic](../slates/builds/capability-magic-slate.md) ·
+  [campus-grounds](../slates/builds/campus-grounds-slate.md) ·
+  [eternal-university](../slates/builds/eternal-university-slate.md) ·
+  [college](../slates/builds/college-slate.md)
+- **Demand this build points at:**
+  [freight-slate](../slates/builds/freight-slate.md) (couriered samples) ·
+  [vocations.md](../vocations.md) (the assayer, against the demand test)
 - **Subsystem docs this build must respect:**
   [command-routing.md](../subsystems/command-routing.md) (the affordance
   doctrine, and the warning against a provisioning-kind vocabulary) ·
@@ -647,8 +969,12 @@ recorded samples. They are the existing record rung and the model for it.
   instrument's reading-name must not collide with it) ·
   [advancement.md](../subsystems/advancement.md) ·
   [measurement.md](../measurement.md) (the no-gauge rules; the
-  Tier A preview invariant) ·
-  [crafting.md](../subsystems/crafting.md) (quality as one axis)
+  Tier A preview invariant; the mirror property D20 rests on) ·
+  [crafting.md](../subsystems/crafting.md) (quality as one axis) ·
+  [spoilage.md](../subsystems/spoilage.md) (the clocks a perishable
+  sample must ride rather than duplicate) ·
+  [employment.md](../subsystems/employment.md) (the assayer is a
+  position at a workplace, not a bespoke NPC)
 - **Doctrine:** [design-lenses.md](../design-lenses.md) ·
   [uncertainty.md](../uncertainty.md) (seeded not drawn; the abstraction
   law) · [antipatterns.md](../antipatterns.md)
