@@ -709,6 +709,20 @@ export type VitalEffect =
        */
       kind: 'expression';
       bands: number;
+    }
+  | {
+      /**
+       * ⭐⭐ **A read-time convalescence modifier** (recovery D12) — how much
+       * this condition SPEEDS (or slows) wound mending while it lasts.
+       * `Vitals.convalescenceFactor` multiplies `factor` into `k` over
+       * every active affliction that declares one; `applyEffects` IGNORES
+       * it (it is a read, like `function`, never an integrated rate). A
+       * fever could author `factor: 0.5`; the `mend` spell authors `3`.
+       * This is what lets magic heal WITHOUT a new Effect kind — the spell
+       * afflicts a `mending` condition whose signature carries this.
+       */
+      kind: 'convalescence';
+      factor: number;
     };
 
 /** The laws a condition's stage can advance under. */

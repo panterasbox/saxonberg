@@ -23,6 +23,7 @@ import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
 import { HARM_DEFAULTS } from '../../../platform/idea/Condition';
 import type { Trauma } from '../../../platform/idea/Condition';
+import Condition from '../../../platform/idea/Condition';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -121,6 +122,32 @@ describe('the convalescence factor — care buys rate', () => {
     lieOn(c, makeSurface(0.5)); // occupy, but standing base is 0.2 × 0.5 = 0.1
     c.setPosture(Postures.Stand); // lieOn set it to Lie; force standing
     expect(kOf(c)).toBeCloseTo(HARM_DEFAULTS.CONVALESCENCE_FLOOR, 5);
+  });
+});
+
+describe('D12 — a condition can speed mending (the mend spell)', () => {
+  const MENDING = '/platform/idea/Condition/_test/mending';
+
+  it('⭐⭐ an active convalescence condition multiplies k by its factor', () => {
+    // The mending condition the `mend` spell lays on: a read-time
+    // convalescence effect with factor 3.
+    makeStuffAtPath(() => {
+      const row = new Condition();
+      row.setName('mending');
+      row.setSignature([{ kind: 'convalescence', factor: 3 }]);
+      return row;
+    }, MENDING);
+
+    const c = makeStuff(() => new Creature());
+    c.setPosture(Postures.Lie);
+    const base = kOf(c); // 1.0
+    c.afflict({
+      kind: 'affliction',
+      templatePath: MENDING,
+      stage: 0,
+      elapsed: 0,
+    });
+    expect(kOf(c)).toBeCloseTo(base * 3, 5);
   });
 });
 

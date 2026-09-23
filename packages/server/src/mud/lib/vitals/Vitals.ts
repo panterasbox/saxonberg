@@ -1146,9 +1146,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       // The carer term (D8) — a live tending engagement adds `1 + bonus`;
-      // conditions is a stub until W-B1 (the mend spell).
+      // the conditions term (D12) — the product of every active affliction's
+      // `convalescence` effect (the mend spell authors `3`; a fever could
+      // author `0.5`).
       const carer = 1 + this.carerBonus();
-      const conditions = 1;
+      const conditions = this.conditionConvalescenceFactor();
 
       const k = postureBase * restQuality * clinical * carer * conditions;
       return Math.max(D.CONVALESCENCE_FLOOR, k);
@@ -1185,6 +1187,24 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         return 0;
       }
       return HARM_DEFAULTS.CARER_BONUS_BY_BAND[this._carerBand] ?? 0;
+    }
+
+    /**
+     * D12 — the product of every active affliction's `convalescence` effect.
+     * `1` when none declare one. A read-time modifier (the effect is never
+     * integrated), so the `mend` spell speeds healing by afflicting a
+     * `mending` condition whose signature carries `{kind: convalescence,
+     * factor: 3}` — no new Effect kind.
+     */
+    private conditionConvalescenceFactor(): number {
+      return this.conditions
+        .filter((c): c is AfflictionRecord => c.kind === 'affliction')
+        .flatMap((c) => {
+          const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+          return row ? [...row.getSignature()] : [];
+        })
+        .filter((e) => e.kind === 'convalescence')
+        .reduce((prod, e) => prod * (e as { factor: number }).factor, 1);
     }
 
     public getCarer(): Stuff | null {
@@ -1756,11 +1776,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             );
             break;
           }
-          // `function` and `expression` are DERIVED READS — consulted by
-          // `functionAt` / `capacity` and by `expressionSuppression`,
-          // never integrated. Listed so the switch stays total.
+          // `function`, `expression` and `convalescence` are DERIVED READS
+          // — consulted by `functionAt` / `capacity`, `expressionSuppression`
+          // and `convalescenceFactor` respectively, never integrated. Listed
+          // so the switch stays total.
           case 'function':
           case 'expression':
+          case 'convalescence':
             break;
         }
       }

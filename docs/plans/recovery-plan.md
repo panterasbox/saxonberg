@@ -1101,7 +1101,19 @@ reachable at all.
 
 ### Stage B â the lens extensions (a second MR off master)
 
-#### W-B1 â Magic mends by spending the healer (D12)
+#### W-B1 â Magic mends by spending the healer (D12) ✅ DONE
+
+> ✅ **W-B1 landed.** `VitalEffect` gained a read-only `convalescence`
+> variant (`{kind, factor}`); `convalescenceFactor`'s conditions term reads
+> the product of every active affliction's convalescence effect;
+> `applyEffects` skips it (total switch); `check-conditions` learned the kind.
+> Rows: `Condition/magic/mending` (factor 3, self-clears atStage 4 = 4 game-
+> hours) + `Spell/mend` (control·body, cost 12, effects: afflict mending +
+> adjust-reserve endurance -35 self:true). **No new Effect kind** — the spell
+> afflicts an ordinary condition and the heal falls out of the mend law.
+> Tests: convalescence.test D12 (an active convalescence condition triples
+> k); the full cast (endurance drain, dispel) is drive-proven (step 8).
+> arcane-library roster counts bumped 40→41 / 18→19. 222 magic + 46 gates green.
 - `Condition.ts`: `VitalEffect` gains `convalescence`; `convalescenceFactor`
   reads it; `applyEffects` skips it; `check-conditions.ts` vocabulary.
 - `mending.yaml`, `mend.yaml`. `arcana`'s `magic-body` Discipline already
