@@ -1071,7 +1071,22 @@ reachable at all.
   alarm, never a heartbeat`.
 
 
-#### W-A8 â Stage A docs and the drive (steps 1â7)
+#### W-A8 â Stage A docs and the drive (steps 1â7) ✅ DOCS DONE; drive deferred to the single-MR close
+
+> ✅ **W-A8 docs landed.** `harm.md` gained a full **§ Recovery — care
+> buys RATE** (the mend split, `k` + D3a safety gate, the offline carve,
+> every-wound-treatable + the verb→affordance map, hygiene + sepsis, the
+> carer, and the alarm-not-heartbeat contract). `vitals.md` points to it and
+> lists the new `VitalsMixin`/`Trauma` members + `HygieneMixin`.
+> `attendant.md` cross-refs `TendingEngagement`. `content-packs.md` +
+> `trade-medicine/pack.yaml` now describe the instruments, the nurse brain,
+> and the antidote (it ships more than a read).
+>
+> ⚠ **The DRIVE is deferred to the single-MR close (D17).** Since Stage A
+> and Stage B land as ONE MR, the wire drive is written ONCE at the end
+> covering the full arc (drive steps 0–10), run once before the MR opens,
+> alongside the single `pnpm test`. Opening a Stage-A MR here is superseded
+> by D17. No MR opens until after W-B5.
 - `docs/subsystems/harm.md` Â§ *Recovery* (the seam, the carve, the
   treatments, hygiene, the carer); `vitals.md` (the new fields);
   `attendant.md` one-line cross-ref; `content-packs.md`'s trade-medicine

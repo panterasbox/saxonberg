@@ -31,6 +31,10 @@ same wrapping around different payloads.
   resource is the server's attention, and this engagement IS the lease on it.
   Instant venues (attendDurationMs 0 — the bar) never create one: the payload
   runs synchronously, holding no slot.
+  - ⭐ The recovery build reuses this exact shape for **`TendingEngagement`**
+    (`lib/vitals/TendingEngagement.ts`): a carer's `attention` slot, so a
+    carer tends one patient at a time, and the engagement IS the link the
+    patient's convalescence reads. See [harm.md § Recovery](./harm.md#recovery--care-buys-rate-the-recovery-build).
 - **`Ticket`** — the take-a-number claim (a carried `Thing` stamped with its
   point + number). The functional line-vs-ticket difference is one thing: must
   you stay present to hold your place? A line holds it by presence; a ticket

@@ -633,6 +633,107 @@ real hazard/trap taxonomy is a separate future build over the same seam.
 > fixture. Re-home it to a purpose-built, un-asserted walkable room when
 > one exists.
 
+## ⭐⭐ Recovery — care buys RATE (the recovery build)
+
+The harm engine healed on read at a flat per-type rate; recovery makes the
+rate something **care** raises. The keystone is one number.
+
+### The `mend` split, and the convalescence factor `k`
+
+`TraumaBehavior` gained **`mend(host, t, elapsedSec, k)`** — the HEALING
+half, split out of `tick`. `tick` now carries only what HARMS and cannot
+be sped up (the bleed drain, the caustic's growth, the burn's weep via
+`signature`); `mend` is the severity decay, and the ONLY half `k` scales.
+
+`Vitals.convalescenceFactor()` computes `k` once per reconcile:
+
+```
+k = POSTURE_REST_BASE[posture] × surface.restQuality × surface.convalescence
+    × (1 + carerBonus) × Π conditionFactors        (floored at CONVALESCENCE_FLOOR)
+```
+
+A **bed, a carer and a spell are three payers of the one number**. The
+posture→rest table lives on the posture vocabulary (`POSTURE_REST_BASE` in
+`lib/character/Posed.ts`), read by BOTH this and metabolism's stamina
+recovery, so the two drivers never disagree on which surface a body is on.
+`PosturedMixin.convalescence` is a SECOND field beside `restQuality`: a
+clinic cot mends a wound faster (`convalescence 2.0`) without being a
+better night's sleep than a four-poster (whose `restQuality` alone drives
+stamina). `assess` says *"mending well / steadily / slowly"* from `k`.
+
+⭐ **D3a — convalescence requires SAFETY.** `k` is **0** (overriding the
+floor) whenever the body is in a live `CombatSession` or was harmed within
+`CONVALESCENCE_SAFE_DELAY` (a transient `_lastHarmedAt`, stamped in
+`afflict` for trauma/shock). This is the **intent-agnostic** answer to
+combat-logging: intent is undetectable, so we gate on the *situation*,
+identically online, linkdead or logged off. See the
+[absent-body slate](../slates/tails/absent-body-slate.md).
+
+### The offline carve
+
+`Trauma` carries TWO stamps. The **harm arm** (`tickedAt`) freezes on
+linkdead and drops a far-past gap — *being away must never bleed you*. The
+**mend arm** (`mendedAt`) does NEITHER — *being away must never COST you,
+and mending is never a cost* — so a body knits across a logout at whatever
+`k` it reads on return. Both arms live inside the ONE trauma `for…of`, so
+`lint:condition-arms` still counts a single arm. This IS the shipped
+sleep-as-logout mechanism given a convalescence purpose; the mend depends
+on the body re-occupying its rest surface, which the linkdead logout path
+preserves (a full snapshot restore degrades to floor rate — a shared
+metabolism+vitals seam on `Posed`'s restore path).
+
+### Every wound treatable
+
+`resolve` is now live for the mechanical types too: a fracture is **set**
+(`resolution: setting`, a splint), a rupture is **operated** on
+(`resolution: surgery`), a burn is **cooled**, a frostbite is **rewarmed**
+— each reads *set / closed / cooled / rewarmed* and knits at a faster
+treated rate, graded by `Trauma.careQuality`. `Vitals.applyTreatment(wound,
+{by, efficacy, treater})` is the ONE primitive every consumer calls
+(`TreatController`, `OrderController.treatWorst`, the instruments, the
+nurse); it runs `resolve`, stamps `careQuality`, and seeds infection.
+
+The verbs, and what affords each: **`treat`/`undress`/`dose`/`tend`** on
+`VitalsMixin.self` (the body affords its own first aid); **`cool`/`scrub`**
+on `WaterFixture.peers`; **`warm`** on `FurnaceMixin.peers`;
+**`splint`/`operate`** on the trade's `Splint`/`SurgicalKit` instruments
+(`trade-medicine`). `dose` reads an `antidote:<toxin>` **Material tag** off
+a vial and crashes the matching burden (D7 — an antidote is a substance
+with a tag, no new mixin). ⚠ The bone-setting verb is `splint`, not
+`set` (`set` is a scripting builtin).
+
+### Hygiene and the festering wound
+
+`HygieneMixin` (on `Creature`) is one `washedAt` stamp with a derived
+`handsCleanliness()` that decays over `HYGIENE_SOIL_SEC`; `scrub()` cleans,
+`soil()` dirties (treating a bleed soils the treater). **Wound sepsis**
+(`Condition/pathogen/wound-sepsis`, `reach: infect`) is the shipped
+in-host infection arm with a new SOURCE: `applyTreatment` seeds it when a
+bleed-family wound is dressed with dirty hands or poor care, and the harm
+arm seeds a wound left open past `SEPSIS_OPEN_ONSET_SEC`. Its severity
+drains hydration into the shipped dehydration → dying cascade — nothing
+new kills anyone. `assess` reads *festering*.
+
+### The carer, and the alarm
+
+A carer is a **`TendingEngagement`** on the carer's `attention` slot
+(one patient at a time), linking `patient._setCarer(carer, band)`; the
+patient's `k` reads the carer's medicine band as a bonus while the carer is
+present, conscious, and still holding the engagement. Aldis Verrow's
+`nurses` brain (`trade-medicine`) triages the room and dresses or tends,
+deterministically, from finite supply.
+
+⭐⭐ **The notify layer is an ALARM, not a heartbeat.** Recovery advances
+silently under derive-on-read; to keep the infection DEADLINE visible,
+`Vitals.nextInterestingAt()` (a pure read) gives the soonest pending
+transition, and a **one-shot** `ScheduleApi.schedule` is booked at it,
+canceled and rebooked on state change. ⚠ NEVER `recurring`, never a
+cadence, never a per-body sweep — a healthy body books nothing. The
+callback only calls `reconcileConditions` + a message push; **correctness
+is independent of it firing** (death itself is derive-on-read — the alarm
+buys TIMELINESS, never VALIDITY). *Delete the scheduler and the game is
+still correct, only less timely.*
+
 ## Deferred (named seams)
 
 - **Materials-response severity function** — ✅ **LANDED**: `inflict`
