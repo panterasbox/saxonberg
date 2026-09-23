@@ -152,20 +152,20 @@ const SNAKE_SPECIES =
 function seedDomain(): void {
   col('content').push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
 
-  addSeed(DormWarren.WARREN_PATH, `${SEEDS}world/eternal/duncan-hall/idea/dorm-warren.yaml`);
+  addSeed(DormWarren.WARREN_PATH, `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-warren.yaml`);
   // D16 step 2: the unit's degenerate one-room programme row.
   addSeed(
     DormWarren.PROGRAMME_PATH,
-    `${SEEDS}world/eternal/duncan-hall/idea/dorm-programme.yaml`,
+    `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-programme.yaml`,
   );
-  addSeed(DormRoom.SCOPE, `${SEEDS}world/eternal/duncan-hall/location/dormroom.yaml`);
+  addSeed(DormRoom.SCOPE, `${SEEDS}world/terminus/eternal/duncan-hall/location/dormroom.yaml`);
   addSeed(
     DormWarren.CORRIDOR_TEMPLATE,
-    `${SEEDS}world/eternal/duncan-hall/location/corridor.yaml`,
+    `${SEEDS}world/terminus/eternal/duncan-hall/location/corridor.yaml`,
   );
   addSeed(
     DormWarren.LOBBY_PATH,
-    `${SEEDS}world/eternal/duncan-hall/location/corridor.yaml`,
+    `${SEEDS}world/terminus/eternal/duncan-hall/location/corridor.yaml`,
   );
   /*
    * ⭐ The sandbox's door. A circle belongs to the player who owns it, so
@@ -179,8 +179,8 @@ function seedDomain(): void {
   );
   for (const f of ['bed', 'desk', 'footlocker', 'tap']) {
     addSeed(
-      `/world/eternal/duncan-hall/thing/${f}`,
-      `${SEEDS}world/eternal/duncan-hall/thing/${f}.yaml`,
+      `/world/terminus/eternal/duncan-hall/thing/${f}`,
+      `${SEEDS}world/terminus/eternal/duncan-hall/thing/${f}.yaml`,
     );
   }
   // The gardening objects.

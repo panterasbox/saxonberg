@@ -1,11 +1,14 @@
 verbs: [house]
 controller: /platform/idea/cmd/banking/HouseController
-description: "The house app — pnl / payroll / par / stock / freight / traffic"
+description: "The house app — book / pnl / payroll / par / price / roster / stock / freight / traffic"
 opens_card: stock
 help: |
   The house app, for whoever keeps the house: a position held there or
-  the proprietorship. `house pnl` reads the venue's profit-and-loss
-  (categorized flows + a running balance). `house payroll <worker>
+  the proprietorship. `house book` reads what the house owes and to whom
+  — every loan with its creditor and balance, supplier terms payable, and
+  any wage it could not meet (the worker is the creditor by name; it is
+  paid first at the next settlement). `house pnl` reads the venue's
+  profit-and-loss (categorized flows + a running balance). `house payroll <worker>
   <amount>` pays a wage from the house account. `house par <category>
   <level>` sets what the house keeps on hand — `house par gin 6L`,
   `house par lime 24`, `house par ice 10kg`; `--from <business>` names
@@ -13,7 +16,13 @@ help: |
   `0` strikes the line. `house stock` shows the live sheet: the rail
   against par, counted over what you can see from where you stand.
   Restocking is not a verb — read the sheet, `wallet use house`, `buy`,
-  and `put` it on the rail.
+  and `put` it on the rail. `house roster` reads the chart: every
+  position, who holds it and whether they are on shift — or `vacant`,
+  which a seat becomes when its holder is away past the Schedule's short
+  clock. `house price <thing> <ask>` sets the shop's
+  own ask for that good's kind on the counter it stands on — a
+  `stocking` line moves off it with the shelf; a supplier's good the
+  house never priced asks the supplier's price plus the Schedule's margin.
 
   The app runs on a SCREEN: the house tablet in your hand, a screen in
   sight you may drive, or — with an active attunement — one anywhere
@@ -23,6 +32,8 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
+  book:
+    description: "The house's book: what it owes and to whom — loans, supplier terms, wages in arrears"
   pnl:
     description: "Read the house's profit-and-loss"
   payroll:
@@ -104,5 +115,18 @@ subcommands:
       since:
         type: string
         description: "`season` — only the last quarter."
+  price:
+    description: "Set the house's ask for a good and its kind on the counter it operates"
+    args:
+      - name: thing
+        type: object
+        required: true
+        scope: ["reachable"]
+        requires: any
+      - name: ask
+        type: string
+        required: true
+  roster:
+    description: "The chart: every position, who holds it, on shift or not, or `vacant`"
   stock:
     description: "The live stock sheet — the rail against par"

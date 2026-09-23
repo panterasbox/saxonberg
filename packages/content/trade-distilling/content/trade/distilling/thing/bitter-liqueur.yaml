@@ -24,4 +24,4 @@ data:
   censusKey: spirit:bitter-liqueur
   regionTarget: 12
   materialTags: [spirit, liqueur, bitter-liqueur]
-  container: /trade/distilling/thing/crowsfoot-stock
+  container: /world/terminus/goods-yards/crowsfoot/thing/stock

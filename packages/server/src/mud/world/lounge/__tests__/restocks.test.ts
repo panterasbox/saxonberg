@@ -109,10 +109,10 @@ const RACK = '/trade/hospitality/thing/glass-rack';
 // fermentation's D10 decoupling kept whole, with the showroom where its
 // door is (a roller door on the Counting-Houses avenue).
 const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
-const COUNTER = '/trade/distribution/thing/counter';
-const DISTRIBUTION = '/trade/distribution/idea/business';
-const OUTFIT = '/trade/distilling/location/veshko-yard/idea/outfit';
-const FLOOR = '/trade/distilling/location/veshko-yard/location/distillery';
+const COUNTER = '/world/terminus/counting-houses/distributor/thing/counter';
+const DISTRIBUTION = '/world/terminus/counting-houses/distributor/idea/business';
+const OUTFIT = '/world/terminus/goods-yards/veshko/idea/outfit';
+const FLOOR = '/world/terminus/goods-yards/veshko/location/distillery';
 const GIN = '/trade/distilling/idea/material/gin';
 const CARD = '/stuff/thing/PaymentCard';
 // The two logistics fixtures the D11 keeper works off, at the paths the
@@ -272,7 +272,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     ContainmentApi.move(bench as never, bar as never);
     counter = stock(COUNTER, 'counter');
     ContainmentApi.move(counter as never, cashAndCarry as never);
-    floorStock = stock('/trade/distilling/location/veshko-yard/thing/stock', 'stock');
+    floorStock = stock('/world/terminus/goods-yards/veshko/thing/stock', 'stock');
     ContainmentApi.move(floorStock as never, floor as never);
 
     business(DISTRIBUTION, [{ key: 'clerk', label: 'clerking', wageRate: 5, confers: [] }], [CASH_AND_CARRY, COUNTER]);
@@ -302,7 +302,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
 
   /** An outfit hand consigns `n` gin bottles at the counter, as the outfit. */
   async function consignGin(n: number, ask: number): Promise<Bottle[]> {
-    const hand = makeStuffAtPath(() => new Hand(), `/trade/distilling/location/veshko-yard/agent/hand-${seq++}`);
+    const hand = makeStuffAtPath(() => new Hand(), `/world/terminus/goods-yards/veshko/agent/hand-${seq++}`);
     hand.setName('Orrin');
     ContainmentApi.move(hand as never, cashAndCarry as never);
     await outfit.appoint(hand, 'hand');
@@ -427,7 +427,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
   }
 
   it('⭐⭐ one beat with a funded house: the short line is POSTED as a kind-bound carriage bounty, collected at the supplier and dropped on the bench; the house escrows it', async () => {
-    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
+    await BankingApi.mint(barAccount, Money.of(200, BankingApi.compactCurrency()), "harness");
     // One bottle on the rail against a 1.5 L par: short, and with an
     // exemplar to point at. ⚠ It is CHATTEL-MARKED, like every bottle a
     // bar actually owns — which is the whole reason `--kind` exists.
@@ -490,7 +490,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
      * KIND (`--of`). Which gin this bar buys is the proprietor's
      * decision anyway, so it is authored where the level is.
      */
-    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
+    await BankingApi.mint(barAccount, Money.of(200, BankingApi.compactCurrency()), "harness");
     barBiz.setParLine({
       category: 'gin',
       level: 1.5,
@@ -536,7 +536,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
      * (The guard against ordering a kind that is NOTHING still exists —
      * it lives where kinds are still named, in the work-verbs suite.)
      */
-    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
+    await BankingApi.mint(barAccount, Money.of(200, BankingApi.compactCurrency()), "harness");
     barBiz.setParLine({
       category: 'gin',
       level: 1.5,

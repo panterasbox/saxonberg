@@ -35,6 +35,21 @@ invariants:
     single sample is capped, so a downtime gap pays nothing absurd.
     Typing a word never made anybody keep watch; standing there did.
   - >-
+    ⭐ `kind` says what a row IS (economic bootstrap D1): the `gig` it
+    always was, or a `loan` (a creditor funded a borrower — a bank's
+    inventory finance or working capital, the Treasury's opening advance),
+    a `note` (the Arrival Note — a member's note to the Treasury), or an
+    `unclaimed` claim (the Treasury holds an absentee's balance for them).
+    `holder` is the CREDITOR; `terms` the rate, share, security, discharge
+    and rung; `owedMinor` the running balance, accrued stamp-forward on
+    every touch from `owedStampS` (the `watchedSec` shape). Money still
+    lives only in `bank_ledger`; the row is the claim, and the readable
+    paper is an `instrument` document under each party's own branch.
+  - >-
+    A loan has no due date. Default is REVEALED on read: no inflows to the
+    borrower's account for the Schedule's horizon while a balance is
+    outstanding → `breached`, and the creditor's rule acts on the security.
+  - >-
     REFUSE under the sandbox.
 sandbox: refuse
 reset: wipe
@@ -51,6 +66,12 @@ indexes:
   - keys: { boardPath: 1 }
     why: |
       The per-board scan: everything posted to one board.
+  - keys: { kind: 1, state: 1 }
+    why: |
+      The credit reads (economic bootstrap): every open loan for the
+      default reveal, every open note for the wage discharge, the
+      treasury's paper — sliced by what the row is and where it stands,
+      never by board.
   - keys: { origin: 1 }
     why: |
       ⭐ The BACKHAUL read (logistics D17): a hauler standing at the far end

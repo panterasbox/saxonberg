@@ -21,7 +21,7 @@ function row(rel: string): Record<string, unknown> {
 }
 
 const STOOL = 'trade-forestry/content/trade/forestry/thing/hazel-stool.yaml';
-const YARD_PANEL = 'rejection/content/world/rejection/thing/fuel-yard-panel.yaml';
+const YARD_PANEL = 'rejection/content/world/terminus/rejection/thing/fuel-yard-panel.yaml';
 
 describe('the coppice', () => {
   it('⭐ ONE supply, TWO consumers — the collier chars it and the mine shores with it', () => {

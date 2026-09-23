@@ -17,6 +17,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../../retail/BuyController";
 import ConsignController from "../../retail/ConsignController";
+import ReclaimController from "../../retail/ReclaimController";
 import WalletController from "../WalletController";
 import HouseController from "../HouseController";
 import QuitController from "../../employment/QuitController";
@@ -124,7 +125,7 @@ async function makeBarBusiness(
   biz.operatingLocations = ["/stuff/test/bar/room"];
   biz.banksAt = BankingApi.defaultCustodianBank();
   const account = await EmploymentApi.operatingAccountOf(biz);
-  if (floatMinor > 0) await BankingApi.float(account, Money.of(floatMinor, BankingApi.compactCurrency()));
+  if (floatMinor > 0) await BankingApi.mint(account, Money.of(floatMinor, BankingApi.compactCurrency()), "harness");
   return { biz, account };
 }
 
@@ -381,6 +382,64 @@ describe("the house account in the wallet (D6)", () => {
     expect(BankingApi.balanceOf(account).minor).toBe(17); // 20 − 15% commission
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(3);
     expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
+  });
+
+  /**
+   * ⭐ Rung 0's repossession (economic bootstrap D11): an unpaid crate on
+   * a shop's counter is still the outfit's, and the outfit's hand — trading
+   * as the house — takes it back. A stranger cannot; nor can the hand
+   * trading personally, because the crate is not THEIRS.
+   */
+  it("reclaim as the house: the outfit's hand takes back what the outfit consigned; a stranger is refused", async () => {
+    const hand = await fundedGiver("/platform/agent/Avatar/hand", 0);
+    ContainmentApi.move(hand as never, loc as never);
+    const { biz } = await makeBarBusiness("", 0);
+    biz.appoint(hand, "keeper");
+    await makeStoreBusiness();
+    const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
+    ContainmentApi.move(shelf as never, loc as never);
+    const torch = makeStuffAtPath(() => {
+      const t = new Torch();
+      t.setKeywords(["torch"]);
+      return t;
+    }, TORCH);
+    ContainmentApi.move(torch, hand as never);
+
+    await walletUse(hand, loc, "house");
+    await asOwner(hand, () =>
+      makeStuff(() => new ConsignController()).execute(
+        { thing: { stuff: torch as never, raw: "torch" }, ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } },
+        ctx(hand, loc, shelf, "consign torch"),
+      ),
+    );
+    expect(torch.getContainer()).toBe(shelf);
+    expect(await torch.chattelOwner()).toEqual({ kind: "organization", templatePath: BAR_BIZ });
+
+    // A stranger: not theirs.
+    const pat = await fundedGiver("/platform/agent/Avatar/pat", 0);
+    ContainmentApi.move(pat as never, loc as never);
+    const no = ctx(pat, loc, shelf, "reclaim torch");
+    await asOwner(pat, () =>
+      makeStuff(() => new ReclaimController()).execute(
+        { thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } },
+        no,
+      ),
+    );
+    expect(rejections(no)).toEqual(["not-owner"]);
+    expect(torch.getContainer()).toBe(shelf);
+
+    // The outfit's own hand, as the house: taken back, title unchanged.
+    const ok = ctx(hand, loc, shelf, "reclaim torch");
+    await asOwner(hand, () =>
+      makeStuff(() => new ReclaimController()).execute(
+        { thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } },
+        ok,
+      ),
+    );
+    expect(rejections(ok)).toEqual([]);
+    expect(torch.getContainer()).toBe(hand);
+    expect(await torch.chattelOwner()).toEqual({ kind: "organization", templatePath: BAR_BIZ });
+    expect(shelf.listingFor(torch.getChattelId())).toBeNull();
   });
 
   it("house refuses a non-staff giver (no wizard axis anywhere)", async () => {

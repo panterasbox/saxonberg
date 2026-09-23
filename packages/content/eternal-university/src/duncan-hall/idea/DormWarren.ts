@@ -43,17 +43,17 @@ const DormWarrenBase = SingletonMixin(PostRegistrationMixin(OuterWarren));
 
 export default class DormWarren extends DormWarrenBase {
   /** Seeded Warren-definition path (the singleton). */
-  static readonly WARREN_PATH = '/world/eternal/duncan-hall/idea/dorm-warren';
+  static readonly WARREN_PATH = '/world/terminus/eternal/duncan-hall/idea/dorm-warren';
   /** The one dorm-room template every unit clones from (the D1 scope). */
   static readonly DORMROOM_TEMPLATE = DormRoom.SCOPE;
   /** The one corridor template every floor clones from. */
-  static readonly CORRIDOR_TEMPLATE = '/world/eternal/duncan-hall/location/corridor';
+  static readonly CORRIDOR_TEMPLATE = '/world/terminus/eternal/duncan-hall/location/corridor';
   /** The building's ground-floor landing (the fixed seed room). */
-  static readonly LOBBY_PATH = '/world/eternal/duncan-hall/location/lobby';
+  static readonly LOBBY_PATH = '/world/terminus/eternal/duncan-hall/location/lobby';
   /** The degenerate one-room holding programme row (D16 step 2). */
-  static readonly PROGRAMME_PATH = '/world/eternal/duncan-hall/idea/dorm-programme';
+  static readonly PROGRAMME_PATH = '/world/terminus/eternal/duncan-hall/idea/dorm-programme';
   /** The parent parcel the unit parcels subdivide under. */
-  static readonly DORMS_EXTENT = '/world/eternal/duncan-hall/dorms';
+  static readonly DORMS_EXTENT = '/world/terminus/eternal/duncan-hall/dorms';
   /** Units per floor — the AUTHORED default under the operator's
    *  `dorm.roomsPerFloor` dial (D10: the graduated knob). */
   static readonly ROOMS_PER_FLOOR = 12;

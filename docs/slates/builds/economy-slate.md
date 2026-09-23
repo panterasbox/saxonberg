@@ -6,7 +6,7 @@
 > bases, crafting with Grade + condition → [banking.md](../../subsystems/banking.md),
 > [retail.md](../../subsystems/retail.md), [employment.md](../../subsystems/employment.md),
 > [crafting.md](../../subsystems/crafting.md). Lending, the treasury and the
-> credit ladder are now [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md).
+> credit ladder are now [credit.md](../../subsystems/credit.md).
 > **Left:** faucet/sink + inflation balance · the safe bilateral trade
 > handshake · bespoke barter clearing + NPC stances as characterization ·
 > observer-relative quality verdicts · the skill seam (`_control`) ·
@@ -262,7 +262,7 @@ and notably what makes it fail*).
 - *The reserve as the only mint, independent of the commercial banks —
   shipped → banking.md § Conservation, governance.md (the Governor seat);
   its lender-of-last-resort / insurer role is now the window lane + the
-  deposit guarantee in economic-bootstrap-requirements § Surface decisions.*
+  deposit guarantee in [credit.md](../../subsystems/credit.md).*
 - **Commercial banks = corpo-run** — a **competitive, ethos-flavored vertical**
   (Goodkin's warm retail bank · Vionne's elite private bank · Aevex's fintech ·
   Veshko's ruthless lender — [corpos-slate](./corpos-slate.md)). Because your
@@ -735,7 +735,7 @@ game with real players to measure:
   "build when a real player demands it") rather than pre-built. Watch
   item, not a build.
 - *Banking beyond custodial rails — superseded by
-  [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md):
+  [credit.md](../../subsystems/credit.md):
   lending is the ledger-gated ladder over two reserve lanes; banks lend
   what they hold, so runs / failure / deposit insurance are a later
   banking build by decision (its Non-goals), as are interest on deposits;

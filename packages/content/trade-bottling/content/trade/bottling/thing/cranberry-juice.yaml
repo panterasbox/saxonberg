@@ -16,4 +16,4 @@ data:
   censusKey: mixer:cranberry-juice
   regionTarget: 8
   materialTags: ["mixer", "cranberry-juice"]
-  container: /trade/bottling/thing/bottling-stock
+  container: /world/terminus/goods-yards/bottling/thing/stock

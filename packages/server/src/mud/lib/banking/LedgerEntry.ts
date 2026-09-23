@@ -43,6 +43,19 @@ import type { FieldMeta } from "../mixin";
  * the consignment split is the shipped precedent, the share-of-flow
  * `commission` split its sibling). This vocabulary is the future tax-policy
  * hook: a governance rate table keys on kinds/categories with no rework.
+ *
+ * ⭐ The economic bootstrap's four (D2): `advance` (a creditor funds a
+ * borrower — a bank's loan, the treasury's opening advance, a working-
+ * capital draw), `repayment` (a borrower pays a creditor down; also the
+ * treasury paying unclaimed property back to its owner), `appropriation`
+ * (the treasury spends — the Minister of Finance's act, naming its
+ * destination) and `escheat` (an absentee's balance comes home to the
+ * treasury). All four are real→real. The reserve's two LANES ride
+ * `mint`/`drain` with a category: `window` (the temporary lane, funding
+ * inventory paper and reversing when it repays) and `perpetual` (the
+ * permanent lane, buying the state's perpetual by rule); `override` is the
+ * Governor's recorded emergency mint. Those are the only mint/drain sites
+ * `lint:no-authored-faucet` admits.
  */
 export const LEDGER_KINDS = [
   "mint",
@@ -57,6 +70,10 @@ export const LEDGER_KINDS = [
   "escrow-release",
   "escrow-revert",
   "draw",
+  "advance",
+  "repayment",
+  "appropriation",
+  "escheat",
 ] as const;
 
 export type LedgerKind = (typeof LEDGER_KINDS)[number];
@@ -85,6 +102,20 @@ export type PnlCategory =
   | "draw"
   | "commission"
   | "piecework"
+  // The economic bootstrap's lines (D2).
+  | "window"
+  | "perpetual"
+  | "override"
+  | "advance"
+  | "repayment"
+  | "interest"
+  | "terms"
+  | "appropriation"
+  | "escheat"
+  | "unclaimed"
+  | "recovery"
+  | "arrival"
+  | "opening"
   | "other";
 
 /**

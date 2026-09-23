@@ -34,7 +34,7 @@ const PING = {
 
 let stored: StoredDocument[];
 /** Built, not written: a kernel test does not name shipped content. */
-const LOCAL = ['', 'world', 'eternal', 'duncan-hall', 'cmd', 'provision'].join('/');
+const LOCAL = ['', 'world', 'terminus', 'eternal', 'duncan-hall', 'cmd', 'provision'].join('/');
 
 function withStore(): void {
   vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);

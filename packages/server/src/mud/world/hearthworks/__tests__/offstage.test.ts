@@ -28,8 +28,8 @@ import Offstage from '../../../platform/location/Offstage';
 import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 
-const VENUE = fileURLToPath(new URL('../../../../../../content/hearthworks/content/world/hearthworks/', import.meta.url));
-const OFFSTAGE = '/world/hearthworks/location/offstage';
+const VENUE = fileURLToPath(new URL('../../../../../../content/hearthworks/content/world/terminus/hearthworks/', import.meta.url));
+const OFFSTAGE = '/world/terminus/hearthworks/location/offstage';
 
 interface Spec { brain: string; config?: { behindBar?: string; offstage?: string } }
 interface Row { class: string; data: { name?: string; behaviors?: Spec[] } }
@@ -80,7 +80,7 @@ describe('the hearthworks parks its cast through Offstage', () => {
     for (const [f, row] of shifted) {
       const cfg = shiftsOf(row)!.config!;
       expect(cfg.offstage, f).toBe(OFFSTAGE);
-      expect(cfg.behindBar, f).toMatch(/^\/world\/hearthworks\/location\//);
+      expect(cfg.behindBar, f).toMatch(/^\/world\/terminus\/hearthworks\/location\//);
     }
   });
 

@@ -76,18 +76,18 @@ async function cat(expr: string): Promise<string> {
 
 beforeAll(async () => {
   handle = uniqueHandle('petsoffer');
-  // Coin, banked, spent — the real economy, not a mint.
+  // An account, funded by the Governor's RECORDED override (economic
+  // bootstrap: the reserve no longer issues coin by hand — the override
+  // is the one hand-typed number, and it lands in an account, on the
+  // record, with its reason). Then spent — the real economy.
+  let me = await Session.open(handle, { startLocation: BANK, wizard: true });
+  expectOk(await me.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK });
   try {
-    expectOk(await gov.cmd('reserve issue 500'));
-    expectOk(await gov.cmd('drop coins'));
+    expectOk(await gov.cmd(`reserve override 500 to ${handle} "wire: pets-offer funding"`));
   } finally {
     gov.close();
   }
-  let me = await Session.open(handle, { startLocation: BANK, wizard: true });
-  expectOk(await me.cmd('get coins'));
-  expectOk(await me.cmd('bank open'));
-  expectOk(await me.cmd('bank deposit coins'));
   me.close();
   me = await Session.open(handle, { startLocation: STORE, wizard: true });
   for (let i = 0; i < 3; i++) expectOk(await me.cmd('buy rations'));

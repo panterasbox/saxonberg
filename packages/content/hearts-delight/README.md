@@ -4,7 +4,7 @@ The valley that feeds the city.
 
 ⚠ **No `src/`.** This pack ships content only — the `rejection` shape.
 That is deliberate and load-bearing: a pack with a `src/` directory
-registers a namespace root, and every class path under `/world/hearts-delight`
+registers a namespace root, and every class path under `/world/terminus/hearts-delight`
 would then resolve into it and **throw** instead of falling back to the
 kernel. `hinkley-hills` ships a `src/__tests__/` and nothing else, which
 is exactly that footgun. This pack's tests are the wire drive.

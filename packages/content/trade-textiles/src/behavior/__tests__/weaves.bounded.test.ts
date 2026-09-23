@@ -77,7 +77,7 @@ const MILL_FLOOR = YAML.parse(
   readFileSync(
     fileURLToPath(
       new URL(
-        '../../../content/trade/textiles/location/mill.yaml',
+        '../../../../terminus/content/world/terminus/wharfside/mill/location/floor.yaml',
         import.meta.url,
       ),
     ),
@@ -88,7 +88,7 @@ const SPINNER = YAML.parse(
   readFileSync(
     fileURLToPath(
       new URL(
-        '../../../content/trade/textiles/agent/mill-spinner.yaml',
+        '../../../../terminus/content/world/terminus/wharfside/mill/agent/spinner.yaml',
         import.meta.url,
       ),
     ),
@@ -182,7 +182,7 @@ describe('the mill has an input, and it is at the RAW end', () => {
     // the input shelf finds the one it is meant to be filling.
     expect(STORE.data.primaryKeyword).not.toBe('stock');
     expect(MILL_FLOOR.data.props).toContain('/trade/textiles/thing/bale-store');
-    expect(MILL_FLOOR.data.props).toContain('/trade/textiles/thing/mill-stock');
+    expect(MILL_FLOOR.data.props).toContain('/world/terminus/wharfside/mill/thing/stock');
   });
 
   it('⚠ does NOT ride the census spawn table', () => {
@@ -205,8 +205,8 @@ describe('the mill floor is wired', () => {
     }>;
     const beat = behaviors.find((b) => b.brain.endsWith('/weaves'));
     expect(beat, 'the spinner runs the producer beat').toBeTruthy();
-    expect(beat!.config?.stock).toBe('/trade/textiles/thing/mill-stock');
-    expect(beat!.config?.floor).toBe('/trade/textiles/location/mill');
+    expect(beat!.config?.stock).toBe('/world/terminus/wharfside/mill/thing/stock');
+    expect(beat!.config?.floor).toBe('/world/terminus/wharfside/mill/location/floor');
     // ⚠ Ahead of the consigning beat's 120 s, or the cart arrives to an
     // empty shelf.
     const seconds = Number(/cadence:(\d+)s/.exec(beat!.trigger)?.[1]);

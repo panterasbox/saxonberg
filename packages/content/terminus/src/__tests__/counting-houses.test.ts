@@ -170,24 +170,17 @@ describe("Goodkin — the new-player money arc", () => {
     });
   }
 
-  it("the opening float capitalizes the branch on first open, conserved (1:1)", async () => {
-    // The float is lazy: the first customer to open an account triggers it
-    // (the counter is guaranteed live then). Drive that real path.
-    vi.spyOn(AppApi, "setting").mockImplementation((k: string) =>
-      k === AppSettingKeys.bankingOpeningFloat ? "500" : "",
-    );
+  it("⭐ there is NO opening float: the till holds only what was deposited (economic bootstrap D9)", async () => {
+    // The old float MINTED coin into the till and credited the branch
+    // against it — an authored faucet. A till fills from deposits now;
+    // opening an account stocks nothing.
     const counter = makeCounter();
     const alice = avatar(ALICE);
+    const supplyBefore = BankingApi.moneySupply(BankingApi.compactCurrency()).minor;
     await asOwner(alice, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
-    // Coin in the till, backed by the branch's own operating balance.
-    expect(counter.getTillLiquidity().minor).toBe(500);
-    const branch = await BankingApi.ensureVenueAccount(COUNTER_PATH, "goodkin", "goodkin", BankingApi.compactCurrency());
-    expect(BankingApi.balanceOf(branch).minor).toBe(500);
+    expect(counter.getTillLiquidity().minor).toBe(0);
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(supplyBefore);
     expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
-    // Idempotent — a second customer's open doesn't re-seed the float.
-    const bob = avatar("/platform/agent/Avatar/bob");
-    await asOwner(bob, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
-    expect(counter.getTillLiquidity().minor).toBe(500);
   });
 
   it("open → deposit → withdraw works at the counter (bounded, exact change)", async () => {

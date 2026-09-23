@@ -80,15 +80,17 @@ describe("BankingApi.payDraw", () => {
     ).rejects.toThrow(/no account/);
   });
 
-  it("payWage still pays red by design (regression — the deliberate asymmetry)", async () => {
+  it("⭐ payWage is solvency-checked like payDraw (economic bootstrap D3 — the asymmetry is gone)", async () => {
     const worker = "/platform/agent/Avatar/wenna";
     const workerAcct = await BankingApi.ensureVenueAccount(
       worker,
       BankingApi.defaultCustodianBank(),
       "", BankingApi.compactCurrency());
-    // Business holds nothing — the wage is owed regardless (CB subsidizes).
-    await BankingApi.payWage(BIZ_ACCT, worker, Money.of(75, BankingApi.compactCurrency()));
-    expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(-75);
-    expect(BankingApi.balanceOf(workerAcct).minor).toBe(75);
+    // Business holds nothing — the wage is REFUSED, never paid from nowhere.
+    await expect(
+      BankingApi.payWage(BIZ_ACCT, worker, Money.of(75, BankingApi.compactCurrency())),
+    ).rejects.toThrow(/holds less than/);
+    expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(0);
+    expect(BankingApi.balanceOf(workerAcct).minor).toBe(0);
   });
 });

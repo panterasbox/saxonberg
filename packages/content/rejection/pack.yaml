@@ -1,6 +1,6 @@
 id: rejection
 version: 0.1.0
-root: /world/rejection
+root: /world/terminus/rejection
 description: >-
   Rejection — a VENUE pack, and the FIRST mining town. The pithead's five
   rooms, the adit and three authored galleries, the two zones, the Ferrow
@@ -20,7 +20,9 @@ requires:
       purpose: the Ferrow diggings and the town that works them
       owner: { office: prime-minister }
   title:
-    - { extent: /world/rejection, holder: { group: rejection } }
+    # Under the realm root (economic bootstrap D5): the title tree IS the
+    # situs tree, so a dead floor here escheats up to the realm's committee.
+    - { extent: /world/terminus/rejection, parentParcel: /world/terminus, holder: { group: rejection } }
     # ⭐ The Kestrel road, subdivided as its own parcel under the town's
     # extent (logistics D18/D20). `wild` — "unserviced ground: PASSAGE
     # and gathering only" — because nothing between the crossroads and
@@ -28,7 +30,7 @@ requires:
     # three places and three of the chain stakes are missing, which is
     # what unserviced ground looks like when you stand on it. **No
     # seventh land use.**
-    - { extent: /world/rejection/kestrel-road, parentParcel: /world/rejection, holder: { group: rejection }, landUse: wild }
+    - { extent: /world/terminus/rejection/kestrel-road, parentParcel: /world/terminus/rejection, holder: { group: rejection }, landUse: wild }
     # ⭐ The Hanging Wood (forestry): the town's common wood, held by the
     # settlement's group — *common land* is who holds it. `agricultural`,
     # NOT `wild`: `wild` admits no cultivation and `plant` refuses on any
@@ -36,4 +38,4 @@ requires:
     # unreachable; agricultural ("cultivation at scale, livestock and
     # orchards") is the honest word for a worked common, and ISCED 0821
     # forestry sits under 08 agriculture. **No seventh land use.**
-    - { extent: /world/rejection/hanging-wood, parentParcel: /world/rejection, holder: { group: rejection }, landUse: agricultural }
+    - { extent: /world/terminus/rejection/hanging-wood, parentParcel: /world/terminus/rejection, holder: { group: rejection }, landUse: agricultural }

@@ -160,19 +160,34 @@ export class CompactLogic extends ApiLogic {
       const authority = org.getAppointingAuthority();
       // ⚠ An organization whose authority is the committee over its OWN
       // extent would be asking this question again forever: the head
-      // question has no answer, so only the staff count.
-      if (authority?.kind === "committee" && authority.parcel === committee.subdivisionPath) {
-        return false;
+      // question has no answer, so only the staff count. Compared by
+      // RESOLVING the authority's parcel, not by string: a fixture (or a
+      // sparse title tree) can name the extent one way and cover it
+      // another, and the loop it opened ran the heap out.
+      if (authority?.kind === "committee") {
+        if (authority.parcel === committee.subdivisionPath) return false;
+        const above = await ParcelApi.ownerOf(authority.parcel);
+        if (above?.kind === "organization" && above.templatePath === committee.templatePath) {
+          return false;
+        }
       }
       return EmploymentApi.holdsAuthority(player, authority);
     }
     // The Art. XI pool-of-one backstop, mirroring the office founder
     // default: at founding every committee's work is the founder's.
     if (await isFounderImpl(player)) return true;
+    // ⭐ Committees are PLAYERS ONLY (economic bootstrap, doctrine 2): an
+    // NPC is never a member, whatever a group document says.
     if (!PlayerApi.isAvatarStuff(player)) return false;
-    const playerId = player.getPlayerId();
-    if (!playerId) return false;
-    return GroupApi.isMember(playerId, committee.groupRef);
+    // A managed group's uniform member key is the IDENTITY path
+    // (`/platform/agent/Avatar/<playerId>` — the provider's keyspace, the
+    // `group` verb's write, the installer's NPC enrolment, and every
+    // other reader). This read used to pass the bare playerId, which
+    // matched nothing a verb ever wrote: a seated committee was invisible
+    // to the committee predicate.
+    const memberKey = player.getIdentityPath();
+    if (!memberKey) return false;
+    return GroupApi.isMember(memberKey, committee.groupRef);
   }
 
   /** See {@link CompactApi.committeeMembersOf}. */

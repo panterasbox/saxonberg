@@ -144,8 +144,8 @@ describe("Condition.matchesItem / holdsFor", () => {
 describe('the watch clause', () => {
   const watch = (gameHours: number): ConditionData => ({
     template: 'watch',
-    item: { kind: 'template', path: '/world/rejection/location/fuel-yard' },
-    destinationPath: '/world/rejection/location/fuel-yard',
+    item: { kind: 'template', path: '/world/terminus/rejection/location/fuel-yard' },
+    destinationPath: '/world/terminus/rejection/location/fuel-yard',
     gameHours,
   });
 

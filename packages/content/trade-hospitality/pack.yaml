@@ -16,9 +16,8 @@ description: >-
   Business (employment.md). Dave's Bar (/world/lounge/location/bar) is the
   venue that hosts this trade.
 requires:
-  groups:
-    - name: hospitality
-      purpose: the hospitality trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/hospitality, holder: { group: hospitality } }
+    - { extent: /trade/hospitality, holder: { organization: /compact/trade } }

@@ -12,9 +12,8 @@ description: >-
   and the oven revives one. Staling is not spoilage, and the shipped
   freshness gauge models it backwards on purpose.
 requires:
-  groups:
-    - name: baking
-      purpose: the baking trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/baking, holder: { group: baking } }
+    - { extent: /trade/baking, holder: { organization: /compact/trade } }

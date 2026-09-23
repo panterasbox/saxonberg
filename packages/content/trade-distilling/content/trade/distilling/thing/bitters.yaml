@@ -24,4 +24,4 @@ data:
   censusKey: spirit:bitters
   regionTarget: 12
   materialTags: [spirit, bitters]
-  container: /trade/distilling/thing/crowsfoot-stock
+  container: /world/terminus/goods-yards/crowsfoot/thing/stock

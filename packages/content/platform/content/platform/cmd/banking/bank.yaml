@@ -8,6 +8,16 @@ help: |
   corpo affiliation); `bank deposit <coins>` and `bank withdraw <amount>`
   move cash across the counter; `bank transfer <amount> to <who>` pays
   another account by name. No account number is ever needed.
+
+  A chartered bank LENDS, at its own posted rate. `bank borrow <amount>`
+  asks for inventory finance for the house you keep — secured by the
+  goods on your counter, funded at the reserve's window, repaid as a share
+  of every inflow to the house's account until it clears, with no due
+  date; `bank borrow <amount> --for wages` asks for working capital,
+  unsecured, from the bank's own money. Every gate is a number of ledger
+  events, and a refusal says which number was not met. `bank book` reads
+  the paper: what you owe here, and — for the bank's own people — what
+  the bank holds.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -36,6 +46,19 @@ subcommands:
       - name: amount
         type: string
         required: true
+  borrow:
+    description: "Borrow for the house you keep — inventory finance, or working capital with --for wages"
+    args:
+      - name: amount
+        type: string
+        required: true
+    options:
+      for:
+        short: f
+        type: string
+        description: "What the loan is for: stock (inventory finance, the default) or wages (working capital)."
+  book:
+    description: "The paper: loans you owe here; what the bank holds, for its own people"
   transfer:
     description: "Transfer money to someone by name"
     args:

@@ -20,11 +20,26 @@ data:
       label: working the general-store counter
       wageRate: 5
       confers: []
+    # ⭐ The keeper KEEPS the shop (economic bootstrap D14): the
+    # `purchases` position her `stocks` beat trades as — dealt the house
+    # card at hire, she buys the supplied lines at the cash-and-carry
+    # `wallet use house`, borrows at Goodkin's window when short, and
+    # shelves what she carries home. Unwaged: the proprietor draws none.
+    - key: keeper
+      noun: keeper
+      label: keeping the general store
+      wageRate: 0
+      confers: []
+      purchases: true
   rosterSlots:
     - positionKey: clerk
       assignee: /world/terminus/general-store/agent/clerk
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
+    - positionKey: keeper
+      assignee: /world/terminus/general-store/agent/keeper
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
   # Where the store banks (authored custody — Terms/fees follow it).
   banksAt: goodkin
   operatingLocations:

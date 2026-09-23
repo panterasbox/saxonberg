@@ -1,7 +1,7 @@
 # The Last Counted Mile — the newbie-wilds frontier-crossroads zone. The paid
 # destination reachable (for a fare) from Terminus Gate A; the integration
 # anchor the deferred newbie-wilds build extends (docs/staging/newbie-wilds/).
-# A distinct branch from /world/eternal and /world/terminus. This build ships
+# A distinct branch from /world/terminus/eternal and /world/terminus. This build ships
 # a MINIMAL v0 — one designed landing room + one `both` terminal ("the Line").
 #
 # No ownerGroup this cycle: it collects nothing (no operator), and the

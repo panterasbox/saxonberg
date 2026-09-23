@@ -42,9 +42,10 @@ const GATE = '/world/terminus/terminal/location/arrival-gate';
  * finding in the migration.**
  *
  * The boss needs 25 credits of escrow and the price of a torch, and the
- * only way to get money into a new character is `reserve issue` — the
- * one CONSERVED faucet, gated on the Governor's seat. There is no sink.
- * So every run mints coin that stays minted, and leaves a funded
+ * way a test gets money into a new character is the Governor's
+ * `reserve override` — the one hand-typed mint left after the economic
+ * bootstrap, recorded on the ledger with its reason. There is no sink.
+ * So every run mints money that stays minted, and leaves a funded
  * stranger standing in the terminal hall forever.
  *
  * The original did this unconditionally on every run and called itself
@@ -55,7 +56,7 @@ const GATE = '/world/terminus/terminal/location/arrival-gate';
  * can paper over.
  */
 export const DIRTY_REASON =
-  'mints conserved money through `reserve issue` with no way to return ' +
+  'mints conserved money through `reserve override` with no way to return ' +
   'it, leaves a funded character in the hall every run, and leaves any ' +
   'unclaimed gig posted forever — the board has no expiry';
 
@@ -135,18 +136,14 @@ suite('the boss funds himself and posts a gig', () => {
       // A new account opens at zero, so on a fresh boss this always
       // runs — see DIRTY_REASON. It is guarded rather than
       // unconditional so the shape stays honest if a sink ever exists.
-      await walk(b, ['east', 'east', 'south', 'south']);
+      // The Governor's RECORDED override into the boss's account
+      // (economic bootstrap: the reserve issues no coin by hand).
       const gov = await Session.open('founder', { startLocation: HALL });
       try {
-        expectOk(await gov.cmd('reserve issue 500'));
-        expectOk(await gov.cmd('drop coins'));
+        expectOk(await gov.cmd(`reserve override 500 to ${b.handle} "wire: work funding"`));
       } finally {
         gov.close();
       }
-      expectOk(await b.cmd('get coins'));
-      await walk(b, ['north', 'north', 'west', 'west']);
-      expectOk(await b.cmd('bank open'));
-      expectOk(await b.cmd('bank deposit coins'));
       bal = await balanceOf(b);
     }
 

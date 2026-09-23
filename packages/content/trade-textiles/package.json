@@ -9,7 +9,6 @@
     "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
-    "@saxonberg/content-terminus": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

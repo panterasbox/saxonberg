@@ -574,7 +574,15 @@ Persistence is a property of **hosts** — singletons keyed by `templatePath`
 `postRegister` **materialize driver** (with a record → restore; without →
 capture the first record, the seed-then-persist gate), an `applyProps`
 override that skips the seed once a record exists (no duplication), and a
-`cleanupOnDestruct` **capture-on-destruct backstop**.
+`cleanupOnDestruct` **capture-on-destruct backstop**. ⚠ The backstop is
+fire-and-forget and `capture` awaits twice (the owner key, the marshaller
+warm) before its synchronous snapshot — a destruct that finishes during
+those awaits has evacuated the host, so `capture` returns without
+writing when the host is already destroyed rather than overwrite the
+last good record with an empty shell (found by the economic bootstrap's
+drive retiring a rented stall; it had thrown in `captureState` for every
+persistable destructed outside a sweep). A caller that wants a host's
+final state written captures it explicitly before `StuffApi.destruct`.
 
 The engine-of-record is `PersistedRecord`
 (`lib/persistence/PersistedRecord.ts`) over the **`holder_snapshots`**

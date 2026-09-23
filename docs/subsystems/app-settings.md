@@ -139,7 +139,7 @@ succeeded; it is **not** a `controller-rejected` envelope note).
 
 | Key | Seeded value | Read by |
 |---|---|---|
-| `defaultStartLocation` | `/world/lounge/idea/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EnrollController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
+| `defaultStartLocation` | `/world/lounge/idea/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EmbodyController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
 | `evacuationFallback` | `/world/void` | `Container.cleanupOnDestruct` — where an orphaned `HasInteractive` evacuates when its container destructs with no outer. |
 
 `defaultStartLocation` supplies only the *initial* value of each avatar's
@@ -176,7 +176,7 @@ regard bump is a flagged-replaceable demo, so it stays put).
 | Key | Seeded value | Read by |
 |---|---|---|
 | `chat.historyCap` | `200` | `ChannelCatalogue.recordHistory` — per-channel in-memory history ring cap. |
-| `chargen.nameMinLength` / `chargen.nameMaxLength` | `2` / `24` | `EnrollController.validateNameToken` — inclusive name-length bounds. |
+| `chargen.nameMinLength` / `chargen.nameMaxLength` | `2` / `24` | `EmbodyController.validateNameToken` — inclusive name-length bounds. |
 | `status.maxLength` | `100` | `StatusMixin` `sanitizeStatus` — max rendered status one-liner length. |
 
 Each consumer reads through a local try/catch helper that falls back to the
@@ -206,7 +206,34 @@ the real work.
   SSM Parameter Store ([deployment.md](../deployment.md)).
 - **Module-internal code constants** → colocated in their owning module.
 
+## The Schedule of Parameters (economic bootstrap, 2026-09)
+
+The economic bootstrap reads its numbers from the settings singleton and
+calls that set **the Schedule**: `reserve.*` (`moneyPerActiveMember`,
+`windowRatePerYear`, `haircut`, `ladder.termsRequired`,
+`ladder.loansRequired`, `ladder.workingCapitalCap`,
+`repaymentShareMin/Max`, `defaultHorizonGameDays`, `indexBasket`) in
+`settings/reserve.yaml` — the Governor's, through `reserve set`, which
+refuses any other row; `treasury.*` (`arrivalPrincipal`,
+`noteDischargeGameDays`, `openingAdvance`) and the estate clocks
+(`estate.dormantAfterDays`, `estate.escheatAfterDays`,
+`employment.absenceVacatesAfterDays`) in `settings/treasury.yaml`;
+`retail.stockingElasticity`, `retail.termsMargin` in `settings/retail.yaml`;
+`press.indexEditionGameHours` in `settings/press.yaml`. Every read carries
+a code floor equal to the shipped value; an unseeded row reads as absent
+(`Number("")` is 0, which is a value, not an absence — the dial helpers
+check the text first). See [credit.md](./credit.md).
+
 ## Deferred
+
+A **`treasury set`** for the fiscal rows (economic bootstrap): the
+Governor writes `reserve.*` through `reserve set`, which refuses any
+other prefix — the independence clause — and the treasury's own rows
+(`treasury.*`, `estate.*`, `employment.absenceVacatesAfterDays`) have no
+equivalent seat-gated writer, so today they move only through the wizard
+`config` verb. The seat that spends should be able to set its own dials
+without being able to touch the rules, which is the same split one layer
+over.
 
 A richer typed schema (per-setting value types, validation, migration — à
 la `SettingsSchemaEntry`); more app-wide knobs (MOTD, world feature flags,

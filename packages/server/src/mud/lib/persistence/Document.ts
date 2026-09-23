@@ -56,7 +56,7 @@
  * Idea-rooted Stuff (for HMR) and are reached through the injected resolver.
  */
 
-import { PersistApi } from '../../api/persist';
+import { PersistApi, type FindOptions } from '../../api/persist';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 
 type Indexable = Record<string, unknown>;
@@ -321,14 +321,15 @@ export class Document {
    */
   public static async find<T extends Document>(
     this: DocumentConstructor & { new (): T },
-    query: Record<string, unknown>
+    query: Record<string, unknown>,
+    options?: FindOptions
   ): Promise<T[]> {
     if (!this.collectionName) {
       throw new Error(
         `${this.name}.collectionName not defined - must be set in subclass`
       );
     }
-    const docs = await PersistApi.find(this.collectionName, query);
+    const docs = await PersistApi.find(this.collectionName, query, options);
     await Document.preloadFieldMarshallersFor(this as AnyConstructor);
     return docs.map((doc) => {
       const instance = new this() as T;

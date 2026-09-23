@@ -1,0 +1,34 @@
+# `stall` — rent a stall on the market square, or give it up (economic
+# bootstrap D15: a player shop is a rented market stall). Afforded by the
+# square's produce stalls to whoever stands in the square.
+verbs: [stall]
+controller: /world/terminus/market/idea/cmd/StallController
+description: "Rent a market stall of your own, or give it up"
+help: |
+  `stall rent` (or just `stall`) sets up a stall of your own on the
+  square — a counter that is yours, a house that trades as you, an
+  account at your bank. The first time costs the square's rent, paid
+  from your account; after that the same word opens the stall you
+  already hold, packed goods and all.
+
+  Your stall takes goods on SUPPLIER TERMS: a grower who `consign`s a
+  crate onto it names their price, you set the ask (`house price
+  <thing> <ask>`) and keep the margin, and they are paid when it sells.
+  `wallet use house` to buy for the stall; `house book` to read what it
+  owes; `bank borrow` at Goodkin once the stall has a purchase history.
+
+  `stall give-up` hands you back whatever is on the counter and packs
+  the stall away.
+examples:
+  - cmd: stall rent
+    note: Rent a stall on the square
+  - cmd: stall give-up
+    note: Pack the stall away
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+subcommands:
+  rent:
+    description: "Rent a stall (or open the one you hold)"
+  give-up:
+    description: "Pack your stall away; what is on it comes back to you"

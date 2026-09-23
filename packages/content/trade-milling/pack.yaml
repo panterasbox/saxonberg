@@ -13,9 +13,8 @@ description: >-
   The mill takes its pay in kind — a share of the flour, which is what a
   multure is.
 requires:
-  groups:
-    - name: milling
-      purpose: the milling trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/milling, holder: { group: milling } }
+    - { extent: /trade/milling, holder: { organization: /compact/trade } }

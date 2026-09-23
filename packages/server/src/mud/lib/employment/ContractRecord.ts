@@ -20,6 +20,7 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import type { ClauseData } from "./Clause";
+import type { CreditTermsData, ContractKind } from "./CreditTerms";
 import type { FieldMeta } from "../mixin";
 
 /** The lifecycle vocabulary. */
@@ -40,10 +41,12 @@ export type ClaimMode = (typeof CLAIM_MODES)[number];
 
 /**
  * A party to a contract — the `ChattelOwner` shape widened: a player (an
- * Avatar's durable `templatePath`) or a Business (its Idea's path).
+ * Avatar's durable IDENTITY path, despite the field's name), a Business
+ * (its Idea's path), or an Organization (the Treasury — economic
+ * bootstrap D1).
  */
 export interface ContractParty {
-  kind: "player" | "business";
+  kind: "player" | "business" | "organization";
   templatePath: string;
 }
 
@@ -74,7 +77,37 @@ export class ContractRecord extends Document {
     realAt: { persistent: true },
     watchedSec: { persistent: true },
     watchSeenSec: { persistent: true },
+    kind: { persistent: true },
+    holder: { persistent: true },
+    terms: { persistent: true },
+    owedMinor: { persistent: true },
+    owedStampS: { persistent: true },
   };
+
+  /**
+   * ⭐ What this row IS (economic bootstrap D1): the gig it always was, or
+   * a `loan` (a creditor funded a borrower), a `note` (the Arrival Note —
+   * a member's note to the Treasury) or an `unclaimed` claim (the
+   * treasury holds an absentee's balance for them). `gig` by default so
+   * every existing finder and row is unchanged.
+   */
+  kind: ContractKind = "gig";
+  /**
+   * The CREDITOR — who holds the paper. Null for a gig (`claimant` keeps
+   * its role there). For a loan the lender; for a note the Treasury; for
+   * an unclaimed claim the absentee (the treasury is the issuer: it owes).
+   */
+  holder: ContractParty | null = null;
+  /** The instrument's terms (rate, share, security, discharge, rung); null for a gig. */
+  terms: CreditTermsData | null = null;
+  /**
+   * The running balance owed, minor units — principal plus accrued
+   * interest, stamped forward on every touch (the `watchedSec` shape: a
+   * materialized accrual on the record, never a scheduler).
+   */
+  owedMinor = 0;
+  /** The game-second `owedMinor` was last accrued to. */
+  owedStampS = 0;
 
   /**
    * ⭐ Game-seconds of watch the claimant has accrued on this contract
@@ -199,6 +232,23 @@ export class ContractRecord extends Document {
     claimant: string,
   ): Promise<ContractRecord[]> {
     return ContractRecord.find<ContractRecord>({ claimant, state: "claimed" });
+  }
+
+  /** The open instruments of `kind` whose ISSUER (the debtor) is `key`, oldest first. */
+  static async findOpenByIssuer(key: string, kind: ContractKind): Promise<ContractRecord[]> {
+    const rows = await ContractRecord.find<ContractRecord>({ kind, state: "open" });
+    return rows.filter((r) => r.issuer.templatePath === key).sort((a, b) => a.postedAt - b.postedAt);
+  }
+
+  /** The open instruments of `kind` whose HOLDER (the creditor) is `key`, oldest first. */
+  static async findOpenByHolder(key: string, kind: ContractKind): Promise<ContractRecord[]> {
+    const rows = await ContractRecord.find<ContractRecord>({ kind, state: "open" });
+    return rows.filter((r) => r.holder?.templatePath === key).sort((a, b) => a.postedAt - b.postedAt);
+  }
+
+  /** Every row of `kind` in `state`. */
+  static async findByKind(kind: ContractKind, state: ContractState): Promise<ContractRecord[]> {
+    return ContractRecord.find<ContractRecord>({ kind, state });
   }
 
   /**

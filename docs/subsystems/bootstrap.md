@@ -82,7 +82,7 @@ example:
   It's mechanically just an avatar template; the `seed` playerId is
   reserved (`Avatar.SEED_PLAYER_ID`) — 4 chars, nanoids are 21,
   no collision with a real player.
-- Every avatar-mint site (`EnrollController.commit`, the test-auth
+- Every avatar-mint site (`EmbodyController.commit`, the test-auth
   `Application.createDefaultCharacter`, `Login.mintRandomGuestAvatar`)
   reads `Avatar.SEED_TEMPLATE_PATH`, copies its `class` /
   `hydratorClass` / `data`, overlays the character's own fields, and

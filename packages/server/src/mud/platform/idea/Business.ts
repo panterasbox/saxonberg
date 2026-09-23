@@ -50,15 +50,51 @@ import type { ContractRecord } from '../../lib/employment/ContractRecord';
  * `banksAt` fields are public so the Hydrator can reflect into them, but
  * they are NOT the contract surface.
  */
+/**
+ * The charters a Business may hold (economic bootstrap D19) — closed;
+ * validated at the setter with `includes`. `bank`: may lend and present
+ * paper at the reserve's window.
+ */
+export const CHARTERS = ['bank'] as const;
+export type Charter = (typeof CHARTERS)[number];
+
+/** A wage the house owed and could not pay (economic bootstrap D18). */
+export interface PayrollArrear {
+  workerKey: string;
+  amountMinor: number;
+  /** Game-time seconds it was refused. */
+  at: number;
+}
+
 export interface BusinessTrade {
   /** The locations this Business operates in (templatePaths). */
   getOperatingLocations(): readonly string[];
   /** The account key for this Business — its own durable path. */
+  setOperatingLocations(paths: readonly string[]): void;
+  /**
+   * ⭐ Is the house CLOSED (economic bootstrap D16)? Every principal who
+   * could run it — the entity authority if a member, every member holder
+   * — absent past the short clock, and no NPC on a position. Set by the
+   * roster tick's estate pass; read by the counters (`closed`), the
+   * account (outflows refused) and the roster. An NPC-run house never
+   * closes (D23).
+   */
+  isClosed(): boolean;
+  /** The roster tick's write of the closed sign — runtime state, never authored. */
+  setClosed(value: boolean): void;
   getAccountPath(): string;
   /** The bank branch custodying the operating account ('' = unauthored). */
   getBanksAt(): string;
-  /** Authored opening capital (minor units), or `undefined` for the default. */
-  getOpeningCapital(): number | undefined;
+  /** The charters this business holds (`bank` — it may lend and present paper at the window). */
+  getCharters(): readonly Charter[];
+  /** Does it hold `charter`? */
+  isChartered(charter: Charter): boolean;
+  /** The wages it owes and could not pay (economic bootstrap D18), oldest first. */
+  getPayrollArrears(): readonly PayrollArrear[];
+  /** Record a wage it could not pay. */
+  addPayrollArrear(arrear: PayrollArrear): void;
+  /** Strike arrears that have since been paid (by worker, up to `amountMinor`). */
+  settlePayrollArrears(workerKey: string, amountMinor: number): number;
   /** The par manifest — what the house keeps on hand, and from whom. */
   getParLines(): readonly ParLine[];
   /** Set (or replace, by category) one par line. */
@@ -134,9 +170,75 @@ export function BusinessMixin<
         authorPicker: 'Template',
       },
       banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
-      openingCapital: { persistent: true, authorable: true },
       parLines: { persistent: true, authorable: true },
+      charter: { persistent: true, authorable: true },
+      payrollArrears: { persistent: true },
     };
+
+    /**
+     * ⭐ The charters this business holds (economic bootstrap D19) — a
+     * closed vocabulary, `bank` the only member: it may lend, take
+     * deposits and present secured paper at the reserve's window. Only a
+     * chartered lender's loans are recognised; an unlicensed in-world bank
+     * that took deposits and promised returns would be a Ponzi by default
+     * (the Ginko lesson). Every Business may be chartered; empty claims
+     * nothing.
+     */
+    public charter: Charter[] = [];
+
+    /** The Hydrator's Phase-1 setter: an unknown charter is refused loudly, never read as `wild`. */
+    public setCharter(value: unknown): void {
+      const list = Array.isArray(value) ? value : [];
+      for (const c of list) {
+        if (!(CHARTERS as readonly unknown[]).includes(c)) {
+          throw new Error(
+            `Business.charter: '${String(c)}' is not a charter (expected one of ${CHARTERS.join(', ')})`,
+          );
+        }
+      }
+      this.charter = list as Charter[];
+    }
+
+    public getCharters(): readonly Charter[] {
+      return [...this.charter];
+    }
+
+    public isChartered(charter: Charter): boolean {
+      return this.charter.includes(charter);
+    }
+
+    /**
+     * The wages this house owes and could not pay (economic bootstrap
+     * D18): the worker is the creditor BY NAME — no account goes negative
+     * without one. Paid first at the next settlement, any path.
+     */
+    public payrollArrears: PayrollArrear[] = [];
+
+    public getPayrollArrears(): readonly PayrollArrear[] {
+      return [...this.payrollArrears];
+    }
+
+    public addPayrollArrear(arrear: PayrollArrear): void {
+      this.payrollArrears = [...this.payrollArrears, { ...arrear }];
+    }
+
+    public settlePayrollArrears(workerKey: string, amountMinor: number): number {
+      let left = amountMinor;
+      const keep: PayrollArrear[] = [];
+      let paid = 0;
+      for (const a of this.payrollArrears) {
+        if (a.workerKey !== workerKey || left <= 0) {
+          keep.push(a);
+          continue;
+        }
+        const take = Math.min(a.amountMinor, left);
+        left -= take;
+        paid += take;
+        if (take < a.amountMinor) keep.push({ ...a, amountMinor: a.amountMinor - take });
+      }
+      this.payrollArrears = keep;
+      return paid;
+    }
 
     /**
      * Locations this Business operates in (templatePaths).
@@ -153,19 +255,6 @@ export function BusinessMixin<
      * `EmploymentApi.operatingAccountOf`).
      */
     public banksAt: string = '';
-
-    /**
-     * Opening capital (minor units) minted into this business's operating
-     * account the first time that account is materialized — **a per-venue
-     * override of `banking.openingCapital`**, because a distillery needs
-     * more standing capital than a bar.
-     *
-     * `-1` (the default) means "unauthored — take the configured default".
-     * An explicit `0` opens the business on nothing, which is a legitimate
-     * thing to author: it will pay wages into the red and be unable to buy,
-     * exactly as an undercapitalized business should.
-     */
-    public openingCapital: number = -1;
 
     /**
      * The **par manifest**: the levels of each category of goods the
@@ -198,20 +287,33 @@ export function BusinessMixin<
       return this.banksAt;
     }
 
-    /**
-     * The authored opening capital in minor units, or `undefined` when the
-     * row does not author one (take the configured default).
-     */
-    public getOpeningCapital(): number | undefined {
-      return this.openingCapital >= 0 ? this.openingCapital : undefined;
-    }
-
     public getOperatingLocations(): readonly string[] {
       return [...this.operatingLocations];
     }
 
+    /** The closed sign (runtime; the roster tick's estate pass writes it). */
+    private closed = false;
+
+    public isClosed(): boolean {
+      return this.closed;
+    }
+
+    public setClosed(value: boolean): void {
+      this.closed = value;
+    }
+
+    /** Point the house at what it operates — a minted stall's counter at rent, nothing at give-up. */
+    public setOperatingLocations(paths: readonly string[]): void {
+      this.operatingLocations = [...paths];
+    }
+
     public getAccountPath(): string {
-      return (this as unknown as Stuff).getTemplatePath() ?? '';
+      // ⭐ The IDENTITY path (economic bootstrap D15): a content row's is
+      // its template path; a minted business — a player's rented stall,
+      // cloned from one seed with `asIdentityPath` — carries its own, so
+      // two players' stalls never share an account (the shared-account
+      // regression, the other way round).
+      return (this as unknown as Stuff).getIdentityPath() ?? '';
     }
   }
   return BusinessMixin;

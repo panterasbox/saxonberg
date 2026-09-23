@@ -567,7 +567,7 @@ export class Application {
 
     // Char-gen owns character creation now: signup mints ZERO avatars.
     // A new user starts with an empty roster (`playerIds: []`); on first
-    // login the empty roster routes them into char-gen (the `enroll`
+    // login the empty roster routes them into char-gen (the `embody`
     // flow), which forks the per-character template at commit. The
     // provider profile name survives on the User/Profile only as the
     // seed for the name suggester. See docs/plans/char-gen-plan.md (A1).

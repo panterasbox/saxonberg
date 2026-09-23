@@ -166,7 +166,8 @@ describe('trade-farming — the ten grown families resolve end to end', () => {
 
     const stalls = byPath.get('/world/terminus/market/stalls');
     expect(stalls).toBeDefined();
-    expect(stalls!.class).toBe('/platform/thing/Stock');
+    // Re-classed by the economic bootstrap: a Stock that lets stalls.
+    expect(stalls!.class).toBe('/world/terminus/market/thing/MarketStalls');
     expect(stalls!.data.stockLines).toEqual([]); // consignment-only, no par
     expect(Number(stalls!.data.listingCapOverride)).toBeGreaterThan(24);
     expect((square!.data.props as string[])).toContain(

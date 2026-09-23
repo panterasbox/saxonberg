@@ -68,11 +68,11 @@ data:
     # routed to, and the whole point of the logistics build is that goods
     # move because somebody carried them.
     southeast:
-      destination: /trade/textiles/location/mill
+      destination: /world/terminus/wharfside/mill/location/floor
       media: [ground]
       edgeMinutes: 5
     southwest:
-      destination: /trade/dyeing/location/dyehouse
+      destination: /world/terminus/wharfside/dyehouse/location/floor
       media: [ground]
       edgeMinutes: 5
   props:

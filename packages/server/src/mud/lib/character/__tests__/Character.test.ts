@@ -5,7 +5,7 @@
  * sit on the creature base, so every body in the game — a wolf, a
  * corpse, a head of stock — carried name-shaped surface an author could
  * fill in by accident. It composes explicitly now, on the `Cast` rung
- * (somebody), on `Avatar` (a player, whose name enroll writes), and on
+ * (somebody), on `Avatar` (a player, whose name embody writes), and on
  * any class that mints a name of its own.
  *
  * So the fixture below composes it too, which is exactly what an author

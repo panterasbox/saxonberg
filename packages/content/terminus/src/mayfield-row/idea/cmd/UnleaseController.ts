@@ -8,7 +8,7 @@
  * metal until a new lease mints a fresh one).
  */
 
-import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import { LettingController } from '../../../lib/LettingController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -23,7 +23,6 @@ import LeaseController, { BUILDING_EXTENT, BUILDING_PATH } from './LeaseControll
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { AccessApi } from '@saxonberg/server/mud/api/access';
 
 const TOPIC = 'act.deed';
 
@@ -41,13 +40,13 @@ interface BuildingView extends Stuff {
   refreshProvisioned(): Promise<void>;
 }
 
-export default class UnleaseController extends CommandController<UnleaseModel> {
+export default class UnleaseController extends LettingController<UnleaseModel> {
   async execute(model: UnleaseModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
 
     const building = await ParcelApi.coveringParcelOf(BUILDING_EXTENT);
     const owner = building?.getOwner();
-    if (!owner || !(await AccessApi.isAgentOf(actor, owner))) {
+    if (!owner || !(await UnleaseController.mayLet(actor))) {
       return this.fail(
         context,
         "You're not authorized to end Seznick House leases.",

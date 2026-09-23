@@ -12,16 +12,18 @@ requires:
   # One claim per cluster the pack ships — the branches are the pack's;
   # the loose rows are covered by the host's /stuff. Held by the default
   # maintainers group.
+  # The commons are held by the Ministry of Trade (economic bootstrap D7) —
+  # a seat over the physics of things, never a committee.
   title:
-    - { extent: /stuff/thing/items }
-    - { extent: /stuff/thing/arms }
-    - { extent: /stuff/thing/armor }
-    - { extent: /stuff/thing/clothes }
-    - { extent: /stuff/thing/gear }
-    - { extent: /stuff/thing/vessel }
-    - { extent: /stuff/thing/fixture }
-    - { extent: /stuff/thing/instrument }
-    - { extent: /stuff/thing/traps }
-    - { extent: /stuff/thing/surface }
-    - { extent: /stuff/idea/exits }
-    - { extent: /stuff/location/room }
+    - { extent: /stuff/thing/items, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/arms, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/armor, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/clothes, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/gear, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/vessel, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/fixture, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/instrument, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/traps, holder: { organization: /compact/trade } }
+    - { extent: /stuff/thing/surface, holder: { organization: /compact/trade } }
+    - { extent: /stuff/idea/exits, holder: { organization: /compact/trade } }
+    - { extent: /stuff/location/room, holder: { organization: /compact/trade } }

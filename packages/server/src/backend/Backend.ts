@@ -49,7 +49,7 @@ export class Backend implements IBackend {
    * they apply in arrival order. This is the player-facing invariant
    * (a single actor's commands run in sequence, not interleaved) and
    * it also prevents same-template clone collisions — char-gen routes
-   * every `enroll` field through the one `EnrollController` template,
+   * every `embody` field through the one `EmbodyController` template,
    * and two concurrent clones of one path trip `StuffApi.clone`'s
    * in-flight cycle guard. Entry removed on socket close.
    */

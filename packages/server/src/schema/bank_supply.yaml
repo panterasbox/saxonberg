@@ -19,6 +19,11 @@ invariants:
   - >-
     Fully rebuildable from `bank_ledger`.
   - >-
+    `lanes` carries the same two sums PER LEG CATEGORY (`window`,
+    `perpetual`, `override` …) — the warmed read behind a lane's
+    outstanding, kept in step by the same post that keeps the headline,
+    never a scan of the ledger.
+  - >-
     SHADOW(skip) under the sandbox.
 sandbox:
   verb: "shadow"

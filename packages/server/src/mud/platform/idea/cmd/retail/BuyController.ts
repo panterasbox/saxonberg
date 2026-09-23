@@ -73,8 +73,12 @@ export default class BuyController extends CommandController<BuyModel> {
       return;
     }
 
-    // Attendant: a store with a counter refuses when it's closed.
+    // Attendant: a store with a counter refuses when it's closed. The
+    // operator is brought current FIRST — its roster, and its closed sign
+    // (economic bootstrap D16) — so a cold venue's first customer meets
+    // the house as it stands, not as the last tick left it.
     if (stock) {
+      await EmploymentApi.ensureOperatorAt(stock.getIdentityPath() ?? "");
       const key = giver.getIdentityPath();
       if (key && stock.requestAttention(key).status === "closed") {
         this.reject(
@@ -150,7 +154,7 @@ export default class BuyController extends CommandController<BuyModel> {
       return;
     }
     const paid = await this.settleSale(
-      stock.getTemplatePath(),
+      stock.getIdentityPath(),
       price,
       [],
       price, // the whole price is the store's taxable revenue
@@ -229,30 +233,49 @@ export default class BuyController extends CommandController<BuyModel> {
       );
       return;
     }
-    const ask = listing.askMinor;
-    const commission = Math.round(ask * this.commissionRate());
-    const remainder = ask - commission;
-    const splits: RemittanceSplit[] =
-      remainder > 0
-        ? [
-            {
-              accountId: consignorPrimary,
-              amount: Money.of(remainder, BankingApi.compactCurrency()),
-              category: "consignment",
-            },
-          ]
-        : [];
-    const venuePath = stock?.getTemplatePath() ?? shelf.getTemplatePath();
-    const paid = await this.settleSale(
-      venuePath,
-      ask,
-      splits,
-      commission, // only the commission is the store's taxable revenue
-      "a purchase",
-    );
-    if (!paid) {
-      this.rejectBroke(giver, context, item, model);
-      return;
+    // ⭐ The counter's IDENTITY path — a rented stall is minted from one
+    // seed row and its house operates the minted counter, not the seed.
+    const venuePath = stock?.getIdentityPath() ?? shelf.getIdentityPath();
+    let paid: { tail: string; receipt: SettlementReceipt } | null;
+    if (listing.basis === "terms" && stock) {
+      // ⭐ Rung 0 — supplier terms (economic bootstrap D11): the buyer pays
+      // the SHOP'S ask in full (the shop's sale, its taxable revenue); the
+      // shop then pays the supplier what it is owed — a second, conserving
+      // post, kind `payment`, category `terms` (the shop's P&L reads it as
+      // cogs, the supplier's as sales; the ladder's rung-1 gate counts it).
+      // Two posts, one command — the `remitDemoTax` precedent.
+      const ask = stock.priceFor(item.getTemplatePath() ?? "") ?? listing.askMinor;
+      paid = await this.settleSale(venuePath, ask, [], ask, "a purchase");
+      if (!paid) {
+        this.rejectBroke(giver, context, item, model);
+        return;
+      }
+      await this.settleTerms(venuePath, consignorPrimary, listing.askMinor, item);
+    } else {
+      const ask = listing.askMinor;
+      const commission = Math.round(ask * this.commissionRate());
+      const remainder = ask - commission;
+      const splits: RemittanceSplit[] =
+        remainder > 0
+          ? [
+              {
+                accountId: consignorPrimary,
+                amount: Money.of(remainder, BankingApi.compactCurrency()),
+                category: "consignment",
+              },
+            ]
+          : [];
+      paid = await this.settleSale(
+        venuePath,
+        ask,
+        splits,
+        commission, // only the commission is the store's taxable revenue
+        "a purchase",
+      );
+      if (!paid) {
+        this.rejectBroke(giver, context, item, model);
+        return;
+      }
     }
     const buyer = await this.buyerOf(giver, paid.receipt);
     if (MixinApi.isChattel(item)) {
@@ -311,6 +334,39 @@ export default class BuyController extends CommandController<BuyModel> {
       ? `(${Money.of(amount, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
       : `(${Money.of(amount, BankingApi.compactCurrency()).render()})`;
     return { tail, receipt };
+  }
+
+  /**
+   * The shop pays its supplier for a terms good that just sold: one
+   * `payment` leg, the shop's account → the supplier's primary, category
+   * `terms` (economic bootstrap D11). Posted as the SHOP (the house is the
+   * payer — the buyer's transaction already cleared), so it rides the
+   * house's own balance and the floor; a shop that cannot cover what it
+   * owes keeps the debt on its book (`house book` lists it) rather than
+   * failing the sale that funds it.
+   */
+  private async settleTerms(
+    venuePath: string | null,
+    supplierAccountId: string,
+    owedMinor: number,
+    item: Stuff,
+  ): Promise<void> {
+    if (!venuePath || owedMinor <= 0) return;
+    const business = await EmploymentApi.ensureOperatorAt(venuePath);
+    if (!business) return;
+    try {
+      const account = await EmploymentApi.operatingAccountOf(business);
+      await BankingApi.payTerms(
+        account,
+        supplierAccountId,
+        Money.of(owedMinor, BankingApi.compactCurrency()),
+        `terms: ${item.getPresentation()}`,
+      );
+    } catch (err) {
+      console.warn(
+        `BuyController: the house could not pay its supplier's terms — ${String(err instanceof Error ? err.message : err)}`,
+      );
+    }
   }
 
   private commissionRate(): number {

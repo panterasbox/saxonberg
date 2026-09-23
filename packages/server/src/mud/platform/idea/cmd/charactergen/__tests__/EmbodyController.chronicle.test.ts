@@ -1,0 +1,181 @@
+/**
+ * EmbodyController → chronicle seeding. Drives `commit` UNMOCKED (same
+ * orchestration as EmbodyController.commit.test.ts) but with the
+ * persistence layer connected to an in-memory store, asserting that a
+ * freshly embodied character ends up with BOTH a seeded prologue
+ * (`claim` entries from the chosen aspiration) AND a founding `deed`.
+ *
+ * `avatar.enter` is stubbed here, so the first-arrival deed (minted
+ * inside `enter`) does NOT fire — only the commit-level seedClaims +
+ * founding deed do, which is exactly what this test isolates.
+ */
+
+import "../../../../../../test-bootstrap";
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import EmbodyController from '../EmbodyController';
+import Login from '../../../Login';
+import Interactive from '../../../Interactive';
+import Avatar from '../../../../agent/Avatar';
+import { PersonaMixin } from '../../../../../lib/character/Persona';
+
+/**
+ * A Persona-composed stand-in for the cloned avatar: the real chronicle
+ * face over the in-memory PM; commit's other touches are inert no-ops.
+ * The commit path grants the onboarding coin to non-guests; the
+ * AppApi.setting mock returns a non-numeric stipend, so no mint fires.
+ */
+class StubAvatar extends PersonaMixin(Idea) {
+  setSex(_s: string): void {}
+  async enter(): Promise<void> {}
+  getIsGuest(): boolean {
+    return false;
+  }
+}
+import Species from '../../../species/Species';
+import { Idea } from '../../../../../lib/stuff/Idea';
+import { StuffApi } from '../../../../../api/stuff';
+import { AppApi } from '../../../../../api/app';
+import { TemplateApi } from '../../../../../api/template';
+import { Template } from '../../../../../lib/stuff/Template';
+import { ContainmentApi } from '../../../../../api/containment';
+import { MessageApi } from '../../../../../api/message';
+import { WorldClockApi } from '../../../../../api/worldclock';
+import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
+import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
+import type { CommandContext, CommandModel } from '../../../../../api/command';
+
+const SAPIENS =
+  '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
+
+describe('EmbodyController.commit → chronicle seeding', () => {
+  let login: Login;
+  let ctrl: EmbodyController;
+  let ctx: CommandContext;
+  let user: { _id: string; playerIds: string[]; save: ReturnType<typeof vi.fn> };
+  let avatarPath: string;
+  let store: Map<string, Record<string, unknown>>;
+  let idCounter: number;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    EmbodyController.resetConfigCache();
+
+    // In-memory PM store so chronicle mints actually persist.
+    store = new Map();
+    idCounter = 0;
+    const pm = PersistenceManager.get();
+    vi.spyOn(pm, 'isConnected').mockReturnValue(true);
+    vi.spyOn(pm, 'find').mockImplementation(
+      async (_col: string, query: Record<string, unknown>) =>
+        [...store.values()].filter((d) =>
+          Object.entries(query).every(([k, v]) => d[k] === v)
+        ) as never
+    );
+    vi.spyOn(pm, 'save').mockImplementation(
+      async (_col: string, doc: Record<string, unknown>) => {
+        const id = (doc._id as string | undefined) ?? `id-${idCounter++}`;
+        store.set(id, { ...doc, _id: id });
+        return id;
+      }
+    );
+    WorldClockApi._setNowProviderForTesting(() => 1000);
+
+    vi.spyOn(AppApi, 'setting').mockReturnValue('/world/lounge/idea/warren');
+
+    user = { _id: 'u1', playerIds: [], save: vi.fn().mockResolvedValue(undefined) };
+    const interactive = makeStuff(
+      () => new Interactive('s', 'sess', user as never)
+    );
+    login = makeStuff(() => new Login(interactive));
+    login.setCharacterDraft({
+      speciesKey: 'human',
+      speciesPath: SAPIENS,
+      speciesCommonName: 'human',
+      sex: 'female',
+      name: 'Bobalu',
+      surname: 'Smallberries',
+      pronouns: 'she',
+      aspiration: 'healer',
+    });
+    ctrl = makeStuff(() => new EmbodyController());
+
+    const species = makeStuff(() => new Species());
+    species.setSexDeterminationSystem('dioecious');
+    species.setCommonNames(['human']);
+    species.setLongDescription('an ordinary-looking person');
+    species.setNameBankKeys(['common']);
+    vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) =>
+      p === SAPIENS ? (species as never) : (undefined as never)
+    );
+    vi.spyOn(species, 'getBodyPlanPath').mockReturnValue(null as never);
+
+    vi.spyOn(Template, 'findByPath').mockResolvedValue({
+      path: Avatar.SEED_TEMPLATE_PATH,
+      class: '/platform/agent/Avatar',
+      data: { startLocation: '/world/lounge/idea/warren' },
+      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+    } as never);
+    vi.spyOn(TemplateApi, 'saveTemplate').mockImplementation(
+      async (path: string) => path
+    );
+
+    // The cloned avatar — a REAL Persona-composed stub (the chronicle
+    // owner face lives ON the mixin since the OO sweep), path-stamped
+    // so the durable owner key resolves; enter is a no-op (so the
+    // first-arrival deed does not fire from here).
+    avatarPath = '';
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
+      if (path.startsWith('/platform/agent/Avatar/')) {
+        avatarPath = path;
+        return makeStuffAtPath(() => new StubAvatar(), path) as never;
+      }
+      return makeStuff(() => new Idea()) as never;
+    });
+    vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
+    
+    vi.spyOn(interactive, 'transferTo').mockReturnValue(undefined as never);
+    vi.spyOn(StuffApi, 'destruct').mockReturnValue(undefined as never);
+    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = () => b;
+      b.payload = () => b;
+      b.send = () => {};
+      return b as never;
+    });
+
+    ctx = {
+      commandGiver: login as never,
+      interactive,
+      note: vi.fn(),
+    } as unknown as CommandContext;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    WorldClockApi._resetForTesting();
+    StuffApi.clearAll();
+  });
+
+  it('a freshly embodied character has >=1 claim AND >=1 founding deed', async () => {
+    await ctrl.execute(
+      { rest: 'confirm' } as CommandModel & { rest?: string },
+      ctx
+    );
+
+    const mine = [...store.values()].filter((d) => d.owner === avatarPath);
+    const claims = mine.filter((d) => d.kind === 'claim');
+    const deeds = mine.filter((d) => d.kind === 'deed');
+
+    // Healer aspiration seeds two claimSeeds in char-gen.yaml.
+    expect(claims.length).toBeGreaterThanOrEqual(1);
+    expect(deeds.length).toBeGreaterThanOrEqual(1);
+
+    // The founding deed is tagged and ProseApi-rendered with the name.
+    const founding = deeds.find((d) =>
+      (d.tags as string[] | undefined)?.includes('embody')
+    );
+    expect(founding).toBeDefined();
+    expect(String(founding!.text)).toContain('Bobalu');
+  });
+});

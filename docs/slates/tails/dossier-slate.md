@@ -135,7 +135,7 @@ rename is local to this document; cast-archetype keeps its word.
    as derived as a person's, and *"never half-grown"* argues for one
    substrate. Probably yes; deliberately out of the first build.
 5. ⚠ **STILL OPEN**, and unchanged by the build — the dossier seeder and
-   `EnrollController` both call `seedChronicleClaims` and neither knows
+   `EmbodyController` both call `seedChronicleClaims` and neither knows
    about the other.
 
    **Where does char-gen land?** It already seeds chronicle claims from

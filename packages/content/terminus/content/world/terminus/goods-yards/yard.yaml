@@ -31,27 +31,27 @@ data:
     # ⚠ Each of these has its far half authored in the trade's own pack.
     # Neither pack reaches into the other's files.
     northwest:
-      destination: /trade/bottling/location/bottling-floor
+      destination: /world/terminus/goods-yards/bottling/location/floor
       media: [ground]
       edgeMinutes: 2
     north:
-      destination: /trade/cooking/location/pantry-floor
+      destination: /world/terminus/goods-yards/pantry/location/floor
       media: [ground]
       edgeMinutes: 2
     northeast:
-      destination: /trade/distilling/location/crowsfoot-floor
+      destination: /world/terminus/goods-yards/crowsfoot/location/floor
       media: [ground]
       edgeMinutes: 2
     southeast:
-      destination: /trade/distilling/location/hollis-floor
+      destination: /world/terminus/goods-yards/hollis/location/floor
       media: [ground]
       edgeMinutes: 2
     south:
-      destination: /trade/distilling/location/veshko-yard/location/distillery
+      destination: /world/terminus/goods-yards/veshko/location/distillery
       media: [ground]
       edgeMinutes: 2
     southwest:
-      destination: /trade/farming/location/farm
+      destination: /world/terminus/goods-yards/farm/location/yard
       media: [ground]
       edgeMinutes: 4
   # ⭐ The carrier's people wait here, because this is where the work is.

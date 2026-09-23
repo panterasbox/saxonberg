@@ -51,9 +51,9 @@ const DORMS = DormWarren.DORMS_EXTENT;
 // The born-with fixtures a DormRoom seeds, declared as `props:` data (the
 // same list the real dormroom.yaml carries) — no longer a class const.
 const FIXTURES = [
-  '/world/eternal/duncan-hall/thing/bed',
-  '/world/eternal/duncan-hall/thing/desk',
-  '/world/eternal/duncan-hall/thing/footlocker',
+  '/world/terminus/eternal/duncan-hall/thing/bed',
+  '/world/terminus/eternal/duncan-hall/thing/desk',
+  '/world/terminus/eternal/duncan-hall/thing/footlocker',
 ];
 
 let store: Map<string, Doc[]>;
@@ -74,33 +74,33 @@ function seedDomain(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
-  add(DormWarren.WARREN_PATH, '/world/eternal/duncan-hall/idea/DormWarren');
+  add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren');
   // D16 step 2: the unit's degenerate one-room programme row.
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
     floorplan: [{ room: DormRoom.SCOPE, entry: true }],
     upkeepTerm: 'institution-all',
   });
-  add(DormRoom.SCOPE, '/world/eternal/duncan-hall/location/DormRoom', {
+  add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/location/DormRoom', {
     shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
     props: FIXTURES,
   });
-  add(DormWarren.CORRIDOR_TEMPLATE, '/world/eternal/duncan-hall/location/Corridor', {
+  add(DormWarren.CORRIDOR_TEMPLATE, '/world/terminus/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'a dorm corridor',
   });
   // The lobby stand-in — a Corridor-class exitable container (the real lobby
   // is a CartesianLocation needing its zone; the stair wiring only needs an
   // Exitable container here).
-  add(DormWarren.LOBBY_PATH, '/world/eternal/duncan-hall/location/Corridor', {
+  add(DormWarren.LOBBY_PATH, '/world/terminus/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'the lobby',
   });
-  add(FIXTURES[0]!, '/world/eternal/duncan-hall/thing/Bed', {
+  add(FIXTURES[0]!, '/world/terminus/eternal/duncan-hall/thing/Bed', {
     shortDescription: 'a narrow bed',
   });
-  add(FIXTURES[1]!, '/world/eternal/duncan-hall/thing/Desk', {
+  add(FIXTURES[1]!, '/world/terminus/eternal/duncan-hall/thing/Desk', {
     shortDescription: 'a plain desk',
   });
-  add(FIXTURES[2]!, '/world/eternal/duncan-hall/thing/Footlocker', {
+  add(FIXTURES[2]!, '/world/terminus/eternal/duncan-hall/thing/Footlocker', {
     shortDescription: 'a footlocker',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });

@@ -30,12 +30,12 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 
-const CAMPUS = '/world/eternal/duncan-hall/dorms';
+const CAMPUS = '/world/terminus/eternal/duncan-hall/dorms';
 const HOUSE = '/world/terminus/mayfield-row/seznick-house';
 const DISTRICT = '/world/terminus/mayfield-row';
 const HILLS = '/world/terminus/hinkley-hills';
 
-const DORM_ROW = '/world/eternal/duncan-hall/idea/dorm-warren';
+const DORM_ROW = '/world/terminus/eternal/duncan-hall/idea/dorm-warren';
 const HOUSE_ROW = '/world/terminus/mayfield-row/seznick-house/building';
 const DISTRICT_ROW = '/world/terminus/mayfield-row/idea/district-warren';
 const BOOK_ROW = '/world/terminus/hinkley-hills/idea/plat-book';

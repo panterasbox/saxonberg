@@ -1,0 +1,19 @@
+# finance — Finance, banking and insurance (ISCED-F 0412), the Discipline
+# the economic bootstrap's credit acts exercise (D21): signing the Arrival
+# Note, presenting at a window (granted or refused — the refusal is the
+# lesson), reading a book, naming a beneficiary. Credited on the giver,
+# never conferred: a shop borrowing on its purchase history is doing
+# finance whether or not anyone has told it so.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: finance
+  channel: knowledge
+  label: Finance, banking and insurance
+  iscedf: "0412"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - business-admin-law
+  description: >-
+    Money as a claim on somebody: what a balance is, what a loan is
+    secured by, what a rate says about time, why a refusal at the window
+    is information. Exercised by every act that puts your name on paper.

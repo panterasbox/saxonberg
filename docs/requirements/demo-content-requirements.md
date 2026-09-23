@@ -288,7 +288,7 @@ begins at the wall: crossing the main gate trades Terminus's
 ordinary sky for the campus's sourceless, wrongly-bright one.
 
 **Namespace:** campus content lives at
-`seeds/world/eternal/campus/` — its own zone; cross-zone exits
+`seeds/world/terminus/eternal/campus/` — its own zone; cross-zone exits
 authored explicitly on both sides at every seam (crossing↔Eternal
 Way S, Limbo Lane↔Duncan Hall; the crossing↔arrival-gate
 precedent). Address locality: `campus/…`. Road materials are real
@@ -513,7 +513,7 @@ source on it).
 ### Unit 6 — the fountain ✓
 
 **Template:** `campus/fountain.yaml`, content class
-`/world/eternal/campus/Fountain` (path mirrors template),
+`/world/terminus/eternal/campus/Fountain` (path mirrors template),
 composing: immovable fixture + `SoundSource`
 (`emittedAmplitude: 55` dB — the reference-honest
 garden-fountain figure; `character: "falling water"` — `listen`
@@ -600,7 +600,7 @@ measurable contrast: `measure light` never changes,
 ### Unit 8 — the crossing's lamppost ✓
 
 **Template:** `university-avenue/lamppost.yaml`, content class
-`/world/eternal/university-avenue/Lamppost` — immovable fixture
+`/world/terminus/eternal/university-avenue/Lamppost` — immovable fixture
 composing `Energized` (voltage: **120**, the substation's
 convention) + `Switchable` + `LightSource`. The crossing's
 prose-only `lamp` detail retires; the object replaces it in
@@ -1048,7 +1048,7 @@ is shaped expecting it.
 deferred).** The Rolls never erase — entries close, they never
 vanish (the chronicle's append-only culture, in ink):
 
-- **Enrollment** — char-gen's `enroll` commit *is* matriculation;
+- **Enrollment** — char-gen's `embody` commit *is* matriculation;
   the open roll renders the enrolled honestly.
 - **Graduation** — a **petitioned threshold conferral**, measured
   never granted: the player petitions; assessment is

@@ -112,7 +112,7 @@ per-socket command serialization (the same argument
 Three patterns, chosen by how the mint site fires:
 
 - **event-singular** — `record` / `recordDeed` riding a naturally-once
-  trigger (e.g. enroll fires once per character by construction). **No
+  trigger (e.g. embody fires once per character by construction). **No
   `key`.**
 - **category-first** — `recordOnce(owner, key, …)`: the first under `key`
   wins. For "the first time you ever did X."
@@ -184,7 +184,7 @@ See [advancement.md](./advancement.md) and
 Each aspiration in `mud/config/char-gen.yaml` carries a `claimSeeds: [{
 text, order }]` array (the prologue), **distinct from `bioSeed`** — both
 read the same aspiration, neither touches the other. At
-`EnrollController.commit`, after the avatar is cloned and registered (so
+`EmbodyController.commit`, after the avatar is cloned and registered (so
 `getTemplatePath()` resolves), `avatar.seedChronicleClaims(
 aspiration?.claimSeeds ?? [])` mints the `claim` entries.
 
@@ -285,8 +285,8 @@ the live drive made obvious the moment a character had three.
 To prove the seam and guarantee every character has a timeline, three
 minters ride moments that already fire:
 
-- **enroll founding deed** (`EnrollController.commit`) — `recordDeed`,
-  **event-singular** (enroll fires once per character; no `key`).
+- **embody founding deed** (`EmbodyController.commit`) — `recordDeed`,
+  **event-singular** (embody fires once per character; no `key`).
 - **first-arrival deed** (`Avatar.enter`) — `recordOnce` keyed
   `'first-arrival'`, called **unconditionally** (not gated on the
   `firstArrival` greeting flag): the `recordOnce` key is the dedup

@@ -42,7 +42,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const YARD = '/world/eternal/campus-farm/location/yard';
+const YARD = '/world/terminus/eternal/campus-farm/location/yard';
 
 let p: Session;
 

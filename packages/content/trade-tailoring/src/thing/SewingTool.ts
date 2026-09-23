@@ -18,11 +18,11 @@
  * type is cheaper and truer than restating the capability on the row.
  *
  * ⚠ The general store's `sewing-kit` and `sewing-machine` stay
- * `MendingTool` and are NOT re-pointed here, because `trade-tailoring`
- * DEPENDS ON `terminus` — a terminus row naming a tailoring class is
- * the dependency backwards. That is the right answer anyway: a general
- * soft-goods kit mends anything, and the trade sells its own
- * instrument. Both still pace the step, because `bestInstrument` ranks
+ * `MendingTool` and are NOT re-pointed here: a general soft-goods kit
+ * mends anything, and the trade sells its own instrument. (The
+ * dependency now runs terminus → tailoring, since the shop's premises
+ * sit in the city — economic bootstrap D6 — so it would be allowed;
+ * it is still the wrong thing.) Both still pace the step, because `bestInstrument` ranks
  * on the `mending` capability and does not care which class carries it.
  *
  * ⚠ The verb affordance is a STATIC ON THE CLASS; a row's

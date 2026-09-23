@@ -56,7 +56,7 @@ declareFile({
   packs: ['trade-tailoring', 'trade-textiles', 'trade-dyeing'],
 });
 
-const SHOP = '/trade/tailoring/location/shop';
+const SHOP = '/world/terminus/mayfield-row/tailor/location/shop';
 
 /**
  * ⭐ A STABLE handle, not a fresh one per run — and it is what makes this

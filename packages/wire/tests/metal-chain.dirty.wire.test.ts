@@ -46,9 +46,9 @@ declareFile({
 // ⚠ The outcrop is a DETAIL on the pithead yard, not a room. That is the
 // point of the first checkpoint: the green band is something you NOTICE
 // where you already are, before you own an instrument.
-const PITHEAD = '/world/rejection/location/pithead-yard';
-const DRIFT = '/world/rejection/ferrow/timbered-drift';
-const FUEL_YARD = '/world/rejection/location/fuel-yard';
+const PITHEAD = '/world/terminus/rejection/location/pithead-yard';
+const DRIFT = '/world/terminus/rejection/ferrow/timbered-drift';
+const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
 
 suite('prospecting starts with NOTICING, not with shopping', () => {
   let p: Session;

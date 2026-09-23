@@ -17,6 +17,11 @@ invariants:
     A row may reference a ledger transaction by `txId`; it never carries
     the value itself.
   - >-
+    The credit events (economic bootstrap D1) ride the same chain:
+    `advanced`, `repaid`, `discharged`, `defaulted`, `repossessed`,
+    `recovered`, `escheated`, `reclaimed` — each linked to its ledger
+    transaction where money moved.
+  - >-
     REFUSE under the sandbox.
 sandbox: refuse
 reset: wipe

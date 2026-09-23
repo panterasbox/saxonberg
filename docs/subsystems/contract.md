@@ -373,6 +373,30 @@ decisions (the spine)*, items 3 · 5 · 6):
 (0 = never) · `contract.breachRegardPenalty` (15) — plus banking's
 `banking.defaultCustodianBank`.
 
+## The credit face (economic bootstrap, 2026-09)
+
+> Full treatment: [credit.md](./credit.md).
+
+The `contracts` collection now carries four **kinds** — `gig` (this doc's
+work-contract), `loan`, `note`, `unclaimed` — on one row shape:
+`ContractRecord.kind`, `issuer`/`holder` parties, `terms: CreditTermsData`
+(`rung: note|opening|1|2`, `ratePerGameYear`, `share`, `security:
+inventory|account|none`, `principalMinor`, `windowAdvanceMinor`,
+`dischargeOnFirstWage`, `dischargeAfterGameDays`), and stamp-forward
+accrual on `owedMinor/owedStampS` (`(1 + r)^Δyears`, a game-year 360
+game-days). Events: `advanced · repaid · discharged · defaulted ·
+repossessed · recovered · escheated · reclaimed`. The face on
+`ContractApi`: `issueLoan`, `openingAdvance(businessKey)`,
+`issueNote(memberKey)`, `repaymentSplitsFor`, `recordRepayment`,
+`reconcileLoans`, `reconcileNotes`, `onWageLanded`, `recoverNote`,
+`writeUnclaimed`, `reclaimUnclaimed`, `windowDefaultRate`,
+`treasuryPaper`, `instrumentsOf`. Every instrument has a **paper** —
+the `instrument` document kind under the party's own `papers/`
+(`/home/<key>/papers/arrival-note`, `<business>/papers/<id>`), written
+by the gated `DocumentApi.saveInstrument` transport and read by `cat` in
+words. ⚠ The custodian rule still holds: the contract logic is the one
+writer of `contracts`.
+
 ## Deferred seams (named, not built)
 
 The systemic job generator (the world posts its own needs); the

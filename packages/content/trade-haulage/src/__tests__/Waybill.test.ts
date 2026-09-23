@@ -45,7 +45,7 @@ async function asClerk<T>(fn: () => Promise<T>): Promise<T> {
 
 const TERMINUS = '/world/terminus/estuary/lower-towpath';
 const CROSSROADS = '/world/terminus/delight-road/crossroads';
-const YARD = '/world/rejection/location/pithead-yard';
+const YARD = '/world/terminus/rejection/location/pithead-yard';
 
 const bill = (over: Record<string, unknown> = {}) => ({
   what: 'a crate of gin',

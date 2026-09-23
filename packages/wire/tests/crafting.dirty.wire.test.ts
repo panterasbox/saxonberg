@@ -49,8 +49,8 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const SMITHY = '/world/hearthworks/location/smithy';
-const COOKHOUSE = '/world/hearthworks/location/cookhouse';
+const SMITHY = '/world/terminus/hearthworks/location/smithy';
+const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 const STORE = '/world/terminus/general-store/shop-floor';
 
 /** The verb reached its own gate rather than the parser. */
@@ -239,7 +239,7 @@ suite('the general store — shop goods afford nothing', () => {
   }, 60_000);
 
   it('the funds gate is honest, which also proves it resolves as stock', async () => {
-    // A fresh arrival carries no stipend (enroll grants it), so the buy
+    // A fresh arrival carries no stipend (embody grants it), so the buy
     // declines on coverage rather than on existence.
     expect(await sh.prose('buy sewing-machine')).toMatch(/can't cover/i);
   }, 60_000);

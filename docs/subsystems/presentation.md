@@ -168,7 +168,7 @@ guarantee rather than a nicety.** `getPrimaryKeyword()` always answers
 something, because targeting needs it to — and its derived pool folds in
 `tokenizeName(getName())` for any `Named` host.
 
-A player body is `Named` (enroll writes it), `Perceptible` (from
+A player body is `Named` (embody writes it), `Perceptible` (from
 `Creature`), and carries **no authored keyword**, because nobody types
 one for a player. So the derived answer for a player called Odile is
 **`odile`**, and a handle chain reading it would sign her anonymous post

@@ -24,6 +24,21 @@ export const CONTRACT_EVENT_KINDS = [
   "released-back",
   "settled",
   "reverted",
+  // The economic bootstrap's credit events (D1): money legs still live
+  // only in `bank_ledger`; each carries its linking `txId`.
+  "advanced",
+  "repaid",
+  "discharged",
+  "defaulted",
+  "repossessed",
+  "recovered",
+  "escheated",
+  "reclaimed",
+  // ⭐ The cure: a defaulted loan whose shortfall has since been paid in
+  // full. NOT `settled` — the row stays `breached` and the default stays
+  // on the record; this says only that nothing is owed on it any more,
+  // which is what lifts the bar on borrowing again.
+  "satisfied",
 ] as const;
 
 export type ContractEventKind = (typeof CONTRACT_EVENT_KINDS)[number];

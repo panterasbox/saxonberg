@@ -22,6 +22,18 @@ invariants:
   - >-
     A ledger leg may never cross currencies.
   - >-
+    ⭐ THE FLOOR (economic bootstrap D3): no real account goes below zero.
+    The chokepoint refuses a posting that would; a business short of a
+    wage borrows (a `loan` contract names the creditor) or the wage is
+    refused with a reason — never paid from nowhere.
+  - >-
+    `kind` is closed (`LEDGER_KINDS`): the twelve 1.0 kinds plus the
+    bootstrap's four — `advance`, `repayment`, `appropriation`, `escheat`,
+    all real→real. The reserve's two lanes are `mint`/`drain` legs with
+    category `window` or `perpetual`; `override` is the Governor's
+    recorded mint. Those three are the only mint sites the faucet lint
+    admits.
+  - >-
     STAMP under the sandbox: the economy genuinely runs in-circle, then
     reverts on exit.
 sandbox: stamp

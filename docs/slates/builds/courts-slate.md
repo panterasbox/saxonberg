@@ -39,7 +39,7 @@ See also:
 - [institutions-slate](./institutions-slate.md) — a player at Goodkin
   holds a *position under a charter*; the court is where abuse of that
   position is decided. Its intake floor's "clean" reads this docket.
-- [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
+- [credit.md](../../subsystems/credit.md)
   — the ledger this court reads; repossession, escheat and default were
   all designed **not** to need a judge (Part 1 below says what is left).
 - [enforcement-slate](./enforcement-slate.md) — *testimony as claims,

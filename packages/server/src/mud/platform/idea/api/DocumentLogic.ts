@@ -239,6 +239,69 @@ async function saveAsBusinessImpl(
 }
 
 /**
+ * The papers directory every instrument files under (the `instrument`
+ * kind's `contentDir`).
+ */
+const PAPERS_DIR = 'papers';
+
+/**
+ * The branch a contract party's papers live under: a member's is their
+ * own `/home/<key>` (the record store the runtime banks under their
+ * name); a Business's or an Organization's is its own durable path.
+ */
+function papersBranchOf(partyKey: string): string {
+  if (partyKey.startsWith('/platform/agent/Avatar/')) {
+    const key = partyKey.split('/').filter(Boolean).pop() ?? '';
+    return key ? `/home/${key}` : '';
+  }
+  return partyKey;
+}
+
+/**
+ * ⚠⚠ **The instrument transport — the fourth ownership bypass** (with
+ * `saveRelease`, `saveToRegister`, `saveAsBusiness`), economic bootstrap
+ * D10. Files the readable paper behind a claim on `contracts` — the
+ * Arrival Note, a loan, an unclaimed-property claim — under EACH PARTY'S
+ * OWN branch, owned by that party, written by the machine.
+ *
+ * Why a bypass: the Note is written at `embody confirm` for a member the
+ * machine is standing in for; a loan files under both the borrower's and
+ * the lender's branches in one act; a discharge appends a line under a
+ * player's home when a WAGE lands (the acting author is the payroll, not
+ * the player); an escheat writes under an absentee who is not here.
+ * `save`'s gate — the acting author owns the branch — is the wrong
+ * question for every one of them.
+ *
+ * Its rails, all structural: **no caller-supplied owner** (derived from
+ * the party's key by the one `/home/<key>` rule), **the path must lie
+ * under that party's `papers/`**, **the `kind` is pinned** to
+ * `instrument`, and it is **gated to one calling module** — the contract
+ * logic, which is the one writer of `contracts` and therefore the only
+ * thing that knows a claim exists to paper.
+ */
+async function saveInstrumentImpl(
+  partyKey: string,
+  path: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  const owner = papersBranchOf(partyKey);
+  if (owner.length === 0) {
+    throw new Error('DocumentApi.saveInstrument: the party has no branch to file under');
+  }
+  if (!path.startsWith(`${owner}/${PAPERS_DIR}/`)) {
+    throw new Error(
+      `DocumentApi.saveInstrument: ${path} is not under ${owner}/${PAPERS_DIR}/`,
+    );
+  }
+  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = owner;
+  doc.kind = 'instrument';
+  doc.data = data;
+  await doc.save();
+}
+
+/**
  * The gate strings of a command view — everything that names TypeScript:
  * the verb-level and per-subcommand `controller:` values, and every
  * validator / `requires` reference at any level. Rendered as a sorted
@@ -521,6 +584,16 @@ export class DocumentLogic extends ApiLogic {
     data: Record<string, unknown>,
   ): Promise<void> {
     return saveAsBusinessImpl(business, path, kind, data);
+  }
+
+  /** See {@link DocumentApi.saveInstrument}. Rails in `saveInstrumentImpl`. */
+  @CallSecurity(DocumentApiCallers)
+  public async saveInstrument(
+    partyKey: string,
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return saveInstrumentImpl(partyKey, path, data);
   }
 
   /** See {@link DocumentApi.save}. */

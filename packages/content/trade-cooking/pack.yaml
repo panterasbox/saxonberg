@@ -6,18 +6,14 @@ description: >-
   recipes (toasted-ration, root-mash, fine-roast, hearty-stew, simple-
   syrup). Its stock (cuts, roots, rations) is commons under
   /stuff/thing/items (A16.3), and the Hearthworks cookhouse
-  (/world/hearthworks/location/cookhouse) is the venue that hosts it.
+  (/world/terminus/hearthworks/location/cookhouse) is the venue that hosts it.
   Libations adds the PANTRY: sugar, salt and coffee as materials, the sack
   preset, three floor sacks at target in the pantry stock, the outfit that
   consigns them onto the cash-and-carry, and the syrup. Content packs wave
   4a; the second pass 4b.
 requires:
-  groups:
-    - name: cooking
-      purpose: the cooking trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/cooking, holder: { group: cooking } }
-boot:
-  - { template: /trade/cooking/location/pantry-floor, role: producer, reason: "the pantry outfit's storeroom — its Stock is the home container the sacks spawn into, and its hand runs the consigns brain" }
-  - { template: /trade/cooking/idea/pantry-outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+    - { extent: /trade/cooking, holder: { organization: /compact/trade } }

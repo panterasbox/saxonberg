@@ -48,7 +48,7 @@ class Crate extends ContainableMixin(Idea) {
 }
 
 const QUAY = '/world/terminus/estuary/lower-towpath';
-const YARD = '/world/rejection/location/pithead-yard';
+const YARD = '/world/terminus/rejection/location/pithead-yard';
 
 /** ⚠ Here rather than in the fixtures — see the note there. */
 async function asClerk<T>(fn: () => Promise<T>): Promise<T> {

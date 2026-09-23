@@ -19,6 +19,8 @@ import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlOneResult } from "../../../../api/mql";
 import { BankingApi } from "../../../../api/banking";
 import { MessageApi } from "../../../../api/message";
+import { PlayerApi } from "../../../../api/player";
+import { ContractApi } from "../../../../api/contract";
 import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
 import { EmploymentApi } from "../../../../api/employment";
@@ -29,6 +31,7 @@ const TOPIC = "act.deed";
 interface WalletModel extends CommandModel {
   corpo?: string;
   card?: MqlOneResult;
+  player?: string;
 }
 
 export default class WalletController extends BankingControllerBase<WalletModel> {
@@ -38,6 +41,8 @@ export default class WalletController extends BankingControllerBase<WalletModel>
         return this.use(model, context);
       case "freeze":
         return this.freeze(model, context);
+      case "beneficiary":
+        return this.beneficiary(model, context);
       case undefined:
         return this.show(context);
       default:
@@ -49,11 +54,59 @@ export default class WalletController extends BankingControllerBase<WalletModel>
     }
   }
 
+  /**
+   * `wallet beneficiary <player>` — who the estate passes to instead of
+   * the Compact if the member is gone past the long clock (economic
+   * bootstrap D17); `none` clears it. A name the member knows, resolved
+   * to a durable identity; a beneficiary who is themselves dormant when
+   * the day comes is skipped and the state holds it unclaimed.
+   */
+  private async beneficiary(model: WalletModel, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+    if (!PlayerApi.isAvatarStuff(giver)) {
+      context.note({ kind: "controller-rejected", reason: "not-a-member", detail: "beneficiary" });
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Only a member has an estate to leave.`).send();
+      return;
+    }
+    const want = (model.player ?? "").trim();
+    if (!want || want.toLowerCase() === "none") {
+      giver.setBeneficiary("");
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Your estate passes to the Compact, held unclaimed for your return.`).send();
+      return;
+    }
+    const who = PlayerApi.findAvatarByName(want);
+    const key = who?.getIdentityPath() ?? "";
+    if (!who || !key || key === giver.getIdentityPath()) {
+      context.note({ kind: "controller-rejected", reason: "no-such-member", detail: want });
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`No member by that name is here to name — a beneficiary must be someone you can point at.`).send();
+      return;
+    }
+    giver.setBeneficiary(key);
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`If you are gone past the long clock, your estate passes to ${Mml.actor(who)} — unless they are gone too, in which case the Compact holds it for you.`)
+      .send();
+    this.creditFinance(giver);
+  }
+
   private async show(context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
+    // ⭐ The paper with your name on it (economic bootstrap D10): the
+    // Arrival Note, a loan, an unclaimed claim — every open instrument the
+    // wallet's owner issues or holds, listed beside the balance whether or
+    // not they carry an implant. The paper itself is in their papers.
+    const instruments = await ContractApi.instrumentsOf(giver.getIdentityPath() ?? "");
+    const paper = instruments.map((l) => l.words);
     const credential = BankingApi.activeCredential();
     if (!credential) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`You have no payment implant.`).send();
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          paper.length
+            ? Mml.compose`You have no payment implant. ${paper.join(" ")}`
+            : Mml.compose`You have no payment implant.`,
+        )
+        .send();
       context.note({ kind: "controller-rejected", reason: "no-credential", detail: "wallet" });
       return;
     }
@@ -64,15 +117,14 @@ export default class WalletController extends BankingControllerBase<WalletModel>
       ownerKey && ownerKey !== giver.getIdentityPath()
         ? businessNamed(ownerKey)
         : null;
+    const head = !active
+      ? "Your wallet has no active account yet."
+      : house
+        ? `Your wallet is set to the house account of ${house}.`
+        : `Your wallet is set to your ${corpo ?? "bank"} account.`;
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(
-        !active
-          ? Mml.compose`Your wallet has no active account yet.`
-          : house
-            ? Mml.compose`Your wallet is set to the house account of ${house}.`
-            : Mml.compose`Your wallet is set to your ${corpo ?? "bank"} account.`
-      )
+      .toSelf(paper.length ? Mml.compose`${head} ${paper.join(" ")}` : Mml.compose`${head}`)
       .send();
   }
 

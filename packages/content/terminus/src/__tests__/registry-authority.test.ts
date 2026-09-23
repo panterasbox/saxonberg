@@ -86,9 +86,10 @@ describe('the Registry, as seeded', () => {
     // Nobody owns it — the entity case is genuinely absent.
     expect(biz.getProprietor()).toBeUndefined();
 
+    // Members are keyed by IDENTITY PATH — what `group add` writes.
     vi.spyOn(GroupApi, 'isMember').mockImplementation(
-      async (playerId: string, ref: string) =>
-        ref === TERMINUS_REF && playerId === 'odile',
+      async (memberKey: string, ref: string) =>
+        ref === TERMINUS_REF && memberKey === '/platform/agent/Avatar/odile',
     );
     const cityStaff = makeAvatar('odile');
     const stranger = makeAvatar('stranger');
