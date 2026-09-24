@@ -485,7 +485,7 @@ describe('Seznick House — the lease loop', () => {
     const staff = makeAvatar('agent-test');
     const stranger = makeAvatar('stranger-test');
     const agency = makeStuffAtPath(() => new OrganizationEntity(), AGENCY_PATH);
-    agency.positions = [{ key: 'agent', label: 'letting', wageRate: 0, confers: [] }];
+    agency.positions = [{ key: 'agent', label: 'letting', wageRate: 0 }];
     agency.rosterSlots = [{ positionKey: 'agent', assignee: staff.getIdentityPath()!, schedule: [] }];
     const t1 = makeAvatar('t-staff');
     const ok = await run(makeStuff(() => new LeaseController()), staff, t1, 'lease');

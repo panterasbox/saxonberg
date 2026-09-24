@@ -12,6 +12,7 @@
     "@saxonberg/content-terminus": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-milling": "workspace:*",
+    "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-water": "workspace:*",
     "@saxonberg/content-world-seed": "workspace:*"
   }

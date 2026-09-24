@@ -16,7 +16,6 @@ data:
       noun: hand
       label: running Hollis's bottling floor
       wageRate: 3
-      confers: []
       purchases: true
   rosterSlots:
     - positionKey: hand

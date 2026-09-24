@@ -1,6 +1,7 @@
-# Berta — the Hearthworks smith: a Crafter (MakerMixin gated by her
-# rostered position; on shift she fulfills `order` at the smithy). Human.
-class: /platform/agent/Crafter
+# Berta — the Hearthworks smith. On shift in the house's `fulfills` smith
+# seat, standing in the smithy, she is who an `order` there is served by.
+# Human.
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Berta

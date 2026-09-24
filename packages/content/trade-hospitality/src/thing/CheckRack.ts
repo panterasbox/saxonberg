@@ -15,22 +15,14 @@
  * just the base.
  */
 
-import { Vessel } from "../../lib/stuff/Vessel";
-import { DetailedMixin } from "../../lib/description/Detailed";
-import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
-import { FixtureMixin } from "../../lib/stuff/Fixture";
-import { HeldGoodsMixin } from "../../lib/retail/Consignment";
-import { MqlApi } from "../../api/mql";
-import { MixinApi } from "../../api/mixin";
-import type { CommandContext, CommandContributions } from "../../api/command";
-import type { FieldMeta } from "../../lib/mixin";
-import type { Stuff } from "../../lib/stuff/Stuff";
-import type { Container } from "../../lib/spatial/Container";
-import type { HeldGoodsShelf } from "../../lib/retail/Consignment";
-
-/** A pure custody rack (the coat check) — the held-goods base, no sale. */
-export type RackStuff = Stuff & Container & HeldGoodsShelf;
+import { Vessel } from "@saxonberg/server/mud/lib/stuff/Vessel";
+import { DetailedMixin } from "@saxonberg/server/mud/lib/description/Detailed";
+import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
+import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
+import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
+import { HeldGoodsMixin } from "@saxonberg/server/mud/lib/retail/Consignment";
+import type { CommandContributions } from "@saxonberg/server/mud/api/command";
+import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
 // `FixtureMixin` lets a rack declare `seatIn: <warren>` and follow an
 // elastic host (the lounge's rack rides the Warren host the way the TPA

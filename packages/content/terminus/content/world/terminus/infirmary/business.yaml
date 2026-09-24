@@ -17,7 +17,6 @@ data:
       noun: physician
       label: keeping the infirmary
       wageRate: 6
-      confers: []
   rosterSlots:
     - positionKey: physician
       assignee: /world/terminus/infirmary/agent/physician

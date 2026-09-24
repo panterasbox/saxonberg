@@ -1,5 +1,5 @@
 # Hollis's stock — the Stock the private-label rows spawn into.
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Hollis's stock

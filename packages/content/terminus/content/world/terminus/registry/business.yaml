@@ -28,12 +28,10 @@ data:
       noun: registrar
       label: keeping the city registry
       wageRate: 4
-      confers: []
     - key: magistrate
       noun: magistrate
       label: sitting as Magistrate of Terminus
       wageRate: 6
-      confers: []
   rosterSlots:
     - positionKey: registrar
       assignee: /world/terminus/registry/clerk

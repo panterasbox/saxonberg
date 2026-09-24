@@ -36,10 +36,20 @@ uniformly across both kinds.
 Later builds reused the same `_augmentGated` flag for conferral sources
 that never touch a slot at all: `CasterMixin` (magic faculty,
 `lib/magic/Caster.ts` — conferred by `Species.innateMixins` or an
-augment) and `MakerMixin` (the order-fulfiller role,
-`lib/craft/Maker.ts` — conferred by an on-shift employment `Position`,
-see the third conferral leg below) are both `_augmentGated` and route
-through `isActive` today, not hypothetical future rows.
+augment) and `AetherMixin` (implant comms — or intrinsic, for a `Shade`
+and a born-attuned species) are `_augmentGated` and route through
+`isActive` today, not hypothetical future rows.
+
+⚠ **A third gated mixin used to sit here and no longer does.**
+`MakerMixin` (the order-fulfiller role, `lib/craft/Maker.ts`) was
+`_augmentGated` and conferred by an on-shift employment `Position` — and
+the trades-and-labor build retired it. ⭐⭐ **Augment gating is for
+physical implants and innate gifts, not for a means test**: a job is not
+a prosthetic, and routing one through the implant walk also made the
+grant *unreachable by a player*, because the marker was composed on one
+NPC class. What a seat lets you do is data on the seat now
+(`Position.fulfills`, read off the shift). See
+[employment.md](./employment.md) § Capability grant.
 
 ## Substrate
 
@@ -98,15 +108,24 @@ species confers it intrinsically — see *Species intrinsic conferral*
 below). This mirrors what the sensorium already does for bodyplan senses
 and `defaultModeFor` does for the bodyplan locomotion tier.
 
-**A third leg joined later: employment conferral.** An on-shift
-`Position`'s `confers` mixins surface through `EmployedMixin.
-getConferredMixinNames`, read by `collectAugmentConferralNames`
-(`api/mixin.ts`) via the same structural soft-lookup as the slot and
-species legs — no import of the employment layer. The role marker
-`MakerMixin` (`lib/craft/Maker.ts`) is `_augmentGated`, so a bartender's
-`isMaker()` reads active only while on shift; off-shift the same
-Crafter is composed-but-inactive. See
-[employment.md](./employment.md).
+**A third leg: per-HOST intrinsic conferral.** A host that answers
+`getConferredMixinNames()` names mixins it carries by its own nature —
+neither by species nor by implant. `collectAugmentConferralNames`
+(`api/mixin.ts`) reads it by the same structural soft-lookup as the slot
+and species legs, no import.
+
+⭐ **Its one consumer is `Shade`** (`platform/agent/Shade.ts`), which is
+attuned with no implant and no slot occupancy. `Species.innateMixins`
+would be the obvious home and cannot be: it is species-level reference
+data shared by every member and never mutated at runtime, so a shade
+cannot use it without corrupting the species.
+
+⚠ **Employment used to be a fourth contributor here and is not.** An
+on-shift `Position`'s `confers` list surfaced through
+`EmployedMixin.getConferredMixinNames` — a JOB going through the implant
+mechanism. The trades-and-labor build deleted that implementation (the
+seam itself stays, for the shade); a seat's grants are data on the seat.
+See [employment.md](./employment.md) § Capability grant.
 
 For un-gated mixins the behavior is identical to today's
 `hasMixin`. For gated ones the predicate reflects the

@@ -24,7 +24,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 import { RecipeKnowledge } from '@saxonberg/server/mud/lib/script/RecipeKnowledge';
-import { MakerMixin } from '@saxonberg/server/mud/lib/craft/Maker';
+import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
@@ -48,10 +48,16 @@ import {
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 
-class TestSmithNpc extends MakerMixin(TestActor) {
+class TestSmithNpc extends EmployedMixin(TestActor) {
   static _mixinName = 'TestSmithNpcLadder';
-  getConferredMixinNames(): readonly string[] {
-    return ['MakerMixin'];
+  // ⭐ Stands in for an on-shift holder of a `fulfills` seat. The real
+  // read is three conditions (on shift · the seat marks `fulfills` · the
+  // house operates where you stand) and is proved as a truth table in
+  // `lib/employment/__tests__/conferral.test.ts`; here the fulfiller is
+  // scenery, so the seam is stubbed exactly as the old `MakerMixin`
+  // conferral was.
+  isFulfilling(): boolean {
+    return true;
   }
 }
 

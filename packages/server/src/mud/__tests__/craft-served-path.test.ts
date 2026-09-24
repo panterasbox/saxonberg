@@ -32,7 +32,7 @@ import { Idea } from '../lib/stuff/Idea';
 import { ContainerMixin } from '../lib/spatial/Container';
 import { ContainableMixin } from '../lib/spatial/Containable';
 import { NamedMixin } from '../lib/description/Named';
-import { MakerMixin } from '../lib/craft/Maker';
+import { EmployedMixin } from '../lib/employment/Employed';
 import { makeStuff, makeStuffAtPath } from '../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
@@ -79,13 +79,16 @@ const DAVE = '/world/lounge/dave-test';
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoom';
 }
-class TestBartender extends MakerMixin(NamedMixin(ContainableMixin(Idea))) {
+class TestBartender extends EmployedMixin(NamedMixin(ContainableMixin(Idea))) {
   static _mixinName = 'TestBartender';
-  // MakerMixin is augment-gated; a test bartender stands in for an on-shift
-  // employee by conferring the role directly (the employment leg
-  // `collectAugmentConferralNames` reads), so `MixinApi.isMaker` is true.
-  getConferredMixinNames(): readonly string[] {
-    return ['MakerMixin'];
+  // ⭐ Stands in for an on-shift holder of a `fulfills` seat. The real
+  // read is three conditions (on shift · the seat marks `fulfills` · the
+  // house operates where you stand) and is proved as a truth table in
+  // `lib/employment/__tests__/conferral.test.ts`; here the fulfiller is
+  // scenery, so the seam is stubbed exactly as the old `MakerMixin`
+  // conferral was.
+  isFulfilling(): boolean {
+    return true;
   }
 }
 

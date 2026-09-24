@@ -21,7 +21,7 @@
  * contract, tested there.
  */
 
-import '../../../../test-bootstrap';
+import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';

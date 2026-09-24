@@ -3,7 +3,7 @@
  *
  * The on-shift bartender scoops the tip jar into their own holdings — the
  * whole lot, off every ledger. Gated on being the present, active maker
- * (`MixinApi.isMaker`, which is on-shift-aware): only whoever is actually
+ * (`Employed.isFulfilling`, which is on-shift-aware): only whoever is actually
  * tending the bar can take it. Per-shift attribution falls out — whoever's
  * on shift empties it. See docs/subsystems/employment.md § Tips.
  */
@@ -33,7 +33,7 @@ export default class CollectController extends CommandController<CollectModel> {
     const giver = context.commandGiver;
 
     // Only the on-shift bartender (an active maker) may collect.
-    if (!MixinApi.isMaker(giver)) {
+    if (!MixinApi.isEmployed(giver) || !giver.isFulfilling()) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You're not tending the bar — the tips aren't yours to take.`)

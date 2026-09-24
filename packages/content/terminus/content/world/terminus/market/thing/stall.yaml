@@ -4,7 +4,7 @@
 # two stalls on one square are two counters, two houses, two accounts.
 # A brokerage counter that takes goods on supplier TERMS: no lines,
 # nothing cloned to par, every good on it somebody's until sold.
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: rented stall

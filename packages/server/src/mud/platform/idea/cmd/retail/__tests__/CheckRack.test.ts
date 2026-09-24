@@ -11,7 +11,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import CheckController from "../CheckController";
 import BuyController from "../BuyController";
 import ReclaimController from "../ReclaimController";
-import CheckRack from "../../../../thing/CheckRack";
+import { Vessel } from "../../../../../lib/stuff/Vessel";
+import { DetailedMixin } from "../../../../../lib/description/Detailed";
+import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
+import { PostRegistrationMixin } from "../../../../../lib/stuff/PostRegistration";
+import { FixtureMixin } from "../../../../../lib/stuff/Fixture";
+import { HeldGoodsMixin } from "../../../../../lib/retail/Consignment";
 import Ticket from "../../../../thing/Ticket";
 import Weapon from "../../../../thing/equipment/Weapon";
 import Shield from "../../../../thing/equipment/Shield";
@@ -42,6 +47,18 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+
+// The coat check is a composition of kernel mixins; the instanceable class
+// ships in `/trade/hospitality`. The composition line IS the fixture.
+class CheckRack extends PersistableMixin(
+  HeldGoodsMixin(PostRegistrationMixin(FixtureMixin(DetailedMixin(Vessel)))),
+) {
+  async postRegister(): Promise<void> {
+    await super.postRegister();
+    await this.seatSelf();
+  }
+}
+
 
 const RACK = "/test/lounge/thing/check-rack";
 

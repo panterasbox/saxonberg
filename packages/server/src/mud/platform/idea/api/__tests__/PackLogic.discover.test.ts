@@ -57,16 +57,23 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('forty-seven ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); ranching after farming (farmstead P9 — pasture is a field); the lanes and the haulier after transport (logistics); the textile chain after farming; the city after every trade whose premises it hosts (economic bootstrap D6)', () => {
+  it('forty-nine ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); ranching after farming (farmstead P9 — pasture is a field); the lanes and the haulier after transport (logistics); the textile chain after farming; the city after every trade whose premises it hosts (economic bootstrap D6)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
     // ⭐ 43 → 46: the grain chain adds `trade-milling`, `trade-baking`
     // and `hearts-delight`; 46 → 47: forestry adds `trade-forestry`;
-    // 47 → 48: fishing adds `trade-fishing`; 48 → 49: the ground build
-    // adds `ground`, the system pack the column and the surface character
-    // moved OUT of two trades into. A
+    // 47 → 48: fishing adds `trade-fishing`; 48 → 50: TWO builds landed a
+    // pack in the same window — `trade-shopkeeping` (trades-and-labor) and
+    // `ground` (the system pack the column and the surface character moved
+    // OUT of two trades into).
+    //
+    // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
+    // git merged the two comment blocks as a CONFLICT while merging the
+    // assertion line CLEANLY — so the number would have stayed 49 and gone
+    // red on master with nothing in the diff to explain it. A count is the
+    // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(49);
+    expect(ids).toHaveLength(50);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
@@ -80,6 +87,13 @@ describe('the shipped packs (real discovery, no install)', () => {
       expect(ids.indexOf(locality)).toBeGreaterThan(ids.indexOf('residence'));
     }
     expect(ids.indexOf('hinkley-hills')).toBeGreaterThan(ids.indexOf('terminus'));
+    // ⭐ The shopkeeping cut (trades-and-labor): every pack whose rows
+    // name the counter or the shelf orders after the trade that ships
+    // them — the general store, the market stalls, the pithead store,
+    // the bale store, the farm shelf.
+    for (const namer of ['terminus', 'rejection', 'trade-textiles', 'hearts-delight']) {
+      expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('trade-shopkeeping'));
+    }
     // The metal chain: three capability packs, one venue over all three.
     // ⭐ `rejection` ships no `src/` at all — the exemplar claim is that a
     // second mining town is a locality pack over the same trades, and the

@@ -28,11 +28,10 @@
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import ConsignmentShelf from "../../../thing/ConsignmentShelf";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
-import Stock from "../../../thing/Stock";
+import Stock from "../../../../lib/retail/Stock";
 import { Mml } from "../../../../api/mml";
 import { ChattelApi } from "../../../../api/chattel";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
@@ -46,7 +45,7 @@ import type { Organization } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { ShelfStuff } from "../../../thing/ConsignmentShelf";
+import type { ShelfStuff } from "../../../../lib/retail/Consignment";
 import { Freshness } from "../../../../lib/material/Freshness";
 
 const TOPIC = "act.deed";

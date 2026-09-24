@@ -110,7 +110,10 @@ describe('the campus farm', () => {
     ) as { data: { positions: Array<Record<string, unknown>> } };
     const post = unit.data.positions.find((p) => p.key === 'labourer');
     expect(post).toBeDefined();
-    expect(post!.confers).toEqual([]);
+    // ⭐ The gate is the ABSENCE of `requires:` — the closed vocabulary of
+    // hiring criteria (trades-and-labor D10/D18). A seat that authors
+    // none asks nothing of anybody, which is what rung zero means.
+    expect(post!.requires).toBeUndefined();
     expect(post!.wageRate).toBeGreaterThan(0);
   });
 });

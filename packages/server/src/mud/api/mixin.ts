@@ -169,7 +169,6 @@ import type { Crafted } from '../lib/craft/Crafted';
 import type { VesselKind } from '../lib/bulk/VesselKind';
 import type { Cutlery } from '../lib/bulk/Utensil';
 import type { Serviceable } from '../lib/craft/Serviceable';
-import type { Maker } from '../lib/craft/Maker';
 import type { Caster } from '../lib/magic/Caster';
 import type { Arcane } from '../lib/magic/Arcane';
 import type { Consumable } from '../lib/magic/Consumable';
@@ -1651,19 +1650,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Serviceable);
   }
 
-  /**
-   * Whether `obj` can **currently** fulfill an order. `MakerMixin` is
-   * augment-gated, so this routes through {@link isActive} (activeness),
-   * not {@link hasMixin} (composition): a bar `Crafter` composes
-   * `MakerMixin` always but is a maker only while its on-shift Position
-   * confers it. The two `isMaker` consumers — `CraftingLogic.resolveMaker`
-   * (order fulfilment) and `BankingControllerBase` (the house
-   * representative) — thereby resolve only the on-shift bartender.
-   */
-  public static isMaker(obj: Stuff): obj is Stuff & Maker {
-    return this.isActive(obj, Mixins.Maker);
-  }
-
   /** A manual-build vessel — the shaker/mixing-glass that buffers a build. */
   public static isBuildVessel(obj: Stuff): obj is Stuff & Builds {
     return this.hasMixin(obj, Mixins.ManualBuild);
@@ -1672,7 +1658,7 @@ export class MixinApi {
   /**
    * An actor whose **casting faculty is active** — composed AND conferred
    * (the actor's `Species.innateMixins` or an augment names `CasterMixin`;
-   * the `isMaker` activation precedent). Every `Character` composes the
+   * the `isCaster` activation precedent). Every `Character` composes the
    * mixin; only a casting species' members pass this predicate, so the
    * `cast` pipeline and the verb affordance key on *activation*, not
    * composition.
@@ -2248,18 +2234,26 @@ function collectAugmentConferralNames(stuff: Stuff): Set<string> {
     }
     if (innate) for (const name of innate) out.add(name);
   }
-  // Employment conferral: an on-shift Position confers its `confers`
-  // mixins on the holder (the `getConferredMixinNames` seam on
-  // `EmployedMixin`). The same structural soft-lookup — no import of the
-  // employment layer — so an on-shift bartender's gated `MakerMixin` goes
-  // active and an off-shift one's goes inert.
-  const employed = stuff as unknown as {
+  // ⭐ Per-HOST intrinsic conferral: a host that answers
+  // `getConferredMixinNames()` names mixins it carries by its own nature
+  // rather than by species or by implant. The one consumer is `Shade`,
+  // which is attuned with no implant and no slot — species `innateMixins`
+  // would be the obvious home but is shared reference data a shade cannot
+  // write without corrupting the species. Same structural soft-lookup, no
+  // import.
+  //
+  // ⚠ Employment used to contribute here too (an on-shift Position's
+  // `confers` list), which put a JOB through the implant mechanism. That
+  // fold is gone: augment gating is for physical implants and innate
+  // gifts, and what a seat lets you do is now data on the seat
+  // (`Position.fulfills`, `Position.purchases`) read off the shift.
+  const conferring = stuff as unknown as {
     getConferredMixinNames?: () => readonly string[];
   };
-  if (typeof employed.getConferredMixinNames === 'function') {
+  if (typeof conferring.getConferredMixinNames === 'function') {
     let names: readonly string[] | undefined;
     try {
-      names = employed.getConferredMixinNames();
+      names = conferring.getConferredMixinNames();
     } catch {
       names = undefined;
     }

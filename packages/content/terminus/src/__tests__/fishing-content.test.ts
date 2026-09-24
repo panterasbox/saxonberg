@@ -102,7 +102,7 @@ describe('the market', () => {
 
   it('the fish stall is a consignment counter — a Stock with no lines, self-service, propped on the square', () => {
     const stall = rowAt('/world/terminus/market/thing/fish-stall');
-    expect(stall.class).toBe('/platform/thing/Stock');
+    expect(stall.class).toBe('/trade/shopkeeping/thing/Stock');
     const d = stall.data as { stockLines: unknown[]; staffingPolicy: string; businessPath: string; serverPositionKeys: string[] };
     expect(d.stockLines).toEqual([]);
     expect(d.staffingPolicy).toBe('self-service');

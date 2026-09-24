@@ -36,11 +36,13 @@ those is its own concept with its own home:
 
 - **Recipe** — the transform spec, a `Document` (see below).
 - **Maker** — the agent who performs the craft and is stamped as
-  provenance (a present bartender for v1). `MakerMixin` is
-  **augment-gated** (`_augmentGated = true`): a bar `Crafter` composes it
-  always but is a maker only while its **on-shift** Position confers it, so
-  `MixinApi.isMaker` (now routed through `isActive`) and thus
-  `resolveMaker` select only the on-shift bartender. See
+  provenance. ⭐ **Nothing is composed to be one**: `resolveMaker` asks
+  `Employed.isFulfilling(discipline)` — on shift, in a seat whose house
+  lists the recipe's discipline under `fulfills`, standing somewhere that
+  house operates. An Avatar and an NPC answer identically, which is what
+  makes a PLAYER on shift the resolved maker. (Until the trades-and-labor
+  build this was an augment-gated `MakerMixin` composed only on `Crafter`,
+  an NPC class — so the grant was unreachable by a player.) See
   [employment.md](./employment.md).
 - **Tools + inputs** — ordinary `Tangible` matter, wherever it
   physically sits; reachability is the only feasibility gate.
@@ -142,10 +144,11 @@ the Hydrator; per-field invariants ride accessor pairs.
   number**. The crafted instance's `templatePath` still points at the
   shared output template; the mark is the per-instance overlay. The future
   corpos(marks) build extends this.
-- **`MakerMixin`** (`Maker.ts`) — a minimal role marker (`isMaker()`),
-  used **only** to identify the present `order` fulfiller (the bartender).
-  **Not** used to gate `serve`/`mix` (those are general agent verbs;
-  maker = the giver).
+- ⚠ **`MakerMixin` (`Maker.ts`) is GONE** — retired by the
+  trades-and-labor build. *Who fulfils an order here* is the SEAT's
+  (`Position.fulfills`, read off the shift), never a mixin. It was never
+  used to gate `serve`/`mix` (those are general agent verbs; maker = the
+  giver), and that is unchanged.
 - **`ManualBuildMixin`** (`ManualBuild.ts`, the `Builds` interface,
   `MixinApi.isBuildVessel`) — the **vessel-as-buffer** for a step-by-step
   build (the shaker / mixing glass). A runtime-only buffer of graded
@@ -263,8 +266,29 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
 2. **Resolve maker by `makerMode`** (un-spoofable; wire carries only the
    mode): `'self'` → `ExecutionContextApi.getActingAuthor()` (the giver,
    for `serve`/`mix`); `'fulfilling-bartender'` → the giver is the
-   *patron*, so find the present `MixinApi.isMaker(...)` agent in the
-   patron's location. Never off the wire.
+   *patron*, so find a present agent whose seat serves **the recipe's
+   discipline** (`isFulfilling(discipline)`) in the patron's location.
+   Never off the wire.
+
+   ⚠⚠ **The discipline leg is load-bearing and the tie-break is not.** A
+   venue can run two trades off one business (the Hearthworks: a smith and
+   a cook over both its rooms), and a recipe's discipline is **credited,
+   never gated** — so a wrongly-picked maker crafts successfully and is
+   credited with a trade they do not practise. Ties beyond the discipline
+   fall to the lowest identity path, which is predictable rather than
+   right: two equally-qualified cooks wants a queue, which is the crew
+   substrate's ([crew-slate](../slates/builds/crew-slate.md)).
+
+   ⭐ **An open question this inherited.** Retiring the maker marker made
+   a PLAYER on shift in a `fulfills` seat a resolvable maker — the seam
+   employment.md had deferred as *player tending*. What `order` should
+   then ask of a player maker is undecided: today the engine crafts as
+   them, exactly as it does for an NPC, which is the least surprising
+   default and arguably the wrong one. The alternatives are *you craft it
+   yourself with the verbs* (real work, real friction, and a customer
+   waiting on a human's attention) or *a hybrid — the engine crafts, the
+   grade reads your competence*. Nobody has chosen; the default was
+   inherited rather than decided.
 3. **Gather reachable matter** (`gatherMatter`) — the walk's real
    shape: the room's direct contents (surface-resting items already
    have `container = the room`), **the maker's own inventory** (held
@@ -966,7 +990,8 @@ homed by what they *are*:
 
 - **Building blocks** → `lib/`: `Surface` (`lib/spatial/`, a
   `SurfacedMixin` fixture), `ToolItem` (`lib/craft/`), `Crafter`
-  (`lib/character/`, `MakerMixin(NPC)`), `NPC` (`lib/character/`, the
+  (`lib/character/`, `MakerMixin(NPC)` — ⚠ both retired by
+  trades-and-labor), `NPC` (`lib/character/`, the
   minimal concrete `Character` — shares its path with the npc-behavior
   lane's richer `NPC`, which the add/add merge resolves to).
 - **Commons** → `platform/thing/` (content packs wave 4b — composition-only
@@ -1132,11 +1157,13 @@ unpriced — the teaching venue). The general store sells the personal
 kit: whetstone, iron ingots, sewing kit.
 
 **The Business wiring is load-bearing, not decoration** (learned in
-this build): `order` resolves its maker through the augment-gated
-`MakerMixin`, so a venue with no rostered on-shift position has **no
-active maker** — `hearthworks/content/world/terminus/hearthworks/idea/business.yaml` rosters the
-smith + cook 24/7 with `confers: [MakerMixin]` (the Dave's-Bar pattern
-verbatim; see [employment.md](./employment.md)). New graded-stock
+this build): `order` resolves its maker off the SHIFT, so a venue with no
+rostered on-shift position has **nobody to serve it** —
+`hearthworks/content/world/terminus/hearthworks/idea/business.yaml` rosters
+the smith + cook 24/7, and since trades-and-labor each names the
+discipline it serves (`fulfills: [smithing]` / `[cooking]`) rather than a
+bare flag, because this house is precisely the one that runs two trades
+over both its rooms. See [employment.md](./employment.md). New graded-stock
 form: `/platform/thing/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the
 discrete sibling of the graded bottle; a *fine* prime cut is what the
 fine-roast's `minGrade: fine` slot demands (the grade spread on solid

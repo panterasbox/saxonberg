@@ -25,7 +25,7 @@ data:
   competence:
     - { discipline: textiles, asserting: competent }
   behaviors:
-    - brain: /lib/behavior/consigns
+    - brain: /trade/shopkeeping/behavior/consigns
       trigger: cadence:120s
       config:
         stock: /world/terminus/wharfside/mill/thing/stock

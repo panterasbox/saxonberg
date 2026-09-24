@@ -38,3 +38,19 @@ data:
   behaviors:
     - brain: /trade/tailoring/behavior/tailors
       trigger: cadence:180s
+    # ⭐ She ORDERS the shortfall and RECEIVES what a hauler leaves on the
+    # bench (logistics D11) — she does not go and get it. Each short par
+    # line becomes a carriage bounty on the TERMINAL HALL's board, which
+    # is the board a new arrival reads, and makes this shop the realm's
+    # second poster.
+    - brain: /lib/behavior/restocks
+      trigger: cadence:90s
+      config:
+        # The cutting table is where a bolt lands.
+        shelf: /trade/tailoring/thing/cutting-table
+        board: /world/terminus/terminal/thing/job-board
+        bench: /trade/haulage/thing/receiving-bench
+        # ⚠ Goods PLUS carriage: the mill's weaver consigns a bolt onto
+        # the general store's counter at 40, so a hauler fronts 40 and is
+        # reimbursed on delivery.
+        reward: 48

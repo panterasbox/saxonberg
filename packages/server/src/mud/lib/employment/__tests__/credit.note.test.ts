@@ -28,7 +28,7 @@ import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import BusinessEntity from "../../../platform/idea/Business";
 import BankCounter from "../../../platform/thing/BankCounter";
-import Stock from "../../../platform/thing/Stock";
+import StockBase from "../../retail/Stock";
 import Coin from "../../../platform/thing/Coin";
 import PaymentCard from "../../../platform/thing/PaymentCard";
 import type { Stuff } from "../../stuff/Stuff";
@@ -42,6 +42,10 @@ import {
   teardownBankingHarness,
   col,
 } from "../../banking/__tests__/banking-test-harness";
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 const NEWCOMER = "/platform/agent/Avatar/newbie";
 const SHOP = "/test/note/shop/idea/outfit";
@@ -103,7 +107,7 @@ function standUpShop(): BusinessEntity {
     const b = new BusinessEntity();
     b.banksAt = "goodkin";
     b.operatingLocations = [SHOP_COUNTER];
-    b.positions = [{ key: "keeper", label: "keeping", wageRate: 10, confers: [] }];
+    b.positions = [{ key: "keeper", label: "keeping", wageRate: 10 }];
     return b;
   }, SHOP);
   makeStuffAtPath(() => {

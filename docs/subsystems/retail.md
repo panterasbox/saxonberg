@@ -83,9 +83,42 @@ map (`prices: Record<offerKey, minorUnits>` + `priceFor` / `setPrice` /
 an offer key *means* stays the consumer's concern (a recipe id for the
 bar's `Menu`, an item template path for the store's `Stock`).
 
+## ⭐⭐ The kernel/pack line
+
+> **The kernel provides businesses, corporations, money, an economy. A
+> content pack provides a TRADE — and selling over a counter is a trade.**
+
+So the class a row names ships in `trade-shopkeeping`
+(`/trade/shopkeeping/thing/Stock`, `…/ConsignmentShelf`), and the
+cloakroom in `trade-hospitality` (`/trade/hospitality/thing/CheckRack`).
+
+⚠ **The counter's MECHANISM stays kernel substrate** —
+`lib/retail/Stock.ts`, never instanced — because the kernel reads it: the
+price index, the credit ladder's rung 0 (`termsPriceFor`), the wage
+engine's par read and four controllers all narrow on the base, and a
+kernel module may never import a pack. The pack ships the instanceable
+twin, which adds only the affordance statics. That is this repo's own
+*split it* rule (`CLAUDE.md § Instanceable lives in platform/…`) applied
+across the pack boundary.
+
+⭐ **`lint:counters` holds the line at four**, each named in the script
+with its reason: `AttendancePoint` (the generic queue — attendance is
+substrate; a bank counter, a ticket window and a clinic desk all attend),
+`Menu` and `Tariff` (the consumer's `order` surface over a kernel-owned
+closed vocabulary), and `BankCounter`, the one to-do — trade-banking is
+deferred with a stated reason (credit-slate Parts 6/7). A fifth fails the
+build with *a counter is a vocation's instrument; it ships in
+`/trade/<x>`*.
+
+⭐ And a store in a **new locality is rows only**: the pack ships a `shop`
+archetype (counter · shelf · light · keeper) whose defaults
+`Archetype.materialize()` clones, proved by
+`trade-shopkeeping/src/__tests__/shop-archetype.test.ts`.
+
 ## The counter (`Stock`)
 
-`lib/retail/Stock.ts` — one fixture that is the whole counter: a `Vessel`
+`lib/retail/Stock.ts` (the mechanism; the instanceable twin is
+`/trade/shopkeeping/thing/Stock`) — one fixture that is the whole counter: a `Vessel`
 (container, holds the shelf goods) that composes `PricedOfferMixin`
 (prices), `AttendantMixin` (the storefront lease — instant/scrum for the
 newcomer path, a closed counter refuses), and `ResettableMixin` (topped to
@@ -193,7 +226,8 @@ with an `askMinor`. The `ConsignmentShelf` public surface is unchanged;
 the sale controllers don't know the base exists.
 
 **The check rack (`check` — the bar-fight build)** composes **only the
-base**. `CheckRack` (`platform/thing/CheckRack.ts`) = `Persistable +
+base**. `CheckRack` (`trade-hospitality/src/thing/CheckRack.ts` — a
+cloakroom is the publican's) = `Persistable +
 HeldGoodsMixin + FixtureMixin`, affording `check` + `reclaim`, never
 `consign`/`buy` — a checked weapon is a plain held good (no ask, no
 listing), so there was never a "not-for-sale" flag to add: a coat check
@@ -207,7 +241,8 @@ shelf and a check rack. The lounge's rack rides `FixtureMixin`'s `seatIn`
 self-seat into the Warren host (the TPA-terminal precedent), so it stands
 on the combat-free lounge side of the door to Dave's Bar.
 
-The `ConsignmentShelf` (`lib/retail/ConsignmentShelf.ts`) composes
+The `ConsignmentShelf` (`trade-shopkeeping/src/thing/ConsignmentShelf.ts`;
+its mixin and surfaces stay in `lib/retail/Consignment.ts`) composes
 `Persistable`, which is **load-bearing, not incidental**: it captures the
 consigned goods + their `_chattelId`s into a durable record, so a consigned
 player-owned good survives a relog while in the shop's custody (a transient

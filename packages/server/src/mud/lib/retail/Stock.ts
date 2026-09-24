@@ -1,10 +1,10 @@
 /**
- * Stock — the general-store counter: a container fixture that holds the
- * shelf goods, prices them (via `PricedOfferMixin`, Law 1: worth on the
- * offer), and attends its customers (via `AttendantMixin`, the storefront
- * lease). One fixture, the `BankCounter` precedent (a `Vessel` that composes
- * its capability). The `buy` verb resolves this fixture as both the shelf
- * and the attend point.
+ * Stock — the counter MECHANISM: a container fixture that holds the shelf
+ * goods, prices them (via `PricedOfferMixin`, Law 1: worth on the offer),
+ * and attends its customers (via `AttendantMixin`, the storefront lease).
+ * One fixture, the `BankCounter` precedent (a `Vessel` that composes its
+ * capability). The `buy` verb resolves this fixture as both the shelf and
+ * the attend point.
  *
  * Stock is authored declaratively: `stockLines` names each line
  * (`itemTemplatePath` + `par` + optional `brandKey`), the shelf inventory is
@@ -13,27 +13,35 @@
  * the reset sweep (see `ResettableMixin`) tops each line back to `par`.
  * A counter with NO `stockLines` is a pure brokerage — everything on it
  * was consigned (the cash-and-carry distributor).
+ *
+ * ⭐ **This is substrate: it is never instanced.** The counter is a
+ * *vocation's instrument*, so the class a row names ships in that
+ * vocation's pack — `/trade/shopkeeping/thing/Stock`, the concrete twin,
+ * which adds only the affordance statics. The mechanism stays here
+ * because the kernel reads it: the price index, the credit ladder's rung
+ * 0 (`termsPriceFor`), the wage engine's par read and four controllers
+ * all narrow on this base, and a kernel module may never import a pack.
+ * See `docs/subsystems/retail.md § The kernel/pack line` and
+ * `lint:counters`.
  */
 
-import { Vessel } from "../../lib/stuff/Vessel";
-import { DetailedMixin } from "../../lib/description/Detailed";
-import { PricedOfferMixin } from "../../lib/commerce/PricedOffer";
-import { AttendantMixin } from "../../lib/attendant/Attendant";
-import { ResettableMixin } from "../../lib/residency/Resettable";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
-import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { ConsignmentShelfMixin } from "../../lib/retail/Consignment";
-import { MqlApi } from "../../api/mql";
+import { Vessel } from "../stuff/Vessel";
+import { DetailedMixin } from "../description/Detailed";
+import { PricedOfferMixin } from "../commerce/PricedOffer";
+import { AttendantMixin } from "../attendant/Attendant";
+import { ResettableMixin } from "../residency/Resettable";
+import { PostRegistrationMixin } from "../stuff/PostRegistration";
+import { PersistableMixin } from "../persistence/Persistable";
+import { ConsignmentShelfMixin } from "./Consignment";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
-import type { CommandContext, CommandContributions } from "../../api/command";
-import type { Stuff } from "../../lib/stuff/Stuff";
-import type { Container } from "../../lib/spatial/Container";
-import type { Containable } from "../../lib/spatial/Containable";
-import type { FieldMeta } from "../../lib/mixin";
+import type { Stuff } from "../stuff/Stuff";
+import type { Container } from "../spatial/Container";
+import type { Containable } from "../spatial/Containable";
+import type { FieldMeta } from "../mixin";
 import { AppApi } from "../../api/app";
-import { AppSettingKeys } from "../../lib/config/AppSettings";
+import { AppSettingKeys } from "../config/AppSettings";
 import { EmploymentApi } from "../../api/employment";
 import { BankingApi, Money } from "../../api/banking";
 
@@ -200,24 +208,6 @@ export default class Stock extends StockBase {
   /** The authored stock lines (what the store carries). */
   public stockLines: StockLine[] = [];
 
-
-  // A Stock counter is a consignment shelf too (libations 3a: one counter
-  // is both), so it affords the shelf's verbs — a floor hand at the
-  // cash-and-carry `consign`s onto it; the mixin's own static table is
-  // not inherited through composition.
-  static commandContributions: CommandContributions = {
-    self: [],
-    peers: [
-      "platform/cmd/retail/buy.yaml",
-      "platform/cmd/retail/consign.yaml",
-      "platform/cmd/retail/reclaim.yaml",
-    ],
-    environment: [
-      "platform/cmd/retail/buy.yaml",
-      "platform/cmd/retail/consign.yaml",
-      "platform/cmd/retail/reclaim.yaml",
-    ],
-  };
 
   /** The buyable goods currently on the shelf. */
   offeredItems(): (Stuff & Containable)[] {

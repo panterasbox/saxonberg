@@ -43,12 +43,10 @@ data:
       noun: teller
       label: working the Goodkin counter
       wageRate: 5
-      confers: []
     - key: officer
       noun: officer
       label: hosting the Goodkin Circle
       wageRate: 6
-      confers: []
   rosterSlots:
     - positionKey: teller
       assignee: /world/terminus/counting-houses/agent/teller

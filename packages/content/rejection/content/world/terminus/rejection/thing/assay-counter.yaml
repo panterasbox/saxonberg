@@ -10,7 +10,7 @@
 # ⚠ `listingCapOverride` is set higher than the global dial because ore
 # arrives in LOTS: a shift's cutting is a dozen lumps, and a cap sized for
 # somebody's spare lantern would have a miner throwing ore away.
-class: /platform/thing/ConsignmentShelf
+class: /trade/shopkeeping/thing/ConsignmentShelf
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: assay counter

@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**238 slates.** 54 greenfield · 84 continuations · 55 waves · 45 tails.
+**240 slates.** 55 greenfield · 84 continuations · 55 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (54)
+## ⭐ Greenfield — nothing shipped yet (55)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -58,6 +58,7 @@ respect.
 | [clinical-medicine](./builds/clinical-medicine-slate.md) | all of it — three coupled legs (blood · operations · the two professions) plus a filing pass. |
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
+| [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
@@ -125,7 +126,7 @@ are the named remainders.
 | [cooperative](./builds/cooperative-slate.md) | the capital faucet (credit per patron per bucket) + the stake ledger enforcing the founding charter + the dono/sub webhook + mint-at-launch · the honor→chronicle / voice→standing split of the two markers · the ballot over the shipped conviction substrate (passage `tally / totalStanding` · quorum … |
 | [corpos](./builds/corpos-slate.md) | the multipolar approval vector · competition + rival-tanking · sponsorship · approval→access gates … |
 | [crafting](./builds/crafting-slate.md) | skill-as-control (the declared next crafting wave — the seam's three levers; tool `control` shipped only as a grade FLOOR) · defects & failure as diegetic events · recipe-spread beyond watching (taught / discovered / tradeable recipe-items; authoring as the fourth vector) · assembly recipes + disassembly … |
-| [credit](./tails/credit-slate.md) | ⭐⭐ risk — a rating, a bureau, risk-based pricing (Part 11) · ⭐⭐ the secondary market (buying paper) · personal credit + guarantees · ⚠ nothing hires autonomously, which binds new-player absorption harder than credit does … |
+| [credit](./tails/credit-slate.md) | ⭐⭐ risk — a rating, a bureau, risk-based pricing (Part 11) · ⚠ *the LABOR gap Part 11 named is closed — trades-and-labor shipped the openings, the criterion, the sign, `apply` and `clock on/off`, so an NPC house employing a player is a thing that happens now* · ⭐⭐ the secondary market (buying paper) · personal credit + guarantees … |
 | [currency](./builds/currency-slate.md) | a second issuer + who may authorize a mint, and whether one issuer mints every currency or each gets its own · opt-in acceptance lists / corpo scrip · the peg as a redeemable standing offer · the money-changer's mechanics (rate source, settlement, the `convert` seam) … |
 | [daves-bar](./builds/daves-bar-slate.md) | the succession arc (Augie recognizes the heir; the house tablet is the clipboard) · tabs (`TabMixin` was RETIRED — zero credit until designed for real) + customer records (regular; 86'd exists only for the armed-patron rule) · the NPC task repertoire + the shift-change ritual (till · receipts … |
 | [delivery](./builds/delivery-slate.md) | providers + coverage + metering as ONE substrate (⚠ reconcile with the two shipped shapes) · anchors + catchment-vs-delivery · per-service off-grid + service grades · the delivery overlay + trunking (Q5) … |
@@ -157,7 +158,7 @@ are the named remainders.
 | [medic-judgment](./builds/medic-judgment-slate.md) | stop auto-selecting (player picks target + modality) · cues without names on `assess`/`analyze` · triage under the deterioration clocks · decision-graded `ActSignature` sub-checks … |
 | [metal-chain](./builds/metal-chain-slate.md) | Stage B, below the water table — shaft/hoist/pump · the drainage commons, the district as an Organization + the hoist toll · sulfides, roasting and flux · beneficiation (the dressing floor + tailings) … |
 | [mining](./builds/mining-slate.md) | everything below the water table — shaft/hoist/pump (`LiftMixin`, the called cage) · the drainage commons + hoist toll · sulfides and roasting · collapse entrapment + the rescue clock + the timberman + sounding/convergence … |
-| [money-integrity](./builds/money-integrity-slate.md) | pass 1 the census over surfaces A–E (create · mutate · persist/restore · sandbox cash crossing … |
+| [money-integrity](./builds/money-integrity-slate.md) | ⭐ the **write-off doctrine** (2026-09-24 — ground coin is ephemeral BY DESIGN; the boot `fullReconcile` + the typed shrinkage drain, write-offs automatic / write-UPS never, fail-closed, the two-tier attributed-vs-residual posting, the single `Coin.onDestruct` chokepoint, shrinkage in the reset keep set) · pass 1 the census over surfaces A–E (create · mutate · persist/restore … |
 | [mortal-vessel](./builds/mortal-vessel-slate.md) | Thesis 4, moderation as diegetic capability-state · Thesis 5, the prison ↔ Hades unification · the law-enforcement half of Thesis 3 · Thesis 8's NPC half (narrative-level cycling) … |
 | [multilocation](./builds/multilocation-slate.md) | the procedural-spatial Warren family (the dungeon, the desert) — including the generic multi-role/cardinality catalog a heterogeneous graph needs (today's base ships one elastic role + a host, not a data-driven catalog), spatial `attachmentFor`, generation-driven routing, per-run host teardown · the summoned-graph host (v1 only handles the persistent-room case) · the lounge's preference-vector matchmaking (`admitArrival` ships least-full only; no `seedMember` flavor hook exists yet) — owned by `lounge-slate.md` · an active drain for a room pending merge (today's `reconcile` is a passive occupancy-watch + timed reap; a new arrival can still land in a room whose reap timer is already running) |
 | [narration](./builds/narration-slate.md) | the authored narration fragment on `ActSignature` · the platform-owned band-blind frame at `self.*` · the acts-never-axes readable record · ⚠ the keep-or-withdraw call on the shipped `traits` verb and `score` self-digest … |
@@ -251,7 +252,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (45)
+## Tails — small and opportunistic (46)
 
 | slate | left |
 |---|---|
@@ -262,6 +263,7 @@ are the named remainders.
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · YouTube as a linkable/login provider (a `@`-seed still rejects `character-youtube`) · LLM name-refraction |
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |
 | [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` · `pushDirect`'s second `describeCore` entry … |
+| [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. |
 | [collision](./tails/collision-slate.md) | room capacity as a `capacities` field + validator, re-checked at activity completion · the `guards` brain's decision half (block targets · reason · unblock predicate over NPC memory … |
 | [combat-tactics](./tails/combat-tactics-slate.md) | the `physical` conduit channel for cross-room shots (⚠ contradicted by ranged.md's cross-room ruling — see the compaction ledger) · the magic-interplay questions at `MagicLogic.deliverAt` (bolt vs cover · interpose · attenuation … |
 | [connection-origin](./tails/connection-origin-slate.md) | the developer-gated IP read · the `whois`/`locate` lookup verb · city / region resolution · a persisted last-seen country … |

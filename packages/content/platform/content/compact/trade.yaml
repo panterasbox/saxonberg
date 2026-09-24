@@ -27,7 +27,6 @@ data:
       noun: clerk
       label: keeping the Ministry of Trade's register
       wageRate: 0
-      confers: []
   rosterSlots: []
   label: "the Ministry of Trade"
   realm: ooc

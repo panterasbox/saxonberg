@@ -5226,3 +5226,80 @@ test, because every test asserted the *bar*, which worked. See
 **Related:** *a refusal is only honest if something lifts it* (pets
 build); [chronicle.md](./subsystems/chronicle.md) — the deed is
 append-only, which is exactly why the gate must not be.
+
+## A capability gated on a mixin only NPCs compose — a grant no player can hold
+
+⭐⭐ **If the thing that switches a capability on is composed on a class
+players never are, the capability is unreachable and the gate looks
+fine.**
+
+Employment shipped a `Position.confers: string[]` — mixin names an
+on-shift holder's seat activated through the augment substrate. The
+vocabulary worked, the tests passed, and the whole mechanism was
+**inert for players**: the only mixin any seat named was `MakerMixin`,
+composed on exactly one class — `Crafter`, an NPC class. A player who
+took the bartender's seat received nothing at all, which is why the
+labor market had nothing to give anybody.
+
+```ts
+// WRONG — the grant is a mixin name, and the mixin is on an NPC class
+positions: [{ key: 'bartender', confers: ['MakerMixin'] }]
+class Crafter extends CastMixin(MakerMixin(NPC)) {}   // ← players are not this
+```
+
+```ts
+// RIGHT — the grant is DATA on the seat, read off the shift
+positions: [{ key: 'bartender', fulfills: ['bartending'] }]
+// nothing composed on anybody; an Avatar and an NPC answer identically
+employed.isFulfilling('bartending')
+```
+
+⭐ **The test:** name the classes that compose the gating mixin. If
+`Avatar` is not among them, no player can ever receive the grant — and
+runtime mixin composition is not a thing, so "we'll compose it later" is
+not a plan. Data on the granting record has no such problem.
+
+⚠ **The corollary about augment gating.** `_augmentGated` is for physical
+implants and innate gifts. A JOB folded into the implant walk is a
+category error on top of the reachability bug, and it was: an on-shift
+Position's grants surfaced through `collectAugmentConferralNames`. See
+[augmentation.md](./subsystems/augmentation.md) and
+[employment.md](./subsystems/employment.md) § Capability grant.
+
+## A line composed into a CARDED body — true on the wire, invisible in the client
+
+⭐⭐ **`look`'s room body is handed to the card and then suppressed from
+the transcript. The card re-derives its content from the subject's
+FIELDS, so anything a controller *composed* into that body reaches the
+wire and reaches no player.**
+
+```ts
+// WRONG — the line is real on the wire and gone in a browser
+body = Mml.compose`${body}\n${derivedLine}`;
+const opened = CardApi.open(context, 'subject', { prose: body, … });
+if (opened) scene.meta({ carded: opened });   // ← client shows the card instead
+scene.toSelf(body).send();
+```
+
+```ts
+// RIGHT — a line that is not a FIELD of the subject rides its own scene
+scene.toSelf(body).send();                    // the carded room body
+MessageApi.scene(actor).topic('sense.survey')
+  .toSelf(Mml.compose`A notice here: ${line}`).send();   // uncarded, kept
+```
+
+⚠⚠ **Neither test tier can see this.** A controller test captures the
+`toSelf` body; a wire test asserts the envelope. Both read the wire. The
+trades-and-labor build's help-wanted sign passed nine unit tests and a
+14/14 wire drive and rendered nothing in a browser; a DOM search for
+`HELP WANTED` came back empty while `apply` in the same room refused with
+both numbers, proving the read was fine and only the render was missing.
+
+⭐ It also reads better split: a card on a wall is something you NOTICE,
+not part of the room's own description.
+
+⚠ **The floor-puddle summary has the same bug and still has it** —
+`BulkableApi.floorPuddleSummary` is composed into the room body, so no
+browser player has ever seen a puddle. The general answer (a card that
+renders the prose it was handed) is
+[carded-prose-slate](./slates/tails/carded-prose-slate.md).

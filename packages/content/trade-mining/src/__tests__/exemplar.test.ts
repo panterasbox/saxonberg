@@ -84,7 +84,17 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
           cls.startsWith('/trade/fuel/') ||
           cls.startsWith('/trade/smelting/') ||
           // the coppice panel and the wood above the yard (forestry)
-          cls.startsWith('/trade/forestry/'),
+          cls.startsWith('/trade/forestry/') ||
+          // ⭐ the pithead store's counter and the assay counter
+          // (shopkeeping). Selling over a counter is a TRADE, so the
+          // classes moved out of the kernel with the trades-and-labor
+          // build — and the venue's claim is untouched by that: it still
+          // ships no code, it just composes one more trade. This list
+          // growing is what the claim looks like WORKING.
+          cls.startsWith('/trade/shopkeeping/'),
+        // ⚠ Name the offender. This assertion failed on a class move and
+        // said only `expected false to be true`, which is a sentence
+        // nobody can act on.
         `unexpected class in the venue: ${cls}`,
       ).toBe(true);
     }

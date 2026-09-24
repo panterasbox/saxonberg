@@ -36,7 +36,7 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
-import { MakerMixin } from '../../../../lib/craft/Maker';
+import { EmployedMixin } from '../../../../lib/employment/Employed';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import {
   makeStuff,
@@ -46,10 +46,16 @@ import {
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomMatter';
 }
-class TestCook extends MakerMixin(NamedMixin(ContainableMixin(Idea))) {
+class TestCook extends EmployedMixin(NamedMixin(ContainableMixin(Idea))) {
   static _mixinName = 'TestCookMatter';
-  getConferredMixinNames(): readonly string[] {
-    return ['MakerMixin'];
+  // ⭐ Stands in for an on-shift holder of a `fulfills` seat. The real
+  // read is three conditions (on shift · the seat marks `fulfills` · the
+  // house operates where you stand) and is proved as a truth table in
+  // `lib/employment/__tests__/conferral.test.ts`; here the fulfiller is
+  // scenery, so the seam is stubbed exactly as the old `MakerMixin`
+  // conferral was.
+  isFulfilling(): boolean {
+    return true;
   }
 }
 /** Crafted NON-FOOD — the marked knife's shape (capital, not matter). */

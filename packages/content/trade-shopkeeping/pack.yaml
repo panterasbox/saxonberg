@@ -1,0 +1,18 @@
+id: trade-shopkeeping
+version: 0.1.0
+root: /trade/shopkeeping
+description: >-
+  The shopkeeper's trade — the front of house for anybody peddling
+  consumer goods over a counter. The counter itself (the shelf, the ask,
+  the queue), the brokerage shelf a consignor puts goods on, the two
+  brains that keep a shop stocked and a producer's goods consigned, the
+  shop's own `house` subcommands, the market stall's business seed, and
+  a `shop` archetype so a second store in a new locality is rows only.
+  ⭐ The kernel provides businesses, money and an economy; a content
+  pack provides a TRADE. Selling over a counter is a trade.
+requires:
+  # The trade is placeless: its mechanism is held by the Ministry of
+  # Trade — a seat, never a committee. Its premises sit in the world
+  # under a locality's committee (the trade-fuel precedent).
+  title:
+    - { extent: /trade/shopkeeping, holder: { organization: /compact/trade } }
