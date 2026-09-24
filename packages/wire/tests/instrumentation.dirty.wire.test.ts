@@ -88,6 +88,21 @@ async function at(where: string, tag: string, wizard = false): Promise<Session> 
   return s;
 }
 
+/**
+ * ⚠⚠ **A session that has done its job must LEAVE.**
+ *
+ * Every step here opens its own character, and they all stand in the
+ * same few rooms holding what they picked up. `get ore` in the
+ * round-trip step bound ANOTHER session's carried lump and was refused
+ * by `mustBeInLocation` — reported only as `declined
+ * (validator-failed)`, which named nothing and cost a whole drive
+ * cycle. A lingering session is a bystander with your props in its
+ * pockets.
+ */
+function done(s: Session): void {
+  s.close();
+}
+
 /** What a command said, as plain prose. */
 async function say(s: Session, text: string): Promise<string> {
   return plain(await (await s.cmd(text)).said());
@@ -391,6 +406,7 @@ suite('G16–G18 · the free read at a face, and what it is FOR', () => {
     // ⚠ Qualitative, and that is what makes the bench worth the walk.
     expect(said).toMatch(/ore-bearing|fair ore|good ore|very rich|trace|nothing in this rock/i);
     expect(said).not.toMatch(/\d+(\.\d+)?\s*%/);
+    done(s);
   });
 
   it('⭐ G17 — and `measure grade` refuses NAMING the bench', async () => {
@@ -398,6 +414,7 @@ suite('G16–G18 · the free read at a face, and what it is FOR', () => {
     const said = await say(s, 'measure grade');
     expect(said).not.toMatch(NOT_FOUND);
     expect(said).toMatch(/assay bench|`assay`/i);
+    done(s);
   });
 
   it('⭐⭐ G18 — `sample` at a face yields a real lump you are carrying', async () => {
@@ -409,6 +426,7 @@ suite('G16–G18 · the free read at a face, and what it is FOR', () => {
     // ⭐ The piece is MATTER — a real lump of ore you can pick up, not a
     // token and not a record. That is the whole claim of the design.
     expectOk(await s.cmd('get ore'));
+    done(s);
   });
 });
 
@@ -426,6 +444,7 @@ suite('H19–H23 · the bench', () => {
     // installed the pack.
     expect(said).toMatch(/assay bench|assayer/i);
     expect(said).not.toMatch(/rejection|ferrow/i);
+    done(s);
   });
 
   it('⭐⭐ H20 — the bench is in the room, matching prose that was already there', async () => {
@@ -445,8 +464,18 @@ suite('H19–H23 · the bench', () => {
       const hand = uniqueHandle('instr-roundtrip');
       let p = await Session.open(hand, { startLocation: FACE, wizard: true });
       open.push(p);
-      expectOk(await p.cmd('sample the north face'));
-      expectOk(await p.cmd('get ore'));
+      const took = await p.cmd('sample the north face');
+      expect(plain(await took.said()), 'the face yielded nothing').toMatch(
+        /as a sample/i,
+      );
+      // ⚠ Asserted on the PROSE, not on the status. `expectOk` reported
+      // `declined (validator-failed)` and named no validator, which sent
+      // a whole drive cycle chasing the wrong thing — a checkpoint that
+      // cannot say WHY it failed is only half a checkpoint.
+      const got = await p.cmd('get ore');
+      expect(plain(await got.said()), 'could not pick the sample up').toMatch(
+        /pick up/i,
+      );
       p.close();
 
       // The walk. A different room, a different session — the sample is
