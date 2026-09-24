@@ -1,0 +1,17 @@
+verbs: [calendar]
+controller: /platform/idea/cmd/social/CalendarController
+description: "Read your personal calendar (dated reminders on your aether implant)"
+help: |
+  `calendar` shows the dated reminders on your aether implant — the
+  red-letter dates a clinician (or a competent self-treater) wrote when
+  they treated you: "remove stitches", a follow-up date. Overdue entries
+  are listed first; a ping fires when a date arrives.
+
+  This is your own diary, distinct from the shared game date (`time`). A
+  wound never tells you when to come back — that is a prognosis, and it
+  lives here where a person keeps one.
+examples:
+  - cmd: calendar
+    note: List your reminders, overdue first
+validators:
+  - /lib/command/validators/requiresAnimate

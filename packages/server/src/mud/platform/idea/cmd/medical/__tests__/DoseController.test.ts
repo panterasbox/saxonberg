@@ -23,6 +23,9 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import type { CommandContext } from '../../../../../api/command';
 import type { MqlManyResult } from '../../../../../api/mql';
 import { MixinApi } from '../../../../../api/mixin';
+import Condition from '../../../Condition';
+import Prescription from '../../../../thing/Prescription';
+import { stampTemplatePathForTest } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 
 let note: ReturnType<typeof vi.fn>;
@@ -105,7 +108,7 @@ describe('DoseController', () => {
     const { me } = poisoned(4);
     const before = me.toxinBurdens.venom ?? 0;
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me) },
+      { with: reachable(me), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(me.toxinBurdens.venom ?? 0).toBeLessThan(before);
@@ -115,7 +118,7 @@ describe('DoseController', () => {
     const { me, v } = poisoned(4);
     const before = v.getInteriorAmount().rawValue();
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me) },
+      { with: reachable(me), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(v.getInteriorAmount().rawValue()).toBeLessThan(before);
@@ -125,7 +128,7 @@ describe('DoseController', () => {
     const { me } = poisoned(0); // no venom
     me.introduceToxin('alcohol', 3);
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me) },
+      { with: reachable(me), prescription: reachable(me) },
       ctxFor(me),
     );
     // The vial counters venom, of which there is none — alcohol is untouched.
@@ -143,7 +146,7 @@ describe('DoseController', () => {
     ContainmentApi.move(empty, me);
     me.introduceToxin('venom', 4);
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me) },
+      { with: reachable(me), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(note).toHaveBeenCalledWith(
@@ -158,11 +161,155 @@ describe('DoseController', () => {
     ContainmentApi.move(me, room);
     me.introduceToxin('venom', 4);
     await makeStuff(() => new DoseController()).execute(
-      { with: reachable(me) },
+      { with: reachable(me), prescription: reachable(me) },
       ctxFor(me),
     );
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-remedy' }),
+    );
+  });
+});
+
+// ─────────────────────────── the active branch (D9/D10) ───────────────────────────
+
+
+function ensureActiveMaterial(
+  path: string,
+  type: string,
+  amount: number,
+): Material {
+  return (
+    StuffApi.findByTemplatePath<Material>(path) ??
+    (makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName(type);
+      m.setTags(['active', 'remedy', 'liquid']);
+      m.setToxicity([{ type, amount }]);
+      return m;
+    }, path) as unknown as Material)
+  );
+}
+
+function activeVial(path: string, type: string, amount: number): Receptacle {
+  ensureActiveMaterial(path, type, amount);
+  const v = makeStuff(() => new Receptacle());
+  (v as unknown as { interiorBulk: boolean }).interiorBulk = true;
+  (v as unknown as { interiorMaterial: string }).interiorMaterial = path;
+  v.setInteriorCapacity(Quantity.of(0.25, 'L'));
+  v.setInteriorAmount(Quantity.of(0.25, 'L'));
+  return v;
+}
+
+function seedCondition(type: string, prescriptionOnly: boolean): void {
+  const path = `/platform/idea/Condition/metabolism/${type}`;
+  if (StuffApi.findByTemplatePath(path)) return;
+  const c = makeStuff(() => new Condition());
+  c.setPrescriptionOnly(prescriptionOnly);
+  stampTemplatePathForTest(c, path);
+}
+
+describe('DoseController — the active branch', () => {
+  it('administers a folk (non-controlled) active with no gate', async () => {
+    seedCondition('analgesia', false);
+    const room = makeStuff(() => new Location());
+    const me = makeStuff(() => new Creature());
+    ContainmentApi.move(me, room);
+    ContainmentApi.move(
+      activeVial('/stuff/idea/material/_test/willow-tea', 'analgesia', 2),
+      me,
+    );
+    await makeStuff(() => new DoseController()).execute(
+      { with: reachable(me), prescription: reachable(me) },
+      ctxFor(me),
+    );
+    expect(me.toxinBurdens.analgesia ?? 0).toBeGreaterThan(0);
+  });
+
+  it('refuses a controlled active with no licence and no slip', async () => {
+    seedCondition('anaesthesia', true);
+    const room = makeStuff(() => new Location());
+    const me = makeStuff(() => new Creature());
+    ContainmentApi.move(me, room);
+    ContainmentApi.move(
+      activeVial('/stuff/idea/material/_test/grey-draught', 'anaesthesia', 4),
+      me,
+    );
+    await makeStuff(() => new DoseController()).execute(
+      { with: reachable(me), prescription: reachable(me) },
+      ctxFor(me),
+    );
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'not-licensed' }),
+    );
+    expect(me.toxinBurdens.anaesthesia ?? 0).toBe(0);
+  });
+
+  it('a matching prescription authorizes it and a dose is spent', async () => {
+    seedCondition('anaesthesia', true);
+    const room = makeStuff(() => new Location());
+    const nurse = makeStuff(() => new Creature());
+    const patient = makeStuff(() => new Creature());
+    stampTemplatePathForTest(patient, '/platform/agent/Avatar/rx-patient');
+    ContainmentApi.move(nurse, room);
+    ContainmentApi.move(patient, room);
+    ContainmentApi.move(
+      activeVial('/stuff/idea/material/_test/grey-draught-2', 'anaesthesia', 4),
+      nurse,
+    );
+    const slip = makeStuff(() => new Prescription());
+    slip.stampPrescription({
+      patientIdentityPath: patient.getIdentityPath()!,
+      active: 'anaesthesia',
+      doses: 1,
+      prescriberIdentityPath: '/platform/agent/Avatar/doc',
+      writtenAtS: 0,
+    });
+    ContainmentApi.move(slip, nurse);
+
+    await makeStuff(() => new DoseController()).execute(
+      {
+        patient: { stuff: patient } as never,
+        with: reachable(nurse),
+        prescription: reachable(nurse),
+      },
+      ctxFor(nurse),
+    );
+    expect(patient.toxinBurdens.anaesthesia ?? 0).toBeGreaterThan(0);
+    expect(slip.getDosesLeft()).toBe(0);
+  });
+
+  it('a prescription for a DIFFERENT patient is refused, naming why', async () => {
+    seedCondition('anaesthesia', true);
+    const room = makeStuff(() => new Location());
+    const nurse = makeStuff(() => new Creature());
+    const patient = makeStuff(() => new Creature());
+    stampTemplatePathForTest(patient, '/platform/agent/Avatar/rx-patient-2');
+    ContainmentApi.move(nurse, room);
+    ContainmentApi.move(patient, room);
+    ContainmentApi.move(
+      activeVial('/stuff/idea/material/_test/grey-draught-3', 'anaesthesia', 4),
+      nurse,
+    );
+    const slip = makeStuff(() => new Prescription());
+    slip.stampPrescription({
+      patientIdentityPath: '/platform/agent/Avatar/someone-else',
+      active: 'anaesthesia',
+      doses: 1,
+      prescriberIdentityPath: '/platform/agent/Avatar/doc',
+      writtenAtS: 0,
+    });
+    ContainmentApi.move(slip, nurse);
+
+    await makeStuff(() => new DoseController()).execute(
+      {
+        patient: { stuff: patient } as never,
+        with: reachable(nurse),
+        prescription: reachable(nurse),
+      },
+      ctxFor(nurse),
+    );
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'wrong-patient' }),
     );
   });
 });

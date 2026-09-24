@@ -453,6 +453,9 @@ export interface Vitals {
    * then releases whatever was held or worn on the slots that part carried.
    */
   severPart(key: string): void;
+  /** Is this severable part past saving (function lost, or advanced
+   * wound-sepsis) — the amputation trigger (D7). */
+  isPartUnsalvageable(key: string): boolean;
   /**
    * ⭐⭐ **How well one part still works** — the axis a wound costs you.
    *
@@ -516,6 +519,10 @@ export interface Vitals {
     blood: { speciesPath: string; type: string } | null;
     expander?: boolean;
   }): { accepted: number; reaction: 0 | 1 | 2 };
+  /** Is the body under anaesthesia (an active `sedation` effect)? (D10) */
+  isSedated(): boolean;
+  /** Active pain relief `[0,1]` from analgesia (D10). */
+  analgesiaRelief(): number;
 
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
@@ -1070,6 +1077,51 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return { accepted: next - cur, reaction: mismatch };
     }
 
+    // ---------- anaesthesia / analgesia reads (D10) ----------
+
+    /** ⭐ Is the body under anaesthesia? True iff an active affliction
+     * declares `sedation` at/above its current stage. */
+    public isSedated(): boolean {
+      for (const c of this.conditions) {
+        if (c.kind !== 'affliction') continue;
+        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        for (const e of row?.getSignature() ?? []) {
+          if (e.kind === 'sedation' && c.stage >= e.atStage) return true;
+        }
+      }
+      return false;
+    }
+
+    /** ⭐ The antibiotic multiplier on infection clearance (D10) — the
+     * product of `clearance` `factor` over active afflictions (default 1).
+     * Folded into `progressInfection`'s clearance term; NOT an arm. */
+    private clearanceBoost(): number {
+      let factor = 1;
+      for (const c of this.conditions) {
+        if (c.kind !== 'affliction') continue;
+        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        for (const e of row?.getSignature() ?? []) {
+          if (e.kind === 'clearance') factor *= e.factor;
+        }
+      }
+      return factor;
+    }
+
+    /** ⭐ Pain relief from active analgesia (D10) — the max `relief` over
+     * active afflictions, `[0, 1]`. Read by `OperationEngagement` (the
+     * conscious penalties scale by `1 − relief`) and by `look`/`assess`. */
+    public analgesiaRelief(): number {
+      let relief = 0;
+      for (const c of this.conditions) {
+        if (c.kind !== 'affliction') continue;
+        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        for (const e of row?.getSignature() ?? []) {
+          if (e.kind === 'analgesia') relief = Math.max(relief, e.relief);
+        }
+      }
+      return relief;
+    }
+
     // ---------- the material fork family ----------
 
     public forkSlice_Vitals(): unknown {
@@ -1278,6 +1330,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // right up to the moment it dies. Placed before those reads so the
       // cause makes no difference to the answer.
       if (this.hasDyingRecord()) return 'unconscious';
+      // ⭐ Anaesthesia (D10): an active affliction declaring `sedation` at
+      // or above its stage takes the body under. After dying (which
+      // dominates), before the blood read — a sedated patient reads
+      // `unconscious`, so `operate` can proceed and `say` is refused.
+      if (this.isSedated()) return 'unconscious';
 
       const bvBand = this.getVitalBand('bloodVolume');
       const bvFraction =
@@ -1871,6 +1928,35 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ **Is this part past saving** (D7) — the amputation trigger. A
+     * severable part carrying an active wound, whose own function is
+     * `lost`, OR on which the wound-sepsis load has reached the advanced
+     * band (≥ 0.8) — the limb the infection has taken. Read by the
+     * `amputation` operation; a body never loses a part it can keep.
+     */
+    public isPartUnsalvageable(key: string): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      const spec = self
+        .getSpecies()
+        ?.getBodyPlan()
+        ?.getBodyParts()
+        .find((p) => p.key === key);
+      if (!spec?.severable) return false;
+      const woundHere = this.conditions.some(
+        (c) => c.kind === 'trauma' && c.site === key && c.severity > 0,
+      );
+      if (!woundHere) return false;
+      if (this.functionAt(key) === 'lost') return true;
+      const sepsis = this.conditions.find(
+        (c): c is AfflictionRecord =>
+          c.kind === 'affliction' &&
+          c.templatePath.endsWith('/' + WOUND_SEPSIS_KEY),
+      );
+      return (sepsis?.pathogenLoad ?? 0) >= 0.8;
+    }
+
+    /**
      * ⭐⭐ **The sever** — the one writer of `BodyPartDelta.missing`, which
      * shipped as a persisted field nothing ever set.
      *
@@ -2278,7 +2364,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         // set, so `getConditionBand`'s own `reconcileConditions()` call
         // returns immediately. That guard is what makes the vital-sign
         // reads in this whole method non-reentrant.
-        infectionResistance(this.getConditionBand());
+        infectionResistance(this.getConditionBand()) *
+        // ⭐ The antibiotic (D10): an active `clearance` effect multiplies
+        // how fast the body clears the population — the sepsis counterplay.
+        this.clearanceBoost();
       const net = growth - clearance;
       const l0 = Math.max(0, Math.min(1, record.pathogenLoad ?? 0));
 
@@ -2526,6 +2615,24 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
                 } else if (
                   t.septicSeeded !== true &&
                   nowS - t.openSince > HARM_DEFAULTS.SEPSIS_OPEN_ONSET_SEC
+                ) {
+                  this.seedSepsis(HARM_DEFAULTS.SEPSIS_INOCULUM);
+                  t.septicSeeded = true;
+                }
+              } else if (
+                // ⭐ D8 — stitches left in past readiness OVERSTAY and go
+                // septic. A sutured wound that has knitted to the clot line
+                // is READY; from that moment the shipped open-wound clock
+                // runs until the stitches come out (undress/unstitch).
+                t.sutured === true &&
+                t.severity <= HARM_DEFAULTS.CLOT_SEVERITY
+              ) {
+                if (t.sutureReadyAt === undefined) {
+                  t.sutureReadyAt = nowS;
+                  t.openSince = nowS;
+                } else if (
+                  t.septicSeeded !== true &&
+                  nowS - t.sutureReadyAt > HARM_DEFAULTS.SEPSIS_OPEN_ONSET_SEC
                 ) {
                   this.seedSepsis(HARM_DEFAULTS.SEPSIS_INOCULUM);
                   t.septicSeeded = true;

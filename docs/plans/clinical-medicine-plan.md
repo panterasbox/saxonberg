@@ -1015,7 +1015,39 @@ MR (W7), and again at `/finalize`.
   with a poisoned needle still in it"* on `assess`; `treat` says *"It
   wants extraction"*.
 
-#### W3 — operations, sutures, prescriptions, the drug substrate (D7, D8, D9, D10 kernel half)
+#### W3 + W4 — operations, sutures, prescriptions, drugs, calendar — ✅ DONE (one commit; see note)
+
+> ⭐ **Re-plan: W3 and W4 landed together.** Both are Stage-A kernel and
+> share load-bearing files (Avatar, lib/mixin, api/mixin, paths), so
+> splitting them was churn for no gain.
+> - **OperationEngagement is a thin `Coup`-style shell** — biology lives in
+>   the W5 controller's `onComplete`/`onAbort` callbacks (the established
+>   pattern), so the engagement needs no calendar/vitals deps and the
+>   forward dependency the plan implied (engagement writes the calendar)
+>   dissolves. `OperationPatientHold` companion holds the patient's body,
+>   `cancelable` iff conscious. Abort reason `operation-interrupted` merged.
+> - Effect kinds sedation/analgesia/clearance are READS (isSedated /
+>   analgesiaRelief / clearanceBoost) folded at getConsciousness /
+>   OperationEngagement / progressInfection — NOT arms (condition-arms
+>   stays 5). check-conditions EFFECT_KINDS +3, with field validation.
+> - Suture: sutured heal-rate branch + the overstay clock moved to the
+>   Vitals reconcile (it has `nowS`; the behavior tick does not). unstitch
+>   = undress alias, stitches-aware prose.
+> - Operation/OperationCatalogue are the Discipline/DisciplineCatalogue
+>   twins (warm-by-class, sync-read boot entry). Rows are W5.
+> - Prescription: a slip Thing + mixin; **the slip is a bound ARG on
+>   dose** (`type: objects`, `reachable:[mixin.PrescriptionMixin]`), NOT a
+>   `giver.getContents()` scan — lint:instrument-args (ceiling 0) forced
+>   this and it is better (auto-bound, the binder resolves, the controller
+>   reads the 5-rights match). dose gains the `administer` alias + the
+>   active branch (folk vs controlled; refusals NAME why). Needed a
+>   PrescriptionMixin refusal phrase + the binder-model arg in tests.
+> - Calendar: `CalendarMixin` on Avatar (inside Persistable), `CalendarUpdate`
+>   hosted app (the ForumsUpdate twin), `calendar` verb, ping re-armed in
+>   postRegister. Ping topic is `session.notice` (calendar.ping is not a
+>   valid TOPIC_ROOT). All 51 gates pass; server type-clean.
+
+#### W3 — operations, sutures, prescriptions, the drug substrate (D7, D8, D9, D10 kernel half) [see W3+W4 note above]
 
 - `VitalEffect` +3 kinds; `check-conditions.ts` `EFFECT_KINDS`;
   `getConsciousness` sedation read; `progressInfection` clearance

@@ -194,6 +194,9 @@ export const Mixins = {
   AetherHosted: 'AetherHostedMixin',
   Comms: 'CommsMixin',
   Forums: 'ForumsMixin',
+  Calendar: 'CalendarMixin',
+  Prescription: 'PrescriptionMixin',
+  CalendarApp: 'CalendarAppMixin',
   Perceptible: 'PerceptibleMixin',
   // Presence-concealment — "how hard is it to notice this is here?". One
   // level on every loose perceivable (Thing/Creature/Exit); subsumes the
@@ -653,6 +656,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  PrescriptionMixin: "{} isn't a prescription",
   PostmortemMixin: "{} is not a body you can examine",
   /*
    * ⚠ A measurement is taken off a BODY. `measure figure`, `cut --for`

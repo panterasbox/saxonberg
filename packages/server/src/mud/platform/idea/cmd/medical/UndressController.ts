@@ -69,19 +69,23 @@ export default class UndressController extends CommandController<UndressModel> {
       return this.fail(context, `${who} no dressed wound.`, 'no-dressing');
     }
 
+    // ⭐ Stitches read differently from a bandage (D8) — capture it before
+    // `reopen` clears the flag.
+    const wasSutured = wound.sutured === true;
     TRAUMA_BEHAVIOR[wound.type].reopen(target, wound);
     // A re-opened bleed drains again on the next read (reconcile-on-read).
 
     const reopened = wound.bleeding === true;
     const whose = isSelf ? 'your' : `${target.getPresentation()}'s`;
+    const act = wasSutured ? 'take the stitches out of' : 'peel the dressing off';
     const line = reopened
       ? Mml.fromMarkup(
-          `You peel the dressing off ${Mml.escape(whose)} ${Mml.escape(wound.type)} ` +
-            `— it hadn't clotted, and starts to bleed again.`
+          `You ${act} ${Mml.escape(whose)} ${Mml.escape(wound.type)} ` +
+            `— it hadn't knitted, and starts to bleed again.`
         )
       : Mml.fromMarkup(
-          `You peel the dressing off ${Mml.escape(whose)} ${Mml.escape(wound.type)} ` +
-            `— it has clotted and looks safe.`
+          `You ${act} ${Mml.escape(whose)} ${Mml.escape(wound.type)} ` +
+            `— it has knitted and looks safe.`
         );
     MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
   }

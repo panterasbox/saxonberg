@@ -43,6 +43,7 @@ export const TemplatePaths = {
   subjectCatalogue: "/platform/idea/SubjectCatalogue",
   soulCatalogue: "/platform/idea/SoulCatalogue",
   disciplineCatalogue: "/platform/idea/DisciplineCatalogue",
+  operationCatalogue: "/platform/idea/OperationCatalogue",
   corpoCatalogue: "/platform/idea/CorpoCatalogue",
   conditionCatalogue: "/platform/idea/ConditionCatalogue",
   governmentCatalogue: "/platform/idea/GovernmentCatalogue",
@@ -64,6 +65,7 @@ export const TemplatePaths = {
   // Ideas cloned into an attunement host by the default loadout.
   commsUpdate: "/platform/idea/CommsUpdate",
   forumsUpdate: "/platform/idea/ForumsUpdate",
+  calendarUpdate: "/platform/idea/CalendarUpdate",
   // The unified credential wallet app — one hosted holder for every
   // credential kind (payment, travel, …), replacing the per-credential
   // PaymentImplantUpdate + TravelCredentialUpdate twins.

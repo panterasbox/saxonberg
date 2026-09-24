@@ -1,6 +1,6 @@
-verbs: [dose]
+verbs: [dose, administer]
 controller: /platform/idea/cmd/medical/DoseController
-description: "Give a body an antidote from a vial"
+description: "Give a body an antidote or administer a prescribed active from a vial"
 help: |
   `dose <someone> with <vial>` gives them a remedy — with no target you
   dose yourself. The vial's contents decide what it counters: a vial of
@@ -30,3 +30,14 @@ args:
     default: "reachable:[mixin.BulkableMixin]"
     scope: ["inventory", "reachable"]
     requires: [BulkableMixin]
+  # ⭐ D9 — the prescription slip(s) the giver holds. The BINDER resolves
+  # every reachable slip; the controller keeps the one that `isFor` this
+  # patient + active (the 5-rights match — state no predicate can ask).
+  # Auto-bound (a default), so `administer patient with vial` needs no
+  # naming; only controlled actives read it.
+  - name: prescription
+    type: objects
+    required: false
+    default: "reachable:[mixin.PrescriptionMixin]"
+    scope: ["inventory", "reachable"]
+    requires: [PrescriptionMixin]
