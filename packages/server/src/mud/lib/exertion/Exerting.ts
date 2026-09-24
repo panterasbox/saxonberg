@@ -57,6 +57,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import type { Vitals } from '../vitals/Vitals';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import { LOAD_BEARING_DEFAULTS } from '../encumbrance/LoadBearing';
 import {
@@ -270,6 +271,24 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // 4. Heat — the work you did not get out as work.
       const efficiency = dial(AppSettingKeys.exertionEfficiency, 0.25);
       this.depositWorkHeat(powerW * durationS * (1 - efficiency));
+
+      // 5. Structure — ⭐ real work re-breaks a half-knit bone (D15). The
+      //    body was carrying a fracture whose function had come back but
+      //    whose structure had not, and it was not ready for this.
+      const asStuff = self as unknown as Stuff;
+      if (MixinApi.isVitals(asStuff)) {
+        const rebroken = (asStuff as unknown as Vitals).stressStructures(
+          powerW,
+        );
+        if (rebroken.length > 0) {
+          MessageApi.scene(asStuff)
+            .topic('act.deed')
+            .toSelf(
+              Mml.compose`Something gives — a bone you thought mended was not ready for that, and it goes again.`,
+            )
+            .send();
+        }
+      }
 
       if (this.conditioningBand('wind') !== windBefore) {
         this.onConditioningBandCrossed('wind');

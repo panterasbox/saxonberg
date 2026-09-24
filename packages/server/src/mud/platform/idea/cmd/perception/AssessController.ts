@@ -16,6 +16,7 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
+import { WorldClockApi } from '../../../../api/worldclock';
 import { CombatApi, type CombatAssessResult } from '../../../../api/combat';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -294,7 +295,57 @@ export default class AssessController extends CommandController<AssessModel> {
           ),
         );
       }
+      // ⭐ **How fast it is knitting** — one line from the convalescence
+      // factor `k` (recovery build). A bed, a carer and a spell all raise
+      // it; being freshly hurt or in a fight drops it to nothing (D3a).
+      // The same read every wound's `mend` uses, said in words.
+      const k = (target as Stuff & Vitals).convalescenceFactor();
+      const pace =
+        k <= 0
+          ? isSelf
+            ? 'Nothing is knitting yet — too soon, or you are not safe.'
+            : `${target.getPresentation()} is not mending — too recently hurt, or not safe.`
+          : k >= 1.5
+            ? 'The wounds are mending well.'
+            : k >= 0.5
+              ? 'The wounds are mending steadily.'
+              : 'The wounds are mending slowly.';
+      blocks.push(Mml.escape(pace));
     }
+
+    // ⭐ **A festering wound** (D11) — a symptomatic wound-sepsis reads even
+    // when the wound itself has closed. The one clinical read that says the
+    // infection deadline is running.
+    const now = WorldClockApi.getNow().rawValue();
+    const septic = (target as Stuff & Vitals)
+      .getConditions()
+      .some(
+        (c) =>
+          c.kind === 'affliction' &&
+          c.templatePath.endsWith('/wound-sepsis') &&
+          (c.pathogenLoad ?? 0) > 0 &&
+          now >= (c.symptomsAt ?? Infinity),
+      );
+    if (septic) {
+      blocks.push(
+        Mml.escape(
+          isSelf
+            ? 'One of your wounds is festering — hot, swollen, and starting to smell.'
+            : `One of ${target.getPresentation()}'s wounds is festering.`,
+        ),
+      );
+    }
+
+    // ⭐ Scars (D14) — what the body survived. Read to anyone; never a
+    // penalty, just a history written on the skin.
+    const scars = (target as Stuff & Vitals).getScars();
+    if (scars.length > 0) {
+      const lines = scars.map(
+        (sc) => `a healed ${sc.type} of ${sc.site}`,
+      );
+      blocks.push(Mml.escape(`Scars: ${lines.join('; ')}.`));
+    }
+
 
     // ⭐⭐ **The anatomy block** (D12) — one line per part: what it is,
     // how well it still works, and what is over it, outside-in.

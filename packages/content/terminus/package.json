@@ -28,6 +28,7 @@
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-fishing": "workspace:*",
     "@saxonberg/content-trade-haulage": "workspace:*",
+    "@saxonberg/content-trade-medicine": "workspace:*",
     "@saxonberg/content-trade-milling": "workspace:*",
     "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",

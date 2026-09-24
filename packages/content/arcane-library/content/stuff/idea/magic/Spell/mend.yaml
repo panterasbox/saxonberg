@@ -1,0 +1,37 @@
+# ⭐⭐ Mend — control·body, the healing spell that spends the HEALER
+# (recovery D12). It afflicts the target with `mending` (which triples
+# their convalescence for four game-hours), and it drains the CASTER's
+# vigour (`endurance`, `self: true`) — magic spends *you*, and metabolism
+# rebuilds that vigour from satiation and hydration. No new Effect kind:
+# `afflict` already exists, and the healing is the ordinary mend law read
+# through the `convalescence` condition effect.
+#
+# ⚠ It does NOT close a wound directly — it speeds the body's own knitting.
+# A bleeding wound still wants a dressing first; a rupture still wants
+# surgery. What mend buys is TIME.
+class: /platform/idea/magic/Spell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  spellId: mend
+  name: Mend
+  verb: control
+  noun: body
+  cost: 12
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
+  targeting: creature
+  effects:
+    - kind: afflict
+      conditionPath: /platform/idea/Condition/magic/mending
+    # ⭐ The freight is the caster's own vigour — the adjust-reserve
+    # executor lands the negative delta on `self` (the caster), never the
+    # target. "Something is drawn away."
+    - kind: adjust-reserve
+      reserveKey: endurance
+      delta: -35
+      self: true
+  description: >-
+    You lay a hand on them and pour warmth into the hurt, and it begins to
+    knit faster than flesh has any right to. The cost is yours — you come
+    away grey and unsteady, as if you had run a long way.

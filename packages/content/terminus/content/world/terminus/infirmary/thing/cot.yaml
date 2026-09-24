@@ -3,6 +3,15 @@
 # the shipped `Chair` class: the posture-bearing slot is authored per row,
 # which is exactly why a bed needs no class of its own and why a cot needs
 # none either.
+#
+# ⭐⭐ **Two rest numbers, and they mean different things (recovery build).**
+# `restQuality` is how good a night's SLEEP it is (stamina); `convalescence`
+# is how fast a WOUND knits on it (`Vitals.convalescenceFactor`). A clinic
+# cot mends wounds faster than a home four-poster (`convalescence: 2.0` →
+# lying gives `k = 1.0 × 1.5 × 2.0 = 3.0`) without being a better night's
+# sleep than one (`restQuality 1.5` < a four-poster's 2.0). Before this the
+# cot's `restQuality` was 0.7 — worse for recovery than open ground, the
+# inversion the build set out to fix.
 class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -15,5 +24,9 @@ data:
     - name: surface
       accepts: PosturedMixin
       capacity: 1
-      postures: [lying, sitting]
-  restQuality: 0.7
+      # ⚠ The posture vocabulary is `lie`/`sit` (the shipped bed fixture's
+      # tokens), not `lying`/`sitting`, which named no posture and left the
+      # cot un-liable — the convalescence demo depends on lying on it.
+      postures: [lie, sit]
+  restQuality: 1.5
+  convalescence: 2.0

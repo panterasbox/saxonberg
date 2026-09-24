@@ -1,0 +1,16 @@
+# A splint — the carried instrument that backs `set`. Carry it and the
+# `set` verb lights up (the carried-affordance model); the infirmary keeps
+# one, and the store sells your own.
+class: /trade/medicine/thing/Splint
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: wooden splint and bindings
+  keywords: [splint, brace, bindings, wooden]
+  register: indefinite
+  longDescription: |
+    A pair of smoothed wooden slats and a coil of linen binding, for
+    holding a broken bone straight while it knits.
+  capabilities:
+    - { kind: splint }
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 0.4

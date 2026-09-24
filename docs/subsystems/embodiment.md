@@ -150,6 +150,14 @@ passes, so the candidate gets the final say.
 Subclasses override `fitsSlot` for richer rules (a magic boot that
 only fits Elven feet, etc.).
 
+> ⭐ **Prosthetics are the augmentation build's, not embodiment's.** A
+> stand-in for a lost limb is a **"replace" augment** — vitals owns the
+> loss (`severPart`, `ownFunction → 0`), augmentation owns the
+> replacement (slot-confers-capability, a capability profile, not a
+> scalar). See [augmentation.md](./augmentation.md) /
+> `augmentation-slate.md`. The recovery build deliberately did NOT ship a
+> prosthetic mixin.
+
 ## Multi-slot atomicity
 
 A wearable claiming multiple slots (boots → both feet, longbow →

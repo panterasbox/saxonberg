@@ -54,6 +54,13 @@ export default class WaterFixture extends UnboundedReceptacle {
       // `wash`'s arg is a CRAFTED thing, and widening it to also accept a
       // body would delete a check (see `RinseController`'s header).
       'platform/cmd/medical/rinse.yaml',
+      // ⭐ …and you cool a burn at water the same way (recovery build).
+      'platform/cmd/medical/cool.yaml',
+      // ⭐ …and you wash your hands clean at it — bare `wash` (recovery
+      // build, D10). Handwashing folded into `wash` rather than a
+      // separate `scrub`: it has no object arg (the hands are your own
+      // body), so nothing was widened. `rinse` stays separate because it
+      // takes a body ARG.
     ],
   };
 }

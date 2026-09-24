@@ -758,6 +758,9 @@ importers:
       '@saxonberg/content-trade-haulage':
         specifier: workspace:*
         version: link:../trade-haulage
+      '@saxonberg/content-trade-medicine':
+        specifier: workspace:*
+        version: link:../trade-medicine
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling
