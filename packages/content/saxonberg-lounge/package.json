@@ -11,6 +11,7 @@
     "@saxonberg/content-corpo-veshko": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-distribution": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-tpa": "workspace:*",
     "@saxonberg/content-trade-hospitality": "workspace:*",

@@ -50,6 +50,7 @@ import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../config/AppSettings";
 import { TemplatePaths } from "../paths";
 import { THERMAL_DEFAULTS } from "./Thermal";
+import { METABOLIC_DEFAULTS } from "../metabolism/Metabolic";
 import { Decay } from "../Decay";
 
 /** Numeric AppSetting read with a seeded-literal fallback (test/pre-warm safe). */
@@ -321,18 +322,37 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       }
 
       if (ambient < lowBand) {
-        // Cold stress — spend satiation to hold the setpoint.
+        // ⭐⭐ Cold stress — spend satiation to hold the setpoint, but
+        // only as hard as a body can actually shiver.
+        //
+        // The gap this body can cover is `cap / COLD_SPEND_PER_DEGREE`
+        // (20 K as shipped). Inside it the setpoint holds and the cost
+        // is the price of standing here. Beyond it the body is
+        // **losing**, and what it loses is heat, not fuel: it defends
+        // the warmest temperature its shivering can reach and drifts
+        // toward that. Hypothermia, which somebody can carry you in
+        // from, instead of starvation, which they cannot — and it is
+        // what cold does. See `COLD_SPEND_MAX_BASAL_MULT`.
         const gap = lowBand - ambient;
-        const spend = D.COLD_SPEND_PER_DEGREE * gap * (sliceSec / 60);
+        const coverableGap = this.maxCoverableGapK();
+        const covered = Math.min(gap, coverableGap);
+        const spend = D.COLD_SPEND_PER_DEGREE * covered * (sliceSec / 60);
         if (this.reserveCurrent("satiation") >= spend && spend > 0) {
           host.adjustReserve("satiation", Quantity.of(-spend, "%"));
-          // ⚠ The internal load rides on top of the cold branch too, and
-          // it has to: a caster working hard in a cold room is still
-          // carrying what they absorbed. (Shedding into cold air is
-          // EASIER, which falls out of `shedAndOffset` for free — the
-          // wet-bulb ceiling is nowhere near.)
-          this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
           this.noteShiver();
+          if (gap <= coverableGap) {
+            // ⚠ The internal load rides on top of the cold branch too, and
+            // it has to: a caster working hard in a cold room is still
+            // carrying what they absorbed. (Shedding into cold air is
+            // EASIER, which falls out of `shedAndOffset` for free — the
+            // wet-bulb ceiling is nowhere near.)
+            this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
+          } else {
+            // Shivering flat out and still losing: drift toward the
+            // floor it CAN defend, not toward the raw ambient — the
+            // fuel is buying something, just not enough.
+            this.driftCore(core, ambient + coverableGap, sliceSec);
+          }
         } else {
           this.driftCore(core, ambient, sliceSec); // out of fuel → cold
         }
@@ -703,9 +723,40 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * floats toward effective ambient when regulation is off. Reuses
      * `ThermalMixin.getTau` (the body's mass × material × medium/wall
      * resistance); a heavier body drifts slower.
+     *
+     * ⭐⭐ **And what you are WEARING is part of that resistance.**
+     * Until the envelope build it was not: a body in a parka cooled at
+     * exactly the rate a naked one did the moment its fuel ran out,
+     * which is backwards — insulation is most obviously worth something
+     * precisely when you have stopped being able to generate heat. Worn
+     * `clo` scales the resistance by `1 + clo / SHED_BODY_CLO`, the same
+     * reference the shedding term already uses, so one garment number
+     * does both jobs: it slows heat OUT while you are alive and warm,
+     * and it slows heat out while you are unconscious in a doorway.
      */
     protected bodyTau(): number {
-      return this.regHost.getTau().rawValue();
+      const base = this.regHost.getTau().rawValue();
+      const self = this.regHost;
+      if (!MixinApi.isAttired(self)) return base;
+      const clo = self.bodyInsulation().rawValue();
+      if (!(clo > 0)) return base;
+      return base * (1 + clo / THERMAL_DEFAULTS.SHED_BODY_CLO);
+    }
+
+    /**
+     * ⭐ **The temperature gap shivering can actually close**, in K.
+     *
+     * `cap ÷ cost-per-degree`, where the cap is
+     * {@link THERMAL_DEFAULTS.COLD_SPEND_MAX_BASAL_MULT} times
+     * metabolism's own basal satiation drain — so the ceiling on
+     * shivering is expressed against resting metabolism, which is what
+     * physiology expresses it against, and the two cannot drift apart.
+     */
+    protected maxCoverableGapK(): number {
+      const D = THERMAL_DEFAULTS;
+      const cap =
+        D.COLD_SPEND_MAX_BASAL_MULT * METABOLIC_DEFAULTS.BASAL_SATIATION_PER_MIN;
+      return D.COLD_SPEND_PER_DEGREE > 0 ? cap / D.COLD_SPEND_PER_DEGREE : 0;
     }
 
     /** Wet-bulb temperature (K) — the simplified Stull approximation. */

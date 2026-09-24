@@ -156,6 +156,17 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(f, data[f]);
   }
+  // ⭐ `wears:` (the envelope build) — the garments an authored person
+  // has on. Resolved live at `postRegister`, one clone each, and
+  // `Character.wearGarments` swallows a per-garment failure so the
+  // person survives a bad path. Which is exactly why it is read here: a
+  // rowless or misspelt garment is silently one layer of insulation
+  // this character does not have, discovered only when they freeze in a
+  // winter the content pass was supposed to have dressed them for.
+  if (Array.isArray(data.wears)) {
+    for (const g of data.wears as unknown[]) push('wears', g);
+  }
+
   // ⭐ A Wood row's `mix:` — the species standing on a clearing, each
   // naming its Species row, the wood a felled one is made of and the seed
   // it drops. All three resolve live at a felling; a rowless one is a
