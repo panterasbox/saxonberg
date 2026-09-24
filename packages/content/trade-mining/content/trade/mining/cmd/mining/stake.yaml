@@ -11,6 +11,11 @@ help: |
   writes it down. There is no price list and there is no provisioner: it
   mints a **title and no room**, which is exactly what a mining claim is.
 
+  ⭐⭐ **A SURFACE working is staked by name, not by numbers.** `stake pit`
+  records the quarry the counter has in its book. A mine is three numbers
+  because a mine is a warren and a claim is a block of ground nobody has cut
+  yet; a quarry is a place that already exists, with a name on it.
+
   ⚠ Ground somebody already holds refuses, and says who holds it. That
   is the register doing its job.
 validators:
@@ -21,6 +26,8 @@ args:
   # with `register` declared first handed the block to the register
   # ("bare integer '5' is not valid at the head of a chain"). Found by the
   # metallurgy wire flow on merge.
+  # ⚠ Also carries a WORD, not only three numbers: `stake pit` names a
+  # surface working out of the counter's own book (see the help above).
   - name: block
     type: string
     required: false

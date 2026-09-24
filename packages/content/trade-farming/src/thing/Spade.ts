@@ -13,19 +13,33 @@
  * drift; a spade cuts a clean face in soil and is worked with a foot.
  * Same `digging` capability, different tool, different trade — which is
  * the shipped rule that code is shared and **content is copied**.
+ *
+ * ⭐ **Since the extraction build this extends the KERNEL's `Spade`**, which
+ * affords `dig` — because you dig a quarry floor, a peat bank and a wood
+ * with the same tool and none of them is a field. What stays farming's is
+ * the trade's own surface: `plot`, and the survey channels.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import KernelSpade from '@saxonberg/server/mud/platform/thing/Spade';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class Spade extends ToolItem {
+export default class Spade extends KernelSpade {
   /**
    * ⭐ A spade in your hands affords `plot`. Ground does not afford it,
    * and that is the honest arrangement: the ground has no opinion about
    * whether you are about to farm it.
    */
   static commandContributions: CommandContributions = {
-    self: ['trade/farming/cmd/farming/plot.yaml'],
+    // ⚠⚠ **`dig` is RE-LISTED, and it has to be.** A class's own
+    // `commandContributions` is collected beside every mixin in its chain,
+    // but a SUBCLASS's static SHADOWS its base's — so extending the kernel
+    // `Spade` and declaring `self` here would silently drop `dig`, and
+    // every test would pass because the affordance is a static nothing
+    // type-checks. This is the `Panel` precedent, one class over.
+    self: [
+      'platform/cmd/ground/dig.yaml',
+      'trade/farming/cmd/farming/plot.yaml',
+    ],
     // ⚠⚠ **And it lights up `measure` too, which it did not until a live
     // drive.** The doc comment above cited the right rule — *"the same
     // relationship `SurveyInstrument` has to `measure`"* — and then wired

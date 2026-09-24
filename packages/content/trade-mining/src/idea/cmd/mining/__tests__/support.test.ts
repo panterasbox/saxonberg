@@ -19,6 +19,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ShoreController from '../ShoreController';
 import HewController from '../HewController';
+import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
 import DriveController from '../DriveController';
 import TimberSet from '../../../../thing/TimberSet';
 import MineWarren from '../../../MineWarren';
@@ -89,6 +90,23 @@ function room(cell: Cell): MineRoom {
   stampTemplatePathForTest(r, TYPE_ROWS.face);
   zone.addLocation(r as unknown as never, cell[0], cell[1], cell[2]);
   return r;
+}
+
+/**
+ * ⭐ A pick, bound as the view's `tool` arg would bind it.
+ *
+ * ⚠ Since the extraction build `hew` ASKS for it. The pick has declared
+ * `winning` since it shipped and nothing ever checked — *a tool that is not
+ * required is a number with no referent* — so every one of these cases used
+ * to cut rock bare-handed.
+ */
+function pick(): { raw: string; stuff: Stuff } {
+  const t = makeStuff(() => {
+    const item = new ToolItem();
+    item.capabilities = ['winning', 'striking'];
+    return item;
+  }) as unknown as Stuff;
+  return { raw: 'pick', stuff: t };
 }
 
 async function run(
@@ -288,7 +306,7 @@ describe('ground support', () => {
 
     const hurt = vi.spyOn(ConditionApi, 'inflict').mockReturnValue({} as never);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    await run(HewController as never, { face: target.direction }, here as unknown as Stuff, `hew ${target.direction}`);
+    await run(HewController as never, { face: target.direction , tool: pick() }, here as unknown as Stuff, `hew ${target.direction}`);
     await settle(60000);
 
     // The face blocked…
@@ -314,7 +332,7 @@ describe('ground support', () => {
     here.blockFace(target.direction);
     expect((await here.facesOf()).find((f) => f.direction === target.direction)!.blocked).toBe(true);
 
-    await run(HewController as never, { face: target.direction }, here as unknown as Stuff, `hew ${target.direction}`);
+    await run(HewController as never, { face: target.direction , tool: pick() }, here as unknown as Stuff, `hew ${target.direction}`);
     await settle(60000);
     expect(here.getBlockedFaces()).not.toContain(target.direction);
     // …and clearing it won no ore: the swing went on the wrong rock.
@@ -330,7 +348,7 @@ describe('ground support', () => {
     const faces = await here.facesOf();
     const target = faces.find((f) => f.kind === 'seam' && !f.open)!;
     for (let i = 0; i < (target.remaining ?? 1); i++) {
-      await run(HewController as never, { face: target.direction }, here as unknown as Stuff, 'hew');
+      await run(HewController as never, { face: target.direction , tool: pick() }, here as unknown as Stuff, 'hew');
       await settle(60000);
     }
     expect(here.getBlockedFaces()).toEqual([]);

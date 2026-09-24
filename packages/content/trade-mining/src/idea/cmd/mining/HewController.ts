@@ -24,6 +24,7 @@ import { MiningActController, MINING_TOPIC } from './MiningActController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -54,6 +55,8 @@ const BRUISE_J = 40;
 
 interface HewModel extends CommandModel {
   face?: string;
+  /** ⭐ The instrument is bound by the view, never hunted for here. */
+  tool?: MqlOneResult;
 }
 
 export default class HewController extends MiningActController<HewModel> {
@@ -62,6 +65,25 @@ export default class HewController extends MiningActController<HewModel> {
     const working = this.workingOf(giver);
     if (!working) {
       this.decline(context, Mml.compose`There is no face to cut here.`, 'not-a-working');
+      return;
+    }
+
+    // ⚠⚠ **The pick, at last asked for.** It has declared `winning` since it
+    // shipped and nothing ever checked, so `hew` worked bare-handed — *a
+    // tool that is not required is a number with no referent*. The
+    // extraction build is the first act to ask, so `hew` is corrected in the
+    // same breath rather than left as the odd one out.
+    const bound = model.tool?.stuff ?? null;
+    const tool =
+      bound !== null && MixinApi.isTool(bound) && bound.hasCapability('winning')
+        ? bound
+        : null;
+    if (!tool) {
+      this.decline(
+        context,
+        Mml.compose`Not with that. You would want a pick — something to win rock with.`,
+        'no-pick',
+      );
       return;
     }
 
