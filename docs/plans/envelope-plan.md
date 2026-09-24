@@ -647,7 +647,9 @@ object; their fuel is D7's bill.
 extent, and a schedule at sunset.**
 
 - `PublicLightingMixin` (`lib/perception/PublicLighting.ts`) composed on
-  `CartesianLocation` (over `Detailed`): authorable `publicLighting: {
+  **`platform/location/Street`** (⚠ it went on `CartesianLocation` during
+  the build and was corrected at review — see the host-placement table):
+  authorable `publicLighting: {
   flux: number, colorTemperature?: number, detail: string, seniority:
   number } | null`. Reads: `isPubliclyLitNow(): boolean` =
   `publicLighting && skyFactorNow() < lampDuskFactor &&
@@ -841,7 +843,7 @@ tests pin the winter numbers. Recorded in Risks.
 | `Hearth` class | `platform/thing/Hearth.ts` (instanceable), rows at `/stuff/thing/Hearth` in generic-objects | A commons object: a second inn's fireplace is a row. |
 | `Lamp` class (rewritten) | `platform/thing/Lamp.ts` | *A light that burns fuel.* The lantern and the torch; not the glowcap (stays `PortableLight`), not the mana lamp (arcana's, on `ChargedMixin`), not the sconce (generic-objects', switchable — a candidate to move onto `Lamp` in the content pass if its fiction is oil). |
 | `getEmittedFlux()` lit-gate | `FurnaceMixin` | *A fuelled appliance casts light only while lit.* True of all five composers (Campfire, Forge, Oven, Kiln, Lamp, Hearth); chains `super` only if the base emits. Fixes the shipped campfire defect. |
-| `PublicLightingMixin` (`publicLighting`, `isPubliclyLitNow`, the `getDetail` line) | `CartesianLocation` (over `Detailed`) | *Any cartesian cell may be lit by a funded public service.* Inert unless declared. Not on `Location` (no `Detailed` there) and not on `FurnishableRoom` (interiors are where objects earn their place — S3). |
+| `PublicLightingMixin` (`publicLighting`, `isPubliclyLitNow`, the `getDetail` line) | ⚠ **`platform/location/Street`** — corrected at review, 2026-09-24 | It shipped on `CartesianLocation`, reasoned as *"any cartesian cell may be lit by a funded public service."* ⚠⚠ **That is a rationalization for a catch-all bucket** and the review caught it: the base under very nearly every room in the game, so a sealed cellar, a smithy, a mine heading and a ploughed field all carried a lighting field and a `postRegister` hook to answer for. ⭐ The tell was already in the code — `if (this.publicLighting === null) return;` at the top of that hook is a mixin **re-narrowing its own host set**, which is the documented signal for the wrong host. **Five rows in the realm declare the service.** They get a class; nothing else pays. |
 | `_publicLighting` (fuel rate + supplier) + `_lightingNight` + `_lightingLitStreets` + `settleStreetLighting()` | `Locality` | *An extent may fund a service and keep the record of what it lit.* The same tier that carries `_weatherPin`, `_governmentKey`, `_reach`. The verb is on the object; `AddressApi.settleStreetLighting()` only iterates. |
 | `wears: string[]` | `NPC` (`lib/npc/NPC.ts` → `Cast`, `Extra`) | *Any non-player person can be authored dressed.* Honest of both rungs. Not on `Agent`/`Creature` (an animal is not dressed by a row) and not on `Avatar` (players dress at enroll). |
 | solar temperature term | `WeatherLogic` (`deviatedFieldFor`) | *Weather is sky dynamics*; the sun's annual/diurnal temperature is the same term the type deviation is. Reaches sky-exposed scopes through the existing fold and envelope hosts through D3c; nothing else. |
@@ -1581,7 +1583,7 @@ The five links, per new capability. Each fails closed and silent.
 | the sky | none (a `look`) | — | **derived** from the row's biome chain (`isSkyExposed`); no row edit | the celestial singleton is `singletonSync`-created on first read; the memo seeds itself | — |
 | the room's warmth, and why | `feel` (bare) — ships; now names the cause | — | `fabric:` optional (a Material path that authors `thermalConductivity`); universe default applies | none; reconcile-on-read; the fabric resolves at the first async read | `requires: any` |
 | the body's cold | `look` body line / the `self.body` cue — ship | — | dials | — | — |
-| public lighting | `look at lamps` — `look` ships; the detail is the row's | `PublicLightingMixin.getDetail` | `publicLighting:` on street rows + `_publicLighting` on the locality + the realm treasury + a supplier Business with a primary account | `civic:lighting` registered in `registerSystemSchedules`; the boot-time settle | — |
+| public lighting | `look at lamps` — `look` ships; the detail is the row's | `PublicLightingMixin.getDetail` | `publicLighting:` on `Street` rows + `_publicLighting` on the locality + the realm treasury + a supplier Business with a primary account | `civic:lighting` registered in `registerSystemSchedules`; the boot-time settle | — |
 | the town pays | none (a schedule) | — | the realm treasury (`/compact/treasury`, `BankingApi.appropriate`) + a supplier Business with a primary account (**a treasury holding less than one street-night lights nothing** — the shipped refusal) | the clock boots before packs finish? Verify `registerSystemSchedules` runs after the address registry is warm; if not, the callback resolves lazily on first fire | — |
 | hours | `clock on/off` ship; the roster tick | `shifts` brain on each cast row (`behaviors:`) | roster `schedule` windows | `EmploymentLogic.boot` arms the tick — ships | — |
 | S9 night vision | none | — | `koboldus.yaml` `bandShift: +1` | species catalogue — ships | — |

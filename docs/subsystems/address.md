@@ -162,7 +162,7 @@ extent cover?"* is **this subsystem's**, and that is why
 `Locality`.
 
 It is one registry walk for the whole realm per game night: every scope
-composing `PublicLightingMixin`, bucketed by the covering locality each
+composing `PublicLightingMixin` (i.e. the `Street` class), bucketed by the covering locality each
 one resolved at its own `postRegister`, sorted by the seniority its row
 records, and each extent handed its own queue.
 

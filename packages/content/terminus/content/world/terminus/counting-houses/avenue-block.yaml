@@ -13,7 +13,7 @@
 # here — finished set-dressing that makes the district legible and defines
 # Goodkin by contrast — never enterable (the accepted-vs-refused contrast waits
 # for a real rival build; rivals-out per the requirements).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Street
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the

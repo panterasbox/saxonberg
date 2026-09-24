@@ -17,6 +17,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianLocation from '../../location/CartesianLocation';
+import StreetClass from '../../../platform/location/Street';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Locality from '../../../platform/idea/Locality';
 import { VisionModality } from '../../../platform/idea/modalities/VisionModality';
@@ -57,7 +58,7 @@ function makeStreet(seniority = 1): Street {
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
   const s = makeStuffAtPath(
-    () => new CartesianLocation(),
+    () => new StreetClass(),
     STREET,
   ) as unknown as Street;
   zone.addLocation(s as unknown as CartesianLocation, 0, 0, 0);
@@ -144,11 +145,22 @@ describe('the lamps are PROSE, and say which of three things is true', () => {
     expect(street.getDetail('lamps')).toMatch(/out; it is daylight/);
   });
 
-  it('a street the town never lit has no lamps to speak of at all', () => {
-    const dark = makeStuff(() => new CartesianLocation()) as unknown as Street;
-    expect(MixinApi.isPublicLighting(dark as never)).toBe(true); // inert
-    expect(dark.getDetail('lamps')).toBeNull();
-    expect(dark.isPubliclyLitNow()).toBe(false);
+  it('a road the town never lit is not a lighting host AT ALL', () => {
+    // ⚠⚠ **This assertion flipped, and the flip is the point** (review,
+    // 2026-09-24). It used to read `isPublicLighting(dark) === true //
+    // inert` on a bare `CartesianLocation` — i.e. it asserted that every
+    // cell in the game is a public-lighting host that happens to be
+    // switched off. That was the test agreeing with a mis-hosted mixin
+    // rather than checking it: a cellar, a smithy, a mine heading and a
+    // ploughed field were all lighting hosts.
+    //
+    // ⭐ The service lives on `Street` now, so a road the town never lit
+    // does not carry the concept, and the absence is structural rather
+    // than a null. `delight-road/crossroads` — the drive's unlit road —
+    // is exactly this row.
+    const road = makeStuff(() => new CartesianLocation());
+    expect(MixinApi.isPublicLighting(road as never)).toBe(false);
+    expect((road as unknown as Street).getDetail('lamps')).toBeNull();
   });
 });
 
@@ -158,7 +170,7 @@ describe('⭐⭐ the extent decides, in an order written in ADVANCE', () => {
     // the moment of refusal, because the decision was made before
     // anybody knew there would be a shortfall.
     const second = makeStuffAtPath(
-      () => new CartesianLocation(),
+      () => new StreetClass(),
       '/world/_civic/street-2',
     ) as unknown as Street;
     second.publicLighting = { flux: 400, detail: 'lamps', seniority: 9 };

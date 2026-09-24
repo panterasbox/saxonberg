@@ -4,7 +4,7 @@
 # declares `mayfield` in) — non-cardinal names are admissible across a
 # zone boundary, and a street you turn INTO reads better named than
 # compassed (the lot-gate precedent).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Street
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the

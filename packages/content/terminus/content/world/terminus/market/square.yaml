@@ -16,7 +16,7 @@
 #
 # NORTHEAST back up the lane to the avenue block (cross-zone, both sides
 # explicit — the block declares SOUTHWEST here).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Street
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the

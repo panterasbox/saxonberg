@@ -1,8 +1,13 @@
 /**
- * Crossing — the University Avenue street segment Gus guards. A plain
- * `CartesianLocation` with one bespoke behaviour: a **dynamic `tower`
+ * Crossing — the University Avenue street segment Gus guards. A
+ * {@link Street} with one bespoke behaviour: a **dynamic `tower`
  * detail** that reports the accurate civic time on the terminal clock
  * tower across the avenue.
+ *
+ * ⭐ It is a `Street` rather than a plain location because its row
+ * declares `publicLighting:` — the avenue association pays for this
+ * one, which is what the drive stands on to prove a funded street goes
+ * dark when the town cannot pay.
  *
  * The tower itself is prose (there is no `ClockTower` Stuff) — its face
  * only ever reads world-time, so the detail reads `WorldClockApi`
@@ -13,7 +18,7 @@
  * static base string is returned unchanged.
  */
 
-import SingletonCartesianLocation from '../../lib/location/SingletonCartesianLocation';
+import Street from './Street';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
@@ -22,7 +27,7 @@ import { TemplatePaths } from '../../lib/paths';
 import type { DetailId } from '../../lib/description/Detailed';
 import type { SenseChannel } from '../../lib/description/Perceiver';
 
-export default class Crossing extends SingletonCartesianLocation {
+export default class Crossing extends Street {
   /**
    * The accurate civic time on the tower face — world-time-of-day
    * formatted `HH:MM`, or `null` when no world clock is running (a bare

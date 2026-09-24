@@ -813,8 +813,9 @@ than a silent half-truth.
 
 ### The town's lamps are a PROPERTY of the street
 
-`PublicLightingMixin` on `CartesianLocation`. A street declares that the
-service runs here (`flux`, a `detail` id, and a `seniority`); whether it
+`PublicLightingMixin` on **`platform/location/Street`** — the singleton
+public way, which is the only kind of place a town lights. A street
+declares that the service runs here (`flux`, a `detail` id, and a `seniority`); whether it
 is burning is **derived** — funded, after dusk, therefore lit. The lamps
 themselves are prose: a dynamic detail saying *burning*, *standing cold*
 or *out; it is daylight*. **Nothing is minted**, and
