@@ -1088,7 +1088,7 @@ puddle. Which is exactly what the row's own prose has always said.
    warning rather than adding information. The first line still names a room, so
    the cause stays diagnosable.
 
-### W5 — the census, the drive (D23, D24)
+### W5 — the census, the drive (D23, D24) — ✅ DONE
 
 *Goal:* the whole picture is readable at build time and the second list can
 only fall; the requirements' drive runs over the wire.
@@ -1117,6 +1117,147 @@ entry, and every floor row carrying `ground` + `floor` (flip one row's
 keywords locally and watch clause (d) fail before trusting it); `--report` names all 184+ rows; the wire file passes; the full suite
 once (`pnpm test`), then push and open the MR.
 Commit: `build(ground W5): lint:ground — the census; the drive as a wire file`.
+
+**✅ Done.** `scripts/check-ground.ts` + `lint:ground` (the family is now **49
+gates**, derived); `docs/lint-family.md` gained a full entry;
+`lib/ground/__tests__/InventedMaterial.test.ts` (drive steps 22–23);
+`packages/wire/tests/ground.wire.test.ts` — **27/27**.
+
+⭐ **The Location count is 139, not 184.** The plan's opening census counted
+`/platform/idea/location/*` ZONE rows with the rooms. 139 Locations + 57 zones.
+
+⭐ **List 2 is 28, against 66 candidates the heuristic proposed**, and the
+curation is the interesting half — the docblock states the inclusion test so it
+can be argued with (*the prose names a floor material or construction and the
+room authors neither*) and enumerates what was removed: idiom (*"rooms let by
+the floor"* is a storey), similes (*"a ledger the size of a paving slab"*),
+⭐ **a trade FLOOR being a room and not a ground** (six goods-yards rows are
+*named* `…/location/floor`), other things made of boards, dust and sawdust, a
+detail's own floor, and rooms this build now answers. Coverings — rugs,
+carpets, matting — are excluded with their own seam, because one meter must not
+measure two debts.
+
+**The gate grew a clause the plan did not have.** ⚠⚠ **(f) a Floor row must not
+author a detail named `floor` or `ground`** — see the drive record; that is the
+defect the drive found, made unrepeatable.
+
+---
+
+## Drive record
+
+**`packages/wire/tests/ground.wire.test.ts`, `WIRE_BOOT=1 WIRE_PORT=2013`.
+Three runs: 17/27 → 26/27 → ⭐ 27/27.** Clean, not dirty — every act is a
+posture, a read or a refusal, so the world after a run is the world before it.
+
+### Run 1 — 17 passed, 10 failed
+
+⭐⭐ **All four of the cycle's opening failures passed on the first run**: `sit`,
+`lie`, `kneel`, `look floor`, `look ground` and `sit on the ground`, in the
+warren-minted room a brand-new character lands in. That is the build's whole
+reason for existing, and it worked.
+
+What the ten failures were:
+
+1. ⚠⚠ **THE DEFECT — a floor's own `details.floor` SHADOWED the floor** (4
+   failures). `look floor` bound the **detail**, and a detail's description
+   renders **without the host's `markupAugmenters`** — so the derived sentence
+   naming the material was invisible **in exactly the place an author would
+   look for it**. Every affected row read *"A featureless plain floor."* and
+   nothing else. ⭐ The detail was a workaround from the era when a floor was
+   not addressable by its own name; the keyword union retired the need for it,
+   and leaving it in place made it actively harmful. Five rows lost their
+   self-referential detail (`default-floor`, `weeping`, `heath`, `brine`,
+   `flooded`); the crossing's `track` and the yard's `gutter` stay, because a
+   detail naming a real sub-feature is what details are FOR. ⭐ Made
+   unrepeatable as `lint:ground` clause (f).
+2. ⚠ **A harness bug wearing a product failure's costume** (5 failures).
+   `uniqueHandle('ground-street')` returns `wire-ground-street-…`, so
+   `open.find(x => x.handle.startsWith('ground-street'))` silently found
+   nothing and five assertions died as *"Cannot read properties of
+   undefined"*. Sessions are held in named variables now.
+3. One 30 s timeout on the wood, which run 2 showed was a consequence of (1).
+
+### Run 2 — 26 passed, 1 failed, and the failure is a finding this build does not own
+
+The market square read **"It is granite, laid in slabs."** — the material
+right (rung 2 ✓) and the construction wrong: `slab` is the *off-grade* answer,
+and a cobbled market square is emphatically on grade.
+
+⭐ **It was the only road in the walk that exercised the sky-exposure
+derivation at all** — the crossing and the goods yards author `onGrade: true`
+on their floor rows, and Hinkley's lane is earth-and-worked, which folds to
+`beaten-floor` either way. One room, and it was wrong.
+
+**Probed live, five rooms, and the result is bigger than the square:**
+
+```
+square    It is granite, laid in slabs.     (rung 2, off grade)
+clearing  It is oak, laid as boards.        (rung 4, INDOOR default)
+hinkley   It is oak, laid as boards.
+pithead   It is oak, laid as boards.
+adit      It is oak, laid as boards.        ← a MINE
+```
+
+**Every outdoor room in the booted world answers *not on grade*, so the ladder
+never reaches rung 3 and they all take the indoor default.**
+
+⚠ **The mechanism is not the fault, and the cause is now a TEST rather than a
+hypothesis.** `Location.floor.test.ts` runs the same room twice through the real
+clone pipeline and the only difference is one line:
+
+```
+a cited biome nothing cloned  → getBiome() === null → not on grade → oak boards
+await StuffApi.singleton(BIOME) first → getBiome() resolves → ON GRADE → set-paving
+```
+
+⭐⭐ **So the cause is that `Atmospheric.getBiome()` has no get-or-create.** It is
+an identity ref resolved on read through `BiomeApi.findByPath` →
+`StuffApi.findByTemplatePath` — a **registry** read. A room whose row cites a
+biome nobody instantiated answers `null` forever; `isSkyExposed` then answers
+`false`, which is its documented behaviour when no biome resolves. That is the
+***reference Ideas inert at boot*** shape this repo has recorded **three times
+before**, and `StuffApi.singleton` is the shipped answer to it
+(`lint:get-or-create` exists because of it). ⚠ It belongs to the biome owner,
+not here: changing `getBiome()` to clone on read is a one-line fix with a
+world-sized blast radius — every room in the game, on a path the weather walk
+hits constantly — and it is not this build's call to make.
+
+`Floor.test.ts` also pins the other limb independently: a room **below datum**
+is on grade with **no biome at all**, so the two limbs cannot mask each other
+again.
+
+⭐ **What the build did about it, and deliberately no more.** The two rooms it
+authored now say `onGrade: true` out loud — which is right on its own terms,
+since a street IS on grade and the crossing and the yard already said so. It
+did **not** add a third derivation limb to paper over a biome that does not
+resolve: that would hide the finding in the one place it is currently legible.
+⚠ **AC 8 and AC 14 are therefore mechanically delivered and observably thin**
+— a wood answers what its ground is like, and what it answers today is the
+indoor default. The wire file says so at the step rather than asserting a
+success it does not have, and `lint:ground --report`'s `default:on-grade` count
+is the meter for the fix. → offered to the **biome** owner and the 1.0 content
+pass.
+
+### Run 3 — ⭐ 27/27
+
+Every step a socket can settle. What is covered elsewhere, and why:
+
+| steps | where | why not the wire |
+|---|---|---|
+| 22–23 the invented material | `lib/ground/__tests__/InventedMaterial.test.ts` | needs **authoring**, which a socket cannot do |
+| 24 the census | `pnpm lint:ground` + `--report` | it is a build-time gate |
+| 16–17 the mine and the field unchanged | `metal-chain` / `farming` wire suites passing | a regression claim is better made by the suites that already assert those flows |
+| 14 the spill | `Location.floor.test.ts` (the seam) | pouring over a socket needs a funded session and the hospitality flow → offered to the bulk slate |
+
+### The reachability chain, walked
+
+| link | state |
+|---|---|
+| **verb** | `sit`/`lie`/`kneel`/`stand`, `look`, `search` — all pre-existing |
+| **affordance** | none needed: the posture views are global and the floor is a *target*, not an afforder |
+| **data** | `default-floor` (keywords fixed), 5 material rows, 2 paving rows, `noDefaultFloor` on the void, the pack's default character + its settings row |
+| **boot** | nothing to warm — the floor attaches at `postRegister` of every room clone, including the Lounge's warren-minted rooms. ⚠ The materials DO need `MaterialCatalogue.warm`, which selects by the `/idea/material/` infix across every root, so `earth/*` is covered with no list edit (asserted in `InventedMaterial.test.ts`) |
+| **arg gate** | `requires: [VisibleMixin, PosturedMixin]` — `Floor` composes both; ⭐ and the keyword `ground` is on the floor's **own** `getKeywords()`, which is the only pool the scope walk reads. **This is the link that was broken**, and attaching the row alone would not have mended it |
 
 ---
 

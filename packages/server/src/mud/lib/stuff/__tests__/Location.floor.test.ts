@@ -290,6 +290,128 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
   });
 });
 
+describe('11 · a spill pools in a room that had no floor before', () => {
+  beforeEach(() => {
+    installStore([
+      {
+        path: '/test/room/spill',
+        class: '/platform/location/CartesianLocation',
+        hydratorClass: HYDRATOR,
+        data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
+      },
+    ]);
+  });
+
+  it('⭐ the default floor carries the puddle slot, so the room is a sink', async () => {
+    // AC 11, at the seam. The room authors nothing; before this build it had
+    // no floor at all, so `BulkableLogic.floorSurfaceNear` walked its
+    // container chain and found nothing to pool into — a spill went nowhere.
+    // The `default-floor` row declares `surfaceBulk: true`, so every room in
+    // the game is now a sink, which is what makes the shipped
+    // weather→bulk→electricity loop reach rooms nobody authored a floor for.
+    const room = await StuffApi.clone<CartesianLocation>('/test/room/spill');
+    const floor = room.getFloor()!;
+    expect(MixinApi.isBulkable(floor)).toBe(true);
+    expect(
+      (floor as unknown as { hasSurfaceBulk(): boolean }).hasSurfaceBulk()
+    ).toBe(true);
+  });
+
+  it('…and the three resolvers reach it through the room\u2019s one read', async () => {
+    const room = await StuffApi.clone<CartesianLocation>('/test/room/spill');
+    // `getFloor()` is what `floorSurfaceNear`, `findFloor` and
+    // `findRoomFloor` all now ask, in place of three fixture scans.
+    expect(room.getFloor()).not.toBeNull();
+    expect(MixinApi.isFloor(room.getFloor()!)).toBe(true);
+  });
+});
+
+describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding', () => {
+  /**
+   * The drive read *"It is oak, laid as boards"* in a wood clearing, a
+   * concrete apron, a pithead yard and a mine adit — every outdoor room in
+   * the world, and the mine one is the tell: `z < 0` should make it on grade
+   * without any biome at all. So the whole derivation was answering false.
+   *
+   * This reproduces it against the real pipeline: a room cloned from a row,
+   * with a hydrated `SkyExposedBiome` cited the way every outdoor row cites
+   * one, and a sibling below datum.
+   */
+  const BIOME = '/test/biome/outdoor';
+
+  beforeEach(() => {
+    installStore([
+      {
+        path: BIOME,
+        class: '/platform/idea/SkyExposedBiome',
+        hydratorClass: HYDRATOR,
+        data: { name: 'outdoor-test' },
+      },
+      {
+        path: '/test/room/street',
+        class: '/platform/location/CartesianLocation',
+        hydratorClass: HYDRATOR,
+        data: {
+          shortDescription: 'a street',
+          coordinates: [0, 0, 0],
+          _biomePath: BIOME,
+          floor: { material: '/test/material/granite-x', worked: true },
+        },
+      },
+      {
+        path: '/test/room/gallery',
+        class: '/platform/location/CartesianLocation',
+        hydratorClass: HYDRATOR,
+        data: { shortDescription: 'a gallery', coordinates: [0, 0, -4] },
+      },
+    ]);
+  });
+
+  it('⚠⚠ a cited biome that nothing cloned resolves to NULL — and the floor reads indoors', async () => {
+    // ⭐⭐ **This is the diagnosis of the drive's finding, as a test.**
+    // `Atmospheric.getBiome()` is an identity ref resolved on read through
+    // `BiomeApi.findByPath` → `StuffApi.findByTemplatePath` — a REGISTRY
+    // read with **no get-or-create**. So a room whose row cites a biome
+    // nobody has instantiated answers `null` forever, `isSkyExposed` answers
+    // `false` (its documented behaviour when no biome resolves), and the
+    // floor takes the indoor default. That is the *reference Ideas inert at
+    // boot* shape, which this repo has recorded three times before, and it
+    // is why five outdoor rooms in the booted world read as oak boards.
+    const room = await StuffApi.clone<CartesianLocation>('/test/room/street');
+    expect(room.getBiome()).toBeNull();
+    expect((room.getFloor() as unknown as Floor).isOnGrade()).toBe(false);
+  });
+
+  it('⭐ …and once the biome EXISTS, the same room is on grade', async () => {
+    // `singleton` IS the get-or-create, and one line of it is the whole
+    // difference between the two readings. The mechanism is not at fault.
+    await StuffApi.singleton(BIOME);
+    const room = await StuffApi.clone<CartesianLocation>('/test/room/street');
+    expect(room.getBiome()).not.toBeNull();
+    expect((room.getFloor() as unknown as Floor).isOnGrade()).toBe(true);
+  });
+
+  it('⭐⭐ …so its cobbles are SET PAVING, not a slab', async () => {
+    await StuffApi.singleton(BIOME);
+    makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('granite');
+      m.setTags(['rock']);
+      return m;
+    }, '/test/material/granite-x');
+    const room = await StuffApi.clone<CartesianLocation>('/test/room/street');
+    const floor = room.getFloor() as unknown as Floor;
+    expect(floor.getUnderfootRung()).toBe(2);
+    expect(floor.getGroundKind()).toBe('set-paving');
+  });
+
+  it('⭐ a room BELOW DATUM is on grade with no biome at all', async () => {
+    const room = await StuffApi.clone<CartesianLocation>('/test/room/gallery');
+    const floor = room.getFloor() as unknown as Floor;
+    expect(floor.isOnGrade()).toBe(true);
+  });
+});
+
 describe('the default-floor row this all depends on', () => {
   it('⚠ exists on disk at the path the kernel names', () => {
     // `lint:census` clause (c) checks only Registry/Catalogue constants, so

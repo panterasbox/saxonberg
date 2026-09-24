@@ -34,6 +34,16 @@ data:
   floor:
     material: /stuff/idea/material/rock/granite
     worked: true
+    # ⚠⚠ `onGrade` AUTHORED, and the drive is why. Left to derive, this
+    # square read *"It is granite, laid in slabs"* in a booted world —
+    # `slab` is the off-grade answer, and a cobbled market square is
+    # emphatically on grade. The derivation's below-datum limb works and its
+    # sky-exposure limb works whenever a room's biome resolves (both pinned
+    # in `lib/ground/__tests__/Floor.test.ts`), but FIVE outdoor rooms in the
+    # shipped world answer false — see the ground plan's drive record. So a
+    # street says so, exactly as the crossing's and the goods yards' own
+    # floor rows already do.
+    onGrade: true
   longDescription: |
     A cobbled square opening off a side lane of the counting-houses, strung with bunting somebody rehangs every season and nobody remembers hanging first. Trestle stalls stand in a rough ring under canvas, crates-turned-tables stacked with whatever came in this morning; the chalkboard over the long produce stall lists growers' asks in a dozen hands. It smells of bruised mint and orange peel, and argues pleasantly with itself from open to close.
   coords:

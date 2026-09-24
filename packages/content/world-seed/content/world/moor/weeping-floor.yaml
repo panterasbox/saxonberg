@@ -31,7 +31,14 @@ data:
       capacity: 9007199254740991
       postures: [sit, lie, kneel, stand]
       userFacingDetail: floor
-  details:
-    floor:
-      keywords: [floor, flagstones, ground, water, pool]
-      description: Worn flagstones under a spreading skin of rainwater.
+  # ⚠⚠ **No `floor` / `ground` DETAIL.** There used to be one here, and the
+  # drive is what found it: `look floor` bound the DETAIL rather than the
+  # floor object, and a detail's description renders WITHOUT the host's
+  # `markupAugmenters` — so the derived sentence naming the material was
+  # invisible in exactly the place an author would look for it. The detail
+  # was a workaround for a floor not being addressable by its own name;
+  # `FloorMixin` unions `floor` and `ground` onto the class, so the object
+  # answers and the self-referential detail is now redundant AND harmful.
+  # `lint:ground` clause (f) refuses one. A detail naming a real sub-feature
+  # — the crossing's worn track, the yard's gutter — is the opposite case
+  # and is exactly what details are for.

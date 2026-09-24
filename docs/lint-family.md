@@ -677,6 +677,66 @@ nothing at all if it cannot reach the band.
 the family's shared reader — because both new gates need to answer *does
 this class compose X?* from the class file.
 
+### `lint:ground` — what is every room standing on? (2026-09)
+
+Two lists and five clauses (`scripts/check-ground.ts`).
+
+**List 1** (`--report`) is derived: every one of the **139 Location rows**
+and how its ground is decided — an authored floor row, a `floor:` spec on
+the room, `noDefaultFloor`, or the default floor resolving its own material.
+⚠ Rung 3 of that ladder, *the ground beneath*, cannot be resolved
+statically: it needs a zone-citation walk and a seed off the covering
+Locality's address, both runtime facts. So an on-grade default reads
+`default:on-grade` — *a `GroundSource` answers this, or the outdoor dial
+does* — and the drive is what reads them out loud.
+
+⭐ **The Location count is 139, not 184.** The plan's opening figure counted
+`/platform/idea/location/*` ZONE rows with the rooms. 139 Locations + 57
+zones.
+
+**List 2** is hand-curated, and the docblock states the inclusion test so it
+can be argued with: *the prose names a floor material or construction, and
+the room authors neither.* 28 entries, against **66** the `--seed` heuristic
+proposed. What curation removed is the interesting part — idiom (*"rooms let
+by the floor"*), similes (*"a ledger the size of a paving slab"*), **a trade
+FLOOR being a room and not a ground** (six goods-yards rows are *named*
+`…/location/floor`), other things made of boards (bulletin boards, a price
+board, boards over a shaft), dust and sawdust, a detail's own floor, and
+⭐ rooms this build now ANSWERS (the mine's workings read their host rock
+through rung 3; that is the mechanism working, not a debt).
+
+⚠ Coverings — rugs, carpets, matting — are deliberately **excluded**, with
+their own seam on the field-substrate slate. A covering is not what a floor
+IS, and listing them would make one meter measure two debts.
+
+**The clauses.** (a) the list may fall and never rise; (b) every listed path
+is a real Location row, so the list cannot fill with ghosts; ⭐ (c) **a
+listed row that now authors a floor FAILS** — the debt is paid, so delete
+the line and lower the ceiling, and the gate refuses to let the credit go
+unrecorded, which is what makes the meter move; (d) every row whose `class:`
+composes `FloorMixin` carries **both** `ground` and `floor` in its own
+`keywords:`; (e) every Location class overriding `postRegister` chains
+`super.postRegister`.
+
+⚠⚠ Clause (d) is not tidiness, and it found three shipped rows on its first
+run. The MQL scope walk pools a thing's own `getKeywords()`, and
+`pushDetails` gives a detail the pool `[<its id>]` and **never** its authored
+keyword list — so a floor's `details.floor.keywords: [ground]` is dead text.
+`weeping-floor` authored `[flagstones, wet]` and was therefore a floor
+nothing could sit on or look at. `FloorMixin` unions both words onto the
+class so the failure is impossible; this clause makes every row say them out
+loud as well, so a row reads honestly on its own.
+
+⭐ Clause (e) exists because `PostRegistrationMixin`'s default is a
+**non-chaining** no-op: an override that forgets `super` silently leaves its
+rooms floorless and nothing else goes wrong. Six of the Location family's
+overrides had no `super` call before the ground build. The kernel's roster
+test covers the kernel's classes; a pack's cannot be imported by a kernel
+test, so the gate covers those. ⚠ Its first draft asked *does the FILE
+mention `Location`?* and flagged `CommandGiver`, `CardRegistry` and `Screen`,
+none of which is a room — the honest test is the class walk
+(`composesMixin(classPath, 'Location')`).
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read

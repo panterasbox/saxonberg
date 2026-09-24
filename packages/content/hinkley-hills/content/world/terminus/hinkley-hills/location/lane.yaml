@@ -36,6 +36,9 @@ data:
   floor:
     material: /stuff/idea/material/earth/loam
     worked: true
+    # On grade, said out loud for the same reason the market square says it
+    # — see that row, and the ground plan's drive record.
+    onGrade: true
   longDescription: |
     A made road with nothing on it, running west up the slope between lots that were surveyed and then left alone. Stakes and faded string mark out the boundaries; the grass inside them is the same grass as outside them, only taller where nobody walks.
 

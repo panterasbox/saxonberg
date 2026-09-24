@@ -48,6 +48,7 @@
     "lint:identity": "tsx scripts/check-identity.ts",
     "lint:person-keys": "tsx scripts/check-person-keys.ts",
     "lint:get-or-create": "tsx scripts/check-get-or-create.ts",
+    "lint:ground": "tsx scripts/check-ground.ts",
     "lint:lib-statics": "tsx scripts/check-lib-statics.ts --lint",
     "lint:presentation": "tsx scripts/check-presentation.ts --lint",
     "lint:does-nothing": "tsx scripts/check-does-nothing.ts",

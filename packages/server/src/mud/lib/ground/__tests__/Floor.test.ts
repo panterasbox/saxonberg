@@ -23,6 +23,8 @@ import { UNBOUNDED_CAPACITY } from '../../slot/Slotted';
 import { CANONICAL_GROUND_SLOT } from '../Floor';
 import { GroundSourceMixin } from '../GroundSource';
 import { Idea } from '../../stuff/Idea';
+import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
+import Biome from '../../../platform/idea/Biome';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -332,5 +334,53 @@ describe('rung 3 — the ground beneath, through GroundSourceMixin', () => {
     await f.resolveUnderfoot();
     expect(f.isOnGrade()).toBe(false);
     expect(source.asked).toHaveLength(0);
+  });
+});
+
+describe('onGrade — the sky-exposure half, which the drive caught', () => {
+  /**
+   * ⚠⚠ **The market square read `slab` instead of `set-paving`**, and it was
+   * the only road in the drive that exercised this derivation at all: the
+   * crossing and the goods yards author `onGrade: true` on their floor rows,
+   * and Hinkley's lane is earth-and-worked, which folds to `beaten-floor`
+   * whatever the answer. So one room, and it was wrong.
+   *
+   * These assertions pin the rule where nothing can mask it.
+   */
+  it('⭐ a sky-exposed room is on grade, even at datum', () => {
+    const biome = makeStuffAtPath(
+      () => new SkyExposedBiome(),
+      '/test/biome/outdoor'
+    );
+    const room = makeStuff(() => new CartesianLocation());
+    room.setCoordinates([0, 0, 0]);
+    room.setBiome(biome);
+
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+    expect(f.isOnGrade()).toBe(true);
+  });
+
+  it('…so cobbles in a sky-exposed room are SET PAVING, not a slab', () => {
+    const biome = makeStuffAtPath(
+      () => new SkyExposedBiome(),
+      '/test/biome/outdoor-2'
+    );
+    const room = makeStuff(() => new CartesianLocation());
+    room.setBiome(biome);
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+    f.setMaterial(mat('granite'));
+    f.setWorked(true);
+    expect(f.getGroundKind()).toBe('set-paving');
+  });
+
+  it('an indoor biome at datum is NOT on grade', () => {
+    const biome = makeStuffAtPath(() => new Biome(), '/test/biome/indoor');
+    const room = makeStuff(() => new CartesianLocation());
+    room.setBiome(biome);
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+    expect(f.isOnGrade()).toBe(false);
   });
 });
