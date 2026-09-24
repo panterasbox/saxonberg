@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**240 slates.** 55 greenfield · 84 continuations · 55 waves · 46 tails.
+**241 slates.** 55 greenfield · 85 continuations · 55 waves · 46 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (55)
 
@@ -100,7 +100,7 @@ respect.
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (84)
+## ⭐ Continuations — substrate shipped, a build's worth remains (85)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -114,6 +114,7 @@ are the named remainders.
 | [authoring-intelligence](./builds/authoring-intelligence-slate.md) | the platform-semantic model (template-path completion, reference validation, mixin-composition rules + their declared source, scope awareness over the titled extent) · the LSP server · the VS Code extension · the engine `.d.ts` pipeline … |
 | [balance](./builds/balance-slate.md) | the jurisdiction stamp (#0a plant the parcel extent at the command root · #0b `actingParcelKey()` + delete `opts.locality` · #0c title/jurisdiction congruence) · the cross-jurisdiction enumeration … |
 | [bathroom](./builds/bathroom-slate.md) | the washing/cleanliness state · the mirror self-recognition read · the interior lock as a consequence · the closed restroom archetype set + district skins … |
+| [biome-normalization](./builds/biome-normalization-slate.md) | the granularity doctrine (what a biome is a claim about, and the test that decides it) · splitting the three jobs — atmospheric field · sky exposure · sensory dressing … |
 | [campus-grounds](./builds/campus-grounds-slate.md) | the four labs (assay · fermentation · agronomy · medical) + the observatory … |
 | [capability-magic](./builds/capability-magic-slate.md) | Part I — derived physical capacity (baseline × condition, per-part muscle mass as the strength baseline, the attribute readings vitals.md still defers) · conditioning as a bounded, bidirectional channel · the CHA / INT dissolution (derived presence + learned social skill) · the `Transform` primitive's Api (polymorph is its own build) … |
 | [cast-archetype](./builds/cast-archetype-slate.md) | the archetype rows themselves (closed `role` + `temperament` kinds, open entries; the ten temperaments + `counter`/`venue-staff`) · the lens-vs-seed dual compilation · the `requires` config gate + its lint (with `temperament: opaque` and the ungateable role) · standing as pointers (Change 2) … |
