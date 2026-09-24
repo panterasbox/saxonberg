@@ -109,6 +109,27 @@ Eleven decisions, all taken in conversation. Detail follows.
 
 # Part 2 — D1/D2: the realm, contiguous
 
+## ⚠ The boards that produce nothing (trades-and-labor, 2026-09)
+
+Recorded by the trades-and-labor build, which needed the hall's board to
+carry work at world start and found how few houses post anything.
+
+- **Par lines existed in ONE file in the whole realm** (the bar's) before
+  this build, which is why eleven works boards shipped empty. Two more
+  houses now post — the Hearthworks cookhouse and the Mayfield Row tailor
+  — both to the terminal hall's board, which is the one a new arrival
+  reads. The rest of the works-board pool is still Mara alone.
+- **The pithead board stays empty by design, for now**: its demand is
+  player-supplied timber and charcoal, and no NPC house buys either.
+- ⚠ **A house can advertise a par line it cannot fund.** The Hearthworks
+  posts `root-vegetables` and is refused on `stew-meat` every 90 seconds
+  — `contract-refused (you can't fund that reward)` — because its account
+  cannot cover a second escrow at world start. Self-correcting once the
+  kitchen sells anything; log-spam in an empty world. The general shape:
+  **nothing reconciles a par sheet against the house's means**, so an
+  underfunded sheet retries forever rather than posting what it can
+  afford and saying so.
+
 ## The map, and most of it was already drawn
 
 > Shipped → [logistics.md § The corridors](../../subsystems/logistics.md) (the spine end to end; the Lounge and Saxonberg TPA-only by design).

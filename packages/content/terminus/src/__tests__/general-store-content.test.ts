@@ -344,10 +344,16 @@ describe("general-store content integrity", () => {
     expect(knife.data?.constructionForm).toBe("bladed");
   });
 
-  it("the Business operates the counter and rosters the clerk", () => {
+  it("the Business operates the counter AND its room, and rosters the clerk", () => {
     const biz = load(STORE_DIR, "business.yaml");
+    // ⚠⚠ BOTH, and the ROOM is the load-bearing half: a supplier is
+    // found by the ROOM its counter stands in (`restocks` →
+    // `counterRoomOf`), so a house listing only the fixture is
+    // unfindable as a supplier and every par line naming it is skipped
+    // silently. The tailor's cloth order was lost exactly that way.
     expect(biz.data?.operatingLocations).toEqual([
       "/world/terminus/general-store/counter",
+      "/world/terminus/general-store/shop-floor",
     ]);
     // The keeper owns the shop — an `entity` appointing authority. (This
     // read `proprietorPath` until the shipped Businesses were ported off

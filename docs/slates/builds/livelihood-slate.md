@@ -14,7 +14,9 @@
 > law) + illicit arrangements · §3's systemic need-generator + NPC
 > claiming, and the board's pricing + gating · §4's CB allocation +
 > insolvency backstop for business credit, and a capital market · §5.4's
-> capability-grant trust ramp, the AFK wage gate, firing-for-cause,
+> capability-grant trust ramp, the AFK wage gate, ⚠ firing-for-cause
+> (**nothing in the realm ends an employment** — the openings a world
+> ships are the only ones it ever has),
 > diegetic discovery + first-shift teaching, and cozy downtime (the
 > biggest undiscovered requirement) · §6.2's entity forms · §6.3's
 > schedule shapes beyond the shipped NPC roster · §6.4's perks · §6.5's
@@ -197,10 +199,20 @@ See also:
   [contract.md](../../subsystems/contract.md) *§ The clause primitive,*
   [employment.md](../../subsystems/employment.md) *(gig = achieve;
   employment = maintain, paid by time; one* `lib/employment/` *namespace).*
-- **[OPEN] Discoverability surface** — physical board per locality vs a
-  queryable panel (user: "dunno yet"). **[OPEN] Pricing** — flat
-  difficulty-band vs demand-driven. **[OPEN] Gating** — employer-specific
-  standing (buildable now) vs competence bands (advancement dependency).
+- **[NOW] Discoverability surface** — ✅ **decided and shipped** by
+  trades-and-labor, and it went the third way: a **derived** notice the
+  room's `look` prints, not a board object and not a panel. There is no
+  sign to author and no query to run, so ⭐ *a venue with an open seat
+  cannot fail to advertise* — the notice comes off the same arithmetic
+  (`headcount − holders`) that decides the seat is open at all.
+- **[NOW] Gating** — ✅ **both**, and the vocabulary is CLOSED:
+  `{gigs, discipline, band}`. Completed gigs are the entry rung (a
+  newcomer can do one this afternoon) and a competence band is the trade
+  rung. ⛔ Nothing may select on species, lineage, trait, renown or
+  wealth, and `Position.fromData` throws on any other key. Every refusal
+  names what was asked AND what is held, because a criterion a player
+  cannot answer is a wall.
+- **[OPEN] Pricing** — flat difficulty-band vs demand-driven. Untouched.
 
 ## 4. The conserved economy (the big model)
 
@@ -341,7 +353,30 @@ the model it demands):
   hear Dave's stories), not dead air — or belonging never forms and the
   player alt-tabs. **Has no mechanics behind it yet.**
 - **[LEAN] Shift model** — voluntary clock-in, employer-bounded; rigid
-  schedules are hostile to real humans, deferred.
+  schedules are hostile to real humans. ✅ **SHIPPED** by trades-and-labor
+  as `clock on` / `clock off`: holding a job puts you on the chart, not on
+  the clock, and the wage settles at clock-off through the roster tick's
+  own off-transition. The lean decided it — the alternative (writing an
+  applicant a roster slot with the seat's hours) pays them present or not,
+  which is the AFK wage this section names as a failure.
+
+- ⚠⚠ **NOTHING IN THE REALM FIRES ANYBODY** — and the trades-and-labor
+  drive's dirty reason is the proof: it appoints a stranger into the
+  general store's one `hand` place, and the **second run finds the seat
+  filled**, because no mechanism anywhere ends an employment except the
+  holder's own `quit` and the absence-driven `vacated`. A labor market
+  with no exit has exactly as many jobs as it has ever had; the openings a
+  world ships are the only openings it will ever have. That makes
+  firing-for-cause (above) load-bearing rather than flavour, and it is the
+  first thing the next labor build should close.
+
+- ⚠ **A producer can never be her own maker through `order`.** Found by
+  driving: the vintner's hand issues `order dry-vermouth` on her own floor
+  and gets `no-maker`, because `resolveMaker` excludes the giver
+  (`c !== giver`) and she is the only fulfilling agent there. Unchanged by
+  trades-and-labor — either the beat should `make` rather than `order`, or
+  `fulfilling-bartender` mode needs a self-serve case. One for the
+  fermentation trade.
 
 ## 6. The arrangement schema (employment in the abstract)
 

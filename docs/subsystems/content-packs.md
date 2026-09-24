@@ -1196,7 +1196,20 @@ trade-tailoring; the world-scan build gave **residence** a
 `src/behavior/`; forestry added **trade-forestry** — a capability pack
 whose `src/lib/Stand.ts` is a pack-owned mixin composed by a pack-owned
 LOCATION class, `Wood`, that a venue's rows name with no code of their
-own — see [forestry.md](./forestry.md)). **A stub trade** ships everything
+own — see [forestry.md](./forestry.md)); trades-and-labor added
+**trade-shopkeeping** — ⭐ the first pack carved out of the KERNEL rather
+than added beside it. The counter, the brokerage shelf, the `stocks` and
+`consigns` brains, the shop's three `house` subcommands, the market stall's
+business seed and a `shop` archetype all left `packages/server` for it, on
+one argument: *the kernel provides businesses, corporations, money, an
+economy; a content pack provides a trade, and selling over a counter is a
+trade.* ⚠ The counter's MECHANISM stayed behind as kernel substrate
+(`lib/retail/Stock.ts`, never instanced) because the price index, the
+credit ladder and four controllers read it and a kernel module may never
+import a pack — so the pack ships the instanceable twin, and
+`lint:counters` holds the kernel at four counters with each named and
+reasoned. See [retail.md](./retail.md) § The kernel/pack line).
+**A stub trade** ships everything
 downstream of production and nothing of production — materials, vessel
 presets, brands, the floor product on an authored consignor, the serving
 recipe — so the bar's demand is met today while the ferment/still is the

@@ -42,7 +42,9 @@ describe('BusinessEntity', () => {
     const b = seedBusiness();
     expect(b.getPositions().map((p) => p.key)).toEqual(['bartender']);
     expect(b.getPosition('bartender')?.wageRate).toBe(12);
-    expect(b.getPosition('bartender')?.fulfills).toBe(true);
+    // ⭐ A LIST of disciplines, never a flag — a smith does not cook, and
+    // one business can operate both a smithy and a cookhouse.
+    expect(b.getPosition('bartender')?.fulfills).toEqual(['bartending']);
     expect(b.getPosition('nope')).toBeUndefined();
   });
 

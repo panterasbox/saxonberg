@@ -99,7 +99,7 @@ inheritance. Dave must be a `Crafter` *and* cast; base classes cannot
 express that — it is a diamond.
 
 ⭐ The codebase had already answered it one line away:
-`Crafter = MakerMixin(NPC)` and `Mercenary = PartyMemberMixin(NPC)` are
+`Mercenary = PartyMemberMixin(NPC)` is
 the capability axis *already* expressed as a mixin over the substrate and
 given a name. So:
 
@@ -107,7 +107,7 @@ given a name. So:
 lib/npc/Cast.ts        CastMixin = SingletonMixin + the dossier fields
 platform/agent/Extra   class Extra extends NPC {}                 // the plain rung
 platform/agent/Cast    class Cast  extends CastMixin(NPC) {}      // the identity rung
-platform/agent/Crafter class Crafter extends CastMixin(MakerMixin(NPC)) {}
+platform/agent/Cast    class Cast extends CastMixin(NPC) {}   # ⚠ Crafter retired
 ```
 
 `lib/npc/NPC` stays as the shared substrate. `platform/agent/NPC`

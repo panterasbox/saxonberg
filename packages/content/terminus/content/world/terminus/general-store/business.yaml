@@ -63,4 +63,14 @@ data:
   # Where the store banks (authored custody — Terms/fees follow it).
   banksAt: goodkin
   operatingLocations:
+    # ⚠ BOTH the counter fixture and the ROOM it stands in — the
+    # cash-and-carry's row is the precedent, and the room is the
+    # load-bearing half. A supplier is found by its counter's ROOM
+    # (`restocks` → `counterRoomOf` walks the operating locations for one
+    # holding a shelf, and a `Stock` fixture's own contents are its
+    # goods), so a house that listed only the fixture was unfindable as a
+    # supplier: the tailor's cloth order was skipped silently, with no
+    # log line, because the bucket was `continue`d before it ever reached
+    # `job post`.
     - /world/terminus/general-store/counter
+    - /world/terminus/general-store/shop-floor

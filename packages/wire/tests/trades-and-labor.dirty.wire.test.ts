@@ -67,9 +67,7 @@ declareFile({
 const HALL = '/world/terminus/terminal/location/hall';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const SHOP_FLOOR = '/world/terminus/general-store/shop-floor';
-const STORE_BIZ = '/world/terminus/general-store/business';
 const FARM_YARD = '/world/terminus/eternal/campus-farm/location/yard';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 const TAILOR_SHOP = '/world/terminus/mayfield-row/tailor/location/shop';
 const LOUNGE_BAR = '/world/lounge/location/bar';
 const MARKET = '/world/terminus/market/square';

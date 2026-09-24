@@ -4,7 +4,7 @@
  *
  * Lens 6's governance limb: when a mechanism judges a person, name the
  * criterion and name the appeal. A hiring criterion is exactly that, so
- * this gate holds four things true across every pack's rows:
+ * this gate holds five things true across every pack's rows:
  *
  * 1. **The vocabulary is closed.** A `requires` key outside
  *    `{gigs, discipline, band}` is refused — no seat may select on
@@ -24,6 +24,12 @@
  *    in a room the business does not list silently stops fulfilling —
  *    exactly the regression the maker-marker retirement could have
  *    shipped.
+ * 5. ⭐⭐ **A par line's supplier must be findable.** `restocks` resolves a
+ *    supplier by the ROOM its counter stands in, so a house that lists
+ *    only its counter fixture is not a supplier at all and the order is
+ *    skipped silently — no decline, no log line, no posting. This is the
+ *    one that ate the tailor's cloth order and the build's own
+ *    more-than-one-supplier acceptance criterion.
  *
  * Plus: `confers:` must never come back (the retired seam), and
  * `fulfills` / `purchases` / `headcount` must be the types they claim.
@@ -87,6 +93,21 @@ const rows: Row[] = [];
 const roomOf = new Map<string, string>();
 /** Per pack, the set of template paths its `boot:` names. */
 const bootByPack = new Map<string, Set<string>>();
+/**
+ * ⭐ The two classes that make a room a place somebody can BUY at. Both
+ * compose `ConsignmentShelfMixin` (a `Stock` counter IS a shelf too),
+ * and `restocks` finds a supplier by looking for one of them.
+ */
+const COUNTER_CLASSES = new Set([
+  '/trade/shopkeeping/thing/Stock',
+  '/trade/shopkeeping/thing/ConsignmentShelf',
+]);
+/** Every counter row's template path. */
+const counters = new Set<string>();
+/** Every house's `operatingLocations`, by the path the house installs at. */
+const operatingByPath = new Map<string, string[]>();
+/** Every row carrying `parLines:` — the houses that order their shortfall. */
+const parRows: Row[] = [];
 
 for (const pack of packs) {
   const manifest = YAML.parse(
@@ -122,6 +143,22 @@ for (const pack of packs) {
               : '';
         if (path) roomOf.set(path, here);
       }
+    }
+    // ⭐ Every counter row, by the path it installs at — a `Stock` or a
+    // `ConsignmentShelf` is what makes a room a place you can BUY at.
+    if (COUNTER_CLASSES.has(String(doc.class ?? ''))) counters.add(here);
+    // Every house that keeps a par sheet, and the operating locations of
+    // every house at all — arm 5 needs both sides.
+    if (Array.isArray(data.operatingLocations)) {
+      operatingByPath.set(here, data.operatingLocations as string[]);
+    }
+    if (Array.isArray(data.parLines)) {
+      parRows.push({
+        file: relative(join(CONTENT, '..', '..'), file),
+        pack,
+        path: here,
+        doc,
+      });
     }
     if (!Array.isArray(data.positions)) continue;
     rows.push({
@@ -310,10 +347,59 @@ for (const row of rows) {
   }
 }
 
+/*
+ * ⭐⭐ **Arm 5 — a par line's supplier must be FINDABLE.**
+ *
+ * The `restocks` beat groups its short lines by supplier and looks the
+ * supplier up by the ROOM its counter stands in (`counterRoomOf` walks
+ * the supplier's `operatingLocations` for one holding a `Stock` or a
+ * `ConsignmentShelf`, because that room is where a hauler goes and buys).
+ * A supplier that lists only its counter FIXTURE has no such room — the
+ * fixture's own contents are its goods — so the whole bucket is skipped
+ * with a `continue` and **no log line is printed at all**.
+ *
+ * That is what happened to the tailor's cloth order: the general store
+ * listed `/world/terminus/general-store/counter` and not the shop floor
+ * it stands on, and the realm's second board posting silently never
+ * existed. Nothing could see it: the brain declines nothing, the suite
+ * asserts rows, and the log prints declines only.
+ */
+for (const row of parRows) {
+  const data = row.doc.data as Record<string, unknown>;
+  const lines = data.parLines as Array<Record<string, unknown>>;
+  for (const line of lines) {
+    const supplier = typeof line.supplier === 'string' ? line.supplier : '';
+    if (!supplier) continue;
+    const operating = operatingByPath.get(supplier);
+    if (!operating) {
+      say(
+        row,
+        `par line '${String(line.category ?? '?')}' names supplier ` +
+          `'${supplier}', which is not a row with \`operatingLocations\`.`,
+      );
+      continue;
+    }
+    const sells = operating.some((where) =>
+      [...counters].some((c) => roomOf.get(c) === where),
+    );
+    if (sells) continue;
+    say(
+      row,
+      `par line '${String(line.category ?? '?')}' names supplier ` +
+        `'${supplier}', whose operating locations hold no ROOM with a ` +
+        `counter in it.\n    ⚠ \`restocks\` finds a supplier by the room ` +
+        `its counter stands in, so this line is skipped SILENTLY — no ` +
+        `decline, no log line, no posting. List the room as well as the ` +
+        `fixture.`,
+    );
+  }
+}
+
 if (findings.length === 0) {
   console.log(
-    `check-openings: ${rows.length} organization row(s) scanned; every ` +
-      `criterion nameable, every advertising house reachable ✔`,
+    `check-openings: ${rows.length} organization row(s) and ` +
+      `${parRows.length} par sheet(s) scanned; every criterion nameable, ` +
+      `every advertising house reachable, every supplier findable ✔`,
   );
   process.exit(0);
 }

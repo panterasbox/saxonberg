@@ -37,6 +37,23 @@ data:
       assignee: /world/terminus/mayfield-row/tailor/agent/tailor
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  # ⭐⭐ **The SECOND house posting to the hall board** (trades-and-labor
+  # D16). One line is not a labor market: the acceptance criterion is work
+  # at world start **from more than one supplier**, and until this row the
+  # cookhouse was the only poster in the realm.
+  #
+  # ⚠ The supplier is the GENERAL STORE, not the mill — the mill's weaver
+  # consigns bolts onto the store's counter at 40, so that is where a
+  # hauler actually buys one. The reward is goods plus carriage.
+  #
+  # ⚠⚠ The category is `textile`, not `cloth`. A par line matches a good
+  # by `getCategory()` or a MATERIAL TAG, and linen's tags are
+  # `textile · fibre · organic · plant · cellulose · greige · once-living`
+  # — there is no `cloth` among them and no class answers `cloth`, so
+  # `cloth` counted nothing on the cutting table and nothing delivered to
+  # it would ever have satisfied the line either.
+  parLines:
+    - { category: textile, unit: count, level: 3, supplier: /world/terminus/general-store/business, exemplar: /trade/textiles/thing/bolt }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/mayfield-row/tailor/location/shop
