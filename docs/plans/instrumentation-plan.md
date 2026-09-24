@@ -332,10 +332,24 @@ stands on.** Re-read this section before W0; if any has merged, merge
 | `design/treatment` (**MR !278, `cannot_be_merged`**) | sweep done, conflicts with master | ⚠ `AssessController` is substantially rewritten (D16) · `wash` absorbs `scrub` · `platform/idea/cmd/perception/` gains no verb |
 | `build/ground` (**no MR yet**, W0–W4 done) | mid-build in build-2 | ⚠⚠ `Deposit` moves packs · `WorkingMixin` composes `StrataMixin` · `SurveyChannelController` / `SoilChannelController` / `AnalyzeSoilController` / `MeasureTextureController` all touched · `Working.ts` rewritten (179 lines) |
 
-⚠⚠ **`build/ground` is the collision that matters.** W1 rewrites
-`SurveyChannelController`, `SoilChannelController` and `Working.ts`
-wholesale; ground is concurrently rewriting `Working.ts` and moving
-`Deposit` out of the trade. Same three files, and ground has no MR yet.
+⭐ **`build/ground` is the collision that matters — and the conflict
+surface is SMALLER than the file overlap suggests.** Stated exactly,
+because the first pass overstated it:
+
+- `SurveyChannelController` / `SoilChannelController` /
+  `AnalyzeSoilController` / `MeasureTextureController` — ground changes
+  **one or two import lines** in each; W1 **deletes and replaces** them
+  with `Reading` classes. A delete/modify conflict, resolved by taking
+  the delete. Trivial.
+- `Deposit.ts` — this build **never edits it**, only calls
+  `surfaceReadingAt`. Ground moves it packs. That is an import-path fix
+  in the new `SurveyReading`, one line.
+- `Working.ts` — ⚠ **W1 does not touch it.** The only edit this plan
+  makes to `Working.ts` anywhere is **W5's one added `sampleFace`
+  method**, and D24 says that method's right home is `StrataMixin`
+  instead — in which case the file is not touched at all and the
+  conflict is **zero**.
+
 **The four facts it changes:**
 
 1. `Deposit` moves from `trade-mining/src/idea/Deposit.ts` to
@@ -1419,20 +1433,30 @@ Nothing unmapped.
 
 ## Risks & opens
 
-⚠⚠ **0. Sequencing — the one thing to decide before W0.** `build/ground`
-is mid-build in build-2 with no MR, and W1 rewrites
-`SurveyChannelController`, `SoilChannelController` and `Working.ts`
-wholesale while ground is rewriting `Working.ts` (179 lines) and moving
-`Deposit` out of `trade-mining`. **Same three files, both branches
-unmerged.** Three ways through, and it is the user's call:
+⭐⭐ **0. Sequencing — DECIDED: wait for `build/ground`.** It is at
+**W5 of W0–W5** — the census and the drive — so it is one wave from its
+MR, and waiting costs days rather than weeks. Three reasons, in order of
+weight:
 
-- **Wait for ground to merge**, then merge master into this branch and
-  re-ground § *Three branches in flight* — cleanest, costs wall-clock.
-- **Build now and merge after ground**, accepting a large W1 conflict
-  that is mostly import lines plus one rewritten mixin.
-- **Build now, and treat D24's sequencing note as the rule everywhere**:
-  implement against master's shape, record every owed move, take them in
-  the catch-up merge.
+1. **Landing first would disrupt an ACTIVE build.** Ground is being
+   worked in build-2 right now. If instrumentation merges first, ground
+   wakes to find the four perception controllers it just re-imported
+   deleted and replaced by `Reading` classes it has never seen. This
+   build has not started; absorbing an import-path move costs it
+   nothing. ⭐ **The branch that has not begun yields to the branch
+   that is finishing.**
+2. **D24's preferred host only exists after ground lands.** If ground is
+   in, `sampleFace` goes straight onto `StrataMixin` where it belongs
+   and a quarry can be sampled on day one. If not, W5 ships it on
+   `WorkingMixin` and **owes a move** — and an owed move that nothing
+   forces is how this repo grows stubs.
+3. The conflict itself is small (see § *Three branches in flight*), so
+   avoiding it is not the argument. **Not disrupting ground is.**
+
+⚠ If ground stalls rather than lands, the fallback is written down:
+build against master's shape, implement `sampleFace` on `WorkingMixin`
+per D20, and record every owed move as D24 instructs — do **not** reach
+into another build's unmerged pack.
 
 !280 (trades-and-labor) is mergeable and lands first regardless — merge
 master into this branch as soon as it does, because D23's gate arrives
