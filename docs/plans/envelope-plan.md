@@ -1354,6 +1354,30 @@ cools when the door to the yard is open; the smithy with a roaring forge
 reads outside temperature; the smith still works (`heat`/`forge` gates
 read `reachableHeatK`, untouched).
 **Commit.** `build(envelope W4): a hearth heats where you stand; a forge heats what you put in it`
+→ **DONE.** 54 lint gates; 1176 near-tests; hearthworks and
+generic-objects packs green.
+
+⚠ **Reduced scope, because W3 took the substrate.** `SpaceHeatingMixin`,
+`Mixins.SpaceHeating` and `MixinApi.isSpaceHeating` landed in W3 (the
+envelope reads them, so W3 could not compile otherwise). W4 is what is
+left: the `Hearth` class, `Campfire`'s composition, the rows, and the
+tests that prove the distinction.
+
+**⭐ Two heating objects for the price of none.** `stove.yaml` and
+`brazier.yaml` are `Hearth` ROWS — a closed firebox that puts more into
+the room off the same fuel and casts almost no light (2200 W, 0.15
+%/min, 8 lm), and a basket of coals that warms whoever is nearest (700
+W). Neither needs a line of code, which is the S-test for the class
+being right.
+
+**The test that matters most in the file is the one that proves a lit
+forge changes NOTHING** — and it passes by composition rather than by a
+guard. Nothing anywhere asks *is this a forge*; `Forge` simply does not
+compose the mixin, so the envelope's contents walk never counts it.
+
+⭐ The cookhouse now has a hearth **beside** its oven, which is the
+distinction made visible in content: a cook works at a lit oven in a
+cookhouse that is cold until somebody lights the fire.
 
 ### W5 — The town lights its streets, and pays
 
