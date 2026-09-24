@@ -557,6 +557,36 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     // ---------- reconcile-on-read (lazy time drive) ----------
 
+    /**
+     * ⭐⭐ **A warming room reaches what is standing in it, with no
+     * fan-out.**
+     *
+     * `lastAmbientK` is a cache, stamped at placement, movement and
+     * ambient-shift events. A room whose own temperature drifts
+     * continuously has no such event — it is simply different every
+     * time you look — so a push model would need the room to restamp
+     * everything it contains on a clock, for every room, forever.
+     *
+     * So this is the PULL side, which `weather.md` already recommends
+     * (*"prefer the pull side, as wetness does"*): the moment anything
+     * asks this object how warm it is, it asks its container. Three
+     * lines, no scheduler, and a loaf in a warming kitchen follows the
+     * kitchen without anybody telling it to.
+     *
+     * ⚠ Skipped when a furnace is holding this object — `heatSourceK`
+     * wins, because being IN the fire is not being near it, and the
+     * room's air has nothing to say about a workpiece in a forge.
+     */
+    protected refreshAmbientFromEnvelope(): void {
+      const self = this.thermalHost;
+      if (this.heatSourceK() !== null) return;
+      const scope = (self as unknown as { getContainer(): Stuff | null })
+        .getContainer();
+      if (scope === null || !MixinApi.isAtmospheric(scope)) return;
+      const envelopeK = scope.envelopeTemperatureSync();
+      if (envelopeK !== null) this.lastAmbientK = envelopeK;
+    }
+
     public reconcileThermal(): void {
       if (this._thermalReconciling) return;
       const D = THERMAL_DEFAULTS;
@@ -593,6 +623,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       this._thermalReconciling = true;
       try {
+        this.refreshAmbientFromEnvelope();
         const tau = this.getTau().rawValue();
         const ambient = this.lastAmbientK;
         // Closed-form Newton relaxation — exact for a constant ambient,

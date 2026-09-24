@@ -8,6 +8,17 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ What this place is BUILT OF (envelope build). A CAUSE, never an
+  # effect: you cannot author "well-insulated" here — you name a
+  # material the world already carries real numbers for, and the
+  # physics decides how fast the place loses its heat.
+  # A smithy is built heavy and thick, because a forge lives in it. ⚠ It
+  # is still not WARM: a forge heats what you put in it, never the room
+  # (thermal.md's rule, kept by composition — `Forge` does not compose
+  # `SpaceHeatingMixin`). The mass is why it does not swing.
+  fabric:
+    material: /stuff/idea/material/rock/granite
+    thicknessM: 0.45
   shortDescription: smithy
   keywords: [smithy]
   register: indefinite

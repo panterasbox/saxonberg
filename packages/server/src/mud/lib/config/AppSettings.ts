@@ -1473,6 +1473,37 @@ export const AppSettingKeys = {
    * being the struck node. */
   stormAttractorBias: "storm.attractorBias",
 
+  /* ────────────────────────── the envelope (D3) ────────────────────────── */
+  /**
+   * Envelope — the Material a room is built of when neither its row nor
+   * its class says. ⭐ A material, never a U-value: *you cannot author
+   * "well-insulated"; you author granite and the physics decides*.
+   */
+  envelopeDefaultFabric: "envelope.defaultFabric",
+  /** Envelope — how thick that fabric is, in metres, when unauthored. */
+  envelopeDefaultThicknessM: "envelope.defaultThicknessM",
+  /**
+   * ⭐ Envelope — the still-air films clinging to both faces of a wall,
+   * in m²K/W, IN SERIES with the fabric's own conduction. Without this
+   * term a high-conductivity fabric is absurd rather than merely bad:
+   * an iron sheet computes to 16 000 W/K, which is not a number about
+   * anything.
+   */
+  envelopeSurfaceResistanceM2KPerW: "envelope.surfaceResistanceM2KPerW",
+  /**
+   * Envelope — air exchange through one open exterior opening, in
+   * `W/K` per m³ of room. ⚠ A universe dial and not a per-room knob: an
+   * open doorway is a FLOW constant, not a property of the wall, so a
+   * room has nothing honest to say about it.
+   */
+  envelopeOpeningUPerM3: "envelope.openingUPerM3",
+  /**
+   * Envelope — how deep into the fabric answers within the hour, in
+   * metres. The thermal skin: a stone hall holds the day because of
+   * this term, and it is the one playtest dial in the heat half.
+   */
+  envelopeActiveDepthM: "envelope.activeDepthM",
+
   /* ────────────────────────── light (the sky, envelope D1/D2/D4) ────────────────────────── */
   /** Light — degrees of sun depression per factor-of-ten twilight falloff
    * in the sky illuminance curve. Larger = a longer, gentler dusk. */
@@ -1501,6 +1532,18 @@ export const AppSettingKeys = {
   /** Weather — how many upcoming segments the `look up` sky-read scans to
    * pick a presaging cloud form (the deterministic forecast tell). */
   weatherSkyForecastSegments: "weather.skyForecastSegments",
+  /**
+   * ⭐⭐ Weather — the ANNUAL temperature swing, in K either side of the
+   * universe baseline (envelope D3a). The realm's winter: before this
+   * the season biased only how often it SNOWED, and mid-winter at 3 a.m.
+   * read 17 °C.
+   */
+  weatherSolarAnnualSwingK: "weather.solarAnnualSwingK",
+  /**
+   * Weather — the DIURNAL temperature swing, in K either side of the
+   * day's mean. Lagged three hours, so the coldest hour is near dawn.
+   */
+  weatherSolarDiurnalSwingK: "weather.solarDiurnalSwingK",
 
   /* ────────────────────────── thermal (Wave 2 wet coupling) ────────────────────────── */
   /** Thermal — how strongly a wet body loses heat faster: at full

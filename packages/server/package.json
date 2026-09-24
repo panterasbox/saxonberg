@@ -45,6 +45,7 @@
     "lint:dossiers": "tsx scripts/check-dossiers.ts",
     "lint:drive-scripts": "tsx scripts/check-drive-scripts.ts",
     "lint:family": "tsx scripts/lint-family.ts",
+    "lint:envelope": "tsx scripts/check-envelope.ts",
     "lint:field-meta": "tsx scripts/check-field-meta.ts --lint",
     "lint:gates": "tsx scripts/check-gate-strings.ts",
     "lint:get-or-create": "tsx scripts/check-get-or-create.ts",

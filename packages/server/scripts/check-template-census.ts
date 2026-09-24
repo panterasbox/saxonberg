@@ -156,6 +156,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(f, data[f]);
   }
+  // ⭐ `fabric.material` (the envelope build) — what a room is BUILT OF.
+  // Resolved live at the first async temperature read, and a rowless one
+  // silently falls back to the universe default: the room would quietly
+  // be made of something else and nothing would say so. `lint:envelope`
+  // clause (b) additionally checks the material CONDUCTS.
+  if (data.fabric && typeof data.fabric === 'object') {
+    push('fabric', (data.fabric as Record<string, unknown>).material);
+  }
+
   // ⭐ `wears:` (the envelope build) — the garments an authored person
   // has on. Resolved live at `postRegister`, one clone each, and
   // `Character.wearGarments` swallows a per-garment failure so the

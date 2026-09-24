@@ -232,6 +232,47 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       );
     }
 
+    /**
+     * How far the effective-ambient transforms sat above or below the
+     * room's raw temperature at the last re-stamp. Transient by
+     * intent: it is a derived convenience, and a wrong one after a
+     * reload is corrected by the next re-stamp.
+     */
+    private _ambientOffsetK = 0;
+
+    /** The room's own raw temperature, before any body-side transform. */
+    protected async baseAmbientK(): Promise<number> {
+      const scope = this.regHost.getContainer();
+      if (scope === null) return this.setpointK;
+      try {
+        return (await BiomeApi.resolveTemperatureFor(scope)).rawValue();
+      } catch {
+        return this.setpointK;
+      }
+    }
+
+    /**
+     * ⭐⭐ **A body feels its room cooling, with no fan-out.**
+     *
+     * `effectiveAmbientK` is resolved asynchronously at re-stamp events
+     * — placement, movement, donning a coat — and a room whose own
+     * temperature drifts continuously produces no such event. So the
+     * raw number is re-read here, synchronously off the room's
+     * envelope, and the cached offset (wind chill, a warming seat, a
+     * soaking) is carried forward on top of it.
+     *
+     * The pull side again, and the same three lines as `ThermalMixin`'s.
+     * Without it a body could stand in a room going from warm to
+     * freezing and pay nothing until it happened to walk.
+     */
+    protected refreshEffectiveAmbientFromEnvelope(): void {
+      const scope = this.regHost.getContainer();
+      if (scope === null || !MixinApi.isAtmospheric(scope)) return;
+      const envelopeK = scope.envelopeTemperatureSync();
+      if (envelopeK === null) return;
+      this.effectiveAmbientK = Math.max(0, envelopeK + this._ambientOffsetK);
+    }
+
     public reconcileThermalRegulation(): void {
       if (this._thermalRegReconciling) return;
       const D = THERMAL_DEFAULTS;
@@ -262,6 +303,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
       this._thermalRegReconciling = true;
       try {
+        this.refreshEffectiveAmbientFromEnvelope();
         let remaining = elapsed;
         let steps = 0;
         while (remaining > 0 && steps < D.REG_MAX_STEPS) {
@@ -579,6 +621,15 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       // the first `undefined` rather than read `.rawValue()` off nothing.
       if (eff === undefined) return;
       this.effectiveAmbientK = eff.rawValue();
+      // ⭐⭐ Remember how far the transforms moved the raw room
+      // temperature — the warming slot, the wind chill, the immersion,
+      // the wetness. That OFFSET is what lets a room whose own
+      // temperature drifts continuously reach a standing body without a
+      // fan-out: the raw number is re-read on every slice and the
+      // offset is carried forward, rather than the whole async resolve
+      // being run on the vitals hot path. See
+      // `refreshEffectiveAmbientFromEnvelope`.
+      this._ambientOffsetK = eff.rawValue() - (await this.baseAmbientK());
       const nowS = this.regNowSeconds();
       if (nowS !== null) this.thermalRegStamp = nowS;
     }

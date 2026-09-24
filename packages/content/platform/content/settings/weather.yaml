@@ -9,3 +9,26 @@ settings:
 
   - key: weather.skyForecastSegments
     value: "2"
+
+  # ⭐⭐ The sun's own contribution to the temperature (envelope D3a) —
+  # two cosines, one turning once a year and one once a day, each at its
+  # minimum where the sun is lowest.
+  #
+  # ⚠ Before this the realm had NO WINTER in its temperature. The weather
+  # deviates by TYPE only (clear 0, overcast −1, rain −3, storm −5 K) over
+  # a 295 K base, and the season biases the type DISTRIBUTION — how often
+  # it snows — and nothing else. Mid-winter at 3 a.m. read 290 K, which is
+  # 17 °C, so "an unheated room in winter is cold" had nothing to be cold
+  # from.
+  #
+  # 10 K annual puts a winter night near 8 °C and a summer noon near 36 °C
+  # at the extremes of the two terms together. A pure function of game
+  # time: no state, nothing to go stale, and the same winter everywhere
+  # because there is one latitude.
+  - key: weather.solarAnnualSwingK
+    value: "10"
+
+  # 4 K diurnal, lagged three hours — heat keeps leaving after the sun
+  # stops arriving, which is why dawn is the cold part of the night.
+  - key: weather.solarDiurnalSwingK
+    value: "4"

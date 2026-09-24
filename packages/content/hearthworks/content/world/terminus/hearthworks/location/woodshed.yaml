@@ -5,6 +5,16 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ What this place is BUILT OF (envelope build). A CAUSE, never an
+  # effect: you cannot author "well-insulated" here — you name a
+  # material the world already carries real numbers for, and the
+  # physics decides how fast the place loses its heat.
+  # A woodshed is BOARDS. Oak at 0.17 W/(m·K) over 50 mm is a tenth of
+  # granite's loss, so it warms fast off a small fire and goes cold fast
+  # too — which is the honest trade a timber building makes.
+  fabric:
+    material: /stuff/idea/material/wood/oak
+    thicknessM: 0.05
   shortDescription: timber woodshed
   keywords: [woodshed, timber]
   register: indefinite

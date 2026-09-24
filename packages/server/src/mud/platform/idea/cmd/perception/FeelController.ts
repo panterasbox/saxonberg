@@ -7,6 +7,15 @@
  * (e.g. `feel stove`) prepends a per-detail temperature line on top
  * of the per-Detail `touch` slot read.
  *
+ * ⭐⭐ Since the envelope build the bare form also names the CAUSE — a
+ * hearth, the stone holding the day, a door standing open, a cellar
+ * that keeps its own temperature the year round. Not a new instrument:
+ * the same read, saying where its number came from, off the provenance
+ * the resolve already computes. Everything it can say is derived, which
+ * is what makes it safe to say out loud — *a room that is warm for no
+ * reason a player can be told is self-reporting the dishonesty*, in the
+ * fiction, before any gate runs.
+ *
  * A `feel <object>` against a Thermal object reads the object's own
  * *surface* temperature (≈ ambient for a sealed, well-insulated vessel —
  * the insulation observable as the absence of exterior heat) and, on a
@@ -29,6 +38,7 @@ import { TouchModality } from '../../modalities/TouchModality';
 import { Touch } from '../../../../lib/perception/Touch';
 import type { Thermal } from '../../../../lib/thermal/Thermal';
 import { PerceptionApi } from '../../../../api/perception';
+import { BiomeApi } from '../../../../api/biome';
 
 interface FeelModel extends CommandModel {
   target?: MqlOneResult;
@@ -143,7 +153,10 @@ export default class FeelController extends SingleSenseControllerBase {
       return;
     }
     const touch = await (PerceptionApi.modalityByName('touch') as TouchModality).touchAt(location);
-    const bandLine = Mml.compose`The air feels ${touch.band}.`;
+    const cause = await this.temperatureCause(location);
+    const bandLine = cause
+      ? Mml.compose`The air feels ${touch.band} — ${cause}`
+      : Mml.compose`The air feels ${touch.band}.`;
     const filteredLong = MixinApi.isVisible(location)
       ? location
           .getMarkupLong(actor, { filter: [this.senseChannel] })
@@ -153,6 +166,56 @@ export default class FeelController extends SingleSenseControllerBase {
       ? Mml.compose`${bandLine}\n${Mml.fromMarkup(filteredLong)}`
       : bandLine;
     MessageApi.scene(actor).topic(this.sceneTopic).toSelf(body).send();
+  }
+
+  /**
+   * ⭐⭐ **Why it is this temperature**, in words — the same read saying
+   * where its number came from.
+   *
+   * No new instrument and no new verb: `feel` already told you the
+   * band, and this is the cause behind it, off the provenance the
+   * resolve already computes. Everything it can say is DERIVED, which
+   * is what makes it safe to say — *a room that is warm for no reason a
+   * player can be told is self-reporting the dishonesty.* If an author
+   * ever puts construction on a biome, the fiction says so before any
+   * gate runs.
+   *
+   * Sky-exposed scopes add nothing: the weather is the sky's own line,
+   * and `look up` is where it belongs.
+   */
+  private async temperatureCause(
+    location: Stuff & Container,
+  ): Promise<string | null> {
+    let trace;
+    try {
+      trace = await BiomeApi.traceResolveTemperatureFor(location);
+    } catch {
+      return null;
+    }
+    if (trace.source === 'room') {
+      return 'this place keeps its own temperature, the year round.';
+    }
+    const env = trace.envelope;
+    if (trace.source !== 'envelope' || !env) return null;
+
+    const inside = trace.value.rawValue();
+    const material = env.fabricMaterialPath.split('/').pop() ?? 'stone';
+
+    if (env.heatInputW > 0 && env.hottestSource) {
+      return `warm from ${env.hottestSource}.`;
+    }
+    // Within a degree of outside AND standing open: the door is the
+    // reason, and it is the one a player can do something about.
+    if (env.openings > 0 && Math.abs(inside - env.outsideK) < 1) {
+      return 'as cold as the street — the door stands open.';
+    }
+    if (inside > env.outsideK + 0.5) {
+      return `the ${material} still holds the day.`;
+    }
+    if (inside < env.outsideK - 0.5) {
+      return `the ${material} still holds the night's cold.`;
+    }
+    return `nothing is burning here; it is as cold as outside.`;
   }
 
   private async feelDetail(

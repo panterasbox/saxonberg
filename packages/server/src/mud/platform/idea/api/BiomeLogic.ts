@@ -15,7 +15,7 @@ import type { Unit } from '../../../lib/quantity';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { TemplatePaths } from '../../../lib/paths';
-import type { AtmosphericTrace } from '../../../api/biome';
+import type { AtmosphericTrace, EnvelopeTrace } from '../../../api/biome';
 import { ZoneApi } from '../../../api/zone';
 import { WeatherApi } from '../../../api/weather';
 import { AddressApi } from '../../../api/address';
@@ -253,6 +253,19 @@ export class BiomeLogic extends ApiLogic {
     scope: Stuff & Container,
     detailKey?: string
   ): Promise<Quantity<'K'>> {
+    // ⭐⭐ **One source of truth.** Everything that asks a scope how warm
+    // it is comes through here — the body's effective ambient, a loaf's
+    // thermal restamp, `feel`, `measure temperature` — so the envelope
+    // is applied HERE rather than at each of them. A room holding a
+    // state different from its outside is not a second mechanism beside
+    // the chain; it is what the chain answers for that room.
+    //
+    // A per-detail read is never the room's own air (it is the oven, the
+    // shaded corner, the ice bath), so it keeps the plain chain.
+    if (detailKey === undefined) {
+      const envelope = await resolveEnvelopeTemperature(scope);
+      if (envelope !== null) return Quantity.of(envelope.value, 'K');
+    }
     return resolveQuantityFor<'K'>(
       scope,
       detailKey,
@@ -261,6 +274,19 @@ export class BiomeLogic extends ApiLogic {
       (a, k) => readDetailMap<Quantity<'K'>>(a._detailTemperatures, k),
       (a) => a._temperature,
     );
+  }
+
+  /**
+   * See {@link BiomeApi.outsideTemperatureFor}. What this scope is
+   * drifting TOWARD, in K — the chain's answer plus the weather, with
+   * no envelope applied. For a sky-exposed scope that is simply its own
+   * temperature.
+   */
+  @CallSecurity(BiomeApiCallers)
+  public async outsideTemperatureFor(
+    scope: Stuff & Container
+  ): Promise<Quantity<'K'>> {
+    return Quantity.of(await outsideKFor(scope), 'K');
   }
 
   /** See {@link BiomeApi.resolvePressureFor}. */
@@ -374,6 +400,18 @@ export class BiomeLogic extends ApiLogic {
     scope: Stuff & Container,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'K'>>> {
+    if (detailKey === undefined) {
+      const envelope = await resolveEnvelopeTemperature(scope);
+      if (envelope !== null) {
+        return {
+          value: Quantity.of(envelope.value, 'K'),
+          source: 'envelope',
+          sourcePath: scope.getTemplatePath() ?? null,
+          ancestorChain: [],
+          envelope: envelope.trace,
+        };
+      }
+    }
     return traceResolveQuantityFor<'K'>(
       scope,
       detailKey,
@@ -737,6 +775,103 @@ async function pressureTraceFor(
     source: 'elevation',
     sourcePath: derived.zonePath,
     ancestorChain: trace.ancestorChain,
+  };
+}
+
+/**
+ * ⭐⭐ **What this scope is drifting TOWARD**, in K.
+ *
+ * The chain, run in full, plus the weather deviation — but the weather
+ * only where the answer came from the sky.
+ *
+ * ⚠ That last condition is the one worth reading twice. A biome may say
+ * what the outside AIR is doing: Rejection's `underground/upper-workings`
+ * authors 285 K and that is honest, because a working IS that
+ * temperature the year round. But it is ROCK, not sky, so a storm must
+ * not cool it — and a zone-authored temperature is the same case. Only
+ * the universe baseline and a `SkyExposedBiome` describe something the
+ * weather is happening to.
+ */
+async function outsideKFor(scope: Stuff & Container): Promise<number> {
+  const trace = await runChainWalk<Quantity<'K'>>(
+    scope,
+    undefined,
+    'temperature',
+    (b) => b.getDefaultTemperature(),
+    (a, k) => readDetailMap<Quantity<'K'>>(a._detailTemperatures, k),
+    (a) => a._temperature,
+  );
+  let outside = trace.value.rawValue();
+
+  const fromSky =
+    trace.source === 'universe' ||
+    ((trace.source === 'biome' || trace.source === 'biome-ancestor') &&
+      trace.sourcePath !== null &&
+      isSkyBiomePath(trace.sourcePath));
+  if (!fromSky || !WeatherApi.isActive()) return outside;
+
+  const locality = await AddressApi.resolveLocalityFor(scope);
+  outside += WeatherApi.deviatedFieldFor(
+    scope,
+    locality,
+    'temperature',
+    WorldClockApi.getNow(),
+  ).rawValue();
+  return outside;
+}
+
+/** Does the biome row at `path` compose `SkyExposedMixin`? */
+function isSkyBiomePath(path: string): boolean {
+  const biome = findBiomeByPath(path);
+  return biome !== null && MixinApi.isSkyExposed(biome);
+}
+
+/**
+ * ⭐⭐ Run the scope's envelope, or answer `null` when it has none.
+ *
+ * Four steps, and the order is the whole contract: decide whether an
+ * envelope applies at all (the geometry and the author answer that —
+ * see `AtmosphericMixin.envelopeApplies`), resolve what it is drifting
+ * toward, stamp that, and integrate forward. The stamp is what lets the
+ * reconcile stay SYNC: the outside needs an address walk and a chain
+ * walk, and the body's vitals poll cannot afford either.
+ */
+async function resolveEnvelopeTemperature(
+  scope: Stuff & Container,
+): Promise<{ value: number; trace: EnvelopeTrace } | null> {
+  if (!MixinApi.isAtmospheric(scope)) return null;
+  const host = scope as Stuff & Container & Atmospheric;
+  if (!host.envelopeApplies()) return null;
+
+  host.envelopeOutsideK = await outsideKFor(scope);
+  host.reconcileEnvelope();
+  const value = host.envelopeTemperatureK;
+  if (value === null) return null;
+
+  // The provenance, derived the same way the integration was — so what
+  // `feel` says and what the room DID cannot come apart.
+  let heatInputW = 0;
+  let hottestSource: string | null = null;
+  let hottestW = 0;
+  for (const occupant of scope.getContents()) {
+    if (!MixinApi.isSpaceHeating(occupant)) continue;
+    const w = occupant.spaceHeatOutputW();
+    heatInputW += w;
+    if (w > hottestW) {
+      hottestW = w;
+      hottestSource = (occupant as unknown as Stuff).getPresentation();
+    }
+  }
+  return {
+    value,
+    trace: {
+      outsideK: host.envelopeOutsideK,
+      heatInputW,
+      uWperK: host.envelopeUWperK(),
+      openings: host.openExteriorOpenings(),
+      fabricMaterialPath: host.envelopeFabricMaterialPath(),
+      hottestSource,
+    },
   };
 }
 

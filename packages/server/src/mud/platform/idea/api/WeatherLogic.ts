@@ -730,6 +730,17 @@ async function runBoundaryFanout(): Promise<void> {
     // sky-gated. The now-weathered ambient re-resolves on each Thermal read.
     if (sky) BiomeApi.restampThermalContentsOf(room);
 
+    // ⭐ An ENCLOSED room's outside follows the front too (the envelope
+    // build). `envelopeOutsideK` is stamped at the async temperature
+    // resolve, so a room somebody is standing in gets its outside
+    // re-resolved when the weather turns rather than waiting for the
+    // next read that happens to be async. An empty room's outside
+    // re-resolves on its next async read, which a body arriving
+    // performs — so nothing is stale by the time it matters to anyone.
+    if (!sky && MixinApi.isAtmospheric(room) && room.envelopeApplies()) {
+      await BiomeApi.resolveTemperatureFor(room);
+    }
+
     if (nowS === null) continue;
     const locality = await AddressApi.resolveLocalityFor(room);
     const resolved = computeResolved(room, locality, nowS, sky);
@@ -773,6 +784,77 @@ async function runBoundaryFanout(): Promise<void> {
 }
 
 /* ─────────────────────────── Wave-2 puddle sink ─────────────────────────── */
+
+/**
+ * ⭐⭐ **The sun's own contribution to the temperature**, in K, as a
+ * deviation from the universe baseline.
+ *
+ * ```
+ *   −A_year · cos(2π · doy / year)  −  A_day · cos(2π · (secOfDay − 3h) / day)
+ * ```
+ *
+ * Two cosines: one turning once a year, one once a day, each at its
+ * minimum where the sun is lowest. `A_year = 10 K` and `A_day = 4 K`
+ * put a winter night near 281 K (8 °C), a winter noon near 289, a
+ * summer noon near 309 and a summer night near 301. The diurnal term
+ * lags three hours, so the coldest hour is about 3 a.m. rather than
+ * midnight — heat keeps leaving after the sun stops arriving, which is
+ * why dawn is the cold part of the night.
+ *
+ * ## ⚠⚠ Why this had to exist at all
+ *
+ * The requirements said *"outside, temperature is already alive — the
+ * weather deviates it and the season biases it — so the realm already
+ * has a winter"*. **It did not.** `WEATHER_PROFILES` deviate by weather
+ * TYPE only (clear 0, overcast −1, rain −3, storm −5 K) over a 295 K
+ * base, and `SEASON_BIAS` biases the type DISTRIBUTION — how often it
+ * snows — and nothing else. So mid-winter at 3 a.m. read 290 K, which
+ * is 17 °C, and *"an unheated room in winter is cold"* had nothing to
+ * be cold FROM. The whole heat half of the build rested on a fact that
+ * was true of snowfall and false of temperature.
+ *
+ * Same shape as the sky's illuminance factor and for the same reasons:
+ * a pure function of game time, seeded-not-drawn, memoized per game
+ * minute, with no state anywhere to go stale. ⚠ One latitude means one
+ * climate — Terminus and Rejection get the same winter on the same day
+ * — and widening that is the per-zone celestial profile, which stays a
+ * named deferred seam.
+ */
+function solarTemperatureDeviationK(nowS: number): number {
+  const minute = Math.floor(nowS / 60);
+  if (solarTempMemo.minute === minute) return solarTempMemo.value;
+  const annualSwing = dial(AppSettingKeys.weatherSolarAnnualSwingK, 10);
+  const diurnalSwing = dial(AppSettingKeys.weatherSolarDiurnalSwingK, 4);
+  const doy = CelestialApi.dayOfYear(EARTH_LIKE, nowS);
+  const secOfDay = CelestialApi.secondOfDay(EARTH_LIKE, nowS);
+  const year = EARTH_LIKE.yearLengthDays;
+  const day = EARTH_LIKE.dayLengthSeconds;
+  // Day 0 is the vernal EQUINOX, so the annual minimum sits three
+  // quarters of a year later — hence the quarter-turn offset, which is
+  // what makes `cos` bottom out in winter rather than in spring.
+  const annual =
+    -annualSwing * Math.cos((2 * Math.PI * (doy - year / 4)) / year);
+  const diurnal =
+    -diurnalSwing * Math.cos((2 * Math.PI * (secOfDay - 3 * 3600)) / day);
+  const value = annual + diurnal;
+  solarTempMemo.minute = minute;
+  solarTempMemo.value = value;
+  return value;
+}
+
+/**
+ * Per-game-minute memo for {@link solarTemperatureDeviationK}.
+ *
+ * ⚠ Module scope, and legitimately: `CLAUDE.md`'s rule permits
+ * `const` declarations including pure value construction, and
+ * `WeatherLogic` already carries `seasonCache` in exactly this shape —
+ * the function is pure, so the cache holds no world state and nothing
+ * needs to initialize or reset it.
+ */
+const solarTempMemo: { minute: number; value: number } = {
+  minute: -1,
+  value: 0,
+};
 
 /** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */
 function dial(key: string, fallback: number): number {
@@ -1046,7 +1128,15 @@ export class WeatherLogic extends ApiLogic {
       pin !== null
         ? pinnedDeviation(pin, locality, nowS)
         : computeSample(nowS, locality).deviation;
-    return dev[field] as Quantity<WeatherFieldUnit>;
+    const base = dev[field] as Quantity<WeatherFieldUnit>;
+    if (field !== 'temperature') return base;
+    // ⭐⭐ The SOLAR term (envelope D3a) rides beside the type deviation,
+    // and it is why the realm has a winter at all — see
+    // {@link solarTemperatureDeviationK}.
+    return Quantity.of(
+      base.rawValue() + solarTemperatureDeviationK(nowS),
+      base.unit,
+    ) as Quantity<WeatherFieldUnit>;
   }
 
   /** See {@link WeatherApi.resolveWeatherFor}. Async — resolves locality + sky. */

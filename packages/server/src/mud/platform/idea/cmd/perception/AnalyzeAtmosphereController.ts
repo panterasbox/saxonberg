@@ -43,6 +43,18 @@ function describeSource(trace: AtmosphericTrace<unknown>): string {
       return `derived from elevation (${trace.sourcePath})`;
     case 'universe':
       return `universe default`;
+    case 'envelope':
+      // ⭐ The one provenance that is not a LAYER of the chain but a
+      // thing the room is DOING: holding a state different from its
+      // outside, at a rate its fabric and its open doors set. The
+      // instrument reports the arithmetic; `feel` says it in words.
+      return trace.envelope
+        ? `the room's own envelope (${trace.envelope.fabricMaterialPath
+            .split('/')
+            .pop()}, ${trace.envelope.uWperK.toFixed(0)} W/K, ` +
+            `${trace.envelope.openings} opening(s) to outside, ` +
+            `${trace.envelope.heatInputW.toFixed(0)} W in)`
+        : `the room's own envelope`;
   }
 }
 

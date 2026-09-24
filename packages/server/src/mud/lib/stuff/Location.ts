@@ -59,6 +59,50 @@ export interface FloorSpec {
 }
 
 /**
+ * ⭐⭐ **What this place is BUILT OF** — the Location's own say in its
+ * construction, without authoring anything but a material and a
+ * thickness. The {@link FloorSpec} shape, for the walls.
+ *
+ * ## Why a material and not a U-value
+ *
+ * A room's warmth is derived (the envelope build): it drifts toward
+ * outside at a rate its construction and its openings set, and it is
+ * pushed up by whatever is burning in it. Something has to say how
+ * fast it leaks — and the honest answer is **not** a number somebody
+ * picked.
+ *
+ * *You cannot author "well-insulated"; you author granite and the
+ * physics decides.* A U-value is an EFFECT, and an authored effect is
+ * exactly the dishonesty this build exists to remove — a room warm for
+ * no reason a player can be told. A material is a CAUSE: it is
+ * checkable, it is already in the world (154 content rows author a real
+ * `thermalConductivity` in W/(m·K), plus density and specific heat),
+ * and it makes a granite shopfront with a timber stockroom behind it
+ * read as *a stone shop with a timber lean-to* rather than as two rooms
+ * that disagree for no reason.
+ *
+ * ⚠ **A Location stays SPACE, not matter.** Naming a material here is
+ * not `Tangible` and confers no mass, exactly as naming the floor's
+ * material does not. A `Vessel` needs no spec at all: it IS `Tangible`
+ * and its fabric is its own `getMaterial()`.
+ *
+ * ⚠ The vocabulary is CLOSED and `lint:envelope` clause (e) holds it
+ * shut: there is no `uPerM2`, no `insulation:`, and no way to type one.
+ */
+export interface FabricSpec {
+  /** A `Material` template path — what the walls and roof are made of. */
+  material?: string;
+  /** How thick, in metres. Defaults to `envelope.defaultThicknessM`. */
+  thicknessM?: number;
+}
+
+/** What {@link Location.fabricDefaults} answers. */
+export interface FabricDefaults {
+  materialPath: string;
+  thicknessM: number;
+}
+
+/**
  * Read a dial, falling back to a literal. Module-private on purpose: a
  * `private static` here would be counted by `lint:lib-statics`, whose
  * ceiling is a ratchet, and the `WeatherLogic` shape this copies is a
@@ -68,6 +112,18 @@ function dialStr(key: string, fallback: string): string {
   try {
     const raw = AppApi.setting(key);
     return raw == null || raw === '' ? fallback : raw;
+  } catch {
+    return fallback;
+  }
+}
+
+/** The numeric twin of {@link dialStr}. Same reason for being module-private. */
+function dialNum(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
   } catch {
     return fallback;
   }
@@ -130,6 +186,7 @@ export default class Location extends LocationBase {
     suppressesMagic: { persistent: true },
     floor: { persistent: true, authorable: true },
     noDefaultFloor: { persistent: true, authorable: true },
+    fabric: { persistent: true, authorable: true },
   };
 
   /**
@@ -219,6 +276,40 @@ export default class Location extends LocationBase {
   }
   public setFloorSpec(value: FloorSpec | null): void {
     this.floor = value;
+  }
+
+  // ──────────────────────────── the fabric ─────────────────────────────
+
+  /**
+   * What this place says it is built of, without authoring anything
+   * else. See {@link FabricSpec}. `null` — the ordinary case — falls
+   * through to {@link fabricDefaults}.
+   */
+  protected fabric: FabricSpec | null = null;
+
+  public getFabricSpec(): FabricSpec | null {
+    return this.fabric;
+  }
+  public setFabricSpec(value: FabricSpec | null): void {
+    this.fabric = value;
+  }
+
+  /**
+   * What a room of this KIND is built of, when its row says nothing.
+   *
+   * @hook Override on a Location subclass that knows its own
+   *   construction — a cellar cut into rock, a glasshouse, a tent, a
+   *   ship's hull. The row still wins: a `fabric:` on the row beats
+   *   this, and this beats the universe default.
+   */
+  public fabricDefaults(): FabricDefaults {
+    return {
+      materialPath: dialStr(
+        AppSettingKeys.envelopeDefaultFabric,
+        '/stuff/idea/material/rock/granite',
+      ),
+      thicknessM: dialNum(AppSettingKeys.envelopeDefaultThicknessM, 0.3),
+    };
   }
 
   public isNoDefaultFloor(): boolean {
