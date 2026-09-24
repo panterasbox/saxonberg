@@ -1,0 +1,17 @@
+# A surgeon's kit — the carried instrument that backs `operate`. Carry it
+# and the `operate` verb lights up; the infirmary keeps one, and the store
+# sells your own. Operating still demands a lying patient and a competent
+# hand — the kit affords the verb, it does not confer the skill.
+class: /trade/medicine/thing/SurgicalKit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: rolled surgeon's kit
+  keywords: [kit, surgeon, surgical, instruments, roll]
+  register: indefinite
+  longDescription: |
+    A canvas roll of steel instruments — scalpel, forceps, curved needles
+    and gut — kept clean and bright.
+  capabilities:
+    - { kind: surgery }
+  _materialPath: /stuff/idea/material/alloy/steel
+  mass: 0.6

@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**234 slates.** 53 greenfield · 83 continuations · 55 waves · 43 tails.
+**239 slates.** 55 greenfield · 84 continuations · 55 waves · 45 tails.
 
-## ⭐ Greenfield — nothing shipped yet (53)
+## ⭐ Greenfield — nothing shipped yet (55)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -55,6 +55,7 @@ respect.
 | [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens invariant · nearest-wins + self-amendment … |
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
 | [client-audio](./builds/client-audio-slate.md) | the client audio player (ambient emission → playback, as a second modality on the `cockpit.watch` push) · the source's home (Location field vs in-world device — Q1) + the autoplay gesture + mix · the Spotify embed tier · the loose-sync-or-frame-lock decision (Q6) … |
+| [clinical-medicine](./builds/clinical-medicine-slate.md) | all of it — three coupled legs (blood · operations · the two professions) plus a filing pass. |
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
@@ -77,6 +78,7 @@ respect.
 | [insurance](./builds/insurance-slate.md) | the policy-as-contract + reserve ratio · cargo underwriting first (fire and crops after) · the mutual as the guild's instrument · prevention priced into the premium … |
 | [intervention](./builds/intervention-slate.md) | the sideless participant · a relation whose object is a |
 | [legibility](./builds/legibility-slate.md) | `extends:` on template rows (runtime-resolved, single parent, an ordinary row, folded into access.md's transitive set — and the `cp`/`mv` D5 relaxation it delivers) · the `props:` entry shape (`count` + `as`) · the instruction-field merge rule · contents **grouping** beside `looseContents`, consumed by the same three call sites … |
+| [live-drive](./builds/live-drive-slate.md) | the sidecar that holds the agent session · the channel bridge (prompts in, replies out) · the agent's own character + how it logs in · the approval posture for a live audience … |
 | [llm-content](./builds/llm-content-slate.md) | the director agent + its locality prompt · the salience gate + the active-cast set · the forced-cast command-bus seam (no `force` exists) · the ambient narrator … |
 | [map](./builds/map-slate.md) | the 2D per-floor grid + the player minimap · the 2D node-graph · the 3D procedural box render · the draft-template and live-Stuff adapters … |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
@@ -98,7 +100,7 @@ respect.
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (83)
+## ⭐ Continuations — substrate shipped, a build's worth remains (84)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -106,7 +108,7 @@ are the named remainders.
 | slate | left to build |
 |---|---|
 | [acquisition](./builds/acquisition-slate.md) | forums leaving the default loadout · the payment credential required at hire · the conferral certificate · the journey-v2 route *(Dr. Limen's build is onboarding-slate's; this slate keeps its rulings on it — cluster pass 2026-09-21)* |
-| [advancement](./builds/advancement-slate.md) | the loadout (capacity-not-decay + warm-up) · guilds (venue, mentors, credential, membership-as-affordance; a seed Bartenders' Guild — the institution design is guild-slate's) · declared focus (the focus-tagged Transcript) · the Reserve-shaped stakes engine … |
+| [advancement](./builds/advancement-slate.md) | ⛔ **retiring conferral** (the one live declaration, the mechanism, the doc) and the graduated-outcome + named-lift refusal that replaces it · the loadout (capacity-not-decay + warm-up) · guilds (venue, mentors, credential, membership-as-affordance; a seed Bartenders' Guild — the institution design is guild-slate's) · declared focus (the focus-tagged Transcript) … |
 | [antecedents](./builds/antecedents-slate.md) | the `background:` effort→prior function (kind × years × at) + the Phase A open questions (decay · Catalog edges · `conditioning` · in-world readability) … |
 | [auction](./builds/auction-slate.md) | the `auction` + `bid` verbs · the lot-as-contract mapping · silent (sealed) mode first, then the live auctioneer `SustainedEngagement` with reset-on-bid · proxy/absentee maxima … |
 | [authoring-intelligence](./builds/authoring-intelligence-slate.md) | the platform-semantic model (template-path completion, reference validation, mixin-composition rules + their declared source, scope awareness over the titled extent) · the LSP server · the VS Code extension · the engine `.d.ts` pipeline … |
@@ -173,6 +175,7 @@ are the named remainders.
 | [psychology](./builds/psychology-slate.md) | the scoped disclosure grant · the therapist's file object · the psychology vocation + its Discipline · privilege and the conflict class … |
 | [ranching](./builds/ranching-slate.md) | the feed loop — grazing demand on the animal, a way to feed a head, hay as the stored form, the winter-feed budget · the paddock move — `move herd`, paddocks as subdivided fields, the open gate resolved at reconcile, fencing as a bound, the hired-hand cadence with its utilization penalty · breeding (gestation · birth … |
 | [ranged](./builds/ranged-slate.md) | W2 — authored cover (directional · destructible · leased) + overturnable furniture · armor on the response grid (point→blunt, proof marks) … |
+| [recovery](./builds/recovery-slate.md) | the deferred lens-tails, each now its own slate — prosthetics → augmentation-slate · the absent body → absent-body-slate · surgery + blood (transfusion / donation) → the clinical-medicine-slate umbrella (which pulls in blood-slate for the deep blood economy). |
 | [rejection](./builds/rejection-slate.md) | everything below the water table — shaft, hoist, pump · the drainage commons + the hoist toll and district · sulfides and roasting · collapse entrapment, the rescue clock and cascade … |
 | [reputation](./builds/reputation-slate.md) | susceptibility · the NPC↔NPC consumers · the substance economy's brand-trust · the notoriety/disguise counterweight (the wanted-profile, `getDisguise().covers`, mutable `distinctiveFeatures`) … |
 | [retail](./builds/retail-slate.md) | S2 the Circulation Reserve (the welfare-floor buy) · S3 producer + real cost/supply pricing (the derived stance, then characterization) · S4 player-owned storefronts, franchising and the market arena · ⚠ **a business never stands DOWN** (below) … |
@@ -249,10 +252,11 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (43)
+## Tails — small and opportunistic (45)
 
 | slate | left |
 |---|---|
+| [absent-body](./tails/absent-body-slate.md) | the autonomic-defense stance itself · brain-mechanism vs pure-stance · the grace/duration question · the interaction with `combat.maxBeats` … |
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — denies + `forceX` uses → `MudlogApi`, which is unwired) · action-level `can()` for non-staff verbs (chat gag-as-deny, channel post/moderate roles, guild kick, field masks) + deny-wins composition · the location/context source · the lease-vs-quota design question, which should not ride the audit sink's cycle |
 | [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled) and its parse wiring (Q3–Q5) · extra `put` prepositions (Q2) · the `Receiving` mixin (NPC consent for `give`) |
 | [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script (no `script` verb) detaches · a per-actor async concurrency cap · a generic cancel-my-running-async-command verb (engagement owns cancel today) |
@@ -265,6 +269,7 @@ are the named remainders.
 | [connection-quality](./tails/connection-quality-slate.md) | the three-band jitter state (fine / laggy / unstable) · the opt-in party publish as an `AFK`-style status rather than a number · the operator's aggregate distribution read + the per-player break-glass |
 | [consequence](./tails/consequence-slate.md) | the **terms/consent lift** — a legal primitive (`lethality`/`stopCondition`/`consent`) generalizing out of combat to sit beside governance/contracts; no owning slate exists yet (open question Q5) · the **necropolis** is still a stub inside Terminus and wants to be a sixth locality (towns-slate) with a real vertical (end-of-life-slate) · de-escalation's act-half lives in intervention-slate.md · blood/ transfusion, filling `g(composure)`, and the client `CombatCard` are each already tracked as open on their owning slate/doc (see § Not in scope) |
 | [dgg-relay](./tails/dgg-relay-slate.md) | the dgg WebSocket transport · the anonymous read path · the developer-key credential (it rides no OAuth spine) · the two-way write path, which is the point of it |
+| [document-store-tiering](./tails/document-store-tiering-slate.md) | a compound index for time-paged reads by kind (the press archive full-scans and sorts in JS today) · `release`'s `onVanish: 'delete'`, which its own neighbours' comments argue against · `descriptor-bank`, the one unit the collapse programme skipped · the |
 | [dossier](./tails/dossier-slate.md) | Q2 the materialized trio (participation + influence still seed-and-fold; make `renownOf` derive) · Q3 a seeded condition's cause · Q4 dossiers for organizations · Q5 converging char-gen's claim seeding |
 | [encumbrance](./tails/encumbrance-slate.md) | per-item placement refinement (a frame pack beating the worn floor) · augment-conferred capacity · gravity/environmental margins · tissue-derived mass … |
 | [explicit-targeting](./tails/explicit-targeting-slate.md) | the reserved per-invocation `--strict` / `--loose` option · turning `warn` on where a verb wants a voice (`open` · `close` · `unlock` — a content question, wants a live drive) |

@@ -35,8 +35,22 @@ import Thing from '../../lib/stuff/Thing';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { PricedOfferMixin } from '../../lib/commerce/PricedOffer';
 import { MqlApi } from '../../api/mql';
+import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
+import { ExecutionContextApi } from '../../api/execution-context';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandContext, CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
+
+/**
+ * ⭐ **The labour index dials** (D13). `LABOUR_INDEX` is how strongly a
+ * treatment's price bends with the customer's wage × the harm's shortfall;
+ * `REFERENCE_WAGE` is the wage that reads as "1×" (a typical clinic wage).
+ * So a wage-`REFERENCE_WAGE` body with a fully-lost capacity pays `2× base`,
+ * and an unhurt or unemployed body pays base.
+ */
+const LABOUR_INDEX = 1;
+const REFERENCE_WAGE = 6;
 
 /**
  * ⭐ **The closed vocabulary of what a priced key can DO.** Kernel-owned
@@ -74,6 +88,7 @@ const TariffBase = PricedOfferMixin(DetailedMixin(Thing));
 export default class Tariff extends TariffBase {
   static fieldMeta: FieldMeta = {
     services: { persistent: true, authorable: true },
+    labourIndexed: { persistent: true, authorable: true },
   };
 
   /**
@@ -83,6 +98,62 @@ export default class Tariff extends TariffBase {
    * silently declining.
    */
   public services: Record<string, string> = {};
+
+  /**
+   * ⭐⭐ **Price a treatment by the labour it restores** (D13). When true,
+   * `priceFor` bends a `treatment` service's price by the CUSTOMER's wage ×
+   * the harm's shortfall — the clinic near the mine emerges from who walks
+   * in, not from an authored surcharge. Default false (a flat tariff).
+   */
+  public labourIndexed = false;
+
+  public isLabourIndexed(): boolean {
+    return this.labourIndexed;
+  }
+  public setLabourIndexed(value: boolean): void {
+    this.labourIndexed = value;
+  }
+
+  /**
+   * ⭐ The multiplier a labour-indexed treatment applies to `base`, for a
+   * given body: `1 + LABOUR_INDEX × (wage / REFERENCE_WAGE) × shortfall`.
+   * `wage` is the body's highest current position wage (0 if unemployed →
+   * multiplier 1); `shortfall` is `1 − minCapacityScalar` (0 if unhurt →
+   * multiplier 1). Unit-tested; `priceFor` composes it.
+   */
+  public labourIndexFor(body: Stuff): number {
+    let wage = 0;
+    if (MixinApi.isEmployed(body)) {
+      for (const e of body.getEmployments()) {
+        if (e.status !== 'on-shift' && e.status !== 'off-shift') continue;
+        const org = StuffApi.findByTemplatePath(e.organizationPath);
+        if (!org || !MixinApi.isOrganization(org)) continue;
+        const rate = org.getPosition(e.positionKey)?.wageRate ?? 0;
+        if (rate > wage) wage = rate;
+      }
+    }
+    const shortfall = MixinApi.isVitals(body)
+      ? Math.max(0, 1 - body.minCapacityScalar())
+      : 0;
+    return 1 + LABOUR_INDEX * (wage / REFERENCE_WAGE) * shortfall;
+  }
+
+  /**
+   * ⭐⭐ A treatment's price is the customer's price when the tariff is
+   * labour-indexed (D13). The customer is the acting principal (the one
+   * who `order`s), so both the wage and the shortfall are read off them —
+   * `menu` therefore quotes YOUR price. Everything else is the flat base.
+   */
+  public override priceFor(key: string): number | null {
+    const base = super.priceFor(key);
+    if (base === null) return null;
+    if (!this.labourIndexed || this.serviceFor(key) !== 'treatment') {
+      return base;
+    }
+    const customer = ExecutionContextApi.getActingAuthor() as Stuff | null;
+    if (!customer) return base;
+    return Math.round(base * this.labourIndexFor(customer));
+  }
 
   /** The commerce surface, exactly the `Menu`'s: read it, order off it. */
   static commandContributions: CommandContributions = {

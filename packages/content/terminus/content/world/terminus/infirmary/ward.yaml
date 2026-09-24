@@ -23,5 +23,22 @@ data:
     - /world/terminus/infirmary/thing/tariff
     - /world/terminus/infirmary/thing/cot
     - /world/terminus/infirmary/thing/dressing-cabinet
+    # ⭐ The trade's instruments (recovery build) — the splint backs `set`,
+    # the surgeon's kit backs `operate`, and a vial of antivenin backs
+    # `dose`. Kept here so the ward can actually treat every wound, not
+    # just dress the ones a bandage reaches. Rows are trade-medicine's
+    # (terminus now depends on it).
+    - /trade/medicine/thing/splint
+    - /trade/medicine/thing/surgical-kit
+    - /trade/medicine/thing/antivenin-vial
+    # ⭐ The basin is REAL water now (recovery build) — it affords `scrub`
+    # (clean hands between patients), `rinse` and `cool`. The prose already
+    # names a basin; this makes it a working water source.
+    - /stuff/thing/fixture/basin
+    # The clinic's dressing supply — real bandages the nurse's brain dresses
+    # wounds with, and that RUN OUT (each is spent by one dressing).
+    - /world/terminus/infirmary/thing/bandage-1
+    - /world/terminus/infirmary/thing/bandage-2
+    - /world/terminus/infirmary/thing/bandage-3
   cast:
     - /world/terminus/infirmary/agent/physician

@@ -46,6 +46,19 @@ See also:
 
 ---
 
+> ⭐ **Recovery deferred prosthetics HERE (2026-09-23).** The recovery build
+> (MR !278) reached for a prosthetic and found `restores: 0.6` — a scalar
+> that fails every design lens (a hidden gauge; no craft/fit Discipline; no
+> capability profile; no epoch×magic axis; no economic loop). It was CUT.
+> Prosthetics are a **"replace" augment** and belong to THIS build: vitals
+> owns the loss (`severPart`, `ownFunction → 0` for a missing part — shipped),
+> augmentation owns the replacement. When this build runs, a prosthetic
+> should CONFER a capability profile (peg vs blade-leg vs fine articulated
+> vs cyber vs magically-regrown), derive its function from craft quality ×
+> fit (two Disciplines; recovery's `operate` verb is the install act), and
+> ride the `Add / Replace / Enhance` axis — the transhuman enhancement fork
+> is a real values question. See the recovery MR's six-lens review thread.
+
 ## The augmentation model
 
 ### Forms (by how they attach)

@@ -1,0 +1,33 @@
+# ⚠ The verb is `splint`, not `set` — `set` is a scripting builtin
+# (`def`/`make`/`set`), and a view claiming it would silently shadow (or be
+# shadowed by) the interpreter's `set`. The wound's mismatch line already
+# points here: *"It wants setting, with a splint."*
+verbs: [splint]
+controller: /trade/medicine/idea/cmd/medical/SetController
+description: "Splint a broken bone"
+help: |
+  Splint a broken bone — `splint alice`, or `splint` yourself. You need a
+  splint in hand; a bandage will not do it, and `treat` will tell you so.
+
+  A set fracture knits far faster than one left to heal on its own. How
+  well it is set depends on your skill at medicine — a clumsy set still
+  holds, but a practised one holds better.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  # ⭐ The instrument, declared not hunted — `[capability.splint]` is the
+  # thing that can do this job (the Whetstone rule); `me:i` = in hand.
+  - name: splint
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.splint]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

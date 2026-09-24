@@ -1,0 +1,24 @@
+# ⭐⭐ Mending — the condition the `mend` spell lays on (recovery D12).
+#
+# It carries a read-time `convalescence` effect: while it lasts, the body's
+# wounds knit at TRIPLE the rate (`Vitals.convalescenceFactor` multiplies
+# `factor` into `k`). It is NOT a new mechanism — the spell afflicts this
+# ordinary condition, and the healing falls out of the mend law every wound
+# already runs. A MAGIC affliction (the executor stamps `magicOrigin`), so
+# it is honestly dispellable; it also self-clears after four game-hours
+# (`resolution: rest, atStage: 4`, one stage per hour), so a mend is a
+# window, not a permanent buff.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: mending
+  signature:
+    - { kind: convalescence, factor: 3 }
+  progression:
+    law: stage
+    intervalMs: 3600000
+  resolution:
+    by: rest
+    atStage: 4
+  observableSigns: [flushed, warm-to-the-touch]
+  contagion: null

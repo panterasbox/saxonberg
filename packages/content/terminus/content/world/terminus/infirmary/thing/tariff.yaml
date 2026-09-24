@@ -19,6 +19,12 @@ data:
   prices:
     treatment: 12
     repair: 8
+  # ⭐⭐ Priced by the labour it restores (recovery D13): a `treatment`'s
+  # bill bends with the customer's wage × how badly the harm has impaired
+  # them. A well-paid body with a failing leg pays more than an unemployed
+  # one with the same wound; an unhurt or destitute body pays the base.
+  # The clinic near the mine emerges from who walks in.
+  labourIndexed: true
   # What each priced key MEANS, from the kernel's closed vocabulary.
   # `treatment` — the house sees to what is wrong with you.
   # `repair`    — the physician's hands are steady and the surgery has a

@@ -113,7 +113,7 @@ describe('wash', () => {
     ContainmentApi.move(coupe, room);
     const ctx = makeContext(actor, room, 'wash coupe');
     await executeAs(actor, () =>
-      makeStuff(() => new WashController()).execute({ glass: ref(coupe, 'coupe') } as never, ctx),
+      makeStuff(() => new WashController()).execute({ target: ref(coupe, 'coupe') } as never, ctx),
     );
     expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected' && n.reason === 'no-water')).toBe(true);
     await completeStep(3000);
@@ -132,7 +132,7 @@ describe('wash', () => {
 
     await executeAs(actor, () =>
       makeStuff(() => new WashController()).execute(
-        { glass: ref(coupe, 'coupe'), water: many(water) } as never,
+        { target: ref(coupe, 'coupe'), water: many(water) } as never,
         makeContext(actor, room, 'wash coupe'),
       ),
     );
