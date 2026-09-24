@@ -17,13 +17,33 @@
 
 import { vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
-import { InstrumentApi } from '../../../../api/instrument';
+import { READING_CATALOGUE_PATH } from '../../ReadingCatalogue';
 import MeasureController from '../../cmd/perception/MeasureController';
 import AnalyzeController from '../../cmd/perception/AnalyzeController';
 import type Reading from '../../../../lib/instrument/Reading';
 import type { CommandContext } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+
+/**
+ * Stub the channel LOOKUP and nothing else.
+ *
+ * ⚠ It intercepts `StuffApi.singleton` for the catalogue path only and
+ * passes every other singleton through to the real one — a blanket mock
+ * would swallow the resolutions the rungs themselves make, and the
+ * point of this helper is that everything below the lookup is the
+ * shipped path.
+ */
+function stubLookup(reading: Reading): void {
+  const real = StuffApi.singleton.bind(StuffApi);
+  vi.spyOn(StuffApi, 'singleton').mockImplementation((async (
+    path: string,
+    factory?: unknown,
+  ) =>
+    path === READING_CATALOGUE_PATH
+      ? { warmed: async () => reading, allWarmed: async () => [reading] }
+      : real(path, factory as never)) as never);
+}
 
 export interface DriveOptions {
   /** What the player named, if anything. */
@@ -40,7 +60,7 @@ export async function driveMeasure(
   context: CommandContext,
   opts: DriveOptions = {},
 ): Promise<void> {
-  vi.spyOn(InstrumentApi, 'reading').mockResolvedValue(reading);
+  stubLookup(reading);
   const ctrl = await StuffApi.create(() => new MeasureController());
   await ctrl.execute(
     {
@@ -58,7 +78,7 @@ export async function driveAnalyze(
   context: CommandContext,
   opts: DriveOptions = {},
 ): Promise<void> {
-  vi.spyOn(InstrumentApi, 'reading').mockResolvedValue(reading);
+  stubLookup(reading);
   const ctrl = await StuffApi.create(() => new AnalyzeController());
   await ctrl.execute(
     {

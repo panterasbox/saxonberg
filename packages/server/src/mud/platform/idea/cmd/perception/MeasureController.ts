@@ -15,7 +15,7 @@
  *   3. a trade could not add a channel without editing a platform file.
  *
  * Flat-positional fixes all three: the channel is a STRING the
- * {@link InstrumentApi} resolves against the installed roster, so an
+ * {@link ReadingCatalogue} resolves against the installed roster, so an
  * uninstalled channel is simply not a channel and says so.
  *
  * The controller does almost nothing, on purpose. It resolves the
@@ -27,7 +27,10 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
-import { InstrumentApi } from '../../../../api/instrument';
+import { StuffApi } from '../../../../api/stuff';
+import ReadingCatalogue, {
+  READING_CATALOGUE_PATH,
+} from '../../ReadingCatalogue';
 import { READING_TOPIC } from '../../../../lib/instrument/Reading';
 
 export interface ReadCommandModel extends CommandModel {
@@ -41,7 +44,10 @@ export interface ReadCommandModel extends CommandModel {
 
 export default class MeasureController extends CommandController<ReadCommandModel> {
   async execute(model: ReadCommandModel, context: CommandContext): Promise<void> {
-    const reading = await InstrumentApi.reading(model.channel ?? '');
+    const catalogue = await StuffApi.singleton<ReadingCatalogue>(
+      READING_CATALOGUE_PATH,
+    );
+    const reading = await catalogue.warmed(model.channel ?? '');
     if (!reading) {
       this.refuse(
         context,

@@ -26,7 +26,6 @@ import ToolItem from '../../../thing/ToolItem';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import MeasureController from '../../cmd/perception/MeasureController';
 import AnalyzeController from '../../cmd/perception/AnalyzeController';
-import { InstrumentApi } from '../../../../api/instrument';
 import type Reading from '../../../../lib/instrument/Reading';
 import type { MqlOneResult } from '../../../../api/mql';
 import { withRow } from './row';

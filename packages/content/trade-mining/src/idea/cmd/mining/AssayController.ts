@@ -47,7 +47,9 @@ import { GEOLOGY } from '../../../lib/SurveyReading';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { InstrumentApi } from '@saxonberg/server/mud/api/instrument';
+import ReadingCatalogue, {
+  READING_CATALOGUE_PATH,
+} from '@saxonberg/server/mud/platform/idea/ReadingCatalogue';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -390,8 +392,11 @@ async function finishAssay(
 
 /** The channel this sample can be read on, or `null`. */
 async function claimFor(sample: Stuff): Promise<Reading | null> {
+  const catalogue = await StuffApi.singleton<ReadingCatalogue>(
+    READING_CATALOGUE_PATH,
+  );
   for (const channel of ['grade', 'chemistry']) {
-    const reading = await InstrumentApi.reading(channel);
+    const reading = await catalogue.warmed(channel);
     if (!reading) continue;
     if (reading.getBench() === '') continue;
     if (!(scaleClaims(reading, sample))) continue;

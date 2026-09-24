@@ -18,12 +18,18 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext } from '../../../../api/command';
 import type { ReadCommandModel } from './MeasureController';
-import { InstrumentApi } from '../../../../api/instrument';
+import { StuffApi } from '../../../../api/stuff';
+import ReadingCatalogue, {
+  READING_CATALOGUE_PATH,
+} from '../../ReadingCatalogue';
 import { READING_TOPIC } from '../../../../lib/instrument/Reading';
 
 export default class AnalyzeController extends CommandController<ReadCommandModel> {
   async execute(model: ReadCommandModel, context: CommandContext): Promise<void> {
-    const reading = await InstrumentApi.reading(model.channel ?? '');
+    const catalogue = await StuffApi.singleton<ReadingCatalogue>(
+      READING_CATALOGUE_PATH,
+    );
+    const reading = await catalogue.warmed(model.channel ?? '');
     if (!reading) {
       this.refuse(
         context,

@@ -61,10 +61,18 @@ export default class ReadingCatalogue extends ReadingCatalogueBase {
    * `null` when no installed pack ships that channel — which is the
    * honest answer, and what the verbs turn into *"there is no reading
    * called 'x'"*.
+   *
+   * ⚠ It takes RAW player text and normalizes it here, because every
+   * caller has raw player text and there is exactly one right answer to
+   * what `  Light ` means. This lived one tier up until the tier was
+   * collapsed; a lookup key rule belongs to the index that is keyed by
+   * it, or the next caller invents a second one.
    */
   public async warmed(channel: string): Promise<Reading | null> {
+    const key = ReadingCatalogue.key(channel);
+    if (key === '') return null;
     if (!this.warmedOnce) await this.warm();
-    return this.byChannel.get(channel) ?? null;
+    return this.byChannel.get(key) ?? null;
   }
 
   /** Every channel installed, warming first. Alphabetical by token. */
@@ -77,7 +85,12 @@ export default class ReadingCatalogue extends ReadingCatalogueBase {
 
   /** The index as it stands, with no warm. Cold reads empty, honestly. */
   public peek(channel: string): Reading | null {
-    return this.byChannel.get(channel) ?? null;
+    return this.byChannel.get(ReadingCatalogue.key(channel)) ?? null;
+  }
+
+  /** The one normalization of a channel token. */
+  private static key(channel: string): string {
+    return channel.trim().toLowerCase();
   }
 
   /**

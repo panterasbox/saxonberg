@@ -14,7 +14,7 @@
 #   3. **A trade could not add a channel without editing this file.**
 #
 # Flat-positional fixes all three. The channel is resolved against the
-# installed roster (`InstrumentApi.reading`), so an uninstalled channel
+# installed roster (`ReadingCatalogue.warmed`), so an uninstalled channel
 # is simply not a channel, and the refusal says so and points at
 # `readings`. A trade ships `content/<root>/idea/reading/<x>.yaml` plus a
 # class and is done: no platform file changes in either direction.

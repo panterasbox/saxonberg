@@ -24,7 +24,10 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { InstrumentApi } from '../../../../api/instrument';
+import { StuffApi } from '../../../../api/stuff';
+import ReadingCatalogue, {
+  READING_CATALOGUE_PATH,
+} from '../../ReadingCatalogue';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
@@ -42,7 +45,7 @@ export default class ReadingsController extends CommandController<ReadingsModel>
     const named = (model.channel ?? '').trim().toLowerCase();
 
     if (named !== '') {
-      const reading = await InstrumentApi.reading(named);
+      const reading = await (await this.catalogue()).warmed(named);
       if (!reading) {
         this.refuse(
           context,
@@ -70,7 +73,7 @@ export default class ReadingsController extends CommandController<ReadingsModel>
       return;
     }
 
-    const all = await InstrumentApi.readings();
+    const all = await (await this.catalogue()).allWarmed();
     if (all.length === 0) {
       this.refuse(
         context,
@@ -93,6 +96,11 @@ export default class ReadingsController extends CommandController<ReadingsModel>
     lines.push('');
     lines.push('`readings <channel>` for what one is worth knowing.');
     this.say(context, lines);
+  }
+
+  /** The channel roster, stood up on the way past if nothing has. */
+  private async catalogue(): Promise<ReadingCatalogue> {
+    return StuffApi.singleton<ReadingCatalogue>(READING_CATALOGUE_PATH);
   }
 
   private say(context: CommandContext, lines: string[]): void {

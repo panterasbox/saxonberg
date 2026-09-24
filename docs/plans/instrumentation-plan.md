@@ -515,11 +515,33 @@ data:
 `MaterialCatalogue` shape verbatim: `Template.findByPathInfix('/idea/reading/')`,
 keep rows whose class extends `Reading`, singleton by path, residency
 veto, idempotent re-warm on pack go-live. ⚠ **It warms lazily on first
-`InstrumentApi.reading()` and in `postRegister`, never only at boot** —
-the inert-reference-Idea trap has bitten three times; the controller
-path must not depend on boot order. `api/instrument.ts` (`InstrumentApi`:
-`reading(channel)`, `readings()`) forwards to
-`platform/idea/api/InstrumentLogic.ts` — the mandatory Api↔Logic split.
+`warmed()` and in `postRegister`, never only at boot** — the
+inert-reference-Idea trap has bitten three times; the controller path
+must not depend on boot order.
+
+> ⛔ **RETRACTED at review — there is no `InstrumentApi`.** This wave
+> built `api/instrument.ts` (`reading(channel)`, `readings()`) over
+> `platform/idea/api/InstrumentLogic.ts`, calling the pair *"the
+> mandatory Api↔Logic split"*. It was not mandatory and it held nothing:
+> both `InstrumentLogic` methods were verbatim forwards to the catalogue
+> singleton, which is the named antipattern *A `*Logic` Tier That Holds
+> No Logic* — and `check-thin-forwarder`'s own docstring says that case
+> is **"a finalize-checklist judgment call, not a mechanical lint"**, so
+> nothing was ever going to catch it but a reader.
+>
+> The tell was written in the Api's own header: *"everything else about
+> a reading lives on the `Reading` the first one hands back … because a
+> reading is an act performed by a channel, not a function of a
+> subsystem."* An Api whose docstring explains why it will never grow is
+> two tiers of nothing. Nine of eighteen catalogues have no Api at all
+> and are reached by resolving the singleton and calling an instance
+> method; the eight that DO have one carry 4–23 statics of real
+> subsystem behaviour, against this one's two.
+>
+> So callers resolve `ReadingCatalogue` directly (the `ConditionCatalogue`
+> shape `PatientReading` already uses in this build), the channel-token
+> normalization moved onto the index that is keyed by it, and both files
+> are deleted. **See D25.**
 
 A pack's channel is its row + its class + nothing in the platform:
 `packages/content/trade-mining/content/trade/mining/idea/reading/strike.yaml`
@@ -1030,6 +1052,64 @@ the pile it came from.”* So D20 case 1 is **`split(1)` plus a
 provenance stamp**, not a new mechanism — the reading-relevant half is
 on master. The stamp is all this build adds.
 
+### D25 — ⛔ NO `InstrumentApi`: a two-method Api over a catalogue is two tiers of nothing (review)
+
+**The question.** W1 built `api/instrument.ts` (`reading(channel)`,
+`readings()`) over `platform/idea/api/InstrumentLogic.ts`, on the
+reasoning that the `XApi`↔`XLogic` split is mandatory. Review asked the
+right question: *is this narrow enough to belong somewhere else, or are
+more methods coming?*
+
+**The answer: neither tier survives.** More methods are not coming, and
+the build said so itself. The Api's own header read *"everything else
+about a reading lives on the `Reading` the first one hands back — the
+rungs, the bands, the brackets, the refusals — because a reading is an
+act performed by a channel, not a function of a subsystem."* Every one
+of this plan's nine deferred seams is a row, a field on
+`Reading`/`ReadingRecord`, or another subsystem's; not one of them adds
+a method here. ⭐ **An Api whose docstring explains why it will never
+grow is a tier that has already argued itself out of existence.**
+
+**What decided it** — `CLAUDE.md`'s "follow the nearest existing
+pattern", measured rather than recalled:
+
+| | |
+|---|---|
+| catalogues with **no** Api at all | 9 of 18 — `Archetype`, `Blueprint`, `Channel`, `Discipline`, `Fabric`, `MaturationProfile`, `Recipe`, `Spell`, `Topic` |
+| catalogues **with** an Api | 8, carrying **4–23 statics** of real subsystem behaviour (`BiomeApi` 23, `MaterialApi` 17, `ConditionApi` is the harm driver) |
+| `InstrumentApi` | **2**, both pure lookups |
+
+And `InstrumentLogic`'s two methods were verbatim forwards to the
+catalogue singleton — `docs/antipatterns.md § A *Logic Tier That Holds
+No Logic`, exactly. ⚠ `check-thin-forwarder` could never have caught it:
+its own docstring exempts the case, *"the no-logic-registry-tier case is
+a finalize-checklist judgment call, not a mechanical lint."* This is
+what that judgment call looks like when somebody actually makes it.
+
+**The shape now.** A caller resolves the catalogue and calls an instance
+method — the `ConditionCatalogue` shape this build's own
+`PatientReading` already uses:
+
+```ts
+const catalogue = await StuffApi.singleton<ReadingCatalogue>(
+  READING_CATALOGUE_PATH,
+);
+const reading = await catalogue.warmed(model.channel ?? '');
+```
+
+⭐ `StuffApi.singleton` **is** the get-or-create, so boot-order
+independence — the whole reason `InstrumentLogic` claimed to exist — is
+a property of the call, not of the tier. The channel-token
+normalization (`trim().toLowerCase()`, empty → null) moved onto
+`ReadingCatalogue`, which is where a lookup-key rule belongs: the index
+that is keyed by it. It was a *bug* one tier up, because `peek()` never
+had it.
+
+**Cost:** five call sites, two lines each, one of them a pack's — and
+`./mud/platform/idea/*` is in the server's `exports` map, so a pack
+reaches the catalogue by package specifier with no kernel MR. Two files
+deleted, no surface lost.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1039,7 +1119,6 @@ on master. The stamp is all this build adds.
 | `Reading` (abstract Idea) + 31 concrete classes | kernel `lib/instrument/Reading.ts`; concretes at `platform/idea/reading/*.ts` and each pack's `src/idea/reading/*.ts` | a stateless singleton per row; nothing else composes it | none — rows are the host set |
 | `Reading` row fields (`channel … stakes`) | the Reading row | authored per channel | none |
 | `ReadingCatalogue` | `platform/idea/ReadingCatalogue.ts` singleton | one roster, warmed by infix | none |
-| `InstrumentApi` / `InstrumentLogic` | `api/instrument.ts`, `platform/idea/api/InstrumentLogic.ts` | the subsystem's Api | none |
 | `measure` / `readings` / `sample` affordance | `Avatar.commandContributions.self` | every player can attempt every rung; refusals name the route | none — NPCs use Apis |
 | instrument capability + grade + condition | the ten platform instruments become **rows over `/platform/thing/ToolItem`** (`capabilities:`); their classes are deleted | an instrument is a tool: graded, durable, wearing; a broken one reads nothing | none — `ToolItem` already carries all three |
 | `MeasureBook` (tailoring) as the `figure` instrument | its row gains `capabilities: [fitting]`; the class gains `ToolMixin` if it lacks it (W1 verifies) | the book is the tool you read a figure with | none |
@@ -1080,8 +1159,8 @@ Checked at plan time against the current tree.
   `<root>/cmd/<category>/`.
 - **Module categories** — `Reading` is a Stuff class (lib substrate +
   instanceable concretes); `ReadingCatalogue` a singleton Idea;
-  `SampledMixin` a mixin in `lib/instrument/`; `InstrumentApi` +
-  `InstrumentLogic` the Api pair; `AssayBench`, `ReadingRecord` Stuff
+  `SampledMixin` a mixin in `lib/instrument/`; `AssayBench`,
+  `ReadingRecord` Stuff
   classes. **No free helper, no new category.** `finishAssay` and
   `winSample` are module-level *non-exported* functions in their
   controllers (the `winOre` precedent).
@@ -1166,7 +1245,8 @@ commit. Order matters — each step keeps the tree green.
    `ceilingOf`, `observe`, `remember`/`recallAll`, `decline`, the three
    `@hook` rungs with refusing defaults, `truth`, `routesFor`);
    `platform/idea/ReadingCatalogue.ts` (`MaterialCatalogue` shape);
-   `api/instrument.ts` + `platform/idea/api/InstrumentLogic.ts`. Tests:
+   (`api/instrument.ts` + `platform/idea/api/InstrumentLogic.ts` — both
+   retracted at review, see D24). Tests:
    catalogue warm by infix across two roots (a platform row and a
    fixture pack row), `observe`'s containment invariant over all bands,
    `bandOf`'s three cases.
@@ -1733,7 +1813,7 @@ remember.**
 
 | capability | verb | affordance | data | boot | arg gate |
 |---|---|---|---|---|---|
-| a reading (any channel) | `measure` / `analyze` flat views | `Avatar.commandContributions.self` | a `Reading` row at `<root>/idea/reading/<channel>` with `class:` | `ReadingCatalogue` warms by infix, lazily on first `InstrumentApi.reading()` and in `postRegister` | `subject requires: any`; `tool requires: [ToolMixin]` — the Reading refuses by `subjectRequires` in its own words |
+| a reading (any channel) | `measure` / `analyze` flat views | `Avatar.commandContributions.self` | a `Reading` row at `<root>/idea/reading/<channel>` with `class:` | `ReadingCatalogue` warms by infix, lazily on first `warmed()` and in `postRegister` | `subject requires: any`; `tool requires: [ToolMixin]` — the Reading refuses by `subjectRequires` in its own words |
 | the instrumented rung | same | same | the instrument **row** declares `capabilities: [<cap>]` and the Reading row `instrument: <cap>` — both, or `lint:capabilities` fails | rows install with the pack | the Reading narrows the bound tools by `getCapabilities()` then `isBroken()` |
 | a trade's channel | same | same | the pack's row + class; **no platform file** | the pack's install | same |
 | `trace address` / `atmosphere` | `system/trace.yaml` | Avatar `self` | — | — | `location requires: ContainerMixin` |
