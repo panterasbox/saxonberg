@@ -539,6 +539,29 @@ describe('TreatController — the treatment matches the condition', () => {
     expect(detail).toContain('rest');
   });
 
+  it('⚠ a foreign body wants EXTRACTION — a bandage seals the thing in (D6)', async () => {
+    const bandage = makeStuff(() => new Bandage());
+    const embedded: Trauma = {
+      kind: 'trauma',
+      type: 'foreign-body',
+      site: 'body.leg.left.foot',
+      severity: 2,
+      foreignBody: 'a poisoned needle',
+      bleeding: true,
+    };
+    const { medic, room } = medicWithWound(
+      bandage,
+      embedded,
+      '/platform/agent/Avatar/medic-embed',
+    );
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute({}, ctxFor(medic, room));
+    const detail = String(
+      (note.mock.calls[0]![0] as { detail: string }).detail,
+    );
+    expect(detail).toContain('extraction');
+  });
+
   it('the mismatch is reported even with nothing to hand (bare hands are `medicine`)', async () => {
     // ⭐ Bare hands are a treatment, not an absence — which is what lets
     // `treat` reach an illness at all. `tendInfection` had been complete

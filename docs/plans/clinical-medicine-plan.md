@@ -980,7 +980,21 @@ MR (W7), and again at `/finalize`.
 - Acceptance: unit-only (no verb reaches it yet). `lint:conditions`
   green on the new row; `lint:condition-arms` still 5.
 
-#### W2 — the foreign body (D6)
+#### W2 — the foreign body (D6) — ✅ DONE (see commit)
+
+> Done note: landed as planned. `foreign-body` is the 10th TraumaType;
+> `FOREIGN_BODY_BEHAVIOR` mirrors laceration but bleeds at 0.35× while
+> embedded (`foreignBody` set), no-ops `mend` until extracted, and
+> `resolve` clears the object + dresses. Joined BLEED_FAMILY (sepsis
+> clock) AND SCARRING_TYPES (it breaks the skin). `EnergyInflictSpec.embeds`
+> + `HazardDeliveryOptions.embeds` both thread through; `ConditionLogic`
+> mints the type when a `puncture` ≥ `EMBED_MIN_SEVERITY` carries `embeds`.
+> ShootController sets `embeds` on a surviving point round; step-dart
+> authors `embeds: a poisoned needle`. `mismatchLine` word added;
+> AssessController needed NO change (it already renders via the behavior's
+> `describe`, and keys interior on the anatomical SITE, so a foot wound is
+> visible). All 51 lint gates pass; server type-clean.
+
 
 - `Condition.ts`: `'foreign-body'` + `FOREIGN_BODY_BEHAVIOR` + roster +
   `BLEED_FAMILY` + `HARM_DEFAULTS.{FOREIGN_BODY_BLEED_SCALE,

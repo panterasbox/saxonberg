@@ -165,6 +165,10 @@ function mismatchLine(offered: string, wanted: string | null): string {
     // instruments answer, and until one is to hand `treat` says so.
     setting: 'setting, with a splint',
     surgery: 'surgery',
+    // ⭐ A foreign body has to come OUT before anything can close (D6) —
+    // the extraction the `operate` catalogue offers. Dressing over it
+    // does nothing but seal the thing in.
+    extraction: 'the thing taken out — an extraction',
     // ⭐ A caustic is still eating. What it wants is not a treatment you
     // apply but the REMOVAL of the cause — which is why `rinse` is a verb
     // of its own rather than another thing to carry.

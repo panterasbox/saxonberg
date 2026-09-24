@@ -158,7 +158,15 @@ export default class ShootController extends CommandController<ShootModel> {
         .send();
     } else {
       const spec = shot.profile.toInflictSpec('body.torso');
-      if (spec !== null) ConditionApi.inflict(target, spec);
+      if (spec !== null) {
+        // ⭐ A projectile that survives arrival stays in the wound (D6):
+        // a point insult severe enough mints a `foreign-body` that only
+        // extraction resolves. A shattering round leaves nothing to pull.
+        if (spec.mechanism === 'point' && shot.profile.integrity !== 'shatter') {
+          spec.embeds = ammo.getPresentation();
+        }
+        ConditionApi.inflict(target, spec);
+      }
     }
 
     // ⭐ And now you are not ready. This is what makes the family choice
