@@ -543,7 +543,7 @@ posture-bearing slot. It is lying on nothing, which passes only because most
 rooms have no floor to lie on. When the ground build gives every Location a
 floor, this becomes a one-line honesty fix (`transferPosture`) and the first
 place a floor's material matters in a fight →
-[ground-slate](../slates/builds/ground-slate.md).
+[ground.md](./ground.md).
 
 **Reactive dispatch (X)** — the session consults a defender's reactive
 affordances at `parried` / `whiff` / `grab`. "Reactive" is a net-new

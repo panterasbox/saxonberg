@@ -199,8 +199,8 @@ function findFloor(room: Stuff): Stuff | null {
   if (!MixinApi.isAdornable(room)) return null;
   const floor = room.getFloor();
   if (!floor) return null;
-  if (!MixinApi.isBulkable(floor) || !floor.hasSurfaceBulk()) return null;
-  return floor as unknown as Stuff;
+  if (!floor.hasSurfaceBulk()) return null;
+  return floor;
 }
 
 /** The floor's conductive surface pool material, or `null` (dry / too fresh /

@@ -808,8 +808,8 @@ function findRoomFloor(room: Stuff & Container): (Stuff & Bulkable) | null {
   if (!MixinApi.isAdornable(room)) return null;
   const floor = (room as Stuff & Adornable).getFloor();
   if (!floor) return null;
-  if (!MixinApi.isBulkable(floor) || !floor.hasSurfaceBulk()) return null;
-  return floor as unknown as Stuff & Bulkable;
+  if (!floor.hasSurfaceBulk()) return null;
+  return floor;
 }
 
 /** The authored fresh-water material a new rain puddle fills with (weakly conductive). */

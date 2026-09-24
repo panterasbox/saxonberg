@@ -41,6 +41,23 @@ import Deposit, { type Point, type GroundSample } from '../idea/Deposit';
  */
 export type Cell = readonly [number, number, number];
 
+/**
+ * A concrete mixin constructor, for a factory that must ANNOTATE its return.
+ *
+ * ⚠ `any[]` is required and is not laziness: the TypeScript handbook's mixin
+ * pattern needs it, `never[]` breaks parameter variance and `unknown[]` breaks
+ * base-constructor assignability — both measured here, both producing
+ * *"Base constructors must all have the same return type"*. The kernel's own
+ * `MixinConstructor` carries the identical suppression with the identical
+ * reason: *"it's the one place the rule is deliberately suppressed."*
+ *
+ * ⭐ Declared once and exported so the two factories that need it — this
+ * pack's `StrataMixin` and `trade-mining`'s `WorkingMixin` — share **one**
+ * suppression rather than four.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type MixinCtor<T> = new (...args: any[]) => T;
+
 /** The mixin's marker, and the string `MixinApi.isActive` narrows on. */
 export const STRATA_MIXIN = 'StrataMixin';
 
@@ -74,7 +91,7 @@ export interface Strata {
  */
 export function StrataMixin<TBase extends MixinConstructor<Stuff & Container>>(
   Base: TBase,
-): TBase & (new (...args: any[]) => Strata) {
+): TBase & MixinCtor<Strata> {
   class StrataMixin extends Base implements Strata {
     static _mixinName = STRATA_MIXIN;
 
@@ -136,7 +153,7 @@ export function StrataMixin<TBase extends MixinConstructor<Stuff & Container>>(
       return d.sampleAt(this.metresOf(this.getCell()), await this.getGroundSeed());
     }
   }
-  return StrataMixin as unknown as TBase & (new (...args: any[]) => Strata);
+  return StrataMixin as unknown as TBase & MixinCtor<Strata>;
 }
 
 /**

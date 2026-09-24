@@ -70,6 +70,7 @@ import {
   StrataMixin,
   type Strata,
   type Cell,
+  type MixinCtor,
 } from '@saxonberg/content-ground/src/lib/Strata';
 
 /**
@@ -243,7 +244,7 @@ export interface Working extends Strata {
 
 export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
   Base: TBase,
-): TBase & (new (...args: any[]) => Working) {
+): TBase & MixinCtor<Working> {
   // ⭐ Composed over `StrataMixin` (`/system/ground`), which owns the five
   // position reads this mixin used to carry — `getCell`, `metresOf`,
   // `getDeposit`, `getGroundSeed`, `sampleHere`. Knowing where you are in
@@ -635,8 +636,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
   // header for why the annotation is needed at all (TS drops a mixin's
   // base-of-a-type-parameter members from the derived class type, and
   // `MineRoom` lost the five position reads two mixins further up).
-  return WorkingMixin as unknown as TBase &
-    (new (...args: any[]) => Working);
+  return WorkingMixin as unknown as TBase & MixinCtor<Working>;
 }
 
 

@@ -144,12 +144,13 @@ and without naming it every honest use of the hook reads as a census entry.
 ⭐ Gate the number at today's count and let it fall — the pattern
 `lint:family` documents.
 
-⚠⚠ **A coordination note from the ground build
-([ground-plan](../../plans/ground-plan.md) D1/D1a, ground-slate).** That build
-moves `PostRegistrationMixin` **down into `Location`'s base stack** and strips it
-from the six Location classes that compose it above, because the mixin's default
-no-op does not chain and an upper layer silently replaces the base's
-implementation. Two consequences for this slate:
+⚠⚠ **A coordination note from the ground build, which has now LANDED**
+(2026-09-24, MR !283 — see [ground.md](../../subsystems/ground.md)). It moved
+`PostRegistrationMixin` **down into `Location`'s base stack** and stripped it
+from the **ten** Location classes that composed it above (the plan said six;
+counting found four more, each of which would have silently swallowed the base
+hook), because the mixin's default no-op does not chain. Two consequences for
+this slate:
 
 - **After it lands, the entire Location tree depends on base-level
   `postRegister`** — the biggest class family in the game, where before only

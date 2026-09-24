@@ -16,7 +16,33 @@ opened this cycle.
 
 ---
 
-> ## ⚠⚠ STOP — W0 IS SUPERSEDED. READ THIS BEFORE EXECUTING ANYTHING.
+> ## ✅ W0 IS DONE — the ground build shipped it. START AT W1.
+>
+> **Landed 2026-09-24** (`build/ground`, MR !283). Everything the banner below
+> anticipated is in the tree, and then some:
+>
+> - **`/system/ground` exists** — the 49th pack, holding `Deposit`,
+>   `GroundCharacter` **and** `StrataMixin` (the five position reads lifted out
+>   of `trade-mining`'s `WorkingMixin`, which composes over it). ⭐ Taking
+>   `Strata` there rather than leaving it here is what lets **the quarry read the
+>   column without depending on a mine** — so W1 can start as its own banner says.
+> - **Every Location has a floor**, minted at `postRegister`, with the five-rung
+>   material ladder and the derived ten-word kind.
+> - **`dig` has a target.** `floor.getGroundKind()`, `floor.isOnGrade()` and
+>   `floor.resolveUnderfoot()` (call it again after a strip) are the seam D9
+>   wanted; `StrataMixin` is the pit's.
+> - ⚠ **Reuse `earth/clay`** (`base-library`) rather than minting
+>   `mineral/clay` — the ground build authored `earth/{loam,sand,clay}`,
+>   `organic/peat` and `ceramic/concrete`.
+> - ⚠ **A floor row must not author a `floor`/`ground` DETAIL** (it shadows the
+>   object and hides the derived reading) and **must carry both words in its own
+>   `keywords:`**. `lint:ground` clauses (d) and (f) enforce both.
+>
+> Read [ground.md](../subsystems/ground.md) before W1. The rest of this banner
+> is the reasoning that produced that build, kept because it explains why the
+> sequencing is what it is.
+>
+> ---
 >
 > **Amended 2026-09-23, after the plan's review.** W0 as written below creates
 > `/system/ground` holding only the **geology** half. The review found that
@@ -33,15 +59,14 @@ opened this cycle.
 > dorm room where every new player wakes has no floor.**
 >
 > **Therefore the ground work is its own build, and it lands FIRST** →
-> [ground-slate](../slates/builds/ground-slate.md). It ships: floors as
+> [ground.md](../subsystems/ground.md). It ships: floors as
 > universal Things, the five-rung *underfoot* ladder, the `onGrade` flag on the
 > floor rather than the Location, and `/system/ground` holding the column **and**
 > the seeded character (so `GroundCharacter` also leaves the farming trade).
 >
 > **What that does to this plan:**
-> - **W0 does not run as written.** The ground build supersedes it; a build agent
->   starting here should confirm the ground build has landed and then treat W0 as
->   *done elsewhere*.
+> - **W0 does not run as written.** ✅ Confirmed landed — treat it as done and
+>   start at W1.
 > - **`dig` gets easier, not harder** (D9): the ground is already a bindable
 >   `Stuff` with a composition and an `onGrade` answer, so `dig` reads the floor
 >   instead of inventing a target. ⭐ This was the plan's largest unknown and the
@@ -444,7 +469,7 @@ a fork, the limb is named.
 
 **D1 — `/system/ground` exists.** ⚠⚠ **Amended: the GROUND BUILD creates it,
 not this one, and it holds both halves of ground rather than only geology** →
-[ground-slate](../slates/builds/ground-slate.md). The reasoning below is why the
+[ground.md](../subsystems/ground.md). The reasoning below is why the
 pack must exist and is unchanged; what changed is *who ships it* and *how much it
 holds*. Read the banner at the top of this plan first. The original text follows.
 
@@ -1004,13 +1029,14 @@ each touched pack's `pnpm -C packages/content/<pkg> test` +
 `pnpm -C packages/server lint:family`; the full suite runs once before
 the MR.
 
-### W0 — ⛔ SUPERSEDED: the ground build ships this (see the banner at the top)
+### W0 — ✅ DONE: the ground build shipped this (see the banner at the top)
 
-> ⛔ **Do not execute this wave.** The ground work grew past a wave and is its
-> own build → [ground-slate](../slates/builds/ground-slate.md): universal floors,
-> the underfoot ladder, the `onGrade` flag, and `/system/ground` holding the
-> column **and** the seeded character. Confirm that build has landed, then treat
-> W0 as done elsewhere and start at W1. The text below is kept because the ground
+> ✅ **Do not execute this wave — it has landed** (`build/ground`, MR !283,
+> 2026-09-24). Universal floors, the five-rung underfoot ladder, the `onGrade`
+> flag on the floor, and `/system/ground` holding the column, the seeded
+> character **and** `StrataMixin`. Read
+> [ground.md](../subsystems/ground.md); start at W1. The text below is kept
+> because the ground
 > build's requirements will reuse most of it verbatim — the pack skeleton, the
 > `Deposit` move, the `Strata` extraction, the five mining files that switch
 > imports, the ferrow row's `class:` change, the pack-count bump and the DB drop

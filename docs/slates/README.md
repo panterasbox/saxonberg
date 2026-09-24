@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**239 slates.** 55 greenfield · 84 continuations · 55 waves · 45 tails.
+**238 slates.** 54 greenfield · 84 continuations · 55 waves · 45 tails.
 
-## ⭐ Greenfield — nothing shipped yet (55)
+## ⭐ Greenfield — nothing shipped yet (54)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -68,7 +68,6 @@ respect.
 | [extraction](./builds/extraction-slate.md) | the open working — ground cut from above, overburden as the gate, the dressed block as forestry's bole · W0, the open air dries what you leave in it (one weather-read rate serving peat, the salt pans, hay and a ham on a line) · stone · clay … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
-| [ground](./builds/ground-slate.md) | ⚠⚠ the ground postures cannot bind — `sit`/`lie`/`kneel` and `look floor` all decline in the Lounge, driven and confirmed (body below) · floors as universal Things (`adornments:` is already authorable on every Location) · the four-rung underfoot ladder, with the `onGrade` and `worked` flags carried by the floor · `f(material, onGrade, worked)` → a closed ground kind, derived and never chosen … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
 | [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |
 | [hydration-framework](./builds/hydration-framework-slate.md) | ⭐⭐ the census + ratchet on the `postRegister` implementations that load state (63 → 67, ungated) · the finishing-hydration vs warming-a-roster ruling the census feeds · ⭐ let a `PersistenceContributor` name its own SOURCE (so a layer can restore from a collection that is not `holder_snapshots`) · pre- vs post-register for a source-naming contributor (Q1) … |

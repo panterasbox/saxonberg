@@ -1,8 +1,11 @@
 # Extraction slate — the ground cut from above, and the yield a place concentrates
 
 > **Status: UNBUILT — design closed, requirements + plan WRITTEN 2026-09-23.**
-> ⚠ **Blocked on [ground-slate](./ground-slate.md)**, which supersedes this
-> build's W0. ⭐ It became ONE build, not two: salt folded into it (all three
+> ✅ **Unblocked 2026-09-24:** the ground build landed (MR !283) and shipped
+> this build's W0 — universal floors, the underfoot ladder, and
+> `/system/ground` holding the column, the character **and** `StrataMixin`, so
+> the quarry reads the column without depending on a mine.
+> **Start at W1** and read [ground.md](../../subsystems/ground.md) first. ⭐ It became ONE build, not two: salt folded into it (all three
 > sources) and the hive left for a **ranching wave** (`ranching.md § ⚠ Not
 > built: bees (D34–D39)`), so the old Stage B is gone.
 > The five shipped RGOs (mining · farming · ranching ·
@@ -19,10 +22,10 @@
 > `Improvable` promoted so a turbary can be drained
 > **Size:** a build
 
-See also: ⭐⭐ [ground-slate](./ground-slate.md) (**the build that must land
-first** — floors as universal Things, the underfoot ladder, and `/system/ground`
-holding both halves of ground; it removes this build's largest unknown by making
-the ground a bindable target `dig` can read) · [mining-slate](./mining-slate.md) (*"Quarrying (stone, flux) —
+See also: ⭐⭐ [ground.md](../../subsystems/ground.md) (**shipped** — floors as
+universal Things, the five-rung underfoot ladder, and `/system/ground` holding
+both halves of ground plus the position reads; it removed this build's largest
+unknown by making the ground a bindable target `dig` can read) · [mining-slate](./mining-slate.md) (*"Quarrying (stone, flux) —
 open-pit bulk"* is on its Left; the underground half of coal and rock salt is
 its `Deposit`) · [ranching-slate](./ranching-slate.md) (**AC 37–39 already
 specify the saltern, peat and the bog**) · [flowers-slate](./flowers-slate.md)

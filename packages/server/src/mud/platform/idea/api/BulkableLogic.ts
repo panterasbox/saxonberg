@@ -424,7 +424,7 @@ export class BulkableLogic extends ApiLogic {
     if (!MixinApi.isAdornable(location)) return null;
     const floor = location.getFloor();
     if (!floor) return null;
-    if (!MixinApi.isBulkable(floor) || !floor.hasSurfaceBulk()) return null;
+    if (!floor.hasSurfaceBulk()) return null;
     const slot = floor.getBulk('surface');
     if (slot.isEmpty()) return null;
     const appearance = slot.getMaterial()?.getAppearance();
@@ -443,7 +443,7 @@ export class BulkableLogic extends ApiLogic {
     while (cur !== null) {
       if (MixinApi.isAdornable(cur)) {
         const floor = cur.getFloor();
-        if (floor && MixinApi.isBulkable(floor) && floor.hasSurfaceBulk()) {
+        if (floor && floor.hasSurfaceBulk()) {
           return floor.getBulk('surface');
         }
       }
