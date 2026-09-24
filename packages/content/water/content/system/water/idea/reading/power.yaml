@@ -9,7 +9,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: power
   kind: fact
-  scope: [subject, here]
+  scope: [subject]
   discipline: physics
   instrument: ""
   eyeCeiling: expert

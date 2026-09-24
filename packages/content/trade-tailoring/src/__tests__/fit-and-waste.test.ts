@@ -287,7 +287,15 @@ describe("⚠⚠ the instrument affords the verb — and this one did not", () =
       ...(MeasureBook.commandContributions.environment ?? []),
       ...(MeasureBook.commandContributions.peers ?? []),
     ];
-    expect(contributed).toContain("platform/cmd/perception/measure.yaml");
+    // ⚠⚠ **Inverted deliberately, and the history is the point.** The
+    // book used to contribute the whole `measure` view, because that was
+    // the only way to make `measure figure` exist at all — and it meant
+    // the VERB vanished when no book was near, which can only answer
+    // *unknown command*. The verb is the Avatar's now and the `figure`
+    // channel names `fitting`, so an empty counter says *"there is no
+    // book here to write it in"*, which is the sentence that was wanted
+    // all along.
+    expect(contributed).not.toContain("platform/cmd/perception/measure.yaml");
   });
 
   it("a measure book still records what it is for", () => {

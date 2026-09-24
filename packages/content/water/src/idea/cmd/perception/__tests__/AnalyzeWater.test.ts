@@ -20,7 +20,12 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import AnalyzeWaterController from '../AnalyzeWaterController';
+import WaterReading from '../../../reading/WaterReading';
+import {
+  driveAnalyze,
+} from '@saxonberg/server/mud/platform/idea/reading/__tests__/drive';
+import { applyRowFrom } from '@saxonberg/server/mud/platform/idea/reading/__tests__/row';
+import { fileURLToPath } from 'url';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
@@ -62,6 +67,9 @@ class FakeSupply extends Thing {
   }
 }
 
+/** This system's channel rows, read for real by `applyRowFrom`. */
+const ROWS = fileURLToPath(new URL('../../../../../content/system/water/idea/reading/', import.meta.url));
+
 const stubCommand = CommandDefinition.fromYaml(
   'verbs: [analyze]\ncontroller: x\ndescription: d\n',
   '<test>',
@@ -84,13 +92,10 @@ function ctx(): CommandContext {
 
 async function analyze(target: Stuff | null): Promise<CommandContext> {
   const c = ctx();
-  const ctrl = makeStuff(() => new AnalyzeWaterController());
-  await ctrl.execute(
-    target === null
-      ? ({} as never)
-      : ({ target: { stuff: target, raw: 'it' } } as never),
-    c,
-  );
+  const reading = applyRowFrom(makeStuff(() => new WaterReading()), `${ROWS}water.yaml`);
+  await driveAnalyze(reading, c, {
+    subject: target === null ? undefined : { stuff: target, raw: 'it' },
+  });
   return c;
 }
 

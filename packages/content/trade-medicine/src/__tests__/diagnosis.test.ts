@@ -23,8 +23,18 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import AnalyzePatientController from '../idea/cmd/perception/AnalyzePatientController';
-import AnalyzePostmortemController from '../idea/cmd/perception/AnalyzePostmortemController';
+import PatientReading from '../idea/reading/PatientReading';
+import PostmortemReading from '../idea/reading/PostmortemReading';
+import {
+  driveAnalyze,
+} from '@saxonberg/server/mud/platform/idea/reading/__tests__/drive';
+import { applyRowFrom } from '@saxonberg/server/mud/platform/idea/reading/__tests__/row';
+import { fileURLToPath } from 'url';
+
+/** This trade's channel rows, read for real by `applyRowFrom`. */
+const ROWS = fileURLToPath(
+  new URL('../../content/trade/medicine/idea/reading/', import.meta.url),
+);
 import Condition from '@saxonberg/server/mud/platform/idea/Condition';
 import ConditionCatalogue from '@saxonberg/server/mud/platform/idea/ConditionCatalogue';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
@@ -128,8 +138,8 @@ async function read(band: CompetenceBandName): Promise<string> {
     elapsed: 0,
   });
   said = [];
-  const ctrl = makeStuff(() => new AnalyzePatientController());
-  await ctrl.execute({ target: { stuff: patient } as never }, ctxFor(medic));
+  const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
+      await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient } });
   return said.join('\n');
 }
 
@@ -185,11 +195,8 @@ describe('⭐⭐ the diagnostic ladder', () => {
       medic.band = band;
       const patient = makeStuff(() => new Creature());
       said = [];
-      const ctrl = makeStuff(() => new AnalyzePatientController());
-      await ctrl.execute(
-        { target: { stuff: patient } as never },
-        ctxFor(medic),
-      );
+      const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
+      await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient } });
       expect(said.join('\n')).toMatch(/Nothing is the matter/);
     }
   });
@@ -198,10 +205,11 @@ describe('⭐⭐ the diagnostic ladder', () => {
     const medic = makeStuff(() => new Medic());
     said = [];
     const note = vi.fn();
-    const ctrl = makeStuff(() => new AnalyzePatientController());
-    await ctrl.execute(
-      { target: { stuff: makeStuff(() => new Condition()) } as never },
+    const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
+    await driveAnalyze(
+      reading,
       { commandGiver: medic, location: null, note } as unknown as CommandContext,
+      { subject: { stuff: makeStuff(() => new Condition()) } as never },
     );
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-a-body' }),
@@ -216,10 +224,11 @@ describe('⭐ the postmortem refuses the living', () => {
     const alive = makeStuff(() => new Creature());
     said = [];
     const note = vi.fn();
-    const ctrl = makeStuff(() => new AnalyzePostmortemController());
-    await ctrl.execute(
-      { target: { stuff: alive } as never },
+    const reading = applyRowFrom(makeStuff(() => new PostmortemReading()), `${ROWS}postmortem.yaml`);
+    await driveAnalyze(
+      reading,
       { commandGiver: medic, location: null, note } as unknown as CommandContext,
+      { subject: { stuff: alive } as never },
     );
     expect(note).toHaveBeenCalled();
     expect(said.join('\n').length).toBeGreaterThan(0);

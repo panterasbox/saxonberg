@@ -44,7 +44,19 @@ export default class LoadReading extends Reading {
     _handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
-    const model = { rig: { stuff: subject, raw: param } } as unknown as AnalyzeLoadModel;
+    // ⚠ Absent and bound-but-unresolved are DIFFERENT, and collapsing
+    // them is how a bare verb silently reads the wrong thing. An empty
+    // `param` with nothing bound is *the player said nothing*; a
+    // non-empty one that bound nothing is *the player named something
+    // that is not here*.
+    const model = {
+      target:
+        subject !== null
+          ? { stuff: subject, raw: param }
+          : param === ''
+            ? undefined
+            : { stuff: null, raw: param },
+    } as unknown as AnalyzeLoadModel;
     const giver = context.commandGiver as unknown as Stuff;
     const rig = this.resolveRig(model, context);
     if (!rig) {

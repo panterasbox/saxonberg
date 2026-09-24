@@ -6,7 +6,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: water
   kind: fact
-  scope: [subject, here]
+  scope: [subject]
   discipline: chemistry
   instrument: ""
   eyeCeiling: expert

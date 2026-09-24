@@ -1157,7 +1157,7 @@ and once at `/finalize`.
 > vitest never runs" — it reads exactly like a repo defect and is not
 > one. `lint:family` is green at 52 after the install.
 
-#### W1 — The Reading substrate and the flat verbs (mechanical; every channel's output preserved)
+#### ✅ W1 — The Reading substrate and the flat verbs — DONE (`348349da7` + the wave commit)
 
 Land as several `refactor(instrumentation):` commits, then the wave
 commit. Order matters — each step keeps the tree green.
@@ -1226,6 +1226,57 @@ commit. Order matters — each step keeps the tree green.
   farming, haulage, medicine, tailoring, water; `lint:family` green;
   `analyze address` refuses naming `readings`; `trace address` answers.
 - Commit: `build(instrumentation W1): one flat ladder — a channel is a row any pack ships`.
+
+> **Wave note — what the ladder cost and what it found.**
+>
+> **31 channels, 17 platform + 14 pack.** 24 controllers deleted, 10
+> instrument classes deleted, 12 instrument rows written or re-based, 20
+> test files moved or rewritten. The mechanical half was mechanical; the
+> five things worth knowing are below.
+>
+> 1. ⭐⭐ **`instrumentNoun` is a NEW ROW FIELD (D25), and two shipped
+>    tests demanded it.** The first cut of the no-instrument refusal read
+>    *"it wants something that can sighting"* — a capability token is
+>    what the engine MATCHES on and is not a route a person can act on.
+>    `refuses without a sundial` and `refuses without a sextant` both
+>    asserted the instrument was NAMED and failed inside a minute. That
+>    is an acceptance criterion (AC4) doing its job from a test written
+>    by somebody else, years earlier.
+> 2. ⚠⚠ **`check-capabilities` had to be gated on the SITE (D26).** The
+>    reading rows' `instrument:`/`handTool:`/`bench:` are a fourth
+>    consumer kind — but `bench:` is also an NPC dossier's workplace
+>    PATH, and reading `/trade/haulage/thing/receiving-bench` as a
+>    capability name reported three shipped NPCs as wanting a kind
+>    nothing offers. A key name is not a vocabulary; where it appears is.
+> 3. ⭐⭐ **Reading tests dispatch through the VERB (D27), because the
+>    gate denied the first attempt** — which is the whole argument for
+>    keeping it. `__tests__/drive.ts` stubs exactly one thing (the
+>    channel lookup) and `__tests__/row.ts` applies the SHIPPED yaml, so
+>    a row that stops agreeing with its class fails in the suite rather
+>    than in a browser.
+> 4. ⚠ **The shim had to distinguish ABSENT from BOUND-BUT-UNRESOLVED.**
+>    Collapsing them made `analyze water` bare read the room instead of
+>    taking its own ground path, and would have made `measure figure`
+>    silently measure YOU every time a name was mistyped — the exact
+>    collapse a comment in the shipped tailoring controller had warned
+>    about. The water pack's own tests caught the first; the comment
+>    caught the second before it was written.
+> 5. ⭐ **`MeasureBook.entryFor` → `figureFor` (D28).** The book composes
+>    `ToolMixin` now and the mixin owns `entryFor(kind)`. Two methods of
+>    one name on one object is a collision the compiler catches and a
+>    reader never would.
+>
+> **Two dead reads are alive.** `Sundial` and `Sextant` shipped as
+> classes, were checked by `instanceof`, and **nothing in the world was
+> ever either** — so `measure shadow` and the sun/moon arm of
+> `measure altitude` were refused for everybody, forever. Both have rows
+> now, and `altitude` split into `altitude` (how high YOU are) and
+> `elevation` (how high the SUN is), which were two facts down one verb
+> with two different instruments.
+>
+> **`readings` landed here rather than in W3**, because the Avatar
+> affordance that lifts the doctrine line has to name a view that exists.
+> W3 keeps the `patient` work.
 
 #### W2 — The honest read, the trained eye, the ceiling (R-D2, R-D5, R-D7, drive A–D)
 
