@@ -1656,8 +1656,17 @@ function buildSatisfies(
  *
  *  1. **Advancement**: append a Transcript deed against the recipe's
  *     authored `discipline` at its authored `difficulty` (default
- *     `easy`). A recipe authoring NO discipline records nothing — the
- *     bar's rows stay unrecorded exactly as today.
+ *     `easy`).
+ *
+ *     ⚠ The guard below reads *a recipe authoring no discipline records
+ *     nothing*, and this comment used to add "— the bar's rows stay
+ *     unrecorded exactly as today". **That has been false since the bar
+ *     got a Discipline**: all 25 hospitality rows author
+ *     `discipline: bartending`, and so does every other recipe in the
+ *     realm — 97 of 97, across thirteen packs, in ten disciplines. So
+ *     the guard is a defence against a row that forgot, not a
+ *     description of a venue. Pouring a drink credits a bartending deed
+ *     and always did.
  *  2. **Watch = claim**: every *other* present command-giving agent in
  *     the maker's location with a durable identity gains the known-of
  *     claim (idempotent) — watching a maker demonstrate teaches you *of*
