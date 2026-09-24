@@ -3,7 +3,7 @@
  * as one number, computed in one place.
  *
  * Two subsystems want the same answer and must not each invent it: the
- * per-instance water state ({@link CuredMixin} — a ham on a rack, a turf
+ * per-instance water state ({@link WaterActivityMixin} — a ham on a rack, a turf
  * in a stack) and the durative transform ({@link MaturingMixin}'s
  * `evaporative` mechanism — a salt pan in the sun). Both ask *how dry is
  * this air, and how hard is it working*, and both get it from here.

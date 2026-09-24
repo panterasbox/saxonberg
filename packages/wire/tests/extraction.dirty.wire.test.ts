@@ -22,7 +22,7 @@
  *   - AC 11 (a ham in damp air does not dry like one in dry wind)
  *   - AC 12's rate (draining thins the peat over time)
  *
- * Those are pinned as arithmetic where the arithmetic lives — the six Cured
+ * Those are pinned as arithmetic where the arithmetic lives — the six WaterActivity
  * exposure cases, `Evaporative.test.ts`'s concentrate/dilute/finish/boil, and
  * `Turbary.test.ts`'s trapezoid. ⭐ **What only this file can see is everything
  * else about them: that the pan is there, that it fills, that the turf is cut

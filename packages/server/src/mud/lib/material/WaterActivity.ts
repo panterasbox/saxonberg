@@ -1,5 +1,5 @@
 /**
- * CuredMixin — ⭐ **the water state of a particular piece of matter, and
+ * WaterActivityMixin — ⭐ **the water state of a particular piece of matter, and
  * the acts that change it.**
  *
  * A Material tabulates a water activity: how much of its water a microbe
@@ -72,7 +72,7 @@ import type { MarkupAugmenter } from '../../api/mml';
  * The per-instance water state: how much of the material's water is left,
  * and how much of what is left is bound by solute.
  */
-export interface CureState {
+export interface WaterState {
   /** `[0, 1]` — `1` is as-harvested; drying lowers it. */
   moisture: number;
   /** `[0, 1]` — `0` is untreated; curing raises it. */
@@ -80,7 +80,7 @@ export interface CureState {
 }
 
 /** Seeded-literal fallbacks — pre-warm / test safe. */
-const CURE_DEFAULTS = {
+const WATER_DEFAULTS = {
   SECONDS_PER_HOUR: 3600,
   /** Fraction of the moisture gap closed per game-hour while rehydrating. */
   REHYDRATION_PER_HOUR: 0.02,
@@ -123,7 +123,7 @@ function clamp01(x: number): number {
  * Game-seconds now, or `null` when no world clock (pre-boot / tests).
  *
  * ⚠ Deliberately a local twin of `nowSeconds()` rather than a
- * call to it. `Freshness` reads the cure state (that is the whole point of
+ * call to it. `Freshness` reads the water state (that is the whole point of
  * this file), so importing it back would close a cycle inside
  * `lib/material` for six lines of clock guard. The dependency runs one
  * way: spoilage reads the water state, the water state reads the clock.
@@ -140,10 +140,10 @@ function nowSeconds(): number | null {
  * The population and the water state are different facts, and one gauge
  * reporting both is how the split gets quietly undone at render time.
  */
-const CURE_CHANNELS: readonly string[] = ['vision', 'smell'];
+const WATER_CHANNELS: readonly string[] = ['vision', 'smell'];
 
 /**
- * ⭐ **The cure's own field on the blend payload, declared here.** Same
+ * ⭐ **The water state's own field on the blend payload, declared here.** Same
  * move `Freshness` makes one file over: the gauge has to hang on something
  * per-instance, and the payload's own module has no business knowing what
  * a water activity is.
@@ -151,25 +151,25 @@ const CURE_CHANNELS: readonly string[] = ['vision', 'smell'];
 declare module '../bulk/Bulkable' {
   interface BulkPayload {
     /** The per-instance water state of this matter (absent ⇒ untreated). */
-    cure?: CureState;
-    /** Game-seconds the blend's `cure` was last reconciled. */
-    cureStamp?: number;
+    water?: WaterState;
+    /** Game-seconds the blend's `water` was last reconciled. */
+    waterStamp?: number;
   }
 }
 
 /** Append a cured-state line to a host's long description — never a number. */
-function cureAugmenter(
+function waterAugmenter(
   text: string,
   host: Stuff,
   _viewer: Stuff,
   opts?: { filter?: readonly string[] },
 ): string {
-  if (opts?.filter && !opts.filter.some((c) => CURE_CHANNELS.includes(c))) {
+  if (opts?.filter && !opts.filter.some((c) => WATER_CHANNELS.includes(c))) {
     return text;
   }
-  if (!MixinApi.isCured(host)) return text;
+  if (!MixinApi.isWaterActive(host)) return text;
   if (host.isDestroyed()) return text;
-  const line = Cure.phraseFor(host.getCureState());
+  const line = WaterActivity.phraseFor(host.getWaterState());
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
@@ -208,7 +208,7 @@ function exposureOf(host: Stuff): number {
   const support = host.getRestingOn();
   if (support !== null) return clamp01(support.getAirExposure());
   return clamp01(
-    dial(AppSettingKeys.cureGroundExposure, CURE_DEFAULTS.GROUND_EXPOSURE),
+    dial(AppSettingKeys.cureGroundExposure, WATER_DEFAULTS.GROUND_EXPOSURE),
   );
 }
 
@@ -224,15 +224,15 @@ function exposedScopeOf(host: Stuff): (Stuff & Container) | null {
 }
 
 /**
- * The cure arithmetic, in ONE place — the {@link Freshness} shape, for the
+ * The water-activity arithmetic, in ONE place — the {@link Freshness} shape, for the
  * same reason: a discrete cut and a blend in a pot must not drift.
  *
  * ⚠ Everything here is pure over its arguments EXCEPT the two slot methods
  * at the end, which read and write a `BulkSlot`'s payload. Same documented
- * exception, same reasoning: this is cure POLICY, and `lib/bulk` should
- * carry the `cure` field the way it carries `freshness`, as data.
+ * exception, same reasoning: this is water-activity POLICY, and `lib/bulk` should
+ * carry the `water` field the way it carries `freshness`, as data.
  */
-export class Cure {
+export class WaterActivity {
   /**
    * A gauge bound to the slot it measures. ⭐ The model lives in this
    * class's statics (pure, shared); the READS and WRITES of one slot's
@@ -249,23 +249,23 @@ export class Cure {
   constructor(private readonly slot: BulkSlot) {}
 
   /** The untreated state — the identity of the water-activity derivation. */
-  public static untreated(): CureState {
+  public static untreated(): WaterState {
     return { moisture: 1, solute: 0 };
   }
 
   /** Whether a state is the untreated identity (nothing to say, nothing to store). */
-  static isUntreated(cure: CureState | null | undefined): boolean {
-    if (!cure) return true;
-    return cure.moisture >= 1 && cure.solute <= 0;
+  static isUntreated(water: WaterState | null | undefined): boolean {
+    if (!water) return true;
+    return water.moisture >= 1 && water.solute <= 0;
   }
 
   /** A payload's water state, or `null` when it carries none. */
-  private static stateOf(payload: BulkPayload | null | undefined): CureState | null {
-    const cure = payload?.cure;
-    if (!cure) return null;
+  private static stateOf(payload: BulkPayload | null | undefined): WaterState | null {
+    const water = payload?.water;
+    if (!water) return null;
     return {
-      moisture: clamp01(cure.moisture),
-      solute: clamp01(cure.solute),
+      moisture: clamp01(water.moisture),
+      solute: clamp01(water.solute),
     };
   }
 
@@ -276,10 +276,10 @@ export class Cure {
    * makes hurdles stack across two separate acts (salt it, then dry it).
    */
   public static applyTreatment(
-    cure: CureState | null,
+    water: WaterState | null,
     treatment: { moisture?: number; solute?: number },
-  ): CureState {
-    const base = cure ?? Cure.untreated();
+  ): WaterState {
+    const base = water ?? WaterActivity.untreated();
     const moisture =
       treatment.moisture === undefined
         ? base.moisture
@@ -297,13 +297,13 @@ export class Cure {
    * stock partly cures the stock; it does not launder the brine.
    */
   public static blend(
-    a: CureState | null,
+    a: WaterState | null,
     amountA: number,
-    b: CureState | null,
+    b: WaterState | null,
     amountB: number,
-  ): CureState {
-    const left = a ?? Cure.untreated();
-    const right = b ?? Cure.untreated();
+  ): WaterState {
+    const left = a ?? WaterActivity.untreated();
+    const right = b ?? WaterActivity.untreated();
     const total = amountA + amountB;
     if (!(total > 0)) return { ...left };
     return {
@@ -365,14 +365,14 @@ export class Cure {
     humidityPct: number,
     rate = dial(
       AppSettingKeys.cureRehydrationPerHour,
-      CURE_DEFAULTS.REHYDRATION_PER_HOUR,
+      WATER_DEFAULTS.REHYDRATION_PER_HOUR,
     ),
     drying?: { air: Evaporation; exposure: number; ratePerHour?: number },
   ): number {
     const from = clamp01(moisture);
     if (!(elapsedS > 0)) return from;
-    const target = Cure.equilibriumMoisture(humidityPct);
-    const hours = elapsedS / CURE_DEFAULTS.SECONDS_PER_HOUR;
+    const target = WaterActivity.equilibriumMoisture(humidityPct);
+    const hours = elapsedS / WATER_DEFAULTS.SECONDS_PER_HOUR;
 
     if (target > from) {
       // Re-wetting. Always available — a dried thing left somewhere damp
@@ -388,7 +388,7 @@ export class Cure {
     if (!(exposure > 0)) return from;
     const base =
       drying.ratePerHour ??
-      dial(AppSettingKeys.cureDryingPerHour, CURE_DEFAULTS.DRYING_PER_HOUR);
+      dial(AppSettingKeys.cureDryingPerHour, WATER_DEFAULTS.DRYING_PER_HOUR);
     const k = base * exposure * drying.air.evaporationFactor();
     if (!(k > 0)) return from;
     return clamp01(from - (from - target) * (1 - Math.exp(-k * hours)));
@@ -401,7 +401,7 @@ export class Cure {
    * runs off a getter and cannot await. It walks the containment chain's
    * authored overrides and biome defaults exactly as the full resolve
    * does, and skips only the zone tier and the weather deviation.
-   * @internal read by this module only — ambient humidity behind the cure clock.
+   * @internal read by this module only — ambient humidity behind the water clock.
    *
    */
   static ambientHumidityOf(host: Stuff): number {
@@ -414,7 +414,7 @@ export class Cure {
     }
     return dial(
       AppSettingKeys.cureAmbientHumidity,
-      CURE_DEFAULTS.AMBIENT_HUMIDITY_PCT,
+      WATER_DEFAULTS.AMBIENT_HUMIDITY_PCT,
     );
   }
 
@@ -424,7 +424,7 @@ export class Cure {
    * all rather than saying "fresh".
    */
   public static phraseFor(
-    cure: CureState | null,
+    water: WaterState | null,
     /**
      * ⭐ The four band edges, **as one parameter defaulting to the
      * dials.** An object rather than four positional numbers because
@@ -438,23 +438,23 @@ export class Cure {
       curedAt: number;
       curingAt: number;
     } = {
-      driedAt: dial(AppSettingKeys.cureBandDriedAt, CURE_DEFAULTS.BAND_DRIED_AT),
-      dryingAt: dial(AppSettingKeys.cureBandDryingAt, CURE_DEFAULTS.BAND_DRYING_AT),
-      curedAt: dial(AppSettingKeys.cureBandCuredAt, CURE_DEFAULTS.BAND_CURED_AT),
-      curingAt: dial(AppSettingKeys.cureBandCuringAt, CURE_DEFAULTS.BAND_CURING_AT),
+      driedAt: dial(AppSettingKeys.cureBandDriedAt, WATER_DEFAULTS.BAND_DRIED_AT),
+      dryingAt: dial(AppSettingKeys.cureBandDryingAt, WATER_DEFAULTS.BAND_DRYING_AT),
+      curedAt: dial(AppSettingKeys.cureBandCuredAt, WATER_DEFAULTS.BAND_CURED_AT),
+      curingAt: dial(AppSettingKeys.cureBandCuringAt, WATER_DEFAULTS.BAND_CURING_AT),
     },
   ): string | null {
-    if (!cure) return null;
+    if (!water) return null;
     const dried =
-      cure.moisture <= bands.driedAt
+      water.moisture <= bands.driedAt
         ? 'thoroughly dried'
-        : cure.moisture < bands.dryingAt
+        : water.moisture < bands.dryingAt
           ? 'partly dried'
           : null;
     const cured =
-      cure.solute >= bands.curedAt
+      water.solute >= bands.curedAt
         ? 'heavily salted'
-        : cure.solute > bands.curingAt
+        : water.solute > bands.curingAt
           ? 'lightly salted'
           : null;
     if (dried && cured) return `It has been ${dried} and ${cured}.`;
@@ -467,31 +467,31 @@ export class Cure {
 
   /**
    * A blend's water state, **reconciled on read** against the holder's
-   * surroundings — the bulk twin of `CuredMixin.getCureState()`.
+   * surroundings — the bulk twin of `WaterActivityMixin.getWaterState()`.
    *
    * ⭐ **Sparse by construction.** A slot whose matter is untreated has no
-   * `cure` record and never gets one: there is nothing to integrate, so
+   * `water` record and never gets one: there is nothing to integrate, so
    * nothing is written. Only a treated blend (which something had to
    * treat) carries the two scalars and the stamp.
    */
-  state(): CureState | null {
+  state(): WaterState | null {
     const payload = this.slot.getPayload();
-    const cure = Cure.stateOf(payload);
-    if (!cure || !payload) return null;
+    const water = WaterActivity.stateOf(payload);
+    if (!water || !payload) return null;
     const nowS = nowSeconds();
-    if (nowS === null) return cure;
-    const stamp = payload.cureStamp ?? 0;
+    if (nowS === null) return water;
+    const stamp = payload.waterStamp ?? 0;
     if (stamp === 0 || nowS <= stamp) {
-      this.slot.setPayload({ ...payload, cureStamp: nowS });
-      return cure;
+      this.slot.setPayload({ ...payload, waterStamp: nowS });
+      return water;
     }
-    const moisture = Cure.advanceMoisture(
-      cure.moisture,
+    const moisture = WaterActivity.advanceMoisture(
+      water.moisture,
       nowS - stamp,
-      Cure.ambientHumidityOf(this.slot.getHolder()),
+      WaterActivity.ambientHumidityOf(this.slot.getHolder()),
     );
-    const next: CureState = { moisture, solute: cure.solute };
-    this.slot.setPayload({ ...payload, cure: next, cureStamp: nowS });
+    const next: WaterState = { moisture, solute: water.solute };
+    this.slot.setPayload({ ...payload, water: next, waterStamp: nowS });
     return next;
   }
 
@@ -501,95 +501,95 @@ export class Cure {
    * OF, so that is a no-op; and stamping the untreated identity clears the
    * record rather than storing two default scalars forever.
    */
-  stampState(cure: CureState | null): void {
+  stampState(water: WaterState | null): void {
     if (this.slot.getMaterial() === null) return;
     const payload = this.slot.getPayload() ?? {};
-    if (Cure.isUntreated(cure)) {
-      if (payload.cure === undefined) return;
-      const { cure: _drop, cureStamp: _drops, ...rest } = payload;
+    if (WaterActivity.isUntreated(water)) {
+      if (payload.water === undefined) return;
+      const { water: _drop, waterStamp: _drops, ...rest } = payload;
       this.slot.setPayload(rest);
       return;
     }
     const nowS = nowSeconds() ?? 0;
     this.slot.setPayload({
       ...payload,
-      cure: { moisture: clamp01(cure!.moisture), solute: clamp01(cure!.solute) },
-      cureStamp: nowS,
+      water: { moisture: clamp01(water!.moisture), solute: clamp01(water!.solute) },
+      waterStamp: nowS,
     });
   }
 }
 
-export interface Cured {
+export interface WaterActive {
   /** The current water state (reconciles rehydration on read). */
-  getCureState(): CureState;
+  getWaterState(): WaterState;
   /** How much of the material's own water is left, `[0, 1]`. */
   getMoisture(): number;
   /** How much of the remaining water is bound by solute, `[0, 1]`. */
   getSolute(): number;
   /** Set both axes outright — the treatment step and the test seam. */
-  setCureState(cure: CureState): void;
+  setWaterState(water: WaterState): void;
   /** Apply a treatment, taking the stronger of each axis. */
   treat(treatment: { moisture?: number; solute?: number }): void;
   /** Reconcile the elapsed rehydration (sync). */
-  reconcileCure(): void;
+  reconcileWater(): void;
 
   // Public so the Hydrator can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
   _moisture: number;
   _solute: number;
-  cureClockStamp: number;
+  waterClockStamp: number;
 }
 
-export function CuredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class CuredMixin extends Base implements Cured {
-    static _mixinName = 'CuredMixin';
+export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+  return class WaterActivityMixin extends Base implements WaterActive {
+    static _mixinName = 'WaterActivityMixin';
 
     static fieldMeta: FieldMeta = {
       _moisture: { persistent: true },
       _solute: { persistent: true },
-      cureClockStamp: { persistent: true },
+      waterClockStamp: { persistent: true },
     };
 
-    /** Derived cure line appended to the host's long description. */
-    static markupAugmenters: MarkupAugmenter[] = [cureAugmenter];
+    /** Derived water-state line appended to the host's long description. */
+    static markupAugmenters: MarkupAugmenter[] = [waterAugmenter];
 
     /** `[0, 1]`; `1` = as-harvested (the sparse default). */
     public _moisture = 1;
     /** `[0, 1]`; `0` = untreated (the sparse default). */
     public _solute = 0;
     /** Game-seconds stamp of the last reconcile; `0` = never treated. */
-    public cureClockStamp = 0;
+    public waterClockStamp = 0;
 
     /** Reentry guard — a reconcile must never recurse through a read. */
     private _reconcilingCure = false;
 
     // ---------- reads ----------
 
-    public getCureState(): CureState {
-      if (!this._reconcilingCure) this.reconcileCure();
+    public getWaterState(): WaterState {
+      if (!this._reconcilingCure) this.reconcileWater();
       return { moisture: clamp01(this._moisture), solute: clamp01(this._solute) };
     }
 
     public getMoisture(): number {
-      return this.getCureState().moisture;
+      return this.getWaterState().moisture;
     }
 
     public getSolute(): number {
-      return this.getCureState().solute;
+      return this.getWaterState().solute;
     }
 
     // ---------- writes ----------
 
-    public setCureState(cure: CureState): void {
-      if (!Number.isFinite(cure.moisture) || !Number.isFinite(cure.solute)) return;
-      this._moisture = clamp01(cure.moisture);
-      this._solute = clamp01(cure.solute);
+    public setWaterState(water: WaterState): void {
+      if (!Number.isFinite(water.moisture) || !Number.isFinite(water.solute)) return;
+      this._moisture = clamp01(water.moisture);
+      this._solute = clamp01(water.solute);
       const nowS = nowSeconds();
-      if (nowS !== null) this.cureClockStamp = nowS;
+      if (nowS !== null) this.waterClockStamp = nowS;
     }
 
     public treat(treatment: { moisture?: number; solute?: number }): void {
-      this.setCureState(Cure.applyTreatment(this.getCureState(), treatment));
+      this.setWaterState(WaterActivity.applyTreatment(this.getWaterState(), treatment));
     }
 
     // ---------- reconcile-on-read ----------
@@ -627,7 +627,7 @@ export function CuredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * integrated through `BiomeApi.airSegmentsFor` — the same exactness the
      * soil's rain integral has, for the same reason.
      */
-    public reconcileCure(): void {
+    public reconcileWater(): void {
       if (this._reconcilingCure) return;
 
       const self = this as unknown as Stuff;
@@ -640,12 +640,12 @@ export function CuredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const airNow =
         scope === null
           ? new Evaporation(
-              Cure.ambientHumidityOf(self),
+              WaterActivity.ambientHumidityOf(self),
               0,
-              CURE_DEFAULTS.AMBIENT_TEMP_K,
+              WATER_DEFAULTS.AMBIENT_TEMP_K,
             )
           : BiomeApi.airFor(scope);
-      const target = Cure.equilibriumMoisture(airNow.humidityPct);
+      const target = WaterActivity.equilibriumMoisture(airNow.humidityPct);
       const canWet = target > this._moisture;
       const canDry =
         exposure > 0 &&
@@ -656,13 +656,13 @@ export function CuredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const nowS = nowSeconds();
       if (nowS === null) return;
 
-      if (this.cureClockStamp === 0) {
-        this.cureClockStamp = nowS;
+      if (this.waterClockStamp === 0) {
+        this.waterClockStamp = nowS;
         return;
       }
-      const elapsed = nowS - this.cureClockStamp;
+      const elapsed = nowS - this.waterClockStamp;
       if (elapsed <= 0) {
-        this.cureClockStamp = nowS;
+        this.waterClockStamp = nowS;
         return;
       }
 
@@ -670,23 +670,23 @@ export function CuredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       try {
         if (exposure <= 0 || scope === null) {
           // Enclosed: the one-way arm, unchanged. No `drying` half.
-          this._moisture = Cure.advanceMoisture(
+          this._moisture = WaterActivity.advanceMoisture(
             this._moisture,
             elapsed,
-            Cure.ambientHumidityOf(self),
+            WaterActivity.ambientHumidityOf(self),
           );
-          this.cureClockStamp = nowS;
+          this.waterClockStamp = nowS;
           return;
         }
 
         let moisture = this._moisture;
         for (const seg of BiomeApi.airSegmentsFor(
           scope,
-          this.cureClockStamp,
+          this.waterClockStamp,
           nowS,
         )) {
           if (!(seg.durationS > 0)) continue;
-          moisture = Cure.advanceMoisture(
+          moisture = WaterActivity.advanceMoisture(
             moisture,
             seg.durationS,
             seg.air.humidityPct,
@@ -695,7 +695,7 @@ export function CuredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           );
         }
         this._moisture = moisture;
-        this.cureClockStamp = nowS;
+        this.waterClockStamp = nowS;
       } finally {
         this._reconcilingCure = false;
       }

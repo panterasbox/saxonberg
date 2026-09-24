@@ -11,14 +11,14 @@
  *
  * So `dry` does what hanging a ham actually is — it **puts the cut
  * somewhere the air can get at it** — and the drying is then the cut's own
- * clock (`CuredMixin`, reconcile-on-read) against the air the weather
+ * clock (`WaterActivityMixin`, reconcile-on-read) against the air the weather
  * makes. The recipe row is deleted; the act narrates a **prospect** in
  * words, because the answer is a rate and the player is entitled to know
  * roughly what they are in for before they wait a week for it.
  *
  * ⚠ The drying hurdle still multiplies with salting (`a_w = a_w(material) ·
  * moisture · (1 − solute)`), so a cut that is both keeps better than one
- * that is either — that arithmetic is unchanged and lives in `Cured`.
+ * that is either — that arithmetic is unchanged and lives in `WaterActivity`.
  *
  * ⭐ The rack is a **declared instrument arg**, and it earns its keep now:
  * a support carries an `airExposure` fraction, so a ham on a slatted rack
@@ -77,7 +77,7 @@ export default class DryController extends CommandController<DryModel> {
     // ⭐ The refusal names the PROPERTY, not a class list: a thing dries
     // if it has a water state. A fish, a hide and a turf all qualify the
     // day somebody ships one, with no edit here.
-    if (!MixinApi.isCured(target)) {
+    if (!MixinApi.isWaterActive(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -166,7 +166,7 @@ export default class DryController extends CommandController<DryModel> {
    * rainy week makes it wrong and that is the lesson rather than a bug.
    */
   protected prospectFor(target: Stuff, scope: Stuff & Container): string | null {
-    if (!MixinApi.isCured(target)) return null;
+    if (!MixinApi.isWaterActive(target)) return null;
     const driedAt = this.dial(AppSettingKeys.cureBandDriedAt, 0.5);
     const moisture = target.getMoisture();
     if (moisture <= driedAt) return 'It is dry already.';

@@ -47,7 +47,7 @@ place-with-a-cover and the bole** — Stage A's two nearest precedents) ·
 [soil.md](../../subsystems/soil.md) · [weather.md](../../subsystems/weather.md)
 · [husbandry.md](../../subsystems/husbandry.md) (⭐ the polycarp cycle's
 **latch → set → fill → ripe** — pollination attaches at SET) ·
-[spoilage.md](../../subsystems/spoilage.md) (`CuredMixin.moisture` — *drying
+[spoilage.md](../../subsystems/spoilage.md) (`WaterActivityMixin.moisture` — *drying
 reverses and curing does not*, which is exactly peat) ·
 [maturation.md](../../subsystems/maturation.md) (the durative transform on a
 vessel — the saltern's candidate host).
@@ -72,7 +72,7 @@ ranching's taps, milling, smelting). **Two do not:**
 
 | root category | consumed by | produced by |
 |---|---|---|
-| **`salt`** | `salt-cure`, and the shipped `CuredMixin` solute hurdle | **nothing** — authored as *"a half-empty sack of coarse salt"* on a kitchen shelf |
+| **`salt`** | `salt-cure`, and the shipped `WaterActivityMixin` solute hurdle | **nothing** — authored as *"a half-empty sack of coarse salt"* on a kitchen shelf |
 | **`sugar`** | `simple-syrup` | **nothing** — no cane, no beet, no honey |
 
 ### Supply side — materials consumed and never minted
@@ -224,8 +224,8 @@ lens-6 pass available: the demand was there first, measurably.
   needs, so it belongs at the front of Stage A rather than in Stage B. It
   serves four things immediately: peat, the saltern, a ham or a fish dried in
   the open, and **haymaking** (`food/hay` ships and ranching makes it).
-  ⭐ `CuredMixin` is the right carrier and welcomes this: it lives at
-  `lib/material/Cured.ts` and its own doc says *"leather, timber and grain are
+  ⭐ `WaterActivityMixin` is the right carrier and welcomes this: it lives at
+  `lib/material/WaterActivity.ts` and its own doc says *"leather, timber and grain are
   all dried and none of them rot on a microbial curve."*
 - **Peat's field does not renew on a human timescale.** That is not a
   limitation to apologize for — it is the depletion lesson, and `Deposit`
@@ -385,7 +385,7 @@ requirements phase does not re-open them.**
 | # | question | decided |
 |---|---|---|
 | 1 | working = Location, or Warren? | **Location.** `mining.md`'s *reads-to-the-space / mutation-to-the-warren* split already settles it, and `AuthoredWorking` is the shipped precedent. ⭐ The real question was *does a quarry grow by adding rooms* — it does not; the face retreats and the floor drops. `QuarryMixin` on an authored singleton, no warren; a bench-deep pit is a later base swap. |
-| 2 | peat drying — `CuredMixin` or its own clock? | **`CuredMixin`, via the shipped `dry` ACT**, never passively — *"nothing dries on its own"* is a stated prohibition with a stated reason. ⭐ **And the weather term moved to Stage A W0**, because the saltern needs the identical primitive. |
+| 2 | peat drying — `WaterActivityMixin` or its own clock? | **`WaterActivityMixin`, via the shipped `dry` ACT**, never passively — *"nothing dries on its own"* is a stated prohibition with a stated reason. ⭐ **And the weather term moved to Stage A W0**, because the saltern needs the identical primitive. |
 | 3 | saltern host = `MaturingMixin`? | **Yes, and it needs almost nothing new** — a Bulkable pan, `mechanism: evaporative`, the rate already credited at the host's `ThermalMixin` temperature. ⚠ **This demoted the saltern from a new mechanism to a profile**, which is why only the hive gates the unification. |
 | 4 | pollination in Stage B, or held? | **In — and at SET, not as a limiting factor.** A multiplier on `fruitSetCount`, because poor pollination gives fewer fruits rather than slower ones. |
 | 5 | how many packs? | **`trade-quarrying` (Stage A + the saltern) · `trade-apiculture` (the hive).** The reason improved: after Q2 the saltern and peat **share W0's drying term**, so they want the same pack whatever salt feels like. |

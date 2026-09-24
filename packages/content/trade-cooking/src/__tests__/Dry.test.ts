@@ -10,7 +10,7 @@
  * What it does now is what hanging a ham actually IS: it puts the cut
  * somewhere the air can reach it, and the drying is the cut's own clock
  * against the air the weather makes. Three things to pin, and none of them
- * is a rate (the rates are the kernel's, in `Cured.test.ts`):
+ * is a rate (the rates are the kernel's, in `WaterActivity.test.ts`):
  *
  *   1. the cut ends up **resting on the rack** — which is what makes the
  *      exposure fraction reachable at all, and is exactly what the old act

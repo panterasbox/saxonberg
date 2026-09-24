@@ -76,7 +76,7 @@ export interface Surfaced {
    * shed all come out of rows.
    *
    * ⚠ This is the *support's* claim about its own airiness, not a claim
-   * about the room. Read by `CuredMixin`'s two-way arm off
+   * about the room. Read by `WaterActivityMixin`'s two-way arm off
    * `Containable.getRestingOn()`; a thing merely dropped on the floor rests
    * on nothing and reads the `cure.groundExposure` dial instead.
    */

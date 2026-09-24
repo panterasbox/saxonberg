@@ -462,7 +462,7 @@ describe('⭐ the preserving acts — over the shipped rows, through the real re
   }, 60_000);
 
   const cureOf = (s: Stuff) =>
-    MixinApi.isCured(s) ? s.getCureState() : null;
+    MixinApi.isWaterActive(s) ? s.getWaterState() : null;
 
   it('the catalogue knows the two preserving rows — and NOT `air-dry`', () => {
     const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
@@ -475,7 +475,7 @@ describe('⭐ the preserving acts — over the shipped rows, through the real re
     // assertion. `air-dry`'s whole content was `cure: { moisture: 0.35 }` —
     // an instant constant with no time, no air and no weather, so a ham
     // dried the same in an August wind and a steamy cellar. Drying is now a
-    // RATE on the cut's own clock against the air (`CuredMixin` +
+    // RATE on the cut's own clock against the air (`WaterActivityMixin` +
     // `BiomeApi.airFor`), and `dry` is the act that puts it where the air
     // can reach it. Salting and smoking keep their recipes because they
     // genuinely are treatments: salt goes IN, and a fire's heat is a
@@ -497,7 +497,7 @@ describe('⭐ the preserving acts — over the shipped rows, through the real re
 
   // ⚠ The old `drying lowers the moisture` case is gone with the recipe.
   // What it asserted — that water leaves — is now the kernel's, pinned as
-  // the six exposure cases in `lib/material/__tests__/Cured.test.ts`, and
+  // the six exposure cases in `lib/material/__tests__/WaterActivity.test.ts`, and
   // what the ACT does is pinned in `Dry.test.ts` beside this file.
 
   it('⭐⭐ the hurdles STACK — a salted cut hung up keeps its salt (criterion 2)', async () => {

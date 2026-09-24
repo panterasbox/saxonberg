@@ -2,17 +2,17 @@
  * A turf — ⭐⭐ **cut wet, burnt dry, and useless in between.**
  *
  * The ignition arithmetic is the kernel's (`lib/fire/__tests__/Combustible.test.ts`
- * pins the boundary on a synthetic `Cured(Firewood)`). What only a pack test
+ * pins the boundary on a synthetic `WaterActivityMixin(Firewood)`). What only a pack test
  * can see is whether the **shipped peat row** actually carries a fuel column
  * and whether its absorption figure puts the boundary where the `dried` band
  * is — because the row shipped with **no combustion fields at all** before this
  * build, so a turf would not have lit and nothing anywhere would have said why.
  *
  * ⭐ And the composition claim, which is the one the spoilage doc has been
- * waiting for: **a turf is `Cured` WITHOUT `Freshness`.** `spoilage.md` argued
+ * waiting for: **a turf is `WaterActivityMixin` WITHOUT `FreshnessMixin`.** `spoilage.md` argued
  * the split on exactly this ground — *"leather, timber and grain are all dried
  * and none of them rot on a microbial curve"* — and until now every
- * `CuredMixin` host in the game also composed `FreshnessMixin`, so the claim
+ * `WaterActivityMixin` host in the game also composed `FreshnessMixin`, so the claim
  * was untested. This is the first host that dries and does not rot.
  */
 
@@ -81,7 +81,7 @@ function turf(moisture: number, stampedK = 600): Turf {
     t.setMaterial(mat);
     t.setStampedTemperatureK(stampedK);
     t.setLastAmbientK(290);
-    t.setCureState({ moisture, solute: 0 });
+    t.setWaterState({ moisture, solute: 0 });
     t.setReserve(
       new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
     );
@@ -153,12 +153,12 @@ describe('an as-cut turf will not catch; a dried one will', () => {
   });
 });
 
-describe('⭐ Cured WITHOUT Freshness — the anticipated case, made real', () => {
+describe('⭐ WaterActive WITHOUT Freshness — the anticipated case, made real', () => {
   it('a turf has a water state and NO microbial load', () => {
     const t = turf(1);
-    expect(MixinApi.isCured(t)).toBe(true);
+    expect(MixinApi.isWaterActive(t)).toBe(true);
     // ⚠ The claim `spoilage.md` argued the split on and could not test until
-    // now: every other `CuredMixin` host in the game is a `Provision`, which
+    // now: every other `WaterActivityMixin` host in the game is a `Provision`, which
     // also rots. Peat is the definitional case of organic matter whose decay
     // has ALREADY stalled.
     expect(MixinApi.isFresh(t)).toBe(false);

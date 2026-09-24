@@ -1,5 +1,5 @@
 /**
- * CuredMixin — the per-instance water state, and the acts that change it.
+ * WaterActivityMixin — the per-instance water state, and the acts that change it.
  *
  * Four things this pins, and the first is the one the whole build rests
  * on: **`moisture: 1, solute: 0` derives the Material's tabulated `a_w`
@@ -15,7 +15,7 @@ import Thing from '../../stuff/Thing';
 import Provision from '../../../platform/thing/Provision';
 import Material from '../Material';
 import { Freshness } from '../Freshness';
-import { Cure } from '../Cured';
+import { WaterActivity } from '../WaterActivity';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
@@ -40,13 +40,13 @@ function material(ea: number, aw = 0.98): Material {
   matSeq += 1;
   return makeStuffAtPath(() => {
     const m = new Material();
-    m.setName(`cure-test-mat-${matSeq}`);
+    m.setName(`water-test-mat-${matSeq}`);
     m.setSpecificHeat(Quantity.of(3200, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.5, 'W/(m·K)'));
     m.setSpoilActivationEnergy(Quantity.of(ea, 'J/mol'));
     m.setWaterActivity(aw);
     return m;
-  }, `/stuff/idea/material/_test/cure-${matSeq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/water-${matSeq}`) as unknown as Material;
 }
 
 function food(mat: Material, tempK = 293): Provision {
@@ -62,7 +62,7 @@ function food(mat: Material, tempK = 293): Provision {
 
 const MEAT_EA = 80_000;
 
-describe('CuredMixin — the water state a treatment changes', () => {
+describe('WaterActivityMixin — the water state a treatment changes', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
@@ -84,16 +84,16 @@ describe('CuredMixin — the water state a treatment changes', () => {
     for (const aw of [0.15, 0.6, 0.85, 0.97, 0.99]) {
       const mat = material(MEAT_EA, aw);
       expect(Freshness.waterActivityOf(mat, null)).toBe(aw);
-      expect(Freshness.waterActivityOf(mat, Cure.untreated())).toBe(aw);
+      expect(Freshness.waterActivityOf(mat, WaterActivity.untreated())).toBe(aw);
     }
   });
 
-  it('…and an untreated Provision reads the same growth rate as no cure at all', () => {
+  it('…and an untreated Provision reads the same growth rate as no water at all', () => {
     const mat = material(MEAT_EA, 0.99);
     const p = food(mat);
     expect(p.getMoisture()).toBe(1);
     expect(p.getSolute()).toBe(0);
-    expect(Freshness.growthRate(mat, 293, p.getCureState())).toBeCloseTo(
+    expect(Freshness.growthRate(mat, 293, p.getWaterState())).toBeCloseTo(
       Freshness.growthRate(mat, 293, null),
       12,
     );
@@ -105,7 +105,7 @@ describe('CuredMixin — the water state a treatment changes', () => {
     const p = food(material(MEAT_EA));
     setNow(30 * DAY);
     expect(p.getMoisture()).toBe(1);
-    expect(p.cureClockStamp).toBe(0);
+    expect(p.waterClockStamp).toBe(0);
   });
 
   // ---- criterion 1 + 2: treatment works, and hurdles stack ----
@@ -195,16 +195,16 @@ describe('CuredMixin — the water state a treatment changes', () => {
   it('⚠ nothing dries on its own — the passive arm is ONE-WAY', () => {
     // A gauge that lowered moisture passively would quietly preserve
     // every ration in the pantry, and drying would stop being an act.
-    expect(Cure.advanceMoisture(1, 1000 * HOUR, 20)).toBe(1);
-    expect(Cure.advanceMoisture(0.5, 1000 * HOUR, 20)).toBe(0.5);
-    expect(Cure.advanceMoisture(0.2, 1000 * HOUR, 90)).toBeGreaterThan(0.2);
+    expect(WaterActivity.advanceMoisture(1, 1000 * HOUR, 20)).toBe(1);
+    expect(WaterActivity.advanceMoisture(0.5, 1000 * HOUR, 20)).toBe(0.5);
+    expect(WaterActivity.advanceMoisture(0.2, 1000 * HOUR, 90)).toBeGreaterThan(0.2);
   });
 
   it('a dry store holds it and damp air gives it back — the equilibrium is the humidity', () => {
-    expect(Cure.equilibriumMoisture(25)).toBeCloseTo(0.25, 10);
-    expect(Cure.equilibriumMoisture(95)).toBeCloseTo(0.95, 10);
-    const inDryStore = Cure.advanceMoisture(0.3, 500 * HOUR, 25);
-    const inSteam = Cure.advanceMoisture(0.3, 500 * HOUR, 95);
+    expect(WaterActivity.equilibriumMoisture(25)).toBeCloseTo(0.25, 10);
+    expect(WaterActivity.equilibriumMoisture(95)).toBeCloseTo(0.95, 10);
+    const inDryStore = WaterActivity.advanceMoisture(0.3, 500 * HOUR, 25);
+    const inSteam = WaterActivity.advanceMoisture(0.3, 500 * HOUR, 95);
     expect(inDryStore).toBe(0.3);
     expect(inSteam).toBeGreaterThan(0.5);
   });
@@ -212,14 +212,14 @@ describe('CuredMixin — the water state a treatment changes', () => {
   // ---- criterion 4: legible as treated, without a number ----
 
   it('an untreated thing says nothing at all — it does not say "fresh"', () => {
-    expect(Cure.phraseFor(Cure.untreated())).toBeNull();
-    expect(Cure.phraseFor(null)).toBeNull();
+    expect(WaterActivity.phraseFor(WaterActivity.untreated())).toBeNull();
+    expect(WaterActivity.phraseFor(null)).toBeNull();
   });
 
   it('a treated thing reads in band words, never a number', () => {
-    const salted = Cure.phraseFor({ moisture: 1, solute: 0.5 })!;
-    const dried = Cure.phraseFor({ moisture: 0.3, solute: 0 })!;
-    const both = Cure.phraseFor({ moisture: 0.3, solute: 0.5 })!;
+    const salted = WaterActivity.phraseFor({ moisture: 1, solute: 0.5 })!;
+    const dried = WaterActivity.phraseFor({ moisture: 0.3, solute: 0 })!;
+    const both = WaterActivity.phraseFor({ moisture: 0.3, solute: 0.5 })!;
     expect(salted).toBe('It has been heavily salted.');
     expect(dried).toBe('It has been thoroughly dried.');
     expect(both).toBe('It has been thoroughly dried and heavily salted.');
@@ -229,7 +229,7 @@ describe('CuredMixin — the water state a treatment changes', () => {
   });
 
   it('lighter treatments read lighter', () => {
-    expect(Cure.phraseFor({ moisture: 0.7, solute: 0.15 })).toBe(
+    expect(WaterActivity.phraseFor({ moisture: 0.7, solute: 0.15 })).toBe(
       'It has been partly dried and lightly salted.',
     );
   });
@@ -242,12 +242,12 @@ describe('CuredMixin — the water state a treatment changes', () => {
       t.setMaterial(material(0));
       return t;
     });
-    expect(MixinApi.isCured(plank)).toBe(false);
+    expect(MixinApi.isWaterActive(plank)).toBe(false);
   });
 
   it('…and `Provision` carries BOTH gauges, which are different facts', () => {
     const p = food(material(MEAT_EA));
-    expect(MixinApi.isCured(p)).toBe(true);
+    expect(MixinApi.isWaterActive(p)).toBe(true);
     expect(MixinApi.isFresh(p)).toBe(true);
   });
 
@@ -256,9 +256,9 @@ describe('CuredMixin — the water state a treatment changes', () => {
   it('blending water states is mass-weighted, like the load', () => {
     const brine = { moisture: 1, solute: 0.8 };
     const stock = { moisture: 1, solute: 0 };
-    const half = Cure.blend(brine, 1, stock, 1);
+    const half = WaterActivity.blend(brine, 1, stock, 1);
     expect(half.solute).toBeCloseTo(0.4, 10);
-    const splash = Cure.blend(brine, 0.1, stock, 0.9);
+    const splash = WaterActivity.blend(brine, 0.1, stock, 0.9);
     expect(splash.solute).toBeCloseTo(0.08, 10);
   });
 
@@ -305,10 +305,10 @@ describe('CuredMixin — the water state a treatment changes', () => {
     });
     // A bare Thing is not a Location, so anything inside it is enclosed.
     setNow(0);
-    expect(cut.cureClockStamp).toBe(0);
+    expect(cut.waterClockStamp).toBe(0);
     setNow(30 * DAY);
-    void cut.getCureState();
-    expect(cut.cureClockStamp).toBe(0);
+    void cut.getWaterState();
+    expect(cut.waterClockStamp).toBe(0);
     expect(cut.getMoisture()).toBe(1);
     expect(box).toBeTruthy();
   });
@@ -319,8 +319,8 @@ describe('CuredMixin — the water state a treatment changes', () => {
     const rack = rackIn(cookhouse);
     ContainmentApi.placeOn(cut as never, rack as never);
     setNow(0);
-    void cut.getCureState(); // starts the clock
-    expect(cut.cureClockStamp).toBeGreaterThan(0);
+    void cut.getWaterState(); // starts the clock
+    expect(cut.waterClockStamp).toBeGreaterThan(0);
     setNow(10 * DAY);
     const after = cut.getMoisture();
     expect(after).toBeLessThan(1);
@@ -336,11 +336,11 @@ describe('CuredMixin — the water state a treatment changes', () => {
     const rack = rackIn(steamy);
     ContainmentApi.placeOn(cut as never, rack as never);
     setNow(0);
-    void cut.getCureState();
-    expect(cut.cureClockStamp).toBe(0);
+    void cut.getWaterState();
+    expect(cut.waterClockStamp).toBe(0);
     setNow(40 * DAY);
-    void cut.getCureState();
-    expect(cut.cureClockStamp).toBe(0);
+    void cut.getWaterState();
+    expect(cut.waterClockStamp).toBe(0);
     expect(cut.getMoisture()).toBe(1);
   });
 
@@ -350,13 +350,13 @@ describe('CuredMixin — the water state a treatment changes', () => {
     const cellar = room(90);
     const racked = food(material(MEAT_EA));
     const sacked = food(material(MEAT_EA));
-    racked.setCureState({ moisture: 0.4, solute: 0 });
-    sacked.setCureState({ moisture: 0.4, solute: 0 });
+    racked.setWaterState({ moisture: 0.4, solute: 0 });
+    sacked.setWaterState({ moisture: 0.4, solute: 0 });
     const rack = rackIn(cellar);
     ContainmentApi.placeOn(racked as never, rack as never);
     setNow(0);
-    void racked.getCureState();
-    void sacked.getCureState();
+    void racked.getWaterState();
+    void sacked.getWaterState();
     setNow(20 * DAY);
     expect(racked.getMoisture()).toBeGreaterThan(0.4);
     expect(sacked.getMoisture()).toBeGreaterThan(0.4);
@@ -379,14 +379,14 @@ describe('CuredMixin — the water state a treatment changes', () => {
     ContainmentApi.placeOn(inLoft as never, rackIn(dryLoft) as never);
     ContainmentApi.placeOn(inCellar as never, rackIn(dampCellar) as never);
     setNow(0);
-    void inLoft.getCureState();
-    void inCellar.getCureState();
+    void inLoft.getWaterState();
+    void inCellar.getWaterState();
     setNow(365 * DAY);
     expect(
-      Freshness.waterActivityOf(loftMat, inLoft.getCureState()),
+      Freshness.waterActivityOf(loftMat, inLoft.getWaterState()),
     ).toBeLessThan(FLOOR);
     expect(
-      Freshness.waterActivityOf(cellarMat, inCellar.getCureState()),
+      Freshness.waterActivityOf(cellarMat, inCellar.getWaterState()),
     ).toBeGreaterThan(FLOOR);
   });
 
@@ -403,8 +403,8 @@ describe('CuredMixin — the water state a treatment changes', () => {
     ContainmentApi.placeOn(racked as never, rackIn(yard) as never);
     ContainmentApi.move(dropped as never, yard as never);
     setNow(0);
-    void racked.getCureState();
-    void dropped.getCureState();
+    void racked.getWaterState();
+    void dropped.getWaterState();
     // ⚠ A short window on purpose: over a week BOTH reach the air's
     // equilibrium and the ratio collapses to 1. The claim is about the
     // RATE, so it is measured before either one saturates.
@@ -427,8 +427,8 @@ describe('CuredMixin — the water state a treatment changes', () => {
     ContainmentApi.placeOn(airy as never, rackIn(shed, 1) as never);
     ContainmentApi.placeOn(stifled as never, rackIn(shed, 0.2) as never);
     setNow(0);
-    void airy.getCureState();
-    void stifled.getCureState();
+    void airy.getWaterState();
+    void stifled.getWaterState();
     setNow(12 * HOUR);
     expect(airy.getMoisture()).toBeLessThan(stifled.getMoisture());
   });

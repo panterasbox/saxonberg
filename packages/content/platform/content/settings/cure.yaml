@@ -2,7 +2,7 @@
 # kind: merge-missing — a key the app_settings singleton lacks is merged
 # in; a value the operator changed via `config` is never touched).
 settings:
-  # Curing — the per-instance water state (`CuredMixin`). Two scalars,
+  # Curing — the per-instance water state (`WaterActivityMixin`). Two scalars,
   # `moisture` and `solute`, multiply the Material's tabulated water
   # activity into the effective one the growth law reads:
   #   a_w = a_w(material) · moisture · (1 − solute)

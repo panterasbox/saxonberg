@@ -209,7 +209,7 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
      * the weather tail deferred, now derived.
      *
      * ⭐ **Two waters, one formula.** Surface wetness (rain on a log) and
-     * the matter's **own** water ({@link CuredMixin} — a turf cut out of a
+     * the matter's **own** water ({@link WaterActivityMixin} — a turf cut out of a
      * bog is nearly all water) resist ignition in exactly the same way, so
      * they are two terms of the same shape and they **add**. That is what
      * makes an as-cut turf refuse the flame in the shipped words *"It's too
@@ -231,7 +231,7 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
         const saturation = self.getWetness();
         if (saturation > 0) held += saturation;
       }
-      if (MixinApi.isCured(self)) {
+      if (MixinApi.isWaterActive(self)) {
         // Above the `dried` band the fuel still carries its own water;
         // at or below it, it is dry fuel and contributes nothing.
         const driedAt = dial(AppSettingKeys.cureBandDriedAt, 0.5);

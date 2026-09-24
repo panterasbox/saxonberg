@@ -19,7 +19,7 @@ whole subject.**
 
 And a third fact, which is about the matter rather than about anything
 living in it: how much water is actually available to grow in. That is
-`CuredMixin`, and it is what drying and salting change.
+`WaterActivityMixin`, and it is what drying and salting change.
 
 Every `Provision` carries all three, and they are three different
 questions about one cut of meat: *what is growing in it on its own*,
@@ -38,7 +38,7 @@ senses, knowable by procedure.**
 
 Source: `lib/material/Freshness.ts` (the spoilage mixin + the shared
 arithmetic), `lib/material/Contaminable.ts` (the silent population),
-`lib/material/Cured.ts` (the water state), `lib/material/Material.ts`
+`lib/material/WaterActivity.ts` (the water state), `lib/material/Material.ts`
 (the two tabulated constants), the `freshness.*` / `cure.*` dials in
 `lib/config/AppSettings.ts` and their seeds in the platform pack's
 `content/settings/`. The pathogen roster is authored as `Condition` rows
@@ -211,7 +211,7 @@ unaffected by its arrival.
 
 Each gauge declares its **own** payload field from its own module —
 `freshness` from `Freshness.ts`, `pathogens` + `pathogenStamp` from
-`Contaminable.ts`, `moisture`/`solute` from `Cured.ts` — rather than
+`Contaminable.ts`, `moisture`/`solute` from `WaterActivity.ts` — rather than
 sharing one `{ load, stamp }`. A shared shape could not hold the
 pathogens' per-organism map, and per-module declaration is what lets the
 pour blend and the material shadow keep working as each subsystem adds a
@@ -430,7 +430,7 @@ bread row on a class that cannot stale.
 
 ## The water state — what drying and curing actually change
 
-`CuredMixin` (`lib/material/Cured.ts`) carries two scalars that describe
+`WaterActivityMixin` (`lib/material/WaterActivity.ts`) carries two scalars that describe
 the **matter**, not anything living in it:
 
 - **`moisture`** `[0, 1]` — how much of the material's own water is still
@@ -859,3 +859,40 @@ test, not a driven act.
 - **Dish-as-ingredient** ("stock into soup") is out of scope: the cooked
   blend base is excluded from the craft gather's intermediate test, and
   there is a negative test that says so.
+
+## History — `CuredMixin` became `WaterActivityMixin` (2026-09-24)
+
+The water-state mixin was called **`CuredMixin`** from the food-safety
+build until the extraction build, and its own opening line always said
+what it actually models: *the water state of a particular piece of
+matter*. The name was one consumer's verb for that substrate, and by the
+time `Turf = CuredMixin(Firewood)` shipped it was visibly wrong — nobody
+cures turf, they dry it — with timber (*seasoned*) and grain (*dried*)
+already named here as the next hosts, and hydraulic **concrete** curing
+being the opposite process (water is chemically consumed, so you keep it
+wet; drying it early is the defect).
+
+So the substrate now names the quantity it derives:
+
+| was | is |
+|---|---|
+| `Cure` (the arithmetic) | `WaterActivity` |
+| `CureState` (the two scalars) | `WaterState` |
+| `Cured` (the host interface) | `WaterActive` |
+| `CuredMixin` | `WaterActivityMixin` |
+| `Mixins.Cured` · `MixinApi.isCured` | `Mixins.WaterActive` · `MixinApi.isWaterActive` |
+| `getCureState` · `setCureState` · `reconcileCure` | `getWaterState` · `setWaterState` · `reconcileWater` |
+| `cureClockStamp` (persistent) | `waterClockStamp` |
+| `BulkPayload.cure` · `.cureStamp` | `BulkPayload.water` · `.waterStamp` |
+| `lib/material/Cured.ts` | `lib/material/WaterActivity.ts` |
+
+⭐ **The act keeps its word, and that is the line.** `cure` is still a
+verb, `CureController` still packs meat in salt, `salt-cure` is still a
+recipe, `Recipe.cure` is still a recipe's authored treatment, and the
+operator dials are still `cure.*` (`cure.dryingPerHour`,
+`cure.band.curedAt`). What was dishonest was naming the **substrate**
+after one act performed on it — not the act.
+
+⚠ Two persistent names changed (`waterClockStamp`, `BulkPayload.water`),
+so a dev DB that holds the old keys wants dropping; there is no migration
+and there is not going to be one.

@@ -13,7 +13,7 @@ import Thing from '../../stuff/Thing';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
-import { CuredMixin } from '../../material/Cured';
+import { WaterActivityMixin } from '../../material/WaterActivity';
 import { ReservedMixin, Reserve } from '../../reserve';
 import { CombustibleMixin } from '../Combustible';
 import { FireApi } from '../../../api/fire';
@@ -37,11 +37,11 @@ class Firewood extends CombustibleMixin(
 }
 
 /**
- * A fuel that also carries its own water — the turf shape. `Cured` over
+ * A fuel that also carries its own water — the turf shape. `WaterActivityMixin` over
  * `Combustible`, no `Wet`: a turf cut out of a bog is not *wet on the
  * outside*, it is nearly all water all the way through.
  */
-class Turf extends CuredMixin(
+class Turf extends WaterActivityMixin(
   CombustibleMixin(ThermalMixin(ReservedMixin(Thing))),
 ) {
   static _mixinName = 'TestTurf';
@@ -241,7 +241,7 @@ describe('⭐⭐ the fuel\'s OWN water resists ignition too (the turf case)', ()
       t.setMaterial(mat);
       t.setStampedTemperatureK(opts.stampedK);
       t.setLastAmbientK(295);
-      t.setCureState({ moisture: opts.moisture, solute: 0 });
+      t.setWaterState({ moisture: opts.moisture, solute: 0 });
       t.setReserve(
         new Reserve(
           'fuel',

@@ -1354,7 +1354,7 @@ export const AppSettingKeys = {
 
   /* ────────────────────────── cure (water state) ────────────────────────── */
   /**
-   * Curing — the per-instance water state (`CuredMixin`): `moisture` and
+   * Curing — the per-instance water state (`WaterActivityMixin`): `moisture` and
    * `solute`, which multiply the Material's tabulated `a_w` into the
    * effective one the growth law reads. Drying reverses toward the ambient
    * equilibrium; curing never does. The bands below are PRESENTATION

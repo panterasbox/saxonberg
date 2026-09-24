@@ -35,7 +35,7 @@ args:
     scope: "reachable"
     # ⭐ `any`, deliberately, and now for a sharper reason than before: what
     # can dry is decided by whether the thing HAS a water state
-    # (`CuredMixin`), which the controller narrows and refuses in its own
+    # (`WaterActivityMixin`), which the controller narrows and refuses in its own
     # words. A pack that ships a fish, a hide or a turf needs no edit here.
     requires: any
     validators:

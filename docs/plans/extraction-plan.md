@@ -461,24 +461,24 @@ named. Line numbers are current at plan time.
   `solute: 0.55` and a **bulk** salt slot `{ category: salt, measureL: 0.2 }`.
   The `food-safety.dirty.wire.test.ts:149` drive checkpoint asserts `dry`
   resolves with `/to dry/`.
-- `packages/server/src/mud/lib/material/Cured.ts` (544 lines):
-  `CuredMixin` — `_moisture = 1`, `_solute = 0`, `cureClockStamp`,
-  reconcile-on-read behind a reentry guard (`getCureState()` :476).
-  ⚠⚠ `reconcileCure()` opens `if (this._moisture >= 1) return; // nothing
+- `packages/server/src/mud/lib/material/WaterActivity.ts` (544 lines):
+  `WaterActivityMixin` — `_moisture = 1`, `_solute = 0`, `waterClockStamp`,
+  reconcile-on-read behind a reentry guard (`getWaterState()` :476).
+  ⚠⚠ `reconcileWater()` opens `if (this._moisture >= 1) return; // nothing
   to regain; touch nothing` — documented as *the sparse-storage
-  guarantee*. Statics on the `Cure` value class: `untreated`,
+  guarantee*. Statics on the `WaterActivity` value class: `untreated`,
   `applyTreatment`, `blend` (:240), `equilibriumMoisture(h) = h/100` (:267),
   `advanceMoisture(m, elapsedS, humidityPct, rate = dial(cure.rehydrationPerHour))`
   (:281, **one-way, rising only**), `ambientHumidityOf(host)` →
   `BiomeApi.localHumidityFor`, `phraseFor(cure, bands)` (:333 — the
-  four-band worded read already exists). `MixinApi.isCured` exists
+  four-band worded read already exists). `MixinApi.isWaterActive` exists
   (`api/mixin.ts:1316`). Composed today on exactly one class:
   `platform/thing/Provision.ts:51–55`
-  (`Crafted(Composed(Contaminable(Cured(ThermalDose(Freshness(Thermal(Detailed(Thing)))))))`).
+  (`Crafted(Composed(Contaminable(WaterActive(ThermalDose(Freshness(Thermal(Detailed(Thing)))))))`).
 - ⚠ `scripts/check-lib-statics.ts` is a **ratchet on world-level statics
   in `lib/`** ("does this static answer a question about the TYPE or the
   WORLD?"). Type-level construction statics are admitted; a new
-  world-level static on `Cure` would raise the ceiling and fail the gate.
+  world-level static on `WaterActivity` would raise the ceiling and fail the gate.
 - `Freshness.ts:301`: `a_w = a_w(material) · moisture · (1 − solute)`;
   floor 0.60; `awDefault` 0.97 — the requirements' ~62 % threshold is
   arithmetic off these.
@@ -799,7 +799,7 @@ pit sump is recorded as the seam the mining slate's pump lands on.
 
 **D5 — The drying arm is two-way, gated on exposure, and the guarantee
 is restated rather than lost.** ⚠ **AMENDED → § A6:** the exposure gate as written made the rack
-arithmetically inert; exposure is now a FRACTION carried by the support. `reconcileCure()` returns without a
+arithmetically inert; exposure is now a FRACTION carried by the support. `reconcileWater()` returns without a
 write when **nothing would change**: enclosed hosts at `moisture ≥ 1`
 (the ration in a pack, the cut in a chest, the sack in a pantry — the
 common case), and any host whose air is at equilibrium. *Exposed* means
@@ -813,7 +813,7 @@ keeps sparseness for carried and stored goods. Exposed hosts dry toward
 `equilibriumMoisture(h)` at `cure.dryingPerHour × air.evaporationFactor()`
 and re-wet toward it at the shipped `cure.rehydrationPerHour`;
 `advanceMoisture` (an existing, counted static) becomes two-way by
-gaining an `air` argument — **no new world-level static on `Cure`**
+gaining an `air` argument — **no new world-level static on `WaterActivity`**
 (`lint:lib-statics`). The passive drying of every exposed `Provision`
 that follows is the requirements' explicit lift of the prohibition (*"a
 damp cellar preserves nothing; a dry loft preserves slowly"*), and the
@@ -840,14 +840,14 @@ segment when indoors or unresolved). To make the weather reachable
 synchronously, `SkyExposedMixin` gains `_weatherLocalityPath`
 (runtimeState) resolved lazily and once — **the `Soil._rainLocalityPath`
 shape verbatim** — and a sync `weatherLocality(): Locality | null`. Both
-consumers (the Cured arm, the evaporative profile) read through these two
+consumers (the WaterActive arm, the evaporative profile) read through these two
 Api statics; neither computes a rate of its own.
 
 **D7 — `dry` is the hanging act; the instant recipe is retired.** ⚠ **AMENDED
 → § A6:** the rack now carries a real exposure term, so `dry` changes
 something.
 `DryController` no longer crafts. It places the target on the rack
-(`ContainmentApi.placeOn`), requires the target compose `CuredMixin`
+(`ContainmentApi.placeOn`), requires the target compose `WaterActivityMixin`
 (`not-dryable` otherwise), narrates the **drying prospect in words** from
 `BiomeApi.airFor(room)` (*"In this air it will take about a week"* —
 the time to reach `cure.band.driedAt` at the current factor, via
@@ -962,12 +962,12 @@ difficulty by hardness (the `hew` shape).
   material `mineral/coal` (tags `[fuel, carbon, mineral, sulfurous]`), so
   it lights (`ignite coal`), drops into every `category: fuel` slot, and
   passes `isCharcoal`.
-- `src/thing/Turf.ts` — `CuredMixin(Firewood)` (import
+- `src/thing/Turf.ts` — `WaterActivityMixin(Firewood)` (import
   `@saxonberg/server/mud/platform/thing/Firewood`); row `turf.yaml`,
   material `organic/peat` (tags `[fuel, organic, earth]`; **no `carbon`
   tag** — peat in a bloomery is a later question). Peat tabulates no
   activation energy, so `lint:perishable` is satisfied and a turf
-  composes Cured **without** Freshness — the anticipated leather/timber
+  composes WaterActive **without** Freshness — the anticipated leather/timber
   case, honest.
 - Rock salt is won as **bulk** into the `into` vessel (D10): the band's
   `wins:` names the salt **material**, `BULK_PER_UNIT_L = 2`. A `cure`
@@ -1182,7 +1182,7 @@ reads the fire through `Thermal.heatSourceK()`; no new class. The profile row
 `stallBelowK: 273`, `happyK: 283`, `damageAboveK: 400`.
 
 **D21 — The wet turf refuses the flame through the shipped seam.**
-`Combustible.wetPenaltyK()` gains a second term when the host is Cured:
+`Combustible.wetPenaltyK()` gains a second term when the host is WaterActive:
 `ΔT += clamp((moisture − driedAt) / (1 − driedAt), 0, 1) ×
 waterAbsorptionCapacity% × L_vap / c` (the same formula shape as the
 wet term; `driedAt` = `cure.band.driedAt`, 0.5) — so an as-cut turf
@@ -1211,8 +1211,8 @@ claims about everything else on that host.
 | kernel `Spade` (D9) | `platform/thing/`; farming's `Spade` extends it; the mining shovel row names it | *a spade in hand affords digging anywhere* — and the ground decides what comes up. Not on `ToolItem` (a hammer does not dig). |
 | `Evaporation` (D6) | a value object, `lib/material/` | no host. |
 | `_weatherLocalityPath` (D6) | `SkyExposedMixin` | *a scope under the sky knows whose weather it is under.* Not on `Location` generally — an indoor room's air is authored, not weathered. |
-| the two-way arm (D5) | `CuredMixin` (unchanged host set: `Provision`, now `Turf`) | *exposed matter exchanges water with the air in both directions.* Gated by exposure, not by a host list. |
-| `Combustible.wetPenaltyK` cured term (D21) | `CombustibleMixin`, reading `MixinApi.isCured(self)` | *internal water resists ignition as surface water does.* No host change. |
+| the two-way arm (D5) | `WaterActivityMixin` (unchanged host set: `Provision`, now `Turf`) | *exposed matter exchanges water with the air in both directions.* Gated by exposure, not by a host list. |
+| `Combustible.wetPenaltyK` cured term (D21) | `CombustibleMixin`, reading `MixinApi.isWaterActive(self)` | *internal water resists ignition as surface water does.* No host change. |
 | `'evaporative'`, `productFraction` (D13) | `MaturationProfile` rows; the branch in `MaturingMixin` | the vessel is still the host (`Vat`), the Bulkable gate stands. |
 | `Block`, `Lump`, `Turf` | `thing/` of `trade-quarrying` | `Block`: Tangible, Containable, Chattel, affords its split — the bole's claim. `Turf`: a `Firewood` that also has a water state. ⭐ **No kiln class** — the limekiln is a ROW on `/platform/thing/Oven` (D14), and the working affords `fire`. |
 | `coal` | a `Firewood` **row** | no new class; the material does the work (`fuel`, `carbon`, `sulfurous`). |
@@ -1361,11 +1361,11 @@ pointing at the new home (the rest is the sweep's).
 >   enclosed `0` · the support's own number · `cure.groundExposure` `0.35`
 >   for bare ground. Two new dials (`cure.dryingPerHour` `0.04`,
 >   `cure.groundExposure`) in `AppSettings` + the platform's `cure.yaml`.
-> - **`Cure.advanceMoisture` is two-way** via an optional
+> - **`WaterActivity.advanceMoisture` is two-way** via an optional
 >   `drying: { air, exposure, ratePerHour? }`; omit it and it is byte-for-byte
 >   the shipped one-way arm. `exposureOf`/`exposedScopeOf` are
->   **module-private functions**, NOT statics on `Cure` — the ratchet is at
->   337 and two more would have failed it. `reconcileCure()` walks the window
+>   **module-private functions**, NOT statics on `WaterActivity` — the ratchet is at
+>   337 and two more would have failed it. `reconcileWater()` walks the window
 >   segment by segment.
 > - **`Combustible.wetPenaltyK` adds a cured term** — surface water and the
 >   matter's own water are two terms of one formula and they add, so an
@@ -1402,7 +1402,7 @@ pointing at the new home (the rest is the sweep's).
 > ⭐ **Also found by a test, not by reading:** a `Scene` refuses a second
 > `toSelf` frame, so the prospect rides inside the same sentence.
 >
-> *Verification:* `Evaporation.test.ts` (8) · `Cured.test.ts` 20 → **27**
+> *Verification:* `Evaporation.test.ts` (8) · `WaterActivity.test.ts` 20 → **27**
 > (the six exposure pins + a close-surface case) · `Evaporative.test.ts` (7)
 > · `Combustible.test.ts` 11 → **14** (the turf case) · `Dry.test.ts` (4,
 > new) · cooking's `roster.test.ts` rewritten off the deleted recipe ·
@@ -1415,11 +1415,11 @@ pointing at the new home (the rest is the sweep's).
 
 ⚠ **Amended by § A6 + A8.** Three changes: the locality memo hosts on
 `AtmosphericMixin` (NOT `SkyExposedMixin`, which composes onto `Biome`)
-and is not persisted; `CuredMixin`'s exposure is a **fraction** read off
+and is not persisted; `WaterActivityMixin`'s exposure is a **fraction** read off
 `getRestingOn()` — an authored field on the support (default 1.0) and a
 `cure.groundExposure` dial (0.35) for a thing lying on bare ground; and
 `DryController` therefore changes something, which it did not as planned.
-Add a sixth Cured pin: **the same cut on a rack and on the floor diverge.**
+Add a sixth WaterActive pin: **the same cut on a rack and on the floor diverge.**
 
 *Goal:* drying is a rate that reads the air; the fourth maturation
 mechanism exists; wet fuel refuses the flame. First consumers: the
@@ -1433,11 +1433,11 @@ shape); `api/biome.ts` + `platform/idea/api/BiomeLogic.ts`
 (`airFor(scope)`, `airSegmentsFor(scope, t0S, t1S)` — sync; the
 containment walk over `_humidity`/`_wind` already at `BiomeLogic.ts:302–333`,
 plus the deviation from `WeatherApi.weatherAt(now, locality)` /
-`segmentsBetween`); `lib/material/Cured.ts` (`advanceMoisture(m, elapsedS,
-humidityPct, rate, air?)` two-way; `reconcileCure()` — exposure gate,
+`segmentsBetween`); `lib/material/WaterActivity.ts` (`advanceMoisture(m, elapsedS,
+humidityPct, rate, air?)` two-way; `reconcileWater()` — exposure gate,
 segment loop, the restated early return; `cure.dryingPerHour` dial in
 `lib/config/AppSettings.ts` + the platform pack's `content/settings/`
-seed, default 0.04); `lib/material/__tests__/Cured.test.ts` (pins: (a)
+seed, default 0.04); `lib/material/__tests__/WaterActivity.test.ts` (pins: (a)
 enclosed at moisture 1 → no stamp after a read; (b) exposed in 60 % air
 → moisture falls and a stamp is written; (c) exposed in 100 % air →
 nothing written; (d) a dried cut in 90 % air re-wets at the shipped
@@ -1458,7 +1458,7 @@ paragraph replaced by the exposure rule (a truth changed in this wave,
 not deferred to the sweep, because a fresh reader of the doc would
 otherwise be told the opposite of what the code does).
 
-*Acceptance:* the five Cured pins; the evaporative test; `test:near`;
+*Acceptance:* the five WaterActive pins; the evaporative test; `test:near`;
 `pnpm -C packages/content/trade-cooking test`; `lint:family`
 (`lint:lib-statics` unchanged — `Evaporation.of` must classify as type-level; if
 the script's classifier counts it, fold construction into `new Evaporation(...)`
@@ -1892,9 +1892,9 @@ Terminus's claim — check which `terminus/pack.yaml` extent covers
 >   ⚠ `subsidenceM` is kept **separate from `floorDepthM`**: one is what
 >   somebody cut and the other is what went while nobody was here, and a reader
 >   should be able to tell a worked bank from a drained one.
-> - **`Turf`** = `Cured(Firewood)` — ⭐ **the first host in the game that dries
+> - **`Turf`** = `WaterActive(Firewood)` — ⭐ **the first host in the game that dries
 >   and does not rot**, which is the case `spoilage.md` argued the
->   Cured/Freshness split on and could not test until now.
+>   WaterActive/Freshness split on and could not test until now.
 > - The moor: `heath` column (peat 0…−2.5 over granite, water table at the
 >   bottom of the peat — *the water is why the peat is there*), `turf-bank` on
 >   `Turbary` with a 12 m run (⭐ deliberately smaller than the pit's 20: a
@@ -1985,6 +1985,65 @@ its fix; the record shows the run (output, count, each failure).
 
 ---
 
+### W8 — ✅ DONE: `CuredMixin` → `WaterActivityMixin` (review, pre-merge)
+
+> ✅ **Landed** — `build(extraction W8)`. Not a planned wave: it came out of
+> a review question — *"curing is food preservation, but concrete cures and
+> doesn't dry — does the system hold up?"*
+>
+> **It does, and the answer exposed the name.** Concrete curing is
+> **hydration**: water is chemically consumed, so you cure it by keeping it
+> wet and drying it early is the defect. That is the opposite of this mixin,
+> which models **water activity** — `a_w = base · moisture · (1 − solute)`,
+> the hurdle that drying and salting both move. Concrete belongs on
+> `MaturingMixin` as a fifth mechanism (`hydraulic`: monotone, gated on water
+> being PRESENT, `stallBelowK` real near freezing) with W4's lesson for the
+> product — let the **material** change, never write a grade down. ⚠ And it
+> is not hypothetical: **W4 shipped quicklime**, so limestone → fire →
+> quicklime → slake → carbonate → mortar is one build away.
+>
+> ⭐⭐ **The mixin's own opening line had said the honest thing all along** —
+> *"the water state of a particular piece of matter"* — while the class was
+> named for one consumer's verb. By this build it was visibly wrong:
+> `Turf = CuredMixin(Firewood)` and nobody cures turf, they dry it; the
+> docstring already named timber (*seasoned*) and grain (*dried*) as the next
+> hosts. That is `NAME the substrate, not its first consumer`, and the third
+> awkward consumer is the moment to pay.
+>
+> The rename (the table is in `spoilage.md § History`): `Cure` →
+> `WaterActivity` · `CureState` → `WaterState` · `Cured` → `WaterActive` ·
+> `CuredMixin` → `WaterActivityMixin` · `Mixins.Cured`/`isCured` →
+> `Mixins.WaterActive`/`isWaterActive` · `get`/`setCureState` →
+> `get`/`setWaterState` · `reconcileCure` → `reconcileWater` ·
+> `cureClockStamp` → `waterClockStamp` · `BulkPayload.cure`/`.cureStamp` →
+> `.water`/`.waterStamp` · `ComminutionPlan.cure` → `.water` ·
+> `lib/material/Cured.ts` → `WaterActivity.ts`.
+>
+> ⭐ **The scope line, and it is the decision worth reviewing: the substrate
+> is renamed, the ACT keeps its word.** `cure` is still a verb,
+> `CureController` still packs meat in salt, `salt-cure` is still a recipe,
+> `Recipe.cure` is still a recipe's authored treatment, and the operator
+> dials are still `cure.*` — including `cure.dryingPerHour`, which is the one
+> place the old partition still shows. Renaming those would have been
+> renaming the act, which was never the dishonest part. **Offered as a
+> one-line follow-up if the reviewer wants the dials moved too.**
+>
+> ⚠ **Two persistent names changed** (`waterClockStamp`, `BulkPayload.water`),
+> so a dev DB holding the old keys wants dropping — no migration, and there
+> is not going to be one. ⭐ Nothing authored referenced the mixin by name:
+> all three YAML hits were comments, and no row's `requires:` named it, which
+> is why a 264-substitution rename touched no content behaviour.
+>
+> *Verification:* server tsc clean · cooking/milling/quarrying/ranching tsc
+> clean · the four material/craft/fire/thing kernel suites **320 green** ·
+> cooking **46** · milling **20** · quarrying **69** · ranching **62** ·
+> generic-objects **26** · `lint:family` **all 52 gates pass** · the
+> surfaceable-fields snapshot regenerated (**3 lines**, the renamed mixin and
+> its stamp) · the drive **re-run**, because `Combustible.wetPenaltyK` reads
+> this mixin and the wet-turf checkpoint goes through it.
+
+---
+
 ## Reachability wiring
 
 Each new capability, its five links. Every one fails closed and silent.
@@ -1997,7 +2056,7 @@ Each new capability, its five links. Every one fails closed and silent.
 | `fire` / `burn` (§ A5) | `platform/cmd/device/fire.yaml`, `verbs: [fire, burn]` | **`FurnaceMixin.commandContributions.peers`** — beside `ignite`/`douse`/`pump`/`heat`/`boil`, the doctrine already written at `Furnace.ts:100` | `limekiln` row in the pit's `props:`; limestone/clay lumps; quicklime + clay-pot rows; **the two recipes now DO the work** | the kiln's `fuel` reserve ships at 100 % (nothing refuels it — recorded) | `kiln: [FurnaceMixin]`; the charge is read from the furnace's contents, and an unmatched charge refuses in words |
 | `hew`'s tool | `hew.yaml` (arg added) | unchanged | pick row offers `winning` | — | `tool: [ToolMixin]` + `[capability.winning]` |
 | `grub/ditch/lime` (moved) | `platform/cmd/ground/*.yaml` | `ImprovableMixin.commandContributions`; **`Field` re-lists them** (shadowing); `Turbary` inherits the mixin's | the bill from the host hook | — | `tool: [ToolMixin]` + `[capability.digging]` (grub/ditch); lime's agent by `liming` tag |
-| `dry` (rewritten) | `dry.yaml` | `DryingRack` (peers) unchanged | none (recipe deleted); ⭐ the rack row now authors its **exposure** (§ A6) | — | `target: any` (the controller requires Cured); `rack: [class.DryingRack]` |
+| `dry` (rewritten) | `dry.yaml` | `DryingRack` (peers) unchanged | none (recipe deleted); ⭐ the rack row now authors its **exposure** (§ A6) | — | `target: any` (the controller requires WaterActive); `rack: [class.DryingRack]` |
 | `stake pit` | `stake.yaml` unchanged | `ClaimsRegister` unchanged | `surfaceWorkings` on the register row | — | unchanged |
 | the pans | `fill`/`pour`/`put` (shipped) | `Vat` (shipped) | pan rows in `estuary-mouth` `props:`; the `tide` receptacle; the `brine` profile row (found by class) | none | — |
 | the face read | `look` (shipped) | `OpenWorkingMixin.markupAugmenters` | the prose is derived | — | — |
@@ -2026,7 +2085,7 @@ tripwire; land them together or author the halite band in W5.
 | 8 — three salts, all `cure` | W3 (face) · W5 (pans, brine) | drive 12–15 |
 | 9 — pan concentrates in dry wind, goes back in rain | W1 (mechanism) · W5 (rows) | `Evaporative.test`; drive 13–14 |
 | 10 — turves read wet, dry, re-wet, only dry burn | W1 · W6 | `Turf.test`; drive 16–18 |
-| 11 — a ham in a damp place does not dry like one in dry wind | W1 | Cured pins (b)(d)(e) **+ the sixth pin: rack vs floor diverge** (§ A6); drive on the rack vs the moor |
+| 11 — a ham in a damp place does not dry like one in dry wind | W1 | WaterActive pins (b)(d)(e) **+ the sixth pin: rack vs floor diverge** (§ A6); drive on the rack vs the moor |
 | 12 — draining thins the peat, improves the ground, from upstream | W2 · W6 | `Turbary.test`; drive 19 — ⚠ *"a person upstream can do this to ground they do not hold"*: `ditch` is not title-gated (labour, the farming rule) — so anybody standing in the bank may ditch it; the *upstream* geography is prose in this build (§ Risks) |
 | 13 — worked-out face says so; cut-over stays cut | W3 · W6 | ⚠ **re-scoped (§ A7)** — a face is 320 units and that number is CORRECT, so the read is proven by a **second, played-out working authored beside the fresh one** (ledger tests + the restore test), not by grinding a face down. Drive 20 walks between the two rooms. |
 | 14 — no face above you | W3 | `quarry up` gate test; drive 23 |
@@ -2043,7 +2102,7 @@ absorbed.
 ## Test & gate strategy
 
 - **Unit (pack and kernel suites):** every decision with arithmetic —
-  the `Evaporation` factor table, the five Cured pins, the evaporative pan
+  the `Evaporation` factor table, the five WaterActive pins, the evaporative pan
   (concentrate / dilute / finish / boil), the cured ignition term's
   boundary at the `dried` band, the column reads (`exposedBands`,
   `isBuried`, capacity, `at-the-water`, `no-face-above`), the block's
@@ -2137,7 +2196,7 @@ them silently.
     re-litigates it:** the gate counts every public static on an exported
     `lib/` class (`check-lib-statics.ts:48–94`, ceiling 337), so `Evaporation`
     ships with a constructor and no statics, and the two-way arm extends
-    the existing `Cure.advanceMoisture` rather than adding a static. The
+    the existing `WaterActivity.advanceMoisture` rather than adding a static. The
     ceiling must not rise.
 11. **A weather deviation reaches only sky-exposed scopes with a resolved
     Locality (D6).** Indoor racks read authored `_humidity` (or the
@@ -2227,7 +2286,7 @@ Read first, in this order.
 2. `packages/content/trade-mining/src/idea/Deposit.ts` · `packages/content/trade-mining/src/lib/Working.ts` · `packages/content/trade-mining/src/location/{AuthoredWorking,MineRoom}.ts`
 3. `packages/content/water/pack.yaml` · `packages/content/tpa/src/thing/TpaTerminal.ts` (the cross-pack import shape) · `packages/server/scripts/check-mud-imports.ts:144–216`
 4. `packages/content/trade-forestry/src/location/Wood.ts` · `packages/content/trade-forestry/src/thing/Bole.ts` · `packages/content/trade-forestry/content/trade/forestry/cmd/forestry/fell.yaml`
-5. `packages/server/src/mud/lib/material/Cured.ts` · `packages/server/src/mud/lib/husbandry/Soil.ts:440–620` (the cached-Locality integral) · `packages/server/src/mud/api/biome.ts:160–300` · `packages/server/src/mud/api/weather.ts:90–170` · `packages/server/src/mud/lib/biome/SkyExposed.ts` · `packages/server/src/mud/lib/fire/Combustible.ts:180–230`
+5. `packages/server/src/mud/lib/material/WaterActivity.ts` · `packages/server/src/mud/lib/husbandry/Soil.ts:440–620` (the cached-Locality integral) · `packages/server/src/mud/api/biome.ts:160–300` · `packages/server/src/mud/api/weather.ts:90–170` · `packages/server/src/mud/lib/biome/SkyExposed.ts` · `packages/server/src/mud/lib/fire/Combustible.ts:180–230`
 6. `packages/server/src/mud/lib/maturation/{MaturationProfile,Maturing}.ts` · `packages/server/src/mud/platform/thing/Vat.ts`
 7. `packages/content/trade-farming/src/lib/Improvable.ts` · `packages/content/trade-farming/src/idea/cmd/farming/{FieldWorkController,DitchController}.ts` · `packages/content/trade-farming/src/location/Field.ts:150–200` · `packages/content/trade-farming/src/thing/Spade.ts` · `packages/content/trade-farming/src/idea/GroundCharacter.ts:125–145,300–325`
 8. `packages/server/src/mud/lib/travel/TravelNode.ts` (the shape seam) · `packages/content/trade-fishing/src/idea/Waters.ts` (the duck-typed register read)
@@ -2353,8 +2412,8 @@ observable by any test that finishes:
 | AC | the time-dependent half | where it IS pinned |
 |---|---|---|
 | 9 | a pan concentrates in dry wind and goes **backwards** in rain | `lib/maturation/__tests__/Evaporative.test.ts` (7) |
-| 10 | turves dry over days and re-wet in rain | the six Cured exposure pins |
-| 11 | a ham in damp air does not dry like one in dry wind | `Cured.test.ts` (b)(d)(e)(f) |
+| 10 | turves dry over days and re-wet in rain | the six WaterActive exposure pins |
+| 11 | a ham in damp air does not dry like one in dry wind | `WaterActivity.test.ts` (b)(d)(e)(f) |
 | 12 | draining thins the peat over time | `Turbary.test.ts`'s trapezoid |
 
 ⭐ What the drive covers of them is everything else: the pan is **there** and it

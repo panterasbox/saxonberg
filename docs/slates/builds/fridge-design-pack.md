@@ -155,7 +155,7 @@ an **active** half (waits on power-utility). See Part 7.
 *(The spoilage design this section summarised shipped, in a different
 shape — `FreshnessMixin` on `Provision` with `ThermalMixin` beside it, the
 `ptomaine` dose folded at the read rather than an override rung, and a
-per-instance water state on `CuredMixin` → [spoilage.md](../../subsystems/spoilage.md).)*
+per-instance water state on `WaterActivityMixin` → [spoilage.md](../../subsystems/spoilage.md).)*
 
 **The fridge consumes exactly one output of that build: the food's temperature.**
 Cold interior → cold food → slow `Freshness`. So the two are co-designed but
