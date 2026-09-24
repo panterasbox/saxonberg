@@ -33,7 +33,6 @@ import { ContainmentApi } from '../../../../../api/containment';
 import { MixinApi } from '../../../../../api/mixin';
 import { CommandApi } from '../../../../../api/command';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
-import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { CommandContext } from '../../../../../api/command';
 import {
   TestActor,

@@ -39,6 +39,27 @@ data:
   # dropped.
   props:
     - /trade/quarrying/thing/limekiln
+    # ⭐⭐ **The tools, and the drive is what found they had to be here.** A
+    # quarry with nothing to dig with is a quarry nobody can work: the pit's
+    # own archetype says `stripping` needs a `digging` tool and `winning` needs
+    # a `winning` one, and until this line the pit satisfied neither. A player
+    # who walked up from the old workings would have found a face, a kiln, and
+    # no way to touch either.
+    #
+    # ⚠⚠ **They are the TRADE's rows, and the drive is why.** The pit was
+    # propped with the mine's shovel and pick first and **neither ever
+    # arrived**: both are rows the pithead store STOCKS (`parLines`), and a
+    # stocked row placed loose elsewhere does not survive the retail
+    # reconcile. The sledge — which the store does not stock — was standing
+    # there happily beside two absences. Failing closed and silent, and only
+    # a drive could have seen it.
+    #
+    # ⭐ The fix is better than the bug: the trade's own tools mean a chalk
+    # pit in a town with **no mine** gets them too, which is the
+    # second-instance claim holding.
+    - /trade/quarrying/thing/spade
+    - /trade/quarrying/thing/pick
+    - /trade/quarrying/thing/wedge-sledge
   exits:
     south:
       destination: /world/terminus/rejection/location/old-workings

@@ -28,7 +28,7 @@
 
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { OpenWorkingMixin } from '../lib/OpenWorking';
+import { OpenWorkingMixin } from '../lib/Working';
 
 const OpenWorkingBase = PersistableMixin(
   OpenWorkingMixin(SingletonCartesianLocation),

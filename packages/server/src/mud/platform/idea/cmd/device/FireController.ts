@@ -96,7 +96,6 @@ interface Firing {
 
 export default class FireController extends CommandController<FireModel> {
   async execute(model: FireModel, context: CommandContext): Promise<void> {
-    const giver = context.commandGiver;
     const bound = model.kiln?.stuff ?? null;
     if (bound === null || !MixinApi.isFurnace(bound) || !MixinApi.isContainer(bound)) {
       this.decline(

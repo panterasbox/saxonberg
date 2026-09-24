@@ -47,7 +47,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import { OpenWorkingMixin } from '../lib/OpenWorking';
+import { OpenWorkingMixin } from '../lib/Working';
 
 /**
  * Metres of peat a fully drained moss loses per game-day, at full drainage.

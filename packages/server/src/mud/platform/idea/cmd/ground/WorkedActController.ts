@@ -96,41 +96,22 @@ export abstract class WorkedActController<
         ? { beginPeers: Mml.fromMarkup(plan.beginPeers) }
         : {}),
       onComplete: () => {
-        void this.land(context, subject, tool, plan);
+        // ⚠⚠ **A MODULE function, never `this.<method>`** — and the live drive
+        // is what proved it. A controller is one ephemeral clone per
+        // execution and the dispatcher destructs it in a `finally` the moment
+        // `execute` returns, while an engagement is still pending. A
+        // completion calling back into it runs on a destroyed Stuff and the
+        // proxy answers with a **silent no-op**: the swing plays its scene,
+        // nothing is minted, and the floor never drops.
+        //
+        // ⭐ The first drive run said *"You set into the drift, cutting and
+        // casting back."* and then reported `floorDepthM` still 0 — a verb
+        // that looked like it worked. The smelt records the same lesson
+        // (*"the mining acts shipped that bug and a live drive found it"*),
+        // which is why `runCharge` is a module function too.
+        void land(context, subject, tool, plan);
       },
     });
-  }
-
-  /**
-   * The swing landed: let the subject do the work, narrate what it says,
-   * and credit the Discipline **it** named.
-   *
-   * ⚠ A module-scope-free completion over captured locals, because a
-   * controller is destructed when `execute` returns — the shipped rule for
-   * every engaged act in the tree.
-   */
-  private async land(
-    context: CommandContext,
-    subject: Workable,
-    tool: (Stuff & Tooled) | null,
-    plan: WorkPlan,
-  ): Promise<void> {
-    const giver = context.commandGiver;
-    const result = await subject.completeWork(giver, tool, plan.token);
-    const scene = MessageApi.scene(giver)
-      .topic(WORK_TOPIC)
-      .toSelf(Mml.fromMarkup(result.self));
-    if (result.peers) scene.toPeers(Mml.fromMarkup(result.peers));
-    scene.send();
-
-    const credit = result.credit;
-    if (credit && MixinApi.isAdvancing(giver)) {
-      await giver.creditDeed({
-        discipline: credit.discipline,
-        difficulty: credit.difficulty,
-        outcome: 'success',
-      });
-    }
   }
 
   /**
@@ -146,5 +127,43 @@ export abstract class WorkedActController<
     const bound = model.tool?.stuff ?? null;
     if (bound === null) return null;
     return MixinApi.isTool(bound) ? bound : null;
+  }
+}
+
+/**
+ * The swing landed: let the subject do the work, narrate what it says, and
+ * credit the Discipline **it** named.
+ *
+ * ⚠⚠ A module function over captured locals, because the controller that
+ * started this is already destructed. See the comment at the call site.
+ *
+ * ⚠ And the ACTOR may be gone too — a player can log out mid-swing.
+ * ⭐ The work still lands, because the ground does not stop being worked
+ * because somebody left; only the telling of it needs a listener. Narrating
+ * to a departed actor renders `undefined` into the scene composer and throws
+ * an unhandled rejection that takes the process down.
+ */
+async function land(
+  context: CommandContext,
+  subject: Workable,
+  tool: (Stuff & Tooled) | null,
+  plan: WorkPlan,
+): Promise<void> {
+  const giver = context.commandGiver;
+  const result = await subject.completeWork(giver, tool, plan.token);
+  if (giver.isDestroyed()) return;
+  const scene = MessageApi.scene(giver)
+    .topic(WORK_TOPIC)
+    .toSelf(Mml.fromMarkup(result.self));
+  if (result.peers) scene.toPeers(Mml.fromMarkup(result.peers));
+  scene.send();
+
+  const credit = result.credit;
+  if (credit && MixinApi.isAdvancing(giver)) {
+    await giver.creditDeed({
+      discipline: credit.discipline,
+      difficulty: credit.difficulty,
+      outcome: 'success',
+    });
   }
 }

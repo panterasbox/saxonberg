@@ -120,14 +120,25 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
     // The instrument affords it, which is what makes it a PLATFORM verb: a
     // spade in your hand means you can try it anywhere.
     expect(verbs(Spade, 'self')).toContain('dig');
-    // ⚠ And the working does not. A working that afforded its own verb would
-    // mean the next open-air working needed a class.
-    expect(verbs(OpenWorkingLocation, 'self')).not.toContain('dig');
-    expect(verbs(OpenWorkingLocation, 'inventory')).not.toContain('dig');
+    // ⭐⭐ **And so does the WORKING — two rungs, and the drive is why.** It
+    // was the instrument alone at first, and a player who walked into a quarry
+    // empty-handed got *"I don't understand 'dig'"* rather than a refusal
+    // naming the spade. The refusal IS the progression UI: if something lifts
+    // it, the verb has to exist so you can be told.
+    //
+    // ⚠ The trade still ships no VIEW and no controller — the working names
+    // the platform's view, exactly as `ImprovableMixin` does for `ditch`.
+    expect(verbs(OpenWorkingLocation, 'self')).toContain('dig');
+    expect(verbs(OpenWorkingLocation, 'inventory')).toContain('dig');
+    // …and a plain room does not, which is what keeps it from being a global.
     expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('dig');
-    // The block affords its own splitting, wherever it lies.
+    // ⭐⭐ The block affords its own splitting, wherever it lies — and on
+    // `peers`, which the live drive corrected: `self` reaches a thing's HOLDER,
+    // and nobody holds a 1375 kg block, so `split block` parsed as *"I don't
+    // understand 'split'"* with a block standing right there.
+    expect(verbs(Block, 'peers')).toContain('split');
     expect(verbs(Block, 'self')).toContain('split');
-    expect(verbs(Block, 'self')).not.toContain('dig');
+    expect(verbs(Block, 'peers')).not.toContain('dig');
   });
 });
 

@@ -1,0 +1,20 @@
+# A quarryman's pick — ⭐ what wins rock off a face.
+#
+# ⚠ The trade's own row rather than the mine's, for the reason `spade.yaml`
+# records: the pithead store stocks the mine's pick, and a stocked row placed
+# loose does not survive the retail reconcile.
+#
+# `winning` is what the ground asks for when the band is rock, and `striking`
+# is what a block asks for when you split it — so one tool answers both, which
+# is why a quarryman's kit is small.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [pick, "quarry pick", mattock]
+  shortDescription: quarryman's pick
+  register: indefinite
+  longDescription: >-
+    A heavy two-pointed head on a straight haft, both points blunted and
+    re-drawn more times than anybody has counted.
+  mass: 3.4
+  capabilities: ["winning", "striking"]

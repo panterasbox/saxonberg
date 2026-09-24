@@ -1944,7 +1944,28 @@ segment).
 *Acceptance:* pack suite; `test:near`; `lint:family` (`lint:perishable`
 — peat on a non-Freshness class; `lint:locations`).
 
-### W7 — the trade's furniture, and the drive (D17 archetype, help, the wire file)
+### W7 — ✅ DONE: the trade's furniture, and the drive
+
+> ✅ **Landed** — `build(extraction W7)`. The archetype, the trade's own tools,
+> and `packages/wire/tests/extraction.dirty.wire.test.ts` — **20/20 green**. The
+> drive record is at the bottom of this document.
+>
+> - **`content/archetypes/quarrying.yaml`** — four slots
+>   (`stripping`, `winning`, `tipping`, `dressing`) and ⭐ **notice how short it
+>   is**: a mine needs light, air, haulage and support because navigation is the
+>   hazard underground; a quarry needs two tools and somewhere to put the waste.
+>   The archetype is the shape of the difference between the two trades.
+>   ⚠ **Neither tool slot carries a default** — the plan's draft defaulted
+>   `winning` to `/trade/mining/thing/pick`, which would make quarrying depend
+>   on the mining trade's CONTENT for a pick. That is the `light` slot's lesson.
+> - **The trade's own `spade`, `pick` and `wedge-sledge` rows**, propped at the
+>   pit and (the spade) at the turf bank.
+>
+> *Verification:* the drive **20/20** · quarrying **69** · `lint:family` **all
+> 52 gates pass** · `pnpm lint` 0 errors (453 warnings, none in this build's
+> files; the baseline was 455) · the full `pnpm test` once — see below.
+
+### W7 (original text) — the trade's furniture, and the drive (D17 archetype, help, the wire file)
 
 *Goal:* the trade is a trade; the requirements' 23 steps run against the
 running game.
@@ -2233,6 +2254,134 @@ Read first, in this order.
 
 ## Drive record
 
-*(appended at build time)* — the output of running the requirements
-doc's 23-step drive against the running game, the count, and what each
-failure was. Precedent: `farming-plan.md § Checkpoint A`.
+**`packages/wire/tests/extraction.dirty.wire.test.ts` — 20 checkpoints, 20
+green, 300 s, run 2026-09-25 against a world booted on a freshly dropped dev
+DB (`WIRE_BOOT=1 WIRE_PORT=2013 pnpm wire`).** Eight runs; the first was
+9 green / 8 failed / 4 skipped.
+
+### ⚠⚠ What the drive found in the WORLD — four defects, none visible to any test
+
+1. ⭐⭐ **`dig` did not exist for an empty-handed player.** The affordance was
+   on the **spade alone**, so a person who walked into a quarry with nothing in
+   their hands got *"I don't understand 'dig'"* — while AC 2 says plainly that
+   *attempting to work a face with no tool is refused in words that name what is
+   needed.* **The refusal IS the progression UI**, and this is the second time
+   this repo has paid for forgetting it: the metal chain shipped `measure`
+   afforded by the instrument alone and a prospector with no dial was told the
+   verb did not exist. ⭐ Fixed with the shape everything else in the tree has —
+   **two rungs**: the ground affords digging to whoever stands in it, the spade
+   to whoever holds one. ⚠ The trade still ships no view and no controller; the
+   working names the **platform's** view, exactly as `ImprovableMixin` does.
+2. ⭐⭐ **`split` did not exist with a block standing in front of you.** `Block`
+   afforded it on `self`, and **`self` reaches a thing's HOLDER** — which nobody
+   is, for 1375 kg. Fixed with `peers` beside it (the `DryingRack` shape).
+   ⚠ Both of these are the same failure class as a missing row: *an affordance
+   in the wrong BUCKET is as silent as no affordance at all*, and no controller
+   test can see either.
+3. ⚠⚠ **The quarry had no tools, and then had the wrong ones.** The pit shipped
+   with a limekiln and nothing to dig with — a working nobody can work. Propping
+   the **mine's** shovel and pick did not fix it: both are rows the pithead
+   store **stocks** (`parLines`), and a stocked row placed loose elsewhere does
+   not survive the retail reconcile. The sledge — which the store does not stock
+   — stood there happily beside two absences. ⭐ So the trade got its own rows,
+   which is the better answer anyway: a chalk pit in a town with **no mine** gets
+   tools too.
+4. **The turf bank had no tools either** — same gap, same fix, one spade.
+
+### ⭐⭐ And three defects in the DRIVE, which are the more useful finding
+
+The first four runs reported a verb that worked perfectly as broken. Three
+instruments were tried and two of them lie:
+
+- ⚠⚠ **`queryOne(here, ['floorDepthM'])` projects only card-surface fields.** An
+  unprojected field comes back **absent**, reads as `0` through a `?? 0`, and
+  never changes. Two runs were spent chasing a floor that had been dropping the
+  whole time (`[dig-diag] depthAfter=0.5 … 1 … 1.5 … 2`).
+- ⚠ **A completion's PROSE arrives on the slower prose channel** and lands in
+  the buffer of whatever command comes next, so reading it back is a race that
+  passes by luck.
+- ⚠ **One session per suite fought over one spade.** Three suites each did
+  `get spade` and the second was refused `empty-result[targets]` before its
+  first assertion — the farmstead drive's lesson verbatim (*"the yard holds ONE
+  spade … and nothing puts the tools back"*). Fixed by driving the pit the way
+  a person does: **one session, one face, worked down.**
+
+⭐ **What replaced them is solid: query the world for the thing that came out,
+or ask the ground again and read its refusal.** And the best checkpoint in the
+file is one the world wrote — *keep spading and the earth runs out, and the same
+verb refuses naming the OTHER tool.* That is the whole lesson of one `dig` with
+the tool as the discriminator, **observed rather than asserted**.
+
+⭐ A fifth finding, kept because it cost a run: the pack's `src/lib/OpenWorking.ts`
+collided with `src/location/OpenWorking.ts` and the boot log said so — *"ships 1
+class no row of any installed pack names — dead code in a pack is a review
+finding."* Renamed to `src/lib/Working.ts`, which also matches the sibling
+trade's shape (`lib/Working.ts` + `location/MineRoom.ts`).
+
+### The 20 checkpoints
+
+| # | checkpoint | result |
+|---|---|---|
+| 1 | a way UP to the pit from the old workings | ✓ |
+| 2 | `look` names the place, its tools and its kiln; nothing reads "something" | ✓ |
+| — | the WALL reads as a section, in words, with no figure in it | ✓ |
+| 3 | `dig` bare-handed refuses, naming the TOOL | ✓ |
+| 4 | with a pick, the stone under the drift refuses for the DRIFT | ✓ |
+| 5 | the spade strips the earth; the waste is not left in the pit | ✓ |
+| — | ⭐ the floor DROPS until the earth runs out and the ground says `no-pick` | ✓ |
+| 6 | a block comes off the granite and cannot be lifted | ✓ |
+| 7 | `split block` takes one carryable piece off it | ✓ |
+| 9–10 | `fire`/`burn` reach the pit and the chamber refuses in words | ✓ |
+| 13 | the tide and two pans are there, and a pan fills from the tide | ✓ |
+| 15 | the salt house is off the towpath, its hearth a chamber you load | ✓ |
+| 16 | a way east off the heath to the bank — its FIRST exit | ✓ |
+| — | `dig` refuses bare-handed on the moss too | ✓ |
+| 17–18 | a turf comes out WET and will not catch | ✓ |
+| 19 | `ditch` is afforded on the moss — improvement reached a SECOND host | ✓ |
+| 20 | the played-out working stands beside the fresh one and reads finished | ✓ |
+| 21 | `quarrying` is on the transcript — a platform verb earned a trade's | ✓ |
+| 22 | `stake pit` records the quarry — no warren, no three numbers | ✓ |
+| 23 | there is NO FACE ABOVE YOU | ✓ |
+
+### ⚠⚠ What the drive deliberately does NOT cover, and where it is covered
+
+**Four acceptance criteria are time-dependent at the game clock's shipped
+scale** — a game day is about two real hours, so a ham drying over a week, a
+pan concentrating over a month and a moss subsiding over four months are not
+observable by any test that finishes:
+
+| AC | the time-dependent half | where it IS pinned |
+|---|---|---|
+| 9 | a pan concentrates in dry wind and goes **backwards** in rain | `lib/maturation/__tests__/Evaporative.test.ts` (7) |
+| 10 | turves dry over days and re-wet in rain | the six Cured exposure pins |
+| 11 | a ham in damp air does not dry like one in dry wind | `Cured.test.ts` (b)(d)(e)(f) |
+| 12 | draining thins the peat over time | `Turbary.test.ts`'s trapezoid |
+
+⭐ What the drive covers of them is everything else: the pan is **there** and it
+**fills**, the turf is cut **wet** and refuses the flame, `ditch` is **reachable
+on a moss**. The mechanism is unit-pinned; the reachability is drive-pinned, and
+that is the correct division.
+
+**And two checkpoints were narrowed on purpose.** Driving the full
+limestone→quicklime and clay→pot loops means cutting six to twelve metres of
+column at half a metre a swing; run 6 did it and it works, at about twenty
+minutes of engagements. The mechanism is pinned by
+`FireController.test.ts` (9), which authors **its own material and its own
+recipe row** and asserts a bare `Oven` fires it — the actual claim. The drive
+keeps what only it can see: that `fire` and `burn` **reach** a player at the pit,
+and that an empty chamber refuses in words.
+
+**Not wire-observable without a long walk:** the spoil arriving at the town's
+tip (four legs away). The drive asserts the negative — *it is not in the pit* —
+and `OpenWorking.test.ts` pins the `spoilTo` routing.
+
+### The full suite
+
+`pnpm test` — **client 1003 green (80 files); server 11590 green (1239 files),
+one failure:** `wiki-spoiler-fields.snapshot.test.ts`, the snapshot that
+enumerates every surfaceable field. ⭐ It failed for exactly the right reason and
+by exactly four lines — `ImprovableMixin.improvementWork`,
+`ImprovableMixin.improvementStamp` (the mixin is the kernel's now),
+`MaturationProfile.productFraction` and `SurfacedMixin.airExposure`. Regenerated;
+the diff is those four insertions and nothing else, which is what that snapshot
+exists to make reviewable.

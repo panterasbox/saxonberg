@@ -238,12 +238,40 @@ export function OpenWorkingMixin<
     }
 
     /**
-     * ⚠⚠ **NO `commandContributions`, and that is a decision.** The trade
-     * ships no verbs: `dig` is afforded by the spade or pick in your hand,
-     * `split` by the block on the floor, and `fire` by the limekiln. A
-     * working that afforded its own verb would mean the next open-air
-     * working needed a class; rows are the point.
+     * ⭐⭐ **The working affords `dig` to whoever is standing in it — and the
+     * DRIVE is what put this here.**
+     *
+     * It was omitted at first, on the argument that the trade ships no verbs
+     * and the instrument affords the act. Both halves of that are still true:
+     * this names the **platform's** view, so the pack still ships no view and
+     * no controller. What was wrong was the consequence — with the affordance
+     * on the spade alone, a player who walked into a quarry **empty-handed**
+     * got *"I don't understand 'dig'"*, and the acceptance criterion says
+     * plainly: *"attempting to work a face with no tool is refused in words
+     * that name what is needed."*
+     *
+     * ⭐⭐ **The refusal IS the progression UI.** If something lifts a
+     * refusal, the verb has to EXIST so you can be told what would lift it.
+     * That is the shipped rule and this is the second time this repo has paid
+     * for forgetting it: the metal chain shipped `measure` afforded by the
+     * instrument alone and a prospector with no dial was told the verb did
+     * not exist.
+     *
+     * ⭐ So two rungs, as everything else in this tree has: the **ground**
+     * affords digging to whoever stands in it, and the **spade** affords it
+     * to whoever holds one. `hew` is afforded by the working; `measure` by
+     * the instrument; `dig` is the verb that is honestly both.
+     *
+     * ⚠ `self` and `inventory` rather than `peers`: the act belongs to the
+     * ground you are STANDING IN, so walking in lights it up and walking out
+     * puts it away — which is also the honest answer to *"why can't I dig in
+     * the street"*.
      */
+    static commandContributions = {
+      self: ['platform/cmd/ground/dig.yaml'],
+      inventory: ['platform/cmd/ground/dig.yaml'],
+    };
+
     static markupAugmenters: MarkupAugmenter[] = [faceAugmenter];
 
     static fieldMeta: FieldMeta = {

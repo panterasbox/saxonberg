@@ -89,9 +89,21 @@ export default class Block extends BlockBase implements Splittable {
     piecesLeft: { persistent: true, authorable: true },
   };
 
-  /** ⭐ The block affords its own splitting, wherever it lies. */
+  /**
+   * ⭐ The block affords its own splitting, wherever it lies.
+   *
+   * ⚠⚠ **`peers`, and the live drive is what corrected it.** `self` alone
+   * afforded nothing: a block lying on the pit floor is not held by anybody, so
+   * `split block` parsed as *"I don't understand 'split'"* with a block standing
+   * right there. `self` reaches a thing's HOLDER; `peers` reaches whoever is in
+   * the room with it, which is the `DryingRack` shape and the only honest one
+   * for a 1375 kg object nobody can pick up. ⭐ Both buckets are listed, so a
+   * carryable splittable thing (the pattern's third candidate, a `Stackable`)
+   * works in the hand too.
+   */
   static commandContributions: CommandContributions = {
     self: ['platform/cmd/ground/split.yaml'],
+    peers: ['platform/cmd/ground/split.yaml'],
   };
 
   static markupAugmenters: MarkupAugmenter[] = [piecesAugmenter];

@@ -43,6 +43,14 @@ data:
   # ⭐ Smaller than the stone pit's 20 m: a turbary is a bank somebody works by
   # hand, and this is what makes it genuinely exhaustible.
   faceRunM: 12
+  # ⭐⭐ **The turf-spade, and the drive is why.** The prose says somebody has
+  # been working back into the moss, and a bank nobody can cut is a bank nobody
+  # can learn anything from: without a tool here, `dig` refuses forever and the
+  # fuel-or-the-field choice has no first step. ⚠ A moor is nobody's yard, so
+  # this is not a tool rack — it is the one spade left at a working face, which
+  # is what the prose already describes.
+  props:
+    - /trade/quarrying/thing/spade
   exits:
     west:
       destination: /world/moor/stormy-heath

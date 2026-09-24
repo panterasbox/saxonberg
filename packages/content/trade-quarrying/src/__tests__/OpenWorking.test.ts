@@ -25,7 +25,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import OpenWorkingLocation from '../location/OpenWorking';
-import { LIFT_M, OPEN_WORKING_MIXIN, type OpenWorking } from '../lib/OpenWorking';
+import { LIFT_M, OPEN_WORKING_MIXIN, type OpenWorking } from '../lib/Working';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
