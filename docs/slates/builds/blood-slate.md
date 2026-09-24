@@ -534,6 +534,31 @@ disease transmission, and any cross-instance concern.
 
 ---
 
+## ⭐ Finding from the clinical-medicine build (2026-09-24) — the bank NEEDS a supplier at 12×
+
+The combat/autarky core shipped (type · draw · store · transfuse · the
+reaction · the `marrow` donation reserve). This slate's **blood-BANK
+economy** stayed deferred — and the shipped build now carries a
+`bloodBank` par line on the infirmary `Business` (2 L) with **nothing
+producing blood to fill it**. That is a promise this slate must make good,
+and the time scale makes it urgent:
+
+- At **12×**, marrow regrows one unit's cost in **~28 REAL hours per donor**,
+  and a WARM carried unit spoils in **~6 real hours** (cold storage is
+  deferred → [cold-chain-slate](./cold-chain-slate.md)). So **player
+  donation cannot be the backbone of a combat blood supply** for anything
+  but a large, coordinated community.
+- ⭐ **The lead item: NPC donors stand up the bank.** Use the shipped
+  supplier-restock pattern (trades-and-labor: a house restocks toward par
+  from a source on a cadence) so the infirmary blood bank holds a typed
+  stock a player can requisition — the combat blood economy exists
+  regardless of how many players are donating. Player donation stays a
+  CHOICE (autarky, or a gift with the renown/chronicle credit this slate
+  already designs), never the load-bearing wall.
+- The RATES are dials (`MARROW_REGEN_PCT_PER_HOUR`, the blood Material's
+  spoilage) — retunable without touching the mechanism, and worth
+  revisiting against real-time-at-12× when this build runs.
+
 ## Cross-references
 
 - [harm.md](../../subsystems/harm.md), [vitals.md](../../subsystems/vitals.md),
