@@ -146,16 +146,31 @@ export interface ReadingRoute {
  * read, by band. An untrained reader is not WRONG — they are vague, and
  * the truth is always inside what they say.
  *
- * ⚠ A trade whose channel is not in a ratio unit overrides these with
- * its own (mining's `ERROR_DEG` is in degrees, because a bearing's error
- * does not scale with the bearing).
+ * ⚠⚠ **These are the INSTRUMENTED rung's, and the first cut of them was
+ * half an order of magnitude too wide.** The drive printed
+ *
+ *     Temperature: 153.01 K ± 147.5 K (warm)
+ *
+ * for a room at 295 K. Every word of that is defensible on its own —
+ * the truth IS inside the bracket, the band IS untrained — and the
+ * sentence is still nonsense: nobody misreads a thermometer by fifty
+ * per cent. What a dial buys is PRECISION; what the band decides is how
+ * well the reader takes it off the dial, which is a small correction,
+ * not a wild one. ⭐ The eye rung is unaffected, because an eye rung
+ * answers in WORDS and has no bracket to be wrong about.
+ *
+ * ⚠ A channel whose quantity is not on a RATIO scale overrides
+ * {@link halfWidthOf} with its own absolute error — Kelvin is the
+ * example (295 K and 5 K are not "the same reading at different
+ * magnitudes"), and mining's bearings are another (`ERROR_DEG`, because
+ * a bearing's error does not scale with the bearing).
  */
 const HALF_WIDTH: Readonly<Record<CompetenceBandName, number>> = {
-  untrained: 0.5,
-  novice: 0.3,
-  competent: 0.15,
-  proficient: 0.07,
-  expert: 0.03,
+  untrained: 0.08,
+  novice: 0.05,
+  competent: 0.025,
+  proficient: 0.012,
+  expert: 0.005,
 };
 
 /** Fallback wear-per-reading when the AppSettings dial is not seeded. */
@@ -515,7 +530,7 @@ export default abstract class Reading extends ReadingBase {
       line:
         this.discipline === ''
           ? 'by eye: anybody, and the same for everybody'
-          : `by eye: ${eyeBand}${lens ? ` (with your ${lens.getPresentation()})` : ''}`,
+          : `by eye: ${eyeBand}${lens ? ` (with ${lens.getPresentation()})` : ''}`,
     });
     if (this.instrument !== '') {
       const tool = this.narrow(tools, this.instrument);
@@ -602,7 +617,7 @@ export default abstract class Reading extends ReadingBase {
     band: CompetenceBandName,
     seed: number,
   ): { centre: number; halfWidth: number } {
-    const halfWidth = Math.abs(truth) * HALF_WIDTH[band];
+    const halfWidth = this.halfWidthOf(truth, band);
     if (halfWidth === 0) return { centre: truth, halfWidth: 0 };
     // A centre anywhere in [truth − hw, truth + hw] keeps truth inside
     // [centre − hw, centre + hw]; the seed picks where.
@@ -630,14 +645,64 @@ export default abstract class Reading extends ReadingBase {
     seed: number,
     channel?: MeasureChannel,
   ): Mml {
-    const { centre, halfWidth } = this.observe(value.rawValue(), band, seed);
-    const shown = Quantity.of(centre, value.unit);
-    const spread = Quantity.of(halfWidth, value.unit);
+    return this.bracketFor(this.observed(value, band, seed), value, channel);
+  }
+
+  /**
+   * ⭐⭐ The value as this reader SAW it — what everything downstream of
+   * a measure rung must speak from.
+   *
+   * ⚠ The tag has to come from here and not from the truth, or one
+   * sentence contradicts itself: the drive printed a figure of 153 K
+   * beside the word *(warm)*, because the number was the observation and
+   * the word was the fact. A reading is what the reader got; a reader
+   * who misread the dial calls the room what the dial said.
+   */
+  protected observed(
+    value: Quantity<Unit>,
+    band: CompetenceBandName,
+    seed: number,
+  ): Quantity<Unit> {
+    const { centre } = this.observe(value.rawValue(), band, seed);
+    return Quantity.of(centre, value.unit);
+  }
+
+  /** `X ± Y`, from an already-observed centre. */
+  protected bracketFor(
+    shownValue: Quantity<Unit>,
+    trueValue: Quantity<Unit>,
+    channel?: MeasureChannel,
+  ): Mml {
+    const rawHalf = Math.abs(shownValue.rawValue() - trueValue.rawValue());
+    // ⭐⭐ **A reading has significant figures, and they come from the
+    // BRACKET.** The drive printed `53.33333333333333 lux` and
+    // `153.01158701579095 K` — the engine's float wearing an
+    // observation's clothes. Nobody reads a dial to fourteen places, and
+    // a figure printed past its own error bar is claiming a precision
+    // the model is not making. So both numbers are rounded to the
+    // decade the half-width justifies.
+    const places = decimalsFor(rawHalf);
+    const centre = round(shownValue.rawValue(), places);
+    const halfWidth = round(rawHalf, places);
+    const shown = Quantity.of(centre, shownValue.unit);
+    const spread = Quantity.of(halfWidth, shownValue.unit);
     const opts = channel ? { channel } : undefined;
-    if (spread.format() === Quantity.of(0, value.unit).format()) {
+    if (spread.format() === Quantity.of(0, shownValue.unit).format()) {
       return Mml.compose`${shown.formatMml(undefined, undefined, opts)}`;
     }
     return Mml.compose`${shown.formatMml(undefined, undefined, opts)} ± ${spread.formatMml(undefined, undefined, opts)}`;
+  }
+
+  /**
+   * ⭐ How wide the bracket is, by band. The default is a fraction of
+   * the magnitude — right for anything on a ratio scale.
+   *
+   * ⚠ Override where the quantity is not: an absolute temperature, a
+   * bearing, a pH. `295 K ± 8 %` is not what reading a thermometer
+   * badly looks like.
+   */
+  protected halfWidthOf(truth: number, band: CompetenceBandName): number {
+    return Math.abs(truth) * HALF_WIDTH[band];
   }
 
   /**
@@ -860,6 +925,24 @@ export default abstract class Reading extends ReadingBase {
   protected wrongSubjectLine(subject: Stuff, _missing: string): Mml {
     return Mml.compose`${Mml.thing(subject)} is not something you can read ${Mml.fromMarkup(this.channel)} off.`;
   }
+}
+
+/**
+ * How many decimals a bracket of this width justifies. A ± of 4 says
+ * nothing past the units column; a ± of 0.05 says two places.
+ */
+function decimalsFor(halfWidth: number): number {
+  if (!Number.isFinite(halfWidth) || halfWidth <= 0) return 2;
+  if (halfWidth >= 10) return 0;
+  if (halfWidth >= 1) return 0;
+  if (halfWidth >= 0.1) return 1;
+  if (halfWidth >= 0.01) return 2;
+  return 3;
+}
+
+function round(value: number, places: number): number {
+  const scale = 10 ** places;
+  return Math.round(value * scale) / scale;
 }
 
 /** A stable non-cryptographic hash — the seed's only job is repeatability. */

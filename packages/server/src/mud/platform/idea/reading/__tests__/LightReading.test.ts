@@ -101,8 +101,11 @@ describe('LightReading', () => {
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('<quantity channel="light" unit="lux"');
-    expect(frame.body).toContain('value="40"');
-    expect(frame.body).toContain('>40 lux</quantity>');
+    // ⭐⭐ The FIGURE is asserted through the engine's own read; the prose
+    // carries the reader's bracket, and an untrained reader's centre is
+    // not the truth. `truth()` exists for exactly this.
+    expect(await reading.truth(room as unknown as never)).toBe(40);
+    expect(frame.body).toMatch(/±/);
   });
 
   it('returns a failure when no location is bound', async () => {

@@ -69,11 +69,17 @@ export default abstract class BiomeReading extends Reading {
     // measurement, and hedging a word would be hedging twice.
     const actor = context.commandGiver as unknown as Stuff;
     const seed = this.seedFor(actor, scope, param);
-    const figure = this.bracketed(value, band, seed, this.mmlChannel());
+    // ⚠⚠ The tag comes off the OBSERVATION, never off the truth. The
+    // drive printed `153.01 K ± 147.5 K (warm)` — the figure was what
+    // the reader got and the word was what the world knew, and one
+    // sentence contradicted itself. A reader who misread the dial calls
+    // the room what the dial said.
+    const seen = this.observed(value, band, seed);
+    const figure = this.bracketFor(seen, value, this.mmlChannel());
     const tags = this.tagFamily();
     this.report(
       context,
-      Mml.compose`${this.label()}: ${figure} (${value.tag(tags)})\n`,
+      Mml.compose`${this.label()}: ${figure} (${seen.tag(tags)})\n`,
     );
   }
 

@@ -1376,7 +1376,7 @@ commit. Order matters — each step keeps the tree green.
 > because its fixture was a cow. Nothing is dropped and nothing pretends
 > an animal was told; the sweep should reword the requirements line.
 
-#### W4 — Stage A drive
+#### ✅ W4 — Stage A drive — DONE, 21/21
 
 - `packages/wire/tests/instrumentation.dirty.wire.test.ts` (dirty: it
   `practice`s competence onto a character and, in Stage B, stakes and
@@ -1389,6 +1389,59 @@ commit. Order matters — each step keeps the tree green.
   assertions that read a value from prose move to `eval` or to a
   band-tolerant match per D18.
 - Commit: `drive(instrumentation): Stage A — the ladder, driven`.
+
+> **Wave note — ⭐⭐ the drive found FIVE things, and the first is a
+> kernel defect older than this build.**
+>
+> 1. ⭐⭐⭐ **A greedy field that consumed nothing ENDED THE BIND.**
+>    `CommandLogic`'s greedy branch `return`ed when it found no
+>    positionals, so every later arg's `default:` was skipped — while
+>    `validateArgOrder` explicitly ALLOWS prepositional args after a
+>    greedy one, precisely so a verb can read `<subject…> with
+>    <instrument>`. The binder did not honour its own invariant.
+>    **`measure light` — the commonest sentence the verb has — bound the
+>    channel, skipped the tool entirely, and told a player holding the
+>    photometer *"you have nothing in reach that could read that"*.**
+>    `measure light the lamp` worked, because the greedy field had
+>    something to eat. Fixed (`continue`, not `return`), with a
+>    regression test at
+>    `lib/command/__tests__/CommandDefinition.greedyDefaults.test.ts`;
+>    1185 command tests green.
+>    ⚠ Invisible below a live dispatch — a controller test builds its own
+>    model and a view test parses YAML — which is the `hammer ingot`
+>    shape exactly.
+> 2. ⚠⚠ **The modality roster is warmed LAZILY, by `look`.** Nothing in
+>    the boot manifest stands it up, so `analyze light` as the FIRST
+>    command of a fresh session threw. Not new — the retired
+>    `AnalyzeLightController` made the same bare call — it had simply
+>    never been the first thing anybody typed. `LightReading` preloads.
+> 3. ⚠⚠ **The bracket was half an order of magnitude too wide, and the
+>    tag contradicted the figure.** The drive printed
+>    `Temperature: 153.01 K ± 147.5 K (warm)` for a room at 295 K: every
+>    clause defensible alone, the sentence nonsense. Two fixes — the
+>    instrumented half-widths are now 8 %…0.5 % (what a dial buys is
+>    PRECISION; the band decides how well you take it off the dial), and
+>    ⭐ **the tag comes off the OBSERVATION, never the truth**, or one
+>    sentence says two things.
+> 4. ⭐ **A reading has significant figures, and they come from the
+>    bracket.** `53.33333333333333 lux` is an engine float wearing an
+>    observation's clothes. Centre and half-width are both rounded to the
+>    decade the half-width justifies.
+> 5. ⚠ **Kelvin and degrees of arc are not RATIO scales.** A
+>    fraction-of-magnitude error says a cellar is read fourteen times
+>    more precisely than a furnace, which is backwards — the hard part is
+>    the SCALE. `halfWidthOf` is overridable and both override it.
+>
+> ⭐ **The `NOT_FOUND` audit came back clean:** only `ground.wire.test.ts`
+> and this file share a refusal pattern, and both carry the corrected
+> one. Every other drive asserts targeted sentences, which cannot go
+> vacuous the same way.
+>
+> ⚠ **Content added:** the Duncan Hall lobby's instrument case grew from
+> four instruments to eleven. It was a demo of the inspection card; the
+> ladder made it an availability question, because a channel that
+> declares an instrument with none in the world is a refusal nobody can
+> lift — which is the state `sundial` and `sextant` were in.
 
 ### Stage B — the sample, the bench, the assayer
 

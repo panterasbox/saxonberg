@@ -27,16 +27,24 @@ export default class LightReading extends Reading {
     context: CommandContext,
     target: Stuff | null,
     _instrument: Stuff & Tooled,
-    _band: CompetenceBandName,
-    _param: string,
+    band: CompetenceBandName,
+    param: string,
   ): Promise<void> {
     const loc = this.asPlace(context, target);
     if (!loc) return;
-    const light = this.lightAt(loc);
-    this.report(
-      context,
-      Mml.compose`light at ${Mml.location(loc)}: ${light.intensity.formatMml(undefined, undefined, { channel: 'light' })}\n`,
+    const light = await this.lightAt(loc);
+    const actor = context.commandGiver as unknown as Stuff;
+    // ⭐ The dial's figure, with the reader's error on it. The drive
+    // caught this bare: `light at Duncan Hall lobby: 53.33333333333333`
+    // — an engine float, no bracket, and therefore a claim of infinite
+    // precision from an untrained hand.
+    const figure = this.bracketed(
+      light.intensity,
+      band,
+      this.seedFor(actor, loc as unknown as Stuff, param),
+      'light',
     );
+    this.report(context, Mml.compose`light at ${Mml.location(loc)}: ${figure}\n`);
   }
 
   /**
@@ -70,7 +78,7 @@ export default class LightReading extends Reading {
   ): Promise<void> {
     const loc = this.asPlace(context, target);
     if (!loc) return;
-    const light = this.lightAt(loc);
+    const light = await this.lightAt(loc);
     const lux = light.intensity.rawValue();
 
     const lines: Mml[] = [];
@@ -109,7 +117,7 @@ export default class LightReading extends Reading {
 
   public override async truth(target: Stuff | null): Promise<number | null> {
     if (!target || !MixinApi.isContainer(target)) return null;
-    return this.lightAt(target as Stuff & Container).intensity.rawValue();
+    return (await this.lightAt(target as Stuff & Container)).intensity.rawValue();
   }
 
   /** The named thing as a place, refusing in the old words when it is not. */
@@ -137,7 +145,27 @@ export default class LightReading extends Reading {
     return target as Stuff & Container;
   }
 
-  private lightAt(loc: Stuff & Container): Light {
+  /**
+   * ⚠⚠ **The modality roster is warmed LAZILY, by the perception path**
+   * (`preloadForSenseGate`, which `look` runs) — and nothing in the
+   * bootstrap manifest stands it up. So a channel that reaches for
+   * `vision` before anybody has looked at anything THROWS:
+   *
+   *     Something went wrong in …/AnalyzeController:
+   *     PerceptionApi.modalityByName: no modality 'vision' loaded
+   *
+   * ⭐ Found by driving `analyze light` as the first command of a fresh
+   * session. It is NOT new — the retired `AnalyzeLightController` made
+   * the same bare call and would have thrown identically — it had simply
+   * never been the first thing anybody typed, because a player looks
+   * around before they measure anything.
+   *
+   * The preload is idempotent and cached, so this costs one await on the
+   * first read of the process and nothing afterwards. It is the same
+   * inert-roster trap `ReadingCatalogue` guards against one layer up.
+   */
+  private async lightAt(loc: Stuff & Container): Promise<Light> {
+    await PerceptionApi.preloadModalities();
     const vision = PerceptionApi.modalityByName('vision');
     return (vision.signalAt(loc) as Light | null) ?? Light.ZERO;
   }

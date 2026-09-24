@@ -21,7 +21,31 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Quantity, Unit } from '../../../lib/quantity';
 import type { MeasureChannel } from '../../../lib/perception/MeasureChannel';
 
+/**
+ * ⭐⭐ Absolute degrees, because Kelvin is not a RATIO scale.
+ *
+ * A fraction-of-magnitude bracket says a reader who is 5 % out reads a
+ * furnace at 1200 K ± 60 and a cellar at 280 K ± 14 — and the second is
+ * absurd: the hard part of reading a thermometer is the SCALE, and the
+ * scale does not get easier because the room is cold. These are what a
+ * person is actually out by.
+ */
+const KELVIN_ERROR: Readonly<Record<string, number>> = {
+  untrained: 8,
+  novice: 4,
+  competent: 2,
+  proficient: 1,
+  expert: 0.5,
+};
+
 export default class TemperatureReading extends BiomeReading {
+  protected override halfWidthOf(
+    _truth: number,
+    band: CompetenceBandName,
+  ): number {
+    return KELVIN_ERROR[band] ?? 8;
+  }
+
   /**
    * ⭐ The trained eye on temperature: a body genuinely tells warm from
    * cold, and `competent` is as far as a hand on a wall gets — which is
