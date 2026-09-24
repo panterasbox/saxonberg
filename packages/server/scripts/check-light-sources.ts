@@ -126,71 +126,34 @@ const LIT_LUX = 20;
  * second, which is what makes the meter honest.
  */
 export const UNDECLARED_INTERIOR_AMBIENT: readonly string[] = [
-  // ⚠⚠ The census at W0, 2026-09-24. Fifty rows, and the three kinds are
-  // visible from the numbers alone:
+  // ⭐⭐ **PAID IN FULL at W6.** The census opened at FIFTY: fifty enclosed
+  // rooms emitting ambient light and saying nothing about where it came
+  // from. Every one of them is now one of five things, and each is a
+  // sentence somebody had to mean:
   //
-  //   - **Rejection's whole surface** authors 8000 lm and NO BIOME AT ALL.
-  //     Those rows are outdoors in the fiction — a pithead yard, a
-  //     hillside, a fuel yard — and the realm does not know it, so they
-  //     get no weather either. `_biomePath: /stuff/idea/biome/outdoor/
-  //     baseline` + delete the value, and they follow the sun.
-  //   - **Rooms with a big authored number** (a barn at 300, a bakery at
-  //     400, a tailor's shop at 300, the Duncan Hall steps at 400) mean
-  //     *lit by day*. Most have a doorless exit to somewhere open; the
-  //     light walk carries daylight in at full strength already.
-  //   - **Rooms with a small one** (a cellar at 15, a corridor at 9) mean
-  //     *there is a lamp in here* and should have one.
+  //   - **outdoors, and the realm did not know** (8 rows). Rejection's
+  //     whole surface authored 8000 lumens and NO BIOME AT ALL, so it got
+  //     no weather either. A `_biomePath` line each and the constant
+  //     deleted.
+  //   - **lit by SPILL** (19 rows) — a doorway standing open onto a yard,
+  //     a street, a square. The light walk already carries daylight one
+  //     hop at full strength, so these cost no authored number at all and
+  //     go dark at night for free.
+  //   - **lit through a named opening** (16 rows) — a window, a fanlight,
+  //     roof lights, the gaps between a woodshed's boards. Listed below,
+  //     each naming a detail a player can walk up to and look at.
+  //   - **dark, on purpose** (5 rows) — two interior corridors, a back
+  //     bedroom with no window, a cellar, a cold store. The corridor
+  //     authored NINE lumens, which was a room already admitting it had
+  //     no light.
+  //   - **an inherent glow** (1 row) — the holodeck floor, which is
+  //     itself the light.
   //
-  '/platform/location/sandbox/CircleFloor', // 60 lm
-  '/stuff/location/room/bathroom', // 20 lm
-  '/stuff/location/room/bedroom', // 25 lm
-  '/stuff/location/room/living', // 40 lm
-  '/system/transport/thing/coach', // 40 lm
-  '/trade/cooking/location/kitchen', // 35 lm
-  '/trade/distilling/location/warehouse', // 25 lm
-  '/world/terminus/counting-houses/cash-and-carry', // 30 lm
-  '/world/terminus/eternal/duncan-hall/location/corridor', // 9 lm
-  '/world/terminus/eternal/duncan-hall/location/dormroom', // 30 lm
-  '/world/terminus/eternal/duncan-hall/location/lobby', // 80 lm
-  '/world/terminus/eternal/duncan-hall/location/steps', // 400 lm
-  '/world/terminus/goods-yards/bottling/location/floor', // 25 lm
-  '/world/terminus/goods-yards/brewing/location/cold-store', // 15 lm
-  '/world/terminus/goods-yards/brewing/location/floor', // 25 lm
-  '/world/terminus/goods-yards/crowsfoot/location/floor', // 25 lm
-  '/world/terminus/goods-yards/farm/location/yard', // 25 lm
-  '/world/terminus/goods-yards/hollis/location/floor', // 30 lm
-  '/world/terminus/goods-yards/pantry/location/floor', // 25 lm
-  '/world/terminus/goods-yards/veshko/location/distillery', // 30 lm
-  '/world/terminus/goods-yards/vintner/location/floor', // 25 lm
-  '/world/terminus/hearthworks/location/cellar', // 15 lm
-  '/world/terminus/hearthworks/location/cookhouse', // 35 lm
-  '/world/terminus/hearthworks/location/smithy', // 40 lm
-  '/world/terminus/hearthworks/location/woodshed', // 45 lm
-  '/world/terminus/hearts-delight/location/barn', // 300 lm
-  '/world/terminus/hinkley-hills/lots/hall', // 40 lm
-  '/world/terminus/hinkley-hills/lots/kitchen', // 60 lm
-  '/world/terminus/market/bakery', // 400 lm
-  '/world/terminus/mayfield-row/seznick-house/corridor', // 25 lm
-  '/world/terminus/mayfield-row/seznick-house/lobby', // 45 lm
-  '/world/terminus/mayfield-row/seznick-house/location/bedroom', // 25 lm
-  '/world/terminus/mayfield-row/seznick-house/location/hall', // 30 lm
-  '/world/terminus/mayfield-row/seznick-house/location/main', // 55 lm
-  '/world/terminus/mayfield-row/tailor/location/shop', // 300 lm
-  '/world/terminus/realty/office', // 320 lm
-  '/world/terminus/rejection/location/adit', // 800 lm
-  '/world/terminus/rejection/location/assay-shed', // 8000 lm
-  '/world/terminus/rejection/location/claims-office', // 8000 lm
-  '/world/terminus/rejection/location/far-fringe', // 8000 lm
-  '/world/terminus/rejection/location/fringe-claim', // 8000 lm
-  '/world/terminus/rejection/location/fuel-yard', // 8000 lm
-  '/world/terminus/rejection/location/hillside', // 8000 lm
-  '/world/terminus/rejection/location/old-workings', // 8000 lm
-  '/world/terminus/rejection/location/pithead-yard', // 8000 lm
-  '/world/terminus/rejection/location/provisioning', // 2500 lm
-  '/world/terminus/rejection/location/smelter', // 8000 lm
-  '/world/terminus/rejection/location/the-dry', // 2500 lm
-  '/world/terminus/wharfside/dyehouse/location/floor', // 120 lm
-  '/world/terminus/wharfside/mill/location/floor', // 90 lm
+  // Plus one DEAD field deleted: the transport coach authored forty
+  // lumens and is a `Vessel`, which does not compose `AmbientLit` at all.
+  //
+  // ⚠ The ceiling is now ZERO and it is a ratchet. A new enclosed room
+  // that emits light without saying why is a build error.
 ];
 
 /**
@@ -204,13 +167,32 @@ export const UNDECLARED_INTERIOR_AMBIENT_CEILING =
  * Enclosed rooms daylight genuinely reaches, through an opening the row
  * also authors as a detail you can look at.
  */
-export const SKYLIT_INTERIORS: readonly string[] = [];
+export const SKYLIT_INTERIORS: readonly string[] = [
+  '/world/terminus/eternal/duncan-hall/location/lobby', // a fanlight over solid, shut front doors — the only daylight the room gets
+  '/world/terminus/eternal/duncan-hall/location/dormroom', // a narrow window over the desk
+  '/world/terminus/mayfield-row/seznick-house/location/main', // a sash window onto the row
+  '/world/terminus/mayfield-row/seznick-house/location/hall', // a fanlight over the door — about an hour of it each morning
+  '/world/terminus/hinkley-hills/lots/hall', // a tall sash window beside the door
+  '/world/terminus/hinkley-hills/lots/kitchen', // a small window over the sink
+  '/world/terminus/goods-yards/brewing/location/floor', // high shuttered windows above the coppers
+  '/world/terminus/goods-yards/vintner/location/floor', // square windows under the eaves, in thick green glass
+  '/world/terminus/hearthworks/location/cookhouse', // a wide unglazed window over the wash bench
+  '/world/terminus/hearthworks/location/smithy', // a shuttered opening above the bellows — a smith must see the colour of the iron
+  '/world/terminus/hearthworks/location/woodshed', // ⭐ the GAPS between the boards, which is what keeps the wood dry
+  '/trade/cooking/location/kitchen', // a window over the work bench
+  '/trade/distilling/location/warehouse', // roof lights along the ridge
+  '/stuff/location/room/bedroom', // a window with a catch that sticks
+  '/stuff/location/room/living', // a window taking up most of one wall
+  '/stuff/location/room/bathroom', // a small frosted window, high up
+];
 
 /**
  * Rooms with an inherent, always-on, non-sky ambient: a luminous cave, a
  * floor that is itself a light. These do NOT follow the sun.
  */
-export const INHERENT_GLOWS: readonly string[] = [];
+export const INHERENT_GLOWS: readonly string[] = [
+  '/platform/location/sandbox/CircleFloor', // ⭐ the circle's floor IS the light. Does not follow the sun, because it is not the sun.
+];
 
 /**
  * Sky-exposed places that are nonetheless dark — the bottom of a shaft, a

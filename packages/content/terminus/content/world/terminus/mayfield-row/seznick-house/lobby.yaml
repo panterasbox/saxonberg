@@ -10,8 +10,11 @@ data:
   register: definite
   alternateNames: [hall, entrance]
   _address: terminus/mayfield-row/seznick-house
-  ambientIntensity: 45
-  ambientColorTemperature: 4200
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the street, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   coords:
     x: 1
     y: 0

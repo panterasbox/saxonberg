@@ -19,6 +19,7 @@ import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 import { PerceptionApi } from '../../../../api/perception';
+import { Light } from '../../../../lib/perception/Light';
 
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
@@ -132,6 +133,34 @@ describe('the sky leg', () => {
     const midnight = vision().lightAt(loc).intensity.rawValue();
     expect(noon).toBe(40);
     expect(midnight).toBe(40);
+  });
+
+  it('⭐⭐ SPILL: an enclosed room with a doorless opening onto the sky is lit by day and dark by night', async () => {
+    // The mechanism NINETEEN shipped rows depend on after the W6 content
+    // pass. A shop floor, a works floor, a barn — none of them authors a
+    // light any more. Their doorway stands open onto a yard or a street,
+    // and the light walk carries daylight one hop at full strength. The
+    // payoff is that they are correctly lit at noon and correctly DARK at
+    // night, at the cost of no authored number at all.
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(3);
+    const yard = makeStuff(() => new AmbientCartesianLocation());
+    const shop = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(yard, 0, 1, 0);
+    zone.addLocation(shop, 0, 0, 0);
+    (yard as unknown as Record<string, unknown>).ambientSource = 'sky';
+    // The shop authors NOTHING: no source, no intensity. Exits are
+    // explicit here as everywhere — the doorway is declared, doorless.
+    await shop.addBidirectionalExit(yard, 'north');
+
+    atGameSecond(DAY / 2);
+    expect(vision().bandAt(shop)).not.toBe('pitch-black');
+    expect(
+      Light.compareBand(vision().bandAt(shop), 'dim'),
+    ).toBeGreaterThanOrEqual(0);
+
+    atGameSecond(0); // a moonless midnight
+    expect(vision().bandAt(shop)).toBe('pitch-black');
   });
 
   it('an enclosed room with no source is dark at every hour of the day', () => {

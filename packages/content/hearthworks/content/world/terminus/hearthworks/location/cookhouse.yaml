@@ -6,6 +6,12 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   shortDescription: cookhouse
   keywords: [cookhouse]
   register: indefinite
@@ -131,3 +137,8 @@ data:
     - /trade/cooking/agent/hanging-carcass
   cast:
     - /world/terminus/hearthworks/agent/cook
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A wide unglazed window over the wash bench, shuttered at night and open to the yard by day.

@@ -13,8 +13,11 @@ data:
   register: definite
   _address: terminus/hearts-delight/barn
   _biomePath: /stuff/idea/biome/indoor/baseline
-  ambientIntensity: 300
-  ambientColorTemperature: 4200
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the farmstead yard, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   longDescription: |
     Big, dim and dusty, with a threshing floor of beaten earth worn hollow in the middle and light coming in through the gaps in the boards in flat bright bars. Flails on pegs. A winnowing fan.
 

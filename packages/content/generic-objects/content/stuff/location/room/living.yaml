@@ -27,6 +27,12 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   shortDescription: living room
   keywords: [living, lounge, sitting, room]
   register: indefinite
@@ -34,3 +40,8 @@ data:
     A bare front room with good light and a rug someone left behind. Nothing else — yet.
   ambientIntensity: 40
   ambientColorTemperature: 5200
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A window taking up most of one wall, which is the reason this is the room everybody sits in.

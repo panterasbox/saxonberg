@@ -5,6 +5,12 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: gaps
   # ⭐ What this place is BUILT OF (envelope build). A CAUSE, never an
   # effect: you cannot author "well-insulated" here — you name a
   # material the world already carries real numbers for, and the
@@ -47,3 +53,8 @@ data:
     - /stuff/thing/items/dry-log
     - /stuff/thing/items/dry-log
     - /stuff/thing/items/wet-log
+  details:
+    gaps:
+      keywords: [gaps, glass, light]
+      description: |
+        The boards are laid with a finger of daylight between each one, which is what keeps the wood dry and the shed usable.

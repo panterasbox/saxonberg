@@ -19,7 +19,12 @@ data:
     - positionKey: miller
       assignee: /world/terminus/hearts-delight/agent/miller
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+        # ⭐ Real hours (envelope S8). This authored `[0, 24]` — a house
+        # staffed around the clock — which was never true of it and made
+        # the night indistinguishable from the day. The `shifts` brain
+        # parks off-shift cast in the venue's Offstage, so the street
+        # genuinely empties.
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [5, 19] }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/hearts-delight/location/millsite

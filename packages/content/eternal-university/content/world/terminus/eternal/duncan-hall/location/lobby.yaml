@@ -20,6 +20,12 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: fanlight
   _address: terminus/city/campus/duncan-hall
   shortDescription: Duncan Hall lobby
   keywords: [lobby, duncan, hall]
@@ -58,6 +64,10 @@ data:
     # to get a room; she fronts provisioning (see her seed + Katie.ts).
     - /world/terminus/eternal/duncan-hall/agent/katie
   details:
+    fanlight:
+      keywords: [fanlight, glass, light]
+      description: |
+        A broad arched fanlight over the front doors, its glass divided into spokes. It is the only daylight this room gets — the doors themselves are solid, and shut.
     counter:
       keywords: [counter, marble]
       description: |

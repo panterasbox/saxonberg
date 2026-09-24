@@ -8,6 +8,12 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   # ⭐ What this place is BUILT OF (envelope build). A CAUSE, never an
   # effect: you cannot author "well-insulated" here — you name a
   # material the world already carries real numbers for, and the
@@ -64,3 +70,8 @@ data:
     - /world/terminus/hearthworks/thing/smithy-menu
   cast:
     - /world/terminus/hearthworks/agent/smith
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A long shuttered opening above the bellows, thrown wide while the forge is working — a smith needs to see the colour of the iron.
