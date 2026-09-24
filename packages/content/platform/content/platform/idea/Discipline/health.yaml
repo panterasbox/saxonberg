@@ -1,0 +1,8 @@
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: health
+  channel: knowledge
+  label: Health and welfare
+  iscedf: "09"  # ISCED-F 2013 broad field — Health and welfare
+  description: ISCED-F broad field. A structural Catalog node — the impersonal taxonomy the practiced clinical disciplines (medicine, nursing) hang under.

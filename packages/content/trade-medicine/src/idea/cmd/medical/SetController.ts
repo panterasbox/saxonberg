@@ -27,6 +27,7 @@ import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { Difficulty, Outcome } from '@saxonberg/server/mud/lib/advancement/ActSignature';
 
 const TOPIC = 'act.deed';
+const NURSING = 'nursing';
 const MEDICINE = 'medicine';
 
 interface SetModel extends CommandModel {
@@ -77,7 +78,7 @@ export default class SetController extends CommandController<SetModel> {
     }
 
     const band = MixinApi.isAdvancing(giver)
-      ? await giver.competenceBandFor(MEDICINE)
+      ? await giver.bestBandFor([NURSING, MEDICINE])
       : CompetenceBand.FLOOR;
     body.applyTreatment(fracture, {
       by: 'setting',
@@ -89,7 +90,7 @@ export default class SetController extends CommandController<SetModel> {
       const difficulty: Difficulty = 'hard';
       const outcome: Outcome =
         CompetenceBand.rank(band) >= 2 ? 'success' : 'partial';
-      await giver.creditDeed({ discipline: MEDICINE, difficulty, outcome });
+      await giver.creditDeed({ discipline: NURSING, difficulty, outcome });
     }
 
     MessageApi.scene(giver)
