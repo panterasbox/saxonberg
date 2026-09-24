@@ -72,8 +72,11 @@ Floors are first-class entities — `Adornment`s on the Location's
 `Adornable` surface, composing `Postured`. v1 ships no class-level
 default; floor presence is authored per-Location.
 
-The default-floor template (`/idea/surface/default-floor`) declares
-one slot:
+⭐⭐ **Every Location has a floor, and nobody authors it** (ground build,
+2026-09-23). The canonical `ground:1` slot is a **class-level default** on
+`FloorMixin` — a `Floor` row that authors no `staticSlots` gets exactly
+this, which is why `forge-floor`, which authored none, went from pourable-
+but-not-sittable to sittable:
 
 ```yaml
 - name: 'ground:1'
@@ -83,26 +86,49 @@ one slot:
   userFacingDetail: floor
 ```
 
-Per-Location authoring:
+`Location.ensureFloor()` runs at `postRegister` — the one lifecycle every
+clone AND every `create` passes through — and clones
+`TemplatePaths.defaultFloor` unless the room already has a floor or opts
+out. So a warren-minted room gets its floor from the same line an authored
+one does.
+
+⚠⚠ **A floor's `ground` / `floor` keywords are on the CLASS, not the row.**
+`FloorMixin.getKeywords()` unions them. This is not belt-and-braces
+tidiness: the MQL scope walk pools a thing's own `getKeywords()`, and
+`pushDetails` gives a detail the pool `[<its id>]` and **never its authored
+`keywords:`** — so `default-floor`'s `details.floor.keywords` was dead text,
+and attaching that row to all 184 Locations would have fixed `look floor`
+and left bare `sit` broken. `lint:ground` clause (d) also holds every floor
+row to carrying both words in its own list, so a row reads honestly alone.
+
+Per-Location authoring, three rungs, none of them required:
 
 ```yaml
-# Default Location
-adornments:
-  floor: { extends: '/idea/surface/default-floor' }
+# Rung 1 — a floor ROW, for a floor with DETAILS (a worn track, a gutter)
+adornments: [{ template: /world/terminus/.../crossing-paving, slot: floor }]
 
-# Lava chamber — only stand
-adornments:
-  floor:
-    extends: '/idea/surface/default-floor'
-    staticSlots:
-      - { name: 'ground:1', accepts: 'SlottableMixin',
-          postures: ['stand'], userFacingDetail: 'floor' }
+# Rung 2 — three words on the room, for a floor that is just a material
+floor: { material: /stuff/idea/material/rock/granite, worked: true }
 
-# Void — no floor adornment at all (sit no-arg fails honestly)
+# Rung 3 — nothing at all. The default floor resolves its own material:
+#   authored → the room's floor.material → the ground beneath (a
+#   GroundSource) → the room-kind default → the plain default.
+
+# Lava chamber — only stand. An authored slot set is obeyed EXACTLY,
+# including one narrower than the canonical spec.
+adornments: [{ template: /stuff/thing/surface/lava-floor, slot: floor }]
 ```
 
-The `noDefaultFloor: true` opt-out marker on a Location's seed
-suppresses the migration script and any future auto-floor tooling.
+⚠ **`noDefaultFloor: true` on a Location opts out, and it is REAL now** —
+it was documented here, in `spatial.md` and in `default-floor.yaml` for two
+builds while **no code read it**. The void row uses it. ⭐ And it is a
+different question from `onGrade`: *is this place standable* vs *does the
+ground continue beneath the floor*. Conflating them would hand a
+sky-exposed flying-only room an **earth** floor (you could sit down on the
+sky) and floor an open water column when only its **bed** has ground under
+it. Existence defaults to yes; mid-air and mid-water declare the opt-out.
+Neither exists in the game yet — the seam and its test ship so the builder
+who arrives finds them.
 
 ## Verbs
 

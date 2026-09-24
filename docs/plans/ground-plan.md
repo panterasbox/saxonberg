@@ -679,7 +679,7 @@ assertions across the four verbs; `residency.md`'s `Adornment` row is now
 true and says why presence could never have done the job. `lint:family`:
 all 48 gates pass.
 
-### W1 — the floor is a capability (D3, D5, D6, D9, D13, D15–D19)
+### W1 — the floor is a capability (D3, D5, D6, D9, D13, D15–D19) — ✅ DONE
 
 *Goal:* `FloorMixin` exists and `platform/thing/Floor` composes it; a floor
 knows its keywords, its slot, its material and its kind; the three resolvers
@@ -730,7 +730,70 @@ resolved by MQL for the bare word `ground` (drive the real `sit.yaml` through
 binds it — proving the class-level union is what the scope walk pools.
 Commit: `build(ground W1): the floor is a capability — FloorMixin, the derived kind, one getFloor for three resolvers`.
 
-### W2 — every Location has a floor (D1, D2, D7, D8, D11)
+**✅ Done.** `lib/ground/{GroundKind,GroundSource,Floor}.ts`; `Mixins.Floor` +
+`Mixins.GroundSource` + both refusal phrases; `MixinApi.isFloor`/`isGroundSource`;
+`Adornable.getFloor()` + the D19 rebuild; the three resolvers each ask one
+question; five material rows; the three dials; `TemplatePaths.defaultFloor`.
+64 new assertions across five files. `lint:family`: all 48 gates pass.
+
+**Four decisions the plan left open, and what decided them:**
+
+1. ⭐⭐ **The fold is a TABLE, not a function** (`GROUND_KIND_FOLD`). The plan
+   said *"the fold is an instance method; the census re-implements it
+   statically"* — but `lib/`'s export discipline bans a free exported helper
+   (`no-restricted-syntax`, `*Mixin` the only exempt name), so the honest
+   choices were a duplicated switch or data. A fold written twice is a fold
+   that drifts, so the D5 table is transcribed **once** as
+   `readonly GroundFoldRule[]`, first-match-wins, and each side keeps only a
+   five-line matcher. Lens 2 chose it: an author reads the table and sees the
+   whole rule.
+2. **`GROUND_CLASS_PRECEDENCE`** is the plan's *"earth tag; not granular"*
+   made explicit — `metal · timber · granular · earth · mineral`. Sand is the
+   case it exists for (`earth/sand` carries both tags, and the word a person
+   wants for sand is *loose*).
+3. **`TemplatePaths.defaultFloor`**, not `DefaultFloor` — every one of the
+   ~40 existing keys is lower-camel, and CLAUDE.md's *follow the nearest
+   pattern* beat the plan's capitalisation.
+4. **Sibling capabilities are reached by local `MixinApi.isX` narrowing**
+   (`hostOf()`, `hasStandingWater()`), not by the base-type constraint. The
+   `MaturingMixin` precedent — `const self = this as unknown as Stuff` +
+   `MixinApi.isBulkable(self)` — and it is what CLAUDE.md § *Go Through the
+   API Layer* asks for. ⚠ And hard-private `#` is unusable here at all: a
+   mixin method on a proxied Stuff host has `this === proxy`, so `this.#m()`
+   throws.
+
+**Three things that surprised me:**
+
+- ⭐ **No resolver fixture failed.** The plan expected the `hasSurfaceBulk`
+  fixtures to break structurally and said *"that is the intended signal"*.
+  All 20 suites over the three resolvers passed untouched, because every
+  fixture already used a real `Floor`. Which also confirms the grounding's
+  sharper claim: the **contents scan those resolvers carried was dead** — no
+  non-Floor row declares `surfaceBulk`, and no test relied on it either.
+- ⚠ **`ceramic/ceramic.yaml` already claims the keyword `clay`.** The new
+  `earth/clay` row claims it too, and both honestly answer to it — one is
+  fired, one is the ground. Recorded rather than resolved; the *ceramic* row
+  arguably has the wrong keyword, and that is not this build's call.
+- The `default-floor` row **keeps** its `staticSlots` block even though the
+  class now supplies exactly that spec. Lens 2: reading the row is how an
+  author learns what a floor's slot *is*, and the shape is pinned by
+  `lib/slot/__tests__/Floor.test.ts` either way.
+
+⭐ **The D3 check landed as its own file** (`lib/ground/__tests__/Floor.mql.test.ts`)
+and it is the one to read first at review: a `Floor` keyworded
+`[flagstones, wet]` — `weeping-floor` verbatim, which authors *neither*
+word — resolved through the real `MqlApi` scope walk for the bare word
+`ground`, for `floor`, and still for its own two words. Taken with W0's
+finding (the `default:` is applied at assembly, so `ground` was always
+reaching MQL), this is the whole defect, proven end to end: **attaching the
+row to all 184 Locations would have fixed `look floor` and left `sit`
+broken.**
+
+⚠ **One pre-existing warning cleaned up in passing:** `Adornable.ts` imported
+`ChattelApi` and never used it (`captureSlice` uses `MixinApi.isChattel`).
+Deleted — one dead line in a file this wave rewrote.
+
+### W2 — every Location has a floor (D1, D2, D7, D8, D11) — ✅ DONE
 
 *Goal:* a brand-new player can sit down in the Lounge; no room has two floors;
 the void has none.
@@ -768,6 +831,84 @@ gains *the landing room has a floor a new avatar can sit on*.
 (one extra Thing clone per room clone — if the delta exceeds the ±6% floor,
 say so under Risks before continuing); `test:near`; `lint:family`.
 Commit: `build(ground W2): every Location has a floor — PostRegistration at the base, ensureFloor, the floor: spec`.
+
+**✅ Done.** `PostRegistrationMixin` into `LocationBase`; `floor` + `noDefaultFloor`
+fields with accessors; `postRegister` → `ensureFloor()`; `floorDefaults(onGrade)`;
+`noDefaultFloor: true` on the void row; `posture.md` + `spatial.md` rewritten.
+24 assertions in `Location.floor.test.ts` + 3 in the new lounge roster + the
+landing-room assertion. `lint:family`: all 48 gates pass.
+
+**⚠ TEN composers, not six.** The plan's file list named six; counting
+`PostRegistrationMixin(` across the Location family found **ten** —
+`CartesianLocation`, `SphericalLocation`, `FurnishableRoom`, `Offstage`,
+`CircleFloor`, `Lounge`, plus **`Bar`, `GlassAlley`** and the university's
+**`Corridor` + `DormRoom`**. Every one is stripped. This matters more than a
+count: those four were not oversights in the plan's list, they were classes that
+compose the mixin *above* `Location`, and after the move each would have
+**shadowed the base hook with the no-op** and silently had no floor.
+
+⭐ **`Warren.ts` is answered, and the answer is no.** The plan flagged it as the
+one file W2's list omitted and asked whether a Warren is on the Location path at
+all. `lib/location/Warren.ts:58` — `export abstract class Warren extends Idea`.
+It is not a Location, it composes nothing here, and its `postRegister` needs no
+`super` for this. It lives in `lib/location/` because it is *about* locations,
+not because it is one.
+
+**Five overrides gained `await super.postRegister(context)`** — `CartesianLocation`,
+`SphericalLocation`, `Lounge`, `Bar`, `GlassAlley`. `Field.ts` and `Wood.ts`
+already chained; `Working.ts` chains through the prototype (a mixin's `super` is
+not a class).
+
+**⚠⚠ Two defects I introduced and the gates caught, both worth reading:**
+
+1. **`MudlogApi.warn` THROWS when there is no recipient.** `ensureFloor`'s
+   failure path warned through Mudlog, which resolves an audience from the
+   ambient command frame — and `postRegister` runs inside the clone pipeline
+   where there is no giver. So the *"warn, don't throw"* mitigation would itself
+   have thrown, unregistered the room, and turned *a room with no floor* into
+   *a room that failed to clone* — the precise failure the catch exists to
+   prevent. Now `console.warn`, the `Avatar.reconcileMortalState` /
+   `MaturationProfile` precedent: an engine condition with no audience goes to
+   stderr. **Found by the roster test, not by review.**
+2. **`void.yaml` had `data:` with no `hydratorClass:`**, so `noDefaultFloor: true`
+   was silently discarded — the opt-out would have been exactly the dead text it
+   replaces. `lint:instanceable` invariant 6 caught it in the same commit.
+
+⚠ And `lint:test-content` refused the roster test for naming `/world/lounge` —
+correctly. The three lounge classes moved to
+`world/lounge/__tests__/lounge-floors.test.ts`, where a content test belongs.
+
+**⭐⭐ The boot cost, measured — and it is over the noise floor.** A throwaway
+probe cloned 400 rooms each way from an in-memory store (`noDefaultFloor: true`
+vs not):
+
+```
+n=400   bare 0.519 ms/room   floored 1.282 ms/room   +147%   (+0.76 ms/room)
+```
+
+**Cloning a room costs one more object, and that roughly doubles it.** Far over
+the ±6 % floor, so the plan says record it before continuing. Recorded — and
+⭐ **I did not take the fallback**, for three reasons:
+
+- **Absolute scale.** 0.76 ms × 184 authored Locations ≈ **0.14 s** if every
+  room in the game were cloned at once, which nothing does — rooms are cloned
+  lazily and culled by residency. Entering a room costs 0.76 ms more.
+- **The fallback re-opens D1 rather than tuning it.** Lazy-mint-on-`getFloor()`
+  needs `await StuffApi.clone` inside a read that is synchronous for all four
+  of its callers, including the binder's scope walk — which is the exact reason
+  D1 rejected lazy minting. Paying 0.76 ms is cheaper than making the floor's
+  existence asynchronous.
+- **Lens 3.** The floor exists because the room exists. A floor that appears
+  when somebody looks at it is the gauge-shaped answer to a sim question.
+
+⚠ What this number is NOT is a boot measurement. `pnpm bench` measures the test
+SUITE (~15 min, and it needs a master baseline to mean anything); the world-boot
+number lands with the wire drive in W5, which boots for real. The arithmetic
+bound above is what stands until then.
+
+⚠ One snapshot updated: `wiki-spoiler-fields.snapshot.test.ts` gained four rows
+(`FloorMixin.onGrade/worked`, `Location.floor/noDefaultFloor`), all at reveal
+level 0 — the expected consequence of four new authorable fields.
 
 ### W3 — `/system/ground` (D10, D12, D20)
 

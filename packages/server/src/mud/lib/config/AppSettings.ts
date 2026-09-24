@@ -1440,6 +1440,28 @@ export const AppSettingKeys = {
   stormPuddleEvaporationFactor: "storm.puddle.evaporationFactor",
   /** Storm — the fresh-water material path a new rain puddle fills with. */
   stormPuddleFreshWaterMaterialPath: "storm.puddle.freshWaterMaterialPath",
+
+  // ── Ground: what a floor is made of when nobody said ───────────────
+  /**
+   * Ground — the material an INDOOR floor defaults to when the ladder
+   * reaches rung 4 or 5. Seeded `/stuff/idea/material/wood/oak`: *boards*
+   * is the census's most-claimed material by a wide margin (10 rooms), so
+   * a plain floor is a board floor.
+   */
+  groundFloorIndoorMaterialPath: "ground.floor.indoorMaterialPath",
+  /**
+   * Ground — the material an OUTDOOR (on-grade) floor defaults to when no
+   * `GroundSource` answers. Seeded `/stuff/idea/material/earth/loam`.
+   */
+  groundFloorOutdoorMaterialPath: "ground.floor.outdoorMaterialPath",
+  /**
+   * Ground — a `GroundSource` asked as the last rung-3 resort, after the
+   * zone's own `groundCharacter` and `deposit` citations. ⚠ `null` until
+   * the `/system/ground` pack seeds it; with the pack absent rung 3 simply
+   * yields nothing and the floor falls through to its room default, which
+   * is the honest degradation rather than an error.
+   */
+  groundDefaultSourcePath: "ground.defaultSourcePath",
   /** Storm — per-storm-scope probability of a lightning strike per strike
    * tick (0..1). */
   stormStrikeRate: "storm.strikeRate",

@@ -31,7 +31,7 @@ describe('AdornmentMixin.canEvict', () => {
 
     const verdict = fx.canEvict(ctx);
     expect(verdict.ok).toBe(false);
-    expect(verdict.reason).toBe('fixture of a live host');
+    if (!verdict.ok) expect(verdict.reason).toBe('fixture of a live host');
   });
 
   it('a fixture whose host is destroyed falls through to super', async () => {

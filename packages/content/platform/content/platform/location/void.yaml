@@ -4,5 +4,18 @@
 # emits, no description body) until the look command grows a more
 # elegant fallback for non-Visible Locations — see roadmap "Command
 # system polish".
+#
+# ⭐ `noDefaultFloor` — the one place in the shipped world that opts out of
+# the floor every Location otherwise gets. The void is not a place you are
+# standing in; it is where a body waits before it is anywhere. The opt-out
+# was documented in three places for two builds while no code read it, and
+# this row is what makes it true. Mid-air and mid-water rooms will use the
+# same field: *a place with no floor is a place you cannot stand.*
 class: /platform/location/VoidLocation
-data: {}
+# ⚠⚠ `hydratorClass` is REQUIRED the moment `data:` carries a key — with no
+# hydrator NOTHING hydrates and every key is silently discarded, so the
+# opt-out below would have been dead text of exactly the kind it replaces.
+# `lint:instanceable` invariant 6 caught it in the same commit.
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  noDefaultFloor: true

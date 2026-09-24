@@ -77,6 +77,13 @@ export const TemplatePaths = {
   // keychain credential); the durable form of dorm/lock access.
   key: "/stuff/thing/Key",
 
+  // ⭐ The floor every Location gets when it authors none — cloned once per
+  // room by `Location.ensureFloor` at `postRegister`. Named here because
+  // the kernel mints it: before the ground build nothing attached this row
+  // at all, and `lint:census` resolves template-path fields but not a
+  // constant, so `Location.floor.test.ts` asserts it resolves.
+  defaultFloor: "/stuff/thing/surface/default-floor",
+
   // Metabolism cascade conditions — the `floorEffect`-named `Condition`
   // Ideas the reconcile spawns/clears off a floored biological reserve.
   metabolismStarvation: "/platform/idea/Condition/metabolism/starvation",

@@ -798,26 +798,18 @@ function wetOccupants(room: Stuff & Container): void {
 }
 
 /**
- * The room's puddle-bearing `Floor` — a fixture (or content) carrying a
- * surface bulk slot. Mirrors `ElectricityLogic.findFloor` so rain fills the
- * same pool the conduction walk reads (the weather→bulk→electricity loop).
+ * The room's puddle-bearing `Floor`. Mirrors `ElectricityLogic.findFloor`
+ * so rain fills the same pool the conduction walk reads (the
+ * weather→bulk→electricity loop) — and since the ground build both of them
+ * ask the room ONE question, `Adornable.getFloor()`, instead of scanning
+ * fixtures-then-contents for any Bulkable with a surface slot.
  */
 function findRoomFloor(room: Stuff & Container): (Stuff & Bulkable) | null {
-  if (MixinApi.isAdornable(room)) {
-    for (const fx of (room as Stuff & Adornable).getFixtures()) {
-      if (MixinApi.isBulkable(fx) && fx.hasSurfaceBulk()) {
-        return fx as unknown as Stuff & Bulkable;
-      }
-    }
-  }
-  if (MixinApi.isContainer(room)) {
-    for (const c of room.getContents()) {
-      if (MixinApi.isBulkable(c) && c.hasSurfaceBulk()) {
-        return c as unknown as Stuff & Bulkable;
-      }
-    }
-  }
-  return null;
+  if (!MixinApi.isAdornable(room)) return null;
+  const floor = (room as Stuff & Adornable).getFloor();
+  if (!floor) return null;
+  if (!MixinApi.isBulkable(floor) || !floor.hasSurfaceBulk()) return null;
+  return floor as unknown as Stuff & Bulkable;
 }
 
 /** The authored fresh-water material a new rain puddle fills with (weakly conductive). */
