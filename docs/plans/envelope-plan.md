@@ -332,8 +332,11 @@ approximate (±10).
 
 build-2 `build/extraction` (coal/peat rows land as fuel — nothing here
 may name them); build-3 `design/instrumentation` (owns `measure`/
-`analyze`; untouched); build-4 `design/clinical-medicine` (Disciplines;
-untouched); master detached on `design/guild-player-institution`.
+`analyze`; untouched — ⚠ `feel` is **not** theirs: it is the shipped
+perception verb this build extends with the cause line, D3e, the same
+read saying where its number came from, not a new instrument); build-4
+`design/clinical-medicine` (Disciplines; untouched); master detached on
+`design/guild-player-institution`.
 
 ---
 
@@ -397,23 +400,56 @@ Winter night outside ≈ 281 K (8 °C), winter noon ≈ 289, summer noon ≈
 the requirements' survey (see Risks & opens #1): without it S4,
 acceptance 8 and 15 cannot be observed.
 
-*3b. The envelope.* New fields on `AtmosphericMixin` (host argument in
-Host placement): authorable `_envelope: { fabricUPerM2?: number,
-openingUPerM3?: number, fabricMassFactor?: number } | null`; runtime
-`envelopeTemperatureK`, `envelopeClockStamp`, `envelopeOutsideK`
-(persistent, `runtimeState`). Methods:
+*3b. The envelope.* ⭐⭐ **The rule that keeps the cascade honest:
+authors author CAUSES, not EFFECTS.** A room declares its construction,
+its openings and what burns in it; its warmth is derived. `_temperature`
+is the **exception** mechanism (a cellar, a cave), never the normal one,
+and every exception is listed and ratcheted (D15). **The biome line:** a
+biome may say what the outside **air** is doing (an underground biome's
+285 K is the air of the mine); it may **never** say how well a structure
+holds heat. Construction is a fact about the room, climate is a fact
+about the air, and construction on a biome would give `biome:
+warm-tavern` rooms warm with no fire in them, cascading to every row
+that references it. `lint:envelope` clause (c) refuses construction keys
+on any biome row.
+
+**Construction lives on the ZONE, with a per-room override that is the
+listed exception.** There is no building in this model (a Locality is an
+address prefix, a Parcel is title and ground); what a zone subtree *is*,
+operationally, is "the rooms that belong together", and `cellSize` is
+the shipped precedent for a physical default authored on a zone and read
+by every room in it (`CartesianZone.ts:32–47`). New authorable
+`envelope: { fabricUPerM2?, openingUPerM3?, fabricMassFactor? } | null`
+on **`SpatialZone`** (`lib/zone/SpatialZone.ts` — both coordinate
+systems), inherited through the shipped `Zone.lookupField('envelope')`
+so a district zone can set it for its sub-zones. ⚠ `lookupField` is
+**async** (`Zone.ts:191`, it awaits `ZoneApi.getEnclosingZone`), and the
+reconcile below is sync — so the room resolves its effective spec at the
+**async** resolve (D3c, the same event that stamps `envelopeOutsideK`)
+and caches it transiently (`_envelopeResolved`); the sync reconcile reads
+the cache. A zone chain that authors nothing falls through to the
+universe defaults in `settings/envelope.yaml` (`envelope.fabricUPerM2
+1.5`, `envelope.openingUPerM3 6`, `envelope.fabricMassFactor 15`). A room
+may still author its own `_envelope` on `AtmosphericMixin` — that is
+authorial control kept — but a per-room construction is by definition a
+room disagreeing with the rooms it belongs with, so it is a listed,
+reasoned exception with a ceiling of **0** today (D15 clause (b)); no
+separate "zone agreement" clause is needed, the override *is* the
+disagreement.
+
+Runtime fields on `AtmosphericMixin`: `envelopeTemperatureK`,
+`envelopeClockStamp`, `envelopeOutsideK` (persistent, `runtimeState`)
+and the transient `_envelopeResolved`. Methods:
 
 - `envelopeApplies(): boolean` — `getVolume() !== null && this._temperature
   === null && !BiomeApi.isSkyExposed(this)`. An authored own
   `_temperature` wins (the cellar / the cave that is the same all year —
   lens 2's bespoke case stays a row).
-- `reconcileEnvelope(): void` (sync): `U = U_fabric + U_open`;
-  `U_fabric = fabricUPerM2 × 5 · extent²` (walls + roof of a cube cell;
-  default `envelope.fabricUPerM2 = 1.5` W/m²K); `U_open = openingUPerM3 ×
-  V × nOpenToOutside` (default `envelope.openingUPerM3 = 6` W/K per m³ per
-  open exterior opening — an open door is air exchange, not conduction);
-  `C = 1.2 · 1005 · V · fabricMassFactor` (default 15 — the fabric holds
-  heat, the air alone would not). `P = Σ spaceHeatOutputW()` over
+- `reconcileEnvelope(): void` (sync, reads `_envelopeResolved`): `U =
+  U_fabric + U_open`; `U_fabric = fabricUPerM2 × 5 · extent²` (walls +
+  roof of a cube cell); `U_open = openingUPerM3 × V × nOpenToOutside` (an
+  open door is air exchange, not conduction); `C = 1.2 · 1005 · V ·
+  fabricMassFactor` (the fabric holds heat, the air alone would not). `P = Σ spaceHeatOutputW()` over
   contents composing `SpaceHeatingMixin` (D5). `T_ss = outside + P/U`;
   `T ← Decay.toward(T, T_ss, elapsed, C/U)` — exact for piecewise-constant
   inputs, the `ThermalMixin` shape. No far-past guard (a room left
@@ -436,18 +472,39 @@ openingUPerM3?: number, fabricMassFactor?: number } | null`; runtime
   `envelopeOutsideK` was never seeded.
 
 *3c. Integration — one source of truth.* `BiomeLogic.resolveTemperatureFor`
-becomes: run the chain; if the scope is an envelope host and the trace's
-own-override step did not answer, compute `outside` = **the chain with
-non-SkyExposed biome layers skipped** (the indoor decree is deleted from
-`indoor/baseline.yaml` *and* ignored by rule, so an `indoor/*` biome can
-never re-introduce it) **+ the weather deviation** (type + solar) when
-the answer came from the universe or a sky-exposed biome (a zone-authored
-temperature is the rock, not the sky — Rejection's `upper-workings`
-biome and any mine zone keep their answer and get no weather); stamp
-`envelopeOutsideK`, `reconcileEnvelope()`, return
-`envelopeTemperatureK`. Sky-exposed scopes are byte-identical to today
-plus 3a. The trace variant (`analyze`) reports provenance `'envelope'`
-with outside + heat input + U.
+becomes: run the chain **in full** (a biome's temperature is the air's —
+Rejection's `underground/upper-workings` 285 K is honest and stays); if
+the scope is an envelope host and the trace's own-override step did not
+answer, `outside` = the chain's answer **+ the weather deviation** (type
++ solar) iff the answer came from the universe or a SkyExposed biome (a
+zone- or underground-biome-authored temperature is rock, not sky, and
+gets no weather); resolve `_envelopeResolved` via `lookupField`; stamp
+`envelopeOutsideK`; `reconcileEnvelope()`; return `envelopeTemperatureK`.
+The indoor decree is removed by **content** (delete `_defaultTemperature`
+from `indoor/baseline.yaml`) and kept out by **lint** (`lint:envelope`
+clause (d): no row under the `/stuff/idea/biome/indoor/` admin subtree
+authors `_defaultTemperature` — "indoor" is the folder that means *an
+enclosure*, and an enclosure's temperature is a structure's, which a
+biome may not claim). Sky-exposed scopes are byte-identical to today
+plus 3a. The trace variant reports provenance `'envelope'` with
+`{outsideK, heatInputW, uWperK, openings, hottestSource}` — the shape
+`feel` reads (3e).
+
+*3e. The cause is named in-world.* `FeelController`'s bare form
+(`cmd/perception/feel.yaml`, this build's — build-3 owns `measure`/
+`analyze`, not `feel`) already prints *"The air feels {band}."* from
+`TouchModality.touchAt(location)`; it now appends **why**, from
+`BiomeApi.traceResolveTemperatureFor(location)`: provenance `'envelope'`
+with `heatInputW > 0` → *"warm from the hearth"* (the hottest
+`SpaceHeating` source's presentation); no input, above outside → *"the
+stone still holds the day"*; below outside → *"the stone still holds the
+night's cold"*; within a degree of outside with an open exterior opening
+→ *"as cold as the street — the door stands open"*; provenance the
+room's own `_temperature` → *"this place keeps its own temperature, the
+year round"*; sky-exposed → nothing added (the weather is the sky's own
+line). The same read, saying where its number came from — no new
+instrument, and a room that is warm for no reason a player can be told
+is self-reporting the dishonesty.
 
 *3d. Bodies and food track a warming room without a fan-out (the pull
 side).* `ThermalMixin.reconcileThermal()` first calls
@@ -464,22 +521,30 @@ envelope rooms (not only sky-exposed ones) so a room's outside follows a
 front while somebody is in it; an empty room's outside is re-resolved on
 the next async read (a body arriving restamps).
 
-**D4 — The named source is a closed field on `AmbientLitMixin`.**
-`ambientSource: 'sky' | 'glow' | null` (authorable, persistent) and
-`ambientOpening: string | null` (a detail id). Rule: `ambientIntensity >
-0` ⇒ `ambientSource` set. `sky`: the authored intensity is the **noon**
-value; the walk multiplies by `skyFactorNow() × weatherDimFactor`; on a
-room that is not sky-exposed it must name `ambientOpening`, a detail the
-row authors (the window you can look at — the claim "through an opening"
-made checkable). `glow`: an inherent, always-on, non-sky ambient (the
-holodeck floor, a luminous cave) — permitted and **ratcheted**
-(ceiling = the count the content pass legitimately needs; may fall,
-never rise). Runtime never narrows silently: an undeclared source still
+**D4 — Sky-lighting is DERIVED; only the exceptions are authored.** A
+sky-exposed room **is** sky-lit by definition (`BiomeApi.isSkyExposed`
+is a shipped sync predicate), so authoring it on 41 rows is 41 chances
+to disagree with the biome. `AmbientLitMixin` gains
+`ambientSource: 'sky' | 'glow' | 'none' | null` (authorable) and
+`ambientOpening: string | null` (a detail id). `isSkyLit()` =
+`ambientSource === 'sky' || (ambientSource === null &&
+BiomeApi.isSkyExposed(this))`. The **noon flux is derived too**:
+`skyNoonFlux()` = the authored `ambientIntensity` if > 0, else
+`light.sky.noonLux (80) × getSizeScale()` — so the five dark Terminus
+streets light up with **no row edit**, and an authored value is a
+calibration override (kept: authorial control; warned below `lit`). The
+walk's leg (a) reads `skyNoonFlux() × skyFactorNow() × weatherDimFactor`
+for a sky-lit room and the raw `ambientIntensity` for a `glow` room. The
+three authored values are the **exceptions the census lists**: `sky` on
+an enclosed room (a skylight — must name `ambientOpening`, a detail the
+row authors: the claim "through an opening" made checkable); `glow` (an
+inherent, always-on, non-sky ambient — the holodeck floor, a luminous
+cave); `none` (a sky-exposed room that somehow is not lit — a deep
+well). Each list is ratcheted. Runtime never narrows silently: an
+`ambientIntensity` on an enclosed room with no `ambientSource` still
 emits; the lint refuses it. The weather fan-out stamps the dim factor on
-rooms whose `ambientSource === 'sky'` (new predicate `isSkyLit()`),
-not only SkyExposed ones. Calibration rule for `sky` rows: `noon lumens
-= 80 × sizeScale` (`bright` at a summer noon); clause (d) of the lint
-warns on a sky row that would read below `lit` at noon at its own scale.
+`isSkyLit()` rooms, not only SkyExposed ones. Same shape as the heat
+side: derive the common case, author the cause, list the exception.
 
 **D5 — The hearth is a class over `FurnaceMixin`, and room-heating is a
 mixin the class composes; a forge never composes it.** New
@@ -628,20 +693,56 @@ move by starlight. The current `-1` reads as a typo against its own
 `scotopicMin: very-dim`; the build records the change in the species
 row's comment.
 
-**D12 — The census gate is one script, `lint:light-sources`
-(`scripts/check-light-sources.ts`), census-then-ratchet.** Clauses: (a)
-every Location/Vessel row with `ambientIntensity > 0` declares
-`ambientSource` — ceiling starts at today's count of undeclared rows
-(84) and must be **0** by W6; (b) a `sky` row that is not sky-exposed
-(by the biome chain, statically: own `_biomePath` → zone → none) names
-`ambientOpening` and that id exists in its `details:`; (c) `glow` rows ≤
-a curated ceiling; (d) a `sky` row's noon band at its own scale ≥ `lit`
-(warn at first, gate at W6); (e) a row declaring `publicLighting` lists
-no LightSource-composing row in `props:`/`adornments:` and no class
-under `platform/thing/` or any pack `src/` is named `*Lamppost*`/
-`*StreetLamp*` (acceptance 6: no lamp object anywhere); (f) no row
-authors `celestialProfile` (D1's guard at build time). Self-enrols via
-`lint:family`.
+**D12 — The light census is one script, `lint:light-sources`
+(`scripts/check-light-sources.ts`), census-then-ratchet, and it lists
+exactly the exceptions.** Clauses: (a) every Location/Vessel row with
+`ambientIntensity > 0` that is **not** sky-exposed (statically: own
+`_biomePath` → the zone's → none) declares `ambientSource` — ceiling
+starts at today's count of such rows (the ~43 interiors) and must be
+**0** by W6; (b) an authored `ambientSource: sky` on an enclosed row
+names `ambientOpening` and that id exists in its `details:`, and is
+listed in `SKYLIT_INTERIORS` (curated, ceiling = the list's length); (c)
+`glow` rows in `INHERENT_GLOWS` (curated ceiling); `none` rows in
+`DARK_UNDER_THE_SKY` (curated ceiling); (d) a sky-lit row whose noon
+band at its own scale reads below `lit` — authored calibration overrides
+are warned, never gated (authorial control); (e) a row declaring
+`publicLighting` lists no LightSource-composing row in
+`props:`/`adornments:`, and no class under `platform/thing/` or any pack
+`src/` is named `*Lamppost*`/`*StreetLamp*` (acceptance 6: no lamp
+object anywhere); (f) no row authors `celestialProfile` (D1's guard at
+build time); (g) a row on `Lamp`/`Hearth` authors `lit:`. A stale list
+entry (a path that no longer authors the exception) fails, so paying the
+debt is what deletes the line. Self-enrols via `lint:family`.
+
+**D15 — The heat census mirrors it: `lint:envelope`
+(`scripts/check-envelope.ts`).** Today the light half has a gate and the
+heat half has nothing — that asymmetry is the hole. Census at plan time:
+**exactly five rows author `_temperature`** —
+`terminus/.../goods-yards/vintner/location/floor.yaml:29` (285),
+`goods-yards/crowsfoot/location/floor.yaml:29` (289),
+`goods-yards/brewing/location/floor.yaml:29` (288),
+`goods-yards/brewing/location/cold-store.yaml:25` (279),
+`trade-hospitality/.../location/cellar.yaml:33` (285) — all cellars, all
+legitimate (maturation depends on them). Clauses: (a) every
+Location/Vessel row authoring `_temperature` is in
+`AUTHORED_TEMPERATURES` — a curated list **in the script**, each entry
+`{ path, reason }`, ceiling **5**, may fall never rise, a stale entry
+fails (the `check-ground.ts` shape); (b) every row authoring a per-room
+`_envelope` is in `ROOM_CONSTRUCTION_OVERRIDES` with a reason, ceiling
+**0**; (c) ⭐ **the biome line:** no row whose class extends `Biome`
+authors `envelope`, `fabricUPerM2`, `openingUPerM3` or
+`fabricMassFactor`; (d) no row under `/stuff/idea/biome/indoor/` authors
+`_defaultTemperature` (the decree cannot come back); (e) a `SpatialZone`
+row's `envelope` keys are a closed vocabulary.
+
+*Why the reason is a list in the script and not a `reason:` key on the
+row:* a `data:` key the Hydrator does not write is dropped **silently**
+(the grain-chain drive found 49 such rows), so a `reason:` on the row
+would be a field nothing reads and nothing can miss; the list is a diff
+a reviewer reads, which is the whole point — a sixth cellar costs
+somebody a paragraph in a file whose ceiling they must also raise. The
+row keeps a YAML comment beside `_temperature` as courtesy; the list is
+the gate.
 
 **D13 — Hours are content.** S8 is rows only: the 27 `[0, 24]` roster
 windows become real shifts; the `shifts` brain already parks off-shift
@@ -666,9 +767,10 @@ tests pin the winter numbers. Recorded in Risks.
 
 | new thing | host | what composing/adding it claims about every other composer |
 |---|---|---|
-| `ambientSource`, `ambientOpening` fields | `AmbientLitMixin` (→ every `Location`) | *Every place that can have ambient light must say where it comes from.* True of every Location; inert (null) by default. Not on `Vessel` (not AmbientLit today; the coach row's dead field is a content fix, not a host change). |
+| `ambientSource`, `ambientOpening` fields, `isSkyLit()`, `skyNoonFlux()` | `AmbientLitMixin` (→ every `Location`) | *Every place that can have ambient light derives it from the sky where the sky is, and says so where it is an exception.* True of every Location; null = derived. Not on `Vessel` (not AmbientLit today; the coach row's dead field is a content fix, not a host change). |
+| `envelope` construction spec | `SpatialZone` (→ `CartesianZone`, `SphericalZone`), inherited via `Zone.lookupField` | *The rooms of a zone are built alike* — the `cellSize` precedent. Never on a `Biome` (the biome line, lint clause (c)), never on `Locality` or a Parcel (title and address are not construction). A zone authoring nothing falls through to the universe dials. |
 | `skyFactorNow()` memo | `CelestialLogic` singleton (instance fields) | The sky is one thing for the whole realm (guarded, D1). No host in the world carries it. |
-| `_envelope` spec + `envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK` + `reconcileEnvelope` / `envelopeTemperatureSync` | `AtmosphericMixin` (→ `Location`, `Vessel`) | *Every scope that can carry an atmosphere can hold a state different from its outside.* True of a room and of a wardrobe or a coach cabin; **inert where `getVolume()` is null** (Offstage, plain Location, an un-extented Vessel) — that is the mixin's own geometry answering, not a guard. A new `EnvelopeMixin` would compose on exactly the same two hosts, which is the tell that it is the same concern. |
+| `envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK` / transient `_envelopeResolved` + `reconcileEnvelope` / `envelopeTemperatureSync`; the per-room `_envelope` override (listed, ceiling 0) | `AtmosphericMixin` (→ `Location`, `Vessel`) | *Every scope that can carry an atmosphere can hold a state different from its outside.* True of a room and of a wardrobe or a coach cabin; **inert where `getVolume()` is null** (Offstage, plain Location, an un-extented Vessel) — that is the mixin's own geometry answering, not a guard. A new `EnvelopeMixin` would compose on exactly the same two hosts, which is the tell that it is the same concern. The **state** is the room's; the **construction** is the zone's. |
 | `SpaceHeatingMixin` (`heatOutputW`, `spaceHeatOutputW()`) | `Hearth` (new), `Campfire` | *This fire exists to warm where you stand.* Never on `FurnaceMixin` (that would claim it of the forge and reintroduce the "is it a forge" guard), never on `Forge`/`Kiln`/`Oven`. Composed outermost so it reads the furnace face; the envelope narrows contents with `MixinApi.isSpaceHeating`. |
 | `Hearth` class | `platform/thing/Hearth.ts` (instanceable), rows at `/stuff/thing/Hearth` in generic-objects | A commons object: a second inn's fireplace is a row. |
 | `Lamp` class (rewritten) | `platform/thing/Lamp.ts` | *A light that burns fuel.* The lantern and the torch; not the glowcap (stays `PortableLight`), not the mana lamp (arcana's, on `ChargedMixin`), not the sconce (generic-objects', switchable — a candidate to move onto `Lamp` in the content pass if its fiction is oil). |
@@ -681,8 +783,9 @@ tests pin the winter numbers. Recorded in Risks.
 | light band phrase table | `lib/perception/Light.ts` beside `LIGHT_BANDS` | Vision-modality vocabulary, where `bandFor` lives. |
 
 ⚠ **Guards to refuse if you find yourself writing them:** `if (isForge)`
-anywhere in the envelope; `if (!skyExposed) return 0` in the light walk
-(the lint carries that rule, the walk emits what the row says);
+anywhere in the envelope; a path test on a biome inside the chain walk
+(the lint carries the indoor rule, the walk trusts the chain); a
+construction field on `Biome`, `Locality` or a parcel record;
 `if (room is Offstage)` in the envelope (Offstage has no volume — let the
 geometry answer); a `wears` applier that checks the NPC's species.
 
@@ -731,8 +834,8 @@ geometry answer); a `wears` applier that checks the NPC's species.
   `lint:field-meta`, `lint:module-scope`, `lint:imports`,
   `lint:object-verbs`, `lint:template-census` (the `wears[]` clause),
   `lint:no-authored-faucet`, `lint:schema` (no schema change expected —
-  confirm), `lint:drive-scripts` (no `scripts/drive-*.ts`), and the new
-  `lint:light-sources`.
+  confirm), `lint:drive-scripts` (no `scripts/drive-*.ts`), and the two
+  new gates `lint:light-sources` and `lint:envelope`.
 
 ---
 
@@ -763,12 +866,14 @@ for the dim stamp); `lib/fire/Furnace.ts` (`getEmittedFlux` gate);
 `platform/thing/Lamp.ts` (deleted); `scripts/check-light-sources.ts` +
 `package.json` `lint:light-sources`; `packages/content/platform/content/settings/light.yaml`;
 `species-and-names/.../homo/koboldus.yaml` (`bandShift: +1`).
-**Content in this wave.** All 41 outdoor-biome rows get `ambientSource:
-sky` and a calibrated noon `ambientIntensity` (`80 × extent²`; the five
-dark Terminus streets get theirs — the crossing, the square, the
-avenue-block, the wharf bank, delight road); rows with an existing value
-are re-calibrated. Interiors are untouched (they keep reading as today;
-the lint ceiling counts them).
+**Content in this wave.** Almost none: the 41 outdoor-biome rows are
+sky-lit **by derivation** (D4) — the five dark Terminus streets light up
+with no row edit. The only touches are the outdoor rows whose authored
+`ambientIntensity` mis-calibrates against their own scale (mayfield
+`street.yaml` 500 lm on 9 m² is fine; check each; delete a value rather
+than retune it where the derived 80 lux is what was meant). Interiors
+are untouched (they keep reading as today; the lint ceiling counts
+them).
 **Tests.** `CelestialLogic` sky-factor curve at the eight anchor times
 (unit); `VisionModality` sky × dim × zero-shift (unit, the existing
 `__tests__` file); `Look` light line per band (controller test);
@@ -827,29 +932,41 @@ lantern`, `douse lantern`) and the wire smoke still green.
 
 **Goal.** Indoor temperature is derived, drifts toward outside at a rate
 the construction and the openings set, and bodies feel it.
-**Decisions.** D3 (a–d).
+**Decisions.** D3 (a–e), D15.
 **Files.** `platform/idea/api/WeatherLogic.ts` (the solar term in
 `deviatedFieldFor`; memo); `settings/weather.yaml` (two dials);
-`lib/biome/Atmospheric.ts` (`_envelope`, the three stamps,
-`envelopeApplies`, `reconcileEnvelope`, `envelopeTemperatureSync`,
-`openExteriorOpenings()`); `platform/idea/api/BiomeLogic.ts`
-(`resolveTemperatureFor` + the trace variant; `outsideTemperatureFor`);
+`lib/zone/SpatialZone.ts` (`envelope` + `fieldMeta`, `getEnvelope()`);
+`lib/biome/Atmospheric.ts` (the three stamps, `_envelopeResolved`, the
+per-room `_envelope` override, `envelopeApplies`, `reconcileEnvelope`,
+`envelopeTemperatureSync`, `openExteriorOpenings()`);
+`platform/idea/api/BiomeLogic.ts` (`resolveTemperatureFor` + the trace
+variant with the envelope provenance shape; `outsideTemperatureFor`);
+`platform/idea/cmd/perception/FeelController.ts` (the cause line, 3e);
 `base-library/.../biome/indoor/baseline.yaml` (delete
 `_defaultTemperature`); `lib/thermal/Thermal.ts`
 (`refreshAmbientFromEnvelope` in `reconcileThermal`);
 `lib/thermal/ThermalRegulation.ts` (the cached offset);
 `WeatherLogic.runBoundaryFanout` (re-resolve outside for occupied
-envelope rooms); `settings/envelope.yaml` (three dials).
+envelope rooms); `settings/envelope.yaml` (three dials);
+`scripts/check-envelope.ts` + `package.json` `lint:envelope` (the five
+cellars listed with reasons, ceiling 5; overrides ceiling 0; the biome
+line; the indoor rule); YAML comments beside the five `_temperature`
+lines.
 **Tests.** `lib/biome/__tests__/Atmospheric.envelope.test.ts`: τ shut vs
 one open exterior door; a 1.5 kW input's steady state; an authored
 `_temperature` wins; `getVolume() === null` → no envelope; a zone-authored
-temperature gets no weather. `BiomeLogic` trace provenance `'envelope'`.
+temperature gets no weather; a zone `envelope` reaches its rooms through
+a sub-zone; a room override beats the zone; no zone → universe dials.
+`BiomeLogic` trace provenance `'envelope'`. `Feel` bare form names the
+cause in each of the five states (controller test).
 `Thermal.test.ts`: a loaf in a warming room follows it with no restamp.
 `ThermalRegulation`: a body in a warming room stops paying cold with no
 restamp. `WeatherLogic`: the solar term at four anchors.
-**Acceptance.** `feel` in the general store at night reads `cool`, and at
-noon `warm`; a body standing there pays the cold branch and its cue
-fires; the Hearthworks suite green (the sealed cellar reads its own
+**Acceptance.** `feel` in the general store at night reads `cool` and
+says the door stands open, and at noon `warm`; `feel` in the hospitality
+cellar says it keeps its own temperature; a body standing in the cold
+store pays the cold branch and its cue fires; `lint:envelope` passes at
+ceiling 5/0; the Hearthworks suite green (the sealed cellar reads its own
 authored temperature — verify the row; if it has none, author 285 K in
 this wave, the bespoke case).
 **Commit.** `build(envelope W3): the room holds a state different from outside, at a cost`
@@ -912,15 +1029,20 @@ locality treasury is a deferred seam, not this build's.
 **Goal.** Every shipped room has a source or is deliberately dark;
 businesses keep hours; the lint ceilings reach zero.
 **Decisions.** D4 (rows), D9 (remaining cast), D13.
-**Rows.** Every one of the ~150 interior rows: (i) an `ambientSource`
-decision — `sky` with `ambientOpening` (a window detail) for interiors
-with windows, nothing for interiors lit by spill (any room with a
-doorless exit to a `sky` room reads daylight at full strength already —
-the largest class; verify by running the walk in a boot test), a lamp or
-hearth in `props:` for interiors that must be usable after dark (the
-terminal hall, the infirmary, the general store, the lounge bar — a
-hearth; the dorm rooms — a candle row exists), `glow` for the sandbox
-`CircleFloor` and Rejection's glowcap caves (the ratchet ceiling); (ii)
+**Rows.** Every one of the ~150 interior rows: (i) a source decision —
+nothing at all for interiors lit by spill (any room with a doorless exit
+to a sky-exposed room reads daylight at full strength already — the
+largest class; verify by running the walk in a boot test), an authored
+`sky` + `ambientOpening` (a window detail) only for the windowed
+interior with no spill (listed), a lamp or hearth in `props:` for
+interiors that must be usable after dark (the terminal hall, the
+infirmary, the general store, the lounge bar — a hearth; the dorm rooms
+— a candle row exists), `glow` for the sandbox `CircleFloor` and
+Rejection's glowcap caves (listed), and **deleting** the stray
+`ambientIntensity` on enclosed rooms that meant "lit by day" (the
+decree); zone `envelope` specs where a district is not built like the
+universe default (a stone cellar block, a timber shed — on the zone row,
+never per room); (ii)
 doors on exterior exits where the fiction wants a shut shop (the general
 store's `south` gets a `door:` row so its light and heat close at
 night); (iii) `_temperature` on the two cellars and the brewing/vintner
@@ -935,9 +1057,11 @@ reviewable; the ceiling in `check-light-sources.ts` falls with each.
 **Tests.** A boot-level census test in `platform/idea/__tests__` that
 clones every Location row and asserts `signalAt` at noon ≥ `dim` unless
 the row is in the deliberately-dark list (the list is the second ratchet).
-**Acceptance.** `lint:light-sources` clause (a) ceiling = 0, (d) gates;
+**Acceptance.** `lint:light-sources` clause (a) ceiling = 0; every
+exception list in both gates holds exactly its curated entries;
 acceptance 13 and 16 (a second town = rows: prove it by authoring one
-street + one interior in `world-seed`'s Narnia with no code).
+street + one interior in `world-seed`'s Narnia with no code and no
+`ambientSource` — the sky is derived).
 **Commit.** `build(envelope W6): every room authored with a source; hours that bite`
 
 ### W7 — The drive, and the docs
@@ -975,8 +1099,8 @@ The five links, per new capability. Each fails closed and silent.
 |---|---|---|---|---|---|
 | light a lantern / hearth | `ignite.yaml` `[ignite, light, kindle]` — ships | `FurnaceMixin.commandContributions.peers` affords `ignite`/`douse`/`pump`/`heat`/`boil`/`warm` — ships; **a Lamp in your hand** is `self`, not `peers`: verify `light lantern` resolves a held lamp (the `reachable` scope includes inventory; if the affordance is peers-only for a held item, add `ignite`/`douse` to `self` on `FurnaceMixin`) | lantern/torch rows on `Lamp`; `Hearth.yaml` in generic-objects; `props:` in cookhouse | nothing to warm — Things clone with their rooms | `requires: CombustibleMixin\|FurnaceMixin` — **satisfied** |
 | douse | `douse.yaml` — ships | same | same | — | same |
-| the sky | none (a `look`) | — | `ambientSource: sky` on 41 rows | the celestial singleton is `singletonSync`-created on first read; the memo seeds itself | — |
-| the room's warmth | `feel` (bare) — ships | — | `_envelope` optional; defaults apply | none; reconcile-on-read | `requires: any` |
+| the sky | none (a `look`) | — | **derived** from the row's biome chain (`isSkyExposed`); no row edit | the celestial singleton is `singletonSync`-created on first read; the memo seeds itself | — |
+| the room's warmth, and why | `feel` (bare) — ships; now names the cause | — | zone `envelope` optional; universe dials apply | none; reconcile-on-read; the spec resolves at the first async read | `requires: any` |
 | the body's cold | `look` body line / the `self.body` cue — ship | — | dials | — | — |
 | public lighting | `look at lamps` — `look` ships; the detail is the row's | `PublicLightingMixin.getDetail` | `publicLighting:` on street rows + `_publicLighting` on the locality + a government with a treasury + a supplier Business | `civic:lighting` registered in `registerSystemSchedules`; the boot-time settle | — |
 | the town pays | none (a schedule) | — | the realm treasury (`/compact/treasury`, `BankingApi.appropriate`) + a supplier Business with a primary account (**a treasury holding less than one street-night lights nothing** — the shipped refusal) | the clock boots before packs finish? Verify `registerSystemSchedules` runs after the address registry is warm; if not, the callback resolves lazily on first fire | — |
@@ -1002,8 +1126,8 @@ account at the first sunset — the drive reads `treasury` before step 6
 | 4 | lantern works; out → dark immediately | W2 (the walk reads flux live) |
 | 5 | lit street needs no lantern; unlit does | W5 |
 | 6 | unlit street dark; lamps "standing cold"; **no lamp object** | W5 + `lint:light-sources` (e) + the `Lamp.ts` retirement in W0 |
-| 7 | no room shows light without a source; census refuses a new one | W0 scaffold → W6 ceiling 0 |
-| 8 | unheated room in winter: cold from prose + body line | W3 (D3a/b, `feel`, the shiver cue, the `look` body line — add a *"You are cold"* clause to `Creature.bodyBuildPhrase`'s mirror in W3 if the cue alone is judged insufficient at the drive) |
+| 7 | no room shows light without a source; census refuses a new one | W0 scaffold → W6 ceiling 0; the heat twin `lint:envelope` (W3) refuses a sixth decree |
+| 8 | unheated room in winter: cold from prose + body line | W3 (D3a/b, `feel` + its cause line (D3e), the shiver cue, the `look` body line — add a *"You are cold"* clause to `Creature.bodyBuildPhrase`'s mirror in W3 if the cue alone is judged insufficient at the drive) |
 | 9 | hearth warms gradually; just-lit ≠ long-lit | W4 |
 | 10 | open door costs warmth; shut stops it | W3 (+ the general store's new door row in W6) |
 | 11 | fire runs out; room cools | W4 (furnace burnout edge ships) |
@@ -1031,8 +1155,10 @@ Nothing unmapped.
   its output is pasted into this plan's drive record.
 - **Wire** (`pnpm wire`): `envelope.dirty.wire.test.ts` (W7). Per-worktree
   `WIRE_PORT`; never `dev:server` beside a driving sibling.
-- **Lints:** the family, plus the new `lint:light-sources` with two
-  ratchets (undeclared-source ceiling → 0 at W6; `glow` ceiling curated).
+- **Lints:** the family, plus the two new gates — `lint:light-sources`
+  (the undeclared-interior ceiling → 0 at W6; the three exception lists
+  curated) and `lint:envelope` (five reasoned cellars, zero room
+  overrides, the biome line, the indoor rule).
 - **Full suite:** once before the MR opens, once at `/finalize`. A green
   run holds until a source file changes.
 - **What only the drive proves:** the prose of a dark street in a
@@ -1093,6 +1219,17 @@ Nothing unmapped.
 10. **Do not** add a Discipline, touch `measure`/`analyze`, or name coal
     or peat rows. Fuel is `reserves.fuel` on the row; when extraction
     lands, its rows fill the reserve — no code here knows a fuel's name.
+11. **Do not** scope in a building/structure concept (the zone is the
+    grouping and it already ships), a biome-catalogue normalization
+    (the user is taking it as its own slate), or template inheritance
+    (`ref-shapes.md`: a platform feature; the arithmetic here does not
+    need it). If a reviewer asks "where is the building", the answer is
+    the zone row and the `cellSize` precedent.
+12. **The biome line is the one that cascades.** If construction ever
+    lands on a biome, one row warms every room that references it with
+    no fire in them; `lint:envelope` clause (c) exists so the failure is
+    a build error, and `feel`'s cause line exists so it would read as
+    *warm for no reason* in the fiction before anyone ran the gate.
 
 ---
 
