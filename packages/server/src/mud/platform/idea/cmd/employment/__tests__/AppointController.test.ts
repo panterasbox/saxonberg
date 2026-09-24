@@ -62,7 +62,6 @@ function makeOrg(): OrganizationEntity {
       key: POSITION,
       label: 'speaking for the Compact',
       wageRate: 0,
-      confers: [],
     },
   ];
   return org;
@@ -152,7 +151,7 @@ describe('mustHoldAppointingAuthority', () => {
   it('fails closed on an organization with no authored authority', async () => {
     const org = makeStuffAtPath(() => new OrganizationEntity(), ORG);
     org.positions = [
-      { key: POSITION, label: 'x', wageRate: 0, confers: [] },
+      { key: POSITION, label: 'x', wageRate: 0 },
     ];
     const anyone = makeAvatar('dave');
     await expect(gate(anyone as unknown as Stuff, ORG)).resolves.toMatch(

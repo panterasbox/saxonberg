@@ -1,0 +1,22 @@
+# The generic shop counter — the archetype's `counter` default
+# (trades-and-labor D6). Deliberately BARE: no stock lines, no prices, no
+# business. It is the joinery a shop starts from, which a locality then
+# dresses with its own row (the general store's counter is terminus's and
+# reads nothing like this).
+#
+# ⭐ This is what makes a second store rows only: `Archetype.materialize()`
+# clones this into a derived venue, and a consignor can sell across it on
+# the day it stands up.
+class: /trade/shopkeeping/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: shop counter
+  keywords: [counter, shop, till]
+  register: indefinite
+  longDescription: |
+    A plain plank counter with a till at one end and shelving behind it, waiting to be stocked.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  businessPath: ""
+  stockLines: []

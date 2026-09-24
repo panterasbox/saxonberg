@@ -1,7 +1,7 @@
 /**
  * Content-integrity tests for Dave's Bar cast seeds. Validates that the
  * authored NPC templates reference a shared archetype class (the thin
- * `NPC`, or its `Crafter` maker-subclass for the bar staff — the
+ * `NPC` — the
  * crafting lane made the bartenders order-fulfillers) and that every
  * `behaviors[].brain` path resolves to a real brain module — the same
  * `StuffApi.resolveExport` check the CMS save-gate runs, so a typo'd
@@ -50,13 +50,13 @@ describe("Dave's Bar cast seeds", () => {
 
   it('every cast member uses a shared archetype class (no bespoke per-NPC subclass)', () => {
     // The cast composes behavior as data over a shared class — one of the
-    // two identity rungs (`Cast` / `Extra`), or `Crafter`
-    // (`CastMixin(MakerMixin(NPC))`) for the bar staff, whom the crafting
+    // two identity rungs (`Cast` / `Extra`). ⭐ The bar staff are plain
+    // `Cast` since the trades-and-labor build: what lets the one on shift
+    // serve an `order` is the house's `fulfills` SEAT, whom the crafting
     // lane made order-fulfillers. Never a per-NPC subclass.
     const allowed = [
       '/platform/agent/Cast',
       '/platform/agent/Extra',
-      '/platform/agent/Crafter',
     ];
     for (const f of castFiles()) {
       expect(allowed, f).toContain(load(f).class);

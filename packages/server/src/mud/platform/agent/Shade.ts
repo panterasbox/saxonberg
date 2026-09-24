@@ -119,9 +119,15 @@ export default class Shade extends IncorporealMixin(Avatar) {
    * species. The conferral seam
    * (`MixinApi.collectAugmentConferralNames` → `getConferredMixinNames`)
    * is per-host and already read structurally, so it is the right one.
+   *
+   * ⚠ Not an `override` since the trades-and-labor build: `EmployedMixin`
+   * used to declare this method too (to fold a JOB's grants into the
+   * augment walk) and a shade inherited it. That fold is gone — a job's
+   * grants are data on the seat now — so a shade is the seam's one
+   * consumer and declares it outright.
    */
-  public override getConferredMixinNames(): string[] {
-    return [...super.getConferredMixinNames(), 'AetherMixin'];
+  public getConferredMixinNames(): string[] {
+    return ['AetherMixin'];
   }
 
   /**

@@ -12,7 +12,6 @@ data:
       noun: undertaker
       label: keeping the necropolis
       wageRate: 5
-      confers: []
   rosterSlots:
     - positionKey: undertaker
       assignee: /world/terminus/necropolis/agent/undertaker

@@ -12,21 +12,13 @@
  * sit — `buy`.
  */
 
-import { Vessel } from "../../lib/stuff/Vessel";
-import { DetailedMixin } from "../../lib/description/Detailed";
-import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
-import { ConsignmentShelfMixin } from "../../lib/retail/Consignment";
-import { MqlApi } from "../../api/mql";
-import { MixinApi } from "../../api/mixin";
-import type { CommandContext, CommandContributions } from "../../api/command";
-import type { FieldMeta } from "../../lib/mixin";
-import type { Stuff } from "../../lib/stuff/Stuff";
-import type { Container } from "../../lib/spatial/Container";
-import type { ConsignmentShelf as ConsignmentShelfSurface } from "../../lib/retail/Consignment";
-
-/** Any fixture that brokers listings — this class, or a `Stock` counter. */
-export type ShelfStuff = Stuff & Container & ConsignmentShelfSurface;
+import { Vessel } from "@saxonberg/server/mud/lib/stuff/Vessel";
+import { DetailedMixin } from "@saxonberg/server/mud/lib/description/Detailed";
+import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
+import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
+import { ConsignmentShelfMixin } from "@saxonberg/server/mud/lib/retail/Consignment";
+import type { CommandContributions } from "@saxonberg/server/mud/api/command";
+import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
 const ConsignmentShelfBase = PersistableMixin(
   ConsignmentShelfMixin(PostRegistrationMixin(DetailedMixin(Vessel))),

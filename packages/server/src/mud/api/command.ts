@@ -1010,7 +1010,7 @@ export interface PositionalDefinition extends FieldDefinition {
  * material's `edibility`.
  *
  * ⚠ Composition, not activation. The check is `MixinApi.hasMixin`. A
- * capability that must be *active* (augment-conferred, `MixinApi.isMaker`
+ * capability that must be *active* (augment-conferred, `MixinApi.isCaster`
  * and friends) is a state question and keeps its validator.
  *
  * ⚠ Never declare `'any'` on a field whose controller DOES refuse by

@@ -187,6 +187,20 @@ export class ContractApi {
   }
 
   /**
+   * ⭐ **How much work `identityPath` has FINISHED** — settled gigs, by
+   * count. The labor market's entry criterion: a house that asks for two
+   * completed gigs is asking for something a newcomer can go and do this
+   * afternoon off the nearest board, which is what makes the refusal a
+   * direction rather than a wall.
+   *
+   * ⚠ Keyed on the durable IDENTITY path, never the template path —
+   * every player Avatar shares one of the latter.
+   */
+  public static async settledGigsBy(identityPath: string): Promise<number> {
+    return logic().settledGigsBy(identityPath);
+  }
+
+  /**
    * ⭐ **The backhaul read** (logistics D17): live gigs whose work STARTS
    * at `originPath`, wherever they are posted. Lazy expiry applied, same
    * as the board browse.

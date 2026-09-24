@@ -73,11 +73,13 @@ import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefi
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import { brain as consigns } from '@saxonberg/server/mud/lib/behavior/consigns';
+import { brain as consigns } from '@saxonberg/content-trade-shopkeeping/src/behavior/consigns';
 import Extra from '@saxonberg/server/mud/platform/agent/Extra';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import Stock from '@saxonberg/server/mud/platform/thing/Stock';
+import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
+
+class Stock extends StockBase {}
 import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
 import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
 import Coin from '@saxonberg/server/mud/platform/thing/Coin';
@@ -277,7 +279,7 @@ describe('trade-distilling — the classes', () => {
 
 describe('trade-distilling — the floor rows', () => {
   it('every floor bottle is a drawable floor product homed in a shipped Stock, over a shipped material', () => {
-    const stocks = new Set(productRows().filter((r) => r.class === '/platform/thing/Stock').map((r) => r.path));
+    const stocks = new Set(productRows().filter((r) => r.class === '/trade/shopkeeping/thing/Stock').map((r) => r.path));
     const materials = new Set(rows('idea/material').map((r) => r.path));
     const floor = floorRows();
     // ⭐ The roster, by producer: Veshko makes the six unbranded rail
@@ -300,7 +302,7 @@ describe('trade-distilling — the floor rows', () => {
   it('every hand names the COUNTER as its host shelf and its own stock (the annex names the host)', () => {
     for (const hand of yardRows('agent').filter((r) => r.file.endsWith('/hand.yaml'))) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
-        (b) => b.brain === '/lib/behavior/consigns',
+        (b) => b.brain === '/trade/shopkeeping/behavior/consigns',
       );
       expect(spec, hand.file).toBeDefined();
       expect(spec!.config.shelf).toBe('/world/terminus/counting-houses/distributor/thing/counter');
@@ -451,14 +453,14 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
 
     const host = makeStuffAtPath(() => new BusinessEntity(), HOST_BIZ);
     host.proprietorPath = '';
-    host.positions = [{ key: 'clerk', label: 'clerking', wageRate: 5, confers: [] }];
+    host.positions = [{ key: 'clerk', label: 'clerking', wageRate: 5 }];
     host.operatingLocations = [COUNTER, COUNTER_ROOM];
     host.banksAt = BankingApi.defaultCustodianBank();
     hostAccount = await EmploymentApi.operatingAccountOf(host);
 
     outfit = makeStuffAtPath(() => new BusinessEntity(), OUTFIT);
     outfit.proprietorPath = '';
-    outfit.positions = [{ key: 'hand', label: 'running the floor', wageRate: 3, confers: [], purchases: true }];
+    outfit.positions = [{ key: 'hand', label: 'running the floor', wageRate: 3, purchases: true }];
     outfit.operatingLocations = [FLOOR_ROOM, FLOOR_STOCK];
     outfit.banksAt = BankingApi.defaultCustodianBank();
     outfitAccount = await EmploymentApi.operatingAccountOf(outfit);
@@ -493,7 +495,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       if (verb === 'get') {
         // `get 1 <kw>` — the quantity form the beat uses so a lift takes
         // ONE of a keyword rather than every match on the floor (see
-        // `lib/behavior/consigns.ts`). The real verb takes a leading
+        // `trade-shopkeeping/src/behavior/consigns.ts`). The real verb takes a leading
         // count; the stub has to as well, or the lift silently matches
         // nothing and the beat stops at the first good.
         const rst = /^\d+$/.test(rest[0] ?? '') ? rest.slice(1) : rest;

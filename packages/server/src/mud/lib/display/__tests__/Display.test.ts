@@ -91,7 +91,7 @@ async function makeBusiness(): Promise<BusinessEntity> {
   const biz = makeStuffAtPath(() => new BusinessEntity(), BIZ);
   biz.proprietorPath = '';
   biz.positions = [
-    { key: 'keeper', label: 'keeping the bar', wageRate: 0, confers: [], purchases: true },
+    { key: 'keeper', label: 'keeping the bar', wageRate: 0, purchases: true },
   ];
   biz.banksAt = BankingApi.defaultCustodianBank();
   return biz;

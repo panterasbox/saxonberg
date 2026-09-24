@@ -106,22 +106,12 @@ export abstract class BankingControllerBase<
         return live;
       }
     }
-    const herePath = context.location?.getTemplatePath() ?? "";
     // The house operating HERE — the room, or a fixture standing in it
     // (attribution keys on the fixture: a bank's business operates its
-    // counter, not the hall the counter stands in).
-    const candidates: string[] = [];
-    if (herePath) candidates.push(herePath);
-    const room = context.location;
-    if (room && MixinApi.isContainer(room)) {
-      for (const fixture of room.getContents()) {
-        const path = fixture.getIdentityPath();
-        if (path && !MixinApi.isHasInteractive(fixture)) candidates.push(path);
-      }
-    }
-    for (const path of candidates) {
-      const here = EmploymentApi.businessAt(path);
-      if (here && (here.employs(giver) || (await here.hasProprietor(giver)))) {
+    // counter, not the hall the counter stands in). ⭐ One walk, two
+    // consumers: this, and the help-wanted sign (`EmploymentApi.noticesAt`).
+    for (const here of EmploymentApi.operatorsAt(context.location ?? null)) {
+      if (here.employs(giver) || (await here.hasProprietor(giver))) {
         return here;
       }
     }
@@ -129,8 +119,12 @@ export abstract class BankingControllerBase<
     return mine[0] ?? null;
   }
 
-  /** A present bartender (an active MakerMixin agent) — the house's rep. */
+  /** A present bartender (whoever is on shift and fulfilling here) — the house's rep. */
   protected presentBartender(context: CommandContext): Stuff | null {
-    return this.peers(context).find((s) => MixinApi.isMaker(s)) ?? null;
+    return (
+      this.peers(context).find(
+        (s) => MixinApi.isEmployed(s) && s.isFulfilling(),
+      ) ?? null
+    );
   }
 }

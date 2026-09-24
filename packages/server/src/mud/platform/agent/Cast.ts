@@ -9,7 +9,7 @@
  * The generic clone target for the identity rung, so a row's `class:`
  * says which rung it is out loud. Combinations that also need a
  * capability stay one-liners over the same mixin —
- * `Crafter = CastMixin(MakerMixin(NPC))`.
+ * `Cast` itself (the maker marker retired with trades-and-labor).
  *
  * `CastMixin` brings `SingletonMixin`: a second live clone of a Cast row
  * throws. That is the enforcement, and it is why *"every NPC row is

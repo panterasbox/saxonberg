@@ -16,7 +16,7 @@ data:
       noun: hand
       label: running the Crowsfoot outfit's floor
       wageRate: 3
-      confers: [MakerMixin]
+      fulfills: [distilling, fermenting]
       purchases: true
   rosterSlots:
     - positionKey: hand

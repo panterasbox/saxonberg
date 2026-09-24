@@ -23,7 +23,7 @@
 # the alternative is not a purer economy; it is a mill that stands idle
 # and a chain nobody can buy into. The metal chain put it best: supply
 # must not be a function of concurrency.
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "mill's bale store"

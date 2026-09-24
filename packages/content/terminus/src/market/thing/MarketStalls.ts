@@ -16,7 +16,7 @@
  * counter affords only what any counter does (`buy`, `consign`, `reclaim`).
  */
 
-import Stock from '@saxonberg/server/mud/platform/thing/Stock';
+import Stock from '@saxonberg/content-trade-shopkeeping/src/thing/Stock';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 

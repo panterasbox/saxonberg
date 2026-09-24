@@ -22,7 +22,6 @@
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import CheckRack from "../../../thing/CheckRack";
 import Ticket from "../../../thing/Ticket";
 import { ContainmentApi } from "../../../../api/containment";
 import { StuffApi } from "../../../../api/stuff";
@@ -37,7 +36,7 @@ import type { Containable } from "../../../../lib/spatial/Containable";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
 import type { Wieldable } from '../../../../lib/slot/Wieldable';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { RackStuff } from '../../../thing/CheckRack';
+import type { RackStuff } from '../../../../lib/retail/Consignment';
 
 const TOPIC = "act.deed";
 

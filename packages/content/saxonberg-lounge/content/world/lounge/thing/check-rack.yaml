@@ -10,7 +10,7 @@
 # migration (FixtureMixin), so it always stands in whichever room currently
 # holds the north exit to the bar. PersistableMixin keeps checked weapons
 # (and their owner-stamps) across a relog / server bounce.
-class: /platform/thing/CheckRack
+class: /trade/hospitality/thing/CheckRack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren

@@ -21,8 +21,12 @@ import ReclaimController from "../../retail/ReclaimController";
 import WalletController from "../WalletController";
 import HouseController from "../HouseController";
 import QuitController from "../../employment/QuitController";
-import Stock from "../../../../thing/Stock";
-import ConsignmentShelf from "../../../../thing/ConsignmentShelf";
+import StockBase from "../../../../../lib/retail/Stock";
+import { Vessel } from "../../../../../lib/stuff/Vessel";
+import { DetailedMixin } from "../../../../../lib/description/Detailed";
+import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
+import { PostRegistrationMixin } from "../../../../../lib/stuff/PostRegistration";
+import { ConsignmentShelfMixin } from "../../../../../lib/retail/Consignment";
 import Thing from "../../../../../lib/stuff/Thing";
 import Coin from "../../../../thing/Coin";
 import BankCounter from "../../../../thing/BankCounter";
@@ -58,6 +62,18 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+
+// The brokerage shelf is a composition of kernel mixins; the instanceable
+// class ships in `/trade/shopkeeping`, which the kernel may not import.
+// The composition line IS the fixture.
+class ConsignmentShelf extends PersistableMixin(
+  ConsignmentShelfMixin(PostRegistrationMixin(DetailedMixin(Vessel))),
+) {}
+
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 const BANK = "/stuff/test/bank-counter";
 const STORE = "/stuff/test/store/counter";
@@ -119,8 +135,8 @@ async function makeBarBusiness(
   const biz = makeStuffAtPath(() => new BusinessEntity(), BAR_BIZ);
   biz.proprietorPath = proprietor;
   biz.positions = [
-    { key: "bartender", label: "tending bar", wageRate: 12, confers: [] },
-    { key: "keeper", label: "keeping the bar", wageRate: 0, confers: [], purchases: true },
+    { key: "bartender", label: "tending bar", wageRate: 12 },
+    { key: "keeper", label: "keeping the bar", wageRate: 0, purchases: true },
   ];
   biz.operatingLocations = ["/stuff/test/bar/room"];
   biz.banksAt = BankingApi.defaultCustodianBank();
@@ -446,9 +462,12 @@ describe("the house account in the wallet (D6)", () => {
     const pat = await fundedGiver("/platform/agent/Avatar/pat", 0);
     ContainmentApi.move(pat as never, loc as never);
     await makeBarBusiness("", 0);
-    const c = ctx(pat, loc, null, "house stock");
+    // ⚠ `roster`, not `stock` — `house stock` is trade-shopkeeping's since
+    // the trades-and-labor split. The claim is unchanged: a non-staff
+    // giver is refused on the SEAT, on any subcommand of the house app.
+    const c = ctx(pat, loc, null, "house roster");
     await asOwner(pat, () =>
-      makeStuff(() => new HouseController()).execute({ subcommand: "stock" } as never, c),
+      makeStuff(() => new HouseController()).execute({ subcommand: "roster" } as never, c),
     );
     expect(rejections(c)).toEqual(["not-staff"]);
   });

@@ -30,7 +30,7 @@ data:
     - { discipline: agriculture, asserting: novice }
     - { discipline: retail-sales, asserting: novice }
   behaviors:
-    - brain: /lib/behavior/consigns
+    - brain: /trade/shopkeeping/behavior/consigns
       trigger: cadence:4m
       config:
         stock: /world/terminus/goods-yards/farm/thing/stock

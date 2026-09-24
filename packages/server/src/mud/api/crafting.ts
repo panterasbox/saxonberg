@@ -37,7 +37,8 @@ import type Material from '../lib/material/Material';
  * How the output's maker is resolved — an enum, never a principal:
  * - `'self'` — the command giver (the maker themselves). Used by
  *   `serve` / `mix`.
- * - `'fulfilling-bartender'` — a present maker (a `MakerMixin` agent) in the
+ * - `'fulfilling-bartender'` — a present fulfilling holder (on shift, in a
+ *   `fulfills` seat, where their house operates) in the
  *   giver's location, resolved from world state. Used by `order` (the giver
  *   is the patron).
  */

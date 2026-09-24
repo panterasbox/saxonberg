@@ -17,7 +17,6 @@ data:
       noun: hand
       label: running the pantry outfit's floor
       wageRate: 3
-      confers: []
       purchases: true
   rosterSlots:
     - positionKey: hand

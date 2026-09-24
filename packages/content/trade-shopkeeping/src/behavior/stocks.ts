@@ -43,20 +43,20 @@
  * fires, and this one must run with nobody online.
  */
 
-import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
-import { LocomotionApi } from '../../api/locomotion';
-import { EmploymentApi } from '../../api/employment';
-import { BankingApi } from '../../api/banking';
-import type { CommandGiver } from '../command/CommandGiver';
-import type { Stuff } from '../stuff/Stuff';
-import type { Mobile } from '../spatial/Mobile';
-import type { Container } from '../spatial/Container';
-import type { Containable } from '../spatial/Containable';
-import type { BrainContext, BrainStatics } from './brain';
-import type { Employed } from '../employment/Employed';
-import type { Exitable } from '../boundary/Exitable';
-import Stock from '../../platform/thing/Stock';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
+import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
+import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
+import Stock from '@saxonberg/server/mud/lib/retail/Stock';
 
 const DEFAULT_BATCH = 6;
 

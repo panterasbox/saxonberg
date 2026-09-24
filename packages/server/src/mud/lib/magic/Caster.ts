@@ -3,7 +3,7 @@
  *
  * Composed on `Character` (every PC and NPC), **gated**: the faculty is
  * active only when the actor's `Species` intrinsically confers it
- * (`innateMixins: ['CasterMixin']` — the `MakerMixin` augment-gating
+ * (`innateMixins: ['CasterMixin']` — the augment-gating
  * precedent, innate leg). A species without the faculty carries the
  * methods inert — no reserve installs, no verbs afford, `cast` refuses.
  *

@@ -49,7 +49,7 @@ const docs: Doc[] = [
     hydratorClass: PH,
     data: {
       proprietorPath: "",
-      positions: [{ key: "cook", label: "minding the hearth", wageRate: 4, confers: ["MakerMixin"] }],
+      positions: [{ key: "cook", label: "minding the hearth", wageRate: 4, fulfills: ['cooking'] }],
       rosterSlots: [
         {
           positionKey: "cook",
@@ -104,7 +104,7 @@ describe("EmploymentApi.ensureOperatorAt (derived standup)", () => {
     // venue is already live by the time anybody needs them. `ensureOperatorAt`
     // used to `return live` before running any pass, so the one venue that
     // needed it never got it: the Hearthworks cook stood at his own hearth
-    // with no employment record, nothing conferred `MakerMixin`, and `order`
+    // with no employment record, nobody was on shift in a `fulfills` seat, and `order`
     // answered "There's no one on hand to make that" for a whole game-hour.
     //
     // Observed through the pass's own report about an unresolvable assignee:

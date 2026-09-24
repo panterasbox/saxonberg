@@ -1703,7 +1703,7 @@ can compose `BulkableMixin` and still expose no slot, so the refusal is
 `BulkableApi.slotFor(x) === null`, not the mixin.
 
 ⚠ Composition, not **activation**. The check is `MixinApi.hasMixin`. A
-capability that must be *active* (augment-conferred — `isMaker` and
+capability that must be *active* (augment-conferred — `isCaster` and
 friends) is a state question and keeps its validator.
 
 #### ⚠ The `class:` escape is closed

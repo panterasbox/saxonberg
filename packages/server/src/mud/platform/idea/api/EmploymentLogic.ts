@@ -7,6 +7,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import { Opening } from '../../../lib/employment/Opening';
 import { CategoryMeasure } from '../../../lib/employment/CategoryMeasure';
 import { MqlApi } from '../../../api/mql';
 // ⭐ The own-Api self-import (the `PressLogic` precedent). A free
@@ -33,9 +34,9 @@ import { Mixins } from '../../../lib/mixin';
 import type { Business } from '../Business';
 import type { Organization } from '../../../lib/employment/Organization';
 import type { PrincipalRef } from '../../../lib/employment/Authority';
-import type { Employed } from '../../../lib/employment/Employed';
+import type { Employed, ClockResult } from '../../../lib/employment/Employed';
 import { ParLine } from '../../../lib/employment/ParLine';
-import type Stock from '../../thing/Stock';
+import type Stock from '../../../lib/retail/Stock';
 import {
   Employment,
   EXITED_STATUSES,
@@ -794,7 +795,7 @@ function stockSheetForImpl(
  * Begin a proprietor's cover: upsert a **transient, on-shift** Employment
  * against the business's (first) position — reusing the whole on-shift→
  * confer path, so the covering proprietor gains the Position's capability
- * (`MakerMixin` for the bar). Unpaid by construction: the wage settlement
+ * (a `fulfills` seat, for the bar). Unpaid by construction: the wage settlement
  * skips a proprietor-held Employment, and the roster tick never governs the
  * proprietor (they hold no roster slot), so the cover is never resurrected
  * or paid. Idempotent-ish: a re-begin just refreshes the record.
@@ -827,7 +828,7 @@ function tipRecipientForImpl(patron: Stuff): Stuff | null {
   const loc = patron.getContainer();
   if (!loc || !MixinApi.isContainer(loc)) return null;
   for (const c of loc.getContents()) {
-    if (c !== patron && MixinApi.isMaker(c)) return c;
+    if (c !== patron && MixinApi.isEmployed(c) && c.isFulfilling()) return c;
   }
   return null;
 }
@@ -1344,7 +1345,7 @@ export class EmploymentLogic extends ApiLogic {
    * skips them (`… is not live`) and nothing re-runs it when they appear.
    * The result, found by driving the Hearthworks cookhouse: the cook stands
    * at his own hearth with **no employment record at all**, so nothing
-   * confers `MakerMixin`, and `order` answers *"There's no one on hand to
+   * marks `fulfills`, and `order` answers *"There's no one on hand to
    * make that"* — until the next scheduled tick, a whole game-hour later.
    *
    * `ensureOperatorAt` was already written to prevent exactly this ("a cold
@@ -1510,6 +1511,108 @@ export class EmploymentLogic extends ApiLogic {
     return endEmploymentImpl(actor, organizationPath, 'quit');
   }
 
+  /**
+   * ⭐⭐ **`clock on` / `clock off`** (trades-and-labor D15) — the wage
+   * mechanism for a seat somebody APPLIED for.
+   *
+   * `beginShift` runs from exactly one place, the roster tick, over
+   * authored `rosterSlots`. A player who applies holds a seat with no
+   * roster entry, so without this they would hold a job that never starts
+   * a shift, never pays and never grants anything.
+   *
+   * The two ways out were: write the applicant a roster slot with the
+   * seat's authored hours — paid for the window, present or not, which is
+   * the AFK wage lens 6 names as a failure (*a wage for existing*) — or an
+   * explicit act. Lens 6 and lens 3 choose the act, and it is a recorded
+   * lean, not new scope: `livelihood-slate` §5.4, *"[LEAN] Shift model —
+   * voluntary clock-in, employer-bounded; rigid schedules are hostile to
+   * real humans."*
+   *
+   * ⚠ **A rostered NPC is untouched** — the tick still governs it. This
+   * governs only a holder the tick has no assignment for, and the two
+   * cannot fight: the tick iterates assignments, and an applicant has
+   * none.
+   */
+  private async clockImpl(
+    actor: Stuff,
+    organizationPath: string,
+    direction: 'on' | 'off',
+  ): Promise<ClockResult> {
+    if (!MixinApi.isEmployed(actor)) {
+      return { ok: false, reason: 'not-employed-here' };
+    }
+    const held = actor
+      .getActiveEmployments()
+      .filter((e) => !organizationPath || e.organizationPath === organizationPath);
+    if (held.length === 0) return { ok: false, reason: 'not-employed-here' };
+
+    // ⭐ Where you stand decides which job, when you hold more than one:
+    // the house has to operate this room (or a fixture in it) either way,
+    // so the room disambiguates for free.
+    const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    const operatingHere = new Set<string>();
+    for (const business of this.operatorsAtImpl(room)) {
+      const key = business.getOrganizationPath();
+      if (key) operatingHere.add(key);
+    }
+    const onPremises = held.filter((e) => operatingHere.has(e.organizationPath));
+    if (onPremises.length === 0) {
+      return {
+        ok: false,
+        reason: 'not-on-premises',
+        houses: held.map((e) => e.organizationPath),
+      };
+    }
+    if (onPremises.length > 1) {
+      return {
+        ok: false,
+        reason: 'ambiguous-house',
+        houses: onPremises.map((e) => e.organizationPath),
+      };
+    }
+    const employment = onPremises[0]!;
+    const business = StuffApi.findByTemplatePath(employment.organizationPath);
+    if (!business || !MixinApi.isBusiness(business)) {
+      return { ok: false, reason: 'not-employed-here' };
+    }
+    const onShift = employment.status === 'on-shift';
+    const nowRaw = WorldClockApi.getNow().rawValue();
+    if (direction === 'on') {
+      if (onShift) return { ok: false, reason: 'already-on-shift' };
+      business.beginShift(actor as EmployedActor, nowRaw);
+    } else {
+      if (!onShift) return { ok: false, reason: 'not-on-shift' };
+      // Settle off the captured record (it still carries `onShiftSince`)
+      // before the clear — the roster tick's own off-transition, invoked
+      // by the holder instead of by the clock.
+      await settleShiftWageImpl(
+        business,
+        actor.getIdentityPath() ?? '',
+        employment,
+        nowRaw,
+      );
+      business.endShift(actor as EmployedActor);
+    }
+    return {
+      ok: true,
+      organizationPath: employment.organizationPath,
+      positionKey: employment.positionKey,
+    };
+  }
+
+
+  /** See {@link Employed.clockOn}. */
+  @CallSecurity(EmployedCallers)
+  public clockOn(actor: Stuff, organizationPath: string): Promise<ClockResult> {
+    return this.clockImpl(actor, organizationPath, 'on');
+  }
+
+  /** See {@link Employed.clockOff}. */
+  @CallSecurity(EmployedCallers)
+  public clockOff(actor: Stuff, organizationPath: string): Promise<ClockResult> {
+    return this.clockImpl(actor, organizationPath, 'off');
+  }
+
   /** See {@link EmploymentApi.buysFor}. */
   @CallSecurity(EmployedCallers)
   public buysFor(actor: Stuff): Promise<BusinessStuff[]> {
@@ -1558,6 +1661,62 @@ export class EmploymentLogic extends ApiLogic {
     return this.businessByKey('location', locationPath);
   }
 
+  /** See {@link EmploymentApi.operatorsAt}. */
+  @CallSecurity(EmploymentApiCallers)
+  public operatorsAt(here: Stuff | null): BusinessStuff[] {
+    return this.operatorsAtImpl(here);
+  }
+
+  /** See {@link EmploymentApi.noticesAt}. */
+  @CallSecurity(EmploymentApiCallers)
+  public noticesAt(here: Stuff | null): Opening[] {
+    const out: Opening[] = [];
+    for (const business of this.operatorsAtImpl(here)) {
+      // ⚠ A closed house is not hiring. `isClosed()` is a Business fact,
+      // read here where Business is known — the chart's `openings()` has
+      // no business asking it.
+      if (business.isClosed()) continue;
+      out.push(...business.openings());
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ Every **live** business operating this room or a fixture standing
+   * in it. The one candidate walk, with two consumers: the `house` verb's
+   * seat resolution (`BankingControllerBase.resolveHouse`) and the
+   * help-wanted sign (`noticesAt`).
+   *
+   * ⚠ **Live only, and deliberately.** `ensureOperatorAt` would stand a
+   * house up — an economic act (its roster ticks, its wages flow) — and
+   * walking past a shop must not be one. The consequence is an authoring
+   * rule `lint:openings` enforces: a house that advertises is a `boot:`
+   * producer of its own pack.
+   */
+  private operatorsAtImpl(here: Stuff | null): BusinessStuff[] {
+    if (!here) return [];
+    const out: BusinessStuff[] = [];
+    const seen = new Set<string>();
+    const candidates: string[] = [];
+    const herePath = here.getTemplatePath();
+    if (herePath) candidates.push(herePath);
+    if (MixinApi.isContainer(here)) {
+      for (const fixture of here.getContents()) {
+        const path = fixture.getIdentityPath();
+        if (path && !MixinApi.isHasInteractive(fixture)) candidates.push(path);
+      }
+    }
+    for (const path of candidates) {
+      const business = this.businessByKey('location', path);
+      if (!business) continue;
+      const key = business.getOrganizationPath();
+      if (key && seen.has(key)) continue;
+      if (key) seen.add(key);
+      out.push(business);
+    }
+    return out;
+  }
+
   /**
    * Cached reverse index `operatingLocation → BusinessTemplatePath`, built
    * from the authored Business templates' own `operatingLocations` data. The
@@ -1600,7 +1759,7 @@ export class EmploymentLogic extends ApiLogic {
       // pass; a cast NPC is spawned by residency only when a player walks
       // in, so the boot pass logged `… is not live` and skipped them, and
       // nothing re-ran it once they existed. The cook then stood at his own
-      // hearth uncontracted — no `MakerMixin`, `order` → "There's no one on
+      // hearth uncontracted — nobody fulfilling, `order` → "There's no one on
       // hand to make that" — for up to a whole game-hour.
       //
       // One venue's roster, not the realm's, and idempotent: `ensureRostered`

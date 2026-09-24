@@ -128,7 +128,7 @@ beforeEach(() => {
   const org = makeStuffAtPath(() => new OrganizationEntity(), PUBLISHER);
   org.feedPath = FEED;
   org.positions = [
-    { key: 'communications-director', label: 'speaking', wageRate: 0, confers: [] },
+    { key: 'communications-director', label: 'speaking', wageRate: 0 },
   ];
   // ⚠ The publish path now checks `mayPublishAs` BEFORE minting anything,
   // so the acting author has to actually hold a publishing position. The

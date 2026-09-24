@@ -5,7 +5,7 @@
 # `consigns` brain), from a corpo's, from a player. A venue's keeper buys here
 # (`wallet use house`, `buy gin`), and each sale splits to the consignor's
 # operating account. Self-service and instant, like the general store's.
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cash-and-carry counter

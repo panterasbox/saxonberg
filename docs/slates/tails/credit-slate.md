@@ -12,6 +12,9 @@
 > with the seam each gap attaches to**, and it is the most useful part of
 > this file for whoever picks it up.
 > **Left:** ⭐⭐ risk — a rating, a bureau, risk-based pricing (Part 11) ·
+> ⚠ *the LABOR gap Part 11 named is closed — trades-and-labor shipped the
+> openings, the criterion, the sign, `apply` and `clock on/off`, so an
+> NPC house employing a player is a thing that happens now* ·
 > ⭐⭐ the secondary market (buying paper) · personal credit + guarantees ·
 > ⚠ nothing hires autonomously, which binds new-player absorption harder
 > than credit does · local underwriting at the committee (Part 6) ·

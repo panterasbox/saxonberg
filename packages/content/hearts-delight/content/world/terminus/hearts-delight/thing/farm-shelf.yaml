@@ -8,7 +8,7 @@
 # ⚠ NO `stockLines` and no par. A par line mints fresh clones on the
 # sweep, which is a faucet — and a static authored farm is a source NODE,
 # never a faucet. What is on this shelf came off that field.
-class: /platform/thing/ConsignmentShelf
+class: /trade/shopkeeping/thing/ConsignmentShelf
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: farm shelf

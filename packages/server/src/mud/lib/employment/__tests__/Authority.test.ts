@@ -314,7 +314,7 @@ describe('EmploymentApi.holdsAuthority — the four-kind matrix', () => {
       REGISTRY_BUSINESS,
     );
     registry.positions = [
-      { key: 'magistrate', label: 'sitting', wageRate: 0, confers: [] },
+      { key: 'magistrate', label: 'sitting', wageRate: 0 },
     ];
     const odile = makeAvatar('odile');
     registry.rosterSlots = [
@@ -385,7 +385,6 @@ describe('EmploymentApi.holdsAuthority — the four-kind matrix', () => {
         key: 'communications-director',
         label: 'speaking for the office',
         wageRate: 0,
-        confers: [],
       },
     ];
     // Somebody already holds the position — the whole point is that the

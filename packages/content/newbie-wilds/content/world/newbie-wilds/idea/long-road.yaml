@@ -30,7 +30,6 @@ data:
       noun: blade
       label: taking a side for a while
       wageRate: 0
-      confers: []
   rosterSlots: []
   label: "the Long Road Company"
   realm: world
