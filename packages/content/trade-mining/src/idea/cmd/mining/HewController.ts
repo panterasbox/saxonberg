@@ -30,7 +30,6 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -79,10 +78,24 @@ export default class HewController extends MiningActController<HewModel> {
         ? bound
         : null;
     if (!tool) {
+      // ⚠⚠ **Bare-handed and wrong-tool are DIFFERENT refusals**, and here the
+      // distinction is a diagnostic as much as a sentence. `dig` had the same
+      // conflation and the live browser walk caught it; this one caught
+      // something worse when the reasons were still merged: the Ferrow delve's
+      // NPC hewers log `no-pick` on a repeating cadence, and with one reason
+      // covering both cases **the log cannot say whether they are carrying the
+      // wrong tool or nothing at all** — which is exactly the question.
+      //
+      // ⭐ Their only test asserts the brain's SOURCE TEXT
+      // (`expect(SRC).toContain('`hew ${face.direction}`')`), so no test
+      // anywhere could have caught them standing still.
+      const barehanded = bound === null;
       this.decline(
         context,
-        Mml.compose`Not with that. You would want a pick — something to win rock with.`,
-        'no-pick',
+        barehanded
+          ? Mml.compose`Not with your hands. You would want a pick — something to win rock with.`
+          : Mml.compose`Not with that. You would want a pick — something to win rock with.`,
+        barehanded ? 'no-tool' : 'no-pick',
       );
       return;
     }

@@ -185,7 +185,8 @@ recording the credit are the same commit. See
 ## Seams left open
 
 - **`dig` reads the floor** — `getGroundKind()`, `isOnGrade()`, and
-  `resolveUnderfoot()` again after a strip → [extraction-slate](../slates/builds/extraction-slate.md).
+  `resolveUnderfoot()` again after a strip → § The worked-act protocol above (the
+  extraction slate retired absorbed, 2026-09-24).
 - **Coverings** — a rug, snow, mud over paving; a layer *above* the floor,
   and the reason rugs and carpets are excluded from the census →
   [field-substrate-slate](../slates/tails/field-substrate-slate.md).
@@ -203,3 +204,92 @@ recording the credit are the same commit. See
 - **Two rooms cite no biome at all** (`rejection`'s pithead yard and adit),
   so they take the interior default outdoors. Content debt; the census
   counts it.
+
+---
+
+## ⭐⭐ The worked-act protocol — `dig` and `split` (extraction, 2026-09-24)
+
+`lib/ground/Workable.ts` declares what it means for ground to be **worked**,
+as shapes rather than a class hierarchy:
+
+```ts
+planWork(by, tool, what): Promise<WorkPlan | WorkRefusal>   // no side effects
+completeWork(by, tool, token): Promise<WorkResult>          // once, at completion
+```
+
+`Diggable` and `Splittable` are markers over it, discriminated on a `kind`
+literal. **Two phases, not one**, because a swing is an engagement and a
+barge-in must leave the ground exactly as it was — a single
+`dig(by, tool, what)` could not have both planned and committed.
+
+⭐⭐ **The controller knows nothing about stone, peat, clay or worms.**
+`platform/idea/cmd/ground/WorkedActController` speaks this protocol and
+nothing else: the thing being worked prices its own pace, refuses **in its own
+words**, mints its own product, and names the Discipline it wants credited
+(`WorkResult.credit` — the one field that lets a platform verb earn a *trade's*
+competence). Take every content pack away and both verbs still work: they
+refuse, naming the tool.
+
+⚠ **The god-verb guard, and it lives in that file because that is where it
+would break:** *if a new case needs the controller to branch on what kind of
+digging it is, it is not `dig`.* `dig` shipped once before, in the fishing
+build, and was **withdrawn in review for hard-coding its yield to a worm**.
+The shape that survives that review is one where the controller cannot name a
+yield even if it wanted to.
+
+- It extends `GroundWorkController`, so this is the **zeroth** new copy of
+  `engageAct` rather than the fourth (`MiningActController` and
+  `FieldWorkController` are the first two, and forestry's doc already named the
+  third copy as the trigger to promote it).
+- `dig`'s resolution ladder is bound target → the room → **the room's floor**.
+  The third rung is what makes a foraging `Soil` host a drop-in rather than a
+  controller edit.
+- ⚠⚠ **`dig`'s tool default is `me:i:[mixin.ToolMixin]`, not
+  `[capability.digging]`** — the one instrument arg in the tree that departs
+  from the capability atom, and the reason is load-bearing: a spade offers
+  `digging`, a pick offers `winning`, and **both are right for some ground**. A
+  capability default would silently fail to bind the pick and the player would
+  be told *there is no face* rather than *that is the wrong tool*. Pinned by a
+  binder test, because nothing else would notice it being "tidied" back.
+
+### ⚠⚠ Bare-handed and wrong-tool are DIFFERENT refusals
+
+A live browser walk caught the ground answering *"A pick will not shift drift
+— take a spade to it."* to somebody carrying **nothing at all**. One branch
+served both cases with prose written for the second.
+
+⭐ The wire checkpoint passed throughout, because it asserts the refusal
+`reason` and the sentence does go on to mention a spade; the unit test was
+`expect(prose).toMatch(/take a spade to it/i)`, which is true of **both**
+limbs. **A refusal that names a tool the player never had is the progression UI
+lying**, so the split is not cosmetic — it is what acceptance criterion 2 of
+the extraction requirements actually asked for.
+
+## Ground improvement is the kernel's (extraction W2)
+
+`lib/ground/Improvable.ts` holds the mixin, the jobs (`clearing` · `draining` ·
+`liming` — a closed, ordinal vocabulary), the percept bands (`rough` ·
+`broken` · `worked` · `in-heart`), the reversion rates and `ImprovementCost`.
+It left `trade-farming` on the documented test: **its composers have no common
+pack ancestor** (a field, a turbary, and whatever improves next).
+
+⭐ **Three host hooks, not one**, and the shape is worth copying:
+
+```ts
+improvementBill(): Promise<ImprovementCost | null>;   // null ⇒ the acts refuse in words
+improvementPace(job): number;                          // default 1
+improvementSpoils(job): Promise<readonly Stuff[]>;     // default []
+```
+
+The bill returns **`null`** rather than a zero cost, so a host that composes
+the mixin and answers nothing is *visibly* broken instead of silently free.
+`grub`'s spoils are farming's **rows** and its pace reads farming's **sample**;
+a kernel controller may know neither, which is what the other two hooks are
+for.
+
+⚠ **`plough` nearly went silent in the move.** It was listed in
+`ImprovableMixin`'s contributions, and ploughing is not improvement, so it
+could not travel with them. `Field` now declares its own
+`commandContributions` naming `plough.yaml` — mixins **union** with a class's
+own static, so it sits beside the mixin's three platform views. **Every
+controller test would still have passed.**

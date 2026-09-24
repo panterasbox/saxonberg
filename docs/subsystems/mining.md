@@ -623,3 +623,52 @@ not written.
 [advancement](./advancement.md) · [belief](./belief.md) ·
 [respiration](./respiration.md) · [content-packs](./content-packs.md) ·
 [uncertainty](../uncertainty.md)
+
+---
+
+## ⚠⚠ `hew` asks for the pick now (extraction W3a/D16)
+
+`hew` had declared the `winning` capability since it shipped and **nothing ever
+checked**, so it worked bare-handed for three builds — *a tool that is not
+required is a number with no referent*. The extraction build is the first act to
+ask, so `hew` was corrected in the same breath rather than left as the odd one
+out. Six mining tests were cutting rock bare-handed; they bind a tool now, and
+both refusals are pinned.
+
+⚠ **Two refusals, not one** (the extraction sweep split them): `no-tool` for
+empty hands, `no-pick` for a tool that cannot win rock. They shared a reason
+until the sweep, and while they did the log could not answer the only question
+worth asking about the finding below.
+
+### ⛔ OPEN — the Ferrow delve's NPC hewers cannot hew
+
+A live browser walk found the delve's hewers logging refusals on a repeating
+cadence, **two hewers, ten refusals in one short boot**. The mine's NPC labour
+loop stands still.
+
+⭐ **The build revealed this rather than caused it** — the hewers were hewing
+bare-handed all along, which is exactly what D16 set out to stop. But the
+consequence is a behaviour regression in the world, and it is unfixed.
+
+⚠ **What has been eliminated, so nobody redoes it:** the verb, the binder and
+the default query are sound (a *player* with a pick hews fine); `capability.` is
+a real MQL atom; both the mining and quarrying picks declare
+`["winning","striking"]`; `hewer.yaml` declares `props: [/trade/mining/thing/pick]`;
+a bare `props` path **moves the instance into self**; `PersistentHydrator` does
+run Phase 2 instruction appliers; `forceCommand` is `executeCommand` with a
+`forced` stamp, so it runs the full binder including defaults; and the boot log
+carries no props warning. So the pick is absent at runtime for a reason not
+visible from outside the process.
+
+⭐⭐ **And no test could have caught it.** The `delves` brain's only test is a
+**source-text assertion** — `expect(SRC).toContain('`hew ${face.direction}`')`.
+It never runs the brain, never stands up a hewer and never touches a tool. That
+is the same class as a prose assertion that matches both limbs of a branch:
+a test structurally incapable of failing on the thing that matters.
+
+## `stake pit` — a surface working is a second book (extraction W3a/D18)
+
+`ClaimsRegister` gained `surfaceWorkings` / `surfaceWorkingFor`, and
+`StakeController` a fork that runs **before** the warren resolves (or the
+three-number fork's own refusals shadow it). ⭐ The parent extent is **derived
+from the path** rather than authored. Same counter, same clerk, a second book.

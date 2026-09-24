@@ -1186,7 +1186,7 @@ defined who reviews packs would review itself.
 | **tpa** (CAPABILITY — the teleport network's WORKS, TPA reform) | platform, arcana | default | `/system/tpa` → group `tpa` (PM-owned): `src/lib/` ships `FastTravelMixin` (the node — routes, board, timetable) and the pack's paths; `src/thing/` the `TpaTerminal` that composes it over arcana's `ManaPoweredMixin`, plus the `TravelCard`; `src/idea/cmd/movement/` the `teleport` + `register` controllers and `src/idea/cmd/tpa/` the card clerk's; rows: the three views + controller templates, `settings/fasttravel.yaml`, the travel card, and the **self-governing Teleport Authority** (`{kind: committee, parcel: /system/tpa}` — it names no realm, which is what lets it ship here). ⭐ The classes are the MECHANISM and are the pack's; a **terminal** is the realm's, so every gate keeps its `/world/**` row in the locality it stands in | `tpa` | — |
 | **water** (CAPABILITY — the watershed's WORKS, D1–D27) | platform | default | `/system/water` → group `water` (PM-owned): `src/` ships `Watercourse` + `WatercourseCatalogue` (topology authored, direction **derived**, compiled to a reachability set), `WaterRightRegistry` (prior appropriation recorded, riparian derived over the same records) and the three works — `Conduit` (the conveyance ladder, a sewer being the same object reversed), `ControlStructure`, `StorageNode`; ⭐ the catalogue finds the works by the **content rows naming them** (`WATERWORK_CLASSES`), not by walking the world and not by a mixin they compose — two composers in one pack do not earn an interface; rows: the two singletons, `settings/water.yaml`, and `fouled-water` in the commons. ⭐ The classes are the MECHANISM and are the pack's; a **river** is the realm's, so every reach ships at `/stuff/idea/Watercourse/<name>` in world-seed | `water` | — |
 
-Thirty-two rows over **thirty-nine** packs (`arcane-descriptors` folded into
+Thirty-three rows over **fifty-one** packs (`arcane-descriptors` folded into
 `arcana` — the pack that ships the class ships the bank; libations added trade-distilling,
 trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
 hospitality a capability pack; the TPA reform added **tpa**, the first pack
@@ -1208,7 +1208,23 @@ trade.* ⚠ The counter's MECHANISM stayed behind as kernel substrate
 credit ladder and four controllers read it and a kernel module may never
 import a pack — so the pack ships the instanceable twin, and
 `lint:counters` holds the kernel at four counters with each named and
-reasoned. See [retail.md](./retail.md) § The kernel/pack line).
+reasoned. See [retail.md](./retail.md) § The kernel/pack line); extraction
+added **trade-quarrying** — ⭐ the pack that ships **no verbs and no
+controllers at all**, because `dig` and `split` are the platform's and the
+GROUND answers them over the `Workable` protocol. Its `src/` is one
+pack-owned mixin (`lib/Working.ts`), two LOCATION classes (`OpenWorking`,
+`Turbary`) and three things (`Block`, `Lump`, `Turf`); three localities on
+three different geological columns — a quarry, a saltern and a peat moss —
+name those classes with no code of their own, which is the second-instance
+claim holding. See [ground.md](./ground.md) § The worked-act protocol.
+
+⚠ **The roster is a partial one by design** (rows < packs) and the gap has
+widened: `trade-mining`, `trade-fuel`, `trade-smelting`, `rejection`,
+`ground`, `trade-forestry`, `trade-quarrying`, `trade-ranching`,
+`trade-milling`, `trade-baking`, `trade-fishing` and the stub trades all
+ship without a row here. Filling it in is its own pass, not a sweep's — but
+the **count** above is now checked against `ls packages/content/`, so it is
+the one number in this section that cannot drift silently.
 **A stub trade** ships everything
 downstream of production and nothing of production — materials, vessel
 presets, brands, the floor product on an authored consignor, the serving

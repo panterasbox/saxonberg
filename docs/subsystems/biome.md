@@ -631,3 +631,38 @@ The `_extendsBiomePath` ref-walk + `FolderZone` separation is the
 shape that survives. Future biome content authoring extends from
 `/stuff/idea/biome/universe` (or any other biome) via the explicit ref;
 the path tree organizes ownership, not inheritance.
+
+---
+
+## ⭐ The air as a value object — `airFor` / `airSegmentsFor` (extraction W1)
+
+`BiomeApi` gained two **sync** reads over three `syncChainWalk`s plus
+`WeatherApi.deviatedFieldFor`:
+
+```ts
+airFor(scope): Evaporation
+airSegmentsFor(scope, fromS, toS): AirSegment[]   // { air, durationS, rainMmPerH }
+```
+
+`lib/material/Evaporation.ts` is the value object and **the one place that says
+how fast water leaves matter** — a vapour deficit × a wind term × a doubling per
+10 K, capped at the boil (373 K), plus `rewets(moisture)`. It holds no statics,
+because `lint:lib-statics` is a ratchet at 337/337.
+
+⭐ **A decision worth knowing:** `airSegmentsFor` derives each segment's rain by
+integrating that segment's own window through the **shipped**
+`WeatherApi.precipitationBetween` rather than reading the rate table, so the
+operator dials stay in one place and no new `WeatherApi` surface was added. And
+it **never returns an empty list** — a caller summing segments must not
+silently credit nothing.
+
+⚠ Sync is the constraint that shaped it: the callers are reconcile-on-read
+getters (a ham's water state, a pan's concentration) and a getter cannot await.
+
+### `weatherLocality()` on `AtmosphericMixin`
+
+The locality memo for the weather field, as `weatherLocality()` +
+`resolveWeatherLocality()` with a private path/resolved/promise trio. ⚠ **Not
+persisted, and no tri-state** — nothing integrates a backlog off it, so an
+unresolved read misses the deviation once and then heals. That is cheaper than
+correct here, and saying so is the point.

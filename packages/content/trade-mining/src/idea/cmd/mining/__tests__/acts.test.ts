@@ -220,8 +220,13 @@ describe('the mine’s four labour acts', () => {
     const here = room([0, 0, -1]);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
     const bare = await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
-    expect(rejected(bare)).toBe('no-pick');
-    // …and a tool that cannot win rock is refused by the same sentence.
+    // ⚠⚠ **`no-tool`, NOT `no-pick`** — and the distinction is a diagnostic.
+    // These two cases shared a reason until the extraction sweep, and while
+    // they did, the Ferrow delve's NPC hewers logging `no-pick` on a repeating
+    // cadence could not tell anybody **whether they held the wrong tool or
+    // nothing at all**, which is the only question worth asking about them.
+    expect(rejected(bare)).toBe('no-tool');
+    // …and a tool that cannot win rock is a DIFFERENT refusal.
     const shovel = makeStuff(() => {
       const t = new ToolItem();
       t.capabilities = ['digging'];
