@@ -237,25 +237,36 @@ suite('⭐⭐ the affordance rule, in both directions', () => {
      * affords `wear` everywhere"* is a real question for whoever owns
      * embodiment, and it is written down here rather than deleted.
      */
-    const r = await p.cmd('wash book');
-    const note = r.notes.find(
-      (n) =>
-        n.kind === 'command-rejected' &&
-        (n as { reason?: string }).reason === 'unknown-verb'
-    );
-    expect(
-      note,
-      `'wash book' is afforded at the tailor's shop now — the shop has ` +
-        `grown a washable, and this test should become the positive one ` +
-        `it was written to be`
-    ).toBeDefined();
+    for (const c of ['wash book', 'wield shears']) {
+      const r = await p.cmd(c);
+      const note = r.notes.find(
+        (n) =>
+          n.kind === 'command-rejected' &&
+          (n as { reason?: string }).reason === 'unknown-verb'
+      );
+      expect(
+        note,
+        `'${c}' is afforded at the tailor's shop now — the shop has ` +
+          `grown a washable or a wieldable, and this test should become ` +
+          `the positive one it was written to be`
+      ).toBeDefined();
+    }
   }, 60_000);
 
-  it('⭐ …and the four equipment verbs exist because you are DRESSED', async () => {
-    // The positive half of the finding above: they reach their own gate
-    // and refuse about the SHEARS, never about the verb.
+  it('⭐ …and the WEARABLE half exists because you are DRESSED', async () => {
+    /*
+     * ⭐ The split is exactly the finding above, and it is a clean one:
+     * `wear`/`remove`/`equip`/`unequip` come off `WearableMixin` and the
+     * character is wearing three garments, so all four are afforded
+     * everywhere they go. `wield` comes off `WieldableMixin` and intake
+     * hands nobody a weapon, so it stays correctly absent — which is why
+     * it sits in the negative list above and not here.
+     *
+     * Afforded means afforded: the verb reaches its own gate and refuses
+     * about the SHEARS, never about the word.
+     */
     reachedItsGate(await p.cmd('wear shears'));
-    reachedItsGate(await p.cmd('wield shears'));
+    reachedItsGate(await p.cmd('equip shears'));
   }, 60_000);
 });
 
