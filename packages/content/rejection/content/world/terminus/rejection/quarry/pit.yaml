@@ -1,0 +1,41 @@
+# ⭐ The Hill Quarry — the working face, and the first ground in this game
+# whose cost is what you throw away.
+#
+# ⚠⚠ **The prose does NOT describe the wall.** The wall is derived: the
+# working reads its own column and says what bands are open, how thick they
+# are and how far each has been worked — banded on the reader's own
+# `quarrying`, so an untrained eye gets *"some kind of pale rock"* and a
+# quarryman gets the section top-down. Authoring the section in prose here
+# would be the number lying the moment somebody dug.
+#
+# `spoilTo` sends the drift to the town's tips, which were authored as a
+# spoil bank before this build existed — *"the line where the tipping stops,
+# and it has been moved before"*. ⭐ The waste going somewhere a person can
+# SEE is the whole of the lesson; a counter would not have taught it.
+class: /trade/quarrying/location/OpenWorking
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: quarry face
+  keywords: [quarry, pit, face, working]
+  register: definite
+  alternateNames: [wall, bench, floor]
+  _address: terminus/rejection/quarry
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # Lux is lumens over the cell's area, and this zone's cells are 10 m:
+  # 8000 lm is 80 lux over 100 m² — open hillside under the sun.
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A bite out of the hillside, squared off where somebody has been working it and ragged everywhere else. The bench underfoot is swept bare by boots and weather, and there is a limekiln built into the spoil at the low end with its mouth facing away from the wind.
+
+    Nothing about the place is tidy. The waste goes over the lip and down the hill on a barrow-run worn into the grass.
+  coords: { x: 0, y: 0, z: 0 }
+  faceRunM: 20
+  spoilTo: /world/terminus/rejection/kestrel-road/tips
+  exits:
+    south:
+      destination: /world/terminus/rejection/location/old-workings
+      edgeMinutes: 4
+    north:
+      destination: /world/terminus/rejection/quarry/worked-out
+      edgeMinutes: 2

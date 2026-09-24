@@ -1,0 +1,23 @@
+# Coal — ⭐ **a domestic fuel, and a warning about iron.**
+#
+# ⚠⚠ **It is a `Firewood`, not a `Lump`**, and that is the whole point: a
+# `Firewood` is `Combustible(Thermal(Reserved(Thing)))`, so coal **lights**
+# (`ignite coal`), it holds a fuel reserve that burns down, and it drops into
+# every `category: fuel` recipe slot in the game. The material does the rest
+# of the work: `fuel` gets it into the slot, `carbon` passes the charcoal
+# check, and `sulfurous` is what writes the iron down.
+#
+# ⭐ So coal relieves the hearth and the kiln, iron keeps needing charcoal off
+# a coppice somebody tends, and the energy transition stays available to be
+# told as the epoch step it is. Coal → coke is `metal-chain-slate`'s.
+class: /platform/thing/Firewood
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [coal, lump, "sea-coal"]
+  shortDescription: lump of coal
+  register: indefinite
+  longDescription: >-
+    Dull black, splitting in flat plates, and it leaves your hands filthy.
+    It smells faintly of the pit.
+  material: /stuff/idea/material/mineral/coal
+  mass: 6

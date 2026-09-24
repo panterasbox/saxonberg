@@ -454,7 +454,11 @@ describe('⭐ the preserving acts — over the shipped rows, through the real re
     ContainmentApi.move(hearth() as never, kitchen as never);
     await stock(`${ROOT}/thing/cook-pot`);
     for (let i = 0; i < 8; i++) await stock('/stuff/thing/items/stew-meat');
-    await fill(`${ROOT}/thing/salt-sack`, `${ROOT}/idea/material/salt`, 4);
+    // ⭐ Salt moved to the COMMONS with the extraction build: a quarry wins
+    // rock salt, pans make it out of the sea and a brine hearth boils it, so
+    // salt exists whether or not anybody cooks. The kitchen is a CUSTOMER of
+    // it now, which is the rule fishing stated for a trout.
+    await fill(`${ROOT}/thing/salt-sack`, '/stuff/idea/material/food/salt', 4);
   }, 60_000);
 
   const cureOf = (s: Stuff) =>

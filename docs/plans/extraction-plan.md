@@ -1555,7 +1555,106 @@ the views moved, not duplicated); `farmstead.dirty.wire.test.ts` /
 `farming.dirty.wire.test.ts` unchanged (they drive `grub`/`ditch`/`lime`
 on a field, which still affords them).
 
-### W3 — the open working: the pit, `dig`, `split`, stone and earth (D2–D4, D9–D12 part, D16, D18, D19)
+### W3 — ✅ DONE: the open working: the pit, `dig`, `split`, stone and earth
+
+> ✅ **Landed in two commits** — `build(extraction W3a)` (the kernel verbs)
+> and `build(extraction W3b)` (the trade pack and the content). What shipped,
+> and the seven things the plan did not say:
+>
+> **W3a — the kernel half.**
+> - **`lib/ground/Workable.ts`** declares the **worked-act protocol** as
+>   shapes: `planWork` (no side effects; answers a `WorkPlan` or a
+>   `WorkRefusal`, discriminated on `kind`) then `completeWork` (once, at
+>   engagement completion, with the plan's own opaque `token`). `Diggable`
+>   and `Splittable` speak it. ⭐ **Two phases, not one**, because a swing is
+>   an engagement and a barge-in must leave the ground as it was — the plan's
+>   one-method `dig(by, tool, what)` could not have done both.
+> - ⭐⭐ **The tool check is the GROUND's** (A1 taken to its conclusion), and
+>   so is the **credit**: `WorkResult.credit` carries the Discipline, which is
+>   the single field that lets a platform verb earn a trade's competence.
+> - **`platform/idea/cmd/ground/WorkedActController.ts`** + `DigController` +
+>   `SplitController`. ⭐ It **extends `GroundWorkController`**, so this is the
+>   *zeroth* new copy of `engageAct` rather than the fourth — the deferred
+>   seam the plan records stays exactly as big as it was.
+> - `dig`'s ladder is written out in full: bound target → the room → **the
+>   room's floor**. The third rung is what makes foraging's `Soil` host a
+>   drop-in instead of a controller edit.
+> - ⚠⚠ **`dig`'s tool default is `me:i:[mixin.ToolMixin]`, not
+>   `[capability.digging]`** — the one instrument arg in the tree that departs
+>   from the capability atom, and the reason is load-bearing: a spade offers
+>   `digging`, a pick offers `winning`, and **both are right for some ground**.
+>   A capability default would silently fail to bind the pick and the player
+>   would be told there is no face rather than that they have the wrong tool.
+>   Pinned by a binder test, because nothing else would notice it being
+>   "tidied" back.
+> - `platform/thing/Spade` affords `dig`; farming's `Spade` extends it and
+>   **re-lists `dig`** (a subclass's static shadows its base's); mining's
+>   `shovel.yaml` is reclassed onto it.
+> - **`hew` now asks for the pick** (D16) — it had declared `winning` since it
+>   shipped and nothing ever checked. Six mining tests were cutting rock
+>   bare-handed; they bind one now, and a new case pins both refusals.
+> - **`stake pit`** (D18): `ClaimsRegister.surfaceWorkings` + a fork in
+>   `StakeController` that runs **before** the warren resolves (or the
+>   three-number fork's own refusals shadow it). The parent extent is
+>   **derived** from the path rather than authored, which is why § A8's
+>   corrected literal is not in the code at all.
+>
+> **W3b — the trade and the content.**
+> - **`trade-quarrying`**, the 51st pack: `OpenWorkingMixin` over
+>   `StrataMixin`, `OpenWorking` (`Persistable(OpenWorkingMixin(Singleton…))`
+>   — the `Wood` composition), `Block` (`Splittable`), `Lump`, the Discipline.
+>   ⭐⭐ **It ships no verbs and no controllers at all**, which is the
+>   consequence § A5 predicted and the exemplar test now asserts.
+> - `StratumBand.wins?` (D2) in the ground pack; the column, the pit, the
+>   played-out working, the `old-workings` exit, the counter's book.
+> - Materials: `rock/limestone`, `mineral/coal`, `mineral/halite`,
+>   `bulk/drift`; ⭐ **`organic/peat` edited** for the fuel column (it shipped
+>   with no combustion fields at all, so W6's turf would not have lit);
+>   `earth/clay` reused and `mineral/clay` **not** minted (§ A8).
+>
+> ⚠⚠ **Seven things the plan did not say, and two are the interesting ones:**
+>
+> 1. ⭐ **The salt move was pulled forward from W5.** The column's halite band
+>    `wins:` the salt MATERIAL, and `lint:census` resolves every `wins:`
+>    path — so the band and the move had to land together or the gate is red.
+>    The plan foresaw the coupling and offered a choice; taking the move is
+>    the better half, because the alternative was a band that defaults to a
+>    *block of rock salt*.
+> 2. ⭐⭐ **`lint:census` asked to be TAUGHT, and the reason is worth keeping:**
+>    `wins:`, `spoilTo` and `surfaceWorkings[].path` are all resolved live
+>    **inside an engaged act's completion**, long after the verb returned — so
+>    a rowless one is a swing that costs the endurance, banks the depletion
+>    and produces *nothing at all*, where no player and no test is watching.
+>    Read, not ignored.
+> 3. `lint:instrument-args` (in W2) had already established the shape; `dig`
+>    and `split` were written to it from the start.
+> 4. The **worked-out room's `wonByBand` is seeded ABOVE capacity** (999), so
+>    a later change to `faceRunM` cannot silently un-exhaust it.
+> 5. The **exemplar test's two claims both moved**: the venue's class
+>    allowlist gains `/trade/quarrying/` (and ⭐ what it gains is a LOCATION
+>    class and a mixin — no verb, no controller), and the zone roster gains
+>    `quarry.yaml`, which is a zone of its own *because it carries its own
+>    `deposit:`*.
+> 6. **Test-fixture hazard, twice:** `makeStuffAtPath` at a path that already
+>    holds a row leaves two instances in the index and every later
+>    `findByTemplatePath` throws *"expected singleton, found 2"* — a failure
+>    with nothing to do with the claim. One deposit per test, one material row
+>    per test.
+> 7. The `dig` bare-handed binder case resolves the tool as **`NULL`, not
+>    absent** — the default query ran and matched nothing. Same answer for the
+>    controller, and worth pinning, because a view whose default had stopped
+>    running would report `(absent)` and nothing else would see it.
+>
+> *Verification:* server tsc clean · quarrying tsc clean ·
+> `OpenWorking.test.ts` 18 · `Block.test.ts` 6 · `verb-gates.test.ts` 9
+> (binder-level) = **33 green** · mining **129** · cooking **46** · farming
+> **76** · ground **57** · `pnpm test:near` **413 + all packs green** ·
+> `lint:family` **all 52 gates pass**.
+>
+> ⚠ **Sibling worktrees: `pnpm install`** (a new workspace member) **and drop
+> the dev DB** (salt's template path moved).
+
+### W3 (original text) — the open working: the pit, `dig`, `split`, stone and earth (D2–D4, D9–D12 part, D16, D18, D19)
 
 ⚠⚠ **Amended by § A1–A4, A7, A8.** There is **no `quarry` verb**: winning
 a face is `dig` (platform, polymorphic, the `fell.yaml` shape) and
