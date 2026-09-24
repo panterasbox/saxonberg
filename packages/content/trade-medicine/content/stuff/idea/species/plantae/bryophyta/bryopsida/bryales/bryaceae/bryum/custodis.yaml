@@ -1,0 +1,18 @@
+# Bryum custodis — wardmoss. A moss on the north face of old stone;
+# steeped, it keeps a wound from turning — the source of the antibiotic
+# (D10). Saxonberg-native; the fiction is ours.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Bryum custodis
+  commonNames: ["wardmoss"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: hermaphroditic
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 5
+  circadianBand: aperiodic
+  diet: photosynthesis

@@ -7,7 +7,8 @@
 > instruments and the campus lab as a place · the hand-tool middle
 > tier (lens, streak plate, hardness kit) · the certified assayer
 > vocation · salting as a commitable fraud · sample integrity/
-> chain-of-custody
+> chain-of-custody · **the medical diagnostic lab** (blood typing,
+> panels, cultures, pathology — the `test`→`analyze` fold, 2026-09-24)
 > **Size:** a build
 
 **Captured 2026-09-01.** The companion to
@@ -285,6 +286,44 @@ Moved verbatim to [instrumentation-slate](./instrumentation-slate.md) § *Absorb
    a real cost, and the argument is weaker without it.
 
 ---
+
+## ⭐ Finding from the clinical-medicine build (2026-09-24) — the MEDICAL diagnostic lab
+
+This slate was written from the MINING round-trip (field sample → campus
+bench → assay). The clinical-medicine review surfaced its **other half**:
+labs are an integral part of the medical process, and the build did NOT
+scope them. The same field/bench substrate carries both — a lab is a lab —
+but the medical vertical adds functions this slate should name when it
+builds:
+
+- **Blood typing is ONE lab function, not the whole of `test`.** The
+  clinical build shipped a bespoke `test` verb that names a blood type
+  over a drawn unit (the epistemic `labelled` flag). That is the narrow
+  door; the general one is a **diagnostic lab** that runs panels
+  (chemistry, haematology), **cultures** (the `Contaminable` silent
+  population — grow it to name it, the honest counterpart to the spoilage
+  build's invisible load), **pathology** (read a tissue sample), and later
+  **imaging**. Blood typing is the first, simplest assay in that room.
+- ⭐ **`test` should fold into the `analyze`/`measure` framework, not stay
+  bespoke.** Testing blood groups needs reagents/kits (antisera) and,
+  past the field card, a bench — exactly the parent slate's
+  instrument-gated `analyze` + a consumable reagent. The bespoke `test`
+  verb is the medicine build's stopgap (like `steep` was, now generalised
+  to platform infusion); the honest end state is `analyze <sample>`
+  producing a diagnosis banded by the analyser's grade and gated on the
+  reagent in hand. Decide at that build whether `test` becomes an
+  `analyze` alias or is retired.
+- **The sample object is shared.** A blood tube, a swab, a biopsy are the
+  same `Sample`-with-provenance this slate's open question 3 is deciding —
+  the medical vertical is a second consumer of that decision, and
+  chain-of-custody matters more here (a mislabelled tube is a real harm).
+- **First consumers:** the infirmary (the `bloodBank`'s typed stock wants
+  a typed sample), the [blood-slate](./blood-slate.md) sector (screening a
+  donation), and diagnosis-before-treatment in the recovery loop.
+
+This does not expand the mining round-trip; it records that the **medical
+lab is the same substrate's second vertical**, and that `test` is the
+placeholder the lab build replaces.
 
 ## What this slate does NOT cover
 

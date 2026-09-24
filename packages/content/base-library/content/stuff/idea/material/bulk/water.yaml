@@ -32,6 +32,9 @@ data:
   # Identity. `salt-water` deliberately does NOT carry it — brine is not
   # rinse water, and the check that wants "any liquid" should ask for
   # `liquid`.
-  tags: [liquid, water, beverage, drinkable]
+  # `solvent` — water is the v1 infusion solvent (`steep`/`infuse`). The
+  # general check asks a Material `hasTag('solvent')`; only water carries
+  # it today (spirits / oil are a later cooking-infusion build).
+  tags: [liquid, water, beverage, drinkable, solvent]
   composition: []
   biologicalSource: null

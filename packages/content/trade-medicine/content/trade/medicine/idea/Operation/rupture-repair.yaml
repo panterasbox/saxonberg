@@ -1,0 +1,14 @@
+class: /platform/idea/Operation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: rupture-repair
+  label: rupture repair
+  addresses:
+    traumaTypes: [rupture]
+  instrument: surgery
+  competence: { discipline: medicine, band: competent }
+  bloodCostL: 0.30
+  baseDurationS: 300
+  anaesthesia: required
+  resolution: surgery
+  difficulty: formidable

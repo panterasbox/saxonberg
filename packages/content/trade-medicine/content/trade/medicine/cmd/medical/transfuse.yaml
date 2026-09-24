@@ -1,0 +1,32 @@
+verbs: [transfuse]
+controller: /trade/medicine/idea/cmd/medical/TransfuseController
+description: "Transfuse blood or saline from a vessel into a body (needs a syringe)"
+help: |
+  `transfuse <someone> from <bag>` puts a unit of blood back into a body,
+  raising its volume — the answer to a bleed a bandage cannot undo. A
+  MATCHED unit restores fully; SALINE (salt water) raises volume partway
+  with no cells, the emergency floor; an UNMATCHED unit does real harm, so
+  `test` first. A spoiled unit is refused.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  - name: vessel
+    type: object
+    required: false
+    prepositions: [from, with]
+    scope: ["inventory", "reachable"]
+    requires: [BulkableMixin]
+  - name: syringe
+    type: object
+    required: false
+    prepositions: [using]
+    default: "me:i:[capability.phlebotomy]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

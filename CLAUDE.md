@@ -206,6 +206,7 @@ behavior. Read the relevant doc before editing in its area.
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
+  - [blood.md](./docs/subsystems/blood.md) — the blood loop: ABO type seeded on identity, the drawn unit's payload + freshness, the durative `bleed`/`transfuse` engaged acts and the `marrow` reserve, the transfusion-reaction condition, the operation catalogue + `Prescription` slip
   - [mortality.md](./docs/subsystems/mortality.md) — the dying arc: the rescuable `dying` clock (which does NOT freeze on linkdead), the single `ConditionApi.die` transition, the corpse as a forensic Creature, the shade (`undead`, `requiresEmbodied`), `reembody` + the `passage` floor
   - [materials-response.md](./docs/subsystems/materials-response.md) — `response = f(mechanism, material, construction)`: Channel vocab, resist/deliver grids, emergent layered armor
   - [combat.md](./docs/subsystems/combat.md) — the fight: sessions, poise, gambits, terms, narration; multi-party CombatGraph; feint + fog; weapon playstyle; the gym
@@ -259,6 +260,7 @@ behavior. Read the relevant doc before editing in its area.
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
+  - [calendar.md](./docs/subsystems/calendar.md) — the personal calendar on the aether implant: `CalendarMixin` entries, the `CalendarApp` hosted app, the `calendar` verb, medicine writing the follow-up date (`assess` never leaks it)
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
   - [watershed.md](./docs/subsystems/watershed.md) — water that gets somewhere: zone elevation (and why `coords.z` is not it), the exact precipitation integral shared by soil and river, `Watercourse` (topology authored · direction derived · a compiled reachability set), flow + snowpack + derived navigability, the `Conduit` ladder (a sewer is the same object reversed) over the six-word `SupplyState`, storage as the build's one piece of state, rights (prior appropriation records · riparian derives), contamination by kind, and the three basins

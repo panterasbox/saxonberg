@@ -3,7 +3,7 @@
  *
  * Sitting with a wounded body speeds its recovery: it starts a
  * `TendingEngagement` on YOUR attention (one patient at a time), and while
- * you hold it the patient's `convalescenceFactor` reads your medicine band
+ * you hold it the patient's `convalescenceFactor` reads your nursing band
  * as a bonus. Walk away, cancel, or take a second patient and the link
  * drops — the bonus with it, on the very next read.
  *
@@ -26,7 +26,7 @@ import type { Vitals } from '../../../../lib/vitals/Vitals';
 import type { Engaged } from '../../../../lib/activity/Engaged';
 
 const TOPIC = 'act.deed';
-const MEDICINE = 'medicine';
+const NURSING = 'nursing';
 
 interface TendModel extends CommandModel {
   patient?: MqlOneResult;
@@ -66,7 +66,7 @@ export default class TendController extends CommandController<TendModel> {
     }
 
     const band = MixinApi.isAdvancing(giver)
-      ? await giver.competenceBandFor(MEDICINE)
+      ? await giver.competenceBandFor(NURSING)
       : CompetenceBand.FLOOR;
 
     const result = SchedulerApi.start(

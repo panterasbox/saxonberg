@@ -1,0 +1,15 @@
+# Grey-draught — the anaesthetic (D10). Steeped from greywort root. The
+# `active` tag + a `toxicity` dose of `anaesthesia` are the whole mechanism
+# (the metabolism/anaesthesia Condition carries the effect + prescription
+# gate). Fiction ours; honest mechanism.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: grey-draught
+  keywords: [grey-draught, draught, anaesthetic, greywort]
+  appearance: a cloudy grey infusion
+  density: 1000
+  edibility: true
+  toxicity:
+    - { type: anaesthesia, amount: 4 }
+  tags: [active, remedy, liquid]

@@ -1,0 +1,13 @@
+# A simple — a medicinal herb you steep into a draught (D10). Harvested
+# from the physic garden; `steep` turns it (in water) into grey-draught.
+class: /trade/medicine/thing/Simple
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: greywort root
+  keywords: [greywort,root, simple, herb]
+  register: indefinite
+  longDescription: |
+    Somnaria pallida root, cut for steeping.
+  _materialPath: /trade/medicine/idea/material/greywort-root
+  mass: 0.05
+  steepsInto: /trade/medicine/idea/material/grey-draught

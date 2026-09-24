@@ -111,7 +111,7 @@ export default class AssessController extends CommandController<AssessModel> {
     const medBand = isSelf
       ? 'expert'
       : MixinApi.isAdvancing(giver)
-        ? await giver.competenceBandFor('medicine')
+        ? await giver.bestBandFor(['nursing', 'medicine'])
         : 'untrained';
     const precise =
       isSelf || medBand === 'proficient' || medBand === 'expert';

@@ -59,6 +59,12 @@ import { ConditionApi } from '../../api/condition';
 import { ContainmentApi } from '../../api/containment';
 import { FUNCTION_BANDS, BODY_CAPACITIES } from './BodyCapacity';
 import type { BodyCapacity, FunctionBand } from './BodyCapacity';
+import { BloodType } from './BloodType';
+import type { AboPhenotype, BloodTypeLabel } from './BloodType';
+import { BLOOD_DEFAULTS } from './Blood';
+import type { BloodUnit } from './Blood';
+import { Seeded } from '../Seeded';
+import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -447,6 +453,9 @@ export interface Vitals {
    * then releases whatever was held or worn on the slots that part carried.
    */
   severPart(key: string): void;
+  /** Is this severable part past saving (function lost, or advanced
+   * wound-sepsis) — the amputation trigger (D7). */
+  isPartUnsalvageable(key: string): boolean;
   /**
    * ⭐⭐ **How well one part still works** — the axis a wound costs you.
    *
@@ -490,6 +499,30 @@ export interface Vitals {
   hasVitalSign(sign: VitalSign): boolean;
   /** Bands of expressed competence this body currently suppresses. */
   expressionSuppression(): number;
+
+  // ---------- blood (blood build D2/D3/D11) ----------
+  /** The ABO phenotype of this body's blood, or `null` for a bloodless
+   * clade. Derived from the genotype (pinned or seeded on identity). */
+  bloodType(): string | null;
+  /** Has this body's blood been tested (its label known)? */
+  isBloodTyped(): boolean;
+  /** Record that this body's blood has been tested. */
+  markBloodTyped(): void;
+  /** Draw a unit of blood: spend volume + marrow reserve; return the
+   * stored unit's payload (true type + whether labelled + donor). */
+  drawBlood(litres: number): BloodUnit;
+  /** Receive blood or a saline expander. Compatible closes the gap to
+   * baseline; saline caps at the plasma ceiling; incompatible delivers
+   * plasma only and inflicts the graded transfusion reaction. */
+  receiveBlood(spec: {
+    litres: number;
+    blood: { speciesPath: string; type: string } | null;
+    expander?: boolean;
+  }): { accepted: number; reaction: 0 | 1 | 2 };
+  /** Is the body under anaesthesia (an active `sedation` effect)? (D10) */
+  isSedated(): boolean;
+  /** Active pain relief `[0,1]` from analgesia (D10). */
+  analgesiaRelief(): number;
 
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
@@ -706,6 +739,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       bodyPartDeltas: { persistent: true, runtimeState: true },
       conditions: { persistent: true, runtimeState: true },
       scars: { persistent: true, runtimeState: true },
+      // ⭐ Blood build D2. The genotype PIN — authored on an NPC whose
+      // story turns on their type (`bloodGenotype: "AO"`); `null` = derive
+      // deterministically from identity, so an unrolled body and a rolled
+      // one agree and nothing need persist for the ordinary case.
+      bloodGenotype: { persistent: true, authorable: true, runtimeState: true },
+      // Somebody has tested this body's blood (the label is known).
+      bloodTyped: { persistent: true, runtimeState: true },
     };
 
     // ---------- storage; defaults are the universe-default baselines ----------
@@ -744,6 +784,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** ⭐ Healed-over scars the body keeps (D14) — never a penalty, read by
      * `assess` and `look`. Written at the clear sweep from a wound's `peak`. */
     public scars: ScarRecord[] = [];
+
+    /** ⭐ Blood build D2 — the genotype pin (`"AO"` …), or `null` to derive
+     * deterministically from identity. Authorable on an NPC row. */
+    public bloodGenotype: string | null = null;
+    /** Somebody has tested this body's blood (its label is known). */
+    public bloodTyped: boolean = false;
 
     /**
      * Reconcile-on-read reentrancy guard — a plain transient flag, never
@@ -883,15 +929,212 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       void ConditionApi.die(this as unknown as Stuff, record.cause);
     }
 
+    // ---------- blood (blood build D2/D3/D11) ----------
+
+    /** The resolved genotype string (`"AO"` …): the pin, else a
+     * deterministic roll from the species allele table seeded on identity
+     * — never `Math.random`, so an unrolled body and a rolled one agree. */
+    private resolvedBloodGenotype(): string {
+      if (this.bloodGenotype) return this.bloodGenotype;
+      const self = this as unknown as Stuff;
+      const species = MixinApi.isOrganism(self) ? self.getSpecies() : null;
+      const alleles = species?.getBloodGroups()?.alleles ?? { O: 1 };
+      const seed = this.seedFromString(self.getIdentityPath() ?? '');
+      const a = this.drawAllele(alleles, Seeded.unit(seed, 0));
+      const b = this.drawAllele(alleles, Seeded.unit(seed, 1));
+      return a + b;
+    }
+
+    /** FNV-1a fold of an identity path to a 32-bit seed. */
+    private seedFromString(s: string): number {
+      let h = 0x811c9dc5;
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+      }
+      return h >>> 0;
+    }
+
+    /** One allele drawn from a cumulative frequency table by a unit draw. */
+    private drawAllele(alleles: Record<string, number>, u: number): string {
+      const entries = Object.entries(alleles);
+      const total = entries.reduce((s, [, f]) => s + f, 0) || 1;
+      let acc = 0;
+      for (const [allele, freq] of entries) {
+        acc += freq / total;
+        if (u < acc) return allele;
+      }
+      return entries[entries.length - 1]?.[0] ?? 'O';
+    }
+
+    /** Genotype → ABO phenotype (A/B codominant, O recessive). */
+    private aboPhenotype(genotype: string): AboPhenotype {
+      const hasA = genotype.includes('A');
+      const hasB = genotype.includes('B');
+      if (hasA && hasB) return 'AB';
+      if (hasA) return 'A';
+      if (hasB) return 'B';
+      return 'O';
+    }
+
+    public bloodType(): string | null {
+      if (!this.hasVitalSign('bloodVolume')) return null;
+      return this.aboPhenotype(this.resolvedBloodGenotype());
+    }
+
+    public isBloodTyped(): boolean {
+      return this.bloodTyped;
+    }
+
+    public markBloodTyped(): void {
+      this.bloodTyped = true;
+    }
+
+    private speciesPathOf(): string {
+      const self = this as unknown as Stuff;
+      return MixinApi.isOrganism(self)
+        ? (self.getSpecies()?.getTemplatePath() ?? '')
+        : '';
+    }
+
+    public drawBlood(litres: number): BloodUnit {
+      const self = this as unknown as Stuff;
+      const bv = this._bloodVolume.rawValue();
+      this.setVitalSign('bloodVolume', Quantity.of(Math.max(0, bv - litres), 'L'));
+      if (MixinApi.isReserved(self) && self.hasReserve('marrow')) {
+        self.adjustReserve(
+          'marrow',
+          Quantity.of(-BLOOD_DEFAULTS.MARROW_COST_PCT_PER_L * litres, '%'),
+        );
+      }
+      return {
+        speciesPath: this.speciesPathOf(),
+        type: (this.bloodType() ?? 'O') as BloodTypeLabel,
+        labelled: this.isBloodTyped(),
+        donorIdentityPath:
+          self.getIdentityPath() ?? self.getTemplatePath() ?? '',
+      };
+    }
+
+    public receiveBlood(spec: {
+      litres: number;
+      blood: { speciesPath: string; type: string } | null;
+      expander?: boolean;
+    }): { accepted: number; reaction: 0 | 1 | 2 } {
+      if (!this.hasVitalSign('bloodVolume')) return { accepted: 0, reaction: 0 };
+      const baseline = this.getVitalBand('bloodVolume').baseline;
+      const cur = this._bloodVolume.rawValue();
+      const ceiling = baseline * METABOLIC_DEFAULTS.PLASMA_RESTORE_CEILING_FRAC;
+
+      // Saline / a plasma expander: raises volume with no cells, capped at
+      // the same plasma ceiling drinking obeys — never the last 15 %.
+      if (spec.expander) {
+        const next = Math.min(ceiling, cur + spec.litres);
+        this.setVitalSign('bloodVolume', Quantity.of(next, 'L'));
+        return { accepted: next - cur, reaction: 0 };
+      }
+
+      const blood = spec.blood;
+      if (!blood) return { accepted: 0, reaction: 0 };
+
+      const donor = new BloodType(blood.speciesPath, blood.type as BloodTypeLabel);
+      const me = new BloodType(
+        this.speciesPathOf(),
+        (this.bloodType() ?? 'O') as BloodTypeLabel,
+      );
+      const mismatch = donor.mismatchFor(me);
+
+      if (mismatch === 0) {
+        // Compatible cells: this is how the last 15 % comes back.
+        const next = Math.min(baseline, cur + spec.litres);
+        this.setVitalSign('bloodVolume', Quantity.of(next, 'L'));
+        return { accepted: next - cur, reaction: 0 };
+      }
+
+      // Incompatible: only the plasma fraction lands (capped at the
+      // expander ceiling), and the graded reaction fires.
+      const plasma = spec.litres * BLOOD_DEFAULTS.PLASMA_FRACTION;
+      const next = Math.min(ceiling, cur + plasma);
+      this.setVitalSign('bloodVolume', Quantity.of(next, 'L'));
+      const add = Math.ceil(
+        spec.litres *
+          BLOOD_DEFAULTS.REACTION_STAGE_PER_L *
+          (mismatch === 2 ? BLOOD_DEFAULTS.SPECIES_MISMATCH_SCALE : 1),
+      );
+      const existing = this.findAfflictionAt(
+        TemplatePaths.circulationTransfusionReaction,
+      );
+      if (existing) {
+        existing.stage += add;
+      } else {
+        this.afflict({
+          kind: 'affliction',
+          templatePath: TemplatePaths.circulationTransfusionReaction,
+          stage: add,
+          elapsed: 0,
+        });
+      }
+      return { accepted: next - cur, reaction: mismatch };
+    }
+
+    // ---------- anaesthesia / analgesia reads (D10) ----------
+
+    /** ⭐ Is the body under anaesthesia? True iff an active affliction
+     * declares `sedation` at/above its current stage. */
+    public isSedated(): boolean {
+      for (const c of this.conditions) {
+        if (c.kind !== 'affliction') continue;
+        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        for (const e of row?.getSignature() ?? []) {
+          if (e.kind === 'sedation' && c.stage >= e.atStage) return true;
+        }
+      }
+      return false;
+    }
+
+    /** ⭐ The antibiotic multiplier on infection clearance (D10) — the
+     * product of `clearance` `factor` over active afflictions (default 1).
+     * Folded into `progressInfection`'s clearance term; NOT an arm. */
+    private clearanceBoost(): number {
+      let factor = 1;
+      for (const c of this.conditions) {
+        if (c.kind !== 'affliction') continue;
+        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        for (const e of row?.getSignature() ?? []) {
+          if (e.kind === 'clearance') factor *= e.factor;
+        }
+      }
+      return factor;
+    }
+
+    /** ⭐ Pain relief from active analgesia (D10) — the max `relief` over
+     * active afflictions, `[0, 1]`. Read by `OperationEngagement` (the
+     * conscious penalties scale by `1 − relief`) and by `look`/`assess`. */
+    public analgesiaRelief(): number {
+      let relief = 0;
+      for (const c of this.conditions) {
+        if (c.kind !== 'affliction') continue;
+        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        for (const e of row?.getSignature() ?? []) {
+          if (e.kind === 'analgesia') relief = Math.max(relief, e.relief);
+        }
+      }
+      return relief;
+    }
+
     // ---------- the material fork family ----------
 
     public forkSlice_Vitals(): unknown {
-      const out: Record<string, number> = {};
+      const out: Record<string, unknown> = {};
       for (const sign of VITAL_SIGNS) {
         out[sign] = (
           this as unknown as Record<string, Quantity<Unit>>
         )[VITAL_FIELD[sign]]!.rawValue();
       }
+      // ⭐ A corpse carries its blood type: fork the RESOLVED genotype
+      // (concrete, so identity re-rolls can never disagree) + the label.
+      out.bloodGenotype = this.resolvedBloodGenotype();
+      out.bloodTyped = this.bloodTyped;
       return out;
     }
 
@@ -915,7 +1158,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Final
     @Unshadowable
     public adoptMaterialState(slices: Record<string, unknown>): void {
-      const vitals = slices.Vitals as Record<string, number> | undefined;
+      const vitals = slices.Vitals as Record<string, unknown> | undefined;
       if (vitals) {
         for (const sign of VITAL_SIGNS) {
           const raw = vitals[sign];
@@ -923,6 +1166,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             this.setVitalSign(sign, Quantity.of(raw, VITAL_UNITS[sign]));
           }
         }
+        // ⭐ A corpse carries its blood type across the fork (D2).
+        if (typeof vitals.bloodGenotype === 'string')
+          this.bloodGenotype = vitals.bloodGenotype;
+        if (typeof vitals.bloodTyped === 'boolean')
+          this.bloodTyped = vitals.bloodTyped;
       }
       const trauma = slices.Trauma as ActiveCondition[] | undefined;
       if (Array.isArray(trauma)) this.conditions = structuredClone(trauma);
@@ -1082,6 +1330,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // right up to the moment it dies. Placed before those reads so the
       // cause makes no difference to the answer.
       if (this.hasDyingRecord()) return 'unconscious';
+      // ⭐ Anaesthesia (D10): an active affliction declaring `sedation` at
+      // or above its stage takes the body under. After dying (which
+      // dominates), before the blood read — a sedated patient reads
+      // `unconscious`, so `operate` can proceed and `say` is refused.
+      if (this.isSedated()) return 'unconscious';
 
       const bvBand = this.getVitalBand('bloodVolume');
       const bvFraction =
@@ -1675,6 +1928,35 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ **Is this part past saving** (D7) — the amputation trigger. A
+     * severable part carrying an active wound, whose own function is
+     * `lost`, OR on which the wound-sepsis load has reached the advanced
+     * band (≥ 0.8) — the limb the infection has taken. Read by the
+     * `amputation` operation; a body never loses a part it can keep.
+     */
+    public isPartUnsalvageable(key: string): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      const spec = self
+        .getSpecies()
+        ?.getBodyPlan()
+        ?.getBodyParts()
+        .find((p) => p.key === key);
+      if (!spec?.severable) return false;
+      const woundHere = this.conditions.some(
+        (c) => c.kind === 'trauma' && c.site === key && c.severity > 0,
+      );
+      if (!woundHere) return false;
+      if (this.functionAt(key) === 'lost') return true;
+      const sepsis = this.conditions.find(
+        (c): c is AfflictionRecord =>
+          c.kind === 'affliction' &&
+          c.templatePath.endsWith('/' + WOUND_SEPSIS_KEY),
+      );
+      return (sepsis?.pathogenLoad ?? 0) >= 0.8;
+    }
+
+    /**
      * ⭐⭐ **The sever** — the one writer of `BodyPartDelta.missing`, which
      * shipped as a persisted field nothing ever set.
      *
@@ -2082,7 +2364,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         // set, so `getConditionBand`'s own `reconcileConditions()` call
         // returns immediately. That guard is what makes the vital-sign
         // reads in this whole method non-reentrant.
-        infectionResistance(this.getConditionBand());
+        infectionResistance(this.getConditionBand()) *
+        // ⭐ The antibiotic (D10): an active `clearance` effect multiplies
+        // how fast the body clears the population — the sepsis counterplay.
+        this.clearanceBoost();
       const net = growth - clearance;
       const l0 = Math.max(0, Math.min(1, record.pathogenLoad ?? 0));
 
@@ -2330,6 +2615,24 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
                 } else if (
                   t.septicSeeded !== true &&
                   nowS - t.openSince > HARM_DEFAULTS.SEPSIS_OPEN_ONSET_SEC
+                ) {
+                  this.seedSepsis(HARM_DEFAULTS.SEPSIS_INOCULUM);
+                  t.septicSeeded = true;
+                }
+              } else if (
+                // ⭐ D8 — stitches left in past readiness OVERSTAY and go
+                // septic. A sutured wound that has knitted to the clot line
+                // is READY; from that moment the shipped open-wound clock
+                // runs until the stitches come out (undress/unstitch).
+                t.sutured === true &&
+                t.severity <= HARM_DEFAULTS.CLOT_SEVERITY
+              ) {
+                if (t.sutureReadyAt === undefined) {
+                  t.sutureReadyAt = nowS;
+                  t.openSince = nowS;
+                } else if (
+                  t.septicSeeded !== true &&
+                  nowS - t.sutureReadyAt > HARM_DEFAULTS.SEPSIS_OPEN_ONSET_SEC
                 ) {
                   this.seedSepsis(HARM_DEFAULTS.SEPSIS_INOCULUM);
                   t.septicSeeded = true;

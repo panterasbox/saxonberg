@@ -1009,6 +1009,20 @@ function inflictThroughStack(
   // avulsion regardless.
   if ('maim' in spec && spec.maim === false) trauma.maimAllowed = false;
 
+  // ⭐ Embedding (D6): a penetrating blow that leaves the thing in the
+  // wound. A `puncture` at/above the embed floor carrying an `embeds`
+  // becomes a `foreign-body` — only extraction resolves it. Below the
+  // floor the object passes through and it stays an ordinary puncture.
+  if (
+    trauma.type === 'puncture' &&
+    'embeds' in spec &&
+    spec.embeds !== undefined &&
+    trauma.severity >= HARM_DEFAULTS.EMBED_MIN_SEVERITY
+  ) {
+    trauma.type = 'foreign-body';
+    trauma.foreignBody = spec.embeds;
+  }
+
   // Non-body target, or the stack turned the blow → nothing afflicted, but
   // the outcome carries the (severity-0 / deflected) record.
   if (!isBody || resolution === null) {
