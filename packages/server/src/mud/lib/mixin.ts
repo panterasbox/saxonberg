@@ -317,6 +317,13 @@ export const Mixins = {
   // `GroundCharacter` implement it, which is how a floor asks the column
   // a question the kernel cannot import the answer to.
   GroundSource: 'GroundSourceMixin',
+  // *This ground can be cleared, drained and limed — and it REVERTS.*
+  // ⭐ Promoted out of `trade-farming` by the extraction build: you ditch
+  // a road, a yard and a quarry, so improvement acts on GROUND and farming
+  // is its first consumer rather than its owner. The host answers what it
+  // owes through `improvementBill()`, so the kernel never imports a
+  // seeded model out of a pack.
+  Improvable: 'ImprovableMixin',
   Mountable: 'MountableMixin',
   Drivable: 'DrivableMixin',
   // Drivable from a seat you occupy — the cart's driver, not the reins.
@@ -614,6 +621,11 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * there for a constraint about to be written.
  */
 export const MixinRefusals: Partial<Record<MixinName, string>> = {
+  // ⭐ Ground, not a thing: the useful information is that the target had
+  // to be a piece of ground somebody could work, which "{} is not
+  // improvable" would not have said.
+  ImprovableMixin: '{} is not ground anybody could improve',
+
   // Perception / substance — the two broadest, and the reason the
   // phrases are templates: neither of these reads well as a suffix.
   VisibleMixin: "you can't see {}",

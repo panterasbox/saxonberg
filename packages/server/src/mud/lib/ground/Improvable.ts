@@ -51,27 +51,65 @@
  * state. The player pays the difference in **labour** rather than reading
  * it off a yield modifier, which is the whole of D55.
  *
- * See [docs/subsystems/soil.md].
+ * ## ⭐⭐ Why this is the KERNEL's, and not farming's
+ *
+ * You ditch a road, a yard and a quarry. Improvement acts on **ground**,
+ * and ground's derived half is already the kernel's — so farming is
+ * improvement's **first consumer** and not its owner. The extraction build
+ * is the second: a turbary is drained exactly the way a wet field is, and
+ * draining one destroys the fuel while making the best arable ground there
+ * is, which is the choice with no dominant option that peat exists to
+ * carry.
+ *
+ * ⭐ **The bill is a HOST HOOK, and that is what makes the promotion
+ * possible at all.** The kernel must not import a seeded model out of a
+ * pack, so it does not ask *what is this ground's character* — it asks the
+ * ground *what do you owe*, and the host answers however it likes. A
+ * `Field` answers from farming's `GroundCharacter.improvementCost`; a
+ * `Turbary` answers from its own peat. Two more hooks follow the same rule:
+ * how heavy the work is here, and what comes up out of it — because a
+ * kernel controller must not know what marl is.
+ *
+ * See [docs/subsystems/soil.md] and [docs/subsystems/smallholding.md].
  */
 
-import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { ImprovementCost } from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import type { MixinConstructor, FieldMeta } from '../mixin';
+import { Mixins } from '../mixin';
+import { StuffApi } from '../../api/stuff';
+import { WorldClockApi } from '../../api/worldclock';
+import { TemplatePaths } from '../paths';
+import type { Stuff } from '../stuff/Stuff';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
 /**
- * The mixin's name.
+ * ⭐⭐ **What a piece of ground owes in labour**, job by job, in one
+ * currency.
  *
- * ⚠ A pack may not add to the kernel's `Mixins` registry, so a pack
- * mixin owns its own constant and consumers narrow with
- * `MixinApi.hasMixin(cls, IMPROVABLE_MIXIN)` — the `WorkingMixin` /
- * `ManaPoweredMixin` shape.
+ * Every figure is *units of work*, the same units `bankWork` banks — so
+ * two plots of different character demand measurably different work to
+ * reach the same state, and the player pays the difference in **labour**
+ * rather than reading it off a yield modifier.
+ *
+ * ⚠ It lives here rather than beside the model that computes it, because
+ * the kernel cannot import from a pack and the hook that answers with one
+ * of these is the kernel's. A pack's seeded model *produces* a bill; the
+ * shape of a bill is substrate.
  */
-export const IMPROVABLE_MIXIN = 'ImprovableMixin';
+export interface ImprovementCost {
+  /** Clearing scrub and wood — the heaviest, and where injury lives. */
+  clearing: number;
+  /** Picking stone. ⭐ Its output is the wall. */
+  stonePicking: number;
+  /** Ditching and field drains — you move the water, not the soil. */
+  draining: number;
+  /** Lime, to bring sour ground up. */
+  liming: number;
+  /** Terracing, or a refusal. */
+  terracing: number;
+  /** The sum — one number for *"how much work is this ground?"*. */
+  total: number;
+}
 
 /**
  * The jobs reclamation is made of — a CLOSED, ordinal vocabulary.
@@ -164,11 +202,49 @@ export interface Improvable {
   isPlantable(cost: ImprovementCost): boolean;
   /** Reconcile reversion over elapsed game-time. Sync, read-triggered. */
   reconcileImprovement(): void;
+
+  // ───────────────────────── the host hooks ─────────────────────────
+
+  /**
+   * ⭐⭐ **What does this ground owe?** — the one question the kernel's
+   * improvement acts ask, and the reason the mixin could leave the trade
+   * that invented it.
+   *
+   * `null` means *this host has not said*, and the acts refuse in words
+   * rather than treating silence as "nothing owed": a host that composes
+   * the mixin and answers nothing is then **visibly** broken instead of
+   * silently free, which is the failure mode this repo keeps paying for.
+   *
+   * @hook answered by the composing class. `Field` reads farming's seeded
+   * `GroundCharacter`; `Turbary` reads its own peat.
+   */
+  improvementBill(): Promise<ImprovementCost | null>;
+
+  /**
+   * How much slower than ordinary this job is **on this ground** — a
+   * multiplier on the act's duration, `1` by default.
+   *
+   * ⚠ A hook rather than a read of the bill, because the two are different
+   * questions: the bill says *how many acts*, this says *how long each one
+   * takes*. Steep stony ground is slow per swing AND wants many swings.
+   *
+   * @hook optional; the default is `1`.
+   */
+  improvementPace(job: ImprovementJob): number;
+
+  /**
+   * ⭐ **What comes up out of the work**, already placed. Stone off a
+   * headland, marl out of a limy corner, heather off a moss — none of
+   * which the kernel may know the name of.
+   *
+   * @hook optional; the default is nothing.
+   */
+  improvementSpoils(job: ImprovementJob): Promise<readonly Stuff[]>;
 }
 
 export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class ImprovableMixin extends Base implements Improvable {
-    static _mixinName = IMPROVABLE_MIXIN;
+    static _mixinName: string = Mixins.Improvable;
 
     /**
      * ⭐⭐ **The reclamation acts are afforded by the GROUND, and this is
@@ -192,16 +268,14 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
      */
     static commandContributions = {
       self: [
-        'trade/farming/cmd/farming/grub.yaml',
-        'trade/farming/cmd/farming/ditch.yaml',
-        'trade/farming/cmd/farming/lime.yaml',
-        'trade/farming/cmd/farming/plough.yaml',
+        'platform/cmd/ground/grub.yaml',
+        'platform/cmd/ground/ditch.yaml',
+        'platform/cmd/ground/lime.yaml',
       ],
       inventory: [
-        'trade/farming/cmd/farming/grub.yaml',
-        'trade/farming/cmd/farming/ditch.yaml',
-        'trade/farming/cmd/farming/lime.yaml',
-        'trade/farming/cmd/farming/plough.yaml',
+        'platform/cmd/ground/grub.yaml',
+        'platform/cmd/ground/ditch.yaml',
+        'platform/cmd/ground/lime.yaml',
       ],
     };
 
@@ -240,7 +314,7 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     public bankWork(job: ImprovementJob, amount: number, cost: ImprovementCost): number {
       if (!Number.isFinite(amount) || amount <= 0) return this.progressOn(job, cost);
       this.reconcileImprovement();
-      const required = requiredFor(job, cost);
+      const required = requiredForImprovement(job, cost);
       const done = Math.min(required, (this.improvementWork[job] ?? 0) + amount);
       this.improvementWork = { ...this.improvementWork, [job]: done };
       return required <= 0 ? 1 : done / required;
@@ -248,7 +322,7 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
 
     public progressOn(job: ImprovementJob, cost: ImprovementCost): number {
       this.reconcileImprovement();
-      const required = requiredFor(job, cost);
+      const required = requiredForImprovement(job, cost);
       // ⭐ Ground that owes nothing is finished by definition. Sweet
       // ground needs no lime, and reporting it as 0% limed would be a
       // gauge telling the truth about a number and lying about the world.
@@ -285,6 +359,25 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
 
     public isPlantable(cost: ImprovementCost): boolean {
       return this.progressOn('clearing', cost) >= 1;
+    }
+
+    // ───────────────────── the host hooks (defaults) ─────────────────────
+
+    /** @hook — see {@link Improvable.improvementBill}. */
+    public async improvementBill(): Promise<ImprovementCost | null> {
+      return null;
+    }
+
+    /** @hook — see {@link Improvable.improvementPace}. */
+    public improvementPace(_job: ImprovementJob): number {
+      return 1;
+    }
+
+    /** @hook — see {@link Improvable.improvementSpoils}. */
+    public async improvementSpoils(
+      _job: ImprovementJob,
+    ): Promise<readonly Stuff[]> {
+      return [];
     }
 
     /**
@@ -330,8 +423,8 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
   };
 }
 
-/** The labour one job requires on this ground — the character's price. */
-function requiredFor(job: ImprovementJob, cost: ImprovementCost): number {
+/** The labour one job requires on this ground — the ground's own price. */
+function requiredForImprovement(job: ImprovementJob, cost: ImprovementCost): number {
   switch (job) {
     case 'clearing':
       return cost.clearing + cost.stonePicking;

@@ -1465,7 +1465,66 @@ the script's classifier counts it, fold construction into `new Evaporation(...)`
 rather than raising the ceiling); `food-safety.dirty.wire.test.ts`'s
 `dry` checkpoint still passes.
 
-### W2 — ground improvement is the kernel's (D8)
+### W2 — ✅ DONE: ground improvement is the kernel's (D8)
+
+> ✅ **Landed** — `build(extraction W2)`. The promotion, plus three things
+> the plan had wrong or did not foresee:
+>
+> - **`lib/ground/Improvable.ts`** holds the mixin, the jobs, the bands, the
+>   phrases, the reversion rates **and `ImprovementCost`**.
+>   `Mixins.Improvable` + `MixinRefusals.ImprovableMixin` + `MixinApi.isImprovable`.
+> - **⚠ D8's premise was half stale: `GroundCharacter` is already the
+>   `/system/ground` PACK's**, not farming's — the ground build took it.
+>   So `ImprovementCost` moved *out of a pack into the kernel* (a kernel
+>   mixin cannot import a pack), and `content-ground` now imports the shape
+>   from `@saxonberg/server/mud/lib/ground/Improvable`.
+> - ⭐⭐ **THREE host hooks, not one.** D8 named `improvementBill()`; the
+>   other two fell out of actually moving `grub`, whose spoils are farming's
+>   **rows** (`field-stone`, `marl`) and whose pace reads farming's
+>   **sample** (slope, stoniness). A kernel controller may know neither, so:
+>   `improvementBill()` · `improvementPace(job)` · `improvementSpoils(job)`,
+>   each defaulted on the mixin and overridden by `Field`. ⚠ `improvementBill`
+>   returns `ImprovementCost | **null**` and the acts refuse in words on
+>   `null`, so a host that composes the mixin and answers nothing is
+>   *visibly* broken rather than silently free.
+> - **`platform/idea/cmd/ground/{GroundWork,Grub,Ditch,Lime}Controller.ts`**
+>   + `platform/cmd/ground/{grub,ditch,lime}.yaml` (moved, with `field` →
+>   `ground` in the prose) + the three controller templates.
+> - **Farming keeps `plough` and `mow`.** `FieldWorkController` is now a
+>   thin subclass holding only `fieldOf()` (a field + its **sample**, which
+>   the plough and the scythe read and a bill cannot answer) and
+>   `characterAt()`, re-exporting `FIELD_TOPIC`/`AGRICULTURE`/`LABOUR_PER_ACT`
+>   so `Plough`/`Mow` keep one import.
+> - ⚠⚠ **`plough` would have gone silent.** It was listed in
+>   `ImprovableMixin`'s contributions, which moved to the kernel — and
+>   ploughing is not improvement, so it could not stay there. `Field` now
+>   declares its own `commandContributions` naming `plough.yaml`; mixins
+>   **union** with a class's own static, so this sits beside the mixin's
+>   three platform views and `SwardMixin`'s `mow`. **Every controller test
+>   would still have passed.**
+> - ⭐ **`lint:instrument-args` caught `lime` hunting for its sweetener**
+>   (the walk came along with the file). Fixed the way the gate asks:
+>   `lime.yaml` declares an `agent` arg defaulting to
+>   `me:i:[material.liming]`, so **`lime with the marl` is now sayable** and
+>   the controller only confirms what the binder handed back. ⭐ The
+>   `material.<tag>` MQL atom already shipped — no new surface was needed,
+>   and marl and quicklime both answer it with this file naming neither.
+> - **The moved test could not keep its bill.** `lib/ground/__tests__/Improvable.test.ts`
+>   used to call `GroundCharacter.improvementCost` out of a pack, which a
+>   kernel test may not do (`lint:imports`, `lint:test-content`). Its bills
+>   are now **stated literals**, which is what the mixin's contract actually
+>   is: *whatever bill the host hands me*. 11 green.
+>
+> *Verification:* server tsc clean · farming + ground tsc clean ·
+> `Improvable.test.ts` 11 green · farming suite **76 green** ·
+> `pnpm test:near` **382 + 5 + 1 files green** · `lint:family` **all 52
+> gates pass** (after the two it caught above).
+>
+> ⚠ **Sibling worktrees:** the view move retires three `command-view`
+> documents under `trade/farming/cmd/farming/` and adds three under
+> `platform/cmd/ground/`. A dev DB that booted the old set wants dropping.
+
+### W2 (original text) — ground improvement is the kernel's (D8)
 
 *Goal:* `ImprovableMixin` and the three improvement acts live in the
 kernel/platform; farming's `Field` behaves identically; nothing new is

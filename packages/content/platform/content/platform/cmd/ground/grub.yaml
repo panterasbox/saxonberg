@@ -1,8 +1,8 @@
 verbs: [grub]
-controller: /trade/farming/idea/cmd/farming/GrubController
+controller: /platform/idea/cmd/ground/GrubController
 description: "Grub out rough ground — thorn, root and stone — until it will take a crop"
 help: |
-  The heaviest work on the farm, and the real word for it. You cut into
+  The heaviest work there is on ground, and the real word for it. You cut into
   the thorn and bramble and lever out what is under them.
 
   ⭐ Newly plotted ground is NOT a field. It is a claim on rough ground,

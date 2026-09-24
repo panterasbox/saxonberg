@@ -131,6 +131,7 @@ import type { Wieldable } from '../lib/slot/Wieldable';
 import type { Postured } from '../lib/slot/Postured';
 import type { Floor } from '../lib/ground/Floor';
 import type { GroundSource } from '../lib/ground/GroundSource';
+import type { Improvable } from '../lib/ground/Improvable';
 import type { Posed } from '../lib/character/Posed';
 import type { Mountable } from '../lib/slot/Mountable';
 import type { Drivable } from '../lib/slot/Drivable';
@@ -1492,6 +1493,15 @@ export class MixinApi {
   /** Can this Idea say what the ground is made of at a spot and depth? */
   public static isGroundSource(obj: Stuff): obj is Stuff & GroundSource {
     return this.hasMixin(obj, Mixins.GroundSource);
+  }
+
+  /**
+   * ⭐ Ground somebody could clear, drain and lime — and which reverts if
+   * they stop. Promoted out of `trade-farming` by the extraction build; the
+   * host answers what it owes through `improvementBill()`.
+   */
+  public static isImprovable(obj: Stuff): obj is Stuff & Improvable {
+    return this.hasMixin(obj, Mixins.Improvable);
   }
 
   public static isPosed(obj: Stuff): obj is Stuff & Posed {

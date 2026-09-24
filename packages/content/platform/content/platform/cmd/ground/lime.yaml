@@ -1,8 +1,8 @@
 verbs: [lime]
-controller: /trade/farming/idea/cmd/farming/LimeController
+controller: /platform/idea/cmd/ground/LimeController
 description: "Spread marl or lime on sour ground"
 help: |
-  Break up what you are carrying and cast it out across the field.
+  Break up what you are carrying and cast it out across the ground.
 
   ⭐ Sourness is invisible. A sour field looks exactly like a sweet one,
   grows a visibly poor crop, and lime is dear, slow to undo and entirely
@@ -20,6 +20,21 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 args:
+  # ⭐ WHICH SWEETENER, declared rather than hunted for. The default asks
+  # `[material.liming]` — *the thing that is MADE OF something that limes* —
+  # so marl answers it today and a limekiln's quicklime answers it the day
+  # somebody burns some, and this file names neither row.
+  #
+  # ⚠ `me:i` — in hand or carried: you spread what you brought. And it is a
+  # declared arg rather than a walk over your pockets so a player can say
+  # WHICH sack (`lint:instrument-args`).
+  - name: agent
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[material.liming]"
+    scope: ["reachable"]
+    requires: [TangibleMixin]
   - name: detail
     type: string
     required: false

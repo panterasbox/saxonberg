@@ -28,38 +28,52 @@
  * the file that would notice it creeping back before anybody drove it.
  */
 
-import '@saxonberg/server/test-bootstrap';
+import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ImprovableMixin, IMPROVEMENT_JOBS } from '../Improvable';
-import GroundCharacter, { type GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
-import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { CommandApi } from '@saxonberg/server/mud/api/command';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import {
+  ImprovableMixin,
+  IMPROVEMENT_JOBS,
+  type ImprovementCost,
+} from '../Improvable';
+import { Idea } from '../../stuff/Idea';
+import { StuffApi } from '../../../api/stuff';
+import { CommandApi } from '../../../api/command';
+import { WorldClockApi } from '../../../api/worldclock';
+import { Quantity } from '../../quantity';
+import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 
 class TestGround extends ImprovableMixin(Idea) {}
 
 const DAY = 86_400;
 
-/** A synthetic sample, so the ground under test is stated not sampled. */
-function ground(over: Partial<GroundSample> = {}): GroundSample {
-  return {
-    texture: 'loam',
-    stoniness: 0.1,
-    drainage: 0.7,
-    slopeDeg: 2,
-    aspectDeg: 180,
-    topsoilM: 0.3,
-    nativePh: 6.5,
+/**
+ * A bill, **stated rather than sampled**.
+ *
+ * ⚠⚠ This used to call `GroundCharacter.improvementCost` out of the
+ * `/system/ground` pack. It cannot any more, and that is the point of the
+ * promotion: a kernel test may not import a pack (`lint:imports`,
+ * `lint:test-content`), and the mixin's whole contract is *whatever bill
+ * the host hands me*. Writing the numbers here makes the test say what it
+ * is actually about — the arithmetic ON a bill — and leaves the arithmetic
+ * that PRODUCES one to the pack that owns it.
+ */
+function bill(over: Partial<ImprovementCost> = {}): ImprovementCost {
+  const base = {
+    clearing: 1.5,
+    stonePicking: 0.4,
+    draining: 0,
+    liming: 0,
+    terracing: 0,
     ...over,
   };
+  return {
+    ...base,
+    total:
+      over.total ??
+      base.clearing + base.stonePicking + base.draining + base.liming + base.terracing,
+  };
 }
-
-const bill = (over: Partial<GroundSample> = {}) =>
-  GroundCharacter.improvementCost(ground(over));
 
 function make(): TestGround {
   return makeStuff(() => new TestGround());
@@ -86,7 +100,7 @@ describe('the improvement axis', () => {
   });
 
   it('⭐ the ONLY gate on planting is clearing — sour wet ground is a lesson, not a wall', () => {
-    const b = bill({ nativePh: 4.8, drainage: 0.05 });
+    const b = bill({ liming: 2.4, draining: 3.2 });
     const g = make();
     work(g, 'clearing', b);
     // Owes lime and drains, and will still take a crop. A bad one.
@@ -96,8 +110,15 @@ describe('the improvement axis', () => {
   });
 
   it('⭐⭐ two plots of different character demand different work (D55)', () => {
-    const kind = bill({ stoniness: 0.02, drainage: 0.75, nativePh: 6.8, slopeDeg: 1 });
-    const cruel = bill({ stoniness: 0.85, drainage: 0.1, nativePh: 4.7, slopeDeg: 16 });
+    // Kind ground and the worst ground in the game, as two bills.
+    const kind = bill({ clearing: 1.1, stonePicking: 0.1 });
+    const cruel = bill({
+      clearing: 3.2,
+      stonePicking: 3.4,
+      draining: 3.9,
+      liming: 2.1,
+      terracing: 2.4,
+    });
     const a = make();
     const b2 = make();
     expect(work(b2, 'clearing', cruel)).toBeGreaterThan(work(a, 'clearing', kind));
@@ -107,7 +128,7 @@ describe('the improvement axis', () => {
   it('ground that owes nothing on a job reads FINISHED, not zero', () => {
     // Sweet ground needs no lime. Reporting 0% limed would be a gauge
     // telling the truth about a number and lying about the world.
-    const b = bill({ nativePh: 7.0 });
+    const b = bill({ liming: 0 });
     const g = make();
     expect(b.liming).toBe(0);
     expect(g.progressOn('liming', b)).toBe(1);
@@ -115,7 +136,7 @@ describe('the improvement axis', () => {
   });
 
   it('⚠ the weakest link decides the band, never the mean', () => {
-    const b = bill({ nativePh: 4.5, drainage: 0.1, stoniness: 0.5 });
+    const b = bill({ liming: 2.4, draining: 3.6, stonePicking: 2 });
     const g = make();
     work(g, 'draining', b);
     work(g, 'liming', b);
@@ -185,7 +206,7 @@ describe('⭐⭐ it goes back (D58)', () => {
   });
 
   it('⭐ the SCRUB comes back first, and the lime leaches last', () => {
-    const b = bill({ nativePh: 5.0, drainage: 0.2 });
+    const b = bill({ liming: 1.6, draining: 2.8 });
     const g = make();
     for (const job of IMPROVEMENT_JOBS) work(g, job, b);
     advance(120);

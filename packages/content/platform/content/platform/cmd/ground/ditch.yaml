@@ -1,11 +1,11 @@
 verbs: [ditch]
-controller: /trade/farming/idea/cmd/farming/DitchController
+controller: /platform/idea/cmd/ground/DitchController
 description: "Cut a drain along the fall of the ground"
 help: |
-  Open a line along the fall of the field and throw the spoil to the high
+  Open a line along the fall of the ground and throw the spoil to the high
   side, so the water has somewhere to go.
 
-  ⭐ You are not changing the soil — you cannot; the texture of a field is
+  ⭐ You are not changing the soil — you cannot; the texture of ground is
   the earth it is made of. You are changing where the water goes, which
   is a different job with a different answer.
 
