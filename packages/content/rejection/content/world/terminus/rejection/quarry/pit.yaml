@@ -32,6 +32,13 @@ data:
   coords: { x: 0, y: 0, z: 0 }
   faceRunM: 20
   spoilTo: /world/terminus/rejection/kestrel-road/tips
+  # ⭐ The limekiln stands AT the quarry because the rock is heavy and the
+  # lime is light — that is the whole reason limekilns stand at quarries, and
+  # it is a fact about haulage rather than about kilns. ⚠ `props:`, the
+  # fixture designation: it is furniture of the place, not a thing anybody
+  # dropped.
+  props:
+    - /trade/quarrying/thing/limekiln
   exits:
     south:
       destination: /world/terminus/rejection/location/old-workings

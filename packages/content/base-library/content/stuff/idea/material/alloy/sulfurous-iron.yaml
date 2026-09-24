@@ -1,0 +1,42 @@
+# ⚠⚠ Hot-short iron — ⭐⭐ **iron smelted on raw coal, and the reason coke had
+# to be invented.**
+#
+# Coal reduces iron perfectly well. It also puts its sulfur into the metal,
+# and sulfurous iron is *hot-short*: it looks sound, works sweetly cold, and
+# **cracks under the hammer at forging heat**. That is a real historical wall
+# — the whole coke chain exists to get past it — and this row is the wall.
+#
+# ⭐ It is a MATERIAL and not a grade, which is the correction that made it
+# work: neither `Bloom` nor `Ingot` composes `GradedMixin`, so writing a grade
+# down would have been a silent no-op and coal would have made good iron. And
+# the material is the better answer anyway, because the smith's own verbs
+# already read it — `hammer`, `forge` and `quench` all refuse a `brittle`
+# metal, exactly as they refuse cast iron. So *"it will crack under the
+# hammer"* is not a warning in prose; it is what happens.
+#
+# ⚠ It is still IRON: `ferrous`, and a furnace will take it back. What it is
+# not is `forgeable`, which is the one tag a smith's hand reaches for.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: hot-short iron
+  keywords: [iron, "hot-short", sulfurous, bloom]
+  appearance: dull grey iron showing a sickly yellow bloom in the fracture
+  density: 7800
+  specificHeat: 450
+  thermalConductivity: 50
+  electricalConductivity: 1.0e7
+  waterAbsorptionCapacity: 0
+  hardness: 120
+  # ⚠ Tough enough to look fine, and that is the trap: the failure is at
+  # forging heat, not under a cold load.
+  toughness: 30
+  meltingPoint: 1780
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["alloy", "metal", "ferrous", "brittle", "sulfurous"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.99 }
+  chemistry: null
+  biologicalSource: null

@@ -153,6 +153,20 @@ const C_STOCK_MAX = 0.021;
 const C_STEEL_FLOOR = 0.002;
 /** Slag trapped in a bloom, as a fraction of its mass. */
 const BLOOM_SLAG = 0.3;
+/**
+ * ⭐⭐ Slag trapped in a bloom smelted **with a flux**, and this pair of
+ * numbers is the whole of why limestone matters.
+ *
+ * A flux lowers the gangue's melting point, so the waste runs OUT of the
+ * bloom as a liquid slag instead of staying in it as sponge. 30 % trapped
+ * becomes 12 %: the same rock yields a bloom with less than half the rubbish
+ * in it, and a smith who has hammered both can feel the difference.
+ *
+ * ⚠ The demand was there first and was being met by a fiction: the metal
+ * chain shipped with `flux` as a named hole and nothing in the world produced
+ * one. Limestone is that producer, and the quarry is where it comes from.
+ */
+const BLOOM_SLAG_FLUXED = 0.12;
 
 /*
  * ⭐ What those numbers actually produce, at Rejection's furnace with the
@@ -227,6 +241,14 @@ export default class SmeltController extends CommandController<SmeltModel> {
     const ore = contents.filter((c) => isOre(c));
     const stock = contents.filter((c) => isStock(c));
     const fuel = contents.filter((c) => isCharcoal(c));
+    // ⭐ The flux, by material TAG rather than by row: limestone answers it
+    // today and dolomite answers it the day somebody ships some.
+    const flux = contents.filter((c) => isFlux(c));
+    // ⚠⚠ And the SULFUR, which is the coal question: raw coal reduces iron
+    // perfectly well and poisons it while doing so, which is exactly why coke
+    // had to be invented. Read off the fuel's own material, so nothing here
+    // names coal.
+    const sour = fuel.some((c) => isSulfurous(c));
 
     if (ore.length === 0 && stock.length === 0) {
       this.decline(context, Mml.compose`The furnace holds nothing to work on.`, 'no-ore');
@@ -261,7 +283,7 @@ export default class SmeltController extends CommandController<SmeltModel> {
       // is better than inventing a token bar. The heat gate has nothing
       // to gate on, so the run is allowed and its answer is honest.
       this.engage(context, () => {
-        void runCharge(context, furnace as Stuff & Container, charge, fuel, null, 0, held);
+        void runCharge(context, furnace as Stuff & Container, charge, fuel, flux, sour, null, 0, held);
       });
       return;
     }
@@ -323,7 +345,7 @@ export default class SmeltController extends CommandController<SmeltModel> {
     // would ever come out. The mining acts shipped that bug and a live
     // drive found it; this never did.
     this.engage(context, () => {
-      void runCharge(context, furnace as Stuff & Container, charge, fuel, metal, carbon, held);
+      void runCharge(context, furnace as Stuff & Container, charge, fuel, flux, sour, metal, carbon, held);
     });
   }
 
@@ -379,6 +401,10 @@ async function runCharge(
   furnace: Stuff & Container,
   charge: ChargeLot[],
   fuel: Stuff[],
+  /** Flux in the charge — consumed with the fuel; it does its work and goes. */
+  flux: Stuff[],
+  /** Whether any fuel in the charge carries sulfur (raw coal). */
+  sour: boolean,
   metal: Material | null,
   carbon: number,
   heldK: number,
@@ -410,6 +436,9 @@ async function runCharge(
   }
   for (const lot of charge) StuffApi.destruct(lot.stuff);
   for (const basket of fuel) StuffApi.destruct(basket);
+  // ⭐ The flux goes with them. It is not a tool you get back: it leaves as
+  // part of the slag, which is the whole of what it was for.
+  for (const stone of flux) StuffApi.destruct(stone);
 
   if (metal === null || metalKg <= 0) {
     await pour(furnace, SLAG_ROW, Math.max(chargeKg, 1));
@@ -430,7 +459,7 @@ async function runCharge(
   // between two temperatures rather than a choice between three names.
   const liquid = !ferrous || heldK >= meltingPointOf(carbon);
   const productMaterial = ferrous
-    ? await ferrousMaterialFor(carbon, liquid, inheritedCarbon)
+    ? await ferrousMaterialFor(carbon, liquid, inheritedCarbon, sour)
     : metal.getTemplatePath() ?? '';
 
   const row = await productRowFor(productMaterial);
@@ -452,21 +481,44 @@ async function runCharge(
 
   // A bloom carries its slag with it; everything else leaves it behind.
   const bloom = ferrous && !liquid && inheritedCarbon === null;
-  const productKg = bloom ? metalKg * (1 + BLOOM_SLAG) : metalKg;
+  // ⭐⭐ **The flux's one effect, and it is on the PRODUCT's mass as well as
+  // on its grade.** Less trapped slag means a smaller, cleaner bloom out of
+  // the same rock — which is the honest reading: the waste left, it did not
+  // become metal.
+  const trapped = flux.length > 0 ? BLOOM_SLAG_FLUXED : BLOOM_SLAG;
+  const productKg = bloom ? metalKg * (1 + trapped) : metalKg;
   const product = await pour(furnace, row, productKg);
   if (product && MixinApi.isAlloyed(product) && carbon > 0) {
     product.setFractionOf(CARBON, carbon);
   }
   if (product && bloom) {
     const spongy = product as unknown as { setSlagFraction?(v: number): void };
-    spongy.setSlagFraction?.(BLOOM_SLAG / (1 + BLOOM_SLAG));
+    spongy.setSlagFraction?.(trapped / (1 + trapped));
   }
+  // ⭐ Whether this run was poisoned — read for the tap scene and the deed,
+  // and nothing else: the MATERIAL already carries the consequence.
+  //
+  // ⚠ Non-ferrous is untouched, and that is not an oversight: sulfur is
+  // iron's problem. Copper is smelted FROM a sulfide.
+  const soured = sour && ferrous;
   await pour(furnace, SLAG_ROW, Math.max(chargeKg - productKg, 0));
 
   if (!watching) return;
+  // ⭐ The tap names what the flux and the fuel did, because a player who is
+  // not told cannot learn it. Two sentences, each earned by a thing in the
+  // charge rather than by a branch on a recipe name.
+  const fluxLine =
+    flux.length > 0 && bloom
+      ? ' The limestone took the gangue off as a running slag — there is far less rubbish in this bloom than the rock had in it.'
+      : '';
+  const sourLine = soured
+    ? " And the coal's sulfur is in the iron — hot-short; it will crack under the hammer rather than draw."
+    : '';
   MessageApi.scene(giver)
     .topic(TOPIC)
-    .toSelf(tapScene(metal, ferrous, liquid, bloom, carbon, metalKg, chargeKg, heldK))
+    .toSelf(
+      Mml.compose`${tapScene(metal, ferrous, liquid, bloom, carbon, metalKg, chargeKg, heldK)}${fluxLine}${sourLine}`,
+    )
     .toPeers(Mml.compose`${Mml.actor(giver)} taps the furnace.`)
     .send();
   if (MixinApi.isAdvancing(giver)) {
@@ -477,7 +529,9 @@ async function runCharge(
     await giver.creditDeed({
       discipline: SMELTING,
       difficulty: steel ? 'hard' : 'standard',
-      outcome: liquid && ferrous ? 'partial' : 'success',
+      // ⚠ A soured bloom is a PARTIAL, like a cast: metal came out and it is
+      // not the metal you meant. The ledger agrees with what happened.
+      outcome: (liquid && ferrous) || soured ? 'partial' : 'success',
     });
   }
 }
@@ -620,7 +674,21 @@ async function ferrousMaterialFor(
   carbon: number,
   liquid: boolean,
   inheritedCarbon: number | null,
+  /** Whether the fuel carried sulfur — raw coal (extraction build). */
+  sour: boolean,
 ): Promise<string> {
+  // ⚠⚠ **The sulfur decides the MATERIAL, not a grade**, and that correction
+  // matters: the plan said to write the product's *Graded* face down to
+  // `poor`, and **neither `Bloom` nor `Ingot` composes `GradedMixin`** — so
+  // `setGrade` would have been a silent no-op and coal would have made
+  // perfectly good iron. A test caught it.
+  //
+  // ⭐ The material is also the BETTER answer, because the smith's own verbs
+  // already read it: `hammer`, `forge` and `quench` all refuse a
+  // `brittle`-tagged metal, so *"it will crack under the hammer"* stops being
+  // prose and becomes a fact the world enforces. Which is how cast iron has
+  // always said the same thing.
+  if (sour) return '/stuff/idea/material/alloy/sulfurous-iron';
   if (liquid) return '/stuff/idea/material/alloy/cast-iron';
   // From ore, solid: a bloom, whatever its carbon — it is still full of
   // the slag it was reduced in, and that is what makes it a bloom.
@@ -683,6 +751,32 @@ function isOre(item: Stuff): boolean {
  */
 function isStock(item: Stuff): boolean {
   return !isOre(item) && MixinApi.isAlloyed(item) && MixinApi.isTangible(item);
+}
+
+/**
+ * ⭐ A FLUX: a thing whose material carries the `flux` tag.
+ *
+ * ⚠ A tag and not a row, deliberately — limestone answers it today, dolomite
+ * or fluorspar answer it the day somebody ships one, and this file never
+ * learns either word. The metal chain named `flux` as a hole and nothing in
+ * the world filled it until the quarry did.
+ */
+function isFlux(item: Stuff): boolean {
+  if (!MixinApi.isTangible(item)) return false;
+  return item.hasMaterialTag('flux');
+}
+
+/**
+ * ⚠⚠ A SULFUROUS fuel — raw coal, and the reason coke exists.
+ *
+ * Coal reduces iron perfectly well and poisons it while doing so: the sulfur
+ * goes into the metal and makes it hot-short, so it cracks under the hammer
+ * instead of drawing. That is a real historical wall and it is why the whole
+ * coke chain had to be invented; `metal-chain-slate` owns the way through it.
+ */
+function isSulfurous(item: Stuff): boolean {
+  if (!MixinApi.isTangible(item)) return false;
+  return item.hasMaterialTag('sulfurous');
 }
 
 /** Charcoal: a thing whose material is tagged `fuel` and `carbon`. */

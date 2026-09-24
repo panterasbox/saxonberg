@@ -27,7 +27,11 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["earth", "solid", "soil", "plastic"]
+  # ⭐ `clay` added by the extraction build: a recipe matches an input slot
+  # against the MATERIAL's tags, so the firing that makes a pot asks for
+  # `clay` and a second clay works the day somebody ships one. The other four
+  # tags are what the ground build authored and are untouched.
+  tags: ["earth", "solid", "soil", "plastic", "clay"]
   composition: []
   chemistry: null
   biologicalSource: null

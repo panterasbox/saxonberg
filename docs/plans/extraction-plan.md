@@ -1721,7 +1721,69 @@ W4; until then the kiln is a fixture that lights and holds heat.
 claim; `lint:census` — every `wins:`/host/props path resolves;
 `lint:locations`); the mining suite still green (the `hew` tool arg).
 
-### W4 — the kiln, the flux, the sulfur (D14, D15, coal + limestone bands)
+### W4 — ✅ DONE: the kiln, the flux, the sulfur
+
+> ✅ **Landed** — `build(extraction W4)`. The `Kiln`-class collapse and the
+> platform `fire`, plus **two defects in the plan's own decisions** that only a
+> test could have found:
+>
+> - **`platform/thing/Kiln.ts` is deleted.** It was byte-identical to `Forge`,
+>   and `Oven`'s own comment gives the only real distinction — *a chamber you
+>   load* vs *a fire you bring work to* — which puts a kiln on the **oven**
+>   side. The generic row is retargeted and says why in its own header: *a
+>   kiln that cannot hold a charge cannot be fired, which is why that row
+>   stood nowhere in the world for its whole life.*
+> - **`platform/cmd/device/fire.yaml`, `verbs: [fire, burn]`, on
+>   `FurnaceMixin.commandContributions.peers`** beside the five already there.
+>   `FireController` is the **platform's**.
+> - ⭐⭐ **The recipes genuinely do the work.** The controller reads the charge,
+>   asks the catalogue which recipe's input slots it satisfies, and runs that —
+>   so the FireController test authors **its own material and its own firing**
+>   and asserts a bare `Oven` fires it. Nothing in the controller names lime,
+>   clay or glass.
+> - Rows: `limekiln` (an `Oven` at 1500 K), `quicklime` (⭐ tagged `liming` —
+>   D14a), `clay-pot` in the **commons** on `PlantPot`, and the two recipes
+>   (`burn-lime` 2:1, `fire-pot` 1:1 — ⭐ **the ratio is authored in the row**,
+>   so a charge of five yields two and leaves one).
+> - `earth/clay` gains a `clay` tag (a recipe matches an input against the
+>   material's tags, and the ground build's row had none to match).
+>
+> ⚠⚠ **Two things the plan got wrong, both caught by tests:**
+>
+> 1. ⭐⭐ **D15's sulfur write-down could not have worked.** The plan said to
+>    write the ferrous product's **Graded** face down to `poor` — and **neither
+>    `Bloom` nor `Ingot` composes `GradedMixin`**, so `setGrade` would have been
+>    a silent no-op and coal would have made perfectly good iron. The fix is
+>    better than the plan: the sulfur decides the **MATERIAL**
+>    (`alloy/sulfurous-iron`, tagged `brittle`), discovered by the smelt's own
+>    `_materialPath` lookup like every other product. ⭐ And the smith's own
+>    verbs already read it — `hammer`, `forge` and `quench` all refuse a
+>    `brittle` metal — so *"it will crack under the hammer"* stops being prose
+>    and becomes what happens. Two new rows
+>    (`alloy/sulfurous-iron`, `trade-smelting/thing/hot-short-bloom`).
+> 2. ⚠ **`fire` cannot go through `CraftingApi.craft`**, and D14/A5 did not
+>    notice: a craft picks its inputs out of the actor's **reach**, and a
+>    firing consumes what is **in the chamber** — so a player could have fired
+>    a kiln off the limestone in their own arms. `SmeltController.runCharge`
+>    made the same decision for the same reason and is the precedent; what is
+>    new here is that *which* transform runs is a **row** rather than a branch.
+>
+> Also: the flux lowers the bloom's trapped slag from `BLOOM_SLAG` 0.30 to
+> `BLOOM_SLAG_FLUXED` 0.12 **and the bloom is smaller**, which is the honest
+> reading (the waste left, it did not become metal); the flux is **consumed**;
+> both are read off material TAGS (`flux`, `sulfurous`) so dolomite and a
+> second sour fuel need no edit. A test fixture note worth keeping: **`lit`
+> defaults to TRUE on `FurnaceMixin`**, which is exactly why the smelt's unlit
+> branch had no coverage for three builds.
+>
+> *Verification:* server tsc clean · `FireController.test.ts` **9** (including
+> the invented-firing case) · smelting **31** (four new flux/sulfur cases) ·
+> generic-objects **26** · smithing **38** · `pnpm test:near` **418 + all packs
+> green** · `lint:family` **all 52 gates pass** (⭐ `lint:descriptors` caught
+> `faint` in the new material's `appearance` colliding with a scroll
+> descriptor — a parser-ambiguity gate firing in the direction nobody checks).
+
+### W4 (original text) — the kiln, the flux, the sulfur (D14, D15, coal + limestone bands)
 
 ⚠ **Amended by § A5.** The `Kiln`-class collapse stands (verified). The
 act does not: `fire` is **`platform/cmd/device/fire.yaml`,

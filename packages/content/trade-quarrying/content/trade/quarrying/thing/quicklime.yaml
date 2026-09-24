@@ -1,0 +1,28 @@
+# Quicklime — ⭐⭐ **burnt lime, and it DOES lime a field.**
+#
+# The requirements forbade this at first, to stop the kiln becoming a worse
+# marl. Corrected against the lenses: in the world quicklime **is**
+# agricultural lime — more aggressive than marl, faster, and it costs fuel. So
+# the two become **a choice rather than a rule**: marl is slow and needs no
+# fire, quicklime is fast and burnt, and marl survives as the fuel-free path.
+#
+# ⚠ It carries the `liming` tag because `soil.md` already shipped the seam for
+# it — `lime` reads the tag *"so a kiln's output works the day somebody ships
+# one"*. This is that day, and the platform's `lime` needed no edit.
+#
+# ⚠ It is a LUMP, not bulk: you cart burnt lime in lumps and slake it where
+# you spread it.
+class: /trade/quarrying/thing/Lump
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [quicklime, lime, burnt, lump]
+  shortDescription: lump of quicklime
+  register: indefinite
+  longDescription: >-
+    Chalk-white and startlingly light for its size, and it takes the moisture
+    off your palm where you hold it.
+  material: /stuff/idea/material/caustic/quicklime
+  # ⭐ ~0.56 of the limestone that went in, by mass: the rest went up the
+  # throat as carbon dioxide. Two stones in, one lump out, and lighter.
+  mass: 4.5
+  quantity: 1

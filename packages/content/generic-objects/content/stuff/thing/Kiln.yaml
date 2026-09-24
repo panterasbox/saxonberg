@@ -1,6 +1,23 @@
 # Kiln — a ceramics / lime firing furnace. A steady pottery heat (1200 K),
-# with a modest bellows boost. Lit with `ignite`.
-class: /platform/thing/Kiln
+# with a modest bellows boost. Lit with `ignite`, run with `fire`.
+#
+# ⭐⭐ **The `Kiln` CLASS is gone, and this row is why it could go.** `Forge`
+# and `Kiln` were byte-identical — the same imports and the same composition
+# — so the forge/kiln distinction was two class names over one behaviour and
+# a row's dials. And `Oven`'s own comment gives the only real distinction
+# there is: *"`ContainerMixin` INSIDE `ThermalMixin`: an oven is a chamber you
+# put bread in. A `Forge` and a `Kiln` are deliberately NOT containers — a
+# forge is a fire you bring a workpiece to."*
+#
+# ⭐ That reasoning is right and the classification contradicted it: **you
+# stack ware in a kiln and shut it**, so a kiln is on the OVEN side and the
+# forge is the odd one out. `Kiln` had been cloned from the wrong parent, and
+# that clone is exactly why it could not hold a charge — a kiln that cannot
+# hold a charge cannot be fired, which is why this row stood nowhere in the
+# world for its whole life.
+#
+# So the dials were always what made it a kiln, and now they are all there is.
+class: /platform/thing/Oven
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brick kiln
