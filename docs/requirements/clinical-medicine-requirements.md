@@ -132,6 +132,22 @@ thin drug slice.
   The **full** calendar feature — recurring events, shared calendars, the
   carried physical-device / paper manifestation, author tooling,
   write-authorisation — is deferred to **`personal-calendar-slate`**.
+- **Veterinary medicine** → a deferred **specialization branch** (a
+  `veterinary` Discipline sibling under `health`; the same acts on an
+  animal patient), not a separate trade and not a substrate question: the
+  clinical substrate is **species-agnostic by construction** (`VitalsMixin`
+  on `Creature`, blood per-`Species`), so vet attaches later with no
+  rewrite. ⚠ The constraint this build must hold: **no medical act gates on
+  "the patient is a person"** — a guard like `if (isAvatar)` in a treatment
+  path breaks vet and is the narrowing-test failure. Collides with
+  husbandry/ranching/pets (who owns the patient). Its own future slate.
+- **The SBAR handoff + the shift-long "deteriorating patient" lab quest**
+  (NGN Q5 — a nurse briefs the incoming shift/provider, who acts on what she
+  *actually told them*) → the **scenario layer** (eternal-university / demo /
+  health-vertical), riding this build's substrate. ⚠ The seam this build
+  leaves: the doctor / incoming shift acting on the nurse's report (the
+  two-role clinical scene is here; the graded *communication* act is
+  theirs). High pedagogy value; a comms/scenario mechanic, not this build's.
 - **The economics of autarky** (whether self-sufficiency pays) →
   emerges from the general economy; this build only guarantees the loop
   is *physically* possible.
@@ -330,11 +346,23 @@ rework.
 
 ## Lens pass
 
-1. **Pedagogy** — two Disciplines exercised: `nursing` (continuous care)
-   and `medicine` (diagnosis/surgery/prescribing). Blood-type
-   compatibility is a genuine derivable rule (ABO-shaped). The operation
-   catalogue teaches triage/sequencing under a bleed clock; follow-up
-   teaches a *course* of care.
+1. **Pedagogy — the NGN clinical-judgment cycle.** The nursing acts ARE
+   the NCLEX clinical-judgment cycle study.com's clinical-nursing vertical
+   tests: *recognize cues (`assess` a worsening patient) → analyze →
+   prioritize (which wound first, transfuse or operate) → act & re-prioritize
+   → evaluate*. ⭐ **The teachability boundary is honoured**
+   (`docs/study-com/teachability-boundary.md`): the sim teaches the
+   **decision** layer; the **motor** layer (the needle, the surgeon's hands)
+   is Row C — the real practicum's, never faked here. That is also why the
+   invented drugs are pedagogically *correct*: real pharmacology is referent
+   content study.com owns, so the sim teaches the **pattern** (right remedy,
+   the 5 rights, the prescribe→administer authority), not real drug facts.
+   Blood keeps the recognizable **ABO pattern** (a transferable judgment —
+   compatibility, the universal donor), not a claim to teach hematology. And
+   a `nursing` competence earned here is a `creditDeed`→Transcript row — the
+   **portable evidence ledger** the study.com federation runs on
+   (`transfer-network.md`), which is StudyWorld's whole promise. `medicine`
+   and `nursing` each advance on their own acts.
 2. **Creative expression** — operations, drugs, clinics are authored
    rows; a second of any needs no code. The ordinary case (stop a bleed,
    dress a cut) needs no authoring; the bespoke (a species-specific op)
@@ -393,11 +421,20 @@ A person does this in the live game, in order, and sees:
     the wound completes. Leave them too long → irritation/infection. A
     field-patch by an unskilled hand writes **no** calendar entry — you're
     guessing.
-10. **The profession boundary.** As a nurse (nursing Discipline) you can
+10. **Tend another through the judgment cycle.** As the nurse, take a
+    deteriorating patient (a seeded ward patient or a wounded companion):
+    `assess` (recognize the cues — a bleed worsening, a wound turning),
+    prioritize and act (dress / transfuse / `tend`), then `assess` again
+    (evaluate — is it turning the right way?). ⚠ A **wrong-patient
+    `administer`** (a prescription not `isFor` them) or a **mismatch a
+    competent giver can see** is refused **with a named reason** — the
+    5-rights / cross-match error is legible, not silent. The pedagogy is
+    the cycle, not any one act.
+11. **The profession boundary.** As a nurse (nursing Discipline) you can
     `draw`/`transfuse`/`suture`/`administer`/`tend` but **cannot
     `operate`** (refused — not a doctor) and **cannot `prescribe`**. As a
     doctor you can. The refusals name the missing Discipline.
-11. **Autarky end-to-end.** The whole of steps 1–9 is done **solo**,
+12. **Autarky end-to-end.** The whole of steps 1–9 is done **solo**,
     with a self-drawn unit, a self-made/owned kit, and locally-sourced
     drugs (willow analgesic, salt-water saline, the authored anaesthetic/
     antibiotic sources) — no trade required.
@@ -424,6 +461,13 @@ A person does this in the live game, in order, and sees:
   only present body state, **never** a future date; an unskilled field-patch
   writes no entry; the date pings when due; removal completes the wound;
   neglect is worse.
+- The nursing acts exercise the **clinical-judgment cycle** on a
+  deteriorating patient — `assess` (cues) → prioritize/act → `assess`
+  (evaluate) — observable as a patient who visibly turns for the better or
+  worse by what the nurse chose.
+- A **wrong-patient or wrong-type** act (a prescription not `isFor` the
+  patient; a mismatch a competent giver can see) is **refused with a named
+  reason** — the 5-rights / cross-match error is legible, not silent.
 - A **nurse** can do the care acts but is **refused** `operate` and
   `prescribe`; a **doctor** can; the refusals name why. `nursing` and
   `medicine` each advance on their own acts.

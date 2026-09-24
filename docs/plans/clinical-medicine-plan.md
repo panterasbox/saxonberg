@@ -638,8 +638,11 @@ migrated (no migrations; the dev DB is dropped).
   **`prescriptionOnly: true`** (new `Condition` field, persistent +
   authorable), the giver must be `medicine ≥ competent` OR a reachable
   `Prescription` `isFor(patient identity, type)` with doses left is
-  spent. `dose.yaml` gains the alias **`administer`**; credits
-  `nursing easy`. Antidotes stay ungated (emergency).
+  spent. **A refused administer names why** (*"that prescription is not
+  for them"* / *"no prescription — and you are not licensed for this"*) —
+  the 5-rights error is legible, not a silent no-op (D14). `dose.yaml`
+  gains the alias **`administer`**; credits `nursing easy`. Antidotes stay
+  ungated (emergency).
 - Prescription-only in v1: **anaesthesia and antibiosis**. Analgesia
   (willow tea) is folk medicine anyone brews; saline is transfused, not
   dosed. Flagged for review.
@@ -761,6 +764,35 @@ garden, the nurse, the brains · W7 the drive + docs. Each wave lands at
 one commit and is independently landable (W1–W4 ship substrate proven by
 unit tests; W5+ ship the verbs that reach it).
 
+### D14 — Pedagogy: the acts enact the NGN clinical-judgment cycle
+
+The build's pedagogical unit is the **NCLEX clinical-judgment cycle**
+(`docs/study-com/integration-examples.md`): *recognize cues (`assess`) →
+analyze → prioritize → act & re-prioritize → evaluate (`assess` again)* —
+study.com's clinical-nursing (NGN) promise, and the study.com federation's
+transferable-competence promise (`creditDeed`→Transcript, per
+`transfer-network.md`). Three constraints the code must honour:
+- **Teach the decision, never the motor.** Phlebotomy hands and the
+  surgeon's cut are Row C (sensorimotor) — not simulated; the acts model
+  the *judgment* (which wound first, is this blood compatible, is the
+  field clean, when to call the doctor). The engaged-step duration is the
+  *time it takes*, not a dexterity test — **no QTE** (uncertainty
+  doctrine), consistent with D7.
+- **Fictional drugs are correct, not a shortcut.** Real pharmacology is
+  referent content study.com owns; the invented actives teach the pattern
+  (right remedy, the 5 rights, prescribe→administer). Blood keeps the
+  recognizable **ABO pattern** (a transferable judgment), not a claim to
+  teach hematology.
+- **Errors are legible.** A wrong-patient `administer`, a mismatch a
+  competent giver can see, an unskilled attempt — each is refused with a
+  **named reason**, never a silent no-op. The refusal IS the lesson (the
+  mirror shows you). This is a cross-cutting requirement on every new
+  controller's refusal prose, not a wave.
+The **SBAR handoff** and the shift-long deteriorating-patient scenario
+(NGN Q5) are the scenario layer's (Deferred seams); this build leaves the
+seam (the two-role scene + the doctor acting on the nurse's report) and
+proves the *cycle* in the drive (checkpoint 12).
+
 ---
 
 ## Host placement
@@ -794,7 +826,12 @@ this plan: the bloodless case is `hasVitalSign`, the no-calendar case is
 `isCalendarKeeping` (a different composer, not a flag), the
 unauthored-species case is a default table. If the build finds itself
 writing `if (isAvatar) …` inside `VitalsMixin` or `if (hasBlood)` inside
-`CalendarMixin`, stop and re-read this table.
+`CalendarMixin`, stop and re-read this table. ⚠ **And no medical act may
+gate on "the patient is a person"** — every act narrows on `VitalsMixin`
+(a `Creature`, animal or human), never on `Avatar`/`Cast`. This is what
+keeps the substrate species-agnostic so **veterinary medicine** attaches
+later as a Discipline branch with no rewrite (Deferred seams); an
+`if (isPerson)` in a treatment path is the same failure this test names.
 
 ---
 
@@ -1260,6 +1297,19 @@ Clean attach points, each leaving as a slate note (never a plan section):
   vocabulary gains `install` when that build runs.
 - **`docs/slates/builds/medic-judgment-slate.md`** — diagnosis stays
   its own thread; `assess`'s `max(nursing, medicine)` read is the seam.
+- **Veterinary medicine** (a new slate) — a `veterinary` Discipline
+  branch under `health`, the *same* acts on an animal patient. The seam is
+  already open: every act narrows on `VitalsMixin`/`Creature` and blood is
+  per-`Species` (an animal has a type), so no substrate change — only a
+  Discipline + species care-knowledge + the husbandry/ranching/pets
+  ownership tie. The build keeps it open by never gating an act on
+  personhood (Host placement).
+- **The SBAR handoff + the shift-long deteriorating-patient lab quest**
+  (NGN Q5) — the **scenario layer** (eternal-university / demo /
+  health-vertical). The seam: the two-role clinical scene ships here, and
+  a provider/incoming-shift NPC that acts on a nurse's report is a comms +
+  brain concern that rides it. `assess`'s cue-reads and the worsening
+  clocks are the raw material a scripted deteriorating patient uses.
 - **Surgery-as-a-specialty** (the theatre, the team, asepsis as a
   system) — the catalogue row's `anaesthesia` and `instrument` fields
   are the dials; a `theatre` capability on a Location is where a room
