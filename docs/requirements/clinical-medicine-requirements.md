@@ -101,8 +101,9 @@ thin drug slice.
   dedicated anaesthetist, an instrument-passing assistant, asepsis as a
   designed subsystem) → deferred; anaesthesia is a per-operation drug
   input here, not a subsystem.
-- **Medical specialties** — anaesthesiology (⭐ its own rich build later,
-  like blood), surgery-as-a-specialty (the theatre/team meta, above),
+- **Medical specialties** — anaesthesiology (⭐ its own rich build later —
+  blood earns richness NOW because it has present applications (combat);
+  anaesthesia's would be getting ahead of ourselves), surgery-as-a-specialty (the theatre/team meta, above),
   psychiatry (→ `trade-psychology`; only the MD `prescribe` seam lands
   here), diagnostics deepening (→ `medic-judgment`), public health (→
   `health-vertical`), obstetrics/pediatrics/geriatrics/dentistry/etc. (far
