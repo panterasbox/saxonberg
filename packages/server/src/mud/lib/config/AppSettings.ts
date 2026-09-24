@@ -1363,6 +1363,19 @@ export const AppSettingKeys = {
    */
   /** Curing — fraction of the moisture gap a dried thing closes per game-hour. */
   cureRehydrationPerHour: "cure.rehydrationPerHour",
+  /**
+   * Curing — fraction of the moisture gap an EXPOSED thing closes per
+   * game-hour, before the air's evaporation factor and the support's
+   * exposure scale it. The drying half of the two-way arm.
+   */
+  cureDryingPerHour: "cure.dryingPerHour",
+  /**
+   * Curing — how much of a thing lying on **bare ground** the air reaches,
+   * as a fraction of what a rack reaches. One face to the air and nothing
+   * underneath, which is why turf is stacked in an openwork lattice and
+   * not heaped.
+   */
+  cureGroundExposure: "cure.groundExposure",
   /** Curing — the relative humidity (%) assumed where nothing authors one. */
   cureAmbientHumidity: "cure.ambientHumidity",
   /** Curing — moisture at/below which a thing reads thoroughly dried. */

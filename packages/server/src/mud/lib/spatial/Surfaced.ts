@@ -59,6 +59,32 @@ export interface Surfaced {
    * surface rejects round items; a wax tabletop rejects hot items).
    */
   canRest(item: Stuff & Containable): boolean;
+
+  /**
+   * ⭐ **How much of a thing resting here the air can reach**, `[0, 1]`.
+   *
+   * Drying is **surface-limited** — the air has to get to the water. A ham
+   * on a slatted rack dries all over; the same ham flat on a stone slab
+   * dries on top and goes off underneath; cheese sits on open shelves and
+   * turf is built into an openwork lattice for exactly this reason.
+   *
+   * `1` is the default, because a surface a thing is *put on* to be worked
+   * with is normally an airy one, and because the alternative was a list of
+   * blessed drying furniture. An author who wants a close, stifling surface
+   * turns the number down — which is the whole affordance: a drying rack, a
+   * meat hook, a cheese shelf, a turf stack, a wire line and a bad drying
+   * shed all come out of rows.
+   *
+   * ⚠ This is the *support's* claim about its own airiness, not a claim
+   * about the room. Read by `CuredMixin`'s two-way arm off
+   * `Containable.getRestingOn()`; a thing merely dropped on the floor rests
+   * on nothing and reads the `cure.groundExposure` dial instead.
+   */
+  getAirExposure(): number;
+  setAirExposure(v: number): void;
+
+  /** Public so the Hydrator can reflect into it. Not the contract. */
+  airExposure: number;
 }
 
 export function SurfacedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -68,6 +94,7 @@ export function SurfacedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       userFacingDetail: { persistent: true, authorable: true },
+      airExposure: { persistent: true, authorable: true },
     };
 
     /**
@@ -88,6 +115,9 @@ export function SurfacedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     protected userFacingDetail: string | undefined = undefined;
+
+    /** `[0, 1]` — how much of a resting thing the air reaches. Default airy. */
+    public airExposure = 1;
 
     getResting(): readonly (Stuff & Containable)[] {
       // Lazy walk: items in our environment whose restingOn is us.
@@ -111,6 +141,17 @@ export function SurfacedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
     setUserFacingDetail(v: string | undefined): void {
       this.userFacingDetail = v;
+    }
+
+    getAirExposure(): number {
+      const v = this.airExposure;
+      if (!Number.isFinite(v)) return 1;
+      return v < 0 ? 0 : v > 1 ? 1 : v;
+    }
+
+    setAirExposure(v: number): void {
+      if (!Number.isFinite(v)) return;
+      this.airExposure = v < 0 ? 0 : v > 1 ? 1 : v;
     }
 
     canRest(_item: Stuff & Containable): boolean {

@@ -37,6 +37,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type Biome from '../lib/biome/Biome';
+import type { Evaporation } from '../lib/material/Evaporation';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -72,6 +73,25 @@ export interface AtmosphericTrace<V> {
   sourcePath: string | null;
   /** Containment ancestor template paths traversed during the walk. */
   ancestorChain: string[];
+}
+
+/**
+ * One stretch of unchanging air inside a window — what
+ * {@link BiomeApi.airSegmentsFor} hands a durative consumer.
+ *
+ * ⭐ A salt pan does not want *the air now*: it wants the whole window it
+ * slept through, segment by segment, because a dry day and a wet one do
+ * opposite things and their average does neither. So the window is
+ * **walked**, not sampled, and the rain rides beside the air — a pan goes
+ * backwards in a storm, which is the read the requirements ask for.
+ */
+export interface AirSegment {
+  /** The air over this stretch. */
+  air: Evaporation;
+  /** Game-seconds of the window this stretch covers. */
+  durationS: number;
+  /** Liquid precipitation rate over it, mm/h. `0` indoors or dry. */
+  rainMmPerH: number;
 }
 
 const LOGIC_PATH = '/platform/idea/api/biome';
@@ -304,6 +324,49 @@ export class BiomeApi {
    */
   public static restampThermalContentsOf(room: Stuff & Container): void {
     logic().restampThermalContentsOf(room);
+  }
+
+  // ---------- the evaporation reads (SYNC) ----------
+
+  /**
+   * ⭐⭐ **What the air at a scope is doing to water in it** — humidity,
+   * wind and temperature folded into one {@link Evaporation}, with the
+   * live weather deviation on top when the scope is under the sky and its
+   * `Locality` is known.
+   *
+   * **Sync, and that is the point.** Two reconcile-on-read consumers ask
+   * this from a getter and cannot await: the per-instance water state
+   * (`CuredMixin` — a ham on a rack) and the durative transform
+   * (`MaturingMixin`'s `evaporative` mechanism — a pan in the sun).
+   * Neither computes a rate of its own; there is one arithmetic, here.
+   *
+   * ⚠ It skips the same two tiers {@link localHumidityFor} skips — the
+   * **Zone** field-inheritance step (async) — and reaches weather only
+   * through `AtmosphericMixin`'s locality memo, so the very first read of
+   * a scope nobody has looked at reports the biome base and the next
+   * reports the weather.
+   */
+  public static airFor(scope: Stuff & Container): Evaporation {
+    return logic().airFor(scope);
+  }
+
+  /**
+   * The air over a **window**, segment by segment, with each segment's
+   * rain rate — for a consumer integrating a long absence
+   * ({@link AirSegment}).
+   *
+   * Sync and exact: weather is a pure function of time, so the segments
+   * between two instants are computable now and each contributes its own
+   * air and its own rain. ⭐ **Never returns an empty list** — a window
+   * with no weather is one segment of the air as it reads, so a caller
+   * summing the list cannot silently credit nothing.
+   */
+  public static airSegmentsFor(
+    scope: Stuff & Container,
+    t0S: number,
+    t1S: number,
+  ): AirSegment[] {
+    return logic().airSegmentsFor(scope, t0S, t1S);
   }
 }
 

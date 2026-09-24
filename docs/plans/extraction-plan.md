@@ -1335,7 +1335,83 @@ member). Drop the dev DB.
 exercises `hew` and the galleries). Mining's subsystem doc gets one line
 pointing at the new home (the rest is the sweep's).
 
-### W1 — the open air dries what you leave in it (D5, D6, D7, D13, D21)
+### W1 — ✅ DONE: the open air dries what you leave in it (D5, D6, D7, D13, D21)
+
+> ✅ **Landed** — `build(extraction W1)`. What shipped, and the four things
+> that were not in the plan:
+>
+> - **`lib/material/Evaporation.ts`** — the value object, no statics
+>   (`lint:lib-statics` held at 337/337). `evaporationFactor(equilibriumRhPct
+>   = 100)` = deficit × wind × a doubling per 10 K, capped at 373 K; plus
+>   `rewets(moisture)`.
+> - **The locality memo hosts on `AtmosphericMixin`** (§ A8) as
+>   `weatherLocality()` + `resolveWeatherLocality()`, **not persisted** and
+>   with no tri-state — nothing integrates a backlog off it, so an
+>   unresolved read misses the deviation once and heals.
+> - **`BiomeApi.airFor` / `airSegmentsFor`** (sync) over three
+>   `syncChainWalk`s plus `WeatherApi.deviatedFieldFor`. ⭐ **Decision the
+>   plan did not make:** `airSegmentsFor` derives each segment's rain by
+>   integrating that segment's own window through the shipped
+>   `WeatherApi.precipitationBetween` rather than reading the rate table, so
+>   the operator dials stay in one place and no new `WeatherApi` surface was
+>   added. It **never returns an empty list** (a caller summing it must not
+>   silently credit nothing).
+> - **Exposure is a fraction on `SurfacedMixin`** — `airExposure`
+>   (persistent, authorable, default `1`) + `getAirExposure()`. Three rungs:
+>   enclosed `0` · the support's own number · `cure.groundExposure` `0.35`
+>   for bare ground. Two new dials (`cure.dryingPerHour` `0.04`,
+>   `cure.groundExposure`) in `AppSettings` + the platform's `cure.yaml`.
+> - **`Cure.advanceMoisture` is two-way** via an optional
+>   `drying: { air, exposure, ratePerHour? }`; omit it and it is byte-for-byte
+>   the shipped one-way arm. `exposureOf`/`exposedScopeOf` are
+>   **module-private functions**, NOT statics on `Cure` — the ratchet is at
+>   337 and two more would have failed it. `reconcileCure()` walks the window
+>   segment by segment.
+> - **`Combustible.wetPenaltyK` adds a cured term** — surface water and the
+>   matter's own water are two terms of one formula and they add, so an
+>   as-cut turf refuses in the shipped words and a dried one lights, with no
+>   peat branch anywhere.
+> - **`'evaporative'` is the fourth mechanism** + `productFraction`, and
+>   `reconcileEvaporativeWindow` walks the window: rate is the air's against
+>   `BRINE_EQUILIBRIUM_RH_PCT`, the batch shrinks toward `productFraction`,
+>   and rain adds litres through a derived aperture so `f` goes *backwards*.
+> - **`DryController` no longer crafts**; `air-dry.yaml` is deleted, `dry.yaml`
+>   gains the rack arg (`requires: [SurfacedMixin]`), and the act narrates a
+>   **prospect in words** with no figure in it.
+>
+> ⚠⚠ **Four defects found that the plan did not anticipate, all fixed here:**
+>
+> 1. ⭐⭐ **The strain gate froze two shipped features.** `requiresFlora()` is
+>    new: the gate arrived with the fermentation build and asks *has it been
+>    pitched?*, and **`retting.yaml` and `bleaching.yaml` author no strain at
+>    all** — so `strainOk` was false forever and **a retting pit and a
+>    bleaching green never converted**, while reading *"It sits sweet and
+>    silent"*. The rule is now: a profile demands flora only when it names a
+>    required strain or declares it catches one. A fourth mechanism with no
+>    flora is what turned that into a rule instead of a third bug.
+> 2. **`reconcileCellarAir` was unguarded**, so a bleaching green was draining
+>    its room's air reserve toward unbreathable. Gated to `microbial` (§ D13
+>    predicted this arm; the *cause* was wider than photochemical).
+> 3. **The augmenter's "sweet and silent" line** fired for every
+>    flora-less mechanism — gated on the same predicate as the conversion.
+> 4. ⚠ **D13's rain literal was dimensionally wrong**: `mm × m² / 1000`. One
+>    mm on one m² **is** one litre, so a day's downpour would have added
+>    eleven millilitres to a salt pan. The soil's shipped integral
+>    (`litres = fell.liquid × areaM2`) is the check. Fixed to `mm × m²`.
+>
+> ⭐ **Also found by a test, not by reading:** a `Scene` refuses a second
+> `toSelf` frame, so the prospect rides inside the same sentence.
+>
+> *Verification:* `Evaporation.test.ts` (8) · `Cured.test.ts` 20 → **27**
+> (the six exposure pins + a close-surface case) · `Evaporative.test.ts` (7)
+> · `Combustible.test.ts` 11 → **14** (the turf case) · `Dry.test.ts` (4,
+> new) · cooking's `roster.test.ts` rewritten off the deleted recipe ·
+> `pnpm test:near` **3867 + 40 green** · `lint:family` **all 52 gates pass**
+> · `lint:lib-statics` **337/337 unchanged** · textiles 29 green.
+> `docs/subsystems/spoilage.md` — the prohibition paragraph replaced by the
+> exposure rule in the same commit.
+
+### W1 (original text) — the open air dries what you leave in it (D5, D6, D7, D13, D21)
 
 ⚠ **Amended by § A6 + A8.** Three changes: the locality memo hosts on
 `AtmosphericMixin` (NOT `SkyExposedMixin`, which composes onto `Biome`)

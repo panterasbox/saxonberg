@@ -20,6 +20,9 @@ import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import CartesianLocation from '../../location/CartesianLocation';
+import { SurfacedMixin } from '../../spatial/Surfaced';
+import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
@@ -257,5 +260,176 @@ describe('CuredMixin — the water state a treatment changes', () => {
     expect(half.solute).toBeCloseTo(0.4, 10);
     const splash = Cure.blend(brine, 0.1, stock, 0.9);
     expect(splash.solute).toBeCloseTo(0.08, 10);
+  });
+
+  // ────────────────── the two-way arm, gated on EXPOSURE ──────────────────
+  //
+  // ⭐⭐ The prohibition this build lifted read *"nothing dries on its
+  // own"*, on the fear that a passive arm would quietly preserve every
+  // ration in the pantry. What replaces it is not a weaker rule but a
+  // different one: **only exposed matter exchanges water**, and how much
+  // the air reaches it is a number the support carries. These six pins are
+  // the whole contract.
+
+  function room(humidityPct: number, windMs = 0, tempK = 293): CartesianLocation {
+    return makeStuff(() => {
+      const r = new CartesianLocation();
+      r.setHumidity(Quantity.of(humidityPct, '%'));
+      r.setWind(Quantity.of(windMs, 'm/s'));
+      r.setTemperature(Quantity.of(tempK, 'K'));
+      return r;
+    });
+  }
+
+  class TestRack extends SurfacedMixin(Thing) {}
+
+  function rackIn(where: CartesianLocation, exposure = 1): TestRack {
+    const rack = makeStuff(() => {
+      const t = new TestRack();
+      t.setMass(Quantity.of(20, 'kg'));
+      t.setAirExposure(exposure);
+      return t;
+    }) as unknown as TestRack;
+    ContainmentApi.move(rack as never, where as never);
+    return rack;
+  }
+
+  it('(a) ⭐⭐ ENCLOSED and untreated writes NOTHING — the sparse guarantee', () => {
+    // A ration in a pack, a cut in a chest, a sack in a pantry. This is the
+    // common case by a wide margin and it must stay free.
+    const cut = food(material(MEAT_EA));
+    const box = makeStuff(() => {
+      const t = new Thing();
+      t.setMass(Quantity.of(5, 'kg'));
+      return t;
+    });
+    // A bare Thing is not a Location, so anything inside it is enclosed.
+    setNow(0);
+    expect(cut.cureClockStamp).toBe(0);
+    setNow(30 * DAY);
+    void cut.getCureState();
+    expect(cut.cureClockStamp).toBe(0);
+    expect(cut.getMoisture()).toBe(1);
+    expect(box).toBeTruthy();
+  });
+
+  it('(b) EXPOSED in dry air loses water, and the clock starts', () => {
+    const cookhouse = room(40, 2);
+    const cut = food(material(MEAT_EA));
+    const rack = rackIn(cookhouse);
+    ContainmentApi.placeOn(cut as never, rack as never);
+    setNow(0);
+    void cut.getCureState(); // starts the clock
+    expect(cut.cureClockStamp).toBeGreaterThan(0);
+    setNow(10 * DAY);
+    const after = cut.getMoisture();
+    expect(after).toBeLessThan(1);
+    // …and it is heading for the air's equilibrium, never past it.
+    expect(after).toBeGreaterThanOrEqual(0.4);
+  });
+
+  it('(c) EXPOSED in SATURATED air writes nothing at all', () => {
+    // Nothing can move, so nothing is stamped — the sparse rule restated
+    // as *a read that would change nothing writes nothing*.
+    const steamy = room(100, 3, 300);
+    const cut = food(material(MEAT_EA));
+    const rack = rackIn(steamy);
+    ContainmentApi.placeOn(cut as never, rack as never);
+    setNow(0);
+    void cut.getCureState();
+    expect(cut.cureClockStamp).toBe(0);
+    setNow(40 * DAY);
+    void cut.getCureState();
+    expect(cut.cureClockStamp).toBe(0);
+    expect(cut.getMoisture()).toBe(1);
+  });
+
+  it('(d) a DRIED thing in damp air re-wets — enclosed or not', () => {
+    // Curing never reverses; drying does. Both a racked ham and one in a
+    // sack soften back, because re-wetting needs no exposure at all.
+    const cellar = room(90);
+    const racked = food(material(MEAT_EA));
+    const sacked = food(material(MEAT_EA));
+    racked.setCureState({ moisture: 0.4, solute: 0 });
+    sacked.setCureState({ moisture: 0.4, solute: 0 });
+    const rack = rackIn(cellar);
+    ContainmentApi.placeOn(racked as never, rack as never);
+    setNow(0);
+    void racked.getCureState();
+    void sacked.getCureState();
+    setNow(20 * DAY);
+    expect(racked.getMoisture()).toBeGreaterThan(0.4);
+    expect(sacked.getMoisture()).toBeGreaterThan(0.4);
+  });
+
+  it('(e) ⭐⭐ the ~62 % crossing: 40 % air preserves, 80 % air does not', () => {
+    // The arithmetic that lifted the prohibition. Equilibrium moisture IS
+    // ambient humidity and the microbial floor sits at a_w 0.60 against a
+    // 0.97 default, so passive drying only crosses the floor below about
+    // 62 % ambient. A dry loft preserves slowly; a damp cellar preserves
+    // nothing. BOTH halves are the assertion.
+    const FLOOR = 0.6;
+    const AW = 0.97;
+    const dryLoft = room(40, 2);
+    const dampCellar = room(80, 2);
+    const loftMat = material(MEAT_EA, AW);
+    const cellarMat = material(MEAT_EA, AW);
+    const inLoft = food(loftMat);
+    const inCellar = food(cellarMat);
+    ContainmentApi.placeOn(inLoft as never, rackIn(dryLoft) as never);
+    ContainmentApi.placeOn(inCellar as never, rackIn(dampCellar) as never);
+    setNow(0);
+    void inLoft.getCureState();
+    void inCellar.getCureState();
+    setNow(365 * DAY);
+    expect(
+      Freshness.waterActivityOf(loftMat, inLoft.getCureState()),
+    ).toBeLessThan(FLOOR);
+    expect(
+      Freshness.waterActivityOf(cellarMat, inCellar.getCureState()),
+    ).toBeGreaterThan(FLOOR);
+  });
+
+  it('(f) ⭐⭐ the SAME cut on a rack and on the floor DIVERGE', () => {
+    // The pin the lens pass added, and the one the rack existed without:
+    // before this, `ContainmentApi.placeOn` moved the item into the
+    // surface's ROOM, so a ham on the cookhouse rack and a ham dropped on
+    // the cookhouse floor had the same container and the same air, and the
+    // rack was arithmetically inert. Drying is surface-limited; the support
+    // carries how much of the matter the air reaches.
+    const yard = room(35, 4);
+    const racked = food(material(MEAT_EA));
+    const dropped = food(material(MEAT_EA));
+    ContainmentApi.placeOn(racked as never, rackIn(yard) as never);
+    ContainmentApi.move(dropped as never, yard as never);
+    setNow(0);
+    void racked.getCureState();
+    void dropped.getCureState();
+    // ⚠ A short window on purpose: over a week BOTH reach the air's
+    // equilibrium and the ratio collapses to 1. The claim is about the
+    // RATE, so it is measured before either one saturates.
+    setNow(12 * HOUR);
+    const onRack = racked.getMoisture();
+    const onFloor = dropped.getMoisture();
+    expect(onRack).toBeLessThan(onFloor);
+    // …and the floor is not merely slower but a *third* as exposed, which
+    // is why turf is built into an openwork lattice rather than heaped.
+    expect(1 - onRack).toBeGreaterThan((1 - onFloor) * 2);
+  });
+
+  it('a close surface an author turned down dries slower than a rack', () => {
+    // One field plus one dial gives a drying rack, a meat hook, a cheese
+    // shelf, a turf stack, a wire line and a bad drying shed out of rows —
+    // where the alternative was a list of blessed drying furniture.
+    const shed = room(35, 4);
+    const airy = food(material(MEAT_EA));
+    const stifled = food(material(MEAT_EA));
+    ContainmentApi.placeOn(airy as never, rackIn(shed, 1) as never);
+    ContainmentApi.placeOn(stifled as never, rackIn(shed, 0.2) as never);
+    setNow(0);
+    void airy.getCureState();
+    void stifled.getCureState();
+    setNow(12 * HOUR);
+    expect(airy.getMoisture()).toBeLessThan(stifled.getMoisture());
   });
 });

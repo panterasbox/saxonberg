@@ -58,6 +58,9 @@ import type { Stuff } from '../stuff/Stuff';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
 import { MixinApi } from '../../api/mixin';
 import { BiomeApi } from '../../api/biome';
+import { Evaporation } from './Evaporation';
+import Location from '../stuff/Location';
+import type { Container } from '../spatial/Container';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { StuffApi } from '../../api/stuff';
@@ -81,6 +84,13 @@ const CURE_DEFAULTS = {
   SECONDS_PER_HOUR: 3600,
   /** Fraction of the moisture gap closed per game-hour while rehydrating. */
   REHYDRATION_PER_HOUR: 0.02,
+  /** Fraction of the gap closed per game-hour while drying, before the
+   * air's evaporation factor and the support's exposure scale it. */
+  DRYING_PER_HOUR: 0.04,
+  /** Exposure of a thing lying on bare ground, against a rack's 1.0. */
+  GROUND_EXPOSURE: 0.35,
+  /** Air temperature (K) assumed where no scope answers — 15 °C. */
+  AMBIENT_TEMP_K: 288,
   /** Relative humidity (%) assumed where nothing authors one. */
   AMBIENT_HUMIDITY_PCT: 60,
   /** Moisture at/below which a thing reads thoroughly dried. */
@@ -162,6 +172,55 @@ function cureAugmenter(
   const line = Cure.phraseFor(host.getCureState());
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/**
+ * How much of a host the air reaches, `[0, 1]`. `0` is **enclosed** —
+ * nothing dries.
+ *
+ * ⭐ Three rungs, and they are the whole exposure model:
+ *
+ *   - **enclosed** (`0`) — the immediate container is not a `Location`: a
+ *     body's inventory, a sack, a chest, a pot. A ham in a closed sack
+ *     does not dry, which is honest and is what keeps the store sparse
+ *     for every carried and stored good in the world.
+ *   - **on a support** — the support's own {@link Surfaced.getAirExposure}
+ *     (default `1`). A rack, a hook, a slatted shelf; an author turns it
+ *     down for a close surface.
+ *   - **on bare ground** — the `cure.groundExposure` dial (`0.35`): one
+ *     face to the air and nothing underneath, which is exactly why turf
+ *     is built into an openwork lattice rather than heaped.
+ *
+ * ⚠ `ContainmentApi.placeOn` moves an item into **the surface's
+ * container** and then stamps `restingOn`, so the container is the room
+ * either way and `getRestingOn()` is the only thing that tells a racked
+ * thing from a dropped one. That is why this reads the support and not
+ * the container.
+ */
+function exposureOf(host: Stuff): number {
+  if (!MixinApi.isContainable(host)) return 0;
+  const where = host.getContainer();
+  if (where === null) return 0;
+  // ⚠ `instanceof Location` rather than a mixin predicate: a `Vessel` is
+  // Atmospheric too, and the question here is "is this the open world or
+  // the inside of something". The `Display.ts` precedent.
+  if (!(where instanceof Location)) return 0;
+  const support = host.getRestingOn();
+  if (support !== null) return clamp01(support.getAirExposure());
+  return clamp01(
+    dial(AppSettingKeys.cureGroundExposure, CURE_DEFAULTS.GROUND_EXPOSURE),
+  );
+}
+
+/**
+ * The `Location` a host is exposed in, or `null` when it is enclosed —
+ * the scope the air is read from.
+ */
+function exposedScopeOf(host: Stuff): (Stuff & Container) | null {
+  if (!MixinApi.isContainable(host)) return null;
+  const where = host.getContainer();
+  if (where === null || !(where instanceof Location)) return null;
+  return where as unknown as Stuff & Container;
 }
 
 /**
@@ -269,38 +328,72 @@ export class Cure {
   }
 
   /**
-   * Integrate rehydration over `elapsedS` game-seconds. Exponential
-   * approach to the equilibrium, closed-form so a season costs the same as
-   * a minute.
+   * Integrate the exchange of water with the surrounding air over
+   * `elapsedS` game-seconds. Exponential approach to the equilibrium,
+   * closed-form in both directions so a season costs the same as a minute.
    *
-   * ⚠ **One-way, and deliberately.** Moisture only ever rises here. Drying
-   * is an act; nothing in the world dries on its own, and a passive arm
-   * that lowered moisture would quietly preserve every ration in the
-   * pantry.
+   * ⭐⭐ **Two-way, and the asymmetry moved.** It used to be one-way — the
+   * prohibition read *"nothing dries on its own"*, on the fear that a
+   * passive drying arm would quietly preserve every ration in the pantry.
+   * Run the shipped numbers and the fear answers itself: equilibrium
+   * moisture **is** ambient humidity and the microbial floor sits at
+   * `a_w` 0.60 against a default 0.97, so passive drying only crosses the
+   * floor below about **62 % ambient humidity**. A damp cellar preserves
+   * nothing; a dry loft preserves slowly; an arid place preserves well.
+   * All three are correct, and the preserving trades' product becomes
+   * *making air drier than the weather* rather than being the only way to
+   * take water out.
+   *
+   * ⭐ **The asymmetry that survives is exposure, not direction.** Drying
+   * needs the air to reach the water, so it is gated by `drying` being
+   * supplied at all: omit it and this is exactly the shipped one-way arm,
+   * which is what a ham in a closed sack, a chest or a pack gets. That is
+   * what keeps the store sparse.
+   *
+   * @param rate the **rehydration** rate, as a parameter with the dial as
+   *   its default — so the body is a function of its arguments and the
+   *   signature names the setting the answer moves with.
+   * @param drying the drying half: the air ({@link Evaporation}, which
+   *   carries the vapour deficit, the wind and the heat) and how much of
+   *   the matter that air reaches. ⚠ `drying.air.humidityPct` and
+   *   `humidityPct` describe the same air; the argument is kept separate so
+   *   the enclosed callers' signature is untouched.
    */
   public static advanceMoisture(
     moisture: number,
     elapsedS: number,
     humidityPct: number,
-    /**
-     * ⭐ The rehydration rate, **as a parameter with the dial as its
-     * default** — so the body is a function of its arguments and the
-     * signature names the setting the answer moves with.
-     */
     rate = dial(
       AppSettingKeys.cureRehydrationPerHour,
       CURE_DEFAULTS.REHYDRATION_PER_HOUR,
     ),
+    drying?: { air: Evaporation; exposure: number; ratePerHour?: number },
   ): number {
     const from = clamp01(moisture);
     if (!(elapsedS > 0)) return from;
     const target = Cure.equilibriumMoisture(humidityPct);
-    if (target <= from) return from; // one-way: nothing dries by itself
-    if (!(rate > 0)) return from;
     const hours = elapsedS / CURE_DEFAULTS.SECONDS_PER_HOUR;
-    const closed = 1 - Math.exp(-rate * hours);
-    return clamp01(from + (target - from) * closed);
+
+    if (target > from) {
+      // Re-wetting. Always available — a dried thing left somewhere damp
+      // softens back whether it is in a sack or on a rack.
+      if (!(rate > 0)) return from;
+      return clamp01(from + (target - from) * (1 - Math.exp(-rate * hours)));
+    }
+    if (target >= from) return from; // at equilibrium: nothing moves
+
+    // Drying. Enclosed matter has no `drying` half and does not lose water.
+    if (drying === undefined) return from;
+    const exposure = clamp01(drying.exposure);
+    if (!(exposure > 0)) return from;
+    const base =
+      drying.ratePerHour ??
+      dial(AppSettingKeys.cureDryingPerHour, CURE_DEFAULTS.DRYING_PER_HOUR);
+    const k = base * exposure * drying.air.evaporationFactor();
+    if (!(k > 0)) return from;
+    return clamp01(from - (from - target) * (1 - Math.exp(-k * hours)));
   }
+
 
   /**
    * The relative humidity (%) a host's surroundings hold — the cheap,
@@ -502,17 +595,63 @@ export function CuredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     // ---------- reconcile-on-read ----------
 
     /**
-     * Climb back toward the ambient equilibrium over elapsed game-time.
+     * Exchange water with the surrounding air over elapsed game-time —
+     * both ways.
      *
-     * ⭐⭐ **Untreated matter returns before it reads the clock, and that
-     * ordering IS the sparse-storage guarantee.** A cut at `moisture: 1`
-     * has nothing to regain, so a `look` at one writes no stamp — the
-     * lesson `FreshnessMixin` records about the first `look` at an anvil,
-     * applied one mixin over.
+     * ⭐⭐ **The sparse-storage guarantee, restated rather than lost.** The
+     * rule used to be *untreated matter returns before it reads the clock*,
+     * which worked because nothing dried. Now something does, so the rule
+     * becomes: **a read that would change nothing writes nothing.** Two
+     * cases satisfy it, and between them they cover every good in the
+     * world that is not being deliberately dried:
+     *
+     *   - **enclosed and untreated** — a ration in a pack, a cut in a
+     *     chest, a sack in a pantry. `exposure` is `0` and `moisture` is
+     *     `1`: nothing to lose, nothing to regain, no stamp written. This
+     *     is the common case by a wide margin.
+     *   - **exposed at equilibrium** — a cut in saturated air, or a thing
+     *     already sitting at the moisture its air holds. The air is read
+     *     (cheap and sync), neither direction can move, and the clock is
+     *     left alone.
+     *
+     * ⚠ **The bounded approximation, said out loud.** The gate consults the
+     * air *as it reads now*. So matter still at full moisture that sat
+     * through a dry spell and is first looked at during a wet one loses
+     * that spell: its clock had never started. Anything already below
+     * `1` has a stamp and integrates the whole window exactly, segment by
+     * segment. The trade is deliberate — the alternative is stamping every
+     * fresh Provision in every open room on every `look`.
+     *
+     * ⭐ **The window is WALKED, not sampled.** A dry day and a wet one do
+     * opposite things and their average does neither, so an absence is
+     * integrated through `BiomeApi.airSegmentsFor` — the same exactness the
+     * soil's rain integral has, for the same reason.
      */
     public reconcileCure(): void {
       if (this._reconcilingCure) return;
-      if (this._moisture >= 1) return; // nothing to regain; touch nothing
+
+      const self = this as unknown as Stuff;
+      const exposure = exposureOf(self);
+
+      // Enclosed and untreated: nothing to lose, nothing to regain.
+      if (exposure <= 0 && this._moisture >= 1) return;
+
+      const scope = exposure > 0 ? exposedScopeOf(self) : null;
+      const airNow =
+        scope === null
+          ? new Evaporation(
+              Cure.ambientHumidityOf(self),
+              0,
+              CURE_DEFAULTS.AMBIENT_TEMP_K,
+            )
+          : BiomeApi.airFor(scope);
+      const target = Cure.equilibriumMoisture(airNow.humidityPct);
+      const canWet = target > this._moisture;
+      const canDry =
+        exposure > 0 &&
+        target < this._moisture &&
+        airNow.evaporationFactor() > 0;
+      if (!canWet && !canDry) return; // nothing would change; write nothing
 
       const nowS = nowSeconds();
       if (nowS === null) return;
@@ -529,12 +668,33 @@ export function CuredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
       this._reconcilingCure = true;
       try {
-        const self = this as unknown as Stuff;
-        this._moisture = Cure.advanceMoisture(
-          this._moisture,
-          elapsed,
-          Cure.ambientHumidityOf(self),
-        );
+        if (exposure <= 0 || scope === null) {
+          // Enclosed: the one-way arm, unchanged. No `drying` half.
+          this._moisture = Cure.advanceMoisture(
+            this._moisture,
+            elapsed,
+            Cure.ambientHumidityOf(self),
+          );
+          this.cureClockStamp = nowS;
+          return;
+        }
+
+        let moisture = this._moisture;
+        for (const seg of BiomeApi.airSegmentsFor(
+          scope,
+          this.cureClockStamp,
+          nowS,
+        )) {
+          if (!(seg.durationS > 0)) continue;
+          moisture = Cure.advanceMoisture(
+            moisture,
+            seg.durationS,
+            seg.air.humidityPct,
+            undefined,
+            { air: seg.air, exposure },
+          );
+        }
+        this._moisture = moisture;
         this.cureClockStamp = nowS;
       } finally {
         this._reconcilingCure = false;

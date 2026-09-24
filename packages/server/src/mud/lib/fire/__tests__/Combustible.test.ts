@@ -13,6 +13,7 @@ import Thing from '../../stuff/Thing';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
+import { CuredMixin } from '../../material/Cured';
 import { ReservedMixin, Reserve } from '../../reserve';
 import { CombustibleMixin } from '../Combustible';
 import { FireApi } from '../../../api/fire';
@@ -33,6 +34,17 @@ class Firewood extends CombustibleMixin(
   WetMixin(ThermalMixin(ReservedMixin(Thing))),
 ) {
   static _mixinName = 'Firewood';
+}
+
+/**
+ * A fuel that also carries its own water — the turf shape. `Cured` over
+ * `Combustible`, no `Wet`: a turf cut out of a bog is not *wet on the
+ * outside*, it is nearly all water all the way through.
+ */
+class Turf extends CuredMixin(
+  CombustibleMixin(ThermalMixin(ReservedMixin(Thing))),
+) {
+  static _mixinName = 'TestTurf';
 }
 
 let matCounter = 0;
@@ -215,5 +227,57 @@ describe('the combustion driver — burns down to char', () => {
     const mat = StuffApi.findByTemplatePath<Material>('/stuff/idea/material/_test/ash');
     expect(log.getMaterial()).toBe(mat);
     void ash;
+  });
+});
+
+describe('⭐⭐ the fuel\'s OWN water resists ignition too (the turf case)', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+
+  function turf(opts: { moisture: number; stampedK: number }): Turf {
+    const mat = woodMaterial();
+    return makeStuff(() => {
+      const t = new Turf();
+      t.setMass(Quantity.of(2, 'kg'));
+      t.setMaterial(mat);
+      t.setStampedTemperatureK(opts.stampedK);
+      t.setLastAmbientK(295);
+      t.setCureState({ moisture: opts.moisture, solute: 0 });
+      t.setReserve(
+        new Reserve(
+          'fuel',
+          Quantity.of(100, '%'),
+          Quantity.of(100, '%'),
+          'combustion',
+          null,
+        ),
+      );
+      return t;
+    });
+  }
+
+  it('an AS-CUT turf refuses the flame, in the shipped words', () => {
+    // Nothing peat-specific anywhere: the matter's own water is a second
+    // term of the same `ΔT = held × capacity% × L_vap / c`, so the refusal
+    // is `too-wet` and the player is told *"It's too wet to catch."*
+    const wet = turf({ moisture: 1, stampedK: 600 });
+    expect(wet.getEffectiveAutoignitionK()).toBeGreaterThan(600);
+    expect(wet.ignite().lit).toBe(false);
+    expect(wet.ignite().reason).toBe('too-wet');
+  });
+
+  it('…and a DRIED one lights at the same temperature', () => {
+    const dried = turf({ moisture: 0.5, stampedK: 600 });
+    // At/below the `dried` band the fuel contributes no water of its own.
+    expect(dried.getEffectiveAutoignitionK()).toBeCloseTo(570, 0);
+    expect(dried.ignite().lit).toBe(true);
+  });
+
+  it('the boundary sits AT the dried band, and is monotone above it', () => {
+    const at = turf({ moisture: 0.5, stampedK: 295 }).getEffectiveAutoignitionK();
+    const half = turf({ moisture: 0.75, stampedK: 295 }).getEffectiveAutoignitionK();
+    const soaked = turf({ moisture: 1, stampedK: 295 }).getEffectiveAutoignitionK();
+    expect(at).toBeCloseTo(570, 0);
+    expect(half).toBeGreaterThan(at);
+    expect(soaked).toBeGreaterThan(half);
   });
 });
