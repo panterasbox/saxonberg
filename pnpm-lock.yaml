@@ -1635,9 +1635,15 @@ importers:
 
   packages/content/world-seed:
     dependencies:
+      '@saxonberg/content-ground':
+        specifier: workspace:*
+        version: link:../ground
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-quarrying':
+        specifier: workspace:*
+        version: link:../trade-quarrying
       '@saxonberg/content-transport':
         specifier: workspace:*
         version: link:../transport

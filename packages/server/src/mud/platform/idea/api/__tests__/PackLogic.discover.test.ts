@@ -105,6 +105,13 @@ describe('the shipped packs (real discovery, no install)', () => {
     // brine hearth are rows on the trade's classes. Salt has three sources in
     // three different places and one trade behind all of them.
     expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
+    // ⭐ …and WORLD-SEED, whose turf bank is a row on the trade's `Turbary`.
+    // ⚠ Three localities now name this one trade's classes, in three different
+    // landscapes, which is the second-instance claim holding: a quarry, a
+    // saltern and a peat moss are the same mechanism on different columns.
+    expect(ids.indexOf('world-seed')).toBeGreaterThan(
+      ids.indexOf('trade-quarrying'),
+    );
     // The metal chain: three capability packs, one venue over all three.
     // ⭐ `rejection` ships no `src/` at all — the exemplar claim is that a
     // second mining town is a locality pack over the same trades, and the

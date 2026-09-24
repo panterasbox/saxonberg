@@ -14,3 +14,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Weeping Moor
   cellSize: 3.0
+  # ⭐ The column under the moor: peat over granite, and the water table at the
+  # bottom of the peat — which is not a coincidence anywhere in the world,
+  # because the water is why the peat is there. Every room in the zone inherits
+  # this by the outward walk, so the turf bank reads it without saying so.
+  deposit: /world/moor/idea/deposit/heath

@@ -1880,7 +1880,51 @@ the drive proves it (AC 8).
 Terminus's claim — check which `terminus/pack.yaml` extent covers
 `/world/terminus/estuary` and add one if none does).
 
-### W6 — the turbary (D4 Turbary, D20 moor, D21)
+### W6 — ✅ DONE: the turbary
+
+> ✅ **Landed** — `build(extraction W6)`.
+>
+> - **`Turbary`** = `Persistable(Improvable(OpenWorking(Singleton…)))` — the
+>   pit's composition **plus improvement**, which is the entire difference and
+>   the whole reason it is a second class. It answers its own
+>   `improvementBill()` out of **itself** (a bog's bill is not a mystery: scrub,
+>   water, sour), which is the hook that let `ImprovableMixin` leave farming.
+>   ⚠ `subsidenceM` is kept **separate from `floorDepthM`**: one is what
+>   somebody cut and the other is what went while nobody was here, and a reader
+>   should be able to tell a worked bank from a drained one.
+> - **`Turf`** = `Cured(Firewood)` — ⭐ **the first host in the game that dries
+>   and does not rot**, which is the case `spoilage.md` argued the
+>   Cured/Freshness split on and could not test until now.
+> - The moor: `heath` column (peat 0…−2.5 over granite, water table at the
+>   bottom of the peat — *the water is why the peat is there*), `turf-bank` on
+>   `Turbary` with a 12 m run (⭐ deliberately smaller than the pit's 20: a
+>   turbary is **meant** to run out, and it does, at ~120 turves), and the
+>   heath's **first exit** — it was teleport-only, and the fuel-or-the-field
+>   choice is only a choice if you can walk to it.
+>
+> ⭐⭐ **The find worth keeping, and a test forced it.** The subsidence rate is
+> the drainage progress — but **both quantities move over the same window, in
+> opposite directions**: the peat oxidises while the drains silt up. Reading
+> only the END of a long window credits an abandoned moss with **zero**
+> subsidence for a month its drains were working; reading only the START credits
+> a month of full-rate oxidation through drains that had stopped. So it
+> integrates the **trapezoid** — exact for a linear decay, one extra read, and
+> the honest answer: *some of it went.* ⚠ And the start value reads
+> `improvementWork` raw, because `progressOn` reconciles the very reversion
+> being integrated against.
+>
+> ⭐ A second lesson fell out of the same test and is now pinned: **the field
+> you bought with the fuel is a field you have to keep.** Four months of neglect
+> and the band has slipped out of `in-heart`, because improvement reverts — so
+> the trade is not a one-way ratchet in either direction.
+>
+> *Verification:* quarrying **61** (Turbary 10, Turf 8 + the earlier 43) ·
+> world-seed green · pack ordering green (⭐ three localities now name this one
+> trade's classes — a quarry, a saltern and a peat moss on three different
+> columns, which is the second-instance claim holding) · quarrying tsc clean ·
+> `lint:family` **all 52 gates pass**.
+
+### W6 (original text) — the turbary (D4 Turbary, D20 moor, D21)
 
 *Goal:* turf is dug wet, dries at the weather's speed, re-wets in rain,
 burns only dry; draining the moss thins the peat and improves the
