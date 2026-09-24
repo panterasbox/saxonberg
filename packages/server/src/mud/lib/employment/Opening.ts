@@ -18,6 +18,7 @@ import { Position } from './Position';
 import { Money } from '../banking/Money';
 import { BankingApi } from '../../api/banking';
 import { CompetenceBand } from '../advancement/CompetenceBand';
+import { GrammarApi } from '../../api/grammar';
 
 export class Opening {
   /**
@@ -51,7 +52,9 @@ export class Opening {
     const parts: string[] = [];
     if (r.gigs != null && r.gigs > 0) {
       parts.push(
-        r.gigs === 1 ? 'one completed gig' : `${Opening.word(r.gigs)} completed gigs`,
+        r.gigs === 1
+          ? 'one completed gig'
+          : `${GrammarApi.inWords(r.gigs)} completed gigs`,
       );
     }
     if (r.discipline) {
@@ -73,21 +76,4 @@ export class Opening {
     return `HELP WANTED — ${what}${pay}${plural}; ${asks === 'no prerequisite' ? 'no prerequisite' : `${asks} asked`}.`;
   }
 
-  /** Small numbers in words, the way the rest of the prose counts. */
-  private static word(n: number): string {
-    const words = [
-      'no',
-      'one',
-      'two',
-      'three',
-      'four',
-      'five',
-      'six',
-      'seven',
-      'eight',
-      'nine',
-      'ten',
-    ];
-    return words[n] ?? String(n);
-  }
 }

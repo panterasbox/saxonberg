@@ -104,8 +104,8 @@ function ctx(room: Room, text: string): CommandContext {
 
 function reasons(c: CommandContext): string[] {
   return (c.getNotes?.() ?? [])
-    .filter((n: { kind: string }) => n.kind === 'controller-rejected')
-    .map((n: { reason?: string }) => n.reason ?? '');
+    .filter((n) => n.kind === 'controller-rejected')
+    .map((n) => (n as { reason?: string }).reason ?? '');
 }
 
 async function apply(
