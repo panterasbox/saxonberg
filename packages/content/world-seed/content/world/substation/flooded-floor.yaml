@@ -12,6 +12,13 @@ data:
   keywords: [floor, flooded, concrete]
   register: indefinite
   longDescription: A concrete floor under a skin of brackish standing water.
+  # ⭐ Concrete, cast and laid — `slab` indoors. The row has said "concrete"
+  # in its keywords and its prose since it shipped and carried no material;
+  # `ceramic/concrete` is the row that makes the claim true. Authored DRY
+  # (5e-4 S/m): what grounds you in this cell is the brine POOL below, as it
+  # always was, not the slab under it.
+  _materialPath: /stuff/idea/material/ceramic/concrete
+  worked: true
   # Surface-bulk: an authored brine pool (the conductive medium + ground).
   surfaceBulk: true
   surfaceMaterial: /stuff/idea/material/bulk/salt-water

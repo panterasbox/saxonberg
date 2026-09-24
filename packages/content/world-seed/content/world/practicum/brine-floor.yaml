@@ -7,6 +7,11 @@ data:
   keywords: [floor, brine-flooded, stone]
   register: indefinite
   longDescription: A stone floor under a sheet of ankle-deep brine.
+  # Granite, dressed — a gallery floor. ⚠ `onGrade` is left to derive
+  # (indoor, at datum → false), so this reads as `slab` rather than paving:
+  # the practicum gallery is a built room, not a street.
+  _materialPath: /stuff/idea/material/rock/granite
+  worked: true
   surfaceBulk: true
   surfaceMaterial: /stuff/idea/material/bulk/salt-water
   surfaceAmount: 30

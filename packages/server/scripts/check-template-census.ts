@@ -10,7 +10,8 @@
  *   (b) Every template-path-valued FIELD in every pack's domain rows
  *       resolves to a real row: `props:`/`cast:` entries (plain and
  *       `{template, onto}`), `exits.<dir>.destination` +
- *       `exits.<dir>.door`, `adornments`, `stockLines[].itemTemplatePath`,
+ *       `exits.<dir>.door`, `adornments`, `floor.material` +
+ *       `floor.template`, `stockLines[].itemTemplatePath`,
  *       `prices` keys, `roomTemplate`, `holderPath`, `streetPath`,
  *       `corridorTemplate`, `programmePath`, and floorplan `room`
  *       entries. (`class:` / `hydratorClass:` stay
@@ -427,6 +428,18 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   }
   const adornments = data.adornments;
   if (Array.isArray(adornments)) for (const a of adornments) push('adornments', a);
+  // ⭐ A Location's `floor:` spec (the ground build) — rung 2 of the floor's
+  // material ladder. Both entries are template paths the kernel resolves at
+  // `ensureFloor`, and a typo in either degrades SILENTLY: an unresolvable
+  // `material` falls through to the room default and an unresolvable
+  // `template` warns and leaves the room floorless. Neither errors, which
+  // is exactly the shape this gate exists for.
+  const floor = data.floor;
+  if (floor && typeof floor === 'object') {
+    const spec = floor as Record<string, unknown>;
+    push('floor.material', spec.material);
+    push('floor.template', spec.template);
+  }
   const stockLines = data.stockLines;
   if (Array.isArray(stockLines)) {
     for (const line of stockLines) {

@@ -11,6 +11,15 @@ data:
   keywords: [ground, sodden, peat]
   register: proper
   longDescription: Black peat, waterlogged and treacherous, pooling the rain into shallow meres.
+  # ⭐⭐ Peat, undressed, on grade — and the kind it reads as is the one
+  # thing in the game that CHANGES WITH THE WEATHER. Dry, an earth-class
+  # floor with no standing water is `earth`; once the storm has filled the
+  # surface slot below it is `mire`. One floor answering differently, which
+  # is exactly what this row's own prose already describes — *"waterlogged
+  # and treacherous, pooling the rain"*. Nothing new stores that; the fold
+  # reads the puddle.
+  _materialPath: /stuff/idea/material/organic/peat
+  onGrade: true
   # Surface-bulk: an (initially dry) pool the rain fills. No surfaceMaterial /
   # surfaceAmount — it starts dry; the weather fills it with fresh water.
   surfaceBulk: true

@@ -1026,7 +1026,7 @@ rather than a comment.
   Location that way — the sites are registries, Exits, BoundaryAnchors and a
   Receptacle. Two pack tests needed `makeStuff` instead.
 
-### W4 — the content: the six floors, the road walk (D22)
+### W4 — the content: the six floors, the road walk (D22) — ✅ DONE
 
 *Goal:* every shipped floor says what it is made of; the four stress-test
 rooms read as their prose; the two cobbled ones read the same.
@@ -1050,6 +1050,43 @@ material; the crossing's `paving` detail resolves on its floor.
 *Acceptance:* the pack suites; `lint:census` (every `_materialPath` /
 `floor.material` resolves); `lint:presentation`; `test:near`.
 Commit: `build(ground W4): the shipped floors say what they are; the road walk reads as written`.
+
+**✅ Done.** All five authored floor rows carry `_materialPath` (+ `worked` /
+`onGrade` where the derivation would be wrong); two new paving rows (the
+crossing, the goods yards) with the wear and the gutter as **details of the
+floor**; three `floor:` one-liners (square, lane — and the yard's cobbles are a
+row because of the gutter). `lint:census` learned `floor.material` and
+`floor.template`. 9 road-walk assertions; terminus 132, hinkley 18,
+hearthworks 2, generic-objects 26, kernel world+ground+stuff+boundary 696 —
+all green. `lint:family`: all 48 gates pass.
+
+**⭐ The road walk answers the user's stress test.** The four rooms read as
+their own prose — swept granite flags, cobbles, granite setts, graded dirt —
+and ⭐⭐ **the square and the goods yards agree from DIFFERENT RUNGS**: one is
+three words on the room, the other a floor row with a gutter detail, and both
+resolve `set-paving` because the inputs are the same. That is AC 17, and it is
+the whole argument for the kind being derived: there is no `kind:` field for two
+authors to disagree in.
+
+⚠ **The heath floor is the one shipped floor whose KIND changes with the
+weather** — peat, undressed, on grade: `earth` in a dry spell, `mire` once the
+storm has filled its surface slot. Nothing new stores that; the fold reads the
+puddle. Which is exactly what the row's own prose has always said.
+
+**Two things this wave found:**
+
+1. ⚠⚠ **An `adornments:` entry naming an absent row THROWS at hydrate**, and it
+   takes the whole room clone with it — `crossing.integration.test.ts` went red
+   on all 6 cases the moment the crossing gained a paving row its curated store
+   did not carry. That is pre-existing and correct (an unresolvable adornment is
+   an authoring fault, and `lint:census` clause (b) resolves the field at build
+   time), but it is a sharper edge now that more rooms use `adornments:`, and
+   **every fixture store that clones such a room needs the row.**
+2. ⭐ `ensureFloor`'s warning now fires **once per distinct cause**, not per
+   room. A curated test store that lacks `default-floor` produces the identical
+   failure for every Location in it, and 20 identical lines hide the next real
+   warning rather than adding information. The first line still names a room, so
+   the cause stays diagnosable.
 
 ### W5 — the census, the drive (D23, D24)
 

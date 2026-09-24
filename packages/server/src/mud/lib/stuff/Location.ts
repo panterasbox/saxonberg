@@ -73,6 +73,14 @@ function dialStr(key: string, fallback: string): string {
   }
 }
 
+/**
+ * Causes `ensureFloor` has already warned about. Runtime-only, process-wide,
+ * and deliberately unbounded-but-tiny: the set of distinct failure MESSAGES
+ * is a handful even in the worst case, because they name a missing template
+ * rather than a room.
+ */
+const warnedFloorFailures = new Set<string>();
+
 /** What {@link Location.floorDefaults} answers. */
 export interface FloorDefaults {
   worked: boolean;
@@ -293,6 +301,14 @@ export default class Location extends LocationBase {
       }
       await floor.resolveUnderfoot();
     } catch (err) {
+      // One warning per distinct cause, not per room: a world whose store
+      // lacks the default-floor row produces the same failure for every
+      // Location in it, and twenty identical lines hide the next real
+      // warning rather than adding information. The first line names a
+      // room so the cause is diagnosable.
+      const cause = err instanceof Error ? err.message : String(err);
+      if (warnedFloorFailures.has(cause)) return;
+      warnedFloorFailures.add(cause);
       // ⚠⚠ `console.warn`, NOT `MudlogApi.warn` — measured, not chosen.
       // Mudlog resolves a recipient from the ambient command frame and
       // THROWS *"no recipient"* when there is none, and `postRegister`
@@ -304,8 +320,8 @@ export default class Location extends LocationBase {
       // no audience goes to stderr.
       console.warn(
         `Location.ensureFloor: no floor for ` +
-          `${this.getTemplatePath() ?? this.stuffId} — ` +
-          `${err instanceof Error ? err.message : String(err)}`,
+          `${this.getTemplatePath() ?? this.stuffId} — ${cause} ` +
+          `(further rooms failing the same way are silent)`,
       );
     }
   }
