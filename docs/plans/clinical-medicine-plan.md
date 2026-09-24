@@ -1152,7 +1152,30 @@ MR (W7), and again at `/finalize`.
   `help`/affordances; `bleed`/`transfuse` round-trip a unit; `operate
   … for extraction` runs durative and can be cancelled.
 
-#### W6 — the supply chain and the clinic (D10 content, D1 positions, the brains)
+#### W6 — the supply chain and the clinic — ✅ DONE (see commit)
+
+> Done note: the autarky supply chain + the clinic. 6 materials (3 raw
+> simples + 3 `active` draughts), 2 invented species (greywort *Somnaria
+> pallida*, wardmoss *Bryum custodis*), 3 physic-garden plants (by-hand
+> harvest, 14-day regrow), 3 Simple rows (`steepsInto` the draught), the
+> garden (north of the ward), a steeping pot + a grey-draught vial. The
+> ward gains the kit (syringe/suture-kit/pad/2 blood-bags/saline-bag/vial)
+> + `cast: nurse` + the north exit. The nurse Cast (Mabley Crole, `nursing:
+> competent`, `archetype: nurse`), the business nurse seat (`requires:
+> {discipline: nursing, band: competent}`, no headcount — she's rostered)
+> + the blood-bank par line.
+> - Fixes: `steepsInto` registered in the census IGNORED list; the willow
+>   short-desc de-articled; the wardmoss species path corrected (bryophyta,
+>   not under tracheophyta).
+> - **Two deferrals (recorded):** (1) the `physicks` brain (Aldis
+>   auto-operates) — the physician keeps the shipped `nurses` (tend) brain;
+>   auto-operate is ambient polish the drive doesn't need (the drive's
+>   doctor is a session). (2) **Store-stocking the instruments** — it needs
+>   heavy standup-integration-test plumbing (curated template install per
+>   line) and is peripheral: autarky is SELF-sourced (the garden + your own
+>   blood), and the clinic already props the kit. A clean one-line follow-up.
+> All 51 gates pass; trade-medicine (18) + terminus (123) suites green.
+
 
 - trade-medicine materials `content/trade/medicine/idea/material/{greywort-root,
   grey-draught,wardmoss,ward-water,willow-bark,willow-tea}.yaml`;

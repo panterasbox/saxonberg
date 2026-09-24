@@ -19,6 +19,10 @@ data:
   exits:
     southwest:
       destination: /world/terminus/counting-houses/avenue-block
+    # ⭐ The physic garden (clinical-medicine D10) — where the infirmary
+    # grows its simples; harvest and steep the drug supply.
+    north:
+      destination: /world/terminus/infirmary/garden
   props:
     - /world/terminus/infirmary/thing/tariff
     - /world/terminus/infirmary/thing/cot
@@ -40,5 +44,17 @@ data:
     - /world/terminus/infirmary/thing/bandage-1
     - /world/terminus/infirmary/thing/bandage-2
     - /world/terminus/infirmary/thing/bandage-3
+    # ⭐ The clinical-medicine kit (blood + operations + drugs): the
+    # syringe backs bleed/transfuse/test, the suture kit backs suture, the
+    # pad backs prescribe, the bags hold blood + saline, and a vial of
+    # grey-draught is the clinic's anaesthetic stock.
+    - /trade/medicine/thing/syringe
+    - /trade/medicine/thing/suture-kit
+    - /trade/medicine/thing/prescription-pad
+    - /trade/medicine/thing/blood-bag
+    - /trade/medicine/thing/blood-bag
+    - /trade/medicine/thing/saline-bag
+    - /trade/medicine/thing/grey-draught-vial
   cast:
     - /world/terminus/infirmary/agent/physician
+    - /world/terminus/infirmary/agent/nurse

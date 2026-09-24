@@ -1,0 +1,25 @@
+# The physic garden — a walled bed north of the ward where the infirmary
+# grows its simples (D10). Walkable from the ward; harvest by hand, steep
+# in the pot, and the autarkist has their whole drug supply.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: physic garden
+  keywords: [garden, physic]
+  register: definite
+  alternateNames: [physic garden, herb garden]
+  _address: terminus/city/counting-houses/infirmary/garden
+  longDescription: |
+    A small walled bed behind the infirmary, laid out in damp grey soil and cold stone. Greywort stands hooded in the wet corner; wardmoss spreads over a north-facing stone; a pollarded willow leans by the wall. An earthenware pot of water waits on a bench for steeping.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /world/terminus/infirmary/ward
+  props:
+    - /trade/medicine/thing/plant/greywort
+    - /trade/medicine/thing/plant/wardmoss
+    - /trade/medicine/thing/plant/physic-willow
+    - /trade/medicine/thing/steeping-pot

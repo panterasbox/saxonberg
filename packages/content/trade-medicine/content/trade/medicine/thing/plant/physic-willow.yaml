@@ -1,0 +1,41 @@
+# a physic willow — a physic-garden plant, harvested BY HAND for a simple (D10).
+# Authored ready to harvest; regrows within a fortnight so the garden
+# refills within a drive's patience.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: physic willow
+  keywords: [willow,physic, plant, physic]
+  register: indefinite
+  longDescription: |
+    A pollarded white willow, its bark stripped in patches for the tea it makes.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/salicaceae/salix/alba
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  mass: 1.5
+  lifecycleState: alive
+  harvestTemplatePath: /trade/medicine/thing/willow-bark
+  harvestTool: ""
+  discipline: medicine
+  nutrientDraw: 2
+  growthStage: mature
+  _vigor: 0.9
+  _flowering: true
+  _seedSet: true
+  _fruitFill: 1
+  profile:
+    moistureHappyAt: 0.2
+    moistureWiltAt: 0.03
+    litresPerGameDay: 0.1
+    luxHappyAt: 15
+    luxDarkAt: 2
+    rootDemand:
+      seedling: 0.2
+      young: 0.6
+      established: 1.5
+      mature: 2
+    daysToStage:
+      young: 3
+      established: 7
+      mature: 14
+    fruitSetCount: 4
+    fruitFillDays: 14

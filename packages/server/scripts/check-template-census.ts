@@ -548,7 +548,7 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   'lobbyPath', 'makerId', 'material', 'operatingLocations', 'parLines',
   'parentExtent', 'parentOrganization', 'principal', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
-  'surfaceMaterial', 'teachesSpellPath', 'trapTemplate', 'treasury',
+  'steepsInto', 'surfaceMaterial', 'teachesSpellPath', 'trapTemplate', 'treasury',
   'warren',
 ];
 

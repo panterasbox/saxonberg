@@ -1,0 +1,12 @@
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: greywort root
+  keywords: [greywort, root, herb]
+  appearance: a pale, hooded marsh root
+  density: 900
+  edibility: false
+  toxicity: []
+  spoilActivationEnergy: 70000
+  waterActivity: 0.9
+  tags: [herb, root, organic]
