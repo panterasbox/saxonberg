@@ -1,14 +1,24 @@
 # Clinical medicine — blood, the operating table, and the two hands of care
 
-> **Status: UNBUILT — scoped 2026-09-24** — the umbrella for the next
-> physiology-thread build, downstream of recovery (MR !278). Pulls together
-> [blood-slate](./blood-slate.md) (the deep blood design) and the surgery
-> thread (re-pitched here toward concrete operations, not the theatre as a
-> concept), and adds the nurse/doctor profession split.
-> **Left:** all of it — three coupled legs (blood · operations · the two
-> professions) plus a filing pass.
-> **Size:** a build. Physiological, combat-relevant, kernel-led with a
-> `trade-medicine` tail.
+> **Status: SHIPPED — clinical-medicine build, MR !290 (2026-09).** All
+> three legs landed: the **blood loop** (type/draw/store/transfuse + the
+> `marrow` reserve → [blood.md](../../subsystems/blood.md)), the **operation
+> catalogue** over a durative `operate` + the foreign-body wound
+> ([harm.md](../../subsystems/harm.md)), and the **`medicine`/`nursing`**
+> profession split + the nurse seat; plus `prescribe`→`administer`, a
+> personal `calendar` ([calendar.md](../../subsystems/calendar.md)), and the
+> autarky supply (physic garden → simples → `steep`).
+> **Left (deferred to child slates):** the blood-BANK economy →
+> [blood-slate](./blood-slate.md); cold storage →
+> [cold-chain-slate](./cold-chain-slate.md); the full surgery build →
+> [surgery-specialty-slate](./surgery-specialty-slate.md); the diagnostic
+> **labs** vertical → [sampling-and-labs-slate](./sampling-and-labs-slate.md);
+> pharma-as-a-process → [pharma-slate](./pharma-slate.md); the full calendar
+> → [personal-calendar-slate](./personal-calendar-slate.md). Still this
+> slate's own to steward: **veterinary** (a `health` Discipline branch, not a
+> trade), the **study.com/NGN pedagogy anchor**, and the **SBAR handoff /
+> deteriorating-patient scenario** layer.
+> **Size:** shipped a build; the residual threads above are each their own.
 
 The recovery build made a body that heals and a clinic that treats. It left
 two holes it deliberately did not fill: a **rupture bleeds you out with only

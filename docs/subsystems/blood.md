@@ -59,8 +59,17 @@ The **`Syringe`** (`capability: phlebotomy`) affords all three:
   `Vitals.drawBlood(litres)`: spends `bloodVolume` and the **`marrow`**
   reserve (a tenth biological reserve; `bleed` refuses below the donation
   floor); fills the vessel with a stamped unit. Refuses an unconscious /
-  low-volume / wan donor, or a vessel already holding another type.
-- **`transfuse <patient> from <vessel>`** — blood → the unit, `salt-water`
+  low-volume / wan donor, or a vessel already holding another type. ⭐ The
+  draw is a **LONG durative engaged act** (`BLOOD_DEFAULTS.DRAW_DURATION_S`,
+  a `ManualBuildStep` on the `'hands'` slot): the real barrier to giving
+  blood is the TIME you sit there, not the volume — the `marrow` reserve
+  models the recovery cost, the engagement the ACT cost. All the gates run
+  synchronously at dispatch; the unit is drawn at COMPLETION, so a barge-in
+  aborts it and no blood is taken. (⚠ Multi-word vessel names are quoted:
+  `bleed into "blood bag"`; every object arg is single-token.)
+- **`transfuse <patient> from <vessel>`** — a **SHORT interruptible**
+  engaged act (`TRANSFUSE_DURATION_S`) — the field-medic-under-fire tension;
+  an abort gives nothing. blood → the unit, `salt-water`
   → a saline expander, else refused; spoiled refused. ⭐ **The judgement:**
   a `competent+` giver (in `max(nursing, medicine)`) who can SEE a
   labelled mismatch on a typed patient **refuses** — competence buys
@@ -90,4 +99,8 @@ compensation. `BulkPayload.blood` and `receiveBlood` are the seams.
 ## History
 
 Shipped by the clinical-medicine build (W1/W5). See
-`docs/plans/clinical-medicine-plan.md` D2/D3/D4/D11.
+`docs/plans/clinical-medicine-plan.md` D2/D3/D4/D11. **Review round
+(2026-09-24):** `bleed`/`transfuse` became durative engaged acts (the
+`DRAW_DURATION_S`/`TRANSFUSE_DURATION_S` dials on `BLOOD_DEFAULTS`) — the
+time cost is the honest friction on donation; the completion effect and
+the synchronous gates are unchanged.

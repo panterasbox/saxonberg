@@ -12,6 +12,7 @@
 > as a system · instrument grade (the `gradeConditionScale(kit)` hook left
 > at 1.0) · complications (an op that CAUSES a new problem) · elective vs
 > only-when-unsalvageable amputation.
+> **Size:** a build (the richness over the shipped surgical trunk).
 
 ## ⭐ The two audits this build owes (user direction, 2026-09-24)
 

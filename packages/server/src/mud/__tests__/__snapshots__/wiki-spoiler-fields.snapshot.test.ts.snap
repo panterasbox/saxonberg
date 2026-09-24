@@ -886,6 +886,7 @@ SphericalCoordinatesMixin.coordinates = 0
 SphericalCoordinatesMixin.radius = 0
 StackableMixin.quantity = 0
 StatusMixin.authoredStatus = 0
+SteepableMixin.steepsInto = 0
 Stock.purchasing = 0
 Stock.stockLines = 0
 StoredDocument.data = 0

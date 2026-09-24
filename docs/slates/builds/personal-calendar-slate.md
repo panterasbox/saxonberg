@@ -1,11 +1,13 @@
 # Personal calendar — a player's red-letter dates, on the comms device they carry
 
-> **Status: UNBUILT — scoped 2026-09-24.** A general capability the game is
-> missing: a player's own **dated events** ("red letter dates"), distinct from
-> game-time (the world's clock). The **clinical-medicine build is its first
-> consumer** and seeds a thin slice (per-player dated entries + an author seam
-> + a read on the aether implant + a ping when due); this slate holds the full
-> design.
+> **Status: PARTIAL — thin slice SHIPPED (clinical-medicine, MR !290, 2026-09).**
+> A player's own **dated events** ("red letter dates"), distinct from game-time
+> (the world's clock). The **clinical-medicine build shipped the thin slice**:
+> per-player dated entries (`CalendarMixin` on the aether implant), the medicine
+> author seam (a follow-up date written on `operate`/suture), the `calendar`
+> read, and ⚠ `assess` never leaking a future date
+> ([calendar.md](../../subsystems/calendar.md)). This slate holds the full
+> design still to build.
 > **Left:** the full feature — recurring events, per-event reminders/snooze,
 > shared/other-people's calendars, the **carried physical-device / paper
 > alternative** (the RP manifestation), rich author tooling, and the

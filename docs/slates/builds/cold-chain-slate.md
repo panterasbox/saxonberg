@@ -13,6 +13,7 @@
 > cached-ambient staleness handling (meltout must fan out `restamp`) · the
 > tech curve (cold room → sealed insulated box → iced cooler → powered
 > fridge) · first consumers (blood, food/spoilage, pharma/vaccines).
+> **Size:** a build (the cold mirror of the fuel → fire → furnace chain).
 
 ## Why it deferred out of clinical-medicine (user direction, 2026-09-24)
 
