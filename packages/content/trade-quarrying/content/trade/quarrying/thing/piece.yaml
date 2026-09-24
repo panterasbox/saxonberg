@@ -1,0 +1,19 @@
+# A piece off a block — the carryable unit of building stone.
+#
+# ⭐ What a mason actually works with, and what the wall in the old workings'
+# prose is built out of: *"Somebody built a wall out of the bigger pieces and
+# then stopped building it."*
+#
+# ⚠ The material is restamped from the block it came off, so one row serves
+# every stone.
+class: /platform/thing/Thing
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [piece, stone, block]
+  shortDescription: piece of stone
+  register: indefinite
+  longDescription: >-
+    A squared piece of stone about as much as a man can carry, one face
+    split fresh and bright.
+  material: /stuff/idea/material/rock/granite
+  mass: 25

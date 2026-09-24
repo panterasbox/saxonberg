@@ -570,7 +570,7 @@ describe('⭐⭐⭐ the extraction is continuous, and that is the whole design',
     // Darker: more of the product is bran.
     expect(wholemeal.outerShare).toBeGreaterThan(white.outerShare);
     // Keeps worse: more available water, so the growth floor is crossed.
-    expect(wholemeal.cure.moisture).toBeGreaterThan(white.cure.moisture);
+    expect(wholemeal.water.moisture).toBeGreaterThan(white.water.moisture);
     // And there is MORE of it — the trade is real in both directions.
     expect(wholemeal.productKg).toBeGreaterThan(white.productKg);
   });
@@ -580,6 +580,6 @@ function payloadOf(s: Sack): string {
   const p = BulkableApi.slotFor(s, undefined)!.getPayload();
   return JSON.stringify({
     composition: p?.composition,
-    cure: p?.cure,
+    water: p?.water,
   });
 }

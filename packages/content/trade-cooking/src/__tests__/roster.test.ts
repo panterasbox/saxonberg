@@ -454,19 +454,33 @@ describe('⭐ the preserving acts — over the shipped rows, through the real re
     ContainmentApi.move(hearth() as never, kitchen as never);
     await stock(`${ROOT}/thing/cook-pot`);
     for (let i = 0; i < 8; i++) await stock('/stuff/thing/items/stew-meat');
-    await fill(`${ROOT}/thing/salt-sack`, `${ROOT}/idea/material/salt`, 4);
+    // ⭐ Salt moved to the COMMONS with the extraction build: a quarry wins
+    // rock salt, pans make it out of the sea and a brine hearth boils it, so
+    // salt exists whether or not anybody cooks. The kitchen is a CUSTOMER of
+    // it now, which is the rule fishing stated for a trout.
+    await fill(`${ROOT}/thing/salt-sack`, '/stuff/idea/material/food/salt', 4);
   }, 60_000);
 
   const cureOf = (s: Stuff) =>
-    MixinApi.isCured(s) ? s.getCureState() : null;
+    MixinApi.isWaterActive(s) ? s.getWaterState() : null;
 
-  it('the catalogue knows the three preserving rows', () => {
+  it('the catalogue knows the two preserving rows — and NOT `air-dry`', () => {
     const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
       '/platform/idea/RecipeCatalogue',
     )!;
-    for (const id of ['salt-cure', 'air-dry', 'smoke-cure']) {
+    for (const id of ['salt-cure', 'smoke-cure']) {
       expect(cat.knows(id), id).toBe(true);
     }
+    // ⭐⭐ **Drying stopped being a recipe**, and the absence is the
+    // assertion. `air-dry`'s whole content was `cure: { moisture: 0.35 }` —
+    // an instant constant with no time, no air and no weather, so a ham
+    // dried the same in an August wind and a steamy cellar. Drying is now a
+    // RATE on the cut's own clock against the air (`WaterActivityMixin` +
+    // `BiomeApi.airFor`), and `dry` is the act that puts it where the air
+    // can reach it. Salting and smoking keep their recipes because they
+    // genuinely are treatments: salt goes IN, and a fire's heat is a
+    // number the recipe denominates.
+    expect(cat.knows('air-dry')).toBe(false);
   });
 
   it('⭐ curing raises the solute, and CONSUMES the salt (criterion 5)', async () => {
@@ -481,15 +495,17 @@ describe('⭐ the preserving acts — over the shipped rows, through the real re
     expect(litres(sack)).toBeLessThan(before);
   }, 60_000);
 
-  it('drying lowers the moisture, and needs neither salt nor fire', async () => {
-    const out = await craftAs(cook, { recipeRef: 'air-dry', makerMode: 'self' });
-    expect(out.ok, JSON.stringify(out)).toBe(true);
-    if (!out.ok) return;
-    expect(cureOf(out.output)?.moisture).toBeLessThan(0.4);
-    expect(cureOf(out.output)?.solute).toBe(0);
-  }, 60_000);
+  // ⚠ The old `drying lowers the moisture` case is gone with the recipe.
+  // What it asserted — that water leaves — is now the kernel's, pinned as
+  // the six exposure cases in `lib/material/__tests__/WaterActivity.test.ts`, and
+  // what the ACT does is pinned in `Dry.test.ts` beside this file.
 
-  it('⭐⭐ the hurdles STACK across two acts — dry what you salted (criterion 2)', async () => {
+  it('⭐⭐ the hurdles STACK — a salted cut hung up keeps its salt (criterion 2)', async () => {
+    // The stacking arithmetic itself (`a_w = a_w(material) · moisture ·
+    // (1 − solute)`) is the kernel's and is pinned there. What this pins is
+    // the part that used to be a second recipe and is now two different
+    // KINDS of act: salting is a treatment that goes in and stays in, and
+    // hanging it up starts a clock. ⚠ The salt must survive being hung.
     const salted = await craftAs(cook, {
       recipeRef: 'salt-cure',
       makerMode: 'self',
@@ -497,18 +513,10 @@ describe('⭐ the preserving acts — over the shipped rows, through the real re
     expect(salted.ok).toBe(true);
     if (!salted.ok) return;
     ContainmentApi.move(salted.output as never, kitchen as never);
-    // ⚠ The TARGET is what makes this a stack rather than a coincidence:
-    // without it the dry could pick a plain cut off the table instead.
-    const both = await craftAs(cook, {
-      recipeRef: 'air-dry',
-      makerMode: 'self',
-      target: salted.output,
-    });
-    expect(both.ok, JSON.stringify(both)).toBe(true);
-    if (!both.ok) return;
-    const cure = cureOf(both.output)!;
-    expect(cure.solute).toBeGreaterThan(0.5); // the salt survived the dry
-    expect(cure.moisture).toBeLessThan(0.4);
+    const before = cureOf(salted.output)!;
+    expect(before.solute).toBeGreaterThan(0.5);
+    // A read after the move re-reconciles; the solute has no passive arm.
+    expect(cureOf(salted.output)!.solute).toBeCloseTo(before.solute, 6);
   }, 60_000);
 
   it('⭐⭐ a served dish REMEMBERS WHO MADE IT, on the payload (D8)', async () => {

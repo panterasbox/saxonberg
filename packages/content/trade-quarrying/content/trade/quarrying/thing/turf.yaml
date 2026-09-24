@@ -1,0 +1,29 @@
+# A turf — ⭐ **cut wet, burnt dry, and useless in between.**
+#
+# Peat cut out of a bank with a spade. It comes off the bank soaked (the
+# material holds three times its dry mass in water, the highest figure in the
+# tree) and it will not light until the weather has had it for a fortnight.
+# Stack them in an openwork lattice, not a heap: exposure is a fraction and the
+# air has to reach them.
+#
+# ⚠ `moisture: 1` is the default and is the whole point — an as-cut turf is at
+# full moisture and refuses the flame in the shipped words, *"It's too wet to
+# catch."*
+class: /trade/quarrying/thing/Turf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [turf, peat, sod, brick]
+  shortDescription: turf
+  register: indefinite
+  longDescription: >-
+    A cut brick of black peat, fibrous at the broken edge and heavy with the
+    water still in it. It smells of the bank it came out of.
+  material: /stuff/idea/material/organic/peat
+  mass: 4
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

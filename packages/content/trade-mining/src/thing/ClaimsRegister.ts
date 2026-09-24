@@ -32,11 +32,55 @@ export default class ClaimsRegister extends DetailedMixin(Thing) {
 
   static fieldMeta: FieldMeta = {
     warrenPath: { persistent: true, authorable: true },
+    surfaceWorkings: { persistent: true, authorable: true },
   };
 
   /** The diggings this register records claims for. */
   protected warrenPath: string = '';
 
+  /**
+   * ⭐⭐ **The book of SURFACE workings open to claim** — a quarry, a chalk
+   * pit, a turf bank.
+   *
+   * A mine is claimed by naming three numbers, because a mine is a warren
+   * and a claim is a block of cells nobody has cut yet. A surface working is
+   * not: it is an authored ROOM with a real path, and longest-prefix title
+   * resolution answers directly about it. So the counter keeps a second
+   * list, and `stake pit` takes the other fork: no warren, no block
+   * arithmetic, one `subdivide`.
+   *
+   * ⚠ Content authors this. Each entry is `{ path, keywords }` — the room's
+   * parcel extent, and the words a player would actually type.
+   */
+  protected surfaceWorkings: Array<{ path: string; keywords: string[] }> = [];
+
   public getWarrenPath(): string { return this.warrenPath; }
   public setWarrenPath(value: string): void { this.warrenPath = value; }
+
+  public getSurfaceWorkings(): readonly { path: string; keywords: string[] }[] {
+    return this.surfaceWorkings;
+  }
+  public setSurfaceWorkings(
+    value: Array<{ path: string; keywords: string[] }>,
+  ): void {
+    this.surfaceWorkings = Array.isArray(value) ? value : [];
+  }
+
+  /**
+   * The surface working a player's word names, or `null`.
+   *
+   * ⚠ Matched case-insensitively against each entry's authored keywords,
+   * because `stake Pit` and `stake the quarry` are the same request and a
+   * counter clerk would not quibble.
+   */
+  public surfaceWorkingFor(word: string): string | null {
+    const want = word.trim().toLowerCase();
+    if (want === '') return null;
+    for (const entry of this.surfaceWorkings) {
+      for (const kw of entry.keywords ?? []) {
+        if (typeof kw === 'string' && kw.toLowerCase() === want) return entry.path;
+      }
+    }
+    return null;
+  }
 }

@@ -15,7 +15,7 @@ import type {
 import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
-import { Cure } from '../../../lib/material/Cured';
+import { WaterActivity } from '../../../lib/material/WaterActivity';
 import { Contamination } from '../../../lib/material/Contaminable';
 import { Blood } from '../../../lib/vitals/Blood';
 import type { MqlQuantity } from '../../../api/mql';
@@ -311,8 +311,8 @@ export class BulkableLogic extends ApiLogic {
     // for the same reason: tipping brine into fresh stock partly cures
     // the stock, and tipping fresh stock into brine dilutes it. Reading
     // both BEFORE the debit matters — a full drain clears the payload.
-    const fromCure = new Cure(from).state();
-    const toCureBefore = to !== null ? new Cure(to).state() : null;
+    const fromCure = new WaterActivity(from).state();
+    const toCureBefore = to !== null ? new WaterActivity(to).state() : null;
     // ⚠⚠ And the silent population, by the same mass-weighted rule. A
     // pathogen that did not blend on the pour would make decanting a
     // laundry: tip the bad stew into a clean pot and it comes out safe.
@@ -347,8 +347,8 @@ export class BulkableLogic extends ApiLogic {
         );
       }
       if (fromCure !== null || toCureBefore !== null) {
-        new Cure(
-          to).stampState(Cure.blend(fromCure, applied, toCureBefore, toAmountBefore),
+        new WaterActivity(
+          to).stampState(WaterActivity.blend(fromCure, applied, toCureBefore, toAmountBefore),
         );
       }
       // ⭐⭐ **A dirty vessel contaminates what you fill it with**, and its

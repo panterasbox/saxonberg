@@ -182,6 +182,23 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   if (Array.isArray(data.toolRows)) {
     for (const row of data.toolRows) push('toolRows', row);
   }
+  // ⭐ An open working's `spoilTo` — the room the waste goes to. Resolved
+  // live at the completion of a strip; a rowless one silently leaves the
+  // spoil on the pit floor instead, which reads as a design choice rather
+  // than as a broken citation.
+  push('spoilTo', data.spoilTo);
+  // ⭐ A claims register's `surfaceWorkings:` — the book of surface
+  // workings open to claim, each naming a room's own parcel extent (which
+  // for an authored room IS its template path). `stake pit` resolves one
+  // live; a misspelt entry is a counter that refuses a claim on ground
+  // that is plainly there.
+  if (Array.isArray(data.surfaceWorkings)) {
+    for (const entry of data.surfaceWorkings as Array<Record<string, unknown>>) {
+      if (entry && typeof entry === 'object') {
+        push('surfaceWorkings.path', entry.path);
+      }
+    }
+  }
   for (const field of ['props', 'cast'] as const) {
     const entries = data[field];
     if (!Array.isArray(entries)) continue;
@@ -333,6 +350,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     for (const layer of strata) {
       if (layer && typeof layer === 'object') {
         push('stratigraphy.host', (layer as Record<string, unknown>).host);
+        // ⭐ `wins:` (the extraction build) — what winning a band MINTS: a
+        // template row (a block, a lump, a turf) or a material path (a bulk
+        // good). Resolved live inside an engaged act's completion, long
+        // after the verb returned, so a rowless one is a swing that costs
+        // the endurance, banks the depletion and produces **nothing at
+        // all**, where nobody is watching. Read here rather than ignored,
+        // for exactly that reason.
+        push('stratigraphy.wins', (layer as Record<string, unknown>).wins);
       }
     }
   }

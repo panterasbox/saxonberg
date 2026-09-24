@@ -1,0 +1,44 @@
+verbs: [fire, burn]
+controller: /platform/idea/cmd/device/FireController
+description: "Fire a loaded chamber and see what the heat makes of it"
+help: |
+  `fire the kiln` runs whatever is loaded in it at whatever heat it is
+  holding. `burn lime` is the same act — a lime-burner *burns* lime, and
+  the two words mean one thing.
+
+  ⭐ **The charge decides what comes out.** There is no list of firings in
+  this verb: it looks at what is in the chamber, finds the firing that takes
+  it, and tells you what it needs if the heat is short. Limestone becomes
+  quicklime. Clay becomes a pot. A pack that ships a glass batch or a
+  crucible charge ships a recipe row and this file never learns the word.
+
+  ⚠ **`fire` is not `ignite`.** *Fire the kiln* ambiguously means *light
+  it*, which is a different act with its own verb — so the chamber has to
+  be **lit and up to heat** before this does anything, and it says which of
+  those is missing.
+
+  ⚠ One firing at a time: a chamber holding two things that want different
+  heats is told so rather than averaged.
+examples:
+  - cmd: fire the kiln
+    note: Run whatever is loaded in it
+  - cmd: burn lime
+    note: The lime-burner's own words for the same act
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH CHAMBER, declared rather than hunted for. The mixin atom, not a
+  # class: a limekiln, a bread oven, a bottle kiln and a crucible furnace are
+  # the same mechanism on different dials, and `smelt.yaml` already binds its
+  # furnace exactly this way.
+  - name: kiln
+    type: object
+    required: false
+    prepositions: [in, at]
+    default: "reachable:[mixin.FurnaceMixin]"
+    scope: ["reachable"]
+    requires: [FurnaceMixin]
+    validators:
+      - /lib/command/validators/canReach

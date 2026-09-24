@@ -1,0 +1,22 @@
+# ⚠⚠ A hot-short bloom — what a coal-fired smelt gives you.
+#
+# ⭐ Discovered by the smelt the same way every other product is: by its
+# `_materialPath`, never by a listed name. An author who ships a second sour
+# fuel gets this row for free, and an author who ships a way past it (coke)
+# ships a row of their own and this one stops being reached.
+#
+# ⚠ It is a `Bloom` — spongy, full of slag, the same object a good run makes —
+# and every difference is in the material. That is the point: you cannot tell
+# by looking at the shape, only by what it is made of and what happens when
+# you hit it.
+class: /trade/smelting/thing/Bloom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [bloom, iron, "hot-short"]
+  shortDescription: hot-short bloom
+  register: indefinite
+  longDescription: >-
+    A spongy mass of iron, grey and porous, with a faint yellow sheen where it
+    has been broken. It rings dull.
+  _materialPath: /stuff/idea/material/alloy/sulfurous-iron
+  mass: 2

@@ -1,0 +1,24 @@
+id: trade-quarrying
+version: 0.1.0
+root: /trade/quarrying
+description: >-
+  The quarrying trade — ⭐ **the first RGO in the game whose cost is what
+  you throw away.** An open working is a PLACE whose wall is a section
+  through the ground: every band exposed between the surface and the
+  current floor is a face you can work, and the floor drops a lift at a
+  time until it reaches the water. Overburden is the gate — you strip the
+  drift before the stone comes out, and the ratio of the two is what
+  decides whether the ground was worth working, which is the whole of
+  extractive economics and nothing else in the game teaches it.
+  ⭐⭐ **It ships NO VERBS.** Winning a face is the platform's `dig`
+  (the tool is the constraint, and the ground says which one);
+  splitting a block is the platform's `split`; firing a limekiln is the
+  platform's `fire` on the appliance. What this pack ships is a
+  Discipline, a location class, a mixin and rows — so the next open-air
+  working (a chalk pit, a gravel pit, a saltern face) is rows.
+requires:
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # workings sit in the world under a locality's committee.
+  title:
+    - { extent: /trade/quarrying, holder: { organization: /compact/trade } }

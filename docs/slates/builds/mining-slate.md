@@ -1067,3 +1067,25 @@ decipherment engine is deferred and v1 is a taste.
 
 *(Retire when: the mechanic promotes to formal requirements, or folds into a
 crafting/livelihood build that adopts extraction.)*
+
+## ⚠ Finding from the extraction drive's dirty reason (2026-09-24)
+
+⭐ The wire drive `extraction.dirty.wire.test.ts` declares that it *"strips the
+pit's drift and wins its stone (**a per-band ledger on a persisted room that
+nothing refills**)"* — and a dirty reason is a question for the owning trade, so
+here it is: **nothing anywhere puts stone back.**
+
+A turbary running out is *designed* (the fuel or the field, and not both) and a
+claim being permanent is fine. A **quarry** is different: exhaust every band and
+the realm has one less source of building stone, for good, with no geological
+process and no second site opening. That is either
+
+- correct and the answer is **new sites** (which is rows, and cheap — three
+  localities already name the trade's classes with no code), or
+- a gap, and a face wants a replenishment story.
+
+⚠ It only becomes pressing when something consumes stone at volume, which is
+the **structure/construction** slate's business (drafted 2026-09-24 on
+`design/2026-09-24-structure`, not yet on master) — so this is that slate's
+upstream question as much as this one's.
+

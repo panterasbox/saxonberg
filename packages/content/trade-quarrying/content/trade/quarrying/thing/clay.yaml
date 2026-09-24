@@ -1,0 +1,22 @@
+# A lump of clay — ⭐ **and it closes `ceramic`.**
+#
+# The `ceramic` material ships and is used at nine sites in this game, and
+# until now **no clay existed at all**. This is where a pot comes from: dig
+# the band, fire it in a kiln, and there is a ceramic object you can hold,
+# plant in and look at.
+#
+# ⚠ Reuses the shipped `earth/clay` material (the ground build authored it)
+# rather than minting a `mineral/clay` beside it — which is the whole reason
+# the plan's own instruction to create one was wrong.
+class: /trade/quarrying/thing/Lump
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [clay, lump]
+  shortDescription: lump of clay
+  register: indefinite
+  longDescription: >-
+    Heavy grey-blue clay, cool and slick, holding the shape of the spade
+    that cut it.
+  material: /stuff/idea/material/earth/clay
+  mass: 12
+  quantity: 1

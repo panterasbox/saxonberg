@@ -1,0 +1,42 @@
+verbs: [grub]
+controller: /platform/idea/cmd/ground/GrubController
+description: "Grub out rough ground — thorn, root and stone — until it will take a crop"
+help: |
+  The heaviest work there is on ground, and the real word for it. You cut into
+  the thorn and bramble and lever out what is under them.
+
+  ⭐ Newly plotted ground is NOT a field. It is a claim on rough ground,
+  and grubbing is what turns one into the other — the gate on sowing
+  anything at all. You can sow sour, wet ground and get a bad crop, which
+  is a lesson. You cannot sow a thicket.
+
+  ⭐⭐ The stone you turn out is the WALL. Stony ground is dear to clear
+  and cheap to fence, which is why the stone walls of Ireland and New
+  England are the fields' own stones stacked at the edge. Limy ground
+  gives up marl as well — calcareous clay, which is what you carry to a
+  sour field and spread with `lime`.
+
+  How long it takes is the ground's business, not yours: steep is slower,
+  stony is slower still. Needs a spade.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # ⭐ WHICH TOOL, declared rather than hunted for. The default asks
+  # `[capability.digging]` — *the thing that can do this job* — rather than
+  # `[mixin.ToolMixin]`, which would resolve any tool at all and then
+  # fail this verb's own check. That atom is what let this stop being a
+  # walk (see `lint:instrument-args`).
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    # ⚠ `me:i` — IN HAND, as the controller walked before the default was
+    # declared; a scythe on the ground is picked up first. (`reachable` for a
+    # day widened every hand tool to the room. Naming one still reaches it.)
+    default: "me:i:[capability.digging]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  - name: detail
+    type: string
+    required: false

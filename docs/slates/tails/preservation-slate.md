@@ -37,7 +37,7 @@ The clock-starts-at-an-act clearance, the per-material Arrhenius `Ea`,
 `ThermalMixin` beside the gauge on `Provision`, and the per-instance water
 state are in [spoilage.md](../../subsystems/spoilage.md) § The gauge,
 § The rate law, § The water state. ⚠ Wetness was NOT the carrier —
-`CuredMixin` is, and the doc says why.)*
+`WaterActivityMixin` is, and the doc says why.)*
 
 ---
 

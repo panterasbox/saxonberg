@@ -1,0 +1,23 @@
+# ⭐ Firing a pot — the second firing, and the proof that the first was not
+# a special case.
+#
+# One lump of clay, one pot. ⚠ Lower than the lime burn (a pot vitrifies well
+# under calcination heat), which is what makes a chamber's dials matter: a
+# limekiln fires pots and a bread oven fires neither, and nobody had to write
+# a table of which appliance does what.
+#
+# The input is matched on the material's `clay` tag — a pack that ships a
+# second clay works with no edit here.
+recipeId: fire-pot
+name: Earthenware pot
+keywords: [pot, crock, earthenware, "fire pot"]
+inputSlots:
+  - { slot: charge, category: clay, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /stuff/thing/clay-pot
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1100
+maxHeatK: 1900
+difficulty: standard
+discipline: quarrying

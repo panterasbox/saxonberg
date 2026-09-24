@@ -122,7 +122,7 @@ export type RecipeIce = 'cubes' | 'crushed' | 'none';
 
 /**
  * ⭐ **What a preserving act does to the output's water state** — the
- * curing/drying half of the recipe, in the two axes `CuredMixin` carries.
+ * curing/drying half of the recipe, in the two axes `WaterActivityMixin` carries.
  *
  * Absolute targets, not deltas, and applied as the STRONGER of what the
  * matter already had: `moisture` takes the lower, `solute` the higher. So

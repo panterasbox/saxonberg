@@ -120,6 +120,14 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         // ⭐ …and you warm a frozen body by it (recovery build) — the same
         // way you learn every other thing a fire is for: by standing at one.
         'platform/cmd/medical/warm.yaml',
+        // ⭐⭐ …and you FIRE a loaded chamber (extraction build). The sixth
+        // verb on this principle, and the one that made the principle worth
+        // restating: the plan had `fire` afforded by an open working and
+        // living in the quarrying trade, which would have meant a potter's
+        // shed needed its own class to fire a pot. A limekiln, a bread oven,
+        // a bottle kiln and a crucible furnace are one mechanism on
+        // different dials, and the CHARGE decides what comes out.
+        'platform/cmd/device/fire.yaml',
       ],
       environment: [],
     };

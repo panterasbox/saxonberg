@@ -21,7 +21,7 @@ data:
   category: sack
   interiorBulk: true
   interiorCapacity: 20
-  interiorMaterial: /trade/cooking/idea/material/salt
+  interiorMaterial: /stuff/idea/material/food/salt
   interiorAmount: 4
   _materialPath: /stuff/idea/material/textile/jute
   closure: liquidTight

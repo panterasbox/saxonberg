@@ -287,3 +287,45 @@ Cross-references: [husbandry](./husbandry.md) (the shape) ·
 [thermal](./thermal.md) · [bulk](./bulk.md) · [crafting](./crafting.md)
 · [fire](./fire.md) · [content-packs](./content-packs.md) ·
 [behavior](./behavior.md) · [advancement](./advancement.md).
+
+---
+
+## ⭐ `evaporative` — the fourth mechanism (extraction W1)
+
+The closed mechanism vocabulary gained a fourth member beside `microbial`,
+`photochemical` and `chemical`:
+
+> **`evaporative`** — ⭐ **the air does it, by taking water away.** A salt pan,
+> a brine hearth, a drying green for a solution rather than a solid.
+
+Two things distinguish it from the other three, and both are load-bearing:
+
+- **the batch gets SMALLER as it converts** (the water leaves), which is what
+  `productFraction` is for — the fraction of the original volume the finished
+  good occupies; and
+- ⭐⭐ **rain puts it back.** It is the only mechanism with a **setback that is
+  not a failure**: `reconcileEvaporativeWindow` walks the window segment by
+  segment, the rate is the air's measured against `BRINE_EQUILIBRIUM_RH_PCT`,
+  and rain adds litres through a derived aperture so `f` goes *backwards*. A
+  pan left out in a wet week is not spoiled; it is behind.
+
+⚠⚠ **It authors NO strain, and the absence is deliberate** — see the
+`requiresFlora` finding below.
+
+### ⚠⚠ The strain gate froze two shipped features
+
+`requiresFlora(profile)` is new, and it exists because a flora-less mechanism
+turned a latent bug into a rule. The strain gate arrived with the fermentation
+build and asks *has it been pitched?* — and **`retting.yaml` and
+`bleaching.yaml` author no strain at all**, so `strainOk` was false forever and
+**a retting pit and a bleaching green never converted**, while the room read
+*"It sits sweet and silent."*
+
+The rule is now: **a profile demands flora only when it names a required strain
+or declares it catches one.** Two related gates moved with it — the augmenter's
+*sweet and silent* line fires on the same predicate as the conversion, and
+`reconcileCellarAir` is gated to `microbial` (an unguarded bleaching green was
+draining its room's air reserve toward unbreathable).
+
+⭐ The lesson generalizes past maturation: **a gate added for one mechanism
+silently freezes every mechanism that does not answer it.**

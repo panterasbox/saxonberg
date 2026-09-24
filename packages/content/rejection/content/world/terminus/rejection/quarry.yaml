@@ -1,0 +1,16 @@
+# The Hill Quarry — ⭐ the open working above the old men's scrapes.
+#
+# ⚠ It carries its **own** `deposit:`, and the outward walk is what makes
+# that work: the nearest `deposit` field wins, so the Ferrow orebody on the
+# region zone is untouched and the galleries' hardness is unchanged. A
+# hillside a quarter of a mile from a lode is a different column, and saying
+# so costs one field.
+#
+# `cellSize: 10` matches the region's, so a quarry cell is a mine cell and
+# `LIFT_M` means the same thing on both sides of the hill.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Hill Quarry
+  cellSize: 10.0
+  deposit: /world/terminus/rejection/idea/deposit/quarry-hill

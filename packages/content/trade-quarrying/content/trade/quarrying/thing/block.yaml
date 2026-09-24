@@ -1,0 +1,24 @@
+# A quarried block — ⭐ **too heavy to lift, and the refusal says why.**
+#
+# Half a cubic metre of stone. In granite that is about 1375 kg, so `get
+# block` refuses because of what it WEIGHS: bigness is emergent from mass and
+# never a flag, which is the bole's rule one trade over.
+#
+# ⚠ **The material is restamped at the face**, so this ONE row is the block
+# of every rock in the game — granite, limestone, whatever a venue's column
+# puts in the wall. `mass` here is granite's; the mint overwrites it from the
+# band's own density.
+#
+# It affords its own `split`, wherever it lies.
+class: /trade/quarrying/thing/Block
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [block, stone, rock]
+  shortDescription: block of stone
+  register: indefinite
+  longDescription: >-
+    A squared-off mass of stone, rough on five faces and split clean on the
+    sixth. Far too much for any one back.
+  material: /stuff/idea/material/rock/granite
+  mass: 1375
+  piecesLeft: 8

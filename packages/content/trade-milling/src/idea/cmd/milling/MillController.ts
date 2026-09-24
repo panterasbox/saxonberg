@@ -392,12 +392,12 @@ async function fill(
     slot.setAmount(Quantity.of(litres, 'L'));
     if (plan !== null) {
       // ⭐ The extraction, stamped continuously: the composition says
-      // what this flour is made of and `cure.moisture` says how well it
+      // what this flour is made of and `water.moisture` says how well it
       // will keep. Two settings a hundredth apart are different matter.
       slot.setPayload({
         ...(slot.getPayload() ?? {}),
         composition: plan.composition,
-        cure: plan.cure,
+        water: plan.water,
       });
     }
   }
