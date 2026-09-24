@@ -2099,3 +2099,69 @@ requirements doc settled:
   Passage is a haulage fact a trained eye reads in words; there is no
   instrument that sharpens it, so the `measure` rung was a rung with
   nothing on it.
+
+### ⭐⭐ The seven other drives, re-run — and the six things THAT found
+
+The ladder is kernel substrate, so every wire file that measures or
+analyzes anything is a consumer of this build. All seven were re-run on
+a freshly reset world (`farmstead` · `metallurgy` · `metal-chain` ·
+`crafting` · `consequence` · `grain-chain` · `textiles` · `identity`,
+one boot, 386s). Six failures, of four different kinds — and the kinds
+are the finding, not the count.
+
+**One real regression, and it is the cost of the flat view.**
+
+`analyze power millrace` at Heart's Delight answered *"the millsite
+neither makes power nor runs on it"* — about a **room**, while the weir
+the player named stood three feet away making 50.6 kW. One `analyze`
+view serves thirty-one channels, so its `subject` arg must declare
+`requires: any`; before the flat verbs each channel carried its own arg
+spec, and `power`'s said `requires: TangibleMixin`, so the binder never
+offered the Location at all. Without it the millsite wins, because the
+room authors a `details.weir` whose keywords include `millrace` and a
+detail on the room outscores the object standing in it.
+
+⭐ **The fix is the one the design implies: the channel narrows what the
+view cannot.** `Reading.reResolve` — when a bound subject fails
+`subjectRequires`, the channel re-asks MQL over the same reachable scope
+and takes the best-scoring candidate that satisfies it. It never invents
+a subject; no such candidate is still the refusal it was. `power.yaml`
+gets its `TangibleMixin` back, now as a channel fact rather than a view
+fact, which is where it belonged.
+
+**One gate quietly wrong — in the direction that reads as a failure.**
+
+`MeasureChannel.totality` reported `light` as emitted by nobody, while
+`measure light` had been printing a bracketed lux figure on that channel
+the whole time. `Reading.bracketed` takes the channel as a trailing
+**positional** argument and the scan knew only the option-object literal
+and `mmlChannel()`'s return — the third call shape of the same failure
+its own docstring had warned about. ⚠ A lazy `\)` in the matcher stops
+inside `this.seedFor(...)`, so the window runs to the end of the
+statement.
+
+**Three tests asserting a shape this build deliberately retired.**
+
+| file | what it asserted | why it changed |
+|---|---|---|
+| `metal-chain` | `measure strike` bare is an **unknown verb** | That checkpoint wrote the fork down in its own words and left the call to whoever owned mining. This build made it, for the whole ladder: **the refusal IS the progression UI**, so the verb is global and the refusal names the instrument. It is now the positive checkpoint it said it should become. |
+| `consequence` | `help analyze` names `postmortem` | A channel is a row now, not a subcommand; the verb's help cannot enumerate rows a pack ships. `readings` is the listing. |
+| `farmstead` | `measure light` in the yard answers in lux | The yard has no photometer, and correctly says so. The question there is whether there is light to READ at all, which is the **free** rung's: `analyze light`. |
+
+**Two findings that are NOT this build's**, surfaced by running on a
+freshly seeded world and written down rather than deleted — the branch
+touches none of the files involved:
+
+- ⚠ **A dressed character affords `wear`/`remove`/`equip`/`unequip`
+  everywhere.** Intake hands a new player a shirt, trousers and shoes;
+  `WearableMixin` grants the four verbs on the `inventory` bucket; and
+  carrying a garment is carrying a wearable. `textiles` was asserting
+  that the character had nothing on, not that the shop had nothing
+  wearable. A question for whoever owns embodiment.
+- ⚠ **The general store's sewing-machine stock is ON the counter, not in
+  it**, so it sits in the ROOM's environment and arms every customer
+  with `repair`. `crafting`'s checkpoint assumed the `inventory` bucket
+  (which grants inward) and the premise is simply false. Whether a shop
+  should arm its customers is shopkeeping's call — a smithy's anvil
+  affording `repair` to whoever is standing in the smithy is the same
+  mechanism, and is right.
