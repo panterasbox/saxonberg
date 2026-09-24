@@ -48,6 +48,7 @@
     "lint:field-meta": "tsx scripts/check-field-meta.ts --lint",
     "lint:gates": "tsx scripts/check-gate-strings.ts",
     "lint:get-or-create": "tsx scripts/check-get-or-create.ts",
+    "lint:ground": "tsx scripts/check-ground.ts",
     "lint:identity": "tsx scripts/check-identity.ts",
     "lint:imports": "tsx scripts/check-mud-imports.ts",
     "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts",

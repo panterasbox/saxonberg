@@ -56,6 +56,7 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { GroundSourceMixin } from '@saxonberg/server/mud/lib/ground/GroundSource';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
 
@@ -77,6 +78,29 @@ export const TEXTURE_CLASSES = [
 ] as const;
 
 export type TextureClass = (typeof TEXTURE_CLASSES)[number];
+
+/**
+ * Texture class → the `Material` row a floor standing on it reads.
+ *
+ * ⭐ Six classes, three materials, and the collapse is the honest part: a
+ * texture class is a POSITION ON A TRIANGLE (how much sand, silt and clay),
+ * and the material is what the stuff IS. `sandy-loam`, `loam` and
+ * `silt-loam` are all loam to a boot; only the ends of the axis are
+ * different matter. The distinction the six classes exist for — how the
+ * ground drains, what it costs to improve — is `GroundSample`'s and is not
+ * lost by naming three materials here.
+ *
+ * ⚠ Paths, not imports: a Material is resolved by template path through
+ * `StuffApi`, and these three rows are `base-library`'s.
+ */
+export const TEXTURE_MATERIALS: Readonly<Record<TextureClass, string>> = {
+  sand: '/stuff/idea/material/earth/sand',
+  'sandy-loam': '/stuff/idea/material/earth/loam',
+  loam: '/stuff/idea/material/earth/loam',
+  'silt-loam': '/stuff/idea/material/earth/loam',
+  'clay-loam': '/stuff/idea/material/earth/clay',
+  clay: '/stuff/idea/material/earth/clay',
+};
 
 /** A position on the ground, in zone cells. */
 export type Spot = readonly [number, number];
@@ -142,7 +166,7 @@ export interface ImprovementCost {
   total: number;
 }
 
-export default class GroundCharacter extends Idea {
+export default class GroundCharacter extends GroundSourceMixin(Idea) {
   static fieldMeta: FieldMeta = {
     name: { persistent: true, authorable: true },
     pins: { persistent: true, authorable: true },
@@ -166,6 +190,38 @@ export default class GroundCharacter extends Idea {
 
   public getBands(): readonly GroundBand[] { return this.bands; }
   public setBands(value: GroundBand[]): void { this.bands = value ?? []; }
+
+  // ---------- ⭐ the ground a floor is standing on ----------
+
+  /**
+   * `GroundSourceMixin` — *what is the ground made of here?* asked by a
+   * kernel `Floor` on grade, which cannot import this class.
+   *
+   * ⭐ **A character knows its TOPSOIL and nothing deeper.** Above the
+   * collar there is air, and below `-topsoilM` you are in the column's
+   * business, not the surface's — so both answer `null` and the floor
+   * falls through to the next citation, which is exactly how a mine
+   * gallery ends up reading its host rock while the field above it reads
+   * loam. Two sources, one ladder, no arbitration needed.
+   *
+   * The seed is derived from the ADDRESS the caller hands across, not
+   * stored and not shared with the column: soil and geology under one
+   * address are independent fields rather than the same noise twice.
+   */
+  public groundMaterialAt(
+    spot: readonly [number, number],
+    zM: number,
+    address: string,
+  ): string | null {
+    if (zM > 0) return null;
+    const sample = GroundCharacter.resolve(
+      this,
+      spot,
+      GroundCharacter.seedFor(address),
+    );
+    if (zM < -sample.topsoilM) return null;
+    return TEXTURE_MATERIALS[sample.texture] ?? null;
+  }
 
   // ---------- the seed ----------
 

@@ -25,7 +25,7 @@
 # An adit drains by gravity, and the oxide cap is physically located above
 # that line — so geology, engineering, the tech ladder and the economics
 # all put the cut in one place and the scope needs no defending.
-class: /trade/mining/idea/Deposit
+class: /system/ground/idea/Deposit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ferrow

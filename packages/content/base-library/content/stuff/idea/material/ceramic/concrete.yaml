@@ -1,0 +1,37 @@
+# Concrete — a cast mineral binder with aggregate in it. The floor of the
+# flooded substation, and the honest answer for any modern-epoch paving.
+#
+# ⚠ It lives under `ceramic/` rather than `rock/` because `rock/` reads as
+# *natural stone* (granite, slate — things a quarry cuts) and concrete is
+# fired-binder chemistry that somebody POURED. It is tagged `mineral` all
+# the same, so the ground fold reads it exactly as it reads stone: worked
+# and on grade it is set paving, off grade it is a slab. ⭐ Which is the
+# epoch lens working as intended — the mechanism is the same from a Roman
+# opus caementicium floor to a substation, and only the dynamics differ.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: concrete
+  keywords: [concrete, cement]
+  appearance: grey concrete
+  # Bulk density of ordinary structural concrete (kg/m^3).
+  density: 2400
+  thermalConductivity: 1.7
+  specificHeat: 880
+  # Dry concrete is a poor conductor — but not as inert as granite, because
+  # of the pore water that never fully leaves it. Still an order of
+  # magnitude under the pool threshold (0.005).
+  electricalConductivity: 5.0e-4
+  # Porous for a mineral; a concrete floor darkens when it is wet.
+  waterAbsorptionCapacity: 6
+  # Mechanical response (materials-response): MPa. Hard but brittle in
+  # tension — under granite, well over any earth.
+  hardness: 140
+  toughness: 15
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "cast"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

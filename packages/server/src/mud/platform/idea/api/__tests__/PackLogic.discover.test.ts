@@ -61,11 +61,19 @@ describe('the shipped packs (real discovery, no install)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
     // ⭐ 43 → 46: the grain chain adds `trade-milling`, `trade-baking`
     // and `hearts-delight`; 46 → 47: forestry adds `trade-forestry`;
-    // 47 → 48: fishing adds `trade-fishing`; 48 → 49: trades-and-labor
-    // adds `trade-shopkeeping`. A
+    // 47 → 48: fishing adds `trade-fishing`; 48 → 50: TWO builds landed a
+    // pack in the same window — `trade-shopkeeping` (trades-and-labor) and
+    // `ground` (the system pack the column and the surface character moved
+    // OUT of two trades into).
+    //
+    // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
+    // git merged the two comment blocks as a CONFLICT while merging the
+    // assertion line CLEANLY — so the number would have stayed 49 and gone
+    // red on master with nothing in the diff to explain it. A count is the
+    // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(49);
+    expect(ids).toHaveLength(50);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
@@ -95,6 +103,21 @@ describe('the shipped packs (real discovery, no install)', () => {
     // NOT, a customer of wood being installable without a forester.)
     for (const trade of ['trade-mining', 'trade-fuel', 'trade-smelting', 'trade-forestry']) {
       expect(ids.indexOf('rejection')).toBeGreaterThan(ids.indexOf(trade));
+    }
+    // ⭐ The ground cut (ground build): `Deposit` and `GroundCharacter` are
+    // `/system/ground`'s now, not two trades'. Everything that names either
+    // class — the two trades, and the three localities whose rows do —
+    // orders after it. This is the order that makes the claim installable:
+    // a QUARRY can read the column without depending on a mine, and a WOOD
+    // can read its own dirt without depending on a farm.
+    for (const consumer of [
+      'trade-mining',
+      'trade-farming',
+      'rejection',
+      'eternal-university',
+      'hearts-delight',
+    ]) {
+      expect(ids.indexOf(consumer)).toBeGreaterThan(ids.indexOf('ground'));
     }
     expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-mining'));
     expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-fuel'));

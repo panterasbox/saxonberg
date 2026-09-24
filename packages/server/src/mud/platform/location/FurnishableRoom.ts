@@ -62,7 +62,6 @@ import { VisibleMixin } from "../../lib/description/Visible";
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { DetailedMixin } from "../../lib/description/Detailed";
 import { ExitableMixin } from "../../lib/boundary/Exitable";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { ReservedMixin } from "../../lib/reserve";
 import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
 import { MixinApi } from "../../api/mixin";
@@ -105,9 +104,13 @@ export const UNRESTRICTED = "unrestricted";
 // room somebody FURNISHES needs and a bare cell does not — a record of
 // its own (`Persistable`), a warren to belong to (`WarrenMember`), and
 // the ability to author a finite `air` budget (`Reserved`).
+// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
+// `Location`'s own base stack (the ground build), because the mixin's
+// default `postRegister` is a non-chaining no-op — a second composition
+// above the base would SWALLOW `Location.postRegister`, and with it the
+// room's floor.
 const FurnishableRoomBase = PersistableMixin(
   WarrenMemberMixin(
-    PostRegistrationMixin(
       ExitableMixin(
         // ⭐⭐ `PerceptibleMixin` beside `Visible` — a furnished room is
         // addressable by keyword, and **all ten shipped rows already say
@@ -124,7 +127,6 @@ const FurnishableRoomBase = PersistableMixin(
           VisibleMixin(PerceptibleMixin(ReservedMixin(PopulatesMixin(Location)))),
         ),
       ),
-    ),
   ),
 );
 

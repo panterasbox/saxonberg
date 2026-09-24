@@ -129,6 +129,8 @@ import type { Wearable } from '../lib/slot/Wearable';
 import type { Wardrobe } from '../lib/slot/Wardrobe';
 import type { Wieldable } from '../lib/slot/Wieldable';
 import type { Postured } from '../lib/slot/Postured';
+import type { Floor } from '../lib/ground/Floor';
+import type { GroundSource } from '../lib/ground/GroundSource';
 import type { Posed } from '../lib/character/Posed';
 import type { Mountable } from '../lib/slot/Mountable';
 import type { Drivable } from '../lib/slot/Drivable';
@@ -1476,6 +1478,20 @@ export class MixinApi {
 
   public static isPostured(obj: Stuff): obj is Stuff & Postured {
     return this.hasMixin(obj, Mixins.Postured);
+  }
+
+  /**
+   * The ground you stand on. ⚠ Used by the three floor resolvers to
+   * **select** a floor among a room's fixtures — that is selection within
+   * a set, never a narrowing of who may compose the mixin.
+   */
+  public static isFloor(obj: Stuff): obj is Stuff & Floor {
+    return this.hasMixin(obj, Mixins.Floor);
+  }
+
+  /** Can this Idea say what the ground is made of at a spot and depth? */
+  public static isGroundSource(obj: Stuff): obj is Stuff & GroundSource {
+    return this.hasMixin(obj, Mixins.GroundSource);
   }
 
   public static isPosed(obj: Stuff): obj is Stuff & Posed {

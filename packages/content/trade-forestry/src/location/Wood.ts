@@ -20,8 +20,15 @@
  * - **`SoilMixin(ReservedMixin(…))`** — the ground half, named first as
  *   an intermediate (the Field/GardenBed rule: inference through nested
  *   generic mixin factories collapses to `never`). The derived half of
- *   soil only: the seeded `GroundCharacter` is farming's, and a pack may
- *   not import another pack's `src/`. A Wood's reserves are installed
+ *   soil only. ⚠ The note that used to sit here — *"the seeded
+ *   `GroundCharacter` is farming's, and a pack may not import another
+ *   pack's `src/`"* — is out of date in BOTH halves: the character is
+ *   `/system/ground`'s now (dirt is there whether or not anybody farms
+ *   it), and a pack may import another pack's `src/` given a declared
+ *   dependency. So a Wood reading its own seeded ground is available
+ *   whenever forestry wants it; what it gets today for free is the
+ *   FLOOR's read (`look ground` in a wood answers through rung 3), which
+ *   is what the ground build's AC 14 asks for. A Wood's reserves are installed
  *   from its area at registration (idempotently — a restored Wood keeps
  *   its reserves; *a reserve is state*), rain-fed and generous: the LIMIT
  *   is the increment, not husbandry.

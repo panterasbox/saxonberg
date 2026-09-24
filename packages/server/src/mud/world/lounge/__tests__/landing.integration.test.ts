@@ -49,6 +49,33 @@ describe('lounge landing integration', () => {
     StuffApi.clearAll();
   });
 
+  it('⭐⭐ the landing room has a floor a new character can sit on', async () => {
+    // The defect that opened the ground cycle, at the exact spot it was
+    // driven: a brand-new character lands in a warren-MINTED Lounge room
+    // (`LoungeWarren.createMember` → `StuffApi.clone`), and `sit` / `lie` /
+    // `kneel` all answered `empty-result[target]`. The room is minted, not
+    // authored, so it could never have been fixed by editing a row —
+    // `Location.ensureFloor()` at `postRegister` is what reaches it.
+    const avatar = await land();
+    const room = (avatar as unknown as { getContainer(): Stuff & Container })
+      .getContainer();
+    expect(room).toBeTruthy();
+
+    const floor = (room as unknown as { getFloor(): Stuff | null }).getFloor();
+    expect(floor, 'the landing room has no floor').not.toBeNull();
+
+    // …and it is a thing `sit` can bind and occupy: it answers to the word
+    // the view defaults to, and its slot takes all four postures.
+    const f = floor as unknown as {
+      getKeywords(): string[];
+      getAcceptedPostures(slot: string): readonly string[];
+    };
+    expect(f.getKeywords()).toContain('ground');
+    expect(f.getAcceptedPostures('ground:1')).toEqual(
+      expect.arrayContaining(['sit', 'lie', 'kneel', 'stand'])
+    );
+  });
+
   it('a fresh avatar self-places into the lazily-created host (AC 1 live)', async () => {
     const avatar = await land();
     const warren = await StuffApi.singleton<LoungeWarren>(

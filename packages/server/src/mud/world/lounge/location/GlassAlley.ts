@@ -22,7 +22,6 @@ import Location from '../../../lib/stuff/Location';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
-import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
 import { PopulatesMixin } from '../../../lib/stuff/Populates';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { MixinApi } from '../../../api/mixin';
@@ -30,11 +29,14 @@ import { ConditionApi } from '../../../api/condition';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { FieldMeta } from '../../../lib/mixin';
 
+// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
+// `Location`'s own base stack (the ground build), because the mixin's
+// default `postRegister` is a non-chaining no-op — a second composition
+// above the base would SWALLOW `Location.postRegister`, and with it the
+// room's floor.
 const GlassAlleyBase = SingletonMixin(
-  PostRegistrationMixin(
-    PopulatesMixin(
-      ExitableMixin(DetailedMixin(VisibleMixin(Location)))
-    )
+  PopulatesMixin(
+    ExitableMixin(DetailedMixin(VisibleMixin(Location)))
   )
 );
 
@@ -59,7 +61,8 @@ export default class GlassAlley extends GlassAlleyBase {
     'body.leg.right.foot',
   ];
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async postRegister(context?: unknown): Promise<void> {
+    await super.postRegister(context);
     this.verifyOutboundExits();
   }
 

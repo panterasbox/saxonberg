@@ -24,14 +24,17 @@ import { DetailedMixin } from '../../../lib/description/Detailed';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import { PopulatesMixin } from '../../../lib/stuff/Populates';
-import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
 import type { FieldMeta } from '../../../lib/mixin';
 
-const CircleFloorBase = PostRegistrationMixin(
+// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
+// `Location`'s own base stack (the ground build), because the mixin's
+// default `postRegister` is a non-chaining no-op — a second composition
+// above the base would SWALLOW `Location.postRegister`, and with it the
+// room's floor.
+const CircleFloorBase =
   PopulatesMixin(
     DetailedMixin(PerceptibleMixin(ExitableMixin(VisibleMixin(Location))))
-  )
-);
+  );
 
 export default class CircleFloor extends CircleFloorBase {
   static fieldMeta: FieldMeta = {};

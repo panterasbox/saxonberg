@@ -25,8 +25,8 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import Deposit from '../Deposit';
-import type { Point } from '../Deposit';
+import Deposit from '../idea/Deposit';
+import type { Point } from '../idea/Deposit';
 
 const SLATE = '/stuff/idea/material/rock/slate';
 const GRANITE = '/stuff/idea/material/rock/granite';

@@ -39,6 +39,13 @@ data:
     x: 0
     y: 0
     z: 0
+  # ⭐ The paving, as a floor ROW rather than a `floor:` one-liner, because
+  # the worn diagonal track this room's prose describes has to be a DETAIL
+  # somebody can look at. `look underfoot` / `look paving` / `look track` all
+  # bind it; `sit` sits on it.
+  adornments:
+    - template: /world/terminus/university-avenue/thing/crossing-paving
+      slot: floor
   exits:
     # SOUTH across the avenue to the Terminus arrival gate (cross-branch, both
     # sides explicit). WEST one cell to the Goodkin bank (temp reachable; the

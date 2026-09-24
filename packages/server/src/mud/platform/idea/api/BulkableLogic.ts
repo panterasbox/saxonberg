@@ -419,15 +419,16 @@ export class BulkableLogic extends ApiLogic {
   /** See {@link BulkableApi.floorPuddleSummary}. */
   @CallSecurity(BulkableApiCallers)
   public floorPuddleSummary(location: Stuff): string | null {
+    // One read for the room's floor (the ground build); the surface-slot
+    // check stays, because a dry floor is still a floor.
     if (!MixinApi.isAdornable(location)) return null;
-    for (const fixture of location.getFixtures()) {
-      if (!MixinApi.isBulkable(fixture) || !fixture.hasSurfaceBulk()) continue;
-      const slot = fixture.getBulk('surface');
-      if (slot.isEmpty()) continue;
-      const appearance = slot.getMaterial()?.getAppearance();
-      if (appearance) return `A puddle of ${appearance} pools on the floor.`;
-    }
-    return null;
+    const floor = location.getFloor();
+    if (!floor) return null;
+    if (!floor.hasSurfaceBulk()) return null;
+    const slot = floor.getBulk('surface');
+    if (slot.isEmpty()) return null;
+    const appearance = slot.getMaterial()?.getAppearance();
+    return appearance ? `A puddle of ${appearance} pools on the floor.` : null;
   }
 
   /** See {@link BulkableApi.floorSurfaceNear}. */
@@ -441,10 +442,9 @@ export class BulkableLogic extends ApiLogic {
       : null;
     while (cur !== null) {
       if (MixinApi.isAdornable(cur)) {
-        for (const fixture of cur.getFixtures()) {
-          if (MixinApi.isBulkable(fixture) && fixture.hasSurfaceBulk()) {
-            return fixture.getBulk('surface');
-          }
+        const floor = cur.getFloor();
+        if (floor && floor.hasSurfaceBulk()) {
+          return floor.getBulk('surface');
         }
       }
       cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;

@@ -25,7 +25,6 @@ import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
-import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { PopulatesMixin } from '../stuff/Populates';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
@@ -51,15 +50,19 @@ import type { FieldMeta } from '../mixin';
 // otherwise silently produce two of them. It is wrong wherever a row
 // describes a KIND of place minted many times — nine reaches of one
 // lane, a landing per floor — which had nowhere to live before.
-const CartesianLocationBase = PostRegistrationMixin(
+// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
+// `Location`'s own base stack (the ground build), because the mixin's
+// default `postRegister` is a non-chaining no-op — a second composition
+// above the base would SWALLOW `Location.postRegister`, and with it the
+// room's floor.
+const CartesianLocationBase =
   PopulatesMixin(
     DetailedMixin(
       PerceptibleMixin(
         ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
       )
     )
-  )
-);
+  );
 
 export default class CartesianLocation extends CartesianLocationBase {
   static fieldMeta: FieldMeta = {
@@ -127,7 +130,11 @@ export default class CartesianLocation extends CartesianLocationBase {
    * (or the next traversal) will rerun the check. See
    * `ExitableMixin.verifyOutboundExits`.
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async postRegister(context?: unknown): Promise<void> {
+    // ⚠ Chain FIRST: `Location.postRegister` is what gives the room its
+    // floor, and the mixin's default is a non-chaining no-op — so an
+    // override that forgets this line leaves the room standable by nobody.
+    await super.postRegister(context);
     this.verifyOutboundExits();
   }
 

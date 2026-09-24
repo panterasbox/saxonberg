@@ -31,7 +31,7 @@ import MeasureStrikeController from '../MeasureStrikeController';
 import MeasureDipController from '../MeasureDipController';
 import AnalyzeGroundController from '../AnalyzeGroundController';
 import SurveyInstrument from '../../../../thing/instrument/SurveyInstrument';
-import Deposit from '../../../Deposit';
+import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import MineRoom from '../../../../location/MineRoom';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';

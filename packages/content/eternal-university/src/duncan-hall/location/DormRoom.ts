@@ -32,18 +32,20 @@ import { WarrenMemberMixin, type WarrenMember } from '@saxonberg/server/mud/lib/
 import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
+// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
+// `Location`'s own base stack (the ground build), because the mixin's
+// default `postRegister` is a non-chaining no-op — a second composition
+// above the base would SWALLOW `Location.postRegister`, and with it the
+// room's floor.
 const DormRoomBase = PersistableMixin(
   WarrenMemberMixin(
-    PostRegistrationMixin(
-      ExitableMixin(DetailedMixin(VisibleMixin(PopulatesMixin(Location)))),
-    ),
+    ExitableMixin(DetailedMixin(VisibleMixin(PopulatesMixin(Location)))),
   ),
 );
 

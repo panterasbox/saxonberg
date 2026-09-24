@@ -46,17 +46,24 @@ describe('the campus farm', () => {
     for (const f of files) expect(f.endsWith('.yaml')).toBe(true);
   });
 
-  it('⭐ and the classes it names belong to the TRADES, not to this pack', () => {
+  it('⭐ and the classes it names belong to the TRADES and the SYSTEMS, not to this pack', () => {
     const classes = new Set<string>();
     for (const f of FARM_DIRS.flatMap(walk)) {
       const doc = parse(readFileSync(f, 'utf8')) as { class?: string };
       if (doc?.class) classes.add(doc.class);
     }
-    // ⭐ The field is farming's class; everything else is the platform's.
+    // ⭐ The field is farming's class; the ground under it is the GROUND
+    // system's (`/system/ground/idea/GroundCharacter`, moved out of the
+    // farming trade by the ground build — dirt is there whether or not
+    // anybody is farming it); everything else is the platform's.
     expect(classes).toContain('/trade/farming/location/Field');
+    expect(classes).toContain('/system/ground/idea/GroundCharacter');
     for (const cls of classes) {
       expect(
-        cls.startsWith('/platform/') || cls.startsWith('/trade/'),
+        cls.startsWith('/platform/') ||
+          cls.startsWith('/trade/') ||
+          cls.startsWith('/system/'),
+        `unexpected class in the campus farm: ${cls}`,
       ).toBe(true);
     }
   });
@@ -129,7 +136,7 @@ describe('the college ground', () => {
     expect(cited).toBe('/world/terminus/eternal/campus-field/idea/ground');
 
     const row = read(`${PACK}content/world/terminus/eternal/campus-field/idea/ground.yaml`);
-    expect(row.class).toBe('/trade/farming/idea/GroundCharacter');
+    expect(row.class).toBe('/system/ground/idea/GroundCharacter');
   });
 
   it('⭐⭐ and it teaches infield/outfield — a pin near, a lean far', () => {

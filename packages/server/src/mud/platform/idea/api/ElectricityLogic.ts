@@ -183,20 +183,24 @@ function contentsOf(room: Stuff): Stuff[] {
   return room.getContents() as unknown as Stuff[];
 }
 
-/** The room's ground node — a fixture (or content) carrying a surface bulk
- * slot (the puddle-bearing `Floor`). */
+/**
+ * The room's ground node — its `Floor`, if it has one carrying a surface
+ * bulk slot (the puddle the conduction walk reads).
+ *
+ * ⭐ One question, one read (`Adornable.getFloor()`), since the ground
+ * build. This used to scan fixtures **then contents** for *any* Bulkable
+ * with a surface slot — which made every open vessel standing on the floor
+ * a candidate for being the floor, and (verified) matched no content row
+ * anyway, because nothing in `packages/content` outside the six Floor rows
+ * declares `surfaceBulk`. The `hasSurfaceBulk` check stays: a dry posture
+ * floor is a floor, but a puddle needs the slot.
+ */
 function findFloor(room: Stuff): Stuff | null {
-  if (MixinApi.isAdornable(room)) {
-    for (const fx of room.getFixtures()) {
-      if (MixinApi.isBulkable(fx) && fx.hasSurfaceBulk()) {
-        return fx as unknown as Stuff;
-      }
-    }
-  }
-  for (const c of contentsOf(room)) {
-    if (MixinApi.isBulkable(c) && c.hasSurfaceBulk()) return c;
-  }
-  return null;
+  if (!MixinApi.isAdornable(room)) return null;
+  const floor = room.getFloor();
+  if (!floor) return null;
+  if (!floor.hasSurfaceBulk()) return null;
+  return floor;
 }
 
 /** The floor's conductive surface pool material, or `null` (dry / too fresh /

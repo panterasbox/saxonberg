@@ -1,0 +1,11 @@
+# BiomeCatalogue — the singleton whose postRegister stands the authored
+# biome roster up as live singletons (the MaterialCatalogue shape; eager
+# via this pack's boot list, not an AppBootstrap sequencer line).
+#
+# ⚠ `Atmospheric.getBiome()` resolves a path through the SYNC registry, so
+# a room citing a biome nobody stood up answers null — and every
+# consequence of that room's biome is then inert. See the class header:
+# the root biome had already needed a hand-written boot line for exactly
+# this reason, and the other N were still cold.
+class: /platform/idea/BiomeCatalogue
+data: {}

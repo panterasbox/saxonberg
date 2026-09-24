@@ -537,6 +537,13 @@ the now-edgeless combatants. `fight rush <direction>` is the bum's rush —
 a control winner throws a `grappled` foe out through an exit (leaves the
 session, relocated teleport-style via `ContainmentApi.move`, lands
 `Postures.Lie`); a general control-win outcome, not a Dave feature.
+⚠ **Corrected 2026-09-23:** it sets the posture with `setPosture`, **not**
+`transferPosture` — so the field reads *lie* while the body occupies no
+posture-bearing slot. It is lying on nothing, which passes only because most
+rooms have no floor to lie on. When the ground build gives every Location a
+floor, this becomes a one-line honesty fix (`transferPosture`) and the first
+place a floor's material matters in a fight →
+[ground.md](./ground.md).
 
 **Reactive dispatch (X)** — the session consults a defender's reactive
 affordances at `parried` / `whiff` / `grab`. "Reactive" is a net-new

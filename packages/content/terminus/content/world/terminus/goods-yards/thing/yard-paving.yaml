@@ -1,0 +1,25 @@
+# The goods yards' cobbles — rung 1, for the same reason the crossing's are:
+# the ground here has a thing on it you can look into.
+#
+# ⭐ The `gutter` detail MOVED here from `yard.yaml` (ground build). It was a
+# detail of the ROOM, which made *"a stone channel down the middle"* a
+# property of the space rather than of the ground it is cut into. A gutter is
+# a feature of paving. `look gutter` keeps working unchanged — a room's
+# fixtures are in the `reachable` scope, so the floor and its details bind
+# exactly as they did when the room owned them.
+class: /platform/thing/Floor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: worn yard cobbles
+  keywords: [cobbles, cobble, paving, floor, ground, stone, setts]
+  register: definite
+  longDescription: |
+    Granite setts laid in rough courses, dished and polished where the barrows run and still sharp at the edges nobody crosses, with a cut stone channel down the middle of them.
+  _materialPath: /stuff/idea/material/rock/granite
+  worked: true
+  onGrade: true
+  details:
+    gutter:
+      keywords: [gutter, drain, channel, water]
+      description: |
+        A stone channel down the middle carrying whatever the six industries put into it, which today is mostly water and something that smells like grain. It runs east, towards the river, because everything here does.

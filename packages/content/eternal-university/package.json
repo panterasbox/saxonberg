@@ -12,6 +12,7 @@
   "dependencies": {
     "@saxonberg/content-arcana": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-ground": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",

@@ -14,10 +14,19 @@
  * attached, so attempting to move it through containment rejects
  * with `ContainmentError`).
  *
- * v1 ships no class-level default for "every Location has a floor"
- * — see § 7.5 of the embodiment requirements. The Floor class exists
- * because templates need a class to clone from; the choice of which
- * Locations include a floor adornment is per-template authoring.
+ * ⭐⭐ **Every Location has one, since the ground build.** The v1 note
+ * that used to sit here — *"no class-level default; the choice of which
+ * Locations include a floor adornment is per-template authoring"* — is
+ * retired: 27 of 180 Locations had a floor, `sit` / `lie` / `kneel`
+ * declined in the room a new player opens their eyes in, and *"per-template
+ * authoring"* is not a choice anybody was making. `Location.ensureFloor()`
+ * now mints one at `postRegister` unless the row says `noDefaultFloor`.
+ *
+ * The capability is `FloorMixin` (`lib/ground/Floor.ts`) — the keyword
+ * union, the canonical `ground:1` slot, the five-rung material ladder and
+ * the derived kind. This class is the instanceable twin (the shared-stem
+ * pattern: `lib/ground/Floor.ts` is substrate, `platform/thing/Floor.ts`
+ * is what a row's `class:` names).
  *
  * Default-floor row at the generic-objects pack's `content/stuff/thing/surface/default-floor.yaml`.
  *
@@ -37,10 +46,16 @@ import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { PosturedMixin } from '../../lib/slot/Postured';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
+import { FloorMixin } from '../../lib/ground/Floor';
 
-const FloorBase = BulkableMixin(
-  PosturedMixin(
-    SlottedMixin(AdornmentMixin(DetailedMixin(VisibleMixin(Thing)))),
+// FloorMixin is OUTERMOST: its `getMaterial` / `getKeywords` /
+// `getSlotNames` overrides have to see the composed stack's answers
+// through `super` before they add their own.
+const FloorBase = FloorMixin(
+  BulkableMixin(
+    PosturedMixin(
+      SlottedMixin(AdornmentMixin(DetailedMixin(VisibleMixin(Thing)))),
+    )
   )
 );
 

@@ -19,6 +19,19 @@ survey ladder. The plant that grows in it is
 
 ## The split: `SoilMixin` is kernel, `GroundCharacter` is the pack's
 
+> ⭐⭐ **Moved 2026-09-23 (the ground build):** `GroundCharacter` is no
+> longer `trade-farming`'s — it lives in the **`/system/ground`** pack, at
+> `/system/ground/idea/GroundCharacter`, beside `Deposit` (which came out
+> of `trade-mining`) and `StrataMixin`. Nothing about the model changed;
+> what changed is who owns it. It failed the `/system/` test where it was:
+> *a system is true whether or not anyone is participating in it*, and dirt
+> is there with nobody farming it. While it was a trade's, a wood could not
+> read its own ground, a quarry would have had to depend on a mine, and the
+> kernel's `Floor` had nothing to ask. It now composes `GroundSourceMixin`
+> and answers `groundMaterialAt(spot, zM, address)` **within its topsoil
+> depth**, which is how a floor on grade says what it is made of. See
+> [posture.md](./posture.md) for the floor's five-rung ladder.
+
 Cultivation before the farmstead build was `PlantPot` and `GardenBed`: a
 *Thing with a bulk interior of soil in litres*. A field-room is not that
 shape and must not be made that shape, so the soil half was lifted whole

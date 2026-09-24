@@ -34,6 +34,15 @@ args:
     scope: ["$focus", "reachable"]
     updates_focus: extend
     prepositions: [at, in, inside]
+    # ⚠⚠ `greedy` — found by DRIVING this in a browser. `look` already took
+    # `at`, so `look at floor` parsed; `look at the ground` did NOT, because
+    # without `greedy` the article and the noun are two positionals and the
+    # binder answers *"too many arguments"* → shape fall-through → *"That
+    # doesn't match any known command shape: look."* Exactly the defect the
+    # ground build fixed on the four posture verbs, still live on the most
+    # used verb in the game. The MQL desugar drops articles, so the whole
+    # tail resolves as one query.
+    greedy: true
     default: "$focus"
     # Typed ambiguity → disambiguation prompt. The click-affordance
     # path is fine without this: MmlRenderer.commandFor emits

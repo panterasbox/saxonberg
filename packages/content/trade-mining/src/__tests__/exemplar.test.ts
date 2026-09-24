@@ -62,7 +62,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
     expect(files(REJECTION, (f) => f.endsWith('.ts') || f.endsWith('.tsx'))).toEqual([]);
   });
 
-  it('every class the venue names belongs to a trade or the platform', () => {
+  it('every class the venue names belongs to a trade, a system, or the platform', () => {
     const classes = new Set<string>();
     for (const rel of files(REJECTION, (f) => f.endsWith('.yaml'))) {
       const cls = row(rel).class;
@@ -72,6 +72,14 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
     for (const cls of classes) {
       expect(
         cls.startsWith('/platform/') ||
+          // ⭐ A SYSTEM is a legitimate thing for a venue to name, and the
+          // ground build is what made it one: the Ferrow deposit is an
+          // instance of `/system/ground/idea/Deposit`. *A system's classes
+          // are the pack's; its instances are the realm's* — the same split
+          // as `Locality` and `Government`, and the reason this claim is
+          // STRONGER now than it was. Rejection could not have named a
+          // deposit at all without depending on the mining trade before.
+          cls.startsWith('/system/ground/') ||
           cls.startsWith('/trade/mining/') ||
           cls.startsWith('/trade/fuel/') ||
           cls.startsWith('/trade/smelting/') ||
@@ -87,7 +95,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
         // ⚠ Name the offender. This assertion failed on a class move and
         // said only `expected false to be true`, which is a sentence
         // nobody can act on.
-        cls,
+        `unexpected class in the venue: ${cls}`,
       ).toBe(true);
     }
     // ⭐ And it names NONE of its own — there is no `/world/terminus/rejection/...`
@@ -157,7 +165,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
 
   it('⭐ the deposit is the VENUE’s — the trade ships the class and no ore', () => {
     const deposit = row('content/world/terminus/rejection/idea/deposit/ferrow.yaml');
-    expect(deposit.class).toBe('/trade/mining/idea/Deposit');
+    expect(deposit.class).toBe('/system/ground/idea/Deposit');
     // …and there is NO deposit row anywhere in the trade pack.
     const tradeRows = files(PACK, (f) => f.endsWith('.yaml'));
     void tradeRows;
