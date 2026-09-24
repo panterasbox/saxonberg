@@ -2263,3 +2263,99 @@ resolved the catalogue on a dispatch. The stub now intercepts
 other singleton through — a blanket mock would have swallowed the
 resolutions the rungs themselves make, and the whole value of that
 helper is that everything below the lookup is the shipped path.
+
+## ⭐⭐⭐ The LIVE drive — a browser, the real client, five more defects
+
+Run at `localhost:5173` against `AUTH_MODE=test` on a freshly reset
+world, 2026-09-24, after the wire suite was green at 30/30 + 62/62.
+
+⚠⚠ **The wire drive is not the live drive.** Every finding below is
+**prose a player reads**, and that is precisely the class a wire
+assertion cannot see: it matches a substring and is blind to the rest of
+the sentence. The checkpoint covering finding 5 matched `/compass/` —
+and `compass` *is* in there, wrapped in backslashes.
+
+### What it found
+
+1. ⚠⚠ **`readings` said "with your a brass photometer".** A double
+   determiner — `getPresentation()` already carries the article — on
+   **every instrumented channel at once**: eleven lines of it in one
+   listing, and that listing is the progression UI.
+
+   ⭐ And `your` was not merely ungrammatical, it was **false**. Reach is
+   the rule, not carry, and the room it was read in is the case that
+   proves it: the Duncan Hall instruments sit in a case nobody owns.
+
+2. ⚠⚠ **The closed instrument rung printed the capability token**, so
+   `readings light` said *"with photometry: nothing in reach can"* one
+   line above a refusal reading *"It wants a photometer."*
+   `getInstrumentNoun()` is the authored noun, exists for exactly this,
+   and the refusal already used it. They agree word-for-word now.
+
+3. The same double determiner on the **bench** rung (`at the` in front of
+   a phrase that already begins with one).
+
+4. ⚠⚠⚠ **`assay`, typed bare while standing at the bench, answered
+   *"That doesn't match any known command shape: assay."*** The parser,
+   about the word, for a verb the room affords — the exact failure this
+   build's refusal doctrine exists to prevent. `samples` was
+   `required: true` with **no default**, so the bare form could never
+   bind, and the controller's own sentence — *"Assay what? A sample is a
+   piece you took and noted — `sample` first."* — **was unreachable from
+   the moment it was written.**
+
+   It takes `default: "reachable:[mixin.SampledMixin]"` now, which is
+   also the behaviour the help recommends (*"Bring SEVERAL"*, because the
+   furnace costs the same either way): bare `assay` is the whole carried
+   batch, amortized.
+
+5. ⚠⚠ **Five rows across four packs** shipped an unquoted YAML scalar
+   opening with an escaped quote, so the backslash and the quotes reached
+   the player verbatim — *It wants \\"a surveyor's compass or a miner's
+   dial".* `strike` + `dip` (mining), `acidity` + `texture` (farming),
+   `figure` (tailoring).
+
+   ⭐⭐ **So it gets a gate.** `lint:authored-prose`, ceiling 0 — the
+   census over the whole content tree came back clean once the five were
+   fixed, so it starts where it ends. 2386 content files scanned;
+   `lint:family` is **53** now and it self-enrolled with no list to edit.
+
+### What the live drive confirmed working
+
+| step | live result |
+|---|---|
+| `analyze light` | *"Light at Duncan Hall lobby: good working light"* — words, no number |
+| `measure light` (dial in reach) | `57 lux ± 4 lux` — a figure with an honest bracket |
+| `measure light` (none in reach) | *"You have nothing in reach that could read that. It wants a photometer."* |
+| `measure temperature the thermometer` | binds — **kernel binder fix #1**, article and all |
+| `measure temperature` bare | binds and keeps its instrument — **kernel binder fix #2** |
+| `readings` | all **31** channels, every rung, open and closed |
+| `analyze ground` · `measure strike` · `measure dip` | the mining channels dispatch from their pack |
+| `trace address` | the full longest-prefix chain, on a free `system` verb |
+| `analyze grade` at a face | *"ore-bearing, thinly"* |
+| `sample` at a face | *"You take something as a sample, and note where it came from."* |
+| bare `assay` holding a sample | names the **bench**, having bound the sample by default |
+| `ReadingCatalogue` at boot | `31 reading channel(s) live` on a fresh world — D25's collapsed lookup warms at `postRegister` |
+
+### ⚠ What the live drive could NOT reach, and why
+
+**The bench round trip (`sample` → carry → `assay` → `look report`)
+stays wire-proven at 30/30, not browser-proven.** A sample has to come
+from a working face; the Ferrow face is underground in the damps, and a
+character who arrives without a lamp and air **suffocates within a
+minute** — *"Your vision tunnels and everything goes black"* — and a
+shade has no body, no inventory and (correctly) none of the reading
+verbs, which ride `Avatar.commandContributions.self`. The wire drive's
+characters complete the carry because the harness seats them with what
+the walk-in would have given them.
+
+ⓘ **That is an observation for the mining trade, not a defect here:** a
+prospector who walks into Ferrow from the pithead without stopping at
+provisioning dies of the damps, and nothing on the way in says so. The
+canary and the provisioning room both exist; what is missing is the
+prompt at the mouth.
+
+ⓘ Two smaller things seen in passing, both pre-existing and neither
+this build's: everything at an unlit face renders as *"something"*
+(honest darkness, working as designed), and `get ore` in the assay shed
+binds **the ore buyer** — an NPC outscoring the noun.
