@@ -91,6 +91,7 @@ import { CompetenceBand } from '../advancement/CompetenceBand';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import { DISCOVERY } from '../belief/BeliefStore';
 import type { CommandContext } from '../../api/command';
+import { MqlApi } from '../../api/mql';
 import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
@@ -865,6 +866,9 @@ export default abstract class Reading extends ReadingBase {
       if (scope === 'subject' && named) {
         const missing = this.missingRequirement(named);
         if (missing) {
+          // ⭐⭐ Look AGAIN before refusing — see `reResolve`.
+          const better = this.reResolve(actor, raw);
+          if (better) return { ok: true, target: better, param: raw };
           return {
             ok: false,
             line: this.wrongSubjectLine(named, missing),
@@ -884,6 +888,51 @@ export default abstract class Reading extends ReadingBase {
     // verb on a channel that must be given something.
     if (named) return { ok: true, target: this.placeOf(actor), param: raw };
     return { ok: true, target: null, param: raw };
+  }
+
+  /**
+   * ⭐⭐ **The narrowing the flat view cannot do, done by the channel.**
+   *
+   * One `analyze` view serves thirty-one channels, so its `subject` arg
+   * declares `requires: any` — it has no way to know which channel the
+   * next word names. Before the flat verbs each channel carried its own
+   * arg spec and its own `requires:`, and the binder never even offered
+   * a candidate that failed it.
+   *
+   * ⚠⚠ Losing that is not cosmetic, and driving found it: `analyze power
+   * millrace` at Heart's Delight bound **the millsite** — the Location —
+   * because the room authors a `details.weir` whose keywords include
+   * `millrace`, and a detail on the room outscored the stone-lined
+   * channel standing in it. The answer was *"the millsite neither makes
+   * power nor runs on it"*, about a room, while the thing the player
+   * named was three feet away making fifty kilowatts.
+   *
+   * So when the bound subject fails {@link subjectRequires}, the channel
+   * asks the same question again over the same reachable scope and takes
+   * the best-scoring candidate that actually satisfies it. A refusal is
+   * still what happens when there is no such candidate — this looks
+   * harder before giving up, it does not invent a subject.
+   */
+  private reResolve(actor: Stuff, raw: string): Stuff | null {
+    if (raw.trim() === '' || this.subjectRequires.length === 0) return null;
+    const giver = actor as unknown as Parameters<
+      typeof MqlApi.resolveMany
+    >[1]['commandGiver'];
+    if (!giver) return null;
+    let candidates: readonly Stuff[];
+    try {
+      candidates = MqlApi.resolveMany(raw, {
+        commandGiver: giver,
+        scope: 'reachable',
+      }).stuff;
+    } catch {
+      // A raw word MQL cannot parse is an ordinary miss, not an error.
+      return null;
+    }
+    for (const candidate of candidates) {
+      if (this.missingRequirement(candidate) === null) return candidate;
+    }
+    return null;
   }
 
   /** The first declared mixin the subject does not compose, or `null`. */

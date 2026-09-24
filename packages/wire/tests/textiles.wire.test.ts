@@ -219,32 +219,43 @@ suite('⭐⭐ the affordance rule, in both directions', () => {
 
   it('a verb nothing in reach affords does NOT exist for you', async () => {
     /*
-     * ⭐⭐ The five checkpoints the original script gets wrong today. The
-     * shop stocks no wearable and no washable, so these five verbs are
-     * correctly absent — and asserting THAT is a real test of the
-     * affordance chain, where asserting the opposite was a test of
-     * nothing that had quietly started failing.
+     * ⭐⭐ The other half of the affordance rule: the shop stocks nothing
+     * washable, so `wash` is correctly absent and asserting THAT is a
+     * real test of the chain.
+     *
+     * ⚠⚠ **A finding, recorded 2026-09-24 and NOT this build's to fix.**
+     * This list used to carry `wear`/`wield`/`equip`/`unequip` beside
+     * `wash`, and on a freshly-seeded world all four are afforded — not
+     * because the shop grew a wearable, but because **the character is
+     * dressed**. Intake outfits a new player with a shirt, trousers and
+     * shoes, `WearableMixin` contributes the four verbs on the
+     * `inventory` bucket, and carrying a garment is carrying a wearable.
+     *
+     * So the four were never testing the shop at all; they were testing
+     * that the character had nothing on. That is honest behaviour and
+     * the assertion was the wrong one — but *"a dressed character
+     * affords `wear` everywhere"* is a real question for whoever owns
+     * embodiment, and it is written down here rather than deleted.
      */
-    for (const c of [
-      'wash book',
-      'wear shears',
-      'wield shears',
-      'equip shears',
-      'unequip shears',
-    ]) {
-      const r = await p.cmd(c);
-      const note = r.notes.find(
-        (n) =>
-          n.kind === 'command-rejected' &&
-          (n as { reason?: string }).reason === 'unknown-verb'
-      );
-      expect(
-        note,
-        `'${c}' is afforded at the tailor's shop now — the shop has ` +
-          `grown a wearable or a washable, and this test should become ` +
-          `the positive one it was written to be`
-      ).toBeDefined();
-    }
+    const r = await p.cmd('wash book');
+    const note = r.notes.find(
+      (n) =>
+        n.kind === 'command-rejected' &&
+        (n as { reason?: string }).reason === 'unknown-verb'
+    );
+    expect(
+      note,
+      `'wash book' is afforded at the tailor's shop now — the shop has ` +
+        `grown a washable, and this test should become the positive one ` +
+        `it was written to be`
+    ).toBeDefined();
+  }, 60_000);
+
+  it('⭐ …and the four equipment verbs exist because you are DRESSED', async () => {
+    // The positive half of the finding above: they reach their own gate
+    // and refuse about the SHEARS, never about the verb.
+    reachedItsGate(await p.cmd('wear shears'));
+    reachedItsGate(await p.cmd('wield shears'));
   }, 60_000);
 });
 

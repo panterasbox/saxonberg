@@ -79,9 +79,20 @@ suite('the yard outfits you', () => {
     /*
      * A room that authors no light is PITCH BLACK, and the tell is every
      * object reading "something". A farm you cannot see is not a farm.
-     * ⚠ After the spade, because the spade is what AFFORDS `measure`.
+     *
+     * ⚠ It was `measure light` and is `analyze light` now. The spade
+     * used to AFFORD `measure`; since the instrumentation build the verb
+     * rides every character and the INSTRUMENT decides the rung — so
+     * `measure light` in a farmyard with no photometer correctly refuses
+     * and names the photometer. `analyze` is the free rung, which is the
+     * right one to ask with here: the question is whether there is light
+     * to read at all, and a trained eye answers that without a dial.
      */
-    expect(await p.prose('measure light')).toMatch(/: [1-9][0-9]* lux/i);
+    const lit = await p.prose('analyze light');
+    expect(lit).toMatch(/light at/i);
+    expect(lit, 'a farm you cannot see is not a farm').not.toMatch(
+      /pitch dark|barely enough to move by/i
+    );
   }, 60_000);
 
   it('⭐ and the farm knows WHERE it is', async () => {

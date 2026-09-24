@@ -80,7 +80,26 @@ function channelsIn(src: string): string[] {
   const declared = [
     ...src.matchAll(/mmlChannel\(\)[^{]*\{\s*return '([a-z]+)';/g),
   ].map((m) => m[1]!);
-  return [...opts, ...declared];
+  /*
+   * ⚠⚠ The THIRD form, and it is the one the docstring above predicted.
+   * `Reading.bracketed(value, band, seed, channel)` takes the channel as
+   * its trailing POSITIONAL argument, so a scan that knew only the
+   * option-object literal reported `light` as emitted by nobody — while
+   * `measure light` had been printing a bracketed lux figure on that
+   * channel the whole time. Same failure mode as `mmlChannel()`, one
+   * call shape further along.
+   *
+   * The window runs from the open paren to the end of the STATEMENT
+   * rather than to a matching close paren, because the channel is the
+   * last of four arguments and the third is itself a call — a lazy
+   * `\)` stops inside `this.seedFor(...)` and never reaches `'light'`.
+   */
+  const positional = [
+    ...src.matchAll(/\bbracket(?:ed|For)\(([^;]{0,240})/g),
+  ].flatMap((call) =>
+    [...call[1]!.matchAll(/'([a-z]+)'/g)].map((m) => m[1]!)
+  );
+  return [...opts, ...declared, ...positional];
 }
 
 describe('measurement channels — the vocabulary', () => {
