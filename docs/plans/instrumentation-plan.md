@@ -226,18 +226,19 @@ on, with its citation.
   `ContainmentApi.move(lump, room)` → `working.recordWinning` →
   `stampChattel(owner)` → `creditDeed`
   (`packages/content/trade-mining/src/idea/cmd/mining/HewController.ts:129-215`).
-  Faces come from `working.facesOf()` (`trade-mining/src/lib/Working.ts:216,448`
-  — ⚠ line numbers move when `build/ground` lands; `facesOf` itself
-  survives, calling through inherited `Strata` reads;
+  Faces come from `working.facesOf()` (`trade-mining/src/lib/Working.ts`
+  — ✅ post-merge it calls through inherited `Strata` reads,
+  `:226,250,414,485`;
   `Face` `:91`, `getOreRow` `:196`). Each face is a **room**
   (`packages/content/rejection/content/world/terminus/rejection/ferrow/face.yaml`,
   `class: /trade/mining/location/MineRoom`, `oreRow:`).
 - `Deposit.surfaceReadingAt(x, y, errorDeg, seed)` takes the band's error
   as INPUT and returns truth + observation
   (`trade-mining/src/idea/Deposit.ts:413`) — the test shape *"identical
-  truth, different resolution."* ⚠ **This path moves** — `build/ground`
-  relocates `Deposit` to `@saxonberg/content-ground/src/idea/Deposit`;
-  see § *Three branches in flight*.
+  truth, different resolution."* ✅ **Path updated** — `build/ground`
+  merged, so this is now
+  `packages/content/ground/src/idea/Deposit.ts`, imported as
+  `@saxonberg/content-ground/src/idea/Deposit`.
 
 ### The timed, unattended act
 
@@ -318,64 +319,91 @@ on, with its citation.
   `postRegister` and lazily. `SurveyController.ts:34-41,162` reaches a
   catalogue by `StuffApi.findByTemplatePath`.
 
-### ⚠⚠ Three branches in flight — re-grounded 2026-09-23
+### ✅ Re-grounded 2026-09-24 — all three branches have MERGED
 
-Grounding above is against `origin/master` at `73eb91840`. **Three
-sibling builds are unmerged and every one of them moves ground this plan
-stands on.** Re-read this section before W0; if any has merged, merge
-`origin/master` into the branch first and re-check the four facts marked
-⚠ below.
+Grounding above was written against `origin/master` at `73eb91840`. **All
+three siblings landed**, plus three doc-only builds, and this branch was
+caught up (`4b0ad121a`, 101 commits, 474 files). The waiting call in
+risk 0 paid: nothing is owed and nothing had to be worked around.
 
-| branch | state | what it moves under this plan |
-|---|---|---|
-| `design/trades-and-labor` (**MR !280, mergeable**) | drive 14/14, lands first | ⚠ **`lint:controller-rows`, ceiling 0** (D23) · `lint:counters` · `lint:openings` · `MakerMixin` retires · `rejection/thing/assay-counter.yaml` re-classes to `/trade/shopkeeping/thing/ConsignmentShelf` |
-| `design/treatment` (**MR !278, `cannot_be_merged`**) | sweep done, conflicts with master | ⚠ `AssessController` is substantially rewritten (D16) · `wash` absorbs `scrub` · `platform/idea/cmd/perception/` gains no verb |
-| `build/ground` (**no MR yet**, W0–W4 done) | mid-build in build-2 | ⚠⚠ `Deposit` moves packs · `WorkingMixin` composes `StrataMixin` · `SurveyChannelController` / `SoilChannelController` / `AnalyzeSoilController` / `MeasureTextureController` all touched · `Working.ts` rewritten (179 lines) |
+| merged | what it settled for this plan |
+|---|---|
+| `design/trades-and-labor` (!280) | ✅ `lint:controller-rows` is **live and green** — `315 controller ref(s); every one resolves to a row (ceiling 0)`. D23 stands, and the gate now runs against every wave. |
+| `design/treatment` (!278) | ✅ `AssessController` is on master; D16 reads it there, not off a branch. |
+| `build/ground` | ✅ `StrataMixin` exists at `packages/content/ground/src/lib/Strata.ts`; `Deposit` at `packages/content/ground/src/idea/Deposit.ts`. D24's preferred host is available on day one — **`sampleFace` goes straight to `StrataMixin` and no move is owed.** |
+| `design/retire-conferral` | ⭐ a doctrine this build was independently deriving, now global — see D3 below. |
+| `design/document-store-tiering`, `design/clinical-medicine-slate`, `design/money-*` | slates only; no code surface this build touches. |
 
-⭐ **`build/ground` is the collision that matters — and the conflict
-surface is SMALLER than the file overlap suggests.** Stated exactly,
-because the first pass overstated it:
+**Re-verified after the merge — every load-bearing grounding fact still
+holds:**
 
-- `SurveyChannelController` / `SoilChannelController` /
-  `AnalyzeSoilController` / `MeasureTextureController` — ground changes
-  **one or two import lines** in each; W1 **deletes and replaces** them
-  with `Reading` classes. A delete/modify conflict, resolved by taking
-  the delete. Trivial.
-- `Deposit.ts` — this build **never edits it**, only calls
-  `surfaceReadingAt`. Ground moves it packs. That is an import-path fix
-  in the new `SurveyReading`, one line.
-- `Working.ts` — ⚠ **W1 does not touch it.** The only edit this plan
-  makes to `Working.ts` anywhere is **W5's one added `sampleFace`
-  method**, and D24 says that method's right home is `StrataMixin`
-  instead — in which case the file is not touched at all and the
-  conflict is **zero**.
+- `lint:instrument-args`: `311 controller(s) scanned; 0 bespoke
+  instrument resolution(s) (ceiling 0)` — still passing at zero, and
+  **D17's census of nine is intact** (the boolean-presence hunt survives
+  in all eight `Measure*Controller`s, `MeasureAltitude` twice).
+- `assay-kit.yaml` still declares `capabilities: ["assay-scale"]`;
+  `mining.yaml:37` still consumes it; the assay shed still props the kit
+  and the counter and casts the buyer (D22 unchanged).
+- `coop-business.yaml`'s `operatingLocations` are still the adit and the
+  timbered drift — **W7's finding stands and the shed must be added.**
 
-**The four facts it changes:**
+**Paths that moved, and now resolve:**
 
-1. `Deposit` moves from `trade-mining/src/idea/Deposit.ts` to
-   `packages/content/ground/src/idea/Deposit.ts`, imported as
-   `@saxonberg/content-ground/src/idea/Deposit`. Every citation of
-   `Deposit.surfaceReadingAt` in this plan carries the **old** path.
-2. `WorkingMixin` composes `StrataMixin`
-   (`packages/content/ground/src/lib/Strata.ts`, `/system/ground`),
-   which owns the five position reads. Ground's own statement of the
-   split is *“reads go to the GROUND, cutting belongs to the trade that
-   cuts”* — which decides where `sampleFace` goes (D24).
-3. ⚠ **`StrataMixin` already exports `sampleHere(): Promise<GroundSample
-   | null>` — a DATA READING**, one dot from this build's `sample` verb,
-   which mints **matter**. Neither may be renamed for the other's
-   convenience; the plan states the difference wherever both appear
-   (D24), because a reader who conflates them will wire the verb to the
-   read.
-4. `facesOf()` survives on `Working` but now calls through inherited
-   `Strata` reads; the plan's citation
-   (`trade-mining/src/lib/Working.ts:216,448`) is a **line number that
-   will move**, not a fact that changes.
+1. `Deposit.surfaceReadingAt` — was `trade-mining/src/idea/Deposit.ts:413`,
+   now `packages/content/ground/src/idea/Deposit.ts`, imported as
+   `@saxonberg/content-ground/src/idea/Deposit`. This build only *calls*
+   it.
+2. `WorkingMixin` composes `StrataMixin`; `facesOf()` survives, calling
+   through inherited `Strata` reads (`Working.ts:226,250,414,485`).
+3. ⚠ **`StrataMixin.sampleHere(): Promise<GroundSample | null>` is a
+   DATA READING** (`Strata.ts:75,150`), one dot from this build's
+   `sample` verb, which mints **matter**. Neither renames; D24 states the
+   difference at every site that touches both.
 
-⭐ **One fact in flight is a gift, not a hazard** — see D22: the
-`assay-scale` capability, the `assay-kit` instrument and the mining
-archetype's consumption of it are all on **master today**, and were
-missed by the first grounding pass.
+### ⚠⚠ The article defect — `greedy: true`, and a drive step that cannot fail
+
+**Found by ground's W7 browser walk, and it lands squarely on D1.**
+
+    look at floor       → ok
+    look at the ground  → "That doesn't match any known command shape: look."
+
+`look` already declared `prepositions: [at, in, inside]`, so `at` was
+consumed and then `the` + `ground` bound as **two positionals** — *“too
+many arguments”* → chain fall-through → unknown shape. The fix is
+`greedy: true` on the object arg (the MQL desugar drops articles, so the
+whole tail resolves as one query); it was applied to `look`, `search` and
+the four posture verbs, and **45 shipped views already use the idiom.**
+
+⚠⚠ **This build is the next most exposed thing in the tree.** D1 makes
+`measure` and `analyze` flat-positional, and today `measure.yaml` carries
+**no `greedy` anywhere**. Without it, every one of these dies at the
+binder while the controller is never reached:
+
+    measure temperature the kettle
+    analyze ground the north face
+    sample the ore
+    assay the samples
+
+**So: `greedy: true` on the trailing object arg of every view this build
+authors or rewrites** — `measure`, `analyze`, `readings`, `sample`,
+`assay`, `trace`. W1 step 2 verifies it on the first one before the other
+thirty land.
+
+⚠⚠⚠ **And the drive assertion for it was VACUOUS**, which is the worse
+half. Ground's step 15 asserted `look at the ground` and **passed while
+the command did not parse**, because the harness's `NOT_FOUND` pattern
+knew the *“can't see it”* family and not the *“can't parse it”* one — the
+one refusal it could actually receive was the one it could not recognise.
+**This build's wire drive copies the corrected pattern verbatim**
+(`packages/wire/tests/ground.wire.test.ts:121-122`):
+
+```ts
+const NOT_FOUND =
+  /don't see|can't see|don't understand|nothing (here|like that)|known command shape|too many arguments/i;
+```
+
+A drive checkpoint that cannot fail is worse than no checkpoint, and this
+plan's drive is 39 steps of exactly this shape.
 
 ---
 
@@ -394,6 +422,13 @@ args:
   - name: subject      # optional; scope decides what it means (D2)
     type: object
     required: false
+    greedy: true       # ⚠⚠ REQUIRED — see § The article defect. Without
+                       # it `measure temperature the kettle` binds `the`
+                       # and `kettle` as two positionals, answers "too
+                       # many arguments", falls through the chain and
+                       # dies as an unknown shape. 45 shipped views
+                       # already carry it; `look` shipped WITHOUT it and
+                       # nobody noticed until somebody drove it.
     scope: ["$focus", "reachable"]
     requires: any
   - name: tool         # every tool in reach; the Reading narrows by capability
@@ -707,8 +742,8 @@ seeded misread the way combat's fog does (`AssessController` /
 `CombatApi` assess is the precedent to copy, not re-derive). No trait is
 ever asserted (narration doctrine).
 
-⚠ **`AssessController` is rewritten by MR !278 and the precedent gets
-much closer.** Recovery gives `assess` full fidelity on one's own body,
+✅ **`AssessController` was rewritten by MR !278 (merged 2026-09-24)
+and the precedent gets much closer.** Recovery gives `assess` full fidelity on one's own body,
 **banded and competence-gated on others** (the treater's `medicine`
 competence sharpens detail), and a dressed wound that **hides precise
 severity from all but an expert**. That is this build's central rule —
@@ -725,9 +760,8 @@ in the medical vertical.
 2. **`analyze patient` must not disagree with it.** Where both speak —
    the band vocabulary, what a dressing conceals, what `novice` is
    allowed to get wrong — `analyze patient` matches `assess` or the
-   world contradicts itself in two sentences. If !278 has not merged
-   when this wave runs, read the controller on `origin/design/treatment`
-   rather than master's.
+   world contradicts itself in two sentences. ✅ !278 merged 2026-09-24, so the controller is on
+   **master** — read it there.
 
 ### D17 — The instrument-args gate: widen first, then convert (engineering Q8)
 
@@ -951,7 +985,8 @@ proof.
 
 ### D24 — `sampleFace` goes to the GROUND, and `sample` is not `sampleHere` (build/ground)
 
-Two corrections that only exist because `build/ground` is in flight.
+Two corrections that came out of reviewing `build/ground`, which has
+since merged — so both are actionable on master today.
 
 **Placement.** D20 case 3 puts `sampleFace(actor, raw)` on mining's
 `WorkingMixin`. After ground it belongs on **`StrataMixin`**
@@ -962,12 +997,12 @@ read of where you stand, not an act of the mining trade. Put it there
 and a quarry, a cellar, a well and a cave can be sampled **without
 depending on a mine** — which is the entire reason ground exists.
 
-⚠ **Sequencing.** If ground has not merged when W5 runs, implement
-`sampleFace` on `WorkingMixin` exactly as D20 says and **record in the
-plan that it is owed to `StrataMixin`** — do not reach into another
-build's unmerged pack, and do not stall the wave on it. The duck-typed
-call site (`analyze power` precedent) does not care which host answers,
-so the move is later a one-file lift with no caller change.
+✅ **Sequencing — settled.** Ground merged 2026-09-24, so `StrataMixin`
+is on master (`packages/content/ground/src/lib/Strata.ts`) and
+`sampleFace` goes there **directly**. The earlier fallback (implement on
+`WorkingMixin`, record the debt) is no longer needed and is not to be
+taken; W5 writes the method on `StrataMixin` and the duck-typed call site
+(`analyze power` precedent) reaches it through `Working` unchanged.
 
 **Naming, and it is load-bearing.** `StrataMixin` already exports:
 
@@ -1064,7 +1099,7 @@ Checked at plan time against the current tree.
   `readings`, `act.deed` for `sample`/`assay` narration.
 - **Lint gates this build must satisfy** — the whole family
   (`pnpm -C packages/server lint:family` — **derived; never name a
-  count**, and !280 adds three more). The ones
+  count** — !280 and `build/ground` between them took it to 49). The ones
   it *touches*: `instrument-args` (D17), **`controller-rows` (D23 — the
   one that fails silently)**, `capabilities` (Reading rows are
   consumers; `assay-scale`, `field-identification`, `fitting` and the ten
@@ -1123,7 +1158,12 @@ commit. Order matters — each step keeps the tree green.
 2. **The two controllers + flat views** (D1): `MeasureController`,
    `AnalyzeController` rewritten; `measure.yaml` / `analyze.yaml` flat;
    `Avatar.commandContributions.self` gains `measure.yaml` (D3).
-   ⚠ First thing to verify here: `measure elevation moon` binds
+   ⚠⚠ **`greedy: true` on the trailing object arg** (§ *The article
+   defect*) — without it `measure temperature the kettle` dies at the
+   binder with *“too many arguments”* and the controller is never
+   reached. Verify it on `measure` in this step, before the other thirty
+   channels land on the same shape.
+   ⚠ Second thing to verify here: `measure elevation moon` binds
    `subject.raw === 'moon'` with `stuff === null` (D1's parameter path).
    If the binder instead rejects, add `- name: param, type: string,
    required: false` after `subject` and read that; record which in the
@@ -1351,7 +1391,8 @@ controller class with no row answers `controller-error` forever while
 its tests stay green. Every row in the table below that names a
 controller also needs
 `packages/content/<pack>/content/<root>/idea/cmd/<cat>/<Name>Controller.yaml`.
-`lint:controller-rows` (ceiling 0, arriving with !280) is the backstop —
+`lint:controller-rows` (ceiling 0, **live and green at 315 refs**) is
+the backstop —
 **write the row with the controller, do not rely on the gate to
 remember.**
 
@@ -1420,56 +1461,60 @@ Nothing unmapped.
   left it after a walk-out; that the second bench is rows.
 - **Gates:** `pnpm -C packages/server lint:family` after every wave —
   never a subset, and **never a count**: the roster is derived from
-  `package.json` and !280 adds three (`controller-rows`, `counters`,
-  `openings`). `lint:instrument-args` moves `0 → 9 → 0` (W0, W1);
+  `package.json`, and it is at 49 after the September merges).
+  `lint:instrument-args` moves `0 → 9 → 0` (W0, W1);
   `lint:controller-rows` stays at **0 in every wave** (D23) — it is the
   one gate this build can break in a way no test can see.
 - **Full suite:** once before the MR (W10), once at `/finalize`. Never in
   the background. A green run stays valid until a source file changes.
 - **Wire:** the new file plus the seven affected drives, run at W4 and
-  W10 with `WIRE_PORT` per worktree.
+  W10 with `WIRE_PORT` per worktree. ⚠⚠ **The new file's `NOT_FOUND`
+  pattern is copied verbatim from `ground.wire.test.ts:121-122`** — it
+  must match *“known command shape”* and *“too many arguments”*, or every
+  parse failure this build can cause reads as a pass (§ *The article
+  defect*). Audit the seven existing drives for the same hole while
+  touching them.
 
 ---
 
 ## Risks & opens
 
-⭐⭐ **0. Sequencing — DECIDED: wait for `build/ground`.** It is at
-**W5 of W0–W5** — the census and the drive — so it is one wave from its
-MR, and waiting costs days rather than weeks. Three reasons, in order of
-weight:
+✅ **0. Sequencing — RESOLVED. All three siblings merged 2026-09-24 and
+this branch is caught up** (`4b0ad121a`). The call to wait cost about a
+day and bought three things: `sampleFace` goes to its right host with no
+debt recorded, `lint:controller-rows` is running before the first
+controller is written, and ground's browser walk handed this build the
+`greedy` defect (§ *The article defect*) instead of this build
+rediscovering it at its own drive. **Nothing is owed and nothing was
+worked around.** The section it replaced is kept as § *Re-grounded
+2026-09-24* so the re-verified facts are auditable.
 
-1. **Landing first would disrupt an ACTIVE build.** Ground is being
-   worked in build-2 right now. If instrumentation merges first, ground
-   wakes to find the four perception controllers it just re-imported
-   deleted and replaced by `Reading` classes it has never seen. This
-   build has not started; absorbing an import-path move costs it
-   nothing. ⭐ **The branch that has not begun yields to the branch
-   that is finishing.**
-2. **D24's preferred host only exists after ground lands.** If ground is
-   in, `sampleFace` goes straight onto `StrataMixin` where it belongs
-   and a quarry can be sampled on day one. If not, W5 ships it on
-   `WorkingMixin` and **owes a move** — and an owed move that nothing
-   forces is how this repo grows stubs.
-3. The conflict itself is small (see § *Three branches in flight*), so
-   avoiding it is not the argument. **Not disrupting ground is.**
+0a. ⚠ **New, and the highest-value item on this list: `greedy: true`.**
+See § *The article defect*. Every trailing object arg in every view this
+build authors needs it, and the drive's refusal pattern must be the
+corrected one — a checkpoint that cannot fail is worse than none, and
+this drive is 39 steps of that shape.
 
-⚠ If ground stalls rather than lands, the fallback is written down:
-build against master's shape, implement `sampleFace` on `WorkingMixin`
-per D20, and record every owed move as D24 instructs — do **not** reach
-into another build's unmerged pack.
-
-!280 (trades-and-labor) is mergeable and lands first regardless — merge
-master into this branch as soon as it does, because D23's gate arrives
-with it and the sooner it is running the fewer rowless controllers this
-build can accumulate. !278 (recovery) currently `cannot_be_merged`;
-D16 says to read `origin/design/treatment` directly if it is still open
-when that wave runs.
 
 Things the user should look at before the build runs (the build will
 decide them in this order if unanswered: this plan → design-lenses →
 CLAUDE.md → the nearest shipped pattern):
 
-1. **D3 lifts a doctrine line** (`command-routing.md:536-541`). The reason
+1. ⭐ **D3's doctrine lift is now backed by a NEWER, GLOBAL decision.**
+   `design/retire-conferral` (merged 2026-09-24) retires competence-based
+   verb conferral across the whole tree, in words this build could have
+   written: *“the verb is global and the OUTCOME is graduated. A
+   vanishing verb teaches nothing, and absence cannot carry a reason —
+   the replacement is a refusal that names what lifts it”*
+   (`docs/subsystems/advancement.md § Conferral`). D3 puts `measure` on
+   the Avatar so every player can attempt every rung and the refusal
+   names the route; that is the same rule, arrived at independently from
+   the instrument side. ⚠ The **removal work is advancement-slate's, not
+   this build's** — the one live conferral is `mixology → flourish` and
+   nothing in perception is conferral-gated, so this build inherits the
+   footing and none of the labour. The original wording follows, still
+   true and now much cheaper to defend.
+   **D3 lifts a doctrine line** (`command-routing.md:536-541`). The reason
    is R-D12; the sweep rewrites the box. If the user wants `measure`
    kept off the body, drive step A2 must be reworded to accept *unknown
    command* — the plan does not recommend that.
@@ -1577,12 +1622,14 @@ Read first, in this order.
 - `packages/server/src/mud/platform/thing/ToolItem.ts`,
   `lib/crafting/{Tooled,Durable,Crafted}.ts`, `api/material.ts:157-159`
 - `packages/server/scripts/{check-instrument-args,check-capabilities}.ts`,
-  and — once !280 lands — `packages/server/scripts/check-controller-rows.ts`
-  (D23, the gate that fails silently)
+  `packages/server/scripts/check-controller-rows.ts` (D23, the gate that
+  fails silently)
 - `packages/content/trade-mining/src/thing/Ore.ts` (⭐ `onSplit`
   `:118-136` — the split already carries the grade),
-  `trade-mining/src/lib/Working.ts` (⚠ and, if `build/ground` has landed,
-  `packages/content/ground/src/lib/Strata.ts` + `ground/src/idea/Deposit.ts`),
+  `trade-mining/src/lib/Working.ts`,
+  `packages/content/ground/src/lib/Strata.ts` (⭐ `sampleHere` `:75,150` —
+  the data read `sampleFace` must not be confused with, D24) and
+  `packages/content/ground/src/idea/Deposit.ts` (`surfaceReadingAt`),
   `trade-mining/content/trade/mining/thing/assay-kit.yaml` +
   `trade-mining/content/archetypes/mining.yaml:37` (⭐ the shipped
   `assay-scale` rung, D22),
@@ -1600,7 +1647,9 @@ Read first, in this order.
   and `campus-farm/location/yard.yaml`
 - `packages/content/hearts-delight/content/world/terminus/hearts-delight/agent/farmer.yaml:25-27`
 - `packages/content/platform/content/platform/cmd/author/practice.yaml`
-- `packages/wire/tests/metallurgy.dirty.wire.test.ts` (drive shape),
+- `packages/wire/tests/metallurgy.dirty.wire.test.ts` (drive shape) and
+  ⚠ `packages/wire/tests/ground.wire.test.ts:116-122` (**the corrected
+  `NOT_FOUND` pattern — copy it verbatim**, § *The article defect*),
   `packages/wire/src/harness/session.ts:187-202`
 - `docs/subsystems/{command-routing,advancement,crafting,spoilage,employment,measurement,uncertainty}.md`
 
