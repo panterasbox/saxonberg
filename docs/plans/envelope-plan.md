@@ -1500,6 +1500,47 @@ acceptance 13 and 16 (a second town = rows: prove it by authoring one
 street + one interior in `world-seed`'s Narnia with no code and no
 `ambientSource` — the sky is derived).
 **Commit.** `build(envelope W6): every room authored with a source; hours that bite`
+→ **DONE.** `lint:light-sources` reports **0/0 undeclared** — the census
+opened at fifty and is paid in full. 54 gates; 343 near-tests; the
+terminus, hearthworks, generic-objects, trade-cooking and
+trade-distilling packs green.
+
+**The fifty, by what each turned out to be:**
+- **8 were OUTDOORS and the realm did not know.** Rejection's whole
+  surface authored 8000 lumens and *no biome at all*, so it got no
+  weather either. Plus the farm yard and the Duncan Hall steps. A
+  `_biomePath` line each, the constant deleted, and they follow the sun.
+- **19 are lit by SPILL** — a doorway standing open onto a yard, a
+  street, a square. They now author **nothing**: the light walk carries
+  daylight one hop at full strength, so they are bright by day and dark
+  at night for free. ⭐ A unit test was added for the mechanism itself,
+  because nineteen rows now depend on it.
+- **16 are lit through a NAMED OPENING** — a window, a fanlight, roof
+  lights, and the gaps between a woodshed's boards. Each names a detail
+  a player can walk up to and look at, and each is a line in
+  `SKYLIT_INTERIORS` with its reason.
+- **5 are dark on purpose** — two interior corridors, a back bedroom
+  with no window, a cellar, a cold store. ⭐ The Duncan Hall corridor
+  authored **nine lumens**, which was a room already admitting it had no
+  light.
+- **1 is an inherent glow** — the holodeck floor, which is itself the
+  light.
+- **1 was a DEAD FIELD** — the transport coach authored forty lumens and
+  is a `Vessel`, which does not compose `AmbientLit` at all.
+
+**S8 — hours that bite.** 22 businesses moved off `[0, 24]` onto real
+hours by trade: a baker at `[4, 14]`, a farm at `[5, 19]`, works floors
+at `[6, 18]`, a tailor at `[8, 18]`. ⭐ **The gazette keeps its `[0,
+24]`, and now says why**: a press runs to a *deadline* rather than an
+opening time, and an editor off shift when the news arrives is an editor
+who misses it. One house awake in a realm that otherwise shuts.
+
+⚠ **The plan's boot-level census test was not written.** It would clone
+every Location row and read `signalAt` at noon — which needs a full
+content boot, and that is what the wire tier already is. The static
+census is the lint's; the live one is the drive's (W7). What was added
+instead is the unit test for the **spill** mechanism, which is the thing
+nineteen rows now rest on and which no static check can see.
 
 ### W7 — The drive, and the docs
 
