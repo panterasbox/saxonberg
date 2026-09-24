@@ -23,6 +23,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Vitals } from '@saxonberg/server/mud/lib/vitals/Vitals';
+import { HARM_DEFAULTS } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { Difficulty, Outcome } from '@saxonberg/server/mud/lib/advancement/ActSignature';
 
@@ -74,6 +75,14 @@ export default class SetController extends CommandController<SetModel> {
         context,
         `${who} no broken bone to set.`,
         'nothing-to-set',
+      );
+    }
+    // ⭐ A compound fracture is past a splint (D7) — it wants surgery.
+    if (fracture.severity >= HARM_DEFAULTS.COMPOUND_FRACTURE_SEVERITY) {
+      return this.fail(
+        context,
+        'That break is too bad for a splint. It wants surgery.',
+        'compound',
       );
     }
 

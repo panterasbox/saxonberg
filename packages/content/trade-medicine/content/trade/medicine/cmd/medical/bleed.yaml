@@ -1,0 +1,32 @@
+verbs: [bleed, venesect]
+controller: /trade/medicine/idea/cmd/medical/BleedController
+description: "Draw a unit of blood into a vessel (needs a syringe)"
+help: |
+  `bleed <donor> into <bag>` — with a syringe — draws a unit of blood into
+  a vessel. With no donor you draw your own (the autarkist banks their own
+  blood before a hunt). It costs volume you must replenish and draws on a
+  reserve that comes back slowly, so you cannot give daily; a wan donor is
+  refused. The unit keeps until it spoils; `transfuse` puts it back.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: donor
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  - name: vessel
+    type: object
+    required: true
+    prepositions: [into, in]
+    scope: ["inventory", "reachable"]
+    requires: [BulkableMixin]
+  - name: with
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.phlebotomy]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

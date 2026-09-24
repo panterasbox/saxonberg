@@ -1,0 +1,14 @@
+# A blood bag — an empty bulk holder for a drawn unit (blood build D4).
+# `bleed` fills it; `transfuse` empties it. The type/label/donor ride the
+# slot's payload; the shelf life rides the holder's Thermal read.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: empty blood bag
+  keywords: [bag, blood, empty, pouch]
+  register: indefinite
+  longDescription: |
+    A flat, sealed pouch of waxed cloth with a stoppered spout, for holding
+    a unit of blood.
+  interiorBulk: true
+  interiorCapacity: 0.5

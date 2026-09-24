@@ -1,0 +1,14 @@
+# A prescription pad — the doctor's instrument behind prescribe (D9).
+class: /trade/medicine/thing/PrescriptionPad
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: prescription pad
+  keywords: [pad, prescription, block, paper]
+  register: indefinite
+  longDescription: |
+    A block of ruled paper slips, each headed with a caduceus, for writing
+    what a patient may be given.
+  capabilities:
+    - { kind: prescribing }
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 0.1

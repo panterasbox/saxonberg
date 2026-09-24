@@ -1,0 +1,26 @@
+verbs: [suture]
+controller: /trade/medicine/idea/cmd/medical/SutureController
+description: "Close a laceration with stitches (needs a suture kit)"
+help: |
+  `suture <someone>` — with a suture kit — closes a laceration too big for
+  a bandage, and it knits faster and cleaner. Stitches must come OUT once
+  the wound has knitted (`unstitch`): too early re-opens it, too long and
+  it festers. A competent hand writes the return date to the patient's
+  calendar; an unskilled field-patch leaves you guessing.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  - name: with
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.suture]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

@@ -1105,7 +1105,30 @@ MR (W7), and again at `/finalize`.
 
 ### Stage B — packs
 
-#### W5 — the acts and the instruments (D5, D7 verb, D8 verb, D9 verb, D10 verb)
+#### W5 — the acts and the instruments — ✅ DONE (see commit)
+
+> Done note: six new verbs + instruments landed. `bleed`/`transfuse`/`test`
+> (Syringe · phlebotomy), `suture` (SutureKit), `prescribe` (PrescriptionPad),
+> `steep` (Simple's affordance); `operate` rewritten over the catalogue +
+> `OperationEngagement` (durative, blood-costing, anaesthesia-gated); the 5
+> Operation rows; the vessels (blood-bag, saline-bag) + the prescription
+> slip. SetController refuses a compound fracture.
+> - **The transfusion judgement** (D5): a competent giver who can SEE a
+>   labelled mismatch on a typed patient refuses — competence buys
+>   judgement, not a better transfusion.
+> - **`operate` picks the op** (named `for`, else most urgent), gates on
+>   posture/competence/kit-capability/anaesthesia, debits half the blood at
+>   the cut and starts the engagement; biology in the completion callback.
+>   The kit-capability read uses `getCapabilities()` (which normalizes the
+>   `{kind}` row form) — NOT the raw field.
+> - Fixes forced by gates: prescription row's `class:` is the KERNEL
+>   `/platform/thing/Prescription` (the class is kernel, the template is the
+>   trade's); paper things use `textile/linen` (plant-tissue rots →
+>   lint:perishable). The shipped instruments test's operate cases were
+>   rewritten to the synchronous GATES (the successful durative op is the
+>   drive's job — it needs the catalogue warmed + scheduler + anaesthesia).
+> All 51 gates pass; pack suite (18) + server type-clean.
+
 
 - trade-medicine `src/thing/{Syringe,SutureKit,PrescriptionPad,Simple}.ts`
   + rows `content/trade/medicine/thing/{syringe,suture-kit,
