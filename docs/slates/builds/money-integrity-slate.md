@@ -16,10 +16,12 @@
 > the actual deliverable · ⭐ the **surplus side** (the restore latch —
 > nothing guards a HOST from two restores the way `assertUniqueKey`
 > guards a RECORD from two hosts — ⭐ it protects an Api CONTRACT from
-> pack authors rather than plugging a live leak, `standUpKeyed` traced
-> SAFE 2026-09-24; **hot reload re-running `postRegister` is the only
-> untraced row**; the duplicate-RECORD vector, which mints on every
-> restore forever) · the `/stuff/thing/Coin` uncloneable question · the
+> pack authors rather than plugging a live leak; `standUpKeyed` and hot
+> reload both traced SAFE 2026-09-24; the duplicate-RECORD vector, which
+> mints on every restore forever) · ⚠⚠ **the GO-LIVE DRAIN** (a CMS save
+> or pack reconcile on the Coin row re-hydrates every live stack to
+> `quantity: 1` — the run-once guard covers instruction fields, not
+> persistent ones) · the `/stuff/thing/Coin` uncloneable question · the
 > value-bearing marker question · whether this needs to survive a
 > hostile wizard or only a mistake
 > **Size:** a build
@@ -202,10 +204,10 @@ The mechanism is verified; the callers are not. Paths that could reach a
 | path | the question |
 |---|---|
 | `Avatar.restore()` | Public and documented as admin-only. Is it reachable by a verb? ⭐ See open question 6. |
-| `postRegister` under **hot reload** | Does a `reload` re-run anything that materializes? ⚠ **Check this first** — it is the one reachable without anyone doing something unusual. |
+| ~~`postRegister` under **hot reload**~~ | ✅ **TRACED 2026-09-24 — SAFE.** `clone` is the only HMR-aware site; `reload` never touches a live instance. See below. |
 | ~~`standUpKeyed` → `restoreOrSeed`~~ | ✅ **TRACED 2026-09-24 — SAFE, and they are not one path.** See below. |
 | `restoreOrSeed` | ⚠ A **separate** public Api, called from five capability packs. Every caller passes a fresh clone today; the precondition is enforced nowhere. See below. |
-| `restoreFromTemplate` (CMS / pack go-live) | Re-hydrating a live clone from an edited template — does it re-seed contents? |
+| `restoreFromTemplate` (CMS / pack go-live) | ⚠⚠ **TRACED — the CONTENTS are guarded (run-once appliers) but the FIELDS are not.** Not a mint: a silent DRAIN. See § *Go-live pushes persistent fields*. |
 
 ### ✅ Traced 2026-09-24 — `standUpKeyed` is safe by construction
 
@@ -340,6 +342,91 @@ write-off doctrine's residual term: the anonymous boot delta is a
 **crash-only** event, not a routine one, so **a nonzero residual in
 normal operation is immediately a signal rather than noise.** The
 two-tier ratio is sharper than it looked.
+
+### ✅ Traced 2026-09-24 — `reload` is safe, and the census is closed
+
+[hot-reload.md](../../subsystems/hot-reload.md) is unambiguous:
+**`StuffApi.clone` is the only HMR-aware site.** `reload(path)`
+re-imports the module with a cache-busting query and stamps new class
+objects under fresh `ModuleId` entries — it changes what **future**
+clones resolve to. It does not re-register, re-hydrate or re-materialize
+any live instance, so `postRegister` never re-runs on a populated host.
+
+⭐ **All three duplication paths are now accounted for:**
+`Avatar.restore()` confirmed · a pack passing a live host hypothetical ·
+**hot reload ruled out.**
+
+---
+
+# ⚠⚠ Go-live pushes PERSISTENT fields onto live instances — and `quantity` is one
+
+Found while closing the hot-reload row, and it is the **opposite
+direction** from everything above: not a mint, a **silent drain**.
+
+### The duplication half was already closed, and well
+
+`lib/stuff/Populates.ts`, in this slate's own vocabulary:
+
+> ## ⭐ Run ONCE, at birth — props and cast are initial furnishing
+>
+> Each applier no-ops once its flag is set. **This is load-bearing, not
+> hygiene:** `TemplateApi.restoreFromTemplate` — the CMS save go-live and
+> the pack reconcile go-live — re-runs the FULL `hydrate`, which
+> re-dispatches every instruction applier. Without the guard, editing a
+> `props` row and publishing minted a fresh set into every live instance:
+> every crate in the world gaining six more grapefruits… **A content edit
+> is not a faucet.**
+
+### ⚠ But that guard covers INSTRUCTION fields, not PERSISTENT ones
+
+Same shape as the surplus finding — one direction guarded, its twin not.
+The chain, every link verified:
+
+| link | fact |
+|---|---|
+| `CmsLogic` go-live | `StuffApi.findAllByTemplatePath(path)` → `restoreFromTemplate(instance)` **for every live clone**. `PackLogic` does the same on a pack reconcile. |
+| `restoreFromTemplate` | runs the full `hydrate(stuff, tpl.data)` — no per-field opt-out. |
+| the Coin row | `generic-objects/content/stuff/thing/Coin.yaml` declares **`data.quantity: 1`**. |
+| the gate | `PersistentHydrator` is an **allowed caller** of the gated `Coin.setQuantity` — deliberately. The gate's own comment: *"A `Hydrator` applies a template's … `quantity` through the two-phase `set<Field>` dispatch."* |
+
+> ⛔ **A CMS save or a pack reconcile on the Coin row re-hydrates every
+> live coin stack in the world to `quantity: 1`.** A 500-coin stack
+> becomes one coin. No ledger post, so supply is unchanged and
+> `fullReconcile` reports a shortfall afterwards.
+
+⚠ **The pack path is the likelier one.** A CMS edit of the Coin row
+needs somebody to go and do it; a **pack reconcile** needs only
+`generic-objects` to ship a changed `Coin.yaml`. Nobody has to do
+anything unusual.
+
+### ⭐ The near-miss is instructive
+
+The gate's comment *does* anticipate the adjacent risk — *"a template
+authored with `data.quantity: 1000000` would clone into a fortune"* — and
+files it here as this cycle's work. **But that is the CLONE direction.**
+The **go-live** direction, where stacks that already exist are reset, is
+named nowhere. A hazard was seen from one side and the mirror image went
+unrecorded, which is worth noting as a review habit, not just a bug.
+
+### What closes it
+
+⚠ Not the restore latch, and not the write-off doctrine either — a drain
+with no ledger row is exactly what the doctrine forbids, but **posting it
+after the fact does not help anyone whose money vanished.** The shape is:
+
+> **A value-bearing field must not be hydrated by go-live.**
+
+⭐⭐ Which lands on **open question 2 — the value-bearing marker** — and
+gives it a second, sharper justification than it had. It is no longer
+only *"generalize the gate so scrip inherits it"*; it is **"go-live needs
+to know which fields it may not push."** Two consumers for one marker is
+what turns it from a tidiness idea into the thing that closes a live
+drain.
+
+⚠ Open, and cheap to answer: does the same hazard reach **any other
+value-bearing field** hydrated from a template — `denomination`, a
+future scrip's face value, a bearer credential's amount? The marker
+should be chosen against that list, not against `Coin` alone.
 
 ## D. The sandbox boundary
 
@@ -564,6 +651,14 @@ imagine.
    ⭐ It generalizes to scrip, to bearer credentials, and to anything else
    that later carries value. ⚠ Risks being a new taxonomy; check it
    against the fixed Module Categories before adopting.
+
+   ⭐⭐ **UPGRADED 2026-09-24 — it now has a SECOND consumer, and that
+   one closes a live drain.** Beyond generalizing the `setQuantity`
+   gate, **go-live needs to know which fields it may not push**: a CMS
+   save or pack reconcile on the Coin row re-hydrates every live stack
+   to the template's `quantity: 1` (see § *Go-live pushes persistent
+   fields*). Two consumers for one marker is what turns this from a
+   tidiness idea into the thing that has to be built.
 
    Q3 (should the supply figure have two reads — circulating vs.
    total-in-existence) is cut 2026-09-20 — shipped exactly as proposed:
