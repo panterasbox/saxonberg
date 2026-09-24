@@ -59,6 +59,12 @@ import { ConditionApi } from '../../api/condition';
 import { ContainmentApi } from '../../api/containment';
 import { FUNCTION_BANDS, BODY_CAPACITIES } from './BodyCapacity';
 import type { BodyCapacity, FunctionBand } from './BodyCapacity';
+import { BloodType } from './BloodType';
+import type { AboPhenotype, BloodTypeLabel } from './BloodType';
+import { BLOOD_DEFAULTS } from './Blood';
+import type { BloodUnit } from './Blood';
+import { Seeded } from '../Seeded';
+import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -491,6 +497,26 @@ export interface Vitals {
   /** Bands of expressed competence this body currently suppresses. */
   expressionSuppression(): number;
 
+  // ---------- blood (blood build D2/D3/D11) ----------
+  /** The ABO phenotype of this body's blood, or `null` for a bloodless
+   * clade. Derived from the genotype (pinned or seeded on identity). */
+  bloodType(): string | null;
+  /** Has this body's blood been tested (its label known)? */
+  isBloodTyped(): boolean;
+  /** Record that this body's blood has been tested. */
+  markBloodTyped(): void;
+  /** Draw a unit of blood: spend volume + marrow reserve; return the
+   * stored unit's payload (true type + whether labelled + donor). */
+  drawBlood(litres: number): BloodUnit;
+  /** Receive blood or a saline expander. Compatible closes the gap to
+   * baseline; saline caps at the plasma ceiling; incompatible delivers
+   * plasma only and inflicts the graded transfusion reaction. */
+  receiveBlood(spec: {
+    litres: number;
+    blood: { speciesPath: string; type: string } | null;
+    expander?: boolean;
+  }): { accepted: number; reaction: 0 | 1 | 2 };
+
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
   /**
@@ -706,6 +732,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       bodyPartDeltas: { persistent: true, runtimeState: true },
       conditions: { persistent: true, runtimeState: true },
       scars: { persistent: true, runtimeState: true },
+      // ⭐ Blood build D2. The genotype PIN — authored on an NPC whose
+      // story turns on their type (`bloodGenotype: "AO"`); `null` = derive
+      // deterministically from identity, so an unrolled body and a rolled
+      // one agree and nothing need persist for the ordinary case.
+      bloodGenotype: { persistent: true, authorable: true, runtimeState: true },
+      // Somebody has tested this body's blood (the label is known).
+      bloodTyped: { persistent: true, runtimeState: true },
     };
 
     // ---------- storage; defaults are the universe-default baselines ----------
@@ -744,6 +777,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** ⭐ Healed-over scars the body keeps (D14) — never a penalty, read by
      * `assess` and `look`. Written at the clear sweep from a wound's `peak`. */
     public scars: ScarRecord[] = [];
+
+    /** ⭐ Blood build D2 — the genotype pin (`"AO"` …), or `null` to derive
+     * deterministically from identity. Authorable on an NPC row. */
+    public bloodGenotype: string | null = null;
+    /** Somebody has tested this body's blood (its label is known). */
+    public bloodTyped: boolean = false;
 
     /**
      * Reconcile-on-read reentrancy guard — a plain transient flag, never
@@ -883,15 +922,167 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       void ConditionApi.die(this as unknown as Stuff, record.cause);
     }
 
+    // ---------- blood (blood build D2/D3/D11) ----------
+
+    /** The resolved genotype string (`"AO"` …): the pin, else a
+     * deterministic roll from the species allele table seeded on identity
+     * — never `Math.random`, so an unrolled body and a rolled one agree. */
+    private resolvedBloodGenotype(): string {
+      if (this.bloodGenotype) return this.bloodGenotype;
+      const self = this as unknown as Stuff;
+      const species = MixinApi.isOrganism(self) ? self.getSpecies() : null;
+      const alleles = species?.getBloodGroups()?.alleles ?? { O: 1 };
+      const seed = this.seedFromString(self.getIdentityPath() ?? '');
+      const a = this.drawAllele(alleles, Seeded.unit(seed, 0));
+      const b = this.drawAllele(alleles, Seeded.unit(seed, 1));
+      return a + b;
+    }
+
+    /** FNV-1a fold of an identity path to a 32-bit seed. */
+    private seedFromString(s: string): number {
+      let h = 0x811c9dc5;
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+      }
+      return h >>> 0;
+    }
+
+    /** One allele drawn from a cumulative frequency table by a unit draw. */
+    private drawAllele(alleles: Record<string, number>, u: number): string {
+      const entries = Object.entries(alleles);
+      const total = entries.reduce((s, [, f]) => s + f, 0) || 1;
+      let acc = 0;
+      for (const [allele, freq] of entries) {
+        acc += freq / total;
+        if (u < acc) return allele;
+      }
+      return entries[entries.length - 1]?.[0] ?? 'O';
+    }
+
+    /** Genotype → ABO phenotype (A/B codominant, O recessive). */
+    private aboPhenotype(genotype: string): AboPhenotype {
+      const hasA = genotype.includes('A');
+      const hasB = genotype.includes('B');
+      if (hasA && hasB) return 'AB';
+      if (hasA) return 'A';
+      if (hasB) return 'B';
+      return 'O';
+    }
+
+    public bloodType(): string | null {
+      if (!this.hasVitalSign('bloodVolume')) return null;
+      return this.aboPhenotype(this.resolvedBloodGenotype());
+    }
+
+    public isBloodTyped(): boolean {
+      return this.bloodTyped;
+    }
+
+    public markBloodTyped(): void {
+      this.bloodTyped = true;
+    }
+
+    private speciesPathOf(): string {
+      const self = this as unknown as Stuff;
+      return MixinApi.isOrganism(self)
+        ? (self.getSpecies()?.getTemplatePath() ?? '')
+        : '';
+    }
+
+    public drawBlood(litres: number): BloodUnit {
+      const self = this as unknown as Stuff;
+      const bv = this._bloodVolume.rawValue();
+      this.setVitalSign('bloodVolume', Quantity.of(Math.max(0, bv - litres), 'L'));
+      if (MixinApi.isReserved(self) && self.hasReserve('marrow')) {
+        self.adjustReserve(
+          'marrow',
+          Quantity.of(-BLOOD_DEFAULTS.MARROW_COST_PCT_PER_L * litres, '%'),
+        );
+      }
+      return {
+        speciesPath: this.speciesPathOf(),
+        type: (this.bloodType() ?? 'O') as BloodTypeLabel,
+        labelled: this.isBloodTyped(),
+        donorIdentityPath:
+          self.getIdentityPath() ?? self.getTemplatePath() ?? '',
+      };
+    }
+
+    public receiveBlood(spec: {
+      litres: number;
+      blood: { speciesPath: string; type: string } | null;
+      expander?: boolean;
+    }): { accepted: number; reaction: 0 | 1 | 2 } {
+      if (!this.hasVitalSign('bloodVolume')) return { accepted: 0, reaction: 0 };
+      const baseline = this.getVitalBand('bloodVolume').baseline;
+      const cur = this._bloodVolume.rawValue();
+      const ceiling = baseline * METABOLIC_DEFAULTS.PLASMA_RESTORE_CEILING_FRAC;
+
+      // Saline / a plasma expander: raises volume with no cells, capped at
+      // the same plasma ceiling drinking obeys — never the last 15 %.
+      if (spec.expander) {
+        const next = Math.min(ceiling, cur + spec.litres);
+        this.setVitalSign('bloodVolume', Quantity.of(next, 'L'));
+        return { accepted: next - cur, reaction: 0 };
+      }
+
+      const blood = spec.blood;
+      if (!blood) return { accepted: 0, reaction: 0 };
+
+      const donor = new BloodType(blood.speciesPath, blood.type as BloodTypeLabel);
+      const me = new BloodType(
+        this.speciesPathOf(),
+        (this.bloodType() ?? 'O') as BloodTypeLabel,
+      );
+      const mismatch = donor.mismatchFor(me);
+
+      if (mismatch === 0) {
+        // Compatible cells: this is how the last 15 % comes back.
+        const next = Math.min(baseline, cur + spec.litres);
+        this.setVitalSign('bloodVolume', Quantity.of(next, 'L'));
+        return { accepted: next - cur, reaction: 0 };
+      }
+
+      // Incompatible: only the plasma fraction lands (capped at the
+      // expander ceiling), and the graded reaction fires.
+      const plasma = spec.litres * BLOOD_DEFAULTS.PLASMA_FRACTION;
+      const next = Math.min(ceiling, cur + plasma);
+      this.setVitalSign('bloodVolume', Quantity.of(next, 'L'));
+      const add = Math.ceil(
+        spec.litres *
+          BLOOD_DEFAULTS.REACTION_STAGE_PER_L *
+          (mismatch === 2 ? BLOOD_DEFAULTS.SPECIES_MISMATCH_SCALE : 1),
+      );
+      const existing = this.findAfflictionAt(
+        TemplatePaths.circulationTransfusionReaction,
+      );
+      if (existing) {
+        existing.stage += add;
+      } else {
+        this.afflict({
+          kind: 'affliction',
+          templatePath: TemplatePaths.circulationTransfusionReaction,
+          stage: add,
+          elapsed: 0,
+        });
+      }
+      return { accepted: next - cur, reaction: mismatch };
+    }
+
     // ---------- the material fork family ----------
 
     public forkSlice_Vitals(): unknown {
-      const out: Record<string, number> = {};
+      const out: Record<string, unknown> = {};
       for (const sign of VITAL_SIGNS) {
         out[sign] = (
           this as unknown as Record<string, Quantity<Unit>>
         )[VITAL_FIELD[sign]]!.rawValue();
       }
+      // ⭐ A corpse carries its blood type: fork the RESOLVED genotype
+      // (concrete, so identity re-rolls can never disagree) + the label.
+      out.bloodGenotype = this.resolvedBloodGenotype();
+      out.bloodTyped = this.bloodTyped;
       return out;
     }
 
@@ -915,7 +1106,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Final
     @Unshadowable
     public adoptMaterialState(slices: Record<string, unknown>): void {
-      const vitals = slices.Vitals as Record<string, number> | undefined;
+      const vitals = slices.Vitals as Record<string, unknown> | undefined;
       if (vitals) {
         for (const sign of VITAL_SIGNS) {
           const raw = vitals[sign];
@@ -923,6 +1114,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             this.setVitalSign(sign, Quantity.of(raw, VITAL_UNITS[sign]));
           }
         }
+        // ⭐ A corpse carries its blood type across the fork (D2).
+        if (typeof vitals.bloodGenotype === 'string')
+          this.bloodGenotype = vitals.bloodGenotype;
+        if (typeof vitals.bloodTyped === 'boolean')
+          this.bloodTyped = vitals.bloodTyped;
       }
       const trauma = slices.Trauma as ActiveCondition[] | undefined;
       if (Array.isArray(trauma)) this.conditions = structuredClone(trauma);

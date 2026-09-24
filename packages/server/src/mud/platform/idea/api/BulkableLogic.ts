@@ -17,6 +17,7 @@ import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
 import { Cure } from '../../../lib/material/Cured';
 import { Contamination } from '../../../lib/material/Contaminable';
+import { Blood } from '../../../lib/vitals/Blood';
 import type { MqlQuantity } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
@@ -386,6 +387,22 @@ export class BulkableLogic extends ApiLogic {
         !Contamination.isClean(surface)
       ) {
         new Contamination(to).stampLoads(withSurface);
+      }
+
+      // ⭐ Blood units blend by IDENTITY, not by mass (blood build D4):
+      // two units of the same labelled type stay that type; anything else
+      // becomes `mixed` — compatible with nobody. That is what stops the
+      // decant-to-launder trick (pour a wrong-type unit into a good bag
+      // and read the bag's label). Only the non-empty case: an empty
+      // destination just carried the source's payload across above.
+      if (!toWasEmpty && fromPayload?.blood) {
+        const toPayload = to.getPayload();
+        if (toPayload?.blood) {
+          to.setPayload({
+            ...toPayload,
+            blood: new Blood(toPayload.blood).blend(fromPayload.blood),
+          });
+        }
       }
     }
 

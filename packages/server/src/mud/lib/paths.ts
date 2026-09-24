@@ -106,6 +106,9 @@ export const TemplatePaths = {
   /** Hypovolemic shock — the circulation derive's affliction (harm). */
   circulationHypovolemicShock:
     "/platform/idea/Condition/circulation/hypovolemic-shock",
+  /** The incompatible-transfusion reaction (blood build D3). */
+  circulationTransfusionReaction:
+    "/platform/idea/Condition/circulation/transfusion-reaction",
   thermalHypothermia: "/platform/idea/Condition/thermal/hypothermia",
   thermalHyperthermia: "/platform/idea/Condition/thermal/hyperthermia",
   thermalTorpor: "/platform/idea/Condition/thermal/torpor",

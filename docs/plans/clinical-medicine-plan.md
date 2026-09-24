@@ -894,7 +894,17 @@ MR (W7), and again at `/finalize`.
 
 ### Stage A — kernel + platform pack
 
-#### W0 — the two professions (D1)
+#### W0 — the two professions (D1) — ✅ DONE (fbd92a720)
+
+> Done note: split landed exactly as planned. `bestBandFor` was worth
+> adding (assess sharpening + splint both need it; transfuse/suture will
+> in W5). OrderController.treatWorst confirmed to credit no discipline —
+> no re-point. The `by:'medicine'` resolution token (TreatController
+> L522/528, "bare hands are medicine") is untouched — it is the
+> ResolutionSpec vocabulary, not a Discipline. Needed `pnpm install`
+> first (trades-and-labor carved out trade-shopkeeping; stale
+> node_modules failed every pack suite at collection).
+
 
 - Platform pack: edit `Discipline/medicine.yaml` (0912, doctor
   description, `specializes: [health]`); add `Discipline/nursing.yaml`
@@ -913,7 +923,34 @@ MR (W7), and again at `/finalize`.
   still gates on `medicine`; `lint:dossiers` green (the physician's
   claim is unchanged).
 
-#### W1 — blood (D2, D3, D4, D11)
+#### W1 — blood (D2, D3, D4, D11) — ✅ DONE (see commit)
+
+> Done note + two decisions the plan's sketch had to change:
+> - **`BloodType`/`Blood` are instance-only value objects, zero statics.**
+>   `lint:lib-statics` is AT its ceiling (337/337, no headroom), so the
+>   plan's `BloodType.phenotype(...)`/`roll(...)` statics would have
+>   failed the ratchet. Compat/mismatch are instance methods on
+>   `BloodType`; genotype→phenotype and the seeded roll are private
+>   methods on `VitalsMixin` (mixin-factory statics are census-excluded,
+>   instance/private methods don't count).
+> - **The unit stores the TRUE type always + a `labelled` flag**, refining
+>   the plan's `type: string | null`. A null type would have thrown away
+>   the mechanical truth an unlabelled unit needs to react on; storing the
+>   true phenotype + `labelled: boolean` keeps the gamble honest (an
+>   unlabelled mismatch still reacts) and gives the transfuser's
+>   see-a-mismatch judgement (W5) exactly the epistemic bit it needs.
+> - blend wired into `BulkableLogic.transfer` beside freshness/cure/
+>   pathogens (non-empty pour → `Blood.blend` → same-type kept / else
+>   `mixed`). `bleed`'s vessel gate (W5) prevents mixing at the source;
+>   this covers the generic `pour` laundering path.
+> - `METABOLIC_DEFAULTS` value-imported into Vitals — no ESM cycle
+>   (Metabolic imports Vitals type-only). marrow regen = step 10 of the
+>   metabolic slice, gated on satiation+protein, ~0.08 %/game-hr.
+> - blood shelf life: `spoilActivationEnergy: 96000`, `aw: 0.99` →
+>   ~3 game-days spoil at 293 K, ~4 game-weeks at 277 K (Freshness.blood
+>   test computes it). Server type-clean; all W1 lints green (arms 5,
+>   lib-statics 337, conditions 28).
+
 
 - `Species.bloodGroups` + getter + `authorable` fieldMeta; species rows:
   author alleles on the sixteen `homo/*` rows (frequencies vary by

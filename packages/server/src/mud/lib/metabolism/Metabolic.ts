@@ -317,6 +317,22 @@ export const METABOLIC_DEFAULTS = {
    * long enough that help is a real possibility.
    */
   DYING_WINDOW_SEC: 600,
+
+  /**
+   * ⭐ **Marrow regrowth** (blood build D11) — how fast the donation
+   * reserve makes good blood the body has given. Tuned so a drawn unit's
+   * cost (`MARROW_COST_PCT_PER_L` × `UNIT_LITRES` ≈ 27 %) comes back in
+   * about **two game-weeks** of adequately-fed play: 27 / (14 × 24) ≈
+   * 0.08 %/game-hour. Tight, not free — you cannot bank blood daily.
+   * Gated on nutrition: a starving or protein-poor body makes no blood.
+   */
+  MARROW_REGEN_PCT_PER_HOUR: 0.08,
+  /** Satiation at/below which the body makes no new blood (drawing on
+   * itself, not building). Reuses the flesh-deficit line. */
+  MARROW_REGEN_MIN_SATIATION: 25,
+  /** Protein-pool floor below which marrow regrowth stalls (no amino
+   * substrate for red cells). */
+  MARROW_REGEN_MIN_PROTEIN: 40,
 } as const;
 
 /**
@@ -756,6 +772,27 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.decayWind(stepMin);
       this.decayTolerance(stepMin);
       this.drainMicronutrients(stepMin);
+      this.regrowMarrow(stepMin);
+    }
+
+    /**
+     * Step 10 — ⭐ **the marrow makes good given blood** (D11). A slow
+     * regrowth of the donation reserve toward full, gated on nutrition:
+     * a starving or protein-poor body has no substrate to build red
+     * cells and so makes none. Rides THIS clock, so absence is never
+     * taxed and a long gap collapses into one step exactly as the other
+     * slow stocks do. No-op on a host lacking the reserve.
+     */
+    protected regrowMarrow(stepMin: number): void {
+      const self = this as unknown as MetabolicHost;
+      if (!self.hasReserve("marrow")) return;
+      const D = METABOLIC_DEFAULTS;
+      if (this.reserveCurrent("marrow") >= 100) return;
+      if (this.reserveCurrent("satiation") <= D.MARROW_REGEN_MIN_SATIATION)
+        return;
+      if (this.reserveCurrent("protein") < D.MARROW_REGEN_MIN_PROTEIN) return;
+      const delta = (D.MARROW_REGEN_PCT_PER_HOUR * stepMin) / 60;
+      if (delta !== 0) self.adjustReserve("marrow", Quantity.of(delta, "%"));
     }
 
     /**

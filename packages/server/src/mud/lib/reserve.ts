@@ -42,6 +42,7 @@
  * | `wind` | `%` | Creature + `MetabolicMixin` (half-life decay) + `ExertingMixin` (duration at pace) | `Creature.getWind()`; conditioning — the stock the `wind` Discipline's band is a threshold over. Seeded at 0 (untrained); fades while you PLAY, never while you are away |
  * | `vitamin-c` | `%` | Creature + `MetabolicMixin` (basal drain, the `vitamin-c` tag) | `Creature.getVitaminC()`; the years clock — full to empty over `body.vitaminCDrainDays` of active play; floor effect `scurvy` off the shipped cascade |
  * | `alcohol-tolerance` | `%` | Creature + `MetabolicMixin` (fed at alcohol absorption; half-life decay) | keyed read inside `lib/metabolism` only; the `alcohol-tolerance` Discipline's band is a threshold over it |
+ * | `marrow` | `%` | Creature + `MetabolicMixin` (slow regrowth) + `VitalsMixin` (`drawBlood` spends it) | `Creature.getMarrow()`; the donation reserve — how much lost blood the body can still make good. Read as pallor in the mirror, never a number; `bleed` refuses below the donation floor |
  * | `fuel` | `%` | `CombustibleMixin` / `FurnaceMixin` (theme `combustion`) | `getFuelRemaining()` |
  * | `air` | `%` | an enclosed scope's Location (fire chemistry) | `FireLogic`-internal (no external reader) |
  * | `mana` | `pt` | `CasterMixin` (theme `arcane`; capacity from the depth band) | `getMana()` / `getManaFraction()` — raw keyed reads SKIP the recovery reconcile, never use them outside `lib/magic` |
@@ -77,6 +78,7 @@ export const BIOLOGICAL_RESERVE_KEYS = [
   'wind',
   'vitamin-c',
   'alcohol-tolerance',
+  'marrow',
 ] as const;
 
 /**
@@ -197,6 +199,12 @@ export class Reserve {
       // Fed where alcohol is absorbed; fades on the active clock. The
       // `alcohol-tolerance` Discipline's band reads it.
       'alcohol-tolerance': seeded(0, null),
+      // ⭐ The donation reserve — the marrow's capacity to make good lost
+      // blood (D11). Full on a fresh body; `drawBlood` spends it and the
+      // metabolism slice regrows it slowly when protein + satiation are
+      // comfortable. ⚠ No floor effect — a wan body is not a sick one;
+      // the mirror reads it as pallor, never a condition.
+      marrow: seeded(100, null),
     };
   }
 }
