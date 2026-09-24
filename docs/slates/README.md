@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**241 slates.** 55 greenfield · 85 continuations · 55 waves · 46 tails.
+**242 slates.** 56 greenfield · 85 continuations · 55 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (55)
+## ⭐ Greenfield — nothing shipped yet (56)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -95,6 +95,7 @@ respect.
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
+| [structures](./builds/structures-slate.md) | ⭐ the justification test FIRST — this slate's own question is whether the concept earns its existence. Then, only if it does: what a structure is a claim about, how membership is declared, what it owns that no room can own alone, and what it must never absorb. |
 | [underwater](./builds/underwater-slate.md) | ⚠ **a band is not standable; its BED is** (added 2026-09-23 from the ground build: every Location gets a floor by default, so a water band must declare `noDefaultFloor: true` or the open column will be floored and sittable — the ground build ships the declaration and a test, not a row) · the column — bands as zones, `depth` as a zone field, `up`/`down` derived · implicit up + declared ceilings + the reach-to-air gate · medium derived from the reach's level … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission · replacement … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
