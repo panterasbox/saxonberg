@@ -1774,9 +1774,27 @@ the drive 11/11 over the booted full world.
   greywort root gives up its virtue. The infusion is ready."* So the R2-B
   infusion is now proven END-TO-END live (the earlier walk only reached
   the solvent gate because no water vessel was reachable in a lit room).
-- ⚠ **Minor findings left** (pre-existing, NOT from R2 — a follow-up, not
-  this MR):
-  1. `bleed into blood bag` (two words) mis-binds "blood bag" to the tool
-     arg (*"isn't a tool"*); `bleed into bag` works.
-  2. `operate` wants the surgeon's kit bound/wielded (afforded, refused on
-     the kit).
+- ✅ **Minor finding FIXED — `operate <named-patient> for extraction`
+  refused "need a surgeon's kit" while carrying one.** Root cause: the
+  `operate` view's `for` arg did not declare "for" as a preposition, so
+  the binder bound `for` = the literal word "for", shifted the rest, and
+  the operation name ("extraction") spilled into the `kit` slot →
+  no-kit. (With NO patient token the positionals happened to line up, so
+  it only bit when a patient was named — which is the normal case.) Fix:
+  `prepositions: [for]` on `operate.yaml`. Guarded by a strengthened drive
+  checkpoint (`operate <patient> for extraction` must not read no-kit) —
+  drive re-run 11/11.
+- ⚠ **Minor finding NOT fixed (fundamental, not a view-level bug) —
+  `bleed into blood bag` mis-binds.** A `type: object` arg binds exactly
+  ONE word (only a `greedy` arg takes a phrase — that is why `look blood
+  bag` works). So `bleed into blood bag` → vessel = "blood" (the bag, via
+  its `blood` keyword) and the leftover "bag" spills into the next object
+  arg → *"an empty blood bag isn't a tool"*. `bleed into bag` works. The
+  obvious fix — make `vessel` greedy — is blocked: `validateArgOrdering`
+  treats a greedy arg as REQUIRED, and a required arg may not follow the
+  optional `donor`; making `donor` required would break omitting it (the
+  self-draw) and the `named === undefined` self-detection. A real fix is a
+  binder feature (longest-object match for a non-final object arg) or a
+  donor/self-detection rework in both controllers — more than a minor
+  patch, and not shipped blind under the flaky local boot. Left as a
+  known limitation (every object arg in the game is single-word).

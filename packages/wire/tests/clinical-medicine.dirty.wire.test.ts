@@ -168,11 +168,17 @@ suite('the prescribe → administer → operate flow', () => {
     expect(afforded(adm), `administer: ${adm}`).toBe(true);
   }, 120_000);
 
-  it('⭐ `operate patient for extraction` is afforded (the durative act)', async () => {
+  it('⭐ `operate <patient> for extraction` binds the operation, not the kit', async () => {
     // Patient must lie for an operation.
-    await patient.cmd('lie down');
+    await patient.cmd('lie');
     const said = (await (await doctor.cmd('operate patient for extraction')).said()).toLowerCase();
     expect(afforded(said), `operate: ${said}`).toBe(true);
+    // ⭐ `for` is a MARKER: with a NAMED target, `operate X for extraction`
+    // must bind the operation to "extraction" and let the carried surgeon's
+    // kit default resolve — it must NOT spill the operation into the kit
+    // slot and refuse "need a surgeon's kit" (the review's F2). The doctor
+    // holds a kit, so a no-kit refusal here is the bug.
+    expect(/need a surgeon's kit/.test(said), `operate no-kit leak: ${said}`).toBe(false);
   }, 90_000);
 });
 

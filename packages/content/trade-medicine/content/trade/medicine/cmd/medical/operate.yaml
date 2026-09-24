@@ -23,9 +23,15 @@ args:
     required: false
     scope: "reachable"
     requires: VitalsMixin
+  # ⭐ `for` is the marker, not content — declare it so `operate alice for
+  # extraction` consumes "for" and binds the OPERATION to "extraction".
+  # Without it the parser bound `for` = the literal word "for", shifted the
+  # rest, and the operation name spilled into the `kit` slot — so a named
+  # patient wrongly reported "You need a surgeon's kit".
   - name: for
     type: string
     required: false
+    prepositions: [for]
   - name: kit
     type: object
     required: false
