@@ -1784,17 +1784,13 @@ the drive 11/11 over the booted full world.
   `prepositions: [for]` on `operate.yaml`. Guarded by a strengthened drive
   checkpoint (`operate <patient> for extraction` must not read no-kit) —
   drive re-run 11/11.
-- ⚠ **Minor finding NOT fixed (fundamental, not a view-level bug) —
-  `bleed into blood bag` mis-binds.** A `type: object` arg binds exactly
-  ONE word (only a `greedy` arg takes a phrase — that is why `look blood
-  bag` works). So `bleed into blood bag` → vessel = "blood" (the bag, via
-  its `blood` keyword) and the leftover "bag" spills into the next object
-  arg → *"an empty blood bag isn't a tool"*. `bleed into bag` works. The
-  obvious fix — make `vessel` greedy — is blocked: `validateArgOrdering`
-  treats a greedy arg as REQUIRED, and a required arg may not follow the
-  optional `donor`; making `donor` required would break omitting it (the
-  self-draw) and the `named === undefined` self-detection. A real fix is a
-  binder feature (longest-object match for a non-final object arg) or a
-  donor/self-detection rework in both controllers — more than a minor
-  patch, and not shipped blind under the flaky local boot. Left as a
-  known limitation (every object arg in the game is single-word).
+- ✅ **Not a bug — `bleed into blood bag` is a quoting matter.** A
+  `type: object` arg binds one TOKEN; the tokenizer makes a double-quoted
+  phrase one token, so `bleed into "blood bag"` binds the whole vessel
+  name and works (verified live: *"You settle in and begin drawing your
+  own blood…"*). `bleed into bag` works too. The unquoted two-word form
+  splits ("blood"→vessel, "bag"→the next arg → *"isn't a tool"*) — that is
+  the single-token grammar the whole game uses, and quoting is the
+  intended way to pass a multi-word object. No code change; the earlier
+  greedy attempt was reverted (a greedy arg is treated as required and
+  can't follow the optional `donor`).
