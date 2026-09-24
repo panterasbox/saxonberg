@@ -126,7 +126,13 @@ its Left names *"coal as a hearth fuel"* and *"peat, cut wet and dried."*
 - **Cold is a cost, not a death sentence.** The body's cold response is
   retuned against a world that can now actually get cold, so that
   ordinary life is survivable and cold buys you a decision rather than a
-  corpse.
+  corpse. ⚠ The **floor** of this goal is non-negotiable — the realm must
+  still be alive after a night — and the dials are explicitly
+  *"playtest-tuned, not plan decisions"*
+  ([thermal.md](../subsystems/thermal.md)), so a tuning pass is in scope.
+  If the fix turns out to be structural rather than a dial pass, the
+  build takes the smallest change that keeps the realm alive and the rest
+  goes to [physiology-slate](../slates/builds/physiology-slate.md).
 - **The realm is authored with sources** — the content pass that gives
   every shipped room its light and its warmth, and gives the businesses
   hours that mean something.
@@ -165,9 +171,23 @@ Each names where it goes.
 - **Night as a crime window** — patrols, curfew, who is abroad at 3 a.m.
   → [policing-slate](../slates/builds/policing-slate.md). This build
   makes the dark; it does not populate it.
+- **Who decides which streets stay lit when the town is short** →
+  [institutions-slate](../slates/builds/institutions-slate.md). That is
+  a preference of the committee holding the extent, which is the body
+  that manages quotas generally. This build ships the **lever** (lit or
+  not, per extent, funded or not) and reads the preference from the
+  extent's holder — today the founder default. See the lens-4 entry.
 - **Coverings as insulation** — a rug, snow over paving → the ground
   build's own named seam,
   [field-substrate-slate](../slates/tails/field-substrate-slate.md).
+- **Cold as an injury** — frostbite, cold damage, anything deeper than
+  the body's existing cold response →
+  [physiology-slate](../slates/builds/physiology-slate.md), which
+  already carries *frostbite from weather* (Part 7g). This build retunes
+  what ships; it adds no new way to be hurt by cold.
+- **Sleep, and needing somewhere to be at night** →
+  [physiology-slate](../slates/builds/physiology-slate.md) (*sleep and
+  beds*). Night gets dark here; nobody gets tired.
 - **Weather coming indoors** — rain through a hole, a draught you can
   feel as wind → nowhere, deliberately. The envelope is two states, not
   four.
@@ -406,9 +426,29 @@ tavern is warm and the street is not. People go home. The lamps come on.
 **4 — Values.** The choice it forces is real and recurring: **fuel is
 finite and costs money.** Keep the hearth going for the customers or
 save the fuel? And at the civic level, the sharper one — when the town
-is short, **whose streets go dark first?** That is a judgement about
-people, so it needs a criterion and an appeal, and naming it is part of
-the build.
+is short, **whose streets go dark first?**
+
+⭐⭐ **This build does not answer that, and it must not invent an answer.**
+Rationing an extent is the job of whoever **holds** the extent, and that
+is already designed: title is recursive, a holder may subdivide and
+grant, *"each locality's committee seats the institutions under it …
+nobody runs more than one level down, and the one who grants an extent
+is the one who can see whether it is run well, because it is inside
+theirs"* ([institutions-slate](../slates/builds/institutions-slate.md)).
+The same body that manages quotas manages this.
+
+So what this build ships is the **lever**, not the policy: lighting is a
+funded service **on an extent**, it can be funded or not, and the
+preference over which extents are lit first is read from that extent's
+holder. Until the institutions build lands there is exactly one holder —
+the founder default — and the preference is whatever it says.
+
+⚠ And the shipped precedent says what shape the preference should be:
+water's quota **rides the right**, ordered by a seniority recorded in
+advance, and the refusal *"exposes no other holder's draw"*
+([watershed.md](../subsystems/watershed.md)). Rationing in this realm is
+a recorded preference consulted when short — never a live judgement made
+about somebody at the moment they are refused.
 
 **5 — Epochs & magic.** The mechanism is identical from a Roman brazier
 to a gas lamp to the mana lamp the arcana pack already ships. Only the
