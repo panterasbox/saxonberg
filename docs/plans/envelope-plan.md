@@ -87,10 +87,11 @@ approximate (±10).
   fishing drives saw *"something"* on the streets. Of the 84 that do
   author a value, the calibrations disagree (mayfield `street.yaml` 500 lm
   on a 9 m² cell = 55 lux `lit`; pithead 8000 on 100 m²; dormroom 30 on
-  1 m²). ⭐ So the content pass is not "convert noon values" — it is
-  "give every outdoor row a calibrated noon value and every interior a
-  source", and `look` on a dark street will *change* for the better at
-  the first wave boundary.
+  1 m²). ⭐ So the content pass is not "convert noon values" — the sky
+  is derived for every sky-exposed row (D4) and the pass is "give every
+  interior a source, and delete the stray values that meant *lit by
+  day*"; `look` on a dark street will *change* for the better at the
+  first wave boundary with no row edit.
 - `packages/server/src/mud/platform/idea/cmd/perception/LookController.ts`
   renders the room's long description **unconditionally** — there is no
   room-level darkness line anywhere in `platform/idea/cmd/perception/`
@@ -371,8 +372,8 @@ stars   = 0.002
 factor  = min(1, sun + moon + stars)
 ```
 
-Anchored to the shipped table (a `sky` row authors its **noon** lumens):
-a 9 m² cell at 720 lm reads 80 lux `bright` at a summer noon (sin 71° =
+Anchored to the shipped table (a sky-lit room's **noon** lumens, derived
+as `80 × sizeScale` or authored): a 9 m² cell at 720 lm reads 80 lux `bright` at a summer noon (sin 71° =
 0.95 → 76), `lit` at a winter noon (sin 24° = 0.41 → 33), `dim` at sunset
 (0.1 → 8), `very-dim` at −2° (0.02 → 1.7), full moon high (0.03 × 0.9 →
 2.2 lux `very-dim` — move, find a door, see a shape; not a face), full
@@ -429,7 +430,7 @@ the honest version cheap:
   (0.025 insulator · 0.5–0.6 masonry · 80 iron), and its own comment
   says *"no live consumer yet — seeded ahead per the reality-shaped
   discipline"*. The envelope is the consumer it was seeded for — the
-  fourth dead seam this build joins (sun→light, fuel→lamp, and this).
+  third dead seam this build joins (sun→light, fuel→lamp, and this).
   `getDensity()` and `getSpecificHeat()` (`Material.ts:800, 821`) give
   the fabric's heat capacity the same way.
 - `FloorSpec` (`lib/stuff/Location.ts:38`) is the authoring shape: *"the
@@ -507,11 +508,13 @@ and the transient `_envelopeResolved`. Methods:
   overnight IS cold in the morning); the elapsed gap integrates at the
   heat input as read now (a hearth that burnt out mid-gap over-credits
   the room for one read; bounded, self-correcting, noted in thermal.md).
-  For a 3 m cell: `U_fabric = 67 W/K`, `C ≈ 490 kJ/K`, `τ_closed ≈ 2 h`,
-  one open street door adds 162 W/K (`τ ≈ 36 min`); a 1.5 kW hearth
-  holds +22 K over outside shut and +6.5 K with the door open — *a
-  heated room with the door open is expensive* falls out of the
-  arithmetic.
+  For a 3 m masonry cell: `U_fabric = 2 × 45 = 90 W/K`, `C ≈ 33 + 810
+  ≈ 843 kJ/K`, `τ_closed ≈ 2.6 h`; one open street door adds `6 × 27 =
+  162 W/K` (`τ ≈ 56 min`); a 1.5 kW hearth holds +17 K over outside shut
+  and +6 K with the door open — *a heated room with the door open is
+  expensive* falls out of the arithmetic, and a timber cell (U 36 W/K)
+  holds +42 K from the same fire, which is why a timber cabin is warm and
+  a stone hall is cold.
 - `nOpenToOutside` = obvious exits (with the light walk's four hazard
   guards) whose destination is sky-exposed (`BiomeApi.isSkyExposed(dest)`,
   sync) and which are doorless **or** whose door `isOpen()`. Interior
@@ -542,6 +545,21 @@ plus 3a. The trace variant reports provenance `'envelope'` with
 `{outsideK, heatInputW, uWperK, openings, hottestSource, fabricMaterialPath}`
 — the shape `feel` reads (3e).
 
+*3d. Bodies and food track a warming room without a fan-out (the pull
+side).* `ThermalMixin.reconcileThermal()` first calls
+`refreshAmbientFromEnvelope()`: if `heatSourceK()` is null and the
+container composes `Atmospheric` with `envelopeTemperatureSync() !==
+null`, set `lastAmbientK` to it. `ThermalRegulationMixin` caches the
+**offset** (`effectiveAmbientK − baseAmbientK`) at restamp and
+re-derives `effectiveAmbientK = envelopeTemperatureSync() + offset` at
+the top of `reconcileThermalRegulation()` when the room is an envelope
+host. Both are three-line edits; both follow weather.md's own advice
+(*"prefer the pull side, as wetness does"*). The presence-gated weather
+boundary fan-out additionally re-resolves `envelopeOutsideK` for occupied
+envelope rooms (not only sky-exposed ones) so a room's outside follows a
+front while somebody is in it; an empty room's outside is re-resolved on
+the next async read (a body arriving restamps).
+
 *3e. The cause is named in-world.* `FeelController`'s bare form
 (`cmd/perception/feel.yaml`, this build's — build-3 owns `measure`/
 `analyze`, not `feel`) already prints *"The air feels {band}."* from
@@ -558,21 +576,6 @@ year round"*; sky-exposed → nothing added (the weather is the sky's own
 line). The same read, saying where its number came from — no new
 instrument, and a room that is warm for no reason a player can be told
 is self-reporting the dishonesty.
-
-*3d. Bodies and food track a warming room without a fan-out (the pull
-side).* `ThermalMixin.reconcileThermal()` first calls
-`refreshAmbientFromEnvelope()`: if `heatSourceK()` is null and the
-container composes `Atmospheric` with `envelopeTemperatureSync() !==
-null`, set `lastAmbientK` to it. `ThermalRegulationMixin` caches the
-**offset** (`effectiveAmbientK − baseAmbientK`) at restamp and
-re-derives `effectiveAmbientK = envelopeTemperatureSync() + offset` at
-the top of `reconcileThermalRegulation()` when the room is an envelope
-host. Both are three-line edits; both follow weather.md's own advice
-(*"prefer the pull side, as wetness does"*). The presence-gated weather
-boundary fan-out additionally re-resolves `envelopeOutsideK` for occupied
-envelope rooms (not only sky-exposed ones) so a room's outside follows a
-front while somebody is in it; an empty room's outside is re-resolved on
-the next async read (a body arriving restamps).
 
 **D4 — Sky-lighting is DERIVED; only the exceptions are authored.** A
 sky-exposed room **is** sky-lit by definition (`BiomeApi.isSkyExposed`
@@ -725,8 +728,11 @@ comfort.** New authorable `wears: string[]` on `lib/npc/NPC.ts`
 recipe (clone → move onto the NPC → `occupyAll(slotClaim)`), idempotent
 across re-clone. The template-census gate's clause (b) list gains
 `wears[]`. Every `cast:` row in the content pass authors an outfit from
-existing garment rows. `Offstage` rows author `_temperature: 294` — an
-off-stage parking room is not a place and owes no envelope.
+existing garment rows. `Offstage` needs **no decree**: it extends
+`Location` directly, `getVolume()` is null, so no envelope applies and
+a parked cast member reads the 295 K universe base with no weather — an
+off-stage parking room is not a place, and the geometry already says so
+(the D15 ceiling stays at 5).
 
 **D10 — `look` narrates the light.** `LookController`'s room render
 gains a one-line band phrase before the long description (`pitch-black`:
@@ -919,8 +925,9 @@ leaves the file absent — nothing imports it: verify with grep).
 **Files.** `api/celestial.ts`, `platform/idea/api/CelestialLogic.ts`
 (`skyIlluminanceFactor`, `skyFactorNow`, the profile guard);
 `lib/perception/AmbientLit.ts` (`ambientSource`, `ambientOpening`,
-`isSkyLit()`); `platform/idea/modalities/VisionModality.ts` (leg (a)
-multiplies by the sky factor for `sky` rows; `perceiveFor` zero-signal
+`isSkyLit()`, `skyNoonFlux()`); `platform/idea/modalities/VisionModality.ts`
+(leg (a) reads `skyNoonFlux() × skyFactorNow() × weatherDim` for
+`isSkyLit()` rooms — derived, no row needed; `perceiveFor` zero-signal
 rule); `lib/perception/Light.ts` (band phrase table);
 `platform/idea/cmd/perception/LookController.ts` (the light line, D10);
 `platform/idea/api/WeatherLogic.ts:750` (`isSkyLit()` instead of `sky`
@@ -948,8 +955,8 @@ passes with ceiling = today's count; every wire test still green
 
 ### W1 — Cold is a cost, not a corpse
 
-**Goal.** Measure the cold branch, retune it, dress the cast, decree the
-offstage rooms — before any room is allowed to get cold.
+**Goal.** Measure the cold branch, retune it, dress the cast — before
+any room is allowed to get cold.
 **Decisions.** D8, D9.
 **Files.** `lib/thermal/__tests__/Thermal.cold.gym.test.ts` (the bench —
 written first, run, its numbers pasted into the plan's drive record
@@ -962,8 +969,8 @@ and the covered-gap drift target in `integrateThermalSlice`; clo in
 `cast:` agent row in `terminus`, `hearthworks`, `saxonberg-lounge`,
 `rejection`, `hearts-delight`, `hinkley-hills`, `eternal-university`
 (`wears:` from existing garment rows — list them from
-`grep -rl "equipment/Garment" packages/content`); the offstage rows
-(`_temperature: 294`).
+`grep -rl "equipment/Garment" packages/content`). No offstage edit: an
+`Offstage` room has no volume and gets no envelope (D9).
 **Tests.** The bench (gym, not in `pnpm test`); unit tests on the cap and
 the drift target; an `NPC.wears` test beside `lib/npc/__tests__`.
 **Acceptance.** Bench: a dressed biped at 281 K for 12 game hours ends
@@ -1014,8 +1021,7 @@ variant with the envelope provenance shape; `outsideTemperatureFor`);
 (`refreshAmbientFromEnvelope` in `reconcileThermal`);
 `lib/thermal/ThermalRegulation.ts` (the cached offset);
 `WeatherLogic.runBoundaryFanout` (re-resolve outside for occupied
-envelope rooms); `settings/envelope.yaml` (three dials);
-`scripts/check-envelope.ts` + `package.json` `lint:envelope` (the five
+envelope rooms); `scripts/check-envelope.ts` + `package.json` `lint:envelope` (the five
 cellars listed with reasons, ceiling 5; fabric materials resolve and
 conduct; the biome line; the indoor rule; the closed `FabricSpec`
 vocabulary); YAML comments beside the five `_temperature` lines;
@@ -1038,9 +1044,11 @@ restamp. `WeatherLogic`: the solar term at four anchors.
 says the door stands open, and at noon `warm`; `feel` in the hospitality
 cellar says it keeps its own temperature; a body standing in the cold
 store pays the cold branch and its cue fires; `lint:envelope` passes at
-ceiling 5/0; the Hearthworks suite green (the sealed cellar reads its own
-authored temperature — verify the row; if it has none, author 285 K in
-this wave, the bespoke case).
+its ceiling; the Hearthworks suite green (the sealed cellar: check the
+row — if its fiction needs a steady temperature the rock fabric alone
+cannot give, it authors `_temperature` and enters `AUTHORED_TEMPERATURES`
+with its reason, and the initial ceiling is set to the count at W3 — the
+ratchet starts from the truth, not from the number 5).
 **Commit.** `build(envelope W3): the room holds a state different from outside, at a cost`
 
 ### W4 — The hearth warms its room; the forge still does not
@@ -1080,12 +1088,14 @@ the shipped `BankingApi.appropriate`); `api/address.ts` +
 { fuelPerStreetNight, supplier: /world/terminus/general-store/business }`),
 the lit streets (`crossing`, `avenue-block`, `square`, `mayfield street`,
 `wharfside bank`: `publicLighting: { flux: 400, detail: lamps, seniority }`
-+ a `lamps` detail each), and one street deliberately **not** lit
-(`delight-road/crossroads`) plus one whose service has lapsed for the
-drive (a locality with `_publicLighting` but an empty treasury —
-`hearts-delight`'s `valley-gate`, funded by a government with no
-account; verify the row resolves a government at all, else it is simply
-"never lit").
++ a `lamps` detail each), and one street the town **never lit**
+(`delight-road/crossroads` declares no `publicLighting`, so `look at
+the lamps` finds no lamps to speak of; and `hearts-delight`'s
+`valley-gate` declares `publicLighting` under a locality that authors
+no `_publicLighting` — lamps standing, nobody paying, "standing cold").
+The **lapsed** case (a funded service the treasury can no longer cover)
+is the unit test's, not the drive's: one treasury per currency means
+draining it would darken every extent at once.
 **Tests.** `PublicLighting.test.ts`: lit iff night ∧ funded; the detail
 line in each state. `Locality.lighting.test.ts`: seniority order under a
 short balance; one `appropriation` leg per night; no double settle on
@@ -1151,8 +1161,9 @@ solar term and the second dim sibling; biome: the indoor decree gone;
 fire: the hearth and the lamp; ground: the floor as part of the envelope,
 coverings still its seam); `CLAUDE.md` map lines are **left to the
 sweep**.
-**The drive.** Boots a wizard session and a plain session; funds the
-budget if needed (`treasury appropriate` or a wizard eval); walks the 15
+**The drive.** Boots a wizard session and a plain session; reads the
+realm treasury (`treasury`) and asserts it covers at least one
+street-night before step 6; walks the 15
 steps with the clock at 720× between them (D14); asserts the envelope
 (`ok`/`declined` + reason codes: `too-dark-to-read`) and the prose
 (`squash(...)` matches: *"lamps are burning"*, *"stand cold"*, *"The
@@ -1175,7 +1186,7 @@ The five links, per new capability. Each fails closed and silent.
 | the sky | none (a `look`) | — | **derived** from the row's biome chain (`isSkyExposed`); no row edit | the celestial singleton is `singletonSync`-created on first read; the memo seeds itself | — |
 | the room's warmth, and why | `feel` (bare) — ships; now names the cause | — | `fabric:` optional (a Material path that authors `thermalConductivity`); universe default applies | none; reconcile-on-read; the fabric resolves at the first async read | `requires: any` |
 | the body's cold | `look` body line / the `self.body` cue — ship | — | dials | — | — |
-| public lighting | `look at lamps` — `look` ships; the detail is the row's | `PublicLightingMixin.getDetail` | `publicLighting:` on street rows + `_publicLighting` on the locality + a government with a treasury + a supplier Business | `civic:lighting` registered in `registerSystemSchedules`; the boot-time settle | — |
+| public lighting | `look at lamps` — `look` ships; the detail is the row's | `PublicLightingMixin.getDetail` | `publicLighting:` on street rows + `_publicLighting` on the locality + the realm treasury + a supplier Business with a primary account | `civic:lighting` registered in `registerSystemSchedules`; the boot-time settle | — |
 | the town pays | none (a schedule) | — | the realm treasury (`/compact/treasury`, `BankingApi.appropriate`) + a supplier Business with a primary account (**a treasury holding less than one street-night lights nothing** — the shipped refusal) | the clock boots before packs finish? Verify `registerSystemSchedules` runs after the address registry is warm; if not, the callback resolves lazily on first fire | — |
 | hours | `clock on/off` ship; the roster tick | `shifts` brain on each cast row (`behaviors:`) | roster `schedule` windows | `EmploymentLogic.boot` arms the tick — ships | — |
 | S9 night vision | none | — | `koboldus.yaml` `bandShift: +1` | species catalogue — ships | — |
@@ -1193,7 +1204,7 @@ account at the first sunset — the drive reads `treasury` before step 6
 
 | # | criterion | waves |
 |---|---|---|
-| 1 | two descriptions, noon vs midnight, unauthored | W0 (D1, D10) + the crossing's `sky` row |
+| 1 | two descriptions, noon vs midnight, unauthored | W0 (D1, D4 — the crossing is sky-lit by derivation, no row edit; D10) |
 | 2 | full moon: move, door, a presence; not read, not a face | W0 (D2 `very-dim`), `read` refuses (ships) |
 | 3 | moonless/overcast: needs a light, and the game says so | W0 (D2 + D10's pitch-black line + `too-dark-to-read`) |
 | 4 | lantern works; out → dark immediately | W2 (the walk reads flux live) |
@@ -1207,7 +1218,7 @@ account at the first sunset — the drive reads `treasury` before step 6
 | 12 | forge does not warm its room; smith works | W4 (composition), forge-couple tests |
 | 13 | shut at night, staff gone, street emptier | W6 (D13) |
 | 14 | dawn: light returns, lamps out, shops open | W0 + W5 + W6 |
-| 15 | a full game day kills nobody of cold | W1 (bench) + W3 (envelope on) + W6 (offstage decree, outfits) + W7 (the drive's last step) |
+| 15 | a full game day kills nobody of cold | W1 (bench, dials, the cast dressed) + W3 (envelope on) + W6 (remaining outfits, hours that park the cast offstage) + W7 (the drive's last step) |
 | 16 | a second town = rows only | W6 (the Narnia proof), D5/D6/D7 shapes |
 
 Nothing unmapped.
@@ -1230,8 +1241,9 @@ Nothing unmapped.
   `WIRE_PORT`; never `dev:server` beside a driving sibling.
 - **Lints:** the family, plus the two new gates — `lint:light-sources`
   (the undeclared-interior ceiling → 0 at W6; the three exception lists
-  curated) and `lint:envelope` (five reasoned cellars, zero room
-  overrides, the biome line, the indoor rule).
+  curated) and `lint:envelope` (the reasoned cellars at their ceiling,
+  fabric materials that resolve and conduct, the biome line, the indoor
+  rule, the closed `FabricSpec` vocabulary).
 - **Full suite:** once before the MR opens, once at `/finalize`. A green
   run holds until a source file changes.
 - **What only the drive proves:** the prose of a dark street in a
@@ -1285,16 +1297,17 @@ Nothing unmapped.
    the bench shows it, cache `openExteriorOpenings()` per game-minute on
    the room. Measure, do not pre-optimize.
 7. **`FurnaceMixin.lit` defaults `true`.** Every new Lamp/Hearth row must
-   author `lit: false`; add a clause to `lint:light-sources` (g): a row on
-   `Lamp`/`Hearth` without `lit:` fails.
+   author `lit: false`; `lint:light-sources` clause (g) (D12) fails a
+   row on `Lamp`/`Hearth` without `lit:`.
 8. **`heatContents` on a Lamp.** The fire tick deposits toward 330 K into
    Meltables beside a lit lamp (ice, wax). Honest at that temperature;
    note it in fire.md.
 9. **A hearth in the Lounge.** Warren-minted lounge rooms have volume
    and no hearth; the bar gets one. If minted rooms read cold at night
    and that is judged wrong for the off-map lounge, the `Lounge` room
-   template authors `_temperature` (the bespoke case) — a content call
-   at W6, recorded either way.
+   template authors `_temperature` (the bespoke case — it enters
+   `AUTHORED_TEMPERATURES` with its reason and the ceiling moves to the
+   truth) — a content call at W6, recorded either way.
 10. **Do not** add a Discipline, touch `measure`/`analyze`, or name coal
     or peat rows. Fuel is `reserves.fuel` on the row; when extraction
     lands, its rows fill the reserve — no code here knows a fuel's name.
@@ -1377,7 +1390,9 @@ Read first, in this order:
 5. `packages/server/src/mud/platform/idea/api/CelestialLogic.ts`,
    `api/celestial.ts`
 6. `packages/server/src/mud/lib/biome/Atmospheric.ts`,
-   `platform/idea/api/BiomeLogic.ts` (lines 230–300, 470–560, 720–800)
+   `platform/idea/api/BiomeLogic.ts` (lines 230–300, 470–560, 720–800),
+   `lib/material/Material.ts` (lines 190–230, 790–830 — the conductivity
+   seam, density, specific heat)
 7. `packages/server/src/mud/lib/thermal/{Thermal,ThermalRegulation}.ts`
 8. `packages/server/src/mud/lib/fire/Furnace.ts`,
    `platform/idea/api/FireLogic.ts` (lines 140–160, 250–270),
@@ -1388,12 +1403,14 @@ Read first, in this order:
    330–340)
 10. `packages/server/src/mud/platform/idea/Locality.ts`,
     `platform/idea/Government.ts`, `api/address.ts`, `api/government.ts`,
-    `api/banking.ts` (lines 400–500), `platform/idea/api/BankingLogic.ts`
-    (`transfer`, `payWage`), `platform/idea/WorldClockRegistry.ts`
+    `api/banking.ts` (lines 230–320, 400–500),
+    `platform/idea/api/BankingLogic.ts` (`appropriateImpl` line 737,
+    `transfer`, `payWage`), `platform/idea/WorldClockRegistry.ts`
     (`registerSystemSchedules`)
 11. `packages/server/src/mud/platform/location/Crossing.ts`,
     `lib/location/CartesianLocation.ts` (lines 50–75, 190–240),
-    `lib/stuff/Location.ts` (lines 86–130)
+    `lib/stuff/Location.ts` (lines 36–130 — `FloorSpec`, the space-not-
+    matter doctrine, `floorDefaults` at ~352)
 12. `packages/server/src/mud/lib/npc/NPC.ts`,
     `packages/server/src/backend/TestHooks.ts` (lines 270–310)
 13. `packages/server/scripts/{check-ground,check-openings,check-template-census,pack-roots}.ts`
