@@ -38,6 +38,7 @@ import type { LightConduit } from '../../../lib/boundary/Conduit';
 import type { Conduit } from '../../../lib/boundary/Conduit';
 import type { Boundary } from '../../../lib/boundary/Boundary';
 import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
+import { CelestialApi } from '../../../api/celestial';
 
 const DEFAULT_VISION_PROFILE: VisionProfile = {
   scotopicMin: 'pitch-black',
@@ -98,9 +99,17 @@ export class VisionModality extends Modality {
     loc: Stuff & Container,
     signal: Light,
   ): VisionPercept {
-    const raw = Light.bandFor(signal.intensity.rawValue());
+    const lux = signal.intensity.rawValue();
+    const raw = Light.bandFor(lux);
     const profile = this.viewerVisionProfile(viewer);
-    const shifted = Light.applyBandShift(raw, profile.bandShift);
+    // ⚠⚠ A band shift cannot MANUFACTURE photons. `applyBandShift` is
+    // index arithmetic on the lux tag table, so a `bandShift: +1` species
+    // used to read `very-dim` in a sealed cellar with no light in it at
+    // all — never noticed, because until this build nowhere was dark. A
+    // night-sighted species sees further into the dark; it does not see
+    // in the absence of light (envelope D11).
+    const shifted =
+      lux > 0 ? Light.applyBandShift(raw, profile.bandShift) : raw;
     const final = isPerception(viewer)
       ? viewer.perceivedBandModifier(shifted, loc)
       : shifted;
@@ -278,14 +287,26 @@ function walkFluxAt(
   if (visited.has(id)) return acc;
   visited.add(id);
 
-  // (a) Ambient — the location itself contributes flux + color temp,
-  // scaled by the cached weather cloud-dimming factor (Wave 2): overcast /
-  // storm reads dimmer. The factor is stamped by the weather boundary
-  // fan-out and read synchronously here — no async weather resolve on the
-  // perception hot path. `1` (the default) is byte-identical to pre-Wave-2.
+  // (a) Ambient — the location itself contributes flux + color temp.
+  //
+  // ⭐⭐ For a SKY-LIT scope (envelope D4) this is three factors that know
+  // nothing about each other, multiplied: the scope's own noon flux (its
+  // area, or an authored calibration), the sky's illuminance factor right
+  // now (the sun's altitude, the moon's phase and altitude, a starlight
+  // floor — `CelestialApi.skyFactorNow`, memoized per game minute), and
+  // the cached weather cloud-dimming factor. That is why the same street
+  // reads `bright` at noon and `very-dim` under a full moon with nothing
+  // authored on the row and no stamp to go stale.
+  //
+  // Everything else — an inherent glow, a `'sky'`-less interior with a
+  // calibration value on it — reads its stored ambient dimmed by the
+  // weather, exactly as before.
   if (MixinApi.isAmbientLit(loc)) {
-    const ambientFlux =
-      loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
+    const ambientFlux = loc.isSkyLit()
+      ? loc.skyNoonFlux() *
+        CelestialApi.skyFactorNow() *
+        loc.getWeatherDimFactor()
+      : loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
     if (ambientFlux > 0) {
       const ambientColorTemp = loc.getAmbientColorTemperature();
       addContribution(acc, ambientFlux, {

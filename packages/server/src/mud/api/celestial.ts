@@ -45,6 +45,7 @@ import {
   CelestialLogic,
   CAMPUS_LATITUDE,
   CAMPUS_LONGITUDE,
+  type SkyFactorOpts,
 } from '../platform/idea/api/CelestialLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
@@ -422,6 +423,54 @@ export class CelestialApi {
     t: number
   ): number {
     return logic().moonAzimuthDeg(profile, latitudeDegrees, synodicPeriodDays, t);
+  }
+
+  /* ──────────────────── the sky's illuminance ──────────────────── */
+
+  /**
+   * ⭐ How bright the sky is, as a fraction of a clear noon overhead
+   * sun. Pure geometry — sun altitude, moon altitude and moon phase,
+   * plus a starlight floor — with no clock and no world state, so an
+   * astronomy student can check it against a textbook the same way the
+   * altitude formulas above can be checked.
+   *
+   * The live consumer is {@link skyFactorNow}; this is the seam it sits
+   * on. `opts` supplies the four playtest dials (`settings/light.yaml`);
+   * omitted, the shipped values apply.
+   */
+  public static skyIlluminanceFactor(
+    profile: CelestialProfile,
+    latitudeDegrees: number,
+    t: number,
+    opts?: SkyFactorOpts
+  ): number {
+    return logic().skyIlluminanceFactor(profile, latitudeDegrees, t, opts);
+  }
+
+  /**
+   * ⭐⭐ The sky's illuminance factor **right now**, memoized per game
+   * minute. Synchronous, because the light walk is synchronous and runs
+   * for every room in every `look`.
+   *
+   * ⚠ One sky for one world: this reads `EARTH_LIKE` at the campus
+   * latitude and asks no location, so Terminus and Rejection share a
+   * sun. {@link profileFor} throws if a zone ever authors a second
+   * celestial profile, rather than letting half the realm read the
+   * wrong sky (envelope D1). Per-zone profiles are a named deferred
+   * seam.
+   */
+  public static skyFactorNow(): number {
+    return logic().skyFactorNow();
+  }
+
+  /**
+   * The sky factor below which a town's lamps burn (`light.sky.
+   * lampDuskFactor`, default `0.1` — the horizon). Read by the street
+   * lighting property and the `civic:lighting` schedule so dusk means
+   * one thing in both places.
+   */
+  public static lampDuskFactor(): number {
+    return logic().lampDuskFactor();
   }
 }
 

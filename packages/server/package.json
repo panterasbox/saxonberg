@@ -55,6 +55,7 @@
     "lint:instanceable": "tsx scripts/check-instanceable-placement.ts",
     "lint:instrument-args": "tsx scripts/check-instrument-args.ts",
     "lint:kept-animals": "tsx scripts/check-kept-animals.ts",
+    "lint:light-sources": "tsx scripts/check-light-sources.ts",
     "lint:lib-statics": "tsx scripts/check-lib-statics.ts --lint",
     "lint:locations": "tsx scripts/check-location-classes.ts",
     "lint:mixin-names": "tsx scripts/check-mixin-names.ts --lint",

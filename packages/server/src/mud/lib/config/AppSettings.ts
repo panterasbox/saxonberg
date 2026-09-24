@@ -1473,6 +1473,26 @@ export const AppSettingKeys = {
    * being the struck node. */
   stormAttractorBias: "storm.attractorBias",
 
+  /* ────────────────────────── light (the sky, envelope D1/D2/D4) ────────────────────────── */
+  /** Light — degrees of sun depression per factor-of-ten twilight falloff
+   * in the sky illuminance curve. Larger = a longer, gentler dusk. */
+  lightSkyTwilightDecadeDeg: "light.sky.twilightDecadeDeg",
+  /** Light — the illuminance factor a full moon at the zenith contributes,
+   * as a fraction of a clear noon sun. The moonlight floor (S1). */
+  lightSkyMoonMax: "light.sky.moonMax",
+  /** Light — the moonless, cloudless illuminance floor: starlight and
+   * airglow. Pitch-black to a human; the only thing a night-sighted
+   * species has to read by (S9). */
+  lightSkyStarlight: "light.sky.starlight",
+  /** Light — the sky factor below which a town's lamps are lit (dusk).
+   * Read by `PublicLightingMixin` and the `civic:lighting` schedule. */
+  lightSkyLampDuskFactor: "light.sky.lampDuskFactor",
+  /** Light — the lux a sky-lit room reads at a clear noon overhead sun,
+   * when its row authors no `ambientIntensity`. The DERIVED sky (D4): a
+   * room's noon flux is this times its own floor area, so a row that
+   * authors nothing is lit correctly for its size. */
+  lightSkyNoonLux: "light.sky.noonLux",
+
   /* ────────────────────────── weather (Wave 2 light / sky) ────────────────────────── */
   /** Weather — the maximum ambient-light dimming at full cloud (cloud=1);
    * the resolved cloud coverage scales the SkyExposed ambient by

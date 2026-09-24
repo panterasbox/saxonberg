@@ -745,12 +745,28 @@ async function runBoundaryFanout(): Promise<void> {
     if (resolved.precipitationHere === 'rain') wetOccupants(room);
 
     // Cloud → light dimming (Wave 2, F): stamp a cached dim factor onto a
-    // SkyExposed AmbientLit scope so the sync perception walk reads dimmer
+    // sky-LIT AmbientLit scope so the sync perception walk reads dimmer
     // under overcast / storm (the `lastAmbientK` cache-invalidation
-    // precedent). SkyExposed only — an indoor scope's light is its own.
-    if (sky && MixinApi.isAmbientLit(room)) {
+    // precedent).
+    //
+    // ⚠ The gate is `isSkyLit()`, not `sky` (`isSkyExposed`): since the
+    // envelope build a room can follow the sun through an OPENING while
+    // being fully enclosed — a skylight, a shop window. Cloud dims what
+    // comes through a window exactly as it dims what falls in a yard,
+    // and gating on exposure would have left every such room reading a
+    // cloudless sky forever. An enclosed room with its own glow is
+    // untouched: its light is its own.
+    if (MixinApi.isAmbientLit(room) && room.isSkyLit()) {
+      // ⚠ An enclosed skylit room's own `resolved` is the BIOME baseline
+      // (`computeResolved` only runs the procgen sky field for exposed
+      // scopes), so dimming by it would light a shop window from a sky
+      // nobody is standing under. A window looks at the real sky over the
+      // town, so the dim term asks for the exposed sample explicitly.
+      const skySample = sky
+        ? resolved.sample
+        : computeResolved(room, locality, nowS, true).sample;
       const dimFactor = dial(AppSettingKeys.weatherCloudDimFactor, 0.6);
-      const dim = Math.max(0, 1 - dimFactor * resolved.sample.cloud);
+      const dim = Math.max(0, 1 - dimFactor * skySample.cloud);
       (room as unknown as AmbientLit).setWeatherDimFactor(dim);
     }
   }

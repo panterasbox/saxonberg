@@ -22,6 +22,13 @@ data:
       theme: combustion
       floorEffect: null
   # Light — authored glow (flicker comes for free from the light layer).
+  # ⭐ A campfire row ships ALIGHT, and now says so. `FurnaceMixin.lit`
+  # defaults true, so this was the shipped behaviour already — the
+  # envelope build's `lint:light-sources` clause (g) only makes it a
+  # sentence somebody wrote instead of a default nobody chose. It is
+  # right here: the prose says "crackling", "flames licking at split
+  # logs". A campfire you have to light is a `lit: false` row.
+  lit: true
   emittedIntensity: 120
   emittedColorTemperature: 1800
   # Warming bonus + recovery for a body in the log-seat (outdoor radiant

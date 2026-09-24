@@ -186,6 +186,42 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
       if (Number.isFinite(value) && value >= 0) this.fuelBurnRatePerMin = value;
     }
 
+    /**
+     * ⭐⭐ **A fuelled appliance casts light only while it burns.**
+     *
+     * `LightSourceMixin` emits its authored `emittedIntensity`
+     * unconditionally, and lit-gating was done per class — `isOn()` on
+     * `PortableLight`, `isBurning()` on `Candle`. ⚠ `Campfire`, `Forge`,
+     * `Oven` and `Kiln` have empty class bodies and therefore no gate at
+     * all, so a campfire that burnt out an hour ago has been casting its
+     * full 120 lumens ever since. Nobody caught it because until this
+     * build nowhere was dark enough for it to matter.
+     *
+     * Every furnace composer puts `FurnaceMixin` OUTSIDE
+     * `LightSourceMixin`, so gating here fixes all of them in one place
+     * and the defect cannot come back for the next composer either.
+     * Chains `super` only while burning, so a furnace whose base emits
+     * nothing still emits nothing.
+     */
+    getEmittedFlux(): Quantity<'lumen'> {
+      this.reconcileFurnaceFuel();
+      if (!this.lit || this.fuelRemaining() <= 0) {
+        return Quantity.of(0, 'lumen');
+      }
+      // `super.getEmittedFlux` is unavailable to the type system here —
+      // the base is `MixinConstructor<Stuff>`, and tightening it to
+      // require `LightSource` would refuse a furnace that is not one.
+      // The prototype read is the same lookup `super` would do, and it
+      // follows the chain, so a base that inherits the method still
+      // answers.
+      const base = Base.prototype as {
+        getEmittedFlux?: () => Quantity<'lumen'>;
+      };
+      return base.getEmittedFlux
+        ? base.getEmittedFlux.call(this)
+        : Quantity.of(0, 'lumen');
+    }
+
     // Pinned hot while lit + fuelled; passive embers otherwise.
     getTemperature(): Quantity<'K'> {
       this.reconcileFurnaceFuel();

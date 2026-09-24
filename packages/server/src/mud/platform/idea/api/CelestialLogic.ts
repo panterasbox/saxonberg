@@ -19,6 +19,33 @@ import {
   type ScheduleOpts,
   type ClockHandle,
 } from '../../../api/worldclock';
+import { AppApi } from '../../../api/app';
+import { AppSettingKeys } from '../../../lib/config/AppSettings';
+
+/**
+ * The four constants of {@link skyIlluminanceFactor}, so the pure
+ * geometry stays plain-numbers-in / plain-numbers-out (the pedagogical
+ * seam) while the live read supplies them from `settings/light.yaml`.
+ */
+/**
+ * The sky's illuminance at the moment the sun touches the horizon, as a
+ * fraction of a clear noon overhead sun — diffuse skylight, which is
+ * what you actually see by at sunset. Both branches of the sun term are
+ * anchored here, so the curve is continuous across the horizon.
+ *
+ * Not a dial: it is the join between the two branches, and moving it
+ * without moving both would put the step back.
+ */
+const HORIZON_DIFFUSE = 0.1;
+
+export interface SkyFactorOpts {
+  /** Degrees of sun depression per factor-of-ten twilight falloff. */
+  twilightDecadeDeg?: number;
+  /** The factor a full moon at the zenith contributes. */
+  moonMax?: number;
+  /** The moonless, cloudless floor — starlight and airglow. */
+  starlight?: number;
+}
 
 const DEG_PER_TURN = 360;
 const TWO_PI = Math.PI * 2;
@@ -77,7 +104,68 @@ export class CelestialLogic extends ApiLogic {
     const profile = zone
       ? await zone.lookupField<CelestialProfile>('celestialProfile')
       : null;
+    // ⚠⚠ The single-profile guard (envelope D1). `skyFactorNow()` is a
+    // per-game-minute memo over EARTH_LIKE + CAMPUS_LATITUDE, consumed
+    // SYNCHRONOUSLY by the light walk for every room in the realm — one
+    // sky for one world. A second profile would make that memo silently
+    // wrong for the rooms it does not describe, and the walk has no
+    // location-keyed seam to fix it in. So a zone that authors one fails
+    // loudly and by name rather than reading the other world's sun.
+    // `lint:light-sources` clause (f) refuses the row at build time; this
+    // is the runtime half, for a profile that arrives some other way.
+    if (profile && profile !== EARTH_LIKE) {
+      throw new Error(
+        'CelestialLogic.profileFor: a second celestial profile is ' +
+          'unsupported while the sky factor is global — envelope D1. ' +
+          'Per-zone celestial profiles are a named deferred seam ' +
+          '(time.md § Future work, the biome-normalization slate).'
+      );
+    }
     return profile ?? EARTH_LIKE;
+  }
+
+  /* ──────────────────── the sky's illuminance ──────────────────── */
+
+  /**
+   * Per-game-minute memo of {@link skyFactorNow}. Instance fields on the
+   * singleton, not module scope: the logic tier is a `Stuff` and this is
+   * its state (`CLAUDE.md` § Module scope declares; lifecycles
+   * initialize). `null` = nothing memoized yet.
+   */
+  private _skyFactorMinute: number | null = null;
+  private _skyFactorValue: number = 0;
+
+  /** See {@link CelestialApi.skyIlluminanceFactor}. */
+  @CallSecurity(CelestialApiCallers)
+  public skyIlluminanceFactor(
+    profile: CelestialProfile,
+    latitudeDegrees: number,
+    t: number,
+    opts?: SkyFactorOpts
+  ): number {
+    return skyIlluminanceFactor(profile, latitudeDegrees, t, opts);
+  }
+
+  /** See {@link CelestialApi.skyFactorNow}. */
+  @CallSecurity(CelestialApiCallers)
+  public skyFactorNow(): number {
+    const t = WorldClockApi.getNow().rawValue();
+    const minute = Math.floor(t / 60);
+    if (this._skyFactorMinute === minute) return this._skyFactorValue;
+    const factor = skyIlluminanceFactor(EARTH_LIKE, CAMPUS_LATITUDE, t, {
+      twilightDecadeDeg: dial(AppSettingKeys.lightSkyTwilightDecadeDeg, 3),
+      moonMax: dial(AppSettingKeys.lightSkyMoonMax, 0.03),
+      starlight: dial(AppSettingKeys.lightSkyStarlight, 0.002),
+    });
+    this._skyFactorMinute = minute;
+    this._skyFactorValue = factor;
+    return factor;
+  }
+
+  /** See {@link CelestialApi.lampDuskFactor}. */
+  @CallSecurity(CelestialApiCallers)
+  public lampDuskFactor(): number {
+    return dial(AppSettingKeys.lightSkyLampDuskFactor, 0.1);
   }
 
   /* ──────────────────── instantaneous queries ──────────────────── */
@@ -746,6 +834,88 @@ function moonAzimuthDeg(
  * inclination and orbital eccentricity — first order, not an
  * ephemeris.
  */
+/**
+ * ⭐ The sky's illuminance as a fraction of a clear noon overhead sun
+ * (envelope D2). Pure geometry: plain numbers in, a number in `[0, 1]`
+ * out, no clock and no world state.
+ *
+ * Three terms, added and clamped:
+ *
+ * - **sun** — two parts, because the sky is not only the sun.
+ *   `HORIZON_DIFFUSE + (1 − HORIZON_DIFFUSE) · sin(altitude)` above the
+ *   horizon: the direct beam follows Lambert's cosine law on a
+ *   horizontal surface, and the **diffuse skylight** term does not
+ *   vanish when the sun touches the horizon — which is why sunset is
+ *   still bright enough to work in. Below the horizon, a twilight tail
+ *   falling by a factor of ten every `twilightDecadeDeg` degrees of
+ *   depression, anchored at the same `HORIZON_DIFFUSE`.
+ *
+ *   ⚠ The two branches **meet** at `altitude = 0`, and that is not
+ *   decoration. Written as a bare `sin(α)` above the horizon (the
+ *   plan's D2 as literally stated), the curve stepped from 0 UP to 0.1
+ *   as the sun set: a street got brighter at sunset, monotonically
+ *   backwards, and only for the ten minutes either side of it. Found by
+ *   the anchor tests, which is what they are for. D2's own worked
+ *   numbers already assumed 0.1 at the horizon (*"dim at sunset (0.1 →
+ *   8 lux)"*), so this is the arithmetic the plan meant.
+ * - **moon** — `moonMax · k(phase) · sin(altitude)`, where the phase
+ *   term `k = ((1 − cos 2πp) / 2)²` is 1 at full, 0 at new and 0.25 at
+ *   the quarters. The square is the real thing: a half moon is about a
+ *   tenth of a full one, not a half, because of the opposition surge
+ *   and the shadowed limb.
+ * - **stars** — a constant floor, which is the only reason a moonless
+ *   midnight is not identically zero.
+ *
+ * The sun and the moon are computed independently and added, so a
+ * daylit moon contributes its (negligible) share without any special
+ * case. The result is multiplied by the room's own noon flux and, for a
+ * sky-exposed room, by the weather's cloud dim factor — three factors
+ * that know nothing about each other.
+ */
+function skyIlluminanceFactor(
+  profile: CelestialProfile,
+  latitudeDegrees: number,
+  t: number,
+  opts?: SkyFactorOpts
+): number {
+  const twilightDecadeDeg = opts?.twilightDecadeDeg ?? 3;
+  const moonMax = opts?.moonMax ?? 0.03;
+  const starlight = opts?.starlight ?? 0.002;
+
+  const sunAlt = solarAltitudeDeg(profile, latitudeDegrees, t);
+  const sun =
+    sunAlt >= 0
+      ? HORIZON_DIFFUSE + (1 - HORIZON_DIFFUSE) * Math.sin(toRad(sunAlt))
+      : twilightDecadeDeg > 0
+        ? HORIZON_DIFFUSE * Math.pow(10, sunAlt / twilightDecadeDeg)
+        : 0;
+
+  const synodic = profile.moons[0]?.synodicPeriodDays ?? 0;
+  let moon = 0;
+  if (synodic > 0 && moonMax > 0) {
+    const moonAlt = moonAltitudeDeg(profile, latitudeDegrees, synodic, t);
+    if (moonAlt > 0) {
+      const phase = moonPhaseFor(profile, synodic, t);
+      const k = Math.pow((1 - Math.cos(TWO_PI * phase)) / 2, 2);
+      moon = moonMax * k * Math.sin(toRad(moonAlt));
+    }
+  }
+
+  return clamp(sun + moon + starlight, 0, 1);
+}
+
+/** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function moonEclipticLongitudeDeg(
   profile: CelestialProfile,
   synodicPeriodDays: number,

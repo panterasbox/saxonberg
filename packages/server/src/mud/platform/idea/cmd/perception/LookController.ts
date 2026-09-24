@@ -43,6 +43,15 @@ import { PerceptionApi } from '../../../../api/perception';
 import { SocialApi } from '../../../../api/social';
 import { Mml } from '../../../../api/mml';
 import type Exit from '../../../../lib/boundary/Exit';
+import {
+  LIGHT_BAND_PHRASE,
+  LIGHT_BANDS_TOO_DARK_TO_DESCRIBE,
+  type LightBand,
+} from '../../../../lib/perception/Light';
+import type { VisionModality } from '../../modalities/VisionModality';
+import type { Sensor } from '../../../../lib/message/Sensor';
+import type { Perception } from '../../../../lib/perception/Perception';
+import type { Container } from '../../../../lib/spatial/Container';
 
 interface LookModel extends CommandModel {
   target?: MqlOneResult;
@@ -158,6 +167,13 @@ export default class LookController extends CommandController<LookModel> {
     const hasExits = MixinApi.isExitable(location);
     const hasName = MixinApi.isNamed(location);
 
+    // ⭐⭐ How much light there is, to THIS actor (envelope D10). The
+    // per-viewer read, so a night-sighted species and a human standing
+    // in the same room get different answers — the one thing a species
+    // vision profile has never been able to affect, because until this
+    // build nowhere was dark.
+    const band = this.perceivedBandAt(actor, location);
+
     // Visible-mixin filter mirrors `lookAtTarget`'s structural-only
     // policy: items that don't compose Visible can't be referenced
     // anyway, so listing them would be a category error. Adornments
@@ -187,6 +203,31 @@ export default class LookController extends CommandController<LookModel> {
         .topic('sense.survey')
         .toSelf(Mml.compose`Your surroundings are indistinct.`)
         .send();
+      return;
+    }
+
+    // ⭐⭐ Too dark to describe. A description is what you can SEE, so
+    // below `dim` the room's authored prose is withheld and the band's
+    // own sentence is all you get — plus the exits, because you can feel
+    // along a wall for a door in the pitch dark. That is what makes
+    // acceptance 1 true with nothing authored anywhere: the same street
+    // at noon and at midnight renders two different things.
+    //
+    // ⚠ **And no card opens.** A card is a view of what you perceive;
+    // you perceive nothing of the place. Opening one would put the
+    // room's name and description on the client's right-hand column
+    // while the transcript said it was pitch dark — the carded-prose
+    // split working exactly backwards. Decided at build time (D10 said
+    // "withhold the long description" and did not say where the card
+    // stood); lens 3 chose it — an honest sim does not show you a room
+    // you cannot see.
+    if (band && LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band)) {
+      let dark = Mml.compose`${Mml.fromMarkup(LIGHT_BAND_PHRASE[band] ?? '')}`;
+      if (hasExits) {
+        const exitsLine = this.formatExits(location.obviousExitsFor(actor));
+        if (exitsLine) dark = Mml.compose`${dark}\n${exitsLine}`;
+      }
+      MessageApi.scene(actor).topic('sense.survey').toSelf(dark).send();
       return;
     }
 
@@ -358,6 +399,22 @@ export default class LookController extends CommandController<LookModel> {
       subjectId: location.stuffId,
     });
 
+    // ⭐ The light line rides its OWN uncarded scene, AHEAD of the room,
+    // for the same reason the notices below ride one: everything folded
+    // into `body` is handed to the card and then suppressed from the
+    // transcript, and the card is a field projection that never renders
+    // the handed prose. A room's light is not one of its fields, so
+    // folding it in would reach the wire and be invisible in a browser —
+    // the defect the trades-and-labor drive found for the help-wanted
+    // sign, not repeated here.
+    const bandPhrase = band ? LIGHT_BAND_PHRASE[band] : null;
+    if (bandPhrase) {
+      MessageApi.scene(actor)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.fromMarkup(bandPhrase)}`)
+        .send();
+    }
+
     const scene = MessageApi.scene(actor).topic('sense.survey');
     // ⭐ Says *this content is also on a card*, so `shell.result` can
     // filter it. A topic key could not: `sense.survey` is shared by
@@ -377,6 +434,29 @@ export default class LookController extends CommandController<LookModel> {
     }
 
     return;
+  }
+
+  /**
+   * The light band at `location` as `actor` perceives it, or `null`
+   * when this actor cannot run vision queries at all (a fixture, a
+   * test double) or the vision singleton is not loaded. `null` degrades
+   * to today's behaviour — describe the room — which is the right
+   * failure: a perception gap must never take `look` down.
+   */
+  private perceivedBandAt(actor: Stuff, location: Stuff): LightBand | null {
+    if (!MixinApi.isSensor(actor) || !MixinApi.isPerception(actor)) {
+      return null;
+    }
+    if (!MixinApi.isContainer(location)) return null;
+    try {
+      const vision = PerceptionApi.modalityByName('vision') as VisionModality;
+      return vision.perceivedBand(
+        actor as Stuff & Sensor & Perception,
+        location as unknown as Stuff & Container,
+      );
+    } catch {
+      return null;
+    }
   }
 
   private async lookAtTarget(

@@ -36,10 +36,20 @@ data:
   lifespanMax: 135
   circadianBand: nocturnal
   diet: omnivore
+  # ⭐ A nocturnal species that reads the dark ONE BAND BRIGHTER than a
+  # human does: starlight alone is `pitch-black` to homo sapiens and
+  # `very-dim` to a kobold, which is the difference between needing a
+  # lantern to cross a moonless street and not needing one.
+  #
+  # ⚠ This shipped as `bandShift: -1` — DARKER — against its own
+  # `scotopicMin: very-dim` and its own prose, which says the opposite.
+  # It read as a typo and never as a bug because until the envelope build
+  # (2026-09-24) nowhere in the realm was dark enough for any band shift
+  # to change a single word of output.
   visionProfile:
-    scotopicMin: very-dim
+    scotopicMin: pitch-black
     photopicMax: bright
-    bandShift: -1
+    bandShift: 1
   olfactoryProfile:
     acuity: keen
   longDescription: >-
