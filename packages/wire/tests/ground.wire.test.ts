@@ -289,19 +289,20 @@ suite('18–19 · outdoors, over ground nobody described', () => {
     // AC 14: before this build, only a field could say anything about the
     // dirt it stood on, because the model was farming's. A wood answers now.
     //
-    // ⚠⚠ **What it answers is a recorded finding, not a passing claim.** In
-    // the booted world this reads *"It is oak, laid as boards"* — the INDOOR
-    // default — because the clearing resolves as not-sky-exposed and the
-    // ladder therefore never reaches rung 3. The derivation is proven in
-    // `lib/ground/__tests__/Floor.test.ts` on both limbs (below datum, and
-    // sky-exposed via a resolved biome); five outdoor rooms in the shipped
-    // world answer false all the same. So this asserts what the build
-    // delivers — a wood has a floor that answers in words — and the ground
-    // plan's drive record carries the gap to whoever owns the biome.
+    // ⚠⚠ This step read *"It is oak, laid as boards"* — the INDOOR default —
+    // on the first drive, and chasing it is what found the real bug: the
+    // biome roster was never warmed, so `getBiome()` answered null for every
+    // room in the world, `isSkyExposed` answered its documented
+    // false-when-nothing-resolves, and the ladder never reached rung 3. With
+    // `BiomeCatalogue` standing the roster up, a wood reads its own ground.
+    //
+    // ⭐ So the assertion is the strong one: **earth**, off the ground pack's
+    // procedural character, seeded from the address. Not *"it answers"*.
     wood = await at(CLEARING, 'wood');
     const said = await look(wood, 'ground');
     expect(said).not.toMatch(NOT_FOUND);
-    expect(said).toMatch(/\bit is\b/i);
+    expect(said).toMatch(/loam|clay|sand/i);
+    expect(said).toMatch(/bare earth|loose underfoot|waterlogged to mire/i);
   });
 
   it('…and it is sittable, like any other ground', async () => {

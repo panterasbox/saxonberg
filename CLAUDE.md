@@ -254,7 +254,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, cadence/witness triggers, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
-  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed, six instruments
+  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed, six instruments; ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam

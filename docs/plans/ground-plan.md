@@ -1201,7 +1201,7 @@ adit      It is oak, laid as boards.        ← a MINE
 **Every outdoor room in the booted world answers *not on grade*, so the ladder
 never reaches rung 3 and they all take the indoor default.**
 
-⚠ **The mechanism is not the fault, and the cause is now a TEST rather than a
+⚠ **The mechanism was not the fault, and the cause became a TEST rather than a
 hypothesis.** `Location.floor.test.ts` runs the same room twice through the real
 clone pipeline and the only difference is one line:
 
@@ -1210,33 +1210,72 @@ a cited biome nothing cloned  → getBiome() === null → not on grade → oak b
 await StuffApi.singleton(BIOME) first → getBiome() resolves → ON GRADE → set-paving
 ```
 
-⭐⭐ **So the cause is that `Atmospheric.getBiome()` has no get-or-create.** It is
-an identity ref resolved on read through `BiomeApi.findByPath` →
-`StuffApi.findByTemplatePath` — a **registry** read. A room whose row cites a
-biome nobody instantiated answers `null` forever; `isSkyExposed` then answers
-`false`, which is its documented behaviour when no biome resolves. That is the
-***reference Ideas inert at boot*** shape this repo has recorded **three times
-before**, and `StuffApi.singleton` is the shipped answer to it
-(`lint:get-or-create` exists because of it). ⚠ It belongs to the biome owner,
-not here: changing `getBiome()` to clone on read is a one-line fix with a
-world-sized blast radius — every room in the game, on a path the weather walk
-hits constantly — and it is not this build's call to make.
+⭐⭐ **The cause: `Atmospheric.getBiome()` is a REGISTRY read with no
+get-or-create.** `BiomeApi.findByPath` → `StuffApi.findByTemplatePath` answers
+only with instances already live, so a room citing a biome nobody stood up
+answers `null` forever and `isSkyExposed` returns its documented
+false-when-nothing-resolves. The ***reference Ideas inert at boot*** shape, for
+the **fourth** time.
 
-`Floor.test.ts` also pins the other limb independently: a room **below datum**
-is on grade with **no biome at all**, so the two limbs cannot mask each other
-again.
+⚠⚠ **And the repo had the receipt.** `base-library/pack.yaml`'s `boot:` block
+names exactly one biome — the root — with this note already on it:
 
-⭐ **What the build did about it, and deliberately no more.** The two rooms it
-authored now say `onGrade: true` out loud — which is right on its own terms,
-since a street IS on grade and the crossing and the yard already said so. It
-did **not** add a third derivation limb to paper over a biome that does not
-resolve: that would hide the finding in the one place it is currently legible.
-⚠ **AC 8 and AC 14 are therefore mechanically delivered and observably thin**
-— a wood answers what its ground is like, and what it answers today is the
-indoor default. The wire file says so at the step rather than asserting a
-success it does not have, and `lint:ground --report`'s `default:on-grade` count
-is the meter for the fix. → offered to the **biome** owner and the 1.0 content
-pass.
+> *"⚠ It was never cloned by anything … so `analyze power <thing>` threw 'root
+> universe biome is not loaded' in every fresh world, found by the grain-chain
+> wire flow."*
+
+That fixed the ROOT and left every other biome cold, **including the one every
+outdoor room in the game cites.** An enumerated boot list is a list somebody has
+to remember to extend.
+
+### ⭐ W6 — the fix (added on the user's instruction, after the MR opened)
+
+`platform/idea/BiomeCatalogue.ts`, the `MaterialCatalogue` shape exactly:
+self-warming at `postRegister`, eager through the platform pack's `boot:`
+manifest (`sync-read`), and the roster **derived** — every root's `idea/biome/`
+subtree filtered to rows whose `class` extends `Biome`, so a realm pack shipping
+`/world/<place>/idea/biome/cavern` is warmed with nothing to edit here. The
+root's own boot line **stays**: `getRootBiome()` *throws* when cold, and belt
+and braces for the one row whose absence is fatal rather than silent costs one
+line.
+
+⚠ **A trap caught by the test, not by review.** The class filter must test
+against **`lib/biome/Biome`**, not the concrete twin beside the catalogue:
+`SkyExposedBiome extends SkyExposedMixin(lib/biome/Biome)`, so
+`prototype instanceof platform/idea/Biome` is **false** for it — the warm would
+have skipped exactly the biomes that decide sky exposure. `MaterialCatalogue`
+reaches for `lib/material/Material` for the same reason. The shared-stem twin
+pattern is easy to import the wrong half of, and the test now asserts all three
+relationships.
+
+**Driven, before and after:**
+
+```
+                 before                          after
+clearing (wood)  It is oak, laid as boards.      It is dark brown loam, bare earth.   ✓ AC 14
+hinkley apron    It is oak, laid as boards.      It is dark brown loam, bare earth.   ✓ AC 8
+dorm room        It is oak, laid as boards.      It is oak, laid as boards.           ✓ correct
+pithead yard     It is oak, laid as boards.      It is oak, laid as boards.           ← see below
+mine adit        It is oak, laid as boards.      It is oak, laid as boards.           ← see below
+```
+
+⭐ **AC 8 and AC 14 are now genuinely delivered**, and the wire file's wood step
+asserts the strong claim — *earth*, off the ground pack's procedural character,
+seeded from the address — rather than *"it answers"*.
+
+⚠ **The two that did not move are a different problem, and not this
+mechanism's.** `pithead-yard.yaml` and `adit.yaml` author **no `_biomePath` at
+all**: nothing resolves because nothing was named, and the outward walk has
+nowhere to go (a root Location has no container, and zones are not in the
+containment chain). That is content debt in `rejection` — both rooms are already
+on `UNBACKED_GROUND_CLAIMS` — and `lint:ground --report`'s `default:indoor`
+count is what measures it. → the 1.0 content pass, on
+[rejection-slate](../slates/builds/rejection-slate.md).
+
+⭐ The `onGrade: true` lines on the square and the lane **stay**, and their
+comments were rewritten to say what is now true: the derivation agrees with
+them, so they document intent rather than working around a defect. A street is
+on grade and a reader should not have to derive it.
 
 ### Run 3 — ⭐ 27/27
 
