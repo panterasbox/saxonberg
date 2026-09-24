@@ -51,6 +51,7 @@ args:
   - name: tool
     type: objects
     required: false
+    greedy: true
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
@@ -99,5 +100,29 @@ describe('a greedy optional does not eat the args after it', () => {
     expect(bind('probe ground the north face')['subject']).toBe(
       'the north face',
     );
+  });
+
+  it('⭐⭐ an OPTIONAL greedy tail may follow an optional greedy one', () => {
+    // ⚠⚠ The view above declares TWO optional greedy args, and it used
+    // to be unloadable: `validateArgOrdering` counted `greedy: true` as
+    // `required: true` unconditionally, so the trailing one "required"
+    // after an optional one threw at load. That contradicted the rule
+    // directly above it, which was deliberately relaxed so a greedy arg
+    // MAY be followed by prepositional args.
+    //
+    // ⭐ Found by driving `measure light with the photometer`: the whole
+    // reading ladder is `<channel> [<subject…>] [with <tool…>]`, and
+    // both tails need `greedy` or an article eats a positional. The
+    // view says `required: false` and means it.
+    expect(() => bind('probe light')).not.toThrow();
+  });
+
+  it('⭐ …and the article survives after the PREPOSITION too', () => {
+    expect(bind('probe light with the photometer')['tool']).toBe(
+      'the photometer',
+    );
+    const both = bind('probe light the lamp with the photometer');
+    expect(both['subject']).toBe('the lamp');
+    expect(both['tool']).toBe('the photometer');
   });
 });

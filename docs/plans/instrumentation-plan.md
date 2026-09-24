@@ -1554,7 +1554,7 @@ commit. Order matters — each step keeps the tree green.
 > phrase is the teaching: *"{} is not a sample — take one with `sample`,
 > so it says where it came from."*
 
-#### W7 — The assayer (R-lens 6, drive H23)
+#### ✅ W7 — The assayer — DONE
 
 - The `Business` row owning the bench's site gains an `assayer` position
   (`wageRate`, roster) and a `Cast` row (dossier `competence:
@@ -1581,7 +1581,33 @@ commit. Order matters — each step keeps the tree green.
   customer is refused before the sample is taken.
 - Commit: `build(instrumentation W7): pay the assayer`.
 
-#### W8 — Salting and the spoiled sample (R-D17, R-D19, drive J, K)
+> **Wave note — ⭐⭐ the plan named the wrong house, and the right one
+> already had the seat's room.**
+>
+> W7 was written against `coop-business.yaml`, whose `operatingLocations`
+> are the adit and the timbered drift — correctly observed, and the wrong
+> business. **The SMELTER business already operates the assay shed and
+> already rosters the ore buyer there**: a broad woman with a jeweller's
+> glass on a cord, `geology: competent` in her dossier, who *"weighs
+> everything twice and writes down the second figure"*. The person who
+> runs an assay for you was standing at the bench the whole time.
+>
+> So no body was added and no `operatingLocations` edit was needed. What
+> was missing was a **POSITION** — and the plan's warning was still the
+> load-bearing one, just resolved by finding the seat's room rather than
+> by adding it.
+>
+> ⭐ The paper credits the READER's band when somebody ran it and the
+> bench's ceiling when nobody did — the minimum of the two, as everywhere
+> on this ladder.
+>
+> ⚠ **The fee changed shape.** The plan had it owed when the bench is
+> staffed. It is owed for using somebody ELSE'S furnace, staffed or not —
+> fuel costs the same in an empty shed — and what the staff change is the
+> BAND on the paper, not the price of the fire. The house's own people
+> pay nothing, and the refusal comes BEFORE the samples change hands.
+
+#### ✅ W8 — Salting and the spoiled sample — DONE
 
 - Salting is content-free (D20); the wave is **tests**: the stamp cannot
   be set by any verb, `authorable: false`, a second `sample` at a
@@ -1590,7 +1616,18 @@ commit. Order matters — each step keeps the tree green.
   band as read now, and the derived tell at `competent+` (D21).
 - Commit: `build(instrumentation W8): the record is truthful; people are not; the sample went off in the carrying`.
 
-#### W9 — Aggregation (R-D6 record rung, drive I26–27)
+> **Wave note.** Content-free as designed. The tests assert the three
+> claims: the stamp is unforgeable (the gate throws on a direct call),
+> nothing about it is `authorable`, and re-sampling somewhere else
+> re-stamps — **honestly**, because that is where the sample was taken.
+> The fraud is in what you handed over, never in a forged record.
+>
+> ⭐ The spoiled-sample tell is derived from `sampledOn` against the
+> shipped `FreshnessMixin` clock, with no second clock anywhere. At
+> `novice` the reading is right and the reader cannot say what it is
+> really about; that gap IS the product.
+
+#### ✅ W9 — Aggregation — DONE
 
 - `GroundReading` (mining) reads the actor's `grade` reports
   (`MqlApi.resolveMany('me:i:[class.ReadingRecord]')`) with distinct
@@ -1605,6 +1642,21 @@ commit. Order matters — each step keeps the tree green.
   note and the `ReadingRecord`. That is this build's whole debt to
   advancement, and it is cheaper to check now than to retrofit.
 - Commit: `build(instrumentation W9): what your samples add up to`.
+
+> **Wave note.** `analyze ground` solves a grade GRADIENT over the assay
+> papers the prospector is carrying — which way the body gets richer,
+> the fact no single paper contains — and below the band's threshold
+> says how many more and from where.
+>
+> ⚠⚠ **Distinct faces are counted by GROUPING THE STRINGS**, asserted
+> with a place that does not exist and never will. A worked-out face, a
+> collapsed gallery and a room that was never persisted all still count,
+> because where a sample was taken is a fact about the past.
+>
+> ✅ **The mirror's two halves are both readable by their owner**, as
+> D15 asked this wave to confirm: the `grade:` field-call belief note
+> (written by the eye rung) and the `ReadingRecord` (minted by the
+> bench). The arithmetic is advancement's and is not here.
 
 #### W10 — The second bench, the Stage B drive, the MR
 

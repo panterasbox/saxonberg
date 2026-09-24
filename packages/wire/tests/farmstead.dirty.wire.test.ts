@@ -87,7 +87,15 @@ suite('the yard outfits you', () => {
   it('⭐ and the farm knows WHERE it is', async () => {
     // Without a zone `address:` this answers nothing — the address walk
     // is what puts the campus on the map.
-    expect(await p.prose('analyze address')).toMatch(/terminus\/city\/campus/i);
+    //
+    // ⚠ It was `analyze address` and is `trace address` now. The
+    // instrumentation build moved the two engine diagnostics off the
+    // reading verbs: `analyze` answers facts about the WORLD that
+    // competence resolves and an instrument sharpens, and this answers
+    // *where did the engine get that value from*, which is a question
+    // about the simulation. Same controller, same output, a free
+    // `system` verb beside `affordances` and `errors`.
+    expect(await p.prose('trace address')).toMatch(/terminus\/city\/campus/i);
   }, 60_000);
 });
 
