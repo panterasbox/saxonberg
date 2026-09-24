@@ -83,8 +83,11 @@ thin drug slice.
   `prescribe`, the cross-match decision) is the doctor. **Prescribing is
   the doctor's (MD's) power; administering is the nurse's.**
 - Each thin-slice drug (**anaesthetic, antibiotic, analgesic, saline**)
-  has a **local, autarky-completable source** and is administered by
-  `dose` under a doctor's `prescribe`.
+  has a **local, autarky-completable source**, administered by `dose`.
+  ⭐ The **controlled** actives — **anaesthetic + antibiotic** — are
+  **prescription-only** (a doctor `prescribe`s, a nurse `administer`s);
+  the **analgesic** (willow tea) is folk medicine anyone brews, and
+  **saline** is transfused, not dosed (planner D9).
 
 ## Non-goals
 
@@ -232,8 +235,10 @@ to volume and mismatch — the values/consequence hook, and the reason
   knowing the type (`test`/cross-match, either Discipline). Unmatched
   blood is where it goes wrong.
 - **Prescribing is doctor-only** (the MD power); the nurse administers
-  what is prescribed. This is the psychiatry seam: a future psychiatrist
-  is an MD who prescribes for mental conditions.
+  what is prescribed — for the **controlled** actives (anaesthetic,
+  antibiotic). Folk remedies (willow analgesic) and saline need no
+  prescription (planner D9). This is the psychiatry seam: a future
+  psychiatrist is an MD who prescribes for mental conditions.
 
 ### The return date is a CALENDAR entry, not a body-read or a bespoke record
 ⚠ **You cannot look at a wound and know "come back in two weeks."** That is
@@ -279,8 +284,11 @@ Four actives on the shipped `dose`/tag substrate: **anaesthetic**
 and may thrash), **antibiotic** (the sepsis counterplay), **analgesic**
 (pain; source: willow bark, already in the world), **saline** (the
 volume floor; `salt-water`, already a material). Each has a **local,
-autarky-completable source** — see the supply-chain map. The full
-pharmacopoeia/extraction/assay economy is `pharma-slate`.
+autarky-completable source** — see the supply-chain map. ⭐ **Only the
+controlled actives (anaesthetic, antibiotic) are prescription-gated**
+(the MD line); willow analgesic is folk/OTC and saline is transfused
+(planner D9). The full pharmacopoeia/extraction/assay economy is
+`pharma-slate`.
 
 ### Design latitude — fictional remedies to nonfictional maladies
 ⭐ **The latitude is total, up and down the chain** (user direction): combat
