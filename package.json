@@ -14,6 +14,7 @@
     "@saxonberg/content-eternal-university": "workspace:*",
     "@saxonberg/content-expression": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-ground": "workspace:*",
     "@saxonberg/content-hearthworks": "workspace:*",
     "@saxonberg/content-hearts-delight": "workspace:*",
     "@saxonberg/content-hinkley-hills": "workspace:*",

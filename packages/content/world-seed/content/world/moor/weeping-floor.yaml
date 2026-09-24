@@ -7,9 +7,22 @@ class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wet flagstones
-  keywords: [flagstones, wet]
+  # ⚠⚠ This list used to be `[flagstones, wet]` — NEITHER `floor` nor
+  # `ground`. The MQL scope walk pools a thing's own `getKeywords()`, and
+  # `pushDetails` gives a detail the pool `[<its id>]` and never its
+  # authored keywords, so the `details.floor.keywords` below could not help:
+  # `sit` and `look floor` both found nothing in this chamber.
+  # `FloorMixin` unions both words onto every floor now, and `lint:ground`
+  # clause (d) holds every floor ROW to saying them out loud as well.
+  keywords: [flagstones, wet, floor, ground]
   register: proper
   longDescription: Worn flagstones under a spreading skin of rainwater that never quite drains.
+  # Slate, dressed, on grade — `set-paving`. Flagstones are riven slate,
+  # which is why the moor has them: `rock/slate` is the country rock of the
+  # Ferrow cap and it CLEAVES, which is what makes it roof and pave.
+  _materialPath: /stuff/idea/material/rock/slate
+  worked: true
+  onGrade: true
   surfaceBulk: true
   surfaceCapacity: 60
   staticSlots:
@@ -18,7 +31,14 @@ data:
       capacity: 9007199254740991
       postures: [sit, lie, kneel, stand]
       userFacingDetail: floor
-  details:
-    floor:
-      keywords: [floor, flagstones, ground, water, pool]
-      description: Worn flagstones under a spreading skin of rainwater.
+  # ⚠⚠ **No `floor` / `ground` DETAIL.** There used to be one here, and the
+  # drive is what found it: `look floor` bound the DETAIL rather than the
+  # floor object, and a detail's description renders WITHOUT the host's
+  # `markupAugmenters` — so the derived sentence naming the material was
+  # invisible in exactly the place an author would look for it. The detail
+  # was a workaround for a floor not being addressable by its own name;
+  # `FloorMixin` unions `floor` and `ground` onto the class, so the object
+  # answers and the self-referential detail is now redundant AND harmful.
+  # `lint:ground` clause (f) refuses one. A detail naming a real sub-feature
+  # — the crossing's worn track, the yard's gutter — is the opposite case
+  # and is exactly what details are for.

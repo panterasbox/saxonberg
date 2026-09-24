@@ -19,7 +19,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as readsAir } from '../reads-air';
 import MineRoom from '../../location/MineRoom';
-import Deposit from '../../idea/Deposit';
+import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Biome from '@saxonberg/server/mud/platform/idea/Biome';

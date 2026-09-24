@@ -4,9 +4,15 @@ class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brine-flooded stone floor
-  keywords: [floor, brine-flooded, stone]
+  # `ground` added by `lint:ground` clause (d) — see the gate.
+  keywords: [floor, ground, brine-flooded, stone]
   register: indefinite
   longDescription: A stone floor under a sheet of ankle-deep brine.
+  # Granite, dressed — a gallery floor. ⚠ `onGrade` is left to derive
+  # (indoor, at datum → false), so this reads as `slab` rather than paving:
+  # the practicum gallery is a built room, not a street.
+  _materialPath: /stuff/idea/material/rock/granite
+  worked: true
   surfaceBulk: true
   surfaceMaterial: /stuff/idea/material/bulk/salt-water
   surfaceAmount: 30
@@ -16,7 +22,14 @@ data:
       capacity: 9007199254740991
       postures: [sit, lie, kneel, stand]
       userFacingDetail: floor
-  details:
-    floor:
-      keywords: [floor, ground, water, pool, brine]
-      description: A stone floor under a sheet of ankle-deep brine.
+  # ⚠⚠ **No `floor` / `ground` DETAIL.** There used to be one here, and the
+  # drive is what found it: `look floor` bound the DETAIL rather than the
+  # floor object, and a detail's description renders WITHOUT the host's
+  # `markupAugmenters` — so the derived sentence naming the material was
+  # invisible in exactly the place an author would look for it. The detail
+  # was a workaround for a floor not being addressable by its own name;
+  # `FloorMixin` unions `floor` and `ground` onto the class, so the object
+  # answers and the self-referential detail is now redundant AND harmful.
+  # `lint:ground` clause (f) refuses one. A detail naming a real sub-feature
+  # — the crossing's worn track, the yard's gutter — is the opposite case
+  # and is exactly what details are for.

@@ -4,8 +4,8 @@ import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
  * identity and its index** (D21).
  *
  * The field pattern again, and the third time this build has reached for
- * it: `Deposit.sampleAt` for rock, `GroundCharacter.resolve` for dirt,
- * this for animals. *Seeded, never drawn*, so the answer was true before
+ * it: `Deposit.sampleAt` for rock, `GroundCharacter.resolve` for dirt
+ * (both `/system/ground`'s since the ground build), this for animals. *Seeded, never drawn*, so the answer was true before
  * anyone asked and **head 17 drafted twice is the same animal**.
  *
  * > **Identity is earned by being measured.** That stops being a

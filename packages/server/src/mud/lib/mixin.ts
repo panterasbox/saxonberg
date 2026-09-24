@@ -310,6 +310,16 @@ export const Mixins = {
   Wieldable: 'WieldableMixin',
   Postured: 'PosturedMixin',
   Posed: 'PosedMixin',
+  // ⭐ The ground you stand on — the floor's own capability (keywords,
+  // the canonical posture slot, the material ladder, the derived kind).
+  // `platform/thing/Floor` is its only composer today; a vehicle deck
+  // would be the second, with `onGrade: false`.
+  Floor: 'FloorMixin',
+  // *This Idea can say what the ground is made of at a spot and depth.*
+  // The kernel declares the capability; `/system/ground`'s `Deposit` and
+  // `GroundCharacter` implement it, which is how a floor asks the column
+  // a question the kernel cannot import the answer to.
+  GroundSource: 'GroundSourceMixin',
   Mountable: 'MountableMixin',
   Drivable: 'DrivableMixin',
   // Drivable from a seat you occupy — the cart's driver, not the reins.
@@ -645,6 +655,10 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SealableMixin: "{} doesn't open and close",
   BulkableMixin: "{} doesn't hold liquid to read",
   AdornmentMixin: "{} doesn't hang or mount there",
+  // ⭐ Not "isn't a floor" — the useful information is that the thing
+  // named is not the ground, which is what a player asked about.
+  FloorMixin: "{} isn't the ground underfoot",
+  GroundSourceMixin: "{} doesn't know what the ground is made of",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",

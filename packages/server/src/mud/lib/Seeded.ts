@@ -11,9 +11,11 @@
  * on any machine, after any restart. That property is this file.
  *
  * ⚠⚠ **It was written four times.** `mix2` and `roll01` were
- * character-for-character identical in `WeatherLogic`, trade-farming's
- * `GroundCharacter`, trade-mining's `Deposit` and trade-ranching's
- * `HeadSeed` — each module-private, so none could see the others. Four
+ * character-for-character identical in `WeatherLogic`, `GroundCharacter`,
+ * `Deposit` and trade-ranching's `HeadSeed` — each module-private, so none
+ * could see the others. (The first two are now `/system/ground`'s, having
+ * moved out of trade-farming and trade-mining; the copies were already
+ * gone by then.) Four
  * copies of a hash is not a tidiness problem: **if one drifts, two
  * subsystems disagree about the same address**, and the world stops being
  * reproducible in a way no test asserts, because each suite checks its own

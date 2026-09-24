@@ -36,6 +36,7 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { GroundSourceMixin } from '@saxonberg/server/mud/lib/ground/GroundSource';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
@@ -243,7 +244,7 @@ const DEFAULT_HARDNESS_MPA = 150;
 /** Degrees → radians. */
 const RAD = Math.PI / 180;
 
-export default class Deposit extends Idea {
+export default class Deposit extends GroundSourceMixin(Idea) {
   /** Display name (`'ferrow'`). */
   protected name: string = '';
 
@@ -487,6 +488,34 @@ export default class Deposit extends Idea {
     }
     const last = this.stratigraphy[this.stratigraphy.length - 1];
     return last?.host ?? DEFAULT_HOST;
+  }
+
+  /**
+   * ⭐ `GroundSourceMixin` — *what is the ground made of here?* asked by a
+   * kernel `Floor` on grade, which cannot import this class and does not
+   * need to.
+   *
+   * A column knows everything from the collar DOWN and nothing above it:
+   * `z > 0` is air (`sampleAt` is bounded at the collar for the same
+   * reason), so the honest answer there is `null` and the floor falls to
+   * its next rung. At or below the collar it is the country rock — an
+   * authored **pin's** host first, so the same fold order that governs
+   * every other read of this class governs this one too.
+   *
+   * ⚠ The material is the HOST ROCK, never the ore. A face in a rich band
+   * is still granite you are standing on; what the band contains is the
+   * grade, which is `sampleAt`'s business and a different question.
+   */
+  public groundMaterialAt(
+    spot: readonly [number, number],
+    zM: number,
+    address: string,
+  ): string | null {
+    void address; // the column is positional; its seed is the zone's
+    if (zM > 0) return null;
+    const pin = this.features?.pins?.[pointKey([spot[0], spot[1], zM])];
+    if (pin?.host) return pin.host;
+    return this.hostAt(zM);
   }
 
   /**

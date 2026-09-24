@@ -1,0 +1,33 @@
+# Clay — fine-grained plastic earth. The subsoil a ditch cuts into, the
+# puddled floor of a byre, and (fired) the parent of everything in
+# `ceramic/`.
+#
+# ⚠ Not the same row as `ceramic/ceramic`, which is FIRED clay and a
+# different material with different numbers. This one is the ground; that
+# one is the mug. The two share the keyword `clay` because both honestly
+# answer to it.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: clay
+  keywords: [clay, earth]
+  appearance: grey-brown clay
+  # Bulk density of a compacted clay soil (kg/m^3).
+  density: 1700
+  thermalConductivity: 1.1
+  specificHeat: 920
+  # Dry clay is near-inert; it is the WATER in it that conducts, and that
+  # rides the surface puddle.
+  electricalConductivity: 1.0e-3
+  # Holds water and will not give it up — which is why a clay floor goes
+  # to mire and stays there.
+  waterAbsorptionCapacity: 45
+  hardness: 5
+  toughness: 2
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["earth", "solid", "soil", "plastic"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

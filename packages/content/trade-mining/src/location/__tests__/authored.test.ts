@@ -20,7 +20,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import AuthoredWorking from '../AuthoredWorking';
 import MineRoom from '../MineRoom';
 import { WORKING_MIXIN } from '../../lib/Working';
-import Deposit from '../../idea/Deposit';
+import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

@@ -21,6 +21,26 @@ describe('Floor', () => {
     expect(MixinApi.hasMixin(Floor, Mixins.Slotted)).toBe(true);
   });
 
+  it('⭐ has the canonical ground slot with NO staticSlots authored', () => {
+    // Since the ground build the slot is a class-level default, so
+    // `forge-floor` — which authored no slot block at all and was
+    // therefore pourable but not sittable — now seats people.
+    const floor = makeStuff(() => new Floor());
+    expect(floor.getStaticSlots()).toHaveLength(0);
+    expect(floor.getSlotNames()).toEqual(['ground:1']);
+    expect(floor.getAcceptedPostures('ground:1')).toEqual([
+      'sit',
+      'lie',
+      'kneel',
+      'stand',
+    ]);
+    expect(floor.getSlotSpec('ground:1')!.capacity).toBe(UNBOUNDED_CAPACITY);
+
+    const s = makeStuff(() => new Sitter());
+    floor.occupy(s, 'ground:1');
+    expect(floor.getOccupantCount('ground:1')).toBe(1);
+  });
+
   it('accepts the default-floor staticSlots shape with unbounded capacity', () => {
     const floor = makeStuff(() => new Floor());
     floor.setStaticSlots([

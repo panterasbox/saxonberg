@@ -1,0 +1,30 @@
+id: ground
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /system/ground
+description: >-
+  Ground — the ground's own body, as distinct from anything anybody does to
+  it. The column (`Deposit` — the stratigraphic bands and the orebody in
+  them) and the surface (`GroundCharacter` — texture, stoniness, drainage,
+  slope, depth, native pH), plus the `Strata` reads that turn a room's
+  coordinates into a position in the rock.
+
+  ⭐ Both of these were owned by a TRADE, and that was wrong on the
+  `/system/` test: *a system is true whether or not anyone is
+  participating in it.* Geology is there with nobody mining it and dirt is
+  there with nobody farming it, but the column lived in `trade-mining` and
+  the character in `trade-farming`, so a wood could not read its own
+  ground, a quarry would have had to depend on a mine, and the kernel's
+  floor had nothing to ask. Moving them here is what lets a floor on grade
+  say what is under it.
+
+  ⚠ A system's CLASSES are the pack's; its INSTANCES are the realm's. The
+  Ferrow deposit is a claim somebody makes about a place in Rejection and
+  stays there; `Deposit` itself is the mechanism and lives here. Same split
+  as `Locality` and `Government`.
+requires:
+  groups:
+    - name: ground
+      purpose: the ground's own body — the column and the character
+      owner: { office: prime-minister }
+  title:
+    - { extent: /system/ground, holder: { group: ground } }

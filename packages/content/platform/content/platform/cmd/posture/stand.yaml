@@ -19,3 +19,11 @@ args:
     required: false
     scope: ["$focus", "reachable"]
     requires: [VisibleMixin, PosturedMixin]
+    # `sit on the ground` is the form a person actually types. Without
+    # `prepositions`, CommandLogic binds `on` AS the target and the
+    # leftover word trips "too many arguments" into shape-fall-through;
+    # `greedy` then lets the multi-word tail arrive whole, and the MQL
+    # desugar drops the article, so `the ground` reaches the keyword
+    # match as `ground`.
+    prepositions: [on, at, in, upon]
+    greedy: true

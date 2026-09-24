@@ -1,0 +1,26 @@
+# The realm's default ground character — ⭐ the model a floor on grade asks
+# when nobody authored a character for the zone it stands in.
+#
+# It pins nothing and leans nothing, which is the whole point:
+# `GroundCharacter.resolve(model, spot, seed)` is TOTAL, so a model with no
+# pins and no bands still answers a texture off the address alone. Every
+# piece of ground has a character whether or not anybody authored one —
+# that is what *"a total function under a sparse graph"* means, and it is
+# why this class's resolve is a static taking a nullable model rather than
+# an instance method.
+#
+# ⭐ Lens 1 chose shipping this row: the world should be derivable
+# underfoot even where nobody wrote anything down. An unauthored outdoor
+# room over uncited ground therefore reads a seeded loam, clay or sand
+# rather than the plain indoor default, and the census reports it as
+# `derived:procedural` so the difference stays visible.
+#
+# ⚠ Lens 2 is untouched. ONE authored line still beats this: a zone that
+# cites its own `groundCharacter` is asked first, and a room's own
+# `floor: { material: … }` beats both.
+class: /system/ground/idea/GroundCharacter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the ordinary ground
+  pins: {}
+  bands: []

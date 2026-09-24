@@ -30,7 +30,7 @@ import DriveController from '../DriveController';
 import SinkController from '../SinkController';
 import RaiseController from '../RaiseController';
 import MineWarren from '../../../MineWarren';
-import Deposit from '../../../Deposit';
+import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import MineRoom from '../../../../location/MineRoom';
 import Ore from '../../../../thing/Ore';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';

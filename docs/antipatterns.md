@@ -4155,6 +4155,67 @@ is slated for the same conversion:
 [api-boot-retirement-slate](./slates/builds/api-boot-retirement-slate.md).
 Never add a new one.
 
+### ⚠⚠ And the sibling failure: a roster warmed by an ENUMERATED boot list
+
+A catalogue is the good shape. Naming **one row** of a roster in a
+`boot:` manifest and calling it done is the bad one, and it is the same
+*reference-Ideas-inert-at-boot* failure wearing a fix.
+
+`base-library/pack.yaml` boots `/stuff/idea/biome/universe` alone, with
+the note that it *"was never cloned by anything … so `analyze power
+<thing>` threw 'root universe biome is not loaded' in every fresh
+world."* That fixed the ROOT biome and left **every other biome cold** —
+so `Atmospheric.getBiome()` (a registry read) answered `null` for every
+room in the game, `isSkyExposed` returned its documented
+false-when-nothing-resolves, and the ground build's drive read *"It is
+oak, laid as boards"* in a wood, a concrete apron and a mine adit.
+⭐ Found 2026-09-24, by driving; `BiomeCatalogue` is the conversion.
+
+**The rule:** if a roster is read by path at runtime, warm the ROSTER —
+derived by class over a path infix, never a list somebody has to
+remember to extend. `MaterialCatalogue` and `BiomeCatalogue` are the two
+exemplars; both select every root's subtree and filter on the class, so
+a pack shipping its own row is warmed with nothing to edit.
+
+---
+
+## A self-referential DETAIL that shadows its own object
+
+A `Detailed` host authoring a detail whose id is the host's own name —
+`floor` on a Floor, `door` on a Door — makes the detail win the MQL
+resolve, and **a detail's description renders without the host's
+`markupAugmenters`**. Everything the host derives about itself
+disappears at exactly the spot a player looks for it.
+
+### BAD
+
+```yaml
+class: /platform/thing/Floor
+data:
+  keywords: [floor, ground]
+  details:
+    floor:                       # ⚠ the host is already called `floor`
+      description: A featureless plain floor.
+```
+
+`look floor` binds the DETAIL. The floor's own derived sentence — *"It
+is granite, set as paving."* — is never rendered.
+
+### GOOD
+
+```yaml
+data:
+  keywords: [floor, ground]      # the OBJECT answers to its own name
+  details:
+    track:                       # a real sub-feature, which is what details are FOR
+      description: A pale diagonal worn across the flags.
+```
+
+⭐ The self-detail was a workaround from when a floor was not addressable
+by its own name; the class-level keyword union retired the need for it
+and left it actively harmful. Found 2026-09-24 by the ground build's
+drive, and gated by `lint:ground` clause (f).
+
 ---
 
 ## A completion that calls back into its controller

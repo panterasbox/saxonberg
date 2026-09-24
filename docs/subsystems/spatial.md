@@ -670,17 +670,32 @@ See [locomotion.md § Engagement lifecycle](./locomotion.md#engagement-lifecycle
 ### Location floors
 
 Floors are first-class entities — `Adornment`s on the Location's
-`Adornable` surface, composing `Postured` (see
-[posture.md](./posture.md)). v1 ships no class-level default;
-floor presence is authored per-Location in the `adornments` map.
+`Adornable` surface, composing `FloorMixin` over `Postured` (see
+[posture.md](./posture.md)). ⭐⭐ **Since the ground build every Location
+has one by construction**: `Location.ensureFloor()` mints
+`TemplatePaths.defaultFloor` at `postRegister` unless the room authors a
+floor of its own or opts out. The v1 note that used to sit here — *"no
+class-level default; floor presence is authored per-Location"* — is
+retired: 27 of 180 Locations had a floor, and per-Location authoring was
+a choice nobody was making.
+
+The room's one read for its floor is **`Adornable.getFloor()`**. Three
+resolvers used to answer that question three times over by scanning
+fixtures-then-contents for any Bulkable with a surface slot; they all call
+`getFloor()` now and keep their own `hasSurfaceBulk()` check, because a dry
+posture floor is a floor and a puddle needs the slot.
 
 ```yaml
-# Default Location includes the default floor:
-adornments:
-  floor: { extends: '/idea/surface/default-floor' }
+# Nothing at all — the room gets the default floor, which resolves its own
+# material down a five-rung ladder (see posture.md).
 
-# Voids omit it, marked with the `noDefaultFloor` opt-out so the
-# migration script doesn't auto-add one:
+# A material and a construction, without authoring a floor row:
+data:
+  floor: { material: /stuff/idea/material/rock/granite, worked: true }
+
+# Not standable at all — the void today; mid-air and mid-water when they
+# exist. ⚠ A different question from `onGrade`, which asks whether the
+# ground continues BENEATH a floor that exists.
 data:
   noDefaultFloor: true
 ```

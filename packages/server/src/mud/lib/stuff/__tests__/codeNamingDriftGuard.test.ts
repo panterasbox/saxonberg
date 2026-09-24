@@ -118,6 +118,11 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `MaterialCatalogue.postRegister` keeps a row by `instanceof Material` — resolving
   // the class wherever it lives (a capability pack's src/ included).
   { site: "platform/idea/MaterialCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // `BiomeCatalogue.postRegister` keeps a row by `instanceof Biome` — the
+  // MaterialCatalogue filter exactly, added by the ground build because
+  // `Atmospheric.getBiome()` is a registry read and NOTHING stood the biome
+  // rows up, so every room's biome was null in a fresh world.
+  { site: "platform/idea/BiomeCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // `MaturationProfileCatalogue.postRegister` keeps a row by
   // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).

@@ -1,0 +1,38 @@
+# Peat — partly decayed bog vegetation, waterlogged for long enough that it
+# never finished rotting. The ground of the moor, and (dried) a fuel.
+#
+# ⭐ Tagged BOTH `organic` and `earth`: it is plant matter, and it is what
+# the heath floor is made of. The `earth` tag is what makes the moor read
+# as *bare earth* in a dry spell and *waterlogged to mire* in the rain —
+# one floor answering differently, which is exactly what the heath row's
+# own prose already describes.
+#
+# ⚠ It does not spoil. Peat is the definitional case of organic matter
+# whose decay has ALREADY stalled — anaerobic, acidic, waterlogged — which
+# is why bog bodies survive millennia in it. So no freshness fields, and no
+# exemption needed: a material is not a `Provision`.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: peat
+  keywords: [peat, turf]
+  appearance: dark fibrous peat
+  # Bulk density of wet in-situ peat (kg/m^3) — mostly water by mass.
+  density: 1100
+  thermalConductivity: 0.35
+  specificHeat: 1900
+  # Dry peat is an insulator. Wet peat conducts, and that is the puddle's
+  # business, not the material's.
+  electricalConductivity: 1.0e-3
+  # Holds many times its dry mass in water — the highest in the tree, and
+  # the reason a bog is a bog.
+  waterAbsorptionCapacity: 300
+  hardness: 1
+  toughness: 1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "earth", "solid", "fibrous"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

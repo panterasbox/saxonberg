@@ -19,7 +19,7 @@ import GroundCharacter, {
   TEXTURE_CLASSES,
   type GroundSample,
   type Spot,
-} from '../GroundCharacter';
+} from '../idea/GroundCharacter';
 
 const SEED = GroundCharacter.seedFor('/terminus/hinkley-hills');
 const OTHER = GroundCharacter.seedFor('/terminus/wharfside');

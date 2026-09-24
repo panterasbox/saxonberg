@@ -24,7 +24,8 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
-import type { Stuff } from '../stuff/Stuff';
+import type { Stuff, EvictionContext } from '../stuff/Stuff';
+import type { VetoResult } from '../errors';
 import type { Adornable } from './Adornable';
 import { SlottableMixin } from '../slot/Slottable';
 
@@ -98,6 +99,32 @@ export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
       const host = this.adornedTo;
       if (!host) return null;
       return host.slotOfFixture(this as unknown as Stuff & Adornment);
+    }
+
+    /**
+     * Residency veto: a fixture of a live host stays resident — else the
+     * sweep would cull the sconce off a lit wall, the anchor out of a
+     * standing boundary, or (since the ground build) the floor out from
+     * under a room somebody is sitting on. The `Exit.canEvict` shape
+     * (`lib/boundary/Exit.ts`) in the `WarrenMemberMixin` mixin form.
+     *
+     * ⚠ Presence cannot do this job: `ResidencyLogic.presenceWalkImpl`
+     * walks the room's `getDeepContents()`, and fixtures are not
+     * contents (`Adornable.addFixture` keeps its own collection). A
+     * warm room therefore says nothing about its floor, which is why
+     * the veto is the mechanism and `residency.md` has always said so.
+     *
+     * A detached fixture (`adornedTo` null — never hung, or taken back
+     * into inventory) is ordinary cullable clutter; an owned one is
+     * owner-persisted anyway and comes back on the wall. A fixture of a
+     * destroyed host falls through to `super` and culls with it.
+     */
+    public canEvict(context: EvictionContext): VetoResult {
+      const host = this.adornedTo;
+      if (host && !host.isDestroyed()) {
+        return { ok: false, reason: 'fixture of a live host' };
+      }
+      return super.canEvict(context);
     }
   };
 }

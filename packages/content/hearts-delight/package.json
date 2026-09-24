@@ -7,6 +7,7 @@
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-ground": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-terminus": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",

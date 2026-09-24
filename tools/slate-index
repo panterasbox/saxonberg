@@ -17,6 +17,19 @@ that is where it gets fixed.
 
 ⚠ The README is a SWEPT file (CLAUDE.md § Worktrees rule 5) — run this at
 a sweep, not from four sessions at once.
+
+⚠⚠ TWO AUTHORING CONSTRAINTS this parser imposes on a status block, both
+found the hard way (2026-09-23) and neither obvious from the output:
+
+  1. NO CONTINUATION LINE OF `Left:` MAY BEGIN WITH `> **`. The Left
+     capture stops at the next line starting `> **` (it is how `Size:`
+     is found), so a bolded item at the start of a wrapped line
+     SILENTLY TRUNCATES the summary — the row still renders, just
+     short, and nothing reports it. Keep bold mid-line.
+  2. `Size:` TAKES A SINGULAR WORD — `a build`, `a wave`, `a tail`.
+     `two builds` parses as NO SIZE (`\bbuild\b` does not match
+     `builds`) and the slate is dropped from the index entirely.
+     `--audit` does catch this one.
 """
 
 import re

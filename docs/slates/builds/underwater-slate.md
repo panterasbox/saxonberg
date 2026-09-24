@@ -3,7 +3,11 @@
 > **Status: UNBUILT** — designed 2026-09-18 out of the fishing rewrite,
 > to be built when somebody wants it; the design is the point of writing
 > it now. No underwater room, medium, column or ascent exists.
-> **Left:** the column — bands as zones, `depth` as a zone field,
+> **Left:** ⚠ **a band is not standable; its BED is** (added 2026-09-23 from the
+> ground build: every Location gets a floor by default, so a water band must
+> declare `noDefaultFloor: true` or the open column will be floored and
+> sittable — the ground build ships the declaration and a test, not a row) ·
+> the column — bands as zones, `depth` as a zone field,
 > `up`/`down` derived · implicit up + declared ceilings + the reach-to-air
 > gate · medium derived from the reach's level · light / temperature /
 > pressure derived from depth · buoyancy as a read (density × volume vs

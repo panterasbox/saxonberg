@@ -33,7 +33,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
-import GroundCharacter, { type GroundSample, type ImprovementCost } from '../../GroundCharacter';
+import GroundCharacter, { type GroundSample, type ImprovementCost } from '@saxonberg/content-ground/src/idea/GroundCharacter';
 import type Field from '../../../location/Field';
 
 /** The topic every field act narrates on. */

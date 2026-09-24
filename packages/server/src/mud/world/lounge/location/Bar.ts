@@ -18,7 +18,6 @@ import { VisibleMixin } from '../../../lib/description/Visible';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
-import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
 import { PopulatesMixin } from '../../../lib/stuff/Populates';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import type { FieldMeta } from '../../../lib/mixin';
@@ -45,12 +44,15 @@ import type { FieldMeta } from '../../../lib/mixin';
 // `CartesianLocation` does), so every room class built directly on
 // `Location` has to remember. These rows were authoring `primaryKeyword`
 // into a void until 2026-09-11; `lint:presentation` clause (d) found it.
+// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
+// `Location`'s own base stack (the ground build), because the mixin's
+// default `postRegister` is a non-chaining no-op — a second composition
+// above the base would SWALLOW `Location.postRegister`, and with it the
+// room's floor.
 const BarBase = SingletonMixin(
-  PostRegistrationMixin(
-    PopulatesMixin(
-      CartesianCoordinatesMixin(
-        ExitableMixin(DetailedMixin(VisibleMixin(PerceptibleMixin(Location)))),
-      ),
+  PopulatesMixin(
+    CartesianCoordinatesMixin(
+      ExitableMixin(DetailedMixin(VisibleMixin(PerceptibleMixin(Location)))),
     ),
   ),
 );
@@ -58,7 +60,8 @@ const BarBase = SingletonMixin(
 export default class Bar extends BarBase {
   static fieldMeta: FieldMeta = {};
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async postRegister(context?: unknown): Promise<void> {
+    await super.postRegister(context);
     this.verifyOutboundExits();
     // The bar's Business is NOT stood up here. It stands up lazily, derived
     // from its own `operatingLocations` (this room), on the first order

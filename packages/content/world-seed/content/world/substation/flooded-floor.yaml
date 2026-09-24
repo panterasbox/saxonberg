@@ -9,9 +9,17 @@ class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flooded concrete floor
-  keywords: [floor, flooded, concrete]
+  # `ground` added by `lint:ground` clause (d) — see the gate.
+  keywords: [floor, ground, flooded, concrete]
   register: indefinite
   longDescription: A concrete floor under a skin of brackish standing water.
+  # ⭐ Concrete, cast and laid — `slab` indoors. The row has said "concrete"
+  # in its keywords and its prose since it shipped and carried no material;
+  # `ceramic/concrete` is the row that makes the claim true. Authored DRY
+  # (5e-4 S/m): what grounds you in this cell is the brine POOL below, as it
+  # always was, not the slab under it.
+  _materialPath: /stuff/idea/material/ceramic/concrete
+  worked: true
   # Surface-bulk: an authored brine pool (the conductive medium + ground).
   surfaceBulk: true
   surfaceMaterial: /stuff/idea/material/bulk/salt-water
@@ -22,7 +30,14 @@ data:
       capacity: 9007199254740991
       postures: [sit, lie, kneel, stand]
       userFacingDetail: floor
-  details:
-    floor:
-      keywords: [floor, ground, water, pool, brine]
-      description: A concrete floor under a skin of brackish standing water.
+  # ⚠⚠ **No `floor` / `ground` DETAIL.** There used to be one here, and the
+  # drive is what found it: `look floor` bound the DETAIL rather than the
+  # floor object, and a detail's description renders WITHOUT the host's
+  # `markupAugmenters` — so the derived sentence naming the material was
+  # invisible in exactly the place an author would look for it. The detail
+  # was a workaround for a floor not being addressable by its own name;
+  # `FloorMixin` unions `floor` and `ground` onto the class, so the object
+  # answers and the self-referential detail is now redundant AND harmful.
+  # `lint:ground` clause (f) refuses one. A detail naming a real sub-feature
+  # — the crossing's worn track, the yard's gutter — is the opposite case
+  # and is exactly what details are for.

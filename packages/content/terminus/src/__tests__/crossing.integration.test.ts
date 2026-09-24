@@ -63,6 +63,13 @@ const GATE_C = "/world/terminus/terminal/location/departure-gate-c";
 const AVENUE_BLOCK = "/world/terminus/counting-houses/avenue-block";
 const CAMPUS_GATE = "/world/terminus/university-avenue/location/campus-gate";
 const DOOR = "/world/terminus/university-avenue/thing/campus-gate-door";
+// ⭐ The crossing's paving (ground build) — a floor ROW rather than a
+// `floor:` one-liner, because the worn diagonal track the room's prose has
+// always described has to be a detail somebody can look at. ⚠ An
+// `adornments:` entry naming an absent row THROWS at hydrate (it is an
+// authoring fault, and `lint:census` resolves the field at build time), so
+// every store that clones this room needs it.
+const PAVING = "/world/terminus/university-avenue/thing/crossing-paving";
 
 // The curated realized set: only the flavorful touchables survive as Stuff
 // (the camp chair, the beacon, the gutter ticket-stub). The generic municipal
@@ -104,6 +111,7 @@ function docs(): Doc[] {
     seed("world/terminus/university-avenue/location/crossing.yaml", CROSSING),
     seed("world/terminus/university-avenue/location/campus-gate.yaml", CAMPUS_GATE),
     seed("world/terminus/university-avenue/thing/campus-gate-door.yaml", DOOR),
+    seed("world/terminus/university-avenue/thing/crossing-paving.yaml", PAVING),
     seed("world/terminus/university-avenue/thing/camp-chair.yaml", OBJECTS[0]!),
     seed("world/terminus/university-avenue/thing/beacon.yaml", OBJECTS[1]!),
     seed("world/terminus/university-avenue/thing/gutter-litter.yaml", OBJECTS[2]!),

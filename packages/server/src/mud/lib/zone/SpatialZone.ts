@@ -46,6 +46,15 @@ export abstract class SpatialZone extends Zone {
     favours: { persistent: true, authorable: true },
     blessingOdds: { persistent: true, authorable: true },
     address: { persistent: true, authorable: true },
+    // ⭐ Two CITATIONS the kernel stores and does not interpret: each
+    // names a `/system/ground` model (`Deposit`, `GroundCharacter`) that
+    // the kernel cannot import. They are declared here — on a kernel class
+    // — because a pack cannot add a field to one: the hydrator silently
+    // discards what no `fieldMeta` declares, and that is exactly how the
+    // authored soil layer shipped unreachable the first time. Since the
+    // ground build a `Floor` on grade follows them through
+    // `GroundSourceMixin`, which is the seam that lets the kernel ask a
+    // question it cannot import the answer to.
     deposit: { persistent: true, authorable: true },
     groundCharacter: { persistent: true, authorable: true },
     celestialProfile: { persistent: true, authorable: true },
