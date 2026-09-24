@@ -110,7 +110,16 @@ async function look(s: Session, what: string): Promise<string> {
   return plain(await (await s.cmd(`look ${what}`)).said());
 }
 
-const NOT_FOUND = /don't see|can't see|don't understand|nothing (here|like that)/i;
+/**
+ * ⚠⚠ **`shape` is in here because leaving it out made an assertion VACUOUS.**
+ * `look at the ground` failed in the browser with *"That doesn't match any
+ * known command shape: look."* — and this file's step-15 assertion passed
+ * anyway, because the old pattern only knew the *can't see it* family and
+ * not the *can't parse it* one. A refusal this drive cannot recognise is a
+ * refusal this drive cannot fail on.
+ */
+const NOT_FOUND =
+  /don't see|can't see|don't understand|nothing (here|like that)|known command shape|too many arguments/i;
 
 let newcomer: Session;
 let street: Session;

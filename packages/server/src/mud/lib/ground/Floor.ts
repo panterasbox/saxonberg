@@ -65,6 +65,8 @@ import type { Adornment } from '../boundary/Adornment';
 import type { Adornable } from '../boundary/Adornable';
 import type { Slotted } from '../slot/Slotted';
 import type { Visible } from '../description/Visible';
+import type { Perceptible } from '../description/Perceptible';
+import type { Postured } from '../slot/Postured';
 import type { GroundSource } from './GroundSource';
 import {
   GROUND_CLASS_PRECEDENCE,
@@ -145,6 +147,23 @@ export interface Floor {
   /** The one derived sentence `look` appends, or `null` when it has none. */
   groundPhrase(): string | null;
 }
+
+/**
+ * ⭐ **What a floor IS, as a type** — the capability plus the stack it
+ * requires. `Adornable.getFloor()` promises one of these, so the three
+ * resolvers, `ensureFloor` and every test read `getKeywords()`,
+ * `getAcceptedPostures()` and `getShort()` off it without re-casting what
+ * the narrowing already established.
+ */
+export type FloorThing = Stuff &
+  Floor &
+  Adornment &
+  Tangible &
+  Bulkable &
+  Slotted &
+  Postured &
+  Visible &
+  Perceptible;
 
 /**
  * What a `FloorMixin` host wants from the Location it is attached to.

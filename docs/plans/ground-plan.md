@@ -1277,6 +1277,81 @@ comments were rewritten to say what is now true: the derivation agrees with
 them, so they document intent rather than working around a defect. A street is
 on grade and a reader should not have to derive it.
 
+### ⭐⭐ Run 5 — the LIVE BROWSER walk, and it found three more
+
+`AUTH_MODE=test pnpm dev`, Chrome on the real client at `localhost:5173`, a
+brand-new character entering through the front door into the warren-minted
+Lounge. ⚠ *"The wire drive is NOT the live drive"* — the wire asserts the
+ENVELOPE, and all three of these live in the **prose** and the **parser**,
+where it cannot look.
+
+**What was right, seen rather than inferred:**
+
+- `sit` · `stand` · `lie` · `kneel` — *"You sit down." / "You stand up."* The
+  four opening failures, in a browser, as a player.
+- `sit on the ground`, `lie on the ground`, `sit at the ground` — all bind.
+- ⭐ The inspection card reads **"a featureless plain floor · A featureless
+  plain floor. It is oak, laid as boards. · INTERFACES: Floor, Bulkable,
+  Postured"** — the derived sentence rendering correctly on the card surface.
+- ⭐ The floor is **not** in the room card's `HERE` list. A fixture is not
+  contents, and the room's own enumeration stayed honest.
+- The prompt follows the focus — `here>` becomes `floor>` after `look floor`.
+
+**The three it found:**
+
+1. ⚠⚠ **Every FIXTURE rendered as *"something"* in scene prose.** Side by
+   side in a lit room:
+
+   ```
+   search rack   →  "You begin searching a weapons-check rack."
+   search floor  →  "You begin searching something."
+   ```
+
+   `VisionModality.canSee` walked `target.getContainer()`, and a fixture is
+   not in anybody's contents — it hangs in `Adornable.fixtureSlots` — so a
+   `Containable` fixture answered `null` and the gate read that as *cannot be
+   seen*; `RecognitionLogic` then rendered its `obscured()` form. **Every
+   sconce, sign, neon and BoundaryAnchor had this**, and the ground build
+   made it universal by giving every room a floor. Fixed with the rule
+   already two lines below it in the same function — *what you HOLD you see
+   in the room's light* — so a fixture is seen in its **host's** light.
+   ⭐ And the guard matters as much as the fix: a dark room still hides it,
+   asserted, so a wrong *"something"* was not traded for a wrong *"you can
+   see it in the dark"*.
+
+   ⚠ It survived because **the card was right while the prose was wrong**:
+   `look floor` rendered *"a featureless plain floor"* on its inspection card
+   while the same object read *"something"* two lines earlier in the
+   transcript. Two renderers, one honest.
+
+2. ⚠⚠ **`look at the ground` did not parse.**
+
+   ```
+   look at floor       → ok
+   look at the ground  → "That doesn't match any known command shape: look."
+   ```
+
+   `look` already declared `prepositions: [at, in, inside]`, so `at` was
+   consumed and then `the` + `ground` were **two positionals** — *"too many
+   arguments"* → chain fall-through. ⭐ **Exactly the defect W0 fixed on the
+   four posture verbs, still live on the most-used verb in the game**, and
+   the requirements' drive step 15 asks for this form by name. `greedy: true`
+   on `look` and on `search` (`search the floor` had it too). 9 binder
+   assertions, including that bare `look` keeps its `$focus` default.
+
+3. ⚠⚠ **The wire assertion for (2) was VACUOUS.** Step 15 asserted
+   `look at the ground` and passed, because `NOT_FOUND` knew the *can't see
+   it* family and not the *can't parse it* one — **the one refusal it could
+   actually receive was the one it could not recognise.** The pattern now
+   covers `known command shape` and `too many arguments`, and the step can
+   fail.
+
+⚠ **And a fourth, found by `tsc` while fixing the above:** five of this
+build's own test files had type errors that **vitest hides and CI does not**
+— `getFloor()` was typed `(Stuff & Adornment) | null`, so every caller
+re-cast it. Fixed at the source: `getFloor()` returns `FloorThing` (the
+capability plus the stack it requires), and the casts are gone.
+
 ### Run 3 — ⭐ 27/27
 
 Every step a socket can settle. What is covered elsewhere, and why:

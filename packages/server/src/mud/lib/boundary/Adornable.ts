@@ -41,6 +41,12 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Adornment } from './Adornment';
+// ⭐ Type-only, and the direction is deliberate: `getFloor()` promises a
+// FLOOR, so its callers — the three resolvers, `ensureFloor`, every test —
+// should not each re-cast what this method already narrowed. A type-only
+// cycle with `lib/ground/Floor` (which imports `Adornable` for its host
+// shape) costs nothing at runtime.
+import type { FloorThing } from '../ground/Floor';
 import type { Slottable } from '../slot/Slottable';
 import type { Slotted, SlotSpec } from '../slot/Slotted';
 import { StuffApi } from '../../api/stuff';
@@ -93,7 +99,7 @@ export interface Adornable {
    * of them now asks this and keeps its own `hasSurfaceBulk()` check: a
    * dry posture floor is still a floor, and a puddle still needs the slot.
    */
-  getFloor(): (Stuff & Adornment) | null;
+  getFloor(): FloorThing | null;
   getFixtureBoundaries(): Boundary[];
   getFixtureLightSources(): (Stuff & Adornment)[];
   getFixtureSmellSources(): (Stuff & Adornment)[];
@@ -277,9 +283,11 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
     }
 
     /** See the interface — the one read for "what is the ground here". */
-    getFloor(): (Stuff & Adornment) | null {
+    getFloor(): FloorThing | null {
       for (const f of this.fixtureSlots.values()) {
-        if (MixinApi.isFloor(f as unknown as Stuff)) return f;
+        if (MixinApi.isFloor(f as unknown as Stuff)) {
+          return f as unknown as FloorThing;
+        }
       }
       return null;
     }
