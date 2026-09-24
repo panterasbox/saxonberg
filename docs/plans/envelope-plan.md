@@ -1729,17 +1729,80 @@ Each leaves as a slate line, not a plan section.
 - **Fuel as mass** — `heatOutputW` and `fuelBurnRatePerMin` derived from
   the fuel's `heatOfCombustion` and a real mass reserve (the energy
   build; `power-utility-slate`).
-- **A Structure concept** — nothing in this model says *"these rooms are
-  one building"*: a zone is a coordinate carve-up (a closet can be its
-  own zone, an office block can be carved by floor), a Locality is an
-  address prefix, a Parcel is title and ground, and ⚠ a `Warren` is
-  **not** it either (a Warren coordinates clones of ONE room template
-  that bud and merge; a building is heterogeneous rooms). What would
-  genuinely need it: a shared roof, a chimney serving two rooms, heat
-  between floors, a party wall's conduction — every one of which S6
-  scopes out (room-to-outside only), so this build does not need the
-  concept and does not substitute a zone for it. → the `structures`
-  slate the user is having written.
+- **⭐⭐⭐ A Structure concept — and this entry is UPGRADED at review
+  (2026-09-24), because `structure-slate` now exists (branch
+  `design/2026-09-24-structure`) and it answers the question this build
+  had to answer without it.**
+
+  Nothing in this model says *"these rooms are one building"*: a zone is
+  a coordinate carve-up (a closet can be its own zone, an office block
+  can be carved by floor), a Locality is an address prefix, a Parcel is
+  title and ground, and ⚠ a `Warren` is **not** it either (a Warren
+  coordinates clones of ONE room template that bud and merge; a building
+  is heterogeneous rooms).
+
+  ⚠⚠ **What the original entry got wrong.** It said this build "does not
+  need the concept," and that is true only of the features S6 scopes
+  out. It is false of the thing the build could not avoid: **a
+  controlled atmosphere has to start and stop somewhere, and with no
+  structure tier to draw that line on, this build drew it at the ROOM.**
+  Four consequences, all shipped, none of them separately decided:
+
+  1. **Every interior room is its own envelope, leaking straight to the
+     weather.** `outsideKFor` walks the biome chain and adds the weather
+     deviation; nothing asks how deep in a building the room is. A
+     corridor in the middle of a bank with no exterior wall at all pays
+     the same loss to the sky as the shopfront.
+  2. **Every room presents five faces.** `area = 5 · ∛V²` — four walls
+     and a roof — **unconditionally**, whether or not any of them is
+     actually on the outside.
+  3. ⚠ **So subdividing makes a building colder.** One hall of volume V
+     exposes `5V^⅔`; the same hall cut in two exposes `6.3V^⅔`. Adding
+     interior walls should not raise heat loss, and here it does,
+     monotonically.
+  4. **A hearth warms exactly one room.** Interior openings count for
+     nothing by design (S6), so the room next door to a blazing hall
+     sits at outdoor temperature with its door wide open.
+
+  ⭐⭐ **And `openExteriorOpenings()` is already a threshold predicate,
+  written ad hoc.** It decides *is this exit a hole in the envelope* by
+  asking `BiomeApi.isSkyExposed(dest)` — the far side is outdoors. The
+  slate's `isThreshold(exit) = structureOf(near) !== structureOf(far)`
+  is the principled form of that exact test, and the two disagree
+  precisely where the slate says they will: a **glazed atrium** reads as
+  "outside" to this build, so every door onto it is an exterior opening
+  and the whole building leaks to a room that is indoors; and a door
+  between two terraced buildings reads as interior when it is a
+  threshold.
+
+  ### The five attach points, for whoever builds the tier
+
+  All in `lib/biome/Atmospheric.ts` but one, which is the value that
+  feeds it:
+
+  | seam | today | with a structure tier |
+  |---|---|---|
+  | `envelopeApplies()` | `!BiomeApi.isSkyExposed(scope)` | membership; sky-exposure becomes the **census check** the slate describes, not the predicate |
+  | `BiomeLogic.outsideKFor` | the biome chain + weather, always | the **structure's** temperature for an interior room; only shell rooms see the weather |
+  | `envelopeCoefficients()` `area` | `5 · ∛V²`, every face | the faces actually on a threshold |
+  | `openExteriorOpenings()` | `isSkyExposed(dest)` | `structureOf(near) !== structureOf(far)` |
+  | `resolveFabric()` | row → class hook | row → **structure** → class hook (a third rung in an existing ladder; no caller changes, no migration) |
+
+  ⭐ That last row is why none of this is foreclosed: the resolver is a
+  fall-through ladder and the tier inserts as a rung. And only **two
+  rows** author `fabric:` today, so the slate's *"~100 rooms the
+  expensive way"* debt has barely started.
+
+  ⚠ **A name to settle before that build, not during it.** `FabricSpec`
+  already exists in `lib/material/Construction.ts` — textiles' woven /
+  knit / felted forms. Two exported interfaces, one name, unrelated
+  meanings. The slate uses *fabric* for building composition too, so the
+  domain word is right and the TYPE name has to give way. One type and
+  two rows today.
+
+  → `structure-slate`. ⭐ It asks for *"the first consumer a kernel
+  substrate must name"*; the envelope is one, already shipped, and every
+  numbered item above is the bill.
 - **Thermal windows** — a Window as a thermal opening (no Window rows
   exist); with the covering ladder → `field-substrate-slate` (coverings
   as insulation).
