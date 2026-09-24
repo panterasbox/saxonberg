@@ -2444,3 +2444,123 @@ by exactly four lines — `ImprovableMixin.improvementWork`,
 `MaturationProfile.productFraction` and `SurfacedMixin.airExposure`. Regenerated;
 the diff is those four insertions and nothing else, which is what that snapshot
 exists to make reviewable.
+
+---
+
+## ⭐⭐ The LIVE BROWSER walk (2026-09-24) — two findings the wire drive could not see
+
+The wire drive was 20/20 on a reset DB. This is the browser walk beside it, on
+a cold-booted fresh world (51 packs reinstalled, zero boot errors, 281 command
+views, 502 placed / 12 regions at target), driven as a provisioned character
+through the real client.
+
+⭐ Precedent held: metallurgy's browser walk found six things past a green
+13-checkpoint wire drive. This one found two.
+
+### What the browser confirmed that the wire asserts differently
+
+- The quarry card renders place · prose · exits · fixtures · interfaces · a
+  `WHAT IT AFFORDS` row (`dig quarry`).
+- ⭐ **W7's tool fix is visible live** — the spade, pick and sledge are all at
+  the pit. That was drive defect 3, and this is the first time a *player* has
+  seen it.
+- `dig` engages and its completion mints spoil that goes **to the tip**, not
+  the pit — the `spoilTo` routing the wire could only assert negatively.
+- `fire limekiln` reaches a player at the pit and refuses in words: *"the
+  limekiln is empty. Load it with something before you fire it."*
+- `dig up` → the collar rule, and the binder handled a target word that names
+  no object.
+- `goto` is **denied without title** and allowed with the group grant — the
+  `TestHooks` conferral is a grant, not a bypass, exactly as its header claims.
+- ⚠ A completion's prose really does arrive on the slower channel: `fire`
+  looked like it returned *nothing* and the sentence landed a beat later. The
+  drive record already names this; it is worth knowing before calling silence a
+  defect.
+
+### ⚠⚠ FINDING 1 — FIXED: bare-handed and wrong-tool shared a sentence
+
+Standing at an earth face carrying **nothing** (verified by `inventory`:
+implant, shirt, trousers, shoes), `dig` answered:
+
+> *"A pick will not shift drift — take a spade to it."*
+
+It named a tool the player had never picked up, in the first sentence a new
+quarryman ever sees. `Working.ts` used **one branch for two situations** —
+`tool === null` and wrong-tool — with prose written for the second.
+
+⭐⭐ **And the wire checkpoint passed throughout**, because it asserts the
+`reason` (`no-spade`) and the sentence does go on to mention a spade. The unit
+test was worse than vacuous — `expect(out.prose).toMatch(/take a spade to it/i)`
+is true of *both* limbs. **That is what a vacuous assertion looks like from the
+inside**, and it is the whole argument for walking a build in a browser.
+
+⚠ `Turbary` does not override `planWork`, so this hit **every earth face in the
+game** — the turf bank included.
+
+*Fixed:* three cases, not two (no tool · wrong tool at earth · wrong tool at
+rock — the rock limb said *"not shovelling"* to someone holding nothing too).
+Pinned with `expect(out.prose).not.toMatch(/pick/i)` on the bare-handed case
+plus a mirror case at rock. Quarrying 69 → **70 green**.
+
+*Verified live, both limbs:*
+
+```
+here> dig                 → A pick will not shift drift — take a spade to it.      (pick in hand)
+here> drop pick
+here> dig                 → You will not shift drift with your hands — take a spade to it.
+```
+
+### ⚠⚠ FINDING 2 — REPORTED, NOT FIXED: the mine's NPC hewers cannot hew
+
+The server log, on a repeating cadence:
+
+```
+[dispatch] a hewer on tutwork "hew northeast" → declined: controller-rejected:no-pick(no-pick)
+[dispatch] a hewer on the fringe "hew north"  → declined: controller-rejected:no-pick(no-pick)
+```
+
+Ten refusals across at least two hewers in one short boot. **The Ferrow
+delve's NPC labour loop is dead.**
+
+⭐ **This build revealed it rather than caused it.** W3a made `hew` ask for the
+pick (D16), and D16's own note is the explanation: the tool *"declared
+`winning` since it shipped and nothing ever checked"* — so the hewers were
+hewing **bare-handed all along**. Stopping that was the point; the consequence
+is that the NPCs now stop, which is a behaviour regression in the world even
+though the gap predates the build.
+
+⚠ **What was eliminated in-drive**, so nobody redoes it:
+
+| checked | result |
+|---|---|
+| the verb / binder / default query | **sound** — with a pick in hand a player hews fine (`hew west` → *"That way is already driven"*) |
+| `capability.` as an MQL atom | **real** (`api/mql/resolver.ts` documents `[capability.digging]`) |
+| both picks' capabilities | `["winning", "striking"]` on the mining **and** quarrying rows |
+| the hewer row | declares `props: [/trade/mining/thing/pick, …]` |
+| what a bare `props` path does | *moves the spawned instance **into** self* (`Populates.ts`) |
+| `PersistentHydrator` | **does** run Phase 2 instruction appliers |
+| the boot log | **no** props/populate warning of any kind |
+
+So the pick is missing at runtime for a reason not visible from outside the
+process. ⚠ And `HewController` has **the same conflation finding 1 had** — one
+`no-pick` reason for both *no tool* and *wrong tool* — which is why the log
+cannot say which case the NPC is hitting. Splitting that is the first step of
+the fix, and it is the same one-line shape as finding 1.
+
+**Merge decision for the user:** whether the mine's NPC loop standing still
+blocks this MR, or lands as the first follow-up.
+
+### Seen, and NOT this build's
+
+- `[Behaved:Aldis Verrow] bad trigger 'undefined': Cannot read properties of
+  undefined (reading 'trim')`, repeating — a malformed brain trigger on a
+  Rejection NPC, unrelated to extraction.
+- `PackApi: pack '<x>' ships N class(es) no row of any installed pack names`
+  fires for **~15 packs**, every one of them a `lib/` mixin or a controller
+  (`arcana/lib/ManaPowered`, `ground/lib/Strata`, `trade-mining/lib/Working`,
+  `trade-fishing/lib/LandingContest` …). A pack mixin has no template row **by
+  definition**, so the gate is noisy by construction and
+  `/trade/quarrying/lib/Working` sitting in that list is the W7 rename working,
+  not a regression. Worth narrowing the gate one day; not here.
+- The character is **clothed** at spawn (the naked-cast fix is in) but still
+  reads *"You're shivering."* at an open quarry — the known ~10x dial issue.

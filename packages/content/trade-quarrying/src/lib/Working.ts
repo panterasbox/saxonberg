@@ -464,12 +464,27 @@ export function OpenWorkingMixin<
       // one act instead of two.
       const wanted = face.earth ? DIGGING : WINNING;
       if (tool === null || !tool.hasCapability(wanted)) {
+        // ⚠⚠ **Bare-handed and WRONG-TOOL are different refusals**, and the
+        // live browser drive is what proved it. One branch served both, so
+        // standing at an earth face with empty hands read *"A pick will not
+        // shift drift"* — naming a tool the player had never picked up, in
+        // the first sentence a new quarryman ever sees.
+        //
+        // ⭐ The wire checkpoint passed throughout: it asserts the `reason`
+        // (`no-spade`), and the sentence does go on to mention a spade. Only
+        // a reader notices the opening clause is false. That is the whole
+        // argument for walking a build in a browser.
+        const barehanded = tool === null;
         return {
           kind: 'refusal',
           reason: face.earth ? 'no-spade' : 'no-pick',
           prose: face.earth
-            ? `A pick will not shift ${nameOfFace(face)} — take a spade to it.`
-            : `You would want a pick. That is ${nameOfFace(face)}, and it wants winning, not shovelling.`,
+            ? barehanded
+              ? `You will not shift ${nameOfFace(face)} with your hands — take a spade to it.`
+              : `A pick will not shift ${nameOfFace(face)} — take a spade to it.`
+            : barehanded
+              ? `You would want a pick. That is ${nameOfFace(face)}, and it wants winning — not bare hands.`
+              : `You would want a pick. That is ${nameOfFace(face)}, and it wants winning, not shovelling.`,
         };
       }
 

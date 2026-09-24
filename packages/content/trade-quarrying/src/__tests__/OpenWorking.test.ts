@@ -201,6 +201,23 @@ describe('⭐⭐ the tool is the constraint, and the GROUND names it', () => {
     const out = (await pit.planWork(actor, null, null)) as WorkRefusal;
     expect(out.reason).toBe('no-spade');
     expect(out.prose).toMatch(/take a spade to it/i);
+    // ⚠⚠ **And it must not name a tool you never had.** This assertion is
+    // the one the live browser drive added: for one build the bare-handed
+    // and wrong-tool cases shared a sentence, so empty hands read *"A pick
+    // will not shift drift"*. The check above passed the whole time — the
+    // sentence does end with "take a spade to it" — which is exactly how a
+    // vacuous assertion looks from the inside.
+    expect(out.prose).not.toMatch(/pick/i);
+    expect(out.prose).toMatch(/your hands/i);
+  });
+
+  it('⚠ bare-handed at ROCK does not say "not shovelling" either', async () => {
+    // The mirror of the case above, on the other limb of the same branch.
+    const pit = working({ floorDepthM: 2.5 });
+    const out = (await pit.planWork(actor, null, 'granite')) as WorkRefusal;
+    expect(out.reason).toBe('no-pick');
+    expect(out.prose).toMatch(/would want a pick/i);
+    expect(out.prose).not.toMatch(/shovelling/i);
   });
 
   it('a PICK will not shift drift', async () => {
