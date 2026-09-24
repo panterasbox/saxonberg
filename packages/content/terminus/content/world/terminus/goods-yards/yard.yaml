@@ -15,6 +15,10 @@ data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   ambientIntensity: 520
   ambientColorTemperature: 5600
+  # The cobbles, as a row — the gutter is a detail of them (see the row).
+  adornments:
+    - template: /world/terminus/goods-yards/thing/yard-paving
+      slot: floor
   longDescription: |
     A long cobbled strip behind the working city with doors down both sides and a gutter running the length of it. Every trade on this side of Terminus has a back door here, and every one of them is a different height off the ground because they were all built by different people who were not talking to each other.
 
@@ -73,7 +77,7 @@ data:
       keywords: [barrows, barrow, carts, handcarts, pallets]
       description: |
         A dozen of them along the wall, most empty, one loaded and roped and evidently waiting for somebody who has not come. Nobody owns the ones by the gutter; everybody owns the ones by the doors.
-    gutter:
-      keywords: [gutter, drain, channel, water]
-      description: |
-        A stone channel down the middle carrying whatever the six industries put into it, which today is mostly water and something that smells like grain. It runs east, towards the river, because everything here does.
+    # ⭐ The `gutter` detail MOVED to the paving row
+    # (`thing/yard-paving.yaml`, ground build). A gutter is a feature of the
+    # GROUND, not of the space above it. `look gutter` is unchanged — a
+    # room's fixtures are in the `reachable` scope.

@@ -36,8 +36,14 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
+// ⚠ `consigns` is trade-shopkeeping's since the trades-and-labor split
+// — the brain that walks a producer's goods to a SHOP belongs with the
+// shop. The forcing function is unchanged; only the path moved.
 const CONSIGNS = fileURLToPath(
-  new URL('../../lib/behavior/consigns.ts', import.meta.url),
+  new URL(
+    '../../../../../content/trade-shopkeeping/src/behavior/consigns.ts',
+    import.meta.url,
+  ),
 );
 const RESTOCKS = fileURLToPath(
   new URL('../../lib/behavior/restocks.ts', import.meta.url),

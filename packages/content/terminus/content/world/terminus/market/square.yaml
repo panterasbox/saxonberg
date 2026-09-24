@@ -25,6 +25,23 @@ data:
   alternateNames: [market, "farmers market", stalls]
   _biomePath: /stuff/idea/biome/outdoor/baseline
   _address: terminus/city/counting-houses/market-square
+  # ⭐⭐ Rung 2: three words, no floor row. The square's prose says
+  # *"a cobbled square"*, and this is all it takes to make that true —
+  # granite, dressed, and the derivation does the rest (sky-exposed ⇒ on
+  # grade ⇒ `set-paving`). ⚠ **Same inputs as the goods yards' paving, so
+  # the same answer**, and neither room chose it: that is AC 17, and the
+  # reason the kind is derived rather than authored.
+  floor:
+    material: /stuff/idea/material/rock/granite
+    worked: true
+    # `onGrade` said out loud rather than left to derive. The derivation
+    # agrees — this room is sky-exposed — so this documents intent rather
+    # than working around anything, exactly as the crossing's and the goods
+    # yards' own floor rows already do. ⚠ It was added while the drive was
+    # reading `slab` here, which turned out to be the biome roster never
+    # being warmed (`BiomeCatalogue`, fixed in this build); the line is kept
+    # because a street IS on grade and a reader should not have to derive it.
+    onGrade: true
   longDescription: |
     A cobbled square opening off a side lane of the counting-houses, strung with bunting somebody rehangs every season and nobody remembers hanging first. Trestle stalls stand in a rough ring under canvas, crates-turned-tables stacked with whatever came in this morning; the chalkboard over the long produce stall lists growers' asks in a dozen hands. It smells of bruised mint and orange peel, and argues pleasantly with itself from open to close.
   coords:

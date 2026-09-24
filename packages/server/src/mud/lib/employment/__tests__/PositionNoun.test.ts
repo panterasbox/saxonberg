@@ -26,7 +26,6 @@ describe('Position.noun round-trips', () => {
       key: 'bartender',
       label: 'tending bar',
       wageRate: 4,
-      confers: [],
       noun: 'bartender',
     });
     expect(p.noun).toBe('bartender');
@@ -40,7 +39,6 @@ describe('Position.noun round-trips', () => {
       key: 'vionne',
       label: 'running Vionne',
       wageRate: 0,
-      confers: [],
     });
     expect(p.noun).toBeUndefined();
     expect('noun' in p.serialize()).toBe(false);

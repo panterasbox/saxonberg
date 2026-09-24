@@ -1,0 +1,16 @@
+# ground — the ground pack's one dial (the `settings` kind: merge-missing —
+# a key the app_settings singleton lacks is merged in; a value the operator
+# changed via `config` is never touched).
+#
+# ⚠ The kernel's two floor-material dials are NOT here. They have seeded
+# literals at their call site in `Location.floorDefaults` (`wood/oak`
+# indoors, `earth/loam` outdoors) because the kernel must floor a room
+# correctly with this pack absent — *a dial that only works when a pack is
+# installed is a dial that fails silently.* This key is different: it names
+# a row that only exists if this pack is installed, so it is `null` until
+# the pack seeds it and rung 3 simply yields nothing without it.
+settings:
+  # The `GroundSource` a floor asks LAST, after the zone's own
+  # `groundCharacter` and `deposit` citations. See default-character.yaml.
+  - key: ground.defaultSourcePath
+    value: "/system/ground/idea/default-character"

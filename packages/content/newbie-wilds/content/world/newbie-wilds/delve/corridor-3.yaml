@@ -30,3 +30,8 @@ data:
       destination: /world/newbie-wilds/delve/corridor-2
   props:
     - /stuff/thing/traps/pressure-blade
+    # The deadfall — the delve's deterministic leg-breaker (recovery's
+    # fracture source). The pressure-blade trips (edge, legs); this breaks
+    # (blunt, past the fracture threshold). Both are traversal-triggered:
+    # a careless run springs whatever it meets first.
+    - /stuff/thing/traps/deadfall

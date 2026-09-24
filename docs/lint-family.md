@@ -677,6 +677,66 @@ nothing at all if it cannot reach the band.
 the family's shared reader — because both new gates need to answer *does
 this class compose X?* from the class file.
 
+### `lint:ground` — what is every room standing on? (2026-09)
+
+Two lists and five clauses (`scripts/check-ground.ts`).
+
+**List 1** (`--report`) is derived: every one of the **139 Location rows**
+and how its ground is decided — an authored floor row, a `floor:` spec on
+the room, `noDefaultFloor`, or the default floor resolving its own material.
+⚠ Rung 3 of that ladder, *the ground beneath*, cannot be resolved
+statically: it needs a zone-citation walk and a seed off the covering
+Locality's address, both runtime facts. So an on-grade default reads
+`default:on-grade` — *a `GroundSource` answers this, or the outdoor dial
+does* — and the drive is what reads them out loud.
+
+⭐ **The Location count is 139, not 184.** The plan's opening figure counted
+`/platform/idea/location/*` ZONE rows with the rooms. 139 Locations + 57
+zones.
+
+**List 2** is hand-curated, and the docblock states the inclusion test so it
+can be argued with: *the prose names a floor material or construction, and
+the room authors neither.* 28 entries, against **66** the `--seed` heuristic
+proposed. What curation removed is the interesting part — idiom (*"rooms let
+by the floor"*), similes (*"a ledger the size of a paving slab"*), **a trade
+FLOOR being a room and not a ground** (six goods-yards rows are *named*
+`…/location/floor`), other things made of boards (bulletin boards, a price
+board, boards over a shaft), dust and sawdust, a detail's own floor, and
+⭐ rooms this build now ANSWERS (the mine's workings read their host rock
+through rung 3; that is the mechanism working, not a debt).
+
+⚠ Coverings — rugs, carpets, matting — are deliberately **excluded**, with
+their own seam on the field-substrate slate. A covering is not what a floor
+IS, and listing them would make one meter measure two debts.
+
+**The clauses.** (a) the list may fall and never rise; (b) every listed path
+is a real Location row, so the list cannot fill with ghosts; ⭐ (c) **a
+listed row that now authors a floor FAILS** — the debt is paid, so delete
+the line and lower the ceiling, and the gate refuses to let the credit go
+unrecorded, which is what makes the meter move; (d) every row whose `class:`
+composes `FloorMixin` carries **both** `ground` and `floor` in its own
+`keywords:`; (e) every Location class overriding `postRegister` chains
+`super.postRegister`.
+
+⚠⚠ Clause (d) is not tidiness, and it found three shipped rows on its first
+run. The MQL scope walk pools a thing's own `getKeywords()`, and
+`pushDetails` gives a detail the pool `[<its id>]` and **never** its authored
+keyword list — so a floor's `details.floor.keywords: [ground]` is dead text.
+`weeping-floor` authored `[flagstones, wet]` and was therefore a floor
+nothing could sit on or look at. `FloorMixin` unions both words onto the
+class so the failure is impossible; this clause makes every row say them out
+loud as well, so a row reads honestly on its own.
+
+⭐ Clause (e) exists because `PostRegistrationMixin`'s default is a
+**non-chaining** no-op: an override that forgets `super` silently leaves its
+rooms floorless and nothing else goes wrong. Six of the Location family's
+overrides had no `super` call before the ground build. The kernel's roster
+test covers the kernel's classes; a pack's cannot be imported by a kernel
+test, so the gate covers those. ⚠ Its first draft asked *does the FILE
+mention `Location`?* and flagged `CommandGiver`, `CardRegistry` and `Screen`,
+none of which is a room — the honest test is the class walk
+(`composesMixin(classPath, 'Location')`).
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read
@@ -863,3 +923,63 @@ configured**.
 ⚠ The family is cheap relative to `pnpm test` (~15 min) and is the
 right thing to run often. See [testing.md](./testing.md) for the suite's
 own cost model.
+
+### The trades-and-labor three (2026-09)
+
+All three came out of one build, and each closes a link of the
+**reachability chain** that fails closed and silent.
+
+**`lint:counters` — a counter is a vocation's instrument (ceiling 4).**
+A *counter* is the front-of-house thing somebody stands behind: it holds
+the goods, prices them, takes them into custody, or leases the customer's
+attention. It is never generic — it is what one TRADE does for a living,
+so the instanceable class a row names ships in `/trade/<x>`. The
+MECHANISM may stay kernel (`lib/retail/Stock.ts` is substrate the price
+index and the credit ladder read, and nothing instances it). The four the
+kernel keeps are named in the script with their reasons, and `BankCounter`
+is explicitly the one **to-do** — trade-banking is deferred with a stated
+reason, so when it ships the ceiling drops to 3.
+
+⚠ **The census read 2 where the truth was 4**, on the first cut. The plan
+named four composition markers; `BankCounter` composes `BankMixin` (not
+`AttendantMixin`) and `Menu` reaches the offer surface by **inheritance**
+(`extends CommerceMenu`). A ceiling that undercounts is a ceiling that
+means nothing — it would have admitted two more counters silently.
+
+**`lint:openings` — an opening judges a PERSON (ceiling 0).** Six arms:
+the `requires` vocabulary is closed to `{gigs, discipline, band}` (nothing
+may select on species, lineage, trait, renown or wealth); a band must be
+in the ladder and a discipline must key a shipped row; ⭐ a house that
+advertises must be a `boot:` producer of its own pack, because the sign is
+derived from LIVE businesses and standing a house up from a `look` would
+make walking past a shop an economic act; a `fulfills` seat must name
+premises and its rostered holders must stand on them; and a seat that
+advertises a WAGE must author the `banksAt` the wage comes from.
+
+⭐ **The fifth arm was found by driving**, not by reading: `clock off` at
+a house with no `banksAt` threw out of the pay path, so the shift stood,
+the worker was never paid, and nothing anywhere said the job was
+unpayable.
+
+⭐⭐ **And the sixth was found by the SWEEP** — every `parLines[].supplier`
+must resolve to a house whose operating locations include a ROOM holding
+a counter, because that is how `restocks` turns a supplier path into a
+place a hauler can buy at. A house that lists only its counter *fixture*
+is not a supplier: the bucket is dropped with a `continue`, the brain
+declines nothing, the dispatch log prints declines only, and the order
+simply never exists. It cost the build its own *work from more than one
+supplier* acceptance criterion, and the only instrument that could see it
+was a Mongo read of `contracts` on a live world.
+
+**`lint:controller-rows` — a `controller:` is a TEMPLATE PATH (ceiling 0).**
+309 refs across every pack's command views, each checked against the set
+of shipped rows. A controller class with no row resolves to nothing and
+the verb answers `controller-error` — every time, for everybody, forever.
+
+⚠⚠ **It is invisible to the whole suite by construction.** A controller
+test instantiates the class directly (`new ApplyController().execute(…)`);
+a view test parses YAML. Nothing between the two asks *does this path
+resolve*. `apply` and `clock` shipped with their views, their affordances
+and fifteen green controller tests, and died on dispatch — found on the
+third checkpoint of a live drive. This is the **data** link of the
+reachability chain, and it had no gate until now.

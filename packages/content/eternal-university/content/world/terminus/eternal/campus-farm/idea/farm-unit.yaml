@@ -17,10 +17,17 @@
 # output is small, seasonal and real, which is what keeps it a transform
 # rather than a faucet (D105).
 #
-# ⚠ The `labourer` position confers nothing and requires nothing. There
-# is no gate, no prerequisite and no application: a character with an
-# empty wallet in their first session can take it, and the acts they do
-# for the wage are the same acts a holder does on their own ground.
+# ⭐⭐ **RUNG ZERO of the labor market** (trades-and-labor D16). The
+# `labourer` position grants nothing and requires NOTHING — no gigs, no
+# band, no `requires:` at all. A character with an empty wallet in their
+# first session walks up and `apply`s, and the acts they do for the wage
+# are the same acts a holder does on their own ground.
+#
+# It matters that this exists BELOW the general store's two-gig hand:
+# the entry criterion there is small but it is not zero, and a labor
+# market whose lowest rung asks for something is a market somebody can
+# be locked out of. Two places, because one farm hand is a curiosity and
+# two is a job anybody can walk into.
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -33,8 +40,8 @@ data:
       noun: labourer
       label: working on the university farm
       wageRate: 2
-      confers: []
       purchases: false
+      headcount: 2
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/eternal/campus-farm/location/yard

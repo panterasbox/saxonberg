@@ -1,11 +1,15 @@
 /**
  * The par manifest and the perception-scoped stock sheet — libations D7.
  *
- * Proves: par lines round-trip on the Business and `house par` edits
- * them (unit from the level suffix, `0` strikes); the sheet counts only
+ * Proves: par lines round-trip on the Business; the sheet counts only
  * what the viewer perceives — a bottle in a closed chest is not on it —
  * summing litres for `L`, kg by density for `kg`, and discrete goods (by
  * material tag or a named category) for `count`.
+ *
+ * ⚠ The VERB half — `house par` editing the sheet — moved to
+ * `trade-shopkeeping` with the subcommand (trades-and-labor D4): a par
+ * sheet is what a shopkeeper keeps. The line itself is a `Business`
+ * field and stays here.
  */
 
 import '../../../../../test-bootstrap';
@@ -18,7 +22,6 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { CommandApi, type CommandContext } from '../../../../api/command';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import BusinessEntity from '../../Business';
-import HouseController from '../../cmd/banking/HouseController';
 import Chest from '../../../thing/Chest';
 import Material from '../../../../lib/material/Material';
 import { BulkableMixin } from '../../../../lib/bulk/Bulkable';
@@ -31,7 +34,6 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Location from '../../../../lib/stuff/Location';
-import Tablet from '../../../thing/Tablet';
 import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import {
@@ -132,37 +134,6 @@ describe('the par manifest (D7)', () => {
     expect(biz.removeParLine('lime')).toBe(true);
     expect(biz.removeParLine('lime')).toBe(false);
     expect(biz.getParLines().length).toBe(1);
-  });
-
-  it('house par edits the sheet — unit from the suffix, 0 strikes the line', async () => {
-    const biz = seedBusiness();
-    const loc = makeStuff(() => new Location());
-    const dave = makeStuffAtPath(() => new Keeper(), DAVE);
-    ContainmentApi.move(dave as never, loc as never);
-    // The house app runs on a screen (display.md): the tablet in hand.
-    const tablet = makeStuff(() => new Tablet());
-    tablet.setPairing('held');
-    ContainmentApi.move(tablet, dave as never);
-    const run = (level: string, extra: Record<string, string> = {}) =>
-      asActor(dave, () =>
-        makeStuff(() => new HouseController()).execute(
-          { subcommand: 'par', category: 'gin', level, ...extra } as never,
-          ctx(dave, loc, `house par gin ${level}`),
-        ),
-      );
-    await run('6L', { from: '/stuff/test/distillery' });
-    expect(biz.getParLines()[0]?.serialize()).toEqual({
-      category: 'gin',
-      level: 6,
-      unit: 'L',
-      supplier: '/stuff/test/distillery',
-    });
-    await run('5kg');
-    expect(biz.getParLines()[0]?.unit).toBe('kg');
-    await run('12');
-    expect(biz.getParLines()[0]?.unit).toBe('count');
-    await run('0');
-    expect(biz.getParLines()).toEqual([]);
   });
 
   it('the sheet counts only what the viewer perceives: a closed chest hides its bottle', () => {

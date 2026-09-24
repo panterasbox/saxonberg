@@ -21,7 +21,6 @@ data:
       noun: hall-manager
       label: managing Duncan Hall's dorms
       wageRate: 0
-      confers: []
   rosterSlots:
     - positionKey: hall-manager
       assignee: /world/terminus/eternal/duncan-hall/agent/katie

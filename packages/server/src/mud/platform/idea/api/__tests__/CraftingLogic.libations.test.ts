@@ -35,7 +35,7 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
-import { MakerMixin } from '../../../../lib/craft/Maker';
+import { EmployedMixin } from '../../../../lib/employment/Employed';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import Receptacle from '../../../thing/Receptacle';
 import CraftVessel from '../../../thing/CraftVessel';
@@ -48,7 +48,16 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 
 class TestRoom extends ContainerMixin(Idea) {}
-class TestBartender extends MakerMixin(ContainerMixin(ContainableMixin(Idea))) {}
+class TestBartender extends EmployedMixin(
+  ContainerMixin(ContainableMixin(Idea)),
+) {
+  // ⭐ Stands in for an on-shift holder of a `fulfills` seat; the real
+  // three-condition read is a truth table in
+  // `lib/employment/__tests__/conferral.test.ts`.
+  isFulfilling(): boolean {
+    return true;
+  }
+}
 
 const M = '/stuff/idea/material/_test/lib';
 const GIN = `${M}/gin`;

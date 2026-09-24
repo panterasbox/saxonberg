@@ -151,6 +151,19 @@ export class VisionModality extends Modality {
       return viewer.canSeeOverride(target, detail, true);
     }
     let env = target.getContainer();
+    // ⭐⭐ A FIXTURE hangs on a host; it is not in anybody's CONTENTS, so
+    // `getContainer()` is null for it and this gate read that as "cannot be
+    // seen" — every sconce, sign, anchor and (since the ground build) every
+    // FLOOR rendered as *"something"* anywhere scene prose named it:
+    // *"You begin searching something."* A fixture is seen in its HOST's
+    // light, which is the same rule two lines down for a held item being
+    // seen in the holder's room rather than in the dark of their pocket.
+    // ⚠ Found by driving the ground build in a browser; the wire tier could
+    // not see it, because it asserts the envelope and this is the prose.
+    if (!env && MixinApi.isAdornment(target)) {
+      const host = target.getAdornedTo() as unknown as Stuff | null;
+      if (host && MixinApi.isContainer(host)) env = host;
+    }
     if (!env) {
       return viewer.canSeeOverride(target, detail, false);
     }

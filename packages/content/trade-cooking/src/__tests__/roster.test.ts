@@ -49,7 +49,7 @@ import {
 } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
-import { MakerMixin } from '@saxonberg/server/mud/lib/craft/Maker';
+import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue';
@@ -156,7 +156,7 @@ function contentRows(): Row[] {
 class TestKitchen extends ContainerMixin(Idea) {
   static _mixinName = 'TestKitchenRoster';
 }
-class TestCook extends MakerMixin(
+class TestCook extends EmployedMixin(
   ThermalMixin(ContainerMixin(ContainableMixin(Idea))),
 ) {
   static _mixinName = 'TestCookRoster';

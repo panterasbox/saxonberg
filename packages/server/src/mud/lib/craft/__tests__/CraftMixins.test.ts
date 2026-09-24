@@ -6,7 +6,6 @@ import { ToolMixin } from '../Tooled';
 import { EPOCHS } from '../Epoch';
 import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';
-import { MakerMixin } from '../Maker';
 import { Grade } from '../Grade';
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -20,9 +19,6 @@ class ToolHost extends ToolMixin(DurableMixin(Idea)) {
 }
 class CraftedHost extends CraftedMixin(Idea) {
   static _mixinName = 'CraftedHost';
-}
-class MakerHost extends MakerMixin(Idea) {
-  static _mixinName = 'MakerHost';
 }
 
 describe('GradedMixin', () => {
@@ -170,9 +166,7 @@ describe('CraftedMixin', () => {
   });
 });
 
-describe('MakerMixin', () => {
-  it('marks an agent as a maker', () => {
-    const m = makeStuff(() => new MakerHost());
-    expect(m.isMaker()).toBe(true);
-  });
-});
+// ⚠ `MakerMixin` used to be tested here. It retired with the
+// trades-and-labor build: *who fulfils an order* is the SEAT's
+// (`Position.fulfills`, read off the shift), so its proof is the truth
+// table in `lib/employment/__tests__/conferral.test.ts`.

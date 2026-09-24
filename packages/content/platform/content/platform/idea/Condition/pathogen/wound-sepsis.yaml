@@ -1,0 +1,54 @@
+# ⭐⭐ Wound sepsis — the infection arm with a NEW SOURCE (recovery D11).
+#
+# The shipped infection machinery grows a pathogen inside a body; the food
+# builds seed it by EATING contaminated food. This one is seeded by a
+# WOUND: a bleed dressed with dirty hands is inoculated, and a bleed left
+# open too long goes bad on its own. It is the same logistic in-host growth
+# (`reach: infect`), so nothing new drives it and nothing new kills anyone
+# — a severe sepsis dehydrates you into the shipped dehydration → dying
+# cascade, on a clock a medic can read and beat.
+#
+# ⚠ The Arrhenius food-growth constants below (muMax/activationEnergy/kill*)
+# are honest-but-UNEXERCISED for a wound organism — no kitchen ever heats a
+# body — but `lint:pathogens` requires the full pathogenBehavior, and a
+# future "cauterise the wound" answer would read `killK`. `inHostPerHour`
+# and `incubationSec` are the two that actually matter here.
+#
+# ⚠ The fever is a READABLE sign, not a coreTemperature push: thermal
+# regulation pins an endotherm's core, so a `{vital: coreTemperature}` term
+# would be re-pinned to nothing each reconcile. `assess`/`analyze` read
+# `feverish` from `observableSigns` — the salmonella pattern (hydration is
+# the only mechanism; the signs carry the fever).
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: wound sepsis
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -4 }
+  progression:
+    law: logistic
+    intervalMs: 1800000
+  resolution:
+    by: medicine
+  observableSigns: [feverish, swollen, foul-smelling]
+  contagion: null
+  pathogenBehavior:
+    reach: infect
+    # Arrhenius food-growth block — required by lint:pathogens, unexercised
+    # for a wound (nobody heats a body). A cautery answer would read killK.
+    muMaxPerHour: 0.9
+    activationEnergy: 90000
+    referenceK: 303
+    minGrowthK: 280
+    killK: 331
+    killRatePerHour: 8
+    killActivationEnergy: 200000
+    killSurvivalFraction: 0
+    awFloor: 0.94
+    inoculum: 0.03
+    infectiousDose: 0.02
+    channels: []
+    # ⭐ The two that matter: it grows slowly inside you (a wound festers
+    # over ~two game-days to stage 3), after a six-game-hour incubation.
+    inHostPerHour: 0.15
+    incubationSec: 21600

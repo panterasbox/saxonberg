@@ -1,0 +1,29 @@
+# The deadfall — one authored point in the Trap axis-space (NO subclass):
+# trigger=traversal, delivery=blunt channel, no movement consequence. A
+# counter-weighted stone block let down from the ceiling onto the mover's
+# leg: a blunt blow well past `response.blunt.fractureThreshold`, and the
+# leg carries bone, so it BREAKS rather than bruises. This is the delve's
+# one deterministic FRACTURE source — the spike-pit's blunt+point landing
+# reaches the torso and its organs (a rupture), never a limb, so recovery
+# needs a limb-breaker a player can actually spring. `hidden` (a walking
+# novice springs it, a sneaking one steps around — the care-speed case).
+#
+# ⚠ `siteSelector` leads with a whole LEG, not a foot: `resolveSite` is
+# first-anatomy-match, a leg has no interior organ under it (so no depth
+# ladder, no rupture), and a broken leg impairs `locomotion` — the visible
+# consequence the drive reads.
+class: /platform/thing/Trap
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: counterweighted deadfall block
+  keywords: [deadfall, block, stone, counterweight]
+  register: indefinite
+  longDescription: |
+    A dressed-stone block hangs in a ceiling recess on a frayed counterweight, cocked over the passage. Tread the wrong flag and it comes down on whatever is under it — a leg, if you are lucky.
+  concealment: hidden
+  concealmentHint: a hairline seam rings a flagstone, and grit sifts now and then from the dark above
+  trigger: traversal
+  delivery:
+    channel: blunt
+    energy: 6
+    siteSelector: [body.leg.left, body.leg.right]

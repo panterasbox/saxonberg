@@ -10,8 +10,6 @@
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import ConsignmentShelf from "../../../thing/ConsignmentShelf";
-import CheckRack from "../../../thing/CheckRack";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
@@ -21,8 +19,10 @@ import { Mml } from "../../../../api/mml";
 import { ChattelApi } from "../../../../api/chattel";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { MqlApi } from '../../../../api/mql';
-import type { RackStuff } from "../../../thing/CheckRack";
-import type { ShelfStuff } from "../../../thing/ConsignmentShelf";
+import type {
+  RackStuff,
+  ShelfStuff,
+} from "../../../../lib/retail/Consignment";
 import type { MqlOneResult } from "../../../../api/mql";
 
 const TOPIC = "act.deed";

@@ -52,7 +52,7 @@ import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { LandUses } from '@saxonberg/server/mud/lib/parcel/LandUse';
-import GroundCharacter from '../../GroundCharacter';
+import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter';
 import type Field from '../../../location/Field';
 
 const TOPIC = 'act.deed';

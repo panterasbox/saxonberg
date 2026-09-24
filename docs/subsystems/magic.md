@@ -92,6 +92,15 @@ time — "gain 5 levels" is unrepresentable, not merely forbidden. The
 `script` kind is the exotic-5% trapdoor, **code-trust (`isWizard`)
 gated** at execution.
 
+> ⭐⭐ **`mend` is the exemplar of the invariant paying off** (recovery
+> build). A healing spell wanted NO new Effect kind: it `afflict`s an
+> ordinary `mending` condition whose read-time `convalescence` signature
+> (`{kind: convalescence, factor: 3}`) triples the target's wound-mend
+> rate through the mend law every wound already runs, and it `adjust-
+> reserve`s the CASTER's `endurance` (`self: true`) — magic spends *you*.
+> `control·body`, cost 12. Two existing effects, no mechanism invented.
+> See [harm.md § Recovery](./harm.md#recovery--care-buys-rate-the-recovery-build).
+
 ## The pieces
 
 | Piece | Home | What it is |
@@ -134,7 +143,7 @@ resist seam.
 
 Gates, in order: faculty active (`MixinApi.isCaster` — composed on
 every `Character`, **activated** by `Species.innateMixins` or an
-augment, the `isMaker` shape) → spell known → targeting shape →
+augment, the `isActive` shape) → spell known → targeting shape →
 casting-hand impairment (`isSlotImpairedByTrauma('hands')`) → the
 **band gate on BOTH grid axes** (`requiredBand` vs
 `competenceBandFor` on `magic-<verb>` + `magic-<noun>` —

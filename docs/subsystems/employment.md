@@ -63,7 +63,8 @@ field on the room.
 Four value objects + two mixins + the concrete entity:
 
 - **`Position`** — a job's terms: `{ key, label, noun?, wageRate /* minor
-  units per game-hour */, confers /* mixin names */, reportsTo? }`.
+  units per game-hour */, fulfills? /* disciplines served */, headcount?,
+  requires?, purchases?, reportsTo? }`.
   ⭐ **`noun` is what ONE holder is called** — `bartender`, `clerk` — and
   it feeds the handle chain's second rung (`getPositionNoun()`), so an
   NPC in a job is *"a baker"* with nobody typing it onto the NPC, and
@@ -71,9 +72,11 @@ Four value objects + two mixins + the concrete entity:
   because `label` cannot supply it: every shipped label is a gerund
   (*"tending bar"*, *"on the road"*) and there is no honest
   gerund-to-noun transform. See [presentation.md](./presentation.md). The
-  `Money`/`Charge` precedent (data + `serialize`/`fromData`). `confers` is
-  the knowing→doing seam — the mixins an on-shift holder's Position grants
-  (v1: `['MakerMixin']` for the bartender). ⚠ **`wageRate` stays on
+  `Money`/`Charge` precedent (data + `serialize`/`fromData`).
+  ⭐⭐ **What a seat GRANTS is data on the seat, never a marker mixin** —
+  `purchases` (spend the house's money) and `fulfills` (serve an `order`
+  here). See *Capability grant* below for why that replaced a
+  `confers: string[]` list of mixin names. ⚠ **`wageRate` stays on
   `Position`**: compensation attaches to the *position*, which is what
   makes the roster's `{positionKey, assignee}` shape right rather than
   incidental. **`purchases?: boolean`** (libations) — the position buys
@@ -144,9 +147,10 @@ Four value objects + two mixins + the concrete entity:
   transitions themselves live on `OrganizationMixin` — so the
   organization acts on its own employee records and the engine keeps
   orchestration (roster evaluation, wage settlement, the clock).
-  `getConferredMixinNames()` = the `confers` of every **on-shift**
-  Employment's Position — the augment substrate's conferral seam (below).
-  `getActiveEmployments()` is the *what does A hold, anywhere?* read.
+  `isFulfilling(discipline?)` is the *am I the on-duty hand here* read —
+  three conditions, all of them (below). `getActiveEmployments()` is the
+  *what does A hold, anywhere?* read. `clockOn`/`clockOff` are the
+  actor's own shift acts (below).
 
 ## ⭐ The appointing authority
 
@@ -311,23 +315,117 @@ The pure logic lives in the private `runTick`; the gated public `tickRoster`
 and the schedule callback both delegate to it (no intra-singleton gated
 `this.x()` call trips the gate).
 
-## Capability grant — the on-shift Maker (and the leak fix)
+## ⭐⭐ Capability grant — what a SEAT lets you do
 
-On-shift confers the Position's duties via the **augment-confers-mixin**
-substrate; off-shift revokes. `MakerMixin` sets `static _augmentGated =
-true`, and **`MixinApi.isMaker` routes through `isActive`** (activeness), not
-`hasMixin` (composition). `api/mixin.ts#collectAugmentConferralNames` gains
-the **employment leg** — a structural soft-lookup of
-`getConferredMixinNames()` (no import of the employment layer, cycle-safe).
+A position grants two things, and both are **data on the position**:
 
-So a bar `Crafter` composes `MakerMixin` always but is a *maker* only while
-its on-shift Position confers it. The two `isMaker` consumers —
-`CraftingLogic.resolveMaker` (order fulfilment) and
-`BankingControllerBase.presentBartender` (the house representative) —
-thereby resolve **only the on-shift bartender**; an off-shift or
-never-employed `Crafter` is inert. This is the fix for the pre-employment
-order-routing leak (any present `Crafter` fulfilled orders). Crafting/served
-test doubles confer `MakerMixin` directly to stand in for on-shift.
+| field | what the holder may do | read |
+|---|---|---|
+| `purchases?: boolean` | spend the house's money (`wallet use house`) | `buysFor()` |
+| `fulfills?: readonly string[]` | serve an `order` in those disciplines | `isFulfilling(discipline?)` |
+
+`Employed.isFulfilling(discipline?)` is **three conditions, all of them,
+all the time**: the actor is **on shift**, the seat its house authored
+lists the discipline under `fulfills`, and the actor is standing
+somewhere that house **operates** (`getOperatingLocations()` against the
+room's path and its contents' identity paths — the `resolveHouse` walk).
+
+⭐ **Employer-bounded is the point of the third leg.** An on-shift
+bartender who walks into the smithy does not fulfil smithy orders.
+
+⭐ **The discipline list is the point of the second.** A venue can run
+two trades off one business — the Hearthworks runs a smith and a cook
+over both its rooms — so *"serves orders here"* cannot route an order,
+and nothing downstream would catch a wrong pick: a recipe's discipline is
+**credited, never gated**, so the smith would cook the stew successfully
+and be credited with `cooking`.
+
+⚠ **`fulfills` says who MAY, never who DOES when several qualify.**
+`CraftingLogic.resolveMaker` breaks ties on the lowest identity path,
+which is predictable rather than right — two cooks in one kitchen wants a
+queue. That is arbitration and belongs to the crew substrate
+([crew-slate](../slates/builds/crew-slate.md)).
+
+### ⚠ What this replaced, and why
+
+Until the trades-and-labor build a Position carried `confers: string[]` —
+mixin names, folded into the **augment** walk by a structural soft-lookup
+of `getConferredMixinNames()`, so an on-shift holder's gated `MakerMixin`
+went active. Three things were wrong with it:
+
+1. **Augment gating is for physical implants and innate gifts**, not for
+   a means test. A job is not a prosthetic.
+2. ⭐⭐ **The grant was unreachable by a player.** `MakerMixin` was
+   composed on exactly one class — `Crafter`, an NPC class — so a player
+   who took the bartender's seat received *nothing*. A capability nobody
+   can compose is a capability no player can ever hold, which is why the
+   labor market had nothing to give anybody.
+3. `confers` was open-ended: a row could name any mixin at all.
+
+`MakerMixin`, `MixinApi.isMaker`, `Mixins.Maker` and `Crafter` are gone;
+the seven `Crafter` rows are plain `Cast`. ⭐ The augment fold itself
+**stays** — `Shade` overrides `getConferredMixinNames()` to confer
+`AetherMixin` intrinsically (attuned with no implant and no slot, and
+species `innateMixins` is shared reference data a shade cannot write),
+which is a genuine augment conferral and exactly what the seam is for.
+What was deleted is `EmployedMixin`'s implementation of it. See
+[augmentation.md](./augmentation.md).
+
+## ⭐⭐ The opening, the criterion, and the sign
+
+An **opening** is `headcount − holders`, **derived, never stored** — so
+nothing can decrement it wrong: a hire closes it, a `quit` reopens it, a
+`vacated` reopens it, by arithmetic. `headcount` absent = no opening is
+ever advertised, which is every seat that does not author it.
+
+`Position.requires` is what the seat asks of an applicant, and ⛔ **the
+vocabulary is CLOSED**: `{ gigs, discipline, band }`. A hiring criterion
+judges a PERSON, so lens 6's governance limb applies — name the criterion
+and name the appeal — and every criterion in the vocabulary is something
+a player can go and DO. Nothing may select on species, lineage, trait,
+renown or wealth, and `Position.fromData` **throws** on an unknown key
+rather than coercing it away (a silently-dropped criterion is a sign that
+lies and a refusal that never fires). `lint:openings` catches it first.
+
+- `Organization.openingsFor(key)` / `openings()` — the derived reads.
+- `Organization.considerApplicant(applicant, key)` → `ApplicationVerdict`,
+  which carries **`wanted` and `held`** on every refusal. Ordered
+  cheapest-lift-first: `already-held` → `no-opening` → gigs → band.
+- `ContractApi.settledGigsBy(identityPath)` — completed work, keyed on the
+  durable identity path.
+- `EmploymentApi.noticesAt(here)` — every opening advertised where `here`
+  is, over `operatorsAt` (the one candidate walk, shared with
+  `BankingControllerBase.resolveHouse`). ⚠ **Live businesses only**:
+  standing a house up is an economic act and walking into a room must not
+  be one. The authoring rule that makes that honest — an advertising
+  house is a `boot:` producer of its own pack — is `lint:openings`'s.
+
+**The sign has no host, no mixin and no object.** `LookController` prints
+one line per opening, so a venue with an open seat *cannot fail to
+advertise*: the notice comes off the same arithmetic that decides the seat
+is open at all. ⚠ It rides its **own uncarded scene**, not the room body —
+a body handed to `CardApi.open` is suppressed from the transcript in
+favour of a card that never renders it, which made the sign invisible in a
+browser until the live drive found it. See
+[carded-prose-slate](../slates/tails/carded-prose-slate.md).
+
+## `apply` and `clock` — the player moves first
+
+- **`apply [for <position>] [at <organization>]`** — the applicant asks;
+  the organization decides. ⭐ Standing is conferred by the employer.
+  Every refusal names the number and what lifts it.
+- **`clock on` / `clock off`** — ⭐⭐ a shift is something you CHOOSE to
+  start. Holding a job puts you on the chart, not on the clock.
+  `beginShift` runs from exactly one place, the roster tick over authored
+  `rosterSlots`, so a player who applies holds a seat with no roster
+  entry: without `clock` they would never start, never be paid and never
+  be granted anything. The alternative — writing the applicant a slot
+  with the seat's hours — pays them present or not, which is the AFK wage
+  lens 6 names a failure. A recorded lean (`livelihood-slate` §5.4:
+  *voluntary clock-in, employer-bounded*). `clockOff` settles the wage
+  through the roster tick's own off-transition, invoked by the holder.
+  ⚠ A rostered NPC is untouched: the tick iterates assignments and an
+  applicant has none.
 
 ## Wage settlement at shift-end
 
@@ -392,9 +490,11 @@ stays hot-swappable:
 - **`covers`** — the proprietor covers gaps. On a presence-gated cadence, if
   **no other active on-shift maker is present** in the proprietor's location,
   `self.beginCovering(business)` upserts a **transient, on-shift**
-  Employment against the first Position — reusing the whole on-shift→confer
-  path, so the covering proprietor gains `MakerMixin` and an `order` still
-  finds a fulfiller. Unpaid by construction (the wage settlement skips a
+  Employment against the first **`fulfills`** Position (falling back to
+  `positions[0]`) — reusing the whole on-shift path, so the covering
+  proprietor serves an `order` and a customer still finds a fulfiller.
+  ⭐ The seat a cover covers is a fulfilling one: a proprietor steps behind
+  the bar to serve, not into the bookkeeping. Unpaid by construction (the wage settlement skips a
   proprietor-held Employment, and the tick never governs the proprietor).
   `endCover` drops it when a real bartender is back. v1 = clause-unheld only
   (demand has no measure yet); `beginCover` does **not** verify
@@ -489,6 +589,29 @@ pack since fermentation D10);
 glassware lines carry no supplier (nobody consigns glasses yet, so
 breakage shows as shortfall the brain cannot buy back).
 
+### ⚠⚠ A supplier is found by the ROOM its counter stands in
+
+A par line names a `supplier`, and `restocks` turns that path into a
+place a hauler can go and buy: `counterRoomOf` walks the supplier
+business's `operatingLocations` for one that **holds a `Stock` or a
+`ConsignmentShelf`**, and that room becomes the order's `--from`. A
+counter FIXTURE is not that room — its own contents are its goods — so a
+house that lists only its counter is not a supplier at all, and the
+whole bucket is dropped with a `continue`.
+
+⭐ **The failure is completely silent.** The brain declines nothing (it
+never reaches `job post`), the dispatch log prints declines only, and the
+row suite asserts rows. The trades-and-labor build lost the tailor's
+cloth order — and with it its own *work from more than one supplier*
+acceptance criterion — to exactly this, and found it only by reading
+`contracts` out of Mongo on a live world.
+
+⚠ So **list the room as well as the fixture**; the cash-and-carry's row
+is the shipped precedent (`.../distributor/thing/counter` *and*
+`.../counting-houses/cash-and-carry`). `lint:openings` arm 5 holds it:
+every `parLines[].supplier` must resolve to a house whose operating
+locations include a room something props a counter into.
+
 **The player path to the seat** is diegetic: Dave's tree-dialogue
 (*"Looking for work?"*) carries a `dispatch` effect that runs `appoint
 $player to keeper at /world/lounge/idea/business` as Dave, guarded on
@@ -512,7 +635,7 @@ Tips are **physical cash**, two routes, never the bar's P&L:
   recorded on the *server's* ledger, the bar account untouched. The patron
   is never blocked; the cash/EFT choice is the anonymous-vs-recorded story.
 - **`collect`** — the on-shift bartender scoops the whole jar into their
-  holdings, gated on `MixinApi.isMaker` (on-shift-aware). Per-shift
+  holdings, gated on `Employed.isFulfilling()` (on-shift-aware). Per-shift
   attribution falls out — whoever's on shift empties it. NPC auto-collect at
   shift-end is a deferred beat.
 - **`tipRecipientFor(patron)`** — the present on-shift server (the
@@ -545,7 +668,7 @@ seed** and filter by **type/capability**, not a hand-rolled containment
 scan: `TipJar.resolveIn` / `Menu.resolveIn` statics
 (`MqlApi.resolveMany('peers').stuff.find(instanceof …)`, commandSource
 affordance fast-path kept) and `BankingControllerBase.resolveBank` /
-`presentBartender` (`.find(isBank / isMaker)`). Matching by type means a
+`presentBartender` (`.find(isBank / isFulfilling)`). Matching by type means a
 honey jar on the same back-bar can't win on the `jar` keyword; the
 `instanceof`/capability filter is the interim type check a future MQL
 type-predicate subsumes. `resolveVenue` stays `context.location` (the room
@@ -557,10 +680,12 @@ Dave → pure **proprietor** (the `proprietorPath` edge on the Business seed;
 `covers` brain, no `shifts` schedule). The four staff (Mara/Remy/Sloane/
 Augie) → roster **assignees** (schedules lifted verbatim from the old NPC
 seeds, incl. Sloane's midnight-wrap two-window shift); each keeps
-`class: /lib/character/Crafter` (composes the gated `MakerMixin`), drops its
+`class: /platform/agent/Cast` — ⭐ plain `Cast` since the maker marker
+retired; what lets the one on shift serve is the house's `fulfills` SEAT —
+drops its
 `shifts` schedule, carries no employment block (materialized by the tick).
 The Business seed (`/world/lounge/idea/business`) authors the `bartender`
-Position (`confers: [MakerMixin]`, `wageRate` a tuning placeholder), the
+Position (`fulfills: [bartending]`, `wageRate` a tuning placeholder), the
 roster, and `operatingLocations: [/world/lounge/location/bar]`. Positions
 are rows on a Business — there is no industry-level position artifact,
 so the hospitality trade ships none and the venue keeps them.
@@ -626,10 +751,13 @@ two-beat turn-in) lives in [contract.md](./contract.md).
 
 ## Deferred seams (named, not placeholders)
 
-- **Player tending** — blocked only by build-time `MakerMixin` composition on
-  `Avatar` (runtime mixin-composition is its own deferred thing). The
-  `EmployedMixin` *relationship* is already actor-agnostic; only the
-  capability waits.
+- **Player tending** — ✅ **CLOSED** by the trades-and-labor build. It was
+  blocked by build-time `MakerMixin` composition on `Avatar`; retiring the
+  marker removed the block entirely, because `isFulfilling` composes
+  nothing and an Avatar answers it identically to an NPC. A player on shift
+  in a `fulfills` seat IS the resolved maker. ⚠ What `order` then asks of a
+  *player* maker — craft it yourself, or the engine crafts as you — is
+  crafting.md's question, not this one's.
 - **Hire/fire drivers** beyond Dave's cover (a fuller management brain) — the
   `hire`/`fire` Api exists; v1 driver is seed authoring + `covers`.
 - **The `patronize`/recirculation loop** — off-shift staff at the rail
@@ -727,8 +855,10 @@ Built phase-by-phase (Jul 2026, `3785a763..4f24c15a`) from a since-retired
 plan. Notable design→implementation shifts:
 
 - `MixinApi.isMaker` was **not** active-aware (the plan's one load-bearing
-  assumption); the fix routes it through `isActive` (flipping both consumers
-  at once) rather than the surgical fallback.
+  assumption); the fix routed it through `isActive` (flipping both consumers
+  at once) rather than the surgical fallback. ⚠ Historical: `isMaker` and
+  `MakerMixin` were retired by the trades-and-labor build — see *Capability
+  grant* above.
 - The `EmployedMixin` mutators were first gated `ApiOnly`; the antipattern
   sweep (Jul 2026) re-gated them to the participant contract above and
   moved the transitions onto `BusinessMixin`.

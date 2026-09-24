@@ -2,9 +2,12 @@
 
 > **Status: PARTIAL** — Catalog (`Discipline` + the typed edges), the
 > Transcript, `ActSignature`, derive-on-read Competence bands, conferrals
-> and the seeded Dave's-Bar slice shipped →
-> [advancement.md](../../subsystems/advancement.md)
-> **Left:** the loadout (capacity-not-decay + warm-up) · guilds (venue,
+> (⛔ **RETIRED 2026-09-24** — see § *Verb conferral is retired*; the
+> mechanism ships and is to be removed) and the seeded Dave's-Bar slice
+> shipped → [advancement.md](../../subsystems/advancement.md)
+> **Left:** ⛔ **retiring conferral** (the one live declaration, the
+> mechanism, the doc) and the graduated-outcome + named-lift refusal that
+> replaces it · the loadout (capacity-not-decay + warm-up) · guilds (venue,
 > mentors, credential, membership-as-affordance; a seed Bartenders' Guild —
 > the institution design is [guild-slate](./guild-slate.md)'s) · declared
 > focus (the focus-tagged Transcript) · the Reserve-shaped stakes engine ·
@@ -58,8 +61,10 @@ is?** If yes, it's content; if no, it's what this build owns.
   evidence, information-weighting.
 - The **Reserve-shaped stakes engine** — transient-deficit + played-recovery,
   opt-in risk, the two-ledger split (skill permanent, world-state recoverable).
-- The **play-loop-neutral seam** — consumer loops write `deed`s and read θ
-  to `confer` verbs; guild membership / credential as affordance sources.
+- The **play-loop-neutral seam** — consumer loops write `deed`s and read θ.
+  ⚠ *"…to `confer` verbs"* is **superseded** — see § *Verb conferral is
+  retired*. Guild membership / credential remain affordance sources; a
+  **competence band is not one.**
 - The **world-distro hooks** — permanence/mortality as a per-instance
   setting; the tenure layer the guild zones sit under
   ([cooperative-slate](./cooperative-slate.md) § *How territory is held*).
@@ -198,11 +203,13 @@ Three properties make this the right substrate for *this* build:
   model — Fitts's-law execution × the
   [encumbrance](../../subsystems/encumbrance.md) / vitals body state — which
   is the capability slate's **conditioning** channel as the `body` term and
-  **skill** as the `technique` term. **Knowing → doing** then rides the
-  existing `confers()` + affordance-attribution seam: crossing a competence
-  threshold **confers the verbs** (the way membership and augments do) —
-  exactly *advancement as the visible shadow of measured competence.* The
-  player never sees the estimate; they see the door open.
+  **skill** as the `technique` term.
+
+  ⛔ **The rest of this bullet is SUPERSEDED** — it read that *"crossing a
+  competence threshold **confers the verbs**… the player never sees the
+  estimate; they see the door open."* The door does not open, because it
+  was never shut: **the verb is global and the OUTCOME is graduated.** See
+  § *Verb conferral is retired* for the evidence and the replacement.
 
 So the loadout and the felt-proficiency discipline aren't free-floating:
 they read off this substrate. The **loadout** is *which Subjects' competence
@@ -253,6 +260,132 @@ instrument self-assessment) are **earned, not spoilers**; the spoiler is
 pulling your own raw latent θ into a spreadsheet outside the fiction. This
 dissolves the opacity dial — bands by default for everyone, raw θ for
 whoever breaks the fiction, priced by the room.
+
+## ⛔ Verb conferral is retired — the verb is global, the OUTCOME is graduated
+
+**Decided 2026-09-24.** Crossing a competence band must **not** confer
+verbs. The mechanism ships (`Discipline.conferrals`,
+`AdvancementMixin.conferredVerbs` / `refreshConferrals`, the
+`pushCommandSource` / `popCommandSource` reconcile); retiring it is work
+this slate now owns.
+
+### The evidence — the content tree already decided this
+
+⭐⭐ **Across every pack, exactly ONE conferral is declared:** `mixology`
+at band `competent` confers `social/flourish.yaml`. `baking`, `wind`,
+`tailoring`, `milling`, `dyeing` and `textiles` all declare
+`conferrals: []`. The mechanism shipped and **the content declined to
+use it**, with one decorative exception.
+
+And `wind.yaml` carries the argument in a comment, reached independently
+by the build that shipped the mechanism:
+
+> ⚠ `conferrals: []` on purpose (plan D9). Every rung of the first
+> ladder is a verb a fresh body already has (`run`, `climb`, every step
+> verb), **read through the body at the verb layer** — a conferral rule
+> here would be a **no-op push.**
+
+Verbs global, gradation at the verb layer, conferral adds nothing. That
+is not a preference; it is what the first real ladder found when it went
+to write the rows.
+
+### Why — a vanishing verb teaches nothing
+
+A verb that appears at a band boundary was invisible before, so the
+player had no goal to aim at and no account of what changed. A verb that
+disappears is worse. ⚠ **Losing a verb with no explanation is the
+failure, and conferral has no surface on which to give one**, because
+absence cannot carry a reason.
+
+This is the same shape the cockpit already refused —
+[cockpit.md](../../subsystems/cockpit.md): *"a mode is a VIEW, never a
+gate… a mode that forbade a verb would be a permission model hiding in a
+view."* A competence band is a view onto evidence. It must not become a
+gate either.
+
+### What replaces it — graduated outcome
+
+**A novice and a master type the same verb and get different results.**
+This is already the de facto design everywhere the ladders got built:
+
+| subsystem | the gradation |
+|---|---|
+| [crafting](../../subsystems/crafting.md) | `Grade`; tool `control` ships as a grade FLOOR |
+| [fishing](../../subsystems/fishing.md) | the `Shore` read is **banded by competence** |
+| [harm](../../subsystems/harm.md) | the diagnosis loop is *a trainer, not a script* |
+| [concealment](../../subsystems/concealment.md) / [stealth](../../subsystems/stealth.md) | what you NOTICE, not what you may attempt |
+
+⭐ This is also the better RPG answer: a new player is never locked out
+of an activity, only **bad at it** — which is what this slate already
+promised in § *The measurement substrate*: *"the lock that beat you last
+week clicks open."* That sentence only parses if you could always try
+the lock.
+
+### ⚠ Two things that look like conferral and are not
+
+1. **Content / locality verbs** — Duncan Hall's `remodel`, University
+   Avenue's `wind` / `tally`. Afforded by the OBJECT via
+   `commandContributions`. That is a property of the thing, not a gate on
+   the person, and a global `remodel` telling almost every player *"you
+   are not at Duncan Hall"* would be pure noise. **This is the honest
+   "not available at all" case, and competence has nothing to do with
+   it.**
+2. **Augment-conferred capability** — `@RequiresActive`,
+   [augmentation.md](../../subsystems/augmentation.md). Adjacent, but the
+   refusal names something you could go acquire, so the verb should
+   **exist and refuse** rather than vanish.
+
+### ⭐⭐ The refusal is the progression UI
+
+The replacement for conferral is not *nothing*. It is a refusal that
+names what lifts it:
+
+> *"You can't read this seam yet — a journeyman smith could."*
+
+That is the gate and the goal in one line, delivered at the moment the
+player cares, which no status screen manages. The repo already states
+half of this — *a refusal is only honest if something LIFTS it*. This is
+the other half:
+
+> **If something lifts it, the verb must EXIST so the player can be
+> told.**
+
+⭐ It is also the cheapest answer to advancement legibility, and it
+arrives from the opposite direction to
+[odometer-slate](./odometer-slate.md): the odometer says where you have
+been, the refusal says where you could go. Note the odometer's own
+**load-inert rule** — no system's felt-progression may depend on the
+tally — which this satisfies by construction.
+
+### The one cost, and its answer
+
+Every trade verb global means a large parser namespace: `help`,
+tab-completion and ambiguity all get noisier. By this repo's own
+doctrine that is **presentation, not security**:
+
+> **Filter the LIST, never the PARSER.**
+
+The shelf and the help index may show what is relevant to you; the verb
+stays typeable and `help forge` works for everyone — including the
+player who has never forged anything and is deciding whether to learn.
+
+### The retirement work
+
+1. **`mixology`'s `flourish`** — the one live declaration. Replace with a
+   named-lift refusal (*"your hands aren't steady enough for that yet"*)
+   rather than a silent absence. ⚠ Decide this first: if `flourish`
+   survives as a conferral, nothing below happens.
+2. **The mechanism** — `Discipline.conferrals`, `conferredVerbs`,
+   `refreshConferrals` and its call sites on `creditSignature` /
+   `creditDeed`, and the `DisciplineCatalogue` affordance source.
+   ⭐ Removing it also deletes a write from every credit path, which is
+   a hot-path simplification, not only a subtraction.
+3. **[advancement.md](../../subsystems/advancement.md) § Conferral** —
+   the doc describes shipped behaviour and must follow the code, not
+   lead it.
+4. **The band's remaining job is unchanged** — Competence stays
+   derive-on-read, bands-only, the honesty firewall intact. Retiring
+   conferral removes what a band *authorizes*, never what it *measures*.
 
 ## Guilds — institutions *over* the taxonomy, not the taxonomy itself
 

@@ -9,20 +9,21 @@
  * world agreeing with the prose.
  *
  * ⭐⭐ **It is a mixin because identity and capability are TWO AXES and
- * TypeScript has single inheritance.** Dave must be a `Crafter` *and*
- * cast; `Extra`/`Cast` as base classes cannot express that — it is a
- * diamond. The codebase had already answered this one line away:
- * `Crafter = MakerMixin(NPC)` and `Mercenary = PartyMemberMixin(NPC)`
- * are the capability axis *already* expressed as a mixin over the
- * substrate and given a name. So combinations stay one-liners in the
- * shipped idiom: `Crafter = CastMixin(MakerMixin(NPC))`.
+ * TypeScript has single inheritance.** A named NPC may also carry a
+ * capability; `Extra`/`Cast` as base classes cannot express that — it is
+ * a diamond. The codebase had already answered this one line away:
+ * `Mercenary = PartyMemberMixin(NPC)` is the capability axis *already*
+ * expressed as a mixin over the substrate and given a name. So
+ * combinations stay one-liners in the shipped idiom.
  *
- * ⚠⚠ **A correlation trap to refuse.** All seven `Crafter` rows carry a
- * proper name and the one `Mercenary` does not, so capability and
- * identity look perfectly correlated today. **They are not.** That is a
- * 39-row accident of the same species as *every NPC row is instanced
- * exactly once*, and collapsing the axes on the strength of it would bake
- * the accident into the type system.
+ * ⚠ **What a job lets you do is NOT one of those axes.** The seven
+ * `Crafter` rows — `CastMixin(MakerMixin(NPC))` — were the standing
+ * counter-example until the trades-and-labor build retired the marker:
+ * *who serves an `order` here* is the SEAT's (`Position.fulfills`, read
+ * off the shift), so the bar staff, the smith and the cook are plain
+ * `Cast` and a PLAYER who takes the same seat is served from exactly the
+ * same read. A capability nobody can compose is a capability no player
+ * can ever hold.
  *
  * ## What it carries
  *

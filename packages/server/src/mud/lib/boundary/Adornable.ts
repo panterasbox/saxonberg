@@ -41,6 +41,12 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Adornment } from './Adornment';
+// ⭐ Type-only, and the direction is deliberate: `getFloor()` promises a
+// FLOOR, so its callers — the three resolvers, `ensureFloor`, every test —
+// should not each re-cast what this method already narrowed. A type-only
+// cycle with `lib/ground/Floor` (which imports `Adornable` for its host
+// shape) costs nothing at runtime.
+import type { FloorThing } from '../ground/Floor';
 import type { Slottable } from '../slot/Slottable';
 import type { Slotted, SlotSpec } from '../slot/Slotted';
 import { StuffApi } from '../../api/stuff';
@@ -49,7 +55,6 @@ import { SlottedMixin } from '../slot/Slotted';
 
 import type { Boundary } from './Boundary';
 import { BoundaryAnchor } from './BoundaryAnchor';
-import { ChattelApi } from '../../api/chattel';
 import type {
   CaptureContext,
   FieldsSlice,
@@ -82,6 +87,19 @@ export interface Adornable {
   /** The slot name `f` occupies on this host, or null when unattached. */
   slotOfFixture(f: Stuff & Adornment): string | null;
   getFixtures(): readonly (Stuff & Adornment)[];
+  /**
+   * ⭐ **The one read for "what is the ground here".** Returns the first
+   * fixture composing `FloorMixin`, or `null`.
+   *
+   * Three resolvers used to answer this question three times, each by
+   * scanning fixtures **then contents** for *a Bulkable with a surface
+   * slot* — a shape that made every puddle-bearing vessel on the floor a
+   * candidate and (verified) never matched a content row anyway, because
+   * no non-Floor row in `packages/content` declares `surfaceBulk`. Each
+   * of them now asks this and keeps its own `hasSurfaceBulk()` check: a
+   * dry posture floor is still a floor, and a puddle still needs the slot.
+   */
+  getFloor(): FloorThing | null;
   getFixtureBoundaries(): Boundary[];
   getFixtureLightSources(): (Stuff & Adornment)[];
   getFixtureSmellSources(): (Stuff & Adornment)[];
@@ -94,6 +112,13 @@ export interface Adornable {
    *   getter (the live fixtures are read via `getFixtures()`). Fixtures
    *   are runtime-only, so this re-runs and rebuilds them on every
    *   hydrate (the `BoundaryAnchor` reconstruction model).
+   *
+   *   ⚠ *"Rebuilds"* became true in the ground build. Until then this
+   *   only ever ADDED: a CMS go-live (`restoreFromTemplate` re-runs the
+   *   hydrator on a live clone) left a room with two of every authored
+   *   fixture, and with a floor in every room that would have been two
+   *   floors. It now destructs what it applied last time first — and
+   *   only that, so a lamp a player hung survives the rebuild.
    */
   applyAdornments(specs: AdornmentSpec[]): Promise<void>;
 }
@@ -154,6 +179,19 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
      */
     async applyAdornments(specs: AdornmentSpec[]): Promise<void> {
       if (!Array.isArray(specs)) return;
+      // Clear what a PREVIOUS run of this applier put here, and nothing
+      // else. `_appliedFixtures` is runtime-only and holds only what this
+      // method cloned, so chattel a player hung — which is owner-
+      // persisted, one collection over — is never touched.
+      if (this._appliedFixtures.size > 0) {
+        const stale = [...this._appliedFixtures];
+        this._appliedFixtures.clear();
+        for (const old of stale) {
+          if (old.isDestroyed()) continue;
+          this.removeFixture(old);
+          await StuffApi.destruct(old);
+        }
+      }
       for (const spec of specs) {
         const path = typeof spec === 'string' ? spec : spec?.template;
         if (typeof path !== 'string' || path.length === 0) continue;
@@ -167,8 +205,17 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
           );
         }
         this.addFixture(inst, slot);
+        this._appliedFixtures.add(inst as Stuff & Adornment);
       }
     }
+
+    /**
+     * What `applyAdornments` cloned on its last run. Runtime-only and not
+     * in `fieldMeta`: the fixtures themselves are rebuilt from the row on
+     * every hydrate, so a record of them has nothing to persist into.
+     * Exists so the rebuild can be a rebuild — see the applier.
+     */
+    protected _appliedFixtures: Set<Stuff & Adornment> = new Set();
 
     /**
      * Fixtures keyed by slot name. Single source of truth — the
@@ -233,6 +280,16 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
 
     getFixtures(): readonly (Stuff & Adornment)[] {
       return Array.from(this.fixtureSlots.values());
+    }
+
+    /** See the interface — the one read for "what is the ground here". */
+    getFloor(): FloorThing | null {
+      for (const f of this.fixtureSlots.values()) {
+        if (MixinApi.isFloor(f as unknown as Stuff)) {
+          return f as unknown as FloorThing;
+        }
+      }
+      return null;
     }
 
     getFixtureBoundaries(): Boundary[] {

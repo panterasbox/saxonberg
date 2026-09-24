@@ -14,7 +14,7 @@ import TipJar from '../../../../thing/TipJar';
 import Coin from '../../../../thing/Coin';
 import { EmploymentApi } from '../../../../../api/employment';
 import { BankingApi, Money } from '../../../../../api/banking';
-import { MakerMixin } from '../../../../../lib/craft/Maker';
+import { EmployedMixin } from '../../../../../lib/employment/Employed';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import type { Container } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -50,15 +50,20 @@ class Patron extends SensorMixin(
 ) {
   static _mixinName = 'Patron';
 }
-// The on-shift bartender: an active maker (confers MakerMixin directly,
-// standing in for on-shift) + a command giver that can hold the collected
-// coin.
-class Bartender extends MakerMixin(
+// The on-shift bartender: stands in for a fulfilling holder, plus a
+// command giver that can hold the collected coin.
+class Bartender extends EmployedMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
 ) {
   static _mixinName = 'Bartender';
-  getConferredMixinNames(): readonly string[] {
-    return ['MakerMixin'];
+  // ⭐ Stands in for an on-shift holder of a `fulfills` seat. The real
+  // read is three conditions (on shift · the seat marks `fulfills` · the
+  // house operates where you stand) and is proved as a truth table in
+  // `lib/employment/__tests__/conferral.test.ts`; here the fulfiller is
+  // scenery, so the seam is stubbed exactly as the old `MakerMixin`
+  // conferral was.
+  isFulfilling(): boolean {
+    return true;
   }
 }
 

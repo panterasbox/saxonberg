@@ -59,7 +59,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { DISCOVERY } from '@saxonberg/server/mud/lib/belief/BeliefStore';
-import GroundCharacter, { type GroundSample, type Spot } from '../../GroundCharacter';
+import GroundCharacter, { type GroundSample, type Spot } from '@saxonberg/content-ground/src/idea/GroundCharacter';
 
 /** The Discipline every soil read is banded by, and credits. */
 export const SOIL_SCIENCE = 'soil-science';

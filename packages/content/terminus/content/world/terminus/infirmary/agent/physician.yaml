@@ -1,12 +1,13 @@
 # Aldis Verrow — the infirmary's physician, and the reason the door is
 # open between seven and seven.
 #
-# ⚠ She is a `Cast` NPC with a `medicine` dossier and NO clinical brain.
-# `order treatment` is orchestrated by the kernel, so what she supplies
-# is presence, the roster (= the hours) and the wage line. An NPC that
-# made clinical DECISIONS would need a brain that performs the medic's
-# judgment loop in software, and that is a deferred seam, not something
-# to fake with a lookup table.
+# ⭐ She now PRACTISES (recovery D9): the `nurses` brain triages the room
+# on a cadence and dresses a wound (from the ward's real, finite bandage
+# supply) or sits with the worst patient — through the same body primitives
+# a player uses, deterministically, no roll. What is still deferred is the
+# graded DIAGNOSIS (`treat … for`): she never guesses a condition, which is
+# medic-judgment's build. `order treatment` remains the kernel-orchestrated
+# paid path beside her.
 class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -28,3 +29,4 @@ data:
     - { discipline: medicine, asserting: proficient }
   behaviors:
     - brain: /lib/behavior/shifts
+    - { brain: /trade/medicine/behavior/nurses, cadenceMs: 20000 }

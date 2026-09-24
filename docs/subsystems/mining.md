@@ -92,7 +92,14 @@ a player or dangle an exit, and air simply re-derives around the hole
 
 Three layers ([field-substrate-slate](../slates/tails/field-substrate-slate.md)):
 
-- **the model** — `Deposit`, a pure-data `Idea` in `trade-mining`;
+- **the model** — `Deposit`, a pure-data `Idea` in **`/system/ground`**
+  (⭐ moved out of `trade-mining` by the ground build, 2026-09-23 — the
+  column is there with nobody mining it, and a quarry must be able to read
+  it without depending on a mine; the five position reads went with it as
+  `StrataMixin`, which `WorkingMixin` now composes over). The row is still
+  the realm's: `/world/terminus/rejection/idea/deposit/ferrow` names the
+  pack's class. *A system's classes are the pack's; its instances are the
+  realm's.*;
 - **the instantiation** — the zone naming a row of it, with the seed
   **derived from the covering Locality's address** (the
   `WeatherLogic.localitySeed` rule). No seed is stored anywhere: rename

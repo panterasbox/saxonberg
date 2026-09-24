@@ -1,0 +1,7 @@
+# ⭐ The `apply` verb's controller row. A `controller:` value is a
+# TEMPLATE PATH, so a controller with no row resolves to nothing and the
+# verb answers `controller-error` — which is exactly what driving found:
+# `apply` dispatched, threw at resolution, and no unit test could see it
+# because a controller test instantiates the class directly.
+class: /platform/idea/cmd/employment/ApplyController
+data: {}

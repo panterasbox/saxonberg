@@ -1,0 +1,35 @@
+# The crossing's paving — ⭐ **rung 1 of the floor ladder**, which is the
+# rung you reach for when the ground has DETAILS.
+#
+# The crossing's own prose has always said *"underfoot the stone is swept
+# but worn in a diagonal track, the way a hundred thousand arrivals have
+# already crossed it"* — and until the ground build nothing backed a word of
+# it: `look underfoot` found nothing, `sit` found nothing, and the wear was
+# a sentence. The track is the point of this row: it is a detail OF THE
+# FLOOR, not a separate kind of ground, which is the distinction the
+# requirements' step 21 exists to check.
+#
+# ⚠ A room that only wants *granite, laid* needs none of this — three words
+# on the room (`floor: { material: …, worked: true }`) do it, and the market
+# square and the goods yards below are exactly that case. This row exists
+# because the diagonal track has to be lookable-at.
+#
+# No material `worked`/`onGrade` guessing: both are authored, because a
+# street is the case where the derivation would be right anyway and saying
+# so costs one line and documents the intent.
+class: /platform/thing/Floor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: swept city paving
+  keywords: [paving, floor, ground, stone, flagstones, underfoot]
+  register: definite
+  longDescription: |
+    Grey granite flags, laid square and swept, with a diagonal track worn pale down the middle of them where a hundred thousand arrivals have crossed from the station mouth to the avenue without once looking down.
+  _materialPath: /stuff/idea/material/rock/granite
+  worked: true
+  onGrade: true
+  details:
+    track:
+      keywords: [track, wear, diagonal, path, groove, polish]
+      description: |
+        A pale diagonal worn across the flags from the station mouth toward the avenue, smoother than the stone either side of it and very slightly dished. Nobody laid it; everybody made it.

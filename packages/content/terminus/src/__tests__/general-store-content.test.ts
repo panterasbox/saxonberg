@@ -125,9 +125,9 @@ describe("general-store content integrity", () => {
       "/world/terminus/general-store/agent/keeper",
     ]);
 
-    expect(load(STORE_DIR, "counter.yaml").class).toBe("/platform/thing/Stock");
+    expect(load(STORE_DIR, "counter.yaml").class).toBe("/trade/shopkeeping/thing/Stock");
     expect(load(STORE_DIR, "consignment-shelf.yaml").class).toBe(
-      "/platform/thing/ConsignmentShelf",
+      "/trade/shopkeeping/thing/ConsignmentShelf",
     );
     expect(load(STORE_DIR, "business.yaml").class).toBe(
       "/platform/idea/Business",
@@ -282,7 +282,7 @@ describe("general-store content integrity", () => {
     );
     const keeper = load(STORE_DIR, "agent/keeper.yaml");
     const beat = (keeper.data?.behaviors as { brain: string; config?: { counter?: string } }[]).find(
-      (b) => b.brain === "/lib/behavior/stocks",
+      (b) => b.brain === "/trade/shopkeeping/behavior/stocks",
     );
     expect(beat?.config?.counter).toBe("/world/terminus/general-store/counter");
   });
@@ -344,10 +344,16 @@ describe("general-store content integrity", () => {
     expect(knife.data?.constructionForm).toBe("bladed");
   });
 
-  it("the Business operates the counter and rosters the clerk", () => {
+  it("the Business operates the counter AND its room, and rosters the clerk", () => {
     const biz = load(STORE_DIR, "business.yaml");
+    // ⚠⚠ BOTH, and the ROOM is the load-bearing half: a supplier is
+    // found by the ROOM its counter stands in (`restocks` →
+    // `counterRoomOf`), so a house listing only the fixture is
+    // unfindable as a supplier and every par line naming it is skipped
+    // silently. The tailor's cloth order was lost exactly that way.
     expect(biz.data?.operatingLocations).toEqual([
       "/world/terminus/general-store/counter",
+      "/world/terminus/general-store/shop-floor",
     ]);
     // The keeper owns the shop — an `entity` appointing authority. (This
     // read `proprietorPath` until the shipped Businesses were ported off

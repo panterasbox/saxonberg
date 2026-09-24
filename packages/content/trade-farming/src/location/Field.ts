@@ -89,7 +89,7 @@ import GroundCharacter, {
   type GroundSample,
   type ImprovementCost,
   type Spot,
-} from '../idea/GroundCharacter';
+} from '@saxonberg/content-ground/src/idea/GroundCharacter';
 
 /**
  * Litres of plant-available water one square metre of LOAM holds in its

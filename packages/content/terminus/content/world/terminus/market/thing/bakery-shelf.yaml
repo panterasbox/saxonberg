@@ -4,7 +4,7 @@
 # who grew the wheat, milled it at their own extraction and baked it can
 # put the result here beside the baker's own two lines, and what they get
 # for it is whatever somebody will pay.
-class: /platform/thing/ConsignmentShelf
+class: /trade/shopkeeping/thing/ConsignmentShelf
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bakery shelf

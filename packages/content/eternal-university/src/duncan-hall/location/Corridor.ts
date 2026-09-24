@@ -19,12 +19,16 @@ import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
+// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
+// `Location`'s own base stack (the ground build), because the mixin's
+// default `postRegister` is a non-chaining no-op — a second composition
+// above the base would SWALLOW `Location.postRegister`, and with it the
+// room's floor.
 const CorridorBase = ExitableMixin(
-  DetailedMixin(VisibleMixin(PostRegistrationMixin(Location))),
+  DetailedMixin(VisibleMixin(Location)),
 );
 
 export default class Corridor extends CorridorBase {

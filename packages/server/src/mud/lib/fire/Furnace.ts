@@ -117,6 +117,9 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         // one, and there is no separate "kettle" to own. The whole
         // counterplay ladder's middle rung hangs off this one line.
         'platform/cmd/crafting/boil.yaml',
+        // ⭐ …and you warm a frozen body by it (recovery build) — the same
+        // way you learn every other thing a fire is for: by standing at one.
+        'platform/cmd/medical/warm.yaml',
       ],
       environment: [],
     };

@@ -10,7 +10,7 @@ function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), PATH);
   b.proprietorPath = '/world/lounge/agent/dave';
   b.positions = [
-    { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
+    { key: 'bartender', label: 'tending bar', wageRate: 12, fulfills: ['bartending'] },
   ];
   b.rosterSlots = [
     {
@@ -42,7 +42,9 @@ describe('BusinessEntity', () => {
     const b = seedBusiness();
     expect(b.getPositions().map((p) => p.key)).toEqual(['bartender']);
     expect(b.getPosition('bartender')?.wageRate).toBe(12);
-    expect(b.getPosition('bartender')?.confers).toEqual(['MakerMixin']);
+    // ⭐ A LIST of disciplines, never a flag — a smith does not cook, and
+    // one business can operate both a smithy and a cookhouse.
+    expect(b.getPosition('bartender')?.fulfills).toEqual(['bartending']);
     expect(b.getPosition('nope')).toBeUndefined();
   });
 

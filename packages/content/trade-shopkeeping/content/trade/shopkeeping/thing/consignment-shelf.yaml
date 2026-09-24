@@ -1,0 +1,11 @@
+# The generic brokerage shelf — the archetype's `shelf` default
+# (trades-and-labor D6). Custody plus a sale layer, nothing authored that
+# belongs to a place: goods on it stay their consignor's until they sell.
+class: /trade/shopkeeping/thing/ConsignmentShelf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: consignment shelf
+  keywords: [shelf, consignment, resale]
+  register: indefinite
+  longDescription: |
+    An open shelf by the door where goods left to be sold on wait for a buyer. Whatever sits here still belongs to whoever brought it, until the day it sells.

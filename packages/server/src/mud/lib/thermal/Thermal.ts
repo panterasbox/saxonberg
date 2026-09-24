@@ -451,8 +451,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * crafting emergent-reachability principle applied to heat: a
      * smith's control gate is "what's the hottest thing I can
      * reach?"). 0 when nothing hot is in reach. Ungated read.
-     * (Homed HERE, not on MakerMixin as first sketched: MakerMixin is
-     * augment-gated and players boiling a pot are not Makers — but
+     * (Homed HERE, not on a maker marker as first sketched: that was
+     * augment-gated and players boiling a pot are not staff — but
      * every embodied creature is Thermal.)
      */
     public reachableHeatK(): number {

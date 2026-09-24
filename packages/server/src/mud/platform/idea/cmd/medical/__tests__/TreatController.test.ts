@@ -426,7 +426,34 @@ describe('TreatController — the treatment matches the condition', () => {
     expect(StuffApi.findById(bandage.stuffId)).toBeTruthy();
   });
 
-  it('⭐⭐ a bandage on an INTERIOR wound is refused — there is nothing to dress', async () => {
+  it('⭐ a bandage on a FRACTURE is refused — it wants setting (recovery D4)', async () => {
+    const bandage = makeStuff(() => new Bandage());
+    const fracture: Trauma = {
+      kind: 'trauma',
+      type: 'fracture',
+      site: 'body.leg.left',
+      severity: 1.5,
+    };
+    const { medic, room } = medicWithWound(
+      bandage,
+      fracture,
+      '/platform/agent/Avatar/medic-fracture',
+    );
+    await makeStuff(() => new TreatController()).execute(
+      {},
+      ctxFor(medic, room),
+    );
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'wrong-treatment' }),
+    );
+    const detail = String(
+      (note.mock.calls[0]![0] as { detail: string }).detail,
+    );
+    expect(detail).toContain('setting');
+    expect(fracture.dressed).toBeFalsy(); // untouched — a bandage does nothing
+  });
+
+  it('⭐ a bandage on an INTERIOR wound is refused — there is nothing to dress', async () => {
     // ⚠ The wound TYPE here is a `puncture`, which resolves by `dressing`
     // like any other bleed — so without the site gate a player could
     // bandage a punctured liver. What makes a wound undressable is WHERE

@@ -192,8 +192,18 @@ per brain) and checks the brain shape on those files (sole export
 types by package specifier (`@saxonberg/server/mud/lib/behavior/brain`).
 
 **The class rule:** *a brain lives in the pack whose content is the only
-thing that names it.* A generic economy brain (`restocks`, `consigns`, `cellars`,
-`shifts`, `covers`, `enforces`) is kernel; the first shipped pack brain is
+thing that names it.* A generic economy brain (`restocks`, `cellars`,
+`shifts`, `covers`, `enforces`) is kernel.
+
+⚠ **`stocks` and `consigns` moved out** with the trades-and-labor build:
+they are the shopkeeper's beats — one walks to a supplier and buys a
+counter's shortfall on terms, the other walks a producer's goods to a shop
+and lists them — so they ship as `/trade/shopkeeping/behavior/{stocks,consigns}`.
+Eight rows renamed. ⭐ They narrow on the kernel BASE
+(`lib/retail/Stock`), not the pack twin, so any trade's counter satisfies
+them.
+
+The first shipped pack brain is
 trade-farming's `farms` (`/trade/farming/behavior/farms` — its tends,
 picks and consigns are named only by that pack's grounds and stalls),
 whose suite travels with it under `src/behavior/__tests__/`. Substrate
@@ -394,7 +404,7 @@ through Apis directly rather than the command system.)
 ⭐ **`NPC` is substrate, not a clone target.** Since the identity build,
 a row names one of the two **rungs** —
 `platform/agent/Cast` (somebody) or `platform/agent/Extra` (a role) — or
-a capability combination over them (`Crafter = CastMixin(MakerMixin(NPC))`).
+a capability combination over them (`Mercenary = PartyMemberMixin(NPC)`). ⚠ `Crafter = CastMixin(MakerMixin(NPC))` was the other example until trades-and-labor retired the marker: what an NPC can do AT WORK is its seat's, never a mixin.
 `platform/agent/NPC` retired: after the split no row named it, and *a
 class nothing instances does not belong in `platform/`*. See
 [identity.md](./identity.md).
@@ -449,7 +459,7 @@ the deferred off-shift-at-the-rail presence. It is **not** presence-gated (it
 must run unwatched to move off-stage cast). The sibling **`covers`** brain is
 the proprietor's cover-driver: on a presence-gated cadence, if no other
 active on-shift maker is present it `beginCover`s a transient unpaid
-`MakerMixin`-conferring shift so an `order` still finds a fulfiller. This is
+transient shift on the house's first `fulfills` seat so an `order` still finds a fulfiller. This is
 presence/migration only — the in-room shift-*change* ritual (count-out,
 reconcile, hand-off) is a later scripting wave.
 

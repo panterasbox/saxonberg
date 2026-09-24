@@ -189,11 +189,47 @@ overrides." A Vessel composing the mixin but setting nothing costs
 five `null` fields + five empty objects and otherwise reads
 identically to a non-composing pure container.
 
+### ⚠⚠ `getBiome()` is a REGISTRY read, and the roster must be warmed
+
+`getBiome()` resolves the authored `_biomePath` through
+`BiomeApi.findByPath` → `StuffApi.findByTemplatePath` — an **identity ref
+resolved on read**, which answers only with instances that are *already
+live*. A room whose row cites a biome nobody stood up therefore answers
+`null` **forever**, and every consequence of that room's biome goes quietly
+inert: `isSkyExposed` returns its documented false-when-nothing-resolves, the
+outward chain walk never gets past the room, and the ground build's on-grade
+derivation hands an interior default to open country.
+
+⭐ **`BiomeCatalogue` (`platform/idea/BiomeCatalogue.ts`) is what warms it** —
+the `MaterialCatalogue` shape, self-warming at `postRegister`, eager through
+the platform pack's `boot:` manifest (role `sync-read`). The roster is
+**derived**: every root's `idea/biome/` subtree filtered to rows whose `class`
+extends `Biome`, so a realm pack shipping
+`/world/<place>/idea/biome/cavern` is warmed with nothing to edit — never an
+allowlist of roots.
+
+⚠ **Twice now.** `base-library/pack.yaml` still carries a `boot:` line for
+`/stuff/idea/biome/universe` alone, with the note that it *"was never cloned
+by anything … so `analyze power <thing>` threw 'root universe biome is not
+loaded' in every fresh world, found by the grain-chain wire flow."* That fixed
+the ROOT and left every other biome cold — which the ground build's drive
+found by reading *"It is oak, laid as boards"* in a wood, a concrete apron and
+a mine adit. The root's line stays: `getRootBiome()` **throws** when it is
+cold, and belt and braces for the one row whose absence is fatal rather than
+silent costs one line. ⭐ The general lesson is the one
+[lint-family.md](../lint-family.md)'s census-then-ratchet section keeps making:
+**an enumerated boot list is a list somebody has to remember to extend.**
+
+⚠ A room that cites **no** `_biomePath` at all is a different thing and is not
+this mechanism's problem — nothing resolves because nothing was named. Two of
+Rejection's rooms are in that state (the pithead yard and the adit) and read
+the interior default as a result; `pnpm lint:ground --report` counts them.
+
 ### Method surface
 
 ```ts
 interface Atmospheric {
-  getBiome(): Biome | null;
+  getBiome(): Biome | null;   // ⚠ registry read — see above
   setBiome(value: Biome | null): void;
 
   getTemperature(detailKey?: string): Promise<Quantity<'K'>>;

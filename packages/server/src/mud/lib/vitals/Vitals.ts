@@ -35,6 +35,7 @@ import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
+import type { CommandContributions } from '../../api/command';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -48,14 +49,15 @@ import type {
   AfflictionRecord,
   DyingRecord,
 } from '../../platform/idea/Condition';
-import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../platform/idea/Condition';
+import { HARM_DEFAULTS, TRAUMA_BEHAVIOR, BLEED_FAMILY, WOUND_SEPSIS_KEY, SCARRING_TYPES } from '../../platform/idea/Condition';
+import type { ScarRecord } from '../../platform/idea/Condition';
 import type { VitalEffect, ProgressionLaw } from '../../platform/idea/Condition';
 import type Condition from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ConditionApi } from '../../api/condition';
 import { ContainmentApi } from '../../api/containment';
-import { FUNCTION_BANDS } from './BodyCapacity';
+import { FUNCTION_BANDS, BODY_CAPACITIES } from './BodyCapacity';
 import type { BodyCapacity, FunctionBand } from './BodyCapacity';
 import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
@@ -67,6 +69,12 @@ import { Suppressions } from '../magic/Suppression';
 import { MagicGrid } from '../magic/Grid';
 import { MaterialApi } from '../../api/material';
 import { MagicApi } from '../../api/magic';
+import { CombatApi } from '../../api/combat';
+import { ScheduleApi } from '../../api/schedule';
+import type { ScheduleHandle } from '../../api/schedule';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { POSTURE_REST_BASE } from '../character/Posed';
 
 /** Alias for readability at the magic arm's call sites. */
 function magicDial(key: string, fallback: number): number {
@@ -298,6 +306,30 @@ function assertVitalQuantity(value: unknown, sign: VitalSign): void {
   }
 }
 
+/** Inputs to {@link Vitals.applyTreatment} (D5). */
+export interface TreatmentOpts {
+  /** The resolution token being applied (`dressing` · `setting` · `cooling`
+   * · `warmth` · `surgery` · …) — matches the wound's `resolution`. */
+  by: string;
+  /** How well it was done, `[0, 1]` — the treater's skill × the supply.
+   * Stamped onto `Trauma.careQuality`; `mend` scales the treated rate by
+   * `0.5 + 0.5 × careQuality`. */
+  efficacy: number;
+  /** The body doing the treating (for the infection seed's cleanliness read
+   * and deed attribution) — absent for an environmental / self path. */
+  treater?: Stuff;
+}
+
+/** Outcome of {@link Vitals.applyTreatment}. */
+export interface TreatmentResult {
+  /** Whether the treatment was applied (the wound's `resolve` ran). */
+  treated: boolean;
+  /** The resolution token applied. */
+  by: string;
+  /** Whether a wound-infection seed landed (D11 — dirty care on a bleed). */
+  seededInfection: boolean;
+}
+
 export interface Vitals {
   // ---------- vital signs ----------
   getVitalSign(sign: VitalSign): Quantity<Unit>;
@@ -432,6 +464,9 @@ export interface Vitals {
    * hands has no `manipulation` to lose, and that is data, not a guard.
    */
   capacity(key: BodyCapacity): FunctionBand;
+  /** The worst capacity scalar `[0,1]` across the body — 1 whole, 0 gone.
+   * The labour-indexed tariff prices the shortfall `1 − this` (D13). */
+  minCapacityScalar(): number;
   /** Can the part behind this slot still close on something? */
   canGrip(slot: string): boolean;
   /** Can this body still stand on itself? */
@@ -485,6 +520,33 @@ export interface Vitals {
   afflict(condition: ActiveCondition): boolean;
   /** Remove a condition by reference; true if it was present. */
   relieve(condition: ActiveCondition): boolean;
+  /**
+   * ⭐⭐ **The one treatment primitive** (D5) — apply a treatment to a
+   * wound: run the wound's own `resolve` (dress / set / cool / rewarm /
+   * operate), stamp its `careQuality` from `efficacy` (which `mend` reads
+   * to scale the treated rate), and seed wound infection when the care was
+   * dirty (D11, W-A5). Every consumer — `TreatController`,
+   * `OrderController.treatWorst`, the nurse's brain — calls THIS; the deed
+   * credit and the prose stay caller-side, and verbs stay on the body.
+   */
+  applyTreatment(wound: Trauma, opts: TreatmentOpts): TreatmentResult;
+  /** The healed-over scars this body keeps (D14) — never a penalty. */
+  getScars(): readonly ScarRecord[];
+  /** ⭐ D15 — re-break every half-knit fracture under mechanical work
+   * `powerW`; returns the wounds it re-broke. Called by `Exerting.exert`. */
+  stressStructures(powerW: number): Trauma[];
+  /** ⭐⭐ The per-body convalescence factor `k` (D1/D2) — one number a bed,
+   * a carer and a spell pay into; `0` when the body is not safe (D3a). */
+  convalescenceFactor(): number;
+  /** The carer currently tending this body, or null (D8). */
+  getCarer(): Stuff | null;
+  /** Link/unlink the tending carer + their medicine band (a live fact;
+   * `TendingEngagement` owns this — not persisted). */
+  _setCarer(carer: Stuff | null, band?: string): void;
+  /** ⭐ The next game-time this body silently changes (D19) — the soonest
+   * pending transition, or null. A PURE read; the notify alarm is booked
+   * from it. */
+  nextInterestingAt(): number | null;
   /** Release a sustained magical effect: un-realize, destruct any bound
    * emitter, drop the condition. Expiry and tag-keyed dispel both land here. */
   releaseSustained(s: SustainedEffect): void;
@@ -585,6 +647,17 @@ function missingPartsAugmenter(
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
+/** ⭐ D14 — one sentence about a body's most prominent scar, appended to
+ * `look`. Never a penalty; the body wears what it survived. */
+function scarsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isVitals(host)) return text;
+  const scars = host.getScars();
+  if (scars.length === 0) return text;
+  const worst = [...scars].sort((a, b) => b.peak - a.peak)[0]!;
+  const line = `A pale scar marks the ${partPhrase(worst.site)}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   // A class DECLARATION, not an expression: legacy decorators are only
   // valid on declarations, and `adoptMaterialState` carries a security
@@ -592,8 +665,34 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   class VitalsMixin extends Base implements Vitals {
     static _mixinName = 'VitalsMixin';
 
-    /** A lost part is visible on the body — see `missingPartsAugmenter`. */
-    static markupAugmenters: MarkupAugmenter[] = [missingPartsAugmenter];
+    /** A lost part is visible on the body; so is a scar (D14). */
+    static markupAugmenters: MarkupAugmenter[] = [
+      missingPartsAugmenter,
+      scarsAugmenter,
+    ];
+
+    /**
+     * ⭐⭐ **The body affords its own first aid.** `treat` and `undress`
+     * shipped with NO affordance at all — the views and controllers
+     * existed, but nothing anywhere contributed the verbs, so no player
+     * could type `treat` at any body in any room (a grep of every
+     * `commandContributions` named `medical/rinse.yaml` once and `treat`
+     * / `undress` never). The `MetabolicMixin.eat` precedent exactly: a
+     * body with a wound is what can dress it, so the affordance lives on
+     * the body. Grown by later recovery waves (`tend` · `dose`).
+     *
+     * ⚠ `self`-scoped — a verb you invoke targeting any reachable body
+     * (yourself by default). Inert without a `CommandGiver`, exactly as
+     * `eat` is on an animal: a frog composes VitalsMixin and never types.
+     */
+    static commandContributions: CommandContributions = {
+      self: [
+        'platform/cmd/medical/treat.yaml',
+        'platform/cmd/medical/undress.yaml',
+        'platform/cmd/medical/dose.yaml',
+        'platform/cmd/medical/tend.yaml',
+      ],
+    };
 
     static fieldMeta: FieldMeta = {
       _coreTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K'), runtimeState: true },
@@ -606,6 +705,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       causeOfDeath: { persistent: true, runtimeState: true },
       bodyPartDeltas: { persistent: true, runtimeState: true },
       conditions: { persistent: true, runtimeState: true },
+      scars: { persistent: true, runtimeState: true },
     };
 
     // ---------- storage; defaults are the universe-default baselines ----------
@@ -641,6 +741,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public causeOfDeath: string | null = null;
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
     public conditions: ActiveCondition[] = [];
+    /** ⭐ Healed-over scars the body keeps (D14) — never a penalty, read by
+     * `assess` and `look`. Written at the clear sweep from a wound's `peak`. */
+    public scars: ScarRecord[] = [];
 
     /**
      * Reconcile-on-read reentrancy guard — a plain transient flag, never
@@ -649,6 +752,36 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (`this.getVitalSign('bloodVolume')` inside `reconcileConditions`).
      */
     private _reconcilingConditions = false;
+
+    /**
+     * ⭐ **D3a — the last game-time (seconds) this body took acute harm**
+     * (a trauma or a shock landed). Transient, never persisted: safety is
+     * a live fact, and a body reloaded after an hours-long absence is safe
+     * by definition. Read by `convalescenceFactor` to gate mending on
+     * *being safe*, identically online, linkdead or logged off — the
+     * intent-agnostic answer to combat-logging. Undefined until first harm.
+     */
+    private _lastHarmedAt: number | undefined = undefined;
+
+    /**
+     * ⭐ **The carer currently tending this body** (D8), and their medicine
+     * band captured at tend-time. Transient — a carer is a LIVE fact, never
+     * persisted; a `TendingEngagement` sets and clears it. Read by
+     * `convalescenceFactor`, gated on the carer still being present,
+     * conscious and holding the engagement.
+     */
+    private _carer: Stuff | null = null;
+    private _carerBand = 'untrained';
+
+    /**
+     * ⭐ **The notify alarm's handle** (D19) — a ONE-SHOT booked at the next
+     * interesting transition (a wound-sepsis becoming symptomatic), so the
+     * body can tell you it changed instead of the change sitting invisible
+     * until you next `look`. Transient; canceled and rebooked on state
+     * change. `null` when nothing is pending — a healthy body holds no
+     * handle. ⚠ NEVER a recurring timer / cadence / sweep.
+     */
+    private _notifyHandle: ScheduleHandle | null = null;
 
     // ---------- vital signs ----------
 
@@ -990,6 +1123,141 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * anything upstream is consulted. `1 − Σ(severity × lossPerSeverity)`
      * over the wounds sitting on it; `0` if the part is gone.
      */
+    /**
+     * ⭐⭐ **The per-body convalescence factor `k`** — the one number a
+     * bed, a carer and a spell all pay into. Read once per reconcile and
+     * multiplied into every wound's `mend` (the healing half of the split
+     * — see `Condition.ts` D1). Time is the free heal; care buys RATE.
+     *
+     *   `k = postureBase × surface.restQuality × surface.convalescence
+     *        × (1 + carerBonus) × Π conditionFactors`, floored at
+     *   `CONVALESCENCE_FLOOR` — standing on bare ground still knits, slowly.
+     *
+     * ⭐ **D3a — but only when SAFE.** A body in a live fight, or one
+     * harmed within `CONVALESCENCE_SAFE_DELAY`, reads `0` (overriding the
+     * floor): it mends nothing. Intent is undetectable — an escaper who
+     * force-quits reads exactly like a bad connection — so we never
+     * adjudicate intent; we gate on the *situation*, identically whether
+     * the player is present, linkdead, or logged off. The gate only
+     * delays the START of mending, invisible across an hours-long logout.
+     *
+     * The carer term is `1` until W-A6 wires the tending engagement; the
+     * condition-factor term is `1` until W-B1 adds the `convalescence`
+     * effect kind (the mend spell).
+     */
+    public convalescenceFactor(): number {
+      const self = this as unknown as Stuff;
+      // D3a — convalescence requires safety. Same rule online / away.
+      if (!this.isConvalescenceSafe()) return 0;
+
+      const D = HARM_DEFAULTS;
+      // Posture: lying recovers best, standing least.
+      const posture = MixinApi.isPosed(self) ? self.getPosture() : 'stand';
+      const postureBase =
+        POSTURE_REST_BASE[posture] ?? POSTURE_REST_BASE.stand!;
+
+      // The rest surface — its restQuality (also read by stamina recovery)
+      // AND its separate `convalescence` (read only here). Same three reads
+      // `Metabolic.currentRestQuality` makes, so the two drivers agree on
+      // which surface a body is on, without Vitals importing metabolism.
+      let restQuality = 1.0;
+      let clinical = 1.0;
+      const restingOnNothing =
+        MixinApi.isPosed(self) && !self.getRestingOnPath();
+      if (MixinApi.isSlottable(self) && !restingOnNothing) {
+        const host = self.getOccupiedHost();
+        if (host && MixinApi.isPostured(host)) {
+          restQuality = host.getRestQuality();
+          clinical = host.getConvalescence();
+        }
+      }
+
+      // The carer term (D8) — a live tending engagement adds `1 + bonus`;
+      // the conditions term (D12) — the product of every active affliction's
+      // `convalescence` effect (the mend spell authors `3`; a fever could
+      // author `0.5`).
+      const carer = 1 + this.carerBonus();
+      const conditions = this.conditionConvalescenceFactor();
+
+      const k = postureBase * restQuality * clinical * carer * conditions;
+      return Math.max(D.CONVALESCENCE_FLOOR, k);
+    }
+
+    /**
+     * D8 — the bonus a live carer adds to `k`, by their medicine band.
+     * Zero unless the carer is present (same container), conscious, and
+     * still holds the `medical-tending` engagement — so the read stays
+     * honest even between the abort firing and the engagement clearing.
+     */
+    private carerBonus(): number {
+      const carer = this._carer;
+      if (!carer) return 0;
+      const self = this as unknown as Stuff;
+      // Present: the same container.
+      if (
+        !MixinApi.isContainable(carer) ||
+        !MixinApi.isContainable(self) ||
+        carer.getContainer() !== self.getContainer()
+      ) {
+        return 0;
+      }
+      // Not dead (a corpse tends nobody).
+      const lifecycle = (
+        carer as unknown as { getLifecycleState?: () => string }
+      ).getLifecycleState?.();
+      if (lifecycle === 'dead') return 0;
+      // Still holding the tending engagement.
+      if (
+        !MixinApi.isEngaged(carer) ||
+        carer.getEngagementByType('medical-tending') === undefined
+      ) {
+        return 0;
+      }
+      return HARM_DEFAULTS.CARER_BONUS_BY_BAND[this._carerBand] ?? 0;
+    }
+
+    /**
+     * D12 — the product of every active affliction's `convalescence` effect.
+     * `1` when none declare one. A read-time modifier (the effect is never
+     * integrated), so the `mend` spell speeds healing by afflicting a
+     * `mending` condition whose signature carries `{kind: convalescence,
+     * factor: 3}` — no new Effect kind.
+     */
+    private conditionConvalescenceFactor(): number {
+      return this.conditions
+        .filter((c): c is AfflictionRecord => c.kind === 'affliction')
+        .flatMap((c) => {
+          const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+          return row ? [...row.getSignature()] : [];
+        })
+        .filter((e) => e.kind === 'convalescence')
+        .reduce((prod, e) => prod * (e as { factor: number }).factor, 1);
+    }
+
+    public getCarer(): Stuff | null {
+      return this._carer;
+    }
+
+    public _setCarer(carer: Stuff | null, band = 'untrained'): void {
+      this._carer = carer;
+      this._carerBand = carer ? band : 'untrained';
+    }
+
+    /**
+     * D3a — is this body safe enough to mend? Not in a live combat
+     * session, and not harmed within `CONVALESCENCE_SAFE_DELAY`. A pure
+     * read; the harm stamp is set in `afflict`.
+     */
+    private isConvalescenceSafe(): boolean {
+      const self = this as unknown as Stuff;
+      if (CombatApi.sessionFor(self) !== undefined) return false;
+      if (this._lastHarmedAt !== undefined) {
+        const sinceHarm = WorldClockApi.getNow().rawValue() - this._lastHarmedAt;
+        if (sinceHarm < HARM_DEFAULTS.CONVALESCENCE_SAFE_DELAY) return false;
+      }
+      return true;
+    }
+
     private ownFunction(key: string): number {
       if (this.bodyPartDeltas[key]?.missing === true) return 0;
       let lost = 0;
@@ -1149,6 +1417,18 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public capacity(key: BodyCapacity): FunctionBand {
       this.reconcileConditions();
       return this.bandOf(this.capacityScalar(key));
+    }
+
+    /**
+     * ⭐ The worst capacity scalar `[0, 1]` across every {@link
+     * BODY_CAPACITIES} — how impaired the MOST impaired thing this body
+     * does is (1 = whole, 0 = gone). Read by the labour-indexed tariff
+     * (D13): the shortfall `1 − this` is how much the harm is costing the
+     * body, which the clinic prices against.
+     */
+    public minCapacityScalar(): number {
+      this.reconcileConditions();
+      return Math.min(...BODY_CAPACITIES.map((c) => this.capacityScalar(c)));
     }
 
     /**
@@ -1535,11 +1815,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             );
             break;
           }
-          // `function` and `expression` are DERIVED READS — consulted by
-          // `functionAt` / `capacity` and by `expressionSuppression`,
-          // never integrated. Listed so the switch stays total.
+          // `function`, `expression` and `convalescence` are DERIVED READS
+          // — consulted by `functionAt` / `capacity`, `expressionSuppression`
+          // and `convalescenceFactor` respectively, never integrated. Listed
+          // so the switch stays total.
           case 'function':
           case 'expression':
+          case 'convalescence':
             break;
         }
       }
@@ -1998,47 +2280,95 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       this._reconcilingConditions = true;
       try {
+        // ⭐⭐ The convalescence factor, computed ONCE per reconcile (D2) —
+        // a bed, a carer and a spell all pay into this one number, and
+        // every wound's `mend` reads it. `0` when the body is not safe
+        // (D3a): recently harmed or in a live fight → nothing knits.
+        const k = this.convalescenceFactor();
         for (const t of traumas) {
-          // First touch: seed the stamp so a fresh wound doesn't integrate
-          // a giant gap from epoch.
+          // ── The HARM arm (`tickedAt`) ── freezes on linkdead and drops
+          // a far-past gap: real-life absence never bleeds you.
           if (t.tickedAt === undefined) {
+            // First touch: seed the stamp so a fresh wound doesn't
+            // integrate a giant gap from epoch.
             t.tickedAt = nowS;
-            continue;
-          }
-          if (linkdead) {
+          } else if (linkdead) {
             t.tickedAt = nowS;
-            continue;
-          }
-          const elapsed = nowS - t.tickedAt;
-          if (elapsed <= 0) {
+          } else {
+            const elapsed = nowS - t.tickedAt;
             t.tickedAt = nowS;
-            continue;
+            // Integrate only a real, bounded interval; a far-past gap means
+            // absence, and absence never bleeds you.
+            if (elapsed > 0 && elapsed <= HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+              // ⚠ The intensity is the severity the wound had **during**
+              // the interval, not after the tick healed it — read post-mend
+              // (below), a wound that cleared in the same slice would
+              // contribute nothing, silently losing every effect on a
+              // fast-healing type.
+              const carried = t.severity;
+              // ⭐ D14 — the body remembers the worst it got.
+              t.peak = Math.max(t.peak ?? carried, carried);
+              TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
+              // ⭐ …and what CARRYING the wound does, over and above its
+              // own tick — the Kind-B half of the effect channel, through
+              // the same interpreter a Kind-A row's `signature` uses.
+              this.applyEffects(
+                TRAUMA_BEHAVIOR[t.type].signature,
+                carried,
+                elapsed,
+              );
+              // ⭐ D11 — a bleed-family wound left open above the clot
+              // threshold goes bad on its own after SEPSIS_OPEN_ONSET_SEC.
+              // Part of the HARM arm (being away does not fester you).
+              if (
+                BLEED_FAMILY.has(t.type) &&
+                t.dressed !== true &&
+                t.severity > HARM_DEFAULTS.CLOT_SEVERITY
+              ) {
+                if (t.openSince === undefined) {
+                  t.openSince = nowS;
+                } else if (
+                  t.septicSeeded !== true &&
+                  nowS - t.openSince > HARM_DEFAULTS.SEPSIS_OPEN_ONSET_SEC
+                ) {
+                  this.seedSepsis(HARM_DEFAULTS.SEPSIS_INOCULUM);
+                  t.septicSeeded = true;
+                }
+              } else {
+                // Dressed or clotted below the threshold → reset the clock.
+                t.openSince = undefined;
+                t.septicSeeded = false;
+              }
+            }
           }
-          // Far-past guard: a gap this long means absence — integrate
-          // nothing (real-life absence never bleeds you).
-          if (elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
-            t.tickedAt = nowS;
-            continue;
+
+          // ── The MEND arm (`mendedAt`) ── D3: a SECOND stamp, with NO
+          // linkdead freeze and NO far-past drop — the dying arm's
+          // discipline, for the opposite reason. Being away must never
+          // COST you, and mending is never a cost, so a body knits across
+          // a logout at whatever `k` it reads on return (`k = 0` when it
+          // is not safe — D3a — is what stops a body dropped mid-fight
+          // from knitting). Kept inside this one loop so `lint:condition-
+          // arms` still counts a single arm.
+          if (t.mendedAt === undefined) {
+            t.mendedAt = nowS;
+          } else if (linkdead) {
+            // ⭐ Freeze on linkdead, like every other arm — the broad
+            // "a linkdead body integrates nothing" invariant (electricity,
+            // the dying-disconnect discipline). Offline mend is delivered by
+            // the LOGGED-OFF path instead: an evicted body is not reconciled
+            // while away, so on RECONNECT (no longer linkdead) `mendedAt`
+            // still sits at logout and the big gap integrates in one read —
+            // with NO far-past drop (below), which is the piece that makes
+            // "log off on the cot, come back mended" true.
+            t.mendedAt = nowS;
+          } else {
+            const mendElapsed = nowS - t.mendedAt;
+            t.mendedAt = nowS;
+            if (mendElapsed > 0) {
+              TRAUMA_BEHAVIOR[t.type].mend(this, t, mendElapsed, k);
+            }
           }
-          t.tickedAt = nowS;
-          // ⚠ The intensity is the severity the wound had **during** the
-          // interval, not after the tick healed it. A burn that clears
-          // inside one reconcile still wept for the time it was there —
-          // read post-tick, a wound that healed to zero in the same slice
-          // contributes nothing, which silently loses every effect on a
-          // fast-healing type.
-          const carried = t.severity;
-          TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
-          // ⭐ …and what CARRYING the wound does, over and above its own
-          // tick. The Kind-B half of the effect channel, through the same
-          // interpreter a Kind-A row's `signature` goes through — so a
-          // burn's plasma weep and a bruise's stiffness are declared
-          // beside the decay law rather than hard-coded somewhere else.
-          this.applyEffects(
-            TRAUMA_BEHAVIOR[t.type].signature,
-            carried,
-            elapsed,
-          );
         }
 
         // Sustained shock — the being-shocked circuit. Same presence-freeze
@@ -2154,9 +2484,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           this.progressAffliction(a, elapsed, nowS);
         }
 
-        // Relieve any wound healed to (near) zero severity.
+        // Relieve any wound healed to (near) zero severity — leaving a scar
+        // if it ever got grave enough (D14). Not a game-time arm (no cursor),
+        // so `lint:condition-arms` does not count it.
         for (const t of traumas) {
-          if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) this.relieve(t);
+          if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) {
+            this.maybeScar(t, nowS);
+            this.relieve(t);
+          }
         }
 
         // ── the dying clock ────────────────────────────────────────────
@@ -2436,6 +2771,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // through the proxy `this` so a shadow can veto too.
       const verdict = (this as unknown as Vitals).canAfflict(condition);
       if (!verdict.ok) return false;
+      // ⭐ **D3a — acute harm resets the safety clock.** A trauma or a
+      // shock landing marks the body unsafe for `CONVALESCENCE_SAFE_DELAY`,
+      // so it mends nothing while a fight is (or just was) happening —
+      // identically whether the player is present, linkdead or logged off.
+      // Not afflictions: a poison is slow harm, and the mend spell is an
+      // affliction that must not reset its own patient's clock.
+      if (condition.kind === 'trauma' || condition.kind === 'shock') {
+        this._lastHarmedAt = WorldClockApi.getNow().rawValue();
+      }
       // ⭐⭐ **Stamp who did this, at the door every driver already uses.**
       //
       // A wound has always recorded its inflicter; an affliction never
@@ -2457,6 +2801,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       // Pure add this build — no onset()/tick() invocation, nothing ticks.
       this.conditions.push(condition);
+      // D19 — a new condition may move the notify horizon (e.g. a sepsis
+      // seed with a symptomsAt). Rebook the one-shot alarm.
+      this.rescheduleNotify();
       return true;
     }
 
@@ -2464,7 +2811,222 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const i = this.conditions.indexOf(condition);
       if (i === -1) return false;
       this.conditions.splice(i, 1);
+      // D19 — clearing a condition may remove the pending transition.
+      this.rescheduleNotify();
       return true;
+    }
+
+    /**
+     * ⭐⭐ **The one treatment primitive** (D5). Runs the wound's own
+     * `resolve` (the type decides what "treated" means — a dressing, a
+     * splint, a cooling, a rewarming, surgery), stamps `careQuality` so
+     * `mend` heals it at the graded treated rate, and returns what
+     * happened. The infection seed (D11) lands in W-A5; the seam is here.
+     */
+    public applyTreatment(
+      wound: Trauma,
+      opts: TreatmentOpts,
+    ): TreatmentResult {
+      TRAUMA_BEHAVIOR[wound.type].resolve(this, wound);
+      wound.careQuality = Math.max(0, Math.min(1, opts.efficacy));
+      // Dressing a wound resets its open-wound sepsis clock (D11).
+      wound.openSince = undefined;
+      wound.septicSeeded = false;
+
+      // ⭐ D11 — a DIRTY treatment of a bleed-family wound inoculates it.
+      let seededInfection = false;
+      if (BLEED_FAMILY.has(wound.type)) {
+        const treater = opts.treater;
+        const hands =
+          treater && MixinApi.isHygiene(treater)
+            ? treater.handsCleanliness()
+            : 1;
+        const dirty =
+          hands < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD ||
+          opts.efficacy < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD;
+        if (dirty) {
+          seededInfection = this.seedSepsis(
+            HARM_DEFAULTS.SEPSIS_INOCULUM * (1 - hands),
+          );
+        }
+        // Handling a bleeding wound soils the treater's hands.
+        if (treater && MixinApi.isHygiene(treater)) treater.soil();
+      }
+      return { treated: true, by: opts.by, seededInfection };
+    }
+
+    public getScars(): readonly ScarRecord[] {
+      return this.scars;
+    }
+
+    /**
+     * ⭐ D14 — a wound clearing leaves a scar if it ever got grave enough
+     * and is a scarring type. Never a penalty (scars are description); the
+     * deed is fired fire-and-forget for a persona (the `expireDying → die`
+     * precedent). Called from the clear sweep.
+     */
+    private maybeScar(t: Trauma, nowS: number): void {
+      const peak = t.peak ?? t.severity;
+      if (peak < HARM_DEFAULTS.SCAR_SEVERITY || !SCARRING_TYPES.has(t.type)) {
+        return;
+      }
+      this.scars.push({ site: t.site, type: t.type, peak, at: nowS });
+      const self = this as unknown as Stuff;
+      if (MixinApi.isPersona(self)) {
+        void self.recordDeed({
+          text: `carries a scar — a healed ${t.type} of ${t.site}`,
+          tags: ['scar', t.site],
+        });
+      }
+    }
+
+    /**
+     * ⭐⭐ D15 — real work re-breaks a half-knit bone. Every fracture whose
+     * FUNCTION has come back (severity below the impair threshold) but whose
+     * STRUCTURE has not (severity still above zero) is re-broken when the
+     * work is hard enough (`powerW ≥ REBREAK_POWER_W`): floored to
+     * `REBREAK_SEVERITY`, un-set, its care forgotten, its peak raised.
+     * Deterministic; no roll. Returns the wounds it re-broke (for narration).
+     * Called by `Exerting.exert`.
+     */
+    public stressStructures(powerW: number): Trauma[] {
+      if (powerW < HARM_DEFAULTS.REBREAK_POWER_W) return [];
+      const rebroken: Trauma[] = [];
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma' || c.type !== 'fracture') continue;
+        if (
+          c.severity <= 0 ||
+          c.severity >= HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY
+        ) {
+          continue;
+        }
+        c.severity = Math.max(c.severity, HARM_DEFAULTS.REBREAK_SEVERITY);
+        c.dressed = false;
+        c.careQuality = undefined;
+        c.peak = Math.max(c.peak ?? c.severity, c.severity);
+        rebroken.push(c);
+      }
+      return rebroken;
+    }
+
+    /**
+     * ⭐ D11 — inoculate this body with wound sepsis, or add to an existing
+     * infection. Mirrors `Metabolic.ingest`'s seed exactly (the affliction
+     * record + incubation from the pathogen row); the shipped logistic
+     * in-host arm grows it from there. Returns whether a load landed.
+     */
+    private seedSepsis(load: number): boolean {
+      if (load <= 0) return false;
+      const behavior = MaterialApi.pathogenBehaviorOf(WOUND_SEPSIS_KEY);
+      const path = TemplatePathPrefixes.pathogenCondition + WOUND_SEPSIS_KEY;
+      const nowS = WorldClockApi.getNow().rawValue();
+      const existing = this.conditions.find(
+        (c): c is AfflictionRecord =>
+          c.kind === 'affliction' && c.templatePath === path,
+      );
+      if (existing) {
+        existing.pathogenLoad = Math.min(
+          1,
+          (existing.pathogenLoad ?? 0) + load,
+        );
+        return true;
+      }
+      this.afflict({
+        kind: 'affliction',
+        templatePath: path,
+        stage: 0,
+        elapsed: 0,
+        pathogenLoad: Math.min(1, load),
+        symptomsAt:
+          nowS +
+          (behavior?.incubationSec ??
+            HARM_DEFAULTS.SEPSIS_INCUBATION_FALLBACK_SEC),
+      });
+      return true;
+    }
+
+    /**
+     * ⭐⭐ **The next interesting transition** (D19) — a PURE read returning
+     * the soonest future game-time at which this body silently changes, or
+     * `null` when nothing is pending. Today: a wound-sepsis crossing its
+     * `symptomsAt` (the infection deadline becoming visible — C5's whole
+     * teaching). Mutates NOTHING; the alarm is booked from it, and death /
+     * every other truth is still pure derive-on-read, so this only ever
+     * buys TIMELINESS.
+     */
+    public nextInterestingAt(): number | null {
+      const nowS = WorldClockApi.getNow().rawValue();
+      // ⚠ Array methods, not a `for…of` — this is a PURE READ, not a
+      // progression arm, and `lint:condition-arms` counts a `for…of` over a
+      // condition subset with a game-time cursor as an arm. There is no
+      // mutation here; the alarm is booked FROM this.
+      const times = this.conditions
+        .filter(
+          (c): c is AfflictionRecord =>
+            c.kind === 'affliction' &&
+            c.symptomsAt !== undefined &&
+            (c.pathogenLoad ?? 0) > 0,
+        )
+        .map((c) => c.symptomsAt as number)
+        .filter((at) => at > nowS);
+      return times.length === 0 ? null : Math.min(...times);
+    }
+
+    /**
+     * D19 — cancel the current alarm and book a fresh one-shot at the next
+     * interesting transition. A no-op that clears the handle when nothing is
+     * pending (a healthy body holds none). Called on every state change that
+     * can move the horizon (`afflict`/`relieve`) and by the alarm itself
+     * after it fires (to chase the next transition).
+     */
+    private rescheduleNotify(): void {
+      if (this._notifyHandle) {
+        ScheduleApi.cancel(this._notifyHandle);
+        this._notifyHandle = null;
+      }
+      // ⭐ The alarm is a COURTESY to a player watching their own body; a
+      // body nobody controls (an NPC, a test creature) needs none — it is
+      // read when something reads it, and derive-on-read is already correct.
+      // Gating here is also what keeps the suite from leaking real timers.
+      if (!MixinApi.isHasInteractive(this as unknown as Stuff)) return;
+      const nextAt = this.nextInterestingAt();
+      if (nextAt === null) return;
+      const nowS = WorldClockApi.getNow().rawValue();
+      const scale = WorldClockApi.getScale();
+      // Game-seconds until the transition → real milliseconds.
+      const delayMs = Math.max(0, ((nextAt - nowS) / scale) * 1000);
+      this._notifyHandle = ScheduleApi.schedule(delayMs, () =>
+        this.onNotifyFire(),
+      );
+    }
+
+    /**
+     * D19 — the alarm callback. Runs a normal reconcile (computes NOTHING a
+     * `look` would not), pushes a line for any transition it now observes,
+     * and rebooks the next one. ⚠ Correctness is independent of this firing:
+     * dropped or delayed, the next real read reaches the identical state.
+     */
+    private onNotifyFire(): void {
+      this._notifyHandle = null;
+      const nowS = WorldClockApi.getNow().rawValue();
+      this.reconcileConditions();
+      const festering = this.conditions.some(
+        (c) =>
+          c.kind === 'affliction' &&
+          c.templatePath.endsWith(WOUND_SEPSIS_KEY) &&
+          (c.pathogenLoad ?? 0) > 0 &&
+          nowS >= (c.symptomsAt ?? Infinity),
+      );
+      if (festering) {
+        MessageApi.scene(this as unknown as Stuff)
+          .topic('act.deed')
+          .toSelf(
+            Mml.compose`One of your wounds has turned bad — it is hot and swollen, and it smells.`,
+          )
+          .send();
+      }
+      // Chase the next transition.
+      this.rescheduleNotify();
     }
   }
   return VitalsMixin;

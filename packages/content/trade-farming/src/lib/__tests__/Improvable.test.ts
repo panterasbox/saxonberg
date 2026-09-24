@@ -31,7 +31,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ImprovableMixin, IMPROVEMENT_JOBS } from '../Improvable';
-import GroundCharacter, { type GroundSample } from '../../idea/GroundCharacter';
+import GroundCharacter, { type GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';

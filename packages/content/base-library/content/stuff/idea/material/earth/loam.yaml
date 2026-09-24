@@ -1,0 +1,42 @@
+# Loam — the ordinary ground. A balanced mineral soil (roughly equal parts
+# sand, silt and clay) with enough organic matter to hold together in the
+# hand: what a field, a verge or an unpaved yard is made of, and what a
+# floor over uncited ground defaults to.
+#
+# ⭐ Tagged `earth` and deliberately NOT `granular`: the word a person
+# wants for loam is *bare earth*, not *loose*. The ground fold reads that
+# distinction and nothing else in the tree does.
+#
+# ⚠ This is a MATERIAL, not a soil model. The four reserves, the texture
+# class, pH and tilth are `SoilMixin`'s and `GroundCharacter`'s; this row
+# says only what the stuff IS, which is all a floor needs to name it.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: loam
+  keywords: [loam, earth, soil, dirt]
+  appearance: dark brown loam
+  # Bulk density of a settled agricultural loam (kg/m^3) — packed earth,
+  # roughly three times a peat-based potting mix.
+  density: 1300
+  thermalConductivity: 0.8
+  specificHeat: 1000
+  # Electrical conductivity (S/m) authored DRY, as granite and slate are.
+  # Well under `electricity.pool.minConductivity` (0.005), so a bare earth
+  # floor does not ground you — wet ground conducts through the PUDDLE in
+  # the floor's surface slot, which is where that interaction already lives.
+  electricalConductivity: 1.0e-3
+  # Water absorption capacity (% of dry mass, ASTM D570): a loam holds a
+  # lot, which is why it is what things grow in.
+  waterAbsorptionCapacity: 35
+  # Mechanical response (materials-response): MPa. Soil has effectively no
+  # hardness — a body lands softly on it, which is the point.
+  hardness: 2
+  toughness: 1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["earth", "solid", "soil"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

@@ -207,7 +207,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // holds `hall-manager` off the roster — no employment write, no
     // group membership, no wizard bit.
     const college = makeStuffAtPath(() => new OrganizationEntity(), COLLEGE_PATH);
-    college.positions = [{ key: 'hall-manager', label: 'managing', wageRate: 0, confers: [] }];
+    college.positions = [{ key: 'hall-manager', label: 'managing', wageRate: 0 }];
     college.rosterSlots = [
       { positionKey: 'hall-manager', assignee: '/world/terminus/eternal/duncan-hall/agent/katie', schedule: [] },
     ];

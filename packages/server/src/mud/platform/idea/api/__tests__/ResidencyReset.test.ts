@@ -11,7 +11,7 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import Stock from "../../../thing/Stock";
+import StockBase from "../../../../lib/retail/Stock";
 import Thing from "../../../../lib/stuff/Thing";
 import { Vessel } from "../../../../lib/stuff/Vessel";
 import Location from "../../../../lib/stuff/Location";
@@ -28,6 +28,10 @@ import type Interactive from "../../Interactive";
 import { AppSettings, AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { makeStuff, makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 const TORCH = "/obj/test/Torch";
 

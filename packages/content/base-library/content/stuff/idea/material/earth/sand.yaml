@@ -1,0 +1,31 @@
+# Sand — loose mineral grains, unbound. A dune, a shore, a spoil heap, the
+# floor of a sand-strewn arena.
+#
+# ⭐ Tagged `granular`, which beats `earth` in the ground fold's precedence
+# — so sand underfoot reads *loose*, not *bare earth*, and sand that
+# somebody has bound and dressed reads *set paving*. That precedence is the
+# one place the fold makes a judgement call, and sand is the case it was
+# written for.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: sand
+  keywords: [sand, grit]
+  appearance: pale loose sand
+  # Bulk density of dry quartz sand (kg/m^3).
+  density: 1600
+  thermalConductivity: 0.27
+  specificHeat: 830
+  # Dry silica is an insulator — lower even than loam.
+  electricalConductivity: 1.0e-4
+  # Drains rather than holds; the opposite end of loam.
+  waterAbsorptionCapacity: 5
+  hardness: 1
+  toughness: 1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["granular", "solid", "earth"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

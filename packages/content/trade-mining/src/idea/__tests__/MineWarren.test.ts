@@ -16,7 +16,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import MineWarren from '../MineWarren';
-import Deposit from '../Deposit';
+import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import MineRoom from '../../location/MineRoom';
 import type { Working } from '../../lib/Working';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';

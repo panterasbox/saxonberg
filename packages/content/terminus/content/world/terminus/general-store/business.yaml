@@ -19,7 +19,6 @@ data:
       noun: clerk
       label: working the general-store counter
       wageRate: 5
-      confers: []
     # ⭐ The keeper KEEPS the shop (economic bootstrap D14): the
     # `purchases` position her `stocks` beat trades as — dealt the house
     # card at hire, she buys the supplied lines at the cash-and-carry
@@ -29,8 +28,29 @@ data:
       noun: keeper
       label: keeping the general store
       wageRate: 0
-      confers: []
       purchases: true
+    # ⭐⭐ **The newcomer's seat** (trades-and-labor D16). The demand is
+    # real and it is the demand test the authoring rule asks for: Odell
+    # KEEPS the shop and STOCKS it — she walks to the cash-and-carry,
+    # buys the short lines on terms and carries them home — while Pemby
+    # works the counter. The shop's work exceeds its hands, so a hand is
+    # honestly wanted.
+    #
+    # The criterion is two completed gigs: work off a noticeboard, which
+    # a newcomer with twenty coin and no trade can do this afternoon. It
+    # is a rung, not a wall — and the refusal says which number you are
+    # short and by how much.
+    #
+    # No `purchases` (the house card is the keeper's; a hand does not
+    # spend the shop's money) and no `fulfills` (nobody orders anything
+    # made at a general store — its goods are bought over the counter).
+    - key: hand
+      noun: hand
+      label: hauling and shelving for the general store
+      wageRate: 4
+      headcount: 1
+      requires:
+        gigs: 2
   rosterSlots:
     - positionKey: clerk
       assignee: /world/terminus/general-store/agent/clerk
@@ -43,4 +63,14 @@ data:
   # Where the store banks (authored custody — Terms/fees follow it).
   banksAt: goodkin
   operatingLocations:
+    # ⚠ BOTH the counter fixture and the ROOM it stands in — the
+    # cash-and-carry's row is the precedent, and the room is the
+    # load-bearing half. A supplier is found by its counter's ROOM
+    # (`restocks` → `counterRoomOf` walks the operating locations for one
+    # holding a shelf, and a `Stock` fixture's own contents are its
+    # goods), so a house that listed only the fixture was unfindable as a
+    # supplier: the tailor's cloth order was skipped silently, with no
+    # log line, because the bucket was `continue`d before it ever reached
+    # `job post`.
     - /world/terminus/general-store/counter
+    - /world/terminus/general-store/shop-floor

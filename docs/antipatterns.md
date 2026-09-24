@@ -4155,6 +4155,67 @@ is slated for the same conversion:
 [api-boot-retirement-slate](./slates/builds/api-boot-retirement-slate.md).
 Never add a new one.
 
+### ⚠⚠ And the sibling failure: a roster warmed by an ENUMERATED boot list
+
+A catalogue is the good shape. Naming **one row** of a roster in a
+`boot:` manifest and calling it done is the bad one, and it is the same
+*reference-Ideas-inert-at-boot* failure wearing a fix.
+
+`base-library/pack.yaml` boots `/stuff/idea/biome/universe` alone, with
+the note that it *"was never cloned by anything … so `analyze power
+<thing>` threw 'root universe biome is not loaded' in every fresh
+world."* That fixed the ROOT biome and left **every other biome cold** —
+so `Atmospheric.getBiome()` (a registry read) answered `null` for every
+room in the game, `isSkyExposed` returned its documented
+false-when-nothing-resolves, and the ground build's drive read *"It is
+oak, laid as boards"* in a wood, a concrete apron and a mine adit.
+⭐ Found 2026-09-24, by driving; `BiomeCatalogue` is the conversion.
+
+**The rule:** if a roster is read by path at runtime, warm the ROSTER —
+derived by class over a path infix, never a list somebody has to
+remember to extend. `MaterialCatalogue` and `BiomeCatalogue` are the two
+exemplars; both select every root's subtree and filter on the class, so
+a pack shipping its own row is warmed with nothing to edit.
+
+---
+
+## A self-referential DETAIL that shadows its own object
+
+A `Detailed` host authoring a detail whose id is the host's own name —
+`floor` on a Floor, `door` on a Door — makes the detail win the MQL
+resolve, and **a detail's description renders without the host's
+`markupAugmenters`**. Everything the host derives about itself
+disappears at exactly the spot a player looks for it.
+
+### BAD
+
+```yaml
+class: /platform/thing/Floor
+data:
+  keywords: [floor, ground]
+  details:
+    floor:                       # ⚠ the host is already called `floor`
+      description: A featureless plain floor.
+```
+
+`look floor` binds the DETAIL. The floor's own derived sentence — *"It
+is granite, set as paving."* — is never rendered.
+
+### GOOD
+
+```yaml
+data:
+  keywords: [floor, ground]      # the OBJECT answers to its own name
+  details:
+    track:                       # a real sub-feature, which is what details are FOR
+      description: A pale diagonal worn across the flags.
+```
+
+⭐ The self-detail was a workaround from when a floor was not addressable
+by its own name; the class-level keyword union retired the need for it
+and left it actively harmful. Found 2026-09-24 by the ground build's
+drive, and gated by `lint:ground` clause (f).
+
 ---
 
 ## A completion that calls back into its controller
@@ -5165,3 +5226,80 @@ test, because every test asserted the *bar*, which worked. See
 **Related:** *a refusal is only honest if something lifts it* (pets
 build); [chronicle.md](./subsystems/chronicle.md) — the deed is
 append-only, which is exactly why the gate must not be.
+
+## A capability gated on a mixin only NPCs compose — a grant no player can hold
+
+⭐⭐ **If the thing that switches a capability on is composed on a class
+players never are, the capability is unreachable and the gate looks
+fine.**
+
+Employment shipped a `Position.confers: string[]` — mixin names an
+on-shift holder's seat activated through the augment substrate. The
+vocabulary worked, the tests passed, and the whole mechanism was
+**inert for players**: the only mixin any seat named was `MakerMixin`,
+composed on exactly one class — `Crafter`, an NPC class. A player who
+took the bartender's seat received nothing at all, which is why the
+labor market had nothing to give anybody.
+
+```ts
+// WRONG — the grant is a mixin name, and the mixin is on an NPC class
+positions: [{ key: 'bartender', confers: ['MakerMixin'] }]
+class Crafter extends CastMixin(MakerMixin(NPC)) {}   // ← players are not this
+```
+
+```ts
+// RIGHT — the grant is DATA on the seat, read off the shift
+positions: [{ key: 'bartender', fulfills: ['bartending'] }]
+// nothing composed on anybody; an Avatar and an NPC answer identically
+employed.isFulfilling('bartending')
+```
+
+⭐ **The test:** name the classes that compose the gating mixin. If
+`Avatar` is not among them, no player can ever receive the grant — and
+runtime mixin composition is not a thing, so "we'll compose it later" is
+not a plan. Data on the granting record has no such problem.
+
+⚠ **The corollary about augment gating.** `_augmentGated` is for physical
+implants and innate gifts. A JOB folded into the implant walk is a
+category error on top of the reachability bug, and it was: an on-shift
+Position's grants surfaced through `collectAugmentConferralNames`. See
+[augmentation.md](./subsystems/augmentation.md) and
+[employment.md](./subsystems/employment.md) § Capability grant.
+
+## A line composed into a CARDED body — true on the wire, invisible in the client
+
+⭐⭐ **`look`'s room body is handed to the card and then suppressed from
+the transcript. The card re-derives its content from the subject's
+FIELDS, so anything a controller *composed* into that body reaches the
+wire and reaches no player.**
+
+```ts
+// WRONG — the line is real on the wire and gone in a browser
+body = Mml.compose`${body}\n${derivedLine}`;
+const opened = CardApi.open(context, 'subject', { prose: body, … });
+if (opened) scene.meta({ carded: opened });   // ← client shows the card instead
+scene.toSelf(body).send();
+```
+
+```ts
+// RIGHT — a line that is not a FIELD of the subject rides its own scene
+scene.toSelf(body).send();                    // the carded room body
+MessageApi.scene(actor).topic('sense.survey')
+  .toSelf(Mml.compose`A notice here: ${line}`).send();   // uncarded, kept
+```
+
+⚠⚠ **Neither test tier can see this.** A controller test captures the
+`toSelf` body; a wire test asserts the envelope. Both read the wire. The
+trades-and-labor build's help-wanted sign passed nine unit tests and a
+14/14 wire drive and rendered nothing in a browser; a DOM search for
+`HELP WANTED` came back empty while `apply` in the same room refused with
+both numbers, proving the read was fine and only the render was missing.
+
+⭐ It also reads better split: a card on a wall is something you NOTICE,
+not part of the room's own description.
+
+⚠ **The floor-puddle summary has the same bug and still has it** —
+`BulkableApi.floorPuddleSummary` is composed into the room body, so no
+browser player has ever seen a puddle. The general answer (a card that
+renders the prose it was handed) is
+[carded-prose-slate](./slates/tails/carded-prose-slate.md).

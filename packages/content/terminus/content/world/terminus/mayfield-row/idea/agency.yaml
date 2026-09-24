@@ -25,7 +25,6 @@ data:
       noun: letting-agent
       label: letting Seznick House's rooms
       wageRate: 0
-      confers: []
   rosterSlots:
     - positionKey: agent
       assignee: /world/terminus/mayfield-row/agent/walter

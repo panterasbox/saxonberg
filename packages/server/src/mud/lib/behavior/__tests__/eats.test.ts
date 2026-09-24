@@ -23,7 +23,7 @@ import { brain as eats } from '../eats';
 import type { BrainContext } from '../brain';
 import Material from '../../material/Material';
 import Provision from '../../../platform/thing/Provision';
-import Stock from '../../../platform/thing/Stock';
+import StockBase from "../../retail/Stock";
 import Location from '../../stuff/Location';
 import { Idea } from '../../stuff/Idea';
 import { CommandGiverMixin } from '../../command/CommandGiver';
@@ -43,6 +43,10 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 /*
  * ⚠ SYNTHETIC fixtures under `/test/**`, never the shipped bakery's

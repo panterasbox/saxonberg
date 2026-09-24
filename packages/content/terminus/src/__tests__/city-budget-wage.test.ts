@@ -42,7 +42,7 @@ function seedBudget(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUDGET);
   b.proprietorPath = ""; // municipal
   b.banksAt = BankingApi.defaultCustodianBank();
-  b.positions = [{ key: "clerk", label: "staffing the ticket office", wageRate: 4, confers: [] }];
+  b.positions = [{ key: "clerk", label: "staffing the ticket office", wageRate: 4 }];
   // Fixture-keyed: the budget operates the departure TERMINAL, not the room.
   b.operatingLocations = ["/world/terminus/terminal/thing/departure-terminal-a"];
   return b;

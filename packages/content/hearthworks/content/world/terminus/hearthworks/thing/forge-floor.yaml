@@ -7,5 +7,20 @@ data:
   shortDescription: stone floor
   keywords: [stone, floor, ground]
   register: indefinite
+  # ⭐ What it is MADE OF, authored (ground build). `floorConducts` has read
+  # a floor's material since the electricity build and no floor row in the
+  # game authored one, so the branch was dead. Dry granite (1e-5 S/m) is far
+  # under `electricity.pool.minConductivity` — the smithy floor still does
+  # not ground you; a molten pool on it is a different question, and one the
+  # surface slot below already answers.
+  _materialPath: /stuff/idea/material/rock/granite
+  # Dressed and laid, and the ground continues beneath it — so it reads as
+  # `set-paving`, which is what a smithy floor is.
+  worked: true
+  onGrade: true
+  # ⚠ This row authors NO `staticSlots`, and until the ground build that
+  # meant it had NO posture slot at all: the one floor in the game you could
+  # pour molten iron onto and not sit down on. `FloorMixin` supplies the
+  # canonical `ground:1` spec when a row authors none, so it is sittable now.
   surfaceBulk: true
   surfaceCapacity: 200

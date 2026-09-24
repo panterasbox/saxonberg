@@ -9,7 +9,14 @@
 > for a working · tutwork/tribute pitches and setting-day · the tin rung + the
 > alloy regime (Stage C) · coal → coke (the arc payload) · placer + the Weeping
 > Moor stream-tin district · domestic + building metal (locks, lamps, nails) ·
-> stock forms · the `chars` producer brain · who owns the shaft (the buyout arc)
+> stock forms · the `chars` producer brain · who owns the shaft (the buyout arc) ·
+> ⚠ **`SmeltingFurnace = ContainerMixin(Forge)` (noted 2026-09-23, extraction
+> build)** — a smelting furnace is a chamber you CHARGE, so it sits on the
+> *oven* side of `Oven`'s own distinction (*a chamber you load* vs *a fire you
+> bring work to*), and the subclass exists only to add the container its parent
+> lacks. The extraction build hit the identical fact for the kiln and resolved it
+> by deleting the `Kiln` class and making a kiln a ROW on `/platform/thing/Oven`;
+> the same collapse is available here and is this slate's to take.
 > **Size:** a build
 
 > This slate owns **the supply chain**: extraction, fuel, and smelting as

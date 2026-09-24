@@ -212,6 +212,20 @@ last week clicks open — not by watching a meter.
 
 ## Conferral — the knowing→doing seam
 
+> ⛔ **RETIRED by decision 2026-09-24 — this section describes shipped
+> code that is to be removed.** A competence band must not confer verbs:
+> **the verb is global and the OUTCOME is graduated.** A vanishing verb
+> teaches nothing, and absence cannot carry a reason — the replacement is
+> a refusal that names what lifts it. The content tree had already
+> decided: across every pack exactly ONE conferral is declared
+> (`mixology` → `flourish`), and `wind.yaml` says in a comment that a
+> conferral rule there *"would be a no-op push."* The case, the
+> replacement and the removal work are in
+> [advancement-slate](../slates/builds/advancement-slate.md) § *Verb
+> conferral is retired*. ⚠ Competence itself is untouched —
+> derive-on-read, bands only, the honesty firewall intact; what is
+> retired is what a band AUTHORIZES, never what it MEASURES.
+
 Crossing a competence band **confers verbs** (the way membership and
 augments do). A `Discipline` declares `conferrals: {band, verbs}[]`; at or
 above `band`, the `verbs` (yaml-paths) become afforded.

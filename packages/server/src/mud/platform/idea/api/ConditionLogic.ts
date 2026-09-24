@@ -1016,7 +1016,10 @@ function inflictThroughStack(
   }
 
   const nowS = conditionNowSeconds();
-  if (nowS !== null) trauma.tickedAt = nowS;
+  if (nowS !== null) {
+    trauma.tickedAt = nowS;
+    trauma.mendedAt = nowS; // D3: the healing clock starts beside the harm clock
+  }
   // ⭐⭐ **Veto first, then onset** (D1). The veto layer (magic-items D14)
   // sits HERE — after the covering-stack fold, before anything happens.
   // Armor still attenuates; a conferred immunity simply refuses what is
@@ -1097,7 +1100,10 @@ function reachInterior(
     if (exterior.magicOrigin !== undefined) {
       inner.magicOrigin = exterior.magicOrigin;
     }
-    if (nowS !== null) inner.tickedAt = nowS;
+    if (nowS !== null) {
+      inner.tickedAt = nowS;
+      inner.mendedAt = nowS; // D3: the healing clock starts beside the harm clock
+    }
     if (target.afflict(inner)) {
       TRAUMA_BEHAVIOR[inner.type].onset(target, inner);
       reached.push(inner);
@@ -1160,7 +1166,10 @@ function inflictPassthrough(
     return { trauma, afflicted: false };
   }
   const nowS = conditionNowSeconds();
-  if (nowS !== null) trauma.tickedAt = nowS;
+  if (nowS !== null) {
+    trauma.tickedAt = nowS;
+    trauma.mendedAt = nowS; // D3: the healing clock starts beside the harm clock
+  }
   // Same veto seam as the stack path — a passthrough insult is no less
   // refusable by a conferred immunity — and the same veto-then-onset order
   // (D1), so a refused avulsion severs nothing.
@@ -1202,7 +1211,10 @@ function inflictShock(
     return { trauma, afflicted: false };
   }
   const nowS = conditionNowSeconds();
-  if (nowS !== null) trauma.tickedAt = nowS;
+  if (nowS !== null) {
+    trauma.tickedAt = nowS;
+    trauma.mendedAt = nowS; // D3: the healing clock starts beside the harm clock
+  }
   // The veto layer (magic-items D14), and the same veto-then-onset order
   // as the other two terminal paths (D1) — a conferred immunity refuses
   // what the circuit delivered, and nothing develops from a refused wound.

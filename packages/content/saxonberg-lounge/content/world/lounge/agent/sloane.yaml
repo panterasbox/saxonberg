@@ -2,7 +2,7 @@
 # Brooding, perceptive, secretive. Says little, sees everything, keeper
 # of the after-hours (the night close, wrapping past midnight — the
 # schedule lives on the Business roster now).
-class: /platform/agent/Crafter
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Sloane
