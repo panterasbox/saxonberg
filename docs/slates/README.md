@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**235 slates.** 52 greenfield · 84 continuations · 55 waves · 44 tails.
+**236 slates.** 53 greenfield · 84 continuations · 55 waves · 44 tails.
 
-## ⭐ Greenfield — nothing shipped yet (52)
+## ⭐ Greenfield — nothing shipped yet (53)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -55,6 +55,7 @@ respect.
 | [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens invariant · nearest-wins + self-amendment … |
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
 | [client-audio](./builds/client-audio-slate.md) | the client audio player (ambient emission → playback, as a second modality on the `cockpit.watch` push) · the source's home (Location field vs in-world device — Q1) + the autoplay gesture + mix · the Spotify embed tier · the loose-sync-or-frame-lock decision (Q6) … |
+| [clinical-medicine](./builds/clinical-medicine-slate.md) | all of it — three coupled legs (blood · operations · the two professions) plus a filing pass. |
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
@@ -172,7 +173,7 @@ are the named remainders.
 | [psychology](./builds/psychology-slate.md) | the scoped disclosure grant · the therapist's file object · the psychology vocation + its Discipline · privilege and the conflict class … |
 | [ranching](./builds/ranching-slate.md) | the feed loop — grazing demand on the animal, a way to feed a head, hay as the stored form, the winter-feed budget · the paddock move — `move herd`, paddocks as subdivided fields, the open gate resolved at reconcile, fencing as a bound, the hired-hand cadence with its utilization penalty · breeding (gestation · birth … |
 | [ranged](./builds/ranged-slate.md) | W2 — authored cover (directional · destructible · leased) + overturnable furniture · armor on the response grid (point→blunt, proof marks) … |
-| [recovery](./builds/recovery-slate.md) | the deferred lens-tails, each now its own slate — prosthetics → augmentation-slate · the absent body → absent-body-slate · surgery the practice → surgery-slate · blood / transfusion / donation → blood-slate. |
+| [recovery](./builds/recovery-slate.md) | the deferred lens-tails, each now its own slate — prosthetics → augmentation-slate · the absent body → absent-body-slate · surgery + blood (transfusion / donation) → the clinical-medicine-slate umbrella (which pulls in blood-slate for the deep blood economy). |
 | [rejection](./builds/rejection-slate.md) | everything below the water table — shaft, hoist, pump · the drainage commons + the hoist toll and district · sulfides and roasting · collapse entrapment, the rescue clock and cascade … |
 | [reputation](./builds/reputation-slate.md) | susceptibility · the NPC↔NPC consumers · the substance economy's brand-trust · the notoriety/disguise counterweight (the wanted-profile, `getDisguise().covers`, mutable `distinctiveFeatures`) … |
 | [retail](./builds/retail-slate.md) | S2 the Circulation Reserve (the welfare-floor buy) · S3 producer + real cost/supply pricing (the derived stance, then characterization) · S4 player-owned storefronts, franchising and the market arena · ⚠ **a business never stands DOWN** (below) … |

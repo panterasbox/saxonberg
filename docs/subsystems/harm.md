@@ -714,7 +714,7 @@ single-wound, cannot-fail: an untrained hand is refused, not risked).
 *Surgery the practice* — a durative, interruptible operation with a
 bleed-during clock, a surgical team, a theatre, and anaesthesia as the
 epoch dial, and the install act for augments/prosthetics — is its own
-build ([surgery-slate](../slates/builds/surgery-slate.md)); this verb is
+build ([clinical-medicine-slate](../slates/builds/clinical-medicine-slate.md)); this verb is
 the stub that vertical will wrap, not replace.
 
 ### Hygiene and the festering wound
