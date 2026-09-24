@@ -1352,6 +1352,51 @@ build's own test files had type errors that **vitest hides and CI does not**
 re-cast it. Fixed at the source: `getFloor()` returns `FloorThing` (the
 capability plus the stack it requires), and the casts are gone.
 
+### ⭐⭐ Run 6 — the browser walk FINISHED, and it landed in the render tier
+
+The hand-walk (run 5) covered the Lounge and found three defects before the
+DevTools connection dropped. The rest — the road walk, the moor, the forge, the
+wood, the dorm — is now `e2e/tests/ground-walk.spec.ts`: **a real Chromium
+against the real client**, 10 assertions, **20/20 over two full passes**.
+
+⭐ **It graduated rather than being thrown away.** The metallurgy build's
+browser walk found six things and left nothing behind; this one keeps running
+on every `pnpm --filter @saxonberg/e2e test`, which is the same argument the
+drive-script retirement made for the wire tier.
+
+What it drives, and what only this tier can see:
+
+| | |
+|---|---|
+| the university crossing | *"It is granite, set as paving."* + `look track` finds the worn diagonal **as a detail of the floor** |
+| ⭐⭐ the square **and** the goods yards | the same sentence, from **different rungs** — three words on a room vs a floor row with a gutter on it. AC 17, live |
+| Hinkley's lane | *"It is dark brown loam, beaten flat."* — a made dirt road, reading differently from the city's stone |
+| the moor | the author's peat survives (rung 1 wins) and the derived line names it |
+| the forge | *set as paving* — **and `sit` works**, which it never could before |
+| a wood | earth, off the ground pack's procedural character (AC 14) |
+| the dorm | *"It is oak, laid as boards."* and **never** earth (AC 7/12) |
+| ⚠ regression | a fixture is **named**, not *"something"* · `look at the ground` parses · the floor is **not** in the room card's `HERE` |
+
+⚠ **Three harness defects along the way, each of which had made an assertion
+lie**, and they are worth more than the passing run:
+
+1. The first transcript reader sniffed for a `<div>` containing the greeting
+   and **silently returned `""`** for half the walk — every negative assertion
+   then "passed" against an empty string. Now `getByTestId('terminal')`, the
+   hook the client ships for exactly this.
+2. The card reader took the **last** `<h3>` after a fixed 900 ms beat, so it
+   read the ROOM's card half the time — no *"It is …"* line, so a correct
+   product answer failed against `""` and looked like a defect. Now it polls
+   the cards for the one that matches.
+3. `say()` waited for the transcript to **grow**, and a command's own ECHO
+   grows it — so `sit on the ground` returned `"the ground> sit on the ground"`
+   before the reply arrived. Split into `say` (wait for the echo — *did this
+   refuse?*) and `sayAwaiting` (wait for the reply).
+
+⭐ All three are the same mistake in different clothes: **a harness that cannot
+read the thing it asserts on is worse than no harness**, because it reports
+green. Which is exactly what finding (3) of run 5 was about.
+
 ### Run 3 — ⭐ 27/27
 
 Every step a socket can settle. What is covered elsewhere, and why:
