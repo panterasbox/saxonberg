@@ -63,6 +63,20 @@ export const BLOOD_DEFAULTS = {
   DONATION_MIN_MARROW: 40,
   /** Marrow reserve (`%`) spent per litre drawn — a 0.45 L unit ≈ 27 %. */
   MARROW_COST_PCT_PER_L: 60,
+  /**
+   * ⭐ How long a draw OCCUPIES the drawer (game-seconds). The real
+   * barrier to donating is not volume — it is the TIME you carve out and
+   * sit there; the `marrow` reserve models the RECOVERY cost, this models
+   * the ACT cost. Long enough that you would not do it mid-fight. The
+   * draw is a LONG engaged `hands` step; abort → no unit drawn.
+   */
+  DRAW_DURATION_S: 180,
+  /**
+   * How long a transfusion occupies the giver (game-seconds) — SHORT and
+   * interruptible: the field-medic-under-fire tension, exposed while you
+   * give. Abort → the unit is not given (the slot keeps its contents).
+   */
+  TRANSFUSE_DURATION_S: 45,
 } as const;
 
 /**

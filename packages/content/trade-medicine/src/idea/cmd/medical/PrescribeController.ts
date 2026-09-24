@@ -29,6 +29,14 @@ interface PrescribeModel extends CommandModel {
   patient?: MqlOneResult;
   active?: string;
   doses?: number;
+  /**
+   * The prescription pad — the instrument the binder always resolves (the
+   * view defaults it to `me:i:[capability.prescribing]`). The controller
+   * gates on medical COMPETENCE, not on the pad, so it does not read this;
+   * it is declared because the binder always populates it, and the tests
+   * that hand-build this model must mirror that (`lint:binder-models`).
+   */
+  pad?: MqlOneResult;
 }
 
 export default class PrescribeController extends CommandController<PrescribeModel> {

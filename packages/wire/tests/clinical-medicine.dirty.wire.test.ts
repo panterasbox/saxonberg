@@ -108,14 +108,16 @@ suite('blood: test → bleed → transfuse', () => {
     expect(said, `test: ${said}`).toMatch(/type\s+(a|b|ab|o)\b|blood is type/);
   }, 60_000);
 
-  it('⭐⭐ `bleed patient into bag` draws a unit — volume drops, the bag holds blood', async () => {
+  it('⭐⭐ `bleed patient into bag` BEGINS a durative draw (the engaged act)', async () => {
     const before = (await (await patient.cmd('assess')).said()).toLowerCase();
     const out = await doctor.cmd('bleed patient into bag');
     const said = (await out.said()).toLowerCase();
     expect(afforded(said), `bleed: ${said}`).toBe(true);
-    // Either it drew (a unit line) or it named a concrete refusal (not unknown).
-    const drew = /draw|unit|blood/.test(said);
-    expect(drew, `bleed said: ${said}`).toBe(true);
+    // ⭐ The draw is now durative — the barrier to giving blood is the
+    // TIME, so `bleed` reports it has BEGUN (the `operate` precedent), not
+    // an immediate unit. The completion effect is proven by the unit test.
+    const begun = /begin|drawing|steady|blood/.test(said);
+    expect(begun, `bleed said: ${said}`).toBe(true);
     void before;
   }, 90_000);
 

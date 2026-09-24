@@ -1,9 +1,17 @@
 /**
  * BleedController — `bleed [donor] into <vessel> [with <syringe>]` (blood
- * build D5). Draws a unit of blood: spends the donor's volume + marrow
- * reserve (via `Vitals.drawBlood`) and fills the vessel with a labelled
- * (or unlabelled) blood unit. Refuses a donor who is unconscious, low on
+ * build D5; made durative in the clinical-medicine review). Draws a unit
+ * of blood: spends the donor's volume + marrow reserve (via
+ * `Vitals.drawBlood`) and fills the vessel with a labelled (or
+ * unlabelled) blood unit. Refuses a donor who is unconscious, low on
  * volume, or low on the donation reserve. Credits `nursing standard`.
+ *
+ * ⭐ The draw is a LONG engaged `hands` step (`DRAW_DURATION_S`): the real
+ * barrier to giving blood is not your volume, it is the TIME — you carve
+ * out the act and sit there. All the gates run SYNCHRONOUSLY at dispatch;
+ * the effect (drawBlood + fill + credit) lands at COMPLETION, so a
+ * barge-in aborts the draw and no unit is taken. The not-engaged path
+ * runs the effect immediately.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -13,6 +21,8 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
 import { BLOOD_DEFAULTS } from '@saxonberg/server/mud/lib/vitals/Blood';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
@@ -84,37 +94,71 @@ export default class BleedController extends CommandController<BleedModel> {
       }
     }
 
-    const unit = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
-    const material = StuffApi.findByTemplatePath<Material>(BLOOD_MATERIAL);
-    if (slot.isEmpty()) {
-      if (material) slot.setMaterial(material);
-      slot.setAmount(Quantity.of(BLOOD_DEFAULTS.UNIT_LITRES, 'L'));
-      slot.setPayload({ blood: unit });
-    } else {
-      slot.setAmount(
-        Quantity.of(slot.getAmount().rawValue() + BLOOD_DEFAULTS.UNIT_LITRES, 'L'),
-      );
-    }
+    // The effect lands at COMPLETION — the draw is a durative act, and an
+    // abort must take no blood. All the gates above ran at dispatch.
+    const onComplete = (): void => {
+      const unit = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
+      const material = StuffApi.findByTemplatePath<Material>(BLOOD_MATERIAL);
+      if (slot.isEmpty()) {
+        if (material) slot.setMaterial(material);
+        slot.setAmount(Quantity.of(BLOOD_DEFAULTS.UNIT_LITRES, 'L'));
+        slot.setPayload({ blood: unit });
+      } else {
+        slot.setAmount(
+          Quantity.of(slot.getAmount().rawValue() + BLOOD_DEFAULTS.UNIT_LITRES, 'L'),
+        );
+      }
+      if (MixinApi.isAdvancing(giver)) {
+        void giver.creditDeed({
+          discipline: 'nursing',
+          difficulty: 'standard',
+          outcome: 'success',
+        });
+      }
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          self
+            ? Mml.compose`You draw a unit of your own blood into ${Mml.thing(vessel)}.`
+            : Mml.compose`You draw a unit of blood from ${Mml.thing(donor)} into ${Mml.thing(vessel)}.`,
+        )
+        .toPeers(
+          Mml.compose`${Mml.actor(giver)} draws blood into ${Mml.thing(vessel)}.`,
+        )
+        .send();
+    };
 
-    if (MixinApi.isAdvancing(giver)) {
-      await giver.creditDeed({
-        discipline: 'nursing',
-        difficulty: 'standard',
-        outcome: 'success',
-      });
+    if (!MixinApi.isEngaged(giver)) {
+      onComplete();
+      return;
     }
-
+    const step = new ManualBuildStep({
+      actor: giver,
+      slots: ['hands'],
+      durationMs: BLOOD_DEFAULTS.DRAW_DURATION_S * 1000,
+      onComplete,
+      onAbort: () => {},
+    });
+    const result = SchedulerApi.start(step);
+    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
+      context.note(result.note);
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          self
+            ? Mml.compose`You settle in and begin drawing your own blood into ${Mml.thing(vessel)}. It will take a while.`
+            : Mml.compose`You begin drawing blood from ${Mml.thing(donor)} into ${Mml.thing(vessel)}. It will take a while.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} begins drawing blood.`)
+        .send();
+      return;
+    }
+    if (result.ok && result.status === 'completed-sync') return;
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(
-        self
-          ? Mml.compose`You draw a unit of your own blood into ${Mml.thing(vessel)}.`
-          : Mml.compose`You draw a unit of blood from ${Mml.thing(donor)} into ${Mml.thing(vessel)}.`,
-      )
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} draws blood into ${Mml.thing(vessel)}.`,
-      )
+      .toSelf(Mml.compose`Your hands are busy just now.`)
       .send();
+    context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'busy' });
   }
 
   private fail(context: CommandContext, line: string, reason: string): void {

@@ -1562,3 +1562,170 @@ silent-affordance defects, all fixed:
 ⚠ Environment note: the confirming run OOM-killed once under WSL memory
 pressure at boot (not a code failure); it passed cleanly on the retry with
 a freed heap.
+
+---
+
+## Review round 2 — remaining MR work (execute POST-COMPACT)
+
+⚠ **This section is the handoff.** The design was settled with the user in
+the review conversation; the git history has W0–W7 + the review follow-ups
+all committed and pushed on `design/clinical-medicine` (MR !290). A
+fresh-context agent executes the three items below from this spec + the
+codebase, then re-drives, runs the full suite once, and updates the MR
+description. Nothing here reopens the merge.
+
+### R2-A — `bleed` durative, `transfuse` short (the engagement fix)
+
+⭐ **The user's insight:** the real barrier to donating blood is not
+volume, it's the TIME — you carve out an hour and sit there. The `marrow`
+reserve models the RECOVERY cost; nothing models the ACT cost. Make the
+draw a durative engaged act so being occupied is the honest friction.
+
+- **`bleed`** (`packages/content/trade-medicine/src/idea/cmd/medical/BleedController.ts`):
+  today instant. Keep all gates SYNCHRONOUS (blood present, conscious,
+  volume ≥ `DONOR_MIN_FRAC`, marrow ≥ `DONATION_MIN_MARROW`, vessel valid /
+  empty-or-same-type). Then start a **LONG** engaged `hands` step — reuse
+  the `SteepController` pattern exactly (`ManualBuildStep` +
+  `SchedulerApi.start`, with the not-engaged fallback that runs the effect
+  immediately). `onComplete`: `donor.drawBlood(UNIT_LITRES)`, fill the
+  vessel + payload, credit `nursing standard`. `onAbort`: NO unit drawn
+  (the draw failed; the vessel is untouched). Duration = a new
+  `BLOOD_DEFAULTS.DRAW_DURATION_S` (a few game-minutes; long enough that you
+  would not do it mid-fight). A self-draw occupies the drawer (= the donor);
+  a nurse-drawn donation occupies the drawer — a donor-hold
+  (`OperationPatientHold` shape) is DEFERRED richness, not v1.
+- **`transfuse`** (`TransfuseController.ts`): today instant. Keep the gates
+  SYNCHRONOUS (incl. the labelled-mismatch JUDGEMENT refusal and the
+  spoiled refusal). Then a **SHORT** interruptible engaged step
+  (`TRANSFUSE_DURATION_S`, ~30–60 game-s) — the field-medic-under-fire
+  tension (you are exposed while giving). `onComplete`: `receiveBlood(...)`,
+  spend the unit from the slot, narrate by reaction, credit `nursing
+  standard`. `onAbort`: the unit is NOT given (the slot keeps its contents).
+- v1 uses the `hands` `ManualBuildStep` (cancelable = the opportunity cost).
+  ⚠ Making combat *interrupt* a draw/transfusion (hold `body` +
+  `replaceableBy: [COMBAT_PARTICIPANT_TYPE]`, the `OperationEngagement`
+  shape) is a clean refinement — do it if cheap, else note it deferred.
+- **Drive:** the bleed/transfuse checkpoints now get a "started" beat, not
+  an immediate result (the `operate` precedent). Update
+  `packages/wire/tests/clinical-medicine.dirty.wire.test.ts` to assert the
+  started note (afforded + "you begin drawing" / "you begin"), not the
+  completed draw. The unit tests prove the completion effect.
+
+### R2-B — Infusion generalization (`steep` → platform, `Steepable` kernel mixin)
+
+⭐ **The problem:** `steep` shipped as a medicine-only verb with a
+hardcoded output — dishonest, and it poisons the well for whoever builds
+cooking. Infusion is GENERAL: a solvent extracts a solute → an extract
+(water+leaves→tea, water+herb→draught, spirits+herb→tincture, oil+herb→oil).
+**Design settled with the user; lens pass in the review conversation.**
+
+- **`Steepable` is kernel `lib/` substrate** (cooking, medicine, distilling
+  have no common pack ancestor → kernel, per the doctrine). Create
+  `packages/server/src/mud/lib/craft/Steepable.ts` — `SteepableMixin`
+  (`Mixins.Steepable`, `MixinApi.isSteepable`). Move the `steepsInto:
+  string` field here from `Simple`; add `getSteepsInto()`. ⭐ The mixin
+  carries the affordance: `static commandContributions.environment =
+  ['platform/cmd/crafting/steep.yaml']`, so any steepable affords `steep`.
+- **`steep` becomes a PLATFORM verb** (the `make`/`wash`/`stir` precedent —
+  "platform keeps the verbs any trade's instrument confers"). Create:
+  - `packages/content/platform/content/platform/cmd/crafting/steep.yaml`
+    (`verbs: [steep, infuse]`, controller
+    `/platform/idea/cmd/crafting/SteepController`; the `solute`/`simple`
+    arg `requires: any`, the controller narrows on `isSteepable`; the
+    `vessel` arg `[BulkableMixin]`, prep `in`).
+  - `packages/server/src/mud/platform/idea/cmd/crafting/SteepController.ts`
+    — port the current trade-medicine `SteepController` logic: read the
+    solute's `getSteepsInto()`, require the vessel to hold ≥ `MIN_WATER_L`
+    of a SOLVENT (v1 = water; check a `solvent` Material tag, else the water
+    path — tag base-library water `solvent` if not already), engaged step
+    (unchanged), on complete set the slot's Material to the extract.
+  - `packages/content/platform/content/platform/idea/cmd/crafting/SteepController.yaml`.
+  - **DELETE** the trade-medicine steep trio:
+    `content/trade/medicine/cmd/crafting/steep.yaml`,
+    `content/trade/medicine/idea/cmd/crafting/SteepController.yaml`,
+    `src/idea/cmd/crafting/SteepController.ts`.
+- **`Simple`** (`trade-medicine/src/thing/Simple.ts`): compose
+  `SteepableMixin` (drop its local `steepsInto` field + the steep
+  affordance — inherited from the mixin now). Its rows (greywort-root,
+  wardmoss, willow-bark) keep `steepsInto` unchanged (now read via
+  Steepable). `Mixins.Steepable` in `lib/mixin.ts`; `MixinApi.isSteepable`
+  in `api/mixin.ts`; a `SteepableMixin` refusal phrase in `MixinRefusals`.
+- **v1 = water solvent only.** DEFERRED to a real cooking/infusion build:
+  the solvent TYPE changing the output (water-tea vs alcohol-tincture),
+  extraction efficiency, heat kinetics (hot vs cold-brew), multi-solute
+  blends. → capture as a note in the cooking domain / a cooking-infusion
+  slate at /finalize (the substrate generalizes now; the chemistry later).
+- Tests: a `Steepable`/steep unit or platform controller test; the drive's
+  `steep greywort in pot` must still pass (now a platform verb afforded by
+  the steepable).
+
+### R2-C — slates (written in THIS commit, pre-compact)
+
+- `docs/slates/builds/labs-slate.md` — the diagnostic-lab vertical (below).
+- `docs/slates/builds/blood-slate.md` — the sector/org + no-badgering notes
+  (below).
+
+### R2-D — close-out
+
+Re-drive to green, update the MR description (the two verbs are now
+engagements; `steep`/infuse moved to platform). All 51 lint gates + the
+touched suites.
+
+⚠ **On the full suite:** the R2 spec's first draft said "`pnpm test` once
+(source changed)". CLAUDE.md overrides that — `pnpm test` runs at exactly
+two moments (pre-MR-open and /finalize), and everything in between is
+`test:near` + touched packs + the lint family, with "but this change is
+big/structural" being the exemption that is explicitly invalid. This is a
+REVIEW ROUND on the already-open MR !290, so the full suite is NOT the
+gate here; /finalize will run it. Gate satisfied: `pnpm build` type-clean,
+`lint:family` 51/51, touched packs green, the live drive 11/11 (which
+booted the full cross-pack world).
+
+---
+
+## ✅ Review round 2 — DONE (2026-09-24, post-compact)
+
+All three items executed and verified.
+
+**R2-A — engagements.** `bleed` is now a LONG engaged `hands` step
+(`BLOOD_DEFAULTS.DRAW_DURATION_S = 180` game-s): all gates run at
+dispatch, the draw effect (drawBlood + fill + credit) lands at completion,
+an abort takes no unit; the not-engaged path runs it immediately.
+`transfuse` is a SHORT interruptible step (`TRANSFUSE_DURATION_S = 45`),
+both success paths (saline + blood) deferred through one `runOrEngage`
+launcher, an abort gives nothing. The combat-interrupt refinement
+(`replaceableBy: [COMBAT_PARTICIPANT_TYPE]`) is left deferred — the v1
+`hands` step's cancelability is the opportunity cost. Files:
+`BleedController.ts`, `TransfuseController.ts`, `Blood.ts` (two dials).
+Drive updated: the bleed checkpoint asserts the "begins a durative draw"
+beat (the `operate` precedent), not an immediate unit.
+
+**R2-B — infusion generalized.** `steep`/`infuse` is now a PLATFORM verb
+over a kernel `SteepableMixin` (`lib/craft/Steepable.ts`,
+`Mixins.Steepable`, `MixinApi.isSteepable`, the refusal phrase). The mixin
+carries the affordance + the `steepsInto` field (moved off `Simple`, which
+now just composes it). The platform controller gates the solvent by a
+Material `solvent` tag (v1 = water, tagged in `base-library`); the
+trade-medicine steep trio is deleted. v1 is water-only; the solvent-type
+chemistry (tincture/oil/hot-brew) is a note to the cooking-infusion build.
+New test: `SteepVerb.test.ts` (5/5) — substrate, durative completion, the
+three refusals.
+
+**R2-C — slates.** `blood-slate` got the "blood people = an org, not a
+recruiter caste" + the ⭐ no-badgering constraint (opt-in, bounded
+summons; the measurement doctrine forbids retention-badgering).
+`sampling-and-labs-slate` got the MEDICAL diagnostic-lab finding (blood
+typing is one lab function; panels/cultures/pathology; `test` folds into
+`analyze` + reagents, the bespoke verb is the placeholder the lab build
+replaces).
+
+**Two latent defects fixed** (introduced by the review commit
+`88da63c62`'s `prescribe.test.ts`, never gated because vitest uses
+esbuild, not tsc, and lint:family had not re-run): a type-predicate build
+error, and a `lint:binder-models` failure (the hand-built models omitted
+the `pad` arg the view always binds). Both fixed; `pnpm build` clean and
+all 51 gates green.
+
+**Verification:** `pnpm build` type-clean · `lint:family` 51/51 ·
+trade-medicine 21/21 · platform crafting 34/34 · vitals blood 12/12 ·
+the drive 11/11 over the booted full world.

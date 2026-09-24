@@ -559,6 +559,33 @@ and the time scale makes it urgent:
   spoilage) — retunable without touching the mechanism, and worth
   revisiting against real-time-at-12× when this build runs.
 
+### ⭐ Who the "blood people" are — the org question, and the no-badgering constraint
+
+The review raised a design hazard from real-world blood donation: **you
+give once and the "blood people" never leave you alone.** Two findings for
+this slate to honour when it builds the sector:
+
+- **The "blood people" are an ORG, not a hardcoded NPC caste.** A blood
+  service is a `Business`/`Office` over the shipped substrate — a bank
+  that holds a typed stock, positions that draw/screen/dispense, a
+  founder-default holder — sited at the infirmary and, later, a dedicated
+  centre. There is no new "recruiter" primitive; whoever holds the seat
+  is who asks. This keeps the blood sector modellable with the same
+  economy substrate every other trade uses (it is **separate from
+  medical** — not scoped in the clinical-medicine build).
+- ⭐ **The no-badgering constraint is a design rule, not a flavour note.**
+  A donor is never spammed. Any "come give again" summons must be
+  **opt-in and bounded** — a standing request a player can decline once
+  and be left alone, or a board posting they choose to read — never an
+  unsolicited recurring nudge. Real-life donor-retention badgering is
+  exactly the kind of dark-pattern engagement loop the platform's
+  measurement doctrine forbids (a feed that hides the measurement; the
+  mirror shows you). The pull to donate is the renown/chronicle credit
+  and the knowledge the bank is low — a value, offered — never a
+  notification that will not stop. See
+  [social-graph.md](../../subsystems/social-graph.md) (NotifyPolicy —
+  attention is opt-in) and [measurement.md](../../subsystems/measurement.md).
+
 ## Cross-references
 
 - [harm.md](../../subsystems/harm.md), [vitals.md](../../subsystems/vitals.md),

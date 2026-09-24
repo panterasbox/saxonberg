@@ -162,6 +162,7 @@ import type { DisguiseBearing } from '../lib/disguise/Disguise';
 import type { Status } from '../lib/status/Status';
 import type { Identifiable } from '../lib/identification/Identifiable';
 import type { Graded } from '../lib/craft/Graded';
+import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
 import type { Keen } from '../lib/material/Keen';
@@ -1610,6 +1611,10 @@ export class MixinApi {
 
   public static isGraded(obj: Stuff): obj is Stuff & Graded {
     return this.hasMixin(obj, Mixins.Graded);
+  }
+
+  public static isSteepable(obj: Stuff): obj is Stuff & Steepable {
+    return this.hasMixin(obj, Mixins.Steepable);
   }
 
   public static isTool(obj: Stuff): obj is Stuff & Tooled {

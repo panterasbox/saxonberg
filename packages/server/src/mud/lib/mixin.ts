@@ -437,6 +437,9 @@ export const Mixins = {
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   ManualBuild: 'ManualBuildMixin',
+  // A solute that gives up an extract when steeped in a solvent — the
+  // general infusion substrate (`steep`/`infuse`).
+  Steepable: 'SteepableMixin',
   Bank: 'BankMixin',
   // The unified credential holder — one keyed store of credentials-as-data,
   // composed on the born-with wallet app and on the physical cards.
@@ -694,6 +697,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // body.
   ToolMixin: "{} isn't a tool",
   ManualBuildMixin: "{} isn't a vessel you can work in",
+  SteepableMixin: "{} isn't something you can steep",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what

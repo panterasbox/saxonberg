@@ -1,10 +1,17 @@
 /**
  * TransfuseController — `transfuse <patient> from <vessel> [using <syringe>]`
- * (blood build D5). Reads the vessel: blood → the unit; salt-water → a
- * saline expander; else refused. A spoiled unit is refused. ⭐ The
- * judgement: a competent giver who can SEE a mismatch (patient typed AND
- * unit labelled AND incompatible) refuses to give it — competence buys
- * JUDGEMENT, never a better transfusion. Credits `nursing standard`.
+ * (blood build D5; made durative in the clinical-medicine review). Reads
+ * the vessel: blood → the unit; salt-water → a saline expander; else
+ * refused. A spoiled unit is refused. ⭐ The judgement: a competent giver
+ * who can SEE a mismatch (patient typed AND unit labelled AND
+ * incompatible) refuses to give it — competence buys JUDGEMENT, never a
+ * better transfusion. Credits `nursing standard`.
+ *
+ * ⭐ The give is a SHORT interruptible engaged `hands` step
+ * (`TRANSFUSE_DURATION_S`): the field-medic-under-fire tension — you are
+ * exposed while you give, and a barge-in aborts it (the unit is NOT given;
+ * the slot keeps its contents). Every gate runs SYNCHRONOUSLY at dispatch;
+ * the effect lands at completion. The not-engaged path runs it at once.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -14,6 +21,8 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
 import { Freshness } from '@saxonberg/server/mud/lib/material/Freshness';
 import { BloodType } from '@saxonberg/server/mud/lib/vitals/BloodType';
 import type { BloodTypeLabel } from '@saxonberg/server/mud/lib/vitals/BloodType';
@@ -53,12 +62,14 @@ export default class TransfuseController extends CommandController<TransfuseMode
     const materialPath = slot.getMaterial()?.getTemplatePath() ?? '';
     const unit = slot.getPayload()?.blood;
 
-    // Saline — the untyped volume floor.
+    // Saline — the untyped volume floor. The effect is deferred to the step.
     if (materialPath === SALINE_MATERIAL) {
-      patient.receiveBlood({ litres, blood: null, expander: true });
-      slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
-      await this.credit(giver);
-      return this.narrate(context, self, patient, 0, true);
+      return this.runOrEngage(context, giver, () => {
+        patient.receiveBlood({ litres, blood: null, expander: true });
+        slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
+        void this.credit(giver);
+        this.narrate(context, self, patient, 0, true);
+      });
     }
 
     if (!unit) {
@@ -99,13 +110,55 @@ export default class TransfuseController extends CommandController<TransfuseMode
       }
     }
 
-    const result = patient.receiveBlood({
-      litres,
-      blood: { speciesPath: unit.speciesPath, type: unit.type },
+    // Gates passed. The give lands at completion; a barge-in gives nothing.
+    return this.runOrEngage(context, giver, () => {
+      const result = patient.receiveBlood({
+        litres,
+        blood: { speciesPath: unit.speciesPath, type: unit.type },
+      });
+      slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
+      void this.credit(giver);
+      this.narrate(context, self, patient, result.reaction, false);
     });
-    slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
-    await this.credit(giver);
-    return this.narrate(context, self, patient, result.reaction, false);
+  }
+
+  /**
+   * Run `effect` now if the giver is not engaged, else start a SHORT
+   * interruptible `hands` step that applies it at completion and narrates
+   * the "you begin" beat.
+   */
+  private runOrEngage(
+    context: CommandContext,
+    giver: Stuff,
+    effect: () => void,
+  ): void {
+    if (!MixinApi.isEngaged(giver)) {
+      effect();
+      return;
+    }
+    const step = new ManualBuildStep({
+      actor: giver,
+      slots: ['hands'],
+      durationMs: BLOOD_DEFAULTS.TRANSFUSE_DURATION_S * 1000,
+      onComplete: effect,
+      onAbort: () => {},
+    });
+    const result = SchedulerApi.start(step);
+    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
+      context.note(result.note);
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You begin the transfusion. Hold steady.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} begins a transfusion.`)
+        .send();
+      return;
+    }
+    if (result.ok && result.status === 'completed-sync') return;
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`Your hands are busy just now.`)
+      .send();
+    context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'busy' });
   }
 
   private async credit(giver: Stuff): Promise<void> {

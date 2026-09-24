@@ -67,9 +67,9 @@ function seedAnaesthesia(): void {
 /** The prescription slips the doctor is now carrying, newest last. */
 function slipsHeldBy(doc: Stuff): (Stuff & Prescription)[] {
   if (!MixinApi.isContainer(doc)) return [];
-  return [...doc.getContents()].filter((i): i is Stuff & Prescription =>
+  return [...doc.getContents()].filter((i) =>
     MixinApi.isPrescription(i),
-  );
+  ) as (Stuff & Prescription)[];
 }
 
 beforeEach(() => {
@@ -101,7 +101,7 @@ describe('prescribe', () => {
   it('a competent doctor writes a slip stamped for the patient + active', async () => {
     const { doc, patient } = scene();
     await makeStuff(() => new PrescribeController()).execute(
-      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia' },
+      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined },
       ctxFor(doc),
     );
     const slips = slipsHeldBy(doc);
@@ -113,7 +113,7 @@ describe('prescribe', () => {
     const { doc, patient } = scene();
     const ctrl = () => makeStuff(() => new PrescribeController());
     await ctrl().execute(
-      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia' },
+      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined },
       ctxFor(doc),
     );
     const first = slipsHeldBy(doc)[0]!;
@@ -123,7 +123,7 @@ describe('prescribe', () => {
 
     // Re-prescribe: NOT blocked, and the fresh slip is valid for the patient.
     await ctrl().execute(
-      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia' },
+      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined },
       ctxFor(doc),
     );
     const replacement = slipsHeldBy(doc);
@@ -136,7 +136,7 @@ describe('prescribe', () => {
     const { doc, patient } = scene();
     doc.band = 'novice';
     await makeStuff(() => new PrescribeController()).execute(
-      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia' },
+      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined },
       ctxFor(doc),
     );
     expect(note).toHaveBeenCalledWith(
