@@ -1,0 +1,27 @@
+# Chemistry — what a thing is MADE of, and what that predicts about how it
+# will behave. The discipline behind every composition read the
+# instrumentation ladder offers: what is in this ore, what is in this
+# water, what is in this air, what is in this food and whether it is still
+# safe to eat.
+#
+# ⚠ It buys RESOLUTION, never access. `analyze chemistry` answers for
+# anybody standing in front of the thing; what the band decides is how
+# narrowly the answer is bracketed and whether the reader can say *why*
+# the number is what it is — the assayer's tell about a sample that went
+# off in the carrying is a `competent` read, not a permission.
+#
+# Earned by taking readings and by running samples at a bench; the
+# difficulty is the material's, not the instrument's.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: chemistry
+  channel: skill
+  label: Chemistry
+  iscedf: "0531"  # ISCED-F 2013: chemistry
+  description: >-
+    What matter is made of and how it reacts. Reading a composition out of
+    a sample — the metal in an ore, the salts in a water, the damp in the
+    air of a working — and knowing what the figure is worth: how wide the
+    bracket really is, and whether what you are holding still says
+    anything about where it came from.

@@ -1,0 +1,15 @@
+# instrument — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks
+# is merged in; a value the operator changed via `config` is never
+# touched).
+settings:
+  # Instrumentation — condition worn off an instrument per reading taken.
+  # An instrument is a `ToolItem`: graded, durable, and wearing. At 0.002
+  # a shop-bought dial gives roughly five hundred readings before it is
+  # past reading with, which is a season of real use and a running cost a
+  # working prospector can feel without it becoming the game.
+  #
+  # ⚠ Wear is on USE. Nothing here is a clock — an instrument in a drawer
+  # keeps its condition forever. See docs/subsystems/crafting.md.
+  - key: instrument.wearPerReading
+    value: "0.002"
