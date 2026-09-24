@@ -225,15 +225,27 @@ export default class LookController extends CommandController<LookModel> {
     if (puddle) {
       body = Mml.compose`${body}\n${puddle}`;
     }
-    // ⭐⭐ The help-wanted sign (trades-and-labor D11). Derived, exactly
-    // like the puddle above: there is no sign OBJECT and no mixin, so a
-    // venue with an open seat CANNOT fail to advertise — the notice comes
-    // off the same arithmetic that decides the seat is open at all
-    // (`headcount − holders`). One memo read per look; a room with no
-    // business costs a miss.
-    for (const opening of EmploymentApi.noticesAt(location)) {
-      body = Mml.compose`${body}\nA notice here: ${opening.describe()}`;
-    }
+    // ⭐⭐ The help-wanted sign (trades-and-labor D11). Derived: there is
+    // no sign OBJECT and no mixin, so a venue with an open seat CANNOT
+    // fail to advertise — the notice comes off the same arithmetic that
+    // decides the seat is open at all (`headcount − holders`). One memo
+    // read per look; a room with no business costs a miss.
+    //
+    // ⚠⚠ **It is sent SEPARATELY, and that is not style.** Everything
+    // appended to `body` is handed to `CardApi.open` as `prose` and then
+    // sent marked `carded`, which the client suppresses from the
+    // transcript in favour of the card — and the card is an MQL *field*
+    // projection of the room that never renders the handed prose. So a
+    // room-level line folded into `body` reaches the wire and is invisible
+    // to a player in a browser. Driving found it: `apply` refused with
+    // both numbers while `look` showed no notice at all, and searching the
+    // rendered DOM for "HELP WANTED" came back empty.
+    //
+    // ⚠ The floor-puddle line above has the same problem and has since
+    // the bulk build. It is NOT fixed here — the general answer is a card
+    // that renders the prose it was handed, which is the card surface's
+    // question, recorded on `docs/slates/tails/carded-prose-slate.md`.
+    const notices = EmploymentApi.noticesAt(location);
     if (hasExits) {
       const exitsLine = this.formatExits(location.obviousExitsFor(actor));
       if (exitsLine) {
@@ -352,6 +364,17 @@ export default class LookController extends CommandController<LookModel> {
     // twelve verbs that open no card at all.
     if (opened) scene.meta({ carded: opened });
     scene.toSelf(body).send();
+
+    // ⭐ The notices ride their own scene, UNCARDED, so the transcript
+    // keeps them. A card on a wall is a thing you NOTICE, not part of the
+    // room's own description — which is why this reads correctly rather
+    // than as a workaround.
+    for (const opening of notices) {
+      MessageApi.scene(actor)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`A notice here: ${opening.describe()}`)
+        .send();
+    }
 
     return;
   }

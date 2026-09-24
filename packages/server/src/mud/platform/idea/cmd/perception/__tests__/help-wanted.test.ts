@@ -90,14 +90,26 @@ function ctx(): CommandContext {
   });
 }
 
-/** What `look` actually put on the wire for the actor, as one string. */
-async function lookText(): Promise<string> {
-  let captured = '';
+/**
+ * Every `toSelf` body `look` put on the wire, SEPARATELY — because which
+ * body a line lands in decides whether a player ever reads it.
+ *
+ * ⚠⚠ The room body is handed to `CardApi.open` as `prose` and then sent
+ * marked `carded`; the client suppresses carded prose in favour of the
+ * card, and the card is an MQL *field* projection that never renders the
+ * handed prose. So a notice folded into the room body reaches the wire
+ * and is invisible in a browser. The live drive found exactly that:
+ * `apply` refused with both numbers while a DOM search for "HELP WANTED"
+ * came back empty. Collecting the bodies into one string would hide it
+ * again, which is what the first version of this helper did.
+ */
+async function lookBodies(): Promise<string[]> {
+  const bodies: string[] = [];
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;
     b.toSelf = (body: Mml) => {
-      captured += `${body.toString()}\n`;
+      bodies.push(body.toString());
       return b;
     };
     b.toPeers = () => b;
@@ -115,7 +127,12 @@ async function lookText(): Promise<string> {
       c,
     );
   });
-  return captured;
+  return bodies;
+}
+
+/** Everything the actor was told, for the assertions that do not care how. */
+async function lookText(): Promise<string> {
+  return (await lookBodies()).join('\n');
 }
 
 beforeEach(() => {
@@ -191,11 +208,25 @@ describe('⭐⭐ the sign is derived — a venue with an open seat cannot fail t
     expect(EmploymentApi.noticesAt(null)).toEqual([]);
   });
 
-  it('⭐ the LOOK prints it — the puddle precedent, on the room body', async () => {
+  it('⭐ the LOOK prints it', async () => {
     const text = await lookText();
     expect(text).toContain('A notice here:');
     expect(text).toContain('HELP WANTED');
     expect(text).toContain('two completed gigs asked');
+  });
+
+  it('⭐⭐ and it rides its OWN body, never the carded room description', async () => {
+    const bodies = await lookBodies();
+    const roomBody = bodies.find((b) => b.includes('A plank counter'));
+    const notice = bodies.find((b) => b.includes('HELP WANTED'));
+    expect(roomBody, 'the room described itself').toBeTruthy();
+    expect(notice, 'the notice was sent').toBeTruthy();
+    // ⚠ The whole point: NOT the same body. The room body is suppressed
+    // from the transcript in favour of a card that does not render it, so
+    // a notice inside it is invisible to a player in a browser. Verified
+    // live — before this split, a DOM search for "HELP WANTED" was empty.
+    expect(roomBody).not.toContain('HELP WANTED');
+    expect(notice).not.toContain('A plank counter');
   });
 
   it('⚠ and stops printing it the moment the seat is filled', async () => {

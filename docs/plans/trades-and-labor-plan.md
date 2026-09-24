@@ -1385,6 +1385,81 @@ realm and eleven empty boards.
   harness may not import server code, and no verb materializes an
   archetype (D19).
 
+### ⭐⭐ The LIVE drive — a browser, not the wire
+
+Run after the wire drive was 14/14, on a fresh world, in Chrome against
+`pnpm dev`. ⚠ **It found the build's headline feature invisible.**
+
+**1. The help-wanted sign never reached the player.** `look` in the
+general store rendered the room card and no notice; a search of the
+rendered DOM for `HELP WANTED` came back empty — text and HTML. The read
+was fine: `apply` in the same room answered
+
+> *They ask for 2 completed gigs; you have 0. Finish 2 more off a
+> noticeboard and ask again.*
+
+so the opening existed and only the rendering was missing.
+
+**The mechanism.** `lookAtLocation` hands its composed body to
+`CardApi.open` as `prose` and then sends it marked `carded`. The client
+suppresses carded prose in favour of the card — and the `subject` card's
+source is `{kind: 'mql', fields: 'detail'}`, an MQL **field projection**
+of the room that re-derives description, exits and contents and never
+renders the handed prose. So anything the controller *composed* rather
+than read off a field is lost.
+
+⚠ **The floor-puddle line has the same problem and has since the bulk
+build** — and it is the precedent this plan told the build to copy
+(*"the puddle precedent exactly"*). The precedent was broken.
+
+**Fixed** by sending the notices as their own **uncarded** scene. ⭐ It
+reads better there anyway: a card on a wall is something you NOTICE, not
+part of the room's own description. Verified live —
+
+> *A notice here: HELP WANTED — hand, 4 zorkmids a game-hour; two
+> completed gigs asked.*
+
+The puddle is NOT fixed here; the general answer is a card that renders
+the prose it was handed, recorded as
+[carded-prose-slate](../slates/tails/carded-prose-slate.md).
+
+⚠ **Why neither tier caught it.** A controller test captures the
+`toSelf` body; the wire drive asserts the envelope. Both read the wire.
+`help-wanted.test.ts` now collects the bodies **separately** and asserts
+the notice is not in the carded room body — the first version joined
+them into one string, which hid exactly this.
+
+**2. `order stew` at the cookhouse routes to a cook.** The heat gate
+answered first (`Nothing here runs hot enough`), which already proves a
+maker resolved — `no-maker` returns before it. Lit the hearth, ordered
+again: *a bowl is set down in front of you.* ⭐ This is the only run of
+the `fulfills: [cooking]` routing anywhere; the wire drive's step 6 had
+been moved to the farm.
+
+**3. ⚠ The Hearthworks funds one of its two par lines.** `root-vegetables`
+posts and reaches the hall board; `stew-meat` is refused every beat —
+`job post … for 30 → contract-refused (you can't fund that reward)` —
+because the house cannot cover a second escrow. Self-correcting once the
+kitchen sells anything, log-spam in an empty world. Mine: B4 set both
+rewards at 30 and gave the house no opening balance.
+
+⚠ **A correction to my own first reading of this.** I grepped the boot
+log for `job post` and saw only refusals, and concluded root-vegetables
+never posted at all. Wrong: the dispatch log prints **declines only**, so
+successful postings are invisible in it. `job` at the hall showed the
+gig. The headline claim — *work reaches the hall board* — holds.
+
+**4. Not this build's:** the vintner's hand orders vermouth on her own
+floor and gets `no-maker`, because `resolveMaker` excludes the giver
+(`c !== giver`) and she is the only fulfilling agent there. Unchanged by
+this build — a producer can never be her own maker through `order`. One
+for the fermentation trade.
+
+**What else was confirmed live**: the general store, its counter and its
+consignment shelf all stand up from `trade-shopkeeping`; the lounge's
+weapons-check rack is present from `trade-hospitality`; the cookhouse
+carries the receiving bench and the hall's noticeboard.
+
 ### Full suite, the one pre-MR run
 
 client **80 files / 1,003 tests**; server **1,211 files / 11,335 tests**;

@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**237 slates.** 54 greenfield · 84 continuations · 55 waves · 44 tails.
+**238 slates.** 54 greenfield · 84 continuations · 55 waves · 45 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (54)
 
@@ -251,7 +251,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (44)
+## Tails — small and opportunistic (45)
 
 | slate | left |
 |---|---|
@@ -262,6 +262,7 @@ are the named remainders.
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · YouTube as a linkable/login provider (a `@`-seed still rejects `character-youtube`) · LLM name-refraction |
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |
 | [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` · `pushDirect`'s second `describeCore` entry … |
+| [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. |
 | [collision](./tails/collision-slate.md) | room capacity as a `capacities` field + validator, re-checked at activity completion · the `guards` brain's decision half (block targets · reason · unblock predicate over NPC memory … |
 | [combat-tactics](./tails/combat-tactics-slate.md) | the `physical` conduit channel for cross-room shots (⚠ contradicted by ranged.md's cross-room ruling — see the compaction ledger) · the magic-interplay questions at `MagicLogic.deliverAt` (bolt vs cover · interpose · attenuation … |
 | [connection-origin](./tails/connection-origin-slate.md) | the developer-gated IP read · the `whois`/`locate` lookup verb · city / region resolution · a persisted last-seen country … |
