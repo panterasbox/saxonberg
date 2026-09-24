@@ -1,0 +1,29 @@
+# strike — the bearing of the line an orebody makes where it reaches the
+# surface.
+#
+# ⭐⭐ **A pack's channel, and the platform names it nowhere.** This row
+# and `StrikeReading` are the entire registration: install `trade-mining`
+# and `measure strike` works; remove it and there is no such channel, and
+# `readings` does not advertise one. Before the ladder this was a stanza
+# inside the platform's own `measure.yaml`, which meant every install
+# without a mine advertised a verb that died on dispatch.
+#
+# ⚠ It carries no dip whatever, by construction: a LINE has the strike of
+# the plane it came from and nothing else. `dip` is the other half and it
+# is underground — the push-your-luck decision arriving as a missing
+# parameter rather than as a paywall.
+class: /trade/mining/idea/reading/StrikeReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: strike
+  kind: fact
+  scope: [here]
+  discipline: geology
+  instrument: surveying
+  instrumentNoun: \"a surveyor's compass or a miner's dial"
+  eyeCeiling: untrained
+  improves: >-
+    which way the lode runs, and therefore where to drive and where to
+    buy
+  stakes: >-
+    a heading driven into barren country; a claim bought off the body

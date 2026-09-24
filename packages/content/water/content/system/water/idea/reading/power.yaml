@@ -1,0 +1,19 @@
+# power — what a watercourse could turn.
+#
+# ⭐ A `/system/` channel: rivers flow whether or not anybody is employed
+# by them, so the mechanism is the water pack's and the reading with it.
+#
+# ⭐ The pack ships the row and the class; the platform names neither.
+class: /system/water/idea/reading/PowerReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: power
+  kind: fact
+  scope: [subject, here]
+  discipline: physics
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether this reach will drive a mill, and how big a one
+  stakes: >-
+    a mill built on a stream that cannot turn it

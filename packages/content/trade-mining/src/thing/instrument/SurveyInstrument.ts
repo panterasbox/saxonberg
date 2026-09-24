@@ -23,8 +23,6 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 export default class SurveyInstrument extends ToolItem {
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ['platform/cmd/perception/measure.yaml'],
-    peers: ['platform/cmd/perception/measure.yaml'],
   };
 
   constructor() {

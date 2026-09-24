@@ -1,0 +1,21 @@
+# humidity — a reading channel.
+#
+# Damp is something a body genuinely notices, but only coarsely — muggy
+# or dry, and nothing between.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/HumidityReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: humidity
+  kind: fact
+  scope: [here]
+  discipline: awareness
+  instrument: hygrometry
+  instrumentNoun: a hygrometer
+  eyeCeiling: novice
+  improves: >-
+    whether cut timber will season here, whether salt will hold, whether a wound will dry
+  stakes: >-
+    green wood in a finished frame; a cure that never took

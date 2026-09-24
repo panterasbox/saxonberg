@@ -1,0 +1,18 @@
+# shadow — a reading channel.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/ShadowReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: shadow
+  kind: fact
+  scope: [here]
+  discipline: awareness
+  instrument: dialling
+  instrumentNoun: a sundial
+  eyeCeiling: novice
+  improves: >-
+    the hour and the bearing, outdoors, with no clock and no compass
+  stakes: >-
+    an appointment missed; a direction held wrong all day

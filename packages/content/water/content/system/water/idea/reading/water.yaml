@@ -1,0 +1,16 @@
+# water — what is in a water, and whether it can be drunk.
+#
+# ⭐ The pack ships the row and the class; the platform names neither.
+class: /system/water/idea/reading/WaterReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: water
+  kind: fact
+  scope: [subject, here]
+  discipline: chemistry
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether this water is safe, and what is wrong with it if not
+  stakes: >-
+    a village that drinks from the wrong reach

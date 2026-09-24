@@ -1,0 +1,20 @@
+# dip — how steeply a seam falls, read off a face where the vein is
+# actually showing.
+#
+# ⚠ It cannot be read at the surface, and nothing forbids it: the trace
+# where an orebody meets the ground is a LINE, and a line has no fall in
+# it. Dip is why you drive a heading.
+class: /trade/mining/idea/reading/DipReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: dip
+  kind: fact
+  scope: [here]
+  discipline: geology
+  instrument: surveying
+  instrumentNoun: \"a surveyor's compass or a miner's dial"
+  eyeCeiling: untrained
+  improves: >-
+    how deep the lode goes and how far a shaft must follow it
+  stakes: >-
+    a shaft sunk on the wrong angle, which is most of a season

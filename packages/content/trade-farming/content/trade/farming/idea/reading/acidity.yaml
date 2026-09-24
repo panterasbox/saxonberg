@@ -1,0 +1,24 @@
+# acidity — the soil's pH, read off a test kit.
+#
+# ⭐⭐ **Sourness is invisible**, and that is the whole reason to own an
+# instrument. Sour ground looks exactly like sweet ground, grows a
+# visibly poor crop, and the fix — lime — is dear, slow to undo, and
+# wasted if the ground did not need it.
+#
+# ⚠ Competence buys the error bar and nothing else: the ground has one
+# pH, and `6.4 ± 0.8` and `6.4 ± 0.1` are the same dirt read by two
+# people.
+class: /trade/farming/idea/reading/AcidityReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: acidity
+  kind: fact
+  scope: [here]
+  discipline: soil-science
+  instrument: soil-testing
+  instrumentNoun: \"a soil kit"
+  eyeCeiling: untrained
+  improves: >-
+    whether this ground needs lime, and how much
+  stakes: >-
+    a liming that was never needed, or a crop that failed for want of one

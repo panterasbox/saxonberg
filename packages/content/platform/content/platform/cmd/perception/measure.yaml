@@ -1,357 +1,91 @@
+# ⭐⭐⭐ `measure <channel>` — ONE view, ONE controller, and the channel is
+# a STRING.
+#
+# This view used to carry a `subcommands:` map: fifteen stanzas, each
+# naming a controller, five of them naming a controller in a pack that
+# might not be installed. That shape had three costs and two of them
+# were silent.
+#
+#   1. **A pack's channel was advertised in every install.** `measure
+#      strike` appeared in this file's help on a server with no mining
+#      pack and died on dispatch with `controller-error`.
+#   2. **An unknown subcommand STOPS the affordance chain** — so a verb
+#      afforded from two places could not fall through to the second.
+#   3. **A trade could not add a channel without editing this file.**
+#
+# Flat-positional fixes all three. The channel is resolved against the
+# installed roster (`InstrumentApi.reading`), so an uninstalled channel
+# is simply not a channel, and the refusal says so and points at
+# `readings`. A trade ships `content/<root>/idea/reading/<x>.yaml` plus a
+# class and is done: no platform file changes in either direction.
+#
+# The shape is `cast <spell> [at <target>]`'s, which is the shipped
+# precedent for a token resolved against a catalogue.
 verbs: [measure]
-description: "Measure a physical channel at a location"
+description: "Read a channel of the world off an instrument"
 help: |
-  Read a single value off the world. `measure` gives you one
-  clean number for a physical channel where you stand — no
-  breakdown, no provenance, just the figure. When you want the
-  working behind it, reach for `analyze` instead.
+  Read something off an instrument. `measure` is the instrumented
+  rung of the reading ladder: it wants a tool that can take the
+  reading, and it answers in the units that tool gives.
 
-  Pick a channel as a subcommand: `light`, `temperature`,
-  `pressure`, `humidity`, `gravity`, `atmosphere`, `altitude`,
-  `shadow`, `strike`, or `dip`. Some readings need an instrument:
-  the sky ones (`altitude`, `shadow`) want a sextant or sundial,
-  and the geological ones (`strike`, `dip`) want a surveyor's
-  compass or a miner's dial.
-subcommands:
-  light:
-    description: "Measure light intensity at a location (lux)"
-    help: |
-      Read the light level at a place in lux — one number, no
-      source breakdown. Defaults to where you stand if you name
-      no location. For the per-source breakdown, use
-      `analyze light`.
-    examples:
-      - cmd: measure light the cellar
-        note: Read the light at another place
-    controller: /platform/idea/cmd/perception/MeasureLightController
-    args:
-      - name: location
-        type: object
-        required: false
-        default: "here"
-        scope: ["reachable"]
-        requires: ContainerMixin
-  temperature:
-    description: "Measure atmospheric temperature (Kelvin) at your immediate scope"
-    help: |
-      Read the air temperature around you in Kelvin. Measures your
-      immediate surroundings; it doesn't take a location.
-    controller: /platform/idea/cmd/perception/MeasureTemperatureController
-    args:
-      - name: detail
-        type: string
-        required: false
-  pressure:
-    description: "Measure atmospheric pressure (Pa) at your immediate scope"
-    help: |
-      Read the air pressure around you in pascals. Measures your
-      immediate surroundings; it doesn't take a location.
-    controller: /platform/idea/cmd/perception/MeasurePressureController
-    args:
-      - name: detail
-        type: string
-        required: false
-  humidity:
-    description: "Measure relative humidity (%) at your immediate scope"
-    help: |
-      Read the relative humidity around you as a percentage.
-      Measures your immediate surroundings; it doesn't take a
-      location.
-    controller: /platform/idea/cmd/perception/MeasureHumidityController
-    args:
-      - name: detail
-        type: string
-        required: false
-  density:
-    controller: /platform/idea/cmd/perception/MeasureDensityController
-    description: "Float a hydrometer in a vessel and read its specific gravity"
-    help: |
-      Needs a hydrometer in hand. A fermenting batch reads back the
-      sugar the ferment has not eaten yet — two vats at two
-      temperatures, read over days, and the curve is yours.
-    args:
-      - name: target
-        type: object
-        required: true
-        scope: "reachable"
-        requires: BulkableMixin
-  gravity:
-    description: "Measure gravitational acceleration (m/s²) at your immediate scope"
-    help: |
-      Read the local gravity around you in metres per second
-      squared — handy off-world or anywhere the pull feels wrong.
-      Measures your immediate surroundings; it doesn't take a
-      location.
-    controller: /platform/idea/cmd/perception/MeasureGravityController
-    args:
-      - name: detail
-        type: string
-        required: false
-  atmosphere:
-    description: "Identify the bulk atmosphere medium at your immediate scope"
-    help: |
-      Name the medium you're standing in — air, water, vacuum, or
-      whatever else fills the space. Useful before you trust a
-      breath. Measures your immediate surroundings; it doesn't take
-      a location.
-    controller: /platform/idea/cmd/perception/MeasureAtmosphereController
-    args:
-      - name: detail
-        type: string
-        required: false
-  altitude:
-    description: "Estimate altitude from the barometric delta, or read the angular altitude of the sun/moon with a sextant"
-    help: |
-      With no argument, estimate how high you are from the drop in
-      air pressure. Name a celestial body — the sun or moon — to
-      read its angular height above the horizon with a sextant.
-    examples:
-      - cmd: measure altitude sun
-        note: Read the sun's angle with a sextant
-    controller: /platform/idea/cmd/perception/MeasureAltitudeController
-    args:
-      - name: body
-        type: string
-        required: false
-  shadow:
-    description: "Read solar elevation/azimuth from your shadow (needs a sundial)"
-    help: |
-      Read the sun's elevation and bearing off the cast of your
-      shadow — an old way to tell the time and direction outdoors.
-      Needs a sundial to hand and a sun in the sky.
-    controller: /platform/idea/cmd/perception/MeasureShadowController
-    args:
-      - name: detail
-        type: string
-        required: false
-  # ⚠⚠ The two GEOLOGICAL channels, and their controllers live in the
-  # `trade-mining` pack rather than in `platform/idea/cmd/perception/`.
+  `readings` lists every channel this world can tell you about, and
+  `readings <channel>` says what knowing it is worth and what it
+  costs you not to. `analyze <channel>` is the same fact read with
+  your eyes and your training instead.
+
+  ⭐ Competence never decides whether you may read something. It
+  decides how NARROW the answer is. An instrument raises the
+  ceiling of what your practice can realize, and a fine instrument
+  in an untrained hand still reads coarsely.
+examples:
+  - cmd: measure light
+    note: Read the light where you stand
+  - cmd: measure temperature the kettle
+    note: Read a thing rather than the room
+  - cmd: measure strike with the dial
+    note: Name the instrument when more than one is in reach
+controller: /platform/idea/cmd/perception/MeasureController
+args:
+  # The fact being read. A plain string, resolved against the installed
+  # channel roster — never an enum, because the roster is whatever packs
+  # are installed and the kernel keeps no list.
+  - name: channel
+    type: string
+    required: true
+  # What is being read, when the channel takes one. Optional: most
+  # channels read where you stand, and the Reading's own `scope:` says
+  # what a named subject means for it.
   #
-  # `CommandDefinition.resolveController` takes a `/`-leading mud path
-  # verbatim, so a platform view may name a pack's controller — and it
-  # SHOULD here, under this repo's own rule that nothing content-specific
-  # belongs in a core tree. These are content-specific three times over:
-  # they gate on a mining instrument, they band by the `geology`
-  # Discipline, and they speak mining prose. The alternative — generic
-  # kernel controllers over a `lib/zone` geology interface — is a new
-  # kernel substrate module and a kernel-named method contract across the
-  # pack boundary, for three stanzas whose only consumer is one pack.
+  # ⚠⚠ `greedy: true` IS REQUIRED and is not decoration. Without it
+  # `measure temperature the kettle` binds `the` and `kettle` as two
+  # positionals, answers "too many arguments", falls through the
+  # affordance chain and dies as an unknown command shape — with the
+  # controller never reached. 45 shipped views already carry it; `look`
+  # shipped WITHOUT it, and nobody found out until somebody drove
+  # `look at the ground` in a browser. The MQL desugar drops articles,
+  # so the whole tail resolves as one query.
   #
-  # ⚠ In an install WITHOUT `trade-mining`, these are advertised in
-  # `measure`'s help and die on dispatch with a legible `controller-error`
-  # note — never a crash. The help text below says what they need, so the
-  # failure reads as "you have no instrument" rather than as a bug.
-  strike:
-    description: "Read the strike of an ore body from its surface trace (needs a surveyor's instrument)"
-    help: |
-      Take a bearing on the line an orebody makes where it reaches the
-      surface. Needs a surveyor's compass or a miner's dial in hand, and
-      a deposit under the ground you are standing on.
-
-      One reading is a guess with an error bar on it; three readings from
-      three places narrow that bar, and `analyze ground` is what adds
-      them up. How tight the bar is depends on your eye — competence buys
-      resolution, never a different number.
-
-      ⚠ The surface trace carries strike and NOTHING ELSE. For the other
-      half of the plane you have to go underground and read `measure dip`
-      off an exposed vein.
-    examples:
-      - cmd: measure strike
-        note: Take a bearing on the outcrop where you stand
-    controller: /trade/mining/idea/cmd/perception/MeasureStrikeController
-    args:
-      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
-      # trade's controller. `[capability.surveying]` asks for the thing
-      # that can take this reading, which `[mixin.ToolMixin]` cannot.
-      - name: tool
-        type: object
-        required: false
-        prepositions: [with, using]
-        # ⚠ `me:i` — IN HAND, as the controller walked before the default was
-        # declared; a scythe on the ground is picked up first. (`reachable` for a
-        # day widened every hand tool to the room. Naming one still reaches it.)
-        default: "me:i:[capability.surveying]"
-        scope: ["reachable"]
-        requires: [ToolMixin]
-      - name: detail
-        type: string
-        required: false
-  # ⚠ The controllers ship in `trade-farming` — the same arrangement as
-  # `strike`/`dip` above and for the same reasons: they gate on a farming
-  # tool, they band by the `soil-science` Discipline, and they speak
-  # farming prose.
-  texture:
-    description: "The ribbon test — roll a wet pinch of soil between your fingers and name what it is (needs something to dig with)"
-    help: |
-      Open the ground with a spade, wet a pinch of the soil in your palm
-      and roll it out between finger and thumb. How long a ribbon it
-      makes before it breaks, and whether it feels gritty or floury or
-      greasy, IS the texture class — this is the real field procedure and
-      it needs no laboratory.
-
-      ⭐ Texture is the one thing about a field you cannot change. A bed
-      you filled is whatever you carried there; the earth is the earth.
-      So this reading tells you what you were dealt, and `analyze soil`
-      is what several of them add up to.
-
-      It takes a spade and a moment. It does not take an instrument, and
-      a beginner's answer is the same as an expert's — which is why it is
-      the rung anybody can reach.
-    examples:
-      - cmd: measure texture
-        note: Take a spadeful where you stand and read it
-    controller: /trade/farming/idea/cmd/perception/MeasureTextureController
-    args:
-      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
-      # trade's controller. `[capability.digging]` asks for the thing
-      # that can take this reading, which `[mixin.ToolMixin]` cannot.
-      - name: tool
-        type: object
-        required: false
-        prepositions: [with, using]
-        default: "me:i:[capability.digging]"
-        scope: ["reachable"]
-        requires: [ToolMixin]
-      - name: detail
-        type: string
-        required: false
-  acidity:
-    description: "Read the soil's pH off a test kit, with the error band your eye earns"
-    help: |
-      Work a pinch of soil into a soil kit and read the acidity off it.
-
-      ⭐ Sourness is invisible. Sour ground looks exactly like sweet
-      ground, grows a visibly poor crop, and the fix — lime — is dear,
-      slow to undo and wasted if the ground did not need it. That is the
-      whole reason to own an instrument.
-
-      Competence buys the error bar and nothing else: the ground has one
-      pH, and `6.4 ± 0.8` and `6.4 ± 0.1` are the same dirt read by two
-      people. Several readings average, and the bar narrows.
-    examples:
-      - cmd: measure acidity
-        note: Test the ground you are standing on
-    controller: /trade/farming/idea/cmd/perception/MeasureAcidityController
-  # ⭐ The haulage readout, on the same instrumentation split and with
-  # the same ⚠: without `trade-haulage` installed it dies on dispatch
-  # with a legible `controller-error`, never a crash.
-    args:
-      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
-      # trade's controller. `[capability.soil-testing]` asks for the thing
-      # that can take this reading, which `[mixin.ToolMixin]` cannot.
-      - name: tool
-        type: object
-        required: false
-        prepositions: [with, using]
-        default: "me:i:[capability.soil-testing]"
-        scope: ["reachable"]
-        requires: [ToolMixin]
-  passage:
-    description: "Judge whether a rig gets through the ways out of here (teamstering)"
-    help: |
-      Look over the ways out of where you stand and judge, before you
-      commit, whether a rig goes through each of them.
-
-      ⚠ The ANSWER is the same for everybody — a wheel gate is a wheel
-      gate, and no amount of teamstering makes a wagon fit a stair. What
-      competence buys is CONFIDENCE: a novice would not like to promise;
-      a proficient teamster will tell you to within a hand, and which
-      wheel binds first.
-    examples:
-      - cmd: measure passage
-        note: Before you take the rig up the last climb
-    controller: /trade/haulage/idea/cmd/perception/MeasurePassageController
-    args:
-      - name: detail
-        type: string
-        required: false
-  # ⭐ The tailor's fitting — a STANZA on this shipped view, the same
-  # shape as `strike` and `dip` above: a platform view naming a PACK
-  # controller by absolute path. Zero new verbs for the whole tailoring
-  # trade's measuring, and `measure` is where a player would look for it
-  # anyway.
+  # ⭐ Unresolved text is a PARAMETER, not a failure: `measure elevation
+  # moon` binds `stuff: null, raw: 'moon'`, and a channel that reads the
+  # place uses the raw word for which body to sight. That is how the
+  # sextant's body and a mine face's direction travel with no second arg.
+  - name: subject
+    type: object
+    required: false
+    greedy: true
+    scope: ["$focus", "reachable"]
+    requires: any
+  # ⭐ Every tool in reach, plural with a default — the sanctioned shape
+  # when one view cannot carry a per-channel `[capability.X]` filter. The
+  # Reading narrows the bound list by the capability IT declares, which
+  # is a question about the pair that no view predicate can express.
   #
-  # ⭐⭐ It is `figure`, and it shipped for a day as `customer`. Every
-  # other stanza here names the CHANNEL being read — `light`,
-  # `temperature`, `density`, `strike`, `dip` — while `customer` named
-  # the subject's SOCIAL ROLE, which is the wrong axis and reads that
-  # way. It is also not true off the shop floor: a quartermaster
-  # measuring recruits, a parent measuring a child, or you measuring
-  # yourself are all this act with no customer anywhere in it.
-  # `figure` is the tailor's own word for the two numbers taken.
-  #
-  # ⚠ In an install WITHOUT `trade-tailoring` this dies on dispatch with
-  # a legible `controller-error` note, never a crash — the same
-  # arrangement the mining stanzas already have.
-  figure:
-    description: "Take somebody's measure and write it in the book"
-    help: |
-      Run a tape over somebody and record the two numbers a garment is
-      cut to. It needs a measure book to write in — held, or on the
-      counter where you stand.
-
-      ⭐ Name nobody and you measure YOURSELF, which needs no shop and
-      nobody's leave. `measure figure the customer at the counter` takes
-      somebody else's.
-
-      ⭐ It is free, on purpose. It is the thing that gets you into the
-      book and brings you back.
-
-      ⚠ Whether an entry is still YOU is answerable from the numbers
-      alone, so the book carries no date. A body that has not changed
-      keeps a good entry forever; one that has wants re-measuring, and
-      anything cut from the old figures will sit off.
-    examples:
-      - cmd: measure figure
-        note: Take your own measure
-      - cmd: measure figure the customer at the counter
-        note: Take the waiting customer's measure
-    controller: /trade/tailoring/idea/cmd/perception/MeasureFigureController
-    args:
-      - name: subject
-        type: object
-        # ⭐ Bare `measure figure` is your own, the `measure light`
-        # default-to-`here` shape with the other pronoun.
-        required: false
-        default: "me"
-        scope: [reachable]
-        # The two numbers come off a BODY — `measurementsOf` reads the
-        # species' stature and the instance's mass, and returns null for
-        # anything that is not an organism. Declaring it here is what
-        # turns "nothing happens" into a sentence.
-        requires: OrganismMixin
-      # ⭐ WHICH BOOK — DECLARED, not hunted for (`lint:instrument-args`).
-      # By CLASS, honestly: a measure book is a kind of thing, not a role
-      # something else could offer (the `char`/`stake` reading).
-      - name: book
-        type: object
-        required: false
-        prepositions: [in, at]
-        default: "reachable:[class.MeasureBook]"
-        scope: ["reachable"]
-        requires: any
-  dip:
-    description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
-    help: |
-      Read the angle a seam falls at, off a face where the vein is
-      actually showing. Needs a surveyor's compass or a miner's dial.
-
-      ⚠ It cannot be read at the surface, and not because anything forbids
-      it: the trace where an orebody meets the ground is a LINE, and a
-      line has no fall in it. Dip is why you drive a heading.
-    controller: /trade/mining/idea/cmd/perception/MeasureDipController
-    args:
-      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
-      # trade's controller. `[capability.surveying]` asks for the thing
-      # that can take this reading, which `[mixin.ToolMixin]` cannot.
-      - name: tool
-        type: object
-        required: false
-        prepositions: [with, using]
-        default: "me:i:[capability.surveying]"
-        scope: ["reachable"]
-        requires: [ToolMixin]
-      - name: detail
-        type: string
-        required: false
+  # Reach, not carry: a bench on the wall and a photometer on the table
+  # both count.
+  - name: tool
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

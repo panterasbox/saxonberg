@@ -1,0 +1,24 @@
+# figure — somebody's measure, written in the book.
+#
+# ⭐ Name nobody and you measure YOURSELF, which needs no shop and
+# nobody's leave. It is free on purpose: it is the thing that gets you
+# into the book and brings you back.
+#
+# ⚠ Whether an entry is still YOU is answerable from the numbers alone,
+# so the book carries no date.
+#
+# ⭐ The pack ships the row and the class; the platform names neither.
+class: /trade/tailoring/idea/reading/FigureReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: figure
+  kind: fact
+  scope: [subject]
+  discipline: ""
+  instrument: fitting
+  instrumentNoun: \"a measure book to write it in"
+  eyeCeiling: expert
+  improves: >-
+    what size to cut a garment, and whether an old entry still fits
+  stakes: >-
+    cloth cut to a body that has changed; a commission that sits wrong

@@ -1,401 +1,66 @@
+# ⭐⭐⭐ `analyze <channel>` — the trained-eye rung of the same ladder
+# `measure` instruments. One view, one controller, and the channel is a
+# STRING resolved against the installed roster.
+#
+# See `measure.yaml` for what the retired `subcommands:` map cost. The
+# same three reasons apply here, plus a fourth this view suffered on its
+# own: `analyze address` and `analyze atmosphere` were engine diagnostics
+# wearing a perception verb's clothes. They are `trace address` and
+# `trace atmosphere` now (`cmd/system/trace.yaml`) — a free engine read,
+# which is what they always were.
 verbs: [analyze]
-description: "Analyze a physical channel in detail"
+description: "Work a channel of the world out by eye and by training"
 # ⚠ `opens_card` is VERB-level in the schema, so declaring `survey` here
-# licenses every `analyze` subcommand to open it — and only `ground`
-# ever will. Recorded so a reviewer does not read it as a leak: the
-# declaration is the GATE `CardApi.open` is checked against, not the push.
+# licenses every channel to open it — and only the RECORD channels
+# (`ground`, `soil`) ever will. Recorded so a reviewer does not read it
+# as a leak: the declaration is the GATE `CardApi.open` is checked
+# against, not the push.
 opens_card: survey
 help: |
-  Go deeper than a glance. Where `measure` reads a single number
-  off an instrument, `analyze` breaks a channel down and shows
-  you the working — which sources contribute what, where a value
-  comes from, the full provenance behind the reading.
+  Work something out by looking at it. `analyze` is the free rung of
+  the reading ladder — no instrument, no permission, no money — and
+  what it costs you is that the answer is only as narrow as your
+  training makes it.
 
-  Pick a channel as a subcommand: `light`, `chemistry`,
-  `atmosphere`, `time`, `sky`, `address`, `weather`, `response`,
-  `electrical`, or `ground`. Most default to where you stand, so
-  the bare subcommand usually does what you want.
-subcommands:
-  response:
-    description: "Preview what a made thing does — per-channel outcome bands (a weapon's delivery, an armor's protection)"
-    help: |
-      Point at a made thing — a weapon or a piece of armor — and
-      read what it would do. For a weapon, the band each channel
-      delivers (edge / point / blunt); for armor, how well it turns
-      each. "What would this do?" before anyone gets hurt. The band
-      shown is exactly the one an actual blow would land — the same
-      response function, no surprises.
-    examples:
-      - cmd: analyze response the steel dagger
-        note: See a weapon's delivered channels
-      - cmd: analyze response the breastplate
-        note: See a piece of armor's per-channel protection
-    controller: /platform/idea/cmd/perception/AnalyzeResponseController
-    args:
-      - name: target
-        type: object
-        required: true
-        scope: ["reachable"]
-        requires: DurableMixin
-  weapon:
-    description: "Preview a weapon's derived playstyle — reach, guard, balance, handedness, delivery (bands/pips)"
-    help: |
-      Point at a weapon and read its playstyle before you draw it. The
-      whole bundle is *derived* from the weapon's shape — its form,
-      material, mass, and length — never hand-tuned: `reach medium ●●○○ ·
-      guard good ●●●○ · balance heavy · one-handed`. A long weapon controls
-      the approach; a heavy one breaks guards but is slow; a crossguard
-      parries where a flail can't. The bands shown are the same ones the
-      fight applies.
-    examples:
-      - cmd: analyze weapon the spear
-        note: See a weapon's reach / guard / balance / handedness
-      - cmd: analyze weapon my sword
-        note: Read the playstyle of a weapon you're carrying
-    controller: /platform/idea/cmd/combat/AnalyzeWeaponController
-    args:
-      - name: target
-        type: object
-        required: true
-        scope: ["reachable"]
-        requires: DurableMixin
-  electrical:
-    description: "Read a thing's electrical character — conductivity / resistance / path-to-ground bands, and the raw V/A/Ω on measurement (the multimeter)"
-    help: |
-      Point at a material, a made thing, a live source, or a body
-      and read its electrical character: how well it conducts, the
-      resistance it offers, whether a body has a path to ground, and
-      a source's potential. Bands for a glance; the raw numbers
-      (volts / amps / ohms / S·m) on measurement — a real multimeter.
-    examples:
-      - cmd: analyze electrical the copper wire
-        note: Read a material's conductivity + resistance
-      - cmd: analyze electrical the guard
-        note: Is a body grounded (shockable) or insulated?
-    controller: /platform/idea/cmd/perception/AnalyzeElectricalController
-    args:
-      - name: target
-        type: object
-        required: true
-        scope: ["reachable"]
-        requires: TangibleMixin
-  light:
-    description: "Analyze light at a location with source breakdown"
-    help: |
-      Break the light at a place into its parts: every source
-      contributing, how much each adds, and the total you'd read.
-      Defaults to where you stand if you name no location.
-    examples:
-      - cmd: analyze light the cellar
-        note: Analyze light at another place
-    controller: /platform/idea/cmd/perception/AnalyzeLightController
-    args:
-      - name: location
-        type: object
-        required: false
-        default: "here"
-        scope: ["reachable"]
-        requires: ContainerMixin
-  # ⚠ The controller ships in `trade-medicine` — the instrumentation
-  # split, the same one that puts `analyze soil`'s in `trade-farming` and
-  # `analyze ground`'s in `trade-mining`. The stanza is the platform's
-  # because `analyze` is ONE verb; what it reads belongs to whoever owns
-  # the subject matter.
-  patient:
-    description: "Read a body — the signs, what could be causing them, what would treat it (medicine)"
-    help: |
-      Look someone over properly. What you get back rises with your
-      medicine, and ⭐ **it is always INFORMATION, never a better
-      outcome** — a good doctor does not heal harder, they see more:
+  `readings` lists every channel this world can tell you about, and
+  `readings <channel>` says what knowing it is worth and what it
+  costs you not to. `measure <channel>` is the same fact read off an
+  instrument instead.
 
-        untrained  — something is wrong. You could not say what.
-        novice     — every sign the body is showing.
-        competent  — which conditions could produce those signs.
-        proficient — what would treat it, and how it spreads.
-        expert     — how far it has gone.
-
-      ⚠ At `competent` the answer is a LIST, unranked. That is deliberate:
-      two illnesses that present alike are two illnesses that present
-      alike, and choosing between them is the medic's job, not the
-      game's. `treat <someone> for <condition>` is where you commit.
-    examples:
-      - cmd: analyze patient
-        note: Look yourself over
-      - cmd: analyze patient the smith
-        note: Read what is wrong with somebody
-    controller: /trade/medicine/idea/cmd/perception/AnalyzePatientController
-    args:
-      - name: target
-        type: object
-        required: false
-        scope: ["reachable"]
-        requires: VitalsMixin
-  # ⚠ The controller ships in `trade-medicine` — as `patient`'s does.
-  postmortem:
-    description: "Read a body for what happened to it — the marks, and back to the act (forensics)"
-    help: |
-      Examine a corpse. ⭐ **The cause is inferred from what is left, not
-      read off the body** — a corpse knows what killed it and an examiner
-      does not, so what you get is your reading, and your reading can be
-      wrong.
-
-      And it gets worse as the body goes: how many of the marks are still
-      legible falls with decomposition, so what you can conclude at all
-      depends on how quickly you got there. Somebody who wants the truth
-      about a death has a reason to hurry — and somebody who does not has
-      a reason to wait.
-
-      What your forensics buys you, on top of the marks anyone can see:
-        competent  — what kind of thing did it.
-        proficient — your reading of what killed them.
-        expert     — how long they have been dead.
-    examples:
-      - cmd: analyze postmortem the body
-        note: Read a corpse before it is past reading
-    controller: /trade/medicine/idea/cmd/perception/AnalyzePostmortemController
-    args:
-      - name: target
-        type: object
-        required: true
-        scope: ["reachable"]
-        requires: PostmortemMixin
-  chemistry:
-    description: "Analyze the chemistry of a target"
-    help: |
-      Inspect what a thing is made of — its chemistry, the
-      substances and proportions that compose it. The target must
-      be tangible and within reach.
-    controller: /platform/idea/cmd/perception/AnalyzeChemistryController
-  # ⭐ The haulage readout. See `measure passage` for the ⚠ about an
-  # install without `trade-haulage`.
-  load:
-    description: "Read how a rig is loaded — what it pulls like, what is aboard, how it will ride (teamstering)"
-    help: |
-      Look over a loaded rig before you set off.
-
-      What it PULLS LIKE is the same number for everybody. What else you
-      can see rises with teamstering: a novice knows what is aboard, a
-      competent teamster reads the body as well, and a proficient one
-      knows what it is going to do on a camber.
-
-      ⚠ Nothing here changes the load, the draft or what the rig can
-      carry. Competence buys what you knew going in, never the outcome.
-    examples:
-      - cmd: analyze load
-        note: Before the last climb, with the wagon full
-    controller: /trade/haulage/idea/cmd/perception/AnalyzeLoadController
-    args:
-      - name: target
-        type: object
-        required: true
-        scope: ["reachable"]
-        requires: TangibleMixin
-  atmosphere:
-    description: "Dump the resolved atmospheric state at your immediate scope with full provenance"
-    help: |
-      Dump the full atmospheric state around you — every resolved
-      field with the provenance of where each value came from.
-      Reach for it when a plain `measure` reading surprises you and
-      you want to see why.
-    controller: /platform/idea/cmd/perception/AnalyzeAtmosphereController
-    args:
-      - name: detail
-        type: string
-        required: false
-  time:
-    description: "Report game-time, scale, and the current date in your calendar"
-    help: |
-      Report the game clock: the current world time, how fast it
-      runs against real time, and today's date in your calendar.
-    controller: /platform/idea/cmd/perception/AnalyzeTimeController
-    args:
-      - name: detail
-        type: string
-        required: false
-  sky:
-    description: "Full celestial state for a location (sun, season, moon, day/night)"
-    help: |
-      Read the heavens over a place: the sun's position, the
-      season, the moon's phase, and whether it's day or night.
-      Defaults to where you stand if you name no location.
-    examples:
-      - cmd: analyze sky the rooftop
-        note: Check the sky over another place
-    controller: /platform/idea/cmd/perception/AnalyzeSkyController
-    args:
-      - name: location
-        type: object
-        required: false
-        default: "here"
-        scope: ["reachable"]
-        requires: ContainerMixin
-  address:
-    description: "Resolve the addressing namespace at a place: declared/inherited address, provenance, and the covering Locality (longest-prefix chain)"
-    help: |
-      Resolve where a place sits in the address namespace: its
-      declared or inherited address, where that came from, and the
-      Locality that covers it. Defaults to where you stand.
-    controller: /platform/idea/cmd/perception/AnalyzeAddressController
-    args:
-      - name: location
-        type: object
-        required: false
-        default: "here"
-        scope: ["reachable"]
-        requires: ContainerMixin
-  power:
-    description: "Read mechanical power — what a fall of water makes, or what reaches a machine that runs on it"
-    help: |
-      Read power. Bare, it reports the ground you stand on: the reach it
-      drains to, what is passing, and what a fall of one metre there
-      would make — which is the honest answer to *could I put a mill
-      here*, because the flow is only half of it and the DROP is the
-      other half.
-
-      Point it at a weir, a dam or an aqueduct house and it reports what
-      that structure is making right now: its reach, the flow, its head,
-      and the watts. Point it at a machine that runs on power — a mill —
-      and it reports what reaches it and what that buys in throughput.
-
-      ⭐ Power rises and falls with the river. A mill that grinds ten
-      sacks in spring grinds fewer in a dry August, and nobody authored
-      that: it is `P = ρ·g·Δh·Q·η` with a seasonal `Q`.
-    examples:
-      - cmd: analyze power
-        note: Could a mill be put on this ground?
-      - cmd: analyze power the aqueduct house
-        note: Read a structure's head, flow and output
-      - cmd: analyze power the mill
-        note: Read what reaches a machine and what it grinds
-    # ⭐ The controller is the WATER pack's — the instrumentation split,
-    # exactly as `analyze ground` (mining) and `analyze water` (water).
-    # Both readings are DUCK-TYPED, so a grist mill in `trade-milling`
-    # answers without this pack having heard of it.
-    controller: /system/water/idea/cmd/perception/AnalyzePowerController
-    args:
-      - name: target
-        type: object
-        required: false
-        scope: ["reachable"]
-        # A weir, a millstone, an aqueduct house — all physical. The
-        # two readings are duck-typed beyond this (a generator answers
-        # `generationW`, a machine answers `availablePowerW`), because
-        # the things that answer them live in packs this one has never
-        # heard of.
-        requires: TangibleMixin
-  water:
-    description: "Read the water where you stand — the reach, what is passing, how much is snowmelt, what is still lying as snow — or a waterworks' whole working"
-    help: |
-      Read the water. Bare, it reports the ground you are standing on:
-      the reach the place drains to, how many cubic metres a second are
-      passing there, how much of that is snowmelt coming off the
-      mountain, how much snow is still lying above you, and whether a
-      boat would get through.
-
-      Point it at a waterworks — an intake, an aqueduct, an outfall —
-      and it reports that instead: its two ends, its capacity, how many
-      metres of head it has in its favour, whether it runs on gravity or
-      on a pump and what the pump draws, and, if it is not delivering,
-      which of the six a supply can fail in it is in.
-
-      Ground that drains nowhere says so. That is a normal state of the
-      world, not an error.
-    examples:
-      - cmd: analyze water
-        note: Read the river the place you are standing drains to
-      - cmd: analyze water the city intake
-        note: Read a waterworks' head, capacity and state
-    # ⭐ The controller is the WATER pack's — the instrumentation split,
-    # the same one that puts `analyze soil`'s in `trade-farming`. The
-    # stanza is the platform's because `analyze` is one verb; what it
-    # reads belongs to whoever owns the subject matter.
-    controller: /system/water/idea/cmd/perception/AnalyzeWaterController
-    args:
-      - name: target
-        type: object
-        required: false
-        scope: ["reachable"]
-        # `any`, deliberately: a waterworks is recognised by the SHAPE it
-        # answers (`supplyReport`), not by a mixin — the kernel does not
-        # import the water pack, so there is no mixin here to name. The
-        # controller refuses in its own words when the target carries no
-        # water anywhere.
-        requires: any
-  weather:
-    description: "Report the current weather type, per-field deviations, the covering Locality, and a short forecast"
-    help: |
-      Report the weather at a place: the current weather type, how
-      it nudges each atmospheric field, the Locality it belongs to,
-      and a short forecast. Defaults to where you stand.
-    controller: /platform/idea/cmd/perception/AnalyzeWeatherController
-    args:
-      - name: location
-        type: object
-        required: false
-        default: "here"
-        scope: ["reachable"]
-        requires: ContainerMixin
-  # ⚠ The controller ships in `trade-farming`. ⭐ It is a SECOND CHANNEL
-  # on this verb, deliberately not a second reading inside `ground`: an
-  # orebody is a plane in the rock solved from strike and dip, and soil is
-  # texture, sourness and what it costs to bring in. Different
-  # instruments, different arithmetic, different discipline — and folding
-  # them together would put farming code in the mining pack and make
-  # farmland unreadable in any install without a mine in it.
-  soil:
-    description: "Read what your soil samples ADD UP TO — the ground you have walked, and what it will cost to bring in"
-    help: |
-      Put your own spadefuls together. Every `measure texture` and
-      `measure acidity` you have taken on this piece of country is
-      written down; this is what they amount to.
-
-      ⭐ The map is a record of YOUR sampling, not of the world. Land you
-      have worked for years, you know. Land you just bought, you do not —
-      which is why buying land is a risk and an honest surveyor is worth
-      paying.
-
-      ⭐ And the bottom line is what the ground costs to bring IN, never
-      what it yields. Stony ground is dear to clear and cheap to fence;
-      wet ground wants ditching; sour ground wants lime. That is why some
-      land has been farmed for a thousand years and some was never farmed
-      at all.
-
-      Opens the survey card, which is your field book.
-    examples:
-      - cmd: analyze soil
-        note: Read your own soil notes for this ground
-    controller: /trade/farming/idea/cmd/perception/AnalyzeSoilController
-    args:
-      - name: detail
-        type: string
-        required: false
-  # ⚠ The controller ships in `trade-mining` — see the note on
-  # `measure`'s `strike` stanza for why, and for what happens in an
-  # install without that pack.
-  ground:
-    description: "Read what your survey readings ADD UP TO — the ore body's parameters, with their error bands"
-    help: |
-      Put your own measurements together. Every `measure strike` and
-      `measure dip` you have taken is written down; this is what they
-      amount to.
-
-      ⭐ Three readings beat one because independent observations of an
-      angle average, and the error narrows as you take more — so walking
-      the outcrop is doing the thing that makes the answer better, not
-      grinding for it.
-
-      ⭐ And your eye decides whether the readings solve AT ALL. A
-      practised prospector reads three points as a plane; an untrained one
-      reads them as three green rocks, and this will say so rather than
-      show you a blank.
-
-      Opens the survey card, which is your field book: the readings, where
-      you took them, and what they solve to.
-    examples:
-      - cmd: analyze ground
-        note: Read your own survey book
-    controller: /trade/mining/idea/cmd/perception/AnalyzeGroundController
-    args:
-      - name: detail
-        type: string
-        required: false
+  ⭐ A vague answer is not a wrong one. An untrained reading is wide
+  and TRUE; the figure underneath is the same one an expert reads.
+  Nothing here is ever gated on how good you are — where a reading
+  is out of reach, it is a ROUTE you are missing, and the refusal
+  names it.
+examples:
+  - cmd: analyze light
+    note: What the light here is good for
+  - cmd: analyze ground the north face
+    note: What your readings add up to
+  - cmd: analyze patient the miner
+    note: Read a person's condition, in words
+controller: /platform/idea/cmd/perception/AnalyzeController
+args:
+  - name: channel
+    type: string
+    required: true
+  # ⚠⚠ `greedy: true` IS REQUIRED — see `measure.yaml`'s note. Without
+  # it `analyze ground the north face` binds three positionals, answers
+  # "too many arguments" and dies as an unknown command shape.
+  - name: subject
+    type: object
+    required: false
+    greedy: true
+    scope: ["$focus", "reachable"]
+    requires: any
+  # ⭐ The eye rung takes tools too — not to read WITH, but because some
+  # channels declare a `handTool:` that lifts what the eye can resolve
+  # (a hand lens, a streak plate). The words stay words; what changes is
+  # how fine they may get.
+  - name: tool
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

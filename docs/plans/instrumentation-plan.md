@@ -1126,7 +1126,7 @@ and once at `/finalize`.
 
 ### Stage A — the retrofit, the honest read, the trained eye, the ladder
 
-#### W0 — Ground truth: the gate learns the alias form; two Disciplines
+#### ✅ W0 — Ground truth: the gate learns the alias form; two Disciplines — DONE (`9122399b4`)
 
 - `packages/server/scripts/check-instrument-args.ts`: add `ALIAS_WALK`
   (a `const NAME = … .getContents() …` statement whose `NAME` is then
@@ -1141,6 +1141,21 @@ and once at `/finalize`.
 - Acceptance: `lint:instrument-args` reports 9 at ceiling 9; the two
   Disciplines resolve through `DisciplineCatalogue` (one test each).
 - Commit: `build(instrumentation W0): the gate learns the alias form; chemistry and physics are Disciplines`.
+
+> **Wave note.** The census came out at **exactly the nine D17 predicted**
+> — the eight `Measure*Controller`s plus `MeasureAltitude` twice — which
+> is the first mechanical confirmation that the alias matcher is neither
+> too narrow nor too wide. `ALIAS_DECL` reaches **backwards** two lines as
+> well as forwards twelve, because the `const inv =` that opens the
+> ternary sits *above* the `.getContents()` line the scanner is standing
+> on; a forward-only window found nothing.
+>
+> ⚠⚠ **`pnpm install` was required before any gate result could be
+> trusted.** `ground`, `trade-fishing` and `trade-shopkeeping` arrived
+> with the September merges, and the stale `node_modules` made
+> `lint:test-bootstrap:verify` report twenty pack tests as "gate sees,
+> vitest never runs" — it reads exactly like a repo defect and is not
+> one. `lint:family` is green at 52 after the install.
 
 #### W1 — The Reading substrate and the flat verbs (mechanical; every channel's output preserved)
 

@@ -51,7 +51,7 @@ describe("⭐⭐ the measurement book", () => {
       girthIndex: 6.6,
     });
     expect(book.getEntries()).toHaveLength(1);
-    expect(book.entryFor("s1")!.girthIndex).toBe(6.6);
+    expect(book.figureFor("s1")!.girthIndex).toBe(6.6);
   });
 
   it("⭐⭐ staleness is BODY-CHANGE — and the book carries NO clock", () => {
@@ -72,7 +72,7 @@ describe("⭐⭐ the measurement book", () => {
     expect(book.stalenessFor("nobody", 6.0)).toBeNull();
 
     // ⚠ Structural: no field on an entry is a time.
-    const entry = book.entryFor("s1")!;
+    const entry = book.figureFor("s1")!;
     expect(Object.keys(entry).sort()).toEqual([
       "bodyPlan",
       "girthIndex",

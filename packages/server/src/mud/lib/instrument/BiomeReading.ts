@@ -1,0 +1,76 @@
+/**
+ * BiomeReading — the shared body of the four atmospheric channels
+ * (`temperature`, `pressure`, `humidity`, `gravity`) and the medium
+ * (`atmosphere`).
+ *
+ * All five are the same act: resolve the actor's scope, ask
+ * {@link BiomeApi} for the value that holds there, render it with its
+ * tag. They differed only in which resolve to call, which word to lead
+ * with and which MML quantity channel to render on — which is a table,
+ * not four controllers.
+ *
+ * ⚠ Substrate, never instanced: each channel's concrete class is a row
+ * under `/platform/idea/reading/`. It lives in `lib/` for exactly that
+ * reason, and `lint:instanceable` holds the line.
+ */
+
+import Reading from './Reading';
+import { MixinApi } from '../../api/mixin';
+import { Mml } from '../../api/mml';
+import type { CommandContext } from '../../api/command';
+import type { Stuff } from '../stuff/Stuff';
+import type { Container } from '../spatial/Container';
+import type { Tooled } from '../craft/Tooled';
+import type { CompetenceBandName } from '../advancement/CompetenceBand';
+import type { Quantity, Unit } from '../quantity';
+import type { MeasureChannel } from '../perception/MeasureChannel';
+
+export default abstract class BiomeReading extends Reading {
+  /** The word the readout leads with — `Temperature`, `Pressure`. */
+  protected abstract label(): string;
+
+  /** The MML quantity channel the figure renders on. */
+  protected abstract mmlChannel(): MeasureChannel;
+
+  /** The quantity tag family, when the channel names one. */
+  protected tagFamily(): string | undefined {
+    return undefined;
+  }
+
+  /** Ask the biome chain for this channel's value at `scope`. */
+  protected abstract resolve(
+    scope: Stuff & Container,
+    detail: string | undefined,
+  ): Promise<Quantity<Unit>>;
+
+  protected override async measure(
+    context: CommandContext,
+    target: Stuff | null,
+    _instrument: Stuff & Tooled,
+    _band: CompetenceBandName,
+    param: string,
+  ): Promise<void> {
+    const scope = target && MixinApi.isContainer(target) ? target : null;
+    if (!scope) {
+      this.decline(
+        context,
+        Mml.compose`You aren't anywhere to measure.`,
+        'no-scope',
+      );
+      return;
+    }
+    const value = await this.resolve(
+      scope as Stuff & Container,
+      param === '' ? undefined : param,
+    );
+    const tags = this.tagFamily();
+    const body = Mml.compose`${this.label()}: ${value.formatMml(undefined, tags, { channel: this.mmlChannel() })} (${value.tag(tags)})\n`;
+    this.report(context, body);
+  }
+
+  public override async truth(target: Stuff | null): Promise<number | null> {
+    if (!target || !MixinApi.isContainer(target)) return null;
+    const value = await this.resolve(target as Stuff & Container, undefined);
+    return value.rawValue();
+  }
+}

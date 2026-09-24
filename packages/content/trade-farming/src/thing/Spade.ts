@@ -26,21 +26,20 @@ export default class Spade extends ToolItem {
    */
   static commandContributions: CommandContributions = {
     self: ['trade/farming/cmd/farming/plot.yaml'],
-    // ⚠⚠ **And it lights up `measure` too, which it did not until a live
-    // drive.** The doc comment above cited the right rule — *"the same
-    // relationship `SurveyInstrument` has to `measure`"* — and then wired
-    // only `plot`, so `measure texture` answered **"I don't understand
-    // 'measure'"** to a player standing in a field with a spade in their
-    // hands. Two of the survey ladder's four rungs were unreachable and
-    // every test passed, because a controller test calls the controller.
+    // ⚠⚠ **It used to light `measure` up too, and that history is worth
+    // keeping.** For a while it did not: the doc comment above cited the
+    // right rule and then wired only `plot`, so `measure texture`
+    // answered *"I don't understand 'measure'"* to a player standing in
+    // a field with a spade in their hands — two of the survey ladder's
+    // four rungs unreachable, with every test green, because a
+    // controller test calls the controller.
     //
-    // ⭐ The `SurveyInstrument` shape exactly: the whole view on
-    // `environment` + `peers`, so the instrument lights the verb up by
-    // being in reach and each channel's controller checks the capability
-    // it actually needs. That is why `measure texture` can say *"you
-    // would need something to open the ground with"* rather than simply
-    // not existing — **the failure stays legible**.
-    peers: ['platform/cmd/perception/measure.yaml'],
-    environment: ['platform/cmd/perception/measure.yaml'],
+    // ⭐ The instrumentation ladder settles it a rung higher up: the
+    // VERB is the Avatar's and always exists, and what the spade
+    // supplies is the `digging` capability the `texture` channel names.
+    // So `measure texture` with no spade now says *"you would need
+    // something to open the ground with"* — which is what the
+    // affordance was trying to buy, bought where it cannot be
+    // forgotten.
   };
 }

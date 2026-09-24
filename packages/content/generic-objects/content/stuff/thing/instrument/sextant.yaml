@@ -1,0 +1,20 @@
+# Sextant — the sighting instrument: brings a body down to the horizon
+# in a split mirror and reads the angle off an arc.
+#
+# ⭐⭐ **It had no row either.** The class shipped and the `sun`/`moon`
+# arm of `measure altitude` checked `instanceof Sextant`, so that arm was
+# dead for everybody. It is `measure elevation` now, and this is the
+# thing that takes it.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: brass sextant
+  keywords: [sextant, arc, mirror]
+  register: indefinite
+  long: >-
+    A heavy brass frame with a graduated arc, a shaded index mirror and
+    a small telescope. Bring the sun down to the horizon, clamp the
+    index, and read the angle off the vernier.
+  capabilities: [sighting]
+  mass: 2.2
+  _materialPath: /stuff/idea/material/alloy/bronze

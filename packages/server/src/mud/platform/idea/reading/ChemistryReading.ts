@@ -1,0 +1,153 @@
+/**
+ * AnalyzeChemistryController — handler for `analyze chemistry of
+ * <target>`.
+ *
+ * Reads the target's bulk Material and renders its chemistry +
+ * density + composition + biological-source data with canonical
+ * units (Quantity-shaped fields render via `formatMml`). Targets
+ * without a Material fall through to a polite "nothing to analyze"
+ * failure.
+ *
+ * ⭐⭐ **And, for metal stock, what is dissolved in THIS piece.** A
+ * `Material` is a singleton: it says what steel is as a kind and cannot
+ * say how your bar came out of your furnace. {@link AlloyedMixin} is the
+ * per-instance half, and this is the instrument that reads it — which
+ * is what makes carbon a number a player can ACT on (charge less fuel,
+ * carburize again, stop before the band) rather than a number the smelt
+ * narrated once and forgot.
+ */
+
+import Reading from '../../../lib/instrument/Reading';
+import type { Tooled } from '../../../lib/craft/Tooled';
+import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
+import type { CommandContext, CommandModel } from '../../../api/command';
+import type { MqlOneResult } from '../../../api/mql';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Tangible } from '../../../lib/material/Tangible';
+import type { Alloyed } from '../../../lib/material/Alloyed';
+import { MixinApi } from '../../../api/mixin';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
+
+interface AnalyzeChemistryModel extends CommandModel {
+  target?: MqlOneResult;
+}
+
+export default class ChemistryReading extends Reading {
+  protected override async analyze(
+    context: CommandContext,
+    subject: Stuff | null,
+    _band: CompetenceBandName,
+    _handTool: (Stuff & Tooled) | null,
+    param: string,
+  ): Promise<void> {
+    // ⭐ The controller's body verbatim, under the rung it always was.
+    // `model` is the shim that keeps the diff honest: the binder used to
+    // hand this in as a named arg, and the ladder hands it in resolved.
+    const model = { target: { stuff: subject, raw: param } } as unknown as AnalyzeChemistryModel;
+    const giver = context.commandGiver;
+    const target = model.target;
+    if (!target || target.stuff === null) {
+      const raw = target?.raw ?? '';
+      MessageApi.scene(giver)
+        .topic('sense.reading')
+        .toSelf(Mml.compose`You don't see any '${raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'target', query: raw });
+      return;
+    }
+    if (!MixinApi.isTangible(target.stuff as Stuff)) {
+      const detail = `there's nothing to analyze on ${target.stuff.getPresentation()}`;
+      MessageApi.scene(giver)
+        .topic('sense.reading')
+        .toSelf(Mml.fromMarkup(detail))
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-tangible',
+        detail,
+      });
+      return;
+    }
+    // The isTangible gate above makes non-Tangible impossible here.
+    const material = (target.stuff as Stuff & Tangible).getMaterial();
+    if (!material) {
+      const detail = `there's no material data for ${target.stuff.getPresentation()}`;
+      MessageApi.scene(giver)
+        .topic('sense.reading')
+        .toSelf(Mml.fromMarkup(detail))
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'no-material-data',
+        detail,
+      });
+      return;
+    }
+
+    const lines: Mml[] = [];
+    lines.push(
+      Mml.compose`Chemistry of ${Mml.thing(target.stuff as Stuff)}:`
+    );
+    lines.push(Mml.compose`  material: ${material.getName()}`);
+    lines.push(Mml.compose`  density: ${material.getDensity().formatMml(undefined, undefined, { channel: 'chemistry' })}`);
+    const chem = material.getChemistry();
+    if (chem) {
+      if (chem.symbol) {
+        lines.push(Mml.compose`  symbol: ${chem.symbol}`);
+      }
+      if (chem.atomicNumber !== undefined) {
+        lines.push(Mml.compose`  atomic number: ${chem.atomicNumber}`);
+      }
+      if (chem.formula) {
+        lines.push(Mml.compose`  formula: ${chem.formula}`);
+      }
+      if (chem.molarMass) {
+        lines.push(
+          Mml.compose`  molar mass: ${chem.molarMass.formatMml(undefined, undefined, { channel: 'chemistry' })}`
+        );
+      }
+    }
+    // ⭐ The EFFECTIVE composition when this piece can say what is
+    // dissolved in it — the kind's composition scaled by what is left,
+    // plus this instance's own entries. A bar of steel and a bar of
+    // steel with twice the carbon read differently here, which is the
+    // whole point of the instrument.
+    const alloyed = MixinApi.isAlloyed(target.stuff as Stuff)
+      ? (target.stuff as Stuff & Alloyed)
+      : null;
+    const composition = alloyed
+      ? alloyed.getEffectiveComposition()
+      : material.getComposition();
+    if (composition.length > 0) {
+      lines.push(Mml.compose`  composition:`);
+      for (const c of composition) {
+        lines.push(Mml.compose`    - ${c.materialPath}: ${c.fraction}`);
+      }
+    }
+    if (alloyed && alloyed.getTemper() !== 'none') {
+      // ⚠ Recorded and reported, with no mechanical consumer yet. The
+      // next `heat` anneals it back, because heating past the critical
+      // temperature is what annealing IS.
+      lines.push(Mml.compose`  temper: ${alloyed.getTemper()}`);
+    }
+    const bio = material.getBiologicalSource();
+    if (bio) {
+      lines.push(
+        Mml.compose`  biological source: ${bio.tissueType} from ${bio.speciesPath}`
+      );
+    }
+
+    let body = Mml.compose`\n`;
+    for (const line of lines) {
+      body = Mml.compose`${body}${line}\n`;
+    }
+
+    MessageApi.scene(context.commandGiver)
+      .topic('sense.reading')
+      .toSelf(body)
+      .send();
+
+    return;
+  }
+}
