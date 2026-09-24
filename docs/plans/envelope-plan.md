@@ -1028,6 +1028,127 @@ existing thermal suite green (`Thermal.test.ts`,
 re-derive them from the physics, do not pin the old numbers).
 **Commit.** `build(envelope W1): the cold branch measured and retuned; the cast dressed by its rows`
 
+### W1 measurement — the cold bench
+
+⚠⚠ **Worse than the finding recorded, and different in kind.** The
+2026-09-21 note said *a naked body at 294 K spends ~24 %/h and starves
+at 4.5 h*. The bench says that is the GOOD case. Before the retune,
+with `CLO_TO_KELVIN=2.5` and `COLD_SPEND_PER_DEGREE=0.05`:
+
+```
+  air                              kit                    %/h(1st)  sat@12h  core
+  21 °C — the old indoor decree    naked                     21.20        0   32.5
+  21 °C — the old indoor decree    outfit + wool coat         8.70        0   36.3
+  8 °C — a winter night outdoors   outfit (as the cast ships) 47.45        1   26.9
+  −5 °C — a bad one                outfit + wool coat        73.70        1   21.8
+```
+
+**Every one of the sixteen rows was dead inside twelve game hours** —
+including a body in a wool coat in a 21 °C room. And clothing barely
+registered: at 8 °C, naked cost 53.7 %/h and a wool coat 41.2 %/h,
+because 2 clo bought 5 K against a 21 K gap.
+
+After the retune:
+
+```
+  air                              kit                    %/h(1st)  sat@12h  core  alive
+  21 °C                            naked                      3.20       70   36.9   yes
+  21 °C                            outfit (1 clo)             1.20       99   36.9   yes
+  8 °C — a winter night            naked                      6.17       28   33.4   yes
+  8 °C — a winter night            outfit (1 clo)             4.45       53   36.9   yes
+  8 °C — a winter night            outfit + wool coat         2.45       81   36.9   yes
+  0 °C — a hard frost              outfit + wool coat         4.45       53   36.9   yes
+  −5 °C — a bad one                naked                      6.12       28   28.3   yes
+  −5 °C — a bad one                outfit + wool coat         5.70       35   36.9   yes
+```
+
+**What changed, and why each is a reason rather than a taste.**
+
+- `CLO_TO_KELVIN` **2.5 → 8**, which is the number the unit is *defined
+  by*: a naked body's comfort floor here is 302 K (29 °C — the real
+  thermoneutral zone for an unclothed human), and one clo is by
+  definition comfort at 21 °C, so one clo must be worth 8 K. The bench's
+  `21 °C / 1 clo` row now costs **basal metabolism and nothing else**,
+  which is the definition made observable.
+- `COLD_SPEND_PER_DEGREE` **0.05 → 0.005**, calibrated jointly with the
+  cap below so that `cap ÷ rate` — the gap shivering can actually close
+  — is **20 K**. Also not arbitrary: it puts a naked body's drift target
+  on an 8 °C night at 301 K, which is exactly the shipped
+  `survivableMin`. *A naked human outdoors on an 8 °C night is on the
+  hypothermia line*, and the arithmetic says so without being told.
+- ⭐⭐ **A new cap, `COLD_SPEND_MAX_BASAL_MULT = 5`** — shivering peaks
+  at about five times resting metabolism. The shipped cold branch was
+  linear in the gap and **uncapped**, so a cold enough room drained the
+  tank at whatever rate the arithmetic asked and the body **starved to
+  death in a snowdrift**. That is the wrong death twice: cold kills by
+  cooling you, and hypothermia is rescuable — somebody can carry you
+  inside, and `warm` already exists for it. Past the coverable gap the
+  body now drifts toward `ambient + coveredGap`: the fuel is buying
+  something, just not enough. Named against `METABOLIC_DEFAULTS.
+  BASAL_SATIATION_PER_MIN` rather than written as a bare rate, so
+  retuning resting metabolism moves the ceiling on shivering with it.
+- **Worn `clo` now enters `bodyTau()`.** It did not: a body in a parka
+  cooled at exactly the rate a naked one did the moment its fuel ran
+  out — backwards, since insulation matters most once you have stopped
+  generating heat. Same `SHED_BODY_CLO` reference the shedding term
+  uses, so one garment number does both jobs.
+
+⚠⚠ **The bench measured the wrong thing three times before it measured
+the right one, and that is the note worth keeping.**
+1. It averaged the spend over all twelve hours. Every row read **8.3
+   %/h** — a naked body at 21 °C and a coated one at −5 °C alike. That
+   is not a fact about temperature; it is `100 % ÷ 12 h`. Every row
+   emptied the tank, so the average measured the TANK. The
+   clothing-matters assertion would have passed vacuously against a
+   completely broken model.
+2. It read liveness with `isAlive()`, which is `lifecycleState ===
+   'alive'` and **defaults to the empty string** on a fixture nothing
+   birthed — so it reported a body at 99 % satiation and a 36.9 °C core
+   as DEAD. `Organism.ts` documents the trap in as many words.
+   `!isDead()` is the question.
+3. Two assertions were true of the old model and false of the new one
+   for good reasons: at the cap, two bodies both shivering flat out
+   spend the same, and the warmer one burns marginally MORE basal for
+   being warmer — so fuel is not monotone in clo and the CORE column is
+   where clothing's win is unambiguous. And the cap means a −5 °C spend
+   can never be twice a 21 °C spend; what keeps falling is the core.
+
+⭐ **Two plan numbers moved, both recorded here rather than silently.**
+D8 proposed `CLO_TO_KELVIN 7`, `COLD_SPEND_PER_DEGREE 0.01` and a cap of
+4× basal; the measured values are 8, 0.005 and 5×, derived as above. D8
+also predicted *"naked at 294 K ≈ 4.8 %/h"* — measured **3.2 %/h**.
+
+### W1 — dressing the cast
+
+**`wearGarments` lives on `Character`, not on `NPC`.** Both rungs of
+person need it — `TestHooks` was already carrying a private copy to stop
+wire characters collapsing of cold — and nothing below a person does: an
+animal is not dressed. The FIELD is on `NPC`, because a player dresses
+at enroll. TestHooks' copy is deleted and calls the shared recipe, so
+this build removed a duplicate rather than adding one.
+
+**45 cast rows dressed**, and three packs (`saxonberg-lounge`,
+`trade-haulage`, `newbie-wilds`) gained a `generic-objects` dependency
+they needed to name commons clothing. The outfits are by trade, not by
+uniform: a shirt, trousers and shoes for everyone; a field jacket for
+the eleven who work outdoors or underground; a blazer for the counting
+houses and the registry; a white coat for the physician; hide and boots
+for the two fighters; nothing extra for the smith, the baker and the
+smelterman, who stand at furnaces. The wolf wears nothing.
+
+⚠ **What is NOT yet proven: what those outfits are worth in clo.**
+`bodyInsulation()` is surface-weighted over the body plan, so shirt +
+trousers + shoes covers ~72 % of a biped and the number depends on each
+garment's derived `getClo()`. A unit fixture has no Template store and
+cannot clone the real rows, so **the drive (W7) is where the cast's
+actual insulation is read in a live world.** If it comes back under
+~0.8 clo the answer is more content — a second layer on the outdoor
+trades — not another dial.
+
+⭐ `lint:census` clause (b) now reads `wears`, so a misspelt garment is
+a build error rather than one silent layer of insulation a character
+does not have. It took the field refs from 1736 to 1896.
+
 ### W2 — The lamp burns fuel
 
 **Goal.** A lantern you light goes out.
