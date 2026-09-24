@@ -1729,3 +1729,45 @@ all 51 gates green.
 **Verification:** `pnpm build` type-clean · `lint:family` 51/51 ·
 trade-medicine 21/21 · platform crafting 34/34 · vitals blood 12/12 ·
 the drive 11/11 over the booted full world.
+
+### Even with master + the live browser walk (2026-09-24)
+
+- **Merged `origin/master`** (the ground/floors build — a new `ground`
+  pack, class renames, +1 lint gate) into the branch: clean auto-merge, 0
+  conflicts, my Steepable/steep + blood-duration changes survived intact;
+  `pnpm install` (the `ground` pack), `pnpm build` type-clean, `lint:family`
+  **52/52** (master added `lint:ground`), touched packs green. Branch is
+  **even with master** (behind 0, ahead 24). One tsc-only fix
+  (`SteepVerb.test.ts` `getTemplatePath()!`) that vitest's esbuild missed.
+- **Live browser walk** (dev server serving the built client at 2010,
+  `AUTH_MODE=test` login as an expert-medicine wizard at the ward). Drove
+  the whole review surface in a real client:
+  - ⭐ **durative bleed** — `bleed into bag` → *"You settle in and begin
+    drawing your own blood… It will take a while."*, then the completion
+    *"You draw a unit of your own blood…"* landed after the game-clock
+    elapsed. A second draw refused SYNCHRONOUSLY (*"already holds blood of
+    another kind"*) — gates at dispatch, effect at completion, both live.
+  - ⭐ **durative transfuse** — `transfuse from saline` → *"You begin the
+    transfusion. Hold steady."*
+  - ⭐ **steep as a platform verb** — the harvested **greywort root** binds
+    as steepable (`isSteepable` true): `steep greywort in basin` reaches
+    the solvent gate (*"It needs a little water…"*), proving the mixin +
+    platform verb + `solvent`-tag path end-to-end.
+  - `test me` → *"clinicdoc's blood is type A."*; `prescribe me anaesthesia`
+    → *"You write clinicdoc a prescription…"*; `suture`/`calendar`/`operate`
+    afforded with sensible refusals.
+- ⚠ **Findings the browser surfaced** (pre-existing, NOT from R2 — for
+  /finalize / a slate, not this MR):
+  1. **The physic garden (north of the ward) reads pitch-black** — every
+     carried item becomes "something" there, which breaks keyword-binding
+     for `harvest`/`steep` in the garden (they work in the lit ward). Most
+     likely night on an outdoor garden (the wire drive ran in daylight);
+     worth confirming it is not an unlit-interior bug, since it makes the
+     autarky loop time-of-day dependent.
+  2. A full steep-to-extract could not be shown live only because no
+     water-filled BULK vessel is reachable in a lit room — the authored
+     steep pot lives in the dark garden and the ward `washbasin` reads
+     empty (`fill … from basin` refused). The substrate is proven anyway.
+  3. Minor: `bleed into blood bag` (two words) mis-binds "blood bag" to the
+     tool arg (*"isn't a tool"*); `bleed into bag` works. `operate` wants
+     the surgeon's kit bound/wielded (afforded, refused on the kit).
