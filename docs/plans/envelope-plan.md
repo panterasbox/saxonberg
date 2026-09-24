@@ -1165,6 +1165,53 @@ refuses an empty lamp with `not-flammable`.
 **Acceptance.** Drive steps 4–5 in a unit-level controller test (`light
 lantern`, `douse lantern`) and the wire smoke still green.
 **Commit.** `build(envelope W2): a lantern is a small furnace with a light, and it runs out`
+→ **DONE.** 53 lint gates pass; 1234 near-tests green; the terminus pack
+suite green (132).
+
+⭐⭐ **The reachability risk the plan flagged was real, and it was the
+affordance link.** `FurnaceMixin` declared its verbs under `peers` only
+— *siblings, and one passable exit away*. That is the whole story for a
+forge, an oven and a kiln, none of which is ever picked up: a furnace
+standing in a room **is** your sibling. But **you are your lamp's
+CONTAINER, not its peer**, so a carriable light composing `FurnaceMixin`
+would have had `ignite` die at the affordance link the moment it left
+the floor — `light lantern` answering *"you don't see any 'lantern'
+here"* with the lamp in the player's hand, while every controller test
+stayed green, because a controller test never runs the binder.
+
+`ignite`/`douse` now also ride `environment` (outward, to whoever carries
+it). ⚠ The plan proposed adding them to `self` instead; `self` grants
+the verb to the *lamp*, not to the holder, so that would not have worked.
+`ChargedMixin` — the mana wand you hold — has declared both buckets
+since it shipped, and is the precedent. `pump`, `heat`, `boil` and `warm`
+stay `peers`-only: they are for a furnace you are standing at.
+
+The new affordance test was **verified to fail on revert** before it was
+kept.
+
+**Row changes.** The lantern (0.15 %/min, a game night) and the torch
+(0.3 %/min, half a night for a third of the light — the whole trade) move
+to `/platform/thing/Lamp` with `lit: false` and a `fuel` reserve.
+`PortableLight` stays and is narrowed *to what it is for*: a light that
+burns **nothing** — the glowcap jar and its fixture, which are a fungus.
+Its header said fuel was *"the combustion build's concern"*; the
+combustion build shipped and nobody came back until a dark realm made it
+matter.
+
+⚠ **Two content tests pinned the old class and now assert the new
+mechanism** rather than being re-pinned: `general-store-content` checks
+the row is a `Lamp` with `lit: false` and fuel in it, and
+`general-store-standup` drives `ignite`/`douse` on the live object
+instead of `switchOn`/`switchOff`.
+
+⚠ **`furnaceNowSeconds()` returns null unless the clock registry
+singleton is REGISTERED at its template path** — importing the module is
+not enough. Without it the fuel reconcile is a silent no-op, and the
+first draft of `Lamp.test.ts` read 100 % fuel after six hours of burning
+and would have passed for the wrong reason. It also has to step in
+game-HOUR chunks: `reconcileFurnaceFuel` drops any gap over
+`MAX_REASONABLE_GAP_SEC` (4 h) as a logout, so a single twelve-hour jump
+measures nothing. Both are written into the test.
 
 ### W3 — Outside gets a night and a winter; the room is an envelope
 
