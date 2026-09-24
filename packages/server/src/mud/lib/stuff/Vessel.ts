@@ -42,7 +42,7 @@
 import { ContainerMixin } from '../spatial/Container';
 import {
   AtmosphericMixin,
-  type FabricDefaults,
+  type ShellDefaults,
 } from '../biome/Atmospheric';
 import Thing from './Thing';
 import type { FieldMeta } from '../mixin';
@@ -109,7 +109,7 @@ export class Vessel extends VesselBase {
    * hook it is an ordinary override and the cast is gone (review,
    * 2026-09-24).
    */
-  public override fabricDefaults(): FabricDefaults {
+  public override fabricDefaults(): ShellDefaults {
     const material = this.getMaterial();
     const path = material?.getTemplatePath() ?? null;
     if (path === null) return super.fabricDefaults();

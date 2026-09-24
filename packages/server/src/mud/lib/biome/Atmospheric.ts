@@ -152,10 +152,10 @@ export interface Atmospheric {
    * `Location` have no volume, so the geometry answers.
    */
   /** What this scope's row says it is built of, or `null`. */
-  getFabricSpec(): FabricSpec | null;
-  setFabricSpec(value: FabricSpec | null): void;
+  getFabricSpec(): ShellSpec | null;
+  setFabricSpec(value: ShellSpec | null): void;
   /** What a scope of this KIND is built of when its row says nothing. */
-  fabricDefaults(): FabricDefaults;
+  fabricDefaults(): ShellDefaults;
 
   envelopeApplies(): boolean;
 
@@ -231,7 +231,21 @@ export interface Atmospheric {
  * wrong host. A `Vessel` answers the hook too, and that is why the
  * `getMaterial` rung could go.
  */
-export interface FabricSpec {
+/**
+ * ⚠⚠ **Named `ShellSpec`, not `FabricSpec`, and the reason is a
+ * collision.** `lib/material/Construction.ts` has exported a
+ * `FabricSpec` since textiles shipped — the woven / knit / felted cloth
+ * forms, five of them live in `FabricCatalogue` — and *fabric* meaning
+ * cloth is the primary English sense, so the building one gives way.
+ * Caught at review (2026-09-24), while it was still two identifiers and
+ * **zero content rows**: the authored key stays `fabric:`, because that
+ * is what `structure-slate` calls it and what an author writes.
+ *
+ * *Shell* is `holding.md`'s own word for the same thing (condition,
+ * weathering, `UPKEEP_TERMS`), which is the tier `structure-slate`
+ * generalizes — so the type is already named for where it is going.
+ */
+export interface ShellSpec {
   /** A `Material` template path — what the walls and roof are made of. */
   material?: string;
   /** How thick, in metres. Defaults to `envelope.defaultThicknessM`. */
@@ -239,7 +253,7 @@ export interface FabricSpec {
 }
 
 /** What {@link Atmospheric.fabricDefaults} answers. */
-export interface FabricDefaults {
+export interface ShellDefaults {
   materialPath: string;
   thicknessM: number;
 }
@@ -343,12 +357,12 @@ export function AtmosphericMixin<
      * else. `null` — the ordinary case — falls through to
      * {@link fabricDefaults}.
      */
-    protected fabric: FabricSpec | null = null;
+    protected fabric: ShellSpec | null = null;
 
-    public getFabricSpec(): FabricSpec | null {
+    public getFabricSpec(): ShellSpec | null {
       return this.fabric;
     }
-    public setFabricSpec(value: FabricSpec | null): void {
+    public setFabricSpec(value: ShellSpec | null): void {
       this.fabric = value;
       this._envelopeResolved = null;
     }
@@ -362,7 +376,7 @@ export function AtmosphericMixin<
      *   The row still wins: a `fabric:` on the row beats this, and this
      *   beats the universe default.
      */
-    public fabricDefaults(): FabricDefaults {
+    public fabricDefaults(): ShellDefaults {
       return {
         materialPath: envelopeDialStr(
           AppSettingKeys.envelopeDefaultFabric,
@@ -640,9 +654,41 @@ export function AtmosphericMixin<
         if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
           continue;
         }
-        if (BiomeApi.isSkyExposed(dest)) open += 1;
+        if (this.isThreshold(dest)) open += 1;
       }
       return open;
+    }
+
+    /**
+     * ⭐⭐⭐ **Is the far side of this doorway OUTSIDE my envelope?** —
+     * the threshold test, named, because it is a threshold test.
+     *
+     * Today's answer is *the far side is open to the sky*, and it is the
+     * only answer available: **there is no structure tier**, so a
+     * controlled atmosphere starts and stops at one room and "outside"
+     * can only mean "outdoors". It is right for every shipped case — a
+     * shop onto a street, a stockroom behind a shop — and
+     * `structure-slate` names the two it gets wrong:
+     *
+     *  - a **glazed atrium** is indoors, so this reads its doorways as
+     *    interior while the building really does leak into it;
+     *  - conversely a `SkyExposedBiome` atrium *inside* a building reads
+     *    as outdoors, so every door onto it leaks the whole building to
+     *    a room that is under a roof;
+     *  - a door between two **terraced** buildings reads as interior
+     *    when it is a party threshold.
+     *
+     * ⭐ The principled form is the slate's, and it is one line:
+     * `structureOf(this) !== structureOf(far)`. **This method is the
+     * attach point** — a structure tier replaces its body and nothing
+     * else in the envelope changes.
+     *
+     * @hook Override where a class knows its own boundary before the
+     *   tier exists. Keep it CHEAP: `openExteriorOpenings` calls it once
+     *   per obvious exit on a read that sits on the thermal hot path.
+     */
+    protected isThreshold(far: Stuff & Container): boolean {
+      return BiomeApi.isSkyExposed(far);
     }
 
     /**
@@ -774,6 +820,40 @@ export function AtmosphericMixin<
      * its own temperature, which is the exact failure the cause line
      * exists to make visible.
      */
+    /**
+     * ⭐⭐⭐ **How much of this envelope faces outside**, in m².
+     *
+     * Today: a cube of this volume, four walls and a roof — the floor is
+     * the ground and does not leak. ⚠⚠ And it is **five faces
+     * unconditionally**, for every room, whether or not any of them is
+     * actually on the outside, because with no structure tier there is
+     * nothing to ask. Two things follow that a reader should know are
+     * consequences rather than decisions:
+     *
+     *  - a corridor buried in the middle of a building pays the same
+     *    loss to the weather as its shopfront;
+     *  - ⚠ **subdividing therefore makes a building colder.** One hall
+     *    of volume V exposes `5V^⅔`; the same hall cut in two exposes
+     *    `6.3V^⅔`. Adding an interior wall should not add heat loss.
+     *
+     * ⭐ **This method is the attach point.** A structure tier answers
+     * it with the faces that are genuinely on a threshold, and the
+     * integration, the cause line and the `feel` read all follow without
+     * touching the arithmetic — which is the whole reason it is a method
+     * and not two lines inside {@link envelopeCoefficients}.
+     *
+     * @hook Override where a class knows its own exposure. ⭐ The first
+     *   honest candidate is a **buried** room: `SealedCellar` is cut
+     *   into rock and exposes no wall to the air at all, and its
+     *   steadiness today comes from a metre of granite rather than from
+     *   the burial that is the real reason. Deliberately NOT changed
+     *   here — it would move a shipped temperature the drive asserts on.
+     */
+    protected envelopeExposedAreaM2(volumeM3: number): number {
+      const side = Math.cbrt(volumeM3);
+      return 5 * side * side;
+    }
+
     public envelopeCoefficients(): {
       uWperK: number;
       capacityJPerK: number;
@@ -782,10 +862,8 @@ export function AtmosphericMixin<
       const volQ = this.getVolume();
       const volume = volQ ? volQ.rawValue() : 0;
       if (!(volume > 0)) return null;
-      // A cube of this volume: side = ∛V, and the envelope is its four
-      // walls plus its roof. The floor is the ground and does not leak.
-      const side = Math.cbrt(volume);
-      const area = 5 * side * side;
+      const area = this.envelopeExposedAreaM2(volume);
+      if (!(area > 0)) return null;
 
       const fabric = this.resolveFabric();
       // ⭐⭐ **Conduction through the wall IN SERIES with the air films

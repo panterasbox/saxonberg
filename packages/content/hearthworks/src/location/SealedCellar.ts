@@ -17,7 +17,7 @@
 
 import SingletonCartesianLocation from '@saxonberg/server/mud/lib/location/SingletonCartesianLocation';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
-import type { FabricDefaults } from '@saxonberg/server/mud/lib/biome/Atmospheric';
+import type { ShellDefaults } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 
 export default class SealedCellar extends ReservedMixin(
   SingletonCartesianLocation,
@@ -39,7 +39,7 @@ export default class SealedCellar extends ReservedMixin(
    * answer, and the answer is a cellar that runs cool and steady
    * because it is underground and massive.
    */
-  public override fabricDefaults(): FabricDefaults {
+  public override fabricDefaults(): ShellDefaults {
     return {
       materialPath: '/stuff/idea/material/rock/granite',
       thicknessM: 1.0,

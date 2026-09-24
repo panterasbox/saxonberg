@@ -1784,21 +1784,68 @@ Each leaves as a slate line, not a plan section.
   |---|---|---|
   | `envelopeApplies()` | `!BiomeApi.isSkyExposed(scope)` | membership; sky-exposure becomes the **census check** the slate describes, not the predicate |
   | `BiomeLogic.outsideKFor` | the biome chain + weather, always | the **structure's** temperature for an interior room; only shell rooms see the weather |
-  | `envelopeCoefficients()` `area` | `5 · ∛V²`, every face | the faces actually on a threshold |
-  | `openExteriorOpenings()` | `isSkyExposed(dest)` | `structureOf(near) !== structureOf(far)` |
+  | `envelopeExposedAreaM2(V)` | `5 · ∛V²`, every face | the faces actually on a threshold |
+  | `isThreshold(far)` | `isSkyExposed(far)` | `structureOf(this) !== structureOf(far)` |
   | `resolveFabric()` | row → class hook | row → **structure** → class hook (a third rung in an existing ladder; no caller changes, no migration) |
+
+  ⭐⭐ **Rows 3 and 4 are now real methods, extracted at review**, so the
+  structure tier replaces a body rather than editing arithmetic inside
+  `envelopeCoefficients` and a loop inside `openExteriorOpenings`. Both
+  are `protected` `@hook`s with today's answer as the default, and both
+  carry the account of what today's answer gets wrong. Behaviour is
+  byte-identical — 603 tests across the touched trees say so.
+
+  ⭐ Each also has an **honest override available before the tier
+  exists**, which is the test that they are real seams and not
+  speculation: a `SealedCellar` is cut into rock and exposes no wall to
+  the air, so its steadiness ought to come from being buried rather than
+  from a metre of granite. Deliberately not taken — it moves a shipped
+  temperature the drive asserts on.
 
   ⭐ That last row is why none of this is foreclosed: the resolver is a
   fall-through ladder and the tier inserts as a rung. And only **two
   rows** author `fabric:` today, so the slate's *"~100 rooms the
   expensive way"* debt has barely started.
 
-  ⚠ **A name to settle before that build, not during it.** `FabricSpec`
-  already exists in `lib/material/Construction.ts` — textiles' woven /
-  knit / felted forms. Two exported interfaces, one name, unrelated
-  meanings. The slate uses *fabric* for building composition too, so the
-  domain word is right and the TYPE name has to give way. One type and
-  two rows today.
+  ✅ **The name collision is settled** (review, 2026-09-24).
+  `lib/material/Construction.ts` has exported a `FabricSpec` since
+  textiles shipped — the woven / knit / felted cloth forms, five live in
+  `FabricCatalogue` — and *fabric* meaning cloth is the primary English
+  sense, so the building one gave way: `ShellSpec` / `ShellDefaults`.
+  ⭐ *Shell* is `holding.md`'s own word for the same thing (condition,
+  weathering, `UPKEEP_TERMS`), which is the tier the slate generalizes,
+  so the type is named for where it is going. **Zero content rows
+  changed** — the authored key is still `fabric:`, because that is what
+  the slate calls it and what an author writes.
+
+  ### ⭐ The census, taken at review — the number the slate's gate needs
+
+  | | |
+  |---|---|
+  | Location-shaped rows shipped | **195** |
+  | outdoor biome — sky-lit by derivation, **no membership needed** | 46 |
+  | ⭐ **INTERIOR — these are what need a structure** | **149** |
+  |   …of those, `ambientSource: sky` (daylit through a named opening) | 16 |
+  |   …of those, `ambientSource: glow` | 1 |
+  | rows authoring `fabric:` today | 2 |
+
+  The largest candidate structure is **9 rooms** (`rejection/ferrow`);
+  most are 1–6. So:
+
+  - ⚠ **149, not the slate's "~100"** — and it is the concrete argument
+    for its own stated dependency. At one `_structure:` line per room
+    that is 149 edits with no migration to undo them; with
+    `legibility-slate` Part A (`extends:`) it is one line per *parent
+    row*, and the clusters above are small enough that the parent rows
+    are few.
+  - ⭐ **The 16 `ambientSource: sky` rows are the sky-exposed census
+    already half-built.** The slate names that census as the gate that
+    makes zone-inherited membership safe, and says the atrium is why it
+    must be a *declaration* rather than a ban. W0 shipped exactly that
+    vocabulary — `'sky' | 'glow' | 'none'`, `ambientOpening` naming the
+    opening, and `lint:light-sources` keeping the curated list. A
+    structure member that is sky-exposed and does **not** declare one is
+    the leak the gate is looking for.
 
   → `structure-slate`. ⭐ It asks for *"the first consumer a kernel
   substrate must name"*; the envelope is one, already shipped, and every
