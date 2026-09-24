@@ -281,9 +281,20 @@ approximate (±10).
   needs a payer credential; `payWage(employerAccountId, workerKey, …)`
   pays a **person** by key with no acting-owner check (the roster tick
   calls it from a clock frame, `EmploymentLogic.ts:937`). `balanceOf`
-  is sync. **There is no house-to-house posting a system schedule can
-  make.** `PnlCategory = sales | cogs | wages | subsidy | tax | transfer …`
-  (`lib/banking/LedgerEntry.ts:86`).
+  is sync. ⭐ **`BankingApi.appropriate(toOwnerKey, amount, memo)` →
+  `appropriateImpl` (`BankingLogic.ts:737`) is the shipped primitive a
+  schedule can post:** no acting-owner check; source
+  `treasuryAccountIdImpl(currency)`; destination the owner key's primary
+  account; **refuses when short** (*"the treasury holds less than …"*);
+  posts `postTransaction("appropriation", …)` with category
+  `appropriation` — conserving, not a mint. Its only caller today is
+  `platform/idea/cmd/banking/TreasuryController.ts:100`. ⚠ **There is
+  one treasury per currency** — `TREASURY_PATH = "/compact/treasury"`
+  (`BankingLogic.ts:567`) — and no Locality holds an account. The demo
+  sales tax already flows seller-collected to that treasury via
+  `remitDemoTax` (called from `BuyController`, `OrderController`,
+  `lib/commerce/PricedOffer.ts`). `PnlCategory = sales | cogs | wages |
+  subsidy | tax | transfer …` (`lib/banking/LedgerEntry.ts:86`).
 - System schedules register in
   `platform/idea/WorldClockRegistry.ts:475` `registerSystemSchedules()`
   (weather boundary, storm strikes). `WorldClockApi.every/at/cron`
@@ -537,21 +548,27 @@ extent, and a schedule at sunset.**
   preference — watershed's *"the quota rides the right, ordered by a
   seniority recorded in advance"*; today the founder-default holder is
   the row's author), compute `n = min(count, floor(balance /
-  fuelPerStreetNight))` off the government's treasury account
-  (`GovernmentApi.getGovernment(_governmentKey).treasury` →
-  `BankingApi.balanceOf`), post **one** conserving leg treasury →
-  supplier for `n × fuel`, record the first `n` paths as lit for
-  `_lightingNight`. No account, no government, no supplier → `n = 0` →
-  dark, and `look at the lamps` says so. Nobody is judged at the moment
-  of refusal; the order was written in advance.
-- The posting primitive: `BankingApi.payHouse(fromAccountId,
-  toAccountId, amount, category, memo)` — house → house, conserving, no
-  acting-owner check (the `payWage` shape), category `cogs` on the payer
-  and `sales` on the payee, gated `FromModule('/api/address#AddressApi')`
-  at the logic. ⚠ Check `lint:no-authored-faucet` still passes: it is a
-  transfer, not a mint. The **floor** rule refuses a leg the treasury
-  cannot cover; `n` is computed from the balance first so the refusal is
-  the exception, not the path.
+  fuelPerStreetNight))` off the **realm treasury**
+  (`BankingApi.treasuryAccountId(currency)` → `BankingApi.balanceOf`),
+  post **one** appropriation for `n × fuel` to the supplier's owner key,
+  record the first `n` paths as lit for `_lightingNight`. No supplier,
+  no balance → `n = 0` → dark, and `look at the lamps` says so. Nobody
+  is judged at the moment of refusal; the order was written in advance.
+- The posting primitive is the **shipped** `BankingApi.appropriate(
+  toOwnerKey, amount, memo)`: no acting-owner check, source the
+  treasury, destination the supplier's primary account, category
+  `appropriation` (the correct accounting name for public lighting), and
+  it **refuses when short** — S3's failure mode is the shipped refusal,
+  not something this build writes. `n` is computed from the balance
+  first so the refusal is the exception, not the path. **No new banking
+  primitive, no new gate on the money subsystem.**
+- ⚠ **One treasury per currency, none per locality.** `TREASURY_PATH =
+  "/compact/treasury"`; no Locality holds an account today. So v1 reads
+  as *"the realm appropriates for Terminus's lamps"*, not *"Terminus
+  pays its own bill"*: the town's **preference** (which streets, in what
+  order) is the extent holder's, as decided; the **money** is the
+  realm's until a locality treasury exists (Deferred seams). The
+  `Government.treasury` key is read for provenance in the memo only.
 - The schedule: `WorldClockRegistry.registerSystemSchedules()` adds
   `civic:lighting`, armed at the next sunset
   (`CelestialApi.nextSolarEvent`, sync, EARTH_LIKE/CAMPUS_LATITUDE — the
@@ -658,7 +675,6 @@ tests pin the winter numbers. Recorded in Risks.
 | `getEmittedFlux()` lit-gate | `FurnaceMixin` | *A fuelled appliance casts light only while lit.* True of all five composers (Campfire, Forge, Oven, Kiln, Lamp, Hearth); chains `super` only if the base emits. Fixes the shipped campfire defect. |
 | `PublicLightingMixin` (`publicLighting`, `isPubliclyLitNow`, the `getDetail` line) | `CartesianLocation` (over `Detailed`) | *Any cartesian cell may be lit by a funded public service.* Inert unless declared. Not on `Location` (no `Detailed` there) and not on `FurnishableRoom` (interiors are where objects earn their place — S3). |
 | `_publicLighting` (fuel rate + supplier) + `_lightingNight` + `_lightingLitStreets` + `settleStreetLighting()` | `Locality` | *An extent may fund a service and keep the record of what it lit.* The same tier that carries `_weatherPin`, `_governmentKey`, `_reach`. The verb is on the object; `AddressApi.settleStreetLighting()` only iterates. |
-| `BankingApi.payHouse` | `BankingApi` / `BankingLogic` | A conserving house-to-house leg for a standing charge; the first primitive a system frame can post between two house accounts. Gated to the address logic's module for now. |
 | `wears: string[]` | `NPC` (`lib/npc/NPC.ts` → `Cast`, `Extra`) | *Any non-player person can be authored dressed.* Honest of both rungs. Not on `Agent`/`Creature` (an animal is not dressed by a row) and not on `Avatar` (players dress at enroll). |
 | solar temperature term | `WeatherLogic` (`deviatedFieldFor`) | *Weather is sky dynamics*; the sun's annual/diurnal temperature is the same term the type deviation is. Reaches sky-exposed scopes through the existing fold and envelope hosts through D3c; nothing else. |
 | cold cap + drift clo | `ThermalRegulationMixin` (`integrateThermalSlice`, `driftCore`) and `THERMAL_DEFAULTS` | Dials on the body; no host change. |
@@ -695,15 +711,17 @@ geometry answer); a `wears` applier that checks the NPC's species.
   statics forward to logic; `lint:imports`, `lint:thin-forwarder`.
 - **Verbs on objects** — `locality.settleStreetLighting()`,
   `room.reconcileEnvelope()`, `hearth.spaceHeatOutputW()`; the only Api
-  statics added are forwarding shells (`skyFactorNow`, `payHouse`,
-  `settleStreetLighting`). `lint:object-verbs` stays at zero.
+  statics added are forwarding shells (`skyFactorNow`,
+  `settleStreetLighting`); the bill posts through the shipped
+  `BankingApi.appropriate`. `lint:object-verbs` stays at zero.
 - **Mixins registry** — `Mixins.SpaceHeating`, `Mixins.PublicLighting` +
   refusal phrases (`"{} doesn't warm a room"`, `"{} isn't a street the
   town lights"`), `MixinApi.isSpaceHeating` / `isPublicLighting`;
   `lint:mixin-names`. `_mixinName` statics widen to `string`.
 - **No new module category, no free helper, no new collection, no new
-  Mongo anything** — the lighting record is fields on `Locality` (an
-  existing persisted Stuff); the bill is a `bank_ledger` leg.
+  Mongo anything, no new banking primitive** — the lighting record is
+  fields on `Locality` (an existing persisted Stuff); the bill is a
+  shipped `appropriation` leg.
 - **`fieldMeta`** for every new field (`lint:field-meta --lint`);
   `runtimeState: true` on the stamps.
 - **`_mixinName` widening**, `SecurityApi.decorateApiClass` on any touched
@@ -864,10 +882,9 @@ when unpaid.
 **Files.** `lib/perception/PublicLighting.ts`;
 `lib/location/CartesianLocation.ts` (composition);
 `platform/idea/modalities/VisionModality.ts` (leg (a′));
-`platform/idea/Locality.ts` (fields + `settleStreetLighting`);
-`api/address.ts` + `platform/idea/api/AddressLogic.ts`
-(`settleStreetLighting` iterate); `api/banking.ts` +
-`platform/idea/api/BankingLogic.ts` (`payHouse`);
+`platform/idea/Locality.ts` (fields + `settleStreetLighting`, calling
+the shipped `BankingApi.appropriate`); `api/address.ts` +
+`platform/idea/api/AddressLogic.ts` (`settleStreetLighting` iterate);
 `platform/idea/WorldClockRegistry.ts` (`civic:lighting`);
 `lib/mixin.ts`, `api/mixin.ts`; `scripts/check-light-sources.ts`
 (clause (e)); content: `terminus-city.yaml` (`_publicLighting:
@@ -882,10 +899,12 @@ account; verify the row resolves a government at all, else it is simply
 "never lit").
 **Tests.** `PublicLighting.test.ts`: lit iff night ∧ funded; the detail
 line in each state. `Locality.lighting.test.ts`: seniority order under a
-short balance; one ledger leg per night; no double settle on re-arm.
-`BankingLogic`: `payHouse` conserves, refuses below the floor.
-**Acceptance.** Drive steps 6–7 and 14; `lint:light-sources` (e) passes;
-`lint:no-authored-faucet` passes.
+short balance; one `appropriation` leg per night; no double settle on
+re-arm; the treasury's own short-refusal leaves every street dark.
+**Acceptance.** Drive steps 6–7 and 14; `lint:light-sources` (e) passes.
+⚠ Record in the wave's commit and in `civics.md` at the sweep: v1 is the
+realm appropriating for the town (one treasury per currency); the
+locality treasury is a deferred seam, not this build's.
 **Commit.** `build(envelope W5): street lighting is a property of the street and a bill on the extent`
 
 ### W6 — The content pass
@@ -960,15 +979,16 @@ The five links, per new capability. Each fails closed and silent.
 | the room's warmth | `feel` (bare) — ships | — | `_envelope` optional; defaults apply | none; reconcile-on-read | `requires: any` |
 | the body's cold | `look` body line / the `self.body` cue — ship | — | dials | — | — |
 | public lighting | `look at lamps` — `look` ships; the detail is the row's | `PublicLightingMixin.getDetail` | `publicLighting:` on street rows + `_publicLighting` on the locality + a government with a treasury + a supplier Business | `civic:lighting` registered in `registerSystemSchedules`; the boot-time settle | — |
-| the town pays | none (a schedule) | — | `Government.treasury` → the budget business's account (`ensureVenueAccount` — the settle calls it; **an account with 0 balance lights nothing**) | the clock boots before packs finish? Verify `registerSystemSchedules` runs after the address registry is warm; if not, the callback resolves lazily on first fire | — |
+| the town pays | none (a schedule) | — | the realm treasury (`/compact/treasury`, `BankingApi.appropriate`) + a supplier Business with a primary account (**a treasury holding less than one street-night lights nothing** — the shipped refusal) | the clock boots before packs finish? Verify `registerSystemSchedules` runs after the address registry is warm; if not, the callback resolves lazily on first fire | — |
 | hours | `clock on/off` ship; the roster tick | `shifts` brain on each cast row (`behaviors:`) | roster `schedule` windows | `EmploymentLogic.boot` arms the tick — ships | — |
 | S9 night vision | none | — | `koboldus.yaml` `bandShift: +1` | species catalogue — ships | — |
 | dressing the cast | none | — | `wears:` on cast rows; garment rows exist | `NPC.postRegister` | — |
 
 ⚠ The two links most likely to ship dead: (1) `light lantern` on a
 **held** lamp — controller tests skip the binder; prove it on the wire
-in W2; (2) the budget's account existing and funded at the first sunset
-— the drive asserts `treasury` balance before step 6.
+in W2; (2) the realm treasury funded and the supplier holding a primary
+account at the first sunset — the drive reads `treasury` before step 6
+(the `treasury` verb is the shipped read).
 
 ---
 
@@ -1004,8 +1024,9 @@ Nothing unmapped.
   override precedence, opening count; the outside resolve's provenance;
   the pull-side refresh in both thermal mixins; the cold cap and drift
   target; `Lamp`, `Hearth`, `SpaceHeating`; `PublicLighting` state
-  table; `Locality.settleStreetLighting` seniority + one leg; `payHouse`
-  conservation + floor; `NPC.wears`; the boot-level light census.
+  table; `Locality.settleStreetLighting` seniority + one `appropriation`
+  leg + the short-treasury refusal; `NPC.wears`; the boot-level light
+  census.
 - **Gym** (`pnpm test:gym`, not in `pnpm test`): the cold bench (W1) —
   its output is pasted into this plan's drive record.
 - **Wire** (`pnpm wire`): `envelope.dirty.wire.test.ts` (W7). Per-worktree
@@ -1047,10 +1068,13 @@ Nothing unmapped.
    the unit tests carry winter. If `eval` cannot call
    `WorldClockApi.setScale`, the fallback is a `TestHooks` route — not a
    wizard check.
-5. **The lighting bill's account.** The budget business stands up
-   lazily; at the first sunset it may not exist, or hold 0. The settle
-   ensures the account; the opening advance (credit.md) funds it. Verify
-   at W5 and let the drive read the balance first.
+5. **The lighting bill's account.** The realm treasury
+   (`/compact/treasury`) is the payer — one per currency, none per
+   locality — so v1 is *"the realm appropriates for Terminus's lamps"*,
+   a softening of S3's *"the town's treasury buys the fuel"* recorded in
+   D7 and at the sweep. The supplier Business (the general store) must
+   hold a primary account at the first sunset; verify at W5 and let the
+   drive read the treasury balance first.
 6. **Cost of the envelope reconcile on the vitals read.** Every cockpit
    poll now walks the room's exits and asks `isSkyExposed` per exit. If
    the bench shows it, cache `openExteriorOpenings()` per game-minute on
@@ -1090,6 +1114,16 @@ Each leaves as a slate line, not a plan section.
 - **The lamplighter as a trade; a fuel market** — energy build.
 - **Who decides which streets go dark first** — seniority on the row
   today; the extent's committee tomorrow (`institutions-slate`).
+- **A locality-level treasury** — an account (free:
+  `BankingApi.ensureVenueAccount(ownerPath, …)` mints one for any owner
+  path), income (the demo sales tax already flows seller-collected to
+  the realm treasury via `remitDemoTax` from `buy`, `order` and
+  `PricedOffer` — routing it to the locality where the sale happened is
+  the obvious seam), and an appropriating primitive generalized from
+  *the* treasury to *an appropriating body's account*. Destination:
+  `livelihood-slate` §7 (*"the state's appropriation primitive + civic
+  wages/procurement/bounties"*) and `credit-slate` (*"where taxes come
+  from"*, Q8). Not scoped into this build.
 - **Frostbite, sleep, cold as injury** — `physiology-slate` (Part 7g).
 - **A compressed-clock wire boot group** — `wire-suite-growth-slate`.
 - **Per-zone celestial profiles** — the D1 guard names the seam;
