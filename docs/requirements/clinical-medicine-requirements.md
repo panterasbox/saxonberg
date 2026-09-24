@@ -116,6 +116,12 @@ thin drug slice.
   ship.)
 - **Prosthetics / limb replacement** → **`augmentation-slate`**.
   Amputation (the removal) is in scope; the replacement is not.
+- **A personal calendar / appointment-booking app** (on the cranial
+  implant or elsewhere) → not needed and not medicine's. Doctors aren't
+  slot-scheduled, so there is nothing to *book*; the treatment "schedule" is
+  the **derived timeline of your own wounds' next transitions**, read off the
+  body (below), not an appointment ledger. A general personal-agenda feature,
+  if ever wanted, is a **client-shell / implant** concern, not this build.
 - **The economics of autarky** (whether self-sufficiency pays) →
   emerges from the general economy; this build only guarantees the loop
   is *physically* possible.
@@ -212,6 +218,17 @@ to volume and mismatch — the values/consequence hook, and the reason
 - **Prescribing is doctor-only** (the MD power); the nurse administers
   what is prescribed. This is the psychiatry seam: a future psychiatrist
   is an MD who prescribes for mental conditions.
+
+### Reading the treatment schedule — a derived timeline, not an appointment book
+The body already computes its next interesting transition (`nextInterestingAt`)
+and the notify alarm **pushes** a message when a follow-up comes due (recovery,
+riding the player's existing notification/implant channel). This build adds the
+**pull**: a player can read their **pending follow-ups and rough timing** off
+their own body — likely surfaced through `assess` (the plan picks the exact
+read). ⭐ It is the *derived* care timeline (when wounds are due to change),
+**not** an appointment system — nothing is booked, because doctors are not
+slot-scheduled. It reads anywhere, anytime, without the nurse present (autarky-
+friendly).
 
 ### Suturing is a wound-closure tier with mandatory follow-up
 `suture` (a suture kit + thread, nursing/medicine competence) closes an
@@ -354,7 +371,9 @@ A person does this in the live game, in order, and sees:
   **interrupted**, and is **worse conscious** than anaesthetised; all
   five operations are performable on their wounds; a **foreign-body
   wound** exists and only extraction resolves it.
-- `suture` closes a laceration; the notify alarm flags **stitches due**;
+- `suture` closes a laceration; the player can **read** the pending
+  follow-up and its rough timing off their own body (not just be pushed it,
+  not have to ask the nurse); the notify alarm also flags **stitches due**;
   removal completes the wound; neglect is worse.
 - A **nurse** can do the care acts but is **refused** `operate` and
   `prescribe`; a **doctor** can; the refusals name why. `nursing` and
