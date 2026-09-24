@@ -1,0 +1,20 @@
+# Hand lens — ⭐ the characterful early purchase.
+#
+# It does not read a number and it never will. What it buys is telling
+# one kind of *ore-bearing* from another — and because the `grade`
+# channel caps the naked eye at `novice`, this is the only thing that
+# lets a practised prospector's practice show at a face.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: folding hand lens
+  keywords: [lens, loupe, glass, "hand-lens"]
+  register: indefinite
+  longDescription: >-
+    A brass loupe on a hinge, the size of a thumbnail, worn smooth where
+    a thumb has opened it ten thousand times. Held a hand's width from
+    the eye it brings the grain of a broken rock close enough to argue
+    about.
+  capabilities: [field-identification]
+  mass: 0.05
+  _materialPath: /stuff/idea/material/alloy/bronze

@@ -19,6 +19,7 @@ import { ThermalDoseMixin } from '../../lib/thermal/ThermalDose';
 import { FreshnessMixin } from '../../lib/material/Freshness';
 import { CuredMixin } from '../../lib/material/Cured';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
+import { SampledMixin } from '../../lib/instrument/Sampled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { ComposedMixin } from '../../lib/metabolism/Composed';
 import type { Crafted } from '../../lib/craft/Crafted';
@@ -48,11 +49,25 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // used to lose everything a chain ending in something you POUR keeps,
 // because only a bulk payload carried a composition. An empty list is
 // the default and costs nothing.
-const ProvisionBase = CraftedMixin(
-  ComposedMixin(
-    ContaminableMixin(
-      CuredMixin(
-        ThermalDoseMixin(FreshnessMixin(ThermalMixin(DetailedMixin(Thing)))),
+// ⭐ `SampledMixin` outermost: three inert fields saying where this
+// portion was taken from, so a piece of food can be carried to a bench
+// and read. It is the ONE widening this build makes to a shipped host,
+// and it needs no guard — a `Provision` that is not a sample simply has
+// an empty stamp, and nothing narrows on it except `assay`, whose
+// `requires:` IS the host set.
+//
+// ⚠ Not stackable, so nothing splits: a provision is stamped in place.
+// What the stamp buys here is the SPOILED SAMPLE — `sampledOn` against
+// the shipped `FreshnessMixin` clock is how a competent assayer says
+// *what this says now is about the journey, not the batch*, with no
+// second clock anywhere.
+const ProvisionBase = SampledMixin(
+  CraftedMixin(
+    ComposedMixin(
+      ContaminableMixin(
+        CuredMixin(
+          ThermalDoseMixin(FreshnessMixin(ThermalMixin(DetailedMixin(Thing)))),
+        ),
       ),
     ),
   ),

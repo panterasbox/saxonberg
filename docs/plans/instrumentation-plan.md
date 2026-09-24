@@ -1445,7 +1445,7 @@ commit. Order matters — each step keeps the tree green.
 
 ### Stage B — the sample, the bench, the assayer
 
-#### W5 — The sample and the field call (R-D10, R-D14, R-D15, drive G)
+#### ✅ W5 — The sample and the field call — DONE
 
 - `lib/instrument/Sampled.ts` + `Mixins.Sampled` (D19); composed on `Ore`
   and `Provision`; `Ore`'s split/merge tests extended (split keeps the
@@ -1465,6 +1465,35 @@ commit. Order matters — each step keeps the tree green.
   mass (`SAMPLE_MASS_KG` dial on the row, 0.5) — no new code; the drive
   proves eighteen samples slow you.
 - Commit: `build(instrumentation W5): a sample is the real material, stamped where it was taken`.
+
+> **Wave note.**
+>
+> ⭐ **`sampleFace` went straight to `StrataMixin`**, as D24 said it
+> could once ground merged — with the base returning `null` (*plain
+> ground is not a face*) and mining's `WorkingMixin` overriding it. So
+> `sample the north face` is one verb for the whole world and a
+> drawing-room refuses rather than erroring, and a quarry or a cellar
+> gets it with no dependency on a mine.
+>
+> ⚠ `SAMPLE_LUMPS` is deliberately NOT charged against the face's
+> remaining ore. A sample is a chip, not a cut; charging for it would
+> mean prospecting a claim slowly destroys it.
+>
+> ⚠ **`SampledMixin` composes OUTSIDE `StackableMixin` on `Ore`**, so
+> the hooks nest correctly: Ore carries the grade, this carries the
+> stamp, the stack does the arithmetic. Inside, the merge's
+> null-on-disagreement would have fired against a half-built lot.
+>
+> ⚠ Two mechanical notes for the next mixin author: a mixin factory must
+> be **declared-then-returned** for method decorators to be legal (a
+> class expression cannot carry them — the `Posed` shape), and the
+> `onSplit`/`onMerged` super-calls are **guarded rather than
+> `override`**, because this mixin composes over an unstackable host
+> (`Provision`) that has no inner hook to reach.
+>
+> ⚠ `lint:test-content` caught the kernel test naming `/world/x/mine/…`.
+> A kernel test proves the kernel over synthetic fixtures; the mixin has
+> never heard of a mine, which is the point.
 
 #### W6 — The bench, `assay`, the record (R-D13, R-D16, R-D21, drive H19–22, I24–25)
 

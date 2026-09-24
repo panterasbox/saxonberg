@@ -330,6 +330,8 @@ export const Mixins = {
   Persistable: 'PersistableMixin',
   Forkable: 'ForkableMixin',
   Stackable: 'StackableMixin',
+  /** Where a piece of matter was taken from — the provenance stamp. */
+  Sampled: 'SampledMixin',
   Bulkable: 'BulkableMixin',
   VesselKind: 'VesselKindMixin',
   Cutlery: 'CutleryMixin',

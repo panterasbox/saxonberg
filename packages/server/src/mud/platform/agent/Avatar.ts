@@ -252,6 +252,10 @@ export default class Avatar extends AvatarBase {
       "platform/cmd/perception/analyze.yaml",
       "platform/cmd/perception/measure.yaml",
       "platform/cmd/perception/readings.yaml",
+      // ⭐ Taking a piece of something is an act anybody can do with
+      // their hands. What it costs is the carrying and the judgement of
+      // WHICH piece — never a permission and never a tool.
+      "platform/cmd/inventory/sample.yaml",
       // The engine's own diagnostics, beside `affordances` and `errors`
       // where they belong — `trace` is not a reading.
       "platform/cmd/system/trace.yaml",
