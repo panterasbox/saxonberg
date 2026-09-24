@@ -54,6 +54,8 @@ declareFile({
     'trade-farming',
     'trade-mining',
     'rejection',
+    'trade-haulage',
+    'transport',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -64,6 +66,12 @@ const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
 const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
 /** Open ground with a sky over it — where a sundial has something to cast. */
 const CROSSING = '/world/terminus/university-avenue/location/crossing';
+/** A working face at Rejection — where a sample comes from. */
+const FACE = '/world/terminus/rejection/ferrow/face';
+/** The assay shed: the bench, the kit, the field tools, the buyer. */
+const SHED = '/world/terminus/rejection/location/assay-shed';
+/** ⭐ The SECOND bench, in the city's goods yards. Rows only. */
+const YARDS = '/world/terminus/goods-yards/yard';
 
 /** See the header. A refusal this drive cannot recognise it cannot fail on. */
 const NOT_FOUND =
@@ -370,5 +378,147 @@ suite('⚠⚠ the article defect — `greedy: true`, driven', () => {
     expect(said).not.toMatch(NOT_FOUND);
     expect(said).toMatch(/Gravity/i);
     expect(said).not.toMatch(/nothing in reach/i);
+  });
+});
+
+/* ──────────── G · the field read is for choosing what to sample ──────────── */
+
+suite('G16–G18 · the free read at a face, and what it is FOR', () => {
+  it('⭐⭐ G16 — `analyze grade` at a face answers in WORDS, not a number', async () => {
+    const s = await at(FACE, 'face', true);
+    const said = await say(s, 'analyze grade');
+    expect(said).not.toMatch(NOT_FOUND);
+    // ⚠ Qualitative, and that is what makes the bench worth the walk.
+    expect(said).toMatch(/ore-bearing|fair ore|good ore|very rich|trace|nothing in this rock/i);
+    expect(said).not.toMatch(/\d+(\.\d+)?\s*%/);
+  });
+
+  it('⭐ G17 — and `measure grade` refuses NAMING the bench', async () => {
+    const s = await at(FACE, 'face2', true);
+    const said = await say(s, 'measure grade');
+    expect(said).not.toMatch(NOT_FOUND);
+    expect(said).toMatch(/assay bench|`assay`/i);
+  });
+
+  it('⭐⭐ G18 — `sample` at a face yields a real lump you are carrying', async () => {
+    const s = await at(FACE, 'sampler', true);
+    const r = await s.cmd('sample the north face');
+    const said = plain(await r.said());
+    expect(said).not.toMatch(NOT_FOUND);
+    expect(said).toMatch(/as a sample|note where it came from/i);
+    // ⭐ The piece is MATTER — a real lump of ore you can pick up, not a
+    // token and not a record. That is the whole claim of the design.
+    expectOk(await s.cmd('get ore'));
+  });
+});
+
+/* ──────────────── H · the bench, and the round trip priced ──────────────── */
+
+suite('H19–H23 · the bench', () => {
+  it('⚠⚠ H19 — `assay` in the field with no bench REFUSES, naming the want', async () => {
+    const s = await at(FACE, 'nobench', true);
+    await s.cmd('sample the north face');
+    expectOk(await s.cmd('get ore'));
+    const said = await say(s, 'assay the ore');
+    expect(said).not.toMatch(NOT_FOUND);
+    // ⭐ It names A BENCH and A KIT — never a PLACE. A trade controller
+    // that named a locality would be wrong the moment a second world
+    // installed the pack.
+    expect(said).toMatch(/assay bench|assayer/i);
+    expect(said).not.toMatch(/rejection|ferrow/i);
+  });
+
+  it('⭐⭐ H20 — the bench is in the room, matching prose that was already there', async () => {
+    const s = await at(SHED, 'bench', true);
+    const said = await say(s, 'look');
+    expect(said).not.toMatch(NOT_FOUND);
+    expect(said.toLowerCase()).toMatch(/bench/);
+  });
+
+  it(
+    '⭐⭐⭐ H20–H21 — carry a sample in, hand it over, WALK AWAY, and the paper is there',
+    async () => {
+      // ⭐ The claim of the whole of Stage B: the bench holds nothing of
+      // yours. This step takes a sample at a face, carries it to the
+      // shed, hands it over, and then does nothing at all until the
+      // world clock finishes the fire.
+      const hand = uniqueHandle('instr-roundtrip');
+      let p = await Session.open(hand, { startLocation: FACE, wizard: true });
+      open.push(p);
+      expectOk(await p.cmd('sample the north face'));
+      expectOk(await p.cmd('get ore'));
+      p.close();
+
+      // The walk. A different room, a different session — the sample is
+      // in the character's own hands and travels with them.
+      p = await Session.open(hand, { startLocation: SHED, wizard: true });
+      open.push(p);
+      const handed = await p.cmd('assay the ore at the bench');
+      const said = plain(await handed.said());
+      expect(said).not.toMatch(NOT_FOUND);
+      expect(said).toMatch(/bins|muffle|kit/i);
+      // ⭐ It says how long, in hours — because you are going to leave.
+      expect(said).toMatch(/minutes|hour/i);
+
+      // ⚠⚠ And now NOTHING is done. No standing, no watching, no
+      // engagement to hold. The clock carries it.
+      const deadline = Date.now() + 280_000;
+      let paper = '';
+      while (Date.now() < deadline && !/report/i.test(paper)) {
+        await new Promise((r) => setTimeout(r, 5_000));
+        paper = plain(await (await p.cmd('look')).said());
+      }
+      expect(paper, 'no assay report ever appeared on the bench').toMatch(
+        /report/i,
+      );
+
+      // ⭐ And it reads like a report: who, with what, how well, and
+      // where the sample came from.
+      const read = plain(await (await p.cmd('look report')).said());
+      expect(read).toMatch(/assayed by/i);
+      expect(read).toMatch(/grade/i);
+      expect(read).toMatch(/sample taken at/i);
+    },
+    320_000,
+  );
+
+  it('⭐⭐⭐ H22 — the batch is AMORTIZED, and the verb says so in hours', async () => {
+    // Read off the shipped row rather than described: eight samples cost
+    // far less than eight trips, which is the whole economics.
+    const s = await at(SHED, 'amort', true);
+    const said = await say(s, 'readings grade');
+    expect(said).not.toMatch(NOT_FOUND);
+    expect(said).toMatch(/at .*bench|a sample can be read here/i);
+  });
+});
+
+/* ───────────────── N · a second bench needs no code ───────────────── */
+
+suite('N37 · the second bench is ROWS', () => {
+  it('⭐⭐⭐ N37 — a bench in another locality, owned by somebody else, works', async () => {
+    const s = await at(YARDS, 'second', true);
+    const said = await say(s, 'look');
+    expect(said).not.toMatch(NOT_FOUND);
+    expect(said.toLowerCase()).toMatch(/bench/);
+    // ⭐ And `readings grade` sees a bench rung in reach here too — the
+    // same class, the same capability, a different row and a different
+    // owner. No pack code was written for it.
+    const routes = await say(s, 'readings grade');
+    expect(routes).toMatch(/a sample can be read here/i);
+  });
+});
+
+/* ───────────────────── F15 · the ladder at a face ───────────────────── */
+
+suite('F15 · an ore face offers the FULL ladder', () => {
+  it('⭐⭐ F15 — eye, hand tool and a bench you can carry a sample to', async () => {
+    const s = await at(SHED, 'ladder', true);
+    const said = await say(s, 'readings grade');
+    expect(said).not.toMatch(NOT_FOUND);
+    expect(said).toMatch(/by eye/i);
+    // The bench rung IS offered here — unlike `light`, which is
+    // place-bound and offers none.
+    expect(said).toMatch(/bench/i);
+    expect(said).toMatch(/what it settles:/i);
   });
 });

@@ -149,14 +149,13 @@ export default class GradeReading extends SurveyReading {
     };
   }
 
-  /** ⚠ There is no dial for this. The refusal names the bench. */
-  protected override async measure(context: CommandContext): Promise<void> {
-    this.decline(
-      context,
-      Mml.compose`Nothing you can carry reads a grade off a rock. Take a sample to an assay bench — \`sample\` then \`assay\`.`,
-      'no-instrumented-rung',
-    );
-  }
+  // ⚠ There is deliberately NO `measure` override here, and there was
+  // one for an hour. `runMeasure` checks the channel's declared
+  // `instrument:` BEFORE it reaches the hook, so an override on a
+  // channel that declares none is dead code — the refusal never got
+  // there. Found by driving `measure grade` at a face. The sentence
+  // lives in `Reading.noInstrumentedRungLine`, which names the bench
+  // whenever a channel declares one, which is the general rule.
 
   /** The engine's own read: the grade, undecorated. */
   public override async truth(target: Stuff | null): Promise<number | null> {

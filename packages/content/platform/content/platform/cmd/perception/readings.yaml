@@ -37,6 +37,14 @@ args:
   - name: tool
     type: objects
     required: false
+    # ⚠⚠ `greedy: true` on the PREPOSITIONAL arg too, and this one was
+    # found last. `with the photometer` puts `the` and `photometer` after
+    # the preposition, and a non-greedy arg takes one positional — so the
+    # leftover word trips "too many arguments" and the whole command dies
+    # as an unknown shape. ⭐ The general rule the three fixes add up to:
+    # **every object arg a player will put an article in front of needs
+    # `greedy`**, wherever it sits in the view.
+    greedy: true
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]

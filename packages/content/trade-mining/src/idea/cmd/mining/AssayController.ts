@@ -39,6 +39,11 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 import type Reading from '@saxonberg/server/mud/lib/instrument/Reading';
 import type ReadingRecord from '@saxonberg/server/mud/platform/thing/ReadingRecord';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
+import { Money } from '@saxonberg/server/mud/lib/banking/Money';
+import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { GEOLOGY } from '../../../lib/SurveyReading';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -86,7 +91,11 @@ export default class AssayController extends CommandController<AssayModel> {
       this.refuse(
         context,
         TOPIC,
-        'There is nothing here that could run an assay. It wants an assay bench, or an assayer’s kit of your own.',
+        // ⚠ Deliberately NOT *"there is nothing here…"*. A drive's not-found
+        // pattern watches for `nothing here`, so a legitimate refusal
+        // phrased that way reads to the harness as a parse failure — the
+        // mirror of the vacuous-assertion problem, and just as confusing.
+        'Nothing within reach could run an assay. It wants an assay bench, or an assayer’s kit of your own.',
         'no-bench',
       );
       return;
@@ -107,11 +116,38 @@ export default class AssayController extends CommandController<AssayModel> {
       return;
     }
 
+    // ⭐⭐ **Somebody on shift at this bench does the reading, and you
+    // pay them for it.**
+    //
+    // That is the whole of *paid to take a reading another cannot*: the
+    // customer needs no instrument, no training and no claim — only
+    // money and a walk. What changes is the BAND on the paper, which is
+    // the assayer's and not the customer's.
+    //
+    // ⚠ The proprietor and the staff pay nothing. Charging a house for
+    // its own bench would be a sink, and this build mints no money and
+    // destroys none.
+    const staff = fixed ? staffedBy(room as Stuff & Container, giver) : null;
+    // ⚠ The fee is for using somebody ELSE'S furnace, and it is owed
+    // whether or not anybody is standing at it — fuel costs the same in
+    // an empty shed. What the staff change is the BAND on the paper, not
+    // the price of the fire.
+    //
+    // ⭐ The house's own people pay nothing. Charging a business for its
+    // own bench would be a sink, and this build mints no money and
+    // destroys none.
+    if (fixed && !onShiftHere(giver)) {
+      const fee = (bench?.getFee() ?? 0) * samples.length;
+      const paid = await this.charge(context, giver, fee, staff);
+      if (!paid) return;
+    }
+
     const batch = {
       samples,
       customer: identityOf(giver),
       customerLabel: giver.getPresentation(),
       seconds,
+      readBy: staff,
     };
 
     if (bench) {
@@ -150,6 +186,60 @@ export default class AssayController extends CommandController<AssayModel> {
       .send();
   }
 
+  /**
+   * Take the fee, or refuse BEFORE the samples are handed over.
+   *
+   * ⚠ Before, deliberately. A customer who cannot pay must keep their
+   * samples — losing them to a bench that then would not read them is
+   * the kind of quiet theft a build should not ship.
+   */
+  private async charge(
+    context: CommandContext,
+    giver: Stuff,
+    fee: number,
+    staff: Stuff | null,
+  ): Promise<boolean> {
+    if (fee <= 0) return true;
+    const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
+    const venue = room?.getTemplatePath() ?? '';
+    const business = await EmploymentApi.ensureOperatorAt(venue);
+    if (!business) return true;
+    let account: string;
+    try {
+      account = await EmploymentApi.operatingAccountOf(business);
+    } catch {
+      return true;
+    }
+    try {
+      await BankingApi.settle(
+        {
+          amount: Money.of(fee, BankingApi.compactCurrency()),
+          reason: 'assay',
+          presented: true,
+          payeeAccountId: account,
+          category: 'sales',
+        },
+        { kind: 'credential' },
+      );
+    } catch {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          staff
+            ? Mml.compose`${Mml.actor(staff)} names a price of ${String(fee)} and you cannot meet it. Your samples stay in your hands.`
+            : Mml.compose`The price chalked by the bench is ${String(fee)}, and you cannot meet it. Your samples stay in your hands.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'cannot-pay',
+        detail: String(fee),
+      });
+      return false;
+    }
+    return true;
+  }
+
   /** The one reachable thing that can run an assay, named or defaulted. */
   private scaleFrom(named: Stuff | null): (Stuff & Tooled) | null {
     if (!named || !MixinApi.isTool(named)) return null;
@@ -157,6 +247,27 @@ export default class AssayController extends CommandController<AssayModel> {
       ? (named as Stuff & Tooled)
       : null;
   }
+}
+
+/**
+ * ⭐ Whoever is on shift at this bench — a body in the room, not the
+ * customer, holding an active employment. `null` when the shed is
+ * empty, which is the unstaffed rung: you run it yourself, free, at the
+ * bench's own band.
+ */
+function staffedBy(room: Stuff & Container, customer: Stuff): Stuff | null {
+  for (const body of room.getContents()) {
+    if (body.stuffId === customer.stuffId) continue;
+    if (!MixinApi.isEmployed(body)) continue;
+    if (!body.isOnShift()) continue;
+    return body;
+  }
+  return null;
+}
+
+/** Is the customer one of the house's own, standing their own shift? */
+function onShiftHere(giver: Stuff): boolean {
+  return MixinApi.isEmployed(giver) && giver.isOnShift();
 }
 
 /** A field kit is slower than a bench, and that is the whole trade-off. */
@@ -198,6 +309,7 @@ async function finishAssay(
     customer: string;
     customerLabel: string;
     seconds: number;
+    readBy?: Stuff | null;
   },
   room: Stuff & Container,
   scale: Stuff & Tooled,
@@ -222,7 +334,9 @@ async function finishAssay(
         reading: said.prose,
         value: said.value,
         unit: said.unit,
-        band: benchBand(scale),
+        // ⭐ The reader's band when somebody ran it, else the bench's.
+        // What you buy from an assayer IS their band.
+        band: await readerBand(batch.readBy ?? null, scale),
         takenBy: batch.customer,
         takenByLabel: batch.customerLabel,
         takenWith: scale.getTemplatePath() ?? '',
@@ -281,6 +395,25 @@ async function runBench(
  * customer's competence. That is the point of paying: a bench reads as
  * well as the bench is, and you do not have to be anybody.
  */
+/**
+ * ⭐⭐ Who the paper credits, and it is the honest answer to *how well
+ * was this read*: the assayer's own competence when one ran it, and the
+ * instrument's ceiling when nobody did.
+ */
+async function readerBand(
+  reader: Stuff | null,
+  scale: Stuff & Tooled,
+): Promise<CompetenceBandName> {
+  const ceiling = benchBand(scale);
+  if (!reader || !MixinApi.isAdvancing(reader)) return ceiling;
+  const theirs = await reader.competenceBandFor(GEOLOGY);
+  // The minimum, as everywhere on this ladder: a fine bench does not
+  // make a poor assayer good, and a poor bench caps a good one.
+  return CompetenceBand.rank(theirs) <= CompetenceBand.rank(ceiling)
+    ? theirs
+    : ceiling;
+}
+
 function benchBand(scale: Stuff & Tooled): CompetenceBandName {
   if (!MixinApi.isGraded(scale)) return 'proficient';
   const grade = scale.getGradeBand();

@@ -801,6 +801,9 @@ importers:
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling
+      '@saxonberg/content-trade-mining':
+        specifier: workspace:*
+        version: link:../trade-mining
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping

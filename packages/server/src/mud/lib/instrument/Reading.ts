@@ -940,8 +940,21 @@ export default abstract class Reading extends ReadingBase {
       : Mml.compose`You cannot tell that by eye. ${this.getInstrumentNoun()} would read it.`;
   }
 
-  /** Overridable — *"nothing measures that; you work it out."* */
+  /**
+   * Overridable — *"nothing measures that; you work it out."*
+   *
+   * ⚠⚠ **A channel with no dial but a BENCH must name the bench**, and
+   * the first cut did not: `measure grade` at a face answered *"you work
+   * it out — try `analyze grade`"*, which is true and useless, because
+   * the thing that actually reads a grade is a bench you carry a sample
+   * to. Found by driving. The rung check runs before the hook, so a
+   * per-channel override of `measure()` was dead code and this is where
+   * the sentence belongs.
+   */
   protected noInstrumentedRungLine(): Mml {
+    if (this.bench !== '') {
+      return Mml.compose`Nothing you can carry reads that off a dial. Take a sample to a bench — \`sample\`, then \`assay\`.`;
+    }
     return Mml.compose`Nothing reads that off a dial — you work it out. Try \`analyze ${Mml.fromMarkup(this.channel)}\`.`;
   }
 

@@ -171,3 +171,81 @@ describe('ReadingRecord — the paper', () => {
     expect(paper.getLongDescription()).toMatch(/6 hours in the carrying/);
   });
 });
+
+/**
+ * ⭐⭐⭐ **The aggregate is counted by GROUPING THE PROVENANCE STRINGS.**
+ *
+ * This is the single most consequential line in the sample design, and
+ * it is one sentence: a reader that resolved `sampledAt` to a live Stuff
+ * would silently drop worked-out faces, collapsed galleries and
+ * unpersisted rooms out of a prospector's own survey — the very places
+ * they have done the most work.
+ */
+describe('GroundReading — what the assays add up to', () => {
+  afterEach(() => StuffApi.clearAll());
+
+  function paper(at: string, value: number): ReadingRecord {
+    const r = makeStuff(() => new ReadingRecord());
+    r.inscribe({
+      channel: 'grade',
+      subjectLabel: 'ore',
+      reading: `${value} %`,
+      value,
+      unit: '%',
+      band: 'proficient',
+      takenBy: 'p',
+      takenByLabel: 'p',
+      takenWith: '',
+      takenWithGrade: '',
+      takenOn: 0,
+      sampledAt: at,
+      sampledBy: 'p',
+      sampledOn: 0,
+      tell: null,
+    });
+    return r;
+  }
+
+  it('⭐⭐ a face that no longer exists still counts', () => {
+    // No room is ever stood up for these paths. That is the test.
+    const papers = [
+      paper('/test/mine/north-face', 22),
+      paper('/test/mine/collapsed-gallery', 9),
+      paper('/test/mine/south-face', 11),
+    ];
+    const faces = new Set(papers.map((p) => p.getSampledAt()));
+    expect(faces.size).toBe(3);
+    expect([...faces]).toContain('/test/mine/collapsed-gallery');
+  });
+
+  it('⭐ several papers from ONE face are one face, not three', () => {
+    const papers = [
+      paper('/test/mine/north-face', 20),
+      paper('/test/mine/north-face', 24),
+      paper('/test/mine/north-face', 22),
+    ];
+    expect(new Set(papers.map((p) => p.getSampledAt())).size).toBe(1);
+  });
+
+  it('a paper with no figure carries none, and cannot be averaged in', () => {
+    const r = makeStuff(() => new ReadingRecord());
+    r.inscribe({
+      channel: 'grade',
+      subjectLabel: 'ore',
+      reading: 'nothing this bench can read',
+      value: null,
+      unit: '',
+      band: 'competent',
+      takenBy: 'p',
+      takenByLabel: 'p',
+      takenWith: '',
+      takenWithGrade: '',
+      takenOn: 0,
+      sampledAt: '/test/mine/north-face',
+      sampledBy: 'p',
+      sampledOn: 0,
+      tell: null,
+    });
+    expect(r.getValue()).toBeNull();
+  });
+});

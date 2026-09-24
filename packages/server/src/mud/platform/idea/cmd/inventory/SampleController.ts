@@ -55,7 +55,14 @@ export default class SampleController extends CommandController<SampleModel> {
     const named = model.subject?.stuff ?? null;
     const raw = (model.subject?.raw ?? '').trim();
 
-    if (named) {
+    // ⭐⭐ **A name that resolved to the ROOM is the GROUND, not a
+    // thing.** `sample the north face` binds the working itself — a
+    // mine room is keyworded `face` — and routing that to the
+    // named-thing path answered *"you cannot carry a working face
+    // anywhere"*, which is true of the room and not what anybody asked.
+    // Found by driving; the player meant the rock in front of them.
+    const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
+    if (named && named.stuffId !== room?.stuffId) {
       await this.fromThing(context, giver, named);
       return;
     }

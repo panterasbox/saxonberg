@@ -100,7 +100,20 @@ export default class GroundReading extends SurveyReading {
       });
     }
 
-    if (points.length === 0) {
+    // ⭐⭐ **What the ASSAYS add up to** — the fact no single paper
+    // contains. Bearings solve a plane; grades solve a GRADIENT, and
+    // knowing which way the body gets richer is the thing a prospector
+    // actually buys ground on.
+    const assays = await this.assaysHeldBy(giver);
+    const gradient = this.solveGradient(assays, solveFrom);
+    if (gradient) {
+      solved.push(gradient.solved);
+      if (gradient.note) note = gradient.note;
+    } else if (assays.length > 0) {
+      note = notEnoughYet(assays, solveFrom);
+    }
+
+    if (points.length === 0 && assays.length === 0) {
       note =
         'You have measured nothing here yet. Walk the outcrop and take a bearing where the ground is stained.';
     }
@@ -131,6 +144,75 @@ export default class GroundReading extends SurveyReading {
         outcome: 'success',
       });
     }
+  }
+
+  /**
+   * ⭐⭐ Every grade report this character is carrying.
+   *
+   * ⚠⚠ **Distinct faces are counted by GROUPING THE `sampledAt`
+   * STRINGS, never by resolving them.** A face that has been worked out,
+   * a gallery that collapsed, a room that was never persisted — all of
+   * them still count, because where a sample was taken is a fact about
+   * the past. A reader that resolved the path would silently drop the
+   * best-worked parts of a prospector's own survey out of it, which is
+   * the exact defect the provenance design exists to prevent.
+   */
+  private async assaysHeldBy(
+    giver: Stuff,
+  ): Promise<Array<{ at: string; value: number }>> {
+    const held = MixinApi.isContainer(giver)
+      ? (giver as unknown as { getContents(): Stuff[] }).getContents()
+      : [];
+    const out: Array<{ at: string; value: number }> = [];
+    for (const item of held) {
+      const paper = item as unknown as {
+        getChannel?(): string;
+        getValue?(): number | null;
+        getSampledAt?(): string;
+      };
+      if (typeof paper.getChannel !== 'function') continue;
+      if (paper.getChannel() !== 'grade') continue;
+      const value = paper.getValue?.() ?? null;
+      const at = paper.getSampledAt?.() ?? '';
+      if (value === null || at === '') continue;
+      out.push({ at, value });
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ The aggregate: which way the body gets richer, from reports taken
+   * at DISTINCT places. Below the band's threshold it says how many more
+   * and from where — an honest *not enough yet* rather than a guess.
+   */
+  private solveGradient(
+    assays: Array<{ at: string; value: number }>,
+    solveFrom: number,
+  ): { solved: { parameter: string; value: string; from: number }; note?: string } | null {
+    const byFace = new Map<string, number[]>();
+    for (const a of assays) {
+      const list = byFace.get(a.at) ?? [];
+      list.push(a.value);
+      byFace.set(a.at, list);
+    }
+    if (byFace.size < solveFrom) return null;
+    const means = [...byFace.entries()].map(([at, values]) => ({
+      at,
+      mean: values.reduce((t, v) => t + v, 0) / values.length,
+    }));
+    const best = means.reduce((a, b) => (b.mean > a.mean ? b : a));
+    const worst = means.reduce((a, b) => (b.mean < a.mean ? b : a));
+    const spread = best.mean - worst.mean;
+    return {
+      solved: {
+        parameter: 'grade',
+        value:
+          spread < 1
+            ? `even across ${byFace.size} faces, near ${best.mean.toFixed(1)} %`
+            : `richest toward ${leafOf(best.at)} (${best.mean.toFixed(1)} % against ${worst.mean.toFixed(1)} %)`,
+        from: byFace.size,
+      },
+    };
   }
 
   /**
@@ -178,6 +260,27 @@ function renderText(frame: SurveyFrame): string {
   if (frame.ground) lines.push(`  underfoot: ${frame.ground}`);
   if (frame.note) lines.push(`  ${frame.note}`);
   return lines.join('\n');
+}
+
+/** How many more, and from where — the honest *not enough yet*. */
+function notEnoughYet(
+  assays: Array<{ at: string; value: number }>,
+  solveFrom: number,
+): string {
+  const faces = new Set(assays.map((a) => a.at)).size;
+  if (!Number.isFinite(solveFrom)) {
+    return `You are carrying ${assays.length} assay${assays.length === 1 ? '' : 's'}, and they are ${assays.length === 1 ? 'a figure' : 'figures'} rather than a picture. A practised eye would make something of them.`;
+  }
+  const want = solveFrom - faces;
+  return `${faces} face${faces === 1 ? '' : 's'} assayed. ${want} more from ${want === 1 ? 'a different face' : 'different faces'} and the body's shape comes out.`;
+}
+
+/**
+ * ⚠⚠ The last segment of a provenance path, humanised — and the path is
+ * NEVER resolved. A worked-out face still names itself.
+ */
+function leafOf(path: string): string {
+  return (path.split('/').filter(Boolean).pop() ?? path).replace(/[-_]/g, ' ');
 }
 
 /** Three-figure bearing, the way a compass is actually read. */

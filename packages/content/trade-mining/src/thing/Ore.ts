@@ -37,6 +37,7 @@ import { SampledMixin } from '@saxonberg/server/mud/lib/instrument/Sampled';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 // `Thing` already carries Tangible (the material) and Chattel (the
@@ -49,6 +50,29 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 const OreBase = SampledMixin(StackableMixin(Thing));
 
 export default class Ore extends OreBase {
+  /**
+   * ⭐⭐ **A lump of ore in your hands lets you TYPE `assay`.**
+   *
+   * Not so it works there — it will not; there is no furnace in a
+   * gallery — but so that the refusal can NAME the bench. Without this
+   * the field answer is *"I don't understand 'assay'"*, which teaches a
+   * prospector nothing at all, and the whole refusal doctrine of this
+   * build is that a missing route has to be sayable.
+   *
+   * ⚠ Found by driving H19 exactly as the plan predicted it would be.
+   */
+  static commandContributions: CommandContributions = {
+    // ⚠⚠ `environment`, not `inventory`. The `inventory` bucket grants
+    // INWARD — a container to the things it swallowed — and what is
+    // wanted is the outward push to whoever is holding the lump. The ten
+    // shipped platform instruments used this pair under a doc comment
+    // that said "inventory", which is how the plan inherited the
+    // mistake. Found by driving H19.
+    self: [],
+    environment: ['trade/mining/cmd/mining/assay.yaml'],
+    peers: ['trade/mining/cmd/mining/assay.yaml'],
+  };
+
   static fieldMeta: FieldMeta = {
     // ⭐ Level-1 spoiler: the grade is what an assay EARNS. A wiki page
     // should not hand out the number the scale is for.

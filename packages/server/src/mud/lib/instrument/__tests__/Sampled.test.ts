@@ -113,4 +113,27 @@ describe('SampledMixin', () => {
     expect(() => lot.stampSampling(FACE, TAKER, 1)).toThrow(/denied/i);
     expect(lot.isSample()).toBe(false);
   });
+
+  it('⭐⭐ SALTING: re-sampling somewhere else re-stamps, and the record is TRUE', () => {
+    // Carry a rich lump to a barren claim, drop it, sample it there.
+    // The stamp says the barren face — honestly, because that IS where
+    // this sample was taken. ⚠ The fraud is in what you handed over,
+    // never in a forged record, and that is the whole design: the paper
+    // cannot be made to lie, so a person has to.
+    const lot = stamped(makeStuff(() => new Lot()), FACE);
+    lot.stampCopy(OTHER, TAKER, 2000);
+    expect(lot.getSampling()).toEqual({ at: OTHER, by: TAKER, on: 2000 });
+  });
+
+  it('⚠ and nothing about the stamp is AUTHORABLE — a row cannot write one', () => {
+    const meta = (
+      Lot as unknown as {
+        fieldMeta: Record<string, { authorable?: boolean; persistent?: boolean }>;
+      }
+    ).fieldMeta;
+    for (const field of ['sampledAt', 'sampledBy', 'sampledOn']) {
+      expect(meta[field]?.authorable, `${field} must not be authorable`).toBeUndefined();
+      expect(meta[field]?.persistent, `${field} must persist`).toBe(true);
+    }
+  });
 });
