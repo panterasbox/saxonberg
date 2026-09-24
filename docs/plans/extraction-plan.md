@@ -2564,3 +2564,31 @@ blocks this MR, or lands as the first follow-up.
   not a regression. Worth narrowing the gate one day; not here.
 - The character is **clothed** at spawn (the naked-cast fix is in) but still
   reads *"You're shivering."* at an open quarry — the known ~10x dial issue.
+
+### Post-merge re-run (2026-09-24, after `origin/master` came in)
+
+⭐ `origin/master` merged into the branch at `f7f1354f4` — build-4's
+clinical-medicine build, **159 files / 6,553 insertions**, no conflicts. Because
+that moved a great deal of ground underneath the build's exit criterion, the
+drive was re-run on a reset DB rather than citing the pre-merge number:
+
+**`extraction.dirty.wire.test.ts` — 20/20 green, exit 0.**
+
+⚠ The two merge checks worth recording, because a clean `git merge` is not
+semantic correctness:
+
+- **The surfaceable-fields snapshot.** Both builds regenerated it, so a clean
+  textual merge could easily have produced a file that no longer matches what
+  the code emits. Git interleaved the two field sets (they fall in different
+  alphabetical regions) and the result **matches reality** — 5/5, no
+  regeneration needed.
+- **A stale-identifier sweep for W8.** Master's medicine build touches
+  `Freshness`, the immediate neighbour of the file W8 renamed, which is the
+  likeliest way to quietly resurrect `CuredMixin`/`CureState`/`isCured`. None
+  survived anywhere in the merged tree, and the mixin registry kept both sides'
+  entries (`WaterActive` + `Improvable` beside `Prescription` + `Steepable`).
+
+*Gates:* server tsc clean · five pack tscs clean (including the new
+`trade-medicine`) · `lint:family` **all 52 gates pass** · `test:near` 20 files /
+**216 tests** · kernel material+craft+fire+vitals+calendar 58 files / **495
+tests** · quarrying **70** · cooking **46** · milling **20** · ranching **62**.
