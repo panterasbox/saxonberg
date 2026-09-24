@@ -25,6 +25,18 @@
 class: /platform/location/Crossing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
+  # street, not objects on it. NOTHING IS MINTED: nobody binds a street
+  # lamp, and one identical fuelled object per street would be forty-one
+  # fuel reserves reconciling to produce the same number. Whether the
+  # lamps are burning right now is DERIVED — the service is funded, it is
+  # after dusk, therefore they burn.
+  # The avenue keeps its crossing lit: it is the first thing anybody arriving sees.
+  publicLighting:
+    flux: 400
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 1
   shortDescription: University Avenue
   keywords: [avenue, university]
   register: proper
@@ -59,6 +71,10 @@ data:
       destination: /world/terminus/university-avenue/location/campus-gate
       door: /world/terminus/university-avenue/thing/campus-gate-door
   details:
+    lamps:
+      keywords: [lamps, lamp, standards, lighting]
+      description: |
+        Fluted iron standards at the corners, each with a glass head on a cross-bar and a lamplighter's notch worn into the post at shoulder height.
     tower:
       keywords: [tower, clock, clocktower, time]
       # Static base; /platform/location/Crossing.getDetail appends the world clock's LIVE

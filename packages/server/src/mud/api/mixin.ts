@@ -110,6 +110,7 @@ import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
 import type { Furnace } from '../lib/fire/Furnace';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
+import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -1438,6 +1439,15 @@ export class MixinApi {
    */
   public static isSpaceHeating(obj: Stuff): obj is Stuff & SpaceHeating {
     return this.hasMixin(obj, Mixins.SpaceHeating);
+  }
+
+  /**
+   * ⭐ "Does the town light this street?" — a property of the street,
+   * never an object on it. The light walk and the extent's nightly
+   * settle both narrow with this.
+   */
+  public static isPublicLighting(obj: Stuff): obj is Stuff & PublicLighting {
+    return this.hasMixin(obj, Mixins.PublicLighting);
   }
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {

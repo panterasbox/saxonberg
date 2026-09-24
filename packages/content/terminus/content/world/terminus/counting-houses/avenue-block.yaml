@@ -16,6 +16,18 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
+  # street, not objects on it. NOTHING IS MINTED: nobody binds a street
+  # lamp, and one identical fuelled object per street would be forty-one
+  # fuel reserves reconciling to produce the same number. Whether the
+  # lamps are burning right now is DERIVED — the service is funded, it is
+  # after dusk, therefore they burn.
+  # The row pays for its own light, and pays first — clerks keep late hours.
+  publicLighting:
+    flux: 400
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 1
   shortDescription: Counting-House Row, University Avenue
   keywords: [avenue, counting-house, row, university]
   register: proper
@@ -62,6 +74,10 @@ data:
     mayfield:
       destination: /world/terminus/mayfield-row/street
   details:
+    lamps:
+      keywords: [lamps, lamp, standards, lighting]
+      description: |
+        Fluted iron standards at the corners, each with a glass head on a cross-bar and a lamplighter's notch worn into the post at shoulder height.
     hollis:
       keywords: [hollis, jingle, free]
       description: |

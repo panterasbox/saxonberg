@@ -319,6 +319,24 @@ function walkFluxAt(
     }
   }
 
+  // ⭐⭐ (a′) The TOWN's lamps — a property of the street, not an object
+  // on it. Nothing is minted: a street declares that the service runs
+  // here, and whether it is burning right now is derived from the hour
+  // and from whether the extent paid for this street tonight. The
+  // source ref is the STREET, so `analyze light` names the place rather
+  // than a lamp that does not exist.
+  if (MixinApi.isPublicLighting(loc)) {
+    const civic = loc.publicLightingFlux();
+    if (civic > 0) {
+      addContribution(acc, civic, {
+        stuffId: id,
+        flux: civic,
+        colorTemperature:
+          loc.getPublicLighting()?.colorTemperature ?? null,
+      });
+    }
+  }
+
   // (b) Contents-side emitters.
   for (const item of loc.getContents()) {
     if (!MixinApi.isLightSource(item)) continue;

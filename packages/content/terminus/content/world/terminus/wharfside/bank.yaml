@@ -6,6 +6,18 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
+  # street, not objects on it. NOTHING IS MINTED: nobody binds a street
+  # lamp, and one identical fuelled object per street would be forty-one
+  # fuel reserves reconciling to produce the same number. Whether the
+  # lamps are burning right now is DERIVED — the service is funded, it is
+  # after dusk, therefore they burn.
+  # The city lights the bank — a wharf at night without it is a drowning.
+  publicLighting:
+    flux: 300
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 1
   shortDescription: bank at the confluence
   keywords: [bank, confluence]
   register: definite
@@ -84,6 +96,10 @@ data:
   cast:
     - /world/terminus/wharfside/agent/fisher
   details:
+    lamps:
+      keywords: [lamps, lamp, standards, lighting]
+      description: |
+        Squat iron bollards along the edge of the quay, each capped with a thick glass lens — low enough not to blind a bargeman, bright enough to show him where the water starts.
     river:
       keywords: [river, kestrel, water, confluence, delight]
       description: |

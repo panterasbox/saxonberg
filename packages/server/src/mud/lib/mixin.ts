@@ -507,6 +507,10 @@ export const Mixins = {
   // rule is kept by composition rather than by a guard asking what
   // something is. The envelope reads it off a room's contents.
   SpaceHeating: 'SpaceHeatingMixin',
+  // ⭐⭐ PublicLighting — "the town lights this street". A PROPERTY of the
+  // street and prose beside it; nothing is minted. Nobody binds a street
+  // lamp, and every act that matters happens at street granularity.
+  PublicLighting: 'PublicLightingMixin',
   // Magic — the anatomical casting faculty (mana reserve + serenity
   // recovery + composure read + overchannel strain). Composed on
   // Character, gated: active only when the Species intrinsically confers
@@ -671,6 +675,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   CombustibleMixin: "{} won't burn",
   FurnaceMixin: "{} isn't a furnace",
   SpaceHeatingMixin: "{} doesn't warm a room",
+  PublicLightingMixin: "{} isn't a street the town lights",
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",

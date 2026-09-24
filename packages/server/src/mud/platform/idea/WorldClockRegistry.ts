@@ -56,6 +56,10 @@ import type {
 import { WorldClockApi } from '../../api/worldclock';
 import { WeatherApi } from '../../api/weather';
 import { FireApi } from '../../api/fire';
+import { AddressApi } from '../../api/address';
+import { CelestialApi } from '../../api/celestial';
+import { CAMPUS_LATITUDE } from './api/CelestialLogic';
+import { EARTH_LIKE } from '../../lib/time/CelestialProfile';
 import { WEATHER_DEFAULTS } from '../../lib/weather/WeatherType';
 
 /**
@@ -522,6 +526,37 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       startAt: Quantity.of(this.getNow().rawValue() + fireInterval, 's'),
       tag: 'fire:tick',
     });
+
+    // ⭐⭐ Civic street lighting (the envelope build). At each sunset the
+    // extents settle: each works out how many of its streets the
+    // treasury can cover, posts ONE appropriation for the fuel, and
+    // records which streets its money is lighting tonight. Nothing is
+    // minted and no lamp exists — the street is a property and the
+    // record is the extent's.
+    //
+    // ⚠ Armed by DAY rather than by a recomputed sunset, and that is
+    // the honest simplification: sunset drifts through the year, but a
+    // settle is idempotent per night (`_lightingNight` guards it), so
+    // firing at a fixed daily cadence from the first sunset lands
+    // inside the right night everywhere. The BOOT settle below is what
+    // makes a restart at midnight not un-light the town.
+    const nextSunset =
+      CelestialApi.nextSolarEvent(
+        EARTH_LIKE,
+        CAMPUS_LATITUDE,
+        this.getNow().rawValue(),
+        'sunset',
+      ) ?? this.getNow().rawValue();
+    this.every(
+      Quantity.of(EARTH_LIKE.dayLengthSeconds, 's'),
+      () => void AddressApi.settleStreetLighting(this.getNow().rawValue()),
+      { startAt: Quantity.of(nextSunset, 's'), tag: 'civic:lighting' },
+    );
+    // ⭐ And settle NOW if it is already dark: a reboot in the evening
+    // must not leave the town unlit until tomorrow's sunset.
+    if (CelestialApi.skyFactorNow() < CelestialApi.lampDuskFactor()) {
+      void AddressApi.settleStreetLighting(this.getNow().rawValue());
+    }
   }
 
   private parseDelayToSeconds(d: Quantity<'s'> | string): number {

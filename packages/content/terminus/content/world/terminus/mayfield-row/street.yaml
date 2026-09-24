@@ -7,6 +7,18 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
+  # street, not objects on it. NOTHING IS MINTED: nobody binds a street
+  # lamp, and one identical fuelled object per street would be forty-one
+  # fuel reserves reconciling to produce the same number. Whether the
+  # lamps are burning right now is DERIVED — the service is funded, it is
+  # after dusk, therefore they burn.
+  # ⚠⚠ THE LAMPS NOBODY PAYS FOR. Mayfield Row addresses `terminus/mayfield-row` — OUTSIDE the city — so its covering locality is the realm, which funds no lighting. The standards are here and they stand cold every night. `look at the lamps` says exactly that, which is a different sentence from a street that never had any.
+  publicLighting:
+    flux: 400
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 1
   shortDescription: Mayfield Row
   keywords: [row, mayfield]
   register: proper
@@ -46,6 +58,10 @@ data:
     tailor:
       destination: /world/terminus/mayfield-row/tailor/location/shop
   details:
+    lamps:
+      keywords: [lamps, lamp, standards, lighting]
+      description: |
+        Fluted iron standards at the corners, each with a glass head on a cross-bar and a lamplighter's notch worn into the post at shoulder height.
     plate:
       keywords: [plate, brass, sign]
       description: |

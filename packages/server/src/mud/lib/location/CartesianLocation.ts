@@ -25,6 +25,7 @@ import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
+import { PublicLightingMixin } from '../perception/PublicLighting';
 import { PopulatesMixin } from '../stuff/Populates';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
@@ -55,11 +56,20 @@ import type { FieldMeta } from '../mixin';
 // default `postRegister` is a non-chaining no-op — a second composition
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
+// ⭐⭐ `PublicLightingMixin` (the envelope build): ANY cartesian cell may
+// be lit by a funded public service. Inert unless a row declares it, and
+// composed OVER `Detailed` because the lamps are prose — a detail you can
+// `look at` that says whether they are burning. There is deliberately no
+// lamp OBJECT anywhere in the world: nobody binds a street lamp, and
+// minting one identical fuelled thing per street would be forty-one fuel
+// reserves reconciling to produce the same number.
 const CartesianLocationBase =
-  PopulatesMixin(
-    DetailedMixin(
-      PerceptibleMixin(
-        ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
+  PublicLightingMixin(
+    PopulatesMixin(
+      DetailedMixin(
+        PerceptibleMixin(
+          ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
+        )
       )
     )
   );
