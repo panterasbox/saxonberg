@@ -273,7 +273,10 @@ extractive economics, which nothing else teaches.
 ### Two acts, not one, and each names its tool
 
 **`dig`** takes earth — clay, turf, and overburden — and wants the digging
-capability a spade already offers. **`quarry`** wins rock off a face and asks for
+capability a spade already offers. ⚠ **Amended 2026-09-24 (plan § A1): there is
+ONE verb, `dig`, and the TOOL is the discriminator** — the material-class split
+below taught the wrong constraint, and splitting a won block became **`split`**
+(plan § A4). The original text stands as the reasoning. **`quarry`** wins rock off a face and asks for
 stone-winning, which the pick already claims and nothing has ever checked. Two acts because
 rock and earth genuinely take different tools, and a single act would hide
 that. A second pass of `quarry` on a won block splits a piece off it at a time,
@@ -421,24 +424,24 @@ Run against the running game before the MR opens.
 1. Log in, go to Rejection, and walk to the new pit above the old workings.
 2. `look` — the read names the rock, says that waste lies over it, and gives a
    vague quality word. A character with no `quarrying` gets the vague version.
-3. `quarry` with empty hands → refused, in words that name what you need to
-   win stone with.
-4. Take up a pick. `quarry` again → refused **because of the overburden**, and
+3. `dig` the stone face with empty hands → refused, in words that name what
+   you need to win stone with.
+4. Take up a pick. `dig` again → refused **because of the overburden**, and
    the refusal says so.
 5. `dig` with a spade → a load of overburden comes off and goes to the spoil.
    Repeat until the read says the face is open.
-6. `quarry` the stone face → a block on the floor. `get` it → refused because
+6. `dig` the stone face → a block on the floor. `get` it → refused because
    of what it weighs.
-7. `quarry` the block → one piece splits off, carryable. Take it.
-8. `quarry` the limestone face → limestone. Carry it to the smelter and `smelt`
+7. `split` the block → one piece splits off, carryable. Take it.
+8. `dig` the limestone face → limestone. Carry it to the smelter and `smelt`
    with ore and charcoal → compare against a smelt without it; the slag and the
    outcome differ.
 9. Light the limekiln at the pit, charge it with limestone, fire it → quicklime.
 10. `dig` the clay face → clay. Fire it in the kiln → a ceramic pot you can
     hold, plant in, and look at.
-11. `quarry` the coal face → coal. Burn it in a hearth → it works. Try to smelt
+11. `dig` the coal face → coal. Burn it in a hearth → it works. Try to smelt
     iron with it → the iron is worse, and the read says why.
-12. `quarry` the rock-salt face → salt. Carry it to a kitchen and `cure` a cut
+12. `dig` the rock-salt face → salt. Carry it to a kitchen and `cure` a cut
     of meat with it — the act that until now ran on a sack from nowhere.
 13. Go to the estuary. Fill a pan from the tide, leave it in the sun.
 14. Come back after a dry windy day → the pan has concentrated. Come back after
@@ -452,8 +455,12 @@ Run against the running game before the MR opens.
     the refusal says why.
 19. `ditch` the turbary. Over days the ground subsides and the peat reads
     thinner. The fuel is going and the ground is improving.
-20. Work the same stone face repeatedly → the read says it is thinning. Cut the
-    turbary out → it stays cut; nothing brings it back.
+20. ⚠ **Amended 2026-09-24 (plan § A7).** A face is ~320 units and that number
+    is *correct* (a real quarryman cut a few blocks a day), so thinning is not
+    observable by grinding and the world must not lie about scale. Instead:
+    **walk into the played-out working authored beside the fresh one** → its
+    read says it is worked out. Then cut the turbary out → it stays cut;
+    nothing brings it back.
 21. `competence` → `quarrying` has risen, and step 2's read is now precise.
 22. `stake` the pit's ground at the claims office → the record says who holds
     it.
@@ -470,7 +477,9 @@ Observable from outside the code, by a person playing.
    what is there, that waste lies over it, and roughly how good it is — and the
    words get more precise as their quarrying competence rises.
 2. Attempting to work a face with the wrong tool, or no tool, is refused in
-   words that name what is needed.
+   words that name what is needed. ⭐ **And the refusal names the TOOL, never
+   another verb** (plan § A1): one `dig` serves earth and rock, so *"you would
+   want a pick — that is rock"* is the whole lesson.
 3. Overburden must be moved before the good comes out, the moved waste ends up
    somewhere a person can see, and the face's read changes when it is open.
 4. A won block cannot be picked up, and the refusal is about its weight.
@@ -491,7 +500,9 @@ Observable from outside the code, by a person playing.
 12. Draining a turbary makes the peat thinner over time and the ground better;
     a person upstream can do this to ground they do not hold.
 13. A worked-out face says it is worked out; a cut-over turbary stays cut and
-    does not recover.
+    does not recover. ⚠ **The first half is satisfied by an AUTHORED
+    played-out working, not by exhausting a fresh one** (plan § A7) — which is
+    also the proof that a second working is rows (AC 17).
 14. ⚠ **In an open working there is no face above you** — the ground stops at
     the surface, and nothing can be won out of the sky.
 15. `quarrying` appears on a transcript after working stone, and nothing but

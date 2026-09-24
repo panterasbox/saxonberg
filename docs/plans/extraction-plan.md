@@ -79,6 +79,252 @@ opened this cycle.
 >
 > Nothing else in this document is stale. The 21 decisions, the other seven
 > waves, the acceptance map and the risks all stand.
+>
+> ⚠⚠ **That last sentence is no longer true — see § Lens-pass amendments
+> immediately below**, which supersedes nine decisions. Read it before W1.
+
+---
+
+## ⭐⭐ Lens-pass amendments (2026-09-24)
+
+**This section is authoritative over the decision bodies it names.** Each
+amended decision keeps its original text (so the reasoning survives) with
+an `⚠ AMENDED` pointer back here.
+
+Run at the user's instruction after a pre-build read of the plan found
+four wrong literals and a gate failure. The design items were then put
+through [design-lenses.md](../design-lenses.md); the naming and verb
+questions were settled in conversation against the four disambiguation
+tools on the table (unify the controller · subcommands · affordance
+scoping · rename-or-broaden). ⭐ **Every fork below was decided by lenses
+1 and 2, and the deciding limb is named** — the standing rule.
+
+### A1 · One verb: `dig`, not `dig` + `quarry` (supersedes part of D9, D10)
+
+**Decided by lens 1.** The plan split the two verbs on the **material
+class** (earth → `dig`, rock → `quarry`). The real constraint is the
+**tool**, which both views already declare, so the split taught the wrong
+thing. Under one verb the refusals state the actual constraint:
+
+> *"You would want a pick. That is rock."* · *"A pick will not shift
+> drift — take a spade to it."*
+
+Lens 2 confirms: a chalk pit, a gravel pit and the saltern face then need
+**no new verb**. Zero migration cost — both verbs are new in this build,
+so nothing ships them.
+
+⭐ The template is `fell.yaml`, already shipped and already polymorphic
+over three target shapes that share no mixin (a bole, a planted standard,
+a bare species word that binds nothing). `dig`'s target stays
+`requires: any`, declared, gating nothing; the controller narrows.
+
+**`quarrying` is still earned** — the *working* decides the Discipline
+credit, never the verb.
+
+### A2 · `dig`'s mandate, and the trap that killed it last time
+
+⚠⚠ **`dig` shipped once already and was withdrawn in review** (the
+fishing build, MR !268) — *because the yield was hard-coded to a fishing
+worm*. ⚠⚠ **And the requirements doc DID carry this** — *"`dig` was designed and
+withdrawn during the fishing build … kept deliberately 'if the shape is
+wanted back'"* (§ What already exists). **The plan lost it between phase 1
+and phase 2**, keeping only the foraging consumer in § Deferred seams.
+That is the interesting failure here, and re-hard-coding the yield as "a
+band" would be the same mistake with a different constant.
+
+> ⭐ **The mandate, and it belongs in the view's `description`:** *turn
+> the ground over and see what comes up — the ground decides.*
+
+That admits worms, turf, bands, clay and a buried cache. It excludes a
+grave, a well, a posthole and a foundation: this tree consistently puts
+**excavation-for-a-purpose** under its own verb (`ditch` for drainage,
+`sink`/`drive` for workings), because there the product is *a hole that
+persists and does something*, not a thing that comes up.
+
+> ⭐⭐ **The guard against `dig` becoming a god-verb, stated as a test:**
+> *if a new digging case needs the CONTROLLER to branch on what kind of
+> digging it is, it is not `dig`.* That is exactly the test the withdrawn
+> version failed.
+
+⭐ What the withdrawn act settled, and this build must keep: the
+instrument affords the verb (`digging`); the ground is the argument;
+**what comes up is the ground's to say**. The soil ledger is already in
+the tree (`SOIL_ORGANIC_MATTER_RESERVE_KEY`, `organicMatterFraction()`);
+only `drawOrganicMatter` went away with the cut branch, so foraging adds
+**one method** — which is what a clean seam looks like.
+
+### A3 · `Diggable` is an interface only, and the resolution ladder is multi-host
+
+**A gate decides this, not a lens.** D9's `class Diggables { static of() }`
+cannot ship: `lint:lib-statics` sits at **exactly 337/337** and counts
+every public static on an exported `lib/` class. And the precedent it
+cites is gone — `class TravelNodes` in `lib/travel/TravelNode.ts` is an
+**empty husk** (private constructor, no members), because
+`TeleportController.ts:496` says the narrowing was *"inlined from
+`TravelNodes` when this file turned out to be its only caller."*
+
+So: `lib/ground/Diggable.ts` exports **the interface alone**, and
+`DigController` carries a module-private `asDiggable()` — the live
+pattern.
+
+⭐ **And the ladder must try more than one host**, because extraction's
+`Diggable` is answered by a **Location** (the working) while foraging's
+will be answered by a **`Soil` host**:
+
+> bound target (if it answers) → **the room** (if it answers) → **the
+> room's floor** (every Location has one since the ground build) →
+> refuse in words.
+
+Writing that ladder now is what makes the foraging drop-in free instead
+of a controller edit.
+
+### A4 · `split` is the block's verb (supersedes D10's block fork)
+
+**Decided by lens 2.** `dig block` is bad English and `quarry block` kept
+a whole verb alive to serve one target. `split` is unclaimed, reads, and
+— the load-bearing part — **names a shape that already has a second
+member**: `fell bole` does this job today under a verb meaning something
+else, as its own view admits (*"Fell a standard with an axe, or cross-cut
+a felled one"*). A `Stackable` is the third candidate.
+
+> **Mandate:** *divide an oversized or aggregated thing into usable
+> units.*
+
+Platform-owned (`platform/cmd/ground/split.yaml`), afforded by the
+`Block`. So the unification wave inherits **a named pattern with three
+members** instead of three ad-hoc overloads.
+
+### A5 · `fire` is the platform's, on the furnace, and it burns (supersedes D14's act)
+
+**Decided by lens 2, confirmed by lens 5.** D14 afforded `fire` from
+`OpenWorkingMixin` and accepted that *"a potter's shed affording `fire`
+is the ceramics build's own class"* — which is lens 2's named failure
+mode verbatim (*a feature whose second instance requires a kernel edit*).
+And the contradicting doctrine is **already written in the kernel**, at
+`lib/fire/Furnace.ts:100`:
+
+> *"The fire-appliance verbs are **afforded by the appliance** … a room
+> with a furnace affords lighting it, dousing it, working its bellows,
+> and bringing a workpiece to its fire."*
+
+`FurnaceMixin` already affords five platform verbs on that principle.
+Lens 5 agrees independently: firing a loaded chamber holds from Rome to
+New York, and a limekiln, a bread oven and a crucible furnace are one
+mechanism on different dials.
+
+So: **`platform/cmd/device/fire.yaml`, `verbs: [fire, burn]`, afforded by
+`FurnaceMixin`, and the charge decides what comes out.** The synonym is
+not decoration — *"fire the kiln"* ambiguously means *light it*, which
+`ignite` owns, and **a lime-burner burns lime**. `drive.yaml`'s
+`verbs: [drive, drift]` is the shipped two-word precedent.
+
+⭐ **The recipes do the work.** D14 shipped `burn-lime` and `fire-pot`
+*"for the ladder and `help`"* while a bespoke act did the real work;
+inverted, `fire` resolves the recipe whose input matches the charge —
+lens 2's own worked example (*recipes are the single most expressive
+thing for content authors*). D14's reason for avoiding recipes was that
+`make` is deed-gated and `order` needs a maker on shift: both true, both
+irrelevant, because `fire` is its own verb and neither gate is in its
+path. A mixed charge now refuses *"nothing here matches a firing"*
+rather than `one-charge-at-a-time`.
+
+`smelt` **stays its own verb** — its chemistry genuinely differs (grade ×
+metal fraction, not a recipe constant) and calling lime-burning
+"smelting" would be a lens-1 lie. Recorded for the unification wave.
+
+⭐⭐ **Consequence worth stating: `trade-quarrying` ships NO verbs.** It
+becomes a Discipline, a location class, a mixin and rows — the shape lens
+2 holds up as correct (`trade-hospitality` ships a venue pack with no
+`src/` at all), and the next open-air RGO is rows.
+
+### A6 · The drying rack earns a real term (supersedes part of D5, D7)
+
+**Decided by lens 1, shape picked by lens 2.** As planned, the rack was
+**arithmetically inert**: `ContainmentApi.placeOn` moves the item into
+*the surface's container* — the room — and then stamps `restingOn`, so a
+ham on the cookhouse rack and a ham dropped on the cookhouse floor had
+the same container and the same air. `dry` resolved a rack arg, played a
+line, and changed nothing.
+
+Lens 1 says what it should teach: drying is **surface-limited** — the air
+has to reach the water. A ham on a stone floor dries on top and goes off
+underneath; cheese sits on slatted shelves; **turf is built into an
+openwork lattice rather than a heap for exactly this reason.**
+
+So **exposure is a fraction and the support carries it.** The read is
+already there: `getRestingOn()` is `null` for a thing merely dropped in a
+room and non-null for a thing on a surface.
+
+- an authored field on the support, default **1.0** (a rack, a hook, a
+  slatted shelf);
+- lying on bare ground reads one dial, `cure.groundExposure` = **0.35**
+  — one face to the air, nothing underneath;
+- inside a non-Location container stays **0** (the enclosed case,
+  unchanged — the sparse-storage guarantee).
+
+Lens 2: one field plus one dial gives an author a drying rack, a meat
+hook, a cheese shelf, a turf stack, a wire line and a bad drying shed out
+of **rows**, where the alternative was a list of blessed drying
+furniture. Lens 6 throws in the quiet win — **the rack becomes a good
+worth buying**, where before it was decoration with no demand.
+
+### A7 · Depletion: the number stays, the lesson moves into a row (supersedes AC 13's first half)
+
+**Decided by lens 1.** The instinct was to shrink the pit so a face works
+out. `LIFT_M` 0.5 against `faceRunM` 20 and a 4 m band gives **320 units**
+— and that is *correct*: 160 m³ off a 4 × 20 × 2 m face, and a real
+quarryman cut a few blocks a day. Shrinking it so one session exhausts it
+is the world lying about scale, which is the exact failure lens 1 exists
+to catch. **The arithmetic stands.**
+
+Lens 2 supplies the lesson instead: **an author ships an exhausted
+working.** So the Rejection quarry zone authors a **second room** — a
+played-out working with `wonByBand` seeded at capacity — and AC 13's
+first half is observable by walking between two rooms with **zero
+grinding and zero new code**.
+
+⚠ Not `old-workings.yaml`: that room is a played-out *copper prospect*
+(mineral scrapes in the Ferrow's column, `scale: 0.55`), and a stone
+quarry standing in for it would not read. Its own header already calls it
+*"the depletion box, standing up as a place"* — the pattern is borrowed,
+the room is not.
+
+Lens 6's bonus: a stone quarry's binding constraint was never the stone,
+it is **labour and haulage**, which is what logistics wants to teach.
+
+### A8 · The mechanical corrections
+
+Not lens questions — a gate failure and four wrong literals. Fixed
+in place:
+
+| what | was | is |
+|---|---|---|
+| D6's host | `SkyExposedMixin` | **`AtmosphericMixin`** — `SkyExposedMixin` composes onto **`Biome`**, one shared singleton per biome row, so a cached locality path there is right for one place and wrong for every other open-air room in the realm. `AtmosphericMixin` is on `Location` and `Vessel`. Also **non-persistent**: nothing integrates a backlog off it, so Soil's persisted tri-state is unwarranted. |
+| D12 `organic/peat` | create it | ⚠ **already shipped by the ground build** — and with **no `fuel` tag and no combustion fields at all**, so W6's `Turf` would not light and D21's whole wet-turf arm would have nothing to read. **Edit the shipped row** to add the fuel column. |
+| D12 `mineral/clay` | create it | ⚠ **do not** — reuse `earth/clay` (shipped, tagged `earth`). The top banner already said so; D12's body still said to mint it. |
+| D18's parent extent | `'/world/rejection'` | **`/world/terminus/rejection`** (`parentParcel: /world/terminus`) — the plan's literal names a parcel that does not exist. |
+| `PackLogic.discover.test.ts` | → 50 | **→ 51** (it is already 50 today; the plan's figure was computed when 48 was current). |
+
+⭐ **Verified sound, so nobody re-opens them:** D14's *"`Forge` and `Kiln`
+are byte-identical"* holds (the code is identical; only the doc comments
+differ). D5's ~62 % preservation crossing is exact — `0.6 ÷ 0.97 = 0.619`
+off `FRESHNESS_DEFAULTS.AW_FLOOR` and `awDefault`. D13's *"latent
+photochemical defect"* is real: `reconcileCellarAir` fires for every
+mechanism (`Maturing.ts:536`) and a photochemical row exists
+(`trade-textiles/…/maturation/bleaching.yaml`), behind a room with an
+`air` reserve. `dig` / `quarry` / `fire` / `split` / `burn` are all
+genuinely unclaimed. And W3's dependency is real — the ground pack
+exports `STRATA_MIXIN` plus all five position reads.
+
+### A9 · Lens 6 on the drying blast radius — an argument FOR the accepted scope
+
+Free air-drying does not make salt-curing pointless, it makes it **a
+choice**: drying is free, slow and weather-dependent; salt costs money
+and works in a wet week; and because hurdles stack multiplicatively,
+doing both still beats either. The plan had a rule where the world now
+has a decision. ⚠ Two edges nobody has priced: **a furnace still cannot
+be refuelled** (the plan's own risk 7, wider now that a bread oven burns
+fuel too), and **retail stock left on a counter now changes state.**
 
 ---
 
@@ -552,7 +798,8 @@ road, a yard and a quarry"* is the argument for the kernel home, and the
 pit sump is recorded as the seam the mining slate's pump lands on.
 
 **D5 — The drying arm is two-way, gated on exposure, and the guarantee
-is restated rather than lost.** `reconcileCure()` returns without a
+is restated rather than lost.** ⚠ **AMENDED → § A6:** the exposure gate as written made the rack
+arithmetically inert; exposure is now a FRACTION carried by the support. `reconcileCure()` returns without a
 write when **nothing would change**: enclosed hosts at `moisture ≥ 1`
 (the ration in a pack, the cut in a chest, the sack in a pantry — the
 common case), and any host whose air is at equilibrium. *Exposed* means
@@ -573,7 +820,8 @@ damp cellar preserves nothing; a dry loft preserves slowly"*), and the
 ~62 % crossing is arithmetic off shipped numbers.
 
 **D6 — The shared rate is a value object; the world is read by the
-Api.** `lib/material/Evaporation.ts` — a **named value object** (the `Light`
+Api.** ⚠ **AMENDED → § A8:** the locality memo hosts on `AtmosphericMixin`,
+not `SkyExposedMixin` (which composes onto `Biome`), and is not persisted. `lib/material/Evaporation.ts` — a **named value object** (the `Light`
 category): `Evaporation { humidityPct, windMs, tempK }`, constructed with
 `new Evaporation(humidityPct, windMs, tempK)` and **carrying no statics at all**
 — `scripts/check-lib-statics.ts:48–94` counts *every* public static on an
@@ -595,7 +843,9 @@ shape verbatim** — and a sync `weatherLocality(): Locality | null`. Both
 consumers (the Cured arm, the evaporative profile) read through these two
 Api statics; neither computes a rate of its own.
 
-**D7 — `dry` is the hanging act; the instant recipe is retired.**
+**D7 — `dry` is the hanging act; the instant recipe is retired.** ⚠ **AMENDED
+→ § A6:** the rack now carries a real exposure term, so `dry` changes
+something.
 `DryController` no longer crafts. It places the target on the rack
 (`ContainmentApi.placeOn`), requires the target compose `CuredMixin`
 (`not-dryable` otherwise), narrates the **drying prospect in words** from
@@ -645,7 +895,10 @@ already reads *"this ground wants no …"*. No guard is needed to
 re-narrow the host set, which is the test.
 
 **D9 — `dig` is the platform's, afforded by the instrument, and the
-ground answers a shape.** View `platform/cmd/ground/dig.yaml` (`verbs:
+ground answers a shape.** ⚠⚠ **AMENDED → § A1, A2, A3:** `dig` absorbs `quarry`;
+`Diggables.of` cannot ship (`lint:lib-statics` is at 337/337 and
+`TravelNodes` is an empty husk); the ladder is multi-host; and ⚠ `dig`
+was WITHDRAWN in review once already — read A2 before writing it. View `platform/cmd/ground/dig.yaml` (`verbs:
 [dig]`; `target` object `requires: any`, polymorphic — a bare band word
 like `dig clay` binds nothing and lands as `raw`, the `fell.yaml` shape;
 `tool` `default: "me:i:[capability.digging]"`, `requires: [ToolMixin]`),
@@ -669,7 +922,9 @@ next consumer. The controller resolves the ground as the bound target if
 it answers the shape, else the room the actor stands in; verbs live on
 the object (`ground.dig(...)`), the controller narrates and credits.
 
-**D10 — `quarry` is the trade's act, on the mine's shape.** View
+**D10 — `quarry` is the trade's act, on the mine's shape.** ⚠⚠ **AMENDED → § A1, A4:**
+there is no `quarry` verb. Winning a face is `dig`; splitting a block is
+`split`. The refusal list survives; the controller is `DigController`'s. View
 `trade/quarrying/cmd/quarrying/quarry.yaml` (`verbs: [quarry]`; `target`
 object `requires: any` — a `Block` on the floor (split) or a bare band
 word (`quarry limestone`) that binds nothing; `tool` `default:
@@ -729,7 +984,9 @@ difficulty by hardness (the `hew` shape).
   pit floor — either way visible (AC 3). The read says *"thrown to the
   tip"* / *"heaped at the lip"*.
 
-**D12 — Materials go to the commons** (`base-library/content/stuff/idea/material/`):
+**D12 — Materials go to the commons** ⚠ **AMENDED → § A8:** `organic/peat` is
+already shipped (edit it for the fuel column) and `mineral/clay` must NOT
+be minted — reuse `earth/clay`. (`base-library/content/stuff/idea/material/`):
 `rock/limestone` (tags `[rock, sedimentary, carbonate, flux]`, hardness
 ~120), `mineral/coal` (`autoignitionTemperature` ~ 700 K,
 `heatOfCombustion` 24–30, tags above), `mineral/halite` (tags `[mineral,
@@ -771,7 +1028,9 @@ keyed on the material path, so the falling amount is not a fresh fill
 (273 K — ice).
 
 **D14 — ⭐⭐ A kiln IS an oven: the `Kiln` CLASS is deleted and a kiln
-becomes a ROW.** (User's question, 2026-09-23, and the code settles it.)
+becomes a ROW.** ⚠ **AMENDED → § A5:** the class collapse stands and is
+verified; the ACT moves to a platform `fire`/`burn` on `FurnaceMixin`,
+recipe-driven. (User's question, 2026-09-23, and the code settles it.)
 `platform/thing/Forge.ts` and `platform/thing/Kiln.ts` are **byte-identical**
 — the same imports and the same composition
 `FurnaceMixin(LightSourceMixin(ReservedMixin(ThermalMixin(Thing))))` — so
@@ -868,14 +1127,16 @@ banded on it (D3): the viewer's band decides whether the augmenter says
 of it, a spade's depth of drift on top, and the face is barely touched"*
 — the `Shore.readFor` shape.
 
-**D18 — The pit is claimed through the counter people already use.**
+**D18 — The pit is claimed through the counter people already use.** ⚠ **AMENDED
+→ § A8:** the parent extent is `/world/terminus/rejection`.
 `ClaimsRegister` gains an authorable field `surfaceWorkings:
 Array<{ path, keywords }>` (rejection authors `[{ path:
 /world/terminus/rejection/quarry/pit, keywords: [pit, quarry] }]`); `stake <word>`
 that matches a keyword takes a **second fork** in `StakeController`:
 `ParcelApi.ownerOf(path)` non-null → `already-claimed`; else
-`ParcelApi.subdivide(path, '/world/rejection', { kind: 'player',
-templatePath: giver.getIdentityPath() }, 0, 1, 'industrial')` and the
+`ParcelApi.subdivide(path, '/world/terminus/rejection', { kind: 'player',
+templatePath: giver.getIdentityPath() }, 0, 1, 'industrial')` (⚠ § A8 — the
+plan's original literal named a parcel that does not exist) and the
 record names the holder. Authored rooms have real paths and
 longest-prefix resolution answers directly (mining.md § Title) — no
 warren, no block. The three-number fork is untouched.
@@ -1076,6 +1337,14 @@ pointing at the new home (the rest is the sweep's).
 
 ### W1 — the open air dries what you leave in it (D5, D6, D7, D13, D21)
 
+⚠ **Amended by § A6 + A8.** Three changes: the locality memo hosts on
+`AtmosphericMixin` (NOT `SkyExposedMixin`, which composes onto `Biome`)
+and is not persisted; `CuredMixin`'s exposure is a **fraction** read off
+`getRestingOn()` — an authored field on the support (default 1.0) and a
+`cure.groundExposure` dial (0.35) for a thing lying on bare ground; and
+`DryController` therefore changes something, which it did not as planned.
+Add a sixth Cured pin: **the same cut on a rack and on the floor diverge.**
+
 *Goal:* drying is a rate that reads the air; the fourth maturation
 mechanism exists; wet fuel refuses the flame. First consumers: the
 cookhouse rack (AC 11) now; turves (W6) and pans (W5) later in this
@@ -1151,7 +1420,22 @@ the views moved, not duplicated); `farmstead.dirty.wire.test.ts` /
 `farming.dirty.wire.test.ts` unchanged (they drive `grub`/`ditch`/`lime`
 on a field, which still affords them).
 
-### W3 — the open working: the pit, `dig`, `quarry`, stone and earth (D2–D4, D9–D12 part, D16, D18, D19)
+### W3 — the open working: the pit, `dig`, `split`, stone and earth (D2–D4, D9–D12 part, D16, D18, D19)
+
+⚠⚠ **Amended by § A1–A4, A7, A8.** There is **no `quarry` verb**: winning
+a face is `dig` (platform, polymorphic, the `fell.yaml` shape) and
+splitting a block is `split` (platform, afforded by the `Block`). So
+`quarry.yaml` and `QuarryController` are not written; `DigController`
+carries the refusal list and a module-private `asDiggable()`, and
+`lib/ground/Diggable.ts` exports **the interface alone** (`Diggables.of`
+fails `lint:lib-statics` at 337/337). ⚠ **Read § A2 first — `dig` was
+withdrawn in review once** (MR !268) for hard-coding its yield.
+
+Also: the zone authors a **second, played-out working** (§ A7) so AC 13's
+worked-out read is observable without grinding; `organic/peat` is edited
+rather than created and `mineral/clay` is not minted (§ A8); and
+`OpenWorkingMixin.commandContributions` names `split.yaml` only — **the
+trade affords no verb of its own** (§ A5).
 
 *Goal:* a person can stand in a pit above the old workings, read the
 face in words, be refused bare-handed, strip the drift with a spade to
@@ -1190,8 +1474,9 @@ Files — Rejection (D19): `quarry.yaml`, `quarry/pit.yaml`,
 `idea/deposit/quarry-hill.yaml`, `old-workings.yaml` exit,
 `location/claims-office.yaml`'s register row gains `surfaceWorkings`,
 `rejection/package.json` gains `content-trade-quarrying`. Root
-`package.json`; `PackLogic.discover.test.ts` → 50, `trade-quarrying`
-after `ground`, `rejection` after `trade-quarrying`. `pnpm install`.
+`package.json`; `PackLogic.discover.test.ts` → **51** (⚠ it is
+already 50 today — § A8), `trade-quarrying` after `ground`, `rejection`
+after `trade-quarrying`. `pnpm install`.
 ⚠ The limekiln row is placed by `props:` here but the `fire` act lands in
 W4; until then the kiln is a fixture that lights and holds heat.
 
@@ -1203,6 +1488,15 @@ claim; `lint:census` — every `wins:`/host/props path resolves;
 `lint:locations`); the mining suite still green (the `hew` tool arg).
 
 ### W4 — the kiln, the flux, the sulfur (D14, D15, coal + limestone bands)
+
+⚠ **Amended by § A5.** The `Kiln`-class collapse stands (verified). The
+act does not: `fire` is **`platform/cmd/device/fire.yaml`,
+`verbs: [fire, burn]`, afforded by `FurnaceMixin`** beside
+`ignite`/`douse`/`pump`/`heat`/`boil`, and it **resolves the recipe whose
+input matches the charge** rather than hard-coding lime and pots. So
+`burn-lime` / `fire-pot` stop being shipped "for the ladder and `help`"
+and become the mechanism; a mixed charge refuses *"nothing here matches a
+firing"*. `FireController` is the platform's, not the trade's.
 
 *Goal:* limestone changes a smelt; coal lights and ruins iron; the kiln
 burns lime and fires a pot.
@@ -1297,16 +1591,17 @@ Each new capability, its five links. Every one fails closed and silent.
 
 | capability | verb (view) | affordance (a static on a class) | data (rows/materials/recipes) | boot | arg gate (`requires:`) |
 |---|---|---|---|---|---|
-| `dig` | `platform/cmd/ground/dig.yaml` | `platform/thing/Spade.commandContributions.self`; farming `Spade` re-lists it; the mining shovel row names the class | the `earth`-tagged materials; the working's column | none (the Spade is an item you hold) | `target: any` (polymorphic, declared); `tool: [ToolMixin]` + `[capability.digging]` default; the ground answers `Diggables.of` |
-| `quarry` | `trade/quarrying/cmd/quarrying/quarry.yaml` | `OpenWorkingMixin.commandContributions { self, inventory }`; `Block.commandContributions.self` | the pit row, the column with `wins:`, block/piece/lump rows | none (`Deposit` resolves by `singleton`) | `target: any`; `tool: [ToolMixin]` + `[capability.winning]`; `into: [BulkableMixin]` |
-| `fire` | `trade/quarrying/cmd/quarrying/fire.yaml` | `OpenWorkingMixin` (self, inventory) | `limekiln` row in the pit's `props:`; limestone/clay lumps; quicklime + clay-pot rows | the kiln's `fuel` reserve ships at 100 % (nothing refuels it — recorded) | `kiln: [FurnaceMixin]` |
+| `dig` (winning a face, **all** ground) | `platform/cmd/ground/dig.yaml` | `platform/thing/Spade.commandContributions.self`; farming `Spade` re-lists it; the mining shovel row names the class | every band host material; the working's column | none (the Spade is an item you hold) | `target: any` (polymorphic, declared — the `fell.yaml` shape); `tool: [ToolMixin]` + `[capability.digging]` default; the ground answers the `Diggable` **interface**, narrowed by a module-private `asDiggable()` (§ A3) |
+| `split` (the block) | `platform/cmd/ground/split.yaml` | `Block.commandContributions.self` | block/piece rows | — | `target: any`; `tool: [ToolMixin]` + `[capability.winning]` |
+| ~~`quarry`~~ **retired → `dig`** (§ A1) | — | `OpenWorkingMixin.commandContributions { self, inventory }` names `split.yaml`; the working affords `dig` by the **Spade in your hand**, not by the room | the pit row, the column with `wins:`, block/piece/lump rows | none (`Deposit` resolves by `singleton`) | the `into: [BulkableMixin]` vessel arg moves onto `dig` (a bulk band needs carrying) |
+| `fire` / `burn` (§ A5) | `platform/cmd/device/fire.yaml`, `verbs: [fire, burn]` | **`FurnaceMixin.commandContributions.peers`** — beside `ignite`/`douse`/`pump`/`heat`/`boil`, the doctrine already written at `Furnace.ts:100` | `limekiln` row in the pit's `props:`; limestone/clay lumps; quicklime + clay-pot rows; **the two recipes now DO the work** | the kiln's `fuel` reserve ships at 100 % (nothing refuels it — recorded) | `kiln: [FurnaceMixin]`; the charge is read from the furnace's contents, and an unmatched charge refuses in words |
 | `hew`'s tool | `hew.yaml` (arg added) | unchanged | pick row offers `winning` | — | `tool: [ToolMixin]` + `[capability.winning]` |
 | `grub/ditch/lime` (moved) | `platform/cmd/ground/*.yaml` | `ImprovableMixin.commandContributions`; **`Field` re-lists them** (shadowing); `Turbary` inherits the mixin's | the bill from the host hook | — | `tool: [ToolMixin]` + `[capability.digging]` (grub/ditch); lime's agent by `liming` tag |
-| `dry` (rewritten) | `dry.yaml` | `DryingRack` (peers) unchanged | none (recipe deleted) | — | `target: any` (the controller requires Cured); `rack: [class.DryingRack]` |
+| `dry` (rewritten) | `dry.yaml` | `DryingRack` (peers) unchanged | none (recipe deleted); ⭐ the rack row now authors its **exposure** (§ A6) | — | `target: any` (the controller requires Cured); `rack: [class.DryingRack]` |
 | `stake pit` | `stake.yaml` unchanged | `ClaimsRegister` unchanged | `surfaceWorkings` on the register row | — | unchanged |
 | the pans | `fill`/`pour`/`put` (shipped) | `Vat` (shipped) | pan rows in `estuary-mouth` `props:`; the `tide` receptacle; the `brine` profile row (found by class) | none | — |
 | the face read | `look` (shipped) | `OpenWorkingMixin.markupAugmenters` | the prose is derived | — | — |
-| `quarrying` | — | — | the Discipline row; `creditDeed` from `quarry`/`dig`/`fire` | Discipline catalogue warms by class | — |
+| `quarrying` | — | — | the Discipline row; `creditDeed` from `dig`/`split`/`fire` — ⭐ credited by the **working**, never by the verb, which is what lets a platform verb earn a trade's Discipline (§ A1) | Discipline catalogue warms by class | — |
 
 Two links that are easy to forget, called out: (1) **`Field` must
 re-list the moved views** — without it a field stops affording `grub`
@@ -1322,18 +1617,18 @@ tripwire; land them together or author the halite band in W5.
 | AC | wave(s) | how it is proven |
 |---|---|---|
 | 1 — the read, in words, sharper with competence | W3 (read) · W7 (drive step 21) | augmenter test at two bands; drive 2 + 21 |
-| 2 — wrong/no tool refused in words | W3 (`quarry`), W3 (`hew`), W6 (`dig` turf) | gate tests; drive 3 |
+| 2 — wrong/no tool refused in words | W3 (`dig` on rock bare-handed / with a spade), W3 (`hew`), W6 (`dig` turf) | ⭐ **strengthened by § A1** — with one verb the refusal names the TOOL (*"You would want a pick. That is rock."*) instead of naming another verb. Gate tests; drive 3 |
 | 3 — overburden first, waste visible, read changes | W3 | `OpenWorking.test`; drive 4–5 |
-| 4 — block too heavy; splitting yields pieces | W3 | `Block.test`; drive 6–7 |
+| 4 — block too heavy; splitting yields pieces | W3 | `Block.test`; drive 6–7 — the split is **`split block`** (§ A4) |
 | 5 — limestone changes the smelt | W4 | `flux.test`; drive 8 |
 | 6 — clay → a ceramic object | W4 | `FireController.test`; drive 10 |
 | 7 — coal burns; worse iron, and why | W4 | `coal.test`; drive 11 |
 | 8 — three salts, all `cure` | W3 (face) · W5 (pans, brine) | drive 12–15 |
 | 9 — pan concentrates in dry wind, goes back in rain | W1 (mechanism) · W5 (rows) | `Evaporative.test`; drive 13–14 |
 | 10 — turves read wet, dry, re-wet, only dry burn | W1 · W6 | `Turf.test`; drive 16–18 |
-| 11 — a ham in a damp place does not dry like one in dry wind | W1 | Cured pins (b)(d)(e); drive on the rack vs the moor |
+| 11 — a ham in a damp place does not dry like one in dry wind | W1 | Cured pins (b)(d)(e) **+ the sixth pin: rack vs floor diverge** (§ A6); drive on the rack vs the moor |
 | 12 — draining thins the peat, improves the ground, from upstream | W2 · W6 | `Turbary.test`; drive 19 — ⚠ *"a person upstream can do this to ground they do not hold"*: `ditch` is not title-gated (labour, the farming rule) — so anybody standing in the bank may ditch it; the *upstream* geography is prose in this build (§ Risks) |
-| 13 — worked-out face says so; cut-over stays cut | W3 · W6 | ledger tests + the restore test; drive 20 |
+| 13 — worked-out face says so; cut-over stays cut | W3 · W6 | ⚠ **re-scoped (§ A7)** — a face is 320 units and that number is CORRECT, so the read is proven by a **second, played-out working authored beside the fresh one** (ledger tests + the restore test), not by grinding a face down. Drive 20 walks between the two rooms. |
 | 14 — no face above you | W3 | `quarry up` gate test; drive 23 |
 | 15 — `quarrying` on a transcript, by work alone | W3 (credits) · W7 (row shipped in W3, archetype W7) | drive 21 |
 | 16 — claimed at the counter, record names the holder | W3 | `title.test` extension; drive 22 |
@@ -1471,8 +1766,13 @@ Deferred design does not live here.
 - **The upstream externality** — a ditch that lowers a neighbour's water
   table rides the watershed's rights records. → `watershed` follow-on
   in `field-substrate-slate`.
-- **Foraging's `dig`** — `Diggables.of` answered by a `Soil` host drawing
-  organic matter, with a biome-authored table. → `discovery-slate`.
+- **Foraging's `dig`** — the `Diggable` interface answered by a `Soil`
+  host drawing organic matter, with a biome-authored table. →
+  `discovery-slate`. ⭐ The seam is genuinely clean:
+  `SOIL_ORGANIC_MATTER_RESERVE_KEY` and `organicMatterFraction()` already
+  ship, so foraging adds **one method** (`drawOrganicMatter`, which died
+  with the cut branch). ⚠ Read § A2 — this verb was **withdrawn in review
+  once** (MR !268) for hard-coding its yield.
 - **A `stoke` act** for a furnace's `fuel` reserve. → `fire` follow-on
   (`metal-chain-slate` owns coke; the hearth is nobody's yet).
 - **Smoke as a rate** — `smoke-cure.yaml`'s `cure.moisture` constant is
@@ -1489,6 +1789,33 @@ Deferred design does not live here.
 - **Peat in a bloomery** (no `carbon` tag today). → `metal-chain-slate`.
 - **The hive** (Stage B) — untouched here. → `extraction-slate` Stage B
   / `ranching.md § bees`.
+
+⭐⭐ **Verb findings recorded by the lens pass (2026-09-24), for the
+RGO-interface unification — the very next build, whose job this is:**
+
+- **`hew` is `dig` underground.** Same act, same tool capability, and the
+  only difference is a roof. Collapsing it is correct by § A1's own
+  reasoning and is deliberately NOT done here: it is mining's shipped
+  surface, archetype, help and wire tests. → `mining-slate` /
+  the unification wave.
+- **`split` has three members already.** The `Block` (this build), the
+  `Bole` — which does this job today under `fell`, as its own view admits
+  (*"Fell a standard with an axe, or cross-cut a felled one"*) — and a
+  `Stackable`. The pattern is named so the wave inherits a pattern rather
+  than three overloads. → the unification wave.
+- **`smelt` is `fire`'s sibling.** Both run a charge in a hot chamber;
+  `smelt` keeps its own verb because grade × metal fraction is real
+  chemistry and calling calcination "smelting" would be a lens-1 lie —
+  but the two want looking at together. → `metal-chain-slate`.
+- **`class TravelNodes` is dead code** — an empty exported class (private
+  constructor, no members) left behind when its only caller inlined the
+  narrowing (`TeleportController.ts:496`). Deleting it is a one-line
+  cleanup nobody owns. → `api-normalization-slate`.
+- **Excavation-for-a-purpose is its own verb family** (`ditch`, `sink`,
+  `drive`), so a grave / well / posthole / foundation is **not** `dig`
+  (§ A2) — and it wants a persistent hole that can hold something, a
+  shape nothing in the tree has. → unowned; nearest home is
+  `discovery-slate`.
 
 ---
 
@@ -1508,6 +1835,18 @@ Read first, in this order.
 10. `packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts` · `packages/content/trade-smelting/src/thing/SmeltingFurnace.ts` · `packages/server/src/mud/platform/thing/Kiln.ts` · `packages/content/generic-objects/content/stuff/thing/Kiln.yaml`
 11. `packages/content/trade-cooking/src/idea/cmd/crafting/{DryController,PreserveController}.ts` · `dry.yaml` · `air-dry.yaml` · `salt-cure.yaml` · `salt.yaml` · `salt-sack.yaml`
 12. `packages/content/rejection/content/world/rejection.yaml` · `…/location/old-workings.yaml` · `…/idea/deposit/ferrow.yaml` · `…/kestrel-road/tips.yaml` · `packages/content/world-seed/content/world/moor.yaml` + `moor/*.yaml` · `packages/content/terminus/content/world/terminus/estuary/*.yaml`
+12a. ⚠ **`docs/slates/builds/discovery-slate.md § A first forage act,
+    designed and withdrawn`** — why `dig` was cut in review, and the three
+    things it settled. Read before writing `DigController`. The cut view
+    and controller are recoverable from MR !268
+    (`packages/content/trade-fishing/…/DigController.ts`).
+12b. `packages/server/src/mud/lib/fire/Furnace.ts:95–125` (the
+    appliance-affords-the-verb doctrine `fire` rides) ·
+    `packages/content/trade-forestry/content/trade/forestry/cmd/forestry/fell.yaml`
+    (the polymorphic-target template `dig` copies, reasoning and all) ·
+    `packages/server/src/mud/lib/travel/TravelNode.ts` +
+    `packages/server/src/mud/platform/idea/cmd/movement/TeleportController.ts:495–505`
+    (why `Diggable` is an interface with a local narrowing, not a static holder)
 13. `packages/server/src/mud/platform/idea/api/__tests__/PackLogic.discover.test.ts:55–110` · `packages/server/package.json:36–82` (the roster) · `packages/wire/tests/forestry.dirty.wire.test.ts`
 14. `docs/subsystems/{mining,forestry,spoilage,maturation,soil,content-packs,advancement}.md`
 
