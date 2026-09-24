@@ -72,7 +72,7 @@ const FARM_YARD = '/world/terminus/eternal/campus-farm/location/yard';
 const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 const TAILOR_SHOP = '/world/terminus/mayfield-row/tailor/location/shop';
 const LOUNGE_BAR = '/world/lounge/location/bar';
-const MARKET = '/world/terminus/market/location/square';
+const MARKET = '/world/terminus/market/square';
 
 /**
  * ⭐⭐ **No wizard anywhere in this file, and that is the point.** The
