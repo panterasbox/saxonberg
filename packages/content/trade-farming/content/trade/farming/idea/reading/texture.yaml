@@ -18,7 +18,10 @@ data:
   scope: [here]
   discipline: soil-science
   instrument: digging
-  instrumentNoun: \"something to open the ground with — a spade"
+  # ⚠ Was an UNQUOTED YAML scalar opening with an escaped quote, so the
+  # backslash and the quotes reached the player verbatim. Same slip in
+  # five rows across four packs; found in a browser, not by a test.
+  instrumentNoun: "something to open the ground with — a spade"
   eyeCeiling: novice
   improves: >-
     what this ground will grow, how it holds water, and what it would

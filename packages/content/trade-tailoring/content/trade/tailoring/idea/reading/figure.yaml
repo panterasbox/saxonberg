@@ -16,7 +16,10 @@ data:
   scope: [subject]
   discipline: ""
   instrument: fitting
-  instrumentNoun: \"a measure book to write it in"
+  # ⚠ Was an UNQUOTED YAML scalar opening with an escaped quote, so the
+  # backslash and the quotes reached the player verbatim. Same slip in
+  # five rows across four packs; found in a browser, not by a test.
+  instrumentNoun: "a measure book to write it in"
   eyeCeiling: expert
   improves: >-
     what size to cut a garment, and whether an old entry still fits

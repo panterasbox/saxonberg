@@ -16,7 +16,10 @@ data:
   scope: [here]
   discipline: soil-science
   instrument: soil-testing
-  instrumentNoun: \"a soil kit"
+  # ⚠ Was an UNQUOTED YAML scalar opening with an escaped quote, so the
+  # backslash and the quotes reached the player verbatim. Same slip in
+  # five rows across four packs; found in a browser, not by a test.
+  instrumentNoun: "a soil kit"
   eyeCeiling: untrained
   improves: >-
     whether this ground needs lime, and how much

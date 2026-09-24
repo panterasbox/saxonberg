@@ -39,7 +39,25 @@ args:
   # and the binder says so before the controller has to.
   - name: samples
     type: objects
-    required: true
+    # ⚠⚠ OPTIONAL WITH A DEFAULT, and the live drive is what changed it.
+    # It was `required: true` with no default, so bare `assay` could not
+    # bind at all — and a prospector standing AT the bench holding ore
+    # was told *"That doesn't match any known command shape: assay."*
+    # The parser, about the word, for a verb the room affords.
+    #
+    # ⭐ That is this build's own doctrine broken by this build's own
+    # verb: the refusal IS the progression UI, so a missing ARGUMENT has
+    # to be sayable exactly like a missing rung. The controller already
+    # had the right sentence — *"Assay what? A sample is a piece you took
+    # and noted — `sample` first."* — and the binder refused one step
+    # above it, so nobody could ever read it.
+    #
+    # The default is also the behaviour the help recommends: "Bring
+    # SEVERAL", because the furnace costs the same either way. Bare
+    # `assay` now means the whole batch you are carrying, which is the
+    # amortized trip the economics are built around.
+    required: false
+    default: "reachable:[mixin.SampledMixin]"
     # ⚠⚠ `greedy: true`, and a PLURAL arg needs it every bit as much as a
     # singular one. Without it `assay the ore` binds `the` and `ore` as
     # TWO object queries, `the` matches the first thing in reach, and the

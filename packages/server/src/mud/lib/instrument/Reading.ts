@@ -588,9 +588,29 @@ export default abstract class Reading extends ReadingBase {
       out.push({
         rung: 'instrument',
         open: tool !== null,
+        /*
+         * ⚠⚠ **Three defects in two lines, all found by driving this in a
+         * browser and none of them visible to the wire suite**, which
+         * asserted that a route line EXISTED and never read one.
+         *
+         * 1. It said *"with your a brass photometer"* — `getPresentation`
+         *    already carries the article, so `your` made a double
+         *    determiner, on every instrumented channel at once. Eleven
+         *    lines of it in `readings`, which is the progression UI.
+         * 2. ⭐ And `your` was not merely ungrammatical, it was FALSE.
+         *    Reach is the rule, not carry — "a bench on the wall and a
+         *    photometer on the table both count" — and the room this was
+         *    read in is exactly the case that proves it: the lobby's
+         *    instruments sit in a case nobody owns.
+         * 3. The closed rung printed `this.instrument`, the CAPABILITY
+         *    token, so it read *"with photometry: nothing in reach can"*
+         *    one line above a refusal that said *"It wants a
+         *    photometer."* `getInstrumentNoun()` is the authored noun and
+         *    exists for exactly this; the refusal already used it.
+         */
         line: tool
-          ? `with your ${tool.getPresentation()}: ${this.lower(band, this.ceilingOf(tool))}`
-          : `with ${this.instrument}: nothing in reach can`,
+          ? `with ${tool.getPresentation()}: ${this.lower(band, this.ceilingOf(tool))}`
+          : `with ${this.getInstrumentNoun()}: nothing in reach can read it`,
       });
     }
     if (this.bench !== '') {
@@ -598,8 +618,10 @@ export default abstract class Reading extends ReadingBase {
       out.push({
         rung: 'bench',
         open: b !== null,
+        // Same double determiner as the instrument rung above: `at the`
+        // in front of a phrase that already begins with one.
         line: b
-          ? `at the ${b.getPresentation()}: a sample can be read here`
+          ? `at ${b.getPresentation()}: a sample can be read here`
           : `at a bench: none in reach — a sample has to be carried to one`,
       });
     }

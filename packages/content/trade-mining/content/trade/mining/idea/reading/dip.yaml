@@ -12,7 +12,13 @@ data:
   scope: [here]
   discipline: geology
   instrument: surveying
-  instrumentNoun: \"a surveyor's compass or a miner's dial"
+  # ⚠ It was `\"a surveyor's compass or a miner's dial"` — a stray
+  # escaped quote in an UNQUOTED YAML scalar, so the backslash and the
+  # quotes went into the prose verbatim and a prospector was told
+  # *It wants \"a surveyor's compass or a miner's dial".* Found in a
+  # browser; the wire checkpoint matched /compass/ and could not see the
+  # junk around the word it was looking for.
+  instrumentNoun: "a surveyor's compass or a miner's dial"
   eyeCeiling: untrained
   improves: >-
     how deep the lode goes and how far a shaft must follow it
