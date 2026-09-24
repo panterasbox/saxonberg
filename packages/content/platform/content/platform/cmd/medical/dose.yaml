@@ -1,0 +1,32 @@
+verbs: [dose]
+controller: /platform/idea/cmd/medical/DoseController
+description: "Give a body an antidote from a vial"
+help: |
+  `dose <someone> with <vial>` gives them a remedy — with no target you
+  dose yourself. The vial's contents decide what it counters: a vial of
+  antivenin counters venom, and the game tells you if the body has none of
+  what it would treat.
+
+  A dose is spent from the vial. What a remedy counters is a fact about the
+  substance, not about you — so an author who makes a new antidote makes it
+  work, with no new verb.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  # Bare default: every reachable vessel; the controller keeps the first
+  # whose matter names an `antidote:<toxin>` tag — the CONTENTS, which no
+  # predicate can ask (`lint:instrument-args`).
+  - name: with
+    type: object
+    required: false
+    prepositions: [with, using, from]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["inventory", "reachable"]
+    requires: [BulkableMixin]

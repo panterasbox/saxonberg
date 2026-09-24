@@ -47,6 +47,22 @@ const HALF_RECOVERY_STAGE = 6;
 /** What a grave looks like from the outside, for the burial arm. */
 const GRAVE_KEYWORDS = /\bgrave\b|\bplot\b|\bcrypt\b|\bniche\b/i;
 
+/**
+ * ⭐ The resolution tokens a fully-stocked clinic can supply (D5) — a
+ * bandage, a splint, a surgeon's kit, water, a fire. `rest` (a bruise
+ * wants time) is deliberately absent: the house cannot sell you time.
+ */
+const CLINIC_SUPPLIES = new Set([
+  'dressing',
+  'setting',
+  'surgery',
+  'fluid',
+  'warmth',
+  'rinsing',
+]);
+/** A staffed clinic treats competently — a middling-to-good article. */
+const CLINIC_EFFICACY = 0.7;
+
 export default class OrderController extends CraftController<OrderModel> {
   async execute(model: OrderModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -311,11 +327,18 @@ export default class OrderController extends CraftController<OrderModel> {
     const traumas = conditions
       .filter((c): c is Trauma => c.kind === 'trauma')
       .filter((t) => !t.dressed && t.severity > 0)
-      .filter((t) => TRAUMA_BEHAVIOR[t.type]?.resolution === 'dressing')
+      // ⭐ Over every token the house can supply, not just dressings (D5):
+      // the clinic has bandages AND a splint AND a surgeon's kit AND water
+      // AND a fire, so it resolves a fracture, a rupture, a burn or a
+      // frostbite too — through the ONE treatment primitive.
+      .filter((t) => CLINIC_SUPPLIES.has(TRAUMA_BEHAVIOR[t.type]?.resolution ?? ''))
       .sort((a, b) => b.severity - a.severity);
     const worst = traumas[0];
     if (worst) {
-      TRAUMA_BEHAVIOR[worst.type].resolve(body, worst);
+      body.applyTreatment(worst, {
+        by: TRAUMA_BEHAVIOR[worst.type].resolution ?? 'dressing',
+        efficacy: CLINIC_EFFICACY,
+      });
       return `the ${worst.type}`;
     }
     // Then an illness — the load knock a competent hand is worth.

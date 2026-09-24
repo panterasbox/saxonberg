@@ -1,21 +1,28 @@
 /**
- * WashController — `wash <glass>` (return a used glass to the pool).
+ * WashController — `wash <thing>` (clean a thing at water), and bare
+ * `wash` (wash your own hands).
  *
- * The bussing beat's last step. An engaged step (~3 s) that needs a
- * reachable **water source** — any bulk holder in reach whose matter is
- * water (the basin, the tap, a jug) — and then the vessel washes itself:
- * the residue to the discard sink, whatever was left in the glass (the
- * olive) thrown out, the ice tipped, the soil mark cleared so the pool
- * will claim it again.
+ * One verb, one act: apply reachable **water** to clean a thing. A named
+ * target dispatches on what it IS — serviceware gives up its dregs and
+ * returns to the pool, a contamination carrier gives up its surface
+ * grime, a dyed garment sheds colour — each an engaged step (~3 s) at
+ * any bulk holder whose matter is water (the basin, the tap, a jug).
  *
- * Afforded by the water source (`UnboundedReceptacle`'s environment
- * contributions), the same pattern as the `Menu`'s `order`.
+ * ⭐ **Bare `wash` washes your hands** — the recovery build's `scrub`,
+ * folded in (D10). It has no object arg because the hands are always
+ * your own body, so a null target simply routes here; nothing was
+ * widened. (`rinse` takes a body ARG and so could not fold in — see
+ * `RinseController`'s header and `WaterFixture`.)
+ *
+ * Afforded by the water source: `WaterFixture`'s `peers` bucket, so you
+ * learn `wash` by standing at a sink.
  */
 
 import { ManualBuildController } from "./ManualBuildController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlManyResult, MqlOneResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
+import type { Hygiene } from "../../../../lib/vitals/Hygiene";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -25,14 +32,21 @@ const TOPIC = "act.deed";
 const WASH_MS = 3000;
 
 interface WashModel extends CommandModel {
-  glass: MqlOneResult;
+  target?: MqlOneResult;
   water?: MqlManyResult;
 }
 
 export default class WashController extends ManualBuildController<WashModel> {
   execute(model: WashModel, context: CommandContext): void {
     const giver = context.commandGiver;
-    const glass = model.glass?.stuff ?? null;
+    const glass = model.target?.stuff ?? null;
+    // ⭐ Bare `wash` (no thing named) = wash your own HANDS. The medic's
+    // old `scrub`, folded in: hygiene has no object arg, so nothing was
+    // widened to get here — a null target simply means "your hands".
+    if (glass === null) {
+      this.washHands(model.water, context);
+      return;
+    }
     // ⭐ **Washing is not a glassware verb.** It was `instanceof
     // CraftVessel`, which is why a knife could not be washed at all — and
     // a knife is the one implement in the kitchen that most needs it, the
@@ -54,8 +68,12 @@ export default class WashController extends ManualBuildController<WashModel> {
     if (dyed !== null && serviceable === null && contaminable === null) {
       return this.launderGarment(dyed, model.water, context);
     }
-    if (glass === null || (serviceable === null && contaminable === null)) {
-      this.declineStep(context, Mml.compose`Wash what?`, "no-glass");
+    if (serviceable === null && contaminable === null) {
+      this.declineStep(
+        context,
+        Mml.compose`You can't wash ${Mml.thing(glass)} clean.`,
+        "not-washable",
+      );
       return;
     }
     const water = this.findWater(model.water);
@@ -92,6 +110,48 @@ export default class WashController extends ManualBuildController<WashModel> {
           .topic(TOPIC)
           .toSelf(Mml.compose`You wash ${Mml.thing(glass)} clean.`)
           .toPeers(Mml.compose`${Mml.actor(giver)} washes ${Mml.thing(glass)}.`)
+          .send();
+      },
+    });
+  }
+
+  /**
+   * ⭐ **Bare `wash` = wash your own hands** (the recovery build's `scrub`,
+   * folded in — D10). Clean hands treat a wound without seeding sepsis;
+   * handling a bleeding wound dirties them. Resets the body's `washedAt`
+   * stamp so its cleanliness reads full again. Needs water in reach, the
+   * same precondition as every other `wash` path.
+   */
+  private washHands(
+    bound: MqlManyResult | undefined,
+    context: CommandContext,
+  ): void {
+    const giver = context.commandGiver;
+    if (!MixinApi.isHygiene(giver)) {
+      this.declineStep(context, Mml.compose`Wash what?`, "no-hands");
+      return;
+    }
+    const water = this.findWater(bound);
+    if (!water) {
+      this.declineStep(
+        context,
+        Mml.compose`There's no water here to wash your hands in.`,
+        "no-water",
+      );
+      return;
+    }
+    this.engageStep(context, {
+      durationMs: WASH_MS,
+      effortW: 200,
+      beginSelf: Mml.compose`You step to ${Mml.thing(water)} to wash your hands.`,
+      onComplete: () => {
+        (giver as Stuff & Hygiene).scrub();
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`You scrub your hands clean under the water.`)
+          .toPeers(
+            Mml.compose`${Mml.actor(giver)} scrubs their hands clean.`,
+          )
           .send();
       },
     });

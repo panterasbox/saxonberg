@@ -80,6 +80,7 @@ import type { Constructed } from '../lib/material/Constructed';
 import type { Dyed } from '../lib/material/Dyed';
 import type { Organism } from '../lib/species/Organism';
 import type { Vitals } from '../lib/vitals/Vitals';
+import type { Hygiene } from '../lib/vitals/Hygiene';
 import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Incorporeal } from '../lib/mortality/Incorporeal';
 import type { Reserved } from '../lib/reserve';
@@ -1200,6 +1201,12 @@ export class MixinApi {
 
   public static isVitals(obj: Stuff): obj is Stuff & Vitals {
     return this.hasMixin(obj, Mixins.Vitals);
+  }
+
+  /** Body cleanliness (a `washedAt` stamp) — the treater's, read by wound
+   * treatment (recovery build). */
+  public static isHygiene(obj: Stuff): obj is Stuff & Hygiene {
+    return this.hasMixin(obj, Mixins.Hygiene);
   }
 
   /**

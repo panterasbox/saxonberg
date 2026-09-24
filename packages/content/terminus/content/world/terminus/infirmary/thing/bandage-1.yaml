@@ -1,0 +1,12 @@
+# One of the infirmary's clean dressings (recovery build). Placed in the
+# ward so Aldis's `nurses` brain has real supply to dress a wound with —
+# and it RUNS OUT: each is consumed by one dressing (`treat`/`set` spend
+# it), so the clinic's stock is finite. The shipped `Bandage` (DressingMixin).
+class: /platform/thing/Bandage
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: clean bandage
+  keywords: [bandage, clean, dressing, linen]
+  register: indefinite
+  longDescription: A roll of clean linen from the infirmary cabinet, enough to dress a wound once.
+  dressingQuality: 1

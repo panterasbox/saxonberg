@@ -1,0 +1,31 @@
+verbs: [warm]
+controller: /platform/idea/cmd/medical/WarmController
+description: "Warm frostbite (or a body gone cold) by a fire"
+help: |
+  `warm` a frozen part by a fire — `warm` yourself, or `warm alice`. You
+  need a fire actually burning in reach: a hearth, a campfire, a furnace.
+
+  Frostbite is not a burn — what it wants is warmth, not water, and
+  `treat` will tell you so. A rewarmed part knits faster than one left
+  numb. It also brings a body back from too-cold; if it is still out in
+  the cold, it will chill again.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  # Bare default: every reachable combustible; the controller keeps the
+  # first that is actually BURNING (a cold hearth warms nothing) — state,
+  # which no predicate asks (`lint:instrument-args`).
+  - name: source
+    type: object
+    required: false
+    prepositions: [by, at, over]
+    default: "reachable:[mixin.CombustibleMixin]"
+    scope: ["reachable"]
+    requires: [CombustibleMixin]

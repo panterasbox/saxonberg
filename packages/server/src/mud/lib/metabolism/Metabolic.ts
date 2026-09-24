@@ -40,6 +40,7 @@ import { Reserve } from "../reserve";
 import type { Vitals } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
 import type { Posed } from "../character/Posed";
+import { POSTURE_REST_BASE } from "../character/Posed";
 import type { Tangible } from "../material/Tangible";
 import type { AfflictionRecord } from "../../platform/idea/Condition";
 import type Condition from "../../platform/idea/Condition";
@@ -240,14 +241,13 @@ export const METABOLIC_DEFAULTS = {
 
   /** Coupled recovery (endurance `%`-points/game-min, before scaling). */
   MAX_RECOVERY_PER_MIN: 2.0,
-  /** Posture base multipliers — lying > sitting > standing. */
-  POSTURE_BASE: {
-    lie: 1.0,
-    sit: 0.6,
-    kneel: 0.5,
-    stand: 0.2,
-    mounted: 0.3,
-  } as Record<string, number>,
+  /**
+   * Posture base multipliers — lying > sitting > standing. ⭐ Hoisted to
+   * the posture vocabulary (`POSTURE_REST_BASE` in `lib/character/Posed`)
+   * so the wound driver's convalescence reads the same table without
+   * importing this module. This is a re-reference, byte-identical.
+   */
+  POSTURE_BASE: POSTURE_REST_BASE,
   /** Fuel cost of recovery: satiation + hydration spent per `%` endurance. */
   RECOVERY_SATIATION_COST: 0.5,
   /** Hydration is the tighter leash — a larger draw than satiation. */

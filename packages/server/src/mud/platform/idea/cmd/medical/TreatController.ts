@@ -32,7 +32,7 @@ import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../../lib/vitals/Vitals';
 import type { Dressing } from '../../../../lib/vitals/Dressing';
-import { TRAUMA_BEHAVIOR } from '../../Condition';
+import { TRAUMA_BEHAVIOR, HARM_DEFAULTS } from '../../Condition';
 import type { Trauma, AfflictionRecord } from '../../Condition';
 import type { Difficulty, Outcome } from '../../../../lib/advancement/ActSignature';
 
@@ -160,6 +160,11 @@ function mismatchLine(offered: string, wanted: string | null): string {
     warmth: 'warmth',
     cooling: 'cooling',
     air: 'air',
+    // ⭐ The mechanical wounds' treatments (D4). A broken bone wants
+    // SETTING (a splint); a torn organ wants SURGERY — tokens the trade's
+    // instruments answer, and until one is to hand `treat` says so.
+    setting: 'setting, with a splint',
+    surgery: 'surgery',
     // ⭐ A caustic is still eating. What it wants is not a treatment you
     // apply but the REMOVAL of the cause — which is why `rinse` is a verb
     // of its own rather than another thing to carry.
@@ -279,11 +284,17 @@ export default class TreatController extends CommandController<TreatModel> {
     const outcome = outcomeFor(band, quality);
 
     // Mechanical effect. A dressing arrests the bleed and begins the clot
-    // through the trauma's own `resolve`; fluid is DRUNK, through the
+    // through the ONE treatment primitive (D5) — which runs the wound's
+    // `resolve` and stamps `careQuality` (the dressing's quality) so `mend`
+    // heals it at the graded treated rate. Fluid is DRUNK, through the
     // shipped ingest path, which is what makes it a real supply that runs
     // out rather than a gesture.
     if (wound && treatment.by === 'dressing') {
-      TRAUMA_BEHAVIOR[wound.type].resolve(target, wound);
+      target.applyTreatment(wound, {
+        by: 'dressing',
+        efficacy: quality,
+        treater: giver,
+      });
     } else if (wound && treatment.by === 'fluid') {
       this.pourInto(target, (treatment as { item: Stuff }).item);
     }
@@ -601,11 +612,17 @@ export default class TreatController extends CommandController<TreatModel> {
           : score >= 1
             ? 'partial'
             : 'failure';
-    // Knock the population back by what the hand is worth. A failure is a
-    // failure: you sat with them, and nothing changed.
-    const knock = [0, 0.35, 0.6, 0.85, 1][score] ?? 0;
+    // Knock the population back by what the hand is worth — ⭐ SCALED BY
+    // how CLEAN the hand is (D11): a filthy hand knocks nothing, and a
+    // properly dirty one re-inoculates as it tends. A failure is a failure.
+    const hands = MixinApi.isHygiene(giver) ? giver.handsCleanliness() : 1;
+    const knock = ([0, 0.35, 0.6, 0.85, 1][score] ?? 0) * hands;
     const before = infection.pathogenLoad ?? 0;
-    infection.pathogenLoad = Math.max(0, before * (1 - knock));
+    let next = before * (1 - knock);
+    if (hands < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD) {
+      next += HARM_DEFAULTS.SEPSIS_INOCULUM * (1 - hands);
+    }
+    infection.pathogenLoad = Math.min(1, Math.max(0, next));
     const cleared = infection.pathogenLoad <= 0.01;
     if (cleared) target.relieve(infection);
 

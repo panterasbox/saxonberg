@@ -46,6 +46,7 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
+import { HygieneMixin } from '../vitals/Hygiene';
 import { ReservedMixin, Reserve } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
@@ -169,6 +170,9 @@ const CreatureBase = ChattelMixin(
             ThermalMixin(
               RespirationMixin(
                 MetabolicMixin(
+                  // Body cleanliness beside vitals — every body can be dirty;
+                  // only a treater's cleanliness is ever read (recovery D10).
+                  HygieneMixin(
                   VitalsMixin(
                     ReservedMixin(
                       PosedMixin(
@@ -207,6 +211,7 @@ const CreatureBase = ChattelMixin(
         )
       )
     )
+  )
   )
   )
   )

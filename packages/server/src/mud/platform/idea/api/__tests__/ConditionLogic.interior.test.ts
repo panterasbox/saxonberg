@@ -202,7 +202,7 @@ describe('the depth ladder — reaching the interior', () => {
     expect(rupture?.bleeding).toBe(true);
   });
 
-  it('⚠ a rupture cannot be dressed — `resolve` is a no-op, not laceration’s', () => {
+  it('⚠ a rupture cannot be DRESSED — only surgery closes it (recovery D4)', () => {
     const c = torsoWithOrgans();
     ConditionApi.inflict(c, {
       mechanism: 'blunt',
@@ -210,10 +210,13 @@ describe('the depth ladder — reaching the interior', () => {
       energy: 4.5,
     });
     const rupture = at(c, 'body.torso.liver')!;
-    // Even reaching past the verb and calling resolve directly changes
-    // nothing: you cannot put pressure on a liver.
+    // A rupture is still not a bleed you can put pressure on — `treat`
+    // refuses it and names surgery (`resolution: 'surgery'`). But surgery
+    // (the trade's `operate`) DOES close it now: `resolve` is the surgical
+    // act, arresting the cavity bleed and beginning the knit.
+    expect(TRAUMA_BEHAVIOR.rupture.resolution).toBe('surgery');
     TRAUMA_BEHAVIOR.rupture.resolve(c, rupture);
-    expect(rupture.dressed).toBeUndefined();
-    expect(rupture.bleeding).toBe(true);
+    expect(rupture.dressed).toBe(true);
+    expect(rupture.bleeding).toBe(false);
   });
 });

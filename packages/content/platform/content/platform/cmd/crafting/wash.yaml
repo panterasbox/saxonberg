@@ -1,18 +1,29 @@
 verbs: [wash]
 controller: /platform/idea/cmd/crafting/WashController
-description: "Wash a used glass so it can be served in again"
+description: "Wash something clean at water — a glass, a garment, or your own hands"
 help: |
-  Wash a glass — `wash coupe`. You need water in reach (the basin, the
-  tap). The dregs go down the sink, whatever was in it goes out, and
-  the glass is clean for the next drink. Takes a moment.
+  Wash a thing clean at water — `wash coupe`, `wash apron`. You need
+  water in reach (the basin, the tap, a jug). A used glass gives up its
+  dregs and comes back to the pool; a soiled pot gives up its surface
+  grime; a dyed garment sheds a little colour each time. Takes a moment.
+
+  Bare `wash` — with no thing named — washes your own HANDS clean. Clean
+  hands treat a wound without infecting it, and handling a bleeding wound
+  dirties them, so a careful medic washes between patients. Hands stay
+  clean for a while, then need doing again.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  - name: glass
+  # ⭐ OPTIONAL. Named, we wash that thing; bare, we wash your hands —
+  # the medic's old `scrub`, folded in. Hygiene has NO object arg (the
+  # hands are always your own body), so making this optional widens no
+  # check: a body never reaches the `requires` gate below. This is the
+  # exact reason `rinse` — which takes a body ARG — could NOT fold in.
+  - name: target
     type: object
-    required: true
+    required: false
     scope: "reachable"
     requires: CraftedMixin
   # ⭐ WHAT IN — DECLARED, not hunted for (`lint:instrument-args`).
