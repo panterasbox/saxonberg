@@ -108,6 +108,26 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
      */
     static commandContributions: CommandContributions = {
       self: [],
+      // ⭐⭐ **Lighting and putting out reach OUTWARD as well as
+      // sideways** (envelope W2). `peers` is siblings-and-one-exit, and
+      // a furnace standing in a room is your sibling — which is the
+      // whole story for a forge, an oven and a kiln, none of which is
+      // ever picked up. A **lamp in your hand** is not your sibling:
+      // you are its container, so only `environment` reaches you.
+      //
+      // ⚠ Without this line, the moment a carriable light composed
+      // `FurnaceMixin` the verb would have died at the AFFORDANCE link
+      // — silently, with `light lantern` answering "you don't see any
+      // 'lantern' here" while the lamp sat in the player's hand and 30
+      // controller tests stayed green. `ChargedMixin` (the mana wand
+      // you hold) declares both buckets for exactly this reason.
+      //
+      // Only ignite/douse: `pump`, `heat`, `boil` and `warm` are for a
+      // furnace you are standing at, and a lamp affords none of them.
+      environment: [
+        'platform/cmd/device/ignite.yaml',
+        'platform/cmd/device/douse.yaml',
+      ],
       peers: [
         'platform/cmd/device/ignite.yaml',
         'platform/cmd/device/douse.yaml',
@@ -121,7 +141,6 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         // way you learn every other thing a fire is for: by standing at one.
         'platform/cmd/medical/warm.yaml',
       ],
-      environment: [],
     };
 
     static fieldMeta: FieldMeta = {

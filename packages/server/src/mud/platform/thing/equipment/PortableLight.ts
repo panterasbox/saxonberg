@@ -12,8 +12,17 @@
  *
  * Authored per-item in `data:` — `emittedIntensity` (lumens when lit),
  * `emittedColorTemperature` (warmth), and `on` (starts unlit off the shelf).
- * A discrete good (chattel-stampable, never Stackable). Fuel / burn-time is
- * the combustion build's concern; here a light is simply on or off.
+ * A discrete good (chattel-stampable, never Stackable).
+ *
+ * ⭐⭐ **This is the light that burns NOTHING**, and since the envelope
+ * build that is the whole of what it is for. The lantern and the torch
+ * moved to {@link Lamp}, which composes `FurnaceMixin` and therefore has
+ * a real fuel reserve, a burn rate, a burnout edge and `ignite`/`douse`;
+ * what is left here is the **glowcap jar and its fixture**, which are a
+ * fungus, and anything else whose fiction is a switch rather than a
+ * flame. The old header said fuel was *"the combustion build's
+ * concern"* — the combustion build shipped, and nobody came back until
+ * a dark realm made it matter.
  */
 
 import Thing from "../../../lib/stuff/Thing";

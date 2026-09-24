@@ -154,7 +154,13 @@ describe("general-store content integrity", () => {
     // ration pack is one: perishable matter belongs on the class that says
     // so, not on the generic `Thing` that happened to be carrying the gauge.
     "/platform/thing/Provision",
+    // ⭐ Still shipped, and now narrowed to what it is FOR: a light that
+    // burns nothing (the glowcap jar and its fixture, which are a
+    // fungus). The lantern and the torch moved to `Lamp`.
     "/platform/thing/equipment/PortableLight",
+    // ⭐ A light that burns fuel — `FurnaceMixin` over a `LightSource`,
+    // so it has a reserve, a burn rate and a burnout edge for free.
+    "/platform/thing/Lamp",
     "/platform/thing/equipment/Weapon",
     // ⭐ The injury build's armour + arms line (W-A5 / W-C1). A `Garment`
     // is the covering class (padded gambeson → steel breastplate, one
@@ -327,12 +333,20 @@ describe("general-store content integrity", () => {
     const rations = load(STORE_DIR, "thing/rations.yaml");
     expect(rations.class).toBe("/platform/thing/Provision");
     expect(String(rations.data?._materialPath)).toMatch(/^\/stuff\/idea\/material\/food\//);
-    // The lights actually emit (authored flux + warmth), start unlit.
+    // ⭐ The lights actually emit, start unlit, and BURN FUEL. Since the
+    // envelope build they are `Lamp` — a small furnace with a light on
+    // it — rather than `PortableLight`, which is a switch and burned
+    // forever. A light with no fuel reserve here is a light that never
+    // goes out, which is the defect the class change exists to fix.
     for (const f of ["torch", "lantern"]) {
       const light = load(STORE_DIR, `thing/${f}.yaml`);
-      expect(light.class).toBe("/platform/thing/equipment/PortableLight");
+      expect(light.class).toBe("/platform/thing/Lamp");
       expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
-      expect(light.data?.on).toBe(false);
+      // ⚠ `FurnaceMixin.lit` defaults TRUE — a row that forgets this
+      // ships alight on a shop shelf with its fuel draining.
+      expect(light.data?.lit).toBe(false);
+      const fuel = (light.data?.reserves as Record<string, { currentValue?: number }> | undefined)?.fuel;
+      expect(Number(fuel?.currentValue)).toBeGreaterThan(0);
     }
     // The waterskin is a real fluid holder (a capacity to fill).
     const skin = load(STORE_DIR, "thing/waterskin.yaml");
