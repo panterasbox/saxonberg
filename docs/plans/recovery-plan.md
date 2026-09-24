@@ -602,6 +602,24 @@ keeps its name; only the verb changed. `WaterFixture.peers` now affords `wash`
 for the hygiene half (it already listed it for glassware). Drive updated
 (scrub -> bare wash at the basin); 7/7 green, 48 lint gates green.
 
+**D21 - `operate`/surgery is REFRAMED as the honest minimum, not deepened
+(post-review, 2026-09-23).** Review found the shipped surgery "barely an
+implementation" - instant, single-wound (rupture), cannot-fail (untrained is
+refused, not risked), a single scalar outcome. Cutting it (as prosthetics was
+cut) is OFF THE TABLE: a rupture's `mend` is a no-op until `dressed` and it
+bleeds via `tick` until `resolve`, so `operate` is the ONLY counterplay - cut
+it and a rupture is a lethal wound with no recourse (the mend spell can't reach
+it either: it boosts heal-rate, which is zero until dressed). Decision: keep the
+mechanic UNCHANGED and reframe it honestly as *emergency field surgery* (stop an
+internal bleed), so it is a COMPLETE small act rather than a barely-big one -
+the prosthetics lesson applied correctly (the sin was over-claiming, not being
+small). *Surgery the practice* - durative/interruptible with a bleed-during
+clock, a surgical team, a theatre, anaesthesia as the epoch dial, and the
+install act for augments/prosthetics - is its own build, captured in
+`docs/slates/builds/surgery-slate.md` (written 2026-09-23, coupled to
+augmentation). Surfaces reframed: `operate.yaml` (description/help),
+`OperateController` docstring, `harm.md`. No mechanic change; no wave.
+
 ## â­â­ Host placement
 
 Every new field, mixin and class; what composing it claims about the rest

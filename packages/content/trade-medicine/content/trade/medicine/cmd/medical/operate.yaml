@@ -1,9 +1,13 @@
 verbs: [operate, surgery]
 controller: /trade/medicine/idea/cmd/medical/OperateController
-description: "Operate on an internal wound with a surgeon's kit"
+description: "Emergency field surgery — stop an internal bleed before it kills"
 help: |
-  Operate on an internal wound — a rupture, the one wound a bandage cannot
-  reach. `operate alice`, with a surgeon's kit in hand.
+  Emergency field surgery — `operate alice`, with a surgeon's kit in hand.
+  A rupture is a torn organ bleeding into a cavity no bandage can reach; it
+  does not stop or knit on its own, so without this the patient bleeds out.
+  This is the crude, decisive act that arrests the bleed and lets the body
+  begin to close — battlefield surgery, not the careful work of a proper
+  operating theatre.
 
   Two things it demands that no other treatment does: the patient must be
   lying still, and you must actually know how — `competent` in medicine or

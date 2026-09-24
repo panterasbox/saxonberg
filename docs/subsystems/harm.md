@@ -708,6 +708,15 @@ a vial and crashes the matching burden (D7 — an antidote is a substance
 with a tag, no new mixin). ⚠ The bone-setting verb is `splint`, not
 `set` (`set` is a scripting builtin).
 
+⭐ **`operate` is the honest minimum, not the craft.** It stops a rupture's
+cavity bleed in one decisive FIELD act — deliberately shallow (instant,
+single-wound, cannot-fail: an untrained hand is refused, not risked).
+*Surgery the practice* — a durative, interruptible operation with a
+bleed-during clock, a surgical team, a theatre, and anaesthesia as the
+epoch dial, and the install act for augments/prosthetics — is its own
+build ([surgery-slate](../slates/builds/surgery-slate.md)); this verb is
+the stub that vertical will wrap, not replace.
+
 ### Hygiene and the festering wound
 
 `HygieneMixin` (on `Creature`) is one `washedAt` stamp with a derived

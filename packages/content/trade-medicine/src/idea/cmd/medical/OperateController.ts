@@ -1,14 +1,23 @@
 /**
  * OperateController — `operate <patient> with <kit>` (trade-medicine).
  *
- * A rupture is a bleed into a cavity nobody can reach — `treat` refuses it
- * and names surgery. This is surgery: it closes the wound through the ONE
- * body primitive (`Vitals.applyTreatment` → the rupture's `resolve`
- * arrests the cavity bleed and begins the knit). Unlike a splint, surgery
- * is GATED: the patient must be lying still, and the surgeon must actually
- * know how (`competent` in medicine or better) — a rupture is the one
- * wound where a clumsy hand does harm, so an untrained one is refused by
- * name.
+ * ⭐ **The honest minimum, not the craft.** A rupture is a bleed into a
+ * cavity nobody can reach — `treat` refuses it and names surgery. This is
+ * the crude, decisive FIELD act that stops it: through the ONE body
+ * primitive (`Vitals.applyTreatment` → the rupture's `resolve` arrests the
+ * cavity bleed and begins the knit), in one step. It is deliberately
+ * shallow — instant, single-wound, cannot-fail (untrained is refused, not
+ * risked) — because **"surgery the practice"** (a durative, interruptible
+ * operation with a bleed-during clock, a surgical team, a theatre, and
+ * anaesthesia as the epoch dial — and the install act for
+ * augments/prosthetics) is its own build:
+ * `docs/slates/builds/surgery-slate.md`. This verb is the stub that
+ * vertical will WRAP, not replace.
+ *
+ * GATED, unlike a splint: the patient must be lying still, and the surgeon
+ * must actually know how (`competent` in medicine or better) — a rupture
+ * is the one wound where a clumsy hand does harm, so an untrained one is
+ * refused by name.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
