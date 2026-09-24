@@ -194,22 +194,24 @@ Verified this cycle by opening the files. Paths are relative to
 ### Employment
 
 - `packages/content/terminus/content/world/terminus/infirmary/business.yaml`
-  — `/platform/idea/Business`, one `physician` position (`confers: []`,
-  wage 6), roster 07–19 every day, `banksAt: goodkin`,
+  — `/platform/idea/Business`, one `physician` position (`key/noun/label/
+  wageRate 6`; no `confers` — retired, see below), roster 07–19 every day, `banksAt: goodkin`,
   `operatingLocations: [/world/terminus/infirmary/ward]`. `ward.yaml`
   props the splint, the surgical kit, the antivenin vial, a basin, three
   bandages, the cot, the tariff; `cast: [physician]`. `physician.yaml`
   (Aldis Verrow, `/platform/agent/Cast`) carries `shifts` + `nurses
   (cadenceMs 20000)` brains, `archetype: physician`.
-- ⚠⚠ **In flight: `design/trades-and-labor`** (near-MR, 19 ahead) is a
-  large employment refactor that **retires `Position.confers`** and
-  replaces it with **`fulfills` (a list of Discipline keys the seat serves
-  on shift) + `requires` ({discipline, band} — the hiring gate) +
-  `purchases` + `headcount`**, and it **already edits this
-  `business.yaml`**. It should land first (see Risks). When it has, the
-  nurse position (W6) is authored in the NEW shape, not `confers`; catch up
-  to master before W6. The `medicine` key is stable across it (only its
-  iscedf moves in W0), so the new `nursing` key is additive.
+- ✅ **`design/trades-and-labor` + `design/retire-conferral` MERGED to
+  master (2026-09-24); this branch is caught up.** `Position.confers` is
+  **gone**, replaced by **`fulfills`** (Discipline keys a seat serves an
+  `order` in, on shift) + **`requires: {discipline?, band?}`** (the hiring
+  gate) + `purchases` + `headcount`. Nothing references the old `confers`.
+  The `medicine` Discipline key is unchanged by the merge (only its iscedf
+  moves in W0), so the new `nursing` key is additive. W6 authors the nurse
+  seat in this shape (below). ⭐ Verified: the merge touched none of this
+  build's other substrate (Vitals, Condition, Metabolic, Species, bulk,
+  the Disciplines, comms/implant, ranged/combat/hazard, trade-medicine) —
+  only `business.yaml`.
 
 ### Species
 
@@ -1025,13 +1027,12 @@ MR (W7), and again at `/finalize`.
   one, else omit); `business.yaml` gains the `nurse` position and a `bloodBank`
   dimension expressed as **par lines** (`parLines: [{category: blood,
   level: 2, unit: L}]`) — the blood bank is what the house keeps on
-  hand, not a new field. ⚠ **Author the nurse position in the employment
-  shape that is on master when W6 runs**: after `design/trades-and-labor`
-  merges (expected — see Risks) that is `fulfills: [nursing]` +
-  `requires: {discipline: nursing, band: competent}` (no `confers`); if
-  for some reason it has NOT merged, the shipped shape is `confers: []`.
-  Catch up to master immediately before W6 and read the live
-  `Position`/`business.yaml` shape rather than this line.
+  hand, not a new field. The nurse seat, in the merged employment shape:
+  `{key: nurse, noun: nurse, label: …, wageRate: 4, requires: {discipline:
+  nursing, band: competent}}` — a nurse must be competent in `nursing` to
+  hold the seat. **No `confers`** (retired), and no `fulfills` (the medical
+  acts gate on Discipline competence in their controllers, not on
+  `order`-fulfillment). The physician seat is unchanged.
 - Brains: `nurses.ts` → reads `nursing`, moves to the nurse row; new
   `src/behavior/physicks.ts` for Aldis: on cadence, if a lying patient
   in the room has an operable wound per the catalogue and the kit is
@@ -1212,23 +1213,19 @@ cannot advance game-time.
 - **`lint:conditions` may require non-empty `observableSigns`** — every
   new row authors at least one.
 - **Verb word `bleed`** — a review decision, not a build stop.
-- ⚠⚠ **In-flight collision — `design/trades-and-labor` (employment).**
-  It retires `Position.confers` for `fulfills`/`requires` (Discipline-aware
-  seats) and edits the infirmary `business.yaml`. **Blast radius on this
-  build is contained to W6** (the nurse position) + the one grounding line;
-  W0–W5 (blood, operations, suture, prescription, calendar, drugs) and the
-  Discipline split are independent of employment. **Sequencing:
-  trades-and-labor lands first** (it is near-MR, and its Discipline-aware
-  position is exactly the right home for a nurse seat that `requires`
-  nursing). This build's Stage A can proceed on current master now; **before
-  W6, catch up to master and author the nurse position in the then-current
-  shape**. Also verify trades-and-labor's *"every recipe authors a
-  discipline"* change does not require the new medical acts/`steep` to
-  declare a `discipline:` (they are controllers + an engaged step, not
-  Recipe docs, so expected clear — confirm). `build/ground` (biome/floors)
-  and `design/instrumentation` (design docs only, 2 files) do NOT overlap;
-  instrumentation's subject (measure/analyze/augment) touches `assess`/
-  augment this build only brushes — watch, no code conflict today.
+- ✅ **RESOLVED — `design/trades-and-labor` merged (2026-09-24)** and this
+  branch is caught up. The employment refactor (`fulfills`/`requires`,
+  `confers` retired) is absorbed; W6 authors the nurse seat as `requires:
+  {discipline: nursing, band: competent}` (above), and the merge was
+  verified to touch none of this build's other substrate. ⚠ One thing for
+  the build to confirm when it reaches Stage B: trades-and-labor's *"every
+  recipe authors a discipline"* rule — the new medical acts/`steep` are
+  controllers + an engaged step, not Recipe docs, so expected clear, but
+  verify nothing in the pack ships a Recipe row without a `discipline:`.
+  `build/ground` (biome/floors) and `design/instrumentation` (design docs
+  only) do not overlap; instrumentation's subject (measure/analyze/augment)
+  brushes `assess`/augment this build only touches lightly — watch, no code
+  conflict today.
 - **Stop-and-ask only for**: a worktree hazard; a `lint:schema` diff
   (there must be none); a place where the requirements and this plan
   disagree that this document does not already flag.
