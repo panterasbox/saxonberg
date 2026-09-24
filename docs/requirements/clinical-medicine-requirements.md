@@ -72,7 +72,11 @@ thin drug slice.
 - **Suturing** closes a laceration too big for a bandage (a nursing act,
   a suture kit), and **must be followed up** — stitches come out once
   the wound knits; operations leave a post-op wound that follow-up care
-  advances. The notify alarm flags when a follow-up is due.
+  advances. When a clinician treats, they write the return date to the
+  patient's **personal calendar** (on the aether implant) as a red-letter
+  date — the honest home for "come back in two weeks" (the clinician's
+  prognosis, communicated and diarised, *not* something a wound reveals).
+  The notify alarm stays for the changes a body would actually notice.
 - **Two professions, two Disciplines:** `nursing` (the care loop —
   tend, dress, `draw`, `transfuse`, `administer`, monitor, suture,
   follow-up) advances as its own thing; `medicine` (diagnose, operate,
@@ -116,12 +120,15 @@ thin drug slice.
   ship.)
 - **Prosthetics / limb replacement** → **`augmentation-slate`**.
   Amputation (the removal) is in scope; the replacement is not.
-- **A personal calendar / appointment-booking app** (on the cranial
-  implant or elsewhere) → not needed and not medicine's. Doctors aren't
-  slot-scheduled, so there is nothing to *book*; the treatment "schedule" is
-  the **derived timeline of your own wounds' next transitions**, read off the
-  body (below), not an appointment ledger. A general personal-agenda feature,
-  if ever wanted, is a **client-shell / implant** concern, not this build.
+- **Appointment-BOOKING / slot-scheduling** → out. Doctors aren't
+  slot-scheduled, so there is nothing to *book*. ⚠ Distinct from the
+  **personal calendar**, which IS in scope: this build is the **first
+  consumer** of a new personal-calendar substrate and seeds a thin slice of
+  it (per-player dated entries + an author seam + a read on the aether
+  implant + a ping when due); a treatment writes the aftercare date there.
+  The **full** calendar feature — recurring events, shared calendars, the
+  carried physical-device / paper manifestation, author tooling,
+  write-authorisation — is deferred to **`personal-calendar-slate`**.
 - **The economics of autarky** (whether self-sufficiency pays) →
   emerges from the general economy; this build only guarantees the loop
   is *physically* possible.
@@ -142,6 +149,12 @@ thin drug slice.
   `Business`; the thin drug actives as `trade-medicine` content (the
   antivenin precedent), with local sources cross-referencing forestry
   (willow) / farming (herbs) / `salt-water`.
+- **Personal calendar → a new shared substrate, seeded thin here**
+  (kernel/platform + the implant surface): per-player dated entries + an
+  author seam to add a red-letter date + a `calendar` read on the aether
+  implant. Medicine is the first consumer (writes the aftercare date). The
+  full design + the manifestation fork live in **`personal-calendar-slate`**;
+  this build must leave clean attach points, not build the full feature.
 - ⭐ **Second-instance test:** a second clinic is rows + positions; a
   second drug is a Material row; a second operation is a catalogue row.
   Zero pack code. Biology never lives in the pack.
@@ -162,9 +175,12 @@ thin drug slice.
 - **trade-forestry (willow) / trade-farming (herbs) / base-library
   (salt-water)** — the autarky drug sources.
 - **augmentation** — amputation is the removal seam it consumes later.
-- **blood-slate / pharma-slate** — this build takes their cores and must
-  not contradict their deferred designs (esp. leave the deep economies
-  to them).
+- **personal calendar / the aether implant** (`comms.md`) — the aftercare
+  date is written to the player's calendar on the implant (a new surface on
+  it); the calendar substrate is seeded here, its full design in
+  `personal-calendar-slate`. ⚠ Distinct from game-time (`time.md`).
+- **blood-slate / pharma-slate / personal-calendar-slate** — this build
+  takes their cores and must not contradict their deferred designs.
 
 ## Surface decisions
 
@@ -219,16 +235,34 @@ to volume and mismatch — the values/consequence hook, and the reason
   what is prescribed. This is the psychiatry seam: a future psychiatrist
   is an MD who prescribes for mental conditions.
 
-### Reading the treatment schedule — a derived timeline, not an appointment book
-The body already computes its next interesting transition (`nextInterestingAt`)
-and the notify alarm **pushes** a message when a follow-up comes due (recovery,
-riding the player's existing notification/implant channel). This build adds the
-**pull**: a player can read their **pending follow-ups and rough timing** off
-their own body — likely surfaced through `assess` (the plan picks the exact
-read). ⭐ It is the *derived* care timeline (when wounds are due to change),
-**not** an appointment system — nothing is booked, because doctors are not
-slot-scheduled. It reads anywhere, anytime, without the nurse present (autarky-
-friendly).
+### The return date is a CALENDAR entry, not a body-read or a bespoke record
+⚠ **You cannot look at a wound and know "come back in two weeks."** That is
+the clinician's *prognosis* — expert judgment, communicated to you — not
+something flesh reveals. So `assess` and every body-read stay **honest:
+present state only** (what you'd feel or see now), never a future schedule.
+
+The return date lives where a real person keeps one — a **calendar**. This
+build is the **first consumer of a new personal-calendar substrate**
+(`personal-calendar-slate`) and seeds a thin slice: when a clinician treats,
+they write a **red-letter date** ("remove stitches", the return date) to the
+patient's personal calendar, which lives on the **aether implant** (v1
+manifestation — the comms device everyone already carries). The player reads
+it **on demand** via a `calendar` read, and a ping fires when the date
+arrives.
+
+Persistence is trivial — per-player dated entries on the self-persistence
+spine or the document tree (⚠ **no new Mongo collection**, and **not** the
+record-layer frame store, which the nightly reset wipes). The design weight
+was never the DB; it is the manifestation (the implant) and the author seam,
+both owned by the calendar slate.
+
+⭐ **The date is a product of competent care.** A professional — or a
+competent self-treater (the autarkist) — produces the prognosis and writes
+the entry; an unskilled field-patch writes **nothing**, and you are guessing
+when to return. That is honest, and a real reason to be treated by someone
+who knows. Division of labour with the notify alarm: the **calendar** owns
+the *scheduled* reminder (a date you were given); the **notify alarm** stays
+for *sensed* changes (fever broke, a wound festered).
 
 ### Suturing is a wound-closure tier with mandatory follow-up
 `suture` (a suture kit + thread, nursing/medicine competence) closes an
@@ -342,10 +376,15 @@ A person does this in the live game, in order, and sees:
    **extract the foreign body** — a durative act that spends blood while
    it runs; without the anaesthetic the patient is conscious and it
    shows. Interrupt it once → the wound is left open.
-9. **Suture and follow up.** `suture` a laceration (needs a kit) → it
-   closes better than a bandage. Days later the notify alarm says the
-   stitches are due; **remove** them → the wound completes. Leave them
-   too long → irritation/infection.
+9. **Suture, get the date on your calendar, follow up.** A clinician
+    `suture`s a laceration (needs a kit) → it closes better than a bandage,
+    and the return date lands on your **personal calendar** on the aether
+    implant. Read your `calendar` on demand, anywhere → "remove stitches" on
+    its date. `assess` your wound → present state only, **never** the date
+    (honest). When the date arrives the ping fires; **remove** the stitches →
+    the wound completes. Leave them too long → irritation/infection. A
+    field-patch by an unskilled hand writes **no** calendar entry — you're
+    guessing.
 10. **The profession boundary.** As a nurse (nursing Discipline) you can
     `draw`/`transfuse`/`suture`/`administer`/`tend` but **cannot
     `operate`** (refused — not a doctor) and **cannot `prescribe`**. As a
@@ -371,10 +410,12 @@ A person does this in the live game, in order, and sees:
   **interrupted**, and is **worse conscious** than anaesthetised; all
   five operations are performable on their wounds; a **foreign-body
   wound** exists and only extraction resolves it.
-- `suture` closes a laceration; the player can **read** the pending
-  follow-up and its rough timing off their own body (not just be pushed it,
-  not have to ask the nurse); the notify alarm also flags **stitches due**;
-  removal completes the wound; neglect is worse.
+- `suture` closes a laceration; a competent treatment writes the return
+  date to the patient's **personal calendar** on the aether implant, readable
+  **on demand** via `calendar` (surviving the nightly reset); `assess` shows
+  only present body state, **never** a future date; an unskilled field-patch
+  writes no entry; the date pings when due; removal completes the wound;
+  neglect is worse.
 - A **nurse** can do the care acts but is **refused** `operate` and
   `prescribe`; a **doctor** can; the refusals name why. `nursing` and
   `medicine` each advance on their own acts.
@@ -388,7 +429,10 @@ A person does this in the live game, in order, and sees:
   `augmentation-slate` (prosthetics, fed by amputation), `medic-judgment`
   (diagnosis), `health-vertical` (College of Physic), `mind`/`psychology`
   (mental health, deferred).
+- Slates (cont.): `personal-calendar-slate` (the calendar substrate,
+  first-consumed here).
 - Subsystems: `harm.md`, `vitals.md`, `mortality.md`, `reserve.md`,
   `race.md`, `combat.md`, `ranged.md`, `advancement.md`, `employment.md`,
-  `spoilage.md`, `uncertainty.md`, `accountability.md`.
+  `spoilage.md`, `uncertainty.md`, `accountability.md`, `comms.md`
+  (the implant), `time.md` (game-time, distinct).
 - Related in flight: none.

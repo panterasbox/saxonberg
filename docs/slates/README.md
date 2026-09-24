@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**236 slates.** 53 greenfield · 84 continuations · 55 waves · 44 tails.
+**237 slates.** 54 greenfield · 84 continuations · 55 waves · 44 tails.
 
-## ⭐ Greenfield — nothing shipped yet (53)
+## ⭐ Greenfield — nothing shipped yet (54)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -84,6 +84,7 @@ respect.
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
 | [pathfinding](./builds/pathfinding-slate.md) | ⭐⭐ decide whether a shared pathfinder should exist at all (the pets build concluded *not for animals*; the economic bootstrap concluded *not for a shopkeeper crossing her own street* — see the second datum below, where the answer was authored directions) · the graph vocabulary — exits vs lanes vs conduits vs the elastic Warren · the cost model (legs · distance … |
+| [personal-calendar](./builds/personal-calendar-slate.md) | the full feature — recurring events, per-event reminders/snooze, shared/other-people's calendars, the **carried physical-device / paper alternative** (the RP manifestation), rich author tooling, and the write-authorisation rule (who may put a date on whose calendar). |
 | [pharma](./builds/pharma-slate.md) | the actives/pharmacopoeia content · `neutralizedBy` + `rinse [with <substance>]` (the first row of the pharmacopoeia) · extraction as a process · glass vessels … |
 | [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) … |
 | [prison](./builds/prison-slate.md) | `PrisonMixin` (a locality you cannot leave — the boundary + the custody book, and nothing else) · the three enforcement tiers in content · cells as provisioned shelters on the residence spine · interior law as the prison's own jurisdiction (no `securityLevel`) … |
