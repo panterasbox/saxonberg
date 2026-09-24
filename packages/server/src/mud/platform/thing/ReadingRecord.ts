@@ -120,6 +120,18 @@ export default class ReadingRecord extends ReadingRecordBase {
    */
   public inscribe(fields: Partial<ReadingRecordFields>): void {
     Object.assign(this, fields);
+    // ⚠⚠ **The FIELD, not only the getter.**
+    //
+    // `look` and the inspection card render the stored
+    // `longDescription` field; an overridden `getLongDescription()` is
+    // not consulted by either. The drive caught it at the very last
+    // assertion of the round trip: the paper was minted, carried the
+    // reading, and read back as *"an assay report"* and nothing else.
+    //
+    // ⭐ Same lesson the trades-and-labor build wrote down — *the card
+    // renders FIELDS, not the handed prose* — and the getter stays as
+    // the single place the sentence is composed.
+    this.setLongDescription(this.getLongDescription());
   }
 
   /**
@@ -128,6 +140,7 @@ export default class ReadingRecord extends ReadingRecordBase {
    * which is the whole of *another player can check it*.
    */
   public override getLongDescription(): string {
+    if (this.channel === '') return super.getLongDescription();
     const lines: string[] = [];
     const who = this.takenByLabel || 'somebody';
     const how = this.band ? `, a ${this.band} hand` : '';
