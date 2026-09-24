@@ -843,13 +843,42 @@ async function resolveEnvelopeTemperature(
   const host = scope as Stuff & Container & Atmospheric;
   if (!host.envelopeApplies()) return null;
 
-  host.envelopeOutsideK = await outsideKFor(scope);
+  // ⚠⚠ **Reentry guard, per scope.** Resolving a room's temperature can
+  // reach back into the same room: `outsideKFor` is async, and while it
+  // is in flight a restamp fanned out by something else in the room
+  // (lighting a hearth restamps every Thermal body standing in it) asks
+  // the room how warm it is. The result is a ring of four subsystems,
+  // each individually correct, and a socket that never answers — a
+  // `feel` in a cookhouse with a lit hearth, found by the drive.
+  //
+  // A re-entrant caller gets the room's LAST answer rather than a
+  // fresh integration, which is correct: the outer call is already
+  // computing one.
+  if (envelopeResolving.has(scope.stuffId)) {
+    const held = host.envelopeTemperatureK;
+    return held === null ? null : { value: held, trace: traceOf(host, scope) };
+  }
+  envelopeResolving.add(scope.stuffId);
+  try {
+    host.envelopeOutsideK = await outsideKFor(scope);
+  } finally {
+    envelopeResolving.delete(scope.stuffId);
+  }
   host.reconcileEnvelope();
   const value = host.envelopeTemperatureK;
   if (value === null) return null;
 
-  // The provenance, derived the same way the integration was — so what
-  // `feel` says and what the room DID cannot come apart.
+  return { value, trace: traceOf(host, scope) };
+}
+
+/**
+ * The provenance, derived the same way the integration was — so what
+ * `feel` says and what the room DID cannot come apart.
+ */
+function traceOf(
+  host: Stuff & Container & Atmospheric,
+  scope: Stuff & Container,
+): EnvelopeTrace {
   let heatInputW = 0;
   let hottestSource: string | null = null;
   let hottestW = 0;
@@ -863,17 +892,21 @@ async function resolveEnvelopeTemperature(
     }
   }
   return {
-    value,
-    trace: {
-      outsideK: host.envelopeOutsideK,
-      heatInputW,
-      uWperK: host.envelopeUWperK(),
-      openings: host.openExteriorOpenings(),
-      fabricMaterialPath: host.envelopeFabricMaterialPath(),
-      hottestSource,
-    },
+    outsideK: host.envelopeOutsideK ?? 0,
+    heatInputW,
+    uWperK: host.envelopeUWperK(),
+    openings: host.openExteriorOpenings(),
+    fabricMaterialPath: host.envelopeFabricMaterialPath(),
+    hottestSource,
   };
 }
+
+/**
+ * Scopes whose outside is being resolved right now. Module scope, and
+ * legitimately: a pure re-entrancy marker holding no world state, the
+ * `seasonCache` shape.
+ */
+const envelopeResolving = new Set<string>();
 
 async function resolveQuantityFor<U extends Unit>(
   scope: Stuff & Container,

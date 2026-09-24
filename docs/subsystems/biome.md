@@ -13,6 +13,36 @@ The whole substrate produces honest engineering numbers — Kelvin,
 Pascals, m/s², m³ — so pedagogy can compute `n = PV/RT` against the
 substrate's own state without needing a parallel "real units" track.
 
+
+## ⭐⭐ The line a biome may not cross
+
+> *A biome may say what the outside **AIR** is doing. It may never say
+> how well a **STRUCTURE** holds heat.*
+
+Climate is a fact about the air; construction is a fact about the room.
+The envelope build (2026-09-24) deleted `_defaultTemperature` from
+`indoor/baseline` — the 294 K decree every interior in the realm
+inherited, in January, at 4 a.m., with the door open — and replaced it
+with a derivation from what each room is **built of**.
+
+⚠ Put construction on a biome and **one row warms every room that
+references it**, with no fire in any of them, cascading to everything
+downstream. That is the dishonest-physics failure in its purest form,
+and it is the one that CASCADES. `lint:envelope` holds the line with two
+clauses: (c) no `Biome` row authors `fabric`, `thicknessM` or any
+envelope key; (d) no row under the `/stuff/idea/biome/indoor/` admin
+subtree authors `_defaultTemperature` — *"indoor" is a folder that means
+an enclosure, and an enclosure's temperature is a structure's.*
+
+⭐ What a biome legitimately still says: `underground/upper-workings`
+authors 285 K, because a working **is** that temperature the year round.
+That is the air of the mine. It gets no weather deviation, because it is
+rock rather than sky.
+
+⚠ Note that `indoor/cafeteria-atrium` is a **`SkyExposedBiome` under the
+`indoor/` folder** — an atrium has a glass roof — which is why every
+check here reads the **class**, never the path.
+
 ## Two trees, separated by job
 
 The biome substrate uses **two independent structures** that meet at
@@ -62,7 +92,8 @@ inheritance tree (Biome._extendsBiomePath — independent of paths):
    universe
    ├── outdoor/baseline (SkyExposedBiome)
    │   └── outdoor/meadow            ← 3-deep chain
-   └── indoor/baseline
+   └── indoor/baseline          ← ⭐ authors NO temperature since the
+   │                              envelope build; see below
        └── indoor/cafeteria
            └── indoor/cafeteria-atrium ← scenario C: sibling-with-
                                          extends-ref (path-decoupled

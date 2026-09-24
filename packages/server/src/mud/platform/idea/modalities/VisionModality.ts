@@ -339,15 +339,49 @@ function walkFluxAt(
 
   // (b) Contents-side emitters.
   for (const item of loc.getContents()) {
-    if (!MixinApi.isLightSource(item)) continue;
-    const flux = item.getEmittedFlux().rawValue();
-    if (flux <= 0) continue;
-    const colorTempQ = item.getEmittedColorTemperature();
-    addContribution(acc, flux, {
-      stuffId: (item as unknown as Stuff).stuffId,
-      flux,
-      colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
-    });
+    if (MixinApi.isLightSource(item)) {
+      const flux = item.getEmittedFlux().rawValue();
+      if (flux > 0) {
+        const colorTempQ = item.getEmittedColorTemperature();
+        addContribution(acc, flux, {
+          stuffId: (item as unknown as Stuff).stuffId,
+          flux,
+          colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
+        });
+      }
+    }
+
+    // ⭐⭐ (b′) **A lantern IN SOMEBODY'S HAND lights the room.**
+    //
+    // ⚠ It did not. Leg (b) walks the room's own contents, and a
+    // carried lamp is in the CARRIER's contents, not the room's — so a
+    // player could light a lantern, stand in the pitch dark, and have
+    // the street read exactly as black as before. Acceptance 4 is
+    // *"a player who lights a lantern can work by it"*, and it was
+    // false. Found by the drive: `analyze light` read identically
+    // before and after `light lantern`.
+    //
+    // It is the mirror of a rule the perception gate already has —
+    // *what you HOLD you see in the light of where you stand, not in
+    // the dark of your own pocket*. The light goes the other way for
+    // the same reason: you are holding it up, in this room.
+    //
+    // ONE level deep and only through a person. Not recursive: a lamp
+    // sealed in a chest in a pack is not lighting anything, and a
+    // general recursion would make the hot path walk the world.
+    if (!MixinApi.isContainer(item)) continue;
+    if (loc instanceof Location && item instanceof Location) continue;
+    for (const held of (item as Stuff & Container).getContents()) {
+      if (!MixinApi.isLightSource(held)) continue;
+      const flux = held.getEmittedFlux().rawValue();
+      if (flux <= 0) continue;
+      const colorTempQ = held.getEmittedColorTemperature();
+      addContribution(acc, flux, {
+        stuffId: (held as unknown as Stuff).stuffId,
+        flux,
+        colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
+      });
+    }
   }
 
   if (MixinApi.isAdornable(loc)) {

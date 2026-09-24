@@ -153,7 +153,7 @@ export default class FeelController extends SingleSenseControllerBase {
       return;
     }
     const touch = await (PerceptionApi.modalityByName('touch') as TouchModality).touchAt(location);
-    const cause = await this.temperatureCause(location);
+    const cause = this.temperatureCause(location);
     const bandLine = cause
       ? Mml.compose`The air feels ${touch.band} — ${cause}`
       : Mml.compose`The air feels ${touch.band}.`;
@@ -183,22 +183,32 @@ export default class FeelController extends SingleSenseControllerBase {
    * Sky-exposed scopes add nothing: the weather is the sky's own line,
    * and `look up` is where it belongs.
    */
-  private async temperatureCause(
-    location: Stuff & Container,
-  ): Promise<string | null> {
-    let trace;
-    try {
-      trace = await BiomeApi.traceResolveTemperatureFor(location);
-    } catch {
-      return null;
-    }
-    if (trace.source === 'room') {
+  private temperatureCause(location: Stuff & Container): string | null {
+    // ⚠⚠ **Synchronous, and that is the point.** The first version asked
+    // `BiomeApi.traceResolveTemperatureFor`, which is a SECOND full
+    // async resolve on top of the one `touchAt` has just done — two
+    // address walks, two chain walks, two envelope reconciles per
+    // `feel`. With a lit hearth in the room (whose ignition fans a
+    // restamp out over every Thermal body standing in it) the two
+    // interleaved and the command never answered: thirty seconds of a
+    // socket going round a ring of subsystems, each individually
+    // correct. Found by the drive.
+    //
+    // The room has ALREADY reconciled by the time we get here, so this
+    // reads the state rather than recomputing it — cheaper, and it
+    // cannot re-enter anything.
+    if (!MixinApi.isAtmospheric(location)) return null;
+    if (location._temperature !== null) {
       return 'this place keeps its own temperature, the year round.';
     }
-    const env = trace.envelope;
-    if (trace.source !== 'envelope' || !env) return null;
-
-    const inside = trace.value.rawValue();
+    // ⭐ The room knows why it is the temperature it is; this asks. A
+    // controller walking the room's contents to work out what is
+    // burning in it would be re-deriving what the room already
+    // computed — a second copy of an arithmetic whose whole point is
+    // that the stated reason and the temperature cannot come apart.
+    const env = location.envelopeCause();
+    if (env === null) return null;
+    const inside = env.insideK;
     const material = env.fabricMaterialPath.split('/').pop() ?? 'stone';
 
     if (env.heatInputW > 0 && env.hottestSource) {

@@ -28,7 +28,17 @@ interface AnalyzeLightModel extends CommandModel {
 }
 
 export default class AnalyzeLightController extends CommandController<AnalyzeLightModel> {
-  execute(model: AnalyzeLightModel, context: CommandContext): void {
+  async execute(
+    model: AnalyzeLightModel,
+    context: CommandContext,
+  ): Promise<void> {
+    // ⚠ Warm the modality cache before asking it anything. Modality
+    // singletons are cloned lazily and `preloadForSenseGate` is the only
+    // thing that warms them, so on a fresh world this instrument threw
+    // *"no modality 'vision' loaded"* and reported nothing at all.
+    // Found by the envelope drive, which called it as a DIAGNOSTIC and
+    // got the diagnosis instead.
+    await PerceptionApi.preloadForSenseGate(context.commandGiver);
     // Provenance: the instrument that afforded this verb, if any.
     const via = this.affordingSource(context);
     const giver = context.commandGiver;

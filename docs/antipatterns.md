@@ -5303,3 +5303,146 @@ not part of the room's own description.
 browser player has ever seen a puddle. The general answer (a card that
 renders the prose it was handed) is
 [carded-prose-slate](./slates/tails/carded-prose-slate.md).
+
+## A dynamic detail guarded on `senseOrParent !== undefined`
+
+**Wrong** — the live line never renders, and the test that would have
+caught it does not exist because the seam looks obvious:
+
+```ts
+override getDetail(id, senseOrParent?, parent?): string | null {
+  const base = super.getDetail(id, senseOrParent as SenseChannel, parent);
+  if (id !== 'tower' || senseOrParent !== undefined) return base;   // ⚠
+  return `${base} ${this.liveReading()}`;
+}
+```
+
+**Right** — treat the default sense as the visual read:
+
+```ts
+const visual = senseOrParent === undefined || senseOrParent === 'vision';
+if (id !== 'tower' || !visual) return base;
+```
+
+⭐ **Why.** `look <detail>` does not call `getDetail(id)`. It calls
+`host.getDetailFor(viewer, dotted)`, and `getDetailFor`'s signature is
+`(viewer, id, sense: SenseChannel = 'vision', parent?)` — so by the time
+the override sees it, `senseOrParent` is the string `'vision'`, never
+`undefined`. The guard is always true, the early return always fires,
+and the player reads the static text forever.
+
+⚠⚠ **It shipped this way.** `Crossing.getDetail` is the codebase's one
+dynamic-detail precedent — the University Avenue clock tower's live
+reading — and it has carried this guard since it landed, so `look tower`
+has never shown the time. It was found only because the envelope build
+wrote a street-lamp detail *from that file* and a wire drive asserted
+the prose; both were fixed together (2026-09-24).
+
+The general lesson is the one `docs/testing.md` keeps making: **a seam
+whose only consumer is prose needs a drive.** No unit test failed here
+— the mixin's own suite calls `getDetail(id)` directly and passes — and
+no type error was possible, because `undefined` is a legal value of the
+parameter. Only somebody typing the verb could tell.
+
+## A sync read of a LAZILY-WARMED singleton on a path nothing preloads
+
+**Wrong** — works in every test, throws on a fresh world:
+
+```ts
+// in a room-level render
+const band = this.perceivedBandAt(actor, location);   // ⚠ cold cache
+```
+
+**Right** — warm it on the path that reads it:
+
+```ts
+await PerceptionApi.preloadForSenseGate(actor);
+const band = this.perceivedBandAt(actor, location);
+```
+
+⭐ **Why.** `PerceptionApi.modalityByName` reads a cache filled by a
+path-glob over live modality singletons, and those singletons are cloned
+**lazily**: the only thing that warms them is `preloadForSenseGate`. The
+verbs that needed a modality called it; nothing else did, and nothing
+else needed to — until a build made `look`'s room render ask the light
+band. On a fresh world that threw *"no modality 'vision' loaded"*, the
+defensive catch swallowed it, and **every room in the realm described
+itself at midnight** (2026-09-24).
+
+⚠⚠ **No unit test can catch this class.** A unit fixture calls
+`buildAllModalities()` in `beforeEach`, so its cache is *always* warm —
+the failure exists only where the cache is cold, which is a real boot.
+It is the **boot** link of the five reachability links, and it is the
+one this project has now paid for four times (the reference-Idea roster,
+three separate builds, and this).
+
+The general rule: **if you add a synchronous read of a lazily-warmed
+singleton to a code path that did not previously touch it, you have
+added a new consumer of the warm — and the warm is not yours to assume.**
+
+## A reader that DRIVES the thing it is reading
+
+**Wrong** — the read integrates, and the integration reaches back:
+
+```ts
+// on a body's own reconcile
+const roomK = scope.envelopeTemperatureSync();   // ⚠ integrates the room
+```
+
+**Right** — the room integrates itself; readers inside it read:
+
+```ts
+const roomK = scope.envelopeTemperatureLast();   // the last integration
+```
+
+⭐ **Why.** `envelopeTemperatureSync()` runs the room's integration,
+which walks the room's contents. One of those contents is a fire;
+asking a fire anything can restamp every Thermal body standing in the
+room; a body's restamp resolves the room's temperature. The ring is
+four subsystems long and **every one of them is individually correct**.
+
+⚠⚠ **A per-call reentry guard does not close it**, because the cycle
+runs through an `await`: by the time the second entry arrives the first
+has already released. Two guards were added before the shape of the
+problem was clear, and both were right to add and neither was enough.
+
+The rule that does close it is a **direction**: *the thing that owns the
+state integrates it; everything inside it reads.* A reader loses nothing
+— the room re-integrates whenever anything **resolves** its temperature,
+which is every `feel`, every `measure`, and the restamp path one level
+up — so the value is never more than one event stale.
+
+⭐ The tell to look for: **a `reconcile`-shaped call inside another
+subsystem's `reconcile`.** If A's reconcile can reach B's, and B's can
+reach A's, no amount of guarding makes that safe; one of them has to
+become a reader.
+
+## A second object answering to a keyword something in the room already claims
+
+**Wrong** — two things in one room answer to `hearth`:
+
+```yaml
+# the oven row, shipped
+keywords: [clay, oven, hearth, furnace]
+# …and a Hearth placed in the same room's props:
+keywords: [hearth, fire, fireplace, grate, hob]
+```
+
+**Right** — put it in a room where the word is unclaimed, or give the
+newcomer a name of its own.
+
+⭐ **Why it matters more than it looks.** `light hearth` becomes
+ambiguous, the binder raises a disambiguation prompt, and until somebody
+answers it **the session answers nothing else**. Over a socket that is
+indistinguishable from a deadlock, and it cost three drive runs and two
+(correct, unnecessary) reentry guards before a ten-second unit test
+said *the engine is fine, look at the content* (2026-09-24).
+
+⚠ A player hits it identically. It is not a test artefact.
+
+**The diagnostic lesson, which generalises past keywords:** a session
+that stops answering is not evidence of a deadlock — it is evidence that
+**something is waiting**, and a prompt is the cheapest thing that waits.
+Check for an unanswered prompt before you go looking for a cycle, and
+reproduce in a unit test early: a unit test that *passes* is the fastest
+way to be told you are chasing the wrong subsystem.

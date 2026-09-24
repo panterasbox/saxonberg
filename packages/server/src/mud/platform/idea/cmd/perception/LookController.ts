@@ -172,6 +172,17 @@ export default class LookController extends CommandController<LookModel> {
     // in the same room get different answers — the one thing a species
     // vision profile has never been able to affect, because until this
     // build nowhere was dark.
+    //
+    // ⚠⚠ **The preload is load-bearing, and it is the BOOT link.**
+    // Modality singletons are cloned lazily, and the only thing that
+    // warms them is `preloadForSenseGate` — which `lookAtTarget` calls
+    // and this branch never did, because until now nothing in the
+    // room-level render asked a modality anything. On a fresh world the
+    // band read therefore threw *"no modality 'vision' loaded"*, the
+    // catch swallowed it, and **every room described itself at
+    // midnight**. Found by the drive; no unit test could see it,
+    // because a unit fixture builds its modalities in `beforeEach`.
+    await PerceptionApi.preloadForSenseGate(actor);
     const band = this.perceivedBandAt(actor, location);
 
     // Visible-mixin filter mirrors `lookAtTarget`'s structural-only

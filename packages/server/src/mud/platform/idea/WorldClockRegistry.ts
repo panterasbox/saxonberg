@@ -552,10 +552,25 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       () => void AddressApi.settleStreetLighting(this.getNow().rawValue()),
       { startAt: Quantity.of(nextSunset, 's'), tag: 'civic:lighting' },
     );
-    // ⭐ And settle NOW if it is already dark: a reboot in the evening
-    // must not leave the town unlit until tomorrow's sunset.
+    // ⭐ And settle shortly AFTER boot if it is already dark: a reboot in
+    // the evening must not leave the town unlit until tomorrow's sunset.
+    //
+    // ⚠⚠ **A short delay, not an immediate call.** `registerSystemSchedules`
+    // runs during the clock's own restore, which is BEFORE the packs
+    // install — so an immediate settle walks a world with no localities
+    // and no streets in it, lights nothing, and stamps tonight as
+    // already-settled. The town then stays dark until the next sunset,
+    // which is two real hours away. Found by the drive: every funded
+    // street read *"the lamps stand cold"* on a fresh world.
+    //
+    // A minute of game time is five real seconds at the shipped scale —
+    // comfortably after boot, and still the same night.
     if (CelestialApi.skyFactorNow() < CelestialApi.lampDuskFactor()) {
-      void AddressApi.settleStreetLighting(this.getNow().rawValue());
+      this.after(
+        Quantity.of(60, 's'),
+        () => void AddressApi.settleStreetLighting(this.getNow().rawValue()),
+        { tag: 'civic:lighting:boot' },
+      );
     }
   }
 

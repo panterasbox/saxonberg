@@ -163,6 +163,43 @@ describe('the sky leg', () => {
     expect(vision().bandAt(shop)).toBe('pitch-black');
   });
 
+  it('⭐⭐ a lantern IN SOMEBODY\'S HAND lights the room', async () => {
+    // ⚠ It did not. The walk's contents leg sees the ROOM's contents,
+    // and a carried lamp is in the CARRIER's — so a player could light
+    // a lantern, stand in the pitch dark, and have the street read
+    // exactly as black as before. Acceptance 4 is *"a player who
+    // lights a lantern can work by it"*, and it was false until the
+    // drive read `analyze light` before and after and got the same
+    // number twice.
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(3);
+    const room = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(room, 0, 0, 0);
+    expect(vision().bandAt(room)).toBe('pitch-black');
+
+    const { ContainerMixin } = await import('../../../../lib/spatial/Container');
+    const { ContainableMixin } = await import(
+      '../../../../lib/spatial/Containable'
+    );
+    const { LightSourceMixin } = await import(
+      '../../../../lib/perception/LightSource'
+    );
+    const Thing = (await import('../../../../lib/stuff/Thing')).default;
+    class Person extends ContainerMixin(ContainableMixin(Thing)) {}
+    class Lantern extends LightSourceMixin(ContainableMixin(Thing)) {}
+    const { ContainmentApi } = await import('../../../../api/containment');
+
+    const alice = makeStuff(() => new Person());
+    ContainmentApi.move(alice as never, room as never);
+    expect(vision().bandAt(room)).toBe('pitch-black'); // a person is not a light
+
+    const lamp = makeStuff(() => new Lantern());
+    lamp.setEmittedFlux(220);
+    ContainmentApi.move(lamp as never, alice as never);
+    // 220 lm over a 9 m² cell ≈ 24 lux: lit enough to work by.
+    expect(vision().bandAt(room)).toBe('lit');
+  });
+
   it('an enclosed room with no source is dark at every hour of the day', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(3);

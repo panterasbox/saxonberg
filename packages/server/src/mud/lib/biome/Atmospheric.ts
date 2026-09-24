@@ -171,6 +171,19 @@ export interface Atmospheric {
   /** How many exterior openings currently stand open. */
   openExteriorOpenings(): number;
 
+  /** The room's temperature as last integrated, WITHOUT integrating. */
+  envelopeTemperatureLast(): number | null;
+
+  /** Why the room is the temperature it is — what `feel` says out loud. */
+  envelopeCause(): {
+    insideK: number;
+    outsideK: number;
+    heatInputW: number;
+    openings: number;
+    fabricMaterialPath: string;
+    hottestSource: string | null;
+  } | null;
+
   /** The room's heat-loss coefficient and heat capacity, or `null`. */
   envelopeCoefficients(): {
     uWperK: number;
@@ -287,6 +300,23 @@ export function AtmosphericMixin<
      * cache costs one lookup rather than correctness.
      */
     private _envelopeResolved: EnvelopeFabric | null = null;
+    /**
+     * ⚠⚠ **Reentry guard, and it is load-bearing.**
+     *
+     * `reconcileEnvelope` walks the room's contents asking each
+     * `SpaceHeating` source for its output. `spaceHeatOutputW()` asks
+     * `isLit()`, which runs `reconcileFurnaceFuel()`, whose burnout
+     * edge calls `restampHeated()` → `ThermalMixin.restamp()` →
+     * `effectiveAmbient()` → `BiomeApi.resolveTemperatureFor(container)`
+     * → **this room's envelope again**.
+     *
+     * `ThermalMixin` has had `_thermalReconciling` for exactly this
+     * reason; the envelope needed its own. Found by the drive, as a
+     * `feel` in the cookhouse that never answered — thirty seconds of
+     * a socket going round a ring of four subsystems, each of which is
+     * individually correct.
+     */
+    private _envelopeReconciling = false;
 
     // ---------- biome reference ----------
 
@@ -634,6 +664,7 @@ export function AtmosphericMixin<
      * the next, and noted in thermal.md.
      */
     public reconcileEnvelope(): void {
+      if (this._envelopeReconciling) return;
       if (!this.envelopeApplies()) return;
       const outside = this.envelopeOutsideK;
       if (outside === null) return;
@@ -654,20 +685,25 @@ export function AtmosphericMixin<
       const coeff = this.envelopeCoefficients();
       if (coeff === null) return;
 
-      let heatW = 0;
-      const self = this as unknown as Stuff & Container;
-      for (const occupant of self.getContents()) {
-        if (!MixinApi.isSpaceHeating(occupant)) continue;
-        heatW += occupant.spaceHeatOutputW();
-      }
+      this._envelopeReconciling = true;
+      try {
+        let heatW = 0;
+        const self = this as unknown as Stuff & Container;
+        for (const occupant of self.getContents()) {
+          if (!MixinApi.isSpaceHeating(occupant)) continue;
+          heatW += occupant.spaceHeatOutputW();
+        }
 
-      const steadyState = outside + heatW / coeff.uWperK;
-      this.envelopeTemperatureK = Decay.toward(
-        this.envelopeTemperatureK,
-        steadyState,
-        elapsed,
-        coeff.capacityJPerK / coeff.uWperK,
-      );
+        const steadyState = outside + heatW / coeff.uWperK;
+        this.envelopeTemperatureK = Decay.toward(
+          this.envelopeTemperatureK,
+          steadyState,
+          elapsed,
+          coeff.capacityJPerK / coeff.uWperK,
+        );
+      } finally {
+        this._envelopeReconciling = false;
+      }
     }
 
     /**
@@ -744,6 +780,53 @@ export function AtmosphericMixin<
     }
 
     /**
+     * ⭐ **Why this room is the temperature it is**, synchronously, as
+     * last integrated — the read `feel` turns into a sentence.
+     *
+     * Lives here rather than in the controller for two reasons, and the
+     * second is the one that matters: a controller walking a room's
+     * contents to work out what is burning in it is a controller
+     * re-deriving what the room already knows (`lint:instrument-args`
+     * fails it by shape, and is right to), and a second copy of that
+     * walk is a room whose stated reason could disagree with its own
+     * temperature.
+     */
+    public envelopeCause(): {
+      insideK: number;
+      outsideK: number;
+      heatInputW: number;
+      openings: number;
+      fabricMaterialPath: string;
+      hottestSource: string | null;
+    } | null {
+      const inside = this.envelopeTemperatureLast();
+      const outsideK = this.envelopeOutsideK;
+      if (inside === null || outsideK === null) return null;
+
+      let heatInputW = 0;
+      let hottestSource: string | null = null;
+      let hottestW = 0;
+      const self = this as unknown as Stuff & Container;
+      for (const occupant of self.getContents()) {
+        if (!MixinApi.isSpaceHeating(occupant)) continue;
+        const w = occupant.spaceHeatOutputW();
+        heatInputW += w;
+        if (w > hottestW) {
+          hottestW = w;
+          hottestSource = (occupant as unknown as Stuff).getPresentation();
+        }
+      }
+      return {
+        insideK: inside,
+        outsideK,
+        heatInputW,
+        openings: this.openExteriorOpenings(),
+        fabricMaterialPath: this.envelopeFabricMaterialPath(),
+        hottestSource,
+      };
+    }
+
+    /**
      * The scope's own temperature (K), reconciled, or `null` when no
      * envelope applies or its outside was never seeded. Sync, because
      * the thermal reconcile reads it on every vitals poll.
@@ -752,6 +835,29 @@ export function AtmosphericMixin<
       if (!this.envelopeApplies()) return null;
       if (this.envelopeOutsideK === null) return null;
       this.reconcileEnvelope();
+      return this.envelopeTemperatureK;
+    }
+
+    /**
+     * ⭐⭐ The room's temperature **as last integrated**, without
+     * integrating. For readers that are inside the room.
+     *
+     * ⚠⚠ **The room integrates itself; bodies READ it.** A body's
+     * reconcile calling `envelopeTemperatureSync()` closes a ring: the
+     * room's integration walks its contents, lighting a fire restamps
+     * every Thermal body standing in it, a restamp resolves the room's
+     * temperature, and round it goes. Four subsystems, each
+     * individually correct, and a `feel` in a cookhouse with a lit
+     * hearth that never answered — found by the drive.
+     *
+     * Reading the last value costs a body nothing in accuracy: the room
+     * re-integrates whenever anything resolves its temperature, which
+     * includes every `feel`, every `measure`, and the body's own
+     * re-stamp path one level up.
+     */
+    public envelopeTemperatureLast(): number | null {
+      if (!this.envelopeApplies()) return null;
+      if (this.envelopeOutsideK === null) return null;
       return this.envelopeTemperatureK;
     }
 

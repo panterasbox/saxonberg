@@ -583,7 +583,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const scope = (self as unknown as { getContainer(): Stuff | null })
         .getContainer();
       if (scope === null || !MixinApi.isAtmospheric(scope)) return;
-      const envelopeK = scope.envelopeTemperatureSync();
+      const envelopeK = scope.envelopeTemperatureLast();
       if (envelopeK !== null) this.lastAmbientK = envelopeK;
     }
 

@@ -118,6 +118,12 @@ describe("general-store content integrity", () => {
     expect(room.data?.props).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",
+      // ⭐ A hearth (the envelope build). A shop with a street door
+      // that opens all day is the room that most obviously wants one,
+      // and it gives the realm one place a player can walk into, light
+      // a fire, and feel the room change — which is what makes the
+      // envelope something a person can act on rather than read about.
+      "/stuff/thing/Hearth",
     ]);
     // The troupe is declared, not derived: the NPCs ride `cast:`.
     expect(room.data?.cast).toEqual([

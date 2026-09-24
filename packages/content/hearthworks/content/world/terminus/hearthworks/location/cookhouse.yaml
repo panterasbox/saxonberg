@@ -42,13 +42,6 @@ data:
     z: 0
   props:
     - /stuff/thing/Oven
-    # ⭐⭐ The hearth, and it is NOT the oven (envelope W4). An oven heats
-    # what you put IN it and always has; a hearth heats where you STAND.
-    # Two objects, two claims, and the difference is composition rather
-    # than any code asking which is which — `Oven` does not compose
-    # `SpaceHeatingMixin` and `Hearth` does. A cook works beside a lit
-    # oven in a cookhouse that is still cold until this is burning.
-    - /stuff/thing/Hearth
     - /trade/cooking/thing/cook-pot
     # ⭐ The water butt is load-bearing, not scenery: a wet recipe declares
     # `medium: water` and must MATCH an input carrying the water tag, so a

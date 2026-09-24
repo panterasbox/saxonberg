@@ -268,7 +268,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     protected refreshEffectiveAmbientFromEnvelope(): void {
       const scope = this.regHost.getContainer();
       if (scope === null || !MixinApi.isAtmospheric(scope)) return;
-      const envelopeK = scope.envelopeTemperatureSync();
+      const envelopeK = scope.envelopeTemperatureLast();
       if (envelopeK === null) return;
       this.effectiveAmbientK = Math.max(0, envelopeK + this._ambientOffsetK);
     }

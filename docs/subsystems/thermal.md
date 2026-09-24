@@ -324,10 +324,121 @@ realistic hold-times, not derived from wall thickness); and a **single
 barrier + single wall** per object (a two-wall flask lumps to one term).
 Honest engineering numbers, game-tuned — not CFD.
 
+## ⭐⭐ The envelope — a room holds a state different from its outside
+
+The envelope build (2026-09-24). Indoor temperature used to be a
+**decree**: one biome row authored 294 K and every interior in the realm
+inherited it, in January, at 4 a.m., with the door standing open.
+
+Now a room's warmth is **derived** — it drifts toward outside at a rate
+its construction and its openings set, and is pushed up by whatever is
+burning in it. The state lives on `AtmosphericMixin`
+(`envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK`),
+because *every scope that can carry an atmosphere can hold a state
+different from its outside* — true of a room and of a wardrobe, and
+**inert where `getVolume()` is null**, which is the geometry answering
+rather than a guard.
+
+### ⭐ Authors author CAUSES, not EFFECTS
+
+> *You cannot author "well-insulated"; you author granite and the
+> physics decides.*
+
+`FabricSpec { material, thicknessM }` on `Location`, beside `floor` and
+with the same doctrine — a Location **names** a material exactly as it
+names its floor's, and stays space rather than matter. A U-value is an
+*effect*, and an authored effect is a room warm for no reason a player
+can be told. The 154 content rows that already carry a real
+`thermalConductivity` are what make the honest version cheap.
+
+This **dissolves** the agreement problem rather than working around it:
+a granite shopfront with a timber stockroom behind it is *a stone shop
+with a timber lean-to*. The dishonesty was never *rooms differ* — it was
+*rooms differ for no reason*, and a material is a reason.
+
+### The arithmetic
+
+`T ← Decay.toward(T, outside + P/U, elapsed, C/U)` with
+
+- `U_fabric = A / (t/k + R_films)` — conduction through the wall **in
+  series with the still-air films either side of it** (~0.17 m²K/W).
+  ⚠ Without the film term a high-conductivity fabric is absurd rather
+  than merely bad: an iron sheet computes to 16 000 W/K. With it the
+  same shed is ~265 W/K, and real granite (2.9 W/(m·K)) gives a 3 m cell
+  ~165 W/K instead of 435.
+- `U_open = openingUPerM3 · V · n` — an open door is the inside air
+  leaving, not conduction, so it scales with volume.
+- `C = C_air + ρ·c·A·activeDepth` — the **skin** of the fabric that
+  answers within the hour. The stone holding the day is literally this
+  term.
+- `P = Σ spaceHeatOutputW()` over `SpaceHeating` contents.
+
+⚠⚠ **A reentry guard, and it is load-bearing.** The contents walk asks
+each heat source for its output; `spaceHeatOutputW()` asks `isLit()`,
+which runs the fuel reconcile, whose burnout edge calls
+`restampHeated()` → `ThermalMixin.restamp()` → `effectiveAmbient()` →
+`BiomeApi.resolveTemperatureFor(container)` → **this room's envelope
+again**. Four subsystems, each individually correct, closing a ring.
+`ThermalMixin` has had `_thermalReconciling` for the same reason since
+it shipped. Found by the drive as a `feel` that never answered.
+
+⚠⚠ **No far-past guard, deliberately.** A body's long absence is a
+logout and is dropped; a **room's** is a fact about the world, and a
+room left overnight is cold in the morning.
+
+### ⭐⭐ The room integrates itself; bodies READ it
+
+`envelopeTemperatureLast()`, not `envelopeTemperatureSync()`. A body's
+reconcile calling the integrating read closes a ring **through an
+await**, which no per-call reentry guard catches: the room's integration
+walks its contents → lighting a fire restamps every Thermal body
+standing in it → a restamp resolves the room's temperature → round it
+goes. Four subsystems, each individually correct, and a `feel` in a
+cookhouse with a lit hearth that never answered.
+
+⚠ It costs a body nothing in accuracy. The room re-integrates whenever
+anything **resolves** its temperature — every `feel`, every `measure`,
+and the body's own re-stamp path one level up — so the value a body
+reads is never more than one event stale.
+
+### Reaching bodies and food: the PULL side
+
+`lastAmbientK` is a cache stamped at placement and movement events, and
+a room whose temperature drifts *continuously* produces no such event.
+So both `ThermalMixin.reconcileThermal` and
+`ThermalRegulationMixin.reconcileThermalRegulation` re-read the room's
+envelope at the top of their reconcile — three lines each, no scheduler,
+no fan-out. The body caches the **offset** (wind chill, a warming seat,
+a soaking) and re-derives on the raw number.
+
+### ⭐ Cold is a cost, not a corpse
+
+The cold branch was retuned by measurement (`Thermal.cold.gym.test.ts`
+prints the table). Before: **every** row of sixteen was dead inside
+twelve game hours, including a body in a wool coat in a 21 °C room.
+
+- `CLO_TO_KELVIN` 2.5 → **8**, which is the number the unit is *defined*
+  by: a naked body's comfort floor is 302 K, and one clo is comfort at
+  21 °C, so one clo is worth 8 K.
+- `COLD_SPEND_PER_DEGREE` 0.05 → **0.005**, calibrated with the cap so
+  the gap shivering can close is **20 K** — which puts a naked body's
+  drift target on an 8 °C night at exactly the shipped `survivableMin`.
+- ⭐⭐ **`COLD_SPEND_MAX_BASAL_MULT = 5`.** Shivering peaks at about five
+  times resting metabolism. The shipped branch was linear and
+  **uncapped**, so a cold enough room drained the tank and the body
+  **starved to death in a snowdrift** — the wrong death twice, because
+  cold kills by cooling you and hypothermia is rescuable. Past the
+  coverable gap the body drifts toward `ambient + coveredGap`.
+- Worn `clo` now enters `bodyTau()`: insulation matters most once you
+  have stopped generating heat.
+
 ## Non-goals (deliberate)
 
 Object-to-object conduction (a hot pot doesn't warm the table),
-ventilation (no inter-room air mixing — weather-adjacent), installed
+~~ventilation (no inter-room air mixing — weather-adjacent)~~ — ⭐
+**narrowed, not lifted**: a room exchanges heat with **outside** and its
+openings set the rate; rooms still do not mix air with each other as a
+general mechanism, and an interior doorway counts for nothing. Installed
 thermal gear (augment cooling), temperature-blending glob merge, heated
 vehicle cabins, sauna
 rooms (the heat-index/wet-bulb *model* is in; rooms are not), campfire

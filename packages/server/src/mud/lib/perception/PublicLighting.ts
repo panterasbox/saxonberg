@@ -179,7 +179,20 @@ export function PublicLightingMixin<TBase extends MixinConstructor<Stuff>>(
         }
       ).getDetail?.call(this, id, senseOrParent, parent) ?? null;
       const spec = this.publicLighting;
-      if (!spec || id !== spec.detail || senseOrParent !== undefined) {
+      // ⚠⚠ `'vision'`, not `undefined`. `getDetailFor(viewer, id)` — which
+      // is what `look <detail>` actually calls — passes `sense =
+      // 'vision'` by default, so a guard written as `senseOrParent !==
+      // undefined` returns the static text every single time and the
+      // live line NEVER RENDERS.
+      //
+      // ⭐ Found by the drive, and it is not only this mixin's bug:
+      // `Crossing.getDetail` — the one shipped dynamic-detail precedent,
+      // which this was written from — carries the identical guard, so the
+      // clock tower's live reading has never appeared on `look tower`
+      // either. Both are fixed together.
+      const visual =
+        senseOrParent === undefined || senseOrParent === 'vision';
+      if (!spec || id !== spec.detail || !visual) {
         return base;
       }
       const live =

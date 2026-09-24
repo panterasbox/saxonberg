@@ -47,7 +47,14 @@ export default class Crossing extends SingletonCartesianLocation {
     parent?: DetailId,
   ): string | null {
     const base = super.getDetail(id, senseOrParent as SenseChannel, parent);
-    if (id !== 'tower' || senseOrParent !== undefined) return base;
+    // ⚠⚠ `'vision'`, not `undefined`. `look tower` routes through
+    // `getDetailFor(viewer, id)`, which defaults `sense` to `'vision'` —
+    // so this guard returned the static text EVERY TIME and the live
+    // clock reading has never rendered since the day it shipped. Found
+    // by the envelope drive, whose street-lamp detail was written from
+    // this file and inherited the bug.
+    const visual = senseOrParent === undefined || senseOrParent === 'vision';
+    if (id !== 'tower' || !visual) return base;
     const reading = this.readTowerReading();
     if (!reading) return base;
     const live = `Across the avenue, the terminal clock tower reads ${reading}.`;

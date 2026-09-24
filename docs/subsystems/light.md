@@ -346,8 +346,78 @@ storage is always primitive scalars.
 
 **`AmbientLitMixin`:**
 
-- Persistent: `ambientIntensity: number` (lumens),
-  `ambientColorTemperature: number | null` (Kelvin).
+### ⭐⭐ Ambient light is DERIVED; only the exceptions are authored
+
+The envelope build (2026-09-24) inverted this mixin's contract. Before
+it, a room's ambient light was **a number somebody typed**: 84 of 195
+Location rows authored one, 111 did not, and neither group had a reason
+— the university-avenue crossing, the market square, the terminal hall
+and the general store's shop floor authored nothing and were therefore
+**pitch black at noon**, while a dormitory authored 30 lumens that meant
+*lit by day* and burned all night.
+
+Now:
+
+- **A scope open to the sky follows the sun**, the moon's phase and
+  altitude, and the cloud — because its biome says it is open to the
+  sky. No row declares it, so no row can disagree with its own biome.
+- **A scope that is not open to the sky has no ambient at all**, and is
+  dark unless something in it is lit or light spills in through an
+  opening.
+- **The noon flux is derived too**: `light.sky.noonLux` (80) times the
+  scope's own light-receiving area, so an unauthored room is lit
+  correctly **for its size**. An authored `ambientIntensity` is a
+  *calibration override* — authorial control over a place brighter or
+  gloomier than its size suggests — and the sky still moves it.
+
+The three departures are the `AmbientSource` vocabulary, and
+`lint:light-sources` keeps a curated list of every row that declares
+one:
+
+| value | what it means |
+|---|---|
+| `null` (the ordinary case) | **derived** — ask the biome chain |
+| `'sky'` | daylight reaches an enclosed room through an opening. The row must name that opening (`ambientOpening`, a detail id), which is what makes *"daylight reaches this room"* a claim a player can walk up to and look at rather than another number |
+| `'glow'` | an inherent, always-on, non-sky ambient — a luminous cave, the holodeck floor. Does **not** follow the sun |
+| `'none'` | a sky-exposed scope that is nonetheless dark — the bottom of a shaft |
+
+⭐ The read is `isSkyLit()`, and the **weather's cloud dim now follows
+it** rather than following sky *exposure*: a skylight is dimmed by cloud
+exactly as a yard is. ⚠ An enclosed skylit room asks for the *exposed*
+weather sample explicitly, because `computeResolved` runs the procgen
+sky field only for exposed scopes and would otherwise dim a shop window
+by a biome baseline nobody is standing under.
+
+### ⭐⭐ A carried light lights the room
+
+The propagation walk's contents leg reads the **room's** contents, and a
+carried lamp is in the **carrier's** — so until the envelope build a
+player could light a lantern, stand in the pitch dark, and have the
+street read exactly as black as before. It never mattered, because
+nowhere was dark.
+
+The walk now looks **one level** into a room occupant. That is the
+mirror of a rule the perception gate already has — *what you HOLD you
+see in the light of where you stand, not in the dark of your own
+pocket* — and the light travels the other way for the same reason: you
+are holding it up, in this room.
+
+⚠ One level, and only through a person. A lamp sealed in a chest inside
+a pack is not lighting anything, and a general recursion would make the
+hot path walk the world.
+
+### ⚠ A band shift cannot manufacture photons
+
+`Light.applyBandShift` is index arithmetic on the lux tag table, so a
+`bandShift: +1` species read `very-dim` in a sealed cellar **with no
+light in it at all**. Never noticed, because until this build nowhere
+was dark. `perceiveFor` now applies the shift only to a non-zero signal:
+seeing further into the dark is not seeing in the absence of light.
+
+- Persistent: `ambientIntensity: number` (lumens — the noon
+  **calibration**, not the light itself),
+  `ambientColorTemperature: number | null` (Kelvin),
+  `ambientSource: AmbientSource | null`, `ambientOpening: string | null`.
 - Runtime:
   - `getAmbientFlux(): Quantity<'lumen'>`
   - `setAmbientFlux(Quantity<'lumen'> | number | string)` — string
@@ -681,13 +751,71 @@ constructs it from the stored scalars and never persists the
 [quantities.md § Persistence](./quantities.md#persistence) for the
 broader Quantity persistence story.
 
+## ⭐⭐ The sky, and the town's lamps
+
+### The sky is a sync memo
+
+`CelestialApi.skyIlluminanceFactor(profile, lat, t, opts?)` is pure
+geometry — plain numbers in and out, beside the altitude formulas it is
+checked against — and `skyFactorNow()` is a per-game-minute memo over it
+on the `CelestialLogic` singleton. **Synchronous, because the light walk
+is.** Three factors compose and none knows the other:
+
+```
+flux = the scope's own noon flux  ×  skyFactorNow()  ×  weatherDimFactor
+```
+
+The curve is a sun term, a moon term and a starlight floor. ⚠ The sun
+term is `HORIZON_DIFFUSE + (1 − HORIZON_DIFFUSE)·sin α` above the
+horizon and `HORIZON_DIFFUSE · 10^(α/decade)` below it, **and the two
+branches meet**: written as a bare `sin α` above, the factor steps from
+0 *up* to 0.1 as the sun sets and a street gets brighter at sunset. The
+moon's phase term is **squared** (`((1 − cos 2πp)/2)²`), which is the
+real thing — a half moon is about a tenth of a full one, not a half.
+
+⚠⚠ **One sky for one world.** `skyFactorNow()` reads `EARTH_LIKE` at
+`CAMPUS_LATITUDE` and asks no location, so Terminus and Rejection share
+a sun. `CelestialLogic.profileFor` **throws by name** if a zone ever
+authors a second celestial profile, and `lint:light-sources` clause (f)
+refuses the row — per-zone profiles are a named deferred seam rather
+than a silent half-truth.
+
+### The town's lamps are a PROPERTY of the street
+
+`PublicLightingMixin` on `CartesianLocation`. A street declares that the
+service runs here (`flux`, a `detail` id, and a `seniority`); whether it
+is burning is **derived** — funded, after dusk, therefore lit. The lamps
+themselves are prose: a dynamic detail saying *burning*, *standing cold*
+or *out; it is daylight*. **Nothing is minted**, and
+`check-light-sources` clause (e) refuses any class anywhere named for a
+street lamp.
+
+⭐ The test that decides object-or-property is *is it the target of a
+verb?* The clock tower is not an object; the floor **is** one, because
+`dig` has to bind it. Nobody binds a street lamp, and one identical
+fuelled object per street would be forty-one fuel reserves reconciling
+to produce the same number.
+
+⚠ The escape hatch is forestry's four-representations pattern: if a
+later build wants **one** lamp smashed or climbed, that lamp becomes a
+prop at **that** spot and every other street keeps the property.
+
+⭐ The generalization: **a light is an object where somebody acts on it,
+and a property where the town runs it.** Indoors is where objects earn
+their place — a tavern's lamp and a hearth are things you ignite, feed
+and run out of.
+
 ## Out of scope (v1)
 
-- Time-of-day / world clock / outdoor ambient computation.
-- Fire mechanics — `Combustible`, `Lightable`, `Burning` all deferred.
+- ~~Time-of-day / world clock / outdoor ambient computation.~~ **Shipped
+  in the envelope build** — see above.
+- ~~Fire mechanics — `Combustible`, `Lightable`, `Burning` all
+  deferred.~~ Shipped (the combustion build); a fuelled light is
+  `platform/thing/Lamp`, a `FurnaceMixin` over a `LightSource`.
 - `Switchable` and other generic state mixins.
-- Light-source archetypes (no canonical `Candle` / `Lamp`).
-- Schedule integration.
+- ~~Light-source archetypes (no canonical `Candle` / `Lamp`).~~ `Lamp`
+  and `Hearth` both ship.
+- Schedule integration — except `civic:lighting`, the nightly settle.
 - Sound conduit / `Audible` mixin / sound propagation.
 - Eager cache invalidation; v1 is fully lazy.
 - Abstract color tints layered over color temperature (the

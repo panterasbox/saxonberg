@@ -215,6 +215,38 @@ Editing a test file mid-baseline changes what the later runs measure.
 
 ## The gym suite
 
+⭐ The gym now holds **four** files, and the newest is not a fight.
+`Thermal.cold.gym.test.ts` (the envelope build) drives sixteen
+twelve-game-hour bodies through the real thermoregulation reconcile and
+**prints the table** — four insulation levels against four air
+temperatures, with the satiation spend, the core reached and whether
+the body lived. The assertions are acceptance 15's floor (*a world left
+to itself for a full game day kills nobody of cold*); the numbers beside
+them are what a later tuning pass argues with.
+
+⚠⚠ **It measured the wrong thing three times before it measured the
+right one**, and that is the part worth carrying:
+
+1. It averaged the spend over twelve hours. Every row read **8.3 %/h** —
+   a naked body at 21 °C and a coated one at −5 °C alike. That is not a
+   fact about temperature; it is `100 % ÷ 12 h`. Every row emptied the
+   tank, so the average measured the **tank**, and the
+   clothing-matters assertion would have passed *vacuously* against a
+   completely broken model.
+2. It read liveness with `isAlive()`, which is `lifecycleState ===
+   'alive'` and **defaults to the empty string** on a fixture nothing
+   birthed — so it reported a body at 99 % satiation and a 36.9 °C core
+   as DEAD. `Organism.ts` documents the trap in as many words.
+3. Two assertions were true of the old model and false of the new one
+   **for good reasons**, which is a bench doing its job: at the
+   shivering cap two bodies spend the same and the warmer one burns
+   marginally *more* basal, so fuel is not monotone in clo; and the cap
+   means a −5 °C spend can never be twice a 21 °C spend — what keeps
+   falling is the core.
+
+⭐ The lesson generalises past this file: **a bench whose every row
+agrees is usually measuring the instrument.**
+
 `combat-gym` and `waster-spar` are balance regression guards: they
 drive complete fights through the real engine to assert the fight stays
 fair (the parry seam stays dead, the feint stays non-degenerate,

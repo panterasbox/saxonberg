@@ -152,6 +152,27 @@ reload of `api/address.ts`; a reload of the Registry re-clones and
   delivery build with hundreds of Localities may want a lazy/incremental
   scheme.
 
+## ⭐ The nightly civic settle — and why the walk lives HERE
+
+The envelope build gave the Locality tier a public service to fund
+(street lighting; see [civics.md](./civics.md)). The money and the
+order are the **extent's**. The question *"which streets does this
+extent cover?"* is **this subsystem's**, and that is why
+`AddressApi.settleStreetLighting(nowS)` lives here rather than on
+`Locality`.
+
+It is one registry walk for the whole realm per game night: every scope
+composing `PublicLightingMixin`, bucketed by the covering locality each
+one resolved at its own `postRegister`, sorted by the seniority its row
+records, and each extent handed its own queue.
+
+⚠⚠ **`Locality` does not look its own streets up, on purpose.** Finding
+them means `StuffApi.findByMixin`, which is gated to a reviewed
+`(template, method)` allowlist — *being handed a slice of the world has
+to be asked for by name*. Widening that gate for a `Stuff` class would
+have been the wrong shape; the address tier already asks the question
+and already owns the answer.
+
 ## `AddressApi` surface
 
 ```ts

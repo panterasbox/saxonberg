@@ -173,6 +173,54 @@ verb** (the planned Circulation-Reserve migration: `requiresGovernor` →
 a `holdsSeat` check on a future city Treasurer), never by merging the
 office systems.
 
+## ⭐⭐ The first public SERVICE — street lighting
+
+The envelope build (2026-09-24) gave the Locality tier something to
+*do* with money, and it is deliberately the smallest honest civic act:
+**the town lights its streets, and it costs the town something.**
+
+A `Locality` may declare `_publicLighting { fuelPerStreetNight,
+supplier }` — **one figure in one place**, because *a town does not
+track lamps; it funds a service, and finds out it is short when the
+streets go dark.* Which streets exist and in what order they are lit is
+the STREETS' business (`PublicLightingMixin.seniority`, on each row).
+
+At each sunset `AddressApi.settleStreetLighting` walks the realm once,
+buckets every street that declares the service by its covering locality,
+and hands each extent its own queue in seniority order. The extent then:
+
+1. computes how many street-nights the treasury can cover — **from the
+   balance FIRST**, so the refusal is the exception rather than the path;
+2. posts **one** `appropriation` leg for `n × fuel` through the shipped
+   `BankingApi.appropriate`;
+3. records which streets its money is lighting tonight.
+
+⭐ **The order is written in ADVANCE.** Nobody is judged at the moment of
+refusal, because the decision was made before anybody knew there would
+be a shortfall — the watershed's rule for a quota, applied to a service.
+
+⭐ **No new banking primitive and no new gate on the money subsystem.**
+`appropriate` already has the exact semantics: no acting-owner check,
+sourced from the treasury, category `appropriation` — which is the
+correct accounting name for public lighting — and it already refuses
+when short.
+
+⚠⚠ **One treasury per currency, none per locality.** `TREASURY_PATH` is
+`/compact/treasury` and no Locality holds an account, so v1 reads as
+*"the realm appropriates for Terminus's lamps"* rather than *"Terminus
+pays its own bill"*. The town's **preference** is the extent's, as
+designed; the **money** is the realm's until a locality treasury exists.
+That is the build's one recorded softening, and its destination is
+`livelihood-slate` §7 (the state's appropriation primitive) and
+`credit-slate` Q8 (where taxes come from).
+
+⭐ The failure mode is the point, and it is visible in the fiction:
+Mayfield Row addresses `terminus/mayfield-row`, **outside** the city, so
+its covering locality is the realm — which funds no lighting. The lamp
+standards are there and stand cold every night, and `look at the lamps`
+says exactly that, which is a different sentence from a street that
+never had any.
+
 ## Deferred / never
 
 **Never (doctrine):** legal machinery — statute engine, trials, arrest,

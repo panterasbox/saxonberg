@@ -136,13 +136,62 @@ per-region coordinate that doesn't exist (celestial uses one global
 `CAMPUS_LATITUDE`); that rides celestial's deferred planetary anchor,
 never a weather-specific frame.
 
+## ⭐⭐ The solar term — where the realm's winter actually comes from
+
+Added by the envelope build (2026-09-24), and it closed a gap the
+requirements had **assumed was already closed**.
+
+⚠⚠ Before it, `SEASON_BIAS` biased the **type distribution** — how often
+it snows — and nothing else, and `WEATHER_PROFILES` deviate temperature
+by *type* alone (clear 0, overcast −1, rain −3, storm −5 K) over a 295 K
+base. So mid-winter at 3 a.m. read **290 K, which is 17 °C**, and *"an
+unheated room in winter is cold"* had nothing to be cold **from**. The
+whole heat half of the envelope build rested on a fact that was true of
+snowfall and false of temperature.
+
+`deviatedFieldFor` now folds a **solar deviation** beside the type
+deviation, for `temperature` only:
+
+```
+−A_year · cos(2π · doy / year)  −  A_day · cos(2π · (secOfDay − 3 h) / day)
+```
+
+`A_year = 10 K`, `A_day = 4 K` (`weather.solarAnnualSwingK` /
+`weather.solarDiurnalSwingK`). A winter night lands near 281 K, a winter
+noon near 289, a summer noon near 309. The diurnal term lags three hours
+so the coldest point is near **dawn** — heat keeps leaving after the sun
+stops arriving.
+
+⭐ Same shape as the sky's illuminance factor and for the same reasons: a
+**pure function of game time**, seeded-not-drawn, memoized per game
+minute, with no state anywhere to go stale. ⚠ One latitude means one
+climate — Terminus and Rejection get the same winter on the same day —
+and widening that is the per-zone celestial profile, a named deferred
+seam.
+
+⚠ **Absolute outdoor temperatures are no longer pinnable in a test.**
+Seven shipped assertions did pin them and were re-derived as **deltas
+against a clear-sky baseline measured on the same clock**, which is what
+this seam actually claims. A helper that measures that baseline must
+*create* the weather singleton, or it measures a world without a solar
+term and the comparison is off by exactly that term.
+
 ## The biome-deviation seam (D2)
 
 Weather is **felt through biome's existing reads**. In `BiomeLogic`,
 `resolveQuantityFor` folds the weather deviation in **after**
 `runChainWalk` returns the base value, for the four weather-deviated
 fields (temperature / humidity / wind / pressure) and **SkyExposed scopes
-only**. Gravity / atmosphere never route here; the trace variants are
+only**.
+
+⭐ Since the envelope build an **enclosed** scope reaches the weather by
+a second route: `resolveTemperatureFor` asks `outsideKFor`, which runs
+the chain and folds the deviation **iff the chain's answer came from the
+sky** (the universe baseline or a `SkyExposedBiome`), then hands that to
+the room's envelope as what it is drifting toward. ⚠ A biome may say
+what the outside **air** is doing — Rejection's `upper-workings` authors
+285 K and that is honest — but it is **rock**, not sky, and a storm must
+not cool it. A zone-authored temperature is the same case. Gravity / atmosphere never route here; the trace variants are
 left un-weathered (they report biome-chain provenance — weather is a
 separate additive surfaced by `analyze weather`).
 

@@ -242,9 +242,32 @@ renaming public fields. The world clock runs each fire inside its own
 
 ## Layer 2 — Celestial (`api/celestial.ts`, `lib/time/CelestialProfile.ts`)
 
-Real solar/lunar geometry plus the queries on top. Wave 2 ships the
-**compute substrate only** — there is **no** wiring into ambient light
-(D6); that waits until the `perception` branch merges.
+Real solar/lunar geometry plus the queries on top.
+
+⭐⭐ **D6 — the wiring into ambient light — is CLOSED** (the envelope
+build, 2026-09-24). It had waited in writing since Wave 2 for *"the
+perception branch to merge"*; the branch merged and nobody came back,
+so the world knew where the sun was and nothing asked.
+
+`CelestialApi.skyIlluminanceFactor(profile, lat, t, opts?)` is the pure
+seam — plain numbers in, a fraction of a clear noon sun out, sitting
+beside the altitude formulas it is checked against. `skyFactorNow()` is
+a **per-game-minute memo** over it on the `CelestialLogic` singleton,
+and it is **synchronous**, because the light walk is: every room, every
+`look`. See [light.md](./light.md) § The sky is a sync memo.
+
+⚠⚠ **One sky for one world.** `skyFactorNow()` reads `EARTH_LIKE` at
+`CAMPUS_LATITUDE` and asks no location. `profileFor` therefore **throws
+by name** on a second celestial profile, and `lint:light-sources` clause
+(f) refuses a row that authors one — the alternative is a memo that is
+silently wrong for every room it does not describe. Per-zone profiles
+stay deferred, and now fail loudly instead of quietly.
+
+⭐ The sun also drives **temperature**, not only light: `WeatherLogic`
+folds a solar deviation (annual ±10 K, diurnal ±4 K lagged three hours)
+beside the weather-type deviation. Before that the realm had no winter
+in its temperature at all — `SEASON_BIAS` biased how often it *snowed*
+and nothing else, and mid-winter at 3 a.m. read 17 °C.
 
 ### `CelestialProfile` + `EARTH_LIKE`
 
@@ -533,11 +556,13 @@ file.
 
 ## Future work
 
-Celestial → ambient-light wiring (deferred until `perception` merges);
-friendly time tags (`morning`/`midnight`) in
+~~Celestial → ambient-light wiring (deferred until `perception`
+merges)~~ — **shipped, the envelope build**; friendly time tags (`morning`/`midnight`) in
 `config/quantity-tags.yaml`; per-zone / per-region latitude and
 longitude time zones; per-actor locale subsystem; a second celestial
-profile (Narnia / fey realm); weather; NPC schedules / routines; admin
+profile (Narnia / fey realm) — ⚠ now **guarded**: `profileFor` throws on
+one while `skyFactorNow()` is global, so the seam fails loudly rather
+than half-working; weather; NPC schedules / routines; admin
 verbs for `setScale`/`pause`/`resume`; a best-effort crash snapshot on
 `uncaughtException`.
 
