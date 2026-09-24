@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**240 slates.** 55 greenfield · 84 continuations · 55 waves · 46 tails.
+**242 slates.** 57 greenfield · 84 continuations · 55 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (55)
+## ⭐ Greenfield — nothing shipped yet (57)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -59,6 +59,7 @@ respect.
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
+| [decor](./builds/decor-slate.md) | ⛔ **not** a decor score — the visitor's CHOICE as the read · the high-grade branch of the shipped material chains (dressed · glazed · dyed … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
@@ -95,6 +96,7 @@ respect.
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
+| [structure](./builds/structure-slate.md) | ⭐ the structure tier (membership-primary, thresholds derived) · fabric · the shell promoted out of `/system/residence` into the kernel · maintenance as the first materials sink … |
 | [underwater](./builds/underwater-slate.md) | ⚠ **a band is not standable; its BED is** (added 2026-09-23 from the ground build: every Location gets a floor by default, so a water band must declare `noDefaultFloor: true` or the open column will be floored and sittable — the ground build ships the declaration and a test, not a row) · the column — bands as zones, `depth` as a zone field, `up`/`down` derived · implicit up + declared ceilings + the reach-to-air gate · medium derived from the reach's level … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission · replacement … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
@@ -129,7 +131,7 @@ are the named remainders.
 | [credit](./tails/credit-slate.md) | ⭐⭐ risk — a rating, a bureau, risk-based pricing (Part 11) · ⚠ *the LABOR gap Part 11 named is closed — trades-and-labor shipped the openings, the criterion, the sign, `apply` and `clock on/off`, so an NPC house employing a player is a thing that happens now* · ⭐⭐ the secondary market (buying paper) · personal credit + guarantees … |
 | [currency](./builds/currency-slate.md) | a second issuer + who may authorize a mint, and whether one issuer mints every currency or each gets its own · opt-in acceptance lists / corpo scrip · the peg as a redeemable standing offer · the money-changer's mechanics (rate source, settlement, the `convert` seam) … |
 | [daves-bar](./builds/daves-bar-slate.md) | the succession arc (Augie recognizes the heir; the house tablet is the clipboard) · tabs (`TabMixin` was RETIRED — zero credit until designed for real) + customer records (regular; 86'd exists only for the armed-patron rule) · the NPC task repertoire + the shift-change ritual (till · receipts … |
-| [delivery](./builds/delivery-slate.md) | providers + coverage + metering as ONE substrate (⚠ reconcile with the two shipped shapes) · anchors + catchment-vs-delivery · per-service off-grid + service grades · the delivery overlay + trunking (Q5) … |
+| [delivery](./builds/delivery-slate.md) | providers + coverage + metering as ONE substrate (⚠ reconcile with the two shipped shapes) · ⭐ anchors + catchment-vs-delivery (**specified 2026-09-24, § Anchors — the last foot**; the node/prefix/pointer fork RESOLVED — an anchor claims a node and the string is the relation; the zone fallthrough DECLINED; carvable as a wave, needs no structure tier) · per-service off-grid + service grades · the delivery overlay + trunking (Q5) … |
 | [discovery](./builds/discovery-slate.md) | the forage verb + the patch Stuff · harvest-method depletion (take the leaves / pull the root) · the method ladder + field drying · biome-authored tables with derived, depleting stock (character authored, quantity measured) … |
 | [disease](./builds/disease-slate.md) | `ContagionSpec` (routes · host range over `Clade` · reservoir) — `Condition.contagion` is still `null` with no consumer · the between-room push tick + the per-room contaminant map … |
 | [eager-residency](./builds/eager-residency-slate.md) | ⭐⭐ the **two tiers of account** and the may/may-not table + the recency-consumer ceiling · the **three-party admission** (object · owner · parcel) over the property slate's allowance + the commons budget line … |

@@ -12,7 +12,17 @@
 > `looseContents`, consumed by the same three call sites · the card's
 > dead `+N more` · cut `sense`, point arrival at `look` · untagged prose
 > becomes vision-channel prose
-> **Size:** a build
+> **Size:** a build — ⭐ **Part A (`extends:`) is carvable on its own**
+> **Wanted by:** [structure-slate](structure-slate.md) (membership-primary
+> means every interior Location names its structure; `extends:` makes that one
+> line per room instead of a field per room) · `cast-archetype-slate` had to
+> disclaim it by name. ⭐⭐ **Raised 2026-09-24 for promotion** — it is
+> prerequisite-shaped, Part A is unusually small for a platform feature (no
+> new gate, `Biome._extendsBiomePath` to copy wholesale, *"the cost is near
+> zero"*), and **there are no migrations**: a build that ships before it
+> authors the expensive way and lives with it. ⚠ Re-take the counts first —
+> see the measurement note below; they are the argument for single-parent and
+> they have sat eight days through several builds.
 
 > Written 2026-09-16 out of a
 > design conversation that started as "we need template inheritance" and

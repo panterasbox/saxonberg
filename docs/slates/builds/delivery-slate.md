@@ -11,7 +11,7 @@
 > ([fasttravel.md](../../subsystems/fasttravel.md),
 > [magic-items.md](../../subsystems/magic-items.md))
 > **Left:** providers + coverage + metering as ONE substrate (⚠ reconcile
-> with the two shipped shapes) · anchors + catchment-vs-delivery · per-service
+> with the two shipped shapes) · ⭐ anchors + catchment-vs-delivery (**specified 2026-09-24, § Anchors — the last foot**; the node/prefix/pointer fork RESOLVED — an anchor claims a node and the string is the relation; the zone fallthrough DECLINED; carvable as a wave, needs no structure tier) · per-service
 > off-grid + service grades · the delivery overlay + trunking (Q5) · the
 > network walk / lines on exits / the easement (⚠ `cut` shipped STORED) ·
 > post — the `delivers` brain, the carrier round, mailboxes · the aether-line
@@ -172,6 +172,236 @@ grid is **per-service** — a half-settled place can have the post rider but
 no aether feed. Service has *grades* too (a locality on a long thin trunk
 gets slow mail before good mail). Wiring up a locality is **civilization
 visibly spreading** — content (or, later, players) build toward it.
+
+### ⭐ Anchors — the last foot *(increment specified 2026-09-24)*
+
+> **Status: UNBUILT, and carvable as a WAVE on its own.** It is the one
+> piece both the post thread and the freight thread need, and it needs **no
+> structure tier** — so it can land before any of the building/real-estate
+> work.
+
+**Why this is the next increment.** `ship` already consigns to a
+**Locality** — `JourneyController` carries the note *"it must NOT use
+`ship`'s answer. `ship` names a consignee PLACE, and a Locality is right
+for that; a journey's destination is [not that]"* — so cargo works today at
+town grain, with the bill of lading, the warehouse receipt, the rate card,
+the depot and the haulage market all shipped. What no surface can express
+is *deliver to the Bell & Anchor* rather than *deliver to Rejection*. That
+last foot is the anchor, and nothing else in the Left list blocks it.
+
+**What an anchor is** — consolidating the three places this slate already
+says it (§ *Zones are the one object that fused two jobs*, § *Addressing*,
+§ *The unifying mechanic*). An object carrying **two identities**: an
+**exit-graph identity** (it sits at a Location) and an **overlay identity**
+(the address node it answers for). Delivery is then a clean function —
+Address → one anchor → one Location — while catchment stays many-to-many
+and fuzzy. It is found by the **same nearest-ancestor walk** the engine
+already does for zone resolve, biome and `lookupField`: *"where does this
+land?"* climbs for the nearest anchor, and **off-grid is the walk reaching
+the root without a match**.
+
+⭐ Both cardinalities are real and neither is a special case:
+
+- a PO-box wall is **200 anchors in one Location**;
+- a campus is **30 Locations behind one anchor**.
+
+⭐⭐ **And the line the anchor draws is the one that makes granularity
+cheap: where the carrier's job ends and the recipient's begins.** The
+carrier reaches the mailroom; the institution gets it to the room. So the
+authoring cost is **anchors, not addresses** — dozens of concrete visible
+objects, not a named tree over half the realm's Locations. A residential
+lot with three outbuildings and one mailbox is *one anchor*, which is not a
+simplification we tolerate but the correct model of one delivery point; an
+office park where each building receives its own is *three anchors on one
+parcel*, with no new tier.
+
+#### Host placement — a mixin on a fixture, never a class
+
+⚠ Host placement is this repo's largest source of post-MR rewrites, so:
+an anchor is a **mixin**, composed onto things that are already
+non-portable and already somewhere. `AdornableMixin` ships on `Location`
+and `ExitableVessel` and gives `getFixtures()` beside `getContents()` —
+which is what a mailbox on a wall already is. Candidate composers on day
+one: a mailbox (a new row), the retail `Stock` counter, a depot's receiving
+door.
+
+⭐ It must **not** be a class, because the set of things that take delivery
+has no common ancestor — a letterbox, a shop counter, a goods yard and a
+quay are four different branches — and a guard that re-narrows the host set
+is the tell that the host is wrong.
+
+#### ⚠⚠ The gap this slate did not have: mail capacity ≠ freight capacity
+
+The anchor was designed for **post**, and **cargo breaks it.** A bill of
+lading delivers a ton of dressed stone, and *that does not go in a
+letterbox.* So an anchor has to say what it can **accept**, and the two
+honest failure modes are not the same failure:
+
+| | mail anchor | freight anchor |
+|---|---|---|
+| example | a letterbox, a pigeonhole | a goods yard, a quay, a depot dock |
+| takes | discrete light items | bulk, and goods nobody can lift (a `bole`, a `Block`) |
+| "full" means | the carrier holds it at the office | the load has nowhere to go and the lane backs up |
+
+⭐ This is **not two mechanisms**. `ContainerMixin`, the `Bulkable` slots
+and the `Tangible` mass read already price all of it; what the anchor adds
+is *a refusal in words when the consignment will not fit* — the `Workable`
+shape from the extraction build, where the thing being acted on prices its
+own acceptance and refuses **by name**. ⚠ And the refusal must EXIST bare:
+a letterbox told to take a ton of stone has to say so, because a delivery
+that silently succeeds is the failing-closed-and-silent class this repo
+keeps paying for.
+
+#### Who may take delivery — deliberately not the anchor's business
+
+`contract.md`'s **custodian rule** already answers who may hold a thing
+that is not theirs, and `chattel.md` already stamps per-instance ownership
+with a chain of title. The anchor's job is *the goods are here*; whose they
+are and who may lift them is the **paper's**. ⭐ Recorded explicitly so the
+anchor does not grow a permission model of its own, which is where a
+delivery system usually goes wrong.
+
+#### What it changes in shipped surface
+
+- **`ship`'s consignee widens** from a Locality to a Locality **or** an
+  anchor. ⚠ Not as `requires: A|B` — an arg alternation *deletes* a check;
+  two stanzas over one controller is the shipped shape.
+- **`AddressApi`** gains the anchor leg of the upward walk, beside
+  `coverageChainOf`.
+- ⚠ **One bug to fix first, independent of this increment.**
+  `HoldingWarren.derivedAddressBase()` builds a room's address by stripping
+  `lots`/`units` off the **parcel extent** — deriving the delivery overlay
+  from **title**, which is precisely what the three-namespace table
+  (§ *Three independent namespaces*) exists to prevent. Fix it before
+  anything leans harder on addresses.
+- ⚠⚠ **There is no `lint:address` at all** — no gate that an `_address`
+  resolves to a claimed node, in a repo where `lint:census` resolves every
+  path-valued field because a rowless path is a silent failure. Today a
+  structure is a copy-pasted string in four files (`duncan-hall` has **no**
+  `Locality` row; four Locations each carry the literal) and nothing checks
+  they agree. Census-then-ratchet: count today's unclaimed strings, gate
+  that count as the ceiling, drive it to zero.
+
+#### ⭐⭐ RESOLVED — an anchor claims a NODE, and the STRING is the relation *(2026-09-24)*
+
+The fork as first written (node / prefix / a pointer on the Location) was
+**badly posed**: it conflated two query directions, and only one of them was
+ever a question.
+
+⚠⚠ **The finding that settles it.**
+`Location = AddressableMixin(… AdornableMixin(ContainerMixin(PostRegistrationMixin(Stuff))))`
+— a `Container`, but **not `Containable`**. And `AddressLogic.stepOutward`
+bails on its first line: `if (!MixinApi.isContainable(cursor)) return null`.
+**So step 1 of the resolve chain is a no-op for a room.** No Location is
+inside another Location, so a room can never inherit an address from a
+building. `duncan-hall`'s four copy-pasted strings are not sloppiness —
+they are the only thing the engine permits, and it is the same reason
+`HoldingWarren` stamps every room explicitly rather than relying on the
+chain.
+
+⭐ **And it does not matter, because the string is the relation.** Both
+directions resolve with no grouping relation at all:
+
+| direction | question | how it resolves |
+|---|---|---|
+| **A** | *where does a consignment addressed to X land?* | look X up against anchor-claimed nodes. The anchor is a **fixture**, so it already knows its Location — its holder. Nothing else is consulted. **This is the direction cargo needs, and it is free.** |
+| **B** | *I am standing here — where does my mail go?* | take **this room's own** address string and climb the **trie**, not the containment chain. `…/duncan-hall/lobby` → no anchor → `…/duncan-hall` → the mailroom. `PathTrie.longestPrefix` already ships and already does this for Localities. |
+
+**So: an anchor claims a NODE.** The other two readings are unnecessary:
+
+- **prefix-claiming is redundant** — step 3 is *already* longest-prefix
+  match, so a node-marking anchor gets prefix behaviour from the walk. There
+  is no catchment field to design, which is what § *The unifying mechanic*
+  already said: two kinds of mark on one tree, one nearest-ancestor walk.
+- **a pointer on the Location stores what the walk derives**, against an
+  engine whose idiom is derive-on-read everywhere (residency, blame,
+  competence bands, `TraitPosition`, `RenownStanding`, wounds,
+  `GroundCharacter`) — and it would need R2.x live-ref lifetime rules to buy
+  nothing.
+
+⭐ **Granularity is expressed by ADDING NODES, which is free.** A pub with a
+shop below and flats above: two nodes, `…/bell-and-anchor/shop` and
+`…/bell-and-anchor/flats`, an anchor on each. The shop's mail cannot land in
+the residents' box, and no new concept was needed.
+
+#### ⛔ DECLINED — anchors do not consult the zone (step 2)
+
+The zone fallthrough (`getZone()?.lookupField<string>('address')`, *"a whole
+castle zone can carry one address for all its rooms"*) is **threshold-blind**,
+and that is not hypothetical: *nothing in the game says a zone boundary
+respects a building boundary — a single zone can be an exterior path that
+exits past a threshold into an interior space, all on one grid, and only grid
+structure is enforced.* Such a zone gives both sides of the threshold one
+address, and a consignment then has two candidate landing places.
+
+It is a **latent** defect — **no content carries a zone `address` field
+today** (the 46 `address:` hits in the content tree are `Topic` rows using
+the name for something else), so step 2 has never fired. But the pressure
+that would make somebody use it is exactly the authoring cost below.
+
+⭐ So anchors **decline** it. It costs nothing (zero content depends on it)
+and it closes the threshold problem *by construction* rather than by care —
+the same correction logistics already made when a corridor stopped being
+asked over its zone: *"that is the unit that was reachable, not the unit that
+was right."*
+
+#### The residual cost, and the mitigation that already ships
+
+The cost is real and it is exactly one thing: **every room that wants to be
+addressable needs a string.** 67 Locations have one today against a ceiling
+of ~180, and there is no inheritance to lean on.
+
+⭐ But the shape of the fix already ships, in `HoldingWarren.wakeRoom`:
+`room.setAddress(base + '/' + leaf)` — the **programme** holds the base, the
+**room spec** holds the leaf. Generalize *that* (a Location declares a leaf;
+something above supplies a base) rather than inventing an inheritance the
+containment graph cannot support. ⚠ And fix `derivedAddressBase()` while
+there, per § *What it changes in shipped surface*.
+
+#### ⭐⭐ Address ↔ Structure — they are independent axes, and off-grid is fine
+
+**A structure is a physical fact; an address is a service identity.** A
+building exists whether or not anybody delivers to it, so the two are
+related and **neither owns the other**. All four combinations are legal and
+three of them ship today:
+
+| | no structure | structure |
+|---|---|---|
+| **no address** | most wilderness rooms | ⭐ the off-grid cabin — *it expresses itself completely* |
+| **address** | a road segment (`…/road/the-pass`), a quarry, a stop | the Bell & Anchor |
+
+**So yes — an off-grid structure expresses itself fully.** It keeps its
+fabric and what it is made of, its shell band and weathering clock,
+`survey`/`maintain`, its cost basis, its fire risk, its salvage value, its
+decor and archetype satisfaction, **and its name** — because what a thing is
+*called* is a separate namespace from where it *is* (§ *The realm's scheme*:
+*"whatever a person is called on a channel is a separate namespace, never an
+address"*). What it loses is **delivery and every provider service**: no
+anchor means you carry your goods there yourself, and off the mana line a
+standing enchantment does not hold.
+
+⭐ That loss is the **engaging wrinkle this slate already chose**, not a
+deficiency — *"a new settlement has no mail until someone stands up a post
+office"*, *"wiring up a locality is civilization visibly spreading."* An
+off-grid homestead that wants deliveries has to get coverage extended, and
+that is a goal rather than a gap.
+
+⚠⚠ **This corrects an earlier proposal and the correction matters:** a
+structure must **NOT** be a record keyed on an address node. An off-grid barn
+has no node to key on, so keying structure on address makes the wilderness
+case unrepresentable — the same mistake as deriving a structure from a zone
+or a parcel extent (a lot carries several structures), and the same error
+class as asking a corridor over its zone.
+
+⭐ A structure is **lane-shaped**: a set of Locations that is one thing,
+which no existing envelope bounds. The shipped precedent is
+`LaneCatalogue.lanesAt(here)` resolved **by shape** so the kernel imports no
+pack — so the construction build wants `structureAt(here)` on that pattern,
+with its own identity, and address · parcel · zone all **optional
+attributes** it may or may not have. ⭐ And the sequencing holds: a structure
+is needed for fabric, shell, cost basis and decor, and is **not a
+prerequisite for either delivery direction**.
+
 
 ### Providers & coverage
 
