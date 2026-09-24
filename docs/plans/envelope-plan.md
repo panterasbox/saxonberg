@@ -396,9 +396,15 @@ coldest at 3 a.m. mid-winter). Same shape as the sky factor: a pure
 function of `t` via `CelestialApi.dayOfYear/secondOfDay(EARTH_LIKE, t)`,
 memoized per game-minute on the singleton, no state, seeded-not-drawn.
 Winter night outside ≈ 281 K (8 °C), winter noon ≈ 289, summer noon ≈
-309, summer night ≈ 301. ⚠ This is the one place the plan disagrees with
-the requirements' survey (see Risks & opens #1): without it S4,
-acceptance 8 and 15 cannot be observed.
+309, summer night ≈ 301. **Settled: approved by the user 2026-09-24** as
+a product-visible change — summers get hot, winters get cold, everywhere
+outdoors — closing the gap the requirements' survey missed (Risks &
+opens #1 carries the reasoning); without it S4, acceptance 8 and 15
+cannot be observed. A fresh build agent does not stop to ask. ⚠ Not
+widened: one latitude means one climate — Terminus and Rejection get the
+same winter on the same day — and the per-zone `celestialProfile`
+override stays unexercised and out of scope (the biome-normalization
+slate's business).
 
 *3b. The envelope.* ⭐⭐ **The rule that keeps the cascade honest:
 authors author CAUSES, not EFFECTS.** A room declares its construction,
@@ -413,29 +419,74 @@ warm-tavern` rooms warm with no fire in them, cascading to every row
 that references it. `lint:envelope` clause (c) refuses construction keys
 on any biome row.
 
-**Construction lives on the ZONE, with a per-room override that is the
-listed exception.** There is no building in this model (a Locality is an
-address prefix, a Parcel is title and ground); what a zone subtree *is*,
-operationally, is "the rooms that belong together", and `cellSize` is
-the shipped precedent for a physical default authored on a zone and read
-by every room in it (`CartesianZone.ts:32–47`). New authorable
-`envelope: { fabricUPerM2?, openingUPerM3?, fabricMassFactor? } | null`
-on **`SpatialZone`** (`lib/zone/SpatialZone.ts` — both coordinate
-systems), inherited through the shipped `Zone.lookupField('envelope')`
-so a district zone can set it for its sub-zones. ⚠ `lookupField` is
-**async** (`Zone.ts:191`, it awaits `ZoneApi.getEnclosingZone`), and the
-reconcile below is sync — so the room resolves its effective spec at the
-**async** resolve (D3c, the same event that stamps `envelopeOutsideK`)
-and caches it transiently (`_envelopeResolved`); the sync reconcile reads
-the cache. A zone chain that authors nothing falls through to the
-universe defaults in `settings/envelope.yaml` (`envelope.fabricUPerM2
-1.5`, `envelope.openingUPerM3 6`, `envelope.fabricMassFactor 15`). A room
-may still author its own `_envelope` on `AtmosphericMixin` — that is
-authorial control kept — but a per-room construction is by definition a
-room disagreeing with the rooms it belongs with, so it is a listed,
-reasoned exception with a ceiling of **0** today (D15 clause (b)); no
-separate "zone agreement" clause is needed, the override *is* the
-disagreement.
+⭐⭐ **The envelope derives from what the room is MADE OF.** You cannot
+author *well-insulated*; you author *granite* and the physics decides.
+A U-value somebody picked is still an effect. Two shipped things make
+the honest version cheap:
+
+- `Material.thermalConductivity` — a real `W/(m·K)` on `Material`
+  (`lib/material/Material.ts:206`), authored on **154 content rows**
+  (0.025 insulator · 0.5–0.6 masonry · 80 iron), and its own comment
+  says *"no live consumer yet — seeded ahead per the reality-shaped
+  discipline"*. The envelope is the consumer it was seeded for — the
+  fourth dead seam this build joins (sun→light, fuel→lamp, and this).
+  `getDensity()` and `getSpecificHeat()` (`Material.ts:800, 821`) give
+  the fabric's heat capacity the same way.
+- `FloorSpec` (`lib/stuff/Location.ts:38`) is the authoring shape: *"the
+  Location's own say in what its floor is, without authoring a floor
+  row… a room that just wants cobbles, laid writes three words here."*
+  Mirror it exactly.
+
+New on **`Location`** (beside `floor`, same file, same doctrine):
+`fabric: FabricSpec | null`, `FabricSpec = { material: string /* a
+Material path */, thicknessM?: number }`, authorable, persistent; and a
+class hook `fabricDefaults(): FabricSpec` (the `floorDefaults` shape) so
+a room kind can say what it is built of (`SealedCellar` → the rock).
+⚠ **A Location stays SPACE, not matter** (`Location.ts:90`): it is not
+`Tangible` and gains no mass — it *names* a material, exactly as it
+already names its floor's. A `Vessel` needs no spec: it IS `Tangible`
+and its fabric is its own `getMaterial()`.
+
+The ladder, resolved once at the async temperature resolve (D3c) and
+cached transiently on the host (`_envelopeResolved: { kWmK, rhoKgM3,
+cJkgK, thicknessM, materialPath }`): (1) the room's own `fabric` spec;
+(2) the class hook `fabricDefaults()`; (3) a `Vessel`'s own material;
+(4) the universe default, `envelope.defaultFabric` (a Material path —
+masonry) + `envelope.defaultThicknessM 0.3` in `settings/envelope.yaml`.
+The material lookup is the sync catalogue read (`MaterialCatalogue`), so
+the cache is a convenience, not a necessity.
+
+**What is derived:** `U_fabric = (k / t) × A`, `A = 5 · extent²` (walls
++ roof of a cube cell). Masonry 0.6 / 0.3 m → 2 W/m²K; timber 0.12 /
+0.15 → 0.8; an insulator 0.025 / 0.1 → 0.25; iron sheet 80 / 0.005 →
+16 000 — a tin shed is the street, honestly. `C = C_air + ρ · c · A ·
+activeDepthM` — the skin of the fabric that answers within the hour
+(masonry at 0.01 m ≈ 810 kJ/K → τ ≈ 2.5 h shut; the stone holding the
+day is literally this term).
+
+**What survives as an authored knob, and why:** the room's `fabric`
+(material + thickness — a **cause**, ordinary, needs no list);
+`envelope.openingUPerM3` (air exchange through an open doorway is a flow
+constant, not a material property — a universe dial, not per room);
+`envelope.activeDepthM` (the one rate dial, playtest-tuned, universe
+only); the two universe defaults above. **Gone:** `fabricUPerM2`,
+`fabricMassFactor`, any per-room or per-zone `_envelope` override —
+there is no honest need for a raw U-value when "well-insulated" is a
+material and a thickness.
+
+**This dissolves the agreement problem instead of working around it.**
+There is no building in this model — a zone guarantees only that its
+Locations are contiguous and share a coordinate system (a closet in a
+mansion may be its own zone; an office block may be carved by floor), a
+Locality is an address prefix, a Parcel is title and ground. A granite
+shopfront with a timber stockroom behind it is not dishonest: it is a
+stone shop with a timber lean-to. The dishonesty was never *rooms
+differ*; it was *rooms differ for no reason*, and **a material is a
+reason**. No zone default: a fabric is one line, `cellSize` is per-zone
+because a zone is a coordinate carve-up and geometry is what it owns,
+and `FloorSpec` has no zone rung either — the material is the room's,
+like its floor's. (See Deferred seams for the Structure concept this
+build does not need.)
 
 Runtime fields on `AtmosphericMixin`: `envelopeTemperatureK`,
 `envelopeClockStamp`, `envelopeOutsideK` (persistent, `runtimeState`)
@@ -446,10 +497,10 @@ and the transient `_envelopeResolved`. Methods:
   `_temperature` wins (the cellar / the cave that is the same all year —
   lens 2's bespoke case stays a row).
 - `reconcileEnvelope(): void` (sync, reads `_envelopeResolved`): `U =
-  U_fabric + U_open`; `U_fabric = fabricUPerM2 × 5 · extent²` (walls +
-  roof of a cube cell); `U_open = openingUPerM3 × V × nOpenToOutside` (an
-  open door is air exchange, not conduction); `C = 1.2 · 1005 · V ·
-  fabricMassFactor` (the fabric holds heat, the air alone would not). `P = Σ spaceHeatOutputW()` over
+  U_fabric + U_open` with `U_fabric` derived from the fabric as above;
+  `U_open = openingUPerM3 × V × nOpenToOutside` (an open door is air
+  exchange, not conduction); `C = 1.2 · 1005 · V + ρ · c · A ·
+  activeDepthM`. `P = Σ spaceHeatOutputW()` over
   contents composing `SpaceHeatingMixin` (D5). `T_ss = outside + P/U`;
   `T ← Decay.toward(T, T_ss, elapsed, C/U)` — exact for piecewise-constant
   inputs, the `ThermalMixin` shape. No far-past guard (a room left
@@ -478,8 +529,9 @@ the scope is an envelope host and the trace's own-override step did not
 answer, `outside` = the chain's answer **+ the weather deviation** (type
 + solar) iff the answer came from the universe or a SkyExposed biome (a
 zone- or underground-biome-authored temperature is rock, not sky, and
-gets no weather); resolve `_envelopeResolved` via `lookupField`; stamp
-`envelopeOutsideK`; `reconcileEnvelope()`; return `envelopeTemperatureK`.
+gets no weather); resolve the fabric ladder into `_envelopeResolved`;
+stamp `envelopeOutsideK`; `reconcileEnvelope()`; return
+`envelopeTemperatureK`.
 The indoor decree is removed by **content** (delete `_defaultTemperature`
 from `indoor/baseline.yaml`) and kept out by **lint** (`lint:envelope`
 clause (d): no row under the `/stuff/idea/biome/indoor/` admin subtree
@@ -487,8 +539,8 @@ authors `_defaultTemperature` — "indoor" is the folder that means *an
 enclosure*, and an enclosure's temperature is a structure's, which a
 biome may not claim). Sky-exposed scopes are byte-identical to today
 plus 3a. The trace variant reports provenance `'envelope'` with
-`{outsideK, heatInputW, uWperK, openings, hottestSource}` — the shape
-`feel` reads (3e).
+`{outsideK, heatInputW, uWperK, openings, hottestSource, fabricMaterialPath}`
+— the shape `feel` reads (3e).
 
 *3e. The cause is named in-world.* `FeelController`'s bare form
 (`cmd/perception/feel.yaml`, this build's — build-3 owns `measure`/
@@ -497,8 +549,9 @@ plus 3a. The trace variant reports provenance `'envelope'` with
 `BiomeApi.traceResolveTemperatureFor(location)`: provenance `'envelope'`
 with `heatInputW > 0` → *"warm from the hearth"* (the hottest
 `SpaceHeating` source's presentation); no input, above outside → *"the
-stone still holds the day"*; below outside → *"the stone still holds the
-night's cold"*; within a degree of outside with an open exterior opening
+granite still holds the day"* (the fabric material's name — derived, so
+it is never a lie); below outside → *"the timber still holds the night's
+cold"*; within a degree of outside with an open exterior opening
 → *"as cold as the street — the door stands open"*; provenance the
 room's own `_temperature` → *"this place keeps its own temperature, the
 year round"*; sky-exposed → nothing added (the weather is the sky's own
@@ -727,13 +780,20 @@ legitimate (maturation depends on them). Clauses: (a) every
 Location/Vessel row authoring `_temperature` is in
 `AUTHORED_TEMPERATURES` — a curated list **in the script**, each entry
 `{ path, reason }`, ceiling **5**, may fall never rise, a stale entry
-fails (the `check-ground.ts` shape); (b) every row authoring a per-room
-`_envelope` is in `ROOM_CONSTRUCTION_OVERRIDES` with a reason, ceiling
-**0**; (c) ⭐ **the biome line:** no row whose class extends `Biome`
-authors `envelope`, `fabricUPerM2`, `openingUPerM3` or
-`fabricMassFactor`; (d) no row under `/stuff/idea/biome/indoor/` authors
-`_defaultTemperature` (the decree cannot come back); (e) a `SpatialZone`
-row's `envelope` keys are a closed vocabulary.
+fails (the `check-ground.ts` shape) — `_temperature` is the one way to
+bypass the derivation, so it is the one thing that needs a paragraph;
+(b) a room authoring `fabric` is **ordinary and unlisted** (a material is
+a reason), but its `fabric.material` must resolve to a `Material` row
+(the `lint:template-census` clause (b) list gains `fabric.material`) and
+that row must author `thermalConductivity > 0` — an unauthored
+conductivity reads `0`, which is an infinite insulator, silently; (c) ⭐
+**the biome line:** no row whose class extends `Biome` authors `fabric`,
+`thicknessM` or any envelope key; (d) no row under
+`/stuff/idea/biome/indoor/` authors `_defaultTemperature` (the decree
+cannot come back); (e) `FabricSpec` keys are a closed vocabulary
+(`material`, `thicknessM`) — no `uPerM2`, no `insulation:` word can be
+typed into a row. There is no `ROOM_CONSTRUCTION_OVERRIDES` list: there
+is nothing to override.
 
 *Why the reason is a list in the script and not a `reason:` key on the
 row:* a `data:` key the Hydrator does not write is dropped **silently**
@@ -768,9 +828,9 @@ tests pin the winter numbers. Recorded in Risks.
 | new thing | host | what composing/adding it claims about every other composer |
 |---|---|---|
 | `ambientSource`, `ambientOpening` fields, `isSkyLit()`, `skyNoonFlux()` | `AmbientLitMixin` (→ every `Location`) | *Every place that can have ambient light derives it from the sky where the sky is, and says so where it is an exception.* True of every Location; null = derived. Not on `Vessel` (not AmbientLit today; the coach row's dead field is a content fix, not a host change). |
-| `envelope` construction spec | `SpatialZone` (→ `CartesianZone`, `SphericalZone`), inherited via `Zone.lookupField` | *The rooms of a zone are built alike* — the `cellSize` precedent. Never on a `Biome` (the biome line, lint clause (c)), never on `Locality` or a Parcel (title and address are not construction). A zone authoring nothing falls through to the universe dials. |
+| `fabric: FabricSpec` + `fabricDefaults()` hook | `Location` (beside `floor`, `lib/stuff/Location.ts`) | *A place names what it is built of, as it names its floor* — and stays space, not matter (no `Tangible`, no mass). Never on a `Biome` (the biome line, lint clause (c)), never on a zone (a zone is a coordinate carve-up, not a structure — the rooms of a zone are **not** built alike, and the plan makes no such claim), never on `Locality` or a Parcel. A `Vessel` needs none: its fabric is its own material. |
 | `skyFactorNow()` memo | `CelestialLogic` singleton (instance fields) | The sky is one thing for the whole realm (guarded, D1). No host in the world carries it. |
-| `envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK` / transient `_envelopeResolved` + `reconcileEnvelope` / `envelopeTemperatureSync`; the per-room `_envelope` override (listed, ceiling 0) | `AtmosphericMixin` (→ `Location`, `Vessel`) | *Every scope that can carry an atmosphere can hold a state different from its outside.* True of a room and of a wardrobe or a coach cabin; **inert where `getVolume()` is null** (Offstage, plain Location, an un-extented Vessel) — that is the mixin's own geometry answering, not a guard. A new `EnvelopeMixin` would compose on exactly the same two hosts, which is the tell that it is the same concern. The **state** is the room's; the **construction** is the zone's. |
+| `envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK` / transient `_envelopeResolved` + `reconcileEnvelope` / `envelopeTemperatureSync` | `AtmosphericMixin` (→ `Location`, `Vessel`) | *Every scope that can carry an atmosphere can hold a state different from its outside.* True of a room and of a wardrobe or a coach cabin; **inert where `getVolume()` is null** (Offstage, plain Location, an un-extented Vessel) — that is the mixin's own geometry answering, not a guard. A new `EnvelopeMixin` would compose on exactly the same two hosts, which is the tell that it is the same concern. The **state** is the scope's; the **fabric** is the Location's named material or the Vessel's own. |
 | `SpaceHeatingMixin` (`heatOutputW`, `spaceHeatOutputW()`) | `Hearth` (new), `Campfire` | *This fire exists to warm where you stand.* Never on `FurnaceMixin` (that would claim it of the forge and reintroduce the "is it a forge" guard), never on `Forge`/`Kiln`/`Oven`. Composed outermost so it reads the furnace face; the envelope narrows contents with `MixinApi.isSpaceHeating`. |
 | `Hearth` class | `platform/thing/Hearth.ts` (instanceable), rows at `/stuff/thing/Hearth` in generic-objects | A commons object: a second inn's fireplace is a row. |
 | `Lamp` class (rewritten) | `platform/thing/Lamp.ts` | *A light that burns fuel.* The lantern and the torch; not the glowcap (stays `PortableLight`), not the mana lamp (arcana's, on `ChargedMixin`), not the sconce (generic-objects', switchable — a candidate to move onto `Lamp` in the content pass if its fiction is oil). |
@@ -785,7 +845,9 @@ tests pin the winter numbers. Recorded in Risks.
 ⚠ **Guards to refuse if you find yourself writing them:** `if (isForge)`
 anywhere in the envelope; a path test on a biome inside the chain walk
 (the lint carries the indoor rule, the walk trusts the chain); a
-construction field on `Biome`, `Locality` or a parcel record;
+construction field on `Biome`, a zone, `Locality` or a parcel record; a
+raw U-value or "insulation" knob anywhere (author the material);
+`TangibleMixin` on `Location`;
 `if (room is Offstage)` in the envelope (Offstage has no volume — let the
 geometry answer); a `wears` applier that checks the NPC's species.
 
@@ -930,15 +992,20 @@ lantern`, `douse lantern`) and the wire smoke still green.
 
 ### W3 — Outside gets a night and a winter; the room is an envelope
 
-**Goal.** Indoor temperature is derived, drifts toward outside at a rate
-the construction and the openings set, and bodies feel it.
+**Goal.** Outside gets its approved night and winter (the solar term
+ships in this wave, D3a — settled, not gated); indoor temperature is
+derived from what the room is made of and what stands open, drifts
+toward outside, and bodies feel it and are told why.
 **Decisions.** D3 (a–e), D15.
 **Files.** `platform/idea/api/WeatherLogic.ts` (the solar term in
 `deviatedFieldFor`; memo); `settings/weather.yaml` (two dials);
-`lib/zone/SpatialZone.ts` (`envelope` + `fieldMeta`, `getEnvelope()`);
-`lib/biome/Atmospheric.ts` (the three stamps, `_envelopeResolved`, the
-per-room `_envelope` override, `envelopeApplies`, `reconcileEnvelope`,
-`envelopeTemperatureSync`, `openExteriorOpenings()`);
+`lib/stuff/Location.ts` (`FabricSpec`, `fabric` + `fieldMeta`,
+`fabricDefaults()`, `getFabric()`); `lib/biome/Atmospheric.ts` (the
+three stamps, `_envelopeResolved`, the fabric ladder, `envelopeApplies`,
+`reconcileEnvelope`, `envelopeTemperatureSync`,
+`openExteriorOpenings()`); `hearthworks/src/.../SealedCellar.ts`
+(`fabricDefaults()` → the rock, if the row does not author `fabric`);
+`scripts/check-template-census.ts` (clause (b) + `fabric.material`);
 `platform/idea/api/BiomeLogic.ts` (`resolveTemperatureFor` + the trace
 variant with the envelope provenance shape; `outsideTemperatureFor`);
 `platform/idea/cmd/perception/FeelController.ts` (the cause line, 3e);
@@ -949,14 +1016,19 @@ variant with the envelope provenance shape; `outsideTemperatureFor`);
 `WeatherLogic.runBoundaryFanout` (re-resolve outside for occupied
 envelope rooms); `settings/envelope.yaml` (three dials);
 `scripts/check-envelope.ts` + `package.json` `lint:envelope` (the five
-cellars listed with reasons, ceiling 5; overrides ceiling 0; the biome
-line; the indoor rule); YAML comments beside the five `_temperature`
-lines.
+cellars listed with reasons, ceiling 5; fabric materials resolve and
+conduct; the biome line; the indoor rule; the closed `FabricSpec`
+vocabulary); YAML comments beside the five `_temperature` lines;
+`settings/envelope.yaml` (`defaultFabric`, `defaultThicknessM`,
+`openingUPerM3`, `activeDepthM`).
 **Tests.** `lib/biome/__tests__/Atmospheric.envelope.test.ts`: τ shut vs
 one open exterior door; a 1.5 kW input's steady state; an authored
 `_temperature` wins; `getVolume() === null` → no envelope; a zone-authored
-temperature gets no weather; a zone `envelope` reaches its rooms through
-a sub-zone; a room override beats the zone; no zone → universe dials.
+temperature gets no weather; a granite room and a timber room of the
+same size differ in U by the ratio of their conductivities and in τ by
+their `ρ·c`; a tin shed reads the street; a Vessel derives from its own
+material; no `fabric` → the universe default; the class hook beats the
+default and the row beats the hook.
 `BiomeLogic` trace provenance `'envelope'`. `Feel` bare form names the
 cause in each of the five states (controller test).
 `Thermal.test.ts`: a loaf in a warming room follows it with no restamp.
@@ -1040,9 +1112,10 @@ infirmary, the general store, the lounge bar — a hearth; the dorm rooms
 — a candle row exists), `glow` for the sandbox `CircleFloor` and
 Rejection's glowcap caves (listed), and **deleting** the stray
 `ambientIntensity` on enclosed rooms that meant "lit by day" (the
-decree); zone `envelope` specs where a district is not built like the
-universe default (a stone cellar block, a timber shed — on the zone row,
-never per room); (ii)
+decree); a `fabric:` line on rooms not built of the universe default
+(the woodshed and the barn are timber; the cellars are the rock; the
+Rejection assay shed is boards) — one line each, ordinary, unlisted;
+(ii)
 doors on exterior exits where the fiction wants a shut shop (the general
 store's `south` gets a `door:` row so its light and heat close at
 night); (iii) `_temperature` on the two cellars and the brewing/vintner
@@ -1100,7 +1173,7 @@ The five links, per new capability. Each fails closed and silent.
 | light a lantern / hearth | `ignite.yaml` `[ignite, light, kindle]` — ships | `FurnaceMixin.commandContributions.peers` affords `ignite`/`douse`/`pump`/`heat`/`boil`/`warm` — ships; **a Lamp in your hand** is `self`, not `peers`: verify `light lantern` resolves a held lamp (the `reachable` scope includes inventory; if the affordance is peers-only for a held item, add `ignite`/`douse` to `self` on `FurnaceMixin`) | lantern/torch rows on `Lamp`; `Hearth.yaml` in generic-objects; `props:` in cookhouse | nothing to warm — Things clone with their rooms | `requires: CombustibleMixin\|FurnaceMixin` — **satisfied** |
 | douse | `douse.yaml` — ships | same | same | — | same |
 | the sky | none (a `look`) | — | **derived** from the row's biome chain (`isSkyExposed`); no row edit | the celestial singleton is `singletonSync`-created on first read; the memo seeds itself | — |
-| the room's warmth, and why | `feel` (bare) — ships; now names the cause | — | zone `envelope` optional; universe dials apply | none; reconcile-on-read; the spec resolves at the first async read | `requires: any` |
+| the room's warmth, and why | `feel` (bare) — ships; now names the cause | — | `fabric:` optional (a Material path that authors `thermalConductivity`); universe default applies | none; reconcile-on-read; the fabric resolves at the first async read | `requires: any` |
 | the body's cold | `look` body line / the `self.body` cue — ship | — | dials | — | — |
 | public lighting | `look at lamps` — `look` ships; the detail is the row's | `PublicLightingMixin.getDetail` | `publicLighting:` on street rows + `_publicLighting` on the locality + a government with a treasury + a supplier Business | `civic:lighting` registered in `registerSystemSchedules`; the boot-time settle | — |
 | the town pays | none (a schedule) | — | the realm treasury (`/compact/treasury`, `BankingApi.appropriate`) + a supplier Business with a primary account (**a treasury holding less than one street-night lights nothing** — the shipped refusal) | the clock boots before packs finish? Verify `registerSystemSchedules` runs after the address registry is warm; if not, the callback resolves lazily on first fire | — |
@@ -1171,15 +1244,21 @@ Nothing unmapped.
 
 ## Risks & opens
 
-1. ⚠⚠ **The requirements assumed a winter that does not exist in the
-   temperature.** Weather deviates by type (−1..−5 K); season only biases
-   snowfall. D3a adds a stateless solar temperature term (annual ±10 K,
-   diurnal ±4 K). It is small and in the requirements' own spirit ("the
-   sun is low, therefore it is cold … the same fact"), but it is a
-   product-visible change the requirements did not name: summers get
-   hot, winters get cold, everywhere outdoors. **The user should confirm
-   before W3.** If declined, S4 collapses to "the room drifts toward a
-   17 °C outside" and acceptance 8 is unobservable.
+1. **Recorded decision — the requirements assumed a winter that did not
+   exist in the temperature.** Weather deviates by *type* only (clear 0
+   · overcast −1 · rain −3 · storm −5 K, `WeatherType.ts:131`) over the
+   295 K universe base; `SEASON_BIAS` (`WeatherType.ts:333`) biases
+   snowfall **frequency**, not temperature, so a mid-winter 3 a.m. read
+   290 K (17 °C) and S4's "an unheated room in winter is cold" had
+   nothing to be cold *from*. D3a's stateless solar term (annual ±10 K,
+   diurnal ±4 K, a pure function of the sun's position) closes that gap
+   in the requirements' own spirit ("the sun is low, therefore it is
+   cold … the same fact"). It is a product-visible change the
+   requirements did not name — summers hot, winters cold, everywhere
+   outdoors — and **the user approved it on 2026-09-24**. Not widened:
+   one latitude, one climate; the per-zone profile stays out of scope.
+   The reasoning stays here because a reviewer will want it; the gate is
+   gone.
 2. ⚠ **"Dressed as it ships" ships naked.** No Cast row wears anything
    and no row *can*; D9 adds `wears:` and dresses the cast in the content
    pass. That is a kernel field and ~40 row edits the requirements did
@@ -1219,12 +1298,14 @@ Nothing unmapped.
 10. **Do not** add a Discipline, touch `measure`/`analyze`, or name coal
     or peat rows. Fuel is `reserves.fuel` on the row; when extraction
     lands, its rows fill the reserve — no code here knows a fuel's name.
-11. **Do not** scope in a building/structure concept (the zone is the
-    grouping and it already ships), a biome-catalogue normalization
-    (the user is taking it as its own slate), or template inheritance
+11. **Do not** scope in a building/structure concept (there is none in
+    this model, and S6's room-to-outside scope means this build does not
+    need one — see Deferred seams), a biome-catalogue normalization (the
+    user is taking it as its own slate), or template inheritance
     (`ref-shapes.md`: a platform feature; the arithmetic here does not
-    need it). If a reviewer asks "where is the building", the answer is
-    the zone row and the `cellSize` precedent.
+    need it). If a reviewer asks "where is the building", the answer is:
+    nowhere, honestly; each room names its own fabric, as it names its
+    floor, and a material is a reason two rooms may differ.
 12. **The biome line is the one that cascades.** If construction ever
     lands on a biome, one row warms every room that references it with
     no fire in them; `lint:envelope` clause (c) exists so the failure is
@@ -1240,6 +1321,17 @@ Each leaves as a slate line, not a plan section.
 - **Fuel as mass** — `heatOutputW` and `fuelBurnRatePerMin` derived from
   the fuel's `heatOfCombustion` and a real mass reserve (the energy
   build; `power-utility-slate`).
+- **A Structure concept** — nothing in this model says *"these rooms are
+  one building"*: a zone is a coordinate carve-up (a closet can be its
+  own zone, an office block can be carved by floor), a Locality is an
+  address prefix, a Parcel is title and ground, and ⚠ a `Warren` is
+  **not** it either (a Warren coordinates clones of ONE room template
+  that bud and merge; a building is heterogeneous rooms). What would
+  genuinely need it: a shared roof, a chimney serving two rooms, heat
+  between floors, a party wall's conduction — every one of which S6
+  scopes out (room-to-outside only), so this build does not need the
+  concept and does not substitute a zone for it. → the `structures`
+  slate the user is having written.
 - **Thermal windows** — a Window as a thermal opening (no Window rows
   exist); with the covering ladder → `field-substrate-slate` (coverings
   as insulation).
