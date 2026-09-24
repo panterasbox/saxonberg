@@ -23,6 +23,7 @@ import {
 } from '../../../../api/command';
 import type Interactive from '../../Interactive';
 import ToolItem from '../../../thing/ToolItem';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 import MeasureController from '../../cmd/perception/MeasureController';
 import AnalyzeController from '../../cmd/perception/AnalyzeController';
 import { InstrumentApi } from '../../../../api/instrument';

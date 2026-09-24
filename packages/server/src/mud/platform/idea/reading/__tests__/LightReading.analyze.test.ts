@@ -13,6 +13,7 @@ import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../lib/description/Named';
+import { AdvancementMixin } from '../../../../lib/advancement/Advancement';
 import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -32,10 +33,27 @@ import { buildAllModalities } from '../../../../lib/perception/modalities/__test
 class AmbientLoc extends AmbientLitMixin(CartesianLocation) {}
 class Lamp extends LightSourceMixin(NamedMixin(Thing)) {}
 
+// ⚠ `AdvancementMixin` is not decoration: `bandOf` narrows with
+// `MixinApi.isAdvancing`, so a fixture without it reads at the floor no
+// matter what its `competenceBandFor` says — and a ladder test would
+// have passed its untrained case and quietly asserted nothing about the
+// other two.
 const FakeAvatarBase = CommandGiverMixin(
-  NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea)))))
+  AdvancementMixin(
+    NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
+  )
 );
 class FakeAvatar extends FakeAvatarBase {
+  /**
+   * ⭐ The band this reader holds in `awareness`. The eye rung is
+   * GRADUATED — what a person can tell about light depends on how much
+   * they have looked at it — so a test of the prose has to say who is
+   * looking. Default `untrained`: the shipped floor.
+   */
+  public band = 'untrained';
+  public override async competenceBandFor(): Promise<never> {
+    return this.band as never;
+  }
   received: unknown[] = [];
   protected override handleMessage(msg: unknown): void {
     this.received.push(msg);
@@ -92,18 +110,23 @@ describe('LightReading', () => {
     avatar.setName('Alice');
     ContainmentApi.move(avatar, room);
 
+    avatar.band = 'proficient';
     const reading = withRow(await StuffApi.create(() => new LightReading()), 'light');
-    await driveAnalyze(reading, makeContext(avatar, room), { subject: { stuff: room, raw: 'here' }, tools: [await instrumentWith('photometry')] });
+    await driveAnalyze(reading, makeContext(avatar, room), { subject: { stuff: room, raw: 'here' } });
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
     // Aggregate lux + color appear as canonical quantity markup.
-    expect(frame.body).toContain('Light analysis at');
-    expect(frame.body).toContain('total:');
-    expect(frame.body).toContain('color temperature:');
-    expect(frame.body).toContain('contributing sources:');
-    // Lamp's per-source contribution.
-    expect(frame.body).toContain('50 lumen');
-    expect(frame.body).toContain('5000 K');
+    // ⭐⭐ At `proficient` the eye gives the WORKING: what the light is
+    // good for, how many things are making it, its colour, and which
+    // source is carrying the room.
+    expect(frame.body).toContain('Light at');
+    expect(frame.body).toContain('what is carrying it:');
+    expect(frame.body).toContain('brass lamp');
+    // ⚠ And NOT a figure. The per-source lumen attribution used to be
+    // handed to everybody for free — a photometer's readout wearing an
+    // eye's clothes, which left the instrument with nothing to sell.
+    // Shares are words here; the numbers are `measure light`'s.
+    expect(frame.body).not.toContain('lumen');
   });
 
   it('reports "none" when there are no sources', async () => {
@@ -114,9 +137,47 @@ describe('LightReading', () => {
     avatar.setName('Alice');
     ContainmentApi.move(avatar, room);
 
+    avatar.band = 'competent';
     const reading = withRow(await StuffApi.create(() => new LightReading()), 'light');
-    await driveAnalyze(reading, makeContext(avatar, room), { subject: { stuff: room, raw: 'here' }, tools: [await instrumentWith('photometry')] });
+    await driveAnalyze(reading, makeContext(avatar, room), { subject: { stuff: room, raw: 'here' } });
     const frame = avatar.received[0] as { body: string };
-    expect(frame.body).toContain('contributing sources: none');
+    expect(frame.body).toContain('Nothing here is making any of it.');
+  });
+
+  it('⭐⭐ the eye rung is a LADDER — and every rung is true', async () => {
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    const room = makeStuff(() => new AmbientLoc());
+    zone.addLocation(room, 0, 0, 0);
+    room.setAmbientFlux(60);
+    const lamp = makeStuff(() => new Lamp());
+    lamp.setName('brass lamp');
+    lamp.setEmittedFlux(50);
+    ContainmentApi.move(lamp, room);
+
+    const said: Record<string, string> = {};
+    for (const band of ['untrained', 'competent', 'proficient']) {
+      const avatar = makeStuff(() => new FakeAvatar());
+      avatar.setName('Alice');
+      avatar.band = band;
+      ContainmentApi.move(avatar, room);
+      const reading = withRow(await StuffApi.create(() => new LightReading()), 'light');
+      await driveAnalyze(reading, makeContext(avatar, room), {
+        subject: { stuff: room, raw: 'here' },
+      });
+      said[band] = (avatar.received[0] as { body: string }).body;
+    }
+
+    // ⭐ Everybody gets the same first sentence: what the light is FOR.
+    // Nobody is refused, and nobody is told nothing.
+    for (const band of ['untrained', 'competent', 'proficient']) {
+      expect(said[band]).toContain('Light at');
+    }
+    // What is added is DETAIL, monotonically.
+    expect(said['untrained']).not.toContain('making it');
+    expect(said['competent']).toContain('making it');
+    expect(said['competent']).not.toContain('what is carrying it:');
+    expect(said['proficient']).toContain('what is carrying it:');
+    expect(said['proficient']!.length).toBeGreaterThan(said['untrained']!.length);
   });
 });

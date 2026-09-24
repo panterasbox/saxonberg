@@ -96,6 +96,9 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Tooled } from '../craft/Tooled';
 import type { Durable } from '../material/Durable';
+import { Quantity } from '../quantity';
+import type { Unit } from '../quantity';
+import type { MeasureChannel } from '../perception/MeasureChannel';
 import type { FieldMeta } from '../mixin';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
@@ -160,16 +163,36 @@ const WEAR_PER_READING_FALLBACK = 0.002;
 
 /**
  * The `gradeConditionScale` cutoffs that turn an instrument into a
- * ceiling. `fair` at full condition scales 1.0 → `proficient`: a
- * shop-bought instrument caps a proficient reader, which is the whole of
- * the tool trade's story. Anything finer has to be commissioned, and
- * anything worn stops paying.
+ * ceiling.
+ *
+ * ⭐ **The intent: a shop-bought instrument caps a PROFICIENT reader.**
+ * That is the tool trade's whole story — the dial you can buy is good
+ * enough for nearly anybody, and the last band has to be commissioned.
+ *
+ * ⚠⚠ The plan asserted `fair` at full condition scales to exactly 1.0.
+ * It does not: `gradeConditionScale` lerps `[0.85, 1.15]` across FIVE
+ * bands by ordinal, and `fair` is ordinal 1 of 4, so it scales 0.925 —
+ * `fine` is the one that lands on 1.0. The cutoffs below are set from
+ * the real arithmetic to the intended outcome, rather than the intended
+ * outcome being quietly lost to an off-by-one in a doc. Worked:
+ *
+ *   | grade | ordinal | scale @ full | ceiling |
+ *   |---|---|---|---|
+ *   | poor        | 0 | 0.850 | competent |
+ *   | fair        | 1 | 0.925 | proficient |
+ *   | fine        | 2 | 1.000 | proficient |
+ *   | exceptional | 3 | 1.075 | expert |
+ *   | masterful   | 4 | 1.150 | expert |
+ *
+ * Condition multiplies by `lerp(0.5, 1, condition)`, so a fair dial worn
+ * to a third falls to 0.60 and reads untrained — which is the running
+ * cost of an instrument, and why `wear` is on use.
  */
 const CEILING_STEPS: ReadonlyArray<{ at: number; band: CompetenceBandName }> = [
-  { at: 1.1, band: 'expert' },
-  { at: 1.0, band: 'proficient' },
-  { at: 0.85, band: 'competent' },
-  { at: 0.7, band: 'novice' },
+  { at: 1.07, band: 'expert' },
+  { at: 0.92, band: 'proficient' },
+  { at: 0.8, band: 'competent' },
+  { at: 0.65, band: 'novice' },
 ];
 
 /** The band an ungraded instrument realizes — a plain honest dial. */
@@ -585,6 +608,36 @@ export default abstract class Reading extends ReadingBase {
     // [centre − hw, centre + hw]; the seed picks where.
     const unit = ((Math.sin(seed) + 1) / 2) * 2 - 1; // [-1, 1)
     return { centre: truth + unit * halfWidth, halfWidth };
+  }
+
+  /**
+   * ⭐⭐ **The bracket, rendered.** A figure read at a band, as the
+   * player sees it: `310 K ± 9 K`.
+   *
+   * The centre is the observation and the half-width is what the reader
+   * can honestly claim — and `truth` is always inside it, which is the
+   * whole of *a coarse reading is vague, never wrong*. At `expert` the
+   * bracket is narrow and still present: nobody reads a dial exactly,
+   * and pretending otherwise is the gauge this game does not have.
+   *
+   * ⚠ A band whose half-width rounds to nothing at the figure's scale
+   * prints bare rather than `± 0` — a zero bracket claims a precision
+   * the model is not making.
+   */
+  protected bracketed(
+    value: Quantity<Unit>,
+    band: CompetenceBandName,
+    seed: number,
+    channel?: MeasureChannel,
+  ): Mml {
+    const { centre, halfWidth } = this.observe(value.rawValue(), band, seed);
+    const shown = Quantity.of(centre, value.unit);
+    const spread = Quantity.of(halfWidth, value.unit);
+    const opts = channel ? { channel } : undefined;
+    if (spread.format() === Quantity.of(0, value.unit).format()) {
+      return Mml.compose`${shown.formatMml(undefined, undefined, opts)}`;
+    }
+    return Mml.compose`${shown.formatMml(undefined, undefined, opts)} ± ${spread.formatMml(undefined, undefined, opts)}`;
   }
 
   /**

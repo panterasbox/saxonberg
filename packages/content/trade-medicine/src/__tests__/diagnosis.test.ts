@@ -139,7 +139,7 @@ async function read(band: CompetenceBandName): Promise<string> {
   });
   said = [];
   const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
-      await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient } });
+      await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient, raw: 'patient' } });
   return said.join('\n');
 }
 
@@ -196,7 +196,7 @@ describe('⭐⭐ the diagnostic ladder', () => {
       const patient = makeStuff(() => new Creature());
       said = [];
       const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
-      await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient } });
+      await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient, raw: 'patient' } });
       expect(said.join('\n')).toMatch(/Nothing is the matter/);
     }
   });

@@ -47,7 +47,7 @@ export default abstract class BiomeReading extends Reading {
     context: CommandContext,
     target: Stuff | null,
     _instrument: Stuff & Tooled,
-    _band: CompetenceBandName,
+    band: CompetenceBandName,
     param: string,
   ): Promise<void> {
     const scope = target && MixinApi.isContainer(target) ? target : null;
@@ -63,9 +63,18 @@ export default abstract class BiomeReading extends Reading {
       scope as Stuff & Container,
       param === '' ? undefined : param,
     );
+    // ⭐⭐ The figure is the world's and is the SAME for everybody; what
+    // the band decides is the bracket around it. The tag is unbracketed
+    // on purpose — *hot* is a judgement about the reading, not a second
+    // measurement, and hedging a word would be hedging twice.
+    const actor = context.commandGiver as unknown as Stuff;
+    const seed = this.seedFor(actor, scope, param);
+    const figure = this.bracketed(value, band, seed, this.mmlChannel());
     const tags = this.tagFamily();
-    const body = Mml.compose`${this.label()}: ${value.formatMml(undefined, tags, { channel: this.mmlChannel() })} (${value.tag(tags)})\n`;
-    this.report(context, body);
+    this.report(
+      context,
+      Mml.compose`${this.label()}: ${figure} (${value.tag(tags)})\n`,
+    );
   }
 
   public override async truth(target: Stuff | null): Promise<number | null> {

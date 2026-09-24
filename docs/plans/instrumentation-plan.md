@@ -1278,7 +1278,7 @@ commit. Order matters — each step keeps the tree green.
 > affordance that lifts the doctrine line has to name a view that exists.
 > W3 keeps the `patient` work.
 
-#### W2 — The honest read, the trained eye, the ceiling (R-D2, R-D5, R-D7, drive A–D)
+#### ✅ W2 — The honest read, the trained eye, the ceiling — DONE
 
 - Every `kind: fact` Reading class gets a band → prose table for its eye
   rung and `observe` on its measure rung; `discipline:` set per D9.
@@ -1305,6 +1305,39 @@ commit. Order matters — each step keeps the tree green.
   (novice + masterful tool = novice; expert + poor tool = capped);
   `wear()` called once per measure; broken tool refused by name.
 - Commit: `build(instrumentation W2): the free read is honest; grade is a ceiling, competence is what you get`.
+
+> **Wave note.**
+>
+> ⚠⚠ **D6's arithmetic was wrong and the outcome it wanted was right.**
+> The plan asserted `fair` at full condition scales to exactly 1.0. It
+> does not — `gradeConditionScale` lerps `[0.85, 1.15]` across five
+> bands by ordinal, and `fair` is ordinal **1 of 4**, so it scales
+> 0.925; `fine` is the one that lands on 1.0. The cutoffs were set from
+> the real arithmetic to D6's stated intent (*a shop-bought instrument
+> caps a proficient reader*) rather than the intent being quietly lost
+> to an off-by-one in a doc. The worked table is in `Reading.ts` beside
+> `CEILING_STEPS`.
+>
+> ⭐⭐ **`analyze light` was giving the instrument's answer away free.**
+> It handed every reader the full per-source lumen attribution — a
+> photometer's readout wearing an eye's clothes; nobody looks at a room
+> and apportions lumens between two candles. The eye rung is a ladder
+> now: *enough to work by* (anybody) → *how many things are making it,
+> and its colour* (competent) → *which source is carrying the room, in
+> shares* (proficient). Every rung is TRUE and the figures stayed with
+> `measure`. Same shape on `temperature`, where `competent` adds what
+> the reading is FOR (*cool enough to cellar in*).
+>
+> ⚠ **A fixture without `AdvancementMixin` reads at the floor whatever
+> its `competenceBandFor` returns**, because `bandOf` narrows with
+> `MixinApi.isAdvancing`. The first ladder test passed its untrained
+> case and asserted nothing at all about the other two. Composed, and
+> the note is in the fixture.
+>
+> The value assertions moved to `truth()` per D18 — the prose is
+> bracketed now, and a reading is an act with an honest error in it.
+> ⭐ The tag is deliberately NOT bracketed: *hot* is a judgement about
+> the reading, not a second measurement, and hedging a word hedges twice.
 
 #### W3 — `readings`, the person read, and the ragged ladder (R-D6, R-D8, R-D13, drive F, M, P40)
 

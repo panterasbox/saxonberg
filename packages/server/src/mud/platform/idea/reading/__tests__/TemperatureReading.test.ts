@@ -111,7 +111,13 @@ describe('TemperatureReading', () => {
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('<quantity channel="thermal" unit="K"');
-    expect(frame.body).toContain('value="310"');
+    // ⭐⭐ The FIGURE is asserted through the engine's own read, not
+    // through the prose — the prose is bracketed now, and a reading is
+    // an act with an honest error in it. `truth()` is the surface that
+    // exists for exactly this: tests assert values, players never see it.
+    expect(await reading.truth(room as unknown as never)).toBe(310);
+    // The tag is NOT bracketed: `hot` is a judgement about the reading,
+    // not a second measurement, and hedging a word would hedge twice.
     expect(frame.body).toContain('(hot)');
   });
 
@@ -139,7 +145,7 @@ describe('TemperatureReading', () => {
     const reading = withRow(await StuffApi.create(() => new TemperatureReading()), 'temperature');
     await driveMeasure(reading, makeContext(avatar, room), { subject: { stuff: null, raw: 'hearth' }, tools: [await instrumentWith('thermometry')] });
     const frame = avatar.received[0] as { body: string };
-    expect(frame.body).toContain('value="800"');
     expect(frame.body).toContain('(scorching)');
+    expect(frame.body).toMatch(/±/);
   });
 });
