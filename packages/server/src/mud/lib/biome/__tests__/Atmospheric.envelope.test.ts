@@ -33,6 +33,10 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import Hearth from '../../../platform/thing/Hearth';
+import Forge from '../../../platform/thing/Forge';
+import { Reserve } from '../../reserve';
+import { ContainmentApi } from '../../../api/containment';
 
 const SCALE = 12;
 const GRANITE = '/stuff/idea/material/_env/granite';
@@ -187,6 +191,88 @@ describe('⭐⭐ the fabric decides, and it is a CAUSE', () => {
     const coeff = env(plain).envelopeCoefficients();
     expect(coeff).not.toBeNull();
     expect(coeff!.uWperK).toBeGreaterThan(0);
+  });
+});
+
+describe('⭐⭐ a hearth warms its room; a forge does not', () => {
+  /** A fuelled fire, lit, standing in the room. */
+  type Fire = Hearth | Forge;
+
+  function lightFireIn(r: CartesianLocation, fire: Fire): Fire {
+    fire.setReserve(
+      new Reserve(
+        'fuel',
+        Quantity.of(100, '%'),
+        Quantity.of(100, '%'),
+        'combustion',
+        null,
+      ),
+    );
+    ContainmentApi.move(fire as never, r as never);
+    fire.ignite();
+    return fire;
+  }
+
+  it('a lit hearth lifts the room over GAME-MINUTES, not instantly', () => {
+    const r = room({ material: GRANITE, thicknessM: 0.3 }, 275);
+    lightFireIn(r, makeStuff(() => new Hearth()) as Hearth);
+    env(r).reconcileEnvelope();
+    const readings: number[] = [];
+    for (let m = 0; m < 180; m += 10) {
+      advance(600);
+      env(r).reconcileEnvelope();
+      readings.push(env(r).envelopeTemperatureK!);
+    }
+    // ⭐ Acceptance 9: a player can feel the difference between
+    // just-lit and long-lit. Monotone up, and still climbing at ten
+    // minutes — warmth arrives, it does not appear.
+    expect(readings[0]!).toBeGreaterThan(275);
+    expect(readings[0]!).toBeLessThan(readings[readings.length - 1]!);
+    for (let i = 1; i < readings.length; i++) {
+      expect(readings[i]!).toBeGreaterThanOrEqual(readings[i - 1]!);
+    }
+    // And it settles well above outside rather than running away.
+    const settled = readings[readings.length - 1]!;
+    expect(settled).toBeGreaterThan(280);
+    expect(settled).toBeLessThan(300);
+  });
+
+  it('⭐ a lit FORGE does not move the room at all — the shipped rule, kept', () => {
+    // Not by a guard. `Forge` does not compose `SpaceHeatingMixin`, so
+    // the envelope's contents walk never counts it, and nothing
+    // anywhere asks whether something is a forge.
+    const r = room({ material: GRANITE, thicknessM: 0.3 }, 275);
+    const forge = lightFireIn(r, makeStuff(() => new Forge()) as Forge);
+    expect(forge.isLit()).toBe(true);
+    env(r).reconcileEnvelope();
+    for (let m = 0; m < 180; m += 10) {
+      advance(600);
+      env(r).reconcileEnvelope();
+    }
+    expect(env(r).envelopeTemperatureK!).toBeCloseTo(275, 5);
+  });
+
+  it('a hearth that BURNS OUT stops warming, and the room drifts back', () => {
+    const r = room({ material: GRANITE, thicknessM: 0.3 }, 275);
+    const h = lightFireIn(
+      r,
+      makeStuff(() => new Hearth()) as Hearth,
+    ) as Hearth;
+    env(r).reconcileEnvelope();
+    for (let i = 0; i < 12; i++) {
+      advance(600);
+      env(r).reconcileEnvelope();
+    }
+    const warm = env(r).envelopeTemperatureK!;
+    expect(warm).toBeGreaterThan(276);
+
+    h.adjustReserve('fuel', Quantity.of(-100, '%'));
+    expect(h.spaceHeatOutputW()).toBe(0);
+    for (let i = 0; i < 24; i++) {
+      advance(600);
+      env(r).reconcileEnvelope();
+    }
+    expect(env(r).envelopeTemperatureK!).toBeLessThan(warm);
   });
 });
 

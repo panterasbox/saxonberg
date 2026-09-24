@@ -1,0 +1,32 @@
+# A closed stove — the same mechanism as the open hearth, and a better
+# machine: a firebox with a door loses less up the chimney, so it puts
+# MORE into the room off the same fuel and lasts longer doing it. It also
+# casts almost no light, which is the trade.
+#
+# ⭐ A second heating object and ZERO new code: `Hearth` is the class, and
+# what makes this a stove is three numbers and some prose.
+class: /platform/thing/Hearth
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: cast-iron stove
+  keywords: [stove, fire, firebox, iron]
+  register: definite
+  longDescription: >
+    A squat cast-iron stove on four stubby feet, its door shut on a red
+    line of light and its flue climbing into the wall. The top plate is
+    flat enough to stand a kettle on and hot enough to mean it.
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  # More of the fire reaches the room, and it burns slower.
+  heatOutputW: 2200
+  fuelBurnRatePerMin: 0.15
+  burnTemperatureK: 650
+  # A closed firebox: a line of light around the door, and no more.
+  emittedIntensity: 8
+  emittedColorTemperature: 1800
