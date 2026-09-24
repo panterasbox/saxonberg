@@ -180,3 +180,24 @@ Everything past the middle tier is polity + economy design:
   the trades daily loop
 - [requirements/demo-content-requirements.md](../../requirements/demo-content-requirements.md)
   — the lamppost decision that spawned this (unit 8)
+
+---
+
+## ⭐ The end-to-end design spine lives in grid-slate (2026-09-24)
+
+The full seven-phase chain (generation → transmission → distribution → meter →
+interior circuits → consumption → failure/maintenance), the whole-chain lens
+pass, the **A/B/C shippable tiers** (A = "the fridge comes online"; B = the ONI
+interior-circuit tier; C = the metered economy), the contiguity decision
+(public contiguous / private abstract), overhead vs underground, **epoch by
+locality** (Terminus electric · Heart's Delight gaslamp · Hinkley off-grid,
+all derived not flagged), and the integration with envelope's shipped `Street`
+/ public-lighting are recorded in
+[grid-slate § Part 5](./grid-slate.md#part-5--the-end-to-end-design-2026-09-24-scoping-pass).
+
+For this slate specifically: the **kitchen/fridge is Tier A's canonical
+residential consumer**, and **public street lighting is the ideal FIRST
+consumer** — envelope ships it as a fuel appropriation today, and the grid
+migrates it to an electricity draw (gaslight → electric streetlight, one civic
+service, the source changes). The commodity-generic supply ref (power · gas ·
+water) and the Law-2 use-metering constraints in this slate feed Tier C.
