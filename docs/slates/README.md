@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**243 slates.** 56 greenfield · 86 continuations · 55 waves · 46 tails.
+**242 slates.** 55 greenfield · 86 continuations · 55 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (56)
+## ⭐ Greenfield — nothing shipped yet (55)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -66,7 +66,6 @@ respect.
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field … |
 | [estate-nesting](./builds/estate-nesting-slate.md) | ⭐⭐ decide what an estate entry should CARRY — a reference, a copy, or a copy under a cap · the 16 MB document ceiling and what happens at it · whether a good's state belongs in the owner's record at all now that `EstateEntry.key` proves it need not · the migration for entries already written |
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
-| [extraction](./builds/extraction-slate.md) | the open working — ground cut from above, overburden as the gate, the dressed block as forestry's bole · W0, the open air dries what you leave in it (one weather-read rate serving peat, the salt pans, hay and a ham on a line) · stone · clay … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
