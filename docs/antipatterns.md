@@ -5303,3 +5303,63 @@ not part of the room's own description.
 browser player has ever seen a puddle. The general answer (a card that
 renders the prose it was handed) is
 [carded-prose-slate](./slates/tails/carded-prose-slate.md).
+
+## A required arg with no default — the refusal the controller already wrote, unreachable
+
+**The shape.** A view declares an arg `required: true` and gives it no
+`default:`. The bare verb can then never bind, so a player who types it
+gets the **binder's** sentence about the word rather than the
+**controller's** sentence about the world.
+
+`assay` shipped this way. A prospector standing at the bench, holding
+ore, typed `assay` and was told:
+
+> That doesn't match any known command shape: assay.
+
+The parser, about the word, for a verb the room affords. And the
+controller's own refusal —
+
+> Assay what? A sample is a piece you took and noted — `sample` first.
+
+— was **unreachable from the moment it was written**, because the binder
+refuses one step above it. Every controller test passed; they call the
+controller.
+
+**The fix.** Make it optional and give it the default the help already
+recommends:
+
+```yaml
+- name: samples
+  type: objects
+  required: false
+  default: "reachable:[mixin.SampledMixin]"
+```
+
+⭐ **The rule:** if a controller has written a refusal for an empty
+binding, the binder must be able to REACH it. A `required: true` arg is a
+promise that the verb is meaningless without it — and a verb whose own
+help says *"bring several"* is not meaningless bare, it is a whole batch.
+
+⚠ The tell is a refusal string in a controller that no test and no drive
+has ever printed. Grep your controller for its empty-case sentence and
+ask what the binder does with the bare verb.
+
+## `your <thing>` when the rule is REACH, not carry
+
+**The shape.** Prose says *"with your X"* about something the actor only
+needs to have **in reach**. Two defects for the price of one:
+
+1. **Grammar** — `getPresentation()` already carries an article, so
+   `` `with your ${tool.getPresentation()}` `` renders *"with your a
+   brass photometer"*. The reading ladder shipped eleven lines of this in
+   a single `readings` listing.
+2. ⭐ **Truth** — the possessive asserts ownership the mechanism never
+   required. The Duncan Hall instrument case is the proof: the dials sit
+   on a table, belong to nobody, and every rung they open said *your*.
+
+**The fix.** `` `with ${tool.getPresentation()}` `` — the presentation
+form is already a complete noun phrase. If you want to say the actor has
+it, say something the mechanism actually checks.
+
+⚠ Neither half is visible to a wire assertion, which matches a substring
+and is blind to the rest of the sentence. **Read the words.**

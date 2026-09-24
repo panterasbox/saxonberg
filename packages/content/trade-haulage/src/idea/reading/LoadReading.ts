@@ -57,7 +57,7 @@ export default class LoadReading extends Reading {
             ? undefined
             : { stuff: null, raw: param },
     } as unknown as AnalyzeLoadModel;
-    const giver = context.commandGiver as unknown as Stuff;
+    const giver = this.actorOf(context);
     const rig = this.resolveRig(model, context);
     if (!rig) {
       return this.fail(context, "There's no rig here to look over.");

@@ -87,7 +87,7 @@ export default class FigureReading extends Reading {
       subject: bound ? { stuff: bound, raw: param } : param === '' ? undefined : { stuff: null, raw: param },
       book: { stuff: instrument },
     } as unknown as MeasureModel;
-    const giver = context.commandGiver as unknown as Stuff;
+    const giver = this.actorOf(context);
     /*
      * ⭐ Three cases, and they are genuinely different answers.
      *

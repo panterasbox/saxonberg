@@ -33,7 +33,6 @@ import {
   uniqueHandle,
   plain,
   expectOk,
-  expectRefused,
 } from '../src/harness';
 
 export const DIRTY_REASON =

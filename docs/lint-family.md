@@ -532,6 +532,33 @@ check.
    first census is a hypothesis about what the antipattern looks like,
    and the second reader should go looking for the shape it missed.
 
+### `lint:authored-prose` — a player's sentence may not carry YAML escaping (2026-09)
+
+⭐⭐ **The gate a live browser walk bought, and the argument for it is
+the failure it caught.** Five reading rows across four packs shipped an
+unquoted YAML scalar opening with an escaped quote:
+
+```yaml
+instrumentNoun: \"a surveyor's compass or a miner's dial"
+```
+
+so the backslash and the quotes went *into the string*, and a prospector
+asking what he needed was told
+
+> It wants \"a surveyor's compass or a miner's dial".
+
+⚠⚠ **Neither the suite nor the wire drive could see it.** A content row's
+value is never parsed again, never compared, never rendered through a
+template — it is pasted into a sentence and shown to somebody. And the
+wire checkpoint covering that exact line matched `/compass/`; `compass`
+IS in there, wrapped in junk. **A substring assertion is blind to
+everything it is not asserting on, which is most of the sentence.**
+
+The check is narrow on purpose — a properly double-quoted value may
+contain whatever it likes, and a block scalar is not a quoting context —
+and the ceiling is **0**: the census over the whole content tree came
+back clean once the five were fixed, so it starts where it ends.
+
 ### `lint:capabilities` — a capability kind is minted by a CONSUMER (2026-09)
 
 ⭐ **The open vocabulary has a contract, and this is it.** A capability

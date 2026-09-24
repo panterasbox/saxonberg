@@ -43,7 +43,7 @@ export default class AcidityReading extends SoilReading {
     _band: CompetenceBandName,
     _param: string,
   ): Promise<void> {
-    const giver = context.commandGiver as unknown as Stuff;
+    const giver = this.actorOf(context);
     const place = this.placeOf(giver);
     if (!place) {
       this.decline(context, Mml.compose`You are nowhere to take a sample from.`, 'no-place');

@@ -85,7 +85,7 @@ export default class PatientReading extends Reading {
             ? undefined
             : { stuff: null, raw: param },
     } as unknown as AnalyzePatientModel;
-    const giver = context.commandGiver as unknown as Stuff;
+    const giver = this.actorOf(context);
     const target = model.target?.stuff ?? giver;
     if (!MixinApi.isVitals(target)) {
       const detail = `There is nothing to read in ${target.getPresentation()}.`;

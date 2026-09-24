@@ -74,7 +74,7 @@ export default class GradeReading extends SurveyReading {
     handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
-    const giver = context.commandGiver as unknown as Stuff;
+    const giver = this.actorOf(context);
     const found = await this.gradeOf(subject, giver, param);
     if (found === null) {
       this.decline(

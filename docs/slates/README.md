@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**242 slates.** 55 greenfield · 86 continuations · 55 waves · 46 tails.
+**242 slates.** 54 greenfield · 86 continuations · 56 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (55)
+## ⭐ Greenfield — nothing shipped yet (54)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -73,7 +73,6 @@ respect.
 | [hydration-framework](./builds/hydration-framework-slate.md) | ⭐⭐ the census + ratchet on the `postRegister` implementations that load state (63 → 67, ungated) · the finishing-hydration vs warming-a-roster ruling the census feeds · ⭐ let a `PersistenceContributor` name its own SOURCE (so a layer can restore from a collection that is not `holder_snapshots`) · pre- vs post-register for a source-naming contributor (Q1) … |
 | [implements](./builds/implements-slate.md) | the implement class itself · choosing what it modifies (magnitude / cost / band-reach — and the reach case must not become a key) · wear (default none; else `Durable`, as the conduit did) · BUC on the effect axis … |
 | [institutions](./builds/institutions-slate.md) | the entity-form ladder over a cap table (sole trader · partnership · company · mutual … |
-| [instrumentation](./builds/instrumentation-slate.md) | the `analyze`/`measure` channel → capability + competence table (the step-1 inventory) · `MeasuringMixin` on a Thing (`channels` + `read`) with one `measure` verb over a string positional, no subcommands · the instrument-declared dial (so a pack contributes a channel, and the `strike`/`dip` platform-view stanzas retire) · the `readings` companion verb … |
 | [insurance](./builds/insurance-slate.md) | the policy-as-contract + reserve ratio · cargo underwriting first (fire and crops after) · the mutual as the guild's instrument · prevention priced into the premium … |
 | [intervention](./builds/intervention-slate.md) | the sideless participant · a relation whose object is a |
 | [legibility](./builds/legibility-slate.md) | `extends:` on template rows (runtime-resolved, single parent, an ordinary row, folded into access.md's transitive set — and the `cp`/`mv` D5 relaxation it delivers) · the `props:` entry shape (`count` + `as`) · the instruction-field merge rule · contents **grouping** beside `looseContents`, consumed by the same three call sites … |
@@ -194,7 +193,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (55)
+## Waves — rides another build (56)
 
 | slate | left |
 |---|---|
@@ -225,6 +224,7 @@ are the named remainders.
 | [hand-slot](./tails/hand-slot-slate.md) | picking Option A vs B (layered `:worn` / `:held` slots) · wrist slots · single-hand wearables · the cross-layer constraint (tension 4) … |
 | [hearth-and-larder-design-pack](./tails/hearth-and-larder-design-pack.md) | the indoor room-ambient bump (a hearth that warms its room, named a follow-on in thermal.md) · the compost heap (`CompostingMixin`, `turn`) + its nitrogen loop into smallholding · the victualler vocation + the machine-devalues-the-craft story (Part 2). *(`restQuality` gains room temperature → moved to room-condition, 2026-09-21.)* |
 | [household-design-pack](./tails/household-design-pack.md) | `ParcelApi.householdOf(extent)` — the domicile ∩ extent read · the gate made COLLECTIVE plus the leave-and-ascend-alone exit · household contract clauses over the derived condition read (a condition-band template in contract's closed vocabulary) · co-ownership as a managed group `ParcelOwner` (the owner kind ships; the household flow over it is undriven) … |
+| [instrumentation](./tails/instrumentation-slate.md) | ⭐ **the implant rung** (Wave 2+ — carried upgradeable, mounted frozen at install; the attach point is real, `AugmentMixin. confers()` already returns mixin names and a channel names a capability) · the calibration / certification gate · attunement vs. mount capacity (#3) · reversibility of mounts (#4) … |
 | [language](./tails/language-slate.md) | the `Language` Idea + catalogue (today `MARK_SCRIPTS` is a bare vocabulary; ⚠ the slate's `/lib/language/<name>` rows must move — nothing instances `/lib/`) · `BodyPlan.nativeLanguages` defaults · `Character.languages` proficiency (binary in v1) · the `decode` literacy gate … |
 | [lifecycle-signals](./tails/lifecycle-signals-slate.md) | the `quiesce`/`persist`/`flush`/`close` phase vocabulary · the subsystem-only subscription seam (Q3: never Stuff — a predicate serves those) · per-subscriber failure isolation + what is logged (Q1) · a per-phase deadline + its budget (Q2) … |
 | [locomotion-as-activity](./tails/locomotion-as-activity-slate.md) | the durative `TraverseActivity` promotion (mode-name as engagement type) · the sync/async split (`Mobile.traverseSync` + `TraverseActivity.beginFor`) · the `engagedMode` storage migration onto `EngagedMixin` · the three retirements (`engageAround` … |

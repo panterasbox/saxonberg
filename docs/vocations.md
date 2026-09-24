@@ -32,7 +32,7 @@ stored, broken down, and sold when the price is unknown.
 | ⚠ | ⭐⭐ **NEVER INVENT A NEED TO CREATE A MARKET** | if a vocation requires a **new player obligation** in order to exist, **the demand was fabricated** — criterion 1 failing in disguise. (The **innkeeper** is the worked example: justifying an inn with a sleep *requirement* is manufactured demand; the honest justification is that **NPC schedules make the inn the place that stays open**.) |
 
 **(2) is what turns an activity into a livelihood** — and it is exactly
-the [instrumentation](./slates/builds/instrumentation-slate.md) thesis.
+the [instrumentation](./slates/tails/instrumentation-slate.md) thesis.
 **(4) is the one violated by accident.**
 
 ## ⭐⭐ Four gap-finding methods, ranked

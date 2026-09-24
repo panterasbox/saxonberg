@@ -80,7 +80,7 @@ export default class WaterReading extends Reading {
             ? undefined
             : { stuff: null, raw: param },
     } as unknown as AnalyzeWaterModel;
-    const giver = ctx.commandGiver as unknown as Stuff;
+    const giver = this.actorOf(ctx);
     const target = model.target?.stuff ?? null;
 
     if (target !== null) {

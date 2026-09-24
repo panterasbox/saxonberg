@@ -33,7 +33,7 @@ export default class LightReading extends Reading {
     const loc = this.asPlace(context, target);
     if (!loc) return;
     const light = await this.lightAt(loc);
-    const actor = context.commandGiver as unknown as Stuff;
+    const actor = this.actorOf(context);
     // ⭐ The dial's figure, with the reader's error on it. The drive
     // caught this bare: `light at Duncan Hall lobby: 53.33333333333333`
     // — an engine float, no bracket, and therefore a claim of infinite

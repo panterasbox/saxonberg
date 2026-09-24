@@ -1,34 +1,24 @@
 # Instrumentation slate — you are as good as your toolkit
 
-> **Status: UNBUILT** — the three-base capability model and the sensory
-> physics it rides both exist, but nothing this slate proposes is built;
-> `analyze` is still ungated and the metal chain had to work around it.
-> Re-verified 2026-09-19: no `MeasuringMixin`, no `readings` verb;
-> `Sextant.commandContributions` still names the whole `measure.yaml`;
-> `MeasureAltitudeController` still checks `instanceof Altimeter` /
-> `Sextant`; the `strike`/`dip` stanzas still sit in the platform view
-> naming `trade-mining` controllers (`measure.yaml` l.127–143). ⚠ The
-> addendum's counts have drifted — eleven instruments in
-> `platform/thing/instrument/`, eighteen kernel `Measure*`/`Analyze*`
-> controllers, and the three mining survey controllers DO band by
-> `geology` — the retrofit's step 1 inventory re-takes them.
-> **Left:** the `analyze`/`measure` channel → capability + competence
-> table (the step-1 inventory) · `MeasuringMixin` on a Thing (`channels`
-> + `read`) with one `measure` verb over a string positional, no
-> subcommands · the instrument-declared dial (so a pack contributes a
-> channel, and the `strike`/`dip` platform-view stanzas retire) · the
-> `readings` companion verb · eyeballing as the body's coarse instrument
-> · route-gated `analyze` (each analysis declares which modalities
-> answer; the output names its route) · the readout ladder · honest
-> refusals · the calibration / certification gate · the author/test
-> bypass, decided before the gates land · the implant rung (Wave 2+ —
-> carried upgradeable, mounted frozen at install) · wheel speed on
-> `look` at a working mill (presentation) · the constraints absorbed
-> from sampling-and-labs § Part 7 (the step-1 inventory organised on
-> the portable/bench axis · certification-because-salting · Grade →
-> precision at the bench, portability in the field · the hand-tool rung
-> as step 2's first content)
-> **Size:** a build
+> **Status: PARTIAL** — what shipped →
+> [instrumentation.md](../../subsystems/instrumentation.md) (MR !292,
+> 2026-09-24). The reading ladder is built: `analyze` / `measure` /
+> `readings` / `sample` / `assay` flat over a `Reading` **row any pack
+> ships**, 31 channels, competence resolving detail and never access, the
+> instrument as a ceiling, the seeded bracket, `SampledMixin` provenance,
+> and the bench that keeps nothing of yours. The eleven instrument
+> CLASSES are gone — an instrument is a row over `ToolItem` declaring a
+> capability — and the `strike`/`dip` platform-view stanzas retired with
+> them.
+> **Left:** ⭐ **the implant rung** (Wave 2+ — carried upgradeable,
+> mounted frozen at install; the attach point is real, `AugmentMixin.
+> confers()` already returns mixin names and a channel names a
+> capability) · the calibration / certification gate · attunement vs.
+> mount capacity (#3) · reversibility of mounts (#4) · certification
+> authority (#5) · wheel speed on `look` at a working mill
+> (presentation) · and the eight deferred seams recorded at the foot of
+> this file.
+> **Size:** a wave
 
 **Captured 2026-07-31**, out of the press session's recording
 instrument. The trigger is a design-drift admission: **`analyze` grew
@@ -46,7 +36,7 @@ three-base capability model — the architecture this all rides),
 [slot.md](../../subsystems/slot.md) (slot claims per body plan),
 [race.md](../../subsystems/race.md) (species anatomy),
 [advancement.md](../../subsystems/advancement.md) (competence),
-[press-slate](./press-slate.md) (the recording instrument, the
+[press-slate](../builds/press-slate.md) (the recording instrument, the
 certification hook), [crafting.md](../../subsystems/crafting.md)
 (Grade, Durable).
 
@@ -230,10 +220,10 @@ more, who gets to see more, and what do you give up to keep seeing?**
 
 ## Absorbed from sampling-and-labs-slate — Part 7 — What this answers in the parent slate
 
-> Moved verbatim from [sampling-and-labs-slate](./sampling-and-labs-slate.md) § *Part 7* by the cluster-merge pass (2026-09-21); its "Part 1/2/3" references are that slate's sections.
+> Moved verbatim from [sampling-and-labs-slate](../builds/sampling-and-labs-slate.md) § *Part 7* by the cluster-merge pass (2026-09-21); its "Part 1/2/3" references are that slate's sections.
 
 Resolves, or sharpens, several of
-[instrumentation-slate](./instrumentation-slate.md)'s open questions:
+[instrumentation-slate](../tails/instrumentation-slate.md)'s open questions:
 
 - **Q1 (channel/instrument mapping)** — Part 1 gives the organizing axis:
   **environment-readers are portable; sample-eaters are bench.** The
@@ -482,3 +472,73 @@ instruments, so this one is arriving whether or not it is answered).
 is a reading off `ρ·g·Δh·Q·η` (`analyze power`); Timberborn's is a wheel
 you watch turn. `analyze power` is the honest minimum; a wheel speed on
 `look` at a working mill is a presentation wave for this slate.
+
+---
+
+## ⭐⭐ SHIPPED 2026-09-24 — the reading ladder (MR !292)
+
+Wave 1 of this slate is built. The subsystem doc is
+[instrumentation.md](../../subsystems/instrumentation.md) and is now the
+live reference; the requirements and plan retired at the sweep.
+
+**What shipped:** `analyze` / `measure` / `readings` / `sample` / `assay`
+as flat verbs over a `Reading` **row any pack can ship** (31 channels
+across the platform and seven packs); competence resolving **detail and
+never access**; an instrument as a **ceiling** competence realizes; a
+seeded bracket on every instrumented read; `SampledMixin` provenance; and
+a bench that consumes samples over game-time and hands back a paper while
+you walk away.
+
+**Slate questions this answered, beyond the two already recorded above:**
+
+- **#2 — does `analyze time` want a timepiece?** Yes in principle, no in
+  content: the `time` channel ships with `instrument: ""` and the reason
+  written into its `stakes`. A timepiece is a row when content wants one.
+- **#6 — instrument crafting.** Moot as a blocker: the ten platform
+  instruments are **rows over `ToolItem`** now, not classes, so crafting
+  one is the ordinary recipe question rather than a kernel one.
+
+**Still open and untouched:** **#3** (attunement vs. mount capacity),
+**#4** (reversibility of mounts), **#5** (certification authority).
+
+### ⭐ The implant rung is this slate's Wave 2+, and it is unbuilt
+
+Everything under *"The implant rung"* above stands. The ladder's third
+rung — **mounted** — has no code: the shipped build has `eyeball` and
+`carried` only. The attach point is real and deliberate: a channel names
+a **capability**, and `AugmentMixin.confers()` already returns mixin
+names, so an augment that confers a capability-bearing mixin widens the
+instrument set with no change to any channel.
+
+### Deferred seams the build left as clean attach points
+
+Attach points, not stubs — ⚠ nothing in the shipped tree anticipates
+these, because a hook several builds ahead of its consumer is what
+`lint:unconsumed-seams` exists to find.
+
+| seam | where it goes |
+|---|---|
+| **Samples of a bulk medium** — a flask of mine air, a bottle of river water, milk from a vat. `BulkPayload` takes provenance the way `CraftedMixin` echoes onto it; `sample` gains a case for a `Bulkable` subject into a carried vessel | here (parent) |
+| **A soil portion + the soil bench rung** — farming has no spadeful class, so the bench rung for `acidity`/`texture` waits on one | here, cross-ref [smallholding.md](../../subsystems/smallholding.md) |
+| **The multimeter** (`electrical`'s measure rung) and **a timepiece** (`time`'s) — a row each when content motivates; both channels already carry `instrument: ""` with the reason in `stakes` | here |
+| **Attestation and the certified assayer** — `ReadingRecord` carries taker + band; a credential kind and a seat are institutions' | [credential.md](../../subsystems/credential.md), [institutions-slate](../builds/institutions-slate.md) |
+| **An attended bench** — a human assayer serving in person, a lease, a visible queue; `AttendantMixin` on the bench when a position wants attention rather than a fee | [employment.md](../../subsystems/employment.md) |
+| **The courier** — demand only; freight's mechanism | [freight-slate](../builds/freight-slate.md) |
+| ⭐⭐ **The laboratory as a venue, and the calibration mirror** — the build leaves three things and no stubs: a **bench** that is a placeable object, a **field-call note** keyed on the same `sampledAt` the sample carries, and a **`ReadingRecord`** naming its taker and band. The venue multiplier applies to the credit call that already fires; the mirror is arithmetic over the two records | [advancement-slate](../builds/advancement-slate.md) § *Declared focus* |
+| **Sensor augments, medical instruments, acoustic reads** | the requirements' non-goals, already homed |
+
+### ⚠ Findings handed to other trades
+
+- **A prospector who walks into Ferrow without stopping at provisioning
+  dies of the damps**, and nothing on the way in says so. The canary and
+  the provisioning room both exist; the prompt at the mouth does not.
+  → mining.
+- **A dressed character affords `wear`/`remove`/`equip`/`unequip`
+  everywhere** — intake hands out a shirt, trousers and shoes and
+  `WearableMixin` grants on `inventory`. → embodiment.
+- **The general store's sewing-machine stock sits ON the counter**, so it
+  is in the room's environment and arms every customer with `repair`.
+  Whether a shop should is shopkeeping's call; a smithy's anvil is the
+  same mechanism and is right. → shopkeeping.
+- **Nothing hands competence back**, so any drive that must *earn* a band
+  is dirty by construction. → advancement.

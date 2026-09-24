@@ -79,7 +79,7 @@ export default class ElevationReading extends Reading {
     // drive printed `-47.35461408415376 degrees`, which is the engine's
     // float wearing an observation's clothes: nobody reads an arc to
     // fourteen places, and the bracket is what says so.
-    const actor = context.commandGiver as unknown as Stuff;
+    const actor = this.actorOf(context);
     const seed = this.seedFor(actor, target, body);
     const altitude = await this.altitudeOf(body, target);
     const azimuth = await this.azimuthOf(body, target);

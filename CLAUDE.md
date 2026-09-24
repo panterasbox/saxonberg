@@ -256,7 +256,8 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, cadence/witness triggers, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
-  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed, six instruments; ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
+  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `ToolItem`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
+  - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ the article defect (`greedy: true`) and a required arg with no default both fail closed and SILENT
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
@@ -761,10 +762,11 @@ reason.
   `src/idea/cmd/`. The libations build added `wash`/`muddle`
   (crafting), `quit` (employment), `house par`/`house stock` (banking) and
   `watch … on <screen>` (stream). ⚠ The metal chain's acts are a `mining`
-  CATEGORY of their own, and its two survey channels are stanzas on the
-  platform's shipped `measure`/`analyze` views (`measure strike`/`dip`,
-  `analyze ground`) whose controllers live in the trade — the
-  instrumentation split, not a new verb.
+  CATEGORY of their own, and its survey channels are `Reading` ROWS the
+  trade ships (`measure strike`/`dip`, `analyze ground`) — the platform's
+  `measure`/`analyze` are flat verbs over a channel any pack can add, so
+  a trade adds a reading with no platform file changed and no new verb.
+  See [instrumentation.md](./docs/subsystems/instrumentation.md).
 - **Command controllers**: in `mud/platform/idea/cmd/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts` (content
   controllers live under `world/<sphere>/<locality>/idea/cmd/`, above).

@@ -67,7 +67,7 @@ export default abstract class BiomeReading extends Reading {
     // the band decides is the bracket around it. The tag is unbracketed
     // on purpose — *hot* is a judgement about the reading, not a second
     // measurement, and hedging a word would be hedging twice.
-    const actor = context.commandGiver as unknown as Stuff;
+    const actor = this.actorOf(context);
     const seed = this.seedFor(actor, scope, param);
     // ⚠⚠ The tag comes off the OBSERVATION, never off the truth. The
     // drive printed `153.01 K ± 147.5 K (warm)` — the figure was what

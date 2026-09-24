@@ -402,7 +402,7 @@ export default abstract class Reading extends ReadingBase {
     subject: MqlOneResult | undefined,
     tools: readonly Stuff[],
   ): Promise<void> {
-    const actor = context.commandGiver as unknown as Stuff;
+    const actor = this.actorOf(context);
     const resolved = this.resolveSubject(actor, subject);
     if (!resolved.ok) {
       this.decline(context, resolved.line, resolved.reason);
@@ -428,7 +428,7 @@ export default abstract class Reading extends ReadingBase {
     subject: MqlOneResult | undefined,
     tools: readonly Stuff[],
   ): Promise<void> {
-    const actor = context.commandGiver as unknown as Stuff;
+    const actor = this.actorOf(context);
     if (this.instrument === '') {
       this.decline(
         context,
@@ -853,6 +853,24 @@ export default abstract class Reading extends ReadingBase {
       .topic(READING_TOPIC)
       .toSelf(body)
       .send();
+  }
+
+  /**
+   * ⭐ **The actor, as a `Stuff`, cast in ONE place.**
+   *
+   * `CommandContext.commandGiver` is typed as the `CommandGiver`
+   * interface, so every rung that wants to message the reader or read
+   * its containment has to widen it. That widening is sanctioned and
+   * pre-dates this build — the kernel's own `CommandGiver.ts` does it —
+   * but writing it out in each of seventeen channel classes turns one
+   * convention into seventeen chances to write a different cast.
+   *
+   * ⚠ Named rather than clever: it is still a cast, it is just a cast
+   * with a docstring and a single site to change if the context's type
+   * ever tightens.
+   */
+  protected actorOf(context: CommandContext): Stuff {
+    return context.commandGiver as unknown as Stuff;
   }
 
   /** The place the actor is standing in, or `null`. */

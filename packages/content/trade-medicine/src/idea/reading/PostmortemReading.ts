@@ -76,7 +76,7 @@ export default class PostmortemReading extends Reading {
             ? undefined
             : { stuff: null, raw: param },
     } as unknown as PostmortemModel;
-    const giver = context.commandGiver as unknown as Stuff;
+    const giver = this.actorOf(context);
     const body = model.target?.stuff ?? null;
     if (!body || !MixinApi.isPostmortem(body) || !MixinApi.isVitals(body)) {
       return this.decline(context, Mml.compose`There is no body there to examine.`, 'no-subject');

@@ -60,7 +60,7 @@ export default class PassageReading extends Reading {
     _handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
-    const giver = context.commandGiver as unknown as Stuff;
+    const giver = this.actorOf(context);
     const here = context.location;
     if (!here || !MixinApi.isExitable(here)) {
       return this.fail(context, 'There is no way out of here to judge.');
