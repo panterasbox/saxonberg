@@ -5,12 +5,18 @@
 > `fullReconcile` (snapshot coin, non-resident only; vault float reported
 > not counted) → [banking.md](../../subsystems/banking.md). Finding 3 was
 > withdrawn as a non-bug.
-> **Left:** pass 1 the census over surfaces A–E (create · mutate ·
-> persist/restore · sandbox cash crossing · destroy) · pass 2 the gates ·
-> pass 3 the object-layer conservation property test — the actual
-> deliverable · the `/stuff/thing/Coin` uncloneable question · the
-> value-bearing marker question · the unbalanced-reconcile response ·
-> whether this needs to survive a hostile wizard or only a mistake
+> **Left:** ⭐ the **write-off doctrine** (2026-09-24 — ground coin is
+> ephemeral BY DESIGN; the boot `fullReconcile` + the typed shrinkage
+> drain, write-offs automatic / write-UPS never, fail-closed, the
+> two-tier attributed-vs-residual posting, the single `Coin.onDestruct`
+> chokepoint, shrinkage in the reset keep set) · pass 1 the census over
+> surfaces A–E (create · mutate · persist/restore · sandbox cash
+> crossing · destroy) — **§ E is partly answered, see below** · pass 2
+> the gates · pass 3 the object-layer conservation property test — the
+> actual deliverable · the enforced snapshot-XOR-live invariant (the
+> surplus side) · the `/stuff/thing/Coin` uncloneable question · the
+> value-bearing marker question · whether this needs to survive a
+> hostile wizard or only a mistake
 > **Size:** a build
 
 **Captured 2026-08-04**, out of the currency build's requirements phase.
@@ -172,6 +178,145 @@ just as thoroughly.
 | Room / container destruction | Contents cascade — where does the cash go? |
 | A corpse / dropped stack decaying | Sanitation's `collect`-never-`destroy` rule ([sanitation-slate](./sanitation-slate.md)) is the right instinct; is it enforced for cash? |
 
+### What the 2026-09-24 pass already answered
+
+Read against the code and the subsystem docs; the rest of § E stays
+census work.
+
+| Surface | Finding |
+|---|---|
+| `StuffApi.destruct` on a coin | ⛔ **Nothing drains.** `drainCoins` is internal to `BankingLogic` with a single caller — the cash-bridge deposit. Any other destruct of a coin stack is an **unaudited sink reachable from ordinary object lifecycle.** |
+| Room / container destruction | ⭐ **Mostly right, one hole.** `ContainerMixin.cleanupOnDestruct` re-parents every direct content item to the **outer** container when there is one — the spill-up behaviour, already shipped. ⚠ But when the outer is **null** (a host at top-of-containment) and the item is not `HasInteractive`, the policy is **cascade-destruct** — so coin is silently destroyed. Defensible for a sword; an unauthorized sink for money. |
+| A corpse decaying | ✅ **Already correct, and argued in the same terms.** [mortality.md](../../subsystems/mortality.md): at `spent` the corpse *"stops vetoing `canEvict` rather than destructing — withdrawing an objection, so goods on it evacuate through shipped container behaviour instead of dying with it."* ⚠ Note this fixes **containment**, not durability: `Corpse extends Creature {}` composes no `PersistableMixin`, so the spilled coin is still RAM-only. |
+| Residency self-eviction | Partially answered. `Coin` is `StackableMixin(Thing)` and declares no `canEvict` veto of its own; `Container.canEvict` vetoes while non-empty **and** not a persistence host, so a container holding coin pins itself in memory rather than losing it. ⚠ The location cases are census work. |
+| Who runs the audit | ⛔ **`fullReconcile` has exactly ONE caller** — `ReserveController`, the governor-gated `reserve supply` verb. Nothing runs it at boot, on a schedule, or on any trigger. **It is an instrument, not a control.** |
+
+---
+
+# ⭐⭐⭐ The write-off doctrine — conservation means no unauthorized SINK
+
+> **User, 2026-09-24, deciding the fork this slate had left open:** *"I
+> don't know why coin on the ground needs to survive a crash at all. it
+> seems ephemeral by nature. I just want to make sure the accounting is
+> all accurate."*
+
+**Decided: ground coin is ephemeral by design.** Cash is a **bearer
+instrument** — being off the governed ledger is its defining property,
+which is exactly why `reconcile` needs a separate `circulating` term at
+all. Off-ledger bearer money that nobody is holding when the process
+dies is gone, in life as in the game. So the invariant is **not** *"no
+coin is ever lost."* It is:
+
+> ⭐⭐⭐ **Supply always equals reality. Money never disappears WITHOUT A
+> LEDGER ENTRY** — the exact mirror of the faucet rule
+> [banking.md](../../subsystems/banking.md) already states
+> (*"conservation means no unauthorized faucet, not a fixed supply"*).
+
+⭐ This buys the whole feature set for free: coin on the ground, corpses
+spilling their purses, dropped money behaving like dropped money — with
+a conservation law that actually holds and **no durable-ground-coin
+machinery at all.** A pile of coin does not need a persistence record;
+its *disappearance* needs a ledger row.
+
+## The arithmetic of the leak
+
+`fullReconcile`'s identity has four terms. **Three live in Mongo and one
+lives in RAM:**
+
+| term | home | survives a crash |
+|---|---|---|
+| `supply` | `bank_supply` | ✅ |
+| `Σ balances` | `bank_accounts` | ✅ |
+| `snapshotCoin` | `holder_snapshots` | ✅ |
+| `circulating` | **the in-memory index** | ⛔ |
+
+So after a crash, supply overstates the world by exactly the coin that
+was live and unsnapshotted — permanently, and today **nothing notices**,
+because the only audit caller is a verb a governor has to type.
+
+The fix: **run `fullReconcile` at boot and post the delta as a typed
+drain against the cash bridge.** Supply becomes true, the loss is
+timestamped on the append-only record, and the number stops lying.
+
+## ⚠⚠ The four rules, three of which prevent a silent bug
+
+### 1. Write-offs are automatic. Write-UPS are never.
+
+| direction | meaning | response |
+|---|---|---|
+| **shortfall** (supply > reality) | coin vanished | expected physics — **post it** |
+| **surplus** (reality > supply) | coin appeared from nowhere | ⛔ **always a bug** — alarm, never post |
+
+⭐⭐ If only one rule survives this section, it is this one. **An
+auto-balancing audit is worse than no audit**, because it launders a
+duplication bug into legitimacy and leaves the books looking perfect
+while the faucet keeps running.
+
+### 2. ⚠⚠ Fail closed — a bad write-off destroys money that exists
+
+A write-off is **irreversible** in an append-only ledger. If the boot
+audit runs before `holder_snapshots` is readable, `snapshotCoin` reads
+zero and it writes off **every logged-out player's savings** — quietly,
+permanently, and with the books agreeing afterwards.
+
+So the audit must **prove it read every term** before it is allowed to
+post, and alarm rather than post when it cannot. *"Couldn't complete the
+audit"* is a far better outcome than *"completed it wrong."*
+
+### 3. ⭐⭐ Two tiers — and the ratio is the bug detector
+
+Do not let every loss fall into one anonymous boot number:
+
+- **Attributed loss** — posted **at the moment it happens**, with a
+  reason and an exact amount (`shrinkage/destruct`,
+  `shrinkage/eviction`).
+- **Residual loss** — the boot delta. Anonymous, whatever is left.
+
+⭐⭐ The payoff is free instrumentation: **the residual should be near
+zero, and if it is not, there is an unposted sink.** That ratio is how a
+conservation bug actually gets *found*, rather than discovered as a slow
+drift nobody can source. One lumped number says money went missing; two
+tiers say **which code path is not posting.**
+
+### 4. ⚠ One chokepoint, or you will double-drain
+
+The natural home for attributed loss is `Coin.onDestruct` — it catches
+the cascade-destruct hole and every other destruct path at once. ⚠ But
+`drainCoins` **already** destroys coin on the cash-bridge deposit *and*
+posts the equal value. A second posting site would drain that path
+twice, inventing a leak while closing one.
+
+So: **one posting site**, with the already-accounted path marking the
+stack before it destructs. Never two independent sites that have to stay
+in agreement — the arrangement that is correct the day it is written and
+wrong six months later.
+
+## ⚠ The reset will eat the audit trail
+
+`bank_ledger`, `bank_supply`, `bank_accounts` and `holder_snapshots` are
+**all `reset: wipe`**. That is why none of this has bitten yet: the money
+system is recreated nightly and any crash leak self-heals by morning.
+Two consequences:
+
+1. **Conservation has never been tested over a horizon longer than one
+   day**, and the first thing that changes at launch is exactly the thing
+   masking this.
+2. When money stops being wiped, **shrinkage entries must be in the keep
+   set** — otherwise the mechanism destroys its own evidence every night
+   at 04:00 and the residual-vs-attributed ratio above is unreadable.
+
+## What this does NOT close
+
+The **surplus** side. `fullReconcile`'s own comment says a snapshot is
+*"a copy of state that may also be live"* — it compensates for double-
+*counting*, which means **the copy is real**. Nothing found so far
+guarantees a holder cannot materialize from a snapshot while the live
+instance still exists, which would be an actual mint. The boot audit
+would see it as a surplus — which is precisely why rule 1 matters — but
+the durable fix is an enforced invariant that **snapshot and live
+instance are mutually exclusive**, rather than a convention. This is
+§ C's first two rows, and it stays census work.
+
 ---
 
 # ⭐ What the currency build already fixes (do not re-scope here)
@@ -238,10 +383,14 @@ imagine.
    `fullReconcile(currency)` is the async complete identity including
    snapshot coin, with vault float reported but not added (`banking.md`
    § Reporting consumers).
-4. **What is the response when reconcile goes unbalanced?** Today it is a
-   number an operator reads. Should it alarm? Halt minting? ⚠ It cannot
-   halt *transacting* — that would take the economy down over a reporting
-   bug.
+4. ~~**What is the response when reconcile goes unbalanced?**~~ —
+   ✅ **ANSWERED 2026-09-24**, see § *The write-off doctrine*. The
+   response is **direction-dependent**: a shortfall posts a typed
+   shrinkage drain automatically (money vanished, which is what bearer
+   cash does); a surplus **alarms and never posts** (money appeared,
+   which is always a bug). The original instinct here was right that it
+   *cannot halt transacting* — and it does not need to, because a
+   shortfall is not an error condition, it is an accounting event.
 5. **Does any of this need to survive a hostile wizard?** Or is
    code-trust ([access.md](../../subsystems/access.md)) the honest
    boundary, with this slate defending only against *mistakes*? ⭐ Leaning
