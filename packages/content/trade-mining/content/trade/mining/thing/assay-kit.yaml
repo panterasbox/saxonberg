@@ -2,7 +2,14 @@
 # ⭐ The top rung of the mining ladder, and rightly: it is the instrument
 # that turns a lump into a NUMBER, and a number is what the scale pays
 # against.
-class: /platform/thing/ToolItem
+# ⚠⚠ It was `/platform/thing/ToolItem` and is a class of its own now —
+# NOT because it needed behaviour, but because a verb affordance is a
+# STATIC ON A CLASS and a row's `commandContributions:` is discarded at
+# hydration without a word. The kit shipped declaring `assay-scale`,
+# propped in this very shed and named by the mining archetype, and
+# nothing could be done with it because there was no verb. There is one
+# now, and this is the three lines that let a carried kit light it up.
+class: /trade/mining/thing/instrument/AssayKit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [assay, assay-kit, balance, scale, "assayer's", assayer, kit]

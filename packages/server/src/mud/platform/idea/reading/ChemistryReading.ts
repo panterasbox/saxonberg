@@ -18,6 +18,9 @@
  */
 
 import Reading from '../../../lib/instrument/Reading';
+import type { BenchResult } from '../../../lib/instrument/Reading';
+import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
+import { WorldClockApi } from '../../../api/worldclock';
 import type { Tooled } from '../../../lib/craft/Tooled';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 import type { CommandContext, CommandModel } from '../../../api/command';
@@ -150,4 +153,62 @@ export default class ChemistryReading extends Reading {
 
     return;
   }
+  /**
+   * ⭐⭐ **The bench rung on a sample of matter** — what it is made of,
+   * and (for anything perishable) what the journey did to it.
+   *
+   * ⚠ There is no second clock. The freshness band is the SHIPPED
+   * `FreshnessMixin` clock read as it stands now, which is what makes a
+   * spoiled sample read honestly wrong rather than read a lie: the
+   * sample really did go off in the carrying, and the bench really is
+   * reporting the thing in front of it.
+   */
+  protected override async benchRead(
+    sample: Stuff,
+    _bench: Stuff & Tooled,
+    band: CompetenceBandName,
+  ): Promise<BenchResult | null> {
+    if (!MixinApi.isTangible(sample)) return null;
+    const material = sample.getMaterial();
+    if (!material) return null;
+    const parts: string[] = [`${material.getName()}`];
+    const composition = material.getComposition();
+    for (const c of composition) {
+      parts.push(`${leafOf(c.materialPath)} ${(c.fraction * 100).toFixed(1)} %`);
+    }
+    let tell: string | null = null;
+    if (MixinApi.isFresh(sample)) {
+      const state = sample.getFreshnessBand();
+      parts.push(`the sample is ${state}`);
+      // ⭐ THE TELL, and it is DERIVED — elapsed against the stamp, not a
+      // stored flag. At `competent` and above the assayer says what the
+      // reading is really about.
+      if (CompetenceBand.atOrAbove(band, 'competent') && state !== 'fresh') {
+        const stamp = (
+          sample as unknown as { getSampling?(): { on: number } | null }
+        ).getSampling?.();
+        const hours = stamp
+          ? Math.max(
+              0,
+              (WorldClockApi.getNow().rawValue() * 1000 - stamp.on) / 3_600_000,
+            )
+          : 0;
+        tell =
+          `This has been ${hours < 1 ? 'less than an hour' : `${Math.round(hours)} hours`} ` +
+          `in the carrying, and it shows. What it says now is about the journey, not the batch.`;
+      }
+    }
+    return {
+      prose: parts.join('; ') + '.',
+      value: composition[0] ? Number((composition[0].fraction * 100).toFixed(2)) : null,
+      unit: composition[0] ? '%' : '',
+      tell,
+    };
+  }
+
+}
+
+/** The last segment of a material path, for a readable composition line. */
+function leafOf(path: string): string {
+  return (path.split('/').filter(Boolean).pop() ?? path).replace(/[-_]/g, ' ');
 }

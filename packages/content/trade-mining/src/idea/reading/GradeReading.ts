@@ -26,6 +26,7 @@
  */
 
 import { SurveyReading, READING_TOPIC, GEOLOGY } from '../../lib/SurveyReading';
+import type { BenchResult } from '@saxonberg/server/mud/lib/instrument/Reading';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
@@ -108,6 +109,46 @@ export default class GradeReading extends SurveyReading {
     }
   }
 
+  /**
+   * ⭐⭐ **The bench rung — and it is the only place in this build a
+   * NUMBER comes out of a rock.**
+   *
+   * The eye says *fair ore*; this says *17.3 % ± 0.4*. That gap is the
+   * whole economics of the trade: the free read is what you choose the
+   * three samples with, and the bench is what you commit money on.
+   *
+   * ⚠ The band is the BENCH's, not the customer's. That is the point of
+   * paying somebody: a bench reads as well as the bench is, and you do
+   * not have to be anybody.
+   */
+  protected override async benchRead(
+    sample: Stuff,
+    _bench: Stuff & Tooled,
+    band: CompetenceBandName,
+  ): Promise<BenchResult | null> {
+    const lump = sample as unknown as {
+      getGrade?(): number;
+      metalFractionOf?(path: string): number;
+      getMaterial?(): { getTemplatePath?(): string | null } | null;
+    };
+    if (typeof lump.getGrade !== 'function') return null;
+    const truth = lump.getGrade() * 100;
+    const stamp = (
+      sample as unknown as { getSampling?(): { at: string } | null }
+    ).getSampling?.();
+    const { centre, halfWidth } = this.observe(
+      truth,
+      band,
+      hashOf(`${stamp?.at ?? ''}|${sample.stuffId}`),
+    );
+    const figure = `${centre.toFixed(1)} % ± ${halfWidth.toFixed(1)}`;
+    return {
+      prose: `${figure} metal by mass — ${richnessOf(truth / 100)}.`,
+      value: Number(centre.toFixed(2)),
+      unit: '%',
+    };
+  }
+
   /** ⚠ There is no dial for this. The refusal names the bench. */
   protected override async measure(context: CommandContext): Promise<void> {
     this.decline(
@@ -171,4 +212,14 @@ function whereOf(stuff: Stuff | null): string {
     getTemplatePath?(): string | null;
   };
   return s.getIdentityPath?.() ?? s.getTemplatePath?.() ?? '';
+}
+
+/** A stable seed from the sample's own identity — a re-assay agrees. */
+function hashOf(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }

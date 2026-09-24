@@ -1495,7 +1495,7 @@ commit. Order matters — each step keeps the tree green.
 > A kernel test proves the kernel over synthetic fixtures; the mixin has
 > never heard of a mine, which is the point.
 
-#### W6 — The bench, `assay`, the record (R-D13, R-D16, R-D21, drive H19–22, I24–25)
+#### ✅ W6 — The bench, `assay`, the record — DONE
 
 - `AssayBench` + row (D13); `assay.yaml` + `AssayController` +
   `finishAssay`; `ReadingRecord` + row (D14); `benchRead` implemented on
@@ -1521,6 +1521,38 @@ commit. Order matters — each step keeps the tree green.
   logged out mints the report into the room; `assay` in a room with no
   bench refuses naming the bench; the report's fields.
 - Commit: `build(instrumentation W6): the bench eats the sample and hands you a paper`.
+
+> **Wave note.**
+>
+> ⚠⚠ **The carried kit needed a CLASS, and the plan said a row.** W6 as
+> written had `assay-kit.yaml` gain `commandContributions.inventory` —
+> but **a verb affordance is a static on a class, and a row's
+> `commandContributions:` is discarded at hydration without a word**.
+> So `AssayKit extends ToolItem` exists now, holding three lines and no
+> behaviour. ⭐ Worth noticing what that says about the kit's previous
+> year: it shipped declaring `assay-scale`, propped in the assay shed,
+> named by the mining archetype — and **nothing could be done with it**,
+> because there was no verb to afford.
+>
+> ⭐ The bench rung returns **DATA, not prose on a scene**
+> (`BenchResult`), because nobody may be standing there when it
+> finishes. What a bench produces is a PAPER somebody picks up later,
+> and the hook's shape had to say so.
+>
+> ⭐ **The band on the paper is the BENCH's, not the customer's.** That
+> is the point of paying somebody: a bench reads as well as the bench
+> is, and you do not have to be anybody. It is also the one place on
+> this ladder where competence is bought rather than earned, which is
+> exactly what a trade is.
+>
+> ⚠ The queue is RUNTIME. A queue that survived a restart would be a
+> promise the world clock can no longer keep — the timers are gone — so
+> a restart empties the bench and nothing was taken from anybody,
+> because the samples are still sitting on it. Asserted.
+>
+> ⚠ `lint:arg-kinds` wanted a refusal phrase for `SampledMixin`, and the
+> phrase is the teaching: *"{} is not a sample — take one with `sample`,
+> so it says where it came from."*
 
 #### W7 — The assayer (R-lens 6, drive H23)
 

@@ -31,6 +31,10 @@ data:
     west:
       destination: /world/terminus/rejection/location/pithead-yard
   props:
+    # ⭐⭐ The BENCH — already in this room's prose (*"A long bench under a
+    # north window"*) and until now not in its contents. Placing it is
+    # what turns a paragraph into a thing a sample can be carried to.
+    - /trade/mining/thing/assay-bench
     - /trade/mining/thing/assay-kit
     - /world/terminus/rejection/thing/assay-counter
     # ⭐ The field kit, where a prospector picks it up on the way out.

@@ -131,6 +131,22 @@ export type ReadingKind = 'fact' | 'preview' | 'record';
  */
 export type ReadingScope = 'self' | 'here' | 'subject';
 
+/**
+ * What a bench rung hands back. ⭐ Data, not prose-on-a-scene: nobody
+ * may be standing there when it finishes, and what it produces is a
+ * paper somebody picks up later.
+ */
+export interface BenchResult {
+  /** The reading as the assayer would write it. */
+  prose: string;
+  /** The figure, when the channel has one. */
+  value: number | null;
+  /** The figure's unit. */
+  unit: string;
+  /** ⭐ A remark about the SAMPLE rather than the reading. */
+  tell?: string | null;
+}
+
 /** One rung of the ladder, as `readings` renders it. */
 export interface ReadingRoute {
   /** Which rung. */
@@ -484,18 +500,41 @@ export default abstract class Reading extends ReadingBase {
 
   /**
    * @hook The bench rung — what a fixed instrument makes of a SAMPLE
-   * somebody carried in. Stage B; the base refuses naming the want.
+   * somebody carried in.
    *
-   * Returns the prose the report will carry, or `null` when this channel
-   * cannot say anything about this sample.
+   * ⭐ It returns DATA rather than narrating, because nobody may be
+   * standing there: an assay finishes on the world clock, the customer
+   * may have walked out, and what the rung produces is a PAPER. The
+   * base says nothing, so a channel with no bench rung is honest for
+   * free.
    */
   protected async benchRead(
-    _context: CommandContext,
     _sample: Stuff,
     _bench: Stuff & Tooled,
     _band: CompetenceBandName,
-  ): Promise<string | null> {
+  ): Promise<BenchResult | null> {
     return null;
+  }
+
+  /**
+   * The bench rung, driven. Gated to the `assay` verb's controller —
+   * the same narrow-entry rule the two read verbs get, for the same
+   * reason: a rung is an ACT, and an act has one caller.
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/trade/mining/idea/cmd/mining/AssayController'),
+      SecurityPolicies.SelfOnly,
+    ),
+  )
+  public async benchReadFor(
+    sample: Stuff,
+    bench: Stuff & Tooled,
+    band: CompetenceBandName,
+  ): Promise<BenchResult | null> {
+    if (this.bench === '') return null;
+    if (!bench.getCapabilities().includes(this.bench)) return null;
+    return this.benchRead(sample, bench, band);
   }
 
   /**
