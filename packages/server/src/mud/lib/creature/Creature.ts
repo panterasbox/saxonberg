@@ -425,6 +425,13 @@ export class Creature extends CreatureBase {
     return this.getReserve('vitamin-c')!;
   }
 
+  /** ⭐ The donation reserve — how much lost blood the body can still make
+   * good (D11). Full on a fresh body; `drawBlood` spends it and the
+   * metabolism slice regrows it slowly. Read as pallor, never a number. */
+  public getMarrow(): Reserve {
+    return this.getReserve('marrow')!;
+  }
+
   /**
    * ⭐ **The band, which is what a reader actually gets** (D24).
    *

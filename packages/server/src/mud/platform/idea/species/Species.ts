@@ -537,6 +537,21 @@ export default class Species extends SingletonMixin(
   protected facultyProfile: FacultyProfile | null = null;
 
   /**
+   * ⭐ **The species' ABO allele frequencies** (blood build D2). A
+   * frequency table over `A`/`B`/`O` a member's blood type is rolled from
+   * (seeded on identity, never drawn). `null` = unauthored, and the
+   * engine default is *one allele `O` at frequency 1* — every member is
+   * `O` and compatible within its species. That is data, not a promise: a
+   * wolf has blood and one type until an author says otherwise.
+   *
+   * ⚠ Spoiler 1, like `vitalProfile`: what a species' blood is like is
+   * learned by testing it, not printed in a field guide. The frequencies
+   * are pure fiction; the ABO PATTERN is the transferable clinical
+   * judgment (D14).
+   */
+  protected bloodGroups: { alleles: Record<string, number> } | null = null;
+
+  /**
    * References to one or more `NameBank` Documents by key (e.g.
    * `['common']`, `['orcish', 'common']`). The name suggester resolves
    * these and unions the pools. NOT the name data itself — that lives
@@ -764,6 +779,7 @@ export default class Species extends SingletonMixin(
 
     // ── What you learn by meeting it ──
     vitalProfile: { persistent: true, spoiler: 1, spoilerName: 0 },
+    bloodGroups: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     facultyProfile: { persistent: true, spoiler: 1, spoilerName: 0 },
     innateMixins: { persistent: true, spoiler: 1, spoilerName: 0 },
     naturalAttacks: {
@@ -1173,6 +1189,17 @@ export default class Species extends SingletonMixin(
 
   public getVitalProfile(): VitalProfile | null {
     return this.vitalProfile;
+  }
+
+  /** The ABO allele frequency table, or `null` (unauthored → the engine
+   * default single-allele `O` species). See {@link bloodGroups}. */
+  public getBloodGroups(): { alleles: Record<string, number> } | null {
+    return this.bloodGroups;
+  }
+  public setBloodGroups(
+    value: { alleles: Record<string, number> } | null,
+  ): void {
+    this.bloodGroups = value;
   }
   public setVitalProfile(value: VitalProfile | null): void {
     if (value !== null) {

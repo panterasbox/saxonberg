@@ -245,12 +245,25 @@ remains in the near-term Track A queue:
 >   progression reconcile-on-read, bleed → `exsanguination`, and the
 >   non-combat medic vertical `assess`/`treat`/`dress`/`undress` +
 >   the `DressingMixin`/`Bandage` capability,
->   [harm.md](./subsystems/harm.md)). Still deferred: the *general* /
->   instrument-mediated assess + measure-on-patient, the first-aid
->   instrument + medicine branches (splint / suture / antiseptic — harm
->   shipped only the dressing branch). The *general* death-transition
->   driver SHIPPED 2026-08-01 — every driver now routes through one
->   `ConditionApi.die` ([mortality.md](./subsystems/mortality.md)).
+>   [harm.md](./subsystems/harm.md)). The instrument-mediated medicine
+>   branches SHIPPED in the **clinical-medicine build** (2026-09):
+>   `suture`, `operate` over the `Operation` catalogue, the foreign-body
+>   wound, `prescribe`→`administer`, and the whole **blood loop**
+>   (type/draw/store/transfuse + the `marrow` reserve,
+>   [blood.md](./subsystems/blood.md)) with the `medicine`/`nursing`
+>   Discipline split and a personal `calendar`
+>   ([calendar.md](./subsystems/calendar.md)). Still deferred: the
+>   *general* / instrument-mediated assess + measure-on-patient, the
+>   diagnostic **labs** vertical (→
+>   [sampling-and-labs-slate](./slates/builds/sampling-and-labs-slate.md)),
+>   the blood-BANK economy (→
+>   [blood-slate](./slates/builds/blood-slate.md)), cold storage (→
+>   [cold-chain-slate](./slates/builds/cold-chain-slate.md)), and the full
+>   surgery build (→
+>   [surgery-specialty-slate](./slates/builds/surgery-specialty-slate.md)).
+>   The *general* death-transition driver SHIPPED 2026-08-01 — every driver
+>   now routes through one `ConditionApi.die`
+>   ([mortality.md](./subsystems/mortality.md)).
 >   ([vitals-slate.md](./slates/tails/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane

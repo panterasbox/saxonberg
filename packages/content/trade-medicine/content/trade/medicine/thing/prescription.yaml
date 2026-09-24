@@ -1,0 +1,14 @@
+# A prescription slip — a doctor's authorization for a controlled active,
+# for ONE patient (D9). Cloned by `prescribe`, spent by `administer`.
+# ⚠ _materialPath is linen — no paper material exists yet; a paper Material
+# is a pharma-slate tail.
+class: /platform/thing/Prescription
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: prescription slip
+  keywords: [prescription, slip, paper, script]
+  register: indefinite
+  longDescription: |
+    A slip of paper in a physician's hand, naming a remedy and who it is for.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 0.01

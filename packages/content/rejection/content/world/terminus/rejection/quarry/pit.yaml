@@ -1,0 +1,69 @@
+# ⭐ The Hill Quarry — the working face, and the first ground in this game
+# whose cost is what you throw away.
+#
+# ⚠⚠ **The prose does NOT describe the wall.** The wall is derived: the
+# working reads its own column and says what bands are open, how thick they
+# are and how far each has been worked — banded on the reader's own
+# `quarrying`, so an untrained eye gets *"some kind of pale rock"* and a
+# quarryman gets the section top-down. Authoring the section in prose here
+# would be the number lying the moment somebody dug.
+#
+# `spoilTo` sends the drift to the town's tips, which were authored as a
+# spoil bank before this build existed — *"the line where the tipping stops,
+# and it has been moved before"*. ⭐ The waste going somewhere a person can
+# SEE is the whole of the lesson; a counter would not have taught it.
+class: /trade/quarrying/location/OpenWorking
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: quarry face
+  keywords: [quarry, pit, face, working]
+  register: definite
+  alternateNames: [wall, bench, floor]
+  _address: terminus/rejection/quarry
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # Lux is lumens over the cell's area, and this zone's cells are 10 m:
+  # 8000 lm is 80 lux over 100 m² — open hillside under the sun.
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A bite out of the hillside, squared off where somebody has been working it and ragged everywhere else. The bench underfoot is swept bare by boots and weather, and there is a limekiln built into the spoil at the low end with its mouth facing away from the wind.
+
+    Nothing about the place is tidy. The waste goes over the lip and down the hill on a barrow-run worn into the grass.
+  coords: { x: 0, y: 0, z: 0 }
+  faceRunM: 20
+  spoilTo: /world/terminus/rejection/kestrel-road/tips
+  # ⭐ The limekiln stands AT the quarry because the rock is heavy and the
+  # lime is light — that is the whole reason limekilns stand at quarries, and
+  # it is a fact about haulage rather than about kilns. ⚠ `props:`, the
+  # fixture designation: it is furniture of the place, not a thing anybody
+  # dropped.
+  props:
+    - /trade/quarrying/thing/limekiln
+    # ⭐⭐ **The tools, and the drive is what found they had to be here.** A
+    # quarry with nothing to dig with is a quarry nobody can work: the pit's
+    # own archetype says `stripping` needs a `digging` tool and `winning` needs
+    # a `winning` one, and until this line the pit satisfied neither. A player
+    # who walked up from the old workings would have found a face, a kiln, and
+    # no way to touch either.
+    #
+    # ⚠⚠ **They are the TRADE's rows, and the drive is why.** The pit was
+    # propped with the mine's shovel and pick first and **neither ever
+    # arrived**: both are rows the pithead store STOCKS (`parLines`), and a
+    # stocked row placed loose elsewhere does not survive the retail
+    # reconcile. The sledge — which the store does not stock — was standing
+    # there happily beside two absences. Failing closed and silent, and only
+    # a drive could have seen it.
+    #
+    # ⭐ The fix is better than the bug: the trade's own tools mean a chalk
+    # pit in a town with **no mine** gets them too, which is the
+    # second-instance claim holding.
+    - /trade/quarrying/thing/spade
+    - /trade/quarrying/thing/pick
+    - /trade/quarrying/thing/wedge-sledge
+  exits:
+    south:
+      destination: /world/terminus/rejection/location/old-workings
+      edgeMinutes: 4
+    north:
+      destination: /world/terminus/rejection/quarry/worked-out
+      edgeMinutes: 2

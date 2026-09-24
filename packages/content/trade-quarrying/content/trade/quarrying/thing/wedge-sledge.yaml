@@ -1,0 +1,17 @@
+# A sledge — ⭐ for splitting, not for winning.
+#
+# A block comes off the face whole and far too heavy; a sledge and a wedge take
+# carryable pieces off it. ⚠ The pick offers `striking` too, so this is a
+# convenience rather than a requirement — and it is here because a working face
+# has both lying about and because a sledge is genuinely the right tool.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [sledge, hammer, maul, wedge]
+  shortDescription: long-hafted sledge
+  register: indefinite
+  longDescription: >-
+    A twelve-pound head on a hickory haft as long as your arm, for driving
+    wedges into a block until it decides where it wants to break.
+  mass: 6
+  capabilities: ["striking"]

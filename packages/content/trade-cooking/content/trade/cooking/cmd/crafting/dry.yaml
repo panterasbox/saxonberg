@@ -1,15 +1,29 @@
 verbs: [dry, hang]
 controller: /trade/cooking/idea/cmd/crafting/DryController
-description: "Hang a cut up to dry"
+description: "Hang something up where the air can dry it"
 help: |
-  `dry <cut>` — hang a cut of meat up to dry. Costs nothing but the time.
+  `dry <thing> [on <rack>]` — hang something up where the air can get at
+  it. Costs nothing but the time, and the time is the weather's to set.
+
+  ⭐ **Drying is a RATE, not a treatment.** Hanging a cut up does not dry
+  it; it puts it somewhere it *can* dry. What happens then is the air's
+  business: dry, warm, moving air takes water out fast, and saturated air
+  takes none out at all however long you wait. The act tells you roughly
+  what you are in for before you commit a week to it.
 
   Drying takes the water away where salting binds it, so the two multiply
-  rather than compete.
+  rather than compete — a cut that is salted AND dried keeps better than
+  one that is either.
 
-  ⚠ Drying is the hurdle that reverses. A dried cut left somewhere damp
-  slowly softens back and loses what the drying bought; a dry, cold store
-  is what keeps it. A salted cut never un-salts.
+  ⚠ It is the hurdle that reverses. A dried thing left somewhere damp
+  softens back and loses what the drying bought, and rain undoes a week of
+  sun. A salted cut never un-salts.
+
+  ⚠ **Only what the air can reach dries.** Something shut in a sack, a
+  chest or a pack exchanges nothing. And what it is lying ON matters: a
+  slatted rack reaches all of it, bare ground reaches about a third —
+  which is why turf is stacked in an openwork lattice and cheese sits on
+  open shelves.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -17,12 +31,23 @@ validators:
 args:
   - name: target
     type: object
-    required: false
+    required: true
     scope: "reachable"
-    # ⭐ `any`, deliberately: what you may preserve is decided by the
-    # RECIPE's input slot (a `meat`-tagged material today), not by a mixin
-    # named here. A pack that ships a fish or a hide authors the row and
-    # this file never learns the word.
+    # ⭐ `any`, deliberately, and now for a sharper reason than before: what
+    # can dry is decided by whether the thing HAS a water state
+    # (`WaterActivityMixin`), which the controller narrows and refuses in its own
+    # words. A pack that ships a fish, a hide or a turf needs no edit here.
     requires: any
+    validators:
+      - /lib/command/validators/canReach
+  - name: rack
+    type: object
+    required: false
+    prepositions: [on, onto]
+    scope: "reachable"
+    # The support is optional: hanging a thing in the open air works, it is
+    # simply slower. When one IS named it carries the exposure fraction.
+    default: "reachable:[class.DryingRack]"
+    requires: [SurfacedMixin]
     validators:
       - /lib/command/validators/canReach

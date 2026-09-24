@@ -1,0 +1,14 @@
+class: /platform/idea/Operation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: amputation
+  label: amputation
+  addresses:
+    flag: unsalvageable
+  instrument: surgery
+  competence: { discipline: medicine, band: proficient }
+  bloodCostL: 0.50
+  baseDurationS: 360
+  anaesthesia: required
+  resolution: severance
+  difficulty: formidable

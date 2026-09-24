@@ -1,0 +1,20 @@
+# Spoil — ⭐ **the cost of extraction, made visible.**
+#
+# A load of the drift that lay over the good stuff. It is worth nothing, it
+# has to go somewhere, and where it went is a heap somebody can see. That
+# visibility IS the lesson: a player who has filled a tip knows what a waste
+# ratio is without anybody printing one.
+#
+# It stacks, so twenty loads read as one heap.
+class: /trade/quarrying/thing/Lump
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [spoil, drift, waste, muck]
+  shortDescription: load of spoil
+  register: indefinite
+  longDescription: >-
+    Clay, gravel, stones and roots, thrown together. Nobody wants it and it
+    had to come off before anything worth having came out.
+  material: /stuff/idea/material/bulk/drift
+  mass: 30
+  quantity: 1

@@ -1,0 +1,38 @@
+# Blood — the drawn, stored, transfusable tissue (blood build D4). A
+# perishable liquid Material carried in any bulk holder; the type/label/
+# donor ride the slot's `BulkPayload.blood`, and the shelf life rides the
+# holder's `BulkPayload.freshness` through its Thermal read — so a blood
+# bag needs no `FreshnessMixin` and this build ships zero spoilage code.
+#
+# ⭐ Shelf life is tuned against the SHIPPED Freshness arithmetic (a unit
+# test proves it, not the eye): `spoiled` after roughly 3 game-days at
+# 293 K (a warm room) and roughly 4 game-weeks at 277 K (a cold larder).
+# Warm blood can't be hoarded; cold blood buys the autarkist a hunt.
+#
+# ⚠ Not edible — you do not drink a blood unit; `transfuse` reads it.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: blood
+  keywords: [blood]
+  density: 1060
+  specificHeat: 3600
+  thermalConductivity: 0.5
+  hardness: 1
+  toughness: 1
+  # Moist tissue conducts.
+  electricalConductivity: 0.7
+  waterAbsorptionCapacity: 0
+  edibility: false
+  # Spoilage (docs/subsystems/spoilage.md): μ_max · f_T · f_aw. Tuned so a
+  # unit reads spoiled after ~3 game-days at 293 K and ~4 game-weeks in a
+  # cold larder — verified in Freshness.blood.test.ts against the shipped
+  # logistic, never by eye.
+  spoilActivationEnergy: 96000
+  waterActivity: 0.99
+  nutrients: []
+  toxicity: []
+  tags: ["tissue", "blood", "liquid", "organic"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

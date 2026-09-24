@@ -1,0 +1,12 @@
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: willow bark
+  keywords: [willow, bark, herb]
+  appearance: strips of grey willow bark
+  density: 650
+  edibility: false
+  toxicity: []
+  spoilActivationEnergy: 70000
+  waterActivity: 0.85
+  tags: [herb, bark, organic]

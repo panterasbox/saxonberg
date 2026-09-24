@@ -1,0 +1,37 @@
+# ⭐⭐ The limekiln — **a ROW, not a class.**
+#
+# You burn lime where you dig the stone, because the rock is heavy and the
+# lime is light. That is the whole reason limekilns stand at quarries, and it
+# is why this row is placed by the pit's `props:`.
+#
+# ⚠ **No trade subclass anywhere.** The difference between baking bread and
+# calcining limestone stops being a class name and becomes temperature doing
+# real work: 1500 K against an oven's 500. That is lens 1 paying out — a
+# player who understands that lime wants a far hotter fire than bread can
+# predict which chamber will do which job without reading anything.
+class: /platform/thing/Oven
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: limekiln
+  keywords: [limekiln, kiln, lime, furnace]
+  register: definite
+  longDescription: >-
+    A squat stone bottle built into the spoil bank, its throat open at the top
+    and a drawing arch at the bottom. The inside of the throat is burnt to a
+    hard white glaze.
+  # Hot. A lime burn wants ~1170 K at the stone and this holds well above it,
+  # which is what makes the bellows a refinement rather than a requirement.
+  burnTemperatureK: 1500
+  bellowsMultiplier: 1.15
+  fuelBurnRatePerMin: 0.4
+  lit: false
+  mass: 4000
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  emittedIntensity: 80
+  emittedColorTemperature: 1900

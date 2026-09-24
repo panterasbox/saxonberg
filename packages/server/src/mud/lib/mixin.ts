@@ -194,6 +194,9 @@ export const Mixins = {
   AetherHosted: 'AetherHostedMixin',
   Comms: 'CommsMixin',
   Forums: 'ForumsMixin',
+  Calendar: 'CalendarMixin',
+  Prescription: 'PrescriptionMixin',
+  CalendarApp: 'CalendarAppMixin',
   Perceptible: 'PerceptibleMixin',
   // Presence-concealment — "how hard is it to notice this is here?". One
   // level on every loose perceivable (Thing/Creature/Exit); subsumes the
@@ -317,6 +320,13 @@ export const Mixins = {
   // `GroundCharacter` implement it, which is how a floor asks the column
   // a question the kernel cannot import the answer to.
   GroundSource: 'GroundSourceMixin',
+  // *This ground can be cleared, drained and limed — and it REVERTS.*
+  // ⭐ Promoted out of `trade-farming` by the extraction build: you ditch
+  // a road, a yard and a quarry, so improvement acts on GROUND and farming
+  // is its first consumer rather than its owner. The host answers what it
+  // owes through `improvementBill()`, so the kernel never imports a
+  // seeded model out of a pack.
+  Improvable: 'ImprovableMixin',
   Mountable: 'MountableMixin',
   Drivable: 'DrivableMixin',
   // Drivable from a seat you occupy — the cart's driver, not the reins.
@@ -396,7 +406,7 @@ export const Mixins = {
   // move a thing's effective water activity off its Material's tabulated
   // base. NOT the spoilage gauge: this is the matter, that is the
   // population living in it.
-  Cured: 'CuredMixin',
+  WaterActive: 'WaterActivityMixin',
   // ⭐ The per-instance MINOR CONSTITUENTS of a piece of metal — what is
   // dissolved in THIS bar, in the same {materialPath, fraction}
   // vocabulary Material.composition speaks. A Material is a singleton,
@@ -446,6 +456,9 @@ export const Mixins = {
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   ManualBuild: 'ManualBuildMixin',
+  // A solute that gives up an extract when steeped in a solvent — the
+  // general infusion substrate (`steep`/`infuse`).
+  Steepable: 'SteepableMixin',
   Bank: 'BankMixin',
   // The unified credential holder — one keyed store of credentials-as-data,
   // composed on the born-with wallet app and on the physical cards.
@@ -616,6 +629,11 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * there for a constraint about to be written.
  */
 export const MixinRefusals: Partial<Record<MixinName, string>> = {
+  // ⭐ Ground, not a thing: the useful information is that the target had
+  // to be a piece of ground somebody could work, which "{} is not
+  // improvable" would not have said.
+  ImprovableMixin: '{} is not ground anybody could improve',
+
   // Perception / substance — the two broadest, and the reason the
   // phrases are templates: neither of these reads well as a suffix.
   VisibleMixin: "you can't see {}",
@@ -669,6 +687,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  PrescriptionMixin: "{} isn't a prescription",
   PostmortemMixin: "{} is not a body you can examine",
   /*
    * ⚠ A measurement is taken off a BODY. `measure figure`, `cut --for`
@@ -706,6 +725,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // body.
   ToolMixin: "{} isn't a tool",
   ManualBuildMixin: "{} isn't a vessel you can work in",
+  SteepableMixin: "{} isn't something you can steep",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what

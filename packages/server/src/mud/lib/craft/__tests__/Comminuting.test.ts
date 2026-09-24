@@ -199,9 +199,9 @@ describe("⭐⭐ extraction is CONTINUOUS — the whole reason there is no band 
     const white = m.planComminution({ kg: 20, materialPath: "/x", gradeBand: "" }, 0.7);
     const brown = m.planComminution({ kg: 20, materialPath: "/x", gradeBand: "" }, 0.9);
     const whole = m.planComminution({ kg: 20, materialPath: "/x", gradeBand: "" }, 1);
-    expect(white.cure.moisture).toBeLessThan(brown.cure.moisture);
-    expect(brown.cure.moisture).toBeLessThan(whole.cure.moisture);
-    expect(white.cure.solute).toBe(0);
+    expect(white.water.moisture).toBeLessThan(brown.water.moisture);
+    expect(brown.water.moisture).toBeLessThan(whole.water.moisture);
+    expect(white.water.solute).toBe(0);
   });
 
   it("the composition's servings always add up to the product", () => {

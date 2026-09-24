@@ -21,7 +21,7 @@ import {
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
 import { ThermalDose } from '../../../lib/thermal/ThermalDose';
-import { Cure } from '../../../lib/material/Cured';
+import { WaterActivity } from '../../../lib/material/WaterActivity';
 import {
   Contamination,
   type PathogenLoads,
@@ -1402,16 +1402,16 @@ async function applyTangibleOutput(
       output.setPathogenLoads(outcome.pathogens);
     }
   }
-  if (MixinApi.isCured(output)) {
+  if (MixinApi.isWaterActive(output)) {
     // The input's own water state first — a dried cut smoked is still a
     // dried cut — then the recipe's treatment, stronger-axis-wins.
     const inherited =
-      primary && MixinApi.isCured(primary.stuff)
-        ? primary.stuff.getCureState()
-        : Cure.untreated();
+      primary && MixinApi.isWaterActive(primary.stuff)
+        ? primary.stuff.getWaterState()
+        : WaterActivity.untreated();
     const treatment = recipe.getCure();
-    output.setCureState(
-      treatment ? Cure.applyTreatment(inherited, treatment) : inherited,
+    output.setWaterState(
+      treatment ? WaterActivity.applyTreatment(inherited, treatment) : inherited,
     );
   }
   // ⭐ And the doneness the working put on it — the discrete twin of

@@ -57,6 +57,7 @@
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { GroundSourceMixin } from '@saxonberg/server/mud/lib/ground/GroundSource';
+import type { ImprovementCost } from '@saxonberg/server/mud/lib/ground/Improvable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
 
@@ -151,21 +152,6 @@ export interface GroundBand {
 }
 
 /** What a piece of ground costs to bring into cultivation (D55). */
-export interface ImprovementCost {
-  /** Clearing scrub and wood — the heaviest and where injury lives. */
-  clearing: number;
-  /** Picking stone. ⭐ Its output is the wall (D56). */
-  stonePicking: number;
-  /** Ditching and field drains — you move the water, not the soil. */
-  draining: number;
-  /** Lime, to bring sour ground up. */
-  liming: number;
-  /** Terracing, or a refusal. */
-  terracing: number;
-  /** The sum — one number for *"how much work is this ground?"*. */
-  total: number;
-}
-
 export default class GroundCharacter extends GroundSourceMixin(Idea) {
   static fieldMeta: FieldMeta = {
     name: { persistent: true, authorable: true },

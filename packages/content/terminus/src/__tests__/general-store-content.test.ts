@@ -62,6 +62,9 @@ const TRANSPORT_DIR = fileURLToPath(
 const FISHING_DIR = fileURLToPath(
   new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url),
 );
+const MEDICINE_DIR = fileURLToPath(
+  new URL("../../../trade-medicine/content/trade/medicine/", import.meta.url),
+);
 
 /**
  * ⭐ Where a stocked good's row lives, by the prefix of its template
@@ -84,6 +87,7 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/system/arcana/", dir: () => ARCANA_DIR },
   { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
+  { prefix: "/trade/medicine/", dir: () => MEDICINE_DIR },
   // The commons — the generic-objects pack, and the fallback.
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
@@ -232,6 +236,10 @@ describe("general-store content integrity", () => {
     // `ToolItem` subclasses in the fishing pack (the instrument affords
     // the verb), a worm a bare Detailed Thing, the bowl a `Feeder` and
     // the fish food a `Provision` — all discrete, none Stackable.
+    // The clinical-medicine instruments (blood + operations): ToolItem
+    // subclasses that afford the acts; the blood bag is a Receptacle.
+    "/trade/medicine/thing/Syringe",
+    "/trade/medicine/thing/SutureKit",
     "/trade/fishing/thing/Rod",
     "/trade/fishing/thing/Trap",
     "/trade/fishing/thing/Bait",

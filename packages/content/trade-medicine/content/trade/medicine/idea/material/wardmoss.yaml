@@ -1,0 +1,12 @@
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: wardmoss
+  keywords: [wardmoss, moss, herb]
+  appearance: a dark cushion of north-face moss
+  density: 400
+  edibility: false
+  toxicity: []
+  spoilActivationEnergy: 70000
+  waterActivity: 0.9
+  tags: [herb, moss, organic]

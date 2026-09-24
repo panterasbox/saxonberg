@@ -822,3 +822,22 @@ One intentional non-persistent:
 - [light.md](./light.md) — the Light & Boundary subsystem on top of
   Door, Adornable, and the per-room walks.
 - [perception.md](./perception.md) — viewer-aware-query pattern.
+
+---
+
+## `airExposure` on `SurfacedMixin` (extraction W1)
+
+A persistent, authorable fraction (default `1`) with `getAirExposure()` /
+`setAirExposure()` — **how much of a thing lying on this support the air
+actually reaches.** Read by the two-way arm of the per-instance water state
+([spoilage.md § The water state](./spoilage.md)), never by anything spatial.
+
+Three rungs decide it: **enclosed is `0`** (a thing whose immediate container is
+not a Location exchanges nothing — a sack, a chest, a pack, a pot), else the
+support's own number, else `cure.groundExposure` (`0.35`) for bare ground.
+
+⭐ Drying is **surface-limited**, and that one dial is the whole reason cheese
+sits on slatted shelves and turf is built into a lattice: a ham on a stone floor
+dries on top and goes off underneath. ⚠ The enclosed rung is also what keeps the
+store sparse — *a read that would change nothing writes nothing*, so the common
+case (a ration in a pack) never starts a clock.

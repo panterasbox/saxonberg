@@ -135,6 +135,22 @@ the Hydrator; per-field invariants ride accessor pairs.
   `capabilities: string[]` a recipe requires by kind. A `ToolItem` composes
   `ToolMixin(DurableMixin(…))` — a tool is a durable good that *also* offers
   capabilities; the durability lives on `DurableMixin`, not here.
+- **`SteepableMixin`** (`Steepable.ts`) — the general **infusion**
+  substrate: a solute that gives up an extract when steeped in a solvent
+  (water + herb → draught, water + leaves → tea, later spirits/oil →
+  tincture/infused oil). Carries `steepsInto: string` (the extract
+  Material path) + the affordance for the **platform** `steep`/`infuse`
+  verb, contributed OUTWARD to whoever carries the solute
+  (`commandContributions.environment`). Kernel because cooking, medicine
+  and distilling have no common pack ancestor; `trade-medicine`'s `Simple`
+  is its first consumer. The verb (`platform/idea/cmd/crafting/
+  SteepController`) runs a `ManualBuildStep` (the `'hands'` slot) and gates
+  the solvent by a Material `solvent` tag — **v1 = water only**; the
+  solvent-dependent output (tincture vs tea vs oil), extraction efficiency
+  and hot/cold kinetics are deferred to a real cooking-infusion build.
+  `MixinApi.isSteepable`. ⚠ Shipped medicine-only with a hardcoded output
+  in the clinical-medicine build, then generalised in review — the honest
+  substrate, so it does not poison the well for cooking.
 - **`CraftedMixin`** (`Crafted.ts`, composes `GradedMixin(Base)`) — the
   per-instance **maker's mark**. Own persistent fields `{maker (templatePath),
   recipe (recipeId), craftedAt (game-seconds)}`, set once via `stamp(spec)`

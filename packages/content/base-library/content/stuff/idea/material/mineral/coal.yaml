@@ -1,0 +1,35 @@
+# Coal — ⭐ **a fuel that lights, warms, and ruins iron**, which is the
+# whole reason coke had to be invented.
+#
+# It relieves the hearth and the kiln: it burns hot, it goes in any
+# `category: fuel` slot, and it carries the `carbon` tag a reduction needs.
+# And it carries `sulfurous`, which is what makes the iron hot-short —
+# a bloom smelted on raw coal cracks under the hammer.
+#
+# ⚠ **Coal → coke is NOT this build's** (`metal-chain-slate` owns the energy
+# transition). So iron keeps needing charcoal off a coppice somebody tends,
+# and the epoch step stays available to be told as the epoch step it is.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: coal
+  keywords: [coal, sea-coal]
+  appearance: dull black coal
+  density: 1350
+  specificHeat: 1300
+  thermalConductivity: 0.3
+  electricalConductivity: 1.0e-3
+  waterAbsorptionCapacity: 8
+  hardness: 40
+  toughness: 4
+  # It catches, but not easily — hotter than wood wants.
+  autoignitionTemperature: 700
+  # MJ/kg. Bituminous coal, and comfortably above charcoal's.
+  heatOfCombustion: 28
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["mineral", "solid", "fuel", "carbon", "sulfurous"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

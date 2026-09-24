@@ -31,6 +31,7 @@
     "@saxonberg/content-trade-medicine": "workspace:*",
     "@saxonberg/content-trade-milling": "workspace:*",
     "@saxonberg/content-trade-mining": "workspace:*",
+    "@saxonberg/content-trade-quarrying": "workspace:*",
     "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-trade-tailoring": "workspace:*",

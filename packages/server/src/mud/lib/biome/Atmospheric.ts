@@ -39,6 +39,9 @@ import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { BiomeApi } from '../../api/biome';
 import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
+import { AddressApi } from '../../api/address';
+import type Locality from '../../platform/idea/Locality';
 import type Biome from './Biome';
 import type { WeatherPin } from '../weather/WeatherType';
 
@@ -92,6 +95,41 @@ export interface Atmospheric {
    */
   getWeatherPin(): WeatherPin | null;
   setWeatherPin(value: WeatherPin | null): void;
+
+  // ---------- the weather locality memo (SYNC) ----------
+
+  /**
+   * The `Locality` whose weather governs this scope, **synchronously**, or
+   * `null` when none covers it (or when nothing has looked yet).
+   *
+   * ⭐⭐ **Why this exists, and why it is a memo.** Resolving which
+   * locality covers a scope is an *address walk* — asynchronous. Weather
+   * itself is pure and sync (`WeatherApi.weatherAt`,
+   * `segmentsBetween`), so the only thing standing between a
+   * reconcile-on-read gauge and the real weather is the walk. So the walk
+   * runs **once**, off the read path, and the identity is remembered; the
+   * *state* — what the weather actually was — is derived live from it on
+   * every read. This is `Soil._rainLocalityPath`'s shape one mixin over.
+   *
+   * ⚠ **Deliberately NOT persisted, and that is the difference from
+   * Soil.** Soil persists its memo and holds a tri-state because a *rain
+   * backlog* rides beside it: an unresolved ref must not advance the
+   * stamp, or the ground silently credits zero rain for the window it was
+   * blind. Nothing integrates a backlog off *this* one — every consumer
+   * asks "what is the air doing right now" — so an unresolved read simply
+   * misses the weather deviation for that one read and heals on the next.
+   * Persisting it would buy nothing and claim a durability the answer does
+   * not have (a scope can be moved).
+   */
+  weatherLocality(): Locality | null;
+
+  /**
+   * Run (or join) the address walk that resolves {@link weatherLocality}.
+   * Coalescing: a second caller awaits the first walk rather than starting
+   * a second, so `await scope.resolveWeatherLocality()` means the memo is
+   * resolved when it returns, whichever call did the work.
+   */
+  resolveWeatherLocality(): Promise<void>;
 
   // ---------- derived geometry ----------
 
@@ -384,6 +422,64 @@ export function AtmosphericMixin<
     }
     public setWeatherPin(value: WeatherPin | null): void {
       this._weatherPin = value;
+    }
+
+    // ---------- the weather locality memo ----------
+
+    /**
+     * Template path of the covering `Locality`, or `null` for a scope that
+     * resolves none. Not persisted — see {@link Atmospheric.weatherLocality}.
+     */
+    private _weatherLocalityPath: string | null = null;
+
+    /**
+     * Whether the walk has ever completed. Distinct from
+     * `_weatherLocalityPath === null`, because a cellar legitimately
+     * resolves NO locality and must be told apart from a scope that has
+     * not looked yet — the difference between an answer and an absence.
+     */
+    private _weatherLocalityResolved = false;
+
+    /**
+     * The in-flight walk. Holding the **promise** rather than a boolean is
+     * what makes a second caller coalesce onto the first instead of
+     * returning from a walk that has not finished.
+     */
+    private _weatherLocalityPromise: Promise<void> | null = null;
+
+    public weatherLocality(): Locality | null {
+      if (!this._weatherLocalityResolved) {
+        // Kick the walk and answer "not yet". The next read has it.
+        void this.resolveWeatherLocality();
+        return null;
+      }
+      if (this._weatherLocalityPath === null) return null;
+      return (
+        StuffApi.findByTemplatePath<Locality>(this._weatherLocalityPath) ?? null
+      );
+    }
+
+    public resolveWeatherLocality(): Promise<void> {
+      const inFlight = this._weatherLocalityPromise;
+      if (inFlight !== null) return inFlight;
+      const started = this.walkWeatherLocality();
+      this._weatherLocalityPromise = started;
+      return started;
+    }
+
+    /** The walk itself; {@link resolveWeatherLocality} owns the coalescing. */
+    private async walkWeatherLocality(): Promise<void> {
+      try {
+        const self = this as unknown as Stuff & Container;
+        const locality = await AddressApi.resolveLocalityFor(self);
+        this._weatherLocalityPath = locality?.getTemplatePath() ?? null;
+        this._weatherLocalityResolved = true;
+      } catch {
+        // A failed walk stays UNRESOLVED rather than resolving to nothing,
+        // so a later read tries again instead of reading flat forever.
+      } finally {
+        this._weatherLocalityPromise = null;
+      }
     }
 
     // ---------- derived geometry (null defaults; concrete subclasses override) ----------

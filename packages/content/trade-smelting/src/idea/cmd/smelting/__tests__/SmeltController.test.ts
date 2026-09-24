@@ -53,6 +53,10 @@ const STEEL = '/stuff/idea/material/alloy/steel';
 const CAST_IRON = '/stuff/idea/material/alloy/cast-iron';
 const BLOOM_IRON = '/stuff/idea/material/alloy/bloom-iron';
 const CHARCOAL_M = '/stuff/idea/material/organic/charcoal';
+const LIMESTONE_M = '/stuff/idea/material/rock/limestone';
+const COAL_M = '/stuff/idea/material/mineral/coal';
+const SOUR_IRON = '/stuff/idea/material/alloy/sulfurous-iron';
+const SOUR_ROW = '/trade/smelting/thing/hot-short-bloom';
 const INGOT_ROW = '/trade/smelting/thing/copper-ingot';
 const BLOOM_ROW = '/trade/smelting/thing/iron-bloom';
 const STEEL_ROW = '/trade/smelting/thing/steel-ingot';
@@ -71,6 +75,9 @@ const PRODUCT_ROWS: ReadonlyArray<[string, string]> = [
   [BLOOM_ROW, BLOOM_IRON],
   [STEEL_ROW, STEEL],
   [PIG_ROW, CAST_IRON],
+  // ⚠ The coal outcome (extraction build) — discovered by material like
+  // every other product, never listed anywhere in the controller.
+  [SOUR_ROW, SOUR_IRON],
 ];
 
 let seq = 0;
@@ -204,6 +211,12 @@ beforeEach(async () => {
   );
 
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
+    if (path === SOUR_ROW) {
+      const b = makeStuff(() => new Bloom());
+      stampTemplatePathForTest(b, SOUR_ROW);
+      b.setMaterial(StuffApi.findByTemplatePath<Material>(SOUR_IRON) as Material);
+      return b as never;
+    }
     if (path === BLOOM_ROW) {
       const b = makeStuff(() => new Bloom());
       stampTemplatePathForTest(b, BLOOM_ROW);
@@ -247,9 +260,34 @@ beforeEach(async () => {
   ]);
   makeStuffAtPath(() => new Material(), CAST_IRON).setTags(['alloy', 'metal', 'ferrous', 'brittle']);
   makeStuffAtPath(() => new Material(), BLOOM_IRON).setTags(['metal', 'ferrous', 'bloom']);
+  // ⚠⚠ Hot-short iron: still ferrous, and BRITTLE — which is the tag the
+  // smith's own verbs already refuse.
+  makeStuffAtPath(() => new Material(), SOUR_IRON).setTags([
+    'alloy',
+    'metal',
+    'ferrous',
+    'brittle',
+    'sulfurous',
+  ]);
   makeStuffAtPath(() => new Material(), CARBON).setTags(['element', 'non-metal']);
   const charcoal = makeStuffAtPath(() => new Material(), CHARCOAL_M);
   charcoal.setTags(['fuel', 'carbon', 'organic']);
+  // ⭐ The FLUX (extraction build) — a tag, never a row path, so dolomite
+  // works the day somebody ships some.
+  makeStuffAtPath(() => new Material(), LIMESTONE_M).setTags([
+    'rock',
+    'sedimentary',
+    'carbonate',
+    'flux',
+  ]);
+  // ⚠⚠ …and raw COAL, which reduces iron perfectly well and poisons it.
+  makeStuffAtPath(() => new Material(), COAL_M).setTags([
+    'mineral',
+    'solid',
+    'fuel',
+    'carbon',
+    'sulfurous',
+  ]);
 
   room = makeStuff(() => new TestActor());
   actor = makeStuffAtPath(
@@ -536,5 +574,136 @@ describe('⭐⭐ the ferrous ladder — the charge decides the metal', () => {
     const context = await smelt();
     await tap();
     expect(declinedFor(context)).toBe('no-product-row');
+  });
+});
+
+/**
+ * ⭐⭐ **The flux and the sulfur — what the quarry did to the smelt.**
+ *
+ * Both are read off a MATERIAL TAG and neither is a recipe or a row check, so
+ * the smelt gained two behaviours and learned no new nouns:
+ *
+ *  - **`flux`** — limestone in the charge lowers the gangue's melting point,
+ *    so the waste runs OUT of the bloom instead of staying in it as sponge.
+ *    30 % trapped becomes 12 %. ⚠ The metal chain shipped with `flux` named
+ *    as a hole and nothing in the world producing one; this is the producer
+ *    arriving, and the *demand was there first*.
+ *  - **`sulfurous`** — raw coal reduces iron and poisons it. The bloom is
+ *    written down to `poor` whatever else was true of the run, which is
+ *    exactly why coke had to be invented and why this build ships coal as a
+ *    hearth fuel rather than an iron one.
+ */
+describe('⭐⭐ the flux and the sulfur (extraction)', () => {
+  function chargeIron(lumps: number, baskets: number, grade = 0.12): void {
+    ContainmentApi.move(lump(1.4, lumps, grade, GOETHITE), furnace);
+    for (let i = 0; i < baskets; i++) ContainmentApi.move(basket(), furnace);
+  }
+
+  /** A lump of limestone — a Tangible whose material carries `flux`. */
+  function limestone(): Thing {
+    const l = makeStuff(() => new Thing());
+    l.setMass(Quantity.of(8, 'kg'));
+    l.setMaterial(
+      StuffApi.findByTemplatePath<Material>(LIMESTONE_M) as unknown as Material,
+    );
+    return l;
+  }
+
+  /** A lump of raw coal — fuel AND carbon AND sulfurous. */
+  function coal(): Thing {
+    const c = makeStuff(() => new Thing());
+    c.setMass(Quantity.of(8, 'kg'));
+    c.setMaterial(StuffApi.findByTemplatePath<Material>(COAL_M) as unknown as Material);
+    return c;
+  }
+
+  function productOf(): Massed | null {
+    for (const [path, items] of productsIn(furnace)) {
+      if (path !== SLAG_ROW && items[0]) return items[0];
+    }
+    return null;
+  }
+
+  it('⭐⭐ limestone in the charge means a CLEANER bloom out of the same rock', async () => {
+    // The same ore, the same fuel, the same heat — and the only difference is
+    // a stone in the charge. Run it both ways and compare.
+    furnace.setBellowsActive(true);
+    chargeIron(3, 2);
+    await smelt();
+    await tap();
+    const plain = productOf();
+    expect(plain).not.toBeNull();
+    const plainSlag =
+      (plain as unknown as { getSlagFraction?(): number }).getSlagFraction?.() ?? 0;
+
+    // A fresh furnace, and this time with limestone in it.
+    furnace = makeFurnace(true);
+    ContainmentApi.move(furnace, room);
+    chargeIron(3, 2);
+    ContainmentApi.move(limestone(), furnace);
+    await smelt();
+    await tap();
+    const fluxed = productOf();
+    expect(fluxed).not.toBeNull();
+    const fluxedSlag =
+      (fluxed as unknown as { getSlagFraction?(): number }).getSlagFraction?.() ?? 0;
+
+    expect(fluxedSlag).toBeLessThan(plainSlag);
+    // ⭐ And the bloom is SMALLER, which is the honest reading: the waste
+    // left, it did not become metal.
+    expect(fluxed!.getMass().rawValue()).toBeLessThan(plain!.getMass().rawValue());
+  });
+
+  it('the limestone is CONSUMED — it is not a tool you get back', async () => {
+    furnace.setBellowsActive(true);
+    chargeIron(3, 2);
+    const stone = limestone();
+    ContainmentApi.move(stone, furnace);
+    await smelt();
+    await tap();
+    expect(stone.isDestroyed()).toBe(true);
+  });
+
+  it('⚠⚠ raw COAL reduces the iron and RUINS it — and it is the MATERIAL', async () => {
+    // Coal carries `fuel` and `carbon`, so it satisfies the charcoal check
+    // and the run happens. And it carries `sulfurous`, so what comes out is
+    // hot-short iron. Two tags, one honest outcome, and no branch on the word
+    // "coal" anywhere in the controller.
+    //
+    // ⭐⭐ **A material, not a grade, and the test is what forced that.** The
+    // plan said to write the product's Graded face down to `poor` — and
+    // NEITHER `Bloom` NOR `Ingot` composes `GradedMixin`, so `setGrade` was a
+    // silent no-op and coal made perfectly good iron. The material is also
+    // the better answer: the smith's own verbs already refuse a `brittle`
+    // metal, so *"it will crack under the hammer"* is enforced rather than
+    // narrated.
+    furnace.setBellowsActive(true);
+    ContainmentApi.move(lump(1.4, 3, 0.12, GOETHITE), furnace);
+    ContainmentApi.move(coal(), furnace);
+    ContainmentApi.move(coal(), furnace);
+    await smelt();
+    await tap();
+    const bloom = productOf();
+    expect(bloom).not.toBeNull();
+    expect(bloom!.getMaterial()?.getTemplatePath()).toBe(SOUR_IRON);
+    // …and the tag the smith's hand actually reads.
+    expect(
+      MixinApi.isTangible(bloom!) && bloom!.hasMaterialTag('brittle'),
+    ).toBe(true);
+  });
+
+  it('…and charcoal on the same charge gives sound bloom iron', async () => {
+    // The control. If this failed, the case above would be asserting that
+    // every bloom is ruined rather than that a sour one is.
+    furnace.setBellowsActive(true);
+    chargeIron(3, 2);
+    await smelt();
+    await tap();
+    const bloom = productOf();
+    expect(bloom).not.toBeNull();
+    expect(bloom!.getMaterial()?.getTemplatePath()).toBe(BLOOM_IRON);
+    expect(
+      MixinApi.isTangible(bloom!) && bloom!.hasMaterialTag('brittle'),
+    ).toBe(false);
   });
 });

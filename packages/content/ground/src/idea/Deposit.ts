@@ -63,6 +63,21 @@ export interface StratumBand {
   toZ: number;
   /** The host rock's `Material` template path. */
   host: string;
+  /**
+   * ⭐ **What winning this band mints**, or absent for the consumer's own
+   * default.
+   *
+   * A template-row path (a discrete good — a block, a lump, a turf) **or** a
+   * material path (a bulk good, recognised by the `/idea/material/` infix —
+   * rock salt won into a vessel). One optional field on a band is the whole
+   * of what the extraction build needed to add to the column: *a mine wins
+   * the lode; a quarry wins the host*, and the host was already modelled.
+   *
+   * ⚠ It is authored on the BAND rather than derived from the material,
+   * because the same limestone is a block in one pit and burnt lime's raw
+   * material in another, and the place is what decides.
+   */
+  wins?: string;
 }
 
 /**

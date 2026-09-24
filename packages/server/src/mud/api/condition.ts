@@ -133,6 +133,15 @@ export interface EnergyInflictSpec {
    * severed head.
    */
   maim?: boolean;
+  /**
+   * ⭐ **What stays in the wound** (D6), as prose — *"a poisoned needle"*,
+   * *"an arrowhead"*. When a blow resolves a `puncture` at/above
+   * `EMBED_MIN_SEVERITY` and this is set, the trauma is minted a
+   * `foreign-body` carrying it (only extraction resolves it). Absent →
+   * an ordinary puncture; every shipped producer that omits it is
+   * byte-identical.
+   */
+  embeds?: string;
 }
 
 /**

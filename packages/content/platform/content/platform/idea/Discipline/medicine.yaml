@@ -4,7 +4,7 @@ data:
   key: medicine
   channel: skill
   label: Medicine
-  iscedf: "0913"  # ISCED-F 2013 — Nursing and midwifery (the honest anchor)
-  description: First aid and the care of wounds — assessing a body, dressing a bleed, judging when it has clotted. Improves by doing, in context.
+  iscedf: "0912"  # ISCED-F 2013 — Medicine (the doctor's anchor)
+  description: The physician's craft — diagnosis, operations, prescribing, and the cross-match decision. The judgement that decides what to do to a body, and who may cut. Improves by doing, in context.
   specializes:
-    - services
+    - health
