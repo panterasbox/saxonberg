@@ -40,7 +40,7 @@ describe("Position × Compensation", () => {
     key: "bartender",
     label: "tending bar",
     wageRate: 12,
-    fulfills: true,
+    fulfills: ['bartending'],
   };
 
   it("a legacy blob (no compensation) reads basis time and round-trips byte-identically", () => {

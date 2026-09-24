@@ -226,11 +226,19 @@ export interface Employed {
   /** True iff any employment is currently on shift (sync hot-path read). */
   isOnShift(): boolean;
   /**
-   * ⭐ Is this actor the on-duty hand HERE — the one an `order` at this
-   * venue is served by? On shift, in a seat its house marked `fulfills`,
-   * standing somewhere that house operates. See {@link Employed}.
+   * ⭐ Is this actor the on-duty hand HERE — one an `order` at this venue
+   * could be served by? On shift, in a seat whose house marked it
+   * `fulfills`, standing somewhere that house operates.
+   *
+   * With `discipline`, the seat must serve THAT discipline: a smith and
+   * a cook share the Hearthworks' one business and both its rooms, so
+   * *"is anybody on duty"* and *"is anybody on duty who COOKS"* are
+   * different questions and only the second one routes a stew.
+   *
+   * ⚠ *Could be*, not *is*: several people may answer true. Choosing
+   * between them is arbitration and belongs to the crew substrate.
    */
-  isFulfilling(): boolean;
+  isFulfilling(discipline?: string): boolean;
   /**
    * ⭐ **What the job calls its holder** — `'bartender'`, `'clerk'` —
    * from the first ACTIVE employment's Position, or `null`.
@@ -370,7 +378,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return (this.employments ?? []).some((e) => e.status === 'on-shift');
     }
 
-    public isFulfilling(): boolean {
+    public isFulfilling(discipline?: string): boolean {
       const store = this.employments ?? [];
       if (store.length === 0) return false;
       // Where the actor actually stands, plus the identity paths of
@@ -393,7 +401,9 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (e.status !== 'on-shift') continue;
         const organization = StuffApi.findByTemplatePath(recordKey(e));
         if (!organization || !MixinApi.isOrganization(organization)) continue;
-        if (organization.getPosition(e.positionKey)?.fulfills !== true) continue;
+        const serves = organization.getPosition(e.positionKey)?.fulfills ?? [];
+        if (serves.length === 0) continue;
+        if (discipline !== undefined && !serves.includes(discipline)) continue;
         // ⚠ The "here" leg. A house with no operating locations at all
         // fulfils nowhere — which is what an organization that keeps no
         // premises honestly means.

@@ -56,9 +56,11 @@ let smithy: Room;
 function seedBusiness(): void {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.positions = [
-    { key: 'bartender', label: 'tending bar', wageRate: 12, fulfills: true },
+    { key: 'bartender', label: 'tending bar', wageRate: 12, fulfills: ['bartending'] },
     // The seat that pays but does not make: the book-keeper.
     { key: 'clerk', label: 'keeping the book', wageRate: 5 },
+    // ⭐ A second trade under the SAME business, the Hearthworks shape.
+    { key: 'cook', label: 'minding the hearth', wageRate: 4, fulfills: ['cooking'] },
   ];
   b.operatingLocations = [BAR];
 }
@@ -141,6 +143,45 @@ describe('⭐ isFulfilling — on shift, in a fulfilling seat, where the house o
     ContainmentApi.move(w as never, bar as never);
     employ(w, 'bartender', 'on-shift');
     expect(w.isFulfilling()).toBe(true);
+  });
+
+  it('⭐⭐ a seat serves its OWN discipline and not the house\'s other one', () => {
+    // The bug this field shape exists for: the Hearthworks runs a smith
+    // and a cook off one business whose `operatingLocations` names both
+    // rooms. Asked bare, the bartender is "on duty"; asked for cooking,
+    // they are not — and that is the only leg that can separate them,
+    // because a recipe's discipline is credited downstream, never gated.
+    const pourer = makeStuff(() => new Worker());
+    ContainmentApi.move(pourer as never, bar as never);
+    employ(pourer, 'bartender', 'on-shift');
+
+    expect(pourer.isFulfilling(), 'on duty at all').toBe(true);
+    expect(pourer.isFulfilling('bartending'), 'pours').toBe(true);
+    expect(pourer.isFulfilling('cooking'), '⭐ does NOT cook').toBe(false);
+
+    const chef = makeStuff(() => new PlayerBody());
+    ContainmentApi.move(chef as never, bar as never);
+    employ(chef, 'cook', 'on-shift');
+    expect(chef.isFulfilling('cooking')).toBe(true);
+    expect(chef.isFulfilling('bartending')).toBe(false);
+  });
+
+  it('a seat can serve several disciplines, and each one routes', () => {
+    const biz = StuffApi.findByTemplatePath<BusinessEntity>(BUSINESS)!;
+    biz.positions = [
+      {
+        key: 'hand',
+        label: "running the still house's floor",
+        wageRate: 3,
+        fulfills: ['distilling', 'fermenting'],
+      },
+    ] as never;
+    const hand = makeStuff(() => new Worker());
+    ContainmentApi.move(hand as never, bar as never);
+    employ(hand, 'hand', 'on-shift');
+    expect(hand.isFulfilling('distilling')).toBe(true);
+    expect(hand.isFulfilling('fermenting')).toBe(true);
+    expect(hand.isFulfilling('smithing')).toBe(false);
   });
 
   it('⭐⭐ an Avatar-shaped body and an NPC-shaped body answer identically', () => {

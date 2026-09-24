@@ -49,7 +49,7 @@ const docs: Doc[] = [
     hydratorClass: PH,
     data: {
       proprietorPath: "",
-      positions: [{ key: "cook", label: "minding the hearth", wageRate: 4, fulfills: true }],
+      positions: [{ key: "cook", label: "minding the hearth", wageRate: 4, fulfills: ['cooking'] }],
       rosterSlots: [
         {
           positionKey: "cook",

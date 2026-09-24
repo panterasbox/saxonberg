@@ -259,7 +259,7 @@ describe('⭐⭐ clock — a shift is something you choose to start', () => {
   });
 
   it('⭐ a `fulfills` seat says what the shift GRANTS — or a player never learns it', async () => {
-    biz.positions = [seat({ fulfills: true })] as never;
+    biz.positions = [seat({ fulfills: ['bartending'] })] as never;
     await clock('on');
     expect(said).toMatch(/an order here is served by/);
     expect(alice.isFulfilling()).toBe(true);

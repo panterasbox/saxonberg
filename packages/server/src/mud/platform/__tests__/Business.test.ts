@@ -10,7 +10,7 @@ function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), PATH);
   b.proprietorPath = '/world/lounge/agent/dave';
   b.positions = [
-    { key: 'bartender', label: 'tending bar', wageRate: 12, fulfills: true },
+    { key: 'bartender', label: 'tending bar', wageRate: 12, fulfills: ['bartending'] },
   ];
   b.rosterSlots = [
     {

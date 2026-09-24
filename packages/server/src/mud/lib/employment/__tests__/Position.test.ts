@@ -7,12 +7,12 @@ describe('Position', () => {
       key: 'bartender',
       label: 'tending bar',
       wageRate: 12,
-      fulfills: true,
+      fulfills: ['bartending'],
     });
     expect(p.key).toBe('bartender');
     expect(p.label).toBe('tending bar');
     expect(p.wageRate).toBe(12);
-    expect(p.fulfills).toBe(true);
+    expect(p.fulfills).toEqual(['bartending']);
   });
 
   it('coerces a loosely-typed (hydrated) blob', () => {
@@ -23,7 +23,7 @@ describe('Position', () => {
     expect(p.key).toBe('cook');
     expect(p.label).toBe('');
     expect(p.wageRate).toBe(9);
-    expect(p.fulfills).toBe(false);
+    expect(p.fulfills).toEqual([]);
   });
 
   it('round-trips through serialize/fromData', () => {
@@ -31,7 +31,7 @@ describe('Position', () => {
       key: 'server',
       label: 'serving',
       wageRate: 10,
-      fulfills: true,
+      fulfills: ['bartending'],
     });
     const back = Position.fromData(p.serialize());
     expect(back.serialize()).toEqual(p.serialize());
@@ -47,10 +47,35 @@ describe('Position', () => {
       label: 'keeping shop',
       wageRate: 4,
       purchases: true,
-      fulfills: true,
+      fulfills: ['bartending'],
     });
     expect(p.purchases).toBe(true);
-    expect(p.fulfills).toBe(true);
+    expect(p.fulfills).toEqual(['bartending']);
+    expect(Position.fromData(p.serialize()).serialize()).toEqual(p.serialize());
+  });
+
+  it('⛔ a bare `fulfills: true` THROWS — it was the spelling for two commits', () => {
+    // Reading it as "serves nothing" would turn a bartender into scenery
+    // with no complaint from anywhere; reading it as "serves everything"
+    // is what was wrong in the first place.
+    expect(() =>
+      Position.fromData({
+        key: 'bartender',
+        label: 'tending bar',
+        wageRate: 12,
+        fulfills: true as never,
+      }),
+    ).toThrow(/list of disciplines/);
+  });
+
+  it('⭐ a seat can serve SEVERAL disciplines — the still house does', () => {
+    const p = Position.of({
+      key: 'hand',
+      label: "running the Crowsfoot outfit's floor",
+      wageRate: 3,
+      fulfills: ['distilling', 'fermenting'],
+    });
+    expect(p.fulfills).toEqual(['distilling', 'fermenting']);
     expect(Position.fromData(p.serialize()).serialize()).toEqual(p.serialize());
   });
 

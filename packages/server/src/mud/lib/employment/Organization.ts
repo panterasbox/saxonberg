@@ -452,8 +452,8 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       // back to the first seat when the house marks none (which is what
       // `positions[0]` meant before `fulfills` existed).
       const positionKey =
-        (this.positions.find((p) => p.fulfills === true) ?? this.positions[0])
-          ?.key;
+        (this.positions.find((p) => (p.fulfills?.length ?? 0) > 0) ??
+          this.positions[0])?.key;
       if (!organizationPath || !positionKey) return null;
       const record: EmploymentData = {
         organizationPath,

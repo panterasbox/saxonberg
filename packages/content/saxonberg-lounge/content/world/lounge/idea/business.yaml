@@ -26,15 +26,18 @@ data:
     path: /world/lounge/agent/dave
   # The one position v1. `wageRate` is minor units per game-hour on shift
   # (a tuning placeholder — an 8h shift ~ 32, a modest labor line against
-  # the deliberately-red P&L). `fulfills: true` is the on-shift capability
+  # the deliberately-red P&L). `fulfills:` is the on-shift capability
   # grant: while on shift and standing somewhere this house operates, the
-  # holder is who an `order` at the bar is served by.
+  # holder is who an `order` for one of these disciplines is served by.
+  # ⭐ Every drinkable row in the realm — hospitality's 25, bottling's,
+  # brewing's and winemaking's finished pours — authors
+  # `discipline: bartending`, so one word covers the whole rail.
   positions:
     - key: bartender
       noun: bartender
       label: tending bar
       wageRate: 4
-      fulfills: true
+      fulfills: [bartending]
     # The keeper — the seat that BUYS for the house. `purchases: true` is
     # what lets its holder `wallet use house` (the operating account
     # becomes the one they trade as) and run `house stock` / `house par`.

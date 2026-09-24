@@ -1,8 +1,16 @@
 # The Hearthworks — the Business entity (the Dave's-Bar precedent, F5):
 # `order` resolves its maker off the SHIFT, so a venue with no rostered
 # on-shift position has nobody to serve it — the Business wiring is
-# load-bearing, not decoration. Both positions are `fulfills` on a 24/7
+# load-bearing, not decoration. All three positions fulfil on a 24/7
 # roster (a teaching venue never closes). Berta doubles as proprietor.
+#
+# ⭐⭐ **This house is why `fulfills` is a LIST.** It runs two trades off
+# ONE business whose `operatingLocations` names BOTH rooms, so a seat
+# that merely said "serves orders here" made Berta a legal maker for a
+# stew — and nothing downstream would have caught it, because a recipe's
+# discipline is credited, never gated. She would have cooked it and been
+# credited with `cooking`. Only where the `shifts` brain parks her stood
+# between that and a player, which is an accident of content.
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -15,12 +23,12 @@ data:
       noun: smith
       label: working the forge
       wageRate: 5
-      fulfills: true
+      fulfills: [smithing]
     - key: cook
       noun: cook
       label: minding the hearth
       wageRate: 4
-      fulfills: true
+      fulfills: [cooking]
       # ⭐ The cook ORDERS for the house (trades-and-labor D16): the
       # `restocks` beat posts a carriage bounty for each short par line
       # and clears the receiving bench onto the table. `purchases` is the
@@ -45,7 +53,7 @@ data:
       label: at the hearth
       wageRate: 3
       headcount: 1
-      fulfills: true
+      fulfills: [cooking]
       requires:
         gigs: 2
   rosterSlots:

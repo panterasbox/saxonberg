@@ -14,7 +14,7 @@ data:
       noun: miller
       label: minding the stones
       wageRate: 4
-      fulfills: true
+      fulfills: [baking]
   rosterSlots:
     - positionKey: miller
       assignee: /world/terminus/hearts-delight/agent/miller

@@ -88,10 +88,20 @@ export interface PositionData {
   /** Wage in banking minor units per game-hour on shift. */
   wageRate: number;
   /**
-   * ⭐ A **fulfilling** position: its holder, while on shift and standing
-   * somewhere the organization operates, is who an `order` at this venue
-   * is served by. The bartender behind the bar, the cook at the hearth,
-   * the goods-yard hand on the floor that actually makes the thing.
+   * ⭐ The **disciplines this seat serves an `order` in**: its holder,
+   * while on shift and standing somewhere the organization operates, is
+   * who an `order` for one of these is served by. The bartender pours,
+   * the cook cooks, the smith forges.
+   *
+   * ⚠ **A list, not a flag, and the list is what makes it correct.** It
+   * shipped as `fulfills: boolean` and that was under-powered in a way a
+   * live venue exposes at once: the Hearthworks runs a smith and a cook
+   * off ONE business whose `operatingLocations` names BOTH the smithy
+   * and the cookhouse, so a boolean makes the smith a legal maker for a
+   * stew. Only where the `shifts` brain happens to park her prevented
+   * it — an accident of content, not a rule. Nothing downstream catches
+   * it either: the recipe's discipline is *credited*, never *gated*, so
+   * she would have cooked it and been credited with `cooking`.
    *
    * ⚠ Not derivable, which is why it is authored. `order` serves both a
    * customer at a bar and a production hand on a floor, and the outfits'
@@ -101,10 +111,20 @@ export interface PositionData {
    * `serverPositionKeys` is *who attends the counter*, a different
    * question, and `noun` / `wageRate` / `purchases` say nothing about it.
    *
-   * Absent = false: a seat that does not fulfil (what `confers: []` used
-   * to say on forty of the forty-nine shipped seats).
+   * ⭐ There is no "serves anything" form, and there does not need to
+   * be: **every recipe in the realm authors a discipline** — 97 of 97,
+   * thirteen packs, ten disciplines. A seat that fulfils anything would
+   * be a seat with no trade, and nothing in the realm is that.
+   *
+   * Absent or empty = this seat serves no orders (what `confers: []`
+   * used to say on forty of the forty-nine shipped seats).
+   *
+   * ⚠⚠ This says who **may** serve, never who **does** when several
+   * qualify. Two cooks in one kitchen is an arbitration question — a
+   * queue, or first-free — and it belongs to the crew substrate
+   * (`docs/slates/builds/crew-slate.md`), not to this field.
    */
-  fulfills?: boolean;
+  fulfills?: readonly string[];
   /**
    * ⭐ **How many places this seat has.** Absent — the shipped default —
    * means *no opening is ever advertised*: exactly today's behaviour for
@@ -154,8 +174,8 @@ export class Position {
     public readonly reportsTo?: string,
     /** Whether the holder buys for the organization (default false). */
     public readonly purchases: boolean = false,
-    /** Whether the holder serves an `order` here on shift (default false). */
-    public readonly fulfills: boolean = false,
+    /** The disciplines the holder serves an `order` in, on shift. */
+    public readonly fulfills: readonly string[] = [],
     /** How many places the seat has, or undefined (= advertises none). */
     public readonly headcount?: number,
     /** What the seat asks of an applicant, or undefined (= nothing). */
@@ -173,7 +193,7 @@ export class Position {
       data.compensation,
       data.reportsTo,
       data.purchases === true,
-      data.fulfills === true,
+      Position.coerceFulfills(data.fulfills),
       Position.coerceHeadcount(data.headcount),
       Position.coerceRequires(data.requires),
       data.noun,
@@ -207,13 +227,38 @@ export class Position {
         ? data.reportsTo
         : undefined,
       data.purchases === true,
-      data.fulfills === true,
+      Position.coerceFulfills(data.fulfills),
       Position.coerceHeadcount(data.headcount),
       Position.coerceRequires(data.requires),
       typeof data.noun === 'string' && data.noun.length > 0
         ? data.noun
         : undefined,
     );
+  }
+
+  /**
+   * The disciplines a seat serves, coerced. ⚠ **Throws on a bare
+   * boolean** rather than reading it as anything: `fulfills: true` was
+   * the shipped spelling for two commits, and silently reading it as
+   * "serves nothing" would turn a bartender into scenery with no
+   * complaint from anywhere.
+   */
+  private static coerceFulfills(value: unknown): readonly string[] {
+    if (value == null) return [];
+    if (typeof value === 'boolean') {
+      throw new Error(
+        `Position.fulfills: expected a list of disciplines, got the ` +
+          `boolean '${String(value)}'. A seat names WHICH orders it ` +
+          `serves — \`fulfills: [cooking]\` — because a venue can run ` +
+          `two trades off one business.`,
+      );
+    }
+    if (!Array.isArray(value)) {
+      throw new Error(
+        `Position.fulfills: expected a list of disciplines, got ${typeof value}`,
+      );
+    }
+    return value.map(String).filter((d) => d.length > 0);
   }
 
   /** An integer ≥ 1, or undefined. Anything else is not a headcount. */
@@ -298,7 +343,7 @@ export class Position {
       ...(this.compensation ? { compensation: { ...this.compensation } } : {}),
       ...(this.reportsTo ? { reportsTo: this.reportsTo } : {}),
       ...(this.purchases ? { purchases: true } : {}),
-      ...(this.fulfills ? { fulfills: true } : {}),
+      ...(this.fulfills.length > 0 ? { fulfills: [...this.fulfills] } : {}),
       ...(this.headcount != null ? { headcount: this.headcount } : {}),
       ...(this.requires ? { requires: { ...this.requires } } : {}),
       ...(this.noun ? { noun: this.noun } : {}),

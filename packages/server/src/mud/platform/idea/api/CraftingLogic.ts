@@ -165,11 +165,35 @@ function toView(recipe: Recipe): RecipeView {
 /**
  * Resolve the maker from the execution context — **never** off the wire.
  * `'self'` → the command giver (serve/mix). `'fulfilling-bartender'` → a
- * present FULFILLING agent in the giver's (the patron's) location — on
- * shift, in a seat its house marked `fulfills`, and standing somewhere
- * that house operates (`Employed.isFulfilling`).
+ * present FULFILLING agent in the giver's (the patron's) location: on
+ * shift, in a seat whose house lists `discipline` under `fulfills`, and
+ * standing somewhere that house operates (`Employed.isFulfilling`).
+ *
+ * ⚠⚠ **It used to return the first match in container order**, which is
+ * insertion order and means nothing. That was invisible while one venue
+ * had one fulfilling seat and became wrong the moment the Hearthworks
+ * had three over one business: a player kitchen-hand and the cook both
+ * standing in the cookhouse made the answer luck, and the smith — whose
+ * house also operates that room — was a legal maker for a stew.
+ *
+ * Two rules now, in order:
+ *
+ *  1. ⭐ **The seat must serve the recipe's discipline.** That is what
+ *     separates a smith from a cook inside one business, and it is the
+ *     only leg that can: the discipline is *credited* downstream, never
+ *     *gated*, so a wrongly-picked maker succeeds and is credited with a
+ *     trade they do not practise.
+ *  2. **Then a stable key**, so the answer is at least the SAME wrong
+ *     answer twice rather than a different one each order.
+ *
+ * ⚠ Rule 2 is a placeholder for arbitration, not arbitration. Two
+ * equally-qualified cooks in one kitchen wants a queue or first-free,
+ * which is the crew substrate's (`docs/slates/builds/crew-slate.md`);
+ * picking the lowest identity path just means Odo always serves and his
+ * kitchen-hand never does. Predictable beats arbitrary; neither is
+ * right.
  */
-function resolveMaker(mode: MakerMode): Stuff | null {
+function resolveMaker(mode: MakerMode, discipline?: string): Stuff | null {
   const giver = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
   if (!giver) return null;
   if (mode === 'self') return giver;
@@ -177,10 +201,20 @@ function resolveMaker(mode: MakerMode): Stuff | null {
   if (!MixinApi.isContainable(giver)) return null;
   const loc = giver.getContainer();
   if (!loc || !MixinApi.isContainer(loc)) return null;
+  const able: Stuff[] = [];
   for (const c of loc.getContents()) {
-    if (c !== giver && MixinApi.isEmployed(c) && c.isFulfilling()) return c;
+    if (c === giver) continue;
+    if (!MixinApi.isEmployed(c)) continue;
+    if (!c.isFulfilling(discipline)) continue;
+    able.push(c);
   }
-  return null;
+  if (able.length === 0) return null;
+  if (able.length === 1) return able[0]!;
+  return [...able].sort((a, b) =>
+    (a.getIdentityPath() ?? a.stuffId).localeCompare(
+      b.getIdentityPath() ?? b.stuffId,
+    ),
+  )[0]!;
 }
 
 /**
@@ -2035,7 +2069,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     catalogue.findByKeyword(req.recipeRef) ?? catalogue.getRecipe(req.recipeRef);
   if (!recipe) return { ok: false, reason: 'no-recipe', detail: req.recipeRef };
 
-  const maker = resolveMaker(req.makerMode);
+  const maker = resolveMaker(req.makerMode, recipe.getDiscipline() || undefined);
   if (!maker) return { ok: false, reason: 'no-maker' };
   if (!MixinApi.isContainable(maker)) return { ok: false, reason: 'no-maker' };
   const location = maker.getContainer();

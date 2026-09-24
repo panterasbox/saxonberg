@@ -17,7 +17,7 @@ data:
       noun: hand
       label: running the brewery outfit's floor
       wageRate: 3
-      fulfills: true
+      fulfills: [fermenting]
       purchases: true
   rosterSlots:
     - positionKey: hand

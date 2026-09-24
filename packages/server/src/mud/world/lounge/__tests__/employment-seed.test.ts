@@ -33,7 +33,7 @@ interface BizDoc {
   class: string;
   data: {
     appointingAuthority: { kind: string; path?: string };
-    positions: { key: string; wageRate: number; fulfills?: boolean }[];
+    positions: { key: string; wageRate: number; fulfills?: string[] }[];
     rosterSlots: { positionKey: string; assignee: string; schedule: unknown[] }[];
     operatingLocations: string[];
   };
@@ -84,7 +84,9 @@ describe("Dave's Bar — Business seed integrity", () => {
     const bartender = doc.data.positions.find((p) => p.key === 'bartender');
     expect(bartender).toBeDefined();
     expect(bartender!.wageRate).toBeGreaterThan(0);
-    expect(bartender!.fulfills).toBe(true);
+    // ⭐ The list, not a flag: a seat names WHICH orders it serves. Every
+    // drinkable row in the realm authors `discipline: bartending`.
+    expect(bartender!.fulfills).toEqual(['bartending']);
     // ⚠ And the house must name where it operates, or the seat grants
     // nothing: `isFulfilling` is employer-bounded.
     expect(doc.data.operatingLocations).toContain(BAR);

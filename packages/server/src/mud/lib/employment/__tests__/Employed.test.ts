@@ -70,7 +70,7 @@ describe('EmployedMixin', () => {
     // truth table, employer-bounding included, is `conferral.test.ts`.)
     const biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     biz.positions = [
-      { key: 'bartender', label: 'bar', wageRate: 1, fulfills: true },
+      { key: 'bartender', label: 'bar', wageRate: 1, fulfills: ['bartending'] },
     ];
     biz.operatingLocations = [BAR];
     const bar = makeStuffAtPath(() => new EmployedTestRoom(), BAR);

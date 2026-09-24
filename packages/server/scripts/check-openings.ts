@@ -160,9 +160,35 @@ for (const row of rows) {
           `or \`purchases:\`, data on the seat, read off the shift.`,
       );
     }
-    for (const flag of ['fulfills', 'purchases'] as const) {
-      if (flag in p && typeof p[flag] !== 'boolean') {
-        say(row, `position '${key}': \`${flag}\` must be a boolean`);
+    if ('purchases' in p && typeof p.purchases !== 'boolean') {
+      say(row, `position '${key}': \`purchases\` must be a boolean`);
+    }
+    // ⭐ `fulfills` names WHICH orders a seat serves, and every entry has
+    // to be a discipline something can actually be ordered in — a typo
+    // here is a seat that is never picked, silently, forever.
+    if ('fulfills' in p && p.fulfills != null) {
+      if (typeof p.fulfills === 'boolean') {
+        say(
+          row,
+          `position '${key}': \`fulfills\` is a LIST of disciplines now, ` +
+            `not a flag — \`fulfills: [cooking]\`.\n    ⚠ A venue can run ` +
+            `two trades off one business (the Hearthworks runs a smith and ` +
+            `a cook over both its rooms), so "serves orders here" cannot ` +
+            `route an order.`,
+        );
+      } else if (!Array.isArray(p.fulfills)) {
+        say(row, `position '${key}': \`fulfills\` must be a list of disciplines`);
+      } else {
+        for (const d of p.fulfills as unknown[]) {
+          if (typeof d !== 'string' || !disciplines.has(d)) {
+            say(
+              row,
+              `position '${key}': \`fulfills\` names '${String(d)}', which ` +
+                `keys no shipped Discipline row — an order in it can never ` +
+                `route here`,
+            );
+          }
+        }
       }
     }
 
@@ -245,11 +271,11 @@ for (const row of rows) {
 
     // 4 — a fulfilling seat must have premises, and its rostered holders
     // must stand on them.
-    if (p.fulfills === true) {
+    if (Array.isArray(p.fulfills) && p.fulfills.length > 0) {
       if (operating.length === 0) {
         say(
           row,
-          `position '${key}' is \`fulfills\` but this house names no ` +
+          `position '${key}' fulfils but this house names no ` +
             `\`operatingLocations\`.\n    ⚠ \`isFulfilling\` is ` +
             `employer-bounded — a house with no premises fulfils NOWHERE, ` +
             `silently.`,
@@ -274,7 +300,7 @@ for (const row of rows) {
         if (!stands || houseRooms.has(stands)) continue;
         say(
           row,
-          `position '${key}' is \`fulfills\` and its roster holds ` +
+          `position '${key}' fulfils and its roster holds ` +
             `'${assignee}', who stands in '${stands}' — a room this house ` +
             `does not operate.\n    ⚠ They would stand there on shift ` +
             `serving nobody, silently.`,
