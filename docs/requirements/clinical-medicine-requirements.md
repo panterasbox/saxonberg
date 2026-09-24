@@ -216,6 +216,18 @@ volume floor; `salt-water`, already a material). Each has a **local,
 autarky-completable source** — see the supply-chain map. The full
 pharmacopoeia/extraction/assay economy is `pharma-slate`.
 
+### Design latitude — fictional remedies to nonfictional maladies
+⭐ **Inventing fictional species and supply chains to satisfy player needs
+that emerge from the other systems is in bounds** (user direction) — combat
+creates the maladies; the remedies need not be real-world. The two source
+gaps (anaesthetic, antibiotic) should be filled with **invented
+Saxonberg-native medicinal species**, not forced onto real-world poppy/
+penicillin. The rule is the standing one: the *mechanism* stays honest and
+derivable (a substance with an effect, administered, that a player can reason
+about), but the *flora and the chain* may be fictional where that serves the
+lenses. Do **not** import real pharma's R&D/manufacturing complexity to look
+authentic — abstract to what a player can act on.
+
 ## Supply-chain & autarky map
 
 The design guarantee: **every consumable in the loop has a local,
