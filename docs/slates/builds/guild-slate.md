@@ -9,8 +9,14 @@
 > gates · the hall (group-titled parcel + keyway tiers) and the job board
 > · lifecycle (founding paths · schism · dormancy · merger · standing
 > charters) · the Marshalcy credential + writ-contract stream + the calls
-> mechanism · the Worldwrights on-ramp · the 10 day-one institutions + 8
-> standing charters
+> mechanism · the Worldwrights on-ramp · the day-one roster — ⚠ **the
+> 2026-09-24 pass argues 10 → ~3 (a median + two edges), the rest into
+> the dormant set** · ⭐⭐ the **claim rule** (a charter may only claim a
+> discipline it has a MASTER of; graph-weighted, exclusive — breadth
+> costs people, not money) · the **guild wizard** as a roster position +
+> the no-custom-code acceptance test · guild governance riding the
+> shipped Office substrate · the noun/verb amendment (verbs are
+> University faculties)
 > **Size:** a build
 
 > This slate is the institution-level guild design. It **supersedes and
@@ -135,6 +141,42 @@ Consequences:
 - Some magic may stay **institutionally homeless** (mind, arcana
   residue) — learnable but guildless: the hedge-witch corner of the
   map, where the tapped-and-secret institutions recruit.
+
+### ⭐⭐⭐ Amended 2026-09-24 — the NOUN/VERB asymmetry, and where the verbs go
+
+The placement rule above says the mystery tier should follow *"real
+authored `synergizes` edges in the Catalog, not taste."* ⚠ **Read
+against the shipped rows, that rule cannot place the nouns at all:**
+
+| | shipped edges |
+|---|---|
+| `magic-create` (and every other **verb**) | `synergizes` with **all thirteen nouns** |
+| `magic-fire` (and every other **noun**) | `synergizes` with **nothing** |
+
+**Verbs are universal operators; nouns are bare domains.** The roster
+above already assigns the nouns sensibly — fire→Ironwrights,
+body→Physic, beast/plant/sense→Wardens, earth→Delvers, water→Watermen,
+light/mind→Chorus — and the **verb half of each pair is doing no work**,
+because every guild that got a verb got one any of them could have had.
+
+⭐ **The amendment: the noun is the vocation's subject matter magically
+expressed, and it distributes to guilds as the mystery tier — exactly as
+designed. The verb does NOT, and the formation rule says why: a verb is
+not a livelihood.** Nobody pays you to *create* in general; they pay you
+to forge a blade or close a wound.
+
+> ⭐⭐ **The five verbs are FACULTIES OF THE UNIVERSITY, not guilds.**
+
+Which is where this section already put magic-as-subject (*"a researcher
+of magic is a real vocation; 'mage' is not… the University teaches magic
+fundamentals to everyone as feeder material"*) — so **"no magic guild"
+stands, and the named mage colleges arrive anyway**, as scholarly
+faculties rather than vocational institutions.
+
+⭐ It also generates interlock for free: a smith's mystery is fire
+(guild) × create (faculty), so **magical craft requires a standing
+relationship with the University** — a cross-institution dependency the
+design currently has nowhere.
 
 ## Invariants and divergence axes
 
@@ -652,6 +694,381 @@ Three practical payoffs beyond the fiction:
    fill-out should be authored so these ~18 regions come out as
    coherent career-grain subgraphs with the right `synergizes` edges
    (each mystery tier above is a synergy claim to honor in data).
+
+# ⭐⭐⭐ The player-institution pass (2026-09-24)
+
+A design conversation stepping back from the roster to ask what
+*gameplay* guilds are for. It does not supersede anything above; it adds
+the layer the roster was standing on without naming.
+
+**The founder's premises, taken as given:**
+
+> - Guilds only work at scale — a two-person guild is not a guild.
+> - They are **player institutions**: minted, managed, staffed and
+>   constituted by players. A hall may hold an NPC guard or a basic
+>   service, but NPC membership is **decor on a character sheet**, never
+>   function.
+> - They are the most **dynamic** part of gameplay, so the connection
+>   between the membership and the people authoring the content is much
+>   deeper than it is for a locality.
+
+## ⚠ The scale truism, and what it costs
+
+Every other system in this game works at N=1 — you can farm, fish,
+forge, run a bar, hold an office, be treated for an injury, alone.
+**Guilds are the first feature whose viability depends on something that
+cannot be built.**
+
+> ⭐⭐ **Guilds are LAUNCH-blocked, not BUILD-blocked.** The paymaster
+> list, the mutual and the substrate questions are real but secondary;
+> the binding constraint is population, and no amount of building moves
+> it.
+
+That does not argue for deferral. It changes the design question from
+*"what should a guild do"* to **"what is a guild for at N=5, such that
+the same thing is great at N=50?"** — and the slate's existing answer to
+thinness (associate tier wide, dormant set) is *stagecraft*: it makes a
+thin guild look right rather than play right.
+
+### The axis that answers it — outward vs inward value
+
+| | small N | why |
+|---|---|---|
+| **outward-facing** — the mark, the credential, the hall | ✅ works | value comes from the **world** respecting it. A mark means something with one maker, because the mark outlives the maker. A credential means something if contracts require it. |
+| **inward-facing** — the mutual, standards enforcement, labour power, training depth | ❌ fails | value comes from **pooling members**. Insurance at N=3 is not insurance; it is three people who will be ruined together. |
+
+⭐ **Build the outward functions first.** They are honest at launch scale
+and they do not degrade — a mark only gets more valuable as more people
+carry it. The pooling functions arrive with the population, and until
+then they are correctly *absent* rather than embarrassingly thin.
+
+## ⭐⭐⭐ What players-only buys — and it is bigger than skipping the brains
+
+**You do not have to mechanize judgment.**
+
+Every NPC-staffed institution must be legible to the engine: the engine
+has to know what *"the guild decides X"* means, which forces every
+decision into a rule, and computable versions of social judgments are
+always worse than the judgment. Admission standards, the rank exam,
+expulsion, what counts as a masterpiece — with NPCs all of those must
+become computable.
+
+With players the engine can **record outcomes and adjudicate nothing.** A
+master says you passed; the chronicle records that a master said so.
+
+⭐ This is not a new doctrine — it is the one the repo already runs on:
+*consequence recorded, not mechanized*; the courts slate's **no judge, a
+clerk**; the accountability ledger deriving blame on read.
+**Guilds are where that doctrine pays off most**, because for the first
+time every participant is a person who can be argued with.
+
+Two more:
+
+- **Absence becomes meaningful.** With NPCs, continuity has to be
+  simulated. With players, a guild nobody logs into is *visibly* dying —
+  honest content rather than a bug. The schism / dormancy / death
+  lifecycle stops being a simulation.
+- **Guilds are allowed to be unfair.** An engine-authored institution has
+  to be balanced because we authored it; a player institution's
+  unfairness is authored by players — the same argument the Compact
+  makes about standing. **Nothing obliges us to guarantee every guild is
+  worth joining.**
+
+## ⚠⚠ …and what it costs: guilds have no floor
+
+Every other institution has an NPC floor. The bank works, the store
+works, government functions through founder-default holders. **A guild
+with no members does nothing at all**, which makes the guild layer the
+first part of the world that can be genuinely *absent*.
+
+> ⚠⚠ **Nothing load-bearing may depend on a guild existing. Guilds are
+> purely additive — a guild may never be the only path to anything.**
+
+The slate already applies this instinct once, deliberately: *"the
+Marshalcy is a credential + a public contract stream, **not an
+institution**"* — precisely so writ execution survives a guild folding.
+Generalize it. Every guild-mediated thing needs a slower, worse,
+guildless route, and that is also what keeps a guild from becoming the
+entry-gating cartel the historical ones died as.
+
+## ⭐⭐⭐ The superguild problem — claims are MUSTERED, not bought
+
+Chartering as a pure economic cost fails, and for a precise reason:
+
+> ⚠ **Money is the one resource that pools frictionlessly.** Ten players
+> merge capital instantly and at no cost. They cannot merge skill, time
+> or reputation. **Any constraint denominated in money is a coordination
+> puzzle, and a motivated bloc is good at coordination.**
+
+### The target is not equality — it is anti-autarky
+
+Inequality is fine; a power law is realistic and makes the big guilds
+interesting. Five-member specialists beside a two-hundred-member
+generalist is a good world. What kills the gameplay is a guild that is
+**complete**:
+
+> **Autarky — one guild covering enough of the map that its members never
+> need to leave it.** Then every other institution is optional and the
+> interlock dies.
+
+So the property to engineer is that **guilds are structurally
+incomplete**. That survives a power law, which "balanced" does not.
+
+### The lever
+
+> ⭐⭐⭐ **A charter may only claim a discipline it has a MASTER of.
+> Breadth costs PEOPLE, not money.**
+
+- **Historically exact** — a guild *is* the masters of a craft.
+- **Unbuyable** — competence is Transcript-derived, per-person,
+  non-transferable. It cannot be pooled, bought or faked.
+- **Scale-responsive in the right direction** — a three-person guild
+  claims about three disciplines; a forty-person guild claims widely. The
+  feature **genuinely improves with population**, which is what a
+  scale-built feature should do.
+- **Honest** — the charter cannot claim what nobody in it can do.
+
+Two modifiers shape the distribution rather than flattening it:
+
+1. ⭐ **Weight claims by the GRAPH, not by count.** The Discipline rows
+   already carry `requires` / `specializes` / `synergizes`; a hub
+   (`recipe-knowledge`) is upstream of many leaves and should cost more
+   than a leaf. **Derived from the taxonomy's own topology rather than
+   tuned in a balance table**, so it stays calibrated as the map grows —
+   and it produces the wanted shape automatically: cheap specialists at
+   the leaves, expensive contested generalists at the hubs.
+2. **Claims are exclusive** — one guild per discipline per region. That
+   makes the map the scarce resource and guarantees incompleteness: with
+   68 disciplines and any sane budget nobody covers it, so **the
+   interlock stops being designed and becomes enforced by the graph.**
+
+### ⭐ The failure mode is good content
+
+A guild's domain becomes **alive — it can shrink.** Lose the only master
+of a discipline (quit, died, defected) and the claim lapses for someone
+else to take. That makes mentorship *urgent* rather than flavourful, it
+gives succession a reason to exist (which is what apprenticeship was
+for), and it gives schism real stakes: **a breakaway bloc takes part of
+the map with it**, and the parent's charter shrinks to what it can still
+muster. Enormous incentive to walk; enormous incentive to keep them.
+
+⚠ **Open:** whether the claim budget is this one derived constraint or a
+points-spend across several axes (domain breadth · rank depth · hall
+size · privileges). The multi-axis version is more expressive and more
+tunable; it is also a balance table owned forever. **Lean: the single
+derived constraint, because it cannot drift out of calibration.**
+
+## The launch problem — ship RUINS, not institutions
+
+It is two problems, and conflating them is what makes it hard:
+
+| | solved by |
+|---|---|
+| players will not know what a guild **is** | the mechanism + **one** worked example. Cheap. |
+| players will not know what a guild **could be** | not more examples — the **edges** of the space |
+
+⚠ **Ten authored guilds implicitly claims the space is mapped.** Three
+says *these are samples*. So the day-one roster wants to be a small
+intentional sample — **a median and two edges** — with the rest moved
+into the dormant set. (*Which three: deferred until the economy is
+built; the choice is not urgent and depends on which loops are live.*)
+
+### ⭐⭐ The Saxonberg principle, applied
+
+The decision is already made one level up: **Saxonberg is the most
+symbolically loaded place in the world and ships deliberately
+unauthored**, so each deployment's community fills it. The consistent
+answer here:
+
+> **The most symbolically important institutions ship empty too.**
+
+Which flips the content instinct: **author the unattractive niches and
+leave the prime ground empty.** An authored guild sitting on a
+lucrative, well-served vocation is exactly what *prevents* players
+chartering there — a fixture occupying the best opportunity. A live
+paymaster with no guild is an invitation.
+
+### The cheapest tutorial is archaeology
+
+A **shuttered hall you can walk into and read the charter of a guild
+that died** teaches everything: what a guild is, what it did, how it was
+structured, that the interior is worth seeing, and **that guilds can
+end.** It needs no members, no NPCs, no economy, no paymaster, and it
+works perfectly at N=1.
+
+The standing-charter mechanic already builds this. ⭐ **Invert the
+ratio: mostly ruins, one living guild.** The world reads *old* on day
+one (the hardest thing to fake), the form is taught by archaeology
+rather than instruction, **every dormant hall is a slot a player can
+claim**, and a reopening is the world event the slate already wants.
+
+⚠ Which requires one thing to be true: **the living exemplar must also
+be able to die.** If it is protected, players read all of them as
+scenery.
+
+## Packaging — three trees, three homes
+
+Player-authored is **orthogonal** to how a thing ships: packaging is a
+distribution choice, not a permissions structure. Halls are content and
+shipping them with the platform would be wrong.
+
+| tree | what is guild | changes |
+|---|---|---|
+| **code** — `/system/guild/src/` | the `Guild` Idea, the charter schema + its validator, the claim ledger, ranks, the `guild:` GroupProvider | once |
+| **data** — template rows | **the guild itself**: a row carrying its charter, claims and ranks | per guild |
+| **content** — localities, documents | the hall, the interior, the oath text, the archive | per guild |
+
+⭐ **Minting a guild is writing a row**, so a player-minted guild is the
+*same kind of object* as a shipped one rather than a lesser species —
+which is the property that makes "transferred to players, or replaced
+entirely by a player-minted competitor" real rather than aspirational.
+
+**Per-guild (or per-cluster) packs**, not one `guilds` pack and not
+inside the trade packs:
+
+- A guild spans trades (the Ironwrights are forge/loom/kiln), so binding
+  one to a trade pack is wrong on the first example.
+- One large pack is hard to review and its contents open at different
+  times.
+- ⭐⭐ **The standing charter IS a pack install.** A guild that "opens
+  when the mines open" is literally an install event — the dormant hall
+  unshuttering is a *deployment act*, not a code change. That is what
+  packs are for, and it is the strongest argument for the per-guild cut.
+
+⭐ **The hall is real estate, not guild content.** The substrate mapping
+already has it (a parcel titled to the guild's group principal); the
+consequences are worth stating: **transferring a guild to players is
+transferring title**, a player guild buys land and builds with the verbs
+everyone else uses, and **the hall is a natural size cap** — a building
+with finite room, so growth needs land, and land is scarce and
+contested. No artificial member cap required.
+
+## ⭐⭐⭐ The guild wizard
+
+> **Founder:** *"guilds probably want a 'guild wizard' who can write
+> typescript if needed… that's actual labor. real labor, not just
+> bartending or one of our 'labor experiences'. it's game upkeep and
+> wants someone who's gonna be here tomorrow. some guilds might not get
+> any interested parties and some guilds may have competition for that
+> role. we need to be able to fit all models."*
+
+⚠ **Code-trust cannot be scoped.** There is no lesser wizard; inventing
+one is wrong by shape ([access.md](../../subsystems/access.md)). So a
+guild wizard is **a full platform wizard who has taken a position at a
+guild** — the platform grants the capability, the guild offers a *role*,
+the wizard supplies *labor*. It is a relationship, not a permission, and
+it needs no new machinery:
+
+- **The position is the employment substrate** — a seat on a roster. A
+  guild that posts the opening and gets nobody, and a guild with two
+  candidates who must choose, are the same mechanism. The second is
+  instant politics.
+- **Compensation already exists on the right axis.** Authored work routes
+  through [provenance](../../subsystems/provenance.md) →
+  `authoring_events` → **producer standing**. ⭐ That is the honest
+  answer to *real labor, not a labor experience*: it is compensated on
+  the **real** axis, not the diegetic one, whether or not the guild also
+  pays a wage.
+
+### ⭐⭐⭐ "Not every guild gets one" is the constraint that shapes the feature
+
+It makes guilds **structurally unequal in a way that cannot be balanced
+away, and should not be** — a guild that attracts technical labor can do
+what one that does not cannot. That is what every open-source project,
+union local and volunteer body actually looks like.
+
+It needs exactly one bound — the no-floor invariant, one level in:
+
+> ⚠⚠ **Nothing load-bearing WITHIN a guild may depend on custom code. A
+> wizard is an AMPLIFIER, never a prerequisite.**
+
+⭐ Which is a sharp, testable requirement on the charter schema:
+**everything a guild needs to function must be expressible in data and
+content alone.** If a guild needs TypeScript for ranks, an exam, a job
+board, a treasury or a mark, the schema is underbuilt — and it will be
+discovered when the second guild forms without a wizard and is visibly a
+lesser thing. **Treat it as the acceptance test for the feature.**
+
+### ⚠ The hazard nobody had named: code beats data
+
+A locality's author and its audience are different people; **a guild's
+members are its constituency and potentially its authors.** So:
+
+> **The guild wizard holds power over the guild that is not in the
+> charter and cannot be** — they can change what the guild *is* at a
+> level below what the charter can constrain.
+
+That is the open-source BDFL problem arriving inside a game about
+institutions. The answer is the repo's standing one for code-trust —
+**friction and daylight, not prohibition**
+([resilience posture](../../subsystems/access.md); the `git` subsystem
+and provenance both ship). A guild that can **see** what its wizard
+changed can argue about it, and the argument is the mechanism. What must
+not happen is pretending the charter constrains them: **write the
+asymmetry down as a known political problem the members manage.**
+
+⭐ And *"our wizard went rogue"* is a story only this game can tell.
+
+## Growth has three forms, and they are a ladder
+
+| form | where | politics |
+|---|---|---|
+| **wing** | inside one hall | corpo flavour, sponsorship, prestige competition *(already designed above)* |
+| **chapter** | another hall, same charter | geographic autonomy — union locals, masonic lodges. Dave's Bar is already called a chapter of the Victuallers |
+| **schism** | its own charter | rivalry — ⭐ and under the claim rule **it takes part of the map with it** |
+
+⭐ **Chapters are growth-without-swelling**: a guild expands by founding
+halls rather than cramming one, each chapter can hold its own wizard and
+character, and a chapter that grows apart is the natural precursor to a
+schism. That makes splitting a **runway** rather than a single traumatic
+event — *member → chapter → schism → rival institution*. (Open question
+1 leans *no chapters at v1*; this pass is the argument for revisiting
+that, because chapters are also the answer to the hall's size cap.)
+
+## ⭐⭐ Ground zero — why guilds are the political on-ramp
+
+> **Founder:** *"you can play the game and ignore the compact or how
+> terminus is run or any of that, but if you want to get good at your job
+> and just be a regular old consumer, you probably want to interact with
+> the guild system. it's really ground zero for the human-as-player
+> experience."*
+
+This holds, and the reason is the **engagement profile** — genuinely
+different from every other institution in the design:
+
+| | profile |
+|---|---|
+| the Compact, the courts, the offices | engaged when something goes **wrong**, or when you are ambitious — **episodic, high-stakes, optional** |
+| a guild | engaged to do the ordinary thing **well** — **high-frequency, low-stakes, tied to what you were already doing** |
+
+Nobody joins a guild as a political act. They join to get better at what
+they already do — and then find themselves arguing about whether to
+admit someone.
+
+> ⭐⭐⭐ **Guild politics is politics at a scale where the stakes are
+> real and the blast radius is small. The guild layer is where the
+> platform MANUFACTURES THE CITIZENS the rest of the polity needs.**
+
+### The consequence — reuse the Office substrate, do not parallel it
+
+> **Guild governance rides the shipped
+> [Office substrate](../../subsystems/governance.md), not a bespoke
+> one.**
+
+Not because it is cheaper (though it is) but because it is
+**pedagogically load-bearing**: a player who has been a guild secretary
+has already used the exact machinery the Compact runs on, so *"I run my
+guild's job board"* → *"I hold a seat in Terminus"* is a change of
+**scale**, not of system. ⚠ A bespoke guild-governance mechanism would
+be a tutorial for a game nobody plays afterwards.
+
+### And it answers the purse question
+
+**Yes — guilds hold money.** An institution with officers, a hall, a
+wizard's stipend and a mutual is a political entity with budgets and
+factions. That the [courts slate](./courts-slate.md) picked
+**embezzlement as case #1** stops being a coincidence and starts being
+the design.
 
 ## Open questions
 
