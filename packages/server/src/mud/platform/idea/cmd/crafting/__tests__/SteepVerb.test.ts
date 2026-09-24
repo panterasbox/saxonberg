@@ -205,7 +205,7 @@ describe('⭐ steeping — the solvent becomes the extract, the solute is spent'
     await stand();
     const pot = makeReceptacle(StuffApi.findByTemplatePath<Material>(WATER)!);
     const solute = makeSolute();
-    const solutePath = solute.getTemplatePath();
+    const solutePath = solute.getTemplatePath()!;
     await ContainmentApi.move(pot as never, room as never);
     await ContainmentApi.move(solute as never, actor as never);
 
