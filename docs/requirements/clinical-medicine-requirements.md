@@ -101,6 +101,18 @@ thin drug slice.
   dedicated anaesthetist, an instrument-passing assistant, asepsis as a
   designed subsystem) → deferred; anaesthesia is a per-operation drug
   input here, not a subsystem.
+- **Medical specialties** — anaesthesiology (⭐ its own rich build later,
+  like blood), surgery-as-a-specialty (the theatre/team meta, above),
+  psychiatry (→ `trade-psychology`; only the MD `prescribe` seam lands
+  here), diagnostics deepening (→ `medic-judgment`), public health (→
+  `health-vertical`), obstetrics/pediatrics/geriatrics/dentistry/etc. (far
+  future). ⭐ **This build ships the primary-care physician + nurse — the
+  TRUNK every specialty later branches from** (a deeper/sub-Discipline +
+  specialist acts + a venue), never rebuilding it. The plan must build
+  primary care concretely and leave clean attach points, not
+  over-generalize for hypothetical specialties. (Pathology is a partial
+  exception — the `forensics` Discipline + `AnalyzePostmortem` already
+  ship.)
 - **Prosthetics / limb replacement** → **`augmentation-slate`**.
   Amputation (the removal) is in scope; the replacement is not.
 - **The economics of autarky** (whether self-sufficiency pays) →
@@ -189,8 +201,10 @@ to volume and mismatch — the values/consequence hook, and the reason
 ### Nurse vs doctor: care vs intervention, and prescribe vs administer
 - **Nurse (`nursing`):** tend, dress/undress, `draw`, `transfuse`,
   `administer` (`dose`), monitor, `suture` + follow-up.
-- **Doctor (`medicine`):** full diagnosis, the operation catalogue
-  (competent+), the cross-match decision, and **`prescribe`**.
+- **Doctor (`medicine`) — the primary-care physician:** diagnosis at
+  primary-care depth, the five-operation catalogue (competent+), the
+  cross-match decision, and **`prescribe`**. (Specialties that deepen any
+  of these are deferred — see Non-goals.)
 - **Transfusion** is a nurse's *act*; doing it *safely* is gated on
   knowing the type (`test`/cross-match, either Discipline). Unmatched
   blood is where it goes wrong.
@@ -217,16 +231,16 @@ autarky-completable source** — see the supply-chain map. The full
 pharmacopoeia/extraction/assay economy is `pharma-slate`.
 
 ### Design latitude — fictional remedies to nonfictional maladies
-⭐ **Inventing fictional species and supply chains to satisfy player needs
-that emerge from the other systems is in bounds** (user direction) — combat
-creates the maladies; the remedies need not be real-world. The two source
-gaps (anaesthetic, antibiotic) should be filled with **invented
-Saxonberg-native medicinal species**, not forced onto real-world poppy/
-penicillin. The rule is the standing one: the *mechanism* stays honest and
-derivable (a substance with an effect, administered, that a player can reason
-about), but the *flora and the chain* may be fictional where that serves the
-lenses. Do **not** import real pharma's R&D/manufacturing complexity to look
-authentic — abstract to what a player can act on.
+⭐ **The latitude is total, up and down the chain** (user direction): combat
+creates the maladies; **invent backwards from the outcome** *"this should be
+treatable"* to whatever delivers it — a new species, the active, its discovery
+story, its synthesis, its whole supply chain. The two source gaps (anaesthetic,
+antibiotic) are filled with **invented Saxonberg-native medicinal species**,
+not forced onto real-world poppy/penicillin, and their whole fiction is ours.
+The only thing that stays honest is the *mechanism a player touches* (a
+substance, administered, with an effect they can reason about). Do **not**
+import real pharma's R&D/manufacturing complexity for authenticity — abstract
+to what a player can act on.
 
 ## Supply-chain & autarky map
 
