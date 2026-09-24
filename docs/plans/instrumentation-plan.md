@@ -1339,7 +1339,7 @@ commit. Order matters — each step keeps the tree green.
 > ⭐ The tag is deliberately NOT bracketed: *hot* is a judgement about
 > the reading, not a second measurement, and hedging a word hedges twice.
 
-#### W3 — `readings`, the person read, and the ragged ladder (R-D6, R-D8, R-D13, drive F, M, P40)
+#### ✅ W3 — `readings`, the person read, and the ragged ladder — DONE
 
 - `perception/readings.yaml` + `ReadingsController` (D15, without the
   mirror stanza yet); `routesFor` on every Reading; `improves`/`stakes`
@@ -1350,6 +1350,31 @@ commit. Order matters — each step keeps the tree green.
   wrong sign while a proficient one cannot.
 - `Avatar.commandContributions.self` gains `readings.yaml`.
 - Commit: `build(instrumentation W3): readings — within you, beyond you yet; a person can tell you looked`.
+
+> **Wave note.** `readings` and the `improves`/`stakes` on all 31 rows
+> landed in W1 (the Avatar affordance has to name a view that exists), so
+> this wave is the person read.
+>
+> ⭐⭐ **The honest misread is the arm that makes `analyze patient` a
+> READING rather than a lookup.** At `novice` the reader can see a sign
+> that is not there — drawn from the condition catalogue, so it is
+> always a plausible one. A beginner's failure mode is a confident wrong
+> answer, never a nonsense one. Seeded, so the same medic looking at the
+> same patient on the same day sees the same thing: epistemic
+> uncertainty, never resolutional. It stops at `competent` — a trained
+> reader's answers may be incomplete; they are not invented.
+>
+> ⭐ **They can tell you looked** (`toTarget`), and are told the ACT and
+> never the finding. What the medic concluded is the medic's; handing it
+> to the patient would give them a diagnosis they did not earn and the
+> medic no reason to speak.
+>
+> ⚠ **A finding for the requirements doc: *"every `VitalsMixin` host is
+> a sensor"* is NOT true.** A bare `Creature` composes no `SensorMixin`
+> — it arrives on the NPC and Avatar rungs — so the `toTarget` leg
+> correctly skips a plain animal and the first test asserted nothing
+> because its fixture was a cow. Nothing is dropped and nothing pretends
+> an animal was told; the sweep should reword the requirements line.
 
 #### W4 — Stage A drive
 

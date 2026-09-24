@@ -119,7 +119,7 @@ export default class PatientReading extends Reading {
 
     if (afflictions.length === 0 && traumas.length === 0) {
       lines.push(Mml.escape('Nothing is the matter that you can find.'));
-      this.send(giver, lines);
+      this.send(giver, lines, target as Stuff);
       return;
     }
 
@@ -134,7 +134,7 @@ export default class PatientReading extends Reading {
     }
 
     if (afflictions.length === 0) {
-      this.send(giver, lines);
+      this.send(giver, lines, target as Stuff);
       return;
     }
 
@@ -143,7 +143,7 @@ export default class PatientReading extends Reading {
       lines.push(
         Mml.escape('Something is wrong with them. You could not say what.'),
       );
-      this.send(giver, lines);
+      this.send(giver, lines, target as Stuff);
       return;
     }
 
@@ -152,23 +152,46 @@ export default class PatientReading extends Reading {
     for (const a of afflictions) {
       for (const s of this.rowOf(a)?.getObservableSigns() ?? []) signs.add(s);
     }
+    // ⭐⭐ **The honest misread** — and it is the arm that makes this a
+    // reading rather than a lookup.
+    //
+    // At `novice` a reader can see a sign that is not there: they know
+    // what signs LOOK like and not yet which body is showing which. The
+    // wrong sign is drawn from the condition catalogue, so it is always
+    // a plausible one — the failure mode of a beginner is a confident
+    // wrong answer, never a nonsense one. This is combat's fog in the
+    // clinical register, and `assess` is the shipped precedent.
+    //
+    // ⚠ SEEDED, not drawn: the same medic looking at the same patient on
+    // the same day sees the same thing. Uncertainty here is EPISTEMIC —
+    // what you can tell about the world — never resolutional. The world
+    // already decided what is wrong with them.
+    //
+    // ⚠ And it stops at `competent`. A trained reader's answers may be
+    // incomplete; they are not invented.
+    const misread =
+      !at(band, 'competent') && signs.size > 0
+        ? this.distractorFor(signs, this.seedFor(giver, target as Stuff, ''))
+        : null;
+    const shown = new Set(signs);
+    if (misread !== null) shown.add(misread);
     lines.push(
       Mml.escape(
-        signs.size > 0
-          ? `You read: ${[...signs].join(', ')}.`
+        shown.size > 0
+          ? `You read: ${[...shown].join(', ')}.`
           : 'They show nothing you can put a name to.',
       ),
     );
 
     // ── competent: the candidates, PLURAL and UNRANKED ─────────────
     if (!at(band, 'competent')) {
-      this.send(giver, lines);
+      this.send(giver, lines, target as Stuff);
       return;
     }
     const candidates = this.candidatesFor(signs);
     if (candidates.length === 0) {
       lines.push(Mml.escape('Nothing you know of presents like this.'));
-      this.send(giver, lines);
+      this.send(giver, lines, target as Stuff);
       return;
     }
     lines.push(
@@ -184,7 +207,7 @@ export default class PatientReading extends Reading {
 
     // ── proficient: what treats it, and how it travels ─────────────
     if (!at(band, 'proficient')) {
-      this.send(giver, lines);
+      this.send(giver, lines, target as Stuff);
       return;
     }
     const treatments = new Set<string>();
@@ -206,14 +229,14 @@ export default class PatientReading extends Reading {
 
     // ── expert: how far it has gone ────────────────────────────────
     if (!at(band, 'expert')) {
-      this.send(giver, lines);
+      this.send(giver, lines, target as Stuff);
       return;
     }
     const worst = [...afflictions].sort((a, b) => b.stage - a.stage)[0];
     if (worst) {
       lines.push(Mml.escape(`It is at stage ${worst.stage}.`));
     }
-    this.send(giver, lines);
+    this.send(giver, lines, target as Stuff);
   }
 
   /** The warmed row behind a record, or null. */
@@ -250,10 +273,47 @@ export default class PatientReading extends Reading {
     return row.getName?.() ?? 'something';
   }
 
-  private send(giver: Stuff, lines: string[]): void {
-    MessageApi.scene(giver)
+  /**
+   * ⭐ A sign nobody is showing, drawn from the catalogue so it is
+   * always a plausible one. `null` when the world has nothing to confuse
+   * this with — a misread has to be a mistake somebody could actually
+   * make.
+   */
+  private distractorFor(signs: ReadonlySet<string>, seed: number): string | null {
+    const catalogue = StuffApi.findByTemplatePath<ConditionCatalogue>(
+      TemplatePaths.conditionCatalogue,
+    );
+    const pool: string[] = [];
+    for (const row of catalogue?.roster() ?? []) {
+      for (const sign of row.getObservableSigns?.() ?? []) {
+        if (!signs.has(sign) && !pool.includes(sign)) pool.push(sign);
+      }
+    }
+    if (pool.length === 0) return null;
+    pool.sort();
+    return pool[seed % pool.length] ?? null;
+  }
+
+  /**
+   * ⭐⭐ **They can tell you looked.** A body is a `Sensor`, and being
+   * examined is a thing that happens TO somebody — a read that only the
+   * reader perceives would make the clinic a place where people are
+   * inspected without knowing it.
+   *
+   * ⚠ The target is told the ACT, never the finding. What the medic
+   * concluded is the medic's, and telling them would hand a patient a
+   * diagnosis they did not earn and a medic no reason to speak.
+   */
+  private send(giver: Stuff, lines: string[], target?: Stuff): void {
+    const scene = MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.fromMarkup(lines.join('\n\n')))
-      .send();
+      .toSelf(Mml.fromMarkup(lines.join('\n\n')));
+    if (target && target !== giver && MixinApi.isSensor(target)) {
+      scene.toTarget(
+        target,
+        Mml.compose`${Mml.actor(giver)} looks you over carefully.`,
+      );
+    }
+    scene.send();
   }
 }

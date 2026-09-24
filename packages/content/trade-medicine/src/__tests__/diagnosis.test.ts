@@ -38,6 +38,7 @@ const ROWS = fileURLToPath(
 import Condition from '@saxonberg/server/mud/platform/idea/Condition';
 import ConditionCatalogue from '@saxonberg/server/mud/platform/idea/ConditionCatalogue';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
+import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -63,11 +64,31 @@ class Medic extends AdvancementMixin(Creature) {
   }
 }
 
+/**
+ * ⚠ A patient who can be SPOKEN TO.
+ *
+ * The requirements say *every `VitalsMixin` host is a sensor*, and a
+ * bare `Creature` is not: `SensorMixin` composes higher up, on the NPC
+ * and Avatar rungs. So the `toTarget` leg correctly skips a plain animal
+ * — nothing is dropped, and nothing pretends a cow was told — and a
+ * fixture that wants to prove the leg has to be something that can hear.
+ */
+class Patient extends SensorMixin(Creature) {
+  static override _mixinName: string = 'Patient';
+  public heard: unknown[] = [];
+  protected override handleMessage(msg: unknown): void {
+    this.heard.push(msg);
+  }
+}
+
 const FEVER = '/platform/idea/Condition/characterization/marsh-fever';
 const CHILL = '/platform/idea/Condition/characterization/gaol-chill';
 
 /** What the controller sent, joined. */
 let said: string[];
+
+/** What the SUBJECT was told, if anything — the `toTarget` leg. */
+let toldTarget: string[] = [];
 
 function stubScene(): void {
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
@@ -76,6 +97,10 @@ function stubScene(): void {
     b.toPeers = () => b;
     b.toSelf = (m: unknown) => {
       said.push(String(m));
+      return b;
+    };
+    b.toTarget = (_who: unknown, m: unknown) => {
+      toldTarget.push(String(m));
       return b;
     };
     b.send = () => {};
@@ -130,7 +155,7 @@ async function warmRoster(): Promise<void> {
 async function read(band: CompetenceBandName): Promise<string> {
   const medic = makeStuff(() => new Medic());
   medic.band = band;
-  const patient = makeStuff(() => new Creature());
+  const patient = makeStuff(() => new Patient());
   patient.afflict({
     kind: 'affliction',
     templatePath: FEVER,
@@ -138,6 +163,7 @@ async function read(band: CompetenceBandName): Promise<string> {
     elapsed: 0,
   });
   said = [];
+  toldTarget = [];
   const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
       await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient, raw: 'patient' } });
   return said.join('\n');
@@ -232,5 +258,42 @@ describe('⭐ the postmortem refuses the living', () => {
     );
     expect(note).toHaveBeenCalled();
     expect(said.join('\n').length).toBeGreaterThan(0);
+  });
+
+  // ────────── ⭐ the person half: they can tell, and a novice can be wrong ──────────
+
+  it('⭐⭐ the subject can tell they were looked over', async () => {
+    await read('proficient');
+    // ⚠ The ACT, never the finding. What the medic concluded is the
+    // medic's — telling the patient would hand them a diagnosis they did
+    // not earn and give the medic no reason to speak.
+    expect(toldTarget).toHaveLength(1);
+    expect(toldTarget[0]).toMatch(/looks you over/);
+    expect(toldTarget.join(' ')).not.toMatch(/marsh fever/);
+  });
+
+  it('⭐⭐ a novice can read a sign that is not there; a competent one cannot', async () => {
+    const novice = await read('novice');
+    const competent = await read('competent');
+    // The novice's line carries MORE signs than the body is showing —
+    // the confident wrong answer, which is the beginner's real failure
+    // mode and not a nonsense one: the extra sign is drawn from the
+    // catalogue, so it is always something that presents somewhere.
+    const countIn = (text: string): number => {
+      const m = /You read: ([^.]*)\./.exec(text);
+      return m ? m[1]!.split(',').length : 0;
+    };
+    expect(countIn(novice)).toBeGreaterThan(0);
+    expect(countIn(novice)).toBeGreaterThan(countIn(competent));
+  });
+
+  it('⚠ the misread is SEEDED — the same medic, the same patient, the same answer', async () => {
+    // Epistemic, never resolutional: the roll decides what you can TELL
+    // about the world, never what the world IS.
+    const a = await read('novice');
+    const b = await read('novice');
+    expect(/You read: ([^.]*)\./.exec(a)?.[1]).toBe(
+      /You read: ([^.]*)\./.exec(b)?.[1],
+    );
   });
 });
