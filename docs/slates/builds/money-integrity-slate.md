@@ -15,9 +15,11 @@
 > pass 2 the gates · pass 3 the object-layer conservation property test —
 > the actual deliverable · ⭐ the **surplus side** (the restore latch —
 > nothing guards a HOST from two restores the way `assertUniqueKey`
-> guards a RECORD from two hosts; the four caller rows, `standUpKeyed`
-> first; the duplicate-RECORD vector, which mints on every restore
-> forever) · the `/stuff/thing/Coin` uncloneable question · the
+> guards a RECORD from two hosts — ⭐ it protects an Api CONTRACT from
+> pack authors rather than plugging a live leak, `standUpKeyed` traced
+> SAFE 2026-09-24; **hot reload re-running `postRegister` is the only
+> untraced row**; the duplicate-RECORD vector, which mints on every
+> restore forever) · the `/stuff/thing/Coin` uncloneable question · the
 > value-bearing marker question · whether this needs to survive a
 > hostile wizard or only a mistake
 > **Size:** a build
@@ -201,8 +203,83 @@ The mechanism is verified; the callers are not. Paths that could reach a
 |---|---|
 | `Avatar.restore()` | Public and documented as admin-only. Is it reachable by a verb? ⭐ See open question 6. |
 | `postRegister` under **hot reload** | Does a `reload` re-run anything that materializes? ⚠ **Check this first** — it is the one reachable without anyone doing something unusual. |
-| `standUpKeyed` → `restoreOrSeed` | It resolves a live host first (*"an owner who logged in first does not get a second cat"*), then calls `materializeImpl` when a record exists. **If the resolved host is already populated, that is the double-restore by the ORDINARY path.** The row to trace. |
+| ~~`standUpKeyed` → `restoreOrSeed`~~ | ✅ **TRACED 2026-09-24 — SAFE, and they are not one path.** See below. |
+| `restoreOrSeed` | ⚠ A **separate** public Api, called from five capability packs. Every caller passes a fresh clone today; the precondition is enforced nowhere. See below. |
 | `restoreFromTemplate` (CMS / pack go-live) | Re-hydrating a live clone from an edited template — does it re-seed contents? |
+
+### ✅ Traced 2026-09-24 — `standUpKeyed` is safe by construction
+
+⚠ **Correction.** An earlier revision of this section said
+*"`standUpKeyed` → `restoreOrSeed` … the double-restore by the ORDINARY
+path."* **That is wrong twice over**: the two do not call each other, and
+`standUpKeyed` cannot double-restore. Corrected here rather than cut, so
+the mistake does not get re-derived.
+
+`PersistableApi.standUpKeyed` resolves to `cloneHost`:
+
+```ts
+const live = liveKeyed(scope, key);
+if (live) return live;                  // ⭐ returns early — NO materialize
+const nested = await StuffApi.clone<Stuff>(scope);
+if (nested && MixinApi.isPersistable(nested)) {
+  nested.setPersistenceKey(key);
+  await materializeImpl(nested, key);   // only ever on a FRESH clone
+}
+```
+
+⭐ **`materializeImpl` is unreachable on a populated host from here.** A
+live instance holding the key is returned untouched; the keyless branch
+routes through `StuffApi.singleton` for the same reason, with the code's
+own comment saying *"neither can mint a second."* All three call sites —
+`ResidencyLogic`'s pin roll, `Estate.restoreSlice` (×2) and the
+`RestoreContext` slice hook — go through this one function.
+
+⭐ The resolve-first was added to fix an `assertUniqueKey` abort, not a
+duplication bug. **It closed this vector as a side effect**, which is
+worth noting: the guard that made the system *correct* also made it
+*conserving*.
+
+### ⚠ `restoreOrSeed` is the separate path, and its consumers are PACKS
+
+Not called by `standUpKeyed`. Called directly, and **not from the
+kernel** — which is why a server-only search finds nothing:
+
+| pack | site |
+|---|---|
+| `trade-mining` | `MineWarren._carveOne`, `ShoreController` |
+| `residence` | `PlatWarren`, `HoldingWarren`, `BuildingWarren` |
+| `eternal-university` | `DormWarren.standUpHolding` |
+| `terminus` | `StallController` |
+
+**Every one passes a freshly cloned host** (`StuffApi.clone(...)` or
+`createMemberSerialized()` immediately before the call), so today the
+usage is correct everywhere. ⚠ But the *"host must be fresh"*
+precondition is **enforced nowhere**, and this is a **public Api method
+capability-pack authors call.** A pack author who passes a live room
+mints money and gets no error.
+
+> ⭐⭐ That reframes the restore latch: it is **protecting an Api
+> contract from pack authors**, not plugging a live leak.
+
+### ⭐⭐ What this narrows the vulnerable set to
+
+The ordinary play path has **two** resolve-first layers —
+`OuterWarren.admit` checks its cache before standing anything up, and
+`cloneHost` checks for a live keyed instance. If both miss (a warren's
+in-memory cache gone cold while a holding is still live),
+`assertUniqueKey` **throws**: two live hosts would claim one key. **Loud,
+not silent.**
+
+So duplication requires materialize to run on a host that **already
+holds its contents AND already owns the key**. `assertUniqueKey` skips
+`host` itself, so it structurally *cannot* catch that — it is looking for
+a *different* instance. Exactly three ways in:
+
+1. ✅ **`Avatar.restore()`** — confirmed, by its own comment.
+2. ⚠ **A pack calling `restoreOrSeed(liveHost, sameKey)`** — nobody does
+   today; nothing stops it.
+3. ⚠⚠ **Hot reload re-running `postRegister`** — ⭐ **the only untraced
+   row left, and the only one that could still be a live leak.**
 
 ### ⚠⚠ And the CAPTURE side is worse than the restore side
 
