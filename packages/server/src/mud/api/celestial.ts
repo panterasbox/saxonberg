@@ -464,6 +464,28 @@ export class CelestialApi {
   }
 
   /**
+   * ⭐⭐ The **brightest the sky gets today**, memoized per game day —
+   * the peak of the same curve {@link skyFactorNow} samples an instant
+   * of. At the campus latitude that is the sun at its noon altitude:
+   * `1.0` only where the sun passes overhead, and lower as the
+   * latitude (or the season) keeps it off the zenith.
+   *
+   * ⭐ Why it exists: a mechanism that asks *how good is this place*
+   * rather than *what is it doing right now* cannot sample the instant.
+   * Before the envelope build a scope's lux was a constant, so the two
+   * questions had one answer; now a sky-lit scope swings from
+   * `pitch-black` to `bright` and back every game day. `GrowingMixin`
+   * is the consumer, through {@link Modality.peakSignalAt}: a plant
+   * profile's `luxHappyAt` is a claim about how bright a place IS, and
+   * it was authored against constants. Sampling the instant instead
+   * would mean a lily on a sunny windowsill starved of light because
+   * its owner waters it in the evening.
+   */
+  public static skyFactorDailyPeak(): number {
+    return logic().skyFactorDailyPeak();
+  }
+
+  /**
    * The sky factor below which a town's lamps burn (`light.sky.
    * lampDuskFactor`, default `0.1` — the horizon). Read by the street
    * lighting property and the `civic:lighting` schedule so dusk means

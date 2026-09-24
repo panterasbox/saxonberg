@@ -1825,5 +1825,341 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time — the W1 bench output, then the W7 drive: the
-run, the count, what each failure was.)*
+The W1 bench output is recorded above, under W1. This is W7's drive:
+`packages/wire/tests/envelope.dirty.wire.test.ts`, run against a booted
+world on 2012.
+
+### ⭐⭐ What the drive found that nothing else could
+
+Thirteen runs. **The run that stands is run 13: 14 checkpoints, 14
+green.** Almost every run before it found a defect no unit test and no
+lint gate could see, which is the whole argument for the drive's
+existence — and the last two findings were the best two.
+
+**1. ⚠⚠ The vision modality is warmed LAZILY, and `look` never warmed
+it.** `PerceptionApi.modalityByName('vision')` reads a cache that only
+`preloadForSenseGate` fills. `lookAtTarget` called it; `lookAtLocation`
+never had to, because until this build nothing in the room-level render
+asked a modality anything. So on a fresh world the band read threw *"no
+modality 'vision' loaded"*, the defensive catch swallowed it, and
+**every room in the realm described itself at midnight** — the build's
+headline feature, silently absent. `analyze light` failed outright for
+the same reason and was fixed with it.
+
+⭐ **No unit test can catch this class**: a fixture calls
+`buildAllModalities()` in `beforeEach`, so its cache is always warm.
+This is the **boot** link of the five, and the one the project has now
+paid for four times. Recorded in `antipatterns.md` and
+`perception.md`.
+
+**2. ⚠⚠ The one shipped dynamic-detail precedent was broken, and this
+build copied it.** `look <detail>` calls `getDetailFor(viewer, id)`,
+whose signature defaults `sense` to `'vision'` — so a guard written
+`senseOrParent !== undefined` returns the static text *every time*.
+`Crossing.getDetail` has carried that guard since it landed, which
+means **the University Avenue clock tower's live reading has never
+once rendered**. The street-lamp detail inherited it from that file.
+Both fixed; recorded in `antipatterns.md`.
+
+**3. ⚠ The boot-time lighting settle ran before the packs installed.**
+`registerSystemSchedules` fires during the clock's restore, so an
+immediate settle walked a world with no localities in it, lit nothing,
+and stamped the night as already-settled — leaving the town dark until
+a sunset two real hours away. Every funded street read *"the lamps
+stand cold"*. Now deferred by a game minute.
+
+**4. ⚠ The wire world restores its clock from the database.** The first
+run's night assertions all failed because it was **the middle of the
+afternoon**. Nothing in a wire session may set the clock (`setScale` is
+an operator act; the eval sandbox exposes only four Apis), so the file
+now **asserts the precondition** and says to drop the DB — a drive that
+silently tests the wrong hour is worse than one that stops.
+
+**5. ⚠⚠ A reentry cycle across four subsystems, each individually
+correct.** `reconcileEnvelope` walks the room's contents asking each
+heat source for its output → `spaceHeatOutputW()` asks `isLit()` →
+`reconcileFurnaceFuel()`'s burnout edge calls `restampHeated()` →
+`ThermalMixin.restamp()` → `effectiveAmbient()` →
+`BiomeApi.resolveTemperatureFor(container)` → **this room's envelope
+again**. `ThermalMixin` has had `_thermalReconciling` for exactly this
+reason; the envelope needed its own. It surfaced as a `feel` in the
+cookhouse that never answered — thirty seconds of a socket going round
+a ring of four subsystems.
+
+**6. ⭐⭐ A fresh realm SHIPS BROKE, so its streets ship DARK — and that
+is the mechanism working.** The boot log of a fresh world is full of
+`EmploymentLogic: … opened with no advance — treasury-short 50
+zorkmids`. There is one treasury per currency, it starts empty, and
+`settleStreetLighting` computes `n` from the balance **first** — so
+`n = 0` and nothing is lit.
+
+⭐ That is requirements S3 observed live: *"When the town does not pay,
+the streets go dark — that is the failure mode and it is the point."*
+⚠ It also means the **lit** half cannot be driven over a socket:
+funding the treasury needs `BankingApi`, which the eval sandbox does not
+expose. The drive asserts the broke-realm outcome — every funded street
+standing cold, and a never-lit street with no lamps at all, which is the
+*different sentence* that matters — and the lit half is proven by
+`PublicLighting.test.ts` and `Locality.lighting.test.ts`.
+
+⚠ **Worth the user's eye, and it is an ECONOMY observation rather than a
+bug in this build**: with an empty treasury nothing the realm funds can
+run. Street lighting is simply the first public service visible enough
+to show it.
+
+**7. ⭐⭐ A LIT LANTERN IN YOUR HAND LIT NOTHING.** The walk's contents
+leg reads the ROOM's contents, and a carried lamp is in the CARRIER's —
+so a player could light a lantern, stand in the pitch dark, and have the
+street read exactly as black as before. **Acceptance 4 — *a player who
+lights a lantern can work by it* — was false.**
+
+⚠ It is pre-existing (a `PortableLight` had the same problem) and never
+mattered, because until this build nowhere was dark enough to notice.
+The walk now looks one level into a room occupant, which is the mirror
+of a rule the perception gate already has: *what you HOLD you see in
+the light of where you stand, not in the dark of your own pocket.* The
+light travels the other way for the same reason. **One level and only
+through a person** — a lamp sealed in a chest in a pack lights nothing,
+and a general recursion would make the hot path walk the world.
+
+⭐ Found only because the drive stopped asserting the verb's bookkeeping
+(`light` → ok) and started asserting the OUTCOME (`analyze light` reads
+brighter). The verb had been returning `ok` all along.
+
+**8. ⚠⚠ The room→body→room ring, properly closed.** Two reentry guards
+were not enough, because the cycle runs through an `await`: a body's
+reconcile called `envelopeTemperatureSync()`, which integrates, which
+walks the room's contents, which restamps the bodies in it. The rule is
+now **the room integrates itself; bodies READ it**
+(`envelopeTemperatureLast()`), and it costs a body nothing in accuracy —
+the room re-integrates whenever anything resolves its temperature, which
+includes every `feel` and every `measure`.
+
+**9. ⭐⭐⭐ THE "DEADLOCK" WAS AN AMBIGUOUS KEYWORD, and it took three
+runs and a unit test to see it.** `feel` in the cookhouse stopped
+answering after `light hearth`. It looked exactly like a reentry cycle —
+and the envelope *does* have cycle-shaped paths, so two guards went in
+(both of them right, neither of them the cause) and then the
+integration/reader split went in on top.
+
+What it actually was: the cookhouse's **oven row already claims the
+keyword `hearth`** (its prose calls it *"a clay hearth"*). W4 placed a
+second, genuine `Hearth` in the same room, so `light hearth` became
+ambiguous, the session sat on a **disambiguation prompt nobody
+answered**, and every subsequent command waited on it.
+
+⭐ A *player* would have hit exactly the same thing, so this is a real
+content defect and not a test artefact. The hearth moved to the general
+store's shop floor — a shop with a street door that opens all day is the
+room that most obviously wants one.
+
+⚠⚠ **The lesson is the diagnosis, not the fix.** A socket that stops
+answering is not evidence of a deadlock; it is evidence that *something
+is waiting*. Three runs went into the plausible story because the
+plausible story was about the code I had just written. What settled it
+was **reproducing it in a unit test in ten seconds** — and the unit test
+*passed*, which is what finally said "look somewhere else."
+
+⭐ The two guards stay. They are correct, the ring they describe is
+real, and `envelopeTemperatureLast()` is the better design regardless —
+but they are recorded here as **fixes for a problem that was not the
+one being chased.**
+
+**10. ⭐⭐⭐ `douse` HAD NEVER WORKED ON ANY FURNACE.**
+`DouseController` admits `isCombustible(s) || isFurnace(s)` at the
+binder and in `MqlApi.effectiveTarget` — and then the very next line
+narrowed to `isCombustible` **alone** before calling `douse()`, throwing
+the furnace half away. A forge, an oven, a kiln, a campfire: every one
+of them has a working `FurnaceMixin.douse()`, every one of them is
+reachable by the verb, and **every one of them answered "that isn't
+burning" while burning.** The method was unreachable from the only verb
+that calls it.
+
+⭐ It is not a lantern defect and it did not ship in this build — it has
+been true since the fire build shipped the furnace appliance arm. It
+surfaced here only because a lantern is now a furnace, so `douse` got
+pointed at one on a thing a player *carries* rather than at a fixture
+nobody had thought to put out. The fix is one clause;
+`DouseController.test.ts` is new and fails on a revert.
+
+⚠ And the *reason it stayed invisible* is the same shape as the rest of
+this list: the controller test suite asserted the refusal note, which
+was exactly the refusal the bug produced.
+
+**11. ⚠⚠ A `.dirty.` drive must ESTABLISH its preconditions, not assume
+them.** Run 12 failed two checkpoints that had nothing wrong with the
+product: the shop's `before` read came back *"warm from the open
+hearth"* because an **earlier run of this same file had lit it**, and
+the lux `before` was taken with the lantern still burning from the test
+above. A file that declares itself non-idempotent cannot then assert
+against a clean world. Both steps now put the fire out first — which
+costs one command and, as a bonus, proves `douse` reaches a *fixture*
+furnace as well as a carried one.
+
+### ⭐ A finding recorded rather than fixed
+
+**`look <detail>` runs no perception gate at all.** `lookAtDetail` asks
+`getDetailFor` and renders; only *objects* are gated (`canSee`) and only
+the room-level render is banded. So a player in the pitch dark cannot
+see the barrels but **can still read the wall**.
+
+That is real and it is **not this build's to close**: the requirements
+scope the room line and the object gate, and a detail gate touches every
+`look` in the game. Offered to the perception slate.
+
+### Three of my own steps were wrong, and each taught something
+
+- `read sign` came back *"I don't understand 'read'"* — a **parse**
+  failure wearing a darkness failure's costume. An assertion that cannot
+  tell those apart cannot fail honestly; `ground.wire.test.ts` learned
+  the same lesson and its `NOT_FOUND` pattern says so.
+- `light lantern` on the **shop floor** bound the store's own stock
+  while `douse` bound the one in hand: `ok` then `not-burning`, which
+  read as a product failure and was a targeting one. The step moved to a
+  street, where there are no other lanterns.
+- Backdating `envelopeClockStamp` through `eval --on here` wedged the
+  session for thirty seconds. Dropped: the warming CURVE belongs to
+  `Atmospheric.envelope.test.ts`, which can move a clock; what the drive
+  asserts is that lighting the hearth **changes the room's stated
+  reason** for being the temperature it is, which is what a player
+  reads.
+
+### The run that stands — run 13, 14 of 14 green
+
+```
+ ✓ night is real — and it is a NEW MOON
+   ✓ step 8  — a moonless midnight on an unlit road is genuinely dark
+   ✓ step 4  — a DETAIL is not light-gated, and that is a finding
+   ✓ step 7  — a road the town never lit has no lamps to speak of
+ ✓ the town lights its streets — and a broke town does not
+   ✓ a FUNDED street on a broke realm is dark, and its lamps STAND COLD
+   ✓ steps 5+7 — Mayfield Row: lamps NOBODY EVEN FUNDS, on a dark street
+ ✓ a lantern you light, and that runs out
+   ✓ step 4  — light it and the dark lifts; douse it and it comes back
+   ✓ step 4  — and the room is measurably brighter for it
+   ✓ the AFFORDANCE reaches a HELD lamp — the link that dies silently
+   ✓ a lantern is a FURNACE, so the fuel verbs reach it
+ ✓ the room holds a state different from outside, at a cost
+   ✓ step 9  — `feel` reports the cold AND names the cause
+   ✓ a CELLAR keeps its own temperature, and says so
+   ✓ step 10 — light the hearth and the room says the hearth is why
+   ✓ step 12 — a FORGE does not warm the smithy
+ ✓ the body feels it
+   ✓ step 9  — the body line is there to read, and nobody has died of it
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+```
+
+⭐ The instrument line the drive prints at the top is worth keeping in
+view, because it is the build's whole thesis in one sentence — a dark
+crossroads at midnight, lit only by what the neighbouring streets spill
+over the boundary:
+
+```
+[drive] crossroads: Light analysis at the valley crossroads :
+  total: 0.65 lux  color temperature: 5800 K  contributing sources:
+   - the valley gate : 80.0 lumen @ 5800 K
+   - the bench lane  : 80.0 lumen @ 5800 K
+   - the lower climb : 48.0 lumen @ 5800 K
+```
+
+Three named sources, no ambient term, and a number under one lux. The
+`pitch-black` band's own sentence is what `look` renders, and the reason
+is on the record.
+
+### ⚠ And the full suite found two more, which is the point of running it
+
+The pre-MR `pnpm test` came back **red at the server package**, on two
+things seven waves of `test:near` never touched:
+
+1. **`TestHooks.test.ts` had been broken since W1.** W1 moved the
+   dressing recipe out of the backend hook and onto
+   `Character.wearGarments` — correct, and what let authored NPC rows
+   use it — but the hook's unit test stubs `StuffApi.clone` with a bare
+   `{ save }` object, so the new call landed on a stub that had no such
+   method (`TypeError: avatar.wearGarments is not a function`). ⚠ It
+   also asserted `clone` was called *once per garment*, which was a
+   claim about the old design: the hook no longer clones garments, the
+   mudlib does. Both fixed — the stub gains `wearGarments`, and the
+   assertion now follows the outfit to where it actually goes.
+   **`src/backend/` is outside every `test:near` this build ran**, which
+   is exactly the gap the full run exists to close.
+2. **The wiki spoiler-fields snapshot moved by eleven lines** — every
+   new persistent field this build declared. Each was reviewed against
+   the file's own question (*is this a spoiler?*) and every one is
+   level 0: a room's light source, what it is made of, its temperature
+   and the reason for it, a street's lighting service and what an NPC
+   wears are all things a player can observe by standing there. The
+   snapshot is updated rather than annotated.
+
+3. **⭐⭐ A shipped pack test asserted the authored number this build
+   made derived.** `trade-forestry`'s `hanging-wood.test.ts` reads the
+   Rejection rows off disk and required **every file in
+   `rejection/location/` to author an `ambientIntensity`**. W6 took
+   those numbers away on purpose — six of those rooms are outdoor and
+   are now lit *because their biome says they are open to the sky*, and
+   the other six are **interiors**, which the old test had been quietly
+   asserting were daylit.
+
+   ⭐ The rewrite says what S2 actually claims — *every room's light has
+   a named source* — rather than *every room authors a number*: a
+   sky-lit room clears `dim` at its own cell, and an enclosed one
+   authors no ambient at all and is honestly dark. It computes noon lux
+   the way `skyNoonFlux()` does (the authored calibration if there is
+   one, else `light.sky.noonLux` × area, **read from the shipped
+   setting** so moving the dial moves the test), which keeps every
+   original claim true: the hill is still brighter than the treeline,
+   and it is now brighter *without authoring a number*, while the wood
+   keeps its calibration because a canopy is a reason to be darker than
+   the sky.
+
+   ⚠ Worth a reviewer's eye: this is the one place the build changed
+   what another pack's test was entitled to assume.
+
+4. **⭐⭐⭐ THE PLANTS. A sky-lit room has a NIGHT, and a growth model
+   was sampling one instant of it.** `eternal-university`'s dorm
+   houseplant suite went red: the peace lily on the desk was
+   light-limited, and the room read **0.078 lux**.
+
+   The room is not wrong — it is a dorm room with a window, W6 gave it
+   `ambientSource: sky` + the named opening, and at midnight a room with
+   a window is dark. What was wrong is **who was reading it.**
+   `GrowingMixin` integrates growth over windows and samples the light
+   **once per window** (`Growing.sampleLux`). Before this build that was
+   indistinguishable from the truth, because a scope's lux was an
+   authored constant. Now it is a curve that goes to zero every night,
+   and the sample reads *whatever o'clock the window happened to close
+   at* — so **a lily on a sunny windowsill starves of light because its
+   owner waters it in the evening**, which is not a thing sunlight does.
+
+   ⭐ **The fix, and why it is `peak` and not `mean`.** A profile's
+   `luxHappyAt` is a claim about a PLACE — *a windowsill suits a peace
+   lily, a corridor does not* — and every one of the 22 plant rows in
+   the tree was authored against constants. Reading the day's **mean**
+   (≈0.26 of noon at latitude 42) would silently rebalance all of
+   farming downward by 4×; reading the day's **peak** preserves every
+   authored number and still answers the question the profile is
+   asking. So:
+
+   - `CelestialApi.skyFactorDailyPeak()` — the brightest the sky gets
+     today, memoized per game day beside `skyFactorNow()`. Found by a
+     coarse scan plus a refinement pass across the winning sample's
+     neighbours. ⚠ Without that second pass the grid straddles solar
+     noon and under-reports by ~0.2%, so `signalAt` at noon came out
+     **above** `peakSignalAt` — and a peak a reading can exceed is not
+     a peak. The unit test is the one that caught it.
+   - `Modality.peakSignalAt(loc)` — *the strongest signal this place
+     gets in a day*. Default is `signalAt`, which is right for every
+     modality whose field has no day in it; **vision overrides it**.
+   - `VisionModality.peakSignalAt` walks with the peak sky factor.
+     ⭐ **Only the sky leg moves** — a lamp reads the same either way,
+     because a lamp does not have a day. `signalAt` and the whole of
+     perception are untouched: a player sees what is there now.
+   - `Growing.luxAt` takes the peak read.
+
+   ⚠⚠ **This is the finding of the build with the longest reach**, and
+   it is the same shape as the forestry one: *a consumer of light that
+   was written when light was a constant.* The kernel now distinguishes
+   the two questions — **what is it doing now** and **how good is this
+   place** — and anything that asks the second must say so.

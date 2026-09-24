@@ -247,6 +247,37 @@ with `Quantity<'lux'>` intensity. The static `VisionModality.lightAt(loc)`
 is a thin convenience read — it resolves the vision singleton and calls
 `signalAt` — so callers with a `loc` in hand get a `Light` directly.
 
+### ⭐⭐ Two questions, and only one of them is `signalAt`
+
+> **`signalAt(loc)` — what is the light doing now.**
+> **`peakSignalAt(loc)` — how bright does this place GET.**
+
+They were one question until the envelope build, because a scope's
+ambient was an authored constant. A sky-lit scope now swings from
+`pitch-black` to `bright` and back every game day, so a consumer that
+asks *is this a good spot* rather than *what can I see* must say which
+it means.
+
+`Modality.peakSignalAt` defaults to `signalAt` — correct for every
+modality whose field has no day in it — and **vision overrides it**,
+walking with `CelestialApi.skyFactorDailyPeak()` (the brightest the sky
+gets today, memoized per game day) in place of `skyFactorNow()`. ⭐ Only
+the **sky leg** moves: a lamp reads the same either way, because a lamp
+does not have a day.
+
+⚠ **All of perception uses `signalAt`, and must** — a player sees what
+is there now. The one consumer of the peak read today is
+`GrowingMixin.sampleLux` ([husbandry.md](./husbandry.md)): a plant
+profile's `luxHappyAt` is a claim about a PLACE, and every plant row in
+the tree was authored when a scope's lux was a constant. Sampling the
+instant instead meant **a lily on a sunny windowsill starved of light
+because its owner watered it in the evening.**
+
+⚠ The peak is found by scanning the day and then refining across the
+winning sample's neighbours. Without the refinement the grid straddles
+solar noon and under-reports by ~0.2% — and a peak that a `signalAt`
+reading can exceed is not a peak.
+
 ```
 walkFluxAt(loc, depth, visited) -> { flux, sources }:
   if depth > MAX_HOPS: return empty                   // depth budget

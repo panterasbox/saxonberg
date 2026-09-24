@@ -49,10 +49,23 @@ export default class DouseController extends CommandController<DouseModel> {
       target,
       (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isFurnace(s),
     );
+    // ⚠⚠ **A FURNACE can be doused, and for a long time it could not.**
+    //
+    // The filter above admits `isCombustible(s) || isFurnace(s)` — and
+    // this line then narrowed to `isCombustible` alone and threw the
+    // furnace half away. A forge, an oven, a kiln, a campfire: every
+    // one of them has a working `FurnaceMixin.douse()`, every one of
+    // them was reachable by the verb, and **every one of them answered
+    // "that isn't burning"** while burning. The method was unreachable
+    // from the only verb that calls it.
+    //
+    // It surfaced in the envelope build because a lantern is now a
+    // furnace, so `douse lantern` hit it on a thing a player carries —
+    // but it was never about lanterns. Found by the drive (2026-09-24).
     const doused =
       target2 !== null &&
-      MixinApi.isCombustible(target2) &&
-      target2.douse();
+      (MixinApi.isCombustible(target2) || MixinApi.isFurnace(target2)) &&
+      (target2 as Stuff & { douse(): boolean }).douse();
     if (!doused) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')

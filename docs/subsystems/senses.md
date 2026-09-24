@@ -458,9 +458,20 @@ export class Modality extends SingletonMixin(PropertiedMixin(Idea)) {
   // Persistent: name, family ('field' | 'contact' | 'network'),
   // modality (BodyPlan organ key).
   public signalAt(loc): Signal | null { return null; }
+  public peakSignalAt(loc): Signal | null { return this.signalAt(loc); }
   public perceiveFor(viewer, loc, signal): Percept | null { return null; }
 }
 ```
+
+⭐⭐ **`signalAt` is *what is it doing now*; `peakSignalAt` is *how
+strong does this place GET*.** The default is the same answer, which is
+right for every modality whose field has no day in it. **Vision
+overrides it** (the envelope build): a sky-lit scope swings from
+`pitch-black` to `bright` and back every game day, so a consumer asking
+whether a spot is any good — `GrowingMixin` is the one today — cannot
+sample an instant. ⚠ Perception proper always uses `signalAt`: a
+player sees what is there now. See
+[light.md § Two questions](./light.md).
 
 Seven concrete subclasses under `lib/perception/modalities/`:
 `VisionModality`, `SmellModality`, `SoundModality`, `TouchModality`,

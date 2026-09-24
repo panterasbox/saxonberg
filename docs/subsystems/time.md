@@ -256,6 +256,14 @@ a **per-game-minute memo** over it on the `CelestialLogic` singleton,
 and it is **synchronous**, because the light walk is: every room, every
 `look`. See [light.md](./light.md) § The sky is a sync memo.
 
+⭐ `skyFactorDailyPeak()` is its coarser twin — **the brightest the sky
+gets today**, memoized per game *day* rather than per minute, found by
+scanning the day and refining across the winning sample's neighbours.
+It answers *how good is this place* where `skyFactorNow()` answers
+*what is it doing right now*, and the two have different consumers:
+perception reads the instant, a growth model reads the peak. See
+[light.md § Two questions](./light.md).
+
 ⚠⚠ **One sky for one world.** `skyFactorNow()` reads `EARTH_LIKE` at
 `CAMPUS_LATITUDE` and asks no location. `profileFor` therefore **throws
 by name** on a second celestial profile, and `lint:light-sources` clause

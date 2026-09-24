@@ -5446,3 +5446,52 @@ that stops answering is not evidence of a deadlock — it is evidence that
 Check for an unanswered prompt before you go looking for a cycle, and
 reproduce in a unit test early: a unit test that *passes* is the fastest
 way to be told you are chasing the wrong subsystem.
+
+## Sampling an INSTANT of a field to answer a question about a PLACE
+
+**Wrong** — a growth model asking how good a spot is, by reading what
+the light is doing right now:
+
+```ts
+// GrowingMixin.luxAt — credited the whole window at this instant's lux
+const light = vision.signalAt(loc) as Light | null;
+```
+
+**Right** — ask the question you mean:
+
+```ts
+const light = vision.peakSignalAt(loc) as Light | null;
+```
+
+⭐ **Why it matters.** A `luxHappyAt` is a claim about a **place** — *a
+windowsill suits a peace lily, a corridor does not*. It reads the same
+as "the lux here" for exactly as long as the lux here is a **constant**,
+and the envelope build (2026-09-24) ended that: a sky-lit scope now
+swings from `pitch-black` to `bright` and back every game day. The
+growth window is sampled once, so `signalAt` credited it at *whatever
+o'clock the window happened to close at* — and **a lily on a sunny
+windowsill starved of light because its owner watered it in the
+evening.** The dorm-houseplant suite caught it; nothing else could,
+because every other reader of light is perception, which genuinely does
+want the instant.
+
+`Modality.peakSignalAt` is the seam: it defaults to `signalAt` (right
+for every modality whose field has no day in it) and vision overrides
+it, swapping `CelestialApi.skyFactorNow()` for `skyFactorDailyPeak()`.
+⭐ Only the **sky leg** moves — a lamp reads the same either way,
+because a lamp does not have a day.
+
+⚠ **The generalisable shape, and it is not about light.** Whenever a
+constant becomes a curve, every reader that was written against the
+constant is now answering a *different question than it asks* — and it
+does so silently, because the number is still a plausible number. When
+you make something time-varying, the work is not finished at the
+producer: go and look at who reads it, and make each one say whether it
+wants **now** or **typically**.
+
+⚠⚠ And when you add a "peak", make sure nothing can exceed it. The
+first cut scanned the day on a fixed grid, straddled solar noon and
+under-reported by 0.2% — so `signalAt` at midday came out *above*
+`peakSignalAt`. A peak a reading can exceed is not a peak; the fix is a
+refinement pass across the winning sample's neighbours, and the unit
+test that compares the two is what has to exist.

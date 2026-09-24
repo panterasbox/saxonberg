@@ -200,6 +200,62 @@ describe('the sky leg', () => {
     expect(vision().bandAt(room)).toBe('lit');
   });
 
+  it('⭐⭐ `peakSignalAt` asks how bright the place GETS, and the sky is the only leg that moves', async () => {
+    // ⚠⚠ The read a GROWTH model needs, and the reason it exists: a
+    // `luxHappyAt` is a claim about a PLACE, and every plant profile in
+    // the tree was authored when a scope's lux was a constant. Sampling
+    // the instant instead would mean a lily on a sunny windowsill
+    // starved of light because its owner waters it in the evening.
+    const loc = skyLitCell();
+    atGameSecond(0); // a moonless midnight
+    expect(vision().signalAt(loc).intensity.rawValue()).toBeLessThan(1);
+    const peakAtMidnight = vision().peakSignalAt(loc).intensity.rawValue();
+    expect(peakAtMidnight).toBeGreaterThan(20);
+
+    // The same number at noon: the peak is a property of the DAY, not
+    // of when you asked.
+    atGameSecond(DAY / 2);
+    expect(vision().peakSignalAt(loc).intensity.rawValue()).toBeCloseTo(
+      peakAtMidnight,
+      6,
+    );
+    // …and at noon the instant has caught up with it: never above the
+    // peak, and within a percent of it. ⭐ Not exactly equal, and that
+    // is the scan grid rather than a defect — the peak is found by
+    // sampling the day rather than by solving for the sun's transit,
+    // so it lands a half-step either side of true noon.
+    const atNoon = vision().signalAt(loc).intensity.rawValue();
+    expect(atNoon).toBeLessThanOrEqual(peakAtMidnight);
+    expect(atNoon).toBeGreaterThan(peakAtMidnight * 0.99);
+
+    // ⭐ A lamp does not have a day: an enclosed room with a lantern in
+    // it reads the same either way, at any hour.
+    const { ContainableMixin } = await import(
+      '../../../../lib/spatial/Containable'
+    );
+    const { LightSourceMixin } = await import(
+      '../../../../lib/perception/LightSource'
+    );
+    const Thing = (await import('../../../../lib/stuff/Thing')).default;
+    const { ContainmentApi } = await import('../../../../api/containment');
+    class Lantern extends LightSourceMixin(ContainableMixin(Thing)) {}
+
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(3);
+    const cellar = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(cellar, 1, 0, 0);
+    const lamp = makeStuff(() => new Lantern());
+    lamp.setEmittedFlux(220);
+    ContainmentApi.move(lamp as never, cellar as never);
+    for (const h of [0, 6, 12, 18]) {
+      atGameSecond(h * 3600);
+      expect(vision().peakSignalAt(cellar).intensity.rawValue()).toBeCloseTo(
+        vision().signalAt(cellar).intensity.rawValue(),
+        6,
+      );
+    }
+  });
+
   it('an enclosed room with no source is dark at every hour of the day', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(3);

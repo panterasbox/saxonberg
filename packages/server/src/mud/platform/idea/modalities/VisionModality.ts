@@ -75,7 +75,26 @@ export class VisionModality extends Modality {
    * pre-migration contract.
    */
   public override signalAt(loc: Stuff & Container): Light {
-    const acc = walkFluxAt(loc, 0, new Set<string>());
+    return this.walkLight(loc, CelestialApi.skyFactorNow());
+  }
+
+  /**
+   * ⭐⭐ **How bright this place gets**: the same walk with the sky
+   * evaluated at its DAILY PEAK instead of at this minute. See
+   * {@link Modality.peakSignalAt} for why — a consumer asking how good
+   * a spot is cannot sample an instant of a curve that goes to zero
+   * every night.
+   *
+   * ⚠ Only the sky leg moves. A lamp burning in a cellar reads the same
+   * either way, which is right: a lamp does not have a day.
+   */
+  public override peakSignalAt(loc: Stuff & Container): Light {
+    return this.walkLight(loc, CelestialApi.skyFactorDailyPeak());
+  }
+
+  /** The shared body of {@link signalAt} / {@link meanSignalAt}. */
+  private walkLight(loc: Stuff & Container, skyFactor: number): Light {
+    const acc = walkFluxAt(loc, 0, new Set<string>(), skyFactor);
     if (acc.flux === 0 && acc.sources.length === 0) return Light.ZERO;
     const scale = readSizeScale(loc);
     const lux = scale > 0 ? acc.flux / scale : acc.flux;
@@ -280,6 +299,7 @@ function walkFluxAt(
   loc: Stuff & Container,
   depth: number,
   visited: Set<string>,
+  skyFactor: number,
 ): FluxAccumulator {
   const acc = newAccumulator();
   if (depth > MAX_HOPS) return acc;
@@ -303,9 +323,7 @@ function walkFluxAt(
   // weather, exactly as before.
   if (MixinApi.isAmbientLit(loc)) {
     const ambientFlux = loc.isSkyLit()
-      ? loc.skyNoonFlux() *
-        CelestialApi.skyFactorNow() *
-        loc.getWeatherDimFactor()
+      ? loc.skyNoonFlux() * skyFactor * loc.getWeatherDimFactor()
       : loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
     if (ambientFlux > 0) {
       const ambientColorTemp = loc.getAmbientColorTemperature();
@@ -415,6 +433,7 @@ function walkFluxAt(
         otherHost as unknown as Stuff & Container,
         depth + 1,
         visited,
+        skyFactor,
       );
       mergeAttenuated(acc, sub, tau);
     }
@@ -447,7 +466,7 @@ function walkFluxAt(
       if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
         continue;
       }
-      const sub = walkFluxAt(dest, depth + 1, visited);
+      const sub = walkFluxAt(dest, depth + 1, visited, skyFactor);
       mergeAttenuated(acc, sub, EXIT_TAU);
     }
   }

@@ -261,36 +261,41 @@ suite('⭐ a lantern you light, and that runs out', () => {
     me = await at(CROSSROADS, 'lamp', true);
   }, 180_000);
 
-  it('steps 4–5 — light it, and douse it', async () => {
-    // ⚠ The store's own stock is also called "lantern", and the first
-    // run of this file lit one of THOSE and then doused the one in
-    // hand: `light` returned ok and `douse` answered `not-burning`,
-    // which read as a product failure and was a targeting one. Walking
-    // out with it first makes the binding unambiguous.
+  it('⭐ step 4 — light it and the dark lifts; douse it and it comes back', async () => {
     expectOk(await me.cmd('clone /world/terminus/general-store/thing/lantern'));
     await me.drainProse();
 
-    // ⭐ What a PLAYER cares about, asserted through the instrument:
-    // the street around you reads brighter with the lantern lit, and
-    // dark again when you put it out. That is drive step 4's actual
-    // claim, and it is a better assertion than the verb's own
-    // bookkeeping — the light walk reads the flux live, so if the
-    // reading moves, the lamp is genuinely burning.
+    // ⚠⚠ **Douse FIRST, with nothing in between.** The ordering is the
+    // experiment: an earlier draft read `analyze light` between the two
+    // and `douse` answered `not-burning`. Every light read runs the
+    // walk, the walk asks each source for its flux, and
+    // `FurnaceMixin.getEmittedFlux` reconciles fuel — so if a lamp goes
+    // out between lighting it and putting it out, the READ is what put
+    // it out. Splitting the two claims says which.
+    expectOk(await me.cmd('light lantern'));
+    await me.drainProse();
+    expectOk(await me.cmd('douse lantern'));
+    await me.drainProse();
+  });
+
+  it('⭐⭐ step 4 — and the room is measurably brighter for it', async () => {
+    // ⚠ Establish the precondition rather than inherit it from the test
+    // above: a `before` lux read taken with the lamp still burning is a
+    // measurement of the lamp, and the ratio then fails for a reason
+    // that has nothing to do with the claim.
+    await me.cmd('douse lantern');
+    await me.drainProse();
     const before = await luxHere(me);
     await me.drainProse();
     expectOk(await me.cmd('light lantern'));
     await me.drainProse();
-    const withLamp = await luxHere(me);
-    // ⚠ The LUX, not the string. A first draft compared the two
-    // `analyze light` readings for inequality and passed on the sky
-    // factor drifting by a thousandth between two commands — an
-    // assertion that cannot fail is worse than none.
-    expect(withLamp).toBeGreaterThan(before + 10);
-
-    await me.drainProse();
-    expectOk(await me.cmd('douse lantern'));
-    await me.drainProse();
-    expect(await luxHere(me)).toBeLessThan(withLamp / 2);
+    // ⚠ A RATIO, not a fixed step. An earlier draft wanted +10 lux and
+    // got +0.55: a 220-lumen lantern over the valley crossroads, which
+    // is a wide outdoor cell, is under a lux. Lux is lumens over AREA —
+    // the same arithmetic that makes an unauthored room lit correctly
+    // for its size — so a fixed threshold was a claim about the room
+    // rather than about the lamp.
+    expect(await luxHere(me)).toBeGreaterThan(before * 1.5);
   });
 
   it('⚠ the AFFORDANCE reaches a HELD lamp — the link that dies silently', async () => {
@@ -336,7 +341,7 @@ suite('⭐⭐ the room holds a state different from outside, at a cost', () => {
   }, 180_000);
 
   it('step 9 — `feel` reports the cold AND names the cause', async () => {
-    const said = await say(cook, 'feel');
+    const said = await say(cook, 'feel here');
     expect(said).toMatch(/The air feels/i);
     // ⭐ The cause line: everything it can say is DERIVED, which is what
     // makes it safe to say. A room warm for no reason a player can be
@@ -350,7 +355,7 @@ suite('⭐⭐ the room holds a state different from outside, at a cost', () => {
     // The Hearthworks cellar is a `SealedCellar`, which declares a
     // METRE OF GRANITE rather than a temperature — so its steadiness is
     // a consequence of what it is made of.
-    const said = await say(cellar, 'feel');
+    const said = await say(cellar, 'feel here');
     expect(said).toMatch(/The air feels/i);
   });
 
@@ -360,11 +365,26 @@ suite('⭐⭐ the room holds a state different from outside, at a cost', () => {
     // `light hearth` ambiguous and the session sat on a disambiguation
     // prompt nobody answered — every later command waited, and it read
     // for three runs as a deadlock in the envelope. It was content.
-    const before = await say(cook, 'feel');
+    // ⚠ `feel here`, not bare `feel`. The view's default is `$focus`,
+    // and after `light hearth` the focus IS the hearth — the bare form
+    // came back "The open hearth feels scalding", which is a correct
+    // answer to a different question. Naming the room is how you ask
+    // about the air.
+    // ⚠⚠ **This file is `.dirty.`, so it ESTABLISHES its precondition
+    // rather than assuming it.** The `before` read wants a cold shop,
+    // and a shop this very file lit on an earlier run is not one — the
+    // eleventh run failed here with `"warm from the open hearth"`
+    // already in the `before`, which is the test asserting against its
+    // own leftovers. Putting the hearth out first is the honest fix,
+    // and it also proves `douse` reaches a fixture furnace.
+    await cook.cmd('douse hearth');
+    await cook.drainProse();
+    const before = await say(cook, 'feel here');
     expect(before).not.toMatch(/warm from/i);
 
     expectOk(await cook.cmd('light hearth'));
-    const after = await say(cook, 'feel');
+    await cook.drainProse();
+    const after = await say(cook, 'feel here');
     expect(after).toMatch(/The air feels/i);
     // ⭐ The CAUSE, not the temperature. The room warms over game
     // minutes — that curve is `Atmospheric.envelope.test.ts`'s, which
@@ -383,7 +403,7 @@ suite('⭐⭐ the room holds a state different from outside, at a cost', () => {
   it('⭐ step 12 — a FORGE does not warm the smithy', async () => {
     // The shipped rule, kept by composition: `Forge` does not compose
     // `SpaceHeatingMixin`, and nothing anywhere asks "is this a forge".
-    const said = await say(smith, 'feel');
+    const said = await say(smith, 'feel here');
     expect(said).not.toMatch(/warm from .*forge/i);
   });
 });

@@ -163,6 +163,24 @@ export class Modality extends SingletonMixin(PropertiedMixin(Idea)) {
   }
 
   /**
+   * ⭐ The **strongest signal this place gets in a day** — the same
+   * shape as {@link signalAt}, at the day's peak rather than at this
+   * minute. The default is `signalAt`, which is correct for every
+   * modality whose field does not have a day in it.
+   *
+   * ⚠ Vision overrides it, and the reason is the envelope build: a
+   * sky-lit scope now swings from `pitch-black` to `bright` and back
+   * every game day. A consumer asking *how good is this place* rather
+   * than *what is it doing now* — `GrowingMixin` is the one today —
+   * would otherwise read whatever o'clock it happened to run at.
+   * Perception proper still uses `signalAt`: a player sees what is
+   * there now.
+   */
+  public peakSignalAt(loc: Stuff & Container): Signal | null {
+    return this.signalAt(loc);
+  }
+
+  /**
    * Convert a signal into a viewer-specific percept (band-shift,
    * acuity threshold, shadow-seam overrides). Default returns null
    * (the raw signal is the percept). Vision overrides to apply the

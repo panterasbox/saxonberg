@@ -188,9 +188,27 @@ host's own Thermal reading) and refills through `waterPlant`.
 > cannot).
 
 **Light** is the lux where the plant sits, read through
-`PerceptionApi.modalityByName('vision').signalAt(...)`. The sample climbs
-the containment chain to the nearest enclosing space, stopping at a
-**closed `Sealable`** — a sealed container is an honest dark.
+`PerceptionApi.modalityByName('vision').peakSignalAt(...)`. The sample
+climbs the containment chain to the nearest enclosing space, stopping at
+a **closed `Sealable`** — a sealed container is an honest dark.
+
+> ⭐⭐ **`peakSignalAt`, not `signalAt` — how bright the place GETS, not
+> what the light is doing this minute** (the envelope build). A
+> `luxHappyAt` is a claim about a PLACE — *a windowsill suits a peace
+> lily, a corridor does not* — and every plant row here was authored
+> when a scope's lux was an authored constant, so the two readings were
+> one number. A sky-lit scope now swings from `pitch-black` to `bright`
+> and back every game day, and since the light window is sampled once
+> (below), `signalAt` would credit the window at *whatever o'clock it
+> closed at*: **a lily on a sunny windowsill would starve of light
+> because its owner waters it in the evening.**
+>
+> ⭐ Peak and not the day's MEAN, deliberately: the mean is ≈0.26 of
+> noon at the campus latitude, so reading it would silently rebalance
+> every crop in the tree downward by ~4× against thresholds nobody
+> re-authored. Only the **sky leg** moves — a lamp reads the same either
+> way, because a lamp does not have a day. See
+> [light.md § Two questions](./light.md).
 
 > **The light window is segmented at moves, not integrated from history.**
 > There is no light *history* to integrate, so a window is credited at the

@@ -48,6 +48,12 @@ export interface SkyFactorOpts {
 }
 
 const DEG_PER_TURN = 360;
+/**
+ * Sample count for the day-scan that finds the sky's daily peak. 48 is
+ * one per half game-hour — the curve has one broad maximum a day, so
+ * this lands within a fraction of a percent of it.
+ */
+const SKY_SCAN_SAMPLES = 48;
 const TWO_PI = Math.PI * 2;
 
 /** Campus latitude (°N). Single-region v1; per-zone latitude is future work. */
@@ -160,6 +166,56 @@ export class CelestialLogic extends ApiLogic {
     this._skyFactorMinute = minute;
     this._skyFactorValue = factor;
     return factor;
+  }
+
+  /**
+   * Per-game-day memo of {@link skyFactorDailyPeak}. Same shape as the
+   * per-minute memo above, one rung coarser.
+   */
+  private _skyPeakDay: number | null = null;
+  private _skyPeakValue: number = 0;
+
+  /** See {@link CelestialApi.skyFactorDailyPeak}. */
+  @CallSecurity(CelestialApiCallers)
+  public skyFactorDailyPeak(): number {
+    const now = WorldClockApi.getNow().rawValue();
+    const dayS = EARTH_LIKE.dayLengthSeconds;
+    const day = Math.floor(now / dayS);
+    if (this._skyPeakDay === day) return this._skyPeakValue;
+    const opts = {
+      twilightDecadeDeg: dial(AppSettingKeys.lightSkyTwilightDecadeDeg, 3),
+      moonMax: dial(AppSettingKeys.lightSkyMoonMax, 0.03),
+      starlight: dial(AppSettingKeys.lightSkyStarlight, 0.002),
+    };
+    // ⭐ Sampled rather than solved for: the curve has one broad maximum
+    // a day, and a closed form for "when is the sun highest" would have
+    // to carry the moon term too. A coarse scan, then a second pass
+    // across the winning sample's two neighbours — which is what makes
+    // the answer a true bound. ⚠ Without the refinement the coarse grid
+    // straddles solar noon and under-reports the peak by ~0.2%, so
+    // `signalAt` at noon came out ABOVE `peakSignalAt`, and a "peak"
+    // a reading can exceed is not a peak. Cheap either way: once per
+    // game day, memoized.
+    const t0 = day * dayS;
+    const scan = (from: number, to: number, steps: number): [number, number] => {
+      let best = 0;
+      let bestT = from;
+      for (let i = 0; i <= steps; i++) {
+        const t = from + ((to - from) * i) / steps;
+        const f = skyIlluminanceFactor(EARTH_LIKE, CAMPUS_LATITUDE, t, opts);
+        if (f > best) {
+          best = f;
+          bestT = t;
+        }
+      }
+      return [best, bestT];
+    };
+    const step = dayS / SKY_SCAN_SAMPLES;
+    const [, coarseT] = scan(t0, t0 + dayS, SKY_SCAN_SAMPLES);
+    const [peak] = scan(coarseT - step, coarseT + step, SKY_SCAN_SAMPLES);
+    this._skyPeakDay = day;
+    this._skyPeakValue = peak;
+    return peak;
   }
 
   /** See {@link CelestialApi.lampDuskFactor}. */

@@ -30,8 +30,13 @@ function stubSeedClone() {
     data: {},
     hydratorClass: '/platform/idea/persistence/PersistentHydrator',
   } as never);
+  // ⭐ `wearGarments` as well as `save`: the mint DRESSES the character
+  // it mints (`TestHooks.#dress`, envelope W1 — a naked body spends
+  // food on cold at room temperature). The stub stands in for a real
+  // `Avatar`, which is a `Character` and has both.
   return vi.spyOn(StuffApi, 'clone').mockResolvedValue({
     save: vi.fn().mockResolvedValue(undefined),
+    wearGarments: vi.fn().mockResolvedValue(undefined),
   } as never);
 }
 
@@ -78,14 +83,25 @@ describe('TestHooks.provisionCharacter', () => {
     // `templatePath` the identity split retired — so the strongest
     // assertion here is the negative one.
     expect(tmplSave).not.toHaveBeenCalled();
-    // ⭐ One avatar clone, then the first aspiration's outfit — the test
-    // character is dressed as an enrolled one (a naked body starves at
-    // room temperature; the fishing drive found it).
+    // ⭐ One avatar clone, and the first aspiration's outfit HANDED TO
+    // THE BODY — the test character is dressed as an enrolled one (a
+    // naked body spends food on cold at room temperature; the fishing
+    // drive found it collapsing at the seventh game hour).
+    //
+    // ⚠ This used to count `StuffApi.clone` calls, because the hook
+    // cloned each garment itself. Since the envelope build (W1) the
+    // recipe is `Character.wearGarments` — authored NPCs needed the
+    // same thing and a second copy would have been the third — so what
+    // this hook owns is WHICH outfit, and the assertion follows it
+    // there. The wearing itself is `Character.wearGarments`'s own
+    // suite.
     const outfit = EmbodyController.loadConfig().aspirations[0]?.outfit ?? [];
-    expect(clone).toHaveBeenCalledTimes(1 + outfit.length);
-    for (const [i, garment] of outfit.entries()) {
-      expect(clone.mock.calls[1 + i]![0]).toBe(garment);
-    }
+    expect(clone).toHaveBeenCalledTimes(1);
+    const dressed = (await clone.mock.results[0]!.value) as {
+      wearGarments: { mock: { calls: unknown[][] } };
+    };
+    expect(dressed.wearGarments.mock.calls).toHaveLength(1);
+    expect(dressed.wearGarments.mock.calls[0]![0]).toEqual(outfit);
     const [seedPath, , opts] = clone.mock.calls[0]! as [
       string,
       unknown,
