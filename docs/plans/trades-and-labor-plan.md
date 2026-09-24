@@ -1328,4 +1328,69 @@ by `startLocation`: no wizard appears in the file at all, which is what
 the claim actually needs — *a person with nothing* — rather than a
 wizard escorting somebody with nothing.
 
-*(the run's own output follows)*
+### The run — ⭐ 14 / 14 on a freshly dropped database
+
+`WIRE_BOOT=1 WIRE_PORT=2012`, world up in 296 s, tests 76 s.
+
+```
+ ✓ 1 — arrive and look for work
+     ⭐ the hall carries a noticeboard, and there is WORK on it at world start   37.0s
+ ✓ 3 — read a help-wanted sign nobody authored as a prop
+     ⭐⭐ `look` at the general store prints the notice, the wage and what is asked
+     ⚠ and it is nowhere in the room CONTENTS — there is no sign object
+ ✓ 4 — be refused, and be told BOTH numbers
+     ⭐⭐ `apply` with no gigs names what is wanted and what is held
+ ✓ ⭐ rung ZERO — a seat that asks for nothing at all
+     the university farm takes a first-session arrival with an empty wallet
+     ⚠ being taken on is NOT being on shift — `clock off` first is refused
+     ⭐⭐ clock on, stand a shift, clock off — and the wage settles           25.5s
+     ⭐ employer-bounded: a newcomer elsewhere cannot clock on at all
+ ✓ 7 — a trade seat asks for more, and says what lifts it
+     ⭐⭐ `apply` at the tailor's names the band wanted and the band held
+ ✓ 8 — the shop still works, from the pack
+     ⭐ `buy` takes a good off the counter — the class moved, the verb did not
+     `consign` and `reclaim` round-trip a good through the shelf
+ ✓ 9 — the stall still rents from its new home
+     ⭐ `stall rent` mints a shop from trade-shopkeeping's seed
+ ✓ 10 — nothing that did not move, moved
+     ⭐ the bank counter still opens an account — nothing about banking moved
+     ⭐ the lounge rack is still there — trade-hospitality's class now
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+```
+
+⭐⭐ **The headline number is the 37 seconds.** That is how long after a
+cold world opens before an NPC's par sheet puts paid work on the board a
+new arrival reads — with nobody playing, nobody authoring a gig, and no
+wizard anywhere in the file. The requirements' first drive step asked
+for *at least two open gigs, supplied by NPC par sheets, not by a player
+and not by one bar*; before this build there was one par sheet in the
+realm and eleven empty boards.
+
+### Steps covered elsewhere, and why
+
+- **Step 2** (claim a gig, complete it, twice) is `work.dirty.wire.test.ts`'s
+  loop already, end to end. Repeating it here would re-prove the gig
+  engine rather than the labor market; what this file needs from it —
+  *the criterion is reachable* — is proved by step 4 naming the exact
+  shortfall off a board that has work on it.
+- **Steps 5 and 6** (be taken on; the grant lands) run at the **farm**
+  rather than the store: the store's `hand` asks two completed gigs, and
+  the honest way to satisfy that in a wire run is to do two gigs, which
+  is step 2's job. Rung zero exercises the same `apply` → `clock on` →
+  wage path with nothing owed.
+- **Step 11** (a second shop from rows only) is
+  `trade-shopkeeping/src/__tests__/shop-archetype.test.ts` — the wire
+  harness may not import server code, and no verb materializes an
+  archetype (D19).
+
+### Full suite, the one pre-MR run
+
+client **80 files / 1,003 tests**; server **1,211 files / 11,335 tests**;
+all **30 content-pack** suites green (148 files). One failure surfaced
+and was fixed: `trade-mining`'s exemplar test, whose allowlist of trades
+rejection may name grew by one — ⭐ which is the *"a second mining town
+needs zero pack code"* claim working, not weakening. Rejection still
+ships no TypeScript; it composes one more trade, because selling over a
+counter turned out to be a trade.
