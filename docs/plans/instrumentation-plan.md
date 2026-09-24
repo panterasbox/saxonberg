@@ -2245,3 +2245,21 @@ touches none of the files involved:
   should arm its customers is shopkeeping's call — a smithy's anvil
   affording `repair` to whoever is standing in the smithy is the same
   mechanism, and is right.
+
+### D25's re-drive — 62/62
+
+Collapsing `InstrumentApi` moved the channel lookup onto the dispatch
+path of every read verb, which is the one thing a controller test cannot
+prove: the resolution now happens *inside* the controller rather than
+behind a mocked Api static. So the three files that actually type
+`measure`/`analyze`/`assay` at a running world were re-driven on a fresh
+DB in one boot — `instrumentation.dirty` **30/30**, `grain-chain.dirty`
+20, `farmstead.dirty` 12, **62 of 62**.
+
+⭐ The point of running it rather than trusting the unit suites: the old
+harness stubbed `InstrumentApi.reading`, so nothing under it had ever
+resolved the catalogue on a dispatch. The stub now intercepts
+`StuffApi.singleton` for the catalogue path **only** and passes every
+other singleton through — a blanket mock would have swallowed the
+resolutions the rungs themselves make, and the whole value of that
+helper is that everything below the lookup is the shipped path.
