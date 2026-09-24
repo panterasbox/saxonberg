@@ -653,6 +653,9 @@ importers:
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining
+      '@saxonberg/content-trade-quarrying':
+        specifier: workspace:*
+        version: link:../trade-quarrying
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
@@ -804,6 +807,9 @@ importers:
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling
+      '@saxonberg/content-trade-quarrying':
+        specifier: workspace:*
+        version: link:../trade-quarrying
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping

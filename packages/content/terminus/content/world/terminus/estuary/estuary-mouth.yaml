@@ -24,6 +24,16 @@ data:
     x: 3
     y: 0
     z: 0
+  # ⭐⭐ The saltings, furnished: the tide you fill from and two pans on the
+  # brick beds. ⚠ `props:` — fixtures of the place, not things somebody left.
+  #
+  # ⭐ TWO pans, deliberately: one is an apparatus and two is an industry, and
+  # a player who fills one on a dry week and one on a wet one has the whole
+  # lesson side by side without anybody explaining it.
+  props:
+    - /world/terminus/estuary/thing/tide
+    - /trade/quarrying/thing/salt-pan
+    - /trade/quarrying/thing/salt-pan
   exits:
     west:
       destination: /world/terminus/estuary/reach

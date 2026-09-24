@@ -1816,7 +1816,46 @@ writes the grade down and the deed is partial).
 (`lint:doneness` — both recipes author `maxHeatK`; `lint:perishable` —
 `clay-pot` is ceramic on `PlantPot`).
 
-### W5 — salt: the face, the pans, the brine house (D12 salt move, D13 rows, D20 estuary)
+### W5 — ✅ DONE: salt: the face, the pans, the brine house
+
+> ✅ **Landed** — `build(extraction W5)`. ⚠ **The salt MOVE landed early, in
+> W3**, because the column's halite band `wins:` the material and
+> `lint:census` resolves every `wins:` path — the plan foresaw the coupling and
+> offered a choice; taking the move was the better half. What W5 shipped is the
+> apparatus and the places.
+>
+> - **`salt-pan`** — a `Vat` row (`category: pan`, 40 L, `closure: none`, open:
+>   a covered pan does not work). ⭐ **Two of them** on the saltings, because
+>   one is an apparatus and two is an industry, and a player who fills one in a
+>   dry week and one in a wet one has the lesson side by side.
+> - **`brine-hearth`** — an `Oven` row at 450 K, and ⭐⭐ **that IS the
+>   coupling**: `Oven` already composes `ContainerMixin`, so the pan goes *in*
+>   the hearth, and `ThermalMixin.heatSourceK()` already reads a thing's
+>   container for a lit furnace. Brine over a fire reads the fire's temperature
+>   with **no new class, no new coupling and no new verb**, and
+>   `Evaporation`'s 373 K cap is why a hotter hearth boils faster and never
+>   faster than boiling. ⚠ 450 K is modest on purpose: a brine hearth cannot
+>   burn lime, and saying so costs one number.
+> - **`brine.yaml`** — the `evaporative` profile (`ratePerDay` 0.25,
+>   `productFraction` 0.1, `stallBelowK` 273, `damageAboveK` 400), authoring
+>   **no strain** — the absence is load-bearing after W1's `requiresFlora`
+>   finding.
+> - **Terminus**: `estuary/thing/tide.yaml` (a `WaterFixture` of `salt-water` —
+>   unbounded, because the sea is, which is the one place that is honest rather
+>   than a shortcut), the mouth's `props:`, `estuary/salt-house.yaml` off the
+>   lower towpath, the dependency, the pack-ordering claim.
+>
+> ⭐ `salt.test.ts` (9) reads the **rows** rather than the mechanism, because
+> the mechanism is the kernel's and what only a pack test can see is whether
+> the profile's `inputCategory` matches a tag the sea water actually carries.
+> A profile whose category matched nothing would never start, and the pan would
+> sit full of brine forever with nothing to say why — the failing-closed-and-
+> silent class this repo keeps paying for.
+>
+> *Verification:* quarrying **42** · terminus **132** · `lint:family` **all 52
+> gates pass** · quarrying tsc clean.
+
+### W5 (original text) — salt: the face, the pans, the brine house (D12 salt move, D13 rows, D20 estuary)
 
 *Goal:* three sources, one good, and `cure` runs on salt from any of them.
 

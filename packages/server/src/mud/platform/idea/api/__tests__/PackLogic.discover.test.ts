@@ -101,6 +101,10 @@ describe('the shipped packs (real discovery, no install)', () => {
     // mining trade in the first place.
     expect(ids.indexOf('trade-quarrying')).toBeGreaterThan(ids.indexOf('ground'));
     expect(ids.indexOf('rejection')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
+    // ⭐ …and TERMINUS too, because the saltings' pans and the salt house's
+    // brine hearth are rows on the trade's classes. Salt has three sources in
+    // three different places and one trade behind all of them.
+    expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
     // The metal chain: three capability packs, one venue over all three.
     // ⭐ `rejection` ships no `src/` at all — the exemplar claim is that a
     // second mining town is a locality pack over the same trades, and the
