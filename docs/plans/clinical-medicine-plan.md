@@ -1756,18 +1756,27 @@ the drive 11/11 over the booted full world.
   - `test me` → *"clinicdoc's blood is type A."*; `prescribe me anaesthesia`
     → *"You write clinicdoc a prescription…"*; `suture`/`calendar`/`operate`
     afforded with sensible refusals.
-- ⚠ **Findings the browser surfaced** (pre-existing, NOT from R2 — for
-  /finalize / a slate, not this MR):
-  1. **The physic garden (north of the ward) reads pitch-black** — every
-     carried item becomes "something" there, which breaks keyword-binding
-     for `harvest`/`steep` in the garden (they work in the lit ward). Most
-     likely night on an outdoor garden (the wire drive ran in daylight);
-     worth confirming it is not an unlit-interior bug, since it makes the
-     autarky loop time-of-day dependent.
-  2. A full steep-to-extract could not be shown live only because no
-     water-filled BULK vessel is reachable in a lit room — the authored
-     steep pot lives in the dark garden and the ward `washbasin` reads
-     empty (`fill … from basin` refused). The substrate is proven anyway.
-  3. Minor: `bleed into blood bag` (two words) mis-binds "blood bag" to the
-     tool arg (*"isn't a tool"*); `bleed into bag` works. `operate` wants
-     the surgeon's kit bound/wielded (afforded, refused on the kit).
+- ✅ **Finding FIXED this MR — the physic garden read pitch-black.** Every
+  carried item became "something" in the garden, which broke
+  keyword-binding for `harvest`/`steep` there (they worked in the lit
+  ward). Root cause: **outdoor-ambient / time-of-day light computation is
+  out of scope in the light substrate (v1)** — an open-air room is lit
+  ONLY if it authors an `ambientIntensity`, and the sibling outdoor
+  locations do (goods-yards yard 520, estuary mouth 700). The garden
+  authored none, so nothing lit it, and it sits 3 hops from the nearest
+  authored light — beyond the propagation walk's `MAX_HOPS = 2`. Fix:
+  authored `_biomePath: /stuff/idea/biome/outdoor/baseline` +
+  `ambientIntensity: 520` + `ambientColorTemperature: 5600` on
+  `infirmary/garden.yaml`, matching the outdoor-yard pattern. **Re-driven
+  live:** the garden now renders lit (HERE lists the plants + the pot by
+  name), `inventory` reads named items, and the full loop completes —
+  `harvest greywort` → `steep greywort in pot` → *"The water darkens as a
+  greywort root gives up its virtue. The infusion is ready."* So the R2-B
+  infusion is now proven END-TO-END live (the earlier walk only reached
+  the solvent gate because no water vessel was reachable in a lit room).
+- ⚠ **Minor findings left** (pre-existing, NOT from R2 — a follow-up, not
+  this MR):
+  1. `bleed into blood bag` (two words) mis-binds "blood bag" to the tool
+     arg (*"isn't a tool"*); `bleed into bag` works.
+  2. `operate` wants the surgeon's kit bound/wielded (afforded, refused on
+     the kit).
