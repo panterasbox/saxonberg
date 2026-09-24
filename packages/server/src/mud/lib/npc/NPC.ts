@@ -65,13 +65,7 @@ export class NPC extends NPCBase {
    */
   public override async postRegister(): Promise<void> {
     await (super.postRegister as () => Promise<void>).call(this);
-    if (this.wears.length > 0) {
-      await (
-        this as unknown as {
-          wearGarments(paths: readonly string[]): Promise<void>;
-        }
-      ).wearGarments(this.wears);
-    }
+    if (this.wears.length > 0) await this.wearGarments(this.wears);
   }
 }
 

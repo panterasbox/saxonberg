@@ -41,7 +41,7 @@ import { BiomeApi } from '../../api/biome';
 import { MixinApi } from '../../api/mixin';
 import type Biome from './Biome';
 import type { WeatherPin } from '../weather/WeatherType';
-import type { FabricSpec, FabricDefaults } from '../stuff/Location';
+
 import type Material from '../material/Material';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
@@ -151,6 +151,12 @@ export interface Atmospheric {
    * Inert everywhere else with no guard needed: `Offstage` and a plain
    * `Location` have no volume, so the geometry answers.
    */
+  /** What this scope's row says it is built of, or `null`. */
+  getFabricSpec(): FabricSpec | null;
+  setFabricSpec(value: FabricSpec | null): void;
+  /** What a scope of this KIND is built of when its row says nothing. */
+  fabricDefaults(): FabricDefaults;
+
   envelopeApplies(): boolean;
 
   /**
@@ -208,6 +214,36 @@ export interface Atmospheric {
  * Every number is read off a `Material` row; none of it is authored as
  * an effect.
  */
+/**
+ * ⭐ What a scope says it is built of — the authored half, two keys and
+ * no more. The row names a REAL material and how thick it is; the
+ * conductivity, the density and the specific heat are that material's
+ * and nobody types them twice.
+ *
+ * ⚠ The vocabulary is CLOSED and `lint:envelope` clause (e) holds it
+ * shut: there is no `uPerM2`, no `insulation:`, and no way to type one.
+ *
+ * ⚠⚠ **Lives on `AtmosphericMixin`, not on `Location`** — the envelope
+ * is the mixin's and so is its fabric. It sat on `Location` until
+ * review (2026-09-24) and the tell was the shape of the reader: the
+ * mixin composes INSIDE `Location`, so it could only reach three
+ * optional members through a cast, which is the host saying it is the
+ * wrong host. A `Vessel` answers the hook too, and that is why the
+ * `getMaterial` rung could go.
+ */
+export interface FabricSpec {
+  /** A `Material` template path — what the walls and roof are made of. */
+  material?: string;
+  /** How thick, in metres. Defaults to `envelope.defaultThicknessM`. */
+  thicknessM?: number;
+}
+
+/** What {@link Atmospheric.fabricDefaults} answers. */
+export interface FabricDefaults {
+  materialPath: string;
+  thicknessM: number;
+}
+
 export interface EnvelopeFabric {
   /** Thermal conductivity, W/(m·K). */
   kWmK: number;
@@ -248,6 +284,7 @@ export function AtmosphericMixin<
       _detailGravities: { persistent: true, authorable: true },
       _detailAtmospheres: { persistent: true, authorable: true },
       _weatherPin: { persistent: true, authorable: true },
+      fabric: { persistent: true, authorable: true },
       envelopeTemperatureK: { persistent: true, runtimeState: true },
       envelopeClockStamp: { persistent: true, runtimeState: true },
       envelopeOutsideK: { persistent: true, runtimeState: true },
@@ -300,6 +337,43 @@ export function AtmosphericMixin<
      * cache costs one lookup rather than correctness.
      */
     private _envelopeResolved: EnvelopeFabric | null = null;
+
+    /**
+     * What this place says it is built of, without authoring anything
+     * else. `null` — the ordinary case — falls through to
+     * {@link fabricDefaults}.
+     */
+    protected fabric: FabricSpec | null = null;
+
+    public getFabricSpec(): FabricSpec | null {
+      return this.fabric;
+    }
+    public setFabricSpec(value: FabricSpec | null): void {
+      this.fabric = value;
+      this._envelopeResolved = null;
+    }
+
+    /**
+     * What a scope of this KIND is built of, when its row says nothing.
+     *
+     * @hook Override where the class knows its own construction — a
+     *   cellar cut into rock, a glasshouse, a tent, a ship's hull, or a
+     *   `Vessel`, which IS matter and answers with its own material.
+     *   The row still wins: a `fabric:` on the row beats this, and this
+     *   beats the universe default.
+     */
+    public fabricDefaults(): FabricDefaults {
+      return {
+        materialPath: envelopeDialStr(
+          AppSettingKeys.envelopeDefaultFabric,
+          '/stuff/idea/material/rock/granite',
+        ),
+        thicknessM: envelopeDial(
+          AppSettingKeys.envelopeDefaultThicknessM,
+          0.3,
+        ),
+      };
+    }
     /**
      * ⚠⚠ **Reentry guard, and it is load-bearing.**
      *
@@ -572,13 +646,23 @@ export function AtmosphericMixin<
     }
 
     /**
-     * Resolve what this place is built of, cheapest rung first:
+     * Resolve what this place is built of — **two rungs, and the second
+     * always answers**:
      *
-     *   1. the scope's own `fabric:` spec (a Location's);
-     *   2. its class's `fabricDefaults()` hook (a sealed cellar's rock);
-     *   3. a `Vessel`'s own material — it IS matter, so it needs no
-     *      spec at all;
-     *   4. the universe default (`envelope.defaultFabric`).
+     *   1. the scope's own `fabric:` spec;
+     *   2. its class's {@link fabricDefaults} hook, whose terminal here
+     *      is the universe default (`envelope.defaultFabric`), and which
+     *      a `Vessel` overrides with its own material because it IS
+     *      matter.
+     *
+     * ⚠⚠ It was four rungs reached through a cast until review
+     * (2026-09-24). Two of them — the `Location`'s spec and the
+     * `Vessel`'s material — were only optional *because the members sat
+     * on hosts this mixin composes inside of*, so it could not see them.
+     * Moving the fabric onto the mixin that consumes it made rung 3 a
+     * `Vessel` override and rung 4 the hook's own terminal, and the
+     * three `?.` reaches went with them. ⭐ The tell was the cast: a
+     * mixin narrowing its own `this` is the host being wrong.
      *
      * ⚠ A material whose row authors no `thermalConductivity` reads
      * **zero**, which is an infinite insulator — silently. That is why
@@ -588,42 +672,17 @@ export function AtmosphericMixin<
      */
     private resolveFabric(): EnvelopeFabric {
       if (this._envelopeResolved !== null) return this._envelopeResolved;
-      const self = this as unknown as Stuff & {
-        getFabricSpec?: () => FabricSpec | null;
-        fabricDefaults?: () => FabricDefaults;
-        getMaterial?: () => Material | null;
-      };
 
-      let materialPath: string | null = null;
-      let thicknessM: number | null = null;
-      let material: Material | null = null;
+      const spec = this.getFabricSpec();
+      const defaults = this.fabricDefaults();
+      const materialPath = spec?.material ?? defaults.materialPath;
+      const thicknessM =
+        typeof spec?.thicknessM === 'number'
+          ? spec.thicknessM
+          : defaults.thicknessM;
 
-      const spec = self.getFabricSpec?.() ?? null;
-      if (spec?.material) materialPath = spec.material;
-      if (typeof spec?.thicknessM === 'number') thicknessM = spec.thicknessM;
-
-      if (materialPath === null && self.fabricDefaults) {
-        const d = self.fabricDefaults();
-        materialPath = d.materialPath;
-        thicknessM ??= d.thicknessM;
-      }
-      if (materialPath === null && self.getMaterial) {
-        // A Vessel: its fabric is what it is made of.
-        material = self.getMaterial() ?? null;
-        materialPath = material?.getTemplatePath() ?? null;
-      }
-      if (materialPath === null) {
-        materialPath = envelopeDialStr(
-          AppSettingKeys.envelopeDefaultFabric,
-          '/stuff/idea/material/rock/granite',
-        );
-      }
-      thicknessM ??= envelopeDial(
-        AppSettingKeys.envelopeDefaultThicknessM,
-        0.3,
-      );
-
-      material ??= StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
+      const material =
+        StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
       const resolved: EnvelopeFabric = {
         kWmK: Math.max(material?.getThermalConductivity().rawValue() ?? 0, 0.02),
         rhoKgM3: material?.getDensity().rawValue() || 2000,

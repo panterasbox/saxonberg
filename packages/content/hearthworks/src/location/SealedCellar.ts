@@ -17,7 +17,7 @@
 
 import SingletonCartesianLocation from '@saxonberg/server/mud/lib/location/SingletonCartesianLocation';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
-import type { FabricDefaults } from '@saxonberg/server/mud/lib/stuff/Location';
+import type { FabricDefaults } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 
 export default class SealedCellar extends ReservedMixin(
   SingletonCartesianLocation,

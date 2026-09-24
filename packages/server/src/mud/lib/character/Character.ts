@@ -230,13 +230,18 @@ export abstract class Character extends CharacterBase {
         const garment = await StuffApi.clone(path);
         if (!MixinApi.isContainable(garment)) continue;
         ContainmentApi.move(garment, self as never);
-        if (bodyPlanPath && MixinApi.isWearable(garment)) {
+        // ⭐ `isSlotted`, not a cast. Every other narrowing in this
+        // method is a `MixinApi` predicate and this one was a bare
+        // assertion (fixed at review, 2026-09-24) — which mattered:
+        // a host with a body plan but no slots threw into the catch
+        // below and lost the garment SILENTLY. Now it is a skip.
+        if (
+          bodyPlanPath &&
+          MixinApi.isWearable(garment) &&
+          MixinApi.isSlotted(self)
+        ) {
           const slots = garment.getSlotClaim(bodyPlanPath);
-          if (slots.length) {
-            (self as unknown as {
-              occupyAll(g: unknown, s: readonly string[]): void;
-            }).occupyAll(garment, slots);
-          }
+          if (slots.length) self.occupyAll(garment, slots);
         }
       } catch {
         /* a bad garment costs that garment, not the character */

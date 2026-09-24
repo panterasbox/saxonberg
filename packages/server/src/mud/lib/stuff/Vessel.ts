@@ -40,13 +40,24 @@
  */
 
 import { ContainerMixin } from '../spatial/Container';
-import { AtmosphericMixin } from '../biome/Atmospheric';
+import {
+  AtmosphericMixin,
+  type FabricDefaults,
+} from '../biome/Atmospheric';
 import Thing from './Thing';
 import type { FieldMeta } from '../mixin';
 
 // A Vessel is a Thing (matter — describable / Tangible / Wet / Containable)
 // that additionally holds things (Container) with an interior climate
 // (Atmospheric). It traces the `Thing` top-level branch, not its own.
+/**
+ * How thick a vessel's wall is, in metres. A box, a barrel, a flask:
+ * all of them are millimetres of stuff, not the third of a metre a
+ * BUILDING defaults to — and the envelope's conduction is linear in
+ * this, so handing a crate a wall like a wall would make it a thermos.
+ */
+const VESSEL_WALL_M = 0.01;
+
 const VesselBase = AtmosphericMixin(ContainerMixin(Thing));
 
 export class Vessel extends VesselBase {
@@ -85,6 +96,24 @@ export class Vessel extends VesselBase {
       );
     }
     this._transmissionFactor = value;
+  }
+
+  /**
+   * ⭐⭐ **A vessel IS matter, so it needs no `fabric:` at all** — its
+   * envelope is made of whatever it is made of, and the thickness is
+   * the wall of a box rather than the wall of a building.
+   *
+   * ⚠ This was a rung inside `Atmospheric.resolveFabric`, reached
+   * through an optional `getMaterial?` cast, because the fabric used to
+   * live on `Location` and a `Vessel` is not one. As the mixin's own
+   * hook it is an ordinary override and the cast is gone (review,
+   * 2026-09-24).
+   */
+  public override fabricDefaults(): FabricDefaults {
+    const material = this.getMaterial();
+    const path = material?.getTemplatePath() ?? null;
+    if (path === null) return super.fabricDefaults();
+    return { materialPath: path, thicknessM: VESSEL_WALL_M };
   }
 
   public getTransmissionFactor(): number {
