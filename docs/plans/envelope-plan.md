@@ -1413,6 +1413,52 @@ re-arm; the treasury's own short-refusal leaves every street dark.
 realm appropriating for the town (one treasury per currency); the
 locality treasury is a deferred seam, not this build's.
 **Commit.** `build(envelope W5): street lighting is a property of the street and a bill on the extent`
+→ **DONE.** 2221 near-tests green; the terminus pack green (132);
+`check-light-sources` reports **5 streets publicly lit and no lamp
+object anywhere** — acceptance 6, mechanised.
+
+⭐⭐ **`Locality` does NOT look up its own streets — it is handed them,
+and the split is the design rather than plumbing.**
+
+Finding them means `StuffApi.findByMixin`, which is gated to a reviewed
+`(template, method)` allowlist: *being handed a slice of the world has
+to be asked for by name.* Rather than widening that gate for a Stuff
+class, the walk moved to `AddressLogic.settleStreetLighting`, which
+already owns the question **"what does this extent cover?"** — one walk
+for the whole realm per game night, bucketed by locality and sorted by
+seniority, and each extent handed its own queue.
+
+What stays on the extent is what is actually the extent's: **the order,
+the money, and the record of what it lit.** That needs nothing but its
+own fields.
+
+**Three extents fund lighting, and they are three different localities**
+— `terminus-city` (the wharfside bank), `university-avenue` (the
+crossing), `counting-houses` (its own row first, the market square
+second). Seniority is per street, so the square is the one that goes
+dark when the money is short, and **that order was written down before
+anybody knew there would be a shortfall.**
+
+⭐ **Mayfield Row is the lamps nobody pays for**, and it is honest
+fiction rather than a contrivance: the street addresses
+`terminus/mayfield-row`, *outside* the city, so its covering locality is
+the realm — which funds no lighting. The standards are there and they
+stand cold every night. `look at the lamps` says exactly that, which is
+a different sentence from a street that never had any (`delight-road`
+declares nothing and has no lamp detail at all).
+
+⚠ **The `civic:lighting` schedule is armed by DAY, not by a recomputed
+sunset**, and that is deliberate: sunset drifts through the year, but a
+settle is idempotent per night (`_lightingNight` guards it), so a fixed
+daily cadence from the first sunset lands inside the right night
+everywhere. A **boot-time settle** covers the reboot-at-midnight case —
+a restart in the evening must not leave the town unlit until tomorrow.
+
+⭐ **A street lamp reads `lit`, not `bright`** — 400 lm over a 9 m² cell
+is ~44 lux. That is the right band and the reason S1's claim holds: the
+difference between moonlight and a lit street is **reliability, not
+brightness**. The moon gives you `very-dim` when it is up and clear; the
+town gives you `lit` every night it pays.
 
 ### W6 — The content pass
 
