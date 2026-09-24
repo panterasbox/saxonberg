@@ -1266,6 +1266,74 @@ cannot give, it authors `_temperature` and enters `AUTHORED_TEMPERATURES`
 with its reason, and the initial ceiling is set to the count at W3 — the
 ratchet starts from the truth, not from the number 5).
 **Commit.** `build(envelope W3): the room holds a state different from outside, at a cost`
+→ **DONE.** 1542 near-tests green across biome, thermal, weather, stuff,
+the api logic tier and the perception verbs.
+
+⭐⭐ **Two places the plan's own arithmetic did not survive the shipped
+content, both found by running it.**
+
+1. **The default fabric path did not exist.** D3b named
+   `/stuff/idea/material/stone/granite`; the row is at
+   `/stuff/idea/material/rock/granite`. It would have fallen through to
+   the "material not found" floor and every unauthored room in the realm
+   would have been built of nothing in particular — silently, because
+   the resolver degrades rather than throwing. `lint:envelope` clause
+   (b) now refuses exactly this for an authored `fabric.material`, and
+   `lint:census` resolves it too.
+
+2. ⭐⭐ **`U = (k/t)·A` omits the air films, and the shipped materials
+   make that fatal.** The plan's worked numbers assumed brick masonry at
+   `k = 0.6`; the shipped granite row authors the real **2.9 W/(m·K)**.
+   With no film term a 3 m stone cell computes to **435 W/K** — a 1.5 kW
+   hearth would lift it three degrees — and an iron sheet computes to
+   **16 000 W/K**, which is not a number about anything.
+
+   The fix is real physics, not a fudge: still air clings to both faces
+   of a wall and carries about **0.17 m²K/W** between them, in series
+   with the fabric's own conduction (`envelope.surfaceResistanceM2KPerW`,
+   the standard building-physics figure). With it: granite ≈ 165 W/K
+   (τ ≈ 1.7 h, a hearth +9 K), oak ≈ 43 W/K (τ ≈ 4.6 h, a hearth +35 K),
+   and the tin shed ≈ 265 W/K — *a terrible building, which is true,
+   instead of a hole in the world, which is not.* The plan's headline
+   claims all survive: a timber cabin is warm, a stone hall is cold, an
+   open door is expensive.
+
+⭐ **`SpaceHeatingMixin` moved from W4 to W3** — re-planned in place. The
+envelope reads a room's heating sources, so W3 cannot compile without
+the mixin, and a wave has to be independently landable. The **substrate**
+(the mixin, `Mixins.SpaceHeating`, `MixinApi.isSpaceHeating`) is W3's;
+the `Hearth` class, `Campfire`'s composition and the rows stay W4's.
+
+**Decisions the plan did not make.**
+- **A per-DETAIL temperature read keeps the plain chain.** `feel stove`,
+  the shaded corner, the ice bath — none of those is the room's own air,
+  so the envelope applies to the bare read only.
+- **`envelopeCoefficients()` is extracted** so the integration and the
+  provenance `feel` reads come from one arithmetic. A second copy of
+  that formula would be a room whose stated reason disagreed with its
+  own temperature — the exact failure the cause line exists to expose.
+- **`AnalyzeAtmosphereController` gained the `'envelope'` arm.** The
+  trace's source union is exhaustively switched, so the compiler
+  demanded it, which is the gate working.
+- **The `SealedCellar` hook authors a metre of granite, not a
+  temperature.** Declaring the temperature would bypass the envelope and
+  put the row on the ratchet; declaring the ROCK lets the physics
+  answer, and the answer is a cellar that runs cool and steady because
+  it is underground and massive.
+- **Two exemplar `fabric:` rows ship in W3** (the woodshed in oak
+  boards, the smithy in thick granite) rather than waiting for W6.
+  ⚠ Otherwise `lint:envelope` clause (b) would have had **zero
+  coverage** — a gate that answers "no" to every question, which is the
+  failure class the derived family exists to prevent.
+
+⚠ **Seven shipped tests pinned absolute outdoor temperatures** and the
+solar term moves them. They were re-derived as **deltas against a
+clear-sky baseline measured on the same clock**, which is what the
+weather seam actually claims, rather than re-pinned to new constants —
+the pins were on the calendar, not on the coupling. One draft of that
+baseline helper short-circuited when weather was inactive and measured
+the baseline in a world without a solar term, which is worth knowing:
+the helper has to CREATE the weather singleton to be comparable.
 
 ### W4 — The hearth warms its room; the forge still does not
 
