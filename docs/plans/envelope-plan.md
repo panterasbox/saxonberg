@@ -952,6 +952,54 @@ sealed cellar reads `pitch-black` to a kobold; `lint:light-sources`
 passes with ceiling = today's count; every wire test still green
 (`ground.wire`, `platform-smoke`).
 **Commit.** `build(envelope W0): the sky is a sync memo; a dark room says so`
+→ **DONE** `a7d335740`. 53 lint gates pass (the new one self-enrolled);
+1077 near-tests green.
+
+⭐ **What W0 decided that the plan did not.**
+- **No card opens in the dark.** D10 said *withhold the long
+  description* and did not say where the card stood. Opening one would
+  put the room's name and description in the client's right-hand column
+  while the transcript said it was pitch dark — the carded-prose split
+  working exactly backwards. Lens 3 chose it: an honest sim does not
+  show you a room you cannot see. The light line at `dim`/`blinding`
+  rides its own **uncarded** scene ahead of the room, the shape the
+  help-wanted sign established.
+- **The cloud dim follows `isSkyLit()`, not sky EXPOSURE** — a skylight
+  is dimmed by cloud like a yard is — **and an enclosed skylit room
+  asks for the exposed sample explicitly**, because `computeResolved`
+  runs the procgen sky field only for exposed scopes and would
+  otherwise dim a shop window by a biome baseline nobody is standing
+  under.
+
+⚠⚠ **The curve as D2 literally wrote it was discontinuous.** `sin(α)`
+above the horizon and `0.1 · 10^(α/3)` below means the factor steps from
+0 **up** to 0.1 as the sun sets — a street that gets brighter at sunset.
+The sun term is now `0.1 + 0.9·sin(α)` above and `0.1 · 10^(α/3)` below:
+a diffuse skylight floor plus the direct beam, continuous at zero. D2's
+own worked anchors (*"dim at sunset (0.1 → 8 lux)"*) already assumed
+this, so it is the arithmetic the plan meant. Found by the anchor test,
+which is what it is for.
+
+**The census, for W6 to spend against.** 176 atmospheric rows; **38**
+follow the sky by derivation; **50** enclosed rows emit ambient light
+and name no source. Two things in that list a reader should know:
+- ⚠ **The whole of Rejection authors no biome at all.** Nine rows at
+  8000 lm — the pithead yard, the hillside, the fuel yard — are outdoors
+  in the fiction and the realm does not know it, so they get no weather
+  either. A `_biomePath` line each and the constant deleted.
+- The rest sort by their own numbers: a big value (a barn at 300, a
+  bakery at 400) meant *lit by day*; a small one (a cellar at 15, a
+  corridor at 9) meant *there is a lamp in here* and should have one.
+
+⭐ **Clause (g) paid for the gate on its first run.** Four shipped rows
+relied on `FurnaceMixin.lit` defaulting TRUE. The campfire and the
+practicum brazier mean it and now say so. `still.yaml` and
+`small-still.yaml` shipped **lit** against their own prose (*"the
+firebox swept and ready"*) and their own class docstring (*"lit with
+`ignite`"*); nothing observable depended on it, because they carry no
+fuel reserve and every consumer of `isLit()` also asks `fuelRemaining()
+> 0` — which is exactly why it survived the whole of the distilling
+build's life.
 
 ### W1 — Cold is a cost, not a corpse
 
