@@ -187,9 +187,12 @@ project uses is whether a second instance needs code. It does not:
 a second town's street lighting, a second inn's fireplace and a second
 cellar's lantern are **rows**.
 
-**Street lamps are the locality's content.** Terminus holds title to its
-own streets, which is already true in the parcel record and already
-stated in its own rows; its lamps are its property, in its pack.
+**Street lamps are the locality's content, and they are not objects.**
+Terminus holds title to its own streets — already true in the parcel
+record and already stated in its own rows — so its lighting is its
+property, in its pack, expressed as a **declaration on the street's own
+row** plus a detail beside it (S3). Nothing is propped and nothing is
+minted.
 
 **Fuel goods stay with the fuel trade.** Charcoal is theirs; coal and
 peat will be extraction's. What this build adds is the *consumer*.
@@ -267,6 +270,48 @@ excluded from and everybody benefits from, which is the definition of
 the problem a polity exists to solve — and this realm already has a
 polity, a treasury, seats and titled streets. No new civic machinery is
 invented here; appropriation and taxation stay the civic build's.
+
+⭐⭐ **And the lamps are a PROPERTY of the street, not objects.** A street
+declares that the town lights it; whether it is lit right now is
+**derived** — the service is funded, it is after dusk, so the street is
+lit. The lamps themselves are prose: a dynamic detail you can `look at`,
+which says whether they are burning. **Nothing is minted.**
+
+*Why:* the realm has already ruled on this question twice, in opposite
+directions, and the test that separates them is *is it the target of a
+verb?*
+
+- The University Avenue **clock tower** is not an object — *"fixed
+  scenery whose only job is to show true time needs no mechanism and no
+  instanceable class; the detail seam is enough"*
+  ([time.md](../subsystems/time.md)). Nobody binds a tower.
+- The **floor** IS an object, one per room, and the ground build paid
+  0.76 ms a room for it with the measurement written down — because
+  `dig` has to bind it ([ground.md](../subsystems/ground.md)).
+
+Nobody binds a street lamp. Every act that matters — funding the
+service, walking the round, the street being lit or dark — happens at
+**street** granularity, and 41 of the realm's rows name an outdoor
+biome. Minting one identical fuelled object per street would be 41 fuel
+reserves reconciling on read to produce a number that is the same for
+all of them.
+
+⭐ It also gives the civic half its honest shape: **the town's fuel bill
+is one figure in one place.** A town does not track lamps. It funds a
+service, and finds out it is short when the streets go dark.
+
+⚠ **The escape hatch, and it is the shipped pattern.** Forestry ships
+*four representations of a tree* — a place, a slot-plant, a record, a
+prop — chosen by what the fiction needs at that spot. If a later build
+wants an individual lamp smashed, doused or climbed (a stealth or
+policing feature), **that** lamp becomes a prop at **that** spot and
+every other street keeps the property. A second representation where
+something acts on it; not 41 of them on the chance.
+
+⭐ The rule this generalizes to, and the one the build should hold:
+**a light is an object where somebody acts on it, and a property where
+the town runs it.** Indoors is where objects earn their place — a
+tavern's lamp and a hearth are things you ignite, feed and run out of.
 
 ### S4 — A room's warmth has a named source, and the room leaks
 
@@ -400,8 +445,10 @@ or advances); everything else is typed by a player with no privileges.
    the dark comes back.
 6. **Walk onto a lit street.** The town's lamps carry it without your
    lantern. Put your lantern out and keep walking — you are fine here.
-7. **Find a lamp that has not been filled.** That stretch is dark, and
-   looking at the lamp says it is out of oil, not that it is broken.
+7. **Walk to a street the town does not light** — one it never lit, or
+   one whose service has lapsed. That stretch is dark, and `look at the
+   lamps` says they are standing cold, not that they are broken or that
+   there are none.
 8. **New moon or heavy overcast.** The same walk without a light is
    genuinely dark — you can move, but the street tells you nothing.
 9. **Go indoors, into an unheated room, in winter.** `feel` reports the
@@ -437,7 +484,10 @@ Observable from outside the code. Each one names what a **person** sees.
    dark returns immediately.
 5. A player walking a lit town street at night needs no lantern; a player
    walking an unlit one does.
-6. A lamp that nobody has filled is **out**, and looking at it says so.
+6. A street the town is not lighting is **dark**, and looking at its
+   lamps says they are standing cold — ⭐ **with no lamp object anywhere
+   in the world.** The lamps are a property of the street and prose
+   beside it; a census finds none minted.
 7. **No room in the realm shows light without a source** — a census over
    the shipped content reports none, and refuses a new one.
 8. A player standing in an unheated room in winter can tell they are cold
