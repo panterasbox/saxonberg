@@ -1,12 +1,19 @@
 # Recovery slate — making the clinic heal you
 
-> **Status: DRAFTED 2026-09-18** — the focused, non-duplicative cut of what
-> was loosely asked for as "the treatment build," then **scope-maxed against
-> the five lenses** per user directive (2026-09-18). Seeded by the harm-survey
-> build (injury shipped, MR !260) and a three-way code+design survey.
-> **Left:** all of it — a fresh slate; nothing here is built.
-> **Size:** a build (a **wiring** core + **lens-extension** waves). ⭐ The
-> core reconsumes seams already cut; the extensions each buy a lens.
+> **Status: PARTIAL — recovery vertical shipped 2026-09-24 (MR !278)** — the
+> convalescence rate model, every wound treatable, offline mend, the clinic
+> that practises, hygiene + sepsis, the mend spell, labour-priced care, and
+> scars + re-injury. Durable behaviour is in
+> [harm.md](../../subsystems/harm.md) / [vitals.md](../../subsystems/vitals.md).
+> **Left:** the deferred lens-tails, each now its own slate — prosthetics → [augmentation-slate](../tails/augmentation-slate.md) · the absent body → [absent-body-slate](../tails/absent-body-slate.md) · surgery the practice → [surgery-slate](./surgery-slate.md) · blood / transfusion / donation → [blood-slate](./blood-slate.md).
+> **Size:** a build — the remainder (surgery + blood, one build) plus small tails.
+
+⭐ **The next build is surgery + blood** (user direction, 2026-09-24): finish
+the surgery vertical ([surgery-slate](./surgery-slate.md)) and do blood
+donation / transfusion ([blood-slate](./blood-slate.md)) as one build. ⚠ The
+recovery build deliberately left `PLASMA_RESTORE_CEILING_FRAC` at **0.85**
+(rest restores lost blood only part-way) so transfusion keeps its reason to
+exist — that ceiling is blood-slate's premise; do NOT raise it.
 
 Captured out of the question *"where do we go after harm — healing/treatment,
 or law-enforcement?"* The survey answered the first half: **treatment is not
