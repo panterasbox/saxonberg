@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**233 slates.** 51 greenfield · 83 continuations · 55 waves · 44 tails.
+**235 slates.** 52 greenfield · 84 continuations · 55 waves · 44 tails.
 
-## ⭐ Greenfield — nothing shipped yet (51)
+## ⭐ Greenfield — nothing shipped yet (52)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -75,6 +75,7 @@ respect.
 | [insurance](./builds/insurance-slate.md) | the policy-as-contract + reserve ratio · cargo underwriting first (fire and crops after) · the mutual as the guild's instrument · prevention priced into the premium … |
 | [intervention](./builds/intervention-slate.md) | the sideless participant · a relation whose object is a |
 | [legibility](./builds/legibility-slate.md) | `extends:` on template rows (runtime-resolved, single parent, an ordinary row, folded into access.md's transitive set — and the `cp`/`mv` D5 relaxation it delivers) · the `props:` entry shape (`count` + `as`) · the instruction-field merge rule · contents **grouping** beside `looseContents`, consumed by the same three call sites … |
+| [live-drive](./builds/live-drive-slate.md) | the sidecar that holds the agent session · the channel bridge (prompts in, replies out) · the agent's own character + how it logs in · the approval posture for a live audience … |
 | [llm-content](./builds/llm-content-slate.md) | the director agent + its locality prompt · the salience gate + the active-cast set · the forced-cast command-bus seam (no `force` exists) · the ambient narrator … |
 | [map](./builds/map-slate.md) | the 2D per-floor grid + the player minimap · the 2D node-graph · the 3D procedural box render · the draft-template and live-Stuff adapters … |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
@@ -96,7 +97,7 @@ respect.
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (83)
+## ⭐ Continuations — substrate shipped, a build's worth remains (84)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -182,6 +183,7 @@ are the named remainders.
 | [species](./builds/species-slate.md) | every actual difference — the ectotherm · scent-based recognition · cannot-metabolise-a-staple · equipment incompatibility … |
 | [standing-mint](./builds/standing-mint-slate.md) | published weights as readable content · the distributional impact statement · rater agencies as a player institution · disclosure regulation as passable law … |
 | [stewardship](./builds/stewardship-slate.md) | premises + utilities (the lease's money leg) · the allowance meter · the cascade + the zoning authority (who decides · the two checks … |
+| [streamer-registry](./builds/streamer-registry-slate.md) | the `Streamer` record itself (nothing about a streamer is persisted today, on either side) · claim-by-proof over the shipped OAuth links · retiring the four singleton env vars into per-streamer fields · a per-streamer overlay token + feed scope + `StreamState` … |
 | [textiles](./builds/textiles-slate.md) | leatherwork + tanning (blocked on a hide faucet) · wool and its left edge — felting, fulling, knitting, scouring (blocked on ranching) · cotton and silk · synthetics, mills, mass production … |
 | [towns](./builds/towns-slate.md) | Rejection Act I + the inert `stocks:` table · Heart's Delight's support half (the Cannery Row town — the tower, the co-op, the pack + seasonal employment, Halloran's founding, Hendy's yard, the eight farms) · Hinkley facades / neighbours / the Death Man + `knock` + a rule for D22 · Rejection's support half (the Rest, the Tallow, the Institute, the print shop, the infirmary, the sharpening shop, a burial ground) … |
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
