@@ -1658,7 +1658,7 @@ commit. Order matters — each step keeps the tree green.
 > (written by the eye rung) and the `ReadingRecord` (minted by the
 > bench). The arithmetic is advancement's and is not here.
 
-#### W10 — The second bench, the Stage B drive, the MR
+#### ✅ W10 — The second bench, the Stage B drive, the MR — DONE
 
 - A second assay bench row `props:`-placed in a second locality's
   content, owned by somebody other than the first owner, `fee` higher, no
@@ -1668,6 +1668,51 @@ commit. Order matters — each step keeps the tree green.
   K30–31, N37; run it; run the seven drives again; `pnpm test` once;
   append the drive record; push; open the MR.
 - Commit: `drive(instrumentation): Stage B — the round trip, driven` then the MR.
+
+> **Wave note — the second bench cost ONE LINE, and it was not code.**
+>
+> `city-assay-bench.yaml` is a row in `terminus`'s goods yards, where ore
+> arrives by wagon: a different locality, a different owner, no roster,
+> dearer and slower. Zero pack code, which is the build's own falsifiable
+> test of D22.
+>
+> ⚠⚠ **But the installer refused the boot, and it was right to.** A row
+> naming another pack's class IS a dependency:
+>
+>     pack 'terminus' names class '/trade/mining/thing/instrument/AssayBench',
+>     which pack 'trade-mining' ships, but does not depend on it
+>
+> One line in `package.json` — no code — and terminus already depends on
+> fifteen other trades. ⭐ Worth recording against *"a second venue needs
+> zero pack code"*: it needs zero pack code and it does need the pack
+> graph to admit the edge, and the contract says so **before the world
+> boots** rather than after.
+>
+> ⚠⚠ **The Stage B drive found the article defect twice more, in shapes
+> Stage A had not reached**, and the general rule they add up to is
+> wider than the plan's note:
+>
+> > **Every object arg a player will put an article in front of needs
+> > `greedy` — plural ones and prepositional ones included.**
+>
+> `assay the ore` bound `the` and `ore` as two object queries and refused
+> with *"an aether implant is not a sample"* — a sentence about an object
+> nobody mentioned. `assay the ore at the bench` then died as an unknown
+> shape on the preposition's own tail.
+>
+> ⚠ And making the trailing tails greedy surfaced a SECOND kernel
+> conflation: `validateArgOrdering` counted `greedy: true` as
+> `required: true` unconditionally, so the three perception views
+> refused to load at boot. See the fix commit — a bare `greedy` still
+> defaults to required; an explicit `required: false` now wins.
+>
+> Two smaller drive findings, both recorded at their sites:
+> a channel with a **bench but no dial** could not name the bench (the
+> rung check runs before the hook, so a per-channel `measure` override
+> was dead code); and **a named subject that resolves to the ROOM is the
+> ground**, not a thing — `sample the north face` binds the working
+> itself, and routing that to the named-thing path answered *"you cannot
+> carry a working face anywhere"*.
 
 ---
 

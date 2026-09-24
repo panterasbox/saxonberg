@@ -517,16 +517,27 @@ export default abstract class Reading extends ReadingBase {
   }
 
   /**
-   * The bench rung, driven. Gated to the `assay` verb's controller —
-   * the same narrow-entry rule the two read verbs get, for the same
-   * reason: a rung is an ACT, and an act has one caller.
+   * The bench rung, driven.
+   *
+   * ⚠⚠ **UNGATED, and that is a correction the drive forced.**
+   *
+   * It was gated `FromModule` to the `assay` controller, by analogy with
+   * the two read verbs. The analogy is wrong, and the world died proving
+   * it: an assay completes **on the world clock**, long after the
+   * dispatch that ordered it, and a timer callback runs in a fresh root
+   * execution frame with no controller on it. So the gate denied the
+   * bench's own completion, the rejection was unhandled, and the process
+   * went down — the `winOre` lesson in a new costume.
+   *
+   * ⭐ And gating it was never buying anything. `runMeasure` and
+   * `runAnalyze` are gated because they NARRATE TO A PLAYER inside a
+   * dispatch and must have exactly one caller. This narrates nothing and
+   * has no actor: it takes a sample and a bench and returns DATA, which
+   * is the same shape as {@link truth}, which is ungated and says so.
+   *
+   * ⚠ The narrow-entry rule is about acts with an audience. A rung that
+   * runs on a timer has none.
    */
-  @CallSecurity(
-    SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('/trade/mining/idea/cmd/mining/AssayController'),
-      SecurityPolicies.SelfOnly,
-    ),
-  )
   public async benchReadFor(
     sample: Stuff,
     bench: Stuff & Tooled,

@@ -202,7 +202,20 @@ export default class AssayController extends CommandController<AssayModel> {
     if (fee <= 0) return true;
     const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
     const venue = room?.getTemplatePath() ?? '';
-    const business = await EmploymentApi.ensureOperatorAt(venue);
+    // ⚠⚠ `businessAt` (a keyed LIVE lookup), never `ensureOperatorAt`.
+    //
+    // `ensureOperatorAt` stands a house up and runs a full roster pass —
+    // shift transitions, wage settlement, the closed sign — on the way
+    // past. That is an economic act, and **a read verb must not run a
+    // payroll pass**: the shipped rule one line above it in the Api is
+    // *"walking into a room must not be one"*, and handing samples over
+    // is no different.
+    //
+    // ⭐ Found by driving the round trip, where `assay … at the bench`
+    // never returned. It is also the honest semantics: an unowned,
+    // unstood bench is FREE, because there is nobody whose furnace it
+    // is.
+    const business = EmploymentApi.businessAt(venue);
     if (!business) return true;
     let account: string;
     try {
@@ -318,39 +331,54 @@ async function finishAssay(
   try {
     for (const sample of batch.samples) {
       if (sample.isDestroyed()) continue;
-      const reading = await claimFor(sample);
-      const paper = (await StuffApi.clone(RECORD_ROW)) as unknown as ReadingRecord;
-      const stamp = (
-        sample as unknown as {
-          getSampling?(): { at: string; by: string; on: number } | null;
-        }
-      ).getSampling?.() ?? null;
-      const said = reading
-        ? await runBench(reading, sample, scale)
-        : { prose: 'Nothing this bench can read.', value: null, unit: '' };
-      paper.inscribe({
-        channel: reading?.getChannel() ?? '',
-        subjectLabel: sample.getPresentation(),
-        reading: said.prose,
-        value: said.value,
-        unit: said.unit,
-        // ⭐ The reader's band when somebody ran it, else the bench's.
-        // What you buy from an assayer IS their band.
-        band: await readerBand(batch.readBy ?? null, scale),
-        takenBy: batch.customer,
-        takenByLabel: batch.customerLabel,
-        takenWith: scale.getTemplatePath() ?? '',
-        takenWithGrade: MixinApi.isGraded(scale) ? scale.getGradeBand() : '',
-        takenOn: Math.round(WorldClockApi.getNow().rawValue() * 1000),
-        sampledAt: stamp?.at ?? '',
-        sampledBy: stamp?.by ?? '',
-        sampledOn: stamp?.on ?? 0,
-        tell: said.tell ?? null,
-      });
-      ContainmentApi.move(paper as unknown as Stuff & Containable, room);
-      // ⭐ The sample is CONSUMED. An assay is destructive — that is why
-      // it costs a sample and why salting is worth doing.
-      await StuffApi.destruct(sample);
+      try {
+        const reading = await claimFor(sample);
+        const paper = (await StuffApi.clone(RECORD_ROW)) as unknown as ReadingRecord;
+        const stamp = (
+          sample as unknown as {
+            getSampling?(): { at: string; by: string; on: number } | null;
+          }
+        ).getSampling?.() ?? null;
+        const said = reading
+          ? await runBench(reading, sample, scale)
+          : { prose: 'Nothing this bench can read.', value: null, unit: '' };
+        paper.inscribe({
+          channel: reading?.getChannel() ?? '',
+          subjectLabel: sample.getPresentation(),
+          reading: said.prose,
+          value: said.value,
+          unit: said.unit,
+          // ⭐ The reader's band when somebody ran it, else the bench's.
+          // What you buy from an assayer IS their band.
+          band: await readerBand(batch.readBy ?? null, scale),
+          takenBy: batch.customer,
+          takenByLabel: batch.customerLabel,
+          takenWith: scale.getTemplatePath() ?? '',
+          takenWithGrade: MixinApi.isGraded(scale) ? scale.getGradeBand() : '',
+          takenOn: Math.round(WorldClockApi.getNow().rawValue() * 1000),
+          sampledAt: stamp?.at ?? '',
+          sampledBy: stamp?.by ?? '',
+          sampledOn: stamp?.on ?? 0,
+          tell: said.tell ?? null,
+        });
+        ContainmentApi.move(paper as unknown as Stuff & Containable, room);
+        // ⭐ The sample is CONSUMED. An assay is destructive — that is
+        // why it costs a sample and why salting is worth doing.
+        await StuffApi.destruct(sample);
+      } catch (err) {
+        // ⚠⚠ **One sample must not take the process down.**
+        //
+        // A completion runs on the world clock, outside any dispatch, so
+        // a throw here has nobody to return it to: it becomes an
+        // UNHANDLED REJECTION and Node exits. It did — a gate denied the
+        // bench's own read and the whole world went with it, mid-drive.
+        //
+        // ⭐ The honest behaviour is that this sample yields no paper
+        // and the rest of the batch still runs. A bench that loses one
+        // assay is a bench with a bad cupel; a bench that loses the
+        // world is a bug.
+        console.error('assay: a sample could not be read', err);
+      }
     }
   } finally {
     if (bench) {

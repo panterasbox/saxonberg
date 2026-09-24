@@ -462,10 +462,10 @@ suite('H19–H23 · the bench', () => {
 
       // ⚠⚠ And now NOTHING is done. No standing, no watching, no
       // engagement to hold. The clock carries it.
-      const deadline = Date.now() + 280_000;
+      const deadline = Date.now() + 240_000;
       let paper = '';
       while (Date.now() < deadline && !/report/i.test(paper)) {
-        await new Promise((r) => setTimeout(r, 5_000));
+        await new Promise((r) => setTimeout(r, 4_000));
         paper = plain(await (await p.cmd('look')).said());
       }
       expect(paper, 'no assay report ever appeared on the bench').toMatch(
