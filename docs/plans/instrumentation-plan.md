@@ -226,14 +226,18 @@ on, with its citation.
   `ContainmentApi.move(lump, room)` → `working.recordWinning` →
   `stampChattel(owner)` → `creditDeed`
   (`packages/content/trade-mining/src/idea/cmd/mining/HewController.ts:129-215`).
-  Faces come from `working.facesOf()` (`trade-mining/src/lib/Working.ts:216,448`;
+  Faces come from `working.facesOf()` (`trade-mining/src/lib/Working.ts:216,448`
+  — ⚠ line numbers move when `build/ground` lands; `facesOf` itself
+  survives, calling through inherited `Strata` reads;
   `Face` `:91`, `getOreRow` `:196`). Each face is a **room**
   (`packages/content/rejection/content/world/terminus/rejection/ferrow/face.yaml`,
   `class: /trade/mining/location/MineRoom`, `oreRow:`).
 - `Deposit.surfaceReadingAt(x, y, errorDeg, seed)` takes the band's error
   as INPUT and returns truth + observation
   (`trade-mining/src/idea/Deposit.ts:413`) — the test shape *"identical
-  truth, different resolution."*
+  truth, different resolution."* ⚠ **This path moves** — `build/ground`
+  relocates `Deposit` to `@saxonberg/content-ground/src/idea/Deposit`;
+  see § *Three branches in flight*.
 
 ### The timed, unattended act
 
@@ -313,6 +317,51 @@ on, with its citation.
   re-warms idempotently. `ArchetypeCatalogue.ts:40-67` warms in
   `postRegister` and lazily. `SurveyController.ts:34-41,162` reaches a
   catalogue by `StuffApi.findByTemplatePath`.
+
+### ⚠⚠ Three branches in flight — re-grounded 2026-09-23
+
+Grounding above is against `origin/master` at `73eb91840`. **Three
+sibling builds are unmerged and every one of them moves ground this plan
+stands on.** Re-read this section before W0; if any has merged, merge
+`origin/master` into the branch first and re-check the four facts marked
+⚠ below.
+
+| branch | state | what it moves under this plan |
+|---|---|---|
+| `design/trades-and-labor` (**MR !280, mergeable**) | drive 14/14, lands first | ⚠ **`lint:controller-rows`, ceiling 0** (D23) · `lint:counters` · `lint:openings` · `MakerMixin` retires · `rejection/thing/assay-counter.yaml` re-classes to `/trade/shopkeeping/thing/ConsignmentShelf` |
+| `design/treatment` (**MR !278, `cannot_be_merged`**) | sweep done, conflicts with master | ⚠ `AssessController` is substantially rewritten (D16) · `wash` absorbs `scrub` · `platform/idea/cmd/perception/` gains no verb |
+| `build/ground` (**no MR yet**, W0–W4 done) | mid-build in build-2 | ⚠⚠ `Deposit` moves packs · `WorkingMixin` composes `StrataMixin` · `SurveyChannelController` / `SoilChannelController` / `AnalyzeSoilController` / `MeasureTextureController` all touched · `Working.ts` rewritten (179 lines) |
+
+⚠⚠ **`build/ground` is the collision that matters.** W1 rewrites
+`SurveyChannelController`, `SoilChannelController` and `Working.ts`
+wholesale; ground is concurrently rewriting `Working.ts` and moving
+`Deposit` out of the trade. Same three files, and ground has no MR yet.
+**The four facts it changes:**
+
+1. `Deposit` moves from `trade-mining/src/idea/Deposit.ts` to
+   `packages/content/ground/src/idea/Deposit.ts`, imported as
+   `@saxonberg/content-ground/src/idea/Deposit`. Every citation of
+   `Deposit.surfaceReadingAt` in this plan carries the **old** path.
+2. `WorkingMixin` composes `StrataMixin`
+   (`packages/content/ground/src/lib/Strata.ts`, `/system/ground`),
+   which owns the five position reads. Ground's own statement of the
+   split is *“reads go to the GROUND, cutting belongs to the trade that
+   cuts”* — which decides where `sampleFace` goes (D24).
+3. ⚠ **`StrataMixin` already exports `sampleHere(): Promise<GroundSample
+   | null>` — a DATA READING**, one dot from this build's `sample` verb,
+   which mints **matter**. Neither may be renamed for the other's
+   convenience; the plan states the difference wherever both appear
+   (D24), because a reader who conflates them will wire the verb to the
+   read.
+4. `facesOf()` survives on `Working` but now calls through inherited
+   `Strata` reads; the plan's citation
+   (`trade-mining/src/lib/Working.ts:216,448`) is a **line number that
+   will move**, not a fact that changes.
+
+⭐ **One fact in flight is a gift, not a hazard** — see D22: the
+`assay-scale` capability, the `assay-kit` instrument and the mining
+archetype's consumption of it are all on **master today**, and were
+missed by the first grounding pass.
 
 ---
 
@@ -560,14 +609,20 @@ of batches (runtime-only, like `AttendantMixin._queue`), and persistent,
 authorable `setupS` (default 1800), `perSampleS` (600) and `fee` (minor
 units per sample, default 25). Row
 `trade-mining/content/trade/mining/thing/instrument/assay-bench.yaml`:
-`capabilities: [assaying]`, `fixedInPlace: true`, mass 180. It contributes
+`capabilities: ["assay-scale"]` (D22 — the shipped name, not a new
+one), `fixedInPlace: true`, mass 180, keyed on `bench`/`assay bench`/
+`cupel` and **never** on `assay` or `scale` (D22's keyword rule). It contributes
 `trade/mining/cmd/mining/assay.yaml` on `environment`; `Ore` contributes
 it on `inventory` so a carried sample affords the verb in the field
 (drive H19's refusal names the missing bench).
 
 `assay <samples> [at <bench>]` — `samples: objects required scope
 reachable requires [SampledMixin]`, `bench: object optional prepositions
-[at, on] default "reachable:[capability.assaying]" requires [ToolMixin]`.
+[at, on] default "reachable:[capability.assay-scale]" requires
+[ToolMixin]`. ⚠ That default resolves the carried **kit** as well as the
+bench — correct, and the point: the kit is the channel's portable rung
+(D22). The controller separates them on `fixedInPlace`, and the two
+rungs differ in `perSampleS`, fee and ceiling, never in access.
 Duration = `setupS + n × perSampleS` (**amortized**, R-D21). The
 controller enqueues the batch on the bench and, when the bench is idle,
 starts it: `WorldClockApi.after(Quantity.of(s, 's'), () => { void
@@ -638,6 +693,28 @@ seeded misread the way combat's fog does (`AssessController` /
 `CombatApi` assess is the precedent to copy, not re-derive). No trait is
 ever asserted (narration doctrine).
 
+⚠ **`AssessController` is rewritten by MR !278 and the precedent gets
+much closer.** Recovery gives `assess` full fidelity on one's own body,
+**banded and competence-gated on others** (the treater's `medicine`
+competence sharpens detail), and a dressed wound that **hides precise
+severity from all but an expert**. That is this build's central rule —
+*competence resolves detail, never access* — implemented independently
+in the medical vertical.
+
+⭐ **Read it before writing D16's arm, and copy it.** Two rules follow:
+
+1. **Do not generalize `assess` into a `Reading`.** It is the medical
+   face and it stays a verb of its own; folding a shipped, driven,
+   just-reviewed controller into this build's ladder is scope this
+   requirements doc did not open, and the two reads answer different
+   questions (*how hurt is this body* vs *what does this channel say*).
+2. **`analyze patient` must not disagree with it.** Where both speak —
+   the band vocabulary, what a dressing conceals, what `novice` is
+   allowed to get wrong — `analyze patient` matches `assess` or the
+   world contradicts itself in two sentences. If !278 has not merged
+   when this wave runs, read the controller on `origin/design/treatment`
+   rather than master's.
+
 ### D17 — The instrument-args gate: widen first, then convert (engineering Q8)
 
 W0 teaches `check-instrument-args.ts` the **alias form** — `const NAME =
@@ -704,13 +781,17 @@ requires any`. Three cases, in order:
 
 1. bound `Stuff` that `isSampled` and `isStackable` → `split(1)` and
    **stamp the split-off with here / actor / now** (the sample was taken
-   here — true);
+   here — true). ⭐ The reading-relevant half is already shipped:
+   `Ore.onSplit` carries `grade` and `gangueMaterialPath` across, so
+   this case is *split plus a stamp*, not a new mechanism (D24);
 2. bound `Stuff` that `isSampled` (not stackable) → stamp in place;
 3. unresolved raw text + a room that answers `sampleFace(actor, raw)`
    (duck-typed, the `analyze power` precedent; mining's `WorkingMixin`
    implements it by the `winOre` path with `SAMPLE_LUMPS = 1`, no
    engagement, `toPeers` narration so a bystander sees it — R-D10) →
-   the minted lump is stamped;
+   the minted lump is stamped. ⚠ **Host per D24**: this belongs on
+   `StrataMixin` (`/system/ground`) once `build/ground` lands, and is
+   **not** `StrataMixin.sampleHere()`, which is a data reading;
 4. otherwise refuse **in terms of the thing, and teach the rule while
    refusing** (drive F14, AC14). The refusal names which of the three
    kinds the subject is, because the samplable set is narrow on day one
@@ -761,20 +842,144 @@ legibility, not access — so cutting it costs the anti-kingmaker argument
 nothing.
 
 **Placement.** The first bench is `rejection` content (mining's
-locality): a bench row `props:`-placed in the co-op's office, where the
-demand already is, with **no dependency on `eternal-university`**. The
-capability `assaying` is declared by that bench row. ⚠ Because no
-archetype consumes it, `lint:capabilities` needs a **consumer** for
-`assaying` — the `[capability.assaying]` default on `assay.yaml`'s bench
-arg is that consumer (`check-capabilities.ts:230` counts the view atom).
-Verify at W6 before relying on it; if the atom does not count, the
-compliant fallback is `hasCapability('assaying')` in the controller,
-which does count.
+locality), `props:`-placed in **the assay shed**
+(`rejection/content/world/terminus/rejection/location/assay-shed.yaml`),
+where the demand already is, with **no dependency on
+`eternal-university`**.
+
+⭐⭐ **The capability is `assay-scale`, and it is already live — the
+carried rung of this channel is BUILT.** The plan previously minted
+`assaying` and then had to go looking for a `lint:capabilities`
+consumer. There is no need: `trade-mining/content/trade/mining/thing/assay-kit.yaml`
+is a shipped `ToolItem` — *a folding balance, a nest of brass weights,
+bone-ash cupels and a small furnace* — declaring
+`capabilities: ["assay-scale"]`, already propped in that same shed, and
+already the **top rung of the mining crafting ladder**
+(`trade-mining/src/__tests__/archetype-and-ladder.test.ts:120`). The
+mining archetype consumes it by name:
+`- { key: assay, needs: { tool: assay-scale } }`
+(`trade-mining/content/archetypes/mining.yaml:37`), which
+`check-capabilities.ts:123-127` counts as the third consumer kind — the
+one whose absence made the first census wrongly report `assay-scale`
+inert.
+
+So: **the bench row declares `capabilities: ["assay-scale"]`, not
+`assaying`**, `assay.yaml`'s bench arg defaults to
+`reachable:[capability.assay-scale]`, and every `assaying` in this plan
+reads `assay-scale`. Three consequences, and the third is the point:
+
+1. The `lint:capabilities` verify-first step is **deleted** — the
+   archetype consumer predates this build.
+2. `assay-kit` becomes the **carried instrument rung of the `grade`
+   channel** — portable precision — with the bench as the fixed
+   high-precision rung above it. That is the route ladder the
+   requirements describe, and its middle rung turns out to be already in
+   the world and unreachable. W6 wires it rather than minting a rival.
+3. ⚠ The bench must **not** re-use the kit's nouns. `assay-kit` answers
+   to `assay`/`assay-kit`/`balance`/`scale`/`assayer`; the shed also
+   holds `assay-counter` (`counter, bins, scale, assay`). A third object
+   answering to `assay` and `scale` in a three-object room makes
+   `assay <ore> with <thing>` unresolvable. ⭐ The shed's own
+   `longDescription` already reads *“A long bench under a north window,
+   the scale under a glass dome at the end of it”* — **the bench is in
+   the prose and not in the contents**, so W6 places an object that
+   matches prose that exists, keyed on `bench`/`assay bench`/`cupel`,
+   and authors no new scenery.
 
 **The second bench** (W10) is a row in a second locality's content, owned
 by somebody other than the first owner, higher fee, no roster. The build
 picks a locality that exists and records which — an anchor, like the
 drive's rooms.
+
+### D23 — ⭐⭐ EVERY new controller needs a template ROW (new gate, !280)
+
+`design/trades-and-labor` ships **`lint:controller-rows`, ceiling 0**
+(`packages/server/scripts/check-controller-rows.ts`). It reads every
+absolute `controller:` value in every command view — the top-level one
+**and every nested stanza's** — and fails if the path resolves to no
+template row.
+
+> A `controller:` is a **template path**. A controller class with no row
+> resolves to nothing and the verb answers `controller-error` — every
+> time, for everybody, forever.
+
+⚠⚠ **It is invisible to the entire suite by construction.** A
+controller test instantiates the class directly; a view test parses
+YAML; nothing between them asks *does this path resolve*. !280 shipped
+`apply` and `clock` with their views, their affordances and **fifteen
+green controller tests** and no rows, and found out on the third
+checkpoint of the drive.
+
+**This plan is the worst possible shape for that defect.** D1
+de-subcommands `measure` and `analyze` into one controller per channel
+per verb — 31 rows, 31 classes — plus `readings`, `sample`, `assay`,
+`trace address` and `trace atmosphere`. Every one is a `controller:`
+reference in a view, and **every one needs a row file**:
+
+```
+packages/content/<pack>/content/<root>/idea/cmd/<category>/<Name>Controller.yaml
+  class: <the controller's template path>
+  hydratorClass: /platform/idea/persistence/PersistentHydrator
+  data: {}
+```
+
+for the kernel's at
+`packages/content/platform/content/platform/idea/cmd/perception/` (where
+`AnalyzeLightController.yaml`, `MeasureTemperatureController.yaml` and
+their thirty siblings already live) and for a pack's under its own root.
+**Deleting a controller means deleting its row in the same commit**, or
+the gate's ceiling is fine and the census is a lie.
+
+⭐ Treat this as a **per-controller checklist item in every wave that
+adds or deletes one**, not a wave of its own — W1 alone deletes 24
+controllers and adds 31. The gate is the backstop; the drive is the
+proof.
+
+### D24 — `sampleFace` goes to the GROUND, and `sample` is not `sampleHere` (build/ground)
+
+Two corrections that only exist because `build/ground` is in flight.
+
+**Placement.** D20 case 3 puts `sampleFace(actor, raw)` on mining's
+`WorkingMixin`. After ground it belongs on **`StrataMixin`**
+(`packages/content/ground/src/lib/Strata.ts`, `/system/ground`) —
+ground's own rule is *“reads go to the GROUND, cutting belongs to the
+trade that cuts”*, and taking a piece of the rock in front of you is a
+read of where you stand, not an act of the mining trade. Put it there
+and a quarry, a cellar, a well and a cave can be sampled **without
+depending on a mine** — which is the entire reason ground exists.
+
+⚠ **Sequencing.** If ground has not merged when W5 runs, implement
+`sampleFace` on `WorkingMixin` exactly as D20 says and **record in the
+plan that it is owed to `StrataMixin`** — do not reach into another
+build's unmerged pack, and do not stall the wave on it. The duck-typed
+call site (`analyze power` precedent) does not care which host answers,
+so the move is later a one-file lift with no caller change.
+
+**Naming, and it is load-bearing.** `StrataMixin` already exports:
+
+```ts
+sampleHere(): Promise<GroundSample | null>;   // a DATA READING
+```
+
+This build's `sample` verb mints **matter** — a real `Ore` or
+`Provision`, stamped with where it was taken. Two meanings of the word,
+one dot apart, on the same host. Neither renames:
+
+- `sampleHere()` answers *what does the deposit say about this cell* —
+  it is a `GroundSample`, a number, the thing `measure strike` already
+  bands. It is a **`Reading`'s truth source**, never a verb.
+- `sampleFace()` answers *give me a lump of that* — it returns Stuff.
+
+W5's implementation note says which it is calling at every site, and
+`GradeReading.truth()` calls `sampleHere`, never `sampleFace`.
+
+⚠ ⭐ **The shipped split already does half of `sample`.**
+`Ore.onSplit` (`trade-mining/src/thing/Ore.ts:118-136`) carries `grade`
+and `gangueMaterialPath` onto the split-off, with a docstring that says
+in as many words: *“you can take a sample to the scale and learn about
+the pile it came from.”* So D20 case 1 is **`split(1)` plus a
+provenance stamp**, not a new mechanism — the reading-relevant half is
+on master. The stamp is all this build adds.
 
 ---
 
@@ -844,9 +1049,11 @@ Checked at plan time against the current tree.
 - **Message topics** — `sense.reading` for readings, `shell.result` for
   `readings`, `act.deed` for `sample`/`assay` narration.
 - **Lint gates this build must satisfy** — the whole family
-  (`pnpm -C packages/server lint:family`, 48 gates, derived). The ones
-  it *touches*: `instrument-args` (D17), `capabilities` (Reading rows are
-  consumers; `assaying`, `field-identification`, `fitting` and the ten
+  (`pnpm -C packages/server lint:family` — **derived; never name a
+  count**, and !280 adds three more). The ones
+  it *touches*: `instrument-args` (D17), **`controller-rows` (D23 — the
+  one that fails silently)**, `capabilities` (Reading rows are
+  consumers; `assay-scale`, `field-identification`, `fitting` and the ten
   instrument capabilities are declared), `arg-kinds` (every object arg
   has `requires`), `binder-models` (new controller tests dispatch
   through the binder), `verb-collisions`, `object-verbs`, `drive-scripts`
@@ -1020,7 +1227,7 @@ commit. Order matters — each step keeps the tree green.
   (`eyeCeiling: novice`), `handTool: field-identification`, and
   **writes the field call** as a `grade:` belief note (D15's mirror
   input); subject rung on an `Ore` reads the lump the same way;
-  `measure grade` refuses naming the bench; `bench: assaying` declared
+  `measure grade` refuses naming the bench; `bench: assay-scale` declared
   (the rung lands in W6). Rows `hand-lens.yaml`, `streak-plate.yaml` over
   `ToolItem` with `capabilities: [field-identification]` in trade-mining.
 - Carry limit is the shipped encumbrance ladder on the lump's honest
@@ -1036,11 +1243,20 @@ commit. Order matters — each step keeps the tree green.
   `chemistry`) and on `ChemistryReading` (composition; the freshness arm
   lands in W8).
 - ⚠ **No archetype, no new room, no campus content** (D22). The bench is
-  `props:`-placed into `rejection`'s existing co-op office.
-- ⚠ **First thing to verify here:** that `[capability.assaying]` on
-  `assay.yaml`'s bench arg counts as a `lint:capabilities` consumer with
-  no archetype declaring the need (D22). If it does not, move the check
-  into the controller and record which.
+  `props:`-placed into `rejection`'s existing **assay shed**, whose prose
+  already describes it.
+- ⭐ **Wire the shipped kit as the carried rung** (D22): no new
+  capability is minted — the bench declares `assay-scale`, which
+  `trade-mining/content/archetypes/mining.yaml:37` has consumed since the
+  metal chain, so `lint:capabilities` needs nothing from this wave. What
+  W6 adds is the *reachability* the kit never had: `assay-kit` gains
+  `commandContributions.inventory: [trade/mining/cmd/mining/assay.yaml]`,
+  and the controller reads `fixedInPlace` to pick the rung. **The
+  previous plan's verify-first step is deleted** — it was looking for a
+  consumer that already existed under the shipped name.
+- ⚠ **Keywords:** the shed already holds `assay-kit` (`assay`, `scale`,
+  `balance`, …) and `assay-counter` (`counter`, `bins`, `scale`,
+  `assay`). The bench takes neither noun (D22).
 - Tests: queue order and amortized duration; completion after the actor
   logged out mints the report into the room; `assay` in a room with no
   bench refuses naming the bench; the report's fields.
@@ -1049,10 +1265,21 @@ commit. Order matters — each step keeps the tree green.
 #### W7 — The assayer (R-lens 6, drive H23)
 
 - The `Business` row owning the bench's site gains an `assayer` position
-  (`wageRate`, `operatingLocations: [the bench's path]`, roster) and a
-  `Cast` row (dossier `competence: [{discipline: chemistry, asserting:
-  proficient}]`). ⚠ If that site has no `Business` row, the wave authors
-  one — content only.
+  (`wageRate`, roster) and a `Cast` row (dossier `competence:
+  [{discipline: chemistry, asserting: proficient}]`).
+- ⚠ **The site's `Business` row exists and its `operatingLocations` do
+  NOT reach the shed.** `rejection/content/world/terminus/rejection/idea/coop-business.yaml`
+  has `banksAt: goodkin` (so !280's `lint:openings` fifth arm — a house
+  with no `banksAt` throws out of the pay path — is satisfied) but its
+  `operatingLocations` are the adit and the timbered drift only. **This
+  wave adds `/world/terminus/rejection/location/assay-shed` to them**, or
+  seats the assayer in the buyer's house instead; it records which and
+  why. A seat whose `operatingLocations` never name the bench's room is
+  a position that can never be on shift there — closed and silent, and
+  D13's staffed-band arm would read as unstaffed forever.
+- ⚠ The shed already holds `cast: […/agent/buyer]`. The assayer is a
+  **second** person in a small room, or the buyer takes the seat. Decide
+  at the wave and say which; do not add a body the room did not need.
 - `AssayController`: when an on-shift assignee of a position whose
   `operatingLocations` names the bench is in the bench's room, the batch
   runs at **their** band and the customer pays `fee × n` from their
@@ -1104,6 +1331,16 @@ commit. Order matters — each step keeps the tree green.
 
 Each link fails closed and silent.
 
+⚠⚠ **There is a SIXTH link now, and it is upstream of all five: the
+controller ROW** (D23). A `controller:` in a view is a template path; a
+controller class with no row answers `controller-error` forever while
+its tests stay green. Every row in the table below that names a
+controller also needs
+`packages/content/<pack>/content/<root>/idea/cmd/<cat>/<Name>Controller.yaml`.
+`lint:controller-rows` (ceiling 0, arriving with !280) is the backstop —
+**write the row with the controller, do not rely on the gate to
+remember.**
+
 | capability | verb | affordance | data | boot | arg gate |
 |---|---|---|---|---|---|
 | a reading (any channel) | `measure` / `analyze` flat views | `Avatar.commandContributions.self` | a `Reading` row at `<root>/idea/reading/<channel>` with `class:` | `ReadingCatalogue` warms by infix, lazily on first `InstrumentApi.reading()` and in `postRegister` | `subject requires: any`; `tool requires: [ToolMixin]` — the Reading refuses by `subjectRequires` in its own words |
@@ -1112,9 +1349,10 @@ Each link fails closed and silent.
 | `trace address` / `atmosphere` | `system/trace.yaml` | Avatar `self` | — | — | `location requires: ContainerMixin` |
 | `readings` | `perception/readings.yaml` | Avatar `self` | every Reading row's `improves`/`stakes` | the catalogue | `channel` optional string |
 | `sample` | `inventory/sample.yaml` | Avatar `self` | `SampledMixin` on `Ore`/`Provision`; `Working.sampleFace` | — | `subject requires: any`; case 4 refuses in the thing's terms |
-| `assay` | `trade/mining/cmd/mining/assay.yaml` | `AssayBench.commandContributions.environment` **and** `Ore.commandContributions.inventory` | the bench row (`capabilities: [assaying]`, `fixedInPlace`), a room that `props:` it, the `reading-record` row | the bench is placed by content; the record row installs with the platform pack | `samples requires: [SampledMixin]`; `bench requires: [ToolMixin]`, narrowed to `assaying` |
+| `assay` | `trade/mining/cmd/mining/assay.yaml` | `AssayBench.commandContributions.environment` **and** `Ore.commandContributions.inventory` | **the controller ROW for `AssayController`** (D23) + the bench row (`capabilities: ["assay-scale"]`, `fixedInPlace`), a room that `props:` it, the `reading-record` row | the bench is placed by content; the record row installs with the platform pack | `samples requires: [SampledMixin]`; `bench requires: [ToolMixin]`, narrowed to `assay-scale` |
 | the assayer | `assay` | — | the `Business` row's position + `operatingLocations` naming the bench; the `Cast` row's seeded competence | the roster tick | — |
-| the second bench | `assay` (its own) | `assay.yaml` bench arg | a row in a second locality | — | `[capability.assaying]` |
+| the second bench | `assay` (its own) | `assay.yaml` bench arg | a row in a second locality | — | `[capability.assay-scale]` |
+| the carried kit rung | `assay` | `assay-kit.commandContributions.inventory` | the shipped `assay-kit.yaml` row (already installed + propped) | already warm | same default; `fixedInPlace` absent picks the field rung |
 
 ⚠ The fifth link (the binder): every object arg here is `any` or a
 kernel mixin the target composes; a pack-only mixin never appears in a
@@ -1167,7 +1405,11 @@ Nothing unmapped.
   without the pack; that the report is where the mill-shaped completion
   left it after a walk-out; that the second bench is rows.
 - **Gates:** `pnpm -C packages/server lint:family` after every wave —
-  never a subset. `lint:instrument-args` moves `0 → 9 → 0` (W0, W1).
+  never a subset, and **never a count**: the roster is derived from
+  `package.json` and !280 adds three (`controller-rows`, `counters`,
+  `openings`). `lint:instrument-args` moves `0 → 9 → 0` (W0, W1);
+  `lint:controller-rows` stays at **0 in every wave** (D23) — it is the
+  one gate this build can break in a way no test can see.
 - **Full suite:** once before the MR (W10), once at `/finalize`. Never in
   the background. A green run stays valid until a source file changes.
 - **Wire:** the new file plus the seven affected drives, run at W4 and
@@ -1176,6 +1418,28 @@ Nothing unmapped.
 ---
 
 ## Risks & opens
+
+⚠⚠ **0. Sequencing — the one thing to decide before W0.** `build/ground`
+is mid-build in build-2 with no MR, and W1 rewrites
+`SurveyChannelController`, `SoilChannelController` and `Working.ts`
+wholesale while ground is rewriting `Working.ts` (179 lines) and moving
+`Deposit` out of `trade-mining`. **Same three files, both branches
+unmerged.** Three ways through, and it is the user's call:
+
+- **Wait for ground to merge**, then merge master into this branch and
+  re-ground § *Three branches in flight* — cleanest, costs wall-clock.
+- **Build now and merge after ground**, accepting a large W1 conflict
+  that is mostly import lines plus one rewritten mixin.
+- **Build now, and treat D24's sequencing note as the rule everywhere**:
+  implement against master's shape, record every owed move, take them in
+  the catch-up merge.
+
+!280 (trades-and-labor) is mergeable and lands first regardless — merge
+master into this branch as soon as it does, because D23's gate arrives
+with it and the sooner it is running the fewer rowless controllers this
+build can accumulate. !278 (recovery) currently `cannot_be_merged`;
+D16 says to read `origin/design/treatment` directly if it is still open
+when that wave runs.
 
 Things the user should look at before the build runs (the build will
 decide them in this order if unanswered: this plan → design-lenses →
@@ -1207,9 +1471,11 @@ CLAUDE.md → the nearest shipped pattern):
    a locality's content, and a world scan for benches is forbidden. ⚠
    With the archetype cut (D22) there is no longer an archetype name to
    reach for, so the wording is the refusal's own.
-9. ⭐ **`lint:capabilities` has no archetype consumer for `assaying`**
-   now. The `[capability.assaying]` view atom should count; verified at
-   W6 before the bench row lands, fallback written down (D22).
+9. ✅ **RESOLVED — was: “`lint:capabilities` has no archetype consumer
+   for `assaying`.”** It never needed one. The capability is
+   `assay-scale`, shipped, declared by `assay-kit.yaml` and consumed by
+   `mining.yaml:37`. The risk was an artefact of minting a new name
+   beside a live one; D22 takes the live one and the risk is gone.
 10. **A report left on a bench across a restart** persists only if the
     room's overlay captures it — furnishing's owner-based slice. Confirm
     at W6 in the room the bench actually sits in; if it does not survive,
@@ -1286,9 +1552,18 @@ Read first, in this order.
 - `packages/server/src/mud/platform/idea/cmd/perception/{MeasureLightController,AnalyzeLightController,MeasureAtmosphereController,MeasureAltitudeController}.ts`
 - `packages/server/src/mud/platform/thing/ToolItem.ts`,
   `lib/crafting/{Tooled,Durable,Crafted}.ts`, `api/material.ts:157-159`
-- `packages/server/scripts/{check-instrument-args,check-capabilities}.ts`
-- `packages/content/trade-mining/src/thing/Ore.ts`,
-  `trade-mining/src/lib/Working.ts`,
+- `packages/server/scripts/{check-instrument-args,check-capabilities}.ts`,
+  and — once !280 lands — `packages/server/scripts/check-controller-rows.ts`
+  (D23, the gate that fails silently)
+- `packages/content/trade-mining/src/thing/Ore.ts` (⭐ `onSplit`
+  `:118-136` — the split already carries the grade),
+  `trade-mining/src/lib/Working.ts` (⚠ and, if `build/ground` has landed,
+  `packages/content/ground/src/lib/Strata.ts` + `ground/src/idea/Deposit.ts`),
+  `trade-mining/content/trade/mining/thing/assay-kit.yaml` +
+  `trade-mining/content/archetypes/mining.yaml:37` (⭐ the shipped
+  `assay-scale` rung, D22),
+  `packages/content/rejection/content/world/terminus/rejection/location/assay-shed.yaml`
+  + `idea/coop-business.yaml` (the bench's room and its house),
   `trade-mining/src/idea/cmd/mining/HewController.ts:129-215`
 - `packages/content/trade-milling/src/idea/cmd/milling/MillController.ts:1-40,153-208`
 - `packages/server/src/mud/platform/thing/Provision.ts`,

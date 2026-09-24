@@ -117,6 +117,18 @@ nothing without *"from face three, gallery two."*
 carried truthfully through pooling and splitting, not an act anybody
 performs. The name is free, and no shipped mining design needs renaming.
 
+⭐⭐ **But the assayer's KIT is already in the world, and the survey
+missed it.** *An assayer's kit — a folding balance in a fitted case, a
+nest of brass weights, bone-ash cupels and a small furnace with a bellows
+the size of a purse* — is a craftable object at the **top of the mining
+tool ladder**, standing on the bench in the assay shed, and the mining
+archetype lists an `assay` need that wants it. **Nothing can be done with
+it.** So the carried rung of the grade route is not something this build
+invents: it is something already built, already placed, already the
+reward at the end of a crafting ladder, and unreachable by any verb —
+which sharpens the framing rather than shrinking the build. What is
+genuinely new is not the instrument. It is **the act**.
+
 **Nothing is fixed in place by being a "fixture".** Non-carryable is an
 authorable boolean a row declares; the fixture mixin is a different job
 (self-seating). A bench needs the boolean, nothing more.
@@ -280,7 +292,9 @@ advertised and dies on dispatch.
 
 **Bench instruments belong to the trade that reads with them**, alongside
 the samples they eat, and the first one goes where the demand already is
-— a mine's assay office. The kernel owns only that a bench is fixed in
+— the assay shed at a mine, a room that already exists, already has
+daylight authored for exactly this reason, and whose description already
+mentions the bench and the scale under their glass dome. The kernel owns only that a bench is fixed in
 place, that a sample is carried to it, and that the act consumes both
 time and the sample.
 
@@ -582,9 +596,12 @@ venue (see Non-goals) costs this decision nothing — the archetype was
 only ever the *survey* line that makes a room read as a laboratory, which
 is legibility, not access.
 
-The first bench is a mine's assay office, because that is where the
+The first bench is the assay shed at a mine, because that is where the
 demand already is — and because an assay office existed at mines long
-before anyone taught the subject.
+before anyone taught the subject. ⭐ The room needs no new prose: it
+already describes a long bench under a north window with a scale at the
+end of it. The bench is in the writing and not in the world, which is
+the gap this build closes.
 
 ### D19 — A spoiled sample reads wrong, and the bench is what catches it
 
@@ -792,7 +809,7 @@ requirement.
 
 19. `assay` a sample **in the field**, with no bench. Expect a refusal
     naming what is missing: not here, and where a bench is.
-20. Carry the samples to a laboratory and `assay` one. Expect it to
+20. Carry the samples to a bench and `assay` one. Expect it to
     **take game-time**, to **consume the sample**, and to yield an actual
     number.
 21. Walk away during the assay and come back. Expect to collect a result
