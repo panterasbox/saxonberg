@@ -11,10 +11,13 @@
 > two-tier attributed-vs-residual posting, the single `Coin.onDestruct`
 > chokepoint, shrinkage in the reset keep set) · pass 1 the census over
 > surfaces A–E (create · mutate · persist/restore · sandbox cash
-> crossing · destroy) — **§ E is partly answered, see below** · pass 2
-> the gates · pass 3 the object-layer conservation property test — the
-> actual deliverable · the enforced snapshot-XOR-live invariant (the
-> surplus side) · the `/stuff/thing/Coin` uncloneable question · the
+> crossing · destroy) — **§ C and § E are partly answered, see below** ·
+> pass 2 the gates · pass 3 the object-layer conservation property test —
+> the actual deliverable · ⭐ the **surplus side** (the restore latch —
+> nothing guards a HOST from two restores the way `assertUniqueKey`
+> guards a RECORD from two hosts; the four caller rows, `standUpKeyed`
+> first; the duplicate-RECORD vector, which mints on every restore
+> forever) · the `/stuff/thing/Coin` uncloneable question · the
 > value-bearing marker question · whether this needs to survive a
 > hostile wizard or only a mistake
 > **Size:** a build
@@ -152,6 +155,114 @@ that finding 3 failed.
 | `restoreFromTemplate` (CMS/pack go-live) | Re-hydrating a live clone from an edited template — does it re-seed contents? |
 | Hot reload | Does a reload re-run anything that seeds goods? |
 | The skipped-goods flush (`PersistableLogic`) | Goods a host skipped mid-capture are flushed elsewhere — can a good be captured **twice**, by the skipper and the flusher? |
+
+### What the 2026-09-24 pass already answered
+
+⭐ **The host layer is genuinely guarded; the CONTENTS layer is not.**
+
+`PersistableLogic.assertUniqueKey` scans every live instance at the
+scope and throws when a second one claims the same `(scope, key)`. It is
+**precise rather than eager** — it fires only when another live host has
+actually *claimed* the key (freshly-cloned unkeyed siblings own no record
+and do not collide) — and the two-rooms-one-keyed-host race was already
+found and fixed (`cloneHost` resolves first, last-to-materialize wins,
+the stale record heals on its next capture). **Two hosts cannot share one
+record.** That direction is closed.
+
+⚠ **The other direction is not, and `Avatar.restore` says so in its own
+doc comment:**
+
+> v1: developer/admin operation … intended for a **fresh** instance (the
+> normal login path materializes via `postRegister`; **re-running
+> `restore()` on a live avatar that already holds inventory would
+> re-clone the captured items on top**).
+
+`materializeImpl` checks opt-out, resolves the key, asserts host
+uniqueness, finds the record and restores. **There is no "have I already
+restored" check anywhere in it.**
+
+> ⭐⭐ **`assertUniqueKey` guards the RECORD from two hosts. Nothing
+> guards the HOST from two restores.** One direction is enforced; its
+> twin is not.
+
+And the consequences are asymmetric in the worst way:
+
+| collision | what happens |
+|---|---|
+| two hosts, one record | **throws**, with a three-line explanation |
+| one host, two restores | ⛔ **succeeds silently** — and now there is more money |
+
+### The census rows this opens
+
+The mechanism is verified; the callers are not. Paths that could reach a
+**populated** host:
+
+| path | the question |
+|---|---|
+| `Avatar.restore()` | Public and documented as admin-only. Is it reachable by a verb? ⭐ See open question 6. |
+| `postRegister` under **hot reload** | Does a `reload` re-run anything that materializes? ⚠ **Check this first** — it is the one reachable without anyone doing something unusual. |
+| `standUpKeyed` → `restoreOrSeed` | It resolves a live host first (*"an owner who logged in first does not get a second cat"*), then calls `materializeImpl` when a record exists. **If the resolved host is already populated, that is the double-restore by the ORDINARY path.** The row to trace. |
+| `restoreFromTemplate` (CMS / pack go-live) | Re-hydrating a live clone from an edited template — does it re-seed contents? |
+
+### ⚠⚠ And the CAPTURE side is worse than the restore side
+
+Promote § C's last row. *The skipped-goods flush — goods a host skipped
+mid-capture are flushed elsewhere; can a good be captured **twice**, by
+the skipper and the flusher?*
+
+> **A duplicate RESTORE mints once, when it happens. A duplicate RECORD
+> mints on EVERY restore, forever** — and the extra money looks entirely
+> legitimate, because it came out of a real snapshot.
+
+That is the failure nobody finds by reading. Only conservation
+arithmetic finds it.
+
+---
+
+# ⭐⭐ The surplus side — three layers, and only one of them is a guard
+
+Pairs with § *The write-off doctrine*. That section makes a **shortfall**
+honest; this one is about the direction that is **always a bug**.
+
+### 1. Prevent — a restore latch
+
+A per-instance flag set on a successful `materialize`; a second call
+**throws**, exactly as `assertUniqueKey` throws. ⭐ It resets naturally,
+because the eviction seam destructs the host (capture → destruct →
+re-materialize on next reference is a **new instance** each time), so the
+latch needs no clearing logic and no lifetime of its own.
+
+⚠ **NOT "clear then restore."** Two reasons, either sufficient: a crash
+in the window between clearing and restoring loses everything, and
+clearing would clobber items legitimately acquired *after* the snapshot
+was taken. **Refusing beats reconciling** — the same call this slate
+already made for the host layer.
+
+### 2. ⭐⭐⭐ Detect in test — and this is the real answer
+
+This slate already names its own deliverable: a property test over the
+object layer saying **no operation changes total value except `mint` and
+`drain`**. A duplicate materialize fails it. So does a duplicate record.
+So do the holes neither the latch nor this slate imagined.
+
+> **The latch fixes today's bug; the property test fixes the class.**
+> Build both, in that order of *confidence* and the reverse order of
+> *effort*.
+
+### 3. Detect in production — the surplus alarm
+
+From § *The write-off doctrine* rule 1, and this is what it exists for: a
+surplus **alarms and never auto-corrects.** An audit that balanced itself
+here would launder exactly the bug this section is about.
+
+### ⭐ One good thing, and it sharpens the shortfall side too
+
+`PersistableApi.captureAtShutdown` exists — a **graceful** shutdown
+captures, so only a genuine crash loses ground coin. That tightens the
+write-off doctrine's residual term: the anonymous boot delta is a
+**crash-only** event, not a routine one, so **a nonzero residual in
+normal operation is immediately a signal rather than noise.** The
+two-tier ratio is sharper than it looked.
 
 ## D. The sandbox boundary
 
@@ -391,6 +502,14 @@ imagine.
    which is always a bug). The original instinct here was right that it
    *cannot halt transacting* — and it does not need to, because a
    shortfall is not an error condition, it is an accounting event.
+6. ⭐ **Should `Avatar.restore()` exist as a public operation at all?**
+   It is described as v1 developer/admin, it carries a documented
+   duplication hazard in its own comment, and the normal login path does
+   not use it (`postRegister` materializes). ⚠ **The cheapest close is
+   deleting it rather than guarding it** — but check what depends on it
+   first; a public method with one documented caller is exactly the
+   shape of something load-bearing somewhere unexpected.
+
 5. **Does any of this need to survive a hostile wizard?** Or is
    code-trust ([access.md](../../subsystems/access.md)) the honest
    boundary, with this slate defending only against *mistakes*? ⭐ Leaning
