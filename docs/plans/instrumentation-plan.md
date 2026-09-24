@@ -1992,6 +1992,110 @@ Read first, in this order.
 
 ## Drive record
 
-*(appended at build time — the output of running
-`packages/wire/tests/instrumentation.dirty.wire.test.ts`, the count, and
-what each failure was)*
+**`packages/wire/tests/instrumentation.dirty.wire.test.ts` — 30 passed
+(30), 599.09s, `WIRE_BOOT=1 WIRE_PORT=2014`, 2026-09-24.**
+
+The file is the requirements doc's drive script, checkpoint for
+checkpoint (A1–A3 · B4–B5 · C6–C8 · D9–D11 · E12–E13 · F14–F15 ·
+G16–G18 · H19–H23 · L32 · N37 · O38–O39), plus a three-case stanza for
+the article defect the drive itself uncovered. It declares
+`packs: ['trade-mining', …]` and exports a `DIRTY_REASON` — the only
+thing it consumes is **competence**: `practice <discipline>` writes deed
+evidence onto the driving characters and nothing reclaims it. Every
+other step is a read; the world after a run is the world before it.
+
+⭐ **The finding for the owning trade:** nothing in the game hands
+competence back, so any drive that must *earn* a band is dirty by
+construction. That is a question for advancement's slate, not this
+build — offered as a one-line finding, not fixed here.
+
+### ⭐⭐⭐ What the drive found that the suite could not
+
+Nine defects, every one invisible to ~10k passing tests. Two are
+**kernel binder defects** that had been shipping.
+
+1. ⭐⭐⭐ **Kernel binder defect #1 — a greedy arg's default was
+   silently discarded.** `measure light` (no tool named) lost its
+   instrument default: the greedy branch in
+   `platform/idea/api/CommandLogic.ts` `return`ed when the positional
+   list ran out instead of `continue`ing to the remaining args. Every
+   greedy arg that was not last in the list was therefore unreachable
+   in the bare form. Fixed + regression test.
+2. ⭐⭐⭐ **Kernel binder defect #2 — `greedy` implied `required`.**
+   `CommandDefinition` counted `greedy: true` as `required: true`
+   unconditionally, so the three perception views
+   (`measure`/`analyze`/`readings`) failed to LOAD at boot the moment
+   they declared a greedy optional arg. The fix is one line —
+   `def.required === true || (def.greedy === true && def.required !== false)`
+   — and the shape of the bug is the point: a view that fails to load
+   fails **closed and silent**, so the verbs were simply absent.
+3. ⚠⚠ **The article defect, on three arg shapes.** A player types
+   *the*. `assay the ore` bound the literal token `the` (a **plural**
+   arg), and `assay the ore at the bench` did the same on a
+   **prepositional** arg. Any object arg a player puts an article in
+   front of needs `greedy: true` — including plural and prepositional
+   ones, which the existing `greedy` call sites had all missed.
+4. ⚠⚠ **A completion runs OUTSIDE the dispatch frame — and the gate
+   killed the world.** `WorldClockApi.after` callbacks are module-level
+   functions in a *fresh root execution frame*, so
+   `FromModule(AssayController)` denied `benchReadFor()` and the
+   resulting `SecurityError` was an unhandled rejection in a timer
+   callback: **the server process died**. `benchReadFor` is ungated now,
+   and `finishAssay` wraps each sample in its own `try/catch` so one bad
+   sample cannot take the batch (or the process) with it.
+5. ⚠ **A read verb ran a payroll pass.** `assay` hung because `charge`
+   reached for `EmploymentApi.ensureOperatorAt`, which runs payroll.
+   `businessAt` is the read.
+6. ⚠ **The affordance bucket was inverted.** `Ore` and `AssayKit`
+   contributed `assay` through `inventory` — which grants **inward**
+   (container → contents). The outward push to whoever is holding the
+   thing is `environment`/`peers`. Until it was fixed the verb could not
+   be *typed* in the field at all.
+7. ⚠⚠ **`look` and the inspection card render the stored
+   `longDescription` FIELD, not an overridden getter.** The finished
+   assay report read *"an assay report"* and nothing else.
+   `ReadingRecord.inscribe` now writes the field.
+8. ⚠ **Honest brackets were not honest.** The first instrumented read
+   came back `Temperature: 153.01 K ± 147.5 K (warm)` — a bracket wider
+   than the value, a tag taken from the *truth* rather than from the
+   observation, and no significant-figure rounding. Half-widths
+   tightened, the tag now comes off `this.observed(...)`, and Kelvin and
+   arc-degrees carry absolute-error overrides.
+9. ⚠ **A refusal collided with the drive's own negative pattern.**
+   *"There is nothing here…"* matched `nothing (here|like that)`, the
+   harness's has-this-verb-failed probe. Reworded to *"Nothing within
+   reach could run an assay."* — a refusal must not be mistakable for
+   the parser declining the verb.
+
+Two more the drive caught before the run even started: sessions that had
+done their job were still holding samples, so a later `get ore` failed
+`mustBeInLocation` (`done(s)` closes face sessions now); and
+`lint:test-bootstrap:verify` reporting 20 pack tests as "vitest never
+runs", which was **stale `node_modules`** after the September merges, not
+a repo defect.
+
+### The five reachability links, walked
+
+| link | checked |
+|---|---|
+| **verb** | `measure` · `analyze` · `readings` · `sample` · `assay` · `trace address` · `trace atmosphere` — all typed in the field, all answered |
+| **affordance** | statics on the classes (`AssayKit`, `AssayBench`, `Ore`, the instruments), `environment`/`peers` buckets; a row's `commandContributions:` is discarded silently and was not used |
+| **data** | 31 channel rows under `…/idea/reading/` across platform + 7 packs; every one exercised by the drive or by its pack's own suite |
+| **boot** | `ReadingCatalogue` warms by `Template.findByPathInfix('/idea/reading/')` — lazily on first miss **and** at `postRegister`, so a row added by a pack cannot go inert |
+| **arg gate** | the two binder defects above are exactly this link failing; `greedy: true` on every article-taking object arg, plural and prepositional included |
+
+### What still wants the user's eye
+
+Two plan decisions the build made and recorded, neither of which the
+requirements doc settled:
+
+- **D9 mints a `physics` Discipline** beyond the agreed `chemistry`.
+  Temperature/pressure/gravity/shadow/sextant had no honest home in
+  chemistry, and lens 1 (pedagogy) decided it: a reading ladder whose
+  rungs are conferred by the wrong Discipline teaches the wrong thing.
+  If `physics` is not wanted, the channels collapse onto `chemistry` and
+  nothing else changes.
+- **D10 retires `measure passage`** in favour of `analyze passage`.
+  Passage is a haulage fact a trained eye reads in words; there is no
+  instrument that sharpens it, so the `measure` rung was a rung with
+  nothing on it.
