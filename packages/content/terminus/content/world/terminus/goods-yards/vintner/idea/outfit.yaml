@@ -17,7 +17,7 @@ data:
       noun: hand
       label: running the vintner outfit's floor
       wageRate: 3
-      confers: [MakerMixin]
+      fulfills: [fermenting]
       purchases: true
   rosterSlots:
     - positionKey: hand

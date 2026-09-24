@@ -60,7 +60,7 @@ function seedBusiness(): BusinessEntity {
   b.proprietorPath = DAVE;
   b.banksAt = 'goodkin';
   b.positions = [
-    { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
+    { key: 'bartender', label: 'tending bar', wageRate: 12, fulfills: ['bartending'] },
   ];
   return b;
 }

@@ -41,7 +41,7 @@ function seedBusiness(): BusinessEntity {
   b.proprietorPath = DAVE;
   b.banksAt = BankingApi.defaultCustodianBank();
   b.positions = [
-    { key: 'bartender', label: 'tending bar', wageRate: 12, confers: [] },
+    { key: 'bartender', label: 'tending bar', wageRate: 12 },
   ];
   b.operatingLocations = [BAR];
   return b;

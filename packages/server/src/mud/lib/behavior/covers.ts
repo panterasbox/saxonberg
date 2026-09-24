@@ -5,7 +5,7 @@
  * yet): on a presence-gated cadence, if **no other active on-shift maker is
  * present** in the proprietor's location, the proprietor begins a cover
  * (`EmploymentApi.beginCover`) — a transient on-shift Employment that
- * confers the Position's capability (`MakerMixin`), so an order finds a
+ * puts the proprietor on shift in a `fulfills` seat, so an order finds a
  * fulfiller even when the rostered bartender is off. When a real bartender
  * is back on and present, the cover ends (`endCover`). The cover is unpaid
  * by construction (the wage settlement skips a proprietor-held Employment).
@@ -39,7 +39,7 @@ export const brain = class {
     // Is the maintain clause held — another active (on-shift) maker present?
     let otherMakerPresent = false;
     for (const c of loc.getContents()) {
-      if (c !== self && MixinApi.isMaker(c)) {
+      if (c !== self && MixinApi.isEmployed(c) && c.isFulfilling()) {
         otherMakerPresent = true;
         break;
       }

@@ -19,14 +19,13 @@ data:
     kind: committee
     parcel: /world/terminus/terminal
   # The one city position: the terminal clerk. `wageRate` is minor units per
-  # game-hour on shift (demo). `confers` is empty — the clerk staffs the
-  # window, it doesn't craft (no MakerMixin).
+  # game-hour on shift (demo). No `fulfills` — the clerk staffs the
+  # window, it doesn't make what anybody orders.
   positions:
     - key: clerk
       noun: clerk
       label: staffing the ticket office
       wageRate: 4
-      confers: []
   # A BOUNDED daily shift (not [0,24]): the wage settles at the on->off
   # boundary, so the shift must close for the payout to fire. Weekdays 0-based;
   # hours a half-open [start, end) window.

@@ -129,7 +129,7 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | Vocation | Status | Gate | Paid by |
 |---|---|---|---|
 | crafter (many branches) | **shipped** | Discipline + tools | buyers |
-| bartender / cook | **shipped** | on-shift `MakerMixin` | the house |
+| bartender / cook | **shipped** | on-shift `fulfills` seat | the house |
 | slaughterer / butcher | designed | premises + skill | trade |
 | **victualler** (preserving) | designed ([preservation](./slates/tails/preservation-slate.md) · [hearth & larder](./slates/tails/hearth-and-larder-design-pack.md)) | premises + competence | trade — ⚠ *the vocation the icebox eventually devalues; that is the point* |
 | **mana refiner** | designed ([mana economy](./slates/builds/mana-economy-design-pack.md)) | premises (industrial zoning) + cheap power | trade — ⭐ *concentration, never creation; needs the energy economy as its input* |

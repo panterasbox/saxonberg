@@ -19,7 +19,7 @@ import { brain as cellars } from '../cellars';
 import type { BrainContext } from '../brain';
 import ConsignController from '../../../platform/idea/cmd/retail/ConsignController';
 import WalletController from '../../../platform/idea/cmd/banking/WalletController';
-import Stock from '../../../platform/thing/Stock';
+import StockBase from "../../retail/Stock";
 import Vat from '../../../platform/thing/Vat';
 import Bottle from '../../../platform/thing/Bottle';
 import BankCounter from '../../../platform/thing/BankCounter';
@@ -64,6 +64,10 @@ import {
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
 import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
+// The counter mechanism is kernel substrate; the instanceable twin is
+// the shopkeeping pack's, which the kernel may not import. A local
+// fixture over the base is the whole of what these tests need.
+class Stock extends StockBase {}
 
 /**
  * ⚠ **Stand in for the BINDER.** `consign`'s `thing` is a declared
@@ -251,7 +255,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     outfit = makeStuffAtPath(() => new BusinessEntity(), OUTFIT);
     outfit.proprietorPath = '';
     outfit.positions = [
-      { key: 'hand', label: 'the cellar hand', wageRate: 3, confers: [], purchases: true },
+      { key: 'hand', label: 'the cellar hand', wageRate: 3, purchases: true },
     ];
     outfit.operatingLocations = [FLOOR];
     outfit.banksAt = BankingApi.defaultCustodianBank();

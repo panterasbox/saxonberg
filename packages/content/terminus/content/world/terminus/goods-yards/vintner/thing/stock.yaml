@@ -2,7 +2,7 @@
 # row's `container:`). No `stockLines` (the spawn sweep is the faucet, never
 # a reset), no prices (nothing is sold here — the hand carries it to the
 # cash-and-carry and consigns it).
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "vintner stock"

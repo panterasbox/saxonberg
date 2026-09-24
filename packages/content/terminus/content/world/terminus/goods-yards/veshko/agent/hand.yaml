@@ -27,7 +27,7 @@ data:
   competence:
     - { discipline: distilling, asserting: novice }
   behaviors:
-    - brain: /lib/behavior/consigns
+    - brain: /trade/shopkeeping/behavior/consigns
       trigger: cadence:4m
       config:
         stock: /world/terminus/goods-yards/veshko/thing/stock

@@ -28,7 +28,6 @@ data:
       noun: clerk
       label: keeping the Treasury's book
       wageRate: 0
-      confers: []
   rosterSlots: []
   label: "the Treasury"
   realm: ooc

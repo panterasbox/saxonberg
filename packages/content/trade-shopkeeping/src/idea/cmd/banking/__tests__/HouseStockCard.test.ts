@@ -8,31 +8,31 @@
  * bottle) performed rather than the card refreshed.
  */
 
-import '../../../../../../test-bootstrap';
+import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CardApi } from '../../../../../api/card';
-import { StuffApi } from '../../../../../api/stuff';
-import { EventApi } from '../../../../../api/event';
-import { ShadowApi } from '../../../../../api/shadow';
-import { BankingApi } from '../../../../../api/banking';
-import { MqlSubscriptionApi } from '../../../../../api/mql-subscription';
-import { ContainmentApi } from '../../../../../api/containment';
-import { ExecutionContextApi } from '../../../../../api/execution-context';
-import { CARDS } from '../../../../../lib/connection/Cards';
+import { CardApi } from '@saxonberg/server/mud/api/card';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { EventApi } from '@saxonberg/server/mud/api/event';
+import { ShadowApi } from '@saxonberg/server/mud/api/shadow';
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
+import { MqlSubscriptionApi } from '@saxonberg/server/mud/api/mql-subscription';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
+import { CARDS } from '@saxonberg/server/mud/lib/connection/Cards';
 import { CARD_IDS } from '@saxonberg/types';
-import HouseController from '../HouseController';
-import BusinessEntity from '../../../Business';
-import Material from '../../../../../lib/material/Material';
-import Receptacle from '../../../../thing/Receptacle';
-import Tablet from '../../../../thing/Tablet';
-import { Quantity } from '../../../../../lib/quantity';
+import HouseShopController from '../HouseShopController';
+import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
+import Material from '@saxonberg/server/mud/lib/material/Material';
+import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
+import Tablet from '@saxonberg/server/mud/platform/thing/Tablet';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
   makeStuff,
   makeStuffAtPath,
   stampTemplatePathForTest,
   withRootContext,
-} from '../../../../../lib/security/__tests__/test-setup';
-import { makeHarness, makeContext } from '../../../../../api/__tests__/card-harness';
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { makeHarness, makeContext } from '@saxonberg/server/mud/api/__tests__/card-harness';
 
 const DAVE = '/platform/agent/Avatar/dave';
 
@@ -88,7 +88,7 @@ describe('the stock card', () => {
     });
     await withRootContext(null, 'stock-card.test', () => {
       ExecutionContextApi.tagActingAuthor(h.avatar);
-      return makeStuff(() => new HouseController()).execute({ subcommand: 'stock' } as never, ctx);
+      return makeStuff(() => new HouseShopController()).execute({ subcommand: 'stock' } as never, ctx);
     });
 
     const opened = h.ofType('card-opened');

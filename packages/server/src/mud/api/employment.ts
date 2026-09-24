@@ -28,6 +28,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
+import type { Opening } from '../lib/employment/Opening';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { EmploymentLogic } from '../platform/idea/api/EmploymentLogic';
@@ -133,6 +134,33 @@ export class EmploymentApi {
   /** The **live** Business operating at `locationPath`, or null (keyed). */
   public static businessAt(locationPath: string): BusinessStuff | null {
     return logic().businessAt(locationPath);
+  }
+
+  /**
+   * ⭐ Every **live** business operating `here` — the room itself, or a
+   * fixture standing in it (a bank's business operates its counter, not
+   * the hall the counter stands in). The one candidate walk, shared by
+   * the `house` verb's seat resolution and the help-wanted sign.
+   *
+   * ⚠ Live only. Standing a house up is an economic act; walking into a
+   * room must not be one.
+   */
+  public static operatorsAt(here: Stuff | null): BusinessStuff[] {
+    return logic().operatorsAt(here);
+  }
+
+  /**
+   * ⭐⭐ **The help-wanted sign**: every opening advertised where `here`
+   * is — the live operating businesses' `openings()`, closed houses
+   * skipped.
+   *
+   * There is no sign OBJECT and no mixin: a venue with an open seat
+   * cannot fail to advertise, because the advertisement is derived from
+   * the same arithmetic that decides whether the seat is open at all.
+   * `look` prints it the way it prints a puddle.
+   */
+  public static noticesAt(here: Stuff | null): Opening[] {
+    return logic().noticesAt(here);
   }
 
   /**

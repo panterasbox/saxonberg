@@ -31,7 +31,6 @@ data:
       noun: hewer
       label: on his own ground at the fringe
       wageRate: 0
-      confers: []
       purchases: true
   rosterSlots:
     - positionKey: hewer

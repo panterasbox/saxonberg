@@ -1943,6 +1943,12 @@ export class ContractLogic extends ApiLogic {
     return openGigsFromImpl(originPath);
   }
 
+  /** See {@link ContractApi.settledGigsBy}. */
+  @CallSecurity(ContractApiCallers)
+  public async settledGigsBy(identityPath: string): Promise<number> {
+    return (await ContractRecord.findSettledBy(identityPath)).length;
+  }
+
   /** See {@link ContractApi.openGigsOn}. */
   @CallSecurity(ContractApiCallers)
   public async openGigsOn(boardPath: string): Promise<ContractRecord[]> {

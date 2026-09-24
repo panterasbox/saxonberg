@@ -27,7 +27,6 @@ data:
       noun: communications-director
       label: speaking for the Compact
       wageRate: 0
-      confers: []
   rosterSlots: []
   label: "the Compact"
   realm: ooc

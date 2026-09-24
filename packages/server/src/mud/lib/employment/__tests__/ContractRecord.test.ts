@@ -82,6 +82,38 @@ describe("ContractRecord round-trip + finders", () => {
     expect(active.map((r) => r.contractId)).toEqual(["held"]);
   });
 
+  it("⭐ findSettledBy counts FINISHED work, and nothing else", async () => {
+    // The labor market's entry criterion (trades-and-labor D13): a house
+    // that asks for two completed gigs is asking for something a newcomer
+    // can go and do this afternoon off the nearest board.
+    const WHO = "/platform/agent/Avatar/hand";
+    await makeRecord({
+      contractId: "done-1",
+      state: "settled",
+      settledBy: WHO,
+    }).save();
+    await makeRecord({
+      contractId: "done-2",
+      state: "settled",
+      settledBy: WHO,
+    }).save();
+    // ⚠ None of these count: work in flight, work that broke, work
+    // somebody else finished, and a loan that is not a gig at all.
+    await makeRecord({ contractId: "in-flight", state: "claimed", claimant: WHO }).save();
+    await makeRecord({ contractId: "broke", state: "breached", settledBy: WHO }).save();
+    await makeRecord({
+      contractId: "someone-else",
+      state: "settled",
+      settledBy: "/platform/agent/Avatar/other",
+    }).save();
+    await makeRecord({ contractId: "a-loan", kind: "loan", state: "settled", settledBy: WHO }).save();
+
+    const mine = await ContractRecord.findSettledBy(WHO);
+    expect(mine.map((r) => r.contractId).sort()).toEqual(["done-1", "done-2"]);
+    // An empty key asks nothing and gets nothing — never everybody's work.
+    expect(await ContractRecord.findSettledBy("")).toEqual([]);
+  });
+
   it("ContractEvent chain reads oldest-first", async () => {
     for (const [event, at] of [
       ["claimed", 200],

@@ -43,7 +43,6 @@ data:
       noun: picket
       label: keeping the watchpost at the treeline
       wageRate: 0
-      confers: []
   rosterSlots: []
   label: "the Watch of the Last Counted Mile"
   realm: world

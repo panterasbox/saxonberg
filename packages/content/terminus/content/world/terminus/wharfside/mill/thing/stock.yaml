@@ -1,7 +1,7 @@
 # The mill's stock — where the floor's cloth spawns and where the
 # consigning hand takes it from. No `stockLines` and no prices: nothing
 # is sold here.
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "mill's stock"

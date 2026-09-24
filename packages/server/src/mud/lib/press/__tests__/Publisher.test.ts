@@ -48,8 +48,8 @@ function makePressOffice(): OrganizationEntity {
   const org = makeStuffAtPath(() => new OrganizationEntity(), PRESS);
   org.appointingAuthority = { kind: 'committee', parcel: '/compact' };
   org.positions = [
-    { key: DIRECTOR, label: 'speaking for the Compact', wageRate: 0, confers: [] },
-    { key: CLERK, label: 'filing', wageRate: 0, confers: [] },
+    { key: DIRECTOR, label: 'speaking for the Compact', wageRate: 0 },
+    { key: CLERK, label: 'filing', wageRate: 0 },
   ];
   org.realm = 'ooc';
   org.visibility = 'public';

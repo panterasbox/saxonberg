@@ -50,6 +50,14 @@ data:
       config:
         boards:
           - /trade/haulage/thing/works-board
+          # ⭐ The terminal hall's noticeboard (trades-and-labor D16). It
+          # is its own pool — a gig is posted to a board TEMPLATE path,
+          # and the nine propped works boards share one while the hall's
+          # is another. Without this line the cook's orders would sit
+          # until their window expired with nobody covering them, which
+          # is fine for a player-facing bounty and wrong for a supply
+          # chain that has to keep running unattended.
+          - /world/terminus/terminal/thing/job-board
         lane: city
         # ⚠ ONE. A haul is a long act; a carter doing four a beat would
         # be teleporting in all but name.

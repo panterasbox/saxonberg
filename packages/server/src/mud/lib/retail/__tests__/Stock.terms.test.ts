@@ -10,32 +10,33 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import Stock from "../Stock";
-import Thing from "../Thing";
-import ChattelRegistry from "../../idea/ChattelRegistry";
-import Location from "../../../lib/stuff/Location";
-import { Idea } from "../../../lib/stuff/Idea";
-import { NamedMixin } from "../../../lib/description/Named";
+import StockBase from "../Stock";
+import Thing from "../../../platform/thing/Thing";
+import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
+import Location from "../../stuff/Location";
+import { Idea } from "../../stuff/Idea";
+import { NamedMixin } from "../../description/Named";
 import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
 import { ContainmentApi } from "../../../api/containment";
 import { ExecutionContextApi } from "../../../api/execution-context";
-import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { Stuff } from "../../stuff/Stuff";
 import {
   makeStuff,
   makeStuffAtPath,
   withRootContext,
-} from "../../../lib/security/__tests__/test-setup";
+} from "../../security/__tests__/test-setup";
 import {
   installBankingHarness,
   teardownBankingHarness,
-} from "../../../lib/banking/__tests__/banking-test-harness";
+} from "../../banking/__tests__/banking-test-harness";
 
 const COUNTER = "/test/stock-terms/thing/counter";
 const LIMES = "/test/stock-terms/thing/crate-of-limes";
 const TORCH = "/test/stock-terms/thing/torch";
 const SUPPLIER = "/test/stock-terms/idea/farm";
 
+class Stock extends StockBase {}
 class Crate extends Thing {}
 class Party extends NamedMixin(Idea) {
   static _mixinName = "StockTermsParty";

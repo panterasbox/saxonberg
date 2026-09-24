@@ -66,7 +66,7 @@ describe("CasterMixin — the anatomical faculty", () => {
     WorldClockApi._resetForTesting();
   });
 
-  it("is active iff the species confers it (the isMaker activation shape)", () => {
+  it("is active iff the species confers it (the augment activation shape)", () => {
     const caster = makeActor({ depth: "mid", serenity: "mid", composure: "mid" });
     const beast = makeActor(null, false);
     const profileButNoConferral = makeActor(

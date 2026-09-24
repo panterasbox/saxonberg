@@ -1,0 +1,20 @@
+# The shop archetype (trades-and-labor D6): what a store NEEDS, as
+# capability slots the kernel can check over a venue's contents, each with
+# the default row `Archetype.materialize()` binds. ⭐ This is what makes a
+# store in a new locality ROWS ONLY — a second shop needs no pack code.
+# Reported, never enforced: a venue missing a slot is short on the
+# checklist, not refused.
+#
+# No `industry:` — shopkeeping derives no recipe rows. Selling is not
+# making; what a shop needs is a counter, somewhere to put goods it does
+# not own, light to read a price by, and somebody behind it.
+archetypeId: shop
+label: a shop
+surveyScope: space
+capabilities:
+  - { key: counter, needs: { presence: counter }, default: /trade/shopkeeping/thing/counter }
+  - { key: shelf, needs: { presence: shelf }, default: /trade/shopkeeping/thing/consignment-shelf }
+  - { key: light, needs: { lightLux: 60 } }
+  # No default: a keeper is a person, and a venue's people are the
+  # venue's. The checklist says a shop wants one; it cannot clone one.
+  - { key: keeper, needs: { presence: keeper } }

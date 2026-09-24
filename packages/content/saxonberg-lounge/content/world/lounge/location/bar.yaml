@@ -108,8 +108,9 @@ data:
   # The crafting fixtures stock the rail; the cast spawns here on
   # hydration too. Each cast member is an NPC template + behavior data;
   # the `shifts` brain sorts them by the game clock — whoever's on shift
-  # stays, the rest step out back. The staff are `Crafter`s (MakerMixin
-  # NPCs) so the present bartender fulfills an `order`.
+  # stays, the rest step out back. The staff are ordinary `Cast` — what
+  # lets the one on shift fulfil an `order` is the house's `fulfills`
+  # SEAT, not anything they compose.
   props:
     # ⭐⭐ The two fixtures the D11 switchover needed, and nothing else
     # about the bar changed.
