@@ -57,23 +57,34 @@
 
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { NavigationApi, type CardinalDirection } from '@saxonberg/server/mud/api/navigation';
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Durable } from '@saxonberg/server/mud/lib/material/Durable';
-import Deposit, { type Point, type GroundSample } from '../idea/Deposit';
+import Deposit, {
+  type Point,
+  type GroundSample,
+} from '@saxonberg/content-ground/src/idea/Deposit';
+import {
+  StrataMixin,
+  type Strata,
+  type Cell,
+} from '@saxonberg/content-ground/src/lib/Strata';
 
 /**
  * A cell of the workings' grid — integer coordinates, z negative down.
  *
  * ⚠ **Not the deposit's units.** A cell is a room you cut; the deposit
  * speaks metres, because rock does not know what cell size somebody
- * chose. {@link Working.metresOf} is the one conversion, and it reads the
- * zone's own `cellSize`.
+ * chose. `Strata.metresOf` is the one conversion, and it reads the zone's
+ * own `cellSize`.
+ *
+ * ⭐ Re-exported from `/system/ground`, where it moved with the position
+ * reads. Every existing importer keeps working: a cell is the ground's
+ * word, and the trade that cuts cells is one of its consumers.
  */
-export type Cell = readonly [number, number, number];
+export type { Cell };
 
 /** The mixin's marker, and the string `MixinApi.isActive` narrows on. */
 export const WORKING_MIXIN = 'WorkingMixin';
@@ -187,29 +198,33 @@ const FACE_LUMPS = 8;
  * affords, whether it was carved or hand-authored. Consumers narrow with
  * `MixinApi.isActive(room, WORKING_MIXIN)` and speak this.
  */
-export interface Working {
+export interface Working extends Strata {
   getBackPhrases(): readonly string[];
+  setBackPhrases(v: string[]): void;
   getSeamPhrases(): readonly string[];
+  setSeamPhrases(v: string[]): void;
   getAirPhrases(): readonly string[];
+  setAirPhrases(v: string[]): void;
   getGroundPhrases(): readonly string[];
+  setGroundPhrases(v: string[]): void;
   /** The ore row a cut from this working mints — locality content. */
   getOreRow(): string;
+  setOreRow(v: string): void;
   getWorkedFaces(): Readonly<Record<string, number>>;
+  setWorkedFaces(v: Record<string, number>): void;
   /** Directions whose face is blocked by loose ground. */
   getBlockedFaces(): readonly string[];
+  setBlockedFaces(v: string[]): void;
   /** Loose ground has run into a face. Idempotent. */
   blockFace(direction: string): void;
   /** The face has been cleared. */
   clearFace(direction: string): void;
   /** Record `lumps` won from `direction`. The only writer of the depletion. */
   recordWinning(direction: string, lumps: number): void;
-  /** This working's grid cell. */
-  getCell(): Cell;
-  /** A cell converted to the deposit's metres, through the zone's `cellSize`. */
-  metresOf(cell: Cell): Point;
-  getDeposit(): Promise<Deposit | null>;
-  getGroundSeed(): Promise<number>;
-  sampleHere(): Promise<GroundSample | null>;
+  // ⭐ `getCell` · `metresOf` · `getDeposit` · `getGroundSeed` ·
+  // `sampleHere` are inherited from `Strata` (`/system/ground`) — see the
+  // interface's `extends` clause. A working is a place in the ground that
+  // somebody also CUTS.
   /** `spine` on a room with no warren — authored ground does not grow. */
   getTier(): WorkingTier;
   /** Every direction out, and what is behind it. */
@@ -226,9 +241,29 @@ export interface Working {
   refreshAir(): Promise<void>;
 }
 
-export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(Base: TBase) {
-  return class WorkingMixin extends Base {
+export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
+  Base: TBase,
+): TBase & (new (...args: any[]) => Working) {
+  // ⭐ Composed over `StrataMixin` (`/system/ground`), which owns the five
+  // position reads this mixin used to carry — `getCell`, `metresOf`,
+  // `getDeposit`, `getGroundSeed`, `sampleHere`. Knowing where you are in
+  // the column is the GROUND's business; cutting it is the trade's, and
+  // the quarry that arrives next needs the first without the second.
+  class WorkingMixin extends StrataMixin(Base) {
     static _mixinName = WORKING_MIXIN;
+
+    /**
+     * The inherited `Strata` reads, typed.
+     *
+     * ⚠ Not decoration: TypeScript does not surface a mixin's members on
+     * `this` inside a class whose base is `SomeMixin(TypeParameter)`, so
+     * `this.ground.getCell()` reads as *"Property 'getCell' does not exist"* even
+     * though it resolves perfectly at runtime. One accessor rather than
+     * eight casts. See `StrataMixin`'s header for the whole story.
+     */
+    private get ground(): Strata {
+      return this as unknown as Strata;
+    }
 
     /**
      * ⭐⭐ **The acts are afforded by the PLACE, and this is the only
@@ -373,54 +408,13 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
     }
 
     // ───────────────────── the place, resolved ─────────────────────
-
-    /** This working's cell. The persistence key, the survey address and the MQL atom are all this. */
-    public getCell(): Cell {
-      const c = (this as unknown as { getCoordinates(): [number, number, number] }).getCoordinates();
-      return [c[0], c[1], c[2]];
-    }
-
-    /**
-     * This working's position in the ground, **in metres** — the cell
-     * times the zone's own `cellSize`. The single conversion between the
-     * grid a mine is cut on and the rock it is cut through.
-     */
-    public metresOf(cell: Cell): Point {
-      const zone = (this as unknown as { getZone(): { getCellSize?(): number } | null }).getZone();
-      const size = zone?.getCellSize?.() ?? 1;
-      return [cell[0] * size, cell[1] * size, cell[2] * size];
-    }
-
-    /**
-     * The deposit governing this working, resolved through the ZONE's
-     * `deposit:` field — ⭐ declared on the shared parent zone, so the
-     * surface pithead and the workings resolve the same one and the
-     * outcrop, the float and the three-point problem are all played
-     * above ground.
-     */
-    public async getDeposit(): Promise<Deposit | null> {
-      const zone = (this as unknown as { getZone(): { lookupField<T>(f: string): Promise<T | null> } | null }).getZone();
-      if (!zone) return null;
-      const path = await zone.lookupField<string>('deposit');
-      if (!path) return null;
-      return resolveDeposit(path);
-    }
-
-    /**
-     * The deposit's seed — derived from the covering Locality's claimed
-     * address and stored nowhere. Rename the mine and its ore moves.
-     */
-    public async getGroundSeed(): Promise<number> {
-      const locality = await AddressApi.resolveLocalityFor(this as unknown as Stuff & Container);
-      return Deposit.seedFor(locality?.getAddress() ?? '');
-    }
-
-    /** Everything the ground says about the cell this room occupies. */
-    public async sampleHere(): Promise<GroundSample | null> {
-      const d = await this.getDeposit();
-      if (!d) return null;
-      return d.sampleAt(this.metresOf(this.getCell()), await this.getGroundSeed());
-    }
+    //
+    // ⭐ `getCell`, `metresOf`, `getDeposit`, `getGroundSeed` and
+    // `sampleHere` come from `StrataMixin` (`/system/ground`) now — the
+    // position reads are the GROUND's, and the quarry the extraction build
+    // adds needs them without depending on a mine. This mixin's own reads
+    // (`facesOf`, `stabilityAt`, `airAt`, `getTier`) all call them through
+    // `this`, unchanged.
 
     /**
      * The tier — ⭐ the ONE read that consults a warren, and it has an
@@ -431,7 +425,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       const warren = (this as unknown as { getWarren?(): unknown }).getWarren?.();
       if (!warren) return 'spine';
       const tierOf = (warren as { tierOf?(c: Cell): WorkingTier | null }).tierOf;
-      return (typeof tierOf === 'function' ? tierOf.call(warren, this.getCell()) : null) ?? 'spine';
+      return (typeof tierOf === 'function' ? tierOf.call(warren, this.ground.getCell()) : null) ?? 'spine';
     }
 
     // ───────────────────────── the three reads ─────────────────────
@@ -446,17 +440,17 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * hand-authored mine work.
      */
     public async facesOf(): Promise<Face[]> {
-      const d = await this.getDeposit();
+      const d = await this.ground.getDeposit();
       const zone = (this as unknown as { getZone(): { hasRoomAt(x: number, y: number, z: number): boolean } | null }).getZone();
       if (!d) return [];
-      const seed = await this.getGroundSeed();
-      const here = this.getCell();
+      const seed = await this.ground.getGroundSeed();
+      const here = this.ground.getCell();
       const out: Face[] = [];
       for (const dir of NavigationApi.cardinalDirections()) {
         const off = NavigationApi.directionOffset(dir);
         if (!off) continue;
         const cell: Cell = [here[0] + off[0], here[1] + off[1], here[2] + off[2]];
-        const s = d.sampleAt(this.metresOf(cell), seed);
+        const s = d.sampleAt(this.ground.metresOf(cell), seed);
         const won = this.workedFaces[dir] ?? 0;
         const ore = s.grade > 0;
         out.push({
@@ -487,9 +481,9 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * shoring on the shipped repair economy rather than on a flag.
      */
     public async stabilityAt(): Promise<Stability> {
-      const sample = await this.sampleHere();
+      const sample = await this.ground.sampleHere();
       const zone = (this as unknown as { getZone(): { hasRoomAt(x: number, y: number, z: number): boolean } | null }).getZone();
-      const here = this.getCell();
+      const here = this.ground.getCell();
 
       let span = 0;
       for (const dir of NavigationApi.cardinalDirections()) {
@@ -534,7 +528,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       const bank = this.groundPhrases;
       if (bank.length > 0) {
         // Deterministic by cell, so one working always reads the same way.
-        const cell = this.getCell();
+        const cell = this.ground.getCell();
         return bank[Math.abs(cell[0] * 31 + cell[1] * 17 + cell[2] * 7) % bank.length]!;
       }
       return s.state === 'bad'
@@ -636,44 +630,15 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
         frontier = next;
       }
     }
-  };
+  }
+  // ⚠ The cast pairs with the annotated return type — see `StrataMixin`'s
+  // header for why the annotation is needed at all (TS drops a mixin's
+  // base-of-a-type-parameter members from the derived class type, and
+  // `MineRoom` lost the five position reads two mixins further up).
+  return WorkingMixin as unknown as TBase &
+    (new (...args: any[]) => Working);
 }
 
-/**
- * Resolve the deposit row, ⚠⚠ **cloning it if nothing has yet.**
- *
- * `Deposit` is a reference `Idea` like `Material` or `Biome`, and unlike
- * those two **nothing boots a roster of them**. `findByTemplatePath`
- * alone therefore answers `null` forever on a fresh process: the zone
- * names the row, the row exists in the store, and the singleton has
- * simply never been instantiated. `hew` then refused in a room with a
- * seam visibly running through the face, and the message blamed the
- * player's direction.
- *
- * ⚠ This is the FOURTH time this shape has bitten this codebase — a
- * reference Idea that reads `null` forever because nothing warms it. The
- * fix is get-or-create at the point of use rather than a boot list
- * somebody has to remember to add to: `StuffApi.singleton` IS the
- * establishing context for a keyless reference row.
- *
- * ⚠ This once read `findByTemplatePath` first "for the cheap synchronous
- * hit after the first read". That was a misreading of `singleton`, whose
- * FIRST ACT is that same index read — it returns the resident instance
- * and clones only on a miss. The pre-check was the lookup written twice,
- * and it spread to nine other sites by copying.
- */
-async function resolveDeposit(path: string): Promise<Deposit | null> {
-  try {
-    return await StuffApi.singleton<Deposit>(path);
-  } catch (err) {
-    // A zone naming a deposit row that does not exist is an authoring
-    // error, and barren ground is the honest reading of it — but the
-    // fault goes to the log, because "barren" is exactly what a real
-    // barren cell says and the two must not be indistinguishable.
-    console.error(`Working: deposit '${path}' did not resolve`, err);
-    return null;
-  }
-}
 
 /** Does this room have a way OUT of the workings — or say it breathes? */
 function breathes(room: Stuff & Container): boolean {

@@ -21,6 +21,8 @@ import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { UNBOUNDED_CAPACITY } from '../../slot/Slotted';
 import { CANONICAL_GROUND_SLOT } from '../Floor';
+import { GroundSourceMixin } from '../GroundSource';
+import { Idea } from '../../stuff/Idea';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -204,5 +206,131 @@ describe('onGrade — the derivation, and what it is NOT', () => {
 
   it('an unattached floor is not on grade — it is not anywhere', () => {
     expect(bareFloor().isOnGrade()).toBe(false);
+  });
+});
+
+describe('rung 3 — the ground beneath, through GroundSourceMixin', () => {
+  /**
+   * ⭐⭐ The seam this whole build turns on, tested with a SYNTHETIC source.
+   *
+   * The real sources are `/system/ground`'s `Deposit` and
+   * `GroundCharacter`, and the kernel cannot import either — that is why
+   * the capability is a kernel mixin the pack implements. So the kernel's
+   * own test must not reach for them: a class composing
+   * `GroundSourceMixin(Idea)` here proves the dispatch, and the pack's
+   * `GroundSource.test.ts` proves the two implementations.
+   *
+   * ⚠ And the degradation is as important as the resolution: with the
+   * ground pack absent every citation is unreadable, rung 3 yields
+   * nothing, and the floor falls to its room default. A realm that ships
+   * no ground model has floors whose material was chosen rather than
+   * derived — which is honest, and is not an error.
+   */
+  class TestSource extends GroundSourceMixin(Idea) {
+    public asked: Array<[readonly [number, number], number, string]> = [];
+    public answer: string | null = '/test/material/bedrock';
+    public override groundMaterialAt(
+      spot: readonly [number, number],
+      zM: number,
+      address: string
+    ): string | null {
+      this.asked.push([spot, zM, address]);
+      return this.answer;
+    }
+  }
+
+  function onGradeRoom(
+    cited: Record<string, string>,
+    cellSize = 1,
+    coords: [number, number, number] = [2, 3, -4]
+  ): CartesianLocation {
+    const room = makeStuff(() => new CartesianLocation());
+    room.setCoordinates(coords);
+    (room as unknown as { getZone(): unknown }).getZone = () => ({
+      getCellSize: () => cellSize,
+      lookupField: async <T,>(f: string): Promise<T | null> =>
+        (cited[f] as unknown as T) ?? null,
+    });
+    return room;
+  }
+
+  it('an on-grade floor asks the zone’s groundCharacter citation first', async () => {
+    const source = makeStuffAtPath(
+      () => new TestSource(),
+      '/test/ground/character'
+    ) as unknown as TestSource;
+    const room = onGradeRoom({ groundCharacter: '/test/ground/character' });
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+
+    await f.resolveUnderfoot();
+    expect(f.getUnderfootRung()).toBe(3);
+    expect(f.getUnderfootMaterialPath()).toBe('/test/material/bedrock');
+    expect(source.asked).toHaveLength(1);
+  });
+
+  it('⭐ the spot crosses in METRES, not cells', async () => {
+    const source = makeStuffAtPath(
+      () => new TestSource(),
+      '/test/ground/metres'
+    ) as unknown as TestSource;
+    const room = onGradeRoom({ deposit: '/test/ground/metres' }, 5, [2, 3, -4]);
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+
+    await f.resolveUnderfoot();
+    // Cells × the zone's own cellSize. Getting this wrong would read the
+    // wrong stratum — silently, and consistently.
+    expect(source.asked[0]![0]).toEqual([10, 15]);
+    expect(source.asked[0]![1]).toBe(-20);
+  });
+
+  it('a source that knows nothing here falls through to the room default', async () => {
+    const source = makeStuffAtPath(
+      () => new TestSource(),
+      '/test/ground/silent'
+    ) as unknown as TestSource;
+    source.answer = null;
+    const room = onGradeRoom({ groundCharacter: '/test/ground/silent' });
+    (room as unknown as { floorDefaults(g: boolean): unknown }).floorDefaults =
+      () => ({ worked: false, materialPath: '/test/material/fallback' });
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+
+    await f.resolveUnderfoot();
+    expect(f.getUnderfootRung()).toBe(4);
+    expect(f.getUnderfootMaterialPath()).toBe('/test/material/fallback');
+  });
+
+  it('⚠ a citation naming nothing resolvable degrades to the ROOM’s default', async () => {
+    // ⭐ The ground pack absent is exactly this case, for every room in the
+    // game at once — and rung **4**, not 5, is where it lands, because a
+    // real Location always answers `floorDefaults()`. That is the honest
+    // degradation the plan's non-goal promises: a realm with no ground
+    // model has floors whose material was chosen rather than derived.
+    // Rung 5 is reached only by a floor attached to nothing.
+    const room = onGradeRoom({ groundCharacter: '/test/ground/absent' });
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+    await f.resolveUnderfoot();
+    expect(f.getUnderfootRung()).toBe(4);
+    // On grade with no source: the OUTDOOR dial, not the indoor one.
+    expect(f.getUnderfootMaterialPath()).toBe(
+      '/stuff/idea/material/earth/loam'
+    );
+  });
+
+  it('a floor NOT on grade never asks — the ground does not continue beneath it', async () => {
+    const source = makeStuffAtPath(
+      () => new TestSource(),
+      '/test/ground/unasked'
+    ) as unknown as TestSource;
+    const room = onGradeRoom({ groundCharacter: '/test/ground/unasked' }, 1, [0, 0, 2]);
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+
+    await f.resolveUnderfoot();
+    expect(f.isOnGrade()).toBe(false);
+    expect(source.asked).toHaveLength(0);
   });
 });

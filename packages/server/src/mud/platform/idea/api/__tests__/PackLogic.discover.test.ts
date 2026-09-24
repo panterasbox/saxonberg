@@ -61,10 +61,12 @@ describe('the shipped packs (real discovery, no install)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
     // ⭐ 43 → 46: the grain chain adds `trade-milling`, `trade-baking`
     // and `hearts-delight`; 46 → 47: forestry adds `trade-forestry`;
-    // 47 → 48: fishing adds `trade-fishing`. A
+    // 47 → 48: fishing adds `trade-fishing`; 48 → 49: the ground build
+    // adds `ground`, the system pack the column and the surface character
+    // moved OUT of two trades into. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(48);
+    expect(ids).toHaveLength(49);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
@@ -87,6 +89,21 @@ describe('the shipped packs (real discovery, no install)', () => {
     // NOT, a customer of wood being installable without a forester.)
     for (const trade of ['trade-mining', 'trade-fuel', 'trade-smelting', 'trade-forestry']) {
       expect(ids.indexOf('rejection')).toBeGreaterThan(ids.indexOf(trade));
+    }
+    // ⭐ The ground cut (ground build): `Deposit` and `GroundCharacter` are
+    // `/system/ground`'s now, not two trades'. Everything that names either
+    // class — the two trades, and the three localities whose rows do —
+    // orders after it. This is the order that makes the claim installable:
+    // a QUARRY can read the column without depending on a mine, and a WOOD
+    // can read its own dirt without depending on a farm.
+    for (const consumer of [
+      'trade-mining',
+      'trade-farming',
+      'rejection',
+      'eternal-university',
+      'hearts-delight',
+    ]) {
+      expect(ids.indexOf(consumer)).toBeGreaterThan(ids.indexOf('ground'));
     }
     expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-mining'));
     expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-fuel'));

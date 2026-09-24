@@ -51,8 +51,8 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { DISCOVERY } from '@saxonberg/server/mud/lib/belief/BeliefStore';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
-import Deposit from '../../Deposit';
-import type { GroundSample } from '../../Deposit';
+import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
+import type { GroundSample } from '@saxonberg/content-ground/src/idea/Deposit';
 
 /** The Discipline every geological read is banded by, and credits. */
 export const GEOLOGY = 'geology';

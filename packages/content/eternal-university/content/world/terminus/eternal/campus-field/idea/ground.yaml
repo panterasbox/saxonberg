@@ -31,7 +31,7 @@
 # who walks out with a spade and reads the two ends of one farm learns
 # the difference by measuring it, which is the only way it is worth
 # learning.
-class: /trade/farming/idea/GroundCharacter
+class: /system/ground/idea/GroundCharacter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the college ground

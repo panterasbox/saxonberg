@@ -59,7 +59,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { ImprovementCost } from '../idea/GroundCharacter';
+import type { ImprovementCost } from '@saxonberg/content-ground/src/idea/GroundCharacter';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 

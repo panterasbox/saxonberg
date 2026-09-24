@@ -910,7 +910,7 @@ bound above is what stands until then.
 (`FloorMixin.onGrade/worked`, `Location.floor/noDefaultFloor`), all at reveal
 level 0 — the expected consequence of four new authorable fields.
 
-### W3 — `/system/ground` (D10, D12, D20)
+### W3 — `/system/ground` (D10, D12, D20) — ✅ DONE
 
 *Goal:* the column and the character have one owner; the floor's rung 3
 answers; mining and farming behave identically.
@@ -960,6 +960,71 @@ green; `metal-chain.dirty.wire.test.ts`, `farming.dirty.wire.test.ts`,
 `lint:imports`); a kernel test that a Location over a zone citing a literal
 `GroundSource` fixture resolves rung 3.
 Commit: `build(ground W3): /system/ground — the column and the character leave the trades; GroundSource answers the floor`.
+
+**✅ Done.** The 49th pack. `Deposit` and `GroundCharacter` moved by `git mv`
+(history preserved) and both compose `GroundSourceMixin`; `StrataMixin` lifted
+out of `WorkingMixin`, which composes over it; `default-character.yaml` +
+`content/settings/ground.yaml`; 5 package.json deps + the root deployment
+manifest; 3 rows and 2 pinned strings repointed; dev DB dropped
+(`reset:db` — 46 collections). `lint:family`: all 48 gates pass. Pack suites:
+ground 57, mining 128, farming 87, forestry 75, university 47, ranching 62,
+water 150 — all green.
+
+**⚠⚠ A TypeScript hole that cost the most time here, worth reading before the
+next pack-to-pack mixin.** TS does **not** surface a mixin's members on `this`
+inside a class whose base is `SomeMixin(TypeParameter)`. `super.x()` resolves;
+`this.x()` reads *"Property 'getCell' does not exist"*. Worse, it propagates:
+`MineRoom` = `PersistableMixin(WarrenMemberMixin(WorkingMixin(CartesianLocation)))`
+lost all five position reads, so **every consumer typed as `Working` broke** —
+which is how a purely structural move produced 15 type errors in files it never
+touched. Two fixes, both recorded in the code:
+
+1. `StrataMixin` and `WorkingMixin` carry **explicit return types**
+   (`TBase & (new (…args: any[]) => Strata | Working)`), the standard TS mixin
+   idiom. That is what restores the surface on derived classes.
+2. Inside `WorkingMixin`'s body, a `private get ground(): Strata` — one
+   accessor instead of eight casts at the call sites.
+
+⭐ A side effect worth keeping: annotating `WorkingMixin`'s return forced the
+`Working` interface to be **complete**. It was missing every authoring setter
+(`setOreRow`, `setBackPhrases`, …), which four tests were reaching for through
+the inferred class type. The interface now describes the surface it claims to.
+
+**Two content claims got STRONGER, and both had to be edited to say so:**
+
+- `exemplar.test.ts` — *"every class the venue names belongs to a trade or the
+  platform"* now reads *"a trade, a **system**, or the platform"*. ⭐ Rejection's
+  Ferrow deposit is an instance of `/system/ground/idea/Deposit`, and before this
+  a venue could not name a deposit at all without depending on the mining trade.
+  *A system's classes are the pack's; its instances are the realm's.*
+- `campus-farm.test.ts` — same shape, and it now asserts the campus field's
+  ground IS `/system/ground/idea/GroundCharacter` rather than merely allowing it.
+
+**⭐⭐ The rung-3 test found a real defect in W1's code.** `resolveUnderfoot`
+called `host.floorDefaults?.()` **with no argument** while `floorDefaults(onGrade)`
+keys the indoor-vs-outdoor material on exactly that parameter. So every on-grade
+room whose rung 3 found nothing read as **boards** instead of loam — a whole
+class of outdoor rooms silently floored wrong, and nothing else would have
+noticed. This is the signature-changed-but-the-caller-didn't class, and it is
+precisely why D11's *"takes `onGrade` rather than deriving it"* needed a test
+rather than a comment.
+
+**Also settled:**
+
+- `TEXTURE_MATERIALS` collapses six texture classes to **three** materials, and
+  the collapse is the honest part: a texture class is a position on a triangle,
+  and a boot cannot tell `sandy-loam` from `silt-loam`. What the six exist for —
+  drainage, the cost of improvement — is `GroundSample`'s and is untouched.
+- The two sources do **not** overlap. A character answers within `topsoilM`; a
+  column answers from the collar down. That boundary is what lets a field read
+  loam while the gallery beneath it reads its host rock, on **one** ladder with
+  nothing arbitrating.
+- `Deposit.groundMaterialAt` answers the **host rock, never the ore**. A face in
+  a rich band is still granite you are standing on.
+- ⚠ `StuffApi.createSync` now refuses **every Location** (W2 put
+  `PostRegistrationMixin` at the base). Audited: no production caller creates a
+  Location that way — the sites are registries, Exits, BoundaryAnchors and a
+  Receptacle. Two pack tests needed `makeStuff` instead.
 
 ### W4 — the content: the six floors, the road walk (D22)
 

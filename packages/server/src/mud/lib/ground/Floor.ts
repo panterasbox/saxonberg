@@ -154,7 +154,7 @@ export interface Floor {
  */
 interface FloorHost {
   getFloorSpec?(): { material?: string; onGrade?: boolean; worked?: boolean } | null;
-  floorDefaults?(): { onGrade: boolean; worked: boolean; materialPath: string };
+  floorDefaults?(onGrade: boolean): { worked: boolean; materialPath: string };
   getZone?(): { lookupField<T>(field: string): Promise<T | null>; getCellSize?(): number } | null;
   getCoordinates?(): [number, number, number];
   getAddress?(): string | null;
@@ -378,7 +378,12 @@ export function FloorMixin<
       }
 
       // Rung 4 — the room-kind default.
-      const defaults = host?.floorDefaults?.();
+      // ⚠⚠ `isOnGrade()` MUST be passed: `floorDefaults` keys the indoor vs
+      // outdoor material on it, and calling it bare made every on-grade
+      // room whose rung 3 found nothing read as BOARDS instead of loam —
+      // a whole class of outdoor rooms silently floored wrong. Caught by
+      // `Floor.test.ts`'s "a citation naming nothing resolvable" case.
+      const defaults = host?.floorDefaults?.(this.isOnGrade());
       if (defaults?.materialPath) {
         this.underfootMaterialPath = defaults.materialPath;
         this.underfootRung = 4;

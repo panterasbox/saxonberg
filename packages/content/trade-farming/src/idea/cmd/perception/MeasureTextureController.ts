@@ -27,7 +27,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import GroundCharacter from '../../GroundCharacter';
+import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MeasureTextureModel extends CommandModel {

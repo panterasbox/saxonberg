@@ -27,8 +27,8 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import Deposit from '../idea/Deposit';
-import type { Point } from '../idea/Deposit';
+import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
+import type { Point } from '@saxonberg/content-ground/src/idea/Deposit';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REJECTION = join(HERE, '..', '..', '..', 'rejection', 'content', 'world', 'terminus', 'rejection');

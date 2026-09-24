@@ -29,7 +29,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CardApi } from '@saxonberg/server/mud/api/card';
-import { TEXTURE_CLASSES, type TextureClass } from '../../GroundCharacter';
+import { TEXTURE_CLASSES, type TextureClass } from '@saxonberg/content-ground/src/idea/GroundCharacter';
 
 export default class AnalyzeSoilController extends SoilChannelController {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
