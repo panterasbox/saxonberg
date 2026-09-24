@@ -1,0 +1,20 @@
+# Antivenin — a remedy Material (D7). What it counters is a FREE-FORM TAG,
+# `antidote:venom`, read by `dose` against the patient's live toxin
+# burdens. That is the whole mechanism: an antidote is a substance with a
+# tag, not a new mixin, so a second remedy (an antitoxin, a chelator) is
+# one more row, not one line of code.
+#
+# ⚠ The tag namespace is `antidote:<toxinType>`, and `<toxinType>` is the
+# metabolism burden key it crashes (`venom`, later `botulinum`, `lead`…).
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: antivenin
+  keywords: [antivenin, antivenom, serum, remedy]
+  appearance: a pale amber serum
+  density: 1010
+  edibility: true
+  toxicity: []
+  # ⭐ The working tag — `dose` reads `antidote:<toxin>` and crashes that
+  # burden. One tag, one toxin countered.
+  tags: [antidote:venom, liquid, remedy]

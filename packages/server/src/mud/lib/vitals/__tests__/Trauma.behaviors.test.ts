@@ -60,10 +60,15 @@ describe('Trauma behaviors — contusion / burn / avulsion', () => {
       site: 'body.torso',
       severity: 1,
     };
+    // ⭐ The split (D1): `tick` is the HARM half (a bruise does nothing —
+    // no bleed, no blood lost), `mend` is the healing half (the decay,
+    // scaled by the convalescence factor `k`).
     TRAUMA_BEHAVIOR.contusion.tick(host, t, 60);
-    expect(t.severity).toBeLessThan(1);
     expect(t.bleeding).toBeUndefined();
     expect(host.getVitalSign('bloodVolume').rawValue()).toBe(start);
+    expect(t.severity).toBe(1); // tick alone no longer heals
+    TRAUMA_BEHAVIOR.contusion.mend(host, t, 60, 1);
+    expect(t.severity).toBeLessThan(1);
   });
 
   it('burn carries a real, decaying behavior', () => {
@@ -74,7 +79,9 @@ describe('Trauma behaviors — contusion / burn / avulsion', () => {
       site: 'body.arm.left',
       severity: 1.5,
     };
-    TRAUMA_BEHAVIOR.burn.tick(host, t, 60);
+    // The severity decay is the healing half (`mend`); `tick` carries only
+    // the burn's weep, which is a `signature` effect the reconcile applies.
+    TRAUMA_BEHAVIOR.burn.mend(host, t, 60, 1);
     expect(t.severity).toBeLessThan(1.5);
     expect(TRAUMA_BEHAVIOR.burn.describe(t)).toContain('burn');
   });
@@ -96,6 +103,76 @@ describe('Trauma behaviors — contusion / burn / avulsion', () => {
     const start = host.getVitalSign('bloodVolume').rawValue();
     TRAUMA_BEHAVIOR.avulsion.tick(host, t, 60);
     expect(host.getVitalSign('bloodVolume').rawValue()).toBeLessThan(start);
+  });
+});
+
+describe('treated wounds knit faster (recovery D4/D5)', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  it('⭐ a SET fracture knits faster than an unset one', () => {
+    const host = makeStuff(() => new Creature());
+    const unset: Trauma = {
+      kind: 'trauma',
+      type: 'fracture',
+      site: 'body.leg.left',
+      severity: 2,
+    };
+    const set: Trauma = {
+      kind: 'trauma',
+      type: 'fracture',
+      site: 'body.leg.right',
+      severity: 2,
+      dressed: true,
+      careQuality: 1,
+    };
+    TRAUMA_BEHAVIOR.fracture.mend(host, unset, 100, 1);
+    TRAUMA_BEHAVIOR.fracture.mend(host, set, 100, 1);
+    // The set fracture decays at the treated rate; the unset at the slower
+    // natural one — so it lost more severity over the same interval.
+    expect(2 - set.severity).toBeGreaterThan(2 - unset.severity);
+  });
+
+  it('⭐ a rupture does not knit until SURGERY closes it', () => {
+    const host = makeStuff(() => new Creature());
+    const rupture: Trauma = {
+      kind: 'trauma',
+      type: 'rupture',
+      site: 'body.torso.liver',
+      severity: 3,
+      bleeding: true,
+    };
+    // Untreated: an interior bleed knits nothing.
+    TRAUMA_BEHAVIOR.rupture.mend(host, rupture, 100, 1);
+    expect(rupture.severity).toBe(3);
+    // Surgery closes it — now it heals.
+    TRAUMA_BEHAVIOR.rupture.resolve(host, rupture);
+    expect(rupture.dressed).toBe(true);
+    TRAUMA_BEHAVIOR.rupture.mend(host, rupture, 100, 1);
+    expect(rupture.severity).toBeLessThan(3);
+  });
+
+  it('⭐ care quality scales the treated rate — a good dressing beats a poor one', () => {
+    const host = makeStuff(() => new Creature());
+    const good: Trauma = {
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.left',
+      severity: 2,
+      dressed: true,
+      careQuality: 1,
+    };
+    const poor: Trauma = {
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.right',
+      severity: 2,
+      dressed: true,
+      careQuality: 0,
+    };
+    TRAUMA_BEHAVIOR.laceration.mend(host, good, 20, 1);
+    TRAUMA_BEHAVIOR.laceration.mend(host, poor, 20, 1);
+    expect(2 - good.severity).toBeGreaterThan(2 - poor.severity);
   });
 });
 

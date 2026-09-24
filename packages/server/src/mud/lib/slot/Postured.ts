@@ -54,6 +54,19 @@ export interface Postured extends Slotted {
   getRestQuality(): number;
   setRestQuality(value: number): void;
   /**
+   * ⭐⭐ **How much this surface speeds WOUND recovery**, over and above
+   * how good a night's sleep it is. Default `1.0` (no clinical benefit).
+   * Read ONLY by the wound driver (`Vitals.convalescenceFactor`), never
+   * by stamina recovery — which is why it is a SECOND field beside
+   * `restQuality` rather than a bigger `restQuality`: a clinic cot
+   * (`restQuality 1.5, convalescence 2.0`) mends a wound faster than a
+   * home four-poster (`restQuality 2.0`, convalescence 1.0) without also
+   * being a better night's sleep. The two axes are genuinely different
+   * facts about a surface.
+   */
+  getConvalescence(): number;
+  setConvalescence(value: number): void;
+  /**
    * Warming bonus (Kelvin) a body occupying this host's posture slot
    * adds to its effective ambient. Default `0` (neutral). A campfire
    * log-seat authors both `restQuality` (recover) and `warmth` (stay
@@ -76,6 +89,7 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 
     static fieldMeta: FieldMeta = {
       restQuality: { persistent: true, authorable: true },
+      convalescence: { persistent: true, authorable: true },
       warmth: { persistent: true, authorable: true },
     };
 
@@ -100,6 +114,28 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
         );
       }
       this.restQuality = value;
+    }
+
+    /**
+     * Wound-recovery multiplier for a body at rest on this host. Default
+     * `1.0` (a bed is a bed; no clinical benefit). Strictly positive —
+     * a value `> 1` speeds mending (a clinic cot), `(0, 1)` is legal but
+     * reserved. Read only by `Vitals.convalescenceFactor`.
+     */
+    public convalescence: number = 1.0;
+
+    getConvalescence(): number {
+      return this.convalescence;
+    }
+
+    setConvalescence(value: number): void {
+      if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+        throw new RangeError(
+          `PosturedMixin.setConvalescence: expected a finite number > 0, ` +
+            `got ${String(value)}`
+        );
+      }
+      this.convalescence = value;
     }
 
     /**

@@ -1,0 +1,33 @@
+verbs: [cool]
+controller: /platform/idea/cmd/medical/CoolController
+description: "Cool a burn (or a body running too hot) with water"
+help: |
+  `cool` a burn with water — `cool` yourself, or `cool alice`. You need
+  water in reach: a basin, a tap, a jug you are carrying.
+
+  A burn wants fluid. You can DRINK water (that is what `treat` does — it
+  replaces what the burn weeps), or you can cool the wound directly, which
+  is this. A cooled burn knits faster than one left to itself.
+
+  It also brings down a body that has run too hot. If it is still in the
+  heat, it will climb again.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  # Bare, the binder hands over every reachable vessel and the controller
+  # takes the first holding water — a question about the CONTENTS, which no
+  # predicate can ask (`lint:instrument-args`). Mirrors `rinse` / `wash`.
+  - name: water
+    type: object
+    required: false
+    prepositions: [with, in, under]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]

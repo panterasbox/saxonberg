@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**233 slates.** 52 greenfield · 83 continuations · 55 waves · 43 tails.
+**235 slates.** 52 greenfield · 84 continuations · 55 waves · 44 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (52)
 
@@ -97,7 +97,7 @@ respect.
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (83)
+## ⭐ Continuations — substrate shipped, a build's worth remains (84)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -172,6 +172,7 @@ are the named remainders.
 | [psychology](./builds/psychology-slate.md) | the scoped disclosure grant · the therapist's file object · the psychology vocation + its Discipline · privilege and the conflict class … |
 | [ranching](./builds/ranching-slate.md) | the feed loop — grazing demand on the animal, a way to feed a head, hay as the stored form, the winter-feed budget · the paddock move — `move herd`, paddocks as subdivided fields, the open gate resolved at reconcile, fencing as a bound, the hired-hand cadence with its utilization penalty · breeding (gestation · birth … |
 | [ranged](./builds/ranged-slate.md) | W2 — authored cover (directional · destructible · leased) + overturnable furniture · armor on the response grid (point→blunt, proof marks) … |
+| [recovery](./builds/recovery-slate.md) | the deferred lens-tails, each now its own slate — prosthetics → augmentation-slate · the absent body → absent-body-slate · surgery the practice → surgery-slate · blood / transfusion / donation → blood-slate. |
 | [rejection](./builds/rejection-slate.md) | everything below the water table — shaft, hoist, pump · the drainage commons + the hoist toll and district · sulfides and roasting · collapse entrapment, the rescue clock and cascade … |
 | [reputation](./builds/reputation-slate.md) | susceptibility · the NPC↔NPC consumers · the substance economy's brand-trust · the notoriety/disguise counterweight (the wanted-profile, `getDisguise().covers`, mutable `distinctiveFeatures`) … |
 | [retail](./builds/retail-slate.md) | S2 the Circulation Reserve (the welfare-floor buy) · S3 producer + real cost/supply pricing (the derived stance, then characterization) · S4 player-owned storefronts, franchising and the market arena · ⚠ **a business never stands DOWN** (below) … |
@@ -248,10 +249,11 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (43)
+## Tails — small and opportunistic (44)
 
 | slate | left |
 |---|---|
+| [absent-body](./tails/absent-body-slate.md) | the autonomic-defense stance itself · brain-mechanism vs pure-stance · the grace/duration question · the interaction with `combat.maxBeats` … |
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — denies + `forceX` uses → `MudlogApi`, which is unwired) · action-level `can()` for non-staff verbs (chat gag-as-deny, channel post/moderate roles, guild kick, field masks) + deny-wins composition · the location/context source · the lease-vs-quota design question, which should not ride the audit sink's cycle |
 | [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled) and its parse wiring (Q3–Q5) · extra `put` prepositions (Q2) · the `Receiving` mixin (NPC consent for `give`) |
 | [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script (no `script` verb) detaches · a per-actor async concurrency cap · a generic cancel-my-running-async-command verb (engagement owns cancel today) |

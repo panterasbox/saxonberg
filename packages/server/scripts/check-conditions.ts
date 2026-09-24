@@ -37,7 +37,13 @@ import YAML from "yaml";
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 const CONDITION_CLASS = "/platform/idea/Condition";
-const EFFECT_KINDS = ["vital", "reserve", "function", "expression"];
+const EFFECT_KINDS = [
+  "vital",
+  "reserve",
+  "function",
+  "expression",
+  "convalescence",
+];
 
 const CONTENT_DIR = fileURLToPath(new URL("../../content", import.meta.url));
 const SRC = fileURLToPath(new URL("../src", import.meta.url));
@@ -164,6 +170,11 @@ export function findingsIn(
         }
         if (kind === "expression" && typeof e.bands !== "number") {
           out.push(`${file}: an 'expression' effect needs numeric 'bands'`);
+        }
+        if (kind === "convalescence" && typeof e.factor !== "number") {
+          out.push(
+            `${file}: a 'convalescence' effect needs a numeric 'factor'`,
+          );
         }
         if (kind === "capability" && e.disables !== "slots-at-site") {
           out.push(

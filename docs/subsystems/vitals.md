@@ -63,6 +63,17 @@ Constructa tutor-bot) have no Stuff class and never become Creatures.
 per-species band profile and `getLifecycleState()` for the dead
 readout). The constraint is a **runtime guard**, not a comment.
 
+> **Recovery build.** `VitalsMixin` gained `convalescenceFactor()` (the
+> per-body heal-rate multiplier `k`), `applyTreatment(wound, opts)` (the
+> one treatment primitive), `getCarer()`/`_setCarer()` (the live tending
+> link), and `nextInterestingAt()` (the notify alarm's pure read); the
+> `Trauma` value gained `mendedAt` (the offline mend clock), `careQuality`,
+> `openSince`/`septicSeeded` (the wound-sepsis seeds). `HygieneMixin`
+> (body cleanliness) composes beside it on `Creature`. The whole arc — the
+> `mend` split, `k`, the offline carve, treatments, hygiene, the carer, and
+> the alarm-not-heartbeat notify layer — is documented in
+> [harm.md § Recovery](./harm.md#recovery--care-buys-rate-the-recovery-build).
+
 ```ts
 interface Vitals {
   // Vital signs — Quantity per sign

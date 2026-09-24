@@ -1,0 +1,32 @@
+verbs: [operate, surgery]
+controller: /trade/medicine/idea/cmd/medical/OperateController
+description: "Emergency field surgery — stop an internal bleed before it kills"
+help: |
+  Emergency field surgery — `operate alice`, with a surgeon's kit in hand.
+  A rupture is a torn organ bleeding into a cavity no bandage can reach; it
+  does not stop or knit on its own, so without this the patient bleeds out.
+  This is the crude, decisive act that arrests the bleed and lets the body
+  begin to close — battlefield surgery, not the careful work of a proper
+  operating theatre.
+
+  Two things it demands that no other treatment does: the patient must be
+  lying still, and you must actually know how — `competent` in medicine or
+  better. A rupture is the one wound where a clumsy hand does harm, so an
+  untrained one is refused rather than risked.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  - name: kit
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.surgery]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

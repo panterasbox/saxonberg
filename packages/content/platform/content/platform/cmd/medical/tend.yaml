@@ -1,0 +1,20 @@
+verbs: [tend, nurse]
+controller: /platform/idea/cmd/medical/TendController
+description: "Sit with a wounded body to speed its recovery"
+help: |
+  `tend alice` (or `nurse alice`) sits with a wounded or ill body and helps
+  it recover faster. It holds YOUR attention — you tend one patient at a
+  time — and how much you help depends on your skill at medicine.
+
+  The help lasts only while you are there: walk out of the room, take a
+  second patient, or `cancel`, and it ends. You cannot tend yourself.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: true
+    scope: "reachable"
+    requires: VitalsMixin
