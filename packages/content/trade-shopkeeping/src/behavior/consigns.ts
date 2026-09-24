@@ -66,20 +66,20 @@
  * A counter that carries a stock LINE for the good takes only to par.
  */
 
-import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
-import { CommandApi } from '../../api/command';
-import { AppApi } from '../../api/app';
-import { EmploymentApi } from '../../api/employment';
-import { AppSettingKeys } from '../config/AppSettings';
-import type { CommandGiver } from '../command/CommandGiver';
-import type { Stuff } from '../stuff/Stuff';
-import type { Mobile } from '../spatial/Mobile';
-import type { Container } from '../spatial/Container';
-import type { Containable } from '../spatial/Containable';
-import type { BrainContext, BrainStatics } from './brain';
-import type { Employed } from '../employment/Employed';
-import Stock from '../../platform/thing/Stock';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { CommandApi } from '@saxonberg/server/mud/api/command';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
+import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
+import Stock from '@saxonberg/server/mud/lib/retail/Stock';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;

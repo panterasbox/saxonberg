@@ -1,6 +1,6 @@
 # Veshko's stock — the Stock the yard's floor product spawns INTO (every
 # Veshko bottle row's `container:`); the zone's `stocks:` sets the counts.
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Veshko's stock

@@ -170,6 +170,17 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // for the same reason: it is your own seat, and the controller
         // refuses when you hold none.
         'platform/cmd/employment/quit.yaml',
+        // ⭐ The `apply` verb (employment) — ask for a job that is going
+        // where you stand. Universal for the same reason: asking is a
+        // person's own act, and the ORGANIZATION is what refuses (with a
+        // number, and with what lifts it). The player moves first.
+        'platform/cmd/employment/apply.yaml',
+        // The `clock` verb (employment) — start and end a shift at a
+        // house that employs you. Universal, and the controller refuses
+        // when you hold no job there or are not on their premises. A
+        // shift is something you CHOOSE to start; holding a job puts you
+        // on the chart, not on the clock.
+        'platform/cmd/employment/clock.yaml',
         // The `title` verb (civics) — what ground you hold and what is
         // for sale. Universal for the same reason `government` is: your
         // own holdings are a self-read, and a plat book is public. The

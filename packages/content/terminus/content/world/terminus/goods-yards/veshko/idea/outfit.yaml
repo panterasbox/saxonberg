@@ -15,7 +15,6 @@ data:
       noun: hand
       label: running Veshko's yard
       wageRate: 4
-      confers: []
       purchases: true
   rosterSlots:
     - positionKey: hand

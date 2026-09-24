@@ -47,8 +47,15 @@ subcommands:
       - name: amount
         type: string
         required: true
+  # ⭐ The SHOPKEEPER's three (trades-and-labor D4). Stanzas on this
+  # shipped view with the trade's controller behind them — the
+  # `house freight` shape. Every business has books, a payroll and a
+  # chart; a par sheet, an ask and a stock rail are what a SHOP keeps.
+  # ⚠ Without `trade-shopkeeping` installed they die on dispatch with
+  # a legible `controller-error`, never a crash.
   par:
     description: "Set (or strike, at 0) a par line on the house"
+    controller: /trade/shopkeeping/idea/cmd/banking/HouseShopController
     args:
       - name: category
         type: string
@@ -117,6 +124,7 @@ subcommands:
         description: "`season` — only the last quarter."
   price:
     description: "Set the house's ask for a good and its kind on the counter it operates"
+    controller: /trade/shopkeeping/idea/cmd/banking/HouseShopController
     args:
       - name: thing
         type: object
@@ -130,3 +138,4 @@ subcommands:
     description: "The chart: every position, who holds it, on shift or not, or `vacant`"
   stock:
     description: "The live stock sheet — the rail against par"
+    controller: /trade/shopkeeping/idea/cmd/banking/HouseShopController

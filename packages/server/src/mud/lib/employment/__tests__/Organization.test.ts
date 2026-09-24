@@ -58,7 +58,6 @@ const POSITION = {
   key: 'communications-director',
   label: 'speaking for the office',
   wageRate: 0,
-  confers: [],
 };
 
 describe('OrganizationMixin', () => {

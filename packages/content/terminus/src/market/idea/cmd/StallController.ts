@@ -10,7 +10,7 @@
  *   them so what is on it survives a restart and comes back where it stood
  *   (`PersistableApi.restoreOrSeed`); `purchasing: terms` from the seed —
  *   rung 0 for a player, day one;
- * - the HOUSE, a `Business` minted from `/platform/idea/Business/stall`
+ * - the HOUSE, a `Business` minted from `/trade/shopkeeping/idea/business/stall`
  *   with the renter's identity and an overlay of what is theirs: the
  *   appointing authority (the renter, as an entity), the bank (wherever
  *   their primary account is custodied — refused `no-bank` without one),
@@ -47,7 +47,7 @@ import type { Business } from '@saxonberg/server/mud/api/employment';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import Stock from '@saxonberg/server/mud/platform/thing/Stock';
+import Stock from '@saxonberg/content-trade-shopkeeping/src/thing/Stock';
 import MarketStalls from '../../thing/MarketStalls';
 
 const TOPIC = 'act.deed';
@@ -55,7 +55,8 @@ const TOPIC = 'act.deed';
 /** The seed a renter's counter is minted from, and the scope its record is filed under. */
 export const STALL_SEED = '/world/terminus/market/thing/stall';
 /** The seed a renter's house is minted from. */
-export const STALL_BUSINESS_SEED = '/platform/idea/Business/stall';
+export const STALL_BUSINESS_SEED =
+  '/trade/shopkeeping/idea/business/stall';
 /** The square's business — the rent's payee. */
 export const MARKET_BUSINESS = '/world/terminus/market/business';
 

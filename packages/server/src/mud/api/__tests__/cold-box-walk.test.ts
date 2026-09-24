@@ -183,7 +183,7 @@ function installPressOffice(): OrganizationEntity {
   org.visibility = 'public';
   org.feedPath = PRESS_FEED;
   org.positions = [
-    { key: DIRECTOR, label: 'speaking for the Compact', wageRate: 0, confers: [] },
+    { key: DIRECTOR, label: 'speaking for the Compact', wageRate: 0 },
   ];
   org.rosterSlots = [];
   org.publishingPositions = [DIRECTOR];

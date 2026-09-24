@@ -17,3 +17,13 @@ requires:
   title:
     # Under the realm root (economic bootstrap D5): situs walks up to terminus.
     - { extent: /world/terminus/hearthworks, parentParcel: /world/terminus, holder: { group: hearthworks } }
+
+# ⭐ The Hearthworks stands up at boot (trades-and-labor D16/D11): it
+# advertises a `kitchen-hand` seat, and the help-wanted sign is derived
+# from LIVE businesses — a `look` may not stand a house up, or walking
+# past a venue would be an economic act. A house nobody has traded with
+# yet is a house whose opening nobody can see. `lint:openings` holds the
+# two facts together.
+boot:
+  - { template: /world/terminus/hearthworks/idea/business, role: producer, reason: "the forge's business — it advertises a kitchen-hand seat, and the derived help-wanted sign reads LIVE businesses only" }
+  - { template: /world/terminus/hearthworks/location/cookhouse, role: producer, reason: "the cookhouse is where the kitchen-hand stands and where the menu is ordered from — the house must operate a room that exists" }

@@ -47,3 +47,13 @@ requires:
 boot:
   - { template: /world/terminus/eternal/duncan-hall/idea/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
   - { template: /world/terminus/eternal/duncan-hall/idea/college, role: producer, reason: "Duncan Hall's staff — provision/unprovision ask whether the actor holds a position here, read off the authored roster" }
+  # ⭐ The farm unit advertises rung ZERO (trades-and-labor D16), and the
+  # derived help-wanted sign reads LIVE businesses only — a `look` may not
+  # stand a house up. A farm nobody has traded with yet is a farm whose
+  # opening nobody can see. `lint:openings` holds the two together.
+  - { template: /world/terminus/eternal/campus-farm/idea/farm-unit, role: producer, reason: "the university farm's business — it advertises two labourer places with no prerequisite at all, the lowest rung in the realm" }
+  # ⚠ And the yard it operates: a business advertises into a ROOM, and a
+  # room nothing has reached yet is a room the sign cannot be read in.
+  # Found by driving — `goto` answered `unknown-target` for a yard whose
+  # business was pinned and whose ground was not.
+  - { template: /world/terminus/eternal/campus-farm/location/yard, role: producer, reason: "the farm yard — the room the labourer opening is advertised in and clocked on at" }

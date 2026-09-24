@@ -50,6 +50,9 @@ export interface HeldGoodsShelf {
   resolveHeld(keyword: string): (Stuff & Containable) | null;
 }
 
+/** A pure custody rack (the coat check) — the held-goods base, no sale. */
+export type RackStuff = Stuff & Container & HeldGoodsShelf;
+
 export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
@@ -162,6 +165,9 @@ export interface ConsignmentShelf extends HeldGoodsShelf {
   /** A shelf good, matched by keyword, that carries a live listing. */
   resolveConsigned(keyword: string): (Stuff & Containable) | null;
 }
+
+/** Any fixture that brokers listings — a `ConsignmentShelf`, or a `Stock` counter. */
+export type ShelfStuff = Stuff & Container & ConsignmentShelf;
 
 export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,

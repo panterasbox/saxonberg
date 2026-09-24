@@ -11,6 +11,7 @@
     "@saxonberg/content-trade-forestry": "workspace:*",
     "@saxonberg/content-trade-fuel": "workspace:*",
     "@saxonberg/content-trade-mining": "workspace:*",
+    "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-trade-smelting": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-transport": "workspace:*",

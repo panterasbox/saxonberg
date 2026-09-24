@@ -51,7 +51,7 @@ import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ThermalMixin } from '../../../lib/thermal/Thermal';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
-import { MakerMixin } from '../../../lib/craft/Maker';
+import { EmployedMixin } from '../../../lib/employment/Employed';
 import { Construction } from '../../../lib/material/Construction';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import {
@@ -93,14 +93,18 @@ const PLATFORM_MATERIALS = fileURLToPath(
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomVenues';
 }
-class TestMaker extends MakerMixin(
+class TestMaker extends EmployedMixin(
   ThermalMixin(ContainerMixin(NamedMixin(ContainableMixin(Idea)))),
 ) {
   static _mixinName = 'TestMakerVenues';
-  // MakerMixin is augment-gated; this stands in for an on-shift employee
-  // (the employment leg `collectAugmentConferralNames` reads).
-  getConferredMixinNames(): readonly string[] {
-    return ['MakerMixin'];
+  // ⭐ Stands in for an on-shift holder of a `fulfills` seat. The real
+  // read is three conditions (on shift · the seat marks `fulfills` · the
+  // house operates where you stand) and is proved as a truth table in
+  // `lib/employment/__tests__/conferral.test.ts`; here the fulfiller is
+  // scenery, so the seam is stubbed exactly as the old `MakerMixin`
+  // conferral was.
+  isFulfilling(): boolean {
+    return true;
   }
 }
 class TestPatron extends ThermalMixin(

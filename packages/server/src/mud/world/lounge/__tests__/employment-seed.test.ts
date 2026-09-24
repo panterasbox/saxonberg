@@ -14,7 +14,9 @@ import { EmploymentApi } from '../../../api/employment';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import BusinessEntity from '../../../platform/idea/Business';
-import { MakerMixin } from '../../../lib/craft/Maker';
+import { ContainableMixin } from '../../../lib/spatial/Containable';
+import { ContainerMixin } from '../../../lib/spatial/Container';
+import { ContainmentApi } from '../../../api/containment';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 import { MixinApi } from '../../../api/mixin';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -31,7 +33,7 @@ interface BizDoc {
   class: string;
   data: {
     appointingAuthority: { kind: string; path?: string };
-    positions: { key: string; wageRate: number; confers: string[] }[];
+    positions: { key: string; wageRate: number; fulfills?: string[] }[];
     rosterSlots: { positionKey: string; assignee: string; schedule: unknown[] }[];
     operatingLocations: string[];
   };
@@ -41,10 +43,27 @@ function loadSeed(): BizDoc {
   return YAML.parse(readFileSync(SEED, 'utf8')) as BizDoc;
 }
 
-// A Crafter-shaped host: gated MakerMixin + EmployedMixin (Dave and the
-// rostered staff are `Crafter`s = MakerMixin(NPC), NPC being a Character).
-class Staff extends MakerMixin(EmployedMixin(Idea)) {
+// A staff-shaped host: employable, and able to stand behind the bar.
+// ⭐ It composes NO capability — since the trades-and-labor build the bar
+// staff are plain `Cast`, and what lets the one on shift serve an `order`
+// is the house's `fulfills` SEAT, read off the shift, in a room the house
+// operates. A player in the same seat gets exactly the same answer.
+class Staff extends EmployedMixin(ContainableMixin(Idea)) {
   static _mixinName = 'Staff';
+}
+class BarRoom extends ContainerMixin(Idea) {
+  static _mixinName = 'EmploymentSeedBar';
+}
+const BAR = '/world/lounge/location/bar';
+
+/** Stand a staff member behind the bar — the "here" leg of `isFulfilling`. */
+function behindBar(path: string): Staff {
+  const who = makeStuffAtPath(() => new Staff(), path);
+  const bar =
+    StuffApi.findByTemplatePath<BarRoom>(BAR) ??
+    makeStuffAtPath(() => new BarRoom(), BAR);
+  ContainmentApi.move(who as never, bar as never);
+  return who;
 }
 
 describe("Dave's Bar — Business seed integrity", () => {
@@ -60,12 +79,17 @@ describe("Dave's Bar — Business seed integrity", () => {
     });
   });
 
-  it('authors the bartender position conferring MakerMixin', () => {
+  it('authors the bartender position as the FULFILLING seat', () => {
     const doc = loadSeed();
     const bartender = doc.data.positions.find((p) => p.key === 'bartender');
     expect(bartender).toBeDefined();
     expect(bartender!.wageRate).toBeGreaterThan(0);
-    expect(bartender!.confers).toContain('MakerMixin');
+    // ⭐ The list, not a flag: a seat names WHICH orders it serves. Every
+    // drinkable row in the realm authors `discipline: bartending`.
+    expect(bartender!.fulfills).toEqual(['bartending']);
+    // ⚠ And the house must name where it operates, or the seat grants
+    // nothing: `isFulfilling` is employer-bounded.
+    expect(doc.data.operatingLocations).toContain(BAR);
   });
 
   it('rosters the four staff (Sloane keeps the midnight-wrap window; Mara also keeps the bar)', () => {
@@ -119,8 +143,8 @@ describe("Dave's Bar — Business seed drives the engine", () => {
   }
 
   it('materializes an Employment per assignee and selects the on-shift maker', () => {
-    const mara = makeStuffAtPath(() => new Staff(), '/world/lounge/agent/mara');
-    const remy = makeStuffAtPath(() => new Staff(), '/world/lounge/agent/remy');
+    const mara = behindBar('/world/lounge/agent/mara');
+    const remy = behindBar('/world/lounge/agent/remy');
 
     atClock(2, 10); // Wednesday 10:00 — Mara's window, not Remy's
     EmploymentApi.tickRoster();
@@ -129,23 +153,26 @@ describe("Dave's Bar — Business seed drives the engine", () => {
     expect(remy.getEmployment(BUSINESS)?.status).toBe(
       'off-shift',
     );
-    // The order-fulfilment selection: only the on-shift bartender is a maker.
-    expect(MixinApi.isMaker(mara)).toBe(true);
-    expect(MixinApi.isMaker(remy)).toBe(false);
+    // The order-fulfilment selection: only the on-shift bartender serves.
+    expect(mara.isFulfilling()).toBe(true);
+    expect(remy.isFulfilling()).toBe(false);
   });
 
-  it('lets the proprietor cover — a valid maker, unpaid — then stand down', () => {
-    const dave = makeStuffAtPath(() => new Staff(), DAVE);
+  it('lets the proprietor cover — a valid fulfiller, unpaid — then stand down', () => {
+    const dave = behindBar(DAVE);
     atClock(2, 10);
 
-    expect(MixinApi.isMaker(dave)).toBe(false); // not covering yet
+    expect(dave.isFulfilling()).toBe(false); // not covering yet
     dave.beginCovering(biz);
-    expect(MixinApi.isMaker(dave)).toBe(true); // covering → a valid maker
+    // ⭐ The cover lands on the house's FULFILLING seat, not on
+    // `positions[0]` — a proprietor steps behind the bar to serve, not
+    // into the bookkeeping.
+    expect(dave.isFulfilling()).toBe(true);
     // The cover is proprietor-held, so it is unpaid + never rostered.
     expect(dave.getEmployment(BUSINESS)?.status).toBe('on-shift');
 
     dave.endCovering(biz);
-    expect(MixinApi.isMaker(dave)).toBe(false); // stood down
+    expect(dave.isFulfilling()).toBe(false); // stood down
     expect(dave.getEmployment(BUSINESS)).toBeUndefined();
   });
 });

@@ -44,7 +44,6 @@ function seedBusiness(): BusinessEntity {
       key: "bartender",
       label: "tending bar",
       wageRate: 12,
-      confers: [],
     },
     {
       key: "hewer",
@@ -52,14 +51,12 @@ function seedBusiness(): BusinessEntity {
       // A nonzero wageRate PLUS a piece-rate basis: the basis guard (not
       // the zero-rate short-circuit) is what keeps the shift wage at 0.
       wageRate: 5,
-      confers: [],
       compensation: { basis: "per-settlement", rate: 3 },
     },
     {
       key: "barker",
       label: "barking",
       wageRate: 0,
-      confers: [],
       compensation: { basis: "share-of-flow", share: 0.2 },
     },
   ];

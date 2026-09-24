@@ -20,7 +20,7 @@ import { ModuleApi } from "@saxonberg/server/mud/api/module";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { AppSettings } from "@saxonberg/server/mud/lib/config/AppSettings";
 import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
-import Stock from "@saxonberg/server/mud/platform/thing/Stock";
+import Stock from "@saxonberg/content-trade-shopkeeping/src/thing/Stock";
 import PlantPot from "@saxonberg/server/mud/platform/thing/PlantPot";
 import Seed from "@saxonberg/server/mud/platform/thing/Seed";
 import type { Bulkable } from "@saxonberg/server/mud/lib/bulk/Bulkable";

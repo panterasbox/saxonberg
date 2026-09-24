@@ -1,9 +1,16 @@
 # The Hearthworks — the Business entity (the Dave's-Bar precedent, F5):
-# `order` resolves its maker through the augment-gated MakerMixin, so a
-# venue with no rostered on-shift position has NO active maker — the
-# Business wiring is load-bearing, not decoration. Both positions confer
-# MakerMixin on a 24/7 roster (a teaching venue never closes). Berta
-# doubles as proprietor.
+# `order` resolves its maker off the SHIFT, so a venue with no rostered
+# on-shift position has nobody to serve it — the Business wiring is
+# load-bearing, not decoration. All three positions fulfil on a 24/7
+# roster (a teaching venue never closes). Berta doubles as proprietor.
+#
+# ⭐⭐ **This house is why `fulfills` is a LIST.** It runs two trades off
+# ONE business whose `operatingLocations` names BOTH rooms, so a seat
+# that merely said "serves orders here" made Berta a legal maker for a
+# stew — and nothing downstream would have caught it, because a recipe's
+# discipline is credited, never gated. She would have cooked it and been
+# credited with `cooking`. Only where the `shifts` brain parks her stood
+# between that and a player, which is an accident of content.
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -16,12 +23,39 @@ data:
       noun: smith
       label: working the forge
       wageRate: 5
-      confers: [MakerMixin]
+      fulfills: [smithing]
     - key: cook
       noun: cook
       label: minding the hearth
       wageRate: 4
-      confers: [MakerMixin]
+      fulfills: [cooking]
+      # ⭐ The cook ORDERS for the house (trades-and-labor D16): the
+      # `restocks` beat posts a carriage bounty for each short par line
+      # and clears the receiving bench onto the table. `purchases` is the
+      # authority that lets him post as the house and fund the escrow.
+      # ⚠ It is the NPC's, not the kitchen hand's — a hand does not spend
+      # the forge's money.
+      purchases: true
+    # ⭐⭐ **The seat that GRANTS something** (trades-and-labor D16). The
+    # cookhouse keeps a menu, so `order` bites there — and a player on
+    # shift in this seat is who the order is served by. Off shift, Odo
+    # serves it instead, visibly.
+    #
+    # That is the whole point of retiring the maker marker: what a job
+    # lets you do is the SEAT's, so a player who takes the seat gets it.
+    # Before, the only capability a position could grant was one only an
+    # NPC class composed.
+    #
+    # Two completed gigs, like the general store's hand: the entry rung
+    # is the same everywhere, so a newcomer learns it once.
+    - key: kitchen-hand
+      noun: cookhand
+      label: at the hearth
+      wageRate: 3
+      headcount: 1
+      fulfills: [cooking]
+      requires:
+        gigs: 2
   rosterSlots:
     - positionKey: smith
       assignee: /world/terminus/hearthworks/agent/smith
@@ -31,6 +65,21 @@ data:
       assignee: /world/terminus/hearthworks/agent/cook
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  # ⭐⭐ **The par sheet, and why it is here** (trades-and-labor D16).
+  # Eleven works boards shipped empty: par lines existed in exactly ONE
+  # file in the whole realm, so the only house ordering anything was the
+  # bar. A labor market whose entry rung is *complete two gigs* needs
+  # gigs to complete, and a gig is what a house short of stock posts.
+  #
+  # Two cheap lines, deliberately: the cookhouse cooks from root
+  # vegetables and stew meat, both bought at the cash-and-carry where
+  # every producer consigns. ⚠ The reward is goods PLUS carriage — the
+  # hauler buys at the distributor and is reimbursed on delivery — and it
+  # is sized so a newcomer's twenty-coin stipend can front the load.
+  # That is what makes it the market's first rung rather than its second.
+  parLines:
+    - { category: root-vegetables, unit: count, level: 6, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /stuff/thing/items/root-vegetables }
+    - { category: stew-meat, unit: count, level: 4, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /stuff/thing/items/stew-meat }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/hearthworks/location/smithy

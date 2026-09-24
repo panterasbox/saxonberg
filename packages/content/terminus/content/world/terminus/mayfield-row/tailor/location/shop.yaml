@@ -40,5 +40,14 @@ data:
     # on rate and picks the TABLE, which is the whole point of the fix.
     - /trade/tailoring/thing/shears
     - /trade/tailoring/thing/measure-book
+    # ⭐ The receiving bench (where an order lands, empty by construction
+    # so a gig aimed at it is never refused for already holding) and the
+    # hall's public noticeboard — the SAME board, not a second one: a gig
+    # posts to a board's TEMPLATE PATH, so every room propping this row
+    # shares one pool. ⚠ `job` is afforded by a `JobBoard` IN THE ROOM
+    # (`peers`, and only `peers`), so without this line the beat fires
+    # every 90 s and every posting answers `unknown-verb(job)`, silently.
+    - /trade/haulage/thing/receiving-bench
+    - /world/terminus/terminal/thing/job-board
   cast:
     - /world/terminus/mayfield-row/tailor/agent/tailor

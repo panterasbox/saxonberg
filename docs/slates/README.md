@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**237 slates.** 54 greenfield · 84 continuations · 55 waves · 44 tails.
+**240 slates.** 55 greenfield · 84 continuations · 55 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (54)
+## ⭐ Greenfield — nothing shipped yet (55)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -58,6 +58,7 @@ respect.
 | [clinical-medicine](./builds/clinical-medicine-slate.md) | all of it — three coupled legs (blood · operations · the two professions) plus a filing pass. |
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
+| [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
@@ -107,7 +108,7 @@ are the named remainders.
 | slate | left to build |
 |---|---|
 | [acquisition](./builds/acquisition-slate.md) | forums leaving the default loadout · the payment credential required at hire · the conferral certificate · the journey-v2 route *(Dr. Limen's build is onboarding-slate's; this slate keeps its rulings on it — cluster pass 2026-09-21)* |
-| [advancement](./builds/advancement-slate.md) | the loadout (capacity-not-decay + warm-up) · guilds (venue, mentors, credential, membership-as-affordance; a seed Bartenders' Guild — the institution design is guild-slate's) · declared focus (the focus-tagged Transcript) · the Reserve-shaped stakes engine … |
+| [advancement](./builds/advancement-slate.md) | ⛔ **retiring conferral** (the one live declaration, the mechanism, the doc) and the graduated-outcome + named-lift refusal that replaces it · the loadout (capacity-not-decay + warm-up) · guilds (venue, mentors, credential, membership-as-affordance; a seed Bartenders' Guild — the institution design is guild-slate's) · declared focus (the focus-tagged Transcript) … |
 | [antecedents](./builds/antecedents-slate.md) | the `background:` effort→prior function (kind × years × at) + the Phase A open questions (decay · Catalog edges · `conditioning` · in-world readability) … |
 | [auction](./builds/auction-slate.md) | the `auction` + `bid` verbs · the lot-as-contract mapping · silent (sealed) mode first, then the live auctioneer `SustainedEngagement` with reset-on-bid · proxy/absentee maxima … |
 | [authoring-intelligence](./builds/authoring-intelligence-slate.md) | the platform-semantic model (template-path completion, reference validation, mixin-composition rules + their declared source, scope awareness over the titled extent) · the LSP server · the VS Code extension · the engine `.d.ts` pipeline … |
@@ -125,7 +126,7 @@ are the named remainders.
 | [cooperative](./builds/cooperative-slate.md) | the capital faucet (credit per patron per bucket) + the stake ledger enforcing the founding charter + the dono/sub webhook + mint-at-launch · the honor→chronicle / voice→standing split of the two markers · the ballot over the shipped conviction substrate (passage `tally / totalStanding` · quorum … |
 | [corpos](./builds/corpos-slate.md) | the multipolar approval vector · competition + rival-tanking · sponsorship · approval→access gates … |
 | [crafting](./builds/crafting-slate.md) | skill-as-control (the declared next crafting wave — the seam's three levers; tool `control` shipped only as a grade FLOOR) · defects & failure as diegetic events · recipe-spread beyond watching (taught / discovered / tradeable recipe-items; authoring as the fourth vector) · assembly recipes + disassembly … |
-| [credit](./tails/credit-slate.md) | ⭐⭐ risk — a rating, a bureau, risk-based pricing (Part 11) · ⭐⭐ the secondary market (buying paper) · personal credit + guarantees · ⚠ nothing hires autonomously, which binds new-player absorption harder than credit does … |
+| [credit](./tails/credit-slate.md) | ⭐⭐ risk — a rating, a bureau, risk-based pricing (Part 11) · ⚠ *the LABOR gap Part 11 named is closed — trades-and-labor shipped the openings, the criterion, the sign, `apply` and `clock on/off`, so an NPC house employing a player is a thing that happens now* · ⭐⭐ the secondary market (buying paper) · personal credit + guarantees … |
 | [currency](./builds/currency-slate.md) | a second issuer + who may authorize a mint, and whether one issuer mints every currency or each gets its own · opt-in acceptance lists / corpo scrip · the peg as a redeemable standing offer · the money-changer's mechanics (rate source, settlement, the `convert` seam) … |
 | [daves-bar](./builds/daves-bar-slate.md) | the succession arc (Augie recognizes the heir; the house tablet is the clipboard) · tabs (`TabMixin` was RETIRED — zero credit until designed for real) + customer records (regular; 86'd exists only for the armed-patron rule) · the NPC task repertoire + the shift-change ritual (till · receipts … |
 | [delivery](./builds/delivery-slate.md) | providers + coverage + metering as ONE substrate (⚠ reconcile with the two shipped shapes) · anchors + catchment-vs-delivery · per-service off-grid + service grades · the delivery overlay + trunking (Q5) … |
@@ -251,7 +252,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (44)
+## Tails — small and opportunistic (46)
 
 | slate | left |
 |---|---|
@@ -262,12 +263,14 @@ are the named remainders.
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · YouTube as a linkable/login provider (a `@`-seed still rejects `character-youtube`) · LLM name-refraction |
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |
 | [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` · `pushDirect`'s second `describeCore` entry … |
+| [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. |
 | [collision](./tails/collision-slate.md) | room capacity as a `capacities` field + validator, re-checked at activity completion · the `guards` brain's decision half (block targets · reason · unblock predicate over NPC memory … |
 | [combat-tactics](./tails/combat-tactics-slate.md) | the `physical` conduit channel for cross-room shots (⚠ contradicted by ranged.md's cross-room ruling — see the compaction ledger) · the magic-interplay questions at `MagicLogic.deliverAt` (bolt vs cover · interpose · attenuation … |
 | [connection-origin](./tails/connection-origin-slate.md) | the developer-gated IP read · the `whois`/`locate` lookup verb · city / region resolution · a persisted last-seen country … |
 | [connection-quality](./tails/connection-quality-slate.md) | the three-band jitter state (fine / laggy / unstable) · the opt-in party publish as an `AFK`-style status rather than a number · the operator's aggregate distribution read + the per-player break-glass |
 | [consequence](./tails/consequence-slate.md) | the **terms/consent lift** — a legal primitive (`lethality`/`stopCondition`/`consent`) generalizing out of combat to sit beside governance/contracts; no owning slate exists yet (open question Q5) · the **necropolis** is still a stub inside Terminus and wants to be a sixth locality (towns-slate) with a real vertical (end-of-life-slate) · de-escalation's act-half lives in intervention-slate.md · blood/ transfusion, filling `g(composure)`, and the client `CombatCard` are each already tracked as open on their owning slate/doc (see § Not in scope) |
 | [dgg-relay](./tails/dgg-relay-slate.md) | the dgg WebSocket transport · the anonymous read path · the developer-key credential (it rides no OAuth spine) · the two-way write path, which is the point of it |
+| [document-store-tiering](./tails/document-store-tiering-slate.md) | a compound index for time-paged reads by kind (the press archive full-scans and sorts in JS today) · `release`'s `onVanish: 'delete'`, which its own neighbours' comments argue against · `descriptor-bank`, the one unit the collapse programme skipped · the |
 | [dossier](./tails/dossier-slate.md) | Q2 the materialized trio (participation + influence still seed-and-fold; make `renownOf` derive) · Q3 a seeded condition's cause · Q4 dossiers for organizations · Q5 converging char-gen's claim seeding |
 | [encumbrance](./tails/encumbrance-slate.md) | per-item placement refinement (a frame pack beating the worn floor) · augment-conferred capacity · gravity/environmental margins · tissue-derived mass … |
 | [explicit-targeting](./tails/explicit-targeting-slate.md) | the reserved per-invocation `--strict` / `--loose` option · turning `warn` on where a verb wants a voice (`open` · `close` · `unlock` — a content question, wants a live drive) |

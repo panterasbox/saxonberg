@@ -143,7 +143,7 @@ resist seam.
 
 Gates, in order: faculty active (`MixinApi.isCaster` — composed on
 every `Character`, **activated** by `Species.innateMixins` or an
-augment, the `isMaker` shape) → spell known → targeting shape →
+augment, the `isActive` shape) → spell known → targeting shape →
 casting-hand impairment (`isSlotImpairedByTrauma('hands')`) → the
 **band gate on BOTH grid axes** (`requiredBand` vs
 `competenceBandFor` on `magic-<verb>` + `magic-<noun>` —

@@ -3,7 +3,7 @@
 # reset), no prices (nothing is sold here — the hand carries it to the
 # cash-and-carry and consigns it). Composes the shelf mixin like every
 # Stock, unused here.
-class: /platform/thing/Stock
+class: /trade/shopkeeping/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crowsfoot stock
