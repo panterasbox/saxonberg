@@ -94,6 +94,53 @@ holder's own affair."*
 **And it is how utilities are actually regulated:** the utility answers to
 the meter, never to your lamp.
 
+## ⭐⭐ The meter is a triple boundary — and consumption is scale-free (2026-09-24)
+
+The three public edges are the three real stages: **generation →
+transmission/distribution (the street parcel) → consumption (the connected
+premises).** Real infrastructure steps voltage *down* at the meter (shared
+high-voltage infra on the street side, private low-voltage on the premises
+side), so **the meter is one line doing three jobs at once**: the voltage
+step-down, the economic boundary (the utility bills the meter, never your
+lamp), and the physics-model boundary ([electricity.md](../../subsystems/electricity.md)'s
+*"one law, two scales"* — the two scales are the two voltages). Collapsing
+transmission and distribution into "the street" is deliberate: a player never
+acts on that distinction.
+
+> ⭐⭐⭐ **The consistency invariant: a consuming fixture resolves its supply
+> to its COVERING PARCEL's meter, by longest-prefix — never by walking the
+> interior.** The fridge's question is identical everywhere: *"is the parcel I
+> sit on connected, and is that connection live?"* — a three-edge walk (my
+> parcel's meter → the street → generation) that stops at the meter. It never
+> asks about the room, the building type, or how many locations the premises
+> has.
+
+Because parcel coverage is longest-prefix (like `ownerOf` /
+`coveringParcelOf` already), the story is **the same for a detailed home (a
+fridge deep in a nested kitchen), a single-room shop (the range in the one
+room that IS the business), and an industrial works (a furnace in a smelting
+hall)** — residential, commercial, industrial, one room or fifty, all resolve
+to the covering parcel. This is why the meter attaches to the **parcel**, not
+to a (still-unbuilt) structure object: the parcel already spans every building
+type and every level of interior detail.
+
+## Deferred: the low-voltage INTERIOR (past the meter)
+
+⭐ **Modelling both sides of the meter teaches different things, and the
+interior side is real richness** — circuits, breakers, sub-metering, a room
+you can individually cut, load-balancing (ONI spends half its game here). That
+is a whole pedagogy on the LV side. **It is explicitly NOT needed for "the
+fridge comes online,"** which is the cold-chain → blood chain's actual demand.
+
+So v1 models the interior as **premises-as-a-unit** (a connected+live parcel
+powers everything inside it, zero internal modelling — what lets a single-room
+business express broadly), and leaves a clean seam: a detailed premises MAY
+later **opt in** to internal distribution via the cascade (a sub-parcel with
+its own quota under the premises parcel — the same `subdivide` mechanism), and
+a fixture that finds no sub-circuit just resolves to the premises meter. The
+invariant lives at the meter, so the interior can be unmodelled or richly
+modelled without changing the fridge's question. ⇒ **its own deferred build.**
+
 ---
 
 # Part 2 — ⭐⭐⭐ Streets: subdivision and DEDICATION
