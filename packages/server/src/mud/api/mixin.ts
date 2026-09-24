@@ -33,6 +33,9 @@ import type { Aether } from '../lib/message/Aether';
 import type { AetherHosted } from '../lib/augmentation/AetherHosted';
 import type { Comms } from '../lib/comms/Comms';
 import type { Forums } from '../lib/forum/Forums';
+import type { CalendarKeeping } from '../lib/calendar/Calendar';
+import type { CalendarApp } from '../lib/calendar/CalendarApp';
+import type { Prescription } from '../lib/vitals/Prescription';
 import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
 import type { Persona } from '../lib/character/Persona';
@@ -161,6 +164,7 @@ import type { DisguiseBearing } from '../lib/disguise/Disguise';
 import type { Status } from '../lib/status/Status';
 import type { Identifiable } from '../lib/identification/Identifiable';
 import type { Graded } from '../lib/craft/Graded';
+import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
 import type { Keen } from '../lib/material/Keen';
@@ -974,6 +978,18 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Forums);
   }
 
+  public static isCalendarKeeping(obj: Stuff): obj is Stuff & CalendarKeeping {
+    return this.hasMixin(obj, Mixins.Calendar);
+  }
+
+  public static isCalendarApp(obj: Stuff): obj is Stuff & CalendarApp {
+    return this.hasMixin(obj, Mixins.CalendarApp);
+  }
+
+  public static isPrescription(obj: Stuff): obj is Stuff & Prescription {
+    return this.hasMixin(obj, Mixins.Prescription);
+  }
+
   public static isNamed(obj: Stuff): obj is Stuff & Named {
     return this.hasMixin(obj, Mixins.Named);
   }
@@ -1611,6 +1627,10 @@ export class MixinApi {
 
   public static isGraded(obj: Stuff): obj is Stuff & Graded {
     return this.hasMixin(obj, Mixins.Graded);
+  }
+
+  public static isSteepable(obj: Stuff): obj is Stuff & Steepable {
+    return this.hasMixin(obj, Mixins.Steepable);
   }
 
   public static isTool(obj: Stuff): obj is Stuff & Tooled {

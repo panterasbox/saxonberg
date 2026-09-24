@@ -281,6 +281,7 @@ export interface Advancing {
   creditDeed(subcheck: Subcheck, opts?: RecordOptions): Promise<void>;
   transcriptEntries(discipline?: string): Promise<TranscriptEntry[]>;
   competenceBandFor(discipline: string): Promise<CompetenceBandName>;
+  bestBandFor(disciplines: string[]): Promise<CompetenceBandName>;
   competenceBands(): Promise<DisciplineBand[]>;
   conferredVerbs(): Promise<string[]>;
   practisingCompetenceCached(): DisciplineBand | null | undefined;
@@ -523,6 +524,23 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
         discipline,
       });
       return this.suppressed(Competence.bandOf(entries));
+    }
+
+    /**
+     * ⭐ The best band across several Disciplines — the "better band of the
+     * two" read a judgement common to more than one profession takes
+     * (clinical medicine's `max(nursing, medicine)`: either a nurse or a
+     * doctor can read a wound or spot a cross-match, so the read takes
+     * whichever is stronger). Empty list → FLOOR.
+     */
+    public async bestBandFor(
+      disciplines: string[]
+    ): Promise<CompetenceBandName> {
+      let best: CompetenceBandName = CompetenceBand.FLOOR;
+      for (const d of disciplines) {
+        best = CompetenceBand.higher(best, await this.competenceBandFor(d));
+      }
+      return best;
     }
 
     /**

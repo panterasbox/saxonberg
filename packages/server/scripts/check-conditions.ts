@@ -43,6 +43,10 @@ const EFFECT_KINDS = [
   "function",
   "expression",
   "convalescence",
+  // Clinical-medicine D10 read kinds (anaesthesia / analgesia / antibiotic).
+  "sedation",
+  "analgesia",
+  "clearance",
 ];
 
 const CONTENT_DIR = fileURLToPath(new URL("../../content", import.meta.url));
@@ -175,6 +179,15 @@ export function findingsIn(
           out.push(
             `${file}: a 'convalescence' effect needs a numeric 'factor'`,
           );
+        }
+        if (kind === "sedation" && typeof e.atStage !== "number") {
+          out.push(`${file}: a 'sedation' effect needs a numeric 'atStage'`);
+        }
+        if (kind === "analgesia" && typeof e.relief !== "number") {
+          out.push(`${file}: an 'analgesia' effect needs a numeric 'relief'`);
+        }
+        if (kind === "clearance" && typeof e.factor !== "number") {
+          out.push(`${file}: a 'clearance' effect needs a numeric 'factor'`);
         }
         if (kind === "capability" && e.disables !== "slots-at-site") {
           out.push(

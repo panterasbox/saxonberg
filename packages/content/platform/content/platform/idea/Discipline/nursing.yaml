@@ -1,0 +1,10 @@
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: nursing
+  channel: skill
+  label: Nursing
+  iscedf: "0913"  # ISCED-F 2013 — Nursing and midwifery
+  description: First aid and the care of wounds — assessing a body, dressing a bleed, judging when it has clotted. Improves by doing, in context.
+  specializes:
+    - health

@@ -1,0 +1,14 @@
+# A suture kit — needle and linen thread, the instrument behind suture (D8).
+class: /trade/medicine/thing/SutureKit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: suture kit
+  keywords: [suture, kit, needle, thread, linen]
+  register: indefinite
+  longDescription: |
+    A small tin of curved needles and waxed linen thread, for closing a
+    wound the neat way.
+  capabilities:
+    - { kind: suture }
+  _materialPath: /stuff/idea/material/alloy/steel
+  mass: 0.1

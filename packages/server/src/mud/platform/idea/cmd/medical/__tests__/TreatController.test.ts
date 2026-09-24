@@ -138,8 +138,8 @@ describe('TreatController', () => {
     expect(w.bleeding).toBe(false);
     // The dressing was consumed.
     expect(StuffApi.findById(rag.stuffId)).toBeFalsy();
-    // A medicine deed was written.
-    const rows = await medic.transcriptEntries('medicine');
+    // A nursing deed was written.
+    const rows = await medic.transcriptEntries('nursing');
     expect(rows.length).toBeGreaterThanOrEqual(1);
     expect(rows.every((r) => r.kind === 'deed')).toBe(true);
   });
@@ -177,27 +177,27 @@ describe('TreatController', () => {
       {},
       ctxFor(low.medic, low.room)
     );
-    const lowRows = await low.medic.transcriptEntries('medicine');
+    const lowRows = await low.medic.transcriptEntries('nursing');
     const lowOutcome = standardOutcome(lowRows);
 
-    // High: seed medicine competence with hard/critical deeds (difficulty
+    // High: seed nursing competence with hard/critical deeds (difficulty
     // 'hard' so the treat's 'standard' row is distinguishable).
     const high = medicWith(makeStuff(() => new Bandage()), '/platform/agent/Avatar/high');
     for (let i = 0; i < 10; i++) {
       await high.medic.creditDeed({
-        discipline: 'medicine',
+        discipline: 'nursing',
         difficulty: 'hard',
         outcome: 'critical',
       });
     }
-    expect(await high.medic.competenceBandFor('medicine')).not.toBe(
+    expect(await high.medic.competenceBandFor('nursing')).not.toBe(
       'untrained'
     );
     await makeStuff(() => new TreatController()).execute(
       {},
       ctxFor(high.medic, high.room)
     );
-    const highRows = await high.medic.transcriptEntries('medicine');
+    const highRows = await high.medic.transcriptEntries('nursing');
     const highOutcome = standardOutcome(highRows);
 
     expect(OUTCOMES.indexOf(highOutcome)).toBeGreaterThan(
@@ -330,7 +330,7 @@ describe('TreatController — stabilization', () => {
     );
   });
 
-  it('mints a medicine deed for the stabilization', async () => {
+  it('mints a nursing deed for the stabilization', async () => {
     const { medic, patient, room } = dyingPatient();
     patient.beginDying('hypothermia', 300);
 
@@ -340,7 +340,7 @@ describe('TreatController — stabilization', () => {
       ctxFor(medic, room),
     );
 
-    const rows = await medic.transcriptEntries('medicine');
+    const rows = await medic.transcriptEntries('nursing');
     expect(rows.length).toBeGreaterThanOrEqual(1);
     expect(rows.every((r) => r.kind === 'deed')).toBe(true);
   });
@@ -537,6 +537,29 @@ describe('TreatController — the treatment matches the condition', () => {
       (note.mock.calls[0]![0] as { detail: string }).detail,
     );
     expect(detail).toContain('rest');
+  });
+
+  it('⚠ a foreign body wants EXTRACTION — a bandage seals the thing in (D6)', async () => {
+    const bandage = makeStuff(() => new Bandage());
+    const embedded: Trauma = {
+      kind: 'trauma',
+      type: 'foreign-body',
+      site: 'body.leg.left.foot',
+      severity: 2,
+      foreignBody: 'a poisoned needle',
+      bleeding: true,
+    };
+    const { medic, room } = medicWithWound(
+      bandage,
+      embedded,
+      '/platform/agent/Avatar/medic-embed',
+    );
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute({}, ctxFor(medic, room));
+    const detail = String(
+      (note.mock.calls[0]![0] as { detail: string }).detail,
+    );
+    expect(detail).toContain('extraction');
   });
 
   it('the mismatch is reported even with nothing to hand (bare hands are `medicine`)', async () => {

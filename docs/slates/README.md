@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**240 slates.** 55 greenfield · 84 continuations · 55 waves · 46 tails.
+**243 slates.** 56 greenfield · 86 continuations · 55 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (55)
+## ⭐ Greenfield — nothing shipped yet (56)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -55,7 +55,7 @@ respect.
 | [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens invariant · nearest-wins + self-amendment … |
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
 | [client-audio](./builds/client-audio-slate.md) | the client audio player (ambient emission → playback, as a second modality on the `cockpit.watch` push) · the source's home (Location field vs in-world device — Q1) + the autoplay gesture + mix · the Spotify embed tier · the loose-sync-or-frame-lock decision (Q6) … |
-| [clinical-medicine](./builds/clinical-medicine-slate.md) | all of it — three coupled legs (blood · operations · the two professions) plus a filing pass. |
+| [cold-chain](./builds/cold-chain-slate.md) | cold PRODUCTION (a powered freezer on the electricity tier, or harvested winter ice / a seasonal ice-house) · cold STORAGE (a cold larder/cellar location, an insulated container, an iced cooler) · the cold-source COUPLE (mirror the furnace couple in `Thermal.ts`) · the coolant reserve + melt reconcile (mirror `FurnaceMixin`'s fuel) … |
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
@@ -95,12 +95,13 @@ respect.
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
+| [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
 | [underwater](./builds/underwater-slate.md) | ⚠ **a band is not standable; its BED is** (added 2026-09-23 from the ground build: every Location gets a floor by default, so a water band must declare `noDefaultFloor: true` or the open column will be floored and sittable — the ground build ships the declaration and a test, not a row) · the column — bands as zones, `depth` as a zone field, `up`/`down` derived · implicit up + declared ceilings + the reach-to-air gate · medium derived from the reach's level … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission · replacement … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (84)
+## ⭐ Continuations — substrate shipped, a build's worth remains (86)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -117,6 +118,7 @@ are the named remainders.
 | [campus-grounds](./builds/campus-grounds-slate.md) | the four labs (assay · fermentation · agronomy · medical) + the observatory … |
 | [capability-magic](./builds/capability-magic-slate.md) | Part I — derived physical capacity (baseline × condition, per-part muscle mass as the strength baseline, the attribute readings vitals.md still defers) · conditioning as a bounded, bidirectional channel · the CHA / INT dissolution (derived presence + learned social skill) · the `Transform` primitive's Api (polymorph is its own build) … |
 | [cast-archetype](./builds/cast-archetype-slate.md) | the archetype rows themselves (closed `role` + `temperament` kinds, open entries; the ten temperaments + `counter`/`venue-staff`) · the lens-vs-seed dual compilation · the `requires` config gate + its lint (with `temperament: opaque` and the ungateable role) · standing as pointers (Change 2) … |
+| [clinical-medicine](./builds/clinical-medicine-slate.md) | the blood-BANK economy → blood-slate; cold storage → cold-chain-slate; the full surgery build → surgery-specialty-slate; the diagnostic |
 | [cms](./builds/cms-slate.md) | `domain_history` op-log versioning · the draft/changeset overlay + atomic publish · the law==code review gate (the forums `mature` consumer) · the per-type content editors (room … |
 | [cms-connectors](./builds/cms-connectors-slate.md) | scoped personal access tokens (content-vs-source scope) · the MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over `source` + `document` · read-only WebDAV over `content` … |
 | [combat](./builds/combat-slate.md) | pursuit / the chase (⚠ contradicts the shipped single-step disengage — see ledger) · rout & rally retreat · the `guards` intervention brain (⚠ content riding substrate that does not exist — see intervention-slate.md) · the client `CombatCard` (+ the terms-handshake render) … |
@@ -165,6 +167,7 @@ are the named remainders.
 | [npc-behavior](./builds/npc-behavior-slate.md) | the upper rungs of the ladder — intent-match, the code-tier `scripted-behavior` brain, the LLM brain · the `addressed` and `given` triggers · the `guards` brain + the block-substrate seam · reactive scenery (`Behaved` on a `Thing`/`Location` host) … |
 | [onboarding](./builds/onboarding-slate.md) | the `onboarded` flag + lounge-exit routing · Dr. Limen (seat, model-backed brain, the reply contract) + the onboarding-progress flags and their subscription · scoped personal authoring (the dorm customization on-ramp) · the wayfinding signs … |
 | [persistence-architecture](./builds/persistence-architecture-slate.md) | Wave 3 — un-Stuff `PersistentHydrator`, the marshallers and `platform/idea/hooks/` (`DomainHook` + `hooks.yaml`) into path-resolved, lazy, re-resolved modules on the shipped brain pattern (verified unstarted 2026-08-08: `PersistentHydrator` still `extends Idea`) · Wave 4's tail — per-field prose on `fieldMeta`, Mongo-side JSON Schema validators (see Wave 4 below) |
+| [personal-calendar](./builds/personal-calendar-slate.md) | the full feature — recurring events, per-event reminders/snooze, shared/other-people's calendars, the **carried physical-device / paper alternative** (the RP manifestation), rich author tooling, and the write-authorisation rule (who may put a date on whose calendar). |
 | [pets](./builds/pets-slate.md) | ⚠ **an animal whose keeper's estate passes** (handed over by the economic bootstrap, 2026-09-23 — escheat moves titles, balances and a kept house's counters, and says nothing about a living thing that was being fed; the pound keeper is the shape, and it is a *who feeds it now* question before it is a property one) · the fear/threat axis + the wild taming encounter (Wave 2) · the pet shop (a `Stock` over animal rows + the mint at purchase) · the accept/refuse appraisal for `pet` / `call` / `stay` (today only `offer` reads temperament × state × regard) … |
 | [physiology](./builds/physiology-slate.md) | per-individual stature (BMI itself shipped; stature is still a **species** figure, so two bodies of one species cannot differ in height — § Anthropometrics) · pain as a derived reader · the alarm-clock optimization over `reconcileConditions` (today it is pure reconcile-on-read with no booked next-interesting-time) · substances (the topical route, inhalation, the liver clearance multiplier) … |
 | [policing](./builds/policing-slate.md) | Terminus as Peelers + the Tiebout spread of policing modes · the police bundle and the department roster (constable · sergeant · inspector … |

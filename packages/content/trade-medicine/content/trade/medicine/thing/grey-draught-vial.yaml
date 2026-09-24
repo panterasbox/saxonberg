@@ -1,0 +1,15 @@
+# A stoppered vial of grey-draught — the clinic's anaesthetic stock (D10).
+# `administer` reads the `active` matter; a controlled active, so a nurse
+# needs a prescription (or a doctor's licence).
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: stoppered vial of grey-draught
+  keywords: [vial, grey-draught, anaesthetic, stoppered]
+  register: indefinite
+  longDescription: |
+    A small stoppered vial of cloudy grey infusion, labelled GREY-DRAUGHT.
+  interiorBulk: true
+  interiorCapacity: 0.25
+  interiorMaterial: /trade/medicine/idea/material/grey-draught
+  interiorAmount: 0.25

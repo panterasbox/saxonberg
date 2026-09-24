@@ -534,6 +534,58 @@ disease transmission, and any cross-instance concern.
 
 ---
 
+## ⭐ Finding from the clinical-medicine build (2026-09-24) — the bank NEEDS a supplier at 12×
+
+The combat/autarky core shipped (type · draw · store · transfuse · the
+reaction · the `marrow` donation reserve). This slate's **blood-BANK
+economy** stayed deferred — and the shipped build now carries a
+`bloodBank` par line on the infirmary `Business` (2 L) with **nothing
+producing blood to fill it**. That is a promise this slate must make good,
+and the time scale makes it urgent:
+
+- At **12×**, marrow regrows one unit's cost in **~28 REAL hours per donor**,
+  and a WARM carried unit spoils in **~6 real hours** (cold storage is
+  deferred → [cold-chain-slate](./cold-chain-slate.md)). So **player
+  donation cannot be the backbone of a combat blood supply** for anything
+  but a large, coordinated community.
+- ⭐ **The lead item: NPC donors stand up the bank.** Use the shipped
+  supplier-restock pattern (trades-and-labor: a house restocks toward par
+  from a source on a cadence) so the infirmary blood bank holds a typed
+  stock a player can requisition — the combat blood economy exists
+  regardless of how many players are donating. Player donation stays a
+  CHOICE (autarky, or a gift with the renown/chronicle credit this slate
+  already designs), never the load-bearing wall.
+- The RATES are dials (`MARROW_REGEN_PCT_PER_HOUR`, the blood Material's
+  spoilage) — retunable without touching the mechanism, and worth
+  revisiting against real-time-at-12× when this build runs.
+
+### ⭐ Who the "blood people" are — the org question, and the no-badgering constraint
+
+The review raised a design hazard from real-world blood donation: **you
+give once and the "blood people" never leave you alone.** Two findings for
+this slate to honour when it builds the sector:
+
+- **The "blood people" are an ORG, not a hardcoded NPC caste.** A blood
+  service is a `Business`/`Office` over the shipped substrate — a bank
+  that holds a typed stock, positions that draw/screen/dispense, a
+  founder-default holder — sited at the infirmary and, later, a dedicated
+  centre. There is no new "recruiter" primitive; whoever holds the seat
+  is who asks. This keeps the blood sector modellable with the same
+  economy substrate every other trade uses (it is **separate from
+  medical** — not scoped in the clinical-medicine build).
+- ⭐ **The no-badgering constraint is a design rule, not a flavour note.**
+  A donor is never spammed. Any "come give again" summons must be
+  **opt-in and bounded** — a standing request a player can decline once
+  and be left alone, or a board posting they choose to read — never an
+  unsolicited recurring nudge. Real-life donor-retention badgering is
+  exactly the kind of dark-pattern engagement loop the platform's
+  measurement doctrine forbids (a feed that hides the measurement; the
+  mirror shows you). The pull to donate is the renown/chronicle credit
+  and the knowledge the bank is low — a value, offered — never a
+  notification that will not stop. See
+  [social-graph.md](../../subsystems/social-graph.md) (NotifyPolicy —
+  attention is opt-in) and [measurement.md](../../subsystems/measurement.md).
+
 ## Cross-references
 
 - [harm.md](../../subsystems/harm.md), [vitals.md](../../subsystems/vitals.md),

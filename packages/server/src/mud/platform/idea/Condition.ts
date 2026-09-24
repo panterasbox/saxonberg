@@ -130,7 +130,16 @@ export type TraumaType =
    * it is washing it off. Every other wound in this table is a record of
    * something that already finished happening.
    */
-  | 'caustic';
+  | 'caustic'
+  /**
+   * ⭐ **A foreign body** — a penetrating wound with the thing still in it
+   * (an arrowhead, a poisoned needle). The object TAMPONADES its own
+   * channel, so it bleeds SLOWER than an open puncture while embedded and
+   * will not knit around it; `resolution: 'extraction'`, a token only the
+   * `operate` catalogue offers. Pull it out and it becomes a dressed
+   * puncture that heals. `treat`/dress refuses it and says why (D6).
+   */
+  | 'foreign-body';
 
 // The mechanism vocabulary is unified into the materials-response
 // **channel** set (edge / point / blunt) — the single interface a weapon's
@@ -247,6 +256,24 @@ export interface Trauma {
    * what the current severity has forgotten.
    */
   peak?: number;
+  /**
+   * ⭐ **The thing still in the wound** (D6), as prose — *"a poisoned
+   * needle"*, *"an arrowhead"*. Present iff this is an embedded
+   * `foreign-body` trauma; cleared by extraction, after which the wound
+   * behaves as a dressed puncture. Its presence IS the embedded state.
+   */
+  foreignBody?: string;
+  /**
+   * ⭐ **Stitched shut** (D8) — a laceration/avulsion/puncture closed with a
+   * suture kit. `mend` reads it for a faster treated heal rate; removal
+   * (undress/unstitch) clears it. Stitches left in past readiness overstay
+   * and inoculate the wound (the sepsis clock).
+   */
+  sutured?: boolean;
+  /** ⭐ Game-time (seconds) the sutured wound first became ready for the
+   * stitches to come out — stamped once when severity crosses the clot
+   * line, and it re-anchors `openSince` so an overstay goes septic (D8). */
+  sutureReadyAt?: number;
 }
 
 /**
@@ -270,10 +297,31 @@ export const HARM_DEFAULTS = {
   MAX_REASONABLE_GAP_SEC: 4 * 60 * 60,
   /** Laceration bleed: blood litres lost per game-second per unit severity. */
   BLEED_PER_SEC: 0.002,
+  /** ⭐ Foreign-body bleed (D6): fraction of the laceration rate an
+   * EMBEDDED object bleeds at — it tamponades its own channel. */
+  FOREIGN_BODY_BLEED_SCALE: 0.35,
+  /** ⭐ A puncture at/above this severity carrying an `embeds` becomes a
+   * `foreign-body` trauma (D6); below it the object passes through. */
+  EMBED_MIN_SEVERITY: 0.4,
   /** Severity decay per game-second while a laceration is dressed. */
   DRESSED_HEAL_PER_SEC: 0.02,
   /** Below this severity a laceration has clotted (safe to undress). */
   CLOT_SEVERITY: 0.5,
+  /** ⭐ Severity decay per game-second while a wound is SUTURED (D8) —
+   * faster than a bare dressing: stitches hold the edges together. */
+  SUTURED_HEAL_PER_SEC: 0.03,
+  /** ⭐ A laceration below this severity wants a bandage, not stitches
+   * (D8) — `suture` refuses it *"a bandage will do"*. */
+  SUTURE_MIN_SEVERITY: 1.0,
+  /** ⭐ A fracture at/above this severity is COMPOUND (D7): `splint`
+   * refuses it and it wants surgical setting. */
+  COMPOUND_FRACTURE_SEVERITY: 1.5,
+  /** ⭐ An aborted operation leaves the wound this much worse (D7). */
+  OPERATION_ABORT_WORSEN: 0.5,
+  /** ⭐ Operating on a CONSCIOUS patient takes this much longer (D7). */
+  CONSCIOUS_DURATION_SCALE: 1.5,
+  /** ⭐ …and lands at this fraction of the efficacy (they flinch) (D7). */
+  CONSCIOUS_EFFICACY_SCALE: 0.8,
   /** Natural (undressed) severity decay per game-second, per trauma family. */
   LACERATION_HEAL_PER_SEC: 0.003,
   CONTUSION_HEAL_PER_SEC: 0.02,
@@ -359,6 +407,9 @@ export const HARM_DEFAULTS = {
     // same weight.
     frostbite: 0.6,
     caustic: 0.6,
+    // ⭐ A foreign body costs the part more than a bare puncture (1.5×):
+    // the object is still fouling the works. 0.375 = 1.5 × puncture.
+    'foreign-body': 0.375,
   } as Record<string, number>,
   /**
    * ⭐ **A conduit tolerates a scratch.** How badly a part something else's
@@ -744,6 +795,38 @@ export type VitalEffect =
        */
       kind: 'convalescence';
       factor: number;
+    }
+  | {
+      /**
+       * ⭐ **Sedation** (clinical-medicine D10) — READ, never integrated.
+       * While an active affliction declares this at/above its stage,
+       * `getConsciousness` returns `unconscious` (read after the dying
+       * check, before the blood read). This is how anaesthesia takes a
+       * patient under so a surgeon can `operate` without them thrashing.
+       */
+      kind: 'sedation';
+      atStage: number;
+    }
+  | {
+      /**
+       * ⭐ **Analgesia** (clinical-medicine D10) — READ, never integrated.
+       * How much pain this condition dulls, `[0, 1]`. Read by
+       * `OperationEngagement` (a conscious patient's penalties scale by
+       * `1 − relief`) and by `look`/`assess` (*"the pain is dulled"*).
+       */
+      kind: 'analgesia';
+      relief: number;
+    }
+  | {
+      /**
+       * ⭐ **Clearance** (clinical-medicine D10) — READ, never integrated.
+       * A multiplier on the body's infection clearance while this
+       * condition lasts; `progressInfection` multiplies `factor` over every
+       * active affliction that declares one (the antibiotic). Not an arm —
+       * a read folded into the logistic clearance term.
+       */
+      kind: 'clearance';
+      factor: number;
     };
 
 /** The laws a condition's stage can advance under. */
@@ -894,11 +977,13 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
     // is still bleeding; you must dress it (or it must clot) first.
     if (t.bleeding && !t.dressed) return;
     const D = HARM_DEFAULTS;
-    // Dressed (fast clot/heal, graded by how well it was dressed) or
-    // clotted-open (slow heal to clear).
-    const rate = t.dressed
-      ? D.DRESSED_HEAL_PER_SEC * careScale(t)
-      : D.LACERATION_HEAL_PER_SEC;
+    // ⭐ Sutured (fastest — the edges are held together) > dressed (fast
+    // clot/heal, graded) > clotted-open (slow heal to clear) (D8).
+    const rate = t.sutured
+      ? D.SUTURED_HEAL_PER_SEC * careScale(t)
+      : t.dressed
+        ? D.DRESSED_HEAL_PER_SEC * careScale(t)
+        : D.LACERATION_HEAL_PER_SEC;
     t.severity = Math.max(0, t.severity - rate * elapsedSec * k);
   },
   resolve(_host: Vitals, t: Trauma): void {
@@ -906,6 +991,18 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
     t.bleeding = false;
   },
   reopen(_host: Vitals, t: Trauma): void {
+    // ⭐ Taking stitches out (D8): too early (still above the clot line)
+    // re-arms the bleed; once knitted, it clears the closure and the
+    // wound completes on its own.
+    if (t.sutured === true) {
+      t.sutured = false;
+      t.sutureReadyAt = undefined;
+      if (t.severity > HARM_DEFAULTS.CLOT_SEVERITY) {
+        t.dressed = false;
+        t.bleeding = true;
+      }
+      return;
+    }
     t.dressed = false;
     if (t.severity > HARM_DEFAULTS.CLOT_SEVERITY) t.bleeding = true;
   },
@@ -1240,6 +1337,71 @@ export const RUPTURE_BEHAVIOR: TraumaBehavior = {
 };
 
 /**
+ * ⭐ **foreign-body — a penetrating wound with the thing still in it** (D6).
+ *
+ * The object tamponades its own channel, so three things follow, each a
+ * fact a player can act on:
+ * - it bleeds **slower** than an open puncture while embedded (the plug);
+ * - it will **not knit** around the object — `mend` is a no-op until it
+ *   comes out;
+ * - only **extraction** (the `operate` catalogue) resolves it — after
+ *   which it is a dressed puncture that heals at the treated rate.
+ *
+ * It joins `BLEED_FAMILY`, so a foreign body left in too long goes septic
+ * on the shipped open-wound clock — the deadline that makes leaving an
+ * arrowhead in a bad idea even when it barely bleeds.
+ */
+export const FOREIGN_BODY_BEHAVIOR: TraumaBehavior = {
+  onset(_host: Vitals, t: Trauma): void {
+    t.bleeding = true;
+  },
+  tick(host: Vitals, t: Trauma, elapsedSec: number): void {
+    // Bleeds only while the object is still in — at a fraction of the open
+    // rate, because the object plugs its own channel.
+    if (t.foreignBody !== undefined) {
+      const lost =
+        HARM_DEFAULTS.BLEED_PER_SEC *
+        HARM_DEFAULTS.FOREIGN_BODY_BLEED_SCALE *
+        Math.max(0, t.severity) *
+        elapsedSec;
+      setBloodLitres(host, bloodLitres(host) - lost);
+    }
+  },
+  // Nothing knits around an embedded object; once extracted (dressed), it
+  // heals at the graded treated rate like a dressed puncture.
+  mend(_host: Vitals, t: Trauma, elapsedSec: number, k: number): void {
+    if (t.foreignBody !== undefined) return;
+    if (!t.dressed) return;
+    const rate = HARM_DEFAULTS.DRESSED_HEAL_PER_SEC * careScale(t);
+    t.severity = Math.max(0, t.severity - rate * elapsedSec * k);
+  },
+  // Extraction: the object comes out, the bleed is arrested, it becomes a
+  // dressed wound that heals.
+  resolve(_host: Vitals, t: Trauma): void {
+    t.foreignBody = undefined;
+    t.dressed = true;
+    t.bleeding = false;
+  },
+  // You cannot un-extract; an embedded object stays put until surgery.
+  reopen: noop,
+  describe(t: Trauma): string {
+    if (t.foreignBody !== undefined) {
+      return `a puncture of ${t.site} with ${t.foreignBody} still in it`;
+    }
+    return t.dressed
+      ? `a cleaned puncture of ${t.site}`
+      : `a puncture of ${t.site}`;
+  },
+  resolution: 'extraction',
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY['foreign-body']!,
+    },
+  ],
+};
+
+/**
  * ⭐ **frostbite — the cold channel's wound, and it is NOT a burn.**
  *
  * Three differences, each of them a real fact about cold injury and each
@@ -1352,6 +1514,7 @@ export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   rupture: RUPTURE_BEHAVIOR,
   frostbite: FROSTBITE_BEHAVIOR,
   caustic: CAUSTIC_BEHAVIOR,
+  'foreign-body': FOREIGN_BODY_BEHAVIOR,
 };
 
 /**
@@ -1364,6 +1527,7 @@ export const BLEED_FAMILY: ReadonlySet<TraumaType> = new Set<TraumaType>([
   'puncture',
   'avulsion',
   'rupture',
+  'foreign-body',
 ]);
 
 /** The pathogen key of the wound-sepsis Condition row (D11). */
@@ -1383,6 +1547,7 @@ export const SCARRING_TYPES: ReadonlySet<TraumaType> = new Set<TraumaType>([
   'frostbite',
   'rupture',
   'fracture',
+  'foreign-body',
 ]);
 
 /** ⭐ A healed-over scar the body keeps (D14). Never a penalty — read by
@@ -1487,6 +1652,15 @@ export default class Condition extends SingletonMixin(
   protected mentalBands: ResistBand[] | null = null;
 
   /**
+   * ⭐ **Controlled — a doctor prescribes, a nurse administers** (D9).
+   * When `true`, `dose`'s active branch refuses to administer this
+   * condition's active unless the giver is a licensed doctor OR holds a
+   * matching `Prescription`. Authorable on any row; default `false`. Set
+   * on anaesthesia and antibiosis in v1; folk analgesia is not controlled.
+   */
+  protected prescriptionOnly: boolean = false;
+
+  /**
    * ⭐ **The SIGNS are open; the mechanism is level 1.**
    *
    * `observableSigns` is the one field whose whole purpose is to be
@@ -1510,6 +1684,7 @@ export default class Condition extends SingletonMixin(
     toxinBehavior: { persistent: true, spoiler: 1, spoilerName: 0 },
     pathogenBehavior: { persistent: true, spoiler: 1, spoilerName: 0 },
     mentalBands: { persistent: true, spoiler: 1, spoilerName: 0 },
+    prescriptionOnly: { persistent: true, authorable: true },
   };
 
   public getName(): string {
@@ -1568,6 +1743,14 @@ export default class Condition extends SingletonMixin(
   }
   public setPathogenBehavior(value: PathogenBehavior | null): void {
     this.pathogenBehavior = value;
+  }
+
+  /** Whether this condition's active is prescription-only (D9). */
+  public isPrescriptionOnly(): boolean {
+    return this.prescriptionOnly;
+  }
+  public setPrescriptionOnly(value: boolean): void {
+    this.prescriptionOnly = value;
   }
 
   /** The mental-resist bands (null for non-mental conditions). */

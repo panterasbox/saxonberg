@@ -1,0 +1,14 @@
+class: /platform/idea/Operation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: extraction
+  label: foreign-body extraction
+  addresses:
+    flag: foreign-body
+  instrument: surgery
+  competence: { discipline: medicine, band: competent }
+  bloodCostL: 0.15
+  baseDurationS: 180
+  anaesthesia: advised
+  resolution: extraction
+  difficulty: formidable

@@ -29,7 +29,7 @@ import type { Dressing } from '@saxonberg/server/mud/lib/vitals/Dressing';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
 
-const MEDICINE = 'medicine';
+const NURSING = 'nursing';
 const BLEED = new Set(['laceration', 'puncture', 'avulsion']);
 
 /** A body worth attending, with its triage rank (higher = more urgent). */
@@ -115,7 +115,7 @@ export const brain = class NursesBrain {
     if (!patient) return;
 
     const band = MixinApi.isAdvancing(host)
-      ? await host.competenceBandFor(MEDICINE)
+      ? await host.competenceBandFor(NURSING)
       : CompetenceBand.FLOOR;
     const skill = 0.4 + 0.15 * CompetenceBand.rank(band as never);
 
@@ -134,7 +134,7 @@ export const brain = class NursesBrain {
       await StuffApi.destruct(dressing as unknown as Stuff);
       if (MixinApi.isAdvancing(host)) {
         await host.creditDeed({
-          discipline: MEDICINE,
+          discipline: NURSING,
           difficulty: 'standard',
           outcome: CompetenceBand.rank(band) >= 2 ? 'success' : 'partial',
         });

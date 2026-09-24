@@ -1,0 +1,32 @@
+# Anaesthesia — the surgical sleep (clinical-medicine D10). A prescribed,
+# administered active that takes a patient UNDER so a surgeon can operate
+# without them thrashing. Injected past digestion by `dose`/`administer`;
+# the burden reads as a stage against the bands, and at stage 2 the
+# `sedation` effect makes the body read `unconscious`.
+#
+# ⭐ Fiction is ours (greywort, a hooded marsh herb); the mechanism a
+# player touches is honest — a substance, administered, with an effect
+# they can reason about. Controlled: a doctor prescribes, a nurse gives.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: anaesthesia
+  signature:
+    - { kind: sedation, atStage: 2 }
+    - { kind: expression, bands: 2 }
+  progression:
+    law: burden
+  resolution:
+    by: time
+  observableSigns: [drowsy, slack, unrousable]
+  contagion: null
+  prescriptionOnly: true
+  toxinBehavior:
+    toxinType: anaesthesia
+    absorptionRate: 20
+    clearanceRate: 3
+    potency: 1
+    bands:
+      - { threshold: 1, severity: 1 }
+      - { threshold: 3, severity: 2 }
+      - { threshold: 5, severity: 3 }

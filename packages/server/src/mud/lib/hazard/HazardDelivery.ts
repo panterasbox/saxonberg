@@ -80,6 +80,12 @@ export interface HazardDeliveryOptions {
    * a corrosion delivery that names nothing attacks nothing.
    */
   corrosiveTo?: readonly string[];
+  /**
+   * ⭐ **What stays in the wound** (D6), as prose — *"a poisoned needle"*.
+   * A point-channel spring severe enough leaves a `foreign-body` that only
+   * extraction resolves. Ignored on non-point channels.
+   */
+  embeds?: string;
   /** The delivery range — `'contact'` (met in place) or `'ranged'`
    * (delivered across a band gap). Defaults to `'contact'`. */
   range?: HazardRange;
@@ -96,6 +102,8 @@ export class HazardDelivery {
   public readonly toxin?: ToxinTag;
   /** The corrosion channel's agent — see {@link HazardDeliveryOptions}. */
   public readonly corrosiveTo?: readonly string[];
+  /** What stays in the wound (D6) — see {@link HazardDeliveryOptions}. */
+  public readonly embeds?: string;
   /** The delivery range — v1 always `'contact'` (reserved seam). */
   public readonly range: HazardRange;
 
@@ -105,6 +113,7 @@ export class HazardDelivery {
     this.siteSelector = [...opts.siteSelector];
     this.toxin = opts.toxin;
     this.corrosiveTo = opts.corrosiveTo;
+    this.embeds = opts.embeds;
     // Reserved seam: only 'contact' is honored in v1.
     this.range = opts.range ?? 'contact';
   }
@@ -166,7 +175,13 @@ export class HazardDelivery {
     }
     // Mechanical or thermal channel. The covering stack resolves severity
     // + type (the mechanical fold, or the insulation fold for heat/cold).
-    return { mechanism: channel, site, energy: this.energy };
+    // A point channel that embeds carries the thing left in the wound.
+    return {
+      mechanism: channel,
+      site,
+      energy: this.energy,
+      ...(this.embeds !== undefined ? { embeds: this.embeds } : {}),
+    };
   }
 
   /** True iff this delivery injects a toxin on a spring. */
@@ -195,6 +210,7 @@ export class HazardDelivery {
       energy: this.energy,
       siteSelector: [...this.siteSelector],
       ...(this.toxin ? { toxin: this.toxin } : {}),
+      ...(this.embeds !== undefined ? { embeds: this.embeds } : {}),
       range: this.range,
     };
   }

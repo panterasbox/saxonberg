@@ -194,6 +194,9 @@ export const Mixins = {
   AetherHosted: 'AetherHostedMixin',
   Comms: 'CommsMixin',
   Forums: 'ForumsMixin',
+  Calendar: 'CalendarMixin',
+  Prescription: 'PrescriptionMixin',
+  CalendarApp: 'CalendarAppMixin',
   Perceptible: 'PerceptibleMixin',
   // Presence-concealment — "how hard is it to notice this is here?". One
   // level on every loose perceivable (Thing/Creature/Exit); subsumes the
@@ -444,6 +447,9 @@ export const Mixins = {
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   ManualBuild: 'ManualBuildMixin',
+  // A solute that gives up an extract when steeped in a solvent — the
+  // general infusion substrate (`steep`/`infuse`).
+  Steepable: 'SteepableMixin',
   Bank: 'BankMixin',
   // The unified credential holder — one keyed store of credentials-as-data,
   // composed on the born-with wallet app and on the physical cards.
@@ -667,6 +673,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  PrescriptionMixin: "{} isn't a prescription",
   PostmortemMixin: "{} is not a body you can examine",
   /*
    * ⚠ A measurement is taken off a BODY. `measure figure`, `cut --for`
@@ -704,6 +711,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // body.
   ToolMixin: "{} isn't a tool",
   ManualBuildMixin: "{} isn't a vessel you can work in",
+  SteepableMixin: "{} isn't something you can steep",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what

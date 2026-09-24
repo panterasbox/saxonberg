@@ -17,6 +17,18 @@ data:
       noun: physician
       label: keeping the infirmary
       wageRate: 6
+    # ⭐ The nurse seat (clinical-medicine D1). A nurse must be competent
+    # in `nursing` to hold it — the hiring gate, in the merged employment
+    # shape (`requires: {discipline, band}`). No `fulfills`: the medical
+    # acts gate on Discipline competence in their controllers, not on
+    # order-fulfillment.
+    - key: nurse
+      noun: nurse
+      label: nursing at the infirmary
+      wageRate: 4
+      requires:
+        discipline: nursing
+        band: competent
   rosterSlots:
     - positionKey: physician
       assignee: /world/terminus/infirmary/agent/physician
@@ -25,6 +37,15 @@ data:
       # a fight.
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
+    - positionKey: nurse
+      assignee: /world/terminus/infirmary/agent/nurse
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
+  # ⭐ The blood bank — what the house keeps on hand, expressed as a par
+  # line (clinical-medicine): 2 litres of blood, the reorder level the
+  # attendant works toward. Not a new field — the shipped par-line spine.
+  parLines:
+    - { category: blood, level: 2, unit: L }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/infirmary/ward

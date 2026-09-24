@@ -1,0 +1,19 @@
+# Somnaria pallida — greywort. A pale, hooded marsh herb whose steeped
+# root numbs; the source of the anaesthetic (D10). Saxonberg-native — the
+# whole fiction is ours, invented backwards from "surgery needs a way to
+# put a patient under."
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Somnaria pallida
+  commonNames: ["greywort"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: hermaphroditic
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 3
+  circadianBand: aperiodic
+  diet: photosynthesis
