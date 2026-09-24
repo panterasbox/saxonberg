@@ -11,7 +11,9 @@ reading is an act with a seeded honest error, a sample is the real
 material stamped with where it was taken, a bench is a fixed tool that
 eats the sample over game-time, and the two engine-meta reads leave the
 verb. Stage A is the retrofit and the ladder; Stage B is the sample, the
-bench, the lab, the assayer, salting, the spoiled sample and the mirror.
+bench, the assayer, salting and the spoiled sample. ⚠ The laboratory as
+a VENUE and the calibration mirror are **not** in this build — they went
+to advancement-slate (D22, D15).
 
 Requirements decisions are cited as `R-D<n>`; this plan's own decisions
 are `D<n>`.
@@ -270,12 +272,10 @@ on, with its citation.
 - `AttendantMixin` (`lib/attendant/Attendant.ts:123,141-149,231-234,296-318`)
   is a **person-serves-you** lease (roster assignee on shift, same room,
   attention-free); the assay is unattended and does not compose it (D13).
-- **The campus is the `eternal-university` pack**, content only, its
-  zones are `CartesianZone` rows with an `address:` on the zone
-  (`packages/content/eternal-university/content/world/terminus/eternal/campus-farm.yaml`;
-  rooms under `campus-farm/location/`, contents by `props:`,
-  `yard.yaml:44,64`). University Avenue is the `terminus` pack's
-  (`terminus/content/world/terminus/university-avenue.yaml`). **The mine
+- **`props:` placement into an existing room** is the shape both benches
+  use (`packages/content/eternal-university/content/world/terminus/eternal/campus-farm/location/yard.yaml:44,64`
+  is the reference for the syntax only — ⚠ **no campus content is
+  authored by this build**, D22). **The mine
   is the `rejection` pack** (`rejection/content/world/terminus/rejection/…`,
   `idea/coop-business.yaml`, `thing/claims-counter.yaml`) — a venue pack
   with no `src/`.
@@ -550,7 +550,7 @@ it), controllers moved to `platform/idea/cmd/system/TraceAddressController.ts`
 `self` beside `affordances` and `errors`, **no validator** — the shipped
 shape for a free engine diagnostic, and no new wizard check. `analyze
 address` then refuses as an unknown channel, pointing at `readings`
-(drive P39: not offered as a reading, not refused confusingly).
+(drive O38: not offered as a reading, not refused confusingly).
 
 ### D13 — The assay is the water mill; the bench is a fixed `ToolItem` with a queue of batches (R-D16, R-D21, decided upstream)
 
@@ -609,7 +609,7 @@ reading claims is refused by name.
 the second record only; the sweep rewords the requirements line rather
 than breaking the re-read property of the first.
 
-### D15 — `readings` is the self-only listing, and the mirror rides on it (R-lens 3, R-D20, drive P40 + L32)
+### D15 — `readings` is the self-only listing (R-lens 3, drive O39)
 
 `perception/readings.yaml` → `ReadingsController`, `SpellsController`
 shape: for every Reading, `routesFor(actor, tools)` → one line per route
@@ -618,16 +618,17 @@ photometer: in reach* / *none in reach* · *at a bench: a bench that can
 assay* / *no bench — you cannot carry this anywhere*. `readings <channel>`
 adds `improves` and `stakes` (AC12). No numbers, no table.
 
-The **mirror** is a trailing stanza, present only when the actor holds
-`ReadingRecord`s of channel `grade` (bound by `MqlApi.resolveMany('me:i:[class.ReadingRecord]')`,
-the binder's own resolver, not a walk): for each report, the actor's own
-field-call note for `sampledAt` (a `grade:` belief note written by
-`analyze grade` at a face, `knownAs` = the qualitative band called) is
-compared with the assayed band → prose: *"Of the seven samples you have
-had assayed, your eye called five right; you tend to overcall poor
-rock."* Self-only by construction (`toSelf`, own beliefs, own reports).
+⚠ **No mirror stanza.** The calibration read moved to advancement
+(R-Non-goals), because comparing what you predicted with what was true is
+a measurement of how somebody learns. **What this build owes it ships
+anyway and must not skimp on:** `analyze grade` at a face writes the
+field call as a `grade:` belief note (`knownAs` = the band called, keyed
+on the same `sampledAt` the sample carries), and the bench writes a
+`ReadingRecord` naming its taker and band. Both are readable by their
+owner. The mirror is then arithmetic over two shipped records — a
+deliberate seam, not a stub. **The plan does not add the arithmetic.**
 
-### D16 — The person read extends `patient` (R-D8, drive M; collision: `assess` + combat fog)
+### D16 — The person read extends `patient` (R-D8, drive L; collision: `assess` + combat fog)
 
 No new channel. `analyze patient <person>` (trade-medicine, medicine-
 banded, wordy) gains: a `toTarget` line so the subject perceives the
@@ -664,14 +665,31 @@ existing check, not a new one; a wire step that needs a number uses
 ### D19 — The sample is a mixin on the material's own goods class; there is no lump class (R-D15, engineering Q4)
 
 `SampledMixin` (`packages/server/src/mud/lib/instrument/Sampled.ts`,
-registered in `Mixins`): persistent fields `sampledAt` (location template
-path, `ref: identity`), `sampledBy` (identity path — `getIdentityPath()`,
-never `getTemplatePath()`), `sampledOn` (game ms), `sampledFrom` (source
-path or null); `isSample()`, `getSampling()`, and `stampSampling(...)`
+registered in `Mixins`): **three** persistent fields — `sampledAt`
+(location template path, `ref: identity`), `sampledBy` (identity path —
+`getIdentityPath()`, never `getTemplatePath()`), `sampledOn` (game ms);
+`isSample()`, `getSampling()`, and `stampSampling(...)`
 gated `FromModule('/platform/idea/cmd/inventory/SampleController')`.
-`onSplit` copies all four; `onMerged` nulls them when the absorbed
+`onSplit` copies all three; `onMerged` nulls them when the absorbed
 stack's differ (a pooled lot has no single origin — honest, and it is
-why merging cannot launder provenance). Composed **outside**
+why merging cannot launder provenance).
+
+⭐⭐ **Provenance is a historical claim, and no reader ever resolves it to
+an object.** `sampledAt` is an identity path *string*, so when the face
+is worked out, the gallery collapses or the source is destructed,
+**nothing is nulled and nothing dangles** — the sample still truthfully
+says where it was taken. Every consumer therefore **groups by the
+string** and never looks the place up: `GroundReading`'s "distinct faces"
+count (W9), the report's line, the aggregation. This is the shipped
+belief-referent idiom (`survey:<deposit>@<where>#<channel>`) and it is
+what makes destruction a non-event. ⚠ A reader that resolves `sampledAt`
+to a live Stuff silently drops worked-out faces out of a prospector's own
+survey — the exact defect this sentence exists to prevent.
+
+⭐ There is deliberately **no `sampledFrom`**: the source object adds
+nothing `sampledAt` plus the thing's own material does not already say,
+and an unread field is what `lint:unconsumed-seams` exists to catch.
+Composed **outside**
 `StackableMixin` on `Ore` (`Ore extends SampledMixin(StackableMixin(Thing))`,
 Ore's own `onSplit`/`onMerged` keep calling `super`) and on `Provision`
 (not stackable; stamped in place). The composers have no common pack
@@ -693,9 +711,16 @@ requires any`. Three cases, in order:
    implements it by the `winOre` path with `SAMPLE_LUMPS = 1`, no
    engagement, `toPeers` narration so a bystander sees it — R-D10) →
    the minted lump is stamped;
-4. otherwise refuse **in terms of the thing**: *"You cannot carry the
-   light anywhere — it is here, not a thing you can take."* (drive F14,
-   AC14).
+4. otherwise refuse **in terms of the thing, and teach the rule while
+   refusing** (drive F14, AC14). The refusal names which of the three
+   kinds the subject is, because the samplable set is narrow on day one
+   (ore, a mine face, a provision) and the refusal is the only place a
+   player learns why: a **place or a condition** — *"You cannot carry the
+   light anywhere; it is here, not a thing you can take"*; a **made
+   thing** — *"You would have to cut a piece off it, and that would ruin
+   it"*; **a person** — *"Not something you take from a person."* One
+   sentence each, and between them they teach *you can take a piece of
+   matter, and nothing else.*
 
 ⭐ **Salting falls out** (R-D17, drive J): carry a rich lump to a barren
 claim, drop it, `sample` it there — the stamp says the barren face,
@@ -714,19 +739,42 @@ spoilage window and the sample's temperature → *"this has been N hours
 in the carrying and it was warm; what it says now is about the journey,
 not the batch."* Stored in `ReadingRecord.tell`.
 
-### D22 — The laboratory is mining's archetype, industry-less; the first lab is campus content; the second is mine content (R-D18, engineering Q6)
+### D22 — ⚠ NO ARCHETYPE, NO VENUE: a bench is a thing, and the first one is at a mine (R-D18, R-Non-goals, engineering Q6)
 
-`packages/content/trade-mining/content/archetypes/laboratory.yaml`:
-`archetypeId: laboratory`, `label: a laboratory`, `capabilities: [{key:
-bench, needs: {tool: assaying}}, {key: table, needs: {surface: true}}]`,
-**no `industry:`** (or `survey` never reports it). `assaying` is declared
-by the bench row in the same wave (`lint:capabilities`). The campus lab
-is `eternal-university` content only (a small `CartesianZone` with an
-`address`, one room, `props: [assay-bench, table]`, an exit wired the way
-`campus-farm` is), plus a `Business` row with an `assayer` position and a
-`Cast` row whose dossier seeds `chemistry: proficient`. The second lab is
-`rejection` content only (a bench row `props:`-placed in the co-op's
-office, `fee` set higher, no roster). Zero pack code for either.
+**The laboratory moved out of this build** to advancement-slate, because
+a lab is not a room with a bench in it — it is a venue whose mechanical
+job is *deliberate practice* (advancement's unbuilt "deliberate context
+stacks": the guild's venue, a mentor at your ZPD). A build about reading
+instruments must not define that, and shipping the archetype now would
+hand advancement a venue concept defined by an assay bench.
+
+**So this build ships no `laboratory.yaml`, no archetype, no campus
+content, and touches `ArchetypeCatalogue` not at all.** Every archetype
+fact in the Grounding is retained only because it explains what is *not*
+being built.
+
+⭐ **R-D18 survives untouched, and the reason is worth keeping:
+contestability comes from the bench being an OBJECT.** Anyone who can
+afford one places one; a second bench is a second row. The archetype was
+only ever the `survey` line that makes a room *read* as a laboratory —
+legibility, not access — so cutting it costs the anti-kingmaker argument
+nothing.
+
+**Placement.** The first bench is `rejection` content (mining's
+locality): a bench row `props:`-placed in the co-op's office, where the
+demand already is, with **no dependency on `eternal-university`**. The
+capability `assaying` is declared by that bench row. ⚠ Because no
+archetype consumes it, `lint:capabilities` needs a **consumer** for
+`assaying` — the `[capability.assaying]` default on `assay.yaml`'s bench
+arg is that consumer (`check-capabilities.ts:230` counts the view atom).
+Verify at W6 before relying on it; if the atom does not count, the
+compliant fallback is `hasCapability('assaying')` in the controller,
+which does count.
+
+**The second bench** (W10) is a row in a second locality's content, owned
+by somebody other than the first owner, higher fee, no roster. The build
+picks a locality that exists and records which — an anchor, like the
+drive's rooms.
 
 ---
 
@@ -747,8 +795,10 @@ office, `fee` set higher, no roster). Zero pack code for either.
 | `ReadingRecord` (15 scalars) | `platform/thing/ReadingRecord.ts` extends `DetailedMixin(Thing)` (Thing already brings Chattel) | a report is a carried thing owned by somebody | none |
 | `instrument.wearPerReading` dial | `AppSettings` key vocabulary + yaml | one dial, read by `Reading.runMeasure` | none |
 | `chemistry`, `physics` Disciplines | platform Discipline rows | fields of study | none |
-| `laboratory` archetype | trade-mining `content/archetypes/` | a room with an assaying bench is a lab | none |
-| `assayer` position | the campus `Business` row (content) | a workplace | none |
+| `assayer` position | the `Business` row owning the first bench's site (content) | a workplace | none |
+
+⚠ **No archetype and no venue class** — D22. The laboratory is
+advancement-slate's.
 
 **Deliberately NOT placed:** nothing on `Thing`, `Location`, `Character`
 or `Creature`; no field on `Material`; no mixin on any base class. The
@@ -762,12 +812,11 @@ re-narrows it.
 
 Checked at plan time against the current tree.
 
-- **`props:` / `cast:`** — the campus lab room and the co-op office
-  place the bench and table with `props:` (`campus-farm/location/yard.yaml:44`
-  is the shape); `populates:` is retired.
-- **Locations, not rooms** — the lab is a `CartesianLocation` in a
-  `CartesianZone` (copy `campus-farm.yaml`); `FurnishableRoom` only if
-  the room is somebody's to furnish, which a university lab is not.
+- **`props:` / `cast:`** — both benches are `props:`-placed into rooms
+  that already exist (`campus-farm/location/yard.yaml:44` is the shape);
+  `populates:` is retired. **No new room is authored by this build.**
+- **Locations, not rooms** — not exercised: nothing here creates a
+  location or a zone.
 - **The five axes / `<root>/<branch>/`** — platform rows at
   `/platform/idea/reading/…`, `/platform/thing/reading-record`; mining's
   at `/trade/mining/idea/reading/…`, `/trade/mining/thing/instrument/…`;
@@ -956,7 +1005,7 @@ commit. Order matters — each step keeps the tree green.
   band-tolerant match per D18.
 - Commit: `drive(instrumentation): Stage A — the ladder, driven`.
 
-### Stage B — the sample, the bench, the lab, the assayer
+### Stage B — the sample, the bench, the assayer
 
 #### W5 — The sample and the field call (R-D10, R-D14, R-D15, drive G)
 
@@ -979,25 +1028,31 @@ commit. Order matters — each step keeps the tree green.
   proves eighteen samples slow you.
 - Commit: `build(instrumentation W5): a sample is the real material, stamped where it was taken`.
 
-#### W6 — The bench, `assay`, the record, the laboratory (R-D13, R-D16, R-D21, drive H19–22, I24–25)
+#### W6 — The bench, `assay`, the record (R-D13, R-D16, R-D21, drive H19–22, I24–25)
 
 - `AssayBench` + row (D13); `assay.yaml` + `AssayController` +
   `finishAssay`; `ReadingRecord` + row (D14); `benchRead` implemented on
   `GradeReading` (`Ore.metalFractionOf` × band via `observe`, credits
   `chemistry`) and on `ChemistryReading` (composition; the freshness arm
-  lands in W8); `laboratory.yaml` archetype (D22).
-- Campus lab content in `eternal-university`: zone, room, `props:`, exit.
+  lands in W8).
+- ⚠ **No archetype, no new room, no campus content** (D22). The bench is
+  `props:`-placed into `rejection`'s existing co-op office.
+- ⚠ **First thing to verify here:** that `[capability.assaying]` on
+  `assay.yaml`'s bench arg counts as a `lint:capabilities` consumer with
+  no archetype declaring the need (D22). If it does not, move the check
+  into the controller and record which.
 - Tests: queue order and amortized duration; completion after the actor
   logged out mints the report into the room; `assay` in a room with no
-  bench refuses naming the bench; the report's fields; `survey` reports
-  the room as *a laboratory*.
+  bench refuses naming the bench; the report's fields.
 - Commit: `build(instrumentation W6): the bench eats the sample and hands you a paper`.
 
 #### W7 — The assayer (R-lens 6, drive H23)
 
-- The campus `Business` row (`assayer` position, `wageRate`,
-  `operatingLocations: [the bench's path]`, roster) and the `Cast` row
-  (dossier `competence: [{discipline: chemistry, asserting: proficient}]`).
+- The `Business` row owning the bench's site gains an `assayer` position
+  (`wageRate`, `operatingLocations: [the bench's path]`, roster) and a
+  `Cast` row (dossier `competence: [{discipline: chemistry, asserting:
+  proficient}]`). ⚠ If that site has no `Business` row, the wave authors
+  one — content only.
 - `AssayController`: when an on-shift assignee of a position whose
   `operatingLocations` names the bench is in the bench's room, the batch
   runs at **their** band and the customer pays `fee × n` from their
@@ -1016,7 +1071,7 @@ commit. Order matters — each step keeps the tree green.
   band as read now, and the derived tell at `competent+` (D21).
 - Commit: `build(instrumentation W8): the record is truthful; people are not; the sample went off in the carrying`.
 
-#### W9 — Aggregation and the mirror (R-D6 record rung, R-D20, drive I26–27, L32)
+#### W9 — Aggregation (R-D6 record rung, drive I26–27)
 
 - `GroundReading` (mining) reads the actor's `grade` reports
   (`MqlApi.resolveMany('me:i:[class.ReadingRecord]')`) with distinct
@@ -1024,16 +1079,22 @@ commit. Order matters — each step keeps the tree green.
   *not enough yet — N more from different faces*; at or above, it solves
   the grade gradient over the faces' warren coordinates into words
   (*richer to the north-east*).
-- `ReadingsController` gains the mirror stanza (D15).
-- Commit: `build(instrumentation W9): what your samples add up to, and how your eye has been doing`.
+- ⚠ **Distinct faces are counted by GROUPING THE `sampledAt` STRINGS**
+  (D19) — never by resolving them. A worked-out face still counts.
+- ⚠ **No mirror stanza** (D15) — but confirm here that both halves it
+  will need are readable by their owner: the `grade:` field-call belief
+  note and the `ReadingRecord`. That is this build's whole debt to
+  advancement, and it is cheaper to check now than to retrofit.
+- Commit: `build(instrumentation W9): what your samples add up to`.
 
-#### W10 — The second laboratory, the Stage B drive, the MR
+#### W10 — The second bench, the Stage B drive, the MR
 
-- `rejection` content: an assay bench row `props:`-placed in the co-op's
-  office, `fee` higher, no roster (D22). Zero pack code — the wave's own
-  falsifiable test.
+- A second assay bench row `props:`-placed in a second locality's
+  content, owned by somebody other than the first owner, `fee` higher, no
+  roster (D22). Zero pack code — the wave's own falsifiable test. Record
+  which locality.
 - The wire drive grows checkpoints G16–18, H19–23, I24–27, J28–29,
-  K30–31, L32, O38; run it; run the seven drives again; `pnpm test` once;
+  K30–31, N37; run it; run the seven drives again; `pnpm test` once;
   append the drive record; push; open the MR.
 - Commit: `drive(instrumentation): Stage B — the round trip, driven` then the MR.
 
@@ -1052,9 +1113,8 @@ Each link fails closed and silent.
 | `readings` | `perception/readings.yaml` | Avatar `self` | every Reading row's `improves`/`stakes` | the catalogue | `channel` optional string |
 | `sample` | `inventory/sample.yaml` | Avatar `self` | `SampledMixin` on `Ore`/`Provision`; `Working.sampleFace` | — | `subject requires: any`; case 4 refuses in the thing's terms |
 | `assay` | `trade/mining/cmd/mining/assay.yaml` | `AssayBench.commandContributions.environment` **and** `Ore.commandContributions.inventory` | the bench row (`capabilities: [assaying]`, `fixedInPlace`), a room that `props:` it, the `reading-record` row | the bench is placed by content; the record row installs with the platform pack | `samples requires: [SampledMixin]`; `bench requires: [ToolMixin]`, narrowed to `assaying` |
-| the laboratory | `survey` (shipped) | — | `laboratory.yaml`, industry-less; `assaying` declared by a row | `ArchetypeCatalogue` | — |
 | the assayer | `assay` | — | the `Business` row's position + `operatingLocations` naming the bench; the `Cast` row's seeded competence | the roster tick | — |
-| the mirror | `readings` | — | `grade:` belief notes written by `analyze grade`; `ReadingRecord`s in inventory | — | — |
+| the second bench | `assay` (its own) | `assay.yaml` bench arg | a row in a second locality | — | `[capability.assaying]` |
 
 ⚠ The fifth link (the binder): every object arg here is `any` or a
 kernel mixin the target composes; a pack-only mixin never appears in a
@@ -1076,7 +1136,7 @@ platform view.
 | 8 paid to take a reading another cannot | W7 |
 | 9 a bystander can tell | W5 (`sample` `toPeers`), W6 (`assay`) |
 | 10 reading a person: condition in words; they know | W3 |
-| 11 install/remove a trade adds/removes its readings; nothing advertised then fails | W1 (rows), proven W4 (N36–37) |
+| 11 install/remove a trade adds/removes its readings; nothing advertised then fails | W1 (rows), proven W4 (M35–36) |
 | 12 every reading names the decision and the cost | W3 (`improves`/`stakes`) |
 | 13 sample, carry, read elsewhere; says where from | W5, W6 |
 | 14 un-carryable told why in the thing's terms | W5 (case 4) |
@@ -1084,8 +1144,8 @@ platform view.
 | 16 no instrument, no lab, no money — worse, not blocked | W5 (eye + hand tool) + the drive's G16–18 |
 | 17 fraudulent origin the record does not contradict | W8 |
 | 18 spoiled sample reads wrong; competent assayer says so | W8 |
-| 19 self-only calibration | W9 |
-| 20 a second lab, not the university's, works | W10 |
+| 19 a second bench, another owner, no code | W10 |
+| 20 field call and bench answer both written down and readable | W5 (belief note), W6 (`ReadingRecord`), checked W9 |
 
 Nothing unmapped.
 
@@ -1100,13 +1160,12 @@ Nothing unmapped.
   refusal; `Sampled` through split/merge; `sample`'s four cases; the
   bench queue and amortization; completion after logout; the record's
   fields; the stamp's immutability; the tell; aggregation's
-  not-enough-yet; the mirror's arithmetic on a fixture of notes + reports.
+  not-enough-yet. ⚠ No mirror arithmetic — it is advancement's (D15).
   New controller tests dispatch through the binder (`lint:binder-models`).
 - **Only the drive can prove:** that the verb is reachable without an
   instrument and refuses by name; that the trade's channel is absent
   without the pack; that the report is where the mill-shaped completion
-  left it after a walk-out; that `survey` calls the campus room a
-  laboratory; that the second lab is rows.
+  left it after a walk-out; that the second bench is rows.
 - **Gates:** `pnpm -C packages/server lint:family` after every wave —
   never a subset. `lint:instrument-args` moves `0 → 9 → 0` (W0, W1).
 - **Full suite:** once before the MR (W10), once at `/finalize`. Never in
@@ -1143,21 +1202,27 @@ CLAUDE.md → the nearest shipped pattern):
    it; the fallback (`param` string arg) is written down.
 7. **`texture`'s instrument** and **`MeasureBook`'s composition** are
    read at W1 step 5, not assumed.
-8. **The `assay` refusal "where a bench is"** names the archetype and
-   `help assay`, not a place — a kernel or trade controller must not
-   name campus content, and a world scan for benches is forbidden.
-9. **A report left on a bench across a restart** persists only if the
-   lab room's overlay captures it; the drive collects within a session.
-10. **Report persistence via the room overlay** is furnishing's
-    owner-based slice — confirm at W6 that a code-minted item in an
-    unowned campus room survives `look` after a reconnect; if not, mint
-    the report into the customer's inventory when present and into the
-    room only when absent, and say so in the plan.
+8. **The `assay` refusal "where a bench is"** names *a bench* and
+   `help assay`, not a place — a kernel or trade controller must not name
+   a locality's content, and a world scan for benches is forbidden. ⚠
+   With the archetype cut (D22) there is no longer an archetype name to
+   reach for, so the wording is the refusal's own.
+9. ⭐ **`lint:capabilities` has no archetype consumer for `assaying`**
+   now. The `[capability.assaying]` view atom should count; verified at
+   W6 before the bench row lands, fallback written down (D22).
+10. **A report left on a bench across a restart** persists only if the
+    room's overlay captures it — furnishing's owner-based slice. Confirm
+    at W6 in the room the bench actually sits in; if it does not survive,
+    mint the report into the customer's inventory when present and into
+    the room only when absent, and say so in the plan.
+10a. **The build must not quietly re-grow the venue.** If W6 finds itself
+    wanting "a room that counts as a lab", that is D22's line being
+    crossed — place the bench and move on.
 11. **`wiki-spoiler-fields.snapshot.test.ts`** changes if any new field
     is spoiler-marked; `Sampled`'s fields are not (provenance is what a
     sample *is*), `ReadingRecord.value` is `spoiler: 1` (the number the
     bench earns) — one snapshot update, deliberate.
-12. **The wire drive needs two pack lists** (N36–37); confirm the harness
+12. **The wire drive needs two pack lists** (M35–36); confirm the harness
     can boot twice in one file or split the N checkpoints into a sibling
     file.
 
@@ -1186,6 +1251,16 @@ Attach points only; the design goes back to slates at the sweep.
   visible queue of people) — `AttendantMixin` on the bench when a
   position wants attention rather than a fee. → `employment.md` note.
 - **The courier** — demand only; freight's mechanism. → `freight-slate.md`.
+- ⭐⭐ **The laboratory as a venue, and the calibration mirror** →
+  `advancement-slate.md` § *Declared focus* (deliberate context stacks).
+  This build leaves it three things and no stubs: a **bench** that is a
+  placeable object, a **field-call note** (`grade:` belief, keyed on the
+  same `sampledAt` the sample carries), and a **`ReadingRecord`** naming
+  its taker and band. The venue multiplier applies to the credit call
+  that already fires; the mirror is arithmetic over the two records.
+  ⚠ Nothing here anticipates either — no venue field, no calibration
+  field, no hook. That is deliberate: a hook several builds ahead of its
+  consumer is what `lint:unconsumed-seams` was written to find.
 - **Sensor augments, medical instruments, acoustic reads** — the
   requirements' non-goals, already homed.
 

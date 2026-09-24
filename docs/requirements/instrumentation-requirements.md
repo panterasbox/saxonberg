@@ -32,8 +32,8 @@ And fidelity has a **place** as well as a price. Some facts you can read
 where you stand; some you must carry back to a bench that eats the
 sample to answer. That round trip is not friction — it is the build's
 sharpest lesson, because **deciding what is worth measuring is the
-expertise**, and you cannot carry fifty rocks to campus. The field read's
-job is choosing the three.
+expertise**, and you cannot carry fifty rocks back to the bench. The
+field read's job is choosing the three.
 
 Seeds: [instrumentation-slate](../slates/builds/instrumentation-slate.md)
 and [sampling-and-labs-slate](../slates/builds/sampling-and-labs-slate.md)
@@ -101,7 +101,7 @@ per-instrument calibration *"until content motivates it."*
 Sort them by what they read: the thermometer, barometer, photometer,
 hygrometer, altimeter, sextant, gravity meter and sundial read **the
 environment where you stand** — you cannot carry the light level at the
-mine face to a laboratory. Only the balance and the gas analyzer read **a
+mine face to a bench. Only the balance and the gas analyzer read **a
 thing, or a captured medium**. So the field/bench split is not a cost
 tier bolted on top; it is a **property of the fact being read**, and it
 already partitions the shipped roster eight to two.
@@ -117,9 +117,15 @@ nothing without *"from face three, gallery two."*
 carried truthfully through pooling and splitting, not an act anybody
 performs. The name is free, and no shipped mining design needs renaming.
 
-**A venue is already a place a trade declares and a locality binds** —
-fourteen archetypes ship across the packs, the gym being the most recent.
-A laboratory needs no new concept, only a new archetype.
+**Nothing is fixed in place by being a "fixture".** Non-carryable is an
+authorable boolean a row declares; the fixture mixin is a different job
+(self-seating). A bench needs the boolean, nothing more.
+
+⚠ **And a venue is not "bound" by anything.** Fourteen archetypes ship,
+but no binding field exists: an archetype is a document whose only reader
+is `survey`, which reports a room as one when its fixtures satisfy the
+declared needs. A place *is* what it can do. This build ships no
+archetype (see Non-goals), so none of that machinery is touched.
 
 **Three reads are broken, and one of them is the slate's own worked
 example.**
@@ -176,12 +182,11 @@ in the world has ever had to be carried anywhere to be understood.
 - **A fact that cannot be read where you stand can be carried to a place
   that can read it.** A sample is a real quantity of the real material,
   and it remembers where it came from.
-- **A bench exists as a place somebody owns** — with hours, an owner and
-  a queue — and it can be built anywhere, not only on a campus.
+- **A bench is a thing somebody owns and puts somewhere** — expensive,
+  fixed in place, and buyable by anyone who can afford one. Nobody holds
+  a monopoly on being able to read.
 - **Assay services are worth paying for**, because the instrument is
   expensive, the trip costs time, and somebody else already has both.
-- **Sampling is a skill with a visible hit rate.** A prospector can see
-  how well their judgment about what to sample has been tracking reality.
 - **The round trip is priced, never merely endured** — batched, timed,
   couriered or bought out of entirely.
 - **A measurement can be defrauded** the way it really is: not by forging
@@ -197,15 +202,28 @@ Every one names where it lands.
   [augmentation-slate](../slates/tails/augmentation-slate.md) (a wave).
   Only one augment ships and the biped admits only a cranial site; the
   anatomy must exist before an instrument can mount in it.
-- **Campus governance, enrolment, and who may use a university's lab** →
-  [eternal-university-slate](../slates/builds/eternal-university-slate.md)
-  and [college-slate](../slates/builds/college-slate.md). This build says
-  only that a lab is a place with an owner and hours.
-- **The other three campus labs and the observatory** (fermentation,
-  agronomy, medical) →
-  [campus-grounds-slate](../slates/builds/campus-grounds-slate.md). We
-  ship the archetype and one instance; binding the rest is content and
-  must need no pack code.
+- ⭐⭐ **The laboratory as a kind of place** — the archetype, the campus
+  labs, who may use one, lab staff →
+  [advancement-slate](../slates/builds/advancement-slate.md), with
+  [campus-grounds-slate](../slates/builds/campus-grounds-slate.md) for
+  the four instances and
+  [eternal-university](../slates/builds/eternal-university-slate.md) /
+  [college](../slates/builds/college-slate.md) for enrolment and access.
+  **The reason is that a lab is not a room with a bench in it** — it is a
+  venue whose mechanical job is *deliberate practice*, which is
+  advancement's unbuilt "deliberate context stacks" mechanism (the
+  guild's venue, a mentor at your ZPD, sanctioned challenges). A build
+  about reading instruments has no business defining it, and if it
+  shipped the archetype now, advancement would inherit a venue concept
+  defined by an assay bench. ⭐ **The seam:** this build credits a
+  reading at the honest incidental baseline; advancement's deliberate-
+  context multiplier later applies at a venue, and needs nothing here to
+  change.
+- **The calibration mirror** — showing a prospector how their predictions
+  have tracked reality →
+  [advancement-slate](../slates/builds/advancement-slate.md). It is a
+  measurement of *how someone learns*, which is that slate's subject; it
+  rides this build's record, which ships.
 - **Certification as an institution** — who certifies, whether they may
   refuse, and what an attestation buys legally → needs a credential kind
   that does not exist and a governing seat;
@@ -260,21 +278,20 @@ channel is a stanza inside the two platform views, naming a controller
 the pack ships, so in an install without that trade the reading is
 advertised and dies on dispatch.
 
-**A laboratory is a venue archetype**, declared by the trade whose
-instruments it houses and bound by whatever locality wants one. The
-campus gets the first assay lab because that is where the story starts,
-not because the campus is special.
-
 **Bench instruments belong to the trade that reads with them**, alongside
-the samples they eat. The kernel owns only that a bench is a place, a
-sample is carried to it, and the act consumes both time and the sample.
+the samples they eat, and the first one goes where the demand already is
+— a mine's assay office. The kernel owns only that a bench is fixed in
+place, that a sample is carried to it, and that the act consumes both
+time and the sample.
+
+⚠ **This build ships no venue.** A bench is a thing in a room, not a
+recognized kind of room — see the non-goal above.
 
 ⭐ **Does a second instance need code?** A new instrument reading
 existing channels is a **row**. A new instrument reading a new channel is
-a small class and a row, in its own pack. **A second laboratory — a
-mining company's own assay office, a rival town's — is a locality
-binding the archetype and nothing else.** None of it touches the
-platform.
+a small class and a row, in its own pack. **A second bench — a rival
+town's, a company's own — is a row somebody places.** None of it touches
+the platform.
 
 ---
 
@@ -310,8 +327,8 @@ platform.
   competence conferring the survey acts all survive intact as the
   *qualitative* tier. The bench is added above them.
 - **The campus already has four labs and an observatory promised to it**
-  by another slate. We ship the archetype and the assay lab; the rest
-  must be bindable without us.
+  by another slate, and a fifth build wants the venue concept itself. We
+  ship a bench and touch none of it.
 - **Sample integrity rides shipped clocks.** Spoilage and thermal
   behaviour already exist and already govern how a perishable thing
   travels. A sample that degrades must use them, not a second clock.
@@ -550,17 +567,24 @@ This is the project's standing shape — records are honest, people lie —
 and it is why certification will one day have a *reason* rather than
 being an abstraction: the certified assayer exists because salting does.
 
-### D18 — Laboratories are not the university's monopoly
+### D18 — The means of measurement can be contested, because a bench is a thing
 
-A lab is a venue archetype; a mining company's own assay office is a
-locality binding it. The campus gets the first one because that is where
-the story starts.
+⚠ **This is required, not merely permitted.** If one institution held
+every bench it would hold a veto over every access-only fact in the
+economy, which the anti-kingmaker rule of D6 forbids outright. *Who owns
+the means of measurement* is a political question and the honest answer
+is that it can be contested.
 
-⚠ **This is required, not merely permitted.** A single laboratory would
-be a monopoly on every access-only fact in the game, which the
-anti-kingmaker rule of D6 forbids outright. *Who owns the means of
-measurement* is a political question, and the honest answer is that it
-can be contested.
+⭐ **Contestability comes from the bench being an object, not from a
+venue being a recognized kind.** Anyone who can afford a bench places
+one; a second bench is a second row. That is why cutting the laboratory
+venue (see Non-goals) costs this decision nothing — the archetype was
+only ever the *survey* line that makes a room read as a laboratory, which
+is legibility, not access.
+
+The first bench is a mine's assay office, because that is where the
+demand already is — and because an assay office existed at mines long
+before anyone taught the subject.
 
 ### D19 — A spoiled sample reads wrong, and the bench is what catches it
 
@@ -573,18 +597,20 @@ because it is the crueller, better lesson.
 precision: a good assayer notices the sample is spoiled. A poor one
 reports the wrong number with a straight face.
 
-### D20 — The calibration mirror ships, and it is self-only
+### D20 — The calibration mirror is designed-for, and built elsewhere
 
-A prospector can see how their judgment has been tracking reality —
-what they predicted a sample would show against what it showed. This is
-the one place a number about *yourself* is allowed, and doctrine already
-draws that line: **the feed hides the measurement; the mirror shows
-you.**
+*What* a prospector predicted against *what the bench found* is the
+strongest argument for the field/bench split: it turns sample selection
+from a character's stat into a **player's** skill. It is also, precisely,
+a measurement of how somebody learns — so it belongs with advancement
+(see Non-goals), not here.
 
-It is what turns sample selection from a character's stat into a
-**player's** skill, which was the strongest argument for the split in the
-first place. Nobody else may read it, and it appears nowhere but the
-mirror.
+⭐ **What ships here is everything it needs**: the field call is written
+down as a note of its own, the bench result is written down as a record
+naming its taker and band, and both are readable. The mirror is then
+arithmetic over two things that already exist. Doctrine holds the line it
+will be built on — **the feed hides the measurement; the mirror shows
+you** — and it stays self-only when it lands.
 
 ### D21 — The round trip is a decision with a price, not a commute
 
@@ -801,39 +827,33 @@ requirement.
 31. Have a competent assayer handle the same spoiled sample. Expect them
     to **notice**, and say so.
 
-**L. The calibration mirror**
+**L. Reading a person**
 
-32. After several assays, consult the mirror. Expect a read of how your
-    predictions have tracked reality, in words, **visible to nobody
-    else**.
-
-**M. Reading a person**
-
-33. `analyze` another character. Expect a banded, wordy read of their
+32. `analyze` another character. Expect a banded, wordy read of their
     observable condition — **no numbers, no traits asserted**.
-34. Confirm the subject can **tell they were read**.
-35. As a novice, repeat. Expect a vaguer read, and confirm it may be
+33. Confirm the subject can **tell they were read**.
+34. As a novice, repeat. Expect a vaguer read, and confirm it may be
     **honestly wrong** in the way combat's fog already is.
 
-**N. A trade adds a reading with no platform edit**
+**M. A trade adds a reading with no platform edit**
 
-36. In an install **without** a given trade installed, confirm that
+35. In an install **without** a given trade installed, confirm that
     trade's channel is **not advertised** and does not appear.
-37. Install it; confirm the channel appears and works, and that **no
+36. Install it; confirm the channel appears and works, and that **no
     platform content file changed** to make that true.
 
-**O. A second laboratory needs no code**
+**N. A second bench needs no code**
 
-38. Stand up a second lab somewhere that is not the campus, as content
+37. Place a second bench somewhere owned by somebody else, as content
     only. Expect it to work identically, and expect **no pack code** to
     have been written for it.
 
-**P. Engine meta has left, and discoverability**
+**O. Engine meta has left, and discoverability**
 
-39. Confirm the namespace and debug reads are **no longer `analyze`
+38. Confirm the namespace and debug reads are **no longer `analyze`
     channels**, and that an ordinary player is neither offered them nor
     refused them confusingly.
-40. Run the companion listing. Expect what you can find out and **how
+39. Run the companion listing. Expect what you can find out and **how
     surely**, in words — *within you* / *beyond you yet* — and **no table
     of error bars**.
 
@@ -883,10 +903,11 @@ Observable from outside the code, by a person playing.
     from**, and the record will not contradict them.
 18. A perishable sample carried badly produces a **wrong** answer, and a
     competent assayer says the sample was no good.
-19. A player can see **how well their own judgment has been tracking
-    reality**, and nobody else can see it.
-20. A second laboratory, built by somebody who is not the university,
-    works exactly as well as the first.
+19. A second bench, owned by somebody who is not the first owner, works
+    exactly as well as the first — and placing one took no code.
+20. A player's own field call and the bench's answer are **both written
+    down and both readable**, so that comparing them later is arithmetic
+    over things that already exist.
 
 ---
 
@@ -946,6 +967,11 @@ and belongs to medicine.
   [mining-slate](../slates/builds/mining-slate.md) and
   [mining.md](../subsystems/mining.md) — the field survey becomes the
   qualitative tier and keeps every act it has.
+- ⭐ **Where the laboratory went:**
+  [advancement-slate](../slates/builds/advancement-slate.md) § *Declared
+  focus* — the venue's mechanical job is deliberate practice, and the
+  calibration mirror is a measurement of how somebody learns. This build
+  leaves both a bench and two readable records for it to stand on.
 - **Companions named as non-goals:**
   [augmentation](../slates/tails/augmentation-slate.md) ·
   [senses](../slates/builds/senses-slate.md) ·
