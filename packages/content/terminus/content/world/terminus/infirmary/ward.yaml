@@ -48,9 +48,16 @@ data:
     # syringe backs bleed/transfuse/test, the suture kit backs suture, the
     # pad backs prescribe, the bags hold blood + saline, and a vial of
     # grey-draught is the clinic's anaesthetic stock.
+    # ⚠ An instrument affords its verb to whoever CARRIES it (the
+    # `environment` bucket flows up the containment chain), so the ward
+    # keeps two of the shared ones — the doctor and the nurse each take a
+    # set, and a player finds one to pick up.
+    - /trade/medicine/thing/syringe
     - /trade/medicine/thing/syringe
     - /trade/medicine/thing/suture-kit
     - /trade/medicine/thing/prescription-pad
+    - /trade/medicine/thing/prescription-pad
+    - /trade/medicine/thing/surgical-kit
     - /trade/medicine/thing/blood-bag
     - /trade/medicine/thing/blood-bag
     - /trade/medicine/thing/saline-bag

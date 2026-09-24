@@ -1214,7 +1214,26 @@ MR (W7), and again at `/finalize`.
   → a simple; `steep` → a draught; `look` at the ward shows the nurse
   on shift.
 
-#### W7 — the drive, and the docs the code changed the truth of
+#### W7 — the drive, and the docs the code changed the truth of — ✅ DONE
+
+> Drive record forming. What it caught so far (tests build state, the
+> drive USES it):
+> 1. **Boot-breaker:** `bleed`/`transfuse` had a required `vessel` arg
+>    after an optional donor/patient — `required arg cannot follow
+>    optional`, which killed the whole boot. Fixed (vessel optional; the
+>    controller null-checks).
+> 2. **Reachability:** a bare `Plant` in a room affords NO `harvest` (a
+>    Cultivable/Panel host does). Fixed with a `PhysicPlant` subclass that
+>    carries the harvest affordance (the `Bole` pattern).
+> 3. **Reachability:** an instrument's `environment` bucket affords its
+>    verb only to whoever CARRIES it (it flows up the containment chain,
+>    not to a room sibling). The ward propping the kit is not enough — the
+>    drive must `get` it. Fixed: the ward keeps two of the shared
+>    instruments, the drive picks them up. (This is the fifth reachability
+>    link the plan names — the exact class of silent-affordance failure
+>    the drive exists to catch.)
+> New subsystem docs written: `blood.md`, `calendar.md`.
+
 
 - **`packages/wire/tests/clinical-medicine.dirty.wire.test.ts`**,
   `declareFile({file, packs: ['terminus', 'trade-medicine',
@@ -1509,3 +1528,37 @@ Read first, in this order:
 *(appended at build time — the output of running the requirements doc's
 drive script over the wire against a booted world: the count, every
 failure, what each found.)*
+
+## Drive record
+
+`packages/wire/tests/clinical-medicine.dirty.wire.test.ts` — **11/11 green**
+against a cleanly-booted world (`WIRE_BOOT=1`). Three sessions: a wizard
+doctor (`practice medicine hard success` ×8 → competent), a wizard nurse
+(`practice nursing` ×8), a plain patient.
+
+Checkpoints proven: every new verb is typeable once the clinician CARRIES
+its instrument; the doctor is competent in medicine and the nurse in
+nursing; `test` names a blood type; `bleed patient into bag` draws a unit;
+`transfuse` from a blood bag and from saline are afforded; the delve
+step-dart leaves a foreign body (or the verb is at least afforded — the
+boot may attenuate the 2 J point insult, in which case the unit test
+`ConditionLogic.embed` carries the mint proof); prescribe → administer →
+`operate for extraction` run; `suture` is afforded, `calendar` renders,
+and `assess` carries NO future date (D12 honesty); a nurse cannot operate
+or prescribe; and the physic garden is walkable with `harvest` + `steep`
+afforded.
+
+⭐ **What the drive found that the unit suites could not** — three
+silent-affordance defects, all fixed:
+1. `bleed`/`transfuse` had a **required `vessel` arg after an optional
+   donor** → `required arg cannot follow optional` KILLED THE BOOT. (vessel
+   → optional; the controller null-checks.)
+2. A bare `Plant` in a room affords no `harvest` (a Cultivable/Panel host
+   does) → the `PhysicPlant` subclass carries the affordance.
+3. An instrument's `environment` bucket affords its verb only to whoever
+   CARRIES it — propping the kit in the ward is not enough. The ward keeps
+   two of the shared instruments; the drive picks them up.
+
+⚠ Environment note: the confirming run OOM-killed once under WSL memory
+pressure at boot (not a code failure); it passed cleanly on the retry with
+a freed heap.

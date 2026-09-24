@@ -1,7 +1,7 @@
 # a physic willow — a physic-garden plant, harvested BY HAND for a simple (D10).
 # Authored ready to harvest; regrows within a fortnight so the garden
 # refills within a drive's patience.
-class: /platform/thing/Plant
+class: /trade/medicine/thing/PhysicPlant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: physic willow

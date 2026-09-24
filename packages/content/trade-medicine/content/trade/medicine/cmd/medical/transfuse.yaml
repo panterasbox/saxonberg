@@ -19,7 +19,7 @@ args:
     requires: VitalsMixin
   - name: vessel
     type: object
-    required: true
+    required: false
     prepositions: [from, with]
     scope: ["inventory", "reachable"]
     requires: [BulkableMixin]

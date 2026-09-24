@@ -109,10 +109,19 @@ original producer; see [materials-response.md](./materials-response.md) §
   The mechanical fold + the thermal/tearing passthrough stay byte-identical.
   See [electricity.md](./electricity.md).
 
-## The nine trauma behaviors
+## The ten trauma behaviors
 
 Live in `platform/idea/Condition.ts`, co-located with the `Trauma` value in
 the closed `TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior>` roster.
+The tenth is **`foreign-body`** (clinical-medicine D6) — a penetrating
+wound with the thing still in it (`Trauma.foreignBody`, prose). It bleeds
+at `FOREIGN_BODY_BLEED_SCALE` (0.35×) of the open rate while embedded (the
+object tamponades its own channel), never knits until extracted, and only
+`resolution: 'extraction'` (the `operate` catalogue) resolves it — after
+which it is a dressed puncture. It joins `BLEED_FAMILY` (the open-wound
+sepsis clock is its deadline). Producers opt in via
+`EnergyInflictSpec.embeds` / `HazardDeliveryOptions.embeds`; a `puncture`
+at/above `EMBED_MIN_SEVERITY` carrying `embeds` mints it.
 The interface is `onset` / `tick(host, t, elapsedSec)` / `resolve` (the
 *dress* action) / `reopen` (the *undress* action) / `describe`. Rates live
 in the `HARM_DEFAULTS` const-object (the driver `*_DEFAULTS` convention).
