@@ -66,6 +66,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
 import { StuffApi } from '../../../../api/stuff';
 import { TemplateApi } from '../../../../api/template';
+import { Template } from '../../../../lib/stuff/Template';
 import { AccessApi } from '../../../../api/access';
 import { Zone } from '../../../../lib/zone/Zone';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -81,6 +82,7 @@ interface WriteModel extends CommandModel {
   source?: boolean;
   class?: string;
   hydrator?: string;
+  extends?: string;
 }
 
 /**
@@ -136,20 +138,39 @@ export default class WriteController extends CommandController<WriteModel> {
       const target = SourceTreeApi.joinLogical(cwd, model.path, { home });
       const contentErr = await this._gateContentWrite(giver, target);
       if (contentErr) return this.fail(context, contentErr, 'access-denied');
-      const classPath = model.class ?? DEFAULT_CONTENT_CLASS;
+      // ⭐⭐ `--extends` is the protowizard's door. With a parent named,
+      // `--class` and `--hydrator` default to ABSENT rather than to the
+      // engine's generic pair: the whole point of *like that one, but
+      // different* is that the child states only what differs, and a
+      // silently-defaulted class would make every child a generic Idea.
+      const parentPath = model.extends;
+      const classPath =
+        model.class ?? (parentPath === undefined ? DEFAULT_CONTENT_CLASS : undefined);
       // Empty string explicitly omits the hydrator; undefined uses
-      // the default.
+      // the default (or, under `--extends`, the parent's).
       const hydratorPath =
         model.hydrator === undefined
-          ? DEFAULT_CONTENT_HYDRATOR
+          ? parentPath === undefined
+            ? DEFAULT_CONTENT_HYDRATOR
+            : undefined
           : model.hydrator.length === 0
             ? undefined
             : model.hydrator;
       // Class-attached schema check: classes opt in by exporting
       // `static dataSchema`. Async load goes through the cache after
       // the first hit, so the typical path is cheap.
+      // The schema check runs on the EFFECTIVE class — a child states
+      // none, so the class to validate against is its parent's.
+      let effectiveClass = classPath;
+      if (effectiveClass === undefined && parentPath !== undefined) {
+        const parent = await Template.findByPath(parentPath);
+        if (!parent) {
+          return this.fail(context, `no template at ${parentPath} to extend`);
+        }
+        effectiveClass = parent.class;
+      }
       const schemaErr = await this._validateAgainstClassSchema(
-        classPath,
+        effectiveClass ?? DEFAULT_CONTENT_CLASS,
         model.data,
       );
       if (schemaErr !== null) return this.fail(context, schemaErr);
@@ -158,12 +179,12 @@ export default class WriteController extends CommandController<WriteModel> {
         // dispatched execution context (this verb's command giver) — the
         // controller passes no author; it can't be spoofed. The access check
         // above already gated this write.
-        await TemplateApi.saveTemplate(
-          target,
-          classPath,
-          model.data,
-          hydratorPath,
-        );
+        await TemplateApi.saveTemplate(target, {
+          class: classPath,
+          hydratorClass: hydratorPath,
+          extends: parentPath,
+          data: model.data,
+        });
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }

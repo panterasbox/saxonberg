@@ -83,7 +83,7 @@ describe('TemplateApi.saveTemplate authorship (context-derived)', () => {
     const avatar = makeStuffAtPath(() => new FakeAvatar(), ALICE);
     await withRootContext(null, 'cms.write', () => {
       ExecutionContextApi.tagActingAuthor(avatar);
-      return TemplateApi.saveTemplate(PATH, LEAF, {});
+      return TemplateApi.saveTemplate(PATH, { class: LEAF, data: {} });
     });
 
     const ledger = col(Collections.AuthoringEvents);
@@ -97,16 +97,16 @@ describe('TemplateApi.saveTemplate authorship (context-derived)', () => {
     const avatar = makeStuffAtPath(() => new FakeAvatar(), ALICE);
     await withRootContext(null, 'cms.write', () => {
       ExecutionContextApi.tagActingAuthor(avatar);
-      return TemplateApi.saveTemplate(PATH, LEAF, {
+      return TemplateApi.saveTemplate(PATH, { class: LEAF, data: {
         author: '/platform/agent/Avatar/impostor',
         createdByPlayerId: 'evil',
-      });
+      } });
     });
     expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE); // context wins
   });
 
   it('records nothing when there is no acting principal (programmatic save)', async () => {
-    await TemplateApi.saveTemplate(PATH, LEAF, {});
+    await TemplateApi.saveTemplate(PATH, { class: LEAF, data: {} });
     expect(col(Collections.AuthoringEvents)).toHaveLength(0);
     expect(await ProvenanceApi.authorOf(PATH)).toBeNull();
   });
@@ -115,7 +115,7 @@ describe('TemplateApi.saveTemplate authorship (context-derived)', () => {
     // A REST boundary that has not yet tagged its avatar — a safe no-op
     // (today's CMS dispatches without the tag) until the contract lands.
     await withRootContext(null, 'cms.write', () =>
-      TemplateApi.saveTemplate(PATH, LEAF, {})
+      TemplateApi.saveTemplate(PATH, { class: LEAF, data: {} })
     );
     expect(col(Collections.AuthoringEvents)).toHaveLength(0);
   });

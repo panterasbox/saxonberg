@@ -861,7 +861,7 @@ that state a changed claim are edited in the wave that changes it
 `persistence.md § Props and cast`); the slate corrections wait for the
 sweep.
 
-### W0 — `extends` on the row (kernel, no content)
+### W0 — `extends` on the row (kernel, no content) ✅ DONE
 
 **Goal.** A row may name a parent; the clone pipeline and every catalogue
 see the effective row; the authoring surfaces see the raw one; the
@@ -908,6 +908,36 @@ extenders (AC12, hook half). `lint:family` green (no child rows shipped,
 so the gates are untouched by content).
 
 **Commit.** `build(template-inheritance W0): extends on the row — effective in memory, raw on disk`
+
+**W0 note (build, 2026-09-25).** Landed as planned. Four things worth
+carrying forward:
+
+- ⭐ **D1a — the three inheritable keys are written as value-or-`null`,
+  not omitted.** The terminal write is a Mongo `$set`, so omitting
+  `class` on a child would leave a previously-stored class in place;
+  "this row states no class" has to be said out loud. Every row written
+  through `Document.save()` now carries `extends: null` when parentless.
+  Nothing queries for its absence, and `PackLogic`'s `canonicalBody`
+  normalizes `undefined`/absent identically, so no pack hash moved.
+- **D1b — `setOwn(spec)` is the author-side writer**, an instance method
+  rather than a static, because `lint:lib-statics` ratchets public
+  statics on `lib/` classes at 337. Every writer that used
+  `tpl.class = …` (production: only `TemplateLogic`; tests: five files)
+  now goes through it, and the effective fields are `readonly`.
+- **D1c — `findExtenders` needed an ungated twin.** `TemplateLogic` is
+  0-self-call by construction, so the delete validator calls a private
+  `_extendersOf`; the gated static forwards to the same read.
+- ⚠ **A pre-existing `lint:instanceable` violation surfaced.**
+  `ExitKind.test.ts` authored fixtures with `class: '/lib/boundary/Exit'`;
+  the gate had never seen them because the field-by-field assignment
+  shape was invisible to it, and `setOwn({ class: … })` made them
+  visible. Fixed to `/platform/idea/Exit` (what the real kind rows
+  name). This is the "gates ship broken and silently pass" class, found
+  by accident — worth a look in W1 when the gates are migrated anyway.
+- **`cp`/`mv` needed no controller change for D6's relaxation.** Their
+  content branches are not wizard-gated in the controller; the refusal
+  comes from `enforceCodeFieldGate`, and moving its baseline to
+  `own.*` opened the class-less case on its own.
 
 ### W1 — Packs and gates
 

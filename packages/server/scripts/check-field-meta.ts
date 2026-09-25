@@ -533,6 +533,7 @@ const KNOWN_PROPS = new Set([
   "runtimeState",
   "spoiler",
   "spoilerName",
+  "inherit",
 ]);
 const TRUE_ONLY = new Set([
   "persistent",
@@ -543,6 +544,8 @@ const TRUE_ONLY = new Set([
 ]);
 const STRING_PROPS = new Set(["marshaller", "inverse", "authorPicker"]);
 const REF_VALUES = new Set(["identity", "instance"]);
+/** The template-inheritance merge rules (`FieldMetaEntry.inherit`). */
+const INHERIT_VALUES = new Set(["replace", "by-key", "by-entry", "never"]);
 const LIFETIME_VALUES = new Set(["weak", "symmetric", "owned"]);
 /**
  * The NUMERIC properties — reveal levels (0 open … 3 wizard-only).
@@ -671,6 +674,15 @@ function lint(): void {
               ) {
                 problems.push(
                   `${at(attr)}  \`${field}.ref\` must be 'identity' or 'instance'`
+                );
+              }
+              if (
+                key === "inherit" &&
+                (!ts.isStringLiteral(val) || !INHERIT_VALUES.has(val.text))
+              ) {
+                problems.push(
+                  `${at(attr)}  \`${field}.inherit\` must be 'replace', ` +
+                    `'by-key', 'by-entry' or 'never'`
                 );
               }
               if (

@@ -419,13 +419,20 @@ export class CmsLogic extends ApiLogic {
         backend,
         path,
         kind: 'leaf',
-        body: JSON.stringify(tpl.data, null, 2),
+        // ⚠ The editable body is the RAW row — what this row itself
+        // states. Handing back the merged data would mean the first
+        // save flattened every inherited value into the child.
+        body: JSON.stringify(tpl.own.data, null, 2),
         language: 'json',
         templateMeta: {
+          // The EFFECTIVE class: the Studio composer is describing what
+          // this row clones into, which a child gets from its parent.
           class: tpl.class,
           ...(tpl.hydratorClass !== undefined
             ? { hydratorClass: tpl.hydratorClass }
             : {}),
+          ...(tpl.extends !== undefined ? { extends: tpl.extends } : {}),
+          ...(tpl.chain.length > 0 ? { chain: [...tpl.chain] } : {}),
         },
       };
     }
@@ -566,7 +573,8 @@ export class CmsLogic extends ApiLogic {
   /**
    * Content write: parse → recover backing class → gate → persist →
    * re-hydrate live instances. The editor edits `data` only, so the
-   * existing template's `class`/`hydratorClass` round-trip unchanged.
+   * existing template's RAW `class`/`hydratorClass`/`extends` round-trip
+   * unchanged.
    *
    * Private — not gated; reached only from the gated `write` on the
    * same proxy receiver.
@@ -602,12 +610,15 @@ export class CmsLogic extends ApiLogic {
     const denial = await gateContentWrite(actor, path);
     if (denial) throw new CmsError('denied', denial);
 
-    await TemplateApi.saveTemplate(
-      path,
-      existing.class,
+    // ⭐ The RAW row round-trips. The editor edits `data` only, and a
+    // child states no class — writing back the EFFECTIVE class would
+    // flatten it into a copy of its parent at the first CMS save.
+    await TemplateApi.saveTemplate(path, {
+      class: existing.own.class,
+      hydratorClass: existing.own.hydratorClass,
+      extends: existing.extends,
       data,
-      existing.hydratorClass
-    );
+    });
 
     // Go-live: re-hydrate every live clone at this path so the new
     // `data` is observable in the running world.

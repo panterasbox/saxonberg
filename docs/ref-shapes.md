@@ -921,10 +921,18 @@ blur together, now named separately:
   (pre-spine); its retirement is tracked work, and no new code should
   copy it.
 
-**Template inheritance does not exist.** The near-precedents are
-path-*ancestry* as taxonomy (species clades read the path chain, not
-field data) and `Zone.lookupField` (field inheritance through the
-*zone* tree). A child template does NOT inherit a parent template's
-fields — don't author as if it does, and don't fake it locally; if
-real template-data inheritance is ever wanted, it's a deliberate
-platform feature, not a per-subsystem hack.
+**Template inheritance EXISTS, and is `extends:` — one mechanism, in
+the kernel.** A row names one parent and states only what differs;
+`Template` resolves the chain when it materializes and every reader
+sees the effective row. The rule this paragraph used to carry still
+holds in its important half: **don't fake it locally.** A subsystem
+that wants "like that one, but different" uses `extends:`, never a
+per-subsystem parent field — which is exactly what biome's private
+`_extendsBiomePath` was, and it is gone.
+
+Two neighbours remain genuinely distinct and are not it: path-*ancestry*
+as taxonomy (species clades read the path chain, not field data), and
+`Zone.lookupField` (field inheritance through the *zone* tree, resolved
+per read — *what is true everywhere inside here*, versus `extends`'
+*what this thing is like*). See
+[templates.md § Inheritance](./subsystems/templates.md).

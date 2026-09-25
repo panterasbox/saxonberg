@@ -106,13 +106,85 @@ describe("TemplateLogic code-field gate", () => {
 
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
     await expect(
-      asAuthor(alice, () => TemplateApi.saveTemplate(PATH, LEAF, {}))
+      asAuthor(alice, () => TemplateApi.saveTemplate(PATH, { class: LEAF, data: {} }))
     ).rejects.toBeInstanceOf(TemplateError);
 
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true as never);
     await expect(
-      asAuthor(alice, () => TemplateApi.saveTemplate(PATH, LEAF, {}))
+      asAuthor(alice, () => TemplateApi.saveTemplate(PATH, { class: LEAF, data: {} }))
     ).resolves.toBeTruthy();
+  });
+
+  it("⭐ allows a protowizard to create a CLASS-LESS child of a vetted row", async () => {
+    // The refusal the requirements quote says protowizards "author by
+    // cloning/customizing wizard-made templates" — a mechanism that did
+    // not exist until this build. This is it: no code-naming field is
+    // present, so there is nothing for the delta rule to refuse.
+    seedTemplate({ path: "/trade/bottling/thing/can", class: LEAF, data: { fill: 0 } });
+    const alice = makeAlice();
+    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
+
+    await expect(
+      asAuthor(alice, () =>
+        TemplateApi.saveTemplate("/trade/bottling/thing/can-of-cola", {
+          extends: "/trade/bottling/thing/can",
+          data: { fill: 330 },
+        })
+      )
+    ).resolves.toBeTruthy();
+  });
+
+  it("still refuses a protowizard naming a class ON a child", async () => {
+    seedTemplate({ path: "/trade/bottling/thing/can", class: LEAF, data: {} });
+    const alice = makeAlice();
+    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
+
+    await expect(
+      asAuthor(alice, () =>
+        TemplateApi.saveTemplate("/trade/bottling/thing/can-of-cola", {
+          extends: "/trade/bottling/thing/can",
+          class: OTHER_LEAF,
+          data: {},
+        })
+      )
+    ).rejects.toThrow(/class/);
+  });
+
+  it("allows a protowizard to RETARGET extends — the new parent is vetted too", async () => {
+    seedTemplate({ path: "/a", class: LEAF, data: {} });
+    seedTemplate({ path: "/b", class: LEAF, data: {} });
+    seedTemplate({ path: "/c", extends: "/a", class: null, data: {} });
+    const alice = makeAlice();
+    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
+
+    await expect(
+      asAuthor(alice, () =>
+        TemplateApi.saveTemplate("/c", { extends: "/b", data: {} })
+      )
+    ).resolves.toBeTruthy();
+  });
+
+  it("refuses a row that names neither a class nor a parent", async () => {
+    const alice = makeAlice();
+    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true as never);
+    await expect(
+      asAuthor(alice, () => TemplateApi.saveTemplate("/lonely", { data: {} }))
+    ).rejects.toThrow(/class.*extends/s);
+  });
+
+  it("refuses a parent that does not exist, and a self-extend", async () => {
+    const alice = makeAlice();
+    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true as never);
+    await expect(
+      asAuthor(alice, () =>
+        TemplateApi.saveTemplate("/x", { extends: "/nope", data: {} })
+      )
+    ).rejects.toThrow(/does not exist/);
+    await expect(
+      asAuthor(alice, () =>
+        TemplateApi.saveTemplate("/x", { extends: "/x", data: {} })
+      )
+    ).rejects.toThrow(/cannot extend itself/);
   });
 
   it("allows a non-wizard cosmetic edit (same class/hydrator/brains, changed data)", async () => {
@@ -128,11 +200,7 @@ describe("TemplateLogic code-field gate", () => {
     await expect(
       asAuthor(alice, () =>
         TemplateApi.saveTemplate(
-          PATH,
-          LEAF,
-          { description: "new" },
-          HYDRATOR
-        )
+          PATH, { class: LEAF, hydratorClass: HYDRATOR, data: { description: "new" } })
       )
     ).resolves.toBeTruthy();
   });
@@ -143,7 +211,7 @@ describe("TemplateLogic code-field gate", () => {
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
 
     await expect(
-      asAuthor(alice, () => TemplateApi.saveTemplate(PATH, OTHER_LEAF, {}))
+      asAuthor(alice, () => TemplateApi.saveTemplate(PATH, { class: OTHER_LEAF, data: {} }))
     ).rejects.toThrow(/class/);
   });
 
@@ -159,7 +227,7 @@ describe("TemplateLogic code-field gate", () => {
 
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate(PATH, LEAF, {}, OTHER_HYDRATOR)
+        TemplateApi.saveTemplate(PATH, { class: LEAF, hydratorClass: OTHER_HYDRATOR, data: {} })
       )
     ).rejects.toThrow(/hydratorClass/);
   });
@@ -175,12 +243,12 @@ describe("TemplateLogic code-field gate", () => {
 
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate(PATH, LEAF, {
+        TemplateApi.saveTemplate(PATH, { class: LEAF, data: {
           behaviors: [
             { brain: "/lib/behavior/idles" },
             { brain: "/lib/behavior/wanders" },
           ],
-        })
+        } })
       )
     ).rejects.toThrow(/behaviors\[\]\.brain/);
   });
@@ -201,14 +269,14 @@ describe("TemplateLogic code-field gate", () => {
 
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate(PATH, LEAF, {
+        TemplateApi.saveTemplate(PATH, { class: LEAF, data: {
           // reordered + a cosmetic field added
           color: "blue",
           behaviors: [
             { brain: "/lib/behavior/wanders" },
             { brain: "/lib/behavior/idles" },
           ],
-        })
+        } })
       )
     ).resolves.toBeTruthy();
   });
@@ -218,7 +286,7 @@ describe("TemplateLogic code-field gate", () => {
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
     await expect(
       withRootContext(null, "system.save", () =>
-        TemplateApi.saveTemplate(PATH, LEAF, {})
+        TemplateApi.saveTemplate(PATH, { class: LEAF, data: {} })
       )
     ).resolves.toBeTruthy();
   });
@@ -230,14 +298,14 @@ describe("TemplateLogic code-field gate", () => {
     // mkdir shape: FolderZone, empty data, no hydrator → allowed.
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/world/gallery/sub", FOLDER, {})
+        TemplateApi.saveTemplate("/world/gallery/sub", { class: FOLDER, data: {} })
       )
     ).resolves.toBeTruthy();
 
     // A non-folder (leaf) class on a fresh path is NOT a scaffold.
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/world/gallery/leaf", LEAF, {})
+        TemplateApi.saveTemplate("/world/gallery/leaf", { class: LEAF, data: {} })
       )
     ).rejects.toThrow(/class/);
   });
@@ -250,7 +318,7 @@ describe("TemplateLogic code-field gate", () => {
     // hydratorClass clause keeps the carve-out tight.
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/world/gallery/sub", FOLDER, {}, OTHER_HYDRATOR)
+        TemplateApi.saveTemplate("/world/gallery/sub", { class: FOLDER, hydratorClass: OTHER_HYDRATOR, data: {} })
       )
     ).rejects.toThrow(/hydratorClass|class/);
 
@@ -258,9 +326,9 @@ describe("TemplateLogic code-field gate", () => {
     // no-behaviors clause keeps the carve-out tight.
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/world/gallery/sub2", FOLDER, {
+        TemplateApi.saveTemplate("/world/gallery/sub2", { class: FOLDER, data: {
           behaviors: [{ brain: "/lib/behavior/idles" }],
-        })
+        } })
       )
     ).rejects.toThrow(/class|behaviors\[\]\.brain/);
   });

@@ -266,16 +266,13 @@ describe('BootstrapManager + EventRegistry integration', () => {
         if (path === '/platform/idea/EventRegistry') {
           const t = new LeafTemplate();
           t.path = path;
-          t.class = '/platform/idea/EventRegistry';
-          t.hydratorClass = '/platform/idea/persistence/PersistentHydrator';
-          t.data = {};
+          t.setOwn({ class: '/platform/idea/EventRegistry', hydratorClass: '/platform/idea/persistence/PersistentHydrator', data: {} });
           return t;
         }
         if (path === '/platform/idea/persistence/PersistentHydrator') {
           const t = new LeafTemplate();
           t.path = path;
-          t.class = '/platform/idea/persistence/PersistentHydrator';
-          t.data = {};
+          t.setOwn({ class: '/platform/idea/persistence/PersistentHydrator', data: {} });
           return t;
         }
         return null;

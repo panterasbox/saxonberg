@@ -143,19 +143,49 @@ export default class CatController extends CommandController<CatModel> {
       );
       return;
     }
-    const lines = [
-      `path:          ${tpl.path}`,
-      `class:         ${tpl.class}`,
-    ];
+    // ⭐ `cat` prints what the AUTHOR wrote, with each inherited value
+    // annotated by where it came from. Printing the merged row would
+    // make a five-line child look like a fifty-line one and hide the
+    // parent entirely — which is the thing inheritance is FOR.
+    const lines = [`path:          ${tpl.path}`];
+    if (tpl.extends !== undefined) {
+      lines.push(`extends:       ${tpl.extends}`);
+    }
+    lines.push(
+      tpl.own.class !== undefined
+        ? `class:         ${tpl.class}`
+        : `class:         ${tpl.class}  (inherited via ${this._inheritedVia(tpl)})`,
+    );
     if (tpl.hydratorClass) {
-      lines.push(`hydratorClass: ${tpl.hydratorClass}`);
+      lines.push(
+        tpl.own.hydratorClass !== undefined
+          ? `hydratorClass: ${tpl.hydratorClass}`
+          : `hydratorClass: ${tpl.hydratorClass}  (inherited via ` +
+              `${this._inheritedVia(tpl)})`,
+      );
     }
     lines.push('data:');
-    for (const [k, v] of Object.entries(tpl.data ?? {})) {
+    for (const [k, v] of Object.entries(tpl.own.data ?? {})) {
       lines.push(`  ${k}: ${this._formatValue(v)}`);
+    }
+    const inherited = Object.keys(tpl.data ?? {}).filter(
+      (k) => !(k in (tpl.own.data ?? {})),
+    );
+    if (inherited.length > 0) {
+      lines.push(`inherited:     ${inherited.join(', ')}`);
     }
     this.tell(context, `\n${lines.join('\n')}\n`);
     return;
+  }
+
+
+  /**
+   * The parent an inherited value arrived THROUGH. Not necessarily the
+   * row that states it — `cat` that row to keep walking — but it is the
+   * next step of the walk, which is what a reader wants next.
+   */
+  private _inheritedVia(tpl: Template): string {
+    return tpl.chain[0] ?? '(unknown)';
   }
 
   private async catCode(

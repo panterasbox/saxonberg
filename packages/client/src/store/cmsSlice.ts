@@ -24,7 +24,12 @@ export interface CmsOpenLeaf {
   language: string;
   /** The persisted body as last read/saved — the dirty baseline. */
   body: string;
-  templateMeta?: { class: string; hydratorClass?: string };
+  templateMeta?: {
+    class: string;
+    hydratorClass?: string;
+    extends?: string;
+    chain?: string[];
+  };
 }
 
 /** The CMS slice's state + actions. */

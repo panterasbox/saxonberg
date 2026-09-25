@@ -193,8 +193,16 @@ class RootedZone extends Zone {
 No barrier subclass ships in this build — the seam is there for the
 moment a real consumer needs it. A subclass could also override
 `lookupAncestorField` to consult a non-template-parent source
-(e.g., a sibling-template inheritance, or a per-field fallback
-chain).
+(a per-field fallback chain, say).
+
+⭐ **Zone field lookup and row parenting (`extends:`) are one family and
+stay two mechanisms.** A zone field answers *what is true everywhere
+inside here*, at READ time, walking the path tree; a parent answers
+*what this thing is like*, at CLONE time, walking the `extends` chain.
+When both would supply a value, the clone-time one is already on the
+instance and the zone walk is never consulted. They are not unified
+because the questions are not the same one — see
+[templates.md § Inheritance](./templates.md).
 
 ## Zone derivation rule
 

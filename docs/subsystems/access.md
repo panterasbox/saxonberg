@@ -332,10 +332,25 @@ allow ladder:
 **The transitive set closes by construction.** The reference fields
 (`adornments[].template`, `exits[].destination`, `exits[].door`,
 `props[]`, `cast[]`, `container`, `warren`, `startLocation`,
-`routes[].to`/`.warren`) get **no per-field gate**: each names *another
-template*, which must itself have passed the `class` gate, so a
-reference can only ever instantiate a wizard-vetted-or-protowizard-safe
-class. (Proven in `TemplateLogic.transitiveClosure.test.ts`.)
+`routes[].to`/`.warren`, **and `extends`**) get **no per-field gate**:
+each names *another template*, which must itself have passed the
+`class` gate, so a reference can only ever instantiate a
+wizard-vetted-or-protowizard-safe class. (Proven in
+`TemplateLogic.transitiveClosure.test.ts`.)
+
+⭐⭐ **`extends` is in that set, and it is what makes the refusal's own
+advice actionable.** The error text has always said *"protowizards
+author by cloning/customizing wizard-made templates"* — describing a
+mechanism that did not exist. It does now: a **class-less child** (a
+row with `extends` + `data` and no code-naming field at all) passes the
+delta rule with no new clause, because there is nothing for the rule to
+refuse. Retargeting `extends` is likewise a content edit: the new
+parent is a vetted row too.
+
+⚠ The delta baseline is the **raw** row (`existing.own.*`), not the
+effective one. Otherwise a protowizard editing a class-less child would
+be refused for "changing" a class the row never stated — the gate
+reading its own inheritance as a violation.
 
 **The structural carve-out (D4).** A `mkdir`-shaped write — a
 Zone/folder `class` with no behaviors and the standard (or absent)
@@ -345,9 +360,13 @@ the folder/leaf invariant. So a protowizard can still create
 organizational sub-zones.
 
 **The `cp`/`mv` tightening (D5).** `cp`/`mv` content copy an existing
-template's `class`/`hydrator`/`behaviors` into a *new* path (no
-existing doc at dst), so the delta rule makes them **wizard-only** for
-class-bearing leaves. Protowizards author by cloning/customizing
+template's **raw** `class`/`hydrator`/`extends`/`behaviors` into a
+*new* path (no existing doc at dst), so the delta rule makes them
+**wizard-only** for class-bearing leaves — and, symmetrically, leaves a
+copy of a **class-less child** open to a protowizard, since the copy
+states no class either. (The raw copy is also what keeps a copied child
+a child rather than silently forking it away from its parent.)
+Protowizards author by cloning/customizing
 wizard-made templates and editing cosmetic `data`; they never type a
 class or brain freehand. (The v2 relaxation — letting protowizards
 *pick among* a wizard-vetted catalog of safe classes/brains — is

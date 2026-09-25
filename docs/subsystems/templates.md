@@ -28,15 +28,23 @@ abstract class Template extends Document {
   static collectionName = 'domain';
   static fieldMeta: FieldMeta = {
     path: { persistent: true },
+    extends: { persistent: true },
     class: { persistent: true },
     hydratorClass: { persistent: true },
     data: { persistent: true },
   };
 
   path: string = '';
-  class: string = '';
-  hydratorClass?: string;
-  data: Record<string, unknown> = {};
+  extends?: string;                       // the parent's path, or absent
+
+  readonly class: string = '';            // EFFECTIVE — the chain resolved
+  readonly hydratorClass?: string;        // EFFECTIVE
+  readonly data: Record<string, unknown> = {};  // EFFECTIVE (merged)
+
+  own: TemplateOwn;                       // RAW — what this row states
+  chain: readonly string[];               // parent paths, nearest first
+
+  public setOwn(spec: TemplateSpec): void;  // the author-side writer
 
   static findByPath(path: string): Promise<Template | null>;
   static findByPaths(paths: readonly string[]): Promise<Template[]>;
@@ -84,6 +92,121 @@ CRUD goes through the inherited `Document` surface
   set `hydratorClass: '/platform/idea/persistence/PersistentHydrator'` (the standard
   implementation). Custom hydrators are also class paths under `/lib/`.
 - `data` is pure hydration payload — never carries class paths itself.
+- `extends` names a PARENT ROW. See the section below.
+
+## ⭐⭐ Inheritance — `extends:` and the raw/effective split
+
+A row may name one parent. The child states only what differs; every
+value it does not state comes from the chain. The sentence the whole
+mechanism exists for is *"like that one, but different"* — a can of
+cola is a can, a dressed student is dressed like that student.
+
+**The parent is an ORDINARY ROW.** There is no abstract-row concept, no
+`kind: fragment`, no parent namespace. A parent is a row somebody could
+clone, and mostly is one (an empty can, an empty crate).
+
+⚠ **One parent is person-shaped and is nobody** —
+`/stuff/agent/costume/student`, the mannequin the 45 dressed NPCs hang
+off. Clone it and a nameless, bodiless `Extra` stands in the room.
+That is a known and accepted rough edge, left open deliberately: the
+honest fix is either an abstract-row concept or a narrower base class
+to hang it on, and **the base-class build decides that across the whole
+tree** rather than having it pre-decided here by one cohort.
+
+### Resolved at READ time, never flattened
+
+`Template._materialize` walks the chain and writes the **effective**
+`class`, `hydratorClass` and `data` onto the instance. So all sixty-odd
+existing readers — the clone pipeline, every catalogue, zone
+resolution, the designation gates — are correct unchanged, because what
+they want is *what this row clones into*.
+
+The raw row survives beside them as `own` + `extends` + `chain`, and
+⭐⭐ **`toDocument` writes the raw row**, so a save can never flatten a
+child into a copy of its parent. That holds for every writer that goes
+through `Document.save()`: `saveTemplate`, `cp`, `mv`, the CMS,
+`pack --export`. The effective fields are typed `readonly` so a stray
+writer is a compile error rather than a silently forked row.
+
+**Five surfaces read `own` rather than the effective fields**, and they
+are exactly the authoring ones: `saveTemplate` + its code-field gate
+(the delta baseline — a protowizard editing a class-less child must not
+be refused for "changing" a class the row never stated), `cp`, `mv`,
+the CMS read/write round-trip, and `cat` (which prints what the author
+wrote, with inherited values annotated).
+
+⚠ **A child that inherits its class is invisible to a raw Mongo query.**
+`findByClass` and `findWhereDataHas` therefore union their raw hits
+with the rows carrying `extends`, materialized and filtered on the
+effective row. Without that union a catalogue warms quietly short —
+the inert-roster failure, arriving from a new direction.
+
+### The merge algebra is declared per FIELD
+
+`FieldMetaEntry.inherit` (`lib/mixin.ts`), default `replace`:
+
+| rule | meaning | declared on |
+|---|---|---|
+| `replace` | the child's value wins whole; absent → the parent's | everything not below |
+| `by-key` | an object merged key by key, child wins per key | `Detailed.details` |
+| `by-entry` | a list merged by ENTRY IDENTITY | `props`, `cast`, `costume`, `adornments` |
+| `never` | the parent's value is not copied at all | `exits`, tpa `routes`, every `Biome` field |
+
+The field's **owner** declares the rule, so a pack's field and biome's
+fields say their own with no edit to `Template`, which holds no list of
+field names.
+
+⭐⭐ **Entry identity (`as`) is the PRECONDITION for `by-entry`, not a
+nicety.** Append and replace are each right about half the time, and
+the wrong one fails silently — a doubled jacket, a missing pair of
+shoes. `as` makes the merge rule definable at all: an entry's key is
+`as` when stated, else `template`, else the bare string. The merged
+list is the parent's entries **in order**, one the child names
+substituted **in place** (further parent duplicates of that key
+dropped), then the child's new keys appended.
+
+⚠ Parent duplicates the child does *not* name are **preserved** — six
+same-path stool lines stay six until somebody writes `count`.
+
+### A parent's class need not be the child's
+
+Cross-class parenting is legal and used: every dressed `Cast` row
+extends a row whose class is `Extra`, which is an honest authoring
+gesture (*these people are dressed like that one* says nothing about
+what kind of person they are). Requiring class-compatibility would
+forbid the build's best exemplar and is unenforceable at the edge,
+since a parent may state no class at all.
+
+⚠ **What actually goes wrong is narrower**: the Hydrator silently
+discards a data key the effective class does not declare, and under
+inheritance one junk key reaches every descendant instead of one row.
+That is what `check-instanceable-placement` invariant 12 censuses and
+ratchets — see [lint-family.md](../lint-family.md).
+
+### The chain fails loudly
+
+A missing parent, a cycle, or a chain deeper than 32 throws naming the
+child and the parent — at the authoring door (`saveTemplate`), at pack
+reconcile, and again at materialize. A silent parentless materialize
+would hand the clone pipeline a class-less row and blame the wrong
+thing.
+
+**A row that is extended cannot be deleted.** The refusal fires in
+`validateFolderLeafDelete` at the persistence chokepoint, so it holds
+for `rm`, `mv`, the CMS and `pack sync` alike; the pack installer
+additionally plans a `deleted-vs-extended` conflict rather than
+blocking the boot.
+
+### Zone field lookup is a different mechanism
+
+Both answer "where does this value come from", and they are not the
+same question. A **zone field** (`Zone.lookupField`) answers *what is
+true everywhere inside here*, at READ time, walking the path tree. A
+**parent** answers *what this thing is like*, at CLONE time, walking
+the `extends` chain. When both would supply a value the clone-time one
+is already on the instance and the zone walk is never consulted. See
+[zone.md](./zone.md).
+
 
 The two class fields are independent. A single hydrator can serve many
 backing classes (a `CreatureHydrator` for both `Guard` and `GuardDog`).

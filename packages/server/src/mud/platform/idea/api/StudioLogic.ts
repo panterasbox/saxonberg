@@ -856,7 +856,7 @@ export class StudioLogic extends ApiLogic {
     }
 
     try {
-      await TemplateApi.saveTemplate(path, classPath, input.data ?? {});
+      await TemplateApi.saveTemplate(path, { class: classPath, data: input.data ?? {} });
     } catch (err) {
       // The code-field gate (a non-wizard setting `class`) throws a
       // `TemplateError` at the `saveTemplate` chokepoint — a content-authoring
