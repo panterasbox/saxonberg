@@ -15,7 +15,7 @@ data:
   # row in the tree could author clothing at all, so every authored
   # person in the realm was naked — invisible only because every
   # interior was 21 °C by decree. On the road in all weathers.
-  wears:
+  costume:
     - /stuff/thing/clothes/student-shirt
     - /stuff/thing/clothes/student-trousers
     - /stuff/thing/clothes/canvas-shoes

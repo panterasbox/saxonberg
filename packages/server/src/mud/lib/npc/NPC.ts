@@ -24,35 +24,21 @@
 
 import { Character } from '../character/Character';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import { CostumedMixin } from '../stuff/Populates';
 import { BehavedMixin } from '../behavior/Behaved';
 import type { FieldMeta } from '../mixin';
 
-const NPCBase = BehavedMixin(PostRegistrationMixin(Character));
+// ⭐⭐ `CostumedMixin` — `costume:`, the third designation beside `props:`
+// and `cast:`. It shipped here as a `wears: string[]` field plus a
+// `postRegister` dressing step, which review correctly called out as
+// `applyProps` with the check missing. It is on the Populates rail now:
+// an instruction field, a Phase-2 applier, a once-flag, and the class
+// gated before anything is cloned. See `lib/stuff/Populates.ts`.
+const NPCBase = CostumedMixin(
+  BehavedMixin(PostRegistrationMixin(Character)),
+);
 
 export class NPC extends NPCBase {
-  /**
-   * ⭐⭐ **What this person is wearing** — garment template paths, put
-   * on at `postRegister`.
-   *
-   * Until the envelope build there was no way to author this: no
-   * `wears:`, no `worn:`, no `outfit:` on any NPC class, archetype or
-   * row in the tree, and `props:` places a thing onto a `Surfaced`
-   * host rather than onto a person. **Every authored person in the
-   * realm was naked**, and the only reason it never showed is that
-   * every interior was 21 °C by decree and a naked body is survivable
-   * at 21 °C. This build removes the decree, so the realm's people need
-   * clothes before its rooms are allowed to get cold.
-   *
-   * The alternative — dials soft enough that a naked body outdoors at
-   * 8 °C is fine for a night — is dishonest physics, and would have
-   * made clothing worth nothing at exactly the moment the textiles
-   * chain gave it a price.
-   */
-  public wears: string[] = [];
-
-  static fieldMeta: FieldMeta = {
-    wears: { persistent: true, authorable: true },
-  };
 
   /**
    * Chain first, then dress. `BehavedMixin.postRegister` is what wires
@@ -65,7 +51,6 @@ export class NPC extends NPCBase {
    */
   public override async postRegister(): Promise<void> {
     await (super.postRegister as () => Promise<void>).call(this);
-    if (this.wears.length > 0) await this.wearGarments(this.wears);
   }
 }
 

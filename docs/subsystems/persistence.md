@@ -1325,11 +1325,34 @@ born-with content in the theatre vocabulary:
   authoritative after the first seed.
 - **`cast:`** — the troupe (`Behaved` NPCs). Never captured, conserved
   live, re-seeded on restore.
+- ⭐ **`costume:`** — what a cast member is **wearing** (`Wearable`
+  garments), on the person rather than on the place. `CostumedMixin`, the
+  same file and the same rail.
 
-The class is the check, not the designation: each `PopulatesMixin` applier
-resolves an entry's template class and gates on `Mixins.Behaved` **before**
-minting — a Behaved entry under `props:` (or a non-Behaved one under
-`cast:`) is an authoring error at hydrate, not a latent lifecycle bug.
+The class is the check, not the designation: each applier resolves an
+entry's template class and gates on `Mixins.Behaved` (or, for a costume,
+`Mixins.Wearable`) **before** minting — a Behaved entry under `props:`, a
+non-Behaved one under `cast:`, or a thing you can only carry under
+`costume:` is an authoring error at hydrate, not a latent lifecycle bug.
+
+> ⚠⚠ **`costume:` shipped outside this rail and it cost all three
+> guarantees.** The envelope build added it as `wears: string[]` on `NPC`
+> with a `postRegister` dressing step, which is `applyProps` with the
+> check missing plus one slot occupation. So: a `wears:` entry that was
+> not wearable **cloned, went into the person's hands, claimed no slot
+> and said nothing** — the row promised a garment and the world got a
+> carried rock; a mistyped path vanished into the per-garment `catch`,
+> which matters now that the cold branch cares whether a person is
+> dressed; and with no once-flag, a non-wearable entry was re-cloned on
+> **every** go-live re-hydrate, because the idempotence it leaned on was
+> slot-occupancy and that entry occupied none. Moved beside its siblings
+> at review (2026-09-25).
+>
+> ⭐ **Why `costume` and not `wardrobe`:** `lib/slot/Wardrobe.ts` already
+> means a *player's saved named outfits* (`wear formal` in one command).
+> The theatre distinction settles it — **wardrobe is the department and
+> its rail of sets; a costume is what a given character wears in the
+> show** — so the two words are doing different jobs, correctly.
 Two touches carry the lifecycle:
 
 - **Capture skips `Behaved` occupants** — the third skip in

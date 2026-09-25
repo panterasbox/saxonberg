@@ -167,7 +167,15 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "platform/idea/api/CombatLogic.ts::resolveExportSync",
     classification: "gated-direct",
   },
-  // Resolves another template's already gate-passed class.
+  // Resolves another template's already gate-passed class. TWO sites in
+  // this file, one per designation family: `populateList` for `props:`
+  // and `cast:`, and `applyCostume` for `costume:`. Both resolve a class
+  // only to CHECK it — against `Mixins.Behaved` and `Mixins.Wearable`
+  // respectively — before anything is cloned.
+  {
+    site: "lib/stuff/Populates.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
   {
     site: "lib/stuff/Populates.ts::loadClassByPath",
     classification: "transitive-safe",

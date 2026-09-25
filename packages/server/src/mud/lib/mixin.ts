@@ -337,6 +337,8 @@ export const Mixins = {
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
   Populates: 'PopulatesMixin',
+  /** ⭐ The third designation beside `props:` and `cast:` — see Populates.ts. */
+  Costumed: 'CostumedMixin',
   Persistable: 'PersistableMixin',
   Forkable: 'ForkableMixin',
   Stackable: 'StackableMixin',

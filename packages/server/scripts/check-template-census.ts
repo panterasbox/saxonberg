@@ -156,24 +156,32 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(f, data[f]);
   }
-  // ⭐ `fabric.material` (the envelope build) — what a room is BUILT OF.
+  // ⭐ `enclosure.material` — what a place is BOUNDED BY.
   // Resolved live at the first async temperature read, and a rowless one
   // silently falls back to the universe default: the room would quietly
   // be made of something else and nothing would say so. `lint:envelope`
   // clause (b) additionally checks the material CONDUCTS.
-  if (data.fabric && typeof data.fabric === 'object') {
-    push('fabric', (data.fabric as Record<string, unknown>).material);
+  if (data.enclosure && typeof data.enclosure === 'object') {
+    push('enclosure', (data.enclosure as Record<string, unknown>).material);
   }
 
-  // ⭐ `wears:` (the envelope build) — the garments an authored person
-  // has on. Resolved live at `postRegister`, one clone each, and
-  // `Character.wearGarments` swallows a per-garment failure so the
-  // person survives a bad path. Which is exactly why it is read here: a
-  // rowless or misspelt garment is silently one layer of insulation
-  // this character does not have, discovered only when they freeze in a
-  // winter the content pass was supposed to have dressed them for.
-  if (Array.isArray(data.wears)) {
-    for (const g of data.wears as unknown[]) push('wears', g);
+  // ⭐ `costume:` — the garments an authored person has on, the third
+  // designation beside `props:` and `cast:`. It was `wears:` on `NPC`
+  // until review (2026-09-25); this gate is the reason the rename is
+  // safe, because it refuses a path-shaped field `refsOf` does not read
+  // and said so by name on the first run — *"if this is a RENAME of a
+  // field refsOf used to read, the census has just gone blind on every
+  // ref it carried"*. It knows because `populates: → props:/cast:` cost
+  // it 322 of 462 refs while still reporting green.
+  //
+  // ⚠ Read here because a rowless or misspelt garment used to be
+  // silently one layer of insulation a character does not have,
+  // discovered only when they froze in a winter the content pass was
+  // supposed to have dressed them for. `CostumedMixin.applyCostume` now
+  // THROWS on both cases, so this is the second of two locks rather than
+  // the only one.
+  if (Array.isArray(data.costume)) {
+    for (const g of data.costume as unknown[]) push('costume', g);
   }
 
   // ⭐ A Wood row's `mix:` — the species standing on a clearing, each
