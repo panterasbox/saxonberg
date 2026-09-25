@@ -1,8 +1,11 @@
 # Apiculture — requirements
 
-**Kind:** feature (content-led)
+**Kind:** feature (content-led, with **two named kernel touches**)
 **Leads from:** content — a new `trade-apiculture` pack, proved at Heart's
-Delight's upper bench.
+Delight's upper bench. The two kernel touches, both settled with the user
+2026-09-25: a **set-count latch** on the growth model so pollination has
+somewhere to land, and **venom riding the wound** in the hazard path so worn
+covering stops a sting.
 
 Bees are the last family on the resource roster, and they are the only one
 whose yield comes from **land you do not own**. A hive raises the crop of the
@@ -36,7 +39,8 @@ shipped verb:
 
 | act | the verb that already does it |
 |---|---|
-| take the crop | **`harvest`** (with `pick` as its alias) — takes a crop off a mature plant, keeps a *fruiting* one in place to bear again, and reads quality off the plant's **worst** stretch of the cycle |
+| take a crop off a plant | **`harvest`** (with `pick` as its alias) — ⚠ but its subject must be a growing plant or a bed, so **it cannot take honey**; see *Surface decisions* |
+| turn one input into different products by tool and method | **recipes** — data, already the mechanism behind every craft |
 | stack a box on the hive | **`put`** / **`place`** |
 | unseal a box | **`open`** |
 | divide a colony | **`split`** — already mandated as *"divide an oversized or aggregated thing into usable units"* |
@@ -158,6 +162,13 @@ this trade.
 - **A general "when is a tap open" rule** →
   [tapping-slate](../slates/builds/tapping-slate.md). See *Surface decisions*:
   honey does not need one.
+- ⭐ **A `face` and `neck` body part** → its own small increment on the biped
+  plan. It is worth doing and its best argument is not bees: there is already a
+  `neck` wear slot with **no body part and no covering edge**, so a gorget
+  protects nothing today; and a face part would give **disguise an anatomical
+  anchor**, combat a throat cut distinct from a skull hit, and armour the
+  helm/visor/gorget distinction. But the suit works at head granularity, which
+  is how a bee suit is actually sold, so this build does not need it.
 - **Building out Heart's Delight** (the co-op, the store, the cannery, the
   flats) → [towns-slate](../slates/builds/towns-slate.md). This build adds
   only what its own drive needs.
@@ -268,13 +279,47 @@ the same shape as the veil you wear. Two mitigations, one shape, **no new
 verb**, and cooking's `smoke` stays unshadowed. It is also the more honest
 model: you puff smoke continuously while you work, not as a discrete act.
 
-### Taking honey is `harvest`, and the tool decides how
+### ⭐⭐ Taking honey is TWO acts, so it needs no new verb argument
 
-The shipped harvest verb already lets a plant name the tool its crop wants,
-and already keeps a *fruiting* thing in place to bear again. So crushing and
-extracting are **one verb and two tools**, not two verbs — and the choice is
-the technology ladder rather than a preference: fixed comb must be destroyed
-to be harvested, movable comb need not be.
+The act I had called one act is two: **you take a box off the hive**, and then,
+at a bench, **you get the honey out of the comb.** Only the second one cares
+about a tool. So:
+
+- the colony's tap yields **capped comb**, the way the shipped animal taps
+  already hand a product to whoever takes it;
+- **crushing and spinning are two recipes over that comb** — one input, two
+  outcomes (honey and wax, or honey and an intact comb) — and recipes already
+  select their product by tool and method.
+
+⚠ **This replaces an earlier decision that `harvest` would take honey with the
+tool choosing the outcome. Both halves of that were wrong**: `harvest` requires
+its subject to be a growing plant or a bed, so it refuses a hive outright; and
+its controller reads the product before it looks at the tool, so a tool cannot
+select between outcomes. Discovered in grounding, corrected here rather than in
+the plan.
+
+⭐ What this buys: no verb collision to resolve, no hidden branch in a shipped
+controller, and the technology ladder becomes **which recipe you know and which
+tool you own** — which is data, and legible.
+
+**The verb is `rob`** — standard beekeeping English for taking honey off a
+hive, unclaimed (checked), and it sits in the shipped act-named tap family
+beside `milk`, `shear` and `gather`. It also resonates with the colony-on-colony
+robbing this build defers. (`pull` is the modern alternative if `rob` reads as
+theft.)
+
+### ⭐ Venom rides the wound — and this is a defect fix
+
+A sting that does not get through your clothes does not poison you. Today the
+hazard path attenuates a puncture's **energy** through the covering stack and
+then delivers the toxin **unconditionally** — so a boot stops a poisoned
+needle's wound and the poison lands in full. The trap's own authored
+description already says *"a boot mitigates."*
+
+So: **if the covering stopped the puncture, the toxin does not land.** One
+condition at one call site, it makes the shipped trap behave the way its own
+text claims, and it is what makes a veil worth wearing. Settled with the user
+2026-09-25.
 
 ### A hive's boxes are ordinary contents
 
@@ -368,33 +413,36 @@ Heart's Delight.
 5. `handle` the hive **bare-handed and unsmoked**. You are stung. The response
    names what you should have had, and the sting reads as a sting — not as a
    fight, and not as a poisoning.
-6. Hold the smoker, wear the veil, `handle` again. You get a **reading**:
+6. Put the veil on and `handle` again, still unsmoked: **fewer stings**, and the
+   ones you take land where you are bare.
+7. Hold the smoker too, and `handle` again. You get a **reading**:
    entrance traffic, the weight when you heft it, the brood on the comb. No
    numbers.
-7. `open` the hive; `look` inside; take a frame out and look at it.
-8. Let the flow run. `handle` again — the stores are heavier and the colony is
+8. `open` the hive; `look` inside; take a frame out and look at it.
+9. Let the flow run. `handle` again — the stores are heavier and the colony is
    crowded.
-9. `put` a **super** on the hive before it swarms.
-10. On a **second** hive, deliberately do not super it. It **swarms**. Find the
+10. `put` a **super** on the hive before it swarms.
+11. On a **second** hive, deliberately do not super it. It **swarms**. Find the
     swarm, box it, and keep it — a colony you did not pay for, out of your own
     mistake.
-11. `harvest` the first hive **with the crush tool**. You get honey **and wax**,
-    and the comb is gone.
-12. `harvest` the second **with the spinner**. You get **more honey and no
-    wax**, and the comb survives.
-13. Look at the fruit trees again. **They are setting more fruit than in step
+12. `rob` the first hive. You come away with **capped comb**, and the colony
+    notices it has gone.
+13. Crush that comb at the bench: you get honey **and wax**, and the comb is
+    gone. Spin a second comb instead: **more honey, no wax**, and the comb
+    survives to go back on.
+14. Look at the fruit trees again. **They are setting more fruit than in step
     2.** Nothing was authored to make that happen.
-14. Make a **candle** from the wax. Light it. It lights a room.
-15. Take **all** the honey off a third hive before winter, and leave enough on a
+15. Make a **candle** from the wax. Light it. It lights a room.
+16. Take **all** the honey off a third hive before winter, and leave enough on a
     fourth. Run the year forward. **One is dead and one is alive**, and the
     difference is legible in what you did.
-16. Put a second apiary on the same range. The forage reading says the range is
+17. Put a second apiary on the same range. The forage reading says the range is
     **worked over**, in words.
-17. Neglect a hive badly. It **absconds** — the box is empty and nothing died.
-18. Dissolve honey in water, ferment it, and taste the **mead**. Then leave a
+18. Neglect a hive badly. It **absconds** — the box is empty and nothing died.
+19. Dissolve honey in water, ferment it, and taste the **mead**. Then leave a
     jar of honey where it can take up damp, and find it fermenting **on its
     own**.
-19. Sell honey on Quist's shelf. Somebody can buy it.
+20. Sell honey on Quist's shelf. Somebody can buy it.
 
 ## Acceptance criteria
 
@@ -404,8 +452,11 @@ Observable from outside the code.
    each costs something different.
 2. Handling a hive tells a player its condition **in words**, and no screen
    anywhere shows a colony's strength as a number.
-3. A player who opens a hive without smoke or covering **is stung**, and the
-   number of stings differs according to what they held and wore.
+3. A player who opens a hive without smoke or covering **is stung**, and a
+   player wearing a veil and gloves is stung **less** — because the covering
+   stopped it, not because a number was lowered. ⚠ At the granularity the body
+   already has: a veil covers the head, gloves the hands. The finer
+   face-versus-neck distinction is **out** (see non-goals).
 4. The same sting is **one sting's worth of pain** once, and a medical problem
    thirty times, without anyone authoring the second case.
 5. A player **cannot fight a colony**, and the refusal says what they can do

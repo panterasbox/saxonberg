@@ -104,12 +104,30 @@ the shared one.**
 behind inquiry's epoch on-ramp, and foraging is nearer. So on current ordering
 **forage defines the rival field**, which is the outcome this slate wanted.
 
-### 2. The pin walk — a home for `stepOutwardForPin` · READY
+### 2. The pin walk — ⚠⚠ NOT ready, and the earlier claim here was wrong
 
-Copied **three times** already;
-[field-substrate-slate](../tails/field-substrate-slate.md) lists *"a home for
-the pin walk"* under **Left**. The hive's forage range would be the fourth
-copy. Three is past any reasonable threshold.
+⚠ **Correction, 2026-09-25 (grounding for the apiculture plan).** This slate
+said `stepOutwardForPin` was *"copied three times"* and therefore past the
+promotion threshold. **It has exactly ONE copy** — module-private at
+`platform/idea/api/WeatherLogic.ts`, four lines, walking containment via
+`Containable.getContainer()`, depth-capped at 32, first hit wins.
+
+What is genuinely true is subtler and more interesting: the **pattern** appears
+three times with **three different depth caps and three different termination
+rules** — the weather pin walk (cap 32), `Growing.sampleLux` (cap 8) and
+`Growing.resolveWarmth` (cap 8), with the biome chain resolver as a fourth
+relative. So this is **not one helper copied**; it is three walks that
+superficially rhyme, and whether their differences are meaningful is an open
+design question rather than a mechanical promotion.
+
+> **By this slate's own rule that makes it a ONE-consumer item, so it should
+> not be promoted yet.** A forage range would be a second walk, and the right
+> first step is to decide whether the caps and termination rules *should* be the
+> same — not to hoist four lines.
+
+[field-substrate-slate](../tails/field-substrate-slate.md) still lists *"a home
+for the pin walk"* under Left, correctly; what changes is that it is a design
+question, not a ready promotion.
 
 ### 3. ⚠⚠ The sweetener vocabulary · READY, and cheapest right now
 

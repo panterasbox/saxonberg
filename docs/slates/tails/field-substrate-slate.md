@@ -253,13 +253,20 @@ two live instances, or this graduates to a top-level doctrine doc.)*
 From the apiculture design conversation, and recorded here because both items
 are this slate's:
 
-**The pin walk has hit four.** `stepOutwardForPin` is copied three times
-today, and a hive's **forage range** is the fourth — bees read *what is in
-flower within range*, which is an outward walk from a pin. Three copies was
-already past any threshold worth arguing about; the home for it is now
-tracked as a ready promotion in
-[rgo-unification-slate](../builds/rgo-unification-slate.md), to land as its
-own increment rather than inside a feature build.
+**⚠⚠ The pin walk is ONE copy, not three — corrected 2026-09-25.** An earlier
+version of this note said `stepOutwardForPin` was copied three times and was
+therefore a ready promotion. It has **exactly one** copy: module-private in
+`platform/idea/api/WeatherLogic.ts`, four lines, walking containment,
+depth-capped at 32.
+
+⭐ What is true is more interesting. The **pattern** — climb containment,
+`isContainer`-guarded, depth-capped, first hit wins — appears three times with
+**three different caps and three different termination rules**: the weather pin
+walk (cap 32), `Growing.sampleLux` (cap 8), `Growing.resolveWarmth` (cap 8),
+with the biome chain resolver as a fourth relative. So the question is **not
+"where should this helper live"** but **"should these three walks agree?"** —
+and that is design, not a hoist. A hive's forage range would be a second
+consumer of whatever answer we reach.
 
 ⚠ **Open, and it wants deciding properly:** the forage **metric**. Graph hops
 with a per-edge cost, or real distance where a zone has coordinates? Bees fly
