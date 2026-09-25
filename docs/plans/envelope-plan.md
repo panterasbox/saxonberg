@@ -2486,3 +2486,76 @@ concluding: `analyze sky` is the cheapest way to know whether the
 premise of a light assertion still holds. A night walk wants
 `pnpm --filter @saxonberg/server reset:db` first, which returns the clock
 to t = 0.
+
+### ⚠⚠⚠ THE SWEEP'S BROWSER WALK AT MIDDAY — two blockers the drive cannot see
+
+⭐ **The wire drive runs at `t = 0`, which is always midnight.** So a
+build about the sun had its entire DAYLIGHT half unexercised live. The
+sweep's walk went back at solar noon (`analyze sky`: *"sun altitude
+47.09 degrees"*, essentially the equinox maximum at latitude 42) and
+found two defects, both player-facing, both in the headline feature.
+
+#### A. Outdoor rooms read `blinding` at midday, because spill is not attenuated
+
+`EXIT_TAU = 1.0` — *"no extra dimming on exit traversal"* — so the
+cross-exit leg adds each neighbour's **entire accumulated flux**,
+undimmed, to `MAX_HOPS = 2`, and then divides by the **receiving** room's
+area. A room in a chain of bright rooms therefore reads brighter than any
+of the rooms lighting it.
+
+Observed, at two rooms:
+
+| room | authored | reads at noon |
+|---|---|---|
+| `delight-road/crossroads` | **600 lm** over ~400 m² = **1.5 lux** at noon calibration — the gate calls it *"deliberate gloom"* | **`blinding`** (≥ 200 lux) |
+| `kestrel-road/lower-climb` | 24 000 lm over 400 m² = 60 lux at noon | **`blinding`** |
+
+A deliberately dim country crossroads is reading as glare. ⚠ It is not
+physical: light through a doorway is a fraction of the source's total
+governed by the **aperture**, and here it is 100 % of it — so the sum can
+exceed every contributor.
+
+⚠ **Whose defect:** `EXIT_TAU` and the cross-exit leg predate this build
+(*"the walk relocated from the retired `LightApi`"*). What this build did
+was make ambient LARGE — before W0 no outdoor row carried 24 000 lumens —
+so the leg was harmless and is now not. ⭐ **The third instance of the
+same pattern**, after the forestry test and the plants: *a consumer
+written when the input was small.*
+
+⭐ The contained fix: a doorway cannot make the receiver brighter than the
+source. Convert the sub-walk's flux to the SOURCE's lux and contribute at
+most that × the receiver's area × tau. One expression, physical, and it
+leaves the shipped night numbers alone (at 0.65 lux the clamp never
+binds).
+
+#### B. At `blinding`, `look` says the phrase and NOTHING ELSE
+
+```
+here> look
+The glare here is hard to look into.
+```
+
+No description. **No exits** — where `pitch-black` correctly still lists
+them (*"It is pitch dark… ── Obvious exits: north, west, and south."*).
+
+⚠ And nothing declares that: `LIGHT_BANDS_TOO_DARK_TO_DESCRIBE` is
+`['pitch-black', 'very-dim']` and `blinding` is **not in it**, yet it
+behaves as a withholding band. So the "too bright to describe" rule is
+happening without having been decided — and A makes it fire in the most
+ordinary condition in the game, outdoors at noon.
+
+⭐ Either answer is defensible and the build should state one: put
+`blinding` in the withhold list and rename it for what it is, or make its
+phrase additive the way `dim`'s is. What is not defensible is the third
+thing, which is what ships today.
+
+#### What this says about the drive
+
+Not that the drive is wrong — 14 of 14 and it earned every one. That it
+is **one clock**. ⭐ A build whose subject is the sun wants a checkpoint at
+noon as well as at midnight, and the harness cannot move its own clock
+(`setScale` is an operator act), which is precisely why the acceptance
+criterion *"noon and midnight give two different descriptions, neither
+authored"* was only ever half-tested. Today both are withheld — one for
+darkness and one for glare — so the criterion passes for the wrong
+reason.

@@ -95,11 +95,13 @@ export interface PublicLightingFunding {
    * iff there is unmet demand* — that is demand being absorbed instead
    * of creating a market.
    *
-   * → the energy build (`build-4`). See the deferred seam in
-   * `envelope-plan.md` for the bill it inherits; ⚠ the demand figure is
-   * already live and calibrated (`costPerStreetNight` × lit streets ×
-   * nightly), so it gets a market to price rather than a number to
-   * invent.
+   * → the energy build (`build-4`). The bill it inherits is in
+   * `power-utility-slate` § *The first demand case is already running*
+   * — a slate rather than a plan, because a plan gets retired and a
+   * code comment must not point at something that can be deleted.
+   * ⚠ The demand figure is already live and calibrated
+   * (`costPerStreetNight` × lit streets × nightly), so that build gets a
+   * market to price rather than a number to invent.
    */
   supplier: string | null;
   /** The currency the bill is denominated in. Defaults to `credit`. */
