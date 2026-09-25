@@ -350,6 +350,73 @@ and three genuinely new pieces of design: the urgency band vocabulary, the
 arbiter, and candidate assembly. **Authorized 2026-09-25** — *"redesign
 everything if it improves the design."*
 
+## ⭐⭐⭐ A brain is a TASK, not a vocation — and who bundles them
+
+Settled 2026-09-25, against the pass's own earlier proposal that a brain
+declare its vocation:
+
+> **User: "I dunno if I'd want to marry a brain to a vocation but I dunno.
+> businesses have different needs even among common vocations like
+> archetypes tell us maybe more but I dunno."**
+
+⭐ **The roster is not vocational, and reading it says so.** `restocks`,
+`maintains`, `cellars`, `prints`, `reads-water`, `reads-air` are **tasks**,
+not jobs. A vocation is a *bundle* of tasks. Marrying a brain to a vocation
+is a category error in the other direction: **a brain is finer-grained than
+a vocation.**
+
+So the bundle lives somewhere else, and there are two somewheres — which is
+exactly the distinction the user drew:
+
+| | answers | why it is there |
+|---|---|---|
+| **the brain** | a **task** | fine-grained, reusable, nobody's job in particular |
+| **the seat** | which tasks **this job** wants done | ⭐ *"businesses have different needs even among common vocations"* — two bars both employ a bartender; one wants theirs to work the cellar. This is `fulfills` generalized from *disciplines-served* to **tasks-owed** |
+| **the archetype** | which tasks **this person** tends toward | already the designed relation — [cast-archetype-slate](cast-archetype-slate.md) maps temperament to *"the brain path table"* |
+
+**A person runs the union of their seat's duties and their character's
+inclinations**, and the arbiter picks among them. Nothing is married.
+
+⭐ **And that shrinks `discipline?` to something defensible.** It is not
+*"this brain is the vocation of X"*; it is *"doing this exercises X"* —
+which is the relation a **recipe** already has (`discipline:` on all 97) and
+exactly what the Transcript needs to credit the act. Same relation, no new
+claim. The vocations register stays derivable, because a vocation rolls up
+from the tasks some seat names.
+
+## Rendering the reason — immersion decides
+
+> **User: "whatever is most immersive on the other."**
+
+Three candidates; two are wrong.
+
+| | verdict |
+|---|---|
+| **never visible** | wastes the best thing the arbiter produces |
+| **a readout** — *"Mara: restocking (pressing)"* | ⛔ **refused.** [measurement.md](../../measurement.md)'s no-gauge rule; a UI wearing a person's face |
+| ⭐ **visible as behaviour** — *"Mara glances at the near-empty gin bottle and heads for the cellar"* | **this.** The reason rendered as an act, never stated as a value |
+
+The machinery is shipped (Scene, emotes, MML) and the cost is nil: **the
+arbiter already computed the reason**, so rendering it is one sentence.
+Today an NPC wipes the bar on an 11-second timer with no motive; under this
+every act has a cause, and the cause is sayable.
+
+⚠ **One guard, or the room becomes noise** — the `ambient` budget exists
+because *a little goes a long way*:
+
+> ⭐⭐ **Render the reason on a SWITCH, not on a beat.** A transition is
+> interesting; a continuation is not. *"Mara sets down the cloth and reaches
+> for the order pad"* is the switch.
+
+Same insight as the shift-change being witnessed rather than a teleport —
+it is what makes the roster **felt**.
+
+**Two surfaces, not one.** Ambient rendering is the switch above. A player
+**asking** gets a direct sentence (*"Mara is restocking; Remy is free"* —
+the crew's refusal text). That is answering a question, not a gauge. What
+stays refused either way is a **list of an NPC's candidates with their
+bands**.
+
 ## Open questions — what is still open
 
 **Closed by the 2026-09-25 pass:** (1) reflex vs candidate → **both, two
@@ -360,10 +427,13 @@ leave**.
 1. **The band vocabulary itself.** `idle · wanted · pressing · critical` is
    a proposal. Four rungs is the guess; the light bands use six and
    competence uses five.
-2. **Does a brain declare its vocation, or does the SEAT?** ⚠ An agent with
-   no job — a wolf, a pet, a wanderer — has no seat, so the brain must be
-   able to say it independently. But an employed agent then has two
-   sources, and they can disagree.
+2. ~~**Does a brain declare its vocation, or does the SEAT?**~~ **Closed:
+   neither — a brain is a TASK.** See § *A brain is a TASK, not a vocation*.
+   ⚠ What is left of it: an agent with **no seat** (a wolf, a pet, a
+   wanderer) gets its whole bundle from its archetype, so the archetype half
+   is load-bearing rather than flavour — and `cast-archetype-slate`'s
+   brain-path table is therefore on this build's critical path, not beside
+   it.
 3. **Is `produces` / `consumes` declarable at all?** Production is dynamic
    (a farm yields what the soil gives). The lean: only the **kind** of flow
    is declarable, which is enough for the register and the demand test, and
@@ -374,9 +444,11 @@ leave**.
 5. **How often does an agent deliberate**, and what wakes it early? A
    posted job and a `critical` band both want to preempt the next beat
    rather than wait for it.
-6. **Does the arbiter's reason become player-visible?** It is the crew's
-   refusal text and an NPC's legibility, but ⚠ measurement.md's no-gauge
-   rule means it must read as a sentence about a person, never a readout.
+6. ~~**Does the arbiter's reason become player-visible?**~~ **Closed: yes,
+   as behaviour on a switch.** See § *Rendering the reason*. ⚠ What is left:
+   the prose. Every deliberative brain now owes a switch-sentence, which is
+   38 pieces of writing and the place this design most easily becomes
+   repetitive.
 7. **What fills `AbortReasonRegistry`**, and who may add to it? A pack
    shipping its own reason is the federation-correct answer; the kernel
    owning the closed set is the legible one.
