@@ -17,6 +17,10 @@
 > designation tier (polity-imposed, via legal-code) · the vehicle/act/time
 > forms of the same predicate · the suppression twin, kept separate
 > **Size:** a build — ⭐ **the seam the RGO-unification build hangs on**
+> · ⭐⭐⭐ **and now a SECOND dimension (2026-09-25): GENERATIVE
+> CAPACITY** — how much algorithmic content may be written under this
+> extent, as a term of its provisioning rather than a per-run decision.
+> See § below and [content-generation-slate](./content-generation-slate.md).
 
 **Captured 2026-09-17**, out of the forestry design conversation, from
 the user's framing:
@@ -325,3 +329,64 @@ from:
   grain chain's `GristMill` shape;
 - **this covenant gate**, once three trades declare instruments;
 - **instrument declaration at zero across every trade.**
+
+---
+
+## ⭐⭐⭐ The second dimension — generative capacity (2026-09-25)
+
+Raised designing NPC household generation
+([household-lifecycle](./household-lifecycle-slate.md),
+[content-generation](./content-generation-slate.md)). The covenant was
+captured as *what technology may be used on this ground*. The same row
+answers a second question, and the user's framing is the whole argument:
+
+> *"someone has to decide to create them and we're operating with the
+> assumption that's not decided on a case by case basis, **it's decided
+> when the parcel is provisioned as terms of its provisioning**… why even
+> make it procgen then if we have to involve the committee every time the
+> algo runs."*
+
+> **Generative capacity is a term on the title. The generator runs
+> unattended within it, and nobody is consulted per record.**
+
+⚠ **The failure mode this rules out** is treating capacity as a live
+platting decision: that puts the holder in the loop **forever** and
+defeats generation entirely. A covenant is agreed **once**, at
+provisioning or subdivision.
+
+**Why it belongs on the covenant and not somewhere new:**
+
+- It is a restriction on **what may be done on the ground**, which is
+  this row's whole job — the sibling of *by what means*.
+- ⭐⭐ **It binds successors.** That is what separates a covenant from a
+  policy: a new committee inherits the density rather than relitigating
+  it.
+- The hierarchy already matches the parcel registry — the grantor sets
+  terms, a holder sets terms on child parcels **within** its own,
+  longest-prefix chain-of-title resolves who bound what.
+
+**What it buys beyond the feature:**
+
+- ⭐ **The politics land at GRANT TIME.** The question is never *"will you
+  house this family"* — it is *"what density did you accept when you took
+  the ground,"* argued in public, once. **Changing it is rezoning**, which
+  should be a fight, and which wants an entrenchment-tier answer.
+- **Exhaustion becomes a FACT, not a refusal** — a place at capacity is
+  simply not offered, legible in advance, decided by nobody in the
+  moment.
+- ⭐⭐ **It dissolves the in-fiction/meta budget conflict.** *Land is
+  in-fiction, compute is meta*, and the engine may never refuse with an
+  out-of-fiction reason. But **the realm's total generative capacity is
+  the sum of its covenants** — knowable and bounded by deliberate governed
+  acts rather than a hidden limiter players would learn to optimise
+  against.
+
+⚠ **Two open questions this adds:**
+
+1. **What the capacity term SAYS.** A lot count is crude — it cannot tell
+   a tenement from an estate. Wants a real unit.
+2. ⭐ **Is it priced by the SETTLEMENT MODEL'S SIXTEEN NEEDS?** Water,
+   waste, roads and services are the natural in-fiction limiter on
+   density. If servicing turns out to be cosmetic, density is an unpriced
+   dial and the budget conflict returns.
+

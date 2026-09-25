@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**248 slates.** 59 greenfield · 86 continuations · 56 waves · 47 tails.
+**249 slates.** 60 greenfield · 86 continuations · 56 waves · 47 tails.
 
-## ⭐ Greenfield — nothing shipped yet (59)
+## ⭐ Greenfield — nothing shipped yet (60)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -57,6 +57,7 @@ respect.
 | [client-audio](./builds/client-audio-slate.md) | the client audio player (ambient emission → playback, as a second modality on the `cockpit.watch` push) · the source's home (Location field vs in-world device — Q1) + the autoplay gesture + mix · the Spotify embed tier · the loose-sync-or-frame-lock decision (Q6) … |
 | [cold-chain](./builds/cold-chain-slate.md) | cold PRODUCTION (a powered freezer on the electricity tier, or harvested winter ice / a seasonal ice-house) · cold STORAGE (a cold larder/cellar location, an insulated container, an iced cooler) · the cold-source COUPLE (mirror the furnace couple in `Thermal.ts`) · the coolant reserve + melt reconcile (mirror `FurnaceMixin`'s fuel) … |
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
+| [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |

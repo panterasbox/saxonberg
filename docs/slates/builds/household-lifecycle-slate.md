@@ -267,13 +267,21 @@ the most.
 6. **An NPC parent never names a beneficiary.**
 7. **Death is terminal — no reclaim.**
 8. **Vacancy ends in a ruin**, and a ruin is cheap ground.
+9. ⭐⭐ **A ruin is a SUCCESSION, not a class change** — mint the authored
+   `Ruin`, pour in the address/title/rubble, destruct the house. The
+   `divideBody` pattern; see
+   [content-generation](./content-generation-slate.md).
 
 ## Open
 
-1. **What the generator IS, architecturally.** It writes content rows, so
-   it is doing a wizard's job — a pack? an Api? something the CMS
-   invokes? ⭐ **No precedent exists**, and this is where the real design
-   work is.
+1. **What the generator IS, architecturally** — ⭐ **partly answered
+   2026-09-25** → [content-generation-slate](./content-generation-slate.md):
+   it is a **protowizard** (content-write, no code trust, gated by
+   `canAtPath` on parcel title), its **budget is land**, and **the author
+   of record is the titleholder**. ⚠ What remains open is the
+   **principal** — a non-person that authors has no precedent; is it the
+   holder's agent, a seat, or `agency-slate` delegation with a non-person
+   grantee?
 2. **The retirement clock's units and price.** Funding a parent is a
    recurring cost and wants pricing **against a wage**, or keeping mum
    alive is a rounding error rather than a decision.
@@ -283,7 +291,15 @@ the most.
    walk to*) is the lineage slate's own standard for the `Place` cell.
 4. **Rejection's housing** — worth doing precisely because it is the
    stake market, but it is its own content pass.
-5. ⚠ **Blocked**: the vanish-with-dependents case
+5. ⭐⭐⭐ **Capacity is a COVENANT TERM, not a decision per household** —
+   set when the parcel is provisioned, so the generator runs unattended
+   and no committee is consulted per family. Exhaustion is then a *fact*
+   (the place is not offered) rather than a refusal, and there is always
+   a **public floor that cannot refuse** — the parish, the tenements —
+   because nothing load-bearing may depend on a player institution. →
+   [land-use-covenant](./land-use-covenant-slate.md) § the second
+   dimension, and [content-generation](./content-generation-slate.md).
+6. ⚠ **Blocked**: the vanish-with-dependents case
    ([pack-boundary](./pack-boundary-slate.md)) — a pack shipping the plat
    that realm-local households sit in.
 
