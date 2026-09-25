@@ -2180,6 +2180,58 @@ Three named sources, no ambient term, and a number under one lux. The
 `pitch-black` band's own sentence is what `look` renders, and the reason
 is on the record.
 
+### ⚠⚠ The master merge moved the instrument out from under the drive
+
+Catching the branch up (47 commits, then 81 — the extraction,
+clinical-medicine and **instrumentation** builds) broke the drive in a way
+no unit test could, and it is the most instructive thing in this record.
+
+**The instrumentation build retired `analyze light`'s prose.** It
+replaced the per-channel controllers with the `Reading` substrate — *a
+channel is a row any pack can ship* — and made the trained eye
+**graduated**: `analyze light` now says *what a person can tell* (`pitch
+dark` · `barely enough to move by` · `enough to work by` · `good working
+light` · `bright` · `glaring`) and the **figure** belongs to `measure`,
+which wants a photometer in hand. A drive session has no photometer.
+
+The drive was parsing `total: N lux`. So:
+
+- ⭐ **Re-pointed onto the words, and that is a promotion rather than a
+  workaround.** The requirements' own rule is that acceptance is
+  *observable from outside the code* — a lux ratio was always a claim
+  about an engine float, and the rung is what a player reads. The helper
+  is `lightRungHere`, and it throws by name if the wording moves.
+- ⚠⚠ **And then the venue turned out to be the real bug, on the third
+  try.** The lantern suite ran on the valley crossroads, correctly, to
+  keep the *binding* unambiguous (no other lantern there). But it is a
+  **400 m² outdoor cell**, and 220 lumens over 400 m² is half a lux. The
+  brightness step asserted `+10 lux` (got +0.55), then a 1.5× ratio, and
+  then the band — which would not move either, because the crossroads
+  sits at 0.65 lux on a rung running 0.5–5. **Three assertions, one
+  venue, and the venue was wrong every time.** Moved to the sealed
+  cellar: a 3 m cell, pitch black, a metre of granite, no lamp. 220
+  lumens there is 24 lux — two rungs — and it is what a lantern is *for*.
+
+⭐ **Two builds found the same defect independently.** The envelope
+drive's finding 1 was the lazily-warmed vision modality; the
+instrumentation build hit it too and `LightReading.lightAt` already
+carries the preload with a comment quoting the same
+`no modality 'vision' loaded` error. The branch's own fix to the retired
+controller was therefore redundant, and the merge's modify/delete
+resolved to *accept the deletion*.
+
+⚠ And `lint:light-sources` — a gate this build shipped — refused a row
+that landed on **master** while this branch was building: extraction's
+`estuary/salt-house` authored 900 lumens of ambient on a room not open to
+the sky and named no source. Its own prose had two causes and neither was
+a number (the shed is *"open at the far end"*, and there is a brine
+hearth in `props:`), so the authored effect is deleted and the causes
+speak. A gate catching somebody else's row at the merge is the gate
+working.
+
+**Post-merge state:** 34 packages, 14 182 tests, green; 55 gates (master
+added one); tsc and `pnpm build` clean; the drive 14 of 14.
+
 ### ⚠ And the full suite found two more, which is the point of running it
 
 The pre-MR `pnpm test` came back **red at the server package**, on two

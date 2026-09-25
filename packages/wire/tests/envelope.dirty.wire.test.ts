@@ -120,12 +120,45 @@ async function at(where: string, tag: string, wizard = false): Promise<Session> 
 
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
-/** The total lux `analyze light` reports where this session stands. */
-async function luxHere(s: Session): Promise<number> {
+/**
+ * ⭐⭐ **The light where this session stands, IN WORDS** — the rung
+ * `analyze light` puts the room on.
+ *
+ * ⚠⚠ This read a lux FIGURE out of `analyze light` (`total: N lux`)
+ * until the instrumentation build landed on master, which retired the
+ * per-channel controllers for the `Reading` substrate and made the
+ * trained eye **graduated**: `analyze` now reports what a person can
+ * actually tell — *whether there is enough to work by* — and the figure
+ * belongs to `measure`, which wants a photometer in hand. A drive
+ * session has no photometer.
+ *
+ * ⭐ Re-pointing it onto the words is not a workaround, it is the
+ * acceptance criterion the requirements actually wrote: *observable from
+ * outside the code.* A lux ratio was always a claim about the engine; the
+ * band is what a player reads.
+ *
+ * The rungs are `LightReading.enoughFor`'s, in order, and the index is
+ * the comparable thing.
+ */
+const LIGHT_RUNGS = [
+  'pitch dark',
+  'barely enough to move by',
+  'enough to work by',
+  'good working light',
+  'bright',
+  'glaring',
+] as const;
+
+async function lightRungHere(s: Session): Promise<number> {
   const said = squash(plain(await (await s.cmd('analyze light')).said()));
-  const m = /total:\s*([0-9.]+)\s*lux/i.exec(said);
-  if (!m) throw new Error(`envelope drive: no lux in "${said}"`);
-  return Number(m[1]);
+  const rung = LIGHT_RUNGS.findIndex((r) => said.toLowerCase().includes(r));
+  if (rung < 0) {
+    throw new Error(
+      `envelope drive: 'analyze light' named no light rung. Said: "${said}". ` +
+        'If the wording moved, the rungs are `LightReading.enoughFor`.',
+    );
+  }
+  return rung;
 }
 async function say(s: Session, cmd: string): Promise<string> {
   return squash(plain(await (await s.cmd(cmd)).said()));
@@ -256,9 +289,23 @@ suite('⭐ a lantern you light, and that runs out', () => {
     // ⚠ NOT the shop floor. The store's own stock is also called
     // "lantern", and `light lantern` bound one of THOSE while `douse`
     // bound the one in hand: ok then `not-burning`, which read as a
-    // product failure and was a targeting one. A street has no lanterns
-    // on it, so the binding is unambiguous.
-    me = await at(CROSSROADS, 'lamp', true);
+    // product failure and was a targeting one. So it wants a room with
+    // no other lantern in it.
+    //
+    // ⚠⚠ **And a SMALL one, which took a third try.** This ran on the
+    // valley crossroads, which has no lanterns and is therefore fine for
+    // the BINDING — but it is a 400 m² outdoor cell, and a 220-lumen
+    // lantern over 400 m² is half a lux. The brightness step asserted
+    // `+10 lux` (got +0.55), then a 1.5× ratio, and then the band — and
+    // the band would not move either, because the crossroads sits at
+    // 0.65 lux and the rung it is on runs from 0.5 to 5. Three
+    // assertions, one venue, and the venue was the problem every time:
+    // *nothing* one lamp can do shows up over 400 m².
+    //
+    // ⭐ The sealed cellar is a 3 m cell — 9 m², pitch black, a metre of
+    // granite and no lamp in it. 220 lumens there is 24 lux, which is
+    // two rungs up from nothing, and it is also what a lantern is FOR.
+    me = await at(CELLAR, 'lamp', true);
   }, 180_000);
 
   it('⭐ step 4 — light it and the dark lifts; douse it and it comes back', async () => {
@@ -285,17 +332,18 @@ suite('⭐ a lantern you light, and that runs out', () => {
     // that has nothing to do with the claim.
     await me.cmd('douse lantern');
     await me.drainProse();
-    const before = await luxHere(me);
+    const before = await lightRungHere(me);
     await me.drainProse();
     expectOk(await me.cmd('light lantern'));
     await me.drainProse();
-    // ⚠ A RATIO, not a fixed step. An earlier draft wanted +10 lux and
-    // got +0.55: a 220-lumen lantern over the valley crossroads, which
-    // is a wide outdoor cell, is under a lux. Lux is lumens over AREA —
-    // the same arithmetic that makes an unauthored room lit correctly
-    // for its size — so a fixed threshold was a claim about the room
-    // rather than about the lamp.
-    expect(await luxHere(me)).toBeGreaterThan(before * 1.5);
+    // ⚠ A RUNG, not a ratio, and not a fixed step. Two earlier drafts
+    // were wrong about this in opposite directions: one wanted +10 lux
+    // and got +0.55 (a 220-lumen lantern over a wide outdoor cell is
+    // under a lux — lux is lumens over AREA), and the ratio that
+    // replaced it was still a claim about the engine's float. What the
+    // step is FOR is that the dark lifts where you are standing, and
+    // the band is where a player reads that.
+    expect(await lightRungHere(me)).toBeGreaterThan(before);
   });
 
   it('⚠ the AFFORDANCE reaches a HELD lamp — the link that dies silently', async () => {
