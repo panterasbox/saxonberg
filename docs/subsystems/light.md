@@ -247,6 +247,68 @@ with `Quantity<'lux'>` intensity. The static `VisionModality.lightAt(loc)`
 is a thin convenience read — it resolves the vision singleton and calls
 `signalAt` — so callers with a `loc` in hand get a `Light` directly.
 
+### ⭐⭐⭐ An opening cannot make you brighter than what is through it
+
+Legs (d) and (e) — light arriving from **another scope**, through a
+boundary or a doorless exit — are **capped together at the brightest
+neighbour's illuminance**. A scope's own light (ambient, contents,
+fixtures, what you carry) sums normally.
+
+*Three windows onto a 45-lux afternoon give you an afternoon, not three
+of them.*
+
+⚠⚠ **Why.** `EXIT_TAU` is `1.0` — *no extra dimming on exit traversal* —
+so the leg added each neighbour's ENTIRE flux and divided by the
+**receiver's** area, and a room in a chain of bright rooms came out
+brighter than every room lighting it. At midday
+`delight-road/crossroads`, which authors **600 lumens over 400 m²** (1.5
+lux, and `lint:light-sources` calls it *"deliberate gloom"*), read
+`blinding`. It was harmless until the envelope build, because before W0
+no outdoor row carried 24 000 lumens — **a consumer written when the
+input was small**, the same shape as two other findings in that build.
+
+⭐ Found by a **browser walk at solar noon** (2026-09-25). The wire drive
+could not see it: the harness boots at `t = 0` and `t = 0` is always
+midnight, so a build about the sun had its daylight half untested live.
+
+### ⚠⚠ Light is RESIDENT-dependent, and we say so plainly
+
+A neighbour contributes light only while it is **loaded**. Rooms lazy-load
+and the cold tail self-evicts ([residency.md](./residency.md)), so the
+lux where you stand can change because something one hop away was paged
+in or reaped — with nothing in the fiction having moved.
+
+**This is a property of the architecture, not a bug, and it is not worked
+around.** Two honest consequences, stated rather than hidden:
+
+- a room can get brighter when a neighbour loads, and dimmer when one is
+  evicted;
+- the cap above is computed over the neighbours that are **resident at
+  that moment**, so it moves with them.
+
+⭐ It is survivable precisely because the effect is bounded: the cap means
+a neighbour can only ever bring you *up to* its own illuminance, never
+past it, so paging cannot produce a reading that no room in the
+neighbourhood could justify. A player who notices will read it as the
+light changing as the world settles around them, which is close enough to
+true.
+
+### ⭐ `blinding` describes, it does not withhold
+
+Only `pitch-black` and `very-dim` withhold a room's description
+(`LIGHT_BANDS_TOO_DARK_TO_DESCRIBE`). `blinding` has a **phrase and no
+withholding**: *"The glare here is hard to look into"* rides along and
+the room still describes itself.
+
+The rule behind it: **staring at the sun is blinding; stacking ten
+thousand torches in a room breaks the simulation but must not blind
+you.** Too-bright-to-see is an old MUD flourish worth keeping as
+*flavour*, and it must never take the room and its exits away — which is
+what would turn a degenerate build into a player who cannot leave.
+
+⚠ With the cap above, ordinary daylight cannot reach `blinding` at all,
+so the band is reserved for something that genuinely declares itself.
+
 ### ⭐⭐ Two questions, and only one of them is `signalAt`
 
 > **`signalAt(loc)` — what is the light doing now.**

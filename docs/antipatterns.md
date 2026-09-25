@@ -5555,3 +5555,44 @@ it, say something the mechanism actually checks.
 
 ⚠ Neither half is visible to a wire assertion, which matches a substring
 and is blind to the rest of the sentence. **Read the words.**
+
+## A consumer written when the input was SMALL
+
+**The shape.** Code that reads a value and was correct for years, because
+the value was always small, an authored constant, or a single source. Then
+a build makes the value large, derived, or many — and the reader is now
+wrong. It does not throw. It returns a plausible number.
+
+⭐ **The envelope build hit this three times in one cycle**, which is why
+it is a named pattern rather than three anecdotes:
+
+| the reader | correct while… | broken when… |
+|---|---|---|
+| `trade-forestry`'s `hanging-wood.test.ts` required every room in a folder to author an `ambientIntensity` | every outdoor row authored a number | ambient became **derived**, and half those rooms turned out to be interiors the test had been asserting were daylit |
+| `GrowingMixin.sampleLux` credited a growth window at one instantaneous reading | a room's lux was an authored **constant**, so instant == typical | a sky-lit room swung `pitch-black` → `bright` daily, and a lily starved because its owner watered it in the evening |
+| the vision walk's cross-exit leg added each neighbour's **entire** flux (`EXIT_TAU = 1.0`) and divided by the receiver's area | no outdoor row carried more than a few hundred lumens | rows carried **24 000**, and a chain of bright rooms made each other `blinding` — a road authoring 1.5 lux read as glare |
+
+**The tell, and it is the useful part:** the reader's *name* still sounds
+right. `sampleLux` does sample lux. The forestry test does check
+daylight. Nothing in either says *"…assuming this is a constant"*, because
+when they were written there was nothing else it could be.
+
+⭐ **So the discipline belongs to the producer, not the reader.** When you
+make something time-varying, derived, or multi-source, the work is not
+finished at the thing you changed:
+
+1. **Find every reader** — `grep` the field, the getter, the dial.
+2. **Ask each one which question it is asking.** *What is it doing now*
+   and *what is it typically* were the same question a moment ago and are
+   not any more. `Modality.signalAt` vs `peakSignalAt` exists because of
+   exactly this.
+3. **Ask whether summing still holds.** A leg that added one small
+   contribution may not be allowed to add fifty large ones — an opening
+   cannot make a room brighter than what is through it.
+
+⚠ **And note where each of the three was caught**, because it says which
+instrument finds this class: the full suite caught one (a pack test the
+build never ran), the *drive* caught one, and the third needed a **browser
+walk at a specific hour** — the wire harness boots at `t = 0`, so a build
+about the sun had its entire daylight half untested until somebody looked
+at noon. None of the three was caught by the code that changed.

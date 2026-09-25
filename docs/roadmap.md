@@ -88,7 +88,20 @@ same bad answer: **a number somebody typed.**
 
 ⚠ Deliberately NOT here: piped supply, metering, and an energy
 *industry*. What this built is the **demand** — the reason an energy
-trade will have customers when it ships.
+trade will have customers when it ships. ⭐ Street lighting's **missing
+goods leg** is that demand written down as a bill, in
+[power-utility-slate](./slates/builds/power-utility-slate.md).
+
+⭐ **And three things the review and the sweep changed, each worth its
+line:** what a place is bounded by is an **`enclosure:`** (a fence is not
+a wall, and a pen has an enclosure and no envelope); `props:`/`cast:`
+gained **`costume:`** as a third designation and `PopulatesMixin` became
+**`StagedMixin`** to pair with the `Offstage` room off-shift cast already
+wait in; and a browser walk **at solar noon** — the hour the wire drive
+can never reach, because it boots at midnight — found that an opening was
+passing its neighbour's whole flux, so a chain of bright rooms made each
+other `blinding`. Light from another scope is capped at the brightest
+neighbour's illuminance now.
 
 ## Foundation (shipped)
 

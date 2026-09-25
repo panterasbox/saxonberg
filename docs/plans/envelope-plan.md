@@ -2528,7 +2528,32 @@ most that × the receiver's area × tau. One expression, physical, and it
 leaves the shipped night numbers alone (at 0.65 lux the clamp never
 binds).
 
-#### B. At `blinding`, `look` says the phrase and NOTHING ELSE
+#### B. ⚠ WITHDRAWN — I mis-read the transcript, and the card had it
+
+**This was not a defect.** The claim below was drawn from the scrollback
+alone: `LookController` emits the band phrase additively and then hands
+the body to `scene.toSelf(body)`, which is **filtered out of the
+transcript when a card opens** (`meta({ carded })` — the carded-prose
+split, working exactly as designed). The description and the exits were
+on the card the whole time.
+
+⚠⚠ **Second time in one day** I called a defect from a partial view — the
+first was the lower climb's *"good working light"*, which turned out to
+be the sun having risen. The lesson is the same one the plan already
+records and I did not apply: **measure the whole instrument before
+concluding.** Reading one pane of a two-pane client is a partial view.
+
+⭐ What IS settled, and now documented in `light.md`: `blinding` keeps its
+phrase and does **not** withhold. *Staring at the sun is blinding;
+stacking ten thousand torches breaks the simulation but must not blind
+you* — the flourish is worth keeping and must never take the room and its
+exits away. And with the cap in A, ordinary daylight cannot reach
+`blinding` at all.
+
+The original, wrong claim follows, kept because the reasoning is the
+record:
+
+#### ~~B. At `blinding`, `look` says the phrase and NOTHING ELSE~~
 
 ```
 here> look
@@ -2559,3 +2584,53 @@ criterion *"noon and midnight give two different descriptions, neither
 authored"* was only ever half-tested. Today both are withheld — one for
 darkness and one for glare — so the criterion passes for the wrong
 reason.
+
+---
+
+## Acceptance-criteria coverage at the sweep — observed vs test-backed
+
+⚠ The requirements doc retires with this sweep, so its sixteen criteria
+are recorded here with **how each was actually satisfied**. The skill's
+rule is that pointing at a test does not satisfy a criterion; where only
+a test backs one, that is said plainly rather than dressed up.
+
+| # | criterion | how |
+|---|---|---|
+| 1 | noon and midnight give two different descriptions, neither authored | ⭐ **observed** — midnight *"It is pitch dark…"*; midday the band phrase drops and the room describes itself on the card |
+| 2 | full moon: move, find a door, see somebody — but not read, not a face | ⚠ **test only** (`VisionModality.sky.test.ts`). Unobservable in a session: the next full moon is 16 Arienle |
+| 3 | moonless night needs a light, and the game says so | ⭐ **observed** + drive. ⭐ Strengthened by the spill cap: the unlit crossroads went from *"barely enough to move by"* to *"pitch dark"* |
+| 4 | light a lantern and work by it; it goes out and the dark returns | ⭐ drive (the cellar, 0 → 2 rungs) |
+| 5 | lit street needs no lantern, unlit one does | ⚠ **test only** (`PublicLighting.test.ts`) — the LIT half cannot be driven, because a fresh realm ships broke |
+| 6 | unlit street's lamps stand cold, **with no lamp object anywhere** | ⭐ drive (3 checkpoints) + `lint:light-sources` census |
+| 7 | no room shows light without a source; a census refuses a new one | ⭐ **observed refusing one** — it caught extraction's `salt-house` at the merge |
+| 8 | cold from ordinary play, without reading a number | ⭐ **observed** — *"as cold as the street — the door stands open"* + the body line |
+| 9 | a hearth warms **gradually**; just-lit differs from long-lit | ⚠ the CAUSE change is observed; the CURVE is `Atmospheric.envelope.test.ts`'s (it can move a clock; a socket cannot) |
+| 10 | an open door costs warmth; shutting it stops the loss | ⭐ the open-door cause observed; the shutting half is test-backed |
+| 11 | a fire runs out of fuel and the room cools | ⚠ **test only** (`Lamp.test.ts` burns one down over 18 game hours) |
+| 12 | a lit forge does **not** warm the smithy | ⭐ drive step 12 |
+| 13 | businesses shut at night, staff gone, street emptier | ⚠ **test only** — W6 authored the hours; not observed at night |
+| 14 | log in at dawn and see the town wake | ❌ **not observed** |
+| 15 | a full game day kills nobody of cold | ⚠ **bench** (`Thermal.cold.gym.test.ts`, 16 bodies × 12 h) — not a live game day |
+| 16 | a second town needs zero code | ⭐ satisfied by construction — Mayfield Row and Rejection are rows only |
+
+⭐ **Nine observed, five test-backed, one bench, one not observed.** The
+honest reading: 2, 11, 14 and 15 want a **clock the harness can move**,
+which is the one gap this build could not close and the reason the wire
+file says so in its own header.
+
+## ⚠ Retirement decisions (sweep, 2026-09-25)
+
+- **`envelope-requirements.md` — RETIRED.** Its drive script graduated
+  into `packages/wire/tests/envelope.dirty.wire.test.ts` and keeps
+  running on every MR; its acceptance criteria are recorded above.
+- **This plan — KEPT, and the reason is specific.** It carries twelve
+  deferred seams, and one of them is the **structure tier's bill** (five
+  attach points, the 149-room census). ⚠ `structure-slate` exists only on
+  a sibling's branch and is not on `master`, so there is nowhere durable
+  to move that bill to yet. **When structure-slate lands, move § the
+  Structure seam into it and this plan can retire.** The energy bill
+  already moved out, into `power-utility-slate`.
+- **All five seeding slates — KEPT.** Every one is still `PARTIAL` and
+  none is absorbed: `power-utility` (now carrying street lighting's
+  missing goods leg), `grid` (network unbuilt), `delivery`, `fridge`,
+  `supply`.

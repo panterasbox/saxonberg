@@ -97,7 +97,20 @@ const open: Session[] = [];
  */
 async function assertItIsDark(s: Session): Promise<void> {
   const sky = squash(plain(await (await s.cmd('analyze sky')).said()));
-  const night = /night|dark|below the horizon|set|moon/i.test(sky);
+  // ⚠⚠ **This guard could not fail, and it was written to catch exactly
+  // the thing it let through.** It matched `/moon/i` — and the DAYLIGHT
+  // reading says *"Daylight over …; the season is spring. The moon is
+  // new."* So a drive run against a dev DB whose clock had walked into
+  // the afternoon passed the guard and then failed three assertions with
+  // a confusing message, which is the failure mode the guard exists to
+  // replace. Found at the sweep (2026-09-25).
+  //
+  // ⭐ Now it is a NEGATIVE first: whatever else the sky says, it must not
+  // say `Daylight`. The positive terms follow, and the loose ones
+  // (`moon`, `set`, `dark`) are gone — every one of them appears in a
+  // sentence about a sunny day.
+  const night =
+    !/daylight/i.test(sky) && /night|below the horizon|twilight/i.test(sky);
   if (!night) {
     throw new Error(
       'envelope drive: the world clock is NOT in the small hours — ' +

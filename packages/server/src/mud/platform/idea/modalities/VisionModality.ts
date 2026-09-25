@@ -307,6 +307,9 @@ function walkFluxAt(
   if (visited.has(id)) return acc;
   visited.add(id);
 
+  /** Light from OTHER scopes — legs (d) and (e). Capped as one. */
+  const spill: { sub: FluxAccumulator; tau: number; area: number }[] = [];
+
   // (a) Ambient — the location itself contributes flux + color temp.
   //
   // ⭐⭐ For a SKY-LIT scope (envelope D4) this is three factors that know
@@ -416,7 +419,9 @@ function walkFluxAt(
       });
     }
 
-    // (d) Cross-boundary propagation.
+    // (d) Cross-boundary propagation. ⭐ Collected, not merged: legs (d)
+    // and (e) are both light from ANOTHER scope, so they share one cap —
+    // see {@link mergeCapped}.
     for (const fx of loc.getFixtures()) {
       if (!BoundaryAnchor.is(fx)) continue;
       const anchor = fx;
@@ -435,7 +440,7 @@ function walkFluxAt(
         visited,
         skyFactor,
       );
-      mergeAttenuated(acc, sub, tau);
+      spill.push({ sub, tau, area: readSizeScale(otherHost as unknown as Stuff & Container) });
     }
   }
 
@@ -467,10 +472,11 @@ function walkFluxAt(
         continue;
       }
       const sub = walkFluxAt(dest, depth + 1, visited, skyFactor);
-      mergeAttenuated(acc, sub, EXIT_TAU);
+      spill.push({ sub, tau: EXIT_TAU, area: readSizeScale(dest) });
     }
   }
 
+  mergeCapped(acc, spill, readSizeScale(loc));
   return acc;
 }
 
@@ -492,6 +498,52 @@ function mergeAttenuated(
       flux: s.flux * tau,
       colorTemperature: s.colorTemperature,
     });
+  }
+}
+
+/**
+ * ⭐⭐⭐ **An opening cannot make you brighter than what is on the other
+ * side of it**, and more openings onto the same day do not stack.
+ *
+ * Light arriving from OTHER scopes — through a doorway or a window —
+ * is therefore capped at the **brightest neighbour's illuminance**,
+ * while a scope's own light (its ambient, its contents, its fixtures,
+ * what you are carrying) sums normally. Three windows onto a 45-lux
+ * afternoon give you an afternoon, not three of them.
+ *
+ * ⚠⚠ **Why this exists.** `EXIT_TAU` is `1.0` — *no extra dimming on
+ * exit traversal* — so the leg added each neighbour's ENTIRE flux and
+ * then divided by the RECEIVER's area, and a room in a chain of bright
+ * rooms came out brighter than every room lighting it. At midday
+ * `delight-road/crossroads` — which authors **600 lumens over 400 m²**,
+ * 1.5 lux, and which `lint:light-sources` calls *"deliberate gloom"* —
+ * read `blinding`. Found by the sweep's browser walk (2026-09-25); the
+ * wire drive could not see it, because the drive boots at `t = 0` and
+ * `t = 0` is always midnight.
+ *
+ * ⚠ It was harmless until this build: before W0 no outdoor row carried
+ * 24 000 lumens of ambient. **A consumer written when the input was
+ * small** — the same shape as the forestry test and the plants.
+ */
+function mergeCapped(
+  parent: FluxAccumulator,
+  spill: readonly { sub: FluxAccumulator; tau: number; area: number }[],
+  receiverArea: number,
+): void {
+  if (spill.length === 0) return;
+  let capLux = 0;
+  for (const { sub, tau, area } of spill) {
+    const lux = area > 0 ? (sub.flux * tau) / area : sub.flux * tau;
+    if (lux > capLux) capLux = lux;
+  }
+  const capFlux = capLux * (receiverArea > 0 ? receiverArea : 1);
+  const rawFlux = spill.reduce((n, { sub, tau }) => n + sub.flux * tau, 0);
+  if (rawFlux <= 0) return;
+  // Scale every contribution by one factor, so `analyze light`'s
+  // per-source attribution still adds up to what the room actually reads.
+  const scale = rawFlux > capFlux ? capFlux / rawFlux : 1;
+  for (const { sub, tau } of spill) {
+    mergeAttenuated(parent, sub, tau * scale);
   }
 }
 
