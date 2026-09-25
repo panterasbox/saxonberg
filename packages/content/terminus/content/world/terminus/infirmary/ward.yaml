@@ -52,11 +52,9 @@ data:
     # `environment` bucket flows up the containment chain), so the ward
     # keeps two of the shared ones — the doctor and the nurse each take a
     # set, and a player finds one to pick up.
-    - /trade/medicine/thing/syringe
-    - /trade/medicine/thing/syringe
+    - { template: /trade/medicine/thing/syringe, count: 2 }
     - /trade/medicine/thing/suture-kit
-    - /trade/medicine/thing/prescription-pad
-    - /trade/medicine/thing/prescription-pad
+    - { template: /trade/medicine/thing/prescription-pad, count: 2 }
     - /trade/medicine/thing/surgical-kit
     - /trade/medicine/thing/blood-bag
     - /trade/medicine/thing/blood-bag

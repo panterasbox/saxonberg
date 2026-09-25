@@ -1012,7 +1012,7 @@ W6 wants to read it before it authors parents.
   `deleted-vs-extended` is for a child the installer cannot see (a
   CMS-authored row, or another pack's). Both are tested.
 
-### W2 — Entry identity and counts, and the rows that only need counts
+### W2 — Entry identity and counts, and the rows that only need counts ✅ DONE
 
 **Goal.** `as` on the four lists, `count` on props, the by-entry merge
 live; the rack, the crates, the stools and the ward stop repeating.
@@ -1044,7 +1044,32 @@ AC9's mechanism.
 
 **Commit.** `build(template-inheritance W2): count and as — the rack, the crates, the stools`
 
-### W3 — Biome hands over the field
+**W2 note (build, 2026-09-25).**
+
+- The four `inherit` rules are declared on their owners: `by-entry` on
+  `Staged.props`/`cast` and `Costumed.costume` and `Adornable.adornments`,
+  `by-key` on `Detailed.details`, `never` on `Exitable.exits` and the tpa
+  pack's `routes`. The pack field needed no kernel edit, which is the
+  whole point of putting the rule on `FieldMetaEntry`.
+- `keyOf` / `templateOf` are exported from `Staged.ts` so the entry
+  identity has ONE definition; `Template`'s merge implements the same
+  rule (it cannot import `Staged` — a `lib/stuff` cycle — so the rule is
+  stated twice and documented as such in both places).
+- **D13a — the pure-repeat ceiling is 52, not ~90.** Collapsing the rack
+  (64→10), the ten crates (12→1 each), the six stools and two ward pairs
+  took it from 201. It is census clause **(e)**.
+- Content: the glass rack is ten lines, each `crate-of-*` is one, the
+  hospitality bar's stools are one line and its tablet carries
+  `as: tablet` — the first authored entry identity in the tree.
+- ⚠ The `count`-on-cast refusal is now unreachable from TypeScript
+  (`CastSpec` has no `count`), which is the right outcome; the runtime
+  throw stays because YAML is untyped, and the test casts to reach it.
+- **The drift guard caught the new call site** — `Template._materialize`
+  resolves the effective class to read its `fieldMeta`. Classified
+  `transitive-safe` in `codeNamingDriftGuard`'s manifest: it resolves the
+  class the row's own gate already passed.
+
+### W3 — Biome hands over the field ✅ DONE
 
 **Decisions.** D3. **Files.** `lib/biome/Biome.ts`, the 10 rows, the 16
 tests, `check-template-census.ts` clause (b) list, `biome.md`, the wiki
@@ -1056,6 +1081,29 @@ values and provenance; `biome.chainWalk.test.ts` and the weather suites
 green with the override seam.
 
 **Commit.** `build(template-inheritance W3): biome reads the unified parent link`
+
+**W3 note (build, 2026-09-25).**
+
+- `_extendsBiomePath` is gone from `Biome`. The class composes
+  `PostRegistrationMixin` and caches its row's `extends` at
+  `postRegister`; `getExtendsBiomePath()` answers from a live override
+  when one is set and from the row otherwise — *set wins, otherwise the
+  row wins*. `setExtendsBiomePath(path)` is the new public path-form
+  setter (the 16 test files used the field directly).
+- Every `Biome` field declares `inherit: 'never'`, including `name`.
+  The reasoning is in the class docstring and biome.md: the walk reports
+  PROVENANCE, and a clone-time merge would make it name the child.
+- The 10 rows moved the key to a top-level `extends:`.
+- ⚠ **Invariant 5's new clause fired immediately, and was right**: all
+  seven child biome rows restated `hydratorClass:
+  /platform/idea/persistence/PersistentHydrator`, which their parents
+  already supply. Dropped. That is the gate doing the thing it was added
+  for, on the first content that could trip it.
+- The wiki spoiler snapshot moved by exactly two lines (`Biome.
+  _extendsBiomePath` out, `Template.extends` in).
+- ⚠ **No DB drop was needed in the suite** (it is all in-memory), but a
+  running dev world still wants one — a renamed persistent key, and the
+  project rule is drop-and-reseed. The drive runs on a fresh DB anyway.
 
 ### W4 — Exits are content; the create→clone sweep (kernel)
 

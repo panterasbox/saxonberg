@@ -14,15 +14,4 @@ data:
   materialTags: [produce, lemon]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
-    - /trade/farming/thing/lemon
+    - { template: /trade/farming/thing/lemon, count: 12 }

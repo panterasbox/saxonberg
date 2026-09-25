@@ -13,9 +13,4 @@ data:
   materialTags: [produce, grape]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/grape
-    - /trade/farming/thing/grape
-    - /trade/farming/thing/grape
-    - /trade/farming/thing/grape
-    - /trade/farming/thing/grape
-    - /trade/farming/thing/grape
+    - { template: /trade/farming/thing/grape, count: 6 }

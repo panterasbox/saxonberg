@@ -71,7 +71,9 @@ import type {
  * objects), so the applier always **clones** — there is no singleton
  * dispatch like `applyProps`.
  */
-export type AdornmentSpec = string | { template: string; slot?: string };
+export type AdornmentSpec =
+  | string
+  | { template: string; as?: string; slot?: string };
 
 /** Public shape added by AdornableMixin. */
 export interface Adornable {
@@ -136,7 +138,7 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
      * precedent — declarative content over the imperative `addFixture`.
      */
     static fieldMeta: FieldMeta = {
-      adornments: { instruction: true, authorable: true },
+      adornments: { instruction: true, authorable: true, inherit: 'by-entry' },
       // The live fixture map. A fixture has no existence apart from the
       // host it adorns, so the holder's death is the fixture's death.
       fixtureSlots: { ref: 'instance', lifetime: 'owned' },

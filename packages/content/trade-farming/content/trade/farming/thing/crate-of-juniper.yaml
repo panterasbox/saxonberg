@@ -13,9 +13,4 @@ data:
   materialTags: [produce, juniper]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/juniper-berries
-    - /trade/farming/thing/juniper-berries
-    - /trade/farming/thing/juniper-berries
-    - /trade/farming/thing/juniper-berries
-    - /trade/farming/thing/juniper-berries
-    - /trade/farming/thing/juniper-berries
+    - { template: /trade/farming/thing/juniper-berries, count: 6 }

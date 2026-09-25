@@ -18,15 +18,4 @@ data:
   materialTags: [produce, lime]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
-    - /trade/farming/thing/lime
+    - { template: /trade/farming/thing/lime, count: 12 }

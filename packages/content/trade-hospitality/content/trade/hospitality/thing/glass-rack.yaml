@@ -12,67 +12,13 @@ data:
   longDescription: An overhead rack of glassware, stems hooked in rows, catching the light.
   mass: 15
   props:
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/coupe
-    - /trade/hospitality/thing/rocks
-    - /trade/hospitality/thing/rocks
-    - /trade/hospitality/thing/rocks
-    - /trade/hospitality/thing/rocks
-    - /trade/hospitality/thing/rocks
-    - /trade/hospitality/thing/rocks
-    - /trade/hospitality/thing/rocks
-    - /trade/hospitality/thing/rocks
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/highball
-    - /trade/hospitality/thing/collins
-    - /trade/hospitality/thing/collins
-    - /trade/hospitality/thing/collins
-    - /trade/hospitality/thing/collins
-    - /trade/hospitality/thing/pint
-    - /trade/hospitality/thing/pint
-    - /trade/hospitality/thing/pint
-    - /trade/hospitality/thing/pint
-    - /trade/hospitality/thing/pint
-    - /trade/hospitality/thing/pint
-    - /trade/hospitality/thing/wine
-    - /trade/hospitality/thing/wine
-    - /trade/hospitality/thing/wine
-    - /trade/hospitality/thing/wine
-    - /trade/hospitality/thing/wine
-    - /trade/hospitality/thing/wine
-    - /trade/hospitality/thing/flute
-    - /trade/hospitality/thing/flute
-    - /trade/hospitality/thing/flute
-    - /trade/hospitality/thing/flute
-    - /trade/hospitality/thing/mug
-    - /trade/hospitality/thing/mug
-    - /trade/hospitality/thing/mug
-    - /trade/hospitality/thing/mug
-    - /trade/hospitality/thing/copper-mug
-    - /trade/hospitality/thing/copper-mug
-    - /trade/hospitality/thing/copper-mug
-    - /trade/hospitality/thing/copper-mug
-    - /trade/hospitality/thing/juice-bottle
-    - /trade/hospitality/thing/juice-bottle
-    - /trade/hospitality/thing/juice-bottle
-    - /trade/hospitality/thing/juice-bottle
+    - { template: /trade/hospitality/thing/coupe, count: 12 }
+    - { template: /trade/hospitality/thing/rocks, count: 8 }
+    - { template: /trade/hospitality/thing/highball, count: 12 }
+    - { template: /trade/hospitality/thing/collins, count: 4 }
+    - { template: /trade/hospitality/thing/pint, count: 6 }
+    - { template: /trade/hospitality/thing/wine, count: 6 }
+    - { template: /trade/hospitality/thing/flute, count: 4 }
+    - { template: /trade/hospitality/thing/mug, count: 4 }
+    - { template: /trade/hospitality/thing/copper-mug, count: 4 }
+    - { template: /trade/hospitality/thing/juice-bottle, count: 4 }

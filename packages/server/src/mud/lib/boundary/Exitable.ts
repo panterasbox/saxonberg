@@ -259,11 +259,16 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // (`applyExits` installs from the spec) and a live
       // `Map<string, Exit>` at runtime. `owned` is the runtime half —
       // an outbound Exit of a destroyed room has no remaining reader.
+      // ⚠ `never`: NEIGHBOURS ARE NOT INHERITED. A child of a room row
+      // is a different place, and quietly giving it its parent's doors
+      // would wire two rooms to the same corridor — the one merge rule
+      // that would be actively wrong rather than merely debatable.
       exits: {
         instruction: true,
         authorable: true,
         ref: 'instance',
         lifetime: 'owned',
+        inherit: 'never',
       },
     };
 

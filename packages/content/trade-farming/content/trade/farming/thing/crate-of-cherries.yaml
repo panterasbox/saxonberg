@@ -14,15 +14,4 @@ data:
   materialTags: [produce, cherry]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
-    - /trade/farming/thing/cherry
+    - { template: /trade/farming/thing/cherry, count: 12 }

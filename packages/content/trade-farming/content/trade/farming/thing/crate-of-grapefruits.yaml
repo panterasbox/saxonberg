@@ -14,9 +14,4 @@ data:
   materialTags: [produce, grapefruit]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/grapefruit
-    - /trade/farming/thing/grapefruit
-    - /trade/farming/thing/grapefruit
-    - /trade/farming/thing/grapefruit
-    - /trade/farming/thing/grapefruit
-    - /trade/farming/thing/grapefruit
+    - { template: /trade/farming/thing/grapefruit, count: 6 }

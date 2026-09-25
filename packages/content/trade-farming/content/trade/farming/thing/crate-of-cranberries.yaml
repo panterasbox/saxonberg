@@ -14,15 +14,4 @@ data:
   materialTags: [produce, cranberry]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
-    - /trade/farming/thing/cranberry
+    - { template: /trade/farming/thing/cranberry, count: 12 }

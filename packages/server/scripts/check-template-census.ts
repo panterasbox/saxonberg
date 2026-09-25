@@ -2,7 +2,7 @@
  * check-template-census — D17's invariant: **`templatePath` always
  * resolves to a content row** (residences wave 1).
  *
- * Four clauses (the fourth has two halves — see below):
+ * Five clauses (the fourth has two halves — see below):
  *
  *   (a) The string `asTemplatePath` appears nowhere in the kernel's
  *       `src/` or any pack's `src/` — the channel is RETIRED; minted
@@ -20,6 +20,8 @@
  *       singleton *Registry/Catalogue* resolves to a pack row (the six
  *       framework registries ride trivial platform-pack rows; a renamed
  *       row must not leave a constant pointing at nothing).
+ *   (d) A `cast:` entry names a row on an AGENT branch.
+ *   (e) ⭐ The PURE-REPEAT ratchet — see {@link PURE_REPEAT_CEILING}.
  *
  * No exemption list, by design: a reference that cannot resolve is a
  * content bug, not a candidate for a list.
@@ -114,7 +116,7 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // a material, a body plan) that the hydrator resolves. They are plain
   // path strings, and censusing them is the whole point of clause (b).
   for (const f of [
-    '_biomePath', '_extendsBiomePath', '_speciesPath', '_bodyPlanPath',
+    '_biomePath', '_speciesPath', '_bodyPlanPath',
     '_parentCladePath', '_materialPath', '_defaultMaterialPath',
     // ⭐ The mana-device citations (TPA reform W5/W6). `mainsRef` names
     // the line a device is wired to and `bornWithCell` the cell a gate
@@ -795,6 +797,53 @@ function checkCastAreAgents(rows: Map<string, string>): number {
   return checked;
 }
 
+/** The four designation lists — the ones that merge BY ENTRY. */
+const BY_ENTRY_FIELDS = ['props', 'cast', 'costume', 'adornments'] as const;
+
+/**
+ * ⭐ Clause (e) — the PURE-REPEAT ratchet.
+ *
+ * The same key twice in one designation list, with no `as` to tell them
+ * apart, written out longhand: twelve identical lime lines, six
+ * identical stool lines, sixty-four glass lines. `count:` says it in
+ * one, and a repeat that survives is one a child row cannot address —
+ * an entry with no identity is an entry the merge cannot substitute.
+ *
+ * Census-then-ratchet: it may fall, never rise.
+ */
+const PURE_REPEAT_CEILING = 52;
+
+function countPureRepeats(rows: Map<string, string>): number {
+  let extra = 0;
+  for (const [, file] of rows) {
+    let parsed: Record<string, unknown> | null;
+    try {
+      parsed = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown> | null;
+    } catch {
+      continue;
+    }
+    const data = parsed?.data;
+    if (!data || typeof data !== 'object') continue;
+    for (const field of BY_ENTRY_FIELDS) {
+      const list = (data as Record<string, unknown>)[field];
+      if (!Array.isArray(list)) continue;
+      const seen = new Map<string, number>();
+      for (const e of list) {
+        const key =
+          typeof e === 'string'
+            ? e
+            : e && typeof e === 'object'
+              ? ((e as { as?: unknown }).as ?? (e as { template?: unknown }).template)
+              : null;
+        if (typeof key !== 'string' || key.length === 0) continue;
+        seen.set(key, (seen.get(key) ?? 0) + 1);
+      }
+      for (const n of seen.values()) if (n > 1) extra += n - 1;
+    }
+  }
+  return extra;
+}
+
 function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
@@ -802,6 +851,24 @@ function main(): void {
   checkPathFieldCoverage(rows);
   const constants = checkTemplatePathConstants(rows);
   const castRefs = checkCastAreAgents(rows);
+
+  const repeats = countPureRepeats(rows);
+  console.log(
+    `check-template-census: pure-repeat designation entries ` +
+      `${repeats}/${PURE_REPEAT_CEILING}` +
+      (repeats < PURE_REPEAT_CEILING ? ` — ratchet down to ${repeats}` : ''),
+  );
+  if (repeats > PURE_REPEAT_CEILING) {
+    findings.push({
+      clause: 'e',
+      file: '(content)',
+      detail:
+        `${repeats} pure-repeat designation entries, ceiling ` +
+        `${PURE_REPEAT_CEILING}. The same path twice in one list with no ` +
+        `\`as\` is \`count: N\` written longhand — and a repeat with no ` +
+        `identity is an entry no child row can ever replace.`,
+    });
+  }
 
   if (findings.length > 0) {
     console.error(`\n[check-template-census — ERROR] ${findings.length} finding(s):\n`);

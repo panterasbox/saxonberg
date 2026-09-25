@@ -229,7 +229,15 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * front to undo that.
      */
     static fieldMeta: FieldMeta = {
-      details: { persistent: true, instruction: true, authorable: true },
+      // ⭐ `by-key`: a child adds or overrides ONE detail without
+      // restating the parent's whole map. The map is keyed by detail
+      // name, so the merge rule writes itself.
+      details: {
+        persistent: true,
+        instruction: true,
+        authorable: true,
+        inherit: 'by-key',
+      },
     };
 
     /**

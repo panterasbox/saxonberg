@@ -14,15 +14,4 @@ data:
   materialTags: [produce, mint]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
-    - /trade/farming/thing/mint
+    - { template: /trade/farming/thing/mint, count: 12 }

@@ -14,15 +14,4 @@ data:
   materialTags: [produce, olive]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
-    - /trade/farming/thing/olive
+    - { template: /trade/farming/thing/olive, count: 12 }

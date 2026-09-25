@@ -116,7 +116,42 @@ import { ContainmentApi } from '../../api/containment';
  * A `cast` entry is a bare path string only — the troupe stands in the
  * room; it does not rest on furniture.
  */
-export type PropSpec = string | { template: string; onto: string };
+export type PropSpec =
+  | string
+  | { template: string; as?: string; onto?: string; count?: number };
+
+/**
+ * A `cast` or `costume` entry. The object form exists for ONE reason:
+ * `as` — the entry's identity, so a child row can say *the same jacket
+ * slot, a different jacket* rather than appending a second one.
+ */
+export type CastSpec = string | { template: string; as?: string };
+
+/** A `costume` entry — the same shape as a cast entry. */
+export type CostumeSpec = CastSpec;
+
+/** The template path an entry names, whichever form it is written in. */
+export function templateOf(spec: PropSpec | CastSpec): string | null {
+  if (typeof spec === 'string') return spec.length > 0 ? spec : null;
+  const t = spec?.template;
+  return typeof t === 'string' && t.length > 0 ? t : null;
+}
+
+/**
+ * ⭐⭐ An entry's IDENTITY: `as` when stated, else the template path.
+ *
+ * This is the precondition for inheriting a designation list at all.
+ * Without it the merge has to choose between appending the child's
+ * entries and replacing the parent's, and each is right about half the
+ * time — a doubled jacket or a missing pair of shoes, neither of which
+ * says anything. With it the rule is definable: by key, child wins.
+ * `Template`'s merge reads the same rule.
+ */
+export function keyOf(spec: PropSpec | CastSpec): string | null {
+  if (typeof spec === 'string') return spec.length > 0 ? spec : null;
+  if (typeof spec?.as === 'string' && spec.as.length > 0) return spec.as;
+  return templateOf(spec);
+}
 
 /**
  * Public shape provided by StagedMixin.
@@ -148,7 +183,7 @@ export interface Staged {
    *   ⭐ Runs **once per instance**, same guard discipline as
    *   {@link Staged.applyProps}.
    */
-  applyCast(specs: string[]): Promise<void>;
+  applyCast(specs: CastSpec[]): Promise<void>;
 
   /** Whether this host has already laid down its born-with contents
    * (props, cast, or both). */
@@ -176,8 +211,8 @@ export function StagedMixin<
      * set. Persistent so the fact survives a capture/restore round trip.
      */
     static fieldMeta: FieldMeta = {
-      props: { instruction: true, authorable: true },
-      cast: { instruction: true, authorable: true },
+      props: { instruction: true, authorable: true, inherit: 'by-entry' },
+      cast: { instruction: true, authorable: true, inherit: 'by-entry' },
       _propsStaged: { persistent: true, runtimeState: true },
       _castStaged: { persistent: true, runtimeState: true },
     };
@@ -202,7 +237,7 @@ export function StagedMixin<
     }
 
     /** Phase 2 applier for `cast:`. See class docstring. */
-    async applyCast(specs: string[]): Promise<void> {
+    async applyCast(specs: CastSpec[]): Promise<void> {
       if (!Array.isArray(specs)) return;
       if (this._castStaged) return;
       await this.stageList(specs, 'cast');
@@ -226,10 +261,44 @@ export function StagedMixin<
       // Track populated instances by source path so a later `onto` entry can
       // resolve the surface populated earlier in the list.
       const placed = new Map<string, Stuff & Containable>();
+      // ⚠ Duplicate `as` within one list is an authoring error, not a
+      // last-wins: two entries claiming one identity means the merge
+      // rule cannot say which one a child is replacing.
+      const seenKeys = new Set<string>();
       for (const spec of specs) {
-        const path = typeof spec === 'string' ? spec : spec?.template;
-        if (typeof path !== 'string' || path.length === 0) continue;
+        const path = templateOf(spec);
+        if (path === null) continue;
         const onto = typeof spec === 'string' ? undefined : spec.onto;
+        const as = typeof spec === 'string' ? undefined : spec.as;
+        const count =
+          typeof spec === 'string' ? undefined : (spec as { count?: number }).count;
+        if (as !== undefined) {
+          if (seenKeys.has(as)) {
+            throw new Error(
+              `StagedMixin.apply${kind === 'props' ? 'Props' : 'Cast'}: ` +
+                `two entries share \`as: ${as}\`. An entry's \`as\` is its ` +
+                `identity — a child row replaces the entry that carries it, ` +
+                `so two of them have no answer.`,
+            );
+          }
+          seenKeys.add(as);
+        }
+        if (count !== undefined) {
+          if (kind !== 'props') {
+            throw new Error(
+              `StagedMixin.applyCast: '${path}' carries \`count\`. A count ` +
+                `is a props feature — twelve limes are twelve limes, but ` +
+                `twelve of a person are twelve people, each of whom needs ` +
+                `a name.`,
+            );
+          }
+          if (!Number.isInteger(count) || count < 1) {
+            throw new Error(
+              `StagedMixin.applyProps: '${path}' has count ${String(count)}; ` +
+                `a count is a whole number of at least 1.`,
+            );
+          }
+        }
         const tpl = await Template.findByPath(path);
         if (!tpl) {
           throw new Error(
@@ -255,32 +324,50 @@ export function StagedMixin<
           );
         }
         const singleton = MixinApi.hasMixin(cls, Mixins.Singleton);
-        let inst: Stuff & Containable;
-        if (singleton) {
-          inst = await StuffApi.singleton<Stuff & Containable>(path);
-          // A move-into-self singleton already placed elsewhere is left be;
-          // an `onto` placement always (re)stamps the resting relation.
-          if (inst.getContainer() !== null && !onto) continue;
-        } else {
-          inst = await StuffApi.clone<Stuff & Containable>(path);
+        if (count !== undefined && count > 1 && singleton) {
+          throw new Error(
+            `StagedMixin.applyProps: '${path}' is a Singleton, so ` +
+              `\`count: ${count}\` asks for ${count} of the one thing there ` +
+              `can only ever be one of.`,
+          );
         }
-        if (onto) {
-          const surface = placed.get(onto);
-          if (!surface) {
-            throw new Error(
-              `StagedMixin.applyProps: '${path}' onto '${onto}' — ` +
-                `the surface must be populated earlier in the list`
-            );
+        // ⭐ `count: N` mints N clones of one line. Ten identical crate
+        // lines and six identical stool lines were the same authoring
+        // gesture written out longhand; the entry is the same in every
+        // other respect, so the loop is the whole feature.
+        const times = count ?? 1;
+        let inst!: Stuff & Containable;
+        for (let n = 0; n < times; n++) {
+          if (singleton) {
+            inst = await StuffApi.singleton<Stuff & Containable>(path);
+            // A move-into-self singleton already placed elsewhere is left be;
+            // an `onto` placement always (re)stamps the resting relation.
+            if (inst.getContainer() !== null && !onto) continue;
+          } else {
+            inst = await StuffApi.clone<Stuff & Containable>(path);
           }
-          if (!MixinApi.isSurfaced(surface)) {
-            throw new Error(
-              `StagedMixin.applyProps: onto '${onto}' is not a Surfaced host`
-            );
+          if (onto) {
+            const surface = placed.get(onto);
+            if (!surface) {
+              throw new Error(
+                `StagedMixin.applyProps: '${path}' onto '${onto}' — ` +
+                  `the surface must be populated earlier in the list`
+              );
+            }
+            if (!MixinApi.isSurfaced(surface)) {
+              throw new Error(
+                `StagedMixin.applyProps: onto '${onto}' is not a Surfaced host`
+              );
+            }
+            ContainmentApi.placeOn(inst, surface);
+          } else {
+            ContainmentApi.move(inst, this as unknown as Stuff & Container);
           }
-          ContainmentApi.placeOn(inst, surface);
-        } else {
-          ContainmentApi.move(inst, this as unknown as Stuff & Container);
         }
+        // ⚠ Keyed by BOTH identity and path, so `onto:` may name either
+        // — an `as` where the author gave one, the bare path where they
+        // did not. Under `count`, the LAST clone is what `onto` finds.
+        if (as !== undefined) placed.set(as, inst);
         placed.set(path, inst);
       }
     }
@@ -350,7 +437,7 @@ export interface Costumed {
    *   ⭐ Runs **once per instance**, the same guard discipline as
    *   {@link Staged.applyProps}.
    */
-  applyCostume(specs: string[]): Promise<void>;
+  applyCostume(specs: CostumeSpec[]): Promise<void>;
 
   /** Storage for the costume once-guard (public for the Hydrator). */
   _costumeWorn: boolean;
@@ -363,14 +450,14 @@ export function CostumedMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName: string = 'CostumedMixin';
 
     static fieldMeta: FieldMeta = {
-      costume: { instruction: true, authorable: true },
+      costume: { instruction: true, authorable: true, inherit: 'by-entry' },
       _costumeWorn: { persistent: true, runtimeState: true },
     };
 
     public _costumeWorn: boolean = false;
 
     /** Phase 2 applier for `costume:`. See {@link Costumed}. */
-    async applyCostume(specs: string[]): Promise<void> {
+    async applyCostume(specs: CostumeSpec[]): Promise<void> {
       if (!Array.isArray(specs)) return;
       if (specs.length === 0) return; // opt-in: an absent costume is not a costume
       if (this._costumeWorn) return;
@@ -379,8 +466,30 @@ export function CostumedMixin<TBase extends MixinConstructor<Stuff>>(
       // does it: a mis-filed entry is an authoring error at hydrate, not
       // a person holding a rock that nobody can explain.
       const { Template } = await import('./Template');
-      for (const path of specs) {
-        if (typeof path !== 'string' || path === '') continue;
+      const paths: string[] = [];
+      const seenKeys = new Set<string>();
+      for (const spec of specs) {
+        const path = templateOf(spec);
+        if (path === null) continue;
+        if ((spec as { count?: unknown })?.count !== undefined) {
+          throw new Error(
+            `CostumedMixin.applyCostume: '${path}' carries \`count\`. A ` +
+              `count is a props feature; a person wears one of a thing.`,
+          );
+        }
+        const as = typeof spec === 'string' ? undefined : spec.as;
+        if (as !== undefined) {
+          if (seenKeys.has(as)) {
+            throw new Error(
+              `CostumedMixin.applyCostume: two entries share \`as: ${as}\`. ` +
+                `⚠ This is the exact shape that undresses somebody: an ` +
+                `entry's \`as\` is the slot a child row replaces, so two ` +
+                `of them have no answer.`,
+            );
+          }
+          seenKeys.add(as);
+        }
+        paths.push(path);
         const tpl = await Template.findByPath(path);
         if (!tpl) {
           throw new Error(
@@ -407,7 +516,7 @@ export function CostumedMixin<TBase extends MixinConstructor<Stuff>>(
         this as unknown as {
           wearGarments(paths: readonly string[]): Promise<void>;
         }
-      ).wearGarments(specs);
+      ).wearGarments(paths);
       this._costumeWorn = true;
     }
   };

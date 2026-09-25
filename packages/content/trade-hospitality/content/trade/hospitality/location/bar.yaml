@@ -1,7 +1,6 @@
 # The `bar` bundle — what a bar-room is furnished with, as a FurnishableRoom
-# row a venue instances or copies by reference (template inheritance does
-# not exist: a venue with its own class — Dave's Bar — lists the same
-# fixtures in its own `props:`). Every station the menu exposes, and
+# row a venue instances or EXTENDS: a venue with its own class — Dave's
+# Bar — names this row as its parent and states only what differs. Every station the menu exposes, and
 # NO bottles: the rail is stocked by ORDERING (the keeper's `restocks`
 # beat posts a carriage bounty and clears the receiving bench onto the
 # rail — logistics D11; she stopped travelling to the supplier), never by
@@ -37,7 +36,10 @@ data:
     - { template: /trade/hospitality/thing/bar-spoon, onto: /trade/hospitality/thing/well }
     - { template: /trade/hospitality/thing/strainer, onto: /trade/hospitality/thing/well }
     - { template: /trade/hospitality/thing/juicer, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/house-tablet, onto: /trade/hospitality/thing/back-bar }
+    # ⭐ `as: tablet` is the entry's IDENTITY — the line a child row
+    # replaces when a venue runs its own tablet, rather than appending
+    # a second one to the back-bar.
+    - { template: /trade/hospitality/thing/house-tablet, as: tablet, onto: /trade/hospitality/thing/back-bar }
     - { template: /trade/hospitality/thing/tip-jar, onto: /trade/hospitality/thing/back-bar }
     # The stations.
     - /trade/hospitality/thing/tap
@@ -46,9 +48,4 @@ data:
     - /trade/hospitality/thing/basin
     - /trade/hospitality/thing/glass-rack
     # Seating.
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
+    - { template: /trade/hospitality/thing/stool, count: 6 }

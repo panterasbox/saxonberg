@@ -14,11 +14,4 @@ data:
   materialTags: [produce, orange]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
-    - /trade/farming/thing/orange
-    - /trade/farming/thing/orange
-    - /trade/farming/thing/orange
-    - /trade/farming/thing/orange
-    - /trade/farming/thing/orange
-    - /trade/farming/thing/orange
-    - /trade/farming/thing/orange
-    - /trade/farming/thing/orange
+    - { template: /trade/farming/thing/orange, count: 8 }

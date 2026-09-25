@@ -180,6 +180,16 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "lib/stuff/Staged.ts::loadClassByPath",
     classification: "transitive-safe",
   },
+  // ⭐ Template inheritance: `Template._materialize` resolves the
+  // EFFECTIVE class only to read its `fieldMeta`, so the merge algebra
+  // can ask each field how it inherits. Transitive-safe by the same
+  // reasoning as every other row-to-row reference: the class it resolves
+  // is the one the row's own `class:` gate already passed, and a child
+  // that states none inherits a parent that did.
+  {
+    site: "lib/stuff/Template.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
   // ⭐ Wiki component resolution. The tag name comes from
   // COMMUNITY-AUTHORED ARTICLE MARKUP — the weakest input in this
   // manifest, since any signed-in player can write `<foo/>` in a page

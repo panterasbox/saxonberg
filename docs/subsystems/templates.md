@@ -287,6 +287,30 @@ Order is load-bearing. **Register fires before hydrate** so that anything
 resolving the in-flight object by `stuffId` during hydrate or
 `postRegister` (e.g., a self-referencing exit hydrator) finds it.
 
+## ⭐ The entry shape: `as`, `count`, `onto`
+
+A `props:` entry is a bare path or an object:
+
+```yaml
+props:
+  - /trade/hospitality/thing/back-bar
+  - { template: …/house-tablet, as: tablet, onto: …/back-bar }
+  - { template: /trade/farming/thing/lime, count: 12 }
+```
+
+- **`as`** — the entry's IDENTITY, on all four designation lists
+  (`props`, `cast`, `costume`, `adornments`). It is what a child row
+  replaces; see the merge rules above. Two entries sharing one `as`
+  throw at hydrate: an identity with two claimants has no answer.
+- **`count: N`** — **props only**; mints N clones from one line. Twelve
+  identical lime lines and six identical stool lines were one authoring
+  gesture written longhand. `count` on `cast:` throws (twelve of a
+  person is twelve people, each of whom needs a name), as does `count`
+  on a `Singleton` class, and any count that is not a whole number ≥ 1.
+- **`onto`** — names a `Surfaced` entry EARLIER in the list, by its `as`
+  or by its path. Under `count`, the last clone is what a later `onto`
+  finds.
+
 ## ⭐ Instruction appliers run ONCE — `props`/`cast` are initial furnishing
 
 ⚠ **Added 2026-08-30** (the libations review). `TemplateApi.restoreFromTemplate`

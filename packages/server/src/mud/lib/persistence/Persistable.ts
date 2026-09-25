@@ -43,7 +43,7 @@
 import type { MixinConstructor } from "../mixin";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
-import type { PropSpec, Staged } from "../stuff/Staged";
+import type { CastSpec, PropSpec, Staged } from "../stuff/Staged";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import { Mixins } from "../mixin";
@@ -206,7 +206,7 @@ export function PersistableMixin<
      * Empty for a host that declares neither.
      */
     protected _bornWithProps: PropSpec[] = [];
-    protected _bornWithCast: string[] = [];
+    protected _bornWithCast: CastSpec[] = [];
 
     isPersistenceHost(): boolean {
       return true;
@@ -275,7 +275,7 @@ export function PersistableMixin<
     }
 
     /** See {@link applyProps} — the cast half of the same retention. */
-    async applyCast(specs: string[]): Promise<void> {
+    async applyCast(specs: CastSpec[]): Promise<void> {
       this._bornWithCast = Array.isArray(specs) ? specs.slice() : [];
     }
 
