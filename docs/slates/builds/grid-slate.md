@@ -561,3 +561,59 @@ Still open for requirements:
    envelope's shipped `settleStreetLighting`.)
 4. Locality treasury — envelope's lighting bill is on `/compact/treasury`
    pending a locality treasury; energy billing inherits the same deferred seam.
+
+## ⭐⭐ The inherited streetlight bill (from envelope's finalize, 2026-09-25)
+
+Envelope shipped street lighting with a **MONEY leg and NO GOODS leg** — flagged,
+not fixed, and handed to build-4 explicitly (envelope-plan § *"the lamplighter as
+a trade … THIS IS THE BILL IT INHERITS"*). This refines the treasury note above
+with the precise payer/payee/goods split:
+
+- `settleStreetLighting` → `BankingApi.appropriate(supplier, n × costPerStreetNight)`.
+  **Money only.**
+- **PAYER** = the treasury (`/compact/treasury` today, pending a locality treasury).
+- **PAYEE / `supplier`** = Terminus's **general store** — a *labelled placeholder*
+  at `PublicLightingFunding.supplier`. This is the "streetlights run by the general
+  store" tell: the store is a **retailer**, so it produces nothing; the fuel chain
+  (`trade-fuel` collier/clamp, extraction peat/coal) sees none of this demand —
+  demand **absorbed instead of creating a market**, the `vocations.md` violation
+  street lighting was best placed to avoid.
+- **No lamp-oil good exists** — a lantern's `fuel` is an abstract `%` reserve
+  (`theme: combustion`), not a commodity.
+
+⭐ **The demand is already LIVE and CALIBRATED** — `costPerStreetNight` × lit
+streets, nightly, against a treasury whose shortfall already darkens streets by
+seniority. **Energy inherits a market to price, not a number to invent.** Envelope
+deliberately did NOT half-build it (one producer + no chain = worse fiction than
+an honest placeholder).
+
+**What energy adds, in order (envelope's own list):**
+
+1. **A lamp-oil GOOD with a unit**, so a quantity can be consumed. ⭐ The field
+   name `fuelPerStreetNight` was deliberately **freed for us** — the money figure
+   was renamed `costPerStreetNight` at review (2026-09-25) precisely so a later
+   build can add `fuelPerStreetNight` beside it and trust the name.
+2. **A PRODUCER that is not a retailer** — wire the demand to the real fuel chain
+   (`trade-fuel` / extraction), replacing the general-store placeholder.
+3. **Depleting STOCK**, so a short supply goes dark the way a short treasury
+   already does. The refusal path exists and is proven; only the goods arm is missing.
+
+⭐⭐ **This reframes the remit and the first slice.** "Energy" is not only
+electricity — it is the whole energy economy, and **combustion is the first
+epoch**: the streetlight is a Phase-6 consumer whose Phase-0/1 is the fuel
+producer. So the smallest COMPLETE, high-value first market is the **gaslamp fuel
+goods-leg** (lamp-oil good + real producer + depleting stock, connected to the
+already-calibrated streetlight demand) — it needs envelope's shipped streetlight
+demand + the shipped fuel chain, and **not** the electric grid. The electric grid
+(Tier A, "the fridge comes online") is the next epoch, and the streetlight then
+**migrates** from lamp oil to electric draw (the gaslight → electric proof
+recorded above). ⇒ a candidate **new first tier, ahead of Tier A**.
+
+Also inherited as deferred seams (envelope names them): who decides which streets
+go dark first (seniority today → the extent's committee, `institutions-slate`); a
+locality-level treasury (`BankingApi.ensureVenueAccount` mints one for any owner
+path; income via the seller-collected demo sales tax).
+
+⚠ Envelope is still FINALIZING (2026-09-25) — re-verify `PublicLightingFunding`,
+`costPerStreetNight` / the freed `fuelPerStreetNight` name, and
+`settleStreetLighting` against final merged master before building.
