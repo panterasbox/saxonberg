@@ -57,9 +57,50 @@ const DEFAULT_CURRENCY = 'credit';
  * costs and where the money goes.
  */
 export interface PublicLightingFunding {
-  /** Minor units per street per night. */
-  fuelPerStreetNight: number;
-  /** The owner key that supplies the fuel — a Business path. */
+  /**
+   * **Minor units** per street per night — a PRICE, and the name says so
+   * now.
+   *
+   * ⚠⚠ It was `fuelPerStreetNight`, which named a quantity and held
+   * money. Renamed at review (2026-09-25) for one reason: the energy
+   * build is next and it will want a genuine *fuel* figure per
+   * street-night — litres of oil — so that name has to be free and
+   * true when it gets there. A field whose name lies is the kind of
+   * thing a later build reads once and trusts.
+   */
+  costPerStreetNight: number;
+  /**
+   * The Business path the bill is paid to.
+   *
+   * ⚠⚠ **There is NO GOODS LEG, and nothing here should be read as a
+   * supply chain.** `settleStreetLighting` does exactly one thing with
+   * this: `BankingApi.appropriate(supplier, n × costPerStreetNight)`.
+   * Money leaves the treasury and lands in that business's account. **No
+   * oil is consumed, no stock depletes, and no lamp-oil good exists in
+   * the game at all** — a lantern's `fuel` is an abstract `%` reserve
+   * with `theme: combustion`, not a commodity.
+   *
+   * So the name states an INTENT that the mechanism does not yet keep.
+   * It is named `supplier` rather than `payee` because that is what it
+   * becomes, not what it does — and this paragraph is here so the energy
+   * build does not discover it the hard way.
+   *
+   * ⭐ Terminus names its **general store**, which stocks the lantern
+   * and the torch, so a shop selling the oil for the lamps it sells is
+   * honest fiction and a municipal lamp-oil contract with the local
+   * merchant is how small towns really did it. What it is NOT is a
+   * producer: `trade-fuel` ships a collier and a clamp and extraction
+   * ships peat and coal, and none of that chain sees a penny of this
+   * recurring demand. By `vocations.md`'s own test — *a vocation exists
+   * iff there is unmet demand* — that is demand being absorbed instead
+   * of creating a market.
+   *
+   * → the energy build (`build-4`). See the deferred seam in
+   * `envelope-plan.md` for the bill it inherits; ⚠ the demand figure is
+   * already live and calibrated (`costPerStreetNight` × lit streets ×
+   * nightly), so it gets a market to price rather than a number to
+   * invent.
+   */
   supplier: string | null;
   /** The currency the bill is denominated in. Defaults to `credit`. */
   currency?: string;
@@ -255,8 +296,8 @@ export default class Locality extends PostRegistrationMixin(Idea) {
       const treasuryId = await BankingApi.treasuryAccountId(currency);
       const balance = BankingApi.balanceOf(treasuryId);
       affordable =
-        funding.fuelPerStreetNight > 0
-          ? Math.floor(balance.minor / funding.fuelPerStreetNight)
+        funding.costPerStreetNight > 0
+          ? Math.floor(balance.minor / funding.costPerStreetNight)
           : streets.length;
     } catch {
       affordable = 0; // no treasury, no light — and the street says so
@@ -269,7 +310,7 @@ export default class Locality extends PostRegistrationMixin(Idea) {
       try {
         await BankingApi.appropriate(
           supplier,
-          Money.of(n * funding.fuelPerStreetNight, currency),
+          Money.of(n * funding.costPerStreetNight, currency),
           `street lighting, ${this.name || this._address}: ${n} street-night(s)`,
         );
       } catch {

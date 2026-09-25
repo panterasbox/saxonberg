@@ -86,7 +86,7 @@ beforeEach(() => {
   appropriations = [];
   city = makeStuffAtPath(() => new Locality(), CITY) as unknown as Locality;
   (city as unknown as { _publicLighting: unknown })._publicLighting = {
-    fuelPerStreetNight: 4,
+    costPerStreetNight: 4,
     supplier: SUPPLIER,
   };
   street(A, 1);

@@ -22,7 +22,7 @@ data:
   # PREFERENCE here is the town's, as designed; a locality treasury is a
   # named deferred seam (livelihood-slate §7, credit-slate Q8).
   _publicLighting:
-    fuelPerStreetNight: 4
+    costPerStreetNight: 4
     supplier: /world/terminus/general-store/business
   name: University Avenue
   _address: terminus/city/university-avenue

@@ -666,7 +666,7 @@ extent, and a schedule at sunset.**
   is daylight."*. The locality is resolved **once at `postRegister`**
   (async `AddressApi.resolveLocalityFor`) into a transient path so the
   sync reads use `StuffApi.findByTemplatePath`.
-- `Locality` gains authorable `_publicLighting: { fuelPerStreetNight:
+- `Locality` gains authorable `_publicLighting: { costPerStreetNight:
   minor, supplier: string /* a Business path */ } | null` — **the town's
   fuel bill is one figure in one place** — and runtime `_lightingNight:
   number`, `_lightingLitStreets: string[]` (persistent runtime state).
@@ -676,7 +676,7 @@ extent, and a schedule at sunset.**
   preference — watershed's *"the quota rides the right, ordered by a
   seniority recorded in advance"*; today the founder-default holder is
   the row's author), compute `n = min(count, floor(balance /
-  fuelPerStreetNight))` off the **realm treasury**
+  costPerStreetNight))` off the **realm treasury**
   (`BankingApi.treasuryAccountId(currency)` → `BankingApi.balanceOf`),
   post **one** appropriation for `n × fuel` to the supplier's owner key,
   record the first `n` paths as lit for `_lightingNight`. No supplier,
@@ -1400,7 +1400,7 @@ the shipped `BankingApi.appropriate`); `api/address.ts` +
 `platform/idea/WorldClockRegistry.ts` (`civic:lighting`);
 `lib/mixin.ts`, `api/mixin.ts`; `scripts/check-light-sources.ts`
 (clause (e)); content: `terminus-city.yaml` (`_publicLighting:
-{ fuelPerStreetNight, supplier: /world/terminus/general-store/business }`),
+{ costPerStreetNight, supplier: /world/terminus/general-store/business }`),
 the lit streets (`crossing`, `avenue-block`, `square`, `mayfield street`,
 `wharfside bank`: `publicLighting: { flux: 400, detail: lamps, seniority }`
 + a `lamps` detail each), and one street the town **never lit**
@@ -1899,7 +1899,44 @@ Each leaves as a slate line, not a plan section.
   over a `Reserve`; a `Reserve.drainPerGameMin` would fold four copies
   into one. Kernel, later (`thermal-slate` or a new `reserve` line).
 - **Room-to-room air mixing** — still a non-goal (S6). `thermal-slate`.
-- **The lamplighter as a trade; a fuel market** — energy build.
+- **⭐⭐⭐ The lamplighter as a trade; a fuel market — `build-4`, the
+  energy build, and THIS IS THE BILL IT INHERITS.** Street lighting
+  shipped with a money leg and no goods leg: `settleStreetLighting` calls
+  `BankingApi.appropriate(supplier, n × costPerStreetNight)` and that is
+  all it does. **No oil is consumed, no stock depletes, and no lamp-oil
+  good exists in the game** — a lantern's `fuel` is an abstract `%`
+  reserve with `theme: combustion`, not a commodity.
+
+  What the energy build needs, in order:
+
+  1. **A lamp-oil good with a unit**, so a quantity can be consumed. The
+     name `fuelPerStreetNight` was deliberately freed for it — the money
+     figure is `costPerStreetNight` now, because a field whose name says
+     *fuel* and holds *zorkmid-minor* is the kind of thing a later build
+     reads once and trusts (renamed at review, 2026-09-25).
+  2. **A producer that is not a retailer.** Terminus names its general
+     store, which is honest fiction — it stocks the lantern and the
+     torch, and a municipal lamp-oil contract with the local merchant is
+     how small towns really did it — but it produces nothing.
+     `trade-fuel` ships a collier and a clamp, extraction ships peat and
+     coal, and none of that chain sees a penny of this demand. ⚠ By
+     `vocations.md`'s own test — *a vocation exists iff there is unmet
+     demand* — that is demand being **absorbed instead of creating a
+     market**, which is the one thing street lighting was well placed to
+     do.
+  3. **Stock that depletes**, so a short supply goes dark the way a short
+     treasury already does. The refusal path exists and is proven; only
+     the goods arm is missing.
+
+  ⭐ And the demand figure is **already live and calibrated**:
+  `costPerStreetNight` × lit streets, nightly, against a treasury whose
+  shortfall already darkens streets by seniority. So the energy build
+  inherits a market to price rather than a number to invent.
+
+  ⚠ Deliberately NOT half-built here. A lamp-oil good with one producer
+  and no chain behind it is a worse fiction than an honest placeholder,
+  and the placeholder is now labelled as one at
+  `PublicLightingFunding.supplier`.
 - **Who decides which streets go dark first** — seniority on the row
   today; the extent's committee tomorrow (`institutions-slate`).
 - **A locality-level treasury** — an account (free:

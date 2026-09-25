@@ -179,7 +179,7 @@ The envelope build (2026-09-24) gave the Locality tier something to
 *do* with money, and it is deliberately the smallest honest civic act:
 **the town lights its streets, and it costs the town something.**
 
-A `Locality` may declare `_publicLighting { fuelPerStreetNight,
+A `Locality` may declare `_publicLighting { costPerStreetNight,
 supplier }` — **one figure in one place**, because *a town does not
 track lamps; it funds a service, and finds out it is short when the
 streets go dark.* Which streets exist and in what order they are lit is
@@ -191,9 +191,26 @@ and hands each extent its own queue in seniority order. The extent then:
 
 1. computes how many street-nights the treasury can cover — **from the
    balance FIRST**, so the refusal is the exception rather than the path;
-2. posts **one** `appropriation` leg for `n × fuel` through the shipped
-   `BankingApi.appropriate`;
+2. posts **one** `appropriation` leg for `n × costPerStreetNight` through
+   the shipped `BankingApi.appropriate`;
 3. records which streets its money is lighting tonight.
+
+> ⚠⚠ **A money leg and no goods leg — do not read this as a supply
+> chain.** Step 2 is the whole of the transaction: money leaves the
+> treasury and lands in the supplier's account. **No oil is consumed, no
+> stock depletes, and no lamp-oil good exists in the game** — a lantern's
+> `fuel` is an abstract `%` reserve, not a commodity. Terminus names its
+> **general store**, which is honest fiction (it stocks the lantern and
+> the torch, and a municipal lamp-oil contract with the local merchant is
+> how small towns really did it) but is a retailer rather than a producer,
+> so the fuel chain `trade-fuel` and extraction shipped sees none of this
+> recurring demand.
+>
+> ⭐ `costPerStreetNight` is named for what it holds — **minor units**. It
+> was `fuelPerStreetNight`, which named a quantity and held money;
+> renamed at review (2026-09-25) so the honest name is free for the
+> energy build's real litres-per-street-night. → `build-4`; the bill it
+> inherits is in the envelope plan's deferred seams.
 
 ⭐ **The order is written in ADVANCE.** Nobody is judged at the moment of
 refusal, because the decision was made before anybody knew there would
