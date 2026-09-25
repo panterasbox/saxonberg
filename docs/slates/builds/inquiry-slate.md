@@ -5,8 +5,11 @@
 > [advancement.md](../../subsystems/advancement.md)
 > **Left:** the `Law` catalog Idea · the `predict` lab-notebook loop ·
 > knowledge banking of confirmed laws · the publish + replicate library ·
-> the evidential range and the overreach paper · deferred: credibility as
-> a renown consumer, the published refutation, misinformation-as-crime
+> the evidential range and the overreach paper · ⭐⭐⭐ **the law →
+> TECHNOLOGY rung — the epoch on-ramp** (a recipe declares the `Law`s it
+> depends on and REFUSES by name; added 2026-09-25, § below) · deferred:
+> credibility as a renown consumer, the published refutation,
+> misinformation-as-crime
 > **Size:** a build
 
 See also:
@@ -175,6 +178,128 @@ when study.com integration lands.
 - **Medicine / crafting / farming / combat** — every honest-sim discipline
   already computes lawful relationships players currently learn by feel;
   inquiry is what turns "feel" into "understood, banked, teachable."
+
+## ⭐⭐⭐ From law to TECHNOLOGY — the epoch on-ramp (added 2026-09-25)
+
+Everything above recovers a **law**: a relationship the engine genuinely
+computes and never states. That answers *how does this world work?*
+
+It does **not** answer *how does a thing that did not exist come to
+exist?* There is no hidden function in the engine that says *latex +
+sulfur + heat = rubber* waiting to be found. Vulcanization is not a law
+to recover; it is **a process that has to enter the world.** Those are
+two different acts, and the second one is currently unowned.
+
+### ⚠ Why it is unowned — we retired its mechanism
+
+The standing doctrine is the user's, from the farming cycle: *build the
+trades out at medieval tech first, then let them get more advanced as
+players come on and actually exercise disciplines.* The recorded
+mechanism was **conferrals + known-of→can-make recipes**.
+
+⛔ **Conferral was retired** ([advancement-slate](./advancement-slate.md),
+MR !285): *a competence band must NEVER confer verbs; the verb is GLOBAL
+and the OUTCOME is GRADUATED.* The `RecipeKnowledge` half survives; the
+conferral half is gone and nothing replaced it.
+
+> **So the industrial epoch has no on-ramp**, which is why the content
+> tree can only grow medieval: **8 rows stamp `epoch: medieval`, zero
+> stamp anything else, and nothing reads the field.** Five eras declared
+> ([`lib/craft/Epoch.ts`](../../../packages/server/src/mud/lib/craft/Epoch.ts)),
+> one authored, none enforced — while the *setting* already runs a
+> substation, a teleport authority and an aether.
+
+### The rule
+
+> **A recipe EXISTS and REFUSES, naming the LAW you do not yet
+> understand.**
+
+That is the conferral retirement's own replacement rule applied to
+technology — *the refusal IS the progression UI; if something lifts it,
+the thing must EXIST so the player can be told.* The row ships on day
+one and cannot run:
+
+> *"You could vulcanize this, if anyone understood what sulfur does to
+> latex."*
+
+The gate is **knowledge + materials**, both of which are world state a
+player can change — never a measured threshold. It rides the shipped
+`RecipeKnowledge` known-of→can-do ladder, with inquiry supplying the
+rung: a recipe declares the `Law`s it depends on, and a law is held once
+somebody **demonstrated it by prediction**.
+
+### ⭐⭐ Why this is the right shape
+
+- **No conferral.** Nothing appears or vanishes on a band. The refusal
+  names something a player can go and do.
+- **Nothing is authored ahead of demand.** The recipe exists; the world
+  just cannot run it yet. Same posture as `help forge` for a
+  non-smith.
+- ⭐⭐⭐ **Per-instance tech trees.** Each running platform demonstrates
+  its own laws in its own order, so two realms genuinely **diverge in
+  technology**. That is the federation thesis made material rather than
+  asserted.
+- **Technology becomes a SOCIAL artifact.** Laws are teachable goods
+  through the library; guilds hold mysteries; the University is the
+  engine. ⭐ This is what makes the University load-bearing for the
+  ECONOMY and not only for credentials — the platform's pedagogical
+  claim, cashed.
+- **Magic and future tech stay one axis** (design-lenses § 5). A spell
+  you can cast and a process you can run are both *capability gated on
+  understood law*. The slate already says the College of Magic is the
+  lab wing of the science faculty; this is that sentence with teeth.
+- ⭐ **`epoch` becomes meaningful without becoming a gate.** A world's
+  epoch is a **DERIVED read over the law catalogue** — a description of
+  its knowledge frontier. The stamp on a *tool* stays what it is (the
+  land-use covenant restricts means, not ends). Nothing gates on the
+  world's epoch; it is a label, like a Competence band.
+
+### ⭐⭐⭐ The bootstrap, and why it is the honest part
+
+*If nothing can be made until a law is understood, how is there a forge?*
+
+**Because medieval technology is knowledge-by-TRADITION and industrial
+technology is knowledge-by-LAW.** Smiths worked iron for three thousand
+years with no metallurgy; brewers fermented for longer with no
+microbiology. The shipped baseline is **pre-understood by construction**
+— it works, and nobody has to know why.
+
+> **The Industrial Revolution is what happened when making things started
+> requiring theory.** That is the real break, and this mechanism encodes
+> it rather than inventing one.
+
+⭐ So the two knowledge kinds are not a hierarchy, they are different
+epistemics, and the game can teach the difference by making you feel it:
+you can be a superb smith who understands nothing, and you cannot be a
+chemist that way.
+
+### ⚠ The honest risks
+
+1. **Nobody does the science and the world stays medieval forever.**
+   Acceptable, and the same answer guilds got: *absence is meaningful*.
+   A realm that never industrialized is honest content, and tech advance
+   becomes a real collective achievement.
+2. **Too slow for a small server.** Mitigations already exist: the
+   library's publish shortcut (learn from a paper, one confirming
+   replication), and ⭐ **a content pack may ship a world that already
+   knows things** — packaging is a packaging choice, not a permissions
+   structure. A realm can start industrial by installing its history.
+3. ⚠ **It must not become a wizard gate.** Inquiry is open to anyone
+   holding an instrument. The anti-elitist read is the correct one:
+   **the smith who measures carefully is who advances the world.**
+4. **Law-catalogue granularity** — the slate's own open question, now
+   load-bearing: a technology's `requires` is only as good as the laws
+   marked discoverable. Start tiny, grow by consumer need.
+
+### The first consumer
+
+⭐ **Rubber**, not magic — see [rubber-slate](./rubber-slate.md). It is
+the better proof case because vulcanization is the canonical technology
+that *cannot* be had without theory, its law is a genuinely honest
+function of the engine's own material fields, and over-applying it
+produces **a different real material** rather than a failure — which is
+the physical analogue of this slate's own evidential-range / overreach
+paper, the piece it calls its soul.
 
 ## Open questions / scope
 

@@ -240,6 +240,22 @@ stack by the same move.
 
 ## The taps (D25, D93)
 
+> ⭐⭐⭐ **A tap is not a livestock concept, and the kernel already says
+> so.** `TapSpec` lives on `Species.production[]` in
+> `platform/idea/species/Species.ts` — the **kernel** — and trees are
+> `Species` rows like anything else. The only livestock-bound piece is
+> `ProducingMixin`, which sits in this pack's `lib/`. Tapping a tree for
+> sap or resin is the first composer outside this pack and therefore owns
+> the promotion; the bee wave (below, D34–D39) rides *on* ranching and
+> does not force it. ⚠ Whatever lands first must **not fork the tap
+> contract**. See [tapping-slate](../slates/builds/tapping-slate.md),
+> which also records the one thing `TapSpec` lacks: **a window
+> predicate** — nothing says *when* a tap is open, and milk (calving),
+> honey (the nectar flow) and sap (freeze–thaw) each need one. The idiom
+> is this doc's own: *a photoperiod season, not a date, and the refusal
+> names the reason.*
+
+
 ⚠⚠ **A tap fills from the production slice of the energy budget and
 mints nothing.** Copy `Stock`'s reset *sweep*; never its `par` semantics,
 which is a faucet wearing a hat. The rate scales with `flesh`: an animal

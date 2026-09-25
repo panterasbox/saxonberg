@@ -382,6 +382,21 @@ when they write a farm where the wood used to be, not a verb.
 
 ## Deferred seams
 
+- ⭐⭐ **Tapping — the yield that does not kill the tree.** The one
+  product class this subsystem has no shape for: sap (a seasonal pressure
+  flow → sugar) and resin (a wound response → pitch, tar, turpentine).
+  It is **not a new family** — it is ranching's tap mechanism on a
+  forestry host, and `fell` and `tap` then divide the wood honestly:
+  `fell` addresses the stand, `tap` addresses a stem, so the
+  terminal/renewable distinction becomes **spatial** instead of a flag.
+  ⭐ Almost nothing is new: `TapSpec` is already kernel and already lives
+  on `Species.production[]`, so the eight species rows here can carry a
+  tap today — **Scots pine already ships and wants only a `production:`
+  block**. The boiling is the saltern's `evaporative` profile with a
+  different liquor (`salt-pan` is a `Vat` row, `brine-hearth` an `Oven`
+  row), which makes sugaring the **fifth** claimant on the wood contest
+  and the only one that burns wood from the stand it taps. →
+  [tapping-slate](../slates/builds/tapping-slate.md).
 - **The Cover seam** — `SwardMixin` + `StandMixin` → a kernel
   `lib/husbandry/Cover` on the third instance (an orchard, a hedgerow, a
   reed bed); the stand's moisture factor integrated stepwise lands there.
