@@ -28,10 +28,10 @@
 
 import NPC from "@saxonberg/server/mud/lib/npc/NPC";
 import { CastMixin } from "@saxonberg/server/mud/lib/npc/Cast";
-import { PopulatesMixin } from "@saxonberg/server/mud/lib/stuff/Populates";
+import { StagedMixin } from "@saxonberg/server/mud/lib/stuff/Staged";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 
-export default class Walter extends CastMixin(PopulatesMixin(NPC)) {
+export default class Walter extends CastMixin(StagedMixin(NPC)) {
   static commandContributions: CommandContributions = {
     self: [],
     peers: [

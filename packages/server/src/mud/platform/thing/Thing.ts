@@ -26,7 +26,7 @@
  * defended; a class named "generic thing you don't care about" does
  * not.**
  *
- * ⭐ The word was also wanted elsewhere, and honestly: `PopulatesMixin`
+ * ⭐ The word was also wanted elsewhere, and honestly: `StagedMixin`
  * spends `props:` on the set dressing against `cast:` for who is there.
  * That is the theatre sense, and it is the one worth keeping.
  */

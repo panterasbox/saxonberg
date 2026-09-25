@@ -12,7 +12,7 @@
  * fallback room with no way out).
  *
  * Everything else is the ordinary room composition: Visible + Detailed
- * for description, Exitable so the return passage can install, Populates
+ * for description, Exitable so the return passage can install, Staged
  * so a skin can stock its own furniture, Perceptible for the sensory
  * layer. Coordinates are deliberately absent — a circle is a space, not
  * a mapped location, and nothing navigates it by grid.
@@ -23,7 +23,7 @@ import { VisibleMixin } from '../../../lib/description/Visible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
-import { PopulatesMixin } from '../../../lib/stuff/Populates';
+import { StagedMixin } from '../../../lib/stuff/Staged';
 import type { FieldMeta } from '../../../lib/mixin';
 
 // ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
@@ -32,7 +32,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
 const CircleFloorBase =
-  PopulatesMixin(
+  StagedMixin(
     DetailedMixin(PerceptibleMixin(ExitableMixin(VisibleMixin(Location))))
   );
 

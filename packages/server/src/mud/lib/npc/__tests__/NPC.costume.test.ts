@@ -12,7 +12,7 @@
  * The recipe (`Character.wearGarments`) lives one rung up, on
  * `Character`, because both rungs of person need it and nothing below
  * does. ⭐ The FIELD and its applier are `CostumedMixin`'s, beside
- * `props:` and `cast:` in `lib/stuff/Populates.ts` — it shipped as a
+ * `props:` and `cast:` in `lib/stuff/Staged.ts` — it shipped as a
  * `wears: string[]` on `NPC` with a `postRegister` dressing step, and
  * review named it: that was `applyProps` with the designation check
  * missing plus one slot occupation.
@@ -37,7 +37,7 @@ import { ProxyApi } from '../../../api/proxy';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { CostumedMixin } from '../../stuff/Populates';
+import { CostumedMixin } from '../../stuff/Staged';
 import { Template } from '../../stuff/Template';
 import GarmentClass from '../../../platform/thing/equipment/Garment';
 import ThingClass from '../../../platform/thing/Thing';

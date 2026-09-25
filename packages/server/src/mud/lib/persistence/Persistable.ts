@@ -10,7 +10,7 @@
  *
  * A host opts in by composing this mixin **outermost** (so its
  * `cleanupOnDestruct` fires before `Container`/`Slotted` evacuate, and its
- * `applyProps`/`applyCast` overrides wrap `Populates`). The capability is thin: the
+ * `applyProps`/`applyCast` overrides wrap `Staged`). The capability is thin: the
  * capture/restore *logic* lives in the gated `PersistableApi` /
  * `PersistableLogic` pair, and per-mixin serialization is composed by the
  * framework walk (`MixinApi.getPersistenceContributors`). This mixin
@@ -43,7 +43,7 @@
 import type { MixinConstructor } from "../mixin";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
-import type { PopulateSpec, Populates } from "../stuff/Populates";
+import type { PropSpec, Staged } from "../stuff/Staged";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import { Mixins } from "../mixin";
@@ -183,7 +183,7 @@ export interface Persistable {
 }
 
 export function PersistableMixin<
-  TBase extends MixinConstructor<Stuff & Partial<Populates>>,
+  TBase extends MixinConstructor<Stuff & Partial<Staged>>,
 >(Base: TBase) {
   return class PersistableMixin extends Base implements Persistable {
     static _mixinName = "PersistableMixin";
@@ -205,7 +205,7 @@ export function PersistableMixin<
      * branch; cast is re-seeded on every restore by {@link reseedCast}.
      * Empty for a host that declares neither.
      */
-    protected _bornWithProps: PopulateSpec[] = [];
+    protected _bornWithProps: PropSpec[] = [];
     protected _bornWithCast: string[] = [];
 
     isPersistenceHost(): boolean {
@@ -264,13 +264,13 @@ export function PersistableMixin<
      * A persistable host does not seed at *hydration* — it is a bare shell
      * here (its per-instance key isn't set yet, so a `hasRecord` gate can't
      * tell a first seed from a restore, and seeding now would double-seed on
-     * every wake). So these overrides do NOT delegate to `PopulatesMixin`;
+     * every wake). So these overrides do NOT delegate to `StagedMixin`;
      * instead they **retain** the declared specs so the establishing context
      * can lay them down exactly once, keyed, via {@link seedBornWith} on the
      * no-record branch. The `props:`/`cast:` fields stay author-editable
      * DATA; only *when* they run moves to the keyed holder.
      */
-    async applyProps(specs: PopulateSpec[]): Promise<void> {
+    async applyProps(specs: PropSpec[]): Promise<void> {
       this._bornWithProps = Array.isArray(specs) ? specs.slice() : [];
     }
 
@@ -281,15 +281,15 @@ export function PersistableMixin<
 
     /**
      * Lay down the retained born-with specs — cloning each into this host —
-     * by delegating to the inner `PopulatesMixin` appliers (`super`). Called
+     * by delegating to the inner `StagedMixin` appliers (`super`). Called
      * by the establishing context on the no-record branch only. A no-op when
      * neither `props:` nor `cast:` was declared (empty specs → nothing to
-     * seed, and no `PopulatesMixin` need be composed).
+     * seed, and no `StagedMixin` need be composed).
      */
     async seedBornWith(): Promise<void> {
       // Present at runtime whenever specs were retained (specs only arrive
       // via the Hydrator when `props`/`cast` are instruction fields, i.e.
-      // the host composes PopulatesMixin below). The `?.` guards the
+      // the host composes StagedMixin below). The `?.` guards the
       // vacuous case.
       if (this._bornWithProps.length > 0) {
         await super.applyProps?.(this._bornWithProps);

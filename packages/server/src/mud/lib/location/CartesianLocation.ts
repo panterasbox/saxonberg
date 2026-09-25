@@ -25,7 +25,7 @@ import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
-import { PopulatesMixin } from '../stuff/Populates';
+import { StagedMixin } from '../stuff/Staged';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
 import { Quantity } from '../quantity';
@@ -62,7 +62,7 @@ import type { FieldMeta } from '../mixin';
 // answer for. FIVE rows in the realm declare the service. It lives on
 // `platform/location/Street` now, which is what a town lights.
 const CartesianLocationBase =
-  PopulatesMixin(
+  StagedMixin(
     DetailedMixin(
       PerceptibleMixin(
         ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))

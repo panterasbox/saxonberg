@@ -24,16 +24,16 @@
 
 import { Character } from '../character/Character';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
-import { CostumedMixin } from '../stuff/Populates';
+import { CostumedMixin } from '../stuff/Staged';
 import { BehavedMixin } from '../behavior/Behaved';
 import type { FieldMeta } from '../mixin';
 
 // ⭐⭐ `CostumedMixin` — `costume:`, the third designation beside `props:`
 // and `cast:`. It shipped here as a `wears: string[]` field plus a
 // `postRegister` dressing step, which review correctly called out as
-// `applyProps` with the check missing. It is on the Populates rail now:
+// `applyProps` with the check missing. It is on the Staged rail now:
 // an instruction field, a Phase-2 applier, a once-flag, and the class
-// gated before anything is cloned. See `lib/stuff/Populates.ts`.
+// gated before anything is cloned. See `lib/stuff/Staged.ts`.
 const NPCBase = CostumedMixin(
   BehavedMixin(PostRegistrationMixin(Character)),
 );

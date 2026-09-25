@@ -23,7 +23,7 @@
  *     self-issued credential.
  *
  * So the class carries no bespoke authority code — only the composition needed
- * to accept a declarative loadout (`PopulatesMixin`) and the operator-verb
+ * to accept a declarative loadout (`StagedMixin`) and the operator-verb
  * affordance (content affords its own commands). The full character (the
  * murder on-ramp, the clearing-hand, the ambient maintenance routine, the
  * code-switch enforcement beats) is deferred to the EU narrative build — see
@@ -32,10 +32,10 @@
 
 import NPC from '@saxonberg/server/mud/lib/npc/NPC';
 import { CastMixin } from '@saxonberg/server/mud/lib/npc/Cast';
-import { PopulatesMixin } from '@saxonberg/server/mud/lib/stuff/Populates';
+import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class Katie extends CastMixin(PopulatesMixin(NPC)) {
+export default class Katie extends CastMixin(StagedMixin(NPC)) {
   /**
    * The operator escape hatch for the dorm landlord verbs. Katie IS the
    * front desk, so she affords `provision`/`unprovision` to co-located

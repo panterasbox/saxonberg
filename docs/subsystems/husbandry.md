@@ -41,7 +41,7 @@ PersistableMixin(PostRegistrationMixin(SlottableMixin(GrowingMixin(
   ReservedMixin(OrganismMixin(ThermalMixin(DetailedMixin(Thing))))))))
 
 // obj/PlantPot.ts — the Slotted host + the soil holder. NOT a host.
-PopulatesMixin(SlottedMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))))
+StagedMixin(SlottedMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))))
 ```
 
 > ### ⚠ A slotted plant lives in the pot's **contents** *and* its **slot**

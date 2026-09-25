@@ -2915,7 +2915,7 @@ this gap**, none of them visible to a green suite:
 
 | What was tested | What was broken |
 |---|---|
-| `FurnishableRoom`'s fields round-trip | the class composed no `PopulatesMixin`, so every seed's `props:` was inert and **no fixture ever landed** |
+| `FurnishableRoom`'s fields round-trip | the class composed no `StagedMixin`, so every seed's `props:` was inert and **no fixture ever landed** |
 | the bed seed's YAML says `restQuality` | `SeederManager` is insert-only, so the live row **never updated** |
 | `SlotApi.occupyAll` puts a body in a bed | nothing contributed `posture/lie.yaml`, so **no player could issue `lie`** |
 | ...the same test | no actor composed `SlottableMixin`, so the verb **rejected everyone** |

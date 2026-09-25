@@ -1374,4 +1374,4 @@ Two touches carry the lifecycle:
 The troupe's durable home is the authored `cast:` data, exactly like the
 born-with seed; only its *liveness* is transient. Proven in
 `lib/persistence/__tests__/CastReseed.test.ts` and the designation gate in
-`lib/stuff/__tests__/Populates.test.ts`.
+`lib/stuff/__tests__/Staged.test.ts`.

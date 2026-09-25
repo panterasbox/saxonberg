@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { fileURLToPath } from 'url';
 import { Idea } from '../../lib/stuff/Idea';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
-import { PopulatesMixin } from '../../lib/stuff/Populates';
+import { StagedMixin } from '../../lib/stuff/Staged';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import PersistentHydrator from '../../platform/idea/persistence/PersistentHydrator';
@@ -93,9 +93,9 @@ class SpawnPotion extends ContainableMixin(Idea) {
   static fieldMeta: FieldMeta = {};
 }
 
-// Singleton Container + Populates parent (the library / spawner).
+// Singleton Container + Staged parent (the library / spawner).
 class SpawnLibrary extends SingletonMixin(
-  PopulatesMixin(ContainableMixin(ContainerMixin(Idea)))
+  StagedMixin(ContainableMixin(ContainerMixin(Idea)))
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -211,7 +211,7 @@ describe('spawn substrate integration', () => {
 
     const library = await StuffApi.singleton<SpawnLibrary>('/test/library');
     expect(library.getContents().length).toBe(1);
-    expect(library.hasPopulated()).toBe(true);
+    expect(library.isStaged()).toBe(true);
 
     // The author edits the row and publishes.
     await TemplateApi.restoreFromTemplate(library as never);

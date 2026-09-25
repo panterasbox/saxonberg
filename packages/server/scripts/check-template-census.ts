@@ -722,7 +722,7 @@ function checkTemplatePathConstants(rows: Map<string, string>): number {
  * ── clause (d): a `cast:` entry names an AGENT ────────────────────────
  *
  * ⚠⚠ **`props:`/`cast:` is a DECLARED DESIGNATION with a gate in both
- * directions.** `PopulatesMixin.applyCast` refuses a row that does not
+ * directions.** `StagedMixin.applyCast` refuses a row that does not
  * resolve to a `Behaved` class — *that is a prop, not cast* — and throws
  * at HYDRATE. When the row carrying the list is in a pack's `boot:`
  * chain, that is a FATAL boot error rather than a warning.
@@ -779,7 +779,7 @@ function checkCastAreAgents(rows: Map<string, string>): number {
           detail:
             `\`cast:\` names ${target}, whose class ${cls} is not on an ` +
             `agent branch — that is a PROP, not cast. It throws at hydrate ` +
-            `(\`PopulatesMixin.applyCast\`); list it under \`props:\`.`,
+            `(\`StagedMixin.applyCast\`); list it under \`props:\`.`,
         });
       }
     }

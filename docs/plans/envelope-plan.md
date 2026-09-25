@@ -205,7 +205,7 @@ approximate (±10).
   exist on no NPC class (`lib/npc/NPC.ts`, `platform/agent/Cast.ts`,
   `Extra.ts`), on no archetype row, and in no content row. `props:`
   `{template, onto}` places onto a `Surfaced` host only
-  (`lib/stuff/Populates.ts:93`). Only 2 rows run the `eats` brain.
+  (`lib/stuff/Staged.ts:93`). Only 2 rows run the `eats` brain.
 - `Offstage` (`platform/location/Offstage.ts:31`) extends `Location`
   directly (no `CartesianLocation`) → `getVolume()` is `null`.
 
@@ -254,7 +254,7 @@ approximate (±10).
   clock reading when `id === 'tower'`. A bespoke class per room.
 - `DetailedMixin` composes on `CartesianLocation`
   (`lib/location/CartesianLocation.ts:60`:
-  `Populates(Detailed(Perceptible(Exitable(CartesianCoordinates(Visible(Location))))))`),
+  `Staged(Detailed(Perceptible(Exitable(CartesianCoordinates(Visible(Location))))))`),
   on `FurnishableRoom` and on `Offstage`; **not** on the `Location`
   base. Details are static strings; no Liquid rendering in details
   (`lib/description/Detailed.ts`: `details:` applier only).
