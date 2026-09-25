@@ -23,8 +23,11 @@ data:
   register: definite
   longDescription: |
     A small, tidy yard, and a working one now: the copper still gleams over its firebox, the scarred tun steams by the standpipe, two wash vats stand crusted at the tide line, and the still book hangs on its chain. Cases and empty square bottles queue on the pallet.
-  ambientIntensity: 25
-  ambientColorTemperature: 4200
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the yard, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   # A working still-house: the wash's happy middle.
   _temperature: 289
   # It displaces its own air while the backs work (P11).

@@ -248,7 +248,7 @@ access to every pin-tumbler dorm lock): it is a physical `Key` `props:`-cloned
 into her inventory from `npc/master-ring.yaml` (the serialized `key` credential
 carries `masterTechs: [pin-tumbler]`), an owner-authored spawn loadout — not a
 credential she issues herself. Her `Katie` class thus carries **no bespoke
-authority code**: only `PopulatesMixin` (to accept the loadout) and the
+authority code**: only `StagedMixin` (to accept the loadout) and the
 operator-verb `commandContributions`. The `isDormsAgent` `execute()` check
 still earns its keep — it scopes the *forced-dispatch* capability so a random
 or misauthored NPC's `dispatch provision $player` can't provision — but it now

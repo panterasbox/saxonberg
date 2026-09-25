@@ -880,7 +880,7 @@ punchline:
 
 ### Lighter tier (self-contained, or just wiring)
 
-- **Spawning / population**: GAP — hand-placed seeds only; `PopulatesMixin` is
+- **Spawning / population**: GAP — hand-placed seeds only; `StagedMixin` is
   "future." Wild taming needs supply. Already on the radar (spawn-distribution).
 - **Wiring, seams present**: a `follow` brain (+ the arrival/departure witness
   frame must carry *which exit* was taken — today it's a room-occupant delta

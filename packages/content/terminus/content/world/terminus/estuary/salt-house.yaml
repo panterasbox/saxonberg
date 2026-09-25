@@ -19,9 +19,19 @@ data:
   alternateNames: [house, shed]
   _address: terminus/city/wharfside/salt-house
   _biomePath: /stuff/idea/biome/indoor/baseline
-  # Indoors, one lamp's worth, and it is the reason the pans are OUTSIDE.
-  ambientIntensity: 900
-  ambientColorTemperature: 2700
+  # ⭐⭐ **No authored ambient, because this shed has two real causes and
+  # neither of them is a number.** It authored 900 lumens — "indoors, one
+  # lamp's worth" — which is an authored EFFECT on a room that is not
+  # open to the sky, and `lint:light-sources` refused it on the merge
+  # (envelope S2: every room's light has a named source).
+  #
+  # The causes are both already here and both already in the prose: the
+  # shed is **open at the far end**, so daylight spills the one hop
+  # through the northern exit at full strength; and the **brine hearth**
+  # in `props:` is a fire, which lights the place while it is burning.
+  # So it is bright enough to work in by day, and after dark it is lit
+  # by exactly the fire whose fuel this room is about — which is a
+  # better sentence than the number was.
   longDescription: |
     A low shed the length of four carts, open at the far end, with a fire-bed running most of the way down it and a rack of iron bars over the fire. The roof timbers are white with salt and the air tastes of it.
 

@@ -13,6 +13,7 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
   _address: terminus/city/campus/duncan-hall
   shortDescription: Duncan Hall steps
   keywords: [steps, duncan, hall]
@@ -25,9 +26,9 @@ data:
   # actual position (CelestialApi) is phase 4's, so this is a placeholder
   # that will become a computed value rather than an authored one. The
   # geraniums in the planter are scenery, not a `Plant` — decorative
-  # greenery needs none of the growth machinery.
-  ambientIntensity: 400
-  ambientColorTemperature: 5800
+  # ⭐ Sky-lit by DERIVATION now: the row names an outdoor
+  # biome and the light follows the sun, the moon and the cloud.
+  # The hall steps are outside the hall.
   coords:
     x: 0
     y: 0

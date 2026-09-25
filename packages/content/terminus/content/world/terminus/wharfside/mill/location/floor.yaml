@@ -25,8 +25,11 @@ data:
     A long low shed with the river running under one end of it. Wheels on the left, looms on the right, and between them a permanent haze of dust that catches the light coming through the shutters.
 
     The noise is not the wheels. It is the talking — six women at six wheels, drawing thread and holding four separate conversations, none of which stops when you walk in.
-  ambientIntensity: 90
-  ambientColorTemperature: 4200
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the bank, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   props:
     - /world/terminus/wharfside/mill/thing/stock
     # ⭐ The INPUT shelf, beside the output one. See bale-store.yaml for

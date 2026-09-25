@@ -7,6 +7,23 @@
 class: /platform/idea/Locality
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐⭐ The town's street-lighting service (envelope W5). ONE FIGURE IN
+  # ONE PLACE: a town does not track lamps, it funds a service and finds
+  # out it is short when the streets go dark. Which streets exist and in
+  # what order they are lit is the STREETS' business (`seniority` on each
+  # row); what a street-night costs and who is paid is the extent's.
+  # The city lights what the city covers — the wharfside bank tonight,
+  # and whatever else addresses `terminus/city/...` without a finer
+  # locality claiming it.
+  #
+  # ⚠ The money comes from the REALM treasury, not this extent's: there
+  # is one treasury per currency and no Locality holds an account yet. So
+  # v1 reads as "the realm appropriates for Terminus's lamps". The
+  # PREFERENCE here is the town's, as designed; a locality treasury is a
+  # named deferred seam (livelihood-slate §7, credit-slate Q8).
+  _publicLighting:
+    costPerStreetNight: 4
+    supplier: /world/terminus/general-store/business
   # Display name "Terminus", same as the realm root — the Rome-metonymy
   # made literal. The departures board names a destination by its
   # COVERING Locality, which for the arrival gate is now this city tier;

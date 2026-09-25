@@ -20,8 +20,7 @@ data:
   register: definite
   longDescription: |
     A deep stone cellar, breath-frosting cold, kegs and two working vats sweating against the wall. A wired jar of pale sediment sits in the coldest corner.
-  ambientIntensity: 15
-  ambientColorTemperature: 4200
+  # ⭐ DARK, on purpose. A cold store, shut and dark — the two go together, and its 279 K is authored for the same reason.
   _temperature: 279
   reserves:
     air:

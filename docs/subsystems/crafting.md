@@ -1166,7 +1166,7 @@ balance lever on the whole primary sector.
 The Hearthworks smithy grew into a working venue (anvil + smith's
 hammer + workbench + ingot/hide stock + a `Menu` + Berta), and a
 **cookhouse** joined the zone (a 500 K clay hearth + `CookPot` + the
-open pantry chest — `/platform/thing/Chest`, `Sealable + Container + Populates`,
+open pantry chest — `/platform/thing/Chest`, `Sealable + Container + Staged`,
 the honest chest-pull — + a `Menu` + Odo). Both paths at each:
 order it (served) or make it yourself with their tools (the DIY floor,
 unpriced — the teaching venue). The general store sells the personal

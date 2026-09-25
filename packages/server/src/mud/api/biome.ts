@@ -63,7 +63,13 @@ export interface AtmosphericTrace<V> {
     | 'biome-ancestor'
     | 'zone'
     | 'elevation'
-    | 'universe';
+    | 'universe'
+    // ⭐⭐ The room's own envelope answered: it is holding a state
+    // different from its outside, and {@link EnvelopeTrace} says what
+    // is keeping it there. The one provenance that is not a layer of
+    // the chain but a THING THE ROOM IS DOING, which is why `feel` can
+    // name a cause a player can walk over and look at.
+    | 'envelope';
   /**
    * Path of the source — ancestor template path for detail / room,
    * biome template path for biome / biome-ancestor, zone path for
@@ -73,6 +79,31 @@ export interface AtmosphericTrace<V> {
   sourcePath: string | null;
   /** Containment ancestor template paths traversed during the walk. */
   ancestorChain: string[];
+  /** Present iff `source === 'envelope'`. What is keeping it there. */
+  envelope?: EnvelopeTrace;
+}
+
+/**
+ * ⭐ Why this room is the temperature it is — the read `feel` turns into
+ * a sentence. Every field is derived; none of it is authored, which is
+ * exactly what makes it safe to say out loud. A room that is warm for
+ * no reason a player can be told would have to report `heatInputW: 0`
+ * and an outside colder than itself, and that is the dishonesty showing
+ * up in the fiction before anybody runs a gate.
+ */
+export interface EnvelopeTrace {
+  /** What it is drifting toward, K. */
+  outsideK: number;
+  /** What is burning in it, W. */
+  heatInputW: number;
+  /** Its total heat-loss coefficient, W/K. */
+  uWperK: number;
+  /** How many exterior openings stand open. */
+  openings: number;
+  /** The Material its walls are made of — what `feel` names. */
+  enclosureMaterialPath: string;
+  /** The hottest space-heating source present, for the prose. */
+  hottestSource: string | null;
 }
 
 /**
@@ -310,6 +341,23 @@ export class BiomeApi {
    */
   public static isSkyExposed(scope: Stuff & Container): boolean {
     return logic().isSkyExposed(scope);
+  }
+
+  /**
+   * ⭐ What a scope is drifting TOWARD, in K — the chain's answer plus
+   * the weather, with no envelope applied. For a sky-exposed scope that
+   * is simply its own temperature; for an enclosed one it is the air on
+   * the other side of the wall.
+   *
+   * ⚠ The weather is folded only where the answer came from the SKY
+   * (the universe baseline or a `SkyExposedBiome`). A biome may say
+   * what the outside air is doing — a working IS 285 K the year round —
+   * but that is rock, and a storm must not cool it.
+   */
+  public static async outsideTemperatureFor(
+    scope: Stuff & Container
+  ): Promise<Quantity<'K'>> {
+    return logic().outsideTemperatureFor(scope);
   }
 
   /**

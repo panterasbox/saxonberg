@@ -377,7 +377,7 @@ venue-generic persistable room ([furnishing.md](./furnishing.md)) — and
 the class this build originally minted for the job (`TitledRoom`,
 `PersistableMixin(CartesianLocation)`) is **retired**. Everything the
 yard needs is already there: it is a persistence host, it composes
-`Populates`, it is not singleton-shaped, and it authors no `air`
+`Staged`, it is not singleton-shaped, and it authors no `air`
 reserve, which is what "outdoors" means to `FireLogic`.
 
 Losing `CartesianLocation` loses `getSizeScale()` = the zone's

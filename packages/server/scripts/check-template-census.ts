@@ -156,6 +156,34 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(f, data[f]);
   }
+  // ⭐ `enclosure.material` — what a place is BOUNDED BY.
+  // Resolved live at the first async temperature read, and a rowless one
+  // silently falls back to the universe default: the room would quietly
+  // be made of something else and nothing would say so. `lint:envelope`
+  // clause (b) additionally checks the material CONDUCTS.
+  if (data.enclosure && typeof data.enclosure === 'object') {
+    push('enclosure', (data.enclosure as Record<string, unknown>).material);
+  }
+
+  // ⭐ `costume:` — the garments an authored person has on, the third
+  // designation beside `props:` and `cast:`. It was `wears:` on `NPC`
+  // until review (2026-09-25); this gate is the reason the rename is
+  // safe, because it refuses a path-shaped field `refsOf` does not read
+  // and said so by name on the first run — *"if this is a RENAME of a
+  // field refsOf used to read, the census has just gone blind on every
+  // ref it carried"*. It knows because `populates: → props:/cast:` cost
+  // it 322 of 462 refs while still reporting green.
+  //
+  // ⚠ Read here because a rowless or misspelt garment used to be
+  // silently one layer of insulation a character does not have,
+  // discovered only when they froze in a winter the content pass was
+  // supposed to have dressed them for. `CostumedMixin.applyCostume` now
+  // THROWS on both cases, so this is the second of two locks rather than
+  // the only one.
+  if (Array.isArray(data.costume)) {
+    for (const g of data.costume as unknown[]) push('costume', g);
+  }
+
   // ⭐ A Wood row's `mix:` — the species standing on a clearing, each
   // naming its Species row, the wood a felled one is made of and the seed
   // it drops. All three resolve live at a felling; a rowless one is a
@@ -694,7 +722,7 @@ function checkTemplatePathConstants(rows: Map<string, string>): number {
  * ── clause (d): a `cast:` entry names an AGENT ────────────────────────
  *
  * ⚠⚠ **`props:`/`cast:` is a DECLARED DESIGNATION with a gate in both
- * directions.** `PopulatesMixin.applyCast` refuses a row that does not
+ * directions.** `StagedMixin.applyCast` refuses a row that does not
  * resolve to a `Behaved` class — *that is a prop, not cast* — and throws
  * at HYDRATE. When the row carrying the list is in a pack's `boot:`
  * chain, that is a FATAL boot error rather than a warning.
@@ -751,7 +779,7 @@ function checkCastAreAgents(rows: Map<string, string>): number {
           detail:
             `\`cast:\` names ${target}, whose class ${cls} is not on an ` +
             `agent branch — that is a PROP, not cast. It throws at hydrate ` +
-            `(\`PopulatesMixin.applyCast\`); list it under \`props:\`.`,
+            `(\`StagedMixin.applyCast\`); list it under \`props:\`.`,
         });
       }
     }

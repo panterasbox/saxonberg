@@ -215,7 +215,7 @@ existence / files your death). The **threshold and the wall.**
 - **Realized Stuff:** the **STAFF ONLY door** (`Boundary` — the access wall), the
   **census form** (takeable; §13), the **requested record / the morgue's
   certificate** (a real evidence item you obtain and carry — points *deeper*).
-- **NPCs:** **zero carved.** The **queue** = spawned (`Populates`) — the census
+- **NPCs:** **zero carved.** The **queue** = spawned (`Staged`) — the census
   processing a city of the living, *spawning the victim category at the counter*
   (the uncountable, §15.2, administered in/out of existence — the arc's most loaded
   *sight*). The windows are **affordances**, not characters; the city makes you

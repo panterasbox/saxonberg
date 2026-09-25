@@ -109,6 +109,40 @@ describe("verb affordances come from class statics, and only from there", () => 
     expect(affords(player, "sharpen")).toBe(false); // dropped → gone
   });
 
+  // ⭐⭐ **A lamp in your hand is not your sibling.** `FurnaceMixin`
+  // declared its verbs under `peers` only, which is the whole story for
+  // a forge, an oven and a kiln — none of them is ever picked up, and a
+  // furnace standing in a room IS your sibling. The envelope build gave
+  // a carriable light the same mixin, and `ignite`/`douse` would have
+  // died at the affordance link the moment it left the floor: `light
+  // lantern` answering "you don't see any 'lantern' here" with the
+  // lamp in the player's hand, while every controller test stayed
+  // green, because a controller test never runs the binder.
+  //
+  // ⚠ The tell to remember: **you are your lamp's CONTAINER, not its
+  // peer**, so only `environment` reaches you. `ChargedMixin` (the mana
+  // wand you hold) has declared both buckets since it shipped.
+  it("⭐ a FURNACE affords ignite/douse both carried and from the floor", async () => {
+    const { FurnaceMixin } = await import("../../fire/Furnace");
+    class Lantern extends FurnaceMixin(ContainableMixin(Idea)) {}
+    CommandApi.getCommand("platform/cmd/device/ignite.yaml");
+
+    const room = makeStuff(() => new Room());
+    const player = makeStuff(() => new Player());
+    const lantern = makeStuff(() => new Lantern());
+    ContainmentApi.move(player, room);
+
+    // On the floor beside you: a peer, which is how a forge works.
+    ContainmentApi.move(lantern as never, room);
+    expect(affords(player, "ignite")).toBe(true);
+    expect(affords(player, "douse")).toBe(true);
+
+    // ⭐ And in your hand, which is what `peers` alone could not do.
+    ContainmentApi.move(lantern as never, player);
+    expect(affords(player, "ignite")).toBe(true);
+    expect(affords(player, "douse")).toBe(true);
+  });
+
   // ⭐⭐ **You keep what you carry.** A move calls
   // `resetCommandSources`, which drops every `environment` and `peers`
   // entry, and the re-push afterwards reached only the DESTINATION's

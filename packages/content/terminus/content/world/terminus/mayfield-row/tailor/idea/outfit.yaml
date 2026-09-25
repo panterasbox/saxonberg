@@ -36,7 +36,12 @@ data:
     - positionKey: tailor
       assignee: /world/terminus/mayfield-row/tailor/agent/tailor
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+        # ⭐ Real hours (envelope S8). This authored `[0, 24]` — a house
+        # staffed around the clock — which was never true of it and made
+        # the night indistinguishable from the day. The `shifts` brain
+        # parks off-shift cast in the venue's Offstage, so the street
+        # genuinely empties.
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
   # ⭐⭐ **The SECOND house posting to the hall board** (trades-and-labor
   # D16). One line is not a labor market: the acceptance criterion is work
   # at world start **from more than one supplier**, and until this row the

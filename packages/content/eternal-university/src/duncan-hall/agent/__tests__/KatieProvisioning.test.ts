@@ -167,16 +167,16 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     });
   });
 
-  it('composes PopulatesMixin so her master ring is an authored loadout, not self-issued', () => {
+  it('composes StagedMixin so her master ring is an authored loadout, not self-issued', () => {
     // The master ring is `props`d in from npc/master-ring.yaml (an
-    // owner-authored spawn loadout). That only works if Katie is a Populates
+    // owner-authored spawn loadout). That only works if Katie is a Staged
     // host — this pins the composition (the seed row's credential is proven a
     // working pin-tumbler master in lib/lock/__tests__/Lock.test.ts).
     const katie = makeStuffAtPath(
       () => new Katie(),
       '/world/terminus/eternal/duncan-hall/agent/katie',
     );
-    expect(MixinApi.hasMixin(katie, Mixins.Populates)).toBe(true);
+    expect(MixinApi.hasMixin(katie, Mixins.Staged)).toBe(true);
   });
 
   it('affords the operator provision/unprovision surface as content (not a core mixin)', () => {

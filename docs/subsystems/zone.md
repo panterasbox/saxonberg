@@ -387,7 +387,7 @@ needed instance dispatch. The build's source slates (the
 zone-architecture and declarative-content slates, since retired — their
 authoring guidance folded into the "Authoring guidelines" section below
 and into [templates.md](./templates.md)); the spawn-shape side
-(`PopulatesMixin` + `container:` instruction field, with live-ref
+(`StagedMixin` + `container:` instruction field, with live-ref
 consultation in `Avatar.enter` for the across-restart spawn case)
 shipped in a follow-up build — see
 [templates.md § Hydrator contract](./templates.md#the-hydrator-contract)

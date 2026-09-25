@@ -1,12 +1,28 @@
-# Indoor tier baseline — climate-controlled. NOT sky-exposed. Sub-
-# tier baselines (academic / residential / social / civic / special)
-# extend this.
+# Indoor tier baseline — NOT sky-exposed. Sub-tier baselines (academic /
+# residential / social / civic / special) extend this.
+#
+# ⭐⭐ **It no longer declares a temperature, and it never may again.**
+#
+# This row used to author 294 K — 21 °C — and every interior in the realm
+# inherited it, in January, at 4 a.m., with the door standing open. That
+# was the decree the envelope build removed: an indoor temperature is now
+# DERIVED from what the room is built of, what stands open, and what is
+# burning in it, and a room with none of those is as cold as outside,
+# which is correct.
+#
+# ⚠ The line a biome may not cross, and `lint:envelope` clauses (c) and
+# (d) hold it: *a biome may say what the outside AIR is doing; it may
+# never say how well a structure holds heat.* Climate is a fact about the
+# air and construction is a fact about the room. Put construction on a
+# biome and you get `biome: warm-tavern` warming rooms with no fire in
+# them, cascading to every row that references it — the dishonest-physics
+# failure in its purest form, and the reason "indoor" is a folder that
+# means *an enclosure* rather than a climate.
 class: /platform/idea/Biome
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: indoor-baseline
   _extendsBiomePath: /stuff/idea/biome/universe
-  _defaultTemperature: { value: 294, unit: K }
   _defaultHumidity:    { value: 45, unit: "%" }
   _defaultGravity:     { value: 9.81, unit: "m/s²" }
   _defaultAtmosphere:  air

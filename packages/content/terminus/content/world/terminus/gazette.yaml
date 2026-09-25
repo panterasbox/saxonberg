@@ -18,6 +18,12 @@ data:
     - positionKey: editor
       assignee: /world/terminus/gazette/agent/editor
       schedule:
+        # ⭐ The ONE house in the realm that keeps `[0, 24]`, and it keeps
+        # it on purpose (envelope S8, which gave every other business real
+        # hours). A press runs to a DEADLINE rather than to an opening
+        # time: news arrives when it arrives, and an editor who is off
+        # shift when it does is an editor who misses it. Everywhere else
+        # shuts, the staff go, and the street empties.
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
   label: "the Terminus Gazette"
   realm: world

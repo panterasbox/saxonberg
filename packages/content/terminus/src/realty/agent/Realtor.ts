@@ -29,7 +29,7 @@
 
 import NPC from "@saxonberg/server/mud/lib/npc/NPC";
 import { CastMixin } from "@saxonberg/server/mud/lib/npc/Cast";
-import { PopulatesMixin } from "@saxonberg/server/mud/lib/stuff/Populates";
+import { StagedMixin } from "@saxonberg/server/mud/lib/stuff/Staged";
 import {
   DialogueEffectRegistry,
   type DialogueEffectHandler,
@@ -62,7 +62,7 @@ interface Offer {
 
 const TOPIC = "civics.title";
 
-export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
+export default class Realtor extends CastMixin(StagedMixin(NPC)) {
   /**
    * Register the two effects once the NPC is live — the
    * `BankCounter.postRegister` shape. A live fixture in the world is

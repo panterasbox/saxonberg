@@ -97,12 +97,34 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
   });
 
   it("below the band: satiation falls and the core holds at setpoint", () => {
-    const c = body({ ambientK: 270 });
+    // ⚠ 290 K, not 270. A naked body's comfort floor is 302 K, so this
+    // is a 12 K gap — inside the 20 K that shivering can actually
+    // cover, which is the regime where "holds at setpoint" is a true
+    // sentence. The envelope build (W1) capped shivering at five times
+    // basal metabolism, and at 270 K a naked body is 32 K under its
+    // floor and simply cannot hold: see the sibling test below.
+    const c = body({ ambientK: 290 });
     core(c);
     const satBefore = sat(c);
     advance(c, 600);
     expect(core(c)).toBeCloseTo(310, 0); // held while affordable
     expect(sat(c)).toBeLessThan(satBefore); // burned fuel to hold
+  });
+
+  it("⭐⭐ past what shivering can cover: the core FALLS, and the body does not starve doing it", () => {
+    // Shivering peaks at ~5× basal metabolism, so there is a gap past
+    // which a body is losing whatever it spends. The shipped model was
+    // uncapped and linear, so a cold enough room simply drained the
+    // tank at whatever rate the arithmetic asked and the body **starved
+    // to death in a snowdrift** — the wrong death twice over, because
+    // cold kills by cooling you and hypothermia is rescuable.
+    const c = body({ ambientK: 270 }); // 32 K under a naked body's floor
+    core(c);
+    const satBefore = sat(c);
+    advance(c, 600);
+    expect(core(c)).toBeLessThan(309); // losing, not holding
+    expect(sat(c)).toBeLessThan(satBefore); // still shivering
+    expect(sat(c)).toBeGreaterThan(satBefore - 10); // but capped, not drained
   });
 
   it("above the band: hydration falls (sweating to hold)", () => {

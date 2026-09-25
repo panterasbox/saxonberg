@@ -38,6 +38,7 @@ import type { LightConduit } from '../../../lib/boundary/Conduit';
 import type { Conduit } from '../../../lib/boundary/Conduit';
 import type { Boundary } from '../../../lib/boundary/Boundary';
 import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
+import { CelestialApi } from '../../../api/celestial';
 
 const DEFAULT_VISION_PROFILE: VisionProfile = {
   scotopicMin: 'pitch-black',
@@ -74,7 +75,26 @@ export class VisionModality extends Modality {
    * pre-migration contract.
    */
   public override signalAt(loc: Stuff & Container): Light {
-    const acc = walkFluxAt(loc, 0, new Set<string>());
+    return this.walkLight(loc, CelestialApi.skyFactorNow());
+  }
+
+  /**
+   * ⭐⭐ **How bright this place gets**: the same walk with the sky
+   * evaluated at its DAILY PEAK instead of at this minute. See
+   * {@link Modality.peakSignalAt} for why — a consumer asking how good
+   * a spot is cannot sample an instant of a curve that goes to zero
+   * every night.
+   *
+   * ⚠ Only the sky leg moves. A lamp burning in a cellar reads the same
+   * either way, which is right: a lamp does not have a day.
+   */
+  public override peakSignalAt(loc: Stuff & Container): Light {
+    return this.walkLight(loc, CelestialApi.skyFactorDailyPeak());
+  }
+
+  /** The shared body of {@link signalAt} / {@link meanSignalAt}. */
+  private walkLight(loc: Stuff & Container, skyFactor: number): Light {
+    const acc = walkFluxAt(loc, 0, new Set<string>(), skyFactor);
     if (acc.flux === 0 && acc.sources.length === 0) return Light.ZERO;
     const scale = readSizeScale(loc);
     const lux = scale > 0 ? acc.flux / scale : acc.flux;
@@ -98,9 +118,17 @@ export class VisionModality extends Modality {
     loc: Stuff & Container,
     signal: Light,
   ): VisionPercept {
-    const raw = Light.bandFor(signal.intensity.rawValue());
+    const lux = signal.intensity.rawValue();
+    const raw = Light.bandFor(lux);
     const profile = this.viewerVisionProfile(viewer);
-    const shifted = Light.applyBandShift(raw, profile.bandShift);
+    // ⚠⚠ A band shift cannot MANUFACTURE photons. `applyBandShift` is
+    // index arithmetic on the lux tag table, so a `bandShift: +1` species
+    // used to read `very-dim` in a sealed cellar with no light in it at
+    // all — never noticed, because until this build nowhere was dark. A
+    // night-sighted species sees further into the dark; it does not see
+    // in the absence of light (envelope D11).
+    const shifted =
+      lux > 0 ? Light.applyBandShift(raw, profile.bandShift) : raw;
     const final = isPerception(viewer)
       ? viewer.perceivedBandModifier(shifted, loc)
       : shifted;
@@ -271,6 +299,7 @@ function walkFluxAt(
   loc: Stuff & Container,
   depth: number,
   visited: Set<string>,
+  skyFactor: number,
 ): FluxAccumulator {
   const acc = newAccumulator();
   if (depth > MAX_HOPS) return acc;
@@ -278,14 +307,27 @@ function walkFluxAt(
   if (visited.has(id)) return acc;
   visited.add(id);
 
-  // (a) Ambient — the location itself contributes flux + color temp,
-  // scaled by the cached weather cloud-dimming factor (Wave 2): overcast /
-  // storm reads dimmer. The factor is stamped by the weather boundary
-  // fan-out and read synchronously here — no async weather resolve on the
-  // perception hot path. `1` (the default) is byte-identical to pre-Wave-2.
+  /** Light from OTHER scopes — legs (d) and (e). Capped as one. */
+  const spill: { sub: FluxAccumulator; tau: number; area: number }[] = [];
+
+  // (a) Ambient — the location itself contributes flux + color temp.
+  //
+  // ⭐⭐ For a SKY-LIT scope (envelope D4) this is three factors that know
+  // nothing about each other, multiplied: the scope's own noon flux (its
+  // area, or an authored calibration), the sky's illuminance factor right
+  // now (the sun's altitude, the moon's phase and altitude, a starlight
+  // floor — `CelestialApi.skyFactorNow`, memoized per game minute), and
+  // the cached weather cloud-dimming factor. That is why the same street
+  // reads `bright` at noon and `very-dim` under a full moon with nothing
+  // authored on the row and no stamp to go stale.
+  //
+  // Everything else — an inherent glow, a `'sky'`-less interior with a
+  // calibration value on it — reads its stored ambient dimmed by the
+  // weather, exactly as before.
   if (MixinApi.isAmbientLit(loc)) {
-    const ambientFlux =
-      loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
+    const ambientFlux = loc.isSkyLit()
+      ? loc.skyNoonFlux() * skyFactor * loc.getWeatherDimFactor()
+      : loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
     if (ambientFlux > 0) {
       const ambientColorTemp = loc.getAmbientColorTemperature();
       addContribution(acc, ambientFlux, {
@@ -298,17 +340,69 @@ function walkFluxAt(
     }
   }
 
+  // ⭐⭐ (a′) The TOWN's lamps — a property of the street, not an object
+  // on it. Nothing is minted: a street declares that the service runs
+  // here, and whether it is burning right now is derived from the hour
+  // and from whether the extent paid for this street tonight. The
+  // source ref is the STREET, so `analyze light` names the place rather
+  // than a lamp that does not exist.
+  if (MixinApi.isPublicLighting(loc)) {
+    const civic = loc.publicLightingFlux();
+    if (civic > 0) {
+      addContribution(acc, civic, {
+        stuffId: id,
+        flux: civic,
+        colorTemperature:
+          loc.getPublicLighting()?.colorTemperature ?? null,
+      });
+    }
+  }
+
   // (b) Contents-side emitters.
   for (const item of loc.getContents()) {
-    if (!MixinApi.isLightSource(item)) continue;
-    const flux = item.getEmittedFlux().rawValue();
-    if (flux <= 0) continue;
-    const colorTempQ = item.getEmittedColorTemperature();
-    addContribution(acc, flux, {
-      stuffId: (item as unknown as Stuff).stuffId,
-      flux,
-      colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
-    });
+    if (MixinApi.isLightSource(item)) {
+      const flux = item.getEmittedFlux().rawValue();
+      if (flux > 0) {
+        const colorTempQ = item.getEmittedColorTemperature();
+        addContribution(acc, flux, {
+          stuffId: (item as unknown as Stuff).stuffId,
+          flux,
+          colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
+        });
+      }
+    }
+
+    // ⭐⭐ (b′) **A lantern IN SOMEBODY'S HAND lights the room.**
+    //
+    // ⚠ It did not. Leg (b) walks the room's own contents, and a
+    // carried lamp is in the CARRIER's contents, not the room's — so a
+    // player could light a lantern, stand in the pitch dark, and have
+    // the street read exactly as black as before. Acceptance 4 is
+    // *"a player who lights a lantern can work by it"*, and it was
+    // false. Found by the drive: `analyze light` read identically
+    // before and after `light lantern`.
+    //
+    // It is the mirror of a rule the perception gate already has —
+    // *what you HOLD you see in the light of where you stand, not in
+    // the dark of your own pocket*. The light goes the other way for
+    // the same reason: you are holding it up, in this room.
+    //
+    // ONE level deep and only through a person. Not recursive: a lamp
+    // sealed in a chest in a pack is not lighting anything, and a
+    // general recursion would make the hot path walk the world.
+    if (!MixinApi.isContainer(item)) continue;
+    if (loc instanceof Location && item instanceof Location) continue;
+    for (const held of (item as Stuff & Container).getContents()) {
+      if (!MixinApi.isLightSource(held)) continue;
+      const flux = held.getEmittedFlux().rawValue();
+      if (flux <= 0) continue;
+      const colorTempQ = held.getEmittedColorTemperature();
+      addContribution(acc, flux, {
+        stuffId: (held as unknown as Stuff).stuffId,
+        flux,
+        colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
+      });
+    }
   }
 
   if (MixinApi.isAdornable(loc)) {
@@ -325,7 +419,9 @@ function walkFluxAt(
       });
     }
 
-    // (d) Cross-boundary propagation.
+    // (d) Cross-boundary propagation. ⭐ Collected, not merged: legs (d)
+    // and (e) are both light from ANOTHER scope, so they share one cap —
+    // see {@link mergeCapped}.
     for (const fx of loc.getFixtures()) {
       if (!BoundaryAnchor.is(fx)) continue;
       const anchor = fx;
@@ -342,8 +438,9 @@ function walkFluxAt(
         otherHost as unknown as Stuff & Container,
         depth + 1,
         visited,
+        skyFactor,
       );
-      mergeAttenuated(acc, sub, tau);
+      spill.push({ sub, tau, area: readSizeScale(otherHost as unknown as Stuff & Container) });
     }
   }
 
@@ -374,11 +471,12 @@ function walkFluxAt(
       if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
         continue;
       }
-      const sub = walkFluxAt(dest, depth + 1, visited);
-      mergeAttenuated(acc, sub, EXIT_TAU);
+      const sub = walkFluxAt(dest, depth + 1, visited, skyFactor);
+      spill.push({ sub, tau: EXIT_TAU, area: readSizeScale(dest) });
     }
   }
 
+  mergeCapped(acc, spill, readSizeScale(loc));
   return acc;
 }
 
@@ -400,6 +498,52 @@ function mergeAttenuated(
       flux: s.flux * tau,
       colorTemperature: s.colorTemperature,
     });
+  }
+}
+
+/**
+ * ⭐⭐⭐ **An opening cannot make you brighter than what is on the other
+ * side of it**, and more openings onto the same day do not stack.
+ *
+ * Light arriving from OTHER scopes — through a doorway or a window —
+ * is therefore capped at the **brightest neighbour's illuminance**,
+ * while a scope's own light (its ambient, its contents, its fixtures,
+ * what you are carrying) sums normally. Three windows onto a 45-lux
+ * afternoon give you an afternoon, not three of them.
+ *
+ * ⚠⚠ **Why this exists.** `EXIT_TAU` is `1.0` — *no extra dimming on
+ * exit traversal* — so the leg added each neighbour's ENTIRE flux and
+ * then divided by the RECEIVER's area, and a room in a chain of bright
+ * rooms came out brighter than every room lighting it. At midday
+ * `delight-road/crossroads` — which authors **600 lumens over 400 m²**,
+ * 1.5 lux, and which `lint:light-sources` calls *"deliberate gloom"* —
+ * read `blinding`. Found by the sweep's browser walk (2026-09-25); the
+ * wire drive could not see it, because the drive boots at `t = 0` and
+ * `t = 0` is always midnight.
+ *
+ * ⚠ It was harmless until this build: before W0 no outdoor row carried
+ * 24 000 lumens of ambient. **A consumer written when the input was
+ * small** — the same shape as the forestry test and the plants.
+ */
+function mergeCapped(
+  parent: FluxAccumulator,
+  spill: readonly { sub: FluxAccumulator; tau: number; area: number }[],
+  receiverArea: number,
+): void {
+  if (spill.length === 0) return;
+  let capLux = 0;
+  for (const { sub, tau, area } of spill) {
+    const lux = area > 0 ? (sub.flux * tau) / area : sub.flux * tau;
+    if (lux > capLux) capLux = lux;
+  }
+  const capFlux = capLux * (receiverArea > 0 ? receiverArea : 1);
+  const rawFlux = spill.reduce((n, { sub, tau }) => n + sub.flux * tau, 0);
+  if (rawFlux <= 0) return;
+  // Scale every contribution by one factor, so `analyze light`'s
+  // per-source attribution still adds up to what the room actually reads.
+  const scale = rawFlux > capFlux ? capFlux / rawFlux : 1;
+  for (const { sub, tau } of spill) {
+    mergeAttenuated(parent, sub, tau * scale);
   }
 }
 

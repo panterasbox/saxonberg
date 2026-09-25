@@ -277,30 +277,23 @@ export class TestHooks {
    * temperature: the fishing drive's angler collapsed at the seventh
    * hour, and no player is naked. Tolerant of missing garments, as
    * `embody` is.
+   *
+   * ⭐ The cold branch was retuned in the envelope build (W1) and the
+   * old 4.5-hour figure no longer holds — but dressing a test character
+   * is still right, because a real one arrives dressed and a harness
+   * that differs from the game on a body-physics input is measuring the
+   * wrong world.
    */
   static async #dress(avatar: Avatar): Promise<void> {
     const { default: EmbodyController } = await import(
       '../mud/platform/idea/cmd/charactergen/EmbodyController'
     );
-    const { StuffApi } = await import('../mud/api/stuff');
-    const { MixinApi } = await import('../mud/api/mixin');
-    const { ContainmentApi } = await import('../mud/api/containment');
     const outfit = EmbodyController.loadConfig().aspirations[0]?.outfit ?? [];
-    const bodyPlanPath = MixinApi.isOrganism(avatar)
-      ? (avatar.getSpecies()?.getBodyPlanPath() ?? null)
-      : null;
-    for (const garmentPath of outfit) {
-      try {
-        const garment = await StuffApi.clone(garmentPath);
-        if (!MixinApi.isContainable(garment)) continue;
-        ContainmentApi.move(garment, avatar);
-        if (bodyPlanPath && MixinApi.isWearable(garment)) {
-          const slots = garment.getSlotClaim(bodyPlanPath);
-          if (slots.length) avatar.occupyAll(garment, slots);
-        }
-      } catch {
-        /* skip this garment */
-      }
-    }
+    // ⭐ The recipe itself is `Character.wearGarments` since the
+    // envelope build (W1), where authored NPCs needed the same thing
+    // and a second copy would have been the third. This hook still
+    // decides WHICH outfit a test character gets; putting it on is the
+    // mudlib's.
+    await avatar.wearGarments(outfit);
   }
 }

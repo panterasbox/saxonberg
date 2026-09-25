@@ -67,7 +67,7 @@ of create-monster, a re-stocked room, a wandering-population tick). Shares the
 "what belongs here" question; adds tuning, respawn, and a runtime draw.
 
 > ⚠ *Vocabulary is stale: `populates:` is retired — the static form is the
-> `props:` / `cast:` designation (`PopulatesMixin`'s two once-flags,
+> `props:` / `cast:` designation (`StagedMixin`'s two once-flags,
 > `templates.md` § the appliers). The item half of the dynamic form shipped as
 > the recurring spawn sweep (`residency.md § The sweep is a faucet`); the
 > creature half (on-demand spawn, a wandering-population tick) has not.*

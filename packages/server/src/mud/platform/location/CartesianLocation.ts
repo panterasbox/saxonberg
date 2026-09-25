@@ -28,7 +28,7 @@
  * records nothing read back, on a path that reaps constantly by design.
  *
  * A minted location needs no record: its fixtures come from its row on
- * every mint (`Populates`), and anything a PLAYER leaves there is
+ * every mint (`Staged`), and anything a PLAYER leaves there is
  * chattel, which persists owner-side against the owner's estate.
  * `FurnishableRoom` — the interior somebody furnishes, whose contents
  * must survive — extends THIS and adds `Persistable` back.

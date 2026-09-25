@@ -5,6 +5,22 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: gaps
+  # ⭐ What this place is BUILT OF (envelope build). A CAUSE, never an
+  # effect: you cannot author "well-insulated" here — you name a
+  # material the world already carries real numbers for, and the
+  # physics decides how fast the place loses its heat.
+  # A woodshed is BOARDS. Oak at 0.17 W/(m·K) over 50 mm is a tenth of
+  # granite's loss, so it warms fast off a small fire and goes cold fast
+  # too — which is the honest trade a timber building makes.
+  enclosure:
+    material: /stuff/idea/material/wood/oak
+    thicknessM: 0.05
   shortDescription: timber woodshed
   keywords: [woodshed, timber]
   register: indefinite
@@ -37,3 +53,8 @@ data:
     - /stuff/thing/items/dry-log
     - /stuff/thing/items/dry-log
     - /stuff/thing/items/wet-log
+  details:
+    gaps:
+      keywords: [gaps, glass, light]
+      description: |
+        The boards are laid with a finger of daylight between each one, which is what keeps the wood dry and the shed usable.

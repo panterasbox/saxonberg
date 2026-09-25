@@ -108,8 +108,52 @@ export const THERMAL_DEFAULTS = {
    * ambient inside `[setpoint ± this]` costs nothing (Option C).
    */
   BAND_HALF_WIDTH_K: 8,
-  /** Cold-side fuel spend (satiation %-points per game-min per K of gap). */
-  COLD_SPEND_PER_DEGREE: 0.05,
+  /**
+   * Cold-side fuel spend (satiation %-points per game-min per K of gap).
+   *
+   * ⚠⚠ **Retuned 2026-09-24 (envelope W1), from `0.05`, by measurement.**
+   * The shipped value burned 21 %/h on a NAKED body at 294 K — the
+   * shipped indoor decree, a comfortable room — and 47 %/h on a
+   * *dressed* one at 8 °C. Every one of the cold bench's sixteen rows,
+   * at every temperature and every insulation level, was **dead inside
+   * twelve game hours**: a body in a wool coat in a 21 °C room starved
+   * to death. Nobody saw it because every interior in the realm was
+   * 21 °C by decree and nothing kept a cast member anywhere for long;
+   * the envelope build removes the decree, so the dial had to be true
+   * before rooms were allowed to get cold.
+   *
+   * Calibrated against {@link COLD_SPEND_MAX_BASAL_MULT}: the product
+   * `cap / this` is the temperature gap shivering can actually cover,
+   * and it is set so that gap is **20 K**. That is not arbitrary — a
+   * naked body's comfort floor is 302 K, so 20 K of coverage puts its
+   * drift target at 282 K ≈ the `survivableMin` of 301 K, which says:
+   * *a naked human outdoors on an 8 °C night is exactly on the
+   * hypothermia line*. Which is true.
+   */
+  COLD_SPEND_PER_DEGREE: 0.005,
+  /**
+   * ⭐⭐ **The ceiling on shivering, as a multiple of basal metabolism.**
+   *
+   * Shivering thermogenesis peaks at roughly five times resting
+   * metabolic rate; a body cannot spend its way out of an arbitrarily
+   * cold room, and the shipped model let it try — the cold branch was
+   * linear in the gap and **uncapped**, so a cold enough room simply
+   * drained the tank at whatever rate the arithmetic asked for and the
+   * body starved to death in a snowdrift.
+   *
+   * ⚠ That is the wrong death. Cold kills by COOLING you, and
+   * hypothermia is rescuable — somebody can carry you inside, and the
+   * `warm` verb exists for exactly that. Starvation is not rescuable on
+   * that timescale and reads as a bug. So past the gap this cap can
+   * cover, the body stops trying to hold the setpoint and **drifts
+   * toward the warmest temperature its shivering CAN defend**
+   * (`ambient + coveredGap`) — see `integrateThermalSlice`.
+   *
+   * Named against metabolism's own basal drain rather than written as a
+   * bare rate, so the two cannot drift apart: if resting metabolism is
+   * ever retuned, the ceiling on shivering follows it.
+   */
+  COLD_SPEND_MAX_BASAL_MULT: 5,
   /** Hot-side water spend (hydration %-points per game-min per K of gap). */
   HEAT_SPEND_PER_DEGREE: 0.06,
   /**
@@ -161,8 +205,22 @@ export const THERMAL_DEFAULTS = {
    * The lethal dwell still reads `survivableMax`.
    */
   HYPERTHERMIA_ONSET_K: 2.5,
-  /** Each worn `clo` warms effective ambient this many K toward setpoint. */
-  CLO_TO_KELVIN: 2.5,
+  /**
+   * Each worn `clo` widens the comfort band downward by this many K.
+   *
+   * ⭐ **Retuned 2026-09-24 (envelope W1) from `2.5`, to the number the
+   * unit is DEFINED by.** One clo is the insulation at which a seated
+   * person is comfortable at 21 °C — that is what the unit means. A
+   * naked body's comfort floor here is `SETPOINT_K − BAND_HALF_WIDTH_K`
+   * = 302 K (29 °C, which is the real thermoneutral zone for an
+   * unclothed human), so one clo must carry it from 302 K down to
+   * 294 K: **8 K per clo, by definition rather than by taste.**
+   *
+   * At 2.5 a wool coat was worth 5 K against a 21 K gap and clothing
+   * barely registered — the bench's first table showed a naked body and
+   * a coated one dying within minutes of each other.
+   */
+  CLO_TO_KELVIN: 8,
   /** Wet-bulb temperature (K) above which sweat can't shed heat (~35 °C). */
   WET_BULB_CEILING_K: 308,
   /** Wind-chill: each m/s of wind cools effective ambient this many K. */
@@ -499,6 +557,36 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     // ---------- reconcile-on-read (lazy time drive) ----------
 
+    /**
+     * ⭐⭐ **A warming room reaches what is standing in it, with no
+     * fan-out.**
+     *
+     * `lastAmbientK` is a cache, stamped at placement, movement and
+     * ambient-shift events. A room whose own temperature drifts
+     * continuously has no such event — it is simply different every
+     * time you look — so a push model would need the room to restamp
+     * everything it contains on a clock, for every room, forever.
+     *
+     * So this is the PULL side, which `weather.md` already recommends
+     * (*"prefer the pull side, as wetness does"*): the moment anything
+     * asks this object how warm it is, it asks its container. Three
+     * lines, no scheduler, and a loaf in a warming kitchen follows the
+     * kitchen without anybody telling it to.
+     *
+     * ⚠ Skipped when a furnace is holding this object — `heatSourceK`
+     * wins, because being IN the fire is not being near it, and the
+     * room's air has nothing to say about a workpiece in a forge.
+     */
+    protected refreshAmbientFromEnvelope(): void {
+      const self = this.thermalHost;
+      if (this.heatSourceK() !== null) return;
+      const scope = (self as unknown as { getContainer(): Stuff | null })
+        .getContainer();
+      if (scope === null || !MixinApi.isAtmospheric(scope)) return;
+      const envelopeK = scope.envelopeTemperatureLast();
+      if (envelopeK !== null) this.lastAmbientK = envelopeK;
+    }
+
     public reconcileThermal(): void {
       if (this._thermalReconciling) return;
       const D = THERMAL_DEFAULTS;
@@ -535,6 +623,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       this._thermalReconciling = true;
       try {
+        this.refreshAmbientFromEnvelope();
         const tau = this.getTau().rawValue();
         const ambient = this.lastAmbientK;
         // Closed-form Newton relaxation — exact for a constant ambient,

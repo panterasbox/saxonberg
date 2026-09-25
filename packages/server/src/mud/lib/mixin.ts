@@ -336,7 +336,9 @@ export const Mixins = {
   Flyable: 'FlyableMixin',
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
-  Populates: 'PopulatesMixin',
+  Staged: 'StagedMixin',
+  /** ⭐ The third designation beside `props:` and `cast:` — see Staged.ts. */
+  Costumed: 'CostumedMixin',
   Persistable: 'PersistableMixin',
   Forkable: 'ForkableMixin',
   Stackable: 'StackableMixin',
@@ -516,6 +518,16 @@ export const Mixins = {
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
   // Meltables in its scope. Generalizes the Campfire pin.
   Furnace: 'FurnaceMixin',
+  // ⭐⭐ SpaceHeating — "this fire exists to warm where you stand". The
+  // hearth / stove / brazier half of the fire family, and deliberately
+  // NOT on `FurnaceMixin`: a forge heats what you put IN it, and that
+  // rule is kept by composition rather than by a guard asking what
+  // something is. The envelope reads it off a room's contents.
+  SpaceHeating: 'SpaceHeatingMixin',
+  // ⭐⭐ PublicLighting — "the town lights this street". A PROPERTY of the
+  // street and prose beside it; nothing is minted. Nobody binds a street
+  // lamp, and every act that matters happens at street granularity.
+  PublicLighting: 'PublicLightingMixin',
   // Magic — the anatomical casting faculty (mana reserve + serenity
   // recovery + composure read + overchannel strain). Composed on
   // Character, gated: active only when the Species intrinsically confers
@@ -684,6 +696,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // the true sentence for both halves.
   CombustibleMixin: "{} won't burn",
   FurnaceMixin: "{} isn't a furnace",
+  SpaceHeatingMixin: "{} doesn't warm a room",
+  PublicLightingMixin: "{} isn't a street the town lights",
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
