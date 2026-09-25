@@ -233,7 +233,7 @@ describe('⭐ pressure derives from elevation — the altimeter reads a cause', 
     const deep = makeStuffAtPath(() => {
       const b = new Biome();
       b.setDefaultPressure(Quantity.of(120_000, 'Pa'));
-      b._extendsBiomePath = '/stuff/idea/biome/universe';
+      b.setExtendsBiomePath('/stuff/idea/biome/universe');
       return b;
     }, '/stuff/idea/biome/deep');
     room.setBiome(deep as never);

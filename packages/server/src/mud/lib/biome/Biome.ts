@@ -8,14 +8,26 @@
  * etc.) is `FolderZone`s for admin / ownership scoping; individual
  * biomes are `Biome` (or `SkyExposedBiome`) leaf templates under them.
  *
- * **Inheritance is explicit.** A biome that wants to inherit defaults
- * from another biome points at it via `_extendsBiomePath` (an identity ref).
- * The chain in `BiomeApi.resolve*For` follows `_extendsBiomePath`
- * refs from leaf upward to the root universe biome (`/stuff/idea/biome/universe`,
- * whose `_extendsBiomePath` is `null`). Path-based templatePath-walk
- * inheritance is gone — the inheritance graph is now independent of
- * the templatePath organization, which keeps Zone's original
- * "domain ownership" meaning intact.
+ * **Inheritance is explicit, and it is now the tree's ONE mechanism.**
+ * A biome that inherits defaults from another names it with the row's
+ * own `extends:` — the same key every other template uses. The private
+ * `_extendsBiomePath` field is gone (2026-09-25); a biome caches its
+ * row's parent at `postRegister` and `getExtendsBiomePath()` answers
+ * from that.
+ *
+ * ⚠⚠ **Biome keeps its own RESOLVER, and that is why every Biome field
+ * declares `inherit: 'never'`.** `BiomeApi.resolve*For` walks the chain
+ * per READ and reports which ancestor supplied a value (`trace
+ * atmosphere`). If the generic clone-time merge copied a parent's
+ * `_defaultTemperature` onto the child's row, the walk would find the
+ * value on the CHILD and name the wrong ancestor — the reading would
+ * still be right and its provenance would be a lie, which is the worse
+ * failure. So the row link unifies; the resolution does not.
+ *
+ * The chain runs from leaf upward to the root universe biome
+ * (`/stuff/idea/biome/universe`, which names no parent). It is
+ * independent of the templatePath organization, which keeps Zone's
+ * original "domain ownership" meaning intact.
  *
  * `Biome` does NOT compose `SingletonMixin` in v1 — leaves room for
  * future procedural / time-of-day variance per clone.
@@ -30,26 +42,40 @@
  */
 
 import { Idea } from '../stuff/Idea';
+import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import type { FieldMeta } from '../mixin';
 
-export default class Biome extends Idea {
+/**
+ * ⭐ `PostRegistrationMixin` is composed for ONE reason: a live biome has
+ * to know the parent its ROW names, and the row is only readable after
+ * the instance is registered and stamped with its template path.
+ */
+const BiomeBase = PostRegistrationMixin(Idea);
+
+export default class Biome extends BiomeBase {
   /** Display name (e.g. `'universe'`, `'temperate-baseline'`, `'quad'`). */
   protected name: string = '';
 
   /**
-   * Path of the biome this one inherits defaults from. `null` on the
-   * root universe biome (and on any deliberately-exotic biome with
-   * no parent). An identity ref: stored as a path string, re-resolved on
-   * each read via `StuffApi.findByTemplatePath` (HMR-safe).
+   * The parent biome's path, as an OVERRIDE of what the row says.
+   * Transient, engine-written, never authored: `setExtendsBiome` /
+   * `setExtendsBiomePath` write it, and it wins when set. Absent
+   * (`undefined`), the row's own `extends:` answers — cached below.
    */
-  public _extendsBiomePath: string | null = null;
+  private _parentOverride: string | null | undefined = undefined;
 
   /**
-   * Default temperature for descendants (along the `_extendsBiomePath`
-   * chain) that don't override. `null` means "fall through to the
+   * The parent this instance's ROW names, read once at `postRegister`.
+   * `null` for the root universe biome.
+   */
+  private _parentPath: string | null = null;
+
+  /**
+   * Default temperature for descendants (along the `extends:` chain)
+   * that don't override. `null` means "fall through to the
    * parent biome via `_extendsBiomePath`."
    */
   protected _defaultTemperature: Quantity<'K'> | null = null;
@@ -110,21 +136,39 @@ export default class Biome extends Idea {
    * reader can see WHICH readings exist to be taken.
    */
   static fieldMeta: FieldMeta = {
+    // ⚠⚠ EVERY field below declares `inherit: 'never'`. Biome resolves
+    // per READ by its own chain walk and reports which ancestor supplied
+    // each value; a clone-time merge would put the parent's value on the
+    // child's row and make `trace atmosphere` name the child. See the
+    // class docstring.
+
     // ── Identity, and what arriving there is like ──
-    name: { persistent: true },
-    _extendsBiomePath: { persistent: true },
-    _ambientSoundMml: { persistent: true },
-    _ambientSmellMml: { persistent: true },
-    _defaultAtmosphere: { persistent: true },
+    name: { persistent: true, inherit: 'never' },
+    _ambientSoundMml: { persistent: true, inherit: 'never' },
+    _ambientSmellMml: { persistent: true, inherit: 'never' },
+    _defaultAtmosphere: { persistent: true, inherit: 'never' },
 
     // ── Readings an instrument takes ──
-    _defaultTemperature: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
-    _defaultPressure: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('Pa') },
-    _defaultHumidity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('%') },
-    _defaultWind: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s') },
-    _defaultGravity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s²') },
-    _defaultAmbientSoundLevel: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('dB') },
+    _defaultTemperature: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    _defaultPressure: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('Pa') },
+    _defaultHumidity: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('%') },
+    _defaultWind: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s') },
+    _defaultGravity: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s²') },
+    _defaultAmbientSoundLevel: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('dB') },
   };
+
+  /**
+   * Cache this instance's row parent. A by-path template read, which the
+   * resident `content` cache answers from memory.
+   */
+  public override async postRegister(context?: unknown): Promise<void> {
+    await super.postRegister(context);
+    const path = this.getTemplatePath();
+    if (!path) return;
+    const { Template } = await import('../stuff/Template');
+    const row = await Template.findByPath(path);
+    this._parentPath = row?.extends ?? null;
+  }
 
   // ---------- name ----------
 
@@ -143,16 +187,24 @@ export default class Biome extends Idea {
    * immediately.
    */
   public getExtendsBiome(): Biome | null {
-    if (this._extendsBiomePath === null) return null;
-    return StuffApi.findByTemplatePath<Biome>(this._extendsBiomePath) ?? null;
+    const path = this.getExtendsBiomePath();
+    if (path === null) return null;
+    return StuffApi.findByTemplatePath<Biome>(path) ?? null;
   }
 
   /**
-   * Set the parent biome. Stores its templatePath; `null` clears.
+   * Override the parent biome on this LIVE instance. `null` clears it to
+   * "no parent" — which is different from never having set it, where the
+   * row answers.
    */
   public setExtendsBiome(value: Biome | null): void {
-    this._extendsBiomePath =
+    this._parentOverride =
       value === null ? null : (value.getTemplatePath() ?? null);
+  }
+
+  /** The path form of {@link setExtendsBiome} — the same override slot. */
+  public setExtendsBiomePath(value: string | null): void {
+    this._parentOverride = value;
   }
 
   /**
@@ -160,9 +212,15 @@ export default class Biome extends Idea {
    * directly to avoid re-resolving an instance it doesn't otherwise
    * need. Per the ref-shapes identity-ref rule "no raw-path getter unless a
    * real consumer demands it" rule — the consumer is BiomeApi.
+   *
+   * ⭐ **Set wins, otherwise the row wins.** The override exists for the
+   * tests and for any future live re-parenting; the authored truth is
+   * the row's `extends:`.
    */
   public getExtendsBiomePath(): string | null {
-    return this._extendsBiomePath;
+    return this._parentOverride !== undefined
+      ? this._parentOverride
+      : this._parentPath;
   }
 
   // ---------- atmospheric defaults ----------

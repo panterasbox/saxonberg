@@ -3,9 +3,8 @@
 # `cafeteria-atrium`, which sits next to it and explicitly extends
 # it (showcasing path-decoupled inheritance).
 class: /platform/idea/Biome
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/idea/biome/indoor/baseline
 data:
   name: cafeteria
-  _extendsBiomePath: /stuff/idea/biome/indoor/baseline
   _ambientSoundMml: "<markup>a steady roar of voices and clattering trays</markup>"
   _ambientSmellMml: "<markup>warm bread, gravy, and coffee</markup>"

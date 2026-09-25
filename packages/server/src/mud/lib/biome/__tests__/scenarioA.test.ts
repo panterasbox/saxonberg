@@ -41,14 +41,14 @@ describe('Biome scenario A — cafeteria hearth detail override', () => {
     // chain instead of templatePath-driven inheritance.
     makeStuffAtPath(() => {
       const b = new Biome();
-      b._extendsBiomePath = '/stuff/idea/biome/universe';
+      b.setExtendsBiomePath('/stuff/idea/biome/universe');
       b.setDefaultTemperature(Quantity.of(294, 'K'));
       b.setDefaultHumidity(Quantity.of(45, '%'));
       return b;
     }, '/stuff/idea/biome/indoor/baseline');
     makeStuffAtPath(() => {
       const b = new Biome();
-      b._extendsBiomePath = '/stuff/idea/biome/indoor/baseline';
+      b.setExtendsBiomePath('/stuff/idea/biome/indoor/baseline');
       return b;
     }, '/stuff/idea/biome/indoor/social/cafeteria');
   });

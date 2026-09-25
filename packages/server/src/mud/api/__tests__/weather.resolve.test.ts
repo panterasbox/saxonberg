@@ -61,7 +61,7 @@ function installRootBiome(): void {
 function skyRoom(): TestLocation {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/stuff/idea/biome/universe';
+    b.setExtendsBiomePath('/stuff/idea/biome/universe');
     return b;
   }, '/stuff/idea/biome/outdoor/field');
   const room = makeStuff(() => new TestLocation());
@@ -73,7 +73,7 @@ function skyRoom(): TestLocation {
 function indoorRoom(): TestLocation {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = '/stuff/idea/biome/universe';
+    b.setExtendsBiomePath('/stuff/idea/biome/universe');
     return b;
   }, '/stuff/idea/biome/indoor/hall');
   const room = makeStuff(() => new TestLocation());

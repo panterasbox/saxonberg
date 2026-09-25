@@ -19,10 +19,9 @@
 # failure in its purest form, and the reason "indoor" is a folder that
 # means *an enclosure* rather than a climate.
 class: /platform/idea/Biome
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/idea/biome/universe
 data:
   name: indoor-baseline
-  _extendsBiomePath: /stuff/idea/biome/universe
   _defaultHumidity:    { value: 45, unit: "%" }
   _defaultGravity:     { value: 9.81, unit: "m/s²" }
   _defaultAtmosphere:  air

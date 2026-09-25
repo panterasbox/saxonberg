@@ -9,7 +9,7 @@ live in `lib/spatial/`; non-spatial taxonomy zones (`Clade`,
 `Zone`.
 
 `Biome` deliberately does NOT extend `Zone` ([biome.md](./biome.md))
-— biomes are leaf Ideas with explicit `_extendsBiomePath` parent
+— biomes are leaf Ideas whose ROWS name their parent with `extends:`
 refs. The folder structure under `/stuff/idea/biome/` uses `FolderZone`
 templates for the biome team's admin/ownership scoping; the actual
 biome inheritance lives independently in the leaf data.

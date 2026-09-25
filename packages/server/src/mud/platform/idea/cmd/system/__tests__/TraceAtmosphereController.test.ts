@@ -100,7 +100,7 @@ describe('TraceAtmosphereController', () => {
     const biome = makeStuffAtPath(
       () => {
         const b = new Biome();
-        b._extendsBiomePath = '/stuff/idea/biome/universe';
+        b.setExtendsBiomePath('/stuff/idea/biome/universe');
         b.setDefaultTemperature(Quantity.of(285, 'K'));
         return b;
       },

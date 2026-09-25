@@ -49,13 +49,13 @@ describe('Biome scenario C — atrium sibling biome', () => {
     // Plain Biome at the cafeteria slot.
     makeStuffAtPath(() => {
       const b = new Biome();
-      b._extendsBiomePath = '/stuff/idea/biome/universe';
+      b.setExtendsBiomePath('/stuff/idea/biome/universe');
       return b;
     }, '/stuff/idea/biome/indoor/social/cafeteria');
     // SkyExposedBiome sibling that explicitly extends the cafeteria.
     makeStuffAtPath(() => {
       const b = new SkyExposedBiome();
-      b._extendsBiomePath = '/stuff/idea/biome/indoor/social/cafeteria';
+      b.setExtendsBiomePath('/stuff/idea/biome/indoor/social/cafeteria');
       return b;
     }, '/stuff/idea/biome/indoor/social/cafeteria-atrium');
   });

@@ -13,10 +13,9 @@
 # it when the shape goes wrong. A biome that authored blackdamp would
 # make the whole level bad regardless of what anybody dug.
 class: /platform/idea/Biome
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/idea/biome/universe
 data:
   name: upper-workings
-  _extendsBiomePath: /stuff/idea/biome/universe
   _defaultTemperature: { value: 285, unit: K }
   _defaultHumidity:    { value: 95, unit: "%" }
   _defaultGravity:     { value: 9.81, unit: "m/s²" }

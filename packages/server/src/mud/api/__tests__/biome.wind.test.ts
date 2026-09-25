@@ -53,7 +53,7 @@ describe('BiomeApi.resolveWindFor — chain walk', () => {
   it('a windy biome overrides the universe calm', async () => {
     const windy = makeStuffAtPath(() => {
       const b = new Biome();
-      b._extendsBiomePath = '/stuff/idea/biome/universe';
+      b.setExtendsBiomePath('/stuff/idea/biome/universe');
       b.setDefaultWind(Quantity.of(8, 'm/s'));
       return b;
     }, '/stuff/idea/biome/outdoor/windy-pass');
