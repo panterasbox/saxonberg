@@ -93,7 +93,9 @@ Three builds need a sweetener taxonomy and none of them owns it:
   negatively: **honey must NOT satisfy `category: sugar`**, or bees alone
   close the sugar root and the sugar chain loses its demand case. It is also
   true that honey syrup and simple syrup are different drinks.
-- **maple syrup** — the tapping design in the `master` worktree makes a third.
+- **maple syrup** — a third, and **confirmed in scope** (user, 2026-09-25:
+  *"maple syrup will be in scope when we get to tapping yes"*). So the
+  vocabulary has **three** members, not two.
 
 **Three builds each inventing their own category is the duplicate-ground
 hazard the slates index warns about.** It is a vocabulary, not a mechanism,
@@ -140,6 +142,87 @@ it, is the same move.
 6. **hunting**
 
 **The standing rule is unchanged: all RGOs before foraging/hunting.**
+
+## ⚠⚠ The roster is EPOCH-BOUNDED, and that was the oversight
+
+Confirmed 2026-09-25: `docs/roadmap.md` and `docs/vocations.md` contain **zero
+mentions** of oil, drilling, petroleum, rubber, plastics, fertilizer, nitrates,
+phosphate, guano, sulfur, bauxite or copper. The entire **industrial
+extraction epoch is absent from both**, and the `master` worktree walking
+tapping → rubber → drilling → oil → plastics is what surfaced it. User:
+*"the fact that drilling wasn't even on our roadmap was probably an oversight
+even if in the end it ends up being nonblocking."*
+
+⭐⭐ **Why the census missed it, which matters more than the gap.** The census
+that closed the roster worked two ways — demand side was *every recipe's
+`inputSlots[].category` minus every category some recipe produces*; supply
+side was *materials with consumers and no producer*. **Both halves read the
+SHIPPED content.** It found `salt` and `sugar` because medieval recipes ask
+for them, and it could never have found petroleum because **no shipped recipe
+asks for plastic**.
+
+> **A demand-side census is epoch-bounded by construction. It can find a
+> missing producer; it cannot find a missing EPOCH.**
+
+**The fix is a forward pass, and lens 5 is already the instrument:** run the
+epoch ladder (prehistory · medieval · industrial · modern · future) against
+the roster and write down what each epoch *adds*. That converts the
+industrial families from unknown-missing to **known-deferred**, which is the
+difference between an oversight and a decision.
+
+### ⭐⭐ The through-line: an industrial RGO exists to LIFT a medieval limit
+
+| family | the limit it lifts | is the limit modelled today? |
+|---|---|---|
+| nitrates · phosphate · guano | soil nitrogen | ✅ soil.md's four reserves + muck → midden → field |
+| oil · gas | draft animals and muscle | ⏳ `design/energy` in flight |
+| ice → refrigeration | spoilage | ✅ milk keeps hours; cold-chain-slate |
+| rubber · sulfur (vulcanization) | sealing and waterproofing | partly |
+| copper · bauxite | conductors | ✅ electricity.md |
+
+⭐ **So the accommodation the medieval builds owe the industrial ones is not a
+schema change — it is to model the LIMIT honestly.** Fudge soil nitrogen and
+fertilizer becomes a number that makes another number go up; model it
+honestly and fertilizer is a revolution a player can derive.
+
+### The three concrete accommodations
+
+1. ⭐ **The field interface must admit a RIVAL field** — extraction by A
+   reducing what is available to B *elsewhere*. Mining's `Deposit` is not
+   rival across locations (your drift does not drain my seam); **forage is**
+   (two beekeepers on one range) and an oil reservoir is (two wells on one
+   pool — the **rule of capture**). **Forage is the medieval instance, and oil
+   inherits it for free** if bees ships it. This is also why the priority
+   order below is right on technical grounds and not only on taste.
+2. ⚠ **Recovery must be a parameter that can be NONE.** Fishing recovers by
+   half-life, forage recovers seasonally, **a reservoir never recovers.**
+   Trivial if anticipated; a rewrite if the interface assumes regeneration.
+3. ⚠ **Keep the tap honest — a tap is on a LIVING thing's surplus.** Latex is
+   a tap; **oil is not** (it neither lives nor regenerates). If `Producing`
+   drifts into meaning "extraction with recovery" it swallows the field and
+   stops being a claim about anything. The inverse of the usual naming error:
+   do not name substrate so broadly that it asserts nothing.
+
+⭐ And `excludability is physics`
+([metal-chain-slate](./metal-chain-slate.md)'s own phrasing) is the axis both
+forage and oil sit at the non-excludable end of, with mining at the
+excludable end. Already named; no work.
+
+### The priority, settled (user, 2026-09-25)
+
+> **Medieval RGOs before foraging. Late-stage RGOs gated ON foraging** — not
+> the other way around.
+
+So the industrial families do **not** gate foraging, and foraging's completion
+of the derived-field interface is what the later ones build on. ⚠ *Unless* a
+modern RGO's design turns out to really affect how the medieval ones are
+built — which is what the accommodation list above exists to keep checking.
+
+⚠ **A roadmap line is owed and deliberately NOT taken here.** `roadmap.md` is
+a swept index file (CLAUDE.md § Worktrees rule 5), and the envelope build is
+finalizing right now, so adding the industrial-epoch entry from a design
+branch would race its sweep. **Sweep item: add the industrial extraction
+families to the roadmap as known-deferred.**
 
 ## ⚠ Cross-session coordination (2026-09-25)
 
