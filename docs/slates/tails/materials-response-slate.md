@@ -265,3 +265,38 @@ asks whether a material's properties can be computed from a process at all,
 which is a change in the relationship between content and mechanism, not a
 change to a shape. Worth separating when this is planned: two of these are
 cheap and one is a doctrine call.
+
+
+### ⚠⚠ Correction (2026-09-25, after `design/tapping` merged)
+
+The note above says rubber has no home for its distinguishing property. **That
+was too strong, and the rubber row proves it** — `rubber.yaml` ships **fully
+specified**: `hardness: 5` / `toughness: 20` (*"soft and tough"*, which is
+already the elastomer signature), `electricalConductivity: 1.0e-13`
+(*"the material that breaks a ground path"*), `waterAbsorptionCapacity: 0.5`,
+and `tags: [organic, elastomer, insulating, synthetic]`. The **insulation** use
+case — the one `electricity.md` teaches counterplay with — is served **today**.
+
+> ⭐ **So the gap is narrower and sharper than "an elasticity axis": it is the
+> CONTAINMENT FAILURE MODE.** A gasket only matters where containment can fail,
+> and pressure is still unmodelled (`bulk.md` and `thermal.md` mention it zero
+> times; `SealableMixin` is a binary door latch). A number for springiness buys
+> nothing until something can leak.
+
+And [drilling-slate](../builds/drilling-slate.md) names the first real consumer
+in its own Left block — *"the lift (a pump, and ⭐ **a pump needs a rubber
+gasket**)"* — and is deliberately scheduled last. So the honest sequencing is:
+**pressure containment is drilling's prerequisite, not rubber's**, and
+[rubber-slate](../builds/rubber-slate.md) is instead blocked on inquiry's epoch
+on-ramp, because it lands *"the first knowledge-gated recipe and the first
+synthetic material"* via a crosslinking **`Law`** rather than via a new property
+field.
+
+⭐ The third-consumer question above still stands and is unaffected: mana
+density and mana conductivity want additive fields, and plastics wants
+**derived** properties, which remains the doctrine call.
+
+⚠ **Lesson worth keeping: a field list is not a capability census.** Reading
+`Material`'s fields and concluding rubber was unrepresentable was wrong — the
+row was already expressing it with the fields that exist. **Read the row, not
+the schema.**

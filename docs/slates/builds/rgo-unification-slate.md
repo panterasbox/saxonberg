@@ -75,6 +75,35 @@ rather than a compression trick.
 ⚠ The tapping build is the forcing event, so **this wants doing before it
 lands**, not after.
 
+### ⭐⭐ Update 2026-09-25 — `design/tapping` merged, and it took this item
+
+Two corrections from reading what landed:
+
+1. ⭐⭐ **The tap VOCABULARY is already kernel.** `TapSpec` ships at
+   `platform/idea/species/Species.ts:332`, with `protected production:
+   TapSpec[]` plus `getProduction()` / `setProduction()` on `Species`. So the
+   data half was never pack-side: **a tap is a `production:` block on a species
+   row.** What remains pack-side is **`ProducingMixin`** (the host face), and
+   the promotion is smaller than this slate first framed it.
+2. **[tapping-slate](./tapping-slate.md) owns the move**, listing
+   *"`ProducingMixin`'s promotion out of `trade-ranching`"* under its own Left.
+   So this slate tracks it rather than claiming it — and its own status line is
+   the best summary of why it is a promotion at all: *"every piece it needs
+   ships, in three separate places that do not know about each other."*
+
+⭐ **And the rival field has a second claimant, independently.**
+[drilling-slate](./drilling-slate.md) reached the same place from the industrial
+end — it names *"rule of capture vs correlative rights"* as *"a genuine legal
+doctrine"*, and worries about the player who *"drains a field and asks why
+nothing stopped them."* So forage and the reservoir are now **two slates
+describing one primitive**, which is exactly the third-consumer signal — and it
+strengthens the recommendation below: **whoever ships first should ship it as
+the shared one.**
+
+⚠ Drilling is deliberately scheduled **after** destructive distillation and
+behind inquiry's epoch on-ramp, and foraging is nearer. So on current ordering
+**forage defines the rival field**, which is the outcome this slate wanted.
+
 ### 2. The pin walk — a home for `stepOutwardForPin` · READY
 
 Copied **three times** already;

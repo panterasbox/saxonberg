@@ -970,6 +970,14 @@ about eight biome rows and **every one is temperate or indoor**: baseline ·
 indoor · outdoor · meadow · woodland · underground · upper-workings ·
 cafeteria · universe. **No tropical, warm, arid or coastal biome exists.**
 
+⭐ **And as of 2026-09-25 there is a slate for exactly this**:
+[biome-normalization-slate](./biome-normalization-slate.md), which reports the
+catalogue as *"twelve rows … doing three different jobs"* and proposes splitting
+them into **atmospheric field · sky exposure · sensory dressing**. A climate
+claim is the **atmospheric-field** job, so that pass is what makes a tropical
+biome expressible *as a climate* rather than as a room class by another name.
+**It is the plantation family's real prerequisite.**
+
 > ⭐ So the colonial crop family's prerequisite is **a warm place on the map**
 > — a world-building decision, not a platform one. Which means **all those
 > crops can ship together** whenever there is somewhere for them to grow, and

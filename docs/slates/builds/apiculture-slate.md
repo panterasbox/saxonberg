@@ -99,6 +99,20 @@ ever must be an agent it is **one row of that shape** — not now. ⚠ A Clade r
 for `insecta` is what insect-wide facts (exoskeleton, ectothermy, tracheal
 respiration) would need, and nothing here needs them.
 
+### ⭐⭐ Honey is a tap, and the tap vocabulary is ALREADY KERNEL
+
+Found on the post-envelope merge: **`TapSpec` ships in the kernel** at
+`platform/idea/species/Species.ts:332`, with `protected production: TapSpec[]`
+and `getProduction()` / `setProduction()` on `Species`. So **honey is a
+`production:` block on the `Apis mellifera` row** — not new substrate, and much
+cheaper than this slate first assumed.
+
+⚠ What is still pack-side is **`ProducingMixin`** (the host face, in
+`trade-ranching/src/lib/`), and its promotion is now tracked by
+[tapping-slate](./tapping-slate.md), which lists it under Left. Bees is the
+third consumer, not the owner of that move — see
+[rgo-unification-slate](./rgo-unification-slate.md).
+
 ### ⭐ The rung bees actually add: the colony IS the organism
 
 `embodiment-follows-scale` says animal = agent, plant = thing, microbe =
@@ -116,12 +130,41 @@ near **308 K** by clustering and shivering, and it **burns honey to do it.**
 `ThermalMixin` is Newton cooling — so **winter consumption is a function of
 ambient temperature and hive insulation**, which means the question at the
 centre of the whole trade (*how much do I leave her?*) has a **computable
-answer that varies by winter and by hive.** Not a constant, not a dial. The
-surplus equation closes against a shipped subsystem.
+answer that varies by winter and by hive.** Not a constant, not a dial.
 
-⭐ And it makes **hive construction load-bearing** — a thin box and a thick one
-are different winters — a direct connection to the envelope build's insulation
-work.
+### ⭐⭐⭐ And as of the envelope build (merged 2026-09-25) it is FREE
+
+The envelope build shipped exactly the substrate this needs, and **not only for
+rooms**:
+
+- **`EnclosedMixin`** (`lib/spatial/Enclosed.ts`) — `EnclosureSpec { material,
+  thicknessM }`, whose doctrine is the one this build wants: *"You cannot author
+  'well-insulated'; you author granite and the physics decides."*
+- **`AtmosphericMixin`** (`lib/biome/Atmospheric.ts`) holds the envelope state
+  (`envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK`) and
+  reconciles it.
+- ⭐⭐ **`Vessel = AtmosphericMixin(ContainerMixin(Thing))`** — so **a container
+  THING already holds an envelope**, with a default wall (`VESSEL_WALL_M`,
+  0.01 m) and the comment *"handing a crate a wall like a wall would make it a
+  thermos."*
+- `U_enclosure = A / (t/k + R_films)` — conduction in series with the still-air
+  films either side (~0.17 m²K/W), and `C = C_air + ρ·c·A·activeDepth` for the
+  mass. **A U-value is an effect and is never authored.**
+
+> **A hive is an enclosed Vessel.** One authored line —
+> `enclosure: { material: <pine>, thicknessM: 0.019 }` — and the winter honey
+> burn is the colony's heat output against `U_enclosure`, integrated against the
+> weather. **Two numbers on a row, and the surplus equation closes itself.**
+
+⭐ So *"a thin box and a thick one are different winters"* stops being a design
+aspiration and becomes arithmetic already in the tree. It also makes the skep →
+movable-frame ladder carry a second real difference beyond whether the comb
+survives: **straw and wood are different materials, so they are different
+winters too.**
+
+⚠ Only two content rows declare `enclosure:` today (the woodshed and the
+smithy), so the authored surface is young — the substrate is general, the
+precedent is thin.
 
 ### Two nutrients, not one
 
