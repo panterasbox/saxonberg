@@ -319,6 +319,46 @@ Nobody dials anything.
 Smoke is then the third, separable lever: it does not block stings, it
 **reduces how many are attempted**.
 
+## The toolkit, and ⚠⚠ a verb collision to decide before the plan
+
+The toolkit is **instruments carrying capabilities**, each affording its act —
+the spade/pick `DIGGING`/`WINNING` split from the extraction build is the
+precedent, and the rule is *the instrument affords the verb, not the
+furniture*, with two rungs per verb as rows:
+
+| instrument | what it affords |
+|---|---|
+| **smoker** | pacifying the colony before you open it |
+| **veil · gloves · suit** | nothing — they are *covering*, and that is the point (see below) |
+| **hive tool** | prising apart boxes and frames propolised shut |
+| **frames · supers** | the room you give the colony; supering is `place` |
+| **extractor** | spinning honey out without destroying comb (the advance rung) |
+
+⚠⚠ **`smoke` is already taken.** `trade-cooking` ships
+`content/trade/cooking/cmd/crafting/smoke.yaml` — smoking food is a
+preservation act. The beekeeper's smoker **pacifies**: same word, different
+act, different target, different trade. **A second view claiming a shipped
+verb SHADOWS the first silently** (the consequence build paid for that one).
+So this is a decision the plan must make explicitly, not discover: either the
+smoker takes a different verb, or one view serves both with an alternated
+target — and ⚠ *an arg `requires: A|B` DELETES a check*, so the alternation is
+not free either.
+
+⚠ **And the honey harvest verb is undecided.** `harvest` is the platform's
+(with `pick` an alias) and is plant-shaped; `gather` is **already taken by
+ranching's taps**; `extract` names only the capital-equipment rung and would
+be wrong for crush-and-strain. Decide at requirements, because the crush-vs-
+extract fork means the verb may have to cover two very different acts.
+
+## Pollination as a contract — what makes it verifiable
+
+The shipped work-contract substrate wants a **verifiable condition**, and
+pollination has a clean one: **N hives present on the parcel across the bloom
+window.** Not "yield went up" (which the grower cannot attribute and the
+beekeeper cannot control) — presence over a window, which both parties can
+check and neither can fake. The payment is for the *parking*, which is what a
+real pollination contract buys.
+
 ## The allergy seam — the consumer lineage has been waiting for
 
 Two slates already committed to allergies, and both are blocked on the same
@@ -538,6 +578,9 @@ forage saturates.
    [rgo-unification-slate](./rgo-unification-slate.md).
 4. **Wax's first consumer** — the candle is required; which of foundation,
    sealing wax and waxed thread ships with it?
+4b. **The `smoke` collision** — a different verb for the smoker, or one view
+   with an alternated target? And **which verb harvests honey**, given
+   `gather` is taken and `harvest` is plant-shaped.
 5. **`ratePerDay` for mead**, and whether aged variants are separate rows.
 6. **Where the tap promotion lands** — honey is a tap; see
    [rgo-unification-slate](./rgo-unification-slate.md).
