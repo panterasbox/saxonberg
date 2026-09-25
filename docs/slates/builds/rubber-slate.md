@@ -351,9 +351,15 @@ and the evaporator were all built and did not know about each other.
 > cheap, and is also the reason the gaps are invisible until somebody
 > asks a content question.
 
-**Next, and deliberately after:** drilling, oil and plastics are this
-argument one epoch further along, and they inherit the on-ramp rather
-than needing their own.
+**Next, and deliberately after** — both written 2026-09-25, and both
+inherit the on-ramp rather than needing their own:
+[destructive-distillation](./destructive-distillation-slate.md) (⭐ the
+collier already does it, and **plastics turns out NOT to be blocked on
+oil** — the first plastic is coal tar's) and
+[drilling](./drilling-slate.md) (⭐ the first extraction that does not
+expand the map). ⭐⭐ Rubber's own law is what both of them extend: **the
+polymer family is one `Law`, and a player who has the curve can predict a
+material they have never made.**
 
 ---
 

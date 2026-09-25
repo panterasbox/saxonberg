@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**244 slates.** 56 greenfield · 86 continuations · 56 waves · 46 tails.
+**246 slates.** 58 greenfield · 86 continuations · 56 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (56)
+## ⭐ Greenfield — nothing shipped yet (58)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -61,6 +61,8 @@ respect.
 | [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
+| [destructive-distillation](./builds/destructive-distillation-slate.md) | the retort as the clamp's capitalised sibling · the condenser and the volatile fraction · wood tar → pitch · **coal tar** and its cuts … |
+| [drilling](./builds/drilling-slate.md) | the borehole as a **point, not a place** · the derrick and the string · the seeded deep field and the **dry hole** · the survey as the game (instruments → a model → a bet) … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
 | [end-of-life](./builds/end-of-life-slate.md) | custody of the body + terminal decay → **remains** · the |
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field … |
