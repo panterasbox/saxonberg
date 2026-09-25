@@ -241,3 +241,45 @@ one shared one.
 
 *(Retire when: the mine's geology field ships and the pattern is proven at
 two live instances, or this graduates to a top-level doctrine doc.)*
+
+---
+
+## ⭐ 2026-09-25 — the pin walk is READY, and bees should ship the first derived field
+
+From the apiculture design conversation, and recorded here because both items
+are this slate's:
+
+**The pin walk has hit four.** `stepOutwardForPin` is copied three times
+today, and a hive's **forage range** is the fourth — bees read *what is in
+flower within range*, which is an outward walk from a pin. Three copies was
+already past any threshold worth arguing about; the home for it is now
+tracked as a ready promotion in
+[rgo-unification-slate](../builds/rgo-unification-slate.md), to land as its
+own increment rather than inside a feature build.
+
+⚠ **Open, and it wants deciding properly:** the forage **metric**. Graph hops
+with a per-edge cost, or real distance where a zone has coordinates? Bees fly
+a radius; the world is a graph with Cartesian patches. Lean is hops with a
+per-edge cost, so it degrades honestly in both kinds of space.
+
+**⭐⭐ Whoever ships first defines the derived-field interface.** Every field
+shipped so far is **seeded** (weather, `Deposit`, `GroundCharacter`); the
+first **derived** one was slated to be foraging's stock. Bees now arrive
+first, and a hive's nectar availability is derived in exactly the same sense.
+So the sequencing should be **deliberate rather than accidental**: apiculture
+ships the nectar read *as* the first derived field, with foraging named as
+its declared second consumer — the way this pattern was validated before
+(weather, then `Deposit`, then `GroundCharacter`). The alternative is bees
+rolling a private nectar read that a later pass has to merge.
+
+⚠ **And the interface itself stays HELD until foraging.** Foraging is the
+case that completes it, and `lint-family.md`'s warning applies —
+*"driving it lower would mean unifying mechanisms that really are
+distinct."* Promote the tap and the pin walk now; hold the field interface.
+
+⭐ **A second shared shape surfaced in the same conversation, and it is not a
+field:** the **tap** (a recurring non-lethal draw on a living thing's
+surplus). Milk, eggs, wool, maple sap, rubber latex and honey are all taps.
+It belongs to [rgo-unification-slate](../builds/rgo-unification-slate.md),
+noted here only so a reader of this slate does not conclude the field is the
+only thing the RGOs share.

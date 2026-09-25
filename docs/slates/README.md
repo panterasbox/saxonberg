@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**242 slates.** 54 greenfield · 86 continuations · 56 waves · 46 tails.
+**245 slates.** 57 greenfield · 86 continuations · 56 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (54)
+## ⭐ Greenfield — nothing shipped yet (57)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -49,6 +49,7 @@ respect.
 | [altar](./builds/altar-slate.md) | `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` · accreted weight as renown-of-the-object · the butcher-or-offer fork + the recognition-never-reward guardrail … |
 | [amendment-library](./builds/amendment-library-slate.md) | the catalog Document + module registry + the adoption path over Art. X · the v1 standard-library modules as amendment documents (due process · free expression · term limits … |
 | [api-normalization](./builds/api-normalization-slate.md) | ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`, `worldclock`) plus 19 Apis with no singleton at all; mechanical, no boundary ruling needed · ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s surface is two test hooks · answer *where a system-less utility lives* before deleting `array`/`path-pattern` … |
+| [apiculture](./builds/apiculture-slate.md) | the colony record + the drafted queen · the hive as a stack of boxes · the beekeeping year and the supering deadline · the acquisition ladder (rob … |
 | [attestation](./builds/attestation-slate.md) | the `attestation_events` collection (Q1: its own, or a facet of `authoring_events`) · the closed assertion vocabulary (`approves`/`objects`/`notes` — `objects` non-blocking by default; superseded, never retracted) · the go-live predicate on the CMS save/publish split · the per-group policy grammar (data, not code — Q2) … |
 | [authored-vs-procedural](./builds/authored-vs-procedural-slate.md) | the design pass itself · what a hand-placed ecology member IS (the glowcap: table member or furniture) · a `forage` verb, and whether it differs from `harvest` (`gather` is taken by ranching) · *cultivated* as a category (husbandry.md uses the word only for the durability rule) … |
 | [blood](./builds/blood-slate.md) | the genotype/phenotype endowment (`untested` until tested, per-`Species` allele frequencies + the provenance stamp) · the compatibility cost curve (non-hierarchical across species · graded failure · the volume-expander floor) … |
@@ -59,6 +60,7 @@ respect.
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
+| [dairy](./builds/dairy-slate.md) | the dairy as a business (the hourly tap and the hired hand) · pasteurization on the shipped kill curve · cheese as a maturation profile with whey as the lees · butter and cream as mechanical process … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
@@ -91,6 +93,7 @@ respect.
 | [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization + the single-writer append discipline · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
 | [rendering](./builds/rendering-slate.md) | the knacker (dead stock — a `Corpse` yields nothing) · the tanner (tannin is the dyeing trade's) · the chandler · `soap` / `candle` … |
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
+| [rgo-unification](./builds/rgo-unification-slate.md) | ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`, copied 3×) · the **sweetener vocabulary** decided once across sugar, honey and maple · and — **held deliberately** — the derived-field interface, which waits for foraging |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
 | [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
