@@ -617,3 +617,37 @@ path; income via the seller-collected demo sales tax).
 ⚠ Envelope is still FINALIZING (2026-09-25) — re-verify `PublicLightingFunding`,
 `costPerStreetNight` / the freed `fuelPerStreetNight` name, and
 `settleStreetLighting` against final merged master before building.
+
+## ⭐⭐ Placement — trade-fuel stays a trade; energy mints a `/system/` root (2026-09-25)
+
+**Decided by the five-axis doctrine** (CLAUDE.md § the five namespace axes; the
+`/system/` test = *a system is true whether or not anyone is participating*).
+Renaming `trade-fuel → trade-energy` would be a category error — it collapses the
+*"who makes"* axis into the *"how the world works"* axis.
+
+- **`/trade/fuel` STAYS a trade.** It is the collier's craft (coppice, burn,
+  charcoal — `pack.yaml`: *"the coppice, the burn and the charcoal"*): practised,
+  quittable, produces a good. It may grow siblings (an oil-presser, a gas-works),
+  but "fuel" is the right name for the *production* trade — there is no
+  "energy-maker" vocation, only colliers, coal-miners, oil-pressers and linemen.
+- **The energy GRID is a `/system/` root** (new, this build), mirroring
+  `/system/water` bolt-for-bolt (precedent roots: `arcana · ground · residence ·
+  tpa · transport · water`). The grid obeys its laws with nobody participating,
+  so it passes the `/system/` test. Generation ref, conduit, meter, `SupplyState`
+  consumption live here.
+- **The utility** that *runs* the system is a business/office/corpo employing
+  linemen (`power-utility-slate` ownership fork) — the "who owns" axis, distinct
+  from both the trade and the system.
+- **Everything feeds/rides the system**: `trade-fuel` (charcoal), extraction
+  (coal, peat), `arcana` (the mana charge economy), water (hydro's
+  `ControlStructure`). Energy UNIFIES these into one economy by minting the
+  system root they feed — NOT by swelling one trade to swallow the concept.
+  Water shows the pattern: `/system/water` is the system, and the trades that use
+  water were never renamed into it.
+
+⚠ **Open for requirements (does NOT affect trade-fuel's name either way):** what
+to call the root — `/system/power` vs `/system/energy` — and whether it
+**generalizes the commodity-generic supply layer** the power-utility-slate wants
+(power · gas · water on one `Conduit`/`SupplyState` spine, already half-built in
+water and the kernel). Leans `/system/energy` if the root is to house the whole
+economy (combustion + electric + mana) rather than electricity alone.
