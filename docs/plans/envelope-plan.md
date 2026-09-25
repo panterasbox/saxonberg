@@ -2403,3 +2403,86 @@ things seven waves of `test:near` never touched:
    was written when light was a constant.* The kernel now distinguishes
    the two questions — **what is it doing now** and **how good is this
    place** — and anything that asks the second must say so.
+
+### ⭐⭐ The LIVE BROWSER WALK (2026-09-25) — and it found the one the wire drive cannot
+
+`pnpm dev` with `AUTH_MODE=test`, logged in through the real front door
+(`POST /auth/test-login`, handle `envwalk`, wizard, started on the unlit
+crossroads), driven in Chrome. ⚠ *The wire drive is not the live drive* —
+wire asserts the ENVELOPE over a socket, and the card surface, the
+binder and the client render all sit outside it.
+
+**What the browser confirmed that only a browser can:**
+
+- ⭐ **`look tower` at the crossing renders the live civic hour** —
+  *"Across the avenue, the terminal clock tower reads 07:15."* This is
+  drive finding 2, and it is the **first time that line has ever
+  rendered**: `getDetailFor` defaults `sense` to `'vision'`, so the
+  `senseOrParent !== undefined` guard had returned the static text every
+  time since `Crossing` landed.
+- ⭐ **The envelope's cause line, and it changing.** In the shop:
+  *"The air feels comfortable — as cold as the street — the door stands
+  open."* Then `light hearth`, and: *"The air feels comfortable — warm
+  from the open hearth."* The build's whole thesis, in a browser: the
+  room is the temperature it is, and the reason is named and derived.
+- ⭐ `look` in the dark withholds the prose (*"It is pitch dark. You can
+  make out nothing of the place at all."*) and **opens no card** — the
+  D-decision *"no card opens in the dark"* is correctly implemented.
+
+---
+
+#### ⚠⚠ FINDING: the CARD prints the description of a room you cannot see
+
+At the crossroads, at 00:42 under a new moon, in one screen:
+
+| channel | said |
+|---|---|
+| transcript | *"It is pitch dark. You can make out nothing of the place at all."* |
+| **card** | *"Two roads meet… There is a deep **ditch**… half an acre of hard standing, a gate with no fence either side of it, and a squared **stone** set flush with the ground…"* |
+
+— with `ditch`, `yard`, `stone` and `roads` rendered as **clickable
+detail affordances**, in pitch darkness.
+
+⚠⚠ **And it is the ordinary player path, not a wizard leak.** The card
+came from `sense`, which is a core verb (*"Take in your surroundings
+across every sense you possess"*) whose own view docstring says: *"⭐⭐
+Arrival auto-senses (`Mobile.autoSenseOnArrival`), so this is the seam
+where **WALKING INTO A ROOM** mints its card."* Confirmed by walking: one
+`go west`, auto-sense fired, transcript said only **"You're shivering."**
+— and a fresh card minted with the complete description of a road the
+character could not see.
+
+⭐ **The diagnosis, as far as it is established.** `SenseController`
+passes `CardApi.open(context, 'subject', { prose: body, subjectId })`,
+and `prose` IS the gated body — the card and the scrollback share one
+payload, exactly as `card-surface.md` says. So the leak is not the prose:
+it is the **subject** half. An inspection card is a live view laid out by
+`StuffKind`, and that view resolves the room's description, exits,
+details and interfaces **without the viewer's perception gate**.
+
+⭐ The card surface already has the right doctrine for staleness — the
+older card reads *"closed · older cards fall off — **What you last saw.**
+Re-reading is free; acting on it needs the condition back"*, and cards
+carry a `taken HH:MM` with a refresh. The defect is narrower than it
+looks and sharper for it: **the surface models memory correctly, and then
+mints a memory of something that was never perceived.**
+
+⚠ **Whose defect:** the card surface predates this build, and before it
+*no room in the realm was ever dark*, so the leak could not fire. This
+build created the condition — the same class as the forestry test and the
+plants. It is recorded here rather than fixed because the fix lives in
+`card-surface` + `perception` rather than in the envelope, and it wants a
+decision about what a subject card shows a viewer who cannot see: the
+band's sentence, the stale-card treatment, or nothing at all.
+
+#### ⓘ A note on the method, for the next walk
+
+The dev clock runs at **12×**, so a night-behaviour walk has roughly one
+game hour per five real minutes of setup. The sun rose mid-walk (`analyze
+sky`: *"Daylight over the lower climb… sun altitude 6.78 degrees"*) and a
+street correctly read *"good working light"* — which for a moment looked
+like a defect and was the instrument working. ⭐ Measure before
+concluding: `analyze sky` is the cheapest way to know whether the
+premise of a light assertion still holds. A night walk wants
+`pnpm --filter @saxonberg/server reset:db` first, which returns the clock
+to t = 0.
