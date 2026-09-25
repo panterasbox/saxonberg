@@ -773,7 +773,7 @@ function checkCastAreAgents(rows: Map<string, string>): number {
   const idx = inheritanceIndex();
   const classOf = new Map<string, string>();
   for (const path of rows.keys()) {
-    const eff = effectiveRow(path, idx.rows);
+    const eff = effectiveRow(path, idx.rows, idx.rules);
     if (!eff.error && eff.class) classOf.set(path, eff.class);
   }
   let checked = 0;

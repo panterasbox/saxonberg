@@ -18,6 +18,7 @@ import {
   effectiveDoc,
   inheritanceIndex,
   fieldMetaKeys,
+  fieldMetaEntries,
   isTemplateRelPath,
 } from '../pack-roots';
 
@@ -95,6 +96,52 @@ describe('effectiveRow', () => {
     const eff = effectiveRow('/a/c', templateRows(t.serverSrc, t.contentDir));
     expect(eff.error).toBeNull();
     expect(eff.class).toBeNull();
+  });
+});
+
+describe('effectiveRow — the declared merge rules', () => {
+  it('⚠ `never` means the parent’s value is NOT copied', () => {
+    // The live case: every `Biome` field declares it, because biome
+    // resolves per read. A shallow merge that ignored the rule handed
+    // `lint:envelope` a child biome carrying its ancestor's
+    // `_defaultTemperature` — a decree nobody had authored.
+    const t = tree({
+      'b/parent.yaml': { class: '/x/Biome', data: { _defaultTemperature: 294, name: 'p' } },
+      'b/child.yaml': { extends: '/b/parent', data: { name: 'c' } },
+    });
+    const rules = (): Map<string, { inherit?: 'never' }> =>
+      new Map([['_defaultTemperature', { inherit: 'never' as const }]]);
+    const eff = effectiveRow('/b/child', templateRows(t.serverSrc, t.contentDir), rules);
+    expect(eff.data).toEqual({ name: 'c' });
+  });
+
+  it('`by-key` merges an object key by key', () => {
+    const t = tree({
+      'b/parent.yaml': { class: '/x/Y', data: { details: { a: 1, b: 2 } } },
+      'b/child.yaml': { extends: '/b/parent', data: { details: { b: 9 } } },
+    });
+    const rules = (): Map<string, { inherit?: 'by-key' }> =>
+      new Map([['details', { inherit: 'by-key' as const }]]);
+    const eff = effectiveRow('/b/child', templateRows(t.serverSrc, t.contentDir), rules);
+    expect(eff.data.details).toEqual({ a: 1, b: 9 });
+  });
+});
+
+describe('fieldMetaEntries', () => {
+  it('⚠ reads an `inherit` rule on an entry preceded by a COMMENT line', () => {
+    // Anchoring the scan on `,`/`{` read exactly this shape as "declares
+    // no rule", which is how the false envelope finding happened.
+    const entries = fieldMetaEntries(`
+      static fieldMeta: FieldMeta = {
+        // ── Readings an instrument takes ──
+        _defaultTemperature: { persistent: true, inherit: 'never', spoiler: 1 },
+        props: { instruction: true, inherit: 'by-entry' },
+        plain: { persistent: true },
+      };
+    `);
+    expect(entries.get('_defaultTemperature')).toEqual({ inherit: 'never' });
+    expect(entries.get('props')).toEqual({ inherit: 'by-entry' });
+    expect(entries.get('plain')).toEqual({});
   });
 });
 

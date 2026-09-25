@@ -549,6 +549,7 @@ export const TEMPLATE_CHAIN_DEPTH_CAP = 32;
 export function effectiveRow(
   path: string,
   rows: ReadonlyMap<string, TemplateRow>,
+  rules?: (classPath: string) => Map<string, FieldRule>,
 ): EffectiveRow {
   const chain: string[] = [];
   const stack: Array<Record<string, unknown>> = [];
@@ -578,7 +579,6 @@ export function effectiveRow(
   }
   let cls: string | null = null;
   let hyd: string | null = null;
-  let data: Record<string, unknown> = {};
   // Ancestor-first, so the nearest statement overwrites.
   for (let i = stack.length - 1; i >= 0; i--) {
     const r = stack[i]!;
@@ -586,10 +586,54 @@ export function effectiveRow(
     if (typeof r.hydratorClass === "string" && r.hydratorClass.length > 0) {
       hyd = r.hydratorClass;
     }
+  }
+  // ⚠⚠ The merge respects each field's declared `inherit` rule, and the
+  // one that MATTERS here is `never`: every `Biome` field declares it,
+  // because biome resolves per read by its own walk. A shallow merge
+  // that ignored it handed `lint:envelope` a child biome carrying its
+  // ancestor's `_defaultTemperature` and the gate reported a decree
+  // nobody had authored. A script that models inheritance has to model
+  // the rules, or it invents findings.
+  const rule = cls && rules ? rules(cls) : new Map<string, FieldRule>();
+  let data: Record<string, unknown> = {};
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const r = stack[i]!;
     const d = r.data;
-    if (d && typeof d === "object" && !Array.isArray(d)) {
-      data = { ...data, ...(d as Record<string, unknown>) };
+    const own =
+      d && typeof d === "object" && !Array.isArray(d)
+        ? (d as Record<string, unknown>)
+        : {};
+    const next: Record<string, unknown> = {};
+    for (const key of new Set([...Object.keys(data), ...Object.keys(own)])) {
+      const how = rule.get(key)?.inherit ?? "replace";
+      if (how === "never") {
+        if (key in own) next[key] = own[key];
+        continue;
+      }
+      if (!(key in own)) {
+        next[key] = data[key];
+        continue;
+      }
+      if (!(key in data)) {
+        next[key] = own[key];
+        continue;
+      }
+      const pv = data[key];
+      const cv = own[key];
+      if (
+        how === "by-key" &&
+        pv && typeof pv === "object" && !Array.isArray(pv) &&
+        cv && typeof cv === "object" && !Array.isArray(cv)
+      ) {
+        next[key] = { ...(pv as object), ...(cv as object) };
+        continue;
+      }
+      // ⚠ `by-entry` is NOT modelled entry-by-entry here — the child's
+      // list replaces. A gate that reasons about list ENTRIES reads
+      // `raw`, and says so at its own call site.
+      next[key] = cv;
     }
+    data = next;
   }
   return { class: cls, hydratorClass: hyd, data, chain, error: null };
 }
@@ -632,9 +676,54 @@ export function declaredFields(
   return out;
 }
 
+/** What a gate needs to know about one declared field. */
+export interface FieldRule {
+  /** The merge rule the field declares, or `undefined` for the default. */
+  inherit?: 'replace' | 'by-key' | 'by-entry' | 'never';
+}
+
+/**
+ * The declared fields of the class at `classPath`, WITH their merge
+ * rules — its own `static fieldMeta` plus every base's and every
+ * mixin's, followed through the same walk {@link composesMixin} uses.
+ */
+export function declaredFieldRules(
+  classPath: string,
+  sources: readonly PackSource[],
+  cache: Map<string, Map<string, FieldRule>> = new Map(),
+  seen: Set<string> = new Set(),
+): Map<string, FieldRule> {
+  const cached = cache.get(classPath);
+  if (cached) return cached;
+  if (seen.has(classPath)) return new Map();
+  seen.add(classPath);
+
+  const out = new Map<string, FieldRule>();
+  const file = classFileOf(classPath, sources);
+  if (!existsSync(file)) return out;
+  const source = readFileSync(file, "utf8");
+  for (const [key, rule] of fieldMetaEntries(source)) out.set(key, rule);
+  for (const expr of extendsExpressions(source)) {
+    for (const id of new Set(expr.match(/[A-Za-z_$][\w$]*/g) ?? [])) {
+      const base = importedClassPath(source, id, file, sources);
+      if (!base) continue;
+      for (const [k, v] of declaredFieldRules(base, sources, cache, seen)) {
+        if (!out.has(k)) out.set(k, v);
+      }
+    }
+  }
+  cache.set(classPath, out);
+  return out;
+}
+
 /** The top-level keys of every `static fieldMeta = { … }` in a file. */
 export function fieldMetaKeys(source: string): string[] {
-  const out: string[] = [];
+  return [...fieldMetaEntries(source).keys()];
+}
+
+/** Every declared field in a file, with the `inherit` rule it states. */
+export function fieldMetaEntries(source: string): Map<string, FieldRule> {
+  const out = new Map<string, FieldRule>();
   const decl = /static\s+(?:readonly\s+)?fieldMeta\s*(?::[^=]+)?=\s*\{/g;
   let m: RegExpExecArray | null;
   while ((m = decl.exec(source))) {
@@ -659,7 +748,19 @@ export function fieldMetaKeys(source: string): string[] {
     for (const km of line.matchAll(
       /(?:^|[,{])\s*(?:\/\/[^\n]*\n\s*)*(?:['"]([^'"]+)['"]|([A-Za-z_$][\w$]*))\s*:/g,
     )) {
-      out.push((km[1] ?? km[2])!);
+      out.set((km[1] ?? km[2])!, {});
+    }
+    // The `inherit:` rules, read off the ORIGINAL body (the depth-1
+    // flattening above deliberately drops each entry's own properties).
+    // ⚠ Position-independent on purpose: an entry preceded by a COMMENT
+    // line is neither at the start nor after a `,`/`{`, and anchoring on
+    // those read `Biome._defaultTemperature` as declaring no rule at all
+    // — which handed `lint:envelope` a false finding.
+    for (const im of body.matchAll(
+      /(?:['"]([^'"]+)['"]|([A-Za-z_$][\w$]*))\s*:\s*\{[^{}]*\binherit:\s*['"]([a-z-]+)['"]/g,
+    )) {
+      const key = (im[1] ?? im[2])!;
+      out.set(key, { inherit: im[3] as FieldRule['inherit'] });
     }
   }
   return out;
@@ -673,6 +774,8 @@ export function fieldMetaKeys(source: string): string[] {
 export interface InheritanceIndex {
   rows: Map<string, TemplateRow>;
   byFile: Map<string, string>;
+  /** The merge rules a class declares — memoized across the gate run. */
+  rules: (classPath: string) => Map<string, FieldRule>;
 }
 
 /** Build the index once per gate run. */
@@ -683,7 +786,13 @@ export function inheritanceIndex(
   const rows = templateRows(serverSrc, contentDir);
   const byFile = new Map<string, string>();
   for (const [path, row] of rows) byFile.set(row.file, path);
-  return { rows, byFile };
+  let sources: PackSource[] | null = null;
+  const cache = new Map<string, Map<string, FieldRule>>();
+  const rules = (classPath: string): Map<string, FieldRule> => {
+    sources ??= packSources(contentDir);
+    return declaredFieldRules(classPath, sources, cache);
+  };
+  return { rows, byFile, rules };
 }
 
 /**
@@ -707,7 +816,7 @@ export function effectiveDoc(
   if (typeof doc.extends !== 'string') return doc;
   const path = idx.byFile.get(file);
   if (path === undefined) return doc;
-  const eff = effectiveRow(path, idx.rows);
+  const eff = effectiveRow(path, idx.rows, idx.rules);
   if (eff.error) return doc;
   const out: Record<string, unknown> = { ...doc, data: eff.data };
   if (eff.class !== null) out.class = eff.class;

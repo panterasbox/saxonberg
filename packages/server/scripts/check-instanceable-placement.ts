@@ -92,6 +92,7 @@ import {
   packSrcFiles,
   templateRows,
   effectiveRow,
+  inheritanceIndex,
   declaredFields,
   type PackSource,
 } from './pack-roots';
@@ -285,7 +286,8 @@ function main(): void {
   const packRoots = sources.flatMap((p) => p.roots);
   // The shared reader: every row keyed by template path, so the chain
   // can be walked without each gate re-reading the tree.
-  const rows = templateRows();
+  const idx = inheritanceIndex();
+  const rows = idx.rows;
   const fieldCache = new Map<string, Set<string>>();
   const orphans: string[] = [];
 
@@ -306,7 +308,7 @@ function main(): void {
     // 11 asserts the opposite, so it must see the TEMPLATE rows only,
     // which is what the shared reader already knows.
     if (!rows.has(path)) continue;
-    const eff = effectiveRow(path, rows);
+    const eff = effectiveRow(path, rows, idx.rules);
 
     // 11 — a row clones into SOMETHING. Stated, or inherited from a
     // chain that resolves.
@@ -357,7 +359,7 @@ function main(): void {
       findings.push({ invariant: 5, file, detail: `hydratorClass: ${hyd} with no data to apply` });
     }
     if (ownHyd && parent) {
-      const parentHyd = effectiveRow(parent, rows).hydratorClass;
+      const parentHyd = effectiveRow(parent, rows, idx.rules).hydratorClass;
       if (parentHyd === ownHyd) {
         findings.push({
           invariant: 5,
