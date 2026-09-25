@@ -10,7 +10,9 @@
 > ladder (rob · catch a swarm · buy a nuc · split) · forage range over the
 > flowering census, and the crowding read · honey character + mad honey ·
 > wax and its consumer · temperament and queen rearing · the sting (trauma +
-> burden, the crisis shape, the suit) · the allergy seam · mead
+> burden, the crisis shape, the suit) · the allergy seam · mead ·
+> **thermoregulation as the winter equation** · **foulbrood** (varroa
+> deferred) · **robbing and absconding**
 > **Size:** a build
 
 > **Captured 2026-09-25**, in the design conversation after the extraction
@@ -72,6 +74,102 @@ brood pattern is how you read her. So a colony is a record with strength,
 stores, a brood fraction, a temperament — and **one drafted individual**.
 (A queen you *bought* arrives in a cage, which is an object at the point of
 sale and a record afterwards.)
+
+## ⭐⭐ The biology that matters — and ⚠ NOT because they are insects
+
+⚠ **Bees are not the first insect, and the engine has no notion of phylum
+anyway.** `animalia/arthropoda/insecta/orthoptera/gryllidae/gryllus/tenebrarum`
+— the **delve cricket** — shipped with the mining damps work, and its row is
+the precedent worth reading: *"⭐ Its SILENCE is a reading … they are not an
+instrument anybody installed."*
+
+The taxonomy is thinner than the paths suggest: **only four Clade rows exist**
+(`animalia` · `plantae` · `fungi` · `constructa`), and **every species points
+`_parentCladePath` straight at `animalia`** — the bee and the cricket included.
+So `arthropoda/insecta` are **directories, not clades**, and *"true of all
+insects"* has nowhere to be said today. What varies per animal is the
+**BodyPlan** (six shipped: `avian · biped · crustacean · fish · quadruped ·
+sessile`) plus a few species fields.
+
+⭐ **So this build needs NO BodyPlan work.** Both insects use `sessile`, which
+in practice is the plan for *a creature never embodied as an agent*. A fully
+specified `crustacean` plan already exists (slots, locomotion modes,
+`breathableMedia`, sensory ports, per-part tissues), so if an individual insect
+ever must be an agent it is **one row of that shape** — not now. ⚠ A Clade row
+for `insecta` is what insect-wide facts (exoskeleton, ectothermy, tracheal
+respiration) would need, and nothing here needs them.
+
+### ⭐ The rung bees actually add: the colony IS the organism
+
+`embodiment-follows-scale` says animal = agent, plant = thing, microbe =
+material. Bees add a rung that is not on that list: **a colony is a herd-shaped
+record whose members sit below the agency line** — the superorganism. That is
+what the species row means by *"the herdbook with the individual end
+amputated"*, and it is this build's genuinely new embodiment claim. Everything
+below follows from taking it seriously, **not** from bees being arthropods.
+
+### ⭐⭐⭐ The colony is warm-blooded even though the insect is not
+
+An individual bee is ectothermic. A **colony** is not: it holds the brood nest
+near **308 K** by clustering and shivering, and it **burns honey to do it.**
+
+`ThermalMixin` is Newton cooling — so **winter consumption is a function of
+ambient temperature and hive insulation**, which means the question at the
+centre of the whole trade (*how much do I leave her?*) has a **computable
+answer that varies by winter and by hive.** Not a constant, not a dial. The
+surplus equation closes against a shipped subsystem.
+
+⭐ And it makes **hive construction load-bearing** — a thin box and a thick one
+are different winters — a direct connection to the envelope build's insulation
+work.
+
+### Two nutrients, not one
+
+Nectar is **carbohydrate** (fuel); pollen is **protein** (brood). ⭐ So a
+colony can **starve for protein while full of honey**, which is why a pollen
+dearth stops brood rearing cold. [exertion.md](../../subsystems/exertion.md)
+already carries `protein` as a slow stock, so the vocabulary exists: one field,
+and a far more honest model than a single food number.
+
+### Metamorphosis is stock-and-flow, not lifecycle states
+
+Both insect rows declare `lifecycleStates: ["alive", "dead"]`, and that is
+right here: since individuals are not agents, **brood is a fraction of the
+colony record** — eggs → larvae → pupae → workers, with a ~21-day lag.
+
+⭐ That one lag produces several behaviours: a queenless colony dies on a
+clock, varroa breeds on the brood cycle, and a split takes three weeks to
+become a colony. ⚠ And **foulbrood eats larvae specifically**, so
+brood-as-a-stock is what the disease consumes — the stages are not decoration.
+
+### ⭐⭐ Haplodiploidy is already declared, and the MATING is the economics
+
+The row ships `sexDeterminationSystem: haplodiploid` — unfertilised eggs become
+drones. The load-bearing fact is the mating: **a queen mates once, in flight,
+with many drones, and stores sperm for life.** So **you cannot control what
+your queen mated with unless you isolate the mating** — hence island mating
+stations, and later instrumental insemination. An epoch ladder on reproduction.
+
+⭐⭐⭐ And per [uncertainty.md](../../uncertainty.md) that is a **legal
+epistemic draw**: you do not know what she mated with, which is a fact about
+the world rather than about your action. One of the cleanest legitimate uses of
+randomness available — and it is what makes a queen breeder's **controlled**
+mating a product somebody would pay for.
+
+### ⚠ One concrete row fix
+
+`lifespanMin: 0, lifespanMax: 1`. A worker lives about six weeks; **a queen
+lives two to five years.** If the queen is drafted the row is wrong for her —
+and the gap is the point: **the colony persists while its members turn over**,
+which is *why* the colony is the organism and not the bee.
+
+### ⭐ A third free environmental read
+
+The cricket shipped as an instrument nobody installed. A hive is the same: bees
+fly when the weather permits, so **a hive that stops flying is telling you
+about the day, and a hive that dwindles is telling you about the landscape.**
+The anti-gauge again, alongside the canary and the crickets — with a political
+edge, since a district whose hives fail is a district that can *notice*.
 
 ## ⭐⭐ The year — and the clock says it is the most seasonal trade yet
 
@@ -319,36 +417,43 @@ Nobody dials anything.
 Smoke is then the third, separable lever: it does not block stings, it
 **reduces how many are attempted**.
 
-## The toolkit, and ⚠⚠ a verb collision to decide before the plan
+## The toolkit — and ⭐ the verb collision DISSOLVES
 
-The toolkit is **instruments carrying capabilities**, each affording its act —
-the spade/pick `DIGGING`/`WINNING` split from the extraction build is the
-precedent, and the rule is *the instrument affords the verb, not the
-furniture*, with two rungs per verb as rows:
+The toolkit is **instruments carrying capabilities** — the spade/pick
+`DIGGING`/`WINNING` split from the extraction build is the precedent, and the
+rule is *the instrument affords the verb, not the furniture*, two rungs per
+verb as rows. But two of these afford **nothing**, and that is the finding:
 
-| instrument | what it affords |
+| instrument | its role |
 |---|---|
-| **smoker** | pacifying the colony before you open it |
-| **veil · gloves · suit** | nothing — they are *covering*, and that is the point (see below) |
+| ⭐ **smoker** | **not a verb** — a held instrument that changes the outcome of opening the hive |
+| **veil · gloves · suit** | **not a verb** — worn covering that changes the same outcome |
 | **hive tool** | prising apart boxes and frames propolised shut |
-| **frames · supers** | the room you give the colony; supering is `place` |
+| **frames · supers** | the room you give the colony; **supering is `place`** |
 | **extractor** | spinning honey out without destroying comb (the advance rung) |
 
-⚠⚠ **`smoke` is already taken.** `trade-cooking` ships
-`content/trade/cooking/cmd/crafting/smoke.yaml` — smoking food is a
-preservation act. The beekeeper's smoker **pacifies**: same word, different
-act, different target, different trade. **A second view claiming a shipped
-verb SHADOWS the first silently** (the consequence build paid for that one).
-So this is a decision the plan must make explicitly, not discover: either the
-smoker takes a different verb, or one view serves both with an alternated
-target — and ⚠ *an arg `requires: A|B` DELETES a check*, so the alternation is
-not free either.
+### ⭐⭐⭐ The smoker is not a verb, so `smoke` never collides
 
-⚠ **And the honey harvest verb is undecided.** `harvest` is the platform's
-(with `pick` an alias) and is plant-shaped; `gather` is **already taken by
-ranching's taps**; `extract` names only the capital-equipment rung and would
-be wrong for crush-and-strain. Decide at requirements, because the crush-vs-
-extract fork means the verb may have to cover two very different acts.
+⚠ `trade-cooking` ships `content/trade/cooking/cmd/crafting/smoke.yaml` —
+smoking food is a preservation act — and **a second view claiming a shipped
+verb SHADOWS the first silently** (the consequence build paid for that once).
+That hazard **disappears** once the smoker is modelled as what it actually is:
+
+> **A held instrument that mitigates, exactly as worn covering does.** Two
+> mitigations, one shape, **no new verb**, and nothing to shadow.
+
+It is also the more honest model — you puff smoke *continuously while you
+work*, not as a discrete act — and it makes the sting count a single
+computation over **what you are holding and what you are wearing**. This
+removes a verb from the build *and* removes the risk.
+
+### ⭐⭐ The honey harvest verb is `harvest` — by precedent
+
+`harvestTool` is a real authored field on slot-plants, and `CLAUDE.md`
+describes forestry's coppice cut as *"the platform's `harvest` told its tool by
+the plant."* So **`harvest <hive>`, with the hive declaring its tool**, gives
+crush-vs-extract for free and with **no second verb**. `gather` stays
+ranching's, and `extract` would have named only the capital rung.
 
 ## Pollination as a contract — what makes it verifiable
 
@@ -478,6 +583,86 @@ expression), so an apiary that also makes mead needs zero pack code.
 Historically the beekeeper *was* the meadmaker, so the vertical integration
 is authentic and free.
 
+## The husbandry half — disease, robbing, absconding
+
+### ⭐⭐ Foulbrood is CONTAMINATION, not contagion — which is why it is affordable
+
+⚠ `Condition.contagion` **is still `null` with no consumer** —
+[disease-slate](./disease-slate.md)'s own Left block says so. If bee disease
+needed host-to-host contagion, this build would drag in a chunk of that one.
+
+It does not. **Foulbrood lives in the comb**, which is a *material in a
+container*, so it rides `ContaminableMixin`, which shipped. And then this, from
+`lib/material/Contaminable.ts`:
+
+> *"⭐ Spore-former: **the fraction of the population a kill can never take
+> below.** `0` (the default) = no spores, cooking removes it entirely."*
+
+⭐⭐ **That is American foulbrood exactly.** AFB spores survive decades and
+survive boiling — you cannot cook it out — which is why beekeepers **burn the
+hive**. The survival fraction plus the germination ceiling *is* the model, and
+the brutal consequence falls out of arithmetic rather than being scripted:
+
+> **The only cure is destroying your own capital.**
+
+And it splits honestly into the two real diseases with the two real answers:
+**European** foulbrood has no spores, so scorching frames works; **American**
+foulbrood has them, so nothing works and you burn. Same mechanism, one number
+apart.
+
+⭐ The best part is *where it lives*: in the **equipment**, not the bees. So
+**secondhand equipment is how it spreads**, which is historically the main
+vector and a genuinely good economic lesson — **the cheapest input carries the
+risk.** A bargain box of frames is how you lose an apiary.
+
+### ⏸ Varroa is a PARASITE, and it is deferred — which is the setting, not a cut
+
+A mite population living on the colony and feeding on brood is a **second
+population on the host with its own growth rate** — structurally the
+two-population split that disease-slate says shipped as spoilage, but hosted on
+a **colony record** rather than a food item, which is new.
+
+> **The line: contamination is shipped substrate; parasitism is not.**
+
+⭐⭐ And deferring it is not a concession — **it is the setting.** Varroa
+reached western beekeeping in the **1980s**; before it you genuinely could leave
+hives alone for years, and after it beekeeping became a treadmill. So *a realm
+without varroa IS the medieval rung*, correctly, and whether a region has it
+becomes a **realm-level parameter, not a mechanism change** — lens 5 passing
+with nobody doing anything.
+
+When it does land, the treatment ladder is four different kinds of answer:
+drone-brood trapping (husbandry, free, pure skill) · a screened board
+(equipment) · miticide (⭐ another pharma indication) · and **breeding for
+hygienic behaviour**, which lands back on the queen breeder alongside docility.
+Two traits, one vocation, both colony record fields. And varroa's harm is
+**indirect** — it vectors viruses, so mites and infection together are what
+kill, which teaches something true and slightly counterintuitive about
+parasites.
+
+### Robbing — the field again, one level down
+
+When nectar is scarce, strong colonies raid weak ones. That is **a stock with an
+owner and an extractor that does not respect title** — ⚠ **derived** from
+dearth × a strength differential × exposed stores, **never rolled**. It makes a
+dearth genuinely dangerous, it punishes careless feeding (open syrup starts a
+frenzy, which is true), and a weak colony beside a strong one dies.
+
+⭐ **And it is the disease vector.** Robbing moves contaminated honey between
+hives — so robbing and foulbrood compose into an outbreak **without either
+mechanism knowing about the other.** That is what you get from modelling two
+things honestly instead of wiring a third.
+
+### Absconding — the colony's exit option
+
+Worth keeping distinct from swarming: **swarming is reproduction** (half stay;
+you lose increase), **absconding is abandonment** (all leave; you lose
+everything). Triggers are starvation, persistent disturbance, and pests.
+
+⭐ It is the honest punishment for neglect that is not a number going down —
+**your asset walks away** — and it sits on the pets doctrine that an animal is
+*difficult, not feral*, and gets to decide.
+
 ## ⭐ The apiary is the first land use that consumes no land capability
 
 The land uses are a **closed six** — `residential · agricultural ·
@@ -569,28 +754,43 @@ forage saturates.
 
 ## Open questions
 
-1. **The forage metric** — graph hops with a per-edge cost, or real distance
-   where coordinates exist? The one piece that wants deciding properly.
-2. **The covering part vocabulary** — does it separate a veiled face from a
-   bare neck? If not, the suit is binary and the mechanic dies.
-3. **Honey's sweetener category** — settled negatively here (not `sugar`),
-   but the positive vocabulary is a cross-build decision; see
+⭐ Three of the original questions closed by precedent during the design
+conversation and are recorded in place above, not here: **the honey harvest
+verb is `harvest`** (`harvestTool` + the coppice precedent), **the smoker is not
+a verb** (so the `smoke` collision dissolves), and **the forage metric is hops
+with a per-edge cost**, where a Cartesian zone contributes real distance as its
+edge cost — which unifies graph and coordinate space, stays derivable for a
+player (*about an hour's flight*), and is the induced-set pattern the lane
+doctrine mandates: *you do not draw a road.*
+
+What is left:
+
+1. ⚠ **The covering part vocabulary** — does it separate a **veiled face from a
+   bare neck**? A `head` slot exists; if the parts are coarser than
+   face/neck/wrists/ankles the suit collapses to a binary and the mechanic
+   dies. **A code check at plan time, not a decision.**
+2. **Honey's sweetener category** — settled negatively here (**not** `sugar`),
+   but the positive vocabulary is a cross-build decision across sugar, honey
+   and maple; see [rgo-unification-slate](./rgo-unification-slate.md).
+3. **Wax's consumers after the candle** — which of foundation, sealing wax and
+   waxed thread ships with it? (The candle itself is required, not cuttable.)
+4. **`ratePerDay` for mead**, and whether aged variants are separate rows.
+5. **Where the tap promotion lands** — honey is a tap; see
    [rgo-unification-slate](./rgo-unification-slate.md).
-4. **Wax's first consumer** — the candle is required; which of foundation,
-   sealing wax and waxed thread ships with it?
-4b. **The `smoke` collision** — a different verb for the smoker, or one view
-   with an alternated target? And **which verb harvests honey**, given
-   `gather` is taken and `harvest` is plant-shaped.
-5. **`ratePerDay` for mead**, and whether aged variants are separate rows.
-6. **Where the tap promotion lands** — honey is a tap; see
-   [rgo-unification-slate](./rgo-unification-slate.md).
+6. **Does the brood stock ship as four stages or as one lag?** Eggs → larvae →
+   pupae → workers is honest, but only the lag is load-bearing for swarming,
+   requeening and splits; foulbrood is the one consumer that needs *larvae*
+   specifically.
 
 ## Not in this slate
 
-- **Varroa and foulbrood** — the husbandry-is-immunity coupling; wants
-  [disease-slate](./disease-slate.md) beside it.
-- **Robbing** (a strong colony destroying a weak one — the commons one level
-  down) and **absconding**.
+- ⏸ **Varroa** — the parasite-population-on-a-host shape is new, and a realm
+  without varroa is the correct medieval rung. See the husbandry half above.
+  (**Foulbrood is IN**; robbing and absconding are IN.)
+- **An `insecta` Clade row** — nothing in this build needs insect-wide facts,
+  and only kingdom-level clades exist today.
+- **An insect BodyPlan** — `sessile` is right while no individual bee is an
+  agent; the `crustacean` plan is the shape to copy if that ever changes.
 - **Honey hunting** — foraging's, see [discovery-slate](./discovery-slate.md).
 - **Sugar's chain** (cane, the mill, the boiling house, molasses) — the other
   half of the same build; the refining step is the saltern's pan and brine
