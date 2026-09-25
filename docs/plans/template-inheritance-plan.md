@@ -594,7 +594,7 @@ fallback may not depend on an optional pack. `residence` does NOT depend
 on generic-objects and ships its own stair-shaped rows rather than
 gaining the dependency (a system pack stays dependency-light).
 
-### D11 — The create → clone sweep, and the six that stay
+### D11 — The create → clone sweep, and the five that stay
 
 Rows added (platform pack, path mirrors class per convention):
 `/platform/agent/Shade`, `/platform/agent/sandbox/WireBody`,
@@ -618,8 +618,16 @@ destructed as today. `UnboundedReceptacle` clones (the async caller).
 `SandboxLogic`'s `create(new CircleFloor())` fallback is **deleted** — a
 missing row is a boot fault, not a case.
 
-**The six that remain, enumerated** (`scripts/check-create-sites.ts`,
-`lint:create-sites`, an allowlist of `file#function`, ceiling 6):
+⭐ **The eval scratch gets a row too** (user's call, 2026-09-25):
+`/platform/idea/EvalScript`, cloned with a minted
+`asIdentityPath: '/platform/idea/eval-script/<jurisdiction>'`. It was
+listed as a survivor on the strength of "backed by nothing, gone at
+restart", which is a statement about its *lifetime*, not about whether a
+person could author it — and the doctrine is about the latter. Cheap,
+and it removes the looser of the two arguable exemptions.
+
+**The five that remain, enumerated** (`scripts/check-create-sites.ts`,
+`lint:create-sites`, an allowlist of `file#function`, ceiling 5):
 
 | site | why (requirements' two shapes) |
 |---|---|
@@ -628,10 +636,12 @@ missing row is a boot fault, not a case.
 | `BoundaryLogic.create(factory)` | the framework seam — takes a factory |
 | `PersistableLogic` shadow follower | the framework seam — a `describeFork` factory; a Shadow rides another object and is never template-backed |
 | `StudioLogic.readClassDefault` | introspection of a **class**, not an object; there is no row to clone by construction |
-| `ScriptLogic` eval scratch | a per-jurisdiction author scratch, backed by nothing, gone at restart |
 
-⚠ The last two are the loosest fit to the requirements' wording; see
-Risks & opens.
+⭐ Every one of the five is a *framework seam* or the *connection layer*
+— the requirements' two shapes, with nothing read generously. The
+`StudioLogic` read is the only one that needs a sentence: it constructs
+an instance to ask the class what its defaults are, so a row would be
+answering a question about itself.
 
 ### D12 — Lint gates read the EFFECTIVE row through one shared reader
 
@@ -650,13 +660,16 @@ whose `extends` does not resolve. `check-template-census` adds clause
 **(d)**: every top-level `extends` resolves to a shipped row, no cycle,
 depth ≤ 32.
 
-### D13 — The two ratchets
+### D13 — The three ratchets
 
 - `lint:census` clause **(e)**: pure-repeat entries — the same path
   twice in one `by-entry` list with no `as` — counted across the tree;
   ceiling = the count at W2's end (201 today, ~90 after the rack, the
   crates, the stools and the ward). May fall, never rise.
-- `lint:create-sites` (D11): ceiling 6.
+- `lint:create-sites` (D11): ceiling **5**.
+- `check-instanceable-placement` invariant 12 (D16): orphan data keys —
+  a key in a row's effective `data` that its effective class does not
+  declare. Ceiling = the count at W1's end.
 
 The hydrator-line count is not ratcheted — under inheritance the
 redundant line is a *rule* (invariant 5), not a count.
@@ -689,9 +702,33 @@ redundant line is a *rule* (invariant 5), not a count.
   four "+one" shapes append one `costume:` line in their own row
   (*"from a row that appends one line"* — drive step 13); the sentry and
   the duelist write `costume: [{ template: /stuff/thing/armor/leather-boots, as: shoes }, { template: /stuff/thing/armor/hide-jerkin }]`.
-  The six bundles are six resulting shapes, not six rows — five
-  intermediate rows nothing would ever clone are not authored (Risks:
-  the user may prefer them).
+  The six bundles are six resulting **shapes**, not six rows — five
+  intermediate rows nothing would ever clone are not authored. Confirmed
+  by the user 2026-09-25; the requirements' acceptance criterion 5 was
+  reworded to match.
+
+⭐⭐ **The costume parent is the first ABSTRACT parent, and that is worth
+writing down rather than discovering later.** The slate decided *"the
+parent is an ordinary row, no abstract-row concept"* on the strength of
+two exemplars that were objects a player can hold — an empty can, an
+empty crate. A costume bundle is not one. `/stuff/agent/costume/student`
+is a person-shaped row that is nobody: clone it and a nameless, bodiless
+`Extra` stands in the room.
+
+**Accepted as-is** (user, 2026-09-25), for a reason that is about
+sequencing rather than comfort: the honest fix is either an abstract-row
+concept or a narrower base class to hang it on, and **the next build is
+the base-class build**, where that question gets decided across the
+whole tree instead of being pre-decided here on one row. Deciding it
+now, from one cohort, is how a general mechanism gets shaped by its
+first consumer.
+
+⚠ So the build does NOT invent a `kind: fragment`, an `abstract: true`
+flag, or a `/lib/`-style namespace for parents. It authors the mannequin,
+notes it here and in `templates.md`, and leaves the question open for
+the build that can answer it properly. If it turns out to bite before
+then — someone clones it by accident — that is a finding for the
+base-class build, not a reason to widen this one.
 
 ### D15 — Zone lookup and row parenting: one family, documented, not unified
 
@@ -701,6 +738,46 @@ everywhere inside here* at **read** time; a parent answers *what this
 thing is like* at **clone** time; when both would supply a value the
 clone-time value is on the instance and the zone walk is never
 consulted — the exemplar rows demonstrate one mechanism at a time.
+
+### D16 — A parent's class need not match its child's; an ORPHAN DATA KEY is what gets gated
+
+**Question.** Nothing says a child's class must be its parent's, or a
+subclass of it — and D14 relies on that, because every dressed `Cast`
+row extends a row whose class is `Extra`. Is cross-class parenting a
+defect to forbid, or a capability to keep?
+
+**Choice — keep it, and gate the harm it can do.** Requiring
+class-compatibility would forbid the costume cohort, which is the
+build's best exemplar and an honest authoring gesture: *these people are
+dressed like that one*, which says nothing about what kind of person
+they are. The rule would also be unenforceable at the edge, since a
+parent may state no class at all.
+
+**What actually goes wrong is narrower and already live.** The Hydrator
+silently discards a data key the class does not declare. The hospitality
+bar carries `name:` and `description:`; `Bar` declares neither; both are
+dropped today, nobody notices, and under this build they are dropped on
+Dave's Bar too. ⚠ Authored alone, a junk key hurts one row. Inherited,
+one junk key reaches every descendant — the requirements' *"consumer
+written when the input was SMALL"*, arriving from the authoring side.
+
+Nothing gates this today: `check-field-meta` validates `fieldMeta`'s
+**shape in source**, not whether an authored key matches a declared
+field.
+
+So: **`check-instanceable-placement` gains invariant 12** — every key in
+a row's EFFECTIVE `data` is a field the EFFECTIVE class declares
+(`MixinApi.getAllFieldMeta`), which the gate already loads for
+invariants 3 and 7. **Census, then ratchet**: there are pre-existing
+violations (the bar is one), so the count at W1's end is the ceiling; it
+may fall and may never rise. That converts *silently discarded* into
+*cannot grow*, and it catches a cross-class parent's junk as a side
+effect — which is why no separate compatibility rule is needed.
+
+⚠ Deliberate, not unconsidered: a cross-class parent is legal, and the
+gate is what makes it safe. Say so in `templates.md` when the doc lands,
+because the opposite reading (*"a parent is a base class"*) is the one a
+reader arrives with.
 
 ---
 
@@ -838,13 +915,15 @@ so the gates are untouched by content).
 stops the boot; every lint gate sees the effective row.
 
 **Decisions.** D7 (the pack half), D8, D12, D13 (the census scaffolding;
-ceilings set in W2/W4).
+the props-repeat ceiling is set in W2 and `lint:create-sites`' in W4),
+**D16** (invariant 12 + its ceiling, which IS set here — the count is
+over today's rows and does not move until W6 authors children).
 
 **Files.** `PackLogic.ts` (`readContent`, `DomainFile`/`DomainRow`,
 `domainStrategy`, `assertParentsResolve`, `'deleted-vs-extended'`,
 `PackConflict.reason` vocabulary); `scripts/pack-roots.ts`
 (`templateRows`, `effectiveRow`); the 15 class-selecting scripts;
-`check-instanceable-placement.ts` (5/6/7 re-aimed, 11 added);
+`check-instanceable-placement.ts` (5/6/7 re-aimed, 11 and **12** added);
 `check-template-census.ts` (clause (d); `_extendsBiomePath` stays in (b)
 until W3). Tests beside `PackLogic`'s existing suite: a child row in a
 test pack installs; a parent in a filtered-out pack throws naming it; a
@@ -852,7 +931,10 @@ vanished parent with extenders plans a conflict; `--export` of a child
 writes `extends` and no class. A gate test for `effectiveRow`.
 
 **Acceptance.** AC10; AC12 (pack half). `lint:family` green with a
-test-only child row exercising invariants 5/6/7/11.
+test-only child row exercising invariants 5/6/7/11/12. ⭐ Invariant 12's
+census prints its violations rather than only its count — the list is
+the first inventory of orphan authored keys the tree has ever had, and
+W6 wants to read it before it authors parents.
 
 **Commit.** `build(template-inheritance W1): packs ship children; the gates read the effective row`
 
@@ -903,7 +985,7 @@ green with the override seam.
 
 ### W4 — Exits are content; the create→clone sweep (kernel)
 
-**Decisions.** D9, D10 (platform rows), D11, D13 (`lint:create-sites`).
+**Decisions.** D9, D10 (platform rows), D11, D13 (`lint:create-sites`, ceiling 5).
 
 **Files.** `lib/boundary/Exit.ts` (`rebind`), `Exitable.ts` (`installExit`,
 default kind, `prebuilt*` gone), `ExitableVessel.ts` (`PostRegistration`,
@@ -1023,7 +1105,14 @@ the requirements narrowly is D14's single costume parent (below).
 - **Gates:** the whole family every wave. `lint:field-meta` re-snapshot
   in W0; `lint:schema` after `gen:schema` in W0; `lint:lib-statics` must
   not rise (no new public statics on `Template`); `lint:create-sites`
-  from W4.
+  from W4 at ceiling 5; `check-instanceable-placement` invariant **12**
+  (orphan data keys, D16) censused and ceilinged in W1.
+- ⚠ **Two gates now fail in the direction that reads as success.**
+  Invariant 7 skips a row that names no class, and invariant 12 passes a
+  key it cannot attribute. Each new/changed script therefore gets a test
+  that feeds it a row it should REJECT — a gate proved only against
+  clean input is a gate this repo has already shipped broken and
+  silently passing.
 - `pnpm test` runs exactly twice: before the MR opens (W7) and at
   `/finalize`. Never between waves, never in the background.
 
@@ -1054,24 +1143,28 @@ the requirements narrowly is D14's single costume parent (below).
 4. **`Boundary` gaining `PostRegistration`** makes any future
    `createSync(new Door())` throw. None exists; the create-sites gate
    will name one if it appears.
-5. **The two loosest of the six surviving `create` sites** —
-   `StudioLogic.readClassDefault` (introspection) and the eval scratch
-   — fit the requirements' *two shapes* only by reading "framework
-   seam" generously. The alternative for the scratch is a
-   `/platform/idea/EvalScript` row cloned with a minted identity, which
-   is honest and cheap; the Studio read genuinely has no row. **User's
-   eye.**
-6. **One costume parent vs six.** AC5 says *"from six bundles"*; D14
-   ships one parent and lets each "+one" row append a line, because five
-   intermediate rows would exist for nothing to clone. If the user
-   wants the six as rows, they are `/stuff/agent/costume/{student-jacketed,…}`
-   each `extends: student` + one line — twenty minutes. **User's eye.**
-7. **A costume parent that is an `Extra` with no species.** Rule 4 of
-   `lint:identity` keys sentience on species; the row is deliberately
-   bodiless so it fields nobody and answers to nobody. If the gate
-   reads sentience off the class instead, the fix is the gate's
-   narrowing (rule 6 already narrows on species), not an `institution`
-   on a mannequin. Verified at W6, not assumed.
+5. ✅ **RESOLVED (user, 2026-09-25) — five surviving `create` sites, not
+   six.** The eval scratch gets a `/platform/idea/EvalScript` row with a
+   minted identity; "gone at restart" describes its lifetime, not
+   whether a person could author it. `StudioLogic.readClassDefault`
+   stays: it constructs an instance to ask the class its defaults, so a
+   row would be answering a question about itself. Ceiling 5.
+6. ✅ **RESOLVED — one costume parent.** Requirements AC5 reworded to
+   "six resulting shapes from one parent" so the drive does not read as
+   unmet.
+7. **A costume parent that is an `Extra` with no species.** Accepted
+   (D14). Rule 4 of `lint:identity` keys sentience on species; the row
+   is deliberately bodiless so it fields nobody and answers to nobody.
+   If the gate reads sentience off the class instead, the fix is the
+   gate's narrowing (rule 6 already narrows on species), not an
+   `institution` on a mannequin. Verified at W6, not assumed.
+7b. ⭐ **A junk data key now reaches N rows instead of one** (D16). The
+   Hydrator discards a key the class does not declare, silently, and
+   nothing gates it — `check-field-meta` checks `fieldMeta`'s shape in
+   source, not authored keys against it. Invariant 12 censuses and
+   ratchets it at W1. The pre-existing violations are the measure of how
+   long this has been true: the hospitality bar's `name`/`description`
+   are two of them, and they are about to be inherited.
 8. **`saveTemplate`'s signature** touches every test that calls it. The
    change is mechanical; the number is not small.
 9. **Go-live fan-out is a non-goal and now has a blast radius** — a

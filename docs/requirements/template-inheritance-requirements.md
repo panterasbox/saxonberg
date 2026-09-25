@@ -374,7 +374,7 @@ So `create()` remains legitimate in exactly two shapes:
   identity, and framework attachments that ride another object and are
   never template-backed.
 
-Everything else clones. The count is 38 today and 6 after.
+Everything else clones. The count is 38 today and **5** after.
 
 ### The three substrate classes that get cloned are split, not moved
 
@@ -634,9 +634,11 @@ Observable from outside the code.
    and Mara's restocking beat counts them correctly.
 4. **A crate of limes holds twelve limes from one authored line**, and
    is bought, priced and stocked exactly as before.
-5. **Forty-five dressed NPCs are authored from six bundles**, and every
-   one is wearing exactly what they wore before the build — one pair of
-   shoes, one jacket, nobody doubled and nobody undressed.
+5. **Forty-five dressed NPCs produce six distinct outfits from one
+   authored bundle** — the base three garments on a parent, each
+   variation a line in its own row — and every one of them is wearing
+   exactly what they wore before the build: one pair of shoes, one
+   jacket, nobody doubled and nobody undressed.
 6. **An exit's departure and arrival prose comes from a row**, and
    editing that row changes what newly built exits say.
 7. **`trace atmosphere` reports the same values and the same ancestor
