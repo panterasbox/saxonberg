@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**242 slates.** 54 greenfield · 86 continuations · 56 waves · 46 tails.
+**246 slates.** 58 greenfield · 86 continuations · 56 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (54)
+## ⭐ Greenfield — nothing shipped yet (58)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -61,6 +61,8 @@ respect.
 | [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
+| [destructive-distillation](./builds/destructive-distillation-slate.md) | the retort as the clamp's capitalised sibling · the condenser and the volatile fraction · wood tar → pitch · **coal tar** and its cuts … |
+| [drilling](./builds/drilling-slate.md) | the borehole as a **point, not a place** · the derrick and the string · the seeded deep field and the **dry hole** · the survey as the game (instruments → a model → a bet) … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
 | [end-of-life](./builds/end-of-life-slate.md) | custody of the body + terminal decay → **remains** · the |
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field … |
@@ -92,8 +94,10 @@ respect.
 | [rendering](./builds/rendering-slate.md) | the knacker (dead stock — a `Corpse` yields nothing) · the tanner (tannin is the dyeing trade's) · the chandler · `soap` / `candle` … |
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
+| [rubber](./builds/rubber-slate.md) | latex as a tap (→ tapping-slate) · sulfur as a deposit row + material · the **crosslinking `Law`** and its honest evaluator · `vulcanize` as a recipe gated on that law … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
 | [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
+| [tapping](./builds/tapping-slate.md) | the `Tappable` shape + the `tap` verb · `TapSpec`'s window predicate · `ProducingMixin`'s promotion out of `trade-ranching` · a `production:` block on Scots pine (resin, **the species row already ships**) … |
 | [underwater](./builds/underwater-slate.md) | ⚠ **a band is not standable; its BED is** (added 2026-09-23 from the ground build: every Location gets a floor by default, so a water band must declare `noDefaultFloor: true` or the open column will be floored and sittable — the ground build ships the declaration and a test, not a row) · the column — bands as zones, `depth` as a zone field, `up`/`down` derived · implicit up + declared ceilings + the reach-to-air gate · medium derived from the reach's level … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission · replacement … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |

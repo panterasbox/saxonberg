@@ -112,7 +112,15 @@ batch run past it goes sterile — the stuck ferment), `stallAboveK`
 flora after the lag; sealed never starts), `wildStrain`,
 `leesFraction`/`leesMaterial`, culture kind: `strain` + `starveDays`,
 and the INERT `foreshotCharacter` (P10 — the deferred cuts rung's
-seam). **A new drink is rows alone** — proven by the cider test
+seam). ⭐⭐ **That rung has a SECOND consumer and it is worth building for
+the first one anyway:** fractionating crude is the same act as making the
+cut — *separate a mixture by boiling point, and the operator decides
+where the boundaries fall*. So the whiskey cut and the refinery are one
+mechanism with different feedstocks and a different number of cuts, and
+building the rung for whiskey (a medieval-epoch build that pays for
+itself in a shipped trade) pre-builds refining for free. See
+[drilling-slate](../slates/builds/drilling-slate.md) § *Refining is the
+distiller's deferred cuts rung*. **A new drink is rows alone** — proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).
 
 `MaturationProfileCatalogue.postRegister` stands the roster up, eager via
