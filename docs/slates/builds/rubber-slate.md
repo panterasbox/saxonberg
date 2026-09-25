@@ -107,6 +107,192 @@ Better than magic, which is inquiry's own showcase, for four reasons:
 
 ---
 
+## Lens pass (2026-09-25)
+
+Run against [design-lenses.md](../../design-lenses.md). Two findings
+changed the design: a fork resolved under lens 2, and a **new invariant**
+under lens 6.
+
+### 1 · Pedagogy — Disciplines exercised; what is derivable
+
+⭐ **`chemistry` and `physics` both ship as Disciplines** (ISCED-F 0531
+and 0533), so the first question has a real answer. Tapping credits
+`silviculture`; sulfur credits `smelting`; **vulcanization credits
+`chemistry`.**
+
+⭐⭐ And that is a first: `chemistry.yaml` today describes a purely
+**reading** discipline — *"the discipline behind every composition read
+the instrumentation ladder offers"* — and **rubber gives chemistry its
+first MAKING face.** Reading a composition and changing one are the two
+halves; only one was built.
+
+⭐⭐⭐ **The chemistry row also independently states the conferral rule**,
+which settles how the gate must work: *"⚠ It buys RESOLUTION, never
+access… what the band decides is how narrowly the answer is bracketed…
+not a permission."* So **the epoch gate must be a HELD LAW, not a
+Discipline band.** A content author wrote that constraint down before
+this design existed, and it agrees with
+[advancement-slate](./advancement-slate.md).
+
+**Derivable:** yes, strongly. `hardness` and `toughness` as
+f(sulfur fraction × temperature × time), with a real optimum and a real
+over-range product. A player who has internalized it predicts *more
+sulfur → harder and less elastic; too much → brittle* and is right,
+without looking anything up.
+
+⚠ **The honest limit, written down rather than papered over:** the engine
+models materials at the **bulk-property** scale and has no polymers. So
+what a player recovers is **the curve, not the molecular mechanism** —
+this teaches *materials empiricism*, not organic chemistry. That is what
+Goodyear actually did, and recovering a relationship before its mechanism
+is how science genuinely proceeds, so it is honest. But it is a smaller
+claim than "teaches chemistry" and the slate should not make the bigger
+one.
+
+### 2 · Expression — what an author composes with no code
+
+⭐⭐⭐ **The strongest score available on this lens, because a material is
+a COLOR and not an item.** Adding rubber does not add a rubber boot; it
+makes **every existing garment, tool and vessel row re-makeable in
+rubber**. The effect is multiplicative, not additive — *"variety comes
+from combination and permutation, not from enumeration"* — and it needs
+no code, because textiles' covering walk *"asks the material and the form
+and never asks what class they are."*
+
+⭐ **Fork resolved by this lens.** Are vulcanization grades one material
+with a parameter, or several materials? **Several** — latex · rubber ·
+ebonite as three `Material` rows, with `Grade` riding the crafted object
+as usual. The metal chain already set this precedent when the extraction
+build made **the sulfur decide the MATERIAL**, and the multi-row answer
+is what lets an author name, price, trade and describe each one. *Lens 2
+chose this limb; I am not asking.*
+
+**Bespoke:** an elastomer family (neoprene, gutta-percha) is more rows
+with different crosslink curves — the system suggests the extension,
+which is the lens's best outcome rather than merely its passing one.
+
+### 3 · Immersion — what the sim affords without scripting
+
+⭐⭐ **The first person to make rubber boots changes what is survivable in
+the substation.** That is a world event caused by a player rather than by
+a patch, and nothing scripts it: `electricity.md` already resolves
+grounding and insulation **emergently from the graph, never scripted**, so
+a new insulating material simply propagates.
+
+No gauge anywhere — a boot does not report an insulation percentage, it
+breaks the path to ground and you are not hurt.
+
+⚠ **The risk on this lens is the recipe reading as a spreadsheet**
+(sulfur %, temperature, time). Mitigation, and it is the tasting
+precedent: **the products describe themselves in words** — tacky and
+weeping under-cured, hard and black and ringing when tapped for ebonite —
+and the plotted curve is *earned legibility* the player opts into, never
+the default surface.
+
+### 4 · Values — the choice forced; who confers standing
+
+⭐⭐⭐ **The best thing in this design, and it is not the material.**
+
+> **You worked out vulcanization. Do you PUBLISH or HOLD?**
+
+Publish and the law becomes a teachable good, the realm advances, and the
+authorship ledger records that you were first. Hold it and you have a
+monopoly on the only real insulator in the world. **No dominant option**,
+and it is the historically exact choice — Goodyear published and died in
+debt while others patented.
+
+It rides shipped machinery end to end: `provenance` → producer standing ·
+the library as teachable goods · guilds as the natural holders of a
+mystery.
+
+**Who confers standing:** the library (first discoverer), the authoring
+ledger, and renown per scope. ⚠ **Check that money cannot reach the
+mint** — it cannot: money buys the **goods**, and can buy a **lesson**
+(the capability), but the first-discoverer record is not purchasable.
+Passing here is not incidental; the publish/hold choice is precisely
+where a careless design would have let a rich player buy the credit.
+
+### 5 · Epochs — what changes, what must not
+
+| epoch | rubber |
+|---|---|
+| prehistory | ⭐ latex + a second plant sap — Mesoamerican rubber balls are a real pre-Columbian elastomer |
+| medieval | latex is a curiosity; no process |
+| **industrial** | **vulcanization — this slate** |
+| modern | synthetic rubber from petrochemical feedstock |
+| future | re-parameterized, not rewritten |
+
+⭐⭐ **The mechanism holds: it is always *crosslink a polymer to change
+its mechanical properties*.** What changes across five epochs is the
+**feedstock** (a tree, then petroleum) and the precision of control —
+dynamics, not mechanics.
+
+⭐ **Which is exactly the bridge to oil and plastics: synthetic rubber is
+the same LAW with a different feedstock.** So lens 5 is doing real work
+here rather than rubber-stamping — it is the evidence that the epoch
+on-ramp is modelled at the right altitude, because one `Law` covers both
+the natural and the synthetic material.
+
+### 6 · Economy & governance
+
+**Produces:** an insulating / waterproof / sealing material · a new
+garment line · a capability (the mine pump) · ⭐ and **knowledge as a
+good**. **Consumes:** latex (seasonal tapping labour) · sulfur · fuel ·
+time. **Who pays:** whoever buys boots, and the mine that wants to work
+below the water table.
+
+⭐ **Sulfur as a smelting byproduct turns a waste stream into an input**,
+which is the healthiest possible answer to *what does it consume*.
+
+**Did the demand exist first?** ⭐⭐ **Yes, and demonstrably** —
+`electricity.md` named rubber boots as its counterplay, and the material
+row was written for that purpose, *before anyone proposed producing
+rubber*. **A documented consumer with no producer** is the honest
+justification this lens asks for, and it is the same shape as the
+extraction census's orphan roots. ⚠ It is also the correction that opened
+this slate: the demand test cannot be run as if demand were a fact, when
+we are the ones authoring it.
+
+#### ⚠⚠ Who can be wronged — and the invariant this pass produced
+
+Rubber judges a person in exactly one place: **the knowledge gate.**
+*"You cannot vulcanize this."* The criterion is readable (you do not hold
+the crosslinking law) and the refusal names it. So far so good.
+
+> ⭐⭐⭐ **But lens 4's best feature is lens 6's biggest risk.** If a guild
+> works vulcanization out and refuses to teach it, a player is refused a
+> capability on a criterion they can **read** but cannot **lift by their
+> own effort**. That is the shape of *a bare COUNT as a permanent gate* —
+> a bar that nothing lifts — arriving by a different road.
+
+The answer is **not** to forbid holding a secret, which would destroy the
+lens-4 choice that makes the design good. It is:
+
+> **INVARIANT: cold discovery must ALWAYS remain open.** The law is a
+> true relationship in the world; **a monopoly on it can only ever be a
+> HEAD START, never a lock.** A guild holds the *shortcut*, never the
+> *law*.
+
+⚠ This must be stated because the natural implementation — a `Law` row
+somebody *owns* — breaks it silently. The gate asks *do you hold this
+law*, and there must always be a route to holding it that runs through an
+instrument and your own measurements.
+
+**Entrenchment tiers** ([measurement.md](../../measurement.md) § layer 3):
+
+- **Tier B** (whoever ships the code) — **that cold discovery stays
+  open.** It is an engine property, not a polity choice, and the AGPL is
+  the check.
+- **Tier C** (the polity) — **whether a guild may bind its members not to
+  teach.** That is a real political question, it is the kind of thing
+  guilds and courts exist to fight about, and the engine should have no
+  opinion.
+
+⭐ That split is what the lens is for: the engine guarantees the
+*possibility*, the polity argues about the *practice*.
+
+---
+
 ## Decided
 
 1. **Rubber is the epoch on-ramp's first consumer**, and this slate does
@@ -120,6 +306,14 @@ Better than magic, which is inquiry's own showcase, for four reasons:
    rows; gaskets belong to whoever builds the pump.
 5. ⛔ **Tyres, vehicles, oil, gas and plastics are NOT in scope.** They
    are the next epoch's argument and they inherit this one's mechanism.
+6. ⭐ **latex · rubber · ebonite are three `Material` rows**, not one
+   parameterized material — the metal chain's precedent (the sulfur
+   decides the material) and lens 2's answer. `Grade` rides the crafted
+   object as usual.
+7. ⭐⭐⭐ **Cold discovery stays open, always** (tier B). A monopoly on the
+   crosslinking law is a head start, never a lock — see the lens pass.
+8. **The gate is a HELD LAW, never a `chemistry` band** — `chemistry.yaml`
+   says it itself: *the band buys resolution, never access.*
 
 ## Open
 
