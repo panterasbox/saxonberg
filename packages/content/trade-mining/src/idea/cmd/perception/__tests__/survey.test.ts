@@ -27,9 +27,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import MeasureStrikeController from '../MeasureStrikeController';
-import MeasureDipController from '../MeasureDipController';
-import AnalyzeGroundController from '../AnalyzeGroundController';
+import StrikeReading from '../../../reading/StrikeReading';
+import DipReading from '../../../reading/DipReading';
+import GroundReading from '../../../reading/GroundReading';
+import type Reading from '@saxonberg/server/mud/lib/instrument/Reading';
+import {
+  driveMeasure,
+  driveAnalyze,
+} from '@saxonberg/server/mud/platform/idea/reading/__tests__/drive';
+import { applyRowFrom } from '@saxonberg/server/mud/platform/idea/reading/__tests__/row';
 import SurveyInstrument from '../../../../thing/instrument/SurveyInstrument';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import MineRoom from '../../../../location/MineRoom';
@@ -70,7 +76,10 @@ class Prospector extends AdvancementMixin(BeliefStoreMixin(TestActor)) {
     return band;
   }
 }
-type Runnable = Stuff & { execute(model: never, ctx: CommandContext): unknown };
+/** Where this trade's channel rows live, for {@link run}. */
+const ROWS = fileURLToPath(
+  new URL('../../../../../content/trade/mining/idea/reading/', import.meta.url),
+);
 
 let surface: CartesianZone;
 let under: CartesianZone;
@@ -100,8 +109,16 @@ function prospector(withInstrument = true): Prospector {
   return p;
 }
 
+/**
+ * ⭐⭐ **Dispatch through the VERB.** The channels are `Reading` rows
+ * now, and their rungs are gated to the two controllers — so this drives
+ * `measure`/`analyze` for real and stubs exactly one thing, the channel
+ * lookup. `applyRowFrom` reads the SHIPPED yaml, so a row that stops
+ * agreeing with its class fails here.
+ */
 async function run(
-  Controller: new () => Runnable,
+  Channel: new () => Reading,
+  channel: string,
   who: Prospector,
   where: Stuff,
   text: string,
@@ -118,10 +135,13 @@ async function run(
     const t = i as { hasCapability?(c: string): boolean };
     return typeof t.hasCapability === 'function' && t.hasCapability('surveying');
   });
-  await makeStuff<Runnable>(() => new Controller()).execute(
-    (tool === undefined ? {} : { tool: { stuff: tool, raw: 'tool' } }) as never,
-    ctx,
+  const reading = applyRowFrom(
+    makeStuff(() => new Channel()),
+    `${ROWS}${channel}.yaml`,
   );
+  const tools = tool === undefined ? [] : [tool as Stuff];
+  if (channel === 'ground') await driveAnalyze(reading, ctx, { tools });
+  else await driveMeasure(reading, ctx, { tools });
   return ctx;
 }
 
@@ -173,7 +193,7 @@ describe('surveying', () => {
 
   it('reads a bearing on the outcrop, and writes it to the field book', async () => {
     const who = prospector();
-    const ctx = await run(MeasureStrikeController as never, who, outcropAt(0, 0), 'measure strike');
+    const ctx = await run(StrikeReading, 'strike', who, outcropAt(0, 0), 'measure strike');
     expect(rejected(ctx)).toBeNull();
     const book = bookOf(who);
     expect(book).toHaveLength(1);
@@ -183,7 +203,8 @@ describe('surveying', () => {
 
   it('⚠ with no instrument it refuses, and says which instrument', async () => {
     const ctx = await run(
-      MeasureStrikeController as never,
+      StrikeReading,
+      'strike',
       prospector(false),
       outcropAt(0, 0),
       'measure strike',
@@ -194,7 +215,7 @@ describe('surveying', () => {
   it('⭐ a barren survey is a real answer, and names WHY', async () => {
     const who = prospector();
     // Well past the 300 m strike extent — the trace does not reach here.
-    const ctx = await run(MeasureStrikeController as never, who, outcropAt(60, 60), 'measure strike');
+    const ctx = await run(StrikeReading, 'strike', who, outcropAt(60, 60), 'measure strike');
     expect(rejected(ctx)).toBeNull();
     expect(ctx.getNotes().some((n) => n.kind === 'empty-result')).toBe(true);
     // …and nothing was written down, because nothing was read.
@@ -206,9 +227,9 @@ describe('surveying', () => {
     const novice = prospector();
     const expert = prospector();
     band = 'novice';
-    await run(MeasureStrikeController as never, novice, outcropAt(1, 1), 'measure strike');
+    await run(StrikeReading, 'strike', novice, outcropAt(1, 1), 'measure strike');
     band = 'expert';
-    await run(MeasureStrikeController as never, expert, outcropAt(2, 2), 'measure strike');
+    await run(StrikeReading, 'strike', expert, outcropAt(2, 2), 'measure strike');
 
     // The IDENTITY, straight off the deposit: the underlying figure both
     // of them are reading is one figure, and the band only sets the bar.
@@ -227,13 +248,13 @@ describe('surveying', () => {
     // and dip is still unreadable, because what you have is a stain seen
     // from above and not a face cut across the vein.
     expect(deposit.isInLode([0, 0, 0])).toBe(true);
-    const above = await run(MeasureDipController as never, who, outcropAt(0, 0), 'measure dip');
+    const above = await run(DipReading, 'dip', who, outcropAt(0, 0), 'measure dip');
     expect(above.getNotes().some((n) => n.kind === 'empty-result')).toBe(true);
     expect(bookOf(who)).toHaveLength(0);
 
     // Underground, in the lode: the plane runs through (0,0,-10) m, so
     // cell (0,0,-1) is on it.
-    const below = await run(MeasureDipController as never, who, workingAt(0, 0, -1), 'measure dip');
+    const below = await run(DipReading, 'dip', who, workingAt(0, 0, -1), 'measure dip');
     expect(rejected(below)).toBeNull();
     expect(bookOf(who).some((b) => b.referent.endsWith('#dip'))).toBe(true);
   });
@@ -248,13 +269,13 @@ describe('surveying', () => {
     }) as never);
 
     const who = prospector();
-    await run(MeasureStrikeController as never, who, outcropAt(0, 0), 'measure strike');
-    await run(AnalyzeGroundController as never, who, outcropAt(0, 0), 'analyze ground');
+    await run(StrikeReading, 'strike', who, outcropAt(0, 0), 'measure strike');
+    await run(GroundReading, 'ground', who, outcropAt(0, 0), 'analyze ground');
     const afterOne = opened.at(-1)!;
 
-    await run(MeasureStrikeController as never, who, outcropAt(3, 3), 'measure strike');
-    await run(MeasureStrikeController as never, who, outcropAt(-3, -3), 'measure strike');
-    await run(AnalyzeGroundController as never, who, outcropAt(0, 0), 'analyze ground');
+    await run(StrikeReading, 'strike', who, outcropAt(3, 3), 'measure strike');
+    await run(StrikeReading, 'strike', who, outcropAt(-3, -3), 'measure strike');
+    await run(GroundReading, 'ground', who, outcropAt(0, 0), 'analyze ground');
     const afterThree = opened.at(-1)!;
 
     expect(afterOne.kind).toBe('survey');
@@ -281,9 +302,9 @@ describe('surveying', () => {
     band = 'untrained';
     const who = prospector();
     for (const [x, y] of [[0, 0], [3, 3], [-3, -3]] as const) {
-      await run(MeasureStrikeController as never, who, outcropAt(x, y), 'measure strike');
+      await run(StrikeReading, 'strike', who, outcropAt(x, y), 'measure strike');
     }
-    await run(AnalyzeGroundController as never, who, outcropAt(0, 0), 'analyze ground');
+    await run(GroundReading, 'ground', who, outcropAt(0, 0), 'analyze ground');
     const frame = opened.at(-1)!;
     if (frame.kind !== 'survey') throw new Error('unreachable');
     // Every reading is written down…
@@ -296,11 +317,11 @@ describe('surveying', () => {
   it('⭐⭐ two characters on one outcrop hold DIFFERENT books', async () => {
     const a = prospector();
     const b = prospector();
-    await run(MeasureStrikeController as never, a, outcropAt(0, 0), 'measure strike');
+    await run(StrikeReading, 'strike', a, outcropAt(0, 0), 'measure strike');
     expect(bookOf(a)).toHaveLength(1);
     expect(bookOf(b)).toHaveLength(0);
     // …and a survey record is therefore a thing one of them HAS.
-    await run(MeasureStrikeController as never, b, outcropAt(5, 5), 'measure strike');
+    await run(StrikeReading, 'strike', b, outcropAt(5, 5), 'measure strike');
     expect(bookOf(a)[0]!.referent).not.toBe(bookOf(b)[0]!.referent);
   });
 
@@ -310,33 +331,62 @@ describe('surveying', () => {
       if (opts.payload) opened.push(opts.payload);
       return 'card';
     }) as never);
-    await run(AnalyzeGroundController as never, prospector(), outcropAt(0, 0), 'analyze ground');
+    await run(GroundReading, 'ground', prospector(), outcropAt(0, 0), 'analyze ground');
     const frame = opened.at(-1)!;
     if (frame.kind !== 'survey') throw new Error('unreachable');
     expect(frame.survey.points).toHaveLength(0);
     expect(frame.survey.note).toMatch(/measured nothing/);
   });
 
-  // ───────────── the platform stanzas (the P1 mitigation) ─────────────
+  // ────────── ⭐⭐ the platform names NOTHING of this pack's ──────────
 
-  it('⚠ each platform stanza names a controller row THIS PACK ships', () => {
+  it('⭐⭐ no platform view mentions a mining channel — install the pack, get the channel', () => {
+    // ⚠⚠ **This assertion is inverted, and the inversion IS the build.**
+    //
+    // It used to check that each platform stanza named a controller in
+    // this pack and that the pack shipped the row. That was the
+    // mitigation for a defect rather than a property worth having: a
+    // stanza in the kernel's own view meant `measure strike` was
+    // advertised in an install with no mining pack and died on dispatch
+    // with `controller-error`, and it meant this trade could not add a
+    // channel without editing a platform file.
+    //
+    // A channel is a ROW now. The platform ships one flat view per verb
+    // and resolves the channel token against whatever is installed, so
+    // the honest test is that the platform does not know this trade
+    // exists.
     const PLATFORM = fileURLToPath(
       new URL('../../../../../../platform/content/platform/cmd/perception/', import.meta.url),
     );
+    for (const file of ['measure.yaml', 'analyze.yaml']) {
+      const raw = readFileSync(`${PLATFORM}${file}`, 'utf8');
+      const def = CommandDefinition.fromYaml(raw, file);
+      // One flat view, one controller, no per-channel map at all.
+      expect(def.controllerForSubcommand('strike')).toBe(
+        `/platform/idea/cmd/perception/${file === 'measure.yaml' ? 'Measure' : 'Analyze'}Controller`,
+      );
+      expect(YAML.parse(raw)).not.toHaveProperty('subcommands');
+      // Not in the help either — an install with no mine must not be
+      // told about a reading it cannot take.
+      expect(raw).not.toMatch(/\/trade\/mining\//);
+    }
+  });
+
+  it('⭐ the channel rows and their classes are both this pack\'s, and they agree', () => {
     const PACK = fileURLToPath(new URL('../../../../../', import.meta.url));
-    const expected: Array<[string, string]> = [
-      ['measure.yaml', 'strike'],
-      ['measure.yaml', 'dip'],
-      ['analyze.yaml', 'ground'],
-    ];
-    for (const [file, sub] of expected) {
-      const def = CommandDefinition.fromYaml(readFileSync(`${PLATFORM}${file}`, 'utf8'), file);
-      const controller = def.controllerForSubcommand(sub);
-      expect(controller).toMatch(/^\/trade\/mining\/idea\/cmd\/perception\//);
-      // The row, on disk, in this pack — so an install WITH mining works
-      // and an install without it fails legibly rather than mysteriously.
-      const rel = controller!.replace('/trade/mining/', '');
-      expect(existsSync(`${PACK}content/trade/mining/${rel.replace(/^/, '')}.yaml`)).toBe(true);
+    for (const channel of ['strike', 'dip', 'ground']) {
+      const file = `${PACK}content/trade/mining/idea/reading/${channel}.yaml`;
+      expect(existsSync(file), `${channel}.yaml missing`).toBe(true);
+      const row = YAML.parse(readFileSync(file, 'utf8')) as {
+        class: string;
+        data: { channel: string };
+      };
+      // The row's own token is what a player types, and the class path
+      // resolves into THIS pack's `src/` by longest prefix.
+      expect(row.data.channel).toBe(channel);
+      expect(row.class).toMatch(/^\/trade\/mining\/idea\/reading\//);
+      const cls = row.class.replace('/trade/mining/', '');
+      expect(existsSync(`${PACK}src/${cls.replace('idea/reading/', 'idea/reading/')}.ts`)).toBe(true);
     }
   });
 
@@ -350,8 +400,16 @@ describe('surveying', () => {
     expect(raw.opens_card).toBe('survey');
   });
 
-  it('the instrument contributes the whole measure view — the Sextant shape', () => {
-    expect(SurveyInstrument.commandContributions.environment).toContain(
+  it('⭐ the instrument contributes NO verb — it declares a capability', () => {
+    // ⚠⚠ This assertion is inverted deliberately. The instrument used to
+    // contribute the whole `measure` view, which meant the VERB vanished
+    // when you were not holding one — and a vanished verb can only
+    // answer *unknown command*, which cannot say what is missing. The
+    // verb is the Avatar's now and the gate is the CHANNEL's, so
+    // `measure strike` with empty hands says *"it wants a surveyor's
+    // compass or a miner's dial"*. Same rule retire-conferral reached
+    // from the advancement side.
+    expect(SurveyInstrument.commandContributions.environment ?? []).not.toContain(
       'platform/cmd/perception/measure.yaml',
     );
     const kit = makeStuff(() => new SurveyInstrument());

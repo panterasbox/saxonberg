@@ -651,7 +651,7 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
   measurement; it says nothing about what it may *collect*, what a sensor
   seam may attest, or what the model is allowed to remember.
   [mirror-slate](./slates/builds/mirror-slate.md) and
-  [instrumentation-slate](./slates/builds/instrumentation-slate.md) hold
+  [instrumentation-slate](./slates/tails/instrumentation-slate.md) hold
   that thread; it deserves its own peer doc.
 - **Consent mechanics** as implemented — this states the requirement
   (opt-in, cheap exit), not the machinery.

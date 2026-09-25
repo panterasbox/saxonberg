@@ -1,0 +1,16 @@
+# load — what a rig is carrying and what it can still take.
+#
+# ⭐ The pack ships the row and the class; the platform names neither.
+class: /trade/haulage/idea/reading/LoadReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: load
+  kind: fact
+  scope: [subject, here]
+  discipline: teamstering
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether the next crate goes on, and what the hill will cost
+  stakes: >-
+    a broken axle, a dead animal, or a journey that never arrives

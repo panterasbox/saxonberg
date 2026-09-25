@@ -396,7 +396,11 @@ Ordered by leverage + dependency:
    is Wave 4 (account-level federation) + the message-restyle live wiring.
    Remaining tails: identification's
    **pedagogical instrument seam** (`analyze X with Y`, real Material
-   chemistry) + partial-ID + misidentification, and the **aether
+   chemistry) — ✅ **shipped 2026-09-24** as the instrumentation build's
+   reading ladder ([instrumentation.md](./subsystems/instrumentation.md)):
+   `analyze <channel> [subject] with <tool>` over 31 channels, each a row
+   a pack ships, with real Material chemistry on the `chemistry` channel
+   — plus partial-ID + misidentification, and the **aether
    id-aug** ambient trigger (axes unresolved + aug substrate retooling).
    ([reputation](./slates/builds/reputation-slate.md) /
    [social-graph](./slates/tails/social-graph-slate.md) /

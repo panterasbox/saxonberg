@@ -1,0 +1,22 @@
+# Sundial — a portable dial you set level and read the hour and the
+# bearing off your own shadow.
+#
+# ⭐⭐ **It had no row.** The class shipped, a controller checked
+# `instanceof Sundial`, and `measure shadow` was therefore refused for
+# everybody, forever — because nothing in the world was ever a sundial.
+# One of two instruments in exactly that state (see `sextant.yaml`); both
+# are reachable now, and the gate that would have caught it is the
+# capability census, which could not see a class check.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: folding sundial
+  keywords: [sundial, dial, gnomon]
+  register: indefinite
+  long: >-
+    A folding brass dial the size of a pocket watch, with a hinged
+    gnomon and a small bubble level set into the plate. Lay it flat in
+    the sun and the shadow gives you the hour and which way is south.
+  capabilities: [dialling]
+  mass: 0.2
+  _materialPath: /stuff/idea/material/alloy/bronze

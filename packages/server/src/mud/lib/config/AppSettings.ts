@@ -1655,6 +1655,16 @@ export const AppSettingKeys = {
    * spell seed omits an amount. */
   magicConjureWaterLitres: "magic.conjure.waterLitres",
 
+  /* ──────────────────────── instrumentation ──────────────────────── */
+  /**
+   * Instrumentation — condition worn off an instrument each time it takes
+   * a reading (Law 2 again: wear on USE, never the clock). An instrument
+   * is a `ToolItem`, so a worn-out one stops offering its capability and
+   * the reading refuses naming it — which is how a dial that has been
+   * read ten thousand times becomes a thing you have to replace.
+   */
+  instrumentWearPerReading: "instrument.wearPerReading",
+
   /* ────────────────────────── crafting ────────────────────────── */
   /** Crafting — condition at/below which a durable good is broken (a
    * broken tool offers no capabilities; a broken weapon's delivery is

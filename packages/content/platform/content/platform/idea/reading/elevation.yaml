@@ -1,0 +1,27 @@
+# elevation — a reading channel.
+#
+# ⭐⭐ Split out of `measure altitude`, which served two facts through one
+# controller with two different instruments. `elevation` is the word an
+# observer uses for a body's angle above the horizon, and separating them
+# is what made the sextant findable at all.
+#
+# ⚠ `measure elevation moon` binds NOTHING — there is no moon object —
+# so the raw word arrives as the parameter. That is the path, and it is
+# why the view's `subject` arg is greedy.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/ElevationReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: elevation
+  kind: fact
+  scope: [here]
+  discipline: awareness
+  instrument: sighting
+  instrumentNoun: a sextant
+  eyeCeiling: novice
+  improves: >-
+    where you are on the face of the world, and what hour it is by the sun
+  stakes: >-
+    a course held wrong across open country

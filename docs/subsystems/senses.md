@@ -331,17 +331,12 @@ sense.
 │   ├── smell
 │   ├── touch
 │   └── taste
-├── measurement.    ← instrument-mediated quantitative readouts
-│   ├── measure-temperature      MeasureTemperatureController
-│   ├── measure-pressure         MeasurePressureController
-│   ├── measure-humidity         MeasureHumidityController
-│   ├── measure-gravity          MeasureGravityController
-│   ├── measure-altitude         MeasureAltitudeController
-│   ├── measure-light            MeasureLightController
-│   ├── measure-atmosphere       MeasureAtmosphereController
-│   ├── analyze-atmosphere       AnalyzeAtmosphereController
-│   ├── analyze-chemistry        AnalyzeChemistryController
-│   ├── analyze-light            AnalyzeLightController
+├── sense.reading   ← the reading ladder (instrumentation.md)
+│   ⚠ It was eleven `Measure*Controller` / `Analyze*Controller` entries,
+│   one per subcommand. There are two controllers now and the CHANNEL is
+│   a row: `MeasureController` · `AnalyzeController`, resolving
+│   `<channel>` against `ReadingCatalogue`. 31 channels ship; a pack adds
+│   one with a row and a class and no platform file changes.
 │   └── weigh                    WeighController
 ├── search.      ← search/match results
 │   ├── find      FindController

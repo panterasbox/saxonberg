@@ -1,0 +1,51 @@
+# ⭐⭐ `readings` — the self-view of the reading ladder.
+#
+# Not a menu of verbs you have earned: there is no such thing here, and
+# that is the doctrine. `measure` and `analyze` are on every body and
+# every channel is open to everybody; what varies is which ROUTE you can
+# take to a given fact today, and how narrow the answer comes back.
+#
+# So this lists routes and says which are open. It is the progression UI
+# precisely because a refusal is the progression UI — if something lifts
+# a limit, the limit has to be visible for anybody to go and lift it.
+verbs: [readings]
+description: "What this world can tell you, and how you could find it out"
+help: |
+  List every reading channel this world ships, and for each one the
+  ways you could take it: by eye, with an instrument in reach, or at
+  a bench. A route you cannot take today is still listed — that is
+  the point of listing it.
+
+  `readings <channel>` adds what knowing it settles, and what not
+  knowing it costs you.
+
+  ⚠ No numbers about you. Competence shows as a band and nothing
+  else, because a band's referent is a field of study and a score's
+  referent is nothing.
+examples:
+  - cmd: readings
+    note: Everything, and what you could reach today
+  - cmd: readings acidity
+    note: Why it is worth owning a soil kit
+controller: /platform/idea/cmd/perception/ReadingsController
+args:
+  - name: channel
+    type: string
+    required: false
+  # The same plural-with-default the two read verbs use: what is in
+  # reach decides which rungs read as open.
+  - name: tool
+    type: objects
+    required: false
+    # ⚠⚠ `greedy: true` on the PREPOSITIONAL arg too, and this one was
+    # found last. `with the photometer` puts `the` and `photometer` after
+    # the preposition, and a non-greedy arg takes one positional — so the
+    # leftover word trips "too many arguments" and the whole command dies
+    # as an unknown shape. ⭐ The general rule the three fixes add up to:
+    # **every object arg a player will put an article in front of needs
+    # `greedy`**, wherever it sits in the view.
+    greedy: true
+    prepositions: [with, using]
+    default: "reachable:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

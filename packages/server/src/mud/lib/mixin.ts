@@ -340,6 +340,8 @@ export const Mixins = {
   Persistable: 'PersistableMixin',
   Forkable: 'ForkableMixin',
   Stackable: 'StackableMixin',
+  /** Where a piece of matter was taken from — the provenance stamp. */
+  Sampled: 'SampledMixin',
   Bulkable: 'BulkableMixin',
   VesselKind: 'VesselKindMixin',
   Cutlery: 'CutleryMixin',
@@ -742,6 +744,10 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Stacks, charges, marks, labels.
   StackableMixin: "{} doesn't come in stacks",
+  // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
+  // NOTED, and what makes it evidence is the noting. A lump off the
+  // floor is just a lump.
+  SampledMixin: '{} is not a sample — take one with `sample`, so it says where it came from',
   ChargedMixin: "{} doesn't hold a charge",
   MarkedMixin: "{} doesn't carry a mark",
   LabelledMixin: "{} can't be labelled",

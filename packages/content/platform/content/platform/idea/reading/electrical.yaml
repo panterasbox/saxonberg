@@ -1,0 +1,21 @@
+# electrical — a reading channel.
+#
+# ⚠ Like `time`: the multimeter is an unauthored row, not a missing
+# mechanism. The eye rung reads `untrained` because a potential is
+# exactly the thing a body cannot sense until it is too late.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/ElectricalReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: electrical
+  kind: fact
+  scope: [subject]
+  discipline: physics
+  instrument: ""
+  eyeCeiling: untrained
+  improves: >-
+    whether a thing will carry a current, hold one, or put one through you
+  stakes: >-
+    the shock you did not expect

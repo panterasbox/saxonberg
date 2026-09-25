@@ -204,6 +204,15 @@ forbids; unauthored pockets stay grid cells with their own prose.
 | **the measurement** | `measure strike` / `measure dip` | instrumented, banded, load-bearing |
 | **the interpretation** | `analyze ground` | route-gated synthesis with error bands, plus what is **underfoot** |
 
+⭐ Since the instrumentation build the three survey channels are
+`Reading` **rows this trade ships** (`/trade/mining/idea/reading/`), not
+stanzas on a platform view — so a second ore province adds a channel
+without a kernel MR. ⚠ And `measure` is **no longer conferred by
+carrying the dial**: the verb rides every character, and with no
+instrument in reach the refusal NAMES the instrument
+(*"It wants a surveyor's compass or a miner's dial."*) instead of the
+verb not existing. See [instrumentation.md](./instrumentation.md).
+
 ⭐⭐ `survey` is a MIRROR and the mine's read is a MEASUREMENT. The
 geological read is instrument-mediated, competence-banded and the thing a
 player pays for and acts on — the opposite of a read nothing is gated on.

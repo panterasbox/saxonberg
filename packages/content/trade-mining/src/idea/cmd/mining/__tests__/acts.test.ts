@@ -390,11 +390,16 @@ describe('the mine’s four labour acts', () => {
 
   // ────────────────────── the shipped views ──────────────────────
 
-  it('⚠⚠ NONE of the labour acts carries a deed gate — read off the shipped views', () => {
+  it('⚠⚠ NONE of this trade’s acts carries a deed gate — read off the shipped views', () => {
     const files = readdirSync(VIEWS).filter((f) => f.endsWith('.yaml'));
+    // ⭐ `assay.yaml` joins the six labour acts. It is not labour — it is
+    // a READING, and it is in this category because a reading of the
+    // rock belongs to the trade that cuts it. The assertion below is
+    // what actually matters and it covers every view here: no deed, no
+    // recipe, no band, and a controller row this pack ships.
     expect(files.sort()).toEqual([
-      'drive.yaml', 'hew.yaml', 'raise.yaml', 'shore.yaml', 'sink.yaml',
-      'stake.yaml',
+      'assay.yaml', 'drive.yaml', 'hew.yaml', 'raise.yaml', 'shore.yaml',
+      'sink.yaml', 'stake.yaml',
     ]);
     for (const f of files) {
       const yaml = readFileSync(join(VIEWS, f), 'utf8');

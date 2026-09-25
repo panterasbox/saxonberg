@@ -2407,7 +2407,8 @@ function bindPositionals(
       if (pi >= positionals.length) {
         if (def.default !== undefined) {
           bound[name] = expandDefault(def.default);
-          return { bound, prep };
+          // ⚠⚠ **`continue`, not `return`** — see below.
+          continue;
         }
         if (def.required !== false) {
           return {
@@ -2418,9 +2419,35 @@ function bindPositionals(
                 : `missing required arg: ${name}`,
           };
         }
-        // Greedy must be last per the load-time invariant; we
-        // don't loop further.
-        return { bound, prep };
+        /*
+         * ⚠⚠⚠ **A greedy field that consumed NOTHING must not end the
+         * bind**, and for a year it did.
+         *
+         * Both branches above used to `return`, with the comment
+         * *"greedy must be last per the load-time invariant"*. That
+         * invariant is not what the validator enforces: it is **greedy
+         * must be last, OR be followed only by PREPOSITIONAL args**
+         * (`CommandDefinition.validateArgOrder`) — precisely so a verb
+         * can read `<subject...> with <instrument>`. Returning here
+         * skipped every one of those later args, so their `default:`
+         * never fired.
+         *
+         * ⭐ Found by driving `measure light`. The instrumentation
+         * build's `measure` declares an optional greedy `subject`
+         * followed by a defaulted `tool`, and the BARE form — the
+         * commonest sentence the verb has — bound the channel, skipped
+         * the tool entirely, and answered *"you have nothing in reach
+         * that could read that"* to somebody holding the photometer.
+         * `measure light the lamp` worked, because the greedy field had
+         * something to eat.
+         *
+         * ⚠ Silent, and invisible to every tier below a live dispatch: a
+         * controller test builds its own model, and a view test parses
+         * YAML. The binder is the seam between them and only a real
+         * sentence walks it — the same shape as `hammer ingot` being
+         * refused for a year behind a fallback walk.
+         */
+        continue;
       }
       if (def.type === 'struct') {
         return {

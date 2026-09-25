@@ -43,6 +43,7 @@
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
@@ -61,7 +62,12 @@ export interface BookEntry {
   girthIndex: number;
 }
 
-export default class MeasureBook extends DetailedMixin(Thing) {
+// ⭐ `ToolMixin` because the book IS the instrument of this reading, and
+// the ladder narrows instruments by CAPABILITY rather than by class. The
+// view used to bind it with `[class.MeasureBook]`, which meant a second
+// shop's ledger could never serve — the same class-check defect the ten
+// platform instruments carried.
+export default class MeasureBook extends ToolMixin(DetailedMixin(Thing)) {
   /*
    * ⚠⚠ THE BOOK IS THE INSTRUMENT, and without this static the whole
    * `measure figure` stanza is unreachable: the controller, the view
@@ -81,8 +87,6 @@ export default class MeasureBook extends DetailedMixin(Thing) {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ['platform/cmd/perception/measure.yaml'],
-    peers: ['platform/cmd/perception/measure.yaml'],
   };
 
   static fieldMeta: FieldMeta = {
@@ -119,7 +123,14 @@ export default class MeasureBook extends DetailedMixin(Thing) {
   }
 
   /** The entry for a subject, or `null`. */
-  public entryFor(subject: string): BookEntry | null {
+  /**
+   * ⚠ It was `entryFor`, and it was renamed when the book became a
+   * `ToolMixin` host: the mixin owns `entryFor(kind)` for a capability
+   * spec, and two methods of one name on one object is a collision the
+   * compiler catches and a reader never would. `figureFor` is also the
+   * better name — it is a figure the book holds, not an entry.
+   */
+  public figureFor(subject: string): BookEntry | null {
     return this.entries.find((e) => e.subject === subject) ?? null;
   }
 
@@ -137,7 +148,7 @@ export default class MeasureBook extends DetailedMixin(Thing) {
    * docstring. A stable body keeps a good entry forever.
    */
   public stalenessFor(subject: string, girthNow: number): number | null {
-    const entry = this.entryFor(subject);
+    const entry = this.figureFor(subject);
     if (!entry || !(entry.girthIndex > 0)) return null;
     return Math.abs(girthNow - entry.girthIndex) / entry.girthIndex;
   }

@@ -63,22 +63,25 @@ suite('prospecting starts with NOTICING, not with shopping', () => {
     expect(await p.prose('look outcrop')).toMatch(/verdigris/i);
   });
 
-  it('⚠⚠ without an instrument the channel does not exist for you', async () => {
+  it('⭐⭐ without an instrument the channel REFUSES, naming the route', async () => {
     /*
-     * ⭐⭐ **A finding, and a correction to the original spec.** It
-     * asserted that `measure strike` REFUSES and names the instrument
-     * you need. On today's world it answers *"I don't understand
-     * 'measure'"* — because `measure` is afforded BY an instrument, so
-     * with none in reach there is no verb to refuse with. The spec could
-     * only ever have passed after its shopping leg, which ran first and
-     * which it did not treat as a precondition.
+     * ⭐⭐⭐ **The mining owner's call, made — and this checkpoint is the
+     * positive one its predecessor said it should become.**
      *
-     * Both shapes are defensible and they are different designs: "the
-     * verb exists and tells you what you need" teaches the ladder, while
-     * "the verb is not yours until you hold the tool" is the affordance
-     * rule the rest of the game follows. ⓘ Which one the survey channels
-     * should have is the mining owner's call. What is asserted here is
-     * what the world actually does.
+     * It used to assert that `measure strike` did not exist at all,
+     * because `measure` was afforded BY an instrument and with none in
+     * reach there was no verb to refuse with. It recorded the fork
+     * plainly: *"the verb exists and tells you what you need" teaches
+     * the ladder, while "the verb is not yours until you hold the tool"
+     * is the affordance rule* — and left the choice to whoever owned
+     * mining.
+     *
+     * The instrumentation build chose the first, for the whole ladder
+     * and not just for this channel: **the refusal IS the progression
+     * UI.** `measure` rides `Avatar.commandContributions.self`, so it
+     * always exists, and a rung you have not got is something the world
+     * can now NAME instead of pretending the verb was never a word.
+     * Competence resolves detail; it never resolves access.
      */
     const strike = await p.cmd('measure strike');
     const unknown = strike.notes.find(
@@ -88,10 +91,12 @@ suite('prospecting starts with NOTICING, not with shopping', () => {
     );
     expect(
       unknown,
-      `'measure strike' is afforded bare now — the pithead has grown an ` +
-        `instrument, or the channel moved off the instrument. Either way ` +
-        `this checkpoint should become the positive one.`
-    ).toBeDefined();
+      `'measure strike' answered as an unknown verb — the reading ladder ` +
+        `puts 'measure' on every character, so a missing instrument must ` +
+        `be a refusal that NAMES the instrument, never a missing word.`
+    ).toBeUndefined();
+    // And the refusal has to be worth reading: it names what is wanted.
+    expect(await strike.said()).toMatch(/compass|clinometer|instrument|nothing in reach/i);
   }, 60_000);
 });
 

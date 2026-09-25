@@ -235,7 +235,37 @@ export default class Avatar extends AvatarBase {
       "platform/cmd/system/clear.yaml",
       "platform/cmd/system/affordances.yaml",
       "platform/cmd/author/player.yaml",
+      /*
+       * ⭐⭐⭐ **The reading ladder, and all three verbs are the body's.**
+       *
+       * `analyze` was always here. `measure` joins it, and that LIFTS a
+       * doctrine line (`command-routing.md` — *nothing should ever put
+       * `measure` on a body*). The reason is the refusal:
+       *
+       *   > `measure light` carrying nothing must answer *"you have
+       *   > nothing in reach that could read that"*. An UNAFFORDED verb
+       *   > can only answer *unknown command*, and an unknown command
+       *   > cannot name what is missing.
+       *
+       * The gate moved from the verb to the CHANNEL, where the refusal
+       * can name the route — which is the retire-conferral doctrine in
+       * the instrument register: the verb is global and the OUTCOME is
+       * graduated. A vanishing verb teaches nothing.
+       *
+       * `readings` is the self-view of the whole ladder: every channel,
+       * every rung, whether it is open to you, and what knowing it is
+       * worth. Bands and prose only, never a number about a person.
+       */
       "platform/cmd/perception/analyze.yaml",
+      "platform/cmd/perception/measure.yaml",
+      "platform/cmd/perception/readings.yaml",
+      // ⭐ Taking a piece of something is an act anybody can do with
+      // their hands. What it costs is the carrying and the judgement of
+      // WHICH piece — never a permission and never a tool.
+      "platform/cmd/inventory/sample.yaml",
+      // The engine's own diagnostics, beside `affordances` and `errors`
+      // where they belong — `trace` is not a reading.
+      "platform/cmd/system/trace.yaml",
       "platform/cmd/social/subject.yaml",
       "platform/cmd/shell/script.yaml",
       // The record layer's retrieval verb. It lives on Avatar rather

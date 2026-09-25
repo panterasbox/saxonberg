@@ -9,7 +9,7 @@
  *   - **Resolution chain** (Wave 3) — `resolveTemperatureFor` and
  *     the four siblings (pressure / humidity / gravity / atmosphere)
  *     plus their `trace*` variants that return provenance for the
- *     `analyze atmosphere` verb. The chain walks innermost-
+ *     `trace atmosphere` verb. The chain walks innermost-
  *     container-outward through containment ancestors, then the
  *     spatial zone, then the root biome.
  *   - **Sky exposure** (Wave 5) — `isSkyExposed(scope)` predicate
@@ -284,7 +284,7 @@ export class BiomeApi {
 
   /**
    * Aggregate provenance for every atmospheric field at `scope`.
-   * Convenience helper for the `analyze atmosphere` controller.
+   * Convenience helper for the `trace atmosphere` controller.
    */
   public static async traceResolveAll(
     scope: Stuff & Container,

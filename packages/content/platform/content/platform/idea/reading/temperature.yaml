@@ -1,0 +1,21 @@
+# temperature — a reading channel.
+#
+# A practised body tells warm from cold and no more; `competent` is as
+# far as a hand on a wall gets you, and the rest is the instrument.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/TemperatureReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: temperature
+  kind: fact
+  scope: [here]
+  discipline: awareness
+  instrument: thermometry
+  instrumentNoun: a thermometer
+  eyeCeiling: competent
+  improves: >-
+    whether a room will keep a batch, ripen a cheese, or kill you slowly
+  stakes: >-
+    a spoiled ferment, a cellar that never came right, a night you did not survive

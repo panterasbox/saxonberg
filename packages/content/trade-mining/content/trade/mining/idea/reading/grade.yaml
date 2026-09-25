@@ -1,0 +1,35 @@
+# grade — how much metal is in this rock.
+#
+# ⭐⭐ The channel with EVERY rung, and the one the ladder was designed
+# around:
+#
+#   the eye     ore-bearing / barren, and no more
+#   a hand lens the same words, told apart more finely
+#   the bench   a NUMBER, off a sample somebody carried there
+#
+# ⭐ `eyeCeiling: novice` is not a slight. A naked eye tells ore-bearing
+# from barren and that is genuinely the end of what a naked eye can do —
+# so training past novice buys nothing here WITHOUT a lens, which is what
+# makes the lens the characterful early purchase: it pays off as you
+# learn, and the learning pays off because you bought it.
+#
+# ⚠ `instrument: ""` — there is no dial you can carry that reads a grade
+# off a rock, and inventing one would have been inventing a tool whose
+# only job was to be required. The `measure` rung refuses and names the
+# bench, which is the honest route.
+class: /trade/mining/idea/reading/GradeReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: grade
+  kind: fact
+  scope: [subject, here]
+  discipline: geology
+  instrument: ""
+  handTool: field-identification
+  eyeCeiling: novice
+  bench: assay-scale
+  improves: >-
+    which face to drive, which claim to buy, and which three samples are
+    worth the carriage to a bench
+  stakes: >-
+    a season spent on barren ground, or a rich face walked past

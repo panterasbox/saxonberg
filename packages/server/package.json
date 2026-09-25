@@ -30,6 +30,7 @@
     "lint:binder-models": "tsx scripts/check-binder-models.ts --lint",
     "lint:blessed-bands": "tsx scripts/check-blessed-bands.ts",
     "lint:boundary": "tsx scripts/check-boundary-exemptions.ts",
+    "lint:authored-prose": "tsx scripts/check-authored-prose.ts",
     "lint:capabilities": "tsx scripts/check-capabilities.ts",
     "lint:census": "tsx scripts/check-template-census.ts",
     "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts",

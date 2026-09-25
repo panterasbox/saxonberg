@@ -1,0 +1,23 @@
+# time — a reading channel.
+#
+# ⚠ `instrument: ''` is a WANT, not a completeness claim: a timepiece is
+# a row somebody has not authored yet, and when one lands this channel
+# gets its instrumented rung with no code. Recorded here rather than as
+# a stub, because a hook several builds ahead of its consumer is what
+# `lint:unconsumed-seams` exists to find.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/TimeReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: time
+  kind: fact
+  scope: [here]
+  discipline: awareness
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    what hour and what date it is
+  stakes: >-
+    being late

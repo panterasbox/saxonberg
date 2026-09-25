@@ -156,7 +156,7 @@ bonuses:
 ⭐ That last one suggests the honest model may be **two mechanisms, not
 one**: instruments that raise `effectivePerception`, and instruments that
 report a *channel* independent of it. The
-[instrumentation slate](../builds/instrumentation-slate.md)'s
+[instrumentation slate](../tails/instrumentation-slate.md)'s
 readings-are-channels / procedures-are-verbs split is very likely the
 right frame here, and ⚠ **it should be read before designing this**.
 
@@ -227,7 +227,7 @@ target half of the same seam (§ Decision 10), and must be read for what
 this slate deliberately does *not* take.
 
 **Likely the governing frame:**
-[instrumentation-slate](../builds/instrumentation-slate.md) — ⚠ *check before any
+[instrumentation-slate](../tails/instrumentation-slate.md) — ⚠ *check before any
 measure/analyze/instrument/augment design*; readings are channels,
 procedures are verbs, sensorium and instruments are one continuum.
 

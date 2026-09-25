@@ -1,0 +1,27 @@
+# power — what a watercourse could turn.
+#
+# ⭐ A `/system/` channel: rivers flow whether or not anybody is employed
+# by them, so the mechanism is the water pack's and the reading with it.
+#
+# ⭐ The pack ships the row and the class; the platform names neither.
+class: /system/water/idea/reading/PowerReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: power
+  kind: fact
+  scope: [subject]
+  # ⭐⭐ Restored from the retired per-channel arg spec, which read
+  # `requires: TangibleMixin`. One flat `analyze` view cannot carry a
+  # per-channel `requires:`, so the channel carries it — and `Reading`
+  # looks again over the same reachable scope rather than refusing on the
+  # first candidate. Driving found why it matters: `analyze power
+  # millrace` bound the millsite ROOM, whose `details.weir` keywords
+  # include `millrace`, instead of the weir standing in it.
+  subjectRequires: [TangibleMixin]
+  discipline: physics
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether this reach will drive a mill, and how big a one
+  stakes: >-
+    a mill built on a stream that cannot turn it

@@ -150,9 +150,15 @@ objects). Each also needs its unhook separated from surrounding policy:
 `Slotted`/`Slottable`'s `onSlotReleased` notification is policy by the
 `owned` audit's own step 4.
 
-**`ref: 'identity'` is declared nowhere yet**, and that is expected
-rather than an omission: the framework attaches no *runtime* behaviour to
-the identity axis — a path resolved on read cannot dangle into freed
+**`ref: 'identity'` was declared nowhere until 2026-09-24**; the
+instrumentation build declares it three times (`SampledMixin.sampledAt`,
+`ReadingRecord.sampledAt` and `ReadingRecord.takenWith`), for the
+documentation value exactly as this paragraph anticipated. See
+§ *A provenance claim* below — it is a genuinely different use of the
+axis from the resolving exemplars, and worth telling apart.
+
+The rest of the paragraph stands: the framework attaches no *runtime*
+behaviour to the identity axis — a path resolved on read cannot dangle into freed
 memory, so there is nothing for the proxy or the destruct slot to
 enforce. The declaration is documentation-only there today. It IS
 validated (`identity` + any `lifetime` throws), so declaring one is safe
@@ -289,6 +295,28 @@ public getXxx(): Xxx | null {
 `null` field → `null` return. Non-null field + unresolvable singleton
 → also `null` (Api-side lookup returns null for unloaded). Same
 semantics across all singleton refs.
+
+### ⭐⭐ A provenance claim — an identity path deliberately NEVER resolved
+
+The exemplars below all resolve their path to a live singleton on read.
+`SampledMixin.sampledAt` does **not**, and that is the point of it:
+
+> **Provenance is a historical claim, not a live reference.** The lump in
+> your hand came from *that* face. Whether the face still exists, still
+> has ore in it, or was back-filled last winter does not touch the truth
+> of where this lump came from.
+
+So `sampledAt` is a path **string** with `ref: 'identity'`, and nothing
+in the tree looks it up. Consumers **group by the string** — the salting
+check compares two samples' stamps, the assay paper prints one, and a
+second bench in another locality reads it without needing the first
+locality installed.
+
+⚠ A reader that resolved it to a live `Stuff` would be asking a question
+about *now* to answer a question about *then*, and would start failing
+the moment a working was promoted, sealed or destroyed. `ReadingRecord`
+carries the same field for the same reason, beside `takenWith` (which
+instrument read it — a claim about a thing that may since have broken).
 
 ### Existing exemplars
 

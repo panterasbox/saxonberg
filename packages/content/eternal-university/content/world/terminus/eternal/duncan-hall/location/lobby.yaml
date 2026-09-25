@@ -13,10 +13,10 @@
 # steps get the back-exit "north" automatically via
 # Exitable.applyExits.
 #
-# `props:` seeds a couple of instrument instances into the
-# lobby on hydrate so the inspection card's contents list has
-# something to render — demonstrating the contents projection
-# end-to-end against real content.
+# `props:` seeds the instrument case into the lobby on hydrate. It began
+# as two instances to give the inspection card's contents list something
+# to render; the reading ladder made it the place a student can actually
+# borrow a dial, and the case is the whole family now.
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -47,12 +47,32 @@ data:
       destination: /world/terminus/eternal/duncan-hall/location/steps
       door: /world/terminus/eternal/duncan-hall/thing/front-doors
       bidirectional: true
+  # ⭐⭐ The instrument case, and it is now the WHOLE family.
+  #
+  # It was four of them, propped to give the inspection card something to
+  # render. The reading ladder made that an availability question rather
+  # than a demo: a channel that declares an instrument and has none in
+  # the world is a refusal nobody can ever lift, which is the shape
+  # `sundial` and `sextant` were in — both classes shipped, both checked
+  # by `instanceof`, and NOTHING in the world was ever either, so
+  # `measure shadow` and the sun's angle were refused for everybody
+  # forever.
+  #
+  # ⚠ Deliberately NOT the photometer's only home: a lens on a counter in
+  # a dorm lobby is where a student borrows one, not where the trade buys
+  # one. The tool trade is somebody else's build.
   props:
     - /stuff/thing/instrument/thermometer
     - /stuff/thing/instrument/barometer
     - /stuff/thing/instrument/hygrometer
     - /stuff/thing/instrument/altimeter
     - /stuff/thing/instrument/balance
+    - /stuff/thing/instrument/photometer
+    - /stuff/thing/instrument/hydrometer
+    - /stuff/thing/instrument/gravity-meter
+    - /stuff/thing/instrument/gas-analyzer
+    - /stuff/thing/instrument/sundial
+    - /stuff/thing/instrument/sextant
   cast:
     # Katie, the live-in super — the day-one housing touchpoint. Talk to her
     # to get a room; she fronts provisioning (see her seed + Katie.ts).
