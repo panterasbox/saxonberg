@@ -260,6 +260,18 @@ the connected set ∪ every avatar row inside the short clock, one query.
 **An NPC is never absent**: every read narrows on an Avatar identity
 before it consults the snapshot.
 
+> ⭐⭐ **That gate is the one real work item if NPC households ever want
+> this machine** (→ [household-lifecycle-slate](../slates/builds/household-lifecycle-slate.md)).
+> The design there is that **absence and death are one lifecycle with
+> different terminal events** — an unfunded retired NPC walks the same
+> active → dormant → escheated path, with three divergences: death
+> replaces the long clock, **there is no reclaim** (terminal, unlike a
+> player's), and **an NPC never names a beneficiary**, so step 3 below
+> passes the estate **up the title tree** rather than to an heir. ⭐ That
+> last line is the whole answer to the perverse-incentive question
+> (*inheriting from parents you can arrange to lose*): the estate reaches
+> the market, never the child.
+
 ### The touch
 
 `PlayerApi.touchEstate(key)` runs at login (`returning: true`), at every

@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**246 slates.** 58 greenfield · 86 continuations · 56 waves · 46 tails.
+**248 slates.** 59 greenfield · 86 continuations · 56 waves · 47 tails.
 
-## ⭐ Greenfield — nothing shipped yet (58)
+## ⭐ Greenfield — nothing shipped yet (59)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -71,6 +71,7 @@ respect.
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
+| [household-lifecycle](./builds/household-lifecycle-slate.md) | the household as ordinary content (a template row, unstamped) · the generator as an author · minting parents at char-gen with a residence · **un-gating the estate machine from `Avatar`** … |
 | [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |
 | [hydration-framework](./builds/hydration-framework-slate.md) | ⭐⭐ the census + ratchet on the `postRegister` implementations that load state (63 → 67, ungated) · the finishing-hydration vs warming-a-roster ruling the census feeds · ⭐ let a `PersistenceContributor` name its own SOURCE (so a layer can restore from a collection that is not `holder_snapshots`) · pre- vs post-register for a source-naming contributor (Q1) … |
 | [implements](./builds/implements-slate.md) | the implement class itself · choosing what it modifies (magnitude / cost / band-reach — and the reach case must not become a key) · wear (default none; else `Durable`, as the conduit did) · BUC on the effect axis … |
@@ -258,7 +259,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (46)
+## Tails — small and opportunistic (47)
 
 | slate | left |
 |---|---|
@@ -292,6 +293,7 @@ are the named remainders.
 | [mixin](./tails/mixin-slate.md) | `Invisible` (perception override) · `Sleeping`/`Resting` (sensory cutoff, command-gating, species circadian variance) · `Writable` · `Pushable`/`Pullable`/`Liftable` … |
 | [multi-currency](./tails/multi-currency-slate.md) | whether a second currency needs its own cash/coinage · a combined cross-currency account statement · the changer's spread/fee home |
 | [nutrition-and-fitness](./tails/nutrition-and-fitness-slate.md) | the `pace` device (the sustained-work exemplar; the gym's second slot) · the real-world bridge (Part 5 — a seam only) · the menu as a choice (Part 7) · a `{{ body }}` prompt word … |
+| [pack-boundary](./builds/pack-boundary-slate.md) | the two populations written down (`content-packs.md`) · ⭐ the |
 | [prompt-stack](./tails/prompt-stack-slate.md) | Tier 2 kinds `numeric` / `multiChoice` / `password` · Tier 3 `paginated` + `quiz` · the open questions below (choice-list scaling, confirm/choice unification, author test-prompt overrides, quiz design) |
 | [reactions](./tails/reactions-slate.md) | the analytics event-stream tap (Wave 3) · the emote-flood salvage (Future direction, below) · reactability for act-kinds beyond the shipped `speech.vocal`/`act.emote`/`speech.channel`/`act.combat` set (e.g. system notices) |
 | [reference-lifetime](./tails/reference-lifetime-slate.md) | the undeclared instance-ref sites still guarding by hand (`SandboxCrossingExit.crossing` · the `ExitableVessel` caches · `LoungeWarren._reapTimers` · the warren maps, now `OuterWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey` and `HoldingWarren._roomsByKey`) … |
@@ -317,6 +319,7 @@ tail in `tails/`. These need moving or re-stamping.
 | slate | size | folder |
 |---|---|---|
 | [credit](./tails/credit-slate.md) | a build | `tails/` |
+| [pack-boundary](./builds/pack-boundary-slate.md) | a tail | `builds/` |
 | [value-object-statics](./builds/value-object-statics-slate.md) | a tail | `builds/` |
 
 <!-- END GENERATED -->
