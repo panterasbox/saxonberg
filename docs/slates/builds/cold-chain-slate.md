@@ -12,7 +12,10 @@
 > coolant reserve + melt reconcile (mirror `FurnaceMixin`'s fuel) · the
 > cached-ambient staleness handling (meltout must fan out `restamp`) · the
 > tech curve (cold room → sealed insulated box → iced cooler → powered
-> fridge) · first consumers (blood, food/spoilage, pharma/vaccines).
+> fridge) · first consumers (blood, food/spoilage, pharma/vaccines) ·
+> ⭐ **multi-chambered vessels** — a fresh box and a freezer are two
+> temperatures on one appliance, and `AtmosphericMixin` is per-Stuff →
+> [chambered-vessels-slate](../tails/chambered-vessels-slate.md) (2026-09-25).
 > **Size:** a build (the cold mirror of the fuel → fire → furnace chain).
 
 ## Why it deferred out of clinical-medicine (user direction, 2026-09-24)
@@ -81,3 +84,46 @@ integrity story). Name the substrate for the chain, not for blood.
 - [blood-slate](./blood-slate.md) — the blood economy this eases at 12×.
 - `docs/subsystems/fire.md` — `FurnaceMixin` + the fuel reserve, the shape
   to mirror.
+
+
+---
+
+## ⭐⭐ 2026-09-25 — the fridge needs chambers, and that is its own substrate
+
+Raised while designing beekeeping and recognised as the same problem: **a fresh
+compartment and a freezer are two temperatures on one appliance**, and the
+envelope build put `envelopeTemperatureK` on **`AtmosphericMixin`**, which is
+**per host**. So one Stuff cannot hold two setpoints, and a refrigerator is
+**not** one container — it is a cabinet that owns two enclosed, sealable
+chambers, each with its own `EnclosureSpec { material, thicknessM }` and its own
+U-value.
+
+Full design → **[chambered-vessels-slate](../tails/chambered-vessels-slate.md)**.
+The three things this build should know before it plans:
+
+1. ⭐ **`ChamberedMixin`, not a `MultiChamberedVessel` class.** Every candidate
+   base already computes from a mixin chain, and an oven with racks is built on
+   `Vessel` too — so a subclass forces *every* oven to be chambered. Mixins
+   union; base classes force one spine.
+2. ⚠⚠ **The UX cost is about DEPTH, not about chambers.** The MQL `peers` leg is
+   explicitly **one level** into an open container, and its comment says the
+   limit exists so the pool *"must agree with what `PerceptionApi.canReach`
+   grants."* So `room → fridge → freezer → the milk` puts the milk **out of
+   scope**. The narrow fix is *a part is not a level* — a declared division is
+   transparent for depth, bounded at **one** level so a part of a part stays
+   opaque — and it must land in `scope-walk` **and** `canReach` together.
+   ⭐ **This build is consumer one**, so it is legitimate to skip it and live
+   with `open freezer` + `take the milk from the freezer` (MQL's `from <holder>`
+   clause sidesteps the scope pool), leaving transparency to become a
+   third-consumer promotion once the drawers, the wardrobe and the oven want it.
+3. ⭐ **The free trick:** if the **primary** chamber's keywords include
+   `fridge`/`refrigerator` and the freezer's do not, then `put the milk in the
+   fridge` binds with **no engine change** — the handle chain already resolves
+   authored keywords.
+
+⚠ And the one piece of real work either way: **a describer that speaks a host's
+declared parts AS parts**, so a room reads *"a refrigerator, its freezer door
+shut"* rather than listing a refrigerator and a freezer as siblings. The
+precedent (`distinguishing` = *"+ what they are wearing"*) is body-shaped, so
+whether the generic describer does this is unverified — and it is the thing the
+whole UX turns on.

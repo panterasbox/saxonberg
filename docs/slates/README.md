@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**251 slates.** 62 greenfield · 87 continuations · 56 waves · 46 tails.
+**252 slates.** 62 greenfield · 87 continuations · 57 waves · 46 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (62)
 
@@ -202,7 +202,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (56)
+## Waves — rides another build (57)
 
 | slate | left |
 |---|---|
@@ -212,6 +212,7 @@ are the named remainders.
 | [argument-map](./tails/argument-map-slate.md) | claim dedup / canonicalization · integrity-grade map-summarization · automated convergence-detection (+ the anti-railroad floor) · mass-scale moderation of claim quality … |
 | [augmentation](./tails/augmentation-slate.md) | the medical install/remove procedure · the char-gen augment loadout · translation, prosthetic, sensor, motor and cognitive augments (only the baseline `AetherImplant`/cranial-slot form ships) · the failure and hacking modes … |
 | [bulkable](./tails/bulkable-slate.md) | mixing/solutions · the `sealed` gas level + the phase→closure map (granular → `open`) · universal reception on surfaces + the auto-compose wiring · regenerating sources … |
+| [chambered-vessels](./tails/chambered-vessels-slate.md) | `ChamberedMixin` (`lib/spatial/`) — the chamber declaration, the `postRegister` mint, the destruct cascade, the **no-loose-contents** invariant, the part flag · ⭐ **a describer that speaks a host's declared parts AS parts** (the whole UX question) · ⚠ **part-transparency** in `scope-walk` + `PerceptionApi.canReach` together, bounded at one level · slots-vs-contents for where a chamber sits |
 | [chat](./tails/chat-slate.md) | the role overlay (projected rank + stored overlay; only `owner` gates today) · the channel config block (`editPolicy` · per-channel `retention` · `postPermission` … |
 | [client](./tails/client-slate.md) | output logging / clips / attestation (owned by attestation-slate) · the lounge's content half (owned by lounge-slate) · the open MML vocabulary questions (what `msg` is for · `communicative` on the wire … |
 | [client-cockpit](./tails/client-cockpit-slate.md) | the `study` and `classroom` modes + their diegetic `mode-changed` trigger (⚠ contradicts cockpit.md's no-auto-switch rule; this is the *Educational* row of client-shell-slate's use-case matrix, tracked only here since the cluster pass) · the content surface (video + transcript payloads, diegetic triggers, completion events) · the live-tutor / classroom shape · the `<mql>` / `mudq:` sleeper, still inert by design … |

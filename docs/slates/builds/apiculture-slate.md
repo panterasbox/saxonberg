@@ -273,6 +273,29 @@ colony grows. Three things fall out for free:
   a `Containable` reading as brood, stores or empty comb. No inspect verb.
 - **Hefting is a read on the box**, which is where weight already lives.
 
+### ⭐ The chambering substrate, and bees rides free
+
+A hive is a **chambered vessel** — boxes owned by a host — which is its own
+substrate question, raised for build-4's refrigerator and designed at
+[chambered-vessels-slate](../tails/chambered-vessels-slate.md). Two things
+matter here:
+
+- ⭐⭐ **Apiculture needs no interpreter change.** The MQL `peers` leg reaches
+  **one level** into an open container, so a super sitting on the hive is
+  reachable (level 2) and a frame *inside* a standing hive is not (level 3) —
+  **which is exactly how beekeeping works.** You take the super off and work it
+  on a stand, and then its frames are at level 2. Physical practice and the
+  shipped depth limit agree. The **fridge** is what has to buy
+  part-transparency, because you reach into a freezer in place.
+- ⭐ **Removability is a slot policy, and the hive is the removable case** — a
+  fridge compartment must never come out; lifting a super off **is** the
+  harvest. Same substrate, one authored difference. (Which is also why the
+  fixture/adornment pattern is wrong for both: it hardcodes *not-portable*.)
+
+⭐ And each box can carry its **own** `enclosure:` — so an insulated brood box
+and a bare super are honestly different winters, per the thermoregulation
+section above.
+
 ## Forage range — the flowering census is already shipped
 
 `GrowingMixin` ships **`isFlowering()`**, reconciling on read, with a
