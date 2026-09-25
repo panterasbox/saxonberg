@@ -208,33 +208,178 @@ downstream of every decision here.
   person** fact, not a brain fact. It is independent and fixable now. See
   [crew-requirements](../../requirements/crew-requirements.md).
 
-## Open questions — the conversation to have
+## ⭐⭐ Two things already in the code that this design lands on
 
-1. ⭐⭐⭐ **Is a brain a REFLEX or a CANDIDATE?** The structural fork
-   everything hangs off. Today a trigger fires and the brain acts. The
-   alternative: the agent has one beat and *chooses* among candidates that
-   score themselves. The lean recorded in conversation: **both, as two
-   layers** — a reactive layer (witness triggers; you do not deliberate
-   about greeting someone who walked in) over a deliberative layer (what
-   am I working on). Needs deciding before anything else.
-2. **Does a brain declare its vocation, or does the SEAT?** A crew could
-   read `fulfills` off the position instead. ⚠ But an agent with no job — a
-   wolf, a pet, a wanderer — has no seat, so the brain must be able to say
-   it independently.
-3. **Is "what it produces / consumes" declarable at all?** Production is
-   dynamic (a farm yields what the soil gives). Possibly only the **kind**
-   of flow is declarable, not the quantity — which may be enough for the
-   vocations register and the demand test.
-4. **Where does priority live** — on the brain (static), on the spec
-   (authored), or derived from the need it serves (utility)? The five-kind
-   ordering above is the cheap answer; utility is the honest one.
-5. **What persists?** Today nothing. An assignment, a queue position and a
-   part-finished task all need to, and residency evicts the host.
-6. **Do the two cron-jobs-in-brain-clothing (`shifts`, `covers`) leave?**
-   If a brain becomes a deliberative candidate, employment machinery on the
-   brain rail is a category error with a real cost.
-7. **What does the CMS palette show?** Today: 38 identical filename
-   labels. This is the authoring surface lens 2 fails on.
+**1 · The importance vocabulary exists and is EMPTY.**
+
+```ts
+// packages/types/src/index.ts
+export interface AbortReasonRegistry {}          // declaration-merging
+export type AbortReason = keyof AbortReasonRegistry;   // therefore: never
+```
+
+The comment beside it reads *"so `AbortReason = never` in v1. Harmless
+because no v1 producer."* It is a **closed-but-pack-extensible registry
+with zero entries** — exactly the federation shape a vocabulary is
+supposed to have here, and nothing has ever filled it.
+
+**2 · And brains opt out of it explicitly.** `BehaviorBeat` — the
+slot-holder that makes an instant brain's `claims` real for a contention
+window — declares:
+
+```ts
+readonly interruptibleBy: ReadonlySet<AbortReason> = new Set<AbortReason>();
+```
+
+⚠ **Empty. An NPC greeting you cannot be interrupted by anything the
+framework is able to express.** So importance is not wholly absent: the
+activity framework has the seam, the vocabulary has a home, and the brains
+decline to participate. **This design needs no new interruption concept** —
+it needs the registry populated and that set to stop being empty.
+
+## The design — two layers
+
+**Layer 1 · reflex.** Witness-triggered, immediate, no deliberation:
+`greets` · `introduces` · `reacts` · `backs-up` · `crossing-ritual`. ⭐ You
+do not deliberate about greeting somebody who walked in, and these are
+**correct as they stand**.
+
+**Layer 2 · deliberation.** One beat per **agent** (not per spec).
+Candidates report how much they want to run; an arbiter picks one; the
+winner runs as a real activity that declares what may preempt it.
+
+⚠ There is no per-agent beat today — `BehaviorBeat` is a slot-holder, not a
+deliberation tick. Every one of the 38 brains has its own cadence. Layer 2
+is therefore a genuine rewrite of the dispatch loop, and per-spec cadence
+disappears for deliberative brains (pacing becomes the *agent's* beat).
+
+## ⭐⭐⭐ Urgency is a BAND, not a score
+
+The single most important decision here, and it is what keeps this design
+inside lens 1 rather than becoming *a lookup table dressed as chemistry*.
+
+Textbook utility AI normalizes every candidate's motivation onto `0..1`
+through authored response curves. **That would fail this project's own
+rules outright** — *a number that goes up with no referent* is lens 1's
+named failure, and authored weights are exactly that. Worse, it forces
+incommensurable units into one scale: there is no honest exchange rate
+between *three litres below par* and *waited forty seconds*.
+
+So: **a candidate derives a BAND from its own real quantity, in its own
+real unit, and no cross-unit comparison ever happens.**
+
+| candidate | its real quantity | becomes |
+|---|---|---|
+| hunger | reserve depletion | a band |
+| a patron waiting | time waited | a band |
+| gin below par | the shortfall, in litres | a band |
+| a fire in the room | the harm rate | a band |
+
+Bands are this engine's entire idiom already — competence bands, light
+bands, grade bands, spoilage bands, the derive-on-read honesty firewall.
+Proposed closed vocabulary: **`idle · wanted · pressing · critical`**.
+
+⭐ **And a candidate returns a band WITH a reason**, so every decision an
+NPC makes is explainable in one sentence. That is what carries lens 3
+(machinery becomes a person) and it hands the crew its refusal text for
+free: *"Mara is restocking — Remy is free."*
+
+### Ties break by kind, and the band is what stops that being brittle
+
+Cross-class order is read straight off the roster: **threat > body > work
+> social > filler**. Within a band and kind, the candidate's own
+comparison decides.
+
+⚠ Strict lexicographic priority is normally brittle — a trivially hungry
+bartender would never serve anybody. **The band fixes it:** slightly hungry
+is `wanted`, a waiting patron is `pressing`, so work wins; only a
+`critical` body need beats pressing work. The band is load-bearing, not
+decoration.
+
+## The declarations a brain makes
+
+| static | what it answers | fixes |
+|---|---|---|
+| `kind` | threat · body · work · social · filler (closed) | the cross-class order |
+| `summary` | what this brain is, in a sentence | ⭐ lens 2 — the CMS palette, today 38 identical filename labels |
+| `discipline?` | which of the 77 it practises | lens 1 legibility; connects a brain to the dossier and the vocations register |
+| `produces?` / `consumes?` | the **kinds** of flow, never quantities | ⭐⭐ lens 6 — makes the demand test computable instead of hand-maintained |
+| `requires?` | host mixins + world preconditions, failing **loud** | the silent-wrong-host class; mirrors a command view's `args[].requires` |
+| `claims` | **mandatory** for anything durative | the 17 brains that claim nothing and read as idle |
+| `urgency(ctx)` | `{ band, because }` — the new core hook | priority, interruption, and the crew's `first-free` |
+| `interruptibleBy` | which reasons preempt it — actually populated | the empty set above |
+| `presenceGated` · `ambient` | kept unchanged | the one thing today's model got right |
+
+## ⭐ The board unification
+
+Work candidates come from two places: the agent's **standing duties** (a
+seat's work) and **posted jobs**. A posted job becomes a candidate for
+every eligible agent — which is the first time an NPC can see the board
+players have had since the gig kernel shipped.
+
+> **Assignment is a job posted to a named agent.** So a crew is a policy
+> over claim order, not a separate mechanism — and push versus pull
+> collapses, because an AI claims in the same tick as the posting.
+
+## ⭐ The LLM seam falls out
+
+The arbiter is swappable. Default: band, then kind order. LLM: hand it the
+candidate list with each band and reason, and it picks one.
+
+> **The candidate list IS the prompt.**
+
+Bounded (it can only choose what the world affords) · auditable (one of N
+named options, with reasons) · cheap (one call per **decision**, not per
+tick) · and it degrades to the numeric arbiter when the model is slow,
+absent or expensive. Compare *"the LLM drives the NPC"*: unbounded,
+unauditable, per-tick, no fallback.
+
+## What leaves
+
+- **`shifts` and `covers` leave the brain rail** for the roster tick, where
+  employment machinery belongs and which already runs hourly. They were
+  only ever brains because a cadence was the sole available scheduler.
+- **Per-spec cadence** for deliberative brains, replaced by the agent's
+  beat. ⚠ A content migration across the 63 rows that author `behaviors:`.
+
+## The cost, stated plainly
+
+The dispatch loop rewritten · 38 brains re-declared across the kernel and
+nine packs · 63 content rows migrated · `AbortReasonRegistry` populated ·
+and three genuinely new pieces of design: the urgency band vocabulary, the
+arbiter, and candidate assembly. **Authorized 2026-09-25** — *"redesign
+everything if it improves the design."*
+
+## Open questions — what is still open
+
+**Closed by the 2026-09-25 pass:** (1) reflex vs candidate → **both, two
+layers** · (4) where priority lives → **a derived band per candidate, with
+cross-class order read off the roster** · (6) `shifts`/`covers` → **they
+leave**.
+
+1. **The band vocabulary itself.** `idle · wanted · pressing · critical` is
+   a proposal. Four rungs is the guess; the light bands use six and
+   competence uses five.
+2. **Does a brain declare its vocation, or does the SEAT?** ⚠ An agent with
+   no job — a wolf, a pet, a wanderer — has no seat, so the brain must be
+   able to say it independently. But an employed agent then has two
+   sources, and they can disagree.
+3. **Is `produces` / `consumes` declarable at all?** Production is dynamic
+   (a farm yields what the soil gives). The lean: only the **kind** of flow
+   is declarable, which is enough for the register and the demand test, and
+   nothing pretends to know the quantity.
+4. **What persists?** The lean: the **current intention** (what I am doing
+   and why) persists on the host, and the scratch bag stays transient.
+   Residency evicts the host, so it must ride the host's own snapshot.
+5. **How often does an agent deliberate**, and what wakes it early? A
+   posted job and a `critical` band both want to preempt the next beat
+   rather than wait for it.
+6. **Does the arbiter's reason become player-visible?** It is the crew's
+   refusal text and an NPC's legibility, but ⚠ measurement.md's no-gauge
+   rule means it must read as a sentence about a person, never a readout.
+7. **What fills `AbortReasonRegistry`**, and who may add to it? A pack
+   shipping its own reason is the federation-correct answer; the kernel
+   owning the closed set is the legible one.
 
 ## Cross-references
 

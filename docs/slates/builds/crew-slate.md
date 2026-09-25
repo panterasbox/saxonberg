@@ -411,6 +411,33 @@ build stops at.
 8. **Is `MobCrew` real at all**, given policing models the gang as a
    Business? § *The mob is an employer*.
 
+## ⚠⚠ Blocked on the brain substrate (2026-09-25)
+
+The routing half of this slate is **downstream of
+[brain-substrate-slate](brain-substrate-slate.md)**, which was opened the
+same day after the crew design turned out to be a layer of dynamism
+balanced on an undesigned one. What that pass changes here:
+
+- **`first-free` is unimplementable today.** 17 of 38 brains declare no
+  engagement slot, so a farmer working a field reads as idle. The crew's
+  simplest possible rule cannot be evaluated against the current roster.
+- **Routing without importance is meaningless.** Nothing preempts an idle
+  timer; `BehaviorBeat` declares `interruptibleBy` **empty**, so an NPC
+  greeting you cannot be interrupted by anything the framework can say.
+- ⭐⭐ **The selector may not survive.** The brain pass lands on *a posted
+  job is a candidate for every eligible agent, and assignment is a job
+  posted to a named agent* — which makes **a crew a policy over claim
+  order** rather than a separate mechanism, over a board that already
+  ships. The `actorFor` selector this slate proposes is the push-shaped
+  answer to a question the pull side may already own.
+- ⭐ **`actorFor`'s replacement, if so:** a candidate's **urgency band plus
+  its reason** — which gives the crew *"Mara is restocking; Remy is free"*
+  for free, instead of a boolean free/busy.
+- **What is NOT blocked:** the capability half — `order` consulting whether
+  the maker knows the recipe — is a **seat and person** fact and needs
+  nothing from brains. It stays shippable on its own
+  ([crew-requirements](../../requirements/crew-requirements.md)).
+
 ## Cross-references
 
 - [party.md](../../subsystems/party.md) — the crew standup, already deferred there
