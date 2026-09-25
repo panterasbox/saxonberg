@@ -651,3 +651,72 @@ to call the root — `/system/power` vs `/system/energy` — and whether it
 (power · gas · water on one `Conduit`/`SupplyState` spine, already half-built in
 water and the kernel). Leans `/system/energy` if the root is to house the whole
 economy (combustion + electric + mana) rather than electricity alone.
+
+## ⭐⭐ The economic proposal — how the streetlight/public-works bill is paid (2026-09-25)
+
+The answer to *"who pays for the lamps, and who runs it?"* — and it **reuses
+shipped substrate end to end; no new primitives.**
+
+### Budget — the city gets a treasury (not the realm)
+
+Envelope's `/compact/treasury` payer is a labelled placeholder (*"the realm
+appropriates for Terminus's lamps"*). Fix, all shipped:
+- **A locality treasury account** — `BankingApi.ensureVenueAccount(/world/terminus, …)`
+  mints one for any owner path.
+- **Funded by a use-based local tax** — a local share of the sales tax that
+  already flows seller-collected via `remitDemoTax` (from `buy`/`order`). Law-2
+  clean (a tax on *transacting*, not on holding), and a **transfer, never a
+  mint** (conservation holds — CB is the only faucet). ⇒ *Terminus pays its own
+  bill.*
+
+### Org — a SEAT, not a new class
+
+Public works is a **seat in the locality's existing government** (governance.md
+Office substrate + civics.md Locality-declared jurisdiction), NOT a bespoke
+`PublicWorksDept`. Exact shipped precedent: `trade-fuel`'s `pack.yaml` —
+its mechanism is *"held by the Ministry of Trade — **a seat, never a
+committee**."* The seat is the power; minting an org would invent a rule where a
+seat suffices (*title is the only power; the rest is theater — and the theater is
+the product*).
+
+### The split — public service, private supply
+
+The general store is wrong on the *supply* side; the realm treasury is wrong on
+the *funding* side. They are two different fixes:
+- **The service is public** — the government owns and runs lighting on its own
+  public ways, funded by the local treasury, allocation (the seniority quota) set
+  by the seat/committee. How gas-lit cities actually worked.
+- **The supply is private** — the government **contracts** a real fuel producer
+  (trade-fuel's collier, or a fuel merchant sourcing extraction's coal/peat)
+  through the shipped **contract.md** board + custodian rule. This replaces the
+  general-store placeholder (a retailer producing nothing) and turns the
+  already-calibrated demand into a real market — the vocations.md win.
+
+**Money flow (every leg shipped):** local tax → locality treasury → nightly
+`settleStreetLighting` appropriation → the producer's account under a procurement
+contract.
+
+### Lens-6 governance — criterion + appeal, named
+
+- **Which streets go dark** — the seniority quota, *recorded in advance* →
+  already honest (nobody judged at the moment of refusal).
+- **Who wins the fuel contract** — a decision about a business: criterion =
+  price/reliability, mechanism = the contract board, appeal = its dispute path.
+  Policy tier C (the polity's).
+- **The tax rate** — a governance decision, amendable by the polity
+  (measurement.md layer 3-C).
+
+### ⚠ The one real fork (owner's call)
+
+Whether the service is **municipal (a government seat) · a corpo concession · a
+co-op** is the power-utility-slate's open ownership fork. **Recommendation for
+street lighting: municipal by default** — a public good on the government's own
+streets, cleanest as "public service + private supply contract." The co-op/corpo
+models fit the *electric utility* better later (bigger capital, sharper ownership
+question). Left explicitly open.
+
+### Source-agnostic (lens 5 again)
+
+When the grid arrives: same seat, same treasury, same tax — the streetlight's
+**supply contract** switches from lamp oil to an electricity draw from the
+utility. The governance/budget shape does not change; only Phase 0 does.
