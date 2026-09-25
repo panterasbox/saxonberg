@@ -24,6 +24,9 @@ interface Row {
     coords?: { x: number; y: number; z: number };
     exits?: Record<string, { destination: string }>;
     ambientIntensity?: number;
+    ambientSource?: string;
+    ambientOpening?: string;
+    _biomePath?: string;
     props?: string[];
     mix?: Array<{ speciesPath: string; woodMaterialPath: string; seedPath: string | null; standing: number; capacity: number; incrementPerYear: number }>;
   };
@@ -39,6 +42,48 @@ function shipped(templatePath: string): boolean {
     if (existsSync(join(CONTENT, pack, 'content', `${templatePath}.yaml`))) return true;
   }
   return false;
+}
+
+/**
+ * ⭐⭐ **The sky's noon lux, read off the platform pack's own dial.**
+ *
+ * Since the envelope build a row that authors no `ambientIntensity` is
+ * not dark — it is DERIVED. A scope open to the sky is lit *because it
+ * is open to the sky*, and its noon flux is this many lux times its own
+ * floor area, which is why a 1 m² closet and a 100 m² yard are both
+ * right without either one authoring a number. `ambientIntensity`
+ * survives as a **calibration override**, which is exactly what a
+ * canopy is: the wood authors one BECAUSE it is darker than open sky.
+ *
+ * Read from the shipped setting rather than copied here, so moving the
+ * dial moves this test with it.
+ */
+function skyNoonLux(): number {
+  const doc = YAML.parse(
+    readFileSync(join(CONTENT, 'platform', 'content', 'settings', 'light.yaml'), 'utf8'),
+  ) as { settings: Array<{ key: string; value: string }> };
+  const row = doc.settings.find((s) => s.key === 'light.sky.noonLux');
+  expect(row, 'light.sky.noonLux').toBeDefined();
+  return Number.parseFloat(row!.value);
+}
+
+/** Is this row open to the sky — by its own biome, or by declaring so? */
+function skyLit(r: Row): boolean {
+  const src = r.data.ambientSource;
+  if (src === 'sky') return true;
+  if (src === 'glow' || src === 'none') return false;
+  return String(r.data._biomePath ?? '').includes('/biome/outdoor/');
+}
+
+/**
+ * The lux this room reads at a clear noon overhead sun — the engine's
+ * own `skyNoonFlux()` arithmetic, off the row: the authored calibration
+ * over the cell's area if there is one, else the derived default.
+ */
+function noonLuxOf(r: Row, cell: number): number {
+  if (!skyLit(r)) return 0;
+  const authored = r.data.ambientIntensity;
+  return authored ? authored / (cell * cell) : skyNoonLux();
 }
 
 const ROOMS = ['treeline', 'ride', 'oak-clearing', 'hazel-cant'].map((n) => join(WOOD, `${n}.yaml`));
@@ -112,23 +157,49 @@ describe('the Hanging Wood', () => {
   });
 
   it('⭐ daylight: every wood room clears `dim` at its 10 m cell; the wood is dimmer than the hill, its clearings brighter than its ride', () => {
-    const lux = (f: string, cell: number): number => (row(f).data.ambientIntensity ?? 0) / (cell * cell);
+    const lux = (f: string, cell: number): number => noonLuxOf(row(f), cell);
     expect(lux(join(WOOD, 'treeline.yaml'), 10)).toBeGreaterThanOrEqual(20); // lit
     expect(lux(join(WOOD, 'ride.yaml'), 10)).toBeGreaterThanOrEqual(5); // dim
     expect(lux(join(WOOD, 'ride.yaml'), 10)).toBeLessThan(20);
     expect(lux(join(WOOD, 'oak-clearing.yaml'), 10)).toBeGreaterThan(lux(join(WOOD, 'ride.yaml'), 10));
-    expect(lux(join(REJECTION, 'location', 'hillside.yaml'), 10)).toBeGreaterThan(lux(join(WOOD, 'treeline.yaml'), 10));
+    // ⭐ The hill is brighter than the treeline, and since the envelope
+    // build it is brighter WITHOUT AUTHORING A NUMBER: it dropped its
+    // calibration and takes the derived sky, while the wood keeps one
+    // because a canopy is a reason to be darker than the sky.
+    const hillside = row(join(REJECTION, 'location', 'hillside.yaml'));
+    expect(hillside.data.ambientIntensity, 'hillside.yaml authors no calibration').toBeUndefined();
+    expect(lux(join(REJECTION, 'location', 'hillside.yaml'), 10)).toBeGreaterThan(
+      lux(join(WOOD, 'treeline.yaml'), 10),
+    );
   });
 
-  it('⭐ daylight over Rejection: every surface room clears `dim` at 10 m and every Kestrel room `bright` at 20 m', () => {
+  it('⭐ daylight over Rejection: every room NAMES A SOURCE — open rooms clear `dim` at 10 m, every Kestrel room `bright` at 20 m', () => {
+    // ⚠⚠ This used to require an authored `ambientIntensity` on every
+    // file in `location/`, which was wrong in two ways the envelope
+    // build made visible. Half of those rooms are INTERIORS — the adit,
+    // the assay shed, the claims office, the store, the smelter, the
+    // dry — and an interior open to no sky is dark, which is the point
+    // rather than a gap. And an outdoor room no longer needs a number
+    // at all: it is lit because its biome says it is open to the sky.
+    //
+    // ⭐ So the claim is the one S2 actually makes: **every room's light
+    // has a named source.** Sky-lit rooms clear `dim`; the rest are
+    // honestly dark and say so by authoring no ambient.
     for (const f of readdirSync(join(REJECTION, 'location'))) {
       const r = row(join(REJECTION, 'location', f));
-      expect(r.data.ambientIntensity, f).toBeDefined();
-      expect(r.data.ambientIntensity! / 100, f).toBeGreaterThanOrEqual(5);
+      if (skyLit(r)) {
+        expect(noonLuxOf(r, 10), f).toBeGreaterThanOrEqual(5);
+        continue;
+      }
+      // An enclosed room: no ambient, no glow, no claim on the sky. It
+      // is lit by what is IN it or by what spills through its door.
+      expect(r.data.ambientIntensity, `${f} is enclosed and must author no ambient`).toBeUndefined();
+      expect(r.data.ambientSource ?? null, f).not.toBe('sky');
     }
     for (const f of readdirSync(join(REJECTION, 'kestrel-road'))) {
       const r = row(join(REJECTION, 'kestrel-road', f));
-      expect(r.data.ambientIntensity! / 400, f).toBeGreaterThanOrEqual(60);
+      expect(skyLit(r), f).toBe(true);
+      expect(noonLuxOf(r, 20), f).toBeGreaterThanOrEqual(60);
     }
   });
 

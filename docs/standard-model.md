@@ -335,7 +335,7 @@ factory in the folder shown.
   (`@PostConstruct`-style).
 - **`Spawner`** / **`Spawned`** — track within-session dynamic
   spawns and their back-reference.
-- **`Populates`** — declaratively spawns contents into a `Container`
+- **`Staged`** — declaratively spawns contents into a `Container`
   at clone time.
 - **`Stackable`** — a fungible stack carrying an integer quantity;
   splits and merges.

@@ -73,6 +73,18 @@ function dialStr(key: string, fallback: string): string {
   }
 }
 
+/** The numeric twin of {@link dialStr}. Same reason for being module-private. */
+function dialNum(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
  * Causes `ensureFloor` has already warned about. Runtime-only, process-wide,
  * and deliberately unbounded-but-tiny: the set of distinct failure MESSAGES
@@ -220,6 +232,17 @@ export default class Location extends LocationBase {
   public setFloorSpec(value: FloorSpec | null): void {
     this.floor = value;
   }
+
+  // ⭐ **What bounds this place is the ENCLOSURE** — `enclosure:`,
+  // `getEnclosure()` and the `enclosureDefaults()` hook all arrive from
+  // there, and a subclass that knows its own construction overrides the
+  // hook. It was `fabric:` on this class until review (2026-09-25); it
+  // moved because a mixin that can only reach its host's members through
+  // a cast is on the wrong host. Its vocabulary lives at
+  // `lib/spatial/Enclosed.ts` — a fence is not a thermal fact, and the
+  // ranching build imports the words from there — but `AtmosphericMixin`
+  // implements it, because a fourth mixin layer on this class collapses
+  // TypeScript's inference. That module says why.
 
   public isNoDefaultFloor(): boolean {
     return this.noDefaultFloor;

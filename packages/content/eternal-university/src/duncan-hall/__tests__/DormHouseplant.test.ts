@@ -471,9 +471,20 @@ function tapIn(room: Stuff & Container): Stuff | null {
   );
 }
 
+/**
+ * ⭐⭐ **How bright this place GETS**, not what it is doing this minute
+ * — `peakSignalAt`, the same read `GrowingMixin` takes.
+ *
+ * ⚠ It used to be `signalAt`, and that was the same number until the
+ * envelope build: a room's lux was an authored constant. Now the dorm
+ * room follows the sun through its window, so `signalAt` answers a
+ * question about the CLOCK (these tests run at midnight, where it is
+ * 0.08 lux and correctly so) while every assertion below is about the
+ * ROOM — whether a peace lily can live on that desk.
+ */
 function luxAt(loc: Stuff & Container): number {
   const vision = PerceptionApi.modalityByName('vision');
-  const light = (vision.signalAt(loc) as Light | null) ?? Light.ZERO;
+  const light = (vision.peakSignalAt(loc) as Light | null) ?? Light.ZERO;
   return light.intensity.rawValue();
 }
 

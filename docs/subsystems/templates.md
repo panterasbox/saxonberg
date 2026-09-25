@@ -176,10 +176,11 @@ publishing an edit to a `props:` row minted a fresh set into every
 live instance — every crate in the world gaining six more grapefruits,
 every non-singleton fixture in a plain room duplicated.
 
-`PopulatesMixin` therefore records `_propsPopulated`/`_castPopulated`
-(one once-flag per list — `props:` the write-back set dressing, `cast:`
-the conserved troupe; see persistence.md § Props and cast) and each
-applier no-ops once its flag is set.
+`StagedMixin` therefore records `_propsStaged`/`_castStaged`,
+and `CostumedMixin` records `_costumeWorn` — **one once-flag per list**:
+`props:` the write-back set dressing, `cast:` the conserved troupe,
+`costume:` what a cast member wears (see persistence.md § Props and
+cast). Each applier no-ops once its flag is set.
 Singletons were already safe (the applier skips one already placed);
 this covers the plain-clone branch. `PersistableMixin` hosts (every
 `FurnishableRoom`) were never exposed — that override only *retains*
@@ -280,7 +281,7 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
     the current container's templatePath matches the declared path.
     Target must be singleton-shaped (validated at template-save
     time by `TemplateApi.validateSingletonContainerTarget`).
-  - `applyProps` on `PopulatesMixin` — iterates a list of
+  - `applyProps` on `StagedMixin` — iterates a list of
     entries, each either a bare templatePath or a
     `{template, onto}` object. Dispatches per-entry by
     source-template singleton-shape: singletons resolved via

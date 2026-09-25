@@ -27,6 +27,12 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   # ⚠⚠ **No `coords:`, and that is the warren exception.** This row looks
   # like a trade floor and is not: it is one of the four D6 FURNISHING
   # ARCHETYPES — a HOME kitchen a floorplan clones into a house, where
@@ -63,3 +69,8 @@ data:
     - /stuff/thing/items/plated-dish
     - /stuff/thing/cutlery/horn-spoon
     - /stuff/thing/cutlery/table-knife
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A window over the work bench — a cook needs daylight to tell a good onion from a bad one.

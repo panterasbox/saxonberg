@@ -92,6 +92,39 @@ describe('the furnace family — held temperature', () => {
   });
 });
 
+describe('the furnace family — a burnt-out fire casts no light', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  /**
+   * ⭐⭐ The shipped defect this closes. `LightSourceMixin` emits its
+   * authored flux unconditionally and lit-gating was done per CLASS —
+   * `isOn()` on `PortableLight`, `isBurning()` on `Candle`. `Campfire`,
+   * `Forge`, `Oven` and `Kiln` have empty class bodies and therefore no
+   * gate at all, so a campfire that burnt out an hour ago kept casting
+   * its full 120 lumens. Every composer puts `FurnaceMixin` outside
+   * `LightSourceMixin`, so the gate belongs there and fixes all of them
+   * at once.
+   */
+  it('a lit, fuelled furnace emits; doused, it is dark', () => {
+    const f = forge(1300);
+    f.setEmittedFlux(120);
+    expect(f.getEmittedFlux().rawValue()).toBe(120);
+
+    f.douse();
+    expect(f.isLit()).toBe(false);
+    expect(f.getEmittedFlux().rawValue()).toBe(0);
+  });
+
+  it('a fire with no fuel left is dark even while its `lit` flag says otherwise', () => {
+    const f = forge(1300);
+    f.setEmittedFlux(120);
+    f.adjustReserve('fuel', Quantity.of(-100, '%'));
+    expect(f.fuelRemaining()).toBe(0);
+    expect(f.getEmittedFlux().rawValue()).toBe(0);
+  });
+});
+
 describe('the furnace family — the forge melts a metal', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());

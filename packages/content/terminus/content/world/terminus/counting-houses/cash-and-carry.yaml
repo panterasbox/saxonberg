@@ -43,8 +43,11 @@ data:
   register: definite
   longDescription: |
     A high, cold hall that smells of sawdust and spilled spirit. Steel racking climbs the walls, cased and chalk-numbered; a long counter runs under a board of consignors' asks, and beyond a roller door somebody's dray is always half-unloaded. Nothing here is for the thirsty — it is where the thirsty's bartender comes.
-  ambientIntensity: 30
-  ambientColorTemperature: 4200
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the avenue, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   exits:
     north:
       destination: /world/terminus/counting-houses/avenue-block

@@ -1,0 +1,35 @@
+# A hearth — ⭐ the fire that heats WHERE YOU STAND, as against the forge
+# that heats what you put in it. The commons object every inn, hall and
+# kitchen hangs its warmth on; a second venue's fireplace is a row like
+# this one and needs no code at all.
+#
+# Ships COLD and full of fuel: somebody lights it, somebody feeds it, and
+# it goes out when they stop.
+class: /platform/thing/Hearth
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: open hearth
+  keywords: [hearth, fire, fireplace, grate, hob]
+  register: definite
+  longDescription: >
+    A wide stone hearth under a blackened hood, its iron grate heaped
+    with ash from every fire before this one. A hob at one side takes a
+    pot; a low wall in front of it takes a person, which is rather the
+    point of the whole arrangement.
+  # ⚠ `FurnaceMixin.lit` defaults TRUE. A hearth in an empty room is out.
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  # ⭐ What it puts into the ROOM, in watts. Against the envelope this is
+  # about +9 K over outside in a shut stone cell and around +4 K with the
+  # street door standing open — "a heated room with the door open is
+  # expensive" falling out of the arithmetic rather than being asserted.
+  heatOutputW: 1500
+  # Firelight: not much of it, and warm.
+  emittedIntensity: 90
+  emittedColorTemperature: 1900

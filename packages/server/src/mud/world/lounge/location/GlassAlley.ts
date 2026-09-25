@@ -22,7 +22,7 @@ import Location from '../../../lib/stuff/Location';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
-import { PopulatesMixin } from '../../../lib/stuff/Populates';
+import { StagedMixin } from '../../../lib/stuff/Staged';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { MixinApi } from '../../../api/mixin';
 import { ConditionApi } from '../../../api/condition';
@@ -35,7 +35,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
 const GlassAlleyBase = SingletonMixin(
-  PopulatesMixin(
+  StagedMixin(
     ExitableMixin(DetailedMixin(VisibleMixin(Location)))
   )
 );

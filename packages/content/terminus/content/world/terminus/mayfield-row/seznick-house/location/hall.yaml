@@ -4,6 +4,12 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: fanlight
   shortDescription: entry hall
   keywords: [hall, entry]
   register: definite
@@ -12,3 +18,8 @@ data:
   ambientColorTemperature: 4200
   longDescription: |
     A small square hall, bare boards and a picture rail with nothing on it yet. Doorways open ahead to the main room and left to the bedroom; the flat smells faintly of soap and long sunlit dust — a cleaned slate.
+  details:
+    fanlight:
+      keywords: [fanlight, glass, light]
+      description: |
+        A dusty fanlight over the door, throwing a half-moon of light onto the boards for about an hour each morning.

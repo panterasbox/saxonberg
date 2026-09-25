@@ -145,22 +145,48 @@ describe('Thermal ← weather coupling (D4)', () => {
     BiomeApi.invalidateRootBiomeCache();
   });
 
+  /**
+   * ⚠⚠ The clear-sky ambient **with weather active** — the baseline
+   * every storm assertion here is measured against.
+   *
+   * Since the envelope build (D3a) an outdoor temperature carries a
+   * SOLAR deviation as well as the weather type's: two cosines, one
+   * turning once a year and one once a day, which is what gives the
+   * realm a winter and a night at all. It is a pure function of game
+   * time, so an absolute expectation here would be a pin on what
+   * o'clock the test clock happens to say — and the seam this file is
+   * about is the weather COUPLING, not the calendar. The claim is
+   * unchanged: *a storm moves the body's cached ambient by its type's
+   * deviation, and clearing moves it back.*
+   */
+  async function clearAmbient(body: {
+    lastAmbientK: number;
+    restamp(): Promise<void>;
+  }): Promise<number> {
+    WeatherApi._forceTypeForTesting('clear');
+    await body.restamp();
+    return body.lastAmbientK;
+  }
+
   it('the restamp re-resolves the weather-deviated ambient (D-F seam)', async () => {
     const { body } = await skyRoomWithBody();
-    expect(body.lastAmbientK).toBeCloseTo(BASE_T, 0);
+    expect(body.lastAmbientK).toBeCloseTo(BASE_T, 0); // no weather at all
+
+    const clearT = await clearAmbient(body);
 
     WeatherApi._forceTypeForTesting('storm'); // activate + force
     await body.restamp();
-    expect(body.lastAmbientK).toBeCloseTo(BASE_T + STORM_DT, 0); // 285
+    expect(body.lastAmbientK).toBeCloseTo(clearT + STORM_DT, 0);
 
     WeatherApi._forceTypeForTesting('clear'); // flat
     await body.restamp();
-    expect(body.lastAmbientK).toBeCloseTo(BASE_T, 0);
+    expect(body.lastAmbientK).toBeCloseTo(clearT, 0);
   });
 
   it('onBoundary over an OCCUPIED SkyExposed room updates the body', async () => {
     const { room, body } = await skyRoomWithBody();
     await occupy(room);
+    const clearT = await clearAmbient(body);
 
     const spy = vi.spyOn(BiomeApi, 'restampThermalContentsOf');
     WeatherApi._forceTypeForTesting('storm');
@@ -168,7 +194,7 @@ describe('Thermal ← weather coupling (D4)', () => {
     await flush();
 
     expect(spy).toHaveBeenCalled();
-    expect(body.lastAmbientK).toBeCloseTo(BASE_T + STORM_DT, 0);
+    expect(body.lastAmbientK).toBeCloseTo(clearT + STORM_DT, 0);
   });
 
   it('onBoundary over an UNOCCUPIED room does zero restamp work', async () => {
@@ -186,6 +212,7 @@ describe('Thermal ← weather coupling (D4)', () => {
   it('the WorldClock every-schedule drives onBoundary across a boundary', async () => {
     const { room, body } = await skyRoomWithBody();
     await occupy(room);
+    const clearT = await clearAmbient(body);
     WeatherApi._forceTypeForTesting('storm');
 
     // Mirror registerSystemSchedules: arm the boundary on the clock.
@@ -200,6 +227,6 @@ describe('Thermal ← weather coupling (D4)', () => {
     WorldClockApi._advanceForTesting((SEG / 12) * 1000 + 1000);
     await flush();
 
-    expect(body.lastAmbientK).toBeCloseTo(BASE_T + STORM_DT, 0);
+    expect(body.lastAmbientK).toBeCloseTo(clearT + STORM_DT, 0);
   });
 });

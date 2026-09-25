@@ -47,7 +47,7 @@ describe("FurnishableRoom", () => {
     //
     // The stack mirrors the shipped DormRoom's, minus WarrenMember.
     for (const layer of [
-      Mixins.Populates, // `props:` — without this, no fixture EVER lands
+      Mixins.Staged, // `props:` — without this, no fixture EVER lands
       Mixins.Visible, // shortDescription / longDescription
       Mixins.Detailed, // `details:`
       Mixins.Exitable, // you can walk into it

@@ -182,6 +182,29 @@ recording the credit are the same commit. See
 
 ---
 
+
+## ⭐ The floor and the envelope
+
+The envelope build (2026-09-24) gave a `Location` a second material
+citation beside its floor's: `fabric: { material, thicknessM }` — what
+the room is **built of**, as against what it stands **on**.
+
+They are deliberately the same shape, because they are the same kind of
+claim. `FloorSpec`'s docstring is the one `FabricSpec` was written
+from: *"a room that just wants cobbles, laid writes three words here."*
+A room that is a timber shed writes two.
+
+⚠ And the same doctrine holds for both: **a Location represents space,
+not matter.** Naming a material confers no `Tangible`, no mass and no
+`getMaterial()` — the room *names* what it is made of exactly as it
+names its floor's, and the physics reads the Material row.
+
+⭐ The floor itself is **not** part of the envelope's loss term. `U` is
+computed over four walls and a roof (`5 · side²`); the floor is the
+ground, and the ground does not leak to the sky. Coverings — a rug, snow
+over paving — remain the named open seam they were, and if they ever
+land they are a floor concern rather than an envelope one.
+
 ## Seams left open
 
 - **`dig` reads the floor** — `getGroundKind()`, `isOnGrade()`, and

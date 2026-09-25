@@ -316,11 +316,11 @@ template row over. Its composition is **`DormRoom`'s stack minus
 
 ```
 Persistable → PostRegistration → Exitable → Detailed → Visible
-  → Reserved → Populates → Location
+  → Reserved → Staged → Location
 ```
 
 Every layer is load-bearing and **every omission is silent**: without
-`Populates` a seed's `props:` is inert and no fixture ever lands;
+`Staged` a seed's `props:` is inert and no fixture ever lands;
 without `Visible` its prose is inert; without `Exitable` you cannot walk
 in. The shipped dorm room already had exactly this stack, which is why it
 is mirrored rather than re-derived.

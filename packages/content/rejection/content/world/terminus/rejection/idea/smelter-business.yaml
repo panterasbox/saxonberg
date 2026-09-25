@@ -50,18 +50,32 @@ data:
     - positionKey: smelterman
       assignee: /world/terminus/rejection/agent/smelterman
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+        # ⭐ Real hours (envelope S8). This authored `[0, 24]` — a house
+        # staffed around the clock — which was never true of it and made
+        # the night indistinguishable from the day. The `shifts` brain
+        # parks off-shift cast in the venue's Offstage, so the street
+        # genuinely empties.
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
     - positionKey: buyer
       assignee: /world/terminus/rejection/agent/buyer
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+        # ⭐ Real hours (envelope S8). This authored `[0, 24]` — a house
+        # staffed around the clock — which was never true of it and made
+        # the night indistinguishable from the day. The `shifts` brain
+        # parks off-shift cast in the venue's Offstage, so the street
+        # genuinely empties.
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
     # The buyer holds both seats. She is one woman in one shed and the
     # two acts are the same afternoon's work — weigh the ore, run the
     # cupel, chalk the figure.
+    # ⭐ So the assayer's hours are the buyer's hours, necessarily: the
+    # extraction build added this seat with `[0, 24]` and the envelope
+    # build had already retired that from the seat beside it. One woman
+    # cannot be off shift and on it.
     - positionKey: assayer
       assignee: /world/terminus/rejection/agent/buyer
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/rejection/location/smelter

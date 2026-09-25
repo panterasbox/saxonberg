@@ -964,10 +964,27 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
 
     // ---------- private machinery ----------
 
+    /**
+     * ⭐⭐ **How bright this place GETS, not what it is doing now**
+     * (envelope build).
+     *
+     * A `luxHappyAt` is a claim about a place — *a windowsill suits a
+     * peace lily, a corridor does not* — and every profile in the tree
+     * was authored when a scope's lux was a constant, so the two
+     * readings were the same number. Now a sky-lit scope swings from
+     * `pitch-black` to `bright` and back every game day, and `signalAt`
+     * would return whatever o'clock this growth window happened to
+     * close at: a lily on a sunny windowsill would starve of light
+     * because its owner waters it in the evening, which is not a thing
+     * sunlight does. `peakSignalAt` reads the day's peak and leaves
+     * every lamp alone — a lamp does not have a day.
+     */
     private luxAt(loc: Stuff): number {
       if (!MixinApi.isContainer(loc)) return 0;
       const vision = PerceptionApi.modalityByName('vision');
-      const light = vision.signalAt(loc as Stuff & Container) as Light | null;
+      const light = vision.peakSignalAt(
+        loc as Stuff & Container,
+      ) as Light | null;
       return light ? light.intensity.rawValue() : 0;
     }
 

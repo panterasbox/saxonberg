@@ -939,6 +939,75 @@ configured**.
 
 ---
 
+### `lint:light-sources` — every room's light has a NAMED SOURCE (2026-09)
+
+⭐⭐ The envelope build's light half. Before it, a room's ambient light
+was **a number somebody typed**: 84 of 195 rows authored one, 111 did
+not, and neither group had a reason — the university-avenue crossing,
+the market square, the terminal hall and the general store's shop floor
+authored nothing and were therefore **pitch black at noon**.
+
+The rule is `S2`: *every room's light has a source a player can point
+at* — the sky, something lit in the room, or spill through an open
+boundary. A room with none of the three is dark, and that is correct
+rather than a bug.
+
+⭐ So the gate is **not a census of light** — the common case is derived
+and needs no row. It is a **census of EXCEPTIONS**, and every exception
+is a line somebody had to write in the script. Seven clauses; the debt
+list (`UNDECLARED_INTERIOR_AMBIENT`) opened at **50** and reached
+**zero** in the same build.
+
+Two clauses paid for the gate on their first runs:
+
+- **(g)** — a furnace row must author `lit:`, because
+  `FurnaceMixin.lit` defaults **true**. It found four rows relying on
+  that default, and **two of them shipped lit against their own prose**
+  (*"the firebox swept and ready"*) and their own class docstring
+  (*"lit with `ignite`"*). Nothing observable depended on it — they
+  carry no fuel reserve, and every consumer of `isLit()` also asks
+  `fuelRemaining() > 0` — which is exactly why it survived the whole of
+  the distilling build's life.
+- **(e)** — ⭐⭐ **no lamp OBJECT anywhere**, in the kernel or any pack
+  `src/`. The town's lamps are a property of the street; the gate is
+  what keeps that decision from quietly eroding into forty-one minted
+  fuel reserves.
+
+### `lint:envelope` — the heat half's twin (2026-09)
+
+The light half had a census and **the heat half had nothing**, and that
+asymmetry was the hole. Five clauses over one rule:
+
+> ⭐ **Authors author CAUSES, not EFFECTS.**
+
+So `fabric: { material, thicknessM }` is **ordinary and unlisted** — a
+room may say what it is made of as freely as it says what its floor is
+made of — and what is listed is `_temperature`, the one way to bypass
+the derivation entirely. `AUTHORED_TEMPERATURES` carries a **reason per
+entry**, ceiling five, all five maturation cellars.
+
+⚠ The reason is a list **in the script**, not a `reason:` key on the
+row: a `data:` key the Hydrator does not write is dropped *silently*
+(the grain-chain drive found 49 such rows), so a `reason:` beside the
+temperature would be a field nothing reads and nothing can miss. The
+list is a **diff a reviewer reads**, which is the whole point — a sixth
+cellar costs somebody a paragraph in a file whose ceiling they must
+also raise.
+
+⭐⭐ Clause (c) is **the biome line**, and it is the one that cascades:
+*a biome may say what the outside AIR is doing; it may never say how
+well a STRUCTURE holds heat.* Put construction on a biome and one row
+warms every room that references it with no fire in any of them.
+
+⚠ Clause (b) catches a silent zero: an unauthored `thermalConductivity`
+reads **0**, which is an infinite insulator. A room built of it would
+simply never lose heat and nothing would say why.
+
+⚠ Both gates shipped with a clause that had **zero coverage** at first,
+and both were given coverage in the same wave rather than left
+vacuous — a gate that answers "no" to every question is the failure
+class this family exists to prevent.
+
 ## Where the family runs
 
 | moment | what runs |

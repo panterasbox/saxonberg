@@ -279,7 +279,7 @@ inherit each other's neighbours.
 
 ### ⚠ The faucet is already plugged — the risk is something else
 
-`applyProps` guards on `this._propsPopulated`, a **per-instance**
+`applyProps` guards on `this._propsStaged`, a **per-instance**
 boolean (`persistent: true, runtimeState: true`, surviving
 capture/restore). It does not care where the list came from, so merging
 a parent's props with a child's still applies exactly once per instance.

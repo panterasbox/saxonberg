@@ -17,5 +17,32 @@
 
 import SingletonCartesianLocation from '@saxonberg/server/mud/lib/location/SingletonCartesianLocation';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import type { EnclosureDefaults } from '@saxonberg/server/mud/lib/spatial/Enclosed';
 
-export default class SealedCellar extends ReservedMixin(SingletonCartesianLocation) {}
+export default class SealedCellar extends ReservedMixin(
+  SingletonCartesianLocation,
+) {
+  /**
+   * ⭐ **A cellar is cut into the rock, and the rock is thick.**
+   *
+   * The `enclosureDefaults` hook is for exactly this: a
+   * room KIND that knows its own construction, so every cellar row gets
+   * it without any of them authoring a line. A metre of granite gives
+   * this room a time constant measured in many hours — it barely
+   * notices the day outside, which is what a cellar is for and is now
+   * a consequence of what it is made of rather than a number somebody
+   * typed.
+   *
+   * ⚠ Note what this is NOT: it is not `_temperature`. Declaring the
+   * temperature would bypass the envelope and put this row on
+   * `lint:envelope`'s ratchet. Declaring the ROCK lets the physics
+   * answer, and the answer is a cellar that runs cool and steady
+   * because it is underground and massive.
+   */
+  public override enclosureDefaults(): EnclosureDefaults {
+    return {
+      materialPath: '/stuff/idea/material/rock/granite',
+      thicknessM: 1.0,
+    };
+  }
+}

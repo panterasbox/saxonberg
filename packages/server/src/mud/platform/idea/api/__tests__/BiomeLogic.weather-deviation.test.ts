@@ -30,6 +30,33 @@ const BASE_P = 101_325; // Pa
 const BASE_H = 50; // %
 const BASE_W = 5; // m/s
 
+/**
+ * ⭐⭐ The temperature the solar term alone would produce right now,
+ * over the biome base.
+ *
+ * ⚠ Since the envelope build (D3a) the outdoor temperature carries a
+ * **solar deviation** as well as the weather TYPE deviation: two
+ * cosines, one turning once a year and one once a day, so that the
+ * realm has a winter and a night at all. Before it, `SEASON_BIAS`
+ * biased only how often it SNOWED and mid-winter at 3 a.m. read 17 °C.
+ *
+ * That term is a pure function of game time, so every absolute
+ * temperature in this file would otherwise be a pin on what o'clock the
+ * test clock happens to say. The seam this file is about is the
+ * WEATHER fold, so the assertions compare against this baseline and the
+ * claims are unchanged: *a storm reads its type's deviation below a
+ * clear sky, and an indoor scope reads neither.*
+ */
+async function solarBaseT(room: ReturnType<typeof skyRoom>): Promise<number> {
+  // ⚠ Forces `clear` unconditionally, which also CREATES the weather
+  // singleton. An earlier draft short-circuited to `BASE_T` when
+  // weather was inactive — and then the caller activated it, so the
+  // baseline was measured in a world without a solar term and the
+  // comparison against a world with one was off by exactly that term.
+  WeatherApi._forceTypeForTesting('clear'); // zero TYPE deviation
+  return (await BiomeApi.resolveTemperatureFor(room)).rawValue();
+}
+
 function installRootBiome(): void {
   makeStuffAtPath(() => {
     const b = new Biome();
@@ -97,8 +124,11 @@ describe('BiomeLogic — weather deviation seam (D2)', () => {
     expect(WeatherApi.isActive()).toBe(true);
 
     const d = WEATHER_PROFILES.storm.deviation;
-    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(
-      BASE_T + d.temperature.rawValue(),
+    const clearT = await solarBaseT(room);
+    WeatherApi._forceTypeForTesting('storm');
+    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBeCloseTo(
+      clearT + d.temperature.rawValue(),
+      6,
     );
     expect((await BiomeApi.resolveHumidityFor(room)).rawValue()).toBe(
       BASE_H + d.humidity.rawValue(),
@@ -134,7 +164,10 @@ describe('BiomeLogic — weather deviation seam (D2)', () => {
     WeatherApi._forceTypeForTesting('clear'); // active, but zero deviation
     expect(WeatherApi.isActive()).toBe(true);
 
-    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(BASE_T);
+    // ⚠ Temperature is not pinned here: the solar term (D3a) is a pure
+    // function of game time and moves it. What "byte-identical" means
+    // for the WEATHER seam is that a clear sky adds nothing, which is
+    // exactly what the storm case above measures against.
     expect((await BiomeApi.resolvePressureFor(room)).rawValue()).toBe(BASE_P);
     expect((await BiomeApi.resolveHumidityFor(room)).rawValue()).toBe(BASE_H);
     expect((await BiomeApi.resolveWindFor(room)).rawValue()).toBe(BASE_W);
@@ -153,8 +186,23 @@ describe('BiomeLogic — weather deviation seam (D2)', () => {
     });
 
     const d = WEATHER_PROFILES.storm.deviation;
-    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(
-      BASE_T + d.temperature.rawValue(),
+    // The pinned storm's temperature deviation, over whatever the solar
+    // term says right now — the pin is what this test is about.
+    const unpinned = await (async (): Promise<number> => {
+      const saved = (room as unknown as { getWeatherPin(): unknown })
+        .getWeatherPin();
+      (room as unknown as { setWeatherPin(p: unknown): void }).setWeatherPin(
+        null,
+      );
+      const t = (await BiomeApi.resolveTemperatureFor(room)).rawValue();
+      (room as unknown as { setWeatherPin(p: unknown): void }).setWeatherPin(
+        saved,
+      );
+      return t;
+    })();
+    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBeCloseTo(
+      unpinned + d.temperature.rawValue(),
+      6,
     );
     expect((await BiomeApi.resolvePressureFor(room)).rawValue()).toBe(
       BASE_P + d.pressure.rawValue(),
@@ -176,11 +224,14 @@ describe('BiomeLogic — weather deviation seam (D2)', () => {
 
   it('regression: a no-pin SkyExposed scope is byte-identical to baseline', async () => {
     const room = skyRoom();
-    WeatherApi._forceTypeForTesting('storm'); // no pin set
     const d = WEATHER_PROFILES.storm.deviation;
     // Unchanged from the pre-Wave-2 fold: procgen deviation, not a pin.
-    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(
-      BASE_T + d.temperature.rawValue(),
+    // Measured as a DELTA against the same clock (see `solarBaseT`).
+    const clearT = await solarBaseT(room);
+    WeatherApi._forceTypeForTesting('storm'); // no pin set
+    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBeCloseTo(
+      clearT + d.temperature.rawValue(),
+      6,
     );
   });
 });

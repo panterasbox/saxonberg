@@ -188,6 +188,67 @@ export abstract class Character extends CharacterBase {
     _domicileAddress: { persistent: true },
   };
 
+  /**
+   * ⭐⭐ **Put these garments on.** Clone each template path, move it
+   * onto this body, and occupy the slots its own `slotClaim` names for
+   * this body plan.
+   *
+   * Lives on `Character` because both rungs of person need it and
+   * nothing below does — an animal is not dressed. The **field** that
+   * says what an authored person wears is `NPC.wears`, because a player
+   * dresses at enroll rather than by a row.
+   *
+   * ⚠ Why this exists at all: a naked body pays the cold branch, and
+   * **no `cast:` row could author clothing** — there was no `wears:`,
+   * no `worn:`, no `outfit:` on any NPC class or archetype in the tree,
+   * and `props:` places onto a `Surfaced` host, not onto a person. So
+   * every authored person in the realm was naked, and the only reason
+   * it never showed is that every interior was 21 °C by decree. The
+   * envelope build removes the decree.
+   *
+   * ⭐ It is also the recipe `TestHooks` was carrying privately to keep
+   * wire characters from collapsing of cold at the seventh game hour.
+   * One recipe now, in the mudlib, called by both.
+   *
+   * Tolerant of a missing or unwearable garment, exactly as `embody`
+   * is: a bad path costs that garment, not the character.
+   *
+   * Idempotent: a garment whose slots are already occupied by something
+   * this body is wearing is skipped, so a re-clone or a second call
+   * does not stack two shirts on one chest.
+   */
+  public async wearGarments(paths: readonly string[]): Promise<void> {
+    if (paths.length === 0) return;
+    const { StuffApi } = await import('../../api/stuff');
+    const { ContainmentApi } = await import('../../api/containment');
+    const self = this as unknown as Stuff;
+    const bodyPlanPath = MixinApi.isOrganism(self)
+      ? (self.getSpecies()?.getBodyPlanPath() ?? null)
+      : null;
+    for (const path of paths) {
+      try {
+        const garment = await StuffApi.clone(path);
+        if (!MixinApi.isContainable(garment)) continue;
+        ContainmentApi.move(garment, self as never);
+        // ⭐ `isSlotted`, not a cast. Every other narrowing in this
+        // method is a `MixinApi` predicate and this one was a bare
+        // assertion (fixed at review, 2026-09-24) — which mattered:
+        // a host with a body plan but no slots threw into the catch
+        // below and lost the garment SILENTLY. Now it is a skip.
+        if (
+          bodyPlanPath &&
+          MixinApi.isWearable(garment) &&
+          MixinApi.isSlotted(self)
+        ) {
+          const slots = garment.getSlotClaim(bodyPlanPath);
+          if (slots.length) self.occupyAll(garment, slots);
+        }
+      } catch {
+        /* a bad garment costs that garment, not the character */
+      }
+    }
+  }
+
   public getDomicileAddress(): string | null {
     return this._domicileAddress;
   }

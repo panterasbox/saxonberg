@@ -101,7 +101,7 @@
 
 ### residency · `docs/slates/builds/spawn-distribution-slate.md`
 
-- residency · spawn-distribution-slate · `## Static sibling — and what's new` — **STAYS (contradicted)**; its vocabulary names a retired instruction (`populates: onto` — the static form is the `props:`/`cast:` designation with `PopulatesMixin`'s two once-flags, `templates.md`), and the dynamic form it introduces is half-shipped: the item half is the recurring spawn sweep, already documented with its why (`residency.md § The sweep is a faucet`, `§ Zone fields the spawn sweep reads`), while the creature half the section actually frames (on-demand spawn, a wandering-population tick) has no code (`create-monster`/`procgen`/`NpcGenerator` — no hits). A ⚠ note recording the stale vocabulary and the split was added beside it in the slate (the residency ledger had no *Uncertain* entry to carry it); nothing to insert into `residency.md`.
+- residency · spawn-distribution-slate · `## Static sibling — and what's new` — **STAYS (contradicted)**; its vocabulary names a retired instruction (`populates: onto` — the static form is the `props:`/`cast:` designation with `StagedMixin`'s two once-flags, `templates.md`), and the dynamic form it introduces is half-shipped: the item half is the recurring spawn sweep, already documented with its why (`residency.md § The sweep is a faucet`, `§ Zone fields the spawn sweep reads`), while the creature half the section actually frames (on-demand spawn, a wandering-population tick) has no code (`create-monster`/`procgen`/`NpcGenerator` — no hits). A ⚠ note recording the stale vocabulary and the split was added beside it in the slate (the residency ledger had no *Uncertain* entry to carry it); nothing to insert into `residency.md`.
 
 ## Totals
 

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-transport": "workspace:*",
     "@saxonberg/server": "workspace:*",

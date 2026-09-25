@@ -8,7 +8,11 @@
 > systems) · foraging stock as the first DERIVED field · the seeded ×
 > derived composition seam · a home for the pin walk (`stepOutwardForPin`,
 > now copied three times) · the pre-Fallow aether feature seed · the
-> graduate-to-top-level-doctrine call (user's)
+> graduate-to-top-level-doctrine call (user's) · ⭐⭐⭐ **the RGO law**
+> — *an RGO is a reservoir with a recharge law, drawn by an act,
+> crediting a Discipline; depletion is recharge = 0* — stated in
+> [tapping-slate](../builds/tapping-slate.md), which is the first
+> build required to land ON it rather than beside it
 > **Size:** a wave
 
 

@@ -1,0 +1,58 @@
+# envelope — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+#
+# ⭐⭐ What is NOT here, deliberately: a U-value, an insulation rating, or
+# any per-room heat knob. A room's warmth is DERIVED from what it is built
+# of, what stands open, and what is burning in it. An authored U-value would
+# be an authored EFFECT, and a room warm for no reason a player can be told
+# is exactly the dishonesty this build exists to remove.
+#
+# So the room authors a CAUSE — `fabric: { material, thicknessM }`, two
+# words over the 154 content rows that already carry a real thermal
+# conductivity — and these four numbers are the universe's, not any room's.
+settings:
+  # What a room is built of when neither its row nor its class says.
+  # Granite: the shipped row authors k = 2.9 W/(m·K), ρ = 2750, c = 790 —
+  # real granite, not a stand-in. Over 0.3 m with the air films below it
+  # gives ~3.7 W/m²K: a stone building, slow to warm and slow to cool,
+  # and genuinely harder to heat than a timber one.
+  - key: enclosure.defaultMaterial
+    value: "/stuff/idea/material/rock/granite"
+
+  # How thick that fabric is, in metres.
+  - key: enclosure.defaultThicknessM
+    value: "0.3"
+
+  # ⭐ The still-air films clinging to both faces of a wall, m²K/W, IN
+  # SERIES with the fabric's own conduction. The standard building-physics
+  # figure (~0.13 inside + ~0.04 outside).
+  #
+  # ⚠ Not decoration. Without it a wall's resistance is its conduction
+  # alone, and for a high-conductivity fabric that is absurd rather than
+  # merely bad: an iron sheet computes to SIXTEEN THOUSAND W/K. With the
+  # films the same shed is ~265 W/K — a terrible building, which is true,
+  # instead of a hole in the world, which is not. It is also why a real
+  # stone hall is cold but not impossible to heat.
+  - key: envelope.surfaceResistanceM2KPerW
+    value: "0.17"
+
+  # ⭐ Air exchange through ONE open exterior opening, in W/K per m³ of
+  # room. An open door is not conduction through a wall — it is the
+  # inside air leaving — so it scales with the room's VOLUME and is a
+  # flow constant rather than a property of anything. At 6, one open
+  # street door on a 3 m masonry cell nearly triples its heat loss and
+  # cuts its time constant from ~2.6 h to under an hour: *a heated room
+  # with the door open is expensive* falls out of the arithmetic instead
+  # of being asserted anywhere.
+  - key: envelope.openingUPerM3
+    value: "6"
+
+  # ⭐ How deep into the fabric answers within the hour, in metres. Only
+  # the SKIN of a wall participates on a human timescale — the middle of
+  # a granite block is still at last week's temperature — and this is
+  # the depth that does. It is what makes a stone hall hold the day and
+  # a timber cabin heat up fast and go cold fast, from the same formula.
+  # The one real playtest dial in the heat half.
+  - key: envelope.activeDepthM
+    value: "0.01"

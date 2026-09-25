@@ -21,6 +21,7 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid
   # and inherited nothing from one. See the zone row beside it.
@@ -33,8 +34,9 @@ data:
   register: definite
   longDescription: |
     A packing shed open on one side: trestles, a scale, crates under wet sacking (the growing is the smallholding's; the floor stands at target through the sweep until a grower supplies it).
-  ambientIntensity: 25
-  ambientColorTemperature: 4200
+  # ⭐ Sky-lit by DERIVATION now: the row names an outdoor
+  # biome and the light follows the sun, the moon and the cloud.
+  # A farm yard is a yard.
   exits:
     # ⭐ The back door onto the goods yards — the one room the D11
     # switchover cost. The hand does not travel; a HAULER comes in this
