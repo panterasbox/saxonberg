@@ -769,6 +769,18 @@ says *"astrology needs no special case — it is a **time-varying inflow
 term**, periodic coefficient, predictable, which is what makes it saleable
 as an almanac."* **A celestial node is that term pointed at power.**
 
+> ⭐⭐⭐ **This grid is not only mana's — it is the RGO roster's shared
+> taxonomy, and it was invisible there.** Axis 2 below (surface · subsurface
+> solid · subsurface fluid = **foraged · mined · drilled**) is the general
+> access-mode vocabulary for every extractive industry, and the node/inflow
+> equation further down (*forage inflow = regrowth, ore inflow = zero*) is the
+> general field equation. The RGO census closed the roster without reading
+> this pack, and **the whole industrial epoch went missing from `roadmap.md`
+> as a result** — a discoverability failure, not a design gap. Cross-indexed
+> from [rgo-unification-slate](./rgo-unification-slate.md) § *The grid that
+> already exists* (2026-09-25). Read against the roster, the systematic hole
+> is **subsurface fluid: nothing in the game has ever been drilled.**
+
 ## ⭐⭐⭐ Axis 2 — the access mode (the economics)
 
 **Independent of the physics**, and it is what decides who can have one:

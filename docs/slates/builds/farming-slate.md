@@ -12,6 +12,9 @@
 > seed lots, the husbandry-wide breeding substrate · the environment-control
 > tier (greenhouse glass + hydroponics) · the sun→ambient light driver ·
 > per-stage stress sensitivities + yield scaling + the composition output ·
+> ⭐ **the plantation crop family** (coffee · tea · cocoa · tobacco · cotton ·
+> spices · sugar — needs no new mechanism, but ⚠ **no warm biome exists**,
+> 2026-09-25) ·
 > the automation ladder (a hireable hand on YOUR ground, the irrigation
 > rung, metered compute) · weeds/pests as an adversarial reserve, thorns as
 > hazards, hedges as a grown boundary · the compound effect layer (*magic
@@ -944,3 +947,44 @@ kill-by-kind reaches across worktrees.
 > *Compacted 2026-09-19.* The post-checkpoint brain ruling is documented → `behavior.md` l.197,
 > `content-packs.md § trade-farming` (the brain ships at
 > `/trade/farming/behavior/farms`). ⚠ No row names it yet — see the ledger.
+
+
+---
+
+## ⭐⭐ 2026-09-25 — the plantation family needs a PLACE, not a mechanism
+
+From the RGO forward pass
+([rgo-unification-slate](./rgo-unification-slate.md) § *The forward pass*).
+The question asked was whether a plantation is fundamentally different from a
+farm. **It is not** — checked every way it might have been:
+
+| a plantation's distinctive fact | status |
+|---|---|
+| perennial bearing over years | ✅ ships — the polycarp cycle bears repeatedly |
+| a warm-climate requirement | ✅ ships — `LimitingFactor` includes **warmth**, with a Kelvin threshold *and* a growing-degree-day sum, so a coffee bush declares a higher threshold and a cold place limits it automatically |
+| processing within hours of cutting (cane inverts; coffee cherries must be pulped; tea must be withered) | ✅ ships — the same *the works co-locates with the field* fact as milk, on spoilage + maturation |
+| a long haul to market | ⏳ [logistics-slate](./logistics-slate.md), already designed |
+
+⚠⚠ **What is actually missing is somewhere to grow them.** There are only
+about eight biome rows and **every one is temperate or indoor**: baseline ·
+indoor · outdoor · meadow · woodland · underground · upper-workings ·
+cafeteria · universe. **No tropical, warm, arid or coastal biome exists.**
+
+> ⭐ So the colonial crop family's prerequisite is **a warm place on the map**
+> — a world-building decision, not a platform one. Which means **all those
+> crops can ship together** whenever there is somewhere for them to grow, and
+> the sequencing question is a map question.
+
+⚠ Three of them are already **demanded and unproduced**: `sugar` (the census's
+one unresolved root after salt shipped), and `coffee` + `tea`, whose
+**materials ship with no plant and no producer** (no `coffea`, no `camellia`
+species row). `tobacco`, `cotton`, `cocoa` and spices do not exist at all —
+and **cotton is the industrial revolution's fibre**, while textiles ships wool
+and flax only.
+
+⚠ The family carries the same authoring sensitivity as sugar (plantation
+labour), which is an argument for treating it as **one family with one
+decision** rather than five separate content gaps. The honest mechanism — a
+crop that must be processed within hours, so the works and the field must be
+co-located, so labour concentrates — is what drove the history, and it is
+already expressible.

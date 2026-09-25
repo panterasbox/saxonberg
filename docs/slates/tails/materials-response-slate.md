@@ -10,7 +10,10 @@
 > construction axis · armor weight→fatigue→poise + armor-protects-
 > affordances wiring · vessels/containers construction-response ·
 > construction-driven tool-wear rate · the deep grapple/choke armor-
-> bypass · opt-in passive environmental decay (rust/rot)
+> bypass · opt-in passive environmental decay (rust/rot) · ⭐ **the
+> elasticity / impermeability property axis + containment under pressure**
+> (rubber's mandate, 2026-09-25) · ⭐ **whether `Material`'s property set is
+> extensible at all** — three designs now want new fields on it
 > **Size:** a wave
 
 See also:
@@ -210,3 +213,55 @@ Remaining:*
 6. The **crafting stamp** — `Recipe` output carries `{material, construction,
    grade}`.
 
+
+
+---
+
+## ⭐⭐ 2026-09-25 — rubber needs a property axis that does not exist
+
+From the RGO forward pass (see
+[rgo-unification-slate](../builds/rgo-unification-slate.md) § *The forward
+pass*). The `master` worktree is designing tapping → **rubber** → drilling →
+oil → plastics, and rubber is the first of those with a **kernel** mandate.
+
+**What `Material` carries today:** density · specific heat · thermal
+conductivity · electrical conductivity · water absorption · hardness ·
+toughness. **There is no elasticity and no impermeability-under-deformation**
+— which is rubber's entire distinguishing property, with nowhere to live.
+
+⚠ **And containment under pressure is essentially unmodelled.** `bulk.md` and
+`thermal.md` mention pressure **zero times**; `SealableMixin` is a binary
+open/closed latch for doors and windows. **A gasket only matters where
+containment can FAIL**, so the property axis without the failure mode buys
+nothing.
+
+⭐ **Why it is worth the kernel change: rubber is the missing property for FOUR
+shipped subsystems at once** — insulation ([electricity](../../subsystems/electricity.md)),
+seals ([watershed](../../subsystems/watershed.md)'s conduits), tyres
+([conveyance](../../subsystems/conveyance.md)), waterproofing
+([textiles](../../subsystems/textiles.md)). It is not a product; it is a
+property those systems have been quietly doing without. That is why one tapped
+tree unlocks a realm of consumer goods, and it is the answer to *"which
+resources force platform-level support"* for this one.
+
+⚠⚠ **Sequencing warning:** the master session's path puts **rubber before
+drilling**. Rubber reads like a content step and is not.
+
+### ⭐⭐⭐ The third-consumer case: is `Material`'s property set extensible?
+
+This is now the **third** independent design asking for new fields on
+`Material`:
+
+1. **mana density** and **mana conductivity** — canon in `arcane-science.md`,
+   and [mana-economy-design-pack](../builds/mana-economy-design-pack.md)'s
+   own Left block records *"no field on `Material` yet"*;
+2. **elasticity / impermeability** — rubber, above;
+3. **derived properties** — plastics, where a polymer's properties are
+   *synthesized to spec* rather than authored, so a material becomes a
+   **result** rather than a row of constants.
+
+The first two are additive fields. **The third is a different question** — it
+asks whether a material's properties can be computed from a process at all,
+which is a change in the relationship between content and mechanism, not a
+change to a shape. Worth separating when this is planned: two of these are
+cheap and one is a doctrine call.

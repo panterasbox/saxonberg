@@ -153,6 +153,21 @@ tapping → rubber → drilling → oil → plastics is what surfaced it. User:
 *"the fact that drilling wasn't even on our roadmap was probably an oversight
 even if in the end it ends up being nonblocking."*
 
+### ⚠⚠ Correction (same day): drilling WAS designed — in the mana pack
+
+The claim above is true of `roadmap.md` and `vocations.md` and **false of the
+slates**. [mana-economy-design-pack](./mana-economy-design-pack.md) already
+contains drilling, as **Axis 2 of a two-axis grid**, and it contains more than
+that — see *The grid that already exists* below. So this was **not a design
+gap; it was a DISCOVERABILITY failure.** The generalized field interface has
+been sitting in the magic pack and the RGO census never looked there.
+
+> ⭐⭐⭐ **The reusable lesson: a subsystem doc is the SHIPPED truth, not the
+> whole truth — and `roadmap.md` is the BUILT-and-planned truth, not the
+> designed truth. Grep the slates too.** (Same class as the
+> `ref-shapes` "template inheritance does not exist" correction, where the
+> design existed in `legibility-slate` Part A all along.)
+
 ⭐⭐ **Why the census missed it, which matters more than the gap.** The census
 that closed the roster worked two ways — demand side was *every recipe's
 `inputSlots[].category` minus every category some recipe produces*; supply
@@ -223,6 +238,161 @@ a swept index file (CLAUDE.md § Worktrees rule 5), and the envelope build is
 finalizing right now, so adding the industrial-epoch entry from a design
 branch would race its sweep. **Sweep item: add the industrial extraction
 families to the roadmap as known-deferred.**
+
+## ⭐⭐⭐ The grid that already exists — and it belongs to the whole roster
+
+[mana-economy-design-pack](./mana-economy-design-pack.md) defines an RGO
+taxonomy on two independent axes. **Axis 2 is the one the whole roster needs**,
+because it is about the economics rather than the fiction:
+
+| access mode | where it is | who can tap it |
+|---|---|---|
+| **Surface** — it outcrops or seeps | in the open | ⭐ **anyone — this is the foraging case** |
+| **Subsurface solid** | in rock | a **miner**; capital + a shaft |
+| ⭐ **Subsurface fluid** | under pressure | a **driller**; capital + a well — **and it comes to you** |
+
+> *"The seep → drill arc is the entire history of oil. Surface seeps were known
+> for millennia and used at trivial scale; **drilling made the industry.** Free
+> to find, tiny; expensive to reach, enormous."*
+
+And the pack states the field equation in its general form, which is the
+accommodation this slate derived independently a few hours later:
+
+> *"A node is a stock with an inflow, the same equation
+> [discovery-slate](./discovery-slate.md) already uses for forage (inflow =
+> regrowth) and ore (inflow = zero). **A renewable node has an inflow; a
+> depletable one does not.**"*
+
+It even flags its own duplicate: *"a **node** here is the same kind of thing as
+this pack's Part 3 **deposit** — the two docs used two names for one
+concept."*
+
+⭐⭐ **Read our roster against Axis 2 and the hole is systematic:**
+
+| access mode | what we have |
+|---|---|
+| **surface** | forestry · forage (coming) · salt pans · peat · quarrying — covered |
+| **subsurface solid** | mining · coal · quarrying — covered |
+| ⭐ **subsurface fluid** | **nothing. We have never drilled anything.** |
+
+> **The missing thing is an ACCESS MODE, not a resource** — and it is the one
+> mode with the rule-of-capture commons problem, because fluids move between
+> wells. Which is why oil, gas and a mana spring are all one build shape.
+
+⭐ **Promotion item (documentation, not code):** the access-mode grid should be
+readable from the roster, not only from the magic pack. The pack is unbuilt, so
+this is a slate move — a pointer both ways, added 2026-09-25.
+
+## ⭐⭐ The forward pass — classified by what it MANDATES at platform level
+
+User direction, 2026-09-25, and it is the sequencing rule:
+
+> *"it's not about how many crops or products we make, its about which ones
+> force platform level support"*
+
+> *"unless a plantation is a fundamentally different thing than a farm, we
+> could easily ship all those crops together"*
+
+**The whole remaining resource space contains THREE platform mandates, and one
+is already in flight.**
+
+| family | what it forces at platform level | verdict |
+|---|---|---|
+| **subsurface fluid** — oil · gas · mana springs | a **rival field** (rule of capture: extraction *elsewhere* drains yours), continuous delivery from a fixed point, pressure decline | ⭐ **primitive — in flight** |
+| **rubber / elastomers** | a material property axis **that does not exist**, plus **containment under pressure** | ⭐⭐ **primitive** |
+| **plastics / synthetic polymers** | **derived** material properties — computed from a process rather than authored | ⭐⭐⭐ **primitive, the biggest** |
+| **plantation crops** — coffee · tea · cocoa · tobacco · cotton · spices · sugar | **nothing** | ⚠ **a PLACE, not a primitive** |
+| **underwater** | spatial work only (bands as zones, depth as a zone field, derived up/down, `noDefaultFloor`) — **no new processes** | **spatial, not economic** |
+| tungsten · chromium · aluminium · non-ferrous ores · gold · gems · cement · potash · saltpetre · furs | nothing — a better tool rung is the shipped instrument ladder (two rungs per verb as rows), a better edge or armor is the `materials-response` grid, and cement is `burn-lime` + clay | **ROWS — batch anytime** |
+| spectrum · compute | an allocation with **no place** — closer to banking's quota/license than to a field | rows + a registry; defer |
+| **magic reagents from creatures** | the consent / accountability ledger applied **to the resource itself** | small primitive, and a real ethics vertical |
+| **magic tailings / residue** | a negative externality on a field — the exact mirror of bees | small; conservation already demands the waste go somewhere |
+
+### ⭐⭐ Why rubber is the one that unlocked a realm
+
+`Material` carries exactly: density · specific heat · thermal conductivity ·
+electrical conductivity · water absorption · hardness · toughness. **There is
+no elasticity and no impermeability-under-deformation** — which is rubber's
+entire distinguishing property, with nowhere to live.
+
+And ⚠ **containment under pressure is essentially unmodelled**: `bulk.md` and
+`thermal.md` mention pressure **zero times**, and `SealableMixin` is a binary
+open/closed latch for doors and windows. A gasket only matters where
+containment can *fail*.
+
+⭐ Hence the realm: rubber is the missing property for **four shipped
+subsystems at once** — insulation (electricity), seals (watershed's conduits),
+tyres (conveyance), waterproofing (textiles). It is not a product; it is a
+property those systems have been doing without. Recorded in
+[materials-response-slate](../tails/materials-response-slate.md).
+
+⚠⚠ **Sequencing warning for the `master` session: their path puts rubber
+BEFORE drilling.** Rubber looks like a content step and is not — it is a change
+to the kernel `Material` shape, so they hit a kernel mandate earlier than the
+ordering suggests.
+
+### Why plastics is the deep one
+
+Every material in the game is a row of **authored constants**. Polymer
+engineering means synthesizing **to spec** — you choose the properties. So
+honest plastics wants material properties **derived from the process**, which
+is a different relationship between content and mechanism than anything
+shipped: not *"add a material"* but *"a material can be a RESULT."* Last in the
+master session's path, so there is runway — but it wants thinking about before
+it arrives.
+
+### Plantations: the mechanism ships, the WORLD does not
+
+Checked every way a plantation might differ from a farm, and it does not:
+
+- **perennial bearing** — ships (the polycarp cycle bears repeatedly);
+- **climate gating** — ships: `LimitingFactor` includes **warmth**, with a
+  Kelvin threshold *and* a growing-degree-day sum, so a coffee bush declares a
+  higher threshold and a cold place limits it automatically;
+- **on-site processing within hours** (cane inverts, coffee cherries must be
+  pulped, tea must be withered) — ships: the same *the works co-locates with
+  the field* fact as milk;
+- **the long haul** — [logistics-slate](./logistics-slate.md), already designed.
+
+⚠⚠ **But there are only ~8 biome rows and every one is temperate or indoor**
+(baseline · indoor · outdoor · meadow · woodland · underground ·
+upper-workings · cafeteria · universe). **No tropical, warm, arid or coastal
+biome exists.** So the colonial crop family's prerequisite is **a warm place on
+the map** — a world-building decision, not a platform one, which means all
+those crops can ship together whenever there is somewhere for them to grow.
+Recorded in [farming-slate](./farming-slate.md).
+
+### The census gaps behind the table
+
+**Present with sources** (richer than assumed — extraction did a lot): copper ·
+tin · bronze · lead · sand · glass · leather · tannin · alum · sulfur · madder
+(`rubia`) · woad (`isatis`).
+
+**Missing entirely:** zinc · silver · **gold** · mercury · potash · saltpetre ·
+soap · gems · tobacco · cotton · hemp · indigo · cochineal · pepper · cinnamon.
+And `coffee` + `tea` **materials ship with no plant and no producer** — exactly
+like `sugar`.
+
+Three worth naming:
+
+- ⚠ **Gold.** `banking.md` says *"mined gold is sold for circulated coin like
+  any good"* — it names a good with **no material row and no producer**. Not a
+  conservation hole (the currency is deliberately not gold-backed, which that
+  doc is emphatic about), but the doc references something that does not exist.
+- ⭐ **Saltpetre** was **farmed from dung heaps** (nitre beds), so it couples
+  straight to ranching's muck → midden → field return leg: a medieval RGO
+  manufactured from manure.
+- ⭐ **Potash** is wood ash — a **forestry byproduct** that is simultaneously
+  glass flux, soap lye and fertilizer. One byproduct, three industries, and
+  soap does not exist.
+
+### ⭐ Borrowed structure worth keeping (Stellaris)
+
+Not the noun list — the **role**: a *strategic resource* is a small-volume
+input that gates **what you can make** rather than **how much**. We have no
+instance of that economic role, and **tungsten is the historical version of
+exactly it**, which makes it the cheapest way to introduce the shape before any
+future content needs it.
 
 ## ⚠ Cross-session coordination (2026-09-25)
 
