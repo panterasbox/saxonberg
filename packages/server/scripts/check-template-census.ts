@@ -2,7 +2,7 @@
  * check-template-census — D17's invariant: **`templatePath` always
  * resolves to a content row** (residences wave 1).
  *
- * Three clauses:
+ * Four clauses (the fourth has two halves — see below):
  *
  *   (a) The string `asTemplatePath` appears nowhere in the kernel's
  *       `src/` or any pack's `src/` — the channel is RETIRED; minted
@@ -29,7 +29,10 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { packSources } from './pack-roots';
+import { packSources,
+  effectiveRow,
+  inheritanceIndex,
+} from './pack-roots';
 
 const EXIT_ON_FINDINGS = true;
 
@@ -761,10 +764,15 @@ export function castRefsOf(text: string): string[] {
 }
 
 function checkCastAreAgents(rows: Map<string, string>): number {
+  // ⚠ The class must be the EFFECTIVE one. Reading the `class:` LINE
+  // means a child row has none, `classOf.get` returns undefined, and the
+  // check skips it without a word — the same silent-skip this clause's
+  // own `\Z` bug produced, arriving from the other direction.
+  const idx = inheritanceIndex();
   const classOf = new Map<string, string>();
-  for (const [path, file] of rows) {
-    const m = /^class:\s*(\S+)\s*$/m.exec(readFileSync(file, 'utf8'));
-    if (m) classOf.set(path, m[1]!);
+  for (const path of rows.keys()) {
+    const eff = effectiveRow(path, idx.rows);
+    if (!eff.error && eff.class) classOf.set(path, eff.class);
   }
   let checked = 0;
   for (const [, file] of rows) {

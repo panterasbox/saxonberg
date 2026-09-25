@@ -211,6 +211,12 @@ export interface FixtureFile {
   class?: string;
   hydratorClass?: string;
   data?: Record<string, unknown>;
+  /**
+   * A parent row's path. When set, `class` and `hydratorClass` are
+   * omitted unless stated — a CHILD row states only what differs, which
+   * is the shape the installer has to accept.
+   */
+  extends?: string;
 }
 export interface NameBankFixture {
   key: string;
@@ -275,14 +281,17 @@ export function writePack(
 export function writeDomainFile(root: string, f: FixtureFile): void {
   const file = join(root, 'content', f.rel);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(
-    file,
-    YAML.stringify({
-      class: f.class ?? MATERIAL,
-      hydratorClass: f.hydratorClass ?? HYDRATOR,
-      data: f.data ?? { name: f.rel },
-    }),
-  );
+  const body: Record<string, unknown> = {};
+  if (f.extends !== undefined) {
+    body.extends = f.extends;
+    if (f.class !== undefined) body.class = f.class;
+    if (f.hydratorClass !== undefined) body.hydratorClass = f.hydratorClass;
+  } else {
+    body.class = f.class ?? MATERIAL;
+    body.hydratorClass = f.hydratorClass ?? HYDRATOR;
+  }
+  body.data = f.data ?? { name: f.rel };
+  writeFileSync(file, YAML.stringify(body));
 }
 
 export function writeBankFile(root: string, nb: NameBankFixture): void {

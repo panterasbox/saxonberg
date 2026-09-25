@@ -93,7 +93,19 @@ import {
   packSrcFiles,
   MUD,
   type PackSource,
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
 } from "./pack-roots";
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
+
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SERVER = join(HERE, "..");
@@ -235,7 +247,7 @@ function contentRows(): Map<string, Row> {
         continue;
       }
       if (!doc || typeof doc !== "object") continue;
-      const d = doc as Record<string, unknown>;
+      const d = effectiveDoc(file, doc as Record<string, unknown>, inheritIdx());
       if (typeof d.class !== "string") continue;
       const rel = relative(contentRoot, file).replace(/\.yaml$/, "");
       const path = "/" + rel.split(/[\\/]/).join("/");

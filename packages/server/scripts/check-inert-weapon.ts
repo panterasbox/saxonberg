@@ -23,6 +23,20 @@ import {
   type WeaponProfileInputs,
 } from "../src/mud/lib/combat/WeaponProfile";
 import { Construction } from "../src/mud/lib/material/Construction";
+import {
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
+} from './pack-roots';
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
+
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 const WEAPON_CLASS = "/platform/thing/equipment/Weapon";
@@ -79,7 +93,7 @@ function shippedDisciplineKeys(files: readonly string[]): Set<string> {
   const keys = new Set<string>();
   for (const file of files) {
     try {
-      const doc = YAML.parse(readFileSync(file, "utf8")) ?? {};
+      const doc = effectiveDoc(file, YAML.parse(readFileSync(file, "utf8")) ?? {}, inheritIdx()) as Record<string, unknown>;
       if (doc.class !== DISCIPLINE_CLASS) continue;
       const key = (doc.data ?? {}).key;
       if (typeof key === "string" && key) keys.add(key);
@@ -110,7 +124,7 @@ function main(): void {
   for (const file of files) {
     let doc: { class?: string; data?: Record<string, unknown> };
     try {
-      doc = YAML.parse(readFileSync(file, "utf8")) ?? {};
+      doc = effectiveDoc(file, YAML.parse(readFileSync(file, "utf8")) ?? {}, inheritIdx());
     } catch {
       continue; // not our concern — a malformed seed is another lint's job
     }

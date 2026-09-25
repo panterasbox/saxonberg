@@ -34,6 +34,20 @@ import { readdirSync, readFileSync, statSync, existsSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
+import {
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
+} from './pack-roots';
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
+
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 const CONDITION_CLASS = "/platform/idea/Condition";
@@ -220,7 +234,7 @@ function main(): void {
   for (const file of walkYaml(CONTENT_DIR)) {
     let doc: { class?: string; data?: Record<string, unknown> };
     try {
-      doc = YAML.parse(readFileSync(file, "utf8")) ?? {};
+      doc = effectiveDoc(file, YAML.parse(readFileSync(file, "utf8")) ?? {}, inheritIdx());
     } catch {
       continue; // a malformed row is another lint's job
     }

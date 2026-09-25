@@ -939,7 +939,7 @@ carrying forward:
   comes from `enforceCodeFieldGate`, and moving its baseline to
   `own.*` opened the class-less case on its own.
 
-### W1 — Packs and gates
+### W1 — Packs and gates ✅ DONE
 
 **Goal.** A pack may ship child rows; a missing or cross-pack parent
 stops the boot; every lint gate sees the effective row.
@@ -967,6 +967,50 @@ the first inventory of orphan authored keys the tree has ever had, and
 W6 wants to read it before it authors parents.
 
 **Commit.** `build(template-inheritance W1): packs ship children; the gates read the effective row`
+
+**W1 note (build, 2026-09-25).** Landed. Decisions and surprises:
+
+- ⭐ **D12a — the fifteen gates share ONE SHIM, not one rewrite.**
+  `pack-roots.ts` gained `templateRows` / `effectiveRow` / `declaredFields`
+  and, crucially, `effectiveDoc(file, doc, idx)` — a one-line insertion at
+  each gate's own parse site that folds the chain into `class` /
+  `hydratorClass` / `data` and passes anything else straight through.
+  Rewriting fifteen bespoke readers would have been fifteen chances to get
+  it differently wrong.
+- ⚠ **`check-template-census`'s cast clause had the hole too**, and worse:
+  it read the `class:` LINE with a regex, so a child row produced
+  `undefined` and the check skipped it with a `continue` that already
+  meant "clause (b) will report it". Now on `effectiveRow`.
+- **D12b — the extends-chain validation lives in ONE gate**, not two. The
+  plan put it in `check-instanceable-placement` (invariant 11) *and*
+  `check-template-census` clause (d). Invariant 11 covers all four
+  failures (missing parent, cycle, depth, no class in the chain) over the
+  same tree, so the census clause was dropped rather than shipping two
+  answers to one question. Census clause (e) is still free for W2's
+  pure-repeat ratchet. ⚠ Note the census already HAS a clause (d) (a
+  `cast:` entry names an agent) — the plan's numbering was one ahead.
+- **D16 — invariant 12's census is 438** orphan data-key instances over
+  47 distinct keys, and that is the ceiling. `--orphans` prints the list.
+  The biggest contributors are `chemistry` (48), `alternateNames` (45),
+  `address` (41) and the `actor`/`audience`/`durable`/`affordance`/`weight`
+  cluster (38 each) — and, as the plan predicted, the hospitality bar's
+  `name` and `description` are in there.
+  ⚠ `declaredFields` is a SOURCE-level reader, so the count is a lower
+  bound: a `fieldMeta` written in a shape it does not know reads as
+  absent. That is exactly why this is census-then-ratchet and not an
+  assertion.
+- **Invariant 11 had to be told what a template row IS.** `templateFiles()`
+  walks every `.yaml` in the tree — emotes, recipes, banks, `cmd/` views
+  — and every older invariant tolerated that by acting only when `class:`
+  was present. 11 asserts the opposite, so it fires on all 535 of them
+  until it is narrowed to the shared reader's row set. `pack-roots` now
+  derives the kind dirs from `DocumentKinds.ts` rather than enumerating
+  them.
+- **The pack delete case split in two**, which the plan had as one:
+  a pack dropping a parent file *its own rows still extend* fails earlier,
+  at `assertParentsResolve` — that is a broken pack, not an operator edit.
+  `deleted-vs-extended` is for a child the installer cannot see (a
+  CMS-authored row, or another pack's). Both are tested.
 
 ### W2 — Entry identity and counts, and the rows that only need counts
 

@@ -155,13 +155,46 @@ dossier, 2026-09).
 
 ## Content, templates & vocabulary
 
-- **`lint:instanceable`** — **nothing instances `/lib/`.** Six
+- **`lint:instanceable`** — **nothing instances `/lib/`.** Twelve
   invariants over every template: no `class:` resolves under `/lib/`,
   no template path lives there, every `class:` resolves to a real
   module + export, every `hydratorClass:` to a real row, no redundant
   `hydratorClass`, and no orphaned `data` (a data block with no
   hydrator, whose keys `clone()` silently discards). No exemption list,
   by design.
+
+  Template inheritance added two, and re-aimed three:
+
+  - **11 — a row clones into SOMETHING.** It states a `class:` or names
+    a parent with `extends:` whose chain resolves (no missing parent, no
+    cycle, within the depth cap 32) and states one.
+  - ⭐ **12 — no ORPHAN DATA KEY.** Every key in a row's *effective*
+    `data` is a field its *effective* class declares. The Hydrator
+    discards a key no composed field declares, **silently**; authored
+    alone that hurts one row, but **inherited, one junk key reaches
+    every descendant** — a consumer written when the input was small,
+    arriving from the authoring side. Census-then-ratchet: ceiling
+    **438** at the census, and it prints the list (`--orphans`) because
+    the inventory is the point. Applies only under the standard
+    hydrator — a custom hydrator's appliers are its own business and
+    `fieldMeta` is not the universe there.
+  - **5, 6 and 7 now read the EFFECTIVE row**, and 5 gained a second
+    shape: a child restating the hydrator its parent already supplies.
+
+  ⚠⚠ **The migration that mattered more than either new invariant.**
+  Fifteen gates selected rows by `raw.class`, each through its own local
+  YAML walk. A child row states no class, so **every one of them would
+  have skipped it without a word** — and a gate that reports "nothing to
+  check" is indistinguishable from a gate that checked. They now share
+  one reader (`scripts/pack-roots.ts`: `templateRows`, `effectiveRow`,
+  `effectiveDoc`), applied as a single line at each parse site.
+  `check-template-census`'s cast clause was reading the `class:` *line*
+  with a regex and had the same hole.
+
+  ⚠ The shared reader's merge is **shallow** — a child key wins whole,
+  a list replaces. A gate that reasons about list ENTRIES reads `raw`
+  and says so. Mirroring the runtime's per-field `inherit` algebra in a
+  script would mean two implementations of one rule.
 - **`lint:census`** — every template-path-valued field in every shipped
   row resolves to a real row, and `clone()`'s `asTemplatePath` channel
   stays retired. A path naming no row cannot be edited, addressed or

@@ -41,9 +41,22 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative } from 'path';
 import YAML from 'yaml';
-import { CONTENT } from './pack-roots';
+import { CONTENT,
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
+} from './pack-roots';
 import { COMPETENCE_BANDS } from '../src/mud/lib/advancement/CompetenceBand';
 import { POSITION_REQUIREMENT_KEYS } from '../src/mud/lib/employment/Position';
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
+
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 
@@ -121,7 +134,7 @@ for (const pack of packs) {
   for (const file of walk(contentDir)) {
     let doc: Record<string, unknown>;
     try {
-      doc = (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as Record<
+      doc = effectiveDoc(file, (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as Record<string, unknown>, inheritIdx()) as Record<
         string,
         unknown
       >;

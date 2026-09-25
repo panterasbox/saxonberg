@@ -10,7 +10,7 @@
  *   /lib/  holds substrate that is ONLY EVER INHERITED: abstract roots,
  *   mixins, value objects, and framework attachments.
  *
- * Ten invariants:
+ * Twelve invariants:
  *
  *   1. No template's `class:` resolves under `/lib/`.       (the headline)
  *   2. No template PATH lives under `/lib/`.
@@ -43,6 +43,23 @@
  *      `props:`/`cast:` 2026-09-01) — the Hydrator silently discards a
  *      data key with no applier, so a surviving row quietly stops being
  *      furnished. Fails with the conversion rule in hand.
+ *  11. Every row states a `class:` or names a parent with `extends:`
+ *      whose chain resolves (no missing parent, no cycle, within the
+ *      depth cap) and states one.
+ *  12. ⭐ No ORPHAN DATA KEY — every key in a row's EFFECTIVE `data` is
+ *      a field its EFFECTIVE class declares. The Hydrator discards a key
+ *      no composed field declares, SILENTLY; authored alone that hurts
+ *      one row, but INHERITED one junk key reaches every descendant.
+ *      Census-then-ratchet: the ceiling is today's count, it may fall
+ *      and may never rise. The census prints its violations, because the
+ *      list is the first inventory of orphan authored keys the tree has
+ *      ever had.
+ *
+ * ⚠⚠ **Invariants 5, 6, 7 and 12 all read the EFFECTIVE row** — the
+ * parent chain folded in (`scripts/pack-roots.ts` `effectiveRow`). Read
+ * raw, every one of them would SKIP a class-less child without a word,
+ * which is indistinguishable from passing. That shape has shipped here
+ * before.
  *
  * Invariants 5 and 6 are the `hydratorClass` pair, and 6 is the one that
  * matters: `StuffApi.clone` step 5 runs NO hydration when the field is
@@ -69,7 +86,15 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { packSources, classFileOf, packSrcFiles, type PackSource } from './pack-roots';
+import {
+  packSources,
+  classFileOf,
+  packSrcFiles,
+  templateRows,
+  effectiveRow,
+  declaredFields,
+  type PackSource,
+} from './pack-roots';
 
 /** CI-failing. The invariant is enforced by the build, not by review. */
 const EXIT_ON_FINDINGS = true;
@@ -246,12 +271,23 @@ export function packBrainShapeOk(source: string): boolean {
   return /^export\s+const\s+brain\s*=\s*class\b/m.test(source);
 }
 
+/** The ceiling for invariant 12 (orphan data keys). May fall, never rise. */
+const ORPHAN_DATA_KEY_CEILING = 438;
+
+/** The standard hydrator — the only one whose appliers are `fieldMeta`. */
+const STANDARD_HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+
 function main(): void {
   const findings: Finding[] = [];
   const templates = templateFiles();
   const knownPaths = new Set(templates.map((t) => t.path));
   const sources = packSources();
   const packRoots = sources.flatMap((p) => p.roots);
+  // The shared reader: every row keyed by template path, so the chain
+  // can be walked without each gate re-reading the tree.
+  const rows = templateRows();
+  const fieldCache = new Map<string, Set<string>>();
+  const orphans: string[] = [];
 
   for (const { file, path } of templates) {
     let doc: unknown;
@@ -263,10 +299,39 @@ function main(): void {
     }
     if (!doc || typeof doc !== 'object') continue;
     const t = doc as Record<string, unknown>;
-    const cls = typeof t.class === 'string' ? t.class : null;
-    const hyd = typeof t.hydratorClass === 'string' ? t.hydratorClass : null;
-    const data = t.data;
-    const hasData = !!data && typeof data === 'object' && Object.keys(data).length > 0;
+    const parent = typeof t.extends === 'string' ? t.extends : null;
+    // ⚠ `templateFiles()` walks every `.yaml` in the tree, kind dirs
+    // (emotes, recipes, banks, `cmd/` views) included — they carry no
+    // `class:` and every invariant above simply skipped them. Invariant
+    // 11 asserts the opposite, so it must see the TEMPLATE rows only,
+    // which is what the shared reader already knows.
+    if (!rows.has(path)) continue;
+    const eff = effectiveRow(path, rows);
+
+    // 11 — a row clones into SOMETHING. Stated, or inherited from a
+    // chain that resolves.
+    if (eff.error) {
+      findings.push({ invariant: 11, file, detail: eff.error });
+      continue;
+    }
+    if (eff.class === null) {
+      findings.push({
+        invariant: 11,
+        file,
+        detail: parent
+          ? `extends '${parent}', but no row in that chain states a 'class'`
+          : `states neither a 'class' nor an 'extends'`,
+      });
+      continue;
+    }
+
+    // ⚠ EFFECTIVE from here down. Read raw and a child row is skipped
+    // silently by 5, 6, 7 and 12 alike.
+    const cls = eff.class;
+    const hyd = eff.hydratorClass;
+    const ownHyd = typeof t.hydratorClass === 'string' ? t.hydratorClass : null;
+    const data = eff.data;
+    const hasData = Object.keys(eff.data).length > 0;
 
     // 1 — the headline
     if (cls?.startsWith('/lib/')) {
@@ -284,9 +349,22 @@ function main(): void {
     if (hyd && !knownPaths.has(hyd)) {
       findings.push({ invariant: 4, file, detail: `hydratorClass: ${hyd} names no template row` });
     }
-    // 5 — redundant declaration
+    // 5 — redundant declaration. Two shapes now: a hydrator with
+    // nothing to apply, and a CHILD restating the hydrator its parent
+    // already supplies (a line that says nothing, on the row whose
+    // whole purpose is to state only what differs).
     if (hyd && !hasData) {
       findings.push({ invariant: 5, file, detail: `hydratorClass: ${hyd} with no data to apply` });
+    }
+    if (ownHyd && parent) {
+      const parentHyd = effectiveRow(parent, rows).hydratorClass;
+      if (parentHyd === ownHyd) {
+        findings.push({
+          invariant: 5,
+          file,
+          detail: `hydratorClass: ${ownHyd} is already what '${parent}' supplies — a child states only what differs`,
+        });
+      }
     }
     // 6 — orphaned data (the dangerous one)
     if (!hyd && hasData) {
@@ -331,6 +409,21 @@ function main(): void {
           `(write-back content) and \`cast:\` (Behaved troupe); the ` +
           `Hydrator discards the old key silently`,
       });
+    }
+    // 12 — orphan data keys. Only under the STANDARD hydrator: a custom
+    // hydrator's appliers are its own business, and `fieldMeta` is not
+    // the universe there.
+    if (hyd === STANDARD_HYDRATOR) {
+      const declared = declaredFields(cls, sources, fieldCache);
+      // An empty set means the source reader found nothing, not that the
+      // class declares nothing — never accuse on no evidence.
+      if (declared.size > 0) {
+        for (const key of Object.keys(data)) {
+          if (!declared.has(key)) {
+            orphans.push(`${relative(REPO_ROOT, file)}: data.${key} — ${cls} declares no such field`);
+          }
+        }
+      }
     }
     // 7 — the obj/ segment rule inside an industry's subtree
     if (!tradePlacementOk(path, cls !== null, packRoots)) {
@@ -386,6 +479,32 @@ function main(): void {
     }
   }
 
+  // 12 — the ratchet. Census-then-ratchet: the count is the ceiling, it
+  // may fall and may never rise. The LIST prints either way, because the
+  // inventory is the point — a key the Hydrator throws away has never
+  // been visible anywhere before.
+  if (orphans.length > ORPHAN_DATA_KEY_CEILING) {
+    findings.push({
+      invariant: 12,
+      file: 'packages/server/scripts/check-instanceable-placement.ts',
+      detail:
+        `${orphans.length} orphan data key(s), ceiling ${ORPHAN_DATA_KEY_CEILING}. ` +
+        `A key no composed field declares is discarded by the Hydrator ` +
+        `SILENTLY — and a junk key on a PARENT reaches every descendant. ` +
+        `Fix the row (or the class), or move the key to a field that exists.`,
+    });
+  }
+  console.log(
+    `check-instanceable-placement: orphan data keys ${orphans.length}/` +
+      `${ORPHAN_DATA_KEY_CEILING}` +
+      (orphans.length < ORPHAN_DATA_KEY_CEILING
+        ? ` — ratchet down to ${orphans.length}`
+        : ''),
+  );
+  if (process.argv.includes('--orphans')) {
+    for (const o of orphans.sort()) console.log(`  ${o}`);
+  }
+
   if (findings.length === 0) {
     console.log(
       `check-instanceable-placement: nothing instances /lib/ ` +
@@ -410,6 +529,8 @@ function main(): void {
     8: 'a capability pack src/ outside the taxonomy (a module not under a branch, behavior/ or lib/; a behavior/ module not brain-shaped; a lib/ module that is not inherited substrate)',
     9: 'classPath: does not resolve (a curated blueprint pointing at nothing)',
     10: 'retired `populates:` key (split into props:/cast: 2026-09-01) — the Hydrator discards it silently',
+    11: 'a row that clones into nothing (no class, and no extends chain that states one)',
+    12: 'orphan data keys above the ratchet (a key the Hydrator discards silently)',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

@@ -38,7 +38,20 @@
 import { readdirSync, readFileSync, statSync, existsSync } from 'fs';
 import { join, relative } from 'path';
 import YAML from 'yaml';
-import { CONTENT } from './pack-roots';
+import { CONTENT,
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
+} from './pack-roots';
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
+
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 
@@ -65,7 +78,7 @@ for (const pack of readdirSync(CONTENT)) {
   for (const file of walk(contentDir)) {
     let doc: Record<string, unknown> | null;
     try {
-      doc = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
+      doc = effectiveDoc(file, YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown>, inheritIdx());
     } catch {
       continue; // a malformed row is another gate's finding
     }

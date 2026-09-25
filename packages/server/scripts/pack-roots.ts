@@ -413,3 +413,304 @@ function tsFilesUnder(dir: string): string[] {
   walk(dir);
   return out;
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// Template rows, and the EFFECTIVE row a gate must reason about
+// ──────────────────────────────────────────────────────────────────────
+
+/** One authored template file, as it sits on disk. */
+export interface TemplateRow {
+  /** Absolute file path. */
+  file: string;
+  /** The template path the file seeds. */
+  path: string;
+  /** The pack id, or `'kernel'` for a seed under `src/mud/seeds`. */
+  pack: string;
+  /** The parsed YAML, exactly as authored. */
+  raw: Record<string, unknown>;
+}
+
+/** The row a clone actually sees: the parent chain folded in. */
+export interface EffectiveRow {
+  class: string | null;
+  hydratorClass: string | null;
+  data: Record<string, unknown>;
+  /** Parent paths, nearest first. */
+  chain: string[];
+  /** Why the chain could not be resolved, when it could not. */
+  error: string | null;
+}
+
+/**
+ * The content subdirectories that are NOT template rows — the installer's
+ * `NON_TEMPLATE_DIRS`, mirrored the way this module already mirrors
+ * `namespaceRootsOf`: derived from `DocumentKinds.ts` rather than
+ * enumerated, so a new yaml document kind does not silently start
+ * reading as a malformed template.
+ */
+export function nonTemplateDirs(serverSrc: string = SERVER_SRC): Set<string> {
+  const out = new Set(["settings", "subjects", "descriptor-banks", "quantity"]);
+  const file = join(serverSrc, "mud", "lib", "document", "DocumentKinds.ts");
+  if (existsSync(file)) {
+    const src = readFileSync(file, "utf8");
+    for (const m of src.matchAll(
+      /contentDir:\s*['"]([^'"]+)['"],\s*ext:\s*['"]yaml['"]/g,
+    )) {
+      out.add(m[1]!);
+    }
+  }
+  return out;
+}
+
+/**
+ * Is this content-relative path a TEMPLATE row? The installer's rule:
+ * every `.yaml` outside the declared kind dirs — and `cmd/` is skipped
+ * at ANY depth, because a command view has no `class:` and is the
+ * `command-view` document kind.
+ */
+export function isTemplateRelPath(rel: string, kindDirs: ReadonlySet<string>): boolean {
+  const parts = rel.split("/");
+  if (parts.includes("cmd")) return false;
+  return !(parts.length > 1 && kindDirs.has(parts[0]!));
+}
+
+function walkYamlFiles(dir: string, out: string[] = []): string[] {
+  let entries: string[];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return out;
+  }
+  for (const e of entries) {
+    if (e.startsWith(".") || e === "node_modules") continue;
+    const p = join(dir, e);
+    if (statSync(p).isDirectory()) walkYamlFiles(p, out);
+    else if (e.endsWith(".yaml")) out.push(p);
+  }
+  return out;
+}
+
+/**
+ * ⭐⭐ Every authored template row in the repo, keyed by template path —
+ * **the lint family's one reader.**
+ *
+ * Fifteen gates grew their own local YAML walk, and every one of them
+ * selected rows by `raw.class`. Under template inheritance a child row
+ * states no class, so each of them would skip it **silently** — a gate
+ * that answers "nothing to check" is the failure class the derived
+ * family exists to prevent, and it is indistinguishable from a pass.
+ */
+export function templateRows(
+  serverSrc: string = SERVER_SRC,
+  contentDir: string = CONTENT,
+): Map<string, TemplateRow> {
+  const rows = new Map<string, TemplateRow>();
+  const kindDirs = nonTemplateDirs(serverSrc);
+  const add = (file: string, root: string, pack: string): void => {
+    const rel = relative(root, file).split("\\").join("/");
+    if (!isTemplateRelPath(rel, kindDirs)) return;
+    const path = "/" + rel.replace(/\.yaml$/, "");
+    let raw: unknown;
+    try {
+      raw = YAML.parse(readFileSync(file, "utf8"));
+    } catch {
+      return;
+    }
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return;
+    rows.set(path, { file, path, pack, raw: raw as Record<string, unknown> });
+  };
+  const seeds = join(serverSrc, "mud", "seeds");
+  for (const f of walkYamlFiles(seeds)) add(f, seeds, "kernel");
+  if (existsSync(contentDir)) {
+    for (const pack of readdirSync(contentDir)) {
+      const root = join(contentDir, pack, "content");
+      if (!existsSync(root)) continue;
+      for (const f of walkYamlFiles(root)) add(f, root, pack);
+    }
+  }
+  return rows;
+}
+
+/** How deep an `extends:` chain may go — `Template`'s own cap. */
+export const TEMPLATE_CHAIN_DEPTH_CAP = 32;
+
+/**
+ * The effective row at `path`: the nearest stated `class` /
+ * `hydratorClass` along the chain, and the merged `data`.
+ *
+ * ⚠ **The merge here is SHALLOW** — a child key wins whole, and a list
+ * replaces rather than merging by entry. That is deliberate and the
+ * limit is real: a gate that reasons about list ENTRIES (the props
+ * census, the identity rules) reads `raw` and says so. Mirroring the
+ * runtime's per-field `inherit` algebra would mean a second
+ * implementation of it in a script, which is how two answers to one
+ * question get shipped.
+ */
+export function effectiveRow(
+  path: string,
+  rows: ReadonlyMap<string, TemplateRow>,
+): EffectiveRow {
+  const chain: string[] = [];
+  const stack: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>([path]);
+  let cursor = rows.get(path);
+  if (!cursor) {
+    return { class: null, hydratorClass: null, data: {}, chain, error: `no row at ${path}` };
+  }
+  stack.push(cursor.raw);
+  for (;;) {
+    const parent = cursor!.raw.extends;
+    if (typeof parent !== "string" || parent.length === 0) break;
+    if (seen.has(parent)) {
+      return { class: null, hydratorClass: null, data: {}, chain, error: `cyclic extends chain through '${parent}'` };
+    }
+    if (chain.length >= TEMPLATE_CHAIN_DEPTH_CAP) {
+      return { class: null, hydratorClass: null, data: {}, chain, error: `extends chain deeper than ${TEMPLATE_CHAIN_DEPTH_CAP}` };
+    }
+    const next = rows.get(parent);
+    if (!next) {
+      return { class: null, hydratorClass: null, data: {}, chain, error: `extends '${parent}', which no row ships` };
+    }
+    seen.add(parent);
+    chain.push(parent);
+    stack.push(next.raw);
+    cursor = next;
+  }
+  let cls: string | null = null;
+  let hyd: string | null = null;
+  let data: Record<string, unknown> = {};
+  // Ancestor-first, so the nearest statement overwrites.
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const r = stack[i]!;
+    if (typeof r.class === "string" && r.class.length > 0) cls = r.class;
+    if (typeof r.hydratorClass === "string" && r.hydratorClass.length > 0) {
+      hyd = r.hydratorClass;
+    }
+    const d = r.data;
+    if (d && typeof d === "object" && !Array.isArray(d)) {
+      data = { ...data, ...(d as Record<string, unknown>) };
+    }
+  }
+  return { class: cls, hydratorClass: hyd, data, chain, error: null };
+}
+
+/**
+ * Every field name the class at `classPath` declares — its own
+ * `static fieldMeta` keys plus every base class's and every mixin's,
+ * followed through the same `extends`-expression walk
+ * {@link composesMixin} uses.
+ *
+ * ⚠ Source-level, so it is a LOWER bound: a declaration written in a
+ * shape this reader does not know reads as absent. Its one consumer
+ * (the orphan-data-key census) is therefore census-then-ratchet, never
+ * a bare assertion.
+ */
+export function declaredFields(
+  classPath: string,
+  sources: readonly PackSource[],
+  cache: Map<string, Set<string>> = new Map(),
+  seen: Set<string> = new Set(),
+): Set<string> {
+  const cached = cache.get(classPath);
+  if (cached) return cached;
+  if (seen.has(classPath)) return new Set();
+  seen.add(classPath);
+
+  const out = new Set<string>();
+  const file = classFileOf(classPath, sources);
+  if (!existsSync(file)) return out;
+  const source = readFileSync(file, "utf8");
+  for (const key of fieldMetaKeys(source)) out.add(key);
+  for (const expr of extendsExpressions(source)) {
+    for (const id of new Set(expr.match(/[A-Za-z_$][\w$]*/g) ?? [])) {
+      const base = importedClassPath(source, id, file, sources);
+      if (!base) continue;
+      for (const key of declaredFields(base, sources, cache, seen)) out.add(key);
+    }
+  }
+  cache.set(classPath, out);
+  return out;
+}
+
+/** The top-level keys of every `static fieldMeta = { … }` in a file. */
+export function fieldMetaKeys(source: string): string[] {
+  const out: string[] = [];
+  const decl = /static\s+(?:readonly\s+)?fieldMeta\s*(?::[^=]+)?=\s*\{/g;
+  let m: RegExpExecArray | null;
+  while ((m = decl.exec(source))) {
+    let i = decl.lastIndex;
+    let depth = 1;
+    const start = i;
+    for (; i < source.length && depth > 0; i++) {
+      const ch = source[i];
+      if (ch === "{") depth++;
+      else if (ch === "}") depth--;
+    }
+    const body = source.slice(start, i - 1);
+    // Depth-1 keys only: a nested entry's own properties are not fields.
+    let d = 0;
+    let line = "";
+    for (const ch of body) {
+      if (ch === "{" || ch === "[" || ch === "(") d++;
+      else if (ch === "}" || ch === "]" || ch === ")") d--;
+      if (d === 0) line += ch;
+      else if (d === 1 && (ch === "{" || ch === "[" || ch === "(")) line += ch;
+    }
+    for (const km of line.matchAll(
+      /(?:^|[,{])\s*(?:\/\/[^\n]*\n\s*)*(?:['"]([^'"]+)['"]|([A-Za-z_$][\w$]*))\s*:/g,
+    )) {
+      out.push((km[1] ?? km[2])!);
+    }
+  }
+  return out;
+}
+
+/**
+ * The index a gate needs to see an EFFECTIVE row: every template row by
+ * path, plus the file → path map that lets a gate with its own walk look
+ * one up by the file it just read.
+ */
+export interface InheritanceIndex {
+  rows: Map<string, TemplateRow>;
+  byFile: Map<string, string>;
+}
+
+/** Build the index once per gate run. */
+export function inheritanceIndex(
+  serverSrc: string = SERVER_SRC,
+  contentDir: string = CONTENT,
+): InheritanceIndex {
+  const rows = templateRows(serverSrc, contentDir);
+  const byFile = new Map<string, string>();
+  for (const [path, row] of rows) byFile.set(row.file, path);
+  return { rows, byFile };
+}
+
+/**
+ * ⭐⭐ The one-line shim every class-selecting gate applies right after
+ * it parses a row: the doc it goes on to reason about, with the parent
+ * chain folded into `class`, `hydratorClass` and `data`.
+ *
+ * A file the index does not know (a kind dir's yaml — an emote, a
+ * recipe, a command view) and a row with no parent both pass through
+ * untouched, so the shim costs nothing where inheritance is not in play.
+ *
+ * ⚠ Without it a gate selecting on `raw.class` **skips a class-less
+ * child silently**, which reads exactly like a pass. Fifteen gates had
+ * that shape; this is what fixed all fifteen the same way.
+ */
+export function effectiveDoc(
+  file: string,
+  doc: Record<string, unknown>,
+  idx: InheritanceIndex,
+): Record<string, unknown> {
+  if (typeof doc.extends !== 'string') return doc;
+  const path = idx.byFile.get(file);
+  if (path === undefined) return doc;
+  const eff = effectiveRow(path, idx.rows);
+  if (eff.error) return doc;
+  const out: Record<string, unknown> = { ...doc, data: eff.data };
+  if (eff.class !== null) out.class = eff.class;
+  if (eff.hydratorClass !== null) out.hydratorClass = eff.hydratorClass;
+  return out;
+}

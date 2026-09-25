@@ -44,7 +44,20 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { packSources, classFileOf } from './pack-roots';
+import { packSources, classFileOf,
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
+} from './pack-roots';
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
+
 
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');
@@ -86,7 +99,7 @@ function templateRows(): Row[] {
         continue;
       }
       if (!parsed || typeof parsed !== 'object') continue;
-      const r = parsed as { class?: unknown; data?: unknown };
+      const r = effectiveDoc(file, parsed as Record<string, unknown>, inheritIdx()) as { class?: unknown; data?: unknown };
       rows.push({
         path:
           '/' + relative(root, file).replace(/\.yaml$/, '').split('\\').join('/'),
