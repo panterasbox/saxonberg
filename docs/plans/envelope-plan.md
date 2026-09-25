@@ -439,6 +439,11 @@ the honest version cheap:
   Mirror it exactly.
 
 New on **`Location`** (beside `floor`, same file, same doctrine):
+⚠ **Plan-time names, kept as the record.** `fabric` is `enclosure` and
+`FabricSpec` is `EnclosureSpec` since review — see *The name is settled*
+under the drive record for the three candidates and what decided it. The
+design below is unchanged; only the words are.
+
 `fabric: FabricSpec | null`, `FabricSpec = { material: string /* a
 Material path */, thicknessM?: number }`, authorable, persistent; and a
 class hook `fabricDefaults(): FabricSpec` (the `floorDefaults` shape) so
@@ -451,8 +456,8 @@ and its fabric is its own `getMaterial()`.
 The ladder, resolved once at the async temperature resolve (D3c) and
 cached transiently on the host (`_envelopeResolved: { kWmK, rhoKgM3,
 cJkgK, thicknessM, materialPath }`): (1) the room's own `fabric` spec;
-(2) the class hook `fabricDefaults()`; (3) a `Vessel`'s own material;
-(4) the universe default, `envelope.defaultFabric` (a Material path —
+(2) the class hook `enclosureDefaults()`; (3) a `Vessel`'s own material;
+(4) the universe default, `enclosure.defaultMaterial` (a Material path —
 masonry) + `envelope.defaultThicknessM 0.3` in `settings/envelope.yaml`.
 The material lookup is the sync catalogue read (`MaterialCatalogue`), so
 the cache is a convenience, not a necessity.
@@ -791,14 +796,14 @@ Location/Vessel row authoring `_temperature` is in
 fails (the `check-ground.ts` shape) — `_temperature` is the one way to
 bypass the derivation, so it is the one thing that needs a paragraph;
 (b) a room authoring `fabric` is **ordinary and unlisted** (a material is
-a reason), but its `fabric.material` must resolve to a `Material` row
-(the `lint:template-census` clause (b) list gains `fabric.material`) and
+a reason), but its `enclosure.material` must resolve to a `Material` row
+(the `lint:template-census` clause (b) list gains `enclosure.material`) and
 that row must author `thermalConductivity > 0` — an unauthored
 conductivity reads `0`, which is an infinite insulator, silently; (c) ⭐
 **the biome line:** no row whose class extends `Biome` authors `fabric`,
 `thicknessM` or any envelope key; (d) no row under
 `/stuff/idea/biome/indoor/` authors `_defaultTemperature` (the decree
-cannot come back); (e) `FabricSpec` keys are a closed vocabulary
+cannot come back); (e) `EnclosureSpec` keys are a closed vocabulary
 (`material`, `thicknessM`) — no `uPerM2`, no `insulation:` word can be
 typed into a row. There is no `ROOM_CONSTRUCTION_OVERRIDES` list: there
 is nothing to override.
@@ -836,9 +841,9 @@ tests pin the winter numbers. Recorded in Risks.
 | new thing | host | what composing/adding it claims about every other composer |
 |---|---|---|
 | `ambientSource`, `ambientOpening` fields, `isSkyLit()`, `skyNoonFlux()` | `AmbientLitMixin` (→ every `Location`) | *Every place that can have ambient light derives it from the sky where the sky is, and says so where it is an exception.* True of every Location; null = derived. Not on `Vessel` (not AmbientLit today; the coach row's dead field is a content fix, not a host change). |
-| `fabric: FabricSpec` + `fabricDefaults()` hook | `Location` (beside `floor`, `lib/stuff/Location.ts`) | *A place names what it is built of, as it names its floor* — and stays space, not matter (no `Tangible`, no mass). Never on a `Biome` (the biome line, lint clause (c)), never on a zone (a zone is a coordinate carve-up, not a structure — the rooms of a zone are **not** built alike, and the plan makes no such claim), never on `Locality` or a Parcel. A `Vessel` needs none: its fabric is its own material. |
+| `enclosure: EnclosureSpec` + `enclosureDefaults()` + `resolveEnclosure()` | ⚠ **vocabulary at `lib/spatial/Enclosed.ts`; implemented by `AtmosphericMixin`** — corrected twice at review, see *The name is settled* above | *A place names what it is bounded by, as it names its floor* — and stays space, not matter (no `Tangible`, no mass). It shipped on `Location`, where the mixin that reads it could only reach it through a cast; it is not the atmosphere's concept either (a pen has an enclosure and no envelope) but a separate mixin layer collapses TypeScript's inference, so the words live apart and the implementation does not. Never on a `Biome` (the biome line, lint clause (c)), never on a zone (a zone is a coordinate carve-up, not a structure — the rooms of a zone are **not** built alike), never on `Locality` or a Parcel. A `Vessel` overrides the hook: it IS matter, so its enclosure is its own material at `VESSEL_WALL_M`. |
 | `skyFactorNow()` memo | `CelestialLogic` singleton (instance fields) | The sky is one thing for the whole realm (guarded, D1). No host in the world carries it. |
-| `envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK` / transient `_envelopeResolved` + `reconcileEnvelope` / `envelopeTemperatureSync` | `AtmosphericMixin` (→ `Location`, `Vessel`) | *Every scope that can carry an atmosphere can hold a state different from its outside.* True of a room and of a wardrobe or a coach cabin; **inert where `getVolume()` is null** (Offstage, plain Location, an un-extented Vessel) — that is the mixin's own geometry answering, not a guard. A new `EnvelopeMixin` would compose on exactly the same two hosts, which is the tell that it is the same concern. The **state** is the scope's; the **fabric** is the Location's named material or the Vessel's own. |
+| `envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK` / transient `_envelopeResolved` + `reconcileEnvelope` / `envelopeTemperatureSync` | `AtmosphericMixin` (→ `Location`, `Vessel`) | *Every scope that can carry an atmosphere can hold a state different from its outside.* True of a room and of a wardrobe or a coach cabin; **inert where `getVolume()` is null** (Offstage, plain Location, an un-extented Vessel) — that is the mixin's own geometry answering, not a guard. A new `EnvelopeMixin` would compose on exactly the same two hosts, which is the tell that it is the same concern. The **state** is the scope's; the **enclosure** is the scope's named material or the Vessel's own. |
 | `SpaceHeatingMixin` (`heatOutputW`, `spaceHeatOutputW()`) | `Hearth` (new), `Campfire` | *This fire exists to warm where you stand.* Never on `FurnaceMixin` (that would claim it of the forge and reintroduce the "is it a forge" guard), never on `Forge`/`Kiln`/`Oven`. Composed outermost so it reads the furnace face; the envelope narrows contents with `MixinApi.isSpaceHeating`. |
 | `Hearth` class | `platform/thing/Hearth.ts` (instanceable), rows at `/stuff/thing/Hearth` in generic-objects | A commons object: a second inn's fireplace is a row. |
 | `Lamp` class (rewritten) | `platform/thing/Lamp.ts` | *A light that burns fuel.* The lantern and the torch; not the glowcap (stays `PortableLight`), not the mana lamp (arcana's, on `ChargedMixin`), not the sconce (generic-objects', switchable — a candidate to move onto `Lamp` in the content pass if its fiction is oil). |
@@ -1224,13 +1229,13 @@ toward outside, and bodies feel it and are told why.
 **Decisions.** D3 (a–e), D15.
 **Files.** `platform/idea/api/WeatherLogic.ts` (the solar term in
 `deviatedFieldFor`; memo); `settings/weather.yaml` (two dials);
-`lib/stuff/Location.ts` (`FabricSpec`, `fabric` + `fieldMeta`,
-`fabricDefaults()`, `getFabric()`); `lib/biome/Atmospheric.ts` (the
+`lib/stuff/Location.ts` (`EnclosureSpec`, `fabric` + `fieldMeta`,
+`enclosureDefaults()`, `getFabric()`); `lib/biome/Atmospheric.ts` (the
 three stamps, `_envelopeResolved`, the fabric ladder, `envelopeApplies`,
 `reconcileEnvelope`, `envelopeTemperatureSync`,
 `openExteriorOpenings()`); `hearthworks/src/.../SealedCellar.ts`
-(`fabricDefaults()` → the rock, if the row does not author `fabric`);
-`scripts/check-template-census.ts` (clause (b) + `fabric.material`);
+(`enclosureDefaults()` → the rock, if the row does not author `fabric`);
+`scripts/check-template-census.ts` (clause (b) + `enclosure.material`);
 `platform/idea/api/BiomeLogic.ts` (`resolveTemperatureFor` + the trace
 variant with the envelope provenance shape; `outsideTemperatureFor`);
 `platform/idea/cmd/perception/FeelController.ts` (the cause line, 3e);
@@ -1241,7 +1246,7 @@ variant with the envelope provenance shape; `outsideTemperatureFor`);
 `WeatherLogic.runBoundaryFanout` (re-resolve outside for occupied
 envelope rooms); `scripts/check-envelope.ts` + `package.json` `lint:envelope` (the five
 cellars listed with reasons, ceiling 5; fabric materials resolve and
-conduct; the biome line; the indoor rule; the closed `FabricSpec`
+conduct; the biome line; the indoor rule; the closed `EnclosureSpec`
 vocabulary); YAML comments beside the five `_temperature` lines;
 `settings/envelope.yaml` (`defaultFabric`, `defaultThicknessM`,
 `openingUPerM3`, `activeDepthM`).
@@ -1280,7 +1285,7 @@ content, both found by running it.**
    the "material not found" floor and every unauthored room in the realm
    would have been built of nothing in particular — silently, because
    the resolver degrades rather than throwing. `lint:envelope` clause
-   (b) now refuses exactly this for an authored `fabric.material`, and
+   (b) now refuses exactly this for an authored `enclosure.material`, and
    `lint:census` resolves it too.
 
 2. ⭐⭐ **`U = (k/t)·A` omits the air films, and the shipped materials
@@ -1322,7 +1327,7 @@ the `Hearth` class, `Campfire`'s composition and the rows stay W4's.
   put the row on the ratchet; declaring the ROCK lets the physics
   answer, and the answer is a cellar that runs cool and steady because
   it is underground and massive.
-- **Two exemplar `fabric:` rows ship in W3** (the woodshed in oak
+- **Two exemplar `enclosure:` rows ship in W3** (the woodshed in oak
   boards, the smithy in thick granite) rather than waiting for W6.
   ⚠ Otherwise `lint:envelope` clause (b) would have had **zero
   coverage** — a gate that answers "no" to every question, which is the
@@ -1478,7 +1483,7 @@ infirmary, the general store, the lounge bar — a hearth; the dorm rooms
 — a candle row exists), `glow` for the sandbox `CircleFloor` and
 Rejection's glowcap caves (listed), and **deleting** the stray
 `ambientIntensity` on enclosed rooms that meant "lit by day" (the
-decree); a `fabric:` line on rooms not built of the universe default
+decree); a `enclosure:` line on rooms not built of the universe default
 (the woodshed and the barn are timber; the cellars are the rock; the
 Rejection assay shed is boards) — one line each, ordinary, unlisted;
 (ii)
@@ -1581,7 +1586,7 @@ The five links, per new capability. Each fails closed and silent.
 | light a lantern / hearth | `ignite.yaml` `[ignite, light, kindle]` — ships | `FurnaceMixin.commandContributions.peers` affords `ignite`/`douse`/`pump`/`heat`/`boil`/`warm` — ships; **a Lamp in your hand** is `self`, not `peers`: verify `light lantern` resolves a held lamp (the `reachable` scope includes inventory; if the affordance is peers-only for a held item, add `ignite`/`douse` to `self` on `FurnaceMixin`) | lantern/torch rows on `Lamp`; `Hearth.yaml` in generic-objects; `props:` in cookhouse | nothing to warm — Things clone with their rooms | `requires: CombustibleMixin\|FurnaceMixin` — **satisfied** |
 | douse | `douse.yaml` — ships | same | same | — | same |
 | the sky | none (a `look`) | — | **derived** from the row's biome chain (`isSkyExposed`); no row edit | the celestial singleton is `singletonSync`-created on first read; the memo seeds itself | — |
-| the room's warmth, and why | `feel` (bare) — ships; now names the cause | — | `fabric:` optional (a Material path that authors `thermalConductivity`); universe default applies | none; reconcile-on-read; the fabric resolves at the first async read | `requires: any` |
+| the room's warmth, and why | `feel` (bare) — ships; now names the cause | — | `enclosure:` optional (a Material path that authors `thermalConductivity`); universe default applies | none; reconcile-on-read; the fabric resolves at the first async read | `requires: any` |
 | the body's cold | `look` body line / the `self.body` cue — ship | — | dials | — | — |
 | public lighting | `look at lamps` — `look` ships; the detail is the row's | `PublicLightingMixin.getDetail` | `publicLighting:` on `Street` rows + `_publicLighting` on the locality + the realm treasury + a supplier Business with a primary account | `civic:lighting` registered in `registerSystemSchedules`; the boot-time settle | — |
 | the town pays | none (a schedule) | — | the realm treasury (`/compact/treasury`, `BankingApi.appropriate`) + a supplier Business with a primary account (**a treasury holding less than one street-night lights nothing** — the shipped refusal) | the clock boots before packs finish? Verify `registerSystemSchedules` runs after the address registry is warm; if not, the callback resolves lazily on first fire | — |
@@ -1640,7 +1645,7 @@ Nothing unmapped.
   (the undeclared-interior ceiling → 0 at W6; the three exception lists
   curated) and `lint:envelope` (the reasoned cellars at their ceiling,
   fabric materials that resolve and conduct, the biome line, the indoor
-  rule, the closed `FabricSpec` vocabulary).
+  rule, the closed `EnclosureSpec` vocabulary).
 - **Full suite:** once before the MR opens, once at `/finalize`. A green
   run holds until a source file changes.
 - **What only the drive proves:** the prose of a dark street in a
@@ -1788,7 +1793,7 @@ Each leaves as a slate line, not a plan section.
   | `BiomeLogic.outsideKFor` | the biome chain + weather, always | the **structure's** temperature for an interior room; only shell rooms see the weather |
   | `envelopeExposedAreaM2(V)` | `5 · ∛V²`, every face | the faces actually on a threshold |
   | `isThreshold(far)` | `isSkyExposed(far)` | `structureOf(this) !== structureOf(far)` |
-  | `resolveFabric()` | row → class hook | row → **structure** → class hook (a third rung in an existing ladder; no caller changes, no migration) |
+  | `resolveEnclosure()` | row → class hook | row → **structure** → class hook (a third rung in an existing ladder; no caller changes, no migration) |
 
   ⭐⭐ **Rows 3 and 4 are now real methods, extracted at review**, so the
   structure tier replaces a body rather than editing arithmetic inside
@@ -1806,19 +1811,53 @@ Each leaves as a slate line, not a plan section.
 
   ⭐ That last row is why none of this is foreclosed: the resolver is a
   fall-through ladder and the tier inserts as a rung. And only **two
-  rows** author `fabric:` today, so the slate's *"~100 rooms the
+  rows** author `enclosure:` today, so the slate's *"~100 rooms the
   expensive way"* debt has barely started.
 
-  ✅ **The name collision is settled** (review, 2026-09-24).
-  `lib/material/Construction.ts` has exported a `FabricSpec` since
-  textiles shipped — the woven / knit / felted cloth forms, five live in
-  `FabricCatalogue` — and *fabric* meaning cloth is the primary English
-  sense, so the building one gave way: `ShellSpec` / `ShellDefaults`.
-  ⭐ *Shell* is `holding.md`'s own word for the same thing (condition,
-  weathering, `UPKEEP_TERMS`), which is the tier the slate generalizes,
-  so the type is named for where it is going. **Zero content rows
-  changed** — the authored key is still `fabric:`, because that is what
-  the slate calls it and what an author writes.
+  ✅ **The name is settled, and it took three goes** (review,
+  2026-09-24 → 25). The concept is *what physically bounds a place and
+  what it is made of* — two keys producing exactly two numbers — and it
+  is now `enclosure:` / `EnclosureSpec`, with its vocabulary in
+  `lib/spatial/Enclosed.ts`.
+
+  | candidate | why not |
+  |---|---|
+  | `fabric` | the correct UK building term (*fabric heat loss*) and it **collides with cloth** — `Construction.ts` has exported a `EnclosureSpec` since textiles shipped, five forms live in `FabricCatalogue`, and *fabric* meaning cloth is the primary English sense |
+  | `shell` | ⚠ the rename I tried first, and **worse than what it fixed**: `holding.md` uses *shell* for a dwelling's condition and weathering, which `structure-slate` plans to generalize — a live collision in the same domain |
+  | `walls` | plain, and **untrue**: a fence is not a wall, and a pen is mostly fences |
+  | ⭐ `enclosure` | covers drystone, palings, hedge and hurdle without lying, **and** is the technical term on the thermal side (*building enclosure*). One word, both consumers |
+
+  ⭐⭐ **What decided it was the second consumer.** `trade-ranching` wants
+  pens, and a pen is an enclosure whose interesting question is not heat
+  — it is whether the stock gets out. A pen has an enclosure and **no
+  envelope** (`envelopeApplies()` already returns false for a sky-exposed
+  scope, with no guard and no special case), which is exactly why the two
+  are named separately.
+
+  ⚠⚠ **And the host split was tried and REFUSED by the compiler.** A
+  separate `EnclosedMixin`, with `AtmosphericMixin` constraining its base
+  to it (`HidingMixin` over `Concealable` is the shipped precedent), is
+  the right shape — and adding that fourth layer to `Location`'s
+  composition **pushed the chain past TypeScript's inference depth**. It
+  degraded *silently*: `SlottableMixin<MixinConstructor<Stuff>>` appeared
+  in the errors, meaning a generic had been instantiated with its own
+  CONSTRAINT instead of the real base, `Vessel` stopped being a `Stuff`,
+  and **835 errors landed in content packs that never mention an
+  enclosure.** So the vocabulary gets its own module — which is what a
+  second consumer imports — and `AtmosphericMixin` implements it. Nothing
+  is lost today: every host that declares one is a `Location` or a
+  `Vessel` and both are already Atmospheric. **The extraction becomes
+  worth its cost when a host appears that is neither** — a carried
+  hurdle, a field gate — and then only the implementation moves.
+
+  ⚠ Deliberately NOT added: **`heightM`** (containment wants it, and
+  `ranching.md` is explicit that *"containment holds position"* — an
+  animal is in the pen because `getContainer()` says so, so nothing reads
+  a height yet) and **`roofed`** (derivable, and already derived: a pen
+  is open to the sky and a byre is not, which is `BiomeApi.isSkyExposed`).
+  A **`form`** vocabulary — drystone · palings · hedge · hurdle — belongs
+  on `Construction.ts`'s shape, whose docstring says the reusable thing
+  is the *pattern* rather than one flat enum, when something reads it.
 
   ### ⭐ The census, taken at review — the number the slate's gate needs
 
@@ -1829,7 +1868,7 @@ Each leaves as a slate line, not a plan section.
   | ⭐ **INTERIOR — these are what need a structure** | **149** |
   |   …of those, `ambientSource: sky` (daylit through a named opening) | 16 |
   |   …of those, `ambientSource: glow` | 1 |
-  | rows authoring `fabric:` today | 2 |
+  | rows authoring `enclosure:` today | 2 |
 
   The largest candidate structure is **9 rooms** (`rejection/ferrow`);
   most are 1–6. So:

@@ -29,7 +29,7 @@ with a derivation from what each room is **built of**.
 references it**, with no fire in any of them, cascading to everything
 downstream. That is the dishonest-physics failure in its purest form,
 and it is the one that CASCADES. `lint:envelope` holds the line with two
-clauses: (c) no `Biome` row authors `fabric`, `thicknessM` or any
+clauses: (c) no `Biome` row authors `enclosure`, `thicknessM` or any
 envelope key; (d) no row under the `/stuff/idea/biome/indoor/` admin
 subtree authors `_defaultTemperature` — *"indoor" is a folder that means
 an enclosure, and an enclosure's temperature is a structure's.*

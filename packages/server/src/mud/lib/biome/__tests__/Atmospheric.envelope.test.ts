@@ -68,9 +68,9 @@ function material(
   }, path) as unknown as Material;
 }
 
-/** A 3 m cell with the given fabric, enclosed, in a fresh zone. */
+/** A 3 m cell with the given enclosure, in a fresh zone. */
 function room(
-  fabric: { material: string; thicknessM: number } | null,
+  enclosure: { material: string; thicknessM: number } | null,
   outsideK = 281,
 ): CartesianLocation {
   const zone = makeStuff(() => new CartesianZone());
@@ -78,7 +78,8 @@ function room(
   const r = makeStuff(() => new CartesianLocation());
   zone.addLocation(r, 0, 0, 0);
   (r as unknown as Record<string, unknown>)._biomePath = INDOOR;
-  if (fabric) (r as unknown as { setFabricSpec(f: unknown): void }).setFabricSpec(fabric);
+  if (enclosure)
+    (r as unknown as { setEnclosure(f: unknown): void }).setEnclosure(enclosure);
   (r as unknown as { envelopeOutsideK: number }).envelopeOutsideK = outsideK;
   (r as unknown as { envelopeTemperatureK: number }).envelopeTemperatureK =
     outsideK;
@@ -152,7 +153,7 @@ describe('when an envelope applies at all', () => {
   });
 });
 
-describe('⭐⭐ the fabric decides, and it is a CAUSE', () => {
+describe('⭐⭐ the enclosure decides, and it is a CAUSE', () => {
   it('a timber room holds its heat far better than a stone one of the same size', () => {
     const stone = room({ material: GRANITE, thicknessM: 0.3 });
     const timber = room({ material: OAK, thicknessM: 0.05 });
@@ -186,7 +187,7 @@ describe('⭐⭐ the fabric decides, and it is a CAUSE', () => {
     );
   });
 
-  it('a room with no fabric spec takes the universe default and still works', () => {
+  it('a room with no enclosure takes the universe default and still works', () => {
     const plain = room(null);
     const coeff = env(plain).envelopeCoefficients();
     expect(coeff).not.toBeNull();

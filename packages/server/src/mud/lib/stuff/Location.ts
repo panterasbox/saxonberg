@@ -233,13 +233,16 @@ export default class Location extends LocationBase {
     this.floor = value;
   }
 
-  // ⭐ **The fabric is `AtmosphericMixin`'s**, which `Location` composes
-  // — `fabric:`, `getFabricSpec()` and the `fabricDefaults()` hook all
-  // arrive from there, and a subclass that knows its own construction
-  // overrides the hook exactly as before. It lived here until review
-  // (2026-09-24); the tell was that the mixin which READS it composes
-  // inside this class, so it could only reach these three members
-  // through a cast.
+  // ⭐ **What bounds this place is the ENCLOSURE** — `enclosure:`,
+  // `getEnclosure()` and the `enclosureDefaults()` hook all arrive from
+  // there, and a subclass that knows its own construction overrides the
+  // hook. It was `fabric:` on this class until review (2026-09-25); it
+  // moved because a mixin that can only reach its host's members through
+  // a cast is on the wrong host. Its vocabulary lives at
+  // `lib/spatial/Enclosed.ts` — a fence is not a thermal fact, and the
+  // ranching build imports the words from there — but `AtmosphericMixin`
+  // implements it, because a fourth mixin layer on this class collapses
+  // TypeScript's inference. That module says why.
 
   public isNoDefaultFloor(): boolean {
     return this.noDefaultFloor;

@@ -22,7 +22,7 @@ data:
   # is still not WARM: a forge heats what you put in it, never the room
   # (thermal.md's rule, kept by composition — `Forge` does not compose
   # `SpaceHeatingMixin`). The mass is why it does not swing.
-  fabric:
+  enclosure:
     material: /stuff/idea/material/rock/granite
     thicknessM: 0.45
   shortDescription: smithy

@@ -18,7 +18,7 @@ data:
   # A woodshed is BOARDS. Oak at 0.17 W/(m·K) over 50 mm is a tenth of
   # granite's loss, so it warms fast off a small fire and goes cold fast
   # too — which is the honest trade a timber building makes.
-  fabric:
+  enclosure:
     material: /stuff/idea/material/wood/oak
     thicknessM: 0.05
   shortDescription: timber woodshed

@@ -46,6 +46,12 @@ import type Biome from './Biome';
 import type { WeatherPin } from '../weather/WeatherType';
 
 import type Material from '../material/Material';
+import type {
+  Enclosed,
+  EnclosureSpec,
+  EnclosureDefaults,
+  ResolvedEnclosure,
+} from '../spatial/Enclosed';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
@@ -189,10 +195,10 @@ export interface Atmospheric {
    * `Location` have no volume, so the geometry answers.
    */
   /** What this scope's row says it is built of, or `null`. */
-  getFabricSpec(): ShellSpec | null;
-  setFabricSpec(value: ShellSpec | null): void;
+  getEnclosure(): EnclosureSpec | null;
+  setEnclosure(value: EnclosureSpec | null): void;
   /** What a scope of this KIND is built of when its row says nothing. */
-  fabricDefaults(): ShellDefaults;
+  enclosureDefaults(): EnclosureDefaults;
 
   envelopeApplies(): boolean;
 
@@ -223,7 +229,7 @@ export interface Atmospheric {
     outsideK: number;
     heatInputW: number;
     openings: number;
-    fabricMaterialPath: string;
+    enclosureMaterialPath: string;
     hottestSource: string | null;
   } | null;
 
@@ -231,14 +237,14 @@ export interface Atmospheric {
   envelopeCoefficients(): {
     uWperK: number;
     capacityJPerK: number;
-    fabric: EnvelopeFabric;
+    enclosure: ResolvedEnclosure;
   } | null;
 
   /** The room's total heat-loss coefficient, W/K (0 when none applies). */
   envelopeUWperK(): number;
 
   /** The Material path the envelope resolved to — what `feel` names. */
-  envelopeFabricMaterialPath(): string;
+  envelopeEnclosureMaterialPath(): string;
 
   /** Runtime state — see the mixin. */
   envelopeTemperatureK: number | null;
@@ -251,67 +257,12 @@ export interface Atmospheric {
  * Every number is read off a `Material` row; none of it is authored as
  * an effect.
  */
-/**
- * ⭐ What a scope says it is built of — the authored half, two keys and
- * no more. The row names a REAL material and how thick it is; the
- * conductivity, the density and the specific heat are that material's
- * and nobody types them twice.
- *
- * ⚠ The vocabulary is CLOSED and `lint:envelope` clause (e) holds it
- * shut: there is no `uPerM2`, no `insulation:`, and no way to type one.
- *
- * ⚠⚠ **Lives on `AtmosphericMixin`, not on `Location`** — the envelope
- * is the mixin's and so is its fabric. It sat on `Location` until
- * review (2026-09-24) and the tell was the shape of the reader: the
- * mixin composes INSIDE `Location`, so it could only reach three
- * optional members through a cast, which is the host saying it is the
- * wrong host. A `Vessel` answers the hook too, and that is why the
- * `getMaterial` rung could go.
- */
-/**
- * ⚠⚠ **Named `ShellSpec`, not `FabricSpec`, and the reason is a
- * collision.** `lib/material/Construction.ts` has exported a
- * `FabricSpec` since textiles shipped — the woven / knit / felted cloth
- * forms, five of them live in `FabricCatalogue` — and *fabric* meaning
- * cloth is the primary English sense, so the building one gives way.
- * Caught at review (2026-09-24), while it was still two identifiers and
- * **zero content rows**: the authored key stays `fabric:`, because that
- * is what `structure-slate` calls it and what an author writes.
- *
- * *Shell* is `holding.md`'s own word for the same thing (condition,
- * weathering, `UPKEEP_TERMS`), which is the tier `structure-slate`
- * generalizes — so the type is already named for where it is going.
- */
-export interface ShellSpec {
-  /** A `Material` template path — what the walls and roof are made of. */
-  material?: string;
-  /** How thick, in metres. Defaults to `envelope.defaultThicknessM`. */
-  thicknessM?: number;
-}
-
-/** What {@link Atmospheric.fabricDefaults} answers. */
-export interface ShellDefaults {
-  materialPath: string;
-  thicknessM: number;
-}
-
-export interface EnvelopeFabric {
-  /** Thermal conductivity, W/(m·K). */
-  kWmK: number;
-  /** Density, kg/m³. */
-  rhoKgM3: number;
-  /** Specific heat, J/(kg·K). */
-  cJkgK: number;
-  /** Wall thickness, m. */
-  thicknessM: number;
-  /** The Material row this came from — what `feel` names. */
-  materialPath: string;
-}
 
 export function AtmosphericMixin<
   TBase extends MixinConstructor<Stuff & Container>,
 >(Base: TBase) {
-  return class AtmosphericMixin extends Base implements Atmospheric {
+  return class AtmosphericMixin extends Base
+    implements Atmospheric, Enclosed {
     static _mixinName = 'AtmosphericMixin';
 
     /**
@@ -335,7 +286,7 @@ export function AtmosphericMixin<
       _detailGravities: { persistent: true, authorable: true },
       _detailAtmospheres: { persistent: true, authorable: true },
       _weatherPin: { persistent: true, authorable: true },
-      fabric: { persistent: true, authorable: true },
+      enclosure: { persistent: true, authorable: true },
       envelopeTemperatureK: { persistent: true, runtimeState: true },
       envelopeClockStamp: { persistent: true, runtimeState: true },
       envelopeOutsideK: { persistent: true, runtimeState: true },
@@ -387,21 +338,21 @@ export function AtmosphericMixin<
      * necessity: the material lookup is a sync registry read, so a cold
      * cache costs one lookup rather than correctness.
      */
-    private _envelopeResolved: EnvelopeFabric | null = null;
+    private _resolvedEnclosure: ResolvedEnclosure | null = null;
 
     /**
      * What this place says it is built of, without authoring anything
      * else. `null` — the ordinary case — falls through to
-     * {@link fabricDefaults}.
+     * {@link enclosureDefaults}.
      */
-    protected fabric: ShellSpec | null = null;
+    protected enclosure: EnclosureSpec | null = null;
 
-    public getFabricSpec(): ShellSpec | null {
-      return this.fabric;
+    public getEnclosure(): EnclosureSpec | null {
+      return this.enclosure;
     }
-    public setFabricSpec(value: ShellSpec | null): void {
-      this.fabric = value;
-      this._envelopeResolved = null;
+    public setEnclosure(value: EnclosureSpec | null): void {
+      this.enclosure = value;
+      this._resolvedEnclosure = null;
     }
 
     /**
@@ -413,14 +364,14 @@ export function AtmosphericMixin<
      *   The row still wins: a `fabric:` on the row beats this, and this
      *   beats the universe default.
      */
-    public fabricDefaults(): ShellDefaults {
+    public enclosureDefaults(): EnclosureDefaults {
       return {
         materialPath: envelopeDialStr(
-          AppSettingKeys.envelopeDefaultFabric,
+          AppSettingKeys.enclosureDefaultMaterial,
           '/stuff/idea/material/rock/granite',
         ),
         thicknessM: envelopeDial(
-          AppSettingKeys.envelopeDefaultThicknessM,
+          AppSettingKeys.enclosureDefaultThicknessM,
           0.3,
         ),
       };
@@ -734,8 +685,8 @@ export function AtmosphericMixin<
      * always answers**:
      *
      *   1. the scope's own `fabric:` spec;
-     *   2. its class's {@link fabricDefaults} hook, whose terminal here
-     *      is the universe default (`envelope.defaultFabric`), and which
+     *   2. its class's {@link enclosureDefaults} hook, whose terminal here
+     *      is the universe default (`enclosure.defaultMaterial`), and which
      *      a `Vessel` overrides with its own material because it IS
      *      matter.
      *
@@ -754,11 +705,11 @@ export function AtmosphericMixin<
      * row that does not conduct, and why the floor here is a small
      * positive number rather than the raw read.
      */
-    private resolveFabric(): EnvelopeFabric {
-      if (this._envelopeResolved !== null) return this._envelopeResolved;
+    public resolveEnclosure(): ResolvedEnclosure {
+      if (this._resolvedEnclosure !== null) return this._resolvedEnclosure;
 
-      const spec = this.getFabricSpec();
-      const defaults = this.fabricDefaults();
+      const spec = this.getEnclosure();
+      const defaults = this.enclosureDefaults();
       const materialPath = spec?.material ?? defaults.materialPath;
       const thicknessM =
         typeof spec?.thicknessM === 'number'
@@ -767,14 +718,14 @@ export function AtmosphericMixin<
 
       const material =
         StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
-      const resolved: EnvelopeFabric = {
+      const resolved: ResolvedEnclosure = {
         kWmK: Math.max(material?.getThermalConductivity().rawValue() ?? 0, 0.02),
         rhoKgM3: material?.getDensity().rawValue() || 2000,
         cJkgK: material?.getSpecificHeat().rawValue() || 900,
         thicknessM: thicknessM > 0 ? thicknessM : 0.3,
         materialPath,
       };
-      this._envelopeResolved = resolved;
+      this._resolvedEnclosure = resolved;
       return resolved;
     }
 
@@ -895,7 +846,7 @@ export function AtmosphericMixin<
     public envelopeCoefficients(): {
       uWperK: number;
       capacityJPerK: number;
-      fabric: EnvelopeFabric;
+      enclosure: ResolvedEnclosure;
     } | null {
       const volQ = this.getVolume();
       const volume = volQ ? volQ.rawValue() : 0;
@@ -903,7 +854,7 @@ export function AtmosphericMixin<
       const area = this.envelopeExposedAreaM2(volume);
       if (!(area > 0)) return null;
 
-      const fabric = this.resolveFabric();
+      const enclosure = this.resolveEnclosure();
       // ⭐⭐ **Conduction through the wall IN SERIES with the air films
       // either side of it.** A wall's resistance is not only its own:
       // still air clings to both faces and carries about
@@ -923,7 +874,7 @@ export function AtmosphericMixin<
         AppSettingKeys.envelopeSurfaceResistanceM2KPerW,
         0.17,
       );
-      const rWall = fabric.thicknessM / fabric.kWmK + rFilms;
+      const rWall = enclosure.thicknessM / enclosure.kWmK + rFilms;
       const uFabric = area / rWall;
       const uOpen =
         envelopeDial(AppSettingKeys.envelopeOpeningUPerM3, 6) *
@@ -939,9 +890,9 @@ export function AtmosphericMixin<
       // Air (ρ·c ≈ 1.2 × 1005) plus the responsive skin of the fabric.
       const capacityJPerK =
         1.2 * 1005 * volume +
-        fabric.rhoKgM3 * fabric.cJkgK * area * activeDepth;
+        enclosure.rhoKgM3 * enclosure.cJkgK * area * activeDepth;
       if (!(capacityJPerK > 0)) return null;
-      return { uWperK, capacityJPerK, fabric };
+      return { uWperK, capacityJPerK, enclosure };
     }
 
     /** The room's total heat-loss coefficient, W/K (0 when none applies). */
@@ -950,8 +901,8 @@ export function AtmosphericMixin<
     }
 
     /** The Material path the envelope resolved to — what `feel` names. */
-    public envelopeFabricMaterialPath(): string {
-      return this.resolveFabric().materialPath;
+    public envelopeEnclosureMaterialPath(): string {
+      return this.resolveEnclosure().materialPath;
     }
 
     /**
@@ -971,7 +922,7 @@ export function AtmosphericMixin<
       outsideK: number;
       heatInputW: number;
       openings: number;
-      fabricMaterialPath: string;
+      enclosureMaterialPath: string;
       hottestSource: string | null;
     } | null {
       const inside = this.envelopeTemperatureLast();
@@ -996,7 +947,7 @@ export function AtmosphericMixin<
         outsideK,
         heatInputW,
         openings: this.openExteriorOpenings(),
-        fabricMaterialPath: this.envelopeFabricMaterialPath(),
+        enclosureMaterialPath: this.envelopeEnclosureMaterialPath(),
         hottestSource,
       };
     }

@@ -209,7 +209,7 @@ export default class FeelController extends SingleSenseControllerBase {
     const env = location.envelopeCause();
     if (env === null) return null;
     const inside = env.insideK;
-    const material = env.fabricMaterialPath.split('/').pop() ?? 'stone';
+    const material = env.enclosureMaterialPath.split('/').pop() ?? 'stone';
 
     if (env.heatInputW > 0 && env.hottestSource) {
       return `warm from ${env.hottestSource}.`;

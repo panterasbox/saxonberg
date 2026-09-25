@@ -17,11 +17,11 @@ settings:
   # real granite, not a stand-in. Over 0.3 m with the air films below it
   # gives ~3.7 W/m²K: a stone building, slow to warm and slow to cool,
   # and genuinely harder to heat than a timber one.
-  - key: envelope.defaultFabric
+  - key: enclosure.defaultMaterial
     value: "/stuff/idea/material/rock/granite"
 
   # How thick that fabric is, in metres.
-  - key: envelope.defaultThicknessM
+  - key: enclosure.defaultThicknessM
     value: "0.3"
 
   # ⭐ The still-air films clinging to both faces of a wall, m²K/W, IN

@@ -40,10 +40,8 @@
  */
 
 import { ContainerMixin } from '../spatial/Container';
-import {
-  AtmosphericMixin,
-  type ShellDefaults,
-} from '../biome/Atmospheric';
+import { AtmosphericMixin } from '../biome/Atmospheric';
+import type { EnclosureDefaults } from '../spatial/Enclosed';
 import Thing from './Thing';
 import type { FieldMeta } from '../mixin';
 
@@ -103,16 +101,16 @@ export class Vessel extends VesselBase {
    * envelope is made of whatever it is made of, and the thickness is
    * the wall of a box rather than the wall of a building.
    *
-   * ⚠ This was a rung inside `Atmospheric.resolveFabric`, reached
-   * through an optional `getMaterial?` cast, because the fabric used to
+   * ⚠ This was a rung inside `Atmospheric.resolveEnclosure`, reached
+   * through an optional `getMaterial?` cast, because the enclosure used to
    * live on `Location` and a `Vessel` is not one. As the mixin's own
    * hook it is an ordinary override and the cast is gone (review,
    * 2026-09-24).
    */
-  public override fabricDefaults(): ShellDefaults {
+  public override enclosureDefaults(): EnclosureDefaults {
     const material = this.getMaterial();
     const path = material?.getTemplatePath() ?? null;
-    if (path === null) return super.fabricDefaults();
+    if (path === null) return super.enclosureDefaults();
     return { materialPath: path, thicknessM: VESSEL_WALL_M };
   }
 

@@ -978,7 +978,7 @@ function traceOf(
     heatInputW,
     uWperK: host.envelopeUWperK(),
     openings: host.openExteriorOpenings(),
-    fabricMaterialPath: host.envelopeFabricMaterialPath(),
+    enclosureMaterialPath: host.envelopeEnclosureMaterialPath(),
     hottestSource,
   };
 }

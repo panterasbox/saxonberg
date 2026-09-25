@@ -344,12 +344,30 @@ rather than a guard.
 > *You cannot author "well-insulated"; you author granite and the
 > physics decides.*
 
-`FabricSpec { material, thicknessM }` on `Location`, beside `floor` and
-with the same doctrine — a Location **names** a material exactly as it
-names its floor's, and stays space rather than matter. A U-value is an
-*effect*, and an authored effect is a room warm for no reason a player
-can be told. The 154 content rows that already carry a real
-`thermalConductivity` are what make the honest version cheap.
+```yaml
+enclosure:
+  material: /stuff/idea/material/rock/granite
+  thicknessM: 0.45
+```
+
+⭐⭐ **`EnclosureSpec { material, thicknessM }` — and it is not the
+thermal subsystem's.** It answers *what physically bounds this place, and
+what is it made of*, which is one fact with several possible readers; the
+envelope is the first. Its vocabulary lives at
+[`lib/spatial/Enclosed.ts`](../../packages/server/src/mud/lib/spatial/Enclosed.ts),
+`AtmosphericMixin` implements it, and that module carries the naming
+argument — briefly: *fabric* is the right UK building term and collides
+with cloth, *walls* is untrue because **a fence is not a wall**, *shell*
+is `holding.md`'s word for condition and weathering, and an **enclosure**
+covers drystone, palings, hedge and hurdle while also being the technical
+term on this side. A pen has an enclosure and no envelope, which is why
+the two are named separately.
+
+A Location **names** a material exactly as it names its floor's, and
+stays space rather than matter. A U-value is an *effect*, and an authored
+effect is a room warm for no reason a player can be told. The 154 content
+rows that already carry a real `thermalConductivity` are what make the
+honest version cheap.
 
 This **dissolves** the agreement problem rather than working around it:
 a granite shopfront with a timber stockroom behind it is *a stone shop
@@ -360,15 +378,15 @@ with a timber lean-to*. The dishonesty was never *rooms differ* — it was
 
 `T ← Decay.toward(T, outside + P/U, elapsed, C/U)` with
 
-- `U_fabric = A / (t/k + R_films)` — conduction through the wall **in
+- `U_enclosure = A / (t/k + R_films)` — conduction through the wall **in
   series with the still-air films either side of it** (~0.17 m²K/W).
-  ⚠ Without the film term a high-conductivity fabric is absurd rather
+  ⚠ Without the film term a high-conductivity enclosure is absurd rather
   than merely bad: an iron sheet computes to 16 000 W/K. With it the
   same shed is ~265 W/K, and real granite (2.9 W/(m·K)) gives a 3 m cell
   ~165 W/K instead of 435.
 - `U_open = openingUPerM3 · V · n` — an open door is the inside air
   leaving, not conduction, so it scales with volume.
-- `C = C_air + ρ·c·A·activeDepth` — the **skin** of the fabric that
+- `C = C_air + ρ·c·A·activeDepth` — the **skin** of the enclosure that
   answers within the hour. The stone holding the day is literally this
   term.
 - `P = Σ spaceHeatOutputW()` over `SpaceHeating` contents.

@@ -101,7 +101,7 @@ export interface EnvelopeTrace {
   /** How many exterior openings stand open. */
   openings: number;
   /** The Material its walls are made of — what `feel` names. */
-  fabricMaterialPath: string;
+  enclosureMaterialPath: string;
   /** The hottest space-heating source present, for the prose. */
   hottestSource: string | null;
 }

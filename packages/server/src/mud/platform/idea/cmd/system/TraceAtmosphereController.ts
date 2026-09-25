@@ -49,7 +49,7 @@ function describeSource(trace: AtmosphericTrace<unknown>): string {
       // outside, at a rate its fabric and its open doors set. The
       // instrument reports the arithmetic; `feel` says it in words.
       return trace.envelope
-        ? `the room's own envelope (${trace.envelope.fabricMaterialPath
+        ? `the room's own envelope (${trace.envelope.enclosureMaterialPath
             .split('/')
             .pop()}, ${trace.envelope.uWperK.toFixed(0)} W/K, ` +
             `${trace.envelope.openings} opening(s) to outside, ` +

@@ -1488,13 +1488,14 @@ export const AppSettingKeys = {
 
   /* ────────────────────────── the envelope (D3) ────────────────────────── */
   /**
-   * Envelope — the Material a room is built of when neither its row nor
-   * its class says. ⭐ A material, never a U-value: *you cannot author
-   * "well-insulated"; you author granite and the physics decides*.
+   * Enclosure — the Material a place is bounded by when neither its row
+   * nor its class says. ⭐ A material, never a U-value: *you cannot
+   * author "well-insulated"; you author granite and the physics
+   * decides*.
    */
-  envelopeDefaultFabric: "envelope.defaultFabric",
-  /** Envelope — how thick that fabric is, in metres, when unauthored. */
-  envelopeDefaultThicknessM: "envelope.defaultThicknessM",
+  enclosureDefaultMaterial: "enclosure.defaultMaterial",
+  /** Enclosure — how thick it is, in metres, when unauthored. */
+  enclosureDefaultThicknessM: "enclosure.defaultThicknessM",
   /**
    * ⭐ Envelope — the still-air films clinging to both faces of a wall,
    * in m²K/W, IN SERIES with the fabric's own conduction. Without this

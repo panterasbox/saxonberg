@@ -24,7 +24,7 @@
  * for no reason. **The dishonesty was never *rooms differ* — it was
  * *rooms differ for no reason*, and a material is a reason.**
  *
- * So `fabric:` is ORDINARY and unlisted: a room may say what it is made
+ * So `enclosure:` is ORDINARY and unlisted: a room may say what it is made
  * of freely, as it says what its floor is made of. What is listed is
  * `_temperature`, the one way to bypass the derivation entirely.
  *
@@ -35,12 +35,12 @@
  *       ratchet that may fall and never rise, and a stale entry fails.
  *       This is the one thing that needs a paragraph, so it costs
  *       somebody one.
- *   (b) a `fabric.material` resolves to a real `Material` row AND that
+ *   (b) a `enclosure.material` resolves to a real `Material` row AND that
  *       row authors `thermalConductivity > 0`. ⚠ An unauthored
  *       conductivity reads **zero**, which is an infinite insulator —
  *       silently, and the room would simply never lose heat.
  *   (c) ⭐⭐ **the biome line**: no row whose class extends `Biome`
- *       authors `fabric`, `thicknessM` or any envelope key. *A biome
+ *       authors `enclosure`, `thicknessM` or any envelope key. *A biome
  *       may say what the outside AIR is doing; it may never say how
  *       well a structure holds heat.* Climate is a fact about the air;
  *       construction is a fact about the room. Put construction on a
@@ -85,8 +85,8 @@ const REPO = join(SERVER, "..", "..");
 /** The admin folder whose rows describe an ENCLOSURE rather than a climate. */
 const INDOOR_BIOME_PREFIX = "/stuff/idea/biome/indoor/";
 
-/** Every key a `fabric:` spec may carry. Closed, and clause (e) holds it. */
-const FABRIC_KEYS = new Set(["material", "thicknessM"]);
+/** Every key a `enclosure:` spec may carry. Closed, and clause (e) holds it. */
+const ENCLOSURE_KEYS = new Set(["material", "thicknessM"]);
 
 /**
  * ⚠⚠ **Rooms that declare their own temperature**, bypassing the
@@ -100,7 +100,7 @@ const FABRIC_KEYS = new Set(["material", "thicknessM"]);
  * maturation clocks read these numbers directly.
  *
  * ⚠ A room that is merely *cold* is not on this list. Cold is what the
- * envelope produces on its own, from a rock fabric and no fire; adding
+ * envelope produces on its own, from a rock enclosure and no fire; adding
  * a `_temperature` to get it would be authoring an effect over a
  * mechanism that already answers.
  */
@@ -202,8 +202,8 @@ function isBiomeRow(row: Row, sources: readonly PackSource[]): boolean {
   return composesMixin(row.class, "Biome", sources, biomeCache);
 }
 
-function fabricOf(row: Row): Record<string, unknown> | null {
-  const f = row.data.fabric;
+function enclosureOf(row: Row): Record<string, unknown> | null {
+  const f = row.data.enclosure;
   return f && typeof f === "object" ? (f as Record<string, unknown>) : null;
 }
 
@@ -214,16 +214,16 @@ function report(): void {
   for (const row of [...rows.values()].sort((a, b) =>
     a.path.localeCompare(b.path),
   )) {
-    const fabric = fabricOf(row);
+    const enclosure = enclosureOf(row);
     const declared = row.data._temperature !== undefined;
-    if (!fabric && !declared) continue;
+    if (!enclosure && !declared) continue;
     lines.push(
       `  ${row.path}  — ${
         declared
           ? `DECLARED ${String(row.data._temperature)}${listed.has(row.path) ? "" : " (UNLISTED)"}`
-          : `fabric ${String(fabric?.material ?? "?")}` +
-            (fabric?.thicknessM !== undefined
-              ? ` @ ${String(fabric.thicknessM)} m`
+          : `enclosure ${String(enclosure?.material ?? "?")}` +
+            (enclosure?.thicknessM !== undefined
+              ? ` @ ${String(enclosure.thicknessM)} m`
               : "")
       }`,
     );
@@ -234,7 +234,7 @@ function report(): void {
   );
   for (const l of lines) console.log(l);
   console.log(
-    `\nEverything else derives: the universe fabric, no fire, and ` +
+    `\nEverything else derives: the universe enclosure, no fire, and ` +
       `whatever its doors are doing.\n`,
   );
 }
@@ -263,7 +263,7 @@ function lint(): void {
         `Declaring it bypasses all three, which is right for a cellar ` +
         `that is the same the year round and wrong for a room that is ` +
         `merely cold (the envelope already makes a room with a rock ` +
-        `fabric and no fire cold). If this one earns it, add the line ` +
+        `enclosure and no fire cold). If this one earns it, add the line ` +
         `with its reason; the ceiling is the list's own length.`,
     );
   }
@@ -282,30 +282,30 @@ function lint(): void {
     }
   }
 
-  // (b) a fabric names a material that EXISTS and CONDUCTS
-  let fabricRows = 0;
+  // (b) an enclosure names a material that EXISTS and CONDUCTS
+  let enclosureRows = 0;
   for (const row of rows.values()) {
-    const fabric = fabricOf(row);
-    if (!fabric) continue;
-    fabricRows++;
+    const enclosure = enclosureOf(row);
+    if (!enclosure) continue;
+    enclosureRows++;
     // (e) the closed vocabulary
-    for (const key of Object.keys(fabric)) {
-      if (FABRIC_KEYS.has(key)) continue;
+    for (const key of Object.keys(enclosure)) {
+      if (ENCLOSURE_KEYS.has(key)) continue;
       failures.push(
-        `${row.file}: \`fabric.${key}\` is not part of the FabricSpec ` +
-          `vocabulary (${[...FABRIC_KEYS].join(", ")}). ⭐ There is no ` +
+        `${row.file}: \`enclosure.${key}\` is not part of the EnclosureSpec ` +
+          `vocabulary (${[...ENCLOSURE_KEYS].join(", ")}). ⭐ There is no ` +
           `U-value and no insulation rating on purpose: you cannot author ` +
           `"well-insulated", you author a material and a thickness and the ` +
           `physics decides. An authored effect is the dishonesty this ` +
           `build exists to remove.`,
       );
     }
-    const materialPath = fabric.material;
+    const materialPath = enclosure.material;
     if (typeof materialPath !== "string") continue;
     const material = rows.get(materialPath);
     if (!material) {
       failures.push(
-        `${row.file}: \`fabric.material: ${materialPath}\` resolves to no ` +
+        `${row.file}: \`enclosure.material: ${materialPath}\` resolves to no ` +
           `row. The envelope would fall back to the universe default and ` +
           `this room would quietly be built of something else.`,
       );
@@ -320,7 +320,7 @@ function lint(): void {
           : NaN;
     if (!(kValue > 0)) {
       failures.push(
-        `${material.file}: named as a \`fabric.material\` by ` +
+        `${material.file}: named as a \`enclosure.material\` by ` +
           `'${row.path}' but authors no positive \`thermalConductivity\`. ` +
           `⚠ An unauthored conductivity reads ZERO, which is an infinite ` +
           `insulator — silently. That room would never lose heat and ` +
@@ -334,7 +334,7 @@ function lint(): void {
   for (const row of rows.values()) {
     if (!isBiomeRow(row, sources)) continue;
     biomeRows++;
-    for (const key of ["fabric", "thicknessM", "uPerM2", "insulation"]) {
+    for (const key of ["enclosure", "thicknessM", "uPerM2", "insulation"]) {
       if (row.data[key] === undefined) continue;
       failures.push(
         `${row.file}: a Biome row authoring \`${key}\`. ⭐⭐ **A biome may ` +
@@ -369,7 +369,7 @@ function lint(): void {
   console.log(
     `check-envelope: ${AUTHORED_TEMPERATURES.length}/` +
       `${AUTHORED_TEMPERATURES_CEILING} room(s) declare their own ` +
-      `temperature, each with a reason; ${fabricRows} row(s) name a fabric ` +
+      `temperature, each with a reason; ${enclosureRows} row(s) name an enclosure ` +
       `that resolves and conducts; ${biomeRows} biome row(s) claim nothing ` +
       `about construction and no indoor biome decrees a temperature.`,
   );
