@@ -1,9 +1,32 @@
 # Photometer — handheld instrument that grants the `measure light`
 # verb to its carrier. Author-clonable; mechanically a Thing.
-class: /platform/thing/instrument/Photometer
+#
+# ⭐⭐ A ROW over `/platform/thing/ToolItem`, not a class of its own.
+#
+# Every one of these instruments used to be an empty `Thing` subclass
+# whose only content was `commandContributions` — it put the whole
+# `measure` view on its carrier, and each channel's controller then
+# checked `instanceof <ThatExactClass>`. Two costs:
+#
+#   1. ⚠⚠ **The instrument was unextendable.** A second maker's
+#      thermometer was silently refused by a class check, which is the
+#      `ComminutingMixin` lesson in the reading register: the question is
+#      what a thing can DO, never what class it is.
+#   2. **It could not be graded, worn, or broken**, because a bare Thing
+#      composes none of that — so a fine instrument and a shoddy one read
+#      identically forever.
+#
+# As a `ToolItem` it is graded, durable and wears on use, and the channel
+# row names the CAPABILITY below rather than this file. The affordance
+# moved to the Avatar: everyone can type `measure`, and what an
+# instrument buys is the reading, not the verb.
+class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass photometer
   keywords: [photometer, brass]
   register: indefinite
   long: A small brass instrument with a calibrated dial that reads light intensity in lux. Aim it at a location, take a measurement.
+  capabilities: [photometry]
+  mass: 0.4
+  _materialPath: /stuff/idea/material/alloy/bronze

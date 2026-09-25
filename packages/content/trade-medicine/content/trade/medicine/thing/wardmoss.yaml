@@ -1,0 +1,13 @@
+# A simple — a medicinal herb you steep into a draught (D10). Harvested
+# from the physic garden; `steep` turns it (in water) into ward-water.
+class: /trade/medicine/thing/Simple
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: wardmoss
+  keywords: [wardmoss,moss, simple, herb]
+  register: indefinite
+  longDescription: |
+    a cushion of wardmoss, cut for steeping.
+  _materialPath: /trade/medicine/idea/material/wardmoss
+  mass: 0.05
+  steepsInto: /trade/medicine/idea/material/ward-water

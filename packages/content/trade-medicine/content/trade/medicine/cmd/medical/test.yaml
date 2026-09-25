@@ -1,0 +1,25 @@
+verbs: [test]
+controller: /trade/medicine/idea/cmd/medical/TestController
+description: "Test a body's blood type (needs a syringe)"
+help: |
+  `test <someone>` — with a syringe to hand — draws a drop and reads their
+  blood type. With no target you test yourself. A type once tested is
+  known and labelled; transfusing a matched unit is safe, an unmatched one
+  is not, which is why you test first.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: false
+    scope: "reachable"
+    requires: VitalsMixin
+  - name: with
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.phlebotomy]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

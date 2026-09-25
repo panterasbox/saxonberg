@@ -1,0 +1,18 @@
+# soil — what your spot readings add up to across a holding.
+#
+# `kind: record` — the farming twin of mining's `ground`. Competence
+# decides whether the generalization is available at all: a novice has
+# several readings, and an agronomist has a field.
+class: /trade/farming/idea/reading/SoilSurveyReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: soil
+  kind: record
+  scope: [here]
+  discipline: soil-science
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    what the whole holding is, from the spots you have actually sampled
+  stakes: >-
+    buying a field on the strength of its gateway

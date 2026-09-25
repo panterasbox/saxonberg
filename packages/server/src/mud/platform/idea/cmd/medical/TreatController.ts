@@ -165,6 +165,10 @@ function mismatchLine(offered: string, wanted: string | null): string {
     // instruments answer, and until one is to hand `treat` says so.
     setting: 'setting, with a splint',
     surgery: 'surgery',
+    // ⭐ A foreign body has to come OUT before anything can close (D6) —
+    // the extraction the `operate` catalogue offers. Dressing over it
+    // does nothing but seal the thing in.
+    extraction: 'the thing taken out — an extraction',
     // ⭐ A caustic is still eating. What it wants is not a treatment you
     // apply but the REMOVAL of the cause — which is why `rinse` is a verb
     // of its own rather than another thing to carry.
@@ -268,7 +272,7 @@ export default class TreatController extends CommandController<TreatModel> {
 
     const wound = treatable as Trauma | null;
     const band = MixinApi.isAdvancing(giver)
-      ? await giver.competenceBandFor('medicine')
+      ? await giver.competenceBandFor('nursing')
       : CompetenceBand.FLOOR;
     // Pulling someone back from the edge is the hardest thing this verb
     // does, whatever the wound looks like.
@@ -315,7 +319,7 @@ export default class TreatController extends CommandController<TreatModel> {
     // Mint the graded deed into the treater's Transcript (the ActSignature).
     if (MixinApi.isAdvancing(giver))
       await giver.creditDeed({
-      discipline: 'medicine',
+      discipline: 'nursing',
       difficulty,
       outcome,
     });
@@ -601,7 +605,7 @@ export default class TreatController extends CommandController<TreatModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     const band = MixinApi.isAdvancing(giver)
-      ? await giver.competenceBandFor('medicine')
+      ? await giver.competenceBandFor('nursing')
       : CompetenceBand.FLOOR;
     const score = BAND_SCORE[band] ?? 0;
     const outcome: Outcome =
@@ -628,7 +632,7 @@ export default class TreatController extends CommandController<TreatModel> {
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({
-        discipline: 'medicine',
+        discipline: 'nursing',
         difficulty: 'standard',
         outcome,
       });

@@ -1,6 +1,6 @@
-verbs: [undress]
+verbs: [undress, unstitch]
 controller: /platform/idea/cmd/medical/UndressController
-description: "Remove a wound's dressing"
+description: "Remove a wound's dressing or stitches"
 help: |
   `undress` takes the dressing off a wound (not to be confused with
   removing worn clothing — that's `remove`). The bandage is spent, not

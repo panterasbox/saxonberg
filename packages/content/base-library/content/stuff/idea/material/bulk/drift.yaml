@@ -1,0 +1,31 @@
+# Drift — ⭐ **the overburden, and the first cost in this game that is what
+# you throw away.**
+#
+# Whatever lies between the surface and the rock: clay, gravel, stones,
+# roots, the lot. It is worth nothing and it has to be moved, and how much
+# of it lies over how much good is what decides whether ground is worth
+# working. That is the whole of extractive economics, and nothing else in
+# the game teaches it.
+#
+# ⚠ Tagged `earth`, which is what makes it a SPADE's job rather than a
+# pick's — the tool is the constraint, and the ground says so.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: drift
+  keywords: [drift, overburden, spoil, waste]
+  appearance: loose brown drift — clay, gravel and roots together
+  density: 1800
+  specificHeat: 900
+  thermalConductivity: 1.0
+  electricalConductivity: 1.0e-2
+  waterAbsorptionCapacity: 25
+  hardness: 2
+  toughness: 1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["earth", "mixture", "solid"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

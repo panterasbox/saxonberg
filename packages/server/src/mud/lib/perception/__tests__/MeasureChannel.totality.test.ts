@@ -34,18 +34,72 @@ const PERCEPTION_DIR = join(
   '../../../platform/idea/cmd/perception'
 );
 
+/**
+ * ⭐⭐ The reading CHANNELS, which is where the quantity-rendering moved.
+ *
+ * `measure`/`analyze` used to be one controller per channel under
+ * `cmd/perception/`; a channel is a `Reading` row now and the rung bodies
+ * live here. The scan follows them — a totality gate that keeps looking
+ * in the old place reads zero and passes, which is the exact failure
+ * mode `lint:family` was rebuilt to remove.
+ */
+const READING_DIR = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../../platform/idea/reading'
+);
+
 function controllerSources(): { name: string; src: string }[] {
-  return readdirSync(PERCEPTION_DIR)
-    .filter((f) => f.endsWith('Controller.ts'))
-    .map((f) => ({
-      name: f,
-      src: readFileSync(join(PERCEPTION_DIR, f), 'utf-8'),
-    }));
+  const out: { name: string; src: string }[] = [];
+  for (const [dir, suffix] of [
+    [PERCEPTION_DIR, 'Controller.ts'],
+    [READING_DIR, 'Reading.ts'],
+  ] as const) {
+    for (const f of readdirSync(dir)) {
+      if (!f.endsWith(suffix)) continue;
+      out.push({ name: f, src: readFileSync(join(dir, f), 'utf-8') });
+    }
+  }
+  return out;
 }
 
-/** Every `channel: '<x>'` literal appearing in a source file. */
+/**
+ * Every measurement channel a source names — the `channel: '<x>'` option
+ * passed to `formatMml`, and ⭐ the `mmlChannel()` a `BiomeReading`
+ * declares.
+ *
+ * ⚠ The second form exists because four channels (`temperature`,
+ * `pressure`, `humidity`, `gravity`) share one rung body and name their
+ * MML channel by RETURNING it. A scan that knew only the option literal
+ * reported `thermal` and `gravity` as emitted by nobody — a totality
+ * gate quietly going wrong in the direction that reads as a failure, and
+ * the same class as a gate going quietly wrong in the direction that
+ * reads as a pass.
+ */
 function channelsIn(src: string): string[] {
-  return [...src.matchAll(/channel:\s*'([a-z]+)'/g)].map((m) => m[1]!);
+  const opts = [...src.matchAll(/channel:\s*'([a-z]+)'/g)].map((m) => m[1]!);
+  const declared = [
+    ...src.matchAll(/mmlChannel\(\)[^{]*\{\s*return '([a-z]+)';/g),
+  ].map((m) => m[1]!);
+  /*
+   * ⚠⚠ The THIRD form, and it is the one the docstring above predicted.
+   * `Reading.bracketed(value, band, seed, channel)` takes the channel as
+   * its trailing POSITIONAL argument, so a scan that knew only the
+   * option-object literal reported `light` as emitted by nobody — while
+   * `measure light` had been printing a bracketed lux figure on that
+   * channel the whole time. Same failure mode as `mmlChannel()`, one
+   * call shape further along.
+   *
+   * The window runs from the open paren to the end of the STATEMENT
+   * rather than to a matching close paren, because the channel is the
+   * last of four arguments and the third is itself a call — a lazy
+   * `\)` stops inside `this.seedFor(...)` and never reaches `'light'`.
+   */
+  const positional = [
+    ...src.matchAll(/\bbracket(?:ed|For)\(([^;]{0,240})/g),
+  ].flatMap((call) =>
+    [...call[1]!.matchAll(/'([a-z]+)'/g)].map((m) => m[1]!)
+  );
+  return [...opts, ...declared, ...positional];
 }
 
 describe('measurement channels — the vocabulary', () => {
@@ -94,7 +148,7 @@ describe('measurement channels — the vocabulary', () => {
  * entry, rather than expressed by weakening the pattern — a weakened
  * pattern silently exempts the next case too.
  */
-const BARE_FORMAT_EXEMPT = new Set(['AnalyzeWeatherController.ts']);
+const BARE_FORMAT_EXEMPT = new Set(['WeatherReading.ts']);
 
 describe('measurement readings — no bare numerics', () => {
   it('no perception controller renders a Quantity through bare format()', () => {

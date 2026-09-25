@@ -1,0 +1,27 @@
+# Mabley Crole — the infirmary's nurse (clinical-medicine D1). The care
+# side of the split: she triages the ward on a cadence and dresses/tends
+# through the same body primitives a player uses, advancing on `nursing`.
+# The physician (Aldis) is the intervention side — diagnosis, operations,
+# prescribing.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Mabley Crole
+  keywords: [nurse, mabley, crole, brisk]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: [mabley, crole, nurse]
+  shortDescription: brisk, capable nurse
+  register: indefinite
+  longDescription: |
+    A brisk, square-handed woman who keeps the ward's linen white and its patients turned, and who can find a vein by touch in a bad light. She defers to the doctor on what to do and to nobody at all on how it is done.
+  dispositions:
+    - { disposition: diligence, valence: 75 }
+    - { disposition: sociability, valence: 45 }
+  archetype: nurse
+  competence:
+    - { discipline: nursing, asserting: competent }
+  behaviors:
+    - brain: /lib/behavior/shifts
+    - { brain: /trade/medicine/behavior/nurses, cadenceMs: 20000 }

@@ -79,6 +79,19 @@ describe('HazardDelivery — mechanical channel', () => {
     expect(d.resolveSite(mover())).toBeNull();
     expect(d.toInflictSpec(mover())).toBeNull();
   });
+
+  it('carries `embeds` through onto the spec, and round-trips it (D6)', () => {
+    const d = new HazardDelivery({
+      channel: 'point',
+      energy: 3,
+      siteSelector: FEET,
+      embeds: 'a poisoned needle',
+    });
+    const spec = d.toInflictSpec(mover());
+    expect((spec as { embeds?: string }).embeds).toBe('a poisoned needle');
+    // The plain-object projection preserves it (persistence round-trip).
+    expect(HazardDelivery.from(d.toJSON()).embeds).toBe('a poisoned needle');
+  });
 });
 
 describe('HazardDelivery — shock channel', () => {

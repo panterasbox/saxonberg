@@ -1,0 +1,63 @@
+# ⭐⭐ `trace` — the engine explaining its own resolution.
+#
+# Both stanzas here used to be `analyze` channels, and neither was a
+# READING. A reading is a fact about the world that competence resolves
+# and an instrument sharpens; `trace address` and `trace atmosphere`
+# answer *where did the engine get that value from* — a detail override,
+# a biome ancestor, the universe default — which is a question about the
+# SIMULATION, not about the place.
+#
+# ⚠ Subcommands are fine here and wrong on `measure`/`analyze`. The
+# difference is who can contribute: nothing but the platform will ever
+# ship a `trace` channel, so the map cannot advertise something an
+# install does not have. That was the whole cost of the shape.
+#
+# No validator — the shipped arrangement for a free engine diagnostic
+# (`affordances`, `errors`), and deliberately not a wizard check.
+verbs: [trace]
+description: "Trace how the engine resolved a value here"
+help: |
+  Ask the engine to show its working. `trace` does not read the
+  world — it reads the resolution: which layer supplied a value,
+  which ancestor it was inherited from, which prefix claimed an
+  address.
+
+  `trace address [<place>]` — the addressing chain at a place.
+  `trace atmosphere` — where each atmospheric value came from.
+
+  For facts about the world rather than about the engine, see
+  `readings`, `analyze` and `measure`.
+subcommands:
+  address:
+    description: "Show the addressing chain at a place and where each part came from"
+    help: |
+      The declared or inherited address with its provenance, the
+      covering Locality, and the most- to least-specific
+      longest-prefix chain.
+    examples:
+      - cmd: trace address
+        note: The chain where you stand
+    controller: /platform/idea/cmd/system/TraceAddressController
+    args:
+      - name: location
+        type: object
+        required: false
+        greedy: true
+        default: "here"
+        scope: ["reachable"]
+        requires: ContainerMixin
+  atmosphere:
+    description: "Show which layer supplied each atmospheric value here"
+    help: |
+      Temperature, pressure, humidity, gravity and medium, each with
+      the resolve step that produced it — a detail override, a scope
+      override, a biome ancestor, the spatial zone, elevation, or the
+      universe default.
+    examples:
+      - cmd: trace atmosphere
+        note: Why it is this warm in here
+    controller: /platform/idea/cmd/system/TraceAtmosphereController
+    args:
+      - name: detail
+        type: string
+        required: false

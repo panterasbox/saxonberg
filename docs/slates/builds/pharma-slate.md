@@ -9,6 +9,15 @@
 > variant · in-world statistics over the record (Q5)
 > **Size:** a build
 
+> ⭐ **Latitude (user, 2026-09-24): fictional remedies to nonfictional
+> maladies are in bounds.** Real pharma is a weird, R&D-heavy industry with a
+> strange R&D↔manufacturing split; do NOT import that complexity for
+> authenticity. Invent Saxonberg-native species, actives and chains freely
+> where it improves the player experience along the lenses — the credence-good
+> *mechanism* (you can't tell if it works → assay/trust) is what must stay
+> honest, not the chemistry. See the clinical-medicine build, which seeds a
+> thin drug slice ahead of this one.
+
 **Captured 2026-08-02**, out of the physiology slate's care economy. The
 prompt was *"pharma is a whole new industry and whenever we mint an
 industry it cross-cuts systems"* — and it turns out to cross-cut in an

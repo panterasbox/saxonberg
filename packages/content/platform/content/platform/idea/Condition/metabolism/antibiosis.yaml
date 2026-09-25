@@ -1,0 +1,25 @@
+# Antibiosis — the sepsis counterplay (clinical-medicine D10). A
+# prescribed, administered active whose `clearance` effect multiplies how
+# fast the body clears a wound infection (progressInfection folds it into
+# the clearance term). Fiction is ours (wardmoss, steeped); the mechanism
+# a player touches is honest. Controlled.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: antibiosis
+  signature:
+    - { kind: clearance, factor: 4 }
+  progression:
+    law: burden
+  resolution:
+    by: time
+  observableSigns: [bitter-breathed]
+  contagion: null
+  prescriptionOnly: true
+  toxinBehavior:
+    toxinType: antibiosis
+    absorptionRate: 6
+    clearanceRate: 1
+    potency: 1
+    bands:
+      - { threshold: 1, severity: 1 }

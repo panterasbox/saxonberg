@@ -440,6 +440,48 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * **Nothing here consults a warren**, which is what makes a
      * hand-authored mine work.
      */
+    /**
+     * ⭐⭐ **A working overrides the ground's `sampleFace`**: it has
+     * faces, an ore row and a grade, none of which plain ground knows
+     * about. One lump, no engagement, no tool — a sample is a piece you
+     * knock off with whatever is in your hand, and the JUDGEMENT is
+     * what costs you.
+     *
+     * ⚠ `SAMPLE_LUMPS` is deliberately NOT recorded against the face's
+     * remaining ore. A sample is a chip, not a cut; charging the face
+     * for it would mean prospecting a claim slowly destroys it, which is
+     * the opposite of what a sample is for.
+     *
+     * ⚠⚠ It is `sampleFace`, not `sampleHere`. `sampleHere()` is a DATA
+     * READING of the deposit and returns a `GroundSample`; this returns
+     * a lump of `Ore`. One dot apart on the same host — see `Strata`.
+     */
+    public async sampleFace(
+      _actor: Stuff,
+      direction: string,
+    ): Promise<Stuff | null> {
+      const wanted = direction.trim().toLowerCase();
+      const faces = await this.facesOf();
+      // Nothing named → the richest face that is still rock. Naming one
+      // is how a prospector chooses; naming none is how they ask.
+      const face =
+        wanted === ''
+          ? [...faces]
+              .filter((f) => !f.open && !f.blocked)
+              .sort((a, b) => b.grade - a.grade)[0]
+          : faces.find(
+              (f) => !f.open && !f.blocked && wanted.includes(f.direction),
+            );
+      if (!face) return null;
+      const row = this.getOreRow();
+      if (row.length === 0) return null;
+      const lump = (await StuffApi.clone(row)) as unknown as {
+        setGrade?(g: number): void;
+      };
+      if (typeof lump.setGrade === 'function') lump.setGrade(face.grade);
+      return lump as unknown as Stuff;
+    }
+
     public async facesOf(): Promise<Face[]> {
       const d = await this.ground.getDeposit();
       const zone = (this as unknown as { getZone(): { hasRoomAt(x: number, y: number, z: number): boolean } | null }).getZone();

@@ -1,0 +1,32 @@
+verbs: [prescribe]
+controller: /trade/medicine/idea/cmd/medical/PrescribeController
+description: "Write a prescription for a controlled active (a doctor's power)"
+help: |
+  `prescribe <someone> <remedy> [<doses>]` — with a prescription pad —
+  writes a slip authorizing a controlled active (an anaesthetic, an
+  antibiotic) for one patient. A nurse then `administer`s it. Prescribing
+  is the doctor's power (`competent` in medicine); folk remedies and
+  saline need no prescription.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: patient
+    type: object
+    required: true
+    scope: "reachable"
+    requires: VitalsMixin
+  - name: active
+    type: string
+    required: true
+  - name: doses
+    type: number
+    required: false
+  - name: pad
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.prescribing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

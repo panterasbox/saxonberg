@@ -1,0 +1,25 @@
+# ⭐⭐ A fired clay pot — **and it closes `ceramic`.**
+#
+# The `ceramic` material shipped and is used at nine sites in this game, and
+# until the extraction build **no clay existed at all**. So this is the first
+# ceramic object in the world that came out of the ground: dig the clay band,
+# fire it in a kiln, and there is a thing you can hold, plant in and look at.
+#
+# ⚠ Placed in the COMMONS (`/stuff/thing/`) rather than in the quarrying
+# trade, because a pot is not a quarryman's good — it is a thing anybody owns.
+# The trade that will make them properly is `ceramics`, later; what this row
+# claims is only that a kiln and some clay are enough.
+#
+# ⭐ A `PlantPot`, which is the kernel's class and farming's only consumer so
+# far: hold it, plant in it, look at it. Three affordances out of one row.
+class: /platform/thing/PlantPot
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [pot, "clay pot", earthenware, crock]
+  shortDescription: clay pot
+  register: indefinite
+  longDescription: >-
+    A thick-walled earthenware pot, unglazed, with the potter's thumb still in
+    the rim where they lifted it off the wheel.
+  material: /stuff/idea/material/ceramic/ceramic
+  mass: 2.5

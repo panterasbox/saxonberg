@@ -1,0 +1,17 @@
+# weather — a reading channel.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/WeatherReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: weather
+  kind: fact
+  scope: [subject, here]
+  discipline: awareness
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    what the sky is about to do, and whether the work can wait
+  stakes: >-
+    hay cut before rain; a rig on a pass in a storm

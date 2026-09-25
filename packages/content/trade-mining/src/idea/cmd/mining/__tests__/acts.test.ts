@@ -106,6 +106,23 @@ function room(cell: Cell, host = SLATE): MineRoom {
 
 type Runnable = Stuff & { execute(model: never, ctx: CommandContext): unknown };
 
+/**
+ * ⭐ A pick, bound as the view's `tool` arg would bind it.
+ *
+ * ⚠ Since the extraction build `hew` ASKS for it. The pick has declared
+ * `winning` since it shipped and nothing ever checked — *a tool that is not
+ * required is a number with no referent* — so every one of these cases used
+ * to cut rock bare-handed.
+ */
+function pick(): { raw: string; stuff: Stuff } {
+  const t = makeStuff(() => {
+    const item = new ToolItem();
+    item.capabilities = ['winning', 'striking'];
+    return item;
+  }) as unknown as Stuff;
+  return { raw: 'pick', stuff: t };
+}
+
 async function run(
   Controller: new () => Runnable,
   model: Record<string, unknown>,
@@ -182,7 +199,7 @@ describe('the mine’s four labour acts', () => {
   it('⭐ a cut lump’s grade is EXACTLY the deposit’s figure — competence never multiplies yield', async () => {
     const here = room([0, 0, -1]);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    const ctx = await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    const ctx = await run(HewController as never, { face: 'east' , tool: pick() }, here as unknown as Stuff, 'hew east');
     expect(rejected(ctx)).toBeNull();
     await settle(60000);
 
@@ -195,11 +212,40 @@ describe('the mine’s four labour acts', () => {
     expect(lump!.getGrade()).toBe(deposit.sampleAt([10, 0, -10], SEED).grade);
   });
 
+  it('⚠⚠ bare-handed, hew now REFUSES and names the tool', async () => {
+    // The pick has declared `winning` since it shipped and nothing asked, so
+    // `hew` worked with empty hands for three builds. The extraction build is
+    // the first act to require a tool, so `hew` is corrected in the same
+    // breath — a tool that is not required is a number with no referent.
+    const here = room([0, 0, -1]);
+    ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
+    const bare = await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    // ⚠⚠ **`no-tool`, NOT `no-pick`** — and the distinction is a diagnostic.
+    // These two cases shared a reason until the extraction sweep, and while
+    // they did, the Ferrow delve's NPC hewers logging `no-pick` on a repeating
+    // cadence could not tell anybody **whether they held the wrong tool or
+    // nothing at all**, which is the only question worth asking about them.
+    expect(rejected(bare)).toBe('no-tool');
+    // …and a tool that cannot win rock is a DIFFERENT refusal.
+    const shovel = makeStuff(() => {
+      const t = new ToolItem();
+      t.capabilities = ['digging'];
+      return t;
+    }) as unknown as Stuff;
+    const wrong = await run(
+      HewController as never,
+      { face: 'east', tool: { raw: 'shovel', stuff: shovel } },
+      here as unknown as Stuff,
+      'hew east with shovel',
+    );
+    expect(rejected(wrong)).toBe('no-pick');
+  });
+
   it('hew spends endurance AT COMPLETION, and the work happens over game time', async () => {
     const here = room([0, 0, -1]);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
     const before = actor.getReserve('endurance')!.current.rawValue();
-    await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    await run(HewController as never, { face: 'east' , tool: pick() }, here as unknown as Stuff, 'hew east');
     // ⭐ The body pays for the work when the work is done (the
     // scheduler's exertion emit; a barge-in pays pro-rata) — not up
     // front, as the old `spend()` did.
@@ -221,14 +267,14 @@ describe('the mine’s four labour acts', () => {
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
     const current = actor.getReserve('endurance')!.current.rawValue();
     actor.adjustReserve('endurance', Quantity.of(8 - current, '%'));
-    const ctx = await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    const ctx = await run(HewController as never, { face: 'east' , tool: pick() }, here as unknown as Stuff, 'hew east');
     expect(rejected(ctx)).toBe('too-tired');
   });
 
   it('hewing barren country rock declines, and says it is barren', async () => {
     const here = room([0, 0, -1]);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    const ctx = await run(HewController as never, { face: 'north' }, here as unknown as Stuff, 'hew north');
+    const ctx = await run(HewController as never, { face: 'north' , tool: pick() }, here as unknown as Stuff, 'hew north');
     expect(rejected(ctx)).toBe('barren-face');
   });
 
@@ -238,14 +284,14 @@ describe('the mine’s four labour acts', () => {
     const faces = await here.facesOf();
     const east = faces.find((f) => f.direction === 'east')!;
     here.recordWinning('east', east.remaining!);
-    const ctx = await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    const ctx = await run(HewController as never, { face: 'east' , tool: pick() }, here as unknown as Stuff, 'hew east');
     expect(rejected(ctx)).toBe('face-worked-out');
   });
 
   it('hewing outside a working declines rather than throwing', async () => {
     const nowhere = makeStuff(() => new TestActor());
     ContainmentApi.move(actor as unknown as Stuff & Containable, nowhere as unknown as Stuff & Container);
-    const ctx = await run(HewController as never, {}, nowhere as unknown as Stuff, 'hew');
+    const ctx = await run(HewController as never, { tool: pick() }, nowhere as unknown as Stuff, 'hew');
     expect(rejected(ctx)).toBe('not-a-working');
   });
 
@@ -344,11 +390,16 @@ describe('the mine’s four labour acts', () => {
 
   // ────────────────────── the shipped views ──────────────────────
 
-  it('⚠⚠ NONE of the labour acts carries a deed gate — read off the shipped views', () => {
+  it('⚠⚠ NONE of this trade’s acts carries a deed gate — read off the shipped views', () => {
     const files = readdirSync(VIEWS).filter((f) => f.endsWith('.yaml'));
+    // ⭐ `assay.yaml` joins the six labour acts. It is not labour — it is
+    // a READING, and it is in this category because a reading of the
+    // rock belongs to the trade that cuts it. The assertion below is
+    // what actually matters and it covers every view here: no deed, no
+    // recipe, no band, and a controller row this pack ships.
     expect(files.sort()).toEqual([
-      'drive.yaml', 'hew.yaml', 'raise.yaml', 'shore.yaml', 'sink.yaml',
-      'stake.yaml',
+      'assay.yaml', 'drive.yaml', 'hew.yaml', 'raise.yaml', 'shore.yaml',
+      'sink.yaml', 'stake.yaml',
     ]);
     for (const f of files) {
       const yaml = readFileSync(join(VIEWS, f), 'utf8');

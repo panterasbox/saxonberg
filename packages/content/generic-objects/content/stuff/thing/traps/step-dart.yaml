@@ -20,6 +20,9 @@ data:
     channel: point
     energy: 2
     siteSelector: [body.leg.left.foot, body.leg.right.foot]
+    # ⭐ The needle stays in the foot (blood build D6): a foreign body only
+    # extraction resolves, and it carries the venom in with it.
+    embeds: a poisoned needle
     toxin:
       type: venom
       amount: 4

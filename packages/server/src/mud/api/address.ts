@@ -62,7 +62,7 @@ export interface AddressResolution {
   source: AddressSource;
 }
 
-/** Provenance bundle for `analyze address`. Superset of the resolution. */
+/** Provenance bundle for `trace address`. Superset of the resolution. */
 export interface AddressTrace extends AddressResolution {
   /** templatePaths walked containment-outward (innermost → outermost). */
   ancestorChain: string[];
@@ -97,7 +97,7 @@ export class AddressApi {
     return logic().resolveFor(scope);
   }
 
-  /** The `analyze address` provenance variant — full trace. */
+  /** The `trace address` provenance variant — full trace. */
   public static async traceResolveFor(
     scope: Stuff & Container,
   ): Promise<AddressTrace> {

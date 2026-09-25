@@ -1,0 +1,26 @@
+# A quarryman's spade — ⭐ **the trade's own, and the drive is why.**
+#
+# ⚠⚠ The pit was propped with the MINE's shovel first, and it never arrived:
+# `/trade/mining/thing/shovel` is a row the pithead store STOCKS (`parLines`),
+# and a stocked row placed loose elsewhere does not survive the retail
+# reconcile. The sledge, which the store does not stock, was standing there
+# happily beside two absences — which is the failing-closed-and-silent class
+# exactly, and only a drive could have seen it.
+#
+# ⭐ And the fix is better than the bug: a quarry's own tools mean a chalk pit
+# in a town with **no mine** gets them too, which is the second-instance claim
+# holding. *Code is shared, content is copied.*
+#
+# ⚠ Longer in the handle and wider in the blade than a mine shovel, because
+# there is headroom at a quarry face and there is none in a drift.
+class: /platform/thing/Spade
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [spade, shovel, "quarry spade"]
+  shortDescription: long-handled spade
+  register: indefinite
+  longDescription: >-
+    A wide steel blade on a long ash handle, worn bright on one shoulder where
+    a boot has been putting it into the ground for years.
+  mass: 2.6
+  capabilities: ["digging"]

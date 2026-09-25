@@ -1,0 +1,26 @@
+# Physics — the quantities of the world that are neither alive nor made:
+# pressure, weight, current, power, the flow of water, the pull of the
+# ground. The discipline behind the instrumented reads that answer in
+# units.
+#
+# ⭐ It exists because the ladder needed an honest home for those channels
+# and no shipped Discipline was one. `awareness` is the practiced eye —
+# it is right for *is there light enough to work by* and wrong for
+# *what is the pressure in this main*, which is not attention at all but
+# knowing what the dial is telling you and what it is not.
+#
+# ⚠ As everywhere on this ladder: the figure is the same for every
+# reader. What the band decides is the width of the bracket, and whether
+# the reader can tell a bad reading from a surprising one.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: physics
+  channel: skill
+  label: Physics
+  iscedf: "0533"  # ISCED-F 2013: physics
+  description: >-
+    The measurable behaviour of matter and energy — pressure, density,
+    weight, current, the head on a water course. Reading an instrument and
+    knowing what its answer is worth: which figure is a fact about the
+    world and which is a fact about the dial.

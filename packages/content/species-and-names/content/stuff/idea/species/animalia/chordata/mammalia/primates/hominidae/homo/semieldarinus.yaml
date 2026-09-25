@@ -38,6 +38,9 @@ data:
     bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 130 }
     spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 }
     bloodVolume: { baseline: 5, survivableMin: 3.2, survivableMax: 5 }
+  # ABO allele frequencies (blood build D2) — fiction; the PATTERN is the lesson.
+  bloodGroups:
+    alleles: { A: 0.4, B: 0.08, O: 0.52 }
   lifecycleStates: ["alive", "dead", "undead"]
   sexDeterminationSystem: xy
   reproductiveMode: sexual

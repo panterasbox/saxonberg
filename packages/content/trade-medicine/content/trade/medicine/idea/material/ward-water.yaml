@@ -1,0 +1,12 @@
+# Ward-water — the antibiotic (D10). Steeped from wardmoss.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ward-water
+  keywords: [ward-water, draught, antibiotic, wardmoss]
+  appearance: a dark green infusion
+  density: 1000
+  edibility: true
+  toxicity:
+    - { type: antibiosis, amount: 2 }
+  tags: [active, remedy, liquid]

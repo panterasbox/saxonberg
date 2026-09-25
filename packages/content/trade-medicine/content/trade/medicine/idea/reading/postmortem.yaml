@@ -1,0 +1,16 @@
+# postmortem — what a body says about how it stopped.
+#
+# ⭐ The pack ships the row and the class; the platform names neither.
+class: /trade/medicine/idea/reading/PostmortemReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: postmortem
+  kind: fact
+  scope: [subject]
+  discipline: forensics
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    what killed somebody, and roughly when
+  stakes: >-
+    a death read as an accident

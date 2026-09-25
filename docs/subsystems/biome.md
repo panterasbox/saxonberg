@@ -553,22 +553,45 @@ module) overrides the same way.
 
 ## Instruments + verbs
 
-Six handheld instruments ship as `Thing` templates under
-`/stuff/thing/instrument/`:
+> ⚠⚠ **This section was rewritten by the instrumentation build
+> (2026-09-24). Its instruments are no longer this subsystem's.** They
+> were six `Thing` **classes** under `/stuff/thing/instrument/`, each
+> contributing `measure.yaml` and each owning a `measure <x>` subcommand.
+> There are no such classes now: an instrument is a **row over
+> `/platform/thing/ToolItem`** declaring a capability, and the channel it
+> serves is a `Reading` row. See
+> [instrumentation.md](./instrumentation.md).
 
-| instrument     | verb                       | reads                     |
-|----------------|----------------------------|---------------------------|
-| `Thermometer`  | `measure temperature`      | `resolveTemperatureFor`    |
-| `Barometer`    | `measure pressure`         | `resolvePressureFor`       |
-| `Hygrometer`   | `measure humidity`         | `resolveHumidityFor`       |
-| `GravityMeter` | `measure gravity`          | `resolveGravityFor`        |
-| `GasAnalyzer`  | `measure atmosphere`       | `resolveAtmosphereFor`     |
-| `Altimeter`    | `measure altitude`         | barometric delta vs root   |
+What is still **this** subsystem's is the physics the channels read:
 
-Each instrument contributes the `measure.yaml` view to its
-inventory bucket — carrying the instrument grants the relevant
-sub-verb. Controllers refuse with a `controller-rejected` note
-when the matching instrument isn't in the actor's contents.
+| channel | reads |
+|---|---|
+| `temperature` | `resolveTemperatureFor` |
+| `pressure` | `resolvePressureFor` |
+| `humidity` | `resolveHumidityFor` |
+| `gravity` | `resolveGravityFor` |
+| `atmosphere` | `resolveAtmosphereFor` |
+| `altitude` | barometric delta vs the root biome |
+
+⭐ The four that share one rung body (`temperature`, `pressure`,
+`humidity`, `gravity`) do so through `lib/instrument/BiomeReading.ts`,
+which names its MML channel by *returning* it — a fact
+`MeasureChannel.totality` has to know about, and did not until it
+reported a live channel as emitted by nobody.
+
+⚠ The verb is **not** conferred by carrying the instrument any more.
+`analyze`/`measure` ride `Avatar.commandContributions.self` and always
+exist; what an instrument buys is the **ceiling**, and with none in reach
+the refusal NAMES the instrument rather than the verb vanishing.
+
+`altitude` derives `(P_sea − P_local) / (ρ · g)` from
+`BiomeApi.getRootBiome().getDefaultPressure()` as the sea-level
+reference and refuses in vacuum (ρ = 0 → no medium to define altitude).
+
+⚠ `analyze atmosphere`'s developer half moved: *where did the engine get
+that value from* is a question about the simulation, not about the
+world, so it is **`trace atmosphere`** now — a free `system` verb beside
+`affordances` and `errors`. The `traceResolve*` family is unchanged.
 
 Instruments query at `actor.getContainer()` — a character inside a
 sealed vessel reads the vessel's atmosphere; a character in a
@@ -662,3 +685,38 @@ The `_extendsBiomePath` ref-walk + `FolderZone` separation is the
 shape that survives. Future biome content authoring extends from
 `/stuff/idea/biome/universe` (or any other biome) via the explicit ref;
 the path tree organizes ownership, not inheritance.
+
+---
+
+## ⭐ The air as a value object — `airFor` / `airSegmentsFor` (extraction W1)
+
+`BiomeApi` gained two **sync** reads over three `syncChainWalk`s plus
+`WeatherApi.deviatedFieldFor`:
+
+```ts
+airFor(scope): Evaporation
+airSegmentsFor(scope, fromS, toS): AirSegment[]   // { air, durationS, rainMmPerH }
+```
+
+`lib/material/Evaporation.ts` is the value object and **the one place that says
+how fast water leaves matter** — a vapour deficit × a wind term × a doubling per
+10 K, capped at the boil (373 K), plus `rewets(moisture)`. It holds no statics,
+because `lint:lib-statics` is a ratchet at 337/337.
+
+⭐ **A decision worth knowing:** `airSegmentsFor` derives each segment's rain by
+integrating that segment's own window through the **shipped**
+`WeatherApi.precipitationBetween` rather than reading the rate table, so the
+operator dials stay in one place and no new `WeatherApi` surface was added. And
+it **never returns an empty list** — a caller summing segments must not
+silently credit nothing.
+
+⚠ Sync is the constraint that shaped it: the callers are reconcile-on-read
+getters (a ham's water state, a pan's concentration) and a getter cannot await.
+
+### `weatherLocality()` on `AtmosphericMixin`
+
+The locality memo for the weather field, as `weatherLocality()` +
+`resolveWeatherLocality()` with a private path/resolved/promise trio. ⚠ **Not
+persisted, and no tri-state** — nothing integrates a backlog off it, so an
+unresolved read misses the deviation once and then heals. That is cheaper than
+correct here, and saying so is the point.

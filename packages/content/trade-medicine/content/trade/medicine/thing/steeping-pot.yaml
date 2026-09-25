@@ -1,0 +1,14 @@
+# A steeping pot — an earthenware pot of water, for steeping a simple into
+# a draught (D10). Pre-filled so `steep <herb> in pot` works directly.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: earthenware steeping pot
+  keywords: [pot, steeping, earthenware, water]
+  register: indefinite
+  longDescription: |
+    A squat earthenware pot half full of clean water, kept for steeping.
+  interiorBulk: true
+  interiorCapacity: 1.0
+  interiorMaterial: /stuff/idea/material/bulk/water
+  interiorAmount: 0.5

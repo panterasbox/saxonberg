@@ -1,0 +1,21 @@
+# Streak plate — the other half of field identification, and the older
+# half: scrape the rock across unglazed porcelain and read the colour of
+# the powder it leaves.
+#
+# ⚠ Same capability as the lens, deliberately. A channel asks what a
+# thing can DO, and both of these do the same job by different means —
+# which is exactly the property a class check would have destroyed.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: unglazed streak plate
+  keywords: [plate, streak, porcelain, "streak-plate"]
+  register: indefinite
+  longDescription: >-
+    A square of unglazed white porcelain, scored all over with coloured
+    lines — rust, black, brassy yellow, a green nobody can name. Drag a
+    broken edge across it and the powder tells you what the lump is
+    pretending not to be.
+  capabilities: [field-identification]
+  mass: 0.15
+  _materialPath: /stuff/idea/material/ceramic/ceramic

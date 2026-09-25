@@ -26,6 +26,26 @@ data:
       noun: buyer
       label: weighing ore at the shed
       wageRate: 5
+    # ⭐⭐ The ASSAYER — and this seat cost the build almost nothing,
+    # which is the finding.
+    #
+    # The plan expected to add the shed to a house's
+    # `operatingLocations` and cast a new body into a small room. Neither
+    # was needed: **this** business already operates the assay shed and
+    # already rosters the buyer there — a broad woman with a jeweller's
+    # glass on a cord, `geology: competent` in her dossier, who "weighs
+    # everything twice and writes down the second figure". The person who
+    # runs an assay for you was standing at the bench the whole time.
+    #
+    # ⚠ So what was missing was a POSITION, not a person and not a
+    # place. A seat whose `operatingLocations` never named the bench's
+    # room would have been a position that could never be on shift there
+    # — closed and silent, and the staffed arm would have read as
+    # unstaffed forever.
+    - key: assayer
+      noun: assayer
+      label: running the muffle at the assay bench
+      wageRate: 6
   rosterSlots:
     - positionKey: smelterman
       assignee: /world/terminus/rejection/agent/smelterman
@@ -44,6 +64,17 @@ data:
         # the night indistinguishable from the day. The `shifts` brain
         # parks off-shift cast in the venue's Offstage, so the street
         # genuinely empties.
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
+    # The buyer holds both seats. She is one woman in one shed and the
+    # two acts are the same afternoon's work — weigh the ore, run the
+    # cupel, chalk the figure.
+    # ⭐ So the assayer's hours are the buyer's hours, necessarily: the
+    # extraction build added this seat with `[0, 24]` and the envelope
+    # build had already retired that from the seat beside it. One woman
+    # cannot be off shift and on it.
+    - positionKey: assayer
+      assignee: /world/terminus/rejection/agent/buyer
+      schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:

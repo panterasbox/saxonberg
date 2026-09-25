@@ -297,3 +297,47 @@ prose** (*"the firebox swept and ready"*) and their own class docstring
   [respiration.md](./respiration.md) (`breathableMedia` / `contaminant`),
   [bulk.md](./bulk.md) (fuel / molten liquid), [light.md](./light.md)
   (`LightSource`), [crafting.md](./crafting.md) (the deferred consumer).
+
+---
+
+## ⭐ `fire` — a chamber you load, and the charge decides the product (extraction W4)
+
+`platform/cmd/device/fire.yaml`, `verbs: [fire, burn]`, afforded on
+**`FurnaceMixin.commandContributions.peers`** beside the five already there.
+`FireController` is the **platform's**, and nothing in it names lime, clay or
+glass.
+
+⭐⭐ **The recipes do the work.** The controller reads what is in the chamber,
+asks the catalogue which recipe's input slots that charge satisfies, and runs
+that one. So `FireController.test.ts` authors **its own material and its own
+firing row** and asserts a bare `Oven` fires it — which is the actual claim,
+and it is why a new firing is a row rather than a branch. The ratio is
+authored too (`burn-lime` 2:1, `fire-pot` 1:1), so a charge of five yields two
+and leaves one.
+
+⚠⚠ **`fire` cannot go through `CraftingApi.craft`, and the reason generalizes:**
+a craft picks its inputs out of the actor's **reach**, and a firing consumes
+what is **in the chamber**. Routed otherwise, a player could fire a kiln off
+the limestone in their own arms. `SmeltController.runCharge` made the same
+decision for the same reason and is the precedent; what is new here is that
+*which* transform runs is a **row** rather than a branch.
+
+### `platform/thing/Kiln.ts` is deleted
+
+It was byte-identical to `Forge`, and `Oven`'s own comment gives the only real
+distinction — *a chamber you load* versus *a fire you bring work to* — which
+puts a kiln on the **oven** side. The generic row is retargeted onto `Oven` and
+says why in its own header: **a kiln that cannot hold a charge cannot be fired,
+which is why that row stood nowhere in the world for its whole life.**
+
+⚠ A fixture note worth keeping: **`lit` defaults to TRUE on `FurnaceMixin`**,
+which is exactly why the smelt's unlit branch had no coverage for three builds.
+
+### ⚠ Still unpriced: nothing refuels a furnace
+
+The extraction build's own risk 7, and it widened rather than closed — a bread
+oven and a limekiln both burn fuel now, and the drive's `DIRTY_REASON` names
+*"burns the limekiln's fuel"* as something the world does not regenerate. A
+furnace is a consumer with no supplier. Offered to
+[metal-chain-slate](../slates/builds/metal-chain-slate.md), which owns the fuel
+chain.

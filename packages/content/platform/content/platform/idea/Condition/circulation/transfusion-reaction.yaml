@@ -1,0 +1,34 @@
+# Transfusion reaction — what incompatible blood does to you (blood build
+# D3). A landed impulse that fades: the reaction is seeded proportional to
+# the volume given and the mismatch (ABO within species, doubled for a
+# cross-species unit), and decays over hours.
+#
+# ⭐ Graded by construction. The `decay` law drives the stage down and
+# `applyEffects` scales the whole signature by the current stage, so a
+# severe reaction drains hydration and endurance hard and bleeds volume
+# back off — feeding the SHIPPED dehydration → dying cascade. Nothing new
+# kills anyone; a big enough reaction routes through the doors that
+# already exist.
+#
+# ⚠⚠ It deliberately does NOT author a `vital` effect on `coreTemperature`
+# — the thermal drivers own that sign, and two writers on one vital is the
+# defect `lint:condition-arms` exists to prevent. The fever is narrated by
+# the observable signs, not integrated onto core temperature.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: transfusion reaction
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -8 }
+    - { kind: reserve, reserve: endurance, pctPerHour: -15 }
+    - { kind: vital, sign: bloodVolume, perHour: -0.05 }
+    - { kind: expression, bands: 1 }
+  # A landed impulse that fades: stage 3 clears in roughly six game-hours
+  # (3 / 0.000139 ≈ 21600 s). The stage is seeded by receiveBlood.
+  progression:
+    law: decay
+    decayPerSec: 0.000139
+  resolution:
+    by: rest
+  observableSigns: [feverish, shivering, faint, flushed]
+  contagion: null

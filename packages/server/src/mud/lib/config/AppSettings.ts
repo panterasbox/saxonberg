@@ -1354,7 +1354,7 @@ export const AppSettingKeys = {
 
   /* ────────────────────────── cure (water state) ────────────────────────── */
   /**
-   * Curing — the per-instance water state (`CuredMixin`): `moisture` and
+   * Curing — the per-instance water state (`WaterActivityMixin`): `moisture` and
    * `solute`, which multiply the Material's tabulated `a_w` into the
    * effective one the growth law reads. Drying reverses toward the ambient
    * equilibrium; curing never does. The bands below are PRESENTATION
@@ -1363,6 +1363,19 @@ export const AppSettingKeys = {
    */
   /** Curing — fraction of the moisture gap a dried thing closes per game-hour. */
   cureRehydrationPerHour: "cure.rehydrationPerHour",
+  /**
+   * Curing — fraction of the moisture gap an EXPOSED thing closes per
+   * game-hour, before the air's evaporation factor and the support's
+   * exposure scale it. The drying half of the two-way arm.
+   */
+  cureDryingPerHour: "cure.dryingPerHour",
+  /**
+   * Curing — how much of a thing lying on **bare ground** the air reaches,
+   * as a fraction of what a rack reaches. One face to the air and nothing
+   * underneath, which is why turf is stacked in an openwork lattice and
+   * not heaped.
+   */
+  cureGroundExposure: "cure.groundExposure",
   /** Curing — the relative humidity (%) assumed where nothing authors one. */
   cureAmbientHumidity: "cure.ambientHumidity",
   /** Curing — moisture at/below which a thing reads thoroughly dried. */
@@ -1704,6 +1717,16 @@ export const AppSettingKeys = {
   /** Magic — litres of water the conjure-water effect transfers when the
    * spell seed omits an amount. */
   magicConjureWaterLitres: "magic.conjure.waterLitres",
+
+  /* ──────────────────────── instrumentation ──────────────────────── */
+  /**
+   * Instrumentation — condition worn off an instrument each time it takes
+   * a reading (Law 2 again: wear on USE, never the clock). An instrument
+   * is a `ToolItem`, so a worn-out one stops offering its capability and
+   * the reading refuses naming it — which is how a dial that has been
+   * read ten thousand times becomes a thing you have to replace.
+   */
+  instrumentWearPerReading: "instrument.wearPerReading",
 
   /* ────────────────────────── crafting ────────────────────────── */
   /** Crafting — condition at/below which a durable good is broken (a

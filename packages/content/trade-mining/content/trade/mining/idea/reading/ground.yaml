@@ -1,0 +1,21 @@
+# ground — what your readings ADD UP TO.
+#
+# ⭐⭐ `kind: record` — the one rung where competence does more than
+# resolve. Three green rocks under a novice are three green rocks; the
+# same three points under a practised eye are a plane. What is gated is
+# not the DATA (anybody may take the readings and anybody may read them
+# back) but whether the INFERENCE is available at all, which is an honest
+# thing for training to decide.
+class: /trade/mining/idea/reading/GroundReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: ground
+  kind: record
+  scope: [here]
+  discipline: geology
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    where the body actually lies, from readings you already took
+  stakes: >-
+    walking over it; or paying for ground that has nothing under it

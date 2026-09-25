@@ -1,0 +1,22 @@
+# A lump of limestone — ⭐ **the flux the metal chain shipped without.**
+#
+# Straight into a smelt it takes the gangue off as a running slag, so the
+# bloom carries far less trapped waste. Through a kiln it calcines to
+# quicklime, which is faster and more aggressive than marl on a sour field
+# and costs the fuel somebody else wanted. **Two products out of one rock,
+# one of which needs a fire** — and the kiln's price is the lesson.
+#
+# ⚠ The smelt reads the material's `flux` TAG, never this row's path, so a
+# pack that ships dolomite works with no edit.
+class: /trade/quarrying/thing/Lump
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [limestone, lime, stone, lump]
+  shortDescription: lump of limestone
+  register: indefinite
+  longDescription: >-
+    A fist of pale grey stone, faintly gritty, with a shell's ghost in one
+    face of it.
+  material: /stuff/idea/material/rock/limestone
+  mass: 8
+  quantity: 1

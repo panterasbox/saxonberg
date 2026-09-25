@@ -123,6 +123,13 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `Atmospheric.getBiome()` is a registry read and NOTHING stood the biome
   // rows up, so every room's biome was null in a fresh world.
   { site: "platform/idea/BiomeCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // `ReadingCatalogue` keeps a row by `instanceof Reading` — the
+  // MaterialCatalogue filter again, and for the same reason: a reading
+  // CHANNEL is a row any pack may ship, so the roster is selected by
+  // template-path infix (`/idea/reading/`) across every root and kept by
+  // what the class actually extends. An allowlist of roots would make a
+  // pack's own channel unreachable, which is the inert-roster trap.
+  { site: "platform/idea/ReadingCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // `MaturationProfileCatalogue.postRegister` keeps a row by
   // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).

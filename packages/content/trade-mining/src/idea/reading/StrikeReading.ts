@@ -1,0 +1,127 @@
+/**
+ * MeasureStrikeController — `measure strike`.
+ *
+ * ⭐ **The surface half of the three-point problem.** The outcrop trace
+ * is the lode's intersection with the ground, and a compass on it reads
+ * the plane's strike — to whatever resolution the reader's eye and
+ * instrument allow. Three readings from three places narrow it; one does
+ * not.
+ *
+ * ⚠ **It carries no dip information whatever**, and that is by
+ * construction rather than by a gate: a line carries the strike of the
+ * plane it came from and nothing else. `measure dip` underground answers
+ * the other half — which is the push-your-luck decision arriving as a
+ * missing parameter rather than as a paywall.
+ *
+ * ⭐ **A barren answer is a real answer.** Standing off the end of the
+ * body reports that there is no trace here to read, which is the
+ * informative negative the requirements ask for — and it costs the same
+ * walk as a hit, which is what makes prospecting a decision.
+ */
+
+import type { CommandModel } from '@saxonberg/server/mud/api/command';
+import { SurveyReading, READING_TOPIC, GEOLOGY } from '../../lib/SurveyReading';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
+import type { CommandContext } from '@saxonberg/server/mud/api/command';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { Mml } from '@saxonberg/server/mud/api/mml';
+
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface MeasureStrikeModel extends CommandModel {
+  tool?: MqlOneResult;
+}
+
+
+export default class StrikeReading extends SurveyReading {
+  protected override async measure(
+    context: CommandContext,
+    _subject: Stuff | null,
+    _instrument: Stuff & Tooled,
+    _band: CompetenceBandName,
+    _param: string,
+  ): Promise<void> {
+    const giver = this.actorOf(context);
+    const place = this.placeOf(giver);
+    if (!place) {
+      this.decline(context, Mml.compose`You are nowhere to take a bearing from.`, 'no-place');
+      return;
+    }
+    const deposit = await this.depositAt(place);
+    if (!deposit) {
+      this.decline(
+        context,
+        Mml.compose`There is no orebody under this ground that anybody has named.`,
+        'no-deposit',
+      );
+      return;
+    }
+
+    const [x, y] = this.metresAt(place);
+
+    const { band, errorDeg } = await this.geologyBandOf(giver);
+    const seed = await this.seedAt(place);
+    const reading = deposit.surfaceReadingAt(x, y, errorDeg, seed);
+
+    if (reading === null) {
+      // ⭐ The informative negative. It names WHY, so the player learns
+      // something about where the body is not.
+      MessageApi.scene(giver)
+        .topic(READING_TOPIC)
+        .toSelf(
+          Mml.compose`Nothing here to take a bearing on — no stain, no float, no trace of a seam reaching the surface. Whatever is under this ground does not come up to it.`,
+        )
+        .send();
+      context.note({ kind: 'empty-result', field: 'strike', query: 'strike' });
+      if (MixinApi.isAdvancing(giver))
+        await giver.creditDeed({
+        discipline: GEOLOGY,
+        difficulty: 'standard',
+        outcome: 'partial',
+      });
+      return;
+    }
+
+    const where = `${Math.round(x)},${Math.round(y)}`;
+    this.rememberReading(giver, deposit, where, 'strike', reading.readingDeg);
+
+    MessageApi.scene(giver)
+      .topic(READING_TOPIC)
+      .toSelf(
+        reading.staining > 0.5
+          ? Mml.compose`The ground here is stained ${await this.stainOf(place)} in a band you can follow with your eye. Strike ${bearing(reading.readingDeg)} ± ${String(Math.round(errorDeg))}°, by your ${band} reckoning.`
+          : Mml.compose`Faint float, and a suggestion of a line. Strike ${bearing(reading.readingDeg)} ± ${String(Math.round(errorDeg))}°, by your ${band} reckoning.`,
+      )
+      .send();
+
+    // World-derived difficulty: a faint trace is a harder read than a
+    // stained one, and the ground decides which this was.
+    if (MixinApi.isAdvancing(giver))
+      await giver.creditDeed({
+      discipline: GEOLOGY,
+      difficulty: reading.staining > 0.5 ? 'easy' : 'hard',
+      outcome: 'success',
+    });
+  }
+
+  /**
+   * ⚠ The colour of the stain, off the mineral rather than off this
+   * file. It said "green" for as long as there was one ore; two minerals
+   * makes that a lie, and the `Material.appearance` phrase is where the
+   * word already belonged.
+   */
+  private async stainOf(place: Stuff & Container): Promise<string> {
+    const ground = await this.groundAt(place);
+    const phrase = ground?.mineral?.getAppearance() ?? '';
+    return phrase || 'a colour the country rock is not';
+  }
+}
+
+/** Three-figure bearing, the way a compass is actually read. */
+function bearing(deg: number): string {
+  return String(Math.round(deg)).padStart(3, '0');
+}

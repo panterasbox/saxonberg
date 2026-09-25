@@ -463,12 +463,46 @@ default and never raises the error.
 
 `greedy: true` implies `required: true` unless explicitly overridden.
 
+⚠⚠ **"Unless explicitly overridden" was not true until 2026-09-24.**
+`validateArgOrdering` counted `greedy: true` as required
+*unconditionally*, contradicting the sentence above it and the sibling
+ordering rule — so a view declaring a greedy arg that says
+`required: false` **failed to LOAD at boot**, and a view that fails to
+load fails **closed and silent**: the verb is simply absent. It cost the
+three perception views (`measure`, `analyze`, `readings`) at once. The
+line reads `def.required === true || (def.greedy === true &&
+def.required !== false)` now.
+
+⚠⚠ **And a required arg with no `default:` puts the BINDER in front of
+your controller's refusal.** `assay` shipped `samples` as
+`required: true`, so the bare verb answered *"That doesn't match any
+known command shape"* — the parser, about the word — while the
+controller's own *"Assay what? A sample is a piece you took and noted"*
+was unreachable from the moment it was written. If the controller has a
+sentence for the empty case, the binder must be able to reach it. See
+[antipatterns.md § A required arg with no default](../antipatterns.md).
+
 ### `greedy:` — slurp the remainder
 
 `greedy: true` consumes everything from the field's first token to
 end-of-input verbatim — whitespace runs, escapes, single-quote
 literals all preserved. Common for chat verbs (`say`, `tell`) and
 scope-shaped verbs (`focus`).
+
+⭐⭐ **THE ARTICLE DEFECT — every object arg a player may put an article
+in front of needs this, INCLUDING plural and prepositional ones.**
+Without it `measure temperature the kettle` binds `the` and `kettle` as
+two positionals, answers *"too many arguments"*, falls through the chain
+and dies as an unknown shape; `assay the ore` binds the literal token
+`the` on a **plural** arg and refuses about an object nobody mentioned;
+`assay the ore at the bench` does the same on a **prepositional** one.
+⚠ 45 shipped views already carry it and `look` shipped without it —
+nobody noticed until somebody drove it.
+
+⚠ A second binder defect lived beside it: the greedy branch `return`ed
+when the positional list ran out instead of `continue`ing, so **any
+greedy arg that was not last silently lost its default**. `measure light`
+simply had no instrument.
 
 When a *later* field declares `prepositions:`, the greedy field
 **stops at the boundary**: `give the red flower to bob` slices `gift`

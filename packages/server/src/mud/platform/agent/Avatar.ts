@@ -28,6 +28,7 @@ import AetherImplant from "../thing/AetherImplant";
 import CommsUpdate from "../idea/CommsUpdate";
 import CredentialWalletUpdate from "../idea/CredentialWalletUpdate";
 import ForumsUpdate from "../idea/ForumsUpdate";
+import CalendarUpdate from "../idea/CalendarUpdate";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
@@ -49,6 +50,7 @@ import { AetherMixin } from "../../lib/message/Aether";
 import { ContactsMixin } from "../../lib/social/Contacts";
 import { WardrobeMixin } from "../../lib/slot/Wardrobe";
 import { NotifyPolicyMixin } from "../../lib/social/NotifyPolicy";
+import { CalendarMixin } from "../../lib/calendar/Calendar";
 import { SubjectSubscriberMixin } from "../../lib/forum/SubjectSubscriber";
 import { PartyMemberMixin } from "../../lib/party/PartyMember";
 import { Events } from "../../lib/events";
@@ -164,6 +166,10 @@ const AvatarBase = PersistableMixin(
       PostRegistrationMixin(
         HasInteractiveMixin(
           AetherMixin(
+            // ⭐ A played person keeps a personal calendar (D12) — dated
+            // reminders on the implant. Inside PersistableMixin, so the
+            // entries ride the Avatar snapshot; the ping re-arms at login.
+            CalendarMixin(
             NotifyPolicyMixin(
               ContactsMixin(
                 // ⭐ The wardrobe rides the `holder_snapshots` capture
@@ -188,6 +194,7 @@ const AvatarBase = PersistableMixin(
                   ),
                 ),
               ),
+            ),
             ),
           ),
         ),
@@ -228,7 +235,37 @@ export default class Avatar extends AvatarBase {
       "platform/cmd/system/clear.yaml",
       "platform/cmd/system/affordances.yaml",
       "platform/cmd/author/player.yaml",
+      /*
+       * ⭐⭐⭐ **The reading ladder, and all three verbs are the body's.**
+       *
+       * `analyze` was always here. `measure` joins it, and that LIFTS a
+       * doctrine line (`command-routing.md` — *nothing should ever put
+       * `measure` on a body*). The reason is the refusal:
+       *
+       *   > `measure light` carrying nothing must answer *"you have
+       *   > nothing in reach that could read that"*. An UNAFFORDED verb
+       *   > can only answer *unknown command*, and an unknown command
+       *   > cannot name what is missing.
+       *
+       * The gate moved from the verb to the CHANNEL, where the refusal
+       * can name the route — which is the retire-conferral doctrine in
+       * the instrument register: the verb is global and the OUTCOME is
+       * graduated. A vanishing verb teaches nothing.
+       *
+       * `readings` is the self-view of the whole ladder: every channel,
+       * every rung, whether it is open to you, and what knowing it is
+       * worth. Bands and prose only, never a number about a person.
+       */
       "platform/cmd/perception/analyze.yaml",
+      "platform/cmd/perception/measure.yaml",
+      "platform/cmd/perception/readings.yaml",
+      // ⭐ Taking a piece of something is an act anybody can do with
+      // their hands. What it costs is the carrying and the judgement of
+      // WHICH piece — never a permission and never a tool.
+      "platform/cmd/inventory/sample.yaml",
+      // The engine's own diagnostics, beside `affordances` and `errors`
+      // where they belong — `trace` is not a reading.
+      "platform/cmd/system/trace.yaml",
       "platform/cmd/social/subject.yaml",
       "platform/cmd/shell/script.yaml",
       // The record layer's retrieval verb. It lives on Avatar rather
@@ -720,6 +757,12 @@ export default class Avatar extends AvatarBase {
         await PersistableApi.capture(this, spineKey);
       }
     }
+
+    // ⭐ Re-arm the personal-calendar ping (D12): schedules are never
+    // persisted, so a returning body re-books its next reminder from the
+    // restored entries. An entry that came due while offline pings once
+    // here (deferred-not-skipped). No-op for a fresh body with no entries.
+    this.rescheduleCalendarPing();
   }
 
   /**
@@ -1233,6 +1276,12 @@ export default class Avatar extends AvatarBase {
         CredentialWalletUpdate.TEMPLATE_PATH,
       );
       this.hostUpdate(wallet);
+      // ⭐ The personal calendar surface (D12) — beside comms/forums/wallet,
+      // re-provisioned every login exactly as they are.
+      const calendar = await StuffApi.clone<CalendarUpdate>(
+        CalendarUpdate.TEMPLATE_PATH,
+      );
+      this.hostUpdate(calendar);
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,

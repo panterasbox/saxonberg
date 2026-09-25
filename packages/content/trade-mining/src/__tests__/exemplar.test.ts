@@ -91,7 +91,14 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
           // build — and the venue's claim is untouched by that: it still
           // ships no code, it just composes one more trade. This list
           // growing is what the claim looks like WORKING.
-          cls.startsWith('/trade/shopkeeping/'),
+          cls.startsWith('/trade/shopkeeping/') ||
+          // ⭐⭐ the quarry and the played-out working (extraction). ⚠ Note
+          // what is NOT here: the venue names no quarrying VERB and no
+          // quarrying controller, because the trade ships none — winning a
+          // face is the platform's `dig`. So the trade added to this list is
+          // a LOCATION class and a mixin, which is the shape the claim wants
+          // every new trade to have.
+          cls.startsWith('/trade/quarrying/'),
         // ⚠ Name the offender. This assertion failed on a class move and
         // said only `expected false to be true`, which is a sentence
         // nobody can act on.
@@ -370,6 +377,12 @@ describe('the venue itself', () => {
      * three of them stands on the forestry trade's `Wood`, which is
      * the whole of where the yard's cordwood and the mine's timber come
      * from. Still authored ground, still no minted zone.
+     *
+     * ⭐ The seventh is the **Hill Quarry** (extraction), and it is a zone of
+     * its own for one reason worth stating: it carries its own `deposit:`.
+     * The outward walk makes the nearest citation win, so a hillside a
+     * quarter of a mile from the lode is a different column and the
+     * galleries' hardness is untouched — one field, no code.
      */
     expect(zones.sort()).toEqual([
       'content/world/terminus/rejection.yaml',
@@ -378,6 +391,7 @@ describe('the venue itself', () => {
       'content/world/terminus/rejection/hush.yaml',
       'content/world/terminus/rejection/kestrel-road.yaml',
       'content/world/terminus/rejection/location.yaml',
+      'content/world/terminus/rejection/quarry.yaml',
     ]);
   });
 

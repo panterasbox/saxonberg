@@ -219,19 +219,25 @@ suite('⭐⭐ the affordance rule, in both directions', () => {
 
   it('a verb nothing in reach affords does NOT exist for you', async () => {
     /*
-     * ⭐⭐ The five checkpoints the original script gets wrong today. The
-     * shop stocks no wearable and no washable, so these five verbs are
-     * correctly absent — and asserting THAT is a real test of the
-     * affordance chain, where asserting the opposite was a test of
-     * nothing that had quietly started failing.
+     * ⭐⭐ The other half of the affordance rule: the shop stocks nothing
+     * washable, so `wash` is correctly absent and asserting THAT is a
+     * real test of the chain.
+     *
+     * ⚠⚠ **A finding, recorded 2026-09-24 and NOT this build's to fix.**
+     * This list used to carry `wear`/`wield`/`equip`/`unequip` beside
+     * `wash`, and on a freshly-seeded world all four are afforded — not
+     * because the shop grew a wearable, but because **the character is
+     * dressed**. Intake outfits a new player with a shirt, trousers and
+     * shoes, `WearableMixin` contributes the four verbs on the
+     * `inventory` bucket, and carrying a garment is carrying a wearable.
+     *
+     * So the four were never testing the shop at all; they were testing
+     * that the character had nothing on. That is honest behaviour and
+     * the assertion was the wrong one — but *"a dressed character
+     * affords `wear` everywhere"* is a real question for whoever owns
+     * embodiment, and it is written down here rather than deleted.
      */
-    for (const c of [
-      'wash book',
-      'wear shears',
-      'wield shears',
-      'equip shears',
-      'unequip shears',
-    ]) {
+    for (const c of ['wash book', 'wield shears']) {
       const r = await p.cmd(c);
       const note = r.notes.find(
         (n) =>
@@ -241,10 +247,26 @@ suite('⭐⭐ the affordance rule, in both directions', () => {
       expect(
         note,
         `'${c}' is afforded at the tailor's shop now — the shop has ` +
-          `grown a wearable or a washable, and this test should become ` +
+          `grown a washable or a wieldable, and this test should become ` +
           `the positive one it was written to be`
       ).toBeDefined();
     }
+  }, 60_000);
+
+  it('⭐ …and the WEARABLE half exists because you are DRESSED', async () => {
+    /*
+     * ⭐ The split is exactly the finding above, and it is a clean one:
+     * `wear`/`remove`/`equip`/`unequip` come off `WearableMixin` and the
+     * character is wearing three garments, so all four are afforded
+     * everywhere they go. `wield` comes off `WieldableMixin` and intake
+     * hands nobody a weapon, so it stays correctly absent — which is why
+     * it sits in the negative list above and not here.
+     *
+     * Afforded means afforded: the verb reaches its own gate and refuses
+     * about the SHEARS, never about the word.
+     */
+    reachedItsGate(await p.cmd('wear shears'));
+    reachedItsGate(await p.cmd('equip shears'));
   }, 60_000);
 });
 

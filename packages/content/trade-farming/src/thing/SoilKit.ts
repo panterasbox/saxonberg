@@ -26,8 +26,6 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 export default class SoilKit extends ToolItem {
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['platform/cmd/perception/measure.yaml'],
-    environment: ['platform/cmd/perception/measure.yaml'],
   };
 
   constructor() {

@@ -1,0 +1,36 @@
+# The physic garden — a walled bed north of the ward where the infirmary
+# grows its simples (D10). Walkable from the ward; harvest by hand, steep
+# in the pot, and the autarkist has their whole drug supply.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: physic garden
+  keywords: [garden, physic]
+  register: definite
+  alternateNames: [physic garden, herb garden]
+  _address: terminus/city/counting-houses/infirmary/garden
+  # ⭐ Daylight. Outdoor-ambient/time-of-day computation is out of scope
+  # in the light substrate (v1), so an open-air room is only lit if it
+  # AUTHORS an ambient value — the sibling outdoor locations do (the
+  # goods-yards yard 520, the estuary mouth 700). This walled bed authored
+  # none, so it read pitch-black: nothing lit it, and it sits 3 hops from
+  # the nearest authored light (beyond the propagation walk's MAX_HOPS=2),
+  # which broke `harvest`/`steep` here (every object read "something").
+  # Match the outdoor yard: full daylight, ~5600 K.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 520
+  ambientColorTemperature: 5600
+  longDescription: |
+    A small walled bed behind the infirmary, laid out in damp grey soil and cold stone. Greywort stands hooded in the wet corner; wardmoss spreads over a north-facing stone; a pollarded willow leans by the wall. An earthenware pot of water waits on a bench for steeping.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /world/terminus/infirmary/ward
+  props:
+    - /trade/medicine/thing/plant/greywort
+    - /trade/medicine/thing/plant/wardmoss
+    - /trade/medicine/thing/plant/physic-willow
+    - /trade/medicine/thing/steeping-pot

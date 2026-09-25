@@ -35,3 +35,10 @@ data:
     northeast:
       destination: /world/terminus/rejection/location/fringe-claim
       edgeMinutes: 4
+    # ⭐ Uphill to the stone quarry. The old men took the COPPER out of this
+    # outcrop and left the hill itself alone, which is exactly the sort of
+    # thing that happens: one man's worthless country rock is another man's
+    # building stone, and the quarry is somebody having noticed.
+    north:
+      destination: /world/terminus/rejection/quarry/pit
+      edgeMinutes: 4
