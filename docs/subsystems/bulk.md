@@ -253,6 +253,25 @@ v1 bulk is all liquid (`requiredClosureFor → 'liquidTight'`), so an
 `sealed` (gas) and the phase→required-level mapping are defined on the
 scale but unexercised until gas content lands.
 
+> ⭐⭐ **That rung has named consumers now (2026-09-25), and it turns out
+> to be an ECONOMY rather than a detail.** Gas cannot be held by anything
+> below `sealed`, so **no vessel means no product** — which makes
+> containment the whole capital story of any gas trade, exactly as it was
+> historically. The first gas that is a *good* is **coal gas from the
+> retort** (→ [destructive-distillation-slate](../slates/builds/destructive-distillation-slate.md)),
+> not drilled gas; the first gas that is a *hazard* is **firedamp** in a
+> working (→ [mining-slate](../slates/builds/mining-slate.md)). A
+> **gasometer** — a `Bulkable` with `closure: sealed`, a rising bell in a
+> water seal whose height is visible across a city — is the rung's natural
+> exemplar and a non-gauge readout of a shared resource.
+>
+> ⚠ **One thing to decide deliberately when it lands:** `AirTank`
+> (→ [respiration.md](./respiration.md)) treats gas as **incompressible
+> bulk** — an interior fill *fraction*. Real gas storage is a **pressure**
+> question. The abstraction is defensible while it still costs somebody
+> the vessel and the labour, but once gas is **traded**, *"how much is in
+> there"* is asked in a way a fill fraction cannot answer honestly.
+
 ### `Container` + `Bulkable` — orthogonal slots
 
 Within one affordance, bulk and discrete contents are **independent**: a

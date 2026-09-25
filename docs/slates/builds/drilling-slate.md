@@ -7,7 +7,9 @@
 > string · the seeded deep field and the **dry hole** · the survey as the
 > game (instruments → a model → a bet) · the lift (a pump, and ⭐ a pump
 > needs a rubber gasket) · **refining = the deferred CUTS rung** ·
-> the fractions and their consumers · ⚠ the epoch on-ramp
+> the fractions and their consumers · ⭐⭐ **the GAS well** (pressure not
+> lift; `bulk.md`'s inert `sealed` rung as the whole economy; the
+> gasometer) · ⚠ the epoch on-ramp
 > (→ [inquiry-slate](./inquiry-slate.md)) and the cuts rung both block it.
 > **Size:** a build — and the larger of the two, because the borehole is
 > a genuinely new extraction shape.
@@ -134,6 +136,131 @@ same `Law` with a petroleum feedstock — see
 
 ---
 
+## ⭐⭐⭐ Gas is a different well, and it is NOT drilled first
+
+Asked 2026-09-25: *how does drilling work for gas vs liquid, and is gas
+always drilled or can it be mined?* The answer reshapes the vertical.
+
+### Gas already exists here, in three places that do not know about each other
+
+- ⭐ **`bulk.md` declares a `sealed` closure level for gas** — the scale is
+  `open < liquidTight < sealed`, and the doc says `sealed` and the
+  phase→required-level mapping are *"defined on the scale but
+  **unexercised until gas content lands**."* An inert, named seam.
+- **`AirTank` ships** ([respiration.md](../../subsystems/respiration.md))
+  — a worn gas vessel with a fill gauge.
+- **The damps ship** — `blackdamp` and `stinkdamp` as working atmospheres,
+  with the canary reading the odourless one.
+
+⚠ **And the tell: firedamp is NOT among them.** The mine models the
+suffocating damp and the stinking damp and omits **the explosive one** —
+which is the one that is also a fuel.
+
+### How a gas well differs from an oil well
+
+| | **oil** | **gas** |
+|---|---|---|
+| what moves it | reservoir pressure to the bore, then **you lift it** | pressure alone — **it comes up by itself** |
+| the machine | a **pump** (and a pump needs a rubber seal) | none — the problem is *stopping* it |
+| storage | a barrel; an open vessel works | ⭐ **nothing below `sealed`** — no vessel, no product |
+| depletion signal | falling level | **pressure decline only** — you cannot dip a gas well |
+| failure | a spill — messy, recoverable | a blowout; [fire.md](../../subsystems/fire.md) ships the rest |
+
+> ⭐⭐⭐ **Gas inverts the capital problem, which is why both are worth
+> having.** Oil's risk is paid **before** you know anything — the dry
+> hole. Gas's risk is paid **after you succeed**: you have struck it, and
+> it is worthless, dangerous and venting until containment exists. **A gas
+> strike with no vessel is a fire, not a fortune.**
+
+And the gate for that is already declared: **`bulk.md`'s `sealed` rung IS
+the gas economy**, sitting inert with no consumer.
+
+⭐ It also yields the **gasometer** — a `Bulkable` with `closure: sealed`,
+a rising bell in a water seal, **visible across the city, its height
+telling anyone who looks how much gas the town has left.** A public,
+honest, entirely non-gauge readout of a shared resource.
+
+### ⭐⭐ Gas can be mined, and drilling is the LAST of four sources
+
+| source | what it is | where it belongs |
+|---|---|---|
+| ⭐ **coal gas** | the retort's **third product**, beside coke and coal tar — town gas, and **lamps ship** | [destructive-distillation](./destructive-distillation-slate.md) |
+| ⭐ **firedamp** | coal-mine methane, drained ahead of the face through **in-seam boreholes** | [mining-slate](./mining-slate.md) |
+| **seeps** | gas that comes out of the ground by itself — eternal flames, fire temples | a locality; content, not a trade |
+| **marsh gas** | biogas off a bog or a dunghill; `organic/peat` ships | whoever wants it; the most medieval-available gas there is |
+
+⭐ **The firedamp arc is the best of them:** *a gas that kills you → a gas
+you vent → a gas you collect.* The hazard ships and the resource does
+not — the collier's pattern a fourth time, and real history: methane
+killed enormous numbers of miners before anyone thought of it as a
+commodity.
+
+---
+
+## ⭐⭐⭐ Sequencing — mined gas is NOT designed around drilled gas
+
+The instinct on first asking was to defer the mine's gas-and-liquid pass
+until drilling ships, *"since we'd want to design mined gas around drilled
+gas rather than the other way around."* **The evidence says the
+opposite**, and this is recorded so it is not silently re-litigated.
+
+**1 · The mine's fluid story is already DESIGNED; drilling does not
+exist.** `mining-slate` carries a safety-law — *"Foul not the air. Sap not
+the props. **Flood not the deep.** Answer the call."* — so **air and water
+are already the mine's first two named crimes**, with governance attached
+(breaching a sump that drowns the levels below is framed as murder-by-).
+Flooding is a hazard, **gas is already named as a stoppage**, and the pump
+already has an economic model (*"he is paid the way the pump is: out of
+the hoist toll"*). Drilling is blocked on the epoch on-ramp, which is
+blocked on inquiry. **Anchoring a designed thing to an unbuilt thing is
+the wrong direction** — and it would be the first time this programme did
+it, since every finding so far ran the other way.
+
+**2 · ⭐⭐ The SIGN is opposite, and that is the real argument.** In a
+mine, water and gas are things you **remove in order to keep working**. At
+a well, gas is the thing you are **there for**. Design mined gas around
+drilled gas and firedamp becomes *a resource that happens to be
+dangerous*; the honest model is the inverse — **a hazard that turns out to
+be valuable** — and the arc is *vent it for a century, then collect it*.
+Different economics, different UX, and the second one is both true and
+better.
+
+**3 · The pump is one object.** Mining's dewatering pump and drilling's
+oil-lift pump are the same machine. Mine-first and drilling **inherits a
+built pump**; drilling-first and the mine inherits one designed to *lift a
+product* when dewatering is a different spec — continuous, unattended,
+sized to inflow, funded out of the hoist toll.
+
+### The decision
+
+⚠ The concern behind the original instinct is correct and must be kept:
+**do not end up with two parallel gas economies** — that is precisely the
+unification debt the standing rule says to stay ahead of. The fix is not
+to design them apart, it is to **anchor each half on the right thing**:
+
+| half | covers | anchor |
+|---|---|---|
+| **the hazard half** | a fluid you must remove to work — water, then firedamp | ⭐ **mining**, where it is already designed |
+| **the commodity half** | storage, the `sealed` rung, the gasometer, the market | ⭐ **coal gas from the retort** — the first gas that is a *product* |
+
+> **Neither half is anchored on drilling. Drilling arrives third and
+> inherits both.** One gas economy, defined by the first thing that sells
+> gas — which is the retort, not a well.
+
+⭐ Consequence worth noticing: the mine's fluid pass is therefore **not
+blocked behind drilling** and could go much sooner.
+
+### ⚠ One honest limit to decide deliberately
+
+`AirTank` treats gas as **incompressible bulk** (interior fill
+*fraction*). Real gas storage is a **pressure** question, not a volume
+one. The abstraction is probably legitimate — *it still costs somebody the
+vessel and the labour* — but once gas is a **traded commodity**, *"how
+much is in there"* gets asked in a way a fill fraction cannot answer
+honestly. Inherit this on purpose or not at all.
+
+---
+
 ## ⚠⚠ The flag that belongs on the record now, not at requirements
 
 **Oil is the first resource where recharge = 0 and the reservoir is
@@ -169,6 +296,12 @@ already has a home.
 4. **Refining is the cuts rung**, built once and used twice — ⭐ and the
    cuts rung should be built for **whiskey**, before this slate.
 5. **Kerosene is the first fraction**, because lamps ship.
+6. ⭐⭐⭐ **Mined gas is NOT designed around drilled gas.** The hazard
+   half anchors on **mining**, the commodity half on **coal gas from the
+   retort**; drilling arrives third and inherits both. See the
+   sequencing section — recorded so it is not re-litigated.
+7. **A gas well needs no pump and no lift** — `sealed` containment is
+   its entire capital story, and the failure is a blowout, not a spill.
 
 ## Open
 
