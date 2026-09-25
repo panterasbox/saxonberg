@@ -382,6 +382,17 @@ nothing.** Latex is a wound-response exudate — resin's mechanism exactly.
 When the epoch and the demand arrive, rubber is a species row, a
 `production:` block and a consumer chain. **The act is already built.**
 
+⭐⭐ **Amended 2026-09-25 — rubber got its own slate, and the framing
+above is half wrong.** *"Zero consumers, so leave it"* treats demand as
+a fact when demand is **authored**: if the world only ships medieval,
+criterion 1 refuses every post-medieval material forever. The real
+blocker is that the **industrial epoch has no on-ramp** — the doctrine's
+delivery mechanism was conferral, and conferral is retired. See
+[rubber-slate](./rubber-slate.md) and
+[inquiry-slate § From law to technology](./inquiry-slate.md).
+**Latex remains tapping's mechanism exactly**, so this slate still
+carries rubber's supply side.
+
 ---
 
 See also: [forestry.md](../../subsystems/forestry.md) ·

@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**243 slates.** 55 greenfield · 86 continuations · 56 waves · 46 tails.
+**244 slates.** 56 greenfield · 86 continuations · 56 waves · 46 tails.
 
-## ⭐ Greenfield — nothing shipped yet (55)
+## ⭐ Greenfield — nothing shipped yet (56)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -92,6 +92,7 @@ respect.
 | [rendering](./builds/rendering-slate.md) | the knacker (dead stock — a `Corpse` yields nothing) · the tanner (tannin is the dyeing trade's) · the chandler · `soap` / `candle` … |
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
+| [rubber](./builds/rubber-slate.md) | latex as a tap (→ tapping-slate) · sulfur as a deposit row + material · the **crosslinking `Law`** and its honest evaluator · `vulcanize` as a recipe gated on that law … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
 | [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
 | [tapping](./builds/tapping-slate.md) | the `Tappable` shape + the `tap` verb · `TapSpec`'s window predicate · `ProducingMixin`'s promotion out of `trade-ranching` · a `production:` block on Scots pine (resin, **the species row already ships**) … |
