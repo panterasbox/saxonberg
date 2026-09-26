@@ -1279,7 +1279,7 @@ in `identity.md`/`behavior.md` (*expansion vs parenting*).
   raw". `bar-content` is that gate, and the shallow answer was WRONG
   rather than conservative. The script now mirrors all four rules.
 
-### W7 — Drive, record, MR
+### W7 — Drive, record, MR ✅ DONE
 
 Run the requirements doc's drive A–H live in a browser (not the wire
 suite), append the drive record below, `pnpm test` once, open the MR.
@@ -1479,5 +1479,68 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time — the output of running the requirements doc's
-drive A–H against the running game in a browser, and what it found)*
+**The drive file.** `packages/wire/tests/template-inheritance.wire.test.ts`
+— clean (no dirty reason: every act is a look, a walk or a refusal).
+It carries, in its header, the five steps a socket cannot settle and
+where each one lives instead:
+
+| step | why not a socket | where it is settled |
+|---|---|---|
+| 2–3 the protowizard create/refuse pair | the authoring door needs a non-wizard actor with content-write access | `TemplateLogic.codeGate.test.ts`, both limbs |
+| 9 Mara's restock beat | a behaviour beat on a game-time cadence | `Staged.count.test.ts` (a `count`-minted clone keeps its template path, which is what `restocks.ts` counts) + a browser walk |
+| 16 edit a stair row and republish | a CMS write plus a pack go-live | browser |
+| 18–19 `trace atmosphere`'s provenance wording | a prose read | the verb is driven; the resolver is `biome.chainWalk.test.ts` |
+| 23 a dangling parent stopping the boot | cannot be asserted by a session that exists because the boot succeeded | `PackLogic.extends.test.ts` |
+
+⚠ **The DB was dropped and reseeded before the run** (W3's renamed
+biome key), per the project rule.
+
+### The run
+
+⭐⭐ **The drive found things, exactly as it is supposed to.** None of
+the three was a defect in the build; all three were the drive itself
+learning what a live world does, and each is now written into the file
+so the next person does not relearn it:
+
+1. **A bare `look` renders to the CARD.** Step 8 read the room's `look`
+   and got back the text of the PREVIOUS command — so the assertion
+   would have passed or failed on whatever the test before it happened
+   to do. Now each fixture is read with its own `look <thing>`.
+2. **Mara walks.** `look mara` in Dave's Bar answered *"you don't see
+   any 'mara' here"* — her `restocks` beat, working, in the same boot
+   whose employment log deals her a house card. A drive step whose
+   answer depends on where an NPC is standing will flake on somebody
+   else later.
+3. ⭐ **Two interiors are pitch dark** — the watchpost AND the general
+   store floor. `look` in either: *"It is pitch dark. You can make out
+   nothing of the place at all."* with the NPC standing in it the whole
+   time. Unlit interiors are pitch black is a shipped rule, and a drive
+   that reads prose has to pick a room with light in it. Dave's Bar is
+   lit from under the rail, so the costume claim is made there.
+4. ⚠⚠ **`look dave` HANGS, and it is a keyword collision.** Thirty
+   seconds, then `controller-rejected: host-disconnected (prompt
+   host-disconnected)` — and it poisoned the session, so the next step
+   in the same file timed out too. `dave` is a keyword on the BAR
+   (`keywords: [bar, "dave's", dave]`) as well as on the barkeep, so
+   the look raised a disambiguation PROMPT and a socket session has
+   nobody to answer it. It reads like a server fault and is a two-word
+   collision. His own unambiguous keyword is `barkeep`.
+   ⭐ Offered to the lounge's content as a finding: `dave` on the room
+   is doing no work the other two keywords do not, and it costs the
+   barkeep his own name.
+
+**Final run: 9 of 9 green**, on a freshly reset `saxonberg_build3`.
+
+```
+✓ B step 5 — every fixture the hospitality bar has is present
+✓ B step 6 — the glass rack holds the pool, from ten authored lines
+✓ B step 7 — the tablet on the back-bar is the LOUNGE's, substituted in place
+✓ B step 8 — the lounge's own four additions are present
+✓ B step 8/24 — nothing is doubled: one set of stools, not two
+✓ A step 4 — a can of cola is a CAN: the parent's vessel, the child's fill
+✓ D step 17 — the vessel `out` exit still works and reads correctly
+✓ E step 18 — `trace atmosphere` still walks the chain
+✓ C2 step 12 — the bar's cast wear the parent's three garments, one shirt each
+Tests  9 passed (9)
+```
+
