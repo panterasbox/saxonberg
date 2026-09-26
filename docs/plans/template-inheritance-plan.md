@@ -1544,3 +1544,16 @@ so the next person does not relearn it:
 Tests  9 passed (9)
 ```
 
+
+## The full suite
+
+`pnpm test` — **11804 passing, 0 failing** (1268 files, 1 skipped, 2
+todo). The one failing file was `PackLogic.newbie-wilds.test.ts`, and
+it was this build's own gate working: two of that pack's rows now
+`extends:` the student costume, which `generic-objects` ships, and the
+test installed newbie-wilds ALONE. A parent must be in the **install
+set**, not merely in the store — packs reconcile in topological order,
+and the real boot installs both. The fixture now installs a one-row
+stand-in under the owning pack's id (the subject of the suite is
+newbie-wilds, not generic-objects' other 120 rows), and the assertions
+that counted every content row count the pack's own. `c3da97257`.
