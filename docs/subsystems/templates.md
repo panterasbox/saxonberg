@@ -190,6 +190,18 @@ inheritance one junk key reaches every descendant instead of one row.
 That is what `check-instanceable-placement` invariant 12 censuses and
 ratchets — see [lint-family.md](../lint-family.md).
 
+⚠ **The tree's first ABSTRACT parent is a known rough edge.**
+`/stuff/agent/costume/student` is a costume bundle, not a thing: clone
+it and a nameless, bodiless `Extra` stands in the room wearing a
+student outfit. Inheritance was designed on the rule *a parent is an
+ordinary row*, from two exemplars that were objects a player can hold
+(an empty can, an empty crate); a bundle is not one. Accepted
+deliberately, because the honest fix is either an abstract-row concept
+or a narrower base class to hang it on, and that is decided across the
+whole tree by
+[base-class-narrowing-slate](../slates/builds/base-class-narrowing-slate.md),
+not pre-decided by one cohort.
+
 ### The chain fails loudly
 
 A missing parent, a cycle, or a chain deeper than 32 throws naming the

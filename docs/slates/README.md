@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**248 slates.** 59 greenfield · 87 continuations · 56 waves · 46 tails.
+**249 slates.** 59 greenfield · 88 continuations · 56 waves · 46 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (59)
 
@@ -51,6 +51,7 @@ respect.
 | [api-normalization](./builds/api-normalization-slate.md) | ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`, `worldclock`) plus 19 Apis with no singleton at all; mechanical, no boundary ruling needed · ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s surface is two test hooks · answer *where a system-less utility lives* before deleting `array`/`path-pattern` … |
 | [attestation](./builds/attestation-slate.md) | the `attestation_events` collection (Q1: its own, or a facet of `authoring_events`) · the closed assertion vocabulary (`approves`/`objects`/`notes` — `objects` non-blocking by default; superseded, never retracted) · the go-live predicate on the CMS save/publish split · the per-group policy grammar (data, not code — Q2) … |
 | [authored-vs-procedural](./builds/authored-vs-procedural-slate.md) | the design pass itself · what a hand-placed ecology member IS (the glowcap: table member or furniture) · a `forage` verb, and whether it differs from `harvest` (`gather` is taken by ranching) · *cultivated* as a category (husbandry.md uses the word only for the durability rule) … |
+| [base-class-narrowing](./builds/base-class-narrowing-slate.md) | name the 42 measured cohorts and give each a parent row · narrow the base classes those parents name so a row composes only what it uses · decide the abstract-parent question (an abstract-row concept, or a narrower class to hang a bundle on) · retire the cross-class parents the costume cohort ships as a deliberate compromise |
 | [blood](./builds/blood-slate.md) | the genotype/phenotype endowment (`untested` until tested, per-`Species` allele frequencies + the provenance stamp) · the compatibility cost curve (non-hierarchical across species · graded failure · the volume-expander floor) … |
 | [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens invariant · nearest-wins + self-amendment … |
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
@@ -77,7 +78,6 @@ respect.
 | [institutions](./builds/institutions-slate.md) | the entity-form ladder over a cap table (sole trader · partnership · company · mutual … |
 | [insurance](./builds/insurance-slate.md) | the policy-as-contract + reserve ratio · cargo underwriting first (fire and crops after) · the mutual as the guild's instrument · prevention priced into the premium … |
 | [intervention](./builds/intervention-slate.md) | the sideless participant · a relation whose object is a |
-| [legibility](./builds/legibility-slate.md) | `extends:` on template rows (runtime-resolved, single parent, an ordinary row, folded into access.md's transitive set — and the `cp`/`mv` D5 relaxation it delivers) · the `props:` entry shape (`count` + `as`) · the instruction-field merge rule · contents **grouping** beside `looseContents`, consumed by the same three call sites … |
 | [live-drive](./builds/live-drive-slate.md) | the sidecar that holds the agent session · the channel bridge (prompts in, replies out) · the agent's own character + how it logs in · the approval posture for a live audience … |
 | [llm-content](./builds/llm-content-slate.md) | the director agent + its locality prompt · the salience gate + the active-cast set · the forced-cast command-bus seam (no `force` exists) · the ambient narrator … |
 | [map](./builds/map-slate.md) | the 2D per-floor grid + the player minimap · the 2D node-graph · the 3D procedural box render · the draft-template and live-Stuff adapters … |
@@ -104,7 +104,7 @@ respect.
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (87)
+## ⭐ Continuations — substrate shipped, a build's worth remains (88)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -156,6 +156,7 @@ are the named remainders.
 | [land-compute-and-license](./builds/land-compute-and-license.md) | compute metering and the entitlement function (quality vs demand weights) · the per-citizen or per-parcel compute floor · the capacity door + the admission taxonomy (instanced / ticketed) · subsidiarity (delegated sub-allocation below the top-level seam) … |
 | [land-use-covenant](./builds/land-use-covenant-slate.md) | the covenant row on the title · the `epoch` stamp on every other trade's instrument rows + the act's declared `kind` · the one breach producer at the binder (a fifth `AccountabilityKind`) · the designation tier (polity-imposed, via legal-code) … |
 | [legal-code](./builds/legal-code-slate.md) | the extent-rooted placement (`<extent>/law/`) + re-deriving the realm/city tier against the address model · the instrument taxonomy + the closed clause-`kind` vocabulary · received law (`process: founding`) · prose + typed clauses, the prose⊗clause authoring tooling (interpolated values) and its lint … |
+| [legibility](./builds/legibility-slate.md) | Part C — contents **grouping** beside `looseContents`, consumed by the same three call sites, and the card's dead `+N more` · Part D — cut `sense`, point arrival at `look`, untagged prose becomes vision-channel prose |
 | [lineage](./builds/lineage-slate.md) | person + household records · a `kind: 'gallery'` field + row payload · the gallery UI (grid / detail / pin / reroll) · the typed hook vocabulary + the balance weights … |
 | [livelihood](./builds/livelihood-slate.md) | §1's death salience-by-place + the lethal-cost debt, and old age/succession · §2's whole adjudication stack (target standing × authorization legitimacy, institutions, liability-laundering, frontier law) + illicit arrangements · §3's systemic need-generator + NPC claiming, and the board's pricing + gating · §4's CB allocation + insolvency backstop for business credit, and a capital market … |
 | [logistics](./builds/logistics-slate.md) | piracy + turmoil (a road is safe if help arrives) · live cargo and drovers (the steer walks, the carcass rides) · infrastructure politics — tollgate, turnpike trust, the barricade on a lane edge, banditry, congestion, road wear · rail and the ore train (a data addition on the lane substrate; the train robbery is its integration test; ship with trains or arrive as a shock) … |

@@ -400,7 +400,16 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       () => undefined,
       async () => undefined,
     );
+    // ⚠ The stub must let the ENGINE's own rows through. Every exit is
+    // a clone of a kind row now, so a blanket "any path is a coin" made
+    // `applyExits` bind a coin as if it were an exit —
+    // `exit.bind is not a function`, from a stub that had simply never
+    // been asked for anything but money.
+    const realClone = StuffApi.clone.bind(StuffApi);
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      if (path.startsWith('/platform/idea/exits/') || path.startsWith('/platform/thing/Boundary')) {
+        return realClone(path);
+      }
       if (path === CARD) return makeStuffAtPath(() => new PaymentCard(), path);
       // `issueCash` mints coin for the buyer's float.
       const c = makeStuffAtPath(() => {

@@ -131,27 +131,25 @@ export type CastSpec = string | { template: string; as?: string };
 export type CostumeSpec = CastSpec;
 
 /** The template path an entry names, whichever form it is written in. */
-export function templateOf(spec: PropSpec | CastSpec): string | null {
+function templateOf(spec: PropSpec | CastSpec): string | null {
   if (typeof spec === 'string') return spec.length > 0 ? spec : null;
   const t = spec?.template;
   return typeof t === 'string' && t.length > 0 ? t : null;
 }
 
 /**
- * ⭐⭐ An entry's IDENTITY: `as` when stated, else the template path.
- *
- * This is the precondition for inheriting a designation list at all.
+ * ⭐⭐ **An entry's IDENTITY is `as` when stated, else the template
+ * path** — the precondition for inheriting a designation list at all.
  * Without it the merge has to choose between appending the child's
  * entries and replacing the parent's, and each is right about half the
- * time — a doubled jacket or a missing pair of shoes, neither of which
- * says anything. With it the rule is definable: by key, child wins.
- * `Template`'s merge reads the same rule.
+ * time: a doubled jacket or a missing pair of shoes, neither of which
+ * says anything. With it the rule is definable — by key, child wins.
+ *
+ * ⚠ The rule lives ONE place, and it is not here: `Template`'s
+ * `entryKey` is where it is read, because `Template` is what merges.
+ * This note is here so the entry shape above is not changed without
+ * changing it there.
  */
-export function keyOf(spec: PropSpec | CastSpec): string | null {
-  if (typeof spec === 'string') return spec.length > 0 ? spec : null;
-  if (typeof spec?.as === 'string' && spec.as.length > 0) return spec.as;
-  return templateOf(spec);
-}
 
 /**
  * Public shape provided by StagedMixin.

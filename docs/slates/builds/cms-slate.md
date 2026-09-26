@@ -172,8 +172,11 @@ lays out or connects rooms rather than inferring them from placement;
 (placing a cell *creates* a room — clone-from-archetype — which the room
 editor then fleshes); **zone-scale leverage** (set **zone-carried defaults**
 — the authoring side of the room editor's "from zone" — plus bulk ops over
-selected rooms; this is the no-template-inheritance "change the default
-everywhere"); **graph-level validation** (unreachable rooms, dangling exits,
+selected rooms; ⚠ this was framed as the *no-template-inheritance*
+"change the default everywhere" — **that premise died 2026-09-25**: a
+row now `extends:` a parent, so "change the default everywhere" has a
+second, better answer, and the editor's job here shrinks to the
+genuinely spatial defaults a zone owns); **graph-level validation** (unreachable rooms, dangling exits,
 the cardinal-only-intra-zone invariant); and it's the **natural draft
 changeset unit** (build + publish a zone atomically; holodeck-test the whole
 draft).
@@ -426,9 +429,12 @@ This slate boils down to:
   server-authoritative validation; the save → `reload` / holodeck loop;
   lease-scoped tree.
 - **Content editors (room & zone, first worked)** on three reusable pieces —
-  the **widget registry**, the **defaults-aware field surface** (flat
-  templates, *no inheritance*; effective + source + local-override over
-  class/zone/biome resolution), and the **reference-picker**. **Room editor**
+  the **widget registry**, the **defaults-aware field surface** (⚠
+  specified as *flat templates, no inheritance* — **dead premise since
+  2026-09-25**; rows have parents, so the surface needs a fourth
+  provenance beside class/zone/biome, and it must EDIT `own` while
+  SHOWING effective, which is exactly how the engine already splits
+  them), and the **reference-picker**. **Room editor**
   = defaults-aware form + detail-tree + exits + contents widgets. **Zone
   editor** = the map (layout / room-birth / zone-carried-defaults + bulk /
   graph-validation / the draft-changeset unit); its map is **2D**

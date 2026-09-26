@@ -4,7 +4,11 @@
 > parcel title → [access.md](../../subsystems/access.md) +
 > [parcel.md](../../subsystems/parcel.md); the content-write class
 > allowlist shipped in `CmsLogic`; the deferred caller policies were
-> RETIRED, not built. ⚠ The lease model lost both its stated
+> RETIRED, not built. ⭐ The v2 relaxation shipped sideways 2026-09-25:
+> the code-trust gate now baselines on a row's OWN fields, so a
+> protowizard may author, copy and move a row that inherits its class
+> from a parent — what stays refused is naming, changing or redirecting
+> code, which is the thing the gate was ever for. ⚠ The lease model lost both its stated
 > consumers (the CMS and the holodeck each shipped without one).
 > **Left:** the structured audit sink (call-security Pillar 5 — denies +
 > `forceX` uses → `MudlogApi`, which is unwired) · action-level `can()`

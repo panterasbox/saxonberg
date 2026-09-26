@@ -50,8 +50,8 @@ behavior. Read the relevant doc before editing in its area.
   ROW is a hydration source for authored content only — minted
   identities back onto `holder_snapshots` / a purpose Document /
   nothing, and a per-instance `domain` row is the anti-pattern, the
-  legacy per-player Avatar row's retirement being tracked work;
-  template inheritance does not exist)
+  legacy per-player Avatar row's retirement being tracked work; a row
+  may `extends:` one parent — resolved at read, never flattened)
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/arcane-science.md](./docs/arcane-science.md) — the invented-but-
   honest science of magic (one postulate, the laws, the price list) +
@@ -117,7 +117,7 @@ behavior. Read the relevant doc before editing in its area.
   operators, filters, pronouns, examples)
 - Subsystem references in `docs/subsystems/`. Each doc is the source
   of truth for its area — read it before editing. Map entries are ONE-LINE pointers by design — a build that grows a subsystem expands the DOC, never this blurb.
-  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant
+  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant, `extends:` row inheritance
   - [persistence.md](./docs/subsystems/persistence.md) — Document vs Templates→Stuff, PersistenceManager, hooks; the self-persistence spine (PersistableMixin → `holder_snapshots`)
   - [record-layer.md](./docs/subsystems/record-layer.md) — what the server remembers for you: the per-player frame store, `recall` over three corpora, the nightly reset policy
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct

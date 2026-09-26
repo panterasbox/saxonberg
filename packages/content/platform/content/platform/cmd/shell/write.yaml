@@ -8,8 +8,9 @@ help: |
   lands file bytes. `--extends <path>` makes the row a CHILD of
   another row: it inherits that row's class, hydrator and data, and
   states only what differs. A child needs no `--class`, which is
-  what lets a protowizard author one. The body and data payloads come through a
-  structured form, not bare text on the command line.
+  what lets a protowizard author one. The body and data payloads
+  come through a structured form, not bare text on the command
+  line.
 
   `write` follows your `workspace.tree` default, but under mirror
   mode it can't guess — pass `-c` for content or `-s` for source

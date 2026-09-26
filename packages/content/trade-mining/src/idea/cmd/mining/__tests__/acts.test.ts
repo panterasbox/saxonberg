@@ -139,10 +139,19 @@ async function run(
   return ctx;
 }
 
-/** Advance past an engaged step AND drain the async completion chain. */
+/**
+ * Advance past an engaged step AND drain the async completion chain.
+ *
+ * ⚠ The drain count is not decoration. Since every exit became a clone
+ * of a kind row, wiring a newly carved cell to its neighbours awaits a
+ * template read per exit — so a cell with two carved neighbours needs
+ * strictly more turns than the first cell did, and eight was enough for
+ * one carve and not for the second. Drained generously rather than
+ * counted, because the right number is a property of the topology.
+ */
 async function settle(ms: number): Promise<void> {
   await completeStep(ms);
-  for (let i = 0; i < 8; i++) await new Promise<void>((r) => setTimeout(r, 0));
+  for (let i = 0; i < 64; i++) await new Promise<void>((r) => setTimeout(r, 0));
 }
 
 function rejected(ctx: CommandContext): string | null {

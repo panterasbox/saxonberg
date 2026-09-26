@@ -7,7 +7,12 @@
 > **Left:** the media-asset unit (byte sync + receipt pairing) · the
 > position-def unit (A19) · the contract-form unit · `requires.kinds:` ·
 > `requires.office` · the manifest tier claim + its check · manifest
-> version + `dependsOn` validation · runtime install/uninstall +
+> version + `dependsOn` validation (⭐ which now has a first customer:
+> since 2026-09-25 a row may `extends:` a row another pack ships, and
+> the dangling-parent check lives at reconcile — `assertParentsResolve`
+> refuses a parent no pack in the install set ships, and refuses one
+> whose owner is not in `dependsOn`. Manifest-time validation is where
+> that check eventually belongs) · runtime install/uninstall +
 > marketplace · the repo split
 > **Size:** a wave
 

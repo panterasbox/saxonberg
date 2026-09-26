@@ -6,6 +6,11 @@
 > ([shell-workspace.md](../../subsystems/shell-workspace.md)), and
 > "author your own space" as
 > [furnishing.md](../../subsystems/furnishing.md) over the dorm.
+> ⭐ 2026-09-25: a protowizard can now author a whole ROW without
+> naming code — `write --extends <parent>` inherits the parent's class
+> and hydrator, so the class gate refuses nothing it needs to refuse
+> and the authoring door opens anyway
+> ([templates.md § Inheritance](../../subsystems/templates.md)).
 > **Left:** ⭐ the `describe` verb (the prose rung — no such verb exists;
 > blocked on a moderation validator) · the per-field (access policy,
 > value validator) gate on `write`, default-deny · the vetted-catalog
