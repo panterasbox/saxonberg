@@ -2,6 +2,8 @@
 // (Doc comment on the class so @internal lands on the reflection.)
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
+import { TemplatePaths } from '../../../lib/paths';
+import type Exit from '../../../lib/boundary/Exit';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import {
@@ -185,41 +187,36 @@ async function ensureCircle(state: SessionState): Promise<Stuff & Container> {
   if (state.entryRoom && !state.entryRoom.isDestroyed()) {
     return state.entryRoom;
   }
-  const { default: CircleFloor } = await import(
-    '../../location/sandbox/CircleFloor'
-  );
   const { default: Location } = await import('../../../lib/stuff/Location');
-  const { default: SandboxCrossingExit } = await import(
-    '../../../lib/sandbox/SandboxCrossingExit'
-  );
+
   const { Template } = await import('../../../lib/stuff/Template');
   const room = await ExecutionContextApi.runRootGuarded(
     null,
     'sandbox.ensureCircle',
     async () => {
-      let entry: Stuff;
-      try {
-        entry = await StuffApi.clone(CIRCLE_FLOOR_PATH);
-      } catch {
-        // Template store offline (tests / pre-seed boot): a bare
-        // CircleFloor stands in for the seeded, described one.
-        entry = await StuffApi.create(() => new CircleFloor());
-      }
-      // The way out — a return passage on the entry room.
+      // ⚠ No fallback. A missing `/platform/location/sandbox/CircleFloor`
+      // row is a boot fault, not a case to paper over — the bare
+      // stand-in meant a circle could silently open onto an undescribed
+      // room and nobody would know which one they were in.
+      const entry: Stuff = await StuffApi.clone(CIRCLE_FLOOR_PATH);
+      // The way out — a return passage on the entry room, cloned from
+      // its kind row and configured with the one thing the row cannot
+      // know: which direction of the crossing it is.
       if (MixinApi.isExitable(entry)) {
-        const back = StuffApi.createSync(
-          () =>
-            new SandboxCrossingExit({
-              direction: 'out',
-              source: entry as unknown as Stuff & Container,
-              // Presentation-level only: the exit choreography IS the
-              // destination (you wake up where you left).
-              destinationPath: '/',
-              oneWay: true,
-            })
+        await entry.installExit<
+          Exit & { setCrossingDirection(d: 'enter' | 'return'): void }
+        >(
+          TemplatePaths.sandboxReturnExit,
+          {
+            direction: 'out',
+            source: entry as unknown as Stuff & Container,
+            // Presentation-level only: the exit choreography IS the
+            // destination (you wake up where you left).
+            destinationPath: '/',
+            oneWay: true,
+          },
+          (e) => e.setCrossingDirection('return'),
         );
-        back.setCrossingDirection('return');
-        await entry.addExit(back);
       }
       // Authored truth: materialize the circle's own rooms.
       if (PersistApi.isConnected()) {
@@ -339,12 +336,25 @@ async function enterImpl(
     null,
     'sandbox.enter',
     async () => {
-      // Species rides the constructor: the loadout inside
-      // `postRegister` needs a body plan to slot the implant into, and
-      // the fork below runs too late for that.
-      const body = await StuffApi.create(
-        () => new WireBody(playerId, actorSpecies),
-        { playerId, wire: true }
+      // ⭐ Species and identity ride the clone OVERLAY, not the
+      // constructor: hydration Phase 1 lands them before
+      // `postRegister`, which is the ordering the loadout needs (it
+      // slots the implant into a body plan) and exactly what the
+      // constructor arguments were guaranteeing.
+      const body = await StuffApi.clone<Stuff>(
+        '/platform/agent/sandbox/WireBody',
+        { playerId, wire: true },
+        {
+          // The REAL identity: every ledger keys on it, and the vessel
+          // is a projection of the person, not a person of its own.
+          asIdentityPath: actor.getIdentityPath() ?? undefined,
+          dataOverlay: {
+            wirePlayerId: playerId,
+            ...(actorSpecies?.getTemplatePath()
+              ? { _speciesPath: actorSpecies.getTemplatePath() }
+              : {}),
+          },
+        },
       );
       await PersistableApi.forkRuntimeState(
         actor as unknown as Stuff,

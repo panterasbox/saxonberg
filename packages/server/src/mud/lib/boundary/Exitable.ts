@@ -24,7 +24,9 @@ import type Door from '../../platform/thing/Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import Exit from './Exit';
 import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
+import type { ExitOptions } from './Exit';
 import { NavigationApi } from '../../api/navigation';
+import { TemplatePaths } from '../paths';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
@@ -104,6 +106,34 @@ export interface Exitable {
   verifyOutboundExits(): void;
 
   /**
+   * ⭐⭐ **The ONE install path for a code-minted exit.** Clone the kind
+   * ROW, let the caller configure whatever used to be constructor
+   * arguments, bind it to this edge, install it.
+   *
+   * Before this there were four ways an exit came into the world — the
+   * declarative applier, `addBidirectionalExit`'s two branches, and a
+   * scatter of `new Exit(...)` / `createSync` sites in warrens, vessels
+   * and the sandbox — and the ones written in TypeScript could say
+   * nothing, because prose lives in a row and they had no row.
+   *
+   * `configure` runs on the fresh clone BEFORE `bind`, which is where a
+   * `DeferredDestinationExit` subclass receives the floor number, unit
+   * key or warren reference its constructor used to take.
+   *
+   * ⭐ Passing an EXISTING exit instead of a kind path re-installs it —
+   * the case of an exit that moves with its host (a vessel's doorway, a
+   * sandbox crossing carried from room to room). It matters that this
+   * is the same method: `bind` is gated on the room being party to the
+   * edge, so the ROOM has to be the caller, and a host that tried to
+   * bind its own exit was refused.
+   */
+  installExit<E extends Exit>(
+    kindOrExit: string | Exit,
+    opts: ExitOptions,
+    configure?: (exit: E) => void,
+  ): Promise<E>;
+
+  /**
    * Optional override for the bodies a Mover broadcasts when leaving
    * this location through `exit`. Anything the implementation omits
    * falls back to MobileMixin's default for that audience.
@@ -138,13 +168,13 @@ export interface Exitable {
  */
 export interface BidirectionalExitOptions {
   /**
-   * Pre-cloned UNBOUND exit instances (the exit-kind path —
-   * `applyExits` clones from `ExitInstruction.kind` and hands them in;
-   * `addBidirectionalExit` binds instead of constructing). Both or
-   * neither.
+   * The exit-kind ROW both edges are cloned from. Absent →
+   * {@link TemplatePaths.defaultExitKind}, a bare passage. There is no
+   * "raw exit" branch any more: ⭐ **every exit in the world is a clone
+   * of a row**, so an author who wants a door to say something writes
+   * it in content and never in TypeScript.
    */
-  prebuiltForward?: Exit;
-  prebuiltBack?: Exit;
+  kind?: string;
   opposite?: string;
   door?: Door;
   /**
@@ -439,6 +469,30 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       return doors;
     }
 
+    /** See {@link Exitable.installExit}. */
+    async installExit<E extends Exit>(
+      kindOrExit: string | Exit,
+      opts: ExitOptions,
+      configure?: (exit: E) => void,
+    ): Promise<E> {
+      const exit =
+        typeof kindOrExit === 'string'
+          ? await StuffApi.clone<Exit>(kindOrExit)
+          : kindOrExit;
+      configure?.(exit as E);
+      if (exit.isBound()) {
+        exit.rebind(opts);
+        await this.addExit(exit);
+        return exit as E;
+      }
+      // The room binding the edge is the caller, so the participant
+      // gate on `bind` (`FromMixin(Exitable)` + a party-to-the-edge
+      // `where`) passes without a carve-out.
+      exit.bind(opts);
+      await this.addExit(exit);
+      return exit as E;
+    }
+
     /**
      * Install a forward/back exit pair in one call. Both sides share the
      * same `Door` reference when one is supplied, so opening from either
@@ -488,25 +542,14 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         messageIn: opts.messageInBack,
         messageOut: opts.messageOutBack,
       };
-      // Exit-kind path: bind the pre-cloned instances (kind defaults
-      // hydrated; bind is delta-aware so unset per-site fields keep
-      // them). Raw path: construct as before.
-      let forward: Exit;
-      let back: Exit;
-      if (opts.prebuiltForward || opts.prebuiltBack) {
-        if (!opts.prebuiltForward || !opts.prebuiltBack) {
-          throw new Error(
-            'addBidirectionalExit: prebuiltForward and prebuiltBack must be supplied together'
-          );
-        }
-        forward = opts.prebuiltForward;
-        back = opts.prebuiltBack;
-        forward.bind(forwardOpts);
-        back.bind(backOpts);
-      } else {
-        forward = StuffApi.createSync(() => new Exit(forwardOpts));
-        back = StuffApi.createSync(() => new Exit(backOpts));
-      }
+      // One clone per edge from the kind row, then bind — `bind` is
+      // delta-aware, so unset per-site fields keep the kind's authored
+      // defaults (its prose, media, wheelPassable, concealment).
+      const kind = opts.kind ?? TemplatePaths.defaultExitKind;
+      const forward = await StuffApi.clone<Exit>(kind);
+      const back = await StuffApi.clone<Exit>(kind);
+      forward.bind(forwardOpts);
+      back.bind(backOpts);
       // Wire each side's `inverse` pointer to the other so MobileMixin
       // can reach `exit.inverse?.direction` when announcing arrival
       // without a separate cross-location lookup. One-way exits (a
@@ -612,16 +655,11 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // Exit-kind path: clone the kind template (authored defaults
       // hydrate; `class:` may name an Exit subclass), then bind below.
       // A bidirectional entry clones one instance per edge.
-      const kindPath = spec.kind;
+      const kindPath = spec.kind ?? TemplatePaths.defaultExitKind;
       const bidirectional = spec.bidirectional ?? false;
       if (bidirectional) {
         const opts: BidirectionalExitOptions = {
-          prebuiltForward: kindPath
-            ? await StuffApi.clone<Exit>(kindPath)
-            : undefined,
-          prebuiltBack: kindPath
-            ? await StuffApi.clone<Exit>(kindPath)
-            : undefined,
+          kind: kindPath,
           door: doorStuff,
           opposite: spec.opposite,
           hidden: spec.hidden,
@@ -652,13 +690,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         wheelPassable: spec.wheelPassable,
         edgeMinutes: spec.edgeMinutes,
       };
-      let exit: Exit;
-      if (kindPath) {
-        exit = await StuffApi.clone<Exit>(kindPath);
-        exit.bind(oneWayOpts);
-      } else {
-        exit = StuffApi.createSync(() => new Exit(oneWayOpts));
-      }
+      const exit = await StuffApi.clone<Exit>(kindPath);
+      exit.bind(oneWayOpts);
       await this.addExit(exit);
     }
 

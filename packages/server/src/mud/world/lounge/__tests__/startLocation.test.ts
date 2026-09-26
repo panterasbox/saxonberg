@@ -4,7 +4,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import LoungeWarren from '../idea/LoungeWarren';
 import Lounge from '../location/Lounge';
 import Avatar from '../../../platform/agent/Avatar';
@@ -20,7 +20,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import {
   makeStuff,
-  makeStuffAtPath,
+  makeStuffAtPath
 } from '../../../lib/security/__tests__/test-setup';
 import { installStore, loungeDocs } from './lounge-fixtures';
 

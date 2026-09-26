@@ -277,10 +277,11 @@ export default class PlatWarren extends PlatWarrenBase {
     const existing = circulation.getExit(direction);
     if (existing) return existing as unknown as Exit;
     const entryRow = await this.entryRowPath();
-    const gate = StuffApi.createSync(
-      () => new LotGateExit(circulation, this, key, direction, entryRow),
+    const gate = await circulation.installExit<LotGateExit>(
+      '/system/residence/idea/exits/lot-gate',
+      { direction, source: circulation, destinationPath: entryRow },
+      (e) => e.configureGate(this, key, direction),
     );
-    await circulation.addExit(gate);
     return gate as unknown as Exit;
   }
 
@@ -318,17 +319,13 @@ export default class PlatWarren extends PlatWarrenBase {
     if (!nodeRoom) return;
     const entryEx = entry as ExitableContainer;
     if (entryEx.getExit("south")) return;
-    const out = StuffApi.createSync(
-      () =>
-        new Exit({
-          direction: "south",
-          source: entry,
-          destination: nodeRoom as ExitableContainer,
-          keepLiveDestination: true,
-          oneWay: true,
-        }),
-    );
-    await entryEx.addExit(out);
+    await entryEx.installExit("/platform/idea/exits/passage", {
+      direction: "south",
+      source: entry,
+      destination: nodeRoom as ExitableContainer,
+      keepLiveDestination: true,
+      oneWay: true,
+    });
   }
 
   // ─────────────── Warren policy hooks ────────────────────────────

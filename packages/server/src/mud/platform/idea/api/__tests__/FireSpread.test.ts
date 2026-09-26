@@ -8,7 +8,7 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import Exit from '../../../../lib/boundary/Exit';
@@ -29,8 +29,8 @@ import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { User } from '../../../../lib/identity/User';
 import {
-  makeStuff,
-  makeStuffAtPath,
+  makeStuff,  makeStuffAtPath,
+  seedKernelContentStore,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
@@ -102,6 +102,10 @@ async function occupy(room: CartesianLocation): Promise<void> {
 }
 
 describe('the fire tick — spread', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
@@ -149,7 +153,7 @@ describe('the fire tick — spread', () => {
     const zoneOpen = makeStuff(() => new CartesianZone());
     const a1 = await room(zoneOpen, 0);
     const b1 = await room(zoneOpen, 1);
-    const openDoor = makeStuff(() => new Door());
+    const openDoor = await StuffApi.create(() => new Door());
     openDoor.setShortDescription('open door');
     openDoor.setOpen(true);
     await a1.addExit(
@@ -168,7 +172,7 @@ describe('the fire tick — spread', () => {
     const zoneShut = makeStuff(() => new CartesianZone());
     const a2 = await room(zoneShut, 0);
     const b2 = await room(zoneShut, 1);
-    const shutDoor = makeStuff(() => new Door());
+    const shutDoor = await StuffApi.create(() => new Door());
     shutDoor.setShortDescription('shut door');
     shutDoor.setOpen(false);
     await a2.addExit(

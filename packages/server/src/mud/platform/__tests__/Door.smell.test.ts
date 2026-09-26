@@ -1,12 +1,20 @@
 import "../../../test-bootstrap";
-import { describe, it, expect } from 'vitest';
+import { StuffApi } from '../../api/stuff';
+import { describe, it, expect , beforeEach } from 'vitest';
 import Door from '../thing/Door';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 import type { SmellConduit } from '../../lib/boundary/SmellConduit';
 
 describe('Door — SmellConduit gating', () => {
-  it('exposes a smell conduit alongside the other three', () => {
-    const door = makeStuff(() => new Door());
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
+  it('exposes a smell conduit alongside the other three', async () => {
+    const door = await StuffApi.create(() => new Door());
     const conduits = door.getConduits();
     const smell = conduits.find((c) => c.conduitKind === 'smell') as
       | SmellConduit
@@ -14,8 +22,8 @@ describe('Door — SmellConduit gating', () => {
     expect(smell).toBeDefined();
   });
 
-  it('closed door blocks smell (transmissivity 0)', () => {
-    const door = makeStuff(() => new Door());
+  it('closed door blocks smell (transmissivity 0)', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setOpen(false);
     const smell = door
       .getConduits()
@@ -24,8 +32,8 @@ describe('Door — SmellConduit gating', () => {
     expect(smell.transmissivity('B', 'A')).toBe(0);
   });
 
-  it('open door transmits smell (transmissivity 1)', () => {
-    const door = makeStuff(() => new Door());
+  it('open door transmits smell (transmissivity 1)', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setOpen(true);
     const smell = door
       .getConduits()

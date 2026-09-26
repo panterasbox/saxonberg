@@ -20,6 +20,7 @@ export {
 } from "../../../../backend/PersistenceManager";
 
 import { vi } from "vitest";
+import { KERNEL_CONTENT_ROWS } from "../../../../test-bootstrap";
 import {
   PersistenceManager as PM,
   Collections as Cols,
@@ -41,7 +42,16 @@ export type Doc = Record<string, unknown> & {
  * their tests with them (residences wave 0).
  */
 export function installStore(docs: Doc[]): Doc[] {
-  const store: Doc[] = docs.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ The KERNEL rows come first, always. Since template inheritance
+  // every exit in the world is a clone of a kind row and a boundary's
+  // anchors are clones too, so a store without them cannot stand up a
+  // room with a doorway — which is what every standup test is about.
+  // Same reasoning as the `isConnected` note below, one layer along: a
+  // stub that is missing a floor fails tests on a thing they never
+  // meant to touch.
+  const store: Doc[] = [...(KERNEL_CONTENT_ROWS as unknown as Doc[]), ...docs].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
   // ⚠⚠ **Which collection each row belongs to, tracked BESIDE the row.**
   //
   // This stub used to answer `[]` to every non-content read while happily
@@ -112,11 +122,36 @@ export function installStore(docs: Doc[]): Doc[] {
   const findById = vi.fn(async (_c: string, id: string) => {
     return store.find((d) => d._id === id) ?? null;
   });
-  vi.spyOn(PM, "get").mockReturnValue({
+  const del = vi.fn(async (_c: string, id: string) => {
+    const idx = store.findIndex((d) => d._id === id);
+    if (idx >= 0) {
+      owner.delete(store[idx]!);
+      store.splice(idx, 1);
+    }
+  });
+  // ⚠ Built ON the real manager rather than instead of it, so a method
+  // this stub does not model (`setScopeResolver`, `getCollection`) is
+  // the real one's and behaves as it did before. A stub that replaces
+  // an object has to answer for all of it — the sandbox suites proved
+  // that twice, on `setScopeResolver` and then on `deleteMany`.
+  const fake = Object.create(PM.get()) as PM;
+  Object.assign(fake, {
     save,
     find,
     findById,
+    delete: del,
+    deleteMany: vi.fn(async (c: string, filter: Record<string, unknown>) => {
+      const doomed = store.filter(
+        (d) => owner.get(d) === c && matches(d, filter),
+      );
+      for (const d of doomed) {
+        owner.delete(d);
+        store.splice(store.indexOf(d), 1);
+      }
+      return doomed.length;
+    }),
     isConnected: () => true,
-  } as unknown as PM);
+  });
+  vi.spyOn(PM, "get").mockReturnValue(fake);
   return store;
 }

@@ -8,7 +8,7 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import Location from '../../../../lib/stuff/Location';
 import Thing from '../../../../lib/stuff/Thing';
 import Biome from '../../../../lib/biome/Biome';
@@ -19,7 +19,7 @@ import { BiomeApi } from '../../../../api/biome';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
-import LightningStrike from '../../../../lib/weather/LightningStrike';
+import LightningStrike from '../../../thing/LightningStrike';
 import { ConnectionManager } from '../../../../../backend/ConnectionManager';
 import { Quantity } from '../../../../lib/quantity';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
@@ -29,6 +29,7 @@ import type { User } from '../../../../lib/identity/User';
 import {
   makeStuff,
   makeStuffAtPath,
+  seedKernelContentStore,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../WorldClockRegistry';
@@ -110,6 +111,17 @@ async function occupy(room: TestRoom): Promise<void> {
 }
 
 describe('Storm lightning strikes (Phase E)', () => {
+  beforeEach(() => {
+    seedKernelContentStore([
+    {
+      path: '/platform/thing/LightningStrike',
+      class: '/platform/thing/LightningStrike',
+      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+      data: { shortDescription: 'a lightning strike' },
+    },
+    ]);
+  });
+
   beforeEach(() => {
     installV1QuantityMarshallers();
     BiomeApi.invalidateRootBiomeCache();

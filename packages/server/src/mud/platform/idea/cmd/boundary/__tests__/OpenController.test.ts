@@ -1,5 +1,6 @@
 import "../../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { StuffApi } from '../../../../../api/stuff';
+import { describe, it, expect, beforeEach  } from 'vitest';
 import OpenController from '../OpenController';
 import CloseController from '../CloseController';
 import GoController from '../../movement/GoController';
@@ -42,7 +43,10 @@ function stubCommand(verb: string): CommandDefinition {
     "<test>"
   );
 }
-import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../../../lib/stuff/Idea";
 
 const FakeAvatarBase = CommandGiverMixin(
@@ -127,6 +131,10 @@ async function goCmd(
 }
 
 describe('OpenController / CloseController / doors integration', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let zone: CartesianZone;
   let locA: CartesianLocation;
   let locB: CartesianLocation;
@@ -144,7 +152,7 @@ describe('OpenController / CloseController / doors integration', () => {
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
 
-    door = makeStuff(() => new Door());
+    door = await StuffApi.create(() => new Door());
     door.setShortDescription('heavy oak door');
     door.setKeywords(['oak']);
     await locA.addBidirectionalExit(locB, 'north', { door });

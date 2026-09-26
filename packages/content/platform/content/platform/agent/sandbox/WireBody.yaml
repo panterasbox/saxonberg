@@ -1,0 +1,9 @@
+# The wire body — the puppet a player wears inside a circle while their
+# field body stays parked.
+#
+# Same shape as the shade's row: the identity and the species ride the
+# clone overlay, and the `hydratorClass` is what lets them land.
+class: /platform/agent/sandbox/WireBody
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  wirePlayerId: ""

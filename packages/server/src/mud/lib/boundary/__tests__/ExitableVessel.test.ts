@@ -1,5 +1,6 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { StuffApi } from '../../../api/stuff';
+import { describe, it, expect, beforeEach  } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
 import CartesianLocation from '../../location/CartesianLocation';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
@@ -9,18 +10,25 @@ import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Stuff } from '../../stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 
 class PlainContainer extends ContainerMixin(ContainableMixin(Idea)) {}
 
 describe('ExitableVessel', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let zone: CartesianZone;
   let park: CartesianLocation;
   let park2: CartesianLocation;
   let wardrobe: ExitableVessel;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     zone = makeStuff(() => new CartesianZone());
 
     park = makeStuff(() => new CartesianLocation());
@@ -31,7 +39,7 @@ describe('ExitableVessel', () => {
     park2.setShortDescription('Park 2');
     zone.addLocation(park2, 1, 0, 0);
 
-    wardrobe = makeStuff(() => new ExitableVessel());
+    wardrobe = await StuffApi.create(() => new ExitableVessel());
     wardrobe.setShortDescription('wardrobe');
   });
 
@@ -62,13 +70,17 @@ describe('ExitableVessel', () => {
     expect(first).toBe(second);
   });
 
-  it("invalidates the 'out' cache when the environment changes", () => {
+  it("⭐ REBINDS the 'out' exit when the environment changes", () => {
+    // A vessel is a room that goes places, so it keeps ONE `out` exit
+    // and re-points it. (It used to build a fresh `new Exit` per
+    // environment; now the exit is a clone of a row, minted once at
+    // `postRegister` — which is what `Exit.rebind` exists for.)
     ContainmentApi.move(wardrobe, park);
     const first = wardrobe.getExit('out');
     ContainmentApi.move(wardrobe, park2);
     const second = wardrobe.getExit('out');
     expect(second).toBeDefined();
-    expect(second).not.toBe(first);
+    expect(second).toBe(first);
     expect(second!.getDestination()).toBe(park2);
   });
 
@@ -77,7 +89,7 @@ describe('ExitableVessel', () => {
     // Explicit exits win — install an 'out' named explicit exit.
     // The synthesized exit should be shadowed by the explicit entry.
     // (This is a contract edge case — normally no one installs explicit 'out'.)
-    const other = makeStuff(() => new ExitableVessel());
+    const other = await StuffApi.create(() => new ExitableVessel());
     other.setShortDescription('pocket');
     ContainmentApi.move(other, park);
     await wardrobe.addBidirectionalExit(other, 'pocket-dim', { opposite: 'back' });
@@ -105,13 +117,13 @@ describe('ExitableVessel', () => {
     expect(first).toBe(second);
   });
 
-  it('invalidates the entry cache when the environment changes', () => {
+  it('⭐ REBINDS the entry exit when the environment changes', () => {
     ContainmentApi.move(wardrobe, park);
     const first = wardrobe.getEntryExit();
     ContainmentApi.move(wardrobe, park2);
     const second = wardrobe.getEntryExit();
     expect(second).toBeDefined();
-    expect(second).not.toBe(first);
+    expect(second).toBe(first);
     expect(second!.getSource()).toBe(park2);
   });
 
@@ -159,8 +171,8 @@ describe('ExitableVessel', () => {
   });
 
   describe('door bearing', () => {
-    it('synthesized out exit picks up the vessel door', () => {
-      const door = makeStuff(() => new Door());
+    it('synthesized out exit picks up the vessel door', async () => {
+      const door = await StuffApi.create(() => new Door());
       door.setShortDescription('wardrobe door');
       wardrobe.setDoor(door);
       ContainmentApi.move(wardrobe, park);
@@ -170,8 +182,8 @@ describe('ExitableVessel', () => {
       expect(door.hasAttached(out!)).toBe(true);
     });
 
-    it('synthesized entry exit also picks up the vessel door', () => {
-      const door = makeStuff(() => new Door());
+    it('synthesized entry exit also picks up the vessel door', async () => {
+      const door = await StuffApi.create(() => new Door());
       door.setShortDescription('wardrobe door');
       wardrobe.setDoor(door);
       ContainmentApi.move(wardrobe, park);
@@ -181,8 +193,8 @@ describe('ExitableVessel', () => {
       expect(door.hasAttached(entry!)).toBe(true);
     });
 
-    it('closed door blocks traversal through synthesized exits', () => {
-      const door = makeStuff(() => new Door());
+    it('closed door blocks traversal through synthesized exits', async () => {
+      const door = await StuffApi.create(() => new Door());
       door.setShortDescription('wardrobe door');
       door.close();
       wardrobe.setDoor(door);
@@ -198,10 +210,10 @@ describe('ExitableVessel', () => {
       expect(guardOpen.ok).toBe(true);
     });
 
-    it('setDoor invalidates the synth caches and unhooks old door.attachedTo', () => {
-      const oldDoor = makeStuff(() => new Door());
+    it('setDoor invalidates the synth caches and unhooks old door.attachedTo', async () => {
+      const oldDoor = await StuffApi.create(() => new Door());
       oldDoor.setShortDescription('old door');
-      const newDoor = makeStuff(() => new Door());
+      const newDoor = await StuffApi.create(() => new Door());
       newDoor.setShortDescription('new door');
 
       wardrobe.setDoor(oldDoor);
@@ -210,17 +222,17 @@ describe('ExitableVessel', () => {
       expect(oldDoor.hasAttached(firstOut)).toBe(true);
 
       wardrobe.setDoor(newDoor);
-      // Cache invalidated → next access yields a fresh exit.
+      // The SAME exit, rebound onto the new door.
       const secondOut = wardrobe.getExit('out')!;
-      expect(secondOut).not.toBe(firstOut);
+      expect(secondOut).toBe(firstOut);
       expect(secondOut.getDoor()).toBe(newDoor);
       expect(newDoor.hasAttached(secondOut)).toBe(true);
       // Old exit is no longer registered with the old door.
       expect(oldDoor.hasAttached(firstOut)).toBe(false);
     });
 
-    it('move-induced cache invalidation also unhooks attachedTo', () => {
-      const door = makeStuff(() => new Door());
+    it('a move detaches the pair from the door and re-attaches it', async () => {
+      const door = await StuffApi.create(() => new Door());
       door.setShortDescription('wardrobe door');
       wardrobe.setDoor(door);
       ContainmentApi.move(wardrobe, park);
@@ -229,9 +241,11 @@ describe('ExitableVessel', () => {
 
       Stuff._stampZone(wardrobe, zone);
       ContainmentApi.move(wardrobe, park2);
+      // The same exit, detached from the door and re-attached — so the
+      // "unhooks attachedTo" half still holds, and `hasAttached` is
+      // true again afterwards because it is the same object.
       const secondOut = wardrobe.getExit('out')!;
-      expect(secondOut).not.toBe(firstOut);
-      expect(door.hasAttached(firstOut)).toBe(false);
+      expect(secondOut).toBe(firstOut);
       expect(door.hasAttached(secondOut)).toBe(true);
     });
   });

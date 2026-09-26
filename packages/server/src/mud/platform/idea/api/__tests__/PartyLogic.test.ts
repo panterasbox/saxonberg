@@ -8,6 +8,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { seedKernelContentStore } from '../../../../lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   makeStuff,
@@ -54,6 +55,12 @@ async function seedJoin(captain: TestMember, joiner: TestMember): Promise<void> 
 }
 
 beforeEach(() => {
+  // ⭐ A party is a CLONE with a minted identity now (the lineage is
+  // `/platform/idea/Party`, the identity is the party's), so the store
+  // has to hold the row.
+  seedKernelContentStore([
+    { path: '/platform/idea/Party', class: '/platform/idea/Party', data: {} },
+  ]);
   StuffApi.clearAll();
   // Party chat is out of scope for the unit test — make form's channel
   // mint a fast, swallowed no-op.
@@ -103,7 +110,7 @@ describe("PartyApi — lifecycle", () => {
     const acc = await joiner.acceptPartyInvite();
     expect(acc.ok).toBe(true);
     expect(party.isMember(joiner.getTemplatePath()!)).toBe(true);
-    expect(joiner.getActivePartyPath()).toBe(party.getTemplatePath());
+    expect(joiner.getActivePartyPath()).toBe(party.getIdentityPath());
     expect(PartyApi.areAllied(cap as Stuff, joiner as Stuff)).toBe(true);
   });
 
@@ -131,7 +138,7 @@ describe("PartyApi — lifecycle", () => {
     const cap = member();
     const heir = member();
     const party = await seedParty(cap);
-    const path = party.getTemplatePath()!;
+    const path = party.getIdentityPath()!;
     await seedJoin(cap, heir);
 
     // Captain leaves → heir promoted.
@@ -150,7 +157,7 @@ describe("PartyApi — lifecycle", () => {
     const res = await founder.formParty("Vanguard", false);
     expect(res.ok).toBe(true);
     if (res.ok) {
-      const path = res.party.getTemplatePath()!;
+      const path = res.party.getIdentityPath()!;
       expect(res.party.isCaptain(founder.getTemplatePath()!)).toBe(true);
       expect(founder.getActivePartyPath()).toBe(path);
       expect(res.party.isDurable()).toBe(false);

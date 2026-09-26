@@ -30,6 +30,17 @@ import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
+/**
+ * The exit-kind ROWS this warren's edges are cloned from. ⚠ `residence`
+ * does not depend on `generic-objects`, so the plain legs use the
+ * PLATFORM's default passage rather than that pack's stair row — a
+ * system pack stays dependency-light.
+ */
+const PASSAGE_KIND = '/platform/idea/exits/passage';
+const STAIR_KIND = '/platform/idea/exits/passage';
+const UPSTAIRS_KIND = '/system/residence/idea/exits/upstairs';
+const FRONT_DOOR_KIND = '/system/residence/idea/exits/front-door';
+
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
@@ -134,29 +145,26 @@ export default class BuildingWarren extends BuildingWarrenBase {
 
     const below = n === 1 ? await this.lobby() : await this.ensureNode(`main:${n - 1}`);
     if (below && MixinApi.isExitable(below) && !corrEx.getExit('down')) {
-      const down = StuffApi.createSync(
-        () =>
-          new Exit({
-            direction: 'down',
-            source: corridor,
-            destination: below as ExitableContainer,
-            keepLiveDestination: true,
-            oneWay: true,
-          }),
-      );
-      await corrEx.addExit(down);
+      // ⭐ The ROOM installs, from a kind ROW — `installExit` is the one
+      // path, and `bind` is gated on the room being party to the edge.
+      await corrEx.installExit(STAIR_KIND, {
+        direction: 'down',
+        source: corridor,
+        destination: below as ExitableContainer,
+        keepLiveDestination: true,
+        oneWay: true,
+      });
     }
     if (!corrEx.getExit('up')) {
-      const up = StuffApi.createSync(
-        () =>
-          new UpstairsExit(
-            corridor,
-            this,
-            `main:${n + 1}`,
-            this.corridorTemplate,
-          ),
+      await corrEx.installExit<UpstairsExit>(
+        UPSTAIRS_KIND,
+        {
+          direction: 'up',
+          source: corridor,
+          destinationPath: this.corridorTemplate,
+        },
+        (e) => e.configureUpstairs(this, `main:${n + 1}`),
       );
-      await corrEx.addExit(up);
     }
   }
 
@@ -172,10 +180,11 @@ export default class BuildingWarren extends BuildingWarrenBase {
     const existing = corridor.getExit(dir);
     if (existing) return existing as unknown as Exit;
     const entryRow = await HoldingWarren.entryRowOf(this.programmePath);
-    const door = StuffApi.createSync(
-      () => new FrontDoorExit(corridor, this, key, dir, entryRow),
+    const door = await corridor.installExit<FrontDoorExit>(
+      FRONT_DOOR_KIND,
+      { direction: dir, source: corridor, destinationPath: entryRow },
+      (e) => e.configureFrontDoor(this, key),
     );
-    await corridor.addExit(door);
     return door as unknown as Exit;
   }
 
@@ -193,17 +202,13 @@ export default class BuildingWarren extends BuildingWarrenBase {
     if (!corridor) return;
     const entryEx = entry as ExitableContainer;
     if (entryEx.getExit('out')) return;
-    const out = StuffApi.createSync(
-      () =>
-        new Exit({
-          direction: 'out',
-          source: entry,
-          destination: corridor as ExitableContainer,
-          keepLiveDestination: true,
-          oneWay: true,
-        }),
-    );
-    await entryEx.addExit(out);
+    await entryEx.installExit(PASSAGE_KIND, {
+      direction: 'out',
+      source: entry,
+      destination: corridor as ExitableContainer,
+      keepLiveDestination: true,
+      oneWay: true,
+    });
   }
 
   // ─────────────── Warren policy hooks ────────────────────────────
@@ -241,9 +246,14 @@ export default class BuildingWarren extends BuildingWarrenBase {
   private async installLobbyUpExit(): Promise<void> {
     const lobby = await this.lobby();
     if (!lobby || lobby.getExit('up')) return;
-    const up = StuffApi.createSync(
-      () => new UpstairsExit(lobby, this, 'main:1', this.corridorTemplate),
+    await lobby.installExit<UpstairsExit>(
+      UPSTAIRS_KIND,
+      {
+        direction: 'up',
+        source: lobby,
+        destinationPath: this.corridorTemplate,
+      },
+      (e) => e.configureUpstairs(this, 'main:1'),
     );
-    await lobby.addExit(up);
   }
 }

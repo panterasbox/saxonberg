@@ -106,16 +106,13 @@ export default class CheckController extends CommandController<CheckModel> {
     // The diegetic claim: a carried ticket stamped with the rack. The
     // AUTHORITY to reclaim is the owner-stamp, not the ticket — so a lost
     // ticket never traps your weapon (it's flavor, not the key).
-    const ticket = await StuffApi.create(() => new Ticket());
+    // ⭐ The row carries the prose and the keywords; the rack and the
+    // number are runtime state, so they are patched on after the clone.
+    // (The note that used to sit here — "a runtime-minted thing has no
+    // row to author them in" — is what the create→clone sweep fixed.)
+    const ticket = await StuffApi.clone<Ticket>("/platform/thing/Ticket");
     ticket.pointPath = rack.getTemplatePath() ?? "";
     ticket.number = rack.countHeld(consignorKey);
-    ticket.setShortDescription("coat-check ticket");
-    // ⚠ Keywords are AUTHORED, and a runtime-minted thing has no row to
-    // author them in — so the code that names it says what it answers to.
-    // They used to fall out of the description for free; that derivation
-    // is gone (see Perceptible), and without this the ticket would be
-    // untargetable.
-    ticket.setKeywords(["ticket", "coat-check", "check"]);
     ContainmentApi.move(ticket as unknown as Stuff & Containable, giver as unknown as Stuff & Container);
 
     MessageApi.scene(giver)

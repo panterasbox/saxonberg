@@ -39,6 +39,7 @@ import Avatar, { type AvatarInitContext } from './Avatar';
 import type Species from '../idea/species/Species';
 import { IncorporealMixin } from '../../lib/mortality/Incorporeal';
 import { PlayerApi } from '../../api/player';
+import type { FieldMeta } from '../../lib/mixin';
 
 /** Init context for a shade: the identity it stands in for. */
 export interface ShadeInitContext extends AvatarInitContext {
@@ -47,23 +48,28 @@ export interface ShadeInitContext extends AvatarInitContext {
 }
 
 export default class Shade extends IncorporealMixin(Avatar) {
-  /** The identity's playerId. Registered under it — see the class doc. */
-  private shadePlayerId = '';
+  /**
+   * The identity's playerId. Registered under it — see the class doc.
+   *
+   * ⭐ Declared so the clone's `dataOverlay` can land it: hydration
+   * Phase 1 runs BEFORE `postRegister`, which is exactly the ordering
+   * the constructor argument used to guarantee. (A key no field
+   * declares is discarded by the Hydrator SILENTLY — `lint:instanceable`
+   * invariant 12 is the gate that now counts those.)
+   */
+  public shadePlayerId = '';
 
-  /** The deceased's species, applied before the Avatar lifecycle runs. */
-  private shadeSpecies: Species | null = null;
+  static fieldMeta: FieldMeta = {
+    shadePlayerId: { persistent: true, runtimeState: true },
+  };
 
   /**
-   * Identity and species are CONSTRUCTOR arguments for the same reason
-   * `WireBody` takes them: everything downstream keys on them, and the
-   * fork that would otherwise carry species runs after `postRegister` —
-   * exactly too late for the body plan the loadout walks.
+   * The deceased's species, applied before the Avatar lifecycle runs.
+   * ⚠ Not a constructor argument any more: the species arrives as
+   * `_speciesPath` in the same overlay, which `OrganismMixin` already
+   * declares, so `postRegister` reads it off the field.
    */
-  constructor(playerId: string, species: Species | null) {
-    super();
-    this.shadePlayerId = playerId;
-    this.shadeSpecies = species;
-  }
+  private shadeSpecies: Species | null = null;
 
   public override async postRegister(
     context?: ShadeInitContext,
@@ -83,8 +89,8 @@ export default class Shade extends IncorporealMixin(Avatar) {
     // unregistered and destructed. Registering here would collide with
     // the body that is still being drained.
     //
-    // No merge with `context.playerId`: the constructor now requires
-    // `playerId`, so `shadePlayerId` is authoritative already.
+    // No merge with `context.playerId`: `shadePlayerId` arrives in the
+    // clone overlay before this hook runs, so it is authoritative.
     await super.postRegister({ ...context, playerId: undefined });
     this.setLifecycleState('undead');
   }

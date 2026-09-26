@@ -1,0 +1,21 @@
+# ⭐⭐ The default exit kind — a bare passage, and the reason `new Exit()`
+# is gone from the tree.
+#
+# Every `exits:` entry that names no `kind:` clones THIS row, so there is
+# exactly one path from content to an exit. It authors NOTHING: no
+# traverse prose, no media, no restriction — a doorway you walk through
+# and nobody remarks on.
+#
+# ⚠ The empty `media` is load-bearing, not an omission. An exit with no
+# media admits the ground pace family (walk / sneak / run) with no
+# modality lookup at all; authoring `media: [ground]` would make every
+# unremarkable doorway in the realm depend on the mode roster being
+# warm. Found by the trapped-corridor suite, which went "you can't walk
+# that way" the moment the row said `ground` out loud.
+#
+# ⚠ And no `hydratorClass`, because there is no data to apply — which
+# `lint:instanceable` invariant 5 would otherwise call out.
+#
+# If this row is missing the FIRST exit in the world throws, by name.
+# That is the intended failure: loud, at boot, and one line to fix.
+class: /platform/idea/Exit

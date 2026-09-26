@@ -1,5 +1,5 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import Exit from '../Exit';
 import Door from '../../../platform/thing/Door';
 import CartesianLocation from '../../location/CartesianLocation';
@@ -11,8 +11,8 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { MobileMixin } from '../../spatial/Mobile';
 import { NamedMixin } from '../../description/Named';
 import {
-  makeStuff,
-  makeStuffAtPath,
+  makeStuff,  makeStuffAtPath,
+  seedKernelContentStore,
 } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
@@ -34,6 +34,10 @@ class PeerSensor extends PeerBase {
 }
 
 describe('Exit', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let zone: CartesianZone;
   let locA: CartesianLocation;
   let locB: CartesianLocation;
@@ -88,8 +92,8 @@ describe('Exit', () => {
       expect(result.reason).toMatch(/blocked/i);
     });
 
-    it('returns not ok when door is closed', () => {
-      const door = makeStuff(() => new Door());
+    it('returns not ok when door is closed', async () => {
+      const door = await StuffApi.create(() => new Door());
       door.setShortDescription('oak door');
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
       const result = exit.canTraverse(mover);
@@ -100,8 +104,8 @@ describe('Exit', () => {
       expect(result.reason).toMatch(/oak door/i);
     });
 
-    it('returns ok when door is open', () => {
-      const door = makeStuff(() => new Door());
+    it('returns ok when door is open', async () => {
+      const door = await StuffApi.create(() => new Door());
       door.setShortDescription('oak door');
       door.open();
       const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
@@ -381,7 +385,7 @@ describe('Exit.media', () => {
       expect(exit.allowsMode('fly')).toBe(false);
     });
 
-    it('passthrough modes (ride/drive) are never admitted by media match', () => {
+    it('passthrough modes (ride/drive) are never admitted by media match', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'east', source: locA, destination: locB,
         media: ['ground', 'water', 'air', 'vertical'],
@@ -481,8 +485,8 @@ describe('Exit.canTraverse with mode', () => {
     expect(result.gate).toBe('blocked');
   });
 
-  it('returns gate=door when door is closed', () => {
-    const door = makeStuff(() => new Door());
+  it('returns gate=door when door is closed', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
     const exit = makeStuff(() => new Exit({
       direction: 'n', source: locA, destination: locB, door,

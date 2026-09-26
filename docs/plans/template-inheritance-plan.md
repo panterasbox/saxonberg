@@ -1105,7 +1105,7 @@ green with the override seam.
   running dev world still wants one — a renamed persistent key, and the
   project rule is drop-and-reseed. The drive runs on a fresh DB anyway.
 
-### W4 — Exits are content; the create→clone sweep (kernel)
+### W4 — Exits are content; the create→clone sweep (kernel) ✅ DONE
 
 **Decisions.** D9, D10 (platform rows), D11, D13 (`lint:create-sites`, ceiling 5).
 
@@ -1132,9 +1132,80 @@ still conducts; ticket still reclaims; the create-sites gate's own test.
 on a new exit); AC8; AC11 (the allowlist IS the enumeration); the vessel
 `out` exit still works (drive step 17).
 
-**Commit.** `build(template-inheritance W4): every exit is a clone; the six create sites that remain`
+**Commit.** `build(template-inheritance W4): every exit is a clone; the five create sites that remain`
 
-### W5 — Exit kinds in the packs
+**W4 note (build, 2026-09-25).** The biggest wave, and the one that
+found the most. Decisions:
+
+- ⭐ **D9a — `installExit` takes a kind path OR AN EXISTING EXIT.** The
+  plan had `rebind` as a separate seam; in practice the room must be
+  the caller either way (`bind` is participant-gated), so re-installing
+  an exit is the same method with a different first argument. A host
+  that tried to bind its own exit was refused outright — which is how
+  the sandbox crossing failed first.
+- **D9b — `bind` and `rebind` share a private `_applyBinding`.**
+  `rebind` calling `this.bind(...)` makes the EXIT its own caller, and
+  an exit is never party to its own edge. One body, two gated doors.
+- ⭐ **D9c — a boundary's anchors are minted ONCE and kept across
+  detach.** `_detachAndDestructAnchors` used to destroy them and let
+  the next install `createSync` a fresh pair; it cannot, because an
+  anchor is a clone and a clone is async while `installBoundary` must
+  stay sync (a vessel's `onMoved` calls it). So `Boundary` composes
+  `PostRegistrationMixin`, mints the pair at registration, and detach
+  drops only the host link. `attachExistingBoundary`'s "already has
+  anchors" refusal became "already installed".
+  ⚠ And `ensureAnchors()` is public because `Window.setAttachedHosts`
+  is a Phase-1 setter — hydration runs BEFORE `postRegister`, so a
+  boundary can be asked to wire itself before the hook.
+- ⭐ **D9d — a vessel's `in`/`out` pair and a crossing's passage are
+  pre-minted and REBOUND, not re-cloned per placement.** The plan said
+  a fresh clone per placement for the crossing; that makes a sync
+  containment witness async and left `this.passage` unset for a tick,
+  which six sandbox tests read immediately. Pre-minting is also the
+  more honest model: these exits move WITH their host.
+- ⚠ **D9e — the `passage` row authors NO media and NO hydrator.** An
+  exit with empty `media` admits the ground pace family with no
+  modality lookup; writing `media: [ground]` made every doorway depend
+  on the mode roster being warm, and the trapped-corridor suite said
+  "you can't walk that way". The empty row then has nothing to hydrate,
+  so it names no hydrator either (invariant 5).
+- ⭐ **D11a — `LightningStrike` MOVED to `platform/thing/`** rather than
+  gaining a twin. `EnergizedMixin.conduct` is `@Final`, and an empty
+  subclass of a final-bearing mixin is refused at import. The
+  *instanced but never stamped* carve-out in architecture.md is
+  dissolved: all three residents are stamped now.
+- **D11b — `Shade` and `WireBody` declare their id field** so the clone
+  overlay can land it. A key no field declares is discarded silently —
+  invariant 12's whole subject — and their rows carry the field's
+  default so invariant 5 has data to point at.
+- ⚠⚠ **D11c — `Party` had to move to `getIdentityPath()` everywhere.**
+  Every party is a clone of one row now, so `getTemplatePath()` is the
+  same string for all of them; the roster contract's `where` clause was
+  comparing against it, which would have let ANY party set ANY member's
+  pointer. Exactly the Avatar trap D17 named, arriving because this
+  build made Party lineage-shared for the first time.
+- ⚠ **D11d — the wire body is RE-STAMPED after the clone.**
+  `SandboxApi.enter` stamps `/platform/agent/Avatar/<pid>/wire` because
+  `isAvatarStuff` keys on that prefix; the condition was
+  `getTemplatePath() === null`, true only while the vessel was
+  `create`d. A clone arrives stamped, the branch was skipped, and a
+  player silently lost their own powers inside their own circle — the
+  exact failure the comment beside it already described.
+
+**The test-fixture cost, and the two wrong turns.** Every exit being a
+clone means a suite with no content store can no longer build a room
+with a doorway. ⚠ The first fix was a GLOBAL floor in `test-bootstrap`
+that intercepted `PersistenceManager.get`; it broke sixty suites,
+because the `vi.spyOn(pm, 'find')` pattern spies the object that call
+returns. The second was a content-only fake, and the sandbox round-trip
+went red reading back a bank ledger it had just written. What works:
+`KERNEL_CONTENT_ROWS` declared once in `test-bootstrap`, spliced into
+the shared `installStore` (which every standup test already uses) and
+into the banking harness, with `seedKernelContentStore` delegating to
+the same collection-aware stub. **A stub that replaces the store has to
+answer for all of it.**
+
+### W5 — Exit kinds in the packs ✅ DONE
 
 **Decisions.** D9 (DDE configure), D10 (pack rows).
 
@@ -1148,6 +1219,23 @@ authored lines; edit the stair row, publish, build a new floor, the new
 prose appears).
 
 **Commit.** `build(template-inheritance W5): the warrens' exits are rows`
+
+**W5 note (build, 2026-09-25).** The six DDE subclasses lost their
+constructor arguments to a `configure*` set-once method each, and
+`DeferredDestinationExit`'s own constructor takes its options
+optionally (the clone pipeline constructs bare). Fourteen warren sites
+became `room.installExit(kind, opts, configure)`.
+
+- ⭐ Two prose pairs moved from TypeScript into rows —
+  `FrontDoorExit`'s `setMessageOut`/`setMessageIn` and `LotGateExit`'s
+  arrival line. That is the whole point of the wave: those sentences
+  were unreachable by any author.
+- `residence` does NOT depend on `generic-objects`, so its plain legs
+  clone the platform's `passage` rather than that pack's `stair`; the
+  university, which does depend on it, keeps `stair`.
+- `KeyedDoorExit.programmeRef` is nullable now: an unconfigured door is
+  a door nobody can open, which is the right answer rather than a
+  crash.
 
 ### W6 — The exemplars: Dave's Bar, the bottling line, the crates, the costumes
 

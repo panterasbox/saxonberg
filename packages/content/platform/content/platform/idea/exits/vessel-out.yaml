@@ -1,0 +1,7 @@
+# The way OUT of a vessel. See `vessel-in` — the same pre-mint-and-rebind
+# lifecycle, the other direction.
+class: /platform/idea/Exit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageOut: "{{ mover }} climbs down."
+  messageIn: "{{ mover }} climbs down."

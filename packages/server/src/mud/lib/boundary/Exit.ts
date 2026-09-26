@@ -658,6 +658,17 @@ export default class Exit extends ConcealableMixin(Idea) {
           `${this.source.getTemplatePath() ?? this.source.stuffId})`
       );
     }
+    this._applyBinding(opts);
+  }
+
+  /**
+   * The binding itself, ungated. ⚠ `rebind` cannot simply call `bind`:
+   * the gate reads the CALLER, and a `this.bind(...)` from inside the
+   * exit makes the exit its own caller — which is never a party to the
+   * edge, so the room's legitimate rebind was refused. One body, two
+   * gated doors.
+   */
+  private _applyBinding(opts: ExitOptions): void {
     if (!opts.destination && !opts.destinationPath) {
       throw new Error(
         'Exit.bind requires either destination (live ref) or destinationPath (templatePath).'
@@ -710,6 +721,31 @@ export default class Exit extends ConcealableMixin(Idea) {
     if (opts.edgeMinutes !== undefined) {
       this.setEdgeMinutes(opts.edgeMinutes);
     }
+  }
+
+  /**
+   * ⭐ Re-bind an ALREADY-bound exit to a new edge.
+   *
+   * The one seam {@link bind}'s "throws if already bound" rule needs:
+   * an exit whose source or destination MOVES WITH ITS HOST. A vessel's
+   * `in`/`out` pair is the case — the cart is a room, the room goes
+   * somewhere else, and the same two exits now join a different pair of
+   * places. Every other exit is minted for one edge and stays on it.
+   *
+   * ⚠ Not a general mutator. It resets the edge fields and binds again,
+   * under the same participant gate: only a room party to the NEW edge
+   * may call it, which is what stops an exit being re-pointed by
+   * anything that merely holds a reference to it.
+   */
+  @CallSecurity(ByPartyRoom)
+  @Final
+  @Unshadowable
+  public rebind(opts: ExitOptions): void {
+    this.source = null as unknown as Stuff & Container;
+    this.direction = '';
+    this._destination = null;
+    this._destinationPath = null;
+    this._applyBinding(opts);
   }
 
   /**

@@ -666,12 +666,26 @@ async function mintCorpseFrom(
 async function mintShadeFrom(
   avatar: PlayerBody,
 ): Promise<Stuff | null> {
-  const { default: Shade } = await import('../../agent/Shade');
   const species = MixinApi.isOrganism(avatar as unknown as Stuff)
-    ? (avatar as unknown as { getSpecies(): never }).getSpecies()
+    ? (avatar as unknown as { getSpecies(): { getTemplatePath(): string | null } | null }).getSpecies()
     : null;
-  const shade = await StuffApi.create(
-    () => new Shade(avatar.getPlayerId(), species),
+  // ⭐ Clone the row with the minted-identity channel, exactly as an
+  // Avatar is minted. What the constructor used to take — the player id
+  // and the species — rides `dataOverlay`, which hydration Phase 1
+  // lands BEFORE `postRegister`, which is the ordering the constructor
+  // existed to guarantee.
+  const shade = await StuffApi.clone<Stuff>(
+    '/platform/agent/Shade',
+    undefined,
+    {
+      asIdentityPath: `/platform/agent/Shade/${avatar.getPlayerId()}`,
+      dataOverlay: {
+        shadePlayerId: avatar.getPlayerId(),
+        ...(species?.getTemplatePath()
+          ? { _speciesPath: species.getTemplatePath() }
+          : {}),
+      },
+    },
   );
   const user = avatar.getUser?.();
   if (user) (shade as unknown as PlayerBody).setUser?.(user);

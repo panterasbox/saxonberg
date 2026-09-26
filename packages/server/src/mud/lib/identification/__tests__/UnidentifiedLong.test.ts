@@ -24,7 +24,8 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { StuffApi } from '../../../api/stuff';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -42,7 +43,10 @@ import { PerceptionMixin } from '../../perception/Perception';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import {
+  makeStuff, makeStuffAtPath,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 
 class Viewer extends BeliefStoreMixin(PerceptionMixin(SensorMixin(Idea))) {}
 class Wand extends IdentifiableMixin(VisibleMixin(ContainableMixin(Idea))) {}
@@ -96,6 +100,10 @@ function longFor(viewer: Stuff, item: Wand): string {
 }
 
 describe('the unidentified long description', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     WorldClockApi._resetForTesting();
     WorldClockApi._setNowProviderForTesting(() => 100000);
@@ -326,10 +334,10 @@ describe('the unidentified detail tree', () => {
     expect(wand.getDetail('sigil')).toContain('firebolt glyph');
   });
 
-  it('a non-identifiable Detailed host is completely untouched', () => {
+  it('a non-identifiable Detailed host is completely untouched', async () => {
     class Door extends DetailedMixin(VisibleMixin(ContainableMixin(Idea))) {}
     const viewer = makeStuff(() => new Viewer()) as unknown as Stuff;
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setDetail(['handle'], 'A brass handle.');
     expect(door.getDetailIds(undefined, viewer)).toEqual(['handle']);
     expect(door.getDetailFor(viewer, 'handle')).toBe('A brass handle.');

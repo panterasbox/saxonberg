@@ -8,14 +8,16 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { VisionModality } from '../VisionModality';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import CartesianZone from '../../location/CartesianZone';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { StuffApi } from '../../../../api/stuff';
 import { WorldClockApi } from '../../../../api/worldclock';
-import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 import { PerceptionApi } from '../../../../api/perception';
@@ -55,6 +57,10 @@ function skyLitCell(): AmbientCartesianLocation {
 }
 
 describe('the sky leg', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     installV1QuantityTagTables();
     buildAllModalities();

@@ -27,6 +27,10 @@ import { ProxyApi } from '../../../api/proxy';
 import { MixinApi, type AnyConstructor } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ExecutionContextApi } from '../../../api/execution-context';
+import {
+  installStore,
+  type Doc,
+} from '../../persistence/__tests__/backend-store';
 // SecurityApi installs its proxy interceptor in a static initializer
 // at module-load time. We import it here so tests that reach for the
 // proxy via `ProxyApi.wrap` (through `makeStuff`) always have the
@@ -165,6 +169,29 @@ export function makeStuffAtPath<T extends Stuff>(
 }
 
 /**
+ * The async twin of {@link makeStuffAtPath}: registers AND runs
+ * `postRegister`, which is what a real clone does.
+ *
+ * ⭐ Needed since a `Boundary` mints its two anchors there (they are
+ * clones of `/platform/thing/BoundaryAnchor` now). A `Door` built with
+ * the sync helper has no anchor pair and cannot be installed — which is
+ * the honest consequence, not a test bug: nothing in the world is built
+ * that way any more.
+ */
+export async function makeStuffAtPathAsync<T extends Stuff>(
+  factory: () => T,
+  path: string,
+  identityPath?: string,
+): Promise<T> {
+  const stuff = makeStuffAtPath(factory, path, identityPath);
+  const hook = stuff as unknown as {
+    postRegister?: (context?: unknown) => Promise<void> | void;
+  };
+  if (typeof hook.postRegister === 'function') await hook.postRegister();
+  return stuff;
+}
+
+/**
  * Register a marshaller singleton at its templatePath so
  * `StuffApi.findByTemplatePath` resolves it. Tests that exercise
  * marshaller-bound fields/props must call this once per marshaller
@@ -178,3 +205,30 @@ export function registerMarshallerForTest<T extends Stuff>(
 ): T {
   return makeStuffAtPath(factory, templatePath);
 }
+
+/**
+ * Install an in-memory store holding the kernel rows plus `extra` — the
+ * one-liner a suite that builds exits or boundaries puts in its
+ * `beforeEach`.
+ *
+ * ⭐ It DELEGATES to `installStore`, the collection-aware stub every
+ * standup test already uses, rather than carrying a second one. The
+ * first cut was a content-only fake, and the sandbox round-trip went
+ * red reading back a bank ledger it had just written: a stub that
+ * replaces the store has to answer for every collection, not the one
+ * the author was thinking about.
+ *
+ * Returns the live store array, so a suite can push more rows later.
+ */
+export function seedKernelContentStore(
+  extra: ReadonlyArray<Record<string, unknown>> = [],
+): Array<Record<string, unknown>> {
+  return installStore(extra as unknown as Doc[]);
+}
+
+/**
+ * ⭐ The kernel rows any suite that MINTS AN EXIT or a BOUNDARY needs in
+ * its in-memory content store — re-exported from `test-bootstrap`,
+ * which is where the platform declares them.
+ */
+export { KERNEL_CONTENT_ROWS as EXIT_KIND_TEST_ROWS } from '../../../../test-bootstrap';

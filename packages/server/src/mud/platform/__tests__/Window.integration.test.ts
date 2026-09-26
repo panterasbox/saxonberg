@@ -1,5 +1,5 @@
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import Window from '../thing/Window';
 import { Light } from '../../lib/perception/Light';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
@@ -12,7 +12,10 @@ import { VisionModality } from '../idea/modalities/VisionModality';
 import { MAX_HOPS } from '../../lib/perception/Modality';
 import { buildAllModalities } from '../../lib/perception/modalities/__tests__/test-helpers';
 import { StuffApi } from '../../api/stuff';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 import { PerceptionApi } from '../../api/perception';
 
 /** The vision modality singleton — these are instance methods on it. */
@@ -27,6 +30,10 @@ class Candle extends LightSourceMixin(Thing) {}
  * the most likely place for surprise.
  */
 describe('Window — multi-room propagation integration', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     buildAllModalities();
   });
@@ -53,9 +60,9 @@ describe('Window — multi-room propagation integration', () => {
     return { roomA, roomB };
   }
 
-  it('open window: candle in A leaks into B via the LightConduit', () => {
+  it('open window: candle in A leaks into B via the LightConduit', async () => {
     const { roomA, roomB } = setupTwoRoomsAcrossZones();
-    const window = makeStuff(() => new Window());
+    const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(1);
     window.open();
     BoundaryApi.attachExistingBoundary({
@@ -74,9 +81,9 @@ describe('Window — multi-room propagation integration', () => {
     expect(totalB.intensity.rawValue()).toBe(40);
   });
 
-  it('closed window: A is lit, B reads ZERO', () => {
+  it('closed window: A is lit, B reads ZERO', async () => {
     const { roomA, roomB } = setupTwoRoomsAcrossZones();
-    const window = makeStuff(() => new Window());
+    const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(1);
     // Window starts closed.
     BoundaryApi.attachExistingBoundary({
@@ -96,9 +103,9 @@ describe('Window — multi-room propagation integration', () => {
     expect(vision().lightAt(roomB).intensity.rawValue()).toBe(40);
   });
 
-  it('partial transmissivity attenuates the leak', () => {
+  it('partial transmissivity attenuates the leak', async () => {
     const { roomA, roomB } = setupTwoRoomsAcrossZones();
-    const window = makeStuff(() => new Window());
+    const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(0.5);
     window.open();
     BoundaryApi.attachExistingBoundary({
@@ -114,9 +121,9 @@ describe('Window — multi-room propagation integration', () => {
     expect(vision().lightAt(roomB).intensity.rawValue()).toBe(20);
   });
 
-  it('one-way glass: A→B leaks fully; B→A leaks not at all', () => {
+  it('one-way glass: A→B leaks fully; B→A leaks not at all', async () => {
     const { roomA, roomB } = setupTwoRoomsAcrossZones();
-    const window = makeStuff(() => new Window());
+    const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(1);
     window.setDirectionalOverrides({ aToB: 1, bToA: 0 });
     window.open();
@@ -139,7 +146,7 @@ describe('Window — multi-room propagation integration', () => {
     expect(vision().lightAt(roomA)).toBe(Light.ZERO);
   });
 
-  it('three-room chain through two windows respects MAX_HOPS', () => {
+  it('three-room chain through two windows respects MAX_HOPS', async () => {
     expect(MAX_HOPS).toBe(2);
     const zoneA = makeStuff(() => new CartesianZone());
     zoneA.setCellSize(1);
@@ -154,7 +161,7 @@ describe('Window — multi-room propagation integration', () => {
     zoneB.addLocation(roomB, 0, 0, 0);
     zoneC.addLocation(roomC, 0, 0, 0);
 
-    const wAB = makeStuff(() => new Window());
+    const wAB = await StuffApi.create(() => new Window());
     wAB.setBaseTransmissivity(1);
     wAB.open();
     BoundaryApi.attachExistingBoundary({
@@ -162,7 +169,7 @@ describe('Window — multi-room propagation integration', () => {
       hostA: roomA,
       hostB: roomB,
     });
-    const wBC = makeStuff(() => new Window());
+    const wBC = await StuffApi.create(() => new Window());
     wBC.setBaseTransmissivity(1);
     wBC.open();
     BoundaryApi.attachExistingBoundary({
@@ -190,7 +197,7 @@ describe('Window — multi-room propagation integration', () => {
     zoneD.setCellSize(1);
     const roomD = makeStuff(() => new CartesianLocation());
     zoneD.addLocation(roomD, 0, 0, 0);
-    const wCD = makeStuff(() => new Window());
+    const wCD = await StuffApi.create(() => new Window());
     wCD.setBaseTransmissivity(1);
     wCD.open();
     BoundaryApi.attachExistingBoundary({
@@ -210,9 +217,9 @@ describe('Window — multi-room propagation integration', () => {
     expect(vision().lightAt(roomA).intensity.rawValue()).toBe(0);
   });
 
-  it('BoundaryApi.destruct cleanly removes the leak', () => {
+  it('BoundaryApi.destruct cleanly removes the leak', async () => {
     const { roomA, roomB } = setupTwoRoomsAcrossZones();
-    const window = makeStuff(() => new Window());
+    const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(1);
     window.open();
     BoundaryApi.attachExistingBoundary({

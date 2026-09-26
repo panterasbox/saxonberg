@@ -1,5 +1,5 @@
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import Window from '../thing/Window';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import Thing from '../../lib/stuff/Thing';
@@ -8,8 +8,9 @@ import { StuffApi } from '../../api/stuff';
 import PersistentHydrator from '../idea/persistence/PersistentHydrator';
 import { BoundaryApi } from '../../api/boundary';
 import {
-  makeStuffAtPath,
-  makeStuff,
+  makeStuffAtPath,  makeStuff,
+  seedKernelContentStore,
+  EXIT_KIND_TEST_ROWS,
 } from '../../lib/security/__tests__/test-setup';
 
 type Doc = Record<string, unknown> & {
@@ -20,7 +21,11 @@ type Doc = Record<string, unknown> & {
 };
 
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row and every boundary's anchor
+  // pair is a clone too, so a store with no rows cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
 
   const save = vi.fn(async (_c: string, doc: Doc) => {
     const copy = { ...doc };
@@ -53,6 +58,10 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 
 describe('Window.setAttachedHosts', () => {
   beforeEach(() => {
+    seedKernelContentStore();
+  });
+
+  beforeEach(() => {
     StuffApi.clearAll();
   });
 
@@ -64,7 +73,7 @@ describe('Window.setAttachedHosts', () => {
   it('resolves both hosts via singleton and attaches anchors', async () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/room/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/room/b');
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await w.setAttachedHosts(['/room/a', '/room/b']);
     expect(w.getAttachedHosts()).toEqual(['/room/a', '/room/b']);
     expect(w.getAnchorA()).not.toBeNull();
@@ -76,7 +85,7 @@ describe('Window.setAttachedHosts', () => {
   it('is idempotent: re-set with same pair is no-op', async () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
     makeStuffAtPath(() => new CartesianLocation(), '/room/b');
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await w.setAttachedHosts(['/room/a', '/room/b']);
     await expect(
       w.setAttachedHosts(['/room/a', '/room/b'])
@@ -86,7 +95,7 @@ describe('Window.setAttachedHosts', () => {
   it('accepts hosts in reverse order on re-set (matchesReverse)', async () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
     makeStuffAtPath(() => new CartesianLocation(), '/room/b');
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await w.setAttachedHosts(['/room/a', '/room/b']);
     await expect(
       w.setAttachedHosts(['/room/b', '/room/a'])
@@ -97,7 +106,7 @@ describe('Window.setAttachedHosts', () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
     makeStuffAtPath(() => new CartesianLocation(), '/room/b');
     makeStuffAtPath(() => new CartesianLocation(), '/room/c');
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await w.setAttachedHosts(['/room/a', '/room/b']);
     await expect(
       w.setAttachedHosts(['/room/a', '/room/c'])
@@ -106,14 +115,14 @@ describe('Window.setAttachedHosts', () => {
 
   it('refuses hostA === hostB', async () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await expect(
       w.setAttachedHosts(['/room/a', '/room/a'])
     ).rejects.toThrow(/must differ/);
   });
 
   it('rejects malformed input', async () => {
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await expect(
       w.setAttachedHosts(['/a'] as unknown as [string, string])
     ).rejects.toThrow(TypeError);
@@ -122,7 +131,7 @@ describe('Window.setAttachedHosts', () => {
   it('throws if a resolved host is not Adornable', async () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
     makeStuffAtPath(() => new Thing(), '/thing'); // not Adornable
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await expect(
       w.setAttachedHosts(['/room/a', '/thing'])
     ).rejects.toThrow(/AdornableMixin/);
@@ -141,7 +150,7 @@ describe('Window.setAttachedHosts', () => {
         data: {},
       },
     ]);
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     // Hosts have NOT been instantiated yet.
     expect(StuffApi.findByTemplatePath('/room/a')).toBeFalsy();
     expect(StuffApi.findByTemplatePath('/room/b')).toBeFalsy();
@@ -155,7 +164,7 @@ describe('Window.setAttachedHosts', () => {
   it('hydrates via PersistentHydrator method-dispatch', async () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
     makeStuffAtPath(() => new CartesianLocation(), '/room/b');
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await makeStuff(() => new PersistentHydrator()).hydrate(w, {
       attachedHosts: ['/room/a', '/room/b'],
     });
@@ -167,12 +176,12 @@ describe('Window.setAttachedHosts', () => {
   it('HMR-style: destruct + re-clone attaches cleanly to same hosts', async () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
     makeStuffAtPath(() => new CartesianLocation(), '/room/b');
-    const w1 = makeStuff(() => new Window());
+    const w1 = await StuffApi.create(() => new Window());
     await w1.setAttachedHosts(['/room/a', '/room/b']);
     // Destruct via BoundaryApi (clears anchors via Boundary.onDestruct).
     BoundaryApi.destruct(w1);
     // A second Window attaches cleanly to the same hosts.
-    const w2 = makeStuff(() => new Window());
+    const w2 = await StuffApi.create(() => new Window());
     await expect(
       w2.setAttachedHosts(['/room/a', '/room/b'])
     ).resolves.toBeUndefined();

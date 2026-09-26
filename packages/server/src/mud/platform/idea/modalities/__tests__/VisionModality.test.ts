@@ -1,5 +1,5 @@
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { VisionModality } from '../VisionModality';
 import { MAX_HOPS, EXIT_TAU } from '../../../../lib/perception/Modality';
 import { Light } from '../../../../lib/perception/Light';
@@ -10,7 +10,10 @@ import SphericalZone from '../../location/SphericalZone';
 import Door from '../../../thing/Door';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { StuffApi } from '../../../../api/stuff';
-import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 import { PerceptionApi } from '../../../../api/perception';
@@ -23,6 +26,10 @@ class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 class AmbientSphericalLocation extends AmbientLitMixin(SphericalLocation) {}
 
 describe('VisionModality.signalAt — propagation core', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     installV1QuantityTagTables();
     buildAllModalities();
@@ -99,7 +106,7 @@ describe('VisionModality.signalAt — propagation core', () => {
     zone.addLocation(b, 0, 1, 0);
     b.setAmbientFlux(60);
 
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     door.setOpen(false);
     await a.addBidirectionalExit(b, 'north', { door });

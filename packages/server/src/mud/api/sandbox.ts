@@ -122,7 +122,16 @@ export class SandboxApi {
     // the sanctioned caller.
     const playerId = actor.getPlayerId();
     const vessel = playerId ? logic().activeBodyFor(playerId) : null;
-    if (vessel && vessel.getTemplatePath() === null) {
+    // ⚠ The condition used to be `getTemplatePath() === null`, which
+    // held because the vessel was `create`d and carried no stamp. It is
+    // a CLONE now, so it arrives stamped with its lineage
+    // (`/platform/agent/sandbox/WireBody`) and the stamp below was
+    // skipped — quietly costing the player their own powers inside
+    // their own circle, which is the exact failure this comment already
+    // describes. The vessel path is re-stamped whenever it is not
+    // already the wire path.
+    const wirePath = `${TemplatePathPrefixes.avatar}${playerId}/wire`;
+    if (vessel && vessel.getTemplatePath() !== wirePath) {
       // Under the CIRCLE's root: `enter` is called from the field (the
       // wardrobe exit's traverse), and the vessel is circle-born — a
       // field-context write against a circle-scoped receiver is exactly
@@ -132,9 +141,7 @@ export class SandboxApi {
         SandboxApi,
         'enter.stampVessel',
         () => {
-          vessel.setTemplatePath(
-            `${TemplatePathPrefixes.avatar}${playerId}/wire`
-          );
+          vessel.setTemplatePath(wirePath);
         },
         { circleScope: session.scope }
       );

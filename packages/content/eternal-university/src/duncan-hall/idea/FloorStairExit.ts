@@ -27,16 +27,10 @@ import DormWarren from './DormWarren';
 
 export default class FloorStairExit extends DeferredDestinationExit {
   /** The floor this exit climbs TO (lobby's up → 1; corridor n's up → n+1). */
-  private targetFloor: number;
+  private targetFloor = 0;
 
-  constructor(source: Stuff & Container, targetFloor: number) {
-    super({
-      direction: 'up',
-      source,
-      // The destination's class template (accurate + eager); the specific
-      // floor's corridor is faulted in via `computeDestination`.
-      destinationTemplatePath: DormWarren.CORRIDOR_TEMPLATE,
-    });
+  /** ⭐ What the constructor used to take, as a set-once step. */
+  public configureFloor(targetFloor: number): void {
     this.targetFloor = targetFloor;
   }
 

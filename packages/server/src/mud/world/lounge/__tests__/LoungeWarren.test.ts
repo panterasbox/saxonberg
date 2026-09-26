@@ -6,7 +6,8 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import LoungeWarren from '../idea/LoungeWarren';
 import Lounge from '../location/Lounge';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -21,7 +22,9 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
-import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../../lib/security/__tests__/test-setup';
 import { MixinApi } from '../../../api/mixin';
 
 type Doc = Record<string, unknown> & {
@@ -36,6 +39,8 @@ const PH = PersistentHydrator.templatePath;
 
 function installLoungeStore(): Doc[] {
   const store: Doc[] = [
+    // ⭐ Every exit is a clone of a kind row now.
+    ...(KERNEL_CONTENT_ROWS as unknown as Doc[]),
     { path: PH, class: PH, data: {} },
     { path: LoungeWarren.WARREN_PATH, class: '/world/lounge/idea/LoungeWarren', data: {} },
     {
@@ -92,6 +97,10 @@ type WarrenInternals = LoungeWarren & {
 };
 
 describe('LoungeWarren policy', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     StuffApi.clearAll();
     installLoungeStore();

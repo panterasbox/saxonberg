@@ -8,7 +8,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { AudienceGather } from '../AudienceGather';
 import { MAX_HOPS } from '../Modality';
 import { Sound } from '../Sound';
@@ -20,7 +20,10 @@ import Door from '../../../platform/thing/Door';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Ear extends SensorMixin(ContainableMixin(Idea)) {}
@@ -38,6 +41,10 @@ function earIn(loc: CartesianLocation): Ear {
 }
 
 describe('gatherAudience — outward push walk', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     installV1QuantityTagTables();
   });
@@ -94,7 +101,7 @@ describe('gatherAudience — outward push walk', () => {
     zone.setCellSize(1);
     const a = room(zone, 0, 0);
     const b = room(zone, 0, 1);
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     door.setOpen(false);
     await a.addBidirectionalExit(b, 'north', { door });

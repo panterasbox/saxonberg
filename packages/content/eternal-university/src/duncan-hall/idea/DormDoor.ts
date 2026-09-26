@@ -37,16 +37,10 @@ import DormWarren from './DormWarren';
 
 export default class DormDoor extends DeferredDestinationExit {
   /** The unit parcel extent this door fronts (the D1 key + lease key). */
-  private unitKey: string;
+  private unitKey = '';
 
-  constructor(source: Stuff & Container, unitKey: string, direction: string) {
-    super({
-      direction,
-      source,
-      // The destination's class template (accurate + eager); the specific
-      // unit's room is faulted in via `computeDestination`.
-      destinationTemplatePath: DormWarren.DORMROOM_TEMPLATE,
-    });
+  /** ⭐ What the constructor used to take, as a set-once step. */
+  public configureUnit(unitKey: string): void {
     this.unitKey = unitKey;
   }
 

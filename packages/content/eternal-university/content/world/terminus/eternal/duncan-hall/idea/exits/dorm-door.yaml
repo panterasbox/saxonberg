@@ -1,0 +1,7 @@
+# A dorm room's door, off the corridor. The key gate is the class's; the
+# prose is the hall's.
+class: /world/terminus/eternal/duncan-hall/idea/DormDoor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageOut: "{{ mover }} lets themselves in."
+  messageIn: "{{ mover }} comes in off the corridor."

@@ -78,6 +78,15 @@ export class BoundaryAnchor extends BoundaryAnchorBase {
     this.side = side;
   }
 
+  /**
+   * Set which side this anchor sits on — the clone-path twin of the
+   * constructor argument, since a cloned anchor is constructed with no
+   * arguments and told afterwards. Set-once, like the ctor form.
+   */
+  public setSide(side: BoundarySide): void {
+    this.side = side;
+  }
+
   public getBoundary(): Boundary | null {
     return this.boundary;
   }

@@ -9,6 +9,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { seedKernelContentStore } from '../../../../../../mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import SubdivideController from "../SubdivideController";
 import TransferController from "../TransferController";
@@ -94,6 +95,10 @@ async function runController(
 const LOUNGE_OWNER: ParcelOwner = { kind: "group", name: "lounge" };
 
 describe("SubdivideController", () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let getZoneSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -137,8 +142,7 @@ describe("SubdivideController", () => {
 
     expect(TemplateApi.saveTemplate).toHaveBeenCalledWith(
       "/world/lounge/east-wing",
-      "/platform/idea/FolderZone",
-      { name: "East Wing" },
+      { class: "/platform/idea/FolderZone", data: { name: "East Wing" } },
     );
     expect(subdivide).toHaveBeenCalledWith(
       "/world/lounge/east-wing",

@@ -11,7 +11,7 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import { BoundaryApi } from '../boundary';
 import { BoundaryLogic } from '../../platform/idea/api/BoundaryLogic';
 import { SecurityError } from '../../lib/security/errors';
@@ -19,9 +19,16 @@ import { StuffApi } from '../stuff';
 import { Boundary } from '../../lib/boundary/Boundary';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 
 describe('BoundaryApi.create', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -117,7 +124,7 @@ describe('BoundaryApi.attachExistingBoundary — edge cases not covered by lib-l
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
 
     // The side tag is part of the Boundary's symmetric model — anchors
@@ -134,7 +141,7 @@ describe('BoundaryApi.attachExistingBoundary — edge cases not covered by lib-l
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     const result = BoundaryApi.attachExistingBoundary({
       boundary,
       hostA: a,
@@ -149,16 +156,16 @@ describe('BoundaryLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /platform/idea/api/boundary once the facade has materialized it', () => {
-    const boundary = makeStuff(() => new Boundary());
+  it('lives at /platform/idea/api/boundary once the facade has materialized it', async () => {
+    const boundary = await StuffApi.create(() => new Boundary());
     // A facade call lazily creates the logic singleton.
     BoundaryApi.destruct(boundary);
     const logic = StuffApi.findByTemplatePath('/platform/idea/api/boundary');
     expect(logic).toBeDefined();
   });
 
-  it('denies a direct logic-method call from a non-BoundaryApi caller', () => {
-    const boundary = makeStuff(() => new Boundary());
+  it('denies a direct logic-method call from a non-BoundaryApi caller', async () => {
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.destruct(boundary);
     const logic = StuffApi.findByTemplatePath<BoundaryLogic>(
       '/platform/idea/api/boundary'
@@ -166,7 +173,7 @@ describe('BoundaryLogic singleton encapsulation', () => {
     expect(logic).toBeDefined();
     // The test module is not `mud/api/boundary#BoundaryApi`, so the
     // FromModule gate on the logic's own methods denies the call.
-    const victim = makeStuff(() => new Boundary());
+    const victim = await StuffApi.create(() => new Boundary());
     expect(() => logic!.destruct(victim)).toThrow(SecurityError);
   });
 });

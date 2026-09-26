@@ -1712,7 +1712,9 @@ async function execConjure(
     : `/stuff/idea/material/bulk/${e.bulkMaterial}`;
   const material = StuffApi.findByTemplatePath<Material>(materialPath);
   if (!material) return 'The stuff of it will not come.';
-  const source = StuffApi.createSync(() => new UnboundedReceptacle());
+  const source = await StuffApi.clone<UnboundedReceptacle>(
+    '/platform/thing/UnboundedReceptacle',
+  );
   try {
     source.interiorBulk = true;
     source.setBulkMaterial('interior', material);

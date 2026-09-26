@@ -195,6 +195,19 @@ dossier, 2026-09).
   a list replaces. A gate that reasons about list ENTRIES reads `raw`
   and says so. Mirroring the runtime's per-field `inherit` algebra in a
   script would mean two implementations of one rule.
+- ⭐ **`lint:create-sites`** — **every object in the world is born from
+  a ROW**, and the exceptions are ENUMERATED. Ceiling **5**, and the
+  allowlist in the script carries a reason per survivor: the connection
+  layer (`Interactive`, `Login`), a framework seam that takes a factory
+  from its caller (`BoundaryApi.create`, the shadow follower), and one
+  class introspection (`StudioLogic.readClassDefault`). See
+  [antipatterns.md § `StuffApi.create()` Instead of a Template](./antipatterns.md).
+
+  ⚠ Worth reading its `stripNonCode`: the first cut's string scanner
+  ran away on an apostrophe and ate 85% of `StudioLogic.ts`, so the
+  gate cheerfully reported that file as minting nothing. **A stripper
+  that over-strips is a gate that passes** — the failure mode this
+  family exists to prevent, produced by the gate itself.
 - **`lint:census`** — every template-path-valued field in every shipped
   row resolves to a real row, and `clone()`'s `asTemplatePath` channel
   stays retired. A path naming no row cannot be edited, addressed or

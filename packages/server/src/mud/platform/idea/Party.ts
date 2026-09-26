@@ -122,7 +122,11 @@ export class Party extends Idea {
    * holds at write time. */
   @CallSecurity(PartySurface)
   admit(member: Stuff & PartyMember): void {
-    const myPath = this.getTemplatePath() ?? "";
+    // ⚠⚠ IDENTITY, not lineage. Every party is a clone of
+    // `/platform/idea/Party` now, so `getTemplatePath()` is the same
+    // string for all of them — keying on it would collapse every party
+    // in the realm into one. Exactly the Avatar trap D17 named.
+    const myPath = this.getIdentityPath() ?? "";
     this.addMember(member.partyMemberId());
     member._setActivePartyPath(myPath);
     if (member.getPendingInvitePartyPath() === myPath) {
@@ -133,7 +137,7 @@ export class Party extends Idea {
   /** Offer membership: set the member's pending-invite pointer here. */
   @CallSecurity(PartySurface)
   extendInvite(member: Stuff & PartyMember): void {
-    member._setPendingInvitePartyPath(this.getTemplatePath() ?? "");
+    member._setPendingInvitePartyPath(this.getIdentityPath() ?? "");
   }
 
   /** Release a member: roster removal + captain succession + clearing the
@@ -149,7 +153,7 @@ export class Party extends Idea {
       const heir = this.memberIds[0];
       if (heir) this.setCaptainId(heir);
     }
-    if (member && member.getActivePartyPath() === this.getTemplatePath()) {
+    if (member && member.getActivePartyPath() === this.getIdentityPath()) {
       member._setActivePartyPath("");
     }
   }
@@ -158,14 +162,14 @@ export class Party extends Idea {
    * the durable-crew reactivation; overwrites any prior active party). */
   @CallSecurity(PartySurface)
   recall(member: Stuff & PartyMember): void {
-    member._setActivePartyPath(this.getTemplatePath() ?? "");
+    member._setActivePartyPath(this.getIdentityPath() ?? "");
   }
 
   /** Stand a member down without touching the roster (durable dormancy /
    * disband teardown): clear their pointer if it points here. */
   @CallSecurity(PartySurface)
   dismiss(member: Stuff & PartyMember): void {
-    if (member.getActivePartyPath() === this.getTemplatePath()) {
+    if (member.getActivePartyPath() === this.getIdentityPath()) {
       member._setActivePartyPath("");
     }
   }
@@ -285,7 +289,7 @@ export class Party extends Idea {
 
   /** The party's grouping/party ref token (`party:<templatePath>`). */
   partyRef(): string {
-    return `party:${this.getTemplatePath() ?? ""}`;
+    return `party:${this.getIdentityPath() ?? ""}`;
   }
 
   /**
@@ -307,7 +311,7 @@ export class Party extends Idea {
   /** Snapshot this party's durable state into a {@link PartyRecord}. */
   toRecord(existing?: PartyRecord): PartyRecord {
     const record = existing ?? new PartyRecord();
-    record.path = this.getTemplatePath() ?? "";
+    record.path = this.getIdentityPath() ?? "";
     record.name = this.name;
     record.founderId = this.founderId;
     record.captainId = this.captainId;

@@ -141,13 +141,20 @@ adding.
   the exemplar and a **permanent** exception to "platform/ holds Stuff
   classes": it has its own identity but is never cloned from a
   template, so the placement rule genuinely does not reach it.
-  Also here: the *instanced but never stamped* fixtures —
-  `BoundaryAnchor` (minted onto its boundary), `SandboxCrossingExit`
-  (minted by the crossing), and `LightningStrike`, whose source says
-  it plainly: *"a transient single-use vessel — minted, conducted, and
-  reaped inside this one call, never authored, never persisted."* The
-  test is **does an instance carry a template-path stamp**, not *is it
-  ever `new`'d*. `ExitableVessel` sits here too, deferred: it has no
+  ⭐⭐ **The *instanced but never stamped* carve-out is GONE**
+  (template inheritance, 2026-09-25). All three residents are stamped
+  now, because all three are clones of rows:
+  `BoundaryAnchor` → `/platform/thing/BoundaryAnchor` (a boundary mints
+  its pair at `postRegister`), `SandboxCrossingExit` →
+  `/platform/idea/exits/sandbox-crossing` (a twin over the `lib/`
+  base), and `LightningStrike`, which **moved wholesale to
+  `platform/thing/`** — its source used to say *"a transient
+  single-use vessel … never authored, never persisted"*, which was a
+  claim about its LIFETIME and not about whether an author could write
+  its prose down. (⚠ A twin does not work for it: `EnergizedMixin.
+  conduct` is `@Final`, and an empty subclass of a final-bearing mixin
+  is refused at import. Instanceable lives in `platform/<branch>/`, and
+  this is now an ordinary case of that rule.) `ExitableVessel` sits here too, deferred: it has no
   `fieldMeta` and no documented authoring path, so it moves to `platform/`
   when a consumer demands a concrete class, not before.
 - **Value objects** — pure data + small per-instance math (`Light`,

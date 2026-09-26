@@ -24,23 +24,14 @@ import type HoldingWarren from './HoldingWarren';
 type ExitableContainer = Stuff & Container & Exitable;
 
 export default class KeyedDoorExit extends Exit {
-  private programmeRef: HoldingWarren;
-  private lockTech: LockType;
+  private programmeRef: HoldingWarren | null = null;
+  private lockTech: LockType = 'pin-tumbler';
 
-  constructor(
-    source: Stuff & Container,
-    destination: ExitableContainer,
-    direction: string,
+  /** ⭐ What the constructor used to take, as a set-once step. */
+  public configureKeyedDoor(
     programme: HoldingWarren,
-    opts: { oneWay?: boolean; lockTech?: LockType } = {},
-  ) {
-    super({
-      direction,
-      source,
-      destination,
-      keepLiveDestination: true,
-      oneWay: opts.oneWay ?? false,
-    });
+    opts: { lockTech?: LockType } = {},
+  ): void {
     this.programmeRef = programme;
     this.lockTech = opts.lockTech ?? 'pin-tumbler';
   }
@@ -49,9 +40,13 @@ export default class KeyedDoorExit extends Exit {
     mover: Stuff & Containable,
     mode?: string,
   ): TraversalGuard {
-    const keyway = this.programmeRef.isDestroyed()
-      ? ''
-      : this.programmeRef.keyway();
+    // ⚠ `programmeRef` is set by `configureKeyedDoor` after the clone,
+    // so an unconfigured door is a door nobody can open — which is the
+    // right answer, not a crash.
+    const keyway =
+      !this.programmeRef || this.programmeRef.isDestroyed()
+        ? ''
+        : this.programmeRef.keyway();
     if (!keyway) {
       return { ok: false, gate: 'door', reason: 'The door is locked.' };
     }

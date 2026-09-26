@@ -1,5 +1,5 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import { Boundary } from '../Boundary';
 import { BoundaryAnchor } from '../BoundaryAnchor';
 import CartesianLocation from '../../location/CartesianLocation';
@@ -8,9 +8,16 @@ import { BoundaryApi } from '../../../api/boundary';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 
 describe('BoundaryAnchor', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   afterEach(() => {
     StuffApi.clearAll();
   });
@@ -28,14 +35,14 @@ describe('BoundaryAnchor', () => {
     expect(b.getSide()).toBe('B');
   });
 
-  it('getOtherHost walks through the boundary to the opposite side', () => {
+  it('getOtherHost walks through the boundary to the opposite side', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const roomA = makeStuff(() => new CartesianLocation());
     const roomB = makeStuff(() => new CartesianLocation());
     zone.addLocation(roomA, 0, 0, 0);
     zone.addLocation(roomB, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({
       boundary,
       hostA: roomA,
@@ -48,7 +55,7 @@ describe('BoundaryAnchor', () => {
     expect(anchorB.getOtherHost()).toBe(roomA);
   });
 
-  it('an attached anchor cannot be moved into a Container via ContainmentApi', () => {
+  it('an attached anchor cannot be moved into a Container via ContainmentApi', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const roomA = makeStuff(() => new CartesianLocation());
     const roomB = makeStuff(() => new CartesianLocation());
@@ -57,7 +64,7 @@ describe('BoundaryAnchor', () => {
     zone.addLocation(roomB, 0, 1, 0);
     zone.addLocation(trash, 1, 0, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({
       boundary,
       hostA: roomA,
@@ -68,14 +75,14 @@ describe('BoundaryAnchor', () => {
     expect(() => ContainmentApi.move(anchorA, trash)).toThrow(ContainmentError);
   });
 
-  it('onDestruct clears the boundary slot for this anchor', () => {
+  it('onDestruct clears the boundary slot for this anchor', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const roomA = makeStuff(() => new CartesianLocation());
     const roomB = makeStuff(() => new CartesianLocation());
     zone.addLocation(roomA, 0, 0, 0);
     zone.addLocation(roomB, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({
       boundary,
       hostA: roomA,

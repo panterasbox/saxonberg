@@ -485,24 +485,45 @@ stay a review judgment, because no regex can make them.
 CMS-editable, pack-shippable, hot-rehydratable; a raw `create` opts
 the object out of all of that.
 
-`create`/`createSync` are ONLY for objects a template genuinely cannot
-describe ahead of time. The recognized categories (the whole current
-population — audited 2026-07):
+⭐⭐ **The rule, in the user's words: *the template is the base, the
+factory is the patch.*** A factory that builds from RUNTIME state is a
+real pattern — but it should still CLONE a row and patch what the row
+cannot know, doing as much as possible in the template. A code-minted
+object can say nothing an author wrote: no prose, no keywords, no
+detail. The coat-check ticket carried a comment reading *"a
+runtime-minted thing has no row to author them in"*, and that comment
+was the finding, not the justification.
 
-- **Live-ref relational** — the object binds specific live instances
-  (an `Exit`'s source/destination, a `BoundaryAnchor`, a `Login`/
-  `Interactive` holding a live connection). A static template cannot
-  hold a live ref.
-- **Dynamically-minted uniques** — identity paths minted at runtime
-  (`Party` at `/platform/idea/party/<uuid>`, the per-player `_eval` scratch).
-- **Transient single-use vessels** — minted, used, and reaped inside
-  one call (`LightningStrike`); a template would be a seed row
-  nothing ever edits.
-- **Framework fallbacks / introspection** — a test-harness registry
-  lazy-mint, `StudioLogic`'s read-a-class-default throwaway.
+⚠ **Three of the four categories this section used to list are
+retired** (template inheritance, 2026-09-25), because each was an
+argument about an object's LIFETIME rather than about whether a person
+could author it:
+
+- ~~Live-ref relational~~ — an `Exit` is a clone of a kind row and the
+  live refs arrive through `bind`; a `BoundaryAnchor` is a clone its
+  boundary mints at `postRegister`.
+- ~~Dynamically-minted uniques~~ — that is the `asIdentityPath`
+  channel, not a reason to skip the row: `Party` clones
+  `/platform/idea/Party` with `/platform/idea/party/<uuid>` as its
+  identity, exactly as an Avatar does. So does the eval scratch.
+- ~~Transient single-use vessels~~ — *"a template would be a seed row
+  nothing ever edits"* was the strike's defence. A row nobody edits is
+  still a row somebody CAN.
+
+**What survives, enumerated and gated** (`pnpm lint:create-sites`,
+ceiling 5):
+
+- **The connection layer** — per-socket objects with no world identity
+  (`Interactive`, `Login`).
+- **A framework seam that takes a FACTORY from its caller** —
+  `BoundaryApi.create`, `PersistableLogic`'s shadow follower. There is
+  no path to look up, because the caller supplies the class.
+- **Introspection of a CLASS** — `StudioLogic.readClassDefault`
+  constructs an instance to ask the class what its defaults are, so a
+  row would be answering a question about itself.
 
 Anything else — a fixture, an item, an NPC, a room — gets a template
-and a seed. When in doubt, it's a template.
+and a clone. When in doubt, it's a template.
 
 **Not an exception: an object derived from another object.** "This
 instance's state comes from a live source, not from authored data" is not

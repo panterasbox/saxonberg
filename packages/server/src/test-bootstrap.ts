@@ -48,6 +48,69 @@ import { PackApi } from "./mud/api/pack";
 let installed = false;
 
 /**
+ * ⭐⭐ The rows the ENGINE ITSELF clones.
+ *
+ * Since template inheritance every exit in the world is a clone of a
+ * kind row, and a boundary's two anchors are clones of
+ * `/platform/thing/BoundaryAnchor` — there is no `new Exit(...)` branch
+ * left, which is the point (an exit can say what an author wrote).
+ *
+ * ⚠ They are declared HERE, beside `PackApi.registerSources()`, rather
+ * than re-typed into every suite — but a suite still installs them
+ * deliberately (`seedKernelContentStore`), because an automatic global
+ * floor cannot be built at this layer: intercepting
+ * `PersistenceManager.get` breaks the `vi.spyOn(pm, 'find')` pattern
+ * dozens of suites use, and sixty of them went red proving it.
+ */
+export const KERNEL_CONTENT_ROWS: ReadonlyArray<{
+  path: string;
+  class: string;
+  hydratorClass?: string;
+  data: Record<string, unknown>;
+}> = [
+  {
+    path: "/platform/idea/persistence/PersistentHydrator",
+    class: "/platform/idea/persistence/PersistentHydrator",
+    data: {},
+  },
+  {
+    path: "/platform/idea/exits/passage",
+    class: "/platform/idea/Exit",
+    data: {},
+  },
+  {
+    path: "/platform/idea/exits/vessel-in",
+    class: "/platform/idea/Exit",
+    hydratorClass: "/platform/idea/persistence/PersistentHydrator",
+    data: {},
+  },
+  {
+    path: "/platform/idea/exits/vessel-out",
+    class: "/platform/idea/Exit",
+    hydratorClass: "/platform/idea/persistence/PersistentHydrator",
+    data: {},
+  },
+  {
+    path: "/platform/idea/exits/sandbox-crossing",
+    class: "/platform/idea/SandboxCrossingExit",
+    hydratorClass: "/platform/idea/persistence/PersistentHydrator",
+    data: {},
+  },
+  {
+    path: "/platform/idea/exits/sandbox-return",
+    class: "/platform/idea/SandboxCrossingExit",
+    hydratorClass: "/platform/idea/persistence/PersistentHydrator",
+    data: {},
+  },
+  {
+    path: "/platform/thing/BoundaryAnchor",
+    class: "/platform/thing/BoundaryAnchor",
+    data: {},
+  },
+];
+
+
+/**
  * Install the framework wiring if it has not been installed. Safe to
  * call any number of times.
  *

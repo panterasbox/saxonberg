@@ -1,40 +1,54 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import { Boundary } from '../Boundary';
 import CartesianLocation from '../../location/CartesianLocation';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { BoundaryApi } from '../../../api/boundary';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 
 describe('Boundary', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   afterEach(() => {
     StuffApi.clearAll();
   });
 
-  it('constructs with no anchors and an empty conduit registry', () => {
-    const b = makeStuff(() => new Boundary());
-    expect(b.getAnchorA()).toBeNull();
-    expect(b.getAnchorB()).toBeNull();
-    expect(b.getAnchors()).toEqual([null, null]);
+  it('⭐ mints its anchor pair at registration, adorned to nobody', async () => {
+    // The pair is CLONED (`/platform/thing/BoundaryAnchor`) at
+    // postRegister and lives as long as the boundary does, migrating
+    // between hosts rather than being destroyed and rebuilt. Before
+    // template inheritance they were `createSync`'d at install time.
+    const b = await StuffApi.create(() => new Boundary());
+    expect(b.getAnchorA()).not.toBeNull();
+    expect(b.getAnchorB()).not.toBeNull();
+    expect(b.getAnchorA()!.getSide()).toBe('A');
+    expect(b.getAnchorB()!.getSide()).toBe('B');
+    // Minted, but installed nowhere.
+    expect(b.getAnchorA()!.getAdornedTo()).toBeNull();
     expect(b.getConduits()).toEqual([]);
   });
 
-  it('is Visible and Perceptible', () => {
-    const b = makeStuff(() => new Boundary());
+  it('is Visible and Perceptible', async () => {
+    const b = await StuffApi.create(() => new Boundary());
     expect(MixinApi.isVisible(b)).toBe(true);
     expect(MixinApi.isPerceptible(b)).toBe(true);
   });
 
-  it('BoundaryApi.attachExistingBoundary wires anchors on both hosts', () => {
+  it('BoundaryApi.attachExistingBoundary wires anchors on both hosts', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
 
     const anchorA = boundary.getAnchorA();
@@ -51,17 +65,17 @@ describe('Boundary', () => {
     expect(anchorB!.getAdornedTo()).toBe(b);
   });
 
-  it('attachExistingBoundary rejects a hostA === hostB install', () => {
+  it('attachExistingBoundary rejects a hostA === hostB install', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     expect(() =>
       BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: a })
     ).toThrow(/must differ/);
   });
 
-  it('attachExistingBoundary rejects re-installing on an already-wired boundary', () => {
+  it('attachExistingBoundary rejects re-installing on an already-wired boundary', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
@@ -70,21 +84,21 @@ describe('Boundary', () => {
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 1, 0, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
     expect(() =>
       BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: c })
-    ).toThrow(/already has anchors/);
+    ).toThrow(/already installed/);
   });
 
-  it('getOtherSide / getOtherAnchor / getOtherHost walk the pair correctly', () => {
+  it('getOtherSide / getOtherAnchor / getOtherHost walk the pair correctly', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
 
     const anchorA = boundary.getAnchorA()!;
@@ -97,40 +111,46 @@ describe('Boundary', () => {
     expect(boundary.getOtherHost(b)).toBe(a);
   });
 
-  it('detach() removes both anchors from their hosts and clears the slots', () => {
+  it('detach() removes both anchors from their hosts and KEEPS the pair', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
     const anchorA = boundary.getAnchorA()!;
     const anchorB = boundary.getAnchorB()!;
 
     boundary.detach();
 
-    expect(boundary.getAnchorA()).toBeNull();
-    expect(boundary.getAnchorB()).toBeNull();
+    // ⭐ The SLOTS survive: an anchor is the boundary's own per-side
+    // proxy, minted once with it, and detach only drops the host link.
+    // (It used to null the slots and let the next install mint a fresh
+    // pair synchronously — which a clone cannot do.)
+    expect(boundary.getAnchorA()).toBe(anchorA);
+    expect(boundary.getAnchorB()).toBe(anchorB);
+    expect(anchorA.getAdornedTo()).toBeNull();
+    expect(anchorB.getAdornedTo()).toBeNull();
     expect(a.getFixtures()).not.toContain(anchorA);
     expect(b.getFixtures()).not.toContain(anchorB);
   });
 
-  it('detach() is idempotent', () => {
-    const boundary = makeStuff(() => new Boundary());
+  it('detach() is idempotent', async () => {
+    const boundary = await StuffApi.create(() => new Boundary());
     expect(() => boundary.detach()).not.toThrow();
     expect(() => boundary.detach()).not.toThrow();
   });
 
-  it('BoundaryApi.destruct destructs the boundary and its anchors', () => {
+  it('BoundaryApi.destruct destructs the boundary and its anchors', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
     const anchorA = boundary.getAnchorA()!;
     const anchorB = boundary.getAnchorB()!;
@@ -144,28 +164,28 @@ describe('Boundary', () => {
     expect(b.getFixtures()).toHaveLength(0);
   });
 
-  it('Adornable.getFixtureBoundaries dedupes the boundary across anchor walks', () => {
+  it('Adornable.getFixtureBoundaries dedupes the boundary across anchor walks', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
 
     expect(a.getFixtureBoundaries()).toEqual([boundary]);
     expect(b.getFixtureBoundaries()).toEqual([boundary]);
   });
 
-  it('host destruct walks fixtures and tears down the anchor on that side', () => {
+  it('host destruct walks fixtures and tears down the anchor on that side', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const boundary = makeStuff(() => new Boundary());
+    const boundary = await StuffApi.create(() => new Boundary());
     BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
     const anchorA = boundary.getAnchorA()!;
 

@@ -55,6 +55,24 @@ export const TemplatePaths = {
   quantityMarshaller: "/platform/idea/persistence/QuantityMarshaller",
   encryptedStringMarshaller: "/platform/idea/persistence/EncryptedStringMarshaller",
 
+  /** The per-side proxy a Boundary pre-mints two of. */
+  boundaryAnchor: "/platform/thing/BoundaryAnchor",
+
+  // Exit kinds — every exit in the world is a clone of a ROW.
+  /**
+   * ⭐ The default exit kind: a bare passage, no authored prose. Every
+   * `exits:` entry that names no `kind:` clones this, so there is ONE
+   * path from a row to an exit and `new Exit(...)` is gone from the
+   * tree. A missing row throws at the first exit, loudly.
+   */
+  defaultExitKind: "/platform/idea/exits/passage",
+  /** A vessel's own doorway, in and out — pre-minted at `postRegister`. */
+  vesselInExit: "/platform/idea/exits/vessel-in",
+  vesselOutExit: "/platform/idea/exits/vessel-out",
+  /** The sandbox's two crossings (into a circle, and the way back). */
+  sandboxCrossingExit: "/platform/idea/exits/sandbox-crossing",
+  sandboxReturnExit: "/platform/idea/exits/sandbox-return",
+
   // Class refs / defaults.
   idea: "/lib/stuff/Idea",
   folderZone: "/platform/idea/FolderZone",

@@ -1,0 +1,14 @@
+# The coat-check ticket a rack hands you.
+#
+# ⚠ Its keywords used to be set in TypeScript, with a comment explaining
+# that "a runtime-minted thing has no row to author them in". It has one
+# now — which is the whole point of the create→clone sweep. The rack
+# path and the number are still patched on after the clone: those are
+# the runtime state a factory legitimately supplies.
+class: /platform/thing/Ticket
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: coat-check ticket
+  register: indefinite
+  keywords: [ticket, coat-check, check]
+  longDescription: A numbered paper tab, torn from a book at the counter.

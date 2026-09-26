@@ -1,0 +1,8 @@
+# A party — the adventuring group Idea. Minted per party with its own
+# identity path (`/platform/idea/party/<uuid>`), so the LINEAGE is this
+# row and the IDENTITY is the instance's, exactly as an Avatar's is.
+class: /platform/idea/Party
+# ⚠ No `hydratorClass`: there is nothing to apply. The minted
+# identity rides `asIdentityPath`, which is the clone's channel,
+# not the hydrator's — and a hydrator with no data is a line
+# `lint:instanceable` invariant 5 calls out.

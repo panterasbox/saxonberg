@@ -18,14 +18,16 @@
  */
 
 import '../../../test-bootstrap';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect , beforeEach } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, sep, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { Recipe } from '../../lib/craft/Recipe';
 import { MixinApi } from '../../api/mixin';
-import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 import Crate from '../../platform/thing/Crate';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 
@@ -110,6 +112,10 @@ const floorRows = annexRows.filter(
 );
 
 describe('libations annexes — the floor rows fit the faucet', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   it('the faucet stubs and the two corpo yards each ship floor product; no corpo pack ships any', () => {
     // Winemaking and brewing DE-STUBBED (fermentation W8): their floor
     // faucets are retired — every bottle and keg is brain-made now —
@@ -162,7 +168,10 @@ describe('libations annexes — the floor rows fit the faucet', () => {
   it('every bottle row holds a shipped material whose tags carry a recipe category; every crate populates a shipped item', () => {
     for (const r of floorRows) {
       if (r.class === '/platform/thing/Crate') {
-        const items = r.data.props as string[];
+        // ⭐ An entry is a bare path or `{ template, count }` — the crates
+        // say twelve limes in one line now, which is what `count:` is for.
+        const items = (r.data.props as Array<string | { template: string }>)
+          .map((e) => (typeof e === 'string' ? e : e.template));
         expect(items.length, r.path).toBeGreaterThan(0);
         const item = byPath.get(items[0]!);
         expect(item, `${r.path} populates ${items[0]}`).toBeDefined();

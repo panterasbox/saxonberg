@@ -1,0 +1,15 @@
+# The shade — what you are between dying and re-embodying.
+#
+# ⭐ The row states the field's DEFAULT and the clone overlays it: the
+# player identity and the species are facts about who died, not about
+# what a shade is, so they arrive through `dataOverlay` at hydration
+# Phase 1 — which lands before `postRegister`, the ordering the old
+# constructor arguments existed to guarantee.
+#
+# ⚠ The `hydratorClass` is load-bearing precisely because of that: a row
+# with no hydrator runs NO hydration, so the overlay would be discarded
+# in silence.
+class: /platform/agent/Shade
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shadePlayerId: ""

@@ -33,6 +33,7 @@
  */
 
 import Avatar, { type AvatarInitContext } from '../Avatar';
+import type { FieldMeta } from '../../../lib/mixin';
 import { SandboxApi } from '../../../api/sandbox';
 import type Species from '../../idea/species/Species';
 
@@ -44,9 +45,24 @@ export interface WireBodyInitContext extends AvatarInitContext {
 
 export default class WireBody extends Avatar {
   /** The projected identity's playerId (never registered under it). */
-  private wirePlayerId: string = '';
+  /**
+   * ⭐ Declared, and public, so the clone's `dataOverlay` can land it:
+   * hydration Phase 1 runs BEFORE `postRegister`, which is the ordering
+   * the constructor argument used to guarantee. A key no field declares
+   * is discarded by the Hydrator silently.
+   */
+  public wirePlayerId: string = '';
 
-  /** The projected identity's species, applied before the loadout. */
+  static fieldMeta: FieldMeta = {
+    wirePlayerId: { persistent: true, runtimeState: true },
+  };
+
+  /**
+   * The projected identity's species, applied before the loadout.
+   * ⚠ No longer a constructor argument: the species arrives as
+   * `_speciesPath` in the same clone overlay, which `OrganismMixin`
+   * already declares, so `postRegister` reads it off the field.
+   */
   private wireSpecies: Species | null = null;
 
   /**
@@ -71,12 +87,6 @@ export default class WireBody extends Avatar {
    * it impossible to build one by accident (the `Interactive`
    * precedent for runtime-only objects).
    */
-  constructor(playerId: string, species: Species | null) {
-    super();
-    this.wirePlayerId = playerId;
-    this.wireSpecies = species;
-  }
-
   public override async postRegister(
     context?: WireBodyInitContext,
   ): Promise<void> {

@@ -6,7 +6,7 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { Creature } from '../../../../lib/creature/Creature';
 import Species from '../../../idea/species/Species';
 import BodyPlan from '../../../idea/species/BodyPlan';
@@ -26,8 +26,8 @@ import { LocomotionApi } from '../../../../api/locomotion';
 import { buildMode } from '../../../../lib/locomotion/__tests__/test-helpers';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import {
-  makeStuff,
-  stampTemplatePathForTest,
+  makeStuff,  stampTemplatePathForTest,
+  seedKernelContentStore,
 } from '../../../../lib/security/__tests__/test-setup';
 import { massThing } from '../../../../lib/encumbrance/__tests__/encumbrance-fixtures';
 
@@ -70,8 +70,11 @@ function bearer<T extends Creature>(factory: () => T, baseMass: number): T {
   return c;
 }
 
-function handcart(massKg: number, draftFactor: number): Handcart {
-  const c = makeStuff(() => new Handcart());
+async function handcart(
+  massKg: number,
+  draftFactor: number,
+): Promise<Handcart> {
+  const c = await StuffApi.create(() => new Handcart());
   c.setMass(Quantity.of(massKg, 'kg'));
   c.setDraftFactor(draftFactor);
   return c;
@@ -110,6 +113,10 @@ const walk = () => LocomotionApi.modeOfOrThrow('walk');
 
 describe('haulage integration — self-haul', () => {
   beforeEach(() => {
+    seedKernelContentStore();
+  });
+
+  beforeEach(() => {
     installV1QuantityMarshallers();
     buildMode('walk');
     buildMode('wheeled');
@@ -120,7 +127,7 @@ describe('haulage integration — self-haul', () => {
     const { locA, locB, north } = tworoom();
     const giver = bearer(() => new SelfHauler(), 70);
     ContainmentApi.move(giver, locA);
-    const cart = handcart(25, 0.04);
+    const cart = await handcart(25, 0.04);
     ContainmentApi.move(cart, locA);
 
     // Free offload — the chest leaves the giver's books the moment it
@@ -138,11 +145,11 @@ describe('haulage integration — self-haul', () => {
     expect(chest.getContainer()).toBe(cart);
   });
 
-  it('a wheeled cart is blocked at stairs (terrain)', () => {
+  it('a wheeled cart is blocked at stairs (terrain)', async () => {
     const { locA, stairs } = tworoom();
     const giver = bearer(() => new SelfHauler(), 70);
     ContainmentApi.move(giver, locA);
-    const cart = handcart(25, 0.04);
+    const cart = await handcart(25, 0.04);
     ContainmentApi.move(cart, locA);
     giver.hitch(cart);
     const guard = LocomotionApi.canTraverseExit(giver, stairs, walk(), 'up');
@@ -150,11 +157,11 @@ describe('haulage integration — self-haul', () => {
     expect(guard.ok ? null : guard.gate).toBe('terrain');
   });
 
-  it("a heavy sledge won't budge (breakaway)", () => {
+  it("a heavy sledge won't budge (breakaway)", async () => {
     const { locA, north } = tworoom();
     const giver = bearer(() => new SelfHauler(), 70); // ceiling 70
     ContainmentApi.move(giver, locA);
-    const sledge = handcart(25, 0.5); // bad coupling (dragged)
+    const sledge = await handcart(25, 0.5); // bad coupling (dragged)
     ContainmentApi.move(sledge, locA);
     ContainmentApi.move(massThing(200), sledge); // draft (225)*0.5 = 112.5 > 70
     giver.hitch(sledge);
@@ -180,7 +187,7 @@ describe('haulage integration — ridden (animal-hauled)', () => {
     const rider = bearer(() => new Rider(), 70);
     steed.occupy(rider, 'back:1'); // mount
 
-    const cart = handcart(25, 0.04);
+    const cart = await handcart(25, 0.04);
     ContainmentApi.move(cart, locA);
     const chest = massThing(300); // a load a person couldn't carry
     ContainmentApi.move(chest, cart);
@@ -198,12 +205,12 @@ describe('haulage integration — ridden (animal-hauled)', () => {
     expect(chest.getContainer()).toBe(cart); // cargo rode inside
   });
 
-  it('the horse (the hauler) is gated at stairs', () => {
+  it('the horse (the hauler) is gated at stairs', async () => {
     const { locA, stairs } = tworoom();
     const steed = bearer(() => new Steed(), 400);
     steed.setMountSlot('back:1');
     ContainmentApi.move(steed, locA);
-    const cart = handcart(25, 0.04);
+    const cart = await handcart(25, 0.04);
     ContainmentApi.move(cart, locA);
     steed.hitch(cart);
     // The gate that fires for a ridden move is the host's own traverse

@@ -1,5 +1,5 @@
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { SoundModality } from '../SoundModality';
 import { MAX_HOPS } from '../../../../lib/perception/Modality';
 import { Sound } from '../../../../lib/perception/Sound';
@@ -11,7 +11,10 @@ import Door from '../../../thing/Door';
 import Thing from '../../../../lib/stuff/Thing';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
-import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 import { PerceptionApi } from '../../../../api/perception';
@@ -24,6 +27,10 @@ class Whistle extends SoundSourceMixin(Thing) {}
 class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
 
 describe('SoundModality.signalAt — propagation core', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     installV1QuantityTagTables();
     buildAllModalities();
@@ -103,7 +110,7 @@ describe('SoundModality.signalAt — propagation core', () => {
     w.setCharacter('whistle');
     ContainmentApi.move(w, b);
 
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     door.setOpen(false);
     await a.addBidirectionalExit(b, 'north', { door });

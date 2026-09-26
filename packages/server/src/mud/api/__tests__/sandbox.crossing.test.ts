@@ -5,7 +5,8 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { seedKernelContentStore } from '../../lib/security/__tests__/test-setup';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { TemplatePaths } from '../../lib/paths';
 import { Creature } from '../../lib/creature/Creature';
@@ -89,6 +90,24 @@ async function makeRig(): Promise<{ avatar: Avatar; interactive: Interactive }> 
   interactive.transferTo(avatar);
   return { avatar, interactive };
 }
+
+beforeEach(() => {
+  seedKernelContentStore([
+    // The sandbox stands up a circle floor and a wire body — both
+    // clones of rows now.
+    {
+      path: '/platform/location/sandbox/CircleFloor',
+      class: '/platform/location/sandbox/CircleFloor',
+      data: {},
+    },
+    {
+      path: '/platform/agent/sandbox/WireBody',
+      class: '/platform/agent/sandbox/WireBody',
+      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+      data: { wirePlayerId: '' },
+    },
+  ]);
+});
 
 describe('sandbox crossing', () => {
   beforeEach(async () => {

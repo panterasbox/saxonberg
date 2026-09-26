@@ -39,6 +39,7 @@ import { Quantity } from '../../quantity';
 import {
   makeStuff,
   makeStuffAtPath,
+  EXIT_KIND_TEST_ROWS,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
@@ -54,7 +55,11 @@ const AIR_DENSITY = 1.225; // kg/m³, the tabulated `air` figure
 const G = 9.81;
 
 function installInMemoryStore(initial: Doc[] = []): void {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row and every boundary's anchor
+  // pair is a clone too, so a store with no rows cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
   const save = vi.fn(async (_c: string, doc: Doc) => doc._id ?? '1');
   const find = vi.fn(
     async (collection: string, query: Record<string, unknown>) => {
