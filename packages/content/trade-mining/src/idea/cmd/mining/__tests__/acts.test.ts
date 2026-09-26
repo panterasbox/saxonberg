@@ -21,7 +21,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
@@ -42,7 +42,12 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { ExertingMixin } from '@saxonberg/server/mud/lib/exertion/Exerting';
 import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
-import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+  stampTemplatePathForTest,
+  seedKernelContentStore,
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import {
@@ -145,6 +150,11 @@ function rejected(ctx: CommandContext): string | null {
   return note ? (note as unknown as { reason: string }).reason : null;
 }
 
+// ⭐ Every exit is a clone of a kind row now.
+beforeEach(() => {
+  seedKernelContentStore();
+});
+
 describe('the mine’s four labour acts', () => {
   beforeEach(async () => {
     await standUpBranchHarness();
@@ -172,7 +182,16 @@ describe('the mine’s four labour acts', () => {
     warren.setZonePath(ZONE);
     warren.setMineExtent('/world/fx-mine');
 
+    // ⚠ The stub must let the ENGINE's own rows through. Every exit is
+    // a clone of a kind row now, so a blanket "any path is a MineRoom"
+    // made `addBidirectionalExit` bind a room as if it were an exit —
+    // `forward.bind is not a function`, from a stub that had simply
+    // never been asked for anything but a room.
+    const realClone = StuffApi.clone.bind(StuffApi);
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      if (path.startsWith('/platform/idea/exits/') || path.startsWith('/platform/thing/Boundary')) {
+        return realClone(path);
+      }
       if (path === ORE_ROW) {
         const o = makeStuff(() => new Ore());
         o.setShortDescription('a lump of green-stained rock');

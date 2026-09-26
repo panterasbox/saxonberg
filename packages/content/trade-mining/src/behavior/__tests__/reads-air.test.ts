@@ -16,7 +16,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { brain as readsAir } from '../reads-air';
 import MineRoom from '../../location/MineRoom';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
@@ -30,7 +30,11 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
@@ -75,14 +79,21 @@ function ctxFor(bird: Stuff): BrainContext {
   return { host: bird, config: {} } as unknown as BrainContext;
 }
 
+// ⭐ Every exit is a clone of a kind row now.
 describe('the canary', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     installV1QuantityMarshallers();
     Document.setMarshallerResolver(() => undefined, async () => undefined);
+    // ⭐ The engine's own rows — every exit is a clone of a kind row
+    // now, and this suite wires real headings together.
+    const kernel = KERNEL_CONTENT_ROWS.map((r, i) => ({ ...r, _id: String(i + 1) }));
     vi.spyOn(PersistenceManager, 'get').mockReturnValue({
       save: async () => '1',
-      find: async () => [],
+      find: async (c: string, q: Record<string, unknown>) =>
+        c === 'content' && typeof q.path === 'string'
+          ? kernel.filter((d) => d.path === q.path)
+          : [],
       findById: async () => null,
       delete: async () => undefined,
       isConnected: () => true,

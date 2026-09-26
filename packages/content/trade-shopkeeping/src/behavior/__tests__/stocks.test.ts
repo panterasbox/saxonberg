@@ -22,6 +22,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { seedKernelContentStore } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as stocks } from '../stocks';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
@@ -161,6 +162,9 @@ async function dispatch(text: string): Promise<void> {
 }
 
 beforeEach(async () => {
+  // ⭐ Every exit is a clone of a kind row now, and this suite builds a
+  // real little neighbourhood with real doors.
+  seedKernelContentStore();
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   balance = 0;

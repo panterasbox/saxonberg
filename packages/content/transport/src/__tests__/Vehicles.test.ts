@@ -26,7 +26,10 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -55,13 +58,19 @@ type LiveCoach = Coach &
     /** `ExitableVessel`'s synthesized entry exit — what `go coach` takes. */
     getEntryExit(): unknown;
   };
-const coachOf = (): LiveCoach =>
-  makeStuff(() => new Coach() as unknown as Stuff) as unknown as LiveCoach;
+// ⚠ ASYNC now: an `ExitableVessel` mints its `in`/`out` pair at
+// `postRegister` (they are clones of rows), and the sync test shim skips
+// that hook. `StuffApi.create` is what the world uses.
+const coachOf = async (): Promise<LiveCoach> =>
+  (await StuffApi.create(
+    () => new Coach() as unknown as Stuff,
+  )) as unknown as LiveCoach;
 
 let road: Corridor;
 const room = (i = 0): Stuff & Container => road.rooms.get(road.paths[i]!)!;
 
 beforeEach(() => {
+  seedKernelContentStore();
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   installModes();
@@ -113,8 +122,8 @@ describe('the rig is towed, not self-propelled', () => {
 });
 
 describe('⚠ MobileMixin on a non-Character host', () => {
-  it('unknown 1 — an ExitableVessel may live in a room and NOT in a wagon bed', () => {
-    const coach = coachOf();
+  it('unknown 1 — an ExitableVessel may live in a room and NOT in a wagon bed', async () => {
+    const coach = await coachOf();
     const rig = makeStuff(() => new HaulageRig());
     ContainmentApi.move(rig as never, room() as never);
 
@@ -130,14 +139,14 @@ describe('⚠ MobileMixin on a non-Character host', () => {
     ).toThrow();
   });
 
-  it('unknown 2 — ⭐ a parked vehicle is CAPITAL and is never swept', () => {
+  it('unknown 2 — ⭐ a parked vehicle is CAPITAL and is never swept', async () => {
     // The self-eviction sweep would otherwise cull an idle barge and its
     // owner would come back to nothing, with no error anywhere. The
     // shipped `Exit` precedent, applied to the one other kind of object
     // that legitimately sits still for a long time.
     for (const vehicle of [
       makeStuff(() => new Barge()),
-      coachOf() as unknown as Stuff & { canEvict(c: { idleMs: number; reason: string }): { ok: boolean; reason?: string } },
+      (await coachOf()) as unknown as Stuff & { canEvict(c: { idleMs: number; reason: string }): { ok: boolean; reason?: string } },
     ]) {
       const veto = vehicle.canEvict({ idleMs: 9_000_000, reason: 'idle' });
       expect(veto.ok).toBe(false);
@@ -157,8 +166,8 @@ describe('⚠ MobileMixin on a non-Character host', () => {
 });
 
 describe('the coach', () => {
-  it('⭐ is the ExitableVessel consumer, and a SHUT one is opaque (AC8)', () => {
-    const coach = coachOf();
+  it('⭐ is the ExitableVessel consumer, and a SHUT one is opaque (AC8)', async () => {
+    const coach = await coachOf();
     expect(MixinApi.isExitable(coach)).toBe(true);
     expect(MixinApi.isSealable(coach)).toBe(true);
 
@@ -170,8 +179,8 @@ describe('the coach', () => {
     expect(MixinApi.isOpenContainer(coach)).toBe(true);
   });
 
-  it('⭐ a passenger boards with the shipped `go <coach>` — no new verb (AC15o)', () => {
-    const coach = coachOf();
+  it('⭐ a passenger boards with the shipped `go <coach>` — no new verb (AC15o)', async () => {
+    const coach = await coachOf();
     ContainmentApi.move(coach, room());
     coach.setOpen(true);
     // `getEntryExit` is the synthesized one-way exit from the current
@@ -182,8 +191,8 @@ describe('the coach', () => {
     expect(coach.getExit('out')).toBeTruthy();
   });
 
-  it('⚠ steers off its OWN frame, not off a seat it does not ship', () => {
-    const coach = coachOf();
+  it('⚠ steers off its OWN frame, not off a seat it does not ship', async () => {
+    const coach = await coachOf();
     expect(MixinApi.isDrivable(coach)).toBe(true);
     expect(MixinApi.isMobile(coach)).toBe(true);
     // `SeatedDrivableMixin` resolves the controller slot by finding a

@@ -21,6 +21,7 @@ import { SchedulerApi } from '../../../../../api/scheduler';
 import { EventApi } from '../../../../../api/event';
 import EventRegistry from '../../../EventRegistry';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
+import { KERNEL_CONTENT_ROWS } from '../../../../../../test-bootstrap';
 import { Quantity } from '../../../../../lib/quantity';
 import Material from '../../../../../lib/material/Material';
 import Forge from '../../../../thing/Forge';
@@ -124,6 +125,13 @@ export async function completeStep(ms: number): Promise<void> {
 export function mockPersistenceStore(
   store: Record<string, Record<string, unknown>[]>,
 ): void {
+  // ⭐ The engine's own rows are always in the `content` collection —
+  // every exit in the world is a clone of a kind row now, so a harness
+  // that stands up rooms has to hold them.
+  store['content'] = [
+    ...(KERNEL_CONTENT_ROWS as unknown as Record<string, unknown>[]),
+    ...(store['content'] ?? []),
+  ];
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(
@@ -303,6 +311,8 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
 
   const store: Record<string, Record<string, unknown>[]> = {
     recipes: branchRecipeRows(),
+    // ⭐ The engine's own rows — every exit is a clone of a kind row.
+    content: [...(KERNEL_CONTENT_ROWS as unknown as Record<string, unknown>[])],
   };
   let idCounter = 0;
   const pm = PersistenceManager.get();
@@ -352,7 +362,20 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
     keywords: ['fare', 'portion'],
   });
 
+  // ⚠ The stub must let the ENGINE's own rows through: every exit in
+  // the world is a clone of a kind row now, and a harness that wires
+  // rooms together asks for one. Without this the stub threw
+  // `unexpected clone /platform/idea/exits/passage` from inside an
+  // unawaited witness — an unhandled rejection wearing the costume of a
+  // missing exit.
+  const realClone = StuffApi.clone.bind(StuffApi);
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
+    if (
+      path.startsWith('/platform/idea/exits/') ||
+      path.startsWith('/platform/thing/Boundary')
+    ) {
+      return realClone(path) as never;
+    }
     if (path === KNIFE_T || path === '/stuff/thing/arms/fire-poker') {
       return makeStuff(() => new TestKnife()) as never;
     }
