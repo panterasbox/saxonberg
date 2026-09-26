@@ -4,16 +4,16 @@
 # `appoint` like any other seat. Sells nothing of her own — the stall is
 # consignment, and her job is the slab, the ice and the chalk.
 class: /platform/agent/Cast
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/agent/costume/student
 data:
-  # ⭐ What this person has on (envelope W1). Until this build no NPC
-  # row in the tree could author clothing at all, so every authored
-  # person in the realm was naked — invisible only because every
-  # interior was 21 °C by decree. A market stall in the open.
+  # ⭐ What this person has on comes from the parent row
+  # (`/stuff/agent/costume/student`). Until the envelope build no
+  # NPC row could author clothing at all — every authored person in
+  # the realm was naked, invisible only because every interior was
+  # 21 °C by decree.
+  # ⭐ The base three come from the parent; this row adds what is
+  # different about THIS person.
   costume:
-    - /stuff/thing/clothes/student-shirt
-    - /stuff/thing/clothes/student-trousers
-    - /stuff/thing/clothes/canvas-shoes
     - /stuff/thing/clothes/field-jacket
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive

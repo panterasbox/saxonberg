@@ -1237,7 +1237,7 @@ became `room.installExit(kind, opts, configure)`.
   a door nobody can open, which is the right answer rather than a
   crash.
 
-### W6 — The exemplars: Dave's Bar, the bottling line, the crates, the costumes
+### W6 — The exemplars: Dave's Bar, the bottling line, the crates, the costumes ✅ DONE
 
 **Decisions.** D14. **Files.** lounge `bar.yaml`; hospitality `bar.yaml`
 (already `as`-keyed from W2); `can.yaml` siblings; the ten crate rows
@@ -1249,6 +1249,35 @@ in `identity.md`/`behavior.md` (*expansion vs parenting*).
 (drive H: reboot and walk the four places).
 
 **Commit.** `build(template-inheritance W6): Dave's Bar in five lines; forty-five costumes from one`
+
+**W6 note (build, 2026-09-25).** Every exemplar landed as designed.
+
+- **Dave's Bar is five `props:` lines** — the works board, the receiving
+  bench, its own tablet (`as: tablet`, substituting the parent's IN
+  PLACE), the counter and the menu. Everything else comes from
+  `/trade/hospitality/location/bar`.
+- ⭐⭐ **The hospitality parent's `name:`/`description:` are fixed, and
+  that is invariant 12 earning its place on the first day.** Both keys
+  were being discarded silently — `SingletonCartesianLocation` declares
+  neither — and nobody had noticed for as long as the row had shipped,
+  because a bar is always instanced by a venue that describes itself.
+  The moment the row became a PARENT, Dave's Bar started inheriting two
+  junk keys and the census went 438 → 440. Renamed to
+  `shortDescription`/`longDescription`; ceiling ratcheted DOWN to 436.
+- Ten crates `extends: crate`; `can-of-cola` `extends: can` and states
+  its fill, its prose and its census line and nothing else.
+- ⚠ Invariant 5 fired on every single child — 45 costume rows, 10
+  crates, Dave's Bar — all restating the standard `hydratorClass`. The
+  gate is doing exactly what it was added for, at scale.
+- **Two TESTS had the class-less-row blindness the plan warned about in
+  gates** (risk 2): `libations-annexes`' row reader dropped
+  `can-of-cola` the instant it stopped stating a class (the count went
+  32 → 31 with no hint why), and `bar-content` asserted Dave's Bar had
+  no glass rack. Both read the effective row now.
+- ⭐ **D12c — the script reader implements `by-entry` after all.** The
+  plan had it as "the child's list replaces, and a gate that cares reads
+  raw". `bar-content` is that gate, and the shallow answer was WRONG
+  rather than conservative. The script now mirrors all four rules.
 
 ### W7 — Drive, record, MR
 

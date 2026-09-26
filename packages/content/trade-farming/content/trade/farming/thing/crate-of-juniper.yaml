@@ -1,8 +1,14 @@
 # A crate of juniper berries — the compounder's botanical (fermentation
 # W6: the distiller buys juniper at the distributor; gin is spirit +
 # juniper, and the chain from the bush to the martini is real).
+# ⭐ EXTENDS the empty crate — the slats, the register and the standard
+# `Crate` class come from there; this row states what is IN it.
+#
+# ⚠ Note `keywords:` is restated rather than inherited, on purpose: the
+# parent's list carries `empty`, which is exactly what a crate of limes
+# is not. `replace` is the default rule and it is the right one here.
 class: /platform/thing/Crate
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /trade/farming/thing/crate
 data:
   shortDescription: crate of juniper berries
   keywords: [juniper, crate, berries, produce]

@@ -1,8 +1,14 @@
 # A crate of grapes — the winery's input, on the same floor unit as
 # every other produce (fermentation W4: the vintner buys grapes at the
 # distributor; the B2B falls out of the chemistry, never authored).
+# ⭐ EXTENDS the empty crate — the slats, the register and the standard
+# `Crate` class come from there; this row states what is IN it.
+#
+# ⚠ Note `keywords:` is restated rather than inherited, on purpose: the
+# parent's list carries `empty`, which is exactly what a crate of limes
+# is not. `replace` is the default rule and it is the right one here.
 class: /platform/thing/Crate
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /trade/farming/thing/crate
 data:
   shortDescription: crate of grapes
   keywords: [grapes, crate, grape, produce]

@@ -107,7 +107,14 @@ clone, and mostly is one (an empty can, an empty crate).
 
 ⚠ **One parent is person-shaped and is nobody** —
 `/stuff/agent/costume/student`, the mannequin the 45 dressed NPCs hang
-off. Clone it and a nameless, bodiless `Extra` stands in the room.
+off. It carries the three base garments, each with an `as`, and each
+dressed row states only its variation: a field jacket, a blazer, a
+tweed jacket, a white coat — or, for the two who are armoured, boots
+`as: shoes`, which REPLACES the canvas ones rather than adding a second
+pair. Six outfits from one authored bundle.
+
+⚠ Clone the parent itself and a nameless, bodiless `Extra` stands in
+the room.
 That is a known and accepted rough edge, left open deliberately: the
 honest fix is either an abstract-row concept or a narrower base class
 to hang it on, and **the base-class build decides that across the whole

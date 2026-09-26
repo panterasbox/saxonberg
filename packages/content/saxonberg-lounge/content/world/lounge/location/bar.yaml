@@ -4,17 +4,21 @@
 # designates or migrates the host; the south exit is therefore NOT
 # declared here.
 #
+# ⭐⭐ It EXTENDS `/trade/hospitality/location/bar` — the trade's bundle
+# is the base and this row is the patch. The back-bar and well, the six
+# tools on the well, the stations, the glass rack and the six stools all
+# come from the parent; what is written below is what makes this bar
+# Dave's. Edit the trade's bundle and every bar in the realm gets it.
+#
 # SingletonMixin pins it to one instance (the host-fixture wiring resolves
-# it via StuffApi.singleton). `props:` furnishes it each boot: the
-# hospitality bar bundle's fixtures (the back-bar and well, the tools ON
-# the well, the stations, the glass rack, the seats), the chalkboard menu
-# and the house tablet — plus the cast. NO bottles: the rail is stocked by
+# it via StuffApi.singleton). `props:` furnishes it each boot — plus the
+# cast. NO bottles: the rail is stocked by
 # the keeper BUYING against the par sheet (idea/business.yaml), and what
 # she bought persists as chattel of the business across a reboot. Crafting
 # needs no venue flag: the bar "works" because the maker + matter are
 # present/reachable here.
 class: /world/lounge/location/Bar
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /trade/hospitality/location/bar
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone. The bar is the lounge grid's origin; the office is one cell north of it, which is what the door has always said.
@@ -112,8 +116,11 @@ data:
   # lets the one on shift fulfil an `order` is the house's `fulfills`
   # SEAT, not anything they compose.
   props:
-    # ⭐⭐ The two fixtures the D11 switchover needed, and nothing else
-    # about the bar changed.
+    # ⭐⭐ FIVE LINES. Everything else — the back-bar and the well, the six
+    # tools on it, the tap and the ice bin and the basin and the glass
+    # rack, the six stools — comes from the parent
+    # (`/trade/hospitality/location/bar`). This row says only what makes
+    # this bar THIS bar.
     #
     # The WORKS BOARD: Mara posts what the rail is short of without
     # leaving her own bar — the keeper stopped travelling, she did not
@@ -128,46 +135,15 @@ data:
     # is empty by construction, because she clears it every beat.
     - /trade/haulage/thing/works-board
     - /trade/haulage/thing/receiving-bench
-    # The bar bundle by reference (`/trade/hospitality/location/bar` —
-    # template inheritance does not exist, so the same list is spelled
-    # here): the shelves, the tools on the well, the stations, the seats.
-    # NO bottles: the rail is stocked by ORDERING — Mara's `restocks` beat
-    # posts a carriage bounty against the business's par sheet and clears
-    # the receiving bench onto the rail, and somebody carries the goods.
-    # Never populates magic; a reboot leaves the rail exactly as the
-    # record says. ⚠ She used to walk to the cash-and-carry and buy;
-    # logistics D11 ended that, and the Lounge is off the road map, so
-    # the leg is the hauler's.
-    - /trade/hospitality/thing/back-bar
-    - /trade/hospitality/thing/well
-    - { template: /trade/hospitality/thing/shaker, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/mixing-glass, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/muddler, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/bar-spoon, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/strainer, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/juicer, onto: /trade/hospitality/thing/well }
-    # The house tablet — the lounge's own row, signed in as Dave's Bar.
-    - { template: /world/lounge/thing/house-tablet, onto: /trade/hospitality/thing/back-bar }
-    # The tip jar on the rail — patrons `tip`, the on-shift bartender
-    # `collect`s it (physical coin, off the books).
-    - { template: /trade/hospitality/thing/tip-jar, onto: /trade/hospitality/thing/back-bar }
-    # The stations: the tap (a keg beside it once bought), the ice bin, the
-    # water tap and basin (`wash`), and the glass rack — the POOL every
-    # order is served from (twelve coupes, the rest by the row).
-    - /trade/hospitality/thing/tap
-    - /trade/hospitality/thing/ice-bin
-    - /trade/hospitality/thing/water-tap
-    - /trade/hospitality/thing/basin
-    - /trade/hospitality/thing/glass-rack
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    - /trade/hospitality/thing/stool
-    # The Attendant service point — the bar as an instance of the storefront-
-    # attention substrate (scrum / zero-wait: the feel is unchanged, the lease
-    # is earned). `order` consults it before serving.
+    # ⭐ The house tablet REPLACES the parent's, in place, because both
+    # carry `as: tablet`. Without that identity the merge would have to
+    # guess between appending (two tablets on one back-bar) and
+    # replacing the whole list (no back-bar at all) — which is exactly
+    # why `as` had to ship with `extends:`.
+    - { template: /world/lounge/thing/house-tablet, as: tablet, onto: /trade/hospitality/thing/back-bar }
+    # The Attendant service point — the bar as an instance of the
+    # storefront-attention substrate (scrum / zero-wait: the feel is
+    # unchanged, the lease is earned). `order` consults it before serving.
     - /world/lounge/thing/bar-counter
     - /world/lounge/thing/bar-menu
   cast:

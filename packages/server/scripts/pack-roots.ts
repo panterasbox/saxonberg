@@ -474,6 +474,44 @@ export function isTemplateRelPath(rel: string, kindDirs: ReadonlySet<string>): b
   return !(parts.length > 1 && kindDirs.has(parts[0]!));
 }
 
+/** An entry's identity: `as`, else `template`, else the bare string. */
+function entryKey(entry: unknown): string {
+  if (typeof entry === "string") return entry;
+  if (entry && typeof entry === "object") {
+    const e = entry as { as?: unknown; template?: unknown };
+    if (typeof e.as === "string") return e.as;
+    if (typeof e.template === "string") return e.template;
+  }
+  return JSON.stringify(entry);
+}
+
+/**
+ * The `by-entry` merge, mirroring `Template`'s: the parent's entries in
+ * order, one the child names substituted in place (further parent
+ * duplicates of that key dropped), then the child's new keys appended.
+ */
+function mergeEntryLists(parent: unknown[], child: unknown[]): unknown[] {
+  const used = new Set<number>();
+  const substituted = new Set<string>();
+  const out: unknown[] = [];
+  for (const p of parent) {
+    const key = entryKey(p);
+    if (substituted.has(key)) continue;
+    const idx = child.findIndex((c, i) => !used.has(i) && entryKey(c) === key);
+    if (idx < 0) {
+      out.push(p);
+      continue;
+    }
+    used.add(idx);
+    substituted.add(key);
+    out.push(child[idx]);
+  }
+  child.forEach((c, i) => {
+    if (!used.has(i)) out.push(c);
+  });
+  return out;
+}
+
 function walkYamlFiles(dir: string, out: string[] = []): string[] {
   let entries: string[];
   try {
@@ -538,13 +576,13 @@ export const TEMPLATE_CHAIN_DEPTH_CAP = 32;
  * The effective row at `path`: the nearest stated `class` /
  * `hydratorClass` along the chain, and the merged `data`.
  *
- * ⚠ **The merge here is SHALLOW** — a child key wins whole, and a list
- * replaces rather than merging by entry. That is deliberate and the
- * limit is real: a gate that reasons about list ENTRIES (the props
- * census, the identity rules) reads `raw` and says so. Mirroring the
- * runtime's per-field `inherit` algebra would mean a second
- * implementation of it in a script, which is how two answers to one
- * question get shipped.
+ * ⚠ It implements the SAME per-field `inherit` algebra the runtime does
+ * — `never`, `by-key`, `by-entry`, `replace` — because a partial one
+ * gives WRONG answers rather than conservative ones. The first cut left
+ * `by-entry` as "the child replaces", and `bar-content` promptly
+ * asserted that Dave's Bar had no glass rack. Two implementations of
+ * one rule is a real cost; a script that models inheritance badly is a
+ * worse one.
  */
 export function effectiveRow(
   path: string,
@@ -628,9 +666,10 @@ export function effectiveRow(
         next[key] = { ...(pv as object), ...(cv as object) };
         continue;
       }
-      // ⚠ `by-entry` is NOT modelled entry-by-entry here — the child's
-      // list replaces. A gate that reasons about list ENTRIES reads
-      // `raw`, and says so at its own call site.
+      if (how === "by-entry" && Array.isArray(pv) && Array.isArray(cv)) {
+        next[key] = mergeEntryLists(pv, cv);
+        continue;
+      }
       next[key] = cv;
     }
     data = next;

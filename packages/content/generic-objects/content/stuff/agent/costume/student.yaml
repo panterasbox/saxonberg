@@ -1,0 +1,36 @@
+# ⭐⭐ The student outfit — shirt, trousers, shoes — as a PARENT ROW.
+#
+# Forty-five dressed people in the realm wear some variation of these
+# three garments, and until template inheritance each of them spelled
+# the whole list out. Six distinct outfits, forty-five copies of the
+# base. Now the base is here and a variation is one line in its own row:
+# a field jacket, a blazer, a tweed jacket, a white coat — or, for the
+# two who are armoured, boots in place of the shoes.
+#
+# ⭐ `as:` on every entry is what makes that possible, and it is the
+# PRECONDITION rather than a nicety. Without an entry identity the merge
+# must choose between appending a child's entries and replacing the
+# parent's list, and each is right about half the time — you get a
+# second pair of trousers, or a barefoot sentry, and nothing says so.
+# With `as: shoes`, a child that writes boots gets boots INSTEAD.
+#
+# ⚠⚠ **This is the tree's first ABSTRACT parent, and it is a known rough
+# edge.** The slate decided "a parent is an ordinary row" on the
+# strength of two exemplars that were objects a player can hold — an
+# empty can, an empty crate. A costume bundle is not one: clone this row
+# and a nameless, bodiless `Extra` stands in the room wearing a student
+# outfit. It is accepted deliberately rather than fixed here, because
+# the honest fix is either an abstract-row concept or a narrower base
+# class to hang it on, and the BASE-CLASS BUILD decides that across the
+# whole tree rather than having it pre-decided by one cohort. See
+# templates.md § Inheritance.
+class: /platform/agent/Extra
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: student
+  register: indefinite
+  keywords: [student]
+  costume:
+    - { template: /stuff/thing/clothes/student-shirt, as: shirt }
+    - { template: /stuff/thing/clothes/student-trousers, as: trousers }
+    - { template: /stuff/thing/clothes/canvas-shoes, as: shoes }

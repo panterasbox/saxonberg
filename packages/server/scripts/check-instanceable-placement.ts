@@ -273,7 +273,7 @@ export function packBrainShapeOk(source: string): boolean {
 }
 
 /** The ceiling for invariant 12 (orphan data keys). May fall, never rise. */
-const ORPHAN_DATA_KEY_CEILING = 438;
+const ORPHAN_DATA_KEY_CEILING = 436;
 
 /** The standard hydrator — the only one whose appliers are `fieldMeta`. */
 const STANDARD_HYDRATOR = '/platform/idea/persistence/PersistentHydrator';

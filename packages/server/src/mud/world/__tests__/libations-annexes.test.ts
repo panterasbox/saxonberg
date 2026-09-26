@@ -18,6 +18,10 @@
  */
 
 import '../../../test-bootstrap';
+import {
+  effectiveRow,
+  inheritanceIndex,
+} from '../../../../scripts/pack-roots';
 import { describe, it, expect , beforeEach } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, sep, relative } from 'node:path';
@@ -83,6 +87,8 @@ function walk(dir: string): string[] {
 }
 
 /** Every template row every shipped pack carries (recipes excluded). */
+const INHERIT = inheritanceIndex();
+
 function allRows(): Row[] {
   const rows: Row[] = [];
   for (const pack of readdirSync(PACKS)) {
@@ -91,9 +97,17 @@ function allRows(): Row[] {
     for (const file of walk(root)) {
       const rel = relative(root, file);
       if (rel.startsWith('recipes/') || rel.startsWith('settings/') || rel.startsWith('archetypes/')) continue;
-      const raw = parse(readFileSync(file, 'utf8')) as { class?: string; data?: Record<string, unknown> } | null;
-      if (!raw || typeof raw.class !== 'string') continue;
-      rows.push({ pack, path: '/' + rel.replace(/\.yaml$/, ''), class: raw.class, data: raw.data ?? {} });
+      const raw = parse(readFileSync(file, 'utf8')) as { class?: string; extends?: string; data?: Record<string, unknown> } | null;
+      if (!raw) continue;
+      // ⚠⚠ The EFFECTIVE row. A CHILD states no `class:`, so requiring
+      // one here dropped `can-of-cola` the moment it started extending
+      // the can — and the count assertion below went 32 → 31 with no
+      // hint of why. This is the "a gate that skips a class-less row
+      // silently" failure, in a test.
+      const path = '/' + rel.replace(/\.yaml$/, '');
+      const eff = effectiveRow(path, INHERIT.rows, INHERIT.rules);
+      if (eff.error || !eff.class) continue;
+      rows.push({ pack, path, class: eff.class, data: eff.data });
     }
   }
   return rows;

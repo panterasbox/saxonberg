@@ -20,9 +20,20 @@ data:
     x: 0
     y: 0
     z: 0
-  name: a bar
+  # ⚠⚠ These were `name:` and `description:` — keys the class declares
+  # NEITHER of, so the Hydrator has been discarding both in silence
+  # since the row shipped. Nobody noticed because a bar is always
+  # instanced by a venue that describes itself.
+  #
+  # ⭐ It stopped being harmless the day this row became a PARENT: a junk
+  # key on a parent reaches every descendant, and Dave's Bar started
+  # inheriting two of them. That is the whole argument for
+  # `lint:instanceable` invariant 12, made by the first row to extend
+  # anything.
+  shortDescription: bar
+  register: indefinite
   keywords: [taproom, bar, barroom]
-  description: |
+  longDescription: |
     A narrow room with a long bar down one side, stools along it, the back-bar mirrored and lit from beneath. A brass tap handle stands over its drip tray; the ice bin and the well sit under the lip where the bartender works.
   props:
     # The back-bar and the well: the Surfaced shelves the working bottles
