@@ -1,9 +1,11 @@
-# The can — the EMPTY vessel bottling fills. This is the STANDARD a
-# canned product is built against: same class, same capacity, same
-# construction, plus the fill (see `can-of-cola.yaml`). Template
-# inheritance does not exist, so a product row repeats these fields
-# rather than referencing this one — the row is the exemplar and the
-# README is the contract.
+# The can — the EMPTY vessel bottling fills, and the PARENT every canned
+# product extends: same class, same capacity, same construction, plus
+# the fill (see `can-of-cola.yaml`).
+#
+# ⭐ A product row used to repeat all of this, because template
+# inheritance did not exist and the README had to be the contract. It
+# exists now: a product states its fill, its prose and its census line,
+# and nothing else.
 #
 # `closure: sealed` is CONSTRUCTION (gas-tight — it is why fizzy drinks
 # come in cans); `open` is STATE. An empty can is an opened can.

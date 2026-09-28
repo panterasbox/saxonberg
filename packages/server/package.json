@@ -32,6 +32,7 @@
     "lint:boundary": "tsx scripts/check-boundary-exemptions.ts",
     "lint:authored-prose": "tsx scripts/check-authored-prose.ts",
     "lint:capabilities": "tsx scripts/check-capabilities.ts",
+    "lint:create-sites": "tsx scripts/check-create-sites.ts",
     "lint:census": "tsx scripts/check-template-census.ts",
     "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts",
     "lint:committees-are-players": "tsx scripts/check-committees-are-players.ts --lint",

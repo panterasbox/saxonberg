@@ -269,10 +269,15 @@ export default class Window extends WindowBase {
         `Window.setAttachedHosts: hostA path and hostB path must differ ('${value[0]}').`
       );
     }
-    // Idempotency check via existing anchors.
+    // ⚠ Phase 1 runs BEFORE `postRegister`, so the anchor pair may not
+    // exist yet — mint it here rather than assuming the hook has run.
+    await this.ensureAnchors();
+    // Idempotency check via where the anchors are INSTALLED. (It used to
+    // be "are there anchors at all", which stopped meaning anything once
+    // a boundary mints its pair up front and keeps it across detach.)
     const anchorA = this.getAnchorA();
     const anchorB = this.getAnchorB();
-    if (anchorA && anchorB) {
+    if (anchorA?.getAdornedTo() && anchorB?.getAdornedTo()) {
       const hostA = anchorA.getAdornedTo();
       const hostB = anchorB.getAdornedTo();
       const pathA = (hostA as unknown as Stuff | null)?.getTemplatePath() ?? null;
@@ -292,7 +297,7 @@ export default class Window extends WindowBase {
           `'${value[1]}'). Destruct the boundary first via BoundaryApi.`
       );
     }
-    if (anchorA || anchorB) {
+    if (anchorA?.getAdornedTo() || anchorB?.getAdornedTo()) {
       const tag =
         (this as unknown as Stuff).getTemplatePath() ??
         (this as unknown as Stuff).stuffId;

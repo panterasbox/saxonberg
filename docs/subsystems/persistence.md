@@ -1329,6 +1329,25 @@ born-with content in the theatre vocabulary:
   garments), on the person rather than on the place. `CostumedMixin`, the
   same file and the same rail.
 
+### ⭐ The entry shape (template inheritance, 2026-09-25)
+
+Every entry in all four designation lists (`props`, `cast`, `costume`,
+`adornments`) may carry **`as`** — its identity — and a `props:` entry
+may carry **`count: N`**, which mints N clones from one line.
+
+⭐⭐ **`as` is not a convenience; it is what makes these lists
+inheritable at all.** They merge `by-entry` when a row `extends`
+another, and without an entry identity the merge must choose between
+appending the child's entries and replacing the parent's — each right
+about half the time, and the wrong one silently doubles a jacket or
+takes away a pair of shoes. See
+[templates.md § Inheritance](./templates.md).
+
+`count` is props-only: twelve limes are twelve limes, but twelve of a
+person are twelve people, each of whom needs a name. It throws on
+`cast:`/`costume:`, on a `Singleton` class, and on anything that is not
+a whole number ≥ 1. Two entries sharing one `as` throw too.
+
 The class is the check, not the designation: each applier resolves an
 entry's template class and gates on `Mixins.Behaved` (or, for a costume,
 `Mixins.Wearable`) **before** minting — a Behaved entry under `props:`, a

@@ -91,11 +91,15 @@ tank and watering can in the game. It is composed by the classes that
 actually have a kind — `Bottle`, `Vat`, `CraftVessel` and everything
 below them — and `MixinApi.isVesselKind` is how a reader asks.
 
-It exists because **template inheritance does not exist**, so the empty
-vessel row (`/trade/bottling/thing/can`) and the product row that is
-that vessel filled (`…/can-of-cola`) are otherwise strangers that happen
-to share a class. The shared `category` string *is* the relationship,
-and three things read it:
+It exists because the empty vessel row (`/trade/bottling/thing/can`)
+and the product row that is that vessel filled (`…/can-of-cola`) need a
+relationship a reader can ask about at RUNTIME. ⭐ Since the
+template-inheritance build the product row genuinely `extends:` the
+empty one, so the two are no longer strangers on disk — but `extends`
+is a fact about the ROWS, and the three readers below hold live
+instances whose parentage is not on them. The shared `category` string
+is what an instance carries, and it stays the relationship those
+readers ask:
 
 - **The census** ([residency.md](./residency.md)) — an emptied vessel
   counts under `vessel:<category>`, so a drained can of cola joins the

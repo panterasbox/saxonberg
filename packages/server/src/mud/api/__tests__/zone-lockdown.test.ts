@@ -18,7 +18,7 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach  } from 'vitest';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
@@ -29,12 +29,19 @@ import { ContainmentApi, ContainmentError } from '../containment';
 import { ShadowApi } from '../shadow';
 import { ProxyApi } from '../proxy';
 import { SecurityError } from '../../lib/security/errors';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 import ExitableVessel from '../../lib/boundary/ExitableVessel';
 
 class Plain extends Idea {}
 
 describe('zone lockdown — round-trip', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
@@ -111,7 +118,7 @@ describe('zone lockdown — cross-zone invariant integrity under tamper', () => 
     zoneB.addLocation(locB, 0, 0, 0);
 
     // An Exitable (vessel) stamped into zoneA. Place it in locA.
-    const wardrobe = makeStuff(() => new ExitableVessel());
+    const wardrobe = await StuffApi.create(() => new ExitableVessel());
     Stuff._stampZone(wardrobe, zoneA);
     ContainmentApi.move(wardrobe, locA);
 

@@ -8,7 +8,8 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { seedKernelContentStore } from '../../../mud/lib/security/__tests__/test-setup';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -55,6 +56,22 @@ async function bootRegistry(): Promise<void> {
   StuffApi.register(reg);
   EventApi._setRegistryForTesting(reg);
 }
+
+beforeEach(() => {
+  seedKernelContentStore([
+  {
+    path: '/platform/location/sandbox/CircleFloor',
+    class: '/platform/location/sandbox/CircleFloor',
+    data: {},
+  },
+  {
+    path: '/platform/agent/sandbox/WireBody',
+    class: '/platform/agent/sandbox/WireBody',
+    hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+    data: { wirePlayerId: '' },
+  },
+  ]);
+});
 
 describe('go wardrobe (the real command path)', () => {
   beforeEach(async () => {

@@ -11,7 +11,8 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import SearchController from '../../../platform/idea/cmd/perception/SearchController';
 import GoController from '../../../platform/idea/cmd/movement/GoController';
 import Bar from '../location/Bar';
@@ -47,7 +48,8 @@ import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { EngagedMixin } from '../../../lib/activity/Engaged';
 import { BeliefStoreMixin } from '../../../lib/belief/BeliefStore';
-import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+import { makeStuff
+} from '../../../lib/security/__tests__/test-setup';
 
 const PH = '/platform/idea/persistence/PersistentHydrator';
 const HINT = 'a hairline seam and a thread of cool air from the north wall';
@@ -112,7 +114,10 @@ function installStore(): void {
       },
     },
   ];
-  const store = docs.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row now.
+  const store = [...(KERNEL_CONTENT_ROWS as unknown as typeof docs), ...docs].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
   vi.spyOn(PersistenceManager, 'get').mockReturnValue({
     save: vi.fn(async () => '1'),
     find: vi.fn(async (collection: string, query: Record<string, unknown>) => {

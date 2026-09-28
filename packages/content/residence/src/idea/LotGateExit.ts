@@ -19,30 +19,24 @@ import type PlatWarren from "./PlatWarren";
 
 export default class LotGateExit extends DeferredDestinationExit {
   /** The provisioner — held as a PATH (an identity ref), resolved on read. */
-  private holderPath: string;
+  private holderPath = "";
 
   /** The lot's parcel extent — the provisioning key and the title key. */
-  private lotExtent: string;
+  private lotExtent = "";
 
-  constructor(
-    source: Stuff & Container,
+  /**
+   * ⭐ What the constructor used to take. The arrival line moved to the
+   * ROW; the departure line still names the DIRECTION, which is a fact
+   * about this edge rather than about gates, so it stays here.
+   */
+  public configureGate(
     holder: PlatWarren,
     lotExtent: string,
     direction: string,
-    entryRowPath: string,
-  ) {
-    super({
-      direction,
-      source,
-      // The ENTRY ROOM'S ROW — a real row (D17), so the edge reads
-      // honestly (and the cartesian boundary rule reads a real zone
-      // ancestry) before it's ever been walked.
-      destinationTemplatePath: entryRowPath,
-    });
+  ): void {
     this.holderPath = holder.getTemplatePath() ?? "";
     this.lotExtent = lotExtent;
     this.setMessageOut(`{{ mover }} goes through the ${direction} gate.`);
-    this.setMessageIn("{{ mover }} comes in from the lane.");
   }
 
   /** The lot this gate fronts. */

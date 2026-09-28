@@ -20,6 +20,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -151,6 +152,18 @@ const SNAKE_SPECIES =
  */
 function seedDomain(): void {
   col('content').push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows plus the hall's exit kinds — every exit in
+  // the world is a clone of a kind row now.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    col('content').push({ _id: `d-${++idCounter}`, ...row });
+  }
+  for (const [path, cls] of [
+    ['/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit'],
+    ['/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor'],
+    ['/stuff/idea/exits/stair', '/platform/idea/Exit'],
+  ] as const) {
+    col('content').push({ _id: `d-${++idCounter}`, path, class: cls, data: {} });
+  }
 
   addSeed(DormWarren.WARREN_PATH, `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-warren.yaml`);
   // D16 step 2: the unit's degenerate one-room programme row.

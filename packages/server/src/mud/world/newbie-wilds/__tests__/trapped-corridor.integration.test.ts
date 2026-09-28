@@ -23,8 +23,9 @@
  */
 
 import "../../../../test-bootstrap";
+import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { AdvancementMixin } from '../../../lib/advancement/Advancement';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
@@ -71,7 +72,7 @@ import {
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import {
   makeStuff,
-  stampTemplatePathForTest,
+  stampTemplatePathForTest
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
@@ -145,7 +146,10 @@ function trapsStore(): Doc[] {
 
 /** Install an in-memory (offline) PersistenceManager over `docs`. */
 function installStore(docs: Doc[]): void {
-  const store = docs.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row now.
+  const store = [...(KERNEL_CONTENT_ROWS as unknown as Doc[]), ...docs].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
   vi.spyOn(PersistenceManager, 'get').mockReturnValue({
     isConnected: () => false,
     save: vi.fn(async () => '1'),

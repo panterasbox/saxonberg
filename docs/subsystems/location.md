@@ -249,6 +249,13 @@ reading `this.zone` during `postRegister` sees the right value
 
 #### Field inheritance via `Zone.lookupField`
 
+⭐ **One of two inheritance mechanisms, and not the row one.** A zone
+field answers *what is true everywhere inside here*, at READ time,
+walking the path tree; a row's `extends:` parent answers *what this
+thing is like*, at CLONE time, walking the `extends` chain. They stay
+two mechanisms deliberately — see [zone.md § Zone field lookup and row
+parenting](./zone.md) and [templates.md § Inheritance](./templates.md).
+
 For zone-carried defaults that should inherit through the template
 tree, `zone.lookupField<T>(fieldName)` walks ancestry nearest-first
 and returns the first non-null value defined on any ancestor Zone.

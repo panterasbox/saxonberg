@@ -391,7 +391,7 @@ collection so no contribution kind can ever reach it (the
   boots its rows and still has maintainers.
 
 **Canonical hashing.** The preimage is the rendered content only —
-`{class, hydratorClass, data}` for the template kind, the bank body for a
+`{class, extends, hydratorClass, data}` for the template kind, the bank body for a
 bank, `{data}` for a document, `{front, body}` for a wiki page, the
 rendered subject shape for a subject — key-sorted, cycle-safe,
 `undefined`-normalized (`JSON.stringify`
@@ -415,7 +415,13 @@ baseline for that key (slate A10.4):
 
 Plus: a **vanished file** deletes a clean row (DB == baseline) and
 conflicts (`deleted-vs-edited`) on an edited one — an operator-edited row
-is never silently deleted. **Pinned** keys (`record.pins`) are skipped
+is never silently deleted. ⭐ It also conflicts (`deleted-vs-extended`,
+with the dependents named in the conflict's `detail`) when another row
+still **`extends`** it: a parent may not be reaped out from under its
+children. The delete hook refuses it at the persistence chokepoint
+anyway; planning it as a conflict instead is the three-way model's
+*never block* rule — the author gets a diagnostic, the row stays, and
+the boot finishes. **Pinned** keys (`record.pins`) are skipped
 before any comparison and counted; every reconcile result, boot line,
 and `pack status` reports `N rows pinned, skipped` — pins are loud,
 every time. A stamped row with **no baseline** (the requires phase's
@@ -696,6 +702,15 @@ pack's). Keyed on **resolution origin, not path prefix**:
    `/world/<x>` claim (`saxonberg-lounge`, `hearthworks`) passes;
 2. a class that resolves into another pack's `src/` requires that pack
    in the importer's derived `dependsOn`, else fails naming both;
+2b. ⭐ the same rule for **`extends:`** — `assertParentsResolve`: every
+   parent row must be one this pack ships, or one shipped by a pack it
+   `dependsOn`, else the boot fails naming the parent, its pack and the
+   missing `package.json` line. So a parent in a pack filtered out by
+   `SAXONBERG_PACKS` is a **thrown error naming it**, not a dangling
+   link that surfaces as a mystery at the first clone. Packs reconcile
+   in topological order, so a parent row is in the DB before its
+   children's rows are written; a pack row may not extend an unshipped
+   DB row.
 3. a pack with `src/` records `rung: 'capability'` (else `'data'`), and
    after the install every `src/` class no row of any installed pack
    names is **reported** (console + a diagnostic) — dead code in a pack

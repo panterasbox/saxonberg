@@ -1029,19 +1029,16 @@ function conductivityOf(s: Stuff): number {
  * source. A strike into an empty scope harms no one but is still heard.
  */
 async function fireStrike(room: Stuff & Container): Promise<void> {
-  const { default: LightningStrike } = await import(
-    '../../../lib/weather/LightningStrike'
-  );
   const volts = dial(AppSettingKeys.stormStrikeVoltage, 30_000_000);
-  const strike = await StuffApi.create(() => {
-    // `create` (not clone): a strike is a transient single-use vessel —
-    // minted, conducted, and reaped inside this one call, never
-    // authored, never persisted, its only datum a settings-derived
-    // voltage. A template would be a seed row nothing ever edits.
-    const s = new LightningStrike();
-    s.setVoltage(Quantity.of(volts, 'V'));
-    return s;
-  });
+  // ⭐ Clone the row, then patch: the strike's prose and keywords are
+  // authored, and only the voltage — which is settings-derived, so
+  // nobody could author it — arrives from here. (It used to be a bare
+  // `create`, argued as "a seed row nothing ever edits"; a row nobody
+  // edits is still a row somebody CAN.)
+  const strike = await StuffApi.clone<
+    Stuff & { setVoltage(v: Quantity<'V'>): void }
+  >('/platform/thing/LightningStrike');
+  strike.setVoltage(Quantity.of(volts, 'V'));
   await ContainmentApi.move(
     strike as unknown as Stuff & Containable,
     room as unknown as Stuff & Container,

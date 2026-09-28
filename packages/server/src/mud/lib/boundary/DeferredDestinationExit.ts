@@ -57,17 +57,29 @@ export default abstract class DeferredDestinationExit extends Exit {
   /** Cached live destination (an instance live ref); re-resolved after a reap. */
   private live: (Stuff & Container) | null = null;
 
-  constructor(opts: DeferredDestinationOptions) {
+  /**
+   * ⭐ `opts` is OPTIONAL: a deferred exit is a clone of a kind row now,
+   * and the clone pipeline constructs bare — identity arrives through
+   * `Exitable.installExit`'s `bind`, and whatever the subclass's
+   * constructor used to take arrives through that call's `configure`
+   * callback. The argument form stays for the tests and for any caller
+   * that genuinely holds all three facts up front.
+   */
+  constructor(opts?: DeferredDestinationOptions) {
     // The accurate destination template path lands in the base's
     // `_destinationPath` slot — read only by `getDestinationTemplatePath()`.
     // Resolution is overridden below to go through `computeDestination`, so the
     // base's path-resolution (ambiguous for a shared multi-instance template)
     // is never reached.
-    super({
-      direction: opts.direction,
-      source: opts.source,
-      destinationPath: opts.destinationTemplatePath,
-    });
+    super(
+      opts
+        ? {
+            direction: opts.direction,
+            source: opts.source,
+            destinationPath: opts.destinationTemplatePath,
+          }
+        : undefined,
+    );
   }
 
   /**

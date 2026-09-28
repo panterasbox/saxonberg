@@ -61,6 +61,33 @@ export interface FieldMetaEntry {
   stackIdentity?: true;
 
   /**
+   * **How this field merges when a template row `extends` another.**
+   *
+   * Declared by the field's OWNER, which is the whole point: a pack's
+   * field (`routes`) and every `Biome` field state their own rule with
+   * no edit to `Template`, which holds no list of field names.
+   *
+   * - `replace` (the default) — the child's value wins whole; absent
+   *   falls through to the parent's. A stated `null` IS null.
+   * - `by-key` — an object merged key by key, the child winning per
+   *   key. `Detailed.details`.
+   * - `by-entry` — a list merged by ENTRY IDENTITY (`as`, else
+   *   `template`, else the bare string): the parent's entries in order,
+   *   one the child names substituted in place, the child's new keys
+   *   appended. The four designation lists.
+   *   ⭐⭐ Entry identity is the PRECONDITION for this rule, not a
+   *   nicety — append and replace are each right about half the time
+   *   and the wrong one fails silently (a doubled jacket, a missing
+   *   pair of shoes).
+   * - `never` — the parent's value is not copied at all; only what the
+   *   child states. `exits` (neighbours are not inherited) and every
+   *   `Biome` field (biome resolves per READ by its own walk, so a
+   *   clone-time merge would put the value on the child and make
+   *   `trace atmosphere` name the wrong ancestor).
+   */
+  inherit?: 'replace' | 'by-key' | 'by-entry' | 'never';
+
+  /**
    * **Axis 1** — what this field points at when it points at other
    * Stuff.
    *

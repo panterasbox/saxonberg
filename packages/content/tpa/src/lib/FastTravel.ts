@@ -204,7 +204,9 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       advanceMode: { persistent: true, authorable: true },
       cycleInterval: { persistent: true, authorable: true },
       surcharge: { persistent: true, authorable: true },
-      routes: { instruction: true, authorable: true },
+      // `never`, for `exits:`' reason: a route is where THIS node
+      // goes, and a child node is somewhere else.
+      routes: { instruction: true, authorable: true, inherit: 'never' },
     };
 
     /**

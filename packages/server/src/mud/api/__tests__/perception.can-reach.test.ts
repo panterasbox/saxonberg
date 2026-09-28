@@ -16,7 +16,7 @@
  */
 
 import '../../../test-bootstrap';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach  } from 'vitest';
 import { PerceptionApi } from '../perception';
 import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';
@@ -33,7 +33,9 @@ import { CommandGiverMixin } from '../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { DetailedMixin } from '../../lib/description/Detailed';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 /** An actor that can hold things and be somewhere. */
@@ -53,6 +55,10 @@ class Chest extends SealableMixin(
 ) {}
 
 describe('PerceptionApi.canReach', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let zone: CartesianZone;
   let here: CartesianLocation;
   let there: CartesianLocation;
@@ -101,7 +107,7 @@ describe('PerceptionApi.canReach', () => {
    * the bug it exists for.
    */
   it('reaches a door attached to an exit — which is in NO container', async () => {
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('a heavy oak door');
     await here.addBidirectionalExit(there, 'north', { door });
 
