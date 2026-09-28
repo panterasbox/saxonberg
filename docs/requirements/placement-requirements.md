@@ -42,11 +42,21 @@ whose design is agreed.
   note saying cold is a property of a space or of *"an insulated,
   closable holder"*, that the shipped larder *"is neither — it is a
   cupboard"*, and that this is *"the reason to want a cold box later"*.
-- ⚠⚠ **And nothing can satisfy it.** Every other capability need has a
-  satisfier — tool, heat, bulk source, surface, seating, rest,
-  presence, light, vessel kind. `coldStorage` parses as a need and is
-  never matched against anything. A kitchen's cold capability is not
-  *usually* unmet; it is unmeetable, and no object could change that.
+- ⚠⚠ **And the check that answers it is wrong in both directions.**
+  (Corrected 2026-09-28: an earlier draft of this doc said nothing
+  could satisfy `coldStorage` at all. That was wrong — the satisfier is
+  the unlabelled fall-through at the end of the matcher, which a search
+  for the other needs' shape misses. The real defect is worse than the
+  one claimed.)
+  - **False positives.** The holder rung asks only *insulated and
+    closable* with **no temperature check** — so any such container
+    qualifies however warm it is. Dave's Bar reports cold **met**
+    today, on the strength of an empty ice bin at room temperature.
+  - **False negatives.** The space rung asks whether the room is
+    *thermal*, and **no room in the game is** — rooms carry an
+    atmosphere, not a thermal body. So a 279 K stone cellar authored
+    for exactly this satisfies nothing, and its own row says
+    *"`coldStorage` reads the SPACE"*.
 
 **Therefore what is genuinely new here is three sentences the world
 cannot say today:** *this sits **in** that, which has its own air* ·
@@ -191,13 +201,16 @@ makes it an object somebody has to keep rather than a property of the
 room. Cold that is *produced* (a setpoint, a heat pump, a bill) is the
 next rung and a different build.
 
-### A declared capability that nothing can satisfy is a defect, not a gap
+### A capability that answers wrongly is worse than one that is missing
 
-The kitchen's `cold` need has read as a content gap — *"expected to go
-unmet in most homes"* — when it is in fact unmeetable by construction.
-Fixing the satisfier is in scope because shipping an icebox that
-satisfies nothing would leave the same silence with a new object in
-front of it.
+The kitchen's `cold` need reads as a content gap — *"expected to go
+unmet in most homes"* — while the check behind it says *met* for a warm
+empty box and *unmet* for a cold cellar. A missing check is silent; a
+wrong one is confidently misleading, and every survey report that has
+ever named cold storage has been reporting on insulation rather than
+on cold. Repairing it is in scope because an icebox dropped in front of
+an unrepaired check would satisfy it while still warm, which is the
+opposite of the thing this build is for.
 
 ### Adding a way of sitting costs a row and a word PER SUPPORTING VERB
 
@@ -310,9 +323,10 @@ Observable from outside the code.
 1. **Food kept in the icebox is measurably better kept** than the same
    food left in the room, after the same elapsed time, read off each
    item's own description — and stops being kept once the ice melts.
-2. ⭐ **A kitchen with an icebox reports its cold capability as MET.**
-   Today no kitchen can, whatever is in it. This is the criterion that
-   proves the satisfier exists rather than the object.
+2. ⭐ **A kitchen with a WARM icebox reports cold as unmet; put ice in
+   it and the same kitchen reports MET.** Today the box alone would
+   satisfy the check while empty and warm. This is the criterion that
+   proves the *cold* is what is being reported, not the insulation.
 3. **A ham hangs from a hook**, is described as hanging, is found by
    examining the hook, does not clutter the room listing, and dries as
    a fully exposed thing.
