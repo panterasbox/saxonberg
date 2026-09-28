@@ -1,9 +1,10 @@
 # Placement — requirements
 
 **Kind:** feature
-**Leads from:** kernel — first consumers are **the larder** (shipped,
-placed in two kitchens, and currently claiming to be cool without being
-cool) and **a meat hook** in `trade-cooking`, both in this build.
+**Leads from:** kernel — first consumers are **an icebox** (which fills
+a capability the kitchen archetype has declared, in writing, since it
+shipped, and which nothing has ever been able to satisfy) and **a meat
+hook** in `trade-cooking`, both in this build.
 
 A container's contents are partitioned by *where inside it* a thing
 sits. One instance of that ships — a mug rests **on** a desk — and the
@@ -36,13 +37,22 @@ whose design is agreed.
   a meat hook, a cheese shelf, a turf stack, a wire line and a bad
   drying shed all come out of rows"* — and the meat hook is the one
   that cannot, because you do not put a ham *on* a hook.
-- **The larder is already in the game**, in two kitchens, and its prose
-  already says *"cool and dark inside"*.
+- **The kitchen archetype already declares a `cold` capability** —
+  `{ key: cold, needs: { coldStorage: true } }` — with no default and a
+  note saying cold is a property of a space or of *"an insulated,
+  closable holder"*, that the shipped larder *"is neither — it is a
+  cupboard"*, and that this is *"the reason to want a cold box later"*.
+- ⚠⚠ **And nothing can satisfy it.** Every other capability need has a
+  satisfier — tool, heat, bulk source, surface, seating, rest,
+  presence, light, vessel kind. `coldStorage` parses as a need and is
+  never matched against anything. A kitchen's cold capability is not
+  *usually* unmet; it is unmeetable, and no object could change that.
 
 **Therefore what is genuinely new here is three sentences the world
 cannot say today:** *this sits **in** that, which has its own air* ·
 *this **hangs from** that* · and *an author may add a way of sitting
-without asking an engineer.*
+without asking an engineer* — plus **one sentence it has been trying to
+say since the archetype shipped**: *this kitchen has somewhere cold.*
 
 ## Goals
 
@@ -53,8 +63,9 @@ without asking an engineer.*
 - **An author adds a new way of sitting with a row** — no kernel
   change, no engineer, and a player who already knows `on` needs no
   explanation for `from`.
-- **The larder stops lying**: prose and mechanism agree, and food kept
-  in it is measurably better kept.
+- **A kitchen's declared cold capability becomes satisfiable at all**,
+  and an icebox satisfies it — food kept in one is measurably better
+  kept than the same food left out.
 - A player can always **name** a region and is told *why* when an act
   on it is refused, rather than finding the region unaddressable.
 - Reading is unchanged: finding a thing inside a container still finds
@@ -62,13 +73,19 @@ without asking an engineer.*
 
 ## Non-goals
 
-- **The icebox, and cold that is produced rather than authored.** →
-  [fridge-design-pack](../slates/builds/fridge-design-pack.md); it needs
-  a new physics mixin (interior tracking the coldest contained mass)
-  and that pack owns the design. The larder is authored-cold and needs
-  none of it.
-- **The fridge, the freezer, and anything powered.** → the same pack,
-  behind the appliance/power tier.
+- ⭐ **Touching the larder.** Nowhere, deliberately — and this is a
+  correction. A slatted larder is *ventilated*: cool because the room
+  is cool and the air moves, not because it holds cold. Its prose is
+  honest and the archetype's author already reasoned this through. It
+  stays exactly as it is.
+- **The fridge, the freezer, and anything powered.** →
+  [fridge-design-pack](../slates/builds/fridge-design-pack.md), behind
+  the appliance/power tier. This build ships the passive rung only —
+  cold you carry in and that melts.
+- **Widening `coldStorage` beyond the shape the doc already names.**
+  The satisfier is `Thermal` + `Sealable`, as `Archetype.ts` already
+  specifies; a cellar or walk-in satisfying it as a *space* is the same
+  slate's later rung.
 - **Removing the inert atmosphere from every container-like object.** →
   [base-class-narrowing-slate](../slates/builds/base-class-narrowing-slate.md)
   finding #1. This build makes the fix expressible; it does not do it.
@@ -89,10 +106,12 @@ property, and surfaces are already kernel substrate. The vocabulary
 ships as rows in the platform pack so a capability pack can add a
 member without kernel code.
 
-The **content is its owner's**: the larder is `generic-objects`' (it is
-the object every kitchen names), and the meat hook is
-`trade-cooking`'s, because it serves that trade's drying loop and sits
-beside the drying rack it already ships.
+The **content is its owner's**: the icebox is `generic-objects`' (it is
+the object any kitchen names, and it sits beside the larder and the
+range already there), and the meat hook is `trade-cooking`'s, because
+it serves that trade's drying loop and sits beside the drying rack it
+already ships. The **`coldStorage` satisfier is the kernel's**, with
+the other eight.
 
 ⭐ **A second instance needs no code.** A second cool container is a row
 naming the same class with its own temperature; a second hook is a row.
@@ -101,28 +120,38 @@ the test, and the one the build is judged on.
 
 ## Collisions
 
-- **Two kitchens already hold a larder** — `hinkley-hills` lot kitchens
-  and `trade-cooking`'s kitchen. Both change behaviour when the larder
-  becomes genuinely cool: food kept there now lasts. That is the
-  intended outcome and it is also the thing to watch, because a recipe
-  or a beat that assumed the larder was ordinary storage will now see
-  fresher ingredients.
-- **The larder is seeded OPEN**, deliberately — the craft gather walk
-  descends one level into open room containers, so an open larder is
-  ingredients in reach. ⚠ A cool larder that must be shut to stay cool
-  would break `cook` at home. The build must not make coldness depend
-  on the lid.
+- **The kitchen archetype** is the thing this build satisfies, and the
+  survey report it feeds will change: kitchens that reported a missing
+  cold capability will stop, wherever an icebox is placed. That is the
+  intended outcome and the observable one.
+- ⚠ **Every other archetype that declares `coldStorage`** starts being
+  evaluated the moment the satisfier exists. Today they all report
+  unmet regardless of contents; afterwards they report the truth, which
+  may be a different answer than anyone has seen. The build must look
+  at the whole set, not just the kitchen.
+- **The larder shares the kitchens the icebox goes into** —
+  `hinkley-hills` lot kitchens and `trade-cooking`'s kitchen. Both keep
+  their larder unchanged; the icebox is a second object beside it, and
+  the two should read as different things (a ventilated cupboard and a
+  cold box).
+- ⚠ **The larder is seeded OPEN deliberately** — the craft gather walk
+  descends one level into open room containers, so `cook` works at
+  home. An icebox that must be shut to hold its cold must not break
+  that: ingredients kept in the icebox are *meant* to be out of reach
+  until you open it, which is the opposite requirement and needs
+  stating plainly rather than discovering.
 - **Dave's Bar is the surface exemplar** — the back-bar, the well, and
-  eight props that must stay out of the room listing. Any regression
-  shows up there first.
-- **The Hearthworks cookhouse and pantry chest** are the neighbouring
-  storage objects; the hook belongs in the cookhouse's world, not a
-  new room.
+  eight props that must stay out of the room listing. Any regression in
+  the rename shows there first.
 - **The ice bin behind Dave's rail** is an insulated container that is
-  *not* getting a region in this build. It keeps working as it does.
-- **Nobody sells bagged ice today** — no retail row references it.
-  Noted because it is the icebox's problem when that build comes, not
-  this one's.
+  *not* becoming an icebox in this build. It keeps working as it does.
+- **Nobody sells bagged ice today** — no retail row references it. An
+  icebox whose ice cannot be replenished is a one-shot object, so the
+  build must either place ice where a player can get it or accept that
+  the drive seeds it.
+- **The Hearthworks cookhouse** already places the drying rack and
+  already depends on `trade-cooking`; the meat hook belongs there
+  rather than in a new room. ⚠ There is no smokehouse.
 
 ## Surface decisions
 
@@ -154,18 +183,40 @@ A region stays nameable even when acting on it is impossible. A shut
 compartment says it is shut. A target that vanishes from the parser
 teaches nothing and reads as a bug.
 
-### The larder is cold because it is authored cold
+### The icebox is cold because there is ice in it
 
-Not because of ice, a lid, a season or a power supply. The world
-already has an exception mechanism for a place that is simply the same
-temperature all year — a cellar, a cave — and a slatted larder in a
-cool corner is that. Cold that must be *produced* is a different build.
+Not because it is authored cold, and not because it is powered. The
+cold is a thing a player carries in, and it runs out — which is what
+makes it an object somebody has to keep rather than a property of the
+room. Cold that is *produced* (a setpoint, a heat pump, a bill) is the
+next rung and a different build.
+
+### A declared capability that nothing can satisfy is a defect, not a gap
+
+The kitchen's `cold` need has read as a content gap — *"expected to go
+unmet in most homes"* — when it is in fact unmeetable by construction.
+Fixing the satisfier is in scope because shipping an icebox that
+satisfies nothing would leave the same silence with a new object in
+front of it.
+
+### Adding a way of sitting costs a row and a word PER SUPPORTING VERB
+
+⚠ A correction to the design's own acceptance test, found while
+planning. A relation is one vocabulary row, but every verb that accepts
+a *support* must also accept the preposition — today `put` and `dry`,
+and no others: of 108 preposition-bearing views the rest use `in`/`on`/
+`with` as instrument or medium words (`pour into`, `wash in`, `dose
+with`), which are a different thing. The cost is small and bounded; the
+requirement is that an author can **find** the set, because a verb that
+should accept a relation and silently does not is the arg-gate failure
+class.
 
 ## Lens pass
 
 1. **Pedagogy** — modest and real: cold slows spoilage, and the
-   larder makes the Arrhenius term the kitchen already runs *visible*
-   by giving a player two identical foods in two places. Discipline:
+   icebox makes the Arrhenius term the kitchen already runs *visible*
+   by giving a player two identical foods in two places — and the
+   melting ice teaches latent heat without saying the words. Discipline:
    `cooking` / `recipe-knowledge`, both shipped.
 2. ⭐ **Creative expression** — the strongest entry, and the one the
    build is judged on. The ordinary case needs no code: a new way of
@@ -175,23 +226,26 @@ cool corner is that. Cold that must be *produced* is a different build.
 3. **Immersion** — an object stops lying. The larder's prose has
    promised cool and dark since it shipped; this is the mechanism
    catching up to the fiction rather than fiction dressing a mechanism.
-4. **Values** — thin, honestly. Stewardship: keep your food properly
-   or do not. It gets much stronger with the icebox, where the cold is
-   something you have to maintain — which is an argument for that
-   build, not this one.
+4. ⭐ **Values** — stewardship, and it is real here because the cold
+   runs out. An icebox is a thing you have to *keep*: fetch the ice,
+   notice it melting, shut the lid. Forget and the food is on you. A
+   cold that never lapses would have made this entry thin; one that
+   does is a standing small choice.
 5. ⭐ **Epochs** — strong and free. A cool larder is ancient, an
    icebox is nineteenth-century, a fridge is modern; the mechanism is
    identical and only the cold source changes. This build ships the
    first rung and the ladder is already designed.
-6. **Economy** — thin here, deliberately. The ice trade, the
-   icehouse-keeper and the agricultural year (cold is free in winter
-   and dear in summer) all hang off *produced* cold, which is deferred.
-   Recorded as a gap rather than stretched.
+6. **Economy** — the first rung only. An icebox *consumes ice*, which
+   makes ice a good somebody must supply, and ⚠ nobody sells bagged ice
+   today. This build creates the demand and does not staff the supply;
+   the icehouse-keeper vocation and the agricultural year (cold free in
+   winter, dear in summer) are real and remain
+   [preservation-slate](../slates/tails/preservation-slate.md)'s.
+   Recorded as a deliberate half.
 
 ## The drive
 
-A character in a kitchen that has a larder, and a second in the
-cookhouse.
+A character in a kitchen, and a second in the cookhouse.
 
 **A — nothing that worked has stopped working.**
 
@@ -203,67 +257,73 @@ cookhouse.
 3. Put something down on the bar and pick it up again. The prose reads
    exactly as it did before.
 
-**B — the larder stops lying.**
+**B — a kitchen gets somewhere cold, for the first time.**
 
-4. `look larder` in the kitchen. It still reads *cool and dark
-   inside*.
-5. Take two identical perishable items. Put one **in** the larder —
-   `put <food> in larder` — and leave the other on a counter or the
-   floor. The larder line reads *in*, not *on*.
-6. `look larder`. The food you put in is listed as being in it; the
-   room listing does not show it.
-7. `me:i:larder` and a search for the food by name both still find it —
+4. Survey the kitchen for what it can do. ⭐ It reports its **cold
+   capability as unmet** — as every kitchen in the game always has.
+5. Bring an icebox into the kitchen and put ice in it. Survey again:
+   **the cold capability is now met**, and names the icebox.
+6. Take two identical perishable items. Put one **in** the icebox —
+   `put <food> in icebox` — and leave the other on a counter. The
+   response reads *in*, not *on*.
+7. `look icebox`. The food is listed as being in it; the room listing
+   does not show it. Searching for the food by name still finds it —
    reading did not get harder.
-8. Come back later. `look` at each of the two foods. ⭐ **The one in
-   the larder is in a better condition band than the one left out.**
-   That is the whole build, visible in two lines of prose.
-9. `cook` something at the kitchen without opening or closing anything.
-   It still works — the larder is seeded open and ingredients are still
-   in reach.
+8. Come back later. `look` at each of the two foods. ⭐⭐ **The one in
+   the icebox is in a better condition band than the one left out.**
+   That is the build, visible in two lines of prose.
+9. Leave it much longer. The ice has melted, and the food inside is no
+   longer being kept — the cold was a thing somebody had to maintain.
+10. `cook` at the kitchen. It still works: the larder beside the icebox
+    is untouched, still open, still ingredients in reach.
 
 **C — a new way of sitting, added by an author.**
 
-10. In the cookhouse, `put ham on hook`. The response reads **"You hang
+11. In the cookhouse, `put ham on hook`. The response reads **"You hang
     the ham from the hook,"** not "you put the ham on the hook."
-11. `look hook`. The ham is listed under a heading that says it is
+12. `look hook`. The ham is listed under a heading that says it is
     hanging from it.
-12. `look`. The hook is in the room listing; the ham is not.
-13. Leave the ham hanging and come back. It has dried — the hook is
+13. `look`. The hook is in the room listing; the ham is not.
+14. Leave the ham hanging and come back. It has dried — the hook is
     airy, and the drying loop treats a hung ham as fully exposed.
 
 **D — refusals explain themselves.**
 
-14. Shut a container and try to put something in it. The container is
+15. Shut a container and try to put something in it. The container is
     still nameable and the refusal **says it is shut** — it does not
     silently fail and the target does not disappear from the parser.
 
 **E — the author's turn (done on the running game, not in a build).**
 
-15. Add one row for a new way of sitting and one word to the `put`
-    verb's prepositions. Reload. A player can immediately use it on a
-    row that offers it, with no server code changed. ⭐ If this step
-    needs a single line of TypeScript, the build has failed its
-    central claim.
+16. Add one row for a new way of sitting, and the preposition to each
+    verb that accepts a support (today `put` and `dry`). Reload. A
+    player can immediately use it on a row that offers it, with no
+    server code changed. ⭐ If this step needs a single line of
+    TypeScript, the build has failed its central claim — and if the
+    author cannot discover *which* verbs need the word, it has failed
+    half of it.
 
 ## Acceptance criteria
 
 Observable from outside the code.
 
-1. **Food kept in the larder is measurably better kept** than the same
+1. **Food kept in the icebox is measurably better kept** than the same
    food left in the room, after the same elapsed time, read off each
-   item's own description.
-2. **The larder's prose and its behaviour agree** — a player who
-   believes *cool and dark inside* is not misled.
+   item's own description — and stops being kept once the ice melts.
+2. ⭐ **A kitchen with an icebox reports its cold capability as MET.**
+   Today no kitchen can, whatever is in it. This is the criterion that
+   proves the satisfier exists rather than the object.
 3. **A ham hangs from a hook**, is described as hanging, is found by
    examining the hook, does not clutter the room listing, and dries as
    a fully exposed thing.
-4. **A new way of sitting is added with a row and a word**, by someone
-   who cannot write TypeScript, and a player uses it without being
-   taught.
+4. **A new way of sitting is added with a row and a word per
+   supporting verb**, by someone who cannot write TypeScript, and a
+   player uses it without being taught — and that author can find
+   which verbs need the word without grepping the tree.
 5. **Nothing that worked stopped working**: Dave's Bar's eight
    back-bar props stay out of the room listing, `cook` still works at a
-   kitchen with an open larder, and every existing way of finding a
-   thing inside a container still finds it.
+   kitchen whose larder is untouched and open, and every existing way
+   of finding a thing inside a container still finds it.
 6. **A region can always be named**, and an act on it that cannot
    happen is refused with a reason a player can act on.
 7. **Putting something into a shut container is refused and says why**
