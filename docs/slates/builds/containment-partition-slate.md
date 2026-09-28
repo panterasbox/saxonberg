@@ -144,13 +144,59 @@ host is not a `Container`.**
 
 | guarantee | mechanism | enforced at |
 |---|---|---|
-| **a room is never partitioned** | `PlacingMixin` requires `ContainableMixin` (`Surfaced.ts:96-106`, `__validateComposition__`, dispatched by `StuffApi.register`); `Location` composes `Container` and **not** `Containable` (`Location.ts:132`) | class registration, before a row loads |
-| **a region is never walked into** | an exit destination is typed `(Stuff & Container)` (`Exit.ts:257`, `:108`); a placement host holds no list | authoring — the exit cannot be built |
+| **a room is never partitioned** | `PlacingMixin` requires `ContainableMixin` (`Surfaced.ts:96-106`, `__validateComposition__`, dispatched by `StuffApi.register`); `Location` composes `Container` and **not** `Containable` (`Location.ts:132`) | class registration, before a row loads — shipped today |
+| **a region is never walked into** | ⭐ **a second refusal in the same hook: a placement host may not compose `ExitableMixin`** | class registration — NEW, one line |
 
-So navigation stays unconfused not by convention but by type. An
-`ExitableVessel` with chambers is safe: you `go` into the coach through
-its real exit and `put` the trunk in the boot, and the two cannot be
-mistaken for each other because they do not overlap in type.
+⚠⚠ **The second one has to be built; it is not already true.** An
+earlier pass claimed it fell out of the types and that was wrong.
+`PlacingMixin` requires `Containable` and says **nothing** about
+`Container`, while `ExitableMixin` requires `Container` — so a placement
+host can perfectly well be one. **`Oven` already is**:
+`SurfacedMixin(ContainerMixin(Thing))` (`platform/thing/Oven.ts:29`),
+and it is *correct* — you put a tray in an oven and a pot on it.
+
+So `Container` is not the discriminator; **`Exitable` is.** Being a
+container gives you no exits — composing `ExitableMixin` does, which is
+why nobody has ever asked what exits the oven affords. The question
+becomes live the moment a placement host is exitable, and today nothing
+stops that.
+
+### ⭐ The principle, and why the line falls here
+
+> **You stand *beside* a placement host and *inside* an exitable thing.**
+> A class that is both asks an item placed on it to be in two reference
+> frames at once — and *"what exits does this region afford?"* is what
+> that ambiguity sounds like said out loud.
+
+An oven you always stand beside. A coach you can be inside. That is the
+line.
+
+**The cost, accepted deliberately (2026-09-27):** an `ExitableVessel`
+can never itself be a placement host — no luggage strapped to the roof
+of a coach you can also ride in. A boot is fine (a `Chamber` in the
+coach's list); the roof is not, because the roof is *outside* a thing
+you can be *inside*.
+
+⭐ This is narrow on purpose. Exitable vessels are essentially vehicles
+— the model wants most things to be `Location`s, which is how almost
+everything shipped works — so the restriction bites a handful of
+objects. Content that genuinely needs a roof rack writes a bespoke class
+for it, and the resulting UX being a little personal to that one vehicle
+is acceptable precisely because no other vehicle has one.
+
+> **The restriction is not "you cannot", it is "this is not free."** A
+> new relation costs one row; an exotic combination costs a class. If
+> somebody's `ChamberedExitableVessel` becomes the most-used object in
+> the game, it will have earned its own definition — and we will know,
+> because someone had to write it.
+
+**The refusal message is maker-facing UX and must say what to do next**,
+not merely no:
+
+> `Coach composes PlacingMixin and ExitableMixin — a thing you can go
+> inside cannot also be something you put things on. Put a Fitting or a
+> Chamber in its contents instead (that is how a boot works), or, if the
+> outside of this vehicle really must carry things, write the class.`
 
 ### The vocabulary
 
