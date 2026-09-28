@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**249 slates.** 59 greenfield · 88 continuations · 56 waves · 46 tails.
+**250 slates.** 59 greenfield · 88 continuations · 57 waves · 46 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (59)
 
@@ -51,7 +51,7 @@ respect.
 | [api-normalization](./builds/api-normalization-slate.md) | ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`, `worldclock`) plus 19 Apis with no singleton at all; mechanical, no boundary ruling needed · ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s surface is two test hooks · answer *where a system-less utility lives* before deleting `array`/`path-pattern` … |
 | [attestation](./builds/attestation-slate.md) | the `attestation_events` collection (Q1: its own, or a facet of `authoring_events`) · the closed assertion vocabulary (`approves`/`objects`/`notes` — `objects` non-blocking by default; superseded, never retracted) · the go-live predicate on the CMS save/publish split · the per-group policy grammar (data, not code — Q2) … |
 | [authored-vs-procedural](./builds/authored-vs-procedural-slate.md) | the design pass itself · what a hand-placed ecology member IS (the glowcap: table member or furniture) · a `forage` verb, and whether it differs from `harvest` (`gather` is taken by ranching) · *cultivated* as a category (husbandry.md uses the word only for the durability rule) … |
-| [base-class-narrowing](./builds/base-class-narrowing-slate.md) | name the 42 measured cohorts and give each a parent row · narrow the base classes those parents name so a row composes only what it uses · decide the abstract-parent question (an abstract-row concept, or a narrower class to hang a bundle on) · retire the cross-class parents the costume cohort ships as a deliberate compromise |
+| [base-class-narrowing](./builds/base-class-narrowing-slate.md) | the containment partition concept (⛔ **blocks everything else** — its own slate) · `Atmospheric` off `Vessel` · `Branded` from `Creature` down to `KeptAnimal` · the seven dead classes … |
 | [blood](./builds/blood-slate.md) | the genotype/phenotype endowment (`untested` until tested, per-`Species` allele frequencies + the provenance stamp) · the compatibility cost curve (non-hierarchical across species · graded failure · the volume-expander floor) … |
 | [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens invariant · nearest-wins + self-amendment … |
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
@@ -200,7 +200,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (56)
+## Waves — rides another build (57)
 
 | slate | left |
 |---|---|
@@ -217,6 +217,7 @@ are the named remainders.
 | [comms](./tails/comms-slate.md) | speech on the acoustic reach walk at all (today every speech verb reaches the room and only the room — `acousticDb` is a stamp nothing reads for speech; a shout does not leave the room) · dynamic-reach shout (the voice-projection attribute + the vitals tie) · whisper's redacted overhear form · language gating on acoustic + encoded-cognition implant … |
 | [concealment-detection](./tails/concealment-detection-slate.md) | the knowledge economy (sharing / selling / transferring found secrets, maps as currency) · `frisk` and searching a downed body · player-placed concealment beyond pick-up-your-own · ranged / remote / linked traps … |
 | [console-filtering](./tails/console-filtering-slate.md) | transcript search · sender filter · family mute (collapse a topic family to a count badge) · author/admin frames toggle … |
+| [containment-partition](./builds/containment-partition-slate.md) | the whole build — the `Placement` vocabulary + catalogue · `Surfaced` → `Placing` (a 65-file rename, ⚠ including MQL text inside a content row) · `_restingOn` → `(host, name)` · `looseContents` onto `Container` … |
 | [content-pack-units](./tails/content-pack-units.md) | the media-asset unit (byte sync + receipt pairing) · the position-def unit (A19) · the contract-form unit · `requires.kinds:` … |
 | [cosmetics](./tails/cosmetics-slate.md) | the appearance-mark carrier on a body (the `Looks` cell — a cut, a dye job and a tattoo share it) · the personal-services vocation + graded cuts · hair dye as the dye chain's second customer · tattoos … |
 | [deed-tags](./tails/deed-tags-slate.md) | the closed deed-tag vocabulary + its three-tier resolver (the topics pattern) · the petition-not-override path · getting `crime` out of layer 1 · the faith-relevant tags that do not exist yet |
@@ -319,6 +320,7 @@ tail in `tails/`. These need moving or re-stamping.
 
 | slate | size | folder |
 |---|---|---|
+| [containment-partition](./builds/containment-partition-slate.md) | a wave | `builds/` |
 | [credit](./tails/credit-slate.md) | a build | `tails/` |
 | [value-object-statics](./builds/value-object-statics-slate.md) | a tail | `builds/` |
 
