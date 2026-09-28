@@ -1,13 +1,13 @@
 # Containment partition slate — where inside a container a thing sits
 
-> **Status: UNBUILT** — the concept is unnamed. One instance of it ships
-> (`restingOn`, surfaces), a second is wanted (chambers, for the
-> fridge/freezer), and the shared read is a filter helper on an Api with
-> no receiver.
-> **Left:** name the concept · move the read onto `Container` · decide
-> whether a chamber is an instance of it · the presentation contract the
-> four render surfaces share · keep `Location` out of it
-> **Size:** a design pass, then a wave
+> **Status: DESIGNED 2026-09-27, UNBUILT** — the concept is **Placement**,
+> the design is below and agreed, no code is written.
+> **Left:** the whole build — the `Placement` vocabulary + catalogue ·
+> `Surfaced` → `Placing` (a 65-file rename, ⚠ including MQL text inside
+> a content row) · `_restingOn` → `(host, name)` · `looseContents` onto
+> `Container` · the `in` member and the `Chamber`/`Fitting` twins · the
+> shut-container refusal that falls out for free
+> **Size:** a wave
 
 > Written 2026-09-27 out of the base-class-narrowing census, which kept
 > failing to answer *"what is a `Vessel`"* because the model has no word
@@ -115,31 +115,184 @@ problems are not:
 | "only what's in the fridge" | the **drill-in `look`** over `looseContents` | ships and works — it is how the back-bar hides eight props |
 | "express the region in a query" | nothing — the region is a nameable object and the drill-in is a `look`, not a query | no change wanted |
 
-## Open questions for the design pass
+## ⭐⭐ The design — Placement
 
-1. **What is it called?** It names a *region of a container*: the
-   desktop, the freezer compartment, the crisper. The word must be
-   available for the compartment, not spent on the object.
-2. **Is a chamber an instance of it, or a different thing?** A surface
-   is open and a chamber encloses; a surface's items are in the room's
-   air and a chamber's are in its own. That difference is exactly the
-   `Atmospheric` question, so the answer decides finding #1 of the
-   narrowing slate.
-3. **Where does the read live, and what is it called?** `Container`
-   owning *"contents as presented at this level"* is the obvious move;
-   the name should say presentation, since that is what it does.
-4. **Does the region appear in its container's contents?** A desk
-   appears in a room's. So `fridge:i` would return the freezer beside
-   the steak — consistent, but a bag whose contents include *"a cold
-   compartment"* may read oddly. A presentation call, not a model one.
-5. **`ExitableVessel`.** A coach you ride inside is not a fridge you put
-   things in. Is the coach's interior a region, or is `ExitableVessel`
-   already that concept?
-6. **Does `Atmospheric` survive on a non-containment object?** Its
-   envelope math reads `getContainer()` and walks outward. A region that
-   is not in the containment chain may break that walk — or may be
-   exactly the porous outward step the frozen-ambient defect needs
-   (`Thermal.ts:580`).
+**Placement** — *where inside its container a thing sits*: a
+**relation**, named by the preposition a player types (`on`, `in`,
+`from`), to a **host** that is a **sibling in the same container**.
+
+> **What the name refuses: a placement never moves a thing into a
+> different list.** A steak in the freezer compartment is in the fridge;
+> a ham on the hook is in the smokehouse; an apple on the desk is in the
+> room. Each is in exactly one place and the placement says *where in
+> it*, nothing else. It is also not a slot — a slot claims capacity and
+> exclusivity (`Slotted`); a placement only locates.
+
+⭐ **The word was not invented.** `lib/persistence/PersistenceSlice.ts:44`
+already declares `interface Placement { restingOnIndex?: number }`, and
+its docstring already carries the structural insight the design turns
+on: *"`restingOn` = a Surfaced **sibling** in the same contents list — so
+the relation is captured as the index of that sibling."* The persistence
+layer got the concept and the name right; the runtime called it
+`restingOn` and presentation called it `looseContents`. Three names, one
+thing, and only one of them was right.
+
+### ⭐⭐ Two guarantees, both structural, both free
+
+Everything the constraints demand falls out of one fact: **a placement
+host is not a `Container`.**
+
+| guarantee | mechanism | enforced at |
+|---|---|---|
+| **a room is never partitioned** | `PlacingMixin` requires `ContainableMixin` (`Surfaced.ts:96-106`, `__validateComposition__`, dispatched by `StuffApi.register`); `Location` composes `Container` and **not** `Containable` (`Location.ts:132`) | class registration, before a row loads |
+| **a region is never walked into** | an exit destination is typed `(Stuff & Container)` (`Exit.ts:257`, `:108`); a placement host holds no list | authoring — the exit cannot be built |
+
+So navigation stays unconfused not by convention but by type. An
+`ExitableVessel` with chambers is safe: you `go` into the coach through
+its real exit and `put` the trunk in the boot, and the two cannot be
+mistaken for each other because they do not overlap in type.
+
+### The vocabulary
+
+Singleton `Idea` rows on the `LocomotionMode` pattern — class
+`platform/idea/Placement.ts`, rows at
+`content/platform/idea/Placement/{on,in,from}.yaml`, warmed by a
+self-warming `PlacementCatalogue` exposing sync `of(name)`. ⚠ The
+catalogue is required, not optional: the readers are sync hot paths, and
+*reference Ideas inert at boot because nothing warms the roster* has
+recurred three times in this repo.
+
+| field | `on` | `in` | `from` |
+|---|---|---|---|
+| `name` | on | in | from |
+| `prepositions` | `[on]` | `[in]` | `[from, on]` |
+| `encloses` — does the host stand between the item and the container, for air, sight and reach | false | **true** | false |
+| `you` / `peers` / `heading` — Liquid prose | "You put {{ item }} on {{ host }}." / "On it" | …in… / "In it" | "You hang {{ item }} from {{ host }}." / "Hanging from it" |
+
+`on` is **shipped behaviour renamed** — zero change. `in` is the one new
+semantic (`encloses: true`). `from` is the acceptance test.
+
+⚠ Rows, not a const module, for lens 2: a trade pack ships
+`/trade/butchery/idea/Placement/from` with no kernel code, and the prose
+is content. ⚠ `airExposure` and `userFacingDetail` stay **on the host
+row** — they are the support's claim about itself, which is per-object,
+and `Surfaced.ts:64-80` is right about that.
+
+### The pieces
+
+- **`PlacingMixin`** — `SurfacedMixin` renamed. Gains `placements:
+  string[]` (class default `['on']`, so every shipped composer is
+  unchanged); `canRest(item)` becomes `canPlace(item, placement):
+  VetoResult`, whose reason string is how *address freely, refuse with a
+  reason* becomes one rule — the default body answers `{ok: false,
+  reason: 'shut'}` for an enclosing placement on a closed `Sealable`.
+- **`Container.getLooseContents()`** — replaces
+  `ContainmentApi.looseContents`, which is deleted. Its docstring leads
+  with *this is a presentation read; the model read is `getContents()`*.
+  Three callers (`LookController:323`, `SenseController:201`,
+  `Container.ts:363`) each become `host.getLooseContents()` + their
+  viewer filter. ⚠ Note the **order flip**: today the perception filter
+  runs first and `looseContents` then hides items whose host survived
+  it; model-read-first means an apple on a desk you cannot perceive is
+  hidden *with* the desk. More honest, two lines per caller.
+- **`Containable`** — `_restingOn: (Stuff & Surfaced) | null` becomes
+  `_placementHost: (Stuff & Placing) | null` plus `_placementName:
+  string`. ⚠ **Two fields, not a struct**: the R2.3 self-heal is the
+  proxy get trap on a field that *holds a Stuff*, and a struct hides the
+  ref from the trap. `getPlacement()` normalizes the pair.
+- **Persisted form** — `ContentPlacement { placement?: string;
+  hostIndex?: number }`, renamed so the struct does not collide with the
+  vocabulary class. ⚠ `Containable`'s docstring claiming this is
+  "runtime-only, not persisted" is **stale**: `Container.captureSlice`
+  (`:209-215`) already records it. No migration; the DB is dropped.
+- **Authored form** — `StagedMixin`'s props entry drops `onto:` for
+  **the preposition as the key**: `{ template: …/steak, in: …/freezer }`.
+  Ten `onto:` lines in three files.
+- **`ContainmentApi.placeOn` → `place(item, placement, host)`**, same
+  pipeline, plus one addition: it fires a thermal restamp, because a
+  placement inside the same container is a no-op `move` today and that
+  stops mattering the moment a compartment holds its own cold.
+- **Two concrete twins** — `platform/thing/Fitting` (the bare host: a
+  shelf, a hook, a rail; `Surface` renamed) and `platform/thing/Chamber`
+  (`Atmospheric(Placing(Detailed(Thing)))`, default `placements:
+  ['in']`). ⭐ `Chamber` is spent on the compartment, which is the word's
+  honest owner.
+
+### ⭐⭐ The acceptance test: adding "hanging from"
+
+**Kernel and pack code touched: none. Three content files.**
+
+1. `content/platform/idea/Placement/from.yaml` — the vocabulary row above.
+2. `content/platform/cmd/inventory/put.yaml:33` — `prepositions: [in, on, from]`. One word.
+3. The hook's own row: `class: /platform/thing/Fitting`, `placements: [from]`, `airExposure: 1` — plus one `props:` line in the smokehouse.
+
+The player types `put ham on hook` and reads *"You hang the ham from the
+hook."* `look hook` → *"Hanging from it: a ham."* `look` lists the hook,
+not the ham. `here:ham` still finds it. Left there, `WaterActivity` reads
+the hook's `airExposure` through the placement and the ham dries all
+round — the meat hook `Surfaced.ts:70-76` promised in prose and could
+not deliver.
+
+A pack that cannot edit `put.yaml` ships its own `hang` verb calling
+`ContainmentApi.place(item, 'from', host)` — the same rule as
+`cure`/`dry`/`smoke`.
+
+### `ExitableVessel`
+
+Not this concept and it does not need to be. `ExitableVessel` is
+*enterability* — the synthesized `in`/`out` exits and the defining door
+on a `Container` you go inside. A coach's interior is **region zero**:
+the coach's own list, where `go coach` puts you. A luggage boot is a
+`Chamber` in the coach's `props:`, never a nested `ExitableVessel`. The
+two compose and neither changes; a walk-in freezer is a `Location` with
+an authored temperature, not a vessel at all.
+
+### What this unblocks
+
+`Atmospheric` off `Vessel` ([base-class-narrowing-slate](./base-class-narrowing-slate.md)
+finding #1) becomes a class choice: a vessel that wants air is
+`Chamber`-shaped and a bag is a bag. And finding #2, the frozen ambient,
+gets its repair — one function, `ambientScopeOf(item)`: the placement
+host if `getPlacement()?.encloses` and the host is atmospheric, else the
+container, then `stepOutward` until a scope answers. The loaf in the
+backpack steps to the room; the fish on the counter steps to the room
+because `on` does not enclose.
+
+## What breaks
+
+- **65 files**: 42 source, 23 test, referencing `Surfaced` / `restingOn`
+  / `placeOn` / `looseContents` / `getResting`. About a third are
+  docstrings using "surfaced" as an English word and are untouched.
+- ⚠⚠ **The invisible one: MQL text inside a content row.**
+  `trade-cooking/.../cmd/crafting/butcher.yaml:50` carries
+  `default: "reachable:[mixin.SurfacedMixin and …]"` and `requires:
+  [SurfacedMixin]`. A mixin rename is a **row** edit there, and
+  `lint:mixin-names` cannot see a string in a yaml query. **Do this one
+  by hand and deliberately.**
+- `canRest` → `canPlace` on eight composers; ~14 single-line caller
+  re-points (`WaterActivity:208`, `Thermal:665`, `ElectricityLogic:270`,
+  `Condition:260`, `ContractLogic:221,360`, `Furnace:331`,
+  `restocks:432`, `PersistableLogic:721`, `Staged:360`,
+  `PutController:231`, `DryController:120,197`).
+- **Two sites must consult `encloses`** so a shut compartment refuses
+  rather than vanishes: `PerceptionLogic.canReach` (`:290-310`) and
+  `VisionModality` (`:202-215`). The binder keeps the steak; the verb
+  refuses with a reason. `scope-walk` and `mustBeInLocation` need
+  nothing.
+
+## Findings this exposed, out of scope
+
+- ⚠ **`put coin in <shut chest>` is refused nowhere today** — no openness
+  validator on `put.yaml`, none in `move`. The placement design's one
+  `shut` check covers region zero for free; take it in the same wave.
+- ⚠ **`PosedMixin.restingOnPath` (`lib/character/Posed.ts:138`) is a
+  second "resting on"** — slot occupancy for posture, a different axis
+  (a slot claims, a placement locates) with a confusable name. An
+  `ExitableVessel` is where a player meets both at once: sitting on a
+  bench in a coach with a trunk in the boot. Do not merge them; do
+  rename one before the next reader trips.
+- Three prose fields per member may be one too many if `GrammarApi`
+  already conjugates.
 
 ## Why this got missed
 
