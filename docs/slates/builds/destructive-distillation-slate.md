@@ -8,7 +8,10 @@
 > material exists anywhere in the tree.**
 > **Left:** the retort as the clamp's capitalised sibling · the condenser
 > and the volatile fraction · wood tar → pitch · **coal tar** and its
-> cuts · the first plastic (a thermoset from coal-tar phenol) · the
+> cuts · ⭐⭐ **coal GAS** (the third product — the first gas that is a
+> good, and where the gas economy gets defined; `bulk.md`'s inert
+> `sealed` rung + the gasometer) · the first plastic (a thermoset from
+> coal-tar phenol) · the
 > `Law` extension from crosslinking to the polymer family · ⚠ the epoch
 > on-ramp, which blocks this (→ [inquiry-slate](./inquiry-slate.md)).
 > **Size:** a build.
@@ -99,6 +102,36 @@ madder, woad, weld — *natural* dyes. Coal-tar aniline dyes are what
 destroyed that industry in the 1860s. **A second disrupted vocation,
 from the same retort**, and the dyer is already a player.
 
+### ⭐⭐ Coal gas — the retort's THIRD product, and the first gas that is a GOOD
+
+Coking coal in a retort gives coke **and** coal tar **and** **town gas**.
+Gas lighting predates electricity by a century, and
+[light.md](../../subsystems/light.md) ships a lamp model — so the first
+mass consumer already exists.
+
+⭐⭐⭐ **This is where the world's gas ECONOMY is defined**, not at a well.
+Asked *"is gas always drilled?"* the answer is no on four counts (coal
+gas · firedamp · seeps · marsh gas), and drilling is the **last** of them.
+The commodity half of gas — storage, the market, the price — belongs to
+**the first thing that sells gas**, and that is this retort. See
+[drilling-slate § Sequencing](./drilling-slate.md), which records the
+decision so it is not re-litigated.
+
+⚠ **The gate is already declared and inert.** `bulk.md`'s closure scale is
+`open < liquidTight < sealed`, and the doc says `sealed` and the
+phase→required-level mapping are *"defined on the scale but **unexercised
+until gas content lands**."*
+
+> **`bulk.md`'s `sealed` rung IS the gas economy.** No vessel, no product —
+> which makes containment the whole capital story, exactly as it was
+> historically.
+
+⭐ And it yields the **gasometer**: a `Bulkable` with `closure: sealed`, a
+rising bell in a water seal, **visible across the city, its height telling
+anyone who looks how much gas the town has left.** A public, honest,
+entirely non-gauge readout of a shared resource — and the natural hand-off
+to the [energy build](../tails/energy-slate.md) if one wants it.
+
 ### The first plastic
 
 A thermoset from coal-tar phenol. ⭐ Mechanically it is **the
@@ -147,6 +180,10 @@ argued.
    trade. `trade-fuel` grows; nothing is carved out.
 3. **Coke ships with coal tar**, because it is the same act and it
    upgrades the smelter — a shipped consumer, immediately.
+3b. ⭐⭐⭐ **Coal gas is the THIRD product, and the gas COMMODITY model is
+   defined here** — not at a gas well. Storage, the `sealed` closure
+   rung and the gasometer are this slate's, and drilled gas inherits
+   them. One gas economy, anchored on the first thing that sells gas.
 4. ⭐ **The polymer family is ONE `Law`, extended** — never a second
    discoverable relationship per material.
 5. ⛔ **Aniline dyes are named but NOT scoped here.** They belong to
