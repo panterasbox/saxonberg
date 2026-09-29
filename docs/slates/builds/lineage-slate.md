@@ -1499,6 +1499,13 @@ still where the design risk lives.**
 
 ## ⭐⭐ The backstop — a reason to realize the parents (2026-09-29)
 
+> ⭐ Two lenses lean on this section:
+> [lenses/86-character-function.md](../../lenses/86-character-function.md)
+> — a predicate-bound quest slot needs a *population* to bind to, and in
+> a thin town this is where it resolves — and
+> [lenses/27-time.md](../../lenses/27-time.md), whose *relief principle*
+> is the same shape as the backstop's retirement clock.
+
 > **Status: CANDIDATE, not decided.** The cost is real — it front-loads
 > content at the single worst moment, char-gen — and the call is whether
 > the labor property is worth it. Recorded because the *reasoning* is

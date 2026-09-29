@@ -25,6 +25,16 @@ start asking *"where in the causal chain does the arbitrariness sit?"*
 > action DID.**
 
 Or, in the vocabulary already used in
+⭐ **Read with [lenses/46-reward.md](./lenses/46-reward.md)**, which
+separates the two prohibitions this doc is cited for — **A6** (no
+aleatory resolution, unamendable, a design invariant) from **B5** (no
+variable-ratio reinforcement, the founder's, banned on *ethical*
+grounds) — and which argues that a seeded grade you must assay **is** a
+variable payout, *reducible by skill* where a slot machine's never is.
+⚠ It also asks for an audit this doc does not: **epistemic uncertainty
+that no competence can narrow is a resolutional roll wearing
+environmental clothes.**
+
 [the skill-vs-chance lens](./lens-deck-salvage.md): **the dice are
 in the deal, never in the play.**
 

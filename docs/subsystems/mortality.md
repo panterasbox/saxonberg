@@ -115,6 +115,14 @@ Slow deaths leave the longest chance that someone reaches you.
 
 ### The clock runs while you are disconnected
 
+> ⭐ **Why this divergence is the interesting one:**
+> [lenses/27-time.md](../lenses/27-time.md) reads the linkdead freeze as
+> a **relief principle** rather than a linkdead rule — *you cannot pause
+> the world; the world agrees not to charge you for your absence* — which
+> makes the dying clock **one of exactly two advertised carve-outs**, the
+> other being combat. ⚠ And mistaking this exception for the rule is
+> easy, because it is the part that got written up.
+
 **The single most load-bearing divergence in this build.** Every other arm
 of `reconcileConditions` freezes while a player is linkdead and drops any
 gap longer than `MAX_REASONABLE_GAP_SEC`, so that being away never costs

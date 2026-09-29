@@ -131,7 +131,7 @@ one:
 | the response envelope · messaging | **#63 Feedback**, #64 Juiciness | ⛔ |
 | the cockpit · cards · client | **#62 Transparency**, #66 Channels | ⛔ |
 | NPCs · behaviour · dialogue | **#90 Status** | ⛔ |
-| onboarding · char-gen | **#19 The Player**, #69 Interest Curve | ⛔ |
+| onboarding · char-gen | **#19 The Player**, #69 Interest Curve | ⛔ — though [`17`](./17-the-toy.md) owns the *first thirty seconds* half of it |
 | the simulation itself | **#30 Emergence** | ⛔ |
 | moderation | **#99 Griefing** | ⛔ |
 
@@ -145,6 +145,28 @@ most systematic thing in the book — *space · time · objects · actions ·
 rules*, each with its own lens — and we have taken exactly one of them
 ([#31](./31-action.md)). It decomposes by what an engine actually has,
 which is why its lenses land where agents work.
+
+### Where the entries are cross-referenced from
+
+⭐ **An entry nobody links to is dead weight**, so the back-pointers are
+part of the deck rather than a nicety. **Fourteen docs** now point in,
+placed only where an entry makes a *substantive claim* about that doc:
+
+- **the rubric** — [design-lenses.md](../design-lenses.md) § *The
+  borrowed instruments*, which is the index an agent running a pass hits
+- **doctrine** — [measurement.md](../measurement.md) (six entries) ·
+  [uncertainty.md](../uncertainty.md) ·
+  [governance/draft-constitution.md](../governance/draft-constitution.md)
+- **subsystems** — `employment` · `command-spec` · `combat` ·
+  `exertion` · `mortality`
+- **slates** — `quest-modeling` · `base-class-narrowing` · `lineage` ·
+  `alignment`
+
+⚠ The list is short **because the entries are anchored to the rubric
+rather than to content**, which is the rule this restart adopted. The
+consequence is recorded in the coverage table above: an agent working on
+messaging, the cockpit, NPCs or moderation still has no lens pointing at
+their area.
 
 ## On the book and the citations
 
