@@ -53,8 +53,8 @@ Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
-✅ **Written: `46` · `55` · `91` · `25` · `37` · `86` · `31` · `79` ·
-`93`** (2026-09-29). Pending: `92`.
+✅ **All ten written** (2026-09-29): `25` · `31` · `37` · `46` · `55` ·
+`79` · `86` · `91` · `92` · `93`.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
@@ -67,7 +67,7 @@ which read the full Table of Lenses — 113 lenses plus the unnumbered
 | **2 · Expression** | ✅ [`31-action.md`](./31-action.md) | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* ⭐ **His parser's vocabulary was hidden; ours is data** — affordance, refusal, prompting, the collision ladder, an LLM front-end. Adopts the **basic:strategic ratio** question. |
 | **2 · Expression · 3a** | ✅ [`79-freedom.md`](./79-freedom.md) | ⭐ **Freedom here is a political question in a design question's clothes.** Two regimes — a sandbox that is maximal and a shared world the polity grants — and exactly one platform-level class, the wizard flag. |
 | **2 · Expression · 3a** | ✅ [`93-the-nameless-quality.md`](./93-the-nameless-quality.md) | ⭐ Not *does the world feel alive* — **can an author make something that does, or does the substrate prevent them?** The aesthetic half of the narrowing argument; *not-separateness* as 3a's positive form; charm as a budget denominated in carves. |
-| **all seven** | `92-inner-contradiction.md` | The nine ledgers with only the rendering refused, against the warning not to get used to a contradiction or make excuses for it. |
+| **all seven** | ✅ [`92-inner-contradiction.md`](./92-inner-contradiction.md) | The lens that audits the rubric. ⭐ A **gap** is a thing not built; a **contradiction** is a thing built that defeats another. Four live ones, and the deck's own justification: *the value was never that Schell knew our design — it was that he did not.* |
 
 ⭐ **Write `46` · `55` · `91` together even though they are three
 files** — they are one argument seen three ways, and the levelling
