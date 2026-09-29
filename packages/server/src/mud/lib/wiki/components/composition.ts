@@ -78,8 +78,15 @@ const KINDS: readonly Kind[] = ['template', 'mixin', 'command'];
  * ⚠ A silent cap would be a lie: "what can burn" answering "these
  * twelve things" when it means "the first twelve I looked at" is worse
  * than refusing. So the cap is reported in the panel when it bites.
+ *
+ * ⚠⚠ **1000, because the content tree named 683 distinct `class:` paths
+ * on 2026-09-28** and 400 truncated silently-but-for-the-note the
+ * moment the scan root was corrected. A truncated inverse is the one
+ * failure a reader cannot detect from the answer: *what can burn* reads
+ * like a complete list whatever it contains. Raise this before the
+ * class count reaches it, or memoize the index.
  */
-const INVERSE_SCAN_CAP = 400;
+const INVERSE_SCAN_CAP = 1000;
 
 export const component = class WikiComposition {
   static label = 'composition';
@@ -334,7 +341,12 @@ async function classesComposing(
   mixinName: string,
   ctx: ComponentContext,
 ): Promise<{ paths: string[]; exemplar: AnyConstructor | null; truncated: boolean }> {
-  const templates = await Template.findDescendants('/obj');
+  // ⚠⚠ The root is `/` — every namespace. This read `'/obj'` from the
+  // component's first commit and `/obj` has never held a row (the path
+  // pattern is `<root>/<branch>/`), so the inverse answered
+  // "(nothing yet)" for every mixin in the game while looking healthy.
+  // `findDescendants` is a `^prefix/` regex, so `'/'` is the whole tree.
+  const templates = await Template.findDescendants('/');
   const paths: string[] = [];
   let exemplar: AnyConstructor | null = null;
   const seen = new Map<string, AnyConstructor | null>();

@@ -121,14 +121,14 @@ afterEach(() => {
 describe('⭐ the template panel — what is this thing made of (12)', () => {
   beforeEach(() => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/stuff/idea/material/oak', '/obj/Oak', OAK_DATA),
+      template('/stuff/idea/material/oak', '/stuff/idea/material/Oak', OAK_DATA),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Oak as never);
   });
 
   it('names the class and the composed mixins', async () => {
     const out = await panel({ kind: 'template', of: '/stuff/idea/material/oak' });
-    expect(out).toContain('/obj/Oak');
+    expect(out).toContain('/stuff/idea/material/Oak');
     expect(out).toContain('composes');
   });
 
@@ -173,7 +173,7 @@ describe('⭐ the template panel — what is this thing made of (12)', () => {
     }
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(OakV2 as never);
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/stuff/idea/material/oak', '/obj/Oak', { ...OAK_DATA, flammable: true }),
+      template('/stuff/idea/material/oak', '/stuff/idea/material/Oak', { ...OAK_DATA, flammable: true }),
     );
 
     const after = await panel({ kind: 'template', of: '/stuff/idea/material/oak' });
@@ -196,19 +196,19 @@ describe('a dangling subject still renders (65)', () => {
 
   it('a template with no class is a note', async () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/x', ''),
+      template('/stuff/idea/x', ''),
     );
-    expect(await panel({ of: '/obj/x' })).toContain('declares no class');
+    expect(await panel({ of: '/stuff/idea/x' })).toContain('declares no class');
   });
 
   it('a class that will not load is a note, not a throw', async () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/x', '/obj/Missing'),
+      template('/stuff/idea/x', '/stuff/idea/Missing'),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockRejectedValue(
       new Error('not found'),
     );
-    expect(await panel({ of: '/obj/x' })).toContain('will not load');
+    expect(await panel({ of: '/stuff/idea/x' })).toContain('will not load');
   });
 
   it('refuses an unknown kind, naming the three', async () => {
@@ -230,13 +230,13 @@ describe('⭐ the mixin panel and its INVERSE', () => {
 
   beforeEach(() => {
     vi.spyOn(Template, 'findDescendants').mockResolvedValue([
-      template('/obj/Torch', '/obj/Torch'),
-      template('/obj/Log', '/obj/Log'),
-      template('/obj/Rock', '/obj/Rock'),
+      template('/stuff/thing/Torch', '/stuff/thing/Torch'),
+      template('/stuff/thing/Log', '/stuff/thing/Log'),
+      template('/stuff/thing/Rock', '/stuff/thing/Rock'),
     ]);
     vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation(
       async (p: string) =>
-        (p === '/obj/Torch' ? Torch : p === '/obj/Log' ? Log : Rock) as never,
+        (p === '/stuff/thing/Torch' ? Torch : p === '/stuff/thing/Log' ? Log : Rock) as never,
     );
     vi.spyOn(MixinApi, 'queryMixins').mockImplementation((ctor) =>
       ctor === Torch || ctor === Log
@@ -250,9 +250,9 @@ describe('⭐ the mixin panel and its INVERSE', () => {
     // composes Combustible. The inverse is the labour-facing view, and
     // it is a thing the wiki can do that a help page cannot.
     const out = await panel({ kind: 'mixin', of: 'CombustibleMixin' });
-    expect(out).toContain('/obj/Torch');
-    expect(out).toContain('/obj/Log');
-    expect(out).not.toContain('/obj/Rock');
+    expect(out).toContain('/stuff/thing/Torch');
+    expect(out).toContain('/stuff/thing/Log');
+    expect(out).not.toContain('/stuff/thing/Rock');
   });
 
   it('says so when nothing composes it', async () => {
@@ -262,7 +262,7 @@ describe('⭐ the mixin panel and its INVERSE', () => {
 
   it('infers the kind from a `*Mixin` name', async () => {
     const out = await panel({ of: 'CombustibleMixin' });
-    expect(out).toContain('/obj/Torch');
+    expect(out).toContain('/stuff/thing/Torch');
   });
 
   it('scans the WORLD, not the source tree', async () => {
@@ -270,14 +270,29 @@ describe('⭐ the mixin panel and its INVERSE', () => {
     // exist. A class nothing instantiates is not part of the answer.
     const spy = vi.mocked(Template.findDescendants);
     await panel({ kind: 'mixin', of: 'CombustibleMixin' });
-    expect(spy).toHaveBeenCalledWith('/obj');
+    // ⚠⚠ `'/'` — the WHOLE tree. This asserted `'/obj'` for as long as
+    // the component read it, and `/obj` has never held a row: the
+    // inverse answered "(nothing yet)" for every mixin in the game and
+    // this test passed. A root assertion is only as good as the root.
+    expect(spy).toHaveBeenCalledWith('/');
+  });
+
+  it('⭐ finds a row under a TRADE root — the case the dead root missed', async () => {
+    // The scan root was `/obj` for the component's whole life, so the
+    // inverse never saw `/stuff`, `/trade`, `/system` or `/world` —
+    // which is every row there is.
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue([
+      template('/trade/ranching/agent/livestock', '/stuff/thing/Torch'),
+    ]);
+    const out = await panel({ kind: 'mixin', of: 'CombustibleMixin' });
+    expect(out).toContain('/trade/ranching/agent/livestock');
   });
 
   it('⚠ reports truncation rather than lying about completeness', async () => {
     // "These twelve things" when it means "the first twelve I looked
     // at" is worse than refusing.
-    const many = Array.from({ length: 500 }, (_, i) =>
-      template(`/obj/T${i}`, `/obj/T${i}`),
+    const many = Array.from({ length: 1200 }, (_, i) =>
+      template(`/stuff/thing/T${i}`, `/stuff/thing/T${i}`),
     );
     vi.spyOn(Template, 'findDescendants').mockResolvedValue(many);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Torch as never);
@@ -345,7 +360,7 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
     renderer = makeStuff(() => new WikiRenderer());
     reader = makeStuff(() => new Principal()) as unknown as Stuff;
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/npc/mimic', '/obj/Mimic', {
+      template('/stuff/agent/mimic', '/platform/agent/Mimic', {
         mass: 40,
         fireVulnerability: 'catastrophic',
       }),
@@ -369,7 +384,7 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(3 as unknown as never);
 
-    const out = await render('<composition of="/obj/npc/mimic"/>');
+    const out = await render('<composition of="/stuff/agent/mimic"/>');
     expect(out).toContain('mass');
     expect(out).not.toContain('fireVulnerability');
     // ⭐ And the VALUE, which is the thing worth hiding. The panel now
@@ -383,7 +398,7 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true); // ceiling 3
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(0 as unknown as never);
 
-    const out = await render('<composition of="/obj/npc/mimic"/>');
+    const out = await render('<composition of="/stuff/agent/mimic"/>');
     expect(out).toContain('fireVulnerability');
     expect(out).toContain('catastrophic');
     expect(out).toContain('<spoiler level="3">');
@@ -393,7 +408,7 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(3 as unknown as never);
 
-    const out = await render('<composition of="/obj/npc/mimic"/>');
+    const out = await render('<composition of="/stuff/agent/mimic"/>');
     expect(out).toContain('fireVulnerability');
     expect(out).toContain('catastrophic');
     expect(out).not.toContain('<spoiler');
@@ -406,7 +421,7 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(3 as unknown as never);
-    const out = await render('<composition of="/obj/npc/mimic"/>');
+    const out = await render('<composition of="/stuff/agent/mimic"/>');
     expect(out.toLowerCase()).not.toContain('vulnerab');
   });
 
@@ -460,10 +475,10 @@ describe('SpoilerLevels.ofField — the one seam', () => {
 describe('the node shape', () => {
   it('returns MML nodes, never a string', async () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/x', '/obj/Oak'),
+      template('/stuff/idea/x', '/stuff/idea/material/Oak'),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Oak as never);
-    const nodes = await composition.render({ of: '/obj/x' }, [], ctx);
+    const nodes = await composition.render({ of: '/stuff/idea/x' }, [], ctx);
     expect(Array.isArray(nodes)).toBe(true);
     for (const n of nodes as MmlNode[]) {
       expect(['text', 'tag']).toContain(n.kind);
@@ -491,7 +506,7 @@ describe('the node shape', () => {
 describe('per-cell reveal levels', () => {
   beforeEach(() => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/stuff/idea/material/timber', '/obj/Timber', TIMBER_DATA),
+      template('/stuff/idea/material/timber', '/stuff/idea/material/Timber', TIMBER_DATA),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Timber as never);
   });
@@ -583,7 +598,7 @@ describe('nested values are spelled out, to a floor', () => {
 
   async function frogPanel(data: Record<string, unknown>): Promise<string> {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/stuff/idea/species/frog', '/obj/Frog', data),
+      template('/stuff/idea/species/frog', '/platform/agent/Frog', data),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Frog as never);
     return panel({ kind: 'template', of: '/stuff/idea/species/frog' });

@@ -501,7 +501,17 @@ Checked at plan time against the current tree:
 Every wave: `pnpm test:near` + the touched pack's vitest + `pnpm -C packages/server lint:family`
 green, then ONE commit, then push.
 
-### W0 — the instrument: the composition panel scans the real roots
+### W0 — the instrument: the composition panel scans the real roots ✅ DONE
+
+> **Landed.** Root `'/obj'` → `'/'`; cap 400 → 1000. The test asserted
+> the dead root (`toHaveBeenCalledWith('/obj')`) and passed, so the
+> gate that should have caught this was itself pointed at `/obj` —
+> the new case asserts a `/trade/...` row is found. Three starter
+> pages ship (`backpack`, `atmospheric`, `branded`); `atmospheric.md`
+> is deliberately written to read correctly BOTH before and after W3,
+> so the drive's part A is a real before/after and not a rewrite.
+> ⚠ Surprise: nothing else in the tree referenced `/obj` except three
+> stale comments — the root was never real, not merely stale.
 
 Goal: the panel every part-A checkpoint reads is alive.
 
