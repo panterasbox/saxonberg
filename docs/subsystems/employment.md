@@ -380,7 +380,7 @@ ever advertised, which is every seat that does not author it.
 
 `Position.requires` is what the seat asks of an applicant, and ⛔ **the
 vocabulary is CLOSED**: `{ gigs, discipline, band }`. A hiring criterion
-judges a PERSON, so lens 6's governance limb applies — name the criterion
+judges a PERSON, so lens 7 (governance) applies — name the criterion
 and name the appeal — and every criterion in the vocabulary is something
 a player can go and DO. Nothing may select on species, lineage, trait,
 renown or wealth, and `Position.fromData` **throws** on an unknown key

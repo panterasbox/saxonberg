@@ -1,9 +1,18 @@
 # Proposal — revising the six lenses after a Schell audit
 
-> **Status: PROPOSAL, nothing applied.** Every change below is stated as
-> *what the doc says now* → *what it should say* → *why*. Nothing has
-> been written to [design-lenses.md](./design-lenses.md) or
-> [lenses/](./lenses/README.md).
+> **Status: PARTLY APPLIED.** ✅ **C5** (split 6 → 6 Economy + 7
+> Governance) and ✅ **C1** (lens 5 → Continuity) landed 2026-09-28 in
+> [design-lenses.md](./design-lenses.md); the `Cn → proposed` wording
+> for those two is kept below as the record of *why*, not as pending
+> work. Everything else — **C2 · C3 · C4 · C6 · R1 · R2 · R3** — is
+> still a proposal, stated as *what the doc says now* → *what it should
+> say* → *why*.
+> ⚠ **Deliberately not chased:** `CLAUDE.md` and
+> [workflow.md](./workflow.md) still say *six lenses*. Both are
+> index files the worktree rules reserve for the **sweep**, not for a
+> design branch to race. ⭐ **Slate lens passes were not retro-edited** —
+> a recorded pass is dated evidence of a pass run under the rubric *as
+> it stood*.
 > **Retires** when applied — this is an ephemeral doc in the
 > [workflow.md](./workflow.md) sense, not a subsystem reference.
 > **Opened** 2026-09-28, out of a read of Jesse Schell's *The Art of
@@ -134,7 +143,7 @@ claim for that limb than anything currently written about it.
 
 ## Part 3 · Proposed changes to `design-lenses.md`
 
-### C1 ⭐⭐ Lens 5 — rename to **Continuity**, and stop calling it lesser
+### C1 ✅ APPLIED — Lens 5 renamed to **Continuity**, no longer "lesser"
 
 **Now:** *"5 · Technology & magic — does the mechanism hold across every
 epoch?"*, described as *"the lesser lens, and the most often
@@ -390,7 +399,7 @@ care that can be let down.*
 > choice with a score, and it produces lens 4 outcomes **without
 > measuring anything**, which is why it is compatible with refusing #46.
 
-### C5 ⭐⭐ Split lens 6 into **6 · Economy** and **7 · Governance**
+### C5 ✅ APPLIED — lens 6 split into **6 · Economy** and **7 · Governance**
 
 **Now:** one lens, five questions, the fifth (*when it judges a person
 — the criterion and the appeal*) bolted on after the credit-default
@@ -591,9 +600,11 @@ frames may carry each other rather than fight.
 
 ## Part 6 · If this is accepted, the order of work
 
-1. **C5** first (split 6 → 6 + 7). It is structural and every other
-   change is stated against the new numbering.
-2. **C1** (rename 5 → Continuity) — also structural, also cheap.
+1. ~~**C5** (split 6 → 6 + 7)~~ ✅ done 2026-09-28.
+2. ~~**C1** (rename 5 → Continuity)~~ ✅ done 2026-09-28. Live
+   cross-references fixed at the same time: `employment.md`'s hiring
+   criterion now cites lens 7, and `lenses/README.md`'s warning block
+   names all seven. ⚠ `CLAUDE.md` + `workflow.md` left for the sweep.
 3. **C2, C3, C4, C6** — body edits, independent of each other.
 4. **R1** — regenerate the `docs/lenses/` roster from disk; fix the
    griefing claim. ⚠ Index-file discipline applies: this is a sweep

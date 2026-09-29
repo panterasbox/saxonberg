@@ -1,6 +1,6 @@
-# The six design lenses
+# The seven design lenses
 
-**The rubric every high-level design is interrogated with.** Six
+**The rubric every high-level design is interrogated with.** Seven
 questions, asked in order, of any feature, slate, subsystem, or fork.
 They are the project's own — not borrowed, not a checklist someone
 should have to be handed at the start of each session.
@@ -9,14 +9,14 @@ should have to be handed at the start of each session.
 > that directory is Jesse Schell's lens deck (fantasy, curiosity,
 > cheatability…), a borrowed *analysis toolkit* used mostly for the
 > education-video track. This doc is the *decision rubric*. Where a
-> Schell lens sharpens one of the six, it is named as an instrument
+> Schell lens sharpens one of the seven, it is named as an instrument
 > below.
 
 ---
 
-## How the six are used
+## How the seven are used
 
-**A scorecard, not a gate.** Score a design against all six; lenses 1
+**A scorecard, not a gate.** Score a design against all seven; lenses 1
 and 2 pick the winner.
 
 > ⭐⭐ **The standing rule, stated as permanent:** *"What solution is
@@ -24,13 +24,17 @@ and 2 pick the winner.
 > affords the most expressiveness and creative control by our content
 > authors?"*
 
-Lenses 3–6 are axes a design **must not badly fail**, but they do not
-decide forks. Lens 5 is the lesser one — it never vetoes on its own; a
-mechanism that only works in one epoch is a flag that the physics is
-probably modelled at the wrong altitude, not an automatic rejection.
-Lens 6 (added 2026-09-18) is the one that was being run informally in
+Lenses 3, 4, 6 and 7 are axes a design **must not badly fail**, but
+they do not decide forks. ⭐ **Lens 5 is different and used to be
+mis-filed as the lesser one:** continuity is lens 2's *time axis*, so
+when a capability cannot cross an epoch what actually breaks is lens 2's
+promise — it needs no veto of its own because **it inherits lens 2's**.
+Lens 6 is the one that was being run informally in
 [vocations.md](./vocations.md) all along — the demand test — and never
-asked of a feature that was not a vocation.
+asked of a feature that was not a vocation. Lens 7 was carved out of
+lens 6 on 2026-09-28: the two had been one heading since 2026-09-18, and
+the lending gate that occasioned the governance limb had **passed every
+economic question**, because it was not an economics defect.
 
 **When the pass is run:** at the **slate** (before a design is
 considered ready) and at **requirements** (over the agreed scope).
@@ -204,15 +208,30 @@ same rule in the religion doctrine's voice.
 
 ---
 
-## 5 · Technology & magic — does the mechanism hold across every epoch?
+## 5 · Continuity — does the capability survive the epoch?
 
-The lesser lens, and the most often skipped. Run the design against
-**prehistory · medieval · industrial · modern · future**, and check
-what has to change.
+⭐⭐ **Not "technology & magic".** The lens is a *property*, not a
+subject: magic is one epoch's fiction and belongs here as an **example**,
+never as a limb. Naming it after its examples is why it read as a genre
+note and got skipped.
+
+Run the design against **prehistory · medieval · industrial · modern ·
+future** and check what has to change.
 
 > ⭐ **Physics in ancient Rome is the same as in New York City.** The
 > *dynamics* change with time period and technology; the **mechanics
 > must not.**
+
+⭐⭐⭐ **This is lens 2's time axis.** The point is not epochs, it is that
+what an author already learned keeps paying:
+
+> *If I have already learned how to build Excalibur, I do not have to
+> learn a new thing to build a lightsaber. The common functions are one
+> interface; the epoch changes efficiency and adds specific mechanics.*
+
+So continuity is the mechanism by which lens 2's promise **compounds**
+instead of resetting every time the world changes epoch — which is why
+it inherits lens 2's fork-deciding power rather than needing its own.
 
 **Future tech and magic are the same axis seen from two sides.** Both
 function identically in narrative once they are sufficiently advanced,
@@ -221,30 +240,38 @@ confined to one postulate* sitting on real thermodynamics — conservation
 holds globally, and a working is priced like a heat pump. Magic that
 obeys laws and technology that obeys laws are the same design problem.
 
-> **The test.** Does the mechanism hold from ancient Rome to New York,
-> with only the dynamics changing?
+⭐⭐ **The interface is visible to the command interpreter**, which makes
+the test concrete rather than a thought experiment:
+
+> **The test.** Does the new epoch's object answer the same commands?
+
+A lightsaber you `sharpen` is a failure — a `Grade`/`Durable` assumption
+leaking onto the shared surface. A lightsaber you `wield` and `strike`,
+whose delivery profile and channel differ, is a pass.
 
 ⭐ **Worked example — the wall socket.** `ChargedMixin` is one charge
 economy; `ManaPowered` is its second consumer. A wand and a wall socket
 are the same mechanism with different fiction attached. The same
 property holds in [electricity.md](./subsystems/electricity.md), where
 one honest Ohm's-law model covers a hand tool and, scaled up, the grid.
+`Workable` is the same move on the verb side: one interface, many
+trades.
 
-**Failing looks like:** a mechanic that would have to be *rewritten*
-rather than *re-parameterized* for another epoch — usually a sign it was
-modelled at the level of the technology instead of the level of the
-physics. This is also the discipline behind *trades ship medieval and
-advance by exercised disciplines*: the ladder is a parameter, not a
-different machine.
+**Failing looks like:** ⭐ **a verb that only makes sense in one epoch
+appearing on the common interface** — that is the tell. Structurally, a
+mechanic that would have to be *rewritten* rather than
+*re-parameterized* for another epoch, usually a sign it was modelled at
+the level of the technology instead of the level of the physics. This is
+also the discipline behind *trades ship medieval and advance by
+exercised disciplines*: the ladder is a parameter, not a different
+machine.
 
 ---
 
-## 6 · Economy & governance — what does it produce, who pays, and who can be wronged?
+## 6 · Economy — what does it produce, what does it consume, who pays?
 
-*What does this feature put into the economy, what does it take out,
-who pays for it, did the demand exist before the feature did — and when
-it decides something **about a person**, on what basis, and can they see
-it and answer it?*
+*What does this feature put into the economy, what does it take out, who
+pays for it, and did the demand exist before the feature did?*
 
 Every feature is a producer or a consumer or both, whether or not it
 was designed as one. A gym consumes an hour a person could have sold; a
@@ -253,7 +280,7 @@ and the butcher notices. The lens asks for those flows to be **named**,
 so a feature never quietly creates a sink with no source, a source with
 no sink, or a need that had to be invented for the market to exist.
 
-The five questions, each with its doctrine already written:
+The four questions, each with its doctrine already written:
 
 - **What does it produce, and for whom?** Goods, capacity, information,
   standing. ⭐ *A vocation exists iff there is unmet demand*
@@ -273,44 +300,16 @@ The five questions, each with its doctrine already written:
   fabricated. The honest justification is always a want that was
   already there, or a producer that is already producing into nothing
   (the wire suite's dirty reasons are a list of those).
-- ⭐⭐ **Who can be wronged by it, on what basis, and can they answer?**
-  A great many economic mechanisms decide something **about a person** —
-  who is hired, who is lent to, who is let a room, who is admitted to a
-  committee. Every such decision has a **criterion**, whether or not
-  anybody wrote it down, and an unwritten criterion is still a policy;
-  it is just one nobody can read, argue with or amend. Name it, make the
-  refusal say it, and say what lifts it. Where the criterion ought to be
-  the polity's rather than the code's, say which tier it sits in
-  ([measurement.md](./measurement.md) § layer 3) — A is amendable by
-  nobody, B by whoever ships the code, C by the polity.
 
 > **The test.** Name the flows: what goes in, what comes out, who pays,
-> and was anyone asking before we built it? Then: **when it judges a
-> person, name the criterion and name the appeal.**
+> and was anyone asking before we built it?
 
 **Failing looks like:** a manufactured need (an inn justified by a sleep
 *requirement*); a sink with no source (a fee nobody's income can meet);
 a source with no sink (a byre producing milk nothing takes); a vocation
 nobody would pay; standing that money can reach; a reward for time
 rather than for judgment wearing an economic costume (a wage for
-existing) — **and, on the governance limb: a criterion nobody can read,
-a refusal that names no number, a bar that nothing lifts, or a rule the
-polity cannot amend that was never entrenched on purpose.**
-
-⭐⭐ **Worked example — the default that could not be cured.** The
-economic bootstrap shipped a lending gate that counted a borrower's
-defaults and refused anyone above zero. The count read an append-only
-record, so it never fell: **one default ended a business's access to
-credit permanently, with no way to pay its way back.** Every flow in
-that feature was sound — the money came from somewhere, went somewhere,
-and somebody paid — so the economic limb passed it, and the four
-questions as they then stood had nothing to ask. It was caught by a
-human reading the merge request. The fifth question is here because that
-is not a reliable way to catch it: a decision was being made about a
-person, on a criterion nobody had written down, with no appeal and
-nothing that lifted it. See
-[antipatterns.md § A bare COUNT as a permanent gate](./antipatterns.md)
-and [credit.md](./subsystems/credit.md).
+existing).
 
 ⭐ **Worked example — the gym.** Work produces goods *and* a body; a gym
 produces only the body. So the gym's price is the wage foregone, the
@@ -321,6 +320,64 @@ sedentary vocations do; a gym-keeper passes the test there and fails it
 in a mining camp. And the trained body eats differently, which is where
 a flat food basket becomes demand for the butcher — a source the dairy
 and the butcher were waiting on.
+
+---
+
+## 7 · Governance — when it judges a person, what is the criterion and what is the appeal?
+
+*When this feature decides something **about a person**, on what basis —
+and can they see it, argue with it, and get it changed?*
+
+⭐⭐ **Split out of lens 6 on 2026-09-28.** It had ridden as that lens's
+fifth question since 2026-09-18, and the arrangement hid exactly the
+failure it was written for: the lending gate **passed every economic
+question**, because the money came from somewhere, went somewhere, and
+somebody paid. It was not an economics defect. Filing the judgment
+question inside the economics lens is why the reviewer's attention was
+on money.
+
+**Who can be wronged by it, on what basis, and can they answer?** A
+great many mechanisms decide something **about a person** — who is
+hired, who is lent to, who is let a room, who is admitted to a
+committee. Every such decision has a **criterion**, whether or not
+anybody wrote it down, and ⭐⭐ **an unwritten criterion is still a
+policy; it is just one nobody can read, argue with or amend.** Name it,
+make the refusal say it, and say what lifts it.
+
+⭐ **Say which tier it sits in.** Where the criterion ought to be the
+polity's rather than the code's, name the entrenchment tier
+([measurement.md](./measurement.md) § layer 3) — A is amendable by
+nobody, B by whoever ships the code, C by the polity. **The size of
+tier C is the measure of how real the participation is.**
+
+> **The test.** When it judges a person: **name the criterion, and name
+> the appeal.** Then say which tier the criterion sits in, and who may
+> amend it.
+
+**Failing looks like:** a criterion nobody can read; a refusal that names
+no number; a bar that nothing lifts; a rule the polity cannot amend that
+was never entrenched on purpose; ⭐ **a bare count used as a permanent
+gate** over an append-only record, which can only ever rise.
+
+⚠ **Not only the economy judges people.** Hiring, lending, letting a
+room and admission to a committee are the obvious cases, but so are
+publication, moderation, canon, conferral and any refusal a player meets
+— which is why this is its own lens and not an economic footnote.
+
+⭐⭐ **Worked example — the default that could not be cured.** The
+economic bootstrap shipped a lending gate that counted a borrower's
+defaults and refused anyone above zero. The count read an append-only
+record, so it never fell: **one default ended a business's access to
+credit permanently, with no way to pay its way back.** Every flow in
+that feature was sound — the money came from somewhere, went somewhere,
+and somebody paid — so the economic limb passed it, and the four
+questions as they then stood had nothing to ask. It was caught by a
+human reading the merge request. **This lens exists because that is not
+a reliable way to catch it:** a decision was being made about a
+person, on a criterion nobody had written down, with no appeal and
+nothing that lifted it. See
+[antipatterns.md § A bare COUNT as a permanent gate](./antipatterns.md)
+and [credit.md](./subsystems/credit.md).
 
 ---
 
@@ -335,9 +392,9 @@ slate and again in the requirements doc:
 2. Expression — <what an author composes with no code; what bespoke buys>
 3. Immersion — <what the sim affords without scripting>
 4. Values — <the choice forced; who confers standing>
-5. Epochs — <what changes across the five; what must not>
-6. Economy & governance — <what it produces and consumes; who pays; was the demand
-   there; and when it judges a person — the criterion, and the appeal>
+5. Continuity — <does it answer the same commands in another epoch>
+6. Economy — <what it produces and consumes; who pays; was the demand there>
+7. Governance — <when it judges a person: the criterion, the appeal, the tier>
 ```
 
 If a heading is hard to fill, that is the finding — write the gap down
@@ -354,7 +411,7 @@ gets **one level more real** in the place the pass was thin.
 - [uncertainty.md](./uncertainty.md) — where randomness may enter
   (lens 1's sharpest instrument).
 - [measurement.md](./measurement.md) — what may be counted, who says
-  what it is worth (lenses 3, 4 and 6).
+  what it is worth (lenses 3, 4 and 7).
 - [vocations.md](./vocations.md) — the demand test and the
   never-invent-a-need rule (lens 6's instruments).
 - [arcane-science.md](./arcane-science.md) — one postulate, real

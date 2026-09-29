@@ -1,8 +1,9 @@
 # Design lenses
 
-> ⚠ **Not the project's own five lenses.** The rubric every high-level
+> ⚠ **Not the project's own seven lenses.** The rubric every high-level
 > design is interrogated with — pedagogy · creative expression ·
-> immersion & roleplay · values · epochs — lives at
+> immersion & roleplay · values · **continuity** · economy ·
+> **governance** — lives at
 > [../design-lenses.md](../design-lenses.md). *That* is the decision
 > rule; *this* directory is a borrowed analysis toolkit.
 
