@@ -1451,6 +1451,55 @@ Read first, in this order:
 
 ---
 
+## Wave log
+
+*Written during the build, for the reviewer who has forgotten. One
+entry per wave: what landed, what the wave decided, what surprised it.*
+
+### W1 — done (`f9107486f`)
+
+The rename landed whole and every shipped behaviour is identical.
+`pnpm build` is type-clean across the monorepo; the touched server
+suites plus trade-cooking · trade-hospitality · eternal-university ·
+terminus · generic-objects all pass; `lint:family` 56/56; `pnpm lint`
+0 errors.
+
+**Decided in the wave.**
+
+- **D9's placement key is the member NAME, not a preposition word.**
+  `{ template, on: … }` works; `{ template, onto: … }` now refuses with
+  `no-such-placement`, because `onto` is a *word* the `on` member
+  accepts, not a member. The reserved keys are `template`, `as`,
+  `count`; everything else is read as a member, which is what makes a
+  member a pack ships tomorrow work here with no kernel change. One
+  shipped test was written with `onto:` and was updated.
+- **`getEnclosingScope()` returns the container, flatly.** The plan let
+  W1 read `encloses` as false for everything; rather than route the
+  read through an Api door that does not exist yet, the W1 body IS
+  `getContainer()` with a docstring saying whose claim `encloses` is.
+  W2 adds the branch. No stub, no forward-referencing Api method.
+- **The drill-in heading is still the literal `On it`.** Grouping by
+  member landed in `look`/`sense` (the loop is there), but the heading
+  comes off the member's row, which is W2 — and a `headingFor()` helper
+  duplicated across two controllers would have been exactly the free
+  helper the export discipline refuses. W2 reads
+  `ContainmentApi.placement(member)`.
+
+**Surprises.**
+
+- ⭐ **`lint:mixin-names` clause 4 works, and it was worth landing
+  first.** Reverting the two `trade-cooking` lines to `SurfacedMixin`
+  made it fail on both — including the one inside `butcher.yaml`'s MQL
+  `default:` string, which no other gate and no compiler can see. Both
+  restored; the negative run is the proof the clause is not vacuous.
+- **`Containable`'s docstring was lying about persistence** — it said
+  the relation "resets to null on hydrate", which stopped being true
+  when `captureSlice` learned to record it. Fixed in passing.
+- `scripts/__fixtures__/field-meta-golden.json` is a FROZEN record of
+  an old codemod, not a live comparison, so the `Surface.ts` path in it
+  was reverted rather than updated — its `className` still reads
+  `Surface` and always will.
+
 ## Drive record
 
 *(appended at build time — the wire run's output and count, the live
