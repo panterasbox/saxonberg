@@ -122,6 +122,26 @@ interface Row {
   dataKeys: Set<string>;
 }
 
+/**
+ * Every mixin a class composes, by name — from `queryMixins`, which
+ * walks the real prototype chain.
+ *
+ * ⚠⚠ **Not from `getPersistenceContributors`, and that mistake
+ * manufactured four false twins.** The contributor walk drops any layer
+ * with no persistent field and no `captureSlice` (`api/mixin.ts`), so a
+ * `fieldMeta`-less mixin is INVISIBLE to it: `Ingot` and `Casting`
+ * looked identical and differ by `ManualBuildMixin`; `Receptacle` and
+ * `UnboundedReceptacle` by `UnboundedSourceMixin`; `CartesianLocation`
+ * and `SingletonCartesianLocation` by `SingletonMixin`. The contributor
+ * walk is right for FIELDS and wrong for IDENTITY.
+ */
+function mixinNamesOf(ctor: AnyConstructor): string[] {
+  return MixinApi.queryMixins(ctor)
+    .map((m) => (m as { _mixinName?: string })._mixinName ?? "")
+    .filter((n) => n !== "")
+    .sort();
+}
+
 /** One prototype-chain layer of a class, with its own declared fields. */
 interface Layer {
   mixin: string;
@@ -217,7 +237,9 @@ function readRows(): Row[] {
 }
 
 /** The prototype-chain layers of a class, or null when it will not load. */
-async function layersOf(classPath: string): Promise<Layer[] | null> {
+async function layersOf(
+  classPath: string,
+): Promise<{ layers: Layer[]; mixins: string[] } | null> {
   try {
     const ctor = (await StuffApi.loadClassByPath(classPath)) as AnyConstructor;
     if (typeof ctor !== "function") return null;
@@ -225,11 +247,14 @@ async function layersOf(classPath: string): Promise<Layer[] | null> {
       string,
       { authorable?: true } | undefined
     >;
-    return MixinApi.getPersistenceContributors(ctor).map((c) => ({
-      mixin: c.key,
-      fields: c.fields,
-      authorable: c.fields.filter((f) => meta[f]?.authorable === true),
-    }));
+    return {
+      mixins: mixinNamesOf(ctor),
+      layers: MixinApi.getPersistenceContributors(ctor).map((c) => ({
+        mixin: c.key,
+        fields: c.fields,
+        authorable: c.fields.filter((f) => meta[f]?.authorable === true),
+      })),
+    };
   } catch {
     return null;
   }
@@ -254,6 +279,7 @@ async function main(): Promise<void> {
   const report: Array<{
     classPath: string;
     rows: number;
+    mixins: string[];
     layers: Array<{
       mixin: string;
       fields: string[];
@@ -264,15 +290,17 @@ async function main(): Promise<void> {
   }> = [];
 
   for (const classPath of classPaths) {
-    const layers = await layersOf(classPath);
-    if (layers === null) {
+    const loaded = await layersOf(classPath);
+    if (loaded === null) {
       failed.push(classPath);
       continue;
     }
+    const { layers, mixins } = loaded;
     const classRows = byClass.get(classPath)!;
     report.push({
       classPath,
       rows: classRows.length,
+      mixins,
       layers: layers.map((l) => {
         const authoredFields = l.fields.filter((f) =>
           classRows.some((r) => r.dataKeys.has(f)),
@@ -418,12 +446,8 @@ async function main(): Promise<void> {
       "   ⚠ A shared signature is not a shared concept. This shortens the\n" +
         "   list to judge; the docstrings decide.\n",
     );
-    const sigOf = (c: (typeof report)[number]): string =>
-      c.layers
-        .map((l) => l.mixin)
-        .filter((m) => m.endsWith("Mixin"))
-        .sort()
-        .join("+");
+    // The real composition, not the persisting subset.
+    const sigOf = (c: (typeof report)[number]): string => c.mixins.join("+");
     // ⚠⚠ Resolved ONCE and passed in. `classFileOf` takes three
     // arguments; calling it with one made every lookup throw, every
     // class read as bare, and the whole report say "nothing
