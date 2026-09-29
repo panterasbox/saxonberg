@@ -949,6 +949,22 @@ Acceptance: `test:near` on `lib/creature`, `lib/husbandry`,
 page) lists no `/platform/agent/` row. Commit:
 `build(narrowing W3): Chattel off Creature — a person is nobody's property`.
 
+**✅ W3 DONE.** The move was mechanical; two things are worth the note.
+
+- ⭐ **`Creature.branded.test.ts` had an assertion that `Chattel` STAYS
+  on `Creature`**, with a comment explaining that ownable and marked are
+  different questions and *"it is not this build's to re-open."* They are
+  different questions, but the HOST argument is word-for-word identical,
+  and the previous build had the whole case in front of it and stopped
+  half way. The assertion is inverted now and points at its sibling. ⭐⭐
+  **A test that pins the half of a move you did not do is how a known
+  defect becomes a documented invariant.**
+- **One fixture was asserting the defect**: `Consignment.test.ts` consigns
+  a bare `Creature` as a fish. It is a `KeptAnimal` now, which is what a
+  fish somebody caught and is selling actually is — the fishing subsystem
+  already models it that way (`fishing.md`: *the fish as a `Contaminable`
+  kept animal alive until it is not*). No test needed weakening.
+
 ### W4 — the documentation and the wiki pages
 
 Goal: no doc describes a composition that is no longer true, and the

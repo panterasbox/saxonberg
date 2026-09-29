@@ -36,6 +36,7 @@
 
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
+import { ChattelMixin } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import { BrandedMixin } from '@saxonberg/server/mud/lib/corpo/Branded';
 import { HandledMixin } from '../lib/Handled';
 import { ProducingMixin } from '../lib/Producing';
@@ -65,8 +66,13 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
  * guard or a local re-composition, the host is usually wrong one level
  * up.
  */
+// ⭐⭐ `ChattelMixin` beside `Branded`, and it came off `Creature` in the
+// base-class narrowing for the same reason `Branded` did: the argument
+// was about STOCK, and `Creature` is also the base of every player, Cast
+// member, Extra, Shade and corpse in the game. A head of stock is owned;
+// a person is not.
 const LivestockBase = ProducingMixin(
-  HandledMixin(HandlingMixin(BrandedMixin(Creature))),
+  HandledMixin(HandlingMixin(ChattelMixin(BrandedMixin(Creature)))),
 );
 
 export default class Livestock extends LivestockBase {

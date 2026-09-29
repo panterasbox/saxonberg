@@ -58,7 +58,6 @@ import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
 import { AttiredMixin } from '../slot/Attired';
-import { ChattelMixin } from '../chattel/Chattel';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
@@ -103,23 +102,24 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // driven and drives `spo2`; thermal overrides getVitalSign for
 // `coreTemperature` only — neither reads the other's sign.)
 // LoadBearingMixin sits outermost — the encumbrance gauge reads
-// ⭐⭐ `ChattelMixin` composes OUTERMOST, and its arrival here is the
-// whole of D22 and D98.
+// ⚠⚠ **`ChattelMixin` was here and is not any more** (the base-class
+// narrowing build, D15). It arrived with D22/D98 — livestock, pets and
+// future aquaculture wanted per-instance ownership with chain of title,
+// and one composition line gave it out of shipped code. The argument was
+// right and the host was one level too high: `Creature` is the base of
+// `Character`, so it also declared that **every player Avatar, every Cast
+// member, every Extra, every Shade and every Corpse is somebody's
+// property**. A person is nobody's chattel, and a corpse is evidence, not
+// stock.
 //
-// Chattel was composed in exactly one place — `lib/stuff/Thing.ts` — and
-// `Creature` descends from `Agent`, so **nothing alive was ownable**:
-// `ChattelApi.stamp` refused a cow. The gate is structural
-// (`MixinApi.isChattel`), not tier-based, so one composition line gives
-// livestock, pets and future aquaculture per-instance ownership with
-// chain-of-title out of shipped code — and it retires the pets slate's
-// sketched `CompanionMixin` + `ownerPath` before it was written.
+// It composes where the argument actually pointed: `KeptAnimal` (kernel)
+// and ranching's `Livestock`. Both still stamp, both still carry chain of
+// title, and D98's answer to rustling is untouched — a stolen animal keeps
+// its provenance and cannot be sold cleanly, exactly as in life.
 //
-// ⭐ Chain-of-title is also rustling's answer (D98): a stolen animal
-// keeps its provenance and cannot be sold cleanly, so fencing is the
-// hard part, exactly as in life.
-//
-// It is an additive attribute mixin with no ordered relationship to the
-// body stack below; outermost keeps it clear of it.
+// ⭐ Nothing was ever stamped on the person side, so this is byte-identical
+// for people: the narrowing removes a CLAIM, not a behaviour. That is the
+// point — the claim is the author surface.
 //
 // ⚠⚠ **`BrandedMixin` was here and is not any more** (the base-class
 // narrowing build). It arrived by the same one-line move as Chattel and
@@ -142,8 +142,7 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // clock, so its placement is immaterial to the ordered body stack, and
 // being outermost puts its `canEvict` veto ahead of the others — a corpse
 // objects to being collected before any inner layer gets a say.
-const CreatureBase = ChattelMixin(
-  PostmortemMixin(
+const CreatureBase = PostmortemMixin(
   ConcealableMixin(
   LoadBearingMixin(
     ContainerMixin(
@@ -216,7 +215,6 @@ const CreatureBase = ChattelMixin(
         )
       )
     )
-  )
   )
   )
   )

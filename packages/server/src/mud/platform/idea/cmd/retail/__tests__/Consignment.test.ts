@@ -47,6 +47,7 @@ import Provision from "../../../../thing/Provision";
 import Material from "../../../../../lib/material/Material";
 import { Freshness } from "../../../../../lib/material/Freshness";
 import { Creature } from "../../../../../lib/creature/Creature";
+import { KeptAnimal } from "../../../../../lib/creature/KeptAnimal";
 import { WorldClockApi } from "../../../../../api/worldclock";
 import WorldClockRegistry from "../../../WorldClockRegistry";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
@@ -303,8 +304,13 @@ describe("Consignment — sell loop over real ownership", () => {
       const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
       ContainmentApi.move(alice as never, loc as never);
 
+      // ⭐ A `KeptAnimal`, not a bare `Creature`. Chattel came off the
+      // creature base in the base-class narrowing (D15) — `Creature` is
+      // also the base of every player, Cast member, Extra, Shade and
+      // corpse, and a person is nobody's property. A fish somebody caught
+      // and is selling is exactly what `KeptAnimal` names.
       const fish = makeStuffAtPath(() => {
-        const c = new Creature();
+        const c = new KeptAnimal();
         c.setKeywords(["fish"]);
         c.setMaterial(flesh());
         return c;
@@ -316,7 +322,7 @@ describe("Consignment — sell loop over real ownership", () => {
       expect(fish.getContainer()).toBe(shelf);
 
       const dead = makeStuffAtPath(() => {
-        const c = new Creature();
+        const c = new KeptAnimal();
         c.setKeywords(["fish"]);
         c.setMaterial(flesh());
         return c;

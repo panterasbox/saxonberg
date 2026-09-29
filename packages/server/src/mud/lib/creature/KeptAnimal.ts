@@ -74,6 +74,7 @@ import { BondedMixin } from '../husbandry/Bonded';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { BehavedMixin } from '../behavior/Behaved';
 import { PersistableMixin } from '../persistence/Persistable';
+import { ChattelMixin } from '../chattel/Chattel';
 import { BrandedMixin } from '../corpo/Branded';
 
 // Named beneath the agency layers so the stack reads outermost-first and
@@ -98,9 +99,21 @@ const KeptAnimalBody = HandlingMixin(
 // says *whose work, or whose herd, this is* — which is true of a kept
 // animal and of ranching's `Livestock` (which composes it itself: it
 // extends `Creature`, not this class), and is not true of a person.
+//
+// ⭐⭐ `ChattelMixin` beside `Branded`, and it came off `Creature` in the
+// same wave and for the same reason. Per-instance ownership with chain of
+// title is what D22 and D98 wanted, and it is true of an animal somebody
+// keeps — a stolen one keeps its provenance and cannot be sold cleanly.
+// It was NOT true of the player Avatar, the Cast member, the Extra, the
+// Shade and the Corpse that also descend from `Creature`. A person is
+// nobody's property.
 const KeptAnimalBase = PersistableMixin(
-  BrandedMixin(
-    BehavedMixin(BondedMixin(StatusMixin(PostRegistrationMixin(KeptAnimalBody)))),
+  ChattelMixin(
+    BrandedMixin(
+      BehavedMixin(
+        BondedMixin(StatusMixin(PostRegistrationMixin(KeptAnimalBody))),
+      ),
+    ),
   ),
 );
 
