@@ -25,7 +25,7 @@ start asking *"where in the causal chain does the arbitrariness sit?"*
 > action DID.**
 
 Or, in the vocabulary already used in
-[the skill-vs-chance lens](./lenses/skill-vs-chance.md): **the dice are
+[the skill-vs-chance lens](./lens-deck-salvage.md): **the dice are
 in the deal, never in the play.**
 
 This does not replace the existing doctrine — *uncertainty must be
@@ -530,8 +530,8 @@ contain `Math.random` outside tests; **none is on a resolution path.**
 [^lens]: The four questions, the judgment-vs-fate framing, the deal/play
     alternation method and Perry's triad come from Jesse Schell, *The Art
     of Game Design: A Book of Lenses*, 3rd ed., **Lens #41, Skill vs.
-    Chance** — read and analysed in
-    [lenses/skill-vs-chance.md](./lenses/skill-vs-chance.md), which is
-    this document's parent. The Diablo 3 settlement diagnosis and the
+    Chance** — read and analysed in the **Skill vs. Chance** lens entry, which was
+    this document's parent (retired 2026-09-29; the surviving claims are
+    in [lens-deck-salvage.md](./lens-deck-salvage.md)). The Diablo 3 settlement diagnosis and the
     stalls/exchange rule are ours, from
     [economy-slate.md](./slates/builds/economy-slate.md).

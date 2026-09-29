@@ -7,8 +7,9 @@
 >
 > Scope: the **public** frame (panterasbox.com, the video track, the
 > Discord). The institutional pitch is a different artifact with a
-> different exclusion list — see [lenses/the-pitch.md](./lenses/the-pitch.md),
-> which deliberately keeps the polity *out* of the exec room.
+> different exclusion list, which deliberately keeps the polity *out* of
+> the exec room. ⚠ Its lens entry (*the Pitch*) was retired 2026-09-29
+> and that discipline is now recorded nowhere else.
 
 ---
 
@@ -168,5 +169,5 @@ before *For communities*.
    promise we have not tested.
 4. **The institutional pitch keeps its own exclusion list.** This doc
    widens the *public* frame; it does not amend
-   [lenses/the-pitch.md](./lenses/the-pitch.md), which keeps the polity
-   out of the exec room on purpose.
+   the institutional pitch, which keeps the polity out of the exec room
+   on purpose.

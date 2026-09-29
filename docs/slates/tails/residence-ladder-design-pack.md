@@ -182,7 +182,7 @@ What a dilapidated holding actually *does* — a slope of soft consequences, and
    is *"credit gets harder / you live worse,"* never *"you're evicted for a messy
    room."* Forgiveness holds; recovery is always an act away.
 
-This is the [motivation-lens](../../lenses/motivation.md) "chosen hafta, cheaply
+This is the [motivation-lens](../../lens-deck-salvage.md) "chosen hafta, cheaply
 exitable" applied to a home: the stakes are real, the floor is protected, and the
 exit (clean it up) is always cheap.
 

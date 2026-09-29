@@ -256,7 +256,7 @@ makes text feel like a handicap. The better statement is a
 
 A novel is immersive by not contradicting itself, not by resolution.
 This is already doctrine one level down —
-[imagination.md](./lenses/imagination.md)'s *consistency is the
+[imagination.md](./lens-deck-salvage.md)'s *consistency is the
 imagination budget* — and it never made it up into the rubric.
 
 ⚠ It also **resolves a worry this audit raised and then withdrew.**
@@ -562,7 +562,7 @@ derived* is always yes, forever.
 **Q3 ⚠ Lens 2's tail and lens 3's tail terminate on the same unbuilt
 thing.** The published flag needs somewhere for work to go; *"build your
 own and show it off to your friends"* needs someone to show it to. #73
-asks it verbatim; [community.md](./lenses/community.md) already flags
+asks it verbatim; [community.md](./lens-deck-salvage.md) already flags
 cold-start emptiness as the live risk. ⭐ Note the "human-blessed"
 requirement does **not** need a review queue — it needs **provenance**.
 `authoring_events` + CreditRouting already record who made what, so LLM

@@ -8,8 +8,9 @@
 > [design-philosophy.md](./design-philosophy.md),
 > [interaction-philosophy.md](./interaction-philosophy.md), and
 > [standard-model.md](./standard-model.md). The two layers are nested,
-> not in tension — reconciled in
-> [lenses/essential-experience.md](./lenses/essential-experience.md).
+> not in tension. ⚠ The entry that reconciled them was
+> retired 2026-09-29; **both ratified essence sentences survive** in
+> [lens-deck-salvage.md](./lens-deck-salvage.md) § 2.
 
 Saxonberg transforms the pursuit of knowledge into an immersive multiplayer role-playing experience, set within a richly simulated **virtual university environment**. More than just a collection of online course pages, Saxonberg recreates the broader **university experience** – the bustling campus, diverse locations, social interactions, and academic challenges – as the core **narrative** framework. It's a web-based game world deeply interwoven with a dynamic adaptive learning platform, crafting a compelling journey where academic achievement and engaging gameplay fuel one another. Inspired by the interactive depth of text-based MUDs, Saxonberg establishes a unique synergy: mastery of learning platform content unlocks character abilities and drives the personal story forward within this academic setting, while in-game exploration and collaboration provide rich context and motivation for learning, ultimately fostering superior educational **outcomes**.
 

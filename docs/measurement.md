@@ -470,7 +470,7 @@ If either erodes, the group becomes a coercion surface and none of this
 document's defenses apply to it any more.
 
 The related guard is already the
-[skill-vs-chance lens](./lenses/skill-vs-chance.md)'s: anything that
+[skill-vs-chance lens](./lens-deck-salvage.md)'s: anything that
 pressures a player into a judged contest — social pressure, economic
 necessity — erodes consent, and consent is what is doing the work here.
 
@@ -560,9 +560,10 @@ courts, values no reputation, and has no game in it.
 
 ### ⚠ Audit — 2026-08-11
 
-The first draft listed A1–A7 and was **incomplete**. Audited against
-[lenses/cheatability.md](./lenses/cheatability.md), which turns out to be
-an inventory of exactly this tier under a different name — its doctrine
+The first draft listed A1–A7 and was **incomplete**. Audited against the **Cheatability** lens entry (retired 2026-09-29;
+[lens-deck-salvage.md](./lens-deck-salvage.md) holds what survived),
+which turned out to be an inventory of exactly this tier under a
+different name — its doctrine
 *"you may automate your deeds; you may not forge your receipts"* is Tier
 A's purpose in one line.
 
