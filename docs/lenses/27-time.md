@@ -58,19 +58,48 @@ time is a large part of what makes a place read as a world.
 Every power in *Controlling Time* is forbidden here, and **each by a
 named invariant that was adopted for an unrelated reason:**
 
-| his power | ours | forbidden by |
+| his power | ours | why |
 |---|---|---|
 | **rewind** — the checkpoint | ⛔ | **A2**: ledgers are append-only. *You cannot edit your past* |
-| **stop** — the pause | ⛔ | the absent-body doctrine — the dying clock explicitly **does not freeze** when you go linkdead |
 | **speed up** | ⛔ | one world clock, running for everybody at once |
+| **stop** — the pause | ⭐ **we have one, and it is better than his** | see below |
 
 > **Schell's chapter is about the player escaping time. Ours is about
-> the player being subject to it.**
+> the player being subject to it** — with one exception the design got
+> right and which is easy to miss.
 
-That is not an accident of three separate decisions; it is the same
-decision three times — **a shared, honest, recorded world cannot offer
-any of them**, because each would have to be offered to one person
-while everyone else kept living.
+Rewind and speed-up are refused for the same reason twice: **a shared,
+honest, recorded world cannot offer either to one person while everyone
+else keeps living.**
+
+### ⭐⭐⭐ But the pause exists, and it is selective
+
+Schell's pause stops **the world**. Ours cannot. What the design does
+instead is stop **the bill**:
+
+> **You cannot pause the world. The world agrees not to charge you for
+> your absence.**
+
+Go linkdead and the body lingers in-world while metabolism *"re-stamps
+and integrates nothing"* and *"reconnect resumes as left"*; every other
+arm of `reconcileConditions` freezes too, with a far-past guard
+dropping implausible gaps. The stated principle is **absence should
+never cost a living player anything** — so you cannot starve while
+disconnected.
+
+⭐ **And there are exactly two carve-outs, both principled rather than
+incidental:**
+
+| exception | why | recorded at |
+|---|---|---|
+| **the dying clock** | the same kindness applied here *"makes Alt-F4 a cure for death"* | [mortality.md](../subsystems/mortality.md) — and pinned by a test built so that a well-meaning *"fix"* fails only the dying assertions, naming the reason |
+| **combat** | the beat loop has no presence-freeze; a fight ticks on to `maxBeats` and a draw — *"you can't rage-quit a fight"* | [combat.md](../subsystems/combat.md) |
+
+⚠ **This entry's first draft said the pause was forbidden, citing the
+absent-body doctrine.** Exactly backwards: that doctrine **is** the
+pause. The dying clock is its one advertised exception, and mistaking
+the exception for the rule is easy because it is the part that got
+written up.
 
 ## ⭐⭐ And we spend the player's time on purpose
 
@@ -104,11 +133,23 @@ whether a step's duration is the right amount of a player's evening,
 and *"the model says so"* is an answer about the world that declines to
 be an answer about the person.
 
-⚠⚠ **No pause plus no rewind is unusually unforgiving of ordinary
-life.** A checkpoint exists so a mistake is not permanent; a pause
-exists so a doorbell is not a death. We have neither, by invariant —
-and our stated audience includes **students with forty minutes**. This
-is the sharpest cost of the inversion and it has never been priced.
+⚠ **What the pause does not yet cover is the interesting remainder.**
+Metabolism and conditions are handled; the doorbell is not a death by
+starvation. What still runs is **combat** and **the dying clock**, both
+on purpose — and **durative activities**, which nobody has ruled on.
+
+⭐⭐ **The candidate answer is player-authored disconnect behaviour**, and
+it is a better answer than a blanket freeze: *what should my character
+do if my connection drops?* **Disengage or flee** is the obvious one for
+combat, and it preserves *you can't rage-quit a fight* while removing
+*you can't answer the door* — the character acts, at a cost, rather than
+the world stopping. Other activities want their own reactions (bank the
+fire, set down the tool, come off shift). Unbuilt, and squarely doable.
+
+⚠ Until it exists, the residue lands on the stated audience — **students
+with forty minutes** — and it lands on exactly two systems rather than
+on the whole game, which is a much smaller bill than the first draft of
+this entry implied.
 
 ⚠ **We have almost no races.** Nearly every temporal pressure here is a
 **clock** — the dying clock, maturation, spoilage, growth, the shift —
@@ -138,10 +179,29 @@ opinion about stopping.
    and ask what its step durations cost a player's session — not
    whether they are true. *True* is settled; *right* has never been
    asked, and the two are independent.
-2. ⭐⭐ **Price the no-pause/no-rewind cost against the audience.** The
-   invariants are Tier A and should stay; what is missing is an honest
-   account of who they exclude and what softens it — the durative acts
-   are where a safe interruption could live without touching A2.
+
+   ⚠ **And it cannot be unit-tested**, which is why it has never been
+   asked: there is no assertion that says a smelt should take ninety
+   seconds. It is a playtest question. ⭐⭐ But **the absolute is
+   untestable and the *relative* is not** — *this agent spent 60% of its
+   session waiting and that one spent 12%* is measurable, comparable,
+   and enough to find the outliers without anyone deciding the right
+   number. A **swarm of agents playing and reporting their time
+   signatures** would not beat real humans; it would **scale**, which
+   nothing else here does.
+
+   ⭐⭐⭐ **That is the third ask for one pattern.** The combat gym
+   shipped; an *economy gym* was asked for and never built
+   ([lens-deck-salvage.md](../lens-deck-salvage.md)); this is a pacing
+   gym. Three consumers is the project's own threshold for promoting a
+   mechanism — **headless agent benches may be a platform capability
+   rather than three separate builds.**
+2. ⭐⭐ **Build player-authored disconnect behaviour.** The freeze
+   already covers metabolism and conditions; what remains is combat,
+   dying and the durative acts, and the answer is not a blanket pause
+   but **the character acting on standing instructions** — disengage,
+   flee, bank the fire, come off shift. It preserves both carve-outs'
+   reasons and removes most of their cost.
 3. ⭐ **Decide about races.** A designed race — pressure from another
    person under a deadline — is a category we have never shipped and
    never rejected. The land rush and the market already hint at it.
