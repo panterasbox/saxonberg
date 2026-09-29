@@ -53,12 +53,13 @@ Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
-✅ **Ten written** (2026-09-29): `27` ·: `25` · `31` · `37` · `46` · `55` ·
+✅ **Eleven written** (2026-09-29): `7` · `27` ·: `25` · `31` · `37` · `46` · `55` ·
 `79` · `86` · `91` · `93`. ⛔ **`92` was written and then deleted** —
 see below.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
+| **6 · Economy · 4** | ✅ [`7-endogenous-value.md`](./7-endogenous-value.md) | ⭐⭐ **The roulette test**: *if the game needs the credential to be worth playing, it is roulette.* His Q2 is one our doctrine forbids us answering. And standing is the purest endogenous value we have — and the one not built. |
 | **6 · Economy · 3a** | ✅ [`27-time.md`](./27-time.md) | ⭐ **His chapter is about escaping time; ours about being subject to it** — rewind and speed-up refused, but ⭐ **the pause exists and is better than his**: *you cannot pause the world; the world agrees not to charge you for your absence.* Q1 unanswered — and untestable except **relatively**, which is a third ask for the gym pattern. |
 | **4 · Values** | ✅ [`46-reward.md`](./46-reward.md) | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
 | **4 · Values** | ✅ [`55-visible-progress.md`](./55-visible-progress.md) | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
@@ -118,7 +119,7 @@ one:
 | working on… | candidate | have it? |
 |---|---|---|
 | activities · scheduler · contracts · quests | **#27 Time** | ✅ |
-| the economy | **#7 Endogenous Value**, #52 Economy | ⛔ |
+| the economy | **#7 Endogenous Value** ✅ · #52 Economy | ✅ |
 | combat · trade difficulty | **#21 Flow**, #38 Challenge | ⛔ |
 | the response envelope · messaging | **#63 Feedback**, #64 Juiciness | ⛔ |
 | the cockpit · cards · client | **#62 Transparency**, #66 Channels | ⛔ |
