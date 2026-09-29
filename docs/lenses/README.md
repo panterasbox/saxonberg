@@ -53,8 +53,8 @@ Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
-✅ **Written: `46` · `55` · `91` · `25` · `37`** (2026-09-29). Pending:
-`86` · `31` · `79` · `93` · `92`.
+✅ **Written: `46` · `55` · `91` · `25` · `37` · `86`** (2026-09-29).
+Pending: `31` · `79` · `93` · `92`.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
@@ -63,7 +63,7 @@ which read the full Table of Lenses — 113 lenses plus the unnumbered
 | **4 · Values** | ✅ [`91-character-transformation.md`](./91-character-transformation.md) | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
 | **7 · Governance** | ✅ [`25-judgment.md`](./25-judgment.md) | Lens 7's only antecedent in the deck — and it stops at *do players feel it is fair*. |
 | **7 · Governance** | ✅ [`37-fairness.md`](./37-fairness.md) | Across 113 lenses **"fair" only ever means "even contest"** — the evidence lens 7 is unprecedented. ⚠ And the one contest we *do* have: wizards and players share a world, and the answer is constitutional, not technical. |
-| **3b · Participation** | `86-character-function.md` | His is a list authored once, folding roles together to save budget. Ours is derived from the economy with the casting call open. The blacksmith-shaped hole, made mechanical. |
+| **3b · Participation** | ✅ [`86-character-function.md`](./86-character-function.md) | His is a list authored once, folding roles together to save budget. Ours is derived from the economy with the casting call open. The blacksmith-shaped hole, made mechanical. |
 | **2 · Expression** | `31-action.md` | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* The command-palette rebuttal, and **the refusal is the progression UI**. |
 | **2 · Expression · 3a** | `79-freedom.md` | The call-security door model as a stated design answer rather than an accident. Short by design. |
 | **3a · Immersion** | `93-the-nameless-quality.md` | Alexander's *not-separateness* as the positive form of *the fiction cannot betray itself*; *roughness* as the open charm question. |
