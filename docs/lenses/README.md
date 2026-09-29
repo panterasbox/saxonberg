@@ -53,8 +53,8 @@ Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
-✅ **Written: `46` · `55` · `91` · `25` · `37` · `86` · `31` · `79`**
-(2026-09-29). Pending: `93` · `92`.
+✅ **Written: `46` · `55` · `91` · `25` · `37` · `86` · `31` · `79` ·
+`93`** (2026-09-29). Pending: `92`.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
@@ -66,7 +66,7 @@ which read the full Table of Lenses — 113 lenses plus the unnumbered
 | **2 · Expression · 3b** | ✅ [`86-character-function.md`](./86-character-function.md) | ⭐ Casting, not staffing — and **casting happens three times** (code · content · runtime). We built the pass-2 machinery and skipped the craft: the save gate knows *legal*, never *good*. The prize is **dramatic predicates** — his against-type casting made declarative, and per-player. |
 | **2 · Expression** | ✅ [`31-action.md`](./31-action.md) | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* ⭐ **His parser's vocabulary was hidden; ours is data** — affordance, refusal, prompting, the collision ladder, an LLM front-end. Adopts the **basic:strategic ratio** question. |
 | **2 · Expression · 3a** | ✅ [`79-freedom.md`](./79-freedom.md) | ⭐ **Freedom here is a political question in a design question's clothes.** Two regimes — a sandbox that is maximal and a shared world the polity grants — and exactly one platform-level class, the wizard flag. |
-| **3a · Immersion** | `93-the-nameless-quality.md` | Alexander's *not-separateness* as the positive form of *the fiction cannot betray itself*; *roughness* as the open charm question. |
+| **3a · Immersion** | ✅ [`93-the-nameless-quality.md`](./93-the-nameless-quality.md) | Alexander's *not-separateness* as the positive form of *the fiction cannot betray itself*; *roughness* as the open charm question. |
 | **all seven** | `92-inner-contradiction.md` | The nine ledgers with only the rendering refused, against the warning not to get used to a contradiction or make excuses for it. |
 
 ⭐ **Write `46` · `55` · `91` together even though they are three
