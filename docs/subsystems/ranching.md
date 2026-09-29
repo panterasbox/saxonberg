@@ -232,9 +232,26 @@ sketched `CompanionMixin`.
 
 ⭐ Chain-of-title is also **rustling's answer**: a stolen animal keeps its
 provenance and cannot be sold cleanly, so fencing is the hard part
-exactly as in life. And `BrandedMixin` was Things-only — **branding
-livestock is what marks were invented for** — so it reached the Creature
-stack by the same move.
+exactly as in life.
+
+⚠⚠ **Branding did NOT reach the stack by the same move, and the attempt
+was a defect.** `BrandedMixin` was Things-only and the argument for
+moving it was the right one — *branding livestock is what marks were
+invented for* — but it was composed on `Creature`, which is the base of
+`Character`. That put a maker's mark on every player Avatar, every Cast
+member, every Extra, every Shade and every corpse in the game. Nothing
+on that stack ever read it, so nothing failed; the one surface that
+would have shown it, `wiki branded`'s *composed by* panel, was reading a
+scan root that has never held a row.
+
+The base-class narrowing build moved it to the two hosts the argument
+points at: the kernel's `KeptAnimal` (so a pet, a canary, a
+`WorkingAnimal` and a fishmonger's tank fish can be marked) and
+`Livestock` itself. ⭐ **`Livestock` composes it directly**, because it
+extends `Creature` and not `KeptAnimal` — a head of stock is not a pet —
+exactly as it already composes `HandlingMixin`. Chattel stays where it
+is: *ownable* and *marked* are different questions, and only the second
+one is false of a person.
 
 ---
 

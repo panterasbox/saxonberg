@@ -65,6 +65,15 @@ and `lint:kept-animals` is what makes the three states safe. Making a pet
 a `Character` instead was also rejected: that stack drags in `Caster`,
 `Vocal` and `Employed` — a sheepdog that casts, speaks and holds a job.
 
+⭐ **A kept animal can also carry a mark.** `BrandedMixin` composes on
+`KeptAnimal` (inside `Persistable`, which stays outermost for
+`pinsResidency`), so a pet, a canary, a `WorkingAnimal` and a
+fishmonger's tank fish can all be branded — whose herd this is, resolved
+when it is read. It reached this rung in the base-class narrowing build,
+from `Creature`, where it had been marking every player character too.
+See [corpo.md](./corpo.md) for the mark and
+[ranching.md](./ranching.md) for why the host moved.
+
 ## The bond — not a new number
 
 `bond = regard/100 × handling`, and only affection counts (regard ≤ 0 is

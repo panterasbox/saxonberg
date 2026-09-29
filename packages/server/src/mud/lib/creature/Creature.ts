@@ -59,7 +59,6 @@ import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
 import { AttiredMixin } from '../slot/Attired';
 import { ChattelMixin } from '../chattel/Chattel';
-import { BrandedMixin } from '../corpo/Branded';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
@@ -104,8 +103,8 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // driven and drives `spo2`; thermal overrides getVitalSign for
 // `coreTemperature` only — neither reads the other's sign.)
 // LoadBearingMixin sits outermost — the encumbrance gauge reads
-// ⭐⭐ `ChattelMixin` and `BrandedMixin` compose OUTERMOST, and their
-// arrival here is the whole of D22 and D98.
+// ⭐⭐ `ChattelMixin` composes OUTERMOST, and its arrival here is the
+// whole of D22 and D98.
 //
 // Chattel was composed in exactly one place — `lib/stuff/Thing.ts` — and
 // `Creature` descends from `Agent`, so **nothing alive was ownable**:
@@ -117,13 +116,20 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 //
 // ⭐ Chain-of-title is also rustling's answer (D98): a stolen animal
 // keeps its provenance and cannot be sold cleanly, so fencing is the
-// hard part, exactly as in life. And `BrandedMixin` was composed only on
-// Things (a neon sign, a graded receptacle) — **branding livestock is
-// what marks were invented for** — and it reaches the Creature stack by
-// the same one-line move.
+// hard part, exactly as in life.
 //
-// Both are additive attribute mixins with no ordered relationship to the
-// body stack below; outermost keeps them clear of it.
+// It is an additive attribute mixin with no ordered relationship to the
+// body stack below; outermost keeps it clear of it.
+//
+// ⚠⚠ **`BrandedMixin` was here and is not any more** (the base-class
+// narrowing build). It arrived by the same one-line move as Chattel and
+// with the same argument — *branding livestock is what marks were
+// invented for* — but `Creature` is the base of `Character`, so it also
+// put a maker's mark on every player Avatar, every Cast member, every
+// Extra, every Shade and every Corpse in the game. Nothing on this stack
+// ever read it. It now composes where the argument actually pointed:
+// `KeptAnimal` (kernel) and ranching's `Livestock`. A person is not
+// somebody's product; a corpse is not somebody's stock.
 //
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
@@ -137,7 +143,6 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // being outermost puts its `canEvict` veto ahead of the others — a corpse
 // objects to being collected before any inner layer gets a say.
 const CreatureBase = ChattelMixin(
-  BrandedMixin(
   PostmortemMixin(
   ConcealableMixin(
   LoadBearingMixin(
@@ -211,7 +216,6 @@ const CreatureBase = ChattelMixin(
         )
       )
     )
-  )
   )
   )
   )

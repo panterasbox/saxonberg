@@ -15,11 +15,19 @@
  *  - the **act affordances**, because they belong to the animal you are
  *    standing next to.
  *
- * ⭐ Ownership, chain-of-title and branding it inherits from `Creature`,
- * which gained `ChattelMixin` and `BrandedMixin` in this same wave —
- * which is why a stolen animal cannot be sold cleanly (D98) and why
- * branding livestock, the thing marks were invented for, needed no new
- * mechanism at all.
+ * ⭐ Ownership and chain-of-title it inherits from `Creature`, which
+ * gained `ChattelMixin` in this same wave — which is why a stolen animal
+ * cannot be sold cleanly (D98).
+ *
+ * ⚠ **Branding is composed HERE, not inherited.** It arrived on
+ * `Creature` in the same wave and on the same argument — *branding
+ * livestock is what marks were invented for* — but `Creature` is also
+ * the base of `Character`, so that line marked every player, Cast
+ * member, Extra, Shade and corpse in the game as somebody's stock. The
+ * base-class narrowing build moved it to where the argument pointed: the
+ * kernel's `KeptAnimal` and this class. `Livestock` does not extend
+ * `KeptAnimal` — a head of stock is not a pet — so it composes the
+ * kernel mixin itself, exactly as it already does with `HandlingMixin`.
  *
  * ⚠ **There is no `Herd` class and there never will be.** The herd is a
  * record; the room's prose describes animals; there is never a
@@ -28,6 +36,7 @@
 
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
+import { BrandedMixin } from '@saxonberg/server/mud/lib/corpo/Branded';
 import { HandledMixin } from '../lib/Handled';
 import { ProducingMixin } from '../lib/Producing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -57,7 +66,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
  * up.
  */
 const LivestockBase = ProducingMixin(
-  HandledMixin(HandlingMixin(Creature)),
+  HandledMixin(HandlingMixin(BrandedMixin(Creature))),
 );
 
 export default class Livestock extends LivestockBase {

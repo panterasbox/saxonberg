@@ -74,6 +74,7 @@ import { BondedMixin } from '../husbandry/Bonded';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { BehavedMixin } from '../behavior/Behaved';
 import { PersistableMixin } from '../persistence/Persistable';
+import { BrandedMixin } from '../corpo/Branded';
 
 // Named beneath the agency layers so the stack reads outermost-first and
 // inference does not collapse across this many nested factories in one
@@ -88,8 +89,19 @@ const KeptAnimalBody = HandlingMixin(
 // never ran on a live animal — no home seeded, no species warmed — and
 // nothing above the fixtures could see it. `Creature` carries no
 // `postRegister`, so the chain terminates here harmlessly.
+// ⭐ `BrandedMixin` INSIDE `Persistable`, for the reason above it: the
+// outermost layer is `Persistable` on purpose (`pinsResidency`), so
+// anything added goes within it.
+//
+// It lived on `Creature` until the base-class narrowing build, where it
+// also marked every player, Cast member, Extra, Shade and corpse. A mark
+// says *whose work, or whose herd, this is* — which is true of a kept
+// animal and of ranching's `Livestock` (which composes it itself: it
+// extends `Creature`, not this class), and is not true of a person.
 const KeptAnimalBase = PersistableMixin(
-  BehavedMixin(BondedMixin(StatusMixin(PostRegistrationMixin(KeptAnimalBody)))),
+  BrandedMixin(
+    BehavedMixin(BondedMixin(StatusMixin(PostRegistrationMixin(KeptAnimalBody)))),
+  ),
 );
 
 export class KeptAnimal extends KeptAnimalBase {

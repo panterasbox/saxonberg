@@ -538,7 +538,19 @@ Acceptance: `wiki atmospheric` in a booted world lists
 has not happened) and carries no *truncated* row. Commit:
 `build(narrowing W0): the composition panel scans the real roots`.
 
-### W1 — `Branded` off `Creature` (D7)
+### W1 — `Branded` off `Creature` (D7) ✅ DONE
+
+> **Landed.** `Creature` keeps `Chattel` and loses `Branded`;
+> `KeptAnimal` composes it INSIDE `Persistable` (which stays outermost
+> for `pinsResidency`); `Livestock` composes the kernel mixin itself,
+> because it extends `Creature` and not `KeptAnimal`. Two tests state
+> the claim so it can fail — `Creature.branded.test.ts` (a person and a
+> corpse are not somebody's stock) and ranching's
+> `livestock-branded.test.ts` (the half-done move is what it catches).
+> ⚠ The composition expression in `Creature.ts` closes with nine bare
+> `)` lines; removing one factory means removing one of them, and
+> nothing but `tsc` tells you which.
+
 
 - `lib/creature/Creature.ts:139-140` — drop `BrandedMixin(` from the
   chain; delete the import; rewrite the `:107-123` comment (Chattel stays,
