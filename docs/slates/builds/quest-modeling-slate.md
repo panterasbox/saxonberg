@@ -414,6 +414,51 @@ The model survives contact; where it bent is the durable learning:
    director fallback for solo/ambient quests (the mystery has no host).
    What carries "what now" when there's no Limen?
 
+### Added 2026-09-29 (the casting pass — out of Schell's Lens #86)
+
+7. ⭐⭐⭐ **Slot specificity — the missing field, and it subsumes the
+   understudy problem.** §6 says slots carry *"constraints"*; it does
+   not say **how tight the binding is**. Three declarations, and the
+   author is already choosing between them silently:
+
+   | the author means | the slot declares | understudy | cost |
+   |---|---|---|---|
+   | *must be Morgan Vigosen* | an **identity** | ⛔ authored, or the beat breaks | a carve |
+   | *must be a smith* | a **predicate** — holds the seat, composes the mixin | ⭐ free: re-bind | crowd |
+   | *don't care* | the loosest predicate | free; may degrade to an `Extra` | crowd |
+
+   > ⭐⭐ **specificity = cost = fragility.** Tighter binding buys a
+   > particular experience, costs a carve, and needs an understudy.
+
+   ⭐ **"Don't care" is a declaration, not an absence** — which is what
+   lets the save gate tell an author who *chose* loosely from one who
+   forgot. **And the n+1 risk is structural, not per-quest:** `Cast` is
+   a singleton (*a second live clone throws*) and `Extra` is not (*two
+   sentries are the point*), so an `Extra`-bound slot can never have
+   this problem and a `Cast`-bound slot always can. The save gate
+   already type-checks the cast; flagging *an identity-bound slot with
+   no understudy* is one more predicate on a validation that exists.
+   ⚠ Casting is **authored**, not resolved at runtime — so the
+   understudy is an authoring artifact, not a fallback query.
+   *Lean: add the axis; it is one field and it makes three decisions
+   visible at the moment they are made.*
+
+8. ⚠ **The casting collision.** Dave as «informant» in one quest and
+   «captive» in another — a person with a life, or a scheduling
+   conflict? Note this is the *same shape* as one NPC holding two
+   economic seats (§ *every NPC doing two jobs is a vacancy we
+   deleted*), which suggests one rule covers both. Neither has one.
+
+9. ⭐ **The casting pool grew after this slate was written.** In June a
+   predicate-bound slot was a promise; the trades now ship a crowd that
+   actually satisfies predicates, so *anyone running the smith seat*
+   resolves to real people in real towns. **Predicate-bound casting got
+   dramatically cheaper and this slate does not know it**, which
+   probably shifts Q1's kernel lean toward the cheap tier. ⚠ It also
+   makes an unrelated char-gen decision load-bearing: the
+   [lineage backstop](./lineage-slate.md) is where predicate bindings
+   resolve in a thin town.
+
 ## What this slate does NOT cover
 
 - **World-changing / collective events** — authored by the polity; same

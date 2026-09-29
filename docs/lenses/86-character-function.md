@@ -2,6 +2,13 @@
 
 > One of the [Schell deck](./README.md). Lens named from *A Book of
 > Lenses*; questions paraphrased, analysis our own.[^aogd-cf]
+>
+> ⚠ **Rewritten 2026-09-29.** The first draft pointed this lens at the
+> **labor market** — positions, seats, the help-wanted sign. That was a
+> category error: a blacksmith is a job *the world* needs done, and
+> Schell's functions are jobs *the player's experience* needs done. The
+> lens is about **casting**. The world-jobs reading survives as a note
+> at the end.
 
 ## The lens
 
@@ -10,143 +17,181 @@ have I already imagined? Which map well to which roles? Can any
 character fill more than one role? Do I need to change the characters
 to fit the roles better — or do I need new characters?**
 
-> **From the book.** The method is the lens: *"list all the functions
-> that these characters need to fulfil,"* separately from the
-> characters you imagined, and only then match them up. His worked list
-> for an action platformer is **hero, mentor, assistant, tutor, final
-> boss, minions, three bosses, hostage** — and his clever move is to
-> fold roles together: *"What if your mentor, Wise Old Owl, turns out to
-> be the final boss? It would be an ironic twist **and save you on the
-> cost of developing a new character**."* The payoff he names: *"By
-> separating the functions of the characters from your vision of the
-> characters, you can think clearly about making sure the game has
-> characters doing all the necessary jobs."*
+It is **Character Tip #1**, and the problem it names is specific: when
+you write a story you invent characters as the plot demands them, and
+when you build a game **the game demands them too** — but you do not
+notice, because you are busy loving the ones you already imagined.
+
+> **From the book.** His worked list for an action platformer: *Hero
+> (the character who plays the game) · Mentor (gives advice and useful
+> items) · Assistant (gives occasional tips) · Tutor (explains how to
+> play the game) · Final boss · Minions · Three bosses · Hostage
+> (someone to rescue)*. Against imagined characters — Princess Mouse,
+> tough and no nonsense; Wise Old Owl, wise but forgetful; Silver Hawk,
+> angry and vengeful. Then match them **against the obvious**: Princess
+> Mouse is the natural hostage, so make her the mentor, or the final
+> boss; maybe the Rat Army have red eyes because *she* hypnotized them
+> and they are the hostages. Eight roles, five characters — invent
+> more, or fold: *"What if your mentor, Wise Old Owl, turns out to be
+> the final boss? It would be an ironic twist **and save you on the
+> cost of developing a new character**."* The payoff: *"By separating
+> the functions of the characters from your vision of the characters,
+> you can think clearly about making sure the game has characters doing
+> all the necessary jobs."*
+
+⭐⭐ **Read his list again.** Tutor *explains how to play* — that is
+onboarding with a face. Assistant *gives occasional tips* — a hint
+system with a face. Mentor gives *advice and useful items* — onboarding
+plus an item faucet. Hostage is motivation; minions and bosses are the
+difficulty curve. **These are service roles to the player's experience,
+not work the world needs done.** Only *Hero* is arguably a world-role,
+and it is really *the slot the player occupies*.
 
 ## Which of our seven it sharpens
 
-**[Lens 3b · Participation](../design-lenses.md)** — it is the
-mechanism underneath the claim, and the only lens in the deck that
-comes near it.
-
-## Why our design prompts it
-
-Because lens 3b asserts something this lens can test. *We are not
-asking anyone to roleplay a blacksmith — the economy has a
-blacksmith-shaped hole in it and somebody has to be in it.* That is a
-claim about **functions existing independently of who fills them**,
-which is exactly what #86 is a method for.
+**[Lens 2 · Creative expression](../design-lenses.md)** — the cast
+surface is an authoring model, and the lens's whole payoff is about what
+an author can compose. Secondarily **lens 3b**, which supplies the
+population being cast from.
 
 ## What the design answers
 
-Schell's technique, turned into a running system:
+[quest-modeling-slate](../slates/builds/quest-modeling-slate.md) has
+this lens, built further than Schell takes it:
 
 | | his version | ours |
 |---|---|---|
-| where the function list comes from | authored once, by the designer, at design time | **derived continuously from the economy** — the needs a settlement must meet or import |
-| who may hold a function | a character the designer invents | **an NPC or a player, interchangeably** |
-| an unfilled function | a bug — invent a character | ⭐ **a job advertisement** |
+| the function list | characters only | **typed slots over any Stuff** — «captive»:Character, «prison»:Location, «secret»:Fact, «reward»:Quantity |
+| matching | a creative exercise in the designer's head | **"casting = binding typed slots to authored Stuff"**, and the CMS save-gate **type-checks the cast** |
+| separating function from character | a technique you remember to apply | ⭐ **a permissions tier** — *template-authors* write structures and conditions; *content-authors* cast |
+| a taxonomy of story shapes | none | **19 primitives in 5 families keyed to the ledgers** — Knowledge/belief, Bond/regard, Property/inventory, Conflict/vitals, Self/traits — with compounds nesting them |
 
-The machinery is ordinary and already shipped: positions on a Business
-with a closed `requires` vocabulary, openings **derived** from headcount
-against roster, a help-wanted sign that is itself derived, `apply`,
-`clock on`/`off`. Nobody built a casting system; the casting call is
-what the economy looks like from outside.
+⭐ And it names the right ancestor: **Propp** — *fixed functions,
+castable roles* — who is the folklorist Schell is doing a lighter
+version of.
 
-⭐⭐ **Three consequences, and they are the whole of lens 3b:**
-
-1. **The world runs without players.** Functions held by NPCs still get
-   done, so there is no cold-start collapse and no empty-server
-   problem.
-2. **Every NPC-held seat is a standing vacancy** — visible, and
-   takeable.
-3. **Replacement is legible.** Somebody took that job, and the town can
-   notice.
-
-⭐ **And one crisp difference worth keeping.** Schell lists *"hero: the
-character who plays the game"* as a **function**, alongside mentor and
-hostage. Here the player is not a function at all. **The player is
-whoever took one** — which is why the roles have to be real before
-anyone arrives.
+⭐⭐ **The genre library is better grounded than the folk taxonomy.**
+*Fetch quest* and *companion quest* are categories players noticed;
+these are derived from **what the ledgers can record**, which is why
+Fetch falls out under Property and companion quests under Bond.
 
 ## The verdict
 
-⭐⭐⭐ **Adopt the method wholesale. Invert his optimization, because for
-us it is an anti-pattern.**
+⭐⭐⭐ **We built past him on four axes — and his one piece of tactical
+advice does not apply here at all, for a reason worth stating.**
 
-The method is right and we already run it: separate the functions from
-the people, list the functions first, never let the cast decide what
-the world needs. Nothing to argue with.
+### The inversion: unvisited cast is not waste
 
-**But his efficiency move is backwards here.** Folding two roles into
-one character saves a designer the cost of developing a second
-character. In an economy, folding two jobs into one NPC means **one
-fewer job a player could have taken**:
+Schell folds two roles into one character **to save the cost of
+developing another character**. That advice exists because in a
+branching narrative, **the branch you do not take is content nobody
+sees** — paid for, unwatched.
 
-> ⭐⭐ **Every NPC doing two jobs is a vacancy we deleted.**
+Our world does not fork; the slate's spine forbids it. So the
+unvisited cast is not a counterfactual. **It is the town.** They are
+out there doing their thing, other players meet them, and your not
+visiting costs nothing, because they were not built for you.
 
-Which gives a review question with teeth, because the pressure to fold
-is exactly as strong here as it is for him — one NPC is cheaper to
-author, brief, illustrate and maintain than two:
+> ⭐⭐⭐ **We do not commission a cast. We cast from a population that
+> exists anyway.**
 
-> **When an NPC holds more than one seat: is that because the economy
-> justifies one person doing both, or because it was cheaper to
-> author?** The first is a village with a blacksmith who also shoes
-> horses. The second is a participation surface quietly shrinking to
-> save work.
+Two consequences:
 
-⭐ **And his sixth question inverts too.** *Do I need any new
-characters?* is a cost question for him. For us the equivalent —
-**what roles does this economy need that nothing currently fills?** —
-is the [vocations demand test](../vocations.md), which lens 6 already
-runs. Same question, opposite sign: a new role is not an expense, it is
-the product.
+1. **The fold move has no cost argument here** — which independently
+   confirms the rule the first draft of this entry found from the
+   economic side: *every NPC doing two jobs is a vacancy we deleted.*
+   There was never a saving to weigh against it.
+2. ⭐ **The cost model inverts.** The expensive thing is not the
+   unvisited NPC; it is the **specific** one. *Morgan Vigosen the town
+   smith* costs because he is a singleton with lines and a dossier;
+   *the town smith, practising his craft* is nearly free, because the
+   trade already ships him. Which is *derive the crowd, simulate the
+   cast*, arriving from narrative instead of from content-packs.
+
+## ⭐⭐⭐ What the lens produced: the specificity axis
+
+The slate says slots carry *"constraints."* What it does not carry is
+**how tight the binding is** — and that single missing field is three
+things at once.
+
+| the author means | the slot declares | understudy | cost |
+|---|---|---|---|
+| *must be Morgan Vigosen* | an **identity** | ⛔ authored, or the beat breaks | a carve |
+| *must be a smith* | a **predicate** — holds the seat, composes the mixin | ⭐ free: re-bind | crowd |
+| *don't care* | the loosest predicate | free; may degrade to an `Extra` | crowd |
+
+> ⭐⭐ **specificity = cost = fragility.** Tighter binding buys a
+> particular experience, costs a carve, and needs an understudy. The
+> author is choosing all three whether or not they know it, and nothing
+> tells them.
+
+⭐ **"Don't care" is a declaration, not an absence** — which is what
+lets the save gate distinguish an author who chose loosely from one who
+forgot.
 
 ## Tensions & risks
 
-⚠⚠ **A vacancy nobody can fill is worse than no vacancy.** If a seat
-demands competence nobody can reach or capital nobody can raise, the
-help-wanted sign is *a sign that lies* — and the refusal doctrine says
-a bar that nothing lifts is a governance failure
-([#25](./25-judgment.md)). The casting call has to be honest about
-reachability, not just about existence.
+⚠⚠ **The n+1 problem, and where it lives.** `Cast` is a singleton — *a
+second live clone throws*; `Extra` is not — *two sentries are the
+point*. So **a slot bound to an `Extra` can never have this problem, and
+a slot bound to a `Cast` always can** — and `Cast` is precisely who
+quests want. The understudy is only needed for identity-bound slots,
+which is a far smaller set than "every Cast in every quest".
 
-⚠⚠ **The NPC's competence is an unset dial, and it decides whether any
-of this is real.** A seat-holding NPC has to be good enough that the
-world works when nobody is playing, and **not so good that displacing
-them is theoretical.** A blacksmith who never sleeps, never errs and
-never runs short has a vacancy in name only. Nothing currently states
-where that dial sits, and it is the difference between a labor market
-and a diorama.
+⚠ **His fifth question inverts, and that is the deep one.** *Do I need
+to change the characters to fit the roles?* — **you cannot change
+Dave.** Dave has ledgers, regard, a history, and can die. The constraint
+runs backwards: **the slot must accept whoever is actually there.**
 
-⚠ **Displacement has no stated answer, and the legibility claim depends
-on it.** If a player takes the job, where does the NPC go? *Somebody
-took that job* is only legible if the person who lost it continues to
-exist somewhere — otherwise the town notices a substitution, not a
-story. This is the succession question the household material raises,
-arriving from a different direction.
+> ⭐ **A cast list is a set of claims about the world, and the world can
+> falsify them.** Schell never meets this, because his world holds
+> still.
 
-⚠ **Derived functions can be derived wrong.** His list was authored, so
-it was at least deliberate. Ours falls out of settlement needs and
-business data, which means a mis-specified archetype produces phantom
-vacancies or silently produces none — and neither announces itself.
+⚠ **The collision.** Dave as «informant» in one quest and «captive» in
+another: a person with a life, or a scheduling conflict? Same shape as
+one NPC holding two economic seats, which suggests one rule covers both
+— and neither has it.
+
+⚠ **Predicate-bound slots need somebody to bind to.** In a thin town
+there may be nobody satisfying *anyone running the smith seat*. The
+[lineage backstop](../slates/builds/lineage-slate.md) is where those
+bindings would resolve, which makes an apparently unrelated char-gen
+decision load-bearing for narrative.
 
 ## Implications
 
-1. ⭐⭐ **Make "is this fold justified?" a review question** wherever one
-   NPC holds multiple seats. The authoring economics push one way and
-   the participation surface the other, and only one of those pressures
-   is currently felt during a build.
-2. ⭐⭐ **Set the NPC competence dial deliberately** — adequate, not
-   optimal — and write down which. Until it is set, lens 3b's claim is
-   unfalsifiable.
-3. ⭐ **Answer displacement**, or stop claiming replacement is legible.
-4. ⭐ **Treat the help-wanted surface as the participation UI**, not as
-   shop dressing. It is the casting call, it is derived, and it is the
-   only place the economy's unfilled roles are visible to a person
-   deciding what to be.
-5. **Audit for phantom and missing vacancies** — a derived function
-   list can fail silently in both directions, and neither failure has a
-   test today.
+1. ⭐⭐⭐ **Add the specificity axis to the slot definition** — identity ·
+   predicate · don't-care. It subsumes the understudy question rather
+   than adding a second concept beside it.
+2. ⭐⭐ **Have the save gate flag an identity-bound slot with no
+   understudy.** It already type-checks the cast; this is one more
+   predicate on a validation that exists.
+3. ⭐ **Decide the collision rule** for one character cast into several
+   roles, narrative and economic together.
+4. ⭐ **Note that predicate-bound casting got much cheaper after the
+   slate was written.** In June it was a promise; the trades now ship a
+   crowd that actually satisfies predicates. That probably shifts the
+   slate's own build lean toward the cheap tier.
+5. **Do not fold to save authoring cost.** The saving is imaginary here,
+   and the fold costs a role somebody could have been.
+
+## ⚠ Appendix — the other sense of "role"
+
+The first draft of this entry read Schell's functions as **world-jobs**
+and produced one rule worth keeping, which belongs to lens 3b and 6
+rather than here:
+
+> **Every NPC doing two jobs is a vacancy we deleted.** When one NPC
+> holds more than one seat: is that because the economy justifies one
+> person doing both, or because it was cheaper to author? A village
+> blacksmith who also shoes horses is the first; a participation surface
+> quietly shrinking to save work is the second.
+
+Two tensions from that reading also survive, and neither is a casting
+question: **an NPC seat-holder's competence is an unset dial** — good
+enough that the world works, not so good that displacing them is
+theoretical — and **displacement has no stated answer**, which the
+*somebody took that job* claim depends on.
 
 [^aogd-cf]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
     3rd ed. (CRC Press, 2020) — **Lens #86, the Lens of Character
