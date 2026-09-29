@@ -1013,52 +1013,60 @@ untitled one still fails closed. `access.md`'s gate table says so.
 `packages/wire/tests/base-class-narrowing.dirty.wire.test.ts`, run
 against a world booted on a freshly reset `saxonberg_build3`.
 
-**Final run: 13 of 14 green** (round 13, `WIRE_FRAME_TIMEOUT=45000`,
-freshly reset `saxonberg_build3`, world booted on 2014). Step 0 ✅✅,
-all of part A ✅✅✅, all of part C ✅✅✅✅, all of part D ✅✅.
+**Final run: 14 of 14 green** (`WIRE_FRAME_TIMEOUT=45000`, freshly reset
+`saxonberg_build3`, world booted on 2014).
 
-### ⛔⛔ THE ONE RED CHECKPOINT — read this first
+### ⛔⛔ The hang was a PROMPT, not a defect — and the fast read proved nothing
 
-> **`feel <a carried Thermal item>` does not answer once game-time has
-> passed.** Reproducible, every run, five rounds.
+`feel <a carried Thermal item>` appeared to hang for five rounds. It was
+a disambiguation prompt: the general store's counter stocks `rations` at
+`par: 5`, so the binder found six and asked which one. **A prompt lands
+on its own frame and `cmd()` only ever resolves on a dispatch-response**,
+so the command waited out its whole timeout and reported "no
+dispatch-response" — indistinguishable from a wedged server.
 
-What is established:
+⚠⚠ **And the 887 ms first read, which I cited as evidence the path was
+fine, measured nothing**: `reconcileThermal` returns early on
+`elapsed <= 0`, so it never ran the integration at all. A unit probe of
+the same shape — a real `Provision` carried by a real `Creature` in an
+enveloped room, clock advanced — reconciles in **2 ms** with the correct
+ambient. Nothing in W4 is slow.
 
-- The **first** `feel rations` — carried, on the street, seconds after
-  cloning — answers in **887 ms**.
-- After `goto` and 900 game-seconds of idling, the **same command on the
-  same item** never answers. 45 s, 60 s and 90 s frame timeouts all
-  expire.
-- ⭐ **The session is alive and the room answers.** A `feel here` probe
-  inserted immediately before it returns normally. So it is not the
-  socket, not the harness's order correlation (draining after the idle
-  changes nothing), and not the session.
-- It is **not the room**: the same hang in the cookhouse and on the
-  general store's shop floor.
-- It is **not a lit fire**: the same hang with the hearth cold.
-- Part C's founder survives two idles of the same length and answers
-  `feel here` both times.
+Fixed in the harness: an unanswered prompt now names itself and its
+candidates and says how to proceed. It caught a second, different
+ambiguity on the very next run (the cookhouse icebox already held a
+ration pack) in one round instead of five.
 
-So the trigger is: *a carried `Thermal` item + elapsed game-time*, and
-the read that hangs is the ITEM read, not the scope read.
+### ⛔ What the drive CANNOT prove, after four attempts
 
-⚠⚠ **I did not establish whether it predates this build.** It is
-squarely in the area W4 touched — `feel <item>` reaches the item's
-`reconcileThermal` → `refreshAmbientFromEnvelope` → `airScopeOf`, and
-`feel here` reads the room and never calls it. But the walk is bounded
-(a carried item resolves in TWO hops, carrier → room, and the depth cap
-is 32), the identical walk runs in the 887 ms read, and the variable
-that changed between the fast read and the hang is elapsed time, not
-depth. The obvious next move is one run of this file against `master`
-with the same fixture; that is a ten-minute answer and it is the first
-thing to do.
+The claim *a carried thing reads the nearest air* is **not observable
+over the socket**, and the file says so at the checkpoint:
 
-**The checkpoint is left RED on purpose.** The mechanism it was written
-to prove is proved by `Thermal.bagged.test.ts` — which fails with the
-repair reverted, covers the worn two-hop case directly, and pins the
-depth-2 counterexample. Turning this one green by deleting it would hide
-a reproducible, player-facing defect: **a player who picks up food,
-walks around for a few minutes and touches it gets nothing back.**
+1. **band before vs after** — the street and the cookhouse both read
+   `comfortable`; no boundary crossed.
+2. **chill it in the icebox first** — a real gradient, and a second
+   ration pack, so `me:i:rations` matched two.
+3. **converge on the room** — the rooms did differ (cookhouse `cold`,
+   street `comfortable`) and the pack held `comfortable` for 1.5
+   game-hours. ⚠ Not the defect: `feel` reports the item's OWN
+   temperature, which relaxes over many time constants, and `cold` is
+   below 273 K — the assertion demanded ~20 K of equilibration from
+   0.8 kg of biscuit.
+4. **read a number instead of a band** — there is none.
+   `platform/idea/reading/temperature` is `scope: [here]`: the channel
+   measures the ROOM. No verb reports a carried item's temperature.
+
+Band granularity needs equilibration, equilibration needs game-hours,
+and the only sub-band read is a room read. ⭐ **The claim is proved in
+`Thermal.bagged.test.ts`** — three of four cases fail with the repair
+reverted, including the worn bag, plus a depth-2 case showing "one step
+outward" leaves a worn bag frozen. It asserts `lastAmbientK` directly,
+which is the quantity that changed and the one no verb exposes.
+
+The drive keeps the smoke check: the pack is reachable, answers in both
+places, and the world produces a real gradient between them — which is
+what makes the unit test's fixture a fair model rather than a convenient
+one.
 
 ### ⭐⭐ What the drive found
 

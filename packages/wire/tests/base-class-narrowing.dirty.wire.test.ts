@@ -131,7 +131,18 @@ async function inverse(s: Session, mixin: string): Promise<string> {
   return page;
 }
 
-/** What `feel` says about a thing, in the words a player reads. */
+/**
+ * What `feel` says about a thing, in the words a player reads.
+ *
+ * ⚠⚠ **Bind carried things with `me:i:` and never by bare keyword.**
+ * `feel rations` answered in 887 ms on a street and never answered in
+ * the general store, which stocks `rations` at `par: 5` — so the binder
+ * found six, asked which, and the command sat on an unanswered PROMPT.
+ * A prompt lands on its own frame, so `cmd()` waits out its whole
+ * timeout and reports "no dispatch-response", which reads exactly like
+ * a wedged server. Five rounds of this drive went looking for a thermal
+ * defect that was never there. The harness names it now.
+ */
 async function feel(s: Session, what: string): Promise<string> {
   return squash(plain(await (await s.cmd(`feel ${what}`)).said()));
 }
@@ -286,68 +297,72 @@ suite('B — a carried perishable tracks the world', () => {
     const inv = squash(plain(await (await walker.cmd('inventory')).said()));
     expect(inv, 'the walker is carrying the ration pack').toMatch(/ration/i);
 
-    coldBand = bandOf(await feel(walker, 'rations'));
+    const streetBand = bandOf(await feel(walker, 'me:i:rations'));
     expect(
-      coldBand,
-      '`feel rations` must name a temperature band before we can watch it move',
+      streetBand,
+      '`feel` must name a temperature band before we can watch one move',
     ).not.toBe('none');
   }, 240_000);
 
-  it('⭐⭐ carried indoors, the band RISES', async () => {
-    // ⚠⚠ **Depends on the setup above, out loud.** This case passed
-    // twice while the setup was failing: `coldBand` stayed `'none'`,
-    // whose rank is -1, and every real band beats -1. A comparison
-    // against a value that was never read is not a comparison.
-    expect(
-      coldBand,
-      'the cold reading never happened — this comparison would be vacuous',
-    ).not.toBe('none');
+  it('⚠ the pack answers in both places — and see why that is ALL this proves', async () => {
+    /*
+     * ⛔⛔ **This checkpoint is a smoke check, and saying so is the point.**
+     *
+     * The claim the build actually makes — a carried thing reads the
+     * nearest air instead of the ambient it was stamped with — **cannot
+     * be observed over this socket**, and four attempts is enough to
+     * call it:
+     *
+     *  1. *band before vs after* — Mayfield Row at midnight and the
+     *     cookhouse both read `comfortable`. No boundary crossed.
+     *  2. *chill it in the icebox first* — real gradient, but the icebox
+     *     already holds a ration pack, so `me:i:rations` matched two and
+     *     the command sat on a disambiguation prompt.
+     *  3. *converge on the room* — the rooms did differ (cookhouse
+     *     `cold`, street `comfortable`) and the pack held `comfortable`
+     *     for 1.5 game-hours. ⚠ That is not the defect: `feel` reports
+     *     the pack's OWN temperature, which relaxes toward ambient over
+     *     many time constants, and `cold` is below 273 K — the assertion
+     *     was demanding ~20 K of equilibration from 0.8 kg of biscuit.
+     *  4. *read a number instead of a band* — there is none to read.
+     *     `platform/idea/reading/temperature` is `scope: [here]`: the
+     *     channel measures the ROOM. No verb reports a carried item's
+     *     temperature as a figure.
+     *
+     * So: band granularity needs full equilibration, equilibration needs
+     * game-hours, and the only sub-band read is a room read. The socket
+     * cannot see it.
+     *
+     * ⭐ **Where the claim IS proved:** `Thermal.bagged.test.ts`. Three
+     * of its four cases FAIL with the repair reverted — including the
+     * worn bag, whose container is the wearer — and one is pinned at
+     * depth 2 to show that "one step outward" leaves a worn bag frozen.
+     * That file asserts `lastAmbientK` directly, which is the quantity
+     * that changed and the one no verb exposes.
+     *
+     * What this leaves behind is worth keeping anyway: the pack is
+     * reachable, answers `feel` in both places, and the world produces a
+     * real gradient between them — which is what makes the unit test's
+     * fixture a fair model rather than a convenient one.
+     */
+    const streetPack = bandOf(await feel(walker, 'me:i:rations'));
+    const streetRoom = bandOf(await feel(walker, 'here'));
 
-    // ⚠⚠ **No hearth is lit, and that is a FINDING, not a simplification.**
-    // An earlier draft lit the cookhouse hearth and idled; `feel rations`
-    // then never answered — no dispatch response in 90 s, twice, on a
-    // session that had been answering in under a second. `feel here`
-    // in the same run is fine and `feel rations` on the street is fine,
-    // so it is `feel <item>` in a room with a lit fire. Recorded in the
-    // drive record; not diagnosed, and not obviously this build's.
-    //
-    // ⚠⚠ And it is the COOKHOUSE, not the fire: the same `feel rations`
-    // hangs there with the hearth cold. The shop floor answers in a
-    // second. The cookhouse holds the placement build's icebox with a
-    // block of ice in it, which is the obvious suspect and is not this
-    // build's doing — `airScopeOf` resolves a carried item in ONE hop
-    // (carrier → room), and the street reads are sub-second.
-    //
-    // ⭐ The checkpoint does not need either. An enclosed shop at
-    // midnight is warmer than a street at midnight all by itself, which
-    // is the envelope doing exactly what it is for — and it is the same
-    // walk either way: the pack's scope is the CARRIER, and the carrier
-    // has no air to give.
-    expectOk(await walker.cmd(`goto ${STORE}`));
+    expectOk(await walker.cmd(`goto ${COOKHOUSE}`));
     await walker.drainProse();
     await idle(walker, 900);
-    // ⚠ Drain AFTER the idle too. The idle sends fifty `look`s and the
-    // harness correlates a session's replies BY ORDER, one in flight —
-    // so an unread frame left over from the loop puts every later
-    // command one slot behind, and the next one waits for a reply that
-    // was already handed to its predecessor. It reads exactly like the
-    // game hanging.
-    await walker.drainProse();
 
-    // ⚠ Diagnosis probe: is the SESSION alive, or is it `feel <item>`?
-    const room = await feel(walker, 'here');
-    expect(room, 'the session is alive and the room answers').not.toBe('');
+    const cookPack = bandOf(await feel(walker, 'me:i:rations'));
+    const cookRoom = bandOf(await feel(walker, 'here'));
 
-    const warmBand = bandOf(await feel(walker, 'rations'));
-    expect(warmBand, 'the pack still answers').not.toBe('none');
+    expect(streetPack, 'the pack answers on the street').not.toBe('none');
+    expect(cookPack, 'and still answers indoors').not.toBe('none');
     expect(
-      rank(warmBand),
-      `a carried ration pack taken from a cold street to a lit hearth ` +
-        `must warm: was '${coldBand}', now '${warmBand}'. If these are ` +
-        'equal, the ambient walk stopped at the CARRIER — which is the ' +
-        'defect this build repaired.',
-    ).toBeGreaterThan(rank(coldBand));
-  }, 420_000);
+      cookRoom,
+      `the two rooms must differ or even this proves nothing — street ` +
+        `'${streetRoom}', cookhouse '${cookRoom}'`,
+    ).not.toBe(streetRoom);
+  }, 300_000);
 });
 
 /* ───────── C — a coach is a place with air ───────── */
