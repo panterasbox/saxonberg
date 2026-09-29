@@ -70,12 +70,18 @@ meaning it.
 - **A thing carried in a bag stops being frozen in time.** Its warmth
   tracks the world again, which a player can feel with one command.
 - **A person, a corpse and a shade stop advertising that they can be
-  branded like livestock;** a kept animal still can.
+  branded like livestock;** a kept animal still can. ⚠ It lands on
+  **two** hosts — the `KeptAnimal` rung and ranching's `Livestock`,
+  which extends `Creature` directly and is the reason the mixin was
+  composed there at all. A consequence worth stating: a **fish**
+  becomes brandable, via the rung.
 - **Nothing in the game refers to seven classes no content, no verb
   and no player has ever reached** — ⚠ and the published docs that
   call five of them *shipped* stop saying so, because a deleted class
   that two subsystem docs still present as the answer to a design
   question is worse than the class.
+- ⭐ **A closed enterable vessel with something burning in it is
+  warmer than the street**, and opening its door collapses that.
 
 ## Non-goals
 
@@ -96,9 +102,11 @@ meaning it.
   unauthored air** (#8) — pure content gaps; rows somebody authors, no
   code. → the same slate, and the mine one has teeth because the metal
   chain models blackdamp.
-- **A general "step outward until a scope answers" ambient walk.** The
-  repair here is the one step the placement build's seam already
-  supports. Anything deeper → the same slate.
+- **A general ambient walk with its own rules.** The repair reuses the
+  **depth cap and the outward step the biome chain already runs** — it
+  is that walk applied to the envelope, not a second mechanism. → a
+  richer model (nested envelopes, a scope that partially answers) is
+  the slate's.
 - **Interior air for anything that is not enterable.** A chest is not
   a place. → nowhere, deliberately.
 - **`Chamber`, and the `Atmospheric` widening it needs** — a
@@ -124,12 +132,17 @@ shipped rung.
 
 ## Collisions
 
-- ⚠ **`Coach`, `Barge` and `HaulageRig`** are the three shipped
-  enterable vessels, and they are the only things that GAIN behaviour
-  here. The barge is the odd one — an open boat is not a sealed cabin,
-  and if its interior reads as a room with its own air that is wrong
-  in the other direction. **The build must look at all three and let a
-  row say it has no interior worth modelling.**
+- ⚠ **`Coach` is the ONLY class on `ExitableVessel`** — corrected in
+  planning; `Barge` and `HaulageRig` are plain `Vessel`s and nobody
+  rides inside them (a rider takes a slot from the room). So exactly
+  one shipped class gains behaviour here, and the *decline* path is
+  exercised by a second coach row rather than by the barge.
+- ⚠⚠ **No locality places a coach.** `passenger-conveyance.yaml` says
+  so outright — there is a coach row and no coach line. The drive
+  therefore clones one, which is the same shape as the placement
+  build's *neither kitchen stands*. → whether a coach should actually
+  stand somewhere is [transport/logistics](../slates/builds/logistics-slate.md)'s,
+  not this build's.
 - **The logistics/transport pack** owns those rows; the haulage depot
   counter and warehouse are `Vessel` descendants that LOSE the claim,
   which is the intended outcome.
@@ -176,18 +189,41 @@ game.
 
 ### A row may decline an interior
 
-An open barge is not a cabin. A row states its interior size, and a
-row that states none is not a place — it keeps the honest silence a
-backpack now has. **The default is no interior**, because the failure
-this build exists to fix is claiming one you do not have.
+A row states its interior size; a row that states none gets no
+envelope of its own and reads the world outside. **The default is no
+interior**, because the failure this build exists to fix is claiming
+one you do not have.
 
-### The thermal repair is one step outward, not a walk
+⚠ **Corrected 2026-09-29: the barge is not the example.** An earlier
+draft reasoned from *an open barge is not a cabin* — but `Barge` and
+`HaulageRig` are plain `Vessel`s and never were enterable. **`Coach`
+is the only class on `ExitableVessel`.** Nobody rides *inside* a
+barge; a rider occupies a slot from the room. The decision stands on
+its own merit — a row that says nothing claims nothing — and the
+drive exercises it with a second coach row that leaves the field
+unset.
 
-A carried thing reads the air of *what it is in* — and when that is a
-bag rather than a room, the bag has nothing to say, so the thing reads
-the room the bag is in. One step, which the placement build's
-enclosing-scope seam already supports. Anything deeper is a separate
-question about nested containers.
+⭐ And what "declines" means precisely: the class still composes the
+mixin, so the four sense reads keep answering — with the **outside's**
+air, honestly. What a declining row lacks is an envelope of its own,
+not the ability to be asked.
+
+### The thermal repair walks outward to the nearest scope that HAS air
+
+**Corrected 2026-09-29, from planning.** An earlier draft said *one
+step outward*, on the assumption that a bag sits in a room.
+
+⚠⚠ **It usually does not.** A *worn* bag's container is the **wearer**
+— a `Creature` is a `Container` — so bag → carrier → room is two hops,
+and the middle one has no air to give. One step leaves every carried
+thing exactly as frozen as before, which would have shipped a repair
+that repairs nothing for the case the drive was written around.
+
+So: a thing reads the air of **the nearest enclosing scope that has
+any**, walking outward under the same depth cap the biome chain
+already uses. ⭐ That is not a new mechanism — it is the chain's own
+walk applied to the envelope, which is why it is in scope and a
+richer model is not.
 
 ### Dead means unreachable by content, verbs and players — and the DOCS come with it
 
@@ -255,29 +291,39 @@ falsified register row would have broken.
 **B — a thing in a bag is no longer frozen in time.**
 
 4. `feel` a perishable you are holding. Note the band it reports.
-5. Put it in the bag. `feel` it again — it still answers, and it
-   tracks the world rather than reporting a value stamped long ago.
+5. Put it in the bag — ⚠ a **worn** bag, which is the case that
+   matters: its container is you, not the room, so this is the two-hop
+   walk and not the one-step read an earlier draft assumed.
 6. Carry it somewhere markedly hotter or colder, wait a little, and
    `feel` it once more. ⭐ **The band has moved.** Today it would
-   not have.
+   not have, because the walk stops at the carrier and the carrier has
+   no air to give.
 
 **C — a coach is a place with air.**
 
-7. Stand in the street in cold weather and `feel`. Note the answer.
-8. Get into the coach and shut the door. `feel`. ⭐ It is not the
-   street.
+⚠ No locality places a coach, so the drive stands one up first. That
+is a founder act on a row that exists, not a wizard inventing content.
+
+7. Stand in the street and `feel`. Note the answer.
+8. Get into the coach, shut the door, and light the brazier inside it.
+   `feel`. ⭐ **It is warmer than the street** — and it is the
+   foot-warmer that does it, not the walls; see the acceptance note.
 9. Open the door and `feel` again — the inside gives way toward
    outside.
-10. Get into the barge (or whatever row declines an interior) and
-    `feel`. It reads the world outside, honestly, because an open
-    boat is not a cabin.
+10. Stand up a second coach that leaves its interior size **unset**,
+    get in, shut the door, light nothing. `feel`. ⭐ It reads the
+    world outside — it still answers, it simply claims no air of its
+    own.
+11. `trace atmosphere` inside both. The one with an interior reports a
+    volume; the one that declined does not.
 
 **D — nothing that worked stopped working.**
 
-11. Walk into a shop, a bar and the cookhouse. The tills, racks,
+12. Walk into a shop, a bar and the cookhouse. The tills, racks,
     counters and chests are all still there, still hold what they
     held, and `look`/`put`/`get` behave exactly as before.
-12. Ride the coach somewhere. Haulage still hauls.
+13. Ride the coach somewhere. Haulage still hauls, and the barge —
+    which was never enterable and is untouched — still carries.
 
 ## Acceptance criteria
 
@@ -286,9 +332,16 @@ Observable from outside the code.
 1. **A backpack's public capability list no longer claims weather**,
    and neither does a till, a jar, a rack, a footlocker, a handcart or
    a shop counter.
-2. ⭐ **A closed enterable vessel reports a different warmth from the
-   street it is standing in**, and opening it collapses that
-   difference.
+2. ⭐ **A closed enterable vessel with a lit brazier in it reports a
+   different warmth from the street**, and opening the door collapses
+   that difference.
+   ⚠ **Corrected 2026-09-29: the heat source is not decoration.** Five
+   cubic metres behind a centimetre of oak has a time constant of
+   about a minute — an *empty* shut coach genuinely IS at street
+   temperature, and asserting otherwise would be asserting a falsehood
+   about the model. What a bare closed coach changes honestly is its
+   cause sentence and its `trace atmosphere` volume line; what moves a
+   BAND is a carriage foot-warmer, which is also better content.
 3. **A row that states no interior keeps the honest answer** — it
    reads the world outside, and nothing claims it is a place.
 4. ⭐⭐ **A perishable carried in a bag changes temperature as the
