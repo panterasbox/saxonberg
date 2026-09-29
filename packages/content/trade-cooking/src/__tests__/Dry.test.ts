@@ -25,6 +25,10 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DryController, { type DryModel } from '../idea/cmd/crafting/DryController';
 import DryingRack from '../thing/DryingRack';
+import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
+import Placement from '@saxonberg/server/mud/platform/idea/Placement';
+import PlacementCatalogue from '@saxonberg/server/mud/platform/idea/PlacementCatalogue';
+import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Material from '@saxonberg/server/mud/lib/material/Material';
@@ -89,8 +93,48 @@ function ctx(giver: Stuff, location: Stuff): CommandContext {
   });
 }
 
-function bound(stuff: Stuff | null, raw = 'x'): DryModel['target'] {
-  return { raw, stuff } as unknown as DryModel['target'];
+function bound(
+  stuff: Stuff | null,
+  raw = 'x',
+  prep?: string,
+): DryModel['target'] {
+  return { raw, stuff, prep } as unknown as DryModel['target'];
+}
+
+let hookSeq = 0;
+
+/**
+ * Stand the three shipped `Placement` members up. A member's SECONDARY
+ * words are its row's claim, so anything asserting one needs the
+ * roster warm — cold, a member answers only to its own name.
+ */
+async function warmPlacements(): Promise<void> {
+  const rows = [
+    { name: 'on', prepositions: ['on', 'onto'] },
+    { name: 'in', prepositions: ['in', 'into'] },
+    { name: 'from', prepositions: ['from', 'on'] },
+  ];
+  vi.spyOn(Template, 'findByPathInfix').mockResolvedValue(
+    rows.map((r) => ({
+      path: `/platform/idea/Placement/${r.name}`,
+      class: '/platform/idea/Placement',
+    })) as unknown as Template[],
+  );
+  vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(
+    Placement as unknown as never,
+  );
+  vi.spyOn(StuffApi, 'singleton').mockImplementation(async (path: string) => {
+    const row = rows.find((r) => path.endsWith(`/${r.name}`))!;
+    const m = makeStuff(() => new Placement());
+    m.name = row.name;
+    m.prepositions = row.prepositions;
+    return m as never;
+  });
+  const catalogue = makeStuffAtPath(
+    () => new PlacementCatalogue(),
+    '/platform/idea/PlacementCatalogue',
+  );
+  await catalogue.warm();
 }
 
 describe('`dry` — hang it where the air can reach it', () => {
@@ -218,5 +262,120 @@ describe('`dry` — hang it where the air can reach it', () => {
     ];
     const rank = (s: string) => order.findIndex((o) => s.includes(o));
     expect(rank(fast)).toBeLessThan(rank(slow));
+  });
+
+  /**
+   * ⭐⭐ **The meat hook** — a way of sitting added by an author, with a
+   * row and a word, and used by a player who was taught nothing
+   * (placement build, W4).
+   *
+   * The hook is a bare `Fitting` offering one member. Nothing in this
+   * controller, in the drying model or in the kernel knows what a hook
+   * IS: the member is the row's claim, the exposure is the row's
+   * number, and the sentence is the member's word.
+   */
+  describe('the meat hook — a member added by a row', () => {
+    /** A `Fitting` that offers `from` and nothing else, as the row does. */
+    function hook(): Fitting {
+      return makeStuffAtPath(() => {
+        const h = new Fitting();
+        h.setPlacements(['from']);
+        h.setAirExposure(1);
+        h.setMass(Quantity.of(2, 'kg'));
+        return h;
+      }, `/test/dry-hook-${hookSeq++}`);
+    }
+
+    it('⭐ `dry X from hook` hangs it FROM, and the placement says so', async () => {
+      const { room, cook, cut } = scene(40);
+      const h = hook();
+      ContainmentApi.move(h as never, room as never);
+      const c = ctx(cook, room);
+      await makeStuff(() => new DryController()).execute(
+        { target: bound(cut, 'cut'), rack: bound(h, 'hook', 'from') } as DryModel,
+        c,
+      );
+      expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(
+        'from',
+      );
+      expect(
+        MixinApi.isContainable(cut) && (cut.getPlacement()?.host ?? null),
+      ).toBe(h);
+      // …and into the ROOM, exactly as the rack does.
+      expect(MixinApi.isContainable(cut) && cut.getContainer()).toBe(room);
+    });
+
+    it("⭐ `dry X on hook` works too — `from`'s row lists `on` as a secondary", async () => {
+      // ⚠ This one needs the roster WARM, and that is the honest
+      // answer rather than a gap: `on` reaching a `from`-only host is
+      // the ROW's claim, not the engine's. Cold, the member answers
+      // only to its own name and the verb refuses — asserted below.
+      await warmPlacements();
+      const { room, cook, cut } = scene(40);
+      const h = hook();
+      ContainmentApi.move(h as never, room as never);
+      await makeStuff(() => new DryController()).execute(
+        { target: bound(cut, 'cut'), rack: bound(h, 'hook', 'on') } as DryModel,
+        ctx(cook, room),
+      );
+      // The player typed `on`; the world hung it FROM. That is how the
+      // word gets taught, with no tutorial and no code here knowing.
+      expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(
+        'from',
+      );
+    });
+
+    it("⚠ COLD, the same command is refused — the secondary word is the ROW's", async () => {
+      const { room, cook, cut } = scene(40);
+      const h = hook();
+      ContainmentApi.move(h as never, room as never);
+      const c = ctx(cook, room);
+      await makeStuff(() => new DryController()).execute(
+        { target: bound(cut, 'cut'), rack: bound(h, 'hook', 'on') } as DryModel,
+        c,
+      );
+      expect(
+        c.getNotes().map((n) => JSON.stringify(n)).join(' '),
+      ).toContain('wrong-preposition');
+    });
+
+    it('⭐ a hung thing is FULLY exposed — the exposure is the row\'s number', async () => {
+      class Probe extends DryController {
+        public exposure(target: Stuff): number {
+          return this.exposureOf(target);
+        }
+      }
+      const probe = makeStuff(() => new Probe()) as unknown as Probe;
+      const { room, cook, cut } = scene(40);
+      const h = hook();
+      ContainmentApi.move(h as never, room as never);
+      ContainmentApi.place(cut as never, 'from', h as never);
+      expect(probe.exposure(cut)).toBe(1);
+    });
+
+    it('the rack is unchanged — `on` still resolves, and still reads `on`', async () => {
+      const { room, cook, rack, cut } = scene(40);
+      await makeStuff(() => new DryController()).execute(
+        { target: bound(cut, 'cut'), rack: bound(rack, 'rack', 'on') } as DryModel,
+        ctx(cook, room),
+      );
+      expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe('on');
+    });
+
+    it('a word the host does not take is refused, naming what it does', async () => {
+      const { room, cook, cut } = scene(40);
+      const h = hook();
+      ContainmentApi.move(h as never, room as never);
+      const c = ctx(cook, room);
+      await makeStuff(() => new DryController()).execute(
+        { target: bound(cut, 'cut'), rack: bound(h, 'hook', 'into') } as DryModel,
+        c,
+      );
+      const notes = c.getNotes().map((n) => JSON.stringify(n)).join(' ');
+      expect(notes).toContain('wrong-preposition');
+      expect(
+        MixinApi.isContainable(cut) && (cut.getPlacement()?.host ?? null),
+      ).toBe(null);
+    });
   });
 });

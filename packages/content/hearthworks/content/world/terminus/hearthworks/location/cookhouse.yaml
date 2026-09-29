@@ -117,6 +117,12 @@ data:
     - /trade/cooking/thing/butcher-block
     - /trade/cooking/thing/salting-trough
     - /trade/cooking/thing/drying-rack
+    # ⭐ The hook is the one drying support a ham hangs FROM rather than
+    # sits ON, and it is a ROW — one `Fitting` naming one placement
+    # member. It affords nothing: the rack beside it affords `dry`, and
+    # a hung ham dries with no verb at all, because the drying model
+    # reads the hook's own airiness off the placement.
+    - /trade/cooking/thing/meat-hook
     - /trade/cooking/thing/smoke-chimney
     - /trade/cooking/thing/boning-knife
     # ⚠ And the SALT, because a kitchen has salt. The live drive found

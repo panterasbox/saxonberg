@@ -98,6 +98,29 @@ export default class DryController extends CommandController<DryModel> {
       return;
     }
 
+    // ⭐ Which way of sitting the rack offers, and what the player
+    // typed. A rack offers `on`; a meat hook offers `from`. The member
+    // is the rack's claim and the word is the player's — and `put ham
+    // on hook` works because `from`'s row lists `on` as a secondary,
+    // which is how the world teaches the word without a tutorial.
+    const member =
+      rack === null ? null : rack.resolvePlacement(model.rack?.prep);
+    if (rack !== null && member === null) {
+      const takes = rack.getPlacements().join(' or ');
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You can't hang things ${model.rack?.prep ?? ''} ${Mml.thing(rack)} — it takes ${takes}.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'wrong-preposition',
+        detail: `rack takes ${takes}`,
+      });
+      return;
+    }
+
     if (rack !== null) {
       if (!MixinApi.isContainable(target)) {
         MessageApi.scene(giver)
@@ -107,7 +130,7 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'not-movable' });
         return;
       }
-      const veto = rack.canPlace(target, 'on');
+      const veto = rack.canPlace(target, member!);
       if (!veto.ok) {
         MessageApi.scene(giver)
           .topic(TOPIC)
@@ -118,7 +141,7 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'rack-refuses' });
         return;
       }
-      ContainmentApi.place(target, 'on', rack);
+      ContainmentApi.place(target, member!, rack);
     }
 
     const scope = this.scopeOf(target);
@@ -135,11 +158,17 @@ export default class DryController extends CommandController<DryModel> {
     // ⚠ ONE `toSelf` frame — a Scene refuses a second of the same kind, so
     // the prospect rides in the same sentence pair rather than beside it.
     const tail = prospect === null ? '' : ` ${prospect}`;
+    // ⭐ The sentence uses the MEMBER's own word: *on the rack*, *from
+    // the hook*. A player never has to be told which; they read it.
+    const word =
+      member === null
+        ? ''
+        : (ContainmentApi.placement(member)?.getPrimaryWord() ?? member);
     const self = rack
-      ? Mml.compose`You hang ${Mml.thing(target)} up to dry on ${Mml.thing(rack)}.${tail}`
+      ? Mml.compose`You hang ${Mml.thing(target)} up to dry ${word} ${Mml.thing(rack)}.${tail}`
       : Mml.compose`You hang ${Mml.thing(target)} up to dry.${tail}`;
     const peers = rack
-      ? Mml.compose`${Mml.actor(giver)} hangs ${Mml.thing(target)} up to dry on ${Mml.thing(rack)}.`
+      ? Mml.compose`${Mml.actor(giver)} hangs ${Mml.thing(target)} up to dry ${word} ${Mml.thing(rack)}.`
       : Mml.compose`${Mml.actor(giver)} hangs ${Mml.thing(target)} up to dry.`;
 
     MessageApi.scene(giver)

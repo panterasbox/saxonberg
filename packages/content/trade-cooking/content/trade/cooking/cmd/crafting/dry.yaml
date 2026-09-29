@@ -43,7 +43,13 @@ args:
   - name: rack
     type: object
     required: false
-    prepositions: [on, onto]
+    # ⭐ One word per placement member this argument accepts. `from`
+    # is here because hanging is a placement now — see
+    # `/platform/idea/Placement/from` — and a verb whose argument takes
+    # a support but not the member's word refuses every such target AT
+    # THE BINDER, closed and silent. `lint:placement-words --list` is
+    # what tells an author which arguments those are.
+    prepositions: [on, onto, from]
     scope: "reachable"
     # The support is optional: hanging a thing in the open air works, it is
     # simply slower. When one IS named it carries the exposure fraction.
