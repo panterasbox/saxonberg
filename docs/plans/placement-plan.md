@@ -1500,6 +1500,89 @@ terminus · generic-objects all pass; `lint:family` 56/56; `pnpm lint`
   was reverted rather than updated — its `className` still reads
   `Surface` and always will.
 
+### W2 — done (`6e4c2e10e`)
+
+The vocabulary ships and `put` resolves N offers. 330 files / 3654
+tests across the touched server trees; `lint:family` 57/57 (the new
+gate is in the derived roster).
+
+**Decided in the wave.**
+
+- ⭐⭐ **A cold catalogue degrades to the SHIPPED BEHAVIOUR, never to
+  silence.** The first cut skipped a member whose row had not warmed —
+  and made every `Placing` host unaddressable in any process where the
+  roster was cold, which five tests caught at once. A member with no
+  live row now answers to its own name everywhere
+  (`Placing.resolvePlacement`, `PutController.offersFor`,
+  `Containable.getEnclosingScope`, the drill-in heading), so the worst
+  case is *the model before the vocabulary*. The consequence is worth
+  stating: a member's SECONDARY words are its ROW's claim, so
+  `put ham on hook` needs the roster warm, and the cold refusal is
+  asserted beside the warm success rather than left to be discovered.
+- ⚠ **`lint:placement-words` gates less than the plan sketched, on
+  purpose.** D8 asked it to check that every preposition on a
+  placement-accepting arg is carried by a member. Written that way it
+  immediately flagged `butcher <carcass> at <block>` — where `at` says
+  *where you do it*, not *how it sits* — and there is no way to tell a
+  verb's own grammar from a stale placement word by inspection.
+  Guessing would make the gate refuse correct content, so the gate
+  holds the three things that are always wrong (a member with no
+  preposition · two members claiming one PRIMARY word · `put` not
+  accepting a member's primary word, since `put` is the universal
+  placement verb) and the `--list` roster carries the rest. The roster
+  is the part an author needs anyway.
+- **The `Thermal` ambient scope goes through one function.** Both the
+  pull side and the push side call `ambientScopeOf`, because the day
+  they disagree is the day a compartment keeps its cold in one path
+  and not the other.
+
+### W3 — done (`4c7e6ff51` the satisfier, `52d83a112` the box)
+
+**⚠⚠ D22 — a NEW FINDING, and the melt half of the wave was re-planned
+around it.** `reconcilePhase()` had exactly three callers in the whole
+tree: a lit `Furnace`'s heat pass, two spell endpoints, and tests. So
+**nothing in the world melted from being warm** — a block of ice on a
+warm floor sat at its melting point forever with the latent
+accumulator untouched. The phase engine was complete and had no
+ambient driver, and the plan's *"the melt falls out of the shipped
+reconcile"* was wrong. `reconcileThermal` now drives it immediately
+after the drift that makes a body warm, narrowed to `Meltable` hosts
+(the `Bulkable` freeze/boil rung has its own callers and would
+double-run). ⭐ This is a shipped-defect repair riding in the build
+that needed it, and it is the single most reviewable line here.
+
+**Other decisions.**
+
+- **The Coolbox interior is a READ, not a cached ambient.** First cut
+  stashed it in `lastAmbientK` from the ambient-refresh hook, and
+  `restamp` overwrote it from the chain on the next move. It is an
+  override of `getContentsTemperature()` now — which is the extension
+  point that method's *"a vessel whose Thermal IS its contents"*
+  default exists for. The box's walls staying near room temperature is
+  not a fudge; it is what a zinc-lined chest of ice is.
+- **The `surface` need now asks for a host that offers `on`**
+  specifically. Before the vocabulary there was one member and the
+  distinction could not be drawn; a compartment and a hook are both
+  `Placing` hosts and neither is a work surface.
+- `room-archetypes.test.ts` failing twice was that test **working** —
+  it exists to force a new fixture class to be declared deliberately,
+  and `Icebox` is the second one ever.
+
+### W4 — done (`334dfbcf4`)
+
+The claim cashed: a ham hangs from a hook, and the cost was one
+`Placement` row (W2), one `Fitting` row, one `props:` line, and one
+word on each of the two views `lint:placement-words --list` names. No
+class, no controller, no kernel change.
+
+- **Risk 8 (the hook's keyword) decided without driving.** The rack's
+  keywords already carry `hooks`; the hook row takes `hook` and
+  `meat-hook` only. The collision is visible in the two rows.
+- ⚠ `lint:census` caught `_materialPath: /stuff/idea/material/metal/iron`
+  on the new row — a path resolving to no content row (the real one is
+  `element/iron`). Exactly the silent content defect the derived family
+  exists for, found before the drive rather than by it.
+
 ## Drive record
 
 *(appended at build time — the wire run's output and count, the live
