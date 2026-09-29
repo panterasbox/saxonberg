@@ -139,29 +139,68 @@ else in a person's life — but it is still a measure of **regard**, not
 of understanding. A person can be widely esteemed and wrong about the
 world. It is the better *currency*; it is not the promised *value*.
 
-### ⭐⭐ So what would measure the promised thing?
+### ⚠⚠ But the question is asked at the wrong altitude
 
-This has not had a dedicated conversation, and the pieces are scattered.
-What exists measures **practice**: competence derives from evidence of
-doing, the transcript records what you did, traits record who you have
-been. ⚠ **Nothing anywhere observes whether a player *derived* an
-outcome or *looked it up***, which is lens 1's own test applied to the
-world and never to the person.
+*"What is valuable to the players **in my game**"* presumes there is
+one game and it is ours. **There is not.** The educational game is one
+title on a platform that ships an authoring stack and an open licence,
+and the deck's whole frame — one designer, one artifact, one set of
+values — is the thing [#37](./37-fairness.md) already found it cannot
+see past.
 
-⭐ The measurable form of understanding is **prediction**, and the
-transcript already holds what would show it:
+> ⭐⭐⭐ **Q1 has as many answers as there are games**, and the
+> platform's job is not to pick one. It is to make each of them
+> **expressible and measurable** by whoever is building.
 
-> **Practice is doing the same thing again. Understanding is getting a
-> *novel* case right the first time**, because the principle transferred.
-> Competence that rises faster on first attempts at unfamiliar
-> applications than on repetitions is measuring the thing lens 1 cares
-> about; competence that rises on volume is measuring attendance.
+Which re-homes the Goodhart finding above rather than dissolving it:
+**money-outweighing-understanding is the educational game's problem**,
+and the platform's version is a *capability* question —
 
-⚠ **With the obvious guardrail:** this is the exact point where a
-platform is most tempted to become a test. `measurement.md`'s layers
-still hold — **the engine may measure the prediction; it may not grade
-the person** — and the distinction is the difference between a mirror
-and an exam.
+> **Can an author make their game value what they want it to value?**
+> If not, that is a failure of [lens 2](../design-lenses.md), not of
+> lens 1.
+
+⭐ **And it settles the speedrun worry.** Someone will optimise for
+finishing fast; that is not the experience this title sells and would
+likely be hollow *in it*. But the toolkit is open, and **a game built
+on it and tuned for speedrunners is a legitimate output, not a
+leak.** The platform fails only if it can express one set of values.
+(The livestream-community audience is the same point with a different
+face — game enthusiasts value different things than students, and the
+substrate has to survive both.)
+
+### ⭐⭐ So how *would* the promised value be measured — without a test?
+
+⛔ **"Show your work" is already decided and the answer was no.** The
+consensus on making a player demonstrate reasoning is that **people
+hate it and it does not scale**, and nothing here reopens that.
+
+⭐⭐⭐ **The counter is not a metric, it is just good game design:**
+
+> **Make the experience compelling enough that people do the work when
+> they do not have to.** It need not involve doing maths. If deriving
+> how the world behaves is the *fun*, then nobody has to be graded on
+> having derived it.
+
+And that is **Schell's own instrument, turned back on the problem** —
+because the roulette test *is* the measure:
+
+> **If people do the work when nothing requires it, the work is the
+> value.** That is endogenous value in Costikyan's exact sense, and it
+> is checkable by playtest rather than by instrumentation.
+
+⭐ It also repairs the practice/understanding split from a different
+direction. *Competence rises on volume* only measures attendance **if
+the volume is joyless**. If the reason to do the thing again is that
+working it out is enjoyable, **time spent is time deriving**, and the
+measure we already have stops being a proxy for the wrong quantity.
+
+⚠ **The residue is real and stays open.** *Novelty versus repetition* —
+did the principle transfer to an unfamiliar case — remains the only
+mechanical signal anyone has proposed, and the transcript already holds
+what it would need. ⚠ It is also the exact point where a platform is
+most tempted to become an exam: `measurement.md`'s layers hold, so
+**the engine may measure; it may not grade.**
 
 ## The inversion: his top of the scale is our breach
 
@@ -218,19 +257,22 @@ already exists is nearly always better than inventing a parallel scale
 2. ⭐⭐ **Say that Q2 is not ours.** *Make things matter; let valuing be
    theirs* belongs in the rubric — it forecloses the badge-and-rarity
    reflex on principle rather than on taste.
-3. ⭐⭐⭐ **Have the dedicated conversation about measuring
-   understanding.** It is the value the game promises, it is currently
-   the least-instrumented thing in the design, and the pieces are
-   scattered across advancement, the transcript and lens 1. The
-   candidate is **novelty vs. repetition** — did the principle transfer
-   — and it is derivable from records we already keep.
-4. ⭐⭐ **Say out loud that money became the engagement measure by
+3. ⭐⭐⭐ **Ask Q1 per game, not once.** The platform's obligation is
+   that an author can make their title value what they choose — money,
+   understanding, speed, spectacle — and measure it. **A substrate that
+   only expresses one set of values has failed lens 2**, whatever it
+   thinks of the values.
+4. ⭐⭐ **Treat "is deriving fun?" as the measurement of understanding,
+   and playtest it.** The roulette test answers it: *do people do the
+   work when nothing requires it?* ⛔ Not *show your work*, which is
+   settled and rejected — people hate it and it does not scale.
+5. ⭐⭐ **Say out loud that money became the engagement measure by
    default.** No hitpoints, no combat ladder, so the economy inherited
    the job. That is worth knowing when deciding whether to keep it.
-5. ⭐ **Make every value-bearing element declare its kind** — pure-play,
+6. ⭐ **Make every value-bearing element declare its kind** — pure-play,
    effort-anchored, conserved — since each inherits a different
    integrity rule and getting them crossed is how anchors quietly break.
-6. **Settle the real-money stance before wealth exists.** Still open,
+7. **Settle the real-money stance before wealth exists.** Still open,
    and it gets harder to decide every month there is more to trade.
 
 [^aogd-ev]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
