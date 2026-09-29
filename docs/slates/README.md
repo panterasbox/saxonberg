@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**255 slates.** 61 greenfield · 88 continuations · 58 waves · 48 tails.
+**254 slates.** 60 greenfield · 89 continuations · 57 waves · 48 tails.
 
-## ⭐ Greenfield — nothing shipped yet (61)
+## ⭐ Greenfield — nothing shipped yet (60)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -56,7 +56,6 @@ respect.
 | [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens invariant · nearest-wins + self-amendment … |
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
 | [client-audio](./builds/client-audio-slate.md) | the client audio player (ambient emission → playback, as a second modality on the `cockpit.watch` push) · the source's home (Location field vs in-world device — Q1) + the autoplay gesture + mix · the Spotify embed tier · the loose-sync-or-frame-lock decision (Q6) … |
-| [cold-chain](./builds/cold-chain-slate.md) | cold PRODUCTION (a powered freezer on the electricity tier, or harvested winter ice / a seasonal ice-house) · cold STORAGE (a cold larder/cellar location, an insulated container, an iced cooler) · the cold-source COUPLE (mirror the furnace couple in `Thermal.ts`) · the coolant reserve + melt reconcile (mirror `FurnaceMixin`'s fuel) … |
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
@@ -106,7 +105,7 @@ respect.
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (88)
+## ⭐ Continuations — substrate shipped, a build's worth remains (89)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -127,6 +126,7 @@ are the named remainders.
 | [clinical-medicine](./builds/clinical-medicine-slate.md) | the blood-BANK economy → blood-slate; cold storage → cold-chain-slate; the full surgery build → surgery-specialty-slate; the diagnostic |
 | [cms](./builds/cms-slate.md) | `domain_history` op-log versioning · the draft/changeset overlay + atomic publish · the law==code review gate (the forums `mature` consumer) · the per-type content editors (room … |
 | [cms-connectors](./builds/cms-connectors-slate.md) | scoped personal access tokens (content-vs-source scope) · the MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over `source` + `document` · read-only WebDAV over `content` … |
+| [cold-chain](./builds/cold-chain-slate.md) | cold PRODUCTION (a powered freezer on the electricity tier; the seasonal ice-house and ⚠ **who SELLS ice** — the icebox consumes a good nobody makes, which is this slate's sharpest open) · CARRIED cold (an iced cooler a medic walks with; the shipped `Icebox` is `fixedInPlace`) · a cold ROOM as a place rather than a box · the `Chamber` compartment (a fridge's freezer half → fridge-design-pack) … |
 | [combat](./builds/combat-slate.md) | pursuit / the chase (⚠ contradicts the shipped single-step disengage — see ledger) · rout & rally retreat · the `guards` intervention brain (⚠ content riding substrate that does not exist — see intervention-slate.md) · the client `CombatCard` (+ the terms-handshake render) … |
 | [combat-experience](./builds/combat-experience-slate.md) | T1 doctrine (kept for the deferred aftermath work it still frames) · T5 composure/luck (`traits-stress`; `g(composure)` is inert) · T7's composition rules + T8 loadout-as-chemistry (no combos built) · T11 aftermath (minus the body pipeline, covered by mortality.md) … |
 | [content-packs](./builds/content-packs-slate.md) | the unbuilt trades of the Part 6 roster (butchery · fishing · foraging · quarrying … |
@@ -149,7 +149,7 @@ are the named remainders.
 | [fire-combustion](./builds/fire-combustion-slate.md) | the fire service (§ below) — the fire brigade (bucket-brigade → volunteer → paid-service ladder) · fire-code / prevention / inspection · fire insurance (incl. the moral-hazard / arson tie) · map-scale wildfire … |
 | [food-safety](./builds/food-safety-slate.md) | molds (Part 10) — the second population's visible surface · rancidity's own small law (Part 10) · the attach points nobody uses yet (irrigation contamination · the `trade-butchery` spin-out … |
 | [freight](./builds/freight-slate.md) | the barricade (exits vs lane edges · the clearing verb · erect via crafting?) · the tollgate + the turnpike trust (the toll schedule as a `parameter` clause … |
-| [fridge-design-pack](./builds/fridge-design-pack.md) | the cold-container substrate (`CoolboxMixin` + atmosphere on `Container`) · the icebox · `ClimateControl` + `Powered` over the power-utility ref (the appliance/energy build) · the COP fork … |
+| [fridge-design-pack](./builds/fridge-design-pack.md) | ⭐⭐ **`Chamber`** — the compartment with its own air, and the `AtmosphericMixin` widening it needs; the spec is below, written against the shipped tree and executable cold · `ClimateControl` + `Powered` over the power-utility ref (the appliance/energy build) · the COP fork · the fridge/freezer rows … |
 | [grid](./builds/grid-slate.md) | the service declaration on `ParcelRecord` (default connected, author disconnection; a band, not a number) · service as an exit attribute + the three-edge walk (generation → street → connected) · transmission from the falls to the city · connection-not-consumption metering … |
 | [health-vertical](./builds/health-vertical-slate.md) | ⚠ the diagnosis surface is **no longer this slate's** — see medic-judgment, which answered it (2026-09-15) · medicine materials + the apothecary (no antidote item, no medicine `Material`) · outbreak and contagion content · the public-health department + the College of Physic … |
 | [help](./builds/help-slate.md) | Wave 2 — taxonomy/unit and mechanics projectors, `help` fields on immutable definitions, the Docs group in the shell's grouped search + the client typeahead slice, `{{help:…}}` transclusion, the inspection↔help bridge · Wave 3's pre-auth public face + the standalone `api-model` docs render · L3 source surfacing |
@@ -202,7 +202,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (58)
+## Waves — rides another build (57)
 
 | slate | left |
 |---|---|
@@ -219,7 +219,6 @@ are the named remainders.
 | [comms](./tails/comms-slate.md) | speech on the acoustic reach walk at all (today every speech verb reaches the room and only the room — `acousticDb` is a stamp nothing reads for speech; a shout does not leave the room) · dynamic-reach shout (the voice-projection attribute + the vitals tie) · whisper's redacted overhear form · language gating on acoustic + encoded-cognition implant … |
 | [concealment-detection](./tails/concealment-detection-slate.md) | the knowledge economy (sharing / selling / transferring found secrets, maps as currency) · `frisk` and searching a downed body · player-placed concealment beyond pick-up-your-own · ranged / remote / linked traps … |
 | [console-filtering](./tails/console-filtering-slate.md) | transcript search · sender filter · family mute (collapse a topic family to a count badge) · author/admin frames toggle … |
-| [containment-partition](./builds/containment-partition-slate.md) | the whole build — the `Placement` vocabulary + catalogue · `Surfaced` → `Placing` (a 65-file rename, ⚠ including MQL text inside a content row) · `_restingOn` → `(host, name)` · `looseContents` onto `Container` … |
 | [content-pack-units](./tails/content-pack-units.md) | the media-asset unit (byte sync + receipt pairing) · the position-def unit (A19) · the contract-form unit · `requires.kinds:` … |
 | [cosmetics](./tails/cosmetics-slate.md) | the appearance-mark carrier on a body (the `Looks` cell — a cut, a dye job and a tattoo share it) · the personal-services vocation + graded cuts · hair dye as the dye chain's second customer · tattoos … |
 | [deed-tags](./tails/deed-tags-slate.md) | the closed deed-tag vocabulary + its three-tier resolver (the topics pattern) · the petition-not-override path · getting `crime` out of layer 1 · the faith-relevant tags that do not exist yet |
@@ -277,7 +276,7 @@ are the named remainders.
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |
 | [autopsy](./tails/autopsy-slate.md) | the post-mortem `Operation` row + **evidence as its stake** · the **interior-injury** reading channel · **per-channel readability** · who may open a corpse … |
 | [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` · `pushDirect`'s second `describeCore` entry … |
-| [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. |
+| [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). ⭐ **And the SUBJECT body has the same shape** (`lookAtTarget` cards and `meta({ carded })` exactly as `lookAtLocation` does) — which puts the **drill-in** on this list; see below. The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. |
 | [collision](./tails/collision-slate.md) | room capacity as a `capacities` field + validator, re-checked at activity completion · the `guards` brain's decision half (block targets · reason · unblock predicate over NPC memory … |
 | [combat-tactics](./tails/combat-tactics-slate.md) | the `physical` conduit channel for cross-room shots (⚠ contradicted by ranged.md's cross-room ruling — see the compaction ledger) · the magic-interplay questions at `MagicLogic.deliverAt` (bolt vs cover · interpose · attenuation … |
 | [connection-origin](./tails/connection-origin-slate.md) | the developer-gated IP read · the `whois`/`locate` lookup verb · city / region resolution · a persisted last-seen country … |
@@ -325,7 +324,6 @@ tail in `tails/`. These need moving or re-stamping.
 
 | slate | size | folder |
 |---|---|---|
-| [containment-partition](./builds/containment-partition-slate.md) | a wave | `builds/` |
 | [credit](./tails/credit-slate.md) | a build | `tails/` |
 | [pack-boundary](./builds/pack-boundary-slate.md) | a tail | `builds/` |
 | [value-object-statics](./builds/value-object-statics-slate.md) | a tail | `builds/` |

@@ -561,7 +561,7 @@ for the static-shape convention.
 |---|---|---|---|
 | `Container` | `contents` | R2.4 (Container side) | Runtime-only; evacuates on destruct |
 | `Containable` | `environment` | R2.3 (declared) + R2.4 (held side) | `{ ref: 'instance', lifetime: 'weak' }` + framework cleanup |
-| `Containable` | `_restingOn` | R2.3 (declared) | `{ ref: 'instance', lifetime: 'weak' }`; a destroyed surface reads null |
+| `Containable` | `_placementHost` | R2.3 (declared) | `{ ref: 'instance', lifetime: 'weak' }`; a destroyed host reads as no placement at all, whatever `_placementName` says |
 | `Slotted` | `slots` | R2.4 (holder side) | Runtime-only; active vacate fires `onSlotReleased` |
 | `Slottable` | (none — held side) | R2.4 | Static cleanup walks every host |
 | `Adornable` | `fixtureSlots` | `owned` (declared) | Holder destructs each fixture |

@@ -19,8 +19,10 @@ See also:
 
 - [templates.md § Inheritance](../../subsystems/templates.md) — `extends:`,
   which shipped 2026-09-25 and is the mechanism a cohort's parent row uses.
-- [containment-partition-slate](./containment-partition-slate.md) — ⛔ the
-  blocking design question. Nothing here should be renamed until it lands.
+- ⭐ [spatial.md § Placement](../../subsystems/spatial.md) — the
+  blocking design question, **answered and SHIPPED 2026-09-28** (the
+  placement build, MR !302; the slate retired into that doc). The
+  renames this census wanted are unblocked.
 - [fridge-design-pack](./fridge-design-pack.md) — the prior art on
   multi-chambered containers. ⚠ Read it before touching `Vessel`; a
   design pass that skipped it produced a rejected answer (below).
@@ -220,6 +222,17 @@ real objection rather than the plausible one.
   that the disambiguation prompt does not use the `distinguishing` form,
   so two identical cane rods offer two identical buttons. Live now,
   unrelated to this, worth its own small fix.
+- ⚠ **`PosedMixin.restingOnPath` is a SECOND "resting on".**
+  (`lib/character/Posed.ts:138`.) Slot occupancy for posture — a
+  different axis from placement (a slot *claims*, a placement
+  *locates*) with a confusable name, and the confusion got worse when
+  the spatial one stopped being called that: the tree now has
+  `getPlacement()` for where a thing sits and `getRestingOnPath()` for
+  which seat a body took. An `ExitableVessel` is where a player meets
+  both at once — sitting on a bench in a coach with a trunk in the
+  boot. ⭐ Do NOT merge them; do rename one before the next reader
+  trips. *(Salvaged from the containment-partition slate at its
+  retirement, 2026-09-28 — the one thing it still held.)*
 - ⭐ **The re-meltable solid is welded to metallurgy.** `Casting`,
   `Ingot` and trade-smelting's `Bloom` all compose `AlloyedMixin`, so
   **every non-metal thing that freezes inherits `alloying` and `temper`

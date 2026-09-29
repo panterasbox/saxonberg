@@ -288,7 +288,7 @@ load-bearing:
 
 ⭐ Condition 3 is why **no existing target changed behaviour**: a seed
 still just goes in the pot, because a seed is not a `Plant`. `on` is
-never a slot (`ContainmentApi.placeOn` owns surfaces).
+never a slot (`ContainmentApi.place` owns placements).
 
 **`get X`** is the reverse and needed exactly one thing: vacate the slot
 before the move, through `tryReleaseFromSlots` — otherwise the bay stays

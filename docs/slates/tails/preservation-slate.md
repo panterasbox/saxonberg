@@ -8,7 +8,14 @@
 > absorbed from food-safety 2026-09-21) · the sealing decision (binary until a consumer wants a
 > hurdle multiplier, never a flora model) · the agricultural year (winter
 > stores) · the trade geography spoilage creates · salt as a mined and
-> taxed staple
+> taxed staple · ⭐⭐ **WHO SELLS ICE** — the placement build shipped an
+> icebox that CONSUMES ice (`/stuff/thing/ice-block`) and nothing in
+> the realm produces or retails it, so the cookhouse's block is
+> authored and never replaced. That is a named demand with no supply
+> and therefore an icehouse-keeper's whole vocation, seasonal by
+> nature (free in winter, dear in summer) — the sharpest unbuilt
+> thing on this slate, and the placement drive's `DIRTY_REASON` is
+> the standing evidence it is missing.
 > **Size:** a wave
 
 See also — the chain: [fishing](../tails/fishing-slate.md) (the driver) ·

@@ -135,7 +135,7 @@ able to; if it is the engine talking to itself, a loop is fine.**
   — the rule.
 - [mql.md](../../subsystems/mql.md) · [mql-grammar.md](../../mql-grammar.md)
   — the predicate registry and the author-facing grammar.
-- [containment-partition-slate](../builds/containment-partition-slate.md) —
-  the build that raised this.
+- [spatial.md § Placement](../../subsystems/spatial.md) — the build
+  that raised this (MR !302); its slate retired into that doc.
 - [perception.md](../../subsystems/perception.md) — owns the orphan
   guard question.

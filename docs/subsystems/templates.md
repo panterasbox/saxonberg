@@ -326,7 +326,9 @@ props:
   gesture written longhand. `count` on `cast:` throws (twelve of a
   person is twelve people, each of whom needs a name), as does `count`
   on a `Singleton` class, and any count that is not a whole number ≥ 1.
-- **`onto`** — names a `Surfaced` entry EARLIER in the list, by its `as`
+- **a placement key** — ⭐ the key IS the member's name (`on`, `from`,
+  and whatever a pack ships). Its value names a `Placing` entry EARLIER
+  in the list, by its `as`
   or by its path. Under `count`, the last clone is what a later `onto`
   finds.
 
@@ -455,7 +457,7 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
     non-singletons cloned via `StuffApi.clone`. A bare entry is
     moved into self (`ContainmentApi.move`); an `{template, onto}`
     entry is placed on an already-populated sibling surface
-    (`ContainmentApi.placeOn`), keyed by the `onto` source path —
+    (`ContainmentApi.place`), keyed by the placement key's source path —
     so the surface fixture must be listed before its resting
     items (the back-bar before its bottles). See
     [crafting.md](./crafting.md).

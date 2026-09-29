@@ -101,11 +101,58 @@ pot of water takes pot-time, and `reconcilePhase` still pins boiling
 water at 373 K inside a 500 K oven. An oven's own thermal mass is a
 deferred seam, not an omission.
 
-`Oven` composes **both** `ContainerMixin` and `SurfacedMixin` (a range is
+`Oven` composes **both** `ContainerMixin` and `PlacingMixin` (a range is
 a firebox you put a loaf in *and* a plate you stand a pot on — the
 shipped kitchen-range row's prose already said so); `Campfire` composes
-`SurfacedMixin`. `Forge` and `Kiln` compose neither: a forge is not a
+`PlacingMixin`. `Forge` and `Kiln` compose neither: a forge is not a
 chamber, and its Meltable path is the radiant one.
+
+### ⭐⭐ The cold twin — `holderK()` and a Coolbox
+
+The rule under `heatSourceK` was never about heat: **what HOLDS this
+body outranks the biome chain.** A shut icebox holds its contents
+exactly as a lit oven does, and the chain cannot answer for either,
+because a `Coolbox` is not `Atmospheric` and must not be — *a cold box
+does not cool the kitchen*, for the same reason a lit forge does not
+warm the room.
+
+So `restamp()` and `refreshAmbientFromEnvelope()` each ask, in the
+same position and in this order: `heatSourceK()` → `holderK()` → the
+chain. ⚠ Both sides must ask identically; the day they disagree is the
+day a box keeps its cold on one path and not the other, which is why
+the scope read is one shared `ambientScopeOf()`.
+
+`CoolboxMixin` (`lib/thermal/Coolbox.ts`) composes on a
+`Container & Thermal & Sealable` host and adds two reads:
+
+- **`coldestMass()`** — the contained `Thermal` with the lowest
+  temperature, or null.
+- **`getContentsTemperature()`** — overridden: the coldest mass while
+  the lid is shut, else the box's own body. ⭐ A READ, computed each
+  time, never a cached ambient: `restamp` rewrites `lastAmbientK` from
+  the chain on every move, so anything stashed there is undone by the
+  next thing put in the box. The box's walls staying near the room is
+  not a fudge — it is what a zinc-lined chest full of ice is, and it
+  is why `getContentsTemperature` and `getTemperature` are two
+  methods.
+
+And two seams in `ThermalMixin`, both on the **body being held**:
+
+| seam | what it does |
+|---|---|
+| `holderK()` | a body in a shut Coolbox takes the box's interior as its ambient |
+| the lent-insulation clause in `effectiveR()` | the **coldest mass** borrows the box's `insulationR`, so the ice warms toward the ROOM through the walls |
+
+⚠⚠ **The coldest mass is excluded from `holderK`.** It is the thing
+MAKING the interior cold; handing it its own temperature as ambient is
+a body in equilibrium with itself — no drift, no melt, no clock. It
+reads the room instead, through the borrowed walls. That is the whole
+clock an icebox runs on, and it is asserted directly.
+
+⚠ `effectiveR()` runs on every reconcile of every Thermal body in the
+game. Both clauses short-circuit on the enclosing scope not being a
+shut `Coolbox` before any other read — for a body standing in a room
+that is one mixin lookup answering no.
 
 ### τ = R·C
 
@@ -114,9 +161,18 @@ chamber, and its Meltable path is the radiant one.
   vessel derives `C` from its **contents** (more fluid → larger C →
   slower cooling).
 - `R` = series resistance: the surrounding medium's conductivity
-  (`BiomeApi.conductivityOf`, dominant) + the wall material's (minute). A
-  sealed `Sealable` host switches its barrier to `vacuum` (τ in hours);
-  open collapses to the air term (τ in minutes).
+  (`BiomeApi.conductivityOf`, dominant) + the wall material's (minute)
+  + ⭐ **any insulation lent by a shut `Coolbox` holding it**, for the
+  one body that is making the cold. A sealed `Sealable` host switches
+  its barrier to `vacuum` (τ in hours); open collapses to the air term
+  (τ in minutes).
+
+⚠ **`R` is geometry and material, not mass** — which is why a bare
+block of ice has a tiny `R` and an enormous leak. A 4 kg block left in
+a warm kitchen is gone in game-MINUTES; inside a box it borrows the
+walls and lasts hours. That is not a dial to tune, it is the reason a
+cold box is an object worth owning, and content that keeps ice keeps
+it in the box.
 
 ## The thermos (`Flask`)
 
@@ -517,3 +573,41 @@ in its scope toward its held temperature; a body's `reachableHeatK()` (on Therma
 hottest reachable furnace — the crafting-control read `CraftingLogic`'s heat
 gate consumes (`recipe.requiresHeatK`; see [crafting.md](./crafting.md)). See
 [fire.md](./fire.md) for the combustion driver + the full high-heat physics.
+
+### ⚠⚠ What drives the phase check — a defect, fixed 2026-09-28
+
+Until the placement build, `reconcilePhase()` had exactly **three
+callers in the whole tree**: a lit `Furnace`'s heat pass, two spell
+endpoints, and tests. So **nothing in the world melted from being
+warm.** A block of ice on a hot floor sat at its melting point
+forever with the latent accumulator untouched, because the engine
+above was complete and had no ambient driver — a fire or a wizard had
+to be pointed at a thing before its phase was ever reconciled.
+
+`reconcileThermal()` drives it now, **immediately after the drift
+that makes a body warm**, and narrowed to `Meltable` hosts: the
+`Bulkable` freeze/boil rung has its own callers (a `CraftVessel`
+drives it from its own reconcile) and widening it would double-run
+them. The call sits outside the reentry guard so the plateau's own
+`setContentsTemperature` is not swallowed.
+
+⭐ It is one line on the lazy read path, and it is the reason an
+icebox has a clock at all.
+
+### ⭐ A body may author its own starting temperature
+
+`ThermalMixin.stampedTemperatureK` is `authorable` (2026-09-28). A
+*space* could always state its own (`Atmospheric._temperature` — the
+279 K cold store); a **body** could not, so a row shipping a block of
+ice minted one at the model's default room temperature: above its own
+melting point, therefore not ice, satisfying no cold check, and
+melting from the instant it existed.
+
+Every other route to a cold solid is a **history the world plays
+out** — a freeze, a quench — and an authored object has no history,
+so it says so itself.
+
+⚠ It SEEDS and does not pin: the reconcile takes over from there, so
+an authored 268 K block in a 293 K room warms exactly as it should.
+Content that wants a thing to *stay* at a temperature authors the
+SPACE, not this.

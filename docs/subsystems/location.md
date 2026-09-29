@@ -9,7 +9,7 @@ the area.
 
 `lib/location/` carves the room/coordinate/zone geometry out of what was
 `lib/spatial/`; `lib/spatial/` now holds only the containment/movement
-substrate (Container, Containable, Mobile, Surfaced, Sealable — see
+substrate (Container, Containable, Mobile, Placing, Sealable — see
 [spatial.md](./spatial.md)). The base Zone hierarchy (`Zone` /
 `SpatialZone` / `FolderZone`) lives in `lib/zone/` (see
 [zone.md](./zone.md)); only the concrete coordinate zones

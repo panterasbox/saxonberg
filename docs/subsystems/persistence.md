@@ -623,7 +623,8 @@ shapes:
   sub-containers); a **nested host** is a reference
   `{ ref, key?, placement }` — not absorbed, because it persists itself
   (see *Keyed nested hosts* below). Surface-resting items record the index
-  of the Surfaced sibling they rest on. Three occupants are **skipped**
+  of the `Placing` sibling they are placed on, plus the member's name
+  (`ContentPlacement`). Three occupants are **skipped**
   (one filter, one ordering shared with the Slotted slice): a live avatar
   (`HasInteractive` — persists itself), a player-stamped good
   (`ChattelApi.isOwnerPersisted` — persists in its owner's estate), and a

@@ -31,13 +31,41 @@ through `ThermalMixin.restamp` → `BiomeApi.resolveTemperatureFor`. **No
 class, no appliance, no new field** — the hospitality `cellar` bundle is
 simply a room authored at 285 K.
 
-The archetype's `coldStorage` need is satisfied by the **venue itself**
-when its own authored temperature is ≤ 288 K (≈ 15 °C), or by an
-insulated sealable holder in it (a box of ice is cold storage too). It
-reads the venue's *own* override rather than resolving outward, because
-the checklist is synchronous and *reported, never enforced* — a room that
-is cold only because its biome is cold is not a claim the venue gets to
-make.
+The archetype's `coldStorage` need is satisfied two ways, and ⭐ **cold
+is the word that matters on both rungs** (`COLD_K = 283`, ≈ 10 °C):
+
+- **the SPACE** — the venue's own air at or below `COLD_K`: its
+  authored `_temperature` first, else the last integrated envelope,
+  read through `Atmospheric.getOwnTemperatureK()`. It reads the
+  venue's *own* value rather than resolving outward, because the
+  checklist is synchronous and *reported, never enforced* — a room
+  that is cold only because its biome is cold is not a claim the
+  venue gets to make.
+- **a HOLDER of things** in it — `Thermal` + `Sealable` +
+  **`Container`**, whose *interior* (`getContentsTemperature()`) is at
+  or below `COLD_K`. The shipped one is `Icebox`
+  ([spatial.md](./spatial.md) · [thermal.md](./thermal.md)): a
+  `CoolboxMixin` chest whose interior follows the coldest thing in it
+  while the lid is shut. An empty icebox in a warm kitchen is a box,
+  not a larder.
+
+⚠⚠ **Both rungs were wrong until 2026-09-28, in opposite directions,
+and both silently.** The space rung asked whether the venue was
+`ThermalMixin` and **no `Location` is** — a room carries an
+`Atmospheric` AIR, not a thermal body — so the rung had literally
+never fired, and a 279 K cold store authored for exactly this
+satisfied nothing. The holder rung asked only *insulated and
+closable*, with **no temperature test at all**: every `Bottle`,
+`Flask` and `Thermos` is `Thermal + Sealable`, so a bag of ice on any
+floor was "cold storage", and Dave's Bar reported its cold capability
+MET on the strength of an EMPTY ice bin at room temperature.
+
+⭐ A capability that answers wrongly is worse than one that is
+missing: a missing check is silent, a wrong one is confidently
+misleading, and every survey report that ever named cold storage was
+reporting on insulation rather than on cold. The repair changed what
+four archetypes say about rooms that already existed — kitchen,
+hospitality, brewhouse and winery were all re-read.
 
 ⚠ **They are not the same thing and should not be collapsed.** The
 difference is the design:
@@ -340,11 +368,11 @@ is mirrored rather than re-derived.
 
 Sleep-as-logout is the reason a residence is worth having, and the dorm is
 the residence every player currently has — so its bed gained a `lie:1`
-posture slot and `restQuality: 1.5`. Leaving it a `Surfaced` prop you
+posture slot and `restQuality: 1.5`. Leaving it a `Placing` prop you
 cannot lie on would have shipped the mechanic somewhere nobody could
 reach it.
 
-`Surfaced` is **kept, not replaced**: the two are orthogonal. `Surfaced`
+`Placing` is **kept, not replaced**: the two are orthogonal. `Placing`
 is what rests ON the bed; the posture slot is who rests IN it.
 
 And it is deliberately the **bottom rung** — a university-issue single
