@@ -802,6 +802,39 @@ lib mixin imports the catalogue.
 | `placements: string[]` (default `['on']`), `airExposure`, `userFacingDetail`, `canPlace`, `getPlaced`, `resolvePlacement` | **`PlacingMixin`** — per-host claims about which relations it offers | every composer (`Fitting`, `Oven`, `Hearth`, `Campfire`, the eight pack classes) offers `on` and nothing else unless its row says otherwise — zero behaviour change |
 | `_placementHost`, `_placementName`, `getPlacement`, `_setPlacement`, `getEnclosingScope` | **`ContainableMixin`** — the item's back-reference; it was `_restingOn` | every Containable can be placed; nothing new is claimed |
 | `getLooseContents()` | **`ContainerMixin`** — a presentation read over its own list; docstring leads with *the model read is `getContents()`* | a Container can say which of its contents are loose; `Location` inherits it, correctly (a room lists loose things) |
+
+⭐⭐ **Why `getLooseContents` is a METHOD, settled in review (MR !302)**
+— recorded because it was nearly got wrong twice, in opposite
+directions.
+
+It reads **one container's own list and nothing else**: no second
+object, no orchestration, no polymorphic walk. By
+`architecture.md`'s own test that is a method, not an Api static, and
+the file it left said so — `api/containment.ts:258` records that the
+read-wrappers were removed *"because those reads live on the objects
+themselves"*, twelve lines above where `looseContents` was still
+sitting. Its three callers (`look`, `sense`, the inspection card) must
+agree exactly, and the card is a FIELD PROJECTION, not a query — so
+the rule has to be callable without MQL.
+
+⚠ **It was briefly proposed for deletion in favour of an MQL `:loose`
+predicate. That was wrong**, and the reasoning is now a standing rule
+in [architecture.md](../architecture.md) § *MQL is a VIEW over the
+model, never a home for behaviour*: anything MQL can express must also
+be expressible by function call. A `:loose` predicate is welcome — as
+one line that CALLS this method, the way `isLiving` is
+`MixinApi.isMobile(target)`. → the work is slated at
+[mql-predicate-parity](../slates/tails/mql-predicate-parity-slate.md),
+with the census that matters (three verbatim copies of one four-clause
+listing filter that no player can see or type).
+
+⚠ **One clause of it does not belong and is filed, not fixed.** The
+`ids.has(host)` guard is set-relative, and it fires only when the
+caller hands in a snapshot that has already dropped a host while
+keeping its contents. That is damage control for a lossy perception
+filter, not a containment rule. Kept for now — removing it is a
+behaviour change with no test proving it safe — and asked as a
+question of the perception pass on the same slate.
 | `coldStorage` satisfier (both rungs, D18) | `lib/archetype/Archetype.ts` `satisfyingItem` — the kernel's, with the other eight | a space satisfies by its own air; a holder by being `Thermal + Sealable + Container` **and cold** |
 | `CoolboxMixin` — `insulationR`, `coldestMass()`, the interior-is-my-Thermal reconcile | `lib/thermal/Coolbox.ts`, composed on a `Container & Thermal & Sealable` host | a composer is a holder whose interior follows the coldest thing in it; nothing today composes it but `Icebox` |
 | `holderK()` (the cold twin of `heatSourceK`) and the lent-insulation clause in `effectiveR()` | `ThermalMixin` — reads on the BODY being held, where `heatSourceK` already is | every Thermal body asks *what holds me*; a shut Coolbox answers, nothing else changes |

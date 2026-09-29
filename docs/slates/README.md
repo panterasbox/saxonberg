@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**254 slates.** 61 greenfield · 88 continuations · 57 waves · 48 tails.
+**255 slates.** 61 greenfield · 88 continuations · 58 waves · 48 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (61)
 
@@ -202,7 +202,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (57)
+## Waves — rides another build (58)
 
 | slate | left |
 |---|---|
@@ -240,6 +240,7 @@ are the named remainders.
 | [locomotion-as-activity](./tails/locomotion-as-activity-slate.md) | the durative `TraverseActivity` promotion (mode-name as engagement type) · the sync/async split (`Mobile.traverseSync` + `TraverseActivity.beginFor`) · the `engagedMode` storage migration onto `EngagedMixin` · the three retirements (`engageAround` … |
 | [magic-items](./tails/magic-items-slate.md) | the item-by-item catalog walk, shipped as CONTENT packs — and ⚠ the cut is undecided (horizontal "twenty wands" vs a vertical "everything one shop stocks") · substrate gaps still open: the transient perception override ("perceive-as-if" — the gate itself shipped with concealment) · the push/shadow realization for owner-less behaviour (invisibility — every shipped modifier went by pull) · capacity reprofiling on polymorph … |
 | [materials-response](./tails/materials-response-slate.md) | the `Recipe` craft-stamp of {material, construction, grade} · the `crush` channel (structural destructibility) · tissue as a construction axis · armor weight→fatigue→poise + armor-protects- affordances wiring … |
+| [mql-predicate-parity](./tails/mql-predicate-parity-slate.md) | three predicates + one filter atom, each delegating to a method that already exists or needs to · the census of hand-rolled listing filters (3 verbatim copies of one 4-clause rule) · the orphan-guard question against the perception pass |
 | [mql-subscription](./tails/mql-subscription-slate.md) | `mql-subscribe-update` (re-bind + `refresh: true`, the `reason: 'initial' \| 'refresh'` result) · the frameId heartbeat + the `'closed'` envelope · frameId gap detection + the client resync policy · the silent ↻ beside *look again* … |
 | [naming](./tails/naming-slate.md) | the rename act (notify every recognition holder · decay window · chronicle deed) · Defense A, `learnIdentity` refusing a conflicting name … |
 | [npc-dialogue](./tails/npc-dialogue-slate.md) | the scripted free-text `intent-dialogue` responder (pattern/synonym tables + the `addressed`/`handleMessage` trigger + the implant `tell` entry; NPC-led hooks, conditional state rules, graceful redirects) · mode-mixing (banter ↔ setpiece over shared state) · undirected `say` as an opt-in bark trigger · NPC initiative depth … |
