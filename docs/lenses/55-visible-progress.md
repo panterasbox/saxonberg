@@ -116,6 +116,11 @@ precision**: a derived band claims only what the evidence supports,
 where a decimal claims more than it can), not on this one. ⭐ **That
 argument has not been written.**
 
+⚠ **Altitude:** the four delivery modes and the declared-standard
+firewall are **platform** — they constrain any game built here. What
+follows is **this title's**: another game may want coarse bands, or
+none, or a bar.
+
 ⚠ **Interim steps are still thin where it matters.** The amendment
 gives performance fine-grained readings, so the second question is
 answered for a trainee. It is *not* answered for a person growing into

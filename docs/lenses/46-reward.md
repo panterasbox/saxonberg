@@ -122,10 +122,18 @@ standards, which I generalized into an architecture it never claimed.
 performance, precisely because generalising it gets the product
 backwards:
 
-> ⭐⭐ **For a platform whose thesis is applied hours, habituation is
-> the outcome being sold.** You *want* the training to become
-> unremarkable. A channel that only speaks on surprise is optimised
-> against its own goal, and the steadiest player gets the least signal.
+> ⭐⭐ **For a game whose thesis is applied hours, habituation is the
+> outcome being sold.** You *want* the training to become unremarkable.
+> A channel that only speaks on surprise is optimised against its own
+> goal, and the steadiest player gets the least signal.
+
+⚠⚠ **Altitude check** (added by the 2026-09-29 pass): *habituation is
+the outcome* is a claim about **one game**, not about the platform. A
+title tuned for speedrunners wants the opposite; so does a one-session
+narrative piece. **The platform's obligation is that both be
+buildable** — which means the deviation rule must stay a *default an
+author can change*, never a substrate opinion. See
+[#7](./7-endogenous-value.md) § *asked at the wrong altitude*.
 
 Which reframes Schell rather than refuting him. **His acclimation
 problem assumes the reward is why you are there.** For a game, that is
@@ -175,10 +183,11 @@ and it is the one an engagement problem would come for first.
 2. ⭐⭐ **Run "can the player trace it?" as a gate on every derived
    reward.** It is no longer a lens preference; B3 makes an untraceable
    derived reward a doctrine violation.
-3. ⭐⭐ **Say that habituation is the product.** It belongs in the
-   vision material, not just here — it is the cleanest one-line
-   statement of how a platform selling applied hours differs from a
-   game selling sessions.
+3. ⭐⭐ **Say that habituation is *this title's* product.** It is the
+   cleanest one-line statement of how a game selling applied hours
+   differs from one selling sessions — and it belongs in that title's
+   vision material, ⚠ **not in the platform's**, because another game
+   on the same substrate will want the opposite.
 4. ⭐⭐ **The levelling question is not "what number goes up."** It is
    *what arrives unbidden, and is it honest?* Framing it the first way
    guarantees a gauge; framing it the second way is the actual problem

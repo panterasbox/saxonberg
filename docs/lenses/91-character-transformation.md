@@ -94,6 +94,12 @@ job than inventing a progression system, because the hard part —
 deviation from equilibrium, two half-lives, mean reversion — is already
 designed.
 
+⚠ **Altitude** (2026-09-29 pass): *HAVE · CAN DO · ARE* is **platform**
+substrate. That this title's change story is **economic** is a fact
+about this title — a game built here could make transformation entirely
+dispositional, or entirely narrative, and the ledgers would serve it.
+The complaint below is about what *we* built on them.
+
 ## Tensions & risks
 
 ⚠⚠ **The three ledgers split across the amendment, and only one half is

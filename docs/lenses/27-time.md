@@ -204,10 +204,13 @@ combat, and it preserves *you can't rage-quit a fight* while removing
 the world stopping. Other activities want their own reactions (bank the
 fire, set down the tool, come off shift). Unbuilt, and squarely doable.
 
-⚠ Until it exists, the residue lands on the stated audience — **students
-with forty minutes** — and it lands on exactly two systems rather than
-on the whole game, which is a much smaller bill than the first draft of
-this entry implied.
+⚠ Until it exists, the residue lands on **this title's** stated audience
+— students with forty minutes — and on exactly two systems rather than
+the whole game, which is a much smaller bill than this entry's first
+draft implied. ⭐ Note the altitude: *who is excluded by an
+uninterruptible system* is answered differently by every game on the
+substrate, which is an argument for making disconnect behaviour
+**authorable** rather than picking one policy.
 
 ⚠ **We have almost no races.** Nearly every temporal pressure here is a
 **clock** — the dying clock, maturation, spoilage, growth, the shift —
