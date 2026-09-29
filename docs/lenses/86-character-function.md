@@ -199,9 +199,14 @@ casting work" is not answerable at ship.**
 1. ⭐⭐⭐ **Let slots bind on dramatic relation, not only capability.**
    The substrate exists and is per-viewer; what is missing is the
    predicate vocabulary. *(Quest slate Q10.)*
-2. ⭐⭐ **Find any feedback at all on casting quality.** A save gate that
-   says *legal* and stops is how a tool teaches its users to be boring.
-   Even a prompt — *what does this binding defy?* — would beat silence.
+2. ⭐⭐ **Find feedback on casting quality — and it must not be a gate.**
+   A save gate that says *legal* and stops is how a tool teaches its
+   users to be boring. ⚠ But **a gate that judged quality would be worse
+   than silence**: the platform measures what people make, and a
+   measurement of work that was not allowed to be bad has no content
+   ([#79](./79-freedom.md)). The permitted shape is **feedback without
+   prevention** — *what does this binding defy?* as a prompt you may
+   ignore, never a refusal.
 3. ⭐ **Specificity is a cost control, not the craft.** Identity ·
    predicate · don't-care governs carve cost and fragility at pass 2 and
    says nothing about whether the casting is interesting. Earlier drafts

@@ -84,6 +84,39 @@ cannot staff, which is [#37](./37-fairness.md)'s wizard problem seen
 from the other side: **the same fact reads as an unfair asymmetry there
 and as the one ungoverned freedom here.**
 
+### ⭐⭐⭐ And the freedom to decide *badly* is a precondition, not a tolerance
+
+The deepest reason the shared world is not locked down further is not
+generosity. It is that **the platform measures what people make and
+decide, and builds an economy on the measurement**
+([measurement.md](../measurement.md)).
+
+> **A measurement only has content if the thing measured could have gone
+> badly.** Prevent the bad decisions and you are measuring the
+> prevention, not the person. **A decision economy with no bad decisions
+> carries no information.**
+
+That makes freedom-to-fail structural rather than a value, and therefore
+much harder to erode — eroding it does not make the platform meaner, it
+makes the numbers meaningless. It is also the same requirement
+[lens 4](../design-lenses.md) states as decidability (a choice that
+cannot go wrong was not a choice), that [#37](./37-fairness.md) needs
+for a *reliable measure*, and that [#25](./25-judgment.md) needs for a
+judgment to be a judgment.
+
+⭐⭐ **The operational rule it yields:**
+
+> **Quality control is downstream or it is nothing.** Reception,
+> standing and markets may judge. **Validation, review and approval may
+> not** — a gate that refused to let you build a bad thing would be
+> measuring the gate.
+
+⚠ Which does *not* forbid telling an author their work is weak. It
+forbids **preventing** them. **Feedback without prevention** — a prompt,
+an advisory, a hint you may ignore — is the permitted shape, and the
+distinction is the whole of it. *What does this binding defy?* is fine.
+*You may not publish this* is not.
+
 ### The door is a mechanism, not the answer
 
 Where a boundary *is* met, it names itself: since verb conferral was
@@ -159,6 +192,11 @@ is also what makes it **sterile**: anything made in there matters to
 nobody until it crosses. Lens 2's published flag is the crossing, and
 until it exists the sandbox's liberty is real and inconsequential —
 which is a different failure from being constrained, and arguably worse.
+
+⚠ **"Downstream only" is easy to say and expensive to hold.** Every
+quality problem has an obvious upstream fix, and the upstream fix is
+always cheaper than fielding the consequences. The rule will be under
+pressure from exactly the people who care most about quality.
 
 ⚠⚠ **An honest door is not automatically a welcome one.** *"You cannot
 do this yet, and here is what would let you"* is truthful and can still

@@ -106,7 +106,7 @@ To foster community identity tied to real-world connections, Saxonberg may incor
 
 **Standard Gamification Elements:**
 
-While the deep alignment is core, Saxonberg will also incorporate familiar gamification elements such as achievement tracking, badges for accomplishments, and leaderboards to provide additional layers of motivation and progress visualization.
+While the deep alignment is core, Saxonberg also incorporates familiar gamification elements — achievement tracking and badges for accomplishments, which are records of acts and permitted outright. ⚠ **Leaderboards are not the house's to run.** A platform-chosen ranking of players fuses the measuring layer with the valuing one ([measurement.md](./measurement.md) Part 9); a guild's ranking, a paper's annual list or a trade association's roll, published with its own weights, is legitimate and more interesting — it makes *whose list do you trust* a live question. **We do not ban leaderboards; we ban ours.**
 
 ## Narrative Framework & World Design
 
