@@ -1150,6 +1150,55 @@ append the delta to § Drive record: rows on classes carrying
 `Chattel`, and the list-A hit count. Commit with W5 or alone:
 `tools(narrowing W6): the census after`.
 
+**✅ W6 DONE.** Full matrix before/after, same instrument, same corpus
+(`scratchpad/matrix.json` → `matrix-after.json`). 683 → **684** classes;
+one added (`/platform/thing/Movable`), **none dropped**.
+
+| mixin | rows before | rows after | classes before | classes after |
+|---|---:|---:|---:|---:|
+| `ChattelMixin` | 672 | **495** | 202 | **145** |
+| `ConcealableMixin` | 686 | **571** | 211 | **169** |
+| `DetailedMixin` | 613 | **741** | 149 | **203** |
+| `WetMixin` | 672 | 672 | 202 | 203 |
+| `TangibleMixin` | 672 | 672 | 202 | 203 |
+| `ContainableMixin` | 672 | 672 | 202 | 203 |
+| `VisibleMixin` | 889 | 889 | 223 | 224 |
+| `PerceptibleMixin` | 980 | 980 | 223 | 224 |
+
+The five that stayed are the five the owner's criterion kept on the
+root, and they moved by exactly the one class `Movable` adds. 58 classes
+lost `Chattel`, 43 lost `Concealable`, **0 gained either** — a narrowing
+with no compensating widening anywhere.
+
+⭐⭐ **The agent-branch survivor lists are the cleanest single proof this
+build has.** `Chattel` on the agent branch is now exactly
+`KeptAnimal · Fish · Livestock · WorkingAnimal` — four animals and not
+one person, where before it was every body in the game.
+`Concealable` on the agent branch is still everybody, and that is
+right: a lurking creature, a disguised player and a hidden corpse are
+all things the concealment subsystem is about. ⭐ **The two mixins moved
+together off `Thing` and apart on `Creature`, which is the whole
+argument for splitting them being two different questions.**
+
+⚠⚠ **The list-A count went UP, 1033 → 1044, and that is the honest
+result.** The arithmetic: `DetailedMixin` **+53** (it is on the root
+now, so 53 more classes expose an authorable field), `Concealable`
+**−42**, plus one each way. ⭐ Every one of those 53 is the F2 content
+gap the owner named — *"most of the places that don't author details we
+probably should be writing some in for immersion sake"* — and the
+census has now made them countable for the first time. **A narrowing
+that surfaces work is not a narrowing that failed**; the shortlist grew
+because the access path exists where it did not, which is what D8 was
+for.
+
+⚠ **One blind spot worth naming: `platform/thing/Station` is invisible
+to the census**, because no row names it — its three subclasses carry
+the rows. The instrument reads the world, not the source tree, so a
+class minted for a taxonomy reason and inherited-only does not appear.
+That is the same reading as `lib/` substrate and it is correct, but it
+means *"the census shows no change"* can never be evidence about a class
+nothing instantiates.
+
 ### W7 — `lint:mass`, the ratchet (D5)
 
 Goal: the 257-row mass/material gap stops being able to grow.
