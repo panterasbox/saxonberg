@@ -99,7 +99,8 @@ describe('the furnace family — a burnt-out fire casts no light', () => {
   /**
    * ⭐⭐ The shipped defect this closes. `LightSourceMixin` emits its
    * authored flux unconditionally and lit-gating was done per CLASS —
-   * `isOn()` on `PortableLight`, `isBurning()` on `Candle`. `Campfire`,
+   * `isOn()` on `PortableLight`, and `isBurning()` on a since-retired
+   * `Candle` class. `Campfire`,
    * `Forge`, `Oven` and `Kiln` have empty class bodies and therefore no
    * gate at all, so a campfire that burnt out an hour ago kept casting
    * its full 120 lumens. Every composer puts `FurnaceMixin` outside

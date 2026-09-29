@@ -143,14 +143,21 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   without fire moves nothing."* Check `isLit()` first; the accessor
   will not do it for you. (Found by charging a furnace in a browser,
   2026-09-16; every unit fixture had lit it first.)
-- **The Candle** — the convergence fixture: `LightSource + Combustible +
-  Thermal + Reserved(wax)` over a `Thing`'s `Wet` wick. A dry wick lights (the
-  wet-wick gate refuses a soaked one, keyed on the wick material's water
-  absorption) → it emits light (flux gated on `isBurning`) and burns its wax;
-  snuff/douse darkens it; under a sealed (air-limited) jar it self-smothers.
-  *(The wax phase-change pool is deferred — the flame pins the whole body hot,
-  so the wholesale `Meltable` melt is unsuitable; a gradual candle-specific drip
-  is the follow-on.)*
+- ~~**The Candle**~~ — ⚠ **retired, unrowed, by the base-class narrowing
+  build.** It was the convergence fixture (`LightSource + Combustible +
+  Thermal + Reserved(wax)` over a `Thing`'s `Wet` wick) and it was a
+  fixture in the literal sense: **no content row ever named it**, in the
+  whole life of the class, and nothing but its own test imported it. Its
+  per-class `isBurning()` lit-gate is the thing `FurnaceMixin` took over
+  (see *A fuelled appliance now casts light only while it burns*, below),
+  which is what left it with nothing of its own.
+  ⭐ **A candle is a `Lamp` row today** — `FurnaceMixin(LightSource(
+  Detailed(Reserved(Thermal(Thing)))))`, which is a fuelled thing that
+  lights, burns its reserve and gates its flux on being lit. The general
+  store's torch is already one. What no class offers is the wax pool, and
+  that was deferred on the Candle too: the flame pins the whole body hot,
+  so the wholesale `Meltable` melt is unsuitable and a gradual drip is
+  still the follow-on.
 
 ### The crafting seam (D9) — **consumed**
 
@@ -205,7 +212,8 @@ self-contained fire zone (teleport-reachable, the substation precedent) with a
 CO/ventilation lesson), and a **smithy** (a bellows-fed `Forge` melting an
 `Ingot` to a molten pool). `obj/Firewood` (a Combustible log), `obj/Ingot` (a
 Meltable metal bar), `obj/Casting` (the re-meltable frozen-pool cast),
-`obj/Forge`/`Kiln`/`Oven`, `obj/Candle`.
+`obj/Forge`/`Kiln`/`Oven`. ⚠ The list used to end `obj/Candle`; there was
+never a candle row, and the class is retired — see the bullet above.
 
 ## Deferred
 
@@ -270,8 +278,8 @@ honest at that temperature (wax softens, ice melts).
 ### ⚠⚠ A fuelled appliance now casts light only while it burns
 
 `LightSourceMixin` emits its authored flux unconditionally, and
-lit-gating was done per class — `isOn()` on `PortableLight`,
-`isBurning()` on `Candle`. **`Campfire`, `Forge`, `Oven` and `Kiln` have
+lit-gating was done per class — `isOn()` on `PortableLight`, and
+`isBurning()` on the since-retired `Candle`. **`Campfire`, `Forge`, `Oven` and `Kiln` have
 empty class bodies and therefore no gate at all**, so a campfire that
 burnt out an hour ago went on casting its full 120 lumens. Nobody caught
 it because until this build nowhere was dark enough for it to matter.

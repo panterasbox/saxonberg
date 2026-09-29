@@ -28,8 +28,13 @@ import Interactive from '../../../platform/idea/Interactive';
 import Avatar from '../../../platform/agent/Avatar';
 import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import Tablet from '../../../platform/thing/Tablet';
-import Screen from '../../../platform/thing/Screen';
-import Remote from '../../../platform/thing/Remote';
+// ⭐ `Tablet` is the SHIPPED `Display` — two rows name it (the lounge's
+// and trade-hospitality's house tablet), and it is what these cases used
+// to reach through `Screen`, a class no row has ever named. The wall-TV
+// class and its companion `Remote` were retired by the base-class
+// narrowing build; the `remote` PAIRING POLICY is data (`remote:` names
+// any row path), so a plain Detailed Thing is a faithful remote here.
+import { DetailedMixin } from '../../description/Detailed';
 import BusinessEntity from '../../../platform/idea/Business';
 import Thing from '../../stuff/Thing';
 import { SlottedMixin } from '../../slot/Slotted';
@@ -96,6 +101,14 @@ async function makeBusiness(): Promise<BusinessEntity> {
   biz.banksAt = BankingApi.defaultCustodianBank();
   return biz;
 }
+
+/**
+ * A handheld remote. The `remote` pairing policy is pure DATA — the
+ * screen's `remote:` field names a row PATH and `mayDrive` asks whether
+ * the actor carries an instance of it — so the remote needs no class of
+ * its own, which is why the one that existed had no row.
+ */
+class Remote extends DetailedMixin(Thing) {}
 
 /** An embodied, attunable actor (the DmController fixture's shape). */
 class Actor extends EmployedMixin(
@@ -178,7 +191,7 @@ describe('DisplayMixin — a display drives itself', () => {
     it('remote: whoever carries the paired remote', async () => {
       const a = await makeViewer('Ann', booth);
       const b = await makeViewer('Bob', booth);
-      const tv = await StuffApi.create(() => new Screen());
+      const tv = await StuffApi.create(() => new Tablet());
       tv.setPairing('remote');
       tv.setRemote(REMOTE);
       ContainmentApi.move(tv, booth);
@@ -204,7 +217,7 @@ describe('DisplayMixin — a display drives itself', () => {
     it('open: anyone in reach, nobody elsewhere', async () => {
       const here = await makeViewer('Ann', booth);
       const away = await makeViewer('Bob', cellar);
-      const board = await StuffApi.create(() => new Screen());
+      const board = await StuffApi.create(() => new Tablet());
       board.setPairing('open');
       ContainmentApi.move(board, booth);
       expect(await board.mayDrive(here.avatar)).toBe(true);
@@ -226,7 +239,7 @@ describe('DisplayMixin — a display drives itself', () => {
 
     it('then a screen in sight you may drive; nothing from another room by hand', async () => {
       const a = await makeViewer('Ann', booth);
-      const tv = await StuffApi.create(() => new Screen());
+      const tv = await StuffApi.create(() => new Tablet());
       tv.setPairing('open');
       ContainmentApi.move(tv, booth);
       expect((await resolveScreenFor(a.avatar))?.display.stuffId).toBe(tv.stuffId);
@@ -271,7 +284,7 @@ describe('DisplayMixin — a display drives itself', () => {
     it('a video writes each viewer\'s cockpit.watch with the display marker; clear empties it', async () => {
       const a = await makeViewer('Ann', booth);
       const c = await makeViewer('Cy', cellar);
-      const tv = await StuffApi.create(() => new Screen());
+      const tv = await StuffApi.create(() => new Tablet());
       tv.setPairing('open');
       tv.setShortDescription('the booth TV');
       ContainmentApi.move(tv, booth);
@@ -306,7 +319,7 @@ describe('DisplayMixin — a display drives itself', () => {
     // card would have landed on the rail, and this does not.
     it('prose pushes nothing and is read off the screen instead', async () => {
       const a = await makeViewer('Ann', booth);
-      const board = await StuffApi.create(() => new Screen());
+      const board = await StuffApi.create(() => new Tablet());
       board.setPairing('open');
       board.setShortDescription('the specials board');
       ContainmentApi.move(board, booth);
@@ -326,7 +339,7 @@ describe('DisplayMixin — a display drives itself', () => {
     // a renderer nobody invokes.
     it('look <screen> renders the prose it shows', async () => {
       const viewer = await makeViewer('Lena', booth);
-      const board = await StuffApi.create(() => new Screen());
+      const board = await StuffApi.create(() => new Tablet());
       board.setShortDescription('the specials board');
       board.setKeywords(['board']);
       ContainmentApi.move(board, booth);
@@ -355,7 +368,7 @@ describe('DisplayMixin — a display drives itself', () => {
     });
 
     it('a video reads as a one-line "Showing" off the screen; a dark screen reads null', async () => {
-      const tv = await StuffApi.create(() => new Screen());
+      const tv = await StuffApi.create(() => new Tablet());
       tv.setPairing('open');
       ContainmentApi.move(tv, booth);
       const viewer = await makeViewer('Vi', booth);
@@ -383,7 +396,7 @@ describe('DisplayMixin — a display drives itself', () => {
       farTablet.setPairing('held');
       ContainmentApi.move(farTablet, far.avatar);
 
-      const tv = await StuffApi.create(() => new Screen());
+      const tv = await StuffApi.create(() => new Tablet());
       tv.setPairing('open');
       ContainmentApi.move(tv, booth);
 
@@ -395,7 +408,7 @@ describe('DisplayMixin — a display drives itself', () => {
     it('refreshViewer projects only the displays in the viewer\'s own room', async () => {
       const cy = await makeViewer('Cy', cellar);
       // A lit screen in the OTHER room.
-      const boothTv = await StuffApi.create(() => new Screen());
+      const boothTv = await StuffApi.create(() => new Tablet());
       boothTv.setPairing('open');
       ContainmentApi.move(boothTv, booth);
       boothTv.show({ kind: 'card', cardId: 'who', key: 'who' });
@@ -413,7 +426,7 @@ describe('DisplayMixin — a display drives itself', () => {
 
   describe('arrival and departure', () => {
     it('walking in shows what the screen shows; walking out clears it', async () => {
-      const tv = await StuffApi.create(() => new Screen());
+      const tv = await StuffApi.create(() => new Tablet());
       tv.setPairing('open');
       ContainmentApi.move(tv, booth);
       tv.show({

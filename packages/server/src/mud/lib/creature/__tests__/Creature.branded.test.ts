@@ -22,7 +22,7 @@ import { Mixins } from '../../mixin';
 import { Creature } from '../Creature';
 import { KeptAnimal } from '../KeptAnimal';
 import { Character } from '../../character/Character';
-import { Corpse } from '../../../platform/agent/Corpse';
+import Corpse from '../../../platform/agent/Corpse';
 
 describe('⭐⭐ Branded is on the animal rungs, not on every body', () => {
   it('a kept animal can carry a mark', () => {

@@ -518,7 +518,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       }
       callTraverseHook(this, 'onTraversed', [exit]);
 
-      // Hazard trigger — the generalized `GlassAlley.onEntered`. A trap is
+      // Hazard trigger — the generalization of the lounge glass alley's
+      // `onEntered` (that class is retired; this is what replaced it). A trap is
       // self-resolving: each armed traversal-hazard the mover just met
       // (the destination if it's a hazard host, its deployable hazard
       // contents, or the traversed exit itself) decides for itself whether

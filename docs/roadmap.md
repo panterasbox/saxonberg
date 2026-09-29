@@ -888,7 +888,9 @@ or no longer load-bearing:
   is the "Utility APIs" punch-list item.
 - **Light & Boundary subsystem** — shipped. The Light value
   object, propagation walk, per-viewer perception, and the
-  Boundary substrate (Window, Door retrofit) all landed.
+  Boundary substrate (Window, Door retrofit) all landed. ⚠ The `Window`
+  CLASS landed; no window row has ever been authored — see
+  [boundary.md § Window](./subsystems/boundary.md).
 - **Race subsystem v1** — shipped. Material substrate, Clade,
   BodyPlan + Species, OrganismMixin, SexedMixin, SpeciesApi,
   animacy gating.

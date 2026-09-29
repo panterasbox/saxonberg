@@ -571,7 +571,64 @@ has not happened) and carries no *truncated* row. Commit:
 Acceptance: `lint:family` green; the two tests. Commit:
 `refactor(creature): Branded off Creature — KeptAnimal and Livestock`.
 
-### W2 — the seven row-less classes, with their documentation (D9)
+### W2 — the row-less classes, with their documentation (D9) ✅ DONE — **SIX, not seven**
+
+> **Landed, with one class kept and the departure recorded as D11.**
+>
+> **Deleted (6):** `Bench` · `Candle` · `Remote` · `Screen` ·
+> `PersistentCartesianLocation` · `GlassAlley`.
+>
+> ⭐⭐ **D11 — `Window` STAYS, and the plan was wrong to list it.** The
+> census test was *"no row names it"*, which is true of `Window` and was
+> the wrong test for this one class. Three facts, each found by opening a
+> file this wave:
+>
+> 1. **`Window.setAttachedHosts` is the only hydrator-dispatched async
+>    setter that resolves other Stuff via `StuffApi.singleton`** —
+>    `PersistentHydrator.ts:106` names it as *the* example of why that
+>    loop `await`s. Every other `public async set*` in the tree is a
+>    registry/logic method, not a `set<Field>` applier. Deleting the
+>    class leaves a documented framework seam with **no end-to-end
+>    proof**, and `declarativeContent.integration.test.ts` — which
+>    hydrates a boundary from a declarative row — cannot be re-pointed,
+>    because a test-local class has no loadable module path.
+> 2. **`baseTransmissivity` / `directionalOverrides` exist nowhere
+>    else.** `Door.transmissivity` is binary (0 or 1), so partial
+>    attenuation, one-way glass and the multi-hop `MAX_HOPS` chain lose
+>    their only exerciser.
+> 3. **Lens 2 decides it.** With the class, a window between two rooms
+>    is a row an author writes; without it, it is a kernel MR. `Window`
+>    is not a dead class — it is an **unused authoring surface**, which
+>    is a different thing from `Bench` (an empty subclass), `Screen`
+>    (which `Tablet` covers) or `GlassAlley` (which `HazardMixin`
+>    superseded).
+>
+> ⚠ The half of the finding that DID hold is the documentation half, and
+> it is the half the requirements' goal actually names: `boundary.md`,
+> `light.md` and `roadmap.md` present a window as shipped when **no row
+> has ever existed**. That is corrected in the same wave — the true
+> sentence is *authorable, unauthored*.
+>
+> **Other departures from the plan's W2 table, all smaller:**
+> - `Candle`'s fixture swaps were unnecessary — `LightSource.test.ts`
+>   and `VisionModality.shadow.test.ts` already define their own local
+>   `class Candle`. Only its own test went. ⭐ And a candle IS a `Lamp`
+>   row (`Furnace(LightSource(Detailed(Reserved(Thermal(Thing)))))`); the
+>   general store's torch is already one.
+> - `Display.test.ts` needed a local `Remote` fixture (2 lines) because
+>   the `remote` pairing is data — which is the argument for deleting the
+>   class, stated in code.
+> - ⚠ `Screen` → `Tablet` loses `Fixture`'s `seatIn:` self-seating, which
+>   no shipped `Display` composer carries. Recorded in `display.md`: the
+>   day a wall-TV row wants it, it is one mixin on `Tablet`, not a class.
+> - `harm.md § The demonstrator` was rewritten rather than annotated: it
+>   was 45 lines presenting a class + integration fixture as the proof of
+>   the injury loop, and the proof is `injury.wire.test.ts` now.
+> - `location.md`'s durable-singleton-room bullet became **the shape,
+>   written out** — `Wood` could never `extend` the class anyway (it
+>   needs mixins inside the outermost `Persistable`), which is itself the
+>   evidence the rule was load-bearing and the class was not.
+
 
 Per class — delete the file, then:
 

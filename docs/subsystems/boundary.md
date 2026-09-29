@@ -41,7 +41,7 @@ Cross-references:
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TS interface | Channel-shape: `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit`. Boundary subclasses implement (a subset of) these via `getConduits()`. |
-| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight + SmellConduit + SoundConduit`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open` gate all four channels. Declarative `attachedHosts: [string, string]` identity refs; `setAttachedHosts` resolves hosts lazily and installs anchors. |
+| `Window` | concrete `Boundary` subclass (⚠ **no row names it** — see § Window) | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight + SmellConduit + SoundConduit`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open` gate all four channels. Declarative `attachedHosts: [string, string]` identity refs; `setAttachedHosts` resolves hosts lazily and installs anchors. |
 | `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
 
 ## Locks & keys (`lib/lock/`)
@@ -717,8 +717,25 @@ not unify.
 
 ## Window
 
-`lib/boundary/Window.ts`. The first concrete Boundary user
-beyond Door. `SealableMixin(Boundary)`. Implements `LightConduit
+`platform/thing/Window.ts`. The first concrete Boundary user beyond Door.
+
+> ⚠⚠ **Authorable, and unauthored.** In the whole life of the class
+> **no content row has ever named it**, and nothing outside its own
+> tests imports it. This doc, `light.md` and `roadmap.md` all read as
+> though the game has windows in it; it does not. Corrected by the
+> base-class narrowing build, which considered deleting the class and
+> **kept it deliberately** (plan D11) for three reasons: an author's
+> only one-line way to put a window between two rooms; the only
+> exerciser of partial and directional conduit transmissivity (`Door`'s
+> is binary, 0 or 1); and the only end-to-end proof of the Hydrator's
+> **async singleton-resolving `set<Field>` applier**, which
+> `PersistentHydrator.ts` names `setAttachedHosts` as the example of.
+>
+> ⭐ So the honest sentence is *the substrate is shipped and proven, and
+> the world has no window in it yet* — which is a content task, not a
+> code one: a row, two host paths, and it exists.
+
+ `SealableMixin(Boundary)`. Implements `LightConduit
 + LineOfSight` via wrapper objects from `getConduits()`.
 
 Persistent state (per the [persistence.md](./persistence.md)
@@ -746,7 +763,7 @@ The structured runtime API `getDirectionalOverrides()` /
 A templated Window declares the two host paths in its YAML:
 
 ```yaml
-class: /lib/boundary/Window
+class: /platform/thing/Window
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   baseTransmissivity: 0.9
@@ -833,7 +850,7 @@ unless their identity is tied to an Exit.
 `canSeeThrough(from, to)` — `transmissivity(from, to) > 0`.
 
 Template authoring: Window is template-loadable like Door
-(`class: '/lib/boundary/Window'`,
+(`class: '/platform/thing/Window'`,
 `hydratorClass: '/platform/idea/persistence/PersistentHydrator'`). Seed
 code calls `BoundaryApi.attachExistingBoundary` to install on
 two rooms.

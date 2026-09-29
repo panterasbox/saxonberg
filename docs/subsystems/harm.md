@@ -596,51 +596,41 @@ command category plus `assess` in `perception`.
   (`seeds/lib/advancement/Discipline/medicine.yaml`, `key: medicine`,
   ISCED-F `0913`).
 
-## The demonstrator — GlassAlley
+## The demonstrator — retired into `HazardMixin`
 
-A **one-off demonstrator room class** (`domain/lounge/GlassAlley`),
-deliberately **NOT a reusable `HazardMixin`** — a capability mixin buys
-nothing here (no multi-host reuse, no consumer narrows on it, no
-composition; the reusable abstraction is `inflict` itself). It overrides
-`onEntered(mover, exit)` (the `Mobile.traverse` presence trigger — NOT a
-teleport arrival): resolve a foot site from the mover's own anatomy (a
-non-biped matches none → graceful no cut) and cut the foot through `inflict`
-with an `edge` insult (never `afflict` directly). There is **no explicit
-coverage gate** any more — the materials-response covering stack decides:
-a bare foot lacerates, a stoutly-shod foot's boot layer attenuates the edge
-below the no-wound threshold. Config (mechanism / energy / foot sites) is
-class constants. It proves the full loop end-to-end — step on glass →
-bleed + limp → assess → treat-or-die — through the real `Mobile.traverse`
-+ the medic controllers + the reconcile driver, in the **`GlassAlley`
-integration test** (`domain/lounge/__tests__/GlassAlley.integration.test.ts`,
-which constructs the alley + a body + an `Exit` in-memory). It is **not
-wired into the world seed graph** (see the note below); the
-reachable-in-world demo is deferred until a safe walkable host exists. A
-real hazard/trap taxonomy is a separate future build over the same seam.
+⚠⚠ **`GlassAlley` is gone** (the base-class narrowing build). It was a
+one-off demonstrator room class in the lounge, deliberately not a
+reusable mixin, and it proved the full loop end-to-end — step on glass →
+bleed + limp → assess → treat-or-die — through the real
+`Mobile.traverse`, the medic controllers and the reconcile driver.
 
-> **Shipped (concealment build): `HazardMixin` generalizes this seam.**
-> The real hazard/trap taxonomy landed — a self-resolving `HazardMixin`
-> (`lib/hazard/`, no `HazardApi` — the powerful steps route through the
-> already-gated `ConditionApi.inflict` / `PerceptionApi.perceives`), a
-> `HazardDelivery` value-object producing the `InflictSpec` (armor mitigates
-> for free through the covering stack, as it does a blow), and the trigger
-> fired from `Mobile.traverse`. See [hazard.md](./hazard.md). **`GlassAlley`
-> stays separate on purpose**: it is an *obvious* underfoot hazard — always
-> perceived, therefore always avoided — which is a different case from a
-> *spottable, concealed* trap (`HazardMixin` resolves against the detection
-> gate). Migrating GlassAlley onto `HazardMixin` is an optional, skippable
-> proof; it remains a class + integration fixture so unavoidable-glass and
-> spottable-trap coexist as distinct demonstrators.
+Everything it proved is still proved, in two places that are better ones:
 
-> **In-world placement deferred.** The demo was briefly wired off Dave's
-> Bar, then the Terminus Terminal hall, but every real content-area host
-> broke a standup/fast-travel invariant (a cross-domain exit fails the
-> terminus standup's isolated boot; the lounge's landing host asserts its
-> exit count; the TPA terminals pull the room into the fast-travel
-> cascade). Rather than degrade a tested content area for a demo, the
-> seed wiring was retired — `GlassAlley` stays a class + integration
-> fixture. Re-home it to a purpose-built, un-asserted walkable room when
-> one exists.
+- **The mechanism is `HazardMixin`** (`lib/hazard/`, the concealment
+  build), which generalized `GlassAlley.onEntered` exactly: the trigger
+  fires from `Mobile.traverse`, a `HazardDelivery` value object produces
+  the `InflictSpec`, the covering stack mitigates for free (a bare foot
+  lacerates; a stoutly-shod one attenuates the edge below the no-wound
+  threshold), and a non-matching anatomy is a graceful no-op. See
+  [hazard.md](./hazard.md).
+- **The loop is proved by `packages/wire/tests/injury.wire.test.ts`** —
+  a player walking, cutting, bleeding, limping, being dressed and
+  clotting, over the real socket. That is where a loop about walking
+  belongs; the class's own integration test constructed an alley, a body
+  and an `Exit` in memory and called it a room.
+
+⭐ Why it went: **no row ever named the class, and none ever could.**
+The in-world seed exit was wired off Dave's Bar, then the Terminus
+Terminal hall, and every real content host broke a standup or
+fast-travel invariant (a cross-domain exit fails the terminus standup's
+isolated boot; the lounge's landing host asserts its exit count; the TPA
+terminals pull the room into the fast-travel cascade). The wiring was
+retired and the class kept as *a class + integration fixture* — which is
+a demonstrator that demonstrates to nobody. The distinction it was kept
+for is real and survives as data, not as a class: an **obvious**
+underfoot hazard is always perceived and therefore always avoided, while
+a **concealed** one resolves against the detection gate. `HazardMixin`
+says which it is; that is a field, not a second room.
 
 ## ⭐⭐ Recovery — care buys RATE (the recovery build)
 
@@ -859,8 +849,9 @@ plan/requirements docs describe the pre-review shape:
   drivers. The demonstrator room's in-world seed exit (first off Dave's
   Bar, then the Terminus Terminal hall) was retired at the sweep — every
   real content-area host broke a standup/fast-travel invariant — so
-  `GlassAlley` ships as a class + integration fixture, its reachable-in-
-  world placement deferred.
+  `GlassAlley` shipped as a class + integration fixture with no
+  reachable-in-world placement, and was itself retired by the base-class
+  narrowing build (see § *The demonstrator*).
 
 ## Stabilization (shipped 2026-07-31)
 

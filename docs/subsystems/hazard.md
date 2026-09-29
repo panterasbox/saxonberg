@@ -1,9 +1,13 @@
 # Hazards & traps
 
 The flagship consumer of the [concealment](./concealment.md) gate: a
-`HazardMixin` (`lib/hazard/`) that generalizes the `GlassAlley` one-off
-(`onEntered → inflict`, explicitly *"NOT a `HazardMixin`"* — see
-[harm.md](./harm.md)) into a real **armed→sprung** hazard substrate. A
+`HazardMixin` (`lib/hazard/`) that generalizes the lounge's `GlassAlley`
+one-off (`onEntered → inflict`, whose own docstring said it was
+explicitly *"NOT a `HazardMixin`"*) into a real **armed→sprung** hazard
+substrate. ⚠ **That class is retired** — this mixin superseded it and no
+row ever named it; the loop it demonstrated is proved by
+`packages/wire/tests/injury.wire.test.ts`. See
+[harm.md](./harm.md) § *The demonstrator*. A
 trap's *delivery* is the weapon grammar (armor mitigates a trap exactly as
 it does a blow); its *trigger* is the locomotion traverse; its
 *concealment* is the detection gate (you can spot and disarm one). The
@@ -20,7 +24,7 @@ no cross-trap coordination for a `*Logic` singleton to own; and the
 `PerceptionApi.perceives`, the metabolism / locomotion / posture Apis) are
 each **already gated**, so wrapping them in one more gate buys nothing.
 Gating an orchestrator over already-gated primitives is the redundant
-layer. This is exactly `GlassAlley.onEntered` — a plain Stuff method
+layer. This was exactly `GlassAlley.onEntered` — a plain Stuff method
 calling the gated `inflict` seam — now made reusable content. A mover
 reaches a trap through its `resolveTraversal` **method**, honoring the
 inter-Stuff methods-only contract.
@@ -105,7 +109,7 @@ scythe's `edge`, a deadfall's `blunt`, an electrified floor's `shock`),
 (`ToxinTag`), and the reserved `range`.
 
 - **`resolveSite(mover)`** picks the first `siteSelector` entry the mover
-  actually has (the `GlassAlley` FOOT_SITES first-match scan, gated on
+  actually has (the glass alley's FOOT_SITES first-match scan, gated on
   `isVitals`); `null` for a non-woundable mover or a non-matching anatomy —
   the graceful "no cut" no-op (a non-biped over a foot-spike takes no wound).
 - **`toInflictSpec(mover)`** returns the exact discriminated `InflictSpec`
@@ -140,7 +144,7 @@ site (mode in hand), a `MixinApi.isHazard` scan over the entry's candidates
 (the destination if it's a hazard host, its deployable hazard contents, or
 the traversed `exit` itself) calls `hazard.resolveTraversal(mover, mode)` on
 each. It fires on **walked/ridden/conveyed** entry only — teleport arrival
-uses `autoSenseOnArrival`, a different path (the `GlassAlley` `onEntered`
+uses `autoSenseOnArrival`, a different path (the glass alley's `onEntered`
 semantics, generalized). A `hazardSeen` set dedups the scan.
 
 **Interact trigger** — `OpenController` calls `opened.resolveInteract(actor)`
@@ -260,11 +264,14 @@ constants are dials. (The concealment/detection dials — including the
 - **Alarm/signal traps** (effect = an NPC alert; wants the deferred
   detection/response wave), **area/gas traps** (the reserved ranged/AoE
   seam), and **magic traps** (the magic build).
-- **Migrating `GlassAlley` onto `HazardMixin`** — an optional, skippable
-  proof the one-off is retired; left as a class + integration fixture (an
-  *obvious* underfoot hazard is always perceived → always avoided, which is
-  a different case from a *spottable* trap, so unavoidable-glass ≠
-  spottable-trap and the two coexist).
+- ~~**Migrating `GlassAlley` onto `HazardMixin`**~~ — ✅ moot. The class
+  was retired unrowed by the base-class narrowing build rather than
+  migrated: no row ever named it and none could (every real content host
+  broke a standup or fast-travel invariant), so there was nothing to
+  migrate. ⭐ The distinction it was kept for survives as **data, not a
+  class** — an *obvious* underfoot hazard is always perceived and
+  therefore always avoided, a *spottable* one resolves against the
+  detection gate, and `HazardMixin` says which it is.
 
 ## Cross-references
 
@@ -272,7 +279,7 @@ constants are dials. (The concealment/detection dials — including the
   against; `search`/`disarm`, the `awareness` Discipline, the care↔speed
   axis.
 - [harm.md](./harm.md) — `ConditionApi.inflict`, the covering stack, and
-  the `GlassAlley` one-off this substrate generalizes.
+  the `GlassAlley` one-off this substrate generalized (since retired).
 - [materials-response.md](./materials-response.md) — `Channel`, the
   `InflictSpec` shapes, the covering-stack mitigation.
 - [metabolism.md](./metabolism.md) — `introduceToxin`, the bloodstream seam.

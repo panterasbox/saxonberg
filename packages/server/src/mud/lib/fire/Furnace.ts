@@ -218,7 +218,8 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
      *
      * `LightSourceMixin` emits its authored `emittedIntensity`
      * unconditionally, and lit-gating was done per class — `isOn()` on
-     * `PortableLight`, `isBurning()` on `Candle`. ⚠ `Campfire`, `Forge`,
+     * `PortableLight`, and `isBurning()` on a since-retired `Candle` class.
+     * ⚠ `Campfire`, `Forge`,
      * `Oven` and `Kiln` have empty class bodies and therefore no gate at
      * all, so a campfire that burnt out an hour ago has been casting its
      * full 120 lumens ever since. Nobody caught it because until this

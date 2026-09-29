@@ -806,7 +806,7 @@ rooms floorless and nothing else goes wrong. Six of the Location family's
 overrides had no `super` call before the ground build. The kernel's roster
 test covers the kernel's classes; a pack's cannot be imported by a kernel
 test, so the gate covers those. ⚠ Its first draft asked *does the FILE
-mention `Location`?* and flagged `CommandGiver`, `CardRegistry` and `Screen`,
+mention `Location`?* and flagged `CommandGiver`, `CardRegistry` and a wall-screen class,
 none of which is a room — the honest test is the class walk
 (`composesMixin(classPath, 'Location')`).
 

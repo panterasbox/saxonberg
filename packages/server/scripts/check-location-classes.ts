@@ -81,7 +81,6 @@ const ZONE_ROOTS = [
 const CARTESIAN_ROOTS = [
   "/platform/location/CartesianLocation",
   "/platform/location/SingletonCartesianLocation",
-  "/platform/location/PersistentCartesianLocation",
   "/platform/location/FurnishableRoom",
   "/lib/location/CartesianLocation",
 ];

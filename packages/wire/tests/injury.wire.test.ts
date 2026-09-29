@@ -424,11 +424,19 @@ suite('⭐⭐ steps 17-19 — a weapon that is not medieval', () => {
 
 suite('step 11 — the shipped bare-foot loop is a REGRESSION check', () => {
   it('⚠ `treat` / `undress` still exist and still answer', async () => {
-    // AC 9: the GlassAlley loop (cut, bleed, limp, dress, clot, undress)
-    // must behave exactly as it does today. The loop itself is pinned by
-    // `GlassAlley.integration.test.ts`, which is green; what the wire
-    // adds is that the two verbs it turns on are still reachable after
-    // `TreatController` grew an interior-wound branch.
+    // AC 9: the bare-foot loop (cut, bleed, limp, dress, clot, undress)
+    // must behave exactly as it does today.
+    //
+    // ⭐ It used to be pinned by `GlassAlley.integration.test.ts` — the
+    // lounge demonstrator room that seeded the whole hazard subsystem.
+    // The base-class narrowing build retired that class (no row ever
+    // named it; `HazardMixin` is the generalization), so **this file is
+    // the proof now**, which is the right home for it: the loop is a
+    // player walking on glass, not a class.
+    //
+    // What the wire adds beyond the loop is that the two verbs it turns
+    // on are still reachable after `TreatController` grew an
+    // interior-wound branch.
     expectOk(await player.cmd('help treat'));
     expectOk(await player.cmd('help undress'));
   }, 60_000);

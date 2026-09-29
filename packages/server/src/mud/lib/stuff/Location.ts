@@ -119,7 +119,7 @@ export interface FloorDefaults {
 // second composition anywhere above the base SWALLOWS the base's hook: the
 // ten Location classes that used to compose it individually
 // (`CartesianLocation`, `SphericalLocation`, `FurnishableRoom`, `Offstage`,
-// `CircleFloor`, `Lounge`, `Bar`, `GlassAlley`, and the university's
+// `CircleFloor`, `Lounge`, `Bar`, and the university's
 // `Corridor` + `DormRoom`) each dropped it, and every `postRegister`
 // override in the family now chains `super`. Inert by default, exactly as
 // `AmbientLitMixin` above it is: a Location with nothing to do at

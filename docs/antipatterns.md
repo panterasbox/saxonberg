@@ -3695,7 +3695,7 @@ isn't a player.
 Mounted is not immovable. The tell is a veto whose reason is a *fact
 about the object* (`'mounted'`, `'bolted down'`, `'too heavy'`) rather
 than about the operation: a fact about the object is state, and state
-belongs in a field the row can author. `Screen.canMove` was the tree's
+belongs in a field the row can author. A retired wall-screen class's `canMove` was the tree's
 only production override, found in the libations review; `canMove` now
 has no production users and stays for genuine class invariants. See
 [spatial.md](./subsystems/spatial.md) § *`canMove` is a class invariant*.
