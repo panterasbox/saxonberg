@@ -58,6 +58,60 @@ vocabulary for.**
 and a caution about how far the deck can be trusted as a checklist for
 this particular design.
 
+## ⚠⚠ But there is one contest, and it is the genre's oldest complaint
+
+⚠ **Correction to the finding above, which was too quick.** *Even
+contest* looked like a category we mostly do not have. We have the most
+notorious instance of it in the history of the form.
+
+**MUDs were criticized as unfair because wizards and players inhabit
+the same world, and wizards can cheat.** Not metaphorically — a wizard
+writes arbitrary code, so anything they can imagine they can make true:
+a friend's wealth, a rival's loss, a verdict, a band. That is an
+asymmetry in a shared world, which is exactly what this lens is for.
+
+**And the platform does not close it.** Call security and the sandbox
+mitigate; they do not prevent. ⭐ The posture is already stated
+elsewhere in its honest form — **TypeScript access *is* root, so guards
+constrain good faith, not malice**; their job is friction and daylight,
+and what they detect is *evasion* rather than intent. Nothing in the
+code stops a wizard cheating up their buddy, because the wizard is
+downstream of the code.
+
+### ⭐⭐⭐ Which is why the answer is constitutional, not technical
+
+A power that can rewrite the enforcement cannot be bounded by the
+enforcement. So the remedy sits one layer up, and the Compact is the
+only layer that can act on a being with root:
+
+| the wizard problem | what answers it |
+|---|---|
+| a wizard can falsify the record of what they did | ⭐⭐ `draft-constitution.md` §6 — records shall be **tamper-evident and universally verifiable**, *"so that no operator — **not even the branch that runs it** — can falsify it undetectably."* You cannot prevent the act; you can make it **detectable** |
+| a wizard can make an arbitrary judgment | §7 — human enforcement is reserved for matters of judgment and is **always subject to review** |
+| a wizard may act in bad faith | **B6** — the roster stays small and its holders owe a **fiduciary duty**; the duty is the constraint that code cannot be |
+| the whole arrangement may be captured | **B7** — AGPL-3 and the right to run your own. The exit is the final check, and it is the founder's only constraint |
+
+> ⭐⭐ **The Compact is the answer to the wizard problem**, and the
+> arrangement is revisable: what the legislature tolerates today it may
+> **entrench** tomorrow, and a constraint on wizards is exactly the kind
+> a polity would vote for — because it binds the house
+> ([measurement.md](../measurement.md) open question 5).
+
+### ⚠ And the *Alien vs. Predator* test does **not** license it
+
+His observation was that players accept a significant asymmetry when it
+fits the story world. Wizards are diegetic here — the executive branch,
+the people running the game — so the asymmetry is in-fiction and
+disclosed, and it is tempting to file it under that rule.
+
+**It does not qualify, and the difference is worth stating as a general
+authoring rule:**
+
+> **Fictional coherence licenses a *bounded* asymmetry. An unbounded
+> one needs a constitution.** A Predator is stronger by a known amount;
+> a wizard is stronger by an amount with no ceiling, and no amount of
+> narrative fit makes an unbounded advantage acceptable.
+
 ## The verdict
 
 ⭐ **Push back on the lens as a whole; adopt its third question, which
@@ -66,6 +120,11 @@ we have already answered silently.**
 > *Which is more important: that my game is a reliable measure of who
 > has the most skill, or that it provides an interesting challenge to
 > all players?*
+
+⚠ Note this question has a second edge given the section above: a
+reliable measure of skill is *only* reliable if nobody can reach behind
+it. **The wizard problem is therefore not only a fairness question but
+a measurement-integrity one** — the same act corrupts both.
 
 **We chose reliable measure, comprehensively, and never wrote it down
 as a choice.** Competence derives from evidence; *the preview is the
@@ -119,6 +178,16 @@ not balanced against one that does not, and nobody expects it to be.
    is the evidence: the lens that ought to have covered it covers
    something else entirely, and a designer trusting the deck's coverage
    would conclude the question does not exist.
+5. ⭐⭐ **Write the wizard asymmetry down as a fairness problem, not
+   only a security one.** It is currently discussed in the resilience
+   and wizard-duty material, where it reads as a threat model. Read
+   through this lens it is the genre's oldest player-facing complaint,
+   and **the honest pitch is that we answer it with a constitution
+   rather than a claim that it cannot happen** — which is both true and
+   more convincing than the claim would be.
+6. ⭐ **Make the bounded/unbounded distinction an authoring rule.**
+   Fictional coherence is the acceptance test for an asymmetry with a
+   ceiling; anything without one is a governance question.
 
 [^aogd-fr]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
     3rd ed. (CRC Press, 2020) — **Lens #37, the Lens of Fairness**

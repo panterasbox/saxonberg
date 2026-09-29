@@ -40,6 +40,41 @@ is believed. Lens 7 was carved out of the economy lens precisely
 because that class of decision kept being reviewed as though it were an
 accounting question.
 
+## ⭐⭐⭐ The Compact answers question one before the engine does
+
+Schell asks *what does your game judge about the players*. Most games
+answer with a list of mechanics. **Ours answers with a constitutional
+allocation**, and it is the load-bearing fact of this entry:
+
+> **What can be enforced by code, shall be enforced by code. The rest
+> needs a person to judge.**
+
+[draft-constitution.md](../governance/draft-constitution.md) §7 states
+it as a principle of enforcement: *"Where the law is mechanically
+applicable it shall be enforced by code — uniformly, automatically, and
+without selective discretion. **Human enforcement is reserved for
+matters of judgment and is always subject to review.** No power of
+enforcement is arbitrary."* And Art. V §9 draws the far edge:
+**administration — the judgment of how to run the polity — is never
+automated.**
+
+⭐⭐ **That is the third independent derivation of the same line.**
+[Lens 4](../design-lenses.md) separates the decidable from the
+undecidable; `measurement.md` separates measurement from valuation; the
+constitution separates rule from standard. *Mechanically applicable* and
+*decidable* are the same predicate, and the
+[legal-code slate](../slates/builds/legal-code-slate.md) names the
+jurisprudence it lands in — **rules versus standards**, where a clause
+is self-executing and rigid and prose needs a judge. When three
+different arguments reach one boundary, the boundary is probably real.
+
+⭐ **And it answers the appeal at the right altitude.** Lens 7 asks each
+feature to name its appeal, which is correct but incomplete: the general
+appeal is **institutional**, not per-mechanism. Courts and executive
+bodies exist because the constitution assumes *machines fail*, and the
+recourse for a bad automatic judgment is a human one that is itself
+subject to review.
+
 ## What the design answers
 
 **Question one — *what does it judge?*** — has an unusually precise
@@ -138,9 +173,16 @@ list and a lint. Everywhere else it is a review habit.
 4. ⚠ **Find a way to ask whether judgments land as fair.** It cannot be
    a design-review question, so it has to be a playtest one — the only
    place feeling is observable.
-5. **Pair permanently with [#37](./37-fairness.md)**, which is the
+5. ⭐ **Cite the constitutional allocation wherever a feature is
+   accused of over-automating.** *What can be enforced by code shall
+   be; the rest needs a person* is the answer to "why is this
+   mechanical" **and** to "why is this not" — and it is currently known
+   to the manifesto and the constitution while being absent from the
+   design rubric that reviews features.
+6. **Pair permanently with [#37](./37-fairness.md)**, which is the
    negative half: what Schell's deck calls *fairness* is not this at
-   all, and the gap is why lens 7 had to be invented.
+   all, and the gap is why lens 7 had to be invented — and which holds
+   the one judgment problem no code can reach.
 
 [^aogd-ju]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
     3rd ed. (CRC Press, 2020) — **Lens #25, the Lens of Judgment**
