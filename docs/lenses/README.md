@@ -53,8 +53,8 @@ Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
-✅ **Written: `46` · `55` · `91` · `25` · `37` · `86`** (2026-09-29).
-Pending: `31` · `79` · `93` · `92`.
+✅ **Written: `46` · `55` · `91` · `25` · `37` · `86` · `31` · `79`**
+(2026-09-29). Pending: `93` · `92`.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
@@ -64,8 +64,8 @@ Pending: `31` · `79` · `93` · `92`.
 | **7 · Governance** | ✅ [`25-judgment.md`](./25-judgment.md) | Lens 7's only antecedent in the deck — and it stops at *do players feel it is fair*. |
 | **7 · Governance** | ✅ [`37-fairness.md`](./37-fairness.md) | Across 113 lenses **"fair" only ever means "even contest"** — the evidence lens 7 is unprecedented. ⚠ And the one contest we *do* have: wizards and players share a world, and the answer is constitutional, not technical. |
 | **2 · Expression · 3b** | ✅ [`86-character-function.md`](./86-character-function.md) | ⭐ Casting, not staffing — and **casting happens three times** (code · content · runtime). We built the pass-2 machinery and skipped the craft: the save gate knows *legal*, never *good*. The prize is **dramatic predicates** — his against-type casting made declarative, and per-player. |
-| **2 · Expression** | `31-action.md` | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* The command-palette rebuttal, and **the refusal is the progression UI**. |
-| **2 · Expression · 3a** | `79-freedom.md` | The call-security door model as a stated design answer rather than an accident. Short by design. |
+| **2 · Expression** | ✅ [`31-action.md`](./31-action.md) | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* The command-palette rebuttal, and **the refusal is the progression UI**. |
+| **2 · Expression · 3a** | ✅ [`79-freedom.md`](./79-freedom.md) | The call-security door model as a stated design answer rather than an accident. Short by design. |
 | **3a · Immersion** | `93-the-nameless-quality.md` | Alexander's *not-separateness* as the positive form of *the fiction cannot betray itself*; *roughness* as the open charm question. |
 | **all seven** | `92-inner-contradiction.md` | The nine ledgers with only the rendering refused, against the warning not to get used to a contradiction or make excuses for it. |
 
