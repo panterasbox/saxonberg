@@ -1226,6 +1226,50 @@ Acceptance: `lint:family --list` shows it; `lint:family` green at the
 pinned ceiling; the ceiling and the top-ten offenders in § Drive record.
 Commit: `lint(narrowing W7): lint:mass — a thing made of nothing, counted and capped`.
 
+**✅ W7 DONE.** `lint:mass` is the 58th gate. **Ceiling 242** across 83
+classes; top ten: `Seed` 24 · `trade-shopkeeping/Stock` 17 ·
+`Receptacle` 15 · `SpiritBottle` 15 · `Crate` 12 · `Bottle` 11 ·
+`TpaTerminal` 7 · `Menu` 6 · `Wand` 6 · `platform/thing/Thing` 5.
+
+⚠ **The exemption in the plan named the wrong class, and doing the check
+the plan asked for is what found it.** The plan said to skip
+`OrganismMixin` *"only if the build agent verifies that
+`OrganismMixin`/`BodyPlan` derives mass (`grep getMass
+lib/species/Organism.ts`)"*. **That grep is empty.** `OrganismMixin`
+derives nothing. The deriver is two subsystems away —
+`Creature.getMass()` at `lib/creature/Creature.ts:549`, seeding from
+`species → baseMass` when the instance authored none — so the exemption
+follows `Creature`. ⭐ The conditional was doing its job: it was written
+so that an unverified premise would fail loudly instead of being
+inherited.
+
+⚠⚠ **And the gate shipped fail-OPEN for one afternoon.** The first
+version reused `check-perishable`'s textual composition walk and
+reported **9** offenders. The census says `TangibleMixin` is on 203
+classes; the walk found **5 of 684**. The cause:
+`const FooBase = AMixin(Base); class Foo extends FooBase {}` is the
+dominant shape in this tree, so the `extends` clause names a
+module-local binding and an import-only walk stops dead. Both gates
+expand local `const` bases now, and the fixed instrument's top offenders
+reproduce the plan's own grounding exactly (`Seed` 0/24, `Stock` 0/17,
+`SpiritBottle` 0/15, `TpaTerminal` 0/7, `Wand` 0/6) — **agreement with
+an independently-derived census is the validation.**
+
+⭐⭐ **The same walker, the same defect, opposite consequences.**
+`check-perishable` counts rows that CANNOT rot, so a missed class is a
+false POSITIVE and the gate fails loudly; `check-mass` counts
+offenders, so the identical miss fails OPEN. That is why the defect
+survived in the older gate from 2026-09-06 until a second consumer
+arrived today. **Two gates sharing an untested helper is one gate's
+worth of evidence.**
+
+The gate's own test asserts the INVARIANT and not the number
+(`lint-family.md` item 2 — `check-lib-statics` once pinned its ceiling
+with `toBe(392)` under the title *"may fall and may never rise"*, so
+four lowerings had to fight the test). `MASS_CEILING ≤ MASS_HIGH_WATER`
+and `≥ 0`; the high-water mark is a fact about the past and has its own
+assertion saying not to edit it down.
+
 ---
 
 ## Reachability wiring

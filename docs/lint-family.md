@@ -920,6 +920,41 @@ configured**.
   rots — which is right, and is not spoilage: a LIVING thing's tissue is
   not yet dead matter, so a class composing `GrowingMixin` is exempt by
   rule, not by list. The clock starts at the harvest, which is a `Crop`.
+- **`lint:mass`** — ⭐ **a thing made of nothing, counted and capped**
+  (base-class narrowing, 2026-09-29). Every row whose class reaches
+  `TangibleMixin` is matter, and mass drives carry capacity, thermal
+  capacity, the fist, the tailor's girth and the haulage cost surface
+  while material drives resistance, burning, rotting and worth. A row
+  stating **neither** `mass` nor `_materialPath` is matter made of
+  nothing, weighing nothing — and it fails closed and silent: `getMass()`
+  answers 0 kg and no test anywhere says a word. Census-then-ratchet,
+  **ceiling 242** across 83 classes (`Seed` 24, `Stock` 17, `Receptacle`
+  15, `SpiritBottle` 15, `Crate` 12, `Bottle` 11); writing the masses is
+  content work row by row, and what the gate buys is that the number
+  cannot grow while nobody has time for it.
+  **Exempt:** a class that DERIVES one of the two — exactly one does,
+  `Creature.getMass()` seeding from `species → baseMass`
+  (`lib/creature/Creature.ts:549`). ⚠ The plan named `OrganismMixin` for
+  that exemption and it derives nothing; the check the plan itself asked
+  for came back empty, and the exemption follows the **verified**
+  deriver rather than the plausible one.
+  ⚠⚠ **It shipped fail-OPEN for one afternoon and the census caught it.**
+  The first version reused `check-perishable`'s textual walk, which
+  follows only IMPORTS out of an `extends` clause — but
+  `const FooBase = AMixin(Base); class Foo extends FooBase {}` is the
+  dominant shape in this tree, so the clause names a module-local
+  binding and the walk stopped dead. It found **5 of 684** classes
+  reaching `TangibleMixin` where the composition census finds 203, and
+  reported **9** offenders instead of 242. ⭐ **A gate that counts
+  offenders fails OPEN on a miss, and the same walker in
+  `check-perishable` fails CLOSED** — identical defect, opposite
+  consequence, which is why it survived in the older gate until a second
+  consumer arrived. Both expand local `const` bases now.
+  ⚠ What it cannot see: a runtime `setMass`/`setMaterial`; a body's
+  MATERIAL (`Creature` derives mass and not material, so what a body is
+  made of is still unstated by every creature row — the body plan's
+  question, filed not gated); and whether a stated mass is RIGHT
+  (0.0001 kg passes — it asks whether anybody said anything at all).
 - **`lint:kept-animals`** — the kept-animal triangle closes (pets build,
   2026-09): a species dial the kernel cannot read (`handlingRange`,
   `biddability`, `feedingStyle` on a row whose class is not `Species`);

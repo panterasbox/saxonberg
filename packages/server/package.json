@@ -69,6 +69,7 @@
     "lint:object-verbs": "tsx scripts/check-object-verbs.ts",
     "lint:openings": "tsx scripts/check-openings.ts",
     "lint:pathogens": "tsx scripts/check-pathogens.ts",
+    "lint:mass": "tsx scripts/check-mass.ts",
     "lint:perishable": "tsx scripts/check-perishable.ts",
     "lint:person-keys": "tsx scripts/check-person-keys.ts",
     "lint:pm": "tsx scripts/check-pm-access.ts",
