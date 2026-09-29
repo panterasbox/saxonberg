@@ -14,6 +14,13 @@
 > Rewritten 2026-09-27 from a full-tree census. Every number below was
 > taken against `edd318088` and every claim carries its evidence. The
 > measurements are the argument; re-take them if this sits.
+>
+> ⭐⭐ **And the argument the measurements cannot make:**
+> [lenses/93-the-nameless-quality.md](../../lenses/93-the-nameless-quality.md)
+> — *a wide class does not merely carry unused members, it makes a claim
+> about every thing an author builds with it.* **A census tells you how
+> many classes use a member; that lens tells you what it costs an author
+> when they do not**, and the two disagree in useful places.
 
 See also:
 

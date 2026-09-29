@@ -8,8 +8,9 @@
 > [design-philosophy.md](./design-philosophy.md),
 > [interaction-philosophy.md](./interaction-philosophy.md), and
 > [standard-model.md](./standard-model.md). The two layers are nested,
-> not in tension — reconciled in
-> [lenses/essential-experience.md](./lenses/essential-experience.md).
+> not in tension. ⚠ The entry that reconciled them was
+> retired 2026-09-29; **both ratified essence sentences survive** in
+> [lens-deck-salvage.md](./lens-deck-salvage.md) § 2.
 
 Saxonberg transforms the pursuit of knowledge into an immersive multiplayer role-playing experience, set within a richly simulated **virtual university environment**. More than just a collection of online course pages, Saxonberg recreates the broader **university experience** – the bustling campus, diverse locations, social interactions, and academic challenges – as the core **narrative** framework. It's a web-based game world deeply interwoven with a dynamic adaptive learning platform, crafting a compelling journey where academic achievement and engaging gameplay fuel one another. Inspired by the interactive depth of text-based MUDs, Saxonberg establishes a unique synergy: mastery of learning platform content unlocks character abilities and drives the personal story forward within this academic setting, while in-game exploration and collaboration provide rich context and motivation for learning, ultimately fostering superior educational **outcomes**.
 
@@ -105,7 +106,7 @@ To foster community identity tied to real-world connections, Saxonberg may incor
 
 **Standard Gamification Elements:**
 
-While the deep alignment is core, Saxonberg will also incorporate familiar gamification elements such as achievement tracking, badges for accomplishments, and leaderboards to provide additional layers of motivation and progress visualization.
+While the deep alignment is core, Saxonberg also incorporates familiar gamification elements — achievement tracking and badges for accomplishments, which are records of acts and permitted outright. ⚠ **Leaderboards are not the house's to run.** A platform-chosen ranking of players fuses the measuring layer with the valuing one ([measurement.md](./measurement.md) Part 9); a guild's ranking, a paper's annual list or a trade association's roll, published with its own weights, is legitimate and more interesting — it makes *whose list do you trust* a live question. **We do not ban leaderboards; we ban ours.**
 
 ## Narrative Framework & World Design
 

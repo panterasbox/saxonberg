@@ -39,7 +39,7 @@ See also:
 - [docs/subsystems/quantities.md](../../subsystems/quantities.md) —
   `Quantity<U>` value object. The shipped precedent for "numbers don't
   leak into the fiction as bare scalars."
-- [docs/lenses/endogenous-value.md](../../lenses/endogenous-value.md) —
+- [docs/lens-deck-salvage.md](../../lens-deck-salvage.md) —
   **this slate's philosophical spine.** Effort-anchored value (skills,
   rank) must trace to real worth; pure-play value (your dorm, a maker's
   pride) may be arbitrary. The economy is where the two can get

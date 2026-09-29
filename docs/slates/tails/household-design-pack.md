@@ -40,7 +40,7 @@ structural answer**) · [residence](../../subsystems/residence.md) +
 [credit-slate](credit-slate.md) (the property floor) ·
 [insurance-slate](../builds/insurance-slate.md) (the scrivener thesis) ·
 [gazette-slate](gazette-slate.md) (*aggregate, never report*) ·
-[motivation lens](../../lenses/motivation.md) (cheap exit).
+[motivation lens](../../lens-deck-salvage.md) (cheap exit).
 
 ---
 
@@ -135,7 +135,7 @@ Splitting the **gate** (collective) from the **transcript** (individual) is what
 makes this humane rather than punitive, and it costs nothing: those two ledgers
 are already separate systems.
 
-The exit clause is the [motivation lens](../../lenses/motivation.md)'s *"chosen
+The exit clause is the [motivation lens](../../lens-deck-salvage.md)'s *"chosen
 hafta, cheaply exitable"* applied to a housemate. A co-occupant's neglect can
 cost you a **shared ambition**; it can never hold your advancement hostage.
 That is what keeps the whole feature inside Law 2 — and note the shape it
