@@ -567,8 +567,10 @@ standards; Part 6.4 added). ⚠ **Note what that did to the roster:**
 finding*, and the finding was fixed before the entry was written — so
 the entry backfilled a general audit to justify its slot. By this
 directory's own bar (*a lens earns an entry only if we have something
-concrete to say **today***), `92` needs re-earning on a different basis
-or demoting. **Open.** The original framing follows, for the record.
+concrete to say **today***), `92` was **deleted 2026-09-29**, the
+same day it was written — keeping it because the prose was decent is
+the drift the restart existed to stop. Recoverable from git. The
+original framing follows, for the record.
 
 **⚠⚠ Is "nine ledgers, almost none rendered" a resolved tension or an
 inner contradiction?** Count them: chronicle, participation,
