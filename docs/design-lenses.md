@@ -36,6 +36,28 @@ lens 6 on 2026-09-28: the two had been one heading since 2026-09-18, and
 the lending gate that occasioned the governance limb had **passed every
 economic question**, because it was not an economics defect.
 
+### ⭐⭐ The borrowed instruments — which Schell lens sharpens which
+
+This doc's opening note promises that *"where a Schell lens sharpens one
+of the seven, it is named as an instrument"* and for a long time never
+did. The [deck](./lenses/README.md) is the applied analysis; each entry
+states which of the seven it sharpens and what it demands.
+
+| | sharpened by | what it adds |
+|---|---|---|
+| **1 Pedagogy** | ⛔ *nothing yet* | ⚠ the derivability half has no antecedent in 113 lenses, and no entry points here |
+| **2 Expression** | [#31 Action](./lenses/31-action.md) · [#79 Freedom](./lenses/79-freedom.md) · [#86 Character Function](./lenses/86-character-function.md) · [#93 Nameless Quality](./lenses/93-the-nameless-quality.md) | the **basic:strategic ratio**; *is the surface enterable*; casting vs. allocation; *does the substrate impose properties nobody asked for* |
+| **3a Immersion** | [#93](./lenses/93-the-nameless-quality.md) · [#79](./lenses/79-freedom.md) | **not-separateness** as the positive form the failure list lacks |
+| **3b Participation** | [#86](./lenses/86-character-function.md) | the function list, and *every NPC doing two jobs is a vacancy we deleted* |
+| **4 Values** | [#46 Reward](./lenses/46-reward.md) · [#55 Visible Progress](./lenses/55-visible-progress.md) · [#91 Character Transformation](./lenses/91-character-transformation.md) | the price of refusing variable reward; *ambient* vs *visible* progress; **the change gap** |
+| **5 Continuity** | ⛔ *nothing* | no lens in the deck asks it; see [#37](./lenses/37-fairness.md) on why the deck cannot |
+| **6 Economy** | ⛔ *nothing yet* | his #52 is currency balance only |
+| **7 Governance** | [#25 Judgment](./lenses/25-judgment.md) · [#37 Fairness](./lenses/37-fairness.md) | judging people *well* is a product, not only a hazard; and the evidence lens 7 is unprecedented |
+
+⚠ **Three of the seven have no instrument**, which is a fact about the
+deck rather than about them — and lens 1's and lens 5's emptiness is
+itself a finding ([#37](./lenses/37-fairness.md)).
+
 **When the pass is run:** at the **slate** (before a design is
 considered ready) and at **requirements** (over the agreed scope).
 Between those, during a build, the lenses are not a ceremony — they are

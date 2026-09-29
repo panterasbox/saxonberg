@@ -381,7 +381,9 @@ ever advertised, which is every seat that does not author it.
 `Position.requires` is what the seat asks of an applicant, and ⛔ **the
 vocabulary is CLOSED**: `{ gigs, discipline, band }`. A hiring criterion
 judges a PERSON, so lens 7 (governance) applies — name the criterion
-and name the appeal — and every criterion in the vocabulary is something
+and name the appeal (⭐ this closed vocabulary is the worked example in
+[lenses/25-judgment.md](../lenses/25-judgment.md), and its refusal of
+**renown** is the live instance of `measurement.md`'s B8) — and every criterion in the vocabulary is something
 a player can go and DO. Nothing may select on species, lineage, trait,
 renown or wealth, and `Position.fromData` **throws** on an unknown key
 rather than coercing it away (a silently-dropped criterion is a sign that

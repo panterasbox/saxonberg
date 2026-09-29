@@ -98,6 +98,45 @@ which now lives in lens 1 where it belongs), #84 The World (a
 *transmedia* lens — the retired entry cited it for worldbuilding
 coherence, which is not what it says).
 
+## ⚠⚠ Coverage — the holes this roster has
+
+The roster was chosen by **what the audit happened to surface**. Once
+the entries are cross-referenced from the docs an agent actually reads,
+the better question is **what will someone need when they are working
+here** — and by that measure the coverage is uneven.
+
+**By rubric lens** ([design-lenses.md](../design-lenses.md) § The
+borrowed instruments has the full table): **lenses 1, 5 and 6 have no
+instrument at all**, and 3b has one. Lens 5's emptiness is a fact about
+the deck — nothing in 113 lenses asks whether a mechanism survives an
+epoch. Lens 1's and lens 6's are holes we could fill.
+
+**By design area** — where an agent is actually working when they need
+one:
+
+| working on… | candidate | have it? |
+|---|---|---|
+| activities · scheduler · contracts · quests | **#27 Time** — *nested time*, clocks vs races, and we forbid all three of his time powers | ⛔ |
+| the economy | **#7 Endogenous Value**, #52 Economy | ⛔ |
+| combat · trade difficulty | **#21 Flow**, #38 Challenge | ⛔ |
+| the response envelope · messaging | **#63 Feedback**, #64 Juiciness | ⛔ |
+| the cockpit · cards · client | **#62 Transparency**, #66 Channels | ⛔ |
+| NPCs · behaviour · dialogue | **#90 Status** | ⛔ |
+| onboarding · char-gen | **#19 The Player**, #69 Interest Curve | ⛔ |
+| the simulation itself | **#30 Emergence** | ⛔ |
+| moderation | **#99 Griefing** | ⛔ |
+
+⚠ **Several of those were entries, and were deleted in the restart.**
+That was right — they had rotted against content — but it left a hole
+this framing makes visible. Rewriting one against the rubric is a
+different act from having kept the stale one.
+
+⭐ **And the seam worth mining:** the **game-mechanics chapter** is the
+most systematic thing in the book — *space · time · objects · actions ·
+rules*, each with its own lens — and we have taken exactly one of them
+([#31](./31-action.md)). It decomposes by what an engine actually has,
+which is why its lenses land where agents work.
+
 ## On the book and the citations
 
 His lens cards and his prose are his own and are not reproduced here.

@@ -101,6 +101,11 @@ See also:
 
 ## ⭐⭐ Framing — casting happens three times (2026-09-29)
 
+> ⭐ Companion: [lenses/86-character-function.md](../../lenses/86-character-function.md),
+> which is where this framing came from and which holds the craft
+> argument — **our cast surface validates that a binding is legal and
+> has nothing to say about whether it is good.**
+
 Walter Murch's claim about film is that a movie is made **three times**:
 once in the writing, once in the shooting, once in the edit. The same
 shape holds for casting here, and it is the most useful organizing
