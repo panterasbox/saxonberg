@@ -350,7 +350,25 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = "ThermalMixin";
 
     static fieldMeta: FieldMeta = {
-      stampedTemperatureK: { persistent: true, runtimeState: true },
+      // ⭐ **Authorable since the placement build (D24), and the drive is
+      // what asked for it.** A SPACE could always author its own
+      // temperature (`Atmospheric._temperature` — the 279 K cold store);
+      // a BODY could not, so a row that ships a block of ice minted one
+      // at room temperature, which is not ice. It read as warm, it
+      // satisfied no cold-storage check, and it began melting the
+      // instant it existed. Every other route to a cold body is a
+      // history the world has to play out (a freeze, a quench), and an
+      // authored object has no history.
+      //
+      // ⚠ Authored, not overriding: this seeds the body's temperature
+      // and the reconcile takes it from there — an authored 268 K block
+      // in a 293 K room warms exactly as it should. Content that wants
+      // a thing to STAY at a temperature authors the space, not this.
+      stampedTemperatureK: {
+        persistent: true,
+        runtimeState: true,
+        authorable: true,
+      },
       thermalClockStamp: { persistent: true, runtimeState: true },
       lastAmbientK: { persistent: true, runtimeState: true },
       barrier: { persistent: true, authorable: true },

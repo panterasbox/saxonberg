@@ -38,10 +38,19 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { CoolboxMixin } from '../../lib/thermal/Coolbox';
+import { StagedMixin } from '../../lib/stuff/Staged';
 import type { FieldMeta } from '../../lib/mixin';
 
+// ⭐ `StagedMixin`, as `Chest` has it: a row may ship an icebox with
+// something already in it. That is how a venue stocks its cold — and
+// it is the only honest way, because ice left LOOSE in a warm kitchen
+// is gone in game-minutes (correct physics: a bare block's own R is
+// tiny). The generic row below ships EMPTY; a venue that keeps ice
+// says so with `extends:` and a `props:` line.
 const IceboxBase = CoolboxMixin(
-  SealableMixin(ThermalMixin(ContainerMixin(DetailedMixin(Thing)))),
+  SealableMixin(
+    StagedMixin(ThermalMixin(ContainerMixin(DetailedMixin(Thing)))),
+  ),
 );
 
 export default class Icebox extends IceboxBase {

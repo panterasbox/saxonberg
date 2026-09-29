@@ -29,4 +29,30 @@ data:
   longDescription: |
     A four-kilo block of ice, clouded white at the heart and sweating along every edge.
   _materialPath: /trade/bottling/idea/material/ice
+  # ⚠⚠ **Four kilos, and it belongs IN A BOX.** Found by driving: ice
+  # conducts well, so a bare block's own R is tiny and the leak is
+  # enormous — a block left loose in a warm kitchen is gone in
+  # something like five game-MINUTES, and one seeded on the cookhouse
+  # floor did not survive the world booting. That is not a defect, it
+  # is the design working: the cold runs out, and a box is what slows
+  # it. Inside the icebox the block borrows the walls
+  # (`CoolboxMixin.insulationR`) and lasts hours.
+  #
+  # So a venue that keeps ice ships it INSIDE its icebox (see the
+  # cookhouse's `stocked-icebox`), never loose. The plan's Risk 3
+  # called the shot: *if the block is gone before the bands diverge,
+  # raise the R or the mass — authoring, not a defect.* The answer
+  # turned out to be neither: put it where the R already is.
   mass: 4
+  # ⭐⭐ **It has to arrive COLD, and this line is what the drive
+  # bought.** Without it the block spawns at the model's default room
+  # temperature — a "block of ice" at 293 K, which is above its own
+  # 273 K melting point: not ice, not cold storage, and already
+  # melting the instant it exists. Every other route to a cold solid is
+  # a history (a freeze, a quench) and an authored object has no
+  # history, so it says so itself.
+  #
+  # 268 K is out of an icehouse: below freezing, with a little of the
+  # winter still in it. It warms to the plateau and holds there while
+  # it melts, which is the clock the icebox runs on.
+  stampedTemperatureK: 268

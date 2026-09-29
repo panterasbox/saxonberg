@@ -317,4 +317,44 @@ describe("CoolboxMixin — the interior follows the coldest thing in it", () => 
     // The ham has come down toward the plateau, not stayed at the room.
     expect(ham.getTemperature().rawValue()).toBeLessThan(285);
   });
+
+  /**
+   * ⭐⭐ **The two halves, joined** — the real `Icebox` class holding a
+   * real `Casting` of ice, read by the real `coldStorage` satisfier.
+   *
+   * ⚠ Each half was already proven and the JOIN was not, which is
+   * exactly where the live drive found it broken: `Coolbox.test` proved
+   * the interior follows a cold body, `ArchetypeSatisfaction` proved a
+   * cold holder satisfies — and a kitchen with ice shut in an icebox
+   * still reported *wants cold*.
+   */
+  it("⭐⭐ an Icebox holding an authored-cold Casting reads COLD to the satisfier", async () => {
+    const r = room(293);
+    const box = icebox(293);
+    await ContainmentApi.move(box, r);
+
+    // The row authors 268 K — a body's own starting temperature, which
+    // nothing could state until this build.
+    const ice = block(268);
+    await ContainmentApi.move(ice, box);
+    await ice.restamp();
+    await box.restamp();
+
+    expect(ice.getTemperature().rawValue()).toBeLessThan(274);
+    expect(box.coldestMass()).toBe(ice);
+    expect(box.isHoldingCold()).toBe(true);
+    // The read the archetype makes, verbatim.
+    expect(box.getContentsTemperature().rawValue()).toBeLessThanOrEqual(283);
+  });
+
+  it("⚠ …and an OPEN box with the same ice does not", async () => {
+    const r = room(293);
+    const box = icebox(293);
+    await ContainmentApi.move(box, r);
+    const ice = block(268);
+    await ContainmentApi.move(ice, box);
+    box.setOpen(true);
+    await box.restamp();
+    expect(box.getContentsTemperature().rawValue()).toBeGreaterThan(283);
+  });
 });

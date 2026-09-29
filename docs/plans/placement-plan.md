@@ -1583,7 +1583,128 @@ class, no controller, no kernel change.
   `element/iron`). Exactly the silent content defect the derived family
   exists for, found before the drive rather than by it.
 
+### W5 — the drive, and what it cost
+
+⭐⭐ **The drive found two real defects, and neither was reachable by
+any test.** 11,852 unit tests were green when the first run reported
+**3 of 12**.
+
+**⚠⚠ D23 — neither kitchen the plan named actually STANDS.**
+`/trade/cooking/location/kitchen` is the venue TEMPLATE a locality
+clones; a Hinkley lot kitchen is a keyed room of a holding that exists
+only once somebody **buys the lot**. So the icebox shipped with no
+instance a player could walk to — the shipped-but-dead class, one
+level below where the requirements checked. The process asks a
+kernel-led build to *name its first consumer*; this one named one, and
+nobody asked whether the consumer was standing.
+
+**The fix, and it is better content:** the **Hearthworks cookhouse** —
+the standing cooking venue, already home to the drying rack, the
+pantry chest and now the meat hook — gets the icebox and the ice. Both
+kitchen rows stay; they are right for the day a lot is bought. A
+working cookhouse that keeps meat would have somewhere cold.
+
+**⚠⚠ D24 — a BODY could not author its own temperature.** A space
+always could (`Atmospheric._temperature`, which is how the 279 K cold
+store works); a body could not, so the ice-block row minted a *block
+of ice* at the model's default room temperature: above its own 273 K
+melting point, therefore not ice, satisfying no cold check, and
+melting from the instant it existed. The survey said
+`a kitchen: not quite — … wants cold` **with ice in the box**, which
+is acceptance criterion 2 failing on the headline of the build. Every
+other route to a cold solid is a HISTORY the world plays out (a
+freeze, a quench) and an authored object has no history.
+`ThermalMixin.stampedTemperatureK` is `authorable` now, and the block
+says `268` — out of an icehouse, with a little winter still in it.
+
+**⭐ D25 — the drive is wizard-free, which is better than the plan
+allowed.** D20 let it SEED the ice with `clone`. Driving showed the
+allowance bought nothing: the clone was refused outright
+(`access-denied`), and a `props:` line puts the block loose on the
+cookhouse floor where a cook would have left it. Every step is now a
+player act. The box still arrives warm and empty, which is the half of
+criterion 2 that matters.
+
+**Four drive-authoring slips, recorded because each is a real fact
+about the world:**
+
+- **Trade is the mechanism; a locality is the expression** — and the
+  drive reached for the mechanism three times.
+  `/trade/hospitality/location/bar` is a template standing nowhere and
+  answered *"It is pitch dark"*. Dave's Bar is
+  `/world/lounge/location/bar`.
+- **A bare `look` after examining something re-looks at the FOCUS.** A
+  drive that wants the room says `look here`.
+- **`measure` is the INSTRUMENT rung** and wants a thermometer in
+  hand; `analyze` is the trained eye, whose ceiling on `temperature`
+  is `competent` — exactly where a cook telling warm from cold stands.
+- **The parser will not take a two-word phrase** (`boning knife`,
+  `pantry chest`). A drive types what a player types.
+
+**One thing that looked like a defect and is not.** `look meat-hook`
+renders the name as `something`. The cookhouse authors 35 lux
+deliberately — *"the fire-glow of a working kitchen"* — and its own
+row explains the trap that closes: the room's only light used to be an
+unlit hearth, so a cook walked into a dark room whose one fix was an
+object they could not see to name. `something` is the honest band
+rendering at that light, with the description still readable.
+
 ## Drive record
 
-*(appended at build time — the wire run's output and count, the live
-drive's B8, and E15 replayed by hand.)*
+### ✅ `packages/wire/tests/placement.dirty.wire.test.ts` — **12/12**, 2026-09-28
+
+Owned world on `WIRE_PORT=2014` (build-3's own; 2012 is the default and
+2013 is build-2's), against a **dropped** database each run — the
+persisted placement shape changed and the staging once-guard would
+otherwise hide the new fixtures from a booted room.
+
+```
+✓ A1  the bar lists its furniture and NOT the tools resting on it
+✓ A2  `look back-bar` shows what is ON it, under a heading that says so
+✓ A3  put something down on the bar and pick it up again
+✓ B4  ⭐ the icebox is here, and it is what makes this venue cold
+✓ B5  ⭐⭐ take the ice OUT and the capability LAPSES; put it back and it returns
+✓ B6-7 food goes IN, stays out of the room listing, and is still findable
+✓ B8  ⭐ inside the shut box reads differently from the counter
+✓ B10 ⭐ `cook` still works: the pantry chest beside it is open and untouched
+✓ C11 ⭐⭐ `put cut on hook` says HANG … FROM
+✓ C12-13 `look hook` says HANGING FROM IT; `look` lists the hook, not the cut
+✓ C14 ⭐ `dry prime-cut from hook` is accepted and names a span
+✓ D15 ⭐⭐ putting into a SHUT container is refused, says shut, target stays bound
+```
+
+⭐⭐ **It took EIGHT runs, and it earned every one.** The first reported
+**3 of 12** with 11,852 unit tests green. The findings are written up
+under § W5 above; the short version:
+
+| run | result | what it bought |
+|---|---|---|
+| 1–2 | 3/12 | neither kitchen the plan named STANDS in a world (D23) |
+| 3 | 7/12 | a BODY cannot author its own temperature (D24) |
+| 4 | 10/12 | no rung can read a temperature INSIDE a box — filed, not worked around |
+| 5 | 10/12 | ice left loose in a warm kitchen melts in game-MINUTES — right physics, wrong content |
+| 6–7 | 11/12 | ⚠ `put ice in icebox` bound a public not**ice**board; substring keywords, filed |
+| 8 | **12/12** | — |
+
+⚠ **Two of those were defects in shipped code, not in this build**
+(D22's missing ambient melt driver, and the `coldStorage` satisfier
+wrong on both rungs), and neither was reachable by any test.
+
+**E16 — the author's turn, replayed by hand.** The recipe the record
+documents rather than asserts: add one `Placement` row under any root,
+add its primary word to each view
+`pnpm -C packages/server lint:placement-words --list` names (`put` and
+`dry` today), `reload`, and a player can use it on any row that offers
+it. The roster IS the answer to *which verbs* — printed, not grepped —
+and `from` shipping as the platform's own row is the worked example.
+
+**Not driveable, and deliberately not faked.** Steps 8 and 9 of the
+requirements' script — *the food in the icebox is in a better
+condition band*, *later the ice has melted* — are four game-days, eight
+real hours at the shipped 12× clock. The harness has no clock control
+by design and turning it up would need a wizard, which would prove
+something no player can do. Split three ways instead: the CAUSE on the
+wire (the survey flips; the box holds what the counter does not), the
+ARITHMETIC in milliseconds (`Freshness` — 273 K and 293 K land in
+different bands; `Coolbox` — the melt budget computed from the sim),
+and the OUTCOME left to a browser session.

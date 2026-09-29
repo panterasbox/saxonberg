@@ -340,9 +340,13 @@ describe('`dry` — hang it where the air can reach it', () => {
     });
 
     it('⭐ a hung thing is FULLY exposed — the exposure is the row\'s number', async () => {
+      // `exposureOf` is host-internal; the observation seam is a cast
+      // with a reason, as the prospect probes above do with a subclass.
       class Probe extends DryController {
         public exposure(target: Stuff): number {
-          return this.exposureOf(target);
+          return (
+            this as unknown as { exposureOf(t: Stuff): number }
+          ).exposureOf(target);
         }
       }
       const probe = makeStuff(() => new Probe()) as unknown as Probe;

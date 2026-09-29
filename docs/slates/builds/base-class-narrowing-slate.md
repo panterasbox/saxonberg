@@ -220,6 +220,37 @@ real objection rather than the plausible one.
   that the disambiguation prompt does not use the `distinguishing` form,
   so two identical cane rods offer two identical buttons. Live now,
   unrelated to this, worth its own small fix.
+- ⭐ **The re-meltable solid is welded to metallurgy.** `Casting`,
+  `Ingot` and trade-smelting's `Bloom` all compose `AlloyedMixin`, so
+  **every non-metal thing that freezes inherits `alloying` and `temper`
+  fields it can never use** — and the `<composition>` panel shows a
+  player exactly that. `Casting`'s own docstring names wax and ice as
+  intended uses, and the placement build shipped an ice block on it
+  knowingly rather than mint a one-row class (the owner's rule 3: err
+  on composing when it is a tossup). The fix is this slate's: a
+  re-meltable solid that is not an alloy. *(Owed by the placement
+  build, filed 2026-09-28.)*
+- ⚠⚠ **A keyword matches by SUBSTRING, and the parser picks one
+  instead of asking.** `put ice in icebox`, typed in a room with a
+  public not**ice**board in it, silently shut the NOTICEBOARD in the
+  cold box and reported success — the block of ice stayed in hand.
+  Found by the placement drive, whose diagnostic printed *"You put a
+  public noticeboard in an icebox."* A player typing the obvious short
+  word gets the same. Same disease as the `distinguishing` prompt gap
+  above: when several things match, the binder should ASK, and a
+  substring hit should not outrank a whole-keyword one.
+  *(Filed by the placement build, 2026-09-28.)*
+- ⚠ **Nothing can read a temperature INSIDE something.** Found by the
+  placement drive, and both refusals are correct as written:
+  `measure temperature` is the INSTRUMENT rung and wants a thermometer
+  in hand, while `analyze temperature` is room-scoped by its own row
+  (`scope: [here]`) and answers *"It is neither hot nor cold in here"*
+  however you aim it. So a player can put food in a cold box and has
+  **no way to ask how cold it is** — they can only read the food. That
+  is a gap in the instrumentation register (a `subject` scope for the
+  temperature channel, or a thermometer anyone can buy), not in the
+  cold box. → [instrumentation](../../subsystems/instrumentation.md).
+  *(Filed by the placement build, 2026-09-28.)*
 - **A generated taxonomy index** — `standard-model.md`'s element list is
   hand-maintained and has drifted. The replacement should be generated
   from the tree (`tools/slate-index` is the precedent) and must
