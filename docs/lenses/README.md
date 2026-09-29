@@ -57,13 +57,14 @@ the unnumbered **#∞ Lens of Your Secret Purpose**. *(Corrected
 2026-09-29: an earlier count of 113 stopped one page short of the table's
 end and missed **#111 Responsibility** — "does my game help people,
 how?" — and **#112 the Raven** — "is making this game worth my time?")*
-✅ **Thirteen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
-`31` · `37` · `46` · `55` · `79` · `86` · `91` · `93`. ⛔ **`92` was written and then deleted** —
+✅ **Fourteen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
+`31` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
 see below.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
 | **all seven** | ✅ [`2-essential-experience.md`](./2-essential-experience.md) | ⭐⭐⭐ The lens that asks what the seven are *for*. Two challenges — he assumes one game **and one kind of participant** (*player* where he means *consumer*; we have consumers, labour and capital). The seven reduce to **the world does not lie · what you do persists**, which the ratified head already says. And the engine/transmission split: *without the Compact, a world you can live in; with it, a world you can change.* |
+| **4 · Values · 7** | ✅ [`110-transformation.md`](./110-transformation.md) | ⭐⭐⭐ Paired with **#111 Responsibility** (*Kipling's iron ring — "it doesn't come off"*). We are not holding the dial: **the incentives are pencil, not ink.** So **Tier A is the responsibility statement**, and the hedge is values *instantiated in content* — friction and daylight. ⚠ Generation collapses that hedge. |
 | **1 · Pedagogy · 2** | ✅ [`17-the-toy.md`](./17-the-toy.md) | ⭐⭐⭐ *GTA "was designed as a medium… a living, breathing city"* — the deck's own words for this project, and **we have already taken his braver way**. Q2 is the **enterability gap verbatim** (third sighting). And *GTA came from Pac-Man*: deriving the world may not oblige deriving the game. |
 | **6 · Economy · 4** | ✅ [`7-endogenous-value.md`](./7-endogenous-value.md) | ⭐⭐ **The roulette test**: *if the game needs the credential to be worth playing, it is roulette.* His Q2 is one our doctrine forbids us answering. ⭐⭐⭐ And the Goodhart shape: **our best-instrumented value is the one we least want optimised, and the value we promise — understanding — is the least instrumented thing in the design.** |
 | **6 · Economy · 3a** | ✅ [`27-time.md`](./27-time.md) | ⭐ **His chapter is about escaping time; ours about being subject to it** — rewind and speed-up refused, but ⭐ **the pause exists and is better than his**: *you cannot pause the world; the world agrees not to charge you for your absence.* Q1 unanswered — and untestable except **relatively**, which is a third ask for the gym pattern. |
