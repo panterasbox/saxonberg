@@ -116,6 +116,15 @@ The substrate ships these predicates:
    what slices you own; the question is whether you have escape
    capability. A content author who is *not* a wizard is a
    **protowizard** (content-write access without code trust — an
+   ⭐⭐ **and the role a CONTENT GENERATOR takes**: code that writes
+   content rows is a protowizard, not a wizard — it may create things and
+   may never change what a thing IS, because `class:` /
+   `hydratorClass:` / `behaviors[].brain` are the code-trust axis and are
+   closed to it. `canAtPath` then gates it **by parcel title** exactly
+   like a human author, which makes **its budget the extent it holds**
+   rather than an invented quota, and **the titleholder the author of
+   record** for whatever is generated under them. See
+   [content-generation-slate](../slates/builds/content-generation-slate.md).
    unstored complement, not a group).
 5. **`AccessApi.isStreamer(subject)`** — orthogonal streamer axis.
    True iff `subject` is in `'streamers'`. Gates the livestream

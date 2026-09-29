@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**250 slates.** 59 greenfield · 88 continuations · 57 waves · 46 tails.
+**254 slates.** 61 greenfield · 88 continuations · 57 waves · 48 tails.
 
-## ⭐ Greenfield — nothing shipped yet (59)
+## ⭐ Greenfield — nothing shipped yet (61)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -58,6 +58,7 @@ respect.
 | [client-audio](./builds/client-audio-slate.md) | the client audio player (ambient emission → playback, as a second modality on the `cockpit.watch` push) · the source's home (Location field vs in-world device — Q1) + the autoplay gesture + mix · the Spotify embed tier · the loose-sync-or-frame-lock decision (Q6) … |
 | [cold-chain](./builds/cold-chain-slate.md) | cold PRODUCTION (a powered freezer on the electricity tier, or harvested winter ice / a seasonal ice-house) · cold STORAGE (a cold larder/cellar location, an insulated container, an iced cooler) · the cold-source COUPLE (mirror the furnace couple in `Thermal.ts`) · the coolant reserve + melt reconcile (mirror `FurnaceMixin`'s fuel) … |
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
+| [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
@@ -72,6 +73,7 @@ respect.
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
+| [household-lifecycle](./builds/household-lifecycle-slate.md) | the household as ordinary content (a template row, unstamped) · the generator as an author · minting parents at char-gen with a residence · **un-gating the estate machine from `Avatar`** … |
 | [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |
 | [hydration-framework](./builds/hydration-framework-slate.md) | ⭐⭐ the census + ratchet on the `postRegister` implementations that load state (63 → 67, ungated) · the finishing-hydration vs warming-a-roster ruling the census feeds · ⭐ let a `PersistenceContributor` name its own SOURCE (so a layer can restore from a collection that is not `holder_snapshots`) · pre- vs post-register for a source-naming contributor (Q1) … |
 | [implements](./builds/implements-slate.md) | the implement class itself · choosing what it modifies (magnitude / cost / band-reach — and the reach case must not become a key) · wear (default none; else `Durable`, as the conduit did) · BUC on the effect axis … |
@@ -262,7 +264,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (46)
+## Tails — small and opportunistic (48)
 
 | slate | left |
 |---|---|
@@ -272,6 +274,7 @@ are the named remainders.
 | [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script (no `script` verb) detaches · a per-actor async concurrency cap · a generic cancel-my-running-async-command verb (engagement owns cancel today) |
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · YouTube as a linkable/login provider (a `@`-seed still rejects `character-youtube`) · LLM name-refraction |
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |
+| [autopsy](./tails/autopsy-slate.md) | the post-mortem `Operation` row + **evidence as its stake** · the **interior-injury** reading channel · **per-channel readability** · who may open a corpse … |
 | [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` · `pushDirect`'s second `describeCore` entry … |
 | [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. |
 | [collision](./tails/collision-slate.md) | room capacity as a `capacities` field + validator, re-checked at activity completion · the `guards` brain's decision half (block targets · reason · unblock predicate over NPC memory … |
@@ -296,6 +299,7 @@ are the named remainders.
 | [mixin](./tails/mixin-slate.md) | `Invisible` (perception override) · `Sleeping`/`Resting` (sensory cutoff, command-gating, species circadian variance) · `Writable` · `Pushable`/`Pullable`/`Liftable` … |
 | [multi-currency](./tails/multi-currency-slate.md) | whether a second currency needs its own cash/coinage · a combined cross-currency account statement · the changer's spread/fee home |
 | [nutrition-and-fitness](./tails/nutrition-and-fitness-slate.md) | the `pace` device (the sustained-work exemplar; the gym's second slot) · the real-world bridge (Part 5 — a seam only) · the menu as a choice (Part 7) · a `{{ body }}` prompt word … |
+| [pack-boundary](./builds/pack-boundary-slate.md) | the two populations written down (`content-packs.md`) · ⭐ the |
 | [prompt-stack](./tails/prompt-stack-slate.md) | Tier 2 kinds `numeric` / `multiChoice` / `password` · Tier 3 `paginated` + `quiz` · the open questions below (choice-list scaling, confirm/choice unification, author test-prompt overrides, quiz design) |
 | [reactions](./tails/reactions-slate.md) | the analytics event-stream tap (Wave 3) · the emote-flood salvage (Future direction, below) · reactability for act-kinds beyond the shipped `speech.vocal`/`act.emote`/`speech.channel`/`act.combat` set (e.g. system notices) |
 | [reference-lifetime](./tails/reference-lifetime-slate.md) | the undeclared instance-ref sites still guarding by hand (`SandboxCrossingExit.crossing` · the `ExitableVessel` caches · `LoungeWarren._reapTimers` · the warren maps, now `OuterWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey` and `HoldingWarren._roomsByKey`) … |
@@ -322,6 +326,7 @@ tail in `tails/`. These need moving or re-stamping.
 |---|---|---|
 | [containment-partition](./builds/containment-partition-slate.md) | a wave | `builds/` |
 | [credit](./tails/credit-slate.md) | a build | `tails/` |
+| [pack-boundary](./builds/pack-boundary-slate.md) | a tail | `builds/` |
 | [value-object-statics](./builds/value-object-statics-slate.md) | a tail | `builds/` |
 
 <!-- END GENERATED -->

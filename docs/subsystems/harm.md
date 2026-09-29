@@ -717,14 +717,33 @@ a vial and crashes the matching burden (D7 — an antidote is a substance
 with a tag, no new mixin). ⚠ The bone-setting verb is `splint`, not
 `set` (`set` is a scripting builtin).
 
-⭐ **`operate` is the honest minimum, not the craft.** It stops a rupture's
-cavity bleed in one decisive FIELD act — deliberately shallow (instant,
-single-wound, cannot-fail: an untrained hand is refused, not risked).
-*Surgery the practice* — a durative, interruptible operation with a
-bleed-during clock, a surgical team, a theatre, and anaesthesia as the
-epoch dial, and the install act for augments/prosthetics — is its own
-build ([clinical-medicine-slate](../slates/builds/clinical-medicine-slate.md)); this verb is
-the stub that vertical will wrap, not replace.
+⚠ **Superseded 2026-09 by the clinical-medicine build (MR !290).** This
+passage used to read *"`operate` is the honest minimum, not the craft"* —
+an instant, single-wound, cannot-fail field act with *surgery the
+practice* deferred to a later build. **That build shipped.** The stale
+text survived the sweep and was still being cited as current in a design
+conversation on 2026-09-28, so it is corrected in place rather than
+quietly edited.
+
+⭐⭐ **`operate` is now the craft.** It is a **durative, blood-costing,
+interruptible** act over a **data `Operation` catalogue** (5 rows today),
+gated on **posture · competence · kit · anaesthesia**, with the biology
+in `applyTreatment` / `severPart`.
+
+> ⭐⭐⭐ **A second operation is a ROW** — the extensible spine is done.
+
+What is still deferred is the **richness**, not the mechanism →
+[surgery-specialty-slate](../slates/builds/surgery-specialty-slate.md):
+the theatre as a room that matters, the surgical team (anaesthetist +
+assistant), asepsis as a system, instrument grade (the
+`gradeConditionScale(kit)` hook left at 1.0), complications, and elective
+vs unsalvageable amputation.
+
+⭐ **And the catalogue's first non-therapeutic consumer is the
+post-mortem examination** — the same machinery with its danger
+parameters zeroed (no anaesthesia to give, no blood to lose), where what
+is at stake is the **evidence** rather than the patient. See
+[autopsy-slate](../slates/tails/autopsy-slate.md).
 
 ### Hygiene and the festering wound
 
