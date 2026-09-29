@@ -59,7 +59,7 @@ see below.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
-| **6 · Economy · 4** | ✅ [`7-endogenous-value.md`](./7-endogenous-value.md) | ⭐⭐ **The roulette test**: *if the game needs the credential to be worth playing, it is roulette.* His Q2 is one our doctrine forbids us answering. And standing is the purest endogenous value we have — and the one not built. |
+| **6 · Economy · 4** | ✅ [`7-endogenous-value.md`](./7-endogenous-value.md) | ⭐⭐ **The roulette test**: *if the game needs the credential to be worth playing, it is roulette.* His Q2 is one our doctrine forbids us answering. ⭐⭐⭐ And the Goodhart shape: **our best-instrumented value is the one we least want optimised, and the value we promise — understanding — is the least instrumented thing in the design.** |
 | **6 · Economy · 3a** | ✅ [`27-time.md`](./27-time.md) | ⭐ **His chapter is about escaping time; ours about being subject to it** — rewind and speed-up refused, but ⭐ **the pause exists and is better than his**: *you cannot pause the world; the world agrees not to charge you for your absence.* Q1 unanswered — and untestable except **relatively**, which is a third ask for the gym pattern. |
 | **4 · Values** | ✅ [`46-reward.md`](./46-reward.md) | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
 | **4 · Values** | ✅ [`55-visible-progress.md`](./55-visible-progress.md) | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |

@@ -92,19 +92,76 @@ industry's answers to Q2 (make it rare, make it shiny, make it a
 badge) while leaving the one that works: **a thing is valuable when
 losing it would cost you something the world will remember.**
 
-## ⭐⭐ The most endogenous value we have is the one that is not built
+## ⭐⭐⭐ The value the game promises is the one nothing measures
 
-By Schell's own measure — *value that exists only inside* — **standing
-is the purest thing in the design.** It cannot be bought
-(`measurement.md` forbids money reaching the mint), cannot be exported,
-and exists nowhere else in a person's life. Goods can be sold, skills
-are transferable, money is money. Standing is Monopoly money in the
-exact sense he means, and therefore the **best available instrument for
-asking whether any of this is compelling on its own.**
+Question 1 — *what is valuable to the players* — has an answer we do
+not like, and the reason we do not like it is the whole entry.
 
-⚠ It is also the ledger that is not online
-([#91](./91-character-transformation.md)). **The thing that would best
-answer this lens's first question is the unbuilt one.**
+**Money is the most reliable measure of contribution and engagement the
+design has.** Not the only one, but by some distance the best
+instrumented: it is conserved, audited, chokepointed, and every system
+that produces or consumes anything already speaks it. ⚠ **And it became
+that by default rather than by choice** — the genre's usual measure of
+investment is a combat ladder, we have no hitpoints and will never be
+in D&D's lineage, so the economy inherited the job because nothing else
+was holding it.
+
+⚠⚠ **But money is explicitly not the value the game promises.**
+[Lens 1](../design-lenses.md) is about knowing how the universe works;
+[lens 4](../design-lenses.md) is about navigating it with good
+judgment. **Neither has anything to do with becoming rich.** So:
+
+> ⭐⭐⭐ **Our best-instrumented value is the one we least want people to
+> optimise, and the value we actually promise — understanding, and
+> judgment — is the least instrumented thing in the design.**
+
+That is a Goodhart problem of an unusually nasty shape. The familiar
+version is *the measure becomes the target*. Ours is **the only good
+measure is of a thing we do not want targeted**, which no amount of
+care about the measure can fix.
+
+### ⚠⚠ Which inverts the roulette test
+
+Schell's instrument says the more compelling a game is, the more
+endogenous value it generates — and *"would people pay real money for
+zorkmids"* is his purest form of the question. The honest answer here is
+**probably yes, almost to a fault, if this thing works**, which is why
+the firewalls between real capital and in-game reward or capability are
+being written into **law** rather than left to policy.
+
+> **If money is what players end up caring about, we passed his test and
+> failed our own.** The defence we are obliged to build against that
+> pressure is the thing he would read as success.
+
+⭐ **And standing does not rescue it.** By his definition standing is the
+purest endogenous value here — unbuyable, unexportable, existing nowhere
+else in a person's life — but it is still a measure of **regard**, not
+of understanding. A person can be widely esteemed and wrong about the
+world. It is the better *currency*; it is not the promised *value*.
+
+### ⭐⭐ So what would measure the promised thing?
+
+This has not had a dedicated conversation, and the pieces are scattered.
+What exists measures **practice**: competence derives from evidence of
+doing, the transcript records what you did, traits record who you have
+been. ⚠ **Nothing anywhere observes whether a player *derived* an
+outcome or *looked it up***, which is lens 1's own test applied to the
+world and never to the person.
+
+⭐ The measurable form of understanding is **prediction**, and the
+transcript already holds what would show it:
+
+> **Practice is doing the same thing again. Understanding is getting a
+> *novel* case right the first time**, because the principle transferred.
+> Competence that rises faster on first attempts at unfamiliar
+> applications than on repetitions is measuring the thing lens 1 cares
+> about; competence that rises on volume is measuring attendance.
+
+⚠ **With the obvious guardrail:** this is the exact point where a
+platform is most tempted to become a test. `measurement.md`'s layers
+still hold — **the engine may measure the prediction; it may not grade
+the person** — and the distinction is the difference between a mirror
+and an exam.
 
 ## The inversion: his top of the scale is our breach
 
@@ -161,14 +218,19 @@ already exists is nearly always better than inventing a parallel scale
 2. ⭐⭐ **Say that Q2 is not ours.** *Make things matter; let valuing be
    theirs* belongs in the rubric — it forecloses the badge-and-rarity
    reflex on principle rather than on taste.
-3. ⭐⭐ **Treat standing's absence as a measurement gap, not only a
-   feature gap.** It is the purest endogenous value the design has, so
-   until it exists we cannot ask the lens's first question of the thing
-   most likely to answer it.
-4. ⭐ **Make every value-bearing element declare its kind** — pure-play,
+3. ⭐⭐⭐ **Have the dedicated conversation about measuring
+   understanding.** It is the value the game promises, it is currently
+   the least-instrumented thing in the design, and the pieces are
+   scattered across advancement, the transcript and lens 1. The
+   candidate is **novelty vs. repetition** — did the principle transfer
+   — and it is derivable from records we already keep.
+4. ⭐⭐ **Say out loud that money became the engagement measure by
+   default.** No hitpoints, no combat ladder, so the economy inherited
+   the job. That is worth knowing when deciding whether to keep it.
+5. ⭐ **Make every value-bearing element declare its kind** — pure-play,
    effort-anchored, conserved — since each inherits a different
    integrity rule and getting them crossed is how anchors quietly break.
-5. **Settle the real-money stance before wealth exists.** Still open,
+6. **Settle the real-money stance before wealth exists.** Still open,
    and it gets harder to decide every month there is more to trade.
 
 [^aogd-ev]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
