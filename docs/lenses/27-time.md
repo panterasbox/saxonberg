@@ -101,6 +101,64 @@ pause. The dying clock is its one advertised exception, and mistaking
 the exception for the rule is easy because it is the part that got
 written up.
 
+### ⭐⭐⭐ And it is not a linkdead rule — it is a relief principle
+
+The freeze is an instance of something more general, which is worth
+stating at its own altitude because it governs far more than absence:
+
+> **If you are unable to meet an obligation — for any reason, absence
+> or not — you may be relieved of it.**
+
+And *how* you are relieved depends on what kind of obligation it is:
+
+| the obligation is… | relief | example |
+|---|---|---|
+| **property** | ⭐ remove the **property** | you cannot carry the room, so you lose the room |
+| **intrinsic / biological** | remove the **obligation** | you cannot eat, so you do not get hungry — *the linkdead freeze* |
+| **either** | ⭐⭐ **automate the discharge** | your body eats from your own pack |
+
+⭐⭐ **The third option is the interesting one and it is not built.** It
+is the same shape as *disengage or flee from combat*, generalised: your
+character **acts on standing instructions** rather than the world
+suspending itself around them.
+
+And it may be the better model for the biological case, for a reason
+that belongs to lens 1:
+
+> **Suspending metabolism makes the world lie a little.** A body that
+> does not burn while its player is away is not a body. **Automating it
+> keeps the model honest and moves the cost from the person to their
+> preparation** — you are not punished for being absent, you are
+> rewarded for having provisioned.
+
+⭐ Which turns absence from a **freeze** into a **design surface**:
+*what does my character do when I am not here?* That is a question with
+interesting answers, where *nothing* is not.
+
+⭐⭐ **And the machinery already exists.** Standing instructions are a
+**brain**, and the engine already runs brains on bodies; the
+[lineage backstop](../slates/builds/lineage-slate.md) already has NPCs
+holding positions a player might hold. **A netdead body running a brain
+is the same object the design already contemplates**, pointed at
+yourself.
+
+⚠⚠ **With one bound, and it falls straight out of existing doctrine:**
+
+> **Automation may *preserve* you. It may never *earn* for you.**
+
+Flee, eat, bank the fire, set the tool down, come off shift — yes. Keep
+smelting and collecting wages — no, because that is precisely the **AFK
+wage** [employment.md](../subsystems/employment.md) already names as a
+lens 6 failure. *Survive, do not produce* is the line.
+
+⚠ **The honest costs of automating.** It spends your resources without
+your consent in the moment — if the food in your pack was precious, an
+autonomous meal may be worse than a freeze. It needs the automation to
+be **good enough not to be stupid**, which is the same unset competence
+dial [#86](./86-character-function.md) found for seat-holding NPCs. And
+which of the three reliefs is right for which obligation is **a
+playtest question**, not a doctrinal one.
+
 ## ⭐⭐ And we spend the player's time on purpose
 
 The other half, and it is the part a CLI makes visible: **a command
