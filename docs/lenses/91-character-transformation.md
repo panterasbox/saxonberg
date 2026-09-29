@@ -71,21 +71,37 @@ and unbidden, and it is the question we have not answered. **A change
 nobody notices is, for this lens, a change that did not happen**,
 however believable it was.
 
-⭐⭐ **But the seed is already specified.** The mirror's push channel —
-*announce the surprising, not the every*, narrating a write when it
-pushes `expressed` away from `equilibrium`
-([#55](./55-visible-progress.md)) — produces exactly this line:
+⭐⭐ **But the seed is already specified, and it is correctly scoped.**
+Character *is* a declared standard, which is exactly where
+[measurement.md](../measurement.md)'s deviation rule belongs — *announce
+the surprising, not the every*, narrating a write when it pushes
+`expressed` away from `equilibrium` ([#55](./55-visible-progress.md)
+has the four delivery modes). ⭐ The 2026-09-29 amendment that freed
+**performance** to be read routinely left this rule untouched, and
+should have: who you are becoming is not a quantity you can check, and
+narrating every disposition write teaches farming. The rule produces
+exactly this line:
 
 > *You'd not have done that a year ago.*
 
 **That is a transformation narration.** It is #91's second question,
 answered, in the register conscience actually speaks in — and it is
-currently scoped to one subsystem's traits. Generalizing it past traits
-is the work this lens assigns, and it is a much smaller job than
-inventing a progression system, because the hard part (deviation from
-equilibrium, two half-lives, mean reversion) is already designed.
+currently wired to one subsystem's traits. ⚠ **Generalizing means
+across the other declared standards** (faith, and whatever else adopts
+the pattern), **not across everything measurable** — performance has
+its own channel now and does not want this one. It is a much smaller
+job than inventing a progression system, because the hard part —
+deviation from equilibrium, two half-lives, mean reversion — is already
+designed.
 
 ## Tensions & risks
+
+⚠⚠ **The three ledgers split across the amendment, and only one half is
+answered.** CAN DO is performance — readable numerically and routinely
+since 2026-09-29. ARE is a declared standard — bands and narrated acts,
+by design. So the communication gap is now **specifically about the
+ARE half**, which is also the half that is not online. The lens's
+complaint did not get smaller; it got located.
 
 ⚠ **His method does not port.** The transformation chart wants
 characters down one axis and story sections along the other. We have
