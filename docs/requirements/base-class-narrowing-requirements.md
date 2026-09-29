@@ -14,10 +14,22 @@ and an author the same thing, which is worse, because the author
 believes it. This build removes claims that are false and repairs the
 one defect hiding behind the biggest of them.
 
-Executes the ranked defect register in
-[base-class-narrowing-slate](../slates/builds/base-class-narrowing-slate.md),
-whose numbers were taken by full-tree census and **re-measured at the
-start of this cycle** — every finding below still holds.
+Executes part of the ranked defect register in
+[base-class-narrowing-slate](../slates/builds/base-class-narrowing-slate.md).
+
+⚠⚠ **The register was re-measured at the start of this cycle and two
+rows did not survive.** `ImprovableMixin` and `RegistrarMixin`, ranked
+as *"the only unambiguous dead mixins found"*, are both **live** —
+`Improvable` gates `ditch`, `grub` and `lime`. And finding #1's
+*"provably unreachable"* was true of the thermal **envelope**, not of
+the mixin: a player inside a coach reads it through `feel`, `smell`,
+`listen` and `trace atmosphere`.
+
+⭐ Both hid in channels the census did not count. There are **seven**
+(`pnpm -C packages/server mixin-census` documents them), and the two
+newest — a controller's own narrowing, and a data row naming a mixin
+in a field that is not `requires:` — were each found by re-running a
+census that had already been corrected once. **Assume an eighth.**
 
 ## What already exists
 
@@ -59,13 +71,22 @@ meaning it.
   tracks the world again, which a player can feel with one command.
 - **A person, a corpse and a shade stop advertising that they can be
   branded like livestock;** a kept animal still can.
-- **Nothing in the game refers to seven classes and two mixins that no
-  content, no verb and no player has ever reached** — and the gate
-  that was supposed to notice one class of that is tightened so it
-  cannot re-grow.
+- **Nothing in the game refers to seven classes no content, no verb
+  and no player has ever reached** — ⚠ and the published docs that
+  call five of them *shipped* stop saying so, because a deleted class
+  that two subsystem docs still present as the answer to a design
+  question is worse than the class.
 
 ## Non-goals
 
+- ⛔⛔ **`ImprovableMixin` and `RegistrarMixin` — DO NOT DELETE.** The
+  register said dead; they are live and one of them gates three
+  shipped verbs. Named here so nobody re-reads the old row and acts on
+  it. → the slate, with the row struck and the reason recorded.
+- ⛔ **Re-verdicting the rest of the register.** #4 (`Concealable`) and
+  #5/#8 have not been re-measured against channels 6 and 7, and this
+  build does not touch them. ⚠ **Their verdicts should be treated as
+  unproven until they are.** → the slate.
 - ⛔ **`Concealable` on `Thing`** (register #4, *the bullet-bite*) —
   182 classes, 596 rows, and **no signal exists in the data** to draw
   the line automatically. A human decides it class by class. → stays
@@ -126,27 +147,32 @@ shipped rung.
 
 ## Surface decisions
 
-### `Atmospheric` moves to `ExitableVessel`; it does not simply go away
+### `Atmospheric` MOVES to `ExitableVessel` — it cannot simply go away
 
-**The question.** The census says remove the mixin from `Vessel`. But
-`Vessel`'s descendants include the things a player can walk into.
+**The question.** The census said remove the mixin from `Vessel`. Can
+it just be deleted?
 
-**The answer.** Remove it from `Vessel` and put it on
-`ExitableVessel`, where it also becomes *real* — an enterable vessel
-states its interior size, so the envelope that is dead everywhere
-today actually runs there.
+**The answer.** No. ⚠⚠ **Removing it would break shipped player
+reads.** Inside an `ExitableVessel` — a coach, a barge, a wagon —
+`feel`, `smell`, `listen` and `trace atmosphere` all key off
+`context.location` being atmospheric, and `feel <vessel>.<detail>`
+takes a touch band off it. Delete the mixin and a coach interior goes
+sense-silent. So it **moves** to `ExitableVessel`, where it is also
+made real: an enterable vessel states its interior size, so the
+envelope that is dead everywhere today actually runs.
 
 **The reasoning.** ⭐ *A thing you can go inside is a place, and
-places have air.* Lens 3 chose this: the alternative leaves the build
-purely subtractive, and a closed coach in a storm reading the street's
-weather is exactly the kind of quiet dishonesty the census exists to
-find — the same defect as the backpack, pointing the other way. It
-also costs no new mechanism: the envelope's open/closed handling is
-shipped and a coach already authors a door state.
+places have air.* This started as the nicer of two options and the
+re-measurement made it the only safe one. A backpack claiming weather
+and a closed coach reading the street's weather are the same defect
+pointing opposite ways, and one move fixes both. It costs no new
+mechanism: the envelope's open/closed handling is shipped and a coach
+already authors a door state.
 
-**Alternative considered.** Remove it from `Vessel` outright. Smaller
-and defensible, but it retires a claim instead of making one true, and
-the coach loses a thing it should have had.
+**Alternative considered and now refused.** Remove it from `Vessel`
+outright — which was the census's own recommendation, and would have
+silently removed four sense reads from every enterable vessel in the
+game.
 
 ### A row may decline an interior
 
@@ -163,12 +189,22 @@ the room the bag is in. One step, which the placement build's
 enclosing-scope seam already supports. Anything deeper is a separate
 question about nested containers.
 
-### Dead means unreachable by content, verbs and players — not merely unused in tests
+### Dead means unreachable by content, verbs and players — and the DOCS come with it
 
-A class that only its own test references is dead. ⚠ Where that class
-is the sole exercise of a subsystem, the build says explicitly whether
-the subsystem is dead too — deleting the test-only consumer of live
-code would hide it, not remove it.
+A class no row names and no production file imports is dead, even
+where another class's test imports it. ⚠ Two further obligations, both
+learned by re-measuring:
+
+- **Where the class is the sole exercise of a subsystem** (`Candle`
+  and `Screen` each are), the build says explicitly whether the
+  subsystem is dead too. Deleting the test-only consumer of live code
+  hides it rather than removing it.
+- ⚠⚠ **Five of the seven are described as SHIPPED in published
+  docs**, and `PersistentCartesianLocation` is cited in two subsystem
+  docs as the answer to a design question. **Deleting a class and
+  leaving the doc is worse than leaving the class** — the doc is what
+  the next author reads. Every deletion takes its documentation with
+  it, or the deletion does not happen.
 
 ### The gate closes behind the fix
 
@@ -206,6 +242,10 @@ ratchet — the pattern this repo already uses.
 A character with a bag, a perishable, and a coach to get into.
 
 **A — the panel stops lying.**
+
+⚠ Step 0, before anything: `ditch` on a field, and a herdbook entry.
+Both must work at the end exactly as they do now — they are what the
+falsified register row would have broken.
 
 1. Inspect a backpack (or a till, or a shop counter). ⭐ Its
    capability list does **not** mention atmosphere or weather.
@@ -255,11 +295,18 @@ Observable from outside the code.
    world changes**, readable with one `feel`. Today it does not.
 5. **A person, a corpse and a shade no longer advertise branding; a
    kept animal still does.**
-6. **Nothing in the running game refers to the deleted classes or
-   mixins** — every venue that used them still boots, still furnishes,
-   and still plays.
-7. **Nothing that worked stopped working**: every container still
-   holds what it held, every verb still reaches what it reached.
+6. **Nothing in the running game refers to the deleted classes** —
+   every venue still boots, still furnishes and still plays — and
+   **no doc still calls them shipped.**
+7. ⚠ **The three verbs that the falsified register row would have
+   broken still work**: `ditch`, `grub` and `lime` on a field, and the
+   herdbook and fishery registers still accept a record. Asserted
+   because a careless reading of the old row deletes the mixin behind
+   all five.
+8. **Nothing that worked stopped working**: every container still
+   holds what it held, every verb still reaches what it reached, and
+   ⭐ **`feel`, `smell`, `listen` and `trace atmosphere` still answer
+   inside a coach** — the four reads the census would have removed.
 
 ## Cross-references
 
