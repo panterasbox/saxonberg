@@ -201,7 +201,7 @@ The deferred per-item refinement — a hip-belt frame pack that couples
 
 Encumbrance is an **actor-experience** concern, not a physics-of-
 containment concern. The raw move / containment substrate
-(`Mobile.traverse`, `ContainmentApi.move` / `placeOn`, `forceMove`) carries
+(`Mobile.traverse`, `ContainmentApi.move` / `place`, `forceMove`) carries
 **zero** encumbrance code — a dev or script moving a 200 kg anvil onto a
 sparrow Just Works, no block, no drain. The consequences live in the layers
 that own the actor experience:

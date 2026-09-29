@@ -55,7 +55,7 @@ import { Boundary } from '../../boundary/Boundary';
 import { SpawnerMixin } from '../Spawner';
 import { SpawnedMixin } from '../Spawned';
 import { ContainerMixin } from '../../spatial/Container';
-import { SurfacedMixin } from '../../spatial/Surfaced';
+import { PlacingMixin } from '../../spatial/Placing';
 import { WarrenMemberMixin } from '../../location/WarrenMember';
 import { ExitableMixin } from '../../boundary/Exitable';
 import { AdornableMixin } from '../../boundary/Adornable';
@@ -71,7 +71,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 // ── Fixtures ────────────────────────────────────────────────────────
 
 class Box extends ContainerMixin(Thing) {}
-class Desk extends SurfacedMixin(ContainerMixin(Thing)) {}
+class Desk extends PlacingMixin(ContainerMixin(Thing)) {}
 class Nest extends SpawnerMixin(Idea) {}
 class Hatchling extends SpawnedMixin(Idea) {}
 class MemberRoom extends WarrenMemberMixin(Location) {}
@@ -127,18 +127,18 @@ describe('reference-lifetime pins', () => {
       expect((item as unknown as { environment: unknown }).environment).toBeNull();
     });
 
-    it('Containable._restingOn — getRestingOn() heals a destroyed surface', () => {
+    it('Containable._placementHost — getPlacement() heals a destroyed host', () => {
       const room = makeStuff(() => new Box());
       const desk = makeStuff(() => new Desk());
       const mug = makeStuff(() => new Thing());
       ContainmentApi.move(desk, room);
       ContainmentApi.move(mug, room);
-      ContainmentApi.placeOn(mug, desk);
-      expect(mug.getRestingOn()).toBe(desk);
+      ContainmentApi.place(mug, 'on', desk);
+      expect((mug.getPlacement()?.host ?? null)).toBe(desk);
 
       StuffApi.destruct(desk);
-      expect(mug.getRestingOn()).toBeNull();
-      expect((mug as unknown as { _restingOn: unknown })._restingOn).toBeNull();
+      expect((mug.getPlacement()?.host ?? null)).toBeNull();
+      expect((mug as unknown as { _placementHost: unknown })._placementHost).toBeNull();
     });
 
     it('Spawned._spawner — getSpawner() heals a destroyed spawner', () => {

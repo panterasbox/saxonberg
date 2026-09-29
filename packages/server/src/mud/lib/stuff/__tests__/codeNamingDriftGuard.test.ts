@@ -130,6 +130,15 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // what the class actually extends. An allowlist of roots would make a
   // pack's own channel unreachable, which is the inert-roster trap.
   { site: "platform/idea/ReadingCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // `PlacementCatalogue.warm` keeps a row whose class IS or extends
+  // `Placement` — the same infix-across-every-root selection, for the
+  // same reason: a WAY OF SITTING is a row any pack may ship
+  // (`/trade/x/idea/Placement/behind`), and an allowlist of roots would
+  // make a pack's own member unreachable, which is the inert-roster
+  // trap. ⚠ It carries the `cls === Placement` clause the `Fabric` one
+  // does, because `Placement` is a concrete class rows name directly
+  // rather than a `lib/` abstract with a thin twin.
+  { site: "platform/idea/PlacementCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // `MaturationProfileCatalogue.postRegister` keeps a row by
   // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).

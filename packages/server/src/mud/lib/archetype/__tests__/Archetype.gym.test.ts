@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import { Archetype } from '../Archetype';
 import LoadDevice from '../../../platform/thing/LoadDevice';
-import Surface from '../../../platform/thing/Surface';
+import Fitting from '../../../platform/thing/Fitting';
 import Thing from '../../../platform/thing/Thing';
 import { ContainerMixin } from '../../spatial/Container';
 import { Idea } from '../../stuff/Idea';
@@ -56,7 +56,7 @@ describe('the gym archetype', () => {
 
   it('a surface meets the mat slot; a plain thing meets nothing', () => {
     const r = room();
-    ContainmentApi.move(makeStuff(() => new Surface()), r);
+    ContainmentApi.move(makeStuff(() => new Fitting()), r);
     ContainmentApi.move(makeStuff(() => new Thing()), r);
     const s = fit(gym(), r);
     expect(s.rows.find((x) => x.key === 'mat')?.satisfied).toBe(true);

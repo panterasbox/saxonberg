@@ -32,7 +32,7 @@
  *
  * Surface-bulk: the floor composes `BulkableMixin` so a spilled,
  * over-poured, or drained-through liquid pools as the floor's
- * **surface** bulk slot (a puddle). This is independent of `Surfaced`
+ * **surface** bulk slot (a puddle). This is independent of `Placing`
  * — the floor stays an `Adornment` fixture (excluded from the room's
  * enumerated contents), NOT a discrete-resting surface; discrete
  * containment is untouched. A puddle is the floor's attribute, not a

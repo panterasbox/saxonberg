@@ -1,0 +1,11 @@
+# PlacementCatalogue — the singleton whose postRegister stands the
+# authored ways-of-sitting roster up as live singletons and indexes it
+# by member name and by every preposition (the self-warming catalogue
+# shape; eager via this pack's boot list, not an AppBootstrap line).
+#
+# ⚠⚠ It also warms LAZILY on the first miss, because `put` and `look`
+# resolve a member on every dispatch and the dispatch path must not
+# depend on boot order. The reference-Ideas-inert-at-boot trap has cost
+# this repo three shipped-but-dead rosters.
+class: /platform/idea/PlacementCatalogue
+data: {}

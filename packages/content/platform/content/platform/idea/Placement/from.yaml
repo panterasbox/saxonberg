@@ -1,0 +1,19 @@
+# from — hanging.
+#
+# A ham from a meat hook, a coat from a peg, a line of herbs from a
+# beam. The whole point of the vocabulary: a player who has learned `on`
+# needs no explanation for this, because the relation and the
+# preposition are the same thing.
+#
+# ⭐ `on` is a SECONDARY word here, so `put ham on hook` works at a host
+# that only offers `from` — and the response says *hang … from*, which
+# is how the world teaches the word without a tutorial. It never steals
+# `on`'s own key: a primary always wins its word.
+class: /platform/idea/Placement
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: from
+  prepositions: [from, on]
+  encloses: false
+  prose: "{{ actor }} hang{{ s }} {{ item }} from {{ host }}."
+  heading: Hanging from it

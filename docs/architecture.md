@@ -466,6 +466,54 @@ When you find a `lib/` file with `await import('../../api/...')` inside
 a method body, treat it as a refactor target, not an established
 pattern.
 
+### ⭐⭐ MQL is a VIEW over the model, never a home for behaviour
+
+> **Anything expressible in MQL must also be expressible by function
+> call.** A predicate, a filter atom or a chain operator *delegates*
+> to `lib/` or `api/`; it never owns an algorithm, and nothing may be
+> reachable only by writing a query.
+
+Three layers, three jobs, and the query language is the thin one:
+
+| layer | owns |
+|---|---|
+| `lib/` | the **interfaces** — what an object is and what it can answer about itself |
+| `api/` | the **statics** — orchestration across objects, the gated door |
+| MQL | a **query language on top of both**, and nothing else |
+
+The shipped predicates are the standard, and every one of them is a
+one-liner over something a caller could have invoked directly:
+
+```ts
+isLiving  → MixinApi.isMobile(target)
+isVisible → isHere(target, giver) && PerceptionApi.perceives(giver, target)
+isMine    → the Chattel stamp, else ParcelApi.coveringParcelOfSync(path).owner
+```
+
+⚠ **Why this needs saying.** The pull is real and it is seductive: a
+listing filter, a targeting rule, a reachability walk — each feels
+like "a query", and MQL is where queries live. But a rule that only
+MQL can express is a rule **no controller can call, no test can
+assert against directly, and no author can reach from code** — and it
+is invisible to the player twice over, because they can neither see
+the algorithm nor invoke it another way.
+
+The placement build nearly did exactly this. `Container.getLooseContents()`
+— the presentation filter that keeps a bottle on the back-bar out of
+the room listing — was briefly proposed for deletion in favour of an
+MQL `:loose` predicate. That would have been the first case of MQL
+owning behaviour nothing else could reach. The correct shape is both:
+the method lives on `Container` (it reads one container's own list, so
+it is a method by the test above), and a `:loose` predicate, when it
+lands, is one line that calls it.
+
+⭐ **The corollary, which is the useful half:** when a rule is NOT
+expressible in MQL, that is worth interrogating rather than routing
+around. A hand-rolled loop in a controller usually means either a
+missing predicate (add it, delegating to the method) or a rule the
+player cannot see and would not predict. The second is the more
+common finding.
+
 ## Manager vs Api
 
 The codebase uses two distinct class shapes for non-domain behavior. The
@@ -1004,8 +1052,9 @@ registry) lives in `lib/mixin.ts`.
 | `lib/description/` | `PerceptibleMixin` | MQL keyword management, persistent. Composed by `Thing`, `CartesianLocation`, `Material` **and `Creature`** (every body is addressable — 48 agent rows authored a `primaryKeyword` into a void before 2026-09-10) |
 | `lib/description/` | `DetailedMixin` | hierarchical detail management, persistent |
 | `lib/spatial/` | `ContainerMixin` | inventory; provides `inventory`/`get`/`drop` |
-| `lib/spatial/` | `ContainableMixin` | environment reference, plus the auxiliary `restingOn` pointer for on-surface placement |
-| `lib/spatial/` | `SurfacedMixin` | "things rest on this" host-side marker; lazy `getResting()` walk; `userFacingDetail` MQL bridge; `canRest()` per-host gate. Requires Containable. |
+| `lib/spatial/` | `ContainableMixin` | environment reference, plus the auxiliary **placement pair** (`_placementHost` + `_placementName`) and `getEnclosingScope()` |
+| `lib/spatial/` | `PlacingMixin` | **placement** host-side: the members it offers (`placements`, default `['on']`), the lazy `getPlaced(name?)` walk, `resolvePlacement(word?)`, the `userFacingDetail` MQL bridge, and the `canPlace(item, name): VetoResult` per-host gate. ⚠ Two composition refusals, both at registration: requires `Containable`, refuses `Exitable`. Was `SurfacedMixin`. |
+| `lib/thermal/` | `CoolboxMixin` | a holder whose **contents temperature is the coldest thing in it** while shut — the passive cold rung (an icebox). One authored field, `insulationR`, which the coldest mass borrows through two seams in `ThermalMixin`. |
 | `lib/spatial/` | `MobileMixin` | `travel()` between locations (requires Containable) |
 | `lib/spatial/` | `ExitableMixin` | exit map host; `addExit`, `getObviousExits`, etc. |
 | `lib/location/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
@@ -1023,7 +1072,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`, and by `CastMixin`. |
 | `lib/npc/` | `CastMixin` | the **identity rung**: `SingletonMixin` plus the authored dossier (`archetype` · `prologue` · `competence` · `renown`), seeded once at `postRegister` as `claim` evidence. ⭐ A mixin rather than a base class because identity and capability are two axes and TypeScript has single inheritance — Dave must be a `Crafter` *and* cast. Clone targets `platform/agent/Cast` / `platform/agent/Extra`. See [identity.md](./subsystems/identity.md). |
-| `lib/stuff/` | `StagedMixin` | declarative born-with content for Container hosts, in the theatre vocabulary — **`props:`** the set dressing and **`cast:`** the troupe, with `costume:` the third designation on {@link CostumedMixin} because its host is a body. ⭐ Was `PopulatesMixin`; renamed 2026-09-25 to pair with the `Offstage` room off-shift cast already wait in. `props:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, onto}` object (placed on an already-populated sibling surface via `placeOn`). Phase 2 applier. |
+| `lib/stuff/` | `StagedMixin` | declarative born-with content for Container hosts, in the theatre vocabulary — **`props:`** the set dressing and **`cast:`** the troupe, with `costume:` the third designation on {@link CostumedMixin} because its host is a body. ⭐ Was `PopulatesMixin`; renamed 2026-09-25 to pair with the `Offstage` room off-shift cast already wait in. `props:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, <member>: …}` object — ⭐ **the key IS the placement member's name** (`on`, `from`, and whatever a pack ships), placing it on an already-populated sibling via `ContainmentApi.place`. Phase 2 applier. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |
 | `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands`, `getAffordances` |

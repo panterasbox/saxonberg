@@ -2053,7 +2053,7 @@ async function evaluateAffordance(
 
     // ⚠⚠ A refusal aimed at an UNBOUND operand is not a refusal.
     // `put`'s `target` field declares `requires: [VisibleMixin,
-    // ContainerMixin|SurfacedMixin]`, and with no container picked yet
+    // ContainerMixin|PlacingMixin]`, and with no container picked yet
     // the whole chain runs against `undefined` — which without this
     // branch reports `put` flatly unavailable on every object in the
     // game. The only honest reading is "you have not chosen the other

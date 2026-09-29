@@ -215,7 +215,7 @@ describe("general-store content integrity", () => {
     // The furnishings line (residences D7/D11), likewise stocked from the
     // shared `/stuff/thing/fixture/` rows: `Chair` is the reusable
     // posture-bearing class (a bed and an armchair differ only in their
-    // authored slot and rest quality), `Surface` the table, `Chest` the
+    // authored slot and rest quality), `Fitting` the table, `Chest` the
     // wardrobe, and `SconceLamp` the one class the line needed — a light
     // that goes on a WALL rather than in a pocket.
     // ⭐⭐ The haulage line (logistics W5/W6). A `Handcart` is the
@@ -229,7 +229,7 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/Handcart",
     "/system/transport/thing/HaulageRig",
     "/platform/thing/Chair",
-    "/platform/thing/Surface",
+    "/platform/thing/Fitting",
     "/platform/thing/Chest",
     "/generic-objects/thing/SconceLamp",
     // The householder's kit — a `ToolItem` subclass in the residence

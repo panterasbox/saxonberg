@@ -57,7 +57,7 @@ data:
     - /world/terminus/eternal/duncan-hall/thing/tap
     - /stuff/thing/vessel/watering-can
     - template: /trade/farming/thing/pot/starter
-      onto: /world/terminus/eternal/duncan-hall/thing/desk
+      on: /world/terminus/eternal/duncan-hall/thing/desk
   details:
     window:
       keywords: [window, glass, light]

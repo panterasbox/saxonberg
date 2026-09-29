@@ -178,7 +178,7 @@ per affordance, each gated by an authored boolean flag:
 
 The two affordances are **independent of the spatial mixins**:
 interior-bulk does not require `Container` (a fluid-only thermos holds
-no pens), and surface-bulk does not require `Surfaced` (the floor
+no pens), and surface-bulk does not require `Placing` (the floor
 carries a puddle without being a discrete-resting surface). Composition
 is explicit per host — the auto-compose-on-every-Container question is
 deferred.
@@ -493,9 +493,9 @@ marks "you reached this holder through its bulk":
 The floor composes `BulkableMixin` with a `surfaceBulk` slot, so a
 spilled, over-poured, or drained-through liquid pools as the floor's
 **surface** bulk (a puddle). The floor stays an `Adornment` fixture
-(excluded from the room's enumerated contents), **NOT** `Surfaced`:
+(excluded from the room's enumerated contents), **NOT** a placement:
 discrete containment is untouched — an apple dropped in the room is
-still `container = room`, a sibling of the desk, not `restingOn` the
+still `container = room`, a sibling of the desk, not *placed on* the
 floor. A puddle is the floor's attribute, not a Stuff. The default-floor
 seed (`generic-objects/content/stuff/thing/surface/default-floor.yaml`) carries an uncapped
 surface slot, so any room with a floor can pool.

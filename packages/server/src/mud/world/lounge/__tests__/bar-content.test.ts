@@ -79,10 +79,14 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
   });
 
   it("the house tablet is the lounge's own row, signed in as the bar's business, on the back-bar", () => {
-    const entry = (loadLounge("location/bar.yaml").data?.props as { template?: string; onto?: string }[]).find(
+    // ⭐ The key IS the placement member's name (placement build, D9):
+    // `on:` for a surface, `from:` for a hook, and a member a pack
+    // ships tomorrow with no kernel change. It was `onto:`, which named
+    // a PREPOSITION rather than a relation.
+    const entry = (loadLounge("location/bar.yaml").data?.props as { template?: string; on?: string }[]).find(
       (p) => typeof p === "object" && p.template === "/world/lounge/thing/house-tablet",
     );
-    expect(entry?.onto).toBe("/trade/hospitality/thing/back-bar");
+    expect(entry?.on).toBe("/trade/hospitality/thing/back-bar");
     const tablet = loadLounge("thing/house-tablet.yaml");
     expect(tablet.class).toBe("/platform/thing/Tablet");
     expect(tablet.data?.pairing).toBe("staff");

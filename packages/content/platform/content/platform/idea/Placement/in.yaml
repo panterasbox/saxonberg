@@ -1,0 +1,20 @@
+# in — sitting INSIDE something that has its own air.
+#
+# ⭐⭐ `encloses: true`, and it is the only shipped member that does. A
+# thing placed under this reads its HOST's air rather than the room's,
+# and a shut host refuses both the put and the reach. That is the seam
+# the icebox and, later, the freezer compartment are cashed on.
+#
+# ⚠ Nothing composes a host that OFFERS `in` today, deliberately — the
+# icebox is a plain Container, so `put X in icebox` is region zero, and
+# region zero takes its words and its prose from THIS row. A host that
+# offers `in` as a named region arrives with the first real compartment
+# (the fridge pack), not with this build. See the placement plan, D17.
+class: /platform/idea/Placement
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: in
+  prepositions: [in, into]
+  encloses: true
+  prose: "{{ actor }} put{{ s }} {{ item }} in {{ host }}."
+  heading: In it

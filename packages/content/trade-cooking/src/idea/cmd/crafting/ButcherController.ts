@@ -304,7 +304,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
   private findBlock(bound: MqlManyResult | undefined): Stuff | null {
     for (const candidate of bound?.stuff ?? []) {
       if (!MixinApi.isContaminable(candidate)) continue;
-      if (!MixinApi.isSurfaced(candidate)) continue;
+      if (!MixinApi.isPlacing(candidate)) continue;
       return candidate;
     }
     return null;

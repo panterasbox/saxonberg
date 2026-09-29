@@ -254,7 +254,7 @@ factory in the folder shown.
 - **`Container`** — holds `Containable`s; the "I'm a place" surface.
 - **`Containable`** — lives inside a `Container`; owns the
   `environment` chokepoint.
-- **`Surfaced`** — rests *on* a surface rather than *in* a
+- **`Placing`** — holds things *on* / *in* / *from* it rather than *in* a
   container.
 - **`CartesianCoordinates`** — an (x, y, z) position in a Cartesian
   zone.

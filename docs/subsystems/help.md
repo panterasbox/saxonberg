@@ -282,7 +282,7 @@ boot warning (guarded); command topics and boot itself are unaffected.
 ## The shaped-not-wired world→model bridge
 
 Topic ids and the `mixin` relations are designed so a later
-inspection→help cross-link ("this bed is `Surfaced` → open the `Surfaced`
+inspection→help cross-link ("this bed is `Placing` → open the `Placing`
 topic") is a clean add, not a rework: a `mixin.<Concept>` id is exactly
 what an inspection card already knows (the mixin name), and the relation
 graph is the navigation substrate. Wiring that bridge is Wave 2 and is not

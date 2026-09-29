@@ -16,7 +16,7 @@ import PutController from '../platform/idea/cmd/inventory/PutController';
 import GiveController from '../platform/idea/cmd/inventory/GiveController';
 import { ContainerMixin } from '../lib/spatial/Container';
 import { ContainableMixin } from '../lib/spatial/Containable';
-import { SurfacedMixin } from '../lib/spatial/Surfaced';
+import { PlacingMixin } from '../lib/spatial/Placing';
 import { CommandGiverMixin } from '../lib/command/CommandGiver';
 import { NamedMixin } from '../lib/description/Named';
 import { SensorMixin } from '../lib/message/Sensor';
@@ -45,7 +45,7 @@ class TestGiver extends SensorMixin(
   static _mixinName = 'IntegGiver';
 }
 
-class TestSurface extends SurfacedMixin(
+class TestSurface extends PlacingMixin(
   ContainableMixin(NamedMixin(Idea)),
 ) {
   static _mixinName = 'IntegSurface';
@@ -132,12 +132,12 @@ describe('Affordance verbs — integration', () => {
       makeContext(giver, room, 'put'),
     );
     expect(apple.getContainer()).toBe(room);
-    expect(apple.getRestingOn()).toBe(table);
+    expect((apple.getPlacement()?.host ?? null)).toBe(table);
 
     // Pick the apple back up (simulating get apple) so we can give it.
     ContainmentApi.move(apple, giver);
     // restingOn cleared by the move (container change invariant).
-    expect(apple.getRestingOn()).toBeNull();
+    expect((apple.getPlacement()?.host ?? null)).toBeNull();
 
     // give apple to quartermaster
     const giveController = makeStuff(() => new GiveController());
@@ -149,6 +149,6 @@ describe('Affordance verbs — integration', () => {
       makeContext(giver, room, 'give'),
     );
     expect(apple.getContainer()).toBe(quartermaster);
-    expect(apple.getRestingOn()).toBeNull();
+    expect((apple.getPlacement()?.host ?? null)).toBeNull();
   });
 });

@@ -36,22 +36,22 @@ data:
   longDescription: |
     A narrow room with a long bar down one side, stools along it, the back-bar mirrored and lit from beneath. A brass tap handle stands over its drip tray; the ice bin and the well sit under the lip where the bartender works.
   props:
-    # The back-bar and the well: the Surfaced shelves the working bottles
+    # The back-bar and the well: the Placing shelves the working bottles
     # rest ON once bought (`put gin on back-bar`). Listed before their
     # `onto` items.
     - /trade/hospitality/thing/back-bar
     - /trade/hospitality/thing/well
-    - { template: /trade/hospitality/thing/shaker, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/mixing-glass, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/muddler, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/bar-spoon, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/strainer, onto: /trade/hospitality/thing/well }
-    - { template: /trade/hospitality/thing/juicer, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/shaker, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/mixing-glass, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/muddler, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/bar-spoon, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/strainer, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/juicer, on: /trade/hospitality/thing/well }
     # ⭐ `as: tablet` is the entry's IDENTITY — the line a child row
     # replaces when a venue runs its own tablet, rather than appending
     # a second one to the back-bar.
-    - { template: /trade/hospitality/thing/house-tablet, as: tablet, onto: /trade/hospitality/thing/back-bar }
-    - { template: /trade/hospitality/thing/tip-jar, onto: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/house-tablet, as: tablet, on: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/tip-jar, on: /trade/hospitality/thing/back-bar }
     # The stations.
     - /trade/hospitality/thing/tap
     - /trade/hospitality/thing/ice-bin

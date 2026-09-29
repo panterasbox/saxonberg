@@ -170,7 +170,7 @@ behavior. Read the relevant doc before editing in its area.
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), resolver map, cardinality policy
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins, `_mixinName`, Mixins registry, MixinApi predicates, composition order
   - [zone.md](./docs/subsystems/zone.md) — Zone/SpatialZone/FolderZone roots, resolveZoneForPath, field inheritance
-  - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Surfaced/Sealable, vessels
+  - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Placing/Sealable, vessels; **Placement** — where inside its container a thing sits (`on`·`in`·`from`, a row-extensible vocabulary), and the two composition refusals
   - [location.md](./docs/subsystems/location.md) — room/coordinate/zone geometry, the Warren elastic graph, lounge content, `startLocation`
   - [boundary.md](./docs/subsystems/boundary.md) — exits/doors/Adornable, exit-kind templates, DeferredDestinationExit, Switchable/Lockable/Bistate, locks & keys
   - [bulk.md](./docs/subsystems/bulk.md) — continuous matter and NOTHING else: Bulkable slots, transfer/drain-through, measure grammar, fill/pour/drink; the vessel kind is `VesselKindMixin`, and `BulkPayload` carries only what cannot derive (subsystems declare their own fields onto it)
@@ -233,7 +233,7 @@ behavior. Read the relevant doc before editing in its area.
   - [pets.md](./docs/subsystems/pets.md) — an animal kept for itself: `KeptAnimal` as a rung, the bond as regard × handling (*difficult, not feral*), feeding as a ladder the species declares, ⭐ the offer as a moment the animal decides (`offerRung` + `OfferEngagement`), the ask, naming as the promotion, and the residency pin — what loads a pet
   - [mining.md](./docs/subsystems/mining.md) — ground you cut: the Deposit field (seeded, never drawn), WorkingMixin's four reads, MineWarren carve/shore/promote, the damps + the canary, grade end-to-end to the smelt
   - [spoilage.md](./docs/subsystems/spoilage.md) — food that goes off, and the food that hurts you: ⭐⭐ **spoilage is a CLOCK, contamination is an EVENT** — the microbial LOAD (`μ = μ_max · f_T · f_aw`) with FreshnessMixin on `Provision`, the bands, the kill as an Arrhenius RATE held for a recipe's `holdS`; the per-instance water state (`WaterActivityMixin` — `a_w = base · moisture · (1 − solute)`, hurdles that stack, drying reverses and curing does not); and the SILENT second population (`ContaminableMixin` — event-seeded, no sense reports it, its own kill curve + spore floor, `infect` vs `intoxicate`) with butchering as its one source; `lint:perishable` + `lint:pathogens`
-  - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
+  - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation; the **Coolbox** cold twin of the furnace couple (⚠ a solid melts because it is WARM — `reconcilePhase` had no ambient driver until 2026-09-28)
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi
   - [shell-author.md](./docs/subsystems/shell-author.md) — AuthorMixin lifecycle + code-execution verbs, the EvalScript sandbox
@@ -1063,7 +1063,8 @@ orchestration cases:
 | `obj.destroy()` | `StuffApi.destruct(obj)` |
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
 | `item.setContainer(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
-| `ContainmentApi.move(item, room); item._setRestingOn(desk)` (manual on-surface placement) | `ContainmentApi.placeOn(item, desk)` — single primitive; resolves the surface's environment, runs `canRest`, moves, restamps `restingOn`. `_setRestingOn` is `FromContainmentApi`-gated; direct calls throw. |
+| `ContainmentApi.move(item, room); item._setPlacement(desk, 'on')` (manual placement) | `ContainmentApi.place(item, 'on', desk)` — single primitive; resolves the host's environment, runs `canPlace`, moves, restamps the pair, and re-`restamp()`s a Thermal item (⚠ `move` is a NO-OP inside one container, so nothing else would). `_setPlacement` is `FromContainmentApi`-gated; direct calls throw. ⭐ The member name is a `Placement` ROW, not an enum. |
+| `ContainmentApi.looseContents(items)` | `container.getLooseContents(items?)` — it reads one container's own list, so it is a method. ⭐ And MQL may not own it: [architecture.md § MQL is a VIEW over the model](./docs/architecture.md) — anything expressible in MQL must also be expressible by function call. |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `obj.getPresentation()` |
 | `creature.move(loc)` (raw containment) | `LocomotionApi.traverseWithDefault(actor, exit)` (default-mode dispatch via `defaultModeFor` chain) or `LocomotionApi.engageAround(actor, mode, exit, action)` (known mode + engagement bookkeeping) |

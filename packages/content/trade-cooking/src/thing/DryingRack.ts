@@ -12,10 +12,10 @@
  * one fixture is how a class name stops predicting its own surface.
  */
 
-import Surface from '@saxonberg/server/mud/platform/thing/Surface';
+import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class DryingRack extends Surface {
+export default class DryingRack extends Fitting {
   static commandContributions: CommandContributions = {
     peers: ['trade/cooking/cmd/crafting/dry.yaml'],
   };

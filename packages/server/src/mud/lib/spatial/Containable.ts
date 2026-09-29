@@ -42,7 +42,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { Container } from './Container';
-import type { Surfaced } from './Surfaced';
+import type { Placing } from './Placing';
 import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -97,38 +97,57 @@ export interface Containable {
   applyContainer(path: string): Promise<void>;
 
   /**
-   * Auxiliary support pointer. Set when this Containable is resting
-   * on a Surfaced host (e.g., apple on a desk). Orthogonal to
-   * `getContainer()` — the apple is in the room AND resting on the
-   * desk; both relationships are real.
+   * ⭐ **Where inside its container this thing sits** — the placement
+   * host and the name of the relation (`on` a desk, `in` a compartment,
+   * `from` a hook), or `null` when the thing is merely loose.
    *
-   * Null when the item is not on a surface (in a container, in
-   * inventory, in an actor's grip, freely in a room).
+   * Orthogonal to `getContainer()` — the apple is in the room AND on
+   * the desk; both relationships are real, and reading the room's
+   * contents still finds the apple.
    *
-   * **Runtime-only** (an instance/live ref; see
-   * [`docs/ref-shapes.md`](../../../../../docs/ref-shapes.md)).
-   * Not persisted: on server restart, the apple's container is
-   * preserved but its on-surface relationship resets. The tradeoff
-   * is intentional — an identity ref by templatePath only resolves
-   * unambiguously for singleton surfaces, which would constrain
-   * the natural sandbox case of multiple identical chairs / tables
-   * authored in a single area. When sandbox content earns
-   * cross-restart on-surface persistence, that build picks the
-   * appropriate persistence shape (likely an instance ref with stuffId
-   * stamping at save time).
+   * **The host is an instance (live) ref**, so the R2.3 self-heal runs
+   * in the proxy get trap: a host destructed since the last set reads
+   * as no placement at all. An identity ref by templatePath only
+   * resolves unambiguously for singleton hosts, which would constrain
+   * the natural case of several identical tables in one hall.
+   *
+   * ⚠ The PAIR is persisted, by the container's slice — see
+   * `ContentPlacement` in `lib/persistence/PersistenceSlice.ts`, which
+   * records the host's index within the same contents list and the
+   * member name, and `PersistableLogic`'s placement pass, which
+   * re-places on restore. (This docstring used to say the relationship
+   * reset on restart; that stopped being true when the slice learned to
+   * record it.)
    */
-  getRestingOn(): (Stuff & Surfaced) | null;
+  getPlacement(): { host: Stuff & Placing; name: string } | null;
 
   /**
-   * Privileged setter — only `ContainmentApi.placeOn` /
+   * Privileged setter — only `ContainmentApi.place` /
    * `ContainmentApi.move` may call. Runtime-rejected by the
    * call-security gate otherwise. Authors don't touch this directly;
-   * the Api maintains the invariant that restingOn is only non-null
-   * when the item's container matches the surface's container.
+   * the Api maintains the invariant that a placement is only set when
+   * the item's container matches the host's container.
    *
    * Pass `null` to clear (apple lifted off the desk).
    */
-  _setRestingOn(surface: (Stuff & Surfaced) | null): void;
+  _setPlacement(host: (Stuff & Placing) | null, name?: string): void;
+
+  /**
+   * ⭐ **What stands between me and my container, for air, sight and
+   * reach.** The placement host when this thing is placed under a
+   * member whose `encloses` is true (a compartment with its own air);
+   * otherwise the container itself.
+   *
+   * A mug on a desk reads the room's air; a steak in a cold
+   * compartment reads the compartment's. Read by `Thermal`'s ambient
+   * resolution and by `PerceptionLogic.canReach` (a shut enclosing
+   * host is not reached into).
+   *
+   * ⚠ Stepping further outward — through a non-atmospheric container
+   * until a scope answers — is NOT this; see
+   * `docs/slates/builds/base-class-narrowing-slate.md` finding #2.
+   */
+  getEnclosingScope(): Stuff | null;
 
   /**
    * ⭐ **Bolted down: no agent picks this up or carries it off.** The
@@ -212,7 +231,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Both reference fields are instance refs, so both self-heal on
       // read. Neither is persistent — see the field docs below.
       environment: { ref: 'instance', lifetime: 'weak' },
-      _restingOn: { ref: 'instance', lifetime: 'weak' },
+      _placementHost: { ref: 'instance', lifetime: 'weak' },
     };
 
     /**
@@ -245,29 +264,35 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (declared `{ instruction: true }` in `fieldMeta` above) or by
      * direct `ContainmentApi.move` calls after hydration.
      *
-     * The auxiliary `_restingOn` pointer below is the SAME shape, not a
-     * different one. (This comment used to claim it was a persisted
-     * `_restingOnPath` identity ref — there is no such field, and this
-     * mixin declares nothing persistent at all. Both reference fields
-     * here are instance refs; see `_restingOn`'s own note for why
-     * templatePath stamping was rejected for it.)
+     * The auxiliary `_placementHost` pointer below is the SAME shape,
+     * not a different one — both reference fields here are instance
+     * refs. The placement PAIR is persisted by the container's slice
+     * (`ContentPlacement`), not by this mixin; see `_placementHost`'s
+     * own note for why templatePath stamping was rejected for it.
      */
     protected environment: (Stuff & Container) | null = null;
 
     /**
-     * Runtime-only auxiliary support pointer — an instance (live) ref.
-     * Holds a direct reference to the supporting Surfaced host
-     * (null when no support). Not persistent; resets to
-     * null on hydrate. Declared `{ ref: 'instance' }`, so the R2.3
-     * self-heal clears the slot when the supporter is destructed.
+     * Auxiliary placement host — an instance (live) ref. Holds a direct
+     * reference to the `Placing` host this thing sits on or in (null
+     * when loose). Declared `{ ref: 'instance' }`, so the R2.3
+     * self-heal clears the slot when the host is destructed.
      *
-     * An instance ref was chosen over identity templatePath stamping because
-     * non-singleton surfaces (e.g., multiple identical tables in a
+     * An instance ref was chosen over identity templatePath stamping
+     * because non-singleton hosts (several identical tables in a
      * dining hall) can't be addressed unambiguously by templatePath.
-     * The cross-restart loss is small — items reappear in their
-     * container, just without the on-surface precision.
+     * The pair survives a restart through the container's slice, which
+     * records the host's INDEX in the same contents list.
      */
-    protected _restingOn: (Stuff & Surfaced) | null = null;
+    protected _placementHost: (Stuff & Placing) | null = null;
+
+    /**
+     * The member name this thing is placed under (`on`, `in`, `from`).
+     * `''` when there is no placement. Paired with `_placementHost`;
+     * `getPlacement()` normalises the two, so a host healed to null
+     * reads as no placement whatever this says.
+     */
+    protected _placementName: string = '';
 
     /**
      * Bolted down — see `isFixedInPlace` on the interface. Authorable
@@ -364,34 +389,53 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Resolve the auxiliary `restingOn` pointer. An instance (live) ref
+     * Resolve the placement pair. The host is an instance (live) ref
      * declared `{ ref: 'instance' }` in `fieldMeta`, so the R2.3
-     * self-heal runs in the proxy get trap: a supporter destructed
-     * since the last set reads as `null` and the slot is cleared.
+     * self-heal runs in the proxy get trap: a host destructed since the
+     * last set reads as `null` and the slot is cleared — and then this
+     * reads as no placement at all, whatever the name says.
      *
-     * Returns `null` when no support OR the supporter has been
-     * destructed. The caller can't tell the two apart from the
-     * return value; that's deliberate — absence of support is the
-     * same observable as a stale ref.
+     * Returns `null` when unplaced OR the host has been destructed. The
+     * caller can't tell the two apart; that's deliberate.
      */
-    getRestingOn(): (Stuff & Surfaced) | null {
-      return this._restingOn;
+    getPlacement(): { host: Stuff & Placing; name: string } | null {
+      const host = this._placementHost;
+      if (!host) return null;
+      return { host, name: this._placementName || 'on' };
     }
 
     /**
-     * Privileged setter for the auxiliary `restingOn` pointer.
-     * Reachable only from `ContainmentApi.move` /
-     * `ContainmentApi.placeOn`. Pass `null` to clear.
+     * See the interface docstring. Whether a member encloses is the
+     * member's own claim, carried on its `Placement` row — so a pack
+     * that ships an enclosing member gets this read for free, and a
+     * cold catalogue degrades to the container, which is the answer
+     * the model gave before the relation had a name.
+     */
+    getEnclosingScope(): Stuff | null {
+      const placement = this.getPlacement();
+      if (placement !== null) {
+        const member = ContainmentApi.placement(placement.name);
+        if (member?.getEncloses() === true) {
+          return placement.host as unknown as Stuff;
+        }
+      }
+      return this.getContainer();
+    }
+
+    /**
+     * Privileged setter for the placement pair. Reachable only from
+     * `ContainmentApi.move` / `ContainmentApi.place`. Pass `null` to
+     * clear.
      *
-     * Stores the supporting Surfaced ref directly (instance ref);
-     * runtime-only — see the field declaration's JSDoc for the
-     * persistence rationale.
+     * Stores the host ref directly (instance ref); the pair is
+     * persisted by the container's slice, not here.
      */
     @CallSecurity(FromContainmentApi)
     @Final
     @Unshadowable
-    _setRestingOn(surface: (Stuff & Surfaced) | null): void {
-      this._restingOn = surface;
+    _setPlacement(host: (Stuff & Placing) | null, name?: string): void {
+      this._placementHost = host;
+      this._placementName = host ? (name ?? 'on') : '';
     }
 
     /**

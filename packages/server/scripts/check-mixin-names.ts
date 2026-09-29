@@ -43,6 +43,15 @@
  *    it long enough that neither could be named by a `requires:` at all.
  *    ⚠ A PACK mixin is deliberately NOT required to be there — being
  *    unable to edit that list is the whole reason the federation exists.
+ * 4. ⭐⭐ **Every mixin name written in CONTENT names a declared mixin.**
+ *    A command view's `args[].requires` and its MQL `default:` strings
+ *    carry mixin names as plain text, invisible to the compiler and to
+ *    every other gate. A view naming a mixin that no longer exists
+ *    refuses every target at the BINDER — before any controller runs,
+ *    with no error and no test able to see it. The `Surfaced` → `Placing`
+ *    rename had four such occurrences, one of them inside an MQL string
+ *    (`reachable:[mixin.SurfacedMixin and …]`), and this clause is what
+ *    would have failed on all four the day the rename landed.
  *
  * ## Usage
  *
@@ -50,9 +59,56 @@
  *   pnpm lint:mixin-names --lint   CI gate (exit 1 on any violation)
  */
 
-import { declaredMixins, type MixinDeclaration } from "./pack-roots";
+import {
+  CONTENT,
+  declaredMixins,
+  walkYamlFiles,
+  type MixinDeclaration,
+} from "./pack-roots";
 import { Mixins } from "../src/mud/lib/mixin";
-import { relative } from "path";
+import { existsSync, readFileSync, readdirSync } from "fs";
+import { join, relative } from "path";
+
+/** A mixin name written in a command view, and where. */
+interface ContentMixinRef {
+  name: string;
+  file: string;
+  where: string;
+}
+
+/**
+ * Every `<Name>Mixin` token written inside a command view's `requires:`
+ * entries or `default:` strings.
+ *
+ * ⭐ Deliberately a TEXT scan over the view files rather than a parse of
+ * the arg model: `requires: [A|B]` is an alternation, `default:` is MQL,
+ * and both are strings the binder reads at dispatch. What matters is
+ * that every mixin NAME in them is real — the grammar around it is
+ * other gates' business.
+ *
+ * A view lives at `<root>/cmd/<category>/<verb>.yaml`; `<root>/idea/cmd/`
+ * is controllers, not views, so it is skipped.
+ */
+function contentMixinRefs(contentDir: string = CONTENT): ContentMixinRef[] {
+  const out: ContentMixinRef[] = [];
+  if (!existsSync(contentDir)) return out;
+  for (const pack of readdirSync(contentDir).sort()) {
+    const root = join(contentDir, pack, "content");
+    if (!existsSync(root)) continue;
+    for (const file of walkYamlFiles(root)) {
+      const rel = file.split("\\").join("/");
+      if (!/\/cmd\//.test(rel) || /\/idea\/cmd\//.test(rel)) continue;
+      for (const line of readFileSync(file, "utf8").split("\n")) {
+        if (!/^\s*(-\s*)?(requires|default)\s*:/.test(line)) continue;
+        const where = /requires/.test(line) ? "requires:" : "default:";
+        for (const m of line.matchAll(/\b[A-Z][A-Za-z]+Mixin\b/g)) {
+          out.push({ name: m[0], file, where });
+        }
+      }
+    }
+  }
+  return out;
+}
 
 const ROOT = new URL("../..", import.meta.url).pathname;
 const rel = (f: string): string => relative(ROOT, f);
@@ -62,6 +118,7 @@ interface Findings {
   duplicates: Array<{ name: string; decls: MixinDeclaration[] }>;
   unregistered: MixinDeclaration[];
   unreadable: MixinDeclaration[];
+  undeclaredInContent: ContentMixinRef[];
 }
 
 export function findings(): Findings {
@@ -82,7 +139,14 @@ export function findings(): Findings {
   const known = new Set<string>(Object.values(Mixins));
   const unregistered = all.filter((d) => d.owner === "kernel" && !known.has(d.name));
 
-  return { all, duplicates, unregistered, unreadable };
+  // Clause 4: kernel names ∪ every declared `_mixinName` (packs
+  // included — a pack's view may name its own pack's mixin).
+  const declarable = new Set<string>([...known, ...all.map((d) => d.name)]);
+  const undeclaredInContent = contentMixinRefs().filter(
+    (r) => !declarable.has(r.name),
+  );
+
+  return { all, duplicates, unregistered, unreadable, undeclaredInContent };
 }
 
 function main(): void {
@@ -129,6 +193,16 @@ function main(): void {
     );
   }
 
+  for (const r of f.undeclaredInContent) {
+    problems.push(
+      `  ⛔ ${rel(r.file)} names '${r.name}' in a \`${r.where}\`, and no ` +
+        `mixin\n     declares that name. The binder reads this string at ` +
+        `dispatch, so the\n     verb refuses every target — closed and ` +
+        `silent, with no test able to see it.\n     Fix the name, or ` +
+        `declare the mixin.`,
+    );
+  }
+
   if (problems.length > 0) {
     console.error(`\n✖ lint:mixin-names — ${problems.length} violation(s):\n`);
     console.error(problems.join("\n\n"));
@@ -137,7 +211,8 @@ function main(): void {
   }
   console.log(
     `✔ lint:mixin-names — ${f.all.length} declaration(s), ` +
-      `${packs.length} from packs, no collisions.`,
+      `${packs.length} from packs, no collisions; every mixin named in ` +
+      `a command view is declared.`,
   );
 }
 

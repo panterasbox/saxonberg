@@ -25,7 +25,8 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
-import type { Surfaced } from '../lib/spatial/Surfaced';
+import type { Placing } from '../lib/spatial/Placing';
+import type { Coolbox } from '../lib/thermal/Coolbox';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
@@ -949,8 +950,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Containable);
   }
 
-  public static isSurfaced(obj: Stuff): obj is Stuff & Surfaced {
-    return this.hasMixin(obj, Mixins.Surfaced);
+  public static isPlacing(obj: Stuff): obj is Stuff & Placing {
+    return this.hasMixin(obj, Mixins.Placing);
+  }
+
+  public static isCoolbox(
+    obj: Stuff,
+  ): obj is Stuff & Coolbox & Container & Thermal & Sealable {
+    return this.hasMixin(obj, Mixins.Coolbox);
   }
 
   public static isMobile(obj: Stuff): obj is Stuff & Mobile {

@@ -296,13 +296,30 @@ export class PerceptionLogic extends ApiLogic {
     // in an open Stock counter, or a lime in a crate — was unreachable
     // by every verb in the game, and each caller grew its own bespoke
     // descent instead.
+    // ⭐ And a sibling placed in a region with its OWN air is reached
+    // through that region's lid, not the room's. A thing placed under
+    // an enclosing member (`in`) on a shut host is inside something
+    // shut, even though its container is the room and it is right
+    // there in the contents list — the same lid the `peers` walk and
+    // `gatherMatter` read, asked on the placement rather than the
+    // container. A non-enclosing member (a ham on a hook on a shut
+    // box) is untouched: the hook is on the outside.
+    const enclosedShut = (c: Stuff): boolean => {
+      if (!MixinApi.isContainable(c)) return false;
+      const scope = c.getEnclosingScope();
+      if (scope === null || scope.stuffId === c.getContainer()?.stuffId) {
+        return false;
+      }
+      return MixinApi.isSealable(scope) && !scope.isOpen();
+    };
+
     const reachesInto = (holder: Stuff): boolean => {
       if (!MixinApi.isContainer(holder)) return false;
       for (const c of holder.getContents()) {
-        if (c.stuffId === id) return true;
+        if (c.stuffId === id) return !enclosedShut(c);
         if (MixinApi.isOpenContainer(c)) {
           for (const inner of c.getContents()) {
-            if (inner.stuffId === id) return true;
+            if (inner.stuffId === id) return !enclosedShut(inner);
           }
         }
       }

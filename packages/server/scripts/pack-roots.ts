@@ -512,7 +512,7 @@ function mergeEntryLists(parent: unknown[], child: unknown[]): unknown[] {
   return out;
 }
 
-function walkYamlFiles(dir: string, out: string[] = []): string[] {
+export function walkYamlFiles(dir: string, out: string[] = []): string[] {
   let entries: string[];
   try {
     entries = readdirSync(dir);

@@ -140,7 +140,7 @@ data:
     # guess between appending (two tablets on one back-bar) and
     # replacing the whole list (no back-bar at all) — which is exactly
     # why `as` had to ship with `extends:`.
-    - { template: /world/lounge/thing/house-tablet, as: tablet, onto: /trade/hospitality/thing/back-bar }
+    - { template: /world/lounge/thing/house-tablet, as: tablet, on: /trade/hospitality/thing/back-bar }
     # The Attendant service point — the bar as an instance of the
     # storefront-attention substrate (scrum / zero-wait: the feel is
     # unchanged, the lease is earned). `order` consults it before serving.
