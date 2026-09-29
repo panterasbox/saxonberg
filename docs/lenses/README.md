@@ -33,27 +33,51 @@ content only as an illustration that could be swapped without changing
 the argument. An entry that reads as a tour of what shipped in
 September will be unreadable in December.
 
+## One lens, one file
+
+⭐⭐ **Entries are 1:1 with Schell's lenses, and the filename carries the
+lens number** — `46-reward.md`, `93-the-nameless-quality.md`. Half-lenses
+take an `h`: `67h-metaphor.md`, `95h-cheatability.md`.
+
+So the directory **sorts and reads like the book**, and anyone holding a
+lens number can find its entry without knowing how we think about it.
+⚠ **Do not group several of his lenses into one file**, however much
+they feel like one argument — the book is stable, and which of his
+lenses feel related is a fact about whoever is writing this month. That
+is the rot this restart exists to fix. **Grouping belongs in the index
+below**, where a row may name several entries.
+
 ## The roster, indexed by our lens
 
 Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
+**None are written yet.**
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
-| 1 Pedagogy · 4 Values | **Progression** — #46 Reward · #55 Visible Progress · #91 Character Transformation | The refusal of variable-ratio reward and its unpaid price; push vs. pull; the character-change gap. ⭐ The levelling conversation's preparation. |
-| 4 Values · 7 Governance | **Judgment** — #25 Judgment, with #37 Fairness as the negative | Lens 7's only antecedent — and the evidence that *being wronged outside a contest* has no lens in 113. |
-| 3b Participation | **Character Function** — #86 | Positions as a runtime casting call; NPC/player interchangeability; the standing vacancy. |
-| 2 Expression | **Action** — #31, with #79 Freedom | The text-adventure critique aimed straight at our medium, the command-palette rebuttal, *the refusal is the progression UI*, the door model. |
-| 3a Immersion | **The Nameless Quality** — #93 | Not-separateness as the positive form of betrayal; roughness as the charm problem; the authored-vs-procedural question. |
-| all | **Inner Contradiction** — #92 | The nine ledgers, and the warning against getting used to one. |
+| **4 · Values** | `46-reward.md` | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
+| **4 · Values** | `55-visible-progress.md` | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
+| **4 · Values** | `91-character-transformation.md` | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
+| **7 · Governance** | `25-judgment.md` | Lens 7's only antecedent in the deck — and it stops at *do players feel it is fair*. |
+| **7 · Governance** | `37-fairness.md` | The negative finding: across 113 lenses, **"fair" only ever means "even contest."** The evidence that lens 7 is unprecedented. Short by design. |
+| **3b · Participation** | `86-character-function.md` | His is a list authored once, folding roles together to save budget. Ours is derived from the economy with the casting call open. The blacksmith-shaped hole, made mechanical. |
+| **2 · Expression** | `31-action.md` | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* The command-palette rebuttal, and **the refusal is the progression UI**. |
+| **2 · Expression · 3a** | `79-freedom.md` | The call-security door model as a stated design answer rather than an accident. Short by design. |
+| **3a · Immersion** | `93-the-nameless-quality.md` | Alexander's *not-separateness* as the positive form of *the fiction cannot betray itself*; *roughness* as the open charm question. |
+| **all seven** | `92-inner-contradiction.md` | The nine ledgers with only the rendering refused, against the warning not to get used to a contradiction or make excuses for it. |
 
-**Second rank — real, not urgent:** #34 Skill and #48
-Simplicity/Complexity (much of both is now inside lens 1); #66 Channels
-and Dimensions with #94 Atmosphere (lenses 2 and 3a just claimed that
-ground); #90 Status — Keith Johnstone's improv status, genuinely unused
-and squarely relevant to the NPC and LLM work.
+⭐ **Write `46` · `55` · `91` together even though they are three
+files** — they are one argument seen three ways, and the levelling
+conversation is what they are for. Same for `25` + `37`, and `31` +
+`79`, which share one answer.
+
+**Second rank — real, not urgent:** `90-status.md` (Keith Johnstone's
+improv status — the one genuinely unused lens with real pull on the NPC
+and LLM work) · `34-skill.md` and `48-simplicity-complexity.md` (much of
+both is now inside lens 1) · `66-channels-and-dimensions.md` with
+`94-atmosphere.md` (lenses 2 and 3a just claimed that ground).
 
 ⛔ **Judged not worth entries:** #104 Technology (it is the
 *developer's* technology choices, not the fiction's), #106 Utopia, #96
