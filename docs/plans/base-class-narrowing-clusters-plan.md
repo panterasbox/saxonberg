@@ -1710,6 +1710,45 @@ a field a custom hydrator should own; the slate gets the list with the
   `Firebox` under a hearth. Commit: `refactor(narrowing W9): Burner is
   the fire, Firebox is the chamber, and a Tool is a tool`.
 
+  **✅ W9 DONE.** (a) 61 files renamed `Furnace*` → `Burner*`; (c) 113
+  files renamed `ToolItem` → `Tool`, with 32 rows' `class:`. 58 gates
+  green, drive 21/21, 391 server test files and twelve packs' suites
+  green.
+
+  ⭐ **The refusal prose was the reason, and it was still wrong after the
+  rename.** `_mixinRefusal` read *"{} isn't a furnace"* — so a player
+  pointing `ignite` at the wrong thing was told a candle isn't a
+  furnace, which is true, useless, and the whole naming complaint in one
+  sentence. It is *"{} won't hold a fire"* now: the refusal names what
+  the capability IS.
+
+  ⚠⚠ **(b) The plan's `Firebox` premise did not survive W1/W2, and the
+  correction is the one `Fitting`/`Station` already made.** The plan
+  listed seven re-bases including *"`Lamp` (`Firebox` + dials)"* and
+  *"`Still` (`Tool(Firebox)`)"*, with `Firebox` on `Thing`. But **a
+  lamp, a lantern and a still are goods you carry** — they sit on
+  `Movable`, and a forge bolted to a smithy floor does not. Putting them
+  on a `Thing`-rooted `Firebox` would have undone W1 and W2 two waves
+  later.
+
+  ⭐⭐ **A shared capability CHAIN is not a shared RUNG.** `Firebox` is
+  minted on `Thing` and takes the six built-in fires — `Forge` (which IS
+  the chain and nothing else), `Oven` (`Container(Placing(Firebox))`),
+  `Hearth` (`SpaceHeating(Placing(Firebox))`), `Campfire`
+  (`SpaceHeating(Postured(Slotted(Placing(Firebox))))`),
+  `SmeltingFurnace` (`Container(Forge)`) and `CharcoalPit`
+  (`Container(Firebox)`). `Lamp` and `Still` write the four mixins
+  themselves over `Movable` and point at `Firebox` for the order. ⭐ Two
+  consumers is not three: a portable twin is **declined** under *promote
+  at the third consumer*.
+
+  ⚠ The composition ORDER is load-bearing, and the existing suites are
+  what prove the re-base kept it: `Burner` outermost so ignite/douse see
+  the composed answers through `super`, `Thermal` innermost because the
+  fuel's heat is what the model integrates. A doused lamp is dark, a lit
+  forge does not warm the room, a lit hearth does — all three still
+  pass.
+
 ### What remains open — the complete list
 
 - **N3** — an affordance that is data (`affordedBy: capability:<kind>`
