@@ -406,12 +406,19 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * See the interface docstring. Whether a member encloses is the
-     * member's own claim, carried on its `Placement` row. No shipped
-     * member encloses — `on` does not — so every placed thing reads
-     * its container, which is the same answer the model gave before
-     * the relation had a name.
+     * member's own claim, carried on its `Placement` row — so a pack
+     * that ships an enclosing member gets this read for free, and a
+     * cold catalogue degrades to the container, which is the answer
+     * the model gave before the relation had a name.
      */
     getEnclosingScope(): Stuff | null {
+      const placement = this.getPlacement();
+      if (placement !== null) {
+        const member = ContainmentApi.placement(placement.name);
+        if (member?.getEncloses() === true) {
+          return placement.host as unknown as Stuff;
+        }
+      }
       return this.getContainer();
     }
 

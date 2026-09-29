@@ -65,6 +65,7 @@ import { ContainmentApi } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import { ProseApi } from '../../../../api/prose';
 import { ChattelApi } from '../../../../api/chattel';
 import type { Chattel } from '../../../../lib/chattel/Chattel';
 
@@ -104,29 +105,77 @@ export default class PutController extends CommandController<PutModel> {
       return;
     }
 
-    // Preposition: 'in' | 'on' | undefined. The matcher lowercased it
-    // when consuming.
+    // The consumed preposition, lowercased by the binder, or undefined.
     const prep = model.target.prep;
-    // A slot is more specific than a container: an `in` whose item fits
-    // an open slot on the target is a slot insertion, whatever the
-    // target also happens to be.
-    const slot =
-      prep !== 'on' ? PutController.openSlotFor(target, item) : null;
-    const mode = slot ? 'slot' : (prep ?? this.inferMode(target));
-    if (!mode) {
-      // No preposition AND target composes both Container and
-      // Placing — ambiguous. Reject; ask the player to specify.
-      MessageApi.scene(giver)
-        .topic('sense.survey')
-        .toSelf(Mml.compose`Put it in or on ${Mml.thing(target)}?`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'preposition-ambiguous',
-        detail: 'target accepts both in and on',
-      });
-      return;
+
+    // ⭐ D6 — build the OFFERS this target makes, in listing order.
+    const offers = PutController.offersFor(target);
+
+    // The slot rule stays first and unchanged in spirit: a slot is more
+    // specific than a container, so an item that fits an open slot goes
+    // in the slot. The guard is *the region-zero words, or none* — with
+    // one member that is exactly the old `prep !== 'on'`.
+    const zeroWords = offers.find((o) => o.kind === 'zero')?.words ?? ['in'];
+    const slotEligible = prep === undefined || zeroWords.includes(prep);
+    const slot = slotEligible
+      ? PutController.openSlotFor(target, item)
+      : null;
+
+    let chosen: PutOffer | null = null;
+    if (slot === null) {
+      const primaries = offers.map((o) => o.words[0] ?? o.name ?? 'in');
+      let matches: PutOffer[];
+      if (prep !== undefined) {
+        // A typed word: the member whose PRIMARY word it is, else any
+        // member that also answers to it. That secondary pass is how
+        // `put ham on hook` reaches a host offering only `from`.
+        matches = offers.filter((o) => (o.words[0] ?? '') === prep);
+        if (matches.length === 0) {
+          matches = offers.filter((o) => o.words.includes(prep));
+        }
+        if (matches.length === 0) {
+          MessageApi.scene(giver)
+            .topic('sense.survey')
+            .toSelf(
+              Mml.compose`You can't put things ${prep} ${Mml.thing(target)} — it takes ${joinOr(primaries)}.`,
+            )
+            .send();
+          context.note({
+            kind: 'controller-rejected',
+            reason: 'wrong-preposition',
+            detail: `target takes ${primaries.join('|')}; got '${prep}'`,
+          });
+          return;
+        }
+      } else {
+        matches = offers;
+      }
+      if (matches.length !== 1) {
+        // Ambiguous: a range is a firebox AND a hot plate, and the
+        // player has to say which. (Two members sharing a primary word
+        // is an authoring collision `lint:placement-words` refuses, so
+        // the typed-word branch reaching here is unreachable in
+        // practice — it is kept because "unreachable" is a claim about
+        // content, and content changes.)
+        const words = matches.map((o) => o.words[0] ?? o.name ?? 'in');
+        MessageApi.scene(giver)
+          .topic('sense.survey')
+          .toSelf(
+            Mml.compose`Put it ${joinOr(words)} ${Mml.thing(target)}?`,
+          )
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: matches.length === 0 ? 'wrong-preposition' : 'preposition-ambiguous',
+          detail: `target accepts ${words.join(', ')}`,
+        });
+        return;
+      }
+      chosen = matches[0]!;
     }
+
+    const mode: 'slot' | 'zero' | 'placement' =
+      slot !== null ? 'slot' : chosen!.kind;
 
     if (mode === 'slot') {
       if (!MixinApi.isContainer(target)) {
@@ -143,45 +192,43 @@ export default class PutController extends CommandController<PutModel> {
         });
         return;
       }
-    } else if (mode === 'in') {
-      if (!MixinApi.isContainer(target)) {
+    } else if (mode === 'zero') {
+      // ⭐ Region zero is the container's own interior. A shut lid
+      // refuses HERE, at the verb — never in `ContainmentApi.move`,
+      // which brains and restocks legitimately use to move goods into
+      // closed cupboards. And the target stays BOUND: a region you can
+      // name and be refused from teaches; one that vanishes reads as a
+      // bug.
+      if (MixinApi.isSealable(target) && !target.isOpen()) {
         MessageApi.scene(giver)
           .topic('sense.survey')
-          .toSelf(Mml.compose`You can't put things in ${Mml.thing(target)}.`)
+          .toSelf(Mml.compose`${Mml.thing(target)} is shut.`)
           .send();
         context.note({
           kind: 'controller-rejected',
-          reason: 'wrong-preposition',
-          detail: `target not a Container; cannot 'in'`,
+          reason: 'shut',
+          detail: `${target.getPresentation()} is closed`,
         });
         return;
       }
     } else {
-      // mode === 'on'
-      if (!MixinApi.isPlacing(target)) {
-        MessageApi.scene(giver)
-          .topic('sense.survey')
-          .toSelf(Mml.compose`You can't put things on ${Mml.thing(target)}.`)
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'wrong-preposition',
-          detail: `target not a Placing host; cannot 'on'`,
-        });
-        return;
-      }
       const veto = (target as Stuff & Placing).canPlace(
         item as Stuff & Containable,
-        'on',
+        chosen!.name!,
       );
       if (!veto.ok) {
+        const word = chosen!.words[0] ?? chosen!.name!;
         MessageApi.scene(giver)
           .topic('sense.survey')
-          .toSelf(Mml.compose`${Mml.thing(item)} won't rest on ${Mml.thing(target)}.`)
+          .toSelf(
+            veto.reason === 'shut'
+              ? Mml.compose`${Mml.thing(target)} is shut.`
+              : Mml.compose`${Mml.thing(item)} won't go ${word} ${Mml.thing(target)}.`,
+          )
           .send();
         context.note({
           kind: 'controller-rejected',
-          reason: 'cannot-rest',
+          reason: veto.reason === 'shut' ? 'shut' : 'cannot-rest',
           detail: `host rejected item (${veto.reason})`,
         });
         return;
@@ -212,7 +259,7 @@ export default class PutController extends CommandController<PutModel> {
       }
     }
 
-    // Branch to the correct primitive based on resolved mode. Two
+    // Branch to the correct primitive based on resolved mode. Three
     // distinct calls — each does one thing — preserving
     // ContainmentApi.move's existing contract.
     if (mode === 'slot') {
@@ -226,7 +273,7 @@ export default class PutController extends CommandController<PutModel> {
         item as unknown as Stuff & Slottable,
         slot!,
       );
-    } else if (mode === 'in') {
+    } else if (mode === 'zero') {
       ContainmentApi.move(
         item as Stuff & Containable,
         target as Stuff & Container,
@@ -234,7 +281,7 @@ export default class PutController extends CommandController<PutModel> {
     } else {
       ContainmentApi.place(
         item as Stuff & Containable,
-        'on',
+        chosen!.name!,
         target as Stuff & Placing,
       );
     }
@@ -258,13 +305,43 @@ export default class PutController extends CommandController<PutModel> {
       return;
     }
 
-    // `mode` is narrowed to 'in' | 'on' at this point; use it as the
-    // preposition verbatim.
-    MessageApi.scene(giver)
-      .topic('sense.survey')
-      .toSelf(Mml.compose`You put ${Mml.thing(item)} ${mode} ${Mml.thing(target)}.`)
+    // ⭐ The sentence is the MEMBER's, not the controller's — one Liquid
+    // template on the row, rendered per audience with the agreement
+    // variables `EmoteGrammar` already binds. That is what lets `from`
+    // say *hang* where `on` says *put*, with no code here knowing the
+    // difference. A member with no live row falls back to the shipped
+    // sentence, so a cold catalogue still speaks English.
+    const member = ContainmentApi.placement(chosen!.name ?? 'in');
+    const template = member?.getProse() ?? '';
+    const word = chosen!.words[0] ?? chosen!.name ?? 'in';
+    const scene = MessageApi.scene(giver).topic('sense.survey');
+    if (template !== '') {
+      scene
+        .toSelf(
+          ProseApi.format(template, {
+            actor: Mml.compose`You`,
+            item: Mml.thing(item),
+            host: Mml.thing(target),
+            s: '',
+            es: '',
+          }),
+        )
+        .toPeers(
+          ProseApi.format(template, {
+            actor: Mml.actor(giver),
+            item: Mml.thing(item),
+            host: Mml.thing(target),
+            s: 's',
+            es: 'es',
+          }),
+        )
+        .send();
+      return;
+    }
+    scene
+      .toSelf(Mml.compose`You put ${Mml.thing(item)} ${word} ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.actor(giver)} puts ${Mml.thing(item)} ${mode} ${Mml.thing(target)}.`,
+        Mml.compose`${Mml.actor(giver)} puts ${Mml.thing(item)} ${word} ${Mml.thing(target)}.`,
       )
       .send();
   }
@@ -286,12 +363,70 @@ export default class PutController extends CommandController<PutModel> {
     return null;
   }
 
-  private inferMode(target: Stuff): 'in' | 'on' | 'slot' | null {
-    const isContainer = MixinApi.isContainer(target);
-    const isPlacing = MixinApi.isPlacing(target);
-    if (isContainer && !isPlacing) return 'in';
-    if (isPlacing && !isContainer) return 'on';
-    // Both → ambiguous; neither shouldn't happen (validator gates).
-    return null;
+  /**
+   * ⭐ The ways this target offers to be put into or onto, in listing
+   * order: **region zero** first when the target is a plain container,
+   * then one per member its row offers.
+   *
+   * Region zero is the container's own interior and is NOT a member —
+   * a chest has no compartments, it just holds things. It borrows its
+   * words and its prose from the `in` row when the catalogue has one,
+   * which is what makes *one region and many regions the same thing*
+   * literal rather than a slogan.
+   *
+   * Static so it stays unit-testable without a free-floating export.
+   */
+  private static offersFor(target: Stuff): PutOffer[] {
+    const offers: PutOffer[] = [];
+    if (MixinApi.isContainer(target) && !isBody(target)) {
+      const member = ContainmentApi.placement('in');
+      const words = member?.getPrepositions() ?? ['in'];
+      offers.push({ kind: 'zero', name: 'in', words: [...words] });
+    }
+    if (MixinApi.isPlacing(target)) {
+      for (const name of target.getPlacements()) {
+        // ⚠ A member with no live row still gets offered, answering to
+        // its own name. Dropping it would make a cold catalogue — or a
+        // host naming a member no installed pack ships — silently
+        // unaddressable, which is the failure class this build exists
+        // to stop making; the fallback degrades to *the behaviour
+        // before the vocabulary* instead.
+        const words = ContainmentApi.placement(name)?.getPrepositions() ?? [];
+        offers.push({
+          kind: 'placement',
+          name,
+          words: words.length > 0 ? [...words] : [name],
+        });
+      }
+    }
+    return offers;
   }
+}
+
+/** One way this target offers to be put into or onto. */
+interface PutOffer {
+  kind: 'zero' | 'placement';
+  name: string;
+  /** The words it answers to, primary first. */
+  words: string[];
+}
+
+/**
+ * A container that is somebody is not a region you put things in —
+ * the same three exclusions `MixinApi.isOpenContainer` makes, minus
+ * the lid (a shut chest still offers region zero; it refuses at the
+ * verb, with a reason).
+ */
+function isBody(target: Stuff): boolean {
+  return (
+    MixinApi.isOrganism(target) ||
+    MixinApi.isCommandGiver(target) ||
+    MixinApi.isHasInteractive(target)
+  );
+}
+
+/** `a`, `a or b`, `a, b or c` — the roster in a refusal. */
+function joinOr(words: readonly string[]): string {
+  if (words.length <= 1) return words[0] ?? '';
+  return `${words.slice(0, -1).join(', ')} or ${words[words.length - 1]}`;
 }

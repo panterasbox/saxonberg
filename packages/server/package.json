@@ -61,6 +61,7 @@
     "lint:light-sources": "tsx scripts/check-light-sources.ts",
     "lint:lib-statics": "tsx scripts/check-lib-statics.ts --lint",
     "lint:locations": "tsx scripts/check-location-classes.ts",
+    "lint:placement-words": "tsx scripts/check-placement-words.ts --lint",
     "lint:mixin-names": "tsx scripts/check-mixin-names.ts --lint",
     "lint:module-scope": "tsx scripts/check-module-scope.ts",
     "lint:no-authored-faucet": "tsx scripts/check-no-authored-faucet.ts --lint",

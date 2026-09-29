@@ -519,9 +519,13 @@ export default class LookController extends CommandController<LookModel> {
         if (placed.length === 0) continue;
         // A person sitting on a stool is placed on a host too.
         const list = Mml.list(placed.map((r) => Mml.actor(r)));
-        // The heading is the member's own word, carried on its
-        // `Placement` row. Only `on` ships today, so this is its label.
-        body = Mml.compose`${body}── On it: ${list}.`;
+        // ⭐ The heading is the MEMBER's, off its own `Placement` row —
+        // so a hook says "Hanging from it" where a shelf says "On it",
+        // with nothing here knowing the difference. A member with no
+        // live row falls back rather than printing nothing.
+        const heading =
+          ContainmentApi.placement(member)?.getHeading() || 'With it';
+        body = Mml.compose`${body}── ${heading}: ${list}.`;
       }
     }
     // A stamped good says whose it is — the bottle bought for the bar

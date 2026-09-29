@@ -1,0 +1,15 @@
+# on — the way of sitting the whole model shipped with, now named.
+#
+# A mug on a desk, a pot on a range, a bottle on the back-bar. The thing
+# is in the room and represented by its host; `look <host>` finds it.
+#
+# ⭐ `encloses: false` — a surface does not put anything inside anything.
+# Air, sight and reach all read straight past it to the room.
+class: /platform/idea/Placement
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: on
+  prepositions: [on, onto]
+  encloses: false
+  prose: "{{ actor }} put{{ s }} {{ item }} on {{ host }}."
+  heading: On it

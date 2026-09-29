@@ -33,6 +33,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Placing } from '../lib/spatial/Placing';
+import type Placement from '../platform/idea/Placement';
 import type { Warren } from '../lib/location/Warren';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
@@ -259,6 +260,33 @@ export class ContainmentApi {
     host: Stuff & Placing,
   ): void {
     logic().place(item, name, host);
+  }
+
+  /**
+   * ⭐ The one **synchronous** door onto the ways-of-sitting vocabulary
+   * — the live `Placement` member called `name`, or `null` when no
+   * installed pack ships it.
+   *
+   * Sync because every reader is on a dispatch path: `put` resolving a
+   * typed preposition, `look` labelling a drill-in list, a Containable
+   * asking whether its member encloses. Null is the shipped default
+   * everywhere, so a cold catalogue degrades to "the behaviour before
+   * the vocabulary" rather than to a broken verb — and the catalogue
+   * warms lazily on the first async miss.
+   *
+   * ⚠ A `lib/` mixin calls THIS, never the catalogue: the roster is a
+   * platform singleton and `lib/` may not reach into `platform/`.
+   */
+  public static placement(name: string): Placement | null {
+    return logic().placement(name);
+  }
+
+  /**
+   * The member a typed preposition names — `onto` → `on`, `from` →
+   * `from`. A member's primary word always wins its own key.
+   */
+  public static placementForWord(word: string): Placement | null {
+    return logic().placementForWord(word);
   }
 
   // The old `findReachable` / `findHostedUpdate` finders were removed:

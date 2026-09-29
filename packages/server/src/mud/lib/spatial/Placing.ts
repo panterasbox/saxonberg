@@ -49,6 +49,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Containable } from './Containable';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
+import { ContainmentApi } from '../../api/containment';
 
 /**
  * Public shape provided by PlacingMixin.
@@ -208,7 +209,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (word === undefined) {
         return offered[0] ?? null;
       }
-      const w = word.toLowerCase();
+      const w = word.trim().toLowerCase();
       // Primary word first: a host offering both `on` and `from` takes
       // `put X on host` as `on`, because `on` is `on`'s primary.
       for (const nm of offered) {
@@ -242,20 +243,32 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!this.getPlacements().includes(name)) {
         return { ok: false, reason: 'no-such-placement' };
       }
+      // ⭐ An ENCLOSING member puts the thing inside this host, so a
+      // shut host refuses it — and says which, because a refusal a
+      // player cannot act on teaches nothing. A non-enclosing member
+      // (a hook on the outside of a shut box) is unaffected.
+      if (ContainmentApi.placement(name)?.getEncloses() === true) {
+        const self = this as unknown as Stuff;
+        if (MixinApi.isSealable(self) && !self.isOpen()) {
+          return { ok: false, reason: 'shut' };
+        }
+      }
       // Default: accept any Containable under an offered member.
       // Subclasses / shadows override for shape-specific gates
-      // (capacity, weight, temperature). The `shut` clause for an
-      // enclosing member lands with the vocabulary (W2).
+      // (capacity, weight, temperature).
       return { ok: true };
     }
   };
 }
 
 /**
- * The words a member accepts, primary first. Until the `Placement`
- * vocabulary ships (W2) this is the one shipped member's fixed map;
- * `Placing.resolvePlacement` is the only reader.
+ * The words a member accepts, primary first, off its own `Placement`
+ * row. A member with no live row answers to its own name — so a host
+ * offering a member the catalogue has not warmed still resolves the
+ * obvious word rather than becoming unaddressable.
  */
 function wordsFor(name: string): readonly string[] {
-  return name === 'on' ? ['on', 'onto'] : [name];
+  const member = ContainmentApi.placement(name);
+  const words = member?.getPrepositions() ?? [];
+  return words.length > 0 ? words : [name];
 }

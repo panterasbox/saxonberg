@@ -201,6 +201,14 @@ export class VisionModality extends Modality {
     // coupe in the rack, a keg in the floor stock, reads in the room's
     // light — `MixinApi.isOpenContainer`, the one rule reach and the
     // `peers` scope ask, so you can never name what you cannot see.
+    //
+    // ⚠ A PLACEMENT needs nothing here. A thing placed on a host has
+    // `container = the room` and reads the room's light, which is
+    // right; a thing placed in an enclosing region is refused upstream
+    // by reach (`PerceptionLogic.canReach`), so the light it would have
+    // read never comes up. If a region ever needs its OWN light, this
+    // is where it lands — and it would be the region's claim, not a
+    // branch on the member.
     if (env.stuffId === viewer.stuffId) {
       env = MixinApi.isContainable(viewer)
         ? (viewer.getContainer() ?? env)

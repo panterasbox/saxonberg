@@ -30,5 +30,10 @@ args:
     type: object
     required: true
     scope: "peers"
-    prepositions: [in, on]
+    # ⭐ One word per placement member this verb accepts, plus region
+    # zero's. `pnpm -C packages/server lint:placement-words --list` is
+    # what tells an author which verbs need a new member's word — a verb
+    # that should accept one and silently does not refuses every target
+    # at the binder, with nothing logged.
+    prepositions: [in, into, on, onto, from]
     requires: [VisibleMixin, ContainerMixin|PlacingMixin]

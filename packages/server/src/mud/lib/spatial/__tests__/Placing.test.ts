@@ -114,9 +114,22 @@ describe('PlacingMixin', () => {
       );
       expect(surface.getPlacements()).toEqual(['on']);
       expect(surface.resolvePlacement('on')).toBe('on');
-      expect(surface.resolvePlacement('onto')).toBe('on');
       expect(surface.resolvePlacement('from')).toBeNull();
       expect(surface.resolvePlacement()).toBe('on');
+    });
+
+    it('⚠ COLD, a member answers to its own NAME and nothing else', () => {
+      // The words a member accepts are its `Placement` row's claim. With
+      // no roster warmed the fallback is the member's own name, so a
+      // host stays addressable — `onto` is `on`'s row talking, and
+      // without the row it is just a word nobody knows.
+      StuffApi.clearAll();
+      const surface = makeStuffAtPath(
+        () => new TestSurface(),
+        '/test/surface-cold-words',
+      );
+      expect(surface.resolvePlacement('on')).toBe('on');
+      expect(surface.resolvePlacement('onto')).toBeNull();
     });
 
     it('a row may offer a different member entirely', () => {

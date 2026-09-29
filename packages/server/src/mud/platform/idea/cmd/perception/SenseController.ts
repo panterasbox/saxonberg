@@ -259,9 +259,13 @@ export default class SenseController extends CommandController<SenseModel> {
         // Someone sitting on a stool is placed on a host like anything
         // else — so this list can hold a person too.
         const list = Mml.list(placed.map((r) => Mml.actor(r)));
-        // The heading is the member's own word, carried on its
-        // `Placement` row. Only `on` ships today, so this is its label.
-        body = Mml.compose`${body}── On it: ${list}.`;
+        // ⭐ The heading is the MEMBER's, off its own `Placement` row —
+        // so a hook says "Hanging from it" where a shelf says "On it",
+        // with nothing here knowing the difference. A member with no
+        // live row falls back rather than printing nothing.
+        const heading =
+          ContainmentApi.placement(member)?.getHeading() || 'With it';
+        body = Mml.compose`${body}── ${heading}: ${list}.`;
       }
     }
     MessageApi.scene(actor)

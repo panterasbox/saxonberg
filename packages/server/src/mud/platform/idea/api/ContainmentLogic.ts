@@ -15,6 +15,10 @@ import { CommandApi } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentError } from '../../../api/containment';
+import PlacementCatalogue, {
+  PLACEMENT_CATALOGUE_PATH,
+} from '../PlacementCatalogue';
+import type Placement from '../Placement';
 import type { MergeOnArrivalHook } from '../../../api/containment';
 
 type ContainerStuff = Stuff & Container;
@@ -137,6 +141,29 @@ export class ContainmentLogic extends ApiLogic {
     // go straight to the placement update.
     this.move(item, targetEnv);
     item._setPlacement(host, name);
+    // ⭐ `move` is a NO-OP when the container is unchanged (a mug moving
+    // from one desk to another in the same room), so nothing would
+    // restamp — and a member that encloses means the thing's ambient
+    // scope just changed. Restamp here, where the placement did.
+    if (MixinApi.isThermal(item)) void item.restamp();
+  }
+
+  /** See {@link ContainmentApi.placement}. */
+  @CallSecurity(ContainmentApiCallers)
+  public placement(name: string): Placement | null {
+    const catalogue = StuffApi.findByTemplatePath<PlacementCatalogue>(
+      PLACEMENT_CATALOGUE_PATH,
+    );
+    return catalogue?.peek(name) ?? null;
+  }
+
+  /** See {@link ContainmentApi.placementForWord}. */
+  @CallSecurity(ContainmentApiCallers)
+  public placementForWord(word: string): Placement | null {
+    const catalogue = StuffApi.findByTemplatePath<PlacementCatalogue>(
+      PLACEMENT_CATALOGUE_PATH,
+    );
+    return catalogue?.peekWord(word) ?? null;
   }
 
   // `findReachable` / `findHostedUpdate` were removed — the reachable

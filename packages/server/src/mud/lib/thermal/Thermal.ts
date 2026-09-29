@@ -302,6 +302,23 @@ export interface Thermal {
   restamp(): Promise<void>;
 }
 
+/**
+ * ⭐ **What stands between this body and the room, for air.**
+ *
+ * The body's enclosing placement host when it sits under a member that
+ * encloses (a compartment with its own air), otherwise its container.
+ * A body that is not `Containable` at all has no scope.
+ *
+ * One function because both the pull side (`refreshAmbientFromEnvelope`)
+ * and the push side (`restamp`) must ask the same question, and the day
+ * they disagree is the day a compartment keeps its cold in one path and
+ * not the other.
+ */
+function ambientScopeOf(host: Stuff): Stuff | null {
+  if (!MixinApi.isContainable(host)) return null;
+  return host.getEnclosingScope();
+}
+
 function assertFiniteNonNeg(value: number, what: string): void {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     throw new RangeError(
@@ -580,8 +597,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     protected refreshAmbientFromEnvelope(): void {
       const self = this.thermalHost;
       if (this.heatSourceK() !== null) return;
-      const scope = (self as unknown as { getContainer(): Stuff | null })
-        .getContainer();
+      const scope = ambientScopeOf(self);
       if (scope === null || !MixinApi.isAtmospheric(scope)) return;
       const envelopeK = scope.envelopeTemperatureLast();
       if (envelopeK !== null) this.lastAmbientK = envelopeK;
@@ -689,9 +705,15 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (sourceK !== null) {
         ambientK = sourceK;
       } else {
-        // Resolve the new scope's ambient. The host is `Containable`, and
-        // `getContainer()` already returns `(Stuff & Container) | null`.
-        const container = this.thermalHost.getContainer();
+        // Resolve the new scope's ambient. ⭐ The scope is what stands
+        // between this body and the room — its ENCLOSING placement host
+        // when it sits in a region with its own air, else its
+        // container. No shipped member encloses, so today these are the
+        // same object; the read names the right question so the first
+        // compartment needs no edit here.
+        const scope = ambientScopeOf(this.thermalHost);
+        const container =
+          scope !== null && MixinApi.isContainer(scope) ? scope : null;
         if (container !== null) {
           try {
             ambientK = (

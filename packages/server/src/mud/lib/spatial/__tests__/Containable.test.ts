@@ -10,6 +10,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ContainableMixin } from '../Containable';
 import { ContainerMixin } from '../Container';
 import { PlacingMixin } from '../Placing';
+import Placement from '../../../platform/idea/Placement';
+import PlacementCatalogue from '../../../platform/idea/PlacementCatalogue';
+import { Template } from '../../stuff/Template';
 import { SingletonMixin } from '../../stuff/Singleton';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
@@ -254,5 +257,93 @@ describe('ContainableMixin.applyContainer', () => {
 
     expect(child.getContainer()).toBe(target);
     expect(elsewhere.hasContainable(child)).toBe(false);
+  });
+});
+
+/**
+ * ⭐ `getEnclosingScope` — *what stands between me and my container, for
+ * air, sight and reach.* The one read the thermal ambient and the reach
+ * refusal both ask, so the day they disagree is the day a compartment
+ * keeps its cold in one path and not the other.
+ */
+describe('ContainableMixin.getEnclosingScope', () => {
+  let room: ConcreteStuff;
+  let item: TestContainable;
+  let host: TestSurface;
+
+  async function warmMembers(): Promise<void> {
+    const rows = [
+      { name: 'on', prepositions: ['on'], encloses: false },
+      { name: 'in', prepositions: ['in'], encloses: true },
+    ];
+    vi.spyOn(Template, 'findByPathInfix').mockResolvedValue(
+      rows.map((r) => ({
+        path: `/platform/idea/Placement/${r.name}`,
+        class: '/platform/idea/Placement',
+      })) as unknown as Template[],
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(
+      Placement as unknown as never,
+    );
+    vi.spyOn(StuffApi, 'singleton').mockImplementation(async (path: string) => {
+      const row = rows.find((r) => path.endsWith(`/${r.name}`))!;
+      const m = makeStuff(() => new Placement());
+      m.name = row.name;
+      m.prepositions = row.prepositions;
+      m.encloses = row.encloses;
+      return m as never;
+    });
+    const catalogue = makeStuffAtPath(
+      () => new PlacementCatalogue(),
+      '/platform/idea/PlacementCatalogue',
+    );
+    await catalogue.warm();
+  }
+
+  beforeEach(async () => {
+    StuffApi.clearAll();
+    vi.restoreAllMocks();
+    await warmMembers();
+    room = makeStuff(() => new ConcreteStuff());
+    item = makeStuff(() => new TestContainable());
+    host = makeStuffAtPath(() => new TestSurface(), '/test/enclosing-host');
+    ContainmentApi.move(host, room);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('unplaced: the container', () => {
+    ContainmentApi.move(item, room);
+    expect(item.getEnclosingScope()).toBe(room);
+  });
+
+  it('a NON-enclosing member: still the container — a desk encloses nothing', () => {
+    host.setPlacements(['on']);
+    ContainmentApi.place(item, 'on', host);
+    expect(item.getEnclosingScope()).toBe(room);
+  });
+
+  it('⭐ an ENCLOSING member: the HOST — a region with its own air', () => {
+    host.setPlacements(['in']);
+    ContainmentApi.place(item, 'in', host);
+    expect(item.getEnclosingScope()).toBe(host);
+  });
+
+  it('a member with no live row reads as non-enclosing, not as broken', async () => {
+    host.setPlacements(['sideways']);
+    ContainmentApi.place(item, 'sideways', host);
+    expect(item.getEnclosingScope()).toBe(room);
+  });
+
+  it('⚠ a destructed host heals to the container, whatever the name said', () => {
+    host.setPlacements(['in']);
+    ContainmentApi.place(item, 'in', host);
+    expect(item.getEnclosingScope()).toBe(host);
+    StuffApi.destruct(host);
+    expect(item.getPlacement()).toBeNull();
+    expect(item.getEnclosingScope()).toBe(room);
   });
 });
