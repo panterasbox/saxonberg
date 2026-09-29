@@ -53,13 +53,13 @@ Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
-**None are written yet.**
+✅ **Written: `46` · `55` · `91`** (2026-09-29). The rest are pending.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
-| **4 · Values** | `46-reward.md` | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
-| **4 · Values** | `55-visible-progress.md` | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
-| **4 · Values** | `91-character-transformation.md` | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
+| **4 · Values** | ✅ [`46-reward.md`](./46-reward.md) | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
+| **4 · Values** | ✅ [`55-visible-progress.md`](./55-visible-progress.md) | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
+| **4 · Values** | ✅ [`91-character-transformation.md`](./91-character-transformation.md) | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
 | **7 · Governance** | `25-judgment.md` | Lens 7's only antecedent in the deck — and it stops at *do players feel it is fair*. |
 | **7 · Governance** | `37-fairness.md` | The negative finding: across 113 lenses, **"fair" only ever means "even contest."** The evidence that lens 7 is unprecedented. Short by design. |
 | **3b · Participation** | `86-character-function.md` | His is a list authored once, folding roles together to save budget. Ours is derived from the economy with the casting call open. The blacksmith-shaped hole, made mechanical. |
