@@ -223,6 +223,20 @@ export interface Atmospheric {
   /** The room's temperature as last integrated, WITHOUT integrating. */
   envelopeTemperatureLast(): number | null;
 
+  /**
+   * ⭐ **This space's own air, synchronously, in K** — the authored
+   * override when a row states one (a cellar at 279 K, a cave), else
+   * the last integrated envelope, else `null` for a space that simply
+   * takes the chain's word for it.
+   *
+   * A getter over the two fields that already exist, so a reader can
+   * ask *how cold is it in here* without reaching into
+   * `_temperature` — which is a field, and fields are not the
+   * contract between Stuff. Sync because the archetype survey and the
+   * thermal reconcile both ask on a hot path.
+   */
+  getOwnTemperatureK(): number | null;
+
   /** Why the room is the temperature it is — what `feel` says out loud. */
   envelopeCause(): {
     insideK: number;
@@ -985,6 +999,13 @@ export function AtmosphericMixin<
       if (!this.envelopeApplies()) return null;
       if (this.envelopeOutsideK === null) return null;
       return this.envelopeTemperatureK;
+    }
+
+    /** See the interface docstring — authored first, else integrated. */
+    public getOwnTemperatureK(): number | null {
+      const authored = this._temperature;
+      if (authored !== null) return authored.rawValue();
+      return this.envelopeTemperatureLast();
     }
 
 
