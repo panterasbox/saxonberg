@@ -1013,6 +1013,53 @@ untitled one still fails closed. `access.md`'s gate table says so.
 `packages/wire/tests/base-class-narrowing.dirty.wire.test.ts`, run
 against a world booted on a freshly reset `saxonberg_build3`.
 
+**Final run: 13 of 14 green** (round 13, `WIRE_FRAME_TIMEOUT=45000`,
+freshly reset `saxonberg_build3`, world booted on 2014). Step 0 ✅✅,
+all of part A ✅✅✅, all of part C ✅✅✅✅, all of part D ✅✅.
+
+### ⛔⛔ THE ONE RED CHECKPOINT — read this first
+
+> **`feel <a carried Thermal item>` does not answer once game-time has
+> passed.** Reproducible, every run, five rounds.
+
+What is established:
+
+- The **first** `feel rations` — carried, on the street, seconds after
+  cloning — answers in **887 ms**.
+- After `goto` and 900 game-seconds of idling, the **same command on the
+  same item** never answers. 45 s, 60 s and 90 s frame timeouts all
+  expire.
+- ⭐ **The session is alive and the room answers.** A `feel here` probe
+  inserted immediately before it returns normally. So it is not the
+  socket, not the harness's order correlation (draining after the idle
+  changes nothing), and not the session.
+- It is **not the room**: the same hang in the cookhouse and on the
+  general store's shop floor.
+- It is **not a lit fire**: the same hang with the hearth cold.
+- Part C's founder survives two idles of the same length and answers
+  `feel here` both times.
+
+So the trigger is: *a carried `Thermal` item + elapsed game-time*, and
+the read that hangs is the ITEM read, not the scope read.
+
+⚠⚠ **I did not establish whether it predates this build.** It is
+squarely in the area W4 touched — `feel <item>` reaches the item's
+`reconcileThermal` → `refreshAmbientFromEnvelope` → `airScopeOf`, and
+`feel here` reads the room and never calls it. But the walk is bounded
+(a carried item resolves in TWO hops, carrier → room, and the depth cap
+is 32), the identical walk runs in the 887 ms read, and the variable
+that changed between the fast read and the hang is elapsed time, not
+depth. The obvious next move is one run of this file against `master`
+with the same fixture; that is a ten-minute answer and it is the first
+thing to do.
+
+**The checkpoint is left RED on purpose.** The mechanism it was written
+to prove is proved by `Thermal.bagged.test.ts` — which fails with the
+repair reverted, covers the worn two-hop case directly, and pins the
+depth-2 counterexample. Turning this one green by deleting it would hide
+a reproducible, player-facing defect: **a player who picks up food,
+walks around for a few minutes and touches it gets nothing back.**
+
 ### ⭐⭐ What the drive found
 
 **Six rounds.** Rounds 1–5 found nothing wrong with the model and five

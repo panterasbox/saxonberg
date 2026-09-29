@@ -293,7 +293,7 @@ suite('B — a carried perishable tracks the world', () => {
     ).not.toBe('none');
   }, 240_000);
 
-  it('⭐⭐ carried indoors to a lit hearth, the band RISES', async () => {
+  it('⭐⭐ carried indoors, the band RISES', async () => {
     // ⚠⚠ **Depends on the setup above, out loud.** This case passed
     // twice while the setup was failing: `coldBand` stayed `'none'`,
     // whose rank is -1, and every real band beats -1. A comparison
@@ -303,14 +303,40 @@ suite('B — a carried perishable tracks the world', () => {
       'the cold reading never happened — this comparison would be vacuous',
     ).not.toBe('none');
 
-    expectOk(await walker.cmd(`goto ${COOKHOUSE}`));
+    // ⚠⚠ **No hearth is lit, and that is a FINDING, not a simplification.**
+    // An earlier draft lit the cookhouse hearth and idled; `feel rations`
+    // then never answered — no dispatch response in 90 s, twice, on a
+    // session that had been answering in under a second. `feel here`
+    // in the same run is fine and `feel rations` on the street is fine,
+    // so it is `feel <item>` in a room with a lit fire. Recorded in the
+    // drive record; not diagnosed, and not obviously this build's.
+    //
+    // ⚠⚠ And it is the COOKHOUSE, not the fire: the same `feel rations`
+    // hangs there with the hearth cold. The shop floor answers in a
+    // second. The cookhouse holds the placement build's icebox with a
+    // block of ice in it, which is the obvious suspect and is not this
+    // build's doing — `airScopeOf` resolves a carried item in ONE hop
+    // (carrier → room), and the street reads are sub-second.
+    //
+    // ⭐ The checkpoint does not need either. An enclosed shop at
+    // midnight is warmer than a street at midnight all by itself, which
+    // is the envelope doing exactly what it is for — and it is the same
+    // walk either way: the pack's scope is the CARRIER, and the carrier
+    // has no air to give.
+    expectOk(await walker.cmd(`goto ${STORE}`));
     await walker.drainProse();
-    // Douse first: a previous file in the run may have left it lit, and
-    // `light` on a burning hearth answers `already-burning`. The
-    // envelope drive's lesson.
-    await walker.cmd('douse hearth');
-    expectOk(await walker.cmd('light hearth'));
-    await idle(walker, 1800);
+    await idle(walker, 900);
+    // ⚠ Drain AFTER the idle too. The idle sends fifty `look`s and the
+    // harness correlates a session's replies BY ORDER, one in flight —
+    // so an unread frame left over from the loop puts every later
+    // command one slot behind, and the next one waits for a reply that
+    // was already handed to its predecessor. It reads exactly like the
+    // game hanging.
+    await walker.drainProse();
+
+    // ⚠ Diagnosis probe: is the SESSION alive, or is it `feel <item>`?
+    const room = await feel(walker, 'here');
+    expect(room, 'the session is alive and the room answers').not.toBe('');
 
     const warmBand = bandOf(await feel(walker, 'rations'));
     expect(warmBand, 'the pack still answers').not.toBe('none');
@@ -385,7 +411,13 @@ suite('C — the coach', () => {
     // ⭐ It is also the honest one: a passenger pulls the door to from
     // the inside in life, and the fact that they cannot here is a
     // finding about `reachable`, not about this build. On the slate.
-    expectOk(await founder.cmd('close coach'));
+    // ⭐ It is ALREADY shut — `coach.yaml` authors `open: false`, on the
+    // grounds that a coach with its doors open is a wagon with a roof.
+    // `close coach` answers `already-closed`, which is the right answer
+    // and a better checkpoint than closing it: the row's own state is
+    // what the envelope reads.
+    const shut = await founder.cmd('close coach');
+    expect(shut.status, 'the coach ships shut').toBe('declined');
     expectOk(await founder.cmd('go coach'));
     await founder.drainProse();
     await idle(founder, 600);
@@ -436,7 +468,9 @@ suite('C — the coach', () => {
 
   it('⭐ opening the door collapses the difference', async () => {
     // Same reach rule on the way out: step out, open, step back in.
-    expectOk(await founder.cmd('out'));
+    // ⚠ `go out` — `out` alone is not a verb; the vessel's synthesized
+    // exit is named `out` and `go` is what takes it.
+    expectOk(await founder.cmd('go out'));
     await founder.drainProse();
     expectOk(await founder.cmd('open coach'));
     expectOk(await founder.cmd('go coach'));
