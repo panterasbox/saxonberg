@@ -37,7 +37,7 @@
  * otherwise be the obvious way around all of this.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
 import { ResettableMixin } from '@saxonberg/server/mud/lib/residency/Resettable';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
@@ -50,7 +50,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 
 const ToolRackBase = PostRegistrationMixin(
-  ResettableMixin(FixtureMixin(Movable)),
+  ResettableMixin(FixtureMixin(Thing)),
 );
 
 export default class ToolRack extends ToolRackBase {

@@ -15,7 +15,8 @@
  * just the base.
  */
 
-import { Vessel } from "@saxonberg/server/mud/lib/stuff/Vessel";
+import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
+import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
 import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
@@ -29,7 +30,7 @@ import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 // leaves `seatIn` unset and is placed by ordinary containment.
 const CheckRackBase = PersistableMixin(
   HeldGoodsMixin(
-    PostRegistrationMixin(FixtureMixin(Vessel)),
+    PostRegistrationMixin(FixtureMixin(ContainerMixin(Thing))),
   ),
 );
 

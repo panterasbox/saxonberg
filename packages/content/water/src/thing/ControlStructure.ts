@@ -34,7 +34,7 @@
  * See [docs/subsystems/watershed.md].
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
@@ -59,7 +59,7 @@ export interface ControlSplit {
   generatedW: number;
 }
 
-const ControlStructureBase = Movable;
+const ControlStructureBase = Thing;
 
 export default class ControlStructure extends ControlStructureBase {
   static fieldMeta: FieldMeta = {

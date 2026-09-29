@@ -886,6 +886,48 @@ Acceptance: `pnpm -C packages/content/<pack> test` for each of the 14
 packs touched; `lint:family`. Commit:
 `build(narrowing W2): twenty-nine pack classes that are part of the place`.
 
+**✅ W2 DONE**, with **three roster corrections** and **one new class** —
+and every one of them was found by a test, not by reading. Census:
+`Chattel` 492 rows / 79 classes → **470 / 73**, root unchanged at 563 / 94.
+All 57 gates green, `tsc` clean, all 17 touched packs' vitest green.
+
+⭐⭐ **The instrument nobody planned: the general store's stock list is a
+PROOF of movability.** `terminus`'s `general-store-standup` asserts that
+every stocked good is chattel-stampable. It failed three times in a row,
+naming a different class each time, and each name was a row the immovable
+roster had got wrong:
+
+- **`/stuff/thing/fixture/table` (`Fitting`)** — a first attempt moved
+  `Fitting` itself onto `Thing`, reasoning from its own docstring
+  (*"all joinery, none of it a good you pocket"*) and its constructor's
+  `fixedInPlace = true`, exactly the tell that was decisive for
+  `WaterFixture` in W1. **The store sells tables.** The tell is not
+  sufficient: `fixedInPlace` says *no agent pockets it*, and a thing can
+  be both bought and bolted down. `Fitting` stays on `Movable`.
+- **`/stuff/thing/fixture/sconce-lamp` (`SconceLamp`)** and
+  **`/system/arcana/thing/mana-lamp` (`ManaLamp`)** — both on the plan's
+  immovable roster, both stocked on the furnishings line. Reverted to
+  `Movable`. A lamp you buy is a good you own.
+
+⭐⭐ **And the conflation those failures exposed is the missing class this
+build was told to look for.** `Fitting` names two things: *furniture the
+store sells* (a table, a shelf, a rail) and *a station built into the
+premises* (a smoke chimney, a salting trough, a bar's back-station). They
+share one behaviour — holding placed items — and that is a mixin. So
+`platform/thing/Station` is minted (`PlacingMixin(Thing)` +
+`fixedInPlace`), and `SmokeChimney`, `SaltingTrough` and `BarStation`
+re-base onto it. **The failing assertion was the design review**; without
+it the three would have quietly inherited chattel from a table.
+
+⚠ **Two left on a movable base, deliberately.** `RettingPit` and
+`BleachingGreen` extend `Vat`, and `Vat` is genuinely movable — *"a
+carboy is a small vat row"*, and `RettingPit`'s own docstring makes a
+point of being *"a `Vat` with a different shape and no code of its own to
+speak of."* D14's move (compose the one mixin directly on `Thing`) does
+not scale here: the shared behaviour is six mixins, not one. Splitting
+`Vat` the way `Fitting` was split is the right answer and it is a
+taxonomy change, so it is **filed for W9**, not forced here.
+
 ### W3 — `Chattel` off `Creature` (D15)
 
 1. `lib/creature/Creature.ts:147`: remove `ChattelMixin(` and its import;

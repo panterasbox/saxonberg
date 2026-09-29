@@ -10,12 +10,17 @@
  *
  * ⚠ Its own class rather than a mode of `DryingRack`, because the chimney
  * is what makes the difference between drying and smoking.
- */
+  *
+ * ⭐ **A `Station`, not a `Fitting`** (the base-class narrowing): a
+ * `Fitting` is furniture the general store SELLS, so it is chattel; this
+ * is built into the premises and is not. See `platform/thing/Station.ts`
+ * for the conflation the narrowing found.
+*/
 
-import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
+import Station from '@saxonberg/server/mud/platform/thing/Station';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class SmokeChimney extends Fitting {
+export default class SmokeChimney extends Station {
   static commandContributions: CommandContributions = {
     peers: ['trade/cooking/cmd/crafting/smoke.yaml'],
   };

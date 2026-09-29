@@ -28,7 +28,7 @@ import { AppApi } from "@saxonberg/server/mud/api/app";
 import { AppSettingKeys } from "@saxonberg/server/mud/lib/config/AppSettings";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import Movable from "@saxonberg/server/mud/lib/stuff/Movable";
+import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
 import { FastTravelMixin } from "../lib/FastTravel";
 import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
 import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
@@ -90,7 +90,7 @@ const TpaTerminalBase = DisplayMixin(
               ManaPoweredMixin(
                 SlottedMixin(
                   ChargedMixin(
-                    ReservedMixin(ConduitMixin(ContainerMixin(Movable))),
+                    ReservedMixin(ConduitMixin(ContainerMixin(Thing))),
                   ),
                 ),
               ),

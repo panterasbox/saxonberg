@@ -11,9 +11,16 @@
  *
  * ⭐ It affords `ship` to whoever is standing at it — **content affords
  * content**, so a second depot in a second town needs zero pack code.
+ *
+ * ⚠ **`ContainerMixin(Thing)`, not `Vessel`** (the base-class narrowing,
+ * D14). `Vessel` sits on `Movable`, which composes `Chattel` and
+ * `Concealable`; this is part of the premises — nobody's chattel, and you
+ * cannot hide it. The container behaviour it wants is one mixin, so it
+ * composes that mixin. The GOODS it holds are the chattel.
  */
 
-import { Vessel } from '@saxonberg/server/mud/lib/stuff/Vessel';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { AttendantMixin } from '@saxonberg/server/mud/lib/attendant/Attendant';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MqlApi } from '@saxonberg/server/mud/api/mql';
@@ -21,7 +28,9 @@ import type { CommandContext, CommandContributions } from '@saxonberg/server/mud
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { ShipmentDeskMixin, type ShipmentDesk } from '../lib/haulage/ShipmentDesk';
 
-const DepotCounterBase = ShipmentDeskMixin(AttendantMixin(Vessel));
+const DepotCounterBase = ShipmentDeskMixin(
+  AttendantMixin(ContainerMixin(Thing)),
+);
 
 export default class DepotCounter extends DepotCounterBase {
   static commandContributions: CommandContributions = {

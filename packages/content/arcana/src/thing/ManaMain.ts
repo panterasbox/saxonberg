@@ -20,7 +20,7 @@
  * thing that happens to rhyme.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
@@ -31,7 +31,7 @@ import type { SupplyState } from '@saxonberg/server/mud/lib/supply/SupplyState';
 
 const ManaMainBase = SingletonMixin(
   PostRegistrationMixin(
-    FixtureMixin(ChargedMixin(ReservedMixin(Movable))),
+    FixtureMixin(ChargedMixin(ReservedMixin(Thing))),
   ),
 );
 

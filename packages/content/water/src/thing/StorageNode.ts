@@ -36,7 +36,7 @@
  * See [docs/subsystems/watershed.md].
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -68,7 +68,7 @@ export interface StorageMovement {
 
 // PersistableMixin OUTERMOST — the documented host rule.
 const StorageNodeBase = PersistableMixin(
-  SwitchableMixin(Movable),
+  SwitchableMixin(Thing),
 );
 
 export default class StorageNode extends StorageNodeBase {

@@ -21,12 +21,12 @@
  * everyone, kept by the man who remembers no one).
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { Time } from '@saxonberg/server/mud/lib/time/Time';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const CrossingLogBase = Movable;
+const CrossingLogBase = Thing;
 
 /** How many recent marks the long description renders in its tail. */
 const TAIL_LENGTH = 8;

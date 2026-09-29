@@ -277,7 +277,10 @@ describe("general-store standup (real seeds)", () => {
       // sheaf, not a chattel-stamped instance (see general-store-content
       // .test.ts). Everything else stays discrete + stampable.
       if (MixinApi.isStackable(good)) continue;
-      expect(MixinApi.isChattel(good)).toBe(true); // stampable
+      expect(
+        MixinApi.isChattel(good),
+        `${good.getTemplatePath()} (${good.constructor.name}) is not chattel`,
+      ).toBe(true); // stampable
     }
   });
 
