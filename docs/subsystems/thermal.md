@@ -143,6 +143,39 @@ And two seams in `ThermalMixin`, both on the **body being held**:
 | `holderK()` | a body in a shut Coolbox takes the box's interior as its ambient |
 | the lent-insulation clause in `effectiveR()` | the **coldest mass** borrows the box's `insulationR`, so the ice warms toward the ROOM through the walls |
 
+### ⭐⭐ Two questions, one step apart: *what holds me* vs *what air reaches me*
+
+`Thermal` asks both, and they are different functions in the same file:
+
+| | function | question | reader |
+|---|---|---|---|
+| **holder** | `ambientScopeOf` | the immediate enclosing placement host, else the container — **one step** | `enclosingCoolbox`, because what you are IN outranks the room and an icebox two hops away is not holding you |
+| **air** | `airScopeOf` | the nearest scope outward that is `Atmospheric` — a **walk**, under the same depth cap the biome chain uses | both ambient paths, pull (`refreshAmbientFromEnvelope`) and push (`restamp`) |
+
+They were the same call until the base-class narrowing build. Before it a
+bag WAS atmospheric (every `Vessel` was), so one step always landed on
+something with air — it just had no *envelope*, and that is the defect:
+
+> ⚠⚠ **A perishable in a bag was frozen at whatever ambient it was
+> stamped with when it went in.** Carry a loaf from a cold street into a
+> warm bakery and it stayed street-cold indefinitely, with nothing in the
+> game saying so. The pull side asked the bag for
+> `envelopeTemperatureLast()`, got `null`, and left the cached ambient
+> alone; the push side resolved the bag's own temperature, which walks
+> the chain for the BIOME value and so missed the shop's envelope. Two
+> paths, one cause.
+
+⭐⭐ **And "one step outward" would not have fixed it** — measured, not
+argued. **A worn bag's container is the WEARER**: a `Creature` is a
+`Container`, so bag → carrier → room is two hops and the carrier has no
+air either. Capping the walk at two turns exactly one case of
+`Thermal.bagged.test.ts` red — the worn one, which is the journey a
+player actually takes.
+
+⭐ **A documented limit, asserted so it stays visible:** the holder read
+stays immediate, so a loaf in a bag inside a shut icebox reads the
+**room**, not the cold. What holds the loaf is the bag.
+
 ⚠⚠ **The coldest mass is excluded from `holderK`.** It is the thing
 MAKING the interior cold; handing it its own temperature as ambient is
 a body in equilibrium with itself — no drift, no melt, no clock. It

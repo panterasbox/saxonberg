@@ -732,7 +732,42 @@ longer lists `/stuff/thing/gear/backpack` and does list
 answers with a cause sentence. Commit:
 `refactor(spatial): Atmospheric off Vessel — an enterable vessel is a place with air`.
 
-### W4 — a thing in a bag reads the nearest air (D6)
+### W4 — a thing in a bag reads the nearest air (D6) ✅ DONE
+
+> **Landed as planned**, and the test file is the wave's real story.
+>
+> ⚠⚠⚠ **The first draft of `Thermal.bagged.test.ts` was VACUOUS and
+> green.** Four cases, all passing — and all four still passed with the
+> repair reverted. Three separate reasons, each of which makes an
+> assertion look like a passing one:
+>
+> 1. **The fixture rooms authored `_temperature`.** The biome chain's
+>    `stepOutward` walks through ANY container, atmospheric or not, so a
+>    bagged loaf already read an authored room temperature. What a bag
+>    actually blocks is the **envelope** —
+>    `resolveEnvelopeTemperature` answers only for the scope handed to
+>    it. The rooms now hold an envelope temperature far from their biome
+>    default, and the gap is the assertion.
+> 2. **`reconcileThermal` returns on `elapsed <= 0`**, so a read taken in
+>    the same instant as the stamp does nothing at all.
+> 3. ⭐⭐ **`StuffApi.clearAll()` takes the `WorldClockRegistry`
+>    singleton with it, and `_setNowProviderForTesting` does not bring it
+>    back.** So from the SECOND case onward `thermalNowSeconds()`
+>    answered `null` and `reconcileThermal` returned before reading
+>    anything. Two cases were green for that reason. The registry is now
+>    stood up per case, as `Atmospheric.envelope.test.ts` does.
+>
+> With those fixed: **3 of 4 fail without the repair and all 4 pass with
+> it.** The fourth asserts the documented LIMIT (a bag in a shut icebox
+> reads the room) and correctly passes both ways.
+>
+> ⭐⭐ **And the requirements correction is now measured rather than
+> argued.** Capping the walk at two — the immediate holder plus one step
+> — turns exactly one case red: the **worn** bag. "One step outward"
+> would have shipped a repair that fixed a bag on the floor and left a
+> bag on your back exactly as frozen as before, for precisely the
+> journey the drive walks.
+
 
 - `lib/thermal/Thermal.ts` — `airScopeOf(host)` beside `ambientScopeOf`
   (`:318`); `refreshAmbientFromEnvelope` (`:676`) and `restamp` (`:843`)

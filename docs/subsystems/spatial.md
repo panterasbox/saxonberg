@@ -392,14 +392,24 @@ hosts, which would constrain several identical tables in one hall.
   only from `ContainmentApi.place` / `.move`.
 - ⭐ `getEnclosingScope(): Stuff | null` — **what stands between me
   and my container, for air, sight and reach.** The placement host
-  when the member `encloses`, else the container. Read by `Thermal`'s
-  ambient resolution (both the pull and the push side, through one
-  `ambientScopeOf`) and by `PerceptionLogic.canReach`.
+  when the member `encloses`, else the container. Read by
+  `PerceptionLogic.canReach`, by `Thermal`'s **holder** read
+  (`ambientScopeOf` → `enclosingCoolbox`: what you are IN outranks the
+  room), and as the **step** of `Thermal`'s **air** walk.
 
-⚠ Stepping *further* outward — through a non-atmospheric container
-until a scope answers — is NOT this; see
-[base-class-narrowing-slate](../slates/builds/base-class-narrowing-slate.md)
-finding #2.
+⭐ Its two readers ask different questions, and the difference is one
+step:
+
+- *what holds me* — `Thermal.ambientScopeOf`, one hop, no walk;
+- *what air reaches me* — `Thermal.airScopeOf`, which steps outward
+  through this method until something is `Atmospheric`.
+
+They were one call until `AtmosphericMixin` left `Vessel` in the
+base-class narrowing build and a bag stopped pretending to be weather.
+⚠⚠ A **worn** bag's container is the wearer (a `Creature` is a
+`Container`), so bag → carrier → room is two hops — which is why the air
+read is a walk and not a second step. See
+[thermal.md](./thermal.md) § *Two questions, one step apart*.
 
 **The pair IS persisted**, by the container's slice.
 `ContentPlacement { hostIndex?, placement? }` in
