@@ -71,12 +71,45 @@
  * the class), because half of them are under-authored (write the rows),
  * or because the field is optional by design (a `Lamp` that is lit and
  * one that is not).
+ *
+ * ## ⭐⭐ `--siblings` — the class that is MISSING
+ *
+ * The third question, and the one neither of the others can reach:
+ *
+ * > **Do two classes share enough that they want a common superclass
+ * > nobody has written?**
+ *
+ * Two shapes are reported. **Twins** are classes whose mixin
+ * composition is character-for-character identical: either they are the
+ * same thing under two names (merge, and argue which name), or they are
+ * two things that differ in ways the composition does not express (and
+ * the difference belongs in the model). **Near-misses** differ by
+ * exactly one mixin: often the smaller IS the superclass the larger
+ * wants, and nobody wrote the `extends`.
+ *
+ * ⚠⚠ **A shared signature is not a shared concept, and the commonest
+ * reason is invisible to composition: CLASS STATICS.** `Anvil` and
+ * `Loom` compose character-for-character identically and differ by
+ * `static commandContributions` — the verb affordance, which CLAUDE.md
+ * requires to be a static on a class because a row's
+ * `commandContributions:` is dead silently. So each member is marked
+ * `[statics]` or `[bare]`, and a group of `[statics]` twins is usually
+ * *not* a merge candidate.
+ *
+ * ⭐ That marking is itself a finding. When N classes are compositionally
+ * one class and differ only in which verbs they afford, the taxonomy is
+ * being shaped by **where an affordance is allowed to live** rather than
+ * by what the things are. Whether that is right is a design question
+ * this tool can only pose.
+ *
+ * A group of `[bare]` twins is the real shortlist: identical
+ * composition, no statics, nothing distinguishing them in code at all.
  */
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import YAML from "yaml";
-import { CONTENT } from "./pack-roots";
+import { CONTENT, classFileOf, packSources } from "./pack-roots";
 import "../src/test-bootstrap";
 import { StuffApi } from "../src/mud/api/stuff";
 import { MixinApi, type AnyConstructor } from "../src/mud/api/mixin";
@@ -207,6 +240,7 @@ async function main(): Promise<void> {
   const jsonPath = jsonFlag >= 0 ? process.argv[jsonFlag + 1] : null;
 
   const cotenancy = process.argv.includes("--cotenancy");
+  const siblings = process.argv.includes("--siblings");
   const rows = readRows();
   const byClass = new Map<string, Row[]>();
   for (const r of rows) {
@@ -376,6 +410,133 @@ async function main(): Promise<void> {
       console.info(`      ${fields}`);
     }
     console.info(`\n  ${splits.length} classes with a seam.`);
+  }
+
+  if (siblings) {
+    console.info("\n⭐⭐ SIBLINGS — classes that may want a superclass nobody wrote");
+    console.info(
+      "   ⚠ A shared signature is not a shared concept. This shortens the\n" +
+        "   list to judge; the docstrings decide.\n",
+    );
+    const sigOf = (c: (typeof report)[number]): string =>
+      c.layers
+        .map((l) => l.mixin)
+        .filter((m) => m.endsWith("Mixin"))
+        .sort()
+        .join("+");
+    // ⚠⚠ Resolved ONCE and passed in. `classFileOf` takes three
+    // arguments; calling it with one made every lookup throw, every
+    // class read as bare, and the whole report say "nothing
+    // distinguishes these" about classes I had just verified DO differ.
+    // tsx does not typecheck, so it ran and lied.
+    const sources = packSources();
+    /**
+     * Does the class body say ANYTHING composition cannot?
+     *
+     * ⭐ The test is an EMPTY BODY, not the absence of statics: a class
+     * may differ by an overridden hook or an instance method as easily
+     * as by a `static commandContributions`, and all three are invisible
+     * to a mixin signature. `class X extends XBase {}` is the only shape
+     * where nothing in code distinguishes it from its twins.
+     *
+     * `fieldMeta` and `_mixinName` are framework bookkeeping and do not
+     * count as a difference.
+     */
+    const hasBody = (classPath: string): boolean => {
+      try {
+        const file = classFileOf(classPath, sources);
+        if (!file || !existsSync(file)) return false;
+        const src = readFileSync(file, "utf8");
+        const m = /export\s+(?:default\s+)?(?:abstract\s+)?class\s+\w+[^{]*\{([\s\S]*)$/.exec(
+          src,
+        );
+        if (!m) return false;
+        const body = m[1] ?? "";
+        const stripped = body
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/\/\/[^\n]*/g, "")
+          .replace(/static\s+fieldMeta[\s\S]*?};/g, "")
+          .replace(/static\s+_mixinName[^\n]*/g, "");
+        return /[A-Za-z_@]/.test(stripped.replace(/[\s{}]/g, ""));
+      } catch {
+        return false;
+      }
+    };
+    const bySig = new Map<
+      string,
+      Array<{ path: string; rows: number; statics: boolean }>
+    >();
+    for (const c of report) {
+      if (c.rows < 1) continue;
+      const sig = sigOf(c);
+      if (sig === "") continue;
+      const list = bySig.get(sig) ?? [];
+      list.push({
+        path: c.classPath,
+        rows: c.rows,
+        statics: hasBody(c.classPath),
+      });
+      bySig.set(sig, list);
+    }
+
+    console.info("  TWINS — identical mixin composition:\n");
+    const twins = [...bySig.entries()]
+      .filter(([, v]) => v.length >= 2)
+      .sort((a, b) => b[1].length - a[1].length);
+    for (const [sig, group] of twins.slice(0, 15)) {
+      const sorted = group.sort((x, y) => y.rows - x.rows);
+      const bare = sorted.filter((g) => !g.statics);
+      const names = sorted
+        .map(
+          (g) =>
+            `${g.path.split("/").pop()}(${g.rows})${g.statics ? "" : "*"}`,
+        )
+        .join(" · ");
+      const verdict =
+        bare.length === sorted.length
+          ? "⭐ ALL EMPTY — nothing in code distinguishes these"
+          : bare.length >= 2
+            ? `⭐ ${bare.length} empty of ${sorted.length}`
+            : "statics distinguish them";
+      console.info(`    ${names}`);
+      console.info(
+        `        ${sig.split("+").length} mixins — ${verdict}`,
+      );
+    }
+    console.info(
+      `\n    ${twins.length} groups of twins. ` +
+        `* = EMPTY class body — no statics, no methods, no overrides.\n`,
+    );
+
+    console.info("  NEAR-MISSES — differ by exactly one mixin:\n");
+    const sets = [...bySig.entries()].map(([sig, v]) => ({
+      sig,
+      set: new Set(sig.split("+")),
+      members: v,
+    }));
+    let shown = 0;
+    for (const a of sets) {
+      for (const b of sets) {
+        if (a.sig >= b.sig) continue;
+        if (b.set.size !== a.set.size + 1) continue;
+        let extra: string | null = null;
+        let ok = true;
+        for (const m of b.set) {
+          if (a.set.has(m)) continue;
+          if (extra !== null) { ok = false; break; }
+          extra = m;
+        }
+        if (!ok || extra === null) continue;
+        if (a.set.size < 6) continue; // trivial stacks are noise
+        const nm = (g: typeof a.members): string =>
+          g.map((x) => x.path.split("/").pop()).slice(0, 4).join(",");
+        console.info(
+          `    ${nm(a.members)}  ⊂  ${nm(b.members)}   (+${extra})`,
+        );
+        if (++shown >= 20) break;
+      }
+      if (shown >= 20) break;
+    }
   }
 
   if (jsonPath) {
