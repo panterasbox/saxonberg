@@ -524,7 +524,53 @@ addition**, which the lint family already gates.
 
 ## Part 5 · Open questions — decided by nobody yet
 
-**Q1 ⚠⚠ Is "nine ledgers, almost none rendered" a resolved tension or an
+**Q0 ⭐⭐⭐ Two questions none of the seven asks.** Both surfaced while
+writing the entries, both from different directions, and neither is yet
+worth an eighth lens — recorded because a third would change that.
+
+**(a) What happens when two authored things *meet*?** Two authors build
+competing versions of the same idea in one world; both are legal, both
+are good, and the cost is duplicated effort where demand supported one.
+Run the seven at it and nothing catches it: **lens 2** asks *can an
+author make it* (yes, both), **3a** asks *does the fiction betray
+itself* (not really), **6** asks about flows, **7** asks who was
+judged. ⚠ That is odd, because
+[positioning.md](./positioning.md) now rests the whole
+*"why not Unity"* argument on **outputs coexisting** — if coexistence
+is the differentiator, the interaction question ought to be first-class
+and is not. Related: power-level mismatch between neighbouring content
+(the lightsaber next to a locality whose NPCs have no comparable
+armour), which is [#37](./lenses/37-fairness.md)'s even-contest problem
+arriving between *authors* rather than between players.
+
+⭐ **And the thing that makes both tractable:** a contradiction requires
+a **declared purpose**, and our localities mostly do not declare one.
+*A lightsaber contradicts a place that declared itself medieval; in a
+place that declared nothing it contradicts nothing.* Which is what
+**zoning** actually is — purpose declaration for a place — and it turns
+*does this belong here* from a taste argument into a question with an
+answer. See [zoning-slate](./slates/builds/zoning-slate.md).
+
+**(b) Is an expressive surface *enterable*?** Lens 2 asks whether
+something is expressive, never whether a person can start using it.
+[#79](./lenses/79-freedom.md) found it as *overwhelmed by too much
+freedom* (the blank canvas the sandbox promise creates) and
+[#55](./lenses/55-visible-progress.md) found the same shape from the
+other side (*a pull nobody knows to pull is not an answer*). **One gap,
+two sightings: the design is consistently better at making things
+possible than at making them startable.**
+
+**Q1 ✅ RESOLVED — "nine ledgers, almost none rendered."** Answered
+2026-09-29 by the `measurement.md` amendment (B4 scoped to declared
+standards; Part 6.4 added). ⚠ **Note what that did to the roster:**
+[#92](./lenses/92-inner-contradiction.md) was put on it *for this
+finding*, and the finding was fixed before the entry was written — so
+the entry backfilled a general audit to justify its slot. By this
+directory's own bar (*a lens earns an entry only if we have something
+concrete to say **today***), `92` needs re-earning on a different basis
+or demoting. **Open.** The original framing follows, for the record.
+
+**⚠⚠ Is "nine ledgers, almost none rendered" a resolved tension or an
 inner contradiction?** Count them: chronicle, participation,
 advancement, renown, trait, disposition, influence, provenance,
 accountability. **Every byte of state a progress bar needs exists; only
