@@ -1,10 +1,11 @@
 # Proposal — revising the six lenses after a Schell audit
 
-> **Status: PARTLY APPLIED.** ✅ **C5 · C1 · C6 · C4** landed 2026-09-28
-> in [design-lenses.md](./design-lenses.md); their `Cn → proposed`
-> wording is kept below as the record of *why*, not as pending work.
-> Still a proposal: **C2 · C3 · R1 · R2 · R3**, stated as *what the doc
-> says now* → *what it should say* → *why*.
+> **Status: ✅ ALL RUBRIC CHANGES APPLIED** 2026-09-28 — **C1 · C2 · C3 ·
+> C4 · C5 · C6** are in [design-lenses.md](./design-lenses.md), which is
+> now **seven lenses**. Their `Cn → proposed` wording is kept below as
+> the record of *why*, not as pending work.
+> **Still open: R1 · R2 · R3** — the [lenses/](./lenses/README.md)
+> repairs, which touch a different tree.
 > ⚠ **Deliberately not chased:** `CLAUDE.md` and
 > [workflow.md](./workflow.md) still say *six lenses*. Both are
 > index files the worktree rules reserve for the **sweep**, not for a
@@ -183,7 +184,7 @@ and `strike`, whose delivery profile and channel differ, is a pass.
 epoch appearing on the common interface.** `Workable` shipping the
 unification behind one interface is the exemplar already in the tree.
 
-### C2 ⭐⭐ Lens 2 — restate the test at product altitude
+### C2 ✅ APPLIED — Lens 2 restated at product altitude
 
 **Now:** *"Can an author build the ordinary case out of interoperating
 mixins with no code — and does the system still hold, or better,
@@ -236,7 +237,7 @@ cascade, `Visible.illustration`, and card layout by `StuffKind`.
 does not give us a new channel, it gives the text channel more
 **dimensions**. (Lens 3 independently points at the same gap; see C3.)
 
-### C3 ⭐⭐ Lens 3 — it is two lenses sharing a name
+### C3 ✅ APPLIED — Lens 3 split into 3a Immersion and 3b Participation
 
 **Now:** one heading, one test (*"does the simulation make the behavior
 possible without anyone scripting it — and does the result read as a
@@ -608,9 +609,13 @@ frames may carry each other rather than fight.
    in lens 1 **because lens 4 depends on it** — the two are wired.
 4. ~~**C4** (lens 4: decidability · divergence · the two dials ·
    stewardship)~~ ✅ done 2026-09-28.
-5. **C2, C3** — the two remaining body edits, independent of each other.
-   ⚠ Both point at the **rendering layer** as an unclaimed expressive
-   surface; do them together or the finding gets made twice.
+5. ~~**C2, C3**~~ ✅ done 2026-09-28, together, because both land on the
+   rendering layer. ⭐ The duplication was avoided by **splitting the
+   claim rather than the text**: lens 2 owns the rendering layer as an
+   *authoring palette*, lens 3a owns it as a *consistency obligation*,
+   and each points at the other. Lens 3 now carries `###` subheadings
+   (3a · 3b) — the only lens that does — and the pass template lists
+   them separately.
 6. **R1** — regenerate the `docs/lenses/` roster from disk; fix the
    griefing claim. ⚠ Index-file discipline applies: this is a sweep
    edit, not a race.

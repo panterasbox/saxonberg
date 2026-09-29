@@ -145,7 +145,45 @@ dominance question is for.
 
 ## 2 · Creative expression — what can an author make with it?
 
-Two tiers, and a design has to serve **both**:
+*What can a person make theirs, and does what they make count?*
+
+⭐⭐ **State the promise before the mechanism.** Authoring is continuous
+with playing: the sandbox and the world are the same substrate and
+differ by a **published flag**, and how somebody earns that flag is a
+question the architecture answers, not a policy bolted on afterwards.
+Everything below is how that promise gets cashed.
+
+> **The test.** What does this add to what a player can make *theirs* —
+> and did it come from a chain that already had to exist, or from a knob
+> we invented for the purpose?
+
+⭐ Note that the test carries lens 6's demand question inside it. A knob
+invented so that a personalization feature can exist is a fabricated
+need wearing a creative costume.
+
+### ⭐⭐⭐ Personalization is a derivative of supply-chain depth
+
+This is the finding the lens is built on, and it is what separates it
+from every character-customizer ever shipped:
+
+> The ordinary way to give players expression is to **enumerate
+> expression slots** — a dozen playing pieces, a wardrobe screen, a
+> colour picker. A designer decides in advance how many knobs there
+> are.
+>
+> We do not build a customizer. The wardrobe is expressive because
+> **textiles shipped** — the subtractive dye stack, fit as two numbers
+> and a stamp, the covering ladder. The residence because furnishing,
+> parcels and the estate slice shipped. Pets because the bond, the
+> offer and naming-as-promotion shipped. **Every link in the supply
+> chain is a personalization feature**, and the surface is a byproduct
+> nobody could have enumerated in advance.
+
+⭐ So the question *"when do we build personalization?"* is malformed.
+Personalization is what a finished chain **emits**; the schedule for it
+is the schedule for the chains.
+
+### How the promise is cashed — two tiers, and a design has to serve both
 
 1. **The ordinary case, with no code.** An author assembles the basic
    thing out of pre-canned interactions the platform already affords —
@@ -157,14 +195,21 @@ Two tiers, and a design has to serve **both**:
    The best outcome is stronger than "hold up": the systems **suggest
    the bespoke idea in the first place**.
 
-> **The test.** Can an author build the ordinary case out of
-> interoperating mixins with no code — and does the system still hold,
-> or better, inspire, when they write something bespoke on top?
-
 The framing that matters: **give the author the most colors to paint
 with.** Variety comes from combination and permutation, not from
 enumeration. A system whose content is a list is a system that only
 grows by someone adding to the list.
+
+⭐⭐ **And the palette includes presentation.** This lens is easy to read
+as being only about objects and mechanisms; it is not. An author also
+paints with **MML, the six `NounPhrase` forms, font-by-register, the
+theme and overlay cascade, `Visible.illustration`, and card layout by
+`StuffKind`.** We are not a text game, we are a **hypertext** one — that
+does not add a new channel, it adds **dimensions to the text channel**,
+and every one of those dimensions is an authored surface. A design that
+gives an author a new thing but no new way to *show* it has only half
+landed. ⚠ Lens 3a holds the same surface to a different standard: what
+is an authoring palette here is a **consistency obligation** there.
 
 ⭐ **Worked example — recipes.** From the metal-chain slate: *"recipes
 are the single most **expressive** thing for content authors — the whole
@@ -177,32 +222,31 @@ expression got separated correctly.
 
 **Failing looks like:** content that is enumerated instead of composed;
 a mixin that only works on the one host it was written for; a feature
-whose second instance requires a kernel edit.
+whose second instance requires a kernel edit; ⭐ **a personalization
+knob with no chain behind it** — a wardrobe screen where there is no
+cloth trade; a new thing an author cannot make *read* as anything.
 
 ---
 
 ## 3 · Immersion & roleplay — what experience does it create?
 
-*How do players use it in ways that go beyond the mechanics?*
+⚠⚠ **This heading is two questions, and they are not the same
+difficulty.** Immersion is a *constraint* — cheap for us, well
+understood, already instrumented. Participation is the *claim* — the
+riskiest and most original thing the project is attempting. They get
+separate tests.
 
-**Immersion leads; roleplay follows from it.** The two need each other,
-but they are not equal partners here, and the ordering is the whole
-insight:
+### 3a · Immersion — the fiction cannot betray itself
 
-> ⭐⭐ **Nothing about GTA is optimized for roleplay.** The RP scene
-> emerged out of the simulation they built. Roleplay is not a feature
-> you design; it is what people do inside a world that is coherent
-> enough to be lived in.
+*Does anything here contradict what the world has already said?*
 
-So the question is never *"does this support roleplay?"* — it is *"is
-the simulation honest and dense enough that the behavior is possible
-without anyone scripting it?"* Between the simulation and the
-governance model, the RP space is a **consequence**. Designing *for* RP
-directly usually produces the opposite: a stage instead of a place.
+⭐⭐ **Immersion is a consistency property, not a richness one.** A novel
+is immersive because it does not contradict itself, not because of
+resolution — which is why being made of words costs us nothing here.
+Consistency is the imagination budget.
 
-> **The test.** Does the simulation make the behavior possible without
-> anyone scripting it — and does the result read as a world rather than
-> as an interface?
+> **The test.** Does the fiction betray itself anywhere — is anything
+> asserted in prose that the model does not back?
 
 **Failing looks like:** the fiction asserted in prose that the model
 doesn't back; a mechanic that is correct but reads as a spreadsheet.
@@ -212,13 +256,83 @@ streak, no leaderboard* — because a gauge is the fastest way to convert
 a lived world back into an interface. The companion tell:
 **unlit interiors are pitch black**, and the giveaway that a design
 forgot this is that every object reads "something" while the room prose
-still sounds fine.
+still sounds fine. ⭐ The positive form is worth holding too: every
+element should be **well connected to its surroundings, as if it were
+part of them** — that is what the good version feels like, where the
+failure list only says what betrayal looks like.
+
+⚠ **What this test does NOT cover: charm.** A world assembled almost
+entirely from honest derivation risks reading as *machined* — but a
+machined world betrays nothing, so this is not an immersion failure.
+It is a separate value with no lens in the seven, and the working answer
+is that **roughness belongs to authorship, never to fudged physics**:
+the handmade lives in content (a named NPC, an odd room, Dave's Bar)
+while the mechanism stays clean.
 
 ⭐ **Worked example — tasting.** In the cooking design, *tasting is the
 anti-gauge*: expertise **is** discrimination, the spoon is the iconic
 kitchen image, and you advance by perceiving more. One mechanic that
-satisfies all four of the main lenses at once, and its immersion score
-comes entirely from having refused a number.
+satisfies four lenses at once, and its immersion score comes entirely
+from having refused a number.
+
+⭐ **The presentation layer can betray too.** Register, font, theme and
+illustration are part of what the world has said, so a formal register
+on a character who has none, or an illustration the prose contradicts,
+is a betrayal exactly like a fiction the model does not back. Lens 2
+hands an author those dimensions; this test is what they owe.
+
+### 3b · Participation — can the polity do something we did not want?
+
+*Are the roles real, and can filling one change how the world runs?*
+
+**Roleplay is not a feature you design.** It is what people do inside a
+world coherent enough to be lived in, so the question is never *"does
+this support roleplay?"* — it is *"is the simulation honest and dense
+enough that the behavior is possible without anyone scripting it?"*
+Designing *for* RP directly usually produces the opposite: a stage
+instead of a place.
+
+⚠⚠ **But "an honest sim grows an RP scene" is the weak version, and it
+is not our claim.** The GTA roleplay scene is the standard citation for
+it, and two things about that citation matter:
+
+1. It did not emerge from the simulation alone. It emerged on **servers
+   with admin teams, whitelists, character applications and written
+   rules.** The honest sim made the behaviour *possible*; a polity made
+   it *durable*. ⭐ Which makes governance **a prerequisite for
+   immersion**, not a civics feature bolted beside it.
+2. It is still **theatre on top of a sim that does not care.** The mayor
+   of an RP server is not changing how the game runs. Every institution
+   in it is staged by the players, because the game has no opinion about
+   whether anyone is mayor.
+
+> ⭐⭐⭐ **Our claim is categorically different. We are not asking anyone
+> to roleplay a blacksmith — the economy has a blacksmith-shaped hole in
+> it and somebody has to be in it.** The roleplay is a byproduct of the
+> job being real.
+
+⭐⭐ **The mechanism is NPC/player interchangeability at the position
+level.** A seat is a position the world needs filled and either a person
+or a program can hold it. Three consequences, and they are the whole
+design: the world **runs without players**, so there is no cold-start
+collapse; every NPC-held seat is a **standing vacancy**, visible and
+takeable; and replacement is **legible** — somebody took that job, and
+the town notices.
+
+> **The test.** Can the polity do something we did not want?
+
+[measurement.md](./measurement.md)'s entrenchment tiers are the
+instrument: **the size of tier C is the measure of how real the
+participation is.** If C is small, the answer to *do players actually
+govern* is no, whatever the fiction says. ⚠ The concrete load test is
+**the first serious griefing incident** — either the polity handles it,
+or a wizard does and everybody learns the participation was decorative.
+
+**Failing looks like:** a role that exists only for players, so the
+world is empty when nobody is on; an institution whose decisions the
+engine ignores; a seat with no consequence for leaving it unfilled;
+⭐ **a governance surface where every outcome we would dislike is
+unreachable** — which is a stage with a ballot box on it.
 
 ---
 
@@ -513,14 +627,15 @@ and [credit.md](./subsystems/credit.md).
 
 ## Running the pass
 
-A lens pass is short. Seven headings, a couple of sentences each, in the
-slate and again in the requirements doc:
+A lens pass is short. Seven headings — 3 has two halves — a couple of
+sentences each, in the slate and again in the requirements doc:
 
 ```
 ### Lens pass
 1. Pedagogy — <Disciplines exercised; which is DOMINANT; what is derivable>
-2. Expression — <what an author composes with no code; what bespoke buys>
-3. Immersion — <what the sim affords without scripting>
+2. Expression — <what a player can make theirs; which chain it came from>
+3a. Immersion — <does the fiction betray itself anywhere>
+3b. Participation — <what role this opens; can the polity refuse us>
 4. Values — <the undecidable choice forced; who confers standing>
 5. Continuity — <does it answer the same commands in another epoch>
 6. Economy — <what it produces and consumes; who pays; was the demand there>
