@@ -342,6 +342,36 @@ code trust** (`DocumentLogic`); a cosmetic edit goes live through
 
 ### The `sourcePack` stamp
 
+> ⭐⭐⭐ **The stamp is also the line between a PACK and a REALM, and the
+> reconcile already enforces it.** `stampedQuery` narrows every reconcile
+> to rows carrying that pack's own id, so the content tree holds **two
+> populations**:
+>
+> | | `sourcePack` | what it is | who touches it |
+> |---|---|---|---|
+> | **packaged** | present | **somebody's creative output** — distributed, versioned, reinstallable | its pack's installer |
+> | **local** | absent | **this realm's own history** — minted by play | no installer, ever |
+>
+> **A pack ships creative output, never state.** Content minted by play —
+> a household, a chain of title, a grave — is unstamped by construction,
+> and a reinstall cannot touch it. ⭐ That is what makes generated content
+> safe as *ordinary* content: it is a template row with the full
+> toolchain (CMS, MQL, `git`, the parcel's access rules) and no installer
+> has any claim on it.
+>
+> ⚠ **Two consequences the boundary needs and does not yet have** —
+> → [pack-boundary-slate](../slates/builds/pack-boundary-slate.md):
+> **(a)** a pack must not ship a row naming a **realm-local identity**
+> (it would point at an avatar the receiving database does not have —
+> broken by construction, so a lint rather than a policy, and the same
+> test is the spec for packaging an *authored* neighbourhood properly);
+> **(b)** ⚠⚠ **vanish-with-dependents** — a pack ships a plat, the realm
+> writes unstamped households into its lots, and `onVanish: delete` reaps
+> the plat while the households survive their own street disappearing.
+> **A pack may retract what it shipped; it may not retract the ground
+> under what the realm built on it.**
+
+
 Each installed row carries a **top-level `sourcePack` field** (a `content`
 template, a `name_banks` bank — every stamped backend). On a template row
 it is a sibling of `data` (`{path, class, hydratorClass, data, sourcePack}`).
