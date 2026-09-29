@@ -61,6 +61,14 @@ question of any design is not *"is this educational?"* but *"which
 Disciplines does doing this exercise, and what does getting better at
 them actually mean?"*
 
+⭐⭐ **Ask which Discipline is *dominant*, not just which are exercised.**
+The two come apart, and fake pedagogy lives in the gap: a craft can
+honestly exercise three Disciplines while the skill that actually
+decides the outcome is menu-memorisation. This is the failure mode's
+sharpest form, and it is **self-deception, not a defect you would
+spot** — a designer believes the game is about judgment long after it
+has become about recall.
+
 The second half is fidelity. The world has to be **derivable** — a
 player who has internalized the principles should be able to predict
 what happens, and be right, without looking anything up. That is the
@@ -69,11 +77,45 @@ honestly* is the governing principle of the engine: no fudge anywhere,
 because lying about the physics anywhere weakens the pedagogical claim
 everywhere.
 
-> **The test.** What Discipline does this exercise, and can a player
-> derive its outcomes from principles rather than look them up?
+⭐⭐ **Derivability, stated as an engineering move.** Complexity comes in
+two kinds — the kind written into the rules ("unless", "except", "but")
+and the kind that *arises* from simple rules interacting. So:
+
+> **What is written into the rules is what you have to look up. What
+> arises from them is what you can derive.**
+
+The design question is therefore always *can this be moved from the
+first kind to the second*. ⚠ And the tempting move has a name worth
+keeping, because nobody ever writes *"I am fudging"* — they write *"I
+added a clamp so the numbers come out right."* **Adding rules until the
+behaviour comes out right is artificial balance**; letting the effect
+fall out of the interactions is natural balance, and only the second one
+teaches anything.
+
+⭐⭐⭐ **Why derivability produces transfer** — the warrant this lens has
+always assumed and never argued. A mind meeting a simulation builds a
+*miniature reality* out of it and reasons inside that; when the
+miniature is faithful, conclusions drawn in it are valid outside it.
+That transfer is a **native faculty, not something the design supplies**
+— which flips the design question entirely:
+
+> The question is not *how do we teach*. It is **do not corrupt the
+> miniature, because the player's inference engine will run on it
+> either way.**
+
+A die roll standing in for a mechanism does not merely fail to teach. It
+teaches something false, efficiently. ⭐ This is also the strongest
+argument available for the no-fudge rule, and **lens 4 depends on it**
+(see 4's divergence test).
+
+> **The test.** Which Disciplines does this exercise, **which one is
+> dominant**, and can a player derive its outcomes from principles
+> rather than look them up?
 
 **Failing looks like:** a lookup table dressed as chemistry; a die roll
-standing in for a mechanism; a number that goes up with no referent.
+standing in for a mechanism; a number that goes up with no referent; a
+clamp added so the numbers come out right; ⭐ **a design whose named
+Discipline is not the skill that actually decides the outcome.**
 The sharpest instrument here is [uncertainty.md](./uncertainty.md) —
 *roll to decide what the world IS, never to decide what your action
 DID*, and its corollary that **luck is not a stat**. A resolution roll
@@ -92,6 +134,12 @@ The yield derives from the lump's actual composition, so grade stays
 load-bearing for eight steps — **lean ore honestly makes a worse
 sword**. Nothing about the recipe version was cheaper to *play*; it was
 just cheaper to *build*, which is not a tiebreaker.
+
+⭐ **Read it again through dominance.** The recipe version would have
+*claimed* metallurgy and *exercised* recall — the two Disciplines come
+apart exactly as the test predicts, and the slate caught it by noticing
+that the deduction game's answer would not matter. That is what the
+dominance question is for.
 
 ---
 
@@ -179,8 +227,21 @@ comes entirely from having refused a number.
 *How does it help the player make better choices — for themselves, and
 as a member of the community?*
 
-Lens 1 is about **knowledge**. Lens 4 is about **values**. That is the
-line between them, and it is why they are not redundant.
+Lens 1 is about **knowledge**. Lens 4 is about **values**. True, but it
+generates nothing on its own, so state the line as **decidability**:
+
+> ⭐⭐⭐ **Lens 1 governs what has a derivable right answer. Lens 4
+> governs what has no right answer and must be decided anyway.**
+
+⭐ That immediately explains why each lens has the instrument it has.
+[uncertainty.md](./uncertainty.md) protects lens 1 because a resolution
+roll destroys derivability. [measurement.md](./measurement.md) protects
+lens 4 because **a gauge converts an undecidable choice into a
+calculable one** — which is the real reason for the no-gauge rule, and a
+better one than *gauges break immersion*: a sin counter does not merely
+look bad, **it deletes the decision**. Same rule in the religion
+doctrine's voice: *you can't farm a god* — **farming is the attempt to
+make an undecidable thing calculable.**
 
 The simulation **forces certain choices** — and the question this lens
 asks is what making them teaches you about yourself and about your role
@@ -198,13 +259,82 @@ says so?** The three-layer answer is already written down —
 values · the polity imposes.* A design that measures something without
 naming who values it has skipped the interesting half.
 
-> **The test.** What choice does this force, and what does making it
-> tell you about yourself and your place in the community?
+⭐⭐ **The divergence diagnostic.** The sharpest question this lens can
+ask of a shipped feature is not about the feature at all:
+
+> **What does it say if the choices you make in the game are not the
+> ones you would make in real life?**
+
+That inverts the usual gamification move. Normally the game exists to
+*change* behaviour; here **the gap is the signal**, and the job is to
+make it legible rather than to close it.
+
+⚠⚠ **It only works if lens 1 holds.** The transfer warrant runs both
+ways: if conclusions drawn inside a faithful miniature are valid
+outside it, then choices made inside are evidence about choices outside
+**by the same faculty**. So —
+
+> **In a dishonest simulation, divergence tells you the model is wrong,
+> not that you are.**
+
+⭐⭐ Lens 4's whole diagnostic value is therefore *derived from* lens 1.
+That is the real argument for pedagogy topping the rubric: not that
+learning outranks values, but that **fidelity is what makes the values
+reading admissible at all.** A fudged economy that makes you hoard tells
+you nothing about whether you hoard.
+
+⭐⭐ **Incentives are neutral, and the dials belong to two parties — but
+they do not have the same reach.** Incentives produce bad behaviour as
+readily as good, so the platform ships the *mechanism* and is not
+opinionated about the direction. The dials are set by (1) **the player**,
+for what they want to work on, and (2) **the polity**, for what it wants
+at scale. Both are moral questions, which is why only players can answer
+them, individually or in aggregate. ⚠⚠ But the symmetry stops at the
+fiction's edge:
+
+> **The polity's dial stops at the fiction's edge. Only the subject's
+> own dial is licensed to cross it.**
+
+A polity incentivising behaviour **in the world** is the product
+working. A reading of your real life that interrupts you — *"normally
+you'd do this, are you sure?"* — is licensed **only by a goal you set
+for yourself**; the same interruption driven by what a majority wants
+from your behaviour is not governance, it is coercion by people who are
+not you, and no vote makes it otherwise. Such an interrupt inherits
+lens 7's requirements pointed **inward**: the criterion must be readable
+by the person it is about and revocable by them, because they are the
+only one who authored it.
+
+⚠ **Unopinionated has a price:** the platform must be able to
+incentivise something its authors disapprove of. If it cannot — if there
+is a quiet clamp — the dials are decorative. Either players can answer
+the moral question wrong, or they are not answering it.
+
+> **The test.** What choice does this force — one with **no calculable
+> right answer** — and what does making it tell you about yourself and
+> your place in the community?
 
 **Failing looks like:** no real choice (a dominant option, or a single
 path dressed as a decision); a reward for time rather than for judgment;
-standing that accrues from throughput. *You can't farm a god* is the
-same rule in the religion doctrine's voice.
+standing that accrues from throughput; ⭐ **a choice the design has
+quietly made calculable**, so that the "decision" is arithmetic wearing
+a moral costume; a dial the platform secretly clamps.
+
+⭐⭐ **Worked example — stewardship.** This is the least-explored lens,
+but that is a *doc* gap, not a content gap: a residence, pets with a
+bond the animal decides, parcels held by title, a business roster, NPC
+household parents. A caretaking cluster, already built, never claimed
+by the lens.
+
+> Lens 4 asks *what choice does this force*. Stewardship's answer is
+> that the choice is forced by **something with a stake in it that is
+> not you** — a pet you did not feed, a tenant, a roster that does not
+> get paid.
+
+⭐ That is the difference between a choice with **stakes** and a choice
+with a **score**, and it produces lens 4 outcomes **while measuring
+nothing** — which is why it sits comfortably beside the no-gauge rule
+instead of fighting it.
 
 ---
 
@@ -323,7 +453,7 @@ and the butcher were waiting on.
 
 ---
 
-## 7 · Governance — when it judges a person, what is the criterion and what is the appeal?
+## 7 · Governance — on what criterion, and what is the appeal?
 
 *When this feature decides something **about a person**, on what basis —
 and can they see it, argue with it, and get it changed?*
@@ -383,15 +513,15 @@ and [credit.md](./subsystems/credit.md).
 
 ## Running the pass
 
-A lens pass is short. Six headings, a couple of sentences each, in the
+A lens pass is short. Seven headings, a couple of sentences each, in the
 slate and again in the requirements doc:
 
 ```
 ### Lens pass
-1. Pedagogy — <Disciplines exercised; what is derivable>
+1. Pedagogy — <Disciplines exercised; which is DOMINANT; what is derivable>
 2. Expression — <what an author composes with no code; what bespoke buys>
 3. Immersion — <what the sim affords without scripting>
-4. Values — <the choice forced; who confers standing>
+4. Values — <the undecidable choice forced; who confers standing>
 5. Continuity — <does it answer the same commands in another epoch>
 6. Economy — <what it produces and consumes; who pays; was the demand there>
 7. Governance — <when it judges a person: the criterion, the appeal, the tier>

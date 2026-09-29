@@ -1,12 +1,10 @@
 # Proposal — revising the six lenses after a Schell audit
 
-> **Status: PARTLY APPLIED.** ✅ **C5** (split 6 → 6 Economy + 7
-> Governance) and ✅ **C1** (lens 5 → Continuity) landed 2026-09-28 in
-> [design-lenses.md](./design-lenses.md); the `Cn → proposed` wording
-> for those two is kept below as the record of *why*, not as pending
-> work. Everything else — **C2 · C3 · C4 · C6 · R1 · R2 · R3** — is
-> still a proposal, stated as *what the doc says now* → *what it should
-> say* → *why*.
+> **Status: PARTLY APPLIED.** ✅ **C5 · C1 · C6 · C4** landed 2026-09-28
+> in [design-lenses.md](./design-lenses.md); their `Cn → proposed`
+> wording is kept below as the record of *why*, not as pending work.
+> Still a proposal: **C2 · C3 · R1 · R2 · R3**, stated as *what the doc
+> says now* → *what it should say* → *why*.
 > ⚠ **Deliberately not chased:** `CLAUDE.md` and
 > [workflow.md](./workflow.md) still say *six lenses*. Both are
 > index files the worktree rules reserve for the **sweep**, not for a
@@ -303,7 +301,7 @@ govern* is no, whatever the fiction says. ⚠ The concrete load test is
 **the first serious griefing incident** — either the polity handles it,
 or a wizard does and everybody learns the participation was decorative.
 
-### C4 ⭐⭐ Lens 4 — four additions
+### C4 ✅ APPLIED — Lens 4, four additions
 
 **Now:** knowledge vs. values; what choice does this force; who confers
 standing.
@@ -426,7 +424,7 @@ selection effect from the questions being asked, not asymmetry. **All
 seven lenses overlap in different directions; none is special.** Seven
 coequal headings.
 
-### C6 ⭐ Lens 1 — three imports
+### C6 ✅ APPLIED — Lens 1, three imports
 
 **C6a. Ask which Discipline is *dominant*, not just which are
 exercised.** #34's lead-in states lens 1's failure mode better than
@@ -605,13 +603,20 @@ frames may carry each other rather than fight.
    cross-references fixed at the same time: `employment.md`'s hiring
    criterion now cites lens 7, and `lenses/README.md`'s warning block
    names all seven. ⚠ `CLAUDE.md` + `workflow.md` left for the sweep.
-3. **C2, C3, C4, C6** — body edits, independent of each other.
-4. **R1** — regenerate the `docs/lenses/` roster from disk; fix the
+3. ~~**C6** (lens 1: dominance · innate→emergent · the transfer
+   warrant)~~ ✅ done 2026-09-28. ⭐ The transfer warrant is now stated
+   in lens 1 **because lens 4 depends on it** — the two are wired.
+4. ~~**C4** (lens 4: decidability · divergence · the two dials ·
+   stewardship)~~ ✅ done 2026-09-28.
+5. **C2, C3** — the two remaining body edits, independent of each other.
+   ⚠ Both point at the **rendering layer** as an unclaimed expressive
+   surface; do them together or the finding gets made twice.
+6. **R1** — regenerate the `docs/lenses/` roster from disk; fix the
    griefing claim. ⚠ Index-file discipline applies: this is a sweep
    edit, not a race.
-5. **R2** — read `the-world.md` against #84 before anything else is
+7. **R2** — read `the-world.md` against #84 before anything else is
    built on it.
-6. **R3** — new entries, in the order the builds summon them. #25 and
+8. **R3** — new entries, in the order the builds summon them. #25 and
    #46 are the two the levelling conversation will want first.
 
 Part 5 is **not** work; it is a list of things to decide in conversation
