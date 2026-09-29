@@ -14,12 +14,12 @@
  * `self` by the born-with `CredentialWalletUpdate`).
  */
 
-import Movable from "../../lib/stuff/Movable";
+import Thing from "../../lib/stuff/Thing";
 import { MqlApi } from "../../api/mql";
 import type { CommandContext, CommandContributions } from "../../api/command";
 import type { FieldMeta } from "../../lib/mixin";
 
-const JobBoardBase = Movable;
+const JobBoardBase = Thing;
 
 export default class JobBoard extends JobBoardBase {
   static fieldMeta: FieldMeta = {};

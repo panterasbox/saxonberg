@@ -8,10 +8,10 @@
  * nothing (theatrical, like Gus's paddle) — it just shows a signal.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Thing from '../../lib/stuff/Thing';
 import { SwitchableMixin } from '../../lib/boundary/Switchable';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 
-const BeaconBase = SwitchableMixin(PropertiedMixin(Movable));
+const BeaconBase = SwitchableMixin(PropertiedMixin(Thing));
 
 export default class Beacon extends BeaconBase {}

@@ -1,7 +1,17 @@
 /**
  * WaterFixture — plumbed water you can work at: a wash basin, a tap, a
- * standpipe. An {@link UnboundedReceptacle} (inexhaustible, so it never
- * runs dry) whose matter is water, and the thing that affords `wash`.
+ * standpipe. Inexhaustible, so it never runs dry; its matter is water; and
+ * it is the thing that affords `wash`.
+ *
+ * ⭐ **Composition: `UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)))`
+ * — its own stack, not {@link UnboundedReceptacle}'s.** It used to extend
+ * that class, which sits on `Receptacle`, which since the base-class
+ * narrowing sits on `Movable`. A standpipe is plumbed into the ground: it is
+ * nobody's chattel and you cannot hide it, and the constructor below has
+ * been saying exactly that with `fixedInPlace` since a live drive walked out
+ * of Dave's Bar carrying the wash basin. The three mixins it actually wants
+ * are the three it now names; `UnboundedReceptacle`'s own two rows — the
+ * coffee urn and the formless vessel — stay movable, which is right.
  *
  * ⚠ **`wash` was on `UnboundedReceptacle` itself, which is a different
  * fact.** That class says only *inexhaustible liquid source* — and its
@@ -30,10 +40,17 @@
  * good reasons (see command-routing.md).
  */
 
-import UnboundedReceptacle from './UnboundedReceptacle';
+import Thing from '../../lib/stuff/Thing';
+import { BulkableMixin } from '../../lib/bulk/Bulkable';
+import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { UnboundedSourceMixin } from '../../lib/bulk/UnboundedSource';
 import type { CommandContributions } from '../../api/command';
 
-export default class WaterFixture extends UnboundedReceptacle {
+// The same order `Receptacle` uses, and for the same reason: Thermal outer
+// of Bulkable, so a holder's heat capacity derives from what is in it.
+const WaterFixtureBase = UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)));
+
+export default class WaterFixture extends WaterFixtureBase {
   constructor() {
     super();
     // ⭐ Plumbed in. A live drive walked out of Dave's Bar carrying the

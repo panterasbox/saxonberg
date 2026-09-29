@@ -23,11 +23,11 @@
  * plain describable `Thing`. Held at the `storm.strikeVoltage` dial.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Thing from '../../lib/stuff/Thing';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { AudibleMixin } from '../../lib/perception/Audible';
 import { EnergizedMixin } from '../../lib/electricity/Energized';
 
-const LightningStrikeBase = EnergizedMixin(AudibleMixin(VisibleMixin(Movable)));
+const LightningStrikeBase = EnergizedMixin(AudibleMixin(VisibleMixin(Thing)));
 
 export default class LightningStrike extends LightningStrikeBase {}

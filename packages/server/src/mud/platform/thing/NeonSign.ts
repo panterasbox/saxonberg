@@ -19,11 +19,11 @@
  * All authored per-instance in each seed's `data:` — no bespoke logic.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Thing from '../../lib/stuff/Thing';
 import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import { BrandedMixin } from '../../lib/corpo/Branded';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 
-const NeonSignBase = AdornmentMixin(BrandedMixin(LightSourceMixin(Movable)));
+const NeonSignBase = AdornmentMixin(BrandedMixin(LightSourceMixin(Thing)));
 
 export default class NeonSign extends NeonSignBase {}

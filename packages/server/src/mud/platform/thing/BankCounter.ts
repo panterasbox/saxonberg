@@ -1,18 +1,22 @@
 /**
  * BankCounter — the teller-counter fixture: the seeded `BankMixin` host that
  * lights up the banking verb surface inside a branch and holds the cash
- * vault. A **`Vessel`** (the canonical container-object — its contents are
- * the vault coins); `Vessel` already carries `Visible` / `Perceptible` (via
- * `Thing`) so it renders, resolves by keyword, and sits in the room — only
- * `Detailed` (look-at details) is added on top. `Vessel` rather than a
- * hand-rolled `ContainerMixin(Thing)`: a thing-that-holds-things is exactly
- * what `Vessel` is.
+ * vault. `ContainerMixin(Thing)` — a thing-that-holds-things, standing in
+ * the branch. The root carries `Visible` / `Perceptible` / `Detailed`, so it
+ * renders, resolves by keyword and answers a look-at without anything added.
+ *
+ * ⚠ **It used to be a `Vessel`, and that was one rung too far.** Since the
+ * base-class narrowing (D14) `Vessel` sits on `Movable`, which composes
+ * `Chattel` and `Concealable` — a teller's counter is bolted to the floor of
+ * a bank: it is not somebody's chattel and you cannot hide it. The container
+ * behaviour it actually wanted is one mixin, so it composes that mixin.
  *
  * The `BankMixin` demonstrator class, homed beside the mixin (the
  * `TravelCredential` precedent).
  */
 
-import { Vessel } from "../../lib/stuff/Vessel";
+import Thing from "../../lib/stuff/Thing";
+import { ContainerMixin } from "../../lib/spatial/Container";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { DialogueEffectRegistry } from "../../lib/npc/DialogueEffects";
 import { BankMixin } from "../../lib/banking/Bank";
@@ -20,7 +24,7 @@ import { BANK_CIRCLE_EFFECT } from "../../lib/banking/BankDialogueEffect";
 import type { FieldMeta } from "../../lib/mixin";
 
 const BankCounterBase = BankMixin(
-  PostRegistrationMixin(Vessel),
+  PostRegistrationMixin(ContainerMixin(Thing)),
 );
 
 export default class BankCounter extends BankCounterBase {

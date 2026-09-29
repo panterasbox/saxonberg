@@ -837,6 +837,39 @@ composition-census run shows no `ChattelMixin`/`ConcealableMixin` layer
 on the 19. Commit:
 `build(narrowing W1): sixteen kernel classes that are part of the place`.
 
+**✅ W1 DONE.** 15 of the 16 moved; the census went `Chattel` 551 rows /
+90 classes → **492 / 79**, against `Wet` (the root) unchanged at 563 / 94.
+All 57 gates green, `tsc` clean, the touched suites (retail, banking,
+bulk, platform/thing, ground, fire, thermal, husbandry, smallholding,
+attendant, commerce, employment — 114 files, 997 tests) green.
+
+⚠⚠ **The sixteenth is W1's one finding, and it is the D1 test firing in
+the affirmative.** `sandbox/SandboxCrossing.ownerPlayerId()` reads
+**its own** `getChattelId()` to tell a private booth from a public one,
+so the class does not merely compose the surface — it uses it. Under the
+plan's own rule that is *"write it down, do not add a guard"*, so it
+stays on `Movable` and the note is on the class. The question it raises
+is worth the slate: a booth bolted into a room is not carried off, and
+ownership of a thing you cannot carry is normally real-property TITLE
+(`parcel.md`), not chattel. **Re-keying it is a design change, not a
+narrowing** — filed, not done.
+
+Two of the three re-stacked classes turned out to say the same thing
+twice. `BankCounter` and `Stock` were `Vessel`, and `Vessel` now sits on
+`Movable`: a teller's counter and a shop counter are part of the
+premises, and the thing that is somebody's chattel is the GOODS on them
+(which is precisely what `stampChattel` does at the sale). Both now
+compose `ContainerMixin(Thing)` — the one behaviour they wanted.
+`WaterFixture` is the third and the loudest: it extended
+`UnboundedReceptacle → Receptacle → Movable`, and its own constructor has
+been setting `fixedInPlace = true` ever since a live drive walked out of
+Dave's Bar carrying the wash basin. ⭐ **A constructor asserting
+`fixedInPlace` on a class descended from the goods rung is the tell the
+census could not see** — the class had been arguing with its own base for
+a year. It composes `UnboundedSource(Thermal(Bulkable(Thing)))` now, and
+`UnboundedReceptacle`'s own two rows (the coffee urn, the formless
+vessel) stay movable, which is right.
+
 ### W2 — the pack immovables
 
 Goal: the 29 pack classes in the immovable roster, each in its own pack,

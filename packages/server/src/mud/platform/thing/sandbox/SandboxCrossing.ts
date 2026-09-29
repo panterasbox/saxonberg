@@ -13,6 +13,17 @@
  * exactly this reason, so a turbolift installs an exit called
  * "turbolift" rather than one called "wardrobe".
  *
+ * ⚠⚠ **W1's one finding: this fixture reads its OWN chattel owner.**
+ * `ownerPlayerId()` asks `this.getChattelId()` to tell a private booth from
+ * a public one, so it is the one class in the immovable roster that the
+ * narrowing could not move onto the bare `Thing` root — D13's test fires in
+ * the affirmative and it stays on `Movable`. Whether that is RIGHT is a
+ * separate question worth asking: a booth bolted into a room is not carried
+ * off, and ownership of a thing you cannot carry is normally real-property
+ * TITLE (`docs/subsystems/parcel.md`), not chattel. Re-keying the booth's
+ * owner onto the parcel is a design change, not a narrowing, so it is filed
+ * rather than done.
+ *
  * A `Movable`-tier fixture (Chattel identity rides the goods rung), with
  * one persistent field:
  *
