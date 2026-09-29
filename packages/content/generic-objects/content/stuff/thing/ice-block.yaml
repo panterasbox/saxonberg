@@ -1,0 +1,32 @@
+# A block of ice — the cold you carry into an icebox, and the clock.
+#
+# ⭐ `Casting` is the shipped re-meltable solid, and its own docstring
+# names ice as an intended use: "a cast lump of whatever froze (metal
+# run into a mould, wax, ice)". It melts through the shipped plateau —
+# at 273 K the leak goes into latent heat and the temperature holds,
+# until `mass × latentHeatOfFusion` is spent and the block destructs.
+#
+# ⚠ A KNOWN COST, accepted rather than overlooked: `Casting` composes
+# `AlloyedMixin`, which is load-bearing for metal (an off-spec quench
+# must not lose the carbon somebody spent three smelts putting in) and
+# INERT on ice. The client shows a player what mixins an object
+# composes, so this block will claim it can be alloyed and tempered.
+# That is a real misrepresentation, filed against
+# `docs/slates/builds/base-class-narrowing-slate.md`: the re-meltable-
+# solid concept is welded to metallurgy, and the fix is that slate's,
+# not a one-row class here.
+#
+# ⚠ Nobody sells it. The icehouse-keeper's vocation and the
+# agricultural year (cold free in winter, dear in summer) are
+# `docs/slates/tails/preservation-slate.md`'s. This row exists so a
+# retail row can name it the day that trade ships.
+class: /platform/thing/Casting
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: block of ice
+  keywords: [ice, block, ice-block]
+  register: indefinite
+  longDescription: |
+    A four-kilo block of ice, clouded white at the heart and sweating along every edge.
+  _materialPath: /trade/bottling/idea/material/ice
+  mass: 4

@@ -45,6 +45,7 @@ import type { Containable } from "../spatial/Containable";
 import type { Container } from "../spatial/Container";
 import type { Bulkable } from "../bulk/Bulkable";
 import { Quantity } from "../quantity";
+import type { Coolbox } from "./Coolbox";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
@@ -319,6 +320,21 @@ function ambientScopeOf(host: Stuff): Stuff | null {
   return host.getEnclosingScope();
 }
 
+/**
+ * The shut `Coolbox` holding this body, or null.
+ *
+ * ⚠⚠ Called from `effectiveR`, which runs on every reconcile of every
+ * Thermal body in the game, so it must fail fast: the `isCoolbox` test
+ * on the scope is the first real work, and for a body standing in a
+ * room it is one mixin lookup that answers no.
+ */
+function enclosingCoolbox(host: Stuff): (Stuff & Coolbox & Thermal) | null {
+  const scope = ambientScopeOf(host);
+  if (scope === null) return null;
+  if (!MixinApi.isCoolbox(scope)) return null;
+  return scope.isHoldingCold() ? scope : null;
+}
+
 function assertFiniteNonNeg(value: number, what: string): void {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     throw new RangeError(
@@ -558,7 +574,15 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    /** Series heat-exchange resistance `R` (K/W). */
+    /**
+     * Series heat-exchange resistance `R` (K/W).
+     *
+     * ⚠⚠ **This runs on every reconcile of every Thermal body in the
+     * game** — it is the hottest read in the model. The Coolbox clause
+     * below must short-circuit before any other work, and it does: one
+     * `isCoolbox` test on the enclosing scope, which for almost
+     * everything is a plain room.
+     */
     protected effectiveR(): number {
       const D = THERMAL_DEFAULTS;
       const self = this.thermalHost;
@@ -569,7 +593,31 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         D.DEFAULT_WALL_CONDUCTIVITY;
       const rMedium = D.R_GEOMETRY_MEDIUM / Math.max(kMedium, 1e-12);
       const rWall = D.R_GEOMETRY_WALL / Math.max(kWall, 1e-12);
-      return rMedium + rWall;
+      return rMedium + rWall + this.lentInsulationR();
+    }
+
+    /**
+     * ⭐ **Seam 2 — the box lends its walls to the thing making the
+     * cold.** Extra R this body borrows from a shut `Coolbox` holding
+     * it, when this body IS its coldest mass; 0 for everything else,
+     * which is everything.
+     *
+     * Without it the ice would read its own temperature as its ambient
+     * (seam 1 would hand it back to itself) and never melt — a box that
+     * keeps its cold forever, which is the opposite of the object this
+     * build is for. With it, the ice warms toward the ROOM, through the
+     * walls, at `(T_room − 273) / (R_ice + insulationR)` — and the
+     * `Meltable` plateau turns that leak into hours.
+     */
+    private lentInsulationR(): number {
+      const self = this.thermalHost;
+      const holder = enclosingCoolbox(self);
+      if (holder === null) return 0;
+      const coldest = holder.coldestMass() as unknown as Stuff | null;
+      if (coldest === null || coldest.stuffId !== (self as Stuff).stuffId) {
+        return 0;
+      }
+      return holder.getInsulationR();
     }
 
     // ---------- reconcile-on-read (lazy time drive) ----------
@@ -597,6 +645,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     protected refreshAmbientFromEnvelope(): void {
       const self = this.thermalHost;
       if (this.heatSourceK() !== null) return;
+      // ⭐ A shut cold holder answers before the chain does, for the
+      // same reason a lit furnace does: what holds you outranks the
+      // room. Read in the same position on both the pull side and the
+      // push side (`restamp`), because the day they disagree is the day
+      // a box keeps its cold in one path and not the other.
+      const holderCold = this.holderK();
+      if (holderCold !== null) {
+        this.lastAmbientK = holderCold;
+        return;
+      }
       const scope = ambientScopeOf(self);
       if (scope === null || !MixinApi.isAtmospheric(scope)) return;
       const envelopeK = scope.envelopeTemperatureLast();
@@ -655,6 +713,27 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       } finally {
         this._thermalReconciling = false;
       }
+
+      // ⭐⭐ **A solid melts because it is WARM, not because something
+      // is heating it.** (Placement build, D22.)
+      //
+      // ⚠⚠ Until this line, `reconcilePhase()` had exactly three
+      // callers in the whole tree: a lit `Furnace`'s heat pass, two
+      // spell endpoints, and tests. So nothing in the world melted
+      // unless a fire or a wizard was pointed at it — a block of ice
+      // left on a warm floor sat at its melting point forever, with
+      // the latent accumulator never touched. The phase engine was
+      // complete and had no ambient driver.
+      //
+      // The drift above is what makes a body warm, so the phase check
+      // belongs immediately after it, on the same lazy read. It is
+      // narrowed to `Meltable` hosts: the `Bulkable` freeze/boil rung
+      // has its own callers (a `CraftVessel` drives it from its own
+      // reconcile) and widening it here would double-run them.
+      //
+      // Outside the `try`, so the plateau's own `setContentsTemperature`
+      // is not swallowed by the reentry guard.
+      if (MixinApi.isMeltable(self)) this.reconcilePhase();
     }
 
     /**
@@ -684,6 +763,34 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ **Seam 1 — the cold twin of {@link heatSourceK}.** The interior
+     * temperature (K) of a shut `Coolbox` holding this body, or `null`.
+     *
+     * `heatSourceK` is hot-only by construction — it asks for a lit
+     * `Furnace` — and the rule underneath it is not about heat at all:
+     * *what HOLDS this body outranks the biome chain.* A shut icebox
+     * holds its contents exactly as an oven does, and the chain cannot
+     * answer for it, because a `Coolbox` is not `Atmospheric` (and must
+     * not be: a cold box does not cool the kitchen).
+     *
+     * ⚠ The coldest mass is excluded. It is the thing MAKING the
+     * interior cold, so handing it its own temperature as ambient would
+     * be a body in equilibrium with itself: no drift, no melt, no
+     * clock. It reads the room instead, through the walls
+     * ({@link lentInsulationR}).
+     */
+    private holderK(): number | null {
+      const self = this.thermalHost;
+      const holder = enclosingCoolbox(self);
+      if (holder === null) return null;
+      const coldest = holder.coldestMass() as unknown as Stuff | null;
+      if (coldest !== null && coldest.stuffId === (self as Stuff).stuffId) {
+        return null;
+      }
+      return holder.getContentsTemperature().rawValue();
+    }
+
+    /**
      * Resolve the current scope's ambient, freeze the current
      * temperature under the *old* cached ambient, then adopt the new
      * ambient and re-stamp. The single async mutation every re-stamp
@@ -702,8 +809,12 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // in), so the couple is read here, on the body being heated.
       let ambientK = this.lastAmbientK;
       const sourceK = this.heatSourceK();
+      const holderCold = sourceK === null ? this.holderK() : null;
       if (sourceK !== null) {
         ambientK = sourceK;
+      } else if (holderCold !== null) {
+        // ⭐ Seam 1, the push side — same position as `heatSourceK`.
+        ambientK = holderCold;
       } else {
         // Resolve the new scope's ambient. ⭐ The scope is what stands
         // between this body and the room — its ENCLOSING placement host

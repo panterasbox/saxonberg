@@ -90,6 +90,17 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       // nothing. It ships in `generic-objects` (a pack's `src/`), beside
       // the row that names it.
       "/generic-objects/thing/SconceLamp",
+      // ⭐ The second fixture that DID need a class, declared here on
+      // purpose because this test is the instruction to do so. An
+      // icebox is `Coolbox + Sealable + Thermal + Container`: a holder
+      // whose interior follows the coldest thing in it. No shipped
+      // class is any of that — `Chest` has the lid and none of the
+      // cold, a `Thermos` has the cold and holds bulk rather than
+      // provisions — and faking it with a `Chest` would have given a
+      // kitchen somewhere that LOOKS cold and keeps nothing, which is
+      // the confidently-misleading failure the `coldStorage` repair in
+      // the same build exists to end. Placement build, D10.
+      "/platform/thing/Icebox",
     ]);
     for (const file of readdirSync(join(SEEDS, "stuff/thing/fixture"))) {
       const seed = read(`stuff/thing/fixture/${file}`);
@@ -119,6 +130,12 @@ describe("the kitchen — BUNDLE (D12)", () => {
       "/stuff/thing/fixture/range",
       "/stuff/thing/fixture/counter",
       "/stuff/thing/fixture/larder",
+      // ⭐ Somewhere cold, for the first time — and it arrives WARM and
+      // SHUT. The larder above it is a ventilated cupboard seeded open
+      // so `cook` reaches its ingredients; this is seeded shut because
+      // that is how it holds cold, and its contents are deliberately
+      // out of reach until you open it. Same lid, opposite intent.
+      "/stuff/thing/fixture/icebox",
       "/stuff/thing/fixture/basin",
       // ⭐ …and something to eat off, and something to eat WITH. Dinnerware
       // is claimed from what is in reach rather than conjured per meal, so

@@ -84,6 +84,38 @@ describe('FreshnessMixin — the spoilage gauge', () => {
     WorldClockApi._resetForTesting();
   });
 
+  /**
+   * ⭐⭐ **The icebox's two temperatures, and the BAND a player reads**
+   * (placement build, W3).
+   *
+   * ⚠ The three temperature regimes are already proven below (*"warm
+   * food spoils, and cold food spoils MUCH slower"*, 303 K vs 277 K).
+   * This is not a second copy of that sentence: it asserts the one
+   * thing that test does not, at the two temperatures an icebox
+   * actually produces — that 273 K and 293 K land in **different
+   * BANDS**, which is the outcome the live drive's step 8 reads off two
+   * lines of prose. A load difference nobody can see would not be the
+   * build.
+   *
+   * Nothing here knows what an icebox is. The cold is just a
+   * temperature and the Arrhenius term has always run — which is why
+   * the build spent itself on making somewhere cold EXIST rather than
+   * on simulating preservation.
+   */
+  it('⭐⭐ 273 K and 293 K land in DIFFERENT BANDS — the icebox, visible', () => {
+    const mat = material(MEAT_EA);
+    const cold = food(mat, 273);
+    const warm = food(mat, 293);
+    // Seed both stamps at the same instant.
+    cold.getMicrobialLoad();
+    warm.getMicrobialLoad();
+
+    setNow(4 * DAY);
+    expect(warm.getMicrobialLoad()).toBeGreaterThan(cold.getMicrobialLoad());
+    expect(cold.getFreshnessBand()).toBe('fresh');
+    expect(warm.getFreshnessBand()).not.toBe('fresh');
+  });
+
   it('a host that carries the gauge reads fresh when nothing has grown', () => {
     const p = food(material(MEAT_EA));
     expect(MixinApi.isFresh(p)).toBe(true);

@@ -1,0 +1,29 @@
+# The icebox — somewhere cold, and its LID IS LOAD-BEARING in the
+# OPPOSITE direction to the larder's.
+#
+# The larder beside it is seeded OPEN because the craft gather walk
+# descends one level into open room containers, so its ingredients are
+# in reach and `cook` works at home. This is seeded SHUT, because a box
+# holds cold by being shut — and that means its contents are
+# deliberately out of reach until you open it. To keep food: open, put,
+# shut. To cook from it: open it. Same rule, opposite intent.
+#
+# ⭐ It is not cold because it is authored cold. It is cold because
+# there is ice in it, and the ice melts — which is what makes this an
+# object somebody has to KEEP rather than a property of the room.
+class: /platform/thing/Icebox
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: icebox
+  keywords: [icebox, ice-box, cold box]
+  register: indefinite
+  longDescription: |
+    A zinc-lined chest on short legs, its walls packed thick with sawdust and its lid heavy enough to seal on its own weight. A shallow tray sits under the grating inside, for the melt.
+  open: false
+  # A five-centimetre softwood box packed with sawdust. ⚠ A CONTENT
+  # dial: a thicker box keeps longer. If the ice is gone before the
+  # food shows it, the answer is a bigger R or a bigger block.
+  insulationR: 6.0
+  # A fixture by encumbrance (the anvil rule): nobody walks off with
+  # the icebox. What you carry is the ice.
+  mass: 60
