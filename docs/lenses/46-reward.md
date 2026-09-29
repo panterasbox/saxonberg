@@ -127,13 +127,24 @@ backwards:
 > A channel that only speaks on surprise is optimised against its own
 > goal, and the steadiest player gets the least signal.
 
-⚠⚠ **Altitude check** (added by the 2026-09-29 pass): *habituation is
-the outcome* is a claim about **one game**, not about the platform. A
-title tuned for speedrunners wants the opposite; so does a one-session
-narrative piece. **The platform's obligation is that both be
-buildable** — which means the deviation rule must stay a *default an
-author can change*, never a substrate opinion. See
-[#7](./7-endogenous-value.md) § *asked at the wrong altitude*.
+⭐⭐ **Altitude: this is the grain, not the law** (2026-09-29 pass,
+corrected the same day). *Habituation is the outcome* is not a platform
+invariant — a title tuned for speedrunners wants the opposite, and so
+does a one-session narrative piece, and **both must be buildable.**
+
+But it is not merely *this title's quirk* either. **It is the kind of
+game this substrate is for**, argued rather than assumed, and the
+platform should say so. The mechanism that holds a preference honestly
+is the one already in use here:
+
+> **A default an author can change.** The deviation rule ships as the
+> recommendation; changing it is a decision an author makes on purpose,
+> not a hole they fall through.
+
+⚠ The failure to avoid is not *having the preference* — it is
+implementing it as a substrate opinion nobody can opt out of. See
+[#7](./7-endogenous-value.md) § *asked at the wrong altitude* and the
+three-level check in the [README](./README.md).
 
 Which reframes Schell rather than refuting him. **His acclimation
 problem assumes the reward is why you are there.** For a game, that is
@@ -183,11 +194,13 @@ and it is the one an engagement problem would come for first.
 2. ⭐⭐ **Run "can the player trace it?" as a gate on every derived
    reward.** It is no longer a lens preference; B3 makes an untraceable
    derived reward a doctrine violation.
-3. ⭐⭐ **Say that habituation is *this title's* product.** It is the
-   cleanest one-line statement of how a game selling applied hours
-   differs from one selling sessions — and it belongs in that title's
-   vision material, ⚠ **not in the platform's**, because another game
-   on the same substrate will want the opposite.
+3. ⭐⭐ **Say that habituation is the product — and say it is the
+   grain.** It is the cleanest one-line statement of how a game selling
+   applied hours differs from one selling sessions, it belongs in the
+   vision material, and it should be stated as **what this platform is
+   for** rather than as a neutral fact or a private preference. ⚠ With
+   the opt-out visible, because another game on the same substrate will
+   want the opposite and should be able to have it.
 4. ⭐⭐ **The levelling question is not "what number goes up."** It is
    *what arrives unbidden, and is it honest?* Framing it the first way
    guarantees a gauge; framing it the second way is the actual problem

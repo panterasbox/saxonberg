@@ -118,8 +118,11 @@ Schell says the opposite, and he is closer to right:
 > Being judged well — by something that actually knows — is one of the
 > reasons to play.**
 
-That is also the product — ⚠ *of this title*; a game that judges
-nobody is a legitimate thing to build here. Standing, conferral, a band
+That is also the product — and ⭐ **the grain**: a game that judges
+nobody is buildable here, but the standing architecture exists because
+this platform is *for* games that judge people well, and that is a
+preference worth stating rather than hiding behind neutrality.
+Standing, conferral, a band
 you earned, a
 guild that vouches for you, a reputation that means something because
 it was measured honestly — **the entire advancement and standing

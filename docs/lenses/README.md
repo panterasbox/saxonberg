@@ -162,15 +162,36 @@ None of this substitutes for the book.
 2. **Which of our seven it sharpens** — and whether it sharpens the
    test, the failure list, or the worked example. ⭐ New requirement;
    an entry that cannot answer it does not belong here.
-3. ⚠⚠ **At what altitude** — is this a claim about **the platform**
-   (binding on every game built here) or about **one title** (ours, and
-   revisable by anyone else's)? Schell's deck assumes one designer, one
-   artifact, one set of values, so **every one of his questions arrives
-   pitched at the title** and has to be re-aimed before it can be
-   answered. An entry that mixes the two produces a substrate opinion
-   where it meant to state a preference — which is the failure
-   [#93](./93-the-nameless-quality.md) calls *imposing properties
-   nobody asked for*.
+3. ⚠⚠ **At what altitude** — and there are **three**, not two.
+   Schell's deck assumes one designer, one artifact, one set of values,
+   so **every one of his questions arrives pitched at a title** and has
+   to be re-aimed before a platform can answer it.
+
+   | | binds | may be ignored by |
+   |---|---|---|
+   | **invariant** | every game built here | nobody |
+   | ⭐⭐ **the grain** | nothing — but the substrate is *for* this | any author, at a cost |
+   | **this title** | one game | anyone else, freely |
+
+   ⭐⭐⭐ **The middle one is where most of the design's values actually
+   live, and an entry that omits it is worse than one that mis-levels.**
+   There **is** a kind of game this platform wants you to make; the
+   preferences are argued, defaulted-to and **ignorable**, which is what
+   makes them recommendations rather than mandates. They are
+   [measurement.md](../measurement.md)'s **Tier B** in another voice —
+   *"choices about what kind of thing this is"* — and the mechanism for
+   holding one honestly is **a default an author can change.**
+
+   ⚠ **Do not retreat into neutrality to avoid the question.** *"We give
+   you the controls; we impose nothing"* is the answer every attention
+   company gives, and `measurement.md` refuses it on page one. An entry
+   should answer **as if building the game the platform is for**, and
+   say which of its answers are the grain rather than the law.
+
+   ⚠ The failure the level-check guards against is narrower than
+   silence: a preference **implemented as a substrate opinion**, which
+   is what [#93](./93-the-nameless-quality.md) calls *imposing
+   properties nobody asked for*.
 4. **Why our design prompts it** — the specific tension that makes
    *this* lens worth pointing at *this* game.
 5. **What the design answers** — with citations to the rubric and the
