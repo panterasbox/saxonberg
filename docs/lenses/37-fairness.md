@@ -3,9 +3,11 @@
 > One of the [Schell deck](./README.md). Lens named from *A Book of
 > Lenses*; questions paraphrased, analysis our own.[^aogd-fr]
 >
-> ⚠ **Short by design.** This entry exists mostly to record a
-> **negative finding** — what the deck's "fairness" turns out to mean,
-> and therefore what it does not have a lens for at all.
+> ⚠ **Opened to record a negative finding** — what the deck's
+> "fairness" turns out to mean, and therefore what it has no lens for
+> at all. **Amended 2026-09-29:** that finding was too quick. There is
+> one contest here, it is the genre's oldest complaint, and its answer
+> is the Compact.
 
 ## The lens
 
