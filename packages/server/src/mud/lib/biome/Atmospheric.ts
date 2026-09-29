@@ -144,6 +144,20 @@ export interface Atmospheric {
    */
   resolveWeatherLocality(): Promise<void>;
 
+  /**
+   * ⚠⚠ **Forget the memoized locality — my address changed.**
+   *
+   * The memo above resolves ONCE and is right for a room, which never
+   * moves. An `ExitableVessel` is a place that goes places: a coach that
+   * leaves one locality for the next would otherwise keep reporting the
+   * first one's weather forever, having correctly resolved it at a stop
+   * it is no longer at.
+   *
+   * Public on the mixin because the memo is the mixin's private state.
+   * A `Location` never calls it; `ExitableVessel.onMoved` does.
+   */
+  resetWeatherLocality(): void;
+
   // ---------- derived geometry ----------
 
   /**
@@ -1037,6 +1051,21 @@ export function AtmosphericMixin<
      */
     private _weatherLocalityPromise: Promise<void> | null = null;
 
+    /**
+     * ⚠ Bumped by {@link resetWeatherLocality}. A walk that started
+     * before a reset must not land its stale answer on top of it —
+     * `walkWeatherLocality` captures this and writes only if it still
+     * matches. Without it, a vessel that moves mid-walk memoizes the
+     * locality it just LEFT, permanently, and nothing ever looks again.
+     */
+    private _weatherLocalityGeneration = 0;
+
+    public resetWeatherLocality(): void {
+      this._weatherLocalityGeneration += 1;
+      this._weatherLocalityPath = null;
+      this._weatherLocalityResolved = false;
+    }
+
     public weatherLocality(): Locality | null {
       if (!this._weatherLocalityResolved) {
         // Kick the walk and answer "not yet". The next read has it.
@@ -1059,9 +1088,14 @@ export function AtmosphericMixin<
 
     /** The walk itself; {@link resolveWeatherLocality} owns the coalescing. */
     private async walkWeatherLocality(): Promise<void> {
+      const generation = this._weatherLocalityGeneration;
       try {
         const self = this as unknown as Stuff & Container;
         const locality = await AddressApi.resolveLocalityFor(self);
+        // A reset landed while we were walking: the answer is about an
+        // address this scope no longer has. Drop it; the reset already
+        // left the memo unresolved, so the next read walks again.
+        if (generation !== this._weatherLocalityGeneration) return;
         this._weatherLocalityPath = locality?.getTemplatePath() ?? null;
         this._weatherLocalityResolved = true;
       } catch {

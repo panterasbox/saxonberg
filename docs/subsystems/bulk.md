@@ -189,7 +189,7 @@ A slot's persistent state (flat fields, per affordance):
   templatePath (an identity ref; resolved on read, HMR-safe), `null` ⇒ empty.
 - `interiorAmount` / `surfaceAmount` — `Quantity<'L'>`, marshalled via
   `QuantityMarshaller.pathFor('L')`. Defaults `0 L`.
-- `interiorCapacity` / `surfaceCapacity` — `Quantity<'L'> | null`;
+- `interiorCapacity` / `surfaceCapacity` — `Quantity<'L'> | null`; ⚠ **not `interiorVolume`**, which is `ExitableVessel`'s cabin in m³ ([biome.md](./biome.md)). A tank is how much fluid you can pour in; a cabin is how much air is in it. The barge authors `interiorCapacity: 12000` and no cabin at all;
   `null` is an **uncapped** slot (a puddle). Authored only when bounded
   (omit ⇒ uncapped — the persistence layer skips absent fields).
 - `closure` — the retention scale (below). Default `liquidTight`.

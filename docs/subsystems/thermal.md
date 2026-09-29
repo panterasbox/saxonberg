@@ -419,6 +419,17 @@ covers drystone, palings, hedge and hurdle while also being the technical
 term on this side. A pen has an enclosure and no envelope, which is why
 the two are named separately.
 
+⭐ **A vessel needs no `enclosure:` at all** — it IS matter, so its
+envelope is made of whatever it is made of, and `ExitableVessel`
+overrides `enclosureDefaults()` to say so: the row's `_materialPath` at a
+one-centimetre wall. A box, a barrel and a carriage are millimetres of
+stuff, not the third of a metre a BUILDING defaults to, and the
+conduction is linear in the thickness — handing a coach a wall like a
+wall would make it a thermos. ⚠ That override lived on `Vessel` and moved
+to `ExitableVessel` with `AtmosphericMixin` in the base-class narrowing
+build, where it would otherwise have been orphaned: no `super` to call
+and no interface to implement.
+
 A Location **names** a material exactly as it names its floor's, and
 stays space rather than matter. A U-value is an *effect*, and an authored
 effect is a room warm for no reason a player can be told. The 154 content

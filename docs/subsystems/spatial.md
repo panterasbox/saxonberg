@@ -45,7 +45,7 @@ substrate in `lib/spatial/`:
 
 | Type | Kind | Role |
 |---|---|---|
-| `Vessel` | top-level branch | A *container-object* — a thing that holds things, at any scale (bag → cart → ship). Carries Thing's describable-physical baseline directly (`Visible` + `Perceptible` + `Tangible`) so a describable container needs no re-added `Visible`, plus Container + Containable + `Atmospheric` ([biome.md](./biome.md)) — but is **not** a `Thing` subtype (a ship isn't pocketable); carry/drag/ride is emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
+| `Vessel` | top-level branch | A *container-object* — a thing that holds things, at any scale (bag → cart → ship). Carries Thing's describable-physical baseline directly (`Visible` + `Perceptible` + `Tangible`) so a describable container needs no re-added `Visible`, plus Container + Containable — ⭐⭐ **and NOT `Atmospheric`: a bag is not a place.** The mixin composed here until the base-class narrowing build, giving a backpack, a till, a jar, a rack, a footlocker, a handcart, a bank counter and a barge each their own temperature, pressure, humidity, wind and biome; 37 rows over 15 composers, and none ever authored one of those fields. It is on `ExitableVessel` now ([biome.md](./biome.md)) — *a thing you can go inside is a place with air* — which is also the only place anybody's `context.location` can ever be a vessel, since a rider occupies a SLOT and stands in the room. A plain vessel is now a transparent step in the outward biome walk, exactly like a Box. Still **not** a `Thing` subtype (a ship isn't pocketable); carry/drag/ride is emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
 | `PlacingMixin` | mixin | **Placement**: the members this host offers (`placements`), the lazy `getPlaced` read, and the `canPlace` veto. Was `SurfacedMixin` until 2026-09-28. |
@@ -72,7 +72,7 @@ Stuff (one of seven top-level branches — see architecture.md)
   │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` identity refs)
   │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
   │     └── BoundaryAnchor          (Adornment)                         ← see light.md
-  ├── Vessel                        (Tangible + Atmospheric + Container + Containable)
+  ├── Vessel                        (Tangible + Container + Containable)
   │     └── ExitableVessel          (DoorBearing + Exitable + Visible + Adornable)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```

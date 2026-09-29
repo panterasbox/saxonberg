@@ -10,10 +10,25 @@
  * **A Vessel `extends Thing`.** It is genuine matter — describable, made
  * of a material, with mass, wettable, carryable, haulable, and itself
  * `Containable` (it lives somewhere — a pocket, a harbor, a parking lot).
- * On top of the Thing baseline it adds `Container` (it holds things —
- * cargo, passengers) + `Atmospheric` (an interior climate). So it is the
- * one genuine dual citizen of the space/matter split: **matter from the
- * outside, a place from the inside** (you go *inside* a Vessel). It is not
+ * On top of the Thing baseline it adds `Container` — it holds things.
+ *
+ * ⭐⭐ **And ONLY `Container`. A bag is not a place.** `AtmosphericMixin`
+ * composed here until the base-class narrowing build, on the framing
+ * *matter from the outside, a place from the inside* — but *inside* is
+ * something you can only BE for a vessel you can go into, and going in
+ * is `ExitableVessel`'s. Nobody's `context.location` is ever a plain
+ * `Vessel`: a driver or a rider occupies a SLOT and stands in the room
+ * (`Mobile` ripples only an occupant standing OUTSIDE the mover), so the
+ * only way to be inside one is `go <vessel>` through
+ * `ExitableVessel.getEntryExit()`.
+ *
+ * What the mixin bought every bag, till, jar, rack, footlocker, handcart
+ * and counter was a temperature, a pressure, a humidity, a wind and a
+ * biome — a claim to have its own weather. **Thirty-seven rows named one
+ * of the fifteen composers and not one authored a single atmospheric
+ * field**, which is the measurement that moved it. It lives on
+ * `ExitableVessel` now: *a thing you can go inside is a place with air.*
+ * It is not
  * a separate top-level branch — it traces through `Thing` — because a
  * container-object *is* a physical thing that additionally holds an
  * interior; the earlier "mobile place, sibling of Location" framing was
@@ -21,7 +36,7 @@
  * mass-gated). Distinct from a plain `Thing` (holds nothing), `Location`
  * (a stationary place — pure space, *not* matter), and `Agent` (actor).
  *
- * Composition: `AtmosphericMixin(ContainerMixin(Thing))`. `Thing` already
+ * Composition: `ContainerMixin(Thing)`. `Thing` already
  * brings the describable-physical baseline — `Visible` + `Perceptible` +
  * `Tangible` (`getMass()`) + `Containable` + `Wet` — so a describable
  * container (a footlocker, a backpack, a bank counter) is a plain `Vessel`
@@ -40,23 +55,13 @@
  */
 
 import { ContainerMixin } from '../spatial/Container';
-import { AtmosphericMixin } from '../biome/Atmospheric';
-import type { EnclosureDefaults } from '../spatial/Enclosed';
 import Thing from './Thing';
 import type { FieldMeta } from '../mixin';
 
 // A Vessel is a Thing (matter — describable / Tangible / Wet / Containable)
-// that additionally holds things (Container) with an interior climate
-// (Atmospheric). It traces the `Thing` top-level branch, not its own.
-/**
- * How thick a vessel's wall is, in metres. A box, a barrel, a flask:
- * all of them are millimetres of stuff, not the third of a metre a
- * BUILDING defaults to — and the envelope's conduction is linear in
- * this, so handing a crate a wall like a wall would make it a thermos.
- */
-const VESSEL_WALL_M = 0.01;
-
-const VesselBase = AtmosphericMixin(ContainerMixin(Thing));
+// that additionally holds things (Container). It traces the `Thing`
+// top-level branch, not its own.
+const VesselBase = ContainerMixin(Thing);
 
 export class Vessel extends VesselBase {
   /**
@@ -94,24 +99,6 @@ export class Vessel extends VesselBase {
       );
     }
     this._transmissionFactor = value;
-  }
-
-  /**
-   * ⭐⭐ **A vessel IS matter, so it needs no `fabric:` at all** — its
-   * envelope is made of whatever it is made of, and the thickness is
-   * the wall of a box rather than the wall of a building.
-   *
-   * ⚠ This was a rung inside `Atmospheric.resolveEnclosure`, reached
-   * through an optional `getMaterial?` cast, because the enclosure used to
-   * live on `Location` and a `Vessel` is not one. As the mixin's own
-   * hook it is an ordinary override and the cast is gone (review,
-   * 2026-09-24).
-   */
-  public override enclosureDefaults(): EnclosureDefaults {
-    const material = this.getMaterial();
-    const path = material?.getTemplatePath() ?? null;
-    if (path === null) return super.enclosureDefaults();
-    return { materialPath: path, thicknessM: VESSEL_WALL_M };
   }
 
   public getTransmissionFactor(): number {

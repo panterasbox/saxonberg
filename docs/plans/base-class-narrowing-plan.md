@@ -651,7 +651,41 @@ including `lint:locations`, no doc names a deleted class as shipped
 (`grep -rn` over `docs/` for the seven names shows only history notes and
 slates). Commit: `refactor(platform): seven classes no row names, and the docs that called them shipped`.
 
-### W3 — `Atmospheric` moves to `ExitableVessel`, and an interior is real (D2–D5, D10)
+### W3 — `Atmospheric` moves to `ExitableVessel`, and an interior is real (D2–D5, D10) ✅ DONE
+
+> **Landed as planned.** `Vessel` is `ContainerMixin(Thing)`;
+> `ExitableVessel` is
+> `PostRegistration(DoorBearing(Exitable(Adornable(Atmospheric(Vessel)))))`
+> with `interiorVolume`, `getVolume`, `enclosureDefaults` + `VESSEL_WALL_M`,
+> the two envelope overrides and `resetWeatherLocality()` on `onMoved`.
+> The coach row authors `interiorVolume: 5` and oak.
+>
+> ⭐⭐ **A ninth channel, and the plan told me to assume one.**
+> `envelopeApplies()` written as `getVolume() !== null &&
+> getOwnTemperatureK() === null` blows the stack on the first read:
+> `getOwnTemperatureK()` falls through to `envelopeTemperatureLast()`,
+> which asks `envelopeApplies()`. It is the **same ring**
+> `envelopeTemperatureLast`'s own docstring warns about (*the room
+> integrates itself; bodies READ it*) arriving from a new direction — an
+> override, not a caller. The base reads the FIELD `this._temperature`
+> for exactly this reason and the override now does too, with a comment
+> saying so. ⚠ Nothing type-checks this: the getter is public, the field
+> is public, and both compile.
+>
+> **Test fixture renames are the interesting half of the diff.**
+> `biome.vesselWalk.test.ts` and `biome.isSkyExposed.test.ts` each had
+> `class TestVessel extends Vessel {}` standing in for a ship's cabin, a
+> submarine and a bell jar. They are `TestCabin extends
+> AtmosphericMixin(Vessel)` now — the `ExitableVessel` shape without the
+> exit machinery, which needs an async clone a sync fixture cannot do —
+> and `vesselWalk` gains the case that states the change: a plain vessel
+> is a transparent step, and `'setTemperature' in bag` is `false`.
+> `Atmospheric.persistence.test.ts:28` is inverted rather than deleted.
+>
+> ⚠ **`Quantity.of(NaN, …)` throws a TypeError before any setter sees
+> it**, so the invariant test asserts 0 and negative only; NaN cannot
+> reach the accessor.
+
 
 - `lib/stuff/Vessel.ts` — `const VesselBase = ContainerMixin(Thing)`;
   remove the `AtmosphericMixin` and `EnclosureDefaults` imports, the
