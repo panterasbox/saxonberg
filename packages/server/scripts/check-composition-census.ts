@@ -466,15 +466,31 @@ async function main(): Promise<void> {
      * `fieldMeta` and `_mixinName` are framework bookkeeping and do not
      * count as a difference.
      */
+    const unparsed: string[] = [];
     const hasBody = (classPath: string): boolean => {
       try {
         const file = classFileOf(classPath, sources);
-        if (!file || !existsSync(file)) return false;
+        if (!file || !existsSync(file)) {
+          unparsed.push(`${classPath} (no file)`);
+          return true;
+        }
         const src = readFileSync(file, "utf8");
-        const m = /export\s+(?:default\s+)?(?:abstract\s+)?class\s+\w+[^{]*\{([\s\S]*)$/.exec(
+        // ⚠ `export` is OPTIONAL: `Provision` is
+        // `class Provision extends ProvisionBase {}` with a separate
+        // `export default Provision;` below it, and a regex anchored on
+        // `export class` misses that shape entirely.
+        const m = /(?:^|\n)\s*(?:export\s+)?(?:default\s+)?(?:abstract\s+)?class\s+\w+\s+extends\s[^{]*\{([\s\S]*)$/.exec(
           src,
         );
-        if (!m) return false;
+        // ⚠⚠ **FAIL CLOSED.** An unparseable file used to return
+        // `false`, which in this detector means "nothing in code
+        // distinguishes this class" — the strongest claim it makes,
+        // asserted on the evidence of a regex that did not match. A
+        // class we cannot read is a class we cannot clear.
+        if (!m) {
+          unparsed.push(classPath);
+          return true;
+        }
         const body = m[1] ?? "";
         const stripped = body
           .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -483,7 +499,8 @@ async function main(): Promise<void> {
           .replace(/static\s+_mixinName[^\n]*/g, "");
         return /[A-Za-z_@]/.test(stripped.replace(/[\s{}]/g, ""));
       } catch {
-        return false;
+        unparsed.push(`${classPath} (threw)`);
+        return true;
       }
     };
     const bySig = new Map<
@@ -529,8 +546,18 @@ async function main(): Promise<void> {
     }
     console.info(
       `\n    ${twins.length} groups of twins. ` +
-        `* = EMPTY class body — no statics, no methods, no overrides.\n`,
+        `* = EMPTY class body — no statics, no methods, no overrides.`,
     );
+    if (unparsed.length) {
+      console.info(
+        `    ⚠ ${unparsed.length} class file(s) could not be read and are ` +
+          `treated as HAVING a body (fail closed):`,
+      );
+      for (const u of unparsed.slice(0, 10)) console.info(`        ${u}`);
+      if (unparsed.length > 10)
+        console.info(`        … and ${unparsed.length - 10} more`);
+    }
+    console.info("");
 
     console.info("  NEAR-MISSES — differ by exactly one mixin:\n");
     const sets = [...bySig.entries()].map(([sig, v]) => ({
