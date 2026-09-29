@@ -36,6 +36,53 @@ lens 6 on 2026-09-28: the two had been one heading since 2026-09-18, and
 the lending gate that occasioned the governance limb had **passed every
 economic question**, because it was not an economics defect.
 
+### ⭐⭐⭐ Every answer has an altitude — invariant · grain · title
+
+*Graduated from [lenses/](./lenses/README.md) 2026-09-29, where it was
+found by writing entries that kept mis-levelling.*
+
+This is a **platform**, and a platform makes most people reach for
+neutrality. Do not. Each of the seven can be answered at three heights,
+and **which one an answer is pitched at changes what it obliges:**
+
+| | binds | may be ignored by |
+|---|---|---|
+| **invariant** | every game built here | ⛔ nobody |
+| ⭐⭐ **the grain** | nothing — but the substrate is *for* this | any author, at a cost |
+| **this title** | one game | anyone else, freely |
+
+> ⭐⭐⭐ **The middle one is where most of this design's values live, and
+> a pass that omits it is worse than one that mis-levels.**
+
+**There is a kind of game this platform wants you to make**, and the
+recommendations are real ones: how much duration to spend, whether
+habituation is the outcome, whether the world should judge people at
+all. ⭐ They are recommendations **because they are ignorable**, not
+because they are timid.
+
+⚠⚠ **Neutrality is not the safe answer, it is the adversary's answer.**
+*"We give you the controls; we impose nothing"* is what every attention
+company says, and [measurement.md](./measurement.md) refuses it in its
+opening pages — this platform *does* impose conservation, the
+good-floor, consent gates and a code-trust lockdown, and anyone who
+looks will find them. **A lens pass should answer as if building the
+game the platform is for**, and then say which of its answers are the
+grain rather than the law.
+
+⭐⭐ **The mechanism that holds a preference honestly is a default an
+author can change** — the recommendation ships, and departing from it is
+a decision somebody makes on purpose rather than a hole they fall
+through. These are [measurement.md](./measurement.md)'s **Tier B** in
+another voice: *"choices about what kind of thing this is,"* amendable
+by whoever ships the code and checked by the right to fork.
+
+⚠ **The failure this guards against is narrow and specific:** not having
+a preference, but **implementing one as a substrate opinion nobody can
+opt out of** — which is
+[#93](./lenses/93-the-nameless-quality.md)'s *imposing properties nobody
+asked for*, and which the base-class narrowing work is the code-side
+version of.
+
 ### ⭐⭐ The borrowed instruments — which Schell lens sharpens which
 
 This doc's opening note promises that *"where a Schell lens sharpens one
@@ -657,7 +704,10 @@ and [credit.md](./subsystems/credit.md).
 ## Running the pass
 
 A lens pass is short. Seven headings — 3 has two halves — a couple of
-sentences each, in the slate and again in the requirements doc:
+sentences each, in the slate and again in the requirements doc. ⭐ Where
+an answer is a **recommendation rather than a rule**, say so: *grain*
+is a one-word annotation and it is the difference between a default and
+an imposition.
 
 ```
 ### Lens pass

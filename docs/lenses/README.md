@@ -173,25 +173,16 @@ None of this substitutes for the book.
    | ⭐⭐ **the grain** | nothing — but the substrate is *for* this | any author, at a cost |
    | **this title** | one game | anyone else, freely |
 
-   ⭐⭐⭐ **The middle one is where most of the design's values actually
-   live, and an entry that omits it is worse than one that mis-levels.**
-   There **is** a kind of game this platform wants you to make; the
-   preferences are argued, defaulted-to and **ignorable**, which is what
-   makes them recommendations rather than mandates. They are
-   [measurement.md](../measurement.md)'s **Tier B** in another voice —
-   *"choices about what kind of thing this is"* — and the mechanism for
-   holding one honestly is **a default an author can change.**
+   ⭐⭐⭐ **The middle one is where most of the design's values live, and
+   an entry that omits it is worse than one that mis-levels.** ⚠ Do not
+   retreat into neutrality to avoid the question — answer **as if
+   building the game the platform is for**, then say which answers are
+   the grain rather than the law.
 
-   ⚠ **Do not retreat into neutrality to avoid the question.** *"We give
-   you the controls; we impose nothing"* is the answer every attention
-   company gives, and `measurement.md` refuses it on page one. An entry
-   should answer **as if building the game the platform is for**, and
-   say which of its answers are the grain rather than the law.
-
-   ⚠ The failure the level-check guards against is narrower than
-   silence: a preference **implemented as a substrate opinion**, which
-   is what [#93](./93-the-nameless-quality.md) calls *imposing
-   properties nobody asked for*.
+   ⭐ **Graduated 2026-09-29 to
+   [design-lenses.md § Every answer has an altitude](../design-lenses.md)**,
+   which is now the statement of record; it was found here, by writing
+   entries that kept getting it wrong.
 4. **Why our design prompts it** — the specific tension that makes
    *this* lens worth pointing at *this* game.
 5. **What the design answers** — with citations to the rubric and the
