@@ -252,8 +252,12 @@ Consistency is the imagination budget.
 doesn't back; a mechanic that is correct but reads as a spreadsheet.
 The sharpest instrument is [measurement.md](./measurement.md)'s
 no-gauge rule — *no fidelity meter, no sin counter, no progress bar, no
-streak, no leaderboard* — because a gauge is the fastest way to convert
-a lived world back into an interface. The companion tell:
+streak* **over a declared standard** — because a gauge is the fastest
+way to convert a lived world back into an interface. ⚠ **Scoped
+2026-09-29:** it was never a general ban on numbers, and reading it as
+one contradicted the same doc's commitment that any measurement the
+platform makes of you is one you can read. Performance is readable;
+*character* is not a score. The companion tell:
 **unlit interiors are pitch black**, and the giveaway that a design
 forgot this is that every object reads "something" while the room prose
 still sounds fine. ⭐ The positive form is worth holding too: every
@@ -432,7 +436,10 @@ the moral question wrong, or they are not answering it.
 path dressed as a decision); a reward for time rather than for judgment;
 standing that accrues from throughput; ⭐ **a choice the design has
 quietly made calculable**, so that the "decision" is arithmetic wearing
-a moral costume; a dial the platform secretly clamps.
+a moral costume; a dial the platform secretly clamps; ⭐⭐ **the engine
+consulting a cross-domain composite** to gate something — *how good is
+this person* is a question only people and institutions may ask
+([measurement.md](./measurement.md) Part 1).
 
 ⭐⭐ **Worked example — stewardship.** This is the least-explored lens,
 but that is a *doc* gap, not a content gap: a residence, pets with a
