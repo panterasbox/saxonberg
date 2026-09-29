@@ -28,8 +28,7 @@
  * `mass`, and `length`.
  */
 
-import Thing from '../../../lib/stuff/Thing';
-import { DetailedMixin } from '../../../lib/description/Detailed';
+import Movable from '../../../lib/stuff/Movable';
 import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { KeenMixin } from '../../../lib/material/Keen';
@@ -77,7 +76,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 const WeaponBase = WieldableMixin(
   SlottableMixin(
     KeenMixin(
-      CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+      CraftedMixin(DurableMixin(ConstructedMixin(Movable))),
     ),
   ),
 );

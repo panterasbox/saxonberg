@@ -2,14 +2,14 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { FlyableMixin, FLIGHT_CAPABILITY_PROP } from '../Flyable';
 import { Idea } from '../../stuff/Idea';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { PropertiedMixin, Property } from '../../stuff/Propertied';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class Sky extends FlyableMixin(Idea) {}
-class Actor extends PropertiedMixin(Thing) {}
+class Actor extends PropertiedMixin(Movable) {}
 
 describe('FlyableMixin', () => {
   describe('mixin marker', () => {

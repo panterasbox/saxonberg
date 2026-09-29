@@ -13,7 +13,6 @@
  */
 
 import { Vessel } from "../../lib/stuff/Vessel";
-import { DetailedMixin } from "../../lib/description/Detailed";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { DialogueEffectRegistry } from "../../lib/npc/DialogueEffects";
 import { BankMixin } from "../../lib/banking/Bank";
@@ -21,7 +20,7 @@ import { BANK_CIRCLE_EFFECT } from "../../lib/banking/BankDialogueEffect";
 import type { FieldMeta } from "../../lib/mixin";
 
 const BankCounterBase = BankMixin(
-  DetailedMixin(PostRegistrationMixin(Vessel)),
+  PostRegistrationMixin(Vessel),
 );
 
 export default class BankCounter extends BankCounterBase {

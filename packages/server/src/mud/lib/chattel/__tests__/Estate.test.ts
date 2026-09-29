@@ -23,7 +23,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
-import Thing from "../../stuff/Thing";
+import Movable from "../../stuff/Movable";
 import { ChattelApi } from "../../../api/chattel";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
@@ -47,7 +47,7 @@ const TORCH_PATH = "/obj/test/Torch";
 const ALICE_PATH = "/platform/agent/Avatar/alice";
 const ROOM_ID = "/world/test/LivingRoom";
 
-class Torch extends Thing {}
+class Torch extends Movable {}
 
 /** An owner: a persistable container that carries an estate (Avatar's shape). */
 class Owner extends PersistableMixin(

@@ -40,8 +40,8 @@
  * brings the describable-physical baseline — `Visible` + `Perceptible` +
  * `Tangible` (`getMass()`) + `Containable` + `Wet` — so a describable
  * container (a footlocker, a backpack, a bank counter) is a plain `Vessel`
- * (`DetailedMixin(Vessel)` for look-at details) with no need to re-add any
- * of it. Code that needs "is this a place?" should use
+ * (details come from the root's `Detailed`) with no need to re-add any of
+ * it. Code that needs "is this a place?" should use
  * `MixinApi.isContainer(obj)` (which catches `Location ∪ Vessel ∪ Agent ∪
  * container-Thing`) rather than `instanceof`; `instanceof Vessel` is
  * reserved for genuine vessel-role checks (e.g. the encumbrance
@@ -55,13 +55,13 @@
  */
 
 import { ContainerMixin } from '../spatial/Container';
-import Thing from './Thing';
+import Movable from './Movable';
 import type { FieldMeta } from '../mixin';
 
 // A Vessel is a Thing (matter — describable / Tangible / Wet / Containable)
 // that additionally holds things (Container). It traces the `Thing`
 // top-level branch, not its own.
-const VesselBase = ContainerMixin(Thing);
+const VesselBase = ContainerMixin(Movable);
 
 export class Vessel extends VesselBase {
   /**

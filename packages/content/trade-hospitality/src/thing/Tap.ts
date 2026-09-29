@@ -11,12 +11,11 @@
  * Ships at `/trade/hospitality/thing/Tap`.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 
-const TapBase = PlacingMixin(ToolMixin(DetailedMixin(Thing)));
+const TapBase = PlacingMixin(ToolMixin(Movable));
 
 export default class Tap extends TapBase {
   constructor() {

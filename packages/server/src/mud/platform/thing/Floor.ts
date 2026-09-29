@@ -39,9 +39,8 @@
  * Stuff. The slot is authored on per its seed (`surfaceBulk: true`).
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { VisibleMixin } from '../../lib/description/Visible';
-import { DetailedMixin } from '../../lib/description/Detailed';
 import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { PosturedMixin } from '../../lib/slot/Postured';
@@ -54,7 +53,7 @@ import { FloorMixin } from '../../lib/ground/Floor';
 const FloorBase = FloorMixin(
   BulkableMixin(
     PosturedMixin(
-      SlottedMixin(AdornmentMixin(DetailedMixin(VisibleMixin(Thing)))),
+      SlottedMixin(AdornmentMixin(VisibleMixin(Movable))),
     )
   )
 );

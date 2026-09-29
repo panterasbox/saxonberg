@@ -18,7 +18,7 @@ import TreatController from '../TreatController';
 import UndressController from '../UndressController';
 import Bandage from '../../../../thing/Bandage';
 import { DressingMixin } from '../../../../../lib/vitals/Dressing';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import Location from '../../../../../lib/stuff/Location';
 import { Creature } from '../../../../../lib/creature/Creature';
 import { MessageApi } from '../../../../../api/message';
@@ -41,7 +41,7 @@ import { OUTCOMES, type Outcome } from '../../../../../lib/advancement/ActSignat
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is
 // `isDressing`, not `instanceof Bandage`.
-class CleanRag extends DressingMixin(Thing) {
+class CleanRag extends DressingMixin(Movable) {
   static _mixinName = 'CleanRag';
 }
 
@@ -102,7 +102,7 @@ afterEach(() => {
 });
 
 /** A medic in a room, carrying `dressing`, with a bleeding foot wound. */
-function medicWith(dressing: Thing, path: string, severity = 1.5): {
+function medicWith(dressing: Movable, path: string, severity = 1.5): {
   medic: MedicCreature;
   room: Location;
 } {
@@ -267,7 +267,7 @@ describe('TreatController — stabilization', () => {
     medic: MedicCreature;
     patient: Creature;
     room: Location;
-    dressing: Thing;
+    dressing: Movable;
   } {
     const room = makeStuff(() => new Location());
     const medic = makeStuff(() => new MedicCreature());
@@ -380,7 +380,7 @@ describe('TreatController — stabilization', () => {
 describe('TreatController — the treatment matches the condition', () => {
   /** A medic in a room, carrying `item`, with the given wound. */
   function medicWithWound(
-    item: Thing | null,
+    item: Movable | null,
     wound: Trauma,
     path: string,
   ): { medic: MedicCreature; room: Location } {

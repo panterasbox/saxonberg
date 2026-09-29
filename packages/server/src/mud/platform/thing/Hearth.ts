@@ -34,7 +34,7 @@
  * A commons object: a second inn's fireplace is a ROW.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import { ReservedMixin } from '../../lib/reserve';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
@@ -57,7 +57,7 @@ const HEARTH = {
 
 const HearthBase = SpaceHeatingMixin(
   FurnaceMixin(
-    LightSourceMixin(ReservedMixin(ThermalMixin(PlacingMixin(Thing)))),
+    LightSourceMixin(ReservedMixin(ThermalMixin(PlacingMixin(Movable)))),
   ),
 );
 

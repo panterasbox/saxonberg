@@ -16,7 +16,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 
 class Guild {
   constructor(public roster: string[] = []) {}
@@ -45,7 +45,7 @@ describe('FromClass (participant identity)', () => {
   });
 
   it('denies a non-instance, a class value, and null', () => {
-    expect(policy.allows(Object.create(Thing.prototype), null, 'm')).toBe(false);
+    expect(policy.allows(Object.create(Movable.prototype), null, 'm')).toBe(false);
     expect(policy.allows(Guild, null, 'm')).toBe(false);
     expect(policy.allows(null, null, 'm')).toBe(false);
   });
@@ -65,8 +65,8 @@ describe('FromClass (participant identity)', () => {
     // thunked on Thing admits an unstamped subclass instance via the
     // instanceof fast path, and module-id comparison covers the swap
     // case (same lookup used by FromModule, tested there).
-    class ThingSub extends Thing {}
-    const p = SecurityPolicies.FromClass(() => Thing);
+    class ThingSub extends Movable {}
+    const p = SecurityPolicies.FromClass(() => Movable);
     expect(p.allows(Object.create(ThingSub.prototype), null, 'm')).toBe(true);
   });
 
@@ -79,7 +79,7 @@ describe('FromClass (participant identity)', () => {
     expect(relational.allows(guild, null, 'm', ['alice'])).toBe(true);
     expect(relational.allows(guild, null, 'm', ['mallory'])).toBe(false);
     // Identity failing means where never runs.
-    expect(relational.allows(Object.create(Thing.prototype), null, 'm', ['alice'])).toBe(false);
+    expect(relational.allows(Object.create(Movable.prototype), null, 'm', ['alice'])).toBe(false);
   });
 
   it('where receives an empty args array when none are passed', () => {
@@ -104,7 +104,7 @@ describe('FromMixin (participant composition)', () => {
   });
 
   it('denies a non-composing instance and null', () => {
-    expect(policy.allows(Object.create(Thing.prototype), null, 'm')).toBe(false);
+    expect(policy.allows(Object.create(Movable.prototype), null, 'm')).toBe(false);
     expect(policy.allows(null, null, 'm')).toBe(false);
   });
 

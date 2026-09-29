@@ -2,7 +2,7 @@
  * NeonSign — a branded, light-emitting wall fixture: the corpo
  * battlefield made literal on the back-bar wall.
  *
- * `AdornmentMixin(BrandedMixin(LightSourceMixin(Thing)))`:
+ * `AdornmentMixin(BrandedMixin(LightSourceMixin(Movable)))`:
  *   - `Adornment` — a non-portable fixture (lives in the room's
  *     `getFixtures()`, not its `getContents()`; you can't pocket the
  *     sign). Attached declaratively via the host's `adornments:` seed
@@ -19,11 +19,11 @@
  * All authored per-instance in each seed's `data:` — no bespoke logic.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import { BrandedMixin } from '../../lib/corpo/Branded';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 
-const NeonSignBase = AdornmentMixin(BrandedMixin(LightSourceMixin(Thing)));
+const NeonSignBase = AdornmentMixin(BrandedMixin(LightSourceMixin(Movable)));
 
 export default class NeonSign extends NeonSignBase {}

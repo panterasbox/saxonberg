@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LightSourceMixin } from '../LightSource';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import CartesianLocation from '../../location/CartesianLocation';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
@@ -22,7 +22,7 @@ import { PerceptionApi } from '../../../api/perception';
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
-class Candle extends LightSourceMixin(Thing) {}
+class Candle extends LightSourceMixin(Movable) {}
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 
 describe('LightSourceMixin', () => {

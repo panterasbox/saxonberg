@@ -25,7 +25,7 @@ import { Template } from '../../stuff/Template';
 import { CirculatingMixin } from '../Circulating';
 import { BlessableMixin } from '../../magic/Blessable';
 import { ArcaneMixin } from '../../magic/Arcane';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import type { Stuff } from '../../stuff/Stuff';
 import {
@@ -37,7 +37,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 /** The wand shape: circulating, blessable, with an effect axis. */
 class TestWand extends CirculatingMixin(
-  BlessableMixin(ArcaneMixin(Thing)),
+  BlessableMixin(ArcaneMixin(Movable)),
 ) {}
 
 const WAND_PATH = '/obj/test/spawn-wand';

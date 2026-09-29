@@ -23,7 +23,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { StuffApi } from '../stuff';
 import { ContainmentApi, ContainmentError } from '../containment';
 import { ShadowApi } from '../shadow';
@@ -197,7 +197,7 @@ describe('setZone gate — FromSpatialZone policy', () => {
 
   it('a non-SpatialZone caller (a Plain Stuff) is DENIED by the proxy gate', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const victim = makeStuff(() => new Thing());
+    const victim = makeStuff(() => new Movable());
     // Direct proxy call from this test's stack frame: caller
     // identity resolves to the .test.ts module, which isn't on
     // the FromSpatialZone module-id glob.

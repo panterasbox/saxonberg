@@ -762,6 +762,50 @@ Acceptance: `lint:family` green; `test:near` green; the census diff
 shows only the new layer. Commit:
 `build(narrowing W0): the Movable rung — Thing is matter, a good is what you can carry off`.
 
+**✅ W0 DONE.** `lib/stuff/Movable` + `platform/thing/Movable` exist;
+`Thing` is `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))`.
+309 modules re-based, exactly 78 classes dropped their own `DetailedMixin(`
+wrap, 9 rows moved to the `Movable` twin and 6 stayed on `Thing` (the
+fabric six: toilet, yard-wall, trough, midden, byre, hay-barn). `tsc`
+clean, 57 gates green.
+
+What it cost, and what a re-run should know:
+
+- ⚠⚠ **The plan named three import shapes and there are five.** The two
+  it missed are `'../../stuff/Thing'` and `'../../../stuff/Thing'` —
+  99 files, almost all `lib/**/__tests__/`, which is the majority of the
+  test importers. A first sed over the three named shapes moved 210
+  files and left those 99 silently on the narrowed root. `tsc` caught
+  them (the fixtures call `stampChattel`), but it caught them **only
+  because those fixtures happen to type-check against the mixin**; a
+  fixture that merely asked `MixinApi.isChattel` would have flipped
+  to `false` with nothing to say so. The robust matcher is *any
+  specifier ending `stuff/Thing`*, not an enumeration of prefixes.
+- **Two files needed the wrap-drop repaired by hand** — `ManaLamp` and
+  `TpaTerminal` wrap `DetailedMixin(` across several lines with a
+  trailing comma, so removing the call left a dangling `,` before `)`.
+  A parse error, so it failed loudly; noted because a formatter is NOT
+  the fix here (`prettier --write` is banned in this repo).
+- **The docstrings were the silent half.** The identifier rename
+  deliberately skips comments, so ~19 files were left claiming a
+  composition their code no longer had (`HazardMixin(DetailedMixin(
+  Thing))` on `Trap`). Fixed by rewriting backticked spans that contain
+  both `Mixin(` and `Thing`, plus four prose claims that said the root
+  composes `Chattel`/`Concealable` (`Trap`, `SandboxCrossing`, `Bottle`,
+  `trade-mining/Ore`). ⭐ **A rename that skips comments leaves the
+  doc lying, and the doc is the author surface.**
+- **One test asserted the module id.** `FromModule.test.ts` pinned
+  `ModuleApi.lookup(Thing) === '/lib/stuff/Thing'`; the sed renamed the
+  identifier and (correctly) left the string literal alone, so the
+  failure is the rename working, not breaking. Repointed at
+  `/lib/stuff/Movable`. ⚠ Every other `'/platform/thing/Thing'` string
+  in the suite is still right — that class still exists and is still
+  instanceable; it is now bare IMMOVABLE matter.
+- **The census already shows the split**: `WetMixin` 563 rows / 94
+  classes (the root) against `ChattelMixin` 551 / 90 (the rung). The
+  12-row, 4-class delta is the six fabric rows plus the classes already
+  sitting bare; W1 and W2 are what grow it.
+
 ### W1 — the kernel immovables
 
 Goal: the 22 kernel immovable classes (16 edited; `Door`, `Signpost`, `Boundary`, `BoundaryAnchor`, the `Thing` twin and `LightningStrike` already sit on the root after W0 — verify, do not assume) stop claiming ownership and

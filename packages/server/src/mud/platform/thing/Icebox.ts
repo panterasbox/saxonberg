@@ -7,7 +7,7 @@
  * what is inside keeps until the ice is gone. No setpoint, no power, no
  * bill — a fridge is the next rung and a different build.
  *
- * `CoolboxMixin(SealableMixin(ThermalMixin(ContainerMixin(DetailedMixin(Thing)))))`
+ * `CoolboxMixin(SealableMixin(ThermalMixin(ContainerMixin(Movable))))`
  *
  * ⭐ **A plain `Container`, deliberately — region zero, not a
  * compartment.** By the placement taxonomy a `Chamber` is *the
@@ -32,8 +32,7 @@
  * ⭐ *A second cold box is a row naming this class with its own walls.*
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Movable from '../../lib/stuff/Movable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { SealableMixin } from '../../lib/spatial/Sealable';
@@ -49,7 +48,7 @@ import type { FieldMeta } from '../../lib/mixin';
 // says so with `extends:` and a `props:` line.
 const IceboxBase = CoolboxMixin(
   SealableMixin(
-    StagedMixin(ThermalMixin(ContainerMixin(DetailedMixin(Thing)))),
+    StagedMixin(ThermalMixin(ContainerMixin(Movable))),
   ),
 );
 

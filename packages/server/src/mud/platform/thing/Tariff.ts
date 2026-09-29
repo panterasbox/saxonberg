@@ -31,8 +31,7 @@
  * business with two counters prices them differently.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Movable from '../../lib/stuff/Movable';
 import { PricedOfferMixin } from '../../lib/commerce/PricedOffer';
 import { MqlApi } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
@@ -83,7 +82,7 @@ const REFERENCE_WAGE = 6;
 export const SERVICE_KINDS = ['repair', 'treatment', 'burial'] as const;
 export type ServiceKind = (typeof SERVICE_KINDS)[number];
 
-const TariffBase = PricedOfferMixin(DetailedMixin(Thing));
+const TariffBase = PricedOfferMixin(Movable);
 
 export default class Tariff extends TariffBase {
   static fieldMeta: FieldMeta = {

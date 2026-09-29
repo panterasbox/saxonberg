@@ -11,16 +11,15 @@
  * Ships at `/trade/distilling/thing/Still`.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSource';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { FurnaceMixin } from '@saxonberg/server/mud/lib/fire/Furnace';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 
 const StillBase = FurnaceMixin(
-  LightSourceMixin(ReservedMixin(ThermalMixin(ToolMixin(DetailedMixin(Thing))))),
+  LightSourceMixin(ReservedMixin(ThermalMixin(ToolMixin(Movable)))),
 );
 
 export default class Still extends StillBase {

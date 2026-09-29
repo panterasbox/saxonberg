@@ -32,17 +32,17 @@ import { PersistableMixin } from '../Persistable';
 import { PostRegistrationMixin } from '../../stuff/PostRegistration';
 import { ContainerMixin } from '../../spatial/Container';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { Idea } from '../../stuff/Idea';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 class Counter extends PersistableMixin(
-  PostRegistrationMixin(ContainerMixin(Thing)),
+  PostRegistrationMixin(ContainerMixin(Movable)),
 ) {}
 
 /** A host that is also a connection endpoint — the Avatar's shape. */
 class Persona extends PersistableMixin(
-  PostRegistrationMixin(HasInteractiveMixin(ContainerMixin(Thing))),
+  PostRegistrationMixin(HasInteractiveMixin(ContainerMixin(Movable))),
 ) {}
 
 let seq = 0;

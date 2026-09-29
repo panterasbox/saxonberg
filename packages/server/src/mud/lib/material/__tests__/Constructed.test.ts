@@ -1,13 +1,13 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { ConstructedMixin } from '../Constructed';
 import { Construction } from '../Construction';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-const ConstructedThing = ConstructedMixin(Thing);
+const ConstructedThing = ConstructedMixin(Movable);
 
 describe('ConstructedMixin', () => {
   it('is registered and narrows via MixinApi.isConstructed', () => {

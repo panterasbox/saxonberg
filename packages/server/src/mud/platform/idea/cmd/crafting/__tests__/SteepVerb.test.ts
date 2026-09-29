@@ -22,7 +22,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SteepController from '../SteepController';
 import Material from '../../../../../lib/material/Material';
 import Receptacle from '../../../../thing/Receptacle';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import { Quantity } from '../../../../../lib/quantity';
 import { StuffApi } from '../../../../../api/stuff';
 import { WorldClockApi } from '../../../../../api/worldclock';
@@ -62,7 +62,7 @@ class TestActor extends CommandGiverMixin(
 }
 
 /** A solute you can steep — a herb, a leaf. Containable so it can be held. */
-class TestSolute extends SteepableMixin(ContainableMixin(Thing)) {}
+class TestSolute extends SteepableMixin(ContainableMixin(Movable)) {}
 
 const WATER = '/stuff/idea/material/_steeptest/water';
 const OIL = '/stuff/idea/material/_steeptest/oil';
@@ -225,7 +225,7 @@ describe('steeping needs a solute and a solvent', () => {
   it('a non-steepable target is refused', async () => {
     await stand();
     const pot = makeReceptacle(StuffApi.findByTemplatePath<Material>(WATER)!);
-    const rock = makeStuff(() => new Thing());
+    const rock = makeStuff(() => new Movable());
     await ContainmentApi.move(pot as never, room as never);
     expect(refusal(await steepStart(rock, pot))).toBe('not-steepable');
   });

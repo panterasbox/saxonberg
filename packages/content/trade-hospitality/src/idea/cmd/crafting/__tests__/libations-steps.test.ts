@@ -21,7 +21,7 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
@@ -124,7 +124,7 @@ describe('wash', () => {
   it('with water in reach: tips the dregs and the garnish, clears the ice, and the glass is claimable again — at completion', async () => {
     const coupe = makeUsedCoupe();
     ContainmentApi.move(coupe, room);
-    const olive = makeStuff(() => new Thing());
+    const olive = makeStuff(() => new Movable());
     olive.setMaterial(StuffApi.findByTemplatePath<Material>(OLIVE)!);
     ContainmentApi.move(olive, coupe);
     const water = makeWaterSource();

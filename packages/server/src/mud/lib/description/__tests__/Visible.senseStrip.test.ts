@@ -23,7 +23,7 @@ import {
   type Visible,
 } from '../Visible';
 import { DetailedMixin } from '../Detailed';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { OrganismMixin } from '../../species/Organism';
@@ -43,11 +43,11 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
   return obj;
 }
 
-class VisibleDetailedThing extends DetailedMixin(VisibleMixin(Thing)) {
+class VisibleDetailedThing extends DetailedMixin(VisibleMixin(Movable)) {
   static fieldMeta: FieldMeta = {};
 }
 
-class OrganismActor extends OrganismMixin(Thing) {
+class OrganismActor extends OrganismMixin(Movable) {
   static fieldMeta: FieldMeta = {};
 }
 
@@ -186,7 +186,7 @@ describe('senseStripAugmenter (senses build)', () => {
         'hearing',
         'smell',
       ]);
-      const host = makeStuff(() => new Thing());
+      const host = makeStuff(() => new Movable());
       const text =
         '<sense channel="vision">A</sense><sense channel="smell">B</sense>C';
       const out = senseStripAugmenter(text, host, viewer, {
@@ -197,7 +197,7 @@ describe('senseStripAugmenter (senses build)', () => {
 
     it('filter [vision], sensorium [smell] → vision stripped despite filter (sensorium gate)', () => {
       const viewer = makeViewerWithSensorium(['smell']);
-      const host = makeStuff(() => new Thing());
+      const host = makeStuff(() => new Movable());
       const text =
         '<sense channel="vision">A</sense><sense channel="smell">B</sense>C';
       const out = senseStripAugmenter(text, host, viewer, {
@@ -210,7 +210,7 @@ describe('senseStripAugmenter (senses build)', () => {
 
     it('filter [smell] with sightless viewer keeps smell + untagged', () => {
       const viewer = makeViewerWithSensorium(['smell']);
-      const host = makeStuff(() => new Thing());
+      const host = makeStuff(() => new Movable());
       const text =
         '<sense channel="vision">A</sense><sense channel="smell">B</sense>C';
       const out = senseStripAugmenter(text, host, viewer, {
@@ -221,7 +221,7 @@ describe('senseStripAugmenter (senses build)', () => {
 
     it('filter [vision, smell] (gestalt-style) keeps both for full-sensory viewer', () => {
       const viewer = makeViewerWithSensorium(['vision', 'smell']);
-      const host = makeStuff(() => new Thing());
+      const host = makeStuff(() => new Movable());
       const text =
         '<sense channel="vision">A</sense><sense channel="smell">B</sense>C';
       const out = senseStripAugmenter(text, host, viewer, {
@@ -234,7 +234,7 @@ describe('senseStripAugmenter (senses build)', () => {
 
     it('untagged prose always preserved regardless of filter/sensorium', () => {
       const viewer = makeViewerWithSensorium([]);
-      const host = makeStuff(() => new Thing());
+      const host = makeStuff(() => new Movable());
       const text = 'plain text with no sense tags';
       const out = senseStripAugmenter(text, host, viewer, {
         filter: ['vision'],
@@ -244,7 +244,7 @@ describe('senseStripAugmenter (senses build)', () => {
 
     it('default-absent opts → falls back to viewer full sensorium', () => {
       const viewer = makeViewerWithSensorium(['vision', 'smell']);
-      const host = makeStuff(() => new Thing());
+      const host = makeStuff(() => new Movable());
       const text =
         '<sense channel="vision">A</sense><sense channel="smell">B</sense>C';
       // No opts → augmenter uses sensorium as the default filter.
@@ -255,8 +255,8 @@ describe('senseStripAugmenter (senses build)', () => {
     });
 
     it('viewer without a Species (test fixture) → empty sensorium → strips all <sense>', () => {
-      const viewer = makeStuff(() => new Thing());
-      const host = makeStuff(() => new Thing());
+      const viewer = makeStuff(() => new Movable());
+      const host = makeStuff(() => new Movable());
       const text =
         '<sense channel="vision">A</sense><sense channel="smell">B</sense>C';
       const out = senseStripAugmenter(text, host, viewer, {

@@ -6,14 +6,13 @@
  * lid, forge.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Movable from '../../lib/stuff/Movable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { StagedMixin } from '../../lib/stuff/Staged';
 
 const ChestBase = StagedMixin(
-  SealableMixin(ContainerMixin(DetailedMixin(Thing))),
+  SealableMixin(ContainerMixin(Movable)),
 );
 
 export default class Chest extends ChestBase {}

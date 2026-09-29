@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import validator from '../requiresEmbodied';
 import { Creature } from '../../../creature/Creature';
 import { IncorporealMixin } from '../../../mortality/Incorporeal';
-import Thing from '../../../stuff/Thing';
+import Movable from '../../../stuff/Movable';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff } from '../../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -48,7 +48,7 @@ describe('requiresEmbodied', () => {
   });
 
   it('passes a non-body giver — other validators own those cases', () => {
-    const rock = makeStuff(() => new Thing());
+    const rock = makeStuff(() => new Movable());
     expect(validator(ctx(rock))).toBeUndefined();
   });
 });

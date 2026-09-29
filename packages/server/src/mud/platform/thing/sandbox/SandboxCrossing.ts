@@ -13,7 +13,7 @@
  * exactly this reason, so a turbolift installs an exit called
  * "turbolift" rather than one called "wardrobe".
  *
- * A `Thing`-tier fixture (Chattel identity rides the Thing base), with
+ * A `Movable`-tier fixture (Chattel identity rides the goods rung), with
  * one persistent field:
  *
  *   - `linkedSandboxPath` (identity ref, a path string; `''` = unlinked): the
@@ -35,7 +35,7 @@
  */
 
 import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
-import Thing from '../../../lib/stuff/Thing';
+import Movable from '../../../lib/stuff/Movable';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { TemplatePaths } from '../../../lib/paths';
@@ -55,7 +55,7 @@ const DEFAULT_PASSAGE_DIRECTION = 'crossing';
  * ⭐ `PostRegistrationMixin` for one reason: the crossing's passage exit
  * is a clone of a row now, and a clone is async while `onMoved` is not.
  */
-const SandboxCrossingBase = PostRegistrationMixin(Thing);
+const SandboxCrossingBase = PostRegistrationMixin(Movable);
 
 export default class SandboxCrossing extends SandboxCrossingBase {
   static fieldMeta: FieldMeta = {

@@ -1,6 +1,6 @@
 /**
  * Key — a physical key: a bearer instrument holding a {@link KeyCredential}
- * (the `PaymentCard` / `TravelCard` precedent — `CredentialWalletMixin(Thing)`).
+ * (the `PaymentCard` / `TravelCard` precedent — `CredentialWalletMixin(Movable)`).
  *
  * A physical key is the **durable** access form: it persists with its holder
  * (carried inventory rides the persistence spine), where the implant keychain
@@ -9,11 +9,11 @@
  * key / a keycard / a master ring) is set at issuance from the lock technology.
  */
 
-import Thing from "../../lib/stuff/Thing";
+import Movable from "../../lib/stuff/Movable";
 import { CredentialWalletMixin } from "../../lib/credential/CredentialWallet";
 import type { CredentialKind } from "../../lib/credential/Credential";
 
-export default class Key extends CredentialWalletMixin(Thing) {
+export default class Key extends CredentialWalletMixin(Movable) {
   /** Born holding one (empty) keychain record — issuance fills it. */
   static defaultCredentialKinds: readonly CredentialKind[] = ["key"];
 }

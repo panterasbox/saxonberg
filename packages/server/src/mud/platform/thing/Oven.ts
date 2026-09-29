@@ -5,7 +5,7 @@
  * with `ignite`.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import { ReservedMixin } from '../../lib/reserve';
@@ -26,7 +26,7 @@ import { FurnaceMixin } from '../../lib/fire/Furnace';
 // (`ThermalMixin.heatSourceK` reads container AND support).
 const OvenBase = FurnaceMixin(
   LightSourceMixin(
-    ReservedMixin(ThermalMixin(PlacingMixin(ContainerMixin(Thing)))),
+    ReservedMixin(ThermalMixin(PlacingMixin(ContainerMixin(Movable)))),
   ),
 );
 

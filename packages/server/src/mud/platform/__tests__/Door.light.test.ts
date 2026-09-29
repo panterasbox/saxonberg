@@ -8,7 +8,7 @@ import { VisionModality } from '../idea/modalities/VisionModality';
 import { buildAllModalities } from '../../lib/perception/modalities/__tests__/test-helpers';
 import { Light } from '../../lib/perception/Light';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -23,7 +23,7 @@ import { PerceptionApi } from '../../api/perception';
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
-class Candle extends LightSourceMixin(Thing) {}
+class Candle extends LightSourceMixin(Movable) {}
 
 describe('Door retrofit — Boundary identity and conduit registry', () => {
   beforeEach(() => {

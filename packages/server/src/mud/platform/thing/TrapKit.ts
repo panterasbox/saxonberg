@@ -12,10 +12,10 @@
  * placed trap back up). The `trapTemplate` is authored on the kit's seed.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import type { FieldMeta } from '../../lib/mixin';
 
-export default class TrapKit extends Thing {
+export default class TrapKit extends Movable {
   static fieldMeta: FieldMeta = {
     trapTemplate: { persistent: true, authorable: true },
   };

@@ -4,7 +4,7 @@ import { StuffApi } from '../../../api/stuff';
 import Garment from '../../../platform/thing/equipment/Garment';
 import Weapon from '../../../platform/thing/equipment/Weapon';
 import Material from '../../material/Material';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { Creature } from '../../creature/Creature';
@@ -119,7 +119,7 @@ describe('Weapon — delivery half', () => {
   });
 
   it('renders per-channel pips on the long description (author + player)', () => {
-    const viewer = makeStuff(() => new Thing()) as unknown as Stuff;
+    const viewer = makeStuff(() => new Movable()) as unknown as Stuff;
     const steelMat = steel(); // one singleton — shared by both pieces
 
     const breastplate = makeStuff(() => new Garment());

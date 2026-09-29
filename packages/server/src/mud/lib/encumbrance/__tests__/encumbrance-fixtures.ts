@@ -8,7 +8,7 @@
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { Vessel } from '../../stuff/Vessel';
 import { WearableMixin } from '../../slot/Wearable';
 import { WieldableMixin } from '../../slot/Wieldable';
@@ -31,11 +31,11 @@ export class SensingCreature extends SensingCreatureBase {
 }
 
 /** A wearable, mass-bearing item (claims a worn slot). */
-const WearThingBase = WearableMixin(SlottableMixin(Thing));
+const WearThingBase = WearableMixin(SlottableMixin(Movable));
 export class WearThing extends WearThingBase {}
 
 /** A wieldable, mass-bearing item (claims a held slot). */
-const WieldThingBase = WieldableMixin(SlottableMixin(Thing));
+const WieldThingBase = WieldableMixin(SlottableMixin(Movable));
 export class WieldThing extends WieldThingBase {}
 
 let planSeq = 0;
@@ -102,8 +102,8 @@ export function bearerOf<T extends Creature>(
 }
 
 /** A plain mass-bearing `Thing` (loose-carry / nested cargo). */
-export function massThing(kg: number): Thing {
-  const t = makeStuff(() => new Thing());
+export function massThing(kg: number): Movable {
+  const t = makeStuff(() => new Movable());
   t.setMass(Quantity.of(kg, 'kg'));
   return t;
 }

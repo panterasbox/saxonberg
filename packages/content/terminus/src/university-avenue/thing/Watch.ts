@@ -20,14 +20,13 @@
  * simply doesn't afford the mechanical verbs.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { SealableMixin } from '@saxonberg/server/mud/lib/spatial/Sealable';
 import { MechanicalMovementMixin } from '@saxonberg/server/mud/lib/time/MechanicalMovement';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { Time } from '@saxonberg/server/mud/lib/time/Time';
 
 const WatchBase = SealableMixin(
-  MechanicalMovementMixin(DetailedMixin(Thing)),
+  MechanicalMovementMixin(Movable),
 );
 
 export default class Watch extends WatchBase {

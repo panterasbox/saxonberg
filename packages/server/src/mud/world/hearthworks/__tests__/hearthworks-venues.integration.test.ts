@@ -27,7 +27,7 @@ import { BulkableApi } from '../../../api/bulk';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
-import Thing from '../../../lib/stuff/Thing';
+import Movable from '../../../lib/stuff/Movable';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { ToolMixin } from '../../../lib/craft/Tooled';
@@ -210,8 +210,8 @@ function dish(path: string, capacityL: number): Dish {
   return d;
 }
 
-function stock(materialPath: string, massKg: number): Thing {
-  const t = makeStuff(() => new Thing());
+function stock(materialPath: string, massKg: number): Movable {
+  const t = makeStuff(() => new Movable());
   t.setMass(Quantity.of(massKg, 'kg'));
   t.setMaterial(
     StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,
@@ -326,7 +326,7 @@ afterEach(() => {
  * is exactly what the affordance assertion below reads off the row.
  */
 class TestPot extends CraftedMixin(
-  ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
+  ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Movable)))),
 ) {
   public override capabilities: string[] = ['pot'];
 }
@@ -348,7 +348,7 @@ describe('the venue menus', () => {
     // `stir` are banked into and worked on a manual build, so
     // `ManualBuildMixin` declares them for every vessel that buffers one
     // — the shaker, the mixing glass, the cook pot.
-    const build = ManualBuildMixin(Thing).commandContributions;
+    const build = ManualBuildMixin(Movable).commandContributions;
     expect(build.peers).toContain('platform/cmd/crafting/pour.yaml');
     expect(build.peers).toContain('platform/cmd/crafting/stir.yaml');
     expect(build.peers).not.toContain('trade/hospitality/cmd/crafting/mix.yaml');

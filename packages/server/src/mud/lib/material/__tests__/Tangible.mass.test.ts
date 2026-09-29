@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TangibleMixin } from '../Tangible';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
@@ -11,7 +11,7 @@ import {
   installV1QuantityTagTables,
 } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TangibleThing extends TangibleMixin(Thing) {}
+class TangibleThing extends TangibleMixin(Movable) {}
 
 describe('TangibleMixin — mass', () => {
   beforeEach(() => {

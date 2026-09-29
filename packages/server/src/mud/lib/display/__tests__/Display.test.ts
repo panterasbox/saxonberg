@@ -36,7 +36,7 @@ import Tablet from '../../../platform/thing/Tablet';
 // any row path), so a plain Detailed Thing is a faithful remote here.
 import { DetailedMixin } from '../../description/Detailed';
 import BusinessEntity from '../../../platform/idea/Business';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { SlottedMixin } from '../../slot/Slotted';
 import { EmployedMixin } from '../../employment/Employed';
 import { AetherMixin } from '../../message/Aether';
@@ -108,12 +108,12 @@ async function makeBusiness(): Promise<BusinessEntity> {
  * the actor carries an instance of it — so the remote needs no class of
  * its own, which is why the one that existed had no row.
  */
-class Remote extends DetailedMixin(Thing) {}
+class Remote extends DetailedMixin(Movable) {}
 
 /** An embodied, attunable actor (the DmController fixture's shape). */
 class Actor extends EmployedMixin(
   SlottedMixin(
-    ContainerMixin(AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Thing))))),
+    ContainerMixin(AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Movable))))),
   ),
 ) {
   static fieldMeta: FieldMeta = {};

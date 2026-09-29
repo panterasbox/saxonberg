@@ -28,6 +28,7 @@ import { SecurityError } from '../../../lib/security/errors';
 import { Blueprint } from '../../../lib/studio/Blueprint';
 import { Idea } from '../../../lib/stuff/Idea';
 import Thing from '../../../lib/stuff/Thing';
+import Movable from '../../../lib/stuff/Movable';
 import { Vessel } from '../../../lib/stuff/Vessel';
 import Location from '../../../lib/stuff/Location';
 import { Agent } from '../../../lib/stuff/Agent';
@@ -81,13 +82,15 @@ const SOURCE_ROOT_DISPLAY = '/server/src/mud';
 const PALETTE_BASE_CTORS: Record<string, AnyConstructor> = {
   // The real fundamental divisions of `Stuff` (Idea/Shadow extend Stuff
   // directly; Agent = TangibleMixin(Stuff); Thing/Location are composed
-  // roots; Vessel = a container-object that extends Thing;
+  // roots; Movable = Thing + Chattel/Concealable, the goods rung;
+  // Vessel = a container-object that extends Movable;
   // Creature→Character specialize Agent). `Idea` is the bare-Stuff base, so
   // `Stuff` itself isn't offered. Abstract bases (Character/Shadow) are fine
   // — only prototype-walked, never instantiated. Vessel is kept in the
   // palette as its own describable base even though it now extends Thing.
   Idea: Idea as unknown as AnyConstructor,
   Thing: Thing as unknown as AnyConstructor,
+  Movable: Movable as unknown as AnyConstructor,
   Vessel: Vessel as unknown as AnyConstructor,
   Location: Location as unknown as AnyConstructor,
   Agent: Agent as unknown as AnyConstructor,

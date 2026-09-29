@@ -30,7 +30,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
@@ -59,7 +59,7 @@ class TestActor extends CommandGiverMixin(
  * A weir, over the SHAPE only — no `ControlStructure` import, because
  * the point is that the reading does not need one.
  */
-class FakeWeir extends Thing {
+class FakeWeir extends Movable {
   public asked = 0;
   generationW(flowM3S: number): number {
     this.asked += 1;
@@ -78,7 +78,7 @@ class FakeWeir extends Thing {
  * this pack must be able to read one without importing `trade-milling`,
  * which is the whole reason the reading is duck-typed.
  */
-class FakeMill extends Thing {
+class FakeMill extends Movable {
   availablePowerW(): number {
     return 40000;
   }
@@ -171,7 +171,7 @@ describe('pointed at a MACHINE that runs on power', () => {
   });
 
   it('a mill with no water says it will not turn, rather than nothing', async () => {
-    class StoppedMill extends Thing {
+    class StoppedMill extends Movable {
       availablePowerW(): number {
         return 0;
       }
@@ -192,7 +192,7 @@ describe('pointed at a MACHINE that runs on power', () => {
 describe('pointed at something that is neither', () => {
   it('declines in its own words', async () => {
     const rock = makeStuff(() => {
-      const t = new Thing();
+      const t = new Movable();
       t.setShortDescription('a rock');
       return t;
     });

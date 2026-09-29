@@ -1,13 +1,13 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { AdornmentMixin } from '../Adornment';
 import CartesianLocation from '../../location/CartesianLocation';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class TestAdornment extends AdornmentMixin(Thing) {}
+class TestAdornment extends AdornmentMixin(Movable) {}
 
 describe('AdornmentMixin', () => {
   it('exposes Adornment surface and is detected by MixinApi', () => {

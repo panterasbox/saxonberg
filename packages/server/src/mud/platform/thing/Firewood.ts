@@ -7,11 +7,11 @@
  * `charMaterialPath` (if authored) is what it becomes when it burns out.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { ReservedMixin } from '../../lib/reserve';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 
-const FirewoodBase = CombustibleMixin(ThermalMixin(ReservedMixin(Thing)));
+const FirewoodBase = CombustibleMixin(ThermalMixin(ReservedMixin(Movable)));
 
 export default class Firewood extends FirewoodBase {}

@@ -26,7 +26,7 @@
 import { loadavg, cpus } from "node:os";
 
 import "../src/test-bootstrap";
-import Thing from "../src/mud/lib/stuff/Thing";
+import Movable from "../src/mud/lib/stuff/Movable";
 import { ProxyApi } from "../src/mud/api/proxy";
 import { ModuleApi } from "../src/mud/api/module";
 import { SecurityApi } from "../src/mud/api/security";
@@ -36,7 +36,7 @@ import { PropertiedMixin } from "../src/mud/lib/stuff/Propertied";
 import { makeStuff } from "../src/mud/lib/security/__tests__/test-setup";
 
 /** A host with a mixin chain the depth of ordinary shipped content. */
-class Probe extends PropertiedMixin(ContainableMixin(DetailedMixin(Thing))) {
+class Probe extends PropertiedMixin(ContainableMixin(DetailedMixin(Movable))) {
   private _n = 0;
   public bump(): number {
     return ++this._n;

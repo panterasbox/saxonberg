@@ -27,7 +27,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Grade } from '../../../../lib/craft/Grade';
 import { MixinApi } from '../../../../api/mixin';
 import { Stuff } from '../../../../lib/stuff/Stuff';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import { DetailedMixin } from '../../../../lib/description/Detailed';
 import { DurableMixin } from '../../../../lib/material/Durable';
 import { ToolMixin } from '../../../../lib/craft/Tooled';
@@ -122,7 +122,7 @@ afterEach(() => {
 
 /** A build vessel's shape: craftable, durable, banks contributions. */
 class TestPot extends CraftedMixin(
-  ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
+  ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Movable)))),
 ) {
   public override capabilities: string[] = ['pot'];
 }

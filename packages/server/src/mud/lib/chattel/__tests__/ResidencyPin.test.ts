@@ -25,7 +25,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
-import Thing from "../../stuff/Thing";
+import Movable from "../../stuff/Movable";
 import { ChattelApi } from "../../../api/chattel";
 import { ResidencyApi } from "../../../api/residency";
 import { StuffApi } from "../../../api/stuff";
@@ -59,7 +59,7 @@ const PET_PATH = "/obj/test/Pet";
 const ALICE_PATH = "/platform/agent/Avatar/alice";
 const LANE_ID = "/test/world/Lane";
 
-class Torch extends Thing {}
+class Torch extends Movable {}
 
 /** A good that persists ITSELF and pins — the named-animal shape. */
 class Pet extends PersistableMixin(

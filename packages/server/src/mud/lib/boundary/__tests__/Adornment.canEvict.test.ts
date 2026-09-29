@@ -1,11 +1,11 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { AdornmentMixin } from '../Adornment';
 import CartesianLocation from '../../location/CartesianLocation';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class TestAdornment extends AdornmentMixin(Thing) {}
+class TestAdornment extends AdornmentMixin(Movable) {}
 
 /**
  * `residency.md` has promised this veto since the residency build —

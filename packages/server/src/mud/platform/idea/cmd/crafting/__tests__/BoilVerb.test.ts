@@ -32,7 +32,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BoilController from '../BoilController';
 import Material from '../../../../../lib/material/Material';
 import Receptacle from '../../../../thing/Receptacle';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import { Quantity } from '../../../../../lib/quantity';
 import { Reserve } from '../../../../../lib/reserve';
 import { StuffApi } from '../../../../../api/stuff';
@@ -78,10 +78,10 @@ class TestActor extends ThermalMixin(
 }
 
 /** A cook pot's shape: a build host + a tool, and NOT bulkable. */
-class TestPot extends ManualBuildMixin(ToolMixin(Thing)) {}
+class TestPot extends ManualBuildMixin(ToolMixin(Movable)) {}
 
 /** A cauldron: a build host that also holds bulk — the "both" case. */
-class TestCauldron extends ManualBuildMixin(BulkableMixin(Thing)) {}
+class TestCauldron extends ManualBuildMixin(BulkableMixin(Movable)) {}
 
 const FOUL = '/stuff/idea/material/_test/foul-water';
 const CLEAN = '/stuff/idea/material/_test/clean-water';

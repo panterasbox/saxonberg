@@ -12,7 +12,7 @@ import requiresSmell from '../requiresSmell';
 import requiresTouch from '../requiresTouch';
 import requiresTaste from '../requiresTaste';
 import { Idea } from '../../../stuff/Idea';
-import Thing from '../../../stuff/Thing';
+import Movable from '../../../stuff/Movable';
 import { OrganismMixin } from '../../../species/Organism';
 import Species from '../../../../platform/idea/species/Species';
 import BodyPlan from '../../../../platform/idea/species/BodyPlan';
@@ -85,7 +85,7 @@ function makeContext(giver: Stuff, verb: string): CommandContext {
     commandGiver: giver as unknown as Parameters<
       typeof CommandApi.createCommandContext
     >[0]['commandGiver'],
-    location: makeStuff(() => new Thing()) as never,
+    location: makeStuff(() => new Movable()) as never,
     commandText: verb,
     executionId: 't',
     commandId: 'c',
@@ -158,7 +158,7 @@ describe('requires<channel> validators (senses build)', () => {
     expect(requiresTouch(makeContext(sessileGiver, 'feel'))).toBeDefined();
     expect(requiresTaste(makeContext(sessileGiver, 'taste'))).toBeDefined();
 
-    const nonOrganism = makeStuff(() => new Thing());
+    const nonOrganism = makeStuff(() => new Movable());
     expect(requiresHearing(makeContext(nonOrganism, 'listen'))).toBeDefined();
     expect(requiresSmell(makeContext(nonOrganism, 'smell'))).toBeDefined();
     expect(requiresTouch(makeContext(nonOrganism, 'feel'))).toBeDefined();

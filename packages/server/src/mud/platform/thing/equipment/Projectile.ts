@@ -3,7 +3,7 @@
  *
  * ⭐ **A stackable, because that is what ammunition IS.** You do not carry
  * one arrow; you carry a score of them and you count down. The
- * `Coin = StackableMixin(Thing)` shape, exactly — one row, one quantity,
+ * `Coin = StackableMixin(Movable)` shape, exactly — one row, one quantity,
  * and `shoot` spends one.
  *
  * ⚠ It is deliberately NOT a `Weapon`. An arrow in your hand is not a
@@ -18,12 +18,12 @@
  * the pressure. Nobody maintains an "armour-piercing" number by hand.
  */
 
-import Thing from '../../../lib/stuff/Thing';
+import Movable from '../../../lib/stuff/Movable';
 import { StackableMixin } from '../../../lib/stuff/Stackable';
 import { Quantity } from '../../../lib/quantity';
 import type { FieldMeta } from '../../../lib/mixin';
 
-const ProjectileBase = StackableMixin(Thing);
+const ProjectileBase = StackableMixin(Movable);
 
 export default class Projectile extends ProjectileBase {
   static fieldMeta: FieldMeta = {

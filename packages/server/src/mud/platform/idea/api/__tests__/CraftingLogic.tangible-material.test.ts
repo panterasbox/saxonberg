@@ -38,7 +38,7 @@ import { Idea } from "../../../../lib/stuff/Idea";
 import { NamedMixin } from "../../../../lib/description/Named";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";
 import { CraftedMixin } from "../../../../lib/craft/Crafted";
-import Thing from "../../../../lib/stuff/Thing";
+import Movable from "../../../../lib/stuff/Movable";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { BuildContribution } from "../../../../lib/craft/ManualBuild";
 import { makeStuff, makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
@@ -54,7 +54,7 @@ class TestMaker extends NamedMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestMakerTangible";
 }
 /** A Crafted output that is NOT Alloyed — a blade. */
-class TestKnife extends CraftedMixin(Thing) {
+class TestKnife extends CraftedMixin(Movable) {
   static _mixinName = "TestKnifeTangible";
 }
 /**
@@ -71,7 +71,7 @@ class TestKnife extends CraftedMixin(Thing) {
  * recipe at the quench — see the plan's W4 note. The rules under test
  * here are the kernel's and hold either way.
  */
-class TestCastPiece extends CraftedMixin(AlloyedMixin(Thing)) {
+class TestCastPiece extends CraftedMixin(AlloyedMixin(Movable)) {
   static _mixinName = "TestCastPieceTangible";
 }
 

@@ -17,7 +17,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import StallController, { STALL_SEED, STALL_BUSINESS_SEED, MARKET_BUSINESS } from '../idea/cmd/StallController';
 import MarketStalls from '../thing/MarketStalls';
 import Stock from '@saxonberg/content-trade-shopkeeping/src/thing/Stock';
-import Thing from '@saxonberg/server/mud/platform/thing/Thing';
+import Movable from '@saxonberg/server/mud/platform/thing/Movable';
 import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
 import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
 import Coin from '@saxonberg/server/mud/platform/thing/Coin';
@@ -57,7 +57,7 @@ class TestGiver extends EmployedMixin(
 ) {
   static _mixinName = 'StallTestGiver';
 }
-class Torch extends Thing {}
+class Torch extends Movable {}
 
 function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
   return withRootContext(null, 'stall.test', () => {

@@ -35,7 +35,7 @@
  * (memory: *obj vs lib Stuff placement*) — not in `lib/banking/`.
  */
 
-import Thing from "../../lib/stuff/Thing";
+import Movable from "../../lib/stuff/Movable";
 import { StackableMixin } from "../../lib/stuff/Stackable";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { CallSecurity, Final, Unshadowable } from "../../lib/security/decorators";
@@ -43,7 +43,7 @@ import { Currency } from "../../lib/banking/Currency";
 import { Quantity } from "../../lib/quantity";
 import type { FieldMeta } from "../../lib/mixin";
 
-const CoinBase = StackableMixin(Thing);
+const CoinBase = StackableMixin(Movable);
 
 /**
  * ⚠⚠ Who may change a coin stack's size — the cash-side conservation gate.

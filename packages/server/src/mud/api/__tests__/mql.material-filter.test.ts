@@ -25,7 +25,7 @@ import { resolve } from '../mql/resolver';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { Idea } from '../../lib/stuff/Idea';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import Material from '../../lib/material/Material';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
@@ -51,11 +51,11 @@ const LEATHER = '/stuff/idea/material/organic/leather';
 
 let ctx: MqlContext;
 let room: TestRoom;
-let bar: Thing;
-let pig: Thing;
-let axe: Thing;
-let skin: Thing;
-let blank: Thing;
+let bar: Movable;
+let pig: Movable;
+let axe: Movable;
+let skin: Movable;
+let blank: Movable;
 let token: TestToken;
 
 function material(path: string, tags: string[]): Material {
@@ -71,8 +71,8 @@ function material(path: string, tags: string[]): Material {
  * perception surface, so a keyword seed does not see it. The FILTER is
  * what is under test, and `peers` reaches the room's contents directly.
  */
-function thing(materialPath: string | null): Thing {
-  const t = makeStuff(() => new Thing());
+function thing(materialPath: string | null): Movable {
+  const t = makeStuff(() => new Movable());
   if (materialPath) {
     t.setMaterial(StuffApi.findByTemplatePath<Material>(materialPath) as Material);
   }

@@ -21,10 +21,10 @@ import {
 import { PerceptionApi } from '../../../api/perception';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class Signpost extends MarkedMixin(Thing) {}
+class Signpost extends MarkedMixin(Movable) {}
 
 describe('the two axes are independent', () => {
   beforeEach(() => {
@@ -103,7 +103,7 @@ describe('the perceive gate is an INTERSECTION, both directions', () => {
   it('EMBOSSED text is readable with no light at all', () => {
     // The mechanical payoff, and the reason an expedition pays for a
     // tactile book. Nothing about the environment is consulted.
-    const reader = makeStuff(() => new Thing());
+    const reader = makeStuff(() => new Movable());
     expect(PerceptionApi.canMakeOutMarks(reader, sign('embossed'))).toBe(true);
   });
 
@@ -115,7 +115,7 @@ describe('the perceive gate is an INTERSECTION, both directions', () => {
     //
     // Asserted through the real biped seed's shape: vision, hearing,
     // smell — and no touch.
-    const reader = makeStuff(() => new Thing());
+    const reader = makeStuff(() => new Movable());
     const senses = PerceptionApi.sensorium(reader);
     expect(senses.some((m) => m.getName() === 'touch')).toBe(false);
     // …and embossed text still reads.
@@ -125,14 +125,14 @@ describe('the perceive gate is an INTERSECTION, both directions', () => {
   it('marks with NO modality at all are unreadable by construction', () => {
     const s = sign('inked');
     vi.spyOn(s, 'getMarkModalities').mockReturnValue([]);
-    const reader = makeStuff(() => new Thing());
+    const reader = makeStuff(() => new Movable());
     expect(PerceptionApi.canMakeOutMarks(reader, s)).toBe(false);
   });
 
   it('`both` succeeds on either channel — one usable sense is enough', () => {
     const s = sign('both');
     expect(s.getMarkModalities()).toEqual(['vision', 'touch']);
-    const reader = makeStuff(() => new Thing());
+    const reader = makeStuff(() => new Movable());
     // Even with vision unusable, touch carries it.
     expect(PerceptionApi.canMakeOutMarks(reader, s)).toBe(true);
   });

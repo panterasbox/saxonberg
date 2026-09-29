@@ -34,7 +34,7 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import '../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import { Template } from '../../stuff/Template';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import Species from '../../../platform/idea/species/Species';
 import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import { Character } from '../../character/Character';
@@ -54,7 +54,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 
 class TestWand extends IdentifiableMixin(
-  ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
+  ChargedMixin(ReservedMixin(ArcaneMixin(Movable))),
 ) {}
 
 let testBand: CompetenceBandName = 'expert';
@@ -161,7 +161,7 @@ describe('the computed cost — the two doors', () => {
     const c = caster();
     const here = room(0);
     ContainmentApi.move(c as never, here as never);
-    const mark = makeStuff(() => new Thing());
+    const mark = makeStuff(() => new Movable());
     ContainmentApi.move(mark as never, here as never);
 
     const before = manaOf(c);

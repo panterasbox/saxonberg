@@ -14,10 +14,9 @@
  */
 
 import { Vessel } from '@saxonberg/server/mud/lib/stuff/Vessel';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const FootlockerBase = DetailedMixin(Vessel);
+const FootlockerBase = Vessel;
 
 export default class Footlocker extends FootlockerBase {
   static fieldMeta: FieldMeta = {};

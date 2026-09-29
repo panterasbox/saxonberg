@@ -13,11 +13,11 @@
  * carbon somebody spent three smelts putting into it comes with it.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { MeltableMixin } from '../../lib/thermal/Meltable';
 import { AlloyedMixin } from '../../lib/material/Alloyed';
 
-const CastingBase = AlloyedMixin(MeltableMixin(ThermalMixin(Thing)));
+const CastingBase = AlloyedMixin(MeltableMixin(ThermalMixin(Movable)));
 
 export default class Casting extends CastingBase {}

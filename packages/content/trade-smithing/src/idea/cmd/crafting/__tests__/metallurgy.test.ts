@@ -28,7 +28,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
@@ -146,7 +146,7 @@ beforeEach(async () => {
       return bar as never;
     }
     if (path === SLAG) {
-      const s = makeStuff(() => new Thing());
+      const s = makeStuff(() => new Movable());
       stampTemplatePathForTest(s, SLAG);
       return s as never;
     }

@@ -17,7 +17,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import Location from '../../stuff/Location';
 import Material from '../../material/Material';
 import Biome from '../../biome/Biome';
@@ -45,12 +45,12 @@ import {
   WEATHER_DEFAULTS,
 } from '../../weather/WeatherType';
 
-class ThermalThing extends ThermalMixin(Thing) {
+class ThermalThing extends ThermalMixin(Movable) {
   static _mixinName = 'ThermalThingWeather';
 }
 class TestRoom extends Location {}
 /** A Containable occupant carrying the connection surface (isLinkdead etc.). */
-class TestOccupant extends HasInteractiveMixin(Thing) {
+class TestOccupant extends HasInteractiveMixin(Movable) {
   static _mixinName = 'TestOccupantWeather';
 }
 

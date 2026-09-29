@@ -19,7 +19,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import { ContainmentApi } from '../../../api/containment';
 import Crate from '../../../platform/thing/Crate';
 import Provision from '../../../platform/thing/Provision';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { CirculatingMixin } from '../Circulating';
 
 let seq = 0;
@@ -31,7 +31,7 @@ const makeCrate = (): Crate => {
 };
 
 /** A circulating thing that is neither Bulkable nor Container. */
-class LooseGood extends CirculatingMixin(Thing) {}
+class LooseGood extends CirculatingMixin(Movable) {}
 
 describe('an empty circulating HOLDER is not product', () => {
   beforeEach(() => installV1QuantityMarshallers());

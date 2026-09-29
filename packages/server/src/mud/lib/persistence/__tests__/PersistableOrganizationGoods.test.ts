@@ -26,7 +26,7 @@ import PersistentHydrator from "../../../platform/idea/persistence/PersistentHyd
 import { PersistableMixin } from "../Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Idea } from "../../stuff/Idea";
-import Thing from "../../stuff/Thing";
+import Movable from "../../stuff/Movable";
 import type { Stuff } from "../../stuff/Stuff";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -58,7 +58,7 @@ class Counter extends PersistableMixin(
 class Hand extends ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))) {
   static fieldMeta: FieldMeta = {};
 }
-class Good extends Thing {}
+class Good extends Movable {}
 
 const factories: Record<string, () => Stuff> = {
   [ROOM]: () => new Room(),

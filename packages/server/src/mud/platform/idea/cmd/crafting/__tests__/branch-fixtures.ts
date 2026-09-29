@@ -29,7 +29,7 @@ import Oven from '../../../../thing/Oven';
 import { Reserve } from '../../../../../lib/reserve';
 import ToolItem from '../../../../thing/ToolItem';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { EngagedMixin } from '../../../../../lib/activity/Engaged';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
@@ -67,7 +67,7 @@ export class TestActor extends ThermalMixin(
 }
 
 /** The smithing output fixture — a Crafted Tangible (Thing base). */
-export class TestKnife extends CraftedMixin(Thing) {
+export class TestKnife extends CraftedMixin(Movable) {
   static _mixinName = 'TestKnifeManual';
 }
 
@@ -217,8 +217,8 @@ export function makeTool(cap: string): ToolItem {
   return t;
 }
 
-export function makeStock(materialPath: string, massKg: number): Thing {
-  const t = makeStuff(() => new Thing());
+export function makeStock(materialPath: string, massKg: number): Movable {
+  const t = makeStuff(() => new Movable());
   t.setMass(Quantity.of(massKg, 'kg'));
   t.setMaterial(
     StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,

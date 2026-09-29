@@ -9,15 +9,14 @@
  * `crumbs`; neither needs a row here.
  */
 
-import Thing from '@saxonberg/server/mud/platform/thing/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /** The kinds a bait can be, and what each suits — see `FishingEngagement`. */
 export const BAIT_KINDS = ['worm', 'baitfish', 'crumbs', 'lure'] as const;
 export type BaitKind = (typeof BAIT_KINDS)[number];
 
-const BaitBase = DetailedMixin(Thing);
+const BaitBase = Movable;
 
 export default class Bait extends BaitBase {
   static fieldMeta: FieldMeta = {

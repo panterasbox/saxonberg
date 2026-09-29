@@ -16,15 +16,14 @@
  * propagates from the room, not the hand.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
 import { WearableMixin } from '@saxonberg/server/mud/lib/slot/Wearable';
 import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const WhistleBase = AudibleMixin(
-  WearableMixin(SlottableMixin(DetailedMixin(Thing))),
+  WearableMixin(SlottableMixin(Movable)),
 );
 
 export default class Whistle extends WhistleBase {

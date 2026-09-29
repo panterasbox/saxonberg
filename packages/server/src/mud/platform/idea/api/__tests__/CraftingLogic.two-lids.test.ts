@@ -28,7 +28,7 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import Provision from '../../../thing/Provision';
 import ToolItem from '../../../thing/ToolItem';
@@ -64,7 +64,7 @@ class TestCook extends EmployedMixin(NamedMixin(ContainableMixin(Idea))) {
   }
 }
 /** Crafted NON-FOOD — the marked knife's shape (capital, not matter). */
-class MarkedGear extends CraftedMixin(ContainableMixin(Thing)) {
+class MarkedGear extends CraftedMixin(ContainableMixin(Movable)) {
   static _mixinName = 'MarkedGearMatter';
 }
 

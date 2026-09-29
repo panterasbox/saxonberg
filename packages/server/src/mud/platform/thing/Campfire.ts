@@ -20,7 +20,7 @@
  * of the few objects that delivers both.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { PosturedMixin } from '../../lib/slot/Postured';
@@ -43,7 +43,7 @@ const CampfireBase = SpaceHeatingMixin(
   FurnaceMixin(
     LightSourceMixin(
       ReservedMixin(
-        PosturedMixin(SlottedMixin(PlacingMixin(ThermalMixin(Thing)))),
+        PosturedMixin(SlottedMixin(PlacingMixin(ThermalMixin(Movable)))),
       ),
     ),
   ),

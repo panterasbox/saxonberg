@@ -32,7 +32,7 @@
  * an OFFENCE wants an adjudicator, and that is Stage B.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { SampledMixin } from '@saxonberg/server/mud/lib/instrument/Sampled';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
@@ -40,14 +40,14 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
-// `Thing` already carries Tangible (the material) and Chattel (the
+// `Movable` already carries Tangible (the material) and Chattel (the
 // per-instance owner a cut lump needs from the face to the scale).
 // ⭐ `SampledMixin` OUTSIDE `StackableMixin`, so the provenance hooks sit
 // between Ore's own split/merge and the stack substrate's: Ore carries
 // the grade across, this carries the stamp, and the stack does the
 // arithmetic. Inside, the stamp would be copied before the grade and the
 // merge's null-on-disagreement would fire against a half-built lot.
-const OreBase = SampledMixin(StackableMixin(Thing));
+const OreBase = SampledMixin(StackableMixin(Movable));
 
 export default class Ore extends OreBase {
   /**

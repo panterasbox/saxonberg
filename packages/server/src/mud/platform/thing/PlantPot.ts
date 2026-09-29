@@ -27,8 +27,7 @@
  * See [docs/subsystems/husbandry.md].
  */
 
-import Thing from "../../lib/stuff/Thing";
-import { DetailedMixin } from "../../lib/description/Detailed";
+import Movable from "../../lib/stuff/Movable";
 import { BulkableMixin } from "../../lib/bulk/Bulkable";
 import { SlottedMixin } from "../../lib/slot/Slotted";
 import { ContainerMixin } from "../../lib/spatial/Container";
@@ -48,7 +47,7 @@ export { PLANT_SLOT } from "../../lib/husbandry/Cultivable";
 const PlantPotGround = SoilMixin(
   StagedMixin(
     SlottedMixin(
-      BulkableMixin(ContainerMixin(ReservedMixin(DetailedMixin(Thing)))),
+      BulkableMixin(ContainerMixin(ReservedMixin(Movable))),
     ),
   ),
 );

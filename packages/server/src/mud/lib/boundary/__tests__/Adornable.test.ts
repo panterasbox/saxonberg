@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import CartesianLocation from '../../location/CartesianLocation';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { AdornmentMixin } from '../Adornment';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -10,7 +10,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class TestFixture extends AdornmentMixin(Thing) {}
+class TestFixture extends AdornmentMixin(Movable) {}
 
 describe('AdornableMixin (composed on Location)', () => {
   afterEach(() => {

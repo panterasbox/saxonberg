@@ -12,7 +12,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import StockBase from "../../../../lib/retail/Stock";
-import Thing from "../../../../lib/stuff/Thing";
+import Movable from "../../../../lib/stuff/Movable";
 import { Vessel } from "../../../../lib/stuff/Vessel";
 import Location from "../../../../lib/stuff/Location";
 import { ResettableMixin } from "../../../../lib/residency/Resettable";
@@ -48,7 +48,7 @@ function setSetting(key: string, value: string): void {
 }
 
 function presentIn(room: Stuff): { mockRestore(): void } {
-  const holder = makeStuff(() => new Thing());
+  const holder = makeStuff(() => new Movable());
   ContainmentApi.move(holder, room as never);
   return vi
     .spyOn(ConnectionApi, "getAllInteractives")
@@ -63,7 +63,7 @@ describe("residency reset sweep", () => {
       new AppSettings();
     setSetting(AppSettingKeys.residencyResetMode, "enforce");
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-      const t = makeStuffAtPath(() => new Thing(), path);
+      const t = makeStuffAtPath(() => new Movable(), path);
       t.setKeywords(["torch"]);
       return t;
     }) as unknown as typeof StuffApi.clone);

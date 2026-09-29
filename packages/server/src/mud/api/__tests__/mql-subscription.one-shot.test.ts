@@ -31,7 +31,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import Location from '../../lib/stuff/Location';
 // The legacy `_MqlAdminFlag` test seam was retired with
 // `api/mql/permissions.ts`. Tests that exercised the gate now
@@ -138,7 +138,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
     // style query has more than one result.
     for (let i = 0; i < 3; i++) {
       const t = await StuffApi.create(() => {
-        const thing = new Thing();
+        const thing = new Movable();
         thing.setShortDescription(`thing ${i}`);
         return thing;
       });

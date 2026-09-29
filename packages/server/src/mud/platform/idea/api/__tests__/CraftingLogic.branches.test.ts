@@ -19,7 +19,7 @@ import { BulkableApi } from '../../../../api/bulk';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import Ingot from '../../../thing/Ingot';
 import Forge from '../../../thing/Forge';
 import ToolItem from '../../../thing/ToolItem';
@@ -51,15 +51,15 @@ class TestSmith extends ThermalMixin(ContainerMixin(NamedMixin(ContainableMixin(
   static _mixinName = 'TestSmithBranches';
 }
 /** The smithing output form — a Crafted Tangible (Thing composes Tangible). */
-class TestKnife extends CraftedMixin(Thing) {
+class TestKnife extends CraftedMixin(Movable) {
   static _mixinName = 'TestKnifeBranches';
 }
 /** A sealable stock chest — the open-container gather rung. */
-class TestChest extends SealableMixin(ContainerMixin(Thing)) {
+class TestChest extends SealableMixin(ContainerMixin(Movable)) {
   static _mixinName = 'TestChestBranches';
 }
 /** A fungible discrete foodstuff — the stack debit path. */
-class TestProduce extends StackableMixin(Thing) {
+class TestProduce extends StackableMixin(Movable) {
   static _mixinName = 'TestProduceBranches';
 }
 
@@ -350,7 +350,7 @@ describe('the edible (cooking) branch', () => {
     return d;
   }
 
-  function stockKitchen(): { veg: TestProduce; meat: Thing } {
+  function stockKitchen(): { veg: TestProduce; meat: Movable } {
     const veg = makeStuff(() => new TestProduce());
     veg.setQuantity(5);
     veg.setMass(Quantity.of(0.2, 'kg'));
@@ -358,7 +358,7 @@ describe('the edible (cooking) branch', () => {
       StuffApi.findByTemplatePath<Material>(VEG) as unknown as Material,
     );
     ContainmentApi.move(veg, room);
-    const meat = makeStuff(() => new Thing());
+    const meat = makeStuff(() => new Movable());
     meat.setMass(Quantity.of(0.3, 'kg'));
     meat.setMaterial(
       StuffApi.findByTemplatePath<Material>(MEAT) as unknown as Material,

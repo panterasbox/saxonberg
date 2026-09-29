@@ -27,7 +27,7 @@ import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -129,7 +129,7 @@ beforeEach(async () => {
 
   // The won rows, stubbed: what is under test is the LEDGER and the floor.
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
-    const t = makeStuff(() => new Thing());
+    const t = makeStuff(() => new Movable());
     t.setShortDescription(
       path === SPOIL_ROW
         ? 'load of spoil'

@@ -1,6 +1,6 @@
 /**
  * GlowlightMote — the glowlight spell's bound emitter, the LOCUS its
- * `emit-field` row names: a tiny `LightSourceMixin(Thing)` conjured into
+ * `emit-field` row names: a tiny `LightSourceMixin(Movable)` conjured into
  * the caster's scene and held up by a `SustainedEffect` on the caster
  * (realized by pull — flux on while active, 0 while dormant in a
  * suppression field, destructed on release). Light only, deliberately
@@ -14,9 +14,9 @@
  * written only by the sustained-effect reconcile arm.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSource';
 
-const GlowlightMoteBase = LightSourceMixin(Thing);
+const GlowlightMoteBase = LightSourceMixin(Movable);
 
 export default class GlowlightMote extends GlowlightMoteBase {}

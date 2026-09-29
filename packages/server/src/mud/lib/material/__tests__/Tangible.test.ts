@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Material from '../Material';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import Location from '../../stuff/Location';
 import { Vessel } from '../../stuff/Vessel';
 import { Agent } from '../../stuff/Agent';
@@ -24,7 +24,7 @@ describe('TangibleMixin', () => {
   });
 
   it('Thing/Vessel/Agent compose Tangible (matter); Location + Idea do not', () => {
-    const thing = makeStuff(() => new Thing());
+    const thing = makeStuff(() => new Movable());
     const location = makeStuff(() => new Location());
     const vessel = makeStuff(() => new Vessel());
     const agent = makeStuff(() => new Agent());
@@ -38,7 +38,7 @@ describe('TangibleMixin', () => {
   });
 
   it('getMaterial returns null when unset', () => {
-    const thing = makeStuff(() => new Thing());
+    const thing = makeStuff(() => new Movable());
     if (!MixinApi.isTangible(thing)) throw new Error('expected tangible');
     expect(thing.getMaterial()).toBeNull();
   });
@@ -50,7 +50,7 @@ describe('TangibleMixin', () => {
     // the unregister-stamp-register dance).
     stampTemplatePathForTest(iron, '/stuff/idea/material/element/iron');
 
-    const sword = makeStuff(() => new Thing());
+    const sword = makeStuff(() => new Movable());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     sword.setMaterial(iron);
     expect(sword._materialPath).toBe('/stuff/idea/material/element/iron');
@@ -60,7 +60,7 @@ describe('TangibleMixin', () => {
   it('setMaterial(null) clears the path', () => {
     const iron = makeStuff(() => new Material());
     stampTemplatePathForTest(iron, '/stuff/idea/material/element/iron');
-    const sword = makeStuff(() => new Thing());
+    const sword = makeStuff(() => new Movable());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     sword.setMaterial(iron);
     sword.setMaterial(null);
@@ -83,7 +83,7 @@ describe('TangibleMixin', () => {
         makeStuff(() => new Material()),
         '/stuff/idea/material/element/iron'
       );
-      const axe = makeStuff(() => new Thing());
+      const axe = makeStuff(() => new Movable());
       if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
       axe.setMaterial(oak);
       axe.setMaterial(iron, 'head');
@@ -97,7 +97,7 @@ describe('TangibleMixin', () => {
         makeStuff(() => new Material()),
         '/stuff/idea/material/wood/oak'
       );
-      const axe = makeStuff(() => new Thing());
+      const axe = makeStuff(() => new Movable());
       if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
       axe.setMaterial(oak);
 
@@ -114,7 +114,7 @@ describe('TangibleMixin', () => {
         makeStuff(() => new Material()),
         '/stuff/idea/material/element/iron'
       );
-      const axe = makeStuff(() => new Thing());
+      const axe = makeStuff(() => new Movable());
       if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
       axe.setMaterial(oak);
       axe.setMaterial(iron, 'head');
@@ -134,7 +134,7 @@ describe('TangibleMixin', () => {
         makeStuff(() => new Material()),
         '/stuff/idea/material/element/iron'
       );
-      const axe = makeStuff(() => new Thing());
+      const axe = makeStuff(() => new Movable());
       if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
       axe.setMaterial(oak);
       axe.setMaterial(iron, 'head');
@@ -158,7 +158,7 @@ describe('TangibleMixin', () => {
         makeStuff(() => new Material()),
         '/stuff/idea/material/tissue/flesh'
       );
-      const golem = makeStuff(() => new Thing());
+      const golem = makeStuff(() => new Movable());
       if (!MixinApi.isTangible(golem)) throw new Error('expected tangible');
       golem.setMaterial(oak);
       golem.setMaterial(iron, 'head');
@@ -184,7 +184,7 @@ describe('TangibleMixin', () => {
           makeStuff(() => new Material()),
           '/stuff/idea/material/element/iron'
         );
-        const axe = makeStuff(() => new Thing());
+        const axe = makeStuff(() => new Movable());
         if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
         axe.setMaterial(oak); // bulk = oak
         axe.setMaterial(iron, 'head'); // override on 'head'
@@ -208,7 +208,7 @@ describe('TangibleMixin', () => {
           makeStuff(() => new Material()),
           '/stuff/idea/material/alloy/steel'
         );
-        const axe = makeStuff(() => new Thing());
+        const axe = makeStuff(() => new Movable());
         if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
         axe.setMaterial(oak);
         axe.setMaterial(iron, 'head');
@@ -227,7 +227,7 @@ describe('TangibleMixin', () => {
           makeStuff(() => new Material()),
           '/stuff/idea/material/wood/oak'
         );
-        const axe = makeStuff(() => new Thing());
+        const axe = makeStuff(() => new Movable());
         if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
         axe.setMaterial(oak);
         expect(axe.getMaterial('handle.grip.wrap')).toBe(oak);

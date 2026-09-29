@@ -19,7 +19,7 @@ import { StuffApi } from '../stuff';
 import Species from '../../platform/idea/species/Species';
 import BodyPlan from '../../platform/idea/species/BodyPlan';
 import { OrganismMixin } from '../../lib/species/Organism';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -33,7 +33,7 @@ import { VisionModality } from '../../platform/idea/modalities/VisionModality';
 import { SoundModality } from '../../platform/idea/modalities/SoundModality';
 import { SmellModality } from '../../platform/idea/modalities/SmellModality';
 
-const OrganismThingBase = OrganismMixin(Thing);
+const OrganismThingBase = OrganismMixin(Movable);
 class OrganismThing extends OrganismThingBase {}
 
 function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
@@ -137,7 +137,7 @@ describe('PerceptionApi', () => {
     });
 
     it('returns [] for a non-Organism viewer', () => {
-      const fixture = makeStuff(() => new Thing());
+      const fixture = makeStuff(() => new Movable());
       expect(PerceptionApi.sensorium(fixture)).toEqual([]);
     });
 
@@ -226,7 +226,7 @@ describe('PerceptionApi', () => {
       // bare Thing through `unknown` cast is enough — we're testing
       // the dispatch path, not the contents traversal.
       const loc = makeStuff(
-        () => new Thing()
+        () => new Movable()
       ) as unknown as Parameters<typeof taste.signalAt>[0];
       const taste = PerceptionApi.modalityByName('taste');
       // signalAt is the modality's own method (no thin Api wrapper).
@@ -254,7 +254,7 @@ describe('PerceptionLogic singleton encapsulation', () => {
 
   it('denies a direct logic-method call from a non-PerceptionApi caller', () => {
     // A facade call lazily creates the logic singleton.
-    PerceptionApi.sensorium(makeStuff(() => new Thing()));
+    PerceptionApi.sensorium(makeStuff(() => new Movable()));
     const logic = StuffApi.findByTemplatePath<PerceptionLogic>(
       '/platform/idea/api/perception'
     );
@@ -262,7 +262,7 @@ describe('PerceptionLogic singleton encapsulation', () => {
     // The test module is not `mud/api/perception#PerceptionApi`, so the
     // FromModule gate on the logic's own methods denies the call.
     expect(() =>
-      logic!.sensorium(makeStuff(() => new Thing()))
+      logic!.sensorium(makeStuff(() => new Movable()))
     ).toThrow(SecurityError);
   });
 });

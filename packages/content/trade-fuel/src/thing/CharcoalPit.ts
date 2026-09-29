@@ -25,7 +25,7 @@
  * is FOR here is knowing what to set, not being allowed to.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -45,7 +45,7 @@ export const CHARS_FROM = 0.3;
 export const CHARS_TO = 0.62;
 
 const CharcoalPitBase = FurnaceMixin(
-  ContainerMixin(ReservedMixin(ThermalMixin(Thing))),
+  ContainerMixin(ReservedMixin(ThermalMixin(Movable))),
 );
 
 /**

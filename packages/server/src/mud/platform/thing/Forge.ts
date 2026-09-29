@@ -8,14 +8,14 @@
  * scope toward that temperature (`heatContents`) — the metal-melting demo.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { ReservedMixin } from '../../lib/reserve';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { FurnaceMixin } from '../../lib/fire/Furnace';
 
 const ForgeBase = FurnaceMixin(
-  LightSourceMixin(ReservedMixin(ThermalMixin(Thing))),
+  LightSourceMixin(ReservedMixin(ThermalMixin(Movable))),
 );
 
 export default class Forge extends ForgeBase {}

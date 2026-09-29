@@ -21,7 +21,7 @@ import Bloom from '../../../../thing/Bloom';
 import Ore from '@saxonberg/content-trade-mining/src/thing/Ore';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -112,8 +112,8 @@ function bar(materialPath: string, kg = 0.5, carbon = 0): Ingot {
 }
 
 /** A basket of charcoal — a Tangible whose material is fuel + carbon. */
-function basket(): Thing {
-  const b = makeStuff(() => new Thing());
+function basket(): Movable {
+  const b = makeStuff(() => new Movable());
   b.setMass(Quantity.of(8, 'kg'));
   b.setMaterial(
     StuffApi.findByTemplatePath<Material>(CHARCOAL_M) as unknown as Material,
@@ -231,7 +231,7 @@ beforeEach(async () => {
       return i as never;
     }
     if (path === SLAG_ROW) {
-      const s = makeStuff(() => new Thing());
+      const s = makeStuff(() => new Movable());
       stampTemplatePathForTest(s, SLAG_ROW);
       return s as never;
     }
@@ -600,8 +600,8 @@ describe('⭐⭐ the flux and the sulfur (extraction)', () => {
   }
 
   /** A lump of limestone — a Tangible whose material carries `flux`. */
-  function limestone(): Thing {
-    const l = makeStuff(() => new Thing());
+  function limestone(): Movable {
+    const l = makeStuff(() => new Movable());
     l.setMass(Quantity.of(8, 'kg'));
     l.setMaterial(
       StuffApi.findByTemplatePath<Material>(LIMESTONE_M) as unknown as Material,
@@ -610,8 +610,8 @@ describe('⭐⭐ the flux and the sulfur (extraction)', () => {
   }
 
   /** A lump of raw coal — fuel AND carbon AND sulfurous. */
-  function coal(): Thing {
-    const c = makeStuff(() => new Thing());
+  function coal(): Movable {
+    const c = makeStuff(() => new Movable());
     c.setMass(Quantity.of(8, 'kg'));
     c.setMaterial(StuffApi.findByTemplatePath<Material>(COAL_M) as unknown as Material);
     return c;

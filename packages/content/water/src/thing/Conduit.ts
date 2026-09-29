@@ -52,9 +52,8 @@
  * See [docs/subsystems/watershed.md].
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
@@ -93,7 +92,7 @@ export interface ConduitReading {
   pumpWatts: number;
 }
 
-const ConduitBase = DetailedMixin(SwitchableMixin(Thing));
+const ConduitBase = SwitchableMixin(Movable);
 
 export default class Conduit extends ConduitBase {
   static fieldMeta: FieldMeta = {

@@ -23,7 +23,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Thing from "../../stuff/Thing";
+import Movable from "../../stuff/Movable";
 import Location from "../../stuff/Location";
 import Material from "../../material/Material";
 import Icebox from "../../../platform/thing/Icebox";
@@ -41,10 +41,10 @@ import {
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 
 /** The `Casting` composition, trimmed to what the melt needs. */
-class TestBlock extends MeltableMixin(ThermalMixin(Thing)) {
+class TestBlock extends MeltableMixin(ThermalMixin(Movable)) {
   static _mixinName = "TestIceBlock";
 }
-class ThermalThing extends ThermalMixin(Thing) {
+class ThermalThing extends ThermalMixin(Movable) {
   static _mixinName = "CoolboxThermalThing";
 }
 class TestRoom extends Location {}

@@ -26,7 +26,6 @@
  */
 
 import { Vessel } from "../stuff/Vessel";
-import { DetailedMixin } from "../description/Detailed";
 import { PricedOfferMixin } from "../commerce/PricedOffer";
 import { AttendantMixin } from "../attendant/Attendant";
 import { ResettableMixin } from "../residency/Resettable";
@@ -93,7 +92,7 @@ export interface StockLine {
 const StockBase = PersistableMixin(
   ConsignmentShelfMixin(
     ResettableMixin(
-      AttendantMixin(PricedOfferMixin(DetailedMixin(PostRegistrationMixin(Vessel)))),
+      AttendantMixin(PricedOfferMixin(PostRegistrationMixin(Vessel))),
     ),
   ),
 );

@@ -29,7 +29,7 @@ import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
 import Placement from '@saxonberg/server/mud/platform/idea/Placement';
 import PlacementCatalogue from '@saxonberg/server/mud/platform/idea/PlacementCatalogue';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import { Agent } from '@saxonberg/server/mud/lib/stuff/Agent';
@@ -191,7 +191,7 @@ describe('`dry` — hang it where the air can reach it', () => {
   it('refuses something with no water state, naming the PROPERTY', async () => {
     const { room, cook, rack } = scene(40);
     const rock = makeStuff(() => {
-      const t = new Thing();
+      const t = new Movable();
       t.setMass(Quantity.of(1, 'kg'));
       return t;
     });

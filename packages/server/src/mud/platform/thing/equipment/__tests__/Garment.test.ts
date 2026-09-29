@@ -7,7 +7,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Garment from '../Garment';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 
@@ -18,7 +18,7 @@ afterEach(() => StuffApi.clearAll());
 describe('Garment', () => {
   it('is a Thing (described, carriable) that is Wearable', () => {
     const g = makeStuff(() => new Garment());
-    expect(g).toBeInstanceOf(Thing);
+    expect(g).toBeInstanceOf(Movable);
     // Wearable surface present.
     expect(typeof g.getSlotClaims).toBe('function');
     expect(typeof g.getSlotClaim).toBe('function');

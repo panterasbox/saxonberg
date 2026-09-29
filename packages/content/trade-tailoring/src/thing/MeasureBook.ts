@@ -41,8 +41,7 @@
  * the one-time act.**
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -67,7 +66,7 @@ export interface BookEntry {
 // view used to bind it with `[class.MeasureBook]`, which meant a second
 // shop's ledger could never serve — the same class-check defect the ten
 // platform instruments carried.
-export default class MeasureBook extends ToolMixin(DetailedMixin(Thing)) {
+export default class MeasureBook extends ToolMixin(Movable) {
   /*
    * ⚠⚠ THE BOOK IS THE INSTRUMENT, and without this static the whole
    * `measure figure` stanza is unreachable: the controller, the view

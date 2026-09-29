@@ -18,15 +18,15 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { OrganismMixin } from '../Organism';
 import Species from '../../../platform/idea/species/Species';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { ConditionApi } from '../../../api/condition';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 
-class Body extends OrganismMixin(Thing) {}
-class PlayedBody extends HasInteractiveMixin(OrganismMixin(Thing)) {}
+class Body extends OrganismMixin(Movable) {}
+class PlayedBody extends HasInteractiveMixin(OrganismMixin(Movable)) {}
 
 let seq = 0;
 function curved(opts: { sentient?: boolean; lifespanMax?: number }): Species {
@@ -52,7 +52,7 @@ function clock(): void {
  * ⭐ The assertion is **whether the reconcile decides to kill**, not
  * whether the dying choreography runs. `ConditionApi.die` owns the arc —
  * the corpse, the shade, the accountability record — and is tested where
- * it lives; a bare `OrganismMixin(Thing)` has none of the body a real
+ * it lives; a bare `OrganismMixin(Movable)` has none of the body a real
  * death needs. What is this file's to prove is the THREE CONDITIONS.
  */
 const armDieSpy = () =>

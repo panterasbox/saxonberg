@@ -30,7 +30,7 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import type { TechniqueSpec } from '../../../../lib/craft/Technique';
 import Material from '../../../../lib/material/Material';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import { Idea } from '../../../../lib/stuff/Idea';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -126,7 +126,7 @@ function makeHolder(materialPath: string, amountL: number) {
  * proves the mechanism without reaching for hospitality's shipped
  * `GlassRack` row (which lives in the pack, per `lint:test-content`).
  */
-class TestRack extends ContainerMixin(Thing) {}
+class TestRack extends ContainerMixin(Movable) {}
 
 function makeGlass(path: string, capacityL = 0.4): CraftVessel {
   const g = makeStuffAtPath(() => new CraftVessel(), path);
@@ -135,8 +135,8 @@ function makeGlass(path: string, capacityL = 0.4): CraftVessel {
   return g;
 }
 
-function makeItem(materialPath: string): Thing {
-  const t = makeStuff(() => new Thing());
+function makeItem(materialPath: string): Movable {
+  const t = makeStuff(() => new Movable());
   t.setShortDescription(`an ${materialPath.split('/').pop()}`);
   t.setMass(Quantity.of(0.02, 'kg'));
   t.setMaterial(StuffApi.findByTemplatePath<Material>(materialPath)!);

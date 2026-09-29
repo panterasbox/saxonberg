@@ -3,10 +3,17 @@
  *
  * `lib/stuff/Thing` is the root every tangible object inherits, and it is
  * substrate: **nothing instances `/lib/`** (`pnpm lint:instanceable`), so
- * no template may name it. But a good many shipped rows want exactly a
- * bare `Thing` and nothing more — a toilet, an anvil, a folded hide, a
- * yard wall, a trough, a crumpled ticket stub. They have no shared
- * concept beyond being tangible; that IS the class.
+ * no template may name it. But a handful of shipped rows want exactly a
+ * bare `Thing` and nothing more — a toilet, a yard wall, a trough, a
+ * midden. They have no shared concept beyond being tangible; that IS the
+ * class.
+ *
+ * ⭐⭐ **Since the base-class narrowing (2026-09-29) this twin is bare
+ * IMMOVABLE matter.** `Thing` no longer composes `Chattel`/`Concealable`;
+ * a row wanting a bare *good* — an anvil, a folded hide, a stash pouch —
+ * names `platform/thing/Movable` instead. The two twins are the same
+ * shape one rung apart, and which one a row names is the claim *can this
+ * be carried off*.
  *
  * So this is the thin concrete subclass those rows name, the pattern
  * CLAUDE.md § "Instanceable Lives in `platform/<branch>/`" calls

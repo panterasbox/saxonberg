@@ -18,7 +18,7 @@ import { Creature } from "../../../../../lib/creature/Creature";
 import { NamedMixin } from "../../../../../lib/description/Named";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
-import Thing from "../../../../../lib/stuff/Thing";
+import Movable from "../../../../../lib/stuff/Movable";
 import Location from "../../../../../lib/stuff/Location";
 import Material from "../../../../../lib/material/Material";
 import CraftVessel from "../../../../thing/CraftVessel";
@@ -84,7 +84,7 @@ function captureScene(): void {
 }
 
 function apple(loc: Stuff): Stuff {
-  const t = makeStuff(() => new Thing());
+  const t = makeStuff(() => new Movable());
   t.setShortDescription("an apple");
   t.setMaterial(
     StuffApi.findByTemplatePath<Material>(APPLE) as unknown as Material,

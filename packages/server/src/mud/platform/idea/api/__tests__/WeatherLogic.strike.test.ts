@@ -10,7 +10,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import Location from '../../../../lib/stuff/Location';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import Biome from '../../../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
 import Material from '../../../../lib/material/Material';
@@ -35,7 +35,7 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import '../../WorldClockRegistry';
 
 class TestRoom extends Location {}
-class TestOccupant extends HasInteractiveMixin(Thing) {
+class TestOccupant extends HasInteractiveMixin(Movable) {
   static _mixinName = 'TestOccupantStrike';
 }
 
@@ -84,7 +84,7 @@ function skyRoom(): TestRoom {
 }
 
 let matSeq = 0;
-function conductiveRod(room: TestRoom): Thing {
+function conductiveRod(room: TestRoom): Movable {
   matSeq += 1;
   const mat = makeStuffAtPath(() => {
     const m = new Material();
@@ -92,7 +92,7 @@ function conductiveRod(room: TestRoom): Thing {
     m.setElectricalConductivity(Quantity.of(5, 'S/m'));
     return m;
   }, `/stuff/idea/material/_strike/metal-${matSeq}`) as unknown as Material;
-  const rod = makeStuff(() => new Thing());
+  const rod = makeStuff(() => new Movable());
   rod.setMaterial(mat);
   return rod;
 }

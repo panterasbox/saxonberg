@@ -25,13 +25,13 @@ import { ContainmentApi } from '../../../api/containment';
 import { AppSettingKeys } from '../../config/AppSettings';
 import { Template } from '../../stuff/Template';
 import { CirculatingMixin } from '../Circulating';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestGood extends CirculatingMixin(Thing) {}
+class TestGood extends CirculatingMixin(Movable) {}
 
 const REGION = '/test/spawn/spawn-batch-zone';
 const STOCK = '/test/spawn/spawn-batch-zone/thing/stock';

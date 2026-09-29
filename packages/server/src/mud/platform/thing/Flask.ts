@@ -1,7 +1,7 @@
 /**
  * Flask — a *sealable* thermal fluid holder: the thermos.
  *
- * `ThermalMixin(SealableMixin(BulkableMixin(Thing)))`. Identical to a
+ * `ThermalMixin(SealableMixin(BulkableMixin(Movable)))`. Identical to a
  * {@link Receptacle} (a thermal fluid holder whose heat capacity is its
  * contents) plus the binary open/closed barrier that makes a vacuum
  * flask real thermodynamics:
@@ -22,12 +22,12 @@
  * (capacity, closure) is authored in the seed's `data:` block.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 
-const FlaskBase = ThermalMixin(SealableMixin(BulkableMixin(Thing)));
+const FlaskBase = ThermalMixin(SealableMixin(BulkableMixin(Movable)));
 
 export default class Flask extends FlaskBase {
   /**

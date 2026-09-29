@@ -17,7 +17,7 @@ import { ConstructedMixin } from '../../../../../lib/material/Constructed';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import Location from '../../../../../lib/stuff/Location';
 import { Character } from '../../../../../lib/character/Character';
 import Species from '../../../species/Species';
@@ -82,7 +82,7 @@ async function settle(): Promise<void> {
 }
 
 class TestGarment extends WearableMixin(
-  SlottableMixin(ContainableMixin(ConstructedMixin(Thing))),
+  SlottableMixin(ContainableMixin(ConstructedMixin(Movable))),
 ) {}
 
 /** A body with a real covering slot the ladder can be tested on. */

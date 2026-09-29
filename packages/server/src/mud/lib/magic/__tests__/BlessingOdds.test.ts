@@ -19,10 +19,10 @@ import { MagicEffects } from '../Effect';
 import { BlessableMixin } from '../Blessable';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class Trinket extends BlessableMixin(Thing) {}
+class Trinket extends BlessableMixin(Movable) {}
 
 /** A roll that walks the [0,1) range deterministically. */
 function rollAt(t: number): () => number {

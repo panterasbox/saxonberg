@@ -26,10 +26,10 @@ import '../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { Mml } from '../mml';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 
 describe('Mml.augment — authored placeholders survive, real markup does not', () => {
-  const host = () => makeStuff(() => new Thing());
+  const host = () => makeStuff(() => new Movable());
 
   it('keeps an authored angle-bracket placeholder legible', () => {
     const h = host();

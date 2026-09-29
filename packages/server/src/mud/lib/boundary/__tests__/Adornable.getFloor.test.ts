@@ -18,15 +18,15 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import CartesianLocation from '../../location/CartesianLocation';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import Floor from '../../../platform/thing/Floor';
 import { AdornmentMixin } from '../Adornment';
 import { StuffApi } from '../../../api/stuff';
 import { ChattelMixin } from '../../chattel/Chattel';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class TestFixture extends AdornmentMixin(Thing) {}
-class TestHangable extends ChattelMixin(AdornmentMixin(Thing)) {}
+class TestFixture extends AdornmentMixin(Movable) {}
+class TestHangable extends ChattelMixin(AdornmentMixin(Movable)) {}
 
 describe('Adornable.getFloor', () => {
   afterEach(() => {

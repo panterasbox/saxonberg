@@ -26,14 +26,13 @@
  * retrofit is a seed edit instead of a migration.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
 import { SlottedMixin } from '@saxonberg/server/mud/lib/slot/Slotted';
 import { PosturedMixin } from '@saxonberg/server/mud/lib/slot/Postured';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const BedBase = PosturedMixin(SlottedMixin(PlacingMixin(DetailedMixin(Thing))));
+const BedBase = PosturedMixin(SlottedMixin(PlacingMixin(Movable)));
 
 export default class Bed extends BedBase {
   static fieldMeta: FieldMeta = {};

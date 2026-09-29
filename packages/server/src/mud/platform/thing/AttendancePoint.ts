@@ -9,13 +9,12 @@
  * verbs light up beside the venue's payload verbs; this is the bare form.
  */
 
-import Thing from "../../lib/stuff/Thing";
+import Movable from "../../lib/stuff/Movable";
 import { VisibleMixin } from "../../lib/description/Visible";
-import { DetailedMixin } from "../../lib/description/Detailed";
 import { AttendantMixin } from "../../lib/attendant/Attendant";
 import type { FieldMeta } from "../../lib/mixin";
 
-const AttendancePointBase = AttendantMixin(DetailedMixin(VisibleMixin(Thing)));
+const AttendancePointBase = AttendantMixin(VisibleMixin(Movable));
 
 export default class AttendancePoint extends AttendancePointBase {
   static fieldMeta: FieldMeta = {};

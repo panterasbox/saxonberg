@@ -1,15 +1,14 @@
 /**
  * ToolItem — a portable tool: the capital side of control.
  *
- * `ToolMixin(DurableMixin(DetailedMixin(Thing)))` — a `Tangible` carrying
- * tool capabilities (ToolMixin) + a wear-on-use condition (DurableMixin, the
+ * `ToolMixin(DurableMixin(Movable))` — a `Tangible` carrying tool
+ * capabilities (ToolMixin) + a wear-on-use condition (DurableMixin, the
  * durable-good half). Backs the bar's shaker / mixing-glass (and any future
  * strainer / muddler); capabilities + condition are authored in each seed's
  * `data:`.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Movable from '../../lib/stuff/Movable';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { DurableMixin } from '../../lib/material/Durable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
@@ -34,6 +33,6 @@ import { CraftedMixin } from '../../lib/craft/Crafted';
 // The attach point stays open and named: a `KitchenTool` the day a sieve or
 // a board genuinely needs to carry a load, the same way irrigation
 // contamination composes onto `WateringCan` when someone wants it.
-const ToolItemBase = CraftedMixin(ToolMixin(DurableMixin(DetailedMixin(Thing))));
+const ToolItemBase = CraftedMixin(ToolMixin(DurableMixin(Movable)));
 
 export default class ToolItem extends ToolItemBase {}

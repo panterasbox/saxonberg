@@ -1,7 +1,7 @@
 /**
  * CocktailShaker — a bar mixing vessel that buffers a step-by-step build.
  *
- * `ManualBuildMixin(ToolMixin(DetailedMixin(Thing)))` — the tool role
+ * `ManualBuildMixin(ToolMixin(Movable))` — the tool role
  * (its `shaker` / `mixing-glass` capability still satisfies recipe
  * `toolCapabilities`, exactly as the old `ToolItem` seed did) plus the
  * manual-build buffer that `pour` / `add` bank graded contributions into
@@ -13,12 +13,11 @@
  * no persistent fields over `ToolItem`.
  */
 
-import Thing from "../../lib/stuff/Thing";
-import { DetailedMixin } from "../../lib/description/Detailed";
+import Movable from "../../lib/stuff/Movable";
 import { ToolMixin } from "../../lib/craft/Tooled";
 import { ManualBuildMixin } from "../../lib/craft/ManualBuild";
 
-const CocktailShakerBase = ManualBuildMixin(ToolMixin(DetailedMixin(Thing)));
+const CocktailShakerBase = ManualBuildMixin(ToolMixin(Movable));
 
 // The bar's working verbs ride the seeds' `shaker`/`mixing-glass`
 // capability entries through the capability table — no statics; the

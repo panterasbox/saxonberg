@@ -36,7 +36,6 @@
  */
 
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -73,7 +72,7 @@ interface ShoreMemo {
   atS: number;
 }
 
-const ShoreBase = PostRegistrationMixin(DetailedMixin(Thing));
+const ShoreBase = PostRegistrationMixin(Thing);
 
 export default class Shore extends ShoreBase {
   static fieldMeta: FieldMeta = {

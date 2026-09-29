@@ -26,13 +26,12 @@
  *   dead wand fails audibly instead.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { CirculatingMixin } from '@saxonberg/server/mud/lib/residency/Circulating';
 import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { LabelledMixin } from '@saxonberg/server/mud/lib/description/Labelled';
 import { BlessableMixin } from '@saxonberg/server/mud/lib/magic/Blessable';
 import { WieldableMixin } from '@saxonberg/server/mud/lib/slot/Wieldable';
@@ -61,7 +60,7 @@ const WandBase = CirculatingMixin(
       BlessableMixin(
         IdentifiableMixin(
           LabelledMixin(
-            ChargedMixin(ReservedMixin(ArcaneMixin(DetailedMixin(Thing)))),
+            ChargedMixin(ReservedMixin(ArcaneMixin(Movable))),
           ),
         ),
       ),

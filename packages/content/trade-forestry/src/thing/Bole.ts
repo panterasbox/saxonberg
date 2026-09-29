@@ -23,8 +23,7 @@
  * somebody's) — and nothing else.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -42,7 +41,7 @@ export const BOLE_M3 = 0.9;
 /** Cross-cut lengths a standard's bole carries. */
 export const BOLE_LENGTHS = 6;
 
-const BoleBase = DetailedMixin(Thing);
+const BoleBase = Movable;
 
 /** *"six lengths in it yet"* / *"one length left"* — appended on `look`. */
 function lengthsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {

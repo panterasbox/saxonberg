@@ -5,10 +5,9 @@
  * is `pairing: held`. See docs/subsystems/display.md.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Movable from '../../lib/stuff/Movable';
 import { DisplayMixin } from '../../lib/display/Display';
 
-const TabletBase = DisplayMixin(DetailedMixin(Thing));
+const TabletBase = DisplayMixin(Movable);
 
 export default class Tablet extends TabletBase {}

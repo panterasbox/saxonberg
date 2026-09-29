@@ -9,7 +9,7 @@ import WarmController from '../WarmController';
 import { Creature } from '../../../../../lib/creature/Creature';
 import Location from '../../../../../lib/stuff/Location';
 import Material from '../../../../../lib/material/Material';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import { CombustibleMixin } from '../../../../../lib/fire/Combustible';
 import { WetMixin } from '../../../../../lib/wetness/Wet';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
@@ -27,7 +27,7 @@ import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { Trauma } from '../../../Condition';
 
 class Firewood extends CombustibleMixin(
-  WetMixin(ThermalMixin(ReservedMixin(Thing))),
+  WetMixin(ThermalMixin(ReservedMixin(Movable))),
 ) {
   static _mixinName = 'Firewood';
 }

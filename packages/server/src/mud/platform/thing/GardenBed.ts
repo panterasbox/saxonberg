@@ -32,8 +32,7 @@
  * See [docs/subsystems/husbandry.md].
  */
 
-import Thing from "../../lib/stuff/Thing";
-import { DetailedMixin } from "../../lib/description/Detailed";
+import Movable from "../../lib/stuff/Movable";
 import { BulkableMixin } from "../../lib/bulk/Bulkable";
 import { SlottedMixin } from "../../lib/slot/Slotted";
 import { ContainerMixin } from "../../lib/spatial/Container";
@@ -51,7 +50,7 @@ import type { FieldMeta } from "../../lib/mixin";
 const GardenBedGround = SoilMixin(
   StagedMixin(
     SlottedMixin(
-      BulkableMixin(ContainerMixin(ReservedMixin(DetailedMixin(Thing)))),
+      BulkableMixin(ContainerMixin(ReservedMixin(Movable))),
     ),
   ),
 );

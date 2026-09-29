@@ -10,7 +10,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../../../lib/stuff/Location';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import Floor from '../../../thing/Floor';
 import Biome from '../../../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
@@ -36,10 +36,10 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import '../../WorldClockRegistry';
 
 class TestRoom extends Location {}
-class TestOccupant extends HasInteractiveMixin(Thing) {
+class TestOccupant extends HasInteractiveMixin(Movable) {
   static _mixinName = 'TestOccupantPuddle';
 }
-class TestWire extends EnergizedMixin(Thing) {
+class TestWire extends EnergizedMixin(Movable) {
   static _mixinName = 'TestWirePuddle';
 }
 
@@ -215,7 +215,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
       return w;
     });
     await ContainmentApi.move(wire, room);
-    const body = makeStuff(() => new Thing());
+    const body = makeStuff(() => new Movable());
     await ContainmentApi.move(body, room);
 
     const outcomes = wire.conduct();

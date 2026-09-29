@@ -30,7 +30,7 @@ import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -150,11 +150,11 @@ beforeEach(() => {
   zone.setCellSize(10);
   (zone as unknown as { deposit: string }).deposit = DEPOSIT;
   column = seedColumn();
-  actor = makeStuff(() => new Thing()) as unknown as Stuff;
+  actor = makeStuff(() => new Movable()) as unknown as Stuff;
   // The won goods are cloned; a bare harness has no rows, so the mint is
   // stubbed to a plain Thing. What the tests are about is the LEDGER.
   vi.spyOn(StuffApi, 'clone').mockImplementation((async () =>
-    makeStuff(() => new Thing())) as never);
+    makeStuff(() => new Movable())) as never);
 });
 
 describe('the wall is a section through the ground', () => {

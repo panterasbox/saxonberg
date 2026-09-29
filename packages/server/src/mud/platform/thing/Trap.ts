@@ -1,10 +1,10 @@
 /**
- * Trap — the canonical deployable **hazard**: `HazardMixin(DetailedMixin(
- * Thing))`, a placed object that springs when a mover meets it (the
- * `Bandage = DressingMixin(Thing)` / `Coin = StackableMixin(Thing)`
+ * Trap — the canonical deployable **hazard**: `HazardMixin(Movable)`, a
+ * placed object that springs when a mover meets it (the
+ * `Bandage = DressingMixin(Movable)` / `Coin = StackableMixin(Movable)`
  * precedent — a Thing plus its capability mixin).
  *
- * `Thing` already composes `ConcealableMixin` (Phase 1), so a `Trap` is
+ * `Movable` composes `ConcealableMixin`, so a `Trap` is
  * concealable out of the box — a designer hides it at a concealment band
  * (`concealment: hidden`) and the detection gate (`PerceptionApi`) decides,
  * per-viewer, whether a mover notices it in time to step around it.
@@ -18,8 +18,7 @@
  * See docs/subsystems/concealment.md.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Movable from '../../lib/stuff/Movable';
 import { HazardMixin } from '../../lib/hazard/Hazard';
 
-export default class Trap extends HazardMixin(DetailedMixin(Thing)) {}
+export default class Trap extends HazardMixin(Movable) {}

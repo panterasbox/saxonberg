@@ -2,7 +2,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import Window from '../thing/Window';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
 import PersistentHydrator from '../idea/persistence/PersistentHydrator';
@@ -130,7 +130,7 @@ describe('Window.setAttachedHosts', () => {
 
   it('throws if a resolved host is not Adornable', async () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
-    makeStuffAtPath(() => new Thing(), '/thing'); // not Adornable
+    makeStuffAtPath(() => new Movable(), '/thing'); // not Adornable
     const w = await StuffApi.create(() => new Window());
     await expect(
       w.setAttachedHosts(['/room/a', '/thing'])

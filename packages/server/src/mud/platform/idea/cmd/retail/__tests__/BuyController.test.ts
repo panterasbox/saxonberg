@@ -12,7 +12,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../BuyController";
 import StockBase from "../../../../../lib/retail/Stock";
-import Thing from "../../../../../lib/stuff/Thing";
+import Movable from "../../../../../lib/stuff/Movable";
 import Coin from "../../../../thing/Coin";
 import PlantPot, { PLANT_SLOT } from "../../../../thing/PlantPot";
 import BankCounter from "../../../../thing/BankCounter";
@@ -78,7 +78,7 @@ class TestGiver extends SensorMixin(
   static _mixinName = "TestGiver";
 }
 
-class Torch extends Thing {}
+class Torch extends Movable {}
 
 function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
   return withRootContext(null, "buy.test", () => {

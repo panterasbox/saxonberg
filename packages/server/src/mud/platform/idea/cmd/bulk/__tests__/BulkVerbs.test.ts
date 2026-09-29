@@ -22,7 +22,7 @@ import { PerceptionMixin } from '../../../../../lib/perception/Perception';
 import { BulkableMixin } from '../../../../../lib/bulk/Bulkable';
 import { UnboundedSourceMixin } from '../../../../../lib/bulk/UnboundedSource';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import Floor from '../../../../thing/Floor';
 import Location from '../../../../../lib/stuff/Location';
 import Material from '../../../../../lib/material/Material';
@@ -65,14 +65,14 @@ class TestActor extends PerceptionMixin(
   }
 }
 
-class Receptacle extends BulkableMixin(Thing) {
+class Receptacle extends BulkableMixin(Movable) {
   static _mixinName = 'Receptacle';
 }
 
 /** A substance you can learn — the potion case (magic-items D24/D26). */
 class IdentifiableMaterial extends IdentifiableMixin(Material) {}
 
-class UnboundedReceptacle extends UnboundedSourceMixin(BulkableMixin(Thing)) {
+class UnboundedReceptacle extends UnboundedSourceMixin(BulkableMixin(Movable)) {
   static _mixinName = 'UnboundedReceptacle';
 }
 

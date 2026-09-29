@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { SlottableMixin } from '../../slot/Slottable';
 import { StuffApi } from '../../../api/stuff';
 import {
@@ -21,7 +21,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import { TRAUMA_BEHAVIOR, HARM_DEFAULTS } from '../../../platform/idea/Condition';
 import type { Trauma } from '../../../platform/idea/Condition';
 
-const SlottableThingBase = SlottableMixin(Thing);
+const SlottableThingBase = SlottableMixin(Movable);
 class SlottableThing extends SlottableThingBase {}
 
 /** A Creature whose species has a hand slot coupled to a hand part. */

@@ -17,7 +17,7 @@ import { VisibleMixin } from '../../../../../lib/description/Visible';
 import { MobileMixin } from '../../../../../lib/spatial/Mobile';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -38,7 +38,7 @@ class FakeAvatar extends FakeAvatarBase {
   }
 }
 
-class Lamp extends SwitchableMixin(VisibleMixin(Thing)) {}
+class Lamp extends SwitchableMixin(VisibleMixin(Movable)) {}
 
 function ctxFor(avatar: FakeAvatar, loc: Location): CommandContext {
   return CommandApi.createCommandContext({
@@ -96,7 +96,7 @@ describe('SwitchController', () => {
   });
 
   it('rejects a non-switchable target', async () => {
-    const rock = makeStuff(() => new (class extends VisibleMixin(Thing) {})());
+    const rock = makeStuff(() => new (class extends VisibleMixin(Movable) {})());
     const ctx = ctxFor(avatar, room);
     await makeStuff(() => new SwitchController()).execute(
       { target: one(rock, 'rock') } as CommandModel,

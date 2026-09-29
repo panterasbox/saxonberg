@@ -24,7 +24,7 @@ import { AetherMixin, type AetherHost } from '../../../../../lib/message/Aether'
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { SlottedMixin } from '../../../../../lib/slot/Slotted';
-import Thing from '../../../../../lib/stuff/Thing';
+import Movable from '../../../../../lib/stuff/Movable';
 import AetherImplant from '../../../../thing/AetherImplant';
 import CommsUpdate from '../../../CommsUpdate';
 import {
@@ -38,7 +38,7 @@ import type { MqlManyResult } from '../../../../../api/mql';
 import type { FieldMeta } from '../../../../../lib/mixin';
 
 class Actor extends SlottedMixin(
-  AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Thing)))),
+  AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Movable)))),
 ) {
   static fieldMeta: FieldMeta = {};
   override staticSlots = [

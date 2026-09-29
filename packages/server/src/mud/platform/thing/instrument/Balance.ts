@@ -6,10 +6,10 @@
  * is a future axis (deferred until content motivates it).
  */
 
-import Thing from '../../../lib/stuff/Thing';
+import Movable from '../../../lib/stuff/Movable';
 import type { CommandContributions } from '../../../api/command';
 
-export default class Balance extends Thing {
+export default class Balance extends Movable {
   static commandContributions: CommandContributions = {
     self: [],
     environment: ['platform/cmd/perception/weigh.yaml'],

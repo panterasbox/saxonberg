@@ -55,11 +55,10 @@
  * which would announce what the book teaches (D34).
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { LabelledMixin } from '@saxonberg/server/mud/lib/description/Labelled';
 import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { GradedMixin } from '@saxonberg/server/mud/lib/craft/Graded';
 import { CirculatingMixin } from '@saxonberg/server/mud/lib/residency/Circulating';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -72,7 +71,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 // and never its own. See `Detailed.detailRoot`.
 const SpellbookBase = CirculatingMixin(
   GradedMixin(
-    IdentifiableMixin(LabelledMixin(MarkedMixin(DetailedMixin(Thing)))),
+    IdentifiableMixin(LabelledMixin(MarkedMixin(Movable))),
   ),
 );
 

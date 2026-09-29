@@ -20,7 +20,7 @@ import { HandlingMixin } from '../Handling';
 import { BeliefStoreMixin } from '../../belief/BeliefStore';
 import { OrganismMixin } from '../../species/Organism';
 import Species from '../../../platform/idea/species/Species';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { Idea } from '../../stuff/Idea';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { StuffApi } from '../../../api/stuff';
@@ -32,7 +32,7 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 
 /** The kept-animal shape, in the composition order `KeptAnimal` uses. */
 class Animal extends BondedMixin(
-  HandlingMixin(BeliefStoreMixin(OrganismMixin(Thing))),
+  HandlingMixin(BeliefStoreMixin(OrganismMixin(Movable))),
 ) {}
 
 let seq = 0;
@@ -244,7 +244,7 @@ describe('⭐⭐ hasChosen — the naming gate has two routes home (fishing D10)
 
   it('⭐ three distinct fed days in one place earn it — and it must be THERE', () => {
     const { a, me } = devoted();
-    const bowl = makeStuffAtPath(() => new Thing(), '/test/bowl');
+    const bowl = makeStuffAtPath(() => new Movable(), '/test/bowl');
     const key = a.homeKeyOf(bowl);
     expect(key).toBe('/test/bowl');
     a.creditHomeCandidate(key, 1);
@@ -289,7 +289,7 @@ describe('takesFromHand — the surface rung is the water\'s hand rung', () => {
 describe('composition', () => {
   it('is Bonded, and a bare Thing is not', () => {
     expect(MixinApi.isBonded(animal())).toBe(true);
-    expect(MixinApi.isBonded(makeStuff(() => new Thing()))).toBe(false);
+    expect(MixinApi.isBonded(makeStuff(() => new Movable()))).toBe(false);
   });
 });
 

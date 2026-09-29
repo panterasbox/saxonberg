@@ -15,8 +15,7 @@
  */
 
 import Flask from './Flask';
-import { DetailedMixin } from '../../lib/description/Detailed';
 
-const ThermosBase = DetailedMixin(Flask);
+const ThermosBase = Flask;
 
 export default class Thermos extends ThermosBase {}

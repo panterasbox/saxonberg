@@ -39,7 +39,7 @@ import { describe, it, expect } from 'vitest';
 import { MixinApi } from '../mixin';
 import Ingot from '../../platform/thing/Ingot';
 import Casting from '../../platform/thing/Casting';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 
 const names = (ctor: unknown): string[] =>
   MixinApi.queryMixins(ctor as never)
@@ -133,7 +133,7 @@ describe('⭐⭐ the authorable read behind the census A/B split', () => {
     // Which is why `Containable` scored 8/599 and is NOT a narrowing
     // candidate: where a thing currently IS is runtime state, and
     // `fixedInPlace` is the only part of it an author ever writes.
-    const a = authorableOf(Thing);
+    const a = authorableOf(Movable);
     expect(a).toContain('fixedInPlace');
   });
 
@@ -142,7 +142,7 @@ describe('⭐⭐ the authorable read behind the census A/B split', () => {
     // zero here is list B and means nothing about whether the mixin
     // belongs; that judgment came from the concept (a floor is not
     // owned as an instance), not from this number.
-    const meta = MixinApi.getAllFieldMeta(Thing as never) as Record<
+    const meta = MixinApi.getAllFieldMeta(Movable as never) as Record<
       string,
       { authorable?: true } | undefined
     >;
@@ -151,7 +151,7 @@ describe('⭐⭐ the authorable read behind the census A/B split', () => {
   });
 
   it('⭐ and the prose fields ARE authorable — the 99% that made them mandatory', () => {
-    const a = authorableOf(Thing);
+    const a = authorableOf(Movable);
     for (const f of ['shortDescription', 'longDescription', 'keywords']) {
       expect(a, `${f} must read as authorable`).toContain(f);
     }

@@ -8,7 +8,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../lib/stuff/Thing';
+import Movable from '../../lib/stuff/Movable';
 import Location from '../../lib/stuff/Location';
 import Material from '../../lib/material/Material';
 import Floor from '../thing/Floor';
@@ -24,7 +24,7 @@ import { Quantity } from '../../lib/quantity';
 import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-class Ingot extends MeltableMixin(ThermalMixin(Thing)) {
+class Ingot extends MeltableMixin(ThermalMixin(Movable)) {
   static _mixinName = 'ForgeIngotTest';
 }
 class TestRoom extends Location {}

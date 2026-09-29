@@ -13,7 +13,7 @@ import type { EnergyInflictSpec } from '../../../../api/condition';
 import { ConditionApi } from '../../../../api/condition';
 import { ConditionLogic } from '../ConditionLogic';
 import { Creature } from '../../../../lib/creature/Creature';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import { StuffApi } from '../../../../api/stuff';
 import {
   ExecutionContextApi,
@@ -142,7 +142,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
   });
 
   it('afflicts nothing on a non-wound-able (non-Vitals) target', () => {
-    const notABody = makeStuff(() => new Thing());
+    const notABody = makeStuff(() => new Movable());
     const out = ConditionApi.inflict(notABody, {
       mechanism: 'edge',
       site: 'body.torso',

@@ -13,12 +13,11 @@
  * forge one, and why this row is a pointer rather than a database.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-export default class ClaimsRegister extends DetailedMixin(Thing) {
+export default class ClaimsRegister extends Movable {
   /**
    * ⭐ The counter affords `stake` to whoever is in the room — the
    * content-affords-the-verb rule. A mine's acts are conferred by the

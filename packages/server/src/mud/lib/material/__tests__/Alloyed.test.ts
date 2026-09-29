@@ -20,7 +20,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AlloyedMixin } from '../Alloyed';
 import Material from '../Material';
-import Thing from '../../stuff/Thing';
+import Movable from '../../stuff/Movable';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';
@@ -31,7 +31,7 @@ const IRON = '/stuff/idea/material/element/iron';
 const CARBON = '/stuff/idea/material/element/carbon';
 const STEEL = '/stuff/idea/material/alloy/steel';
 
-class TestBar extends AlloyedMixin(Thing) {
+class TestBar extends AlloyedMixin(Movable) {
   static _mixinName = 'TestBarAlloyed';
 }
 
@@ -60,7 +60,7 @@ describe('AlloyedMixin', () => {
   it('registers, and narrows through the predicate', () => {
     expect(MixinApi.hasMixin(TestBar, Mixins.Alloyed)).toBe(true);
     expect(MixinApi.isAlloyed(bar() as unknown as Stuff)).toBe(true);
-    expect(MixinApi.isAlloyed(makeStuff(() => new Thing()) as unknown as Stuff)).toBe(false);
+    expect(MixinApi.isAlloyed(makeStuff(() => new Movable()) as unknown as Stuff)).toBe(false);
   });
 
   it('⭐ an un-set piece alloys NOTHING — the sparse default', () => {

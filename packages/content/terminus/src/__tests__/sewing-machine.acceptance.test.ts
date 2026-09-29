@@ -26,7 +26,7 @@ import { WorldClockApi } from "@saxonberg/server/mud/api/worldclock";
 import { PersistenceManager } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import Material from "@saxonberg/server/mud/lib/material/Material";
-import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
+import Movable from "@saxonberg/server/mud/lib/stuff/Movable";
 import Garment from "@saxonberg/server/mud/platform/thing/equipment/Garment";
 import MendingTool from "@saxonberg/server/mud/platform/thing/MendingTool";
 import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
@@ -136,7 +136,7 @@ describe("the sewing machine (a MendingTool row)", () => {
 
     const machine = await hydrateMachine();
     ContainmentApi.move(machine, room);
-    const hide = makeStuff(() => new Thing());
+    const hide = makeStuff(() => new Movable());
     hide.setMaterial(
       StuffApi.findByTemplatePath<Material>(LEATHER) as unknown as Material,
     );

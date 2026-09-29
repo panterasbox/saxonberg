@@ -10,7 +10,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
-import Thing from "../../stuff/Thing";
+import Movable from "../../stuff/Movable";
 import Material from "../../material/Material";
 import { ComminutingMixin } from "../Comminuting";
 import { ToolMixin } from "../Tooled";
@@ -25,7 +25,7 @@ import {
 const FLOUR = "/stuff/idea/material/food/test-flour";
 const BRAN = "/stuff/idea/material/food/test-bran";
 
-class TestMill extends ComminutingMixin(ToolMixin(Thing)) {
+class TestMill extends ComminutingMixin(ToolMixin(Movable)) {
   static _mixinName = "TestMillComminuting";
 }
 

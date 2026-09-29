@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import Exit from '../../../../lib/boundary/Exit';
-import Thing from '../../../../lib/stuff/Thing';
+import Movable from '../../../../lib/stuff/Movable';
 import Material from '../../../../lib/material/Material';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { WetMixin } from '../../../../lib/wetness/Wet';
@@ -37,7 +37,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Firewood extends CombustibleMixin(
-  WetMixin(ThermalMixin(ReservedMixin(Thing))),
+  WetMixin(ThermalMixin(ReservedMixin(Movable))),
 ) {
   static _mixinName = 'FirewoodChem';
 }
@@ -45,7 +45,7 @@ class Firewood extends CombustibleMixin(
 class Cellar extends ReservedMixin(CartesianLocation) {
   static _mixinName = 'CellarChem';
 }
-class TestOccupant extends HasInteractiveMixin(Thing) {
+class TestOccupant extends HasInteractiveMixin(Movable) {
   static _mixinName = 'TestOccupantChem';
 }
 

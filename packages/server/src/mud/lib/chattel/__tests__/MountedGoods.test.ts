@@ -25,7 +25,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
-import Thing from "../../stuff/Thing";
+import Movable from "../../stuff/Movable";
 import { ChattelApi } from "../../../api/chattel";
 import { StuffApi } from "../../../api/stuff";
 import { PersistableApi } from "../../../api/persistable";
@@ -56,7 +56,7 @@ const ROOM_PATH = "/test/Parlour";
 const ALICE_PATH = "/platform/agent/Avatar/alice";
 
 /** The wall light: chattel (every Thing is) that can be adorned onto a host. */
-class Sconce extends AdornmentMixin(Thing) {}
+class Sconce extends AdornmentMixin(Movable) {}
 
 /** A room you can hang things in — every Location composes Adornable. */
 class Room extends PersistableMixin(
