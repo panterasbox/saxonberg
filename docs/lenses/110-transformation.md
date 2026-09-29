@@ -126,6 +126,97 @@ not need promoting to A **because the corpus carries it.** ⚠ Worth
 knowing that this means the hedge is doing work the tier table does not
 show.
 
+## ⭐⭐⭐ The optimism, and where it actually fails
+
+The pencil framing rests on a premise, and it should be stated as one:
+
+> **The game believes people are basically good.** It asserts that
+> communities, gathered, want good things for themselves. ⚠⚠ **And if
+> that is wrong, we have built one of the most dangerous social
+> engineering projects of the modern era.**
+
+⚠ **That is not hyperbole and this entry will not soften it.** Every
+component is present — instrumented behaviour, conferred standing, and a
+polity empowered to set incentives. What makes it safe is *only* the bet.
+
+### ⭐⭐ But the structure carries more of the load than the premise does
+
+`draft-constitution.md` Art. IV: **three co-equal chambers — Producer,
+Capital, Consumer** — and a bill becomes law on a **majority of houses
+(two of three).** So a harmful bill needs **two classes' interests
+aligned.** That is not a bet on goodness; it is factions checking each
+other.
+
+> ⭐ **The stated philosophy is Rousseauian — *people are basically
+> good.* The implemented structure is Madisonian — *factions check each
+> other.* The structure is the more defensible bet, and it is the one
+> that actually runs.** The project is better protected than its
+> philosophy implies.
+
+### ⚠⚠ And the case that defeats it is the one that motivated the project
+
+The reassuring example is tobacco: *no online community would pass a law
+encouraging smoking — you would need consumers and labour with a vested
+interest, and capital would struggle to raise for it.* True of America
+now. ⚠ **Run it at 1955 instead:** consumers (smokers) want them,
+producers (tobacco workers) need the jobs, capital sees a bull market.
+**All three houses align. Two of three, trivially.**
+
+So the filter works when harm falls **outside** the classes and fails
+when **a class chooses its own harm and the others profit from it.**
+
+> ⭐⭐⭐ **That is not an edge case. It is the exact shape of the industry
+> this project defines itself against** — the Feed's harm is consumers
+> *wanting* it. **The one harm the three-house structure cannot filter is
+> the one that motivated the design.**
+
+### ⚠ The subversive case has a partial answer, and it is not prevention
+
+Extreme bills are self-limiting because they are **legible**. Diffuse,
+delayed or benefit-framed harm is not, and no threshold catches it,
+because the harm is not articulable at vote time.
+
+The available mechanism is the **append-only record**: harm becomes
+visible **retrospectively** even when it was not visible prospectively,
+and §6 means nobody can quietly tidy it afterwards. ⭐ Friction and
+daylight for the third time in this entry — not *we will stop it* but
+**you will be able to prove it.**
+
+⭐ **And the real backstop is B7** — AGPL and the right to fork. It
+prevents nothing; it makes the experiment **observable and portable**, so
+a wrong bet produces public evidence rather than a private disaster.
+Weak comfort, and real.
+
+### ⭐ Where the good-floor actually sits
+
+⚠ **B2 is not a second statement of the optimism**, and reading it that
+way is a mistake worth recording. *Players are never evil* is a claim
+about **alignment** — which poles a player may occupy on one axis of the
+two-axis system ([alignment-slate](../slates/builds/alignment-slate.md):
+Good─Neutral─Evil as *Mitra─Pan─Moloch*, against
+Lawful─Neutral─Chaotic). The constitutional bet is about **collective
+choice.** Different objects.
+
+⭐⭐ **They sit on opposite sides of this lens.** A game that lets you
+practise being a piece of shit is a plausible mechanism for changing
+players *for the worse* — and this design declines it, and *actively
+works against it*. **B2 is #110's answer; the constitutional optimism is
+#110's risk.**
+
+⭐ **And the locked axis is the right one to lock.** Good/evil is closed
+for players; **Lawful/Chaotic is fully expressible** — and how you relate
+to law and order is *precisely* the Compact's subject matter. **The free
+axis is the one the game is actually about.**
+
+⚠ Two notes on it. It is **friction, not prohibition** — *actively work
+against* is not *you cannot* — so `measurement.md`'s *the platform
+records; it rarely forbids* survives: no evil terminus to arrive at,
+plenty of bad behaviour available, all of it recorded, drift redeemable.
+And by the altitude check it is **the grain**: B2 is Tier B, so a game on
+this substrate that wants playable villains is buildable, against the
+grain, at a cost. *Players are never evil* is this platform's
+**recommendation**, not its law.
+
 ## Tensions & risks
 
 ⚠⚠ **The hedge is proportional to a corpus we do not have.**
@@ -184,10 +275,21 @@ would be the anomaly.
 4. ⭐ **Give the altitude table its resistance column.** *Instantiated
    in content* is a real third mechanism and it is currently invisible in
    the rubric.
-5. ⚠ **Decide what to do about the unconsented good change.** The
+5. ⭐⭐⭐ **Publish the premise and the risk together.** *The game
+   believes people are basically good; if that is wrong this is one of
+   the most dangerous social engineering projects of the modern era* is
+   the most honest sentence available about this project, and it is
+   strengthened rather than weakened by the Madisonian structure sitting
+   under it.
+6. ⚠⚠ **Name the unfilterable harm.** Two-of-three cannot stop a class
+   choosing its own harm while the others profit — which is the Feed's
+   exact shape. **Nothing in the design currently addresses it**, and it
+   is the failure mode the project is most exposed to precisely because
+   it is the one it was built against.
+7. ⚠ **Decide what to do about the unconsented good change.** The
    Toontown case is the hardest thing in this lens and we have no
    position on it.
-6. ⭐ Schell's *don't replace the instructor* is answered better here
+8. ⭐ Schell's *don't replace the instructor* is answered better here
    than in his own chapter — **instructors hold standing in-fiction,
    wizards hold engine power** — and that answer belongs in the
    education material, not only in a lens entry.
