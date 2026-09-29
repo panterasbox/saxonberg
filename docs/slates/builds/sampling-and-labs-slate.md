@@ -8,7 +8,11 @@
 > tier (lens, streak plate, hardness kit) · the certified assayer
 > vocation · salting as a commitable fraud · sample integrity/
 > chain-of-custody · **the medical diagnostic lab** (blood typing,
-> panels, cultures, pathology — the `test`→`analyze` fold, 2026-09-24)
+> panels, cultures, pathology — the `test`→`analyze` fold, 2026-09-24;
+> ⭐ **its subject is not only the living** — toxicology on a CORPSE is the
+> only way a poisoning can ever be detected, since `spoilage.md`'s silent
+> population reports to no sense at all, so the pathology leg carries
+> FORENSICS as well as diagnosis → [autopsy-slate](../tails/autopsy-slate.md))
 > **Size:** a build
 
 **Captured 2026-09-01.** The companion to
