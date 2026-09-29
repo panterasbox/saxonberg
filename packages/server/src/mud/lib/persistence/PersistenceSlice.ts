@@ -34,19 +34,30 @@ import type { BeliefRecord } from '../belief/BeliefStore';
 /**
  * Where a captured content item sits relative to its host. Worn/equipped
  * placement lives in the host's {@link SlottedSlice} (by index), not here;
- * this records only the surface relation.
+ * this records only the placement relation.
  *
- * A surface-resting item (a bottle on the back-bar, a sword on a rack) has
- * `container = the host` and `restingOn = a Surfaced sibling` in the same
- * contents list — so the relation is captured as the **index** of that
- * sibling, resolved on restore to re-`placeOn` after both are cloned.
+ * A placed item (a bottle on the back-bar, a ham hanging from a hook) has
+ * `container = the host` and a placement host that is a **`Placing`
+ * sibling in the same contents list** — so the relation is captured as
+ * the **index** of that sibling plus the member's name, resolved on
+ * restore to re-`place` after both are cloned.
+ *
+ * ⚠ Named `ContentPlacement` because `Placement` is also the vocabulary
+ * Idea (`/platform/idea/Placement/<name>`) whose rows name the members
+ * this struct records.
  */
-export interface Placement {
+export interface ContentPlacement {
   /**
-   * Index (into the same container slice's `contents`) of the Surfaced
-   * sibling this item rests **on**, or undefined when it sits loose.
+   * Index (into the same container slice's `contents`) of the `Placing`
+   * sibling this item is placed on, or undefined when it sits loose.
    */
-  restingOnIndex?: number;
+  hostIndex?: number;
+  /**
+   * The member name (`on`, `in`, `from`) the item is placed under.
+   * Undefined when it sits loose; `on` for anything captured before the
+   * relation had a name.
+   */
+  placement?: string;
 }
 
 /**
@@ -65,12 +76,12 @@ export type ContentEntry =
   | {
       templatePath: string;
       state: Record<string, MixinSlice>;
-      placement: Placement;
+      placement: ContentPlacement;
     }
-  | { ref: string; key?: string; placement: Placement };
+  | { ref: string; key?: string; placement: ContentPlacement };
 
 /** A nested-host reference entry (narrowed by the `ref` discriminant). */
-export type RefEntry = { ref: string; key?: string; placement: Placement };
+export type RefEntry = { ref: string; key?: string; placement: ContentPlacement };
 
 /** The default slice — a layer's declared fields, marshalled to stored form. */
 export interface FieldsSlice {
@@ -219,7 +230,7 @@ export interface CaptureContext {
    * becomes a `{ ref }`; anything else nests its composed `state`. The
    * host recursion (sub-containers) rides `captureState`.
    */
-  captureItem(item: unknown, placement: Placement): ContentEntry;
+  captureItem(item: unknown, placement: ContentPlacement): ContentEntry;
   /** Compose the full per-mixin `state` map for a Stuff (recursion base). */
   captureState(item: unknown): Record<string, MixinSlice>;
   /**

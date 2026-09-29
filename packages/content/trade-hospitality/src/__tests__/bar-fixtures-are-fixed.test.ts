@@ -20,7 +20,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import Surface from '@saxonberg/server/mud/platform/thing/Surface';
+import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
 import WaterFixture from '@saxonberg/server/mud/platform/thing/WaterFixture';
 import Chair from '@saxonberg/server/mud/platform/thing/Chair';
 import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
@@ -37,7 +37,7 @@ import Tap from '../thing/Tap';
 describe('the bar is furniture, not stock', () => {
   const cases: Array<[string, () => unknown]> = [
     ['the back-bar / the well', () => new BarStation()],
-    ['a counter / shelf / workbench', () => new Surface()],
+    ['a counter / shelf / workbench', () => new Fitting()],
     ['the wash basin / the water tap', () => new WaterFixture()],
     ['a bar stool / bed / tub / armchair', () => new Chair()],
     ['the glass rack', () => new GlassRack()],

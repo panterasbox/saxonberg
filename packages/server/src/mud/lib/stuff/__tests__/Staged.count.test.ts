@@ -19,7 +19,7 @@ import { SingletonMixin } from '../Singleton';
 import { StagedMixin } from '../Staged';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
-import { SurfacedMixin } from '../../spatial/Surfaced';
+import { PlacingMixin } from '../../spatial/Placing';
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
@@ -52,7 +52,7 @@ const PlainBase = ContainableMixin(ContainerMixin(Idea));
 class PlainThing extends PlainBase {
   static fieldMeta: FieldMeta = {};
 }
-const SurfaceBase = SurfacedMixin(ContainableMixin(ContainerMixin(Idea)));
+const SurfaceBase = PlacingMixin(ContainableMixin(ContainerMixin(Idea)));
 class SurfaceThing extends SurfaceBase {
   static fieldMeta: FieldMeta = {};
 }
@@ -169,17 +169,18 @@ describe('count:', () => {
 });
 
 describe('as:', () => {
-  it('`onto` resolves against an `as` as well as against a path', async () => {
+  it('a placement key resolves against an `as` as well as against a path', async () => {
     const host = await StuffApi.create(() => new HostThing());
     await host.applyProps([
       { template: '/test/bench', as: 'counter' },
-      { template: '/test/lime', onto: 'counter' },
+      { template: '/test/lime', on: 'counter' },
     ]);
     const bench = host.getContents().find((c) => c instanceof SurfaceThing)!;
     const lime = host.getContents().find((c) => c instanceof PlainThing)!;
-    // The lime rests ON the bench — which is the whole point of `onto`,
-    // and the reason `as` has to be a placement key and not just a label.
-    expect(lime.getRestingOn()).toBe(bench);
+    // The lime sits ON the bench — which is the whole point of the
+    // placement key, and the reason `as` has to be addressable and not
+    // just a label.
+    expect((lime.getPlacement()?.host ?? null)).toBe(bench);
   });
 
   it('⚠ REFUSES two entries sharing one `as` — an identity with two claimants', async () => {

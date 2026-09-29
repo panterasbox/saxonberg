@@ -79,7 +79,7 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       // the verb — it was in `environment`, which reaches only the
       // containers ABOVE a thing, and nobody carries a basin).
       "/platform/thing/WaterFixture",
-      "/platform/thing/Surface", // the counter
+      "/platform/thing/Fitting", // the counter
       "/platform/thing/Thing", // the toilet — prose, no capability
       // ⭐ The one fixture that DID need a class, made explicitly (this
       // test's own instruction). A sconce is a light that lives in a

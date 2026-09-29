@@ -31,4 +31,4 @@ args:
     required: true
     scope: "peers"
     prepositions: [in, on]
-    requires: [VisibleMixin, ContainerMixin|SurfacedMixin]
+    requires: [VisibleMixin, ContainerMixin|PlacingMixin]

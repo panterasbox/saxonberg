@@ -23,7 +23,7 @@ import { ThermalMixin } from "../Thermal";
 import { ReservedMixin, Reserve } from "../../reserve";
 import { LightSourceMixin } from "../../perception/LightSource";
 import { ContainerMixin } from "../../spatial/Container";
-import { SurfacedMixin } from "../../spatial/Surfaced";
+import { PlacingMixin } from "../../spatial/Placing";
 import { FurnaceMixin } from "../../fire/Furnace";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
@@ -35,10 +35,10 @@ import {
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 
-/** The `Oven` composition: Furnace over Thermal over Surfaced + Container. */
+/** The `Oven` composition: Furnace over Thermal over Placing + Container. */
 class TestOven extends FurnaceMixin(
   LightSourceMixin(
-    ReservedMixin(ThermalMixin(SurfacedMixin(ContainerMixin(Thing)))),
+    ReservedMixin(ThermalMixin(PlacingMixin(ContainerMixin(Thing)))),
   ),
 ) {
   static _mixinName = "TestOvenCouple";
@@ -46,7 +46,7 @@ class TestOven extends FurnaceMixin(
 
 /** The `Campfire` composition, trimmed to what the couple needs. */
 class TestCampfire extends FurnaceMixin(
-  LightSourceMixin(ReservedMixin(SurfacedMixin(ThermalMixin(Thing)))),
+  LightSourceMixin(ReservedMixin(PlacingMixin(ThermalMixin(Thing)))),
 ) {
   static _mixinName = "TestCampfireCouple";
 }
@@ -230,10 +230,10 @@ describe("the furnace couple — a furnace heats what it holds", () => {
     f.ignite();
 
     const pot = loaf(293);
-    await ContainmentApi.placeOn(pot, f);
+    await ContainmentApi.place(pot, 'on', f);
     await pot.restamp();
 
-    expect(pot.getRestingOn()).toBe(f);
+    expect((pot.getPlacement()?.host ?? null)).toBe(f);
     expect(pot.lastAmbientK).toBeCloseTo(800, 0);
   });
 
@@ -244,10 +244,10 @@ describe("the furnace couple — a furnace heats what it holds", () => {
     o.ignite();
 
     const pot = loaf(293);
-    await ContainmentApi.placeOn(pot, o);
+    await ContainmentApi.place(pot, 'on', o);
     await pot.restamp();
 
-    expect(pot.getRestingOn()).toBe(o);
+    expect((pot.getPlacement()?.host ?? null)).toBe(o);
     expect(pot.lastAmbientK).toBeCloseTo(500, 0);
   });
 

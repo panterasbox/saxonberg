@@ -45,7 +45,7 @@ import UnboundedReceptacle from '../thing/UnboundedReceptacle';
 // Aliasing the base is the convention every other split-the-base class
 // uses inside its own file.
 import ThingBase from '../../lib/stuff/Thing';
-import { SurfacedMixin } from '../../lib/spatial/Surfaced';
+import { PlacingMixin } from '../../lib/spatial/Placing';
 import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { SealableMixin } from '../../lib/spatial/Sealable';
@@ -55,9 +55,9 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 
-class Board extends SurfacedMixin(ThingBase) {}
+class Board extends PlacingMixin(ThingBase) {}
 /** The same surface, made to go on a wall. */
-class WallShelf extends AdornmentMixin(SurfacedMixin(ThingBase)) {}
+class WallShelf extends AdornmentMixin(PlacingMixin(ThingBase)) {}
 /** A cold box: insulated AND closable — the two halves of cold storage. */
 class ColdBox extends ThermalMixin(SealableMixin(ContainerMixin(ThingBase))) {}
 
@@ -263,7 +263,7 @@ describe('archetype satisfaction', () => {
     expect(v.satisfied).toBe(false);
     const short = v.rows.filter((row) => !row.satisfied).map((row) => row.key);
     // ⭐ `surface` used to be short here too. The grain-chain build gave
-    // `Oven` a `SurfacedMixin` (D28) — a range is a firebox you put a
+    // `Oven` a `PlacingMixin` (D28) — a range is a firebox you put a
     // loaf in AND a plate you stand a pot on, which the shipped
     // kitchen-range row's own prose already promised. So the hotplate
     // this fixture stands up now satisfies the work surface, exactly as a

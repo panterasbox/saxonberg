@@ -662,7 +662,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       };
       const inside = litFurnaceK(self.getContainer() as unknown as Stuff | null);
       if (inside !== null) return inside;
-      return litFurnaceK(self.getRestingOn() as unknown as Stuff | null);
+      return litFurnaceK(
+        (self.getPlacement()?.host ?? null) as unknown as Stuff | null,
+      );
     }
 
     /**

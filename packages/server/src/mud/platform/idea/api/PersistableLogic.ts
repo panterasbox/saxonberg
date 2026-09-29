@@ -27,7 +27,7 @@ import type {
   ContainerSlice,
   SlottedSlice,
   FieldsSlice,
-  Placement,
+  ContentPlacement,
   HostPlacement,
   CaptureContext,
   RestoreContext,
@@ -36,7 +36,7 @@ import type {
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
-import type { Surfaced } from "../../../lib/spatial/Surfaced";
+import type { Placing } from "../../../lib/spatial/Placing";
 import type { Slotted } from "../../../lib/slot/Slotted";
 import type { Slottable } from "../../../lib/slot/Slottable";
 import type { ParcelOwner } from "../../../lib/parcel/ParcelRecord";
@@ -636,7 +636,7 @@ async function captureAtShutdownImpl(): Promise<number> {
  * is not absorbed; anything else nests its composed `state`, recursing
  * through sub-containers.
  */
-function captureItem(item: Stuff, placement: Placement): ContentEntry {
+function captureItem(item: Stuff, placement: ContentPlacement): ContentEntry {
   const templatePath = item.getTemplatePath() ?? "";
   if (MixinApi.isPersistable(item)) {
     // A MULTI-INSTANCE nested host records its per-instance key alongside
@@ -711,16 +711,18 @@ async function restoreState(
     for (const entry of containerSlice.contents) {
       restored.push(await restoreItem(entry, target, principal));
     }
-    // Surface pass — a resting item re-`placeOn`s its Surfaced sibling.
+    // Placement pass — a placed item re-`place`s onto its `Placing`
+    // sibling, under the member name the slice recorded.
     containerSlice.contents.forEach((entry, i) => {
-      const idx = entry.placement.restingOnIndex;
+      const idx = entry.placement.hostIndex;
       if (idx === undefined) return;
       const item = restored[i];
-      const surface = restored[idx];
-      if (item && surface && MixinApi.isSurfaced(surface)) {
-        ContainmentApi.placeOn(
+      const host = restored[idx];
+      if (item && host && MixinApi.isPlacing(host)) {
+        ContainmentApi.place(
           item as Stuff & Containable,
-          surface as Stuff & Surfaced,
+          entry.placement.placement ?? "on",
+          host as Stuff & Placing,
         );
       }
     });

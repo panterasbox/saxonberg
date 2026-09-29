@@ -17,7 +17,7 @@
  *
  * The two affordances are **independent of the spatial mixins**:
  * interior-bulk does not require `Container` (a fluid-only thermos
- * holds no pens); surface-bulk does not require `Surfaced` (the floor
+ * holds no pens); surface-bulk does not require `Placing` (the floor
  * carries a puddle without being a discrete-resting surface). Each
  * slot is gated by an authored boolean flag (`interiorBulk` /
  * `surfaceBulk` in template `data:`) so composition is explicit per

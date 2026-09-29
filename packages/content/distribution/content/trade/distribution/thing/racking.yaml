@@ -1,7 +1,7 @@
-# Warehouse racking — a Surfaced fixture cased goods rest on. The `warehouse`
+# Warehouse racking — a Placing fixture cased goods are placed on. The `warehouse`
 # bundle's one fixture; a venue's `props: { onto }` puts crates and
 # casks on it.
-class: /platform/thing/Surface
+class: /platform/thing/Fitting
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: racking

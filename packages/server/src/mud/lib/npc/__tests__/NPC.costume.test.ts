@@ -4,7 +4,7 @@
  *
  * Until this build there was no way to say it. No `wears:`, no `worn:`,
  * no `outfit:` on any NPC class, any archetype or any row in the tree,
- * and `props:` places a thing onto a `Surfaced` host rather than onto a
+ * and `props:` places a thing onto a `Placing` host rather than onto a
  * person — so **every authored person in the realm was naked**. It
  * never showed because every interior was 21 °C by decree and a naked
  * body survives 21 °C. The envelope build removes the decree.

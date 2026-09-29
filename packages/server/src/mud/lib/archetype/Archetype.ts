@@ -98,7 +98,7 @@ export interface Satisfaction {
  * - `heatK` — a furnace whose held temperature reaches `n` K.
  * - `bulkSource` — a bulk holder of the material (a tag, keyword or
  *   path): an unbounded source (a tap) or a stocked holder.
- * - `surface` — a `Surfaced` work surface.
+ * - `surface` — a `Placing` host that offers `on`: a work surface.
  * - `seating` — at least `n` posture-bearing fixtures.
  * - `coldStorage` — somewhere cold: the VENUE itself when it is cool
  *   (a cellar, a walk-in — cold storage is a property of a SPACE), or an
@@ -520,7 +520,7 @@ function satisfyingItem(
     return hit ? hit.getPresentation() : null;
   }
   if ('surface' in need) {
-    const hit = pool.find((i) => MixinApi.isSurfaced(i));
+    const hit = pool.find((i) => MixinApi.isPlacing(i));
     return hit ? hit.getPresentation() : null;
   }
   if ('seating' in need) {

@@ -23,11 +23,11 @@ import RecipeCatalogue from '../idea/RecipeCatalogue';
 import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Thing from '../../lib/stuff/Thing';
 import { ToolMixin } from '../../lib/craft/Tooled';
-import { SurfacedMixin } from '../../lib/spatial/Surfaced';
+import { PlacingMixin } from '../../lib/spatial/Placing';
 import type { StoredDocument } from '../../lib/document/StoredDocument';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-class Bench extends SurfacedMixin(Thing) {}
+class Bench extends PlacingMixin(Thing) {}
 class Tool extends ToolMixin(Thing) {}
 
 function doc(path: string, data: Record<string, unknown>): StoredDocument {

@@ -14,7 +14,7 @@ import { Idea } from "../../stuff/Idea";
 import { Creature } from "../../creature/Creature";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
-import { SurfacedMixin } from "../../spatial/Surfaced";
+import { PlacingMixin } from "../../spatial/Placing";
 import { StackableMixin } from "../../stuff/Stackable";
 import { ChattelMixin } from "../../chattel/Chattel";
 import { ContainmentApi } from "../../../api/containment";
@@ -31,7 +31,7 @@ class TestChest extends ContainerMixin(ContainableMixin(Idea)) {
 class TestCrate extends ContainableMixin(Idea) {
   static _mixinName = "TestCrate";
 }
-class TestCounter extends SurfacedMixin(ContainableMixin(Idea)) {
+class TestCounter extends PlacingMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestCounter";
 }
 class TestStack extends StackableMixin(ContainableMixin(Idea)) {
@@ -131,10 +131,10 @@ describe("Condition.matchesItem / holdsFor", () => {
     );
     ContainmentApi.move(counter, room);
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
-    ContainmentApi.placeOn(crate, counter);
+    ContainmentApi.place(crate, 'on', counter);
     const toCounter = delivery({ destinationPath: "/world/test/counter" });
     expect(new Condition(toCounter).holdsFor(crate)).toBe(true);
-    // …and to the room: the crate is in the room's contents via placeOn.
+    // …and to the room: the crate is in the room's contents via place().
     expect(new Condition(delivery()).holdsFor(crate)).toBe(true);
   });
 });

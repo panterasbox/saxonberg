@@ -566,8 +566,8 @@ describe('the dorm houseplant — content and placement', () => {
     expect(pot!.getContents()).toContain(plant);
     expect(plant!.getBed()).toBe(pot);
 
-    // Resting on the desk (the `onto:` populate spec).
-    expect(pot!.getRestingOn()).toBe(desk);
+    // Resting on the desk (the `on:` placement key).
+    expect((pot!.getPlacement()?.host ?? null)).toBe(desk);
 
     // A real peace lily: species resolved, alive, healthy, and its own host.
     expect(plant!.getSpecies()?.getBinomial()).toBe('Spathiphyllum wallisii');
@@ -876,7 +876,7 @@ describe('the dorm houseplant — durability', () => {
     expect(pot2!.getSoilVolume()).toBeCloseTo(before.soil, 6);
     expect(pot2!.getOccupant(PLANT_SLOT)).toBe(plant2);
     expect(pot2!.getContents()).toContain(plant2);
-    expect(pot2!.getRestingOn()).toBe(deskIn(reborn));
+    expect((pot2!.getPlacement()?.host ?? null)).toBe(deskIn(reborn));
     // Its growth state, and its own record key.
     expect(plant2!.getSoilMoisture()).toBeCloseTo(before.moisture, 4);
     expect(plant2!.getVigor()).toBeCloseTo(before.vigor, 4);

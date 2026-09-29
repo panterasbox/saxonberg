@@ -24,7 +24,7 @@
  * a support carries an `airExposure` fraction, so a ham on a slatted rack
  * dries about three times as fast as one dropped on the floor of the same
  * room. Before the lens pass the rack was decoration —
- * `ContainmentApi.placeOn` moves an item into the *surface's* container, so
+ * `ContainmentApi.place` moves an item into the *host's* container, so
  * racked and dropped were the same air and the same arithmetic.
  */
 
@@ -89,7 +89,7 @@ export default class DryController extends CommandController<DryModel> {
     }
 
     const rack = model.rack?.stuff ?? null;
-    if (rack !== null && !MixinApi.isSurfaced(rack)) {
+    if (rack !== null && !MixinApi.isPlacing(rack)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You cannot hang anything on ${Mml.thing(rack)}.`)
@@ -107,7 +107,8 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'not-movable' });
         return;
       }
-      if (!rack.canRest(target)) {
+      const veto = rack.canPlace(target, 'on');
+      if (!veto.ok) {
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(
@@ -117,7 +118,7 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'rack-refuses' });
         return;
       }
-      ContainmentApi.placeOn(target, rack);
+      ContainmentApi.place(target, 'on', rack);
     }
 
     const scope = this.scopeOf(target);
@@ -194,7 +195,7 @@ export default class DryController extends CommandController<DryModel> {
   /** How much of the target the air reaches — the support's own claim. */
   private exposureOf(target: Stuff): number {
     if (!MixinApi.isContainable(target)) return 0;
-    const support = target.getRestingOn();
+    const support = target.getPlacement()?.host ?? null;
     if (support !== null) return support.getAirExposure();
     return this.dial(AppSettingKeys.cureGroundExposure, 0.35);
   }

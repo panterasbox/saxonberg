@@ -107,18 +107,34 @@ import { ContainmentApi } from '../../api/containment';
 
 /**
  * One `props` entry. A bare path string moves the spawned instance
- * **into** self (containment); the object form places it **on** a surface —
- * `onto` names another entry's path (a `Surfaced` host) that must appear
- * **earlier** in the list (so it's already populated). The surface itself is
- * populated by a bare-string entry first; its resting items follow with
- * `onto` pointing at it.
+ * **into** self (containment); the object form places it under a
+ * **placement** — ⭐ the key IS the member's name, so
+ * `{ template: …, on: …/well }` sets it on the well,
+ * `{ template: …, from: …/meat-hook }` hangs it from the hook, and a
+ * member a pack adds tomorrow needs no change here.
+ *
+ * The value names another entry's `as` or path (a `Placing` host) that
+ * must appear **earlier** in the list, so it is already populated. Exactly
+ * one placement key per entry; two is an authoring error.
+ *
+ * Reserved keys — `template`, `as`, `count` — are the entry's own; every
+ * other key is read as a member name.
  *
  * A `cast` entry is a bare path string only — the troupe stands in the
- * room; it does not rest on furniture.
+ * room; it is not placed on furniture.
  */
 export type PropSpec =
   | string
-  | { template: string; as?: string; onto?: string; count?: number };
+  | ({ template: string; as?: string; count?: number } & {
+      [member: string]: unknown;
+    });
+
+/** The entry's own keys. Anything else in a `props:` object is a member. */
+const RESERVED_PROP_KEYS: ReadonlySet<string> = new Set([
+  'template',
+  'as',
+  'count',
+]);
 
 /**
  * A `cast` or `costume` entry. The object form exists for ONE reason:
@@ -129,6 +145,36 @@ export type CastSpec = string | { template: string; as?: string };
 
 /** A `costume` entry — the same shape as a cast entry. */
 export type CostumeSpec = CastSpec;
+
+/**
+ * The one placement key on a `props:` entry — the member's name and the
+ * host entry it names — or `null` when the entry is a plain move-into.
+ *
+ * ⭐ The key IS the member name, so a member a pack ships tomorrow
+ * (`from`, `behind`, `under`) works here with no kernel change. Two
+ * placement keys on one entry is an authoring error: an entry sits in
+ * one place.
+ */
+function placementKeyOf(
+  spec: Exclude<PropSpec, string>,
+  path: string,
+): { name: string; host: string } | null {
+  let found: { name: string; host: string } | null = null;
+  for (const key of Object.keys(spec)) {
+    if (RESERVED_PROP_KEYS.has(key)) continue;
+    const value = (spec as Record<string, unknown>)[key];
+    if (typeof value !== 'string' || value.length === 0) continue;
+    if (found !== null) {
+      throw new Error(
+        `StagedMixin.applyProps: '${path}' names two placements ` +
+          `(\`${found.name}\` and \`${key}\`). An entry sits in one ` +
+          `place — pick the member it actually sits under.`,
+      );
+    }
+    found = { name: key, host: value };
+  }
+  return found;
+}
 
 /** The template path an entry names, whichever form it is written in. */
 function templateOf(spec: PropSpec | CastSpec): string | null {
@@ -256,7 +302,7 @@ export function StagedMixin<
     ): Promise<void> {
       // Lazy import to dodge any cycle through Stuff.
       const { Template } = await import('./Template');
-      // Track populated instances by source path so a later `onto` entry can
+      // Track populated instances by source path so a later placement entry can
       // resolve the surface populated earlier in the list.
       const placed = new Map<string, Stuff & Containable>();
       // ⚠ Duplicate `as` within one list is an authoring error, not a
@@ -266,7 +312,8 @@ export function StagedMixin<
       for (const spec of specs) {
         const path = templateOf(spec);
         if (path === null) continue;
-        const onto = typeof spec === 'string' ? undefined : spec.onto;
+        const placement =
+          typeof spec === 'string' ? null : placementKeyOf(spec, path);
         const as = typeof spec === 'string' ? undefined : spec.as;
         const count =
           typeof spec === 'string' ? undefined : (spec as { count?: number }).count;
@@ -338,33 +385,36 @@ export function StagedMixin<
         for (let n = 0; n < times; n++) {
           if (singleton) {
             inst = await StuffApi.singleton<Stuff & Containable>(path);
-            // A move-into-self singleton already placed elsewhere is left be;
-            // an `onto` placement always (re)stamps the resting relation.
-            if (inst.getContainer() !== null && !onto) continue;
+            // A move-into-self singleton already placed elsewhere is left
+            // be; a placement always (re)stamps the relation.
+            if (inst.getContainer() !== null && !placement) continue;
           } else {
             inst = await StuffApi.clone<Stuff & Containable>(path);
           }
-          if (onto) {
-            const surface = placed.get(onto);
-            if (!surface) {
+          if (placement) {
+            const host = placed.get(placement.host);
+            if (!host) {
               throw new Error(
-                `StagedMixin.applyProps: '${path}' onto '${onto}' — ` +
-                  `the surface must be populated earlier in the list`
+                `StagedMixin.applyProps: '${path}' ${placement.name} ` +
+                  `'${placement.host}' — the host must be populated ` +
+                  `earlier in the list`
               );
             }
-            if (!MixinApi.isSurfaced(surface)) {
+            if (!MixinApi.isPlacing(host)) {
               throw new Error(
-                `StagedMixin.applyProps: onto '${onto}' is not a Surfaced host`
+                `StagedMixin.applyProps: ${placement.name} ` +
+                  `'${placement.host}' is not a Placing host`
               );
             }
-            ContainmentApi.placeOn(inst, surface);
+            ContainmentApi.place(inst, placement.name, host);
           } else {
             ContainmentApi.move(inst, this as unknown as Stuff & Container);
           }
         }
-        // ⚠ Keyed by BOTH identity and path, so `onto:` may name either
+        // ⚠ Keyed by BOTH identity and path, so a placement key may name
+        // either
         // — an `as` where the author gave one, the bare path where they
-        // did not. Under `count`, the LAST clone is what `onto` finds.
+        // did not. Under `count`, the LAST clone is what a placement key finds.
         if (as !== undefined) placed.set(as, inst);
         placed.set(path, inst);
       }

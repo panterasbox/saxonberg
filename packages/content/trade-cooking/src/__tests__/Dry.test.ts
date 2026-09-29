@@ -137,9 +137,9 @@ describe('`dry` — hang it where the air can reach it', () => {
       { target: bound(cut, 'cut'), rack: bound(rack, 'rack') } as DryModel,
       c,
     );
-    expect(MixinApi.isContainable(cut) && cut.getRestingOn()).toBe(rack);
-    // …and `placeOn` moved it into the ROOM, not into the rack — which is
-    // exactly why `getRestingOn()` is the only thing that tells a racked
+    expect(MixinApi.isContainable(cut) && (cut.getPlacement()?.host ?? null)).toBe(rack);
+    // …and `place` moved it into the ROOM, not into the rack — which is
+    // exactly why `getPlacement()` is the only thing that tells a racked
     // cut from a dropped one, and why the exposure lives on the support.
     expect(MixinApi.isContainable(cut) && cut.getContainer()).toBe(room);
   });
@@ -160,7 +160,7 @@ describe('`dry` — hang it where the air can reach it', () => {
     const notes = c.getNotes().map((n) => JSON.stringify(n)).join(' ');
     expect(notes).toContain('not-dryable');
     // It was NOT hung up.
-    expect(MixinApi.isContainable(rock) && rock.getRestingOn()).toBe(null);
+    expect(MixinApi.isContainable(rock) && (rock.getPlacement()?.host ?? null)).toBe(null);
   });
 
   it('⭐ the prospect is words: a span in dry air, a refusal in wet', async () => {
@@ -174,7 +174,7 @@ describe('`dry` — hang it where the air can reach it', () => {
     const probe = makeStuff(() => new Probe()) as unknown as Probe;
 
     const dry = scene(40);
-    ContainmentApi.placeOn(dry.cut as never, dry.rack as never);
+    ContainmentApi.place(dry.cut as never, 'on', dry.rack as never);
     const dryLine = probe.prospect(dry.cut, dry.room);
     expect(dryLine).toMatch(/^In this air it will take about /);
     // ⚠ No figure anywhere in it — the answer is a rate, and a number would
@@ -182,7 +182,7 @@ describe('`dry` — hang it where the air can reach it', () => {
     expect(dryLine).not.toMatch(/\d/);
 
     const wet = scene(100, 0);
-    ContainmentApi.placeOn(wet.cut as never, wet.rack as never);
+    ContainmentApi.place(wet.cut as never, 'on', wet.rack as never);
     expect(probe.prospect(wet.cut, wet.room)).toBe(
       'Nothing will dry in this air.',
     );
@@ -201,8 +201,8 @@ describe('`dry` — hang it where the air can reach it', () => {
     // That is the ~62 % crossing showing up as a sentence.
     const breezy = scene(30, 6);
     const still = scene(45, 0);
-    ContainmentApi.placeOn(breezy.cut as never, breezy.rack as never);
-    ContainmentApi.placeOn(still.cut as never, still.rack as never);
+    ContainmentApi.place(breezy.cut as never, 'on', breezy.rack as never);
+    ContainmentApi.place(still.cut as never, 'on', still.rack as never);
     const fast = probe.prospect(breezy.cut, breezy.room) ?? '';
     const slow = probe.prospect(still.cut, still.room) ?? '';
     expect(fast).not.toBe(slow);

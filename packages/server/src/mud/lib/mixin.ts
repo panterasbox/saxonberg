@@ -213,7 +213,7 @@ export const Mixins = {
   Advancement: 'AdvancementMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
-  Surfaced: 'SurfacedMixin',
+  Placing: 'PlacingMixin',
   Visible: 'VisibleMixin',
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
@@ -686,7 +686,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Containment & placement.
   ContainerMixin: "{} isn't a place",
   ContainableMixin: "{} can't be carried",
-  SurfacedMixin: "{} isn't a surface you can put things on",
+  PlacingMixin: "{} isn't something you can put things on or in",
   HeldGoodsMixin: "{} isn't a shelf goods are held on",
   ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
 

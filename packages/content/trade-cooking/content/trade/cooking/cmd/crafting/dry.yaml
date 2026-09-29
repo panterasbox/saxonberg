@@ -48,6 +48,6 @@ args:
     # The support is optional: hanging a thing in the open air works, it is
     # simply slower. When one IS named it carries the exposure fraction.
     default: "reachable:[class.DryingRack]"
-    requires: [SurfacedMixin]
+    requires: [PlacingMixin]
     validators:
       - /lib/command/validators/canReach

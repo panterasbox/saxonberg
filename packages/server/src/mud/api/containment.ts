@@ -32,7 +32,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
-import type { Surfaced } from '../lib/spatial/Surfaced';
+import type { Placing } from '../lib/spatial/Placing';
 import type { Warren } from '../lib/location/Warren';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
@@ -223,58 +223,42 @@ export class ContainmentApi {
     logic().placeDirect(item, env);
   }
 
-  /**
-   * Place `item` on `surface` — the on-surface analogue of
-   * {@link move}. Under Option D (see
-   * `docs/plans/affordance-verb-plan.md` § 2), containment stays
-   * hierarchical and exclusive; the supporting surface is an
-   * orthogonal auxiliary pointer.
-   *
-   * Pipeline:
-   *   1. Resolve target environment as the surface's container.
-   *      Surfaces themselves are Containable; their environment is
-   *      where the supported items live (e.g., the desk lives in
-   *      the room; apples on the desk are also in the room).
-   *   2. Run the surface's `canRest(item)` veto. Throws on
-   *      programmatic-contract failure (validators upstream produce
-   *      friendly user-input messages).
-   *   3. `move(item, targetEnv)` — this fires the usual container
-   *      change hooks AND clears any prior `restingOn` as part of
-   *      the change-of-container invariant.
-   *   4. Set the auxiliary `restingOn` pointer to the surface.
-   *      Order matters: move() in step 3 clears restingOn; the
-   *      _setRestingOn call after it restamps to the new surface.
-   *
-   * @throws Error when the surface has no environment to place the
-   *   item into, OR when `surface.canRest(item)` returns false.
-   */
-  public static placeOn(
-    item: ContainableStuff,
-    surface: Stuff & Surfaced,
-  ): void {
-    logic().placeOn(item, surface);
-  }
-
   // The `getContainer`/`getContents` read-wrappers were removed: those
   // reads live on the objects themselves — call `item.getContainer()` /
   // `container.getContents()` directly (narrow with MixinApi as needed).
+  // The same rule is why `looseContents` became
+  // `Container.getLooseContents()`: it read one container's own list and
+  // had no business being a free Api function.
 
   /**
-   * Filter a contents snapshot to the **loose** (top-level) items — those
-   * NOT resting on another item *in the same set*. Items resting on a listed
-   * surface (the bottles on the back-bar) are represented by that surface and
-   * discovered by examining it (`look <surface>`); listing them as room
-   * contents is the clutter we avoid. Shared by every contents-presentation
-   * surface — `look`, `sense`, and the inspection-card projection — so they
-   * agree. Pure: the containment walk is unchanged; this only shapes what's
-   * presented at top level.
+   * Place `item` under the placement `name` on `host` — the placement
+   * analogue of {@link move}. Containment stays hierarchical and
+   * exclusive; where inside its container a thing sits is an orthogonal
+   * auxiliary pair (the host, and the member's name).
+   *
+   * Pipeline:
+   *   1. Resolve the target environment as the host's container.
+   *      Placement hosts are themselves Containable; their environment
+   *      is where the placed items live (the desk lives in the room;
+   *      apples on the desk are also in the room).
+   *   2. Run the host's `canPlace(item, name)` veto. Throws on
+   *      programmatic-contract failure (validators upstream produce
+   *      friendly user-input messages).
+   *   3. `move(item, targetEnv)` — fires the usual container change
+   *      hooks AND clears any prior placement as part of the
+   *      change-of-container invariant.
+   *   4. Set the placement pair. Order matters: move() in step 3 clears
+   *      it; the `_setPlacement` after restamps to the new host.
+   *
+   * @throws ContainmentError when the host has no environment to place
+   *   the item into, OR when `host.canPlace(item, name)` vetoes.
    */
-  public static looseContents(items: readonly Stuff[]): Stuff[] {
-    const ids = new Set(items.map((i) => i.stuffId));
-    return items.filter((item) => {
-      const surface = MixinApi.isContainable(item) ? item.getRestingOn() : null;
-      return !(surface && ids.has(surface.stuffId));
-    });
+  public static place(
+    item: ContainableStuff,
+    name: string,
+    host: Stuff & Placing,
+  ): void {
+    logic().place(item, name, host);
   }
 
   // The old `findReachable` / `findHostedUpdate` finders were removed:

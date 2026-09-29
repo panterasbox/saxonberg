@@ -3,19 +3,19 @@
  *
  * Preposition-aware dispatch: `put X in Y` routes to
  * `ContainmentApi.move`, `put X on Y` routes to
- * `ContainmentApi.placeOn`, and `put X in Y` where X fits an open SLOT
+ * `ContainmentApi.place`, and `put X in Y` where X fits an open SLOT
  * on Y routes to `Slotted.occupy` (after the containment move — the
  * `plant`/`repot` order). The YAML's `prepositions: [in, on]` on
  * the `target` field lands the consumed preposition on
  * `model.target.prep`; the controller branches on that.
  *
  * When no preposition is typed, the controller infers mode from the
- * target's capabilities (Container → in, Surfaced → on). A target
+ * target's capabilities (Container → in, Placing → on). A target
  * composing BOTH (a desk-with-drawer) is ambiguous — the
  * controller rejects with a `put it in or on X?` prompt.
  *
- * The field-level `requires: ContainerMixin|SurfacedMixin` already gated the
- * target as Container OR Surfaced, so the `wrong-preposition`
+ * The field-level `requires: ContainerMixin|PlacingMixin` already gated the
+ * target as Container OR Placing, so the `wrong-preposition`
  * branch fires only when the typed preposition contradicts the
  * target's actual shape.
  *
@@ -58,7 +58,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
-import type { Surfaced } from '../../../../lib/spatial/Surfaced';
+import type { Placing } from '../../../../lib/spatial/Placing';
 import type { Slotted } from '../../../../lib/slot/Slotted';
 import type { Slottable } from '../../../../lib/slot/Slottable';
 import { ContainmentApi } from '../../../../api/containment';
@@ -115,7 +115,7 @@ export default class PutController extends CommandController<PutModel> {
     const mode = slot ? 'slot' : (prep ?? this.inferMode(target));
     if (!mode) {
       // No preposition AND target composes both Container and
-      // Surfaced — ambiguous. Reject; ask the player to specify.
+      // Placing — ambiguous. Reject; ask the player to specify.
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(Mml.compose`Put it in or on ${Mml.thing(target)}?`)
@@ -158,7 +158,7 @@ export default class PutController extends CommandController<PutModel> {
       }
     } else {
       // mode === 'on'
-      if (!MixinApi.isSurfaced(target)) {
+      if (!MixinApi.isPlacing(target)) {
         MessageApi.scene(giver)
           .topic('sense.survey')
           .toSelf(Mml.compose`You can't put things on ${Mml.thing(target)}.`)
@@ -166,11 +166,15 @@ export default class PutController extends CommandController<PutModel> {
         context.note({
           kind: 'controller-rejected',
           reason: 'wrong-preposition',
-          detail: `target not a Surfaced; cannot 'on'`,
+          detail: `target not a Placing host; cannot 'on'`,
         });
         return;
       }
-      if (!(target as Stuff & Surfaced).canRest(item as Stuff & Containable)) {
+      const veto = (target as Stuff & Placing).canPlace(
+        item as Stuff & Containable,
+        'on',
+      );
+      if (!veto.ok) {
         MessageApi.scene(giver)
           .topic('sense.survey')
           .toSelf(Mml.compose`${Mml.thing(item)} won't rest on ${Mml.thing(target)}.`)
@@ -178,7 +182,7 @@ export default class PutController extends CommandController<PutModel> {
         context.note({
           kind: 'controller-rejected',
           reason: 'cannot-rest',
-          detail: 'host rejected item',
+          detail: `host rejected item (${veto.reason})`,
         });
         return;
       }
@@ -228,9 +232,10 @@ export default class PutController extends CommandController<PutModel> {
         target as Stuff & Container,
       );
     } else {
-      ContainmentApi.placeOn(
+      ContainmentApi.place(
         item as Stuff & Containable,
-        target as Stuff & Surfaced,
+        'on',
+        target as Stuff & Placing,
       );
     }
     // Either way custody moved and title did not — re-derive the placement
@@ -283,9 +288,9 @@ export default class PutController extends CommandController<PutModel> {
 
   private inferMode(target: Stuff): 'in' | 'on' | 'slot' | null {
     const isContainer = MixinApi.isContainer(target);
-    const isSurfaced = MixinApi.isSurfaced(target);
-    if (isContainer && !isSurfaced) return 'in';
-    if (isSurfaced && !isContainer) return 'on';
+    const isPlacing = MixinApi.isPlacing(target);
+    if (isContainer && !isPlacing) return 'in';
+    if (isPlacing && !isContainer) return 'on';
     // Both → ambiguous; neither shouldn't happen (validator gates).
     return null;
   }
