@@ -26,7 +26,7 @@ data:
   shortDescription: glass hydrometer
   keywords: [hydrometer, glass, float]
   register: indefinite
-  long: A slim weighted glass float in a leather tube, its paper scale marked in thousandths. Float it in a working batch and read the sugar the ferment hasn't eaten yet.
+  longDescription: A slim weighted glass float in a leather tube, its paper scale marked in thousandths. Float it in a working batch and read the sugar the ferment hasn't eaten yet.
   capabilities: [hydrometry]
   mass: 0.2
   _materialPath: /stuff/idea/material/glass/glass

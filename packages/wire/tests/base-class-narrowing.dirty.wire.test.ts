@@ -91,6 +91,7 @@ const RATIONS_ROW = '/world/terminus/general-store/thing/rations';
 /* Part E's places. */
 const CORRIDOR = '/world/newbie-wilds/delve/corridor-1';
 const LANE = '/world/terminus/hinkley-hills/location/lane';
+const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
 
 const open: Session[] = [];
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
@@ -887,4 +888,41 @@ suite('E — what is a GOOD, and what is part of the place', () => {
     expectRefused(attempt);
     expectNote(attempt, 'controller-rejected', { reason: 'not-chosen' });
   }, 240_000);
+});
+
+/* ───────── F — the dead keys ───────── */
+
+suite('F — a key the Hydrator never writes is a key nobody wrote', () => {
+  it('⭐⭐ `look sextant` has a long description again', async () => {
+    /*
+     * ⚠⚠ **Eleven shipped instruments authored `long:` and the Hydrator
+     * has never written that field.** `VisibleMixin` declares
+     * `longDescription`; `long` is declared nowhere, so the Hydrator —
+     * which reflects only into fields a composed class declares —
+     * discarded every one of them at hydration, without a word. The
+     * balance, the altimeter, the hydrometer, the sextant: every
+     * instrument in the game rendered with NO long description, for the
+     * whole life of the instrumentation build.
+     *
+     * ⭐ This is the same failure as `material:` on twelve crop and
+     * quarry rows, and as the coach's dead `ambientLumens`: **a data key
+     * that matches no field is not an error, it is a silence.** The
+     * census is what made them countable; `lint:instanceable`'s
+     * invariant 12 is what keeps the count from growing, and its ceiling
+     * came down 436 → 412 on this fix.
+     *
+     * ⚠ The sextant is `props:`-minted in the Duncan Hall lobby, which
+     * is how the drive can reach it at all — `/stuff` is covered by no
+     * parcel, so nobody can `clone` one.
+     */
+    expectOk(await founder.cmd(`goto ${LOBBY}`));
+    await founder.drainProse();
+    const said = squash(plain(await (await founder.cmd('look sextant')).said()));
+    expect(said, 'the sextant renders at all').toMatch(/sextant|brass/i);
+    expect(
+      said,
+      'and its long description is the authored prose, not a blank — ' +
+        'the row said `long:` and nothing has ever read that key',
+    ).toMatch(/graduated arc|index mirror|vernier/i);
+  }, 180_000);
 });

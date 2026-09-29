@@ -1653,6 +1653,36 @@ a field a custom hydrator should own; the slate gets the list with the
   a long description. The census instrument half of the old W8(b) is
   **already done — `c32cb4db9`** — cite it, do not redo it. Commit:
   `fix(narrowing W8): eleven instruments get their long description back`.
+
+  **✅ W8 DONE.** 11 instrument rows `long:` → `longDescription:`, 12
+  rows `material:` → `_materialPath:` (3 farming crops + 9 quarrying,
+  **every value verified against a real material row before the
+  rename**). `ORPHAN_DATA_KEY_CEILING` **436 → 412**, the gate's own
+  measurement. Drive part F added and green: `look sextant` in the
+  Duncan Hall lobby renders *"graduated arc … index mirror … vernier"*
+  — 21/21.
+
+  ⚠ **`ls.yaml` has a `long:` and it is NOT a dead key** — it is the
+  `-l` CLI flag on the shell's `ls`. A blanket rename over `^  long:`
+  would have silently broken a shipped verb's option parsing. The rename
+  ran over the instrument directory only.
+
+  ⭐⭐ **And the fix made a second gate speak.** `lint:census` failed
+  immediately afterwards with *"`data.material` is listed in
+  `UNREAD_PATH_FIELDS` but is now read (or no longer appears in
+  content). Drop it — the list only shrinks."* That is a ratchet
+  noticing its own backlog has been paid down, which is exactly what the
+  census-then-ratchet pattern is for, and it is the first time in this
+  build a gate has told me something I did not already know from the
+  census. Dropped, plus `PURE_REPEAT_CEILING` 52 → 47 in the same run.
+
+  ⚠ **The real lesson is the failure mode, not the count.** `long:` and
+  `material:` match no declared field, so the Hydrator discarded them —
+  and a data key that matches no field is **not an error, it is a
+  silence**. Eleven instruments have rendered with no long description
+  for the whole life of the instrumentation build, and twelve crop and
+  quarry rows have been made of nothing. Same shape as the coach's dead
+  `ambientLumens`, same shape as `feel`/`taste` never running.
 - **W9 — the naming wave (N1 · N2 · N4, all ruled).**
   (a) `lib/fire/Furnace.ts` → `lib/fire/Burner.ts`; `FurnaceMixin` →
   `BurnerMixin`, `_mixinName`, `Mixins.Furnace` → `Mixins.Burner`,

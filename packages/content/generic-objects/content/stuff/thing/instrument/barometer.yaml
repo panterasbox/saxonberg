@@ -25,7 +25,7 @@ data:
   shortDescription: aneroid barometer
   keywords: [barometer, aneroid]
   register: indefinite
-  long: A dial-faced barometer calibrated in pascals. Tap to read the local atmospheric pressure.
+  longDescription: A dial-faced barometer calibrated in pascals. Tap to read the local atmospheric pressure.
   capabilities: [barometry]
   mass: 0.5
   _materialPath: /stuff/idea/material/alloy/bronze

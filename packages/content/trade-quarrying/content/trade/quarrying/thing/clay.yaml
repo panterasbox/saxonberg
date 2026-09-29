@@ -17,6 +17,6 @@ data:
   longDescription: >-
     Heavy grey-blue clay, cool and slick, holding the shape of the spade
     that cut it.
-  material: /stuff/idea/material/earth/clay
+  _materialPath: /stuff/idea/material/earth/clay
   mass: 12
   quantity: 1

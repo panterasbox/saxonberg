@@ -15,6 +15,6 @@ data:
   longDescription: >-
     Clay, gravel, stones and roots, thrown together. Nobody wants it and it
     had to come off before anything worth having came out.
-  material: /stuff/idea/material/bulk/drift
+  _materialPath: /stuff/idea/material/bulk/drift
   mass: 30
   quantity: 1

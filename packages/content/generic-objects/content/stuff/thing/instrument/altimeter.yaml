@@ -25,7 +25,7 @@ data:
   shortDescription: brass altimeter
   keywords: [altimeter, brass]
   register: indefinite
-  long: An altimeter calibrated against the standard sea-level reference. Refuses to give a reading in vacuum.
+  longDescription: An altimeter calibrated against the standard sea-level reference. Refuses to give a reading in vacuum.
   capabilities: [altimetry]
   mass: 0.4
   _materialPath: /stuff/idea/material/alloy/bronze

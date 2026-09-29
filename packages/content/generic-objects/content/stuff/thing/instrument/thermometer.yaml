@@ -25,7 +25,7 @@ data:
   shortDescription: brass thermometer
   keywords: [thermometer, brass]
   register: indefinite
-  long: A pocket thermometer with a glass column and a brass case. Read it to learn the ambient temperature in Kelvin.
+  longDescription: A pocket thermometer with a glass column and a brass case. Read it to learn the ambient temperature in Kelvin.
   capabilities: [thermometry]
   mass: 0.2
   _materialPath: /stuff/idea/material/alloy/bronze

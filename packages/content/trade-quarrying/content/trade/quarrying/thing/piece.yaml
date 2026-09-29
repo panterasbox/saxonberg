@@ -15,5 +15,5 @@ data:
   longDescription: >-
     A squared piece of stone about as much as a man can carry, one face
     split fresh and bright.
-  material: /stuff/idea/material/rock/granite
+  _materialPath: /stuff/idea/material/rock/granite
   mass: 25

@@ -11,7 +11,7 @@ data:
   shortDescription: brass sextant
   keywords: [sextant, arc, mirror]
   register: indefinite
-  long: >-
+  longDescription: >-
     A heavy brass frame with a graduated arc, a shaded index mirror and
     a small telescope. Bring the sun down to the horizon, clamp the
     index, and read the angle off the vernier.
