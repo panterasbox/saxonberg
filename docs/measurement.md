@@ -14,7 +14,7 @@ engages this doc more than any other: [#55](./lenses/55-visible-progress.md)
 [#46](./lenses/46-reward.md) (what B5 costs) ·
 [#25](./lenses/25-judgment.md) (judging people **well** is the product,
 not only a hazard) · [#37](./lenses/37-fairness.md) (*"fair" only ever
-means "even contest"* in 113 lenses) · [#79](./lenses/79-freedom.md)
+means "even contest"* in 116 lenses) · [#79](./lenses/79-freedom.md)
 (why the freedom to decide **badly** is a precondition of measuring
 anything).
 

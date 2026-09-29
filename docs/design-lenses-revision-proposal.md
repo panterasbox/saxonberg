@@ -27,7 +27,13 @@ duplication audit is Part 1 and is the least interesting part.
 
 ## Part 0 · What was read
 
-The 3rd edition's **Table of Lenses** (pp. xxvii–xxxi) lists **113
+⚠ **Count corrected 2026-09-29 — it was 113 here and it is 116.** The
+first read stopped one page short of the table's end, missing **#111
+Responsibility**, **#112 the Raven** and the listing of **#∞**. The
+substantive claims were re-checked against all three and stand; see
+[lenses/37-fairness.md](./lenses/37-fairness.md).
+
+The 3rd edition's **Table of Lenses** (pp. xxvii–xxxiii) lists **116
 lenses** — #1–#110 plus the half-lenses #67½ Metaphor, #93½ Presence,
 #95½ Cheatability — and the book closes with an unnumbered #∞ Lens of
 Your Secret Purpose. The roster was read in full; **nineteen lens cards
@@ -39,7 +45,7 @@ education vertical lives in its blast radius.
 
 ⚠ **Not everything was read.** Roughly ninety lens cards were not, and
 any claim below of the form *"the deck has nothing for X"* is a claim
-about the roster (all 113 names) plus the cards actually read. Where
+about the roster (all 116 names) plus the cards actually read. Where
 that distinction matters it is stated.
 
 ---
@@ -128,7 +134,7 @@ competitive balance: symmetry vs. asymmetry, rock-paper-scissors,
 *"give each player a chance of winning that each will consider to be
 fair."*
 
-> ⭐⭐ Across all 113 lens **names** and every card read, **"fair" only
+> ⭐⭐ Across all 116 lens **names** and every card read, **"fair" only
 > ever means "even contest."** There is no lens about a game treating a
 > person unjustly outside a contest — no lens for being refused,
 > excluded, denied credit, or permanently barred.

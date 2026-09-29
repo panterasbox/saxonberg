@@ -35,12 +35,19 @@ Secondarily lens 3b, where contests actually happen.
 ## ⭐⭐⭐ The negative finding
 
 This entry was opened expecting distributive justice — the lens named
-*Fairness*, in a deck of 113, ought to be the one that asks whether a
+*Fairness*, in a deck of 116, ought to be the one that asks whether a
 game treats people justly. **It is not.** It is competitive balance:
 symmetry, win probability, handicapping, rock-paper-scissors.
 
-> ⭐⭐ **Across all 113 lens names and every card read, "fair" only ever
+> ⭐⭐ **Across all 116 lens names and every card read, "fair" only ever
 > means "even contest."**
+
+⚠ **Re-checked 2026-09-29** against the three lenses an earlier count had
+missed. **#111 Responsibility** (*"does my game help people? How?"*) and
+**#112 the Raven** (*"is making this game worth my time?"*) are the
+**designer's** obligations, not the player's treatment, and **#∞** asks
+why *you* are doing this. The finding survives: nothing in the deck asks
+whether a game treats a person justly outside a contest.
 
 There is no lens anywhere in the deck for **being wronged outside a
 contest** — no lens for being refused, excluded, denied credit, passed

@@ -51,8 +51,12 @@ below**, where a row may name several entries.
 
 Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
-which read the full Table of Lenses — 113 lenses plus the unnumbered
-*Lens of Your Secret Purpose* — and 19 cards in their own words.
+which read the full Table of Lenses — ⚠ **116 lenses**: #1–#112, the
+three half-lenses (#67½ Metaphor, #93½ Presence, #95½ Cheatability), and
+the unnumbered **#∞ Lens of Your Secret Purpose**. *(Corrected
+2026-09-29: an earlier count of 113 stopped one page short of the table's
+end and missed **#111 Responsibility** — "does my game help people,
+how?" — and **#112 the Raven** — "is making this game worth my time?")*
 ✅ **Thirteen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
 `31` · `37` · `46` · `55` · `79` · `86` · `91` · `93`. ⛔ **`92` was written and then deleted** —
 see below.
@@ -67,7 +71,7 @@ see below.
 | **4 · Values** | ✅ [`55-visible-progress.md`](./55-visible-progress.md) | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
 | **4 · Values** | ✅ [`91-character-transformation.md`](./91-character-transformation.md) | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
 | **7 · Governance** | ✅ [`25-judgment.md`](./25-judgment.md) | Lens 7's only antecedent in the deck — and it stops at *do players feel it is fair*. |
-| **7 · Governance** | ✅ [`37-fairness.md`](./37-fairness.md) | Across 113 lenses **"fair" only ever means "even contest"** — the evidence lens 7 is unprecedented. ⚠ And the one contest we *do* have: wizards and players share a world, and the answer is constitutional, not technical. |
+| **7 · Governance** | ✅ [`37-fairness.md`](./37-fairness.md) | Across 116 lenses **"fair" only ever means "even contest"** — the evidence lens 7 is unprecedented. ⚠ And the one contest we *do* have: wizards and players share a world, and the answer is constitutional, not technical. |
 | **2 · Expression · 3b** | ✅ [`86-character-function.md`](./86-character-function.md) | ⭐ Casting, not staffing — and **casting happens three times** (code · content · runtime). We built the pass-2 machinery and skipped the craft: the save gate knows *legal*, never *good*. The prize is **dramatic predicates** — his against-type casting made declarative, and per-player. |
 | **2 · Expression** | ✅ [`31-action.md`](./31-action.md) | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* ⭐ **His parser's vocabulary was hidden; ours is data** — affordance, refusal, prompting, the collision ladder, an LLM front-end. Adopts the **basic:strategic ratio** question. |
 | **2 · Expression · 3a** | ✅ [`79-freedom.md`](./79-freedom.md) | ⭐ **Freedom here is a political question in a design question's clothes.** Two regimes — a sandbox that is maximal and a shared world the polity grants — and exactly one platform-level class, the wizard flag. |
@@ -112,7 +116,7 @@ here** — and by that measure the coverage is uneven.
 **By rubric lens** ([design-lenses.md](../design-lenses.md) § The
 borrowed instruments has the full table): **lenses 1, 5 and 6 have no
 instrument at all**, and 3b has one. Lens 5's emptiness is a fact about
-the deck — nothing in 113 lenses asks whether a mechanism survives an
+the deck — nothing in 116 lenses asks whether a mechanism survives an
 epoch. Lens 1's and lens 6's are holes we could fill.
 
 **By design area** — where an agent is actually working when they need

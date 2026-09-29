@@ -92,7 +92,7 @@ states which of the seven it sharpens and what it demands.
 
 | | sharpened by | what it adds |
 |---|---|---|
-| **1 Pedagogy** | [#17 The Toy](./lenses/17-the-toy.md) · [#2 Essential Experience](./lenses/2-essential-experience.md) | **is deriving the fun?** — the test for measuring understanding without an exam. ⚠ The *derivability* half itself still has no antecedent in 113 lenses |
+| **1 Pedagogy** | [#17 The Toy](./lenses/17-the-toy.md) · [#2 Essential Experience](./lenses/2-essential-experience.md) | **is deriving the fun?** — the test for measuring understanding without an exam. ⚠ The *derivability* half itself still has no antecedent in 116 lenses |
 | **2 Expression** | [#31 Action](./lenses/31-action.md) · [#79 Freedom](./lenses/79-freedom.md) · [#86 Character Function](./lenses/86-character-function.md) · [#93 Nameless Quality](./lenses/93-the-nameless-quality.md) | the **basic:strategic ratio**; *is the surface enterable*; casting vs. allocation; *does the substrate impose properties nobody asked for* |
 | **3a Immersion** | [#93](./lenses/93-the-nameless-quality.md) · [#79](./lenses/79-freedom.md) | **not-separateness** as the positive form the failure list lacks |
 | **3b Participation** | [#86](./lenses/86-character-function.md) | the function list, and *every NPC doing two jobs is a vacancy we deleted* |

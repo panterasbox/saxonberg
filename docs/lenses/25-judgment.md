@@ -28,7 +28,7 @@ want to improve?**
 ## Which of our seven it sharpens
 
 **[Lens 7 · Governance](../design-lenses.md)** — of which it is the
-**only antecedent in 113 lenses.** Secondarily lens 4, where standing
+**only antecedent in 116 lenses.** Secondarily lens 4, where standing
 is conferred.
 
 ## Why our design prompts it
