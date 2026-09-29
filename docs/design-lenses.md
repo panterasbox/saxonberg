@@ -51,7 +51,7 @@ states which of the seven it sharpens and what it demands.
 | **3b Participation** | [#86](./lenses/86-character-function.md) | the function list, and *every NPC doing two jobs is a vacancy we deleted* |
 | **4 Values** | [#46 Reward](./lenses/46-reward.md) · [#55 Visible Progress](./lenses/55-visible-progress.md) · [#91 Character Transformation](./lenses/91-character-transformation.md) | the price of refusing variable reward; *ambient* vs *visible* progress; **the change gap** |
 | **5 Continuity** | ⛔ *nothing* | no lens in the deck asks it; see [#37](./lenses/37-fairness.md) on why the deck cannot |
-| **6 Economy** | ⛔ *nothing yet* | his #52 is currency balance only |
+| **6 Economy** | [#27 Time](./lenses/27-time.md) | *time is the currency every other is priced in* — nested time, and **what determines the length of an activity** |
 | **7 Governance** | [#25 Judgment](./lenses/25-judgment.md) · [#37 Fairness](./lenses/37-fairness.md) | judging people *well* is a product, not only a hazard; and the evidence lens 7 is unprecedented |
 
 ⚠ **Three of the seven have no instrument**, which is a fact about the

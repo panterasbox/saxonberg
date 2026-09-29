@@ -53,12 +53,13 @@ Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
-✅ **Nine written** (2026-09-29): `25` · `31` · `37` · `46` · `55` ·
+✅ **Ten written** (2026-09-29): `27` ·: `25` · `31` · `37` · `46` · `55` ·
 `79` · `86` · `91` · `93`. ⛔ **`92` was written and then deleted** —
 see below.
 
 | Sharpens | Entry | What it is for |
 |---|---|---|
+| **6 · Economy · 3a** | ✅ [`27-time.md`](./27-time.md) | ⭐ **His chapter is about escaping time; ours is about being subject to it** — rewind, pause and speed-up each forbidden by a named invariant. Nested time, the pitcher, and Q1 unanswered: *what determines the length of an activity?* |
 | **4 · Values** | ✅ [`46-reward.md`](./46-reward.md) | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
 | **4 · Values** | ✅ [`55-visible-progress.md`](./55-visible-progress.md) | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
 | **4 · Values** | ✅ [`91-character-transformation.md`](./91-character-transformation.md) | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
@@ -116,7 +117,7 @@ one:
 
 | working on… | candidate | have it? |
 |---|---|---|
-| activities · scheduler · contracts · quests | **#27 Time** — *nested time*, clocks vs races, and we forbid all three of his time powers | ⛔ |
+| activities · scheduler · contracts · quests | **#27 Time** | ✅ |
 | the economy | **#7 Endogenous Value**, #52 Economy | ⛔ |
 | combat · trade difficulty | **#21 Flow**, #38 Challenge | ⛔ |
 | the response envelope · messaging | **#63 Feedback**, #64 Juiciness | ⛔ |
