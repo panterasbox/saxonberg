@@ -52,6 +52,25 @@
  *
  * A human table on stdout, and `--json <path>` writes the full matrix
  * for a planner to reason over cluster by cluster.
+ *
+ * ## ⭐⭐ `--cotenancy` — the OTHER question
+ *
+ * The audit above asks *does this class need its mixins*. It cannot ask
+ * the sibling question, which is just as much of the work:
+ *
+ * > **Do the rows sharing a class actually deserve to — and if they do,
+ * > is the class named for what they have in common?**
+ *
+ * The measurable form is divergence. Rows of one class that author
+ * DISJOINT field sets are not the same kind of thing wearing one class;
+ * they are two kinds of thing that nobody has separated yet. A key some
+ * rows set and others never touch is where the seam is.
+ *
+ * ⚠ Divergence is evidence, not a verdict — the same three readings
+ * apply. Rows may diverge because they are genuinely different (split
+ * the class), because half of them are under-authored (write the rows),
+ * or because the field is optional by design (a `Lamp` that is lit and
+ * one that is not).
  */
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "fs";
@@ -187,6 +206,7 @@ async function main(): Promise<void> {
   const jsonFlag = process.argv.indexOf("--json");
   const jsonPath = jsonFlag >= 0 ? process.argv[jsonFlag + 1] : null;
 
+  const cotenancy = process.argv.includes("--cotenancy");
   const rows = readRows();
   const byClass = new Map<string, Row[]>();
   for (const r of rows) {
@@ -306,8 +326,77 @@ async function main(): Promise<void> {
     );
   }
 
+  if (cotenancy) {
+    console.info("\n⭐⭐ CO-TENANCY — rows that share a class and are not alike");
+    console.info(
+      "   A key some rows set and others never touch is where a seam is.\n" +
+        "   (evidence, not a verdict — the same three readings apply)\n",
+    );
+    interface Split {
+      classPath: string;
+      rows: number;
+      core: number;
+      splits: Array<{ field: string; setters: number }>;
+      score: number;
+    }
+    const splits: Split[] = [];
+    for (const [classPath, classRows] of byClass) {
+      if (classRows.length < 3) continue;
+      const counts = new Map<string, number>();
+      for (const r of classRows)
+        for (const k of r.dataKeys) counts.set(k, (counts.get(k) ?? 0) + 1);
+      const n = classRows.length;
+      // A field is a SEAM when a real minority sets it: not universal
+      // (that is the class's own core) and not a one-off (that is a
+      // single bespoke row, which is what authoring is for).
+      const seams = [...counts.entries()]
+        .filter(([, c]) => c >= 2 && c <= n - 2)
+        .map(([field, c]) => ({ field, setters: c }))
+        .sort((a, b) => b.setters - a.setters);
+      const core = [...counts.values()].filter((c) => c === n).length;
+      if (seams.length === 0) continue;
+      // Score by how evenly the biggest seam splits the class: a field
+      // set by half its rows is a fault line; one set by all but one is
+      // an omission.
+      const top = seams[0]!.setters;
+      const evenness = 1 - Math.abs(top / n - 0.5) * 2;
+      splits.push({
+        classPath,
+        rows: n,
+        core,
+        splits: seams.slice(0, 5),
+        score: evenness * n,
+      });
+    }
+    for (const s2 of splits.sort((a, b) => b.score - a.score).slice(0, 25)) {
+      const fields = s2.splits
+        .map((x) => `${x.field} ${x.setters}/${s2.rows}`)
+        .join(" · ");
+      console.info(`  ${s2.classPath}  (${s2.rows} rows, ${s2.core} shared)`);
+      console.info(`      ${fields}`);
+    }
+    console.info(`\n  ${splits.length} classes with a seam.`);
+  }
+
   if (jsonPath) {
-    writeFileSync(jsonPath, JSON.stringify({ report, failed }, null, 2));
+    writeFileSync(
+      jsonPath,
+      JSON.stringify(
+        {
+          report,
+          failed,
+          // Per-row authored keys, so a planner can ask the co-tenancy
+          // question itself rather than trusting this script's scoring.
+          rows: rows.map((r) => ({
+            path: r.path,
+            classPath: r.classPath,
+            keys: [...r.dataKeys].sort(),
+          })),
+        },
+        null,
+        2,
+      ),
+    );
     console.info(`\nfull matrix → ${jsonPath}`);
   }
 }
