@@ -129,6 +129,31 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
     expect(vision().viewerVisionProfile(viewer).bandShift).toBe(1);
   });
 
+  it('⚠⚠ a band shift cannot MANUFACTURE photons — night vision in a sealed cellar is still blind', async () => {
+    // `applyBandShift` is index arithmetic on the lux tag table, so a
+    // `+1` species read `very-dim` in a room with NO LIGHT IN IT AT ALL.
+    // Never noticed until the envelope build, because until then
+    // nowhere was dark. Seeing further into the dark is not seeing in
+    // the absence of light (envelope D11).
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    const cellar = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(cellar, 0, 0, 0);
+    // No ambient, no emitter, no exit: genuinely zero photons.
+
+    const viewer = await StuffApi.create(() => new TestObserver());
+    const nightVision = await StuffApi.create(() => new NightVisionShadow());
+    ShadowApi.attach(viewer, nightVision);
+
+    expect(vision().viewerVisionProfile(viewer).bandShift).toBe(1);
+    expect(vision().perceivedBand(viewer, cellar)).toBe('pitch-black');
+
+    // ⭐ And the shift still works the moment there IS light: one
+    // starlit lumen reads a band brighter than a human would see it.
+    cellar.setAmbientFlux(0.5);
+    expect(vision().perceivedBand(viewer, cellar)).toBe('very-dim');
+  });
+
   it('multiple shadows compose via callDown — chain order respected', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);

@@ -332,7 +332,33 @@ destination isn't loaded the getter throws — async-aware
 callers (`Mobile.traverse`) `await
 exit.resolveDestination()` first.
 
-## Exit-kind templates (`/stuff/idea/exits/<kind>`)
+## Exit-kind templates (`<root>/idea/exits/<kind>`)
+
+⭐⭐ **Every exit in the world is a clone of a kind row.** There is no
+`new Exit(...)` branch left anywhere in the tree — an entry that names
+no `kind:` clones the platform's **`/platform/idea/exits/passage`**, a
+bare passage that authors nothing. That is the point: an exit built in
+TypeScript could say nothing an author had written, and the code that
+built one kept apologising for it in comments.
+
+⚠ `passage` authors an EMPTY `media` deliberately. An exit with no
+media admits the ground pace family (walk / sneak / run) with no
+modality lookup; writing `media: [ground]` out loud would make every
+unremarkable doorway depend on the mode roster being warm.
+
+**`Exitable.installExit(kindOrExit, opts, configure?)` is the ONE
+install path** for a code-minted exit: clone the kind row, run
+`configure` (whatever the subclass's constructor used to take — a floor
+number, a unit key, a warren reference), `bind` it to this edge,
+install. The ROOM must be the caller, because `bind` is
+participant-gated to a room party to the edge.
+
+Passing an existing exit instead of a kind path RE-installs it — the
+case of **an exit that moves with its host**: a vessel's `in`/`out`
+pair and a sandbox crossing's passage are minted once at
+`postRegister` and rebound as the host travels. That is what
+`Exit.rebind(opts)` exists for, and it is the only sanctioned way past
+`bind`'s "already bound" refusal.
 
 An **exit kind** is an authored template a room's `exits:` entry
 references via `kind:` — the authorable *nature of the passage*
@@ -344,6 +370,7 @@ exits:
   north:
     destination: /world/terminus/counting-houses/circle-parlor
     kind: /stuff/idea/exits/archway        # authored defaults for this edge
+                                           # (absent → /platform/idea/exits/passage)
     messageOut: "{{ mover }} ducks under the arch."   # per-site override
 ```
 

@@ -10,7 +10,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { MessageApi } from '../../../api/message';
 import { PerceptionApi } from '../../../api/perception';
 import { SensorMixin } from '../Sensor';
@@ -21,7 +21,9 @@ import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import type { MessageFrame } from '@saxonberg/types';
@@ -62,6 +64,10 @@ function pushAudible(
 }
 
 describe('Scene.toAudible — cross-room push', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     installV1QuantityTagTables();
     buildAllModalities();

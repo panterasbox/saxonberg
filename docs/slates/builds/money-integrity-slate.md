@@ -365,7 +365,7 @@ direction** from everything above: not a mint, a **silent drain**.
 
 ### The duplication half was already closed, and well
 
-`lib/stuff/Populates.ts`, in this slate's own vocabulary:
+`lib/stuff/Staged.ts`, in this slate's own vocabulary:
 
 > ## ⭐ Run ONCE, at birth — props and cast are initial furnishing
 >

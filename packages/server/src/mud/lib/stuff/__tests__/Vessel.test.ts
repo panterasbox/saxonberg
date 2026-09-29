@@ -1,5 +1,5 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { Vessel } from '../Vessel';
 import Thing from '../Thing';
 import Location from '../Location';
@@ -7,9 +7,16 @@ import ExitableVessel from '../../boundary/ExitableVessel';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 
 describe('Vessel', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let vessel: Vessel;
 
   beforeEach(() => {
@@ -102,8 +109,8 @@ describe('Vessel', () => {
       ).toBeUndefined();
     });
 
-    it('an ExitableVessel IS Adornable (declares its own fixture need)', () => {
-      const ev = makeStuff(() => new ExitableVessel());
+    it('an ExitableVessel IS Adornable (declares its own fixture need)', async () => {
+      const ev = await StuffApi.create(() => new ExitableVessel());
       expect(MixinApi.isAdornable(ev)).toBe(true);
     });
   });

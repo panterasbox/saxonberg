@@ -44,13 +44,15 @@ function mockKindTemplates(): void {
       if (path === ARCHWAY) {
         const t = new LeafTemplate();
         t.path = path;
-        t.class = '/lib/boundary/Exit';
-        t.hydratorClass = '/platform/idea/persistence/PersistentHydrator';
-        t.data = {
+        t.setOwn({
+          class: '/platform/idea/Exit',
+          hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+          data: {
           media: ['ground'],
           messageOut: '{{ mover }} passes through the archway.',
           messageIn: '{{ mover }} steps in through the archway.',
-        };
+        },
+        });
         return t;
       }
       if (path === '/platform/idea/persistence/PersistentHydrator') {
@@ -58,21 +60,22 @@ function mockKindTemplates(): void {
         // hydratorClass — terminates the clone recursion).
         const t = new LeafTemplate();
         t.path = path;
-        t.class = '/platform/idea/persistence/PersistentHydrator';
-        t.data = {};
+        t.setOwn({ class: '/platform/idea/persistence/PersistentHydrator', data: {} });
         return t;
       }
       if (path === STAIR) {
         const t = new LeafTemplate();
         t.path = path;
-        t.class = '/lib/boundary/Exit';
-        t.hydratorClass = '/platform/idea/persistence/PersistentHydrator';
-        t.data = {
+        t.setOwn({
+          class: '/platform/idea/Exit',
+          hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+          data: {
           media: ['ground'],
           wheelPassable: false,
           _edgeMinutes: 9,
           messageOut: '{{ mover }} takes the stairs.',
-        };
+        },
+        });
         return t;
       }
       return null;

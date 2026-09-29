@@ -1,9 +1,10 @@
 import "../../../../test-bootstrap";
+import { EXIT_KIND_TEST_ROWS } from '../../../../mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Stuff } from '../Stuff';
 import { Idea } from '../Idea';
 import { SingletonMixin } from '../Singleton';
-import { PopulatesMixin } from '../Populates';
+import { StagedMixin } from '../Staged';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
@@ -14,7 +15,7 @@ import { MixinApi } from '../../../api/mixin';
 import type { FieldMeta } from '../../mixin';
 
 /**
- * PopulatesMixin tests — exercises the Phase-2 cascade end-to-end via
+ * StagedMixin tests — exercises the Phase-2 cascade end-to-end via
  * `StuffApi.singleton` against an in-memory Mongo store.
  */
 type Doc = Record<string, unknown> & {
@@ -26,7 +27,11 @@ type Doc = Record<string, unknown> & {
 };
 
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row and every boundary's anchor
+  // pair is a clone too, so a store with no rows cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
 
   const save = vi.fn(async (_c: string, doc: Doc) => {
     const copy = { ...doc };
@@ -65,7 +70,7 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 // `MixinApi.hasMixin` overload on the test classes via the export
 // names below. Since the loadClassByPath dance is exercised by
 // existing Apis (and we can't author new `/test/*.js` modules from
-// tests), we test PopulatesMixin against real classes that compose
+// tests), we test StagedMixin against real classes that compose
 // the right shapes.
 
 // Container + Singleton (folder-shaped — use ContainableMixin too so
@@ -90,16 +95,16 @@ class NonSingletonContainerTest extends NonSingletonContainerBase {
   static fieldMeta: FieldMeta = {};
 }
 
-// A populating Container (composes Populates + Container + Containable;
+// A populating Container (composes Staged + Container + Containable;
 // no Singleton — we control its life cycle by hand).
-const PopulatesHostBase = PopulatesMixin(
+const StagedHostBase = StagedMixin(
   ContainableMixin(ContainerMixin(Idea))
 );
-class PopulatesHostTest extends PopulatesHostBase {
+class StagedHostTest extends StagedHostBase {
   static fieldMeta: FieldMeta = {};
 }
 
-describe('PopulatesMixin', () => {
+describe('StagedMixin', () => {
   beforeEach(() => {
     StuffApi.clearAll();
   });
@@ -110,15 +115,15 @@ describe('PopulatesMixin', () => {
   });
 
   it('declares props and cast as instruction fields', () => {
-    const fields = MixinApi.getAllInstructionFields(PopulatesHostTest);
+    const fields = MixinApi.getAllInstructionFields(StagedHostTest);
     expect(fields).toContain('props');
     expect(fields).toContain('cast');
   });
 
-  it('declares _mixinName = "PopulatesMixin"', () => {
-    const mixins = MixinApi.queryMixins(PopulatesHostTest);
+  it('declares _mixinName = "StagedMixin"', () => {
+    const mixins = MixinApi.queryMixins(StagedHostTest);
     const names = mixins.map((m) => m._mixinName || m.name);
-    expect(names).toContain('PopulatesMixin');
+    expect(names).toContain('StagedMixin');
   });
 
   it('exposes applyProps on instances', async () => {
@@ -129,7 +134,7 @@ describe('PopulatesMixin', () => {
         data: {},
       },
     ]);
-    const host = await StuffApi.create(() => new PopulatesHostTest());
+    const host = await StuffApi.create(() => new StagedHostTest());
     expect(typeof (host as unknown as { applyProps: unknown }).applyProps)
       .toBe('function');
   });
@@ -142,7 +147,7 @@ describe('PopulatesMixin', () => {
         data: {},
       },
     ]);
-    const host = await StuffApi.create(() => new PopulatesHostTest());
+    const host = await StuffApi.create(() => new StagedHostTest());
     await host.applyProps([]);
     expect(host.getContents().length).toBe(0);
   });
@@ -155,7 +160,7 @@ describe('PopulatesMixin', () => {
         data: {},
       },
     ]);
-    const host = await StuffApi.create(() => new PopulatesHostTest());
+    const host = await StuffApi.create(() => new StagedHostTest());
     await host.applyProps([
       '',
       null as unknown as string,
@@ -172,7 +177,7 @@ describe('PopulatesMixin', () => {
         data: {},
       },
     ]);
-    const host = await StuffApi.create(() => new PopulatesHostTest());
+    const host = await StuffApi.create(() => new StagedHostTest());
     await host.applyProps(undefined as unknown as string[]);
     expect(host.getContents().length).toBe(0);
   });
@@ -185,7 +190,7 @@ describe('PopulatesMixin', () => {
         data: {},
       },
     ]);
-    const host = await StuffApi.create(() => new PopulatesHostTest());
+    const host = await StuffApi.create(() => new StagedHostTest());
     await expect(
       host.applyProps(['/test/missing'])
     ).rejects.toThrow(/no template at '\/test\/missing'/);
@@ -230,7 +235,7 @@ describe('PopulatesMixin', () => {
         .spyOn(StuffApi, 'singleton')
         .mockImplementation(async (_path: string) => fakeChild as never);
 
-      const host = await StuffApi.create(() => new PopulatesHostTest());
+      const host = await StuffApi.create(() => new StagedHostTest());
       await host.applyProps(['/test/singleton-child']);
 
       expect(singletonSpy).toHaveBeenCalledWith('/test/singleton-child');
@@ -269,7 +274,7 @@ describe('PopulatesMixin', () => {
         .spyOn(StuffApi, 'clone')
         .mockImplementation(async (_path: string) => fakeChild as never);
 
-      const host = await StuffApi.create(() => new PopulatesHostTest());
+      const host = await StuffApi.create(() => new StagedHostTest());
       await host.applyProps(['/test/non-singleton-child']);
 
       expect(cloneSpy).toHaveBeenCalledWith('/test/non-singleton-child');
@@ -295,7 +300,7 @@ describe('PopulatesMixin', () => {
           SingletonContainerTest as unknown as new (...a: unknown[]) => Stuff
       );
 
-      const elsewhere = await StuffApi.create(() => new PopulatesHostTest());
+      const elsewhere = await StuffApi.create(() => new StagedHostTest());
       const child = await StuffApi.create(() => new SingletonContainerTest());
       // Pre-place the child elsewhere.
       const { ContainmentApi } = await import('../../../api/containment');
@@ -306,7 +311,7 @@ describe('PopulatesMixin', () => {
         async (_path: string) => child as never
       );
 
-      const host = await StuffApi.create(() => new PopulatesHostTest());
+      const host = await StuffApi.create(() => new StagedHostTest());
       await host.applyProps(['/test/elsewhere-singleton']);
 
       // Still elsewhere — skip preserved its placement.
@@ -340,14 +345,14 @@ describe('PopulatesMixin', () => {
       );
       // Pre-place into something else.
       const { ContainmentApi } = await import('../../../api/containment');
-      const elsewhere = await StuffApi.create(() => new PopulatesHostTest());
+      const elsewhere = await StuffApi.create(() => new StagedHostTest());
       ContainmentApi.move(child, elsewhere);
 
       vi.spyOn(StuffApi, 'clone').mockImplementation(
         async (_path: string) => child as never
       );
 
-      const host = await StuffApi.create(() => new PopulatesHostTest());
+      const host = await StuffApi.create(() => new StagedHostTest());
       await host.applyProps(['/test/non-singleton-child']);
 
       // Moved into host regardless of prior container.
@@ -391,26 +396,26 @@ describe('PopulatesMixin', () => {
       seedStore();
       stubLoader();
       const cloneSpy = vi.spyOn(StuffApi, 'clone');
-      const host = await StuffApi.create(() => new PopulatesHostTest());
+      const host = await StuffApi.create(() => new StagedHostTest());
       await expect(host.applyProps(['/test/agent-child'])).rejects.toThrow(
         /cast, not props/
       );
       // The gate fires BEFORE minting — no half-made NPC left behind.
       expect(cloneSpy).not.toHaveBeenCalled();
       // The once-flag stays clear: a designation error is not "populated".
-      expect(host.hasPopulated()).toBe(false);
+      expect(host.isStaged()).toBe(false);
     });
 
     it('applyCast THROWS on a non-Behaved entry — that is a prop, not cast', async () => {
       seedStore();
       stubLoader();
       const cloneSpy = vi.spyOn(StuffApi, 'clone');
-      const host = await StuffApi.create(() => new PopulatesHostTest());
+      const host = await StuffApi.create(() => new StagedHostTest());
       await expect(host.applyCast(['/test/thing-child'])).rejects.toThrow(
         /prop, not cast/
       );
       expect(cloneSpy).not.toHaveBeenCalled();
-      expect(host.hasPopulated()).toBe(false);
+      expect(host.isStaged()).toBe(false);
     });
 
     it('applyCast mints a Behaved entry into the host', async () => {
@@ -420,11 +425,11 @@ describe('PopulatesMixin', () => {
       vi.spyOn(StuffApi, 'clone').mockImplementation(
         async (_path: string) => npc as never
       );
-      const host = await StuffApi.create(() => new PopulatesHostTest());
+      const host = await StuffApi.create(() => new StagedHostTest());
       await host.applyCast(['/test/agent-child']);
       expect(host.hasContainable(npc)).toBe(true);
       // Each list guards its own once-flag: cast laid, props still open.
-      expect(host.hasPopulated()).toBe(true);
+      expect(host.isStaged()).toBe(true);
       await host.applyCast(['/test/agent-child']); // no-op — laid once
       expect(host.getContents().length).toBe(1);
     });

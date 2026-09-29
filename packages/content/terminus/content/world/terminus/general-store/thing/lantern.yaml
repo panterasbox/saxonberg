@@ -1,14 +1,27 @@
-# A punched-tin lantern — a real, carriable light (steadier + brighter than a
-# torch). A PortableLight (LightSource ⊕ Switchable): sold unlit; `switch
-# lantern on` casts a steady patterned light, off goes dark. Discrete Thing.
-class: /platform/thing/equipment/PortableLight
+# A punched-tin lantern — a real, carriable light that BURNS FUEL.
+#
+# ⭐ A `Lamp` (Furnace ⊕ LightSource ⊕ Reserved ⊕ Thermal): sold unlit and
+# unfilled-of-nothing, `light lantern` sets it going, and it goes out on its
+# own when the oil is gone. Until the envelope build it was a `PortableLight`
+# — a `Switchable` — which meant it burned forever, and the only reason that
+# never mattered is that nowhere in the realm was dark.
+class: /platform/thing/Lamp
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: punched-tin lantern
   keywords: [lantern, lamp, light, tin, punched-tin]
   register: indefinite
   longDescription: |
-    A punched-tin lantern with a little glass door and a hook to hang it by. Lit, it throws a steady patterned light where a torch only gutters. It costs more than a fistful of torches and is worth it the first time you need both hands and still want to see.
-  on: false
+    A punched-tin lantern with a little glass door and a hook to hang it by. Lit, it throws a steady patterned light where a torch only gutters. It costs more than a fistful of torches and is worth it the first time you need both hands and still want to see — and unlike a torch you can fill it again.
+  # ⚠ `FurnaceMixin.lit` defaults TRUE. A lantern on a shop shelf is out.
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  # Steady and bright — the reason it costs more than a torch.
   emittedIntensity: 220
   emittedColorTemperature: 2700

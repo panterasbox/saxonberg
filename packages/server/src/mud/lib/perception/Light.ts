@@ -100,6 +100,41 @@ export const LIGHT_BANDS = [
 export type LightBand = (typeof LIGHT_BANDS)[number];
 
 /**
+ * ⭐ What a band READS AS, in a sentence, when a player looks at a
+ * place (envelope D10). The vocabulary's own prose, beside the
+ * vocabulary — a band is a thing the world says out loud, not only a
+ * number a gate compares.
+ *
+ * `null` is the ordinary case: at `lit` and `bright` a room says
+ * nothing about its light, because there is nothing to say. Light you
+ * only notice when there is too little of it or too much.
+ *
+ * ⚠ At `pitch-black` and `very-dim` the room's authored description is
+ * **withheld** — the phrase is all you get. That is the point of the
+ * build: a description is what you can see, and no amount of authored
+ * prose survives the lights going out.
+ */
+export const LIGHT_BAND_PHRASE: Readonly<Record<LightBand, string | null>> = {
+  'pitch-black':
+    'It is pitch dark. You can make out nothing of the place at all.',
+  'very-dim':
+    'Shapes and edges, no more — enough to move by, and to find a door.',
+  dim: 'It is dim here; you can make the place out, but not much of it.',
+  lit: null,
+  bright: null,
+  blinding: 'The glare here is hard to look into.',
+};
+
+/**
+ * The two bands at which a place's authored description is withheld:
+ * you cannot see it, so you are not told it. Ordered darkest first.
+ */
+export const LIGHT_BANDS_TOO_DARK_TO_DESCRIBE: readonly LightBand[] = [
+  'pitch-black',
+  'very-dim',
+];
+
+/**
  * Visibility detail levels — the per-call resolution the perception
  * surface (`Perception.canSee`, `Light.canSee`) gates on. v1 uses a
  * flat four-level vocabulary; finer-grained values can layer in later

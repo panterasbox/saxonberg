@@ -67,10 +67,17 @@ of create-monster, a re-stocked room, a wandering-population tick). Shares the
 "what belongs here" question; adds tuning, respawn, and a runtime draw.
 
 > ⚠ *Vocabulary is stale: `populates:` is retired — the static form is the
-> `props:` / `cast:` designation (`PopulatesMixin`'s two once-flags,
+> `props:` / `cast:` designation (`StagedMixin`'s two once-flags,
 > `templates.md` § the appliers). The item half of the dynamic form shipped as
 > the recurring spawn sweep (`residency.md § The sweep is a faucet`); the
-> creature half (on-demand spawn, a wandering-population tick) has not.*
+> creature half (on-demand spawn, a wandering-population tick) has not.
+> ⭐ Since 2026-09-25 a `props:` entry also carries `count: N` (N
+> identical clones from one line) and an `as:` key (an entry identity,
+> so a child row can substitute one fixture in place instead of gaining
+> a second). `count:` is props-ONLY — it throws on `cast:` and on a
+> costume, because N of a person is not a thing this vocabulary should
+> be able to say. A creature draw that wants multiples asks for them at
+> draw time, not by inheriting `count`.*
 
 ## Consumers
 

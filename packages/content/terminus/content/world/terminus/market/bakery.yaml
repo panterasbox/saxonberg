@@ -17,8 +17,11 @@ data:
   alternateNames: [bakehouse, "baker's"]
   _address: terminus/city/market/bakery
   _biomePath: /stuff/idea/biome/indoor/baseline
-  ambientIntensity: 400
-  ambientColorTemperature: 3000
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the square, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   longDescription: |
     Hot, low-ceilinged and entirely full of the smell. The oven takes up the whole back wall — a brick barrel with an iron door and a peel leaning beside it — and the heat off it reaches the doorway.
 

@@ -167,9 +167,27 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "platform/idea/api/CombatLogic.ts::resolveExportSync",
     classification: "gated-direct",
   },
-  // Resolves another template's already gate-passed class.
+  // Resolves another template's already gate-passed class. TWO sites in
+  // this file, one per designation family: `stageList` for `props:`
+  // and `cast:`, and `applyCostume` for `costume:`. Both resolve a class
+  // only to CHECK it — against `Mixins.Behaved` and `Mixins.Wearable`
+  // respectively — before anything is cloned.
   {
-    site: "lib/stuff/Populates.ts::loadClassByPath",
+    site: "lib/stuff/Staged.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
+  {
+    site: "lib/stuff/Staged.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
+  // ⭐ Template inheritance: `Template._materialize` resolves the
+  // EFFECTIVE class only to read its `fieldMeta`, so the merge algebra
+  // can ask each field how it inherits. Transitive-safe by the same
+  // reasoning as every other row-to-row reference: the class it resolves
+  // is the one the row's own `class:` gate already passed, and a child
+  // that states none inherits a parent that did.
+  {
+    site: "lib/stuff/Template.ts::loadClassByPath",
     classification: "transitive-safe",
   },
   // ⭐ Wiki component resolution. The tag name comes from

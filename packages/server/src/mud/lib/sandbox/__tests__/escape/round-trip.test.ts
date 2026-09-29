@@ -8,7 +8,8 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { KERNEL_CONTENT_ROWS } from '../../../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { SandboxApi } from '../../../../api/sandbox';
 import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
@@ -148,6 +149,25 @@ describe('sandbox-escape: the round-trip criterion', () => {
     ExecutionContextApi._clearForTesting();
     pm = PersistenceManager.get();
     store = installFakeStore(pm);
+    // ⭐ The engine's own rows, in THIS suite's store — the exit kinds,
+    // the boundary anchor, and the two the sandbox stands up. Seeding
+    // them through the shared helper would have replaced the store the
+    // scope resolver is wired to, and the ledger assertions below read
+    // straight out of it.
+    store.set(Collections.Content, [
+      ...(KERNEL_CONTENT_ROWS as unknown as FakeRow[]),
+      {
+        path: '/platform/location/sandbox/CircleFloor',
+        class: '/platform/location/sandbox/CircleFloor',
+        data: {},
+      } as unknown as FakeRow,
+      {
+        path: '/platform/agent/sandbox/WireBody',
+        class: '/platform/agent/sandbox/WireBody',
+        hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+        data: { wirePlayerId: '' },
+      } as unknown as FakeRow,
+    ]);
     pm.setScopeResolver(() => {
       const s = ExecutionContextApi.getCircleScope();
       return s === OMNI_SCOPE ? null : s;
@@ -258,9 +278,16 @@ describe('sandbox-escape: the round-trip criterion', () => {
       { owner: 'someone', check: 'x' },
     ]);
     // …the authored edit persists (the deliberate save is the product)…
-    expect(store.get(Collections.Content)).toEqual([
-      { path: `${SCOPE}/workshop`, class: '/platform/location/SingletonCartesianLocation' },
-    ]);
+    //
+    // ⚠ Asserted by CONTAINMENT rather than as the whole array: the
+    // engine's own rows (the exit kinds, the boundary anchor) live in
+    // this collection too now, because every exit in the world is a
+    // clone of one. The claim is "the authored edit survived", not
+    // "the content collection holds exactly one row".
+    expect(store.get(Collections.Content)).toContainEqual({
+      path: `${SCOPE}/workshop`,
+      class: '/platform/location/SingletonCartesianLocation',
+    });
     // …and the epistemic record exists, wire-marked.
     //
     // Asserted by shape rather than as the whole array: a crossing runs

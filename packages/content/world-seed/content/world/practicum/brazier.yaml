@@ -16,5 +16,10 @@ data:
       unit: "%"
       theme: combustion
       floorEffect: null
+  # Alight, and deliberately: "its coals banked to burn all day" is the
+  # whole point of the warded cell — a mundane fire suppression never
+  # touches. Explicit since the envelope build; the behaviour is
+  # unchanged.
+  lit: true
   emittedIntensity: 120
   emittedColorTemperature: 1800

@@ -35,7 +35,9 @@ import { AccessApi } from '../access';
 import { ExecutionContextApi } from '../execution-context';
 import { StuffApi } from '../stuff';
 import { SecurityError } from '../../lib/security/errors';
-import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
+import { makeStuffAtPath,
+  EXIT_KIND_TEST_ROWS,
+} from '../../lib/security/__tests__/test-setup';
 import {
   PersistenceManager,
   Collections,
@@ -70,7 +72,11 @@ type Doc = Record<string, unknown> & {
 
 /** An in-memory `domain` store driving Template.find* + saveTemplate. */
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row and every boundary's anchor
+  // pair is a clone too, so a store with no rows cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
   let nextId = store.length + 1;
 
   const save = vi.fn(async (collection: string, doc: Doc) => {

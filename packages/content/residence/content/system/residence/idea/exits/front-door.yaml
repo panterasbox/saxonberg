@@ -1,0 +1,9 @@
+# A unit's front door, off the corridor. ⭐ These two lines used to be
+# `setMessageOut` / `setMessageIn` calls in the constructor — prose in
+# TypeScript, which no author could ever edit. That is the whole reason
+# every exit is a clone of a row now.
+class: /system/residence/idea/FrontDoorExit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageOut: "{{ mover }} goes in through the door."
+  messageIn: "{{ mover }} comes in from outside."

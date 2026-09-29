@@ -1,16 +1,30 @@
-# A pitch-pine torch — a real, carriable light. A PortableLight (LightSource
-# ⊕ Switchable): sold unlit off the shelf; `switch torch on` lights it and it
-# genuinely casts light (VisionModality reads its flux), off goes dark. A
-# discrete Thing (chattel-stampable, never Stackable). Priced on the store's
-# price-list (Law 1), never here.
-class: /platform/thing/equipment/PortableLight
+# A pitch-pine torch — the cheapest carriable light, and it BURNS DOWN.
+#
+# ⭐ A `Lamp` (Furnace ⊕ LightSource ⊕ Reserved ⊕ Thermal): `light torch`
+# sets it going and it gutters out when the pitch is gone. Twice a lantern's
+# burn rate for a third of its light, which is the whole trade — a torch is
+# what you buy when you are not coming back. Until the envelope build it was
+# a `Switchable` `PortableLight` and burned forever.
+#
+# Priced on the store's price-list (Law 1), never here.
+class: /platform/thing/Lamp
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pitch-pine torch
   keywords: [torch, brand, light, pitch-pine]
   register: indefinite
   longDescription: |
-    A stout length of pitch-pine, one end bound in oil-soaked rag. Struck alight it throws a guttering, ruddy glow good enough to light a dark passage — the cheapest light a delver ever bought, and the one they never regret carrying.
-  on: false
+    A stout length of pitch-pine, one end bound in oil-soaked rag. Struck alight it throws a guttering, ruddy glow good enough to light a dark passage — the cheapest light a delver ever bought, and the one they never regret carrying until it burns down to their hand.
+  # ⚠ `FurnaceMixin.lit` defaults TRUE. A torch on a shop shelf is out.
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  # ⭐ Burns twice as fast as a lantern: half a game night, not a whole one.
+  fuelBurnRatePerMin: 0.3
   emittedIntensity: 80
   emittedColorTemperature: 1900

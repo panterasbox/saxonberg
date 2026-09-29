@@ -91,11 +91,15 @@ tank and watering can in the game. It is composed by the classes that
 actually have a kind — `Bottle`, `Vat`, `CraftVessel` and everything
 below them — and `MixinApi.isVesselKind` is how a reader asks.
 
-It exists because **template inheritance does not exist**, so the empty
-vessel row (`/trade/bottling/thing/can`) and the product row that is
-that vessel filled (`…/can-of-cola`) are otherwise strangers that happen
-to share a class. The shared `category` string *is* the relationship,
-and three things read it:
+It exists because the empty vessel row (`/trade/bottling/thing/can`)
+and the product row that is that vessel filled (`…/can-of-cola`) need a
+relationship a reader can ask about at RUNTIME. ⭐ Since the
+template-inheritance build the product row genuinely `extends:` the
+empty one, so the two are no longer strangers on disk — but `extends`
+is a fact about the ROWS, and the three readers below hold live
+instances whose parentage is not on them. The shared `category` string
+is what an instance carries, and it stays the relationship those
+readers ask:
 
 - **The census** ([residency.md](./residency.md)) — an emptied vessel
   counts under `vessel:<category>`, so a drained can of cola joins the
@@ -252,6 +256,25 @@ v1 bulk is all liquid (`requiredClosureFor → 'liquidTight'`), so an
 `open` vessel doesn't retain it — it **drains through** (below).
 `sealed` (gas) and the phase→required-level mapping are defined on the
 scale but unexercised until gas content lands.
+
+> ⭐⭐ **That rung has named consumers now (2026-09-25), and it turns out
+> to be an ECONOMY rather than a detail.** Gas cannot be held by anything
+> below `sealed`, so **no vessel means no product** — which makes
+> containment the whole capital story of any gas trade, exactly as it was
+> historically. The first gas that is a *good* is **coal gas from the
+> retort** (→ [destructive-distillation-slate](../slates/builds/destructive-distillation-slate.md)),
+> not drilled gas; the first gas that is a *hazard* is **firedamp** in a
+> working (→ [mining-slate](../slates/builds/mining-slate.md)). A
+> **gasometer** — a `Bulkable` with `closure: sealed`, a rising bell in a
+> water seal whose height is visible across a city — is the rung's natural
+> exemplar and a non-gauge readout of a shared resource.
+>
+> ⚠ **One thing to decide deliberately when it lands:** `AirTank`
+> (→ [respiration.md](./respiration.md)) treats gas as **incompressible
+> bulk** — an interior fill *fraction*. Real gas storage is a **pressure**
+> question. The abstraction is defensible while it still costs somebody
+> the vessel and the labour, but once gas is **traded**, *"how much is in
+> there"* is asked in a way a fill fraction cannot answer honestly.
 
 ### `Container` + `Bulkable` — orthogonal slots
 

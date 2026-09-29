@@ -2,7 +2,7 @@
  * check-template-census — D17's invariant: **`templatePath` always
  * resolves to a content row** (residences wave 1).
  *
- * Three clauses:
+ * Five clauses (the fourth has two halves — see below):
  *
  *   (a) The string `asTemplatePath` appears nowhere in the kernel's
  *       `src/` or any pack's `src/` — the channel is RETIRED; minted
@@ -20,6 +20,8 @@
  *       singleton *Registry/Catalogue* resolves to a pack row (the six
  *       framework registries ride trivial platform-pack rows; a renamed
  *       row must not leave a constant pointing at nothing).
+ *   (d) A `cast:` entry names a row on an AGENT branch.
+ *   (e) ⭐ The PURE-REPEAT ratchet — see {@link PURE_REPEAT_CEILING}.
  *
  * No exemption list, by design: a reference that cannot resolve is a
  * content bug, not a candidate for a list.
@@ -29,7 +31,10 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { packSources } from './pack-roots';
+import { packSources,
+  effectiveRow,
+  inheritanceIndex,
+} from './pack-roots';
 
 const EXIT_ON_FINDINGS = true;
 
@@ -111,7 +116,7 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // a material, a body plan) that the hydrator resolves. They are plain
   // path strings, and censusing them is the whole point of clause (b).
   for (const f of [
-    '_biomePath', '_extendsBiomePath', '_speciesPath', '_bodyPlanPath',
+    '_biomePath', '_speciesPath', '_bodyPlanPath',
     '_parentCladePath', '_materialPath', '_defaultMaterialPath',
     // ⭐ The mana-device citations (TPA reform W5/W6). `mainsRef` names
     // the line a device is wired to and `bornWithCell` the cell a gate
@@ -156,6 +161,34 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(f, data[f]);
   }
+  // ⭐ `enclosure.material` — what a place is BOUNDED BY.
+  // Resolved live at the first async temperature read, and a rowless one
+  // silently falls back to the universe default: the room would quietly
+  // be made of something else and nothing would say so. `lint:envelope`
+  // clause (b) additionally checks the material CONDUCTS.
+  if (data.enclosure && typeof data.enclosure === 'object') {
+    push('enclosure', (data.enclosure as Record<string, unknown>).material);
+  }
+
+  // ⭐ `costume:` — the garments an authored person has on, the third
+  // designation beside `props:` and `cast:`. It was `wears:` on `NPC`
+  // until review (2026-09-25); this gate is the reason the rename is
+  // safe, because it refuses a path-shaped field `refsOf` does not read
+  // and said so by name on the first run — *"if this is a RENAME of a
+  // field refsOf used to read, the census has just gone blind on every
+  // ref it carried"*. It knows because `populates: → props:/cast:` cost
+  // it 322 of 462 refs while still reporting green.
+  //
+  // ⚠ Read here because a rowless or misspelt garment used to be
+  // silently one layer of insulation a character does not have,
+  // discovered only when they froze in a winter the content pass was
+  // supposed to have dressed them for. `CostumedMixin.applyCostume` now
+  // THROWS on both cases, so this is the second of two locks rather than
+  // the only one.
+  if (Array.isArray(data.costume)) {
+    for (const g of data.costume as unknown[]) push('costume', g);
+  }
+
   // ⭐ A Wood row's `mix:` — the species standing on a clearing, each
   // naming its Species row, the wood a felled one is made of and the seed
   // it drops. All three resolve live at a felling; a rowless one is a
@@ -694,7 +727,7 @@ function checkTemplatePathConstants(rows: Map<string, string>): number {
  * ── clause (d): a `cast:` entry names an AGENT ────────────────────────
  *
  * ⚠⚠ **`props:`/`cast:` is a DECLARED DESIGNATION with a gate in both
- * directions.** `PopulatesMixin.applyCast` refuses a row that does not
+ * directions.** `StagedMixin.applyCast` refuses a row that does not
  * resolve to a `Behaved` class — *that is a prop, not cast* — and throws
  * at HYDRATE. When the row carrying the list is in a pack's `boot:`
  * chain, that is a FATAL boot error rather than a warning.
@@ -733,10 +766,15 @@ export function castRefsOf(text: string): string[] {
 }
 
 function checkCastAreAgents(rows: Map<string, string>): number {
+  // ⚠ The class must be the EFFECTIVE one. Reading the `class:` LINE
+  // means a child row has none, `classOf.get` returns undefined, and the
+  // check skips it without a word — the same silent-skip this clause's
+  // own `\Z` bug produced, arriving from the other direction.
+  const idx = inheritanceIndex();
   const classOf = new Map<string, string>();
-  for (const [path, file] of rows) {
-    const m = /^class:\s*(\S+)\s*$/m.exec(readFileSync(file, 'utf8'));
-    if (m) classOf.set(path, m[1]!);
+  for (const path of rows.keys()) {
+    const eff = effectiveRow(path, idx.rows, idx.rules);
+    if (!eff.error && eff.class) classOf.set(path, eff.class);
   }
   let checked = 0;
   for (const [, file] of rows) {
@@ -751,12 +789,59 @@ function checkCastAreAgents(rows: Map<string, string>): number {
           detail:
             `\`cast:\` names ${target}, whose class ${cls} is not on an ` +
             `agent branch — that is a PROP, not cast. It throws at hydrate ` +
-            `(\`PopulatesMixin.applyCast\`); list it under \`props:\`.`,
+            `(\`StagedMixin.applyCast\`); list it under \`props:\`.`,
         });
       }
     }
   }
   return checked;
+}
+
+/** The four designation lists — the ones that merge BY ENTRY. */
+const BY_ENTRY_FIELDS = ['props', 'cast', 'costume', 'adornments'] as const;
+
+/**
+ * ⭐ Clause (e) — the PURE-REPEAT ratchet.
+ *
+ * The same key twice in one designation list, with no `as` to tell them
+ * apart, written out longhand: twelve identical lime lines, six
+ * identical stool lines, sixty-four glass lines. `count:` says it in
+ * one, and a repeat that survives is one a child row cannot address —
+ * an entry with no identity is an entry the merge cannot substitute.
+ *
+ * Census-then-ratchet: it may fall, never rise.
+ */
+const PURE_REPEAT_CEILING = 52;
+
+function countPureRepeats(rows: Map<string, string>): number {
+  let extra = 0;
+  for (const [, file] of rows) {
+    let parsed: Record<string, unknown> | null;
+    try {
+      parsed = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown> | null;
+    } catch {
+      continue;
+    }
+    const data = parsed?.data;
+    if (!data || typeof data !== 'object') continue;
+    for (const field of BY_ENTRY_FIELDS) {
+      const list = (data as Record<string, unknown>)[field];
+      if (!Array.isArray(list)) continue;
+      const seen = new Map<string, number>();
+      for (const e of list) {
+        const key =
+          typeof e === 'string'
+            ? e
+            : e && typeof e === 'object'
+              ? ((e as { as?: unknown }).as ?? (e as { template?: unknown }).template)
+              : null;
+        if (typeof key !== 'string' || key.length === 0) continue;
+        seen.set(key, (seen.get(key) ?? 0) + 1);
+      }
+      for (const n of seen.values()) if (n > 1) extra += n - 1;
+    }
+  }
+  return extra;
 }
 
 function main(): void {
@@ -766,6 +851,24 @@ function main(): void {
   checkPathFieldCoverage(rows);
   const constants = checkTemplatePathConstants(rows);
   const castRefs = checkCastAreAgents(rows);
+
+  const repeats = countPureRepeats(rows);
+  console.log(
+    `check-template-census: pure-repeat designation entries ` +
+      `${repeats}/${PURE_REPEAT_CEILING}` +
+      (repeats < PURE_REPEAT_CEILING ? ` — ratchet down to ${repeats}` : ''),
+  );
+  if (repeats > PURE_REPEAT_CEILING) {
+    findings.push({
+      clause: 'e',
+      file: '(content)',
+      detail:
+        `${repeats} pure-repeat designation entries, ceiling ` +
+        `${PURE_REPEAT_CEILING}. The same path twice in one list with no ` +
+        `\`as\` is \`count: N\` written longhand — and a repeat with no ` +
+        `identity is an entry no child row can ever replace.`,
+    });
+  }
 
   if (findings.length > 0) {
     console.error(`\n[check-template-census — ERROR] ${findings.length} finding(s):\n`);

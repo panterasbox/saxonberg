@@ -3,6 +3,12 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   shortDescription: main room
   keywords: [room, main]
   register: definite
@@ -11,3 +17,8 @@ data:
   ambientColorTemperature: 4800
   longDescription: |
     The flat's one generous room: two tall windows over the Row, a shallow hearth alcove with an empty grate, and built-in shelving painted the same tired cream as the walls. Bare boards, bare walls, good light — everything it will become is yours to bring.
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A sash window onto the row, the sill worn pale where people lean on it to watch the street.

@@ -23,8 +23,11 @@ data:
     One long room with the good light at the front and the work at the back: a cutting table under the window, a treadle machine, and a rail of half-finished things pinned with paper tickets.
 
     Everything in here is either cloth or a way of measuring cloth. There is a mirror, and it is not a kind one.
-  ambientIntensity: 300
-  ambientColorTemperature: 5200
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the row, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   exits:
     row:
       destination: /world/terminus/mayfield-row/street

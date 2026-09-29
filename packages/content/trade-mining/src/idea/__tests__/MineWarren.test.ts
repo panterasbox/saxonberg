@@ -14,6 +14,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import MineWarren from '../MineWarren';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
@@ -72,6 +73,10 @@ function seedContent(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     content.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   content.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows — every exit is a clone of a kind row now.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    content.push({ _id: `d-${++idCounter}`, ...row });
+  }
   for (const [kind, path] of Object.entries(TYPE_ROWS)) {
     add(path, WORKING_CLASS, {
       shortDescription: `a ${kind}`,

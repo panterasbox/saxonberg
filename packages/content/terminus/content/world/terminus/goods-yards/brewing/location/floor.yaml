@@ -10,6 +10,12 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: windows
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid
   # and inherited nothing from one. See the zone row beside it.
@@ -43,3 +49,8 @@ data:
     - /trade/brewing/thing/jar-of-barm
   cast:
     - /world/terminus/goods-yards/brewing/agent/hand
+  details:
+    windows:
+      keywords: [windows, glass, light]
+      description: |
+        High shuttered windows down one wall, set above the coppers so the steam has somewhere to go and the light has somewhere to come in.

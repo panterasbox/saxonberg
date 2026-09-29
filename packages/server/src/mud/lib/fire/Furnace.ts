@@ -108,6 +108,26 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
      */
     static commandContributions: CommandContributions = {
       self: [],
+      // ⭐⭐ **Lighting and putting out reach OUTWARD as well as
+      // sideways** (envelope W2). `peers` is siblings-and-one-exit, and
+      // a furnace standing in a room is your sibling — which is the
+      // whole story for a forge, an oven and a kiln, none of which is
+      // ever picked up. A **lamp in your hand** is not your sibling:
+      // you are its container, so only `environment` reaches you.
+      //
+      // ⚠ Without this line, the moment a carriable light composed
+      // `FurnaceMixin` the verb would have died at the AFFORDANCE link
+      // — silently, with `light lantern` answering "you don't see any
+      // 'lantern' here" while the lamp sat in the player's hand and 30
+      // controller tests stayed green. `ChargedMixin` (the mana wand
+      // you hold) declares both buckets for exactly this reason.
+      //
+      // Only ignite/douse: `pump`, `heat`, `boil` and `warm` are for a
+      // furnace you are standing at, and a lamp affords none of them.
+      environment: [
+        'platform/cmd/device/ignite.yaml',
+        'platform/cmd/device/douse.yaml',
+      ],
       peers: [
         'platform/cmd/device/ignite.yaml',
         'platform/cmd/device/douse.yaml',
@@ -129,7 +149,6 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         // different dials, and the CHARGE decides what comes out.
         'platform/cmd/device/fire.yaml',
       ],
-      environment: [],
     };
 
     static fieldMeta: FieldMeta = {
@@ -192,6 +211,42 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
     }
     public setFuelBurnRatePerMin(value: number): void {
       if (Number.isFinite(value) && value >= 0) this.fuelBurnRatePerMin = value;
+    }
+
+    /**
+     * ⭐⭐ **A fuelled appliance casts light only while it burns.**
+     *
+     * `LightSourceMixin` emits its authored `emittedIntensity`
+     * unconditionally, and lit-gating was done per class — `isOn()` on
+     * `PortableLight`, `isBurning()` on `Candle`. ⚠ `Campfire`, `Forge`,
+     * `Oven` and `Kiln` have empty class bodies and therefore no gate at
+     * all, so a campfire that burnt out an hour ago has been casting its
+     * full 120 lumens ever since. Nobody caught it because until this
+     * build nowhere was dark enough for it to matter.
+     *
+     * Every furnace composer puts `FurnaceMixin` OUTSIDE
+     * `LightSourceMixin`, so gating here fixes all of them in one place
+     * and the defect cannot come back for the next composer either.
+     * Chains `super` only while burning, so a furnace whose base emits
+     * nothing still emits nothing.
+     */
+    getEmittedFlux(): Quantity<'lumen'> {
+      this.reconcileFurnaceFuel();
+      if (!this.lit || this.fuelRemaining() <= 0) {
+        return Quantity.of(0, 'lumen');
+      }
+      // `super.getEmittedFlux` is unavailable to the type system here —
+      // the base is `MixinConstructor<Stuff>`, and tightening it to
+      // require `LightSource` would refuse a furnace that is not one.
+      // The prototype read is the same lookup `super` would do, and it
+      // follows the chain, so a base that inherits the method still
+      // answers.
+      const base = Base.prototype as {
+        getEmittedFlux?: () => Quantity<'lumen'>;
+      };
+      return base.getEmittedFlux
+        ? base.getEmittedFlux.call(this)
+        : Quantity.of(0, 'lumen');
     }
 
     // Pinned hot while lit + fuelled; passive embers otherwise.

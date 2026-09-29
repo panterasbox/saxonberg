@@ -750,8 +750,14 @@ Per rung:
   roster. No side effects outside the host.
 - **Not a class hierarchy.** The location precedent is one class, many
   template rows. Archetypes add zero classes.
-- **Not template inheritance** — it does not exist and this does not
-  introduce it. An archetype is applied by expansion, not by parenting.
+- **Not template inheritance** — ⭐ which now EXISTS (2026-09-25), so
+  this line stops meaning "there is no such thing" and starts naming a
+  fork. An archetype is applied by **expansion** — it writes entries
+  into the row and is then gone; a parent is a **live link** the row
+  keeps and re-reads at every clone. An archetype can stamp many
+  unrelated rows and a row can take several; `extends:` is single and
+  permanent. A parent is for *"like that one, but different"*; an
+  archetype is for *"give this person the shopkeeper package."*
 - **The seed-vs-lens fork does not exist.** It is determined by identity,
   not chosen per design.
 - **Archetypes are starting points, not categories.** A row may override

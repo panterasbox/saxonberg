@@ -4,7 +4,7 @@
  */
 
 import "../../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import LockController from '../LockController';
 import UnlockController from '../UnlockController';
 import Door from '../../../../thing/Door';
@@ -21,7 +21,10 @@ import { Idea } from '../../../../../lib/stuff/Idea';
 import Thing from '../../../../../lib/stuff/Thing';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
-import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../../../../lib/security/__tests__/test-setup';
 import {
   CommandApi,
   type CommandContext,
@@ -59,16 +62,20 @@ function one(stuff: unknown, raw: string): MqlOneResult {
 }
 
 describe('LockController / UnlockController', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let avatar: FakeAvatar;
   let room: Location;
   let door: Door;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     room = makeStuff(() => new Location());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);
-    door = makeStuff(() => new Door());
+    door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
   });
   afterEach(() => {

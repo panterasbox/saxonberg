@@ -1,6 +1,6 @@
 # /stuff/idea/biome/universe — the root of the biome inheritance hierarchy.
-# `_extendsBiomePath: null` (omitted). Every other biome's
-# `_extendsBiomePath` chain bottoms out here; `BiomeApi.getRootBiome()`
+# `extends: null` (omitted). Every other biome's
+# `extends` chain bottoms out here; `BiomeApi.getRootBiome()`
 # returns this template. All six `_defaultX` fields are mandatory
 # at boot — the chain's terminal step (step 6) consults this biome.
 # `_defaultWind` is calm (0 m/s) by default; windy biomes override.

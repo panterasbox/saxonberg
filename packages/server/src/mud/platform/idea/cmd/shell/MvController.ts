@@ -76,12 +76,15 @@ export default class MvController extends CommandController<MvModel> {
       const tpl = await Template.findByPath(src);
       if (!tpl) return this.fail(context, `no template at ${src}`);
       try {
-        await TemplateApi.saveTemplate(
-          dst,
-          tpl.class,
-          tpl.data ?? {},
-          tpl.hydratorClass,
-        );
+        // ⭐ The RAW row travels, never the effective one: a copy of a
+        // child is a child, and a `cp` that flattened the chain would
+        // silently fork the content away from its parent.
+        await TemplateApi.saveTemplate(dst, {
+          class: tpl.own.class,
+          hydratorClass: tpl.own.hydratorClass,
+          extends: tpl.extends,
+          data: tpl.own.data ?? {},
+        });
         await tpl.delete();
       } catch (err) {
         return this.fail(context, (err as Error).message);

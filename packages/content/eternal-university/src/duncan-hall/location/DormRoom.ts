@@ -11,11 +11,11 @@
  *
  * A non-coordinate `Location` (a clone can't hold fixed grid coords; it
  * hangs off its floor corridor by a live-ref return exit) with the member +
- * description surface, `PersistableMixin` outermost, `PopulatesMixin` inner
+ * description surface, `PersistableMixin` outermost, `StagedMixin` inner
  * (so the spine's `seedBornWith` reaches its applier via `super`):
  *
  *   Persistable → WarrenMember → PostRegistration → Exitable → Detailed
- *     → Visible → Populates → Location  (Location carries Container/Adornable)
+ *     → Visible → Staged → Location  (Location carries Container/Adornable)
  *
  * The Warren coordinates instances; the room stays an ordinary containment
  * root. No `SingletonMixin` (repeated clones are the point), no `Named` (a
@@ -27,7 +27,7 @@
 
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { PopulatesMixin } from '@saxonberg/server/mud/lib/stuff/Populates';
+import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 import { WarrenMemberMixin, type WarrenMember } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
@@ -45,7 +45,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 // room's floor.
 const DormRoomBase = PersistableMixin(
   WarrenMemberMixin(
-    ExitableMixin(DetailedMixin(VisibleMixin(PopulatesMixin(Location)))),
+    ExitableMixin(DetailedMixin(VisibleMixin(StagedMixin(Location)))),
   ),
 );
 

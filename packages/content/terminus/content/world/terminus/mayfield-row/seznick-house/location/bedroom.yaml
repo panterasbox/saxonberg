@@ -18,7 +18,6 @@ data:
   shortDescription: bedroom
   keywords: [bedroom]
   register: definite
-  ambientIntensity: 25
-  ambientColorTemperature: 4200
+  # ⭐ DARK, on purpose. A back bedroom with no window — which is WHY it is the cheap one, and now the fiction and the physics agree about it.
   longDescription: |
     A quiet back room with one window on the light-well, an empty picture rail, and a fitted cupboard whose door sticks in a friendly way. No bed yet — the floor is honest about that.

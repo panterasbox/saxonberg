@@ -12,6 +12,12 @@
 class: /world/terminus/eternal/duncan-hall/location/DormRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   _address: terminus/city/campus/duncan-hall
   shortDescription: dorm room
   keywords: [room, dorm]
@@ -52,3 +58,8 @@ data:
     - /stuff/thing/vessel/watering-can
     - template: /trade/farming/thing/pot/starter
       onto: /world/terminus/eternal/duncan-hall/thing/desk
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A narrow window over the desk, the standard-issue view of the standard-issue courtyard.

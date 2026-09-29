@@ -17,22 +17,17 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 
 export default class UpstairsExit extends DeferredDestinationExit {
-  private warrenPath: string;
-  private targetNode: string;
+  private warrenPath = '';
+  private targetNode = '';
 
-  constructor(
-    source: Stuff & Container,
-    warren: OuterWarren,
-    targetNode: string,
-    circulationRow: string,
-    direction = 'up',
-  ) {
-    super({
-      direction,
-      source,
-      // The circulation row — accurate + eager (D17).
-      destinationTemplatePath: circulationRow,
-    });
+  /**
+   * ⭐ What the constructor used to take, as a set-once step. The exit
+   * is a clone of `/system/residence/idea/exits/upstairs` now, so
+   * `direction`, `source` and the destination row arrive through
+   * `Exitable.installExit`'s `bind`; only the two facts a ROW cannot
+   * know — which warren, which node — arrive here.
+   */
+  public configureUpstairs(warren: OuterWarren, targetNode: string): void {
     this.warrenPath = warren.getTemplatePath() ?? '';
     this.targetNode = targetNode;
   }

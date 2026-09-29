@@ -196,7 +196,7 @@ function seatSix(panel: Panel): Plant[] {
 
 describe('Panel — the stack', () => {
   it('is a persistable SINGLETON bed', () => {
-    for (const m of [Mixins.Persistable, Mixins.Singleton, Mixins.Cultivable, Mixins.Soil, Mixins.Populates, Mixins.Slotted]) {
+    for (const m of [Mixins.Persistable, Mixins.Singleton, Mixins.Cultivable, Mixins.Soil, Mixins.Staged, Mixins.Slotted]) {
       expect(MixinApi.hasMixin(Panel, m), String(m)).toBe(true);
     }
   });

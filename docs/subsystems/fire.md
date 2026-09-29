@@ -222,6 +222,72 @@ furnace couple, [thermal.md](./thermal.md)); a bread oven that takes an
 hour to come to heat is a `ThermalMixin` on the furnace itself, and the
 grain chain left it.
 
+## ⭐⭐ The hearth, the lamp, and the rule that survived both
+
+The envelope build (2026-09-24) added two composers and changed one
+thing about every existing one.
+
+### A hearth heats where you stand; a forge heats what you put in it
+
+`thermal.md`'s rule — **a lit forge must not warm the room it stands
+in** — is right, and the envelope build did not break it to get room
+heating. It added a different KIND of object. `SpaceHeatingMixin`
+(`lib/thermal/SpaceHeating.ts`) carries `heatOutputW` and
+`spaceHeatOutputW()`, which is zero the moment the fire is out or out of
+fuel, and it is composed **outermost** so it can read the furnace face.
+
+⚠ **Never on `FurnaceMixin`.** That would claim it of the forge, the
+oven and the kiln, and the only way back would be a guard asking *is
+this a forge* — the tell of a mixin on the wrong host. `Hearth` and
+`Campfire` compose it; `Forge`, `Oven` and `Kiln` do not; the envelope
+narrows a room's contents with `MixinApi.isSpaceHeating` and nothing
+anywhere names a class.
+
+`platform/thing/Hearth` is the commons object — `SpaceHeating + Furnace
++ LightSource + Reserved + Thermal + **Surfaced**`. ⚠ Surfaced and not
+Container: you put a thing *into* an oven and stand a thing *on* a
+hearth, which is the whole difference. `stove.yaml` and `brazier.yaml`
+are ROWS on the same class.
+
+### A lamp is a small furnace with a light on it
+
+`platform/thing/Lamp` — `Furnace + LightSource + Detailed + Reserved +
+Thermal`. The lantern and the torch moved onto it from `PortableLight`,
+which is a `Switchable` and therefore **burned forever**. The class
+writes almost nothing: the fuel Reserve, the drain against game time,
+reconcile-on-read, the burnout edge and `ignite`/`douse` are all the
+mixin's.
+
+`burnTemperatureK` defaults to **330 K** — the case, not the flame, and
+deliberately below the 345 K scalding hook so `get` and `feel` on a lit
+lantern do not burn a hand. ⚠ The consequence to know: the fire tick
+deposits toward 330 K into any `Meltable` beside a lit lamp, which is
+honest at that temperature (wax softens, ice melts).
+
+`PortableLight` survives, narrowed to what it is for: a light that burns
+**nothing** — the glowcap jar and its fixture, which are a fungus.
+
+### ⚠⚠ A fuelled appliance now casts light only while it burns
+
+`LightSourceMixin` emits its authored flux unconditionally, and
+lit-gating was done per class — `isOn()` on `PortableLight`,
+`isBurning()` on `Candle`. **`Campfire`, `Forge`, `Oven` and `Kiln` have
+empty class bodies and therefore no gate at all**, so a campfire that
+burnt out an hour ago went on casting its full 120 lumens. Nobody caught
+it because until this build nowhere was dark enough for it to matter.
+
+Every composer puts `FurnaceMixin` *outside* `LightSourceMixin`, so the
+gate lives in `FurnaceMixin.getEmittedFlux()` and fixes all of them at
+once — and cannot come back for the next composer either.
+
+⚠ `FurnaceMixin.lit` defaults **true** (the Campfire seed it was written
+for). `lint:light-sources` clause (g) makes every furnace row say which
+it means. On its first run it found four: the campfire and the practicum
+brazier mean it, and **both still rows shipped lit against their own
+prose** (*"the firebox swept and ready"*) and their own class docstring
+(*"lit with `ignite`"*).
+
+
 ## Cross-references
 
 - [thermal.md](./thermal.md) (passive Thermal + `depositHeat` + phase change),

@@ -110,6 +110,16 @@ const RegistryWideReaders = SecurityPolicies.AnyOf(
     '/platform/idea/api/employment',
     'findOrganization',
   ),
+  // ⭐ Which streets an extent lights: the nightly civic settle needs
+  // every scope that declares the public-lighting service, and there is
+  // no locality→street index (nor should there be — a street belongs to
+  // an extent by its ADDRESS, which is resolved, not stored twice).
+  // One walk for the whole realm, once per game night, in the address
+  // tier where "what does this extent cover" already lives.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/address',
+    'settleStreetLighting',
+  ),
   // Whether a principal holds any publishing position anywhere.
   SecurityPolicies.FromTemplateMethod(
     '/platform/idea/api/press',

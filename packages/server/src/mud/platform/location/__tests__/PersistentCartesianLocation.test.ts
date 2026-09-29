@@ -30,7 +30,7 @@ describe("PersistentCartesianLocation", () => {
     for (const m of [
       Mixins.Persistable,
       Mixins.Singleton,
-      Mixins.Populates,
+      Mixins.Staged,
       Mixins.Container,
       Mixins.Exitable,
     ]) {

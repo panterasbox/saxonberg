@@ -29,5 +29,8 @@ data:
   # a coach with them shut is a room that is moving, and the difference
   # is what you can see out of.
   open: false
-  ambientIntensity: 40
-  ambientColorTemperature: 2400
+  # ⭐ A DEAD FIELD, deleted. A coach is a `Vessel`, and `Vessel` is
+  # `Atmospheric(Container(Thing))` — it does NOT compose `AmbientLit`.
+  # This row has authored forty lumens that nothing has ever read. A
+  # lantern in the cabin is the honest way to light a coach, and it is
+  # a thing somebody has to have brought.

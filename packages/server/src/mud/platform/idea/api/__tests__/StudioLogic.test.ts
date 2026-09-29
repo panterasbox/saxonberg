@@ -615,9 +615,9 @@ describe('StudioLogic.createTemplate', () => {
     expect(out.path).toBe('/world/parlor/my-coin');
     expect(out.message).toBeUndefined();
     // The class + data were passed straight to the saveTemplate chokepoint.
-    expect(save).toHaveBeenCalledWith('/world/parlor/my-coin', '/stuff/thing/Coin', {
-      name: 'My Coin',
-      denomination: 5,
+    expect(save).toHaveBeenCalledWith('/world/parlor/my-coin', {
+      class: '/stuff/thing/Coin',
+      data: { name: 'My Coin', denomination: 5 },
     });
   });
 

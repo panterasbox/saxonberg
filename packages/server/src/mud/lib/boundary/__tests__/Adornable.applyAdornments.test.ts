@@ -27,7 +27,7 @@ describe("AdornableMixin.applyAdornments", () => {
   it("registers `adornments` as an instruction field without shadowing siblings", () => {
     // CartesianLocation composes both Adornable and Exitable; the chain
     // walk must collect BOTH (a `static instructionFields` on Adornable
-    // must not clobber Exitable's 'exits' / Populates' 'populates').
+    // must not clobber Exitable's 'exits' / Staged' 'populates').
     const fields = MixinApi.getAllInstructionFields(CartesianLocation);
     expect(fields).toContain("adornments");
     expect(fields).toContain("exits");

@@ -4034,9 +4034,16 @@ export interface CmsReadResult {
   body: string;
   /** Editor language hint: 'json' | 'typescript' | 'yaml' | 'plaintext'. */
   language: string;
-  /** Content-only: the template's backing class + hydrator, echoed back so
-   *  write can round-trip them unchanged. Absent for source. */
-  templateMeta?: { class: string; hydratorClass?: string };
+  /** Content-only: the template's EFFECTIVE backing class + hydrator (what
+   *  the row clones into), plus its parent and the resolved chain when the
+   *  row `extends` another. The editable `body` is the RAW row. Absent for
+   *  source. */
+  templateMeta?: {
+    class: string;
+    hydratorClass?: string;
+    extends?: string;
+    chain?: string[];
+  };
 }
 
 /** stat — lightweight existence/kind probe (no body). */

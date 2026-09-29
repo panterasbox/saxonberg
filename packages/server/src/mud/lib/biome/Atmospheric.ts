@@ -45,6 +45,19 @@ import type Locality from '../../platform/idea/Locality';
 import type Biome from './Biome';
 import type { WeatherPin } from '../weather/WeatherType';
 
+import type Material from '../material/Material';
+import type {
+  Enclosed,
+  EnclosureSpec,
+  EnclosureDefaults,
+  ResolvedEnclosure,
+} from '../spatial/Enclosed';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import { WorldClockApi } from '../../api/worldclock';
+import { TemplatePaths } from '../paths';
+import { Decay } from '../Decay';
+
 export interface Atmospheric {
   // ---------- biome reference ----------
 
@@ -169,12 +182,87 @@ export interface Atmospheric {
   _detailGravities: Record<string, Quantity<'m/s²'>>;
   _detailAtmospheres: Record<string, string>;
   _weatherPin: WeatherPin | null;
+
+  // ---------- the envelope (envelope build, D3b) ----------
+
+  /**
+   * ⭐⭐ Does this scope hold a state different from its outside?
+   *
+   * True when it has a volume to hold air in, it authors no own
+   * `_temperature` (an authored override is the bespoke case and wins
+   * outright), and it is not open to the sky (a yard IS the outside).
+   * Inert everywhere else with no guard needed: `Offstage` and a plain
+   * `Location` have no volume, so the geometry answers.
+   */
+  /** What this scope's row says it is built of, or `null`. */
+  getEnclosure(): EnclosureSpec | null;
+  setEnclosure(value: EnclosureSpec | null): void;
+  /** What a scope of this KIND is built of when its row says nothing. */
+  enclosureDefaults(): EnclosureDefaults;
+
+  envelopeApplies(): boolean;
+
+  /**
+   * Integrate the envelope forward to now. Sync, reconcile-on-read, and
+   * **no far-past guard** — a room left overnight IS cold in the
+   * morning, which is the opposite of a body, whose absence is a
+   * logout rather than a fact about the world.
+   */
+  reconcileEnvelope(): void;
+
+  /**
+   * The scope's own temperature (K), or `null` when no envelope
+   * applies or its outside was never seeded. Sync: the thermal
+   * reconcile reads it on the hot path.
+   */
+  envelopeTemperatureSync(): number | null;
+
+  /** How many exterior openings currently stand open. */
+  openExteriorOpenings(): number;
+
+  /** The room's temperature as last integrated, WITHOUT integrating. */
+  envelopeTemperatureLast(): number | null;
+
+  /** Why the room is the temperature it is — what `feel` says out loud. */
+  envelopeCause(): {
+    insideK: number;
+    outsideK: number;
+    heatInputW: number;
+    openings: number;
+    enclosureMaterialPath: string;
+    hottestSource: string | null;
+  } | null;
+
+  /** The room's heat-loss coefficient and heat capacity, or `null`. */
+  envelopeCoefficients(): {
+    uWperK: number;
+    capacityJPerK: number;
+    enclosure: ResolvedEnclosure;
+  } | null;
+
+  /** The room's total heat-loss coefficient, W/K (0 when none applies). */
+  envelopeUWperK(): number;
+
+  /** The Material path the envelope resolved to — what `feel` names. */
+  envelopeEnclosureMaterialPath(): string;
+
+  /** Runtime state — see the mixin. */
+  envelopeTemperatureK: number | null;
+  envelopeClockStamp: number;
+  envelopeOutsideK: number | null;
 }
+
+/**
+ * What the fabric ladder resolved to, cached transiently on the host.
+ * Every number is read off a `Material` row; none of it is authored as
+ * an effect.
+ */
 
 export function AtmosphericMixin<
   TBase extends MixinConstructor<Stuff & Container>,
 >(Base: TBase) {
-  return class AtmosphericMixin extends Base implements Atmospheric {
+  return class AtmosphericMixin extends Base
+    implements Atmospheric, Enclosed {
     static _mixinName = 'AtmosphericMixin';
 
     /**
@@ -198,6 +286,10 @@ export function AtmosphericMixin<
       _detailGravities: { persistent: true, authorable: true },
       _detailAtmospheres: { persistent: true, authorable: true },
       _weatherPin: { persistent: true, authorable: true },
+      enclosure: { persistent: true, authorable: true },
+      envelopeTemperatureK: { persistent: true, runtimeState: true },
+      envelopeClockStamp: { persistent: true, runtimeState: true },
+      envelopeOutsideK: { persistent: true, runtimeState: true },
     };
 
     // ---------- storage ----------
@@ -232,6 +324,75 @@ export function AtmosphericMixin<
 
     /** Scope-tier authored weather pin (`{type,mode}` or null). */
     public _weatherPin: WeatherPin | null = null;
+
+    // ---------- the envelope (D3b) ----------
+
+    /** The scope's own air temperature (K); `null` until first seeded. */
+    public envelopeTemperatureK: number | null = null;
+    /** Game-time (s) of the last envelope integration; 0 = unseeded. */
+    public envelopeClockStamp = 0;
+    /** What it is drifting TOWARD (K) — stamped at the async resolve. */
+    public envelopeOutsideK: number | null = null;
+    /**
+     * The resolved fabric, cached transiently. A convenience, not a
+     * necessity: the material lookup is a sync registry read, so a cold
+     * cache costs one lookup rather than correctness.
+     */
+    private _resolvedEnclosure: ResolvedEnclosure | null = null;
+
+    /**
+     * What this place says it is built of, without authoring anything
+     * else. `null` — the ordinary case — falls through to
+     * {@link enclosureDefaults}.
+     */
+    protected enclosure: EnclosureSpec | null = null;
+
+    public getEnclosure(): EnclosureSpec | null {
+      return this.enclosure;
+    }
+    public setEnclosure(value: EnclosureSpec | null): void {
+      this.enclosure = value;
+      this._resolvedEnclosure = null;
+    }
+
+    /**
+     * What a scope of this KIND is built of, when its row says nothing.
+     *
+     * @hook Override where the class knows its own construction — a
+     *   cellar cut into rock, a glasshouse, a tent, a ship's hull, or a
+     *   `Vessel`, which IS matter and answers with its own material.
+     *   The row still wins: a `fabric:` on the row beats this, and this
+     *   beats the universe default.
+     */
+    public enclosureDefaults(): EnclosureDefaults {
+      return {
+        materialPath: envelopeDialStr(
+          AppSettingKeys.enclosureDefaultMaterial,
+          '/stuff/idea/material/rock/granite',
+        ),
+        thicknessM: envelopeDial(
+          AppSettingKeys.enclosureDefaultThicknessM,
+          0.3,
+        ),
+      };
+    }
+    /**
+     * ⚠⚠ **Reentry guard, and it is load-bearing.**
+     *
+     * `reconcileEnvelope` walks the room's contents asking each
+     * `SpaceHeating` source for its output. `spaceHeatOutputW()` asks
+     * `isLit()`, which runs `reconcileFurnaceFuel()`, whose burnout
+     * edge calls `restampHeated()` → `ThermalMixin.restamp()` →
+     * `effectiveAmbient()` → `BiomeApi.resolveTemperatureFor(container)`
+     * → **this room's envelope again**.
+     *
+     * `ThermalMixin` has had `_thermalReconciling` for exactly this
+     * reason; the envelope needed its own. Found by the drive, as a
+     * `feel` in the cookhouse that never answered — thirty seconds of
+     * a socket going round a ring of four subsystems, each of which is
+     * individually correct.
+     */
+    private _envelopeReconciling = false;
 
     // ---------- biome reference ----------
 
@@ -424,6 +585,414 @@ export function AtmosphericMixin<
       this._weatherPin = value;
     }
 
+    // ────────────────── the envelope (envelope build) ──────────────────
+    // ---------- the envelope (D3b) ----------
+
+    /**
+     * ⭐⭐ Does this scope hold a state different from its outside?
+     *
+     * Three conditions, and every one of them is the geometry or the
+     * author answering rather than a guard:
+     *
+     *  - **It has a volume.** `Offstage` extends `Location` directly and
+     *    a plain `Location` derives nothing, so both return `null` and
+     *    get no envelope. An off-stage parking room is not a place, and
+     *    the geometry already says so — there is deliberately no
+     *    `if (room is Offstage)` anywhere.
+     *  - **It authors no own `_temperature`.** That is the EXCEPTION
+     *    mechanism (a cellar, a cave — somewhere the same all year) and
+     *    it wins outright. `lint:envelope` keeps a curated list of every
+     *    row that uses it, with a reason each.
+     *  - **It is not open to the sky.** A yard IS the outside; giving it
+     *    an envelope would have it drift toward itself.
+     */
+    public envelopeApplies(): boolean {
+      const self = this as unknown as Stuff & Container;
+      if (this.getVolume() === null) return false;
+      if (this._temperature !== null) return false;
+      return !BiomeApi.isSkyExposed(self);
+    }
+
+    /**
+     * ⭐ How many exterior openings stand open right now.
+     *
+     * An obvious exit whose destination is open to the sky, and which
+     * is either doorless or has its door open. ⚠ Interior openings
+     * count for NOTHING: this build narrows thermal.md's ventilation
+     * non-goal to **room-to-outside only**, and rooms still do not mix
+     * air with each other as a general mechanism.
+     */
+    public openExteriorOpenings(): number {
+      const self = this as unknown as Stuff & Container;
+      if (!MixinApi.isExitable(self)) return 0;
+      let open = 0;
+      for (const exit of self.getObviousExits()) {
+        // The light walk's four hazard guards, for the same reasons: an
+        // exit may name no room, name a template with many live clones,
+        // throw on resolve, or land on something reaped mid-walk. A
+        // neighbour going wrong must not take the temperature down.
+        if (!exit.hasSpatialDestination()) continue;
+        const door = exit.getDoor();
+        if (door && !door.isOpen()) continue;
+        let dest: Stuff & Container;
+        try {
+          dest = exit.getDestination();
+        } catch {
+          continue;
+        }
+        if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
+          continue;
+        }
+        if (this.isThreshold(dest)) open += 1;
+      }
+      return open;
+    }
+
+    /**
+     * ⭐⭐⭐ **Is the far side of this doorway OUTSIDE my envelope?** —
+     * the threshold test, named, because it is a threshold test.
+     *
+     * Today's answer is *the far side is open to the sky*, and it is the
+     * only answer available: **there is no structure tier**, so a
+     * controlled atmosphere starts and stops at one room and "outside"
+     * can only mean "outdoors". It is right for every shipped case — a
+     * shop onto a street, a stockroom behind a shop — and
+     * `structure-slate` names the two it gets wrong:
+     *
+     *  - a **glazed atrium** is indoors, so this reads its doorways as
+     *    interior while the building really does leak into it;
+     *  - conversely a `SkyExposedBiome` atrium *inside* a building reads
+     *    as outdoors, so every door onto it leaks the whole building to
+     *    a room that is under a roof;
+     *  - a door between two **terraced** buildings reads as interior
+     *    when it is a party threshold.
+     *
+     * ⭐ The principled form is the slate's, and it is one line:
+     * `structureOf(this) !== structureOf(far)`. **This method is the
+     * attach point** — a structure tier replaces its body and nothing
+     * else in the envelope changes.
+     *
+     * @hook Override where a class knows its own boundary before the
+     *   tier exists. Keep it CHEAP: `openExteriorOpenings` calls it once
+     *   per obvious exit on a read that sits on the thermal hot path.
+     */
+    protected isThreshold(far: Stuff & Container): boolean {
+      return BiomeApi.isSkyExposed(far);
+    }
+
+    /**
+     * Resolve what this place is built of — **two rungs, and the second
+     * always answers**:
+     *
+     *   1. the scope's own `fabric:` spec;
+     *   2. its class's {@link enclosureDefaults} hook, whose terminal here
+     *      is the universe default (`enclosure.defaultMaterial`), and which
+     *      a `Vessel` overrides with its own material because it IS
+     *      matter.
+     *
+     * ⚠⚠ It was four rungs reached through a cast until review
+     * (2026-09-24). Two of them — the `Location`'s spec and the
+     * `Vessel`'s material — were only optional *because the members sat
+     * on hosts this mixin composes inside of*, so it could not see them.
+     * Moving the fabric onto the mixin that consumes it made rung 3 a
+     * `Vessel` override and rung 4 the hook's own terminal, and the
+     * three `?.` reaches went with them. ⭐ The tell was the cast: a
+     * mixin narrowing its own `this` is the host being wrong.
+     *
+     * ⚠ A material whose row authors no `thermalConductivity` reads
+     * **zero**, which is an infinite insulator — silently. That is why
+     * `lint:envelope` clause (b) refuses a `fabric.material` naming a
+     * row that does not conduct, and why the floor here is a small
+     * positive number rather than the raw read.
+     */
+    public resolveEnclosure(): ResolvedEnclosure {
+      if (this._resolvedEnclosure !== null) return this._resolvedEnclosure;
+
+      const spec = this.getEnclosure();
+      const defaults = this.enclosureDefaults();
+      const materialPath = spec?.material ?? defaults.materialPath;
+      const thicknessM =
+        typeof spec?.thicknessM === 'number'
+          ? spec.thicknessM
+          : defaults.thicknessM;
+
+      const material =
+        StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
+      const resolved: ResolvedEnclosure = {
+        kWmK: Math.max(material?.getThermalConductivity().rawValue() ?? 0, 0.02),
+        rhoKgM3: material?.getDensity().rawValue() || 2000,
+        cJkgK: material?.getSpecificHeat().rawValue() || 900,
+        thicknessM: thicknessM > 0 ? thicknessM : 0.3,
+        materialPath,
+      };
+      this._resolvedEnclosure = resolved;
+      return resolved;
+    }
+
+    /**
+     * ⭐⭐ Integrate the envelope forward to now.
+     *
+     * `T ← Decay.toward(T, T_ss, elapsed, C/U)` — exact for
+     * piecewise-constant inputs, the same shape `ThermalMixin` uses on
+     * a body, with:
+     *
+     *  - `U_fabric = (k / t) × A`, `A = 5 · extent²` — the walls and the
+     *    roof of a cube cell. Masonry 0.6/0.3 m gives 2 W/m²K; timber
+     *    0.12/0.15 gives 0.8; an iron sheet 80/0.005 gives 16 000, and a
+     *    tin shed IS the street, honestly and without a special case.
+     *  - `U_open = openingUPerM3 × V × n` — an open door is the inside
+     *    air leaving, not conduction, so it scales with volume.
+     *  - `C = C_air + ρ·c·A·activeDepth` — the SKIN of the fabric that
+     *    answers within the hour. The stone holding the day is literally
+     *    this term.
+     *  - `P = Σ spaceHeatOutputW()` over `SpaceHeating` contents — a
+     *    hearth, never a forge. A forge heats what you put IN it, and
+     *    that rule is kept by composition rather than by asking "is this
+     *    a forge".
+     *
+     * ⚠ **No far-past guard, deliberately.** `ThermalMixin` drops a long
+     * gap because a body's absence is a logout; a ROOM's absence is a
+     * fact about the world, and a room left overnight is cold in the
+     * morning. The cost is that a hearth which burnt out mid-gap
+     * over-credits the room for one read — bounded, self-correcting on
+     * the next, and noted in thermal.md.
+     */
+    public reconcileEnvelope(): void {
+      if (this._envelopeReconciling) return;
+      if (!this.envelopeApplies()) return;
+      const outside = this.envelopeOutsideK;
+      if (outside === null) return;
+
+      const now = envelopeNowSeconds();
+      if (now === null) return;
+      if (this.envelopeTemperatureK === null) {
+        this.envelopeTemperatureK = outside;
+      }
+      if (this.envelopeClockStamp === 0) {
+        this.envelopeClockStamp = now;
+        return;
+      }
+      const elapsed = now - this.envelopeClockStamp;
+      this.envelopeClockStamp = now;
+      if (elapsed <= 0) return;
+
+      const coeff = this.envelopeCoefficients();
+      if (coeff === null) return;
+
+      this._envelopeReconciling = true;
+      try {
+        let heatW = 0;
+        const self = this as unknown as Stuff & Container;
+        for (const occupant of self.getContents()) {
+          if (!MixinApi.isSpaceHeating(occupant)) continue;
+          heatW += occupant.spaceHeatOutputW();
+        }
+
+        const steadyState = outside + heatW / coeff.uWperK;
+        this.envelopeTemperatureK = Decay.toward(
+          this.envelopeTemperatureK,
+          steadyState,
+          elapsed,
+          coeff.capacityJPerK / coeff.uWperK,
+        );
+      } finally {
+        this._envelopeReconciling = false;
+      }
+    }
+
+    /**
+     * The room's heat-loss coefficient and heat capacity.
+     *
+     * ⭐ Extracted so the integration and the PROVENANCE `feel` reads
+     * cannot come apart: one arithmetic, two callers. A second copy of
+     * this formula would be a room whose stated reason disagreed with
+     * its own temperature, which is the exact failure the cause line
+     * exists to make visible.
+     */
+    /**
+     * ⭐⭐⭐ **How much of this envelope faces outside**, in m².
+     *
+     * Today: a cube of this volume, four walls and a roof — the floor is
+     * the ground and does not leak. ⚠⚠ And it is **five faces
+     * unconditionally**, for every room, whether or not any of them is
+     * actually on the outside, because with no structure tier there is
+     * nothing to ask. Two things follow that a reader should know are
+     * consequences rather than decisions:
+     *
+     *  - a corridor buried in the middle of a building pays the same
+     *    loss to the weather as its shopfront;
+     *  - ⚠ **subdividing therefore makes a building colder.** One hall
+     *    of volume V exposes `5V^⅔`; the same hall cut in two exposes
+     *    `6.3V^⅔`. Adding an interior wall should not add heat loss.
+     *
+     * ⭐ **This method is the attach point.** A structure tier answers
+     * it with the faces that are genuinely on a threshold, and the
+     * integration, the cause line and the `feel` read all follow without
+     * touching the arithmetic — which is the whole reason it is a method
+     * and not two lines inside {@link envelopeCoefficients}.
+     *
+     * @hook Override where a class knows its own exposure. ⭐ The first
+     *   honest candidate is a **buried** room: `SealedCellar` is cut
+     *   into rock and exposes no wall to the air at all, and its
+     *   steadiness today comes from a metre of granite rather than from
+     *   the burial that is the real reason. Deliberately NOT changed
+     *   here — it would move a shipped temperature the drive asserts on.
+     */
+    protected envelopeExposedAreaM2(volumeM3: number): number {
+      const side = Math.cbrt(volumeM3);
+      return 5 * side * side;
+    }
+
+    public envelopeCoefficients(): {
+      uWperK: number;
+      capacityJPerK: number;
+      enclosure: ResolvedEnclosure;
+    } | null {
+      const volQ = this.getVolume();
+      const volume = volQ ? volQ.rawValue() : 0;
+      if (!(volume > 0)) return null;
+      const area = this.envelopeExposedAreaM2(volume);
+      if (!(area > 0)) return null;
+
+      const enclosure = this.resolveEnclosure();
+      // ⭐⭐ **Conduction through the wall IN SERIES with the air films
+      // either side of it.** A wall's resistance is not only its own:
+      // still air clings to both faces and carries about
+      // 0.17 m²K/W between them, which is the standard building-physics
+      // figure and the reason a real stone wall is not the catastrophe
+      // its raw conductivity suggests.
+      //
+      // ⚠ The plan's formula was `U = (k/t)·A` with no films, and it
+      // does not survive contact with the shipped material rows: real
+      // granite is 2.9 W/(m·K), not the 0.6 of brick masonry the worked
+      // numbers assumed, so a 3 m stone cell came out at 435 W/K — a
+      // hearth would lift it three degrees — and an iron sheet came out
+      // at SIXTEEN THOUSAND, which is not a number about anything. With
+      // the films the same shed is ~265 W/K: genuinely bad, which is
+      // true, rather than infinitely bad, which is not.
+      const rFilms = envelopeDial(
+        AppSettingKeys.envelopeSurfaceResistanceM2KPerW,
+        0.17,
+      );
+      const rWall = enclosure.thicknessM / enclosure.kWmK + rFilms;
+      const uFabric = area / rWall;
+      const uOpen =
+        envelopeDial(AppSettingKeys.envelopeOpeningUPerM3, 6) *
+        volume *
+        this.openExteriorOpenings();
+      const uWperK = uFabric + uOpen;
+      if (!(uWperK > 0)) return null;
+
+      const activeDepth = envelopeDial(
+        AppSettingKeys.envelopeActiveDepthM,
+        0.01,
+      );
+      // Air (ρ·c ≈ 1.2 × 1005) plus the responsive skin of the fabric.
+      const capacityJPerK =
+        1.2 * 1005 * volume +
+        enclosure.rhoKgM3 * enclosure.cJkgK * area * activeDepth;
+      if (!(capacityJPerK > 0)) return null;
+      return { uWperK, capacityJPerK, enclosure };
+    }
+
+    /** The room's total heat-loss coefficient, W/K (0 when none applies). */
+    public envelopeUWperK(): number {
+      return this.envelopeCoefficients()?.uWperK ?? 0;
+    }
+
+    /** The Material path the envelope resolved to — what `feel` names. */
+    public envelopeEnclosureMaterialPath(): string {
+      return this.resolveEnclosure().materialPath;
+    }
+
+    /**
+     * ⭐ **Why this room is the temperature it is**, synchronously, as
+     * last integrated — the read `feel` turns into a sentence.
+     *
+     * Lives here rather than in the controller for two reasons, and the
+     * second is the one that matters: a controller walking a room's
+     * contents to work out what is burning in it is a controller
+     * re-deriving what the room already knows (`lint:instrument-args`
+     * fails it by shape, and is right to), and a second copy of that
+     * walk is a room whose stated reason could disagree with its own
+     * temperature.
+     */
+    public envelopeCause(): {
+      insideK: number;
+      outsideK: number;
+      heatInputW: number;
+      openings: number;
+      enclosureMaterialPath: string;
+      hottestSource: string | null;
+    } | null {
+      const inside = this.envelopeTemperatureLast();
+      const outsideK = this.envelopeOutsideK;
+      if (inside === null || outsideK === null) return null;
+
+      let heatInputW = 0;
+      let hottestSource: string | null = null;
+      let hottestW = 0;
+      const self = this as unknown as Stuff & Container;
+      for (const occupant of self.getContents()) {
+        if (!MixinApi.isSpaceHeating(occupant)) continue;
+        const w = occupant.spaceHeatOutputW();
+        heatInputW += w;
+        if (w > hottestW) {
+          hottestW = w;
+          hottestSource = (occupant as unknown as Stuff).getPresentation();
+        }
+      }
+      return {
+        insideK: inside,
+        outsideK,
+        heatInputW,
+        openings: this.openExteriorOpenings(),
+        enclosureMaterialPath: this.envelopeEnclosureMaterialPath(),
+        hottestSource,
+      };
+    }
+
+    /**
+     * The scope's own temperature (K), reconciled, or `null` when no
+     * envelope applies or its outside was never seeded. Sync, because
+     * the thermal reconcile reads it on every vitals poll.
+     */
+    public envelopeTemperatureSync(): number | null {
+      if (!this.envelopeApplies()) return null;
+      if (this.envelopeOutsideK === null) return null;
+      this.reconcileEnvelope();
+      return this.envelopeTemperatureK;
+    }
+
+    /**
+     * ⭐⭐ The room's temperature **as last integrated**, without
+     * integrating. For readers that are inside the room.
+     *
+     * ⚠⚠ **The room integrates itself; bodies READ it.** A body's
+     * reconcile calling `envelopeTemperatureSync()` closes a ring: the
+     * room's integration walks its contents, lighting a fire restamps
+     * every Thermal body standing in it, a restamp resolves the room's
+     * temperature, and round it goes. Four subsystems, each
+     * individually correct, and a `feel` in a cookhouse with a lit
+     * hearth that never answered — found by the drive.
+     *
+     * Reading the last value costs a body nothing in accuracy: the room
+     * re-integrates whenever anything resolves its temperature, which
+     * includes every `feel`, every `measure`, and the body's own
+     * re-stamp path one level up.
+     */
+    public envelopeTemperatureLast(): number | null {
+      if (!this.envelopeApplies()) return null;
+      if (this.envelopeOutsideK === null) return null;
+      return this.envelopeTemperatureK;
+    }
+
+
+    // ──────── the weather locality cache (extraction build) ─────────
+    // ⭐ Disjoint from the envelope block above: that one integrates a
+    // temperature, this one memoizes WHOSE weather it is. They landed at
+    // the same insertion point on two branches, which is the whole of
+    // why this was a 460-line conflict and none of it was a real one.
     // ---------- the weather locality memo ----------
 
     /**
@@ -521,4 +1090,39 @@ function assertQuantity<U extends Unit>(
 
 function capitalize(s: string): string {
   return s.length === 0 ? s : s[0]!.toUpperCase() + s.substring(1);
+}
+
+/**
+ * Game-time now, or `null` when no world clock is registered. The
+ * `furnaceNowSeconds` shape: without the registry the envelope simply
+ * does not integrate, which is the right degradation for a unit fixture
+ * and for the window before boot finishes.
+ */
+function envelopeNowSeconds(): number | null {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+    return null;
+  }
+  return WorldClockApi.getNow().rawValue();
+}
+
+/** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */
+function envelopeDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** String AppSetting read with a seeded-literal fallback (pre-warm safe). */
+function envelopeDialStr(key: string, fallback: string): string {
+  try {
+    const raw = AppApi.setting(key);
+    return raw == null || raw === '' ? fallback : raw;
+  } catch {
+    return fallback;
+  }
 }

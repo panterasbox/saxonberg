@@ -29,8 +29,8 @@
  *
  * `PersistableMixin` composes **outermost** (the host rule): its
  * `cleanupOnDestruct` must fire before the inner `Container` evacuates,
- * and its `applyProps`/`applyCast` overrides wrap `Populates`. The lib
- * base already carries `PostRegistration`/`Populates`/`Singleton`.
+ * and its `applyProps`/`applyCast` overrides wrap `Staged`. The lib
+ * base already carries `PostRegistration`/`Staged`/`Singleton`.
  *
  * A spherical twin (`PersistentSphericalLocation`) is derived the same
  * way when a spherical venue first needs one.

@@ -25,7 +25,7 @@ import { ExitableMixin } from '../boundary/Exitable';
 import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
-import { PopulatesMixin } from '../stuff/Populates';
+import { StagedMixin } from '../stuff/Staged';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
 import { Quantity } from '../quantity';
@@ -55,8 +55,14 @@ import type { FieldMeta } from '../mixin';
 // default `postRegister` is a non-chaining no-op — a second composition
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
+// ⚠⚠ `PublicLightingMixin` is NOT here, and was for one build. It went
+// on this base on the reasoning that "any cartesian cell may be lit by a
+// funded public service" — which gave a cellar, a smithy, a mine heading
+// and a ploughed field a lighting field and a `postRegister` hook to
+// answer for. FIVE rows in the realm declare the service. It lives on
+// `platform/location/Street` now, which is what a town lights.
 const CartesianLocationBase =
-  PopulatesMixin(
+  StagedMixin(
     DetailedMixin(
       PerceptibleMixin(
         ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))

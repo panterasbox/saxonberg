@@ -1,5 +1,5 @@
 import "../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import Window from '../thing/Window';
 import { Boundary } from '../../lib/boundary/Boundary';
 import CartesianLocation from '../../lib/location/CartesianLocation';
@@ -9,16 +9,23 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ProxyApi } from '../../api/proxy';
 import PersistentHydrator from '../idea/persistence/PersistentHydrator';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 import type { LightConduit, LineOfSight } from '../../lib/boundary/Conduit';
 
 describe('Window', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   afterEach(() => {
     StuffApi.clearAll();
   });
 
-  it('is a Boundary and a Sealable, defaults to closed + base 1.0', () => {
-    const w = makeStuff(() => new Window());
+  it('is a Boundary and a Sealable, defaults to closed + base 1.0', async () => {
+    const w = await StuffApi.create(() => new Window());
     expect(w).toBeInstanceOf(Boundary);
     expect(MixinApi.isSealable(w)).toBe(true);
     expect(w.isOpen()).toBe(false);
@@ -27,24 +34,24 @@ describe('Window', () => {
     expect(w.getColorTint()).toBeNull();
   });
 
-  it('transmissivity is 0 when closed regardless of base / overrides', () => {
-    const w = makeStuff(() => new Window());
+  it('transmissivity is 0 when closed regardless of base / overrides', async () => {
+    const w = await StuffApi.create(() => new Window());
     w.setBaseTransmissivity(0.7);
     w.setDirectionalOverrides({ aToB: 1, bToA: 0.3 });
     expect(w.transmissivity('A', 'B')).toBe(0);
     expect(w.transmissivity('B', 'A')).toBe(0);
   });
 
-  it('symmetric: transmissivity returns base in both directions when open', () => {
-    const w = makeStuff(() => new Window());
+  it('symmetric: transmissivity returns base in both directions when open', async () => {
+    const w = await StuffApi.create(() => new Window());
     w.open();
     w.setBaseTransmissivity(0.6);
     expect(w.transmissivity('A', 'B')).toBe(0.6);
     expect(w.transmissivity('B', 'A')).toBe(0.6);
   });
 
-  it('one-way glass: aToB=1, bToA=0', () => {
-    const w = makeStuff(() => new Window());
+  it('one-way glass: aToB=1, bToA=0', async () => {
+    const w = await StuffApi.create(() => new Window());
     w.open();
     w.setBaseTransmissivity(1);
     w.setDirectionalOverrides({ aToB: 1, bToA: 0 });
@@ -54,15 +61,15 @@ describe('Window', () => {
     expect(w.canSeeThrough('B', 'A')).toBe(false);
   });
 
-  it('rejects out-of-range transmissivity / overrides', () => {
-    const w = makeStuff(() => new Window());
+  it('rejects out-of-range transmissivity / overrides', async () => {
+    const w = await StuffApi.create(() => new Window());
     expect(() => w.setBaseTransmissivity(-0.1)).toThrow(RangeError);
     expect(() => w.setBaseTransmissivity(1.5)).toThrow(RangeError);
     expect(() => w.setDirectionalOverrides({ aToB: 2 })).toThrow(RangeError);
   });
 
-  it('getConduits returns a light + sight + smell + sound quadruple', () => {
-    const w = makeStuff(() => new Window());
+  it('getConduits returns a light + sight + smell + sound quadruple', async () => {
+    const w = await StuffApi.create(() => new Window());
     const conduits = w.getConduits();
     const kinds = conduits.map((c) => c.conduitKind).sort();
     expect(kinds).toEqual(['light', 'sight', 'smell', 'sound']);
@@ -79,7 +86,7 @@ describe('Window', () => {
   });
 
   it('hydrates configuration via the PersistentHydrator (scalar fields)', async () => {
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await makeStuff(() => new PersistentHydrator()).hydrate(w, {
       baseTransmissivity: 0.4,
       aToBOverride: 0.4,
@@ -108,7 +115,7 @@ describe('Window', () => {
   });
 
   it('one-side-only override hydrates correctly', async () => {
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     await makeStuff(() => new PersistentHydrator()).hydrate(w, {
       aToBOverride: 0.5,
       // bToAOverride absent — should stay null
@@ -116,22 +123,22 @@ describe('Window', () => {
     expect(w.getDirectionalOverrides()).toEqual({ aToB: 0.5 });
   });
 
-  it('null overrides round-trip through the runtime API', () => {
-    const w = makeStuff(() => new Window());
+  it('null overrides round-trip through the runtime API', async () => {
+    const w = await StuffApi.create(() => new Window());
     w.setDirectionalOverrides({ aToB: 1, bToA: 0 });
     expect(w.getDirectionalOverrides()).toEqual({ aToB: 1, bToA: 0 });
     w.setDirectionalOverrides(null);
     expect(w.getDirectionalOverrides()).toBeNull();
   });
 
-  it('attachExistingBoundary plus destruct round-trip', () => {
+  it('attachExistingBoundary plus destruct round-trip', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const w = makeStuff(() => new Window());
+    const w = await StuffApi.create(() => new Window());
     BoundaryApi.attachExistingBoundary({ boundary: w, hostA: a, hostB: b });
     expect(a.getFixtureBoundaries()).toEqual([w]);
     expect(b.getFixtureBoundaries()).toEqual([w]);

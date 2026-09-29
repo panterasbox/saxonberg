@@ -1,5 +1,6 @@
 import "../../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { StuffApi } from '../../../../../api/stuff';
+import { describe, it, expect, beforeEach  } from 'vitest';
 import GoController from '../GoController';
 import CartesianZone from '../../../location/CartesianZone';
 import CartesianLocation from '../../../../../lib/location/CartesianLocation';
@@ -41,7 +42,10 @@ function stubCommand(verb: string): CommandDefinition {
     "<test>"
   );
 }
-import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../../../lib/stuff/Idea";
 import { buildMode } from '../../../../../lib/locomotion/__tests__/test-helpers';
 
@@ -112,6 +116,10 @@ async function goCmd(
 }
 
 describe('GoController', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let zone: CartesianZone;
   let locA: CartesianLocation;
   let locB: CartesianLocation;
@@ -244,7 +252,7 @@ describe('GoController', () => {
     });
 
     it('blocks traversal through a closed door', async () => {
-      const door = makeStuff(() => new Door());
+      const door = await StuffApi.create(() => new Door());
       door.setShortDescription('oak door');
       await locA.addExit(
         makeStuff(() => new Exit({ direction: 'east', source: locA, destination: locB, door }))
@@ -293,7 +301,7 @@ describe('GoController', () => {
 
   describe('vessel entry and exit', () => {
     it('go <vessel-keyword> enters a sibling ExitableVessel', async () => {
-      const wardrobe = makeStuff(() => new ExitableVessel());
+      const wardrobe = await StuffApi.create(() => new ExitableVessel());
       wardrobe.setShortDescription('wardrobe');
       ContainmentApi.move(wardrobe, locA);
 
@@ -302,7 +310,7 @@ describe('GoController', () => {
     });
 
     it('go out from inside a vessel returns to the environment', async () => {
-      const wardrobe = makeStuff(() => new ExitableVessel());
+      const wardrobe = await StuffApi.create(() => new ExitableVessel());
       wardrobe.setShortDescription('wardrobe');
       ContainmentApi.move(wardrobe, locA);
       ContainmentApi.move(avatar, wardrobe);

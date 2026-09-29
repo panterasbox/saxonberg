@@ -9,7 +9,7 @@ live in `lib/spatial/`; non-spatial taxonomy zones (`Clade`,
 `Zone`.
 
 `Biome` deliberately does NOT extend `Zone` ([biome.md](./biome.md))
-— biomes are leaf Ideas with explicit `_extendsBiomePath` parent
+— biomes are leaf Ideas whose ROWS name their parent with `extends:`
 refs. The folder structure under `/stuff/idea/biome/` uses `FolderZone`
 templates for the biome team's admin/ownership scoping; the actual
 biome inheritance lives independently in the leaf data.
@@ -193,8 +193,16 @@ class RootedZone extends Zone {
 No barrier subclass ships in this build — the seam is there for the
 moment a real consumer needs it. A subclass could also override
 `lookupAncestorField` to consult a non-template-parent source
-(e.g., a sibling-template inheritance, or a per-field fallback
-chain).
+(a per-field fallback chain, say).
+
+⭐ **Zone field lookup and row parenting (`extends:`) are one family and
+stay two mechanisms.** A zone field answers *what is true everywhere
+inside here*, at READ time, walking the path tree; a parent answers
+*what this thing is like*, at CLONE time, walking the `extends` chain.
+When both would supply a value, the clone-time one is already on the
+instance and the zone walk is never consulted. They are not unified
+because the questions are not the same one — see
+[templates.md § Inheritance](./templates.md).
 
 ## Zone derivation rule
 
@@ -387,7 +395,7 @@ needed instance dispatch. The build's source slates (the
 zone-architecture and declarative-content slates, since retired — their
 authoring guidance folded into the "Authoring guidelines" section below
 and into [templates.md](./templates.md)); the spawn-shape side
-(`PopulatesMixin` + `container:` instruction field, with live-ref
+(`StagedMixin` + `container:` instruction field, with live-ref
 consultation in `Avatar.enter` for the across-restart spawn case)
 shipped in a follow-up build — see
 [templates.md § Hydrator contract](./templates.md#the-hydrator-contract)

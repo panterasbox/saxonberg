@@ -80,8 +80,13 @@ const ByRosteringParty = SecurityPolicies.AnyOf(
       const path = typeof args[0] === "string" ? args[0] : "";
       if (path === "") return true;
       const member = target as PartyMember;
+      // ⚠⚠ IDENTITY, not lineage. Every party is a clone of
+      // `/platform/idea/Party` now, so `getTemplatePath()` is the same
+      // string for all of them — comparing against it would let ANY
+      // party set ANY member's pointer, which is the opposite of what
+      // this contract says.
       return (
-        path === party.getTemplatePath() &&
+        path === party.getIdentityPath() &&
         party.isMember(member.partyMemberId())
       );
     },
@@ -99,7 +104,8 @@ const ByInvitingParty = SecurityPolicies.AnyOf(
     where: (caller, _target, _method, args) => {
       const party = caller as Party;
       const path = typeof args[0] === "string" ? args[0] : "";
-      return path === "" || path === party.getTemplatePath();
+      // IDENTITY, not lineage — see `ByRosteringParty`.
+      return path === "" || path === party.getIdentityPath();
     },
   }),
   SecurityPolicies.FromTemplate("/platform/idea/api/party"),

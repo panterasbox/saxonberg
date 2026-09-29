@@ -23,6 +23,15 @@ Seeding facts (verified in source, 2026-07-28):
 - The field-modality walks (vision / sound / smell) already cross
   exits: `MAX_HOPS = 2`, `EXIT_TAU = 1.0` (open exits pass at full
   amplitude), Door/Window participate via per-modality Conduits.
+  ⚠ **Amended 2026-09-25 (the envelope sweep): VISION now CAPS what
+  arrives from other scopes** at the brightest neighbour's illuminance —
+  *an opening cannot make you brighter than what is through it, and more
+  openings onto the same day do not stack.* `EXIT_TAU` is still `1.0`;
+  the cap sits above it. ⭐ Sound and smell are untouched and **may want
+  the same question asked of them** — a room downwind of three kitchens
+  currently smells three times as strong as any one of them. See
+  [light.md](../../subsystems/light.md) § *An opening cannot make you
+  brighter*.
   Adjacent-room sources appear in `listen` with attribution today.
 - `sense` auto-fires **on entry** — one room too late for danger.
 - The crossing's clock tower is the one live vista: a bespoke

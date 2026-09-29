@@ -8,7 +8,6 @@ data:
   keywords: [landing, seznick, house]
   register: indefinite
   alternateNames: [corridor, hallway]
-  ambientIntensity: 25
-  ambientColorTemperature: 4000
+  # ⭐ DARK, on purpose. An interior landing with no window. Dark, and the let rooms either side of it are where the light is.
   longDescription: |
     A landing of scuffed runner and brown-painted doors, a sash window at the end letting in the Row's grey light. The house's quiet has weight up here; the stair continues past you in both directions when the floors above are taken.

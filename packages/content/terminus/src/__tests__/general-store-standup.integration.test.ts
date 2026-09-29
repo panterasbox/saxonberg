@@ -26,6 +26,7 @@ import Seed from "@saxonberg/server/mud/platform/thing/Seed";
 import type { Bulkable } from "@saxonberg/server/mud/lib/bulk/Bulkable";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Switchable } from "@saxonberg/server/mud/lib/boundary/Switchable";
+import type { Furnace } from "@saxonberg/server/mud/lib/fire/Furnace";
 import type { LightSource } from "@saxonberg/server/mud/lib/perception/LightSource";
 import { installStore, type Doc } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
@@ -283,15 +284,23 @@ describe("general-store standup (real seeds)", () => {
   it("the goods are real — the torch lights, the skin holds fluid, the knife is a weapon", async () => {
     const counter = await StuffApi.singleton<Stock>(COUNTER);
 
-    // The torch is a real switchable light: dark off the shelf, lights when
-    // switched on, dark again when off (VisionModality reads this flux).
+    // ⭐ The torch is a real FUELLED light: dark off the shelf, lights
+    // when you light it, dark again when doused (VisionModality reads
+    // this flux live). Since the envelope build it is a `Lamp` — a
+    // small furnace with a light on it — rather than a `Switchable`,
+    // so it also carries fuel and eventually runs out. The burning-down
+    // half needs a clock and lives in `Lamp.test.ts`; what matters here
+    // is that the thing on the shelf is the thing the player buys.
     const torch = counter.resolveBuy("torch") as unknown as Stuff &
-      Switchable &
+      Furnace &
       LightSource;
-    expect(torch.getEmittedFlux().rawValue()).toBe(0); // unlit off the shelf
-    torch.switchOn();
+    expect(torch.isLit()).toBe(false); // out on the shelf
+    expect(torch.getEmittedFlux().rawValue()).toBe(0);
+    expect(torch.fuelRemaining()).toBeGreaterThan(0); // and full
+    torch.ignite();
+    expect(torch.isLit()).toBe(true);
     expect(torch.getEmittedFlux().rawValue()).toBeGreaterThan(0); // it lights
-    torch.switchOff();
+    torch.douse();
     expect(torch.getEmittedFlux().rawValue()).toBe(0); // and goes dark
 
     // The waterskin is a real fluid container; the knife a real wielded weapon.

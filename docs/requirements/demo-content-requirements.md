@@ -375,7 +375,7 @@ roads.** Buildings are kept off the green entirely (decision,
 2026-07-28, revising the campus map's "buildings front it
 directly"): every campus building lives on a road; the Quad
 holds grass, walkways, the statue, the fountain, and nothing
-else. Populates: the fountain (unit 6) and the statue (unit 7).
+else. Staged: the fountain (unit 6) and the statue (unit 7).
 No resident NPCs (the greeter is the onboarding build's).
 
 **The strange finish — two notes, deliberately no more:**

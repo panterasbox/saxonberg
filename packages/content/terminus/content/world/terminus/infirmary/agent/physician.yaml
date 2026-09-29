@@ -9,8 +9,17 @@
 # medic-judgment's build. `order treatment` remains the kernel-orchestrated
 # paid path beside her.
 class: /platform/agent/Cast
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/agent/costume/student
 data:
+  # ⭐ What this person has on comes from the parent row
+  # (`/stuff/agent/costume/student`). Until the envelope build no
+  # NPC row could author clothing at all — every authored person in
+  # the realm was naked, invisible only because every interior was
+  # 21 °C by decree.
+  # ⭐ The base three come from the parent; this row adds what is
+  # different about THIS person.
+  costume:
+    - /stuff/thing/clothes/white-coat
   name: Aldis Verrow
   keywords: [physician, aldis, verrow, spare, unhurried]
   pronouns: she

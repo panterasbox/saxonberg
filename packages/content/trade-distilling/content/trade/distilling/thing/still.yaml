@@ -9,4 +9,13 @@ data:
   keywords: [pot, still, pot-still, copper]
   register: indefinite
   longDescription: A squat copper pot still, its swan neck green at the joints, the firebox swept and ready.
+  # ⭐ A still ships COLD, and now says so. `FurnaceMixin.lit` defaults
+  # TRUE, so this row shipped "lit" against its own prose ("the firebox
+  # swept and ready", "bright with polishing") and against its own class
+  # docstring ("lit with `ignite`"). Nothing observable depended on it —
+  # the row carries no fuel reserve, and every consumer of `isLit()` also
+  # asks `fuelRemaining() > 0` — which is exactly why it went unnoticed
+  # for the whole of the distilling build's life. Found by
+  # `lint:light-sources` clause (g), 2026-09-24.
+  lit: false
   capabilities: [still]

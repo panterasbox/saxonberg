@@ -17,12 +17,16 @@
  * "carry a chest with someone in it" exploit-closer — vessels cannot land
  * in an Avatar's inventory, even empty.
  *
- * Exit semantics: the explicit exit map is always consultable. In addition,
- * `getExit('out')` synthesizes a one-way exit from this vessel to its
- * current environment, and `getEntryExit()` synthesizes the matching
- * one-way exit from the current environment into this vessel — used by
- * `go <vessel-keyword>`. Both are cached and invalidated when the vessel's
- * environment changes or when the vessel's `door` is reassigned.
+ * Exit semantics: the explicit exit map is always consultable. In
+ * addition the vessel holds its own `out` and `in` pair — ⭐ CLONES of
+ * `/platform/idea/exits/vessel-out` and `…/vessel-in`, minted once at
+ * `postRegister` and REBOUND whenever the vessel's environment or door
+ * changes. `getExit('out')` and `getEntryExit()` (used by `go
+ * <vessel-keyword>`) return them, rebinding first if they are stale.
+ *
+ * ⭐ They used to be `new Exit(...)` built on demand, which is why they
+ * could not say anything an author had written: there was no row. Now
+ * the prose is content, with the vessel's name interpolated per site.
  *
  * Door wiring: when the vessel composes a non-null `door`, every
  * synthesized exit picks it up (so `canTraverse` blocks until the door
@@ -50,25 +54,95 @@ import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
 import { PerceptionApi } from '../../api/perception';
 import { MixinApi } from '../../api/mixin';
+import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import { TemplatePaths } from '../paths';
 
-const ExitableVesselBase = DoorBearingMixin(
-  ExitableMixin(AdornableMixin(Vessel))
+/**
+ * ⭐ `PostRegistrationMixin` is composed for ONE reason: a vessel's `in`
+ * and `out` exits are CLONES OF ROWS now, and a clone is async. They are
+ * minted once, here, and then REBOUND as the vessel moves — because a
+ * vessel is a room that goes places, so the same two exits join a
+ * different pair of rooms at every stop. That is the whole reason
+ * `Exit.rebind` exists.
+ *
+ * ⚠ Consequence: `StuffApi.createSync(() => new SomeVessel())` now
+ * throws. No production site does it (`lint:create-sites` names one if
+ * it ever appears).
+ */
+const ExitableVesselBase = PostRegistrationMixin(
+  DoorBearingMixin(ExitableMixin(AdornableMixin(Vessel)))
 );
 
 export default class ExitableVessel extends ExitableVesselBase {
   /**
-   * Cached synthesized `'out'` exit. Keyed implicitly by the current
-   * environment; invalidated via `outCacheEnvId` when it changes.
+   * The vessel's own two exits — clones of
+   * `/platform/idea/exits/vessel-out` and `…/vessel-in`, minted once at
+   * `postRegister` and rebound whenever the vessel moves or its door
+   * changes. `null` only before `postRegister` has run.
    */
   private outCache: Exit | null = null;
   private outCacheEnvId: string | null = null;
-
-  /**
-   * Cached synthesized entry exit (env → vessel). Same keying/invalidation
-   * pattern as the `'out'` cache.
-   */
   private entryCache: Exit | null = null;
   private entryCacheEnvId: string | null = null;
+
+  /**
+   * Mint the pair from their rows, and bind them if the vessel is
+   * already somewhere.
+   */
+  public override async postRegister(context?: unknown): Promise<void> {
+    await super.postRegister(context);
+    this.outCache = await StuffApi.clone<Exit>(TemplatePaths.vesselOutExit);
+    this.entryCache = await StuffApi.clone<Exit>(TemplatePaths.vesselInExit);
+    this.rebindVesselExits(this.getContainer());
+  }
+
+  /**
+   * Point the held pair at `env`, or leave them unbound when the vessel
+   * is nowhere. Sync — `onMoved` is, and that is the whole reason the
+   * exits are pre-minted rather than cloned on demand.
+   *
+   * The per-site prose keeps the vessel's NAME in it (the row carries a
+   * generic fallback for a vessel with no presentation), and `bind` is
+   * delta-aware so everything else the row authored survives.
+   */
+  private rebindVesselExits(env: (Stuff & Container) | null): void {
+    const out = this.outCache;
+    const entry = this.entryCache;
+    if (!out || !entry) return;
+    if (!env) {
+      this.outCacheEnvId = null;
+      this.entryCacheEnvId = null;
+      return;
+    }
+    const vesselName = (this as unknown as Stuff).getPresentation();
+    const door = this.getDoor();
+    const outOpts = {
+      direction: 'out',
+      source: this as unknown as Stuff & Container,
+      destination: env,
+      door,
+      messageOut: `{{ mover }} leaves the <thing>${vesselName}</thing>.`,
+      messageIn: `{{ mover }} emerges from the <thing>${vesselName}</thing>.`,
+    };
+    const entryOpts = {
+      direction: 'in',
+      source: env,
+      destination: this as unknown as Stuff & Container,
+      door,
+      messageOut: `{{ mover }} enters the <thing>${vesselName}</thing>.`,
+      messageIn: `{{ mover }} enters from outside.`,
+    };
+    if (out.isBound()) out.rebind(outOpts);
+    else out.bind(outOpts);
+    if (entry.isBound()) entry.rebind(entryOpts);
+    else entry.bind(entryOpts);
+    if (door) {
+      door.attachExit(out);
+      door.attachExit(entry);
+    }
+    this.outCacheEnvId = env.stuffId;
+    this.entryCacheEnvId = env.stuffId;
+  }
 
   public override getExit(direction: string): Exit | undefined {
     const explicit = this.getExits().get(direction);
@@ -152,7 +226,12 @@ export default class ExitableVessel extends ExitableVesselBase {
     env: (Stuff & Container) | null
   ): void {
     if (!env) return;
-    if (door.getAnchorA() || door.getAnchorB()) return;
+    // ⚠ "already anchored" is now "already INSTALLED": a boundary mints
+    // its pair at registration and keeps it across detach, so the
+    // presence of anchors says nothing about whether they are on a host.
+    if (door.getAnchorA()?.getAdornedTo() || door.getAnchorB()?.getAdornedTo()) {
+      return;
+    }
     // Cast both sides to plain `Stuff` (sound — vessel and env are
     // both Stuff) and let `MixinApi.isAdornable` narrow them to
     // `Stuff & Adornable` via its type predicate. The earlier
@@ -179,55 +258,27 @@ export default class ExitableVessel extends ExitableVesselBase {
   public getEntryExit(): Exit | undefined {
     const env = this.getContainer();
     if (!env) return undefined;
-
-    if (this.entryCache && this.entryCacheEnvId === env.stuffId) {
-      return this.entryCache;
-    }
-
-    const vesselName = (this as unknown as Stuff).getPresentation();
-    const door = this.getDoor();
-    const exit = StuffApi.createSync(() => new Exit({
-      direction: 'in',
-      source: env,
-      destination: this as unknown as Stuff & Container,
-      door,
-      messageOut: `{{ mover }} enters the <thing>${vesselName}</thing>.`,
-      messageIn: `{{ mover }} enters from outside.`,
-    }));
-    if (door) door.attachExit(exit);
-    this.entryCache = exit;
-    this.entryCacheEnvId = env.stuffId;
-    return exit;
+    if (this.entryCacheEnvId !== env.stuffId) this.rebindVesselExits(env);
+    return this.entryCache ?? undefined;
   }
 
   private getOrSynthesizeOutExit(): Exit | undefined {
     const env = this.getContainer();
     if (!env) return undefined;
-
-    if (this.outCache && this.outCacheEnvId === env.stuffId) {
-      return this.outCache;
-    }
-
-    const vesselName = (this as unknown as Stuff).getPresentation();
-    const door = this.getDoor();
-    const exit = StuffApi.createSync(() => new Exit({
-      direction: 'out',
-      source: this as unknown as Stuff & Container,
-      destination: env,
-      door,
-      messageOut: `{{ mover }} leaves the <thing>${vesselName}</thing>.`,
-      messageIn: `{{ mover }} emerges from the <thing>${vesselName}</thing>.`,
-    }));
-    if (door) door.attachExit(exit);
-    this.outCache = exit;
-    this.outCacheEnvId = env.stuffId;
-    return exit;
+    if (this.outCacheEnvId !== env.stuffId) this.rebindVesselExits(env);
+    return this.outCache ?? undefined;
   }
 
   /**
    * Drop both synthesized-exit caches and unhook the cached exits from
    * any door's `attachedTo` set. The next access (if still warranted)
    * will recreate them with the current `door` and re-register.
+   */
+  /**
+   * Unhook the pair from any door and mark them stale. ⚠ The EXITS are
+   * kept — they are this vessel's, minted once; only the binding is
+   * dropped, and the next access rebinds them against the current
+   * environment and door.
    */
   private invalidateSynthesizedExits(): void {
     const outDoor = this.outCache?.getDoor();
@@ -238,9 +289,7 @@ export default class ExitableVessel extends ExitableVesselBase {
     if (this.entryCache && entryDoor) {
       entryDoor.detachExit(this.entryCache);
     }
-    this.outCache = null;
     this.outCacheEnvId = null;
-    this.entryCache = null;
     this.entryCacheEnvId = null;
   }
 }

@@ -13,15 +13,16 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: pithead yard
   keywords: [yard, pithead]
   register: definite
   # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
   # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
   # 6000 — open hill under the sun. No row here authored a value before the forestry build,
-  # and every object read "something".
-  ambientIntensity: 8000
-  ambientColorTemperature: 5800
+  # ⭐ Sky-lit by DERIVATION now: the row names an outdoor
+  # biome and the light follows the sun, the moon and the cloud.
+  # A pithead yard is OUTDOORS. It authored 8000 lumens and no biome at all, so the realm did not know — and gave it no weather either.
   longDescription: |
     A flat of trodden mud and grey spoil, walled on three sides by the slope it was cut out of. Ore carts stand where they were left. A cable drum, a winch house with its door off, and a rail line that runs twenty yards and stops.
 

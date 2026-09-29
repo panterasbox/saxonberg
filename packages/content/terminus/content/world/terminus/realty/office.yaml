@@ -15,8 +15,11 @@ data:
   register: proper
   alternateNames: [realty, agents, shopfront]
   _address: terminus/city/mayfield-row/realty
-  ambientIntensity: 320
-  ambientColorTemperature: 4200
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the row, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   coords:
     x: 0
     y: 0

@@ -6,7 +6,7 @@
  * back with `put <glass> in rack`, and `wash` clears it for the next.
  *
  * Deliberately NOT `Sealable`: a rack has no lid, so it is always open to
- * the walk. `Populates` so a bar bundle authors its dozen coupes in place.
+ * the walk. `Staged` so a bar bundle authors its dozen coupes in place.
  * Content, not class, decides which glasses a given rack holds.
  *
  * Ships at `/trade/hospitality/thing/GlassRack` (the capability rung): a
@@ -19,9 +19,9 @@
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { PopulatesMixin } from '@saxonberg/server/mud/lib/stuff/Populates';
+import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 
-const GlassRackBase = PopulatesMixin(ContainerMixin(DetailedMixin(Thing)));
+const GlassRackBase = StagedMixin(ContainerMixin(DetailedMixin(Thing)));
 
 export default class GlassRack extends GlassRackBase {
   constructor() {

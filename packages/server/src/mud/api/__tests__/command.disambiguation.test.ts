@@ -174,6 +174,65 @@ args:
     }
   });
 
+  it('⭐ two candidates the viewer cannot tell apart still get DISTINCT labels', async () => {
+    // The fishing build's live drive: `look cane` in front of a shelf
+    // holding two cane rods offered two buttons both reading *a cane
+    // rod* — a choice a player cannot make. The labels must differ even
+    // when the objects do not.
+    const { avatar, interactive, location, envelopes } = await setup();
+    for (let i = 0; i < 2; i++) {
+      const rod = await StuffApi.create(() => {
+        const s = new TestSword();
+        s.setName('cane rod');
+        return s;
+      });
+      ContainmentApi.move(rod, location);
+    }
+
+    const cmd = CommandDefinition.fromYaml(
+      `verbs: [take]
+controller: TakeController
+description: stub
+args:
+  - name: target
+    type: object
+    onExcess: prompt
+    scope: "reachable"
+`,
+      '<test>',
+    );
+    const ctx = makeContext({
+      giver: avatar,
+      location,
+      interactive,
+      cmd,
+      verb: 'take',
+    });
+
+    const resolvePromise = CommandApi.resolveModel({ target: 'cane' }, ctx);
+    await flushUntil(() => envelopes.some((e) => e.type === 'prompt'));
+
+    const promptEnvelope = envelopes.find((e) => e.type === 'prompt')!;
+    const note = promptEnvelope.outcome!.notes[0] as unknown as {
+      kind: string;
+      matches: Array<{ stuffId: string; displayName: string }>;
+    };
+    expect(note.kind).toBe('prompt-mql-object');
+    expect(note.matches).toHaveLength(2);
+
+    const labels = note.matches.map((m) => m.displayName);
+    expect(new Set(labels).size).toBe(2);
+    // …and both still name the thing, so the disambiguator is additive.
+    expect(labels.every((l) => l.includes('cane rod'))).toBe(true);
+
+    // Settle the pending prompt so the test does not leak it.
+    interactive.handlePromptResponse({
+      promptId: promptEnvelope.promptId!,
+      response: note.matches[0]!.stuffId,
+    });
+    await resolvePromise;
+  });
+
   it('object + onExcess: prompt + cancel → PromptCancelledError thrown from resolveModel', async () => {
     const { avatar, interactive, location, envelopes } = await setup();
     const cmd = CommandDefinition.fromYaml(

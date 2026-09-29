@@ -355,6 +355,28 @@ call and stays in `CombatLogic` — see [ranged.md](./ranged.md).
   queries; cache only with hooks that invalidate on the relevant
   events.
 
+
+## ⚠⚠ Modalities are warmed LAZILY, and the warming is a reachability link
+
+`PerceptionApi.modalityByName('vision')` reads a cache that
+`loadCaches()` fills by path-glob over live modality singletons. Those
+singletons are cloned lazily, and **the only thing that warms them is
+`PerceptionApi.preloadForSenseGate(actor)`** — which the verbs that
+needed it called, and nothing else did.
+
+⭐ That was fine for as long as nothing in a room-level render asked a
+modality anything. The envelope build made `look` read the light band
+before describing a place, and on a fresh world it threw *"no modality
+'vision' loaded"* — caught, degraded, and **every room described itself
+at midnight**. `analyze light` failed outright for the same reason.
+
+⚠ **No unit test could see it**: a unit fixture calls
+`buildAllModalities()` in `beforeEach`, so the cache is always warm.
+Only a live boot with a cold cache can tell, which is the **boot** link
+of the five and the one this project has now paid for four times. Any
+new sync read of a modality must warm it first.
+
+
 ## Cross-references
 
 - [messaging.md](./messaging.md) — Scene composer, Sensor routing,

@@ -4,11 +4,13 @@
 > [electricity.md](../../subsystems/electricity.md); the commodity-generic
 > supply ladder shipped for WATER only (`Conduit` + `SupplyState`) →
 > [watershed.md](../../subsystems/watershed.md)
-> **Left:** the supply reference on `Energized` fixtures · outage
-> propagation + directional network failure over exit edges · gas as the
-> second conduit commodity · the kitchen as residential demand case ·
-> use-metered billing (Law 2) · the ownership fork (office vs corpo vs
-> co-op) · hydro generation as content · the lineman rotation
+> **Left:** ⭐ **street lighting's missing goods leg** (see § below — the
+> first demand case, and it is already live and calibrated) · the supply
+> reference on `Energized` fixtures · outage propagation + directional
+> network failure over exit edges · gas as the second conduit commodity ·
+> the kitchen as residential demand case · use-metered billing (Law 2) ·
+> the ownership fork (office vs corpo vs co-op) · hydro generation as
+> content · the lineman rotation
 > **Size:** a build
 
 **Captured 2026-07-28**, out of the demo-content requirements
@@ -180,3 +182,51 @@ Everything past the middle tier is polity + economy design:
   the trades daily loop
 - [requirements/demo-content-requirements.md](../../requirements/demo-content-requirements.md)
   — the lamppost decision that spawned this (unit 8)
+
+---
+
+## ⭐⭐ The first demand case is already running, and it has no goods leg
+
+**Added by the envelope build's sweep (2026-09-25)** — the build that
+shipped street lighting, so that this is a bill rather than a suggestion.
+
+A `Locality` declares `_publicLighting { costPerStreetNight, supplier }`
+and at each sunset `AddressApi.settleStreetLighting` does exactly one
+thing: `BankingApi.appropriate(supplier, n × costPerStreetNight)` from
+the realm treasury. ⚠⚠ **Money moves and nothing else does.** No oil is
+consumed, no stock depletes, and **no lamp-oil good exists in the game**
+— a lantern's `fuel` is an abstract `%` reserve with `theme: combustion`,
+not a commodity.
+
+What that means for this slate, in order:
+
+1. **A lamp-oil good with a unit**, so a quantity can be consumed. ⭐ The
+   name `fuelPerStreetNight` was deliberately **freed** for it: the money
+   figure is `costPerStreetNight` now, because a field whose name says
+   *fuel* and holds *zorkmid-minor* is the kind of thing a later build
+   reads once and trusts.
+2. **A producer that is not a retailer.** Terminus names its **general
+   store**, which is honest fiction — it stocks the lantern *and* the
+   torch, and a municipal lamp-oil contract with the local merchant is
+   how small towns really did it — but it produces nothing. `trade-fuel`
+   ships a collier and a clamp; extraction ships peat and coal; none of
+   that chain sees a penny of this demand. ⚠ By
+   [vocations.md](../../vocations.md)'s own test — *a vocation exists iff
+   there is unmet demand* — that is demand being **absorbed instead of
+   creating a market**, which is the one thing street lighting was well
+   placed to do.
+3. **Stock that depletes**, so a short *supply* goes dark the way a short
+   *treasury* already does. The refusal path exists and is proven live
+   (a fresh realm ships broke, so its streets ship dark); only the goods
+   arm is missing.
+
+⭐ **And the demand figure is already live and calibrated** —
+`costPerStreetNight` × lit streets, nightly, against a treasury whose
+shortfall already darkens streets **by seniority written in advance**. So
+this build inherits a market to price rather than a number to invent.
+
+⚠ Deliberately not half-built by the envelope build: a lamp-oil good with
+one producer and no chain behind it is a worse fiction than an honest
+placeholder, and the placeholder is labelled as one at
+`PublicLightingFunding.supplier` and in
+[civics.md](../../subsystems/civics.md).

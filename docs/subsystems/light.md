@@ -247,6 +247,99 @@ with `Quantity<'lux'>` intensity. The static `VisionModality.lightAt(loc)`
 is a thin convenience read — it resolves the vision singleton and calls
 `signalAt` — so callers with a `loc` in hand get a `Light` directly.
 
+### ⭐⭐⭐ An opening cannot make you brighter than what is through it
+
+Legs (d) and (e) — light arriving from **another scope**, through a
+boundary or a doorless exit — are **capped together at the brightest
+neighbour's illuminance**. A scope's own light (ambient, contents,
+fixtures, what you carry) sums normally.
+
+*Three windows onto a 45-lux afternoon give you an afternoon, not three
+of them.*
+
+⚠⚠ **Why.** `EXIT_TAU` is `1.0` — *no extra dimming on exit traversal* —
+so the leg added each neighbour's ENTIRE flux and divided by the
+**receiver's** area, and a room in a chain of bright rooms came out
+brighter than every room lighting it. At midday
+`delight-road/crossroads`, which authors **600 lumens over 400 m²** (1.5
+lux, and `lint:light-sources` calls it *"deliberate gloom"*), read
+`blinding`. It was harmless until the envelope build, because before W0
+no outdoor row carried 24 000 lumens — **a consumer written when the
+input was small**, the same shape as two other findings in that build.
+
+⭐ Found by a **browser walk at solar noon** (2026-09-25). The wire drive
+could not see it: the harness boots at `t = 0` and `t = 0` is always
+midnight, so a build about the sun had its daylight half untested live.
+
+### ⚠⚠ Light is RESIDENT-dependent, and we say so plainly
+
+A neighbour contributes light only while it is **loaded**. Rooms lazy-load
+and the cold tail self-evicts ([residency.md](./residency.md)), so the
+lux where you stand can change because something one hop away was paged
+in or reaped — with nothing in the fiction having moved.
+
+**This is a property of the architecture, not a bug, and it is not worked
+around.** Two honest consequences, stated rather than hidden:
+
+- a room can get brighter when a neighbour loads, and dimmer when one is
+  evicted;
+- the cap above is computed over the neighbours that are **resident at
+  that moment**, so it moves with them.
+
+⭐ It is survivable precisely because the effect is bounded: the cap means
+a neighbour can only ever bring you *up to* its own illuminance, never
+past it, so paging cannot produce a reading that no room in the
+neighbourhood could justify. A player who notices will read it as the
+light changing as the world settles around them, which is close enough to
+true.
+
+### ⭐ `blinding` describes, it does not withhold
+
+Only `pitch-black` and `very-dim` withhold a room's description
+(`LIGHT_BANDS_TOO_DARK_TO_DESCRIBE`). `blinding` has a **phrase and no
+withholding**: *"The glare here is hard to look into"* rides along and
+the room still describes itself.
+
+The rule behind it: **staring at the sun is blinding; stacking ten
+thousand torches in a room breaks the simulation but must not blind
+you.** Too-bright-to-see is an old MUD flourish worth keeping as
+*flavour*, and it must never take the room and its exits away — which is
+what would turn a degenerate build into a player who cannot leave.
+
+⚠ With the cap above, ordinary daylight cannot reach `blinding` at all,
+so the band is reserved for something that genuinely declares itself.
+
+### ⭐⭐ Two questions, and only one of them is `signalAt`
+
+> **`signalAt(loc)` — what is the light doing now.**
+> **`peakSignalAt(loc)` — how bright does this place GET.**
+
+They were one question until the envelope build, because a scope's
+ambient was an authored constant. A sky-lit scope now swings from
+`pitch-black` to `bright` and back every game day, so a consumer that
+asks *is this a good spot* rather than *what can I see* must say which
+it means.
+
+`Modality.peakSignalAt` defaults to `signalAt` — correct for every
+modality whose field has no day in it — and **vision overrides it**,
+walking with `CelestialApi.skyFactorDailyPeak()` (the brightest the sky
+gets today, memoized per game day) in place of `skyFactorNow()`. ⭐ Only
+the **sky leg** moves: a lamp reads the same either way, because a lamp
+does not have a day.
+
+⚠ **All of perception uses `signalAt`, and must** — a player sees what
+is there now. The one consumer of the peak read today is
+`GrowingMixin.sampleLux` ([husbandry.md](./husbandry.md)): a plant
+profile's `luxHappyAt` is a claim about a PLACE, and every plant row in
+the tree was authored when a scope's lux was a constant. Sampling the
+instant instead meant **a lily on a sunny windowsill starved of light
+because its owner watered it in the evening.**
+
+⚠ The peak is found by scanning the day and then refining across the
+winning sample's neighbours. Without the refinement the grid straddles
+solar noon and under-reports by ~0.2% — and a peak that a `signalAt`
+reading can exceed is not a peak.
+
 ```
 walkFluxAt(loc, depth, visited) -> { flux, sources }:
   if depth > MAX_HOPS: return empty                   // depth budget
@@ -346,8 +439,78 @@ storage is always primitive scalars.
 
 **`AmbientLitMixin`:**
 
-- Persistent: `ambientIntensity: number` (lumens),
-  `ambientColorTemperature: number | null` (Kelvin).
+### ⭐⭐ Ambient light is DERIVED; only the exceptions are authored
+
+The envelope build (2026-09-24) inverted this mixin's contract. Before
+it, a room's ambient light was **a number somebody typed**: 84 of 195
+Location rows authored one, 111 did not, and neither group had a reason
+— the university-avenue crossing, the market square, the terminal hall
+and the general store's shop floor authored nothing and were therefore
+**pitch black at noon**, while a dormitory authored 30 lumens that meant
+*lit by day* and burned all night.
+
+Now:
+
+- **A scope open to the sky follows the sun**, the moon's phase and
+  altitude, and the cloud — because its biome says it is open to the
+  sky. No row declares it, so no row can disagree with its own biome.
+- **A scope that is not open to the sky has no ambient at all**, and is
+  dark unless something in it is lit or light spills in through an
+  opening.
+- **The noon flux is derived too**: `light.sky.noonLux` (80) times the
+  scope's own light-receiving area, so an unauthored room is lit
+  correctly **for its size**. An authored `ambientIntensity` is a
+  *calibration override* — authorial control over a place brighter or
+  gloomier than its size suggests — and the sky still moves it.
+
+The three departures are the `AmbientSource` vocabulary, and
+`lint:light-sources` keeps a curated list of every row that declares
+one:
+
+| value | what it means |
+|---|---|
+| `null` (the ordinary case) | **derived** — ask the biome chain |
+| `'sky'` | daylight reaches an enclosed room through an opening. The row must name that opening (`ambientOpening`, a detail id), which is what makes *"daylight reaches this room"* a claim a player can walk up to and look at rather than another number |
+| `'glow'` | an inherent, always-on, non-sky ambient — a luminous cave, the holodeck floor. Does **not** follow the sun |
+| `'none'` | a sky-exposed scope that is nonetheless dark — the bottom of a shaft |
+
+⭐ The read is `isSkyLit()`, and the **weather's cloud dim now follows
+it** rather than following sky *exposure*: a skylight is dimmed by cloud
+exactly as a yard is. ⚠ An enclosed skylit room asks for the *exposed*
+weather sample explicitly, because `computeResolved` runs the procgen
+sky field only for exposed scopes and would otherwise dim a shop window
+by a biome baseline nobody is standing under.
+
+### ⭐⭐ A carried light lights the room
+
+The propagation walk's contents leg reads the **room's** contents, and a
+carried lamp is in the **carrier's** — so until the envelope build a
+player could light a lantern, stand in the pitch dark, and have the
+street read exactly as black as before. It never mattered, because
+nowhere was dark.
+
+The walk now looks **one level** into a room occupant. That is the
+mirror of a rule the perception gate already has — *what you HOLD you
+see in the light of where you stand, not in the dark of your own
+pocket* — and the light travels the other way for the same reason: you
+are holding it up, in this room.
+
+⚠ One level, and only through a person. A lamp sealed in a chest inside
+a pack is not lighting anything, and a general recursion would make the
+hot path walk the world.
+
+### ⚠ A band shift cannot manufacture photons
+
+`Light.applyBandShift` is index arithmetic on the lux tag table, so a
+`bandShift: +1` species read `very-dim` in a sealed cellar **with no
+light in it at all**. Never noticed, because until this build nowhere
+was dark. `perceiveFor` now applies the shift only to a non-zero signal:
+seeing further into the dark is not seeing in the absence of light.
+
+- Persistent: `ambientIntensity: number` (lumens — the noon
+  **calibration**, not the light itself),
+  `ambientColorTemperature: number | null` (Kelvin),
+  `ambientSource: AmbientSource | null`, `ambientOpening: string | null`.
 - Runtime:
   - `getAmbientFlux(): Quantity<'lumen'>`
   - `setAmbientFlux(Quantity<'lumen'> | number | string)` — string
@@ -681,13 +844,72 @@ constructs it from the stored scalars and never persists the
 [quantities.md § Persistence](./quantities.md#persistence) for the
 broader Quantity persistence story.
 
+## ⭐⭐ The sky, and the town's lamps
+
+### The sky is a sync memo
+
+`CelestialApi.skyIlluminanceFactor(profile, lat, t, opts?)` is pure
+geometry — plain numbers in and out, beside the altitude formulas it is
+checked against — and `skyFactorNow()` is a per-game-minute memo over it
+on the `CelestialLogic` singleton. **Synchronous, because the light walk
+is.** Three factors compose and none knows the other:
+
+```
+flux = the scope's own noon flux  ×  skyFactorNow()  ×  weatherDimFactor
+```
+
+The curve is a sun term, a moon term and a starlight floor. ⚠ The sun
+term is `HORIZON_DIFFUSE + (1 − HORIZON_DIFFUSE)·sin α` above the
+horizon and `HORIZON_DIFFUSE · 10^(α/decade)` below it, **and the two
+branches meet**: written as a bare `sin α` above, the factor steps from
+0 *up* to 0.1 as the sun sets and a street gets brighter at sunset. The
+moon's phase term is **squared** (`((1 − cos 2πp)/2)²`), which is the
+real thing — a half moon is about a tenth of a full one, not a half.
+
+⚠⚠ **One sky for one world.** `skyFactorNow()` reads `EARTH_LIKE` at
+`CAMPUS_LATITUDE` and asks no location, so Terminus and Rejection share
+a sun. `CelestialLogic.profileFor` **throws by name** if a zone ever
+authors a second celestial profile, and `lint:light-sources` clause (f)
+refuses the row — per-zone profiles are a named deferred seam rather
+than a silent half-truth.
+
+### The town's lamps are a PROPERTY of the street
+
+`PublicLightingMixin` on **`platform/location/Street`** — the singleton
+public way, which is the only kind of place a town lights. A street
+declares that the service runs here (`flux`, a `detail` id, and a `seniority`); whether it
+is burning is **derived** — funded, after dusk, therefore lit. The lamps
+themselves are prose: a dynamic detail saying *burning*, *standing cold*
+or *out; it is daylight*. **Nothing is minted**, and
+`check-light-sources` clause (e) refuses any class anywhere named for a
+street lamp.
+
+⭐ The test that decides object-or-property is *is it the target of a
+verb?* The clock tower is not an object; the floor **is** one, because
+`dig` has to bind it. Nobody binds a street lamp, and one identical
+fuelled object per street would be forty-one fuel reserves reconciling
+to produce the same number.
+
+⚠ The escape hatch is forestry's four-representations pattern: if a
+later build wants **one** lamp smashed or climbed, that lamp becomes a
+prop at **that** spot and every other street keeps the property.
+
+⭐ The generalization: **a light is an object where somebody acts on it,
+and a property where the town runs it.** Indoors is where objects earn
+their place — a tavern's lamp and a hearth are things you ignite, feed
+and run out of.
+
 ## Out of scope (v1)
 
-- Time-of-day / world clock / outdoor ambient computation.
-- Fire mechanics — `Combustible`, `Lightable`, `Burning` all deferred.
+- ~~Time-of-day / world clock / outdoor ambient computation.~~ **Shipped
+  in the envelope build** — see above.
+- ~~Fire mechanics — `Combustible`, `Lightable`, `Burning` all
+  deferred.~~ Shipped (the combustion build); a fuelled light is
+  `platform/thing/Lamp`, a `FurnaceMixin` over a `LightSource`.
 - `Switchable` and other generic state mixins.
-- Light-source archetypes (no canonical `Candle` / `Lamp`).
-- Schedule integration.
+- ~~Light-source archetypes (no canonical `Candle` / `Lamp`).~~ `Lamp`
+  and `Hearth` both ship.
+- Schedule integration — except `civic:lighting`, the nightly settle.
 - Sound conduit / `Audible` mixin / sound propagation.
 - Eager cache invalidation; v1 is fully lazy.
 - Abstract color tints layered over color temperature (the

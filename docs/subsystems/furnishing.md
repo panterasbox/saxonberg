@@ -316,11 +316,11 @@ template row over. Its composition is **`DormRoom`'s stack minus
 
 ```
 Persistable → PostRegistration → Exitable → Detailed → Visible
-  → Reserved → Populates → Location
+  → Reserved → Staged → Location
 ```
 
 Every layer is load-bearing and **every omission is silent**: without
-`Populates` a seed's `props:` is inert and no fixture ever lands;
+`Staged` a seed's `props:` is inert and no fixture ever lands;
 without `Visible` its prose is inert; without `Exitable` you cannot walk
 in. The shipped dorm room already had exactly this stack, which is why it
 is mirrored rather than re-derived.
@@ -396,8 +396,11 @@ tap, ice bin, water tap, basin, the glass rack with its pool, seating,
 the house tablet) and **`cellar`** (racking, a keg, a cold store);
 distilling's **`warehouse`** (`/trade/distilling/location/warehouse` —
 racking; each yard adds its own Stock + hand), which the cash-and-carry
-and every producer's yard spell out (template inheritance does not exist,
-so a room lists its fixtures itself; the bundle row is the exemplar).
+and every producer's yard used to spell out in full. ⭐ Since the
+template-inheritance build they `extends:` the bundle row instead and
+state only their own additions — Dave's Bar is five lines — and `as:`
+on a `props:` entry is what lets a child substitute one fixture (the
+lounge's own tablet) in place rather than gaining a second.
 The lounge's `Bar` keeps its own class (a `SingletonMixin` room the
 Warren wires) and lists the bundle's fixtures by reference.
 

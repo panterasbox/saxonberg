@@ -155,13 +155,59 @@ dossier, 2026-09).
 
 ## Content, templates & vocabulary
 
-- **`lint:instanceable`** — **nothing instances `/lib/`.** Six
+- **`lint:instanceable`** — **nothing instances `/lib/`.** Twelve
   invariants over every template: no `class:` resolves under `/lib/`,
   no template path lives there, every `class:` resolves to a real
   module + export, every `hydratorClass:` to a real row, no redundant
   `hydratorClass`, and no orphaned `data` (a data block with no
   hydrator, whose keys `clone()` silently discards). No exemption list,
   by design.
+
+  Template inheritance added two, and re-aimed three:
+
+  - **11 — a row clones into SOMETHING.** It states a `class:` or names
+    a parent with `extends:` whose chain resolves (no missing parent, no
+    cycle, within the depth cap 32) and states one.
+  - ⭐ **12 — no ORPHAN DATA KEY.** Every key in a row's *effective*
+    `data` is a field its *effective* class declares. The Hydrator
+    discards a key no composed field declares, **silently**; authored
+    alone that hurts one row, but **inherited, one junk key reaches
+    every descendant** — a consumer written when the input was small,
+    arriving from the authoring side. Census-then-ratchet: ceiling
+    **438** at the census, and it prints the list (`--orphans`) because
+    the inventory is the point. Applies only under the standard
+    hydrator — a custom hydrator's appliers are its own business and
+    `fieldMeta` is not the universe there.
+  - **5, 6 and 7 now read the EFFECTIVE row**, and 5 gained a second
+    shape: a child restating the hydrator its parent already supplies.
+
+  ⚠⚠ **The migration that mattered more than either new invariant.**
+  Fifteen gates selected rows by `raw.class`, each through its own local
+  YAML walk. A child row states no class, so **every one of them would
+  have skipped it without a word** — and a gate that reports "nothing to
+  check" is indistinguishable from a gate that checked. They now share
+  one reader (`scripts/pack-roots.ts`: `templateRows`, `effectiveRow`,
+  `effectiveDoc`), applied as a single line at each parse site.
+  `check-template-census`'s cast clause was reading the `class:` *line*
+  with a regex and had the same hole.
+
+  ⚠ The shared reader's merge is **shallow** — a child key wins whole,
+  a list replaces. A gate that reasons about list ENTRIES reads `raw`
+  and says so. Mirroring the runtime's per-field `inherit` algebra in a
+  script would mean two implementations of one rule.
+- ⭐ **`lint:create-sites`** — **every object in the world is born from
+  a ROW**, and the exceptions are ENUMERATED. Ceiling **5**, and the
+  allowlist in the script carries a reason per survivor: the connection
+  layer (`Interactive`, `Login`), a framework seam that takes a factory
+  from its caller (`BoundaryApi.create`, the shadow follower), and one
+  class introspection (`StudioLogic.readClassDefault`). See
+  [antipatterns.md § `StuffApi.create()` Instead of a Template](./antipatterns.md).
+
+  ⚠ Worth reading its `stripNonCode`: the first cut's string scanner
+  ran away on an apostrophe and ate 85% of `StudioLogic.ts`, so the
+  gate cheerfully reported that file as minting nothing. **A stripper
+  that over-strips is a gate that passes** — the failure mode this
+  family exists to prevent, produced by the gate itself.
 - **`lint:census`** — every template-path-valued field in every shipped
   row resolves to a real row, and `clone()`'s `asTemplatePath` channel
   stays retired. A path naming no row cannot be edited, addressed or
@@ -938,6 +984,75 @@ configured**.
   stale and fails too.
 
 ---
+
+### `lint:light-sources` — every room's light has a NAMED SOURCE (2026-09)
+
+⭐⭐ The envelope build's light half. Before it, a room's ambient light
+was **a number somebody typed**: 84 of 195 rows authored one, 111 did
+not, and neither group had a reason — the university-avenue crossing,
+the market square, the terminal hall and the general store's shop floor
+authored nothing and were therefore **pitch black at noon**.
+
+The rule is `S2`: *every room's light has a source a player can point
+at* — the sky, something lit in the room, or spill through an open
+boundary. A room with none of the three is dark, and that is correct
+rather than a bug.
+
+⭐ So the gate is **not a census of light** — the common case is derived
+and needs no row. It is a **census of EXCEPTIONS**, and every exception
+is a line somebody had to write in the script. Seven clauses; the debt
+list (`UNDECLARED_INTERIOR_AMBIENT`) opened at **50** and reached
+**zero** in the same build.
+
+Two clauses paid for the gate on their first runs:
+
+- **(g)** — a furnace row must author `lit:`, because
+  `FurnaceMixin.lit` defaults **true**. It found four rows relying on
+  that default, and **two of them shipped lit against their own prose**
+  (*"the firebox swept and ready"*) and their own class docstring
+  (*"lit with `ignite`"*). Nothing observable depended on it — they
+  carry no fuel reserve, and every consumer of `isLit()` also asks
+  `fuelRemaining() > 0` — which is exactly why it survived the whole of
+  the distilling build's life.
+- **(e)** — ⭐⭐ **no lamp OBJECT anywhere**, in the kernel or any pack
+  `src/`. The town's lamps are a property of the street; the gate is
+  what keeps that decision from quietly eroding into forty-one minted
+  fuel reserves.
+
+### `lint:envelope` — the heat half's twin (2026-09)
+
+The light half had a census and **the heat half had nothing**, and that
+asymmetry was the hole. Five clauses over one rule:
+
+> ⭐ **Authors author CAUSES, not EFFECTS.**
+
+So `fabric: { material, thicknessM }` is **ordinary and unlisted** — a
+room may say what it is made of as freely as it says what its floor is
+made of — and what is listed is `_temperature`, the one way to bypass
+the derivation entirely. `AUTHORED_TEMPERATURES` carries a **reason per
+entry**, ceiling five, all five maturation cellars.
+
+⚠ The reason is a list **in the script**, not a `reason:` key on the
+row: a `data:` key the Hydrator does not write is dropped *silently*
+(the grain-chain drive found 49 such rows), so a `reason:` beside the
+temperature would be a field nothing reads and nothing can miss. The
+list is a **diff a reviewer reads**, which is the whole point — a sixth
+cellar costs somebody a paragraph in a file whose ceiling they must
+also raise.
+
+⭐⭐ Clause (c) is **the biome line**, and it is the one that cascades:
+*a biome may say what the outside AIR is doing; it may never say how
+well a STRUCTURE holds heat.* Put construction on a biome and one row
+warms every room that references it with no fire in any of them.
+
+⚠ Clause (b) catches a silent zero: an unauthored `thermalConductivity`
+reads **0**, which is an infinite insulator. A room built of it would
+simply never lose heat and nothing would say why.
+
+⚠ Both gates shipped with a clause that had **zero coverage** at first,
+and both were given coverage in the same wave rather than left
+vacuous — a gate that answers "no" to every question is the failure
+class this family exists to prevent.
 
 ## Where the family runs
 

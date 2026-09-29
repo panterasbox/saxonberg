@@ -27,6 +27,19 @@ data:
   props:
     - /world/terminus/general-store/counter
     - /world/terminus/general-store/consignment-shelf
+    # ⭐⭐ A hearth (envelope W4) — the fire that heats WHERE YOU STAND,
+    # as against a forge or an oven, which heat what you put in them.
+    # A shop with a street door that opens all day is the room that
+    # most obviously needs one, and it gives the realm one place a
+    # player can walk into, light a fire, and feel the room change.
+    #
+    # ⚠ NOT the cookhouse, which was the first choice and was wrong:
+    # its oven row already claims the keyword `hearth` (its prose calls
+    # it "a clay hearth"), so a second hearth there made `light hearth`
+    # AMBIGUOUS. The drive found it as a session that stopped answering
+    # — a disambiguation prompt nobody replied to, wearing the costume
+    # of a deadlock. A player would have hit exactly the same thing.
+    - /stuff/thing/Hearth
   cast:
     - /world/terminus/general-store/agent/clerk
     - /world/terminus/general-store/agent/keeper

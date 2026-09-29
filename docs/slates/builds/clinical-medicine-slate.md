@@ -87,6 +87,18 @@ Three claims that make this one build, not three:
   does not re-own it.
 - **The `nurses.ts` brain** — currently used by the *physician* NPC. The
   naming already conflates the two roles; Leg 3 sorts it out.
+  ⚠⚠ **And it has never run.** Found at the template-inheritance sweep
+  (2026-09-26) by reading a live boot log: the infirmary's `physician`
+  and `nurse` rows write `{ brain: …, cadenceMs: 20000 }`, and
+  `cadenceMs:` is not a key `Behaved._parseTrigger` understands — the
+  spec has no `trigger:` at all, so every one of them is skipped with
+  `bad trigger 'undefined'` and the brain is never wired. The
+  physician's `shifts` spec is skipped the same way. The correct form
+  is `trigger: cadence:20s`; `trade-ranching`'s `farm-dog.yaml` already
+  carries a comment diagnosing exactly this key, so the infirmary is
+  the copy that was never fixed. Left here rather than fixed at a sweep
+  because turning two never-run brains on is a behaviour change this
+  build should own, not a docs pass.
 
 > **Therefore what is genuinely new here is:** blood you can draw, store and
 > transfuse (with type + a real incompatibility reaction); a catalogue of

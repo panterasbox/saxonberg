@@ -7,6 +7,10 @@
 class: /platform/location/sandbox/CircleFloor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ An INHERENT glow, and the one place in the realm that honestly has
+  # one: the circle's floor is itself the light source. Does not follow
+  # the sun, because it is not the sun.
+  ambientSource: glow
   name: the circle floor
   keywords: [bare, circle, floor]
   shortDescription: bare circle floor

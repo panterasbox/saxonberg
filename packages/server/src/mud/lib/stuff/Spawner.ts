@@ -11,7 +11,7 @@
  *   - **Transient collection.** The `_spawned` set is NOT in
  *     `persistentFields`. It resets on clone / hydrate. The host's
  *     policy (or template-driven seeding via a future
- *     `PopulatesMixin`) rebuilds the live collection each session.
+ *     `StagedMixin`) rebuilds the live collection each session.
  *   - **Symmetric cleanup on Spawned destruct (R2.4).** When a
  *     `Spawned` thing destructs, its framework
  *     `Spawned.cleanupOnDestruct(stuff)` calls

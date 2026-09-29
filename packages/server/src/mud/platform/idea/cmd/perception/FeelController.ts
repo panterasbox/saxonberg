@@ -7,6 +7,15 @@
  * (e.g. `feel stove`) prepends a per-detail temperature line on top
  * of the per-Detail `touch` slot read.
  *
+ * ⭐⭐ Since the envelope build the bare form also names the CAUSE — a
+ * hearth, the stone holding the day, a door standing open, a cellar
+ * that keeps its own temperature the year round. Not a new instrument:
+ * the same read, saying where its number came from, off the provenance
+ * the resolve already computes. Everything it can say is derived, which
+ * is what makes it safe to say out loud — *a room that is warm for no
+ * reason a player can be told is self-reporting the dishonesty*, in the
+ * fiction, before any gate runs.
+ *
  * A `feel <object>` against a Thermal object reads the object's own
  * *surface* temperature (≈ ambient for a sealed, well-insulated vessel —
  * the insulation observable as the absence of exterior heat) and, on a
@@ -29,6 +38,7 @@ import { TouchModality } from '../../modalities/TouchModality';
 import { Touch } from '../../../../lib/perception/Touch';
 import type { Thermal } from '../../../../lib/thermal/Thermal';
 import { PerceptionApi } from '../../../../api/perception';
+import { BiomeApi } from '../../../../api/biome';
 
 interface FeelModel extends CommandModel {
   target?: MqlOneResult;
@@ -143,7 +153,10 @@ export default class FeelController extends SingleSenseControllerBase {
       return;
     }
     const touch = await (PerceptionApi.modalityByName('touch') as TouchModality).touchAt(location);
-    const bandLine = Mml.compose`The air feels ${touch.band}.`;
+    const cause = this.temperatureCause(location);
+    const bandLine = cause
+      ? Mml.compose`The air feels ${touch.band} — ${cause}`
+      : Mml.compose`The air feels ${touch.band}.`;
     const filteredLong = MixinApi.isVisible(location)
       ? location
           .getMarkupLong(actor, { filter: [this.senseChannel] })
@@ -153,6 +166,66 @@ export default class FeelController extends SingleSenseControllerBase {
       ? Mml.compose`${bandLine}\n${Mml.fromMarkup(filteredLong)}`
       : bandLine;
     MessageApi.scene(actor).topic(this.sceneTopic).toSelf(body).send();
+  }
+
+  /**
+   * ⭐⭐ **Why it is this temperature**, in words — the same read saying
+   * where its number came from.
+   *
+   * No new instrument and no new verb: `feel` already told you the
+   * band, and this is the cause behind it, off the provenance the
+   * resolve already computes. Everything it can say is DERIVED, which
+   * is what makes it safe to say — *a room that is warm for no reason a
+   * player can be told is self-reporting the dishonesty.* If an author
+   * ever puts construction on a biome, the fiction says so before any
+   * gate runs.
+   *
+   * Sky-exposed scopes add nothing: the weather is the sky's own line,
+   * and `look up` is where it belongs.
+   */
+  private temperatureCause(location: Stuff & Container): string | null {
+    // ⚠⚠ **Synchronous, and that is the point.** The first version asked
+    // `BiomeApi.traceResolveTemperatureFor`, which is a SECOND full
+    // async resolve on top of the one `touchAt` has just done — two
+    // address walks, two chain walks, two envelope reconciles per
+    // `feel`. With a lit hearth in the room (whose ignition fans a
+    // restamp out over every Thermal body standing in it) the two
+    // interleaved and the command never answered: thirty seconds of a
+    // socket going round a ring of subsystems, each individually
+    // correct. Found by the drive.
+    //
+    // The room has ALREADY reconciled by the time we get here, so this
+    // reads the state rather than recomputing it — cheaper, and it
+    // cannot re-enter anything.
+    if (!MixinApi.isAtmospheric(location)) return null;
+    if (location._temperature !== null) {
+      return 'this place keeps its own temperature, the year round.';
+    }
+    // ⭐ The room knows why it is the temperature it is; this asks. A
+    // controller walking the room's contents to work out what is
+    // burning in it would be re-deriving what the room already
+    // computed — a second copy of an arithmetic whose whole point is
+    // that the stated reason and the temperature cannot come apart.
+    const env = location.envelopeCause();
+    if (env === null) return null;
+    const inside = env.insideK;
+    const material = env.enclosureMaterialPath.split('/').pop() ?? 'stone';
+
+    if (env.heatInputW > 0 && env.hottestSource) {
+      return `warm from ${env.hottestSource}.`;
+    }
+    // Within a degree of outside AND standing open: the door is the
+    // reason, and it is the one a player can do something about.
+    if (env.openings > 0 && Math.abs(inside - env.outsideK) < 1) {
+      return 'as cold as the street — the door stands open.';
+    }
+    if (inside > env.outsideK + 0.5) {
+      return `the ${material} still holds the day.`;
+    }
+    if (inside < env.outsideK - 0.5) {
+      return `the ${material} still holds the night's cold.`;
+    }
+    return `nothing is burning here; it is as cold as outside.`;
   }
 
   private async feelDetail(
