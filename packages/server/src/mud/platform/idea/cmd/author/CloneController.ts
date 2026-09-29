@@ -160,7 +160,28 @@ export default class CloneController extends CommandController<CloneModel> {
     // circle, cloning a wardrobe).
     const sourceResource: Stuff | null =
       StuffApi.findAllByTemplatePath(path)[0] ?? null;
-    if (!(await AccessApi.can(giver, 'clone', sourceResource))) {
+    // ⚠⚠ **No live instance is not the same as untitled ground.** The
+    // check above resolves title through the REPRESENTATIVE's zone, so
+    // a template that nothing has instanced yet resolved through
+    // `zoneOf(null)` — the empty path — and was refused to everybody,
+    // permanently. A row is not clonable until somebody has already
+    // cloned it, which is a bootstrap nobody can perform.
+    //
+    // It is not hypothetical: `/system/transport/thing/coach` is a
+    // shipped row that **no locality places**, so the coach could not be
+    // stood up by any player in the game. Found by the base-class
+    // narrowing drive, which needed one.
+    //
+    // With no representative, ask the path-targeted question instead —
+    // *may you clone from this path* — which is the document store's
+    // gate (`ParcelApi.ownerOf` by longest prefix) and the honest form
+    // of the question. Untitled still fails closed; what changes is
+    // that a titled path with nothing standing on it now answers.
+    const permitted =
+      sourceResource !== null
+        ? await AccessApi.can(giver, 'clone', sourceResource)
+        : await AccessApi.canAtPath(giver, 'clone', path);
+    if (!permitted) {
       return this.fail(
         context,
         "you don't have permission to clone that",

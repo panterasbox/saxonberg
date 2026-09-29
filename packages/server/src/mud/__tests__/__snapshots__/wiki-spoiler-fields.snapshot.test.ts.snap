@@ -395,6 +395,7 @@ Exit.oneWay = 0
 Exit.source = 0
 Exit.wheelPassable = 0
 ExitableMixin.exits = 0
+ExitableVessel.interiorVolume = 0
 Fabric.drape = 0
 Fabric.key = 0
 Fabric.layerBand = 0

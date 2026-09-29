@@ -794,7 +794,8 @@ Acceptance: the three tests; `Coolbox.test.ts` and
 `Thermal.furnace-couple.test.ts` unchanged and green. Commit:
 `fix(thermal): a thing in a bag reads the nearest air — the frozen-ambient repair`.
 
-### W5 — the drive
+### W5 — the drive ✅ RUN (see § Drive record)
+
 
 `packages/wire/tests/base-class-narrowing.dirty.wire.test.ts` (dirty:
 clones a coach and a brazier into a street and burns the brazier's fuel;
@@ -996,8 +997,90 @@ Read first, in this order:
 
 ---
 
+### W6 — what the drive found (added mid-build)
+
+One repair, from finding 1 below: `CloneController` falls back to
+`AccessApi.canAtPath(giver, 'clone', path)` when the source row has no
+live instance, and `'clone'` joins the `TreeAction` vocabulary (a label
+for the audit — in this wave every tree action resolves alike). Two
+unit tests: a titled path with nothing standing on it clones; an
+untitled one still fails closed. `access.md`'s gate table says so.
+
+---
+
 ## Drive record
 
-*(appended at build time — the output of W5, the count, and what each
-failure was. A drive that was written and not run is a drive that
-claims.)*
+`packages/wire/tests/base-class-narrowing.dirty.wire.test.ts`, run
+against a world booted on a freshly reset `saxonberg_build3`.
+
+### ⭐⭐ What the drive found
+
+**Six rounds.** Rounds 1–5 found nothing wrong with the model and five
+things wrong with everything around it — which is what a drive is for.
+
+**1. ⚠⚠ A row nothing has ever instanced could not be cloned by
+anybody. FIXED (W6).** `CloneController` resolved the access check
+through a live REPRESENTATIVE at the source path — and with no live
+instance, `zoneOf(null)` gave the empty path, `ownerOf('')` gave null,
+and the clone was refused to everyone, permanently. **A row is not
+clonable until somebody has already cloned it**, which is a bootstrap
+nobody can perform. Not hypothetical: `/system/transport/thing/coach`
+is a shipped row that no locality places, so **no player in the game
+could stand up a coach**. With no representative the controller now
+asks `AccessApi.canAtPath(giver, 'clone', path)` — the document store's
+own gate, resolving the covering title by longest prefix. Untitled
+still fails closed; a titled path with nothing standing on it now
+answers.
+
+**2. ⛔ `/stuff` and `/world/practicum` are covered by no parcel, so
+nothing under them can be cloned by anyone.** That is the commons and
+the teaching ground. It took out the backpack (`/stuff/thing/gear/backpack`,
+the only backpack row in the tree) and **every `SpaceHeating` row in
+the game** — brazier, stove, campfire, hearth. A title gap, not a
+model one, and not this build's to close; recorded here and on the
+slate. ⭐ It is why two of the requirements' drive steps could not be
+driven as written.
+
+**3. The requirements' worn bag does not exist.** No locality places a
+backpack and the commons cannot be cloned, so **nothing in the game can
+produce a bag to wear.** The drive drives the same walk one hop
+shorter, which is not the weaker case it sounds: **a CARRIED thing's
+enclosing scope is the carrier**, and a `Creature` is a `Container`
+without being weather, so a ration pack in your hands already needs the
+walk to step past you. The two-hop worn case is proved in
+`Thermal.bagged.test.ts`, which fails with the repair reverted and
+carries a case pinned at depth 2 showing that "one step outward" leaves
+a worn bag frozen.
+
+**4. AC2's warmer coach cannot be driven, for finding 2.** Five cubic
+metres behind a centimetre of oak is τ ≈ 75 s: an empty shut coach IS
+at street temperature, so the band needs a foot-warmer, and no heater
+in the game is clonable. The drive asserts instead what is true whether
+or not anything burns and is the actual difference between having an
+envelope and not: **`feel here` answers inside a shut coach at all**
+(it is the one of the four reads that goes silent when the scope is not
+atmospheric) **and it gives a CAUSE**, where the street gives a bare
+band. The heated case is `Atmospheric.envelope.test.ts`'s.
+
+**5. A clone that lands nowhere reports success.** `clone <coach>`
+without `--here` runs the precedence chain to the giver fallback — and
+an `ExitableVessel` may not live in an Avatar's inventory (the "carry a
+chest with someone in it" exploit-closer). The command answered `ok`
+and the coach was not in the room. The drive passes `--here`; the
+swallowed placement failure is a finding on the slate.
+
+**6. Two vacuous checkpoints of my own, caught by their own guards.**
+The four-sense-reads case passed while standing in a **street**, because
+the coach clone above it had failed and nothing tied the two together;
+and part B's band comparison passed against `coldBand = 'none'`, whose
+rank is −1, which every real band beats. Both now assert their
+precondition out loud before comparing anything. ⚠ Same class as the
+vacuity in `Thermal.bagged.test.ts`'s first draft — **three in one
+build**, which is the number worth remembering.
+
+Plus the standing reminders the world keeps issuing: the wire world
+boots at midnight on a new moon, so **every read needs a lit lantern**
+(three rounds lost to assertions about objects that were standing right
+there, rendered `something`); `goto` gates on parcel title, not on the
+wizard flag; and the store counter answers `wrong-preposition` to `on`,
+because its placement vocabulary is the row's.
