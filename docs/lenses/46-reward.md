@@ -71,27 +71,71 @@ that reconciles from evidence is only a reward if the player can trace
 it to what they did. **A derived number nobody can account for is not a
 reward you gave; it is a number that appeared.**
 
+## The verdict
+
+⭐⭐⭐ **Push back on variance — we already have his mechanism, honestly —
+and adopt his legibility question wholesale.**
+
+**Why the pushback.** [uncertainty.md](../uncertainty.md) bans exactly
+one of four provenances: **resolutional**. Environmental, epistemic and
+generative randomness are all legal. And a seeded ore grade you must
+assay to learn **is a variable payout** — you genuinely do not know what
+this vein will give you.
+
+> ⭐⭐ **Schell's 2/3-zero, 1/3-thirty is a machine that *simulates* not
+> knowing. Ours is a world you *actually* do not know.** Same
+> psychological effect, opposite epistemic status — and ours pays a
+> second dividend his cannot, because the uncertainty is *reducible by
+> skill*: a better prospector narrows the distribution. His never
+> narrows, because there is nothing under it.
+
+So the lens's demand is met, and met better, **in every domain with
+real epistemic depth**: prospecting, the bite, the assay, the harvest
+grade, what the ground turns out to hold.
+
+⚠ **Where the pushback stops.** His variance is **dense** — every
+monster, forever. Ours is **sparse**, confined to domains that have
+genuine unknowns. A wage is a wage; a known recipe with known inputs
+pays what it pays. Those domains cannot honestly acquire variance, and
+pretending otherwise is the resolutional roll under a new name.
+
+⭐ **The alternative to randomizing the wage: don't.** A wage being
+predictable is *true*, it is pedagogically honest, and it is how a
+player feels the difference between working for somebody and taking a
+risk. The design question a boring wage raises is **not** "how do we
+make this exciting" but **"how much of a player's time is spent in the
+deterministic domains"** — a content-mix question, not a mechanics one.
+
+⭐⭐ **And the acclimation problem has an answer.** His fix is
+escalation; ours is that the unbidden channel fires **on surprise
+rather than on schedule** — *announce the surprising, not the every*
+(see [#55](./55-visible-progress.md) for the mirror's two channels). A
+notification conditioned on deviation **cannot habituate**, because the
+moment it becomes expected it stops being a deviation. Variable reward
+defeats habituation by making the payout unpredictable; we defeat it by
+making the *telling* conditional. Both work. Only one of them lies.
+
+**What to adopt outright:** *"Getting a reward you don't understand is
+like getting no reward at all."* That is a gate we should be running
+and are not.
+
 ## Tensions & risks
 
-⚠⚠ **The cost is real and unpaid.** Schell's technique works because it
-arrives **unbidden** and keeps arriving. Our replacement — the mirror —
-arrives only on **pull** (see [#55](./55-visible-progress.md)). Whether
-pull alone sustains anyone is an empirical question about players, not
-one doctrine can settle, and it is the live content of the levelling
-conversation.
+⚠ **The deterministic domains are genuinely flat and always will be.**
+A defensible choice, but a choice — and it means the density of
+interesting reward is a **function of content mix**. If most of a
+player's hours land in known-input, known-output work, no mechanism
+rescues it.
 
-⚠ **Our rewards are maximally regular — which is the failure mode he
-names.** Derived, deterministic, proportional to work: the opposite of
-variable. The only variance we permit is epistemic (you did not know
-what the ore held), which is variance in the *world*, not in the
-payout. It may be enough. Nobody knows, and it has not been tested.
+⚠⚠ **Reducible uncertainty must actually reduce.** The pushback above
+is only honest if skill narrows the distribution. A system that ships
+epistemic uncertainty **no competence can sharpen** is a resolutional
+roll wearing environmental clothes, and should be caught in review as
+one.
 
-⚠ **We have no acclimation answer.** His fix for habituation is to
-escalate reward value as the player advances. Our economy resists that
-structurally — a wage is a wage, and inflating it to feel generous is
-exactly a dishonest nerf in reverse. Progression here is capability and
-standing, not bigger numbers, which means **the habituation problem is
-real and unaddressed** rather than solved.
+⚠ **The drip is still reachable by accident.** Nothing in the
+architecture prevents paying out on a timer; the conservation rules
+forbid a reward with no *source*, not a reward with a *cadence*.
 
 ⚠⚠ **The drift risk is adoption-by-convenience.** Nine append-only
 ledgers exist; every byte a reward schedule would need is already
@@ -101,22 +145,27 @@ will have adopted #46 without ever deciding to. See
 
 ## Implications
 
-1. ⭐ **Claim the refusal in writing.** "We refuse variable and
-   escalating reward, and here is what it costs us" belongs in the
-   levelling conversation as its opening position, not as something
-   discovered halfway through.
+1. ⭐⭐ **Correct the claim that we refuse variable reward.** We refuse
+   *resolutional* variance and take the rest from an honest world. The
+   levelling conversation should open with that rather than an apology
+   — the interesting sentence is *our randomness is reducible by skill
+   and his is not.*
 2. ⭐⭐ **Treat "can the player trace it?" as a gate on any derived
    reward.** A band, a standing, a competence that a player cannot
    account for has failed this lens however honest its arithmetic. This
    is a reviewable property, not a feeling.
-3. **Decide the acclimation answer or record that we do not have one.**
-   The honest candidates are all non-numeric: new *kinds* of thing to
-   want, new refusals lifted, new people who defer to you. If that is
-   the answer, say so; it is a design commitment, not an absence.
+3. ⭐⭐ **Name "announce the surprising, not the every" as the
+   anti-habituation mechanism, and generalize it past traits.** It is
+   currently specified for one subsystem and is in fact the platform's
+   general answer to the problem Schell solves with a slot machine.
 4. ⭐⭐ **The levelling question is not "what number goes up."** It is
    *what arrives unbidden, and is it honest?* Framing it the first way
-   guarantees a gauge; framing it the second way is the actual problem.
-5. ⚠ **If a gauge ever ships, it must be because it was chosen.**
+   guarantees a gauge; framing it the second way is the actual problem
+   — and the deviation narration is already a partial answer.
+5. ⚠ **Audit epistemic uncertainty for reducibility.** Any system whose
+   unknowns no competence can narrow has smuggled in a resolutional
+   roll. Reviewable property, not a feeling.
+6. ⚠ **If a gauge ever ships, it must be because it was chosen.**
    The no-gauge rule is a *rendering* rule, which makes it the exact
    shape [lint-family.md](../lint-family.md)'s census-then-ratchet
    pattern handles: census the surfaces that render a derived number to

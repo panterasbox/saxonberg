@@ -114,7 +114,14 @@ None of this substitutes for the book.
 4. **What the design answers** — with citations to the rubric and the
    subsystem docs.
 5. **Tensions & risks** — where the lens exposes a soft spot.
-6. **Implications** — the decisions or work it generates. The payoff.
+6. **The verdict** — ⭐⭐ **required.** Schell is confronting a real
+   design with real problems, so say which of three this is:
+   **adopt** (he is right and we are not doing it), **push back** (the
+   lens's demand is already met, or met better, and here is how), or
+   **an alternative** (the problem is real, his answer is not ours,
+   here is what is). ⚠ A doc's prohibition *can* be lifted — "it
+   contradicts a rule we wrote" is not an argument on its own.
+7. **Implications** — the decisions or work it generates. The payoff.
    If a lens surfaces nothing to *do*, it does not belong.
 
 ⚠ **If an entry only admires the design, it failed.**

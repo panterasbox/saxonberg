@@ -59,15 +59,33 @@ why.** Of the three ledgers, HAVE and CAN DO are online and **ARE is
 not.** Standing is the one that would carry transformation, because it
 is the one other people can see.
 
-## Tensions & risks
+## The verdict
 
-⚠⚠ **The gap is communication, not substrate.** His second question —
-*how are those changes communicated to the player, could they be
-communicated more clearly or more strongly* — is the one XP answers
-cheaply, constantly, and unbidden. We answer it on pull
-([#55](./55-visible-progress.md)). **A change nobody notices is,
-for this lens, a change that did not happen**, however believable it
-was.
+⭐⭐⭐ **Schell wins this one outright, and the answer already exists in
+miniature.**
+
+There is no pushback available. His second question — *how are those
+changes communicated to the player, could they be communicated more
+clearly or more strongly* — is the one XP answers cheaply, constantly
+and unbidden, and it is the question we have not answered. **A change
+nobody notices is, for this lens, a change that did not happen**,
+however believable it was.
+
+⭐⭐ **But the seed is already specified.** The mirror's push channel —
+*announce the surprising, not the every*, narrating a write when it
+pushes `expressed` away from `equilibrium`
+([#55](./55-visible-progress.md)) — produces exactly this line:
+
+> *You'd not have done that a year ago.*
+
+**That is a transformation narration.** It is #91's second question,
+answered, in the register conscience actually speaks in — and it is
+currently scoped to one subsystem's traits. Generalizing it past traits
+is the work this lens assigns, and it is a much smaller job than
+inventing a progression system, because the hard part (deviation from
+equilibrium, two half-lives, mean reversion) is already designed.
+
+## Tensions & risks
 
 ⚠ **His method does not port.** The transformation chart wants
 characters down one axis and story sections along the other. We have
