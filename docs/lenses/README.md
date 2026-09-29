@@ -53,8 +53,8 @@ Chosen from the 2026-09-28 audit
 ([../design-lenses-revision-proposal.md](../design-lenses-revision-proposal.md)),
 which read the full Table of Lenses — 113 lenses plus the unnumbered
 *Lens of Your Secret Purpose* — and 19 cards in their own words.
-✅ **Eleven written** (2026-09-29): `7` · `27` ·: `25` · `31` · `37` · `46` · `55` ·
-`79` · `86` · `91` · `93`. ⛔ **`92` was written and then deleted** —
+✅ **Eleven written** (2026-09-29): `7` · `25` · `27` · `31` · `37` ·
+`46` · `55` · `79` · `86` · `91` · `93`. ⛔ **`92` was written and then deleted** —
 see below.
 
 | Sharpens | Entry | What it is for |
