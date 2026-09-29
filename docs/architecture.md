@@ -824,21 +824,57 @@ five top-level branches, each capturing a distinct role:
 ```
 Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   ├── Idea          incorporeal identity (Exit, Login, Zone, …)
-  ├── Thing         physical matter (an item; describable, Tangible, Wet)
-  │     └── Vessel  a Thing that also holds things (Container + interior
-  │                 Atmospheric) — matter outside, a place inside
+  ├── Thing         physical MATTER in a place (describable, addressable,
+  │     │           Detailed, Tangible, Wet, Containable) — a floor, a
+  │     │           hearth, a yard wall, a shop counter
+  │     └── Movable a GOOD: matter you can carry off, and therefore own
+  │           │     and hide (Chattel + Concealable)
+  │           └── Vessel  a Movable that also holds things (Container) —
+  │                       matter outside, a place inside
   ├── Location      stationary place — pure space, NOT matter (not Tangible)
   ├── Agent         runtime active object (Creature → Character → Avatar)
   └── Shadow        function-shadowing host — see call-security.md
 ```
 
-The space/matter axis is load-bearing: `Thing` (and its `Vessel`
-subtype) and `Agent` are **matter** — they compose `TangibleMixin`
-(material + mass) and therefore `WetMixin` (can get wet). `Location` is
-**space** — a room has no material or mass, so it is deliberately not
-`Tangible`. `Vessel` is the one dual citizen: matter you can also be
-*inside*. (A `Vessel` is not its own branch — it traces through `Thing`;
-"you can't pocket a ship" is a mass gate, not a type gate.)
+The space/matter axis is load-bearing: `Thing` (and everything under it)
+and `Agent` are **matter** — they compose `TangibleMixin` (material +
+mass) and therefore `WetMixin` (can get wet). `Location` is **space** — a
+room has no material or mass, so it is deliberately not `Tangible`.
+`Vessel` is the one dual citizen: matter you can also be *inside*. (A
+`Vessel` is not its own branch — it traces through `Thing`; "you can't
+pocket a ship" is a mass gate, not a type gate.)
+
+⭐⭐ **The second axis, added by the base-class narrowing (2026-09-29):
+matter at the root, GOODS one rung out.** `Thing` composed `ChattelMixin`
+and `ConcealableMixin` until then, so every floor, hearth, forge, counter
+and yard wall in the game carried author surface claiming it could be
+*owned* and *hidden*. Nothing ever stamped one — the defect was entirely
+in what the classes CLAIMED, which is the documented author surface and
+therefore exactly what `callable == visible == cared-about` is about.
+Those two mixins are the consequences of **portability**, so they moved
+to `lib/stuff/Movable`.
+
+- **Immovable** iff all of: it is never taken, sold, consigned, lent,
+  stolen or stamped as an instance; its ownership, when it has one, is
+  the **parcel's** (`parcel.md`), not a chattel stamp; and it is part of
+  the place rather than something in it.
+- ⚠ **A self-set `fixedInPlace` is not the test.** `Fitting` sets it and
+  is still a good — the general store sells tables. A thing can be both
+  bought and bolted down; `fixedInPlace` says only *no agent pockets it*.
+- ⚠ **An immovable CONTAINER does not extend `Vessel`** — it composes
+  `ContainerMixin(Thing)` in its own stack (D14). `Stock`, `BankCounter`,
+  `Warehouse`, `DepotCounter`, `CheckRack`, `ConsignmentShelf`.
+- Two concrete twins, one rung apart: `platform/thing/Thing` (bare
+  immovable matter — a toilet, a yard wall, a midden) and
+  `platform/thing/Movable` (bare goods — an anvil, a folded hide, a
+  handcart). Which one a row names IS the claim *can this be carried off*.
+
+⭐ `DetailedMixin` sits on the root beside `Perceptible`, since the same
+build: a thing addressable by keyword has PARTS addressable the same way,
+and `Detailed` is the access path to their metadata. 78 classes used to
+wrap it themselves and no longer do — a composition written
+`SomeMixin(DetailedMixin(Thing))` in an older doc is now just
+`SomeMixin(Thing)`.
 
 Under `Agent` the hierarchy splits **body** from **agent**:
 `Agent → Creature → Character → Avatar`. `Creature` (`lib/creature/`)
@@ -946,7 +982,7 @@ points readers here.
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
 | `Thing` | `Concealable(Wet(Visible(Perceptible(Tangible(Containable(Stuff))))))` | Physical matter: describable, `Tangible` (material + mass), `Wet` (can get wet), `Containable` ("I live somewhere"), and `Concealable` (default `obvious` — the presence-concealment axis so any Thing can be hidden, see [concealment.md](./subsystems/concealment.md)). |
 | `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`CartesianLocation`, …) layer on coordinate / Visible / Exitable mixins. |
-| `Vessel` | `ContainerMixin(Thing)` | **Extends `Thing`** — a container-object that adds `Container` (holds things) on top of Thing's matter baseline. A describable container is a plain `DetailedMixin(Vessel)`. ⚠ It composed `Atmospheric` too until the base-class narrowing build — *a bag is not a place*; see `ExitableVessel`. |
+| `Vessel` | `ContainerMixin(Movable)` | **Extends `Movable`** — a container-object that adds `Container` (holds things) on top of the goods rung. A describable container is a plain `Vessel` (the root carries `Detailed`). ⚠ An IMMOVABLE container — a shop counter, a teller's counter, a warehouse — composes `ContainerMixin(Thing)` in its own stack instead (D14): it is part of the premises, and the GOODS in it are the chattel. ⚠ It composed `Atmospheric` too until the base-class narrowing build — *a bag is not a place*; see `ExitableVessel`. |
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 
@@ -978,7 +1014,7 @@ both deliberately **without a new Api**: `ConcealableMixin`
 existing `PerceptionApi`/`PerceptionLogic` (no `DetectionApi`, since
 detection *is* concealment-gated perception); and `HazardMixin`
 (`lib/hazard/`, a **self-resolving** trap capability) plus the concrete
-`Trap = HazardMixin(DetailedMixin(Thing))` — with **no `HazardApi`/
+`Trap = HazardMixin(Movable)` — with **no `HazardApi`/
 `HazardLogic`**, because a hazard owns its own state + resolution and the
 powerful steps it orchestrates (`ConditionApi.inflict`,
 `PerceptionApi.perceives`) are each already gated, so an orchestrator gate

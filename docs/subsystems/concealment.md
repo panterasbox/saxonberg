@@ -121,20 +121,29 @@ on set) / `isConcealed` / `getConcealmentHint` / `setConcealmentHint` /
 `getDiscoveryKey`. Both fields are `@authorable`; `persistentFields =
 ['concealment', 'concealmentHint']`.
 
-**Composed onto `Thing`, `Creature`, and `Exit`** — the three perceivable
-bases that cover the loose perceivables (a stashed item, a lurking
-creature, a secret door). `Character`/`Avatar` inherit it through
-`Creature`; a `Trap` inherits it through `Thing`.
+**Composed onto `Movable`, `Creature`, and `Exit`** — the three
+perceivable bases that cover the loose perceivables (a stashed item, a
+lurking creature, a secret door). `Character`/`Avatar` inherit it through
+`Creature`; a `Trap` inherits it through `Movable`.
+
+⭐⭐ **`Movable`, not `Thing` — you cannot hide a floor.** Until the
+base-class narrowing (2026-09-29) it composed on the `Thing` root, so
+every floor, hearth, forge, counter and yard wall in the game carried a
+concealment band. Concealment is a property of *something loose in a
+place*; matter that IS the place has nothing to be concealed from. The
+mixin moved to `lib/stuff/Movable` = `Chattel(Concealable(Thing))`, beside
+the other consequence of portability. Five rows in the whole branch ever
+authored a band, and all five are goods.
 
 > **Divergence from the plan: `Container` does *not* compose
 > `ConcealableMixin`.** The plan listed `Container` as a composition point;
-> as shipped, only `Thing`/`Creature`/`Exit` carry the mixin. A **hidden
-> cache** is therefore realized as a concealed **`Thing`** (a stashed
-> pouch — the Sunken Delve's `hidden-cache` seed is a `Thing`), not a
-> concealed container. The wire-fog gate still runs on a container's
-> *contents* (below), so a concealed item *inside* a plain container is
-> hidden correctly; it's the container-as-secret case that a concealed
-> Thing stands in for.
+> as shipped, only `Movable`/`Creature`/`Exit` carry the mixin. A **hidden
+> cache** is therefore realized as a concealed **`Movable`** (a stashed
+> pouch — the Sunken Delve's `hidden-cache` seed is one), not a concealed
+> container. The wire-fog gate still runs on a container's *contents*
+> (below), so a concealed item *inside* a plain container is hidden
+> correctly; it's the container-as-secret case that a concealed `Movable`
+> stands in for.
 
 ### `Exit.hidden` is subsumed, not paralleled
 

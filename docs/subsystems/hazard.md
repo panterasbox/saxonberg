@@ -134,8 +134,8 @@ scythe's `edge`, a deadfall's `blunt`, an electrified floor's `shock`),
 
 ## `Trap` + the trigger hook
 
-**`Trap = HazardMixin(DetailedMixin(Thing))`** (`lib/hazard/Trap.ts`, the
-`Bandage = DressingMixin(Thing)` / `Coin = StackableMixin(Thing)` precedent
+**`Trap = HazardMixin(Movable)`** (`lib/hazard/Trap.ts`, the
+`Bandage = DressingMixin(Movable)` / `Coin = StackableMixin(Movable)` precedent
 — a Thing plus its capability mixin). Because `Thing` already composes
 `ConcealableMixin`, a `Trap` is concealable out of the box.
 

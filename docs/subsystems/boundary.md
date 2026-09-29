@@ -877,7 +877,7 @@ class: `switch beacon on`, `switch lamp off`, or `toggle lamp` to flip to
 the opposite of its current state.
 
 The shipped consumer is the crossing's `Beacon` (`obj/Beacon.ts`, a
-`Switchable(Propertied(Detailed(Thing)))` pedestrian signal — on = WALK,
+`Switchable(Propertied(Thing))` pedestrian signal — on = WALK,
 off = STOP, the walk/stop meaning is prose over the on/off state; the
 beacon gates nothing). The build's lamppost was later cut to prose, so
 `Beacon` is the sole live Switchable.

@@ -992,6 +992,29 @@ classes; `wiki chattel`, `wiki concealable`, `wiki movable` render a
 non-empty panel in a booted world. Commit:
 `docs(narrowing W4): the Movable rung in every doc that drew the tree`.
 
+**✅ W4 DONE.** 39 composition mentions rewritten across 20 docs; the
+remaining `(Thing)` hits are all genuinely immovable (`Boundary`,
+`BoundaryAnchor`, `BankCounter`, `Tariff`, `NeonSign`, `Beacon`) or the
+branch-registration line. The `architecture.md` diagram gains the rung,
+and with it the immovability test, the ⚠ that `fixedInPlace` is NOT that
+test, and D14's rule for immovable containers — the three things that
+actually cost this build time.
+
+⚠ **Two edits per mention, not one.** A doc that wrote
+`SomeMixin(DetailedMixin(Thing))` needed BOTH the `Detailed` wrap dropped
+(D8 put it on the root) and `Thing` → `Movable` where the class is a good.
+Doing only the second leaves a composition that is still wrong, and it
+reads as correct.
+
+The three wiki pages are written (D16) and land as ordinary files in
+`wiki-starter` — the pack discovers by directory, so nothing registers
+them. Each carries the inverse panel and, deliberately, a **"what cannot"**
+section: `chattel` says people and the ground, `concealable` says the
+place itself, `movable` states the test in one line (*can this change
+hands* — not weight, not whether it is bolted down). ⭐ Those sections are
+the build's whole argument in a form a player reads, and the panel under
+them is what makes the claim falsifiable at read time.
+
 ### W5 — the drive
 
 Extend `packages/wire/tests/base-class-narrowing.dirty.wire.test.ts`

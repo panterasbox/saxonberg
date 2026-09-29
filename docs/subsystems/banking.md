@@ -250,7 +250,7 @@ The **credential** is now a `payment` **record** held in a
 `CredentialWalletMixin` holder (the unified credential substrate — see
 [credential.md](./credential.md)): the record carries the linked-account set +
 active pointer + `spendCap` + `frozen` + `authorize`. The holder composes over
-BOTH a `PaymentCard` (`= CredentialWalletMixin(Thing)`, a 1:1 bearer
+BOTH a `PaymentCard` (`= CredentialWalletMixin(Movable)`, a 1:1 bearer
 instrument you can lose) and the born-with `CredentialWalletUpdate`
 (`= CredentialWalletMixin(AetherHostedMixin(Idea))`, the one wallet app holding
 every credential kind — installed once by `Avatar.installDefaultLoadout`,
@@ -458,7 +458,7 @@ over a game-clock advance.
 - `SupplyAggregate.ts` — the supply headline, **one row per currency**
   (`bank_supply`, unique index on `currency`).
 
-`obj/Coin.ts` — the physical cash object (`StackableMixin(Thing)`); a
+`obj/Coin.ts` — the physical cash object (`StackableMixin(Movable)`); a
 concrete content object beside `Flask`/`AirTank` (memory: *obj vs lib Stuff
 placement*).
 

@@ -160,7 +160,7 @@ STAND_MIXIN)` — the mining trade's `workingOf` shape.
 
 ⭐⭐ **Bigness — the bole.** A standard oak is tonnes, and a tree is the
 first Thing whose product exceeds a body. Felling drops **one bole** on
-the room floor (`/trade/forestry/thing/Bole` — `DetailedMixin(Thing)`
+the room floor (`/trade/forestry/thing/Bole` — `Movable`
 with `lengthsLeft`; mass = the species' wood density × 0.9 m³, oak ≈
 675 kg; *can't-budge is emergent from mass, never a flag* — `get bole`
 refuses `too-heavy-to-lift`), four logs off the crown beside it

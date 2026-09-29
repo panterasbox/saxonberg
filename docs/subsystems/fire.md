@@ -152,7 +152,7 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   (see *A fuelled appliance now casts light only while it burns*, below),
   which is what left it with nothing of its own.
   ⭐ **A candle is a `Lamp` row today** — `FurnaceMixin(LightSource(
-  Detailed(Reserved(Thermal(Thing)))))`, which is a fuelled thing that
+  Reserved(Thermal(Movable))))`, which is a fuelled thing that
   lights, burns its reserve and gates its flux on being lit. The general
   store's torch is already one. What no class offers is the wax pool, and
   that was deferred on the Candle too: the flame pins the whole body hot,

@@ -531,7 +531,7 @@ command category plus `assess` in `perception`.
 - **Dressing is a capability, not a class.** `DressingMixin` (`lib/vitals/`,
   `Mixins.Dressing` + `MixinApi.isDressing`, the `ToolMixin` pattern)
   carries a 0..1 `dressingQuality` and is **single-use**. `Bandage =
-  DressingMixin(Thing)` (`obj/Bandage.ts`, the `Coin`
+  DressingMixin(Movable)` (`obj/Bandage.ts`, the `Coin`
   precedent) is the canonical concrete one; any dressing-capable item
   (gauze, a rag) qualifies. `treat`/`undress` gate on `isDressing`, **never
   `instanceof Bandage`**. The instrument (splint/suture → `ToolMixin`) and

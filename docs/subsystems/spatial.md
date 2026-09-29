@@ -539,7 +539,7 @@ live row falls back to `With it`.
 ### The concrete hosts
 
 **`Fitting`** (`platform/thing/Fitting.ts`,
-`PlacingMixin(DetailedMixin(Thing))`, `fixedInPlace = true`) is the
+`PlacingMixin(Movable)`, `fixedInPlace = true`) is the
 bare fixture things are placed on — a shelf, counter, table, rail,
 hook, the bar's back-bar. ⭐ A row decides WHICH member it offers
 (`placements: [from]` for a hook) and how airy it is, so a drying
