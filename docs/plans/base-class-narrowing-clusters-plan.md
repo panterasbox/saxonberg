@@ -1047,6 +1047,99 @@ Acceptance: 8/8 green against a fresh DB with `WIRE_BOOT=1`; the record
 appended below. Commit:
 `drive(narrowing W5): the second panel, the cache, the counter and the cat`.
 
+**✅ W5 DONE — 20/20 green** (parts 0, A–E) on the eighth run. Parts A–D
+never broke. ⚠ **Every one of the seven rounds it took found something,
+and only two of them were mine.**
+
+### What the drive found in the PRODUCT
+
+1. ⚠⚠ **You could pick up the floor.** `get floor` answered *"You pick up
+   a featureless plain floor"* and handed the player the ground of the
+   room — true of **every room in the game**, since every locality's
+   floor is minted at `postRegister` and none of them said otherwise.
+   `Floor` never set `fixedInPlace`. ⭐ And note what could not have
+   caught it: `AdornmentMixin`'s not-portable invariant fires only when
+   `adornedTo` is non-null, and a minted floor is *contained*, not hung
+   — the one guard on the stack was structurally unable to see this.
+   Fixed in `platform/thing/Floor.ts` with the reasoning on the
+   constructor.
+2. ⚠⚠ **The inverse panel blew its budget and printed the failure into
+   the page.** `wiki chattel` rendered `<composition> failed: exceeded
+   2000ms`, which to a reader is **indistinguishable from *nothing
+   composes this*** — the same false negative the `/obj` scan root
+   produced for the component's whole life, arriving by a second route
+   the moment the answer got big. Three changes: the component answers
+   by CLASS past 40 rows (`Chattel` is 470 rows over 73 classes, ~21 000
+   characters in one cell), the prototype walk is cached per render
+   (it was being redone once per TEMPLATE — 1922 walks over 684
+   classes), and the budget is 2 s → 5 s. ⚠ **A bound that fires on
+   legitimate work is not a safety rail; it is a source of quiet wrong
+   answers.** A cross-render class cache was declined: there is no
+   hot-reload invalidation hook, and a stale wiki panel is the lie this
+   component exists to prevent.
+3. ⚠ **The capability page listed another capability's fields.** `wiki
+   branded` printed 80 field names including `_bloodPressureDiastolic`
+   and `_spo2`, because `describeMixin` read
+   `getAllFieldMeta(exemplar)` — the whole composed class — and the
+   first class found composing `Branded` happened to be a kept animal.
+   It reads the MIXIN's own `fieldMeta` now.
+4. ⭐ **Bare `look` shows you the FOCUS, not the room.** `look`'s target
+   is optional with `scope: ["$focus", "reachable"]`, so after any
+   command that updates focus a bare `look` re-renders that thing. Five
+   runs read *"a punched-tin lantern…"* as the answer to `look` in a
+   delve corridor and a hill lane, and it survived two drains, a
+   two-second wait and a retry — **because it was never a stray frame;
+   it was the right answer to a question the drive did not mean to
+   ask.** Whether an optional target SHOULD fill from focus is the
+   perception subsystem's question; the drive states the behaviour
+   (`look here`) rather than working around it silently.
+
+### What it found in the DRIVE, and in me
+
+- ⚠⚠ **`inverse()` had no guard for a FAILED component**, only for empty
+  and truncated. Every *does not contain* in part E would have passed
+  against the words `<composition> failed`. ⭐ The positive half of each
+  pair is what caught it — which is the whole reason the helper's
+  docstring insists on pairs, written before this build by somebody who
+  had been bitten once already.
+- ⚠ **And then the negative became OVER-broad.** `/platform/agent/` was
+  the right exclusion while the panel listed rows; the moment it listed
+  classes it matched `/platform/agent/KeptAnimal`, which is the
+  POSITIVE. A negative that fires on the thing it is meant to permit is
+  as useless as one that fires on nothing. Named the people instead.
+- **`goto` binds through MQL, so it cannot reach a singleton room nobody
+  has visited** — `goto /world/newbie-wilds/delve/corridor-1` answers
+  `unknown-target`. `startLocation` materializes it.
+- **An earlier draft waited correctly for `search` and then drained the
+  very message it was waiting for**, reporting *the search found
+  nothing* — which would have read as this build dropping an authored
+  concealment band.
+
+### What the drive could NOT prove, stated rather than faked
+
+- **`buy` completing.** A fresh avatar has no funded account, so the
+  counter answers `insufficient-funds` — for the 10-coin lantern and the
+  2-coin torch alike. Funding a buyer is the Governor's `reserve
+  override` plus a walk to a bank, which is `farming.dirty`'s drive. ⭐
+  The refusal is still the checkpoint W1 needs: `insufficient-funds` is
+  reached only after the counter resolved the good, found its price on
+  the offer and looked up the purse — all over a counter that stopped
+  being a `Vessel` in this build. A structural break refuses earlier, at
+  the target.
+- **`name` completing.** It is gated on the animal having chosen you,
+  which cannot be bought with food; driving it is the pets loop end to
+  end. The checkpoint is the SHAPE of the refusal — `not-chosen` is
+  reached only after the binder resolved the cat against `requires:
+  BondedMixin`. A cat that had lost the kept-animal rung would be
+  refused at the arg gate, which fails closed and silent.
+- **The cache being FOUND.** `search` is accepted and announces itself,
+  but neither *"Your search turns up…"* nor *"you turn up nothing"*
+  arrived through 15-second waits read three different ways. ⭐ The W0
+  claim does not need it: the checkpoint that the pouch is **absent from
+  the room listing** is what proves the authored band survived the class
+  move — had it been dropped, the pouch would be standing in plain
+  sight. The missing completion is filed for concealment's own drive.
+
 ### W6 — the measurement, re-run
 
 `pnpm -C packages/server composition-census --json` before and after

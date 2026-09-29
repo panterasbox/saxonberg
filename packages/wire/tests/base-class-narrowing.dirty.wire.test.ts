@@ -42,6 +42,7 @@ import {
   plain,
   expectOk,
   expectRefused,
+  expectNote,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -63,6 +64,9 @@ declareFile({
     'eternal-university',
     'trade-farming',
     'trade-ranching',
+    'trade-shopkeeping',
+    'newbie-wilds',
+    'hinkley-hills',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -84,6 +88,10 @@ const COACH_ROW = '/system/transport/thing/coach';
 const LANTERN_ROW = '/world/terminus/general-store/thing/lantern';
 const RATIONS_ROW = '/world/terminus/general-store/thing/rations';
 
+/* Part E's places. */
+const CORRIDOR = '/world/newbie-wilds/delve/corridor-1';
+const LANE = '/world/terminus/hinkley-hills/location/lane';
+
 const open: Session[] = [];
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
@@ -94,6 +102,30 @@ async function at(where: string, tag: string, wizard = false): Promise<Session> 
   });
   open.push(s);
   return s;
+}
+
+/**
+ * What the ROOM says — `look here`, never bare `look`.
+ *
+ * ⚠⚠ **This is a fact about the verb, and it cost five runs of part E.**
+ * `look`'s target arg is optional and its scope is
+ * `["$focus", "reachable"]`, so after you have handled something — a
+ * `clone`, a `light`, any command with `updates_focus` — a bare `look`
+ * binds the FOCUS and shows you that thing again instead of the room.
+ * Every one of those runs read back *"a punched-tin lantern…"* as the
+ * answer to `look` in a delve corridor and a hill lane, and it survived
+ * two drains, a two-second wait and a re-read, because it was never a
+ * stray frame: it was the right answer to a question the drive did not
+ * mean to ask. ⭐ Part D's leg passes because `goto` re-points the focus
+ * at the destination.
+ *
+ * Whether bare `look` SHOULD fill an optional target from focus is a
+ * live question for the perception subsystem and not this build's; the
+ * drive states the behaviour rather than working around it silently.
+ */
+async function roomText(s: Session): Promise<string> {
+  await s.drainProse();
+  return squash(plain(await (await s.cmd('look here')).said()));
 }
 
 /** The world's clock runs at 12×: a game-minute is five wall-seconds. */
@@ -128,6 +160,19 @@ async function inverse(s: Session, mixin: string): Promise<string> {
     page,
     `wiki ${mixin}: a truncated inverse is a lie the reader cannot see`,
   ).not.toMatch(/truncated/i);
+  // ⚠⚠ **A component that FAILED renders its failure into the page**, and
+  // to a reader that is indistinguishable from a capability nothing
+  // composes. This guard was missing on the first run of part E and the
+  // panel had blown its 2 s budget on `Chattel`'s 470 rows — every
+  // *does not contain* below would have passed against the words
+  // `<composition> failed: exceeded 2000ms`. The positive half of each
+  // pair is what caught it; this is so the next one fails by name.
+  expect(
+    page,
+    `wiki ${mixin}: the composition component reported a FAILURE — ` +
+      'the panel is not answering, and every negative below would pass ' +
+      'vacuously against its error text',
+  ).not.toMatch(/composition&gt; failed|composition> failed|exceeded \d+ms/i);
   return page;
 }
 
@@ -176,13 +221,23 @@ beforeAll(async () => {
   // doctrine is working; the drive has to carry a lamp.
   for (const s of [founder, walker]) {
     expectOk(await s.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await s.cmd('light lantern'));
+    // ⚠ `me:i:` — the rule this file already states for `feel`. By the
+    // time part E stands its sessions up the street holds five cloned
+    // lanterns, and a bare `light lantern` raises a disambiguation
+    // PROMPT that every later command then lands on.
+    expectOk(await s.cmd('light me:i:lantern'));
     await s.drainProse();
   }
 }, 180_000);
 
 afterAll(async () => {
-  for (const s of open) await s.close().catch(() => undefined);
+  for (const s of open) {
+    try {
+      await s.close();
+    } catch {
+      /* a session whose socket already went is not a failure to report */
+    }
+  }
 });
 
 /* ───────── 0 — the falsified register rows are still live ───────── */
@@ -248,16 +303,27 @@ suite('A — what the world CLAIMS', () => {
 
   it('⭐⭐ a PERSON is nobody’s product; a kept animal can be marked', async () => {
     const page = await inverse(founder, 'branded');
-    expect(page, 'a cat can carry a mark').toMatch(/stuff\/agent\/cat/i);
-    expect(page, 'so can a canary').toMatch(/mining\/agent\/canary/i);
-    expect(page, 'and a head of stock, which is the point').toMatch(
-      /ranching\/agent\/livestock/i,
+    // ⚠ Asserted on CLASSES, not on rows. The inverse answers by class
+    // once the row list passes 40 — `Branded` is 53 rows over 9 classes
+    // — and the class is the honest unit anyway: composing is something
+    // a CLASS does, and a row inherits it.
+    expect(page, 'a kept animal can carry a mark — a cat, a canary').toMatch(
+      /platform\/agent\/KeptAnimal/i,
     );
+    expect(page, 'and a head of stock, which is the point').toMatch(
+      /ranching\/agent\/Livestock/i,
+    );
+    // ⚠⚠ **The negative had to be sharpened the moment the panel began
+    // listing CLASSES.** `/platform/agent/` was the right exclusion when
+    // the panel listed rows; it now matches `/platform/agent/KeptAnimal`,
+    // which is the POSITIVE two lines up. A negative that fires on the
+    // thing it is meant to permit is as useless as one that fires on
+    // nothing — name the people.
     expect(
       page,
       'Branded left Creature in this build — no player character, ' +
         'Cast member, Extra, Shade or corpse carries a maker’s mark',
-    ).not.toMatch(/\/platform\/agent\//i);
+    ).not.toMatch(/agent\/(Avatar|Cast|Extra|Corpse|Shade|Character)\b/i);
   }, 120_000);
 });
 
@@ -537,4 +603,288 @@ suite('D — the containers that lost their weather still hold things', () => {
     const inv = squash(plain(await (await founder.cmd('inventory')).said()));
     expect(inv, 'and it handed it back').toMatch(/ration/i);
   }, 180_000);
+});
+
+/* ───────── E — matter is not a good ───────── */
+
+/*
+ * ⭐⭐ **The claim this build exists to remove, driven on the one surface
+ * that shows a claim.** `Thing` composed `ChattelMixin` and
+ * `ConcealableMixin`, so every floor, hearth, forge, counter and yard
+ * wall in the game carried author surface saying it could be OWNED and
+ * HIDDEN — and `Creature` composed `Chattel`, saying the same of every
+ * player, Cast member, Extra, Shade and corpse.
+ *
+ * ⚠⚠ **Nothing ever stamped one, so nothing behaved differently**, which
+ * is precisely why this part is written against the inverse panel and
+ * not against a behaviour: there is no behaviour to catch. The defect
+ * was entirely in what the classes CLAIMED, the claim is the documented
+ * author surface, and the panel is where a player reads it.
+ *
+ * Every assertion below is therefore a PAIR — something the panel must
+ * contain and something it must not. A panel that has broken again (the
+ * `/obj` scan root) renders identically to one that is simply honest,
+ * and `inverse()` refuses an empty or truncated page before either half
+ * is read.
+ */
+
+suite('E — what is a GOOD, and what is part of the place', () => {
+  /*
+   * ⚠⚠ **Part E reads on its OWN sessions, and that is not tidiness.**
+   * The founder idles five wall-minutes beside a hearth and inside a
+   * coach in parts B and C, and by part E its socket is carrying stale
+   * frames: `wiki chattel` came back as an NPC's ambient line about
+   * trimming a torch wrap, and `look` in a delve corridor came back as
+   * the description of a lantern cloned four commands earlier. Part D
+   * had already hit this and worked around it by switching sessions;
+   * the note is here so the next part does it by default. A drive that
+   * cascades one slow leg into five unrelated failures is reporting
+   * noise, not findings.
+   */
+  let reader: Session;
+  let ground: Session;
+  let delver: Session;
+  let keeper: Session;
+
+  beforeAll(async () => {
+    // These two only read the wiki and the floor under their feet —
+    // neither needs a lamp, and neither clones one.
+    reader = await at(STREET, 'reader', true);
+    ground = await at(STREET, 'ground', true);
+
+    /*
+     * ⚠⚠ **`startLocation`, not `goto`, and that is a fact about the
+     * world.** `goto` binds its target through MQL, which resolves LIVE
+     * objects — and a `SingletonCartesianLocation` that nobody has
+     * visited has no instance yet, so `goto /world/newbie-wilds/delve/
+     * corridor-1` answers `unknown-target`. Opening a session AT the
+     * path materializes it. The same is true of the hill lane.
+     *
+     * ⭐ Standing them up HERE rather than inside the test body is also
+     * what settles the lantern. A `clone`'s own description arrives on a
+     * frame the harness cannot correlate and lands on whatever command
+     * is next; four earlier runs read *"a punched-tin lantern…"* as the
+     * answer to `look` in a corridor and a lane, through two drains, a
+     * wait and a retry. Cloning in `beforeAll` puts the whole of the
+     * suite's first assertion between the echo and the read.
+     */
+    delver = await at(CORRIDOR, 'delver', true);
+    keeper = await at(LANE, 'keeper', true);
+    for (const s of [delver, keeper]) {
+      expectOk(await s.cmd(`clone ${LANTERN_ROW}`));
+      expectOk(await s.cmd('light me:i:lantern'));
+      await s.drainProse();
+    }
+  }, 240_000);
+
+  it('⭐⭐ the chattel panel: goods and kept animals, not the ground and not people', async () => {
+    const page = await inverse(reader, 'chattel');
+
+    // The positives first — an empty panel satisfies every negative.
+    // ⚠ CLASSES: the inverse answers by class past 40 rows, and Chattel
+    // is the widest mixin in the game.
+    expect(page, 'a bare good is a good somebody owns').toMatch(
+      /platform\/thing\/Movable/i,
+    );
+    expect(page, 'and so is a kept animal, once it has a name').toMatch(
+      /platform\/agent\/KeptAnimal/i,
+    );
+
+    // ⚠ The three that used to be here, and the reason the build ran.
+    expect(
+      page,
+      'a shop counter is part of the shop — the GOODS on it are the ' +
+        'chattel, which is what the stamp at the sale is for',
+    ).not.toMatch(/shopkeeping\/thing\/Stock|lib\/retail\/Stock/i);
+    expect(page, 'nor is a bank counter somebody’s property').not.toMatch(
+      /thing\/BankCounter/i,
+    );
+    expect(page, 'and you do not own the floor, you own the PARCEL').not.toMatch(
+      /platform\/thing\/Floor/i,
+    );
+    expect(page, 'nor the hearth, the forge or the water fixture').not.toMatch(
+      /thing\/(Hearth|Forge|WaterFixture)/i,
+    );
+    // ⚠ Named, not prefixed: `/platform/agent/KeptAnimal` is the
+    // positive above, and it lives under the same root as the people.
+    expect(
+      page,
+      '⭐⭐ and no PERSON is anybody’s chattel — Chattel left Creature in ' +
+        'this build, so no Avatar, Cast member, Extra, Shade or corpse ' +
+        'appears here',
+    ).not.toMatch(/agent\/(Avatar|Cast|Extra|Corpse|Shade|Character)\b/i);
+  }, 120_000);
+
+  it('⭐⭐ the concealable panel: loose things and bodies, not the place itself', async () => {
+    const page = await inverse(reader, 'concealable');
+
+    expect(page, 'a trap is set to be missed').toMatch(/thing\/Trap/i);
+    expect(page, 'and a bare good can be stashed — the delve cache is one').toMatch(
+      /platform\/thing\/Movable/i,
+    );
+
+    expect(
+      page,
+      'you cannot hide a floor — there is nowhere for it to be hidden FROM',
+    ).not.toMatch(/platform\/thing\/Floor/i);
+    expect(page, 'nor a shop counter').not.toMatch(
+      /shopkeeping\/thing\/Stock|lib\/retail\/Stock/i,
+    );
+    expect(page, 'nor a hearth, a forge or a water fixture').not.toMatch(
+      /thing\/(Hearth|Forge|WaterFixture)/i,
+    );
+  }, 120_000);
+
+  it('⭐ the hidden cache is still hidden, still found, still taken', async () => {
+    // ⚠⚠ THE checkpoint of part E. `hidden-cache` changed class in W0
+    // (`/platform/thing/Thing` → `/platform/thing/Movable`), and its
+    // authored `concealment: hidden` lives on the mixin that moved with
+    // it. If the band had been dropped in the move, the pouch would sit
+    // in plain sight and no unit test in the tree would know.
+    const before = await roomText(delver);
+    expect(
+      before,
+      'the corridor must render at all before "no pouch" means anything',
+    ).toMatch(/corridor|slab|passage/i);
+    expect(before, 'the pouch is hidden: a passer-by does not see it').not.toMatch(
+      /pouch/i,
+    );
+
+    /*
+     * ⚠⚠ **What this leg proves, and where it stops.**
+     *
+     * The W0 claim is that `hidden-cache` changed class
+     * (`/platform/thing/Thing` → `/platform/thing/Movable`) and kept its
+     * authored `concealment: hidden`, which lives on the mixin that
+     * moved with it. **The assertion above is what proves that**: if the
+     * band had been dropped in the move the pouch would be standing in
+     * plain sight in the room listing, and it is not.
+     *
+     * ⚠ The FIND does not land inside this drive's reach. `search` is a
+     * durative engagement — it answers *"You begin searching your
+     * surroundings"* and resolves on its own frame — and through raw
+     * waits of 15 s, reads on the search's own result and reads on a
+     * later command, neither *"Your search turns up…"* nor its
+     * counterpart *"you turn up nothing you hadn't already"* arrived.
+     * Whether that is the engagement not completing for an actor whose
+     * hands hold a lit lantern, or a competence gate, or a wire-harness
+     * correlation problem, is the concealment subsystem's question and
+     * not this build's — **filed, not faked.** What is asserted here is
+     * that the verb is afforded and accepted, which is the half a
+     * narrowing could have broken.
+     */
+    expectOk(await delver.cmd('search'));
+
+    // ⚠ And `get pouch` is NOT driven here for the same reason: you
+    // cannot take what the search has not turned up, and a `get` that
+    // refuses because the thing is still concealed would be asserting
+    // the concealment gate rather than the class move.
+  }, 240_000);
+
+  it('⭐ a floor is not a good: it refuses to be taken, and still answers a hand', async () => {
+    // The two halves of the narrowing on one object: it is not takeable,
+    // and the matter root's `Tangible`/`Detailed` survived the
+    // subtraction so a hand still gets an answer.
+    //
+    // ⚠ `feel` FIRST. Run the other way round, `get`'s refusal prose
+    // lands on `feel`'s frame and the band read sees the floor's
+    // description instead of its temperature — which is how the third
+    // run of this leg failed.
+    await ground.drainProse();
+    const felt = await feel(ground, 'floor');
+    expect(felt, 'the floor still answers a hand at all').not.toBe('');
+    // ⭐ It answers with the SURFACE, not a temperature band, and that is
+    // correct: `Floor` composes no `ThermalMixin`, so there is no
+    // temperature to report. An earlier draft of this checkpoint
+    // demanded a band and was asserting something the world has never
+    // claimed — the read under test is the matter root's `Tangible` and
+    // `Detailed` surviving the narrowing, which is what the floor
+    // answering AT ALL proves.
+    expect(felt, 'and the answer is about the floor').toMatch(/floor|stone|plain|smooth|rough|cold|cool/i);
+
+    // ⚠⚠ **This found a shipped defect.** On the first run of part E
+    // `get floor` answered *"You pick up a featureless plain floor"* —
+    // every room in the game handed you its own ground. `Floor` never
+    // set `fixedInPlace`, and `AdornmentMixin`'s not-portable invariant
+    // fires only when `adornedTo` is non-null, which a minted floor's is
+    // not: the one guard on the stack was structurally unable to see it.
+    // Fixed in `platform/thing/Floor.ts`; this is the checkpoint.
+    await ground.drainProse();
+    const said = squash(plain(await (await ground.cmd('get floor')).said()));
+    expect(
+      said,
+      'a floor cannot be pocketed, and the refusal is diegetic',
+      // ⚠ Asserted on the PROSE, not on an envelope kind: a refusal the
+      // player cannot read is the failure mode this repo keeps finding.
+    ).toMatch(/can.?t|cannot|fixed|part of|won.?t budge|no way/i);
+  }, 180_000);
+
+  it('⭐ a counter still sells, and the good is what changes hands', async () => {
+    const shopper = founder; // carries the lamp in — see the cache leg
+    expectOk(await shopper.cmd(`goto ${STORE}`));
+    await shopper.drainProse();
+
+    /*
+     * ⚠⚠ **What this checkpoint can and cannot prove, stated plainly.**
+     * A fresh avatar has no funded account, so `buy` answers
+     * `controller-rejected:insufficient-funds` — for the 10-coin lantern
+     * AND for the 2-coin torch. Funding a buyer means the Governor's
+     * `reserve override` and a walk to a bank, which is
+     * `farming.dirty`'s drive; duplicating it here would be a second
+     * copy of somebody else's flow.
+     *
+     * ⭐ The refusal is still the checkpoint W1 needs, and it is not a
+     * weak one: `insufficient-funds` is reached only AFTER the counter
+     * has resolved the good, found its price on the offer and looked up
+     * the buyer's account. That whole path runs over a counter that
+     * stopped being a `Vessel` and became `ContainerMixin(Thing)` in
+     * this build. A structural break would answer `no-such-target` or
+     * `wrong-target`, and the assertion below is written to fail on
+     * either.
+     */
+    const attempt = await shopper.cmd('buy torch');
+    expectRefused(attempt);
+    expectNote(attempt, 'controller-rejected', {
+      // The till was REACHED — the counter resolved the torch, found its
+      // price on the offer and looked up the purse. A counter broken by
+      // the narrowing refuses EARLIER than this, at the target.
+      reason: 'insufficient-funds',
+    });
+
+    // And the counter is still standing in the shop holding its stock.
+    const floor = await roomText(shopper);
+    expect(floor, 'the counter stayed where it was').toMatch(/counter/i);
+  }, 180_000);
+
+  it('⭐⭐ a kept animal is still a thing that CAN be owned — the other end of D15', async () => {
+    /*
+     * `Chattel` came off `Creature` and landed on `KeptAnimal`, and the
+     * panel in the first checkpoint of this part is the claim: the cat's
+     * class is listed, the people's are not.
+     *
+     * ⚠⚠ **What the drive cannot reach, stated rather than faked.**
+     * `name` is the promotion that STAMPS the chattel, and it is gated
+     * on the animal having chosen you — *"it must know you well, and it
+     * must have followed you home at least once,"* which cannot be
+     * bought with food. Driving that is the pets loop end to end and it
+     * is `pets`' own drive, not this build's.
+     *
+     * ⭐ So the checkpoint is the SHAPE of the refusal, and it is not a
+     * weak one. `controller-rejected:not-chosen` is reached only after
+     * the binder has resolved the cat against `requires: BondedMixin`
+     * and the controller has run its own gate. A cat that had lost the
+     * kept-animal rung in this build would be refused EARLIER — at the
+     * arg gate, which fails closed and silent, and which is the exact
+     * failure class this repo keeps finding. The gate that fired is the
+     * RELATIONSHIP, which is what it should be.
+     */
+    const lane = await roomText(keeper);
+    expect(lane, 'the lane keeps a stray — it mints one on any boot').toMatch(
+      /cat/i,
+    );
+
+    const attempt = await keeper.cmd('name stray Mouse');
+    expectRefused(attempt);
+    expectNote(attempt, 'controller-rejected', { reason: 'not-chosen' });
+  }, 240_000);
 });

@@ -88,6 +88,18 @@ const KINDS: readonly Kind[] = ['template', 'mixin', 'command'];
  */
 const INVERSE_SCAN_CAP = 1000;
 
+/**
+ * How many matching template paths the inverse will list individually
+ * before it answers by CLASS alone.
+ *
+ * ⚠ This is a READABILITY bound, not a correctness one — the class line
+ * above it is always complete, and the count says how many rows it
+ * stands for. It exists because `Chattel`'s 470 paths in one cell blew
+ * the 2 s component budget and printed a render failure into the page.
+ */
+const INVERSE_ROW_LIST_CAP = 40;
+
+
 export const component = class WikiComposition {
   static label = 'composition';
 
@@ -299,10 +311,21 @@ async function describeMixin(
   const rows: MmlNode[] = [headerRow('Capability', name)];
 
   // The forward view: what the mixin itself declares.
+  //
+  // ⚠⚠ **The MIXIN's own `fieldMeta`, not the exemplar's.** This read
+  // `MixinApi.getAllFieldMeta(exemplar)` until 2026-09-29, which is the
+  // whole composed class — so `wiki branded` listed 80 fields including
+  // `_bloodPressureDiastolic` and `_spo2`, because the first class it
+  // happened to find composing `Branded` was a kept animal. A
+  // capability page that names another capability's fields is worse
+  // than one that names none: a reader has no way to tell which of the
+  // eighty the page is actually about.
   const owners = await classesComposing(name, ctx);
   if (owners.exemplar) {
-    const meta = MixinApi.getAllFieldMeta(owners.exemplar);
-    const own = Object.keys(meta).sort();
+    const layer = MixinApi.queryMixins(owners.exemplar).find(
+      (m) => m._mixinName === name,
+    ) as { fieldMeta?: Record<string, unknown> } | undefined;
+    const own = Object.keys(layer?.fieldMeta ?? {}).sort();
     if (own.length) {
       rows.push(row('fields', own.join(', '), SpoilerLevels.OPEN));
     }
@@ -310,13 +333,39 @@ async function describeMixin(
 
   // ⭐ The inverse: what in this world composes it. The question a
   // template page structurally cannot answer.
-  rows.push(
-    row(
-      'composed by',
-      owners.paths.length ? owners.paths.join(', ') : '(nothing yet)',
-      SpoilerLevels.OPEN,
-    ),
-  );
+  //
+  // ⚠⚠ **Answered by CLASS when the list is long, and that is not a
+  // truncation.** Until 2026-09-29 this emitted every matching template
+  // path comma-joined into one cell. That is fine for `Atmospheric`
+  // (7 rows) and it blew the 2 s component budget for `Chattel` (470
+  // rows over 73 classes, ~21 000 characters) — the panel rendered
+  // `<composition> failed` INSIDE the page, which reads to a player
+  // exactly like a capability nothing composes. The base-class
+  // narrowing's own drive caught it, because its assertions are written
+  // as *contains X and does not contain Y* and the positive half fired.
+  //
+  // ⭐ The class list is also the better answer to the question. *What
+  // in this world can be owned* is 73 kinds of thing, not 470
+  // individual rows, and a kind is what an author composes. The rows are
+  // still listed whole while they fit.
+  if (owners.byClass.size === 0) {
+    rows.push(row('composed by', '(nothing yet)', SpoilerLevels.OPEN));
+  } else {
+    const classes = [...owners.byClass.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([cls, n]) => (n > 1 ? `${cls} (${n})` : cls));
+    rows.push(row('composed by', classes.join(', '), SpoilerLevels.OPEN));
+    rows.push(
+      row(
+        'rows',
+        owners.paths.length <= INVERSE_ROW_LIST_CAP
+          ? owners.paths.join(', ')
+          : `${owners.paths.length} across ${owners.byClass.size} classes ` +
+            `— too many to list; the classes are above`,
+        SpoilerLevels.OPEN,
+      ),
+    );
+  }
   if (owners.truncated) {
     rows.push(
       row(
@@ -340,7 +389,12 @@ async function describeMixin(
 async function classesComposing(
   mixinName: string,
   ctx: ComponentContext,
-): Promise<{ paths: string[]; exemplar: AnyConstructor | null; truncated: boolean }> {
+): Promise<{
+  paths: string[];
+  byClass: Map<string, number>;
+  exemplar: AnyConstructor | null;
+  truncated: boolean;
+}> {
   // ⚠⚠ The root is `/` — every namespace. This read `'/obj'` from the
   // component's first commit and `/obj` has never held a row (the path
   // pattern is `<root>/<branch>/`), so the inverse answered
@@ -348,8 +402,20 @@ async function classesComposing(
   // `findDescendants` is a `^prefix/` regex, so `'/'` is the whole tree.
   const templates = await Template.findDescendants('/');
   const paths: string[] = [];
+  const byClass = new Map<string, number>();
   let exemplar: AnyConstructor | null = null;
+  // `classPath → its mixin NAMES`, built once per class and reused for
+  // every row of that class.
+  //
+  // ⚠⚠ **Per render, deliberately not across renders.** The prototype
+  // walk was being redone once per TEMPLATE — 1922 walks over 684
+  // distinct classes — which is the waste, not the module import (ESM
+  // caches that). Caching the constructors across renders instead would
+  // want a hot-reload invalidation hook that does not exist, and a wiki
+  // panel that has gone stale is precisely the kind of lie this
+  // component was built to make impossible.
   const seen = new Map<string, AnyConstructor | null>();
+  const mixinsOf = new Map<string, Set<string>>();
   let scanned = 0;
   let truncated = false;
 
@@ -362,20 +428,29 @@ async function classesComposing(
         break;
       }
       scanned += 1;
-      seen.set(classPath, await loadClass(classPath));
+      const loaded = await loadClass(classPath);
+      seen.set(classPath, loaded);
+      if (loaded) {
+        mixinsOf.set(
+          classPath,
+          new Set(
+            MixinApi.queryMixins(loaded)
+              .map((m) => m._mixinName)
+              .filter((n): n is string => typeof n === 'string' && n !== ''),
+          ),
+        );
+      }
     }
     const ctor = seen.get(classPath) ?? null;
     if (!ctor) continue;
-    const composes = MixinApi.queryMixins(ctor).some(
-      (m) => m._mixinName === mixinName,
-    );
-    if (!composes) continue;
+    if (!mixinsOf.get(classPath)?.has(mixinName)) continue;
     if (!exemplar) exemplar = ctor;
     paths.push(tpl.path);
+    byClass.set(classPath, (byClass.get(classPath) ?? 0) + 1);
   }
   // The component READS the budget; it does not spend it (D-5).
   void ctx.budget;
-  return { paths: paths.sort(), exemplar, truncated };
+  return { paths: paths.sort(), byClass, exemplar, truncated };
 }
 
 // ── command: what can I type, and what gates it ──
