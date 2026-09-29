@@ -90,6 +90,25 @@ instantiation limit**, which is why `static _mixinName` must widen to
 `string`. That is a real build-stopper on the agent chain and it has no
 gate. It is not this slate's problem but somebody should own it.
 
+## ⚠⚠ A SIXTH necessity channel — found by re-measuring, 2026-09-29
+
+The five below measured authorship, exercise, a view's `args[].requires`,
+class statics, and identity. They missed the one that matters most for
+a *verb-bearing* mixin:
+
+> ⭐⭐ **6 · a controller's own `MixinApi.isX` narrowing.** A verb may
+> gate on a mixin in its CONTROLLER rather than in its view's
+> `requires:` — and then the mixin is load-bearing while being
+> invisible to every channel above.
+
+That is exactly how register #7 read as *"the only unambiguous dead
+mixins found"* when `ImprovableMixin` is what makes `ditch`, `grub`
+and `lime` work at all. **Any future census must grep the controllers,
+not only the views.** ⚠ And the two channels disagree for a reason
+worth its own look: a gate in the controller refuses *after* binding,
+a gate in `requires:` refuses *at* the binder, and the player sees
+different things.
+
 ## ⭐ The five necessity channels
 
 A (class, mixin) pair is needed if ANY of these fire. A census that
@@ -156,13 +175,13 @@ Ranked by rows × fields exposed. Verdicts: **M** misrepresentation
 
 | # | finding | evidence | verdict |
 |---|---|---|---|
-| 1 | **`AtmosphericMixin` on `lib/stuff/Vessel:59`** — 15 classes, 38 rows, 18 fields, **0 authored**, and *provably unreachable*: `getVolume()` returns null (`Atmospheric.ts:1056`) and only `Location` subclasses override it, so `envelopeApplies()` (`:609`) is false on its first line. The same mixin on `Location` is healthy — 21 classes, 10 authoring, envelope running. 27 of 38 rows are tills, jars, racks, footlockers, packs, handcarts and counters claiming weather. ⚠ `spatial.md:48` **already says they shouldn't have it**: *"Pure containers (Box, Backpack) do NOT compose Atmospheric"* — and `Pack` is the backpack. | ⛔ blocked on the partition slate | M |
+| 1 | ⚠ **Re-measured 2026-09-29: "provably unreachable" is WRONG — it is the ENVELOPE that never runs, not the mixin.** A player inside an `ExitableVessel` (coach, barge, wagon) reads it through `feel` (`FeelController.ts:150`), `smell`, `listen` and `trace atmosphere`, all of which key off `context.location` being atmospheric; and `feel <vessel>.<detail>` takes a touch band off it (`FeelController.ts:239`). So the mixin **must move, not vanish**. The rest of the finding stands. — **`AtmosphericMixin` on `lib/stuff/Vessel:59`** — 15 classes, 38 rows, 18 fields, **0 authored**, and the envelope is unreachable: `getVolume()` returns null (`Atmospheric.ts:1056`) and only `Location` subclasses override it, so `envelopeApplies()` (`:609`) is false on its first line. The same mixin on `Location` is healthy — 21 classes, 10 authoring, envelope running. 27 of 38 rows are tills, jars, racks, footlockers, packs, handcarts and counters claiming weather. ⚠ `spatial.md:48` **already says they shouldn't have it**: *"Pure containers (Box, Backpack) do NOT compose Atmospheric"* — and `Pack` is the backpack. | ⛔ blocked on the partition slate | M |
 | 2 | **A shipped thermal defect behind it.** `Thermal.ts:580` reads only the immediate container: atmospheric-but-null-envelope updates nothing, so **a loaf in a backpack or a fish on a shop counter has frozen ambient**. Removing the mixin does not fix it — the honest repair is stepping outward through a non-atmospheric container, which is *unexpressible* while counters claim to be atmospheric. | the split is a precondition, not the fix | — |
 | 3 | **`BrandedMixin` on `lib/creature/Creature:141`** — 19 classes, 73 rows, 0 authored. Its own comment justifies it as *"branding livestock is what marks were invented for"*; its `markupAugmenters` appends *"a product of Veshko"*. The 6 animal descendants are content gaps; **14 human and abstract classes (53 rows) are a lie**. ⭐ One line: it belongs on `lib/creature/KeptAnimal`. | ready now, independent | M |
 | 4 | **`ConcealableMixin` on `lib/stuff/Thing:79`** — 182 classes, 596 rows, 2 authoring classes / 5 rows. Portable goods are a content gap (a knife is the archetypal concealed object); fixed room fabric is not — you cannot hide a floor, it is the room. **No signal exists in the data**: `fixedInPlace` is authored on **8 rows in the whole game**, none of them `Floor`, `Street`, `WaterFixture`, `Stock`, `Hearth`, `Forge` or `GardenBed`. A human draws this line class by class. | the bullet-bite | M/C |
 | 5 | **`PersonaMixin`** — 60 rows, 14 classes, `bio`/`aspiration` authorable and written by **nobody**, with zero runtime compensation. Every descendant is a person. 60 characters with no interior life, advertised on the wiki panel. | pure content | C |
-| 6 | **Seven dead classes** — `Bench`, `Candle`, `Remote`, `Screen`, `Window` (zero rows, referenced only by their own tests; `Candle` and `Screen` each carry a whole subsystem exercised solely by its own test), plus `PersistentCartesianLocation` (zero rows, zero references anywhere) and `GlassAlley` (behaviour generalised into the hazard tier, class left behind, every mention a docstring). | delete | D |
-| 7 | **`ImprovableMixin` (4 rows) · `RegistrarMixin` (2 rows)** — no authorship, no gate, no hook, no static, on any channel. The only unambiguous dead mixins found. | delete | D |
+| 6 | ⚠ **Re-measured 2026-09-29: row-less and production-import-less, yes — but the supporting claims are loose.** Several are imported by *other* classes' tests, not their own. `PersistentCartesianLocation` is NOT "zero references anywhere": `location.md:72` and `forestry.md:36` state it as the answer to a design question. And `Window`, `Remote`, `Screen`, `Candle` and `PersistentCartesianLocation` are all described in published subsystem/architecture docs as SHIPPED, so deleting them makes those docs wrong. `Candle` and `Screen` each carry a subsystem whose only exercise is a test. — **Seven row-less classes** — `Bench`, `Candle`, `Remote`, `Screen`, `Window` (zero rows; `Candle` and `Screen` each carry a whole subsystem exercised solely by its own test), plus `PersistentCartesianLocation` (zero rows, zero references anywhere) and `GlassAlley` (behaviour generalised into the hazard tier, class left behind, every mention a docstring). | delete | D |
+| ~~7~~ | ⛔⛔ **FALSIFIED 2026-09-29 — both mixins are LIVE.** `ImprovableMixin` is composed by `trade-farming/src/location/Field.ts:77` and `trade-quarrying/src/location/Turbary.ts:66`, and **gates three shipped verbs**: `GroundWorkController.ts:116` (`if (!MixinApi.isImprovable(stuff)) return null`) is the base of `ditch` · `grub` · `lime`. `RegistrarMixin` is composed by `FisheryRegistry` and `HerdRegistry`, with `DocumentLogic.ts:406` throwing without it. ⭐ **Why the census missed them: the narrowing read is in the CONTROLLER, not in a view's `requires:`** — see the sixth channel below. The true, narrower statement is *neither is named by any `requires:` and neither has a directly-authored field*, which is not the same as dead. | ⛔ do not delete | — |
 | 8 | **`MineRoom` + `Atmospheric`** — the inverse case. On the `Location` branch the envelope genuinely runs, and a mine heading is exactly the place that should hold its own air. None of the 4 rows authors any. Given the metal chain models blackdamp, this has teeth. | content, with teeth | C |
 | 9 | **`ContainmentApi.looseContents`** — a presentation rule filed as a containment read, with **no receiver**, twelve lines below a comment saying read-wrappers *"were removed: those reads live on the objects themselves"*. See the partition slate. | ⛔ the blocking one | — |
 | 10 | **`lint:object-verbs` blind spot** — the gate is a ratchet at zero for an Api static whose first parameter is a world object. `looseContents(items: readonly Stuff[])` takes an **array** of them and slips through. | gate fix | — |
