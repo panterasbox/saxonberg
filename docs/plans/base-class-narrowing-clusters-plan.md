@@ -430,7 +430,7 @@ The Agent, Location and Idea passes cite this.
 
 `Crafted` carries provenance and grade; both are written by
 `CraftingLogic` on output. A class that composes it and has no recipe
-today (the eleven instruments on `ToolItem`) is a class whose recipe is a
+today (the eleven instruments on `Tool`) is a class whose recipe is a
 data file somebody has not written — reading 2, never a class defect.
 
 ### D11 — `Branded` on `GradedReceptacle` stays; the bottling stamp is the gap (THING-ONLY)
@@ -575,7 +575,7 @@ argued per cluster.
 
 | cluster (rows) | class-own layers with a list-A zero | reading | action |
 |---|---|---|---|
-| `ToolItem` (32) | `Detailed` 0 · `Graded` 0 (via `Crafted`) | 3 / 2 (D8, D10) | **Movable.** No new class. `pinch-bar` capabilities → slate |
+| `Tool` (32) | `Detailed` 0 · `Graded` 0 (via `Crafted`) | 3 / 2 (D8, D10) | **Movable.** No new class. `pinch-bar` capabilities → slate |
 | `Provision` (32) | `Thermal` 0 · `Detailed` 0 | 3 (D4, D8) | **Movable.** `Crop` (10) follows |
 | `Plant` (25) | `Thermal` 0 · `Detailed` 0 · `Plant` 24/25 | 3 | **Movable** (a pot plant is carried; a standard in the ground is the `Wood`'s — the slot-plant, not an immovable) |
 | `Seed` (24) | `Detailed` 0 · `Tangible` 0 | 3 / **2** (D5) | **Movable.** Mass → `lint:mass` (W7) |
@@ -1471,12 +1471,12 @@ is not a chamber you put things inside, and that is the whole difference
 between it and an oven"*). `SpaceHeatingMixin` *is* "warms the
 enclosure" (`SpaceHeating.ts`: *"a forge heats what you put IN it; a
 hearth heats where you stand"* — and *"never compose this on
-`FurnaceMixin`"*, for exactly the wrong-host reason). `PlacingMixin` is
+`BurnerMixin`"*, for exactly the wrong-host reason). `PlacingMixin` is
 "a pot stands on it." The three share **no base class; they share
-`FurnaceMixin`**, and the distinctions the owner drew are carried
+`BurnerMixin`**, and the distinctions the owner drew are carried
 honestly where they are.
 
-⭐ **So the misnamed thing is the MIXIN.** `FurnaceMixin` means *a
+⭐ **So the misnamed thing is the MIXIN.** `BurnerMixin` means *a
 fuel-and-air-driven body pinned hot while lit, with a fuel reserve that
 drains against game time and a burnout edge* (`Furnace.ts:1-9`). That is
 true of a `Lamp` (`Lamp.ts:4`: *"a lamp is a small furnace with a light
@@ -1485,7 +1485,7 @@ name), of a campfire, of a charcoal clamp, and none of those is a
 furnace. A furnace is one *kind* of housing for the thing the mixin
 models.
 
-**Naming finding N1 — `FurnaceMixin` → `BurnerMixin`.** The burner is
+**Naming finding N1 — `BurnerMixin` → `BurnerMixin`.** The burner is
 the part of any fuelled appliance that is lit: a lamp has a burner, a
 forge has a burner, a hearth's grate is one, a stove's ring is one. It
 names the mechanism and not one housing, it is the word an author
@@ -1531,7 +1531,7 @@ the W8 fix, run over mixin *cores* rather than whole signatures.
 | near-miss `SingletonCartesianLocation ⊂ AuthoredWorking, MineRoom` | **not a missing superclass** — `AuthoredWorking extends WorkingMixin(SingletonCartesianLocation)` already; `MineRoom` deliberately sits on the *permissive* base (`MineRoom.ts`: *"a working is a KIND of place minted many times"*) | `AuthoredWorking.ts`, `MineRoom.ts` | — | **no** — Location pass cites |
 | `Thing` · `DeedDesk` · `BoundaryAnchor` | **three** — `DeedDesk` is a *marker class*: its presence IS the `title` verb's venue predicate (`DeedDesk.ts:1-6`), a legitimate zero-code concept (the class is the predicate); `BoundaryAnchor` is D13's finding (arguably an `Idea`); `Thing` is the twin | docstrings | names right | **no** |
 
-**The `ToolItem` group (26 classes, statics distinguish).** Not twins —
+**The `Tool` group (26 classes, statics distinguish).** Not twins —
 `Anvil` and `Loom` differ only by `static commandContributions`
 (`Anvil.ts`, `Loom.ts`: two statics, no other body). The design question
 the marking produced is answered below.
@@ -1547,7 +1547,7 @@ So *every kind of tool that affords a different verb set must be a
 class*, and 24 of 26 tool classes exist for that reason alone.
 
 Half right because the **capability** half already lives in rows:
-`ToolMixin.capabilities` is authored on 31/32 `ToolItem` rows, recipes
+`ToolMixin.capabilities` is authored on 31/32 `Tool` rows, recipes
 gate on it by kind, and a second loom at a higher `rate` is a row
 (`Loom.ts`: *"a flying shuttle or a power loom would be two more, at
 higher `rate`"*). The verb half is the one that cannot be. Lens 2, tier
@@ -1560,7 +1560,7 @@ empty-but-for-a-static classes are the receipt.
 view declare what *capability* affords it — `affordedBy: capability:
 weave` beside the existing `requires:` — so the `capabilities:` a row
 already authors confers the verbs, and `Loom`, `Anvil`, `Whetstone`,
-`SewingTool` … collapse into `ToolItem` rows. The class survives only
+`SewingTool` … collapse into `Tool` rows. The class survives only
 where it has a body (`Rod`, `Trap`, `AssayBench`, `LoadDevice`,
 `HouseholdersKit`). It is the same move `instrumentation.md` already made
 for `measure`/`analyze` (*"a trade adds a reading with no platform file
@@ -1575,12 +1575,12 @@ capability row lives in that pack.
 
 | class | seam | reading | verdict |
 |---|---|---|---|
-| `ToolItem` | `longDescription` 22/32 vs **`long` 10/32** | **dead key** — `VisibleMixin` declares no `long` (`grep` over `Visible.ts` fieldMeta: none); the Hydrator discards it; **every shipped instrument renders with no long description** (`balance.yaml` authors `long:` and nothing else) | fix the rows (W8) |
+| `Tool` | `longDescription` 22/32 vs **`long` 10/32** | **dead key** — `VisibleMixin` declares no `long` (`grep` over `Visible.ts` fieldMeta: none); the Hydrator discards it; **every shipped instrument renders with no long description** (`balance.yaml` authors `long:` and nothing else) | fix the rows (W8) |
 | `Crop` | `_materialPath` 7/10 vs **`material` 3/10** | dead key (the grain chain's finding, still present on `madder-root`, `weld-bundle`, `woad-leaf`) | fix the rows (W8) |
 | `Bottle` | `censusKey`+`regionTarget`+`container` 14/18 | **reading 3** — the 14 are *stocked products* (`Circulating`'s distribution fields, `Circulating.ts:1-8`); the 4 (`mixer-bottle`, `can`, `sack`, `kitchen-salt`) are *packaging you fill*. One class, two roles; a row not in circulation authors no census. Not two kinds of bottle | no |
 | `Vat` | `mass` 6/11 | **reading 2** — the rows WITH mass are the installed vats and the carboy alike; the five without (`culture-jar`, `starter-crock`, `cask`, the two jars) are the D5 gap, not the owner's installed-vs-carboy question, which is F3's assembly seam | `lint:mass` |
 | `Provision` | `gradeBand` 15/32 | reading 3 — graded produce vs ungraded by-products (`offal`, `slag`, `bone`) | no |
-| `ToolItem` | `epoch` 2/32 | reading 3 — the two forestry tools author the epoch the land-use covenant reads (`Tooled.ts:40-48`); the rest are pre-epoch | no |
+| `Tool` | `epoch` 2/32 | reading 3 — the two forestry tools author the epoch the land-use covenant reads (`Tooled.ts:40-48`); the rest are pre-epoch | no |
 | `Cast` | `name` 33/43 | reading 3 — the shipped `Cast`/`Extra` rung distinction (`identity.md`); ⚠ the ten unnamed `Cast` rows may be `Extra`s on the wrong rung — **Agent pass** verifies each | Agent pass |
 | `SingletonCartesianLocation` | 2 shared keys / 94 | expected — every row is a different place; the seams (`_address` 43, `cast` 40) are what a place has or has not | Location pass |
 | `ConsumableMaterial` | `toxicity` 57/70 | Idea pass; likely reading 2 (a food with no toxicity row is a food that cannot poison) | Idea pass |
@@ -1616,9 +1616,9 @@ a field a custom hydrator should own; the slate gets the list with the
 
 | current | proposed | why | status |
 |---|---|---|---|
-| `FurnaceMixin` (`lib/fire/Furnace.ts`, `Mixins.Furnace`, `isFurnace`) | **`BurnerMixin`** | it models the lit, fuelled body — true of a lamp, a clamp, a campfire; "furnace" names one housing and `Lamp.ts` has to apologise for it | **N1 RULED** — W9 |
+| `BurnerMixin` (`lib/fire/Furnace.ts`, `Mixins.Burner`, `isBurner`) | **`BurnerMixin`** | it models the lit, fuelled body — true of a lamp, a clamp, a campfire; "furnace" names one housing and `Lamp.ts` has to apologise for it | **N1 RULED** — W9 |
 | *(none)* — the four-layer core restated by 7 classes | **`Firebox`** (`lib/fire/Firebox`, substrate) | the chamber every furnace, stove, oven, kiln and lamp has and none is; the common superclass the owner suspected | **N2 RULED** — W9 |
-| `ToolItem` | **`Tool`** | `Item` names nothing (the `Prop` lesson, `platform/thing/Thing.ts:16-27`); the mixin file is `Tooled.ts` so the class file `platform/thing/Tool.ts` collides with nothing, and a twin sharing its concept's name is the default | **N4 RULED** — W9; ⚠ `Tool` stays a class the 24 static-only tools COULD collapse into (N3), never one that assumes they have |
+| `Tool` | **`Tool`** | `Item` names nothing (the `Prop` lesson, `platform/thing/Thing.ts:16-27`); the mixin file is `Tooled.ts` so the class file `platform/thing/Tool.ts` collides with nothing, and a twin sharing its concept's name is the default | **N4 RULED** — W9; ⚠ `Tool` stays a class the 24 static-only tools COULD collapse into (N3), never one that assumes they have |
 | `Receptacle` | keep | its docstring's reason is stale, its name is not | W4 docstring |
 | `PlantPot` · `GardenBed` | keep | D13 makes the pair honest | — |
 | `Ingot` · `Casting` · `Bloom` | keep | three things, each argued in its own file | — |
@@ -1640,7 +1640,7 @@ a field a custom hydrator should own; the slate gets the list with the
   `CartesianLocation`, `SingletonCartesianLocation`, `Thing`, `Movable`)
   — empty by construction; a census that lists them as siblings is
   reporting the pattern.
-- **`SpaceHeating` onto `FurnaceMixin`** — `SpaceHeating.ts:16-21` says
+- **`SpaceHeating` onto `BurnerMixin`** — `SpaceHeating.ts:16-21` says
   why in the repo's own words.
 
 ### Waves added by this pass
@@ -1684,10 +1684,10 @@ a field a custom hydrator should own; the slate gets the list with the
   quarry rows have been made of nothing. Same shape as the coach's dead
   `ambientLumens`, same shape as `feel`/`taste` never running.
 - **W9 — the naming wave (N1 · N2 · N4, all ruled).**
-  (a) `lib/fire/Furnace.ts` → `lib/fire/Burner.ts`; `FurnaceMixin` →
-  `BurnerMixin`, `_mixinName`, `Mixins.Furnace` → `Mixins.Burner`,
-  `MixinApi.isFurnace` → `isBurner`, every composer and narrowing
-  (`grep -rn "FurnaceMixin\|isFurnace\|Mixins.Furnace"`), `fire.md` /
+  (a) `lib/fire/Furnace.ts` → `lib/fire/Burner.ts`; `BurnerMixin` →
+  `BurnerMixin`, `_mixinName`, `Mixins.Burner` → `Mixins.Burner`,
+  `MixinApi.isBurner` → `isBurner`, every composer and narrowing
+  (`grep -rn "BurnerMixin\|isBurner\|Mixins.Burner"`), `fire.md` /
   `thermal.md` / the `Lamp.ts` docstring that no longer apologises.
   (b) `lib/fire/Firebox.ts` = `BurnerMixin(LightSourceMixin(ReservedMixin(ThermalMixin(Thing))))`,
   substrate; re-base `Forge` (= `Firebox` + dials), `Oven`
@@ -1696,9 +1696,9 @@ a field a custom hydrator should own; the slate gets the list with the
   and `CharcoalPit` (`Container(Firebox)`); the existing furnace / hearth
   / oven / lamp tests prove the order is preserved (a doused lamp is
   dark; a lit forge does not warm the room; a hearth does).
-  (c) `platform/thing/ToolItem.ts` → `platform/thing/Tool.ts`, class
+  (c) `platform/thing/Tool.ts` → `platform/thing/Tool.ts`, class
   `Tool`; the 26 subclasses' imports and `extends`, the 32 rows' `class:`
-  (`/platform/thing/ToolItem` → `/platform/thing/Tool`), the tests, the
+  (`/platform/thing/Tool` → `/platform/thing/Tool`), the tests, the
   docs (`crafting.md`, `instrumentation.md`, `CLAUDE.md` left to the
   sweep). ⚠ **N3 guard:** `Tool` gains no static, no capability→verb
   table, nothing that assumes the 24 have collapsed; it is the class

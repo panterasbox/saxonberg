@@ -109,7 +109,7 @@ describe("verb affordances come from class statics, and only from there", () => 
     expect(affords(player, "sharpen")).toBe(false); // dropped → gone
   });
 
-  // ⭐⭐ **A lamp in your hand is not your sibling.** `FurnaceMixin`
+  // ⭐⭐ **A lamp in your hand is not your sibling.** `BurnerMixin`
   // declared its verbs under `peers` only, which is the whole story for
   // a forge, an oven and a kiln — none of them is ever picked up, and a
   // furnace standing in a room IS your sibling. The envelope build gave
@@ -123,8 +123,8 @@ describe("verb affordances come from class statics, and only from there", () => 
   // peer**, so only `environment` reaches you. `ChargedMixin` (the mana
   // wand you hold) has declared both buckets since it shipped.
   it("⭐ a FURNACE affords ignite/douse both carried and from the floor", async () => {
-    const { FurnaceMixin } = await import("../../fire/Furnace");
-    class Lantern extends FurnaceMixin(ContainableMixin(Idea)) {}
+    const { BurnerMixin } = await import("../../fire/Burner");
+    class Lantern extends BurnerMixin(ContainableMixin(Idea)) {}
     CommandApi.getCommand("platform/cmd/device/ignite.yaml");
 
     const room = makeStuff(() => new Room());

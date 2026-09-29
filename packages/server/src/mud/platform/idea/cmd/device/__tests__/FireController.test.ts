@@ -73,7 +73,7 @@ function makeKiln(opts: { holdK: number; lit: boolean; bellows?: boolean }): Ove
       new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
     );
     o.setBellowsActive(opts.bellows ?? false);
-    // ⚠ `lit` defaults to TRUE on `FurnaceMixin` (a campfire seed starts
+    // ⚠ `lit` defaults to TRUE on `BurnerMixin` (a campfire seed starts
     // lit), so the unlit case has to be set explicitly — which is exactly
     // why the smelt's unlit branch had no coverage for three builds: every
     // fixture in the tree happened to be lit by accident.
@@ -282,7 +282,7 @@ describe('the chamber, the charge and the heat', () => {
 
   it('⭐⭐ the affordance: the APPLIANCE carries `fire`, beside its own five', () => {
     // ⭐ The doctrine this verb rides, and it was already written on
-    // `FurnaceMixin`: *"the fire-appliance verbs are afforded by the
+    // `BurnerMixin`: *"the fire-appliance verbs are afforded by the
     // appliance."* Five verbs hung off it; firing a loaded chamber is the
     // sixth. ⚠ The plan had it afforded by an open WORKING instead, which
     // would have meant a potter's shed needed its own class to fire a pot.

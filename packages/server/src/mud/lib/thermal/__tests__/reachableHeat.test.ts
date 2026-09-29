@@ -1,6 +1,6 @@
 /**
  * Thermal.reachableHeatK — the inert crafting seam (on the mixin since the OO sweep) ("hottest lit
- * Furnace in the caller's container"). The depositHeat suite moved to
+ * Burner in the caller's container"). The depositHeat suite moved to
  * lib/thermal/__tests__/depositHeat.test.ts with the method (the Api
  * OO sweep's B2 exemplar).
  */

@@ -1,5 +1,5 @@
 /**
- * FurnaceMixin — a **sustained heat source**: a `Combustible`-fuelled
+ * BurnerMixin — a **sustained heat source**: a `Combustible`-fuelled
  * appliance that holds a real, fuel-and-air-driven temperature while lit, then
  * releases to passive cooling embers on burnout. Generalizes the shipped
  * `Campfire`'s pinned-hot-while-fuelled pattern (`Campfire` is refactored onto
@@ -29,18 +29,18 @@ import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
-// eslint-disable-next-line no-restricted-imports -- the F1 object face: a Furnace's ignite()/douse()/advanceBurn() forward into the fire logic singleton exactly as the api/fire facade does (the Combustible/Energized precedent)
+// eslint-disable-next-line no-restricted-imports -- the F1 object face: a Burner's ignite()/douse()/advanceBurn() forward into the fire logic singleton exactly as the api/fire facade does (the Combustible/Energized precedent)
 import { FireLogic } from '../../platform/idea/api/FireLogic';
 import type { IgniteOutcome } from '../../api/fire';
 
 /** Resolve the HMR-able FireLogic singleton (the combustion driver). */
-function furnaceFireLogic(): FireLogic {
+function burnerFireLogic(): FireLogic {
   return StuffApi.singletonSync('/platform/idea/api/fire', () => new FireLogic());
 }
 import { SecurityPolicies } from '../security/SecurityPolicies';
 
-/** Furnace defaults (playtest-tuned, not plan decisions). */
-const FURNACE_DEFAULTS = {
+/** Burner defaults (playtest-tuned, not plan decisions). */
+const BURNER_DEFAULTS = {
   /** Far-past absence guard (game-seconds). */
   MAX_REASONABLE_GAP_SEC: 4 * 3600,
   /** Default held temperature (K) — the Campfire pin (byte-compat). */
@@ -53,7 +53,7 @@ const FURNACE_DEFAULTS = {
 } as const;
 
 /** The furnace capability surface. */
-export interface Furnace {
+export interface Burner {
   /** Is the furnace currently alight? */
   isLit(): boolean;
   /** Fuel remaining (`%` of the `'fuel'` Reserve). */
@@ -66,7 +66,7 @@ export interface Furnace {
   /** The bellows boost factor (1 = no bellows fitted). */
   getBellowsMultiplier(): number;
   /** Reconcile the fuel drain over elapsed game-time (reconcile-on-read). */
-  reconcileFurnaceFuel(): void;
+  reconcileBurnerFuel(): void;
 
   // The combustion face (F1) — forwards into the FireLogic driver.
   /** Light the furnace; `{lit:false, reason}` on refusal (no fuel / lit). */
@@ -91,11 +91,11 @@ export interface Furnace {
   _setLit(value: boolean): void;
 }
 
-export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
+export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  class FurnaceMixin extends Base implements Furnace {
-    static _mixinName = 'FurnaceMixin';
+  class BurnerMixin extends Base implements Burner {
+    static _mixinName = 'BurnerMixin';
 
     /**
      * The fire-appliance verbs are **afforded by the appliance** (the
@@ -116,7 +116,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
       // you are its container, so only `environment` reaches you.
       //
       // ⚠ Without this line, the moment a carriable light composed
-      // `FurnaceMixin` the verb would have died at the AFFORDANCE link
+      // `BurnerMixin` the verb would have died at the AFFORDANCE link
       // — silently, with `light lantern` answering "you don't see any
       // 'lantern' here" while the lamp sat in the player's hand and 30
       // controller tests stayed green. `ChargedMixin` (the mana wand
@@ -157,11 +157,11 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
       bellowsActive: { persistent: true, runtimeState: true },
       lit: { persistent: true, runtimeState: true },
       fuelBurnRatePerMin: { persistent: true, authorable: true },
-      furnaceFuelClockStamp: { persistent: true, runtimeState: true },
+      burnerFuelClockStamp: { persistent: true, runtimeState: true },
     };
 
     /** The base held temperature (K) while lit + fuelled. */
-    public burnTemperatureK: number = FURNACE_DEFAULTS.DEFAULT_BURN_TEMPERATURE_K;
+    public burnTemperatureK: number = BURNER_DEFAULTS.DEFAULT_BURN_TEMPERATURE_K;
     /** The temperature multiplier applied when the bellows is working. */
     public bellowsMultiplier: number = 1;
     /** Is the bellows boosting right now. */
@@ -169,11 +169,11 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
     /** Is the furnace alight (a Campfire seed starts lit). */
     public lit = true;
     /** Fuel burn rate (`%`/game-min). */
-    public fuelBurnRatePerMin: number = FURNACE_DEFAULTS.DEFAULT_BURN_RATE_PER_MIN;
+    public fuelBurnRatePerMin: number = BURNER_DEFAULTS.DEFAULT_BURN_RATE_PER_MIN;
     /** Game-time (s) of the last fuel reconcile; 0 = unseeded. */
-    public furnaceFuelClockStamp = 0;
+    public burnerFuelClockStamp = 0;
 
-    private get furnaceHost(): Stuff & Thermal & Reserved {
+    private get burnerHost(): Stuff & Thermal & Reserved {
       return this as unknown as Stuff & Thermal & Reserved;
     }
 
@@ -182,7 +182,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public fuelRemaining(): number {
-      return this.furnaceHost.getReserve('fuel')?.current.rawValue() ?? 0;
+      return this.burnerHost.getReserve('fuel')?.current.rawValue() ?? 0;
     }
 
     public getHeldTemperatureK(): number {
@@ -225,14 +225,14 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
      * full 120 lumens ever since. Nobody caught it because until this
      * build nowhere was dark enough for it to matter.
      *
-     * Every furnace composer puts `FurnaceMixin` OUTSIDE
+     * Every furnace composer puts `BurnerMixin` OUTSIDE
      * `LightSourceMixin`, so gating here fixes all of them in one place
      * and the defect cannot come back for the next composer either.
      * Chains `super` only while burning, so a furnace whose base emits
      * nothing still emits nothing.
      */
     getEmittedFlux(): Quantity<'lumen'> {
-      this.reconcileFurnaceFuel();
+      this.reconcileBurnerFuel();
       if (!this.lit || this.fuelRemaining() <= 0) {
         return Quantity.of(0, 'lumen');
       }
@@ -252,36 +252,36 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
 
     // Pinned hot while lit + fuelled; passive embers otherwise.
     getTemperature(): Quantity<'K'> {
-      this.reconcileFurnaceFuel();
+      this.reconcileBurnerFuel();
       if (this.lit && this.fuelRemaining() > 0) {
         return Quantity.of(this.getHeldTemperatureK(), 'K');
       }
       return (super.getTemperature as () => Quantity<'K'>).call(this);
     }
 
-    public reconcileFurnaceFuel(): void {
-      const now = furnaceNowSeconds();
+    public reconcileBurnerFuel(): void {
+      const now = burnerNowSeconds();
       if (now === null) return;
-      if (this.furnaceFuelClockStamp === 0) {
-        this.furnaceFuelClockStamp = now;
+      if (this.burnerFuelClockStamp === 0) {
+        this.burnerFuelClockStamp = now;
         return;
       }
-      const elapsed = now - this.furnaceFuelClockStamp;
-      if (elapsed <= 0 || elapsed > FURNACE_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
-        this.furnaceFuelClockStamp = now;
+      const elapsed = now - this.burnerFuelClockStamp;
+      if (elapsed <= 0 || elapsed > BURNER_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+        this.burnerFuelClockStamp = now;
         return;
       }
       if (this.lit && this.fuelRemaining() > 0) {
         const burned = this.fuelBurnRatePerMin * (elapsed / 60);
-        this.furnaceHost.adjustReserve('fuel', Quantity.of(-burned, '%'));
+        this.burnerHost.adjustReserve('fuel', Quantity.of(-burned, '%'));
         if (this.fuelRemaining() <= 0) {
           // Burnout edge — release the pin at the held temperature, go dark.
-          this.furnaceHost.setContentsTemperature(this.getHeldTemperatureK());
+          this.burnerHost.setContentsTemperature(this.getHeldTemperatureK());
           this.lit = false;
           this.restampHeated();
         }
       }
-      this.furnaceFuelClockStamp = now;
+      this.burnerFuelClockStamp = now;
     }
 
     public heatContents(): void {
@@ -303,7 +303,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         let c = mat ? mat.getSpecificHeat().rawValue() : 0;
         if (c <= 0) c = 4186;
         const joules =
-          (held - temp) * massKg * c * FURNACE_DEFAULTS.HEAT_TRANSFER_FRACTION;
+          (held - temp) * massKg * c * BURNER_DEFAULTS.HEAT_TRANSFER_FRACTION;
         s.depositHeat(joules);
         if (MixinApi.isThermal(s)) s.reconcilePhase();
       }
@@ -358,29 +358,29 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
     @Final
     @Unshadowable
     public ignite(): IgniteOutcome {
-      return furnaceFireLogic().ignite(this as unknown as Stuff);
+      return burnerFireLogic().ignite(this as unknown as Stuff);
     }
 
     /** Put the furnace out (and wet it). */
     @Final
     @Unshadowable
     public douse(): boolean {
-      return furnaceFireLogic().douse(this as unknown as Stuff);
+      return burnerFireLogic().douse(this as unknown as Stuff);
     }
 
     /** Advance one burning tick (fuel drain; self-extinguish at empty). */
     @Final
     @Unshadowable
     public advanceBurn(): void {
-      furnaceFireLogic().advance(this as unknown as Stuff);
+      burnerFireLogic().advance(this as unknown as Stuff);
     }
   }
 
-  return FurnaceMixin;
+  return BurnerMixin;
 }
 
 /** In-session game-time (seconds), or null when no world clock runs. */
-function furnaceNowSeconds(): number | null {
+function burnerNowSeconds(): number | null {
   if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
     return null;
   }

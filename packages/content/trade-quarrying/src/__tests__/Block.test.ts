@@ -13,7 +13,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Block, { BLOCK_PIECES, PIECE_MASS_KG } from '../thing/Block';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -66,7 +66,7 @@ function block(pieces = BLOCK_PIECES): Block {
 
 function sledge(): Stuff & Tooled {
   return makeStuff(() => {
-    const t = new ToolItem();
+    const t = new Tool();
     t.capabilities = ['striking'];
     return t;
   }) as unknown as Stuff & Tooled;

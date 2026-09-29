@@ -975,7 +975,7 @@ export interface PositionalDefinition extends FieldDefinition {
  *   - a mixin name — `SealableMixin`. The bound Stuff must compose it.
  *   - a list — `[VisibleMixin, ContainableMixin]`, meaning **all of
  *     them**. Any single entry may itself be an alternation written
- *     with `|` — `CombustibleMixin|FurnaceMixin` means *either*, which
+ *     with `|` — `CombustibleMixin|BurnerMixin` means *either*, which
  *     is what `ignite` needs.
  *
  * ### Why this and not a validator

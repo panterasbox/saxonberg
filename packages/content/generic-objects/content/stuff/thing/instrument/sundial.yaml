@@ -7,7 +7,7 @@
 # One of two instruments in exactly that state (see `sextant.yaml`); both
 # are reachable now, and the gate that would have caught it is the
 # capability census, which could not see a class check.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folding sundial

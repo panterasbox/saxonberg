@@ -61,7 +61,7 @@ describe('the furnace family — held temperature', () => {
 
   it('a lit, fuelled furnace pins its held temperature', () => {
     const f = forge(1300);
-    expect(MixinApi.isFurnace(f)).toBe(true);
+    expect(MixinApi.isBurner(f)).toBe(true);
     expect(f.isLit()).toBe(true); // constructed lit by default (the Campfire seed)
     expect(f.getTemperature().rawValue()).toBe(1300);
   });
@@ -103,7 +103,7 @@ describe('the furnace family — a burnt-out fire casts no light', () => {
    * `Candle` class. `Campfire`,
    * `Forge`, `Oven` and `Kiln` have empty class bodies and therefore no
    * gate at all, so a campfire that burnt out an hour ago kept casting
-   * its full 120 lumens. Every composer puts `FurnaceMixin` outside
+   * its full 120 lumens. Every composer puts `BurnerMixin` outside
    * `LightSourceMixin`, so the gate belongs there and fixes all of them
    * at once.
    */

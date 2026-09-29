@@ -31,7 +31,7 @@ import YAML from 'yaml';
 import OpenWorkingLocation from '../location/OpenWorking';
 import Block from '../thing/Block';
 import Spade from '@saxonberg/server/mud/platform/thing/Spade';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
@@ -97,7 +97,7 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
     const tool = args('dig.yaml').find((a) => a.name === 'tool')!;
     expect(tool.default).toBe('me:i:[mixin.ToolMixin]');
     expect([tool.requires].flat()).toEqual(['ToolMixin']);
-    expect(MixinApi.hasMixin(ToolItem, Mixins.Tool)).toBe(true);
+    expect(MixinApi.hasMixin(Tool, Mixins.Tool)).toBe(true);
     expect(MixinApi.hasMixin(Spade, Mixins.Tool)).toBe(true);
   });
 
@@ -197,9 +197,9 @@ describe('dig.yaml through the whole binder', () => {
     }, '/world/_test/thing/spade');
   }
 
-  function pick(): ToolItem {
+  function pick(): Tool {
     return makeStuffAtPath(() => {
-      const t = new ToolItem();
+      const t = new Tool();
       t.setShortDescription('pick');
       t.setKeywords(['pick']);
       t.setCapabilities(['winning', 'striking']);

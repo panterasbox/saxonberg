@@ -19,12 +19,12 @@
  * `commandContributions:` is dead silently.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const CUTTING = ['trade/tailoring/cmd/tailoring/cut.yaml'];
 
-export default class CuttingTool extends ToolItem {
+export default class CuttingTool extends Tool {
   static commandContributions: CommandContributions = {
     environment: CUTTING,
     peers: CUTTING,

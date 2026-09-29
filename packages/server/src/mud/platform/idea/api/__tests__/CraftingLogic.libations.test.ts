@@ -39,7 +39,7 @@ import { EmployedMixin } from '../../../../lib/employment/Employed';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import Receptacle from '../../../thing/Receptacle';
 import CraftVessel from '../../../thing/CraftVessel';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { BlendLabel } from '../../../../lib/metabolism/BlendLabel';
 import {
@@ -156,7 +156,7 @@ const WORKINGS: Record<string, TechniqueSpec | undefined> = {
 };
 
 function makeTool(cap: string) {
-  const t = makeStuff(() => new ToolItem());
+  const t = makeStuff(() => new Tool());
   const technique = WORKINGS[cap];
   t.setCapabilities([technique ? { kind: cap, technique } : cap]);
   return t;
@@ -666,7 +666,7 @@ describe('the technique vocabulary is OPEN — a pack adds a working with no ker
     ContainmentApi.move(makeGlass(HIGHBALL) as never, room as never);
     ContainmentApi.move(makeHolder(ICE, 5), room);
 
-    const churn = makeStuff(() => new ToolItem());
+    const churn = makeStuff(() => new Tool());
     churn.setCapabilities([
       {
         kind: 'churn',

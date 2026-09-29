@@ -26,7 +26,7 @@ import { LIFT_M, type OpenWorking } from '../lib/Working';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -109,7 +109,7 @@ function rejected(ctx: CommandContext): string | null {
 
 const tool = (...caps: string[]): { raw: string; stuff: Stuff } => {
   const t = makeStuff(() => {
-    const i = new ToolItem();
+    const i = new Tool();
     i.capabilities = caps;
     return i;
   }) as unknown as Stuff;

@@ -329,7 +329,7 @@ suite('⭐ a lantern you light, and that runs out', () => {
     // experiment: an earlier draft read `analyze light` between the two
     // and `douse` answered `not-burning`. Every light read runs the
     // walk, the walk asks each source for its flux, and
-    // `FurnaceMixin.getEmittedFlux` reconciles fuel — so if a lamp goes
+    // `BurnerMixin.getEmittedFlux` reconciles fuel — so if a lamp goes
     // out between lighting it and putting it out, the READ is what put
     // it out. Splitting the two claims says which.
     expectOk(await me.cmd('light lantern'));
@@ -360,7 +360,7 @@ suite('⭐ a lantern you light, and that runs out', () => {
   });
 
   it('⚠ the AFFORDANCE reaches a HELD lamp — the link that dies silently', async () => {
-    // `FurnaceMixin` declared its verbs `peers`-only: siblings and one
+    // `BurnerMixin` declared its verbs `peers`-only: siblings and one
     // exit away. A lamp in your hand is not your sibling — you are its
     // CONTAINER — so `light lantern` would have answered "you don't see
     // any 'lantern' here" with the lamp in the player's hand, while

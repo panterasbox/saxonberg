@@ -47,14 +47,14 @@ export default class DouseController extends CommandController<DouseModel> {
 
     const target2 = MqlApi.effectiveTarget(
       target,
-      (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isFurnace(s),
+      (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isBurner(s),
     );
     // ⚠⚠ **A FURNACE can be doused, and for a long time it could not.**
     //
-    // The filter above admits `isCombustible(s) || isFurnace(s)` — and
+    // The filter above admits `isCombustible(s) || isBurner(s)` — and
     // this line then narrowed to `isCombustible` alone and threw the
     // furnace half away. A forge, an oven, a kiln, a campfire: every
-    // one of them has a working `FurnaceMixin.douse()`, every one of
+    // one of them has a working `BurnerMixin.douse()`, every one of
     // them was reachable by the verb, and **every one of them answered
     // "that isn't burning"** while burning. The method was unreachable
     // from the only verb that calls it.
@@ -64,7 +64,7 @@ export default class DouseController extends CommandController<DouseModel> {
     // but it was never about lanterns. Found by the drive (2026-09-24).
     const doused =
       target2 !== null &&
-      (MixinApi.isCombustible(target2) || MixinApi.isFurnace(target2)) &&
+      (MixinApi.isCombustible(target2) || MixinApi.isBurner(target2)) &&
       (target2 as Stuff & { douse(): boolean }).douse();
     if (!doused) {
       MessageApi.scene(commandGiver)

@@ -27,7 +27,7 @@ import Material from '../../../../../lib/material/Material';
 import Forge from '../../../../thing/Forge';
 import Oven from '../../../../thing/Oven';
 import { Reserve } from '../../../../../lib/reserve';
-import ToolItem from '../../../../thing/ToolItem';
+import Tool from '../../../../thing/Tool';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import Movable from '../../../../../lib/stuff/Movable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
@@ -211,8 +211,8 @@ export function makeLitOven(): Oven {
   });
 }
 
-export function makeTool(cap: string): ToolItem {
-  const t = makeStuff(() => new ToolItem());
+export function makeTool(cap: string): Tool {
+  const t = makeStuff(() => new Tool());
   t.setCapabilities([cap]);
   return t;
 }

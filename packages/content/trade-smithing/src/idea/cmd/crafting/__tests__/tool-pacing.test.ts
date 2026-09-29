@@ -22,7 +22,7 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CapabilitySpec } from '@saxonberg/server/mud/lib/craft/ToolCapability';
 import {
@@ -57,8 +57,8 @@ let seq = 0;
 let room: TestActor;
 let actor: TestActor;
 
-function makeSpecTool(spec: string | CapabilitySpec): ToolItem {
-  const t = makeStuff(() => new ToolItem());
+function makeSpecTool(spec: string | CapabilitySpec): Tool {
+  const t = makeStuff(() => new Tool());
   t.setCapabilities([spec]);
   return t;
 }
@@ -86,7 +86,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-async function hammerWith(anvil: ToolItem, ingot: Ingot): Promise<void> {
+async function hammerWith(anvil: Tool, ingot: Ingot): Promise<void> {
   const striker = makeTool('striking');
   ContainmentApi.move(striker, actor);
   ContainmentApi.move(anvil, room);
@@ -172,8 +172,8 @@ describe('the engaged repair', () => {
     }, LEATHER);
   }
 
-  function makeWornJerkin(): ToolItem {
-    const j = makeStuff(() => new ToolItem());
+  function makeWornJerkin(): Tool {
+    const j = makeStuff(() => new Tool());
     j.setMass(Quantity.of(1, 'kg'));
     j.setMaterial(
       StuffApi.findByTemplatePath<Material>(LEATHER) as unknown as Material,
@@ -184,8 +184,8 @@ describe('the engaged repair', () => {
 
 
   async function repairWith(
-    mender: ToolItem,
-    jerkin: ToolItem,
+    mender: Tool,
+    jerkin: Tool,
   ): Promise<void> {
     ContainmentApi.move(mender, actor);
     ContainmentApi.move(jerkin, room);

@@ -1,6 +1,6 @@
 /**
  * Still — the distiller's station: the furnace family's composition
- * (`Kiln`/`Forge`'s stack — a `FurnaceMixin` appliance holding a steady
+ * (`Kiln`/`Forge`'s stack — a `BurnerMixin` appliance holding a steady
  * heat, lit with `ignite`) that is ALSO a crafting tool offering the
  * `still` capability, so a recipe can require it the way a shaken drink
  * requires `shaker`. No shipped recipe names it yet: the distillery build
@@ -15,10 +15,10 @@ import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSource';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
-import { FurnaceMixin } from '@saxonberg/server/mud/lib/fire/Furnace';
+import { BurnerMixin } from '@saxonberg/server/mud/lib/fire/Burner';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 
-const StillBase = FurnaceMixin(
+const StillBase = BurnerMixin(
   LightSourceMixin(ReservedMixin(ThermalMixin(ToolMixin(Movable)))),
 );
 

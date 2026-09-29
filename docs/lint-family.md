@@ -1042,7 +1042,7 @@ list (`UNDECLARED_INTERIOR_AMBIENT`) opened at **50** and reached
 Two clauses paid for the gate on their first runs:
 
 - **(g)** — a furnace row must author `lit:`, because
-  `FurnaceMixin.lit` defaults **true**. It found four rows relying on
+  `BurnerMixin.lit` defaults **true**. It found four rows relying on
   that default, and **two of them shipped lit against their own prose**
   (*"the firebox swept and ready"*) and their own class docstring
   (*"lit with `ignite`"*). Nothing observable depended on it — they

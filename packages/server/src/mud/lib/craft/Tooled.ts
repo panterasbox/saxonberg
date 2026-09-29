@@ -8,12 +8,12 @@
  *
  * **Tool ⊂ durable-good, not the reverse.** The wear-on-use `condition`
  * gauge lives on {@link DurableMixin} — composed *alongside* ToolMixin on
- * `ToolItem` — precisely so weapons and armor can wear out *without* being
+ * `Tool` — precisely so weapons and armor can wear out *without* being
  * "tools" (they'd carry an inert `capabilities: []`). A crafting tool is a
  * `Durable` host that *also* offers capabilities; the two are composed at
  * the use site (`ToolMixin(DurableMixin(…))`), never bundled here.
  *
- * Composed on a `Thing` (Tangible + Visible) — see `ToolItem.ts`.
+ * Composed on a `Thing` (Tangible + Visible) — see `Tool.ts`.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';

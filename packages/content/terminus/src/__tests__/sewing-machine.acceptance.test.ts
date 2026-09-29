@@ -7,7 +7,7 @@
  * ⭐ It shares its class with the sewing KIT, and the line between them
  * is the point: what they AFFORD is identical and lives on the class
  * (`repair`, `salvage`, once); what they are LIKE — rate, control —
- * varies per row. The machine was a bare `ToolItem` row naming its own
+ * varies per row. The machine was a bare `Tool` row naming its own
  * verbs until verbs became a single class-level record; a row can no
  * longer vary its verb set, and nothing here wanted to.
  */

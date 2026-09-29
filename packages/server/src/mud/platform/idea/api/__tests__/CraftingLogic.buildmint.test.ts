@@ -26,7 +26,7 @@ import { NamedMixin } from "../../../../lib/description/Named";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainmentApi } from "../../../../api/containment";
-import ToolItem from "../../../thing/ToolItem";
+import Tool from "../../../thing/Tool";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import type { BuildContribution } from "../../../../lib/craft/ManualBuild";
 import {
@@ -212,7 +212,7 @@ describe("CraftingApi.mintFromBuild", () => {
     const maker = makeStuffAtPath(() => new TestMaker(), DAVE);
     const room = makeStuff(() => new TestRoom());
     ContainmentApi.move(maker, room);
-    const rig = makeStuff(() => new ToolItem());
+    const rig = makeStuff(() => new Tool());
     rig.setCapabilities([{ kind: "shaker", control: "exceptional" }]);
     ContainmentApi.move(rig, room);
 

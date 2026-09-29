@@ -22,7 +22,7 @@ import Material from '../../../../lib/material/Material';
 import Movable from '../../../../lib/stuff/Movable';
 import Ingot from '../../../thing/Ingot';
 import Forge from '../../../thing/Forge';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import CraftVessel from '../../../thing/CraftVessel';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import RecipeCatalogue from '../../RecipeCatalogue';
@@ -256,7 +256,7 @@ describe('the tangible (smithing) branch', () => {
     ContainmentApi.move(forge, room);
     const ingot = makeIngot(0.5);
     ContainmentApi.move(ingot, room);
-    const hammer = makeStuff(() => new ToolItem());
+    const hammer = makeStuff(() => new Tool());
     hammer.setCapabilities(['striking']);
     // The hammer is iron too — a tool must never be consumed as matter.
     hammer.setMaterial(
@@ -288,7 +288,7 @@ describe('the tangible (smithing) branch', () => {
     const forge = makeForge(false);
     ContainmentApi.move(forge, room);
     ContainmentApi.move(makeIngot(), room);
-    const hammer = makeStuff(() => new ToolItem());
+    const hammer = makeStuff(() => new Tool());
     hammer.setCapabilities(['striking']);
     ContainmentApi.move(hammer, room);
 
@@ -316,7 +316,7 @@ describe('broken tools', () => {
   it("a broken hammer fails the tool match (missing-tool)", async () => {
     ContainmentApi.move(makeForge(true), room);
     ContainmentApi.move(makeIngot(), room);
-    const hammer = makeStuff(() => new ToolItem());
+    const hammer = makeStuff(() => new Tool());
     hammer.setCapabilities(['striking']);
     hammer.setCondition(0.05); // broken — offers nothing until repaired
     ContainmentApi.move(hammer, room);
@@ -409,7 +409,7 @@ describe('the gather walk rungs', () => {
   it('draws from an open chest, declines when the same chest is closed', async () => {
     const forge = makeForge(true);
     ContainmentApi.move(forge, room);
-    const hammer = makeStuff(() => new ToolItem());
+    const hammer = makeStuff(() => new Tool());
     hammer.setCapabilities(['striking']);
     ContainmentApi.move(hammer, room);
     const chest = makeStuff(() => new TestChest());
@@ -439,7 +439,7 @@ describe('the gather walk rungs', () => {
     // Gin carried by the maker; vermouth + mixing glass in the room.
     ContainmentApi.move(makeBottle(GIN, 'fine', 0.7), smith);
     ContainmentApi.move(makeBottle(VERMOUTH, 'fair', 0.7), room);
-    const mixer = makeStuff(() => new ToolItem());
+    const mixer = makeStuff(() => new Tool());
     mixer.setCapabilities(['mixing-glass']);
     ContainmentApi.move(mixer, room);
     // A bulk output is claimed from the pool, never cloned: one clean glass.

@@ -26,7 +26,7 @@ import Seed from "@saxonberg/server/mud/platform/thing/Seed";
 import type { Bulkable } from "@saxonberg/server/mud/lib/bulk/Bulkable";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Switchable } from "@saxonberg/server/mud/lib/boundary/Switchable";
-import type { Furnace } from "@saxonberg/server/mud/lib/fire/Furnace";
+import type { Burner } from "@saxonberg/server/mud/lib/fire/Burner";
 import type { LightSource } from "@saxonberg/server/mud/lib/perception/LightSource";
 import { installStore, type Doc } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
@@ -295,7 +295,7 @@ describe("general-store standup (real seeds)", () => {
     // half needs a clock and lives in `Lamp.test.ts`; what matters here
     // is that the thing on the shelf is the thing the player buys.
     const torch = counter.resolveBuy("torch") as unknown as Stuff &
-      Furnace &
+      Burner &
       LightSource;
     expect(torch.isLit()).toBe(false); // out on the shelf
     expect(torch.getEmittedFlux().rawValue()).toBe(0);

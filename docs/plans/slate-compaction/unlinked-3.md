@@ -319,7 +319,7 @@ Wholly unbuilt. No `neutralizedBy` on `Material` (`Material.ts` has
 else); `RinseController.ts:29-35` still knows one substance and its header
 defers the design to *"pharma-slate § the right substance"* by name; no
 `assay` / `apothecar*` / `pharmac*` / `tincture` in any class or row (the
-hits are a `ToolItem` comment, a potion row and a dorm theme); no `forage`
+hits are a `Tool` comment, a potion row and a dorm theme); no `forage`
 verb; no glassblowing recipe. The substrate row in `## What we would need`
 is accurate: the tag mechanism ships (`Material.toxicity`,
 `setToxinBehavior` on the Condition seed), content does not. One cut.

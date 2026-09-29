@@ -1,5 +1,5 @@
 # The kitchen range — a residential skin of the Hearthworks cookhouse hearth
-# (`/stuff/thing/Oven`, a `FurnaceMixin` appliance at gentle cooking heat, lit with
+# (`/stuff/thing/Oven`, a `BurnerMixin` appliance at gentle cooking heat, lit with
 # `ignite`, burning its fuel reserve down at 0.2%/min).
 #
 # The kitchen's standing heat. `cook` asks for reachable heat where the

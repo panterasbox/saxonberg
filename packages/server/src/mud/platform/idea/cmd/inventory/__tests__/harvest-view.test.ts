@@ -5,7 +5,7 @@
  * The forestry build added a `tool` arg: DECLARED (`default:` on the
  * `[capability.cutting]` atom, never hunted for — `lint:instrument-args`)
  * and gated on `ToolMixin`, which every shipped instrument composes
- * through `ToolItem`. A plant that names no `harvestTool` ignores it; a
+ * through `Tool`. A plant that names no `harvestTool` ignores it; a
  * coppice stool refuses without it. The `target` gate is unchanged.
  */
 
@@ -16,7 +16,7 @@ import { join } from 'path';
 import YAML from 'yaml';
 import { MixinApi } from '../../../../../api/mixin';
 import { Mixins } from '../../../../../lib/mixin';
-import ToolItem from '../../../../thing/ToolItem';
+import Tool from '../../../../thing/Tool';
 
 const VIEW = join(
   __dirname,
@@ -50,7 +50,7 @@ describe('harvest.yaml — the tool is an ARGUMENT', () => {
   });
 
   it('…and the instrument every trade ships composes that mixin', () => {
-    expect(MixinApi.hasMixin(ToolItem, Mixins.Tool)).toBe(true);
+    expect(MixinApi.hasMixin(Tool, Mixins.Tool)).toBe(true);
   });
 
   it('the target gate is untouched — the plant or the ground it grows in', () => {

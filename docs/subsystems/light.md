@@ -911,7 +911,7 @@ and run out of.
   in the envelope build** — see above.
 - ~~Fire mechanics — `Combustible`, `Lightable`, `Burning` all
   deferred.~~ Shipped (the combustion build); a fuelled light is
-  `platform/thing/Lamp`, a `FurnaceMixin` over a `LightSource`.
+  `platform/thing/Lamp`, a `BurnerMixin` over a `LightSource`.
 - `Switchable` and other generic state mixins.
 - ~~Light-source archetypes (no canonical `Candle` / `Lamp`).~~ `Lamp`
   and `Hearth` both ship — and `Lamp` is what a candle is, which is why

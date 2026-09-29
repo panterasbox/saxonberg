@@ -214,7 +214,7 @@ hours × level/capacity)` over the roles the trap takes, capped by what
 it holds, the fraction one seeded unit; a laid trap is fixed in place
 and vetoes eviction. A net (30, 20/h) empties the confluence's ~160 in
 five afternoons' lifts; a pot (2, 0.4/h) takes crabs overnight.
-⭐ **A trap is a container** (`BulkableMixin(ContainerMixin(ToolItem))`),
+⭐ **A trap is a container** (`BulkableMixin(ContainerMixin(Tool))`),
 and a laid one with an interior is **full of the water it lies in**
 (`lay` fills it from `/stuff/idea/material/bulk/water`, `haul` drains it
 and hands over whatever it held). That is the whole of the **keepnet**

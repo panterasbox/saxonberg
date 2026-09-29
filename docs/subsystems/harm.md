@@ -700,7 +700,7 @@ The verbs, and what affords each: **`treat`/`undress`/`dose`/`tend`** on
 `WaterFixture.peers` — and bare **`wash`** (no object) washes your hands
 there, the hygiene half folded into the platform `wash` verb rather than a
 separate `scrub` (hands have no object arg, so nothing was widened; `rinse`
-takes a body ARG and stays separate); **`warm`** on `FurnaceMixin.peers`;
+takes a body ARG and stays separate); **`warm`** on `BurnerMixin.peers`;
 **`splint`/`operate`** on the trade's `Splint`/`SurgicalKit` instruments
 (`trade-medicine`). `dose` reads an `antidote:<toxin>` **Material tag** off
 a vial and crashes the matching burden (D7 — an antidote is a substance

@@ -23,7 +23,7 @@ import Scrap from '../../../thing/Scrap';
 import Forge from '../../../thing/Forge';
 import Weapon from '../../../thing/equipment/Weapon';
 import Garment from '../../../thing/equipment/Garment';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../../lib/reserve';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -177,7 +177,7 @@ describe('CraftingLogic.repair', () => {
     const bare = await repairAs(jerkin);
     expect(bare).toMatchObject({ ok: false, reason: 'missing-tool', detail: 'mending' });
 
-    const kit = makeStuff(() => new ToolItem());
+    const kit = makeStuff(() => new Tool());
     kit.setCapabilities(['mending']);
     ContainmentApi.move(kit, room);
     const outcome = await repairAs(jerkin);
@@ -188,7 +188,7 @@ describe('CraftingLogic.repair', () => {
   });
 
   it('a control-bearing mender floors the repaired grade; never lowers it', async () => {
-    const machine = makeStuff(() => new ToolItem());
+    const machine = makeStuff(() => new Tool());
     machine.setCapabilities([{ kind: 'mending', rate: 3, control: 'fine' }]);
     ContainmentApi.move(machine, room);
     const hide = makeStuff(() => new Movable());
@@ -222,7 +222,7 @@ describe('CraftingLogic.repair', () => {
   });
 
   it('a plain (control-less) mender leaves the grade untouched', async () => {
-    const kit = makeStuff(() => new ToolItem());
+    const kit = makeStuff(() => new Tool());
     kit.setCapabilities(['mending']);
     ContainmentApi.move(kit, room);
     const hide = makeStuff(() => new Movable());
@@ -273,7 +273,7 @@ describe('CraftingLogic.repair', () => {
   it('the restored condition immediately reverses the wear producers', async () => {
     ContainmentApi.move(makeHotForge(), room);
     ContainmentApi.move(makeIronScrap(10), room);
-    const shaker = makeStuff(() => new ToolItem());
+    const shaker = makeStuff(() => new Tool());
     shaker.setCapabilities(['shaker']);
     shaker.setMaterial(mat(IRON));
     shaker.setMass(Quantity.of(0.3, 'kg'));

@@ -31,7 +31,7 @@ import Material from '../../../../lib/material/Material';
 import Movable from '../../../../lib/stuff/Movable';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import Provision from '../../../thing/Provision';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import CraftVessel from '../../../thing/CraftVessel';
 import Chest from '../../../thing/Chest';
 import Icebox from '../../../thing/Icebox';
@@ -93,7 +93,7 @@ function registerMaterial(
 }
 
 function makeTool(cap: string) {
-  const t = makeStuff(() => new ToolItem());
+  const t = makeStuff(() => new Tool());
   t.setCapabilities([cap]);
   return t;
 }

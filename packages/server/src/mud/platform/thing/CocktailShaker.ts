@@ -3,14 +3,14 @@
  *
  * `ManualBuildMixin(ToolMixin(Movable))` — the tool role
  * (its `shaker` / `mixing-glass` capability still satisfies recipe
- * `toolCapabilities`, exactly as the old `ToolItem` seed did) plus the
+ * `toolCapabilities`, exactly as the old `Tool` seed did) plus the
  * manual-build buffer that `pour` / `add` bank graded contributions into
  * and `strain` mints from. Backs both the shaker (shaken drinks) and the
  * mixing glass (stirred) — the hospitality trade's station templates;
  * capabilities + condition stay authored in each row's `data:`.
  *
  * The buffer is runtime-only (see {@link ManualBuildMixin}), so this adds
- * no persistent fields over `ToolItem`.
+ * no persistent fields over `Tool`.
  */
 
 import Movable from "../../lib/stuff/Movable";

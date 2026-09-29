@@ -40,7 +40,7 @@ import Chest from '../../../platform/thing/Chest';
 import WaterFixture from '../../../platform/thing/WaterFixture';
 import Dish from '../../../platform/thing/Dish';
 import Weapon from '../../../platform/thing/equipment/Weapon';
-import ToolItem from '../../../platform/thing/ToolItem';
+import Tool from '../../../platform/thing/Tool';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import Menu from '../../../platform/thing/Menu';
 import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
@@ -178,8 +178,8 @@ function makeOven(lit: boolean): Oven {
   });
 }
 
-function makeTool(cap: string): ToolItem {
-  const t = makeStuff(() => new ToolItem());
+function makeTool(cap: string): Tool {
+  const t = makeStuff(() => new Tool());
   t.setCapabilities([cap]);
   return t;
 }

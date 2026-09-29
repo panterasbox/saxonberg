@@ -16,12 +16,12 @@
  * of them is a new mechanism, and none of them needs this file.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const SPIN = ['trade/textiles/cmd/textiles/spin.yaml'];
 
-export default class SpinningTool extends ToolItem {
+export default class SpinningTool extends Tool {
   static commandContributions: CommandContributions = {
     environment: SPIN,
     peers: SPIN,

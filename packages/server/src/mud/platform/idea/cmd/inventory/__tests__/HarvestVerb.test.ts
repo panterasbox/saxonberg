@@ -19,7 +19,7 @@ import Plant from '../../../../thing/Plant';
 import Crop from '../../../../thing/Crop';
 import type { Crafted } from '../../../../../lib/craft/Crafted';
 import GardenBed from '../../../../thing/GardenBed';
-import ToolItem from '../../../../thing/ToolItem';
+import Tool from '../../../../thing/Tool';
 import Material from '../../../../../lib/material/Material';
 import { Reserve } from '../../../../../lib/reserve';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
@@ -580,9 +580,9 @@ describe('harvest <plant>', () => {
 
   /* ───────── the plant names its tool and its Discipline (forestry.md — `harvestTool` / `discipline`) ───────── */
 
-  function billhook(): ToolItem {
+  function billhook(): Tool {
     return makeStuffAtPath(() => {
-      const t = new ToolItem();
+      const t = new Tool();
       t.setShortDescription('a billhook');
       t.setCapabilities(['cutting']);
       return t;
@@ -612,7 +612,7 @@ describe('harvest <plant>', () => {
     const { giver, room, bed } = scene();
     const stool = ripeStool(bed);
     const trowel = makeStuffAtPath(() => {
-      const t = new ToolItem();
+      const t = new Tool();
       t.setShortDescription('a trowel');
       t.setCapabilities(['digging']);
       return t;
@@ -643,7 +643,7 @@ describe('harvest <plant>', () => {
     const { giver, room, bed } = scene();
     const plant = ripe(bed);
     const trowel = makeStuffAtPath(() => {
-      const t = new ToolItem();
+      const t = new Tool();
       t.setCapabilities(['digging']);
       return t;
     }, freshPath('/trade/forestry/thing/_trowel2'));

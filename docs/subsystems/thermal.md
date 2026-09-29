@@ -74,7 +74,7 @@ rests on every ambient change firing one:
 2. **In-place ambient shift** — `AtmosphericMixin.setTemperature` fans
    out `restamp()` over the scope's Thermal contents.
 3. **Seal toggle** / **bulk transfer** — see the thermos.
-4. **A furnace's lit state changes** — `FurnaceMixin.restampHeated()`
+4. **A furnace's lit state changes** — `BurnerMixin.restampHeated()`
    fans out over the furnace's **heat scope** from `_setLit()` and from
    the burnout branch of `reconcileFurnaceFuel()`. The same shape as (2).
 
@@ -94,7 +94,7 @@ fire*, and near-the-fire already has its own mechanism
 SIBLINGS, for Meltables only).
 
 ⭐ **The firebox stays pinned; what climbs is what is in it.**
-`FurnaceMixin.getTemperature()` is unchanged — a lit furnace is hot
+`BurnerMixin.getTemperature()` is unchanged — a lit furnace is hot
 instantly, with no warm-up. The body inside drifts toward that held
 temperature over **its own** `τ = R·C`, so a loaf takes loaf-time and a
 pot of water takes pot-time, and `reconcilePhase` still pins boiling
@@ -611,7 +611,7 @@ accumulator until `mass × latentHeatOfFusion`) then **melts** — destructing a
 flowing its mass to a molten `Bulkable` pool in the scope's `Floor`; a
 liquid-holding vessel **boils** to gas above its boiling point and **solidifies**
 to a cast `Thing` below its melting point. Bidirectional — **ice → water → steam
-falls out of the shipped water material**. The **furnace family** (`FurnaceMixin`,
+falls out of the shipped water material**. The **furnace family** (`BurnerMixin`,
 generalizing the `Campfire` pin — see [fire.md](./fire.md)) heats the Meltables
 in its scope toward its held temperature; a body's `reachableHeatK()` (on ThermalMixin) reads the
 hottest reachable furnace — the crafting-control read `CraftingLogic`'s heat

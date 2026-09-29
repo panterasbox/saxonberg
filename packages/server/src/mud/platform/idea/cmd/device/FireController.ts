@@ -9,7 +9,7 @@
  * the ceramics build's own class"* — which is the named failure mode *a
  * feature whose second instance requires a kernel edit*. And the
  * contradicting doctrine was already written in the kernel, on
- * `FurnaceMixin` itself:
+ * `BurnerMixin` itself:
  *
  * > *"The fire-appliance verbs are **afforded by the appliance** … a room
  * > with a furnace affords lighting it, dousing it, working its bellows, and
@@ -54,7 +54,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
-import type { Furnace } from '../../../../lib/fire/Furnace';
+import type { Burner } from '../../../../lib/fire/Burner';
 import type { Recipe, RecipeInputSlot } from '../../../../lib/craft/Recipe';
 import type RecipeCatalogue from '../../RecipeCatalogue';
 import { MixinApi } from '../../../../api/mixin';
@@ -97,7 +97,7 @@ interface Firing {
 export default class FireController extends CommandController<FireModel> {
   async execute(model: FireModel, context: CommandContext): Promise<void> {
     const bound = model.kiln?.stuff ?? null;
-    if (bound === null || !MixinApi.isFurnace(bound) || !MixinApi.isContainer(bound)) {
+    if (bound === null || !MixinApi.isBurner(bound) || !MixinApi.isContainer(bound)) {
       this.decline(
         context,
         model.kiln?.raw
@@ -107,7 +107,7 @@ export default class FireController extends CommandController<FireModel> {
       );
       return;
     }
-    const kiln = bound as Stuff & Container & Furnace;
+    const kiln = bound as Stuff & Container & Burner;
 
     const charge = kiln.getContents().filter((c) => MixinApi.isTangible(c));
     if (charge.length === 0) {
@@ -279,7 +279,7 @@ export default class FireController extends CommandController<FireModel> {
  */
 async function runFiring(
   context: CommandContext,
-  kiln: Stuff & Container & Furnace,
+  kiln: Stuff & Container & Burner,
   firing: Firing,
 ): Promise<void> {
   const giver = context.commandGiver;

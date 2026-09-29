@@ -25,11 +25,8 @@
  * is FOR here is knowing what to set, not being allowed to.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
-import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
+import Firebox from '@saxonberg/server/mud/lib/fire/Firebox';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { FurnaceMixin } from '@saxonberg/server/mud/lib/fire/Furnace';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
@@ -44,9 +41,9 @@ export type BurnOutcome = 'charcoal' | 'brands' | 'ash';
 export const CHARS_FROM = 0.3;
 export const CHARS_TO = 0.62;
 
-const CharcoalPitBase = FurnaceMixin(
-  ContainerMixin(ReservedMixin(ThermalMixin(Thing))),
-);
+// ⭐ A firebox that encloses its own feedstock — the clamp burns the
+// wood it contains, which is why `Container` and not `Placing`.
+const CharcoalPitBase = ContainerMixin(Firebox);
 
 /**
  * ⭐ The clamp affords its own act. A verb an object affords is a
@@ -54,7 +51,7 @@ const CharcoalPitBase = FurnaceMixin(
  * the `Anvil` shape. ⚠ `char` shipped with a view, a controller and
  * nothing naming the view, so the verb was unreachable in a booted
  * world; a row's `commandContributions:` would have been dead silently
- * too. The kernel's `FurnaceMixin` cannot name a trade's view (the pack
+ * too. The kernel's `BurnerMixin` cannot name a trade's view (the pack
  * boundary), which is why the list lives here.
  */
 const CHARRING = ['trade/fuel/cmd/fuel/char.yaml'];

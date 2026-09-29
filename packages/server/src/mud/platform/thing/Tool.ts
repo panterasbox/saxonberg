@@ -1,5 +1,21 @@
 /**
- * ToolItem — a portable tool: the capital side of control.
+ * Tool — a portable tool: the capital side of control.
+ *
+ * ⭐ **It was `ToolItem` until the base-class narrowing, and the `Item`
+ * was doing nothing.** Every class in this directory is a thing; the
+ * suffix distinguished it from `ToolMixin`, which is a different kind of
+ * artefact that needs no disambiguation from a class. A name that exists
+ * to avoid a collision it does not have is a name with a hole in it, and
+ * this repo has been here before — `platform/thing/Thing` was `Prop`
+ * until somebody noticed nobody would defend a class called *generic
+ * object you don't care about*.
+ *
+ * ⚠ **`Tool` gains nothing here beyond the rename.** No static, no
+ * capability→verb table, nothing that assumes the 24 static-only tool
+ * classes have collapsed into it. That collapse needs affordance-as-data
+ * (N3 of the clusters plan), which is a design and not this build;
+ * `Tool` is the class those 24 COULD collapse into later, and it stays
+ * empty so the decision is still open.
  *
  * `ToolMixin(DurableMixin(Movable))` — a `Tangible` carrying tool
  * capabilities (ToolMixin) + a wear-on-use condition (DurableMixin, the
@@ -13,7 +29,7 @@ import { ToolMixin } from '../../lib/craft/Tooled';
 import { DurableMixin } from '../../lib/material/Durable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 
-// CraftedMixin closes the tools-make-tools loop: a ToolItem can be a
+// CraftedMixin closes the tools-make-tools loop: a Tool can be a
 // recipe output (smithing makes the hammer smithing needs); the mark
 // defaults empty on store-bought kit.
 // ⚠⚠ **NOT `ContaminableMixin`, and that is a correction.** It was composed
@@ -33,6 +49,6 @@ import { CraftedMixin } from '../../lib/craft/Crafted';
 // The attach point stays open and named: a `KitchenTool` the day a sieve or
 // a board genuinely needs to carry a load, the same way irrigation
 // contamination composes onto `WateringCan` when someone wants it.
-const ToolItemBase = CraftedMixin(ToolMixin(DurableMixin(Movable)));
+const ToolBase = CraftedMixin(ToolMixin(DurableMixin(Movable)));
 
-export default class ToolItem extends ToolItemBase {}
+export default class Tool extends ToolBase {}

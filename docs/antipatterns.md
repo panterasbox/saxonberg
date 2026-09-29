@@ -298,7 +298,7 @@ walking the actor's surroundings and narrowing by type.
 ```typescript
 // BAD — the controller re-deriving what the binder already resolves
 const mill = room.getContents().find((c) => c instanceof GristMill);
-const oven = room.getContents().find((c) => MixinApi.isFurnace(c));
+const oven = room.getContents().find((c) => MixinApi.isBurner(c));
 ```
 
 **INSTEAD** — declare it on the view and read it off the model:
@@ -341,7 +341,7 @@ atom exists for exactly this — see
 ```
 
 ⚠ It is fine for the controller to narrow further on **state** the
-predicate cannot express: `bake` resolves on `FurnaceMixin` and then
+predicate cannot express: `bake` resolves on `BurnerMixin` and then
 checks *lit, fuelled, and a chamber*, because no mixin means "lit".
 
 ⭐⭐ **And when one arg cannot carry it, reach for a PLURAL — not a
@@ -3723,7 +3723,7 @@ capabilities:
 
 ```ts
 // RIGHT — one record: the class of the thing that performs the act.
-export default class Strainer extends ToolItem {
+export default class Strainer extends Tool {
   static commandContributions: CommandContributions = {
     environment: [STRAIN], peers: [STRAIN],
   };

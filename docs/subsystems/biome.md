@@ -642,7 +642,7 @@ module) overrides the same way.
 > were six `Thing` **classes** under `/stuff/thing/instrument/`, each
 > contributing `measure.yaml` and each owning a `measure <x>` subcommand.
 > There are no such classes now: an instrument is a **row over
-> `/platform/thing/ToolItem`** declaring a capability, and the channel it
+> `/platform/thing/Tool`** declaring a capability, and the channel it
 > serves is a `Reading` row. See
 > [instrumentation.md](./instrumentation.md).
 

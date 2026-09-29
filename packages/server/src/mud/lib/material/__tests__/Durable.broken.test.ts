@@ -8,13 +8,13 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { AppApi } from '../../../api/app';
-import ToolItem from '../../../platform/thing/ToolItem';
+import Tool from '../../../platform/thing/Tool';
 import { AppSettingKeys } from '../../config/AppSettings';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { StuffApi } from '../../../api/stuff';
 
-function makeShaker(): ToolItem {
-  const t = makeStuff(() => new ToolItem());
+function makeShaker(): Tool {
+  const t = makeStuff(() => new Tool());
   t.setCapabilities(['shaker']);
   return t;
 }

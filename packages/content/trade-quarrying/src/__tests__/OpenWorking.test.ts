@@ -29,7 +29,7 @@ import { LIFT_M, OPEN_WORKING_MIXIN, type OpenWorking } from '../lib/Working';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
@@ -125,7 +125,7 @@ function working(opts?: {
 /** A tool offering exactly the capabilities named. */
 function tool(...capabilities: string[]): Stuff & Tooled {
   const t = makeStuff(() => {
-    const item = new ToolItem();
+    const item = new Tool();
     item.capabilities = capabilities;
     return item;
   }) as unknown as Stuff;

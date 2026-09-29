@@ -5,7 +5,7 @@
 # arm of `measure altitude` checked `instanceof Sextant`, so that arm was
 # dead for everybody. It is `measure elevation` now, and this is the
 # thing that takes it.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass sextant

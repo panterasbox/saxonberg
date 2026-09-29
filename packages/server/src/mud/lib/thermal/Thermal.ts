@@ -609,7 +609,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the OO sweep): the solid→liquid latent-heat plateau and the
      * vessel freeze/boil transitions, keyed on real Material
      * properties. Sealed — owns the phase/temperature invariants.
-     * Ungated: the callers are physics drivers (Furnace, magic heat,
+     * Ungated: the callers are physics drivers (Burner, magic heat,
      * casting) — a trusted physical relationship.
      */
     @Final
@@ -620,7 +620,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * The maximum sustained temperature (K) reachable from where this
-     * body stands — the hottest lit `Furnace` in its scope (the
+     * body stands — the hottest lit `Burner` in its scope (the
      * crafting emergent-reachability principle applied to heat: a
      * smith's control gate is "what's the hottest thing I can
      * reach?"). 0 when nothing hot is in reach. Ungated read.
@@ -800,7 +800,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // is heating it.** (Placement build, D22.)
       //
       // ⚠⚠ Until this line, `reconcilePhase()` had exactly three
-      // callers in the whole tree: a lit `Furnace`'s heat pass, two
+      // callers in the whole tree: a lit `Burner`'s heat pass, two
       // spell endpoints, and tests. So nothing in the world melted
       // unless a fire or a wizard was pointed at it — a block of ice
       // left on a warm floor sat at its melting point forever, with
@@ -819,7 +819,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * The held temperature (K) of a lit, fuelled `Furnace` that is
+     * The held temperature (K) of a lit, fuelled `Burner` that is
      * heating this body — the furnace **holding** it (a loaf in an
      * oven) or the furnace it **rests on** (a pot on a campfire) — or
      * `null` when nothing does. Read only by {@link restamp}: the
@@ -829,17 +829,17 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private heatSourceK(): number | null {
       const self = this.thermalHost;
-      // A lit, fuelled furnace the body is IN or ON — `isFurnace` narrows
+      // A lit, fuelled furnace the body is IN or ON — `isBurner` narrows
       // the one cast to the container type, and everything after reads
       // through the narrowing.
-      const litFurnaceK = (candidate: Stuff | null): number | null => {
-        if (candidate === null || !MixinApi.isFurnace(candidate)) return null;
+      const litBurnerK = (candidate: Stuff | null): number | null => {
+        if (candidate === null || !MixinApi.isBurner(candidate)) return null;
         if (!candidate.isLit() || candidate.fuelRemaining() <= 0) return null;
         return candidate.getHeldTemperatureK();
       };
-      const inside = litFurnaceK(self.getContainer() as unknown as Stuff | null);
+      const inside = litBurnerK(self.getContainer() as unknown as Stuff | null);
       if (inside !== null) return inside;
-      return litFurnaceK(
+      return litBurnerK(
         (self.getPlacement()?.host ?? null) as unknown as Stuff | null,
       );
     }
@@ -849,7 +849,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * temperature (K) of a shut `Coolbox` holding this body, or `null`.
      *
      * `heatSourceK` is hot-only by construction — it asks for a lit
-     * `Furnace` — and the rule underneath it is not about heat at all:
+     * `Burner` — and the rule underneath it is not about heat at all:
      * *what HOLDS this body outranks the biome chain.* A shut icebox
      * holds its contents exactly as an oven does, and the chain cannot
      * answer for it, because a `Coolbox` is not `Atmospheric` (and must
@@ -886,7 +886,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // ⭐ A heat source that HOLDS this body outranks the biome chain:
       // the inside of a lit oven is not the room. `BiomeLogic` walks
-      // `Atmospheric` ancestors and a `Furnace` is not `Atmospheric`
+      // `Atmospheric` ancestors and a `Burner` is not `Atmospheric`
       // (deliberately — a lit forge must not warm the room it stands
       // in), so the couple is read here, on the body being heated.
       let ambientK = this.lastAmbientK;
@@ -980,7 +980,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 /**
  * The maximum sustained temperature (K) reachable from `position` — the hottest
- * lit `Furnace` in its scope (the crafting emergent-reachability principle
+ * lit `Burner` in its scope (the crafting emergent-reachability principle
  * applied to heat: a smith's control gate is "what's the hottest thing I can
  * reach?"). Returns 0 when nothing hot is in reach. Consumed by
  * `CraftingLogic`'s heat gate (`recipe.requiresHeatK`) — the smithing/cooking
@@ -993,7 +993,7 @@ function reachableHeatForImpl(position: Stuff): number {
   let hottest = 0;
   for (const occ of (scope as Stuff & Container).getContents()) {
     const s = occ as unknown as Stuff;
-    if (s.isDestroyed() || !MixinApi.isFurnace(s)) continue;
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
     if (!s.isLit() || s.fuelRemaining() <= 0) continue;
     const t = s.getHeldTemperatureK();
     if (t > hottest) hottest = t;

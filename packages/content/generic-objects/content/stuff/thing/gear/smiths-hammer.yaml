@@ -1,8 +1,8 @@
-# The smith's hammer — a striking ToolItem: the tools-make-tools loop
+# The smith's hammer — a striking Tool: the tools-make-tools loop
 # (smithing makes the hammer smithing needs). Material + mass flow from
 # the consumed stock when forged; this seed is also cloned directly as
 # venue kit.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smith's hammer

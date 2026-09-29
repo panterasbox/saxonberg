@@ -26,7 +26,7 @@ import Turbary from '../location/Turbary';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -105,7 +105,7 @@ function makeBank(opts?: { floorDepthM?: number; subsidenceM?: number }): Turbar
 
 const spade = (): Stuff & Tooled =>
   makeStuff(() => {
-    const i = new ToolItem();
+    const i = new Tool();
     i.capabilities = ['digging'];
     return i;
   }) as unknown as Stuff & Tooled;

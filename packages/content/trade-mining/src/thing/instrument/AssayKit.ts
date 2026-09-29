@@ -7,7 +7,7 @@
  *
  * ## ⚠⚠ Why this is a CLASS and not just the row it was
  *
- * `assay-kit.yaml` shipped as a plain `/platform/thing/ToolItem` row for
+ * `assay-kit.yaml` shipped as a plain `/platform/thing/Tool` row for
  * a whole build — declaring the `assay-scale` capability, propped in the
  * assay shed, named by the mining archetype — and **nothing could be
  * done with it**, because there was no verb. The verb arrives with this
@@ -22,10 +22,10 @@
  * access. `AssayController` tells them apart on `fixedInPlace`.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class AssayKit extends ToolItem {
+export default class AssayKit extends Tool {
   /**
    * ⚠⚠ **`environment`, not `inventory` — the bucket means the OPPOSITE
    * of what it sounds like.**

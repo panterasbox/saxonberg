@@ -6,7 +6,7 @@
  * dispatches the controller. So nothing noticed that the verb was
  * afforded by no class, that the furnace row was a bare `Forge` and
  * therefore not a `Container`, and that the controller's own guard
- * (`isFurnace && isContainer`) could not have passed against one. The
+ * (`isBurner && isContainer`) could not have passed against one. The
  * smelt could not have run in a booted world, and the metal chain's
  * four-business loop has never closed.
  *
@@ -131,7 +131,7 @@ function basket(): Movable {
  * hold 2130 K and every ferrous run would pour — which is exactly the
  * bug the retune fixes, so the fixture must not paper over it.
  */
-function makeFurnace(bellows: boolean): SmeltingFurnace {
+function makeBurner(bellows: boolean): SmeltingFurnace {
   return makeStuff(() => {
     const f = new SmeltingFurnace();
     f.setBurnTemperatureK(1420);
@@ -295,7 +295,7 @@ beforeEach(async () => {
     `/platform/agent/Avatar/smelterman-${seq++}`,
   );
   ContainmentApi.move(actor, room);
-  furnace = makeFurnace(false);
+  furnace = makeBurner(false);
   ContainmentApi.move(furnace, room);
 });
 
@@ -308,7 +308,7 @@ afterEach(() => {
 
 describe('the furnace the smelt needs', () => {
   it('⚠⚠ is a CONTAINER — the shipped bare Forge was not, so the guard could never pass', () => {
-    expect(MixinApi.isFurnace(furnace)).toBe(true);
+    expect(MixinApi.isBurner(furnace)).toBe(true);
     expect(MixinApi.isContainer(furnace)).toBe(true);
   });
 
@@ -433,7 +433,7 @@ describe('⭐⭐ the ferrous ladder — the charge decides the metal', () => {
     // game said got you nowhere, and the act that helps (`light`) was
     // named by neither.
     //
-    // ⚠ Every other test in this file uses `makeFurnace`, which is LIT.
+    // ⚠ Every other test in this file uses `makeBurner`, which is LIT.
     // That is why the whole unlit branch had no coverage at all, and why
     // it took hammering at a furnace in a browser to find.
     furnace.douse();
@@ -637,7 +637,7 @@ describe('⭐⭐ the flux and the sulfur (extraction)', () => {
       (plain as unknown as { getSlagFraction?(): number }).getSlagFraction?.() ?? 0;
 
     // A fresh furnace, and this time with limestone in it.
-    furnace = makeFurnace(true);
+    furnace = makeBurner(true);
     ContainmentApi.move(furnace, room);
     chargeIron(3, 2);
     ContainmentApi.move(limestone(), furnace);

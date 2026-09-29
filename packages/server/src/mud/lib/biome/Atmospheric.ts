@@ -409,7 +409,7 @@ export function AtmosphericMixin<
      *
      * `reconcileEnvelope` walks the room's contents asking each
      * `SpaceHeating` source for its output. `spaceHeatOutputW()` asks
-     * `isLit()`, which runs `reconcileFurnaceFuel()`, whose burnout
+     * `isLit()`, which runs `reconcileBurnerFuel()`, whose burnout
      * edge calls `restampHeated()` → `ThermalMixin.restamp()` →
      * `effectiveAmbient()` → `BiomeApi.resolveTemperatureFor(container)`
      * → **this room's envelope again**.
@@ -1149,7 +1149,7 @@ function capitalize(s: string): string {
 
 /**
  * Game-time now, or `null` when no world clock is registered. The
- * `furnaceNowSeconds` shape: without the registry the envelope simply
+ * `burnerNowSeconds` shape: without the registry the envelope simply
  * does not integrate, which is the right degradation for a unit fixture
  * and for the window before boot finishes.
  */

@@ -29,7 +29,7 @@ import Material from '../../../../lib/material/Material';
 import Movable from '../../../../lib/stuff/Movable';
 import Dish from '../../../thing/Dish';
 import CraftVessel from '../../../thing/CraftVessel';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import Oven from '../../../thing/Oven';
 import PersistentHydrator from '../../persistence/PersistentHydrator';
 import RecipeCatalogue from '../../RecipeCatalogue';

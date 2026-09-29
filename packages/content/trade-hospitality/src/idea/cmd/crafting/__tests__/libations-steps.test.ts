@@ -26,7 +26,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
 import CocktailShaker from '@saxonberg/server/mud/platform/thing/CocktailShaker';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import {
   TestActor,
   makeContext,
@@ -174,7 +174,7 @@ describe('muddle', () => {
     expect(noTool.getNotes().some((n) => n.kind === 'controller-rejected' && n.reason === 'missing-tool')).toBe(true);
     expect(shaker.getBuildMethod()).toBeNull();
 
-    const muddler = makeStuff(() => new ToolItem());
+    const muddler = makeStuff(() => new Tool());
     muddler.setCapabilities(['muddler']);
     ContainmentApi.move(muddler, actor);
     await executeAs(actor, () =>

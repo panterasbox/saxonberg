@@ -151,12 +151,12 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
 
   it('a non-flammable object has no combustion face at all', () => {
     // Since the F1 move the refusal is structural: ignite()/douse() live
-    // on Combustible/Furnace, and the ignite verb's target predicate is
-    // the isCombustible/isFurnace narrow — a bare Thing never reaches
+    // on Combustible/Burner, and the ignite verb's target predicate is
+    // the isCombustible/isBurner narrow — a bare Thing never reaches
     // the driver.
     const rock = makeStuff(() => new Movable());
     expect(MixinApi.isCombustible(rock)).toBe(false);
-    expect(MixinApi.isFurnace(rock)).toBe(false);
+    expect(MixinApi.isBurner(rock)).toBe(false);
   });
 
   it('a spent (no-fuel) object will not ignite', () => {

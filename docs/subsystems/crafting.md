@@ -132,7 +132,7 @@ the Hydrator; per-field invariants ride accessor pairs.
   "tool"); narrow via `MixinApi.isDurable`. Its fast-cycling sibling is
   **`KeenMixin`** (`lib/material/Keen.ts`) — the edge axis, on `Weapon`.
 - **`ToolMixin`** (`Tooled.ts`) — the crafting **capabilities** layer:
-  `capabilities: string[]` a recipe requires by kind. A `ToolItem` composes
+  `capabilities: string[]` a recipe requires by kind. A `Tool` composes
   `ToolMixin(DurableMixin(…))` — a tool is a durable good that *also* offers
   capabilities; the durability lives on `DurableMixin`, not here.
 - **`SteepableMixin`** (`Steepable.ts`) — the general **infusion**
@@ -424,7 +424,7 @@ used to be a single list copied verbatim onto two rows:
 | hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
 | hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
 | cooking `cook`, `plate`, platform `heat` | the POT | `/trade/cooking/thing/CookPot` |
-| platform `boil` | the FURNACE — you cannot boil without a heat source | `FurnaceMixin` (oven, kiln, forge) |
+| platform `boil` | the FURNACE — you cannot boil without a heat source | `BurnerMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
 | tailoring `cut` | the SHEARS — and the bench is the same class, faster | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) |
@@ -519,7 +519,7 @@ are `trade-smithing`'s — each a capability pack with its controllers in
 and the cook-pot row are cooking's too (the bundle collects the
 trade's instruments).
 
-`FurnaceMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
+`BurnerMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
 — an appliance mixin, not a `Tooled` host — and `make` is innate on
 `Avatar` (knowledge-driven, no instrument). Capability entries are
 **parameterized**: `{ kind, rate?, control?, technique? }` (a bare
@@ -1006,7 +1006,7 @@ No bar-specific classes — content composes general mixins. Classes are
 homed by what they *are*:
 
 - **Building blocks** → `lib/`: `Surface` (`lib/spatial/`, a
-  `PlacingMixin` fixture), `ToolItem` (`lib/craft/`), `Crafter`
+  `PlacingMixin` fixture), `Tool` (`lib/craft/`), `Crafter`
   (`lib/character/`, `MakerMixin(NPC)` — ⚠ both retired by
   trades-and-labor), `NPC` (`lib/character/`, the
   minimal concrete `Character` — shares its path with the npc-behavior
