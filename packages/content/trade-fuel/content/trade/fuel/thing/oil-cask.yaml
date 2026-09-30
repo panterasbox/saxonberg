@@ -1,0 +1,23 @@
+# An empty oil cask — the vessel lamp oil travels and is stored in.
+#
+# A `Bottle` preset (the stock vessel every floor product is a row over — its
+# docstring names `cask` as an example kind): a 40 L liquid-tight oak cask.
+# ⭐ Empty, it counts under its VESSEL KIND (`vessel:oil-cask`), which is what
+# ties it to the filled `lamp-oil-cask` — buy the oil, burn or pour it, and
+# the same cask is left, empty, ready to refill.
+#
+# `_materialPath` is oak (the cask body), stated on the ROW so its mass is
+# honest — a wooden cask, not the glass a bare Bottle defaults to.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: oak cask
+  keywords: [cask, oil-cask, barrel]
+  register: indefinite
+  longDescription: >-
+    A squat, iron-hooped oak cask, liquid-tight, the size a strong back can
+    still roll. The bung smells of oil even when it is dry.
+  category: oil-cask
+  _materialPath: /stuff/idea/material/wood/oak
+  interiorBulk: true
+  interiorCapacity: 40

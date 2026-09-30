@@ -1,0 +1,49 @@
+# Lamp oil — ⭐ **the thing a street lamp actually burns**, and the good the
+# street-lighting bill was missing.
+#
+# A refined burning oil: light, thin, cleaner than a tallow dip and far
+# hotter per litre than the wood a hearth wants. It is a MATERIAL (one row
+# backs every litre of the stuff), carried in casks (`lamp-oil-cask`), bought
+# by a town's public-works department and burned a street-night at a time by
+# `/system/energy/thing/FuelStore`.
+#
+# ⚠ It ships in the FUEL trade (`/trade/fuel`) beside charcoal and rides the
+# commons path like charcoal does — pack ownership is a review unit, not a
+# namespace. The producer is an oil works (a Terminus goods-yards outfit);
+# the crafted retort route (coal/wood in → oil out) is the
+# destructive-distillation build, and this row is ready for it.
+#
+# ⚠ Fuel value and ignition are the MATERIAL's, read off here and never
+# restated on the good — a lamp burns lamp oil because of what lamp oil is.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: lamp-oil
+  keywords: [lamp-oil, oil, lamp, kerosene, paraffin]
+  appearance: a thin, pale-gold oil that smells faintly of the still
+  # A light burning oil — lighter than water, so a cask of it floats a spill.
+  density: 820
+  specificHeat: 2100
+  thermalConductivity: 0.15
+  # Effectively an insulator (it is why an oil fire is not a shock hazard).
+  electricalConductivity: 1.0e-13
+  meltingPoint: 230
+  boilingPoint: 470
+  latentHeatOfFusion: 120000
+  latentHeatOfVaporization: 290000
+  # MJ/kg — comfortably above coal (28) and charcoal: this is why one small
+  # lamp outlasts a night on a few litres.
+  heatOfCombustion: 43
+  # It catches from a wick's flame readily — a flammable liquid, not a solid
+  # that wants an ember.
+  autoignitionTemperature: 490
+  edibility: false
+  nutrients: []
+  # Not food, and it makes you sick if you drink it — a small standing dose
+  # keyed on the shipped `ptomaine` gut-poisoning condition. Mostly moot
+  # (`edibility: false` keeps it off the plate), but honest if someone tries.
+  toxicity:
+    - { type: ptomaine, amount: 400 }
+  tags: [liquid, lamp-oil, fuel, flammable]
+  composition: []
+  biologicalSource: null

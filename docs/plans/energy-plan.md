@@ -704,9 +704,25 @@ the realm as before).
 Commit: `build(energy A0): the funding record's goods leg, the town's own
 treasury, a local share of the sales tax`.
 
-#### A1 — trade-fuel: lamp oil, the cask, the good
+#### A1 — trade-fuel: lamp oil, the cask, the good ✅ DONE
 
 Implements D9 (rows only).
+
+> **Done (commit `build(energy A1)`).** Three rows: the `lamp-oil` bulk
+> material (`heatOfCombustion: 43`, density 820, tags `[liquid, lamp-oil, fuel,
+> flammable]`), an empty `oil-cask` and the filled `lamp-oil-cask`.
+> ⭐ **D9 refinement:** both casks are `/platform/thing/Bottle` presets, **not**
+> `/platform/thing/Vessel` — `Vessel` is a bare container with no
+> bulk/VesselKind/Circulating; `Bottle` is the documented "stock vessel every
+> floor product is a row over" and names `cask` as an example kind, so it is the
+> real precedent (gin, cola, keg). Both state `_materialPath: …/wood/oak` on the
+> ROW to satisfy `lint:mass` (the SpiritBottle/gin shape they copy does not).
+> `container:`/`regionTarget` deferred to A3 (the faucet needs the oilworks
+> stock to exist). ⚠ Two `lint:instanceable` orphan-key traps hit and fixed:
+> `chemistry: null` (copied from coal/charcoal — not a declared field) and
+> `autoignitionPoint` (the declared field is `autoignitionTemperature`; charcoal
+> uses the alias and is a pre-counted orphan). Orphan census back at ceiling
+> 402/402. Pack suite green; instanceable/census/untitled/mass green.
 
 Files under `packages/content/trade-fuel/content/`:
 - `stuff/idea/material/bulk/lamp-oil.yaml` (the `fouled-water.yaml` shape;
