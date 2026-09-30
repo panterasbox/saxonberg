@@ -58,6 +58,13 @@ data:
           spirit:rum-light: 7
           spirit:rum-dark: 8
           spirit:tequila: 8
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Yard's busy. Keep to the left."
+          - "Deliveries round the side."
+          - "Something you need?"
     - brain: /lib/behavior/idles
       trigger: cadence:43s
       config:

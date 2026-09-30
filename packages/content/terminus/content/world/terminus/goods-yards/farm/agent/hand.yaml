@@ -71,6 +71,13 @@ data:
           produce:cranberry: 5
           produce:grape: 5
           produce:juniper: 5
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Looking for something?"
+          - "Everything out front's today's."
+          - "Mind the crates."
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

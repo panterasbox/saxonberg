@@ -50,6 +50,13 @@ data:
         ask:
           spirit:old-hollis: 10
           spirit:hollis-cane: 10
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Afternoon!"
+          - "Come for the good stuff, have you?"
+          - "Mind the cases — I've got them just so."
     - brain: /lib/behavior/idles
       trigger: cadence:47s
       config:

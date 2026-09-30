@@ -60,6 +60,13 @@ data:
           mixer:cranberry-juice: 4
           mixer:orange-juice: 4
           ice:bag: 5
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the floor — it's wet through there."
+          - "Line's running. Shout if you need someone."
+          - "With you in a tick."
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

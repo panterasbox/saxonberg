@@ -98,6 +98,13 @@ data:
           spirit:orange-liqueur: 22
           spirit:bitter-liqueur: 24
           spirit:aperitivo: 20
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Help you?"
+          - "Mind the barrels by the door."
+          - "If you're after the counter, it's not here."
     - brain: /lib/behavior/idles
       trigger: cadence:37s
       config:

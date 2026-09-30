@@ -78,6 +78,13 @@ data:
           pantry:salt: 5
           pantry:coffee: 22
           pantry:syrup: 6
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the flour."
+          - "Don't lean on that, it's not dry."
+          - "Help you with something?"
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

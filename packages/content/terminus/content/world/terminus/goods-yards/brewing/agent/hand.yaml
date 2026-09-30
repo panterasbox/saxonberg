@@ -73,6 +73,13 @@ data:
         batch: 3
         asks:
           lager: 13
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the hoses."
+          - "Watch yourself — that pipe's hot."
+          - "Aye? Speak up, it's loud in here."
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

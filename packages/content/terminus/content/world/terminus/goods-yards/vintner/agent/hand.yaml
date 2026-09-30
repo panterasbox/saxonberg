@@ -62,6 +62,13 @@ data:
           vinegar: 4
           dry-vermouth: 12
           sweet-vermouth: 12
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the press."
+          - "Don't touch that, it's working."
+          - "Aye? Make it quick, I'm mid-rack."
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:
