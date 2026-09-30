@@ -513,8 +513,8 @@ Heart's Delight.
     **worked over**, in words.
 18. Neglect a hive badly. It **absconds** — the box is empty and nothing died.
 19. Dissolve honey in water, ferment it, and taste the **mead**. Then leave a
-    jar of honey where it can take up damp, and find it fermenting **on its
-    own**.
+    jar of honey **open**, come back, and find it fermenting **on its own** —
+    the same clock, unasked.
 20. Sell honey on Quist's shelf. Somebody can buy it.
 
 ## Acceptance criteria
@@ -551,9 +551,13 @@ Observable from outside the code.
 13. A second beekeeper on one range **can tell** that the range is crowded.
 14. A badly neglected colony **leaves**, and the player finds an empty box
     rather than dead bees.
-15. Honey left damp **ferments by itself**, and honey deliberately diluted and
+15. Honey **left open ferments by itself**, and honey deliberately diluted and
     fermented becomes **mead** — the same mechanism, once as a spoilage and
-    once as a product.
+    once as a product. ⚠ *Open*, not *damp*: the microbial clock reads
+    temperature and openness, and humidity is not an input it has. Honey left
+    open is how honey takes up damp, so this is the honest form of the same
+    fact rather than a weaker one — and a humidity term is a maturation
+    follow-on, not this build's.
 16. Honey can be **sold** where a player already sells things in that valley.
 17. A person who has never kept bees can read the husbandry clock's existing
     promise — *"a look every week or two"* — and find that it is true.
@@ -589,8 +593,8 @@ Observable from outside the code.
   limiting factors.
 - [thermal.md](../subsystems/thermal.md) — the envelope, and why a hive's walls
   decide its winter.
-- [spoilage.md](../subsystems/spoilage.md) — why honey keeps, and why damp
-  honey does not.
+- [spoilage.md](../subsystems/spoilage.md) — why honey keeps, and why an open
+  jar does not.
 - [maturation.md](../subsystems/maturation.md) — mead.
 - [hazard.md](../subsystems/hazard.md), [harm.md](../subsystems/harm.md),
   [metabolism.md](../subsystems/metabolism.md) — the sting's delivery, wound

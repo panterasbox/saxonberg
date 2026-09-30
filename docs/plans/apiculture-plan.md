@@ -1327,7 +1327,7 @@ comb cannot satisfy a `bulk` one, so the two never collide.
 | 12 wax → candle → lights a room | W6 | drive 15 |
 | 13 the second beekeeper can tell | W5 crowding sentence | `forage.test.ts`; drive 17 |
 | 14 neglected colony leaves; empty box, nothing died | W3 abscond branch (`lifecycleState` stays unset) | `colony.test.ts` |
-| 15 damp honey ferments; diluted honey → mead; one mechanism | W6 (two profiles over one mixin) | `mead.test.ts`, `honey-wild.test.ts`; drive 19 — ⚠ *damp* realised as *open* (Risks) |
+| 15 honey left **open** ferments; diluted honey → mead; one mechanism | W6 (two profiles over one mixin) | `mead.test.ts`, `honey-wild.test.ts`; drive 19 — ✅ the criterion now says *open* (amended 2026-09-30), so the plan and the requirements agree |
 | 16 sold where things are sold | W7/W8 (the farm shelf) | drive 20 |
 | 17 "a look every week or two" is true | W3 dials: `attritionPerDay`, `abscondDays`, `swarm` at ≥ 0.85 with a 30–40 day flow → a weekly look catches supering; `honey-wild` at 6 days | `colony.test.ts` asserts a 14-game-day gap in a flow loses no colony |
 | 18 a second apiary needs no code | W3–W5 by construction; W8 drive 17 uses only `buy` + `drop` | drive 17 |
@@ -1401,7 +1401,9 @@ the sting scene carries the *what instead*).
 9. **Drive limits**: swarming, wintering and absconding cannot be driven
    (no clock control on the wire). The record must say which steps were
    pinned and which were run — a drive that cannot fail is not a drive.
-10. **AC 15's "damp"** is realised as "open" (D20) — the microbial clock
+10. ✅ **RESOLVED — AC 15 now says "open"** (amended 2026-09-30, so the doc no
+    longer promises what the build will not do). Retained for the record: the
+    criterion had said *damp* and is realised as *open* (D20) — the microbial clock
     does not read humidity. Honest, recorded; a humidity gate on
     `spontaneousLagDays` is a maturation follow-on, not this build's.
 11. **`stockman-read.test.ts`** pins `Livestock.stockmanRead()` — a `look`

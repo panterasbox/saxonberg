@@ -627,7 +627,7 @@ solute)`, the model renamed `WaterActivityMixin` in !291. Dilute it and
 hurdle that makes honey keep**, and one model explains both facts: a player
 who understands the first derives the second.
 
-⭐ **So the defect and the product are the same event.** Damp honey ferments
+⭐ **So the defect and the product are the same event.** Honey left open ferments
 on its own; wine left too long becomes vinegar (`turnedMaterial`,
 `turnDays`). Intent and control are the only difference — and the substrate
 already says so.
