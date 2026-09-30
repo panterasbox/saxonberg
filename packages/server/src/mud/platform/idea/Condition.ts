@@ -1597,7 +1597,9 @@ export interface ConditionTemplate {
 /**
  * The Kind-A affliction template (disease / poison / toxin / infection).
  * An identity-bearing authored Idea resolved by `findByTemplatePath`
- * like Materials / Species. ZERO content ships — the class + field shape
+ * like Materials / Species. ⚠ This said *"ZERO content ships"* until
+ * the base-class narrowing (2026-09-30); the catalogue is **31 rows**
+ * under `platform/content/platform/idea/Condition/`. The class + field shape
  * only; the catalog is a later wave.
  */
 export default class Condition extends SingletonMixin(
