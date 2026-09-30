@@ -10,7 +10,9 @@ One class is carrying three different mistakes at once.
 
 > **`Character` holds things that belong ABOVE it, BELOW it, and BESIDE
 > it** — and each of the three has been filed as a separate problem in a
-> separate slate, which is why none of them has been fixed.
+> separate slate, which is why none of them has been fixed. ⭐ **And
+> `Avatar` itself, at the top, is six concerns and two descendants that
+> are the same eight overrides twice.**
 
 - **Above.** `Avatar` is 13 mixins over `ShelledCharacter`'s 5 over
   `Character`'s 15 — ~38 mixins to be a player. `HasInteractive` alone
@@ -27,6 +29,12 @@ One class is carrying three different mistakes at once.
   57 rows**, and has accreted **14 command affordances** that have
   nothing to do with a biography — `appoint`, `quit`, `apply`, `clock`,
   `office`, `government`, `title`, `who`, `score`…
+- **At the top.** `Avatar.ts` is 1,649 lines over six concerns, one
+  method (`enter()`) is 210 of them, `EstateMixin` holds **zero fields**
+  while `Avatar` carries the estate's state as its own, and `Shade` and
+  `WireBody` are **near-identical piles of the same eight overrides** —
+  four of which exist only to normalize a field that was copied under
+  two extra names instead of being set once.
 
 Seeded by [avatar-family-slate](../slates/builds/avatar-family-slate.md)
 § Sequencing 9 (the above end) and
@@ -180,6 +188,11 @@ out to be `Character` itself.
 - **`Character` is the person rung and says what it is.** Everything on
   it is true of every person; everything not true of a role is below it,
   and everything not true of a body is above it.
+- ⭐ **`Shade` and `WireBody` stop being twins.** What is left on each
+  is what actually differs about that body — not eight copies of the
+  same normalization.
+- **One value has one name.** No field is carried under three names by
+  three classes, and nothing overrides a getter to undo a copy.
 - **A refactor with no behaviour change, except the two defects it
   fixes** — the silent staging no-op and the affordances that move
   without disappearing.
@@ -401,6 +414,75 @@ stops being useful. Its five mixins compose directly where they belong.
 a narrowing), it stays and the finding is recorded — dissolving it is
 worth nothing on its own.
 
+### D11 — ⭐⭐ One `playerId`, not three
+
+`Avatar.playerId`, `Shade.shadePlayerId` and `WireBody.wirePlayerId`
+are one value under three names, two of them **persistent fields in
+their own right**. Each subclass then overrides `getPlayerId()` to
+return its copy and `getIdentityPath()` to rebuild the path from it.
+
+**One field. The two copies go, and the four overrides that exist only
+to normalize them go with it.** `mortality.md`'s own table already says
+identity is *the same path* across bodies — the triplication is the
+code disagreeing with the doc, not a design.
+
+⚠ The constructor contexts (`ShadeInitContext`, `WireBodyInitContext`)
+carry the copy in today, so the crossing and the death path both set it;
+both set `playerId` instead. **A wrong answer here is invisible and
+expensive** — the D17 lesson is that keying a person wrongly cost a
+shared bank account and a dead labour market, silently — so this is the
+one item in the build that gets a round-trip test through the store
+rather than a unit assertion.
+
+### D12 — One species slot, not three
+
+`shadeSpecies` and `wireSpecies` are the same object stashed by hand,
+twice. They collapse the same way. ⭐ The avatar-family slate already
+predicted this as a consequence of the death spec landing; it does not
+need the death spec — it is two private fields holding what the body
+plan already knows.
+
+### D13 — The estate's state joins its behaviour
+
+`EstateMixin` declares `static fieldMeta = {}` — **no fields at all** —
+while `Avatar` carries `escheatedAt` and `beneficiary` as class fields.
+The mixin holds the behaviour and the class holds the state, which is
+why neither reads as the owner of the concept.
+
+⚠ **Bounded against [estate-nesting-slate](../slates/builds/estate-nesting-slate.md)**,
+which is an unbuilt build about what an estate entry *carries*
+(reference vs copy vs capped copy). ⭐ Same boundary the sandbox build
+drew: **this changes where two fields live, never what a record
+contains.** If the build finds it cannot honour that line, it stops and
+files rather than reaching into the other slate's decision.
+
+### D14 — `enter()` is 210 lines and is decomposed
+
+Lines 901–1111 of one method, spanning the welcome payload, the loadout,
+presence, routing and the autosave arm. It is the method every new
+player goes through and the hardest thing in the file to review.
+Decomposed along the seams it already has internally — no behaviour
+change, and the drive's first step walks straight through it.
+
+### D15 — ⚠ What Stage D can NOT finish, and why
+
+`shouldPersist()` and `startAutoSave()` are overridden identically on
+both descendants, and they are the **only** two of the eight that are
+genuinely gated: retiring them wants the per-mixin capture allowlist
+(avatar-family Sequencing 5), which this build does not do.
+
+⭐ And `WireBody`'s half is already claimed — the sandbox overlay build
+retires it in W3, structurally, by giving the write nowhere to land but
+the circle's store. **So after this build and that one, `Shade` keeps
+exactly two overrides of the eight**, plus its four legitimate ones
+(`postRegister`, `getConferredMixinNames`, `mergeSlice_Embodiment`,
+`onDestruct`), and `WireBody` keeps its three legitimate ones
+(`announceSessionPresence`, `onLinkdead`, `postRegister`).
+
+That is the honest end state, stated now so nobody expects an empty
+subclass: **the two descendants stop being twins, and what is left of
+each is the thing that actually differs about it.**
+
 ## Lens pass
 
 1. **Pedagogy** — thin, honestly. The one real claim: the
@@ -485,6 +567,22 @@ content). Written before the code exists.
     aliases come back; her wounds do not.** The body/person sort holds
     across the one boundary that can test it.
 
+**The Avatar end** — ⚠ every step below is a check that something did
+NOT change, because D11–D14 are moves.
+
+13. **Ada:** as a shade, `score` → **the same player**, same chronicle,
+    same standing. Then through the wardrobe as a wire body → **still
+    the same player.** One `playerId` read three ways used to be three
+    fields; it must now read identically from all three bodies.
+14. ⚠ **The round trip that matters:** Ada banks money, dies, re-embodies,
+    and checks her balance → **it is hers.** Keying a person wrongly is
+    invisible until it is a shared bank account, so this is asserted
+    through the store and not in a unit test.
+15. **Fen:** confirm Ada's estate still escheats on the same clock — the
+    two fields moved hosts and nothing about the schedule changed.
+16. **A brand-new player** completes `embody` and arrives in the world
+    with their default loadout → `enter()` still does all of it.
+
 ## Acceptance criteria
 
 *Observable from outside the code.*
@@ -509,6 +607,10 @@ content). Written before the code exists.
   dispatches.
 - **`lint:identity` sees every character row**, including one with no
   `behaviors:` key.
+- **A player reads as the same person from all three bodies** — alive,
+  as a shade, and on the wire — and their money, chronicle and standing
+  follow them through death and back.
+- **A new player still arrives with their loadout**, unchanged.
 
 ## Cross-references
 
