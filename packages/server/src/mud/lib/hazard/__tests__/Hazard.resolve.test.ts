@@ -360,6 +360,49 @@ describe('HazardMixin — interact trigger + toxin dart', () => {
     // The dose lands straight on the burden (past digestion).
     expect((m as unknown as { toxinBurdens: Record<string, number> }).toxinBurdens.venom).toBe(5);
   });
+
+  it('⭐⭐ armor that turns the blow stops the venom — the dose rides the WOUND', async () => {
+    // The shipped step-dart's own prose says "a boot mitigates", and until
+    // 2026-09-30 it did not: the toxin landed unconditionally, so armor
+    // stopped the cut and the poison went through it anyway. The dose is
+    // now gated on `InflictOutcome.afflicted`. (The channel here is the
+    // one the plate actually turns — a point at this energy punches
+    // through steel plate, which is its own honest answer.)
+    const m = plainMover('/platform/agent/Avatar/hz-shod-dart');
+    const boot = makeStuff(() => new DemoBoot());
+    boot.setSlotClaim(bodyplanPath, ['feet']);
+    boot.setMaterial(demoSteel());
+    boot.setConstruction(Construction.of('plate'));
+    m.occupy(boot, 'feet');
+    const trap = makeTrap({
+      channel: 'edge',
+      energy: 2,
+      siteSelector: FEET,
+      toxin: { type: 'venom', amount: 5 },
+    });
+    await walkInto(m, trap);
+    expect(trap.getHazardState()).toBe('sprung'); // it still sprang
+    expect(wound(m)).toBeUndefined(); // the plate turned it
+    const burdens = (m as unknown as { toxinBurdens: Record<string, number> })
+      .toxinBurdens;
+    expect(burdens.venom ?? 0).toBe(0); // …and the dose never got in
+  });
+
+  it('a delivery whose site no body of the mover has injects nothing', async () => {
+    // `toInflictSpec` answers null when `resolveSite` finds no key the
+    // mover has; the old code skipped the wound and dosed anyway.
+    const m = plainMover('/platform/agent/Avatar/hz-siteless');
+    const trap = makeTrap({
+      channel: 'point',
+      energy: 1,
+      siteSelector: ['body.wing.left'],
+      toxin: { type: 'venom', amount: 5 },
+    });
+    await walkInto(m, trap);
+    const burdens = (m as unknown as { toxinBurdens: Record<string, number> })
+      .toxinBurdens;
+    expect(burdens.venom ?? 0).toBe(0);
+  });
 });
 
 describe('disarm — found-gated', () => {
