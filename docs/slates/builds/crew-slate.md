@@ -639,6 +639,56 @@ authoring layer, plain words in the fiction.
   and [employment.md](../../subsystems/employment.md), so it is a small sweep
   and it is cheapest bundled with the rewrite that is coming anyway.
 
+## ⛔ The board unification — CUT from the build, kept as the grain
+
+Cut at plan grounding, 2026-09-30, after the code survey priced it. The
+direction stands; the field does not ship.
+
+**What grounding found.** `GigSpec` is
+`{boardPath, condition, rewardMinor, claimMode, asBusiness?, expiresGameHours?, originPath?}`
+— **no assignee** — and `ContractRecord.claimant` fills only when somebody
+calls `claim()`. ⚠ That is an **invariant, not an omission**: *every actor
+(poster, claimer, presenter, completer) is context-derived, never
+caller-supplied*, for attribution.
+
+**Why it was cut** — the seven-lens pass, run on the question alone:
+
+| lens | verdict |
+|---|---|
+| **2** Expression | ⛔ **against** — [#93](../../lenses/93-the-nameless-quality.md): *does the substrate impose properties nobody asked for?* An addressee on **every** contract record, for one unbuilt consumer |
+| **6** Economy | ⛔ **against** — [#30](../../lenses/30-emergence.md)'s *add a consumer, derive the producers*: there is no consumer, and the demand test fails |
+| ⭐⭐ **7** Governance | ⛔ **decisive** — an addressed assignment decides *you specifically must do this*, and **nothing anywhere can refuse one**. A criterion with no appeal, which is the exact failure lens 7 was carved out of lens 6 to catch |
+| **5** Continuity | ○ mildly **for** — dispatch from a whistle to an aether alert wants one mechanism. ⚠ But lens 5 *inherits lens 2's* verdict, and lens 2 is against |
+| **1** Pedagogy | ○ neutral |
+
+**And the cost was not only a field.** `ContractRecord` carries escrow and an
+append-only `contract_events` chain — money-adjacent code, in a behaviour
+build.
+
+### ⭐ Kept as the grain, with the attach point named
+
+Per [design-lenses](../../design-lenses.md) § *every answer has an altitude*:
+**the grain binds nothing, but the substrate is *for* this.** So it is
+recorded rather than built:
+
+- **The substrate IS for boss-chooses assignment.** The engine has the
+  worker-chooses answer (`job post` / `job claim` / escrow; haulage's
+  dispatcher and carter already coordinate by claiming) and no
+  boss-chooses one. ⭐ *Push versus pull collapses when the claimer is an
+  AI, because the claim happens in the same tick as the posting.*
+- **The attach point, so nothing has to be re-derived:** `claimMode`
+  (today `exclusive | open-bounty`) gains an **addressed** member — a
+  vocabulary extension, not a new concept — and the resolver already takes
+  a **handed-in candidate set**, so an addressed posting needs no change
+  there at all.
+- ⚠⚠ **And whoever builds it owes lens 7 an answer first:** *can the
+  addressee refuse, on what criterion, and what is the appeal?* That
+  question is the reason this is not in the coordination build, and it is
+  not a detail — it is the difference between an assignment and an order.
+- ⚠ **The divergence risk to watch:** the call policy must not grow its own
+  private assignment notion that later has to be reconciled with the board.
+  If a second routing mechanism appears, that is the tell.
+
 ## Cross-references
 
 - [party.md](../../subsystems/party.md) — the crew standup, already deferred there

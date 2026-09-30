@@ -28,6 +28,21 @@ hand — not by choice but because nothing supports a second. This is what lets
 a **firm** exist instead of a sole trader, and it is what makes a job a
 player takes a job they hold *alongside people*.
 
+⭐⭐⭐ **And the deck already named why that matters**
+([#86](../lenses/86-character-function.md), belonging to lenses 3b and 6):
+
+> **Every NPC doing two jobs is a vacancy we deleted.** When one NPC holds
+> more than one seat: does the economy justify one person doing both, or was
+> it cheaper to author?
+
+Three people in this realm hold two seats each and thirty-four employers hold
+one person. ⚠ **Those are not efficient NPCs; they are deleted jobs** — and
+lens 3b's whole mechanism is *NPC/player interchangeability at the position
+level*, where **every NPC-held seat is a standing vacancy, visible and
+takeable, and replacement is legible**. Today that is claimed and broken: a
+player who takes a seat takes **every** order by path-sort, so replacement is
+not legible, it is total. **This build is what makes the claim true.**
+
 Seeds: [brain-substrate-slate](../slates/builds/brain-substrate-slate.md)
 (the arbiter) · [crew-slate](../slates/builds/crew-slate.md) (the call) ·
 [daves-bar-slate](../slates/builds/daves-bar-slate.md) and
@@ -198,6 +213,20 @@ authored overlap that any of it happens with no player in the room.
   the one wolf stands alone, the sentry is a singleton. A consumer-less half
   pays the full verification bill for nothing. →
   [crew-slate](../slates/builds/crew-slate.md).
+- ⛔ **The board unification — an assignment posted to a named agent.** ⚠
+  **Cut at plan grounding, 2026-09-30.** `GigSpec` has no assignee field and
+  `ContractRecord.claimant` fills only on `claim()`, because *every actor is
+  context-derived, never caller-supplied* — an attribution invariant, not an
+  omission. Nothing in this build consumes an assignment (the call resolves
+  `order` synchronously), so it would ship exercised only by a unit test,
+  over money-adjacent code carrying escrow and an append-only event chain.
+  ⭐⭐ **Lens 7 decided it:** an addressed assignment decides *you
+  specifically must do this*, and there is no concept anywhere of refusing
+  one — a criterion with no appeal, which is the failure that lens was carved
+  out to catch. ⭐ Kept as **the grain** rather than the code: the substrate
+  *is* for boss-chooses assignment, the attach point is recorded
+  (`claimMode` gains an addressed member; the resolver already takes a
+  handed-in candidate set), and no field ships. → crew-slate.
 - **Dispatch, the turnout, the hue and cry.** The substrate stops blocking
   them (the resolver is handed its candidates, so out-of-reach is the
   caller's question) but **no caller is built** — there is no constable brain
@@ -430,19 +459,6 @@ hardcoded acoustic reach. ⚠ But shipping a `reach` enum with one live value
 is the vacuous-gate failure this project keeps paying for. Handing in the set
 invents nothing and lets a station or a whistle supply a different one later.
 
-### Assignment is a job posted to a named agent
-
-**Q.** Push or pull?
-
-**A.** Both, over the shipped board. NPCs become claimants; **assignment is a
-posting addressed to one agent.**
-
-**Why.** ⭐ The board already exists and haulage already coordinates by
-claiming off it — the engine has the worker-chooses answer and no
-boss-chooses answer, and this is the boss-chooses limb. Push versus pull
-collapses when the claimer is an AI, because the claim happens in the same
-tick as the posting.
-
 ### The bar's three one-shots come under the ladder
 
 **Why.** The ladder's rule is that the *shorthand* is earned and the
@@ -524,52 +540,127 @@ the labour line lie.
 
 ## Lens pass
 
+⚠ Run against the **seven** lenses (lens 7 Governance was carved out of 6 on
+2026-09-28; lens 3 split into 3a/3b; lens 5 became Continuity and inherits
+lens 2's veto). ⭐ Each entry names its **altitude** — *invariant* (binds
+every game built here) · *the grain* (binds nothing, but the substrate is for
+it) · *this title* — because *"a pass that omits the grain is worse than one
+that mis-levels."*
+
 **1 · Pedagogy.** Exercises `mixology` / `bartending` (whose split this
-earns), `recipe-knowledge`, and `appraisal`. ⭐ What it teaches is **how a
-workplace decides, and that skill is what you can do rather than a number
-beside your name** — and both are derivable: knowing the staff tells you who
-can serve you what, and why one of them came over. Nothing rolls, anywhere.
+earns), `recipe-knowledge`, and `appraisal`. What it teaches is **how a
+workplace decides**, and that **skill is what you can do rather than a number
+beside your name** — both derivable: knowing the staff tells you who can
+serve you what, and knowing what each is doing tells you who will come over.
+⭐ Sharpened by **#33 Rules** (*rules are discoverable, never memorized — we
+derive the explanation from the rule*): the refusal **is** the rule stated —
+*"Sloane doesn't know that one; Remy does."* And by **#28 The State Machine**
+(*the machine is a teaching surface, not an audit trail*): the switch-prose
+exposes the arbiter's state **as an act**, which is the teaching surface
+without the readout. Nothing rolls, anywhere. **Altitude: invariant** —
+derivability and no-resolution-rolls are doctrine.
 
 **2 · Creative expression.** The ordinary case is one authored word (a
-house's rule) plus a readable brain palette; knowledge needs no authored
-tables. The bespoke case is a rule the vocabulary lacks — the signal to add
-an entry, not write a class. ⭐ The real win is that behaviour stops being
-*enumerated* (stack timers) and becomes *composed* (declare tasks; the
-arbiter picks). ⚠ Two gaps, both real: 97 `difficulty` values must be
-re-read, and 38 brains each owe a switch-sentence — which is where this
-design most easily becomes repetitive.
+house's rule) over a readable palette, with **zero authored knowledge
+tables**. ⭐⭐⭐ Sharpened by **#30 Emergence**'s prohibition — *objects per
+verb, never more verbs; the ban on enumeration* — and that is precisely this
+build's core move: **behaviour stops being enumerated (stack N timers) and
+becomes composed (declare tasks; the arbiter picks).** ⭐⭐ And by **#28**'s
+provenance rule — *an attribute has a provenance: authored · stamped ·
+derived* — which the **seeded-vs-lived deed marker** is exactly, and which
+the urgency band obeys by being derived and never authorable. ⚠ **#93** (*does
+the substrate impose properties nobody asked for*) is what cut the board
+addressee. **Two honest gaps:** 98 `difficulty` values must be re-read (18
+already carry a word the engine silently ignores), and **38 brains each owe a
+switch-sentence** — where this design most easily becomes repetitive.
+**Altitude: the call vocabulary and the house's choice are the grain; the
+no-authored-tables rule is invariant.**
 
-**3 · Immersion.** The single biggest gain. An NPC that can be interrupted by
-something important, that says why it changed what it was doing, and that
-does not know your drink and admits it, is a person; timers that cannot be
-interrupted, silent perfect service, and a wipe-the-bar-while-the-room-burns
-are machinery. No gauge is added — every output is a sentence.
+**3a · Immersion — the fiction cannot betray itself.** Today it does, three
+times: the tip jar sits *"by the register"* and there is no register; the
+office wall says *"whoever picks up the next one earns the next nail"* and
+there is no seat; and a bartender silently makes a perfect drink they never
+learned. ⭐ Sharpened by **#93**'s *not-separateness*: an NPC that can be
+interrupted, that says why it changed what it was doing, and that admits it
+does not know your drink, is not separate from the world it stands in. No
+gauge is added — **every output is a sentence.** **Altitude: invariant** (the
+no-gauge rule).
+
+**3b · Participation — ⭐⭐⭐ the lens this build IS.**
+
+> *"The mechanism is **NPC/player interchangeability at the position
+> level**… every NPC-held seat is a **standing vacancy**, visible and
+> takeable; and replacement is **legible** — somebody took that job, and the
+> town notices."*
+
+⚠ **Today that is claimed and broken.** A player who takes a seat takes
+*every* order, so replacement is not legible, it is total — and thirty-four
+one-person employers plus three double-hatted people are vacancies the
+content deleted because the substrate could not hold two. ⭐ And the build
+answers **#86**'s two explicitly-open tensions: *"an NPC seat-holder's
+competence is an **unset dial** — good enough that the world works, not so
+good that displacing them is theoretical"* (the band-versus-difficulty
+derivation **is** that dial) and *"**displacement has no stated answer**"* (a
+player joining a crew and sharing the work is the answer). ⚠ **The gap this
+lens still leaves open:** its failure list includes *a seat with no
+consequence for leaving it unfilled*, and after this build an unfilled seat
+is visible to an **author** (the menu-versus-staff lint) but still has no
+in-world consequence. Named, not closed. **Altitude: invariant** —
+interchangeability is the platform's claim, not a preference.
 
 **4 · Values.** The choice forced is **learn the thing, or hand it to
-somebody who has** — and, for a house, *who do we call and why*. Standing is
-conferred by what you can demonstrably do and by the house that hired you.
-⚠ Honest cost: a new hire is worse than the NPC beside them and the game will
-say so.
+somebody who has** — and, for a house, *who do we call and why*. ⭐ Sharpened
+by **#55 Visible Progress**'s *ambient versus visible*: **regulars are
+ambient progress** — nothing announces it, no counter moves, you simply
+notice that Remy is the one who comes over. That is the anti-gauge form of
+"you are getting somewhere." **#46 Reward**: no reward schedule is introduced
+at all. ⚠ Honest cost: a new hire is **worse** than the NPC beside them and
+the game will say so. **Altitude: the grain** — the platform is for worlds
+where competence is earned rather than granted.
 
-**5 · Epochs.** *Who acts, and can they* is epoch-invariant — a rail, a
-brigade, a ward round, a gun crew. ⭐ The reach axis the police case exposed
-is deliberately **not** parameterized, so the medieval and radio-era forms
-stay one object with a different candidate set rather than two mechanisms.
+**5 · Continuity.** ⭐ *"If I have already learned how to build Excalibur, I
+do not have to learn a new thing to build a lightsaber."* Applied: an author
+who has learned to author a rail's call has learned to author a watch's,
+because **the reach axis is deliberately not parameterized** — the medieval
+and radio-era forms are one object handed a different candidate set. And the
+urgency band is **unit-free by construction**, so an epoch changes the
+quantities and never the comparison. Since this is lens 2's time axis, its
+verdict is lens 2's: the promise compounds rather than resets.
 
 **6 · Economy.** **Produces** honest labour allocation, a reason for training
-to exist, and — via `produces`/`consumes` on tasks — the first computable
-answer to *who makes what in this town*. **Consumes** the time of whoever is
-not yet good enough, and of a senior who is counting stock. **Who pays:** the
+to exist, and — via `produces`/`consumes` on tasks — the **first computable
+answer to *who makes what in this town***. ⭐⭐⭐ Sharpened by **#30**'s
+generator — *the chain walk: add a consumer, derive the producers* — which is
+**impossible today** because supply is buried in 38 imperative functions;
+these declarations are what make the walk possible at all, and they are why
+`vocations.md` stops being maintained by hand. **#27 Time**: the currency
+every other is priced in — the senior's count, the newcomer's refusals.
+**Consumes** the time of whoever is not yet good enough. **Who pays:** the
 house, in a slower rail; the newcomer, in refusals. **Was the demand there
-first:** yes, four times — a documented exemption (*never knowledge-gated*),
+first:** four times over — a documented exemption (*never knowledge-gated*),
 a documented defect (*credited with a trade they do not practise*), four
-authored `headcount` seats, and 47 competence dossiers nothing reads. ⭐⭐
-**Who can be wronged, and can they answer:** three decisions judge a person —
-*can you make this*, *who gets called*, and *who is your regular*. Each names
-its criterion, each refusal states it, the appeal is doing the thing, and
-**the capability gate is symmetric between players and NPCs**, which is what
-makes it a criterion rather than a handicap. ⚠ And the vocations register
-stops being maintained by hand.
+authored `headcount` seats, and 47 competence dossiers nothing reads. ⭐ **#7
+Endogenous Value**'s roulette test passes: the deed gates a service, it is
+never a currency the game needs you to want.
+
+**7 · Governance.** Three decisions judge a person, each with its criterion,
+its refusal and its appeal named:
+
+| decides | criterion | refusal says | appeal | tier |
+|---|---|---|---|---|
+| **can you make this** | your band in the recipe's discipline vs its `difficulty` | what you have not learned | ⭐ build it by hand once | **B** |
+| **who gets called** | the house's authored rule, then urgency | who could instead | do the thing that raises your band; be free when asked | **B** (the vocabulary) · the author (the choice) |
+| **who is your regular** | your own history with that person | nothing — nothing is withheld | n/a | derived, unamendable by design |
+
+⭐⭐ **The capability gate is symmetric between players and NPCs**, which is
+what makes it a criterion rather than a handicap. ⚠ And the checked failure:
+*a bare count used as a permanent gate over an append-only record, which can
+only ever rise.* The Transcript **is** append-only and the band derives from
+it — but the gate opens as the count rises and never closes, so it runs the
+benign direction. ⚠⚠ **The one real exposure:** if an author *raises* a
+recipe's `difficulty`, somebody who could make it silently cannot any more,
+with no notice and no appeal but re-earning. That is a capability removal by
+content edit, and the menu-versus-staff lint is what must catch it.
 
 ---
 
