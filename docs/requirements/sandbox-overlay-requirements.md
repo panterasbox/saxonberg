@@ -20,6 +20,17 @@ room answers you in engine prose:
 > `'/home/xyz' — this collection holds field-real state that a sandbox`
 > `session may not mutate.`
 
+⚠ **And that is only one of the two voices.** The forum and chat
+catalogues deny *in memory, before the store is ever consulted* — a
+`SecurityApi.assertFieldMutation` gate at the top of every create,
+rename and delete — so `forum make` actually answers *"sandbox boundary
+denied makeSubject: this mutation writes field-visible shared state and
+may not run from circle scope /home/xyz"*. Two refusal mechanisms, two
+non-fiction sentences, one doctrine. **Giving the store a place for the
+write to land does nothing a player can see until the gate in front of
+it is scope-aware too** — verified at
+`SubjectCatalogue.ts:157,217,354,375` and `ChannelCatalogue.ts:499-693`.
+
 This build gives the sandbox a **copy-on-write store** so those writes can
 land somewhere that is discarded at the door, moves the nine collections
 that need nothing harder onto it, puts the player's own body snapshot
@@ -76,7 +87,12 @@ of the read-through mode the mutable registries will need.
 
 - A player can **form a durable party, hold a forum thread, open a
   channel and post a job inside their circle**, and none of it exists
-  in the world when they walk out.
+  in the world when they walk out. ⭐ For the forum and chat families
+  that means the **catalogue in front of the store partitions by
+  scope** as well — the store alone is not the capability.
+- ⚠ And a body inside a circle still resolves **the world's** channels,
+  so comms stay seamless across the boundary; the partition adds a
+  scope, it does not blind the circle.
 - A circle that a player re-enters is **fresh** — last visit's party,
   forum and channel are gone, exactly as its clutter already is.
 - The player's own body record is protected **structurally** rather than
@@ -207,9 +223,16 @@ be worse, not better. So the read is a plain scoped read over a copy that
 begins empty, and nothing hard is required — no identity key, no
 aggregation, no delete representation.
 
-`holder_snapshots` is the exception that proves it: its copy is not empty
-but it is **O(1)** — the row set is *your* snapshot, and the park capture
-already writes it at the crossing.
+⚠ **`holder_snapshots` starts empty too** — corrected at plan time, and
+the correction matters. Seeding the circle with your real snapshot row
+would have the wire body `materialize` it on registration: your real
+inventory, chattel stamps and all, minted inside the circle. That is
+exactly what the seeding aperture strips and what the fork allowlist
+forbids (*material slices have no merge path*). So the vessel's own
+first capture writes the one scoped row, the park capture stays where
+it is and is **not** part of the copy, and what a player sees inside the
+circle is what they see today. Every claim below still holds; *"copy"*
+means copy-on-**write** over an empty base.
 
 **Staying refused** until read-through lands: `parcels` ·
 `parcel_events` · `chattel` · `chattel_events` · `groups` ·
@@ -292,7 +315,13 @@ current experiences collapse to one:
 |---|---|
 | `Something went wrong in …/PartyController: PersistenceManager: save on 'parties' refused…` | one in-fiction line |
 | the same engine sentence printed as a plain result line | the same in-fiction line |
+| ⚠ `sandbox boundary denied makeSubject: this mutation writes field-visible shared state…` — **the second voice**, thrown in memory by `assertFieldMutation` before the store is reached | the same in-fiction line |
 | silence (`void followCustody()`, the `producer_events` tap) | the same in-fiction line, or an author diagnostic where no player is present |
+
+⭐ That there were **two** refusal mechanisms and not one is why this is
+a single catch by TYPE rather than a sweep of call sites: the two must
+converge on one sentence, or the build has traded three inconsistent
+voices for two.
 
 ⭐ It says *what the circle is*, not what a collection is: the wire cannot
 hold real title, and the act would have worked outside. **The refusal is
@@ -388,12 +417,25 @@ the world never saw any of it). Ada starts in a bedroom with a wardrobe.
 2. **Ada:** `party form rehearsal --durable` → the party forms. **Today
    this prints `Something went wrong in …/PartyController:
    PersistenceManager: save on 'parties' refused…`**
-3. **Ada:** `forum make "Trial by combat"`, then `forum post` a thesis,
-   `forum reply` to it, and `forum vote 1 up` → each succeeds. Today the
-   first three print the raw `PersistenceManager:` sentence as a game
-   line, *after* the compose prompt has taken her whole post.
-4. **Ada:** `chat make rehearsal-chan` then `chat rehearsal-chan hello`
-   → the channel exists and carries the line.
+3. **Ada:** `forum make "Trial by combat" --open`, then `forum post` a
+   thesis, `forum reply` to it, and `forum vote 1 up` → each succeeds.
+   Today the first three refuse, *after* the compose prompt has taken
+   her whole post.
+   ⚠ **`--open` is load-bearing and was corrected at plan time.** The
+   **curated** form mints a backing `groups` row
+   (`SubjectCatalogue.ts:189`, skipped only when `opts.open`), and
+   `groups` stays refused this cycle — it needs read-through, because a
+   circle that cannot see the world's groups cannot see its own owner.
+   So the curated forms move to step 13's sweep, where they must refuse
+   **in fiction and before anything is half-made** (the group is minted
+   before the subject row, so a half-made subject is the failure mode
+   to watch for).
+4. **Ada:** `subject make rehearsal-chan --open` then
+   `chat on rehearsal-chan`, then `chat rehearsal-chan hello` → the
+   channel exists and carries the line. (`chat make` is the curated
+   path and mints a group; same reason, same sweep.)
+   ⭐ **And Bo's world channels still resolve for Ada from inside** —
+   the partition adds a scope, it does not blind the circle.
 5. **Ada:** `job post` a small contract → it posts.
 6. **Bo** (in the world, never in a circle): `forum list` / `party list` /
    `chat list` → **none of Ada's exist.** This is the A14 check and it is
