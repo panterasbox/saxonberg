@@ -30,6 +30,11 @@ the audit table) · [spoilage.md](../../subsystems/spoilage.md) ·
 [measurement.md](../../measurement.md) (A3, A16) ·
 [lint-family.md](../../lint-family.md) (census-then-ratchet)
 
+✅ **The four subsystem docs carry the finding as of 2026-09-30** —
+`spoilage` (both gauges sample, and the chain is two deep), `thermal` (the
+step problem and the one-field cure), `maturation` (the longest horizon),
+`husbandry` (`Growing`'s start-rectangle, and read the intent first).
+
 ## The three ⛔ gauges, and why each is a different urgency
 
 | gauge | horizon | what breaks |
