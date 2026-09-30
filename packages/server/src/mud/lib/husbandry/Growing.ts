@@ -156,6 +156,19 @@ export interface GrowthProfileData {
    * preservation slate's spoilage).
    */
   fruitFillDays?: number;
+  /**
+   * The fraction of {@link fruitSetCount} this plant reaches with NO
+   * pollinator — `1` when absent, which is wind- or self-pollinated and
+   * byte-identical to every row that shipped before pollination existed.
+   * An insect-pollinated crop authors `0.5`: half a crop on its own, a
+   * full one when something works the bloom.
+   *
+   * ⭐ Authors author the CAUSE (what pollinates this plant), never the
+   * effect. Nothing on the plant asks who pollinated it — a pollinator
+   * pushes through {@link Growing.pollinate}, so the plant never has to
+   * know the bees exist.
+   */
+  pollinationBaseline?: number;
 }
 
 const SECONDS_PER_GAME_DAY = 86_400;
@@ -307,6 +320,19 @@ export interface Growing {
   /** The authored reaction norm (null until authored). */
   getProfile(): GrowthProfileData | null;
   setProfile(value: GrowthProfileData | null): void;
+  /**
+   * Raise the share of the set crop that got pollinated by `share`,
+   * clamped into `[baseline, 1]`. A no-op outside the fill window (not
+   * flowering, no set, or already ripe) — so a pollinator may push
+   * blindly and the plant decides whether it lands.
+   */
+  pollinate(share: number): void;
+  /**
+   * How many fruits this plant's ripe pick mints: the count LATCHED at
+   * the set, scaled by how much of it was pollinated. A plant persisted
+   * before the latch existed reads its profile, exactly as before.
+   */
+  getFruitSetCount(): number;
 
   // Public so the Hydrator can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
@@ -319,6 +345,8 @@ export interface Growing {
   _lastLux: number;
   _worstLimiting: number;
   _fruitFill: number;
+  _fruitSetCount: number;
+  _pollination: number;
   profile: GrowthProfileData | null;
 }
 
@@ -414,6 +442,8 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       _lastAmbientK: { persistent: true, runtimeState: true },
       _worstLimiting: { persistent: true },
       _fruitFill: { persistent: true },
+      _fruitSetCount: { persistent: true },
+      _pollination: { persistent: true },
       profile: { persistent: true },
       // ⭐ Moved off the `Plant` CLASS. `harvest` and `repot` used to
       // narrow with `instanceof Plant` while their specs declared
@@ -474,6 +504,19 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * 1. Always 0 for a monocarp.
      */
     public _fruitFill = 0;
+    /**
+     * The set count LATCHED at the set moment, or 0 when nothing has set
+     * (which is also how a plant persisted before this field existed
+     * reads — {@link Growing.getFruitSetCount} falls back to the
+     * profile, so the old behaviour is the zero case).
+     */
+    public _fruitSetCount = 0;
+    /**
+     * The fraction of the set crop that got pollinated, `[baseline, 1]`.
+     * Seeded from the profile's baseline at the set and raised by
+     * {@link Growing.pollinate}; never falls.
+     */
+    public _pollination = 1;
     /** The authored reaction norm (see {@link GrowthProfileData}). */
     public profile: GrowthProfileData | null = null;
 
@@ -541,10 +584,50 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       return clamp01(this._fruitFill);
     }
 
+    /**
+     * A pollinator's push. Sync and additive: the caller scales `share`
+     * by its own elapsed window, so a hive that reconciles a game-week
+     * pushes a week's worth once rather than nudging on a timer.
+     *
+     * The window is the only gate — flowering, set, and not yet ripe.
+     * Nothing here asks WHO pollinated: the direction of the call is the
+     * whole coupling, which is why a crop can be pollinated on land its
+     * grower does not own by bees they do not keep.
+     */
+    public pollinate(share: number): void {
+      if (!this._reconcilingGrowth) this.reconcileGrowth();
+      if (!this._flowering || !this._seedSet) return;
+      if (this._fruitFill >= 1) return;
+      if (!(share > 0)) return;
+      this._pollination = clamp01(this._pollination + share);
+    }
+
+    /**
+     * The fruits a ripe pick mints. Reads the LATCHED count scaled by
+     * pollination, and falls back to the profile when nothing has been
+     * latched — which is exactly how every plant persisted before the
+     * latch existed behaves, and how a monocarp (no set count) reads.
+     */
+    public getFruitSetCount(): number {
+      if (!this._reconcilingGrowth) this.reconcileGrowth();
+      if (this._fruitSetCount > 0) {
+        return Math.max(
+          1,
+          Math.floor(this._fruitSetCount * clamp01(this._pollination)),
+        );
+      }
+      return Math.max(1, Math.floor(this.profile?.fruitSetCount ?? 1));
+    }
+
     public settleCycle(): void {
       this._fruitFill = 0;
       this._seedSet = false;
       this._flowering = false;
+      // The episode is over, so its set count goes with it — the next
+      // set latches its own, and `getFruitSetCount` reads the profile in
+      // between.
+      this._fruitSetCount = 0;
+      this._pollination = 1;
     }
 
     /*
@@ -1093,6 +1176,16 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
             // crop is its one life.
             this._fruitFill = 0;
             this._worstLimiting = 1;
+            // ⭐ THE SET MOMENT. The count is latched here rather than
+            // re-read at the pick, because what got set is a fact about
+            // this episode and the pick happens weeks later. The
+            // pollination fraction starts at whatever the plant manages
+            // alone; anything working the bloom raises it while the
+            // window is open.
+            this._fruitSetCount = Math.floor(this.profile?.fruitSetCount ?? 0);
+            this._pollination = clamp01(
+              this.profile?.pollinationBaseline ?? 1,
+            );
           } else {
             this.onFloweringLatched();
           }
@@ -1133,6 +1226,8 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       this._flowering = false;
       this._seedSet = false;
       this._fruitFill = 0; // death zeroes the cycle — nothing to pick
+      this._fruitSetCount = 0;
+      this._pollination = 1;
       const self = this as unknown as Stuff;
       if (MixinApi.isOrganism(self)) self.setLifecycleState('dead');
     }
