@@ -481,3 +481,231 @@ class shuffling is last.
    cockpit surface needs an Api.
 6. **Does `through` need tombstones, or is delete-in-circle simply
    refused?** The cheaper answer may be good enough for a test bed.
+
+---
+
+## ⭐⭐ Measured 2026-09-30 — the survey behind the layering requirements
+
+Four full-tree surveys, taken at `89c75417c` for
+[agent-branch-layering-requirements](../../requirements/agent-branch-layering-requirements.md).
+**Several correct this slate.** Re-take them if this sits.
+
+### ⛔⛔ `su` DOES NOT EXIST — and it is half of this slate's method
+
+The spine sorts state with two questions: **`su`** (*what follows the
+human?* → driver) and **death** (*what comes back?* → identity vs body).
+
+**There is no `su`.** No command view, no controller; nine plausible
+synonyms checked (`become`, `possess`, `puppet`, `assume`, `inhabit`,
+`impersonate`, `takeover`, `control`). Every `transferTo` call site in
+the tree is `Login`, `embody`, death-into-shade, or the sandbox
+crossing — all of which move **your own** sockets between **your own**
+bodies. Nothing takes a player id that is not yours.
+
+⭐⭐ **Consequence: the driver/identity line is not observable.** Death
+discriminates identity from body and is shipped. Nothing discriminates
+driver from identity, because one human is one account is one person —
+both buckets "follow the human" and no behaviour can tell them apart.
+The three-way sort is **a two-way sort plus a prediction about an
+unbuilt verb**, and the survey already disagrees with this slate about
+`Author`'s bucket with no way to settle it.
+
+⭐ **The one shipped probe:** a **guest** is driver-without-identity —
+`Avatar.isGuest` → `shouldPersist() → false`, a live socket with no
+account to write to. Weaker than `su` (it separates *has an account*
+from *is driving*), but it can fail.
+
+**Decided for the layering build:** sort on **body vs person** (the line
+death tests), leave the finer line written down here.
+
+### ⚠ Correction — only `Contacts` round-trips, from anywhere
+
+This slate's Part 2 says *"an alias made in a circle **does** come back
+today."* **It does not.**
+`SandboxLogic.ts:90` — `EPISTEMIC_MERGE_ALLOWLIST = ['Contacts']`, one
+entry. `Alias`, `Environment` and `ClientState` all declare
+`mergeSlice_` methods that **nothing consumes**. So *"ghost driver state
+does not round-trip"* is not an anomaly to fix — **nothing else
+round-trips either**, from a circle or from death.
+
+⚠ And the mint-only material slices are **four**, not three:
+`MATERIAL_FORK_SLICES = ['Vitals','Trauma','CauseOfDeath','Anatomy']`
+(`Vitals.ts:144-149`). `Vitals` is the one this slate's Part 3 misses.
+
+### The fork-slice census, complete
+
+| slice | declared on | reachable back? |
+|---|---|---|
+| `Contacts` | `lib/social/Contacts.ts:144,148` | ✅ **the only one** |
+| `Alias` | `lib/shell/Alias.ts:212,217` | ⛔ not allowlisted |
+| `Environment` | `lib/shell/Environment.ts:274,279` | ⛔ |
+| `ClientState` | `lib/connection/HasInteractive.ts:739,748` | ⛔ |
+| `Presentation` | **`Avatar.ts:1590,1631`** — not on `Named` | ⛔ |
+| `Embodiment` | **`Avatar.ts:1613,1622`**; `Shade.ts:144` overrides merge | ⛔ |
+| `Vitals`/`Trauma`/`CauseOfDeath`/`Anatomy` | `lib/vitals/Vitals.ts:1127+` | mint-only by construction |
+
+⚠ The two slices that most look like mixin state — `Presentation` and
+`Embodiment` — are **not mixin-owned**; they are hand-written on
+`Avatar`, and `forkSlice_Presentation` copies four scalar name fields
+while **skipping `alternateNames`**.
+
+### `HasInteractive` — SIX concerns, and the cockpit is ~620 lines
+
+This slate names three. There are six: **connection set** (~53 lines),
+**client state**, **cockpit**, plus **presence** (`presenceStatus`),
+**residency** (`canEvict`), **identity** (`getPortraitUrl`), **spatial**
+(`refreshDisplays`), the **sandbox slices**, and a **verb surface**
+(`static commandContributions`, the whole `cockpit` tree).
+
+⚠⚠ **The "~200 lines of cockpit" counts only the methods** (860–1062 =
+203). It misses **~415 lines of `clientStateSchema`** (267–681) — fifteen
+entries of pure cockpit vocabulary. **True cockpit mass: ~620 of 1,168.**
+
+**Coupling: `COCKPIT → CS → CONN`, with ZERO edges back** from either
+lower layer — except one. Call sites: cockpit **24 production**, 20 of
+them in three controller files plus `Avatar.enter`; CONN ~45 production
++ ~65 test + one content site (`Realtor.ts:153`); CS 14 reads / 16
+writes, of which 11 and 14 are cockpit controllers.
+
+**The hazards, in order of how silently they bite:**
+
+1. ⚠⚠ **Fork-slice discovery is PREFIX REFLECTION**, not registration
+   (`Forkable.ts:39-40` walks the prototype chain for `forkSlice_`).
+   Move the pair to a mixin some host does not compose and it stops
+   firing **with no compile error** — losing exactly the
+   preferences-across-the-boundary behaviour it was written to fix.
+2. ⚠ **`snapshotClientState` :1140/:1144 is the one CS→COCKPIT
+   back-edge** — the generic snapshot hard-codes `cockpit.mode` and
+   `cockpit.arrangements`. Break it and the split is acyclic; leave it
+   and the two halves are a cycle. Pinned by
+   `cockpit-mode-migration.test.ts:112`.
+3. ⚠ **`_mixinName` is load-bearing as a STRING** — `PresenceLogic.ts:40`
+   gates `FromMixin('HasInteractiveMixin', …)`, and
+   `MixinApi.isHasInteractive` narrows to the **whole** interface at ~70
+   sites. Whichever half loses the name costs 70 re-typings.
+4. ⚠ **Splitting changes `Login`'s verb set.** `commandContributions`
+   (:683-699) ships the cockpit tree from the CONN mixin; `Login`
+   composes it and its own comment calls the extra verb *"harmless"*.
+   A behaviour change wearing a refactor's clothes.
+5. ⚠ **`Display` writes cockpit state from a world object**
+   (`Display.ts:345-355, 382-387` write `cockpit.watch` and push it), so
+   *"the cockpit is not a driver"* is complicated: a screen in a room
+   drives it. `display.md:273` codifies the arrival hook.
+6. ⚠ **`CommandGiver.ts:688` reads `cockpit.inputModes` in dispatch** —
+   the cockpit keyspace is load-bearing in the command spine, not only
+   the renderer.
+7. ⚠ **The push channel is NOT schema-bounded** — `NotifyController:232`
+   pushes `social.rules` and `SettingsController:159` pushes
+   `shell.result`, neither a `clientStateSchema` entry. Any design
+   assuming push keys ⊆ schema keys is wrong today.
+8. ⚠ `cockpit-mode-gates-nothing.test.ts:73` **hard-codes the file
+   path** in an allowlist whose comment says editing it is *"a design
+   decision, not a lint fix."*
+9. `clearInteractives()` and `savedArrangementsFor()` have **zero
+   external callers** — two public members the split carries for nothing.
+
+### The mixin sort — what is shared and what is furniture
+
+**24 of the 33 mixins on the player stack have exactly ONE composer.**
+Only `PostRegistration` (n=75) and `Persistable` (n=17) are real shared
+substrate. Seven have exactly one non-player second composer (`Named`
+→ `Cast`/`KeptAnimal`; `HasInteractive`/`CommandGiver` → `Login`;
+`PartyMember` → `Mercenary`; `Hauler` → `DraftAnimal`;
+`Status`/`BeliefStore` → `KeptAnimal`).
+
+⭐ **`ShelledCharacter`'s five are ALL n=1** — 46 lines, empty class
+body, one consumer. The single most movable unit in the stack.
+
+⚠ **Eight mixins hold no state at all**: `Forkable`, `PostRegistration`,
+`Author`, `Advancement`, `Dispositioned`, `Soul`, `Vocal`, `Perceiver`.
+`Advancement` (637 lines) and `BeliefStore` (799) are the two largest
+IDENTITY mixins and **both hold zero persistent host state** — Documents
+keyed on `getIdentityPath()`. That is *why* identity survives a new body
+"with no carrying mechanism at all".
+
+⚠ **`Author` is bucketed DRIVER against this slate's IDENTITY.** The
+slate argues *"code-trust is the account's"* — but `Author.ts:33` is
+`static fieldMeta = {}` and `:5` says *"the mixin owns no state v1."*
+What it holds is three eval knobs, two `lifetime: 'session'`. The bucket
+flips if permission ever lands there; today the evidence says driver.
+
+### ⚠ `Environment` is not a split mixin — it is a shared STORE
+
+`collectSchema` (`Environment.ts:157-186`) walks the **host's** prototype
+chain, so the keyspace is a function of the composition, and **the keys
+belong to nine different declaring layers** (`Environment`,
+`CommandGiver`, `Workspace`, `Author`, `NotifyPolicy`, `Soul`, `Mobile`,
+`Persona`, `Avatar`, plus `Combatant` off-stack). **Partitioning
+`Environment` is really partitioning nine `static settings` blocks.**
+
+**Is `movement.defaultMode` the only body key?** ⭐ **It is the only
+unambiguous one, and structurally so**: it is the only key in the roster
+whose resolution chain reaches into the **body plan**
+(`Environment.ts:145-152`; `LocomotionApi.defaultModeFor` defers to the
+bodyplan default only absent an explicit override). Three candidates
+behind it: `combat.lethality`/`combat.stopCondition` (⚠ declared on
+`Combatant`, which is not on this stack — the store is **not**
+partitioned by composer); the **four peer-facing**
+`messages.movement.*Peers` keys (how others see you move is closer to a
+signature than a preference — the `*Self` four are unambiguously
+driver, and nobody has drawn that line inside one eight-key family);
+and `identity.portrait`, the only key already named for its bucket.
+
+### The three that do not sort, at field level
+
+- **`Named`** (5 fields, all persistent+authorable). The *composition
+  rule* is body-shaped (`:16-19` records it being pulled off the
+  creature base in 2026-09-10 because *"a wolf, a corpse, a mercenary
+  and a head of stock all carried `setSurname`"*), but the *values* are
+  identity-shaped. ⭐ The code already resolves this the awkward way —
+  `Avatar.forkSlice_Presentation` hand-copies the four scalars **from
+  Avatar, not from Named**, and skips `alternateNames`.
+- **`Wardrobe`** (one field, `wardrobes: Record<string,string[]>`;
+  ⚠ `persistent: true` with **no `runtimeState: true`**, unlike every
+  other persistent field in the stack — check that this is intended).
+  Keys are a vocabulary the person invented (identity); values are
+  keywords resolved at wear time against whatever the body has. ⭐ Its
+  own design note settles it: *"a saved set **survives buying a
+  replacement shirt**"* and a keyword resolving to nothing is *"skipped
+  with a readable line"* — **death is structurally identical to "the old
+  shirt is gone."** The cheapest of the three calls. ⚠ Against: it
+  currently rides the Avatar snapshot *"for free"*, so an identity
+  bucketing needs a new home.
+- **`Environment`** — see above; not a mixin question at all.
+
+### ⭐⭐ `Avatar.ts` itself — six concerns, and two descendants that are twins
+
+Nothing in this slate surveyed the class body. 1,649 lines:
+
+| concern | members |
+|---|---|
+| succession/death | `escheatedAt`, `beneficiary`, `lastSeen`, `mortalArc`, `isDeceased`, `reconcileMortalState` |
+| session & connection | `user`, `playerId`, `isGuest`, `sendMessage`, `handleMessage`, `handleEnvelope`, `getRoutingRules`, `onLinkdead`, `isConnected`, `announceSessionPresence`, **`enter()` — 210 lines, :901-1111** |
+| persistence | `shouldPersist`, `save`, `restore`, `startAutoSave`, `stopAutoSave`, `postRegister` |
+| sandbox | `parked`/`isParked`/`setParked`, **four** fork/merge slice methods |
+| content | `installDefaultLoadout`, `applyStartLocation` |
+| statics | **17 `self` verbs**, `settings`, `subscribableFields`, `fieldMeta`, three template-path constants |
+
+⚠ **`EstateMixin` declares `static fieldMeta = {}` — zero fields — while
+`Avatar` carries `escheatedAt` (:305,:316) and `beneficiary` (:306,:332)
+as class fields.** The mixin holds the behaviour and the class holds the
+state. (Its `_estate` map is transient, rebuilt by `restoreSlice`.)
+
+**⛔ `Shade` and `WireBody` are the same eight overrides twice:**
+
+| Shade | WireBody | what it is |
+|---|---|---|
+| `shadePlayerId` :60 | `wirePlayerId` :54 | ⛔ `Avatar.playerId` under two more names, **each a persistent field** |
+| `shadeSpecies` :72 | `wireSpecies` :66 | ⛔ the same slot twice |
+| `getPlayerId()` :108 | `getPlayerId()` :124 | returns the local copy |
+| `getIdentityPath()` :113 | `getIdentityPath()` :129 | rebuilds `Avatar.getTemplatePath(copy)` |
+| `shouldPersist()` :99 | `shouldPersist()` :120 | ⚠ the only two genuinely gated on Sequencing 5 |
+| `startAutoSave()` :104 | `startAutoSave()` :136 | ditto |
+| `postRegister` :74 | `postRegister` :90 | ceremony |
+| `toString` :179 | `toString` :168 | trivial |
+
+**Eight of Shade's eleven members and eight of WireBody's ten.** Four of
+the overrides exist **only to normalize a copy that should not have been
+made**. Legitimately different: Shade's `getConferredMixinNames`,
+`mergeSlice_Embodiment`, `onDestruct`; WireBody's
+`announceSessionPresence`, `onLinkdead`.
