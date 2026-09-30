@@ -173,6 +173,63 @@ equally available to the escaper. The answer is not detection, it is price:
 > not a hook. The hook space is exactly the set of situations with two
 > defensible outcomes.
 
+## ⭐⭐⭐ The rule the matrix was groping for — a CLOCK versus a SITUATION
+
+Asked 2026-09-30: *does your body thirst while netdead, and will it drink
+automatically if possible?* **No, and there is nothing to drink for** — and
+the answer turns out to supply the organizing rule this slate lacked.
+
+[metabolism.md](../../subsystems/metabolism.md) settled it already:
+
+> **Linkdead** — when the host `isHasInteractive` and `isLinkdead()`, the
+> reconcile **re-stamps and integrates nothing** (the body lingers in-world
+> but doesn't tick); reconnect resumes as left.
+> **Logout** — a **far-past guard** (`MAX_REASONABLE_GAP_SEC`) drops any gap
+> longer than a plausible continuous session, so a relog accrues nothing.
+
+⭐ The doctrine is named there: **"never tax absence"**, true for every
+reserve for free because they all ride the same clock. (Also *"no sleeping
+player body and no away-recovery — recovery only accrues while present and at
+rest."*) So no auto-drink is needed: **nothing drains**, and an autonomic
+drink would be the intent-fabrication this slate refuses anyway.
+
+**Now look at what freezes and what does not:**
+
+| | |
+|---|---|
+| metabolism — hunger, thirst, every reserve | **freezes** |
+| out-of-combat wound harm | **freezes** |
+| the rescuable **dying** clock | ⚠ **does NOT freeze** |
+| an open **combat session** | ⚠ **keeps ticking** to `combat.maxBeats` |
+
+> ⭐⭐⭐ **A CLOCK does not run against an absent body. A SITUATION already
+> in motion still does.**
+
+Hunger is a clock, so it stops. A fight and a body already dying are
+situations, so they continue. **The shipped policy is coherent, not
+inconsistent** — and this is a better rule than the freeze/continue/withdraw
+guesswork below, which it explains.
+
+### ⚠⚠ And it reclassifies the AFK hole
+
+The matrix below lists *on shift, earning* as needing a new rule. **It does
+not — it is violating the existing one.** The wage is a clock
+(`wageRate × game-hours on shift`), and:
+
+> **Metabolism refuses to TAX absence. Employment refuses to STOP PAYING for
+> it.** Same axis, opposite failure.
+
+⭐ So the symmetric statement of the doctrine is **a clock runs neither
+against an absent body nor for it** — and the fix is not a policy decision,
+it is making one clock obey the rule the other already follows. A cheaper
+argument than the lens-6 one, and a stronger one.
+
+⚠ **Which leaves a question worth asking of every other clock in the game**
+before this builds: who else is running for or against an absent body?
+Spoilage, maturation, growth, interest, rent and the fishery's recovery are
+all clocks, and none of them is *about* the player — they are the world's, and
+the world does not pause. **The rule is about clocks that read a PERSON.**
+
 ## The situation matrix — the bigger problem, enumerated
 
 Three possible policies per situation — **freeze · continue · withdraw** — and
@@ -181,7 +238,7 @@ per row: which is honest, and whether the player may choose.
 | situation | shipped today | honest policy | a hook? |
 |---|---|---|---|
 | **in combat** | the session ticks against a linkdead combatant to `combat.maxBeats` | autonomic defence (option B) | ⭐ **yes** — stand or withdraw-at-a-price are both defensible |
-| **on shift, earning** | ⚠ nothing stops it; the coroutine hole above | **clock off** | ⛔ **no** — a rule; AFK earning is dishonest |
+| **on shift, earning** | ⚠ nothing stops it; the coroutine hole above | **clock off** — ⭐ not a new rule, the *existing* one (a clock runs neither against an absent body nor for it) | ⛔ **no** — a rule |
 | **a script running** | ⚠ nothing stops it | **suspend**, resume on reconnect | ⛔ no — a rule |
 | **mid-engagement affecting only you** (a craft, a build) | aborts or holds per activity | freeze | maybe — low stakes |
 | ⭐ **mid-engagement affecting SOMEBODY ELSE** (a surgery, a lease, an escort) | not designed | ⚠ **the open one** — abandoning a patient is a harm | **the interesting case** — see below |
