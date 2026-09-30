@@ -733,7 +733,46 @@ Commit: `refactor(narrowing L2): the bar is on the grid it said it was on, and a
 
 Commit: `fix(narrowing L3): a cellar and a venue get their descriptions back, and the moor its addresses`
 
-### L4 — `lock` and `unlock` are afforded
+### L4 — ⛔ REVERSED BY RECONCILIATION: `lock`/`unlock` are NOT wired
+
+⚠⚠ **This wave is cancelled, and the reason is the Idea planner's,
+verified independently before the reversal.**
+
+Both branch plans were told to treat the twelve dead verbs as a standing
+check, and both verified the same facts about `lock`/`unlock`. This plan
+concluded *wire them onto `MobileMixin.self` beside `open`/`close`*. The
+Idea plan concluded *wire nothing*, and it is right:
+
+- `lib/boundary/Locked.ts:15-27` calls itself a **STOPGAP** in its own
+  docstring, names the model that supersedes it (`lib/lock/` — a `Lock`
+  value object plus `Key` on `CredentialWalletMixin`, *"the door checks
+  a key, not identity"*), and says in terms: **"Do NOT grow this into a
+  second lock system."**
+- `LockController.ts:60-90` checks `isLocked()` and calls `lock()`.
+  **No key, no credential, no title.**
+
+⭐ So wiring the affordance would ship *any player locks any door they
+can reach, keylessly*, while residence's `KeyedDoorExit` already models
+the real thing through `presentsKey`. **The unwired affordance was the
+system telling the truth about a verb that should not exist in this
+form** — and a verb nobody can reach is a better state than a verb that
+works and should not.
+
+⚠ The general lesson, which is worth more than the wave: *a dead
+affordance is a finding, not automatically a bug.* Twelve verbs came
+back from the census; four were genuinely wired wrong and got fixed
+(`hitch`/`unhitch`/`mount`/`ride`, A6), two are a stopgap whose own
+docstring forbids the fix, and six belong to other owners. **The census
+is the census; the disposition is per verb.**
+
+Filed for the credential build's reconciliation. The drive OBSERVES the
+current refusal and does not assert it — the `Creature.branded.test.ts`
+lesson: never pin a known defect as an invariant.
+
+<details>
+<summary>The original L4, kept for the record</summary>
+
+### L4 (original) — `lock` and `unlock` are afforded
 
 1. `lib/spatial/Mobile.ts:224-240`: `'platform/cmd/boundary/lock.yaml'`,
    `'platform/cmd/boundary/unlock.yaml'` beside `open`/`close`, with a
@@ -751,6 +790,9 @@ Commit: `fix(narrowing L3): a cellar and a venue get their descriptions back, an
    collision), `lint:family`.
 
 Commit: `fix(narrowing L4): lock and unlock are afforded by the mover, beside open and close`
+
+
+</details>
 
 ### L5 — the documentation and the wiki pages
 
