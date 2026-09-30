@@ -20,6 +20,15 @@ conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 
 ---
 
+> ⚠ **`Growing` restamps `_lastAmbientK` and then rates from the STORED
+> value** (noted 2026-09-30) — a rectangle from the **start** of the
+> interval, where the spoilage family rectangles from the **end**.
+> `ThermalDose`'s docstring says both are wrong (*“from the start reads
+> zero; from the end, half again too much”*), but growth is a `min`-of-four
+> limiting factor and the conservative value may be deliberate. ⭐⭐ **Read
+> the intent before changing it** — open question 1 in [reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md).
+> [uncertainty.md § The second abstraction law](../uncertainty.md) has the general rule.
+
 ## The object model — four things you assemble
 
 | Object | Class | What it is |

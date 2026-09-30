@@ -1532,11 +1532,10 @@ individual ledger* — and the stage category is a property of the
 NPC *taxonomy*; they inform the **declaration vocabulary** and leave the
 taxonomy alone.
 
-⚠ **Pointers owed** (deferred 2026-09-30 — both docs are held by
-`build/narrowing`): [behavior.md](../../subsystems/behavior.md) should note
-that the `behaviors:` block is the compute declaration and that a cadence
-brain is a standing cost; [identity.md](../../subsystems/identity.md) that
-the stage rungs price the engagement and leave the two rungs untouched.
+✅ **Pointers placed 2026-09-30**, once `build/narrowing` merged:
+[behavior.md](../../subsystems/behavior.md) carries the measurement and the
+poll-versus-push finding; [identity.md](../../subsystems/identity.md)
+carries the rungs-are-untouched answer.
 
 ## ⭐⭐⭐⭐ The shape of the stock decides which lever exists
 

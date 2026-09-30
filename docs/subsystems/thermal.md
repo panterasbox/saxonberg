@@ -107,6 +107,15 @@ shipped kitchen-range row's prose already said so); `Campfire` composes
 `PlacingMixin`. `Forge` and `Kiln` compose neither: a forge is not a
 chamber, and its Meltable path is the radiant one.
 
+> ⚠⚠ **A stepped driver is not reconstructible from two endpoint
+> samples** (2026-09-30). A coolbox that loses power warms on a Newton
+> curve, but two samples of 4 °C are equally consistent with *nothing
+> happened* and with *six hours at ambient* — and every gauge that reads
+> this host's temperature integrates on that reading. ⭐ **Store the step,
+> not the history**: a host that records *when its supply last changed and
+> to what* has a closed-form temperature at any `t`, which is one field
+> rather than a ledger. [uncertainty.md § The second abstraction law](../uncertainty.md) has the rule; [reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md) has the work.
+
 ### ⭐⭐ The cold twin — `holderK()` and a Coolbox
 
 The rule under `heatSourceK` was never about heat: **what HOLDS this
