@@ -167,9 +167,24 @@ describe('Material', () => {
     expect(MixinApi.getAllFieldMarshallers(Material).latentHeatOfVaporization).toBeDefined();
   });
 
-  it('composes SingletonMixin and PropertiedMixin', () => {
+  it('⭐ composes SingletonMixin and is NOT Propertied', () => {
+    /*
+     * ⚠⚠ This assertion is INVERTED from what it said, and it is not a
+     * weakening — it pinned a composition, never a behaviour, and no
+     * test anywhere calls `getProp` on a material.
+     *
+     * `Propertied` is a per-INSTANCE bag of runtime state, and a
+     * `Material` is a singleton: one instance for the whole world,
+     * shared by every holder. A prop set on `oak` would be a prop on
+     * every oak there has ever been. ⭐ `race.md:280-290` records why
+     * it was composed — *"per-material damage resistance as
+     * content-defined prop keys … accessors removed until combat
+     * lands"* — and when combat landed, materials-response shipped
+     * resistance as first-class FIELDS. The mixin outlived the design
+     * that asked for it by two builds.
+     */
     const m = makeStuff(() => new Material());
     expect(MixinApi.hasMixin(m, Mixins.Singleton)).toBe(true);
-    expect(MixinApi.isPropertied(m)).toBe(true);
+    expect(MixinApi.isPropertied(m)).toBe(false);
   });
 });
