@@ -19,9 +19,6 @@
  */
 
 import Location from '../../../lib/stuff/Location';
-import { VisibleMixin } from '../../../lib/description/Visible';
-import { DetailedMixin } from '../../../lib/description/Detailed';
-import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import { StagedMixin } from '../../../lib/stuff/Staged';
 import type { FieldMeta } from '../../../lib/mixin';
@@ -33,7 +30,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 // room's floor.
 const CircleFloorBase =
   StagedMixin(
-    DetailedMixin(PerceptibleMixin(ExitableMixin(VisibleMixin(Location))))
+    ExitableMixin(Location)
   );
 
 export default class CircleFloor extends CircleFloorBase {

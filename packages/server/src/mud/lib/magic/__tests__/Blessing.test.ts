@@ -26,7 +26,7 @@ import { ChargedMixin } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
 import { ReservedMixin } from '../../reserve';
 import { StackableMixin } from '../../stuff/Stackable';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { Creature } from '../../creature/Creature';
 import type { ActiveCondition, SustainedEffect } from '../../../platform/idea/Condition';
 import type { VetoResult } from '../../errors';
@@ -38,10 +38,10 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 /** A cursed-capable charged item. */
 class TestRing extends BlessableMixin(
-  ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
+  ChargedMixin(ReservedMixin(ArcaneMixin(Good))),
 ) {}
 /** A stackable blessable — the merge-leak case. */
-class TestCharm extends BlessableMixin(StackableMixin(Thing)) {}
+class TestCharm extends BlessableMixin(StackableMixin(Good)) {}
 /** A body that refuses burns — the conferred-immunity case. */
 class WardedBody extends Creature {
   public override canAfflict(condition: ActiveCondition): VetoResult {

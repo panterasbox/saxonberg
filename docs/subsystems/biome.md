@@ -3,7 +3,7 @@
 Saxonberg's first "physics of places" subsystem. Biomes are leaf
 Idea templates carrying atmospheric defaults (temperature / pressure
 / humidity / gravity / atmosphere) plus ambient sensory texture
-(sound + smell MML); Locations and Vessels compose `AtmosphericMixin`
+(sound + smell MML); Locations and **enterable vessels** compose `AtmosphericMixin`
 to override those defaults at their own scope or per-Detail;
 `BiomeApi.resolveXFor` walks innermost-container-outward through
 containment ancestors, then the spatial zone, then the root universe
@@ -223,9 +223,64 @@ TypeError on mismatch.
 
 ## `AtmosphericMixin`
 
-Composed onto **both** `Location` and `Vessel` base classes. Pure
-containers (Box, Backpack, treasure chest) do NOT compose it and
-are atmospherically transparent (skipped by the chain walk).
+Composed onto **`Location`** and **`ExitableVessel`**. Pure containers
+(Box, Backpack, treasure chest) do NOT compose it and are atmospherically
+transparent — skipped by the chain walk.
+
+> ⭐⭐ **A bag is not a place.** It composed on `Vessel` until the
+> base-class narrowing build, which meant a backpack, a till, a jar, a
+> rack, a footlocker, a handcart, a bank counter and a barge each had a
+> temperature, a pressure, a humidity, a wind and a biome of their own.
+> **Thirty-seven rows over fifteen composers, and not one ever authored a
+> single atmospheric field** — that measurement is what moved it.
+>
+> The line it moved to is *a thing you can go inside is a place with
+> air*, and it is the same line as *whose `context.location` can this
+> be*: a driver or a rider occupies a SLOT and stands in the room
+> (`Mobile` ripples only an occupant standing OUTSIDE the mover), so the
+> only way to be inside a vessel is `go <vessel>` through
+> `ExitableVessel.getEntryExit()`. The four sense reads that key off
+> `isAtmospheric(context.location)` — `feel`, `smell`, `listen`,
+> `trace atmosphere` — were therefore only ever reached inside something
+> enterable. **Moving the mixin changed what the world claims, not what
+> it does.** A plain vessel is now a transparent step, exactly like a Box.
+>
+> ⭐ Two things the move exposed, because the shipped predicates are
+> written for a room and a vehicle is not one — both overridden on
+> `ExitableVessel`:
+>
+>  - **`envelopeApplies`'s sky walk.** It walks outward to the nearest
+>    atmospheric ancestor with a biome, so a coach parked in a street
+>    inherits the street's sky-exposed biome and the envelope would
+>    **never run, volume or no volume**. A carriage under the open sky
+>    still has a roof, so a vessel is roofed by declaration: it has an
+>    envelope iff its row states an `interiorVolume`.
+>  - **`openExteriorOpenings` and the seal.** It counts obvious exits
+>    onto the sky whose door, if any, stands open. A coach synthesizes
+>    one `out` exit and authors no `door:` — it authors `open: false` on
+>    `SealableMixin` — so the base reads a shut carriage as standing wide
+>    open. For a vessel the seal IS the door: shut ⇒ zero.
+>
+> And one the move required: `resetWeatherLocality()`, because the
+> weather-locality memo resolves ONCE, which is right for a room and
+> wrong for a place that goes places. `ExitableVessel.onMoved` calls it.
+
+### `interiorVolume` — how much air is in here
+
+An `ExitableVessel` has no geometry to derive a volume from (a
+`Location` gets one from its zone's cell size), so the interior is an
+**authored** `Quantity<'m³'>` on the class, default `null`.
+
+⭐ **Unset is how a row DECLINES an interior, and declining is honest
+rather than silent.** The mixin stays, so all four sense reads still
+answer inside — with the outside's air, walked up the chain, weather
+included. What is absent is an envelope of its own: no `derived: volume`
+line, no cause sentence. An open boat is not a cabin, and it says so by
+saying nothing.
+
+⚠ **Not `interiorCapacity`** — that name is `Bulkable`'s liquid capacity
+and the barge authors `interiorCapacity: 12000`. A tank is what you pour
+in; a cabin is what you breathe. See [bulk.md](./bulk.md).
 
 Eleven persistent fields per host (sparse storage):
 
@@ -239,9 +294,12 @@ _detailAtmospheres
 ```
 
 `null` slots persist as absent; empty maps mean "no per-detail
-overrides." A Vessel composing the mixin but setting nothing costs
+overrides." A scope composing the mixin but setting nothing costs
 five `null` fields + five empty objects and otherwise reads
-identically to a non-composing pure container.
+identically to a non-composing pure container — ⚠ which is exactly why
+the mixin sat on `Vessel` for so long without anyone noticing: it cost
+nothing and did nothing, and the only surface that would have SHOWN it
+(`wiki atmospheric`'s *composed by* panel) was scanning a dead root.
 
 ### ⚠⚠ `getBiome()` is a REGISTRY read, and the roster must be warmed
 
@@ -376,7 +434,10 @@ resolveAtmosphereFor(vessel) → 'vacuum'              (source: 'room')
 resolveTemperatureFor(vessel) → 310 K                (source: 'room' on the OUTER room)
 ```
 
-### Vessel cases (sparse storage falls out)
+### Enterable-vessel cases (sparse storage falls out)
+
+⚠ *Vessel* below means an **enterable** one — a coach, a cabin. A plain
+`Vessel` (a bag, a till, a barge) is the **Transparent** case now.
 
 - **Porous** — vessel composes the mixin but sets no overrides.
   Every field is `null`; the chain walks straight through to the
@@ -581,7 +642,7 @@ module) overrides the same way.
 > were six `Thing` **classes** under `/stuff/thing/instrument/`, each
 > contributing `measure.yaml` and each owning a `measure <x>` subcommand.
 > There are no such classes now: an instrument is a **row over
-> `/platform/thing/ToolItem`** declaring a capability, and the channel it
+> `/platform/thing/Tool`** declaring a capability, and the channel it
 > serves is a `Reading` row. See
 > [instrumentation.md](./instrumentation.md).
 

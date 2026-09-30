@@ -69,6 +69,7 @@
     "lint:object-verbs": "tsx scripts/check-object-verbs.ts",
     "lint:openings": "tsx scripts/check-openings.ts",
     "lint:pathogens": "tsx scripts/check-pathogens.ts",
+    "lint:mass": "tsx scripts/check-mass.ts",
     "lint:perishable": "tsx scripts/check-perishable.ts",
     "lint:person-keys": "tsx scripts/check-person-keys.ts",
     "lint:pm": "tsx scripts/check-pm-access.ts",
@@ -91,7 +92,8 @@
     "test:escape": "vitest run src/mud/lib/sandbox/__tests__/escape",
     "test:gym": "vitest run --config vitest.gym.config.ts",
     "test:near": "tsx scripts/test-near.ts",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "composition-census": "tsx scripts/composition-census-preload.js"
   },
   "dependencies": {
     "@saxonberg/types": "workspace:*",

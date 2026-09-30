@@ -1,17 +1,13 @@
 /**
- * Oven — a baking / roasting furnace: a {@link FurnaceMixin} appliance holding
+ * Oven — a baking / roasting furnace: a {@link BurnerMixin} appliance holding
  * a gentle cooking heat (far below smelting). Same composition as
  * {@link Forge}, a low held temperature + no bellows (authored per seed). Lit
  * with `ignite`.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Firebox from '../../lib/fire/Firebox';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { PlacingMixin } from '../../lib/spatial/Placing';
-import { ReservedMixin } from '../../lib/reserve';
-import { LightSourceMixin } from '../../lib/perception/LightSource';
-import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { FurnaceMixin } from '../../lib/fire/Furnace';
 
 // ⭐ `ContainerMixin` INSIDE `ThermalMixin`: an oven is a chamber you put
 // bread in. A `Forge` and a `Kiln` are deliberately NOT containers — a
@@ -24,10 +20,8 @@ import { FurnaceMixin } from '../../lib/fire/Furnace';
 // have stood"), and prose that promises an affordance the object does not
 // have is the crossroads-`south` bug. Both limbs feed the same couple
 // (`ThermalMixin.heatSourceK` reads container AND support).
-const OvenBase = FurnaceMixin(
-  LightSourceMixin(
-    ReservedMixin(ThermalMixin(PlacingMixin(ContainerMixin(Thing)))),
-  ),
-);
+// ⭐ A firebox that ENCLOSES what it heats — that is the whole
+// difference between an oven and a forge, and it is two mixins.
+const OvenBase = ContainerMixin(PlacingMixin(Firebox));
 
 export default class Oven extends OvenBase {}

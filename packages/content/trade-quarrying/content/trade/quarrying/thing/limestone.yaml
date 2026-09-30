@@ -17,6 +17,6 @@ data:
   longDescription: >-
     A fist of pale grey stone, faintly gritty, with a shell's ghost in one
     face of it.
-  material: /stuff/idea/material/rock/limestone
+  _materialPath: /stuff/idea/material/rock/limestone
   mass: 8
   quantity: 1

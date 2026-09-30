@@ -386,7 +386,7 @@ gives the trade what most crafting lacks — **you can lose a whole burn**.
 ⭐ Charcoal is not merely hotter: it is the **reducing agent**, the
 carbon that strips oxygen off the ore, so the fuel trade is a physical
 input to the metal and no furnace engineering routes around it. The
-clamp (`CharcoalPit`) composes `FurnaceMixin`, so `smelt` legitimately
+clamp (`CharcoalPit`) composes `BurnerMixin`, so `smelt` legitimately
 finds it from the fuel yard — and **declines with a sentence about what
 a clamp is**, a heap kept deliberately starving of air. That refusal is
 the teaching, not an error path. The yard's coppice is forestry's

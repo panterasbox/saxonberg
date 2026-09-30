@@ -26,7 +26,7 @@
  * unit. No skill, no engagement, no tick: a trap is a thing you leave.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -36,7 +36,7 @@ import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { HabitatRole } from '@saxonberg/server/mud/platform/idea/species/Species';
 import { HABITAT_ROLES } from '@saxonberg/server/mud/platform/idea/species/Species';
 
-const TrapBase = BulkableMixin(ContainerMixin(ToolItem));
+const TrapBase = BulkableMixin(ContainerMixin(Tool));
 
 export default class Trap extends TrapBase {
   static commandContributions: CommandContributions = {

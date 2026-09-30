@@ -3,7 +3,7 @@
  * keeps it cut.**
  *
  * The affordance reference art shows three layers and the first is
- * `<thing mx="Tangible,Thermal,Furnace,…">` — a mixin digest riding the
+ * `<thing mx="Tangible,Thermal,Burner,…">` — a mixin digest riding the
  * MML so a client menu could read composition off scrollback. It does
  * not exist and must not be built. Three reasons, none of which has
  * expired:

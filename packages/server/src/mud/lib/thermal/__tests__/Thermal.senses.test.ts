@@ -10,7 +10,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import Material from "../../material/Material";
 import { ThermalMixin } from "../Thermal";
 import { SealableMixin } from "../../spatial/Sealable";
@@ -23,10 +23,10 @@ import {
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 
-class SealedThermalThing extends ThermalMixin(SealableMixin(Thing)) {
+class SealedThermalThing extends ThermalMixin(SealableMixin(Good)) {
   static _mixinName = "SealedThermalThing";
 }
-class BareThermalThing extends ThermalMixin(Thing) {
+class BareThermalThing extends ThermalMixin(Good) {
   static _mixinName = "BareThermalThing";
 }
 

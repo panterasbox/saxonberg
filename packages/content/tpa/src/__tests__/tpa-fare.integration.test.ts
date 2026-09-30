@@ -17,7 +17,7 @@ import { CommandGiverMixin } from "@saxonberg/server/mud/lib/command/CommandGive
 import { SensorMixin } from "@saxonberg/server/mud/lib/message/Sensor";
 import { NamedMixin } from "@saxonberg/server/mud/lib/description/Named";
 import { FastTravelMixin, type FastTravel } from "../lib/FastTravel";
-import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
+import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import Location from "@saxonberg/server/mud/lib/stuff/Location";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
 import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
@@ -62,7 +62,7 @@ const BIZ = "/world/test/fare/budget";
 const DEST_BIZ = "/world/test/fare/dest-budget";
 const TPA_BIZ = "/world/test/fare/tpa";
 
-class Node extends FastTravelMixin(Thing) {
+class Node extends FastTravelMixin(Good) {
   static _mixinName = "Node";
 }
 class Traveller extends AetherMixin(

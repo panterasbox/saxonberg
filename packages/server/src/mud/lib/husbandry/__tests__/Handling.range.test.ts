@@ -16,14 +16,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { HandlingMixin } from '../Handling';
 import { OrganismMixin } from '../../species/Organism';
 import Species from '../../../platform/idea/species/Species';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 
-class Beast extends HandlingMixin(OrganismMixin(Thing)) {}
+class Beast extends HandlingMixin(OrganismMixin(Good)) {}
 /** A handling host that is NOT an organism — a rack, a training dummy. */
-class Inanimate extends HandlingMixin(Thing) {}
+class Inanimate extends HandlingMixin(Good) {}
 
 let seq = 0;
 function speciesWith(range: { floor: number; ceiling: number } | null): Species {

@@ -11,8 +11,7 @@
 import Thing from '../../lib/stuff/Thing';
 import { SwitchableMixin } from '../../lib/boundary/Switchable';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
-import { DetailedMixin } from '../../lib/description/Detailed';
 
-const BeaconBase = SwitchableMixin(PropertiedMixin(DetailedMixin(Thing)));
+const BeaconBase = SwitchableMixin(PropertiedMixin(Thing));
 
 export default class Beacon extends BeaconBase {}

@@ -2,15 +2,15 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SwimmableMixin, SWIMMING_CAPABILITY_PROP } from '../Swimmable';
 import { Idea } from '../../stuff/Idea';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { PropertiedMixin, Property } from '../../stuff/Propertied';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class Pond extends SwimmableMixin(Idea) {}
-class Actor extends PropertiedMixin(Thing) {}
-class BareActor extends Thing {}
+class Actor extends PropertiedMixin(Good) {}
+class BareActor extends Good {}
 
 describe('SwimmableMixin', () => {
   describe('mixin marker', () => {

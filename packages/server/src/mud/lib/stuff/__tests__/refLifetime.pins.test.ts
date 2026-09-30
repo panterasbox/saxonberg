@@ -41,6 +41,7 @@
  */
 
 import "../../../../test-bootstrap";
+import Holder from '../Holder';
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
@@ -70,13 +71,13 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 // ── Fixtures ────────────────────────────────────────────────────────
 
-class Box extends ContainerMixin(Thing) {}
-class Desk extends PlacingMixin(ContainerMixin(Thing)) {}
+class Box extends Holder {}
+class Desk extends PlacingMixin(Holder) {}
 class Nest extends SpawnerMixin(Idea) {}
 class Hatchling extends SpawnedMixin(Idea) {}
 class MemberRoom extends WarrenMemberMixin(Location) {}
 class ExitRoom extends ExitableMixin(Location) {}
-class Wall extends AdornableMixin(ContainerMixin(Thing)) {}
+class Wall extends AdornableMixin(Holder) {}
 class Fixture extends AdornmentMixin(Thing) {}
 class Implant extends AetherMixin(Thing) {}
 class Update extends AetherHostedMixin(Thing) {}

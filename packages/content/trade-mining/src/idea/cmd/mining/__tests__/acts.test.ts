@@ -35,7 +35,7 @@ import MineRoom from '../../../../location/MineRoom';
 import Ore from '../../../../thing/Ore';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -121,7 +121,7 @@ type Runnable = Stuff & { execute(model: never, ctx: CommandContext): unknown };
  */
 function pick(): { raw: string; stuff: Stuff } {
   const t = makeStuff(() => {
-    const item = new ToolItem();
+    const item = new Tool();
     item.capabilities = ['winning', 'striking'];
     return item;
   }) as unknown as Stuff;
@@ -256,7 +256,7 @@ describe('the mine’s four labour acts', () => {
     expect(rejected(bare)).toBe('no-tool');
     // …and a tool that cannot win rock is a DIFFERENT refusal.
     const shovel = makeStuff(() => {
-      const t = new ToolItem();
+      const t = new Tool();
       t.capabilities = ['digging'];
       return t;
     }) as unknown as Stuff;
@@ -384,12 +384,12 @@ describe('the mine’s four labour acts', () => {
     expect(rejected(ctx)).toBe('bad-ground');
 
     // Timber it, and the same act goes through.
-    const set = makeStuff(() => new ToolItem());
+    const set = makeStuff(() => new Tool());
     set.capabilities = ['timber-set'];
     ContainmentApi.move(set as unknown as Stuff & Containable, here as unknown as Stuff & Container);
     for (let i = 0; i < 3; i++) {
       ContainmentApi.move(
-        makeStuff(() => { const t = new ToolItem(); t.capabilities = ['timber-set']; return t; }) as unknown as Stuff & Containable,
+        makeStuff(() => { const t = new Tool(); t.capabilities = ['timber-set']; return t; }) as unknown as Stuff & Containable,
         here as unknown as Stuff & Container,
       );
     }

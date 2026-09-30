@@ -5,7 +5,7 @@ import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Material from '../../lib/material/Material';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { Idea } from '../../lib/stuff/Idea';
 import { MixinApi } from '../mixin';
 import { Quantity } from '../../lib/quantity';
@@ -32,7 +32,7 @@ describe('Tangible.getMaterial (direct object read)', () => {
   });
 
   it('returns null for Tangible Stuff with no material set', () => {
-    const thing = makeStuff(() => new Thing());
+    const thing = makeStuff(() => new Good());
     expect(
       MixinApi.isTangible(thing) ? thing.getMaterial() : null
     ).toBeNull();
@@ -43,7 +43,7 @@ describe('Tangible.getMaterial (direct object read)', () => {
     oak.setName('oak');
     stampTemplatePathForTest(oak, '/stuff/idea/material/wood/oak');
 
-    const log = makeStuff(() => new Thing());
+    const log = makeStuff(() => new Good());
     if (!MixinApi.isTangible(log)) throw new Error('expected tangible');
     log.setMaterial(oak);
 
@@ -56,7 +56,7 @@ describe('Tangible.getMaterial (direct object read)', () => {
     const iron = makeStuff(() => new Material());
     stampTemplatePathForTest(iron, '/stuff/idea/material/element/iron');
 
-    const axe = makeStuff(() => new Thing());
+    const axe = makeStuff(() => new Good());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
     axe.setMaterial(oak);
     axe.setMaterial(iron, 'head');

@@ -22,18 +22,17 @@
  * hydrate, which is the lint.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { CirculatingMixin } from '@saxonberg/server/mud/lib/residency/Circulating';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
 import type { Slotted } from '@saxonberg/server/mud/lib/slot/Slotted';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { BATTERY_SLOT } from '../lib/ManaPowered';
 
 const ManaCellBase = CirculatingMixin(
-  SlottableMixin(DetailedMixin(ChargedMixin(ReservedMixin(Thing)))),
+  SlottableMixin(ChargedMixin(ReservedMixin(Good))),
 );
 
 export default class ManaCell extends ManaCellBase {

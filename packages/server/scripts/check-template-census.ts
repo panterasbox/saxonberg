@@ -616,7 +616,7 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   'businessPath', 'carriedSpellPath', 'charMaterialPath', 'charter',
   'container', 'departments', 'dropDestination', 'effects',
   'feedPath', 'growsIntoPath', 'harvestTemplatePath', 'interiorMaterial',
-  'lobbyPath', 'makerId', 'material', 'operatingLocations', 'parLines',
+  'lobbyPath', 'makerId', 'operatingLocations', 'parLines',
   'parentExtent', 'parentOrganization', 'principal', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
   'steepsInto', 'surfaceMaterial', 'teachesSpellPath', 'trapTemplate', 'treasury',
@@ -811,7 +811,7 @@ const BY_ENTRY_FIELDS = ['props', 'cast', 'costume', 'adornments'] as const;
  *
  * Census-then-ratchet: it may fall, never rise.
  */
-const PURE_REPEAT_CEILING = 52;
+const PURE_REPEAT_CEILING = 47;
 
 function countPureRepeats(rows: Map<string, string>): number {
   let extra = 0;

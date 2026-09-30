@@ -6,6 +6,8 @@
  * those subclasses' tests; bare Location is just `ContainerMixin(Idea)`.
  */
 
+import { MixinApi } from '../../../api/mixin';
+import { Mixins } from '../../mixin';
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Location from '../Location';
@@ -75,5 +77,48 @@ describe('Location', () => {
 
       expect(location.getContents()).toHaveLength(2);
     });
+  });
+});
+
+describe('⭐⭐ the description mixins are on the ROOT', () => {
+  /*
+   * Until the base-class narrowing (2026-09-30) `Visible`, `Perceptible`
+   * and `Detailed` were composed per room class, and three docstrings
+   * said what that cost — `Offstage.ts`, `Bar.ts` and `Lounge.ts` each
+   * carry the sentence *"every room class built directly on `Location`
+   * has to remember"*, with the note that those rows *"were authoring
+   * `primaryKeyword` into a void until 2026-09-11"*.
+   *
+   * ⚠⚠ Two classes did not remember: `Corridor` and `DormRoom` composed
+   * `Visible` and `Detailed` and NOT `Perceptible`, so their rows'
+   * `keywords:` were dead; the Hush gallery had `primaryKeyword`,
+   * `keywords` AND `details` going nowhere. ⭐ A mixin every composer
+   * has to remember is a mixin on the wrong host.
+   */
+  it('a bare Location is visible, addressable by keyword, and detailed', () => {
+    expect(MixinApi.hasMixin(Location, Mixins.Visible)).toBe(true);
+    expect(MixinApi.hasMixin(Location, Mixins.Perceptible)).toBe(true);
+    expect(MixinApi.hasMixin(Location, Mixins.Detailed)).toBe(true);
+  });
+
+  it('⭐ and still everything a place was: contained, lit, aired, addressed', () => {
+    for (const m of [
+      Mixins.Container,
+      Mixins.Adornable,
+      Mixins.Atmospheric,
+      Mixins.AmbientLit,
+      Mixins.Addressable,
+    ]) {
+      expect(MixinApi.hasMixin(Location, m), `Location should ${m}`).toBe(true);
+    }
+  });
+
+  it('⚠ but NOT exitable — that is the next rung, and Offstage is the proof', () => {
+    // `Offstage` composes all three description mixins and none of
+    // `Exitable`/`Staged`/coordinates, with the reason in its own
+    // docstring. The root ends at *a place you can see, name and point
+    // at*; being a place you can walk BETWEEN is what `Exitable` adds.
+    // This is the Location branch's `Corpse`.
+    expect(MixinApi.hasMixin(Location, Mixins.Exitable)).toBe(false);
   });
 });

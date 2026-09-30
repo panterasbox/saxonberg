@@ -8,7 +8,7 @@ import { AtmosphericMixin } from '../../../../lib/biome/Atmospheric';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import CartesianZone from '../../location/CartesianZone';
 import Door from '../../../thing/Door';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import {
@@ -23,7 +23,7 @@ import { PerceptionApi } from '../../../../api/perception';
 const smellModality = (): SmellModality =>
   PerceptionApi.modalityByName('smell') as SmellModality;
 
-class Candle extends SmellSourceMixin(Thing) {}
+class Candle extends SmellSourceMixin(Good) {}
 class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
 
 describe('SmellModality.signalAt — propagation core', () => {

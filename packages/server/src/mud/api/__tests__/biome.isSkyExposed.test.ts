@@ -2,6 +2,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../lib/stuff/Location';
 import { Vessel } from '../../lib/stuff/Vessel';
+import { AtmosphericMixin } from '../../lib/biome/Atmospheric';
 import Biome from '../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../platform/idea/SkyExposedBiome';
 import { BiomeApi } from '../biome';
@@ -15,7 +16,14 @@ import {
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 class TestLocation extends Location {}
-class TestVessel extends Vessel {}
+/**
+ * A CABIN — `Atmospheric(Vessel)`, the `ExitableVessel` shape without the
+ * exit machinery (which needs an async clone). It was
+ * `class TestVessel extends Vessel {}` until the base-class narrowing
+ * build moved `AtmosphericMixin` off `Vessel`: a bag is not a place, so
+ * a fixture that stops the biome walk has to be something you go inside.
+ */
+class TestCabin extends AtmosphericMixin(Vessel) {}
 
 function installRootBiome(): Biome {
   return makeStuffAtPath(() => {
@@ -74,7 +82,7 @@ describe('BiomeApi.isSkyExposed', () => {
     );
     const room = makeStuff(() => new TestLocation());
     room.setBiome(biome);
-    const vessel = makeStuff(() => new TestVessel());
+    const vessel = makeStuff(() => new TestCabin());
     ContainmentApi.move(vessel, room);
     // Vessel has no biome — chain walks to outer room which has the
     // sky-exposed biome.
@@ -92,7 +100,7 @@ describe('BiomeApi.isSkyExposed', () => {
     );
     const room = makeStuff(() => new TestLocation());
     room.setBiome(outdoor);
-    const cabin = makeStuff(() => new TestVessel());
+    const cabin = makeStuff(() => new TestCabin());
     cabin.setBiome(indoor);
     ContainmentApi.move(cabin, room);
     // Cabin's plain biome stops the walk; the room's sky-exposed

@@ -7,13 +7,13 @@
 # One of two instruments in exactly that state (see `sextant.yaml`); both
 # are reachable now, and the gate that would have caught it is the
 # capability census, which could not see a class check.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folding sundial
   keywords: [sundial, dial, gnomon]
   register: indefinite
-  long: >-
+  longDescription: >-
     A folding brass dial the size of a pocket watch, with a hinged
     gnomon and a small bubble level set into the plate. Lay it flat in
     the sun and the shadow gives you the hour and which way is south.

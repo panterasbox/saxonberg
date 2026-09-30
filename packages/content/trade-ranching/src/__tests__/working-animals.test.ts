@@ -2,7 +2,7 @@
  * Draught and the dog (W13 / D40–D42) — ⭐⭐ **there is no new mechanism
  * in either of them**, which is the claim worth testing.
  *
- * `PitPony`'s own doc already said it: carry capacity derives from body
+ * the draft animals' own doc already said it: carry capacity derives from body
  * mass in the encumbrance substrate, *"the pony is better at hauling
  * because it is heavier, which is the actual reason, and the engine
  * already knew it."* Ploughing asks the same question of the same

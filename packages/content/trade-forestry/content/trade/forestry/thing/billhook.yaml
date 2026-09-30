@@ -2,7 +2,7 @@
 # because the coppice is forestry's: the stool row names `cutting` as its
 # harvest tool, and this is what offers it. It will take a stool off at
 # the ankle and it will not take an oak — `fell` asks for `felling`.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [billhook, bill, hook, heavy]

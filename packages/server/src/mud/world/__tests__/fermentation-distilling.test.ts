@@ -22,7 +22,7 @@ import { Recipe } from '../../lib/craft/Recipe';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ReservedMixin, Reserve } from '../../lib/reserve';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { FireApi } from '../../api/fire';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
@@ -60,7 +60,7 @@ function recipeOf(pack: string, id: string): Recipe {
 let seq = 0;
 
 class BurnFixture extends CombustibleMixin(
-  ThermalMixin(ReservedMixin(Thing)),
+  ThermalMixin(ReservedMixin(Good)),
 ) {
   static _mixinName = 'DistillingBurnFixture';
 }

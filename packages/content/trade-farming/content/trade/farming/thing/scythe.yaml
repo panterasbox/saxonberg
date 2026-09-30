@@ -4,7 +4,7 @@
 # ⚠ The `mowing` capability is its own, not `cutting`: a knife cuts and a
 # scythe mows, and the two are not interchangeable at either end. An open
 # vocabulary, so a later sickle, reaper or mower answers the same string.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [scythe, snath]

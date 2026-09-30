@@ -1,7 +1,7 @@
 /**
  * PortableLight — a carried light you actually light: a torch, a lantern.
  *
- * `LightSourceMixin(SwitchableMixin(DetailedMixin(Thing)))`. The shipped
+ * `LightSourceMixin(SwitchableMixin(Good))`. The shipped
  * `LightSourceMixin` emits its authored flux unconditionally (v1 has no
  * lit/unlit state), and `SwitchableMixin` alone would be a *fake* toggle —
  * so this class **couples** the two: `getEmittedFlux()` returns the authored
@@ -16,7 +16,7 @@
  *
  * ⭐⭐ **This is the light that burns NOTHING**, and since the envelope
  * build that is the whole of what it is for. The lantern and the torch
- * moved to {@link Lamp}, which composes `FurnaceMixin` and therefore has
+ * moved to {@link Lamp}, which composes `BurnerMixin` and therefore has
  * a real fuel reserve, a burn rate, a burnout edge and `ignite`/`douse`;
  * what is left here is the **glowcap jar and its fixture**, which are a
  * fungus, and anything else whose fiction is a switch rather than a
@@ -25,14 +25,13 @@
  * a dark realm made it matter.
  */
 
-import Thing from "../../../lib/stuff/Thing";
+import Good from "../../../lib/stuff/Good";
 import { LightSourceMixin } from "../../../lib/perception/LightSource";
 import { SwitchableMixin } from "../../../lib/boundary/Switchable";
-import { DetailedMixin } from "../../../lib/description/Detailed";
 import { Quantity } from "../../../lib/quantity";
 
 const PortableLightBase = LightSourceMixin(
-  SwitchableMixin(DetailedMixin(Thing)),
+  SwitchableMixin(Good),
 );
 
 export default class PortableLight extends PortableLightBase {

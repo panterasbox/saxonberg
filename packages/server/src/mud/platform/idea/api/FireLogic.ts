@@ -38,7 +38,7 @@ const selfSubject = {
 };
 const FireCallers = SecurityPolicies.AnyOf(
   FireApiCallers,
-  SecurityPolicies.FromMixin('FurnaceMixin', selfSubject),
+  SecurityPolicies.FromMixin('BurnerMixin', selfSubject),
   SecurityPolicies.FromMixin('CombustibleMixin', {
     // Compare by stuffId — the caller may surface as the raw target
     // while the argument is the proxy (or vice versa).
@@ -143,7 +143,7 @@ function fireNowSeconds(): number {
 function igniteImpl(stuff: Stuff): IgniteOutcome {
   // A furnace appliance (forge / kiln / oven / campfire): lighting it is
   // toggling its lit state — it holds a fuel-driven pin, not a Burning object.
-  if (MixinApi.isFurnace(stuff)) {
+  if (MixinApi.isBurner(stuff)) {
     if (stuff.isLit()) return { lit: false, reason: 'already-burning' };
     if (stuff.fuelRemaining() <= 0) return { lit: false, reason: 'not-flammable' };
     stuff._setLit(true);
@@ -196,7 +196,7 @@ function igniteNow(stuff: Stuff & Combustible): void {
  */
 function douseImpl(stuff: Stuff): boolean {
   // A lit furnace — put it out.
-  if (MixinApi.isFurnace(stuff)) {
+  if (MixinApi.isBurner(stuff)) {
     if (!stuff.isLit()) return false;
     stuff._setLit(false);
     if (MixinApi.isWet(stuff)) {
@@ -258,7 +258,7 @@ function advanceFireInRoom(room: Stuff & Container): void {
   // (the forge melting an ingot) — independent of any Burning objects.
   for (const occ of room.getContents()) {
     const s = occ as unknown as Stuff;
-    if (!s.isDestroyed() && MixinApi.isFurnace(s) && s.isLit()) {
+    if (!s.isDestroyed() && MixinApi.isBurner(s) && s.isLit()) {
       s.heatContents();
     }
   }

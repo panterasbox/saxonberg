@@ -552,12 +552,33 @@ export class Session {
       (resolve, reject) => {
         const timer = setTimeout(() => {
           this.pendingDispatch = null;
-          reject(
-            new Error(
-              `wire: no dispatch-response for '${text}' within ` +
-                `${FRAME_TIMEOUT_MS}ms (session '${this.handle}')`
-            )
-          );
+          // ⚠⚠ **An unanswered PROMPT is not a hang, and saying so is
+          // worth the six lines.** A prompt arrives on its own frame and
+          // lands in `this.prompts`; `pendingDispatch` is only ever
+          // resolved by a dispatch-response, so a command that asked the
+          // player a question waits out the full timeout and reports
+          // "no dispatch-response" — indistinguishable from a wedged
+          // server.
+          //
+          // It cost the base-class narrowing drive five rounds. `feel
+          // rations` answered in 887 ms on a street and never answered
+          // in the general store, which stocks `rations` at `par: 5` —
+          // so the binder found six and asked which. The drive went
+          // looking for a thermal defect that was never there.
+          const pending = this.prompts[this.prompts.length - 1];
+          const why = pending
+            ? `wire: '${text}' raised a PROMPT and is waiting for an ` +
+              `answer, not hanging (session '${this.handle}'). The ` +
+              `prompt was: ${JSON.stringify(
+                (pending as unknown as { payload?: unknown }).payload ??
+                  pending,
+              ).slice(0, 400)}\n` +
+              `    Answer it with awaitPrompt()/answerPrompt(), or make the ` +
+              `target unambiguous — an MQL seed like 'me:i:<keyword>' ` +
+              `binds to what you are carrying and nothing else.`
+            : `wire: no dispatch-response for '${text}' within ` +
+              `${FRAME_TIMEOUT_MS}ms (session '${this.handle}')`;
+          reject(new Error(why));
         }, FRAME_TIMEOUT_MS);
         this.pendingDispatch = { resolve, reject, timer };
         this.ws.send(

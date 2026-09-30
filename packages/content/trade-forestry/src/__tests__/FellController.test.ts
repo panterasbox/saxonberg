@@ -20,7 +20,7 @@ import Wood from '../location/Wood';
 import Bole, { BOLE_LENGTHS } from '../thing/Bole';
 import Panel from '../thing/Panel';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Firewood from '@saxonberg/server/mud/platform/thing/Firewood';
 import Seed from '@saxonberg/server/mud/platform/thing/Seed';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
@@ -92,9 +92,9 @@ function makeWood(standing = 8): Wood {
   }, fresh(ROOM));
 }
 
-function makeAxe(caps: string[] = ['felling', 'cutting']): ToolItem {
+function makeAxe(caps: string[] = ['felling', 'cutting']): Tool {
   return makeStuffAtPath(() => {
-    const t = new ToolItem();
+    const t = new Tool();
     t.setShortDescription(caps.includes('felling') ? 'a felling axe' : 'a billhook');
     t.setCapabilities(caps);
     return t;

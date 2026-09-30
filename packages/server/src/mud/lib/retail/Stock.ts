@@ -2,9 +2,16 @@
  * Stock — the counter MECHANISM: a container fixture that holds the shelf
  * goods, prices them (via `PricedOfferMixin`, Law 1: worth on the offer),
  * and attends its customers (via `AttendantMixin`, the storefront lease).
- * One fixture, the `BankCounter` precedent (a `Vessel` that composes its
- * capability). The `buy` verb resolves this fixture as both the shelf and
- * the attend point.
+ * One fixture, the `BankCounter` precedent (a `Holder` that
+ * composes its capability). The `buy` verb resolves this fixture as both the
+ * shelf and the attend point.
+ *
+ * ⚠ **It used to be a `Vessel`, and that was one rung too far.** Since the
+ * base-class narrowing (D14) `Vessel` sits on `Good`, which composes
+ * `Chattel` and `Concealable`. A shop counter is part of the shop: it is
+ * nobody's chattel — the GOODS on it are, which is the whole point of
+ * `stampChattel` at the sale — and you cannot hide it. The container
+ * behaviour it wanted is one mixin, so it composes that mixin.
  *
  * Stock is authored declaratively: `stockLines` names each line
  * (`itemTemplatePath` + `par` + optional `brandKey`), the shelf inventory is
@@ -25,8 +32,8 @@
  * `lint:counters`.
  */
 
-import { Vessel } from "../stuff/Vessel";
-import { DetailedMixin } from "../description/Detailed";
+import Holder from "../stuff/Holder";
+import { ContainerMixin } from "../spatial/Container";
 import { PricedOfferMixin } from "../commerce/PricedOffer";
 import { AttendantMixin } from "../attendant/Attendant";
 import { ResettableMixin } from "../residency/Resettable";
@@ -93,7 +100,9 @@ export interface StockLine {
 const StockBase = PersistableMixin(
   ConsignmentShelfMixin(
     ResettableMixin(
-      AttendantMixin(PricedOfferMixin(DetailedMixin(PostRegistrationMixin(Vessel)))),
+      AttendantMixin(
+        PricedOfferMixin(PostRegistrationMixin(Holder)),
+      ),
     ),
   ),
 );

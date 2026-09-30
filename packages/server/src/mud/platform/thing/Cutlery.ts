@@ -28,8 +28,7 @@
  * was never about it.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { ServiceableMixin } from '../../lib/craft/Serviceable';
@@ -39,7 +38,7 @@ import { CutleryMixin } from '../../lib/bulk/Utensil';
 // its grade — the carver is a roster gap, not a reason to drop the stamp.
 // Thermal, because it sits in the soup. No Bulkable at all.
 const CutleryBase = CutleryMixin(
-  ServiceableMixin(CraftedMixin(ThermalMixin(DetailedMixin(Thing)))),
+  ServiceableMixin(CraftedMixin(ThermalMixin(Good))),
 );
 
 export default class Cutlery extends CutleryBase {}

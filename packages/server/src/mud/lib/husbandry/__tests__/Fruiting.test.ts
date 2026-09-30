@@ -10,7 +10,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import {
   GrowingMixin,
   type GrowthProfileData,
@@ -25,7 +25,7 @@ import '../../../platform/idea/WorldClockRegistry';
  * moisture (no reserve, no drain — fill dynamics are the subject here),
  * light/root/nutrient overrides, and a latch counter.
  */
-class FruitFixture extends GrowingMixin(Thing) {
+class FruitFixture extends GrowingMixin(Good) {
   public luxOverride = 0;
   public moistureOverride: number | null = 1;
   public floweringLatches = 0;

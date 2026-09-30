@@ -17,7 +17,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';
-import Thing from '../../../lib/stuff/Thing';
+import Good from '../../../lib/stuff/Good';
 import Material from '../../../lib/material/Material';
 import Firewood from '../../../platform/thing/Firewood';
 import Ingot from '../../../platform/thing/Ingot';
@@ -38,7 +38,7 @@ import type { User } from '../../../lib/identity/User';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestOccupant extends HasInteractiveMixin(Thing) {
+class TestOccupant extends HasInteractiveMixin(Good) {
   static _mixinName = 'TestOccupantHearth';
 }
 

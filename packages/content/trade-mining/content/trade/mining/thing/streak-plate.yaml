@@ -5,7 +5,7 @@
 # ⚠ Same capability as the lens, deliberately. A channel asks what a
 # thing can DO, and both of these do the same job by different means —
 # which is exactly the property a class check would have destroyed.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: unglazed streak plate

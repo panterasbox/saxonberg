@@ -38,13 +38,13 @@ import YAML from 'yaml';
 import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Chair from '../thing/Chair';
 import Oven from '../thing/Oven';
-import Thing from '../thing/Thing';
+import Good from '../thing/Thing';
 import UnboundedReceptacle from '../thing/UnboundedReceptacle';
 // ⚠ Both Things are in view here: the SUBSTRATE (composed with mixins to
 // build the fixtures below) and its concrete twin (what a bare row names).
 // Aliasing the base is the convention every other split-the-base class
 // uses inside its own file.
-import ThingBase from '../../lib/stuff/Thing';
+import ThingBase from '../../lib/stuff/Good';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import { Quantity } from '../../lib/quantity';
 import { AdornmentMixin } from '../../lib/boundary/Adornment';
@@ -181,8 +181,8 @@ function tap(): UnboundedReceptacle {
   t.setShortDescription('a cold tap');
   return t;
 }
-function toilet(): Thing {
-  const p = makeStuff(() => new Thing());
+function toilet(): Good {
+  const p = makeStuff(() => new Good());
   p.setShortDescription('a toilet');
   p.setPrimaryKeyword('toilet');
   p.setKeywords(['toilet', 'lavatory']);

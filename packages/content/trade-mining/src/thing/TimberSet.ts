@@ -23,9 +23,9 @@
  * the volcano-vent rule, underground.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 
-export default class TimberSet extends ToolItem {
+export default class TimberSet extends Tool {
   constructor() {
     super();
     // Host-internal writes — the constructor IS the class body. A row's

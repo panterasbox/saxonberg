@@ -30,7 +30,7 @@ import SingletonCartesianLocation from '../../../platform/location/SingletonCart
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
 import { Idea } from '../../stuff/Idea';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { ContainmentApi } from '../../../api/containment';
 import { SlottedMixin } from '../../slot/Slotted';
 import { SlottableMixin } from '../../slot/Slottable';
@@ -67,7 +67,7 @@ class Wearer extends Character {
 }
 /** The worn charged host — Ring's substrate without Wearable's body-plan claims. */
 class Worn extends BlessableMixin(
-  ChargedMixin(ReservedMixin(ArcaneMixin(SlottableMixin(Thing)))),
+  ChargedMixin(ReservedMixin(ArcaneMixin(SlottableMixin(Good)))),
 ) {}
 /** A host with no vitals: nothing to sustain on. */
 class Stand extends SlottedMixin(Idea) {}

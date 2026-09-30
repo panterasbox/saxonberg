@@ -16,7 +16,7 @@
 > cold (an iced cooler a medic walks with; the shipped `Icebox` is
 > `fixedInPlace`) · a cold ROOM as a place rather than a box · the
 > `Chamber` compartment (a fridge's freezer half → fridge-design-pack)
-> · the coolant reserve as a `FurnaceMixin`-shaped fuel analogue (the
+> · the coolant reserve as a `BurnerMixin`-shaped fuel analogue (the
 > shipped model uses a discrete `Meltable` block instead, which may be
 > enough) · first consumers beyond food: blood, pharma/vaccines.
 > **Size:** a build (what is left is production and the carried tier).
@@ -44,7 +44,7 @@ content drop, and the user's call was **defer**:
 
 ## The mechanism, when it is built
 
-⭐ **A cooler is a furnace run backwards.** `FurnaceMixin` holds its
+⭐ **A cooler is a furnace run backwards.** `BurnerMixin` holds its
 contents HOT while it has a `'fuel'` reserve (burning down over game-time);
 a `CoolerMixin` holds them COLD while it has a `'coolant'` reserve (melting
 over game-time, faster in a warm environment). Both are *thermal sources*
@@ -85,5 +85,5 @@ integrity story). Name the substrate for the chain, not for blood.
 - `docs/subsystems/spoilage.md` — freshness is already a temperature
   question; `docs/subsystems/blood.md` — the unit that spoils.
 - [blood-slate](./blood-slate.md) — the blood economy this eases at 12×.
-- `docs/subsystems/fire.md` — `FurnaceMixin` + the fuel reserve, the shape
+- `docs/subsystems/fire.md` — `BurnerMixin` + the fuel reserve, the shape
   to mirror.

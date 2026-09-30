@@ -3,10 +3,10 @@
  * it could not.
  *
  * The controller's target filter admits `isCombustible(s) ||
- * isFurnace(s)`, and the line that acted on the result then narrowed to
+ * isBurner(s)`, and the line that acted on the result then narrowed to
  * `isCombustible` alone and threw the furnace half away. A forge, an
  * oven, a kiln, a campfire: every one has a working
- * `FurnaceMixin.douse()`, every one is reachable by the verb, and
+ * `BurnerMixin.douse()`, every one is reachable by the verb, and
  * **every one answered *"that isn't burning"* while burning.** The
  * method was unreachable from the only verb that calls it.
  *

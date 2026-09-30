@@ -58,10 +58,10 @@ describe('the bar is furniture, not stock', () => {
   // The other half: what SITS on the furniture is still yours to take.
   // A rule that froze the glasses too would be worse than the bug.
   it('the things ON the furniture are still takeable', async () => {
-    const { default: ToolItem } = await import(
-      '@saxonberg/server/mud/platform/thing/ToolItem'
+    const { default: Tool } = await import(
+      '@saxonberg/server/mud/platform/thing/Tool'
     );
-    const tool = await StuffApi.create(() => new ToolItem());
+    const tool = await StuffApi.create(() => new Tool());
     expect(
       (tool as unknown as { isFixedInPlace(): boolean }).isFixedInPlace(),
     ).toBe(false);

@@ -19,5 +19,5 @@ data:
   longDescription: >-
     Dull black, splitting in flat plates, and it leaves your hands filthy.
     It smells faintly of the pit.
-  material: /stuff/idea/material/mineral/coal
+  _materialPath: /stuff/idea/material/mineral/coal
   mass: 6

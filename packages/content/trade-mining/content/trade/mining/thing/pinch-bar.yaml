@@ -1,7 +1,7 @@
 # A pinch bar — the lever that takes down loose ground before it takes
 # itself down. ⚠ The tool an attentive miner uses so nothing ever falls
 # on them.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [bar, pinch-bar, crowbar, steel, pinch]

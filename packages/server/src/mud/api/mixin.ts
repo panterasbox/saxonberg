@@ -112,7 +112,7 @@ import type { Feeder } from "../lib/husbandry/Feeder";
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
-import type { Furnace } from '../lib/fire/Furnace';
+import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
@@ -1451,8 +1451,8 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Meltable);
   }
 
-  public static isFurnace(obj: Stuff): obj is Stuff & Furnace {
-    return this.hasMixin(obj, Mixins.Furnace);
+  public static isBurner(obj: Stuff): obj is Stuff & Burner {
+    return this.hasMixin(obj, Mixins.Burner);
   }
 
   /**

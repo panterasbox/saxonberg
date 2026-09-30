@@ -28,7 +28,7 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
 import { Freshness } from '../../../../lib/material/Freshness';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import Provision from '../../../thing/Provision';
 import { Recipe } from '../../../../lib/craft/Recipe';
 import Oven from '../../../thing/Oven';
@@ -114,8 +114,8 @@ function makeBottle(materialPath: string, amountL: number): GradedReceptacle {
   return b;
 }
 
-function makeMeat(): Thing {
-  const t = makeStuff(() => new Thing());
+function makeMeat(): Good {
+  const t = makeStuff(() => new Good());
   t.setMass(Quantity.of(0.4, 'kg'));
   t.setMaterial(
     StuffApi.findByTemplatePath<Material>(MEAT) as unknown as Material,
@@ -459,8 +459,8 @@ describe('Recipe.fromData validates the medium word', () => {
 });
 
 describe('the toxin kill is SELECTIVE (AC9)', () => {
-  function item(materialPath: string): Thing {
-    const t = makeStuff(() => new Thing());
+  function item(materialPath: string): Good {
+    const t = makeStuff(() => new Good());
     t.setMass(Quantity.of(0.3, 'kg'));
     t.setMaterial(
       StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,

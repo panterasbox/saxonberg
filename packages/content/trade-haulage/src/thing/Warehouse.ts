@@ -18,9 +18,16 @@
  * ⭐ Issuing a receipt is a method ON this object, not an Api call:
  * verbs go on objects, and *what is in my shed* is a question about the
  * shed.
+ *
+ * ⚠ **A `Holder`, not a `Vessel`** (the base-class narrowing,
+ * D14). `Vessel` sits on `Good`, which composes `Chattel` and
+ * `Concealable`; this is part of the premises — nobody's chattel, and you
+ * cannot hide it. The container behaviour it wants is one mixin, so it
+ * composes that mixin. The GOODS it holds are the chattel.
  */
 
-import { Vessel } from '@saxonberg/server/mud/lib/stuff/Vessel';
+import Holder from '@saxonberg/server/mud/lib/stuff/Holder';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -31,7 +38,9 @@ import type { Business } from '@saxonberg/server/mud/platform/idea/Business';
 import WaybillRegistry from '../idea/WaybillRegistry';
 import { WAYBILL_REGISTRY_PATH } from '../lib/haulage/ShipmentDesk';
 
-export default class Warehouse extends Vessel {
+const WarehouseBase = Holder;
+
+export default class Warehouse extends WarehouseBase {
   static fieldMeta: FieldMeta = {
     baileePath: { persistent: true, authorable: true, authorPicker: 'Template' },
   };

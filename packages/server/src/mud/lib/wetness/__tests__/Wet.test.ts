@@ -7,7 +7,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { Vessel } from '../../stuff/Vessel';
 import { Agent } from '../../stuff/Agent';
 import Location from '../../stuff/Location';
@@ -24,8 +24,8 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
-class WetThing extends Thing {}
-class WarmWetThing extends ThermalMixin(Thing) {
+class WetThing extends Good {}
+class WarmWetThing extends ThermalMixin(Good) {
   static _mixinName = 'WarmWetThing';
 }
 
@@ -199,7 +199,7 @@ describe('WetMixin — the host set is the matter seam', () => {
   it('matter (Thing / Vessel / Agent) is wettable; space + Ideas are not', () => {
     // "Can get wet" ⟺ "is matter" (Tangible). A Location is *space*, not
     // matter, so it is neither Tangible nor Wet; a pure Idea is neither.
-    expect(MixinApi.isWet(makeStuff(() => new Thing()))).toBe(true);
+    expect(MixinApi.isWet(makeStuff(() => new Good()))).toBe(true);
     expect(MixinApi.isWet(makeStuff(() => new Vessel()))).toBe(true);
     expect(MixinApi.isWet(makeStuff(() => new Agent()))).toBe(true);
     expect(MixinApi.isWet(makeStuff(() => new Location()))).toBe(false);

@@ -21,5 +21,5 @@ data:
   longDescription: >-
     A thick-walled earthenware pot, unglazed, with the potter's thumb still in
     the rim where they lifted it off the wheel.
-  material: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/ceramic
   mass: 2.5

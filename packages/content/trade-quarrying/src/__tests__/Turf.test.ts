@@ -172,7 +172,15 @@ describe('⭐ WaterActive WITHOUT Freshness — the anticipated case, made real'
 
   it('the shipped row is on the trade’s `Turf` class and the shipped peat', () => {
     const d = rowData(`${PACK}content/trade/quarrying/thing/turf.yaml`);
-    expect(d.material).toBe(PEAT);
+    // ⚠⚠ `_materialPath`, and this assertion was VACUOUS until the
+    // base-class narrowing's W8. It read `d.material` — a key the
+    // Hydrator has never written, because `TangibleMixin` declares
+    // `_materialPath` and nothing declares `material`. So the test
+    // asserted the turf is made of peat while the shipped turf was made
+    // of NOTHING, and passed. A dead data key is not an error; it is a
+    // silence, and a test that reads the same dead key is a silence that
+    // looks like proof.
+    expect(d._materialPath).toBe(PEAT);
     // ⚠ And it ships at FULL moisture by default, which is the whole point: an
     // as-cut turf is useless and the weather is what makes it fuel.
     expect(d.moisture).toBeUndefined();

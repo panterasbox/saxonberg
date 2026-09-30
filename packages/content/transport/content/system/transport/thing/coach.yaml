@@ -5,6 +5,11 @@
 # `out` exit, the `go <coach>` entry, a defining door — is exactly a
 # carriage. It has been shipped and unused since the boundary build.
 #
+# ⭐ **Composition, as of the base-class narrowing build:** `Coach` is
+# `Drivable(Sealable(Mobile(ExitableVessel)))`, and `ExitableVessel` is
+# `PostRegistration(DoorBearing(Exitable(Adornable(Atmospheric(Vessel)))))`.
+# The air is `ExitableVessel`'s, not `Vessel`'s — a bag is not a place.
+#
 # ⚠ **Sealable, and shut it is opaque** (AC8): a passenger in an open
 # wagon perceives the road, one in a shut coach does not, and the
 # difference is `MixinApi.isOpenContainer` rather than any code here.
@@ -29,8 +34,27 @@ data:
   # a coach with them shut is a room that is moving, and the difference
   # is what you can see out of.
   open: false
-  # ⭐ A DEAD FIELD, deleted. A coach is a `Vessel`, and `Vessel` is
-  # `Atmospheric(Container(Thing))` — it does NOT compose `AmbientLit`.
-  # This row has authored forty lumens that nothing has ever read. A
-  # lantern in the cabin is the honest way to light a coach, and it is
-  # a thing somebody has to have brought.
+  # ⭐ A DEAD FIELD, deleted. A coach does NOT compose `AmbientLit`; this
+  # row had authored forty lumens that nothing has ever read. A lantern
+  # in the cabin is the honest way to light a coach, and it is a thing
+  # somebody has to have brought.
+  #
+  # ⭐⭐ **The cabin holds five cubic metres of air, and saying so is what
+  # gives it weather of its own.** `ExitableVessel` composes
+  # `AtmosphericMixin` — *a thing you can go inside is a place with air* —
+  # but a vessel has no geometry to derive a volume from the way a room
+  # derives one from its zone's cell size, so the envelope runs iff a row
+  # states an interior. Leaving `interiorVolume` unset is how an open
+  # boat DECLINES one: the four sense reads still answer inside it, with
+  # the outside's air walked up the chain, and what is absent is an
+  # envelope of its own.
+  #
+  # ⚠ Not `interiorCapacity` — that is `Bulkable`'s liquid capacity, and
+  # the barge authors 12000 of it. A tank is what you pour in; a cabin is
+  # what you breathe.
+  interiorVolume: 5
+  # ⚠ Without a material the envelope names the universe default in the
+  # cause sentence `feel` prints — *"the stone still holds the day"*, in a
+  # carriage. A coach body is timber; the wall thickness is
+  # `ExitableVessel`'s centimetre, not a building's third of a metre.
+  _materialPath: /stuff/idea/material/wood/oak

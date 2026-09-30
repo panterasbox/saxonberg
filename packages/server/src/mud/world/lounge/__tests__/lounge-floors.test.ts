@@ -19,7 +19,6 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Lounge from '../location/Lounge';
 import Bar from '../location/Bar';
-import GlassAlley from '../location/GlassAlley';
 import type Location from '../../../lib/stuff/Location';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -38,7 +37,6 @@ describe('the lounge classes all get a floor', () => {
   const ROSTER: Array<[string, () => Location]> = [
     ['Lounge', () => new Lounge() as unknown as Location],
     ['Bar', () => new Bar() as unknown as Location],
-    ['GlassAlley', () => new GlassAlley() as unknown as Location],
   ];
 
   for (const [name, factory] of ROSTER) {

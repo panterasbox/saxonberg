@@ -46,6 +46,7 @@ import type { Container } from "../spatial/Container";
 import type { Bulkable } from "../bulk/Bulkable";
 import { Quantity } from "../quantity";
 import type { Coolbox } from "./Coolbox";
+import type { Atmospheric } from "../biome/Atmospheric";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
@@ -304,20 +305,83 @@ export interface Thermal {
 }
 
 /**
- * ⭐ **What stands between this body and the room, for air.**
+ * ⭐ **What HOLDS this body** — one step, and only one.
  *
  * The body's enclosing placement host when it sits under a member that
  * encloses (a compartment with its own air), otherwise its container.
  * A body that is not `Containable` at all has no scope.
  *
- * One function because both the pull side (`refreshAmbientFromEnvelope`)
- * and the push side (`restamp`) must ask the same question, and the day
- * they disagree is the day a compartment keeps its cold in one path and
- * not the other.
+ * ⚠⚠ **This is a different question from {@link airScopeOf}, and the
+ * paragraph between them is the whole of the distinction:**
+ *
+ *  - *what holds you* — the immediate holder, used by
+ *    {@link enclosingCoolbox}, because what you are IN outranks the room
+ *    and an icebox two hops away is not holding you;
+ *  - *what air reaches you* — the nearest scope outward that has any,
+ *    used by both ambient paths, because a loaf in a bag is in the room's
+ *    air and a bag has none.
+ *
+ * They were one function until the base-class narrowing build, when they
+ * had to stop being: before it a bag WAS atmospheric (every `Vessel`
+ * was), so one step always landed on something with air — it just had no
+ * envelope, which is why a bagged loaf's ambient never moved. After it a
+ * bag is honestly transparent, and the walk is what finds the air.
  */
 function ambientScopeOf(host: Stuff): Stuff | null {
   if (!MixinApi.isContainable(host)) return null;
   return host.getEnclosingScope();
+}
+
+/**
+ * ⚠⚠ Matches the `CONTAINMENT_DEPTH_CAP` the biome chain
+ * (`BiomeLogic`), the address walk (`AddressLogic`) and the zone walk
+ * (`ZoneLogic`) each declare privately at 32. Declared here for the same
+ * reason they do: nothing is exported across those tiers, and a shared
+ * constant would be an import that crosses one.
+ */
+const AIR_SCOPE_DEPTH_CAP = 32;
+
+/**
+ * ⭐⭐ **What AIR reaches this body** — the nearest enclosing scope
+ * outward that has any.
+ *
+ * A perishable in a bag was frozen at whatever ambient it was stamped
+ * with when it went in: a bag has no envelope, so the pull side returned
+ * without updating and the push side asked the bag for a temperature it
+ * could only answer from the raw biome. Carry a loaf from a cold street
+ * into a warm bakery and it stayed street-cold indefinitely, and nothing
+ * in the game said so.
+ *
+ * ⚠⚠ **One step outward would not have fixed it.** A worn bag's
+ * container is the WEARER — a `Creature` is a `Container` — so
+ * bag → carrier → room is two hops, and the carrier has no air either.
+ * The case the repair exists for is a bag on somebody's back.
+ *
+ * So this walks, under the same depth cap and the same discipline the
+ * biome chain already uses for every other atmospheric value: step
+ * outward through `getEnclosingScope()` until something is
+ * `Atmospheric`, or until there is nothing left to step to. It is not a
+ * new mechanism; it is the chain's existing walk applied to the
+ * envelope.
+ *
+ * Both ambient paths call it — the pull side
+ * (`refreshAmbientFromEnvelope`) and the push side (`restamp`) — because
+ * the day they disagree is the day a box keeps its cold in one path and
+ * not the other.
+ *
+ * ⭐ A documented limit: **the holder read stays immediate**. A loaf in a
+ * bag inside a shut icebox reads the ROOM, not the cold, because
+ * {@link enclosingCoolbox} asks what holds you and a bag is what holds
+ * it. Asserted in the tests so the limit is visible rather than hidden.
+ */
+function airScopeOf(host: Stuff): (Stuff & Atmospheric) | null {
+  let cursor = ambientScopeOf(host);
+  for (let depth = 0; cursor !== null && depth < AIR_SCOPE_DEPTH_CAP; depth++) {
+    if (MixinApi.isAtmospheric(cursor)) return cursor;
+    if (!MixinApi.isContainable(cursor)) return null;
+    cursor = cursor.getEnclosingScope();
+  }
+  return null;
 }
 
 /**
@@ -545,7 +609,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the OO sweep): the solid→liquid latent-heat plateau and the
      * vessel freeze/boil transitions, keyed on real Material
      * properties. Sealed — owns the phase/temperature invariants.
-     * Ungated: the callers are physics drivers (Furnace, magic heat,
+     * Ungated: the callers are physics drivers (Burner, magic heat,
      * casting) — a trusted physical relationship.
      */
     @Final
@@ -556,7 +620,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * The maximum sustained temperature (K) reachable from where this
-     * body stands — the hottest lit `Furnace` in its scope (the
+     * body stands — the hottest lit `Burner` in its scope (the
      * crafting emergent-reachability principle applied to heat: a
      * smith's control gate is "what's the hottest thing I can
      * reach?"). 0 when nothing hot is in reach. Ungated read.
@@ -673,8 +737,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.lastAmbientK = holderCold;
         return;
       }
-      const scope = ambientScopeOf(self);
-      if (scope === null || !MixinApi.isAtmospheric(scope)) return;
+      const scope = airScopeOf(self);
+      if (scope === null) return;
       const envelopeK = scope.envelopeTemperatureLast();
       if (envelopeK !== null) this.lastAmbientK = envelopeK;
     }
@@ -736,7 +800,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // is heating it.** (Placement build, D22.)
       //
       // ⚠⚠ Until this line, `reconcilePhase()` had exactly three
-      // callers in the whole tree: a lit `Furnace`'s heat pass, two
+      // callers in the whole tree: a lit `Burner`'s heat pass, two
       // spell endpoints, and tests. So nothing in the world melted
       // unless a fire or a wizard was pointed at it — a block of ice
       // left on a warm floor sat at its melting point forever, with
@@ -755,7 +819,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * The held temperature (K) of a lit, fuelled `Furnace` that is
+     * The held temperature (K) of a lit, fuelled `Burner` that is
      * heating this body — the furnace **holding** it (a loaf in an
      * oven) or the furnace it **rests on** (a pot on a campfire) — or
      * `null` when nothing does. Read only by {@link restamp}: the
@@ -765,17 +829,17 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private heatSourceK(): number | null {
       const self = this.thermalHost;
-      // A lit, fuelled furnace the body is IN or ON — `isFurnace` narrows
+      // A lit, fuelled furnace the body is IN or ON — `isBurner` narrows
       // the one cast to the container type, and everything after reads
       // through the narrowing.
-      const litFurnaceK = (candidate: Stuff | null): number | null => {
-        if (candidate === null || !MixinApi.isFurnace(candidate)) return null;
+      const litBurnerK = (candidate: Stuff | null): number | null => {
+        if (candidate === null || !MixinApi.isBurner(candidate)) return null;
         if (!candidate.isLit() || candidate.fuelRemaining() <= 0) return null;
         return candidate.getHeldTemperatureK();
       };
-      const inside = litFurnaceK(self.getContainer() as unknown as Stuff | null);
+      const inside = litBurnerK(self.getContainer() as unknown as Stuff | null);
       if (inside !== null) return inside;
-      return litFurnaceK(
+      return litBurnerK(
         (self.getPlacement()?.host ?? null) as unknown as Stuff | null,
       );
     }
@@ -785,7 +849,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * temperature (K) of a shut `Coolbox` holding this body, or `null`.
      *
      * `heatSourceK` is hot-only by construction — it asks for a lit
-     * `Furnace` — and the rule underneath it is not about heat at all:
+     * `Burner` — and the rule underneath it is not about heat at all:
      * *what HOLDS this body outranks the biome chain.* A shut icebox
      * holds its contents exactly as an oven does, and the chain cannot
      * answer for it, because a `Coolbox` is not `Atmospheric` (and must
@@ -822,7 +886,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // ⭐ A heat source that HOLDS this body outranks the biome chain:
       // the inside of a lit oven is not the room. `BiomeLogic` walks
-      // `Atmospheric` ancestors and a `Furnace` is not `Atmospheric`
+      // `Atmospheric` ancestors and a `Burner` is not `Atmospheric`
       // (deliberately — a lit forge must not warm the room it stands
       // in), so the couple is read here, on the body being heated.
       let ambientK = this.lastAmbientK;
@@ -834,13 +898,12 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         // ⭐ Seam 1, the push side — same position as `heatSourceK`.
         ambientK = holderCold;
       } else {
-        // Resolve the new scope's ambient. ⭐ The scope is what stands
-        // between this body and the room — its ENCLOSING placement host
-        // when it sits in a region with its own air, else its
-        // container. No shipped member encloses, so today these are the
-        // same object; the read names the right question so the first
-        // compartment needs no edit here.
-        const scope = ambientScopeOf(this.thermalHost);
+        // Resolve the new scope's ambient. ⭐ The scope is the nearest
+        // thing outward with air in it — an enclosing placement host
+        // that has its own, else the first container up the chain that
+        // is `Atmospheric`. A bag, a crate and a carrier are stepped
+        // through, because none of them is weather.
+        const scope = airScopeOf(this.thermalHost);
         const container =
           scope !== null && MixinApi.isContainer(scope) ? scope : null;
         if (container !== null) {
@@ -917,7 +980,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 /**
  * The maximum sustained temperature (K) reachable from `position` — the hottest
- * lit `Furnace` in its scope (the crafting emergent-reachability principle
+ * lit `Burner` in its scope (the crafting emergent-reachability principle
  * applied to heat: a smith's control gate is "what's the hottest thing I can
  * reach?"). Returns 0 when nothing hot is in reach. Consumed by
  * `CraftingLogic`'s heat gate (`recipe.requiresHeatK`) — the smithing/cooking
@@ -930,7 +993,7 @@ function reachableHeatForImpl(position: Stuff): number {
   let hottest = 0;
   for (const occ of (scope as Stuff & Container).getContents()) {
     const s = occ as unknown as Stuff;
-    if (s.isDestroyed() || !MixinApi.isFurnace(s)) continue;
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
     if (!s.isLit() || s.fuelRemaining() <= 0) continue;
     const t = s.getHeldTemperatureK();
     if (t > hottest) hottest = t;

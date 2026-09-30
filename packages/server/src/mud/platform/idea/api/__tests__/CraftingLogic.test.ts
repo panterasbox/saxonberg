@@ -24,7 +24,7 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import CraftVessel from '../../../thing/CraftVessel';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -94,7 +94,7 @@ function makeGlass() {
 }
 
 function makeTool(cap: string) {
-  const t = makeStuff(() => new ToolItem());
+  const t = makeStuff(() => new Tool());
   // ⭐ The instrument authors the working it performs — the kernel keeps
   // no technique table, so a tool naming none leaves the drink `built`.
   // These are the same numbers hospitality's mixing-glass row carries.

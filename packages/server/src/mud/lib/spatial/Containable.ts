@@ -143,9 +143,13 @@ export interface Containable {
    * resolution and by `PerceptionLogic.canReach` (a shut enclosing
    * host is not reached into).
    *
-   * ⚠ Stepping further outward — through a non-atmospheric container
-   * until a scope answers — is NOT this; see
-   * `docs/slates/builds/base-class-narrowing-slate.md` finding #2.
+   * ⭐ Stepping further outward — through a non-atmospheric container
+   * until a scope with air answers — is NOT this. That walk lives in
+   * `lib/thermal/Thermal.ts` as `airScopeOf`, and **this method is its
+   * step**. The two questions are *what holds me* (here) and *what air
+   * reaches me* (there); they were the same call until the base-class
+   * narrowing build, when `AtmosphericMixin` left `Vessel` and a bag
+   * stopped pretending to be weather.
    */
   getEnclosingScope(): Stuff | null;
 

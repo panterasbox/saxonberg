@@ -11,7 +11,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Material from "../Material";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import { NutritionLabelMixin } from "../../metabolism/NutritionLabel";
 import { Stuff } from "../../stuff/Stuff";
 import { MixinApi } from "../../../api/mixin";
@@ -23,7 +23,7 @@ import {
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 
-class LabelledThing extends NutritionLabelMixin(Thing) {
+class LabelledThing extends NutritionLabelMixin(Good) {
   static _mixinName = "LabelledThing";
 }
 
@@ -87,7 +87,7 @@ describe("NutritionLabelMixin — the inspectable label", () => {
 
   beforeEach(() => {
     installV1QuantityMarshallers();
-    viewer = makeStuff(() => new Thing()) as unknown as Stuff;
+    viewer = makeStuff(() => new Good()) as unknown as Stuff;
   });
   afterEach(() => StuffApi.clearAll());
 
@@ -133,7 +133,7 @@ describe("NutritionLabelMixin — the inspectable label", () => {
       [],
     );
     const plain = makeStuff(() => {
-      const t = new Thing();
+      const t = new Good();
       t.setShortDescription("an apple");
       t.setLongDescription("It is an apple.");
       t.setMaterial(apple);

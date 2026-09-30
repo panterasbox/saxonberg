@@ -298,7 +298,7 @@ walking the actor's surroundings and narrowing by type.
 ```typescript
 // BAD — the controller re-deriving what the binder already resolves
 const mill = room.getContents().find((c) => c instanceof GristMill);
-const oven = room.getContents().find((c) => MixinApi.isFurnace(c));
+const oven = room.getContents().find((c) => MixinApi.isBurner(c));
 ```
 
 **INSTEAD** — declare it on the view and read it off the model:
@@ -341,7 +341,7 @@ atom exists for exactly this — see
 ```
 
 ⚠ It is fine for the controller to narrow further on **state** the
-predicate cannot express: `bake` resolves on `FurnaceMixin` and then
+predicate cannot express: `bake` resolves on `BurnerMixin` and then
 checks *lit, fuelled, and a chamber*, because no mixin means "lit".
 
 ⭐⭐ **And when one arg cannot carry it, reach for a PLURAL — not a
@@ -2954,7 +2954,7 @@ expect(body.getOccupiedHost()).toBe(bed);   // true, and irrelevant
 
 ```typescript
 // The verb exists for the actor that must issue it...
-expect(PosedMixin(Thing).commandContributions.self)
+expect(PosedMixin(Good).commandContributions.self)
   .toContain('posture/lie.yaml');
 // ...and the actor satisfies the validator that gates it.
 expect(MixinApi.hasMixin(Creature, Mixins.Slottable)).toBe(true);
@@ -3695,7 +3695,7 @@ isn't a player.
 Mounted is not immovable. The tell is a veto whose reason is a *fact
 about the object* (`'mounted'`, `'bolted down'`, `'too heavy'`) rather
 than about the operation: a fact about the object is state, and state
-belongs in a field the row can author. `Screen.canMove` was the tree's
+belongs in a field the row can author. A retired wall-screen class's `canMove` was the tree's
 only production override, found in the libations review; `canMove` now
 has no production users and stays for genuine class invariants. See
 [spatial.md](./subsystems/spatial.md) § *`canMove` is a class invariant*.
@@ -3723,7 +3723,7 @@ capabilities:
 
 ```ts
 // RIGHT — one record: the class of the thing that performs the act.
-export default class Strainer extends ToolItem {
+export default class Strainer extends Tool {
   static commandContributions: CommandContributions = {
     environment: [STRAIN], peers: [STRAIN],
   };
@@ -4607,7 +4607,7 @@ args:
 ```
 
 Raw stock has no wear axis — stock does not wear out, made things do — so
-`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Thing))` and
+`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Good))` and
 none composes `DurableMixin`. Every explicit `hammer <target>` in the game
 was refused at the **binder** with *"{} doesn't wear out"*, including
 `hammer ingot`, the worked example in that file's own help. Only bare

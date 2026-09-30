@@ -272,8 +272,29 @@ export function packBrainShapeOk(source: string): boolean {
   return /^export\s+const\s+brain\s*=\s*class\b/m.test(source);
 }
 
-/** The ceiling for invariant 12 (orphan data keys). May fall, never rise. */
-const ORPHAN_DATA_KEY_CEILING = 436;
+/**
+ * The ceiling for invariant 12 (orphan data keys). May fall, never rise.
+ *
+ * ⚠⚠ **A large share of the count is FALSE POSITIVES, and naming them
+ * is the honest state of this ratchet** (base-class narrowing,
+ * 2026-09-30). Invariant 12 asks *does a composed field declare this
+ * key*, which assumes the Hydrator is the only reader. It is not:
+ * `TopicCatalogue.ts:318,367` parses `data.address`, `data.actor`,
+ * `data.audience`, `data.affordance` and `data.communicative` off the
+ * topic rows ITSELF, through `pick(data?.address, …)`. That is ~161 of
+ * the count — `address` 41, `actor`/`audience`/`affordance` 38 each,
+ * `communicative` 6 — every one of them live, read and documented in
+ * `topics.md`.
+ *
+ * ⭐ So the number is an upper bound on the defect, not a measure of
+ * it, and a sweep that "fixed" these by deleting the keys would break
+ * the topic facets. **Do not drive this to zero without first teaching
+ * the gate about catalogue-parsed rows** — the shape it cannot see is
+ * *a class that reads its own content*, which is also why
+ * `MaturationProfile`, `Reading` and the other catalogue Ideas are
+ * over-represented here.
+ */
+const ORPHAN_DATA_KEY_CEILING = 402;
 
 /** The standard hydrator — the only one whose appliers are `fieldMeta`. */
 const STANDARD_HYDRATOR = '/platform/idea/persistence/PersistentHydrator';

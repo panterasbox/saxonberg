@@ -31,6 +31,26 @@
  *      authored 500 reads exactly as 100 and the author never learns it.
  *   3. ERROR — a dialogue guard `fact: trait:<key>` whose key is not in
  *      `DISPOSITION_KEYS`.
+ *   4. ⭐⭐ ERROR — a behaviour pool entry whose `kind:` names a channel
+ *      the row's CLASS cannot speak on: `kind: say` on a class that does
+ *      not reach `VocalMixin`, `kind: emote` on one that does not reach
+ *      `SoulMixin`.
+ *
+ * ⚠⚠ **Rule 4 exists because the base-class narrowing nearly shipped
+ * three silent animals.** `BrainContext.say` and `.emote` are guarded by
+ * `MixinApi.isVocal` / `isSoul` in `Behaved.ts` and **no-op otherwise** —
+ * which was invisible while every brained thing in the game was a
+ * `Character`. The moment the wolf, the draft horse and the pit pony
+ * moved to `platform/agent/Beast` (no `Soul`, no `Vocal`), every pool
+ * entry on a channel the class lacks became a beat that simply never
+ * happens. No error, no log. Same class of failure as a `commandContributions`
+ * on a row, or a data key nothing reads: **fails closed and silent.**
+ *
+ * `emoteFree` (`kind: free`) is deliberately NOT gated — `Behaved.ts`
+ * falls back to an `act.deed` scene for a soulless host, which is the
+ * more honest render for an animal anyway. A pool a beast can use is
+ * therefore always available, so this rule never refuses without an
+ * alternative.
  *
  * No exemption list. A key that ought to exist is a roster edit
  * (`lib/trait/Disposition.ts`), which is a design conversation and reads
@@ -45,6 +65,8 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
 import { join, relative, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
+import { packSources, effectiveDoc, inheritanceIndex, type InheritanceIndex } from './pack-roots';
+import { reaches } from './check-mass';
 import { DISPOSITION_KEYS } from '../src/mud/lib/trait/Disposition';
 
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -92,9 +114,15 @@ function nearest(key: string): string {
  * rather than a path lookup — a seed the walk cannot see is a seed the
  * gate would silently pass, which is the failure it exists to stop.
  */
-function inspect(node: unknown, file: string, found: Finding[], seen: Set<string>): void {
+function inspect(
+  node: unknown,
+  file: string,
+  found: Finding[],
+  seen: Set<string>,
+  speaks?: { say: boolean; emote: boolean; klass: string },
+): void {
   if (Array.isArray(node)) {
-    for (const item of node) inspect(item, file, found, seen);
+    for (const item of node) inspect(item, file, found, seen, speaks);
     return;
   }
   if (!node || typeof node !== 'object') return;
@@ -135,13 +163,43 @@ function inspect(node: unknown, file: string, found: Finding[], seen: Set<string
     }
   }
 
-  for (const value of Object.values(rec)) inspect(value, file, found, seen);
+  // Rule 4 — a pool entry on a channel the class cannot speak on.
+  if (speaks && typeof rec.kind === 'string' && 'value' in rec) {
+    const channel = rec.kind;
+    if (channel === 'say' && !speaks.say) {
+      found.push({
+        file,
+        message:
+          `a behaviour pool entry is \`kind: say\`, and ${speaks.klass} does ` +
+          `not compose VocalMixin — \`BrainContext.say\` no-ops on it, so ` +
+          `the beat is silent with no error. Use \`kind: free\`, which ` +
+          `renders as a deed peers can see.`,
+      });
+    }
+    if (channel === 'emote' && !speaks.emote) {
+      found.push({
+        file,
+        message:
+          `a behaviour pool entry is \`kind: emote\`, and ${speaks.klass} ` +
+          `does not compose SoulMixin — \`BrainContext.emote\` no-ops on ` +
+          `it, so the beat is silent with no error. Use \`kind: free\`.`,
+      });
+    }
+  }
+
+  for (const value of Object.values(rec)) inspect(value, file, found, seen, speaks);
 }
 
 function main(): void {
   const report = process.argv.includes('--report');
   const findings: Finding[] = [];
   const seen = new Set<string>();
+
+  const sources = packSources(CONTENT);
+  let idx: InheritanceIndex | null = null;
+  // `classPath -> {say, emote}`; the composition walk is the expensive
+  // part and most rows share a handful of classes.
+  const speech = new Map<string, { say: boolean; emote: boolean }>();
 
   for (const file of contentFiles()) {
     let parsed: unknown;
@@ -150,7 +208,35 @@ function main(): void {
     } catch {
       continue; // a malformed row is another gate's finding
     }
-    inspect(parsed, relative(REPO_ROOT, file), findings, seen);
+
+    /*
+     * ⚠ Through `effectiveDoc`: a CHILD row states no `class:` of its
+     * own, so reading the raw field would skip it — and a skipped row
+     * reads exactly like a passing one, which is the failure every gate
+     * in this family has hit at least once.
+     */
+    let speaks: { say: boolean; emote: boolean; klass: string } | undefined;
+    if (parsed && typeof parsed === 'object') {
+      idx ??= inheritanceIndex();
+      const eff = effectiveDoc(
+        file,
+        parsed as Record<string, unknown>,
+        idx,
+      ) as { class?: unknown };
+      if (typeof eff.class === 'string' && eff.class) {
+        let cap = speech.get(eff.class);
+        if (!cap) {
+          cap = {
+            say: reaches(eff.class, 'VocalMixin', sources),
+            emote: reaches(eff.class, 'SoulMixin', sources),
+          };
+          speech.set(eff.class, cap);
+        }
+        speaks = { ...cap, klass: eff.class };
+      }
+    }
+
+    inspect(parsed, relative(REPO_ROOT, file), findings, seen, speaks);
   }
 
   if (report) {

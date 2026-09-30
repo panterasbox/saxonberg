@@ -65,8 +65,8 @@ describe('⭐⭐ which fires warm a room, and which do not', () => {
     // Both are still furnaces, still burn fuel, still hold their heat —
     // they simply make no claim on the air. A smith can work beside one
     // in a cold smithy, which is exactly the shipped rule.
-    expect(MixinApi.isFurnace(forge)).toBe(true);
-    expect(MixinApi.isFurnace(oven)).toBe(true);
+    expect(MixinApi.isBurner(forge)).toBe(true);
+    expect(MixinApi.isBurner(oven)).toBe(true);
   });
 });
 
@@ -109,7 +109,7 @@ describe('what a hearth IS, structurally', () => {
   });
 
   it('⚠ ships COLD, against the mixin default', () => {
-    // `FurnaceMixin.lit` defaults TRUE — right for the Campfire seed it
+    // `BurnerMixin.lit` defaults TRUE — right for the Campfire seed it
     // was written for, wrong for a hearth in an empty room.
     expect(hearth().isLit()).toBe(false);
   });

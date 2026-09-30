@@ -28,7 +28,6 @@
 
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
-import { PropertiedMixin } from '../stuff/Propertied';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Sensor } from '../message/Sensor';
@@ -90,7 +89,27 @@ export type Percept = unknown;
 export const MAX_HOPS = 2;
 export const EXIT_TAU = 1.0;
 
-export class Modality extends SingletonMixin(PropertiedMixin(Idea)) {
+// ⭐⭐ **NOT `PropertiedMixin`, and it was here until the base-class
+// narrowing (2026-09-30).** `Propertied` is a per-INSTANCE bag of
+// runtime state — a quest flag, a buff, a circle membership — and this
+// class is a `Singleton`: one instance for the whole world, shared by
+// every holder of the thing it describes. A prop set on `oak` would be
+// a prop on every oak there has ever been, which is not a per-instance
+// store; it is a global with extra steps.
+//
+// ⭐ The tell was already written down. `race.md:280-290` records that
+// it was composed for *"per-material damage resistance as
+// content-defined prop keys … accessors removed until combat lands"* —
+// and when combat landed, materials-response shipped resistance as
+// FIRST-CLASS FIELDS instead. The mixin outlived the design that asked
+// for it by two builds.
+//
+// ⚠ Verified empty, not merely unauthored: every `setProp` / `getProp`
+// / `initProp` / `maskProp` receiver in the tree is a person
+// (`BankingLogic`), an actor (`Climbable`/`Flyable`/`Swimmable`), a
+// slot occupant (`Drivable`) or `EventRegistry` itself. None is a
+// reference singleton.
+export class Modality extends SingletonMixin(Idea) {
   /** Canonical modality name (e.g. `'vision'`, `'sound'`). */
   protected name: string = '';
 

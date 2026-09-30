@@ -1,12 +1,12 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { SmellSourceMixin } from '../SmellSource';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Quantity } from '../../quantity';
 
-class StinkBomb extends SmellSourceMixin(Thing) {}
+class StinkBomb extends SmellSourceMixin(Good) {}
 
 describe('SmellSourceMixin', () => {
   it('defaults to zero concentration + empty identity', () => {

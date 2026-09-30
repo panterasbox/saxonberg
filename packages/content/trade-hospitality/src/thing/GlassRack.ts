@@ -16,12 +16,11 @@
  * descends any open `Container`, never because it knows this class.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 
-const GlassRackBase = StagedMixin(ContainerMixin(DetailedMixin(Thing)));
+const GlassRackBase = StagedMixin(ContainerMixin(Good));
 
 export default class GlassRack extends GlassRackBase {
   constructor() {

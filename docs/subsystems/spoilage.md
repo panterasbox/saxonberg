@@ -575,7 +575,7 @@ of the cooking trade's own:
 ⚠ Not `Cutlery`, which touches a mouth rather than a carcass.
 
 ⚠⚠ **And deliberately NOT the two kernel classes those last two descend
-from.** `ContaminableMixin` was composed on `Weapon` and on `ToolItem` for
+from.** `ContaminableMixin` was composed on `Weapon` and on `Tool` for
 one build, on the argument that *"this can carry pathogens between things"*
 is true of a clasp knife and a kitchen sieve. It is — and it was the wrong
 question, because it is false of most of both host sets: a mace, a flail, a

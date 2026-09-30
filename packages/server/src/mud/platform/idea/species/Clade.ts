@@ -25,7 +25,6 @@
 
 import { Zone } from '../../../lib/zone/Zone';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
-import { PropertiedMixin } from '../../../lib/stuff/Propertied';
 import type Species from './Species';
 import type { VetoResult } from '../../../lib/errors';
 import type { FieldMeta } from '../../../lib/mixin';
@@ -40,7 +39,27 @@ export type CladeRank =
   | 'genus'
   | 'species';
 
-export default class Clade extends SingletonMixin(PropertiedMixin(Zone)) {
+// ⭐⭐ **NOT `PropertiedMixin`, and it was here until the base-class
+// narrowing (2026-09-30).** `Propertied` is a per-INSTANCE bag of
+// runtime state — a quest flag, a buff, a circle membership — and this
+// class is a `Singleton`: one instance for the whole world, shared by
+// every holder of the thing it describes. A prop set on `oak` would be
+// a prop on every oak there has ever been, which is not a per-instance
+// store; it is a global with extra steps.
+//
+// ⭐ The tell was already written down. `race.md:280-290` records that
+// it was composed for *"per-material damage resistance as
+// content-defined prop keys … accessors removed until combat lands"* —
+// and when combat landed, materials-response shipped resistance as
+// FIRST-CLASS FIELDS instead. The mixin outlived the design that asked
+// for it by two builds.
+//
+// ⚠ Verified empty, not merely unauthored: every `setProp` / `getProp`
+// / `initProp` / `maskProp` receiver in the tree is a person
+// (`BankingLogic`), an actor (`Climbable`/`Flyable`/`Swimmable`), a
+// slot occupant (`Drivable`) or `EventRegistry` itself. None is a
+// reference singleton.
+export default class Clade extends SingletonMixin(Zone) {
   /**
    * Taxonomic rank. v1 only seeds `'kingdom'`; sub-rank Clades land
    * with the family/order trees.

@@ -44,12 +44,20 @@ describe('the two functional species', () => {
     // nothing in this pack computed it.
     expect(data.mass).toBe(320);
     expect((data.mass as number) / 75).toBeGreaterThan(4);
-    // …and its class adds NO haulage code: `Hauler` (the hitch) comes
-    // from `Character` and `Mountable` from the shipped
-    // `HaulingCreature`. ⚠ The one thing `PitPony` adds is a BRAIN —
-    // `cast:` means things with a brain, and an animal that cannot idle
-    // reads as furniture.
-    expect(pony.class).toBe('/trade/mining/agent/PitPony');
+    // ⭐⭐ …and this pack adds NO haulage code, which this test has said
+    // since it was written — it is now literally true: there is no
+    // `PitPony` class. The row names the kernel's
+    // `platform/agent/DraftAnimal` = `Mountable(Hauler(Beast))`, and the
+    // one thing the subclass used to add — a BRAIN — is on `Beast`.
+    //
+    // ⚠⚠ The comment this replaces said `Hauler` "comes from
+    // `Character`", and that was the defect stated as a fact: the pony
+    // was a `Character`, so it composed `CasterMixin`, `MemorizedMixin`,
+    // `EmployedMixin` and `PersonaMixin` — a pit pony that could cast a
+    // spell and hold a job. The old `HaulingCreature` reached for the
+    // whole person rung to get one mixin. A test that records the half
+    // of a move nobody made is how a defect becomes an invariant.
+    expect(pony.class).toBe('/platform/agent/DraftAnimal');
     expect(Array.isArray(data.behaviors)).toBe(true);
   });
 

@@ -6,7 +6,7 @@ source to everyone who can see it. Output is optical; the difference
 between the three is data.
 
 Source: `lib/display/Display.ts` (`DisplayMixin`),
-`platform/thing/{Tablet,Screen,Remote}.ts`,
+`platform/thing/Tablet.ts`,
 `world/common/tpa/TpaTerminal.ts` (composes the mixin). Tests:
 `lib/display/__tests__/Display.test.ts`.
 
@@ -32,7 +32,7 @@ Persistent + authorable fields (the row decides which screen it is):
 | `pairing` | `remote` · `held` · `staff` · `open` | who may DRIVE it (below) |
 | `shows` | a list of `DisplayKind` | which kinds it accepts (`acceptsSource`); defaults to **all three** |
 | `principal` | a Business template path or `''` | the `staff` policy's "signed in as" |
-| `remote` | a `Remote` row's template path or `''` | the `remote` policy's paired thing |
+| `remote` | the paired thing's row template path, or `''` | the `remote` policy's paired thing. ⭐ **Any row**: it is a path, not a type — there is no remote CLASS and there does not need to be |
 
 Runtime only: `_showing: DisplaySource | null` — **a screen is dark on
 boot**; nothing persists what it showed. `_setShowing` is gated
@@ -99,7 +99,7 @@ the display declining to use one, and `LookController` calling
 | pairing | drives it iff |
 |---|---|
 | `held` | the actor carries it (inventory, any depth) |
-| `remote` | the actor carries an instance of the row `remote` names — the pairing is the SCREEN's field; a `Remote` is a plain thing |
+| `remote` | the actor carries an instance of the row `remote` names — the pairing is the SCREEN's field, and the paired thing is whatever row you point at |
 | `staff` | `EmploymentApi.holdsPosition(actor, principal)` or `isProprietorOf` — the house tablet's "signed in as" |
 | `open` | `PerceptionApi.canReach(actor, display)` — the terminal's board |
 
@@ -170,8 +170,8 @@ embed leaves with you. A personal watch (no `display` marker) is untouched.
 
 | | class | pairing | `shows` | row |
 |---|---|---|---|---|
-| **house tablet** | `/platform/thing/Tablet` (`Display(Detailed(Thing))`, portable) | `staff` | `[card]` | `/trade/hospitality/thing/house-tablet` (`principal: ''`); the lounge's `/world/lounge/thing/house-tablet` sets `principal: /world/lounge/idea/business` |
-| **a wall TV + remote** | `/platform/thing/Screen` (`Display(PostRegistration(Fixture(Detailed(Thing))))` — self-seats via `seatIn`, and defaults `fixedInPlace: true`: **mounted, not immovable** — no agent pockets it, while a remodel or a `place` still moves it. It shipped as a `canMove` veto, which was both too low a level and too rigid for a row that stands one on a counter; see [spatial.md](./spatial.md)) + `/platform/thing/Remote` (`Detailed(Thing)`; the row authors `keywords: [remote]`) | `remote` | all three | **no row ships.** The classes, the `remote` policy and `watch … on <screen>` are proven on synthetic fixtures (`Display.test.ts`, `WatchController.test.ts`); the first row is the LOUNGE's sports booth (lounge-slate § *Themed booths*), not Dave's Bar — the bar is where soft skills get evidenced, not where you stare at a screen |
+| **house tablet** | `/platform/thing/Tablet` (`Display(Good)`, portable) | `staff` | `[card]` | `/trade/hospitality/thing/house-tablet` (`principal: ''`); the lounge's `/world/lounge/thing/house-tablet` sets `principal: /world/lounge/idea/business` |
+| ~~**a wall TV + remote**~~ | ⚠⚠ **retired unrowed.** `/platform/thing/Screen` (`Display(PostRegistration(Fixture(Detailed(Thing))))`) and `/platform/thing/Remote` (`Detailed(Thing)`) shipped as classes and **no row ever named either**, in the whole life of both. The base-class narrowing build deleted them: a wall TV is a `Tablet` row with `fixedInPlace: true` (a `Containable` field any row may author — the doctrine is below), and the `remote` pairing is DATA, so the paired thing needs no class at all. `Display.test.ts` and `WatchController.test.ts` now drive the shipped `Tablet`. ⭐ What is genuinely lost is `Fixture`'s `seatIn:` self-seating, which no `Display` composer carries today; the day a wall TV row wants it, it is one mixin on `Tablet` or a row-level `seatIn` — not a second class |
 | **the terminal** | `TpaTerminal` composes the mixin; the constructor sets `open` / `['prose']`, and overrides `readScreen` — its board is COMPUTED, not driven | `open` | `[prose]` | the lounge terminal, unchanged |
 
 ## The verbs that drive a display

@@ -385,12 +385,33 @@ resumes on the next tick once the beat completes. The default is
 **witness-preempts-cadence**, with no priority numbers; resume is
 next-tick re-start, not a suspended-engagement resume.
 
-## The `NPC` class
+## The `NPC` class — and `Beast`, the other one
 
 ```ts
 // lib/npc/NPC.ts
 export class NPC extends BehavedMixin(PostRegistrationMixin(Character)) {}
+
+// platform/agent/Beast.ts — the same shape one rung down
+export class Beast extends BehavedMixin(PostRegistrationMixin(Actor)) {}
 ```
+
+⭐ **Two rungs carry a brain, not one** (base-class narrowing,
+2026-09-30). `NPC` is a *person* who decides things; `Beast` is an
+*animal* that does — the identical shape over `lib/creature/Actor`
+instead of `Character`, and without `Costumed`, because an animal is not
+dressed. The wolf, the draft horse and the pit pony were `NPC`-side
+until then, which is how a pit pony came to carry `CasterMixin` and
+`EmployedMixin`.
+
+⚠⚠ **A brain on a beast can say less, and it fails SILENTLY.**
+`BrainContext.say` is guarded by `MixinApi.isVocal` and `.emote` by
+`isSoul`, and both **no-op** on a host that lacks the mixin — invisible
+while every brained thing in the game was a `Character`. `emoteFree`
+now falls back to an `act.deed` scene for a soulless host (which is the
+more honest render anyway: `Soul.emoteFree` sends on `emotive-esp`, so a
+horse shifting its weight was a frame implantless bystanders drop), and
+`lint:dispositions` rule 4 fails the build on a pool entry whose `kind:`
+names a channel its class cannot speak on.
 
 Composition order is load-bearing. `clone` only invokes `postRegister`
 on a host that composes `PostRegistrationMixin` (the marker), so `NPC`

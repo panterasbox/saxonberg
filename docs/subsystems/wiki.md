@@ -977,6 +977,36 @@ gazetteer would only have papered over it.
 
 ---
 
+## History
+
+### ⚠⚠ The inverse panel scanned a root that has never held a row
+
+`<composition kind="mixin">` answers *what in this world has this
+capability* by scanning every template and loading each row's class.
+From its first commit it scanned `Template.findDescendants('/obj')` —
+and `/obj` is not a namespace root. The path pattern is
+`<root>/<branch>/` (`/platform`, `/stuff`, `/world`, `/trade`,
+`/corpo`, `/system`), and the only `/obj` strings left anywhere in the
+tree were three stale comments.
+
+So **every mixin page in the game read `composed by: (nothing yet)`**,
+and did so while looking perfectly healthy — an empty inverse is
+indistinguishable from *nothing composes this yet*, which is a sentence
+the panel is supposed to be able to say truthfully. The component's own
+test asserted the dead root (`expect(spy).toHaveBeenCalledWith('/obj')`)
+and passed, because a root assertion is only as good as the root.
+
+Repaired by the base-class-narrowing build (`build/narrowing`, W0):
+the scan root is `'/'` — `findDescendants` is a `^prefix/` regex, so
+that is the whole tree — and `INVERSE_SCAN_CAP` rose from 400 to 1000
+against a content tree naming 683 distinct `class:` paths on
+2026-09-28. ⚠ **A truncated inverse is the one failure a reader cannot
+detect from the answer**: *what can burn* reads like a complete list
+whatever it contains. The cap is reported in the panel when it bites;
+raise it before the class count reaches it, or memoize the index.
+
+---
+
 ## Cross-references
 
 - [messaging.md](./messaging.md) — MML and the composer stack

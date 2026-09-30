@@ -7,7 +7,7 @@
  * ⭐ It shares its class with the sewing KIT, and the line between them
  * is the point: what they AFFORD is identical and lives on the class
  * (`repair`, `salvage`, once); what they are LIKE — rate, control —
- * varies per row. The machine was a bare `ToolItem` row naming its own
+ * varies per row. The machine was a bare `Tool` row naming its own
  * verbs until verbs became a single class-level record; a row can no
  * longer vary its verb set, and nothing here wanted to.
  */
@@ -26,7 +26,7 @@ import { WorldClockApi } from "@saxonberg/server/mud/api/worldclock";
 import { PersistenceManager } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import Material from "@saxonberg/server/mud/lib/material/Material";
-import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
+import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import Garment from "@saxonberg/server/mud/platform/thing/equipment/Garment";
 import MendingTool from "@saxonberg/server/mud/platform/thing/MendingTool";
 import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
@@ -136,7 +136,7 @@ describe("the sewing machine (a MendingTool row)", () => {
 
     const machine = await hydrateMachine();
     ContainmentApi.move(machine, room);
-    const hide = makeStuff(() => new Thing());
+    const hide = makeStuff(() => new Good());
     hide.setMaterial(
       StuffApi.findByTemplatePath<Material>(LEATHER) as unknown as Material,
     );

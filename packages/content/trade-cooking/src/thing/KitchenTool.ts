@@ -2,10 +2,10 @@
  * KitchenTool — a tool that works on FOOD, and therefore one that can
  * carry what the food was carrying: the sieve, the press, the churn.
  *
- * A `ToolItem` (capabilities + a wear-on-use condition) plus
+ * A `Tool` (capabilities + a wear-on-use condition) plus
  * `ContaminableMixin`, and the split from its parent is the point.
  *
- * ⚠⚠ **The mixin was on `ToolItem` itself for one build**, on the
+ * ⚠⚠ **The mixin was on `Tool` itself for one build**, on the
  * argument that *"this can carry pathogens between things"* is true of a
  * billhook and a kitchen sieve. It is — and it was the wrong question.
  * That class's host set is a felling axe, a sledge, a pick, a pick-haft, a
@@ -19,9 +19,9 @@
  * the same contamination and cannot take it.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { ContaminableMixin } from '@saxonberg/server/mud/lib/material/Contaminable';
 
-const KitchenToolBase = ContaminableMixin(ToolItem);
+const KitchenToolBase = ContaminableMixin(Tool);
 
 export default class KitchenTool extends KitchenToolBase {}

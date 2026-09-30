@@ -1,6 +1,6 @@
 # A pitch-pine torch — the cheapest carriable light, and it BURNS DOWN.
 #
-# ⭐ A `Lamp` (Furnace ⊕ LightSource ⊕ Reserved ⊕ Thermal): `light torch`
+# ⭐ A `Lamp` (Burner ⊕ LightSource ⊕ Reserved ⊕ Thermal): `light torch`
 # sets it going and it gutters out when the pitch is gone. Twice a lantern's
 # burn rate for a third of its light, which is the whole trade — a torch is
 # what you buy when you are not coming back. Until the envelope build it was
@@ -15,7 +15,7 @@ data:
   register: indefinite
   longDescription: |
     A stout length of pitch-pine, one end bound in oil-soaked rag. Struck alight it throws a guttering, ruddy glow good enough to light a dark passage — the cheapest light a delver ever bought, and the one they never regret carrying until it burns down to their hand.
-  # ⚠ `FurnaceMixin.lit` defaults TRUE. A torch on a shop shelf is out.
+  # ⚠ `BurnerMixin.lit` defaults TRUE. A torch on a shop shelf is out.
   lit: false
   reserves:
     fuel:

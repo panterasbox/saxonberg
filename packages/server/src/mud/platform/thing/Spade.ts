@@ -25,10 +25,10 @@
  * different prose.
  */
 
-import ToolItem from './ToolItem';
+import Tool from './Tool';
 import type { CommandContributions } from '../../api/command';
 
-export default class Spade extends ToolItem {
+export default class Spade extends Tool {
   /** ⭐ A spade in your hands affords `dig`, wherever you are standing. */
   static commandContributions: CommandContributions = {
     self: ['platform/cmd/ground/dig.yaml'],

@@ -22,12 +22,12 @@ import { Mixins } from "@saxonberg/server/mud/lib/mixin";
 import { makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { PosedMixin } from "@saxonberg/server/mud/lib/character/Posed";
 import { SlottableMixin } from "@saxonberg/server/mud/lib/slot/Slottable";
-import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
+import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Slotted } from "@saxonberg/server/mud/lib/slot/Slotted";
 import type { Slottable } from "@saxonberg/server/mud/lib/slot/Slottable";
 
-class Body extends PosedMixin(SlottableMixin(Thing)) {}
+class Body extends PosedMixin(SlottableMixin(Good)) {}
 
 const BED_PATH = "/world/terminus/eternal/duncan-hall/thing/bed";
 

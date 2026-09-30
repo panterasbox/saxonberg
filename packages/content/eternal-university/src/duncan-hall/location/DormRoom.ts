@@ -25,17 +25,7 @@
  * with no new field work.
  */
 
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
-import { WarrenMemberMixin, type WarrenMember } from '@saxonberg/server/mud/lib/location/WarrenMember';
-import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
-import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 // ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
@@ -43,18 +33,24 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 // default `postRegister` is a non-chaining no-op — a second composition
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
-const DormRoomBase = PersistableMixin(
-  WarrenMemberMixin(
-    ExitableMixin(DetailedMixin(VisibleMixin(StagedMixin(Location)))),
-  ),
-);
-
-/** Structural view of the DormWarren surface the population witness pokes. */
-interface DormWarrenView {
-  notifyPopulationChange(room: Stuff & Container): void;
-}
-
-export default class DormRoom extends DormRoomBase {
+// ⭐⭐ **A `DormRoom` IS a `FurnishableRoom`, and that class's own
+// docstring says so** — *"That the shipped dorm room already had
+// exactly this stack is the reason to mirror it rather than re-derive:
+// `DormRoom` IS a room archetype (a bedsit — bed, desk, footlocker,
+// tap), and it has been carrying the correct composition all along."*
+// `FurnishableRoom` was DERIVED from this class and then the two
+// drifted by one mixin.
+//
+// ⚠ The population witness below was duplicated verbatim in both
+// files, and this class had not gained the `Perceptible` that
+// `FurnishableRoom` added when `lint:presentation` found ten rows
+// authoring keywords into a void — so `dormroom.yaml`'s
+// `keywords: [room, dorm]` was dead until the narrowing put the
+// description mixins on the `Location` root (L0).
+//
+// Extending it keeps `SCOPE`/`ADDRESS` (which are this locality's) and
+// gains `Reserved` + `postedAs`, which a bedsit wants anyway.
+export default class DormRoom extends FurnishableRoom {
   /** The shared clone-namespace path — the D1 record `scope`. */
   static readonly SCOPE = '/world/terminus/eternal/duncan-hall/location/dormroom';
 
@@ -75,27 +71,5 @@ export default class DormRoom extends DormRoomBase {
    */
   static fieldMeta: FieldMeta = {};
 
-  /**
-   * Population witness (folded in — no separate mixin, since `DormRoom` is a
-   * concrete class). An arrival/departure of a `HasInteractive` occupant
-   * pokes the Warren's population-change coalescer, which drives
-   * `reconcile`'s dormancy-reap. (Dorms don't population-bud, so — unlike the
-   * lounge — there is no over-capacity re-seat here.)
-   */
-  public onContainableAdded(thing: Stuff & Containable): void {
-    this.notePopulation(thing);
-  }
-
-  public onContainableRemoved(thing: Stuff & Containable): void {
-    this.notePopulation(thing);
-  }
-
-  private notePopulation(thing: Stuff & Containable): void {
-    if (!MixinApi.isHasInteractive(thing as unknown as Stuff)) return;
-    const warren = (this as unknown as WarrenMember).getWarren() as unknown as
-      | DormWarrenView
-      | null;
-    if (!warren) return;
-    warren.notifyPopulationChange(this as unknown as Stuff & Container);
-  }
 }
+

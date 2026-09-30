@@ -23,7 +23,6 @@ import { join } from 'path';
 import Location from '../Location';
 import CartesianLocation from '../../location/CartesianLocation';
 import SingletonCartesianLocation from '../../location/SingletonCartesianLocation';
-import PersistentCartesianLocation from '../../../platform/location/PersistentCartesianLocation';
 import SphericalLocation from '../../../platform/location/SphericalLocation';
 import SingletonSphericalLocation from '../../../platform/location/SingletonSphericalLocation';
 import FurnishableRoom from '../../../platform/location/FurnishableRoom';
@@ -440,14 +439,13 @@ describe('⭐ the roster — every concrete kernel Location class', () => {
     ['Location', () => new Location()],
     ['CartesianLocation', () => new CartesianLocation()],
     ['SingletonCartesianLocation', () => new SingletonCartesianLocation()],
-    ['PersistentCartesianLocation', () => new PersistentCartesianLocation()],
     ['SphericalLocation', () => new SphericalLocation()],
     ['SingletonSphericalLocation', () => new SingletonSphericalLocation()],
     ['FurnishableRoom', () => new FurnishableRoom()],
     ['Offstage', () => new Offstage()],
     ['Crossing', () => new Crossing()],
     ['CircleFloor', () => new CircleFloor()],
-    // ⚠ The three lounge classes (`Lounge`, `Bar`, `GlassAlley`) are on the
+    // ⚠ The two lounge classes (`Lounge`, `Bar`) are on the
     // same roster and cannot be HERE: `lint:test-content` refuses a kernel
     // test that names `/world/<locality>`, because a kernel test proves the
     // kernel over synthetic fixtures and a test of real content lives with

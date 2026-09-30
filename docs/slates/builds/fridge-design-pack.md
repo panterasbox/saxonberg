@@ -15,7 +15,7 @@
 > **Size:** a build
 
 See also — substrate: [thermal](../../subsystems/thermal.md) (`ThermalMixin`,
-`FurnaceMixin`, `AtmosphericMixin`, phase change) ·
+`BurnerMixin`, `AtmosphericMixin`, phase change) ·
 [preservation-slate](../tails/preservation-slate.md) (**spoilage — the reason a
 fridge exists**) · [furnishing](../../subsystems/furnishing.md) (the
 fridge is owned chattel placed in a room) · [boundary](../../subsystems/boundary.md)
@@ -55,7 +55,7 @@ so its contents read cold, so their `Freshness` decays slowly.** Everything
 else is composition.
 
 > ⭐ The fridge is not a new mechanism — it is the **cold twin of the shipped
-> `FurnaceMixin`** (which holds its scope toward a *hot* setpoint), placed on
+> `BurnerMixin`** (which holds its scope toward a *hot* setpoint), placed on
 > a container, drawing power to run.
 
 ### 2. Composition (the mixin stack)
@@ -70,7 +70,7 @@ Fridge  =  Powered( ClimateControl( Sealable( Atmospheric( Container(
 | `Container` | holds discrete food items | ✅ ship |
 | `Atmospheric` | the **interior climate** (temp + humidity) contents resolve against | ✳ **update — decouple from `Vessel`** (below) |
 | `Sealable` | the **door**: closed → high-R barrier, cold held; open → collapses to the air term, warms | ✅ ship (the thermos uses it) |
-| `ClimateControl` | drives the interior atmosphere **toward a held setpoint** while powered | ⭐ **new — generalize `FurnaceMixin`** |
+| `ClimateControl` | drives the interior atmosphere **toward a held setpoint** while powered | ⭐ **new — generalize `BurnerMixin`** |
 | `Powered` | consumes premises power to run; unpowered → stops driving, drifts to ambient | ⭐ **new — appliance draw over the supply-ref** |
 | `Surfaced` | you can set a thing on top (a plant, a magnet) — LOD-optional | ✅ ship |
 | `Chattel` + `Persistable` | owned, persists with its owner via `place` | ✅ ship (furnishing) |
@@ -97,8 +97,8 @@ box" is a `Container` with an atmosphere.
   reintroduce the cost the skip avoided. Likely fine — the walk already stops
   at the first override.
 
-**⭐ New #2 — `ClimateControlMixin` (generalize `FurnaceMixin`).**
-`FurnaceMixin` already *"heats the Meltables in its scope toward its held
+**⭐ New #2 — `ClimateControlMixin` (generalize `BurnerMixin`).**
+`BurnerMixin` already *"heats the Meltables in its scope toward its held
 temperature."* Generalize it on two axes: **direction** (heat *or* cool) and
 **target** (the scope's **atmosphere**, via the `AtmosphericMixin` override,
 not only Meltables). Then:
@@ -254,7 +254,7 @@ cold, and every other system reacts through its own honest model — none of the
 knows "a fridge" exists.**
 
 - **Thermal (native) — the fridge is a *restamp source*.** ClimateControl *is*
-  generalized `FurnaceMixin`; Coolbox composes `Meltable`+`Thermal`; contents
+  generalized `BurnerMixin`; Coolbox composes `Meltable`+`Thermal`; contents
   read the interior via the biome walk. Putting food in (`onMoved`), opening the
   door (`Sealable` seal-toggle), the ice melting, the compressor cycling all
   fire the **restamp seam thermal already ships** for the thermos. No new
@@ -459,7 +459,7 @@ active + mirror halves wait on two designed-but-unbuilt substrates.
    proves update #1 + the cold→Freshness loop, and is a stewardship object by
    construction. The powered fridge waits on the appliance/energy build anyway.
 2. **`ClimateControl` scope — atmosphere only, or Meltables too?** Generalizing
-   `FurnaceMixin` must keep its Meltable-heating behavior (the forge) while
+   `BurnerMixin` must keep its Meltable-heating behavior (the forge) while
    adding atmosphere-driving (the fridge/oven). Confirm one mixin serves both
    without special-casing.
 3. **Does `AtmosphericMixin`-on-`Container` reintroduce the walk cost the

@@ -28,6 +28,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import { Vessel } from '../stuff/Vessel';
@@ -130,6 +131,33 @@ export function HaulableMixin<
 >(Base: TBase) {
   return class HaulableMixin extends Base implements Haulable {
     static _mixinName = 'HaulableMixin';
+
+    /*
+     * ⭐⭐ **`hitch` and `unhitch` were afforded by NOTHING.** Found by
+     * the base-class narrowing's drive, which typed `hitch wagon to
+     * horse` in a goods yard with a wagon and a horse standing in it
+     * and got back *"I don't understand 'hitch'."*
+     *
+     * The view shipped, the controller shipped, the arg gates shipped
+     * (`hitch.yaml:35` is `HaulerMixin`'s only reader in the tree), and
+     * no `commandContributions` anywhere in the repo named the file. So
+     * the whole haulage loop — and `conveyance.md`'s worked example, *a
+     * horse you ride while it hauls* — was unreachable for every player
+     * since it shipped. ⚠ The FIRST of the five reachability links, and
+     * it fails closed and silent: a verb nobody affords is simply not a
+     * verb.
+     *
+     * `peers`, not `environment`: a cart stands in the room as your
+     * SIBLING, and `environment` grants outward to the containers ABOVE
+     * you — the same mistake `WaterFixture`'s `wash` shipped with, and
+     * the same fix.
+     */
+    static commandContributions: CommandContributions = {
+      peers: [
+        'platform/cmd/movement/hitch.yaml',
+        'platform/cmd/movement/unhitch.yaml',
+      ],
+    };
     static fieldMeta: FieldMeta = {
       draftFactor: { persistent: true, authorable: true },
       handedness: { persistent: true, authorable: true },

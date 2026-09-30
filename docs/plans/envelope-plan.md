@@ -62,9 +62,9 @@ approximate (±10).
   `src/thing/SconceLamp.ts` (`isOn()`).
   ⚠ **`Campfire`, `Forge`, `Oven`, `Kiln` have NO gate**
   (`platform/thing/Campfire.ts` is an empty class body over
-  `FurnaceMixin(LightSourceMixin(ReservedMixin(Postured(Slotted(Surfaced(ThermalMixin(Thing)))))))`)
+  `BurnerMixin(LightSourceMixin(ReservedMixin(Postured(Slotted(Surfaced(ThermalMixin(Thing)))))))`)
   — a burnt-out campfire still casts its 120 lumens. Every furnace
-  composer puts `FurnaceMixin` **outside** `LightSourceMixin`.
+  composer puts `BurnerMixin` **outside** `LightSourceMixin`.
 - Bands: `LIGHT_BANDS = pitch-black · very-dim · dim · lit · bright ·
   blinding`, thresholds in
   `packages/content/base-library/content/quantity/quantity-tags.yaml:44`
@@ -211,7 +211,7 @@ approximate (±10).
 
 ### Fire, furnaces, the hearth
 
-- `packages/server/src/mud/lib/fire/Furnace.ts` — `FurnaceMixin`: fields
+- `packages/server/src/mud/lib/fire/Furnace.ts` — `BurnerMixin`: fields
   `burnTemperatureK` (default 800), `bellowsMultiplier`, `bellowsActive`,
   `lit` (**default `true`**), `fuelBurnRatePerMin` (0.5 %/min),
   `furnaceFuelClockStamp`. `isLit()`, `fuelRemaining()` (the `'fuel'`
@@ -234,11 +234,11 @@ approximate (±10).
   Rows placing them: hearthworks `smithy.yaml` `props: [/stuff/thing/Forge, …]`,
   `cookhouse.yaml` `props: [/stuff/thing/Oven, …]`, market `bakery.yaml`.
 - Verbs ship: `packages/content/platform/content/platform/cmd/device/ignite.yaml`
-  (`verbs: [ignite, light, kindle]`, arg `requires: CombustibleMixin|FurnaceMixin`,
+  (`verbs: [ignite, light, kindle]`, arg `requires: CombustibleMixin|BurnerMixin`,
   scope reachable), `douse.yaml` (same gate), `switch.yaml`
   (`requires: SwitchableMixin`). `Mixins` refusal phrases:
-  `FurnaceMixin: "{} isn't a furnace"` (`lib/mixin.ts:666`).
-- `MixinApi.isFurnace / isCombustible / isAmbientLit / isLightSource /
+  `BurnerMixin: "{} isn't a furnace"` (`lib/mixin.ts:666`).
+- `MixinApi.isBurner / isCombustible / isAmbientLit / isLightSource /
   isSkyExposed / isThermal` all exist (`api/mixin.ts:1158–1580`).
 - The general store sells `general-store/thing/lantern.yaml`
   (`class: /platform/thing/equipment/PortableLight`, `on: false`,
@@ -607,14 +607,14 @@ emits; the lint refuses it. The weather fan-out stamps the dim factor on
 `isSkyLit()` rooms, not only SkyExposed ones. Same shape as the heat
 side: derive the common case, author the cause, list the exception.
 
-**D5 — The hearth is a class over `FurnaceMixin`, and room-heating is a
+**D5 — The hearth is a class over `BurnerMixin`, and room-heating is a
 mixin the class composes; a forge never composes it.** New
 `SpaceHeatingMixin` (`lib/thermal/SpaceHeating.ts`, kernel — thermal owns
 room heat exchange): authorable `heatOutputW` (default 1500), method
 `spaceHeatOutputW(): number` = `isLit() && fuelRemaining() > 0 ?
 heatOutputW : 0` (reads the furnace face through the host cast, the
 `Furnace.furnaceHost` shape). New instanceable `platform/thing/Hearth.ts`
-= `SpaceHeatingMixin(FurnaceMixin(LightSourceMixin(ReservedMixin(ThermalMixin(SurfacedMixin(Thing))))))`
+= `SpaceHeatingMixin(BurnerMixin(LightSourceMixin(ReservedMixin(ThermalMixin(SurfacedMixin(Thing))))))`
 (a pot stands on a hearth; a hearth is not a chamber). Rows in the commons:
 `generic-objects/content/stuff/thing/Hearth.yaml` (`/stuff/thing/Hearth`,
 `burnTemperatureK 700`, `lit: false`, fuel reserve, `emittedIntensity 60`,
@@ -630,19 +630,19 @@ deferred seam (the fuel trade lands rows, not code).
 
 **D6 — A lamp that burns fuel is a small furnace with a light.**
 `platform/thing/Lamp.ts` is **rewritten** (the dead lamppost body goes;
-nothing names it): `FurnaceMixin(LightSourceMixin(DetailedMixin(ReservedMixin(ThermalMixin(Thing)))))`.
+nothing names it): `BurnerMixin(LightSourceMixin(DetailedMixin(ReservedMixin(ThermalMixin(Thing)))))`.
 It gets ignite/douse, `isLit()`, the fuel reserve, reconcile-on-read
 drain and the burnout edge for free; `ignite.yaml`'s
-`requires: CombustibleMixin|FurnaceMixin` already admits it (arg gate
+`requires: CombustibleMixin|BurnerMixin` already admits it (arg gate
 satisfied, no view edit). Class default `burnTemperatureK` for a Lamp is
 **330 K** — the case temperature, below the 345 K scalding hook so `get`
 and `feel` do not burn a hand on a lit lantern — and `fuelBurnRatePerMin`
 sized so a full lantern burns a game night (≈ 0.15 %/min). The
-lit-gating of flux moves **into `FurnaceMixin`** (`getEmittedFlux()`
+lit-gating of flux moves **into `BurnerMixin`** (`getEmittedFlux()`
 chains `super` only while `isLit() && fuelRemaining() > 0`), which also
 fixes the shipped Campfire/Forge/Oven/Kiln defect in one place. Rows:
 `general-store/thing/lantern.yaml` and `torch.yaml` move to
-`/platform/thing/Lamp` with `lit: false` (⚠ `FurnaceMixin.lit` defaults
+`/platform/thing/Lamp` with `lit: false` (⚠ `BurnerMixin.lit` defaults
 `true` — a row that forgets it ships lit) and a `fuel` reserve; prose
 says *"light the lantern"*. `PortableLight` stays for the fuel-less
 glowcap rows and its header is corrected. The town's lamps have no
@@ -844,10 +844,10 @@ tests pin the winter numbers. Recorded in Risks.
 | `enclosure: EnclosureSpec` + `enclosureDefaults()` + `resolveEnclosure()` | ⚠ **vocabulary at `lib/spatial/Enclosed.ts`; implemented by `AtmosphericMixin`** — corrected twice at review, see *The name is settled* above | *A place names what it is bounded by, as it names its floor* — and stays space, not matter (no `Tangible`, no mass). It shipped on `Location`, where the mixin that reads it could only reach it through a cast; it is not the atmosphere's concept either (a pen has an enclosure and no envelope) but a separate mixin layer collapses TypeScript's inference, so the words live apart and the implementation does not. Never on a `Biome` (the biome line, lint clause (c)), never on a zone (a zone is a coordinate carve-up, not a structure — the rooms of a zone are **not** built alike), never on `Locality` or a Parcel. A `Vessel` overrides the hook: it IS matter, so its enclosure is its own material at `VESSEL_WALL_M`. |
 | `skyFactorNow()` memo | `CelestialLogic` singleton (instance fields) | The sky is one thing for the whole realm (guarded, D1). No host in the world carries it. |
 | `envelopeTemperatureK` / `envelopeClockStamp` / `envelopeOutsideK` / transient `_envelopeResolved` + `reconcileEnvelope` / `envelopeTemperatureSync` | `AtmosphericMixin` (→ `Location`, `Vessel`) | *Every scope that can carry an atmosphere can hold a state different from its outside.* True of a room and of a wardrobe or a coach cabin; **inert where `getVolume()` is null** (Offstage, plain Location, an un-extented Vessel) — that is the mixin's own geometry answering, not a guard. A new `EnvelopeMixin` would compose on exactly the same two hosts, which is the tell that it is the same concern. The **state** is the scope's; the **enclosure** is the scope's named material or the Vessel's own. |
-| `SpaceHeatingMixin` (`heatOutputW`, `spaceHeatOutputW()`) | `Hearth` (new), `Campfire` | *This fire exists to warm where you stand.* Never on `FurnaceMixin` (that would claim it of the forge and reintroduce the "is it a forge" guard), never on `Forge`/`Kiln`/`Oven`. Composed outermost so it reads the furnace face; the envelope narrows contents with `MixinApi.isSpaceHeating`. |
+| `SpaceHeatingMixin` (`heatOutputW`, `spaceHeatOutputW()`) | `Hearth` (new), `Campfire` | *This fire exists to warm where you stand.* Never on `BurnerMixin` (that would claim it of the forge and reintroduce the "is it a forge" guard), never on `Forge`/`Kiln`/`Oven`. Composed outermost so it reads the furnace face; the envelope narrows contents with `MixinApi.isSpaceHeating`. |
 | `Hearth` class | `platform/thing/Hearth.ts` (instanceable), rows at `/stuff/thing/Hearth` in generic-objects | A commons object: a second inn's fireplace is a row. |
 | `Lamp` class (rewritten) | `platform/thing/Lamp.ts` | *A light that burns fuel.* The lantern and the torch; not the glowcap (stays `PortableLight`), not the mana lamp (arcana's, on `ChargedMixin`), not the sconce (generic-objects', switchable — a candidate to move onto `Lamp` in the content pass if its fiction is oil). |
-| `getEmittedFlux()` lit-gate | `FurnaceMixin` | *A fuelled appliance casts light only while lit.* True of all five composers (Campfire, Forge, Oven, Kiln, Lamp, Hearth); chains `super` only if the base emits. Fixes the shipped campfire defect. |
+| `getEmittedFlux()` lit-gate | `BurnerMixin` | *A fuelled appliance casts light only while lit.* True of all five composers (Campfire, Forge, Oven, Kiln, Lamp, Hearth); chains `super` only if the base emits. Fixes the shipped campfire defect. |
 | `PublicLightingMixin` (`publicLighting`, `isPubliclyLitNow`, the `getDetail` line) | ⚠ **`platform/location/Street`** — corrected at review, 2026-09-24 | It shipped on `CartesianLocation`, reasoned as *"any cartesian cell may be lit by a funded public service."* ⚠⚠ **That is a rationalization for a catch-all bucket** and the review caught it: the base under very nearly every room in the game, so a sealed cellar, a smithy, a mine heading and a ploughed field all carried a lighting field and a `postRegister` hook to answer for. ⭐ The tell was already in the code — `if (this.publicLighting === null) return;` at the top of that hook is a mixin **re-narrowing its own host set**, which is the documented signal for the wrong host. **Five rows in the realm declare the service.** They get a class; nothing else pays. |
 | `_publicLighting` (fuel rate + supplier) + `_lightingNight` + `_lightingLitStreets` + `settleStreetLighting()` | `Locality` | *An extent may fund a service and keep the record of what it lit.* The same tier that carries `_weatherPin`, `_governmentKey`, `_reach`. The verb is on the object; `AddressApi.settleStreetLighting()` only iterates. |
 | `wears: string[]` | `NPC` (`lib/npc/NPC.ts` → `Cast`, `Extra`) | *Any non-player person can be authored dressed.* Honest of both rungs. Not on `Agent`/`Creature` (an animal is not dressed by a row) and not on `Avatar` (players dress at enroll). |
@@ -926,7 +926,7 @@ gating is `pnpm test:near` + every touched pack's own vitest +
 **Goal.** Outdoor light follows the sun, moon and cloud; a dark room
 reads as dark; the census gate exists with today's count as its ceiling.
 **Decisions.** D1, D2, D4 (field + walk), D10, D11 (engine half), D12
-(scaffold), the `FurnaceMixin` flux gate from D6, the dead `Lamp.ts`
+(scaffold), the `BurnerMixin` flux gate from D6, the dead `Lamp.ts`
 retirement (the rewrite lands in W2; W0 deletes the lamppost body and
 leaves the file absent — nothing imports it: verify with grep).
 **Files.** `api/celestial.ts`, `platform/idea/api/CelestialLogic.ts`
@@ -999,7 +999,7 @@ and name no source. Two things in that list a reader should know:
   corridor at 9) meant *there is a lamp in here* and should have one.
 
 ⭐ **Clause (g) paid for the gate on its first run.** Four shipped rows
-relied on `FurnaceMixin.lit` defaulting TRUE. The campfire and the
+relied on `BurnerMixin.lit` defaulting TRUE. The campfire and the
 practicum brazier mean it and now say so. `still.yaml` and
 `small-still.yaml` shipped **lit** against their own prose (*"the
 firebox swept and ready"*) and their own class docstring (*"lit with
@@ -1176,11 +1176,11 @@ lantern`, `douse lantern`) and the wire smoke still green.
 suite green (132).
 
 ⭐⭐ **The reachability risk the plan flagged was real, and it was the
-affordance link.** `FurnaceMixin` declared its verbs under `peers` only
+affordance link.** `BurnerMixin` declared its verbs under `peers` only
 — *siblings, and one passable exit away*. That is the whole story for a
 forge, an oven and a kiln, none of which is ever picked up: a furnace
 standing in a room **is** your sibling. But **you are your lamp's
-CONTAINER, not its peer**, so a carriable light composing `FurnaceMixin`
+CONTAINER, not its peer**, so a carriable light composing `BurnerMixin`
 would have had `ignite` die at the affordance link the moment it left
 the floor — `light lantern` answering *"you don't see any 'lantern'
 here"* with the lamp in the player's hand, while every controller test
@@ -1583,7 +1583,7 @@ The five links, per new capability. Each fails closed and silent.
 
 | capability | verb | affordance | data | boot | arg gate |
 |---|---|---|---|---|---|
-| light a lantern / hearth | `ignite.yaml` `[ignite, light, kindle]` — ships | `FurnaceMixin.commandContributions.peers` affords `ignite`/`douse`/`pump`/`heat`/`boil`/`warm` — ships; **a Lamp in your hand** is `self`, not `peers`: verify `light lantern` resolves a held lamp (the `reachable` scope includes inventory; if the affordance is peers-only for a held item, add `ignite`/`douse` to `self` on `FurnaceMixin`) | lantern/torch rows on `Lamp`; `Hearth.yaml` in generic-objects; `props:` in cookhouse | nothing to warm — Things clone with their rooms | `requires: CombustibleMixin\|FurnaceMixin` — **satisfied** |
+| light a lantern / hearth | `ignite.yaml` `[ignite, light, kindle]` — ships | `BurnerMixin.commandContributions.peers` affords `ignite`/`douse`/`pump`/`heat`/`boil`/`warm` — ships; **a Lamp in your hand** is `self`, not `peers`: verify `light lantern` resolves a held lamp (the `reachable` scope includes inventory; if the affordance is peers-only for a held item, add `ignite`/`douse` to `self` on `BurnerMixin`) | lantern/torch rows on `Lamp`; `Hearth.yaml` in generic-objects; `props:` in cookhouse | nothing to warm — Things clone with their rooms | `requires: CombustibleMixin\|BurnerMixin` — **satisfied** |
 | douse | `douse.yaml` — ships | same | same | — | same |
 | the sky | none (a `look`) | — | **derived** from the row's biome chain (`isSkyExposed`); no row edit | the celestial singleton is `singletonSync`-created on first read; the memo seeds itself | — |
 | the room's warmth, and why | `feel` (bare) — ships; now names the cause | — | `enclosure:` optional (a Material path that authors `thermalConductivity`); universe default applies | none; reconcile-on-read; the fabric resolves at the first async read | `requires: any` |
@@ -1698,7 +1698,7 @@ Nothing unmapped.
    poll now walks the room's exits and asks `isSkyExposed` per exit. If
    the bench shows it, cache `openExteriorOpenings()` per game-minute on
    the room. Measure, do not pre-optimize.
-7. **`FurnaceMixin.lit` defaults `true`.** Every new Lamp/Hearth row must
+7. **`BurnerMixin.lit` defaults `true`.** Every new Lamp/Hearth row must
    author `lit: false`; `lint:light-sources` clause (g) (D12) fails a
    row on `Lamp`/`Hearth` without `lit:`.
 8. **`heatContents` on a Lamp.** The fire tick deposits toward 330 K into
@@ -2154,11 +2154,11 @@ but they are recorded here as **fixes for a problem that was not the
 one being chased.**
 
 **10. ⭐⭐⭐ `douse` HAD NEVER WORKED ON ANY FURNACE.**
-`DouseController` admits `isCombustible(s) || isFurnace(s)` at the
+`DouseController` admits `isCombustible(s) || isBurner(s)` at the
 binder and in `MqlApi.effectiveTarget` — and then the very next line
 narrowed to `isCombustible` **alone** before calling `douse()`, throwing
 the furnace half away. A forge, an oven, a kiln, a campfire: every one
-of them has a working `FurnaceMixin.douse()`, every one of them is
+of them has a working `BurnerMixin.douse()`, every one of them is
 reachable by the verb, and **every one of them answered "that isn't
 burning" while burning.** The method was unreachable from the only verb
 that calls it.

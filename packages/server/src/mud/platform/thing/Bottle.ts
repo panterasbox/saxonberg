@@ -1,8 +1,8 @@
 /**
  * Bottle — the stock vessel every floor product is a row over.
  *
- * `CirculatingMixin(SealableMixin(DetailedMixin(GradedReceptacle)))` on
- * top of `Thing`'s own `Chattel`: a graded, branded bulk holder that
+ * `CirculatingMixin(SealableMixin(GradedReceptacle))` on
+ * top of `Good`'s own `Chattel`: a graded, branded bulk holder that
  * **keeps** when capped (`Sealable` — the pour verbs ask `isOpen()`),
  * that **counts** in the regional census (`Circulating` — the spawn
  * sweep is the sanctioned faucet a producer's floor stock stands at
@@ -25,7 +25,6 @@
  */
 
 import GradedReceptacle from './GradedReceptacle';
-import { DetailedMixin } from '../../lib/description/Detailed';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
 import { Quantity } from '../../lib/quantity';
@@ -37,7 +36,7 @@ const GLASS = '/stuff/idea/material/glass/glass';
 // to ride `BulkableMixin`, which handed one to every puddle and garden
 // bed; it is composed by the classes that actually have a kind now.
 const BottleBase = VesselKindMixin(
-  CirculatingMixin(SealableMixin(DetailedMixin(GradedReceptacle))),
+  CirculatingMixin(SealableMixin(GradedReceptacle)),
 );
 
 export default class Bottle extends BottleBase {

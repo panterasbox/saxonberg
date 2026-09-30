@@ -1,11 +1,11 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { FastTravelMixin, FAST_TRAVEL_MIXIN } from "../lib/FastTravel";
-import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
+import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 
-class Node extends FastTravelMixin(Thing) {}
+class Node extends FastTravelMixin(Good) {}
 
 describe("FastTravelMixin", () => {
   it("directionality predicates", () => {
@@ -76,7 +76,7 @@ describe("FastTravelMixin", () => {
   it("MixinApi.isActive narrows on the pack's mixin name", () => {
     const n = makeStuff(() => new Node());
     expect(MixinApi.isActive(n, FAST_TRAVEL_MIXIN)).toBe(true);
-    const plain = makeStuff(() => new Thing());
+    const plain = makeStuff(() => new Good());
     expect(MixinApi.isActive(plain, FAST_TRAVEL_MIXIN)).toBe(false);
   });
 });
