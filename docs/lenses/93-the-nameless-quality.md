@@ -45,6 +45,16 @@ does it have? Could it have more? And where does the design feel like
 ⭐⭐ **It is an aesthetic diagnostic applied to a *made thing*.** Not
 scope, not size, not how much was built.
 
+> ⭐⭐ **Paired with [#28 · The State Machine](./28-the-state-machine.md)**
+> (2026-09-29) — same refactor, two halves. This entry asks whether the
+> substrate lets an author make something with the quality; `28` asks
+> whether the substrate is **telling the truth about what its objects
+> are**, and carries the attribute-provenance vocabulary and the rule that
+> *"whichever framing is most useful at the moment"* is how a substrate
+> rots. ⚠ The two can disagree: every carve is a class an author must
+> learn, and neither entry knows the number of rungs past which the ladder
+> is worse than the god class it replaced.
+
 ## Which of our seven it sharpens
 
 **[Lens 2 · Creative expression](../design-lenses.md)**, and this is the
@@ -189,8 +199,12 @@ same line roughness draws, arriving from a different property.
 4. ⭐ **State the egoless/personal split.** The substrate is nobody's;
    the content is everybody's. That resolves his fourth question in the
    governance thesis's favour rather than leaving the two at odds.
-5. **Read with [#92](./92-inner-contradiction.md)** — one of Alexander's
-   eight aspects, which Schell promoted to a lens of its own.
+5. **⚠ #92 Inner Contradiction has no entry.** It is one of Alexander's
+   eight aspects that Schell promoted to a lens of its own, so it belongs
+   beside this one — but the entry was written and deleted the same day
+   ([README](./README.md) records why). ⭐ The structural pair to read with
+   instead is [#28](./28-the-state-machine.md).
+   *(Link repaired 2026-09-29: it pointed at the deleted file.)*
 
 [^aogd-nq]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
     3rd ed. (CRC Press, 2020) — **Lens #93, the Lens of The Nameless

@@ -113,8 +113,26 @@ cited it as *"the same firewall,"* and 6.3 no longer reaches
 competence, which is performance. If coarse competence bands survive —
 and they may well should — it must be on their own argument (**false
 precision**: a derived band claims only what the evidence supports,
-where a decimal claims more than it can), not on this one. ⭐ **That
-argument has not been written.**
+where a decimal claims more than it can), not on this one.
+
+> ✅ **Written 2026-09-29 —
+> [#28 · The State Machine](./28-the-state-machine.md).** Three legs, and
+> the third is the one that makes the rule structural rather than a
+> display convention:
+> **(1) epistemic** — a derived value's precision is a property of the
+> *formula*, not the *evidence*; `theta` from six transcript rows prints
+> to any number of decimals and none is warranted.
+> **(2) cognitive**, and it is Schell's own, so it owes nothing to the
+> no-gauge doctrine — *"games that force the players to be aware of too
+> many states can confuse and overwhelm"*; **our answer to too many
+> states was never fewer states, it was fewer numbers.**
+> **(3) structural** — ⭐⭐⭐ **a band is not a rounding of theta;
+> `theta` is the estimator and the band is the attribute.** If competence
+> is derived, the state space the design declares *is* the band
+> vocabulary. ⚠ This does not make theta secret — B3 stands, and
+> `advancement.md` says theta may be read; the claim is that **the band is
+> the modelled state**, so showing it first is honesty about the model
+> rather than a restriction on the reader.
 
 ⚠ **Altitude:** the four delivery modes and the declared-standard
 firewall are **platform** — they constrain any game built here. What
@@ -136,10 +154,12 @@ something to read never asks.
 
 ## Implications
 
-1. ⭐⭐ **Write the `bands-not-theta` argument or drop the rule.** It is
-   currently a convention with a retired justification, which is the
-   condition in which rules get deleted by whoever finds them
-   inconvenient.
+1. ✅ **Write the `bands-not-theta` argument or drop the rule** — *done
+   2026-09-29 in [#28](./28-the-state-machine.md)*, on three legs, of
+   which the structural one (**theta is the estimator, the band is the
+   attribute**) is load-bearing. ⭐ What remains is to carry it into
+   [advancement.md](../subsystems/advancement.md) beside the
+   `{theta, band}` derivation, so the rule stops living only in the deck.
 2. ⭐⭐ **Recognize the refusal as our solvability device and hold it.**
    Every refusal names what lifts it; that is not only fairness
    ([#25](./25-judgment.md)), it is the mechanism that tells a player a

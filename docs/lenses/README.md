@@ -57,8 +57,8 @@ the unnumbered **#∞ Lens of Your Secret Purpose**. *(Corrected
 2026-09-29: an earlier count of 113 stopped one page short of the table's
 end and missed **#111 Responsibility** — "does my game help people,
 how?" — and **#112 the Raven** — "is making this game worth my time?")*
-✅ **Sixteen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
-`30` · `31` · `33` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
+✅ **Seventeen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
+`28` · `30` · `31` · `33` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
 see below.
 
 | Sharpens | Entry | What it is for |
@@ -78,6 +78,7 @@ see below.
 | **2 · Expression · 3b** | ✅ [`86-character-function.md`](./86-character-function.md) | ⭐ Casting, not staffing — and **casting happens three times** (code · content · runtime). We built the pass-2 machinery and skipped the craft: the save gate knows *legal*, never *good*. The prize is **dramatic predicates** — his against-type casting made declarative, and per-player. |
 | **2 · Expression** | ✅ [`31-action.md`](./31-action.md) | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* ⭐ **His parser's vocabulary was hidden; ours is data** — affordance, refusal, prompting, the collision ladder, an LLM front-end. Adopts the **basic:strategic ratio** question. |
 | **2 · Expression · 3a** | ✅ [`79-freedom.md`](./79-freedom.md) | ⭐ **Freedom here is a political question in a design question's clothes.** Two regimes — a sandbox that is maximal and a shared world the polity grants — and exactly one platform-level class, the wizard flag. |
+| **2 · Expression · 1** | ✅ [`28-the-state-machine.md`](./28-the-state-machine.md) | ⭐⭐⭐ The **structural** half of `93` — not *can an author make something with the quality* but **is the substrate telling the truth about what its objects are.** ⚠⚠ Carries the one piece of advice in the deck that is wrong for this artifact: *"the right way to think about something is whichever way is most useful **at the moment**"* — which has no time dimension, and **the god class is that rule iterated.** ⭐⭐⭐ Names the vocabulary A3 needs and Schell lacks: an attribute has a **provenance** (authored · stamped · derived), so *what are its possible states* presumes a stored state a derived attribute does not have, and *what triggers the change* is **that you looked.** ⭐⭐⭐ And it writes the **`bands-not-theta`** warrant [`55`](./55-visible-progress.md) asked for. |
 | **2 · Expression · 3a** | ✅ [`93-the-nameless-quality.md`](./93-the-nameless-quality.md) | ⭐ Not *does the world feel alive* — **can an author make something that does, or does the substrate prevent them?** The aesthetic half of the narrowing argument; *not-separateness* as 3a's positive form; charm as a budget denominated in carves. |
 
 ⛔ **`92-inner-contradiction.md` — written 2026-09-29, deleted the same
@@ -96,7 +97,7 @@ files** — they are one argument seen three ways, and the levelling
 conversation is what they are for. Same for `25` + `37`, and `31` +
 `79`, which share one answer.
 
-**Second rank — real, not urgent:** `95h-cheatability.md` (⭐ promoted 2026-09-29 — [`33`](./33-rules.md) asks to pair with it, and its claim that *the belief a game is cheatable destroys endogenous value even when false* is the general form of the wizard-asymmetry problem [`37`](./37-fairness.md) answered constitutionally; it also sits in the same section of the book as `33`) · `28-the-state-machine.md` (⭐ the rest of the game-mechanics chapter — its *object or attribute?* is the narrowing refactor's question in Schell's own words: a poker hand is five card objects **or** one object with five card attributes, and *"the right way to think about something is whichever way is most useful at the moment"*. ⚠ Deferred deliberately while `build/narrowing` is in flight) · `26-functional-space.md` and `32-goals.md` (the two remaining mechanics lenses; `26` wants a claim that our six spatial representations are one model, which nobody has checked) · `90-status.md` (Keith Johnstone's
+**Second rank — real, not urgent:** `95h-cheatability.md` (⭐ promoted 2026-09-29 — [`33`](./33-rules.md) asks to pair with it, and its claim that *the belief a game is cheatable destroys endogenous value even when false* is the general form of the wizard-asymmetry problem [`37`](./37-fairness.md) answered constitutionally; it also sits in the same section of the book as `33`) · `26-functional-space.md` and `32-goals.md` (the two remaining mechanics lenses; `26` wants a claim that our six spatial representations are one model, which nobody has checked) · `90-status.md` (Keith Johnstone's
 improv status — the one genuinely unused lens with real pull on the NPC
 and LLM work) · `34-skill.md` and `48-simplicity-complexity.md` (much of
 both is now inside lens 1) · `66-channels-and-dimensions.md` with
@@ -134,6 +135,7 @@ one:
 | the cockpit · cards · client | **#62 Transparency**, #66 Channels | ⛔ |
 | NPCs · behaviour · dialogue | **#90 Status** | ⛔ |
 | onboarding · char-gen | **#19 The Player**, #69 Interest Curve | ⛔ — though [`17`](./17-the-toy.md) owns the *first thirty seconds* half of it |
+| backing classes · mixins · what an object IS | **#28 The State Machine** | ✅ — [`28`](./28-the-state-machine.md); pairs with [`93`](./93-the-nameless-quality.md) |
 | the simulation itself | **#30 Emergence** | ✅ — [`30`](./30-emergence.md), which also carries the **positive** test for when to simulate at all |
 | moderation · law · the tiers | **#33 Rules** ✅ · #99 Griefing ⛔ | ✅ — [`33`](./33-rules.md) covers enforcement, remedy and the advisory test; #99 still owns griefing itself |
 
@@ -162,6 +164,8 @@ placed only where an entry makes a *substantive claim* about that doc:
   [subsystems/sandbox.md](../subsystems/sandbox.md)
 - **subsystems** — `employment` · `command-spec` · `combat` ·
   `exertion` · `mortality`
+- **advancement** — [subsystems/advancement.md](../subsystems/advancement.md),
+  which gains the `bands-not-theta` argument
 - **the register** — [vocations.md](../vocations.md), whose **chain walk**
   turns out to be the emergence generator
 - **messaging** — [positioning.md](../positioning.md), for the synthesis
