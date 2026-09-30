@@ -43,7 +43,7 @@ takeable, and replacement is legible**. Today that is claimed and broken: a
 player who takes a seat takes **every** order by path-sort, so replacement is
 not legible, it is total. **This build is what makes the claim true.**
 
-Seeds: [brain-substrate-slate](../slates/builds/brain-substrate-slate.md)
+Seeds: [agent-coordination-slate](../slates/builds/agent-coordination-slate.md)
 (the arbiter) · [call-slate](../slates/builds/call-slate.md) (the call) ·
 [daves-bar-slate](../slates/builds/daves-bar-slate.md) and
 [livelihood-slate](../slates/builds/livelihood-slate.md) §5.4 (what stays
@@ -759,7 +759,7 @@ first member.
 
 ## Cross-references
 
-- [brain-substrate-slate](../slates/builds/brain-substrate-slate.md) — the arbiter's design, the measurement, the prior-art survey, what is left
+- [agent-coordination-slate](../slates/builds/agent-coordination-slate.md) — the arbiter's design, the measurement, the prior-art survey, what is left
 - [call-slate](../slates/builds/call-slate.md) — the call, the matrix, the quest relation, everything deferred
 - [behavior.md](../subsystems/behavior.md) — the model this replaces
 - [activity.md](../subsystems/activity.md) — engagement slots and `AbortReason`, the seam importance rides

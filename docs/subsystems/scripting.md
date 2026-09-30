@@ -247,7 +247,7 @@ drop** and resume on reconnect, cancelling at the short clock that already
 vacates seats — *a script is a tool you operate, not a deputy that replaces
 you*. The same script installed as a cast member's brain is unaffected,
 because the NPC is its own principal. See
-[brain-substrate-slate](../slates/builds/brain-substrate-slate.md)
+[agent-coordination-slate](../slates/builds/agent-coordination-slate.md)
 § *Brains and scripts*.
 
 ## The two player surfaces (P6)

@@ -416,7 +416,7 @@ build stops at.
 ## ⚠⚠ Blocked on the brain substrate (2026-09-25)
 
 The routing half of this slate is **downstream of
-[brain-substrate-slate](brain-substrate-slate.md)**, which was opened the
+[agent-coordination-slate](agent-coordination-slate.md)**, which was opened the
 same day after the crew design turned out to be a layer of dynamism
 balanced on an undesigned one. What that pass changes here:
 
@@ -458,7 +458,7 @@ times* names the failure this slate's proposed rule was committing:
    (pass 2) and the switch-prose, never through the comparison.
 2. ⭐⭐⭐ **`junior-first` dissolves.** It was an authored third leg
    justified by fiction (*the senior is counting stock*). Under
-   [brain-substrate-slate](brain-substrate-slate.md)'s urgency bands the
+   [agent-coordination-slate](agent-coordination-slate.md)'s urgency bands the
    senior's *serve-this-order* candidate simply reports a **lower band**
    because they are mid-count — so the junior serves as a **consequence,
    not a rule**. The three-legged chain
@@ -577,7 +577,7 @@ If a quest asks an NPC to act, it is a candidate like any other — so an NPC
 mid-shift has a **reason** not to drop everything, and a quest **asks
 rather than commands**. That is the difference between a world with people
 in it and a world with actors waiting for cues. See
-[brain-substrate-slate](brain-substrate-slate.md).
+[agent-coordination-slate](agent-coordination-slate.md).
 
 ## ⭐⭐ The name — it is a CALL, not a crew and not a troupe
 
@@ -633,7 +633,7 @@ authoring layer, plain words in the fiction.
   the word will still be there.
 - **The rename rides the requirements rewrite** (decided 2026-09-30) rather
   than landing on its own: this slate is cross-referenced from
-  [brain-substrate-slate](brain-substrate-slate.md),
+  [agent-coordination-slate](agent-coordination-slate.md),
   [agent-coordination-requirements](../../requirements/agent-coordination-requirements.md),
   [party-slate](../tails/party-slate.md), [policing-slate](policing-slate.md)
   and [employment.md](../../subsystems/employment.md), so it is a small sweep

@@ -1,8 +1,19 @@
-# Brain substrate slate — what a brain IS
+# Agent coordination slate — who acts, at every scale
 
-> **Status: IN CONVERSATION, opened 2026-09-25.** A design cycle, docs
-> only. It exists because the [crew](call-slate.md) build turned out to be
-> a layer of dynamism balanced on an undesigned one:
+> **Status: STAGE 1 IN BUILD · STAGE 2 IN CONVERSATION.** Opened 2026-09-25
+> as *"the brain substrate slate — what a brain IS"* and renamed 2026-09-30,
+> because the mechanism was never the subject:
+>
+> > **User: "the whole thing started out being about agent coordination at
+> > different scales and functions."**
+>
+> ⚠ **It was also nearly split in two on 2026-09-30 and should not have
+> been.** Document length is not a design boundary — the faculty vocabulary
+> and the arbiter are one subject at two *times*, sequenced by consumer
+> availability, not two subjects.
+>
+> It exists because the [call](call-slate.md) build turned out to be a layer
+> of dynamism balanced on an undesigned one:
 >
 > > **User: "npc brains are the most dynamic to the point where we want to
 > > drive them with LLMs someday, and you're talking about another layer of
@@ -25,6 +36,48 @@
 > Campbell. ⚠ **None of that part is in the coordination build**; see its
 > last heading for the two things the build must not contradict.
 > **Size:** a design cycle, then a build.
+
+---
+
+---
+
+# ⭐⭐ Read this first — the scale ladder, and where each rung stands
+
+**One question at eight scales:** *who acts, and can they?* Every part of this
+doc serves one rung.
+
+| scale | the question | answered by | stage |
+|---|---|---|---|
+| **a task** | what is this work; what does doing it claim | the **faculty + function vocabulary** (§ *What we mean by INTELLIGENCE*) | **2** — designed, no consumer yet |
+| **one agent** | what do I do next | the **beat** + the **urgency band** | ⭐ **1 — in build** |
+| **a shift** | who is on, and where | the **roster tick** (`shifts`/`covers` move into it) | **1 — in build** |
+| **a house** | who among us acts for *this* | the **call policy** | **1 — in build** |
+| **a chain** | who answers to whom | `reportsTo` — shipped, used **once**, never exercised | deferred → the senior seat ([call-slate](call-slate.md), [daves-bar-slate](daves-bar-slate.md)) |
+| **an institution** | who is called, from how far | dispatch · the turnout · the hue and cry | deferred — needs content that does not exist ([call-slate](call-slate.md) § the matrix, [policing-slate](policing-slate.md)) |
+| **one mind, many bodies** | do we all turn | `actsAsOne` | deferred — no pack in the world |
+| **a locality** | — | ⛔ never asked | out of scope, deliberately |
+
+## How to read the rest of this doc
+
+**Part 1 — §§ *The measurement* → *the casting pass*.** The case that today's
+model is broken, and the redesign. ⭐ **This is now
+[agent-coordination-requirements](../../requirements/agent-coordination-requirements.md)
+and its D1–D13 / W0–W7 plan** — stage 1, agreed and planned. Nothing here is
+open; it retires at that build's sweep. Its three pieces that would otherwise
+strand are already rehomed: the board unification and the crew consequences
+to [call-slate](call-slate.md), the LLM seam to
+[llm-content-slate](llm-content-slate.md).
+
+**Part 2 — § *What we mean by INTELLIGENCE* onward.** The vocabulary: three
+axes, the Campbell pass, why a declaration beats derivation, what a reviewer
+checks, and brains-versus-scripts. ⭐ **This is where every open question
+lives.** It is not in stage 1, and § *What of this is in the coordination
+build* names the two things stage 1 must not contradict.
+
+⚠ **Why stage 2 waits, and it is not sequencing for its own sake:** the
+faculty declaration has **no consumer** — no author is declaring, no body is
+reviewing. Shipping it now would be the consumer-less-half failure that cut
+`actsAsOne` and the board unification. Same subject, later time.
 
 ---
 

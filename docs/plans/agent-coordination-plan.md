@@ -9,7 +9,7 @@ authored people (the capability gate). **Kind: feature. Leads from:
 kernel** — first consumers Dave's Bar and the Hearthworks; the market bakery
 and one goods-yard outfit are the world-didn't-break check.
 
-Seeds: [brain-substrate-slate](../slates/builds/brain-substrate-slate.md)
+Seeds: [agent-coordination-slate](../slates/builds/agent-coordination-slate.md)
 (the arbiter) · [call-slate](../slates/builds/call-slate.md) (the call).
 
 ---
@@ -1082,7 +1082,7 @@ Clean attach points, each with the slate it leaves as:
   with the list as its prompt. → llm-content-slate.
 - **A brain-specific break-off sentence** (`breaksOff?: string` on
   `BrainStatics`) — the kernel's one generic sentence serves until a
-  brain wants its own. → brain-substrate-slate.
+  brain wants its own. → agent-coordination-slate.
 - **A `critical` need that refuses a call** — importance flows one way
   (D1); the reverse needs a criterion and an appeal. → call-slate (lens 7
   question already recorded there).
