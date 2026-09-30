@@ -15,15 +15,19 @@ import type { Unit } from '../../../lib/quantity';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { TemplatePaths } from '../../../lib/paths';
-import type { AtmosphericTrace } from '../../../api/biome';
+import type { AtmosphericTrace, EnvelopeTrace } from '../../../api/biome';
 import { ZoneApi } from '../../../api/zone';
 import { WeatherApi } from '../../../api/weather';
 import { AddressApi } from '../../../api/address';
 import { WorldClockApi } from '../../../api/worldclock';
 import {
   WEATHER_FIELDS,
+  WEATHER_PROFILES,
   type WeatherField,
 } from '../../../lib/weather/WeatherType';
+import { Evaporation } from '../../../lib/material/Evaporation';
+import type { AirSegment } from '../../../api/biome';
+import type Locality from '../Locality';
 
 /**
  * The four atmospheric fields weather deviates (D5). Gravity / atmosphere
@@ -253,6 +257,19 @@ export class BiomeLogic extends ApiLogic {
     scope: Stuff & Container,
     detailKey?: string
   ): Promise<Quantity<'K'>> {
+    // ⭐⭐ **One source of truth.** Everything that asks a scope how warm
+    // it is comes through here — the body's effective ambient, a loaf's
+    // thermal restamp, `feel`, `measure temperature` — so the envelope
+    // is applied HERE rather than at each of them. A room holding a
+    // state different from its outside is not a second mechanism beside
+    // the chain; it is what the chain answers for that room.
+    //
+    // A per-detail read is never the room's own air (it is the oven, the
+    // shaded corner, the ice bath), so it keeps the plain chain.
+    if (detailKey === undefined) {
+      const envelope = await resolveEnvelopeTemperature(scope);
+      if (envelope !== null) return Quantity.of(envelope.value, 'K');
+    }
     return resolveQuantityFor<'K'>(
       scope,
       detailKey,
@@ -261,6 +278,19 @@ export class BiomeLogic extends ApiLogic {
       (a, k) => readDetailMap<Quantity<'K'>>(a._detailTemperatures, k),
       (a) => a._temperature,
     );
+  }
+
+  /**
+   * See {@link BiomeApi.outsideTemperatureFor}. What this scope is
+   * drifting TOWARD, in K — the chain's answer plus the weather, with
+   * no envelope applied. For a sky-exposed scope that is simply its own
+   * temperature.
+   */
+  @CallSecurity(BiomeApiCallers)
+  public async outsideTemperatureFor(
+    scope: Stuff & Container
+  ): Promise<Quantity<'K'>> {
+    return Quantity.of(await outsideKFor(scope), 'K');
   }
 
   /** See {@link BiomeApi.resolvePressureFor}. */
@@ -374,6 +404,18 @@ export class BiomeLogic extends ApiLogic {
     scope: Stuff & Container,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'K'>>> {
+    if (detailKey === undefined) {
+      const envelope = await resolveEnvelopeTemperature(scope);
+      if (envelope !== null) {
+        return {
+          value: Quantity.of(envelope.value, 'K'),
+          source: 'envelope',
+          sourcePath: scope.getTemplatePath() ?? null,
+          ancestorChain: [],
+          envelope: envelope.trace,
+        };
+      }
+    }
     return traceResolveQuantityFor<'K'>(
       scope,
       detailKey,
@@ -498,6 +540,84 @@ export class BiomeLogic extends ApiLogic {
   @CallSecurity(BiomeApiCallers)
   public isSkyExposed(scope: Stuff & Container): boolean {
     return skyExposedWalk(scope);
+  }
+
+  // ---------- the evaporation reads (SYNC) ----------
+
+  /** See {@link BiomeApi.airFor}. */
+  @CallSecurity(BiomeApiCallers)
+  public airFor(scope: Stuff & Container): Evaporation {
+    const base = localAir(scope);
+    const dev = liveDeviation(scope);
+    if (dev === null) return base;
+    return new Evaporation(
+      base.humidityPct + dev.humidity,
+      base.windMs + dev.wind,
+      base.tempK + dev.temperature,
+    );
+  }
+
+  /** See {@link BiomeApi.airSegmentsFor}. */
+  @CallSecurity(BiomeApiCallers)
+  public airSegmentsFor(
+    scope: Stuff & Container,
+    t0S: number,
+    t1S: number,
+  ): AirSegment[] {
+    const windowS = t1S - t0S;
+    const base = localAir(scope);
+
+    const locality = weatherLocalityOf(scope);
+    if (
+      !(windowS > 0) ||
+      !WeatherApi.isActive() ||
+      !skyExposedWalk(scope) ||
+      locality === null
+    ) {
+      // Indoors, weather-absent, unresolved, or an empty window: one
+      // segment of the air as it reads now. ⭐ NEVER zero segments — a
+      // caller integrating over the list must not silently credit nothing.
+      return [
+        {
+          air: this.airFor(scope),
+          durationS: windowS > 0 ? windowS : 0,
+          rainMmPerH: 0,
+        },
+      ];
+    }
+
+    const segments = WeatherApi.segmentsBetween(
+      Quantity.of(t0S, 's'),
+      Quantity.of(t1S, 's'),
+      locality,
+    );
+    if (segments.length === 0) {
+      return [{ air: this.airFor(scope), durationS: windowS, rainMmPerH: 0 }];
+    }
+
+    return segments.map((seg) => {
+      const dev = WEATHER_PROFILES[seg.type].deviation;
+      const air = new Evaporation(
+        base.humidityPct + dev.humidity.rawValue(),
+        base.windMs + dev.wind.rawValue(),
+        base.tempK + dev.temperature.rawValue(),
+      );
+      // The segment's own rate, integrated through the shipped spine
+      // rather than read off a private table — so the operator dials
+      // (`water.rainRateMmPerHour` and its siblings) stay in one place.
+      // A segment's type is constant, so any sub-window gives the rate.
+      const hours = seg.overlapS / 3600;
+      let rainMmPerH = 0;
+      if (hours > 0) {
+        const fell = WeatherApi.precipitationBetween(
+          Quantity.of(seg.startsAtS, 's'),
+          Quantity.of(seg.startsAtS + seg.overlapS, 's'),
+          locality,
+        );
+        rainMmPerH = fell.liquid.rawValue() / hours;
+      }
+      return { air, durationS: seg.overlapS, rainMmPerH };
+    });
   }
 }
 
@@ -739,6 +859,136 @@ async function pressureTraceFor(
     ancestorChain: trace.ancestorChain,
   };
 }
+
+/**
+ * ⭐⭐ **What this scope is drifting TOWARD**, in K.
+ *
+ * The chain, run in full, plus the weather deviation — but the weather
+ * only where the answer came from the sky.
+ *
+ * ⚠ That last condition is the one worth reading twice. A biome may say
+ * what the outside AIR is doing: Rejection's `underground/upper-workings`
+ * authors 285 K and that is honest, because a working IS that
+ * temperature the year round. But it is ROCK, not sky, so a storm must
+ * not cool it — and a zone-authored temperature is the same case. Only
+ * the universe baseline and a `SkyExposedBiome` describe something the
+ * weather is happening to.
+ */
+async function outsideKFor(scope: Stuff & Container): Promise<number> {
+  const trace = await runChainWalk<Quantity<'K'>>(
+    scope,
+    undefined,
+    'temperature',
+    (b) => b.getDefaultTemperature(),
+    (a, k) => readDetailMap<Quantity<'K'>>(a._detailTemperatures, k),
+    (a) => a._temperature,
+  );
+  let outside = trace.value.rawValue();
+
+  const fromSky =
+    trace.source === 'universe' ||
+    ((trace.source === 'biome' || trace.source === 'biome-ancestor') &&
+      trace.sourcePath !== null &&
+      isSkyBiomePath(trace.sourcePath));
+  if (!fromSky || !WeatherApi.isActive()) return outside;
+
+  const locality = await AddressApi.resolveLocalityFor(scope);
+  outside += WeatherApi.deviatedFieldFor(
+    scope,
+    locality,
+    'temperature',
+    WorldClockApi.getNow(),
+  ).rawValue();
+  return outside;
+}
+
+/** Does the biome row at `path` compose `SkyExposedMixin`? */
+function isSkyBiomePath(path: string): boolean {
+  const biome = findBiomeByPath(path);
+  return biome !== null && MixinApi.isSkyExposed(biome);
+}
+
+/**
+ * ⭐⭐ Run the scope's envelope, or answer `null` when it has none.
+ *
+ * Four steps, and the order is the whole contract: decide whether an
+ * envelope applies at all (the geometry and the author answer that —
+ * see `AtmosphericMixin.envelopeApplies`), resolve what it is drifting
+ * toward, stamp that, and integrate forward. The stamp is what lets the
+ * reconcile stay SYNC: the outside needs an address walk and a chain
+ * walk, and the body's vitals poll cannot afford either.
+ */
+async function resolveEnvelopeTemperature(
+  scope: Stuff & Container,
+): Promise<{ value: number; trace: EnvelopeTrace } | null> {
+  if (!MixinApi.isAtmospheric(scope)) return null;
+  const host = scope as Stuff & Container & Atmospheric;
+  if (!host.envelopeApplies()) return null;
+
+  // ⚠⚠ **Reentry guard, per scope.** Resolving a room's temperature can
+  // reach back into the same room: `outsideKFor` is async, and while it
+  // is in flight a restamp fanned out by something else in the room
+  // (lighting a hearth restamps every Thermal body standing in it) asks
+  // the room how warm it is. The result is a ring of four subsystems,
+  // each individually correct, and a socket that never answers — a
+  // `feel` in a cookhouse with a lit hearth, found by the drive.
+  //
+  // A re-entrant caller gets the room's LAST answer rather than a
+  // fresh integration, which is correct: the outer call is already
+  // computing one.
+  if (envelopeResolving.has(scope.stuffId)) {
+    const held = host.envelopeTemperatureK;
+    return held === null ? null : { value: held, trace: traceOf(host, scope) };
+  }
+  envelopeResolving.add(scope.stuffId);
+  try {
+    host.envelopeOutsideK = await outsideKFor(scope);
+  } finally {
+    envelopeResolving.delete(scope.stuffId);
+  }
+  host.reconcileEnvelope();
+  const value = host.envelopeTemperatureK;
+  if (value === null) return null;
+
+  return { value, trace: traceOf(host, scope) };
+}
+
+/**
+ * The provenance, derived the same way the integration was — so what
+ * `feel` says and what the room DID cannot come apart.
+ */
+function traceOf(
+  host: Stuff & Container & Atmospheric,
+  scope: Stuff & Container,
+): EnvelopeTrace {
+  let heatInputW = 0;
+  let hottestSource: string | null = null;
+  let hottestW = 0;
+  for (const occupant of scope.getContents()) {
+    if (!MixinApi.isSpaceHeating(occupant)) continue;
+    const w = occupant.spaceHeatOutputW();
+    heatInputW += w;
+    if (w > hottestW) {
+      hottestW = w;
+      hottestSource = (occupant as unknown as Stuff).getPresentation();
+    }
+  }
+  return {
+    outsideK: host.envelopeOutsideK ?? 0,
+    heatInputW,
+    uWperK: host.envelopeUWperK(),
+    openings: host.openExteriorOpenings(),
+    enclosureMaterialPath: host.envelopeEnclosureMaterialPath(),
+    hottestSource,
+  };
+}
+
+/**
+ * Scopes whose outside is being resolved right now. Module scope, and
+ * legitimately: a pure re-entrancy marker holding no world state, the
+ * `seasonCache` shape.
+ */
+const envelopeResolving = new Set<string>();
 
 async function resolveQuantityFor<U extends Unit>(
   scope: Stuff & Container,
@@ -1017,4 +1267,123 @@ async function runChainWalk<V>(
 
 function capitalize(s: string): string {
   return s.length === 0 ? s : s[0]!.toUpperCase() + s.substring(1);
+}
+
+// ---------- the evaporation walk (module-private) ----------
+
+/**
+ * The three fields {@link Evaporation} is built from, resolved by the
+ * **sync** chain walk and terminating at the root universe biome. No
+ * weather, no zone tier — the same two tiers {@link
+ * BiomeLogic.localHumidityFor} skips, for the same reason: a
+ * reconcile-on-read gauge cannot await.
+ */
+function localAir(scope: Stuff & Container): Evaporation {
+  const humidity = syncScalar<'%'>(
+    scope,
+    (b) => b.getDefaultHumidity(),
+    (a) => a._humidity,
+    AIR_FALLBACK_HUMIDITY_PCT,
+  );
+  const wind = syncScalar<'m/s'>(
+    scope,
+    (b) => b.getDefaultWind(),
+    (a) => a._wind,
+    0,
+  );
+  const temp = syncScalar<'K'>(
+    scope,
+    (b) => b.getDefaultTemperature(),
+    (a) => a._temperature,
+    AIR_FALLBACK_TEMP_K,
+  );
+  return new Evaporation(humidity, wind, temp);
+}
+
+/** One sync-walked scalar, falling back to the universe then a literal. */
+function syncScalar<U extends Unit>(
+  scope: Stuff & Container,
+  biomeGetter: (b: Biome) => Quantity<U> | null,
+  ownGetter: (a: Stuff & Container & Atmospheric) => Quantity<U> | null,
+  fallback: number,
+): number {
+  const { hit } = syncChainWalk<Quantity<U>>(
+    scope,
+    undefined,
+    biomeGetter,
+    () => null,
+    ownGetter,
+  );
+  if (hit !== null) return hit.value.rawValue();
+  try {
+    const universal = biomeGetter(rootBiome());
+    if (universal !== null) return universal.rawValue();
+  } catch {
+    // No root biome (pre-boot / a bare test world): the literal stands.
+  }
+  return fallback;
+}
+
+/**
+ * Relative humidity (%) assumed when neither the chain nor the universe
+ * biome authors one. Deliberately the same 60 % the cure clock falls back
+ * to, so a bare test world dries at one rate rather than two.
+ */
+const AIR_FALLBACK_HUMIDITY_PCT = 60;
+
+/** Air temperature (K) assumed when nothing authors one — 15 °C. */
+const AIR_FALLBACK_TEMP_K = 288;
+
+/**
+ * The `Locality` governing this scope's weather, **synchronously**, or
+ * `null` when none is known.
+ *
+ * ⚠ `null` covers two cases on purpose: *nothing has resolved yet* and
+ * *this place is under no locality*. Both are answered the same way — **no
+ * weather deviation** — because the alternative (feeding
+ * `deviatedFieldFor` a null locality, which it happily reads as the
+ * unpinned procgen field) would make an unresolved scope report a
+ * *different climate* than the resolved one, so a drying rate would jump
+ * the first time anybody looked twice. The memo kicks its own walk, so the
+ * next read has the real answer.
+ */
+function weatherLocalityOf(scope: Stuff & Container): Locality | null {
+  let cursor: (Stuff & Container) | null = scope;
+  let depth = CONTAINMENT_DEPTH_CAP;
+  while (cursor !== null && depth-- > 0) {
+    if (MixinApi.isAtmospheric(cursor)) {
+      return (cursor as Stuff & Container & Atmospheric).weatherLocality();
+    }
+    cursor = stepOutward(cursor);
+  }
+  return null;
+}
+
+/**
+ * The live per-field weather deviation for a scope, or `null` when weather
+ * does not reach it (indoors, weather-absent, or locality unresolved).
+ */
+function liveDeviation(
+  scope: Stuff & Container,
+): { humidity: number; wind: number; temperature: number } | null {
+  if (!WeatherApi.isActive()) return null;
+  if (!skyExposedWalk(scope)) return null;
+  const locality = weatherLocalityOf(scope);
+  if (locality === null) return null;
+  const nowS = WorldClockApi.getNow();
+  return {
+    humidity: WeatherApi.deviatedFieldFor(
+      scope,
+      locality,
+      'humidity',
+      nowS,
+    ).rawValue(),
+    wind: WeatherApi.deviatedFieldFor(scope, locality, 'wind', nowS).rawValue(),
+    temperature: WeatherApi.deviatedFieldFor(
+      scope,
+      locality,
+      'temperature',
+      nowS,
+    ).rawValue(),
+  };
 }

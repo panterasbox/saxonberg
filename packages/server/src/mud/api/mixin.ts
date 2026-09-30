@@ -25,7 +25,8 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
-import type { Surfaced } from '../lib/spatial/Surfaced';
+import type { Placing } from '../lib/spatial/Placing';
+import type { Coolbox } from '../lib/thermal/Coolbox';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
@@ -98,7 +99,7 @@ import type { Fresh } from '../lib/material/Freshness';
 import type { Dosed } from '../lib/thermal/ThermalDose';
 import type { Composed } from '../lib/metabolism/Composed';
 import type { Comminuting } from '../lib/craft/Comminuting';
-import type { Cured } from '../lib/material/Cured';
+import type { WaterActive } from '../lib/material/WaterActivity';
 import type { Alloyed } from '../lib/material/Alloyed';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
@@ -111,7 +112,9 @@ import type { Feeder } from "../lib/husbandry/Feeder";
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
-import type { Furnace } from '../lib/fire/Furnace';
+import type { Burner } from '../lib/fire/Burner';
+import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
+import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -134,6 +137,7 @@ import type { Wieldable } from '../lib/slot/Wieldable';
 import type { Postured } from '../lib/slot/Postured';
 import type { Floor } from '../lib/ground/Floor';
 import type { GroundSource } from '../lib/ground/GroundSource';
+import type { Improvable } from '../lib/ground/Improvable';
 import type { Posed } from '../lib/character/Posed';
 import type { Mountable } from '../lib/slot/Mountable';
 import type { Drivable } from '../lib/slot/Drivable';
@@ -946,8 +950,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Containable);
   }
 
-  public static isSurfaced(obj: Stuff): obj is Stuff & Surfaced {
-    return this.hasMixin(obj, Mixins.Surfaced);
+  public static isPlacing(obj: Stuff): obj is Stuff & Placing {
+    return this.hasMixin(obj, Mixins.Placing);
+  }
+
+  public static isCoolbox(
+    obj: Stuff,
+  ): obj is Stuff & Coolbox & Container & Thermal & Sealable {
+    return this.hasMixin(obj, Mixins.Coolbox);
   }
 
   public static isMobile(obj: Stuff): obj is Stuff & Mobile {
@@ -1338,8 +1348,8 @@ export class MixinApi {
    * curing axis. Distinct from {@link isFresh}: that is the population
    * living in the matter, this is the matter's own available water.
    */
-  public static isCured(obj: Stuff): obj is Stuff & Cured {
-    return this.hasMixin(obj, Mixins.Cured);
+  public static isWaterActive(obj: Stuff): obj is Stuff & WaterActive {
+    return this.hasMixin(obj, Mixins.WaterActive);
   }
 
   /**
@@ -1441,8 +1451,27 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Meltable);
   }
 
-  public static isFurnace(obj: Stuff): obj is Stuff & Furnace {
-    return this.hasMixin(obj, Mixins.Furnace);
+  public static isBurner(obj: Stuff): obj is Stuff & Burner {
+    return this.hasMixin(obj, Mixins.Burner);
+  }
+
+  /**
+   * ⭐ "Does this fire warm the ROOM?" — a hearth, a stove, a brazier,
+   * a campfire. Never a forge, an oven or a kiln: those heat what you
+   * put in them, and the envelope narrows a room's contents with this
+   * predicate instead of asking what anything is.
+   */
+  public static isSpaceHeating(obj: Stuff): obj is Stuff & SpaceHeating {
+    return this.hasMixin(obj, Mixins.SpaceHeating);
+  }
+
+  /**
+   * ⭐ "Does the town light this street?" — a property of the street,
+   * never an object on it. The light walk and the extent's nightly
+   * settle both narrow with this.
+   */
+  public static isPublicLighting(obj: Stuff): obj is Stuff & PublicLighting {
+    return this.hasMixin(obj, Mixins.PublicLighting);
   }
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {
@@ -1508,6 +1537,15 @@ export class MixinApi {
   /** Can this Idea say what the ground is made of at a spot and depth? */
   public static isGroundSource(obj: Stuff): obj is Stuff & GroundSource {
     return this.hasMixin(obj, Mixins.GroundSource);
+  }
+
+  /**
+   * ⭐ Ground somebody could clear, drain and lime — and which reverts if
+   * they stop. Promoted out of `trade-farming` by the extraction build; the
+   * host answers what it owes through `improvementBill()`.
+   */
+  public static isImprovable(obj: Stuff): obj is Stuff & Improvable {
+    return this.hasMixin(obj, Mixins.Improvable);
   }
 
   public static isPosed(obj: Stuff): obj is Stuff & Posed {

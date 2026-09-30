@@ -24,7 +24,7 @@
  * somebody FURNISHES needs:
  *
  *   Persistable → WarrenMember → Reserved → CartesianLocation
- *     (which carries PostRegistration, Populates, Detailed, Perceptible,
+ *     (which carries PostRegistration, Staged, Detailed, Perceptible,
  *     Exitable, CartesianCoordinates, Visible, and Location's Container,
  *     Adornable, AmbientLit, Atmospheric, Addressable)
  *
@@ -36,7 +36,7 @@
  * `direction: north`).
  *
  * Every layer is load-bearing and the omission of any of them is silent:
- * without `Populates` a seed's `props:` is INERT and no fixture ever
+ * without `Staged` a seed's `props:` is INERT and no fixture ever
  * lands; without `Visible` its prose is inert; without `Exitable` you cannot
  * walk into it. `Reserved` is what lets a room AUTHOR a finite `air` budget.
  * `WarrenMember` is the back-ref a holding programme manages its rooms
@@ -57,10 +57,7 @@
 
 import Location from "../../lib/stuff/Location";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { PopulatesMixin } from "../../lib/stuff/Populates";
-import { VisibleMixin } from "../../lib/description/Visible";
-import { PerceptibleMixin } from '../../lib/description/Perceptible';
-import { DetailedMixin } from "../../lib/description/Detailed";
+import { StagedMixin } from "../../lib/stuff/Staged";
 import { ExitableMixin } from "../../lib/boundary/Exitable";
 import { ReservedMixin } from "../../lib/reserve";
 import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
@@ -123,9 +120,8 @@ const FurnishableRoomBase = PersistableMixin(
         // content asserts a field the class does not declare, the class
         // is wrong, not the content. Found by `lint:presentation`
         // clause (d) the day the clause existed.
-        DetailedMixin(
-          VisibleMixin(PerceptibleMixin(ReservedMixin(PopulatesMixin(Location)))),
-        ),
+        
+          ReservedMixin(StagedMixin(Location)),
       ),
   ),
 );

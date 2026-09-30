@@ -143,6 +143,32 @@ describe("Discipline seed roster", () => {
     expect(byKey.has("animal-husbandry")).toBe(false);
   });
 
+  it("⭐ opens the two physical-science branches the reading ladder needed", () => {
+    const byKey = loadAll();
+    // The instrumentation build's ladder bands its channels on a
+    // Discipline, and before it there was no honest home for *what is
+    // this made of* or *what does this dial say*. `awareness` is the
+    // practiced eye and was being asked to cover both.
+    const chemistry = byKey.get("chemistry");
+    expect(chemistry, "chemistry missing").toBeTruthy();
+    expect(chemistry?.channel).toBe("skill");
+    expect(chemistry?.iscedf).toBe("0531"); // ISCED-F: chemistry
+
+    const physics = byKey.get("physics");
+    expect(physics, "physics missing").toBeTruthy();
+    expect(physics?.channel).toBe("skill");
+    expect(physics?.iscedf).toBe("0533"); // ISCED-F: physics
+
+    // ⚠ Neither specializes anything: they are narrow FIELDS in their own
+    // right, not practiced leaves under a trade. And neither confers —
+    // verb conferral was retired tree-wide; the verb is global and the
+    // OUTCOME is graduated.
+    expect(chemistry?.specializes ?? []).toEqual([]);
+    expect(physics?.specializes ?? []).toEqual([]);
+    expect(chemistry?.conferrals ?? []).toEqual([]);
+    expect(physics?.conferrals ?? []).toEqual([]);
+  });
+
   it("carries the full magic grid — 5 verbs + 13 nouns, no conferrals", () => {
     const byKey = loadAll();
     const verbs = ["create", "destroy", "control", "transform", "perceive"];

@@ -36,7 +36,7 @@ import { Quantity } from '../../quantity';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import Location from '../../stuff/Location';
 import Exit from '../../boundary/Exit';
 import { Postures } from '../../slot/Postured';
@@ -81,7 +81,7 @@ class RichMover extends MobileMixin(EngagedMixin(PosedMixin(Creature))) {
 }
 
 // The GlassAlley steel-plate boot — a Constructed Wearable covering the feet.
-const Boot = WearableMixin(SlottableMixin(ConstructedMixin(Thing)));
+const Boot = WearableMixin(SlottableMixin(ConstructedMixin(Good)));
 class DemoBoot extends Boot {
   static _mixinName = 'DemoHazardBoot';
 }
@@ -159,7 +159,7 @@ async function walkInto(
   const street = makeStuff(() => new Location());
   const room = makeStuff(() => new Location());
   ContainmentApi.move(m, street);
-  if (trap) ContainmentApi.move(trap as unknown as Thing, room);
+  if (trap) ContainmentApi.move(trap as unknown as Good, room);
   const exit = makeStuff(
     () => new Exit({ direction: 'east', source: street, destination: room }),
   );
@@ -273,7 +273,7 @@ describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
   it('avoids a trap the mover has already discovered (never springs)', async () => {
     const m = plainMover('/platform/agent/Avatar/hz-found');
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
-    PerceptionApi.recordDiscovery(m, trap as unknown as Thing);
+    PerceptionApi.recordDiscovery(m, trap as unknown as Good);
     await walkInto(m, trap);
     expect(wound(m)).toBeUndefined();
     expect(trap.isArmed()).toBe(true);
@@ -364,7 +364,7 @@ describe('HazardMixin — interact trigger + toxin dart', () => {
 
 describe('disarm — found-gated', () => {
   function target(t: Trap): MqlOneResult {
-    return { stuff: t as unknown as Thing, raw: 'trap' } as unknown as MqlOneResult;
+    return { stuff: t as unknown as Good, raw: 'trap' } as unknown as MqlOneResult;
   }
 
   it('cannot disarm a trap the actor has not discovered', async () => {
@@ -380,7 +380,7 @@ describe('disarm — found-gated', () => {
     const m = plainMover('/platform/agent/Avatar/hz-sharp');
     ContainmentApi.move(m, makeStuff(() => new Location()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
-    PerceptionApi.recordDiscovery(m, trap as unknown as Thing);
+    PerceptionApi.recordDiscovery(m, trap as unknown as Good);
     const context = ctx(m, m.getContainer());
     await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
     expect(trap.getHazardState()).toBe('disarmed');

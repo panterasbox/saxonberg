@@ -749,3 +749,17 @@ in `trade-smithing`.)*
 
 *(Retire when: this promotes to formal requirements for a metal-chain
 build, or folds into the Rejection venue build that adopts it.)*
+
+## ⚠ Finding from the extraction drive's dirty reason (2026-09-24)
+
+**Nothing refuels a furnace**, and extraction widened the hole rather than
+closing it: a bread oven, a limekiln and a brine hearth all burn fuel now, and
+the drive's `DIRTY_REASON` names *"burns the limekiln's fuel"* as something the
+world does not regenerate. A furnace is a consumer with no supplier.
+
+⭐ The fuel chain is this slate's (`trade-fuel` ships `char`), so the question
+lands here: is refuelling an **act** somebody performs, a **par line** a venue
+stocks, or a brain's beat? It was the extraction plan's own risk 7 and it stayed
+unpriced through the whole build — deliberately, and recorded rather than
+pretended at.
+

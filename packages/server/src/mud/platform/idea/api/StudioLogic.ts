@@ -28,6 +28,8 @@ import { SecurityError } from '../../../lib/security/errors';
 import { Blueprint } from '../../../lib/studio/Blueprint';
 import { Idea } from '../../../lib/stuff/Idea';
 import Thing from '../../../lib/stuff/Thing';
+import Good from '../../../lib/stuff/Good';
+import { Actor } from '../../../lib/creature/Actor';
 import { Vessel } from '../../../lib/stuff/Vessel';
 import Location from '../../../lib/stuff/Location';
 import { Agent } from '../../../lib/stuff/Agent';
@@ -81,17 +83,21 @@ const SOURCE_ROOT_DISPLAY = '/server/src/mud';
 const PALETTE_BASE_CTORS: Record<string, AnyConstructor> = {
   // The real fundamental divisions of `Stuff` (Idea/Shadow extend Stuff
   // directly; Agent = TangibleMixin(Stuff); Thing/Location are composed
-  // roots; Vessel = a container-object that extends Thing;
-  // Creature→Character specialize Agent). `Idea` is the bare-Stuff base, so
+  // roots; Good = Thing + Chattel/Concealable, the goods rung;
+  // Vessel = a container-object that extends Good;
+  // Creature→Actor→Character specialize Agent — a body, a body that
+  // ACTS, a body that is somebody). `Idea` is the bare-Stuff base, so
   // `Stuff` itself isn't offered. Abstract bases (Character/Shadow) are fine
   // — only prototype-walked, never instantiated. Vessel is kept in the
   // palette as its own describable base even though it now extends Thing.
   Idea: Idea as unknown as AnyConstructor,
   Thing: Thing as unknown as AnyConstructor,
+  Good: Good as unknown as AnyConstructor,
   Vessel: Vessel as unknown as AnyConstructor,
   Location: Location as unknown as AnyConstructor,
   Agent: Agent as unknown as AnyConstructor,
   Creature: Creature as unknown as AnyConstructor,
+  Actor: Actor as unknown as AnyConstructor,
   Character: Character as unknown as AnyConstructor,
   Shadow: Shadow as unknown as AnyConstructor,
 };
@@ -856,7 +862,7 @@ export class StudioLogic extends ApiLogic {
     }
 
     try {
-      await TemplateApi.saveTemplate(path, classPath, input.data ?? {});
+      await TemplateApi.saveTemplate(path, { class: classPath, data: input.data ?? {} });
     } catch (err) {
       // The code-field gate (a non-wizard setting `class`) throws a
       // `TemplateError` at the `saveTemplate` chokepoint — a content-authoring

@@ -57,14 +57,14 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('forty-nine ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); ranching after farming (farmstead P9 — pasture is a field); the lanes and the haulier after transport (logistics); the textile chain after farming; the city after every trade whose premises it hosts (economic bootstrap D6)', () => {
+  it('fifty-one ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); ranching after farming (farmstead P9 — pasture is a field); the lanes and the haulier after transport (logistics); the textile chain after farming; the city after every trade whose premises it hosts (economic bootstrap D6)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
     // ⭐ 43 → 46: the grain chain adds `trade-milling`, `trade-baking`
     // and `hearts-delight`; 46 → 47: forestry adds `trade-forestry`;
     // 47 → 48: fishing adds `trade-fishing`; 48 → 50: TWO builds landed a
     // pack in the same window — `trade-shopkeeping` (trades-and-labor) and
     // `ground` (the system pack the column and the surface character moved
-    // OUT of two trades into).
+    // OUT of two trades into); 50 → 51: extraction adds `trade-quarrying`.
     //
     // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
     // git merged the two comment blocks as a CONFLICT while merging the
@@ -73,7 +73,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(50);
+    expect(ids).toHaveLength(51);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
@@ -94,6 +94,24 @@ describe('the shipped packs (real discovery, no install)', () => {
     for (const namer of ['terminus', 'rejection', 'trade-textiles', 'hearts-delight']) {
       expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('trade-shopkeeping'));
     }
+    // ⭐ The quarrying cut (extraction): the trade reads `/system/ground`'s
+    // column, and the venue's quarry rows name the trade's own classes. ⚠ It
+    // does NOT order after `trade-mining` — that is the claim: a QUARRY does
+    // not depend on a mine, which is the whole reason the column left the
+    // mining trade in the first place.
+    expect(ids.indexOf('trade-quarrying')).toBeGreaterThan(ids.indexOf('ground'));
+    expect(ids.indexOf('rejection')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
+    // ⭐ …and TERMINUS too, because the saltings' pans and the salt house's
+    // brine hearth are rows on the trade's classes. Salt has three sources in
+    // three different places and one trade behind all of them.
+    expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
+    // ⭐ …and WORLD-SEED, whose turf bank is a row on the trade's `Turbary`.
+    // ⚠ Three localities now name this one trade's classes, in three different
+    // landscapes, which is the second-instance claim holding: a quarry, a
+    // saltern and a peat moss are the same mechanism on different columns.
+    expect(ids.indexOf('world-seed')).toBeGreaterThan(
+      ids.indexOf('trade-quarrying'),
+    );
     // The metal chain: three capability packs, one venue over all three.
     // ⭐ `rejection` ships no `src/` at all — the exemplar claim is that a
     // second mining town is a locality pack over the same trades, and the

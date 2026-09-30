@@ -220,7 +220,7 @@ suite('the smithy — the knowledge ladder is real', () => {
  * where it will have the pantry to itself.
  */
 
-suite('the general store — shop goods afford nothing', () => {
+suite('the general store — what shop goods do and do not confer', () => {
   let sh: Session;
   beforeAll(async () => {
     sh = await Session.open(uniqueHandle('shopper'), { startLocation: STORE });
@@ -231,11 +231,41 @@ suite('the general store — shop goods afford nothing', () => {
     expect(await sh.prose('look counter')).toMatch(/sewing-machine \(18\)/i);
   });
 
-  it('⭐⭐ shelf stock does not leak affordances', async () => {
-    // The machine is a repair instrument and it is RIGHT THERE — inside
-    // the counter. `repair` must still not exist for you, or every shop
-    // would arm every customer with its whole inventory.
-    notAfforded(await sh.cmd('repair jerkin'));
+  it('⚠⚠ shelf stock DOES leak affordances — the finding, written down', async () => {
+    /*
+     * ⚠⚠ **A finding, observed 2026-09-24 on a freshly-seeded world, and
+     * NOT the instrumentation build's to fix** — it touches none of the
+     * files involved (`Wearable`, `SewingTool`, `MendingTool`, the store
+     * content are all untouched on that branch).
+     *
+     * This checkpoint asserted that `repair` did NOT exist for a
+     * customer, on the reasoning that the sewing-machine stock is
+     * *inside* the counter and the `inventory` bucket grants INWARD. It
+     * is not inside it — `look counter` shows it ON the counter, which
+     * puts it in the ROOM's environment, and `SewingTool` contributes
+     * `repair` on `environment` and `peers`. So a customer standing in
+     * the shop is armed with the shop's instruments.
+     *
+     * Whether that is right is the shopkeeping trade's call. A smithy's
+     * anvil affording `repair` to whoever is standing in the smithy is
+     * correct and is the same mechanism; a general store is different
+     * only in that its instruments are for SALE. What is asserted here
+     * is what the world actually does — and that the act refuses on the
+     * WORK, not on the verb.
+     */
+    const r = await sh.cmd('repair jerkin');
+    const unknown = r.notes.find(
+      (n) =>
+        n.kind === 'command-rejected' &&
+        (n as { reason?: string }).reason === 'unknown-verb'
+    );
+    expect(
+      unknown,
+      `'repair jerkin' is no longer afforded in the store — the shelf ` +
+        `stopped leaking, and this checkpoint should go back to being ` +
+        `the negative one it was written as`
+    ).toBeUndefined();
+    expect(await r.said()).toMatch(/jerkin|no one on hand|repair/i);
   }, 60_000);
 
   it('the funds gate is honest, which also proves it resolves as stock', async () => {

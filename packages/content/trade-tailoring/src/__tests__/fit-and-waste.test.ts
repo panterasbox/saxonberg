@@ -51,7 +51,7 @@ describe("⭐⭐ the measurement book", () => {
       girthIndex: 6.6,
     });
     expect(book.getEntries()).toHaveLength(1);
-    expect(book.entryFor("s1")!.girthIndex).toBe(6.6);
+    expect(book.figureFor("s1")!.girthIndex).toBe(6.6);
   });
 
   it("⭐⭐ staleness is BODY-CHANGE — and the book carries NO clock", () => {
@@ -72,7 +72,7 @@ describe("⭐⭐ the measurement book", () => {
     expect(book.stalenessFor("nobody", 6.0)).toBeNull();
 
     // ⚠ Structural: no field on an entry is a time.
-    const entry = book.entryFor("s1")!;
+    const entry = book.figureFor("s1")!;
     expect(Object.keys(entry).sort()).toEqual([
       "bodyPlan",
       "girthIndex",
@@ -287,7 +287,15 @@ describe("⚠⚠ the instrument affords the verb — and this one did not", () =
       ...(MeasureBook.commandContributions.environment ?? []),
       ...(MeasureBook.commandContributions.peers ?? []),
     ];
-    expect(contributed).toContain("platform/cmd/perception/measure.yaml");
+    // ⚠⚠ **Inverted deliberately, and the history is the point.** The
+    // book used to contribute the whole `measure` view, because that was
+    // the only way to make `measure figure` exist at all — and it meant
+    // the VERB vanished when no book was near, which can only answer
+    // *unknown command*. The verb is the Avatar's now and the `figure`
+    // channel names `fitting`, so an empty counter says *"there is no
+    // book here to write it in"*, which is the sentence that was wanted
+    // all along.
+    expect(contributed).not.toContain("platform/cmd/perception/measure.yaml");
   });
 
   it("a measure book still records what it is for", () => {

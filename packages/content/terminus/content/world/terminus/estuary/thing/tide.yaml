@@ -1,0 +1,21 @@
+# ⭐ The tide — **where the brine comes from, and it is not a faucet.**
+#
+# An `UnboundedReceptacle` of salt water standing at the estuary mouth: you
+# `fill` a pan from it. ⚠ Unbounded because the sea IS unbounded, which is the
+# one place in this game where that is honest rather than a shortcut — and it
+# is why the pan's constraint is the **weather**, not the supply.
+#
+# ⚠ It is a fixture of the place (`props:` on the mouth), not a thing anybody
+# dropped, and it is deliberately immovable in the only way that matters: its
+# mass.
+class: /platform/thing/WaterFixture
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: tide
+  keywords: [tide, sea, water, channel, saltwater, "salt water", brine]
+  register: definite
+  longDescription: |
+    Grey water moving past the withies, going out. It smells of mud and iodine and it is not fresh: dip a hand and lick it and you have your answer.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/salt-water
+  mass: 100000

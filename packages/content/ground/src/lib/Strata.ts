@@ -73,6 +73,31 @@ export interface Strata {
   getGroundSeed(): Promise<number>;
   /** Everything the ground says about the cell this room occupies. */
   sampleHere(): Promise<GroundSample | null>;
+  /**
+   * ⭐⭐ **Give me a lump of that.** Mint a piece of the rock in front of
+   * you, stamped by the `sample` verb with where it was taken.
+   *
+   * ⚠⚠ **This is NOT {@link sampleHere}, and the two are one dot
+   * apart.** `sampleHere()` answers *what does the deposit say about
+   * this cell* — a `GroundSample`, a number, a DATA READING, and the
+   * thing `measure strike` already bands. `sampleFace()` answers *give
+   * me a lump of that* and returns **Stuff**. Two meanings of the word
+   * on one host, and neither renames: `sampleHere` is a `Reading`'s
+   * truth source and never a verb; `sampleFace` is the verb's and never
+   * a reading.
+   *
+   * `null` when this ground has nothing to take — which is the honest
+   * answer, and what the verb turns into *"there is nothing here worth
+   * taking a piece of"*.
+   *
+   * ⭐ It lives on the GROUND rather than on mining's `WorkingMixin`
+   * because taking a piece of the rock in front of you is a read of
+   * where you stand, not an act of the mining trade — *reads go to the
+   * ground, cutting belongs to the trade that cuts*. A quarry, a cellar,
+   * a well and a cave can be sampled without depending on a mine, which
+   * is the entire reason this pack exists.
+   */
+  sampleFace(actor: Stuff, direction: string): Promise<Stuff | null>;
 }
 
 /**
@@ -151,6 +176,24 @@ export function StrataMixin<TBase extends MixinConstructor<Stuff & Container>>(
       const d = await this.getDeposit();
       if (!d) return null;
       return d.sampleAt(this.metresOf(this.getCell()), await this.getGroundSeed());
+    }
+
+    /**
+     * See {@link Strata.sampleFace}. ⚠ The base yields NOTHING: plain
+     * ground is not a face, and a room that can be cut says so by
+     * overriding this. Mining's `WorkingMixin` is the first override —
+     * it has faces, an ore row and a grade, none of which the ground
+     * substrate knows about.
+     *
+     * ⭐ Returning `null` rather than throwing is what lets `sample` be
+     * one verb for the whole world: `sample the north face` in a
+     * drawing-room is a refusal, not an error.
+     */
+    public async sampleFace(
+      _actor: Stuff,
+      _direction: string,
+    ): Promise<Stuff | null> {
+      return null;
     }
   }
   return StrataMixin as unknown as TBase & MixinCtor<Strata>;

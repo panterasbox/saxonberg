@@ -6,8 +6,17 @@
 # different transaction from a counter with a par level, and the
 # difference is the point: you can run him out of wheat.
 class: /platform/agent/Cast
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/agent/costume/student
 data:
+  # ⭐ What this person has on comes from the parent row
+  # (`/stuff/agent/costume/student`). Until the envelope build no
+  # NPC row could author clothing at all — every authored person in
+  # the realm was naked, invisible only because every interior was
+  # 21 °C by decree.
+  # ⭐ The base three come from the parent; this row adds what is
+  # different about THIS person.
+  costume:
+    - /stuff/thing/clothes/field-jacket
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
   name: Odell Quist

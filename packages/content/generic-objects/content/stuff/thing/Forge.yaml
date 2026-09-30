@@ -12,7 +12,7 @@ data:
     A squat stone forge with a deep charcoal bed and a great leather bellows
     at its side. Cold, it is just soot and iron fittings; lit and pumped, it
     roars white-hot.
-  # Furnace config — charcoal base heat + a bellows multiplier to smelting heat.
+  # Burner config — charcoal base heat + a bellows multiplier to smelting heat.
   burnTemperatureK: 1300
   bellowsMultiplier: 1.6
   fuelBurnRatePerMin: 0.3

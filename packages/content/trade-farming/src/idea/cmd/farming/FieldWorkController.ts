@@ -1,78 +1,46 @@
 /**
- * FieldWorkController — the shared base for the reclamation acts
- * (`grub`, `ditch`, `lime`).
+ * FieldWorkController — what `plough` and `mow` still need that the
+ * kernel's ground base does not give them.
  *
- * It holds exactly what they share: **standing in a field**, resolving
- * that field's seeded character and the improvement bill it implies, and
- * **engaging the actor's hands over game time** so the work lands at
- * completion and a barge-in leaves the ground as it was.
+ * ⭐⭐ **The body of this file left for the kernel.** `grub`, `ditch` and
+ * `lime` act on **ground** — you ditch a road, a yard and a quarry — so
+ * the extraction build promoted `ImprovableMixin` and the three acts to
+ * `platform/idea/cmd/ground/`, where a turbary reaches them with no
+ * farming dependency at all. What stays here is exactly what is *not*
+ * about improvement: ploughing and mowing want a **field** — a host that
+ * answers `getGroundSpot` and carries a sward — and they want its resolved
+ * ground SAMPLE rather than only its bill.
  *
- * ⚠⚠ **None of these acts carries a deed gate**, the same decision the
- * mine's four labour acts made and for the same reason: they are LABOUR,
- * not craft. `advancement`'s ruling is that a Discipline changes what you
- * LEARN, never what the ground GIVES. A man with no transcript grubs
- * exactly as much thorn out of a headland as a master does; what the
- * master has is knowing which field was worth grubbing.
- *
- * ⭐ **What differs between two fields is the GROUND, not the actor**
- * (D55). Each act banks one unit of labour against a job whose
- * requirement is `GroundCharacter.improvementCost` — so stony ground
- * takes more grubbing, wet ground more ditching, sour ground more lime,
- * and *two plots of different character demand measurably different work
- * to reach the same state.*
+ * ⚠ So this is a thin subclass by design, and the thinness is the point:
+ * if it grows a second concern, that concern probably belongs one layer
+ * down beside the acts every piece of ground shares.
  */
 
-import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
-import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { AbortReason } from '@saxonberg/types';
+import {
+  GroundWorkController,
+  GROUND_TOPIC,
+  AGRICULTURE,
+  LABOUR_PER_ACT,
+} from '@saxonberg/server/mud/platform/idea/cmd/ground/GroundWorkController';
+import type { CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { ImprovementCost } from '@saxonberg/server/mud/lib/ground/Improvable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { Mml } from '@saxonberg/server/mud/api/mml';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
-import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
-import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
-import GroundCharacter, { type GroundSample, type ImprovementCost } from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import GroundCharacter, { type GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
 import type Field from '../../../location/Field';
 
-/** The topic every field act narrates on. */
-export const FIELD_TOPIC = 'act.deed';
-
-/** The reserve labour is paid out of. */
-
-/** The Discipline field labour credits. */
-export const AGRICULTURE = 'agriculture';
-
 /**
- * Labour banked by one act, in the units `improvementCost` speaks.
+ * ⭐ Re-exported so farming's own acts keep one import.
  *
- * ⭐ One unit per act is the whole calibration, and it is deliberately
- * not a dial: the *number of acts* a field takes is then read straight
- * off its improvement bill, which is a number a player can see in
- * `analyze soil`. Kind ground is two or three acts a job; the worst
- * ground in the game is a dozen.
+ * ⚠ `FIELD_TOPIC` is the kernel's `GROUND_TOPIC` under its old name — the
+ * same string, kept because `plough` and `mow` narrate on it and renaming
+ * them is churn with no reader.
  */
-export const LABOUR_PER_ACT = 1;
-
-type Composed = ReturnType<typeof Mml.compose>;
-
-export interface FieldStepOptions {
-  durationMs: number;
-  beginSelf: Composed;
-  beginPeers?: Composed;
-  /**
-   * Endurance the act costs a FRESH body, in percentage points — the
-   * felt cost, kept as the authored figure because a field act's
-   * duration is an abstraction (four seconds to lime a field). The base
-   * converts it to metabolic watts through the body
-   * (`wattsForFeltCost`), so the plough still costs what it cost and a
-   * conditioned body feels it as less.
-   */
-  cost: number;
-  onComplete: () => void;
-  onAbort?: (reason: AbortReason) => void;
-}
+export const FIELD_TOPIC = GROUND_TOPIC;
+export { AGRICULTURE, LABOUR_PER_ACT };
+export type { GroundStepOptions as FieldStepOptions } from '@saxonberg/server/mud/platform/idea/cmd/ground/GroundWorkController';
 
 /** A field, its resolved character, and the bill that character implies. */
 export interface FieldReading {
@@ -83,15 +51,20 @@ export interface FieldReading {
 
 export abstract class FieldWorkController<
   M extends CommandModel = CommandModel,
-> extends CommandController<M> {
+> extends GroundWorkController<M> {
   /**
    * The field the actor is standing in, with its ground resolved — or
    * `null` when they are not standing in one.
    *
-   * ⭐ Narrowed by the SHAPE the room answers rather than by a mixin
-   * name, because a hand-authored field (a venue that composed soil onto
-   * a room of its own) must behave identically to a plotted one. Nothing
-   * in these acts consults how the ground came to exist.
+   * ⭐ Narrowed by the SHAPE the room answers rather than by a mixin name,
+   * because a hand-authored field (a venue that composed soil onto a room
+   * of its own) must behave identically to a plotted one. Nothing in these
+   * acts consults how the ground came to exist.
+   *
+   * ⚠ Distinct from the kernel's `groundOf`, and both are needed: that one
+   * answers *ground that can be improved, and its bill*; this one answers
+   * *a field, and its SAMPLE* — because the plough reads the texture and
+   * the scythe reads the sward, neither of which is a bill.
    */
   protected async fieldOf(giver: Stuff): Promise<FieldReading | null> {
     const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
@@ -116,91 +89,5 @@ export abstract class FieldWorkController<
         getZone?(): { lookupField<T>(f: string): Promise<T | null> } | null;
       }).getZone?.(),
     );
-  }
-
-  /** Decline diegetically, and file the structured reason. */
-  protected decline(context: CommandContext, prose: Composed, reason: string): void {
-    MessageApi.scene(context.commandGiver).topic(FIELD_TOPIC).toSelf(prose).send();
-    context.note({ kind: 'controller-rejected', reason, detail: reason });
-  }
-
-  /**
-   * ⭐ The bound tool, if it can do this job.
-   *
-   * The view declares the instrument with an MQL default asking
-   * `[capability.<x>]`, so the BINDER resolves it — this only confirms
-   * the thing it handed back offers what this particular act needs.
-   * It used to walk the giver's contents itself, which meant no player
-   * could ever say WHICH spade (`lint:instrument-args`).
-   */
-  protected toolOf(bound: Stuff | null | undefined, capability: string): Stuff | null {
-    if (!bound || !MixinApi.isTool(bound)) return null;
-    return bound.hasCapability(capability) ? bound : null;
-  }
-
-  /**
-   * Run the act as an engaged activity on the giver's `hands` slot, so
-   * the effect lands **at completion** and a barge-in leaves the ground
-   * as it was. Spends the endurance up front — the work was done whether
-   * or not anything came of it.
-   *
-   * The mining base's `engageAct`, re-implemented rather than shared: a
-   * pack does not reach into another pack, and what the two do not share
-   * is the whole of what they are about.
-   */
-  protected engageAct(context: CommandContext, opts: FieldStepOptions): void {
-    const giver = context.commandGiver;
-    const durationS = opts.durationMs / 1000;
-    let effortW: number | undefined;
-    if (MixinApi.isExerting(giver)) {
-      effortW = giver.wattsForFeltCost(opts.cost, durationS);
-      if (!giver.canExert(effortW, durationS)) {
-        this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
-        return;
-      }
-    }
-    if (!MixinApi.isEngaged(giver)) {
-      opts.onComplete();
-      return;
-    }
-    const step = new ManualBuildStep({
-      actor: giver,
-      slots: ['hands'],
-      durationMs: opts.durationMs,
-      effortW,
-      onComplete: opts.onComplete,
-      onAbort: opts.onAbort,
-    });
-    const result = SchedulerApi.start(step);
-    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
-      context.note(result.note);
-      const scene = MessageApi.scene(giver).topic(FIELD_TOPIC).toSelf(opts.beginSelf);
-      if (opts.beginPeers) scene.toPeers(opts.beginPeers);
-      scene.send();
-      return;
-    }
-    if (result.ok && result.status === 'completed-sync') return;
-    if (!result.ok && result.reason === 'engagement-conflict') {
-      this.decline(context, Mml.compose`Your hands are already busy.`, 'engagement-conflict');
-      return;
-    }
-    this.decline(context, Mml.compose`You can't manage that just now.`, 'start-rejected');
-  }
-
-  /**
-   * Credit the labour.
-   *
-   * ⚠ Difficulty is read off the GROUND at the moment of the act, not
-   * off a counter: finishing a hard field is a hard check and turning
-   * over kind ground is a trivial one, which is the estimator's own
-   * anti-grind property doing the work rather than a bespoke guard.
-   */
-  protected async credit(giver: Stuff, required: number): Promise<void> {
-    if (!MixinApi.isAdvancing(giver)) return;
-    await giver.creditDeed({
-      discipline: AGRICULTURE,
-      difficulty: required >= 4 ? 'hard' : required >= 2 ? 'standard' : 'trivial',
-      outcome: 'success',
-    });
   }
 }

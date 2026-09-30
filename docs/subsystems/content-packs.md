@@ -342,6 +342,36 @@ code trust** (`DocumentLogic`); a cosmetic edit goes live through
 
 ### The `sourcePack` stamp
 
+> ⭐⭐⭐ **The stamp is also the line between a PACK and a REALM, and the
+> reconcile already enforces it.** `stampedQuery` narrows every reconcile
+> to rows carrying that pack's own id, so the content tree holds **two
+> populations**:
+>
+> | | `sourcePack` | what it is | who touches it |
+> |---|---|---|---|
+> | **packaged** | present | **somebody's creative output** — distributed, versioned, reinstallable | its pack's installer |
+> | **local** | absent | **this realm's own history** — minted by play | no installer, ever |
+>
+> **A pack ships creative output, never state.** Content minted by play —
+> a household, a chain of title, a grave — is unstamped by construction,
+> and a reinstall cannot touch it. ⭐ That is what makes generated content
+> safe as *ordinary* content: it is a template row with the full
+> toolchain (CMS, MQL, `git`, the parcel's access rules) and no installer
+> has any claim on it.
+>
+> ⚠ **Two consequences the boundary needs and does not yet have** —
+> → [pack-boundary-slate](../slates/builds/pack-boundary-slate.md):
+> **(a)** a pack must not ship a row naming a **realm-local identity**
+> (it would point at an avatar the receiving database does not have —
+> broken by construction, so a lint rather than a policy, and the same
+> test is the spec for packaging an *authored* neighbourhood properly);
+> **(b)** ⚠⚠ **vanish-with-dependents** — a pack ships a plat, the realm
+> writes unstamped households into its lots, and `onVanish: delete` reaps
+> the plat while the households survive their own street disappearing.
+> **A pack may retract what it shipped; it may not retract the ground
+> under what the realm built on it.**
+
+
 Each installed row carries a **top-level `sourcePack` field** (a `content`
 template, a `name_banks` bank — every stamped backend). On a template row
 it is a sibling of `data` (`{path, class, hydratorClass, data, sourcePack}`).
@@ -391,7 +421,7 @@ collection so no contribution kind can ever reach it (the
   boots its rows and still has maintainers.
 
 **Canonical hashing.** The preimage is the rendered content only —
-`{class, hydratorClass, data}` for the template kind, the bank body for a
+`{class, extends, hydratorClass, data}` for the template kind, the bank body for a
 bank, `{data}` for a document, `{front, body}` for a wiki page, the
 rendered subject shape for a subject — key-sorted, cycle-safe,
 `undefined`-normalized (`JSON.stringify`
@@ -415,7 +445,13 @@ baseline for that key (slate A10.4):
 
 Plus: a **vanished file** deletes a clean row (DB == baseline) and
 conflicts (`deleted-vs-edited`) on an edited one — an operator-edited row
-is never silently deleted. **Pinned** keys (`record.pins`) are skipped
+is never silently deleted. ⭐ It also conflicts (`deleted-vs-extended`,
+with the dependents named in the conflict's `detail`) when another row
+still **`extends`** it: a parent may not be reaped out from under its
+children. The delete hook refuses it at the persistence chokepoint
+anyway; planning it as a conflict instead is the three-way model's
+*never block* rule — the author gets a diagnostic, the row stays, and
+the boot finishes. **Pinned** keys (`record.pins`) are skipped
 before any comparison and counted; every reconcile result, boot line,
 and `pack status` reports `N rows pinned, skipped` — pins are loud,
 every time. A stamped row with **no baseline** (the requires phase's
@@ -696,6 +732,15 @@ pack's). Keyed on **resolution origin, not path prefix**:
    `/world/<x>` claim (`saxonberg-lounge`, `hearthworks`) passes;
 2. a class that resolves into another pack's `src/` requires that pack
    in the importer's derived `dependsOn`, else fails naming both;
+2b. ⭐ the same rule for **`extends:`** — `assertParentsResolve`: every
+   parent row must be one this pack ships, or one shipped by a pack it
+   `dependsOn`, else the boot fails naming the parent, its pack and the
+   missing `package.json` line. So a parent in a pack filtered out by
+   `SAXONBERG_PACKS` is a **thrown error naming it**, not a dangling
+   link that surfaces as a mystery at the first clone. Packs reconcile
+   in topological order, so a parent row is in the DB before its
+   children's rows are written; a pack row may not extend an unshipped
+   DB row.
 3. a pack with `src/` records `rung: 'capability'` (else `'data'`), and
    after the install every `src/` class no row of any installed pack
    names is **reported** (console + a diagnostic) — dead code in a pack
@@ -1166,14 +1211,14 @@ defined who reviews packs would review itself.
 | **trade-winemaking** · **trade-brewing** (DE-STUBBED — fermentation W4/W5/W8) | platform, base-library, distribution | default | `/trade/<x>` → group `<x>` (PM-owned): the WORKING venues over the kernel ferment — winemaking: the 285 K winery (press, vats, conditioning bottles, the cellar book), crush recipes + pomace, wine/must/vinegar/lees materials, the red/white/sparkling-conditioning/wine-culture profiles, the vermouth fortifications (bought spirit — the B2B); brewing: the 288 K brewhouse + the 279 K cold store (the lager line), mash recipes + spent grain, the ale/lager/cask-conditioning + culture profiles, the cask as a Vat-family conditioning vessel (real ale). Floor faucets RETIRED (the switchover): vessel faucets (`wine-bottle`, `keg`) supply empties and the `cellars` beats make every drop; serving recipes stay. | `<x>` | the floor(s) + outfit (producer) |
 | **trade-bottling** (STUB trade — libations) | platform, base-library, distribution | default | `/trade/bottling` → group `bottling` (PM-owned): everything downstream of production and nothing of production — the sodas' materials (`carbonated`; `ice` = frozen water with `density`/`meltingPoint`/`latentHeatOfFusion`), vessel presets (`can`, `mixer-bottle`, `ice-bag`), the floor product at target, the outfit trio on `consigns` → the distribution counter, `soft-drink`. Forced carbonation is its future de-stub (D11). | `bottling` | the floor + outfit (producer) |
 | **trade-farming** (libations) | platform, base-library, distribution | default | `/trade/farming` → group `farming` (PM-owned). ⭐ **A trade is a PROCESS, and produce is one of farming's OUTPUTS** — so this pack owns BOTH halves, as trade-distilling owns the still and the bottle, and it is **not** a stub. **Production:** the growing apparatus the husbandry/smallholding substrate drives — `thing/{pot,bed,seed,plant,crop}/` (drained from generic-objects; a pot is horticulture's vessel the way a keg is brewing's, and a dorm owning one no more makes pots household content than the bar owning a keg makes kegs hospitality's). **Output:** ten food materials tagged by category (the eight bar fruit + grape and juniper, farming A5), each a graded `Provision`, the `crate`/`basket` presets over `/platform/thing/Crate` (the fruit are `Provision` rows the crate props), a crate of each at target in `farm-stock`, and the `farm-outfit` + `farm-hand` — ⚠ running the kernel's `consigns` brain, NOT the pack's own `farms` brain: `src/behavior/farms.ts` (`/trade/farming/behavior/farms`, the first pack brain — tends, picks, consigns) exists and is tested, but **no content row names it** (verified 2026-09 by the slate-compaction pass; the automation ladder is unwired, not unbuilt). The **domesticated species rows ship here too** (the trade ships what it domesticates — eleven plantae rows under `content/stuff/idea/species/`). Horticulture is farming too: the ornamentals (peace lily, snake plant) are grown here rather than filed under food. No serving recipe — produce is an input (`press` is hospitality's) | `farming` | the farm + outfit (producer) |
-| **trade-hospitality** (CAPABILITY — libations) | platform, base-library, generic-objects, the five stubs, cooking | default | `/trade/hospitality` → group `hospitality` (PM-owned): `src/` ships `IceBin` (an insulated Thermos of ice) and `Tap` (a Surfaced fixture that is a `tap` tool); the bar tools (muddler, bar-spoon, strainer, juicer), the stations (tap, ice-bin, water-tap, basin, glass-rack, well, house-tablet), the nine pool glasses over `CraftVessel` (coupe = cocktail-glass renamed) + the juice bottle, the four house-made juices; 21 cocktails + coffee + four presses; the `bar` and `cellar` bundles; `archetypes/hospitality.yaml`; `src/idea/cmd/crafting/` ships the bar's own steps `muddle`/`strain`/`garnish`/`mix`/`serve` (the shaker/mixing-glass/muddler rows author the verbs they confer); `menu.test.ts` materializes a venue from the archetype and orders all 24 lines | `hospitality` | — |
+| **trade-hospitality** (CAPABILITY — libations) | platform, base-library, generic-objects, the five stubs, cooking | default | `/trade/hospitality` → group `hospitality` (PM-owned): `src/` ships `IceBin` (an insulated Thermos of ice) and `Tap` (a `Placing` fixture that is a `tap` tool); the bar tools (muddler, bar-spoon, strainer, juicer), the stations (tap, ice-bin, water-tap, basin, glass-rack, well, house-tablet), the nine pool glasses over `CraftVessel` (coupe = cocktail-glass renamed) + the juice bottle, the four house-made juices; 21 cocktails + coffee + four presses; the `bar` and `cellar` bundles; `archetypes/hospitality.yaml`; `src/idea/cmd/crafting/` ships the bar's own steps `muddle`/`strain`/`garnish`/`mix`/`serve` (the shaker/mixing-glass/muddler rows author the verbs they confer); `menu.test.ts` materializes a venue from the archetype and orders all 24 lines | `hospitality` | — |
 | **expression** | platform | group `soul` | `/expression` → group `soul` | — | — |
 | **wiki-starter** | platform | default | — (rides `/wiki`) | — | — |
 | **corpo-{aevex,goodkin,vionne}** | platform | organization `/corpo/<key>` | `/corpo/<key>` (holder = maintainers) | — | `/corpo/<key>` (producer) |
 | **corpo-veshko** (libations: the one corpo that MAKES — in the TRADE pack) | platform | organization `/corpo/veshko` | `/corpo/veshko` only — capital + the mark (Volk's Brand row, the chart); Veshko's yard is `trade-distilling`'s `location/veshko-yard/` locality, owned via `parentOrganization` | — | `/corpo/veshko` (producer) |
 | **corpo-hollis** (libations: PRIVATE-LABELS Veshko's liquid — in the TRADE pack) | platform | organization `/corpo/hollis` | `/corpo/hollis` only — capital + the mark (Old Hollis, Hollis Cane; the chart); the bottling floor is `trade-distilling`'s flat `hollis-*` rows, owned via `parentOrganization` | — | `/corpo/hollis` (producer) |
 | **newbie-wilds** | platform | default | `/world/newbie-wilds` → group `newbie-wilds` | `newbie-wilds` | — |
-| **saxonberg-lounge** (the lounge, whole, since wave 4b; **stays a DATA pack** — its classes are parked kernel classes under `mud/world/lounge/`) | platform, corpo-goodkin, corpo-vionne, corpo-aevex, corpo-veshko, distribution | group `lounge` | `/stuff/idea/lounge`, `/world/lounge` → group `lounge`: the venue rows under `/world/lounge/{location,thing,idea,agent}` + the FolderZone, the library root, the three `msh`, the landing setting. Libations: the `Bar` populates **no bottle** (the four `*-bottle` rows deleted) — it lists the hospitality `bar` bundle's fixtures + the house tablet (`principal: /world/lounge/idea/business`); the sports **booth** with a `Screen` + `Remote`; `business.yaml` gains the `keeper` position (`purchases: true`) and 45 `parLines`; Mara runs `restocks`; Dave's dialogue appoints the keeper; the menu offers 26 lines | `lounge` | `/world/lounge/thing/terminal` (producer — the TPA network's eager root) |
+| **saxonberg-lounge** (the lounge, whole, since wave 4b; **stays a DATA pack** — its classes are parked kernel classes under `mud/world/lounge/`) | platform, corpo-goodkin, corpo-vionne, corpo-aevex, corpo-veshko, distribution | group `lounge` | `/stuff/idea/lounge`, `/world/lounge` → group `lounge`: the venue rows under `/world/lounge/{location,thing,idea,agent}` + the FolderZone, the library root, the three `msh`, the landing setting. Libations: the `Bar` populates **no bottle** (the four `*-bottle` rows deleted) — it lists the hospitality `bar` bundle's fixtures + the house tablet (`principal: /world/lounge/idea/business`); the sports **booth**, which ships no screen row (the `Screen`/`Remote` classes were retired unrowed — see [display.md](./display.md)); `business.yaml` gains the `keeper` position (`purchases: true`) and 45 `parLines`; Mara runs `restocks`; Dave's dialogue appoints the keeper; the menu offers 26 lines | `lounge` | `/world/lounge/thing/terminal` (producer — the TPA network's eager root) |
 | **hearthworks** (a VENUE pack, wave 4b) | platform, trade-smithing, trade-cooking, corpo-goodkin | default | `/world/terminus/hearthworks` → group `hearthworks` (PM-owned): the `/world/terminus/hearthworks` CartesianZone + 12 rows under branch subdirs — the four rooms + the forge floor + `offstage`, the business, Berta and Odo, the two menus, the pantry; every station and recipe a `props:` reference to a trade's or the commons' row | `hearthworks` | — |
 | **world-seed** (TRANSITIONAL remainder — moor, practicum, substation, common) | platform, saxonberg-lounge, corpo-goodkin, corpo-vionne | default | what has not yet been homed in its own pack: moor, practicum, substation, the common TPA travel card, the commons `stuff/` reference rows. Declares nothing — rides the platform's `/world` + `/stuff` claims | — | — |
 | **terminus** (the CORE CITY locality, residences D18) | platform, saxonberg-lounge, residence, trade-farming, corpo-goodkin | default | `/world/terminus` homed whole out of world-seed: University Avenue, the terminal, Counting-House Row, the general store, the Registry, Mayfield Row + the city budget, the farmers market — content and parked `src/` together; municipal parcels + land uses | `terminus`, `mayfield-holdings` | Seznick House's building (producer) |
@@ -1186,7 +1231,7 @@ defined who reviews packs would review itself.
 | **tpa** (CAPABILITY — the teleport network's WORKS, TPA reform) | platform, arcana | default | `/system/tpa` → group `tpa` (PM-owned): `src/lib/` ships `FastTravelMixin` (the node — routes, board, timetable) and the pack's paths; `src/thing/` the `TpaTerminal` that composes it over arcana's `ManaPoweredMixin`, plus the `TravelCard`; `src/idea/cmd/movement/` the `teleport` + `register` controllers and `src/idea/cmd/tpa/` the card clerk's; rows: the three views + controller templates, `settings/fasttravel.yaml`, the travel card, and the **self-governing Teleport Authority** (`{kind: committee, parcel: /system/tpa}` — it names no realm, which is what lets it ship here). ⭐ The classes are the MECHANISM and are the pack's; a **terminal** is the realm's, so every gate keeps its `/world/**` row in the locality it stands in | `tpa` | — |
 | **water** (CAPABILITY — the watershed's WORKS, D1–D27) | platform | default | `/system/water` → group `water` (PM-owned): `src/` ships `Watercourse` + `WatercourseCatalogue` (topology authored, direction **derived**, compiled to a reachability set), `WaterRightRegistry` (prior appropriation recorded, riparian derived over the same records) and the three works — `Conduit` (the conveyance ladder, a sewer being the same object reversed), `ControlStructure`, `StorageNode`; ⭐ the catalogue finds the works by the **content rows naming them** (`WATERWORK_CLASSES`), not by walking the world and not by a mixin they compose — two composers in one pack do not earn an interface; rows: the two singletons, `settings/water.yaml`, and `fouled-water` in the commons. ⭐ The classes are the MECHANISM and are the pack's; a **river** is the realm's, so every reach ships at `/stuff/idea/Watercourse/<name>` in world-seed | `water` | — |
 
-Thirty-two rows over **thirty-nine** packs (`arcane-descriptors` folded into
+Thirty-three rows over **fifty-one** packs (`arcane-descriptors` folded into
 `arcana` — the pack that ships the class ships the bank; libations added trade-distilling,
 trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
 hospitality a capability pack; the TPA reform added **tpa**, the first pack
@@ -1208,7 +1253,23 @@ trade.* ⚠ The counter's MECHANISM stayed behind as kernel substrate
 credit ladder and four controllers read it and a kernel module may never
 import a pack — so the pack ships the instanceable twin, and
 `lint:counters` holds the kernel at four counters with each named and
-reasoned. See [retail.md](./retail.md) § The kernel/pack line).
+reasoned. See [retail.md](./retail.md) § The kernel/pack line); extraction
+added **trade-quarrying** — ⭐ the pack that ships **no verbs and no
+controllers at all**, because `dig` and `split` are the platform's and the
+GROUND answers them over the `Workable` protocol. Its `src/` is one
+pack-owned mixin (`lib/Working.ts`), two LOCATION classes (`OpenWorking`,
+`Turbary`) and three things (`Block`, `Lump`, `Turf`); three localities on
+three different geological columns — a quarry, a saltern and a peat moss —
+name those classes with no code of their own, which is the second-instance
+claim holding. See [ground.md](./ground.md) § The worked-act protocol.
+
+⚠ **The roster is a partial one by design** (rows < packs) and the gap has
+widened: `trade-mining`, `trade-fuel`, `trade-smelting`, `rejection`,
+`ground`, `trade-forestry`, `trade-quarrying`, `trade-ranching`,
+`trade-milling`, `trade-baking`, `trade-fishing` and the stub trades all
+ship without a row here. Filling it in is its own pass, not a sweep's — but
+the **count** above is now checked against `ls packages/content/`, so it is
+the one number in this section that cannot drift silently.
 **A stub trade** ships everything
 downstream of production and nothing of production — materials, vessel
 presets, brands, the floor product on an authored consignor, the serving

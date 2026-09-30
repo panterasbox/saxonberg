@@ -21,7 +21,15 @@ data:
   description: >-
     A white, thirsty powder that cakes where it touches damp. It takes the
     water out of whatever it lands on, and skin is mostly water.
-  tags: [mineral, caustic, alkali]
+  # ⭐⭐ `liming` added by the extraction build, and it REVERSES a line in the
+  # requirements. They forbade the tag to stop the kiln becoming a worse marl.
+  # In the world quicklime IS agricultural lime — more aggressive than marl,
+  # faster, and it costs fuel — and `soil.md` already shipped the seam for it
+  # (`lime` reads this tag *"so a kiln's output works the day somebody ships
+  # one"*). So the pair becomes a CHOICE rather than a rule: marl is slow and
+  # needs no fire, quicklime is fast and burnt, and marl survives as the
+  # fuel-free path.
+  tags: [mineral, caustic, alkali, liming]
   corrosiveTo: [organic, tissue, leather, textile]
   density: 3340
   thermalConductivity: 0.5

@@ -17,6 +17,12 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   shortDescription: bedroom
   keywords: [bedroom, bed, room]
   register: indefinite
@@ -37,3 +43,8 @@ data:
   props:
     - /stuff/thing/fixture/bed
     - /platform/thing/sandbox/wardrobe
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A window with a catch that sticks, looking out at whatever this dwelling looks out at.

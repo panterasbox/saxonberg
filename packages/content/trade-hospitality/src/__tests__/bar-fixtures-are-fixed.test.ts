@@ -20,7 +20,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import Surface from '@saxonberg/server/mud/platform/thing/Surface';
+import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
 import WaterFixture from '@saxonberg/server/mud/platform/thing/WaterFixture';
 import Chair from '@saxonberg/server/mud/platform/thing/Chair';
 import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
@@ -37,7 +37,7 @@ import Tap from '../thing/Tap';
 describe('the bar is furniture, not stock', () => {
   const cases: Array<[string, () => unknown]> = [
     ['the back-bar / the well', () => new BarStation()],
-    ['a counter / shelf / workbench', () => new Surface()],
+    ['a counter / shelf / workbench', () => new Fitting()],
     ['the wash basin / the water tap', () => new WaterFixture()],
     ['a bar stool / bed / tub / armchair', () => new Chair()],
     ['the glass rack', () => new GlassRack()],
@@ -58,10 +58,10 @@ describe('the bar is furniture, not stock', () => {
   // The other half: what SITS on the furniture is still yours to take.
   // A rule that froze the glasses too would be worse than the bug.
   it('the things ON the furniture are still takeable', async () => {
-    const { default: ToolItem } = await import(
-      '@saxonberg/server/mud/platform/thing/ToolItem'
+    const { default: Tool } = await import(
+      '@saxonberg/server/mud/platform/thing/Tool'
     );
-    const tool = await StuffApi.create(() => new ToolItem());
+    const tool = await StuffApi.create(() => new Tool());
     expect(
       (tool as unknown as { isFixedInPlace(): boolean }).isFixedInPlace(),
     ).toBe(false);

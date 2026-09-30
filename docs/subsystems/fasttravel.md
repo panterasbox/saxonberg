@@ -114,7 +114,7 @@ around two bases — the Thing/Idea symmetry of the three-base capability
 model (see [augmentation.md](./augmentation.md)):
 
 - a carryable **`TravelCard`** `Thing` (`/system/tpa/thing/TravelCard` =
-  `CredentialWalletMixin(Thing)`) — a bearer **instrument**, never a
+  `CredentialWalletMixin(Good)`) — a bearer **instrument**, never a
   clearance store (see **Identity-bound clearance** below);
 - the born-with **`CredentialWalletUpdate`**
   (`CredentialWalletMixin(AetherHostedMixin(Idea))`) — the one wallet app

@@ -47,6 +47,6 @@ args:
     type: objects
     required: false
     prepositions: [on, at]
-    default: "reachable:[mixin.SurfacedMixin and mixin.ContaminableMixin]"
+    default: "reachable:[mixin.PlacingMixin and mixin.ContaminableMixin]"
     scope: ["reachable"]
-    requires: [SurfacedMixin]
+    requires: [PlacingMixin]

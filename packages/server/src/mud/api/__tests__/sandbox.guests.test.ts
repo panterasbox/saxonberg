@@ -7,7 +7,8 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { seedKernelContentStore } from '../../../mud/lib/security/__tests__/test-setup';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -74,6 +75,22 @@ async function makePlayer(playerId: string): Promise<Avatar> {
   interactive.transferTo(avatar);
   return avatar;
 }
+
+beforeEach(() => {
+  seedKernelContentStore([
+  {
+    path: '/platform/location/sandbox/CircleFloor',
+    class: '/platform/location/sandbox/CircleFloor',
+    data: {},
+  },
+  {
+    path: '/platform/agent/sandbox/WireBody',
+    class: '/platform/agent/sandbox/WireBody',
+    hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+    data: { wirePlayerId: '' },
+  },
+  ]);
+});
 
 describe('guests and the group cell (Wave 6)', () => {
   beforeEach(async () => {

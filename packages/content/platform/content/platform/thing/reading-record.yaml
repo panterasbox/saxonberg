@@ -1,0 +1,24 @@
+# ⭐⭐ A reading somebody else took, that you can check.
+#
+# The other half of the build's record pair. *My notes* are a per-viewer
+# belief and carry no stamp — the reading is stored and the BAND is not,
+# so a prospector who improves re-reads their old field book at their new
+# resolution. THIS one is stamped, because the question it answers is
+# *should I trust this piece of paper*, and that is a question about a
+# person and a moment.
+#
+# ⚠ It is a carried THING: it persists through the owner's snapshot, or
+# the room overlay when it is left on a bench. No collection, no
+# `DocumentKinds` edit.
+class: /platform/thing/ReadingRecord
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: assay report
+  keywords: [report, assay, paper, slip]
+  register: indefinite
+  mass: 0.01
+  # ⚠ Linen, not paper: there is no paper material row in the tree, and
+  # minting one for a slip of writing is a textiles decision this build
+  # has no business making. Rag paper IS linen, which is honest enough
+  # until somebody wants a paper trade.
+  _materialPath: /stuff/idea/material/textile/linen

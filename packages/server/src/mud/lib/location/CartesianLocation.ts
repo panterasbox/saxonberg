@@ -22,10 +22,7 @@
 import Location from '../stuff/Location';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
-import { VisibleMixin } from '../description/Visible';
-import { PerceptibleMixin } from '../description/Perceptible';
-import { DetailedMixin } from '../description/Detailed';
-import { PopulatesMixin } from '../stuff/Populates';
+import { StagedMixin } from '../stuff/Staged';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
 import { Quantity } from '../quantity';
@@ -55,18 +52,37 @@ import type { FieldMeta } from '../mixin';
 // default `postRegister` is a non-chaining no-op — a second composition
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
+// ⚠⚠ `PublicLightingMixin` is NOT here, and was for one build. It went
+// on this base on the reasoning that "any cartesian cell may be lit by a
+// funded public service" — which gave a cellar, a smithy, a mine heading
+// and a ploughed field a lighting field and a `postRegister` hook to
+// answer for. FIVE rows in the realm declare the service. It lives on
+// `platform/location/Street` now, which is what a town lights.
 const CartesianLocationBase =
-  PopulatesMixin(
-    DetailedMixin(
-      PerceptibleMixin(
-        ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
-      )
-    )
+  StagedMixin(
+    
+      
+        ExitableMixin(CartesianCoordinatesMixin(Location))
+      
+    
   );
 
 export default class CartesianLocation extends CartesianLocationBase {
+// ⭐ `coords` gained `authorable` in the base-class narrowing
+// (2026-09-30) — the other half of an inverted pair. This is the shape
+// 117 rows already use and the one that registers a room with its zone
+// via `setCoords → zone.addLocation`; it simply was never offered.
+// `CartesianCoordinates.coordinates` had the flag and no authors, and
+// authoring it would have bypassed zone registration silently.
+//
+// ⚠⚠ Note where this comment SITS. Written inside the `fieldMeta`
+// object literal it broke `lint:instanceable`: `fieldMetaEntries`
+// finds depth-1 keys by counting braces and parentheses, and prose
+// containing either makes it lose the block — 117 rows reported as
+// orphan keys by a gate that could no longer see the field. A textual
+// instrument and a comment in the wrong place.
   static fieldMeta: FieldMeta = {
-    coords: { persistent: true },
+    coords: { persistent: true, authorable: true },
     extent: { persistent: true, authorable: true },
   };
 

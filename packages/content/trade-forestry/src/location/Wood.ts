@@ -10,12 +10,14 @@
  *
  * - **`SingletonCartesianLocation`**, not the permissive base: an
  *   authored clearing is ONE row at a coordinate in its wood's zone,
- *   reached by an exit — the singleton cell. `PersistentCartesianLocation`
- *   states the rule for the durable version: *a durable room over the
- *   permissive base would silently share ONE `holder_snapshots` scope
- *   across every mint*. The Wood is that class's shape with two mixins
- *   inside the outermost `Persistable`, which is exactly why it cannot
- *   `extend` it. No `WarrenMember`: a clearing lives in a zone, not in a
+ *   reached by an exit — the singleton cell. ⚠ The rule for the durable
+ *   version — *a durable room over the permissive base would silently
+ *   share ONE `holder_snapshots` scope across every mint* — was stated
+ *   by a class called `PersistentCartesianLocation`, **which no longer
+ *   exists**; this paragraph cited it in the present tense until the
+ *   base-class narrowing (2026-09-30). The rule survives its class.
+ *   The Wood is that shape with two mixins inside the outermost
+ *   `Persistable`, which is exactly why it could not have extended it. No `WarrenMember`: a clearing lives in a zone, not in a
  *   holding.
  * - **`SoilMixin(ReservedMixin(…))`** — the ground half, named first as
  *   an intermediate (the Field/GardenBed rule: inference through nested

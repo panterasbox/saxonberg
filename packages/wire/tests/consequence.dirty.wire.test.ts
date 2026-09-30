@@ -141,8 +141,16 @@ suite('the diagnosis surface — steps 11-14', () => {
   }, 60_000);
 
   it('⭐ `analyze postmortem` exists too, and refuses a living body', async () => {
-    const help = await patient.cmd('help analyze');
-    expect(await help.said()).toMatch(/postmortem/i);
+    /*
+     * ⚠ It was `help analyze` that had to name the channel, back when
+     * `analyze` was a subcommand tree and its help listed the branches.
+     * The instrumentation build made `analyze` FLAT — a channel is a row
+     * any pack can ship, so the verb's help cannot enumerate them and
+     * `readings` is the listing instead. Asserting on the verb's help
+     * would now be asserting that the retired shape survived.
+     */
+    const listed = await patient.cmd('readings');
+    expect(await listed.said()).toMatch(/postmortem/i);
     // Pointed at somebody alive it declines in its own words rather than
     // reading them as a corpse.
     const out = await patient.cmd('analyze postmortem me');

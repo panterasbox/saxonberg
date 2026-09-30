@@ -33,7 +33,7 @@ import type {
   CaptureContext,
   ContainerSlice,
   ContentEntry,
-  Placement,
+  ContentPlacement,
 } from '../persistence/PersistenceSlice';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -79,6 +79,22 @@ export interface Container {
    * recursion themselves.
    */
   getDeepContents(): (Stuff & Containable)[];
+
+  /**
+   * ⭐ A **presentation** read — the model read is `getContents()`, and
+   * it is unchanged.
+   *
+   * Filter a contents snapshot to the **loose** items: those not placed
+   * on another item *in the same set*. Items placed on a listed host
+   * (the bottles on the back-bar, the ham on the hook) are represented
+   * by that host and discovered by examining it (`look <host>`); listing
+   * them at top level is the clutter this avoids. Shared by `look`,
+   * `sense` and the inspection-card projection so all three agree.
+   *
+   * Pass the already-filtered snapshot (perception, worn, adornments);
+   * with no argument, this container's own contents.
+   */
+  getLooseContents(items?: readonly Stuff[]): Stuff[];
 
   /** Optional pre-add veto. Return `{ ok: false, reason }` to block. */
   canAddContainable?(thing: Stuff & Containable): VetoResult;
@@ -158,8 +174,8 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `getContents()` order (the shared index the Slotted slice references).
      * A nested **host** (composes `Persistable`) is emitted as a `{ ref }`
      * (it persists itself); anything else nests its composed `state`,
-     * recursing through `ctx.captureItem`. A surface-resting item records
-     * the index of the Surfaced sibling it rests on.
+     * recursing through `ctx.captureItem`. A placed item records the
+     * index of the `Placing` sibling it sits on and the member's name.
      *
      * Restore of the container slice is centralized in `PersistableLogic`
      * (it cross-references the Slotted slice by index), so there is no
@@ -207,11 +223,14 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         return true;
       });
       const entries: ContentEntry[] = contents.map((item) => {
-        const placement: Placement = {};
-        const restingOn = item.getRestingOn();
-        if (restingOn) {
-          const idx = ctx.indexOf(restingOn);
-          if (idx >= 0) placement.restingOnIndex = idx;
+        const placement: ContentPlacement = {};
+        const placed = item.getPlacement();
+        if (placed) {
+          const idx = ctx.indexOf(placed.host);
+          if (idx >= 0) {
+            placement.hostIndex = idx;
+            placement.placement = placed.name;
+          }
         }
         return ctx.captureItem(item, placement);
       });
@@ -357,10 +376,10 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
               // true for un-concealed children (the common path).
               PerceptionApi.perceives(viewer, child),
           );
-          // Surface-resting items (the back-bar's bottles) render under their
-          // surface, not as loose contents — the same rule `look`/`sense` use
-          // (`ContainmentApi.looseContents`), so the inspection card agrees.
-          return ContainmentApi.looseContents(visible).map((child) =>
+          // Placed items (the back-bar's bottles) render under their host,
+          // not as loose contents — the same rule `look`/`sense` use, so the
+          // inspection card agrees.
+          return host.getLooseContents(visible).map((child) =>
             MqlSubscriptionApi.projectFields(child, REF_FIELDS, viewer),
           );
         },
@@ -459,6 +478,21 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       };
       walk(this as unknown as Stuff & Container);
       return out;
+    }
+
+    /** See the interface docstring — a presentation read, not the model. */
+    getLooseContents(items?: readonly Stuff[]): Stuff[] {
+      const snapshot: readonly Stuff[] =
+        items ?? (this as unknown as Stuff & Container).getContents();
+      const ids = new Set(snapshot.map((i) => i.stuffId));
+      return snapshot.filter((item) => {
+        const placement = MixinApi.isContainable(item)
+          ? item.getPlacement()
+          : null;
+        return !(
+          placement && ids.has((placement.host as Stuff).stuffId)
+        );
+      });
     }
   }
   return ContainerMixin;

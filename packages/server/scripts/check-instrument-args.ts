@@ -142,7 +142,36 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
  * could would be the worse lie. This gate does not fire on them,
  * because the walk is what it watches for, not the check.
  */
-const BESPOKE_RESOLUTION_CEILING = 0;
+/**
+ * ⭐⭐ **Nine, and every one of them is a platform `measure` read.**
+ *
+ * The ratchet stood at zero for a month while these nine hunted, because
+ * they hunt through an ALIAS (see `ALIAS_DECL`) and the gate only knew
+ * the inline chain. The instrumentation build widened the matcher first
+ * — census, then ratchet — so that the number tells the truth *before*
+ * the build that drives it to zero touches a line of it.
+ *
+ * The census, all in `platform/idea/cmd/perception/`:
+ *
+ *   1. `MeasureAtmosphereController`  — `instanceof GasAnalyzer`
+ *   2. `MeasureShadowController`      — `instanceof Photometer`
+ *   3. `MeasureTemperatureController` — `instanceof Thermometer`
+ *   4. `MeasureGravityController`     — `instanceof GravityMeter`
+ *   5. `MeasurePressureController`    — `instanceof Barometer`
+ *   6. `MeasureDensityController`     — `instanceof Hydrometer`
+ *   7. `MeasureHumidityController`    — `instanceof Hygrometer`
+ *   8. `MeasureAltitudeController`    — `instanceof Altimeter`
+ *   9. `MeasureAltitudeController`    — `instanceof Sextant` (the body arm)
+ *
+ * ⚠⚠ And the walk was hiding the same class of defect it hid for
+ * `hammer ingot`: narrowing on the CLASS meant no other object could
+ * ever serve as a thermometer, so the instrument was unaddressable AND
+ * unextendable — a second maker's thermometer would have been refused by
+ * a read that never asked what the thing could *do*. The instrumentation
+ * build replaces all nine with a declared `tool` arg narrowed by
+ * capability, and lowers this to 0.
+ */
+const BESPOKE_RESOLUTION_CEILING = 9;
 
 /**
  * Receivers that mean *the actor, or the world around them*. A walk over
@@ -210,6 +239,37 @@ const CHAIN_WALK = /\.getContents\(\)\s*(?:as[^;]*?)?\.(find|filter|some)\(/;
  * is read from the lines that follow.
  */
 const SPREAD_WALK = /\.\.\.\s*([^)]*?)\.getContents\(\)/;
+
+/**
+ * `const NAME = <recv>.getContents()` … `NAME.some(x => x instanceof T)` —
+ * the ALIAS form.
+ *
+ * ⚠⚠ **This is the shape that made the ratchet read zero while nine
+ * shipped reads hunted.** Every platform `measure` controller does the
+ * same three lines:
+ *
+ * ```typescript
+ * const inv = MixinApi.isContainer(giver)
+ *   ? (giver as Stuff & Container).getContents()
+ *   : [];
+ * if (!inv.some((i) => i instanceof GasAnalyzer)) { …refuse… }
+ * ```
+ *
+ * It is `CHAIN_WALK` with a name in the middle. The chain matcher wants
+ * the walk and the predicate on one statement, and the ternary breaks
+ * the statement in two — so a walk that is *more* explicit about what it
+ * is doing read as no walk at all.
+ *
+ * ⭐ The lesson is `SPREAD_WALK`'s, a second time: **a ratchet at zero is
+ * only as honest as the shapes it knows**, and the shapes it does not
+ * know are found by reading code, never by watching the number. The
+ * census this taught it is the nine below.
+ */
+const ALIAS_DECL =
+  /(?:const|let)\s+([A-Za-z_$][\w$]*)\s*(?::[^=]*?)?=\s*[^;]*?\.getContents\(\)/;
+
+/** How far below an alias declaration its search may sit. */
+const ALIAS_WINDOW = 12;
 
 interface Finding {
   file: string;
@@ -359,8 +419,7 @@ function main(): void {
         );
         if (!aboutVar.test(body)) continue;
         predicate = body;
-      } else {
-        if (!CHAIN_WALK.test(statement)) continue;
+      } else if (CHAIN_WALK.test(statement)) {
         // The predicate is the arrow body, which is inside the same
         // statement — so a receiver guard on an EARLIER line cannot
         // reach it.
@@ -368,6 +427,21 @@ function main(): void {
         predicate = statement.slice(from);
         if (!TYPE_TEST.test(predicate)) continue;
         receiver = receiverOf(statement);
+      } else {
+        // ⭐ The ALIAS form: the walk is named, and the type test is on
+        // the NAME a few lines below. The declaration may START above
+        // the `.getContents()` line (a ternary wraps), so the window
+        // reaches backwards as well as forwards.
+        const wide = lines.slice(Math.max(0, i - 2), i + 3).join(' ');
+        const alias = ALIAS_DECL.exec(wide);
+        if (!alias) continue;
+        const name = alias[1]!;
+        const after = lines.slice(i + 1, i + 1 + ALIAS_WINDOW).join(' ');
+        const use = new RegExp(`\\b${name}\\.(find|filter|some)\\(`).exec(after);
+        if (!use) continue;
+        predicate = after.slice(use.index);
+        if (!TYPE_TEST.test(predicate)) continue;
+        receiver = receiverOf(wide);
       }
 
       const isSearch =

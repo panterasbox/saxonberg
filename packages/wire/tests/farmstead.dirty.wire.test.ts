@@ -79,15 +79,34 @@ suite('the yard outfits you', () => {
     /*
      * A room that authors no light is PITCH BLACK, and the tell is every
      * object reading "something". A farm you cannot see is not a farm.
-     * ⚠ After the spade, because the spade is what AFFORDS `measure`.
+     *
+     * ⚠ It was `measure light` and is `analyze light` now. The spade
+     * used to AFFORD `measure`; since the instrumentation build the verb
+     * rides every character and the INSTRUMENT decides the rung — so
+     * `measure light` in a farmyard with no photometer correctly refuses
+     * and names the photometer. `analyze` is the free rung, which is the
+     * right one to ask with here: the question is whether there is light
+     * to read at all, and a trained eye answers that without a dial.
      */
-    expect(await p.prose('measure light')).toMatch(/: [1-9][0-9]* lux/i);
+    const lit = await p.prose('analyze light');
+    expect(lit).toMatch(/light at/i);
+    expect(lit, 'a farm you cannot see is not a farm').not.toMatch(
+      /pitch dark|barely enough to move by/i
+    );
   }, 60_000);
 
   it('⭐ and the farm knows WHERE it is', async () => {
     // Without a zone `address:` this answers nothing — the address walk
     // is what puts the campus on the map.
-    expect(await p.prose('analyze address')).toMatch(/terminus\/city\/campus/i);
+    //
+    // ⚠ It was `analyze address` and is `trace address` now. The
+    // instrumentation build moved the two engine diagnostics off the
+    // reading verbs: `analyze` answers facts about the WORLD that
+    // competence resolves and an instrument sharpens, and this answers
+    // *where did the engine get that value from*, which is a question
+    // about the simulation. Same controller, same output, a free
+    // `system` verb beside `affordances` and `errors`.
+    expect(await p.prose('trace address')).toMatch(/terminus\/city\/campus/i);
   }, 60_000);
 });
 

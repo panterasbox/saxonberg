@@ -26,10 +26,10 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import Provision from '../../../thing/Provision';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import CraftVessel from '../../../thing/CraftVessel';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -59,7 +59,7 @@ class TestCook extends EmployedMixin(NamedMixin(ContainableMixin(Idea))) {
   }
 }
 /** Crafted NON-FOOD — the marked knife's shape (capital, not matter). */
-class MarkedGear extends CraftedMixin(ContainableMixin(Thing)) {
+class MarkedGear extends CraftedMixin(ContainableMixin(Good)) {
   static _mixinName = 'MarkedGearMatter';
 }
 
@@ -88,7 +88,7 @@ function registerMaterial(
 }
 
 function makeTool(cap: string) {
-  const t = makeStuff(() => new ToolItem());
+  const t = makeStuff(() => new Tool());
   t.setCapabilities([cap]);
   return t;
 }

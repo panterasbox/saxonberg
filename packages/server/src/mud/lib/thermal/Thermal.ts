@@ -45,6 +45,8 @@ import type { Containable } from "../spatial/Containable";
 import type { Container } from "../spatial/Container";
 import type { Bulkable } from "../bulk/Bulkable";
 import { Quantity } from "../quantity";
+import type { Coolbox } from "./Coolbox";
+import type { Atmospheric } from "../biome/Atmospheric";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
@@ -108,8 +110,52 @@ export const THERMAL_DEFAULTS = {
    * ambient inside `[setpoint ± this]` costs nothing (Option C).
    */
   BAND_HALF_WIDTH_K: 8,
-  /** Cold-side fuel spend (satiation %-points per game-min per K of gap). */
-  COLD_SPEND_PER_DEGREE: 0.05,
+  /**
+   * Cold-side fuel spend (satiation %-points per game-min per K of gap).
+   *
+   * ⚠⚠ **Retuned 2026-09-24 (envelope W1), from `0.05`, by measurement.**
+   * The shipped value burned 21 %/h on a NAKED body at 294 K — the
+   * shipped indoor decree, a comfortable room — and 47 %/h on a
+   * *dressed* one at 8 °C. Every one of the cold bench's sixteen rows,
+   * at every temperature and every insulation level, was **dead inside
+   * twelve game hours**: a body in a wool coat in a 21 °C room starved
+   * to death. Nobody saw it because every interior in the realm was
+   * 21 °C by decree and nothing kept a cast member anywhere for long;
+   * the envelope build removes the decree, so the dial had to be true
+   * before rooms were allowed to get cold.
+   *
+   * Calibrated against {@link COLD_SPEND_MAX_BASAL_MULT}: the product
+   * `cap / this` is the temperature gap shivering can actually cover,
+   * and it is set so that gap is **20 K**. That is not arbitrary — a
+   * naked body's comfort floor is 302 K, so 20 K of coverage puts its
+   * drift target at 282 K ≈ the `survivableMin` of 301 K, which says:
+   * *a naked human outdoors on an 8 °C night is exactly on the
+   * hypothermia line*. Which is true.
+   */
+  COLD_SPEND_PER_DEGREE: 0.005,
+  /**
+   * ⭐⭐ **The ceiling on shivering, as a multiple of basal metabolism.**
+   *
+   * Shivering thermogenesis peaks at roughly five times resting
+   * metabolic rate; a body cannot spend its way out of an arbitrarily
+   * cold room, and the shipped model let it try — the cold branch was
+   * linear in the gap and **uncapped**, so a cold enough room simply
+   * drained the tank at whatever rate the arithmetic asked for and the
+   * body starved to death in a snowdrift.
+   *
+   * ⚠ That is the wrong death. Cold kills by COOLING you, and
+   * hypothermia is rescuable — somebody can carry you inside, and the
+   * `warm` verb exists for exactly that. Starvation is not rescuable on
+   * that timescale and reads as a bug. So past the gap this cap can
+   * cover, the body stops trying to hold the setpoint and **drifts
+   * toward the warmest temperature its shivering CAN defend**
+   * (`ambient + coveredGap`) — see `integrateThermalSlice`.
+   *
+   * Named against metabolism's own basal drain rather than written as a
+   * bare rate, so the two cannot drift apart: if resting metabolism is
+   * ever retuned, the ceiling on shivering follows it.
+   */
+  COLD_SPEND_MAX_BASAL_MULT: 5,
   /** Hot-side water spend (hydration %-points per game-min per K of gap). */
   HEAT_SPEND_PER_DEGREE: 0.06,
   /**
@@ -161,8 +207,22 @@ export const THERMAL_DEFAULTS = {
    * The lethal dwell still reads `survivableMax`.
    */
   HYPERTHERMIA_ONSET_K: 2.5,
-  /** Each worn `clo` warms effective ambient this many K toward setpoint. */
-  CLO_TO_KELVIN: 2.5,
+  /**
+   * Each worn `clo` widens the comfort band downward by this many K.
+   *
+   * ⭐ **Retuned 2026-09-24 (envelope W1) from `2.5`, to the number the
+   * unit is DEFINED by.** One clo is the insulation at which a seated
+   * person is comfortable at 21 °C — that is what the unit means. A
+   * naked body's comfort floor here is `SETPOINT_K − BAND_HALF_WIDTH_K`
+   * = 302 K (29 °C, which is the real thermoneutral zone for an
+   * unclothed human), so one clo must carry it from 302 K down to
+   * 294 K: **8 K per clo, by definition rather than by taste.**
+   *
+   * At 2.5 a wool coat was worth 5 K against a 21 K gap and clothing
+   * barely registered — the bench's first table showed a naked body and
+   * a coated one dying within minutes of each other.
+   */
+  CLO_TO_KELVIN: 8,
   /** Wet-bulb temperature (K) above which sweat can't shed heat (~35 °C). */
   WET_BULB_CEILING_K: 308,
   /** Wind-chill: each m/s of wind cools effective ambient this many K. */
@@ -244,6 +304,101 @@ export interface Thermal {
   restamp(): Promise<void>;
 }
 
+/**
+ * ⭐ **What HOLDS this body** — one step, and only one.
+ *
+ * The body's enclosing placement host when it sits under a member that
+ * encloses (a compartment with its own air), otherwise its container.
+ * A body that is not `Containable` at all has no scope.
+ *
+ * ⚠⚠ **This is a different question from {@link airScopeOf}, and the
+ * paragraph between them is the whole of the distinction:**
+ *
+ *  - *what holds you* — the immediate holder, used by
+ *    {@link enclosingCoolbox}, because what you are IN outranks the room
+ *    and an icebox two hops away is not holding you;
+ *  - *what air reaches you* — the nearest scope outward that has any,
+ *    used by both ambient paths, because a loaf in a bag is in the room's
+ *    air and a bag has none.
+ *
+ * They were one function until the base-class narrowing build, when they
+ * had to stop being: before it a bag WAS atmospheric (every `Vessel`
+ * was), so one step always landed on something with air — it just had no
+ * envelope, which is why a bagged loaf's ambient never moved. After it a
+ * bag is honestly transparent, and the walk is what finds the air.
+ */
+function ambientScopeOf(host: Stuff): Stuff | null {
+  if (!MixinApi.isContainable(host)) return null;
+  return host.getEnclosingScope();
+}
+
+/**
+ * ⚠⚠ Matches the `CONTAINMENT_DEPTH_CAP` the biome chain
+ * (`BiomeLogic`), the address walk (`AddressLogic`) and the zone walk
+ * (`ZoneLogic`) each declare privately at 32. Declared here for the same
+ * reason they do: nothing is exported across those tiers, and a shared
+ * constant would be an import that crosses one.
+ */
+const AIR_SCOPE_DEPTH_CAP = 32;
+
+/**
+ * ⭐⭐ **What AIR reaches this body** — the nearest enclosing scope
+ * outward that has any.
+ *
+ * A perishable in a bag was frozen at whatever ambient it was stamped
+ * with when it went in: a bag has no envelope, so the pull side returned
+ * without updating and the push side asked the bag for a temperature it
+ * could only answer from the raw biome. Carry a loaf from a cold street
+ * into a warm bakery and it stayed street-cold indefinitely, and nothing
+ * in the game said so.
+ *
+ * ⚠⚠ **One step outward would not have fixed it.** A worn bag's
+ * container is the WEARER — a `Creature` is a `Container` — so
+ * bag → carrier → room is two hops, and the carrier has no air either.
+ * The case the repair exists for is a bag on somebody's back.
+ *
+ * So this walks, under the same depth cap and the same discipline the
+ * biome chain already uses for every other atmospheric value: step
+ * outward through `getEnclosingScope()` until something is
+ * `Atmospheric`, or until there is nothing left to step to. It is not a
+ * new mechanism; it is the chain's existing walk applied to the
+ * envelope.
+ *
+ * Both ambient paths call it — the pull side
+ * (`refreshAmbientFromEnvelope`) and the push side (`restamp`) — because
+ * the day they disagree is the day a box keeps its cold in one path and
+ * not the other.
+ *
+ * ⭐ A documented limit: **the holder read stays immediate**. A loaf in a
+ * bag inside a shut icebox reads the ROOM, not the cold, because
+ * {@link enclosingCoolbox} asks what holds you and a bag is what holds
+ * it. Asserted in the tests so the limit is visible rather than hidden.
+ */
+function airScopeOf(host: Stuff): (Stuff & Atmospheric) | null {
+  let cursor = ambientScopeOf(host);
+  for (let depth = 0; cursor !== null && depth < AIR_SCOPE_DEPTH_CAP; depth++) {
+    if (MixinApi.isAtmospheric(cursor)) return cursor;
+    if (!MixinApi.isContainable(cursor)) return null;
+    cursor = cursor.getEnclosingScope();
+  }
+  return null;
+}
+
+/**
+ * The shut `Coolbox` holding this body, or null.
+ *
+ * ⚠⚠ Called from `effectiveR`, which runs on every reconcile of every
+ * Thermal body in the game, so it must fail fast: the `isCoolbox` test
+ * on the scope is the first real work, and for a body standing in a
+ * room it is one mixin lookup that answers no.
+ */
+function enclosingCoolbox(host: Stuff): (Stuff & Coolbox & Thermal) | null {
+  const scope = ambientScopeOf(host);
+  if (scope === null) return null;
+  if (!MixinApi.isCoolbox(scope)) return null;
+  return scope.isHoldingCold() ? scope : null;
+}
+
 function assertFiniteNonNeg(value: number, what: string): void {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     throw new RangeError(
@@ -259,7 +414,25 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = "ThermalMixin";
 
     static fieldMeta: FieldMeta = {
-      stampedTemperatureK: { persistent: true, runtimeState: true },
+      // ⭐ **Authorable since the placement build (D24), and the drive is
+      // what asked for it.** A SPACE could always author its own
+      // temperature (`Atmospheric._temperature` — the 279 K cold store);
+      // a BODY could not, so a row that ships a block of ice minted one
+      // at room temperature, which is not ice. It read as warm, it
+      // satisfied no cold-storage check, and it began melting the
+      // instant it existed. Every other route to a cold body is a
+      // history the world has to play out (a freeze, a quench), and an
+      // authored object has no history.
+      //
+      // ⚠ Authored, not overriding: this seeds the body's temperature
+      // and the reconcile takes it from there — an authored 268 K block
+      // in a 293 K room warms exactly as it should. Content that wants
+      // a thing to STAY at a temperature authors the space, not this.
+      stampedTemperatureK: {
+        persistent: true,
+        runtimeState: true,
+        authorable: true,
+      },
       thermalClockStamp: { persistent: true, runtimeState: true },
       lastAmbientK: { persistent: true, runtimeState: true },
       barrier: { persistent: true, authorable: true },
@@ -436,7 +609,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the OO sweep): the solid→liquid latent-heat plateau and the
      * vessel freeze/boil transitions, keyed on real Material
      * properties. Sealed — owns the phase/temperature invariants.
-     * Ungated: the callers are physics drivers (Furnace, magic heat,
+     * Ungated: the callers are physics drivers (Burner, magic heat,
      * casting) — a trusted physical relationship.
      */
     @Final
@@ -447,7 +620,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * The maximum sustained temperature (K) reachable from where this
-     * body stands — the hottest lit `Furnace` in its scope (the
+     * body stands — the hottest lit `Burner` in its scope (the
      * crafting emergent-reachability principle applied to heat: a
      * smith's control gate is "what's the hottest thing I can
      * reach?"). 0 when nothing hot is in reach. Ungated read.
@@ -483,7 +656,15 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    /** Series heat-exchange resistance `R` (K/W). */
+    /**
+     * Series heat-exchange resistance `R` (K/W).
+     *
+     * ⚠⚠ **This runs on every reconcile of every Thermal body in the
+     * game** — it is the hottest read in the model. The Coolbox clause
+     * below must short-circuit before any other work, and it does: one
+     * `isCoolbox` test on the enclosing scope, which for almost
+     * everything is a plain room.
+     */
     protected effectiveR(): number {
       const D = THERMAL_DEFAULTS;
       const self = this.thermalHost;
@@ -494,10 +675,73 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         D.DEFAULT_WALL_CONDUCTIVITY;
       const rMedium = D.R_GEOMETRY_MEDIUM / Math.max(kMedium, 1e-12);
       const rWall = D.R_GEOMETRY_WALL / Math.max(kWall, 1e-12);
-      return rMedium + rWall;
+      return rMedium + rWall + this.lentInsulationR();
+    }
+
+    /**
+     * ⭐ **Seam 2 — the box lends its walls to the thing making the
+     * cold.** Extra R this body borrows from a shut `Coolbox` holding
+     * it, when this body IS its coldest mass; 0 for everything else,
+     * which is everything.
+     *
+     * Without it the ice would read its own temperature as its ambient
+     * (seam 1 would hand it back to itself) and never melt — a box that
+     * keeps its cold forever, which is the opposite of the object this
+     * build is for. With it, the ice warms toward the ROOM, through the
+     * walls, at `(T_room − 273) / (R_ice + insulationR)` — and the
+     * `Meltable` plateau turns that leak into hours.
+     */
+    private lentInsulationR(): number {
+      const self = this.thermalHost;
+      const holder = enclosingCoolbox(self);
+      if (holder === null) return 0;
+      const coldest = holder.coldestMass() as unknown as Stuff | null;
+      if (coldest === null || coldest.stuffId !== (self as Stuff).stuffId) {
+        return 0;
+      }
+      return holder.getInsulationR();
     }
 
     // ---------- reconcile-on-read (lazy time drive) ----------
+
+    /**
+     * ⭐⭐ **A warming room reaches what is standing in it, with no
+     * fan-out.**
+     *
+     * `lastAmbientK` is a cache, stamped at placement, movement and
+     * ambient-shift events. A room whose own temperature drifts
+     * continuously has no such event — it is simply different every
+     * time you look — so a push model would need the room to restamp
+     * everything it contains on a clock, for every room, forever.
+     *
+     * So this is the PULL side, which `weather.md` already recommends
+     * (*"prefer the pull side, as wetness does"*): the moment anything
+     * asks this object how warm it is, it asks its container. Three
+     * lines, no scheduler, and a loaf in a warming kitchen follows the
+     * kitchen without anybody telling it to.
+     *
+     * ⚠ Skipped when a furnace is holding this object — `heatSourceK`
+     * wins, because being IN the fire is not being near it, and the
+     * room's air has nothing to say about a workpiece in a forge.
+     */
+    protected refreshAmbientFromEnvelope(): void {
+      const self = this.thermalHost;
+      if (this.heatSourceK() !== null) return;
+      // ⭐ A shut cold holder answers before the chain does, for the
+      // same reason a lit furnace does: what holds you outranks the
+      // room. Read in the same position on both the pull side and the
+      // push side (`restamp`), because the day they disagree is the day
+      // a box keeps its cold in one path and not the other.
+      const holderCold = this.holderK();
+      if (holderCold !== null) {
+        this.lastAmbientK = holderCold;
+        return;
+      }
+      const scope = airScopeOf(self);
+      if (scope === null) return;
+      const envelopeK = scope.envelopeTemperatureLast();
+      if (envelopeK !== null) this.lastAmbientK = envelopeK;
+    }
 
     public reconcileThermal(): void {
       if (this._thermalReconciling) return;
@@ -535,6 +779,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       this._thermalReconciling = true;
       try {
+        this.refreshAmbientFromEnvelope();
         const tau = this.getTau().rawValue();
         const ambient = this.lastAmbientK;
         // Closed-form Newton relaxation — exact for a constant ambient,
@@ -550,10 +795,31 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       } finally {
         this._thermalReconciling = false;
       }
+
+      // ⭐⭐ **A solid melts because it is WARM, not because something
+      // is heating it.** (Placement build, D22.)
+      //
+      // ⚠⚠ Until this line, `reconcilePhase()` had exactly three
+      // callers in the whole tree: a lit `Burner`'s heat pass, two
+      // spell endpoints, and tests. So nothing in the world melted
+      // unless a fire or a wizard was pointed at it — a block of ice
+      // left on a warm floor sat at its melting point forever, with
+      // the latent accumulator never touched. The phase engine was
+      // complete and had no ambient driver.
+      //
+      // The drift above is what makes a body warm, so the phase check
+      // belongs immediately after it, on the same lazy read. It is
+      // narrowed to `Meltable` hosts: the `Bulkable` freeze/boil rung
+      // has its own callers (a `CraftVessel` drives it from its own
+      // reconcile) and widening it here would double-run them.
+      //
+      // Outside the `try`, so the plateau's own `setContentsTemperature`
+      // is not swallowed by the reentry guard.
+      if (MixinApi.isMeltable(self)) this.reconcilePhase();
     }
 
     /**
-     * The held temperature (K) of a lit, fuelled `Furnace` that is
+     * The held temperature (K) of a lit, fuelled `Burner` that is
      * heating this body — the furnace **holding** it (a loaf in an
      * oven) or the furnace it **rests on** (a pot on a campfire) — or
      * `null` when nothing does. Read only by {@link restamp}: the
@@ -563,17 +829,47 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private heatSourceK(): number | null {
       const self = this.thermalHost;
-      // A lit, fuelled furnace the body is IN or ON — `isFurnace` narrows
+      // A lit, fuelled furnace the body is IN or ON — `isBurner` narrows
       // the one cast to the container type, and everything after reads
       // through the narrowing.
-      const litFurnaceK = (candidate: Stuff | null): number | null => {
-        if (candidate === null || !MixinApi.isFurnace(candidate)) return null;
+      const litBurnerK = (candidate: Stuff | null): number | null => {
+        if (candidate === null || !MixinApi.isBurner(candidate)) return null;
         if (!candidate.isLit() || candidate.fuelRemaining() <= 0) return null;
         return candidate.getHeldTemperatureK();
       };
-      const inside = litFurnaceK(self.getContainer() as unknown as Stuff | null);
+      const inside = litBurnerK(self.getContainer() as unknown as Stuff | null);
       if (inside !== null) return inside;
-      return litFurnaceK(self.getRestingOn() as unknown as Stuff | null);
+      return litBurnerK(
+        (self.getPlacement()?.host ?? null) as unknown as Stuff | null,
+      );
+    }
+
+    /**
+     * ⭐ **Seam 1 — the cold twin of {@link heatSourceK}.** The interior
+     * temperature (K) of a shut `Coolbox` holding this body, or `null`.
+     *
+     * `heatSourceK` is hot-only by construction — it asks for a lit
+     * `Burner` — and the rule underneath it is not about heat at all:
+     * *what HOLDS this body outranks the biome chain.* A shut icebox
+     * holds its contents exactly as an oven does, and the chain cannot
+     * answer for it, because a `Coolbox` is not `Atmospheric` (and must
+     * not be: a cold box does not cool the kitchen).
+     *
+     * ⚠ The coldest mass is excluded. It is the thing MAKING the
+     * interior cold, so handing it its own temperature as ambient would
+     * be a body in equilibrium with itself: no drift, no melt, no
+     * clock. It reads the room instead, through the walls
+     * ({@link lentInsulationR}).
+     */
+    private holderK(): number | null {
+      const self = this.thermalHost;
+      const holder = enclosingCoolbox(self);
+      if (holder === null) return null;
+      const coldest = holder.coldestMass() as unknown as Stuff | null;
+      if (coldest !== null && coldest.stuffId === (self as Stuff).stuffId) {
+        return null;
+      }
+      return holder.getContentsTemperature().rawValue();
     }
 
     /**
@@ -590,17 +886,26 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // ⭐ A heat source that HOLDS this body outranks the biome chain:
       // the inside of a lit oven is not the room. `BiomeLogic` walks
-      // `Atmospheric` ancestors and a `Furnace` is not `Atmospheric`
+      // `Atmospheric` ancestors and a `Burner` is not `Atmospheric`
       // (deliberately — a lit forge must not warm the room it stands
       // in), so the couple is read here, on the body being heated.
       let ambientK = this.lastAmbientK;
       const sourceK = this.heatSourceK();
+      const holderCold = sourceK === null ? this.holderK() : null;
       if (sourceK !== null) {
         ambientK = sourceK;
+      } else if (holderCold !== null) {
+        // ⭐ Seam 1, the push side — same position as `heatSourceK`.
+        ambientK = holderCold;
       } else {
-        // Resolve the new scope's ambient. The host is `Containable`, and
-        // `getContainer()` already returns `(Stuff & Container) | null`.
-        const container = this.thermalHost.getContainer();
+        // Resolve the new scope's ambient. ⭐ The scope is the nearest
+        // thing outward with air in it — an enclosing placement host
+        // that has its own, else the first container up the chain that
+        // is `Atmospheric`. A bag, a crate and a carrier are stepped
+        // through, because none of them is weather.
+        const scope = airScopeOf(this.thermalHost);
+        const container =
+          scope !== null && MixinApi.isContainer(scope) ? scope : null;
         if (container !== null) {
           try {
             ambientK = (
@@ -675,7 +980,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 /**
  * The maximum sustained temperature (K) reachable from `position` — the hottest
- * lit `Furnace` in its scope (the crafting emergent-reachability principle
+ * lit `Burner` in its scope (the crafting emergent-reachability principle
  * applied to heat: a smith's control gate is "what's the hottest thing I can
  * reach?"). Returns 0 when nothing hot is in reach. Consumed by
  * `CraftingLogic`'s heat gate (`recipe.requiresHeatK`) — the smithing/cooking
@@ -688,7 +993,7 @@ function reachableHeatForImpl(position: Stuff): number {
   let hottest = 0;
   for (const occ of (scope as Stuff & Container).getContents()) {
     const s = occ as unknown as Stuff;
-    if (s.isDestroyed() || !MixinApi.isFurnace(s)) continue;
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
     if (!s.isLit() || s.fuelRemaining() <= 0) continue;
     const t = s.getHeldTemperatureK();
     if (t > hottest) hottest = t;

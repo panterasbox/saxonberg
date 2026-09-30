@@ -1,0 +1,44 @@
+# ⭐⭐ Brine → salt — **the evaporative profile, and the geography lesson.**
+#
+# The `evaporative` mechanism's first consumer and the reason it exists: the
+# air does the work by taking water away, so three things are true here that
+# are true of no other maturation profile.
+#
+#  1. **The rate is the AIR's.** `ratePerDay` is the rate in reference air;
+#     what happens is that times the vapour deficit × wind × heat, against a
+#     **saturated brine's** equilibrium (~75 % RH) rather than water's 100 %.
+#     ⭐ Which is the whole lesson: 85 % air will still dry a ham and will not
+#     concentrate a brine, so solar salt is a dry-climate industry and a wet
+#     week is a setback. Nobody had to write that down as a rule.
+#  2. **The batch gets smaller**, because the water leaves. `productFraction`
+#     0.1 — sea water is about 3.5 % salt by mass and rather more by the
+#     volume a wet crust occupies, so a tenth is the right order and the
+#     number is a ROW, which means a brine spring can be stronger and say so.
+#  3. ⭐ **Rain puts it back**, through the pan's own mouth, and `f` goes
+#     *down*. A setback, never a death.
+#
+# ⚠ `stallBelowK: 273` is ice: a frozen pan does nothing and READS stalled
+# rather than reading *starting*, which is the distinction the grain chain
+# paid for. `damageAboveK: 400` is the one way to ruin one — boiled dry and
+# burnt to a bitter scale, which is what the `killed` line says.
+#
+# ⚠⚠ And it authors **no strain**, which is the whole point of
+# `requiresFlora`: nothing lives in a salt pan. Two shipped profiles (retting,
+# bleaching) were silently frozen by the strain gate before this build; a
+# third would have been.
+class: /platform/idea/maturation/MaturationProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: brine
+  # The tag `bulk/salt-water` already carries.
+  inputCategory: brine
+  mechanism: evaporative
+  stallBelowK: 273
+  happyK: 283
+  damageAboveK: 400
+  ratePerDay: 0.25
+  productMaterial: /stuff/idea/material/food/salt
+  productFraction: 0.1
+  turnedMaterial: null
+  sealedOnly: false
+  leesFraction: 0

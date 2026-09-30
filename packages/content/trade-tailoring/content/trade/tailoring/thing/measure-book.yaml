@@ -21,6 +21,9 @@ data:
   _materialPath: /stuff/idea/material/wood/oak
   mass: 2
   entries: []
+  # ⭐ What the book can DO, so `measure figure` narrows on the act and
+  # not on the class. Any ledger a shop keeps can carry this.
+  capabilities: [fitting]
   details:
     names:
       keywords: [names, entries, pages]

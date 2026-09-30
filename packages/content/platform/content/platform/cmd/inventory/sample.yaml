@@ -1,0 +1,49 @@
+# ⭐⭐ `sample <thing|face>` — take a piece of something and note where it
+# came from.
+#
+# The piece is the REAL MATERIAL: a lump of the actual ore, a portion of
+# the actual food. That is what lets a bench assay the thing itself and a
+# report say honestly what it is a report OF — and it is why a sample can
+# be carried, sold, lost, spoiled, and lied about.
+#
+# ⚠ The samplable set is narrow: matter, and nothing else. A refusal here
+# is where a player learns that, so every refusal names WHAT KIND of
+# thing they pointed at and why it cannot be sampled.
+verbs: [sample]
+description: "Take a piece of something, and note where it came from"
+help: |
+  Take a piece of a thing, or of the ground in front of you, and
+  keep it. The piece carries where it was taken, by whom, and when —
+  which is what makes it evidence rather than just a rock.
+
+  `sample the north face` takes a chip off a face in a working.
+  `sample the ore` takes a piece off a pile you are carrying.
+
+  ⭐ The stamp says where you were STANDING when you took it. That is
+  honest and it is also exploitable: carry a rich lump somewhere
+  barren and sample it there, and the record will truthfully say the
+  barren place. The paper never lies; people do.
+
+  ⚠ You cannot sample a place, a person, or a made thing. The light
+  where you stand cannot be carried anywhere; cutting a piece off a
+  finished blade would ruin it.
+examples:
+  - cmd: sample the north face
+    note: A chip off a face, to carry to a bench
+  - cmd: sample the ore
+    note: A piece off the pile you are carrying
+controller: /platform/idea/cmd/inventory/SampleController
+args:
+  # ⚠⚠ `greedy: true` — without it `sample the north face` binds three
+  # positionals, answers "too many arguments" and dies as an unknown
+  # shape with the controller never reached.
+  #
+  # ⭐ And unresolved text is the PARAMETER path: `sample the north face`
+  # binds nothing (a face is not an object), so the raw words reach the
+  # room's `sampleFace` and tell it which face.
+  - name: subject
+    type: object
+    required: false
+    greedy: true
+    scope: ["$focus", "reachable"]
+    requires: any

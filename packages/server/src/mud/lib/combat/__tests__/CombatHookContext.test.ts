@@ -11,7 +11,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { StuffApi } from "../../../api/stuff";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import { Quantity } from "../../quantity";
 import { EnergizedMixin } from "../../electricity/Energized";
 import type { Energized } from "../../electricity/Energized";
@@ -26,7 +26,7 @@ import {
   type CombatHookContextInit,
 } from "../CombatHookContext";
 
-class TestSource extends EnergizedMixin(Thing) {}
+class TestSource extends EnergizedMixin(Good) {}
 
 const RIDER_SPEC: InflictSpec = {
   mechanism: "heat",
@@ -48,8 +48,8 @@ function makeSession(): CombatSession {
 function makeCtx(
   overrides: Partial<CombatHookContextInit> = {},
 ): { ctx: CombatHookContext; actor: Stuff; target: Stuff } {
-  const actor = makeStuff(() => new Thing());
-  const target = makeStuff(() => new Thing());
+  const actor = makeStuff(() => new Good());
+  const target = makeStuff(() => new Good());
   const ctx = new CombatHookContext({
     session: makeSession(),
     beat: 3,

@@ -5,6 +5,12 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   shortDescription: hall
   keywords: [hall]
   register: definite
@@ -14,6 +20,10 @@ data:
   longDescription: |
     A short square hall with a worn runner on the boards and hooks by the door that came with the house. Doorways open east to the kitchen and west to the front room; the bedroom is through the north door, and the kitchen step drops back down to the yard behind you.
   details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A tall sash window beside the door, its glass old enough to ripple what is behind it.
     hooks:
       keywords: [hooks, pegs]
       description: |

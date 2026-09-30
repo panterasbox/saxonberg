@@ -183,7 +183,7 @@ allowance meter nor the deferred region parcel.
 > ⚠ **Two things this phase predicted that came out differently.** The
 > *"third wear axis beside `Durable` and `Keen`, copying `Wet.ts`"* became
 > **three** gauges, not one: the population that grows on its own
-> (`FreshnessMixin`), the water it has to grow in (`CuredMixin`), and the
+> (`FreshnessMixin`), the water it has to grow in (`WaterActivityMixin`), and the
 > population somebody *put* there (`ContaminableMixin`). And the headline
 > is the distinction between the last two — *spoilage is a clock,
 > contamination is an event* — which this phase's own framing ("spoilage is

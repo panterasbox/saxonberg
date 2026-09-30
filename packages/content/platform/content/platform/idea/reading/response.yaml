@@ -1,0 +1,24 @@
+# response — a reading channel.
+#
+# ⭐⭐ `kind: preview`, and therefore UNBANDED and exact for everybody.
+#
+# A preview is not a reading of the world — it is the engine stating a
+# rule it is about to apply. A bracket on it would be a rule stated
+# WRONGLY rather than a measurement taken badly, so `discipline: ''`
+# and the Tier A honesty invariant is satisfied by exactness instead.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/ResponseReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: response
+  kind: preview
+  scope: [subject]
+  discipline: ""
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    what a made thing will do before anybody is hurt by it
+  stakes: >-
+    finding out in the fight

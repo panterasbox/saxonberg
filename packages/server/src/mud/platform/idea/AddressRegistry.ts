@@ -147,7 +147,7 @@ export default class AddressRegistry extends AddressRegistryBase {
 
   /**
    * The full most-→least-specific chain of covering Localities (the
-   * winner plus its ancestors), for `analyze address` provenance.
+   * winner plus its ancestors), for `trace address` provenance.
    * Empty when no Locality covers.
    */
   @CallSecurity(AddressLogicCaller)

@@ -78,6 +78,24 @@ describe('Thing', () => {
       expect(typeof thing.setContainer).toBe('function');
       expect(typeof thing.getContainer).toBe('function');
     });
+
+    // ⭐ The other half of `Good.test.ts`. Until 2026-09-29 the root
+    // composed both of these, so every floor, hearth and yard wall in the
+    // game carried surface claiming it could be OWNED and HIDDEN. They are
+    // the two consequences of being carriable, so they moved one rung out
+    // to `Good`. Neither this assertion nor its sibling means anything
+    // alone — the pair is the claim.
+    it('is neither chattel nor concealable — that is Good', () => {
+      expect(MixinApi.isChattel(thing)).toBe(false);
+      expect(MixinApi.isConcealable(thing)).toBe(false);
+    });
+
+    // `Detailed` goes wherever `Perceptible` goes: a thing addressable by
+    // keyword has parts addressable by keyword, and `Detailed` is the
+    // access path to their metadata. 78 classes used to wrap it themselves.
+    it('is detailed — the root carries it now', () => {
+      expect(MixinApi.isDetailed(thing)).toBe(true);
+    });
   });
 
   describe('Lifecycle', () => {

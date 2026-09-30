@@ -1,0 +1,47 @@
+verbs: [split]
+controller: /platform/idea/cmd/ground/SplitController
+description: "Divide an oversized or aggregated thing into usable units"
+help: |
+  `split block` takes one piece off a quarried block — a piece a body can
+  actually carry, where the block itself weighs more than anybody can
+  lift.
+
+  ⭐ The mandate is wider than stone: **divide an oversized or aggregated
+  thing into usable units.** What comes off, how many are left, and what it
+  takes to do it are the thing's own business, and it says so when you look
+  at it.
+
+  ⚠ It is work, and it wants the right tool — something to strike and
+  wedge with. The thing refuses in its own words when you have the wrong
+  one, and when there is nothing left in it.
+examples:
+  - cmd: split block
+    note: Take one carryable piece off a quarried block
+  - cmd: split the block with the sledge
+    note: Name the instrument
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠ `requires: any`, DECLARED and gating nothing — the `fell.yaml` shape.
+  # What can be split shares no mixin: a block of stone, a bole (which does
+  # this job today under `fell`, as its own view admits), a stack. The
+  # controller narrows to the declared `Splittable` shape and the THING
+  # refuses in its own words.
+  - name: target
+    type: object
+    required: true
+    scope: [reachable]
+    requires: any
+    validators:
+      - /lib/command/validators/canReach
+  # ⭐ WHICH TOOL — declared, not hunted for. Same reasoning as `dig`: what
+  # counts as the right tool is the thing's to say, not the view's.
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

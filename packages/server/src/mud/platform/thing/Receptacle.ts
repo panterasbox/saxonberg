@@ -1,15 +1,27 @@
 /**
- * Receptacle — a fluid-only liquid holder: `BulkableMixin(Thing)`.
+ * Receptacle — a fluid-only liquid holder: `BulkableMixin(Good)`.
  *
  * `Thing` already contributes Visible (description), Perceptible
  * (keywords, so `fill thermos` resolves it by name), Tangible (wall
  * material), and Containable (it can be carried and set down).
  * `BulkableMixin` adds the interior bulk slot — the liquid it holds.
  *
- * Named `Receptacle`, not `Vessel`, to stay clear of the existing
- * `lib/stuff/Vessel` (an enterable, portable-by-shape *container* — a
- * boat / wagon). A Receptacle is the opposite end: it holds bulk, not
- * discrete contents.
+ * ⚠⚠ **Named `Receptacle`, not `Vessel`, DEFENSIVELY** — *"to stay
+ * clear of the existing `lib/stuff/Vessel`"* — which is a name chosen
+ * to dodge a collision rather than chosen. ⭐ Classically a *vessel* is
+ * a liquid container and a *receptacle* is the general one, so the two
+ * are arguably swapped; re-seating them is a three-way rename across
+ * the bulk subsystem and is filed, not done.
+ *
+ * ⚠ The sentence that used to be here described `Vessel` as *"an
+ * enterable, portable-by-shape container — a boat / wagon"*. That is
+ * `ExitableVessel`, and has been since the coach got its own class.
+ *
+ * **Where this sits in the container taxonomy: outside it.** The chain
+ * is `Location` → `Holder` → `Vessel` → `ExitableVessel`, and every
+ * rung of it holds DISCRETE things. A `Receptacle` holds **bulk** —
+ * what it holds is poured, not put — which is why it composes
+ * `Bulkable` and no `Container` at all.
  *
  * Deliberately NOT a discrete `Container`: the demo receptacles hold
  * only liquid (no pen-in-the-thermos). The combined Container +
@@ -22,7 +34,7 @@
  * open colander); they differ only in authored data.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 
@@ -31,6 +43,6 @@ import { ThermalMixin } from '../../lib/thermal/Thermal';
 // so the coffee in any receptacle has a real, drifting temperature. An
 // open holder (a mug) has no sealing barrier → it cools in minutes; the
 // sealable Flask switches to a vacuum barrier when closed (τ in hours).
-const ReceptacleBase = ThermalMixin(BulkableMixin(Thing));
+const ReceptacleBase = ThermalMixin(BulkableMixin(Good));
 
 export default class Receptacle extends ReceptacleBase {}

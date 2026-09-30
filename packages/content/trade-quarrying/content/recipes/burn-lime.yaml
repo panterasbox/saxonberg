@@ -1,0 +1,30 @@
+# ⭐⭐ Burning lime — **and this row is the act now, not a label for one.**
+#
+# The plan shipped this recipe *"for the ladder and `help`"* while a bespoke
+# controller did the real work, which is a ladder that lies. `fire` reads the
+# charge, finds the recipe whose inputs match it, and runs THIS. So a pack
+# that ships a glass batch or a brick clamp ships a row beside this one and
+# touches no code.
+#
+# ⚠ **Two stones in, one lump out**, and the ratio is authored here rather
+# than hidden in a controller: `count: 2` against one output. A charge of
+# seven yields three and leaves one, which is what a lime-burner's odd stone
+# actually does.
+#
+# The input is matched on the material's `flux` TAG, never on a row path, so
+# dolomite works the day somebody ships some.
+recipeId: burn-lime
+name: Burnt lime
+keywords: [lime, quicklime, "burn lime", calcine]
+inputSlots:
+  - { slot: charge, category: flux, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: []
+outputTemplate: /trade/quarrying/thing/quicklime
+outputMaterial: ''
+outputApplication: tangible
+# Calcination starts in earnest around 1170 K. A limekiln holds 1500; a bread
+# oven holds 500 and says so.
+requiresHeatK: 1170
+maxHeatK: 1900
+difficulty: standard
+discipline: quarrying

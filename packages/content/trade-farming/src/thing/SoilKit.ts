@@ -3,7 +3,7 @@
  * instrument `measure acidity` was missing.**
  *
  * A verb affordance is a STATIC ON A CLASS, so a tool with no class of
- * its own affords nothing. The kit shipped as a bare `ToolItem` row
+ * its own affords nothing. The kit shipped as a bare `Tool` row
  * carrying `capabilities: ["soil-testing"]` — which is what the
  * controller checks — while nothing anywhere put the `measure` view in
  * front of a player, so the rung was unreachable. A live drive found it;
@@ -20,14 +20,12 @@
  * `peers`, and the channel's controller checks the capability.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class SoilKit extends ToolItem {
+export default class SoilKit extends Tool {
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['platform/cmd/perception/measure.yaml'],
-    environment: ['platform/cmd/perception/measure.yaml'],
   };
 
   constructor() {

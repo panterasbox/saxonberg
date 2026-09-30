@@ -1,0 +1,23 @@
+# density — a reading channel.
+#
+# The hydrometer's read. A ferment's specific gravity is the one number
+# that says where a batch IS rather than how it looks, which is why the
+# instrument is the first thing a brewer buys.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/DensityReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: density
+  kind: fact
+  scope: [subject]
+  subjectRequires: [BulkableMixin]
+  discipline: chemistry
+  instrument: hydrometry
+  instrumentNoun: a hydrometer
+  eyeCeiling: untrained
+  improves: >-
+    how much sugar a ferment has left to eat, and therefore when it is done
+  stakes: >-
+    a batch bottled live, a cask of vinegar, a week of guessing

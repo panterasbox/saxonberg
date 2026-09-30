@@ -12,7 +12,7 @@ import { makeStuff } from "../../security/__tests__/test-setup";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { Mixins, type MixinConstructor } from "../../mixin";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import Weapon from "../../../platform/thing/equipment/Weapon";
 import { SlottedMixin } from "../../slot/Slotted";
 import type { Slotted } from "../../slot/Slotted";
@@ -49,7 +49,7 @@ class FlamingBlade extends CombatReactiveMixin(Weapon) {
   }
 }
 
-class SlottedHost extends SlottedMixin(Thing) {}
+class SlottedHost extends SlottedMixin(Good) {}
 
 const SPEC: InflictSpec = {
   mechanism: "edge",
@@ -64,8 +64,8 @@ function makeCtx(): CombatHookContext {
       250,
     ),
     beat: 1,
-    actor: makeStuff(() => new Thing()),
-    target: makeStuff(() => new Thing()),
+    actor: makeStuff(() => new Good()),
+    target: makeStuff(() => new Good()),
   });
 }
 

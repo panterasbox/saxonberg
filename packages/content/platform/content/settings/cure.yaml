@@ -2,7 +2,7 @@
 # kind: merge-missing — a key the app_settings singleton lacks is merged
 # in; a value the operator changed via `config` is never touched).
 settings:
-  # Curing — the per-instance water state (`CuredMixin`). Two scalars,
+  # Curing — the per-instance water state (`WaterActivityMixin`). Two scalars,
   # `moisture` and `solute`, multiply the Material's tabulated water
   # activity into the effective one the growth law reads:
   #   a_w = a_w(material) · moisture · (1 − solute)
@@ -13,9 +13,28 @@ settings:
   # Fraction of the moisture gap a dried thing closes per game-hour while
   # it sits in damp air. Slow on purpose: a ham softens over weeks, not
   # over an afternoon, and a dry store has to be worth building.
-  # ⚠ ONE-WAY. Nothing dries by itself — drying is an act.
   - key: cure.rehydrationPerHour
     value: "0.02"
+
+  # ⭐ The DRYING half. Fraction of the gap an EXPOSED thing closes per
+  # game-hour, before two multipliers: the air's evaporation factor (the
+  # vapour deficit × wind × heat) and the support's exposure fraction. So a
+  # ham on a rack in an August wind loses water fast, the same ham on a
+  # cellar floor barely moves, and neither number is authored anywhere but
+  # here.
+  #
+  # ⚠ Only EXPOSED matter dries — a thing whose immediate container is a
+  # Location. Anything in a sack, a chest, a pack or a pot is enclosed and
+  # exchanges nothing, which is what keeps the store sparse.
+  - key: cure.dryingPerHour
+    value: "0.04"
+
+  # How much of a thing lying on bare ground the air reaches, against a
+  # rack's 1.0. Drying is surface-limited: a ham on a stone floor dries on
+  # top and goes off underneath, which is why cheese sits on slatted
+  # shelves and turf is built into a lattice.
+  - key: cure.groundExposure
+    value: "0.35"
 
   # The relative humidity (%) assumed where nothing in the containment
   # chain and no biome authors one.

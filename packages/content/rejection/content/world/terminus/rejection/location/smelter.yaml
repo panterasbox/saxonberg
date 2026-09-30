@@ -13,9 +13,11 @@ data:
   # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
   # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
   # 6000 — open hill under the sun. No row here authored a value before the forestry build,
-  # and every object read "something".
-  ambientIntensity: 8000
-  ambientColorTemperature: 5800
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the fuel yard, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
   longDescription: |
     A stone shaft taller than a man under an open-sided roof, a bellows lashed to its flank and a bed of sand raked flat in front of it for the pour. The slag heap outside the door is bigger than the building and glitters black-green where it has broken.
 

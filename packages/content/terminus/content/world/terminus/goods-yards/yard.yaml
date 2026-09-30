@@ -68,6 +68,11 @@ data:
     # its own floor; this is where a hauler stands to see all of it at
     # once, which is what an intermediary is FOR.
     - /trade/haulage/thing/works-board
+    # ⭐⭐ The second assay bench — ROWS AND NOTHING ELSE. Ore arrives
+    # here by wagon, so a second opinion without walking a day back to
+    # Rejection is worth paying for, and it costs more because it is.
+    # Nobody stands at it: you get the furnace, not the eye.
+    - /world/terminus/goods-yards/thing/city-assay-bench
   details:
     doors:
       keywords: [doors, door, backs, entrances]

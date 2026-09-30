@@ -125,6 +125,33 @@ function scanYaml(doc: unknown, site: string, declared: Sites, consumed: Sites):
   if (needs && typeof needs === 'object' && typeof needs.tool === 'string') {
     add(consumed, needs.tool, site);
   }
+  // ⭐⭐ A READING ROW naming the route that takes it — the fourth
+  // consumer kind, and the one the reading ladder made necessary.
+  //
+  // Before the ladder, "which instrument can read this" lived in a
+  // controller's `hasCapability(SURVEYING)` and the scanner found it in
+  // the SOURCE. A channel is a row now, so the want moved into content:
+  //
+  //   instrument: photometry        # the carried rung
+  //   handTool:   field-identification   # what lifts the eye's ceiling
+  //   bench:      assay-scale       # the fixed rung a sample goes to
+  //
+  // ⚠ Without this arm, every instrument capability in the tree reads as
+  // `declaredNeverConsumed` the moment its controller is deleted — which
+  // is exactly what happened to `soil-testing` the hour the two verbs
+  // went flat, and it is a true report of a real (momentary) defect: the
+  // want had genuinely stopped being written down anywhere.
+  // ⚠ Gated on the SITE, and it has to be: `bench:` is also an NPC
+  // dossier's workplace path (`/trade/haulage/thing/receiving-bench`),
+  // and reading a template path as a capability name reported three
+  // shipped NPCs as wanting a kind nothing offers. A key name is not a
+  // vocabulary; where it appears is.
+  if (site.includes('/idea/reading/')) {
+    for (const key of ['instrument', 'handTool', 'bench']) {
+      const want = o[key];
+      if (typeof want === 'string' && want !== '') add(consumed, want, site);
+    }
+  }
   for (const v of Object.values(o)) if (v && typeof v === 'object') scanYaml(v, site, declared, consumed);
 }
 

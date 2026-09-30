@@ -1,0 +1,40 @@
+# light — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+#
+# The sky's illuminance curve (envelope D2). These four numbers are the
+# whole of "how bright is it outside", and they are dials rather than
+# decisions: playtest moves them, no code reads them by any other name.
+settings:
+  # Degrees of sun depression per factor-of-ten twilight falloff. 3° is a
+  # crude fit to real civil/nautical/astronomical twilight; larger = a
+  # longer, gentler dusk.
+  - key: light.sky.twilightDecadeDeg
+    value: "3"
+
+  # What a full moon at the zenith contributes, as a fraction of a clear
+  # noon sun. 0.03 puts a full moon high in a clear sky at ~2 lux on a
+  # 9 m² cell — `very-dim`: move, find a door, see that somebody is there;
+  # not read, not a face. That is S1's moonlight floor, and it falls out
+  # of this one number.
+  - key: light.sky.moonMax
+    value: "0.03"
+
+  # Starlight and airglow: the moonless, cloudless floor. `pitch-black`
+  # to a human at any room scale; a band-shifted species reads it as
+  # `very-dim` and moves by it (S9).
+  - key: light.sky.starlight
+    value: "0.002"
+
+  # The sky factor below which a town's lamps burn. 0.1 is the horizon —
+  # the lamps are lit at sunset and out at sunrise.
+  - key: light.sky.lampDuskFactor
+    value: "0.1"
+
+  # The lux a sky-lit room reads at a clear noon overhead sun when its row
+  # authors no `ambientIntensity`. ⭐ This is what makes the sky DERIVED:
+  # a room open to the sky is lit because it is open to the sky, and its
+  # noon flux is this times its own floor area — so the number is right
+  # for a 1 m² closet and a 100 m² yard without either one authoring it.
+  - key: light.sky.noonLux
+    value: "80"

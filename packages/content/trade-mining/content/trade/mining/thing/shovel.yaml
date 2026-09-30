@@ -1,5 +1,5 @@
 # A shovel — for the half of mining that is moving what you broke.
-class: /platform/thing/ToolItem
+class: /platform/thing/Spade
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [shovel, spade, short-handled]

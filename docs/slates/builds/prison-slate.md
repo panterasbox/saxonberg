@@ -13,9 +13,10 @@
 > interior law as the prison's own jurisdiction (no `securityLevel`) ·
 > visitation + appeal over the courts primitive (itself unbuilt) · the
 > federal facility on its reserved Saxonberg site · terms, fines and the
-> appeal path · Q1–Q6 (diegetic prosecution of Compact crimes · what
+> appeal path · Q1–Q8 (diegetic prosecution of Compact crimes · what
 > confinement restricts beyond movement · interim committal authority ·
-> escape · fines-vs-terms · mixin placement)
+> escape · fines-vs-terms · mixin placement · ⭐⭐ how a term is
+> measured against absence · ⭐⭐ what tier the punishment ceiling is)
 > **Size:** a build
 
 **Captured 2026-08-01**, out of the Saxonberg city design session
@@ -34,6 +35,16 @@ confinement inverts), [accountability.md](../../subsystems/accountability.md)
 [time.md](../../subsystems/time.md) (terms), the courts/venire
 primitive (the appeal path) — now [courts-slate](./courts-slate.md)
 (2026-09-18).
+
+⭐ **The doctrine this slate supplies to the rubric:**
+[lens #33 · Rules](../../lenses/33-rules.md) — Schell's own definition of
+a rule includes *the consequences of the actions*, and then not one of
+his five questions asks about them. That yields the test this slate is
+the answer to: **a rule with no stated damage is an advisory rule.** The
+entry also carries the two axes confinement sits on — **who may amend**
+(the entrenchment tiers) versus **who enforces** (enforcement-slate's
+`wall · camera · witness · norm`) — and the ceiling argument now
+recorded here as Q8.
 
 ## The three enforcement tiers — and the guardrail above all of them
 
@@ -165,3 +176,33 @@ Alcatraz-shaped answer the requirements pass can take or leave).
 6. **Mixin placement** — `lib/civics/` seems right (confinement is
    civic machinery), pending the module-category check at build
    time.
+7. ⭐⭐ **How is a term measured against absence?** (added 2026-09-29,
+   out of [lens #33](../../lenses/33-rules.md)). Nothing above says
+   this, and it collides head-on with the
+   **absent-body doctrine**: you cannot starve while linkdead.
+   - On **elapsed game-time**, you serve the sentence linkdead. The
+     sentence becomes a timer, none of the rehabilitative content ever
+     runs, and the *"a sentence must remain a **place**"* rule is dead
+     on arrival — the prison is then a ban with a countdown.
+   - On **hours present**, the content becomes load-bearing and the
+     term is unbounded in real time. *"You owe the world forty hours"*
+     needs a position on whether that is a punishment or a **debt**,
+     and it has an obvious gameable edge (serve it asleep in a corner)
+     unless presence means participation.
+
+   ⚠ The relief principle makes it worse before it makes it better:
+   obligations you cannot meet may be relieved — property removed,
+   intrinsic obligations removed, or automated. **So is a sentence an
+   obligation?** If it is, absence relieves it, which is absurd. Either
+   confinement is the **named exception** to the relief principle, or
+   it is not an obligation at all and requirements must say what it is.
+   Instinct: hours present, with presence defined by the participation
+   substrate rather than by connection state — but it is a real fork
+   and both branches change what the facility is for.
+8. ⭐⭐ **What tier is the punishment ceiling?**
+   [amendment-library-slate](./amendment-library-slate.md) Q8 already
+   asks *what* the ceiling is (perma-death? total forfeiture?
+   indefinite confinement?). The prior question is **who may raise
+   it** — and the argument in [lens #33](../../lenses/33-rules.md) is
+   that **a ceiling the polity can raise is not a ceiling**, which puts
+   it in Tier A or nowhere. Answer the tier before the number.

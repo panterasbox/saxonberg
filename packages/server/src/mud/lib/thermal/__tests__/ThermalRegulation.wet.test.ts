@@ -45,7 +45,7 @@ function installRootBiome(): void {
 function coldRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = "/stuff/idea/biome/universe";
+    b.setExtendsBiomePath("/stuff/idea/biome/universe");
     return b;
   }, "/stuff/idea/biome/indoor/cell");
   const room = makeStuff(() => new TestRoom());

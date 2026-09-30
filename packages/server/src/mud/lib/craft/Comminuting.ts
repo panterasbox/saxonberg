@@ -30,7 +30,7 @@
  * turn a decision into a menu.
  *
  * The product's payload carries that as a `composition` (inner part +
- * outer part) and a `cure.moisture`, so the nutrition label, the tags and
+ * outer part) and a `water.moisture`, so the nutrition label, the tags and
  * the keeping all move continuously with `e` through machinery that
  * already existed. **No material row per band.**
  *
@@ -50,7 +50,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { BlendPart } from '../bulk/Bulkable';
-import type { CureState } from '../material/Cured';
+import type { WaterState } from '../material/WaterActivity';
 import { Grade } from './Grade';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -92,7 +92,7 @@ export interface ComminutionPlan {
   /** The product payload's composition (inner part + outer part). */
   composition: BlendPart[];
   /** The product payload's water state — wetter as the outer share rises. */
-  cure: CureState;
+  water: WaterState;
   /** Grade of the product: weakest link of the input and the instrument. */
   grade: Grade;
   /** Template path of the product material. */
@@ -293,7 +293,7 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       // activity and a pure-inner one sits below the growth floor.
       // `Freshness.waterActivityOf = base * moisture * (1 - solute)`.
       const D = COMMINUTION_DEFAULTS;
-      const cure: CureState = {
+      const water: WaterState = {
         moisture:
           D.MOISTURE_FLOOR +
           D.MOISTURE_SPAN * (b > 0 ? Math.min(1, outerShare / b) : 0),
@@ -324,7 +324,7 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
         tollL: litresOf(tollKg, this.productMaterial),
         outerShare,
         composition,
-        cure,
+        water,
         grade,
         productMaterial: this.productMaterial,
         residueMaterial: this.residueMaterial,

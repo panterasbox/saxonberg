@@ -20,11 +20,11 @@
  * the smithing pack, or the kernel would be naming a trade's verb.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-const WhetstoneBase = AudibleMixin(ToolItem);
+const WhetstoneBase = AudibleMixin(Tool);
 
 export default class Whetstone extends WhetstoneBase {
   /** Carried, never sideways — see the note above. */

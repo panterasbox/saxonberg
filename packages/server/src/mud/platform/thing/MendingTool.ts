@@ -10,7 +10,7 @@
  * need this file edited.
  */
 
-import ToolItem from './ToolItem';
+import Tool from './Tool';
 import type { CommandContributions } from '../../api/command';
 
 const MENDING = [
@@ -18,7 +18,7 @@ const MENDING = [
   'platform/cmd/crafting/salvage.yaml',
 ];
 
-export default class MendingTool extends ToolItem {
+export default class MendingTool extends Tool {
   static commandContributions: CommandContributions = {
     environment: MENDING,
     peers: MENDING,

@@ -164,7 +164,7 @@ orders / groups / collapses a *collection* and composes **through**
 `LookController.lookAtLocation` calls it at the single existing
 `Mml.list(...)` occupant seam, so both `look` and arrival (which reuses
 `look` via `forceCommand`) route through one chokepoint; non-organism
-loose contents stay on the plain `ContainmentApi.looseContents` path.
+loose contents stay on the plain `Container.getLooseContents` path.
 
 ### Density tiers + verbosity
 

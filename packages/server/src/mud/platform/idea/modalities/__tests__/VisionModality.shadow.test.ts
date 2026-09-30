@@ -11,7 +11,7 @@ import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import CartesianZone from '../../location/CartesianZone';
 import { LightSourceMixin } from '../../../../lib/perception/LightSource';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { PerceptionMixin } from '../../../../lib/perception/Perception';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -29,11 +29,11 @@ const vision = (): VisionModality =>
 
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 class TestObserver extends PerceptionMixin(
-  SensorMixin(ContainableMixin(Thing))
+  SensorMixin(ContainableMixin(Good))
 ) {
   handleMessage(): void {}
 }
-class Candle extends LightSourceMixin(Thing) {}
+class Candle extends LightSourceMixin(Good) {}
 
 class BlindfoldShadow extends Shadow {
   @Shadowing
@@ -127,6 +127,31 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
 
     expect(vision().perceivedBand(viewer, room)).toBe('dim');
     expect(vision().viewerVisionProfile(viewer).bandShift).toBe(1);
+  });
+
+  it('⚠⚠ a band shift cannot MANUFACTURE photons — night vision in a sealed cellar is still blind', async () => {
+    // `applyBandShift` is index arithmetic on the lux tag table, so a
+    // `+1` species read `very-dim` in a room with NO LIGHT IN IT AT ALL.
+    // Never noticed until the envelope build, because until then
+    // nowhere was dark. Seeing further into the dark is not seeing in
+    // the absence of light (envelope D11).
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    const cellar = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(cellar, 0, 0, 0);
+    // No ambient, no emitter, no exit: genuinely zero photons.
+
+    const viewer = await StuffApi.create(() => new TestObserver());
+    const nightVision = await StuffApi.create(() => new NightVisionShadow());
+    ShadowApi.attach(viewer, nightVision);
+
+    expect(vision().viewerVisionProfile(viewer).bandShift).toBe(1);
+    expect(vision().perceivedBand(viewer, cellar)).toBe('pitch-black');
+
+    // ⭐ And the shift still works the moment there IS light: one
+    // starlit lumen reads a band brighter than a human would see it.
+    cellar.setAmbientFlux(0.5);
+    expect(vision().perceivedBand(viewer, cellar)).toBe('very-dim');
   });
 
   it('multiple shadows compose via callDown — chain order respected', async () => {

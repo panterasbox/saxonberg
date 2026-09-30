@@ -1,5 +1,5 @@
 /**
- * Scrap — the fungible salvage stack: `StackableMixin(Thing)` (the Coin
+ * Scrap — the fungible salvage stack: `StackableMixin(Good)` (the Coin
  * precedent), material-stamped per salvage, **quantity by mass** (one
  * unit = {@link Scrap.UNIT_KG}). The non-metal half of salvage's
  * matter-typed outputs (metal returns as re-meltable Castings) and the
@@ -7,10 +7,10 @@
  * value-add died with the form (the entropy sink).
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { StackableMixin } from '../../lib/stuff/Stackable';
 
-const ScrapBase = StackableMixin(Thing);
+const ScrapBase = StackableMixin(Good);
 
 export default class Scrap extends ScrapBase {
   /** One scrap unit's mass (kg) — quantity counts these. */

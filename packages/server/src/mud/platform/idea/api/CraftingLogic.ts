@@ -21,7 +21,7 @@ import {
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
 import { ThermalDose } from '../../../lib/thermal/ThermalDose';
-import { Cure } from '../../../lib/material/Cured';
+import { WaterActivity } from '../../../lib/material/WaterActivity';
 import {
   Contamination,
   type PathogenLoads,
@@ -709,7 +709,7 @@ function pickItemInputs(
  *
  * ⭐ The mechanism is the board's, generalized: a surface that worked on
  * contaminated matter carries it to whatever it works on next. Which tools
- * can hold a load is a CLASS decision (`KitchenTool` does, `ToolItem` does
+ * can hold a load is a CLASS decision (`KitchenTool` does, `Tool` does
  * not), so this offers it to all of them and the host set decides.
  */
 function contaminateTools(
@@ -1402,16 +1402,16 @@ async function applyTangibleOutput(
       output.setPathogenLoads(outcome.pathogens);
     }
   }
-  if (MixinApi.isCured(output)) {
+  if (MixinApi.isWaterActive(output)) {
     // The input's own water state first — a dried cut smoked is still a
     // dried cut — then the recipe's treatment, stronger-axis-wins.
     const inherited =
-      primary && MixinApi.isCured(primary.stuff)
-        ? primary.stuff.getCureState()
-        : Cure.untreated();
+      primary && MixinApi.isWaterActive(primary.stuff)
+        ? primary.stuff.getWaterState()
+        : WaterActivity.untreated();
     const treatment = recipe.getCure();
-    output.setCureState(
-      treatment ? Cure.applyTreatment(inherited, treatment) : inherited,
+    output.setWaterState(
+      treatment ? WaterActivity.applyTreatment(inherited, treatment) : inherited,
     );
   }
   // ⭐ And the doneness the working put on it — the discrete twin of
@@ -2324,7 +2324,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   //
   // ⚠ Offered to every used tool and taken only by the ones that can HOLD
   // it: `ContaminableMixin` is composed on food kit (`KitchenTool`), not
-  // on `ToolItem`, whose host set is a felling axe, a sledge and a shovel.
+  // on `Tool`, whose host set is a felling axe, a sledge and a shovel.
   // A smith's hammer is offered the same contamination and is structurally
   // unable to take it — the narrowing does the work, not a guard here.
   contaminateTools(usedTools, matched, matchedItems);
@@ -2351,7 +2351,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       }
     }
   }
-  // Tools wear on use — the durable-good half (a ToolItem composes
+  // Tools wear on use — the durable-good half (a Tool composes
   // DurableMixin alongside ToolMixin).
   for (const t of usedTools) if (MixinApi.isDurable(t)) t.wear();
 

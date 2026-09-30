@@ -1,0 +1,57 @@
+# ⭐⭐ The turf bank — **the fuel or the field, and not both.**
+#
+# A cut face in the peat at the edge of the heath. Dig it and you get turves:
+# wet, useless, and worth something in a fortnight if the weather holds.
+# ⭐ `ditch` it and the drains work, the peat oxidises, the ground subsides —
+# and what you are left with is the best arable ground there is and no fuel.
+# That choice has no dominant answer and no villain in it, which is the whole
+# reason peat is in this build.
+#
+# ⚠⚠ **And whoever drains upslope ruins a neighbour's bank without entering
+# it.** In this build that externality is REAL IN THE FICTION and absent from
+# the mechanism: nothing couples one room's ditch to another's water table, so
+# the bank is drained by ditching the bank itself and anybody standing on it
+# may do it (labour is not title-gated). Said out loud rather than papered over
+# with a refusal that would invent a criterion nobody chose. The remedy is owed
+# to the watershed's rights records.
+#
+# ⚠ The mere next door carries a fishing REACH, so draining here touches water
+# somebody fishes — which is the same externality one step further out, and it
+# is recorded for the watershed too.
+class: /trade/quarrying/location/Turbary
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: turf bank
+  keywords: [bank, "turf bank", turbary, peat, moss, face]
+  register: definite
+  alternateNames: [face, wall, floor]
+  # Under the Weeping Moor Locality's `moor` prefix, like the heath.
+  address: moor/turf-bank
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # ⚠ The moor's cells are 3 m, so the lux figure is far lower than the
+  # quarry's for the same brightness: lumens over the cell's AREA.
+  ambientIntensity: 700
+  ambientColorTemperature: 5900
+  longDescription: |
+    A bank of cut peat standing about chest high where somebody has been working back into the moss, black and fibrous, with the water standing in the bottom of the cut. The heather is undercut at the lip and hangs over it in a fringe.
+
+    Turves are stacked in an openwork lattice a little way off, built so the wind goes through them.
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  # ⭐ Smaller than the stone pit's 20 m: a turbary is a bank somebody works by
+  # hand, and this is what makes it genuinely exhaustible.
+  faceRunM: 12
+  # ⭐⭐ **The turf-spade, and the drive is why.** The prose says somebody has
+  # been working back into the moss, and a bank nobody can cut is a bank nobody
+  # can learn anything from: without a tool here, `dig` refuses forever and the
+  # fuel-or-the-field choice has no first step. ⚠ A moor is nobody's yard, so
+  # this is not a tool rack — it is the one spade left at a working face, which
+  # is what the prose already describes.
+  props:
+    - /trade/quarrying/thing/spade
+  exits:
+    west:
+      destination: /world/moor/stormy-heath
+      edgeMinutes: 2

@@ -27,7 +27,7 @@
  * cuts' age model exists to create.
  */
 
-import Surface from '@saxonberg/server/mud/platform/thing/Surface';
+import Fitting from '@saxonberg/server/mud/platform/thing/Fitting';
 import { ContaminableMixin } from '@saxonberg/server/mud/lib/material/Contaminable';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
@@ -42,7 +42,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
  * was false of most of that host set. Here it is true of every member:
  * a butcher's block is food equipment and nothing else.
  */
-const ButcherBlockBase = ContaminableMixin(Surface);
+const ButcherBlockBase = ContaminableMixin(Fitting);
 
 export default class ButcherBlock extends ButcherBlockBase {
   static commandContributions: CommandContributions = {

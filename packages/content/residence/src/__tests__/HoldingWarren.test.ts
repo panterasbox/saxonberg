@@ -10,6 +10,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HoldingWarren from '../idea/HoldingWarren';
@@ -33,7 +34,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { CommandApi, type CommandContext, type CommandModel } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -110,6 +111,16 @@ function seedDomain(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows: every exit is a clone of a kind row
+  // and a boundary's anchors are clones too.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    domain.push({ _id: `d-${++idCounter}`, ...row });
+  }
+  add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
+  add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
+  add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
+  add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
+
   add(WARREN_PATH, WARREN_PATH.replace('/holder', '/TestInstitution'));
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     floorplan: [
@@ -326,11 +337,12 @@ describe('the residential programme (D16)', () => {
     const w = await institution();
     const street = await StuffApi.singleton<MemberStuff>(STREET);
 
-    const door = StuffApi.createSync(
-      () =>
-        new FrontDoorExit(street, w, LOT1, 'lot-1', ROOM_A),
+    // The constructor arguments became a `configure` step (the exit is
+    // a clone of `/system/residence/idea/exits/front-door` now).
+    const door = await StuffApi.clone<FrontDoorExit>(
+      '/system/residence/idea/exits/front-door',
     );
-    await (street as unknown as Exitable & { addExit(e: unknown): Promise<void> }).addExit(door);
+    door.configureFrontDoor(w, LOT1);
 
     const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
     iris.setPlayerId('iris');
@@ -603,7 +615,7 @@ describe('the maintenance act (D4/D5)', () => {
     // durable in the room ever loses condition to the calendar, the
     // economy's second law is broken and everything a player owns rots.
     const { holding, hall, clock } = await wornHolding();
-    const tool = makeStuffAtPath(() => new ToolItem(), '/world/prog-test/spanner');
+    const tool = makeStuffAtPath(() => new Tool(), '/world/prog-test/spanner');
     ContainmentApi.move(tool as unknown as Stuff & Containable, hall);
     const before = tool.getCondition();
 

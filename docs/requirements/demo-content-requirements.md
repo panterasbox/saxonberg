@@ -5,7 +5,7 @@ permanent world beats the five videos film against. Seeded by
 [demo-slate.md](../slates/builds/demo-slate.md) (items 2–5, 7), with
 briefs in [education-videos.md](../education-videos.md) (§ Pre-script
 gap audit) and the ceremony doctrine in
-[lenses/moments.md](../lenses/moments.md). Everything here is
+[lens-deck-salvage.md](../lens-deck-salvage.md). Everything here is
 world-content that earns its place independent of the videos — the
 never-half-grown rule applies: each piece ships as a real, complete
 fixture of the world, not a film set.
@@ -375,7 +375,7 @@ roads.** Buildings are kept off the green entirely (decision,
 2026-07-28, revising the campus map's "buildings front it
 directly"): every campus building lives on a road; the Quad
 holds grass, walkways, the statue, the fountain, and nothing
-else. Populates: the fountain (unit 6) and the statue (unit 7).
+else. Staged: the fountain (unit 6) and the statue (unit 7).
 No resident NPCs (the greeter is the onboarding build's).
 
 **The strange finish — two notes, deliberately no more:**
@@ -1074,7 +1074,7 @@ withdrawal, memorial automation, and expulsion are all deferred.
 
 ## Constraints
 
-- **Ceremony doctrine** ([lenses/moments.md](../lenses/moments.md)):
+- **Ceremony doctrine** ([lens-deck-salvage.md](../lens-deck-salvage.md)):
   once per threshold per character, diegetic, skippable, no fanfare
   sting. Each beat must have witnesses possible and a chronicle
   receipt — a moment that leaves no trace can't be retold.
@@ -1173,7 +1173,7 @@ withdrawal, memorial automation, and expulsion are all deferred.
   (the EC source — road prose origins, the Heart)
 - Video briefs: [education-videos.md](../education-videos.md);
   wishbook loops: [staging/wishbook.md](../staging/wishbook.md)
-- Ceremony doctrine: [lenses/moments.md](../lenses/moments.md)
+- Ceremony doctrine: [lens-deck-salvage.md](../lens-deck-salvage.md)
 - Campus plan: [staging/content-tour.md](../staging/content-tour.md)
 - Subsystem docs: [advancement](../subsystems/advancement.md)
   (conferrals), [employment](../subsystems/employment.md) (wages),

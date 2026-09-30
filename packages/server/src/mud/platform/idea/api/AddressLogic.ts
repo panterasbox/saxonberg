@@ -6,13 +6,14 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import { Mixins } from '../../../lib/mixin';
 import { MqlApi } from '../../../api/mql';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Addressable } from '../../../lib/address/Addressable';
-import type Locality from '../Locality';
+import Locality from '../Locality';
 import type AddressRegistry from '../AddressRegistry';
 import type {
   AddressResolution,
@@ -257,6 +258,68 @@ export class AddressLogic extends ApiLogic {
   @CallSecurity(AddressApiCallers)
   public async rebuildCoverageIndex(): Promise<void> {
     await lookupRegistry()?.rebuildCoverageIndex();
+  }
+
+  /** See {@link AddressApi.isStreetLitTonight}. */
+  @CallSecurity(AddressApiCallers)
+  public isStreetLitTonight(
+    localityPath: string | null,
+    streetPath: string
+  ): boolean {
+    if (localityPath === null) return false;
+    const locality = StuffApi.findByTemplatePath<Locality>(localityPath);
+    return locality?.isStreetLitTonight(streetPath) ?? false;
+  }
+
+  /**
+   * See {@link AddressApi.settleStreetLighting}.
+   *
+   * ⭐ ONE registry walk for the whole realm, once per game night: every
+   * scope that declares the public-lighting service, bucketed by the
+   * covering locality each resolved at its own `postRegister`, and
+   * sorted by the seniority its row records. Each extent is then handed
+   * its own queue and makes its own decision.
+   *
+   * That split is the design rather than plumbing. *What does this
+   * extent cover* is the address subsystem's question, and it needs a
+   * registry-wide read — which is gated by name, because being handed a
+   * slice of the world has to be asked for. *Which of them can I afford
+   * tonight, and who gets paid* is the extent's, and needs nothing but
+   * its own fields.
+   */
+  @CallSecurity(AddressApiCallers)
+  public async settleStreetLighting(nowS: number): Promise<void> {
+    const byLocality = new Map<string, Array<{ path: string; seniority: number }>>();
+    for (const stuff of StuffApi.findByMixin(Mixins.PublicLighting)) {
+      if (!MixinApi.isPublicLighting(stuff)) continue;
+      const spec = stuff.getPublicLighting();
+      if (spec === null) continue;
+      const path = stuff.getTemplatePath();
+      const localityPath = stuff.getLightingLocalityPath();
+      if (path === null || localityPath === null) continue;
+      const bucket = byLocality.get(localityPath) ?? [];
+      bucket.push({ path, seniority: spec.seniority });
+      byLocality.set(localityPath, bucket);
+    }
+
+    for (const [localityPath, streets] of byLocality) {
+      const locality = StuffApi.findByTemplatePath<Locality>(localityPath);
+      if (!locality) continue;
+      if (locality.getPublicLightingFunding() === null) continue;
+      streets.sort(
+        (a, b) => a.seniority - b.seniority || a.path.localeCompare(b.path),
+      );
+      try {
+        await locality.settleStreetLighting(
+          nowS,
+          streets.map((r) => r.path),
+        );
+      } catch {
+        // One extent's books must never take the whole realm's evening
+        // down: a locality whose supplier row is broken goes dark and
+        // its streets say so.
+      }
+    }
   }
 
   /** See {@link AddressApi._resetRegistryRefForReload}. */

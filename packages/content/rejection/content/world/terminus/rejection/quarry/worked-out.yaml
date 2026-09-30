@@ -1,0 +1,53 @@
+# ⭐⭐ The played-out working — **a face that is worked out, standing up as a
+# place.**
+#
+# This room exists because of an arithmetic honesty problem. A 4 m band on a
+# 20 m run holds **320 units**, and that number is *correct*: 160 m³ of rock,
+# and a real quarryman cut a few blocks a day. So *"this face is worked out"*
+# is not observable by grinding — and shrinking the pit so that one session
+# could exhaust it would be **the world lying about scale**, which is exactly
+# what the pedagogy lens exists to catch.
+#
+# So the number stands and the lesson moves into a row: `wonByBand` is seeded
+# at capacity for every band the wall exposes, and a person learns what a
+# worked-out face reads like by **walking thirty yards**. Zero grinding, zero
+# new code.
+#
+# ⭐ And it is the proof that a second working is rows: this room is the same
+# class as the live pit, on the same column, with three numbers different.
+# `old-workings` next door could NOT have done this job — it is a played-out
+# copper prospect in the Ferrow's own column (`scale: 0.55`), and a stone
+# quarry standing in for it would not read.
+#
+# ⚠ The seeded figures are per-band capacities off the shared column and the
+# pit's own 20 m run: drift 1 m → 2 lifts × 40 = 80; clay 1 m → 80; granite
+# 4 m → 8 × 40 = 320. They are above capacity on purpose, so a later change
+# to `faceRunM` cannot silently un-exhaust the room.
+class: /trade/quarrying/location/OpenWorking
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: abandoned quarry face
+  keywords: [quarry, pit, face, working, abandoned]
+  register: definite
+  alternateNames: [wall, bench, floor, "old face"]
+  _address: terminus/rejection/quarry/abandoned
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A second bite out of the same hill, older than the one next door and finished with. The bench is grassed over at the edges and there is a birch growing out of the spoil, which tells you how long ago anybody swung anything here.
+
+    The wall still stands clean enough to read. Whoever worked it took what it had.
+  coords: { x: 0, y: 1, z: 0 }
+  faceRunM: 20
+  # The floor was taken down through the drift and the clay and into the
+  # granite before they gave up on it.
+  floorDepthM: 2.5
+  wonByBand:
+    /stuff/idea/material/bulk/drift: 999
+    /stuff/idea/material/earth/clay: 999
+    /stuff/idea/material/rock/granite: 999
+  exits:
+    south:
+      destination: /world/terminus/rejection/quarry/pit
+      edgeMinutes: 2

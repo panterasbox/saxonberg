@@ -57,7 +57,7 @@ Whole slate UNBUILT: no blood type, donation or transfusion code (`grep -rli 'bl
 
 - unlinked-2 · language-slate · `## Principle` (*Languages are data, not behavior… the render-side gate is the only piece of code the system grows*) — **STAYS** — argues for the `Language` Idea + catalogue and the render gate, both UNBUILT: what shipped is `MARK_SCRIPTS`, a `const` vocabulary in `lib/description/Marked.ts:93` (code, not data rows) and no speech/read garble gate anywhere; the shipped written half is already documented at `perceiver.md § read — the marks substrate` (stamped *graduated from the language slate*). ⚠ the principle's `/lib/language/<name>` row path contradicts *nothing instances `/lib/`* — already flagged in the status block's `Left`, so no separate contradiction row.
 
-### unlinked-2 · `docs/slates/builds/instrumentation-slate.md`
+### unlinked-2 · `docs/slates/tails/instrumentation-slate.md`
 
 - unlinked-2 · instrumentation-slate · `## ⚠ The aether line — a modem is not a sense organ` (*physical sensing can never ride the aether base*; *the aether is the textbook; the instrument is the lab*) — **GRADUATED → handoff (`augmentation.md § The three-base capability model + the aether hosting relation`)** — the three-base model SHIPPED (`lib/augmentation/AetherHosted.ts`, `AetherMixin` host, `Species.innateMixins`; `augmentation.md` l.230–310) and the doc states what rides each base (comms + wallet as hosted updates, `TravelCard`/`PaymentCard` as corporeal twins) but never the RULE that constrains base assignment or its why; the sensorium walk even leaves `_grantsModalities` open on hosted updates (*"substrate-only in v1"*), so the rule is the only thing telling an author not to hang a photodiode on an update. Text in `## Handoff`; **the slate section is left in place** until the coordinator's insert lands (cut-after-diff rule) — then cut l.75–106 to a one-line pointer.
 - unlinked-2 · instrumentation-slate · `## One thing that is accidentally right, and should be doctrine` (*`analyze` is what you can work out. `measure` is what an instrument tells you.*) — **DUPLICATE → `command-routing.md § Affordance attribution — source, not category`** — unlinked-2's handoff was applied (l.536–541, stamped *graduated from the instrumentation slate, 2026-09*); **cut** from the slate (7 lines), a 3-line pointer left under the heading.
@@ -89,13 +89,13 @@ Whole slate UNBUILT: no blood type, donation or transfusion code (`grep -rli 'bl
 
 Entry count: 28 (unlinked-2) + 1 (location) + 1 (weather) = 30 entries; outcomes sum to 32 because the one mixed entry (multilocation § Principle) carries three outcomes (DUPLICATE · STAYS · STAYS-contradicted).
 
-Files changed by this batch: `docs/slates/builds/instrumentation-slate.md` (−7 +3) · `docs/slates/builds/multilocation-slate.md` (−8 +7) · `docs/slates/tails/weather-slate.md` (−13 +4) · `docs/subsystems/weather.md` (+26) · this ledger.
+Files changed by this batch: `docs/slates/tails/instrumentation-slate.md` (−7 +3) · `docs/slates/builds/multilocation-slate.md` (−8 +7) · `docs/slates/tails/weather-slate.md` (−13 +4) · `docs/subsystems/weather.md` (+26) · this ledger.
 
 ## Handoff
 
 ### → `docs/subsystems/augmentation.md § The three-base capability model + the aether hosting relation` (INSERT after the canonical-statement blockquote and the `AetherMixin` host paragraph, before `### The hosting relation`)
 
-Source: `docs/slates/builds/instrumentation-slate.md § ⚠ The aether line — a modem is not a sense organ` (l.75–106; verbatim preserved there until this lands — then cut it to a one-line pointer). Faithful compaction:
+Source: `docs/slates/tails/instrumentation-slate.md § ⚠ The aether line — a modem is not a sense organ` (l.75–106; verbatim preserved there until this lands — then cut it to a one-line pointer). Faithful compaction:
 
 > **The base-assignment rule: physical sensing can never ride the aether
 > base.** The aether implant *mediates the aether* — communication and

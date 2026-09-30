@@ -7,6 +7,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -106,6 +107,16 @@ function seedDomain(): void {
       data,
     });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows plus the residence exit kinds — every
+  // exit is a clone of a kind row now.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    domain.push({ _id: `d-${++idCounter}`, ...row });
+  }
+  add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
+  add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
+  add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
+  add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
+
   add(BUILDING, '/system/residence/idea/BuildingWarren', {
     programmePath: PROGRAMME,
     corridorTemplate: CORRIDOR,
@@ -140,7 +151,7 @@ function seedDomain(): void {
     shortDescription: 'the Seznick House lobby',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
-  add('/world/test/lamp', '/platform/thing/Thing', {
+  add('/world/test/lamp', '/platform/thing/Good', {
     shortDescription: 'a tin lamp',
   });
 }

@@ -561,7 +561,7 @@ sinks):
    real seams, one decision, one dependency; everything else is
    consumers of proven patterns)*:
 
-   - ✅ **S1 + S2 shipped with doneness (2026-09)** — a `Thermal` body IN or ON a lit furnace takes the furnace's held temperature as its ambient (`Thermal.ts` § held temperature; `FurnaceMixin.restampHeated`), and `ThermalDoseMixin` is the ∫f(T)dt gauge with browning and scorch as separate integrals → [crafting.md § The doneness seam](../../subsystems/crafting.md), [spoilage.md § Doneness](../../subsystems/spoilage.md). ⚠ The kill is still `Freshness`'s own Arrhenius curve, deliberately not re-based onto the dose.
+   - ✅ **S1 + S2 shipped with doneness (2026-09)** — a `Thermal` body IN or ON a lit furnace takes the furnace's held temperature as its ambient (`Thermal.ts` § held temperature; `BurnerMixin.restampHeated`), and `ThermalDoseMixin` is the ∫f(T)dt gauge with browning and scorch as separate integrals → [crafting.md § The doneness seam](../../subsystems/crafting.md), [spoilage.md § Doneness](../../subsystems/spoilage.md). ⚠ The kill is still `Freshness`'s own Arrhenius curve, deliberately not re-based onto the dose.
    - **S4 — where sequencing lives** (a decision, not a build). Braise
      is ordered stages; `Recipe` is one-shot slots-and-gates and should
      stay so. The sequencing engine exists: the demonstration capture
@@ -664,7 +664,7 @@ sheet, rack, spit — or a dry pot). But `ManualBuildMixin` banks
 *contributions*, not spatial containment — a griddle hosts a flatbread
 build exactly as a pot hosts a stew — so in/on is per-row spatial
 texture, invisible to the crafting machinery. **The oven is not
-cookware**: the vessel holds the food, the furnace (`FurnaceMixin`)
+cookware**: the vessel holds the food, the furnace (`BurnerMixin`)
 holds the heat; what goes in an oven is the sheet or dish.
 
 - **Edge cases that fit by construction**: the **bain-marie** — a
@@ -701,7 +701,7 @@ identically. The ladder is **row data on the heat source**:
 
 | tech | the real difference | engine term |
 |---|---|---|
-| wood/charcoal | fuel-tending, slow, smoke | `Combustible` + `FurnaceMixin` (ships) |
+| wood/charcoal | fuel-tending, slow, smoke | `Combustible` + `BurnerMixin` (ships) |
 | gas | instant, precise | high `rate`, no fuel step |
 | electric coil | the pan lags the dial | large thermal lag in the S1 couple |
 | induction | fast, and **heats the vessel not the air** | S1 couples to the pot directly — a kitchen that stays cool |

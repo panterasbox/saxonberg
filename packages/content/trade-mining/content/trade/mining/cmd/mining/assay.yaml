@@ -1,0 +1,86 @@
+# ⭐⭐ `assay <samples> [at <bench>]` — hand your samples over and go.
+#
+# The bench holds NOTHING of yours: no engagement, no lease, no standing
+# and watching. The world clock carries the fire and the papers are on
+# the bench when you come back. That is the mill's shape, and it is the
+# right one — the point of an assay is that it is the part of
+# prospecting you are NOT doing while it happens.
+#
+# ⚠ An assay CONSUMES the sample. That is why it costs one, why the
+# batch is amortized, and why salting is worth doing.
+verbs: [assay]
+description: "Run samples through an assay and get a number"
+help: |
+  Hand samples to an assay bench, or run them on your own kit, and
+  get back a paper for each: what it is, how much of it there is,
+  who read it and how well.
+
+  ⭐ Bring SEVERAL. Lighting the furnace costs the same whether you
+  brought one sample or eight, so the trip is what you are paying
+  for — `assay the samples` is most of a day's difference from
+  `assay the sample`, eight times over.
+
+  ⚠ It destroys what it reads. And it reads the thing in front of
+  it: a sample that went off in the carrying reads as what it is
+  NOW, which is a true answer to the wrong question. A competent
+  assayer will tell you so.
+
+  ⚠ The paper says where the sample was TAKEN. It does not say
+  whether the person who took it was honest.
+examples:
+  - cmd: assay the samples
+    note: The whole batch, amortized
+  - cmd: assay the ore at the bench
+    note: Name the bench when your own kit is also in reach
+controller: /trade/mining/idea/cmd/mining/AssayController
+args:
+  # Every sample in reach that carries a provenance stamp. ⚠ The
+  # `requires:` IS the host set — a thing with no stamp is not a sample,
+  # and the binder says so before the controller has to.
+  - name: samples
+    type: objects
+    # ⚠⚠ OPTIONAL WITH A DEFAULT, and the live drive is what changed it.
+    # It was `required: true` with no default, so bare `assay` could not
+    # bind at all — and a prospector standing AT the bench holding ore
+    # was told *"That doesn't match any known command shape: assay."*
+    # The parser, about the word, for a verb the room affords.
+    #
+    # ⭐ That is this build's own doctrine broken by this build's own
+    # verb: the refusal IS the progression UI, so a missing ARGUMENT has
+    # to be sayable exactly like a missing rung. The controller already
+    # had the right sentence — *"Assay what? A sample is a piece you took
+    # and noted — `sample` first."* — and the binder refused one step
+    # above it, so nobody could ever read it.
+    #
+    # The default is also the behaviour the help recommends: "Bring
+    # SEVERAL", because the furnace costs the same either way. Bare
+    # `assay` now means the whole batch you are carrying, which is the
+    # amortized trip the economics are built around.
+    required: false
+    default: "reachable:[mixin.SampledMixin]"
+    # ⚠⚠ `greedy: true`, and a PLURAL arg needs it every bit as much as a
+    # singular one. Without it `assay the ore` binds `the` and `ore` as
+    # TWO object queries, `the` matches the first thing in reach, and the
+    # verb refuses with *"an aether implant is not a sample"* — a
+    # sentence about an object nobody mentioned. Found by driving, after
+    # the same defect had already been fixed on `measure`, `analyze` and
+    # `sample`: the article eats a positional wherever one is free.
+    greedy: true
+    scope: ["reachable"]
+    requires: [SampledMixin]
+  # ⭐ The default resolves the carried KIT as well as the bench —
+  # correct, and the point: they are two rungs of one capability and
+  # they differ in time, fee and ceiling, never in access. The
+  # controller tells them apart on `fixedInPlace`.
+  - name: bench
+    type: object
+    required: false
+    # ⚠⚠ Greedy here too: `assay the ore at the bench` puts `the` and
+    # `bench` after the preposition, and without this the leftover word
+    # trips "too many arguments" and the command dies as an unknown
+    # shape — with everything upstream of it already correct.
+    greedy: true
+    prepositions: [at, on, with]
+    default: "reachable:[capability.assay-scale]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

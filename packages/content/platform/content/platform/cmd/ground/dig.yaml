@@ -1,0 +1,62 @@
+verbs: [dig]
+controller: /platform/idea/cmd/ground/DigController
+description: "Turn the ground over and see what comes up"
+help: |
+  `dig` turns over the ground you are standing on. `dig clay` or `dig
+  limestone` names what you are after; `dig the bank` names a thing.
+
+  ⭐ **The ground decides what comes up.** A quarry face gives stone and
+  the drift over it gives spoil; a peat bank gives turves; a limy corner
+  gives marl. The verb has no list — it asks what is under you, and what is
+  under you answers.
+
+  ⚠ **The tool is the constraint, and the refusal names it.** A spade
+  shifts earth and will not win rock; a pick wins rock and will not shift
+  drift. Bare-handed you are told what you want. That is the whole of it:
+  one act, and the ground tells you what the job needs.
+
+  A face runs out, and says so in its own words. Ground that has nothing
+  worth turning over says that too.
+examples:
+  - cmd: dig
+    note: Turn over whatever is under you
+  - cmd: dig clay
+    note: Work a named band of the ground
+  - cmd: dig with the pick
+    note: Name the instrument
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠ POLYMORPHIC, so `requires: any` — DECLARED, and it gates nothing (the
+  # `fell.yaml` shape, and `lint:arg-kinds`' own word for it). Three things
+  # can stand in this slot and they share no mixin: a diggable OBJECT (a
+  # peat bank, a spoil heap), a bare BAND WORD that binds nothing (`dig
+  # clay` lands as `{ stuff: null, raw: 'clay' }` because a band in the
+  # column is not a bindable target), or nothing at all — in which case the
+  # ground under your feet answers. Naming a mixin would refuse two of the
+  # three at the binder, and an alternation deletes a check. The controller
+  # narrows and the GROUND refuses in its own words.
+  - name: target
+    type: object
+    required: false
+    scope: [reachable]
+    requires: any
+  # ⭐ WHICH TOOL — declared, not hunted for (`lint:instrument-args`).
+  #
+  # ⚠⚠ `[mixin.ToolMixin]` and NOT `[capability.digging]`, and that is the
+  # one place this view departs from every other instrument arg in the tree.
+  # A spade offers `digging` and a pick offers `winning`, and BOTH are the
+  # right tool for some ground — so a capability default would silently
+  # refuse to bind the pick and the player would be told there is no face
+  # rather than that they have the wrong tool. Which tool is right is a fact
+  # about the GROUND, so the ground gets to say it: *"You would want a
+  # pick. That is rock."*
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

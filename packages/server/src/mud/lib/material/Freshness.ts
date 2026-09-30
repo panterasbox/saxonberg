@@ -69,7 +69,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type Material from './Material';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
-import { Cure, type CureState } from './Cured';
+import { WaterActivity, type WaterState } from './WaterActivity';
 import { Contamination } from './Contaminable';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -255,7 +255,7 @@ export class Freshness {
   static growthRate(
     material: Material | null,
     tempK: number,
-    cure: CureState | null = null,
+    water: WaterState | null = null,
   ): number {
     if (!material) return 0;
     const ea = material.getSpoilActivationEnergy().rawValue();
@@ -273,7 +273,7 @@ export class Freshness {
       return 0; // the water is ice — a pause, not a reset
     }
 
-    const aw = Freshness.waterActivityOf(material, cure);
+    const aw = Freshness.waterActivityOf(material, water);
     const floor = dial(AppSettingKeys.freshnessAwFloor, FRESHNESS_DEFAULTS.AW_FLOOR);
     if (aw <= floor) return 0; // salt, sugar, honey, spirits
     // A linear ramp above the floor: full rate at a_w = 1, nothing at the
@@ -306,23 +306,23 @@ export class Freshness {
    * earns partial benefit, with nobody enumerating "salt cod" anywhere.
    *
    * ⭐ `moisture: 1, solute: 0` is the **identity**. That is why every row
-   * already in the world reads exactly as it did before the cure axis
+   * already in the world reads exactly as it did before the water axis
    * existed, and it is pinned by a test rather than assumed.
    * @internal one production caller plus the tests that white-box it — not author surface.
    *
    */
   public static waterActivityOf(
     material: Material,
-    cure: CureState | null = null,
+    water: WaterState | null = null,
   ): number {
     const tabulated = material.getWaterActivity();
     const base =
       tabulated > 0
         ? clamp01(tabulated)
         : dial(AppSettingKeys.freshnessAwDefault, FRESHNESS_DEFAULTS.AW_DEFAULT);
-    if (!cure) return base;
-    const moisture = clamp01(cure.moisture);
-    const solute = clamp01(cure.solute);
+    if (!water) return base;
+    const moisture = clamp01(water.moisture);
+    const solute = clamp01(water.solute);
     return clamp01(base * moisture * (1 - solute));
   }
 
@@ -452,10 +452,10 @@ export class Freshness {
     elapsedS: number,
     material: Material | null,
     tempK: number,
-    cure: CureState | null = null,
+    water: WaterState | null = null,
   ): number {
     if (!(elapsedS > 0)) return clamp01(load);
-    const mu = Freshness.growthRate(material, tempK, cure);
+    const mu = Freshness.growthRate(material, tempK, water);
     if (mu === 0) return clamp01(load);
     const hours = elapsedS / FRESHNESS_DEFAULTS.SECONDS_PER_HOUR;
 
@@ -682,15 +682,15 @@ export class Freshness {
     }
     // ⚠ The water state FIRST, and reconciled: a blend that has been
     // rehydrating in a damp cellar spoils at the a_w it has NOW, and
-    // `Cure.stateFor` may rewrite the payload — so read it before the
+    // `WaterActivity.stateFor` may rewrite the payload — so read it before the
     // freshness write, or the write below stamps over it.
-    const cure = new Cure(this.slot).state();
+    const water = new WaterActivity(this.slot).state();
     const load = Freshness.advance(
       gauge.load,
       nowS - gauge.stamp,
       this.slot.getMaterial(),
       Freshness.hostTemperatureK(this.slot.getHolder()),
-      cure,
+      water,
     );
     this.slot.setPayload({
       ...this.slot.getPayload(),
@@ -921,7 +921,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
           elapsed,
           material,
           Freshness.hostTemperatureK(self),
-          MixinApi.isCured(self) ? self.getCureState() : null,
+          MixinApi.isWaterActive(self) ? self.getWaterState() : null,
         );
         this.freshnessClockStamp = nowS;
       } finally {

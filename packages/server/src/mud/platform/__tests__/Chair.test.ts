@@ -2,13 +2,20 @@
  * Chair / FoldingChair — a real sittable seat, and its collapsible
  * variant whose posture slot closes while folded (the gate lives in
  * Slotted.canOccupy, so no verb knows about folding).
+ *
+ * ⚠ `Bench` was tested here too, and `Bench` was `class Bench extends
+ * Chair {}` with an empty body and no row anywhere naming it. The case
+ * asserted that an empty subclass inherits its parent's composition,
+ * which is a fact about TypeScript. Both are gone (base-class
+ * narrowing); a bench is a Chair row with bench prose and a
+ * higher-capacity `sit` slot, which is what the class's own docstring
+ * always said it was for.
  */
 
 import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Chair from '../thing/Chair';
 import FoldingChair from '../thing/FoldingChair';
-import Bench from '../thing/Bench';
 import { SlottableMixin } from '../../lib/slot/Slottable';
 import { Idea } from '../../lib/stuff/Idea';
 import { MixinApi } from '../../api/mixin';
@@ -24,7 +31,7 @@ function withSitSlot<T extends Chair>(chair: T): T {
   return chair;
 }
 
-describe('Chair / FoldingChair / Bench', () => {
+describe('Chair / FoldingChair', () => {
   afterEach(() => StuffApi.clearAll());
 
   it('a plain Chair is Postured and sittable', () => {
@@ -32,13 +39,6 @@ describe('Chair / FoldingChair / Bench', () => {
     expect(MixinApi.isPostured(chair as never)).toBe(true);
     const sitter = makeStuff(() => new Sitter());
     expect(() => chair.occupy(sitter, 'sit')).not.toThrow();
-  });
-
-  it('Bench reuses the Chair composition (Postured, sittable)', () => {
-    const bench = withSitSlot(makeStuff(() => new Bench()));
-    expect(MixinApi.isPostured(bench as never)).toBe(true);
-    const sitter = makeStuff(() => new Sitter());
-    expect(() => bench.occupy(sitter, 'sit')).not.toThrow();
   });
 
   it('FoldingChair adds Foldable and starts deployed', () => {

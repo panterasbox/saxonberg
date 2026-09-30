@@ -8,6 +8,22 @@
 class: /platform/idea/Locality
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐⭐ The town's street-lighting service (envelope W5). ONE FIGURE IN
+  # ONE PLACE: a town does not track lamps, it funds a service and finds
+  # out it is short when the streets go dark. Which streets exist and in
+  # what order they are lit is the STREETS' business (`seniority` on each
+  # row); what a street-night costs and who is paid is the extent's.
+  # The counting houses light their own row and the market square in
+  # front of it — a district that keeps late hours and pays for them.
+  #
+  # ⚠ The money comes from the REALM treasury, not this extent's: there
+  # is one treasury per currency and no Locality holds an account yet. So
+  # v1 reads as "the realm appropriates for Terminus's lamps". The
+  # PREFERENCE here is the town's, as designed; a locality treasury is a
+  # named deferred seam (livelihood-slate §7, credit-slate Q8).
+  _publicLighting:
+    costPerStreetNight: 4
+    supplier: /world/terminus/general-store/business
   name: The Counting-Houses
   _address: terminus/city/counting-houses
   # ── the watershed (D21) ───────────────────────────────────────────

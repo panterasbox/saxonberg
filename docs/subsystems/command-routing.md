@@ -1645,7 +1645,7 @@ deliberately — see below.)
 - name: target
   requires: [VisibleMixin, ContainableMixin]  # a list is AND
 - name: fuel
-  requires: CombustibleMixin|FurnaceMixin     # `|` inside an entry is OR
+  requires: CombustibleMixin|BurnerMixin     # `|` inside an entry is OR
 - name: target
   requires: any                               # deliberately unconstrained
 ```

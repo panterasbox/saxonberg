@@ -9,7 +9,8 @@
 > draft-overlay compose · circle transfer (move / sell an owned circle)
 > · the governance inspection aperture's missing caller
 > (`SecurityApi._armInspectionBypass` exists, `SandboxApi.inspect` does
-> not — flagged, not designed here)
+> not — flagged, not designed here) · ⭐ the **scratch subject** — a
+> disposable thing to try something on (below)
 > **Size:** a tail
 
 **Captured 2026-07-30**, out of the sandboxing design session. This slate
@@ -121,6 +122,74 @@ escape battery (`pnpm test:escape`, § The escape battery). The two
 exclusions this section named are still real: **draft-overlay compose**
 remains unbuilt (kept above, in the test-harness section) and
 **compute billing** stays property-slate's, out of scope here (below).*
+
+## ⭐ The scratch subject — a disposable thing to try something on
+
+**Captured 2026-09-25**, from the template-inheritance build. The ask,
+in the owner's words:
+
+> *"eval a template into existence temporarily, call something in it,
+> and then it gets dested or whatever next you want to happen to it"*
+> — with the eval's own row `extends:`-ing an existing row, overriding
+> `class:` because the eval is its own program.
+
+### ⛔ The literal shape does not work, and inheritance shipping is why
+
+`extends:` landed 2026-09-25 and **cross-class parenting is legal** —
+D16 kept it deliberately, since every dressed `Cast` row extends a row
+whose class is `Extra`. So `extends: /some/row` plus `class:
+/platform/idea/EvalScript` parses fine.
+
+⚠ What it produces is **orphan data keys**. The parent's `data:` is
+merged in, `EvalScript` declares none of those fields, and the Hydrator
+discards them in silence — which is exactly the harm D16 gated:
+`check-instanceable-placement` invariant 12 refuses a key the effective
+class does not declare, on a ratchet. An eval row extending a chair row
+would be caught by the gate, and correctly. The inheritance link is the
+wrong tool because **the eval script is not a kind of chair.**
+
+### What already works
+
+Cloning a row inside a circle. `StuffApi.clone(path)` is available to
+in-circle code, the circle's containment layers keep the result inside,
+and the taint rules already say what may cross out. *"Make me one of
+those and let me poke it"* is a call, not a feature request.
+
+### ⭐⭐ So the feature is the two things the ask actually wanted
+
+1. **Guaranteed disposal.** *"…and then it gets dested"* — the scratch
+   subject goes away when the scratch is over, whatever happens in
+   between, including a throw, a disconnect, or a script that forgets.
+   Today nothing reclaims a clone an eval leaves behind, and the circle
+   accumulates. This is the real substrate: a disposal scope, not an
+   inheritance link.
+2. **Where it lives while alive.** A scratch subject has to be
+   *somewhere* — in the circle, in the caller's hands, nowhere at all —
+   and the answer decides whether it is reachable to MQL, visible to a
+   guest in a shared circle, and whether the residency sweep can evict
+   it out from under the script.
+
+### Open questions
+
+- **Scope shape.** A block the script opens (`withScratch(path, fn)` —
+  disposal on exit, the `ExecutionContextApi.runRoot` precedent), or a
+  lifetime pinned to the eval invocation and reaped after it? The first
+  is honest about nesting; the second needs no author discipline.
+- **Does disposal mean `destruct`?** A scratch subject that composes
+  `Persistable` or holds a chattel id has state that outlives it. The
+  clean answer is probably that a scratch subject may not be persistable
+  — and that is a refusal an author should read, not discover.
+- **Guests.** In a shared circle, is another guest's scratch subject
+  visible? It is somebody's half-finished experiment, and the answer is
+  the same shape as the draft-overlay question above.
+- **Does it need a verb at all**, or is it purely an in-script call? The
+  ask was phrased as scripting, and adding a verb would put a disposal
+  scope in the player's hands with nothing to anchor its lifetime to.
+
+⚠ **Not** an argument for `extends:` on an eval row. If a scratch
+subject wants a parent's *data* it should clone the parent and patch
+the clone — which is the positive rule `antipatterns.md` now states for
+`StuffApi.create`.
 
 ## Open questions
 

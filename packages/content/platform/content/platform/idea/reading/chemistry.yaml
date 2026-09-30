@@ -1,0 +1,17 @@
+# chemistry — a reading channel.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/ChemistryReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: chemistry
+  kind: fact
+  scope: [subject]
+  discipline: chemistry
+  instrument: ""
+  eyeCeiling: competent
+  improves: >-
+    what a thing is actually made of — the metal in an ore, the alloy in a blade, what is in your food
+  stakes: >-
+    ore smelted for nothing; a blade that was never steel; a meal that was already bad

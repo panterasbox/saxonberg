@@ -6,7 +6,7 @@
  * springs: what {@link Channel} it delivers (a spike's `point`, a scythe's
  * `edge`, an electrified floor's `shock`), how hard (`energy`), where it
  * lands (a site picked from `siteSelector` against the mover's anatomy —
- * the `GlassAlley` FOOT_SITES pattern generalized), and — for a dart or a
+ * the retired `GlassAlley`'s FOOT_SITES pattern generalized), and — for a dart or a
  * poisoned needle — an optional {@link ToxinTag} injected past digestion.
  *
  * {@link toInflictSpec} produces the exact discriminated `InflictSpec` the
@@ -15,7 +15,7 @@
  * {@link ShockInflictSpec} for `shock` (the current skips the covering fold;
  * the delivery's `energy` scalar is read as amperes). It returns `null`
  * when the mover has no matching anatomy (a non-biped over a foot-spike
- * takes no wound — the graceful `GlassAlley` no-op).
+ * takes no wound — the graceful no-op the lounge's glass alley shipped).
  *
  * **The `range` field is a reserved seam.** v1 delivers `'contact'` only —
  * the trap harms whoever physically meets it. `'ranged'` (a dart-thrower
@@ -134,7 +134,7 @@ export class HazardDelivery {
 
   /**
    * Resolve the anatomical site this delivery lands on: the first entry of
-   * `siteSelector` the mover actually has (the `GlassAlley` first-match
+   * `siteSelector` the mover actually has (the old glass alley's first-match
    * scan). Returns `null` for a non-wound-able mover or one whose anatomy
    * matches no candidate — the graceful "no cut" no-op.
    */

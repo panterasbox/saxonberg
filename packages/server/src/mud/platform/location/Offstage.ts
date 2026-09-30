@@ -10,9 +10,6 @@
  */
 
 import Location from '../../lib/stuff/Location';
-import { VisibleMixin } from '../../lib/description/Visible';
-import { PerceptibleMixin } from '../../lib/description/Perceptible';
-import { DetailedMixin } from '../../lib/description/Detailed';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { OffstageMixin } from '../../lib/employment/Offstage';
 import type { FieldMeta } from '../../lib/mixin';
@@ -28,7 +25,7 @@ import type { FieldMeta } from '../../lib/mixin';
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
 const OffstageBase = SingletonMixin(
-  OffstageMixin(DetailedMixin(VisibleMixin(PerceptibleMixin(Location))))
+  OffstageMixin(Location)
 );
 
 export default class Offstage extends OffstageBase {

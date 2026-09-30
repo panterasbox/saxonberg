@@ -145,11 +145,17 @@ Perception splits into two orthogonal mixins:
 | `Perception` | **interpretation** | `perceivedBandModifier(raw, loc)`, `canSeeOverride(target, detail, raw)`, `getVisionProfile()`, future `perceivedVolumeModifier` / `canHearOverride` / `getHearingProfile`. The seams query Apis dispatch through when the framework asks "what does this entity perceive?" Identity defaults pass the raw answer through; Shadows on the host modulate. | Anything *queryable as a viewer* — entities with subjective experience to be asked about. |
 
 All viewer-aware query Apis take **`Stuff & Sensor & Perception`**
-as the viewer parameter. Avatars and Characters compose both for
-free through the Character chain. A passive recording device might
+as the viewer parameter. ⭐ Both are composed on
+**`lib/creature/Actor`** since the base-class narrowing (2026-09-30),
+so every animate body is a viewer — a person, a wolf, a horse, a cat —
+rather than only the ones that are somebody. That pair is one of the
+three readers the rung was derived from: `PerceptionLogic` asks for
+`Sensor && Perception` and has never asked whether the viewer is a
+person. A passive recording device might
 compose only Sensor (it receives, but isn't queryable for
 subjective experience). Inert Stuff (rooms, items) composes
-neither.
+neither, and so does a **corpse** — it is a body, not a body that
+acts.
 
 **Why split.** The original framing tried to unify both axes under
 Sensor — "Sensor IS the perceiver type" — and put the
@@ -354,6 +360,28 @@ call and stays in `CombatLogic` — see [ranged.md](./ranged.md).
   shadows, position, faction, language) can change between
   queries; cache only with hooks that invalidate on the relevant
   events.
+
+
+## ⚠⚠ Modalities are warmed LAZILY, and the warming is a reachability link
+
+`PerceptionApi.modalityByName('vision')` reads a cache that
+`loadCaches()` fills by path-glob over live modality singletons. Those
+singletons are cloned lazily, and **the only thing that warms them is
+`PerceptionApi.preloadForSenseGate(actor)`** — which the verbs that
+needed it called, and nothing else did.
+
+⭐ That was fine for as long as nothing in a room-level render asked a
+modality anything. The envelope build made `look` read the light band
+before describing a place, and on a fresh world it threw *"no modality
+'vision' loaded"* — caught, degraded, and **every room described itself
+at midnight**. `analyze light` failed outright for the same reason.
+
+⚠ **No unit test could see it**: a unit fixture calls
+`buildAllModalities()` in `beforeEach`, so the cache is always warm.
+Only a live boot with a cold cache can tell, which is the **boot** link
+of the five and the one this project has now paid for four times. Any
+new sync read of a modality must warm it first.
+
 
 ## Cross-references
 

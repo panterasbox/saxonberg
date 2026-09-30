@@ -53,7 +53,7 @@ describe('Wood — the stack', () => {
   afterEach(() => StuffApi.clearAll());
 
   it('composes persistable + singleton + soil + stand + coordinates', () => {
-    for (const m of [Mixins.Persistable, Mixins.Singleton, Mixins.Soil, Mixins.Reserved, Mixins.Populates, Mixins.Container, Mixins.Exitable, Mixins.CartesianCoordinates]) {
+    for (const m of [Mixins.Persistable, Mixins.Singleton, Mixins.Soil, Mixins.Reserved, Mixins.Staged, Mixins.Container, Mixins.Exitable, Mixins.CartesianCoordinates]) {
       expect(MixinApi.hasMixin(Wood, m), String(m)).toBe(true);
     }
     const w = makeStuffAtPath(newWood, ROOM);

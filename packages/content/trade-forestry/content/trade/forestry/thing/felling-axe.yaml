@@ -3,7 +3,7 @@
 # offers it (a billhook cuts; it does not fell an oak). `epoch: medieval`
 # is the stamp the land-use covenant's predicate will read — a parcel
 # that admits axes and refuses chainsaws asks the INSTRUMENT.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [axe, felling-axe, felling]

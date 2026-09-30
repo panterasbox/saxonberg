@@ -19,7 +19,7 @@ import { MixinApi } from "../../../api/mixin";
 import { Mixins } from "../../../lib/mixin";
 import { ContainmentApi } from "../../../api/containment";
 import { makeStuffAtPath } from "../../../lib/security/__tests__/test-setup";
-import Thing from "../../../lib/stuff/Thing";
+import Good from "../../../lib/stuff/Good";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
@@ -47,7 +47,7 @@ describe("FurnishableRoom", () => {
     //
     // The stack mirrors the shipped DormRoom's, minus WarrenMember.
     for (const layer of [
-      Mixins.Populates, // `props:` — without this, no fixture EVER lands
+      Mixins.Staged, // `props:` — without this, no fixture EVER lands
       Mixins.Visible, // shortDescription / longDescription
       Mixins.Detailed, // `details:`
       Mixins.Exitable, // you can walk into it
@@ -76,7 +76,7 @@ describe("FurnishableRoom", () => {
     // message. This is the half that pins D14: the kernel reads the sign
     // and never enforces it, so a character whose pronouns or sex differ
     // from anything the sign says walks in and out freely.
-    const visitor = makeStuffAtPath(() => new Thing(), "/obj/test/Visitor");
+    const visitor = makeStuffAtPath(() => new Good(), "/obj/test/Visitor");
     ContainmentApi.move(
       visitor as unknown as Stuff & Containable,
       room as unknown as Stuff & Container,
@@ -111,7 +111,7 @@ describe("FurnishableRoom", () => {
     const cloned: string[] = [];
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
       cloned.push(path);
-      return makeStuffAtPath(() => new Thing(), path);
+      return makeStuffAtPath(() => new Good(), path);
     }) as unknown as typeof StuffApi.clone);
 
     // On a persistable host `applyProps` RETAINS the specs and

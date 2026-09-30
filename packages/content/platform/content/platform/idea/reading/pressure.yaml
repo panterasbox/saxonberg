@@ -1,0 +1,22 @@
+# pressure — a reading channel.
+#
+# ⚠ `eyeCeiling: untrained` and it is not an insult: nobody can feel a
+# kilopascal. The eye rung refuses and names the barometer, which is the
+# honest answer and the shape every unfeelable channel takes.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/PressureReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: pressure
+  kind: fact
+  scope: [here]
+  discipline: physics
+  instrument: barometry
+  instrumentNoun: a barometer
+  eyeCeiling: untrained
+  improves: >-
+    what the weather is about to do, and how high you have climbed
+  stakes: >-
+    a front that arrives while you are in the open

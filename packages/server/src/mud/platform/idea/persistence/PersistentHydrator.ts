@@ -53,7 +53,7 @@ export default class PersistentHydrator extends Idea implements Hydrator {
   /**
    * Canonical template path for templates that want generic mixin-field
    * copy. Use this constant at call sites (e.g.,
-   * `TemplateApi.saveTemplate(path, cls, data, PersistentHydrator.templatePath)`)
+   * `TemplateApi.saveTemplate(path, { class: cls, hydratorClass: PersistentHydrator.templatePath, data: data })`)
    * instead of duplicating the string literal — this is the single source
    * of truth for "the standard hydrator's template path".
    */

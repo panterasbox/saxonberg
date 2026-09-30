@@ -24,12 +24,12 @@ import { MiningActController, MINING_TOPIC } from './MiningActController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -54,6 +54,8 @@ const BRUISE_J = 40;
 
 interface HewModel extends CommandModel {
   face?: string;
+  /** ⭐ The instrument is bound by the view, never hunted for here. */
+  tool?: MqlOneResult;
 }
 
 export default class HewController extends MiningActController<HewModel> {
@@ -62,6 +64,39 @@ export default class HewController extends MiningActController<HewModel> {
     const working = this.workingOf(giver);
     if (!working) {
       this.decline(context, Mml.compose`There is no face to cut here.`, 'not-a-working');
+      return;
+    }
+
+    // ⚠⚠ **The pick, at last asked for.** It has declared `winning` since it
+    // shipped and nothing ever checked, so `hew` worked bare-handed — *a
+    // tool that is not required is a number with no referent*. The
+    // extraction build is the first act to ask, so `hew` is corrected in the
+    // same breath rather than left as the odd one out.
+    const bound = model.tool?.stuff ?? null;
+    const tool =
+      bound !== null && MixinApi.isTool(bound) && bound.hasCapability('winning')
+        ? bound
+        : null;
+    if (!tool) {
+      // ⚠⚠ **Bare-handed and wrong-tool are DIFFERENT refusals**, and here the
+      // distinction is a diagnostic as much as a sentence. `dig` had the same
+      // conflation and the live browser walk caught it; this one caught
+      // something worse when the reasons were still merged: the Ferrow delve's
+      // NPC hewers log `no-pick` on a repeating cadence, and with one reason
+      // covering both cases **the log cannot say whether they are carrying the
+      // wrong tool or nothing at all** — which is exactly the question.
+      //
+      // ⭐ Their only test asserts the brain's SOURCE TEXT
+      // (`expect(SRC).toContain('`hew ${face.direction}`')`), so no test
+      // anywhere could have caught them standing still.
+      const barehanded = bound === null;
+      this.decline(
+        context,
+        barehanded
+          ? Mml.compose`Not with your hands. You would want a pick — something to win rock with.`
+          : Mml.compose`Not with that. You would want a pick — something to win rock with.`,
+        barehanded ? 'no-tool' : 'no-pick',
+      );
       return;
     }
 

@@ -72,6 +72,10 @@ import { WorldClockApi } from '../../api/worldclock';
 import { ExecutionContextApi } from '../../api/execution-context';
 import MaturationProfileRef from './MaturationProfile';
 import { BiomeApi } from '../../api/biome';
+import {
+  Evaporation,
+  BRINE_EQUILIBRIUM_RH_PCT,
+} from '../material/Evaporation';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
 
@@ -273,6 +277,52 @@ export interface Maturing {
  * ⭐ Which is what makes it a thing a player can act on: carry the trough
  * to the hearth and the next `look` says something different.
  */
+/**
+ * ⚠⚠ **Does this profile need flora PRESENT before it converts?** — and
+ * this predicate exists because the answer used to be "always", which
+ * silently killed two shipped features.
+ *
+ * The strain gate arrived with the fermentation build and asks a brewer's
+ * question: *has the wort been pitched?* Two profiles shipped before it and
+ * author no strain at all — **retting** (the flora is ambient river
+ * bacteria; nobody pitches a flax pit) and **bleaching** (photochemical;
+ * nothing alive is involved) — so both fell through `batchStrain !== ''`
+ * and **never converted**, while reading *"It sits sweet and silent"*
+ * forever. Adding a fourth mechanism that has no flora either is what
+ * turned that into a rule rather than a third bug.
+ *
+ * So: a profile demands flora only when it **says** it does — by naming a
+ * required strain (the lager rule: it converts on that yeast or not at
+ * all), or by declaring that it catches one (the lambic: a wild strain
+ * and/or a spontaneous lag). A profile that names neither runs on
+ * temperature alone.
+ */
+function requiresFlora(profile: MaturationProfile): boolean {
+  if (profile.getRequiresStrain() !== '') return true;
+  if (profile.getWildStrain() !== '') return true;
+  return profile.getSpontaneousLagDays() > 0;
+}
+
+/**
+ * The area (m²) of a vessel's mouth, for how much rain falls **in**.
+ *
+ * ⭐ Derived rather than authored, and stated rather than hidden: a vessel
+ * of `capacityL` litres is `capacityL / 1000` m³, and one face of a cube
+ * of that volume is `(capacityL / 1000)^(2/3)`. A pan is flatter than a
+ * cube and a cask is taller, so this is the middle of a range — but it is
+ * a *derivation an author can follow*, where a per-row `apertureM2` field
+ * would be a number nobody could check.
+ */
+function evaporativeApertureM2(host: Stuff, fallbackL: number): number {
+  let capacityL = fallbackL;
+  if (MixinApi.isBulkable(host)) {
+    const cap = host.getBulkCapacity('interior');
+    if (cap !== null && cap.rawValue() > 0) capacityL = cap.rawValue();
+  }
+  if (!(capacityL > 0)) return 0;
+  return Math.pow(capacityL / 1000, 2 / 3);
+}
+
 function stallReason(
   host: Stuff & Maturing,
   profile: MaturationProfile | null,
@@ -333,7 +383,18 @@ function maturationAugmenter(text: string, host: Stuff, _viewer: Stuff): string 
           : v < 0.4
             ? 'The culture looks thin and hungry, barely creaming.'
             : 'A pale sediment stirs and creams against the glass.';
-    } else if (host.getBatchStrain() === '') {
+    } else if (
+      profile !== null &&
+      requiresFlora(profile) &&
+      host.getBatchStrain() === ''
+    ) {
+      // ⚠⚠ **Only where flora is actually awaited, and this was a live
+      // defect.** The sentence is about yeast that has not arrived, and the
+      // check was unguarded — so a bleaching green (photochemical) and a
+      // retting pit (ambient bacteria, never pitched) both read it forever,
+      // and a salt pan would have. Same predicate as the conversion gate,
+      // deliberately: the batch says this exactly while it is waiting for
+      // something that has not come. See {@link requiresFlora}.
       line = 'It sits sweet and silent — nothing is working it yet.';
     } else if (host.getFractionConverted() > 0) {
       line = lines.working;
@@ -492,6 +553,8 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (this.maturationPhase === 'active') {
           if (profile.getKind() === 'culture') {
             this.reconcileCultureWindow(profile, tempK, days);
+          } else if (profile.getMechanism() === 'evaporative') {
+            this.reconcileEvaporativeWindow(profile, tempK, amount, nowS);
           } else {
             // Heat hurts the wash whether or not it is converting; cold
             // merely stalls (forgiving, D3).
@@ -520,10 +583,15 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
               }
             }
             // The strain gate (lager's rule): a requiring profile
-            // converts only on its strain; any other converts on any.
+            // converts only on its strain; a profile that catches one
+            // converts on any; ⚠ a profile that names NEITHER needs no
+            // flora at all and converts on temperature — see
+            // {@link requiresFlora} for the two shipped features that
+            // silently did not.
             const required = profile.getRequiresStrain();
-            const strainOk =
-              required !== ''
+            const strainOk = !requiresFlora(profile)
+              ? true
+              : required !== ''
                 ? this.batchStrain === required
                 : this.batchStrain !== '';
             const converting =
@@ -533,7 +601,16 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
                 1,
                 this.fractionConverted + rateAt(profile, tempK) * days,
               );
-              reconcileCellarAir(self, days, rateAt(profile, tempK) > 0);
+              // ⚠⚠ **Microbial only.** A converting batch displaces the
+              // room's air because *something is breathing* — it is CO₂ off
+              // a ferment. Nothing breathes on a bleaching green or over a
+              // salt pan, and this call was unguarded, so a green laid out
+              // in a shed was draining the shed's air reserve toward
+              // unbreathable. A latent textiles defect, fixed here because
+              // the fourth mechanism would have been the second instance.
+              if (profile.getMechanism() === 'microbial') {
+                reconcileCellarAir(self, days, rateAt(profile, tempK) > 0);
+              }
             }
             this.applyBatchGrade();
             if (this.fractionConverted >= 1) {
@@ -843,6 +920,131 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** A culture batch's window: viability, not conversion (D14). */
+    /**
+     * ⭐⭐ **The evaporative window** — a salt pan, a brine hearth, a
+     * saltern. The air does the work by taking water away, so three things
+     * are true here that are true of no other mechanism:
+     *
+     *   1. **The rate is the air's**, not a constant. `ratePerDay` is the
+     *        rate in *reference* air; what actually happens is that times
+     *        {@link Evaporation.evaporationFactor} against
+     *        {@link BRINE_EQUILIBRIUM_RH_PCT} — a saturated brine sits in
+     *        equilibrium with ~75 % air, which is the whole reason solar
+     *        salt is a dry-climate industry and a wet week is a setback.
+     *   2. **The batch gets smaller.** The water leaves, so the interior
+     *        amount falls toward `productFraction` of where it started. Sea
+     *        water is about a tenth salt; the other nine tenths go up.
+     *   3. ⭐ **Rain puts it back.** The window is walked segment by
+     *        segment (a dry day and a wet one do opposite things and their
+     *        average does neither), and a rainy segment adds litres through
+     *        the pan's aperture and dilutes what was won: the pan goes
+     *        *backwards*, which is a setback and not a failure. That read is
+     *        the thing the requirements actually ask for.
+     *
+     * The temperature that matters is the **liquid's**, not the room's — a
+     * pan set in a lit hearth boils, and `ThermalMixin` already reads the
+     * fire through `heatSourceK()`. `Evaporation` caps the heat term at
+     * 373 K, so a hotter hearth delivers more heat and never more physics.
+     */
+    private reconcileEvaporativeWindow(
+      profile: MaturationProfile,
+      tempK: number,
+      amountL: number,
+      nowS: number,
+    ): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self)) return;
+
+      // Heat damage still applies — a pan boiled too hard scorches.
+      const sat = damageSat(profile, tempK);
+      if (sat < this._worstStretch) this._worstStretch = sat;
+
+      // Frozen over: an ANSWER, not an absence. `stallBelowK` is 273 K.
+      const stalled = tempK <= profile.getStallBelowK();
+
+      const scope =
+        MixinApi.isContainable(self) ? self.getContainer() : null;
+      const shrink = 1 - profile.getProductFraction();
+      const aperture = evaporativeApertureM2(self, amountL);
+
+      let f = clamp01(this.fractionConverted);
+      if (!(shrink > 0)) {
+        // A conserving "evaporative" profile is degenerate — nothing leaves,
+        // so nothing can be measured. Hold rather than divide by zero.
+        this.applyBatchGrade();
+        return;
+      }
+
+      // ⭐ **The reference volume, recovered rather than stored.** `f` is
+      // *water removed / water that must be removed*, so the volume is
+      // `startL × (1 − f·shrink)` and `startL` inverts out of where the
+      // batch is now. No extra persistent field, and a pan that has been
+      // rained into re-bases honestly.
+      const startL = amountL / (1 - f * shrink);
+
+      const segments =
+        scope !== null && MixinApi.isContainer(scope)
+          ? BiomeApi.airSegmentsFor(scope, this.maturationClockStamp, nowS)
+          : [];
+
+      for (const seg of segments) {
+        if (!(seg.durationS > 0)) continue;
+
+        if (!stalled) {
+          const air = new Evaporation(
+            seg.air.humidityPct,
+            seg.air.windMs,
+            Math.max(seg.air.tempK, tempK),
+          );
+          const rate =
+            profile.getRatePerDay() *
+            air.evaporationFactor(BRINE_EQUILIBRIUM_RH_PCT);
+          if (rate > 0) {
+            f = Math.min(1, f + rate * (seg.durationS / SECONDS_PER_GAME_DAY));
+          }
+        }
+
+        if (seg.rainMmPerH > 0 && aperture > 0) {
+          // ⭐⭐ **The pan goes backwards.** Rain adds fresh water through
+          // the mouth; the salt already in solution is unchanged, so what
+          // grew is simply *how much water is still to come off*. Stated as
+          // the same arithmetic in reverse — `f` is water removed over water
+          // to remove, so `added` litres back in is `added` litres to remove
+          // again. A setback, never a failure.
+          // ⚠ 1 mm of rain on 1 m² IS 1 litre — `mm × m²` is already
+          // litres, with no factor between them. (The plan's literal
+          // carried a stray `/1000`, which would have made a day's
+          // downpour add eleven millilitres to a salt pan. The soil's
+          // shipped integral does the same multiplication, and is the
+          // check: `litres = fell.liquid × areaM2`.)
+          const mm = seg.rainMmPerH * (seg.durationS / 3600);
+          const added = mm * aperture;
+          if (added > 0) {
+            f = Math.max(0, f - added / (startL * shrink));
+          }
+        }
+      }
+
+      this.applyBatchGrade();
+      this.fractionConverted = f;
+
+      if (f >= 1) {
+        this.maturationPhase = 'finished';
+        this.leesVolumeL = 0;
+        this.ensureInteriorMaterial(profile.getProductMaterial());
+        self.setBulkAmount(
+          'interior',
+          Quantity.of(startL * profile.getProductFraction(), 'L'),
+        );
+        return;
+      }
+
+      const want = startL * (1 - f * shrink);
+      if (want >= 0 && Math.abs(want - amountL) > 1e-9) {
+        self.setBulkAmount('interior', Quantity.of(want, 'L'));
+      }
+    }
+
     private reconcileCultureWindow(
       profile: MaturationProfile,
       tempK: number,

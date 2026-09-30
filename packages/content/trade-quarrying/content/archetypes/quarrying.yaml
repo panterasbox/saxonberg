@@ -1,0 +1,41 @@
+# ⭐⭐ The QUARRY archetype — what a working quarry NEEDS, stated in
+# capabilities the kernel already checks, never in furniture.
+#
+# Reported, never enforced: a quarry with no pick is a legal, visible state and
+# nothing multiplies off a satisfaction. What it buys is that **a second quarry
+# anywhere can be checked against it** — which, with the trade shipping no verbs
+# and no controllers, is most of what this pack is for.
+#
+# ⭐ **Notice how short it is, and that is the finding.** A mine needs light,
+# air, haulage and support because navigation is the hazard underground. A
+# quarry needs **two tools and somewhere to put the waste**, because the sky is
+# the roof and the wall is a section. The archetype is the shape of the
+# difference between the two trades, written down.
+#
+# ⚠⚠ **Neither tool slot carries a DEFAULT, and that is deliberate.** The
+# plan's own draft defaulted `winning` to `/trade/mining/thing/pick` — which
+# would make quarrying depend on the mining trade's CONTENT, for a pick. That
+# is the `light` slot's lesson one trade over: the archetype says *you need
+# something to win rock with* and the locality answers. Rejection answers with
+# the pithead store's pick because the town happens to have a mine in it; a
+# chalk pit in a town with no mine answers with its own row and nothing here
+# changes.
+archetypeId: quarrying
+label: a working quarry
+industry: quarrying
+capabilities:
+  # ⭐ The two ends of the one lesson: you need a spade for the waste and a
+  # pick for the good, and the ratio between how much of each you use is what
+  # says whether the ground was worth working.
+  - { key: stripping, needs: { tool: digging } }
+  - { key: winning, needs: { tool: winning } }
+  # ⭐⭐ Somewhere for the waste to GO, and it is a capability rather than a
+  # fixture because a tip is a place: Rejection's is the town's own spoil bank,
+  # authored before this build existed. A pit with nowhere to tip leaves the
+  # drift on its own floor, which is a legal and visible state and reads as
+  # exactly what it is.
+  - { key: tipping, needs: { presence: spoil } }
+  # Splitting a block wants something to strike and wedge with. ⚠ The same
+  # `striking` a pick already offers, so a quarry with a pick satisfies both
+  # this and `winning` — which is true, and is why a quarryman's kit is small.
+  - { key: dressing, needs: { tool: striking } }

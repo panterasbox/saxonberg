@@ -2053,7 +2053,7 @@ async function evaluateAffordance(
 
     // ⚠⚠ A refusal aimed at an UNBOUND operand is not a refusal.
     // `put`'s `target` field declares `requires: [VisibleMixin,
-    // ContainerMixin|SurfacedMixin]`, and with no container picked yet
+    // ContainerMixin|PlacingMixin]`, and with no container picked yet
     // the whole chain runs against `undefined` — which without this
     // branch reports `put` flatly unavailable on every object in the
     // game. The only honest reading is "you have not chosen the other
@@ -2407,7 +2407,8 @@ function bindPositionals(
       if (pi >= positionals.length) {
         if (def.default !== undefined) {
           bound[name] = expandDefault(def.default);
-          return { bound, prep };
+          // ⚠⚠ **`continue`, not `return`** — see below.
+          continue;
         }
         if (def.required !== false) {
           return {
@@ -2418,9 +2419,35 @@ function bindPositionals(
                 : `missing required arg: ${name}`,
           };
         }
-        // Greedy must be last per the load-time invariant; we
-        // don't loop further.
-        return { bound, prep };
+        /*
+         * ⚠⚠⚠ **A greedy field that consumed NOTHING must not end the
+         * bind**, and for a year it did.
+         *
+         * Both branches above used to `return`, with the comment
+         * *"greedy must be last per the load-time invariant"*. That
+         * invariant is not what the validator enforces: it is **greedy
+         * must be last, OR be followed only by PREPOSITIONAL args**
+         * (`CommandDefinition.validateArgOrder`) — precisely so a verb
+         * can read `<subject...> with <instrument>`. Returning here
+         * skipped every one of those later args, so their `default:`
+         * never fired.
+         *
+         * ⭐ Found by driving `measure light`. The instrumentation
+         * build's `measure` declares an optional greedy `subject`
+         * followed by a defaulted `tool`, and the BARE form — the
+         * commonest sentence the verb has — bound the channel, skipped
+         * the tool entirely, and answered *"you have nothing in reach
+         * that could read that"* to somebody holding the photometer.
+         * `measure light the lamp` worked, because the greedy field had
+         * something to eat.
+         *
+         * ⚠ Silent, and invisible to every tier below a live dispatch: a
+         * controller test builds its own model, and a view test parses
+         * YAML. The binder is the seam between them and only a real
+         * sentence walks it — the same shape as `hammer ingot` being
+         * refused for a year behind a fallback walk.
+         */
+        continue;
       }
       if (def.type === 'struct') {
         return {
@@ -2788,7 +2815,7 @@ const CLASS_REQUIREMENTS: Record<
  *
  * The grammar is two characters wide: **the list is AND, `|` inside an
  * entry is OR.** `[VisibleMixin, ContainableMixin]` means both;
- * `CombustibleMixin|FurnaceMixin` means either. `'any'` parses to no
+ * `CombustibleMixin|BurnerMixin` means either. `'any'` parses to no
  * terms at all, which is how "deliberately unconstrained" ends up
  * costing nothing at dispatch.
  *
@@ -2810,7 +2837,7 @@ const CLASS_REQUIREMENTS: Record<
  *
  * An alternation reports its FIRST member's phrase: the alternation
  * exists because the members are the same idea from two directions
- * (`ignite` takes a Combustible or a Furnace; "won't burn" is true of
+ * (`ignite` takes a Combustible or a Burner; "won't burn" is true of
  * failing both), so listing every branch's sentence would be worse copy,
  * not more information.
  *

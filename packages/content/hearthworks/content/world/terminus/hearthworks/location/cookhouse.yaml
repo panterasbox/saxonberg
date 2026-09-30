@@ -6,6 +6,12 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   shortDescription: cookhouse
   keywords: [cookhouse]
   register: indefinite
@@ -68,6 +74,26 @@ data:
     # (logistics D11) applied to a kitchen.
     - /world/terminus/terminal/thing/job-board
     - /world/terminus/hearthworks/thing/pantry-chest
+    # ⭐⭐ **Somewhere cold — and the only one a player can WALK TO.**
+    # (Placement build, D23, decided by driving.) The two kitchens the
+    # plan named are both right and neither STANDS: trade-cooking's is
+    # the venue template a locality clones, and a Hinkley lot kitchen
+    # exists only once somebody buys the lot. A capability with no
+    # reachable instance is the shipped-but-dead class, so the standing
+    # cooking venue gets one too — which is also just better content: a
+    # working cookhouse that keeps meat would have somewhere cold.
+    #
+    # ⚠ Seeded SHUT, and its contents are therefore out of the craft
+    # gather walk until somebody opens it — the exact inverse of the
+    # pantry chest above, which is seeded open so `cook` reaches its
+    # ingredients. Same lid, opposite intent.
+    # ⚠ The venue's own row: the generic icebox with a block of ice
+    # already in it (`extends:` + one `props:` line). Ice left LOOSE in
+    # a warm kitchen is gone in game-minutes — correct physics, and the
+    # reason a cookhouse keeps its ice in the box rather than beside
+    # it. Nobody sells ice yet (the icehouse-keeper is the preservation
+    # slate's), so this is where the world's first block lives.
+    - /world/terminus/hearthworks/thing/stocked-icebox
     # Working stock out on the table (the DIY floor's hand-reach; the
     # chest holds the dear cuts the gather walk reaches for a craft —
     # hand-retrieval from containers isn't a shipped verb yet).
@@ -111,6 +137,12 @@ data:
     - /trade/cooking/thing/butcher-block
     - /trade/cooking/thing/salting-trough
     - /trade/cooking/thing/drying-rack
+    # ⭐ The hook is the one drying support a ham hangs FROM rather than
+    # sits ON, and it is a ROW — one `Fitting` naming one placement
+    # member. It affords nothing: the rack beside it affords `dry`, and
+    # a hung ham dries with no verb at all, because the drying model
+    # reads the hook's own airiness off the placement.
+    - /trade/cooking/thing/meat-hook
     - /trade/cooking/thing/smoke-chimney
     - /trade/cooking/thing/boning-knife
     # ⚠ And the SALT, because a kitchen has salt. The live drive found
@@ -124,3 +156,8 @@ data:
     - /trade/cooking/agent/hanging-carcass
   cast:
     - /world/terminus/hearthworks/agent/cook
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A wide unglazed window over the wash bench, shuttered at night and open to the yard by day.

@@ -248,7 +248,7 @@ access to every pin-tumbler dorm lock): it is a physical `Key` `props:`-cloned
 into her inventory from `npc/master-ring.yaml` (the serialized `key` credential
 carries `masterTechs: [pin-tumbler]`), an owner-authored spawn loadout — not a
 credential she issues herself. Her `Katie` class thus carries **no bespoke
-authority code**: only `PopulatesMixin` (to accept the loadout) and the
+authority code**: only `StagedMixin` (to accept the loadout) and the
 operator-verb `commandContributions`. The `isDormsAgent` `execute()` check
 still earns its keep — it scopes the *forced-dispatch* capability so a random
 or misauthored NPC's `dispatch provision $player` can't provision — but it now
@@ -468,13 +468,13 @@ risk this shape carries and the reason the live drive walks these paths.
 ## History — the furnishing build (2026-07-31)
 
 The dorm gained the thing that makes a residence mechanically worth having:
-**its bed is lieable.** It was a `Surfaced` prop you could set things ON
+**its bed is lieable.** It was a `Placing` prop you could set things ON
 but could not lie IN, which stopped being harmless once sleep-as-logout
 shipped — the dorm is the residence every player currently has, and a
 mechanic nobody can reach is not shipped.
 
-`Bed` is now `Postured → Slotted → Surfaced → Detailed → Thing`.
-`Surfaced` is **kept, not replaced**: the two are orthogonal — `Surfaced`
+`Bed` is now `Postured → Slotted → Placing → Detailed → Thing`.
+`Placing` is **kept, not replaced**: the two are orthogonal — `Placing`
 is what rests ON the bed, the posture slot is who rests IN it. The seed
 authors a `lie:1` slot and `restQuality: 1.5`, deliberately the **bottom
 rung** against the 2.0 of a bed you chose and bought.

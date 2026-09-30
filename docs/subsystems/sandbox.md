@@ -15,6 +15,23 @@ one policy lookup per PM write).
 
 ## Doctrine — two channels, two gates
 
+> ⭐⭐ **Read alongside [lens #33 · Rules](../lenses/33-rules.md)**, which
+> reframes the circle as the place where **rules** are suspended rather
+> than merely where damage is contained: *the sandbox suspends every rule
+> except the ones that make suspension affordable — and those are
+> **Tier A***, specifically **A9** (content-write never grants code
+> execution) and **A14** (the symmetric boundary). Same construct as the
+> eternity clauses, one scale down.
+>
+> ⚠⚠ It also records the limit of the drafting story, from the *one
+> honest edge* below: the circle is a **drafting chamber for content** and
+> only a **rehearsal room for code.** A player cannot draft a mechanism in
+> a circle and petition to have it published — so **the foundational
+> rules have no legislature**, Tier B being amendable by whoever ships the
+> code with a merge request as the ratifying act. Whether that should
+> change is that entry's open ask.
+
+
 Every durable mutation is either governed (the published field — real,
 lawful, accountable, with receipts) or discarded (the wire — real while
 inside, void at the boundary). Cheating on the governed channel is
@@ -82,6 +99,34 @@ the docs are right.
 | **PASS (mark)** | `chronicles`, `beliefs`, `authoring_events`, `accountability_events`, `diagnostics` | Identity-real; persists with the epistemic wire mark (`circleScope` recorded, never filtered). What happened to *you* stays yours; readers may lens the mark. |
 | **PASS (unmarked)** | `domain`, `documents`, `holder_snapshots`, `wiki`, `wiki_revisions` | Authored truth + the mechanism's own stores — the deliberate save is the product. |
 | **SHADOW (skip)** | `bank_accounts`, `bank_supply`, `renown`, `participation`, `producer` | Rebuildable caches: the terminal cache write silently no-ops from circle context; in-circle reads derive from events (banking: the per-scope overlay). Overlay mode is specified as the labeled attach point, not built — no collection needs it. |
+
+> ⚠⚠ **`mode: 'overlay'` FAILS OPEN today** (found 2026-09-30,
+> [avatar-family-slate](../slates/builds/avatar-family-slate.md)). It is a
+> value in the `CollectionPolicy` union that nothing selects and nothing
+> implements, and **both write paths `break` past it into the real write
+> path**: `dispatchSave` writes a field row unstamped, and `deleteMany`
+> runs with the caller's unscoped filter. Reads are consistent with those
+> unstamped writes (`SHADOW_COLLECTIONS` derives from the verb), which is
+> what makes it invisible — **a collection set to overlay behaves as PASS,
+> with delete powers, silently.** And `discardScopeImpl` iterates
+> `STAMP_COLLECTIONS` only, so scoped overlay rows would never be swept,
+> though its comment claims *"total by construction: the collection list
+> derives from the policy table"* — **it derives from one verb.**
+>
+> ⚠ Note the contrast: an *unclassified* collection throws, with a comment
+> saying *"silence would be an escape hatch."* The
+> classified-but-unimplemented mode walks past that instinct. **Make it
+> throw**, independently of building it.
+>
+> ⭐⭐ **And it now has a first consumer.** The slate argues overlay is
+> **two** modes — `copy` (eager copy at the crossing; plain
+> `{circleScope}` reads; no identity key, no aggregation) and `through`
+> (read-through, needing a declared identity key and tombstones) — because
+> **stamp unions and overlay must override**, which Mongo cannot express in
+> one `find`. ⭐ The copy hook already exists: the **park capture**
+> (`SandboxLogic:379`, `actor.save()` after the vessel is minted) already
+> writes the real snapshot row at the moment of crossing, for exactly
+> copy-on-enter's stated reason.
 | **REFUSE** | everything else (identity/auth, title registries `parcels`/`chattel` + event chains, `contracts`, `positions`, `groups`/`channels`/`parties`/forums, `bulletins`, `office_holders`, `app_settings`, `world_state`, `producer_events`, `blueprints`, `media_assets`) | Throws `SandboxWriteRefusedError`. Field-real state a sandbox session may not mutate. |
 
 Audit notes that changed the provisional classification:

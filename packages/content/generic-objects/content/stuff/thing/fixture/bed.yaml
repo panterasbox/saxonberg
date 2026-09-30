@@ -1,6 +1,6 @@
 # The bed — the substrate's first real REST SURFACE.
 #
-# The shipped dorm `Bed` is a `Surfaced` prop you cannot lie on, and until
+# The shipped dorm `Bed` is a `Placing` prop you cannot lie on, and until
 # now nothing in the world authored `restQuality` but a campfire log. This
 # is what makes the bedroom archetype non-decorative on day one: metabolism
 # already recovers by `posture × restQuality` on a reconcile-on-read clock,

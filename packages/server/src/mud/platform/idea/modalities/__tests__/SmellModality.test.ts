@@ -1,5 +1,5 @@
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { SmellModality } from '../SmellModality';
 import { MAX_HOPS } from '../../../../lib/perception/Modality';
 import { Smell } from '../../../../lib/perception/Smell';
@@ -8,10 +8,13 @@ import { AtmosphericMixin } from '../../../../lib/biome/Atmospheric';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import CartesianZone from '../../location/CartesianZone';
 import Door from '../../../thing/Door';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
-import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 import { PerceptionApi } from '../../../../api/perception';
@@ -20,10 +23,14 @@ import { PerceptionApi } from '../../../../api/perception';
 const smellModality = (): SmellModality =>
   PerceptionApi.modalityByName('smell') as SmellModality;
 
-class Candle extends SmellSourceMixin(Thing) {}
+class Candle extends SmellSourceMixin(Good) {}
 class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
 
 describe('SmellModality.signalAt — propagation core', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     installV1QuantityTagTables();
     buildAllModalities();
@@ -87,7 +94,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     candle.setOdorIdentity('garlic');
     ContainmentApi.move(candle, b);
 
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     door.setOpen(false);
     await a.addBidirectionalExit(b, 'north', { door });

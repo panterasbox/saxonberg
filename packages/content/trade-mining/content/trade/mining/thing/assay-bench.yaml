@@ -1,0 +1,45 @@
+# ⭐⭐ The assay bench — the fixed rung of the `grade` and `chemistry`
+# channels, and the thing a sample is carried TO.
+#
+# ⚠⚠ **Keywords, and they matter.** The assay shed already holds
+# `assay-kit` (assay, assay-kit, balance, scale, assayer's, assayer,
+# kit) and `assay-counter` (counter, bins, scale, assay). A third object
+# answering to `assay` or `scale` in a three-object room makes
+# `assay <ore> with <thing>` unresolvable, so this one answers to
+# `bench`, `assay bench` and `cupel` and to none of the shared nouns.
+#
+# ⭐ It is in the room's PROSE already — *"A long bench under a north
+# window, the scale under a glass dome at the end of it"* — so this
+# places an object that matches description that exists rather than
+# authoring new scenery.
+#
+# ⭐ `capabilities: [assay-scale]` is the SHIPPED capability, already
+# declared by `assay-kit.yaml` and already consumed by the mining
+# archetype's `{ key: assay, needs: { tool: assay-scale } }`. The middle
+# rung of this channel's ladder was in the world and unreachable; this
+# wires it rather than minting a rival.
+class: /trade/mining/thing/instrument/AssayBench
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: assay bench
+  keywords: [bench, "assay bench", cupel]
+  register: definite
+  longDescription: >-
+    A long bench of scoured deal under the north window, with a small
+    muffle furnace built into the brick at one end and a rank of
+    bone-ash cupels on a shelf above it. The slate beside it carries a
+    list of names, each with a number of bins against it and most of
+    them crossed through.
+  # ⚠ Non-carryable. `fixedInPlace` is the shipped mechanism (the
+  # refusal is `fixed-in-place`); `FixtureMixin` is self-seating and a
+  # different job.
+  fixedInPlace: true
+  mass: 180
+  capabilities: [assay-scale]
+  _materialPath: /stuff/idea/material/wood/oak
+  # Half an hour to bring the muffle up, ten minutes a sample after
+  # that — so eight samples cost 110 minutes and one costs 40. The trip
+  # is what you are paying for.
+  setupS: 1800
+  perSampleS: 600
+  fee: 25

@@ -7,7 +7,10 @@
 > **Left:** ⚠ any room-level line `LookController` composes into the room
 > body is **invisible to a browser player** — the floor-puddle summary
 > since the bulk build, and the help-wanted notice until it was split out
-> of the body (trades-and-labor). The general answer is a card that
+> of the body (trades-and-labor). ⭐ **And the SUBJECT body has the same
+> shape** (`lookAtTarget` cards and `meta({ carded })` exactly as
+> `lookAtLocation` does) — which puts the **drill-in** on this list;
+> see below. The general answer is a card that
 > renders the prose it was handed; the alternative is a rule that room
 > body = fields only, and nothing may be appended to it.
 > **Size:** a tail.
@@ -90,3 +93,52 @@ alone leaves the trap armed for whoever appends next.
 - [bulk.md](../../subsystems/bulk.md) — `floorPuddleSummary`, the line that is still invisible
 - [employment.md](../../subsystems/employment.md) — `noticesAt`, the line that was split out
 - [testing.md](../../testing.md) — the two tiers, and why both missed this
+
+---
+
+## ⭐ The subject body has the same shape — and the drill-in rides it
+
+Added 2026-09-28 by the placement build's sweep. **Found statically,
+not by driving** — the browser walk that would have confirmed it was
+blocked on a Chrome profile another process held, and this is written
+down rather than assumed either way.
+
+`lookAtTarget` does what `lookAtLocation` does: opens a `subject`
+card with the composed `body` as `prose`, marks the frame
+`carded`, and sends the same body as `toSelf`. So anything appended
+to a *subject* body is subject to the identical suppression.
+
+⚠ **The drill-in is appended to a subject body:**
+
+```
+── On it: a shaker, a muddler and a strainer.
+── Hanging from it: a prime cut of meat.
+```
+
+And the card cannot make up for it in one specific case:
+**`ContainerMixin` declares a `contents` card projection;
+`PlacingMixin` declares none.** So for a host that is a Container
+(a chest, an icebox) the card shows what is inside and the loss is
+cosmetic — but for a `Fitting`, which is `Placing` and **not** a
+Container (the back-bar, the well, a meat hook), there is no field
+carrying what is placed on it at all.
+
+⚠⚠ **The consequence, stated plainly:** `look hook` on the wire says
+*"── Hanging from it: a prime cut of meat"*, and a browser player may
+see the hook's description and nothing else. That is not a
+regression — the back-bar's `On it:` line has had this shape since
+the crafting build — but the placement build's acceptance criterion
+3 (*a ham hangs from a hook … is found by examining the hook*) is
+proven on the wire and **not confirmed in a client**.
+
+Two ways out, and they are this slate's existing fork:
+
+1. the general answer — a card that renders the prose it was handed;
+2. ⭐ the narrow one, which may be worth doing first because it is
+   *better* than prose either way: **give `PlacingMixin` a card
+   projection**, one field per member, mirroring
+   `ContainerMixin.contents`. A hook's card would then list what
+   hangs from it, and the drill-in prose becomes the transcript's
+   copy rather than the only copy.
+
+Either fixes the placement drill-in; only (1) fixes the floor puddle.

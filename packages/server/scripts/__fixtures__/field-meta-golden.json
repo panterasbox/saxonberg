@@ -3061,9 +3061,9 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/stuff/Populates.ts",
+    "file": "packages/server/src/mud/lib/stuff/Staged.ts",
     "index": 0,
-    "className": "PopulatesMixin",
+    "className": "StagedMixin",
     "persistentFields": [
       "_populated"
     ],
@@ -3158,7 +3158,7 @@
     ]
   },
   {
-    "file": "packages/server/src/mud/lib/stuff/__tests__/Populates.test.ts",
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Staged.test.ts",
     "index": 0,
     "className": "SingletonContainerTest",
     "persistentFields": [],
@@ -3167,7 +3167,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/stuff/__tests__/Populates.test.ts",
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Staged.test.ts",
     "index": 1,
     "className": "NonSingletonContainerTest",
     "persistentFields": [],
@@ -3176,9 +3176,9 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/stuff/__tests__/Populates.test.ts",
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Staged.test.ts",
     "index": 2,
-    "className": "PopulatesHostTest",
+    "className": "StagedHostTest",
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],

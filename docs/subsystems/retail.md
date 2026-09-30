@@ -28,7 +28,7 @@ had **no path at all** — and the one paid service in the whole tree, the
 TPA fare, was pack code rather than content. The wreckage a fight leaves
 could not become anybody's work.
 
-`/platform/thing/Tariff` = `PricedOfferMixin(DetailedMixin(Thing))` plus
+`/platform/thing/Tariff` = `PricedOfferMixin(Thing)` plus
 `services: Record<offerKey, ServiceKind>` over a **closed kernel
 vocabulary** — `repair` · `treatment` · `burial`. `OrderController`
 orchestrates each. Closed and kernel-owned on purpose: a venue that could
@@ -290,7 +290,7 @@ brain is a keeper doing that loop on cadence.
 Chattel — 0.75 L glass, liquid-tight; presets are ROWS: `keg`, `cask`,
 `wine-bottle`, `can`, `mixer-bottle`, `sack`, `ice-bag`; distilling's
 `SpiritBottle` extends it in code) and `/platform/thing/Crate`
-(`Circulating(Populates(Container(Detailed(Thing))))`, open and never
+(`Circulating(Staged(Container(Good)))`, open and never
 Sealable so the crafting gather walk finds the limes; the fruit are
 `Provision` rows its `props:` mints). A floor row authors `censusKey`,
 `regionTarget`, `container: <the outfit's Stock>`, `interiorMaterial`,

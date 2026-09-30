@@ -7,7 +7,8 @@
  * you're untouched. Two allies wading in both take it (faction-blind). It
  * teaches the WHOLE model with no magic.
  *
- * A **one-off demonstrator room** (the `GlassAlley` precedent) — NOT a
+ * A **one-off demonstrator room** (the precedent was the lounge's glass
+ * alley, since retired into `HazardMixin`) — NOT a
  * reusable `HazardMixin`; the reusable abstraction is `ElectricityApi.conduct`
  * itself. A proper {@link CartesianLocation}: it lives at `[x,y,z]` in the
  * substation's {@link CartesianZone} (`/world/substation`).

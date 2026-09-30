@@ -216,8 +216,15 @@ async function bootImpl(): Promise<void> {
 
 /** Create a live Party Idea from a durable record (boot warm / lazy). */
 async function materializeParty(rec: PartyRecord): Promise<Party> {
-  const party = await StuffApi.create(() => new Party());
-  party.setTemplatePath(rec.path);
+  // ⭐ Clone the row with the record's path as the MINTED IDENTITY. The
+  // lineage is `/platform/idea/Party`; the identity is this party's.
+  // (`setTemplatePath` on a fresh `create` is the pattern D17 retired —
+  // it made the minted identity masquerade as a lineage.)
+  const party = await StuffApi.clone<Party>(
+    '/platform/idea/Party',
+    undefined,
+    { asIdentityPath: rec.path },
+  );
   party.applyRecord(rec);
   return party;
 }
@@ -225,14 +232,14 @@ async function materializeParty(rec: PartyRecord): Promise<Party> {
 /** Upsert a durable party's record (a no-op for an ad-hoc party). */
 async function persistParty(party: Party): Promise<void> {
   if (!party.isDurable()) return;
-  const path = party.getTemplatePath();
+  const path = party.getIdentityPath();
   if (!path) return;
   const existing = (await PartyRecord.find<PartyRecord>({ path }))[0];
   await party.toRecord(existing).save();
 }
 
 function fireChange(party: Party): void {
-  const path = party.getTemplatePath();
+  const path = party.getIdentityPath();
   if (path) partyProvider?.fireChange(path);
 }
 
@@ -345,8 +352,11 @@ async function formImpl(
   }
 
   const founderId = memberIdOf(founder);
-  const party = await StuffApi.create(() => new Party());
-  party.setTemplatePath(`/platform/idea/party/${SecurityApi.uuid()}`);
+  const party = await StuffApi.clone<Party>(
+    '/platform/idea/Party',
+    undefined,
+    { asIdentityPath: `/platform/idea/party/${SecurityApi.uuid()}` },
+  );
   party.setName(trimmed);
   party.setFounderId(founderId);
   party.setCaptainId(founderId);
@@ -488,7 +498,7 @@ async function disbandImpl(captain: Stuff): Promise<PartySimpleResult> {
   if (!party.isCaptain(memberIdOf(captain))) {
     return { ok: false, reason: "not-the-captain" };
   }
-  const path = party.getTemplatePath();
+  const path = party.getIdentityPath();
   // Stand every online member down (their pointer, the party acting).
   for (const id of [...party.getMemberIds()]) {
     const m = resolveMember(id);

@@ -1,0 +1,13 @@
+# The eval scratch — the one-shot program `eval` compiles into.
+#
+# ⭐ It is a row (user's call, 2026-09-25). It was argued as an exception
+# on the strength of "backed by nothing, gone at restart" — which is a
+# statement about its LIFETIME, and the doctrine is about whether a
+# person could author it. Minted per jurisdiction with its own identity
+# path; the code is patched on after the clone, because the code is the
+# one thing that is never authored here.
+class: /platform/idea/EvalScript
+# ⚠ No `hydratorClass`: there is nothing to apply. The minted
+# identity rides `asIdentityPath`, which is the clone's channel,
+# not the hydrator's — and a hydrator with no data is a line
+# `lint:instanceable` invariant 5 calls out.

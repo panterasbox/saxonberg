@@ -8,6 +8,16 @@
 > to **count**, who is allowed to say what a count is **worth**, and what
 > may be **imposed** regardless.
 
+⭐ **Read alongside the [Schell deck](./lenses/README.md)**, which
+engages this doc more than any other: [#55](./lenses/55-visible-progress.md)
+(what *"the mirror"* is, and the B3/B4 contradiction it found) ·
+[#46](./lenses/46-reward.md) (what B5 costs) ·
+[#25](./lenses/25-judgment.md) (judging people **well** is the product,
+not only a hazard) · [#37](./lenses/37-fairness.md) (*"fair" only ever
+means "even contest"* in 116 lenses) · [#79](./lenses/79-freedom.md)
+(why the freedom to decide **badly** is a precondition of measuring
+anything).
+
 **Status: design constraint.** A peer of
 [arcane-science.md](./arcane-science.md) (what magic may claim) and
 [compact-political-science.md](./compact-political-science.md) (what the
@@ -132,6 +142,71 @@ volume, low per-transaction stakes — and never manufacture one where it
 does not.
 
 The failure mode this renames: not *publication*, but **monopoly**.
+
+## ⭐⭐⭐ Consumption confers monopoly — the engine reads measurements, never valuations
+
+⚠ **Added 2026-09-29.** The correction above is incomplete, and the hole
+is large enough to void it. *"Never the only rater"* permits a hundred
+raters — and permits them decoratively, because **whatever scalar the
+engine itself consults to decide something is the de facto standard.**
+No player will care what a rating agency thinks of them once the world
+has an opinion that actually gates things. Pluralism dies the moment an
+algorithm needs a number, and algorithms always need a number.
+
+So publication was the wrong half to regulate. The binding half is
+**consumption**:
+
+> ⭐⭐⭐ **The engine may read a measurement. It must never read a
+> valuation.**
+
+This is Part 1's own layer line, applied to *reading* instead of
+*publishing*:
+
+| | what it is | may the engine consult it? |
+|---|---|---|
+| **Measurement** (layer 1) | one domain, derivation published, descriptive — *can you smith at this level; how many gigs have you finished* | **yes, freely** |
+| **Valuation** (layer 2) | combines domains under weights somebody chose — *how good is this person* | ⛔ **never** — not read, not computed, not consulted |
+
+**The test for which you are holding:** a **single-domain derived band
+is a measurement**; a **cross-domain weighted composite is a
+valuation.** The engine may ask domain questions. Only people and
+institutions may ask about *persons*.
+
+⭐⭐ **This was already in practice, unnamed.**
+[employment.md](./subsystems/employment.md) closes the hiring vocabulary
+to `{ gigs, discipline, band }` and states that **nothing may select on
+species, lineage, trait, renown or wealth** — `Position.fromData`
+*throws* on anything else. **Renown is the cross-domain reputational
+aggregate, and hiring already refuses to read it while freely reading a
+band.** One build arrived at this rule by instinct; naming it lets every
+future gate be checked against it, and `lint:openings` already enforces
+the first instance.
+
+⭐ **What this buys.** If the engine never asks a question that
+*requires* a composite answer, there is no scalar for a rating agency to
+compete against — so different agencies reading the same transcript and
+disagreeing becomes the interesting part rather than an ornament.
+**Nobody is disagreeing with the engine; they are disagreeing with each
+other**, and trust in a rater is itself renown.
+
+⚠ **The honest residue:** a de facto standard can still emerge among the
+third parties — one agency wins and everyone quotes it. That is a market
+outcome, it is contestable, and someone may found a rival. It is
+categorically different from the house running the only scoreboard.
+
+### ⭐⭐ Therefore: not "no leaderboards" — **no leaderboard of ours**
+
+The flat prohibition was too wide and cost more than it protected. A
+leaderboard is a layer-1/2 fusion **when the platform runs it**. A
+guild's ranking, a paper's annual list, a corpo's supplier ratings, a
+trade association's masters roll — all legitimate, all with published
+weights, all arguable.
+
+> **We do not ban leaderboards. We ban *ours*.**
+
+Which is the better design anyway: it makes ranking something players do
+to each other, makes *whose list do you trust* a live question, and
+attaches reputation to the **rater**.
 
 ### Absorbed from aluminium-can-slate — the required pairing: the can and the blood
 
@@ -290,26 +365,69 @@ know what you just did; you do not know what you are like. So a write may
 narrate itself — *"that was a generous thing to do"* — and **never** a
 magnitude or a position.
 
-**2. Announce the surprising, not the every.** Narrate a write when it
-pushes `expressed` away from `equilibrium`. Narrating everything is a nag
-*and* a tutorial in farming. The line it produces —
+**2. Announce the surprising, not the every — ⚠ for a *disposition*.**
+Narrate a write when it pushes `expressed` away from `equilibrium`.
+Narrating everything is a nag *and* a tutorial in farming. The line it
+produces —
 
 > *You'd not have done that a year ago.*
 
 — is, unmodified, the register conscience actually speaks in. **The
 deviation is the story.**
 
-**3. ⚠⚠ The mirror is never a gauge.** No fidelity meter, no sin counter,
-no progress bar, no streak, no leaderboard over a declared standard.
+⚠⚠ **This rule does not generalize to performance, and reading it as
+though it did gets the product backwards.** For a platform whose thesis
+is *applied hours*, **habituation is the outcome being sold** — you
+*want* the training to become unremarkable — so a channel that only
+speaks on surprise is optimised against its own goal. Someone who trains
+every day is the exact case: routine, unremarkable, and the thing they
+most want measured. *"Check the ledger"* is busywork that punishes
+consistency, since the steadiest player gets the least signal.
+
+**3. ⚠⚠ A declared standard is never a gauge.** No fidelity meter, no
+sin counter, no progress bar, no streak over a **declared standard** —
+disposition, virtue, faith, or any standard a person adopted for
+themselves.
 
 > **A number converts a standard back into a score to optimize — which
 > is Mara wearing vestments.**
 
 This is the same firewall as bands-not-theta, and it protects the
 psychology thesis: **you cannot read yourself; disclosure is discovery.**
-A self-view may show *your recent acts* — a record of what you have been
-doing, which you are entitled to — never *your position*, which you are
-not.
+A self-view of a declared standard may show *your recent acts* — a record
+of what you have been doing, which you are entitled to — never *your
+position*, which you are not.
+
+**4. ⭐⭐⭐ Performance is not a declared standard, and B3 governs it.**
+⚠ **Corrected 2026-09-29**, because rule 3 was being cited as a general
+ban on numbers, and in that form it **contradicted B3 — the row directly
+above it in Tier B**:
+a measurement the platform makes of you and declines to show you is
+Mara's defining property, in the document that defines itself against
+Mara.
+
+The discriminator is decidability — the same line
+[design-lenses.md](./design-lenses.md) draws between lenses 1 and 4:
+
+| | decidable? | can you self-assess? | ruling |
+|---|---|---|---|
+| **Declared standard** — disposition, virtue, faith | no | **no** — *disclosure is discovery* | bands and narrated acts. Never a position. Rule 3. |
+| **Performance** — quantity, output, competence, hours | yes | **yes** — you know you lifted more | **readable, numerically, routinely.** |
+
+The psychology thesis survives intact, because it is an argument about
+**dispositions**: people have excellent access to their actions and
+terrible access to their character. It was over-applied to everything
+measurable. **Hiding your own lift from you is not protection; you
+already know, and the platform pretending otherwise is withholding.**
+
+⭐ Note the architecture already ships a routine unbidden channel that is
+not a gauge — [exertion.md](./subsystems/exertion.md)'s body line in
+`look`, reporting your condition every time without a number. There are
+three delivery modes, not two: **routine qualitative** (the body line),
+**deviation narration** (rule 2), and **the record on request**. What
+rule 4 adds is the fourth: **routine quantitative, for performance
+only** — the scale in the bathroom, which is a number, read daily, about
+a routine act, and which nobody has ever mistaken for a leaderboard.
 
 ---
 
@@ -362,7 +480,7 @@ If either erodes, the group becomes a coercion surface and none of this
 document's defenses apply to it any more.
 
 The related guard is already the
-[skill-vs-chance lens](./lenses/skill-vs-chance.md)'s: anything that
+[skill-vs-chance lens](./lens-deck-salvage.md)'s: anything that
 pressures a player into a judged contest — social pressure, economic
 necessity — erodes consent, and consent is what is doing the work here.
 
@@ -376,20 +494,22 @@ to apply.
 | Forbidden | Because |
 |---|---|
 | a hidden measurement of the player | Mara's defining property (Part 2) |
-| a gauge on a declared standard | converts a standard into a score (Part 6.3) |
-| the platform ranking players on a valuation it chose | fuses layers 1 and 2 |
+| a gauge on a **declared standard** | converts a standard into a score (Part 6.3). ⚠ **Not a ban on numbers** — performance is readable (Part 6.4) |
+| the platform ranking players on a valuation it chose | fuses layers 1 and 2. ⚠ **A third party's ranking is fine** — we ban ours, not theirs (Part 1) |
+| **the engine reading a valuation** — consulting a cross-domain composite to gate anything | consumption confers monopoly; it makes rater pluralism decorative (Part 1) |
 | the platform as the **only** rater of conduct | monopoly, not publication, is the failure — pluralism is what separates a reputation from a score (Part 1) |
 | variable-ratio reinforcement — loot boxes, gacha, pity timers | the one RNG application banned on ethical rather than design grounds ([uncertainty.md](./uncertainty.md)) |
 | streaks that punish absence | imposes a valuation (*continuity is good*) nobody declared |
 | an imposition that is not enumerable | if it cannot be listed it cannot be amended (layer 3) |
 | narrating every disposition write | teaches farming (Part 6.2) |
 
-⚠ **A live inconsistency:** [vision.md](./vision.md) still promises
-*"familiar gamification elements such as achievement tracking, badges for
-accomplishments, and leaderboards."* **A leaderboard is a platform-chosen
-valuation ranking players** — a layer-1/2 fusion, forbidden by this doc.
-That line predates the ledger architecture and should be revisited rather
-than quietly contradicted.
+⭐ **The `vision.md` inconsistency mostly resolves (2026-09-29).** It
+promises *"familiar gamification elements such as achievement tracking,
+badges for accomplishments, and leaderboards."* **Achievement tracking
+and badges are records of acts** and are permitted outright — they were
+only ever forbidden by the over-wide reading of Part 6.3. **A
+platform-run leaderboard remains a layer-1/2 fusion**; a third party's
+does not, so the sentence needs one qualifier rather than a retraction.
 
 ---
 
@@ -404,6 +524,37 @@ otherwise?* If yes, it is not layer 3.
 
 Three tiers, by **who can change it** — and the tiers are what make the
 "amendable" claim survivable.
+
+### ⭐⭐⭐ These tiers are ONE axis — the other is who *enforces*
+
+Added 2026-09-29 from [lens #33 · Rules](./lenses/33-rules.md), which
+found the two being conflated wherever the enforcement mandate is cited:
+
+| axis | asks | values |
+|---|---|---|
+| **amendment** — this Part | who may **change** the rule | Tier **A** · **B** · **C** |
+| **enforcement** | who **executes** it | **wall · camera · witness · norm** ([enforcement-slate](./slates/builds/enforcement-slate.md)) |
+
+They are orthogonal, and the common, correct case is a **Tier C** rule
+enforced by **wall**: the polity sets a rate, the engine collects it.
+
+> ⭐⭐⭐ **Which names a failure mode nothing here currently guards:
+> implementing a law must not entrench it.** The engine gains the ability
+> to enforce; the polity keeps the ability to repeal. A code-enforced
+> Tier C rule stays **parameterized by the law** and is never compiled
+> into the substrate — otherwise automation promotes C to B and nobody
+> voted for it. ⚠ There is no lint and no review question for this; it is
+> census-then-ratchet shaped and the census is unwritten.
+
+⚠⚠ **And the enforcement frontier does not advance all the way.** It
+moves toward code as engineering capacity allows — an *economic*
+boundary — but **A15** (the evidence firewall, below), the
+**speed-camera doctrine** and the mode being a committee's choice all
+stop it. The honest form is two rules: where a rule protects **a claim
+the platform makes** (conservation, append-only, title, provenance) code
+enforcement is mandatory; where it protects **a norm the polity holds**,
+over-enforcement is the failure, because there the *imperfection* of
+enforcement is the content.
 
 ## Tier A — Integrity invariants · amendable by **nobody**
 
@@ -450,9 +601,10 @@ courts, values no reputation, and has no game in it.
 
 ### ⚠ Audit — 2026-08-11
 
-The first draft listed A1–A7 and was **incomplete**. Audited against
-[lenses/cheatability.md](./lenses/cheatability.md), which turns out to be
-an inventory of exactly this tier under a different name — its doctrine
+The first draft listed A1–A7 and was **incomplete**. Audited against the **Cheatability** lens entry (retired 2026-09-29;
+[lens-deck-salvage.md](./lens-deck-salvage.md) holds what survived),
+which turned out to be an inventory of exactly this tier under a
+different name — its doctrine
 *"you may automate your deeds; you may not forge your receipts"* is Tier
 A's purpose in one line.
 
@@ -580,10 +732,11 @@ to fork** — which is the founder's only constraint, stated as such in
 | B1 | **Nothing may contradict real science.** One postulate, everything downstream honest | [arcane-science.md](./arcane-science.md) |
 | B2 | **The good-floor.** Players are never evil; feeding evil is **drift, redeemable, not damnation** | [story-bible.md](./story-bible.md) |
 | B3 | **Any measurement the platform makes of you is one you can read** | Part 2 |
-| B4 | **The write is visible; the value is not — and never a gauge** | Part 6 |
+| B4 | **A declared standard is never a gauge** — the write is visible, the position is not. ⚠ **Scoped 2026-09-29**; performance is readable under B3 | Part 6.3–6.4 |
 | B5 | **No variable-ratio reinforcement.** No loot boxes, gacha, pity timers | [uncertainty.md](./uncertainty.md) |
 | B6 | **The wizard roster stays small, and its holders owe a fiduciary duty** — the *policy* half of code-trust. ⚠ The *invariant* half is **A9**, not this | [wizard-duty-slate](./slates/builds/wizard-duty-slate.md) |
 | B7 | **AGPL-3, and the right to run your own** | the licence |
+| B8 | ⭐⭐ **The engine reads measurements, never valuations** — and runs no leaderboard of its own | Part 1 |
 
 > ⚠ **B7 is the tier's own enforcement.** Every other entry here is a
 > promise by the people shipping the code, and a promise is worth what
@@ -651,7 +804,7 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
   measurement; it says nothing about what it may *collect*, what a sensor
   seam may attest, or what the model is allowed to remember.
   [mirror-slate](./slates/builds/mirror-slate.md) and
-  [instrumentation-slate](./slates/builds/instrumentation-slate.md) hold
+  [instrumentation-slate](./slates/tails/instrumentation-slate.md) hold
   that thread; it deserves its own peer doc.
 - **Consent mechanics** as implemented — this states the requirement
   (opt-in, cheap exit), not the machinery.
@@ -680,6 +833,26 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
    descriptive, while the *set of distinctions it can draw* is political.
 3. **How is "cheap exit" verified?** Part 8 makes it non-negotiable
    without saying how a build demonstrates it.
-4. **Does the reading rule survive contact with the client?** A cockpit
-   card is under constant pressure to display a number. Part 6.3 is the
-   rule most likely to be eroded by UI convenience.
+4. ~~**Does the reading rule survive contact with the client?**~~
+   **Answered 2026-09-29, and the answer was that the rule was wrong.**
+   It did not need eroding by UI convenience; it contradicted B3 on its
+   own terms. Part 6.3 is now scoped to declared standards and Part 6.4
+   governs performance. ⚠ The residual version of the question is
+   narrower and still live: *does the declared-standard firewall survive
+   a cockpit card?* — there, UI pressure is real and rule 3 stands.
+5. ⚠⚠ **Will these survive a legislature?** B1–B8 are the founder's,
+   checked only by the fork right — which is a weak check for a player,
+   since forking is cheap to say and expensive to do. Once there is a
+   polity, every Tier B entry is a standing invitation to be repealed,
+   and **a doctrine is worth exactly what it can survive.** Two
+   observations, offered as the beginnings of an answer rather than one:
+   **(a)** a rule whose *reason* is unreadable is repealed the first
+   time it is inconvenient, which is an argument for keeping the
+   worked failures in this doc rather than compressing them away; and
+   **(b)** ⭐⭐ **the durable rules are the ones that constrain the
+   operator.** A polity will cheerfully repeal a rule that binds itself
+   and will not repeal one that binds the house, because the house is
+   the thing it is suspicious of. B8 binds the engine and *expands* what
+   players and their institutions may do — which is the shape most
+   likely to survive a vote, and a reason to prefer that shape when
+   there is a choice.

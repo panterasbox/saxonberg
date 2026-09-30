@@ -10,7 +10,7 @@ localities over the fixed honest physics. Coolness is the north
 star; the audience is the adult with a high-stakes real goal.
 
 The one wish under every vignette (the [fantasy
-lens](../lenses/fantasy.md)):
+lens](../lens-deck-salvage.md)):
 
 > **Be who you're becoming — now, visibly, among others, in a world
 > where your competence is real power.** Not escape from the

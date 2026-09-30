@@ -31,3 +31,12 @@ data:
   # makes the heath fishable, and what `look` reads the water off.
   props:
     - /world/moor/heath-mere
+  # ⭐⭐ East to the turf bank (extraction build). ⚠ The heath had no exits at
+  # all — it was teleport-only, the substation precedent — and it needs one
+  # now: the fuel-or-the-field choice is only a choice if you can walk to it.
+  # ⚠ And the mere above carries a fishing reach, so the ground somebody
+  # drains at the bank is upslope of water somebody fishes.
+  exits:
+    east:
+      destination: /world/moor/turf-bank
+      edgeMinutes: 2

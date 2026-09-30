@@ -57,7 +57,7 @@
  * See [docs/subsystems/husbandry.md].
  */
 
-import type { PopulateSpec, Populates } from "../stuff/Populates";
+import type { PropSpec, Staged } from "../stuff/Staged";
 import type { CommandContributions } from "../../api/command";
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import { MixinApi } from "../../api/mixin";
@@ -127,7 +127,7 @@ export interface Cultivable {
 
 /**
  * Requires a base that already composes `Container` + `Bulkable` +
- * `Slotted` + `Populates` + `Reserved` + **`Soil`** — composed at the CALL
+ * `Slotted` + `Staged` + `Reserved` + **`Soil`** — composed at the CALL
  * SITE, the `FixtureMixin(… Containable)` precedent. Nesting them inside
  * this factory would collapse TypeScript's inference through the returned
  * class and strip the `Stuff` baseline from every consumer, which is
@@ -140,7 +140,7 @@ export interface Cultivable {
  */
 export function CultivableMixin<
   TBase extends MixinConstructor<
-    Stuff & Container & Bulkable & Slotted & Populates & Reserved & Soil
+    Stuff & Container & Bulkable & Slotted & Staged & Reserved & Soil
   >,
 >(Base: TBase) {
   return class CultivableMixin extends Base implements Cultivable {
@@ -415,7 +415,7 @@ export function CultivableMixin<
     /**
      * Populate, then **claim the slots**.
      *
-     * `PopulatesMixin` places by containment only, so a starter pot's
+     * `StagedMixin` places by containment only, so a starter pot's
      * declared plant would otherwise land in the contents *outside* its
      * slot — exactly the trap that makes the Slotted capture slice record
      * index `-1` and silently drop the occupant on restore. So the applier
@@ -428,7 +428,7 @@ export function CultivableMixin<
      * authored too small for its own starter plant is a content bug, not a
      * crash.
      */
-    public async applyProps(specs: PopulateSpec[]): Promise<void> {
+    public async applyProps(specs: PropSpec[]): Promise<void> {
       await super.applyProps(specs);
       this.adoptArrivals();
     }

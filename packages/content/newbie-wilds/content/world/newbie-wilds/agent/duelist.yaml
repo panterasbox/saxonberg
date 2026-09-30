@@ -20,8 +20,18 @@
 # Brain-driven in combat by the session's default combatant brain; his
 # `arms` brain takes the knife off the duelling-stone and wields it.
 class: /platform/agent/Cast
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/agent/costume/student
 data:
+  # ⭐ What this person has on comes from the parent row
+  # (`/stuff/agent/costume/student`). Until the envelope build no
+  # NPC row could author clothing at all — every authored person in
+  # the realm was naked, invisible only because every interior was
+  # 21 °C by decree.
+  # ⭐ The base three come from the parent; this row adds what is
+  # different about THIS person.
+  costume:
+    - { template: /stuff/thing/armor/leather-boots, as: shoes }
+    - /stuff/thing/armor/hide-jerkin
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   alternateNames:

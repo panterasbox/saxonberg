@@ -80,6 +80,27 @@
  *   - `ToolMixin.epoch` — which era an instrument is from (forestry's
  *     hunk, pasted verbatim here so the two branches meet on it). A
  *     stamp you can read off the tool by looking at it.
+ *
+ * **Placement (7 fields).** Every one level 0, and for this family the
+ * answer is stronger than *not a spoiler* — they are the TEACHING
+ * surface, and hiding them would break the thing the build exists for.
+ *
+ *   - `Placement.prepositions` is literally **the word a player
+ *     types**; `Placement.heading` is what a listing prints above the
+ *     things hanging from a hook; `Placement.name`, `.prose` and
+ *     `.encloses` are the rest of the member's public claim about
+ *     itself. The build's central promise is that somebody who has
+ *     learned `on` needs no explanation for `from` — which they learn
+ *     by reading. A spoilered vocabulary would make a way of sitting
+ *     unlearnable.
+ *   - `PlacingMixin.placements` — which ways of sitting THIS host
+ *     offers. The composition panel already tells a player that a thing
+ *     is `Placing`; refusing to say whether it takes `on` or `from`
+ *     would be the misrepresentation the panel exists to avoid.
+ *   - `CoolboxMixin.insulationR` — how well the box's walls keep. The
+ *     same class as density and hardness (named above as not
+ *     spoilers): a property of the thing, readable by handling it, and
+ *     telling a good icebox from a bad one is the point of owning one.
  */
 
 import { describe, it, expect } from 'vitest';

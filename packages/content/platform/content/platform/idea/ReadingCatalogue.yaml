@@ -1,0 +1,11 @@
+# ReadingCatalogue — the singleton whose postRegister stands the authored
+# reading-channel roster up as live singletons and indexes it by the
+# token a player types (the self-warming catalogue shape; eager via this
+# pack's boot list, not an AppBootstrap sequencer line).
+#
+# ⚠⚠ It also warms LAZILY on the first miss, because `measure` and
+# `analyze` resolve a channel on every dispatch and the dispatch path
+# must not depend on boot order. The reference-Ideas-inert-at-boot trap
+# has cost this repo three shipped-but-dead rosters.
+class: /platform/idea/ReadingCatalogue
+data: {}

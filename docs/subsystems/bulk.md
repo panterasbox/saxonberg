@@ -91,11 +91,15 @@ tank and watering can in the game. It is composed by the classes that
 actually have a kind — `Bottle`, `Vat`, `CraftVessel` and everything
 below them — and `MixinApi.isVesselKind` is how a reader asks.
 
-It exists because **template inheritance does not exist**, so the empty
-vessel row (`/trade/bottling/thing/can`) and the product row that is
-that vessel filled (`…/can-of-cola`) are otherwise strangers that happen
-to share a class. The shared `category` string *is* the relationship,
-and three things read it:
+It exists because the empty vessel row (`/trade/bottling/thing/can`)
+and the product row that is that vessel filled (`…/can-of-cola`) need a
+relationship a reader can ask about at RUNTIME. ⭐ Since the
+template-inheritance build the product row genuinely `extends:` the
+empty one, so the two are no longer strangers on disk — but `extends`
+is a fact about the ROWS, and the three readers below hold live
+instances whose parentage is not on them. The shared `category` string
+is what an instance carries, and it stays the relationship those
+readers ask:
 
 - **The census** ([residency.md](./residency.md)) — an emptied vessel
   counts under `vessel:<category>`, so a drained can of cola joins the
@@ -174,7 +178,7 @@ per affordance, each gated by an authored boolean flag:
 
 The two affordances are **independent of the spatial mixins**:
 interior-bulk does not require `Container` (a fluid-only thermos holds
-no pens), and surface-bulk does not require `Surfaced` (the floor
+no pens), and surface-bulk does not require `Placing` (the floor
 carries a puddle without being a discrete-resting surface). Composition
 is explicit per host — the auto-compose-on-every-Container question is
 deferred.
@@ -185,7 +189,7 @@ A slot's persistent state (flat fields, per affordance):
   templatePath (an identity ref; resolved on read, HMR-safe), `null` ⇒ empty.
 - `interiorAmount` / `surfaceAmount` — `Quantity<'L'>`, marshalled via
   `QuantityMarshaller.pathFor('L')`. Defaults `0 L`.
-- `interiorCapacity` / `surfaceCapacity` — `Quantity<'L'> | null`;
+- `interiorCapacity` / `surfaceCapacity` — `Quantity<'L'> | null`; ⚠ **not `interiorVolume`**, which is `ExitableVessel`'s cabin in m³ ([biome.md](./biome.md)). A tank is how much fluid you can pour in; a cabin is how much air is in it. The barge authors `interiorCapacity: 12000` and no cabin at all;
   `null` is an **uncapped** slot (a puddle). Authored only when bounded
   (omit ⇒ uncapped — the persistence layer skips absent fields).
 - `closure` — the retention scale (below). Default `liquidTight`.
@@ -253,12 +257,31 @@ v1 bulk is all liquid (`requiredClosureFor → 'liquidTight'`), so an
 `sealed` (gas) and the phase→required-level mapping are defined on the
 scale but unexercised until gas content lands.
 
+> ⭐⭐ **That rung has named consumers now (2026-09-25), and it turns out
+> to be an ECONOMY rather than a detail.** Gas cannot be held by anything
+> below `sealed`, so **no vessel means no product** — which makes
+> containment the whole capital story of any gas trade, exactly as it was
+> historically. The first gas that is a *good* is **coal gas from the
+> retort** (→ [destructive-distillation-slate](../slates/builds/destructive-distillation-slate.md)),
+> not drilled gas; the first gas that is a *hazard* is **firedamp** in a
+> working (→ [mining-slate](../slates/builds/mining-slate.md)). A
+> **gasometer** — a `Bulkable` with `closure: sealed`, a rising bell in a
+> water seal whose height is visible across a city — is the rung's natural
+> exemplar and a non-gauge readout of a shared resource.
+>
+> ⚠ **One thing to decide deliberately when it lands:** `AirTank`
+> (→ [respiration.md](./respiration.md)) treats gas as **incompressible
+> bulk** — an interior fill *fraction*. Real gas storage is a **pressure**
+> question. The abstraction is defensible while it still costs somebody
+> the vessel and the labour, but once gas is **traded**, *"how much is in
+> there"* is asked in a way a fill fraction cannot answer honestly.
+
 ### `Container` + `Bulkable` — orthogonal slots
 
 Within one affordance, bulk and discrete contents are **independent**: a
 `Container` holds its `contents` (a `Set<Containable>`) and its interior
 slot, and neither touches the other. `CraftVessel`
-(`Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))`) is the shipped
+(`Crafted(Thermal(Bulkable(Container(Good))))`) is the shipped
 case — the olive is a `Containable` in `contents`, the martini is the
 interior slot; `drink` drains the slot and the garnish stays. `Feeder`,
 `PlantPot` and `GardenBed` compose the same pair. There is no constraint
@@ -470,9 +493,9 @@ marks "you reached this holder through its bulk":
 The floor composes `BulkableMixin` with a `surfaceBulk` slot, so a
 spilled, over-poured, or drained-through liquid pools as the floor's
 **surface** bulk (a puddle). The floor stays an `Adornment` fixture
-(excluded from the room's enumerated contents), **NOT** `Surfaced`:
+(excluded from the room's enumerated contents), **NOT** a placement:
 discrete containment is untouched — an apple dropped in the room is
-still `container = room`, a sibling of the desk, not `restingOn` the
+still `container = room`, a sibling of the desk, not *placed on* the
 floor. A puddle is the floor's attribute, not a Stuff. The default-floor
 seed (`generic-objects/content/stuff/thing/surface/default-floor.yaml`) carries an uncapped
 surface slot, so any room with a floor can pool.
@@ -535,7 +558,7 @@ from an air source — no new bulk machinery.
 
 - Materials: `coffee`, `water` (`seeds/lib/material/bulk/`).
 - Holders: one `Receptacle` class (`obj/Receptacle.ts` =
-  `BulkableMixin(Thing)`, fluid-only — not a discrete `Container`, and
+  `BulkableMixin(Good)`, fluid-only — not a discrete `Container`, and
   named to stay clear of the existing enterable-`Vessel`) backing four
   rows (`generic-objects/content/stuff/thing/vessel/`): the unbounded coffee `urn`, the portable
   `thermos`, the destination `mug`, and the `open`-closure `colander`.

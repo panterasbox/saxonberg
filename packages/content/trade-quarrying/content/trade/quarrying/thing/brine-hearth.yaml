@@ -1,0 +1,43 @@
+# ⭐ The brine hearth — **the fast source, and the fuel is what somebody else
+# wanted.**
+#
+# You set a pan of brine over a fire and boil it down in an afternoon instead
+# of waiting a month for the sun. So salt's three sources are three genuinely
+# different cost structures — capital and labour at a rock-salt face, patience
+# on the saltings, **fuel** here — and where a person lives decides which one
+# they use. The fuel competition was already designed as part of the wood
+# contest: the charcoal burner and the smelter want the same cordwood.
+#
+# ⚠⚠ **An `Oven` row, and that is not laziness — it is the whole mechanism.**
+# `Oven` already composes `ContainerMixin`, so the pan goes **in** the hearth,
+# and `ThermalMixin.heatSourceK()` already reads a thing's container for a lit
+# furnace. So the brine in the pan reads the fire's temperature with no new
+# class, no new coupling and no new verb: `Evaporation` caps its heat term at
+# 373 K, which is why a hotter hearth boils faster and never faster than
+# boiling.
+#
+# ⭐ 450 K is deliberately modest — hot enough to boil hard, nowhere near a
+# kiln. A brine hearth cannot burn lime, and saying so costs one number.
+class: /platform/thing/Oven
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: brine hearth
+  keywords: [hearth, "brine hearth", fire, furnace]
+  register: definite
+  longDescription: >-
+    A long low fire-bed of brick with iron bars across it, built to take a pan
+    the length of it. The brick above the bars is burnt white.
+  burnTemperatureK: 450
+  bellowsMultiplier: 1
+  fuelBurnRatePerMin: 0.5
+  lit: false
+  mass: 1800
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  emittedIntensity: 40
+  emittedColorTemperature: 1800

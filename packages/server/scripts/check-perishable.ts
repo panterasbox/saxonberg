@@ -43,7 +43,20 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { packSources, classFileOf } from './pack-roots';
+import { packSources, classFileOf,
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
+} from './pack-roots';
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
+
 
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');
@@ -89,7 +102,7 @@ function templateRows(): Row[] {
         continue; // a malformed row is another gate's finding
       }
       if (!parsed || typeof parsed !== 'object') continue;
-      const r = parsed as { class?: unknown; data?: unknown };
+      const r = effectiveDoc(file, parsed as Record<string, unknown>, inheritIdx()) as { class?: unknown; data?: unknown };
       if (typeof r.class !== 'string') continue;
       rows.push({
         path:
@@ -157,7 +170,34 @@ function reachesFreshness(
    */
   const ext = /class\s+\w+\s+extends\s+([^{]+)\{/.exec(src);
   if (!ext) return false;
-  for (const base of ext[1]!.match(/[A-Za-z_$][\w$]*/g) ?? []) {
+  /*
+   * ⚠⚠ **Expand a module-local `const` base before following imports.**
+   * `const FooBase = AMixin(Provision); class Foo extends FooBase {}` is
+   * the dominant shape in this tree, and the clause then names a local
+   * binding rather than an import — so the walk stopped there. Measured
+   * on the sibling gate `check-mass`, which uses this same walker:
+   * following imports alone found **5 of 684** classes reaching
+   * `TangibleMixin` where the composition census finds 203.
+   *
+   * ⭐ It had not produced a wrong answer HERE, and the reason is worth
+   * keeping: this gate's miss direction is a false POSITIVE (a row
+   * reported as unable to rot), so it fails loudly rather than
+   * silently. `check-mass` counts offenders, so the identical miss
+   * fails OPEN. Same walker, opposite failure mode — which is why the
+   * defect surfaced only when the second consumer arrived.
+   */
+  const names = new Set(ext[1]!.match(/[A-Za-z_$][\w$]*/g) ?? []);
+  for (const n of [...names]) {
+    const local = new RegExp(
+      `(?:const|let|var)\\s+${n}\\s*=\\s*([\\s\\S]*?);`,
+    ).exec(src);
+    if (!local) continue;
+    if (local[1]!.includes(REQUIRED_MIXIN) || local[1]!.includes(ALIVE_MIXIN)) {
+      return true;
+    }
+    for (const m of local[1]!.match(/[A-Za-z_$][\w$]*/g) ?? []) names.add(m);
+  }
+  for (const base of names) {
     const imp = new RegExp(
       `import\\s+(?:\\{[^}]*\\b${base}\\b[^}]*\\}|${base})\\s+from\\s+['"]([^'"]+)['"]`,
     ).exec(src);

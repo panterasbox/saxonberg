@@ -9,7 +9,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import {
   VitalsMixin,
   UNIVERSE_DEFAULT_VITAL_PROFILE,
@@ -25,7 +25,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-const VitalThingBase = VitalsMixin(Thing);
+const VitalThingBase = VitalsMixin(Good);
 class VitalThing extends VitalThingBase {}
 
 function profiledSpecies(): Species {

@@ -1,7 +1,7 @@
 # The small press — the kit's crush (D15: verbs ride the instrument,
 # never the venue; nothing in this build checks where you stand). The
 # winery's basket press at carry weight, same capability.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small basket press

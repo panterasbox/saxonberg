@@ -26,9 +26,7 @@ data:
   # every one of these rooms has a reason to be dim rather than blind,
   # and the shipped kitchen archetype (35 lux) and a dozen Terminus rooms
   # already author exactly this.
-  # Here: one lamp on a hook — a cellar is dim by nature, not blind.
-  ambientIntensity: 15
-  ambientColorTemperature: 2400
+  # ⭐ DARK, on purpose. A cellar. The whole point of a cellar is that nothing gets in, light included.
   coords:
     x: 2
     y: 0

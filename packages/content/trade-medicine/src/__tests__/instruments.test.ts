@@ -14,7 +14,7 @@ import SurgicalKit from '../thing/SurgicalKit';
 import OperationCatalogue from '@saxonberg/server/mud/platform/idea/OperationCatalogue';
 import type { OperationDescriptor } from '@saxonberg/server/mud/platform/idea/Operation';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import { Postures } from '@saxonberg/server/mud/lib/slot/Postured';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -51,7 +51,7 @@ const ctxFor = (actor: unknown): CommandContext =>
   ({ commandGiver: actor, location: null, note } as unknown as CommandContext);
 
 const tool = (): MqlOneResult =>
-  ({ stuff: makeStuff(() => new Thing()), raw: 'it' } as unknown as MqlOneResult);
+  ({ stuff: makeStuff(() => new Good()), raw: 'it' } as unknown as MqlOneResult);
 
 /** What the binder hands back when its `[capability.*]` default matches
  * nothing in hand — the arg is bound, but empty (not omitted). */

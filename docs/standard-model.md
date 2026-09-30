@@ -5,8 +5,9 @@
 > imagined periodic table of gamification — not the educational game
 > built on it. Saxonberg's game-level essence ("learning as adventure,"
 > education at its core) lives in [vision.md](./vision.md). The two
-> layers are nested, not in tension — reconciled in
-> [lenses/essential-experience.md](./lenses/essential-experience.md).
+> layers are nested, not in tension. ⚠ The entry that reconciled them was
+> retired 2026-09-29; **both ratified essence sentences survive** in
+> [lens-deck-salvage.md](./lens-deck-salvage.md) § 2.
 
 The third of the engine's orienting docs, alongside
 [design-philosophy.md](./design-philosophy.md) (how honestly the world
@@ -254,7 +255,7 @@ factory in the folder shown.
 - **`Container`** — holds `Containable`s; the "I'm a place" surface.
 - **`Containable`** — lives inside a `Container`; owns the
   `environment` chokepoint.
-- **`Surfaced`** — rests *on* a surface rather than *in* a
+- **`Placing`** — holds things *on* / *in* / *from* it rather than *in* a
   container.
 - **`CartesianCoordinates`** — an (x, y, z) position in a Cartesian
   zone.
@@ -335,7 +336,7 @@ factory in the folder shown.
   (`@PostConstruct`-style).
 - **`Spawner`** / **`Spawned`** — track within-session dynamic
   spawns and their back-reference.
-- **`Populates`** — declaratively spawns contents into a `Container`
+- **`Staged`** — declaratively spawns contents into a `Container`
   at clone time.
 - **`Stackable`** — a fungible stack carrying an integer quantity;
   splits and merges.

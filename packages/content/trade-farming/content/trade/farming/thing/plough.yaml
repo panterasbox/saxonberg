@@ -7,7 +7,7 @@
 # is punishing — which is what makes an ox a genuine capital investment
 # and the first rung of a mechanisation ladder nobody authors ahead of
 # demand.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [plough, plow, ard, wooden]

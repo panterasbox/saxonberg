@@ -1,0 +1,39 @@
+# ⭐⭐⭐ **The SECOND bench, and it is rows and nothing else.**
+#
+# This file is the build's own falsifiable test of D22: *contestability
+# comes from the bench being an OBJECT.* No archetype, no venue class, no
+# pack code — a second assay bench is a second row, placed by whoever
+# wants one, and it works identically to the first because it is the same
+# class and the same capability.
+#
+# ⚠ It is NOT the mine's. The Ferrow shed's bench belongs to the smelter
+# business at Rejection; this one is in the city's goods yards, where the
+# ore arrives by wagon, and it belongs to whoever operates the yards.
+# That is the whole of *a second opinion you did not have to walk a day
+# for* — and it costs more, because convenience does.
+#
+# ⚠ No roster. Nobody stands at it, so it reads at the BENCH's own band
+# rather than an assayer's — which is the honest trade: you pay for the
+# furnace and you do not get the eye.
+class: /trade/mining/thing/instrument/AssayBench
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: yard assay bench
+  keywords: [bench, "assay bench", "yard bench", cupel]
+  register: definite
+  longDescription: >-
+    A stub of a bench in the lee of the loading bay, boarded in on three
+    sides against the wind, with a cast-iron muffle bolted to a slab and
+    a rack of cupels under a tarpaulin. Somebody has chalked a price on
+    the boards and somebody else has chalked a lower one under it and
+    been rubbed out.
+  fixedInPlace: true
+  mass: 210
+  capabilities: [assay-scale]
+  _materialPath: /stuff/idea/material/wood/pine
+  # ⭐ Dearer than the shed's, and slower to light: a bench in a draughty
+  # yard is not the smelter's muffle. The figure is the same figure —
+  # what you buy is not walking a day for it.
+  setupS: 2100
+  perSampleS: 660
+  fee: 40

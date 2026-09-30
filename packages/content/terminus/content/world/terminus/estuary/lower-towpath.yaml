@@ -20,6 +20,11 @@ data:
     y: 0
     z: 0
   exits:
+    # ⭐ Into the salt house. It is on the towpath because brine arrives by
+    # water and fuel arrives by road, and the shed is where the two meet.
+    south:
+      destination: /world/terminus/estuary/salt-house
+      edgeMinutes: 1
     west:
       destination: /world/terminus/wharfside/bank
       media: [ground, water]

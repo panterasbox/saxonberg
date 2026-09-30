@@ -20,8 +20,9 @@
  *      arg in its `args:` array.
  *   3. **No required after optional.** A `required: true` arg
  *      cannot follow a `required: false` arg in the same array.
- *      Greedy is `required: true` by definition, so this rule
- *      subsumes "optional cannot precede greedy".
+ *      A bare `greedy: true` is required by default — but a greedy
+ *      arg that declares `required: false` is OPTIONAL, and the
+ *      view means it.
  */
 
 import type { CardId } from '@saxonberg/types';
@@ -698,7 +699,28 @@ function validateArgOrdering(
     }
 
     const isOptional = def.required === false;
-    const isRequired = def.required === true || def.greedy === true;
+    /*
+     * ⚠⚠ **`greedy` defaults an arg to required; it does not OVERRIDE an
+     * explicit `required: false`.**
+     *
+     * This line read `def.greedy === true` unconditionally, and the
+     * header called greedy *"`required: true` by definition"* — which
+     * contradicted the sibling rule directly above it. That rule was
+     * deliberately relaxed so a greedy arg may be followed by
+     * PREPOSITIONAL args (`order <cocktail…> with <brand>`), and this
+     * one then refused the same shape whenever the trailing
+     * prepositional arg was itself greedy and optional.
+     *
+     * ⭐ Found by driving `measure light with the photometer`. The whole
+     * reading ladder wants `<channel> [<subject…>] [with <tool…>]`, and
+     * both of the optional tails need `greedy` or an article eats a
+     * positional — `with the photometer` binds `the` and `photometer`
+     * as two, trips "too many arguments", and dies as an unknown shape.
+     * The view says `required: false` and means it; a default is not a
+     * declaration.
+     */
+    const isRequired =
+      def.required === true || (def.greedy === true && def.required !== false);
 
     if (sawOptional && isRequired) {
       throw new Error(

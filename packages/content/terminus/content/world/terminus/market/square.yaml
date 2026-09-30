@@ -16,9 +16,21 @@
 #
 # NORTHEAST back up the lane to the avenue block (cross-zone, both sides
 # explicit — the block declares SOUTHWEST here).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Street
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
+  # street, not objects on it. NOTHING IS MINTED: nobody binds a street
+  # lamp, and one identical fuelled object per street would be forty-one
+  # fuel reserves reconciling to produce the same number. Whether the
+  # lamps are burning right now is DERIVED — the service is funded, it is
+  # after dusk, therefore they burn.
+  # The square is lit SECOND: if the money runs short it is the square that goes dark, and that order was written down in advance.
+  publicLighting:
+    flux: 400
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 2
   shortDescription: farmers market square
   keywords: [square, farmers, market]
   register: definite
@@ -68,6 +80,10 @@ data:
   cast:
     - /world/terminus/market/agent/fishmonger
   details:
+    lamps:
+      keywords: [lamps, lamp, standards, lighting]
+      description: |
+        Fluted iron standards at the corners, each with a glass head on a cross-bar and a lamplighter's notch worn into the post at shoulder height.
     bunting:
       keywords: [bunting, canvas, awnings]
       description: |

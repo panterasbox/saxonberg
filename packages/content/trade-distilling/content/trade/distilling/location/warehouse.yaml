@@ -11,6 +11,12 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: lights
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid
   # and inherited nothing from one. See the zone row beside it.
@@ -27,3 +33,8 @@ data:
   ambientColorTemperature: 4200
   props:
     - /trade/distilling/thing/racking
+  details:
+    lights:
+      keywords: [lights, glass, light]
+      description: |
+        A row of roof lights along the ridge, grimy with years, dropping pale squares onto the casks below.

@@ -1,13 +1,13 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SoundSourceMixin } from '../SoundSource';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Quantity } from '../../quantity';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class Whistle extends SoundSourceMixin(Thing) {}
+class Whistle extends SoundSourceMixin(Good) {}
 
 describe('SoundSourceMixin', () => {
   beforeEach(() => {

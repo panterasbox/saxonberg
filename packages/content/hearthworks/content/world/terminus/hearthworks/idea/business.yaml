@@ -60,11 +60,21 @@ data:
     - positionKey: smith
       assignee: /world/terminus/hearthworks/agent/smith
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+        # ⭐ Real hours (envelope S8). This authored `[0, 24]` — a house
+        # staffed around the clock — which was never true of it and made
+        # the night indistinguishable from the day. The `shifts` brain
+        # parks off-shift cast in the venue's Offstage, so the street
+        # genuinely empties.
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 19] }
     - positionKey: cook
       assignee: /world/terminus/hearthworks/agent/cook
       schedule:
-        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+        # ⭐ Real hours (envelope S8). This authored `[0, 24]` — a house
+        # staffed around the clock — which was never true of it and made
+        # the night indistinguishable from the day. The `shifts` brain
+        # parks off-shift cast in the venue's Offstage, so the street
+        # genuinely empties.
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 19] }
   # ⭐⭐ **The par sheet, and why it is here** (trades-and-labor D16).
   # Eleven works boards shipped empty: par lines existed in exactly ONE
   # file in the whole realm, so the only house ordering anything was the

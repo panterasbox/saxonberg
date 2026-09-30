@@ -11,7 +11,7 @@
 # It is also the honest object: a loading dock is a real thing a working
 # bar has, and "put it on the bench, I'll deal with it" is what anybody
 # would say to a delivery.
-class: /platform/thing/Surface
+class: /platform/thing/Fitting
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: receiving bench

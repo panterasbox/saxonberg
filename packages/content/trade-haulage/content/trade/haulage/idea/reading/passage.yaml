@@ -1,0 +1,30 @@
+# passage — whether a rig gets through the ways out of here.
+#
+# ⚠⚠ **ANALYZE ONLY, and it is the one shipped phrase this build takes
+# away.** `measure passage` no longer parses; the refusal names
+# `analyze passage`.
+#
+# The reason is the channel's own: a wheel gate is a wheel gate, and no
+# instrument anybody could carry changes whether a wagon fits a stair.
+# This is the TRAINED EYE by definition — the reading with no
+# instrumented rung at all — and pretending otherwise would have meant
+# inventing a tool whose only job was to be required.
+#
+# ⚠ The ANSWER is the same for everybody. What competence buys is
+# CONFIDENCE: a novice would not like to promise; a proficient teamster
+# tells you to within a hand, and which wheel binds first.
+#
+# ⭐ The pack ships the row and the class; the platform names neither.
+class: /trade/haulage/idea/reading/PassageReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: passage
+  kind: record
+  scope: [here]
+  discipline: teamstering
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether to commit a loaded rig to a road before you are on it
+  stakes: >-
+    a rig wedged in a gate with a full load and no way back

@@ -14,12 +14,12 @@
  * ladder rather than a different one.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const SCUTCH = ['trade/textiles/cmd/textiles/scutch.yaml'];
 
-export default class ScutchingBoard extends ToolItem {
+export default class ScutchingBoard extends Tool {
   static commandContributions: CommandContributions = {
     environment: SCUTCH,
     peers: SCUTCH,

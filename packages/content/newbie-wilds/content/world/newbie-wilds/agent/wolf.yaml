@@ -4,7 +4,7 @@
 # rule), brain-driven in combat by the session's default combat brain (no
 # Interactive → auto brain-driven); the species' natural attacks (bite and
 # worry) let it strike back unarmed. A lethal cull: no consent, no blame. Idles with a low growl until something gives it a reason.
-class: /platform/agent/Extra
+class: /platform/agent/Beast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/wolf

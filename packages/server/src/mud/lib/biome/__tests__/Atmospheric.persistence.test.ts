@@ -25,9 +25,15 @@ describe('AtmosphericMixin — composition + storage', () => {
     expect(MixinApi.hasMixin(room, Mixins.Atmospheric)).toBe(true);
   });
 
-  it('Vessel composes AtmosphericMixin', () => {
+  it('⭐ Vessel does NOT compose AtmosphericMixin — a bag is not a place', () => {
+    // It did, from the class's first commit, on the framing "matter from
+    // the outside, a place from the inside". But *inside* is somewhere
+    // you can only BE for a vessel you can go into, and that is
+    // `ExitableVessel`. What the mixin bought every other vessel was a
+    // temperature, a pressure, a humidity, a wind and a biome — thirty-
+    // seven rows over fifteen composers, none authoring one field of it.
     const ship = makeStuff(() => new TestVessel());
-    expect(MixinApi.hasMixin(ship, Mixins.Atmospheric)).toBe(true);
+    expect(MixinApi.hasMixin(ship, Mixins.Atmospheric)).toBe(false);
   });
 
   it('eleven persistent fields are declared', () => {

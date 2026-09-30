@@ -298,7 +298,7 @@ walking the actor's surroundings and narrowing by type.
 ```typescript
 // BAD — the controller re-deriving what the binder already resolves
 const mill = room.getContents().find((c) => c instanceof GristMill);
-const oven = room.getContents().find((c) => MixinApi.isFurnace(c));
+const oven = room.getContents().find((c) => MixinApi.isBurner(c));
 ```
 
 **INSTEAD** — declare it on the view and read it off the model:
@@ -341,7 +341,7 @@ atom exists for exactly this — see
 ```
 
 ⚠ It is fine for the controller to narrow further on **state** the
-predicate cannot express: `bake` resolves on `FurnaceMixin` and then
+predicate cannot express: `bake` resolves on `BurnerMixin` and then
 checks *lit, fuelled, and a chamber*, because no mixin means "lit".
 
 ⭐⭐ **And when one arg cannot carry it, reach for a PLURAL — not a
@@ -485,24 +485,45 @@ stay a review judgment, because no regex can make them.
 CMS-editable, pack-shippable, hot-rehydratable; a raw `create` opts
 the object out of all of that.
 
-`create`/`createSync` are ONLY for objects a template genuinely cannot
-describe ahead of time. The recognized categories (the whole current
-population — audited 2026-07):
+⭐⭐ **The rule, in the user's words: *the template is the base, the
+factory is the patch.*** A factory that builds from RUNTIME state is a
+real pattern — but it should still CLONE a row and patch what the row
+cannot know, doing as much as possible in the template. A code-minted
+object can say nothing an author wrote: no prose, no keywords, no
+detail. The coat-check ticket carried a comment reading *"a
+runtime-minted thing has no row to author them in"*, and that comment
+was the finding, not the justification.
 
-- **Live-ref relational** — the object binds specific live instances
-  (an `Exit`'s source/destination, a `BoundaryAnchor`, a `Login`/
-  `Interactive` holding a live connection). A static template cannot
-  hold a live ref.
-- **Dynamically-minted uniques** — identity paths minted at runtime
-  (`Party` at `/platform/idea/party/<uuid>`, the per-player `_eval` scratch).
-- **Transient single-use vessels** — minted, used, and reaped inside
-  one call (`LightningStrike`); a template would be a seed row
-  nothing ever edits.
-- **Framework fallbacks / introspection** — a test-harness registry
-  lazy-mint, `StudioLogic`'s read-a-class-default throwaway.
+⚠ **Three of the four categories this section used to list are
+retired** (template inheritance, 2026-09-25), because each was an
+argument about an object's LIFETIME rather than about whether a person
+could author it:
+
+- ~~Live-ref relational~~ — an `Exit` is a clone of a kind row and the
+  live refs arrive through `bind`; a `BoundaryAnchor` is a clone its
+  boundary mints at `postRegister`.
+- ~~Dynamically-minted uniques~~ — that is the `asIdentityPath`
+  channel, not a reason to skip the row: `Party` clones
+  `/platform/idea/Party` with `/platform/idea/party/<uuid>` as its
+  identity, exactly as an Avatar does. So does the eval scratch.
+- ~~Transient single-use vessels~~ — *"a template would be a seed row
+  nothing ever edits"* was the strike's defence. A row nobody edits is
+  still a row somebody CAN.
+
+**What survives, enumerated and gated** (`pnpm lint:create-sites`,
+ceiling 5):
+
+- **The connection layer** — per-socket objects with no world identity
+  (`Interactive`, `Login`).
+- **A framework seam that takes a FACTORY from its caller** —
+  `BoundaryApi.create`, `PersistableLogic`'s shadow follower. There is
+  no path to look up, because the caller supplies the class.
+- **Introspection of a CLASS** — `StudioLogic.readClassDefault`
+  constructs an instance to ask the class what its defaults are, so a
+  row would be answering a question about itself.
 
 Anything else — a fixture, an item, an NPC, a room — gets a template
-and a seed. When in doubt, it's a template.
+and a clone. When in doubt, it's a template.
 
 **Not an exception: an object derived from another object.** "This
 instance's state comes from a live source, not from authored data" is not
@@ -2066,8 +2087,8 @@ const t = await this.getTemperature(detailKey);   // delegates to BiomeApi
   compose `AtmosphericMixin`. The Api handles this; inline walks
   often stop at the wrong ancestor.
 - **Biome-ancestry walk** (chain step 4). A biome leaf inherits
-  un-set defaults by following its explicit `_extendsBiomePath`
-  refs up to the root. Inline walks usually consult only the leaf.
+  un-set defaults by following its row's `extends:` links up to the
+  root. Inline walks usually consult only the leaf.
 - **Spatial-zone fallback** (chain step 5). `Zone.lookupField` is
   async and reads via `atmosphere.<field>`; inline walks routinely
   skip the step.
@@ -2915,7 +2936,7 @@ this gap**, none of them visible to a green suite:
 
 | What was tested | What was broken |
 |---|---|
-| `FurnishableRoom`'s fields round-trip | the class composed no `PopulatesMixin`, so every seed's `props:` was inert and **no fixture ever landed** |
+| `FurnishableRoom`'s fields round-trip | the class composed no `StagedMixin`, so every seed's `props:` was inert and **no fixture ever landed** |
 | the bed seed's YAML says `restQuality` | `SeederManager` is insert-only, so the live row **never updated** |
 | `SlotApi.occupyAll` puts a body in a bed | nothing contributed `posture/lie.yaml`, so **no player could issue `lie`** |
 | ...the same test | no actor composed `SlottableMixin`, so the verb **rejected everyone** |
@@ -2933,7 +2954,7 @@ expect(body.getOccupiedHost()).toBe(bed);   // true, and irrelevant
 
 ```typescript
 // The verb exists for the actor that must issue it...
-expect(PosedMixin(Thing).commandContributions.self)
+expect(PosedMixin(Good).commandContributions.self)
   .toContain('posture/lie.yaml');
 // ...and the actor satisfies the validator that gates it.
 expect(MixinApi.hasMixin(Creature, Mixins.Slottable)).toBe(true);
@@ -3674,7 +3695,7 @@ isn't a player.
 Mounted is not immovable. The tell is a veto whose reason is a *fact
 about the object* (`'mounted'`, `'bolted down'`, `'too heavy'`) rather
 than about the operation: a fact about the object is state, and state
-belongs in a field the row can author. `Screen.canMove` was the tree's
+belongs in a field the row can author. A retired wall-screen class's `canMove` was the tree's
 only production override, found in the libations review; `canMove` now
 has no production users and stays for genuine class invariants. See
 [spatial.md](./subsystems/spatial.md) § *`canMove` is a class invariant*.
@@ -3702,7 +3723,7 @@ capabilities:
 
 ```ts
 // RIGHT — one record: the class of the thing that performs the act.
-export default class Strainer extends ToolItem {
+export default class Strainer extends Tool {
   static commandContributions: CommandContributions = {
     environment: [STRAIN], peers: [STRAIN],
   };
@@ -4586,7 +4607,7 @@ args:
 ```
 
 Raw stock has no wear axis — stock does not wear out, made things do — so
-`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Thing))` and
+`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Good))` and
 none composes `DurableMixin`. Every explicit `hammer <target>` in the game
 was refused at the **binder** with *"{} doesn't wear out"*, including
 `hammer ingot`, the worked example in that file's own help. Only bare
@@ -5303,3 +5324,296 @@ not part of the room's own description.
 browser player has ever seen a puddle. The general answer (a card that
 renders the prose it was handed) is
 [carded-prose-slate](./slates/tails/carded-prose-slate.md).
+
+## A dynamic detail guarded on `senseOrParent !== undefined`
+
+**Wrong** — the live line never renders, and the test that would have
+caught it does not exist because the seam looks obvious:
+
+```ts
+override getDetail(id, senseOrParent?, parent?): string | null {
+  const base = super.getDetail(id, senseOrParent as SenseChannel, parent);
+  if (id !== 'tower' || senseOrParent !== undefined) return base;   // ⚠
+  return `${base} ${this.liveReading()}`;
+}
+```
+
+**Right** — treat the default sense as the visual read:
+
+```ts
+const visual = senseOrParent === undefined || senseOrParent === 'vision';
+if (id !== 'tower' || !visual) return base;
+```
+
+⭐ **Why.** `look <detail>` does not call `getDetail(id)`. It calls
+`host.getDetailFor(viewer, dotted)`, and `getDetailFor`'s signature is
+`(viewer, id, sense: SenseChannel = 'vision', parent?)` — so by the time
+the override sees it, `senseOrParent` is the string `'vision'`, never
+`undefined`. The guard is always true, the early return always fires,
+and the player reads the static text forever.
+
+⚠⚠ **It shipped this way.** `Crossing.getDetail` is the codebase's one
+dynamic-detail precedent — the University Avenue clock tower's live
+reading — and it has carried this guard since it landed, so `look tower`
+has never shown the time. It was found only because the envelope build
+wrote a street-lamp detail *from that file* and a wire drive asserted
+the prose; both were fixed together (2026-09-24).
+
+The general lesson is the one `docs/testing.md` keeps making: **a seam
+whose only consumer is prose needs a drive.** No unit test failed here
+— the mixin's own suite calls `getDetail(id)` directly and passes — and
+no type error was possible, because `undefined` is a legal value of the
+parameter. Only somebody typing the verb could tell.
+
+## A sync read of a LAZILY-WARMED singleton on a path nothing preloads
+
+**Wrong** — works in every test, throws on a fresh world:
+
+```ts
+// in a room-level render
+const band = this.perceivedBandAt(actor, location);   // ⚠ cold cache
+```
+
+**Right** — warm it on the path that reads it:
+
+```ts
+await PerceptionApi.preloadForSenseGate(actor);
+const band = this.perceivedBandAt(actor, location);
+```
+
+⭐ **Why.** `PerceptionApi.modalityByName` reads a cache filled by a
+path-glob over live modality singletons, and those singletons are cloned
+**lazily**: the only thing that warms them is `preloadForSenseGate`. The
+verbs that needed a modality called it; nothing else did, and nothing
+else needed to — until a build made `look`'s room render ask the light
+band. On a fresh world that threw *"no modality 'vision' loaded"*, the
+defensive catch swallowed it, and **every room in the realm described
+itself at midnight** (2026-09-24).
+
+⚠⚠ **No unit test can catch this class.** A unit fixture calls
+`buildAllModalities()` in `beforeEach`, so its cache is *always* warm —
+the failure exists only where the cache is cold, which is a real boot.
+It is the **boot** link of the five reachability links, and it is the
+one this project has now paid for four times (the reference-Idea roster,
+three separate builds, and this).
+
+The general rule: **if you add a synchronous read of a lazily-warmed
+singleton to a code path that did not previously touch it, you have
+added a new consumer of the warm — and the warm is not yours to assume.**
+
+## A reader that DRIVES the thing it is reading
+
+**Wrong** — the read integrates, and the integration reaches back:
+
+```ts
+// on a body's own reconcile
+const roomK = scope.envelopeTemperatureSync();   // ⚠ integrates the room
+```
+
+**Right** — the room integrates itself; readers inside it read:
+
+```ts
+const roomK = scope.envelopeTemperatureLast();   // the last integration
+```
+
+⭐ **Why.** `envelopeTemperatureSync()` runs the room's integration,
+which walks the room's contents. One of those contents is a fire;
+asking a fire anything can restamp every Thermal body standing in the
+room; a body's restamp resolves the room's temperature. The ring is
+four subsystems long and **every one of them is individually correct**.
+
+⚠⚠ **A per-call reentry guard does not close it**, because the cycle
+runs through an `await`: by the time the second entry arrives the first
+has already released. Two guards were added before the shape of the
+problem was clear, and both were right to add and neither was enough.
+
+The rule that does close it is a **direction**: *the thing that owns the
+state integrates it; everything inside it reads.* A reader loses nothing
+— the room re-integrates whenever anything **resolves** its temperature,
+which is every `feel`, every `measure`, and the restamp path one level
+up — so the value is never more than one event stale.
+
+⭐ The tell to look for: **a `reconcile`-shaped call inside another
+subsystem's `reconcile`.** If A's reconcile can reach B's, and B's can
+reach A's, no amount of guarding makes that safe; one of them has to
+become a reader.
+
+## A second object answering to a keyword something in the room already claims
+
+**Wrong** — two things in one room answer to `hearth`:
+
+```yaml
+# the oven row, shipped
+keywords: [clay, oven, hearth, furnace]
+# …and a Hearth placed in the same room's props:
+keywords: [hearth, fire, fireplace, grate, hob]
+```
+
+**Right** — put it in a room where the word is unclaimed, or give the
+newcomer a name of its own.
+
+⭐ **Why it matters more than it looks.** `light hearth` becomes
+ambiguous, the binder raises a disambiguation prompt, and until somebody
+answers it **the session answers nothing else**. Over a socket that is
+indistinguishable from a deadlock, and it cost three drive runs and two
+(correct, unnecessary) reentry guards before a ten-second unit test
+said *the engine is fine, look at the content* (2026-09-24).
+
+⚠ A player hits it identically. It is not a test artefact.
+
+**The diagnostic lesson, which generalises past keywords:** a session
+that stops answering is not evidence of a deadlock — it is evidence that
+**something is waiting**, and a prompt is the cheapest thing that waits.
+Check for an unanswered prompt before you go looking for a cycle, and
+reproduce in a unit test early: a unit test that *passes* is the fastest
+way to be told you are chasing the wrong subsystem.
+
+## Sampling an INSTANT of a field to answer a question about a PLACE
+
+**Wrong** — a growth model asking how good a spot is, by reading what
+the light is doing right now:
+
+```ts
+// GrowingMixin.luxAt — credited the whole window at this instant's lux
+const light = vision.signalAt(loc) as Light | null;
+```
+
+**Right** — ask the question you mean:
+
+```ts
+const light = vision.peakSignalAt(loc) as Light | null;
+```
+
+⭐ **Why it matters.** A `luxHappyAt` is a claim about a **place** — *a
+windowsill suits a peace lily, a corridor does not*. It reads the same
+as "the lux here" for exactly as long as the lux here is a **constant**,
+and the envelope build (2026-09-24) ended that: a sky-lit scope now
+swings from `pitch-black` to `bright` and back every game day. The
+growth window is sampled once, so `signalAt` credited it at *whatever
+o'clock the window happened to close at* — and **a lily on a sunny
+windowsill starved of light because its owner watered it in the
+evening.** The dorm-houseplant suite caught it; nothing else could,
+because every other reader of light is perception, which genuinely does
+want the instant.
+
+`Modality.peakSignalAt` is the seam: it defaults to `signalAt` (right
+for every modality whose field has no day in it) and vision overrides
+it, swapping `CelestialApi.skyFactorNow()` for `skyFactorDailyPeak()`.
+⭐ Only the **sky leg** moves — a lamp reads the same either way,
+because a lamp does not have a day.
+
+⚠ **The generalisable shape, and it is not about light.** Whenever a
+constant becomes a curve, every reader that was written against the
+constant is now answering a *different question than it asks* — and it
+does so silently, because the number is still a plausible number. When
+you make something time-varying, the work is not finished at the
+producer: go and look at who reads it, and make each one say whether it
+wants **now** or **typically**.
+
+⚠⚠ And when you add a "peak", make sure nothing can exceed it. The
+first cut scanned the day on a fixed grid, straddled solar noon and
+under-reported by 0.2% — so `signalAt` at midday came out *above*
+`peakSignalAt`. A peak a reading can exceed is not a peak; the fix is a
+refinement pass across the winning sample's neighbours, and the unit
+test that compares the two is what has to exist.
+
+## A required arg with no default — the refusal the controller already wrote, unreachable
+
+**The shape.** A view declares an arg `required: true` and gives it no
+`default:`. The bare verb can then never bind, so a player who types it
+gets the **binder's** sentence about the word rather than the
+**controller's** sentence about the world.
+
+`assay` shipped this way. A prospector standing at the bench, holding
+ore, typed `assay` and was told:
+
+> That doesn't match any known command shape: assay.
+
+The parser, about the word, for a verb the room affords. And the
+controller's own refusal —
+
+> Assay what? A sample is a piece you took and noted — `sample` first.
+
+— was **unreachable from the moment it was written**, because the binder
+refuses one step above it. Every controller test passed; they call the
+controller.
+
+**The fix.** Make it optional and give it the default the help already
+recommends:
+
+```yaml
+- name: samples
+  type: objects
+  required: false
+  default: "reachable:[mixin.SampledMixin]"
+```
+
+⭐ **The rule:** if a controller has written a refusal for an empty
+binding, the binder must be able to REACH it. A `required: true` arg is a
+promise that the verb is meaningless without it — and a verb whose own
+help says *"bring several"* is not meaningless bare, it is a whole batch.
+
+⚠ The tell is a refusal string in a controller that no test and no drive
+has ever printed. Grep your controller for its empty-case sentence and
+ask what the binder does with the bare verb.
+
+## `your <thing>` when the rule is REACH, not carry
+
+**The shape.** Prose says *"with your X"* about something the actor only
+needs to have **in reach**. Two defects for the price of one:
+
+1. **Grammar** — `getPresentation()` already carries an article, so
+   `` `with your ${tool.getPresentation()}` `` renders *"with your a
+   brass photometer"*. The reading ladder shipped eleven lines of this in
+   a single `readings` listing.
+2. ⭐ **Truth** — the possessive asserts ownership the mechanism never
+   required. The Duncan Hall instrument case is the proof: the dials sit
+   on a table, belong to nobody, and every rung they open said *your*.
+
+**The fix.** `` `with ${tool.getPresentation()}` `` — the presentation
+form is already a complete noun phrase. If you want to say the actor has
+it, say something the mechanism actually checks.
+
+⚠ Neither half is visible to a wire assertion, which matches a substring
+and is blind to the rest of the sentence. **Read the words.**
+
+## A consumer written when the input was SMALL
+
+**The shape.** Code that reads a value and was correct for years, because
+the value was always small, an authored constant, or a single source. Then
+a build makes the value large, derived, or many — and the reader is now
+wrong. It does not throw. It returns a plausible number.
+
+⭐ **The envelope build hit this three times in one cycle**, which is why
+it is a named pattern rather than three anecdotes:
+
+| the reader | correct while… | broken when… |
+|---|---|---|
+| `trade-forestry`'s `hanging-wood.test.ts` required every room in a folder to author an `ambientIntensity` | every outdoor row authored a number | ambient became **derived**, and half those rooms turned out to be interiors the test had been asserting were daylit |
+| `GrowingMixin.sampleLux` credited a growth window at one instantaneous reading | a room's lux was an authored **constant**, so instant == typical | a sky-lit room swung `pitch-black` → `bright` daily, and a lily starved because its owner watered it in the evening |
+| the vision walk's cross-exit leg added each neighbour's **entire** flux (`EXIT_TAU = 1.0`) and divided by the receiver's area | no outdoor row carried more than a few hundred lumens | rows carried **24 000**, and a chain of bright rooms made each other `blinding` — a road authoring 1.5 lux read as glare |
+
+**The tell, and it is the useful part:** the reader's *name* still sounds
+right. `sampleLux` does sample lux. The forestry test does check
+daylight. Nothing in either says *"…assuming this is a constant"*, because
+when they were written there was nothing else it could be.
+
+⭐ **So the discipline belongs to the producer, not the reader.** When you
+make something time-varying, derived, or multi-source, the work is not
+finished at the thing you changed:
+
+1. **Find every reader** — `grep` the field, the getter, the dial.
+2. **Ask each one which question it is asking.** *What is it doing now*
+   and *what is it typically* were the same question a moment ago and are
+   not any more. `Modality.signalAt` vs `peakSignalAt` exists because of
+   exactly this.
+3. **Ask whether summing still holds.** A leg that added one small
+   contribution may not be allowed to add fifty large ones — an opening
+   cannot make a room brighter than what is through it.
+
+⚠ **And note where each of the three was caught**, because it says which
+instrument finds this class: the full suite caught one (a pack test the
+build never ran), the *drive* caught one, and the third needed a **browser
+walk at a specific hour** — the wire harness boots at `t = 0`, so a build
+about the sun had its entire daylight half untested until somebody looked
+at noon. None of the three was caught by the code that changed.

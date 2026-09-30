@@ -61,6 +61,33 @@ export interface FieldMetaEntry {
   stackIdentity?: true;
 
   /**
+   * **How this field merges when a template row `extends` another.**
+   *
+   * Declared by the field's OWNER, which is the whole point: a pack's
+   * field (`routes`) and every `Biome` field state their own rule with
+   * no edit to `Template`, which holds no list of field names.
+   *
+   * - `replace` (the default) — the child's value wins whole; absent
+   *   falls through to the parent's. A stated `null` IS null.
+   * - `by-key` — an object merged key by key, the child winning per
+   *   key. `Detailed.details`.
+   * - `by-entry` — a list merged by ENTRY IDENTITY (`as`, else
+   *   `template`, else the bare string): the parent's entries in order,
+   *   one the child names substituted in place, the child's new keys
+   *   appended. The four designation lists.
+   *   ⭐⭐ Entry identity is the PRECONDITION for this rule, not a
+   *   nicety — append and replace are each right about half the time
+   *   and the wrong one fails silently (a doubled jacket, a missing
+   *   pair of shoes).
+   * - `never` — the parent's value is not copied at all; only what the
+   *   child states. `exits` (neighbours are not inherited) and every
+   *   `Biome` field (biome resolves per READ by its own walk, so a
+   *   clone-time merge would put the value on the child and make
+   *   `trace atmosphere` name the wrong ancestor).
+   */
+  inherit?: 'replace' | 'by-key' | 'by-entry' | 'never';
+
+  /**
    * **Axis 1** — what this field points at when it points at other
    * Stuff.
    *
@@ -186,7 +213,8 @@ export const Mixins = {
   Advancement: 'AdvancementMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
-  Surfaced: 'SurfacedMixin',
+  Placing: 'PlacingMixin',
+  Coolbox: 'CoolboxMixin',
   Visible: 'VisibleMixin',
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
@@ -320,6 +348,13 @@ export const Mixins = {
   // `GroundCharacter` implement it, which is how a floor asks the column
   // a question the kernel cannot import the answer to.
   GroundSource: 'GroundSourceMixin',
+  // *This ground can be cleared, drained and limed — and it REVERTS.*
+  // ⭐ Promoted out of `trade-farming` by the extraction build: you ditch
+  // a road, a yard and a quarry, so improvement acts on GROUND and farming
+  // is its first consumer rather than its owner. The host answers what it
+  // owes through `improvementBill()`, so the kernel never imports a
+  // seeded model out of a pack.
+  Improvable: 'ImprovableMixin',
   Mountable: 'MountableMixin',
   Drivable: 'DrivableMixin',
   // Drivable from a seat you occupy — the cart's driver, not the reins.
@@ -329,10 +364,14 @@ export const Mixins = {
   Flyable: 'FlyableMixin',
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
-  Populates: 'PopulatesMixin',
+  Staged: 'StagedMixin',
+  /** ⭐ The third designation beside `props:` and `cast:` — see Staged.ts. */
+  Costumed: 'CostumedMixin',
   Persistable: 'PersistableMixin',
   Forkable: 'ForkableMixin',
   Stackable: 'StackableMixin',
+  /** Where a piece of matter was taken from — the provenance stamp. */
+  Sampled: 'SampledMixin',
   Bulkable: 'BulkableMixin',
   VesselKind: 'VesselKindMixin',
   Cutlery: 'CutleryMixin',
@@ -397,7 +436,7 @@ export const Mixins = {
   // move a thing's effective water activity off its Material's tabulated
   // base. NOT the spoilage gauge: this is the matter, that is the
   // population living in it.
-  Cured: 'CuredMixin',
+  WaterActive: 'WaterActivityMixin',
   // ⭐ The per-instance MINOR CONSTITUENTS of a piece of metal — what is
   // dissolved in THIS bar, in the same {materialPath, fraction}
   // vocabulary Material.composition speaks. A Material is a singleton,
@@ -503,10 +542,20 @@ export const Mixins = {
   // meltingPoint (a latent-heat plateau), flowing to a Bulkable liquid.
   // Driven by heat (the host reconcilePhase), not fire-specific.
   Meltable: 'MeltableMixin',
-  // Furnace — a Combustible-fuelled sustained heat source (forge/kiln/oven/
+  // Burner — a Combustible-fuelled sustained heat source (forge/kiln/oven/
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
   // Meltables in its scope. Generalizes the Campfire pin.
-  Furnace: 'FurnaceMixin',
+  Burner: 'BurnerMixin',
+  // ⭐⭐ SpaceHeating — "this fire exists to warm where you stand". The
+  // hearth / stove / brazier half of the fire family, and deliberately
+  // NOT on `BurnerMixin`: a forge heats what you put IN it, and that
+  // rule is kept by composition rather than by a guard asking what
+  // something is. The envelope reads it off a room's contents.
+  SpaceHeating: 'SpaceHeatingMixin',
+  // ⭐⭐ PublicLighting — "the town lights this street". A PROPERTY of the
+  // street and prose beside it; nothing is minted. Nobody binds a street
+  // lamp, and every act that matters happens at street granularity.
+  PublicLighting: 'PublicLightingMixin',
   // Magic — the anatomical casting faculty (mana reserve + serenity
   // recovery + composure read + overchannel strain). Composed on
   // Character, gated: active only when the Species intrinsically confers
@@ -620,6 +669,11 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * there for a constraint about to be written.
  */
 export const MixinRefusals: Partial<Record<MixinName, string>> = {
+  // ⭐ Ground, not a thing: the useful information is that the target had
+  // to be a piece of ground somebody could work, which "{} is not
+  // improvable" would not have said.
+  ImprovableMixin: '{} is not ground anybody could improve',
+
   // Perception / substance — the two broadest, and the reason the
   // phrases are templates: neither of these reads well as a suffix.
   VisibleMixin: "you can't see {}",
@@ -633,7 +687,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Containment & placement.
   ContainerMixin: "{} isn't a place",
   ContainableMixin: "{} can't be carried",
-  SurfacedMixin: "{} isn't a surface you can put things on",
+  PlacingMixin: "{} isn't something you can put things on or in",
+  CoolboxMixin: "{} isn't a cold box",
   HeldGoodsMixin: "{} isn't a shelf goods are held on",
   ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
 
@@ -665,11 +720,17 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   HazardMixin: "{} isn't a trap",
 
   // Fire & heat. ⚠ `CombustibleMixin`'s phrase carries the whole
-  // `CombustibleMixin|FurnaceMixin` alternation `ignite` declares — an
+  // `CombustibleMixin|BurnerMixin` alternation `ignite` declares — an
   // alternation reports its FIRST member's phrase, and "won't burn" is
   // the true sentence for both halves.
   CombustibleMixin: "{} won't burn",
-  FurnaceMixin: "{} isn't a furnace",
+  // ⚠ Not "isn't a furnace" — the mixin was renamed from `Furnace` to
+  // `Burner` precisely because a lamp, a candle and a campfire compose
+  // it and none of them is a furnace. The refusal names what the
+  // capability IS: a thing that holds a fire and burns fuel.
+  BurnerMixin: "{} won't hold a fire",
+  SpaceHeatingMixin: "{} doesn't warm a room",
+  PublicLightingMixin: "{} isn't a street the town lights",
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
@@ -730,6 +791,10 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Stacks, charges, marks, labels.
   StackableMixin: "{} doesn't come in stacks",
+  // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
+  // NOTED, and what makes it evidence is the noting. A lump off the
+  // floor is just a lump.
+  SampledMixin: '{} is not a sample — take one with `sample`, so it says where it came from',
   ChargedMixin: "{} doesn't hold a charge",
   MarkedMixin: "{} doesn't carry a mark",
   LabelledMixin: "{} can't be labelled",

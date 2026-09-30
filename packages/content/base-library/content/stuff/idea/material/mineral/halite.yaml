@@ -1,0 +1,34 @@
+# Halite — rock salt, ⭐ **the third of salt's three sources.**
+#
+# A face you cut (capital and labour), pans the sun works (patience, and
+# rain sets you back), brine you boil (fast, and the fuel is what the
+# charcoal burner also wants). One good, three cost structures, and where a
+# person lives decides which one they use.
+#
+# ⚠ It is won as **bulk** into a vessel rather than as an item, because that
+# is the shape `cure` already consumes — a measured volume out of a sack. So
+# every source of salt in the game yields the same thing in the same way,
+# and nothing had to learn a second shape.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: rock salt
+  keywords: [halite, "rock salt", salt]
+  appearance: glassy grey-pink rock salt
+  density: 2170
+  specificHeat: 880
+  thermalConductivity: 6.5
+  # Dry salt does not conduct; dissolved salt is the best conductor in the
+  # tree, and that is the brine's business, not the rock's.
+  electricalConductivity: 1.0e-8
+  waterAbsorptionCapacity: 0.5
+  # Soft — you can scratch it with a coin, which is the field test.
+  hardness: 20
+  toughness: 2
+  edibility: true
+  nutrients: []
+  toxicity: []
+  tags: ["mineral", "evaporite", "salt", "solid"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

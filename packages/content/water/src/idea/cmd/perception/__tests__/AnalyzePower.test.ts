@@ -17,7 +17,12 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import AnalyzePowerController from '../AnalyzePowerController';
+import PowerReading from '../../../reading/PowerReading';
+import {
+  driveAnalyze,
+} from '@saxonberg/server/mud/platform/idea/reading/__tests__/drive';
+import { applyRowFrom } from '@saxonberg/server/mud/platform/idea/reading/__tests__/row';
+import { fileURLToPath } from 'url';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
@@ -25,7 +30,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
@@ -54,7 +59,7 @@ class TestActor extends CommandGiverMixin(
  * A weir, over the SHAPE only — no `ControlStructure` import, because
  * the point is that the reading does not need one.
  */
-class FakeWeir extends Thing {
+class FakeWeir extends Good {
   public asked = 0;
   generationW(flowM3S: number): number {
     this.asked += 1;
@@ -73,7 +78,7 @@ class FakeWeir extends Thing {
  * this pack must be able to read one without importing `trade-milling`,
  * which is the whole reason the reading is duck-typed.
  */
-class FakeMill extends Thing {
+class FakeMill extends Good {
   availablePowerW(): number {
     return 40000;
   }
@@ -81,6 +86,9 @@ class FakeMill extends Thing {
     return 8.5;
   }
 }
+
+/** This system's channel rows, read for real by `applyRowFrom`. */
+const ROWS = fileURLToPath(new URL('../../../../../content/system/water/idea/reading/', import.meta.url));
 
 const stubCommand = CommandDefinition.fromYaml(
   'verbs: [analyze]\ncontroller: x\ndescription: d\n',
@@ -105,11 +113,10 @@ function ctx(): CommandContext {
 
 async function analyze(target: Stuff | null): Promise<CommandContext> {
   const c = ctx();
-  const ctrl = makeStuff(() => new AnalyzePowerController());
-  await ctrl.execute(
-    target === null ? ({} as never) : ({ target: { stuff: target, raw: 'it' } } as never),
-    c,
-  );
+  const reading = applyRowFrom(makeStuff(() => new PowerReading()), `${ROWS}power.yaml`);
+  await driveAnalyze(reading, c, {
+    subject: target === null ? undefined : { stuff: target, raw: 'it' },
+  });
   return c;
 }
 
@@ -164,7 +171,7 @@ describe('pointed at a MACHINE that runs on power', () => {
   });
 
   it('a mill with no water says it will not turn, rather than nothing', async () => {
-    class StoppedMill extends Thing {
+    class StoppedMill extends Good {
       availablePowerW(): number {
         return 0;
       }
@@ -185,7 +192,7 @@ describe('pointed at a MACHINE that runs on power', () => {
 describe('pointed at something that is neither', () => {
   it('declines in its own words', async () => {
     const rock = makeStuff(() => {
-      const t = new Thing();
+      const t = new Good();
       t.setShortDescription('a rock');
       return t;
     });

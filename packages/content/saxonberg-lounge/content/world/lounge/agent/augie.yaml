@@ -2,8 +2,13 @@
 # generous, a storyteller. Weekends taste different — slower, storied,
 # the old guard. The keeper of the bar's history (and its succession).
 class: /platform/agent/Cast
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/agent/costume/student
 data:
+  # ⭐ What this person has on comes from the parent row
+  # (`/stuff/agent/costume/student`). Until the envelope build no
+  # NPC row could author clothing at all — every authored person in
+  # the realm was naked, invisible only because every interior was
+  # 21 °C by decree.
   name: Augie
   keywords: [augie, old, easy-handed, half-orc]
   pronouns: he

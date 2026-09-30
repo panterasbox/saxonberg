@@ -9,10 +9,11 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
+import { WaterActivityMixin } from '../../material/WaterActivity';
 import { ReservedMixin, Reserve } from '../../reserve';
 import { CombustibleMixin } from '../Combustible';
 import { FireApi } from '../../../api/fire';
@@ -30,9 +31,20 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 // A fully-composed flammable object: Combustible over Wet over Thermal over
 // Reserved (fuel) over Thing — the demonstrator shape.
 class Firewood extends CombustibleMixin(
-  WetMixin(ThermalMixin(ReservedMixin(Thing))),
+  WetMixin(ThermalMixin(ReservedMixin(Good))),
 ) {
   static _mixinName = 'Firewood';
+}
+
+/**
+ * A fuel that also carries its own water — the turf shape. `WaterActivityMixin` over
+ * `Combustible`, no `Wet`: a turf cut out of a bog is not *wet on the
+ * outside*, it is nearly all water all the way through.
+ */
+class Turf extends WaterActivityMixin(
+  CombustibleMixin(ThermalMixin(ReservedMixin(Good))),
+) {
+  static _mixinName = 'TestTurf';
 }
 
 let matCounter = 0;
@@ -139,12 +151,12 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
 
   it('a non-flammable object has no combustion face at all', () => {
     // Since the F1 move the refusal is structural: ignite()/douse() live
-    // on Combustible/Furnace, and the ignite verb's target predicate is
-    // the isCombustible/isFurnace narrow — a bare Thing never reaches
+    // on Combustible/Burner, and the ignite verb's target predicate is
+    // the isCombustible/isBurner narrow — a bare Thing never reaches
     // the driver.
-    const rock = makeStuff(() => new Thing());
+    const rock = makeStuff(() => new Good());
     expect(MixinApi.isCombustible(rock)).toBe(false);
-    expect(MixinApi.isFurnace(rock)).toBe(false);
+    expect(MixinApi.isBurner(rock)).toBe(false);
   });
 
   it('a spent (no-fuel) object will not ignite', () => {
@@ -168,7 +180,7 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
 
   it('narrows Combustible via MixinApi', () => {
     expect(MixinApi.isCombustible(firewood({ massKg: 1 }))).toBe(true);
-    expect(MixinApi.isCombustible(makeStuff(() => new Thing()))).toBe(false);
+    expect(MixinApi.isCombustible(makeStuff(() => new Good()))).toBe(false);
   });
 });
 
@@ -215,5 +227,57 @@ describe('the combustion driver — burns down to char', () => {
     const mat = StuffApi.findByTemplatePath<Material>('/stuff/idea/material/_test/ash');
     expect(log.getMaterial()).toBe(mat);
     void ash;
+  });
+});
+
+describe('⭐⭐ the fuel\'s OWN water resists ignition too (the turf case)', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+
+  function turf(opts: { moisture: number; stampedK: number }): Turf {
+    const mat = woodMaterial();
+    return makeStuff(() => {
+      const t = new Turf();
+      t.setMass(Quantity.of(2, 'kg'));
+      t.setMaterial(mat);
+      t.setStampedTemperatureK(opts.stampedK);
+      t.setLastAmbientK(295);
+      t.setWaterState({ moisture: opts.moisture, solute: 0 });
+      t.setReserve(
+        new Reserve(
+          'fuel',
+          Quantity.of(100, '%'),
+          Quantity.of(100, '%'),
+          'combustion',
+          null,
+        ),
+      );
+      return t;
+    });
+  }
+
+  it('an AS-CUT turf refuses the flame, in the shipped words', () => {
+    // Nothing peat-specific anywhere: the matter's own water is a second
+    // term of the same `ΔT = held × capacity% × L_vap / c`, so the refusal
+    // is `too-wet` and the player is told *"It's too wet to catch."*
+    const wet = turf({ moisture: 1, stampedK: 600 });
+    expect(wet.getEffectiveAutoignitionK()).toBeGreaterThan(600);
+    expect(wet.ignite().lit).toBe(false);
+    expect(wet.ignite().reason).toBe('too-wet');
+  });
+
+  it('…and a DRIED one lights at the same temperature', () => {
+    const dried = turf({ moisture: 0.5, stampedK: 600 });
+    // At/below the `dried` band the fuel contributes no water of its own.
+    expect(dried.getEffectiveAutoignitionK()).toBeCloseTo(570, 0);
+    expect(dried.ignite().lit).toBe(true);
+  });
+
+  it('the boundary sits AT the dried band, and is monotone above it', () => {
+    const at = turf({ moisture: 0.5, stampedK: 295 }).getEffectiveAutoignitionK();
+    const half = turf({ moisture: 0.75, stampedK: 295 }).getEffectiveAutoignitionK();
+    const soaked = turf({ moisture: 1, stampedK: 295 }).getEffectiveAutoignitionK();
+    expect(at).toBeCloseTo(570, 0);
+    expect(half).toBeGreaterThan(at);
+    expect(soaked).toBeGreaterThan(half);
   });
 });

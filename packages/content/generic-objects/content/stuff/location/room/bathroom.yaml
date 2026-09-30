@@ -26,6 +26,12 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
   shortDescription: bathroom
   keywords: [bathroom, bath, washroom, room]
   register: indefinite
@@ -37,3 +43,8 @@ data:
     - /stuff/thing/fixture/toilet
     - /stuff/thing/fixture/basin
     - /stuff/thing/fixture/tub
+  details:
+    window:
+      keywords: [window, glass, light]
+      description: |
+        A small frosted window, high up and cranked open a couple of fingers.

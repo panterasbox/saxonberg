@@ -1,0 +1,51 @@
+# ⭐⭐ The Hill Quarry's column — **and it is a mineral museum, deliberately
+# and once.**
+#
+# Granite over limestone over coal over rock salt in one hillside does not
+# happen, and the plan says so out loud rather than pretending otherwise:
+# it is what makes every step of the extraction drive reachable at ONE pit,
+# which is worth more than geological modesty in the first working the game
+# ships. ⚠ **A second pit authors an honest column** — that is the whole
+# proof that a second working is rows — and a dedicated content pass owns
+# spreading this across two or three small pits with honest sections each.
+# Recorded on `rejection-slate.md`; do not re-litigate it here.
+#
+# ## The section, in METRES
+#
+# Metres, not cells — a deposit is a fact about the ground and the ground
+# does not know what cell size anybody chose. `Strata.metresOf` is the one
+# conversion and reads the zone's `cellSize` (10 m here).
+#
+#   0 … −1   drift      the overburden, and the whole lesson: waste first
+#  −1 … −2   clay       fires to a pot; closes `ceramic`
+#  −2 … −6   granite    building stone, the block you cannot lift
+#  −6 … −9   limestone  the smelt's missing flux, and the kiln's raw stone
+#  −9 … −10  coal       a hearth and kiln fuel; ruins iron, which is why
+#                       coke had to be invented
+# −10 … −12  halite     rock salt, won as BULK into a vessel
+#      below  granite   country rock, and nothing worth the swing
+#
+# **The water table at −12 is the scope boundary.** The floor stops there,
+# and below the water is `mining-slate`'s — a pit that fills, and a pump.
+# ⭐ It also means the salt band is the LAST thing this pit gives up, which
+# is the right ordering: a person who wants salt has dug through everything
+# else the hill had first.
+#
+# ⚠ No lode and no grade bands: a quarry wins the HOST, not the lode. That
+# asymmetry is the sentence the whole build turns on — *a mine wins the
+# lode; a quarry wins the host* — and it needed no new type.
+class: /system/ground/idea/Deposit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: quarry-hill
+  stratigraphy:
+    - { toZ: -1, host: /stuff/idea/material/bulk/drift, wins: /trade/quarrying/thing/spoil }
+    - { toZ: -2, host: /stuff/idea/material/earth/clay, wins: /trade/quarrying/thing/clay }
+    - { toZ: -6, host: /stuff/idea/material/rock/granite, wins: /trade/quarrying/thing/block }
+    - { toZ: -9, host: /stuff/idea/material/rock/limestone, wins: /trade/quarrying/thing/limestone }
+    - { toZ: -10, host: /stuff/idea/material/mineral/coal, wins: /trade/quarrying/thing/coal }
+    # ⚠ Won as BULK — the `/idea/material/` infix is what says so, and it is
+    # why `cure` runs on salt from a face exactly as on salt from a pan.
+    - { toZ: -12, host: /stuff/idea/material/mineral/halite, wins: /stuff/idea/material/food/salt }
+    - { toZ: -400, host: /stuff/idea/material/rock/granite }
+  waterTable: -12

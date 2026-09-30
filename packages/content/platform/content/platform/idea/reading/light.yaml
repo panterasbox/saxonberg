@@ -1,0 +1,23 @@
+# light — a reading channel.
+#
+# The channel that shows the whole ladder in one row. The naked eye is
+# genuinely good at light — it is the sense the reading IS — so the eye
+# ceiling is `expert` and the photometer buys you a number rather than a
+# better judgement.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/LightReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: light
+  kind: fact
+  scope: [subject, here]
+  discipline: awareness
+  instrument: photometry
+  instrumentNoun: a photometer
+  eyeCeiling: expert
+  improves: >-
+    whether there is light enough to work, read, sight or hide by
+  stakes: >-
+    an hour of work lost, a shot you cannot reshoot, a thing you walked past

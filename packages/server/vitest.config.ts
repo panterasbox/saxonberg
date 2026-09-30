@@ -33,6 +33,14 @@ export const GYM_TESTS = [
   // snapshots the table, which is what makes "any movement is recorded"
   // a committed artifact rather than a promise.
   "scripts/__tests__/species-mass.bench.test.ts",
+  // ⭐ The cold bench (envelope D8). Not a fight either, and it belongs
+  // here for the same reason: it drives 16 twelve-game-hour
+  // thermoregulation runs through the real reconcile and PRINTS the
+  // table, which is a benchmark shaped like a test. The assertions are
+  // acceptance 15's floor — a world left to itself for a game day kills
+  // nobody of cold — and the numbers beside them are what a tuning pass
+  // argues with.
+  "src/mud/lib/thermal/__tests__/Thermal.cold.gym.test.ts",
 ];
 
 /**

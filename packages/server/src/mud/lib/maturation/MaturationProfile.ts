@@ -38,14 +38,24 @@ import type { EvictionContext } from '../stuff/Stuff';
  * - `microbial` — organisms do it: wine, beer, a wash, flax retting.
  * - `photochemical` — light does it: linen on a bleaching green.
  * - `chemical` — a reagent does it, with nothing alive involved.
+ * - `evaporative` — ⭐ **the air does it, by taking water away.** A salt
+ *   pan, a brine hearth, a drying green for a solution rather than a
+ *   solid. What distinguishes it from the other three is that the batch
+ *   gets *smaller* as it converts (the water leaves) and that **rain puts
+ *   it back** — the only mechanism with a setback that is not a failure.
  */
-export type MaturationMechanism = 'microbial' | 'photochemical' | 'chemical';
+export type MaturationMechanism =
+  | 'microbial'
+  | 'photochemical'
+  | 'chemical'
+  | 'evaporative';
 
 /** Every mechanism, for validation and for the totality check. */
 export const MATURATION_MECHANISMS: readonly MaturationMechanism[] = [
   'microbial',
   'photochemical',
   'chemical',
+  'evaporative',
 ];
 
 /** The four things a maturing thing can look like, per mechanism. */
@@ -119,6 +129,20 @@ export const MATURATION_LINES: Record<
     stalled: 'It has gone quite inert. Whatever it needs, it is not getting.',
     killed: 'It has broken, and separated, and there is no fixing it.',
   },
+  evaporative: {
+    // ⚠ Nothing lives here and nothing bubbles. The level goes down.
+    starting: 'It stands full and clear, barely down from the brim.',
+    working: 'It has drawn well down, and a crust is creeping in from the edge.',
+    finished: 'The water is gone. What is left lies dry and heaped in the bottom.',
+    // Unreachable while no evaporative profile authors a `turnedMaterial`
+    // — kept so the Record stays total rather than resting on a `null` a
+    // later row could quietly falsify.
+    turned: 'It has baked past clean salt into a scorched grey cake.',
+    stalled: 'It sits frozen over. Nothing is leaving it.',
+    // ⭐ NEVER "rained back" — rain is a setback, not a death. This is the
+    // pan boiled dry and burnt, which is the one way to ruin one.
+    killed: 'It has been boiled dry and burnt to a bitter scale.',
+  },
 };
 
 export default class MaturationProfile extends SingletonMixin(Idea) {
@@ -149,6 +173,19 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
   public ratePerDay = 0.12;
   /** Template path of the material the batch becomes at `finished`. */
   public productMaterial = '';
+  /**
+   * ⭐ **The volume the product occupies per volume of input**, `(0, 1]`.
+   *
+   * `1` — the default — is a transform that conserves volume: must becomes
+   * wine, flax becomes retted flax, and the vessel is as full at the end as
+   * at the start. An **evaporative** transform does not: a pan of sea water
+   * becomes about a tenth of its volume in salt, because the rest was water
+   * and the water left. So the interior amount falls as the batch converts,
+   * and the number that says how far is authored here rather than hidden in
+   * the mechanism — a brine spring is stronger than the sea and says so in
+   * its own row.
+   */
+  public productFraction = 1;
   /**
    * Template path of the failure product an OPEN finished batch turns
    * into (vinegar), or `null` — a profile with no turn authored holds.
@@ -254,6 +291,7 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     damageAboveK: { persistent: true, authorable: true },
     ratePerDay: { persistent: true, authorable: true },
     productMaterial: { persistent: true, authorable: true },
+    productFraction: { persistent: true, authorable: true },
     turnedMaterial: { persistent: true, authorable: true },
     turnDays: { persistent: true, authorable: true },
     sealedOnly: { persistent: true, authorable: true },
@@ -333,6 +371,18 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
   }
   setProductMaterial(value: string): void {
     this.productMaterial = value;
+  }
+
+  getProductFraction(): number {
+    return this.productFraction;
+  }
+  setProductFraction(value: number): void {
+    if (!Number.isFinite(value) || value <= 0 || value > 1) {
+      throw new RangeError(
+        `MaturationProfile.setProductFraction: fraction must be in (0, 1], got ${value}`,
+      );
+    }
+    this.productFraction = value;
   }
 
   getTurnedMaterial(): string | null {

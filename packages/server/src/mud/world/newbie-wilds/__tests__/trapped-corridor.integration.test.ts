@@ -23,8 +23,9 @@
  */
 
 import "../../../../test-bootstrap";
+import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { AdvancementMixin } from '../../../lib/advancement/Advancement';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
@@ -37,7 +38,7 @@ import DisarmController from '../../../platform/idea/cmd/device/DisarmController
 import { Creature } from '../../../lib/creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Thing from '../../../lib/stuff/Thing';
+import Good from '../../../lib/stuff/Good';
 import Exit from '../../../lib/boundary/Exit';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { SensorMixin } from '../../../lib/message/Sensor';
@@ -71,7 +72,7 @@ import {
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import {
   makeStuff,
-  stampTemplatePathForTest,
+  stampTemplatePathForTest
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
@@ -145,7 +146,10 @@ function trapsStore(): Doc[] {
 
 /** Install an in-memory (offline) PersistenceManager over `docs`. */
 function installStore(docs: Doc[]): void {
-  const store = docs.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row now.
+  const store = [...(KERNEL_CONTENT_ROWS as unknown as Doc[]), ...docs].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
   vi.spyOn(PersistenceManager, 'get').mockReturnValue({
     isConnected: () => false,
     save: vi.fn(async () => '1'),
@@ -175,7 +179,7 @@ class Delver extends AdvancementMixin(
 }
 
 // A steel-plate boot — a Constructed Wearable covering the feet.
-class DemoBoot extends WearableMixin(SlottableMixin(ConstructedMixin(Thing))) {
+class DemoBoot extends WearableMixin(SlottableMixin(ConstructedMixin(Good))) {
   static _mixinName = 'DemoTrapBoot';
 }
 
@@ -421,7 +425,7 @@ describe('The Sunken Delve — content discipline (the required invariant)', () 
       getContents(): Stuff[];
     })
       .getContents()
-      .find((c) => c instanceof Thing && !(c instanceof Trap))!;
+      .find((c) => c instanceof Good && !(c instanceof Trap))!;
     expect(PerceptionApi.perceives(m, reward)).toBe(true);
   });
 });

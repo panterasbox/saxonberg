@@ -62,6 +62,47 @@ that shapes every slate.
 
 ---
 
+
+## ⭐ Shipped: the envelope (2026-09-24)
+
+Two questions, one answer — *why can you see on the city streets at
+midnight?* and *why don't you freeze in the lounge?* — and both had the
+same bad answer: **a number somebody typed.**
+
+- **Night is real and survivable.** Outdoor light follows the sun, the
+  moon's phase and altitude, and the cloud. A full moon high in a clear
+  sky is enough to move by; a moonless one is not.
+- **Every room's light has a source a player can point at.** Derived
+  where it can be (the sky, spill through an open doorway), declared
+  where it cannot (a window, a glow), and **dark where there is none** —
+  which is correct rather than a bug. The census reached zero.
+- **A town lights its streets and it costs the town something** — and
+  when nobody pays, the streets go dark. No lamp object anywhere.
+- **A room's warmth is derived** from what it is built of, what stands
+  open, and what is burning in it. The 21 °C indoor decree is gone.
+- **Fire is answerable for what it consumes** — a lantern you light goes
+  out, and a hearth you stop feeding stops warming.
+- **Cold is a cost, not a death sentence** — the body's cold branch was
+  retuned against measurement, and capped at what shivering can actually
+  do.
+
+⚠ Deliberately NOT here: piped supply, metering, and an energy
+*industry*. What this built is the **demand** — the reason an energy
+trade will have customers when it ships. ⭐ Street lighting's **missing
+goods leg** is that demand written down as a bill, in
+[power-utility-slate](./slates/builds/power-utility-slate.md).
+
+⭐ **And three things the review and the sweep changed, each worth its
+line:** what a place is bounded by is an **`enclosure:`** (a fence is not
+a wall, and a pen has an enclosure and no envelope); `props:`/`cast:`
+gained **`costume:`** as a third designation and `PopulatesMixin` became
+**`StagedMixin`** to pair with the `Offstage` room off-shift cast already
+wait in; and a browser walk **at solar noon** — the hour the wire drive
+can never reach, because it boots at midnight — found that an opening was
+passing its neighbour's whole flux, so a chain of bright rooms made each
+other `blinding`. Light from another scope is capped at the brightest
+neighbour's illuminance now.
+
 ## Foundation (shipped)
 
 The substrate is in place. Major shipped surfaces:
@@ -129,7 +170,7 @@ The substrate is in place. Major shipped surfaces:
   state model (Shadow, PostRegistration), HomeZone for
   per-player namespace at `/home/<playerId>`.
 - **Spawn shape (declarative authoring)** — Template
-  `environment:` field, `PopulatesMixin`, escape hatch via
+  `environment:` field, `StagedMixin`, escape hatch via
   `PostRegistrationMixin`. Shipped — see
   [subsystems/templates.md](./subsystems/templates.md),
   [spatial.md](./subsystems/spatial.md), and
@@ -396,7 +437,11 @@ Ordered by leverage + dependency:
    is Wave 4 (account-level federation) + the message-restyle live wiring.
    Remaining tails: identification's
    **pedagogical instrument seam** (`analyze X with Y`, real Material
-   chemistry) + partial-ID + misidentification, and the **aether
+   chemistry) — ✅ **shipped 2026-09-24** as the instrumentation build's
+   reading ladder ([instrumentation.md](./subsystems/instrumentation.md)):
+   `analyze <channel> [subject] with <tool>` over 31 channels, each a row
+   a pack ships, with real Material chemistry on the `chemistry` channel
+   — plus partial-ID + misidentification, and the **aether
    id-aug** ambient trigger (axes unresolved + aug substrate retooling).
    ([reputation](./slates/builds/reputation-slate.md) /
    [social-graph](./slates/tails/social-graph-slate.md) /
@@ -843,7 +888,9 @@ or no longer load-bearing:
   is the "Utility APIs" punch-list item.
 - **Light & Boundary subsystem** — shipped. The Light value
   object, propagation walk, per-viewer perception, and the
-  Boundary substrate (Window, Door retrofit) all landed.
+  Boundary substrate (Window, Door retrofit) all landed. ⚠ The `Window`
+  CLASS landed; no window row has ever been authored — see
+  [boundary.md § Window](./subsystems/boundary.md).
 - **Race subsystem v1** — shipped. Material substrate, Clade,
   BodyPlan + Species, OrganismMixin, SexedMixin, SpeciesApi,
   animacy gating.

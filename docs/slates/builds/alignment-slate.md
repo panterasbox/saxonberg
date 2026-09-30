@@ -38,6 +38,18 @@ reward or punishment.
 
 ## Two asymmetric axes
 
+> ⭐⭐ **Why the asymmetry is load-bearing:**
+> [lenses/110-transformation.md](../../lenses/110-transformation.md)
+> places **B2** (*players are never evil*) as the **answer** to Schell's
+> *how could my game change players for the worse* — a game that lets you
+> practise being a piece of shit is a plausible mechanism, and this
+> design declines it. ⭐ And it argues the **locked axis is the right
+> one**: good/evil is closed for players while Lawful/Chaotic stays fully
+> expressible, and **how you relate to law and order is precisely the
+> Compact's subject matter.** It is *friction, not prohibition*, and by
+> the rubric's altitude check it is **the grain** — a villain game is
+> buildable here, against the grain, at a cost.
+
 The trap is a tidy symmetric 3×3. The two axes differ in source, register, and
 player-freedom, and that asymmetry is the most important thing about the model:
 

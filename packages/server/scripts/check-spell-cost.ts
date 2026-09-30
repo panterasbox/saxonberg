@@ -43,6 +43,19 @@ import { readdirSync, readFileSync, statSync, existsSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import { parse } from "yaml";
+import {
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
+} from "./pack-roots";
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
 
 const CONTENT_DIR = fileURLToPath(new URL("../../content", import.meta.url));
 const SPELL_CLASS = "/platform/idea/magic/Spell";
@@ -186,7 +199,11 @@ function main(): void {
   for (const file of walkYaml(CONTENT_DIR)) {
     let doc: { class?: string; data?: Record<string, unknown> };
     try {
-      doc = parse(readFileSync(file, "utf8")) as typeof doc;
+      doc = effectiveDoc(
+        file,
+        (parse(readFileSync(file, "utf8")) ?? {}) as Record<string, unknown>,
+        inheritIdx(),
+      ) as typeof doc;
     } catch {
       continue;
     }

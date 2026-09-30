@@ -1,0 +1,33 @@
+# Limestone — sedimentary carbonate rock, and ⭐ **the flux the metal chain
+# shipped without.**
+#
+# Two products out of one rock, and one of them needs a fire: straight into
+# a smelt it takes the gangue off as a running slag, and through a kiln it
+# calcines to quicklime. That is the whole of why a limekiln stands at a
+# quarry — the rock is heavy and the lime is light, so you burn it where you
+# dig it.
+#
+# ⚠ The `flux` tag is what the smelt reads, and it is a TAG rather than a
+# row check so a pack that ships dolomite or fluorspar works with no edit.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: limestone
+  keywords: [limestone, lime, stone]
+  appearance: pale grey limestone
+  density: 2550
+  specificHeat: 840
+  thermalConductivity: 1.3
+  electricalConductivity: 1.0e-5
+  # More porous than granite — it takes frost, which is why it weathers.
+  waterAbsorptionCapacity: 2.0
+  # Softer than granite and easier to win, which is most of its economics.
+  hardness: 120
+  toughness: 20
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["rock", "sedimentary", "carbonate", "flux"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

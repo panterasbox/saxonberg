@@ -11,6 +11,11 @@ help: |
   `analyze ground` and the faces with `survey` before you swing.
 
   A face runs out. When it does, drive on.
+
+  ⚠ **It needs a pick.** The pick has always said it wins stone and until
+  now nothing asked — a tool that is not required is a number with no
+  referent. Bare-handed, or with the wrong thing in your hands, you are
+  told what you want.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -19,3 +24,13 @@ args:
   - name: face
     type: string
     required: false
+  # ⭐ WHICH TOOL, declared rather than hunted for (`lint:instrument-args`).
+  # `[capability.winning]` — *the thing that can win stone* — which is what
+  # the pick has claimed since it shipped and what nothing checked.
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.winning]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

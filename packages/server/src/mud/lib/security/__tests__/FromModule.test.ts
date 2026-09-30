@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
 import { ModuleApi } from '../../../api/module';
 import { StuffApi } from '../../../api/stuff';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { ContainmentApi } from '../../../api/containment';
 
 describe('FromModule (real, plugin-stamped)', () => {
@@ -22,15 +22,15 @@ describe('FromModule (real, plugin-stamped)', () => {
   });
 
   it('stamps Stuff classes under mud/lib/stuff/**', () => {
-    // Thing follows the template-backing-class default-export convention
-    // — a bare-path, `/`-absolute, mud-rooted module id.
-    expect(ModuleApi.lookup(Thing)).toBe('/lib/stuff/Thing');
+    // Good follows the template-backing-class default-export
+    // convention — a bare-path, `/`-absolute, mud-rooted module id.
+    expect(ModuleApi.lookup(Good)).toBe('/lib/stuff/Good');
   });
 
   it('matches a stamped class against its module-id glob', () => {
     const policy = SecurityPolicies.FromModule('/api/**');
     expect(policy.allows(StuffApi, null, 'm')).toBe(true);
-    expect(policy.allows(Thing, null, 'm')).toBe(false);
+    expect(policy.allows(Good, null, 'm')).toBe(false);
   });
 
   it('matches an instance via its class identity', () => {
@@ -41,7 +41,7 @@ describe('FromModule (real, plugin-stamped)', () => {
   });
 
   it('includeSubclasses walks the prototype chain', () => {
-    class StuffSub extends Thing {}
+    class StuffSub extends Good {}
     // StuffSub itself is not stamped (it lives only in this test).
     // With includeSubclasses, the matcher walks up to Thing, which
     // IS stamped, and matches.
@@ -89,7 +89,7 @@ describe('ApiOnly (FromModule sugar)', () => {
   });
 
   it('denies a non-Api class caller', () => {
-    expect(SecurityPolicies.ApiOnly.allows(Thing, null, 'destroy')).toBe(false);
+    expect(SecurityPolicies.ApiOnly.allows(Good, null, 'destroy')).toBe(false);
   });
 
   it('denies null caller (system root must use SystemRoot policy)', () => {

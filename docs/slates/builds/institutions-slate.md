@@ -558,3 +558,17 @@ teller at Goodkin, cannot edit the bank's rows, is promoted to loan
 officer, approves a loan the ladder permits and is refused one it does
 not, and is fired by the showrunner — who never held a position.** For
 Stage B: **Hollis's charter comes up for renewal and the polity votes.**
+
+## ⭐ Salvaged from the extraction slate on its retirement (2026-09-24)
+
+**Is there ever a `trade-salt`?** Only if salt gets a *trade* rather than just a
+source — the salter, and above all **the salt tax**, which was historically
+enormous and would make a genuinely good governance object: a tax on a
+necessity, levied at a chokepoint a polity can actually see (three sources, all
+of them a place you can stand). Until then salt rides `trade-quarrying`, where
+extraction left it with all three of its sources working.
+
+⚠ Recorded here rather than lost: the extraction slate carried this as its one
+residual and retired absorbed, so this line and
+[legal-code-slate](./legal-code-slate.md) are the only places it now lives.
+

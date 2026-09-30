@@ -60,6 +60,27 @@ export default class StakeController extends CommandController<StakeModel> {
       );
       return;
     }
+    // ⭐⭐ **The second fork, taken before the warren is ever resolved.** A
+    // surface working — a quarry, a chalk pit, a turf bank — is an authored
+    // ROOM with a real parcel path, so longest-prefix title resolution
+    // answers about it directly: no warren, no block of cells, no
+    // arithmetic. The counter keeps a book of them and the player names one
+    // by the word they would actually use (`stake pit`).
+    //
+    // ⚠ It runs FIRST because the three-number fork's own refusals
+    // (*"the register names no diggings"*, *"which block?"*) would otherwise
+    // shadow it at a counter that records both.
+    const named = model.block?.trim() ?? '';
+    if (named !== '' && parseBlock(named) === null) {
+      const surface = (
+        counter as unknown as { surfaceWorkingFor?(w: string): string | null }
+      ).surfaceWorkingFor?.(named) ?? null;
+      if (surface !== null) {
+        await this.stakeSurface(context, surface, named);
+        return;
+      }
+    }
+
     const warrenPath = (counter as unknown as { getWarrenPath?(): string }).getWarrenPath?.() ?? '';
     if (!warrenPath) {
       // The register names nothing — a real, diegetic answer.
@@ -174,6 +195,56 @@ export default class StakeController extends CommandController<StakeModel> {
       .send();
   }
 
+  /**
+   * Record a claim over a **surface** working: one `subdivide` against the
+   * room's own parcel path, because the room already has one.
+   *
+   * ⚠ `ownerOf` first, and a refusal rather than a silent overwrite — *first
+   * come is the whole rule* on the surface exactly as underground.
+   */
+  private async stakeSurface(
+    context: CommandContext,
+    path: string,
+    word: string,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const held = await ParcelApi.ownerOf(path);
+    if (held) {
+      this.decline(
+        context,
+        Mml.compose`The ${word} is already in the register, and it is not yours to record over.`,
+        'already-claimed',
+      );
+      return;
+    }
+    const parent = parentExtentOf(path);
+    const record = await ParcelApi.subdivide(
+      path,
+      parent,
+      // ⚠⚠ The IDENTITY path, never the template path — every player Avatar
+      // shares one `templatePath`.
+      { kind: 'player', templatePath: giver.getIdentityPath() ?? '' },
+      0,
+      1,
+      'industrial',
+    );
+    if (!record) {
+      this.decline(
+        context,
+        Mml.compose`The recorder cannot enter that. Something is wrong with the register.`,
+        'subdivide-failed',
+      );
+      return;
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        Mml.compose`The recorder turns the ledger round, writes the ${word} and the date, and turns it back for your mark. The ground is yours — the ground, and nothing standing on it.`,
+      )
+      .toPeers(Mml.compose`${Mml.actor(giver)} records a claim.`)
+      .send();
+  }
+
   private decline(
     context: CommandContext,
     prose: ReturnType<typeof Mml.compose>,
@@ -190,6 +261,20 @@ function parseBlock(raw?: string): [number, number, number] | null {
   const parts = raw.split(',').map((n) => Number(n.trim()));
   if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return null;
   return [parts[0]!, parts[1]!, parts[2]!];
+}
+
+/**
+ * The parent extent a surface working's claim subdivides FROM — everything
+ * up to the last path segment.
+ *
+ * ⚠ Derived rather than authored, because the alternative is a second field
+ * that can disagree with the first. `/world/terminus/rejection/quarry/pit`
+ * subdivides from `/world/terminus/rejection/quarry`, and
+ * longest-prefix resolution does the rest.
+ */
+function parentExtentOf(path: string): string {
+  const cut = path.lastIndexOf('/');
+  return cut > 0 ? path.slice(0, cut) : path;
 }
 
 /** The claims register: a fixture that names the diggings it records for. */

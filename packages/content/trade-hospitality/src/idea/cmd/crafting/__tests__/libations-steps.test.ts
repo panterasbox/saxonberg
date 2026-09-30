@@ -21,12 +21,12 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
 import CocktailShaker from '@saxonberg/server/mud/platform/thing/CocktailShaker';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import {
   TestActor,
   makeContext,
@@ -124,7 +124,7 @@ describe('wash', () => {
   it('with water in reach: tips the dregs and the garnish, clears the ice, and the glass is claimable again — at completion', async () => {
     const coupe = makeUsedCoupe();
     ContainmentApi.move(coupe, room);
-    const olive = makeStuff(() => new Thing());
+    const olive = makeStuff(() => new Good());
     olive.setMaterial(StuffApi.findByTemplatePath<Material>(OLIVE)!);
     ContainmentApi.move(olive, coupe);
     const water = makeWaterSource();
@@ -174,7 +174,7 @@ describe('muddle', () => {
     expect(noTool.getNotes().some((n) => n.kind === 'controller-rejected' && n.reason === 'missing-tool')).toBe(true);
     expect(shaker.getBuildMethod()).toBeNull();
 
-    const muddler = makeStuff(() => new ToolItem());
+    const muddler = makeStuff(() => new Tool());
     muddler.setCapabilities(['muddler']);
     ContainmentApi.move(muddler, actor);
     await executeAs(actor, () =>

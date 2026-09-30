@@ -33,11 +33,10 @@
  */
 
 import Thing from "../../lib/stuff/Thing";
-import { DetailedMixin } from "../../lib/description/Detailed";
 import { BulkableMixin } from "../../lib/bulk/Bulkable";
 import { SlottedMixin } from "../../lib/slot/Slotted";
 import { ContainerMixin } from "../../lib/spatial/Container";
-import { PopulatesMixin } from "../../lib/stuff/Populates";
+import { StagedMixin } from "../../lib/stuff/Staged";
 import { ReservedMixin } from "../../lib/reserve";
 import { CultivableMixin } from "../../lib/husbandry/Cultivable";
 import { SoilMixin } from "../../lib/husbandry/Soil";
@@ -49,9 +48,9 @@ import type { FieldMeta } from "../../lib/mixin";
 // intermediate stack is not cosmetic: inference through this many nested
 // generic mixin factories in one expression collapses to `never`.
 const GardenBedGround = SoilMixin(
-  PopulatesMixin(
+  StagedMixin(
     SlottedMixin(
-      BulkableMixin(ContainerMixin(ReservedMixin(DetailedMixin(Thing)))),
+      BulkableMixin(ContainerMixin(ReservedMixin(Thing))),
     ),
   ),
 );

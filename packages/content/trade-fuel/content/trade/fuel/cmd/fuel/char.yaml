@@ -22,7 +22,7 @@ args:
   # unchanged; a yard with two clamps becomes addressable.
   #
   # ⚠ The default narrows by CLASS because a clamp and an oven compose
-  # the same mixins (Furnace over Container) — there is no capability
+  # the same mixins (Burner over Container) — there is no capability
   # that tells them apart, so `[class.CharcoalPit]` is the honest query
   # and `requires:` carries the refusal phrase.
   - name: clamp
@@ -31,7 +31,7 @@ args:
     prepositions: [at, in]
     default: "reachable:[class.CharcoalPit]"
     scope: ["reachable"]
-    requires: [FurnaceMixin]
+    requires: [BurnerMixin]
   - name: draught
     type: number
     required: false

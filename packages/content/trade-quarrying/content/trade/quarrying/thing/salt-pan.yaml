@@ -1,0 +1,34 @@
+# ⭐⭐ A salt pan — **the patient source, and the one that goes backwards.**
+#
+# A shallow leaded pan on the saltings. You fill it from the tide and the sun
+# does the rest, which takes weeks and is at the weather's mercy: a dry windy
+# spell concentrates it and **a wet one puts the water back**. That setback is
+# the only one in the maturation substrate that is not a failure, and it is
+# the read the requirements actually ask for.
+#
+# ⚠ **A `Vat` row, not a class.** It is a vessel with a bulk interior standing
+# open to the sky, which is exactly what a `Vat` is; what makes it a saltern
+# rather than a brewery is its `category`, its capacity, and the fact that
+# somebody put it outdoors. A second saltern anywhere is this row again.
+#
+# ⭐ `open: true` and it stays open — a covered pan is a pan that does not
+# work. And `closure: none`, because the whole apparatus is *no lid*.
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: salt pan
+  keywords: [pan, "salt pan", saltpan, saltern, lead]
+  register: indefinite
+  longDescription: >-
+    A wide shallow pan of sheet lead on a low brick bed, hardly deeper than
+    your hand, with a white crust standing in the corners where it never quite
+    empties.
+  # The VESSEL KIND — the tie between this row and every product that is this
+  # vessel filled.
+  category: pan
+  _materialPath: /stuff/idea/material/element/lead
+  interiorBulk: true
+  interiorCapacity: 40
+  closure: none
+  open: true
+  mass: 90

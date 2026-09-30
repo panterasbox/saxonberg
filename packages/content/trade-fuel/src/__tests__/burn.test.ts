@@ -108,9 +108,9 @@ describe('the charcoal burn', () => {
     expect(pit.getDraught()).toBe(0);
   });
 
-  it('the clamp is a Furnace and a Container — it holds a charge and holds a heat', () => {
+  it('the clamp is a Burner and a Container — it holds a charge and holds a heat', () => {
     const pit = clamp();
-    expect(MixinApi.isFurnace(pit)).toBe(true);
+    expect(MixinApi.isBurner(pit)).toBe(true);
     expect(MixinApi.isContainer(pit)).toBe(true);
   });
 

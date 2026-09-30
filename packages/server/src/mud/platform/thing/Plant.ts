@@ -12,7 +12,7 @@
  *
  * `PersistableMixin` composes **outermost** (the host rule): its
  * `cleanupOnDestruct` must fire before any inner evacuation, and its
- * `applyProps` override must wrap `Populates`.
+ * `applyProps` override must wrap `Staged`.
  *
  * Everything about *how* it grows lives in `GrowingMixin`; this class is
  * only the three host seams the mixin declares plus the bed relationship:
@@ -28,8 +28,7 @@
  * See [docs/subsystems/husbandry.md].
  */
 
-import Thing from "../../lib/stuff/Thing";
-import { DetailedMixin } from "../../lib/description/Detailed";
+import Good from "../../lib/stuff/Good";
 import { ThermalMixin } from "../../lib/thermal/Thermal";
 import { OrganismMixin } from "../../lib/species/Organism";
 import { ReservedMixin } from "../../lib/reserve";
@@ -54,7 +53,7 @@ const PlantBase = PersistableMixin(
   PostRegistrationMixin(
     SlottableMixin(
       GrowingMixin(
-        ReservedMixin(OrganismMixin(ThermalMixin(DetailedMixin(Thing)))),
+        ReservedMixin(OrganismMixin(ThermalMixin(Good))),
       ),
     ),
   ),

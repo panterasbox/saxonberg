@@ -15,11 +15,10 @@
  */
 
 import { Vessel } from '../../lib/stuff/Vessel';
-import { DetailedMixin } from '../../lib/description/Detailed';
 import { MqlApi } from '../../api/mql';
 import type { CommandContext, CommandContributions } from '../../api/command';
 
-const TipJarBase = DetailedMixin(Vessel);
+const TipJarBase = Vessel;
 
 export default class TipJar extends TipJarBase {
   /**

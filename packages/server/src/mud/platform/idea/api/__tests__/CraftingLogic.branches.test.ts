@@ -19,10 +19,10 @@ import { BulkableApi } from '../../../../api/bulk';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import Ingot from '../../../thing/Ingot';
 import Forge from '../../../thing/Forge';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import CraftVessel from '../../../thing/CraftVessel';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import RecipeCatalogue from '../../RecipeCatalogue';
@@ -51,15 +51,15 @@ class TestSmith extends ThermalMixin(ContainerMixin(NamedMixin(ContainableMixin(
   static _mixinName = 'TestSmithBranches';
 }
 /** The smithing output form — a Crafted Tangible (Thing composes Tangible). */
-class TestKnife extends CraftedMixin(Thing) {
+class TestKnife extends CraftedMixin(Good) {
   static _mixinName = 'TestKnifeBranches';
 }
 /** A sealable stock chest — the open-container gather rung. */
-class TestChest extends SealableMixin(ContainerMixin(Thing)) {
+class TestChest extends SealableMixin(ContainerMixin(Good)) {
   static _mixinName = 'TestChestBranches';
 }
 /** A fungible discrete foodstuff — the stack debit path. */
-class TestProduce extends StackableMixin(Thing) {
+class TestProduce extends StackableMixin(Good) {
   static _mixinName = 'TestProduceBranches';
 }
 
@@ -256,7 +256,7 @@ describe('the tangible (smithing) branch', () => {
     ContainmentApi.move(forge, room);
     const ingot = makeIngot(0.5);
     ContainmentApi.move(ingot, room);
-    const hammer = makeStuff(() => new ToolItem());
+    const hammer = makeStuff(() => new Tool());
     hammer.setCapabilities(['striking']);
     // The hammer is iron too — a tool must never be consumed as matter.
     hammer.setMaterial(
@@ -288,7 +288,7 @@ describe('the tangible (smithing) branch', () => {
     const forge = makeForge(false);
     ContainmentApi.move(forge, room);
     ContainmentApi.move(makeIngot(), room);
-    const hammer = makeStuff(() => new ToolItem());
+    const hammer = makeStuff(() => new Tool());
     hammer.setCapabilities(['striking']);
     ContainmentApi.move(hammer, room);
 
@@ -316,7 +316,7 @@ describe('broken tools', () => {
   it("a broken hammer fails the tool match (missing-tool)", async () => {
     ContainmentApi.move(makeForge(true), room);
     ContainmentApi.move(makeIngot(), room);
-    const hammer = makeStuff(() => new ToolItem());
+    const hammer = makeStuff(() => new Tool());
     hammer.setCapabilities(['striking']);
     hammer.setCondition(0.05); // broken — offers nothing until repaired
     ContainmentApi.move(hammer, room);
@@ -350,7 +350,7 @@ describe('the edible (cooking) branch', () => {
     return d;
   }
 
-  function stockKitchen(): { veg: TestProduce; meat: Thing } {
+  function stockKitchen(): { veg: TestProduce; meat: Good } {
     const veg = makeStuff(() => new TestProduce());
     veg.setQuantity(5);
     veg.setMass(Quantity.of(0.2, 'kg'));
@@ -358,7 +358,7 @@ describe('the edible (cooking) branch', () => {
       StuffApi.findByTemplatePath<Material>(VEG) as unknown as Material,
     );
     ContainmentApi.move(veg, room);
-    const meat = makeStuff(() => new Thing());
+    const meat = makeStuff(() => new Good());
     meat.setMass(Quantity.of(0.3, 'kg'));
     meat.setMaterial(
       StuffApi.findByTemplatePath<Material>(MEAT) as unknown as Material,
@@ -409,7 +409,7 @@ describe('the gather walk rungs', () => {
   it('draws from an open chest, declines when the same chest is closed', async () => {
     const forge = makeForge(true);
     ContainmentApi.move(forge, room);
-    const hammer = makeStuff(() => new ToolItem());
+    const hammer = makeStuff(() => new Tool());
     hammer.setCapabilities(['striking']);
     ContainmentApi.move(hammer, room);
     const chest = makeStuff(() => new TestChest());
@@ -439,7 +439,7 @@ describe('the gather walk rungs', () => {
     // Gin carried by the maker; vermouth + mixing glass in the room.
     ContainmentApi.move(makeBottle(GIN, 'fine', 0.7), smith);
     ContainmentApi.move(makeBottle(VERMOUTH, 'fair', 0.7), room);
-    const mixer = makeStuff(() => new ToolItem());
+    const mixer = makeStuff(() => new Tool());
     mixer.setCapabilities(['mixing-glass']);
     ContainmentApi.move(mixer, room);
     // A bulk output is claimed from the pool, never cloned: one clean glass.

@@ -1,0 +1,28 @@
+# quarrying — ⭐ winning stone and earth from the surface.
+#
+# ⚠ **Its own Discipline, not a band of `mining`.** Every RGO trade ships
+# one, and surface and underground work are genuinely different competence:
+# a quarryman reads a section in a wall and judges a block's grain; a miner
+# reads a lode and judges a roof. The masons, potters and lime burners who
+# arrive later will all read the SURFACE one.
+#
+# ⚠ The `extraction` key an older roster listed was never minted, so there
+# is nothing for this to be a band of.
+#
+# ISCED-F 2013 **0724 — Mining and extraction**, the same field as `mining`.
+# ⭐ Sharing a code does not argue against a split: the code says what body
+# of knowledge this belongs to, and the Discipline says what somebody can
+# actually do.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: quarrying
+  channel: skill
+  label: Quarrying
+  iscedf: "0724"
+  description: >-
+    Reading a face and taking it apart: which band is worth working, where
+    the grain runs in a block, how much waste lies over how much good, and
+    when a working has given up everything it is going to give.
+  specializes: []
+  requires: []

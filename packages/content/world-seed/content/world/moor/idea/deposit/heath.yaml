@@ -1,0 +1,26 @@
+# ⭐ The Weeping Moor's column — **peat over granite, and nothing else.**
+#
+# ⚠ Two bands, and the brevity is the point: a moor is not a mineral museum.
+# What is under a bog is peat and then the rock the bog formed on, and the only
+# number that matters is **how deep the peat is** — because that is the whole
+# resource, it is finite, and draining it destroys it.
+#
+# The peat runs 0 … −2.5 m. At half a metre a lift that is five lifts of depth,
+# and on the bank's own 12 m run that is a real but exhaustible bank: about
+# 120 turves out of the top band. ⭐ Deliberately smaller than the stone pit's
+# 320, because a turbary IS meant to run out — *"a cut turbary does not come
+# back"* is an acceptance criterion, and it is the one resource in the game
+# where the arithmetic and the lesson agree at the shipped scale.
+#
+# `waterTable: -2.5` puts the water exactly at the bottom of the peat, which is
+# not a coincidence anywhere in the world: the water is *why* the peat is there.
+# So the floor stops where the peat stops, and there is nothing underneath worth
+# the swing.
+class: /system/ground/idea/Deposit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: heath
+  stratigraphy:
+    - { toZ: -2.5, host: /stuff/idea/material/organic/peat, wins: /trade/quarrying/thing/turf }
+    - { toZ: -400, host: /stuff/idea/material/rock/granite }
+  waterTable: -2.5

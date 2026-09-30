@@ -1,0 +1,21 @@
+# sky — a reading channel.
+#
+# ⭐ No instrument, and none is missing. Looking up IS the instrument,
+# and the eye ceiling is `expert` because a practised watcher of the sky
+# really is as good as anything you could carry.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/SkyReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: sky
+  kind: fact
+  scope: [subject, here]
+  discipline: awareness
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    the season, the hour, and when the moon will be full
+  stakes: >-
+    a night march under no moon; a crop sown a month wrong

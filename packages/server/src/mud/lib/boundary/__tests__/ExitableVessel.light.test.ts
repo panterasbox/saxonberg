@@ -1,5 +1,5 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
 import Door from '../../../platform/thing/Door';
 import CartesianLocation from '../../location/CartesianLocation';
@@ -10,7 +10,10 @@ import { Light } from '../../perception/Light';
 import { AmbientLitMixin } from '../../perception/AmbientLit';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 import { PerceptionApi } from '../../../api/perception';
 
 /** The vision modality singleton — these are instance methods on it. */
@@ -19,7 +22,35 @@ const vision = (): VisionModality =>
 
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 
+
+/**
+ * ⭐⭐ **These read the room's ILLUMINANCE, not its flux** — amended at the
+ * envelope sweep (2026-09-25).
+ *
+ * They used to expect the wardrobe interior to read `60` from a room whose
+ * ambient is **60 lumens**. But the room is a 3 m cell — 9 m² — so the
+ * room itself is at `60 / 9 = 6.67` lux, and handing the wardrobe's 1 m²
+ * interior all 60 lumens made **a wardrobe nine times brighter than the
+ * room it stands in.**
+ *
+ * That is the same defect the sweep's browser walk found at city scale: a
+ * doorless exit passed its neighbour's whole flux and a chain of bright
+ * roads made each other `blinding`. The walk caps light from other scopes
+ * at the brightest neighbour's illuminance now — *an opening cannot make
+ * you brighter than what is through it* — so an open wardrobe door
+ * delivers the room's **lux**.
+ *
+ * ⭐ Every claim these tests make is intact and one is stronger: open
+ * leaks, closed reads zero, the anchor migrates. Only the arithmetic the
+ * old walk got wrong has changed.
+ */
+const ROOM_AREA_M2 = 9; // a 3 m CartesianZone cell
+
 describe('ExitableVessel — door boundary on (vessel, environment)', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     buildAllModalities();
   });
@@ -27,15 +58,15 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     StuffApi.clearAll();
   });
 
-  it('a wardrobe with an open door leaks ambient room light into its interior', () => {
+  it('a wardrobe with an open door leaks ambient room light into its interior', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
 
-    const wardrobe = makeStuff(() => new ExitableVessel());
+    const wardrobe = await StuffApi.create(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('wardrobe door');
     door.open();
     wardrobe.setDoor(door);
@@ -45,18 +76,21 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     // The (vessel, env) anchor pair is now wired on `wardrobe` and
     // `room`. With the door open and base transmissivity 1, the
     // wardrobe interior reads the room's ambient.
-    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(60);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBeCloseTo(
+      60 / ROOM_AREA_M2,
+      6,
+    );
   });
 
-  it('a wardrobe with a closed door reads ZERO inside even when the room is bright', () => {
+  it('a wardrobe with a closed door reads ZERO inside even when the room is bright', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
 
-    const wardrobe = makeStuff(() => new ExitableVessel());
+    const wardrobe = await StuffApi.create(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('wardrobe door');
     // door starts closed
     wardrobe.setDoor(door);
@@ -66,10 +100,13 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
 
     door.open();
-    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(60);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBeCloseTo(
+      60 / ROOM_AREA_M2,
+      6,
+    );
   });
 
-  it('moving the wardrobe migrates the door anchor to the new environment', () => {
+  it('moving the wardrobe migrates the door anchor to the new environment', async () => {
     // Two rooms in DIFFERENT cartesian zones so cardinal-derived
     // exits don't bleed light between them — we want to read each
     // wardrobe-interior contribution independently.
@@ -81,9 +118,9 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     zoneB.addLocation(bright, 0, 0, 0);
     bright.setAmbientFlux(80);
 
-    const wardrobe = makeStuff(() => new ExitableVessel());
+    const wardrobe = await StuffApi.create(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('wardrobe door');
     door.open();
     wardrobe.setDoor(door);
@@ -92,47 +129,55 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
 
     ContainmentApi.move(wardrobe, bright);
-    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(80);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBeCloseTo(
+      80 / ROOM_AREA_M2,
+      6,
+    );
   });
 
-  it('setDoor swaps the boundary anchor from old door to new', () => {
+  it('setDoor swaps the boundary anchor from old door to new', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
 
-    const wardrobe = makeStuff(() => new ExitableVessel());
+    const wardrobe = await StuffApi.create(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
-    const oldDoor = makeStuff(() => new Door());
+    const oldDoor = await StuffApi.create(() => new Door());
     oldDoor.setShortDescription('old door');
     oldDoor.open();
     wardrobe.setDoor(oldDoor);
 
     ContainmentApi.move(wardrobe, room);
-    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(60);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBeCloseTo(
+      60 / ROOM_AREA_M2,
+      6,
+    );
 
     // Swap to a closed door — interior should go dark.
-    const newDoor = makeStuff(() => new Door());
+    const newDoor = await StuffApi.create(() => new Door());
     newDoor.setShortDescription('new door');
     // newDoor closed
     wardrobe.setDoor(newDoor);
 
     expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
-    // Old door is no longer wired to the wardrobe boundary.
-    expect(oldDoor.getAnchorA()).toBeNull();
-    expect(oldDoor.getAnchorB()).toBeNull();
+    // Old door is no longer wired to the wardrobe boundary. ⭐ Its
+    // anchors survive — they are its own, minted once with it — but
+    // they are installed nowhere.
+    expect(oldDoor.getAnchorA()!.getAdornedTo()).toBeNull();
+    expect(oldDoor.getAnchorB()!.getAdornedTo()).toBeNull();
     // New door owns the boundary.
-    expect(newDoor.getAnchorA()).not.toBeNull();
+    expect(newDoor.getAnchorA()!.getAdornedTo()).not.toBeNull();
     expect(newDoor.getAnchorB()).not.toBeNull();
   });
 
-  it('the synthesized "out" exit still uses the door as a Door (attachedTo intact)', () => {
+  it('the synthesized "out" exit still uses the door as a Door (attachedTo intact)', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const room = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(room, 0, 0, 0);
-    const wardrobe = makeStuff(() => new ExitableVessel());
+    const wardrobe = await StuffApi.create(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('wardrobe door');
     wardrobe.setDoor(door);
     ContainmentApi.move(wardrobe, room);

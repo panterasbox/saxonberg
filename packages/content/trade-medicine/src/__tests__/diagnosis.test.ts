@@ -23,11 +23,22 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import AnalyzePatientController from '../idea/cmd/perception/AnalyzePatientController';
-import AnalyzePostmortemController from '../idea/cmd/perception/AnalyzePostmortemController';
+import PatientReading from '../idea/reading/PatientReading';
+import PostmortemReading from '../idea/reading/PostmortemReading';
+import {
+  driveAnalyze,
+} from '@saxonberg/server/mud/platform/idea/reading/__tests__/drive';
+import { applyRowFrom } from '@saxonberg/server/mud/platform/idea/reading/__tests__/row';
+import { fileURLToPath } from 'url';
+
+/** This trade's channel rows, read for real by `applyRowFrom`. */
+const ROWS = fileURLToPath(
+  new URL('../../content/trade/medicine/idea/reading/', import.meta.url),
+);
 import Condition from '@saxonberg/server/mud/platform/idea/Condition';
 import ConditionCatalogue from '@saxonberg/server/mud/platform/idea/ConditionCatalogue';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
+import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -53,11 +64,31 @@ class Medic extends AdvancementMixin(Creature) {
   }
 }
 
+/**
+ * ⚠ A patient who can be SPOKEN TO.
+ *
+ * The requirements say *every `VitalsMixin` host is a sensor*, and a
+ * bare `Creature` is not: `SensorMixin` composes higher up, on the NPC
+ * and Avatar rungs. So the `toTarget` leg correctly skips a plain animal
+ * — nothing is dropped, and nothing pretends a cow was told — and a
+ * fixture that wants to prove the leg has to be something that can hear.
+ */
+class Patient extends SensorMixin(Creature) {
+  static override _mixinName: string = 'Patient';
+  public heard: unknown[] = [];
+  protected override handleMessage(msg: unknown): void {
+    this.heard.push(msg);
+  }
+}
+
 const FEVER = '/platform/idea/Condition/characterization/marsh-fever';
 const CHILL = '/platform/idea/Condition/characterization/gaol-chill';
 
 /** What the controller sent, joined. */
 let said: string[];
+
+/** What the SUBJECT was told, if anything — the `toTarget` leg. */
+let toldTarget: string[] = [];
 
 function stubScene(): void {
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
@@ -66,6 +97,10 @@ function stubScene(): void {
     b.toPeers = () => b;
     b.toSelf = (m: unknown) => {
       said.push(String(m));
+      return b;
+    };
+    b.toTarget = (_who: unknown, m: unknown) => {
+      toldTarget.push(String(m));
       return b;
     };
     b.send = () => {};
@@ -120,7 +155,7 @@ async function warmRoster(): Promise<void> {
 async function read(band: CompetenceBandName): Promise<string> {
   const medic = makeStuff(() => new Medic());
   medic.band = band;
-  const patient = makeStuff(() => new Creature());
+  const patient = makeStuff(() => new Patient());
   patient.afflict({
     kind: 'affliction',
     templatePath: FEVER,
@@ -128,8 +163,9 @@ async function read(band: CompetenceBandName): Promise<string> {
     elapsed: 0,
   });
   said = [];
-  const ctrl = makeStuff(() => new AnalyzePatientController());
-  await ctrl.execute({ target: { stuff: patient } as never }, ctxFor(medic));
+  toldTarget = [];
+  const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
+      await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient, raw: 'patient' } });
   return said.join('\n');
 }
 
@@ -185,11 +221,8 @@ describe('⭐⭐ the diagnostic ladder', () => {
       medic.band = band;
       const patient = makeStuff(() => new Creature());
       said = [];
-      const ctrl = makeStuff(() => new AnalyzePatientController());
-      await ctrl.execute(
-        { target: { stuff: patient } as never },
-        ctxFor(medic),
-      );
+      const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
+      await driveAnalyze(reading, ctxFor(medic), { subject: { stuff: patient, raw: 'patient' } });
       expect(said.join('\n')).toMatch(/Nothing is the matter/);
     }
   });
@@ -198,10 +231,11 @@ describe('⭐⭐ the diagnostic ladder', () => {
     const medic = makeStuff(() => new Medic());
     said = [];
     const note = vi.fn();
-    const ctrl = makeStuff(() => new AnalyzePatientController());
-    await ctrl.execute(
-      { target: { stuff: makeStuff(() => new Condition()) } as never },
+    const reading = applyRowFrom(makeStuff(() => new PatientReading()), `${ROWS}patient.yaml`);
+    await driveAnalyze(
+      reading,
       { commandGiver: medic, location: null, note } as unknown as CommandContext,
+      { subject: { stuff: makeStuff(() => new Condition()) } as never },
     );
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-a-body' }),
@@ -216,12 +250,50 @@ describe('⭐ the postmortem refuses the living', () => {
     const alive = makeStuff(() => new Creature());
     said = [];
     const note = vi.fn();
-    const ctrl = makeStuff(() => new AnalyzePostmortemController());
-    await ctrl.execute(
-      { target: { stuff: alive } as never },
+    const reading = applyRowFrom(makeStuff(() => new PostmortemReading()), `${ROWS}postmortem.yaml`);
+    await driveAnalyze(
+      reading,
       { commandGiver: medic, location: null, note } as unknown as CommandContext,
+      { subject: { stuff: alive } as never },
     );
     expect(note).toHaveBeenCalled();
     expect(said.join('\n').length).toBeGreaterThan(0);
+  });
+
+  // ────────── ⭐ the person half: they can tell, and a novice can be wrong ──────────
+
+  it('⭐⭐ the subject can tell they were looked over', async () => {
+    await read('proficient');
+    // ⚠ The ACT, never the finding. What the medic concluded is the
+    // medic's — telling the patient would hand them a diagnosis they did
+    // not earn and give the medic no reason to speak.
+    expect(toldTarget).toHaveLength(1);
+    expect(toldTarget[0]).toMatch(/looks you over/);
+    expect(toldTarget.join(' ')).not.toMatch(/marsh fever/);
+  });
+
+  it('⭐⭐ a novice can read a sign that is not there; a competent one cannot', async () => {
+    const novice = await read('novice');
+    const competent = await read('competent');
+    // The novice's line carries MORE signs than the body is showing —
+    // the confident wrong answer, which is the beginner's real failure
+    // mode and not a nonsense one: the extra sign is drawn from the
+    // catalogue, so it is always something that presents somewhere.
+    const countIn = (text: string): number => {
+      const m = /You read: ([^.]*)\./.exec(text);
+      return m ? m[1]!.split(',').length : 0;
+    };
+    expect(countIn(novice)).toBeGreaterThan(0);
+    expect(countIn(novice)).toBeGreaterThan(countIn(competent));
+  });
+
+  it('⚠ the misread is SEEDED — the same medic, the same patient, the same answer', async () => {
+    // Epistemic, never resolutional: the roll decides what you can TELL
+    // about the world, never what the world IS.
+    const a = await read('novice');
+    const b = await read('novice');
+    expect(/You read: ([^.]*)\./.exec(a)?.[1]).toBe(
+      /You read: ([^.]*)\./.exec(b)?.[1],
+    );
   });
 });

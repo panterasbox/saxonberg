@@ -22,12 +22,11 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { Time } from '@saxonberg/server/mud/lib/time/Time';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const CrossingLogBase = DetailedMixin(Thing);
+const CrossingLogBase = Thing;
 
 /** How many recent marks the long description renders in its tail. */
 const TAIL_LENGTH = 8;

@@ -17,6 +17,17 @@ data:
     Some of the marks are crosses.
   mass: 22
   warrenPath: /world/terminus/rejection/idea/ferrow-warren
+  # ⭐⭐ **The book of surface workings** — the same counter, a second list.
+  #
+  # A mine claim is three numbers because a mine is a warren and a claim is a
+  # block of ground nobody has cut yet. A quarry is not: it is an authored
+  # ROOM with a real parcel path, so longest-prefix title resolution answers
+  # about it directly. `stake pit` takes that fork — no warren, no block
+  # arithmetic, one subdivide — and it is the same counter people already use,
+  # which is the whole of why this build added no second mechanism.
+  surfaceWorkings:
+    - path: /world/terminus/rejection/quarry/pit
+      keywords: [pit, quarry, face, "hill quarry", stone]
   details:
     marks:
       keywords: [marks, mark, crosses, signature]

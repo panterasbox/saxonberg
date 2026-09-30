@@ -1,6 +1,6 @@
 /**
  * SparkLocus — the spark spell's transient energized locus, the LOCUS
- * its shock `inject-channel` row names: a tiny `EnergizedMixin(Thing)`
+ * its shock `inject-channel` row names: a tiny `EnergizedMixin(Good)`
  * the shock executor clones into the target's scene, sets to the
  * spell's authored potential, runs the REAL conduction walk from
  * (`ElectricityApi.conduct` — shared pools bridge, ground sinks, the
@@ -12,9 +12,9 @@
  * library's, not arcana's: only the spark row names it (D3).
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { EnergizedMixin } from '@saxonberg/server/mud/lib/electricity/Energized';
 
-const SparkLocusBase = EnergizedMixin(Thing);
+const SparkLocusBase = EnergizedMixin(Good);
 
 export default class SparkLocus extends SparkLocusBase {}

@@ -5,7 +5,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import LoungeWarren from '../idea/LoungeWarren';
 import Lounge from '../location/Lounge';
 import Avatar from '../../../platform/agent/Avatar';
@@ -16,7 +16,8 @@ import { ParcelApi } from '../../../api/parcel';
 import { PersistableMixin } from '../../../lib/persistence/Persistable';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
-import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath
+} from '../../../lib/security/__tests__/test-setup';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { Idea } from '../../../lib/stuff/Idea';
 import {

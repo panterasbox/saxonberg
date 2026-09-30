@@ -11,7 +11,12 @@
 > that matters) · the surgical team (anaesthetist + assistant) · asepsis
 > as a system · instrument grade (the `gradeConditionScale(kit)` hook left
 > at 1.0) · complications (an op that CAUSES a new problem) · elective vs
-> only-when-unsalvageable amputation.
+> only-when-unsalvageable amputation. · ⭐ **One non-therapeutic consumer
+> worth knowing about**: the post-mortem examination is an `Operation` row
+> with the danger parameters zeroed (no anaesthesia, no blood cost) whose
+> stake is the **evidence** rather than the patient — so *instrument grade*
+> and *complications*, the two items above that decide how badly an op can
+> go, are the hooks it reads → [autopsy-slate](../tails/autopsy-slate.md).
 > **Size:** a build (the richness over the shipped surgical trunk).
 
 ## ⭐ The two audits this build owes (user direction, 2026-09-24)

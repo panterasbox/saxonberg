@@ -260,7 +260,7 @@ suite('the bakery', () => {
 
   it('…and `bake`, whose oven arg binds the bakery\'s own oven', async () => {
     // Bare `bake` with nothing proved in the trough declines in the
-    // controller's words — which is the arg gate (`[mixin.FurnaceMixin]`)
+    // controller's words — which is the arg gate (`[mixin.BurnerMixin]`)
     // and the affordance both proven, since the parser knew the verb and
     // the binder found the oven. The header used to CLAIM `bake`
     // dispatched and never typed it.

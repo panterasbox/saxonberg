@@ -25,9 +25,6 @@ import Location from '../../../lib/stuff/Location';
 import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordinates';
 import { WarrenMemberMixin } from '../../../lib/location/WarrenMember';
 import { LoungeMixin } from '../LoungeMixin';
-import { VisibleMixin } from '../../../lib/description/Visible';
-import { PerceptibleMixin } from '../../../lib/description/Perceptible';
-import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import type { FieldMeta } from '../../../lib/mixin';
 
@@ -44,9 +41,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 const LoungeBase =
   ExitableMixin(
     CartesianCoordinatesMixin(
-      DetailedMixin(
-        VisibleMixin(PerceptibleMixin(LoungeMixin(WarrenMemberMixin(Location)))),
-      ),
+        LoungeMixin(WarrenMemberMixin(Location)),
     ),
   );
 

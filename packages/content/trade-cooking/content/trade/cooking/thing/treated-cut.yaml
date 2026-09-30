@@ -5,7 +5,7 @@
 # dried pork, salt-and-dried pork), which is honest for one change and
 # explodes the moment hurdles stack — which is exactly what the trade
 # practises. How well a thing keeps is a state of the INDIVIDUAL thing
-# now (`CuredMixin`), so the row says only "a cut that has been treated"
+# now (`WaterActivityMixin`), so the row says only "a cut that has been treated"
 # and the cure state says which treatment, and how far.
 #
 # Its material is flowed from whatever went in (the tangible transform),

@@ -22,7 +22,7 @@ import '../../../platform/idea/WorldClockRegistry';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { Character } from '../../character/Character';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { ChargedMixin } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
 import { BlessableMixin } from '../Blessable';
@@ -42,12 +42,12 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 /** A charged thing worn on a finger — the veil's carrier. */
 class Ring extends BlessableMixin(
-  ChargedMixin(ReservedMixin(ArcaneMixin(SlottableMixin(Thing)))),
+  ChargedMixin(ReservedMixin(ArcaneMixin(SlottableMixin(Good)))),
 ) {}
 
 /** A hood: exactly the shipped row's shape — it masks identity. */
 class Hood extends DisguiseBearingMixin(
-  WearableMixin(SlottableMixin(ContainableMixin(ConstructedMixin(Thing)))),
+  WearableMixin(SlottableMixin(ContainableMixin(ConstructedMixin(Good)))),
 ) {}
 
 let seq = 0;

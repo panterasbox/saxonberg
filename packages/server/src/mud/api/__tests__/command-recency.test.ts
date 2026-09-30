@@ -8,7 +8,8 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { StuffApi } from '../../api/stuff';
+import { describe, it, expect, beforeEach, vi  } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
 import Location from '../../lib/stuff/Location';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
@@ -26,7 +27,10 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { ContainmentApi } from '../containment';
 import { CommandApi } from '../command';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 import {
   PersistenceManager,
   Collections,
@@ -95,6 +99,10 @@ function bucketsOf(giver: TestGiver): string[] {
 }
 
 describe('CommandGiverMixin recency stack', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     CommandApi.clearCache();
     const find = vi.fn(
@@ -320,6 +328,8 @@ describe('affordance reach — recursion and adjacency', () => {
 
 describe('affordance reach — peers one hop away', () => {
   beforeEach(() => {
+    // A door is a boundary and a boundary's anchors are clones now.
+    seedKernelContentStore();
     CommandApi.clearCache();
   });
 
@@ -361,7 +371,7 @@ describe('affordance reach — peers one hop away', () => {
    */
   it('a CLOSED door stops it', async () => {
     const { here, there } = twoRooms();
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setOpen(false);
     const exit = makeStuff(
       () =>

@@ -5,7 +5,27 @@
  * paddle, and carrying his drifting pocket-watch, the crossing-log, and the
  * thermos he never opens.
  *
- * WHY A CLASS (and not pure seed data): there is no declarative seed path to
+ * ⭐ **It `extends Cast` now** (the base-class narrowing, 2026-09-30). It
+ * re-composed `CastMixin(NPC)` by hand beside `platform/agent/Cast`,
+ * which IS that chain — behaviour-identical either way, since `hasMixin`
+ * reads the chain, but the composition panel's by-class listing now
+ * shows honest lineage instead of a fourth spelling of one thing.
+ *
+ * ⚠⚠ **And the paragraph below is STALE — it is kept because it explains
+ * 111 lines of code that are still here.** `props:` is no longer
+ * rooms-only: `StagedMixin` composes on any `Container`
+ * (`Staged.ts:243`), and Katie's master ring is props-seeded. So the
+ * declarative path this class says does not exist has existed for some
+ * time, and `Gus` is now the fourth consumer of a shared chain
+ * (`CastMixin(StagedMixin(NPC))` — Katie, Walter, Realtor) written out
+ * as bespoke equip code. ⭐ The honest fix is a superclass meaning *a
+ * person who boots with a loadout*, and it is blocked on a kernel split:
+ * `StagedMixin` bundles `props:` WITH `cast:`, so composing it on a
+ * person claims that person contains a cast. Filed with its four
+ * receipts; Gus becomes a ROW the day it lands.
+ *
+ * WHY A CLASS (and not pure seed data), as of when this was written:
+ * there was no declarative seed path to
  * put gear on a creature. `props:` is composed only on rooms
  * (`CartesianLocation`), not on `Creature`/`Character`/`NPC`, and worn/
  * wielded occupancy is deliberately runtime-only (never persisted, never
@@ -27,8 +47,7 @@ import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Slottable } from '../../lib/slot/Slottable';
 import type { Slotted } from '../../lib/slot/Slotted';
-import { NPC } from '../../lib/npc/NPC';
-import { CastMixin } from '../../lib/npc/Cast';
+import { Cast } from './Cast';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { SpeciesApi } from '../../api/species';
@@ -55,7 +74,7 @@ interface SlotClaimer {
   getSlotClaim(bodyPlanPath: string): readonly string[];
 }
 
-export default class Gus extends CastMixin(NPC) {
+export default class Gus extends Cast {
   /**
    * @hook Standup: chain `super.postRegister` (so `Behaved` still wires the
    *   `behaviors:` list) then dress for the shift.

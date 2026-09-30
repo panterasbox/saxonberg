@@ -7,7 +7,9 @@ import { StuffApi } from '../../../api/stuff';
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import {
   makeStuffAtPath,
+  makeStuffAtPathAsync,
   makeStuff,
+  EXIT_KIND_TEST_ROWS,
 } from '../../security/__tests__/test-setup';
 
 /**
@@ -23,7 +25,11 @@ type Doc = Record<string, unknown> & {
 };
 
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row now, so a store with no
+  // rows in it cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
 
   const save = vi.fn(async (_c: string, doc: Doc) => {
     const copy = { ...doc };
@@ -114,7 +120,7 @@ describe('Exitable.applyExits', () => {
     ]);
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
-    const door = makeStuffAtPath(() => new Door(), '/door1');
+    const door = await makeStuffAtPathAsync(() => new Door(), '/door1');
     door.setShortDescription('oak door');
 
     await a.applyExits({

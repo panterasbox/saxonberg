@@ -1,0 +1,30 @@
+# texture — the ribbon test. Roll a wet pinch of soil between finger and
+# thumb and name what it is.
+#
+# ⭐ The one thing about a field you cannot change. A bed you filled is
+# whatever you carried there; the earth is the earth. So this reading
+# tells you what you were DEALT, and `soil` is what several of them add
+# up to.
+#
+# ⚠ It needs something to dig with and no instrument, and a beginner's
+# answer is the same as an expert's — which is exactly why it is the rung
+# anybody can reach. What competence buys here is confidence, not the
+# class.
+class: /trade/farming/idea/reading/TextureReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: texture
+  kind: fact
+  scope: [here]
+  discipline: soil-science
+  instrument: digging
+  # ⚠ Was an UNQUOTED YAML scalar opening with an escaped quote, so the
+  # backslash and the quotes reached the player verbatim. Same slip in
+  # five rows across four packs; found in a browser, not by a test.
+  instrumentNoun: "something to open the ground with — a spade"
+  eyeCeiling: novice
+  improves: >-
+    what this ground will grow, how it holds water, and what it would
+    cost to bring into cultivation
+  stakes: >-
+    a season's work on ground that was never going to carry the crop

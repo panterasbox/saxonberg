@@ -8,13 +8,17 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
-import type { Surfaced } from '../../../lib/spatial/Surfaced';
+import type { Placing } from '../../../lib/spatial/Placing';
 import type { VetoResult } from '../../../lib/errors';
 import type { Warren } from '../../../lib/location/Warren';
 import { CommandApi } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentError } from '../../../api/containment';
+import PlacementCatalogue, {
+  PLACEMENT_CATALOGUE_PATH,
+} from '../PlacementCatalogue';
+import type Placement from '../Placement';
 import type { MergeOnArrivalHook } from '../../../api/containment';
 
 type ContainerStuff = Stuff & Container;
@@ -40,7 +44,7 @@ const ContainmentApiCallers = SecurityPolicies.AnyOf(
  *
  * Holds object-movement orchestration and the policy layer above the
  * `Containable.setContainer` chokepoint (`move` / `forceMove` /
- * `placeDirect` / `placeOn`), plus the containment topology queries.
+ * `placeDirect` / `place`), plus the containment topology queries.
  * Lives at `/platform/idea/api/containment`; `ContainmentApi`'s statics forward
  * here via `StuffApi.singletonSync`. `dest /platform/idea/api/containment`
  * reloads it.
@@ -48,7 +52,7 @@ const ContainmentApiCallers = SecurityPolicies.AnyOf(
  * Gating (the guts-variant recipe): every public method carries
  * `AnyOf(FromModule('/api/containment#ContainmentApi'), SelfOnly)`.
  * `FromModule` admits the Api facade forwarders; `SelfOnly` admits the
- * intra-singleton `this.x()` self-calls (e.g. `placeOn` → `this.move`).
+ * intra-singleton `this.x()` self-calls (e.g. `place` → `this.move`).
  * The narrow-entry guards on `forceMove` (FromController) and
  * `placeDirect` (ApiOnly) stay on the FACE statics — the face is the
  * security boundary; the logic methods only re-admit the face. Shared
@@ -105,35 +109,61 @@ export class ContainmentLogic extends ApiLogic {
     item.setContainer(env);
   }
 
-  /** See {@link ContainmentApi.placeOn}. */
+  /** See {@link ContainmentApi.place}. */
   @CallSecurity(ContainmentApiCallers)
-  public placeOn(item: ContainableStuff, surface: Stuff & Surfaced): void {
-    // Resolve target environment: the surface's container.
-    const surfaceAsContainable = surface as unknown as Containable;
-    const targetEnv = surfaceAsContainable.getContainer();
+  public place(
+    item: ContainableStuff,
+    name: string,
+    host: Stuff & Placing,
+  ): void {
+    // Resolve target environment: the host's container.
+    const hostAsContainable = host as unknown as Containable;
+    const targetEnv = hostAsContainable.getContainer();
     if (!targetEnv) {
       throw new ContainmentError(
-        `placeOn: surface ${(surface as Stuff).stuffId} has no ` +
+        `place: host ${(host as Stuff).stuffId} has no ` +
           `environment to place items into`,
       );
     }
-    if (!surface.canRest(item)) {
+    const veto = host.canPlace(item, name);
+    if (!veto.ok) {
       throw new ContainmentError(
-        `placeOn: surface ${(surface as Stuff).stuffId} rejects ` +
-          `${item.stuffId}`,
+        `place: host ${(host as Stuff).stuffId} rejects ` +
+          `${item.stuffId} (${veto.reason})`,
       );
     }
-    // Move item into the surface's environment first (fires existing
-    // containment hooks); then set the auxiliary restingOn pointer.
-    // move() clears restingOn as part of its container-change
-    // invariant when the container differs from the previous one;
-    // setting restingOn AFTER move ensures the new support pointer
-    // survives. When the container is unchanged (apple already in
-    // the room, just moving from one desk to another in the same
-    // room), move is a no-op and we go straight to the restingOn
-    // update.
+    // Move item into the host's environment first (fires existing
+    // containment hooks); then set the placement pair. move() clears the
+    // pair as part of its container-change invariant when the container
+    // differs; setting it AFTER move ensures the new pair survives. When
+    // the container is unchanged (apple already in the room, just moving
+    // from one desk to another in the same room), move is a no-op and we
+    // go straight to the placement update.
     this.move(item, targetEnv);
-    item._setRestingOn(surface);
+    item._setPlacement(host, name);
+    // ⭐ `move` is a NO-OP when the container is unchanged (a mug moving
+    // from one desk to another in the same room), so nothing would
+    // restamp — and a member that encloses means the thing's ambient
+    // scope just changed. Restamp here, where the placement did.
+    if (MixinApi.isThermal(item)) void item.restamp();
+  }
+
+  /** See {@link ContainmentApi.placement}. */
+  @CallSecurity(ContainmentApiCallers)
+  public placement(name: string): Placement | null {
+    const catalogue = StuffApi.findByTemplatePath<PlacementCatalogue>(
+      PLACEMENT_CATALOGUE_PATH,
+    );
+    return catalogue?.peek(name) ?? null;
+  }
+
+  /** See {@link ContainmentApi.placementForWord}. */
+  @CallSecurity(ContainmentApiCallers)
+  public placementForWord(word: string): Placement | null {
+    const catalogue = StuffApi.findByTemplatePath<PlacementCatalogue>(
+      PLACEMENT_CATALOGUE_PATH,
+    );
+    return catalogue?.peekWord(word) ?? null;
   }
 
   // `findReachable` / `findHostedUpdate` were removed — the reachable
@@ -225,15 +255,13 @@ function moveCore(
   // the three cross-object updates atomically.
   item.setContainer(to);
 
-  // Auxiliary-pointer invariant: when the container actually
-  // changes, the `restingOn` auxiliary pointer can no longer be
-  // valid (the apple is now in the chest; whatever desk it was on
-  // can't still be supporting it). Clearing here keeps the
-  // move-as-container-change contract clean. `placeOn` re-stamps
-  // restingOn after this move() call, so the on-surface case is
-  // unaffected.
-  if (from !== to && item.getRestingOn() !== null) {
-    item._setRestingOn(null);
+  // Auxiliary-pair invariant: when the container actually changes, the
+  // placement can no longer be valid (the apple is now in the chest;
+  // whatever desk it was on can't still be holding it). Clearing here
+  // keeps the move-as-container-change contract clean. `place`
+  // re-stamps after this move() call, so the placed case is unaffected.
+  if (from !== to && item.getPlacement() !== null) {
+    item._setPlacement(null);
   }
 
   // Recency-stack bookkeeping. Runs BEFORE the on-hooks so anything

@@ -24,7 +24,7 @@ import Chair from "../../../platform/thing/Chair";
 import { PosedMixin } from "../Posed";
 import { SlottableMixin } from "../../slot/Slottable";
 import { Postures } from "../../slot/Postured";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import type { Stuff } from "../../stuff/Stuff";
 import type { Slotted } from "../../slot/Slotted";
 import type { Slottable } from "../../slot/Slottable";
@@ -32,7 +32,7 @@ import type { Slottable } from "../../slot/Slottable";
 const BED_PATH = "/stuff/thing/fixture/bed";
 
 /** A body: Posed + Slottable, the Character shape reduced to what matters. */
-class Body extends PosedMixin(SlottableMixin(Thing)) {}
+class Body extends PosedMixin(SlottableMixin(Good)) {}
 
 function makeBed(restQuality = 2): Chair {
   const bed = makeStuffAtPath(() => new Chair(), BED_PATH);

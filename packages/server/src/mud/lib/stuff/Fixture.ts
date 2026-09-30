@@ -1,7 +1,7 @@
 /**
  * FixtureMixin — a self-seating fixture: content that, on registration,
  * seats ITSELF into a declared target. The object-owns inverse of the
- * container-owns spawn framework (`Spawner` / `Spawned` / `Populates`):
+ * container-owns spawn framework (`Spawner` / `Spawned` / `Staged`):
  * there a host creates and places its contents; here the object names where
  * it belongs (`seatIn`) and asks to be placed there.
  *

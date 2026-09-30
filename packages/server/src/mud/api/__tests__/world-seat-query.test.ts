@@ -39,12 +39,12 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import Location from '../../lib/stuff/Location';
 import { ContainmentApi } from '../containment';
 import { NamedMixin } from '../../lib/description/Named';
 
-class TestSword extends NamedMixin(Thing) {
+class TestSword extends NamedMixin(Good) {
   static _mixinName = 'TestSword';
 }
 

@@ -21,7 +21,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import Provision from '../../../platform/thing/Provision';
-import ToolItem from '../../../platform/thing/ToolItem';
+import Tool from '../../../platform/thing/Tool';
 import Weapon from '../../../platform/thing/equipment/Weapon';
 import CraftVessel from '../../../platform/thing/CraftVessel';
 import Cutlery from '../../../platform/thing/Cutlery';
@@ -358,14 +358,14 @@ describe('ContaminableMixin — the population no sense reports', () => {
     expect(MixinApi.isContaminable(makeStuff(() => new CraftVessel()))).toBe(true);
   });
 
-  it('⚠⚠ NOT `ToolItem` — most tools in this game are mining kit', () => {
+  it('⚠⚠ NOT `Tool` — most tools in this game are mining kit', () => {
     // Composed here for one build on the argument that "this can carry
     // pathogens between things" is true of a billhook and a kitchen sieve.
     // It is — and it was the wrong question. The host set is a felling
     // axe, a sledge, a pick, a pick-haft, a pinch bar, a smith's hammer,
     // an assay kit and a shovel. ⭐ Nor did it ever DO anything: no
     // producer writes a load to a tool.
-    expect(MixinApi.isContaminable(makeStuff(() => new ToolItem()))).toBe(false);
+    expect(MixinApi.isContaminable(makeStuff(() => new Tool()))).toBe(false);
   });
 
   it('⚠⚠ NOT `Weapon` — most weapons are never used on food', () => {

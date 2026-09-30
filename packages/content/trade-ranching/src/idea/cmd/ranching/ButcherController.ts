@@ -55,7 +55,7 @@ const YIELDS: ReadonlyArray<{ row: string; fraction: number; what: string }> = [
   // success. It was invisible because every head massed zero, so the
   // yield read as empty for a different reason.
   // ⭐ Being the shipped `Provision` row is the point: butchered meat
-  // arrives carrying Freshness, Cured and Contaminable, so the clock the
+  // arrives carrying Freshness, WaterActivity and Contaminable, so the clock the
   // cooking chain starts at the kill is the same clock.
   { row: '/stuff/thing/items/stew-meat', fraction: 0.42, what: 'meat' },
   // ⭐ Offal — 10–15% of live weight, and the piece every carcass has

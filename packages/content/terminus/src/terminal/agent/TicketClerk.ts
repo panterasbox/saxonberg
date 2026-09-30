@@ -19,11 +19,13 @@
  * clerk is just an NPC that affords a verb.
  */
 
-import { NPC } from "@saxonberg/server/mud/lib/npc/NPC";
-import { CastMixin } from "@saxonberg/server/mud/lib/npc/Cast";
+// ⭐ `Cast` IS `CastMixin(NPC)`; this class re-composed that chain by
+// hand until the base-class narrowing. Behaviour-identical, honest
+// lineage in the composition panel.
+import { Cast } from "@saxonberg/server/mud/platform/agent/Cast";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 
-export default class TicketClerk extends CastMixin(NPC) {
+export default class TicketClerk extends Cast {
   /** Affords `procure card` to co-located players (the `self`-neighbor push). */
   static commandContributions: CommandContributions = {
     peers: ["system/tpa/cmd/tpa/procure-card.yaml"],

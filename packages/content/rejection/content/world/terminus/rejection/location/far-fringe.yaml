@@ -22,15 +22,16 @@
 class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: open ground at the far fringe
   keywords: [ground, "far fringe", fringe, open, outcrop, unstaked]
   register: definite
   # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
   # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
   # 6000 — open fell. No row here authored a value before the forestry build,
-  # and every object read "something".
-  ambientIntensity: 8000
-  ambientColorTemperature: 5800
+  # ⭐ Sky-lit by DERIVATION now: the row names an outdoor
+  # biome and the light follows the sun, the moon and the cloud.
+  # The far edge of the diggings, and nothing over it.
   oreRow: /world/terminus/rejection/thing/iron-ore
   longDescription: |
     The hill has flattened out and the wind has the whole of it. The rusty band is still here, narrower now and broken into lenses with barren slate between them, going on northeast towards the skyline and thinning as it goes.

@@ -1,0 +1,28 @@
+# A brazier — a basket of coals on legs. The least of the three: it heats
+# what is immediately around it and little else, and it is the one you can
+# carry into a room that has no chimney.
+#
+# ⚠ Not to be confused with the practicum's bronze brazier, which is a
+# `Campfire` row and shipped alight on purpose.
+class: /platform/thing/Hearth
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: iron brazier
+  keywords: [brazier, coals, basket, fire, iron]
+  register: indefinite
+  longDescription: >
+    An iron basket on three splayed legs, blackened to the rim and
+    standing in its own small ring of scorched floor. It warms whoever is
+    nearest and argues with nobody about the rest of the room.
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  heatOutputW: 700
+  burnTemperatureK: 750
+  emittedIntensity: 60
+  emittedColorTemperature: 1800

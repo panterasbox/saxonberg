@@ -11,7 +11,9 @@
 > town-below, the deep folk and the deep-law · the sensorium underground
 > (knocking, taste, the lamp-as-tool) · the byproduct stream · the
 > Ordinance / Delving 9 temporal mirror · archaeology · the automation
-> yield-cap · the Resource Governor office + tuning
+> yield-cap · the Resource Governor office + tuning · ⭐⭐ **the FLUID
+> pass — firedamp, and gas/liquid in a working** (added 2026-09-25; see
+> below — ⚠ it is anchored HERE, not on drilling)
 > **Size:** a build
 
 
@@ -586,7 +588,7 @@ genuinely is one:
 | **pest** | delve-rats | breeding pressure; desperation meat |
 | **grazer** | pale grazer | herdable — husbandry again |
 | **predator** | pale crawler | the concealment game, by vibration |
-| **working** | pit pony | `HaulingCreature`, shipped |
+| **working** | pit pony | `platform/agent/DraftAnimal`, shipped (was `HaulingCreature` until the base-class narrowing) |
 | **working** | canary | the atmosphere instrument |
 
 **Five of seven ride substrates that already exist.** Each costs a Species
@@ -1067,3 +1069,85 @@ decipherment engine is deferred and v1 is a taste.
 
 *(Retire when: the mechanic promotes to formal requirements, or folds into a
 crafting/livelihood build that adopts extraction.)*
+
+## ⚠ Finding from the extraction drive's dirty reason (2026-09-24)
+
+⭐ The wire drive `extraction.dirty.wire.test.ts` declares that it *"strips the
+pit's drift and wins its stone (**a per-band ledger on a persisted room that
+nothing refills**)"* — and a dirty reason is a question for the owning trade, so
+here it is: **nothing anywhere puts stone back.**
+
+A turbary running out is *designed* (the fuel or the field, and not both) and a
+claim being permanent is fine. A **quarry** is different: exhaust every band and
+the realm has one less source of building stone, for good, with no geological
+process and no second site opening. That is either
+
+- correct and the answer is **new sites** (which is rows, and cheap — three
+  localities already name the trade's classes with no code), or
+- a gap, and a face wants a replenishment story.
+
+⚠ It only becomes pressing when something consumes stone at volume, which is
+the **structure/construction** slate's business (drafted 2026-09-24 on
+`design/2026-09-24-structure`, not yet on master) — so this is that slate's
+upstream question as much as this one's.
+
+---
+
+## ⭐⭐ The fluid pass — firedamp, and why it anchors HERE (2026-09-25)
+
+Raised while designing [drilling](./drilling-slate.md): *does mining need
+a second look for gases and liquids?* Yes — and the sequencing question
+that came with it is answered the opposite way to first instinct, so it is
+written down.
+
+### ⚠ The roster has a hole, and it is the interesting one
+
+[mining.md](../../subsystems/mining.md) ships **`blackdamp`** (odourless —
+*"the only free reading of it is a bird that stops singing"*) and
+**`stinkdamp`** (reeks; smell catches it), as derived working atmospheres
+with every downstream consequence already wired.
+
+> **`firedamp` is not among them.** The mine models the suffocating damp
+> and the stinking damp and omits **the explosive one** — which is also
+> the one that is a **fuel**.
+
+⭐ That is the collier's shape a fourth time: **the hazard exists and the
+resource does not.** And the arc it wants is real history —
+*a gas that kills you → a gas you vent → a gas you collect* — drained
+ahead of the face through **in-seam boreholes**, which is mining's own act
+rather than a well.
+
+### ⭐⭐⭐ Why this is NOT designed around drilled gas
+
+**1 · This is designed; drilling is not.** The safety-law above already
+names **air and water as the mine's first two crimes** — *"Foul not the
+air. Sap not the props. Flood not the deep."* — with governance attached,
+flooding as a hazard, gas already named as a stoppage, and the pump's
+economics settled (*paid out of the hoist toll*). Drilling is blocked on
+the epoch on-ramp, which is blocked on inquiry. Anchoring a designed thing
+to an unbuilt one is backwards.
+
+**2 · ⭐ The SIGN is opposite.** Here, water and gas are things you
+**remove in order to keep working**; at a well, gas is the thing you are
+**there for**. Designed the wrong way round, firedamp becomes *a resource
+that happens to be dangerous* instead of **a hazard that turns out to be
+valuable** — different economics, different UX, and only one of them true.
+
+**3 · The pump is one object.** Dewatering and oil-lift are the same
+machine, and dewatering has the harder spec — continuous, unattended,
+sized to inflow. Build it here and drilling inherits it.
+
+### The split that keeps one gas economy
+
+⚠ The risk to avoid is **two parallel gas economies**. The fix is not to
+design the halves apart but to anchor each on the right thing:
+
+| half | covers | anchor |
+|---|---|---|
+| **hazard** | a fluid you must remove to work — water, then firedamp | ⭐ **here** |
+| **commodity** | storage, `bulk.md`'s inert `sealed` closure rung, the gasometer, the market | ⭐ **coal gas** → [destructive-distillation](./destructive-distillation-slate.md) |
+
+> **Neither is anchored on drilling**, which arrives third and inherits
+> both — so ⭐ **this pass is not blocked behind drilling** and can go much
+> sooner.
+

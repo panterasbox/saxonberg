@@ -185,7 +185,7 @@ ride the contextual-affordance surface via
 ## Wave 2 — the carried supply (the scuba loop)
 
 A worn **`AirTank`** (`obj/AirTank.ts` —
-`WearableMixin(SlottableMixin(BulkableMixin(Thing)))`) carries an
+`WearableMixin(SlottableMixin(BulkableMixin(Good)))`) carries an
 `interior` [bulk](./bulk.md) of `air`. When the ambient medium is
 unbreathable, `assessExchange` produces `cause: 'supply'` if a worn tank
 is present (with or without air); the drain tick then **taps the tank**

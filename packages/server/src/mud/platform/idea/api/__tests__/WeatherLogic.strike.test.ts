@@ -8,9 +8,9 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import Location from '../../../../lib/stuff/Location';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import Biome from '../../../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
 import Material from '../../../../lib/material/Material';
@@ -19,7 +19,7 @@ import { BiomeApi } from '../../../../api/biome';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
-import LightningStrike from '../../../../lib/weather/LightningStrike';
+import LightningStrike from '../../../thing/LightningStrike';
 import { ConnectionManager } from '../../../../../backend/ConnectionManager';
 import { Quantity } from '../../../../lib/quantity';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
@@ -29,12 +29,13 @@ import type { User } from '../../../../lib/identity/User';
 import {
   makeStuff,
   makeStuffAtPath,
+  seedKernelContentStore,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../WorldClockRegistry';
 
 class TestRoom extends Location {}
-class TestOccupant extends HasInteractiveMixin(Thing) {
+class TestOccupant extends HasInteractiveMixin(Good) {
   static _mixinName = 'TestOccupantStrike';
 }
 
@@ -74,7 +75,7 @@ function installRootBiome(): void {
 function skyRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/stuff/idea/biome/universe';
+    b.setExtendsBiomePath('/stuff/idea/biome/universe');
     return b;
   }, '/stuff/idea/biome/outdoor/field');
   const room = makeStuff(() => new TestRoom());
@@ -83,7 +84,7 @@ function skyRoom(): TestRoom {
 }
 
 let matSeq = 0;
-function conductiveRod(room: TestRoom): Thing {
+function conductiveRod(room: TestRoom): Good {
   matSeq += 1;
   const mat = makeStuffAtPath(() => {
     const m = new Material();
@@ -91,7 +92,7 @@ function conductiveRod(room: TestRoom): Thing {
     m.setElectricalConductivity(Quantity.of(5, 'S/m'));
     return m;
   }, `/stuff/idea/material/_strike/metal-${matSeq}`) as unknown as Material;
-  const rod = makeStuff(() => new Thing());
+  const rod = makeStuff(() => new Good());
   rod.setMaterial(mat);
   return rod;
 }
@@ -110,6 +111,17 @@ async function occupy(room: TestRoom): Promise<void> {
 }
 
 describe('Storm lightning strikes (Phase E)', () => {
+  beforeEach(() => {
+    seedKernelContentStore([
+    {
+      path: '/platform/thing/LightningStrike',
+      class: '/platform/thing/LightningStrike',
+      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+      data: { shortDescription: 'a lightning strike' },
+    },
+    ]);
+  });
+
   beforeEach(() => {
     installV1QuantityMarshallers();
     BiomeApi.invalidateRootBiomeCache();

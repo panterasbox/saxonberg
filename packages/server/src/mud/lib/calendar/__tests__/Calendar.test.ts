@@ -7,7 +7,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { CalendarMixin } from '../Calendar';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
@@ -19,7 +19,7 @@ import { SchedulerApi } from '../../../api/scheduler';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class CalendarThing extends CalendarMixin(Thing) {}
+class CalendarThing extends CalendarMixin(Good) {}
 
 /** Stand up the EventRegistry so the ping's host-destruct subscription
  * (WorldClockApi.at with a host) can register in a unit test. */

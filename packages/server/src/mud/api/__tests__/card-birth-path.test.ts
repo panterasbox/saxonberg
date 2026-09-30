@@ -167,8 +167,8 @@ describe('a card is born on the server, or not at all', () => {
      */
     expect(sites.sort()).toEqual(
       [
-        'content/trade-farming/src/idea/cmd/perception/AnalyzeSoilController.ts:open',
-        'content/trade-mining/src/idea/cmd/perception/AnalyzeGroundController.ts:open',
+        'content/trade-farming/src/idea/reading/SoilSurveyReading.ts:open',
+        'content/trade-mining/src/idea/reading/GroundReading.ts:open',
         'mud/platform/agent/Avatar.ts:applyCardArrangement',
         'mud/lib/display/Display.ts:pushCard',
         'mud/platform/idea/api/PromptLogic.ts:pushCard',

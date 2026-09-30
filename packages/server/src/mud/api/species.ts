@@ -85,10 +85,10 @@ export class SpeciesApi {
   }
 
   /**
-   * Animate iff the Organism's kingdom + lifecycle state combine to
+   * Actor iff the Organism's kingdom + lifecycle state combine to
    * "currently capable of acting in the world." Slate's table:
    *
-   * | Kingdom    | Animate when                           |
+   * | Kingdom    | Actor when                           |
    * |------------|----------------------------------------|
    * | Animalia   | lifecycleState ∈ {alive, undead}       |
    * | Constructa | lifecycleState === 'powered'           |

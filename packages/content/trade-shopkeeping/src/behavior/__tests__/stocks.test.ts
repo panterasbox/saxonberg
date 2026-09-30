@@ -22,12 +22,13 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { seedKernelContentStore } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as stocks } from '../stocks';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import Extra from '@saxonberg/server/mud/platform/agent/Extra';
 import StockBase from "@saxonberg/server/mud/lib/retail/Stock";
-import Thing from '@saxonberg/server/mud/platform/thing/Thing';
+import Good from '@saxonberg/server/mud/platform/thing/Good';
 import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
@@ -60,7 +61,7 @@ const SUPPLIER = '/test/stocks/idea/distributor';
 const LIMES = '/test/stocks/thing/crate-of-limes';
 const COFFEE = '/test/stocks/thing/coffee-sack';
 
-class Crate extends Thing {}
+class Crate extends Good {}
 
 /** The rooms she walked into, in order — the authored way, observed. */
 let walked: string[] = [];
@@ -161,6 +162,9 @@ async function dispatch(text: string): Promise<void> {
 }
 
 beforeEach(async () => {
+  // ⭐ Every exit is a clone of a kind row now, and this suite builds a
+  // real little neighbourhood with real doors.
+  seedKernelContentStore();
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   balance = 0;

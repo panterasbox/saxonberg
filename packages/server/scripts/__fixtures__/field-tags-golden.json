@@ -891,7 +891,7 @@
     "runtime": [],
     "refs": {}
   },
-  "PopulatesMixin": {
+  "StagedMixin": {
     "authorable": [
       "_applyPopulates",
       "_fieldMeta",

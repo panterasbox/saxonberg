@@ -625,7 +625,11 @@ initial seven per MR review — see [§ History](#history)):
   concedes.
 
 Both verbs are contributed by **`CombatantMixin`** (`lib/combat/Combatant.ts`,
-composed on `Character`) as static `self` affordances; the gambit
+composed on **`lib/creature/Actor`** since the base-class narrowing —
+*a body that acts* — so a wolf and a cat fight back as well as a person)
+as static `self` affordances; ⚠ the affordances are `self`-bucket, so
+they are inert on anything that is not a `CommandGiver` — which no rung
+below `Character` composes, and a test says so. the gambit
 subcommands reject at attempt-time. `CombatantMixin` also carries the
 `naturalAttackChannel` field (now the **legacy single-attack fallback**
 under `Species.naturalAttacks[]` — see
@@ -1059,6 +1063,13 @@ Named at their sites; nothing inherited:
 - **Split** — connected-component recompute on edge removal spawning a
   second session; deferred (no criterion requires it) until fragmentation
   is real.
+- ⭐ **The no-presence-freeze seam has a lens.**
+  [lenses/27-time.md](../lenses/27-time.md) files it as one of the two
+  deliberate exceptions to *absence never costs a living player* — *you
+  can't rage-quit a fight* — and argues the answer to its cost is not a
+  blanket freeze but **player-authored disconnect behaviour** (disengage
+  or flee on standing instructions), which preserves the reason while
+  removing most of the bill.
 - **Known engine seams** — the `act.combat` topic wants a client
   font-register mapping. The beat loop has **no presence-freeze** — a fight
   ticks on against a linkdead combatant until `combat.maxBeats` forces a
@@ -1092,7 +1103,8 @@ Named at their sites; nothing inherited:
   Incidental fixes forced by the live demo: the `wield`/`unwield` affordance
   (`WieldableMixin`), the missing `/platform/idea/ParcelRegistry` seed (a latent
   fresh-DB bootstrap failure), the silent-fight-end bug, and the flat
-  narration. `CombatantMixin` was composed onto `Character`; `Weapon` gained
+  narration. `CombatantMixin` was composed onto `Character` (it moved to
+  the `Actor` rung in 2026-09); `Weapon` gained
   `balanceFactor`; `act.combat` joined `REACTABLE_TOPICS`.
 - **Cycle 1, build 2** (`feature/combat-consequence`) — consequence &
   progression: `isSentient` (a `Species` flag + the three-case defeat),

@@ -9,7 +9,7 @@
  *   - **Resolution chain** (Wave 3) — `resolveTemperatureFor` and
  *     the four siblings (pressure / humidity / gravity / atmosphere)
  *     plus their `trace*` variants that return provenance for the
- *     `analyze atmosphere` verb. The chain walks innermost-
+ *     `trace atmosphere` verb. The chain walks innermost-
  *     container-outward through containment ancestors, then the
  *     spatial zone, then the root biome.
  *   - **Sky exposure** (Wave 5) — `isSkyExposed(scope)` predicate
@@ -37,6 +37,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type Biome from '../lib/biome/Biome';
+import type { Evaporation } from '../lib/material/Evaporation';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -62,7 +63,13 @@ export interface AtmosphericTrace<V> {
     | 'biome-ancestor'
     | 'zone'
     | 'elevation'
-    | 'universe';
+    | 'universe'
+    // ⭐⭐ The room's own envelope answered: it is holding a state
+    // different from its outside, and {@link EnvelopeTrace} says what
+    // is keeping it there. The one provenance that is not a layer of
+    // the chain but a THING THE ROOM IS DOING, which is why `feel` can
+    // name a cause a player can walk over and look at.
+    | 'envelope';
   /**
    * Path of the source — ancestor template path for detail / room,
    * biome template path for biome / biome-ancestor, zone path for
@@ -72,6 +79,50 @@ export interface AtmosphericTrace<V> {
   sourcePath: string | null;
   /** Containment ancestor template paths traversed during the walk. */
   ancestorChain: string[];
+  /** Present iff `source === 'envelope'`. What is keeping it there. */
+  envelope?: EnvelopeTrace;
+}
+
+/**
+ * ⭐ Why this room is the temperature it is — the read `feel` turns into
+ * a sentence. Every field is derived; none of it is authored, which is
+ * exactly what makes it safe to say out loud. A room that is warm for
+ * no reason a player can be told would have to report `heatInputW: 0`
+ * and an outside colder than itself, and that is the dishonesty showing
+ * up in the fiction before anybody runs a gate.
+ */
+export interface EnvelopeTrace {
+  /** What it is drifting toward, K. */
+  outsideK: number;
+  /** What is burning in it, W. */
+  heatInputW: number;
+  /** Its total heat-loss coefficient, W/K. */
+  uWperK: number;
+  /** How many exterior openings stand open. */
+  openings: number;
+  /** The Material its walls are made of — what `feel` names. */
+  enclosureMaterialPath: string;
+  /** The hottest space-heating source present, for the prose. */
+  hottestSource: string | null;
+}
+
+/**
+ * One stretch of unchanging air inside a window — what
+ * {@link BiomeApi.airSegmentsFor} hands a durative consumer.
+ *
+ * ⭐ A salt pan does not want *the air now*: it wants the whole window it
+ * slept through, segment by segment, because a dry day and a wet one do
+ * opposite things and their average does neither. So the window is
+ * **walked**, not sampled, and the rain rides beside the air — a pan goes
+ * backwards in a storm, which is the read the requirements ask for.
+ */
+export interface AirSegment {
+  /** The air over this stretch. */
+  air: Evaporation;
+  /** Game-seconds of the window this stretch covers. */
+  durationS: number;
+  /** Liquid precipitation rate over it, mm/h. `0` indoors or dry. */
+  rainMmPerH: number;
 }
 
 const LOGIC_PATH = '/platform/idea/api/biome';
@@ -190,7 +241,7 @@ export class BiomeApi {
    * covers: the **Zone** field-inheritance step (which is async) and the
    * **weather deviation** (which needs an address walk). Use it only where
    * awaiting is genuinely impossible — a reconcile-on-read gauge running
-   * off a getter, which is what it exists for (`Cure.ambientHumidityOf`).
+   * off a getter, which is what it exists for (`WaterActivity.ambientHumidityOf`).
    * Everything that can await should call `resolveHumidityFor` instead.
    */
   public static localHumidityFor(scope: Stuff & Container): number | null {
@@ -264,7 +315,7 @@ export class BiomeApi {
 
   /**
    * Aggregate provenance for every atmospheric field at `scope`.
-   * Convenience helper for the `analyze atmosphere` controller.
+   * Convenience helper for the `trace atmosphere` controller.
    */
   public static async traceResolveAll(
     scope: Stuff & Container,
@@ -293,6 +344,23 @@ export class BiomeApi {
   }
 
   /**
+   * ⭐ What a scope is drifting TOWARD, in K — the chain's answer plus
+   * the weather, with no envelope applied. For a sky-exposed scope that
+   * is simply its own temperature; for an enclosed one it is the air on
+   * the other side of the wall.
+   *
+   * ⚠ The weather is folded only where the answer came from the SKY
+   * (the universe baseline or a `SkyExposedBiome`). A biome may say
+   * what the outside air is doing — a working IS 285 K the year round —
+   * but that is rock, and a storm must not cool it.
+   */
+  public static async outsideTemperatureFor(
+    scope: Stuff & Container
+  ): Promise<Quantity<'K'>> {
+    return logic().outsideTemperatureFor(scope);
+  }
+
+  /**
    * Re-stamp every Thermal object directly contained in `room` so each
    * re-resolves its cached ambient (`lastAmbientK`) against the room's
    * current — now possibly weather-deviated — temperature. The gated
@@ -304,6 +372,49 @@ export class BiomeApi {
    */
   public static restampThermalContentsOf(room: Stuff & Container): void {
     logic().restampThermalContentsOf(room);
+  }
+
+  // ---------- the evaporation reads (SYNC) ----------
+
+  /**
+   * ⭐⭐ **What the air at a scope is doing to water in it** — humidity,
+   * wind and temperature folded into one {@link Evaporation}, with the
+   * live weather deviation on top when the scope is under the sky and its
+   * `Locality` is known.
+   *
+   * **Sync, and that is the point.** Two reconcile-on-read consumers ask
+   * this from a getter and cannot await: the per-instance water state
+   * (`WaterActivityMixin` — a ham on a rack) and the durative transform
+   * (`MaturingMixin`'s `evaporative` mechanism — a pan in the sun).
+   * Neither computes a rate of its own; there is one arithmetic, here.
+   *
+   * ⚠ It skips the same two tiers {@link localHumidityFor} skips — the
+   * **Zone** field-inheritance step (async) — and reaches weather only
+   * through `AtmosphericMixin`'s locality memo, so the very first read of
+   * a scope nobody has looked at reports the biome base and the next
+   * reports the weather.
+   */
+  public static airFor(scope: Stuff & Container): Evaporation {
+    return logic().airFor(scope);
+  }
+
+  /**
+   * The air over a **window**, segment by segment, with each segment's
+   * rain rate — for a consumer integrating a long absence
+   * ({@link AirSegment}).
+   *
+   * Sync and exact: weather is a pure function of time, so the segments
+   * between two instants are computable now and each contributes its own
+   * air and its own rain. ⭐ **Never returns an empty list** — a window
+   * with no weather is one segment of the air as it reads, so a caller
+   * summing the list cannot silently credit nothing.
+   */
+  public static airSegmentsFor(
+    scope: Stuff & Container,
+    t0S: number,
+    t1S: number,
+  ): AirSegment[] {
+    return logic().airSegmentsFor(scope, t0S, t1S);
   }
 }
 

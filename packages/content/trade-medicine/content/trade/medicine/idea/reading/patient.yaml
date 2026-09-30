@@ -1,0 +1,26 @@
+# patient — how hurt a body is, in words.
+#
+# ⭐⭐ **Competence resolves DETAIL, never access.** Anybody may look at
+# a hurt person and say something true; what training buys is how much
+# of it, and whether the reading is right about which sign matters.
+#
+# ⚠ It must not contradict `assess`, which is the medical vertical's own
+# verb for the same body and shipped first. Where both speak — the band
+# vocabulary, what a dressing conceals, what a novice is allowed to get
+# wrong — this matches it or the world contradicts itself in two
+# sentences.
+#
+# ⭐ The pack ships the row and the class; the platform names neither.
+class: /trade/medicine/idea/reading/PatientReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: patient
+  kind: fact
+  scope: [subject]
+  discipline: medicine
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether this person can be moved, treated here, or is dying
+  stakes: >-
+    a wound missed; a patient moved who should not have been

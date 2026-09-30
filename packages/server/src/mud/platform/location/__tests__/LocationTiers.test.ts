@@ -87,7 +87,7 @@ describe("the minted quadrant", () => {
   it("carries its coordinate system — it is a real grid cell", () => {
     const room = makeStuffAtPath(() => new CartesianLocation(), PATH);
     expect(MixinApi.isExitable(room)).toBe(true);
-    expect(MixinApi.hasMixin(CartesianLocation, Mixins.Populates)).toBe(true);
+    expect(MixinApi.hasMixin(CartesianLocation, Mixins.Staged)).toBe(true);
     // The whole reason it exists: the authored classes are singletons
     // because one row IS one cell. A minted row is a KIND of cell.
     expect(MixinApi.hasMixin(SingletonCartesianLocation, Mixins.Singleton)).toBe(true);

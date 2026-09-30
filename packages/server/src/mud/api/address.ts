@@ -62,7 +62,7 @@ export interface AddressResolution {
   source: AddressSource;
 }
 
-/** Provenance bundle for `analyze address`. Superset of the resolution. */
+/** Provenance bundle for `trace address`. Superset of the resolution. */
 export interface AddressTrace extends AddressResolution {
   /** templatePaths walked containment-outward (innermost → outermost). */
   ancestorChain: string[];
@@ -97,7 +97,7 @@ export class AddressApi {
     return logic().resolveFor(scope);
   }
 
-  /** The `analyze address` provenance variant — full trace. */
+  /** The `trace address` provenance variant — full trace. */
   public static async traceResolveFor(
     scope: Stuff & Container,
   ): Promise<AddressTrace> {
@@ -196,6 +196,33 @@ export class AddressApi {
    * re-resolves. Registry state itself is unaffected.
    * @internal
    */
+  /**
+   * ⭐ Is `streetPath` being lit by `localityPath`'s money tonight?
+   *
+   * Sync, because the light walk is: a street's contribution to a room's
+   * flux is read on every `look`, and it cannot afford an address walk.
+   * The street resolved its covering locality ONCE at `postRegister`
+   * and carries the path.
+   */
+  public static isStreetLitTonight(
+    localityPath: string | null,
+    streetPath: string
+  ): boolean {
+    return logic().isStreetLitTonight(localityPath, streetPath);
+  }
+
+  /**
+   * ⭐⭐ **Settle every extent's street lighting for tonight** — the
+   * `civic:lighting` schedule's callback, armed at sunset.
+   *
+   * Iteration only: the DECISION and the money are each extent's own
+   * (`Locality.settleStreetLighting`), which is the verbs-on-objects
+   * line. This walks the localities and nothing more.
+   */
+  public static async settleStreetLighting(nowS: number): Promise<void> {
+    return logic().settleStreetLighting(nowS);
+  }
+
   public static _resetRegistryRefForReload(): void {
     logic()._resetRegistryRefForReload();
   }

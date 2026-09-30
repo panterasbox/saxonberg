@@ -30,7 +30,7 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import type { TechniqueSpec } from '../../../../lib/craft/Technique';
 import Material from '../../../../lib/material/Material';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import { Idea } from '../../../../lib/stuff/Idea';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -39,7 +39,7 @@ import { EmployedMixin } from '../../../../lib/employment/Employed';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import Receptacle from '../../../thing/Receptacle';
 import CraftVessel from '../../../thing/CraftVessel';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { BlendLabel } from '../../../../lib/metabolism/BlendLabel';
 import {
@@ -126,7 +126,7 @@ function makeHolder(materialPath: string, amountL: number) {
  * proves the mechanism without reaching for hospitality's shipped
  * `GlassRack` row (which lives in the pack, per `lint:test-content`).
  */
-class TestRack extends ContainerMixin(Thing) {}
+class TestRack extends ContainerMixin(Good) {}
 
 function makeGlass(path: string, capacityL = 0.4): CraftVessel {
   const g = makeStuffAtPath(() => new CraftVessel(), path);
@@ -135,8 +135,8 @@ function makeGlass(path: string, capacityL = 0.4): CraftVessel {
   return g;
 }
 
-function makeItem(materialPath: string): Thing {
-  const t = makeStuff(() => new Thing());
+function makeItem(materialPath: string): Good {
+  const t = makeStuff(() => new Good());
   t.setShortDescription(`an ${materialPath.split('/').pop()}`);
   t.setMass(Quantity.of(0.02, 'kg'));
   t.setMaterial(StuffApi.findByTemplatePath<Material>(materialPath)!);
@@ -156,7 +156,7 @@ const WORKINGS: Record<string, TechniqueSpec | undefined> = {
 };
 
 function makeTool(cap: string) {
-  const t = makeStuff(() => new ToolItem());
+  const t = makeStuff(() => new Tool());
   const technique = WORKINGS[cap];
   t.setCapabilities([technique ? { kind: cap, technique } : cap]);
   return t;
@@ -666,7 +666,7 @@ describe('the technique vocabulary is OPEN — a pack adds a working with no ker
     ContainmentApi.move(makeGlass(HIGHBALL) as never, room as never);
     ContainmentApi.move(makeHolder(ICE, 5), room);
 
-    const churn = makeStuff(() => new ToolItem());
+    const churn = makeStuff(() => new Tool());
     churn.setCapabilities([
       {
         kind: 'churn',

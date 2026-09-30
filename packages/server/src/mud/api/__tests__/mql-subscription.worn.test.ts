@@ -23,7 +23,7 @@ import { PerceptionApi } from '../perception';
 import Avatar from '../../platform/agent/Avatar';
 import Species from '../../platform/idea/species/Species';
 import BodyPlan from '../../platform/idea/species/BodyPlan';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { WearableMixin } from '../../lib/slot/Wearable';
 import { SlottableMixin } from '../../lib/slot/Slottable';
 import { ContainableMixin } from '../../lib/spatial/Containable';
@@ -35,7 +35,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 
 class TestGarment extends WearableMixin(
-  SlottableMixin(ContainableMixin(Thing)),
+  SlottableMixin(ContainableMixin(Good)),
 ) {}
 
 let uniq = 0;
@@ -43,7 +43,7 @@ let uniq = 0;
 async function dressedAvatar(): Promise<{
   avatar: Avatar;
   shirt: TestGarment;
-  pocketed: Thing;
+  pocketed: Good;
   planPath: string;
 }> {
   const suffix = `-${uniq++}`;
@@ -66,7 +66,7 @@ async function dressedAvatar(): Promise<{
   shirt.setPrimaryKeyword('shirt');
   shirt.setSlotClaim(planPath, ['torso']);
 
-  const pocketed = makeStuff(() => new Thing());
+  const pocketed = makeStuff(() => new Good());
   pocketed.setShortDescription('a folded letter');
   pocketed.setPrimaryKeyword('letter');
 
@@ -138,7 +138,7 @@ describe('the `worn` wire field', () => {
   });
 
   it('a host with no slots omits the field entirely', async () => {
-    const plain = makeStuff(() => new Thing());
+    const plain = makeStuff(() => new Good());
     const rec = project(plain, plain);
     expect('worn' in rec).toBe(false);
   });

@@ -73,7 +73,11 @@ import {
   SOIL_RESERVE_THEME,
 } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve';
-import { ImprovableMixin } from '../lib/Improvable';
+import {
+  ImprovableMixin,
+  type ImprovementCost,
+  type ImprovementJob,
+} from '@saxonberg/server/mud/lib/ground/Improvable';
 import { SwardMixin } from '../lib/Sward';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -87,9 +91,20 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import GroundCharacter, {
   type GroundSample,
-  type ImprovementCost,
   type Spot,
 } from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+
+/** What a spadeful of a stony headland leaves standing at the edge. */
+const STONE_ROW = '/trade/farming/thing/field-stone';
+/** Calcareous clay, dug out of the corner of a sweet field. */
+const MARL_ROW = '/trade/farming/thing/marl';
+/** Above this stoniness, an act of grubbing turns up stone worth stacking. */
+const STONE_THRESHOLD = 0.35;
+/** At or above this pH the subsoil is calcareous enough to be marl. */
+const MARL_PH = 7.2;
 
 /**
  * Litres of plant-available water one square metre of LOAM holds in its
@@ -171,6 +186,29 @@ const FieldBase = PersistableMixin(
 );
 
 export default class Field extends FieldBase {
+  /**
+   * ⚠⚠ **`plough` is afforded HERE and nowhere else, and it would have
+   * gone silent without this block.**
+   *
+   * The improvement acts moved to the platform with `ImprovableMixin`, and
+   * `plough` went with them in the same list — but ploughing is not
+   * improvement, it is farming's own act on a field, so it did not belong
+   * in a kernel mixin's contributions. A verb nothing affords parses as
+   * *"I don't understand 'plough'"*, and **every controller test would
+   * still have passed**: the affordance is a static on a class and nothing
+   * type-checks its absence. Two builds in this repo shipped exactly that
+   * failure and only found it by driving the world.
+   *
+   * ⭐ Safe to declare alongside the mixins': `bucketFilenames` collects the
+   * class's own static **plus** every mixin in the chain, so this unions
+   * with `ImprovableMixin`'s three platform views and `SwardMixin`'s `mow`
+   * rather than shadowing them.
+   */
+  static commandContributions = {
+    self: ['trade/farming/cmd/farming/plough.yaml'],
+    inventory: ['trade/farming/cmd/farming/plough.yaml'],
+  };
+
   static fieldMeta: FieldMeta = {
     fieldName: { persistent: true, authorable: true },
     groundSpotX: { persistent: true, authorable: true },
@@ -602,11 +640,92 @@ export default class Field extends FieldBase {
    * ⚠ Convenience only: it re-resolves the sample each call and stores
    * nothing, which is the seeded field's whole contract.
    */
-  public improvementBill(
+  public improvementBillFor(
     model: GroundCharacter | null,
     seed: number,
   ): ImprovementCost {
     return GroundCharacter.improvementCost(this.groundSample(model, seed));
+  }
+
+  /**
+   * ⭐⭐ **The kernel's improvement hook** — *what does this ground owe?*
+   *
+   * This is the whole seam that let `ImprovableMixin` leave the trade that
+   * invented it: the kernel's `grub`/`ditch`/`lime` never learn what a
+   * `GroundCharacter` is, they ask the ground, and a field answers out of
+   * farming's own seeded model. A turbary answers out of its peat.
+   */
+  public override async improvementBill(): Promise<ImprovementCost | null> {
+    const locality = await AddressApi.resolveLocalityFor(
+      this as unknown as Stuff & Container,
+    );
+    const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
+    const model = await GroundCharacter.forZone(this.getZone());
+    return this.improvementBillFor(model, seed);
+  }
+
+  /**
+   * ⭐ **How heavy the work is HERE.** Steep ground is slower, and stone is
+   * slower still — a read of the seeded sample that the kernel could not
+   * make, which is why it is a hook rather than a number.
+   *
+   * ⚠ Synchronous, so it reads the sample off the last resolved character
+   * rather than re-walking the address: the pace is a presentation-grade
+   * figure and a wrong-by-a-second duration is not worth an await on the
+   * act's hot path.
+   */
+  public override improvementPace(job: ImprovementJob): number {
+    if (job !== 'clearing') return 1;
+    const sample = this.groundSample(null, 0);
+    return 1 + sample.slopeDeg / 20 + sample.stoniness;
+  }
+
+  /**
+   * ⭐⭐ **What comes up out of clearing a field**, and the kernel must not
+   * know either of their names.
+   *
+   * **The cleared stone IS the wall.** Stony ground is expensive to clear
+   * and cheap to fence, which inverts an expectation in a way a player
+   * remembers, is historically exact — the stone walls of Ireland and New
+   * England are the fields' own stones stacked at the edge — and makes the
+   * waste zero.
+   *
+   * ⭐ **And limy ground gives up marl.** Digging calcareous clay out of a
+   * sweet field and spreading it on a sour one was *the* land improvement
+   * of its era, and marl pits are still visible in field corners. It is
+   * the pH lever that needs no kiln and no fuel.
+   */
+  public override async improvementSpoils(
+    job: ImprovementJob,
+  ): Promise<readonly Stuff[]> {
+    if (job !== 'clearing') return [];
+    const sample = this.groundSample(null, 0);
+    const out: Stuff[] = [];
+    if (sample.stoniness >= STONE_THRESHOLD) {
+      const stone = await this.mintSpoil(STONE_ROW);
+      if (stone) out.push(stone);
+    }
+    if (sample.nativePh >= MARL_PH) {
+      const marl = await this.mintSpoil(MARL_ROW);
+      if (marl) out.push(marl);
+    }
+    return out;
+  }
+
+  /** Clone a spoil row into the field it came out of. */
+  private async mintSpoil(row: string): Promise<Stuff | null> {
+    try {
+      const thing = await StuffApi.clone<Stuff>(row);
+      ContainmentApi.move(
+        thing as Stuff & Containable,
+        this as unknown as Stuff & Container,
+      );
+      return thing;
+    } catch {
+      // ⚠ A missing spoil row is a content gap, not a reason to lose the
+      // work: the clearing is banked either way.
+      return null;
+    }
   }
 
   /**

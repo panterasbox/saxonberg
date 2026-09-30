@@ -66,7 +66,7 @@ import type Material from './Material';
 import type Condition from '../../platform/idea/Condition';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
-import type { CureState } from './Cured';
+import type { WaterState } from './WaterActivity';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { TemplatePathPrefixes } from '../paths';
@@ -166,7 +166,7 @@ function clamp01(x: number): number {
 
 /**
  * ⭐ **The contamination half of the blend payload, declared here.** Same
- * move `Freshness` and `Cure` make: the payload has to carry the state,
+ * move `Freshness` and `WaterActivity` make: the payload has to carry the state,
  * and the payload's own module has no business knowing what a pathogen is.
  */
 declare module '../bulk/Bulkable' {
@@ -490,17 +490,17 @@ export class Contamination {
     return CONTAMINATION_DEFAULTS.AMBIENT_K;
   }
 
-  /** The effective water activity of a host's matter (material × cure). */
+  /** The effective water activity of a host's matter (material × water state). */
   /** @internal read by this module only — the host water-activity lookup behind the pathogen clock. */
   static hostWaterActivity(host: Stuff): number {
     const material: Material | null = MixinApi.isTangible(host)
       ? host.getMaterial()
       : null;
     if (!material) return 1;
-    const cure: CureState | null = MixinApi.isCured(host)
-      ? host.getCureState()
+    const water: WaterState | null = MixinApi.isWaterActive(host)
+      ? host.getWaterState()
       : null;
-    return Freshness.waterActivityOf(material, cure);
+    return Freshness.waterActivityOf(material, water);
   }
 
   // ───────────────────── the slot seam (impure) ─────────────────────
@@ -557,8 +557,8 @@ export class Contamination {
     const material = slot.getMaterial();
     if (!material) return 1;
     const payload = slot.getPayload();
-    const cure = payload?.cure ?? null;
-    return Freshness.waterActivityOf(material, cure);
+    const water = payload?.water ?? null;
+    return Freshness.waterActivityOf(material, water);
   }
 }
 

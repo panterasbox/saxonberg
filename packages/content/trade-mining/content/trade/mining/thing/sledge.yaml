@@ -1,6 +1,6 @@
 # A sledge — two hands and a long swing, for breaking what the pick will
 # not.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [sledge, sledgehammer, maul, long-hafted]

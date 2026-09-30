@@ -285,7 +285,7 @@ are placed where they belong:
 | **trunk** | a **detail** to look at; an **exit** to climb (`ClimbableMixin`, the `climb` mode, an `Adornable` ladder); a **bole** once felled | ✅ |
 | **branches** | **slots** — where things hang, sit, nest (`SlottedMixin`: `accepts`, `capacity`, `postures`) | ✅ (⚠ no `hanging` posture word) |
 | **leaves / canopy** | not on the tree: the **room's** light and biome, and litter → the soil ledger | ✅ authored |
-| **bark · mast · sap · resin** | products | ❌ the multi-product gap |
+| **bark · mast · sap · resin** | products | ⭐ the multi-product gap — **sap + resin are now their own slate** ([tapping](../builds/tapping-slate.md)); bark + mast remain here |
 | **the stool / stump** | the part that persists a cut — why coppice regrows | ✅ the stool row |
 | **the crown** | logs when it falls | ✅ |
 
@@ -345,7 +345,7 @@ is their storm, not a verb.
 | it is a *place* — things nest in it, hang from it, shelter under it | ⏸ the prop representation grows into this (a surface, a posture slot); a landmark must never be a record |
 | it changes the room — canopy light, late rain, sound | ✅ authored on the room/biome; the room *is* the canopy |
 | **it burns as a whole** | ❌ a forest fire is an operation on the record; nothing does it → fire-combustion |
-| **it has several products over a year** — bark (spring, the tanner), mast (autumn, the pigs), poles (winter), sap, resin | ❌ one harvest product per plant; the consumers are farmstead's and the tanner's |
+| **it has several products over a year** — bark (spring, the tanner), mast (autumn, the pigs), poles (winter), sap, resin | ⭐ **split 2026-09-25**: sap + resin are a TAP, not a harvest → [tapping-slate](../builds/tapping-slate.md); bark + mast are harvests and stay ❌ here |
 
 ### The axes, and where each lives
 

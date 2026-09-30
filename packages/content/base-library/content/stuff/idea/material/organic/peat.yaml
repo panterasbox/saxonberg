@@ -29,10 +29,30 @@ data:
   waterAbsorptionCapacity: 300
   hardness: 1
   toughness: 1
+  # ⭐⭐ **The fuel column, added by the extraction build.** Dried peat is
+  # the fuel of every treeless place there has ever been, and the row
+  # shipped without a single combustion field — so a turf would not have
+  # lit, and nothing would have said why.
+  #
+  # ⚠ The ignition point is LOW (peat smoulders), and the wet penalty is
+  # what actually stops an as-cut turf catching: `waterAbsorptionCapacity`
+  # is 300 %, the highest in the tree, and `CombustibleMixin` reads the
+  # matter's own water as a term of the same ΔT formula as rain on a log.
+  # An as-cut turf refuses in the shipped words — *"It's too wet to
+  # catch."* — and a dried one lights, with no peat-specific branch
+  # anywhere.
+  autoignitionTemperature: 500
+  # MJ/kg, air-dried. Poor stuff next to coal's 28 and charcoal's 30, which
+  # is exactly why peat is what you burn when you have nothing else.
+  heatOfCombustion: 15
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["organic", "earth", "solid", "fibrous"]
+  # ⚠ `fuel` and NOT `carbon`: peat in a bloomery is a later question
+  # (`metal-chain-slate` owns the energy transition), and the `carbon` tag
+  # is what a reduction reads. So a turf heats a hearth and a kiln, and iron
+  # still needs charcoal.
+  tags: ["organic", "earth", "solid", "fibrous", "fuel"]
   composition: []
   chemistry: null
   biologicalSource: null

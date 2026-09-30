@@ -4,8 +4,17 @@
 # hand who's outfitted three generations of delvers and buried some of them.
 # Dry, fair, unsentimental about money and quietly sentimental about the trade.
 class: /platform/agent/Cast
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/agent/costume/student
 data:
+  # ⭐ What this person has on comes from the parent row
+  # (`/stuff/agent/costume/student`). Until the envelope build no
+  # NPC row could author clothing at all — every authored person in
+  # the realm was naked, invisible only because every interior was
+  # 21 °C by decree.
+  # ⭐ The base three come from the parent; this row adds what is
+  # different about THIS person.
+  costume:
+    - /stuff/thing/clothes/tweed-jacket
   name: Odell Marrow
   keywords: [keeper, odell, marrow, "store's", store, grey-haired]
   pronouns: she

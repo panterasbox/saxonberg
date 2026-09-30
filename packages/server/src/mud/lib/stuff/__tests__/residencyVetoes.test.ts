@@ -4,6 +4,7 @@
  */
 
 import "../../../../test-bootstrap";
+import Holder from '../Holder';
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { EvictionContext } from '../Stuff';
 import Thing from '../Thing';
@@ -25,10 +26,11 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 
 const IDLE: EvictionContext = { idleMs: 9_000_000_000, reason: 'idle' };
 
-class Box extends ContainerMixin(Thing) {}
+class Box extends Holder {}
 /** The persistence-spine carve-out: a container that persists itself. */
-class PersistentBox extends PersistableMixin(ContainerMixin(Thing)) {}
-class Holder extends HasInteractiveMixin(ContainerMixin(Thing)) {}
+class PersistentBox extends PersistableMixin(Holder) {}
+/** A holder that also carries an Interactive — the occupied-container case. */
+class OccupiedHolder extends HasInteractiveMixin(Holder) {}
 class Bot extends BehavedMixin(Thing) {}
 class MemberRoom extends WarrenMemberMixin(Location) {}
 class TestShadow extends Shadow {
@@ -79,7 +81,7 @@ describe('residency veto roster', () => {
   });
 
   it('Containable: vetoes while inside an interactive holder', () => {
-    const holder = makeStuff(() => new Holder());
+    const holder = makeStuff(() => new OccupiedHolder());
     const thing = makeStuff(() => new Thing());
     expect(thing.canEvict(IDLE)).toEqual({ ok: true }); // free → cullable
 
@@ -88,7 +90,7 @@ describe('residency veto roster', () => {
   });
 
   it('HasInteractive holder itself vetoes', () => {
-    const holder = makeStuff(() => new Holder());
+    const holder = makeStuff(() => new OccupiedHolder());
     expect(holder.canEvict(IDLE).ok).toBe(false);
   });
 

@@ -12,17 +12,10 @@
  * via `StuffApi.singleton`).
  */
 
-import Location from '../../../lib/stuff/Location';
-import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordinates';
-import { VisibleMixin } from '../../../lib/description/Visible';
-import { PerceptibleMixin } from '../../../lib/description/Perceptible';
-import { DetailedMixin } from '../../../lib/description/Detailed';
-import { ExitableMixin } from '../../../lib/boundary/Exitable';
-import { PopulatesMixin } from '../../../lib/stuff/Populates';
-import { SingletonMixin } from '../../../lib/stuff/Singleton';
+import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import type { FieldMeta } from '../../../lib/mixin';
 
-// `PopulatesMixin` lets the bar stock itself declaratively from the seed's
+// `StagedMixin` lets the bar stock itself declaratively from the seed's
 // `props:` list on hydration — the crafting fixtures (back-bar, bottles
 // + tools placed `onto` it, the menu) and the cast (each NPC a non-singleton
 // clone moved in), all fresh each boot (transient runtime). The bar is
@@ -49,22 +42,28 @@ import type { FieldMeta } from '../../../lib/mixin';
 // default `postRegister` is a non-chaining no-op — a second composition
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
-const BarBase = SingletonMixin(
-  PopulatesMixin(
-    CartesianCoordinatesMixin(
-      ExitableMixin(DetailedMixin(VisibleMixin(PerceptibleMixin(Location)))),
-    ),
-  ),
-);
-
-export default class Bar extends BarBase {
+// ⭐⭐ **Dave's Bar was in no grid, and its own row said so.**
+//
+// This class restated `SingletonCartesianLocation`'s mixin set on a
+// plain `Location` — `Singleton(Staged(CartesianCoordinates(Exitable(
+// Location))))` — which composes the `coordinates` FIELD but not the
+// `coords` field, because `coords` lives on the `CartesianLocation`
+// CLASS, not on a mixin. `bar.yaml` authors `coords:` under a comment
+// reading *"`coords:` is the MEMBERSHIP operation"*, and the Hydrator
+// discarded it silently: the bar held no position and belonged to no
+// zone, in a `/world/lounge` that IS a `CartesianZone`.
+//
+// ⚠ `lint:locations` could not see it — its `unzonedCoords` clause
+// filters on cartesian CLASSES, and this was not one. The orphan
+// inventory had it all along as `bar.yaml: data.coords`.
+//
+// ⭐ Extending the real class is the whole fix. `CartesianLocation`
+// already overrides `postRegister` to chain and then call
+// `verifyOutboundExits()`, which is the only thing this class's own
+// override did — so the body is empty now. ⚠ Deleting the class
+// outright (the `Bench` precedent) is the further step and is FILED,
+// not taken: four lounge test files import it, and a locality class
+// with a name is not the same smell as a duplicated base.
+export default class Bar extends SingletonCartesianLocation {
   static fieldMeta: FieldMeta = {};
-
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
-    this.verifyOutboundExits();
-    // The bar's Business is NOT stood up here. It stands up lazily, derived
-    // from its own `operatingLocations` (this room), on the first order
-    // (`OrderController` → `EmploymentApi.ensureOperatorAt`). No standup hook.
-  }
 }

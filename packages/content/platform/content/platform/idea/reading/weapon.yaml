@@ -1,0 +1,20 @@
+# weapon — a reading channel.
+#
+# `kind: preview` — see `response.yaml`. The playstyle projection is the
+# engine's own couplings read back, not an observation of anything.
+#
+# ⭐ Install the pack, get the channel. This row and its class are the
+# whole registration story — nothing in a platform view names it.
+class: /platform/idea/reading/WeaponReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: weapon
+  kind: preview
+  scope: [subject]
+  discipline: ""
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    how a weapon wants to be fought with — its reach, balance, guard and hands
+  stakes: >-
+    a weapon bought for the wrong fight

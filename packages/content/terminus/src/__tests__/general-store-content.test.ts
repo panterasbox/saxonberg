@@ -122,6 +122,12 @@ describe("general-store content integrity", () => {
     expect(room.data?.props).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",
+      // ⭐ A hearth (the envelope build). A shop with a street door
+      // that opens all day is the room that most obviously wants one,
+      // and it gives the realm one place a player can walk into, light
+      // a fire, and feel the room change — which is what makes the
+      // envelope something a person can act on rather than read about.
+      "/stuff/thing/Hearth",
     ]);
     // The troupe is declared, not derived: the NPCs ride `cast:`.
     expect(room.data?.cast).toEqual([
@@ -158,7 +164,13 @@ describe("general-store content integrity", () => {
     // ration pack is one: perishable matter belongs on the class that says
     // so, not on the generic `Thing` that happened to be carrying the gauge.
     "/platform/thing/Provision",
+    // ⭐ Still shipped, and now narrowed to what it is FOR: a light that
+    // burns nothing (the glowcap jar and its fixture, which are a
+    // fungus). The lantern and the torch moved to `Lamp`.
     "/platform/thing/equipment/PortableLight",
+    // ⭐ A light that burns fuel — `BurnerMixin` over a `LightSource`,
+    // so it has a reserve, a burn rate and a burnout edge for free.
+    "/platform/thing/Lamp",
     "/platform/thing/equipment/Weapon",
     // ⭐ The injury build's armour + arms line (W-A5 / W-C1). A `Garment`
     // is the covering class (padded gambeson → steel breastplate, one
@@ -180,7 +192,7 @@ describe("general-store content integrity", () => {
     // carries the Audible rasp AND its own carried-only `sharpen`, and
     // lives in the smithing pack so the kernel never names a trade's
     // view. The ingot a Meltable Thing — all discrete, none Stackable.
-    "/platform/thing/ToolItem",
+    "/platform/thing/Tool",
     "/platform/thing/MendingTool",
     "/trade/smithing/thing/Whetstone",
     "/platform/thing/Ingot",
@@ -203,7 +215,7 @@ describe("general-store content integrity", () => {
     // The furnishings line (residences D7/D11), likewise stocked from the
     // shared `/stuff/thing/fixture/` rows: `Chair` is the reusable
     // posture-bearing class (a bed and an armchair differ only in their
-    // authored slot and rest quality), `Surface` the table, `Chest` the
+    // authored slot and rest quality), `Fitting` the table, `Chest` the
     // wardrobe, and `SconceLamp` the one class the line needed — a light
     // that goes on a WALL rather than in a pocket.
     // ⭐⭐ The haulage line (logistics W5/W6). A `Handcart` is the
@@ -217,10 +229,10 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/Handcart",
     "/system/transport/thing/HaulageRig",
     "/platform/thing/Chair",
-    "/platform/thing/Surface",
+    "/platform/thing/Fitting",
     "/platform/thing/Chest",
     "/generic-objects/thing/SconceLamp",
-    // The householder's kit — a `ToolItem` subclass in the residence
+    // The householder's kit — a `Tool` subclass in the residence
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.
     "/system/residence/thing/HouseholdersKit",
@@ -233,10 +245,10 @@ describe("general-store content integrity", () => {
     "/platform/thing/Crate",
     "/platform/thing/Bottle",
     // The tackle line (fishing B6): a rod and a pot/net are
-    // `ToolItem` subclasses in the fishing pack (the instrument affords
+    // `Tool` subclasses in the fishing pack (the instrument affords
     // the verb), a worm a bare Detailed Thing, the bowl a `Feeder` and
     // the fish food a `Provision` — all discrete, none Stackable.
-    // The clinical-medicine instruments (blood + operations): ToolItem
+    // The clinical-medicine instruments (blood + operations): Tool
     // subclasses that afford the acts; the blood bag is a Receptacle.
     "/trade/medicine/thing/Syringe",
     "/trade/medicine/thing/SutureKit",
@@ -335,12 +347,20 @@ describe("general-store content integrity", () => {
     const rations = load(STORE_DIR, "thing/rations.yaml");
     expect(rations.class).toBe("/platform/thing/Provision");
     expect(String(rations.data?._materialPath)).toMatch(/^\/stuff\/idea\/material\/food\//);
-    // The lights actually emit (authored flux + warmth), start unlit.
+    // ⭐ The lights actually emit, start unlit, and BURN FUEL. Since the
+    // envelope build they are `Lamp` — a small furnace with a light on
+    // it — rather than `PortableLight`, which is a switch and burned
+    // forever. A light with no fuel reserve here is a light that never
+    // goes out, which is the defect the class change exists to fix.
     for (const f of ["torch", "lantern"]) {
       const light = load(STORE_DIR, `thing/${f}.yaml`);
-      expect(light.class).toBe("/platform/thing/equipment/PortableLight");
+      expect(light.class).toBe("/platform/thing/Lamp");
       expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
-      expect(light.data?.on).toBe(false);
+      // ⚠ `BurnerMixin.lit` defaults TRUE — a row that forgets this
+      // ships alight on a shop shelf with its fuel draining.
+      expect(light.data?.lit).toBe(false);
+      const fuel = (light.data?.reserves as Record<string, { currentValue?: number }> | undefined)?.fuel;
+      expect(Number(fuel?.currentValue)).toBeGreaterThan(0);
     }
     // The waterskin is a real fluid holder (a capacity to fill).
     const skin = load(STORE_DIR, "thing/waterskin.yaml");

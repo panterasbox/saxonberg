@@ -1,0 +1,9 @@
+# The way INTO a vessel — a cart's tailgate, a boat's gunwale. Pre-minted
+# once by `ExitableVessel.postRegister` and REBOUND as the vessel moves;
+# the vessel is a room that goes places, so its doorway joins a different
+# pair of rooms each time it stops.
+class: /platform/idea/Exit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageOut: "{{ mover }} climbs aboard."
+  messageIn: "{{ mover }} climbs aboard."

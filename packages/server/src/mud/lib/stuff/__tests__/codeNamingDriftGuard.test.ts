@@ -123,6 +123,22 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `Atmospheric.getBiome()` is a registry read and NOTHING stood the biome
   // rows up, so every room's biome was null in a fresh world.
   { site: "platform/idea/BiomeCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // `ReadingCatalogue` keeps a row by `instanceof Reading` — the
+  // MaterialCatalogue filter again, and for the same reason: a reading
+  // CHANNEL is a row any pack may ship, so the roster is selected by
+  // template-path infix (`/idea/reading/`) across every root and kept by
+  // what the class actually extends. An allowlist of roots would make a
+  // pack's own channel unreachable, which is the inert-roster trap.
+  { site: "platform/idea/ReadingCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // `PlacementCatalogue.warm` keeps a row whose class IS or extends
+  // `Placement` — the same infix-across-every-root selection, for the
+  // same reason: a WAY OF SITTING is a row any pack may ship
+  // (`/trade/x/idea/Placement/behind`), and an allowlist of roots would
+  // make a pack's own member unreachable, which is the inert-roster
+  // trap. ⚠ It carries the `cls === Placement` clause the `Fabric` one
+  // does, because `Placement` is a concrete class rows name directly
+  // rather than a `lib/` abstract with a thin twin.
+  { site: "platform/idea/PlacementCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // `MaturationProfileCatalogue.postRegister` keeps a row by
   // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).
@@ -160,9 +176,27 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "platform/idea/api/CombatLogic.ts::resolveExportSync",
     classification: "gated-direct",
   },
-  // Resolves another template's already gate-passed class.
+  // Resolves another template's already gate-passed class. TWO sites in
+  // this file, one per designation family: `stageList` for `props:`
+  // and `cast:`, and `applyCostume` for `costume:`. Both resolve a class
+  // only to CHECK it — against `Mixins.Behaved` and `Mixins.Wearable`
+  // respectively — before anything is cloned.
   {
-    site: "lib/stuff/Populates.ts::loadClassByPath",
+    site: "lib/stuff/Staged.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
+  {
+    site: "lib/stuff/Staged.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
+  // ⭐ Template inheritance: `Template._materialize` resolves the
+  // EFFECTIVE class only to read its `fieldMeta`, so the merge algebra
+  // can ask each field how it inherits. Transitive-safe by the same
+  // reasoning as every other row-to-row reference: the class it resolves
+  // is the one the row's own `class:` gate already passed, and a child
+  // that states none inherits a parent that did.
+  {
+    site: "lib/stuff/Template.ts::loadClassByPath",
     classification: "transitive-safe",
   },
   // ⭐ Wiki component resolution. The tag name comes from

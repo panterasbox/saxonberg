@@ -102,7 +102,7 @@ export default class BakeController extends CraftController<BakeModel> {
    */
   private usableChamber(fire: Stuff | null): (Stuff & Container) | null {
     if (fire === null) return null;
-    if (!MixinApi.isFurnace(fire) || !MixinApi.isContainer(fire)) return null;
+    if (!MixinApi.isBurner(fire) || !MixinApi.isContainer(fire)) return null;
     if (!fire.isLit() || fire.fuelRemaining() <= 0) return null;
     return fire as Stuff & Container;
   }

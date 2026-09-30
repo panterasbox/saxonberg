@@ -6,7 +6,7 @@
  * *rewarmed*), so it knits at the treated rate; it also relieves a
  * `by: warmth` affliction — a body gone too cold (hypothermia, torpor).
  *
- * ⚠ Its own verb, afforded by the `FurnaceMixin`'s `peers` bucket (a
+ * ⚠ Its own verb, afforded by the `BurnerMixin`'s `peers` bucket (a
  * hearth, a campfire, a furnace) — you learn it standing by a fire. The
  * fire must actually be BURNING; a cold hearth warms nothing.
  */

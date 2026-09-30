@@ -50,6 +50,8 @@ import { MixinApi } from '../../api/mixin';
 import type { CommandContributions } from '../../api/command';
 import { ReactionApi } from '../../api/reaction';
 import { SoulApi } from '../../api/soul';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import type { ClaimSeed } from '../trait/Dispositioned';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
@@ -458,8 +460,37 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
           const e = await SoulApi.resolve(verb);
           if (e) host.emote(e, target ? { target } : undefined);
         },
+        /*
+         * ⭐⭐ **A beast has no soul, and it still makes a noise.**
+         *
+         * This read `if (MixinApi.isSoul(host)) host.emoteFree(...)` and
+         * no-op'd otherwise — which was invisible while every brained
+         * thing in the game was a `Character`. The base-class narrowing
+         * put the wolf, the draft horse and the pit pony on `Beast`,
+         * which composes no `Soul`, and all three of their idle pools
+         * are `kind: free` (`idles.ts:41` routes them here). Without
+         * this branch **every idle beat in three rows goes silent the
+         * day the animal rung lands** — no error, no log, just a horse
+         * that never shifts its foot again. The fail-closed-and-silent
+         * class, arriving through a mixin nobody thought about.
+         *
+         * ⭐ And the fallback is the MORE honest render, not a
+         * consolation. `Soul.emoteFree` sends on `emotive-esp`
+         * (`Soul.ts:302`), so today a horse shifting its weight is an
+         * ESP frame that an implantless bystander drops on the floor. A
+         * deed peers can SEE is what a horse actually does, and it is
+         * the exact shape the pet brains already use
+         * (`follows.ts:64-67`).
+         */
         emoteFree: (text, target) => {
-          if (MixinApi.isSoul(host)) host.emoteFree(text, target);
+          if (MixinApi.isSoul(host)) {
+            host.emoteFree(text, target);
+            return;
+          }
+          MessageApi.scene(host)
+            .topic('act.deed')
+            .toPeers(Mml.compose`${Mml.actor(host)} ${text}`)
+            .send();
         },
       };
       try {

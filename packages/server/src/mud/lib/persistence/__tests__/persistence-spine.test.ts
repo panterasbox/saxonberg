@@ -38,7 +38,7 @@ import { Idea } from "../../stuff/Idea";
 import type { Stuff } from "../../stuff/Stuff";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
-import { PopulatesMixin } from "../../stuff/Populates";
+import { StagedMixin } from "../../stuff/Staged";
 import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { GradedMixin } from "../../craft/Graded";
 import { PropertiedMixin, Property } from "../../stuff/Propertied";
@@ -53,10 +53,10 @@ import type { FieldMeta } from "../../mixin";
 
 /* ─────────────────────────── test fixtures ─────────────────────────── */
 
-// A persistable room host: Persistable ⊕ Populates ⊕ Container, with one
+// A persistable room host: Persistable ⊕ Staged ⊕ Container, with one
 // own persistent field. Composed outermost-Persistable.
 class RoomHost extends PersistableMixin(
-  PopulatesMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  StagedMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {
   static fieldMeta: FieldMeta = {
     label: { persistent: true },
@@ -663,7 +663,7 @@ describe("seed-then-persist (AC #10)", () => {
     expect(fresh.getContents()).toHaveLength(0);
   });
 
-  // The positive path — seedBornWith → the real PopulatesMixin applier →
+  // The positive path — seedBornWith → the real StagedMixin applier →
   // clone-into-self — needs a Template store, so it's covered end-to-end by
   // the dorm integration tests (DormResidence "move-in seals the style; it
   // survives reap" seeds bed/desk/footlocker via `props:` and asserts they
@@ -673,7 +673,7 @@ describe("seed-then-persist (AC #10)", () => {
   it("seedBornWith is a no-op when no populates were declared", async () => {
     cloneFactories = {};
     // A persistable host with no `props:` (an Avatar, whose loadout is
-    // seeded imperatively) seeds nothing — no PopulatesMixin need be composed.
+    // seeded imperatively) seeds nothing — no StagedMixin need be composed.
     const fresh = makeStuffAtPath(() => new RoomHost(), "/world/fresh");
     await fresh.seedBornWith(); // empty specs → no-op, no throw
     expect(fresh.getContents()).toHaveLength(0);
