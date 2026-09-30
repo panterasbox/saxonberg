@@ -44,7 +44,7 @@ behavior. Read the relevant doc before editing in its area.
   an author may change) rather than the law; **neutrality is the
   attention company's answer, not ours.** ⚠ NOT
   [docs/lenses/](./docs/lenses/README.md) — the borrowed Schell deck,
-  **restarted 2026-09-29** (11 entries, indexed *by our lens*; the
+  **restarted 2026-09-29** (17 entries, indexed *by our lens*; the
   previous 29 were retired to
   [lens-deck-salvage.md](./docs/lens-deck-salvage.md), which holds the
   slate checklist and the two ratified essence sentences).
