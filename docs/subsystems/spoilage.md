@@ -173,6 +173,23 @@ Reconcile-on-read over game-time, with **two deliberate divergences from
 2. ⚠ **No linkdead freeze.** An item has no `Interactive`, and a carried
    ration does not stop rotting because its owner dropped link.
 
+⚠⚠ **And it reads it ONCE, at the end of the interval** — `advance()`
+takes a single `tempK`, computes one `μ`, and applies it closed-form over
+the whole `elapsedS`. The stored state is `{ load, stamp }` with **no
+prior temperature**, so a driver that *moved* during the gap is
+reconstructed as though it had always been at its final value. Food in a
+fridge through a power cut insta-spoils if you look during the outage and
+— worse — **under-spoils silently if the power came back first.**
+`ContaminableMixin` has the same shape and no sense reports it.
+
+⭐ `ThermalDose`, in this same doc, is the exemplar of the fix: *it
+integrates, it does not sample.* See
+[uncertainty.md § The second abstraction law](../uncertainty.md) for the
+rule and the four answers, and
+[reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md) for
+the work. ⚠ `Freshness` also reads `getWaterActivity()`, which is itself a
+reconcile-on-read gauge — **the sampling chains two deep.**
+
 The temperature the gauge reads is the host's own (`Thermal`), which is
 why `Provision` — the class every food row is over — composes
 `ThermalMixin` alongside `FreshnessMixin`; the two travel together. A cold larder and a warm windowsill are then different

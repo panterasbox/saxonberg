@@ -49,6 +49,22 @@ done the job.
 
 ## ⭐⭐ The two rungs — `Cast` and `Extra`
 
+> ⭐⭐ **The performing-arts rungs price the ENGAGEMENT, not the person —
+> and they leave these two alone** (2026-09-30). Asked whether SAG's
+> categories should inform this taxonomy, the answer was no: **the rung
+> stays binary** (*entitlement to an individual ledger*), and what the
+> unions supply is a **declaration vocabulary** for what an NPC costs.
+> ⭐ The industry that fits is the **stage**, not the screen — a persistent
+> world is a **run, not a capture**, so Equity's *principal · ensemble ·
+> understudy · swing · standby* maps where SAG's ladder does not, and
+> **swing** (covers several tracks, not in the show nightly) is the NPC
+> labour pool by another name. ⚠ Note the founding principle both unions
+> share and this doc already holds: **ensemble is a category of work, not a
+> lesser performer** — which is exactly *an `Extra` keeps its own identity
+> and is not anonymous.* See
+> [balance-slate](../slates/builds/balance-slate.md).
+
+
 A character is either **somebody** or **a role somebody fills**, and the
 shipped prose had been saying which all along without being asked to. Of
 39 written characters, 26 carry a proper name and the rest split on the
