@@ -205,8 +205,9 @@ downstream of every decision here.
   brain."*
 - ⭐ **What the crew can ship without any of this:** the capability gate
   (`order` consulting whether the maker knows the recipe) is a **seat and
-  person** fact, not a brain fact. It is independent and fixable now. See
-  [crew-requirements](../../requirements/crew-requirements.md).
+  person** fact, not a brain fact. It is independent and fixable now, and it
+  was CARVED OUT AND SCOPED FIRST for that reason (2026-09-30). See
+  [maker-knowledge-requirements](../../requirements/maker-knowledge-requirements.md).
 
 ## ⭐⭐ Two things already in the code that this design lands on
 
@@ -572,7 +573,7 @@ leave**.
 - [behavior.md](../../subsystems/behavior.md) — the shipped model this interrogates
 - [npc-behavior-slate](npc-behavior-slate.md) — the feature backlog; ⚠ asks none of the above
 - [crew-slate](crew-slate.md) — the consumer that exposed the gap; the routing matrix
-- [crew-requirements](../../requirements/crew-requirements.md) — the capability half, independent of brains
+- [maker-knowledge-requirements](../../requirements/maker-knowledge-requirements.md) — the capability half, carved out because it is independent of brains
 - [llm-content-slate](llm-content-slate.md) — the LLM brain ambition, the other consumer
 - [advancement.md](../../subsystems/advancement.md) — 77 Disciplines, bands, and NPC/player symmetry
 - [vocations.md](../../vocations.md) — the register that is maintained by hand because (1) is missing

@@ -8,9 +8,11 @@
 > required answer-size, name who is told to act, and say honestly when
 > the answer is nobody.* It does not move anybody, sequence work, decide
 > what the set does once fighting, or remember anything.
-> **First build carved out (requirements written):** the
-> capability-and-routing half —
-> [crew-requirements](../../requirements/crew-requirements.md).
+> **First build carved out (requirements written):** the **capability**
+> half only —
+> [maker-knowledge-requirements](../../requirements/maker-knowledge-requirements.md).
+> ⭐ Routing did NOT go with it: it is blocked on the brain substrate, and
+> capability mostly dissolves it anyway.
 > **Left after it:** the whole push-at-range column (dispatch, the
 > turnout, the hue and cry) and the brain-fact eligibility it needs · the
 > mob's rule, if it turns out to need one (§ *the mob is an employer*) ·
@@ -436,7 +438,7 @@ balanced on an undesigned one. What that pass changes here:
 - **What is NOT blocked:** the capability half — `order` consulting whether
   the maker knows the recipe — is a **seat and person** fact and needs
   nothing from brains. It stays shippable on its own
-  ([crew-requirements](../../requirements/crew-requirements.md)).
+  ([maker-knowledge-requirements](../../requirements/maker-knowledge-requirements.md)).
 
 ## ⭐⭐⭐ The casting pass (master, 2026-09-29/30) collapses the tie-break
 
@@ -632,7 +634,7 @@ authoring layer, plain words in the fiction.
 - **The rename rides the requirements rewrite** (decided 2026-09-30) rather
   than landing on its own: this slate is cross-referenced from
   [brain-substrate-slate](brain-substrate-slate.md),
-  [crew-requirements](../../requirements/crew-requirements.md),
+  [maker-knowledge-requirements](../../requirements/maker-knowledge-requirements.md),
   [party-slate](../tails/party-slate.md), [policing-slate](policing-slate.md)
   and [employment.md](../../subsystems/employment.md), so it is a small sweep
   and it is cheapest bundled with the rewrite that is coming anyway.
