@@ -13,12 +13,14 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   alternateNames: ["odell", "rourke"]
-  shortDescription: "the valley's warden, a lamp-key on his belt"
+  shortDescription: "warden of the ways, a lamp-key on his belt"
   register: indefinite
   longDescription: |
     A spare, weathered man with a brass lamp-key on his belt and a ledger under his arm. He keeps the valley's lamps lit and its oil bought, and he knows to the litre how many nights are left in the shed.
   dispositions:
     - { disposition: diligence, valence: 65 }
+  competence:
+    - { discipline: colliery, asserting: novice }
   archetype: building-super
   behaviors:
     # The roster (his department's rosterSlot) puts him on shift 6–20; the

@@ -61,6 +61,10 @@ export interface RequiredTitle {
   landUse?: string;
   areaM2?: number;
   parentParcel?: string;
+  /** The feeder node metering this ground (energy build). */
+  feeder?: string;
+  /** The electric posture this premises declares (energy build). */
+  powerBand?: string;
 }
 
 export interface PackRequires {

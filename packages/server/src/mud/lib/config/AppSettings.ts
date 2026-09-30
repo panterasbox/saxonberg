@@ -262,6 +262,22 @@ export const AppSettingKeys = {
    */
   bankingLocalTaxShare: "banking.localTaxShare",
   /**
+   * Energy — the watts a connected premises draws at each power band. The
+   * kernel closes the band vocabulary (`PowerBand`); these price it. The energy
+   * pack retunes them; a feeder is `overdrawn` when the Σ of its connected
+   * premises' ceilings exceeds its source's generation. Read try/catch → the
+   * pack's call-site literal like the water dials. See docs/subsystems/energy.md.
+   */
+  energyBandDomesticW: "energy.band.domesticW",
+  energyBandCommercialW: "energy.band.commercialW",
+  energyBandIndustrialW: "energy.band.industrialW",
+  /**
+   * Energy — the chance an overhead line faults when a storm is over the scope
+   * it stands in (energy build D13). Presence-gated like every weather
+   * consequence; buried lines are storm-safe and roll nothing.
+   */
+  energyStormFaultRate: "energy.stormFaultRate",
+  /**
    * Banking — the per-account **cash-withdrawal cap per game-day** (minor
    * units), the common-pool till guard: over the cap → refuse + push onto the
    * ledger (card/transfer). Derive-on-read over the ledger (no counter, no

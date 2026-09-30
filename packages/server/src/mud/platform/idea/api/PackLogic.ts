@@ -49,6 +49,7 @@ import { AccessApi } from '../../../api/access';
 import { EmploymentApi } from '../../../api/employment';
 import { MixinApi } from '../../../api/mixin';
 import { LandUses } from '../../../lib/parcel/LandUse';
+import { POWER_BANDS } from '../../../lib/parcel/PowerBand';
 import type { ParcelOwner, TitleClaim } from '../../../lib/parcel/ParcelRecord';
 import type { GroupRole } from '../../../lib/social/Group';
 import type RecipeCatalogue from '../RecipeCatalogue';
@@ -462,6 +463,24 @@ function readRequires(m: Record<string, unknown>, file: string): PackRequires {
         throw new Error(`PackApi: manifest at ${file}: title '${t.extent}' has a non-positive areaM2`);
       }
       entry.areaM2 = t.areaM2;
+    }
+    if (t.feeder !== undefined) {
+      if (typeof t.feeder !== 'string' || t.feeder.length === 0) {
+        throw new Error(`PackApi: manifest at ${file}: title '${t.extent}' has a malformed feeder`);
+      }
+      entry.feeder = t.feeder;
+    }
+    if (t.powerBand !== undefined) {
+      if (
+        typeof t.powerBand !== 'string' ||
+        !(POWER_BANDS as readonly string[]).includes(t.powerBand)
+      ) {
+        throw new Error(
+          `PackApi: manifest at ${file}: title '${t.extent}' declares unknown powerBand ` +
+            `'${String(t.powerBand)}' (expected one of ${POWER_BANDS.join(', ')})`,
+        );
+      }
+      entry.powerBand = t.powerBand;
     }
     if (t.parentParcel !== undefined) {
       if (!isAbsolutePath(t.parentParcel)) {
@@ -3414,6 +3433,8 @@ async function applyRequiresFor(
     if (t.parentParcel !== undefined) claim.parentParcel = t.parentParcel;
     if (t.landUse !== undefined) claim.landUse = t.landUse as TitleClaim['landUse'];
     if (t.areaM2 !== undefined) claim.areaM2 = t.areaM2;
+    if (t.feeder !== undefined) claim.feeder = t.feeder;
+    if (t.powerBand !== undefined) claim.powerBand = t.powerBand as TitleClaim['powerBand'];
     const r = await ParcelApi.grant(claim);
     switch (r.outcome) {
       case 'granted': out.titlesGranted.push(t.extent); break;

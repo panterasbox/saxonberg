@@ -562,3 +562,20 @@ export interface WeatherForecast {
   current: WeatherSample;
   upcoming: WeatherForecastEntry[];
 }
+
+/**
+ * ⭐ **A thing that answers to a storm it stands in** — the storm-fan-out duck
+ * (energy build D13).
+ *
+ * The presence-gated strike fan-out (`WeatherLogic.runStormFanout`) calls this
+ * on every occupant of a stormed SkyExposed scope. An overhead `LineAccess`
+ * pole rolls `energy.stormFaultRate` and severs its feeder node; a buried
+ * manhole answers nothing (it composes this only when its node is overhead) —
+ * storm-safe by construction. Environmental provenance (`uncertainty.md`); the
+ * kernel names no pack (a shape, not a mixin — one consumer, the `Discharging`
+ * precedent).
+ */
+export interface StormExposed {
+  /** Called when a storm is over the scope this thing stands in. */
+  onStormExposure?(nowS: number): void | Promise<void>;
+}

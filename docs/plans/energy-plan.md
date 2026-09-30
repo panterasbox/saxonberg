@@ -954,9 +954,31 @@ Commit: `drive(energy A): the fuel market, driven`.
 
 ### Stage B — electric: the grid
 
-#### B0 — kernel: the parcel meters, the posture lint, the storm duck
+#### B0 — kernel: the parcel meters, the posture lint, the storm duck ✅ DONE
 
 Implements D5, D6, D13, D15.
+
+> **Done (commit `build(energy B0)`).** `PowerBand` vocabulary (`off-grid ·
+> domestic · commercial · industrial`); `ParcelRecord` grew `feeder` + `powerBand`
+> (+ `TitleClaim`, `RequiredTitle`, grant application, PackLogic parse);
+> `ParcelRegistry.powerOf` (the meter read — longest-prefix then inherit, band
+> and feeder may inherit from different levels), `byFeeder` index +
+> `parcelsOnFeeder` + `citeFeeder`, all forwarded through `ParcelLogic` →
+> `ParcelApi`; `parcels.yaml` schema doc; `StormExposed` duck in `WeatherType`
+> wired into `runStormFanout` (every occupant of a stormed scope, presence-gated,
+> per-occupant guarded); `energy.band.*W` + `energy.stormFaultRate` dials
+> (`AppSettingKeys` + the pack's `energy.yaml`); `lint:power-posture` (census
+> ceiling **18** — B3 drives it to 0). ⚠ **D6 refinement:** `PowerBand` ships as
+> data (const + type + summaries), NOT a `PowerBands` static-method class —
+> `lint:lib-statics` is a ratchet (guards/parse belong on an Api or inline) and
+> `lib/` forbids free exported functions, so `setPowerBand`/PackLogic validate
+> inline. Also fixed (caught by the family): `citeFeeder` must reindex after the
+> write (a gap `citeReach` still has — noted); the warden needed a `competence`
+> dossier; two Cast `shortDescription`s led with an article. Tests:
+> `PowerBand.test.ts`, `ParcelRegistry` powerOf/inherit/index/cite (7 cases).
+> ⚠ The storm-fanout INTEGRATION is not unit-tested here (a full weather-scope
+> harness); the `onStormExposure` duck is tested at B2 (LineAccess) + the B4
+> storm drive. All 59 lint gates green.
 
 Files:
 - `lib/parcel/PowerBand.ts` (new, the `LandUse.ts` shape; add the
