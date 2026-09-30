@@ -820,16 +820,11 @@ is the reason player-visible → **yes, as behaviour on a switch**.
 1. **The urgency band vocabulary.** `idle · wanted · pressing · critical`
    ships in the coordination build with each rung a distinct arbiter
    behaviour. Whether four survives contact is a drive question.
-2. ⭐⭐ **Brains versus player SCRIPTS — one vocabulary or two?** There are
-   already two automation systems that do not know about each other: brains
-   (code, NPC hosts, triggers) and **scripts** (authored in-world by players
-   — `def`/`make`, `wait`/`every`/`when` becoming **game-time coroutines** on
-   `WorldClockApi.after`, with a documented notion of suspension and
-   preemption). ⚠ And `last-call.msh` — *"the closing-time coroutine (the
-   shift-change…)"* — is a player script already doing the automation this
-   slate designs for NPCs. **Is a player's script another producer of
-   candidates?** A recorded lean: *one vocabulary, two producers*, because
-   importance, contention and preemption should not be two systems. Unsettled.
+2. ~~**Brains versus player SCRIPTS — one vocabulary or two?**~~ ⭐⭐⭐
+   **SETTLED 2026-09-30 — see § Brains and scripts, below.** One task
+   vocabulary, one contention mechanism, **two arbiters**, and a presence
+   rule. The deciding fact was a live defect: nothing cancels a player's
+   coroutines on linkdead.
 3. **Does `spectacle` fold into `presenceGated`?** Behaviour that exists *to
    be watched* — the tournament, the busker, Ronald — is what the flag half
    encodes. ⚠ But *cheap when unwatched* and *pointless when unwatched* are
@@ -850,6 +845,88 @@ is the reason player-visible → **yes, as behaviour on a switch**.
 8. **`speak` and the LLM.** The arbiter is swappable and the candidate list
    is the prompt shape; the faculty is declarable now, the wiring is
    [llm-content-slate](llm-content-slate.md)'s.
+
+## ⭐⭐⭐ Brains and scripts — settled 2026-09-30
+
+Half of this was already answered and the slate had missed it.
+[npc-behavior-slate](npc-behavior-slate.md) carries the automation ladder —
+*canned · tree · intent-match · scripted · generative* — and states:
+
+> **The brain-type is the rung; whether its config is data or a script is
+> the TIER. So scripting is just the `scripted-behavior` brain** (the
+> code-tier tail), and LLM is the `llm-brain`. **Nothing about NPC behavior
+> is a separate paradigm.**
+
+That settles *a script serving as a brain*. What it does not settle is **a
+player's own script**, and grounding that turned up a live defect.
+
+### ⚠⚠ The live defect that decided it
+
+`ScriptLogic` keeps `RUNNING = new Map<string, Set<Coroutine>>()` — a
+per-actor registry of running coroutines keyed on `stuffId` — and
+`cancelAllImpl` reads `currentActor()`, so it is the player's own
+`stop`/`cancel` barge-in. **Nothing cancels on linkdead:**
+`Avatar.onLinkdead` fires events and touches the estate, coroutines are not
+in it, and the registry key survives the drop. Coroutines ride
+`WorldClockApi.after`, so they are game-time and server-side.
+
+> **A player can `clock on`, start an `every 5m` script, disconnect, and the
+> script keeps acting through their body on the game clock — earning wages.**
+
+⚠ That walks straight through the gate [employment.md](../../subsystems/employment.md)
+says `clock on` exists to be: *"writing the applicant a slot with the seat's
+hours pays them present or not, which is the AFK wage lens 6 names a
+failure."* **The gate is on ROSTERING; nothing gates ACTING.** Offered to
+[livelihood-slate](livelihood-slate.md) §5.4, which already holds the AFK
+wage gate, as its concrete instance.
+
+### The settlement, in four parts
+
+**1 · One task vocabulary.** A script declares the same things any task does
+— `kind`, `discipline`, `produces`/`consumes`, `requires`, `claims`,
+`judges`. No second vocabulary, per the tier rule above.
+
+**2 · One contention mechanism.** A brain and a script act through **one
+body**, so `claims` / `requiresFree` / `interruptibleBy` are shared. ⚠ Today
+they are not: a script declares no slots, so a player's script and their own
+typed command can collide in ways an NPC's brains cannot.
+
+**3 · ⭐⭐⭐ But TWO arbiters, and this is the crux:**
+
+> **`urgency` exists because an NPC has nobody to ask. A player has
+> themselves.**
+
+An NPC's arbiter is the engine's band comparison; **a player IS their own
+arbiter**, supplying priority by typing. So a player's script needs no
+urgency at all, and merging the deliberation layers would be the engine
+deciding what a player wants — a category error that fails lens 3b.
+
+**4 · ⭐ And the presence rule is the teeth:**
+
+> **A script is a tool you operate, not a deputy that replaces you.**
+
+A player's coroutines **suspend when presence drops** and resume on
+reconnect, cancelling at the short clock that already vacates seats.
+Rationale: [uncertainty.md](../../uncertainty.md)'s abstraction law — *an
+abstraction is legitimate while it still costs somebody the activity* — and
+the absent-body doctrine's own line, that **the pause is on AGENCY, not the
+world.** A script is agency.
+
+### ⭐⭐ The consequence that makes it elegant
+
+> **The same script text is a TOOL or a MIND depending on whose body it
+> drives.**
+
+Driving *your* body it suspends when you leave. Installed as a cast
+member's brain it runs on the world's clock, because the NPC is its own
+principal. The engine already tells these apart (`currentActor()` versus the
+host), and their budgets are already correctly separate:
+`ScriptLogic.resolveLimits(authorPath)` tiers by **authorship**, so a
+player's script draws on the player's ceiling and a released brain on the
+platform's.
+
+⚠ **What this does NOT license:** a player's script holding a shift, and a
+player's body carrying an urgency band. Both are refused above.
 
 ## Cross-references
 

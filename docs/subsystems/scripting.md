@@ -229,6 +229,27 @@ inline** scripts get the tight budget; **released platform content**
 (`/platform/… + /stuff/`, `/world/`) the large one. Authorship, not the caller, sets the
 ceiling.
 
+### ⚠⚠ Known gap — a coroutine outlives its author's presence
+
+`RUNNING` (the per-actor coroutine registry) is keyed on `stuffId` and
+`cancelAll` resolves `currentActor()`, so the only thing that stops a
+detached background script is **the player typing `stop`**. Nothing cancels
+or suspends on linkdead — `Avatar.onLinkdead` does not reach the registry —
+and a coroutine rides `WorldClockApi.after`, which is server-side game time.
+
+> **So a player can `clock on`, start an `every 5m` script, disconnect, and
+> the script keeps acting through their body — earning wages.** The AFK gate
+> [employment.md](./employment.md) cites as the reason `clock on` is
+> voluntary is on **rostering**; nothing gates **acting**.
+
+⭐ **Decided, not yet built:** a player's coroutines **suspend on presence
+drop** and resume on reconnect, cancelling at the short clock that already
+vacates seats — *a script is a tool you operate, not a deputy that replaces
+you*. The same script installed as a cast member's brain is unaffected,
+because the NPC is its own principal. See
+[brain-substrate-slate](../slates/builds/brain-substrate-slate.md)
+§ *Brains and scripts*.
+
 ## The two player surfaces (P6)
 
 1. **The prompt is the interpreter.** `shell.parser` defaults to `script`;
