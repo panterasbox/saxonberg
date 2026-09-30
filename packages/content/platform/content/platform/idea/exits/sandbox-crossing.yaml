@@ -1,0 +1,8 @@
+# The way INTO a circle — the sandbox's Layer-4 boundary, worn as an
+# exit. A fresh clone per placement: the crossing object moves, and the
+# exit goes with it.
+class: /platform/idea/SandboxCrossingExit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageOut: "{{ mover }} steps through and is gone."
+  messageIn: "{{ mover }} steps out of nowhere."

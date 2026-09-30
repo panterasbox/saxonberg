@@ -10,6 +10,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../idea/DormWarren';
 import DormRoom from '../location/DormRoom';
@@ -74,6 +75,14 @@ function seedDomain(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows plus the hall's exit kinds.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    domain.push({ _id: `d-${++idCounter}`, ...row });
+  }
+  add('/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit');
+  add('/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor');
+  add('/stuff/idea/exits/stair', '/platform/idea/Exit');
+
   add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren');
   // D16 step 2: the unit's degenerate one-room programme row.
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {

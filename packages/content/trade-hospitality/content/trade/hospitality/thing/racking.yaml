@@ -1,5 +1,5 @@
-# Cellar racking — a Surfaced shelf the cased and kegged stock rests on.
-class: /platform/thing/Surface
+# Cellar racking — a Placing shelf the cased and kegged stock is placed on.
+class: /platform/thing/Fitting
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: racking

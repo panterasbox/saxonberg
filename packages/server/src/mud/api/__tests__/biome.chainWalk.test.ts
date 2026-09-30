@@ -44,7 +44,7 @@ function installBiome(
 ): Biome {
   return makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = data.extends ?? '/stuff/idea/biome/universe';
+    b.setExtendsBiomePath(data.extends ?? '/stuff/idea/biome/universe');
     if (data.temperature !== undefined)
       b.setDefaultTemperature(Quantity.of(data.temperature, 'K'));
     if (data.pressure !== undefined)

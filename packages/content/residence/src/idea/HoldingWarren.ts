@@ -25,6 +25,7 @@
  */
 
 import { type Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 // A holding's members are ROOMS, so it is an INNER warren — the tier
 // whose occupancy is who is standing in a member. Its institution (a
 // dorm, a building, a plat) is the OUTER one, whose members are
@@ -374,34 +375,35 @@ export default class HoldingWarren extends ProgrammeBase {
     if (!from || !to || !edge.direction) return;
     if (!MixinApi.isExitable(from) || !MixinApi.isExitable(to)) return;
     if (from.getExit(edge.direction)) return;
-    const { default: KeyedDoorExit } = await import('./KeyedDoorExit');
+    const { default: KeyedDoorExitClass } = await import('./KeyedDoorExit');
+    void KeyedDoorExitClass; // the class the kind row names
     if (edge.locked) {
       // The locked edge — keyway-gated INWARD (the dorm-door model);
       // the way back OUT is free (a guest let in is never trapped, and
       // leaving your own house needs no key).
-      const doorIn = StuffApi.createSync(
-        () =>
-          new KeyedDoorExit(from, to, edge.direction, this, {
-            oneWay: true,
-          }),
+      // ⭐ The ROOM installs, from a kind ROW.
+      await from.installExit<
+        Exit & { configureKeyedDoor(p: HoldingWarren): void }
+      >(
+        '/system/residence/idea/exits/keyed-door',
+        {
+          direction: edge.direction,
+          source: from,
+          destination: to,
+          keepLiveDestination: true,
+          oneWay: true,
+        },
+        (e) => e.configureKeyedDoor(this),
       );
-      await from.addExit(doorIn);
       const back = edge.opposite ?? 'out';
       if (!to.getExit(back)) {
-        const { default: Exit } = await import(
-          '@saxonberg/server/mud/lib/boundary/Exit'
-        );
-        const doorOut = StuffApi.createSync(
-          () =>
-            new Exit({
-              direction: back,
-              source: to,
-              destination: from as never,
-              keepLiveDestination: true,
-              oneWay: true,
-            }),
-        );
-        await to.addExit(doorOut);
+        await to.installExit('/platform/idea/exits/passage', {
+          direction: back,
+          source: to,
+          destination: from as never,
+          keepLiveDestination: true,
+          oneWay: true,
+        });
       }
       return;
     }

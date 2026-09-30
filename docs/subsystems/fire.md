@@ -171,7 +171,7 @@ A furnace has **two** scopes and they are different mechanisms:
 | scope | what it is | what it does | for what |
 |---|---|---|---|
 | `heatContents()` | the furnace's **room siblings** | deposits joules toward the held temperature, reconciles phase | `Meltable` workpieces only — the forge melting an ingot beside it |
-| `restampHeated()` | what the furnace **holds** (`Container`) and what **rests on** it (`Surfaced`) | re-stamps each body so it re-resolves its ambient | every `Thermal` body — the loaf in the oven, the pot on the fire |
+| `restampHeated()` | what the furnace **holds** (`Container`) and what is **placed on** it (`Placing`) | re-stamps each body so it re-resolves its ambient | every `Thermal` body — the loaf in the oven, the pot on the fire |
 
 The second is the **furnace couple**: the reading lives on the body
 (`ThermalMixin.heatSourceK`, see thermal.md), and the furnace's job is
@@ -244,7 +244,7 @@ narrows a room's contents with `MixinApi.isSpaceHeating` and nothing
 anywhere names a class.
 
 `platform/thing/Hearth` is the commons object — `SpaceHeating + Furnace
-+ LightSource + Reserved + Thermal + **Surfaced**`. ⚠ Surfaced and not
++ LightSource + Reserved + Thermal + **Placing**`. ⚠ Placing and not
 Container: you put a thing *into* an oven and stand a thing *on* a
 hearth, which is the whole difference. `stove.yaml` and `brazier.yaml`
 are ROWS on the same class.

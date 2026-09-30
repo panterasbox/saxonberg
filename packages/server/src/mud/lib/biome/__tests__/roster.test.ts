@@ -40,6 +40,8 @@ const SEEDS_DIR = join(PACK_ROOT, 'content/stuff/idea/biome');
 
 interface BiomeSeed {
   class: string;
+  /** The parent row's path — a top-level key now, not a data field. */
+  extends?: string;
   data?: Record<string, unknown>;
 }
 
@@ -80,7 +82,7 @@ describe('Biome roster — slim demonstrative inventory', () => {
     const seed = loadSeed('universe.yaml');
     expect(seed.class).toBe('/platform/idea/Biome');
     const d = seed.data ?? {};
-    expect(d._extendsBiomePath).toBeUndefined();
+    expect(seed.extends).toBeUndefined();
     expect(d._defaultTemperature).toBeDefined();
     expect(d._defaultPressure).toBeDefined();
     expect(d._defaultHumidity).toBeDefined();
@@ -91,31 +93,31 @@ describe('Biome roster — slim demonstrative inventory', () => {
   it('outdoor/baseline is SkyExposed and extends universe', () => {
     const seed = loadSeed('outdoor/baseline.yaml');
     expect(seed.class).toBe('/platform/idea/SkyExposedBiome');
-    expect(seed.data?._extendsBiomePath).toBe('/stuff/idea/biome/universe');
+    expect(seed.extends).toBe('/stuff/idea/biome/universe');
   });
 
   it('outdoor/meadow is SkyExposed and extends outdoor/baseline (3-deep chain)', () => {
     const seed = loadSeed('outdoor/meadow.yaml');
     expect(seed.class).toBe('/platform/idea/SkyExposedBiome');
-    expect(seed.data?._extendsBiomePath).toBe('/stuff/idea/biome/outdoor/baseline');
+    expect(seed.extends).toBe('/stuff/idea/biome/outdoor/baseline');
   });
 
   it('indoor/baseline is plain Biome and extends universe', () => {
     const seed = loadSeed('indoor/baseline.yaml');
     expect(seed.class).toBe('/platform/idea/Biome');
-    expect(seed.data?._extendsBiomePath).toBe('/stuff/idea/biome/universe');
+    expect(seed.extends).toBe('/stuff/idea/biome/universe');
   });
 
   it('indoor/cafeteria extends indoor/baseline', () => {
     const seed = loadSeed('indoor/cafeteria.yaml');
     expect(seed.class).toBe('/platform/idea/Biome');
-    expect(seed.data?._extendsBiomePath).toBe('/stuff/idea/biome/indoor/baseline');
+    expect(seed.extends).toBe('/stuff/idea/biome/indoor/baseline');
   });
 
   it('scenario C — cafeteria-atrium is SkyExposed and explicitly extends cafeteria', () => {
     const seed = loadSeed('indoor/cafeteria-atrium.yaml');
     expect(seed.class).toBe('/platform/idea/SkyExposedBiome');
-    expect(seed.data?._extendsBiomePath).toBe('/stuff/idea/biome/indoor/cafeteria');
+    expect(seed.extends).toBe('/stuff/idea/biome/indoor/cafeteria');
   });
 
   it('no other biome seeds have crept in (slim roster discipline)', () => {

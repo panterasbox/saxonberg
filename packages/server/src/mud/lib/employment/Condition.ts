@@ -18,7 +18,7 @@
  * **Strict possession**: delivered means *out of your hands*. The upward
  * containment walk refuses any Creature-tier ancestor (an item resting in
  * a courier's inventory is not delivered), and additionally accepts a
- * `restingOn` match (a `placeOn` onto a counter puts the item in the
+ * placement match (a `place` onto a counter puts the item in the
  * *room* with a `restingOn` pointer — without this leg, "deliver to the
  * bar counter" could never hold).
  *
@@ -104,7 +104,7 @@ export interface ConditionData {
   template: ConditionTemplate;
   /** What must be delivered — instance-bound (chattel) or kind-bound. */
   item: ConditionItemRef;
-  /** The destination's durable `templatePath` (a Container/Surfaced). */
+  /** The destination's durable `templatePath` (a Container/Placing). */
   destinationPath: string;
   /**
    * `supply` only: how many must arrive. Absent (or 1) for `delivery`,
@@ -257,7 +257,7 @@ export class Condition {
     if (!MixinApi.isContainable(item)) return false;
 
     // The surface leg: resting on the destination fixture itself.
-    const restingOn = item.getRestingOn();
+    const restingOn = item.getPlacement()?.host ?? null;
     if (restingOn?.getTemplatePath() === data.destinationPath) return true;
 
     // The upward ancestor walk.

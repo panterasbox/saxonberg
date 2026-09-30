@@ -1,5 +1,6 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { StuffApi } from '../../../api/stuff';
+import { describe, it, expect, beforeEach  } from 'vitest';
 import { LockableMixin } from '../Locked';
 import Exit from '../Exit';
 import Door from '../../../platform/thing/Door';
@@ -12,7 +13,10 @@ import { MobileMixin } from '../../spatial/Mobile';
 import { NamedMixin } from '../../description/Named';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 
 class TestLockable extends LockableMixin(Idea) {}
 
@@ -24,6 +28,10 @@ class TestMover extends MoverBase {
 }
 
 describe('LockableMixin', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   it('defaults to unlocked', () => {
     const s = makeStuff(() => new TestLockable());
     expect(s.isLocked()).toBe(false);
@@ -61,8 +69,8 @@ describe('LockableMixin', () => {
     ).toContain('locked');
   });
 
-  it('Door composes LockableMixin', () => {
-    const door = makeStuff(() => new Door());
+  it('Door composes LockableMixin', async () => {
+    const door = await StuffApi.create(() => new Door());
     expect(MixinApi.isLockable(door)).toBe(true);
     expect(door.isLocked()).toBe(false);
   });
@@ -83,8 +91,8 @@ describe('Exit.canTraverse — locked gate', () => {
     ContainmentApi.move(mover, locA);
   });
 
-  it('vetoes with gate "locked" when the door is locked', () => {
-    const door = makeStuff(() => new Door());
+  it('vetoes with gate "locked" when the door is locked', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
     door.setLocked(true);
     const exit = makeStuff(
@@ -105,8 +113,8 @@ describe('Exit.canTraverse — locked gate', () => {
     expect(result.reason).toMatch(/iron gate/i);
   });
 
-  it('locked gate fires BEFORE the closed-door gate', () => {
-    const door = makeStuff(() => new Door());
+  it('locked gate fires BEFORE the closed-door gate', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
     // closed AND locked → should report locked, not closed
     door.setLocked(true);
@@ -124,8 +132,8 @@ describe('Exit.canTraverse — locked gate', () => {
     expect(result.gate).toBe('locked');
   });
 
-  it('is safe with a dangling/unresolvable destination — never resolves it', () => {
-    const door = makeStuff(() => new Door());
+  it('is safe with a dangling/unresolvable destination — never resolves it', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
     door.setLocked(true);
     // destinationPath points at an unloaded zone: resolving it would throw.
@@ -156,8 +164,8 @@ describe('Exit.canTraverse — locked gate', () => {
     expect(result?.gate).toBe('locked');
   });
 
-  it('passes (no lock gate) when the door is unlocked and open', () => {
-    const door = makeStuff(() => new Door());
+  it('passes (no lock gate) when the door is unlocked and open', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
     door.open();
     const exit = makeStuff(

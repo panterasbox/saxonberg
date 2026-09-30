@@ -239,6 +239,53 @@ function requireViewer(interactive: Interactive): Stuff & Sensor {
 }
 
 /**
+ * ⭐ The prompt's choice labels — **every button a player can act on.**
+ *
+ * ⚠ Two candidates a viewer cannot tell apart are two buttons a player
+ * cannot choose between. The fishing build's live drive hit exactly
+ * that: `look cane` in front of a shelf holding two cane rods offered
+ * two buttons both reading *a cane rod*
+ * ([presentation.md](../../../../../docs/subsystems/presentation.md)
+ * § the six forms). So, in order:
+ *
+ *  1. the **`distinguishing`** form — the one presentation.md names for
+ *     *"targeting, disambiguation"*, which adds the worn features that
+ *     tell two people apart;
+ *  2. where that STILL ties, an **ordinal**, because MQL already
+ *     answers *"which of these identical things"* with one
+ *     (`roses:[2]`), so the vocabulary is already the player's.
+ *
+ * Only a tie gets an ordinal, so the ordinary single-candidate render
+ * is unchanged.
+ *
+ * ⚠ It is also **viewer-aware**, which the previous
+ * `getPresentation()` was not: that answers *what does this Stuff call
+ * ITSELF*, which is the wrong question for a prompt — a disguised
+ * person was labelled by their real presentation rather than by what
+ * the asker can actually see.
+ */
+function projectMatches(
+  viewer: Stuff,
+  matches: readonly Stuff[],
+): Array<{ stuffId: string; displayName: string }> {
+  const labels = matches.map((s) => s.describeFor(viewer, 'distinguishing'));
+  const totals = new Map<string, number>();
+  for (const label of labels) {
+    totals.set(label, (totals.get(label) ?? 0) + 1);
+  }
+  const seen = new Map<string, number>();
+  return matches.map((stuff, i) => {
+    const label = labels[i]!;
+    if ((totals.get(label) ?? 0) < 2) {
+      return { stuffId: stuff.stuffId, displayName: label };
+    }
+    const nth = (seen.get(label) ?? 0) + 1;
+    seen.set(label, nth);
+    return { stuffId: stuff.stuffId, displayName: `${label} (${nth})` };
+  });
+}
+
+/**
  * Run the validator (sync or async). `true` → dismiss + resolve; a
  * string → emit `prompt-validation-failed` and keep the prompt alive; a
  * throw → validation-failed with the error message. The post-await guard
@@ -456,6 +503,7 @@ export class PromptLogic extends ApiLogic {
     );
   }
 
+
   /** See {@link Interactive.promptMqlObject}. */
   @CallSecurity(PromptCallers)
   public mqlObject(
@@ -464,11 +512,8 @@ export class PromptLogic extends ApiLogic {
     matches: Stuff[],
     opts?: PromptOpts<Stuff | null>
   ): Promise<Stuff | null> {
-    requireViewer(interactive);
-    const projected = matches.map((s) => ({
-      stuffId: s.stuffId,
-      displayName: s.getPresentation(),
-    }));
+    const viewer = requireViewer(interactive);
+    const projected = projectMatches(viewer, matches);
     const foreground = opts?.foreground ?? true;
     return push<Stuff | null>(
       interactive,
@@ -491,11 +536,8 @@ export class PromptLogic extends ApiLogic {
     matches: Stuff[],
     opts?: MqlManyPromptOpts
   ): Promise<Stuff[]> {
-    requireViewer(interactive);
-    const projected = matches.map((s) => ({
-      stuffId: s.stuffId,
-      displayName: s.getPresentation(),
-    }));
+    const viewer = requireViewer(interactive);
+    const projected = projectMatches(viewer, matches);
     const foreground = opts?.foreground ?? true;
     return push<Stuff[]>(
       interactive,

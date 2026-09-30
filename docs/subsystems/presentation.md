@@ -93,12 +93,18 @@ viewer.
 | `concise` | the ordinary identity | act lines, emotes — most prose |
 | `presence` | + what they are doing | the room survey |
 | `distinguishing` | + what they are wearing | targeting, disambiguation |
-<!-- ⚠ The disambiguation PROMPT does not use this form yet: the fishing
-     build's live drive typed `look cane` in front of a shelf holding two
-     cane rods (`par: 2`) and was offered two buttons both labelled *a
-     cane rod* — a choice a player cannot make. Either render the choices
-     in the `distinguishing` form, or collapse identical candidates into
-     one. -->
+<!-- ✅ FIXED 2026-09-27. The disambiguation prompt used to render its
+     choices with `getPresentation()` — which is what a thing calls
+     ITSELF, so it was neither viewer-aware nor distinguishing: the
+     fishing build's live drive typed `look cane` in front of a shelf
+     holding two cane rods and got two buttons both labelled *a cane
+     rod*, a choice a player cannot make. `PromptLogic`'s
+     `projectMatches` now renders every candidate in the
+     `distinguishing` form and, where that STILL ties (two objects with
+     no distinguishing feature between them), appends an ordinal —
+     MQL's own answer to *which of these identical things*
+     (`roses:[2]`). Only a tie gets an ordinal. Covered by
+     `api/__tests__/command.disambiguation.test.ts`. -->
 | `formal` | the full name, honorific and suffix | profiles, documents |
 
 An emitter asks for one: `Mml.actor(speaker, { form: 'presence' })`. The

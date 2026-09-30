@@ -5,7 +5,7 @@
 # trees underneath (outdoor / indoor / underground). The actual
 # root of the *atmospheric inheritance* hierarchy is the universe
 # Biome at `/stuff/idea/biome/universe`, which other biomes extend via
-# their `_extendsBiomePath` ref.
+# their `extends` ref.
 class: /platform/idea/FolderZone
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

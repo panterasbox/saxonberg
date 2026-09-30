@@ -201,7 +201,7 @@ export abstract class Character extends CharacterBase {
    * ⚠ Why this exists at all: a naked body pays the cold branch, and
    * **no `cast:` row could author clothing** — there was no `wears:`,
    * no `worn:`, no `outfit:` on any NPC class or archetype in the tree,
-   * and `props:` places onto a `Surfaced` host, not onto a person. So
+   * and `props:` places onto a `Placing` host, not onto a person. So
    * every authored person in the realm was naked, and the only reason
    * it never showed is that every interior was 21 °C by decree. The
    * envelope build removes the decree.

@@ -731,7 +731,7 @@ shortfall.
 
 `CraftVessel` is now `Crafted(Thermal(Bulkable(Container(Detailed(
 Thing)))))` — a `Container` so a garnish is a thing *in* the glass and
-leaves with it (`Surfaced` was rejected: a resting item's container is
+leaves with it (a placement was rejected: a placed item's container is
 the room, so a handed-over glass would leave its olive behind); `Thermal`
 so the temperature is real. Fields: `soiled` (`isSoiled()`; **`soil()`** is the public
 one-way act anyone who USES a vessel may call, and `wash()` the only road
@@ -988,15 +988,16 @@ cocktail Material is fixed per recipe; the instance variable is the
 
 ## Surface presentation: resting items aren't loose
 
-The back-bar's bottles + tools sit **on** a `Surfaced` fixture (placed
+The back-bar's bottles + tools sit **on** a `Placing` fixture (placed
 via the bar's `props: { onto }` — see [spatial.md](./spatial.md)),
 so they read "on the back-bar," reachable but **not loose room
-clutter**. The shared rule is `ContainmentApi.looseContents(items)`: it
+clutter**. The shared rule is `Container.getLooseContents(items?)`: it
 filters out any item whose `getRestingOn()` is itself in the set, and is
 applied by `look`/`sense` (room branch) **and** the inspection card
 (`Container.contents`). Examining the surface (`look back-bar` /
 `sense back-bar`) reveals what rests on it via an "── On it:" drill-in
-(`Surfaced.getResting()`). This is the discovery path that keeps the
+(`Placing.getPlaced(name?)`, one line per member with the heading off
+the member's own row). This is the discovery path that keeps the
 stock out of the room view.
 
 ## Dave's Bar content (where it lives)
@@ -1005,7 +1006,7 @@ No bar-specific classes — content composes general mixins. Classes are
 homed by what they *are*:
 
 - **Building blocks** → `lib/`: `Surface` (`lib/spatial/`, a
-  `SurfacedMixin` fixture), `ToolItem` (`lib/craft/`), `Crafter`
+  `PlacingMixin` fixture), `ToolItem` (`lib/craft/`), `Crafter`
   (`lib/character/`, `MakerMixin(NPC)` — ⚠ both retired by
   trades-and-labor), `NPC` (`lib/character/`, the
   minimal concrete `Character` — shares its path with the npc-behavior
@@ -1482,7 +1483,7 @@ pieces that attach at the same place and should land together:
 - **Substrate consumed:** [templates](./templates.md),
   [persistence](./persistence.md), [race](./race.md) (Material),
   [bulk](./bulk.md), [metabolism](./metabolism.md),
-  [spatial](./spatial.md) (Surfaced + `looseContents`),
+  [spatial](./spatial.md) (Placing + `getLooseContents`),
   [provenance](./provenance.md) (the authorship ledger this instance-mark
   sits beside), [command-routing](./command-routing.md) /
   [command-spec](./command-spec.md), [mixins](./mixins.md),

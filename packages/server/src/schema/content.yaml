@@ -6,9 +6,16 @@ summary: >-
   The template tree — every authored row the world is cloned from.
 purpose: |
   The templates collection: one row per template path, holding the `class:`,
-  the `data:` block the Hydrator applies, and (for pack-installed rows) the
-  `sourcePack` stamp that tells the installer's three-way reconcile which
-  baseline to compare against.
+  the optional `extends:` parent path, the `data:` block the Hydrator
+  applies, and (for pack-installed rows) the `sourcePack` stamp that tells
+  the installer's three-way reconcile which baseline to compare against.
+
+  ⭐ `extends:` is resolved at READ time and never flattened into storage:
+  a row states only what differs from its parent, and `Template` merges the
+  chain when it materializes. So the stored row is what the author wrote,
+  and an edit to a parent reaches every descendant's next clone. A child
+  may state no `class` at all — that is the whole point, and it is what
+  lets a protowizard author one.
 
   ⚠ Unrelated to the `domain` command *category*. And a template ROW is a
   hydration source for AUTHORED content only — a minted identity backs onto
@@ -25,6 +32,16 @@ invariants:
     Writes go through the pack installer or the CMS save path; both run
     under the folder/leaf invariant hook.
   - >-
+    `extends` names a row that exists; the chain is acyclic and no deeper
+    than 32. Enforced at the authoring door (`saveTemplate`), at pack
+    reconcile, and again loudly when a row materializes.
+  - >-
+    A row states a `class` or names a parent whose chain states one.
+  - >-
+    A row that is extended cannot be deleted — the refusal fires at the
+    persistence chokepoint, so it holds for `rm`, `mv`, the CMS and
+    `pack sync` alike.
+  - >-
     PASS under the sandbox: authored truth. A circle session that may edit
     a room template edits the real template, and the parcel-title gate is
     what governs that — not the circle.
@@ -34,6 +51,14 @@ reset:
   because: |
     the world itself; the seeder is insert-only and runs at boot
 indexes:
+  - keys: { extends: 1 }
+    why: |
+      The delete refusal asks "who extends this?" on every template delete,
+      and `findByClass` / `findWhereDataHas` union their raw hits with the
+      rows that carry a parent (a child inheriting its class is invisible
+      to a raw class query, which would make a catalogue quietly short).
+      Both are point reads over a small set; without the index they are
+      collection scans on every delete.
   - keys: { path: 1 }
     unique: true
     why: |

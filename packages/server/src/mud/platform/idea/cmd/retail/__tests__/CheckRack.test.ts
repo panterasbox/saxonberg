@@ -46,6 +46,7 @@ import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__t
 import {
   installBankingHarness,
   teardownBankingHarness,
+  seedRow,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
 
 // The coat check is a composition of kernel mixins; the instanceable class
@@ -107,6 +108,14 @@ function weapon(owner: Stuff, keyword = "knife"): Weapon {
 describe("CheckRack — custody-not-title over the consignment substrate", () => {
   beforeEach(async () => {
     installBankingHarness();
+    // ⭐ The ticket is a clone of a row now; the harness's content
+    // collection has to hold it.
+    seedRow({
+      path: '/platform/thing/Ticket',
+      class: '/platform/thing/Ticket',
+      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+      data: { shortDescription: 'coat-check ticket', keywords: ['ticket'] },
+    });
     installV1QuantityMarshallers();
     Document.setMarshallerResolver(
       () => undefined,

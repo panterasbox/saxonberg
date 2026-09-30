@@ -104,16 +104,16 @@ describe("transitive-closure (protowizard cannot reach code via a reference)", (
     //    hydrator, brains all unchanged).
     await expect(
       asAlice(() =>
-        TemplateApi.saveTemplate(HOST_PATH, IDEA, {
+        TemplateApi.saveTemplate(HOST_PATH, { class: IDEA, data: {
           exits: [{ destination: TARGET_PATH }],
-        })
+        } })
       )
     ).resolves.toBeTruthy();
 
     // 2. But the protowizard cannot create the dangerous-class *target*
     //    the reference points at — the direct `class` gate rejects it.
     await expect(
-      asAlice(() => TemplateApi.saveTemplate(TARGET_PATH, DANGEROUS, {}))
+      asAlice(() => TemplateApi.saveTemplate(TARGET_PATH, { class: DANGEROUS, data: {} }))
     ).rejects.toBeInstanceOf(TemplateError);
 
     // Closure-by-construction: the target template was never created, so

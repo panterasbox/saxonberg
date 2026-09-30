@@ -94,19 +94,26 @@ function installBoundary<T extends Boundary>(
       'BoundaryApi.attachExistingBoundary: hostA and hostB must differ.'
     );
   }
-  if (boundary.getAnchorA() || boundary.getAnchorB()) {
+  // ⭐ The pair is PRE-MINTED by `Boundary.postRegister` (they are clones
+  // of `/platform/thing/BoundaryAnchor` now, and a clone is async while
+  // this path must stay sync — a vessel's `onMoved` calls it). So this
+  // function only WIRES: what was "already has anchors" is now "already
+  // installed somewhere".
+  const anchorA = boundary.getAnchorA();
+  const anchorB = boundary.getAnchorB();
+  if (!anchorA || !anchorB) {
     throw new Error(
-      'BoundaryApi.attachExistingBoundary: boundary already has anchors; ' +
+      'BoundaryApi.attachExistingBoundary: boundary has no anchor pair. ' +
+        'A Boundary mints its anchors at postRegister, so this one was ' +
+        'never registered (a bare `new Door()` rather than a clone).'
+    );
+  }
+  if (anchorA.getAdornedTo() || anchorB.getAdornedTo()) {
+    throw new Error(
+      'BoundaryApi.attachExistingBoundary: boundary is already installed; ' +
         'destruct or detach the boundary first.'
     );
   }
-
-  const anchorA = StuffApi.createSync(() => new BoundaryAnchor('A'));
-  const anchorB = StuffApi.createSync(() => new BoundaryAnchor('B'));
-
-  anchorA._setBoundary(boundary);
-  anchorB._setBoundary(boundary);
-  boundary._setAnchors(anchorA, anchorB);
 
   hostA.addFixture(anchorA);
   hostB.addFixture(anchorB);

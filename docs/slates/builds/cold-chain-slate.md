@@ -1,19 +1,25 @@
 # Cold-chain slate (working doc)
 
-> **Status: UNBUILT** — blood shelf life is temperature-driven TODAY (a
-> stored unit's spoilage rides the holder's `ThermalMixin`, so a cold
-> PLACE already preserves it — spoilage.md / thermal.md), but there is no
-> way to MAKE cold and no carried cold storage. This is the cold mirror of
-> the fuel → fire → furnace chain.
-> **Left:** cold PRODUCTION (a powered freezer on the electricity tier, or
-> harvested winter ice / a seasonal ice-house) · cold STORAGE (a cold
-> larder/cellar location, an insulated container, an iced cooler) · the
-> cold-source COUPLE (mirror the furnace couple in `Thermal.ts`) · the
-> coolant reserve + melt reconcile (mirror `FurnaceMixin`'s fuel) · the
-> cached-ambient staleness handling (meltout must fan out `restamp`) · the
-> tech curve (cold room → sealed insulated box → iced cooler → powered
-> fridge) · first consumers (blood, food/spoilage, pharma/vaccines).
-> **Size:** a build (the cold mirror of the fuel → fire → furnace chain).
+> **Status: PARTIAL** — ⭐ the **passive rung shipped** with the
+> placement build (2026-09-28, MR !302): `CoolboxMixin` +
+> `platform/thing/Icebox`, the cold-source COUPLE (`Thermal.holderK()`,
+> the cold twin of `heatSourceK`, plus the lent-insulation clause in
+> `effectiveR()`), the melt reconcile (⚠ and the ambient DRIVER it
+> turned out to be missing — nothing in the world melted from being
+> warm), and a repaired `coldStorage` archetype satisfier that had been
+> wrong on both rungs. → [thermal.md](../../subsystems/thermal.md) ·
+> [spatial.md](../../subsystems/spatial.md) ·
+> [furnishing.md](../../subsystems/furnishing.md).
+> **Left:** cold PRODUCTION (a powered freezer on the electricity tier;
+> the seasonal ice-house and ⚠ **who SELLS ice** — the icebox consumes
+> a good nobody makes, which is this slate's sharpest open) · CARRIED
+> cold (an iced cooler a medic walks with; the shipped `Icebox` is
+> `fixedInPlace`) · a cold ROOM as a place rather than a box · the
+> `Chamber` compartment (a fridge's freezer half → fridge-design-pack)
+> · the coolant reserve as a `FurnaceMixin`-shaped fuel analogue (the
+> shipped model uses a discrete `Meltable` block instead, which may be
+> enough) · first consumers beyond food: blood, pharma/vaccines.
+> **Size:** a build (what is left is production and the carried tier).
 
 ## Why it deferred out of clinical-medicine (user direction, 2026-09-24)
 

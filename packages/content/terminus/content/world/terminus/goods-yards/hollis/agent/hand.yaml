@@ -1,16 +1,13 @@
 # Bram Hollis (no relation, he says) — Hollis Bottling's hand; dealt the
 # house card at hire, consigns the private-label rows AS Hollis Bottling.
 class: /platform/agent/Cast
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/agent/costume/student
 data:
-  # ⭐ What this person has on (envelope W1). Until this build no NPC
-  # row in the tree could author clothing at all, so every authored
-  # person in the realm was naked — invisible only because every
-  # interior was 21 °C by decree. A works floor.
-  costume:
-    - /stuff/thing/clothes/student-shirt
-    - /stuff/thing/clothes/student-trousers
-    - /stuff/thing/clothes/canvas-shoes
+  # ⭐ What this person has on comes from the parent row
+  # (`/stuff/agent/costume/student`). Until the envelope build no
+  # NPC row could author clothing at all — every authored person in
+  # the realm was naked, invisible only because every interior was
+  # 21 °C by decree.
   name: Bram Tull
   keywords: [hand, bram, tull, cheerful, bottling, hollis-red, cap]
   pronouns: he

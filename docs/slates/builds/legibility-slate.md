@@ -1,18 +1,16 @@
 # Legibility slate — what a row repeats, and what a room says
 
-> **Status: UNBUILT** — nothing here exists. Template inheritance is
-> explicitly absent (`ref-shapes.md` § the identity/lineage doctrine);
-> `props:` entries carry neither count nor key; the four contents
-> renders disagree; the `sense` verb is `look` minus four features.
-> **Left:** `extends:` on template rows (runtime-resolved, single
-> parent, an ordinary row, folded into access.md's transitive set — and
-> the `cp`/`mv` D5 relaxation it delivers) · the `props:` entry shape
-> (`count` + `as`) ·
-> the instruction-field merge rule · contents **grouping** beside
-> `looseContents`, consumed by the same three call sites · the card's
-> dead `+N more` · cut `sense`, point arrival at `look` · untagged prose
+> **Status: PARTLY BUILT (2026-09-25)** — ✅ **Parts A and B shipped**
+> in the template-inheritance build: `extends:` on a template row,
+> resolved at read time and never flattened; the per-field merge rule
+> declared as `inherit:` on the owner's `fieldMeta`; `as` and `count`
+> on the entry shape; the `cp`/`mv` authoring relaxation it delivers.
+> See [templates.md § Inheritance](../../subsystems/templates.md).
+> **Left:** Part C — contents **grouping** beside `looseContents`,
+> consumed by the same three call sites, and the card's dead `+N more`
+> · Part D — cut `sense`, point arrival at `look`, untagged prose
 > becomes vision-channel prose
-> **Size:** a build
+> **Size:** half a build
 
 > Written 2026-09-16 out of a
 > design conversation that started as "we need template inheritance" and
@@ -27,10 +25,11 @@ See also:
   the Hydrator's two-phase dispatch, the `props`/`cast` once-guard, and
   the **already-flagged** "don't lock the props entry shape" note that
   Part B cashes in.
-- [ref-shapes.md](../../ref-shapes.md) — *"Template inheritance does not
-  exist… if real template-data inheritance is ever wanted, it's a
-  deliberate platform feature, not a per-subsystem hack."* This slate is
-  that deliberation.
+- [ref-shapes.md](../../ref-shapes.md) — was *"Template inheritance does
+  not exist… if real template-data inheritance is ever wanted, it's a
+  deliberate platform feature, not a per-subsystem hack."* This slate
+  was that deliberation, and ⭐ **it is now built**: the doctrine's third
+  relation is `extends` — lineage, identity, and now parentage.
 - [content-packs.md](../../subsystems/content-packs.md) — the reconcile
   hash preimage, `--export`'s round-trip, the derived `dependsOn`
   topological sort, `SAXONBERG_PACKS`.
@@ -74,7 +73,11 @@ the parts ship in either order.
 
 ---
 
-## Part A — `extends:` on template rows
+## Part A — `extends:` on template rows ✅ BUILT 2026-09-25
+
+> Shipped by the template-inheritance build. The design below is
+> retained as the argument; the built truth is
+> [templates.md § Inheritance](../../subsystems/templates.md).
 
 ### The pain, measured
 
@@ -221,7 +224,14 @@ the path you are writing to.
 
 ---
 
-## Part B — the `props:` entry shape
+## Part B — the `props:` entry shape ✅ BUILT 2026-09-25
+
+> Shipped by the template-inheritance build — `as` on all four entry
+> lists, `count:` on props only. ⭐ `as` turned out to be the
+> **precondition** for entry-wise inheritance rather than a
+> convenience: without it the merge must choose between appending a
+> child's entries and replacing the parent's list, and each is right
+> about half the time.
 
 ### The pain, measured
 

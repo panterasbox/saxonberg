@@ -283,7 +283,7 @@ describe('Bulkable — Floor surface-bulk vs discrete containment', () => {
     StuffApi.clearAll();
   });
 
-  it('the Floor is Bulkable with a surface slot but NOT Surfaced', () => {
+  it('the Floor is Bulkable with a surface slot but NOT Placing', () => {
     const floor = makeStuff(() => {
       const f = new Floor();
       f.surfaceBulk = true;
@@ -291,7 +291,7 @@ describe('Bulkable — Floor surface-bulk vs discrete containment', () => {
     });
     expect(MixinApi.isBulkable(floor as never)).toBe(true);
     expect((floor as unknown as { hasSurfaceBulk(): boolean }).hasSurfaceBulk()).toBe(true);
-    expect(MixinApi.isSurfaced(floor as never)).toBe(false);
+    expect(MixinApi.isPlacing(floor as never)).toBe(false);
   });
 
   it('a dropped item is container=room, not resting on the floor', () => {

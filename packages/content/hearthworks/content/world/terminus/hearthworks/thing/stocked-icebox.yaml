@@ -1,0 +1,19 @@
+# The cookhouse icebox — ⭐ the generic box, with ice already in it.
+#
+# ⚠⚠ **Why this row exists rather than a loose block on the floor.**
+# Ice conducts well: a bare block's own thermal resistance is tiny, so
+# one left standing in a warm kitchen is gone in game-MINUTES. That is
+# the design working — the cold runs out — but it means a venue that
+# KEEPS ice keeps it in the box, where the walls slow the leak to
+# hours. Seeding a block loose in this room was tried and it did not
+# survive the world booting.
+#
+# ⭐ One `extends:` and one `props:` line: the whole cold box is the
+# generic row's, and this says only *and there is ice in it*. A second
+# venue that keeps ice is the same two lines.
+extends: /stuff/thing/fixture/icebox
+data:
+  longDescription: |
+    A zinc-lined chest on short legs, its walls packed thick with sawdust and its lid heavy enough to seal on its own weight. A shallow tray sits under the grating inside, catching the melt drop by drop.
+  props:
+    - /stuff/thing/ice-block

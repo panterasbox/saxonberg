@@ -17,12 +17,12 @@
  * with `MixinApi.isSpaceHeating` without ever naming a class.
  *
  * Composition: `SpaceHeating + Furnace + LightSource + Reserved +
- * Thermal + Surfaced` over a `Thing`.
+ * Thermal + Placing` over a `Thing`.
  *
  *  - **`SpaceHeatingMixin` outermost**, so it can read the furnace face:
  *    a fire that has gone out warms nothing, and that should not take a
  *    second flag to say.
- *  - **`SurfacedMixin`**, because a pot stands ON a hearth. ⚠ NOT
+ *  - **`PlacingMixin`**, because a pot stands ON a hearth. ⚠ NOT
  *    `Container`: a hearth is not a chamber you put things inside, and
  *    that is the whole difference between it and an oven.
  *
@@ -35,7 +35,7 @@
  */
 
 import Thing from '../../lib/stuff/Thing';
-import { SurfacedMixin } from '../../lib/spatial/Surfaced';
+import { PlacingMixin } from '../../lib/spatial/Placing';
 import { ReservedMixin } from '../../lib/reserve';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
@@ -57,7 +57,7 @@ const HEARTH = {
 
 const HearthBase = SpaceHeatingMixin(
   FurnaceMixin(
-    LightSourceMixin(ReservedMixin(ThermalMixin(SurfacedMixin(Thing)))),
+    LightSourceMixin(ReservedMixin(ThermalMixin(PlacingMixin(Thing)))),
   ),
 );
 

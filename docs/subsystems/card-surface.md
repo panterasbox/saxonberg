@@ -863,13 +863,37 @@ v1 surface walks this back to the simplest cut:
   shows them as the look output. No slot maps, mixin lists, raw
   fields, or property bags surface here.
 - **Raw internal state is server-side; the v1 card has no admin
-  surface.** Template path, stuff id, mixin composition, raw JSON
+  surface.** Template path, stuff id, raw JSON
   dump, and `clone` / `reload` / `eval` quick actions all belong
   in a future admin surface — but the substrate doesn't project
   those fields today and no client `isAdmin` flag exists. Until
   both ship, the card carries no admin block; what authors can do
   is use the typed-command interface (`clone <template>`,
   `reload <template>`) just like any verb.
+
+> ⚠⚠ **Corrected 2026-09-29 — mixin composition is NOT in that list any
+> more, and it never belonged in it.** The v1 text above filed **mixin
+> composition** under a future *admin* surface and said the substrate did
+> not project it. It does:
+> `AffordanceResultEnvelope.composition` carries the subject's **active**
+> composition (*“not declared: augments, implants, species innates and
+> on-shift conferral all change it at runtime”*), and the client renders
+> it as the chip row — suffix stripped by `chipLabel`, framework plumbing
+> demoted by the `PLUMBING` set, **and demoted rather than removed because
+> “hiding part of it would be the client editing a server fact.”**
+>
+> ⭐⭐⭐ **And “admin” was the wrong word, which is why this sat stale.**
+> The chip row is a **teaching surface** — the source says so in as many
+> words: *“the chips exist to show a player the composition palette they
+> would author with.”* There is no author tier
+> ([access.md](./access.md)), so the palette belongs to everybody and the
+> per-viewer filtering is done by the honest-fog rule (**filtering means
+> deletion**; a concealed mixin is absent, never flagged), not by a
+> privilege check. Wider machine access for wizards and parcel owners is a
+> question of **extent**, never an `isAdmin` flag.
+>
+> See [lenses/28-the-state-machine.md](../lenses/28-the-state-machine.md),
+> which is where this is argued.
 - **Per-fact revelation gating beyond visible is parked.**
   The sense/modality system (feel/smell/listen as separate
   channels), the magic lens, skill-deepens-perception, and per-

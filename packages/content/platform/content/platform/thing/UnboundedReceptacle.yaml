@@ -1,0 +1,9 @@
+# The unbounded receptacle — the arcane vessel a conjuration pours into
+# when the caster named no container. Not a thing anyone carries; the
+# row exists so the mechanism clones rather than constructs.
+class: /platform/thing/UnboundedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: formless vessel
+  register: indefinite
+  keywords: [vessel, receptacle]

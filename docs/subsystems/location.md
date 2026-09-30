@@ -9,7 +9,7 @@ the area.
 
 `lib/location/` carves the room/coordinate/zone geometry out of what was
 `lib/spatial/`; `lib/spatial/` now holds only the containment/movement
-substrate (Container, Containable, Mobile, Surfaced, Sealable — see
+substrate (Container, Containable, Mobile, Placing, Sealable — see
 [spatial.md](./spatial.md)). The base Zone hierarchy (`Zone` /
 `SpatialZone` / `FolderZone`) lives in `lib/zone/` (see
 [zone.md](./zone.md)); only the concrete coordinate zones
@@ -248,6 +248,13 @@ reading `this.zone` during `postRegister` sees the right value
 (see [templates.md](./templates.md#clone-pipeline)).
 
 #### Field inheritance via `Zone.lookupField`
+
+⭐ **One of two inheritance mechanisms, and not the row one.** A zone
+field answers *what is true everywhere inside here*, at READ time,
+walking the path tree; a row's `extends:` parent answers *what this
+thing is like*, at CLONE time, walking the `extends` chain. They stay
+two mechanisms deliberately — see [zone.md § Zone field lookup and row
+parenting](./zone.md) and [templates.md § Inheritance](./templates.md).
 
 For zone-carried defaults that should inherit through the template
 tree, `zone.lookupField<T>(fieldName)` walks ancestry nearest-first

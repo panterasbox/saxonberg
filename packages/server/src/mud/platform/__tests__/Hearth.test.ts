@@ -104,7 +104,7 @@ describe('what a hearth IS, structurally', () => {
     // That is the whole difference between a hearth and an oven: you
     // put a thing INTO an oven and you stand a thing ON a hearth.
     const h = hearth();
-    expect(MixinApi.isSurfaced(h)).toBe(true);
+    expect(MixinApi.isPlacing(h)).toBe(true);
     expect(MixinApi.isContainer(h)).toBe(false);
   });
 

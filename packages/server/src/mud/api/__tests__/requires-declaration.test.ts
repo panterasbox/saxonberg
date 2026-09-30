@@ -31,7 +31,7 @@ import { NamedMixin } from '../../lib/description/Named';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import { SurfacedMixin } from '../../lib/spatial/Surfaced';
+import { PlacingMixin } from '../../lib/spatial/Placing';
 import { VitalsMixin } from '../../lib/vitals/Vitals';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -41,7 +41,7 @@ class Rock extends NamedMixin(Idea) {
   static _mixinName = 'RockForRequiresTest';
 }
 class Chest extends SealableMixin(NamedMixin(Idea)) {}
-class Shelf extends SurfacedMixin(ContainableMixin(NamedMixin(Idea))) {}
+class Shelf extends PlacingMixin(ContainableMixin(NamedMixin(Idea))) {}
 class Crate extends ContainerMixin(NamedMixin(Idea)) {}
 class Person extends NamedMixin(Agent) {}
 
@@ -201,18 +201,18 @@ describe('requires: — a slot states what it accepts', () => {
      */
     it('a list requires ALL of them', async () => {
       const shelf = named(() => new Shelf(), 'a shelf');
-      expect(await refusalFor(['SurfacedMixin', 'ContainerMixin'], shelf)).toBe(
+      expect(await refusalFor(['PlacingMixin', 'ContainerMixin'], shelf)).toBe(
         "a shelf isn't a place",
       );
     });
 
     it('a list passes something composing every term', async () => {
-      class Sideboard extends SurfacedMixin(
+      class Sideboard extends PlacingMixin(
         ContainerMixin(ContainableMixin(NamedMixin(Idea))),
       ) {}
       const sideboard = named(() => new Sideboard(), 'a sideboard');
       expect(
-        await refusalFor(['SurfacedMixin', 'ContainerMixin'], sideboard),
+        await refusalFor(['PlacingMixin', 'ContainerMixin'], sideboard),
       ).toBeUndefined();
     });
 
@@ -224,14 +224,14 @@ describe('requires: — a slot states what it accepts', () => {
     it('an alternation accepts either side', async () => {
       const crate = named(() => new Crate(), 'a crate');
       const shelf = named(() => new Shelf(), 'a shelf');
-      const which = 'ContainerMixin|SurfacedMixin';
+      const which = 'ContainerMixin|PlacingMixin';
       expect(await refusalFor(which, crate)).toBeUndefined();
       expect(await refusalFor(which, shelf)).toBeUndefined();
     });
 
     it('an alternation refuses something with neither, in the FIRST phrase', async () => {
       const rock = named(() => new Rock(), 'a rock');
-      expect(await refusalFor('ContainerMixin|SurfacedMixin', rock)).toBe(
+      expect(await refusalFor('ContainerMixin|PlacingMixin', rock)).toBe(
         "a rock isn't a place",
       );
     });

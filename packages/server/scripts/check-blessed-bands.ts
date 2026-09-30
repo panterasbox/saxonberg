@@ -40,7 +40,20 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
-import { packSources, packSrcFiles } from './pack-roots';
+import { packSources, packSrcFiles,
+  effectiveDoc,
+  inheritanceIndex,
+  type InheritanceIndex,
+} from './pack-roots';
+
+// ⚠ Template inheritance: a CHILD row states no `class:`, so selecting on
+// the raw field skips it SILENTLY — which reads exactly like a pass. Every
+// row this gate parses goes through `effectiveDoc` first.
+let _inheritIdx: InheritanceIndex | null = null;
+function inheritIdx(): InheritanceIndex {
+  return (_inheritIdx ??= inheritanceIndex());
+}
+
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(here, '..', 'src');
@@ -119,7 +132,7 @@ function spellsWithBands(): Map<string, boolean> {
   for (const file of [...walkYaml(SEEDS), ...contentYaml()]) {
     let doc: Record<string, unknown>;
     try {
-      doc = YAML.parse(readFileSync(file, 'utf-8')) as Record<string, unknown>;
+      doc = effectiveDoc(file, YAML.parse(readFileSync(file, 'utf-8')) as Record<string, unknown>, inheritIdx());
     } catch {
       continue;
     }
@@ -149,7 +162,7 @@ let checked = 0;
 for (const file of [...walkYaml(SEEDS), ...contentYaml()]) {
   let doc: Record<string, unknown>;
   try {
-    doc = YAML.parse(readFileSync(file, 'utf-8')) as Record<string, unknown>;
+    doc = effectiveDoc(file, YAML.parse(readFileSync(file, 'utf-8')) as Record<string, unknown>, inheritIdx());
   } catch {
     continue;
   }

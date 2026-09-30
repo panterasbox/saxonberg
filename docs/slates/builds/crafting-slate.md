@@ -220,7 +220,7 @@ about skill:
    practice, a teacher, a real-learning anchor, or any mix, **without
    crafting changing.** This is a *don't-foreclose* requirement (it keeps the
    standalone-vs-education-vertical fork open for later — the
-   [endogenous-value](../../lenses/endogenous-value.md) Goodhart seam), not a
+   [endogenous-value](../../lens-deck-salvage.md) Goodhart seam), not a
    choice made here.
 3. **Verdict, not score, at the seam.** However skill is represented
    internally, at the crafting *output* it surfaces as a verdict on the work
@@ -296,7 +296,7 @@ solo, hired NPC labor at scale — so depth doesn't become grind.
 ## The making spectrum — utility vs personalization, two costs
 
 "Making" is a **spectrum**, and the two payoffs sit at different points on
-it — they are the [endogenous-value](../../lenses/endogenous-value.md)
+it — they are the [endogenous-value](../../lens-deck-salvage.md)
 lens's two value types:
 
 - **Utility** → *effort-anchored* value (a tool's worth traces to

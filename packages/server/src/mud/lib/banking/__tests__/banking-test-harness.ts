@@ -6,6 +6,8 @@
  */
 
 import { vi } from "vitest";
+import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
+import { Collections } from '../../../../backend/PersistenceManager';
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
@@ -67,6 +69,13 @@ function matches(
 export function installBankingHarness(): void {
   stores = new Map();
   idCounter = 0;
+  // ⭐ The kernel rows the ENGINE clones — exit kinds, the boundary
+  // anchor — go into the content collection, because a harness that
+  // stands up a shop stands up a room, and a room has doorways.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    const id = `kernel-${row.path}`;
+    col(Collections.Content).set(id, { ...row, _id: id });
+  }
   const pm = PersistenceManager.get();
   vi.spyOn(pm, "isConnected").mockReturnValue(true);
   vi.spyOn(pm, "find").mockImplementation(
@@ -105,6 +114,15 @@ export function installBankingHarness(): void {
   AccountBalance._resetForTesting();
   SupplyAggregate._resetForTesting();
   StuffApi.clearAll();
+}
+
+/**
+ * Add one content row to the harness's store — the seam a suite uses
+ * when it clones something the kernel rows do not cover.
+ */
+export function seedRow(row: Record<string, unknown>): void {
+  const id = `seeded-${String(row.path)}`;
+  col(Collections.Content).set(id, { ...row, _id: id });
 }
 
 /** Tear down the harness (mirror of {@link installBankingHarness}). */

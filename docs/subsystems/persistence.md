@@ -623,7 +623,8 @@ shapes:
   sub-containers); a **nested host** is a reference
   `{ ref, key?, placement }` — not absorbed, because it persists itself
   (see *Keyed nested hosts* below). Surface-resting items record the index
-  of the Surfaced sibling they rest on. Three occupants are **skipped**
+  of the `Placing` sibling they are placed on, plus the member's name
+  (`ContentPlacement`). Three occupants are **skipped**
   (one filter, one ordering shared with the Slotted slice): a live avatar
   (`HasInteractive` — persists itself), a player-stamped good
   (`ChattelApi.isOwnerPersisted` — persists in its owner's estate), and a
@@ -1328,6 +1329,25 @@ born-with content in the theatre vocabulary:
 - ⭐ **`costume:`** — what a cast member is **wearing** (`Wearable`
   garments), on the person rather than on the place. `CostumedMixin`, the
   same file and the same rail.
+
+### ⭐ The entry shape (template inheritance, 2026-09-25)
+
+Every entry in all four designation lists (`props`, `cast`, `costume`,
+`adornments`) may carry **`as`** — its identity — and a `props:` entry
+may carry **`count: N`**, which mints N clones from one line.
+
+⭐⭐ **`as` is not a convenience; it is what makes these lists
+inheritable at all.** They merge `by-entry` when a row `extends`
+another, and without an entry identity the merge must choose between
+appending the child's entries and replacing the parent's — each right
+about half the time, and the wrong one silently doubles a jacket or
+takes away a pair of shoes. See
+[templates.md § Inheritance](./templates.md).
+
+`count` is props-only: twelve limes are twelve limes, but twelve of a
+person are twelve people, each of whom needs a name. It throws on
+`cast:`/`costume:`, on a `Singleton` class, and on anything that is not
+a whole number ≥ 1. Two entries sharing one `as` throw too.
 
 The class is the check, not the designation: each applier resolves an
 entry's template class and gates on `Mixins.Behaved` (or, for a costume,

@@ -1,0 +1,10 @@
+# The stairwell edge of a holdings institution — up one circulation
+# node. The class refuses the climb when nothing above is provisioned
+# ("the stairs go no higher"); the prose is here because a stairwell is
+# a place, and a place says something.
+class: /system/residence/idea/UpstairsExit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageOut: "{{ mover }} goes up the stairs."
+  messageIn: "{{ mover }} comes up the stairs."
+  wheelPassable: false

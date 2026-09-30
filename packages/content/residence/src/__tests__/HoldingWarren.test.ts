@@ -10,6 +10,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HoldingWarren from '../idea/HoldingWarren';
@@ -110,6 +111,16 @@ function seedDomain(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows: every exit is a clone of a kind row
+  // and a boundary's anchors are clones too.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    domain.push({ _id: `d-${++idCounter}`, ...row });
+  }
+  add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
+  add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
+  add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
+  add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
+
   add(WARREN_PATH, WARREN_PATH.replace('/holder', '/TestInstitution'));
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     floorplan: [
@@ -326,11 +337,12 @@ describe('the residential programme (D16)', () => {
     const w = await institution();
     const street = await StuffApi.singleton<MemberStuff>(STREET);
 
-    const door = StuffApi.createSync(
-      () =>
-        new FrontDoorExit(street, w, LOT1, 'lot-1', ROOM_A),
+    // The constructor arguments became a `configure` step (the exit is
+    // a clone of `/system/residence/idea/exits/front-door` now).
+    const door = await StuffApi.clone<FrontDoorExit>(
+      '/system/residence/idea/exits/front-door',
     );
-    await (street as unknown as Exitable & { addExit(e: unknown): Promise<void> }).addExit(door);
+    door.configureFrontDoor(w, LOT1);
 
     const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
     iris.setPlayerId('iris');

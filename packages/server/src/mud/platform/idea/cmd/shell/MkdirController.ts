@@ -59,7 +59,7 @@ export default class MkdirController extends CommandController<MkdirModel> {
         );
       }
       try {
-        await TemplateApi.saveTemplate(target, '/platform/idea/FolderZone', {});
+        await TemplateApi.saveTemplate(target, { class: '/platform/idea/FolderZone', data: {} });
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }

@@ -310,7 +310,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
 
     /**
      * The furnace's **heat scope** — what it holds (a `Container`
-     * furnace: an oven chamber) and what rests on it (a `Surfaced`
+     * furnace: an oven chamber) and what is placed on it (a `Placing`
      * furnace: a pot on a campfire). Distinct from `heatContents`'
      * scope, which is the furnace's room SIBLINGS: that is radiant
      * transfer to a workpiece brought near a forge, and it is a
@@ -327,8 +327,8 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
           }
         }
       }
-      if (MixinApi.isSurfaced(self)) {
-        for (const occ of self.getResting()) {
+      if (MixinApi.isPlacing(self)) {
+        for (const occ of self.getPlaced()) {
           const s = occ as unknown as Stuff;
           if (s !== self && !s.isDestroyed() && MixinApi.isThermal(s)) {
             heated.push(s);

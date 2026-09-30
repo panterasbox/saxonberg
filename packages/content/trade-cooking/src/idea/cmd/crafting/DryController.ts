@@ -24,7 +24,7 @@
  * a support carries an `airExposure` fraction, so a ham on a slatted rack
  * dries about three times as fast as one dropped on the floor of the same
  * room. Before the lens pass the rack was decoration —
- * `ContainmentApi.placeOn` moves an item into the *surface's* container, so
+ * `ContainmentApi.place` moves an item into the *host's* container, so
  * racked and dropped were the same air and the same arithmetic.
  */
 
@@ -89,12 +89,35 @@ export default class DryController extends CommandController<DryModel> {
     }
 
     const rack = model.rack?.stuff ?? null;
-    if (rack !== null && !MixinApi.isSurfaced(rack)) {
+    if (rack !== null && !MixinApi.isPlacing(rack)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You cannot hang anything on ${Mml.thing(rack)}.`)
         .send();
       context.note({ kind: 'controller-rejected', reason: 'no-rack' });
+      return;
+    }
+
+    // ⭐ Which way of sitting the rack offers, and what the player
+    // typed. A rack offers `on`; a meat hook offers `from`. The member
+    // is the rack's claim and the word is the player's — and `put ham
+    // on hook` works because `from`'s row lists `on` as a secondary,
+    // which is how the world teaches the word without a tutorial.
+    const member =
+      rack === null ? null : rack.resolvePlacement(model.rack?.prep);
+    if (rack !== null && member === null) {
+      const takes = rack.getPlacements().join(' or ');
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You can't hang things ${model.rack?.prep ?? ''} ${Mml.thing(rack)} — it takes ${takes}.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'wrong-preposition',
+        detail: `rack takes ${takes}`,
+      });
       return;
     }
 
@@ -107,7 +130,8 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'not-movable' });
         return;
       }
-      if (!rack.canRest(target)) {
+      const veto = rack.canPlace(target, member!);
+      if (!veto.ok) {
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(
@@ -117,7 +141,7 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'rack-refuses' });
         return;
       }
-      ContainmentApi.placeOn(target, rack);
+      ContainmentApi.place(target, member!, rack);
     }
 
     const scope = this.scopeOf(target);
@@ -134,11 +158,17 @@ export default class DryController extends CommandController<DryModel> {
     // ⚠ ONE `toSelf` frame — a Scene refuses a second of the same kind, so
     // the prospect rides in the same sentence pair rather than beside it.
     const tail = prospect === null ? '' : ` ${prospect}`;
+    // ⭐ The sentence uses the MEMBER's own word: *on the rack*, *from
+    // the hook*. A player never has to be told which; they read it.
+    const word =
+      member === null
+        ? ''
+        : (ContainmentApi.placement(member)?.getPrimaryWord() ?? member);
     const self = rack
-      ? Mml.compose`You hang ${Mml.thing(target)} up to dry on ${Mml.thing(rack)}.${tail}`
+      ? Mml.compose`You hang ${Mml.thing(target)} up to dry ${word} ${Mml.thing(rack)}.${tail}`
       : Mml.compose`You hang ${Mml.thing(target)} up to dry.${tail}`;
     const peers = rack
-      ? Mml.compose`${Mml.actor(giver)} hangs ${Mml.thing(target)} up to dry on ${Mml.thing(rack)}.`
+      ? Mml.compose`${Mml.actor(giver)} hangs ${Mml.thing(target)} up to dry ${word} ${Mml.thing(rack)}.`
       : Mml.compose`${Mml.actor(giver)} hangs ${Mml.thing(target)} up to dry.`;
 
     MessageApi.scene(giver)
@@ -194,7 +224,7 @@ export default class DryController extends CommandController<DryModel> {
   /** How much of the target the air reaches — the support's own claim. */
   private exposureOf(target: Stuff): number {
     if (!MixinApi.isContainable(target)) return 0;
-    const support = target.getRestingOn();
+    const support = target.getPlacement()?.host ?? null;
     if (support !== null) return support.getAirExposure();
     return this.dial(AppSettingKeys.cureGroundExposure, 0.35);
   }

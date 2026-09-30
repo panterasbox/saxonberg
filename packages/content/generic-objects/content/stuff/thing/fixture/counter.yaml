@@ -1,8 +1,8 @@
 # The kitchen counter — a work surface. `/lib/spatial/Surface` is the
 # shipped generic (a shelf, counter, table): items placed on it via
-# `placeOn` keep `container = the room` and gain `restingOn = this`, so they
+# `place` keep `container = the room` and gain a placement naming it, so they
 # read as being ON the counter rather than as loose room clutter.
-class: /platform/thing/Surface
+class: /platform/thing/Fitting
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: kitchen counter

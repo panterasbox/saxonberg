@@ -38,6 +38,8 @@
  */
 
 import Thing from '../stuff/Thing';
+import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
 import type { Conduit, BoundarySide } from './Conduit';
 import type { BoundaryAnchor } from './BoundaryAnchor';
@@ -45,7 +47,19 @@ import type { Adornable } from './Adornable';
 import { StuffApi } from '../../api/stuff';
 import type { FieldMeta } from '../mixin';
 
-export class Boundary extends Thing {
+/**
+ * ⭐ `PostRegistrationMixin` for ONE reason: a boundary's two anchors are
+ * CLONES OF A ROW now (`/platform/thing/BoundaryAnchor`), and a clone is
+ * async — while `installBoundary` is sync and must stay so (a vessel's
+ * `onMoved` migrates a door's anchors). So the pair is minted here, once,
+ * and `installBoundary` only WIRES it.
+ *
+ * ⚠ Consequence: `StuffApi.createSync(() => new Door())` now throws. No
+ * production site does it; `lint:create-sites` names one if it appears.
+ */
+const BoundaryBase = PostRegistrationMixin(Thing);
+
+export class Boundary extends BoundaryBase {
   /**
    * The two per-side anchors that surface this Boundary in each
    * host's `Adornable.getFixtures()`. Filled by
@@ -134,6 +148,41 @@ export class Boundary extends Thing {
   }
 
   /**
+   * Mint the two anchors from `/platform/thing/BoundaryAnchor`. Once
+   * per boundary, at registration — they then live as long as it does,
+   * migrating between hosts rather than being destroyed and rebuilt.
+   */
+  public override async postRegister(context?: unknown): Promise<void> {
+    await super.postRegister(context);
+    await this.ensureAnchors();
+  }
+
+  /**
+   * Mint the pair if it is not there yet. Idempotent.
+   *
+   * ⚠ Public and callable before `postRegister` because a Boundary can
+   * be asked to WIRE ITSELF during hydration — `Window.setAttachedHosts`
+   * is a Phase-1 setter, and Phase 1 runs before `postRegister`. That
+   * ordering is why this is a separate method and not just the hook's
+   * body: the hook is the normal path, this is the one that is earlier.
+   */
+  public async ensureAnchors(): Promise<void> {
+    if (this.anchorA && this.anchorB) return;
+    const a = await StuffApi.clone<BoundaryAnchor>(
+      TemplatePaths.boundaryAnchor,
+    );
+    const b = await StuffApi.clone<BoundaryAnchor>(
+      TemplatePaths.boundaryAnchor,
+    );
+    a.setSide('A');
+    b.setSide('B');
+    a._setBoundary(this);
+    b._setBoundary(this);
+    this.anchorA = a;
+    this.anchorB = b;
+  }
+
+  /**
    * BoundaryApi-only seam: install the two anchors. Public so the
    * Api can call across module boundaries; not intended for
    * application code (the Api wraps this with the host wiring).
@@ -168,10 +217,10 @@ export class Boundary extends Thing {
   }
 
   /**
-   * Walk both anchors, removing each from its host's `getFixtures()`
-   * and clearing the slot. Idempotent. Does NOT destruct the anchors
-   * — the caller decides whether to do that. Mirror of
-   * `Door.detach()`.
+   * Walk both anchors, removing each from its host's `getFixtures()`.
+   * Idempotent. ⭐ The anchor SLOTS are kept — an anchor is minted once
+   * with its boundary and migrates between hosts; only its host link is
+   * dropped. Mirror of `Door.detach()`.
    */
   public detach(): void {
     this._detachAnchorsOnly();
@@ -192,8 +241,6 @@ export class Boundary extends Thing {
   public _detachAnchorsOnly(): void {
     const a = this.anchorA;
     const b = this.anchorB;
-    this.anchorA = null;
-    this.anchorB = null;
     if (a) {
       const host = a.getAdornedTo();
       if (host) host.removeFixture(a);
@@ -205,20 +252,18 @@ export class Boundary extends Thing {
   }
 
   /**
-   * Subclass-bypass seam combining `_detachAnchorsOnly` with
-   * destruction of the orphaned anchors. The Boundary itself stays
-   * alive and ready to be re-anchored. Used by
-   * ExitableVessel's onMoved / setDoor migration so a Door survives
-   * the vessel relocation while its anchor pair migrates.
+   * Subclass-bypass seam: migrate the anchor pair off its current
+   * hosts, keeping the pair. Used by `ExitableVessel`'s onMoved /
+   * setDoor migration so a Door survives the vessel relocation.
+   *
+   * ⚠ It used to DESTRUCT the orphaned anchors and let the next
+   * install mint a fresh pair with `createSync`. It cannot any more —
+   * an anchor is a clone of a row, and a clone is async while this path
+   * is sync. Keeping the pair is also the more honest model: an anchor
+   * is the boundary's own per-side proxy, not a per-host one.
    */
   public _detachAndDestructAnchors(): void {
-    const orphaned: BoundaryAnchor[] = [];
-    if (this.anchorA) orphaned.push(this.anchorA);
-    if (this.anchorB) orphaned.push(this.anchorB);
     this._detachAnchorsOnly();
-    for (const anchor of orphaned) {
-      StuffApi.destruct(anchor as unknown as Stuff);
-    }
   }
 
   /**

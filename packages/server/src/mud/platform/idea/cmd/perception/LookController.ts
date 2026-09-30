@@ -316,11 +316,11 @@ export default class LookController extends CommandController<LookModel> {
           actor.learnIdentityOf(item, null);
         }
       }
-      // Items resting on a listed surface (the bottles on the back-bar) are
-      // not loose room contents — they're represented by their surface and
-      // discovered by examining it (`look back-bar`). Shared with `sense` and
-      // the inspection card via `ContainmentApi.looseContents`.
-      const topLevel = ContainmentApi.looseContents(visibleContents);
+      // Items placed on a listed host (the bottles on the back-bar) are
+      // not loose room contents — they're represented by their host and
+      // discovered by examining it (`look back-bar`). Shared with `sense`
+      // and the inspection card via `Container.getLooseContents`.
+      const topLevel = location.getLooseContents(visibleContents);
       if (topLevel.length > 0) {
         // Organism occupants route through the display-lensing formatter
         // (friends boosted, strangers density-collapsed per the viewer's
@@ -509,15 +509,23 @@ export default class LookController extends CommandController<LookModel> {
     // `NutritionLabelMixin`, not a special-case here.)
     let body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
 
-    // Drill-in: examining a surface reveals what rests on it (the back-bar's
-    // bottles + tools) — the discovery path that keeps them out of the room
-    // view.
-    if (MixinApi.isSurfaced(target)) {
-      const resting = target.getResting();
-      if (resting.length > 0) {
-        // A person sitting on a stool rests on a surface too.
-        const list = Mml.list(resting.map((r) => Mml.actor(r)));
-        body = Mml.compose`${body}── On it: ${list}.`;
+    // Drill-in: examining a placement host reveals what is placed on it
+    // (the back-bar's bottles + tools) — the discovery path that keeps them
+    // out of the room view. One line per member the host offers, so a hook
+    // says "Hanging from it" where a shelf says "On it".
+    if (MixinApi.isPlacing(target)) {
+      for (const member of target.getPlacements()) {
+        const placed = target.getPlaced(member);
+        if (placed.length === 0) continue;
+        // A person sitting on a stool is placed on a host too.
+        const list = Mml.list(placed.map((r) => Mml.actor(r)));
+        // ⭐ The heading is the MEMBER's, off its own `Placement` row —
+        // so a hook says "Hanging from it" where a shelf says "On it",
+        // with nothing here knowing the difference. A member with no
+        // live row falls back rather than printing nothing.
+        const heading =
+          ContainmentApi.placement(member)?.getHeading() || 'With it';
+        body = Mml.compose`${body}── ${heading}: ${list}.`;
       }
     }
     // A stamped good says whose it is — the bottle bought for the bar

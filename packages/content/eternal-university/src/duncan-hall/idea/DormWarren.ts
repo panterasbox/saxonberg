@@ -36,6 +36,14 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 
+/** The exit-kind ROWS Duncan Hall's edges are cloned from. */
+const PASSAGE_KIND = '/platform/idea/exits/passage';
+const STAIR_KIND = '/stuff/idea/exits/stair';
+const FLOOR_STAIR_KIND =
+  '/world/terminus/eternal/duncan-hall/idea/exits/floor-stair';
+const DORM_DOOR_KIND =
+  '/world/terminus/eternal/duncan-hall/idea/exits/dorm-door';
+
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
@@ -202,23 +210,28 @@ export default class DormWarren extends DormWarrenBase {
     // that floor's own FloorStairExit / the lobby's).
     const below = n === 1 ? await this.lobby() : await this.ensureFloor(n - 1);
     if (below && MixinApi.isExitable(below)) {
-      const down = StuffApi.createSync(
-        () =>
-          new Exit({
-            direction: 'down',
-            source: corridor,
-            destination: below as ExitableContainer,
-            keepLiveDestination: true,
-            oneWay: true,
-          }),
-      );
-      await corrEx.addExit(down);
+      // ⭐ The ROOM installs, from a kind ROW. Duncan Hall depends on
+      // generic-objects, so the plain legs use its authored `stair`.
+      await corrEx.installExit(STAIR_KIND, {
+        direction: 'down',
+        source: corridor,
+        destination: below as ExitableContainer,
+        keepLiveDestination: true,
+        oneWay: true,
+      });
     }
 
     // Install this floor's `up` FloorStairExit → ensureFloor(n+1).
     if (!corrEx.getExit('up')) {
-      const up = StuffApi.createSync(() => new FloorStairExit(corridor, n + 1));
-      await corrEx.addExit(up);
+      await corrEx.installExit<FloorStairExit>(
+        FLOOR_STAIR_KIND,
+        {
+          direction: 'up',
+          source: corridor,
+          destinationPath: DormWarren.CORRIDOR_TEMPLATE,
+        },
+        (e) => e.configureFloor(n + 1),
+      );
     }
   }
 
@@ -232,8 +245,15 @@ export default class DormWarren extends DormWarrenBase {
     const dir = `unit-${slot.pos}`;
     const existing = corridor.getExit(dir);
     if (existing) return existing as unknown as Exit;
-    const door = StuffApi.createSync(() => new DormDoor(corridor, key, dir));
-    await corridor.addExit(door);
+    const door = await corridor.installExit<DormDoor>(
+      DORM_DOOR_KIND,
+      {
+        direction: dir,
+        source: corridor,
+        destinationPath: DormWarren.DORMROOM_TEMPLATE,
+      },
+      (e) => e.configureUnit(key),
+    );
     return door as unknown as Exit;
   }
 
@@ -281,17 +301,13 @@ export default class DormWarren extends DormWarrenBase {
     if (!corridor) return;
     const roomEx = this.requireExitable(room);
     if (roomEx.getExit('out')) return;
-    const out = StuffApi.createSync(
-      () =>
-        new Exit({
-          direction: 'out',
-          source: room,
-          destination: corridor as ExitableContainer,
-          keepLiveDestination: true,
-          oneWay: true,
-        }),
-    );
-    await roomEx.addExit(out);
+    await roomEx.installExit(PASSAGE_KIND, {
+      direction: 'out',
+      source: room,
+      destination: corridor as ExitableContainer,
+      keepLiveDestination: true,
+      oneWay: true,
+    });
   }
 
   // ───────────────────── private helpers ──────────────────────────
@@ -306,7 +322,14 @@ export default class DormWarren extends DormWarrenBase {
   private async installLobbyUpExit(): Promise<void> {
     const lobby = await this.lobby();
     if (!lobby || lobby.getExit('up')) return;
-    const up = StuffApi.createSync(() => new FloorStairExit(lobby, 1));
-    await lobby.addExit(up);
+    await lobby.installExit<FloorStairExit>(
+      FLOOR_STAIR_KIND,
+      {
+        direction: 'up',
+        source: lobby,
+        destinationPath: DormWarren.CORRIDOR_TEMPLATE,
+      },
+      (e) => e.configureFloor(1),
+    );
   }
 }

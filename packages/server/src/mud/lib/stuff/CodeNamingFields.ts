@@ -12,6 +12,16 @@
  * here: they name *another template*, which must itself have passed this
  * same gate on its own `class`, so they are closed by construction.
  *
+ * ⭐⭐ **`extends` is one of those, and deliberately so.** A parent path
+ * resolves to a ROW, not to code — a row that passed this same gate when
+ * somebody authored it. It sits one hop further out than `props[]`: the
+ * transitive set, not the direct set. That is what makes the mechanism
+ * the refusal below has always described possible — *"protowizards author
+ * by cloning/customizing wizard-made templates"* — because a class-less
+ * child names no code-naming field at all and the delta rule has nothing
+ * to refuse. Retargeting `extends` is likewise a content edit: the new
+ * parent is vetted too.
+ *
  * This vocabulary is also consumed by the drift-guard
  * (`__tests__/codeNamingDriftGuard.test.ts`), which fails if a new
  * module-resolving call site appears without being classified against

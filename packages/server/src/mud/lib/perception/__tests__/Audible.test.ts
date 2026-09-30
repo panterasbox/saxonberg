@@ -8,7 +8,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { AudibleMixin } from '../Audible';
 import { MixinApi } from '../../../api/mixin';
 import { PerceptionApi } from '../../../api/perception';
@@ -19,7 +19,9 @@ import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../modalities/__tests__/test-helpers';
 import type { MessageFrame } from '@saxonberg/types';
@@ -39,6 +41,10 @@ function room(zone: CartesianZone, x: number, y: number): CartesianLocation {
 }
 
 describe('AudibleMixin.emit', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     installV1QuantityTagTables();
     buildAllModalities();

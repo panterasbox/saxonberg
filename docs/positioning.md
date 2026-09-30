@@ -7,8 +7,9 @@
 >
 > Scope: the **public** frame (panterasbox.com, the video track, the
 > Discord). The institutional pitch is a different artifact with a
-> different exclusion list — see [lenses/the-pitch.md](./lenses/the-pitch.md),
-> which deliberately keeps the polity *out* of the exec room.
+> different exclusion list, which deliberately keeps the polity *out* of
+> the exec room. ⚠ Its lens entry (*the Pitch*) was retired 2026-09-29
+> and that discipline is now recorded nowhere else.
 
 ---
 
@@ -64,6 +65,7 @@ Not MUDs. Not AAA games. The real comparison set:
 | **Roblox / Minecraft** | Worlds, creators, enormous reach | Platform governance is unilateral. Creators have economics, never authority. |
 | **Reddit** | Moderation as de facto governance | Entirely informal; 2023 showed users hold no structural power. |
 | **DAO tooling** (Snapshot, Aragon) | Real governance primitives | No world, no reason to show up, dismal turnout. |
+| **Unity / Unreal** | The toolkit everyone reaches for | ⭐ **Outputs never coexist.** Two games built with Unity share no market, economy or neighbourhood, so their quality is nobody's business but their author's. |
 
 ⭐ **The sharpest internal one-liner:** *DAOs have governance with no
 reason to participate. Games have participation with no governance. We
@@ -73,6 +75,78 @@ That is also the honest answer to "who are you competing against" —
 **Discord, mostly.** Communities already exist there and already argue
 about who decided what. We are not trying to win a genre; we are trying
 to give an existing thing a memory and a constitution.
+
+### ⭐⭐ "Like Unity?" — the answer that is not hand-waving
+
+*"A game"* is the short answer and it is wrong; *"a game platform"* gets
+*"like Unity?"*, which is also wrong, and the difference is worth being
+able to say in one move:
+
+> **Unity gets to be neutral because its outputs never coexist.** Ours
+> all live in the same world — one economy, one polity — so a bad thing
+> is not merely bad, **it is a cost to other people.** Neutrality is
+> affordable only when outputs do not interact.
+
+Roblox and Minecraft are closer, because **making the thing is as much
+the point as playing it.** But they stop one step short:
+
+> **Unity does not care. Roblox counts the audience. We are trying to
+> have an opinion that is not the house's.**
+
+Roblox measures *how many people played your thing* — attention, which
+is the Feed's metric. The claim here is to measure whether it was any
+**good**, and to say *who says so* — which is exactly why
+[measurement.md](./measurement.md) separates the engine that counts, the
+subject that values and the polity that imposes, and why **B8 forbids
+the engine from ever computing *how good is this person* itself.**
+
+### ⭐⭐ The other half of the answer: the synthesis is the moat
+
+Added 2026-09-29 from [lens #30 · Emergence](./lenses/30-emergence.md).
+Almost nothing here was invented — the RGO is Europa Universalis' concept
+applied to an MMO, the settlement model credits the colony sims by name,
+logistics credits Transport Fever and Manor Lords, crafting credits Dwarf
+Fortress and EVE. The claim is **not** that any one of them is better
+here; ⚠ each is deeper in its own game than it will ever be in ours, and
+the public frame should say so rather than imply otherwise.
+
+> **Europa Universalis' RGOs have no labour market with people in them.
+> Transport Fever's network has no polity deciding where the road goes. A
+> MUD has rooms and verbs and nothing underneath them. None of these
+> systems has ever had to coexist with the others in one world people
+> live in.**
+
+⭐⭐ **So the defensible thing is the combination, not any component** — a
+competitor has to copy a synthesis rather than a feature. Which is also
+the internal permission that makes the scope survivable: **borrow to the
+depth the combination needs, not the depth the source went.**
+
+⚠ **And the cost, which belongs with Part 0's gap:** a synthesis has no
+genre, so **the thing that makes the design interesting is the thing that
+makes it hard to describe.** *"A well-designed MUD"* is what a reader
+concludes when the interesting claim is about how six borrowed systems
+meet.
+
+### ⭐⭐⭐ Which makes the freedom to decide badly load-bearing
+
+The consequence is not soft, and it is the sentence to reach for when
+someone asks why the platform allows something obviously unwise:
+
+> **A measurement only has content if the thing measured could have gone
+> badly.** Prevent the bad decisions and you are measuring the
+> prevention, not the person. **A decision economy with no bad decisions
+> carries no information.**
+
+So the freedom to make poor choices is not tolerance; it is a
+**precondition**. And it runs straight into the constitution:
+
+> **freedom → consequence → harm → governance.** Bad decisions must be
+> possible; outputs coexist, so someone else's bad judgment can cost
+> you; which is *who can be wronged, on what basis, and can they answer*
+> — and that is why there is a polity at all.
+
+⭐ That is a better one-line answer to *"why does a game need a
+constitution"* than any currently in the governance material.
 
 ---
 
@@ -168,5 +242,5 @@ before *For communities*.
    promise we have not tested.
 4. **The institutional pitch keeps its own exclusion list.** This doc
    widens the *public* frame; it does not amend
-   [lenses/the-pitch.md](./lenses/the-pitch.md), which keeps the polity
-   out of the exec room on purpose.
+   the institutional pitch, which keeps the polity out of the exec room
+   on purpose.
