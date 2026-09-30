@@ -22,3 +22,26 @@ requires:
       parentParcel: /world/terminus
       holder: { group: hearts-delight }
       landUse: agricultural
+    # ⭐⭐ **The close is TITLED, and to Quist's business rather than to
+    # Quist.** A `player` holder cannot name an NPC, and a `Business`
+    # extends `Organization` whose head is the appointing authority — so
+    # `AccessApi.can` answers for Quist through his farm, and
+    # `ParcelApi.ownerOf(close)` names the farm.
+    #
+    # ⭐ Why it matters: a beekeeper standing a hive in somebody else's
+    # orchard is the build's whole premise, and the premise is only real
+    # if the orchard demonstrably belongs to somebody. ⚠ Nothing is
+    # GATED on it — `drop` refuses nobody, and the requirements do not
+    # ask that it should. The polity's criterion exists and the code
+    # enforces nothing, which is the honest arrangement: consent is a
+    # thing people can point at, not a thing the engine adjudicates.
+    #
+    # ⚠ Declared here rather than produced at boot because a manifest
+    # claim is the only declarative seam (`PackApi.install` →
+    # `ParcelApi.grant`), it reconciles idempotently, and this pack's
+    # README forbids code.
+    - extent: /world/terminus/hearts-delight/bench-field/location/orchard-close
+      parentParcel: /world/terminus/hearts-delight
+      holder: { organization: /world/terminus/hearts-delight/idea/farm-business }
+      landUse: agricultural
+      areaM2: 1200

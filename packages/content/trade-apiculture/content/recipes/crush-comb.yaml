@@ -1,0 +1,35 @@
+# Crush comb — ⭐⭐ **honey and wax, and the comb is gone.**
+#
+# The old way and the poor way: mash the comb, strain the honey out, and
+# render what is left into a cake of beeswax. You get less honey than
+# spinning does, and you get the wax — which is what candles are made of,
+# and the only reason anybody in this game has light that is not fire in a
+# pot.
+#
+# ⭐ **Neither recipe is the better one** (AC 11). Two recipes over ONE
+# input, differing in a tool capability and an output residue, and nothing
+# in the code branches on the tool. Which you want depends on what you are
+# selling, and that is the decision the trade exists to offer.
+recipeId: crush-comb
+name: Crush comb
+keywords: [crush, comb, honey]
+discipline: apiculture
+difficulty: easy
+inputSlots:
+- slot: comb
+  kind: item
+  # ⚠ A slot's `category` matches the INPUT's Material tags, and the
+  # comb's material is honey. `honey` it is — a jar of honey cannot
+  # satisfy an `item` slot, so the two never collide.
+  category: honey
+  minGrade: poor
+  count: 1
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/apiculture/thing/honey-jar
+outputMaterial: /trade/apiculture/idea/material/honey
+outputPortionL: 0.55
+outputAppearance: cloudy honey with flecks of wax in it
+outputResidue:
+  template: /trade/apiculture/thing/beeswax-cake
+  count: 1
