@@ -800,6 +800,30 @@ first.
    the lesson, **but a hidden penalty is not a lesson** — crowding must be
    perceivable.
 
+### ⚠ Re-run at SEVEN lenses, 2026-09-30
+
+The rubric was reviewed on master (lens 3 split into immersion and
+participation; economy and governance carved apart; and an **altitude** rule —
+`invariant` · `grain` · `title` — with the finding that a pass omitting the
+grain is worse than one that mis-levels). **The canonical re-run lives in
+[apiculture-requirements.md](../../requirements/apiculture-requirements.md) §
+Lens pass**; it is not duplicated here. What it changed:
+
+- ⭐⭐⭐ **Lens 3b killed the bee-board.** *"Every NPC-held seat is a standing
+  vacancy"* and *"every NPC doing two jobs is a vacancy we deleted"* — the plan
+  had one farmer holding five seats in the build whose thesis is that a
+  beekeeper is a **second party** on land they do not own. ⭐ **Lens 6's chain
+  walk reached the same verdict independently**: hives and frames are carpentry,
+  so this build *creates* a woodenware-maker-shaped hole, and a par counter
+  deletes it. The kit moved to a shop in town; the valley keeps its hole.
+- **Lens 2's provenance rule** (*authored · stamped · derived*, and *"whichever
+  framing is most useful at the moment is how a substrate rots"*) caught the
+  forage read resting on a clover share whose own docstring claims it is derived
+  while nothing writes it.
+- **Two answers below are `grain`, not doctrine**: the no-numbers reading, and
+  forage having no title. Both are recommendations the substrate ships and an
+  author may depart from on purpose.
+
 ### What the pass changed
 
 1. `apiculture` is its own Discipline (precedent, not preference).

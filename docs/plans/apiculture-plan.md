@@ -518,6 +518,23 @@ apply the same rule from the same value object** (D9) without composing
 
 ### D6 — The forage read is a Field read plus an exits walk on the hive
 
+⭐⭐ **Provenance, stated (lens 2, 2026-09-30).** The reviewed rubric requires
+an attribute to declare whether it is **authored · stamped · derived**, and
+warns that *"whichever framing is most useful at the moment is how a substrate
+rots."* This read is deliberately **mixed**, and each term is named:
+
+| term | provenance |
+|---|---|
+| `legumeFraction` (the clover share) | **authored** — hydrated from the row, and there is no writer |
+| the standing sward | **derived** — reconciled over game-time |
+| the season gate | **derived** — from the Field's cached sky |
+
+⚠⚠ **And `Field.ts:518–520` must be corrected in W2**: its docstring claims
+the fraction *"falls when the clover is grazed out and rises when it is
+not"*, which is **false** — nothing writes it. Either the sentence goes or the
+writer arrives, and the writer is farming's build, not ours. **This build
+deletes the claim** rather than inheriting a lie it then computes on.
+
 - **`Field.inFlowerFraction(): number`** (trade-farming edit, W2, ~15
   lines): `legumeFraction × swardFraction() × bloomSeason()` where
   `bloomSeason()` reads the Field's own cached `_ambientK` /
@@ -796,7 +813,7 @@ Organism read `isAlive()` is honest.
   `put swarm in hive`.
 - **Buy**: a nucleus is `/trade/apiculture/thing/nuc` (class `Colony`,
   `strength: 0.35`, `hasQueen: true`, `handling: 0.6`) sold from Quist's
-  board (D18); `put nuc in hive`.
+  general store (D18); `put nuc in hive`.
 - **Split**: `Hive` implements `Splittable` (`splittable = true`,
   `planWork`, `completeWork`): refuses under `strength < 0.6` or without a
   queen (*"there is not enough of them to make two"*), else plans a
@@ -846,21 +863,41 @@ Organism read `isAlive()` is honest.
 | bee veil, work gloves | `/stuff/thing/clothes/{bee-veil,work-gloves}` | generic-objects | `Garment` rows | D16 |
 | honeybee species | `/stuff/idea/species/…/apis/mellifera` | **moved** from trade-ranching to trade-apiculture, same path | Species | D19 |
 
-### D18 — Quist's board is a labelled imported-input faucet
+### D18 — ⭐ No board. The kit is the general store's, and the valley keeps its hole
 
-`hearts-delight/…/thing/bee-board.yaml`: class `/trade/shopkeeping/thing/
-Stock`, `businessPath: …/idea/farm-business`, `staffingPolicy:
-self-service`, `stockLines`: nuc (par 1), hive (2), thick hive (1), super
-(3), smoker (1), extractor (1), honey jar (3), bee veil (1), work gloves
-(1), candle (0 — the board sells inputs, not the trade's output). Placed in
-the farmstead yard by `props:`; the slate on it is a `details:` entry.
-⚠ The farm shelf refuses par on principle (a static farm is a source node)
-and this row is a **faucet, labelled as one** in its comment by the malt
-precedent (*the honestly-labelled imported-input faucet*): woodenware and a
-smoker are hauled into the valley, and a nucleus is Quist's spring split
-sold on. The requirements' drive buys these off Quist and there is no
-other shipped way to put stock on a shelf without a brain. **Flagged for the
-user** (Risks).
+**Revised 2026-09-30 against the reviewed lens doc; supersedes a par-stocked
+`Stock` counter in Quist's yard.** Two lenses condemned that independently:
+
+- **3b Participation** — *"every NPC-held seat is a standing vacancy"*, and the
+  instrument table's *"every NPC doing two jobs is a vacancy we deleted."* The
+  board made Quist the farmer, the landowner, the pollination beneficiary, the
+  honey buyer **and** the woodenware seller: five roles, in the build whose
+  thesis is that a beekeeper is a **second party** on land they do not own.
+- **6 Economy**, by the chain walk (*add a consumer, derive the producers*) —
+  hives, frames and supers are **carpentry**, so this build creates a
+  woodenware-maker-shaped hole. Filling it with a par faucet deletes the
+  vacancy the build just created, which is also why the tap substrate calls par
+  *"a faucet wearing a hat."*
+
+**So:**
+
+1. **Woodenware and the smoker are `stockLines` on Terminus's general store**
+   (`world/terminus/general-store/`), ten minutes up the road. ⭐ A general
+   store's job *is* importing — that is what `retail.md`'s Stock counter is
+   for — so the faucet now sits where faucets belong instead of on a static
+   farm whose own shelf refuses par on principle. Lines: hive, thick hive,
+   super, smoker, extractor, bee veil, work gloves, honey jar.
+2. ⭐⭐ **The valley has no supplier at all**, and that is the point: the hole
+   is visible and takeable, and the trip to town is real.
+3. **One labelled line mints life: the nucleus** (par 1, at the store). A new
+   beekeeping district really does start by importing bees, and after the first
+   one, splits and swarms supply themselves — so the faucet is one line rather
+   than nine, it is in a shop, and its comment says what it is.
+4. Quist reverts to **one role**: the grower who benefits from the bees and
+   buys the honey off the shelf he already has.
+
+⚠ The drive's step 3 now buys at Terminus and walks down, which also exercises
+the road. Nothing in Heart's Delight is added for it.
 
 ### D19 — The honeybee row moves into the pack; its path does not
 
@@ -964,7 +1001,7 @@ is derived, and the interior temperature is not a requirement).
 ## Convention conformance (checked at plan time)
 
 - **`props:` / `cast:`** — every placement in this build uses `props:`
-  (beds, frames in a hive, the board in the yard); Quist stays `cast:`.
+  (beds, frames in a hive); Quist stays `cast:`.
   `populates:` appears nowhere.
 - **Locations, not rooms** — the close is a `Field` (a `CartesianLocation`);
   nothing new is a `FurnishableRoom`.
@@ -988,7 +1025,7 @@ is derived, and the interior temperature is not a requirement).
   collection or lint exemption.** The exits walk and the sting ladder are
   methods on `ColonyMixin`; the hash for the seeded site index is a private
   method.
-- **Money** — nothing mints; the board's stock is goods, priced by the
+- **Money** — nothing mints; the store's stock is goods, priced by the
   shipped `PricedOffer`.
 
 **Lint gates this build must satisfy** (all run by `lint:family`; the
@@ -1055,7 +1092,8 @@ list — keep the header's argument, note the instance-seam finding);
 `trade-ranching/src/idea/cmd/ranching/HandleController.ts` (machinery
 only); `trade-ranching/src/idea/cmd/ranching/TapController.ts`
 (`protected discipline(animal): string` hook, used in the credit);
-`trade-farming/src/location/Field.ts` (`inFlowerFraction()`);
+`trade-farming/src/location/Field.ts` (`inFlowerFraction()`, **and delete the
+false docstring at L518–520 claiming `legumeFraction` is derived** — D6);
 `trade-farming/content/trade/farming/thing/plant/{cherry,cranberry,mint}.yaml`
 (`pollinationBaseline: 0.5`); tests: ranching `hazards.test.ts`,
 `taps.test.ts`, `stockman-read.test.ts` unchanged and green; a new
@@ -1078,7 +1116,11 @@ add `@saxonberg/content-trade-ranching`, `@saxonberg/content-trade-farming`,
 `@saxonberg/content-platform`); `src/lib/Colony.ts`; `src/thing/Hive.ts`;
 `src/thing/Colony.ts`; `src/thing/HiveBox.ts`; `content/trade/apiculture/
 idea/Discipline/apiculture.yaml`; `content/settings/apiculture.yaml`;
-rows `content/trade/apiculture/thing/{hive,thick-hive,super,nuc,swarm}.yaml`;
+rows `content/trade/apiculture/thing/{hive,thick-hive,super,nuc,swarm}.yaml`
+— ⭐ **using `extends:`**, which shipped on master 2026-09-30 (66 rows already
+use it; `ref-shapes.md` now reads *"Template inheritance EXISTS"*): a `hive`
+base row carries the shared fields and `thick-hive` and the skep differ only in
+`enclosure`, which is also the epoch ladder expressed as two inherited rows;
 the species row **moved** (`git mv`) from trade-ranching to
 `content/stuff/idea/species/…/mellifera.yaml` with its new fields; the
 pack registered in `pnpm-workspace` if the workspace globs do not already
@@ -1166,27 +1208,30 @@ present after warm; no double-match warning; suites green.
 
 **Commit.** `build(apiculture W6): crush or spin, a candle from the wax, and mead — the hurdle run backwards`
 
-### W7 — Heart's Delight: the close, the crop, the board (D13, D18)
+### W7 — Heart's Delight: the close and the crop; Terminus: the kit (D13, D18)
 
 **Files.** `hearts-delight/content/world/terminus/hearts-delight/bench-field/
 location/orchard-close.yaml`; `upper-bench.yaml` (an `exit` to the close;
-one sentence of prose noticing the close below); `location/farmstead-yard.
-yaml` (the board in `props`, a `details` entry); `thing/bee-board.yaml`;
-`pack.yaml` (the title claim); `hearts-delight/package.json` (dep on
-trade-apiculture, generic-objects); `agent/farmer.yaml` (one `idles` pool
-line about the bees — optional). Test: the census gate; a boot test is the
-drive.
+one sentence of prose noticing the close below); `pack.yaml` (the title
+claim); `hearts-delight/package.json` (dep on trade-apiculture); ⭐
+`terminus/content/world/terminus/general-store/…` — the woodenware
+`stockLines` (D18), which is the **only** retail addition and is in a shop;
+`agent/farmer.yaml` (one `idles` pool line about the bees — optional). Test:
+the census gate; a boot test is the drive.
+
+⚠ **No bee-board, and nothing sells bees in the valley** (D18). That hole is
+deliberate and is the build's own participation finding.
 
 **Acceptance.** `lint:census` green; the pack installs with `granted` for
 the close (boot line); `ParcelApi.ownerOf(close)` answers the farm business
 (assert in the drive).
 
-**Commit.** `build(apiculture W7): Quist gets his close — a clover ley, three cherries, a title, and a board that sells woodenware`
+**Commit.** `build(apiculture W7): Quist gets his close — a clover ley, three cherries and a title; the kit comes from town`
 
 ### W8 — The drive, the docs, the suite, the MR
 
 **Files.** `packages/wire/tests/apiculture.dirty.wire.test.ts`
-(`DIRTY_REASON`: it buys the board's par, robs and crushes comb, sells
+(`DIRTY_REASON`: it buys the store's par, robs and crushes comb, sells
 honey on the farm shelf, plants nothing but leaves hives on a persisted
 Field); `docs/subsystems/apiculture.md` (new — the colony, the forage read,
 the winter equation, the sting ladder, what the drive found); one-line
@@ -1204,7 +1249,7 @@ the clock):
 |---|---|---|
 | 1 | `up` to the bench, `down`/`up` into the close; `look` reads the clover line from `Field` prose + the census (words, no digit) | — |
 | 2 | `look cherry` → *"in flower"* (mature rows); note `getFruitSetCount` via `query` | the fill and the pick (W0, W5) |
-| 3 | `buy nuc/hive/smoker/veil` at the board; `check` | — |
+| 3 | walk to Terminus's general store, `buy nuc/hive/smoker/veil`, walk back (D18 — nothing in the valley sells bees); `check` | — |
 | 4 | `drop hive`; `put nuc in hive` → adopted (the nuc is gone; `look hive` reads traffic) | — |
 | 5 | `handle hive` bare → the sting scene names hands/head and the veil+smoke sentence; a `puncture` at a bare site in `conditions`; no `combat` note | 30 stings → severity 3 (W4) |
 | 6 | `wear veil`, `wear gloves`, `handle` → fewer landed, none at head/hands | calibration (W4) |
@@ -1246,7 +1291,7 @@ can read it off.
 | crush / spin | `make` (platform crafting) | the recipe rows under `content/recipes/` | `category: comb` tag on the honey material? **No** — the slot's `category` matches the **input's Material tags**, so the comb's material (`honey`) must carry the tag the recipe names: use `category: honey` on the comb slot, and `honey-must`'s slot names `honey` too (a jar of honey and a comb both satisfy it; the jar is bulk, the comb an item — `kind` disambiguates) | `RecipeCatalogue` warms `content/recipes/` | `extracting` on the extractor row for `spin-comb` |
 | the candle | `make candle`, `ignite candle` | recipe row; `FurnaceMixin` for ignite | `wax` tag on beeswax; `/stuff/thing/candle` row | — | `ignite` `requires: CombustibleMixin\|FurnaceMixin` ✓ Lamp |
 | mead / wild honey | `pour`, `open`/`close` (shipped) | the Vat family | `honey-must` / `honey` tags; the two profile rows | `MaturationProfileCatalogue` warms any root's `idea/maturation/**` | — |
-| buy the kit | `buy` at the board | `Stock` affords `buy` | `stockLines` paths resolve (`lint:census`) | the board stocks itself to par at `postRegister` | — |
+| buy the kit | `buy` at Terminus's general store | `Stock` affords `buy` | `stockLines` paths resolve (`lint:census`) | the counter stocks itself to par at `postRegister` | — |
 | sell honey | `consign`/`buy` on the farm shelf | `ConsignmentShelf` | — | — | the jar is a chattel-stamped Thing ✓ |
 | pollination | none — a consequence | — | `pollinationBaseline` on the three crop rows | — | — |
 | the forage read | none — a read | — | `legumeFraction` on the close; flowering plants in beds | `Field.restampSeason` resolves the sky | — |
@@ -1268,7 +1313,7 @@ comb cannot satisfy a `bulk` one, so the two never collide.
 
 | AC | satisfied by | proof |
 |---|---|---|
-| 1 three ways, three costs | W3 (nuc row, swarm row), W4 (split), W7 (the board) | drive 3/4, 11; `split.test.ts`; `colony.test.ts` |
+| 1 three ways, three costs | W3 (nuc row, swarm row), W4 (split), W7 (the store's lines) | drive 3/4, 11; `split.test.ts`; `colony.test.ts` |
 | 2 words, never a number | W4 `workedOver` overrides; W2 keeps the flesh score on livestock | drive 7 (`no \d`); controller test |
 | 3 stung bare, less when veiled — because the covering stopped it | W4 + W1 | `stings.test.ts`; drive 5–6 |
 | 4 one sting's pain, thirty a medical problem | W4 (0.5 burden vs venom's bands) | `stings.test.ts` |
@@ -1317,11 +1362,13 @@ the sting scene carries the *what instead*).
 
 ## Risks & opens
 
-1. **Quist's board is a faucet** (D18) in a valley whose own row refuses
-   one for produce. It is labelled, it sells imported inputs, and the nuc
-   line (par 1) is the one place a colony is minted from nothing. The user
-   should look: the alternative (Quist runs the `consigns` brain over an
-   authored stock of woodenware) is a brain on a static farm.
+1. ✅ **RESOLVED 2026-09-30 — the board is gone** (D18, rewritten). The lens
+   review's 3b and the chain walk both condemned it: it deleted a vacancy the
+   build creates. The kit is now Terminus's general store's, where importing is
+   the shop's job; the valley has no supplier and that hole is the finding.
+   **One faucet line remains and is labelled** — the nucleus, par 1, at the
+   store, because a new beekeeping district really does start by importing
+   bees.
 2. **The `handle` body moves onto the animal** (D12) — a ranching pack
    refactor beyond "rows over shipped verbs". It is the only way the
    colony's read can be band-only under `lint:verb-collisions`, and it is

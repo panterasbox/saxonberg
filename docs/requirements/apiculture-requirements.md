@@ -358,46 +358,118 @@ land**.
 
 ## Lens pass
 
-1. **Pedagogy** — a new Discipline, and one derivable equation at the centre:
-   **a colony stores a surplus, and the surplus is what the winter did not
-   need.** Winter demand follows from the weather and the hive's walls, so a
-   player who understands it can predict it and be right. ⚠ Swarming is
-   **derived from crowding, never drawn** — a rolled swarm would convert the
-   whole skill into luck, and the project forbids rolling what your action did.
-   The one legitimate uncertainty is *epistemic*: you do not know the queen
-   until you read her brood.
-2. **Expression** — the strongest result. Honey's character comes from the
-   flowering census, so **an author who adds a flowering plant gets a new
-   honey with no row written for it**. A second apiary is a row and a
-   placement. The toolkit is instruments carrying capabilities, which is the
-   shipped pattern.
-3. **Immersion** — ⭐ **you heft the hive.** Weight tells you stores, entrance
-   traffic tells you strength, comb tells you brood; there is no strength
-   number anywhere. Expertise is discrimination, exactly as tasting is in the
-   kitchen. And roleplay follows without scripting: a swarm in a tree belongs
-   to whoever boxes it, and it came out of somebody's under-supered hive.
-4. **Values** — the forced choice is **how much honey to take**, with the
-   consequence a season away and no rule stopping you. Then crush against
-   extract, and how many hives to crowd onto one range. Standing is conferred
-   by the growers who have you back.
-5. **Epochs** — the cleanest ladder the game has: robbing a wild nest → a
-   straw skep whose comb must be destroyed → movable frames and a spinner →
-   hives hauled to orchards for hire. Only **whether the comb survives**
-   changes, and that is a property of the hive, not a different machine.
-6. **Economy & governance** — **produces** honey, wax, colonies as capital,
-   and **pollination**, which lands on somebody else's land; **consumes**
-   time, woodenware, and sugar in a dearth. The demand was there first: three
-   shipped surfaces already promise bees, lighting already prices a candle
-   nothing makes, and fruiting crops already exist with nothing to pollinate
-   them. **Who can be wronged:** a grower whose crop you decline to serve (the
-   criterion is a bargain, and there is no bar); a landholder whose ground you
-   want (the criterion is title, and they may simply refuse); a neighbour your
-   bees sting (an apiary is an unwanted land use, and ⭐ the cultivation rules
-   have **nothing to say** about a hive — it grows nothing — so whether you may
-   keep bees near a road is a question for the polity, not the code); and
-   ⚠ **a beekeeper crowded out of a range, who has no appeal at all, because
-   forage is owned by nobody.** That one is deliberate and is the lesson —
-   which is why it must be visible.
+⚠ **Re-run 2026-09-30 against the reviewed rubric** (seven lenses; lens 3 split
+into immersion and participation; economy and governance carved apart). ⭐ Each
+answer is **levelled** — `invariant` binds every game built here, `grain` binds
+nothing but is what the substrate is *for*, `title` binds only this one —
+because the rubric holds that a pass omitting the grain is worse than one that
+mis-levels.
+
+**1 · Pedagogy.** `apiculture` is minted, by the roster's rule that every
+resource trade ships one; it is the **dominant** Discipline, with horticulture
+second-order through pollination. The derivable core is one sentence: **a colony
+stores a surplus, and the surplus is what the winter did not need** — and winter
+demand follows from the weather and the hive's own walls, so a player who
+understands it can predict it and be right. *Is deriving the fun?* Yes: the
+winter decision **is** the game. ⚠ `invariant` — swarming is **derived from
+crowding, never drawn**; rolling what your action did is banned platform-wide.
+The only legal uncertainty is epistemic: you do not know the queen until you
+read her brood.
+
+**2 · Expression.** ⭐ *Objects per verb, never more verbs* — the ban on
+enumeration is what the take decomposition obeys: no new branch in a shipped
+verb, two new **objects** (a comb, a spinner) and two recipes. What a player
+makes theirs is **their own honey**, whose character derives from what was in
+flower in range, so an author who adds a flowering plant gets a new honey with
+**no row written for it**. The chain: forage → comb → honey and wax → candle
+and mead. ⚠ **Provenance is stated** (plan D6): authored clover share × derived
+standing sward × derived season — and the build **deletes** the shipped
+docstring claiming the clover share is derived when nothing writes it. `grain` —
+the hive rows use `extends:`, so the technology ladder is two inherited rows.
+
+**3a · Immersion.** ⭐ **You heft the hive.** Weight tells you stores, traffic
+tells you strength, comb tells you brood, and **no number appears anywhere in a
+colony's reading**. The betrayal risk is a hive that reads as a spreadsheet; the
+answer is that every read is a perception. `grain` — no-numbers ships **per
+host**, so the shipped livestock score is untouched and an author could change
+ours. That is the rubric's honest form: a default somebody departs from on
+purpose.
+
+**3b · Participation.** ⭐⭐⭐ **The lens that changed the build.** The role it
+opens is the **beekeeper**, and the valley is deliberately left with **nobody
+selling bees or woodenware** — a visible, takeable hole, with a chandler and a
+meadmaker derived beside it. ⚠ Before this pass one NPC held five seats
+(farmer, landowner, pollination beneficiary, honey buyer, kit seller), which is
+*a vacancy we deleted* — in the one build whose thesis is that a beekeeper is a
+**second party** on land they do not own. *Can the polity refuse us?* Yes, at
+placement: a landholder may say no, and an apiary is a locally-unwanted land use
+whose siting rule is the polity's (tier C).
+
+**4 · Values.** The undecidable choice is **how much honey to take** — the
+consequence a season away, and nothing warns you. Then crush against spin, and
+how many hives to crowd onto one range. ⭐ This build **refuses variable
+reward**, and the price is paid by **the swarm**: a windfall arriving out of
+somebody's under-supered hive rather than out of a die. Standing is conferred by
+the growers who have you back, not by throughput. `grain` — the surplus norm is
+a recommendation; nothing stops an author shipping bees that never starve.
+
+**5 · Continuity.** The same commands answer in every epoch: rob a wild nest →
+a straw skep whose comb must be destroyed → movable frames and a spinner →
+hives hauled to orchards for hire. Only **whether the comb survives the
+harvest** changes, and that is a field on a hive row. ⭐ Under the reviewed
+rubric this lens inherits lens 2's veto rather than holding its own, and it
+passes for the reason that matters: the ladder is **rows**, so another epoch
+costs an author no code.
+
+**6 · Economy.** **Produces** honey, wax, colonies as capital, information about
+forage, and **pollination**, which lands on somebody else's land. **Consumes**
+time, woodenware, and sugar in a dearth. **Who pays:** whoever buys the honey,
+and the beekeeper pays a shop in town for the kit. **Was the demand there
+first?** Three ways, all verifiable: three shipped player-facing surfaces
+already promise bees, lighting prices a candle nothing in the game makes, and
+fruiting crops exist with nothing to pollinate them. ⭐ **The roulette test
+passes** — honey is worth having without the Discipline, so the credential is
+not propping up the play. ⭐⭐ **The chain walk** (*add a consumer, derive the
+producers*) is what caught the board: a candle derives a chandler, honey a
+meadmaker, and a hive a **woodenware maker** — so the build leaves that hole
+open instead of filling it with par.
+
+**7 · Governance.** Three criteria with appeals, and one absence on purpose:
+
+| the wrong | the criterion | the appeal | tier |
+|---|---|---|---|
+| placement refused | **title** | the owner's word, readable | B |
+| pollination unpaid | **the clause**, verifiable | the contract board | B |
+| bees stinging by a road | **none in code** — the cultivation rules have nothing to say about a hive, which grows nothing | a polity ordinance | **C** |
+| **crowded out of a range** | **none** | **none** | `grain` |
+
+⚠ *Implementing a law must not entrench it* — so if a bee ordinance ever ships,
+it ships amendable. And the fourth row wants reading twice: forage is rivalrous
+and untitled **because that is the lesson**, which makes it `grain` and not
+`invariant` — an author could title forage and the substrate would not stop
+them; we recommend they do not. ⚠⚠ Which is exactly why **crowding must be
+perceivable**: an unappealable loss that is also invisible is not a lesson, it
+is a hidden penalty.
+
+### What the two passes changed
+
+From the original six-lens pass: `apiculture` is its own Discipline; swarming is
+derived; hefting is the read; the candle is **required** because wax with no
+consumer fails lens 2; crush-vs-spin **is** the epoch ladder so the skep ships
+first; forage stays a commons but crowding must be perceivable; and the queen is
+drafted.
+
+From the 2026-09-30 re-run:
+
+- ⭐⭐⭐ **the bee-board is gone** — lens 3b and the chain walk condemned it
+  independently for deleting the vacancy the build creates. The kit is Terminus's
+  general store's, where importing is a shop's job; the valley has no supplier,
+  and one labelled line (a nucleus, par 1, in a shop) is the only place life is
+  minted from nothing;
+- **the forage read declares its provenance**, and the false docstring is deleted
+  rather than computed on;
+- **every answer is levelled**, and two that read as doctrine turn out to be
+  `grain`: the no-numbers rule, and forage having no title.
 
 ## The drive
 
@@ -407,8 +479,9 @@ Heart's Delight.
 1. Walk `up` to the upper bench. The bench reads as pasture **in flower** —
    clover, in words, not a number.
 2. `look` at the fruit trees on the bench. They are bearing; note how much.
-3. Buy a **nucleus colony** off Quist's shelf, and a **hive**, a **smoker** and
-   a **veil**.
+3. Walk to town. Buy a **nucleus colony**, a **hive**, a **smoker** and a
+   **veil** at the general store — ⭐ **nobody in the valley sells bees**, and
+   that hole is deliberate.
 4. `put` the hive on the bench. Install the colony.
 5. `handle` the hive **bare-handed and unsmoked**. You are stung. The response
    names what you should have had, and the sting reads as a sting — not as a
