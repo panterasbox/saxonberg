@@ -796,9 +796,23 @@ discovered by `pack-roots.ts` with no list edit).
 
 Commit: `build(energy A2): the /system/energy pack, and a town's oil store`.
 
-#### A3 — Terminus: the oil works
+#### A3 — Terminus: the oil works ✅ DONE
 
 Implements D9 (the producer).
+
+> **Done (commit `build(energy A3)`).** The oil works — a goods-yards outfit in
+> the shipped seven-outfit pattern, copied from `bottling/`: a sub-zone
+> (`oilworks.yaml`), a `Business` outfit (appointed by `minister-of-trade` —
+> matching who holds `/trade/fuel`, verified the office key exists), a `Stock`
+> the casks spawn into (with `_materialPath: oak` for `lint:mass` — a new Stock
+> row would otherwise push its ceiling to 243), a `consigns` hand (Marn Hesk;
+> `ask: { fuel:lamp-oil: 80 }` — a 40 L cask at 2/L, so a gas-lit town's 6 L
+> night ≈ envelope's calibrated 12), and a floor with a door onto the yard.
+> `lamp-oil-cask.yaml` gains `container:` (this stock — the faucet) and
+> `regionTarget: 4`. A `oilworks.test.ts` in the terminus pack asserts the rows
+> cross-reference (outfit↔stock↔hand↔floor, cask→stock). ⚠ The LIVE consign
+> (the hand walking casks to the cash-and-carry) is the A5 wire drive's job.
+> Gates census/openings/mass/instanceable green; trade-fuel + terminus tests green.
 
 Files under `packages/content/terminus/content/world/terminus/goods-yards/oilworks/`
 copied from `bottling/`: `idea/outfit.yaml` (Business "the oil works",

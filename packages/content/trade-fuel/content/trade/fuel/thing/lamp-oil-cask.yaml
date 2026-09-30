@@ -11,10 +11,9 @@
 # `_materialPath` and is a `lint:mass` ceiling offender — this row does not
 # inherit that gap. The oil is the INTERIOR bulk, separate from the cask body.
 #
-# ⚠ `container:` (the faucet) and `regionTarget` (the spawn target) are added
-# in wave A3, when the oil works' floor stock exists to spawn it from. Until
-# then this is a hydratable, buyable good with no faucet — which is correct
-# for a wave that ships only the good.
+# ⭐ `container:` is the oil works' floor stock — the ONLY faucet: the spawn
+# sweep stands casks at target there, and the works' hand consigns them to the
+# cash-and-carry, where a town's public-works department buys them.
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -34,3 +33,7 @@ data:
   gradeBand: fair
   censusKey: fuel:lamp-oil
   materialTags: [lamp-oil, fuel]
+  # A week of a gas-lit town's demand as buffer (6 L/night × 7 ≈ one cask a
+  # week); the sweep keeps a few on the floor for the public-works buyer.
+  regionTarget: 4
+  container: /world/terminus/goods-yards/oilworks/thing/stock
