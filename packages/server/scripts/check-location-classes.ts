@@ -37,6 +37,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { classFileOf, packSources } from "./pack-roots";
+import { reaches } from "./check-mass";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
@@ -211,6 +212,13 @@ const MINTED_ROWS = [
  * rooms, a let unit's rooms.
  */
 const FURNISHED = [
+  // ⭐ The dorm room joined the roster in the base-class narrowing
+  // (2026-09-30), and it joined by becoming what it always was: it now
+  // `extends FurnishableRoom`, whose own docstring had said for two
+  // builds that *"`DormRoom` IS a room archetype … and it has been
+  // carrying the correct composition all along"*. The warren assigns
+  // its position at runtime, which is exactly what this list is for.
+  "eternal-university/content/world/terminus/eternal/duncan-hall/location/dormroom.yaml",
   "generic-objects/content/stuff/location/room/bathroom.yaml",
   "generic-objects/content/stuff/location/room/bedroom.yaml",
   "generic-objects/content/stuff/location/room/living.yaml",
@@ -292,8 +300,36 @@ function against(
   rows: readonly Row[],
   cls: string,
   roster: readonly string[],
+  subclassesCount = false,
 ): { unexpected: string[]; missing: string[] } {
-  const on = rows.filter((r) => r.cls === cls).map((r) => r.file);
+  /*
+   * ⚠⚠ **A SUBCLASS counts, and this read `r.cls === cls` until the
+   * base-class narrowing (2026-09-30).** An exact string match on the
+   * row's `class:` cannot see a class that EXTENDS the one named — so
+   * when `DormRoom` became `extends FurnishableRoom` (which
+   * `FurnishableRoom`'s own docstring had been asking for), the gate
+   * said the row "no longer uses FurnishableRoom" while it had just
+   * started to.
+   *
+   * ⭐ Same blindness as the composition census, which reads rows and
+   * not chains, and the same fix `check-mass` needed: follow the
+   * `extends` clause, expanding module-local `const` bases.
+   *
+   * ⚠⚠ **Opt-in, and the other caller must NOT have it.** For
+   * `FurnishableRoom` a subclass is the same kind of thing. For
+   * `CartesianLocation` the subclass is the whole DISTINCTION:
+   * `SingletonCartesianLocation`'s docstring says *"the mixin
+   * SUBTRACTS, which is why this is the marked name"* — a singleton
+   * row is exactly what the permissive-base check is not complaining
+   * about. Following the chain there reported all 116 singleton rows
+   * as offenders, which is how this flag came to exist.
+   */
+  const sources = packSources(CONTENT);
+  const isA = (rowClass: string): boolean =>
+    rowClass === cls ||
+    (subclassesCount &&
+      reaches(rowClass, `class ${cls.split("/").pop()!}`, sources));
+  const on = rows.filter((r) => isA(r.cls)).map((r) => r.file);
   const listed = new Set(roster);
   return {
     unexpected: on.filter((f) => !listed.has(f)).sort(),
@@ -323,7 +359,7 @@ export function classify(rows: readonly Row[]): {
   unexpected: string[];
   missing: string[];
 } {
-  return against(rows, FURNISHABLE, FURNISHED);
+  return against(rows, FURNISHABLE, FURNISHED, true);
 }
 
 /**
