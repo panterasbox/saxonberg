@@ -541,6 +541,28 @@ The model survives contact; where it bent is the durable learning:
    no understudy* is one more predicate on a validation that exists.
    ⚠ Casting is **authored**, not resolved at runtime — so the
    understudy is an authoring artifact, not a fallback query.
+
+11. ⭐⭐⭐ **Is this role ON NIGHTLY, or CALLED?** (added 2026-09-30 from
+    [balance-slate § What an NPC declaration is denominated in](./balance-slate.md).)
+    The casting questions above are all about *who* fills a slot; this one
+    is about **whether the slot acts when nobody is in the room**, and it
+    is the dominant compute cost in the NPC layer. Measured across the 65
+    authored NPC rows: **370,401 brain invocations a day with nobody
+    logged in**, 43% of it in three rows, and **60 of 65 tick on a clock.**
+    ⭐ The vocabulary that fits is the **stage's, not the screen's** —
+    principal · ensemble · understudy · swing · standby — because a
+    persistent world is a **run, not a capture**, and Equity is the union
+    that prices *availability* (a swing draws a weekly whether or not they
+    go on). ⚠ And the expensive rows are **not careless**: `sellsword`'s
+    two `cadence:2s` brains are a *latency requirement expressed as a
+    poll*, because `cadence` was the only tool available. **An event
+    should push; a brain should not poll** — so the first output of this
+    question is probably a **richer witness-trigger vocabulary**
+    (`ally-engaged`, `combat-started`), after which the author writes
+    *less*, not more.
+    ⭐ Casting a quest then asks three things in order: **on nightly or
+    called · who covers it · principal or ensemble** — and those three are
+    the parcel's compute declaration.
    *Lean: add the axis; it is one field and it makes three decisions
    visible at the moment they are made.*
 
