@@ -16,6 +16,7 @@ import { Animate } from '../Animate';
 import { Creature } from '../Creature';
 import { Character } from '../../character/Character';
 import Corpse from '../../../platform/agent/Corpse';
+import { KeptAnimal } from '../KeptAnimal';
 
 const ACTS = [
   Mixins.Sensor,
@@ -89,5 +90,39 @@ describe('⭐ the line, read from both ends', () => {
     }
     expect(MixinApi.hasMixin(Corpse, Mixins.Vitals)).toBe(true);
     expect(MixinApi.hasMixin(Corpse, Mixins.Postmortem)).toBe(true);
+  });
+});
+
+describe('⭐ the third consumer — KeptAnimal stands on the rung', () => {
+  it('⭐⭐ a kept animal is Animate, and it composed three of the five BY HAND', () => {
+    // `Engaged`, `Mobile` and `Sensor` were written out in
+    // `KeptAnimal.ts` with their own comments ("brain slot contention",
+    // "it can walk", "witness triggers") while `Character` composed the
+    // same three for people. Two composition sites of one set is the
+    // shape that says the host is a level up; this class is the third
+    // consumer, which is the project's own promotion threshold.
+    for (const m of ACTS) {
+      expect(MixinApi.hasMixin(KeptAnimal, m), `a pet should ${m}`).toBe(true);
+    }
+    expect(Object.create(KeptAnimal.prototype)).toBeInstanceOf(Animate);
+  });
+
+  it('⭐ the cat GAINS Combatant and loses nothing — it can fight back', () => {
+    // `AttackController` gates its target on `Vitals && Engaged`, so a
+    // pet could always be attacked. What it lacked was the half that
+    // answers.
+    expect(MixinApi.hasMixin(KeptAnimal, Mixins.Combatant)).toBe(true);
+    expect(MixinApi.hasMixin(KeptAnimal, Mixins.Perception)).toBe(true);
+    expect(MixinApi.hasMixin(KeptAnimal, Mixins.Bonded)).toBe(true);
+    expect(MixinApi.hasMixin(KeptAnimal, Mixins.Named)).toBe(true);
+    expect(MixinApi.hasMixin(KeptAnimal, Mixins.Chattel)).toBe(true);
+  });
+
+  it('⚠ and it is still nobody — no job, no faculty, no commands', () => {
+    for (const m of PERSON) {
+      expect(MixinApi.hasMixin(KeptAnimal, m), `a pet must not ${m}`).toBe(
+        false,
+      );
+    }
   });
 });
