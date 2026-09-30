@@ -98,7 +98,10 @@ say**.
    action pointed at an actor — and the sibling got it right.
 3. ⭐⭐⭐ **Importance.** Nothing. Slot-free is not the same as
    available-for-something-more-important: serving a customer does not beat
-   wiping the bar, and nothing preempts `idles`. Suspected mechanism behind
+   wiping the bar, and nothing preempts `idles`. ⚠ And see § *two things in
+   the code* — the `interruptibleBy` field exists on ~20 activities, always
+   empty, **read by nobody**, so this is inert engine-wide and not a brain
+   defect. Suspected mechanism behind
    the [naked-cast starvation](../../subsystems/vitals.md) problem — `eats`
    is a timer, not a drive that escalates.
 4. **Composition — they do not.** A flat list of independently-firing
@@ -108,9 +111,11 @@ say**.
    enumeration* — because 38 brains stacked but never combined **is**
    enumeration.
 5. **Memory.** Brain state is a per-(host, spec) scratch bag, explicitly
-   not persisted, and residency evicts cold NPCs. So *"I was told to go to
-   the alley"* and *"I am halfway through the count"* cannot survive a
-   reboot or an eviction.
+   not persisted. ⚠ **CORRECTED 2026-09-30:** the *eviction* half of this was
+   wrong — `BehavedMixin.canEvict()` (Behaved.ts:114-119) **vetoes eviction
+   of any host carrying a `behaviors:` spec**, so a behaved NPC never leaves
+   memory while the world is up. What survives of the finding is only the
+   reboot case, and the plan's D8 consequently persists nothing.
 
 ## The lens pass — never run before 2026-09-25
 
@@ -212,32 +217,36 @@ downstream of every decision here.
 
 ## ⭐⭐ Two things already in the code that this design lands on
 
-**1 · The importance vocabulary exists and is EMPTY.**
+**1 · ⚠ CORRECTED 2026-09-30 — the vocabulary is NOT empty; the READER is
+missing.** An earlier pass of this slate claimed `AbortReasonRegistry` was an
+empty registry with zero entries. **Wrong, and the error was reading the
+declaration for the vocabulary.** The declaration in `@saxonberg/types` is
+empty *because it is a declaration-merging seam*; it is augmented in **eight
+modules** — `lib/activity/Engaged.ts:57` alone adds the five framework
+reasons, plus `lib/script/AbortReason.ts`, the two vitals engagements,
+`CombatSession`, `Coup`, `AttendanceEngagement`, and the transport pack. The
+comment *"harmless because no v1 producer"* sits on the seam, not on the
+vocabulary.
 
-```ts
-// packages/types/src/index.ts
-export interface AbortReasonRegistry {}          // declaration-merging
-export type AbortReason = keyof AbortReasonRegistry;   // therefore: never
-```
+**2 · ⚠⚠ What is actually inert is `interruptibleBy`, and it is inert
+EVERYWHERE.** About twenty activities declare it — `BehaviorBeat`,
+`ManualBuildStep`, `CastActivity`, `SearchActivity`, `DialogueConversation`,
+`CombatSession`, `RespirationDrain`, `OfferEngagement`, `HazardActivity`,
+`DressingStep`… — and **every single one declares it as an empty `Set`**.
+Nothing outside tests ever *reads* it: `SchedulerRegistry` consults
+`replaceableBy` at `start()` and its `cancel()` is unconditional.
 
-The comment beside it reads *"so `AbortReason = never` in v1. Harmless
-because no v1 producer."* It is a **closed-but-pack-extensible registry
-with zero entries** — exactly the federation shape a vocabulary is
-supposed to have here, and nothing has ever filled it.
+> ⭐⭐⭐ **So the field is declared twenty times, always empty, and read by
+> nobody.** Nothing in this game is interruptible by anything, and the axis
+> was never wired rather than merely being unused by brains.
 
-**2 · And brains opt out of it explicitly.** `BehaviorBeat` — the
-slot-holder that makes an instant brain's `claims` real for a contention
-window — declares:
-
-```ts
-readonly interruptibleBy: ReadonlySet<AbortReason> = new Set<AbortReason>();
-```
-
-⚠ **Empty. An NPC greeting you cannot be interrupted by anything the
-framework is able to express.** So importance is not wholly absent: the
-activity framework has the seam, the vocabulary has a home, and the brains
-decline to participate. **This design needs no new interruption concept** —
-it needs the registry populated and that set to stop being empty.
+**What that changes for this design:** populating the registry buys nothing on
+its own, because nothing reads the set. ⭐ **The arbiter and the call are
+`interruptibleBy`'s first consumers** — they must both *fill* it and *read*
+it (over a cancel-by-predicate seam). The good news survives: **no new
+concept is needed**, the seam is shipped and typed, and a pack adding its own
+reason is already the federation-correct shape. The bad news is that this
+build owns the reader, so "populate the registry" is not a one-line wave.
 
 ## The design — two layers
 

@@ -93,16 +93,23 @@ subsystem doc's own words.
 - **Two "brains" are cron jobs** — `shifts` and `covers` ride the brain rail
   because a cadence was the only scheduler available.
 
-### The importance vocabulary exists and is empty
+### The interruption axis is typed, declared twenty times, and read by nobody
 
-```ts
-export interface AbortReasonRegistry {}              // declaration-merging
-export type AbortReason = keyof AbortReasonRegistry; // therefore: never
-```
+⚠ **Corrected at plan grounding.** An earlier draft of this doc said the
+`AbortReasonRegistry` vocabulary was empty. It is not — it is augmented in
+**eight modules**, five framework reasons in `lib/activity/Engaged.ts` alone;
+the empty declaration in `@saxonberg/types` is the declaration-merging seam,
+not the vocabulary.
 
-…commented *"harmless because no v1 producer."* And `BehaviorBeat` declares
-`interruptibleBy` **empty**, so an NPC greeting you cannot be interrupted by
-anything the framework can express.
+**What is actually inert is `interruptibleBy`.** About twenty activities
+declare it — `BehaviorBeat`, `ManualBuildStep`, `CastActivity`,
+`DialogueConversation`, `CombatSession`, `RespirationDrain` and more — and
+**every one declares it as an empty `Set`**, while nothing outside tests ever
+reads it (`SchedulerRegistry` consults `replaceableBy`; its `cancel()` is
+unconditional).
+
+> ⭐⭐ **So nothing in this game is interruptible by anything**, engine-wide.
+> The seam is shipped and typed; this build owns its first reader.
 
 ### What it costs to tick
 
@@ -296,9 +303,11 @@ authored overlap that any of it happens with no player in the room.
   fulfilling seat in authored order* — the second placeholder retired here.
   ⚠ And it covers the bar's weekend 00–10, which is on nobody's roster: the
   owner works the Saturday small hours unpaid.
-- **Residency.** The cold tail self-evicts, so an assignment or a
-  part-finished task must ride the host's own snapshot or it dies on
-  eviction.
+- **Residency.** ⚠ **Corrected at plan grounding — this collision cannot
+  occur.** `BehavedMixin.canEvict()` vetoes eviction of any host carrying a
+  `behaviors:` spec, so a behaved NPC never leaves memory while the world is
+  up. Nothing new needs to persist; only a reboot loses a part-finished
+  task, which is acceptable.
 - **A player's first shift.** Gating `mix` means meeting the deed gate at a
   rail rather than a forge. ⚠ The earning path must be reachable *from behind
   the bar* — the well and its six tools are already propped there, which is
@@ -371,17 +380,19 @@ hungry bartender would never serve anybody — and **the band fixes it**:
 slightly hungry is *wanted*, a waiting patron is *pressing*, so work wins.
 Only a *critical* body need beats pressing work.
 
-### Importance rides the registry that already exists
+### Importance rides the seam that already exists — and this build owns its reader
 
 **Q.** Where does interruption live?
 
-**A.** `AbortReasonRegistry` — the empty declaration-merging interface — gets
-populated, and `BehaviorBeat`'s empty `interruptibleBy` stops being empty.
+**A.** On `interruptibleBy`, which is already declared and typed on every
+activity. This build fills it where it matters **and supplies the first thing
+that reads it.**
 
-**Why.** ⭐ **No new concept is needed.** The activity framework has the
-seam, the vocabulary has a home with zero entries, and the brains decline to
-participate. A pack adding its own reason is the federation-correct shape,
-which the registry already supports.
+**Why.** ⭐ **No new concept is needed** — the activity framework has the
+seam, the `AbortReason` vocabulary is populated and pack-extensible, and a
+pack adding its own reason is already the federation-correct shape. ⚠ But
+populating a set nothing consults buys nothing, so the reader is in scope and
+is not a one-line change.
 
 ### The reason renders as behaviour, on a switch
 
@@ -494,8 +505,12 @@ gate rather than a drive alone.
 **Why.** ⭐ Load-bearing for the **derivation**, not for routing: with one
 word over the whole rail, a derivation keyed on the recipe's discipline reads
 Remy's *bartending* band for a Negroni and his authored mixology proficiency
-does nothing. `mixology` already `specializes: bartending`, so seat
-eligibility is untouched. And it is the shipped test applied — *specialize
+does nothing. ⚠ **And "seat eligibility is untouched" was
+wrong:** `EmployedMixin.isFulfilling` does an **exact `includes`** on the
+seat's `fulfills`, with no `specializes` walk — so moving a recipe to
+`mixology` would make a `fulfills: [bartending]` seat stop serving it. The
+walk is therefore **in scope**, and it is the thing that makes the claim
+true. And it is the shipped test applied — *specialize
 when the sim already tells the two practices apart*: a cocktail has its own
 verbs and a pour does not.
 
