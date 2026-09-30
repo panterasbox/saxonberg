@@ -348,3 +348,33 @@ data:
     /trade/fishing/thing/leger-rod: 14
     /trade/fishing/thing/spoon: 4
     /trade/fishing/thing/keepnet: 6
+    # ⭐⭐ **The beekeeper's ladder**, against the same anchors (stipend
+    # 20, wages 4–6 per game-hour). The shape is the claim, and there are
+    # two claims in it:
+    #
+    #   1. **the box is cheap and the bees are not.** A hive is
+    #      woodenware — six boards and a lid, so it sits beside a
+    #      waterskin — and the nucleus is the dear one, because live bees
+    #      are somebody's whole spring's work and this is the one line
+    #      that mints life. A beginner buys the box and then has to find
+    #      the money, catch a swarm, or be given a split.
+    #   2. **the extractor is a BUSINESS**, priced with the net and the
+    #      dray rather than with the tackle: it is the thing you buy once
+    #      you are selling honey, and until then you crush.
+    #
+    # ⚠ The thick hive is roughly double the plain one, which is the
+    # honest price of twice the timber — and whether it repays itself
+    # depends on how cold the winters are where you keep bees. That
+    # judgement is the mechanism; the price is just wood.
+    /trade/apiculture/thing/hive: 12
+    /trade/apiculture/thing/thick-hive: 25
+    /trade/apiculture/thing/super: 5
+    /trade/apiculture/thing/frame: 1
+    /trade/apiculture/thing/smoker: 6
+    /trade/apiculture/thing/extractor: 55
+    /trade/apiculture/thing/honey-jar: 2
+    /stuff/thing/clothes/bee-veil: 5
+    /stuff/thing/clothes/work-gloves: 4
+    # ⚠ The one faucet, and the dearest thing on the shelf under the
+    # musket. Bees are cheap to keep and expensive to start.
+    /trade/apiculture/thing/nuc: 45

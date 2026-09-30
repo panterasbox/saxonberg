@@ -1056,7 +1056,14 @@ runs happen at exactly two moments (before the MR, at `/finalize`);
 between them, `pnpm test:near` + every touched pack's own vitest + `pnpm
 -C packages/server lint:family`.
 
-### W0 — Kernel touch A: the set-count latch (D4)
+### W0 — Kernel touch A: the set-count latch (D4) ✅ DONE `285c0fd68`
+
+> **Landed as planned.** `_fruitSetCount` / `_pollination` latch in the
+> polycarp branch; `pollinate()` and `getFruitSetCount()` are on the mixin;
+> `HarvestController` reads the method. 9 new tests, `Fruiting.test.ts`
+> untouched and green, `lint:field-meta` clean, tsc clean. No surprises — the
+> profile doc at L148 really had pre-authorised this seam, so the branch had a
+> comment waiting for it.
 
 **Files.** `packages/server/src/mud/lib/husbandry/Growing.ts` (profile
 field, two persistent fields + fieldMeta, the polycarp branch, `pollinate`,
@@ -1072,7 +1079,21 @@ reads the profile. `test:near` + `lint:field-meta` green.
 
 **Commit.** `build(apiculture W0): the set count latches at the set, and pollination has somewhere to land`
 
-### W1 — Kernel touch B: venom rides the wound (D5)
+### W1 — Kernel touch B: venom rides the wound (D5) ✅ DONE `eceeba67e`
+
+> **Landed, with one test-shape decision and one finding.**
+> *Decision:* the two cases went into the existing
+> `lib/hazard/__tests__/Hazard.resolve.test.ts` rather than a new
+> `Hazard.venom.test.ts` — that file already owns the mover, trap, boot and
+> steel fixtures, and a second file would have duplicated all four for two
+> assertions. *Finding:* a steel **plate** boot does **not** turn a `point`
+> channel at energy 1 (the puncture lands at severity 0.35), so the
+> armor-stops-the-dose case is asserted on the `edge` channel the plate does
+> turn. The step-dart's "a boot mitigates" is therefore true of the dart's
+> *wound* only against coverings that actually resist a point — which is the
+> materials grid being honest, not a defect. The second case (a site the mover
+> has no body part for) is the one that proves the old code dosed even with no
+> `spec` at all. 31 hazard tests green.
 
 **Files.** `packages/server/src/mud/lib/hazard/Hazard.ts:383`;
 `lib/hazard/__tests__/Hazard.venom.test.ts` (new; the step-dart against a
@@ -1082,7 +1103,23 @@ bare and a booted foot).
 
 **Commit.** `fix(hazard): venom rides the wound — a boot that turns the dart stops the dose`
 
-### W2 — The neighbours make room (trade-ranching, trade-farming)
+### W2 — The neighbours make room (trade-ranching, trade-farming) ✅ DONE `7d07ecd83`
+
+> **Landed, with one substitution and one deletion.**
+> *Substitution:* `pollinationBaseline: 0.5` went on **cherry, cranberry and
+> lime**, not mint. Mint's "fruit" is a flush of sprigs — leaves — and bees do
+> not set leaves; citrus is insect-pollinated and lime was already a fruiting
+> row, so it takes mint's place. Lens 1 decided it: a player has to be able to
+> reason *bees set fruit*, and a pollinated leaf harvest breaks that.
+> *Deletion:* `Field.fixLegumeNitrogen`'s docstring claimed `legumeFraction`
+> "falls when the clover is grazed out" — nothing writes it, so the claim is
+> gone rather than inherited.
+> *Also:* the three tap views went **back to `Livestock`** from
+> `ProducingMixin`. The mixin's argument was right but a mixin static is still
+> a CLASS answer, and a hive composes `ProducingMixin` — so the list promised
+> it `milk` and `shear` for exactly the reason `Livestock` used to promise a
+> sheepdog `shear`. Recorded as a finding for tapping-slate and pinned by a new
+> test. 65 ranching + 81 farming tests green.
 
 **Files.** `trade-ranching/src/lib/Producing.ts` (remove the static peers
 list — keep the header's argument, note the instance-seam finding);
@@ -1106,6 +1143,59 @@ a controller test); `milk`/`shear`/`gather` still afforded by a Livestock
 three); both pack suites green.
 
 **Commit.** `refactor(ranching): the handled animal owns the act, and the taps are Livestock's verbs`
+
+### W3–W5 — The pack, the population, the acts and the range ✅ DONE `e0e62faa0`
+
+> ⚠ **W3, W4 and W5 landed as ONE commit**, because `Hive.ts` carries all
+> three (the population's hooks, the acts' overrides and the census) and a
+> single file cannot be split across commits without losing the reason each
+> piece is there. The waves stayed separate in execution; only the commit
+> merged. W6–W7 are their own commit (`b1d4b9f8c`).
+>
+> **Corrections to the plan, all forced by the code:**
+>
+> 1. ⚠⚠ **`AtmosphericMixin` is no longer on `Vessel`.** Master's base-class
+>    narrowing moved it to `ExitableVessel` between plan and build, on the
+>    argument that *inside is something you can only BE for a vessel you can
+>    go into* — thirty-seven rows had claimed their own weather and none
+>    authored a field. The `Hive` composes it **itself**, which is better than
+>    the plan's version: a hive is the honest counter-case (you cannot go
+>    inside it and the interior climate is the whole mechanism), so the claim
+>    is made by the one class that means it instead of inherited by every bag.
+>    Cost: three small overrides (`getVolume`, `enclosureDefaults`, and
+>    `openExteriorOpenings` inherited as 0).
+> 2. ⚠ **`FurnaceMixin` is `BurnerMixin`**, `MixinApi.isFurnace` is `isBurner`,
+>    and the refusal vocabulary names it. Another master rename.
+> 3. ⚠ **D16 was wrong that the smoker's row "composes nothing extra".** A
+>    biped's hand slot declares `accepts: WieldableMixin`, so a smoker that is
+>    not `Wieldable` cannot BE in a hand and the hand read would have found
+>    nothing forever. `Smoker` is `Burner(Wieldable(Slottable(…Good)))` and the
+>    row claims `hand:right`. Found by the test refusing to put one in a hand.
+> 4. ⚠⚠ **`stingJ` is 0.26, not 0.55, and the window is 0.25–0.28.** The
+>    shipped covering grid says NO cloth resists a `point` (`CLOTH_PROFILE` is
+>    poor/poor/poor) and **content may not author a resist profile** — that is
+>    kernel-only by design, because a resist profile is combat mitigation. So
+>    what a veil does to a sting is take a hair's worth of energy off something
+>    that was only just enough to break skin, which is what a sting is. Both
+>    ends of the window are pinned in `stings.test.ts`.
+> 5. ⚠ **The honeybee's `handlingRange` needed a GATE correction**, not a row
+>    change: `check-kept-animals` demanded `BondedMixin` for both its dials,
+>    and `HandlingMixin` is what reads `handlingRange`. The plan's grounding
+>    said the gate reads agent rows only; it reads every row. Committed
+>    separately (`9e3d3a789`) with two other gate blind spots.
+> 6. ⚠ **A live colony authors NO `_materialPath`.** Flesh on a class with no
+>    `FreshnessMixin` is what `lint:perishable` catches, and it is right — a
+>    colony of bees does not go off. The species' own default answers, as it
+>    does for every head of stock.
+> 7. The forage cache is **transient**, not `runtimeState`: it is recomputed
+>    hourly and a `Map` does not marshal.
+> 8. **No separate winter gym file.** `pnpm test:gym`'s config is the server's,
+>    so a pack `*.gym.test.ts` would run in the ordinary suite anyway — and
+>    AC 7 is a correctness claim (thick needs less than thin), not a balance
+>    bench, so it lives in `colony.test.ts` as an ORDERING.
+> 9. `Colony`/`Hive` `workedOver` and `disturb` came forward from W4 into the
+>    same landing, because a `HandledMixin` default that prints a flesh score
+>    is wrong for a hive from the first moment it exists.
 
 ### W3 — The pack and the population (D1, D2, D8, D9, D10, D14, D19, D22)
 
@@ -1183,6 +1273,24 @@ whose servings are proportional to the census.
 package specifier).
 
 **Commit.** `build(apiculture W5): the crop is the landscape's — the forage read, the crowded range, and pollination on land you do not own`
+
+### W6–W7 — The products and the world ✅ DONE `b1d4b9f8c`
+
+> **Landed.** One deviation: `Comb` is a plain `/platform/thing/Provision`
+> ROW rather than a `Comb extends Provision` class. Provision already composes
+> `ComposedMixin`, so the composition rides for free and the class bought
+> nothing; the derived look line the plan wanted for it went to `Frame`
+> instead, where *comb tells you brood* is the whole point of the object.
+>
+> ⚠ The close's `props:` carry `as:` identities — a pure repeat is `count: 3`
+> written longhand and `lint:census`'s ratchet refuses it, correctly: an entry
+> with no identity is one no child row can ever replace.
+>
+> ⚠ `gradeBand: standard` is **not a grade band** (`poor|fair|fine|exceptional|
+> masterful`). The veil and gloves shipped with it and **took the whole server
+> down at boot** — surfacing at `counting-houses/cash-and-carry`, which is
+> nothing to do with bees. *A cascade is not diagnostic:* the grep of my own
+> changed files found it in ten seconds. Both rows say `fair` now.
 
 ### W6 — The products: honey, wax, the candle, mead (D3, D17, D20)
 

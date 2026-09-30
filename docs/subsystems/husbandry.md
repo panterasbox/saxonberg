@@ -747,3 +747,32 @@ behaves exactly as it did. ⚠⚠ And the ambient carries a **tri-state** —
 `-1` means *has not looked*, which reads as unlimited and never as
 frozen.
 
+---
+## ⭐ The set-count latch, and pollination (apiculture, 2026-09-30)
+
+`HarvestController` used to re-read `fruitSetCount` off the profile at
+pick time, so **nothing recorded what a flowering episode actually set**.
+The polycarp branch of `updateFlowering()` now latches two persistent
+fields at the set moment:
+
+- **`_fruitSetCount`** — the count this episode set;
+- **`_pollination`** — how much of that set got pollinated, `[baseline, 1]`.
+
+`GrowthProfileData.pollinationBaseline` is the share a plant reaches with
+NO pollinator. **Absent means `1`**, which is wind- or self-pollinated and
+byte-identical to every row that shipped before this existed; an
+insect-pollinated crop authors `0.5`. ⭐ Authors author the CAUSE — what
+pollinates this plant — never the effect.
+
+`pollinate(share)` is the **push**: sync, additive, gated only on the fill
+window (flowering, set, not yet ripe), and it never asks WHO. That
+direction is the whole coupling — a crop can be pollinated on land its
+grower does not own by bees they do not keep — and it is why nothing on
+the plant has to know bees exist. `getFruitSetCount()` reads the latch
+scaled by pollination and falls back to the profile when nothing is
+latched, which is exactly how a plant persisted before these fields
+existed behaves.
+
+⚠ `settleCycle()` and the death branch release the latch. The seam was
+pre-authorised: `fruitFillDays`' own docstring named the set moment as
+the home for alternate bearing.

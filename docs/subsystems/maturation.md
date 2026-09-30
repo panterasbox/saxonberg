@@ -337,3 +337,38 @@ draining its room's air reserve toward unbreathable).
 
 ⭐ The lesson generalizes past maturation: **a gate added for one mechanism
 silently freezes every mechanism that does not answer it.**
+
+---
+
+## ⭐ Two spontaneous profiles: mead, and the honey that ferments itself (2026-09-30)
+
+Apiculture added `mead` (`trade-winemaking`) and `honey-wild`
+(`trade-apiculture`), and they are worth reading together because they are
+**one mechanism used twice** — once as a product and once as a defect.
+
+| row | input tag | lag | product | turns to |
+|---|---|---|---|---|
+| `mead` | `honey-must` | 4 days | mead | wine vinegar |
+| `honey-wild` | `honey` | 6 days | fermented honey | nothing |
+
+Both lean on `spontaneousLagDays > 0`, which is the shipped
+`requiresFlora` predicate's **third clause**: a vessel left **open**
+catches wild flora out of the air after the lag, a pitch from a
+`wine-culture` jar starts it at once, and a vessel sealed from the start
+never starts at all. Three behaviours, two rows, no code — and
+historically that is exactly how mead was made.
+
+⭐ What makes the pair legible is the water activity: honey keeps forever
+because `a_w 0.60` is at the microbial floor, and diluting it three-to-one
+is the preservation hurdle run **backwards**. See
+[spoilage.md](./spoilage.md).
+
+⚠⚠ **Honest limit.** The clock reads temperature and openness, not ambient
+humidity, so *"honey somewhere it can take up damp"* is realised as
+*"honey left open"* — which is how honey takes up damp, and therefore the
+honest form of the same fact rather than a weaker one. A humidity term on
+`spontaneousLagDays` is the follow-on.
+
+⚠ Tag hygiene against the double-match rule: `honey` carries `honey`;
+`honey-must` carries `honey-must` and **not** `honey`, or a bucket of must
+would match both profiles and the resolver would pick one with a warning.

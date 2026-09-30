@@ -22,5 +22,5 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [head]
   _materialPath: /stuff/idea/material/textile/linen
   constructionForm: woven
-  gradeBand: standard
+  gradeBand: fair
   mass: 0.3

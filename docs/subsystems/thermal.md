@@ -655,3 +655,29 @@ so it says so itself.
 an authored 268 K block in a 293 K room warms exactly as it should.
 Content that wants a thing to *stay* at a temperature authors the
 SPACE, not this.
+
+---
+
+## ⭐ A loss coefficient WITHOUT an applying envelope (apiculture, 2026-09-30)
+
+`AtmosphericMixin.envelopeCoefficients()` needs only a volume and an
+exposed area; it does not consult `envelopeApplies()`. That matters,
+because apiculture's beehive reads `uWperK` off it to compute what a
+winter costs a colony while its own envelope **never applies** — a hive
+standing on a field is sky-exposed, so the shipped predicate answers
+false and no interior temperature is integrated.
+
+⭐ That split turns out to be the right shape rather than a loophole: *how
+badly does this box leak* is a fact about the box, and *what temperature
+is inside it* is a question only worth answering when something is inside
+that you can read. The hive answers the first and declines the second, and
+the colony's own cluster arithmetic is what uses the number.
+
+⚠ `AtmosphericMixin` is composed **on the `Hive`**, not inherited: the
+base-class narrowing moved it off `Vessel` onto `ExitableVessel` (*inside
+is something you can only BE for a vessel you can go into*), and a hive is
+the counter-case — you cannot go inside one and the interior climate is
+the entire mechanism. See [apiculture.md](./apiculture.md).
+
+The deferred half is a `feel hive` reading, which wants the exposure rule
+for a Vessel outdoors — a thermal-slate item.
