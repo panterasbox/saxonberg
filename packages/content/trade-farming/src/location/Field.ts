@@ -167,6 +167,14 @@ const DAYLIGHT_STOP = 0.33;
 /** Daylength fraction at/above which daylength stops limiting (≈13 h). */
 const DAYLIGHT_HAPPY = 0.54;
 
+/**
+ * Kelvin below which clover simply is not in flower — well above the
+ * grass base, because grass grows in cold a bloom will not open in.
+ */
+const BLOOM_MIN_K = 285;
+/** Day length below which the bloom is over (or has not started). */
+const BLOOM_MIN_DAYLIGHT = 0.45;
+
 // The ground half — composed FIRST and separately, because soil's host
 // constraint is `Stuff & Reserved` alone. Naming the intermediate stack
 // is not cosmetic: inference through this many nested generic mixin
@@ -249,6 +257,39 @@ export default class Field extends FieldBase {
    * three decisions without a special case anywhere.
    */
   public legumeFraction = 0;
+
+  /**
+   * ⭐⭐ **How much of this sward is in flower** — the read a hive makes
+   * of the land around it (apiculture D6).
+   *
+   * Three terms, and the provenance of each is different, so each is
+   * named:
+   *
+   *   - **`legumeFraction`** — **authored**. Hydrated from the row; see
+   *     {@link fixLegumeNitrogen} on why nothing writes it yet.
+   *   - **the standing sward** — **derived**, reconciled over game-time
+   *     from water, nutrient and the season.
+   *   - **the bloom season** — **derived**, from this field's own cached
+   *     sky.
+   *
+   * ⚠ The tri-state rule, twice: an unresolved cache (`-1`) reads as
+   * **not limited**, because `restampSeason()` resolves it within the
+   * first read cycle and a cache nothing has warmed must never read as a
+   * hard zero forever. This codebase has been bitten three times by the
+   * other choice.
+   *
+   * ⭐ The sward knows when it blooms; the hive asks. A pack-local helper
+   * reaching into `_ambientK` from outside would break the methods-only
+   * inter-Stuff contract, which is why this lives here and not there.
+   */
+  public inFlowerFraction(): number {
+    if (this.legumeFraction <= 0) return 0;
+    const warmEnough = this._ambientK < 0 || this._ambientK >= BLOOM_MIN_K;
+    const lightEnough =
+      this._daylightFraction < 0 || this._daylightFraction >= BLOOM_MIN_DAYLIGHT;
+    if (!warmEnough || !lightEnough) return 0;
+    return this.legumeFraction * this.swardFraction();
+  }
 
   public getLegumeFraction(): number {
     return this.legumeFraction;
@@ -515,9 +556,14 @@ export default class Field extends FieldBase {
    * genuine faucet in reality, and the one that makes the legume
    * rotation derivable rather than a "+N bonus".
    *
-   * ⚠ `legumeFraction` is what is actually GROWING in the sward, so it
-   * falls when the clover is grazed out and rises when it is not — which
-   * is why a well-managed ley fertilises itself and an abused one stops.
+   * ⚠⚠ **`legumeFraction` is AUTHORED, and nothing writes it.** This
+   * docstring used to claim it *"falls when the clover is grazed out and
+   * rises when it is not"*, which was simply false — `setLegumeFraction`
+   * has no production caller. The claim is deleted rather than inherited,
+   * because a substrate rots when whichever framing is most useful at
+   * the moment is how its attributes are described. The writer belongs
+   * to a farming build (grazing pressure against clover recovery); until
+   * it arrives, the clover share is what the row says it is.
    */
   public fixLegumeNitrogen(days: number): number {
     if (this.legumeFraction <= 0 || days <= 0) return 0;

@@ -33,3 +33,9 @@ data:
     # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
     fruitSetCount: 12
     fruitFillDays: 20
+
+    # ⭐ Insect-pollinated (apiculture D4): HALF a crop with nothing
+    # working the bloom, the full authored set when something does.
+    # A sweet cherry is self-incompatible and insect-set: alone it manages perhaps half a crop, and an orchard with bees in it sets the lot.
+    # Authors author the CAUSE; nothing here asks who pollinated it.
+    pollinationBaseline: 0.5
