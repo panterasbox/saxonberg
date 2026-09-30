@@ -218,11 +218,63 @@ real objection rather than the plausible one.
 
 ## Deferred, with destinations
 
-- **The agent chain** — `Extra` composes 50 mixins and declares nothing
-  of its own over `lib/npc/NPC`; an `Extra` is meant to be the light
-  identity rung and currently carries metabolism, vitals, respiration,
-  hygiene, combat, casting, beliefs and thermal regulation. Its own
-  slate; the TypeScript instantiation ceiling lives there too.
+- **The agent chain** — ⭐ **ANSWERED IN PART by the Agent pass
+  (2026-09-30).** The branch has three tiers now, not two:
+  `Creature` (a body) → **`Animate`** (a body that ACTS — `Combatant`,
+  `Perception`, `Mobile`, `Engaged`, `Sensor`) → `Character` (a body
+  that is somebody). ⭐ `Corpse` is the proof of the line: it composes
+  the whole of `Creature` and none of those five, which are exactly the
+  five that are false of a corpse. `platform/agent/Beast` and
+  `platform/agent/DraftAnimal` took the three animal rows off the
+  person rung; `KeptAnimal` became the rung's third consumer.
+  **What is LEFT of this line:** an `Extra` still composes ~31 layers
+  for a role-filler, and the TypeScript instantiation ceiling is still
+  here. The question is no longer *is an animal a person* — it is
+  *how much of a person is a role*, which is the taxonomy slate below.
+- ⚠ **`Persona` off `Character`** (E8 of the Agent plan) — `Persona`
+  is authored by **0 of 60 rows** across 14 classes, and the zero is
+  MIXED: reading 3 on `Avatar`, reading 2 on the 49 `Cast` (which
+  author `prologue` on `CastMixin` instead — a duplicate field), and
+  reading **1** on the 5 `Extra`s and the 3 beasts. The honest move is
+  the `Named` precedent — `Persona` onto `CastMixin` + `Avatar` — and
+  it is **blocked**: `Persona.ts:135-189` has accreted fifteen `self`
+  affordances (`appoint`, `quit`, `apply`, `clock`, `office`,
+  `government`, `title`…) that would come off the sentry with it. ⭐ The
+  fork is *where does a verb for "every person who can act" live* —
+  `CommandGiver.self`, a new mixin, or leave it. The owner's.
+- ⚠ **`Chattel`/`Branded` on `DraftAnimal`** (E11) — D2's *definition*
+  (bought, lent, stolen, a chain of title) says a horse is the paradigm
+  case; D2's shipped *host list* says the animal rungs are `KeptAnimal`
+  and `Livestock` and nothing else. Two lines if the answer is yes, and
+  `Creature.chattel.test.ts` is the test that changes. The owner's.
+- ⚠ **The `Staged` split** (E12) — `Katie`, `Walter` and `Realtor`
+  share `CastMixin(StagedMixin(NPC))`, and **`Gus` is a fourth consumer
+  written as 111 lines of equip code** against a premise that stopped
+  being true (`Gus.ts:7-10` says `props:` is rooms-only;
+  `Staged.ts:243` composes on any `Container`). The honest superclass
+  is *a person who boots with a loadout*, and it needs `StagedMixin`
+  split into a props-only rail for bodies — `Staged` bundles `props:`
+  WITH `cast:`, so composing it on a person claims that person contains
+  a cast. Four receipts. Gus becomes a ROW the day it lands.
+- **`Livestock` over `Animate`** (E15) — a head of stock cannot today
+  be attacked or walk. Ranching's call; one word after the rung landed.
+- **The clone gate reads backwards** — found by the Agent drive.
+  `CloneController.ts:161-183`: a row with **no** live instance is
+  gated by `canAtPath` (a titled root answers yes); a row **with** one
+  is gated through that instance's ZONE. So a wagon standing in the
+  Terminus goods yard makes the wagon row unclonable by anyone who does
+  not hold Terminus, and the second clone of a draft horse failed in a
+  different locality for a row nobody there had touched. ⭐ *A row gets
+  harder to clone the moment somebody puts one down.*
+- **`wolf.yaml` could author a `concealment` band** (E9) — the lurking
+  beast `Concealable`'s own docstring promises; content, not code.
+- **`WorkingAnimal`'s transcript** — `Advancement` on a working animal,
+  as `WorkingAnimal.ts:38-43` files it. Beside pets, not here.
+- **The ox you lead** — `Hauler(Beast)` with no `Mountable`. No row
+  wants it yet, and a second draft animal is a row, so this is a class
+  only when something needs it.
+- **The abstract costume parent** (E16, `costume/student.yaml`) — an
+  abstract-ROW concept for the templates/Idea pass, not a class.
 - **The Extra taxonomy** — 53 characters in the realm, **49 `Cast` and 4
   `Extra`**, and 18 of the Cast hold a roster seat with no work brain:
   atmosphere extras cast as personalities because no vocabulary existed

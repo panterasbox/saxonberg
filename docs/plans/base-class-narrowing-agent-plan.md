@@ -923,6 +923,44 @@ A6 (the W6 recipe, clusters plan `:1145-1210`), diffed:
 
 Commit: `tools(narrowing A7): the census after — three animals stopped claiming to be people`
 
+**✅ A7 DONE**, and ⚠⚠ **the headline is what the instrument cannot
+see.**
+
+| mixin | classes before → after | rows before → after |
+|---|---|---|
+| `Caster` · `Memorized` · `Employed` · `Persona` | 14 → **12** | 60 → **57** |
+| `Gendered` · `Hiding` | 14 → **12** | 60 → **57** |
+| `BeliefStore` · `Status` | 17 → **15** | 69 → **66** |
+| `Costumed` | 9 → 9 | 55 → **54** |
+| **`Combatant`** | 14 → **17** | 60 → **69** |
+| new classes | `Beast`, `DraftAnimal` | |
+| gone | `DraftHorse`, `PitPony` | |
+
+Three rows — the wolf, the draft horse, the pit pony — off the person
+rung, and `Combatant` picks up nine rows as the beasts and the kept
+animals gain the half that answers.
+
+⚠⚠ **`Sensor`, `Engaged`, `Mobile`, `Perception`, `CommandGiver`,
+`Soul`, `Vocal`, `Advancement`, `Perceiver` and `Dispositioned` all
+read 0/0 in this table, and they are not absent — the census cannot see
+them.** It builds each class's layer list from
+`getPersistenceContributors`, which drops any mixin with no persistent
+field of its own, so **four of the five mixins A0 moved are invisible to
+the instrument that is supposed to measure the move.** `Combatant` is
+the only one of the five with fields, which is why it is the only one
+that shows.
+
+⭐ That is the same distinction `mixin.introspectionChoice.test.ts`
+pinned in the Thing branch — `queryMixins` is IDENTITY,
+`getPersistenceContributors` is SERIALIZATION — arriving here as a
+limit rather than a defect. **The evidence for A0 and A3 is
+`Animate.test.ts` and `Beast.test.ts`, which read `MixinApi.hasMixin`;
+the census corroborates only the part that happens to persist.** Saying
+otherwise would be citing a number that cannot move.
+
+⚠ And the census sees only rows, so `Animate` itself — substrate no row
+names — does not appear at all, exactly as `HaulingCreature` never did.
+
 ### A8 — the slate
 
 Appended to `docs/slates/builds/base-class-narrowing-slate.md § Deferred,
