@@ -25,6 +25,9 @@ import CartesianLocation from '../../lib/location/CartesianLocation';
 import CartesianZone from '../idea/location/CartesianZone';
 import { BankingApi } from '../../api/banking';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
+import { GovernmentApi } from '../../api/government';
+import { EmploymentApi } from '../../api/employment';
 import { Money } from '../../lib/banking/Money';
 import {
   makeStuff,
@@ -158,5 +161,132 @@ describe('an extent that funds nothing', () => {
     await city.settleStreetLighting(0, QUEUE);
     expect([...city.getLitStreets()]).toEqual([]);
     expect(appropriations).toHaveLength(0);
+  });
+});
+
+/**
+ * ⭐⭐ **The goods leg** (energy build D10): a `supply` covers as many streets
+ * as it physically can (oil on hand / a live wire), and a money-only bill is
+ * no longer the only shape. A gas-lit town sets cost 0 and pays through
+ * procurement, so the settle burns oil and moves no money.
+ */
+describe('the goods leg', () => {
+  const SUPPLY = '/system/energy/thing/_test/store';
+
+  function stub(opts: {
+    covers?: readonly string[];
+    serving?: (p: string) => boolean;
+    label?: string | null;
+  }): unknown {
+    return {
+      lightStreets: async (paths: readonly string[]) =>
+        opts.covers ?? paths,
+      isServingNow: (p: string) => (opts.serving ? opts.serving(p) : true),
+      lightingSourceLabel: () => opts.label ?? null,
+    };
+  }
+
+  it('lights only what the supply covers, and moves no money at cost 0', async () => {
+    (city as unknown as { _publicLighting: unknown })._publicLighting = {
+      costPerStreetNight: 0,
+      supplier: null,
+      supply: SUPPLY,
+    };
+    const s = stub({ covers: [A, B], label: "burning the town's oil" });
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(s as never);
+    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(s as never);
+    const appr = vi.spyOn(BankingApi, 'appropriate');
+
+    await city.settleStreetLighting(0, QUEUE);
+
+    expect([...city.getLitStreets()]).toEqual([A, B]);
+    expect(city.isStreetLitTonight(C)).toBe(false);
+    expect(appr).not.toHaveBeenCalled();
+    expect(city.getLightingSourceLabel()).toBe("burning the town's oil");
+  });
+
+  it('⭐ a supply that stops serving darkens the street the same second', async () => {
+    (city as unknown as { _publicLighting: unknown })._publicLighting = {
+      costPerStreetNight: 0,
+      supplier: null,
+      supply: SUPPLY,
+    };
+    const serving = new Set([A, B, C]);
+    const s = stub({ serving: (p) => serving.has(p) });
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(s as never);
+    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(s as never);
+
+    await city.settleStreetLighting(0, QUEUE);
+    expect(city.isStreetLitTonight(C)).toBe(true);
+
+    serving.delete(C); // the feeder is cut / the store ran dry
+    expect(city.isStreetLitTonight(C)).toBe(false);
+    expect(city.isStreetLitTonight(A)).toBe(true);
+  });
+
+  it('⚠ a dry supply lights nothing', async () => {
+    (city as unknown as { _publicLighting: unknown })._publicLighting = {
+      costPerStreetNight: 0,
+      supplier: null,
+      supply: SUPPLY,
+    };
+    const s = stub({ covers: [] });
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(s as never);
+
+    await city.settleStreetLighting(0, QUEUE);
+    expect([...city.getLitStreets()]).toEqual([]);
+  });
+});
+
+/**
+ * ⭐ **The town pays its own bill** (energy build D12): when the locality
+ * declares a government with a treasury, the appropriation is sourced from
+ * that budget Business, not the realm's.
+ */
+describe('the locality treasury', () => {
+  it('sources the appropriation from its own budget when it has one', async () => {
+    (city as unknown as { _address: string })._address = 'testtown';
+    (city as unknown as { _publicLighting: unknown })._publicLighting = {
+      costPerStreetNight: 4,
+      supplier: SUPPLIER,
+    };
+    vi.spyOn(GovernmentApi, 'governmentChainAt').mockReturnValue([
+      {
+        key: 'testtown',
+        displayName: 'Testtown',
+        description: '',
+        charter: '',
+        treasury: '/test/town-budget',
+        departments: [],
+        seats: [],
+      },
+    ]);
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue({} as never);
+    vi.spyOn(MixinApi, 'isBusiness').mockReturnValue(true as never);
+    vi.spyOn(EmploymentApi, 'operatingAccountOf').mockResolvedValue(
+      'acct:townbudget',
+    );
+    vi.spyOn(BankingApi, 'balanceOf').mockReturnValue(Money.of(1000, 'credit'));
+    const appr = vi
+      .spyOn(BankingApi, 'appropriate')
+      .mockResolvedValue('tx:test');
+
+    await city.settleStreetLighting(0, QUEUE);
+
+    expect([...city.getLitStreets()]).toEqual([A, B, C]);
+    expect(appr).toHaveBeenCalledWith(
+      SUPPLIER,
+      expect.anything(),
+      expect.any(String),
+      { fromOwnerPath: '/test/town-budget' },
+    );
+  });
+
+  it('falls back to the realm treasury when it declares none', async () => {
+    // No _address / no government → the realm floor (envelope's behaviour).
+    treasuryHolding(1000);
+    await city.settleStreetLighting(0, QUEUE);
+    expect([...city.getLitStreets()]).toEqual([A, B, C]);
+    expect(appropriations[0]!.to).toBe(SUPPLIER);
   });
 });

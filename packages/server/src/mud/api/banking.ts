@@ -234,16 +234,23 @@ export class BankingApi {
   }
 
   /**
-   * The Minister of Finance spends: an `appropriation` leg from the
-   * treasury's account to `toOwnerKey`'s primary. The perpetual rule
-   * reconciles first; refuses below balance. Returns the transaction id.
+   * The Minister of Finance spends: an `appropriation` leg to `toOwnerKey`'s
+   * primary account. The perpetual rule reconciles first; refuses below
+   * balance. Returns the transaction id.
+   *
+   * ⭐ `opts.fromOwnerPath` sources the money from **that owner's** primary
+   * account instead of the realm treasury — a locality paying its own bill
+   * from its own budget Business. Absent = the realm treasury (the default,
+   * envelope's behaviour). A transfer either way; the sealed chokepoint and
+   * conservation are untouched.
    */
   public static async appropriate(
     toOwnerKey: string,
     amount: Money,
     memo: string,
+    opts?: { fromOwnerPath?: string },
   ): Promise<string> {
-    return logic().appropriate(toOwnerKey, amount, memo);
+    return logic().appropriate(toOwnerKey, amount, memo, opts);
   }
 
   /**
@@ -597,17 +604,23 @@ export class BankingApi {
   }
 
   /**
-   * Remit the demo sales tax on a sale from the seller's account to the
-   * placeholder treasury at the authored, inert rate — seller-collected, so
-   * it shows in the seller's P&L as a `tax` line; the treasury merely
-   * accumulates (no appropriation path). Returns the tax remitted (zero when
-   * the rate is absent). The bar loop calls this at point of sale.
+   * Remit the demo sales tax on a sale from the seller's account at the
+   * authored, inert rate — seller-collected, so it shows in the seller's P&L
+   * as a `tax` line. Returns the total tax remitted (zero when the rate is
+   * absent). The retail loop calls this at point of sale.
+   *
+   * ⭐ `at` (the venue fixture) lets the tax **split**: when the sale's
+   * covering locality holds its own treasury, `banking.localTaxShare` of the
+   * tax lands there and the remainder in the realm treasury (two `tax` legs);
+   * with no `at`, or a locality with no treasury of its own, the whole tax
+   * goes to the realm (one leg, as before). Conserving either way.
    */
   public static async remitDemoTax(
     sellerAccountId: string,
     saleAmount: Money,
+    at?: Stuff,
   ): Promise<Money> {
-    return logic().remitDemoTax(sellerAccountId, saleAmount);
+    return logic().remitDemoTax(sellerAccountId, saleAmount, at);
   }
 
   /* ──────────────── reporting consumers ──────────────── */

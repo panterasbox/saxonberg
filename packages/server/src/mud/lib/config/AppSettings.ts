@@ -253,6 +253,15 @@ export const AppSettingKeys = {
    */
   bankingSalesTaxRate: "banking.salesTaxRate",
   /**
+   * Banking — the fraction of the demo sales tax that goes to the sale's
+   * **covering locality** (its own treasury) rather than the realm, when the
+   * locality holds a treasury of its own; the remainder goes to the realm.
+   * A `config` dial the polity can move (governance tier C). `0` (or unset)
+   * sends the whole tax to the realm — envelope's behaviour. See
+   * docs/subsystems/banking.md.
+   */
+  bankingLocalTaxShare: "banking.localTaxShare",
+  /**
    * Banking — the per-account **cash-withdrawal cap per game-day** (minor
    * units), the common-pool till guard: over the cap → refuse + push onto the
    * ledger (card/transfer). Derive-on-read over the ledger (no counter, no

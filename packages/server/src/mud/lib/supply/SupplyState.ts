@@ -111,3 +111,49 @@ export interface SupplyReporting {
   /** Everything worth saying about this supply right now. */
   supplyReport?: (nowS: number) => Promise<SupplyReport>;
 }
+
+/**
+ * ⭐⭐ **What can keep a town's streets lit tonight** — the goods leg the
+ * street-lighting bill was missing.
+ *
+ * `Locality.settleStreetLighting` names a `supply` and hands it the night's
+ * candidate streets in seniority order; the supply decides how many it can
+ * actually cover and consumes what that costs. This is the seam that turns
+ * "money moved to a shop" into "oil burned" / "a wire is live" — the kernel
+ * declares the shape, the packs implement it, and the kernel never imports
+ * them (the `SupplyReport` rule, one shape over).
+ *
+ * ⚠ **Who implements this**, both in packs, both found by
+ * `StuffApi.singleton(<the row's path>)`:
+ *  - `/system/energy/thing/FuelStore` — drains lamp-oil litres from the
+ *    casks it holds, one street-night at a time, in the order handed in,
+ *    until it runs dry (a short *supply* darkens the junior streets the way
+ *    a short *treasury* already does).
+ *  - `/system/energy/idea/GridCatalogue` — returns the energized subset (a
+ *    cut, not a budget, is what darkens an electric street; seniority is
+ *    irrelevant to a wire).
+ */
+export interface StreetLightingSupply {
+  /**
+   * Cover as many of `paths` (already in seniority order) as the supply can
+   * tonight, consuming what that costs, and return exactly the subset it
+   * lit — in order. An empty array means the supply is spent (the streets
+   * stand cold, and `look` says so).
+   */
+  lightStreets(
+    paths: readonly string[],
+    nowS: number,
+  ): Promise<readonly string[]>;
+  /**
+   * Live: is this street's supply still reaching it *right now*? Sync,
+   * because the vision walk asks — a cut line or a dry store darkens the
+   * street the same second, without waiting for the next dusk settle.
+   */
+  isServingNow(path: string): boolean;
+  /**
+   * How a lit lamp on this supply reads — *"burning the town's oil"*,
+   * *"fed from the Wharfside line"* — so the epoch is derived off a lamp,
+   * never flagged. `null` (or absent) leaves the street's own prose alone.
+   */
+  lightingSourceLabel?(): string | null;
+}

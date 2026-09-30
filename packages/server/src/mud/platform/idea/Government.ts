@@ -18,8 +18,10 @@
  *
  * **Every non-identity field is a durable-string reference into an
  * existing substrate**, never a live ref: `charter` (a document-store
- * path), `treasury` (a bank-account key), `departments` (Business
- * templatePaths — a Business's path IS its durable key), `seats`
+ * path), `treasury` (a municipal **Business** templatePath — its house
+ * account IS the treasury; ⭐ read by the energy build's
+ * `Locality.resolveTreasury`, the first consumer of this field), `departments`
+ * (Business templatePaths — a Business's path IS its durable key), `seats`
  * ((department, position) references — a seat is an employment position,
  * never a second Office apparatus).
  */
@@ -55,7 +57,11 @@ export interface GovernmentDescriptor {
   description: string;
   /** Document-store path of the charter (pointer only in v1). */
   charter: string;
-  /** Bank-account key of the treasury (`''` = none authored). */
+  /**
+   * The municipal **Business** templatePath whose house account is this
+   * government's treasury (`''` = none authored — the chain inherits, or the
+   * realm treasury is the floor). Read by `Locality.resolveTreasury`.
+   */
   treasury: string;
   /** Department Business templatePaths. */
   departments: string[];
@@ -75,7 +81,7 @@ export default class Government extends Idea {
   public description: string = "";
   /** Document-store path of the charter (pointer only in v1). */
   public charter: string = "";
-  /** Bank-account key of the treasury (`''` = none authored). */
+  /** Municipal Business templatePath whose account is the treasury (`''` = none). */
   public treasury: string = "";
   /** Department Business templatePaths. */
   public departments: string[] = [];

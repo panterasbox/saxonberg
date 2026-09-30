@@ -647,9 +647,24 @@ Checked against the current tree, not recalled.
 
 ### Stage A — combustion: the fuel market
 
-#### A0 — kernel: the funding record grows a goods leg, and the town pays
+#### A0 — kernel: the funding record grows a goods leg, and the town pays ✅ DONE
 
 Implements D10, D12 (budget, income, spend).
+
+> **Done (commit `build(energy A0)`).** `StreetLightingSupply` added beside
+> `SupplyState`; `PublicLightingFunding` grew `fuelPerStreetNight?` + `supply?`;
+> `settleStreetLighting` rewritten (resolve supply → `lightStreets`; money leg
+> only when `cost > 0`; sourced from `Locality.resolveTreasury`, own budget else
+> realm); `isStreetLitTonight` consults the live supply's `isServingNow`;
+> `_lightingSourceLabel` set at settle and appended to the street's lamp detail.
+> Banking: `appropriate(…, opts?: { fromOwnerPath })`, `remitDemoTax(…, at?)`
+> splitting `banking.localTaxShare` to the covering locality's own treasury via
+> a new `AddressApi.localityOwnTreasuryAccountId` seam; the three retail callers
+> pass the venue fixture. `Government.treasury` docstring corrected (a Business
+> path — this build is its first reader). ⚠ Incidental: `SchemaDoc.test.ts`
+> (from the merged sandbox fix) was missing the `test-bootstrap` import and
+> failed `lint:test-bootstrap` — added it. 1140 server tests green; lint family
+> green.
 
 Files:
 - `packages/server/src/mud/lib/supply/SupplyState.ts` — add

@@ -13,6 +13,7 @@
  * is `fs`, not the mudlib's `SourceTreeApi`.
  */
 
+import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
