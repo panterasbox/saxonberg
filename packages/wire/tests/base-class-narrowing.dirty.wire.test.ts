@@ -67,6 +67,8 @@ declareFile({
     'trade-shopkeeping',
     'newbie-wilds',
     'hinkley-hills',
+    'saxonberg-lounge',
+    'trade-hospitality',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -1170,4 +1172,124 @@ suite('G — a horse is not a person, and a wolf fights back', () => {
       /body that acts|is nobody/i,
     );
   }, 120_000);
+});
+
+/* ───────── H — the Location and Idea branches ───────── */
+
+/*
+ * ⭐⭐ **The Location root was too NARROW — the one branch of the four
+ * where the owner's criterion ADDS instead of subtracting.** `Visible`,
+ * `Perceptible` and `Detailed` were composed per room class, and three
+ * docstrings carried the same sentence: *"every room class built
+ * directly on `Location` has to remember"*. Two classes did not, and
+ * their rows' `keywords:` were dead.
+ *
+ * The Idea branch needed no rung at all — it is the one root that
+ * composes nothing, and the owner's ruling (*every branch wants
+ * `Perceptible` on the base except Idea*) turned out to describe the
+ * shipped state rather than a change.
+ */
+
+suite('H — a room can be named, and a cellar can be read', () => {
+  let reader: Session;
+
+  beforeAll(async () => {
+    reader = await at(STREET, 'hreader', true);
+  }, 180_000);
+
+  it('⭐⭐ the cellar has a description again — it never rendered one', async () => {
+    /*
+     * `cellar.yaml` authored `name:` and `description:`; the Location
+     * branch declares `shortDescription` and `longDescription`, so the
+     * Hydrator discarded both. The hospitality cellar has NEVER
+     * rendered its prose, and it is good prose.
+     *
+     * ⚠ `startLocation`, not `goto` — a singleton room nobody has
+     * visited has no instance for MQL to bind.
+     */
+    const cellar = await at(
+      '/trade/hospitality/location/cellar',
+      'cellarer',
+      true,
+    );
+    // ⚠ **Unlit interiors are PITCH BLACK**, and a cellar behind a bar
+    // is the most interior room in the game — the first run read *"It
+    // is pitch dark. You can make out nothing."*, which is the doctrine
+    // working, not the fix failing. Carry the lamp in.
+    expectOk(await cellar.cmd(`clone ${LANTERN_ROW}`));
+    expectOk(await cellar.cmd('light me:i:lantern'));
+    await cellar.drainProse();
+    await new Promise((r) => setTimeout(r, 2000));
+    await cellar.drainProse();
+    const said = await roomText(cellar);
+    expect(said, 'the cellar renders its authored description').toMatch(
+      /steel racking|kegs|cooler/i,
+    );
+  }, 240_000);
+
+  it('⭐ Dave’s Bar is in the grid — its `coords:` used to be discarded', async () => {
+    /*
+     * `Bar` restated `SingletonCartesianLocation`'s mixin set on a
+     * plain `Location`, which composes the `coordinates` FIELD and not
+     * `coords` — `coords` lives on the `CartesianLocation` CLASS. The
+     * row authored `coords:` under a comment reading *"`coords:` is
+     * the MEMBERSHIP operation"* and the Hydrator dropped it: the bar
+     * belonged to no zone, inside a `/world/lounge` that IS a
+     * `CartesianZone`.
+     *
+     * ⭐ `trace atmosphere` is the honest instrument: it prints a
+     * `volume:` line only when `getVolume() !== null`, and a zoneless
+     * bare `Location` has no extent to cube. A volume means the room
+     * resolved a zone.
+     */
+    const barkeep = await at('/world/lounge/location/bar', 'barkeep', true);
+    const said = squash(
+      plain(await (await barkeep.cmd('trace atmosphere')).said()),
+    );
+    expect(said, 'the trace runs at all').not.toMatch(/don.?t understand/i);
+    expect(
+      said,
+      'and the bar has a volume, which means it resolved a zone',
+    ).toMatch(/volume/i);
+  }, 240_000);
+
+  it('⭐⭐ the panels: a place is describable, and an Idea is not addressable', async () => {
+    const perceptible = await inverse(reader, 'perceptible');
+    expect(
+      perceptible,
+      'the Location root is perceptible now — every room, not the ones that remembered',
+      // ⭐ Read by CLASS: the inverse answers by class past 40 rows and
+      // Perceptible is the widest mixin in the game.
+    ).toMatch(/location|room/i);
+
+    // ⚠ The Idea-branch claim, and the owner's own ruling: nothing on
+    // that branch is addressed by keyword. `Material` is the one Idea
+    // composing Perceptible and it LENDS its keywords to the good made
+    // of it — it must be absent from nothing, but the reference
+    // singletons must be.
+    expect(
+      perceptible,
+      'a Discipline is addressed by string key, never by keyword',
+    ).not.toMatch(/idea\/Discipline/i);
+    expect(perceptible, 'nor a QuantityMarshaller').not.toMatch(
+      /QuantityMarshaller/i,
+    );
+  }, 180_000);
+
+  it('⭐ and nothing that is one instance for the whole world carries a stat sheet', async () => {
+    // `Propertied` came off seven reference singletons: a prop on `oak`
+    // would be a prop on every oak there has ever been.
+    const page = await inverse(reader, 'propertied');
+    expect(
+      page,
+      'a BODY carries per-instance state — that is what the mixin is for',
+    ).toMatch(/agent\/|Creature|Character|Avatar/i);
+    expect(
+      page,
+      '⚠ a material does NOT — one instance, shared by every holder',
+    ).not.toMatch(/idea\/material\/Material|idea\/species\/Species/i);
+    expect(page, 'nor a Condition or a LocomotionMode').not.toMatch(
+      /idea\/(Condition|LocomotionMode)/i,
+    );
+  }, 180_000);
 });
