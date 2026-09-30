@@ -841,6 +841,72 @@ cited).
 
 Commit: `drive(narrowing A6): part G — the horse hitches, the wolf bites, and the employed panel names no animal`
 
+**✅ A6 DONE — 27/27** (parts 0, A–G). Seven runs; the wolf, the panels
+and the beast page passed first time, and every other checkpoint found
+something.
+
+### ⚠⚠ What it found in the PRODUCT — four verbs afforded by NOTHING
+
+`hitch`, `unhitch`, `mount` and `ride` each had a view, a controller
+and an arg gate, and **no `commandContributions` anywhere in the repo
+named any of the four files.** `hitch wagon to horse`, typed in a goods
+yard with a wagon and a horse standing in it, answered *"I don't
+understand 'hitch'."* ⭐ That is the FIRST of the five reachability
+links, dead on four verbs, and it makes `conveyance.md`'s worked
+example — *a horse you ride while it hauls* — unreachable for every
+player since conveyance shipped. Fixed: `HaulableMixin` affords
+`hitch`/`unhitch` and `MountableMixin` affords `mount`/`ride`, both to
+**`peers`** (a cart and a horse stand beside you; `environment` grants
+outward to your containers — the mistake `wash` shipped with).
+
+### ⚠ What it found about the CLONE gate, twice
+
+`clone …/wagon` and `clone …/ore-tram` answer `access-denied` while
+`clone …/coach` succeeds. `CloneController.ts:161-183`: with **no live
+instance** the gate is `canAtPath` (a titled root answers yes); with
+one it is `AccessApi.can` through **that instance's zone**. So a wagon
+standing in the Terminus goods yard makes the wagon ROW unclonable by
+anyone who does not hold Terminus, and the *second* clone of the draft
+horse failed in a different locality for a row nobody there had
+touched. ⭐ **A row gets harder to clone the moment somebody puts one
+down.** Filed, not fixed.
+
+⚠ My first reading was *"the store stocks it, so the shop owns it"* — a
+guess that fitted two data points and was wrong (the ore-tram is
+stocked nowhere). Reading the controller settled it. **Two data points
+and a plausible story is not a diagnosis.**
+
+### ⚠ What it found about the DRIVE
+
+- **A cloned thing lands in your INVENTORY, and inventory is not
+  `peers`.** `mount` stayed unknown with the affordance already in
+  place and correct, because the horse was in the founder's pack. The
+  wagon is a room prop, which is why `hitch` worked from the first run
+  and `mount` did not — and the bug reads exactly like *"the Mountable
+  affordance does not work"*. One `drop horse` fixed it.
+- **An unlit room renders an agent as "someone".** The goods yard is
+  outdoors at midnight and a freshly-cloned lantern gives *"shapes and
+  edges, no more"*, so `look horse` returned `someone` + the long
+  description. Matched on the prose. ⭐ Darkness blocks the RENDER, not
+  the binder — which is why the checkpoints do not depend on a listing.
+
+### What it could not prove, stated rather than faked
+
+- **`hitch` COMPLETING.** `HaulageRig.canHitch` demands a competence
+  band — *"the ACTOR's competence decides, not the hauler's"* — and a
+  fresh founder has no transcript. Shipped behaviour, not this build's.
+  ⭐ But `hitch-refused` is the CONTROLLER's veto, and reaching it means
+  the binder had already resolved the horse against
+  `requires: HaulerMixin`, which is the whole question. A horse that had
+  lost `Hauler` refuses earlier, at the gate, with no prose.
+- **`mount wolf`.** Only one horse exists per run (the clone gate
+  above), so the mount question is asked where the verb lives — `mount
+  wagon` at the yard, refused by the same gate that refuses a `Beast`.
+  The wolf's half is `Beast.test.ts` plus the `hauler` panel.
+- **The pit pony.** Same class as the horse; `trade-mining` and
+  `rejection` are not in this file's pack list, so it is proved by test
+  and census.
+
 ### A7 — the measurement, re-run
 
 `pnpm -C packages/server composition-census --json` before A0 and after

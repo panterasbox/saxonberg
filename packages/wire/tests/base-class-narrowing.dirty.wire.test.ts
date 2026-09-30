@@ -92,6 +92,34 @@ const RATIONS_ROW = '/world/terminus/general-store/thing/rations';
 const CORRIDOR = '/world/newbie-wilds/delve/corridor-1';
 const LANE = '/world/terminus/hinkley-hills/location/lane';
 const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const TREELINE = '/world/newbie-wilds/crossroads/treeline';
+const HORSE_ROW = '/system/transport/agent/draft-horse';
+/*
+ * ⚠⚠ **No cart is CLONED here, and the reason is a finding worth
+ * keeping.** `clone /system/transport/thing/wagon` and `…/ore-tram`
+ * both answer `controller-rejected:access-denied`, while `clone
+ * …/coach` (part C) succeeds — same pack, same `/system/transport`
+ * prefix. `CloneController.ts:161-183` is the rule:
+ *
+ *   - **no live instance** → `AccessApi.canAtPath(giver, 'clone', path)`
+ *     — the honest path question, and a titled root answers yes;
+ *   - **a live instance exists** → `AccessApi.can(giver, 'clone',
+ *     representative)`, which resolves title through **that instance's
+ *     zone**.
+ *
+ * So a wagon standing in the Terminus goods yard makes the wagon ROW
+ * unclonable by anyone who does not hold Terminus. ⭐ **A row gets
+ * harder to clone the moment somebody puts one down** — which reads
+ * backwards, and is filed rather than fixed here.
+ *
+ * ⚠ My first reading of this was "the store stocks it, so it is
+ * owned", which was a guess that fitted two data points and was wrong:
+ * the ore-tram is stocked nowhere. Reading the controller was what
+ * settled it.
+ *
+ * The yard already HAS a wagon, so the horse walks to the cart.
+ */
+const GOODS_YARD = '/world/terminus/goods-yards/yard';
 
 const open: Session[] = [];
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
@@ -925,4 +953,221 @@ suite('F — a key the Hydrator never writes is a key nobody wrote', () => {
         'the row said `long:` and nothing has ever read that key',
     ).toMatch(/graduated arc|index mirror|vernier/i);
   }, 180_000);
+});
+
+/* ───────── G — the agent branch ───────── */
+
+/*
+ * ⭐⭐ **A horse is not a person, and a wolf fights back.**
+ *
+ * The Agent branch had two tiers where the readers were asking for
+ * three. `Creature` is a body; `Character` is a person; there was no
+ * rung for *a body that ACTS* — so every animal that needed to move,
+ * perceive, be engaged or fight had to be filed as a person to get it.
+ * The newbie-wilds wolf was an `Extra` (*"a character who is a role,
+ * not a person"*) and the draft horse was a `HaulingCreature`
+ * (`Mountable(PostRegistration(Character))`), so both composed
+ * `CasterMixin`, `MemorizedMixin`, `EmployedMixin`, `PersonaMixin`,
+ * `CommandGiverMixin`, `SoulMixin` and `VocalMixin`.
+ *
+ * ⚠ Nothing ever called any of it — the defect was in what the classes
+ * CLAIMED — so like part E this reads the panel for the claim, and
+ * drives the two behaviours the move had to keep and the one it nearly
+ * broke.
+ */
+
+suite('G — a horse is not a person, and a wolf fights back', () => {
+  let carter: Session;
+  let hunter: Session;
+
+  beforeAll(async () => {
+    /*
+     * ⚠ The FOUNDER walks to the yard rather than a fresh session
+     * standing up in it. The goods yard is outdoors at midnight (the
+     * wire world boots at t=0, new moon), and a freshly-cloned lantern
+     * lights *"shapes and edges, no more"* — enough to move by, not
+     * enough to list what is standing there. The founder has been
+     * reading rooms correctly since part A.
+     *
+     * ⭐ Darkness blocks the RENDER, not the binder: `hitch wagon to
+     * horse` resolves `wagon` in reach whatever the light, which is why
+     * the checkpoints below do not depend on a room listing.
+     */
+    carter = founder;
+    expectOk(await carter.cmd(`goto ${GOODS_YARD}`));
+    expectOk(await carter.cmd(`clone ${HORSE_ROW}`));
+    /*
+     * ⚠⚠ **`drop`, and it is load-bearing.** `clone` puts the clone in
+     * the GIVER's inventory by default (`CloneController`'s precedence:
+     * `--into` → `--here` → self-placement → giver fallback), and a
+     * thing in your pack is not a PEER. `MountableMixin` affords
+     * `mount` to peers, so a pocketed horse affords nothing and the
+     * verb stays unknown — which is how this checkpoint failed once
+     * with the affordance already in place and correct. The wagon is a
+     * room prop, which is why `hitch` worked from the first run and
+     * `mount` did not: the same bug would have read as "the Mountable
+     * affordance does not work".
+     */
+    expectOk(await carter.cmd('drop horse'));
+    await carter.drainProse();
+
+    /*
+     * ⚠⚠ **Only ONE horse can exist per run, and that is the clone gate
+     * again.** The carter's clone above is the row's first instance, so
+     * `canAtPath` answered it; every clone after that resolves the
+     * REPRESENTATIVE and asks `AccessApi.can` through *its* zone — the
+     * Terminus goods yard — which the hunter does not hold. The second
+     * `clone /system/transport/agent/draft-horse` answers
+     * `access-denied`, in a different locality, for a row nobody there
+     * has touched.
+     *
+     * ⭐ So the mount question is asked where the verb LIVES (at the
+     * yard, below) rather than where the wolf is. The wolf's half —
+     * that a `Beast` composes neither `Mountable` nor `Hauler` — is
+     * asserted by `Beast.test.ts` and read off the `hauler` panel in G5.
+     */
+    hunter = await at(TREELINE, 'hunter', true);
+    expectOk(await hunter.cmd(`clone ${LANTERN_ROW}`));
+    expectOk(await hunter.cmd('light me:i:lantern'));
+    await hunter.drainProse();
+
+    // Drain, wait, drain — the clone echoes land late (part E's lesson).
+    await new Promise((r) => setTimeout(r, 2000));
+    for (const s of [carter, hunter]) await s.drainProse();
+    // ⚠ Drain, wait, drain — the clone echoes land late and on the next
+    // command's frame (part E's five wasted runs).
+    await new Promise((r) => setTimeout(r, 2000));
+    for (const s of [carter, hunter]) await s.drainProse();
+  }, 300_000);
+
+  it('⭐ the horse stood up, and it is a DraftAnimal', async () => {
+    // ⚠ A TARGETED look, not the room listing: the yard is unlit and
+    // renders "shapes and edges, no more". That the wagon is there is
+    // proved by the next checkpoint binding it, which is a stronger
+    // statement than a render anyway.
+    // ⚠ Matched on the long description, not the presentation: the
+    // unlit yard renders an unrecognised agent as *"someone"*, so the
+    // noun phrase is no evidence here and the prose is.
+    const said = squash(plain(await (await carter.cmd('look horse')).said()));
+    expect(said, 'the horse renders at all').toMatch(
+      /seventeen hands|feathered feet|horse|draft|shire/i,
+    );
+  }, 180_000);
+
+  it('⭐⭐ `hitch wagon to horse` reaches the CONTROLLER — the arg gate resolved a DraftAnimal', async () => {
+    /*
+     * ⚠⚠ THE checkpoint of part G. `hitch.yaml:35` gates its `mount`
+     * arg on `HaulerMixin`, which has **zero** `MixinApi.isHauler`
+     * narrowings and **zero** affordance statics — that one `requires:`
+     * is the whole of its reachability. When the horse stopped being a
+     * `Character`, `Hauler` had to be composed on `DraftAnimal` by hand
+     * or hitching would have died at the BINDER, which fails closed and
+     * silent and which no controller test can see.
+     *
+     * ⭐ **What this proves, and what it cannot.** The wagon demands a
+     * competence band (`HaulageRig.canHitch` — *"the ACTOR's competence
+     * decides, not the hauler's"*), and a fresh founder has no
+     * transcript, so the act legitimately refuses. That is shipped
+     * behaviour and not this build's. ⭐⭐ But `hitch-refused` is the
+     * CONTROLLER's veto, and reaching it means the binder had already
+     * resolved the horse against `requires: HaulerMixin` — which is the
+     * whole question. A horse that had lost `Hauler` refuses EARLIER,
+     * at the gate, with a different reason and no prose a player can
+     * read. The assertion is written to fail on either.
+     */
+    const attempt = await carter.cmd('hitch wagon to horse');
+    expectRefused(attempt);
+    expectNote(attempt, 'controller-rejected', { reason: 'hitch-refused' });
+    const said = squash(plain(await attempt.said()));
+    expect(
+      said,
+      'and the refusal is the diegetic competence one, not a binder error',
+    ).toMatch(/shafts|more rig than you can hold|somebody who has done it/i);
+  }, 240_000);
+
+  it('⭐ `mount` exists because a horse is standing there — and refuses the wagon BY NAME', async () => {
+    /*
+     * ⭐⭐ **Both halves of the affordance in one checkpoint.**
+     *
+     * `mount` is afforded by `MountableMixin` to peers, so the verb is
+     * in the carter's surface only because a mountable horse is in the
+     * room — ⚠ and until this build it was afforded by NOTHING AT ALL.
+     * View, controller and arg gate had shipped; no
+     * `commandContributions` anywhere in the repo named the file, so
+     * `mount horse` answered *"I don't understand 'mount'."* for every
+     * player since conveyance shipped. Same for `hitch`, `unhitch` and
+     * `ride`. The FIRST of the five reachability links, dead on four
+     * verbs, and `conveyance.md`'s worked example — *a horse you ride
+     * while it hauls* — unreachable.
+     *
+     * Then the arg gate: point the now-existing verb at the wagon and
+     * `mount.yaml:21`'s `requires: MountableMixin` refuses it by name.
+     * That is the same gate that refuses a `Beast`, asked of the one
+     * non-mountable thing standing in this yard.
+     */
+    const attempt = await carter.cmd('mount wagon');
+    expectRefused(attempt);
+    const said = squash(plain(await attempt.said()));
+    expect(
+      said,
+      'the verb EXISTS (a horse affords it) and the gate names the reason — ' +
+        "`lib/mixin.ts:803`'s \u201cyou can't ride\u201d",
+    ).toMatch(/can.?t ride|not something you can ride/i);
+    expect(said, '⚠ and it is not an unknown verb').not.toMatch(
+      /don.?t understand/i,
+    );
+  }, 180_000);
+
+  it('⭐⭐ the wolf fights back — Combatant survived the move to Animate', async () => {
+    // `AttackController` gates its TARGET on `Vitals && Engaged`, never
+    // on `Combatant`, so the wolf could always be attacked. What the
+    // move had to preserve is the half that ANSWERS: `Combatant` is on
+    // `Animate` now rather than on the person rung. If this fails, the
+    // wolf is taking the fight in silence.
+    expectOk(await hunter.cmd('attack wolf'));
+    await new Promise((r) => setTimeout(r, 8000));
+    const said = squash(plain(await (await hunter.cmd('look')).said()));
+    expect(
+      said,
+      'the fight is running and the wolf is in it',
+    ).toMatch(/wolf|fight|bite|snarl|lunge|teeth/i);
+  }, 240_000);
+
+  it('⭐⭐ the panels: a person hauls, a beast fights, and NOTHING animal is employed', async () => {
+    const hauler = await inverse(founder, 'hauler');
+    expect(hauler, 'a draft animal pulls').toMatch(/agent\/DraftAnimal/i);
+    expect(hauler, 'and so does a person').toMatch(
+      /agent\/(Cast|Avatar|Extra)|character\/Character/i,
+    );
+    expect(
+      hauler,
+      '⚠ but a plain Beast does NOT — that is why `Hauler` is not on the rung',
+    ).not.toMatch(/agent\/Beast\b/i);
+
+    const combatant = await inverse(founder, 'combatant');
+    expect(combatant, 'a wolf fights back').toMatch(/agent\/Beast/i);
+    expect(combatant, 'and a kept animal does now too').toMatch(
+      /agent\/KeptAnimal/i,
+    );
+    expect(
+      combatant,
+      '⭐ a corpse does not — it is a body, not a body that acts',
+    ).not.toMatch(/agent\/Corpse/i);
+
+    const employed = await inverse(founder, 'employed');
+    expect(employed, 'a Cast member holds a post').toMatch(/agent\/Cast/i);
+    expect(
+      employed,
+      '⭐⭐ and NO animal does — this is the narrowing’s claim, read off ' +
+        'the page a player can open. A pit pony held a job until 2026-09-30.',
+    ).not.toMatch(/agent\/(Beast|DraftAnimal|KeptAnimal)/i);
+  }, 180_000);
+
+  it('⭐ and the beast has a page of its own', async () => {
+    const page = squash(plain(await (await founder.cmd('wiki beast')).said()));
+    expect(page).not.toMatch(/no such page|does not exist/i);
+    expect(page, 'the three tiers are stated where a player reads them').toMatch(
+      /body that acts|is nobody/i,
+    );
+  }, 120_000);
 });
