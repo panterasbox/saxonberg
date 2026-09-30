@@ -26,9 +26,10 @@ data:
     x: 1
     y: 0
     z: 0
-  name: a cellar
+  shortDescription: cellar
+  register: indefinite
   keywords: [store, cellar, back-room]
-  description: |
+  longDescription: |
     A low, cool room behind the bar, steel racking along one wall. The air is markedly cooler than the bar's, and the floor is damp where the kegs stand.
   _temperature: 285
   props:
