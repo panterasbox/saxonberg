@@ -35,12 +35,21 @@ attribute? And what triggers the state changes?**
 
 ## Which of our seven it sharpens
 
-**[Lens 2 · Creative expression](../design-lenses.md)** — the
-**structural** half of the question [#93](./93-the-nameless-quality.md)
-asks aesthetically: *does the substrate impose properties nobody asked
-for?* `93` argues charm is a budget denominated in carves; this entry
-asks what a carve **is**. Secondarily **lens 1**, on the reading side —
-what a player is shown of a state, and how precisely.
+**[Lens 2 · Creative expression](../design-lenses.md)** and
+**[lens 1 · Pedagogy](../design-lenses.md)**, co-primary.
+
+Lens 2, because this is the **structural** half of the question
+[#93](./93-the-nameless-quality.md) asks aesthetically: *does the
+substrate impose properties nobody asked for?* `93` argues charm is a
+budget denominated in carves; this entry asks what a carve **is**.
+
+⭐⭐⭐ And lens 1, because *is the world derivable* turns out to have a
+**literal** implementation here: **the machine is shown to the player.**
+The client's inspection card renders the object's mixin composition as
+chips, and its own source calls the card **a teaching surface**. A player
+can derive what is possible by *reading the model*, not only by
+experiment — which is the strongest available form of the derivability
+claim, and it is shipped rather than aspirational.
 
 ⚠ **Written 2026-09-29 against `build/narrowing` (MR !303, unmerged).**
 The plan decisions and the census tool it cites are on that branch and
@@ -56,6 +65,8 @@ the question each of them should be able to answer.
 | an attribute has a **provenance** — authored, stamped, or derived — and the three are not interchangeable | **invariant** (A3) |
 | a derived attribute has no stored state; *what triggers the change* is **that you looked** | **invariant** (A3, A16) |
 | "whichever framing is most useful" is evaluated against **every row that exists**, never the moment | **invariant** — `lint:mass` is it as a ratchet |
+| the composition vocabulary is **public**; an instance's composition is **perceptual** | **invariant** — the honest-fog rule |
+| presentation may **compress and reorder**; it may never **subtract** | **invariant** — two independent instances, below |
 | a state is read in **words and bands**, not decimals | ⭐⭐ **the grain** — another game here may want a decimal, and [#55](./55-visible-progress.md) says so |
 | how much state a player is made aware of | **this title's** |
 
@@ -69,6 +80,93 @@ that layer declares and how many rows of that class author any of them.*
 
 That is Q1–Q3 as a measurement. And taking the measurement turned up a
 problem the lens has no vocabulary for.
+
+⚠ **But the more important difference is the one the census does not
+show**, and it inverts what the lens is *for*.
+
+## ⭐⭐⭐ His lens is a designer's instrument. Here it is a player-facing surface
+
+Schell's four questions are a thinking tool — something a designer asks
+privately about a model the player will only ever experience through play.
+**We publish the answers.**
+
+The client's inspection card renders the subject's mixin composition as a
+row of chips, and the affordance envelope carries
+`composition: string[]` so the menu can label and group without a second
+round trip. Three decisions inside that are worth more than the feature:
+
+- ⭐⭐ **The suffix is stripped.** `chipLabel()` turns `ExitableMixin` into
+  **`Exitable`** — *“the suffix is an implementation technique, not part of
+  the name”*, and the codebase's own convention already agrees (the marker
+  says `PropertiedMixin` while the file, the concept and every doc say
+  `Propertied`). So there is a deliberate **register translation** between
+  the engineering identifier and the word a player learns, and it costs one
+  line.
+- ⭐⭐⭐ **A curated palette, and the curation was found by driving.** A
+  `PLUMBING` set demotes `PostRegistration · Propertied · Persistable ·
+  Forkable · Shadowable · ClientState`, because *“the lounge's chip row
+  read `PostRegistrationMixin · ExitableMixin · DetailedMixin`, so two of
+  the three visible slots on a **teaching surface** were spent on
+  machinery. **The chips exist to show a player the composition palette
+  they would author with**; a lifecycle hook is not part of that
+  palette.”* ⭐ **That set is a curriculum decision encoded as a client
+  constant**, and it is the real answer to Schell's *too many states
+  confuse and overwhelm* — not compression this time but **curation of
+  which states are worth naming.**
+- ⭐⭐⭐ **And the rule it was fixed under is the one to carry:** *“Sorted
+  **LAST rather than removed**. The resolver's answer is the ACTIVE
+  composition and it is true — **hiding part of it would be the client
+  editing a server fact.** Demoting it is a presentation decision, which
+  is the client's; the overflow count still includes them.”*
+
+> ⭐⭐⭐ **Presentation may compress and reorder. It may never subtract.**
+> That is the same rule as the banding argument below — the model keeps
+> every state, the reading does not — arriving independently, once for
+> numbers and once for composition. Two sightings make it doctrine rather
+> than a habit.
+
+⭐ **And the learning has a mechanism, which is the part that makes this
+more than a debug panel.** `MixinMissingNote` is a refusal whose payload
+is *the name of the mixin you lack*. So the engine **declines in the
+vocabulary of its own type system**, and a player accumulates the palette
+from refusals as much as from inspection — which is
+*the refusal is the progression UI* ([#31](./31-action.md)) and this lens
+meeting at a single wire note. The ambient half is the status bar, the
+shelf and the tooltips, over `subscribableFields` descriptors
+**contributed by the mixin that owns the gate**.
+
+## ⭐⭐⭐ And the composition is itself derived, per viewer
+
+Which is where his frame breaks in the second place. The wire is explicit
+that what ships is the **active** composition, *“not declared: augments,
+implants, species innates and on-shift conferral all change it at
+runtime”* — `MixinApi.getActiveMixins` is a read, not a lookup.
+
+> ⭐⭐⭐ **So the thing that tells you which attributes exist is itself a
+> derived attribute.** Schell's lens assumes the object / attribute /
+> state structure is the designer's fixed frame, outside the machine.
+> Here the frame is **inside** the machine, changes at runtime, and
+> **differs by observer.**
+
+And the observer half is done with unusual discipline. From the affordance
+envelope: *“Both lists are filtered, and **filtering means DELETION**. A
+verb the viewer is not entitled to know about is absent — never present
+and flagged — because a response that admits a hidden verb exists leaks
+the fact that it exists. **Same for a concealed mixin.**”* The centre
+chip's kind is viewer-aware the same way, and *“a third ‘unknown’ value
+would announce **that** something is being withheld.”*
+
+> ⭐⭐⭐ **So the precise statement is: the vocabulary is public, an
+> instance's composition is perceptual, and the withholding is invisible.**
+> You may learn the entire palette — that is the curriculum. What you may
+> not learn is which of it *this* thing has right now, and you are not told
+> that you were not told.
+
+⭐ That is [#29 Secrets](./README.md) answered with more precision than the
+lens asks for: his category **C** (private to one player) is implemented
+as **absence** rather than as a marked gap, and his category **D** —
+state the game knows and players do not — is given up at the level of the
+*schema*, not only of the values B3 already publishes.
 
 ## ⭐⭐⭐ His rule has no time dimension, and the god class is the rule iterated
 
@@ -89,6 +187,15 @@ could not see.
 > that is most useful *across every row that exists and every author who
 > will ever compose it* — which is exactly the question the census asks:
 > for every template, does it need every mixin its class composes?**
+
+⚠⚠ **And because the machine is a teaching surface, this is not
+hygiene — it is accuracy.** If a player learns that `Chattel` means
+*ownable*, a class composing it dishonestly **teaches them something false
+through the interface.** The god class stops being a maintenance smell and
+becomes **misinformation**, which is why the narrowing plan's own framing
+line is the strongest argument in the whole pass: *“the first thing a
+player can feel is that a shop counter, a floor and a hearth **stop
+claiming they can be owned like a knife and hidden like a knife**.”*
 
 ⭐ And the honest reply to *"but you cannot evaluate against rows that do
 not exist yet"* is `lint:mass`: a **ratchet** does not need to know the
@@ -227,11 +334,15 @@ doctrine — it would hold in a game that printed every number it had.
 
 ## Tensions & risks
 
-⚠⚠ **A derived attribute cannot be watched, and the design keeps wanting
-to watch it.** Every push over a derived value needs a manufactured
-trigger. This is the tax behind the deviation-narration machinery and
-behind card-surface subscriptions, and it is currently paid
-case-by-case with no doctrine.
+⚠ **A derived attribute cannot be watched, so every push over one
+manufactures its trigger.** ⭐ The seam for this is better than I first
+read it: `subscribableFields` puts the descriptor **on the mixin that owns
+the gate**, so the trigger has an owner by convention rather than
+case-by-case. ⚠ What is untested is whether that pattern reaches
+**ledger-derived** values — a band that moved, standing that shifted —
+where the inputs are an append-only stream and there is no field to hang a
+descriptor on. The shipped descriptors are over composition and contents,
+not over derivations of a ledger.
 
 ⚠⚠ **D1's third clause is the expensive one and it does not mechanize.**
 *The concept is false of what the class IS, argued from the class
@@ -249,6 +360,18 @@ authored, never that anything *reads* it — so the instrument is strong
 against misrepresentation and silent about dead weight. The mirror
 measurement (*which declared attributes does nothing ever read?*) does not
 exist.
+
+⚠⚠ **A mixin name is now a word we teach, which makes the naming
+doctrine pedagogy rather than style.** *Name the substrate, not its first
+consumer* and *shared substrate must not ship one consumer's prose* are
+**curriculum rules** on this reading, and W9's `FurnaceMixin` →
+`BurnerMixin` and `ToolItem` → `Tool` are **vocabulary corrections in a
+language players are being taught.** ⭐ The `PLUMBING` set absorbs most of
+the programmer-nouns already — `Propertied`, `Persistable`, `Forkable`,
+`Shadowable` are all demoted — so the curriculum is in better shape than
+the identifier list suggests. ⚠ But nothing gates it: a new mixin whose
+name means nothing to a player will appear on a teaching surface, and no
+lint or review question asks whether the word teaches.
 
 ⚠ **`93`'s carve budget and this entry can disagree.** Narrowing is good
 for honesty and each carve is a class an author must learn. There is a
@@ -280,7 +403,25 @@ replaced, and neither entry knows what it is.
    or derived — and if derived, what does the read cost and who reads it?*
    A slate that cannot answer it is describing a stat it has not decided
    how to compute.
-7. **Pair with [#93](./93-the-nameless-quality.md).** Same refactor, two
+7. ⚠⚠ **Fix `card-surface.md`'s stale v1 note.** It says template path
+   and **mixin composition** *“belong in a future admin surface”* and that
+   *“the substrate doesn't project those fields today”*. Both shipped:
+   `AffordanceResultEnvelope.composition` carries the active set and the
+   client renders chips. ⭐ The correction matters beyond tidiness — the
+   doc frames the surface as **admin**, and on this entry's reading it is a
+   **learning** surface, which is a different thing with a different
+   audience and different design rules. *(Corrected in that doc
+   2026-09-29.)*
+8. ⭐⭐ **Graduate disclosure by extent, not by tier.** Wizards and parcel
+   owners should see more of the machine than a passer-by — and the shape
+   for that is `heldExtents` and parcel title, **never an `isAdmin` flag**,
+   because [access.md](../subsystems/access.md) has no author tier and the
+   whole point of the chips is that the palette belongs to everybody.
+9. ⭐ **Ask whether a new mixin's name teaches.** It appears on a teaching
+   surface with its suffix stripped; if the bare word means nothing to a
+   player, either the name or the `PLUMBING` set is wrong. Cheap as a
+   review question, currently asked nowhere.
+10. **Pair with [#93](./93-the-nameless-quality.md).** Same refactor, two
    halves: `93` asks whether the substrate lets an author make something
    with the quality; this one asks whether the substrate is telling the
    truth about what its objects are.
