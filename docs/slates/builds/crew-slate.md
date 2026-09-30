@@ -474,6 +474,102 @@ the understudy steps in"*), the shipped `covers` brain (the proprietor
 filling a gap), and a crew whose rostered member is absent are the same
 pass-2→3 override. Three slates were holding it separately.
 
+## ⭐⭐⭐ Crews and quests — what unifies, and what must not
+
+Asked 2026-09-30: the casting pass came out of a conversation about
+**quests** — small narratives inside larger ones, roles defined by a plot —
+while this slate is about **business units assembled by function**. Do they
+unify?
+
+### The criteria must stay apart
+
+[quest-modeling-slate](quest-modeling-slate.md) already drew the line and it
+is the valuable part:
+
+> A capability predicate used as a casting criterion **selects for
+> competence and therefore produces the obvious pairing every time. That is
+> allocation wearing casting's clothes.**
+
+**Allocation selects FOR fitness. Casting selects AGAINST type.** Same
+mechanism, opposite objective functions; unifying them reintroduces the
+exact error that section exists to name.
+
+⚠⚠ **And the hard boundary: a crew must never serve a plot.** If the rail
+routes your drink to advance a story, the simulation stops being honest and
+the GTA property — *roleplay emerges from an honest sim, it is never
+designed for* — dies with it (lens 3).
+
+### But the SHAPE is one shape
+
+> **A binding is a slot, a predicate, and a lifetime.**
+
+| | slot | the predicate reads | lifetime |
+|---|---|---|---|
+| **crew** | who serves this | availability, capability | **one request** |
+| **quest** | «informant» | drama — regard, history, what telling would cost | **one plot** |
+| **employment** | `head-bartender` | the seat's `requires` criterion | **one employment** |
+
+⭐ **It earns its keep by predicting something true:** the understudy exists
+at all three lifetimes — the shipped `covers` brain is the *one-request*
+substitute, quest's open n+1 is the *one-plot* substitute, and a vacancy is
+the *one-employment* substitute. **Three slates were holding one seam**, and
+`covers` was the instance nobody had recognized as one.
+
+### ⭐⭐⭐⭐ The transfer worth having — a RELATIONAL leg
+
+The quest slate's complaint applies to this slate verbatim: **if the rail
+always routes the cocktail to the best mixologist, the bar is a vending
+machine with a skill table.** Its third relation row — *derived: the slot
+resolves against **your** ledger, per viewer, **systemic*** — is exactly
+what a real bar does:
+
+> **Your regular serves you.**
+
+Per-viewer, derived from history nobody authored, and **computable with
+shipped calls today**: `recognizes()` is already read by the `introduces`
+brain, and regard already exists ([belief.md](../../subsystems/belief.md),
+[trait.md](../../subsystems/trait.md)).
+
+It passes every lens the competence leg strains — derivable (1), a person
+rather than a skill table (3), and the criterion is nameable (6): *"because
+he knows you"* is a better answer than *"because he is better at
+cocktails."*
+
+⭐⭐ **And it gives a PLAYER bartender something nothing else in this design
+does: you accumulate regulars.** A reason to take a job and keep it, wholly
+emergent, nothing authored. **The strongest player-facing argument this
+build has.**
+
+⚠ To settle when it is specified: whether the relational leg sits above or
+below the capability leg. Above means your regular serves you *even if* they
+are worse at it, which is true to life and may be the point.
+
+### Three smaller transfers in
+
+- ⭐ **A ritual is a quest with no player in it.**
+  [daves-bar-slate](daves-bar-slate.md) calls the shift-change (count →
+  total → reconcile → hand off → deposit) *"the next scripting-language rung
+  after recipes"* and *"the NPC rituals ARE scripts"* — beats firing on
+  conditions, cast from a crew. So the hand-off needs **no bespoke code**,
+  it needs quest beats pointed at a roster. A *when-quests-ship* note.
+- **The casting collision is shared, and we have the instances.** Quest asks
+  what happens when Dave is «informant» in one story and something else in
+  another; three shipped people already double-hat — Mara (bartender +
+  keeper), the smelter's buyer (buyer + assayer), Odile (registrar +
+  magistrate).
+- **Specificity is pass 2 in both.** How named a crew member is (Mara versus
+  *a* bartender) is the same decision as how specific a quest's cast is.
+
+### ⭐ And one transfer OUT — what quests get from the brain design
+
+> **The urgency band is what stops a quest NPC being a puppet.**
+
+If a quest asks an NPC to act, it is a candidate like any other — so an NPC
+mid-shift has a **reason** not to drop everything, and a quest **asks
+rather than commands**. That is the difference between a world with people
+in it and a world with actors waiting for cues. See
+[brain-substrate-slate](brain-substrate-slate.md).
+
 ## Cross-references
 
 - [party.md](../../subsystems/party.md) — the crew standup, already deferred there
