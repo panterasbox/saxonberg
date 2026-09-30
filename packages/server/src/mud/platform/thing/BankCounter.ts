@@ -1,7 +1,7 @@
 /**
  * BankCounter — the teller-counter fixture: the seeded `BankMixin` host that
  * lights up the banking verb surface inside a branch and holds the cash
- * vault. `ContainerMixin(Thing)` — a thing-that-holds-things, standing in
+ * vault. A **`Holder`** — matter that holds discrete things, standing in
  * the branch. The root carries `Visible` / `Perceptible` / `Detailed`, so it
  * renders, resolves by keyword and answers a look-at without anything added.
  *
@@ -15,7 +15,7 @@
  * `TravelCredential` precedent).
  */
 
-import Thing from "../../lib/stuff/Thing";
+import Holder from "../../lib/stuff/Holder";
 import { ContainerMixin } from "../../lib/spatial/Container";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { DialogueEffectRegistry } from "../../lib/npc/DialogueEffects";
@@ -24,7 +24,7 @@ import { BANK_CIRCLE_EFFECT } from "../../lib/banking/BankDialogueEffect";
 import type { FieldMeta } from "../../lib/mixin";
 
 const BankCounterBase = BankMixin(
-  PostRegistrationMixin(ContainerMixin(Thing)),
+  PostRegistrationMixin(Holder),
 );
 
 export default class BankCounter extends BankCounterBase {

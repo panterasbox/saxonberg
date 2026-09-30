@@ -2,7 +2,7 @@
  * Stock — the counter MECHANISM: a container fixture that holds the shelf
  * goods, prices them (via `PricedOfferMixin`, Law 1: worth on the offer),
  * and attends its customers (via `AttendantMixin`, the storefront lease).
- * One fixture, the `BankCounter` precedent (a `ContainerMixin(Thing)` that
+ * One fixture, the `BankCounter` precedent (a `Holder` that
  * composes its capability). The `buy` verb resolves this fixture as both the
  * shelf and the attend point.
  *
@@ -32,7 +32,7 @@
  * `lint:counters`.
  */
 
-import Thing from "../stuff/Thing";
+import Holder from "../stuff/Holder";
 import { ContainerMixin } from "../spatial/Container";
 import { PricedOfferMixin } from "../commerce/PricedOffer";
 import { AttendantMixin } from "../attendant/Attendant";
@@ -101,7 +101,7 @@ const StockBase = PersistableMixin(
   ConsignmentShelfMixin(
     ResettableMixin(
       AttendantMixin(
-        PricedOfferMixin(PostRegistrationMixin(ContainerMixin(Thing))),
+        PricedOfferMixin(PostRegistrationMixin(Holder)),
       ),
     ),
   ),

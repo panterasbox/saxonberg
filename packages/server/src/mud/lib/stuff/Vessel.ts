@@ -36,7 +36,7 @@
  * mass-gated). Distinct from a plain `Thing` (holds nothing), `Location`
  * (a stationary place — pure space, *not* matter), and `Agent` (actor).
  *
- * Composition: `ContainerMixin(Thing)`. `Thing` already
+ * Composition: `Holder`. `Thing` already
  * brings the describable-physical baseline — `Visible` + `Perceptible` +
  * `Tangible` (`getMass()`) + `Containable` + `Wet` — so a describable
  * container (a footlocker, a backpack, a bank counter) is a plain `Vessel`
@@ -54,14 +54,29 @@
  * `MixinApi.isAdornable` first). See `docs/subsystems/boundary.md`.
  */
 
-import { ContainerMixin } from '../spatial/Container';
-import Good from './Good';
+import Holder from './Holder';
+import { ChattelMixin } from '../chattel/Chattel';
+import { ConcealableMixin } from '../concealment/Concealable';
 import type { FieldMeta } from '../mixin';
 
 // A Vessel is a Thing (matter — describable / Tangible / Wet / Containable)
 // that additionally holds things (Container). It traces the `Thing`
 // top-level branch, not its own.
-const VesselBase = ContainerMixin(Good);
+// ⭐⭐ `Chattel(Concealable(Holder))`, not `Container(Good)` — the SAME
+// mixin set, reordered, and the reorder is the point: it makes `Vessel`
+// a SUBCLASS of the general holder rather than its sibling.
+//
+// `Holder` is matter that holds discrete things (a counter, a shelf, a
+// warehouse); a `Vessel` is a `Holder` that is also a `Good`, so it can
+// change hands and be put out of sight. A chest genuinely IS a
+// thing-that-holds-things, plus ownable — and the seven fixtures that
+// could not be `Vessel`s once it moved onto `Good` now have a parent to
+// extend instead of seven copies of `Holder`.
+//
+// ⚠ Both `Chattel` and `Concealable` are additive attribute mixins and
+// order among them is moot, which is what makes this a free move: the
+// composed set is identical to what `ContainerMixin(Good)` produced.
+const VesselBase = ChattelMixin(ConcealableMixin(Holder));
 
 export class Vessel extends VesselBase {
   /**

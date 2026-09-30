@@ -12,7 +12,7 @@
  * sit — `buy`.
  */
 
-import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
+import Holder from "@saxonberg/server/mud/lib/stuff/Holder";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
 import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
@@ -21,7 +21,7 @@ import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
 const ConsignmentShelfBase = PersistableMixin(
-  ConsignmentShelfMixin(PostRegistrationMixin(ContainerMixin(Thing))),
+  ConsignmentShelfMixin(PostRegistrationMixin(Holder)),
 );
 
 export default class ConsignmentShelf extends ConsignmentShelfBase {

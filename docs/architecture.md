@@ -866,9 +866,10 @@ to `lib/stuff/Good`.
 - ⚠ **A self-set `fixedInPlace` is not the test.** `Fitting` sets it and
   is still a good — the general store sells tables. A thing can be both
   bought and bolted down; `fixedInPlace` says only *no agent pockets it*.
-- ⚠ **An immovable CONTAINER does not extend `Vessel`** — it composes
-  `ContainerMixin(Thing)` in its own stack (D14). `Stock`, `BankCounter`,
-  `Warehouse`, `DepotCounter`, `CheckRack`, `ConsignmentShelf`.
+- ⚠ **An immovable CONTAINER does not extend `Vessel`** — it extends
+  **`Holder`**, which is `Vessel`'s own parent (D14, and see the
+  container chain below). `Stock`, `BankCounter`, `Warehouse`,
+  `DepotCounter`, `CheckRack`, `ConsignmentShelf`, `TpaTerminal`.
 - Two concrete twins, one rung apart: `platform/thing/Thing` (bare
   immovable matter — a toilet, a yard wall, a midden) and
   `platform/thing/Good` (bare goods — an anvil, a folded hide, a
@@ -1022,7 +1023,34 @@ points readers here.
 | `Thing` | `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))` | Physical MATTER: describable, addressable by keyword and therefore `Detailed`, `Tangible` (material + mass), `Wet` (can get wet), `Containable` ("I live somewhere"). ⚠ **Not `Concealable` and not `Chattel`** — those are what it means to be carried off, and they are `Good`'s (the base-class narrowing; this row said otherwise until 2026-09-30, which is one line W4 of that build missed). |
 | `Location` | `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(PostRegistration(Stuff))))))))` | A PLACE: contained-in-able, adornable, with air, light and an address — and since the narrowing describable, addressable by keyword and detailed, which every room class used to have to remember for itself. ⚠ Not `Exitable`: being a place you can walk BETWEEN is the next rung, and `Offstage` is the class that proves it. |
 | `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`CartesianLocation`, …) layer on coordinate / Visible / Exitable mixins. |
-| `Vessel` | `ContainerMixin(Good)` | **Extends `Good`** — a container-object that adds `Container` (holds things) on top of the goods rung. A describable container is a plain `Vessel` (the root carries `Detailed`). ⚠ An IMMOVABLE container — a shop counter, a teller's counter, a warehouse — composes `ContainerMixin(Thing)` in its own stack instead (D14): it is part of the premises, and the GOODS in it are the chattel. ⚠ It composed `Atmospheric` too until the base-class narrowing build — *a bag is not a place*; see `ExitableVessel`. |
+| `Holder` | `ContainerMixin(Thing)` | **Matter that holds other matter** — a shop counter, a teller's counter, a warehouse, a shelf, a rack. Part of the premises: its ownership, if any, is the PARCEL's. |
+| `Vessel` | `ChattelMixin(ConcealableMixin(Holder))` | **A `Holder` that is also a `Good`** — an article of property with a chattel identity, so it can change hands and be put out of sight: a chest, a pack, a crate. A describable container is a plain `Vessel` (the root carries `Detailed`). ⚠ It composed `Atmospheric` too until the base-class narrowing — *a bag is not a place*; see `ExitableVessel`. |
+
+⭐⭐ **The container taxonomy is a CHAIN, and it is meant to stay short.**
+
+```
+Container (the mixin)
+ ├── Location        holds, is not held        a place you stand in
+ └── Holder          holds, is held            a counter, a shelf, a warehouse
+       └── Vessel      …and can be OWNED        a chest, a pack, a crate
+             └── ExitableVessel  …and has air and a door   a coach, a barge
+```
+
+⚠ `Holder` exists because `Vessel` moved onto `Good` and so began claiming
+`Chattel` + `Concealable`, which a warehouse cannot. Seven fixtures fell
+out of the bottom and each wrote `ContainerMixin(Thing)` by hand; seven
+copies of one composition with nothing to stop an eighth is what naming
+it closes. **The next immovable container extends `Holder`** rather than
+minting a branch.
+
+⚠ `platform/thing/Receptacle` is NOT on this chain: it holds **bulk**,
+not discrete contents (`Thermal(Bulkable(Good))`) — what it holds is
+poured, not put. ⭐ Its own docstring records that it was *"named
+`Receptacle`, not `Vessel`, to stay clear of the existing
+`lib/stuff/Vessel`"* — defensively rather than deliberately. Classically
+a *vessel* is the liquid container and a *receptacle* the general one, so
+those two are arguably swapped; re-seating them is a three-way rename
+across the bulk subsystem and is filed, not done.
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 

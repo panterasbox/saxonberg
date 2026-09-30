@@ -868,7 +868,7 @@ suite('E — what is a GOOD, and what is part of the place', () => {
      * weak one: `insufficient-funds` is reached only AFTER the counter
      * has resolved the good, found its price on the offer and looked up
      * the buyer's account. That whole path runs over a counter that
-     * stopped being a `Vessel` and became `ContainerMixin(Thing)` in
+     * stopped being a `Vessel` and became a `Holder` in
      * this build. A structural break would answer `no-such-target` or
      * `wrong-target`, and the assertion below is written to fail on
      * either.

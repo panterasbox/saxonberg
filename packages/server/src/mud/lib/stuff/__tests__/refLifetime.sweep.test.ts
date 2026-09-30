@@ -8,6 +8,7 @@
  */
 
 import "../../../../test-bootstrap";
+import Holder from '../Holder';
 import { describe, it, expect, beforeEach  } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
@@ -27,10 +28,10 @@ import {
   seedKernelContentStore,
 } from '../../security/__tests__/test-setup';
 
-class Box extends ContainerMixin(Thing) {}
+class Box extends Holder {}
 class ExitRoom extends ExitableMixin(Location) {}
 class Bearer extends DoorBearingMixin(ExitableMixin(Location)) {}
-class Wall extends AdornableMixin(ContainerMixin(Thing)) {}
+class Wall extends AdornableMixin(Holder) {}
 class Fixture extends AdornmentMixin(Thing) {}
 
 const asStuff = (x: unknown): Stuff => x as Stuff;

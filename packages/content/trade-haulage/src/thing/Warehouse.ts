@@ -19,14 +19,14 @@
  * verbs go on objects, and *what is in my shed* is a question about the
  * shed.
  *
- * ⚠ **`ContainerMixin(Thing)`, not `Vessel`** (the base-class narrowing,
+ * ⚠ **A `Holder`, not a `Vessel`** (the base-class narrowing,
  * D14). `Vessel` sits on `Good`, which composes `Chattel` and
  * `Concealable`; this is part of the premises — nobody's chattel, and you
  * cannot hide it. The container behaviour it wants is one mixin, so it
  * composes that mixin. The GOODS it holds are the chattel.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Holder from '@saxonberg/server/mud/lib/stuff/Holder';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -38,7 +38,7 @@ import type { Business } from '@saxonberg/server/mud/platform/idea/Business';
 import WaybillRegistry from '../idea/WaybillRegistry';
 import { WAYBILL_REGISTRY_PATH } from '../lib/haulage/ShipmentDesk';
 
-const WarehouseBase = ContainerMixin(Thing);
+const WarehouseBase = Holder;
 
 export default class Warehouse extends WarehouseBase {
   static fieldMeta: FieldMeta = {
