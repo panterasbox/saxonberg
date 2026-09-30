@@ -24,13 +24,13 @@
  *
  * The base-class narrowing's clusters plan listed `Lamp` as *"`Firebox`
  * + dials"*. It cannot be: a lamp, a lantern and a candle are goods you
- * buy and carry off, so they sit on `Movable`
+ * buy and carry off, so they sit on `Good`
  * (`Chattel(Concealable(Thing))`), and a forge bolted to a smithy floor
  * does not. The same conflation `Fitting` / {@link Station} resolved one
  * wave earlier — **a shared capability chain is not a shared rung.**
  *
  * So `Lamp` and `trade-distilling`'s `Still` write the same four mixins
- * over `Movable` and point here for the order. ⭐ Two consumers is not
+ * over `Good` and point here for the order. ⭐ Two consumers is not
  * three: a `PortableFirebox` twin is declined until something forces it
  * (*promote at the third consumer*), and two duplicated lines are
  * cheaper than a class minted on speculation.

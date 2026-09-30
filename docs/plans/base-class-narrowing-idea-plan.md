@@ -812,7 +812,7 @@ is the proof). Commit:
 ### N2 — the documentation, and the page the drive reads
 
 - `lib/stuff/Idea.ts:1-13` — five branches, not six; `Thing` is matter,
-  `Movable` the good; the list of what an Idea is gains *a zone, a
+  `Good` the good; the list of what an Idea is gains *a zone, a
   material, a species, a spell, a controller — identity and state
   with no presence*.
 - `platform/idea/Condition.ts:1598-1602` — *"ZERO content ships"* → the

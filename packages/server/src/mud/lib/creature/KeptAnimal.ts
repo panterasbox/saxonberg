@@ -28,7 +28,7 @@
  *       BeliefStore  its opinion of you — the bond's first factor
  *       Handling     how tractable it is — the second       ⟵ SIBLINGS
  *         Named      ⭐ a pet HAS a name
- *           Animate  it moves, it notices you leave, it can be engaged,
+ *           Actor  it moves, it notices you leave, it can be engaged,
  *                    it perceives — and it fights back
  *             Creature
  * ```
@@ -39,7 +39,7 @@
  * leave"*. They were on `Character` too, for people. Two composition
  * sites of the same mixins is the shape that says the host is one level
  * up: the base-class narrowing (2026-09-30) put them on
- * `lib/creature/Animate` — *a body that acts* — and this class is the
+ * `lib/creature/Actor` — *a body that acts* — and this class is the
  * third consumer, which is the threshold the project's own rule names.
  *
  * ⭐ The cat, the collie, the canary and the fish GAIN `Combatant` and
@@ -76,7 +76,7 @@
  * on `Character`.
  */
 
-import { Animate } from './Animate';
+import { Actor } from './Actor';
 import { NamedMixin } from '../description/Named';
 import { HandlingMixin } from '../husbandry/Handling';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
@@ -92,7 +92,7 @@ import { BrandedMixin } from '../corpo/Branded';
 // inference does not collapse across this many nested factories in one
 // expression (the PlantPot lesson).
 const KeptAnimalBody = HandlingMixin(
-  BeliefStoreMixin(NamedMixin(Animate)),
+  BeliefStoreMixin(NamedMixin(Actor)),
 );
 
 // ⚠⚠ `PostRegistrationMixin` INNERMOST. Its `postRegister` is a terminal

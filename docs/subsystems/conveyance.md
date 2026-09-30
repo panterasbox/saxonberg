@@ -194,12 +194,12 @@ reloaded hauler wakes unhitched). See [ref-shapes.md](../ref-shapes.md).
 **Where the capability lands.** `HaulerMixin` composes on **`Character`**
 (every PC + NPC-character can pull a cart) and, since the base-class
 narrowing (2026-09-30), a second time on **`platform/agent/DraftAnimal`**
-— **not** on `Creature`, and ⚠⚠ **not on the `Animate` rung between
+— **not** on `Creature`, and ⚠⚠ **not on the `Actor` rung between
 them either.** Three answers to *can this pull a cart* — every person,
 a draft animal, not a wolf — is exactly why it cannot live on one shared
 rung. ⭐ And the reason it matters is that `hitch.yaml:35` gates its
 target on this mixin and is its **only** reader (zero `MixinApi.isHauler`
-narrowings, zero affordance statics): put it on `Animate` and the binder
+narrowings, zero affordance statics): put it on `Actor` and the binder
 accepts `hitch cart to canary`, moving the refusal from an honest arg
 gate to breakaway physics on a hill.
 

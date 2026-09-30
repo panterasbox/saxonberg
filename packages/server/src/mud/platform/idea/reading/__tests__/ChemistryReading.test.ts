@@ -5,7 +5,7 @@ import { driveAnalyze, instrumentWith } from './drive';
 import ChemistryReading from '../ChemistryReading';
 import { TangibleMixin } from '../../../../lib/material/Tangible';
 import Material from '../../../../lib/material/Material';
-import Movable from '../../../../lib/stuff/Movable';
+import Good from '../../../../lib/stuff/Good';
 import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
@@ -33,7 +33,7 @@ import {
 import type Interactive from '../../Interactive';
 import '../../../../api/material';
 
-class TangibleThing extends TangibleMixin(NamedMixin(Movable)) {}
+class TangibleThing extends TangibleMixin(NamedMixin(Good)) {}
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea)))))

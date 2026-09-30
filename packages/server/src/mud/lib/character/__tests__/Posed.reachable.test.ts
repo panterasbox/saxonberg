@@ -23,7 +23,7 @@ import { PosedMixin } from "../Posed";
 import { Creature } from "../../creature/Creature";
 import { MixinApi } from "../../../api/mixin";
 import { Mixins } from "../../mixin";
-import Movable from "../../stuff/Movable";
+import Good from "../../stuff/Good";
 import { StuffApi } from "../../../api/stuff";
 import PosturedChair from "../../../platform/thing/Chair";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -43,7 +43,7 @@ function makeBed(): PosturedChair {
 
 describe("the posture verbs reach a player", () => {
   it("PosedMixin contributes all four on the self surface", () => {
-    const Posed = PosedMixin(Movable) as unknown as {
+    const Posed = PosedMixin(Good) as unknown as {
       commandContributions?: { self?: string[] };
     };
     const self = Posed.commandContributions?.self ?? [];
@@ -73,10 +73,10 @@ describe("standing up forgets the bed — across the WHOLE composed stack", () =
     const { MobileMixin } = await import("../../spatial/Mobile");
     const { PosedMixin } = await import("../Posed");
     const { SlottableMixin } = await import("../../slot/Slottable");
-    const { default: Movable } = await import("../../stuff/Thing");
+    const { default: Good } = await import("../../stuff/Thing");
 
     // Compose in the real order: Mobile OUTSIDE Posed.
-    class Body extends MobileMixin(PosedMixin(SlottableMixin(Movable))) {}
+    class Body extends MobileMixin(PosedMixin(SlottableMixin(Good))) {}
     const body = makeStuffAtPath(() => new Body(), "/obj/test/ChainBody");
     const bed = makeBed();
 

@@ -21,7 +21,7 @@ import { SlottableMixin } from '../../slot/Slottable';
 import { ConstructedMixin } from '../../material/Constructed';
 import { DyedMixin } from '../../material/Dyed';
 import { ContainableMixin } from '../../spatial/Containable';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { Construction } from '../../material/Construction';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
@@ -34,7 +34,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Covering extends WearableMixin(
-  SlottableMixin(ContainableMixin(DyedMixin(ConstructedMixin(Movable)))),
+  SlottableMixin(ContainableMixin(DyedMixin(ConstructedMixin(Good)))),
 ) {}
 
 let seq = 0;
@@ -264,7 +264,7 @@ describe('the covering contribution', () => {
   it('⚠ a non-Slotted host reads exactly its authored band', () => {
     // Every shipped concealment row — a trapdoor, a cached letter —
     // behaves identically to before.
-    const trapdoor = makeStuff(() => new Movable());
+    const trapdoor = makeStuff(() => new Good());
     trapdoor.setConcealment('hidden');
     expect(trapdoor.getConcealment()).toBe('hidden');
     expect(trapdoor.isConcealed()).toBe(true);

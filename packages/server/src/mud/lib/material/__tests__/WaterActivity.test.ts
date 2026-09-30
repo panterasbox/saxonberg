@@ -11,7 +11,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
 import Material from '../Material';
 import { Freshness } from '../Freshness';
@@ -238,7 +238,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
 
   it('⚠ a bare `Thing` carries no water state — a plank is not food (yet)', () => {
     const plank = makeStuff(() => {
-      const t = new Movable();
+      const t = new Good();
       t.setMaterial(material(0));
       return t;
     });
@@ -281,7 +281,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     });
   }
 
-  class TestRack extends PlacingMixin(Movable) {}
+  class TestRack extends PlacingMixin(Good) {}
 
   function rackIn(where: CartesianLocation, exposure = 1): TestRack {
     const rack = makeStuff(() => {
@@ -299,7 +299,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     // common case by a wide margin and it must stay free.
     const cut = food(material(MEAT_EA));
     const box = makeStuff(() => {
-      const t = new Movable();
+      const t = new Good();
       t.setMass(Quantity.of(5, 'kg'));
       return t;
     });

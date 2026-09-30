@@ -170,7 +170,7 @@ embed leaves with you. A personal watch (no `display` marker) is untouched.
 
 | | class | pairing | `shows` | row |
 |---|---|---|---|---|
-| **house tablet** | `/platform/thing/Tablet` (`Display(Movable)`, portable) | `staff` | `[card]` | `/trade/hospitality/thing/house-tablet` (`principal: ''`); the lounge's `/world/lounge/thing/house-tablet` sets `principal: /world/lounge/idea/business` |
+| **house tablet** | `/platform/thing/Tablet` (`Display(Good)`, portable) | `staff` | `[card]` | `/trade/hospitality/thing/house-tablet` (`principal: ''`); the lounge's `/world/lounge/thing/house-tablet` sets `principal: /world/lounge/idea/business` |
 | ~~**a wall TV + remote**~~ | ⚠⚠ **retired unrowed.** `/platform/thing/Screen` (`Display(PostRegistration(Fixture(Detailed(Thing))))`) and `/platform/thing/Remote` (`Detailed(Thing)`) shipped as classes and **no row ever named either**, in the whole life of both. The base-class narrowing build deleted them: a wall TV is a `Tablet` row with `fixedInPlace: true` (a `Containable` field any row may author — the doctrine is below), and the `remote` pairing is DATA, so the paired thing needs no class at all. `Display.test.ts` and `WatchController.test.ts` now drive the shipped `Tablet`. ⭐ What is genuinely lost is `Fixture`'s `seatIn:` self-seating, which no `Display` composer carries today; the day a wall TV row wants it, it is one mixin on `Tablet` or a row-level `seatIn` — not a second class |
 | **the terminal** | `TpaTerminal` composes the mixin; the constructor sets `open` / `['prose']`, and overrides `readScreen` — its board is COMPUTED, not driven | `open` | `[prose]` | the lounge terminal, unchanged |
 

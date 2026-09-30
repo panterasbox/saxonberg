@@ -36,11 +36,11 @@ import BodyPlan from '../../../species/BodyPlan';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
-import Movable from '../../../../../lib/stuff/Movable';
+import Good from '../../../../../lib/stuff/Good';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import type { FieldMeta } from '../../../../../lib/mixin';
 
-class ThermalMug extends ThermalMixin(Movable) {
+class ThermalMug extends ThermalMixin(Good) {
   static _mixinName = 'ThermalMugFeel';
 }
 

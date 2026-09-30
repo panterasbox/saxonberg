@@ -16,7 +16,7 @@
  * so a working might alter FASTER but never FURTHER.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { WearableMixin } from '@saxonberg/server/mud/lib/slot/Wearable';
 import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
@@ -27,7 +27,7 @@ import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
 const CutPiecesBase = WearableMixin(
   SlottableMixin(
-    StackableMixin(CraftedMixin(ConstructedMixin(Movable))),
+    StackableMixin(CraftedMixin(ConstructedMixin(Good))),
   ),
 );
 

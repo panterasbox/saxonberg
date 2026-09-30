@@ -22,7 +22,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ManualBuildMixin } from '@saxonberg/server/mud/lib/craft/ManualBuild';
 import BarStation from '../thing/BarStation';
 import Strainer from '../thing/Strainer';
@@ -33,7 +33,7 @@ const V = (name: string) => `trade/hospitality/cmd/crafting/${name}.yaml`;
 /** Every verb any bar class affords, flattened. */
 function allAfforded(): string[] {
   const sources = [
-    ManualBuildMixin(Movable).commandContributions,
+    ManualBuildMixin(Good).commandContributions,
     BarStation.commandContributions,
     Strainer.commandContributions,
     Muddler.commandContributions,
@@ -49,13 +49,13 @@ describe('the bar affords each verb from exactly one place', () => {
 
   it('the strainer strains; the vessels do not', () => {
     expect(Strainer.commandContributions.peers).toEqual([V('strain')]);
-    const build = ManualBuildMixin(Movable).commandContributions;
+    const build = ManualBuildMixin(Good).commandContributions;
     expect(build.peers ?? []).not.toContain(V('strain'));
     expect(BarStation.commandContributions.peers ?? []).not.toContain(V('strain'));
   });
 
   it('the build vessel banks and works the build', () => {
-    const build = ManualBuildMixin(Movable).commandContributions;
+    const build = ManualBuildMixin(Good).commandContributions;
     expect(build.peers).toEqual([
       'platform/cmd/crafting/pour.yaml',
       'platform/cmd/crafting/stir.yaml',

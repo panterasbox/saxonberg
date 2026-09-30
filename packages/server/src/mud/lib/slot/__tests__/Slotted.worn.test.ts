@@ -16,7 +16,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { GradedMixin } from '../../craft/Graded';
 import { DurableMixin } from '../../material/Durable';
 import { WetMixin } from '../../wetness/Wet';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
@@ -31,11 +31,11 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 /** A garment carrying the three facts the impression line folds over. */
 class TestGarment extends WearableMixin(
-  SlottableMixin(ContainableMixin(GradedMixin(DurableMixin(WetMixin(Movable))))),
+  SlottableMixin(ContainableMixin(GradedMixin(DurableMixin(WetMixin(Good))))),
 ) {}
 
 /** A Slotted host with no body plan at all — a weapon rack. */
-class Rack extends SlottedMixin(Movable) {}
+class Rack extends SlottedMixin(Good) {}
 
 const PLAN_PATH = '/stuff/idea/species/BodyPlan/worn-test-biped';
 
@@ -115,7 +115,7 @@ describe('Slotted.wornStack — the body half', () => {
     // of the card.
     const body = dressableCreature();
     const notClothing = makeStuff(() =>
-      new (class extends SlottableMixin(Movable) {})(),
+      new (class extends SlottableMixin(Good) {})(),
     );
     body.occupy(notClothing, 'sheath');
     expect(body.wornStack()).toHaveLength(0);

@@ -6,7 +6,7 @@ import ResponseReading from '../ResponseReading';
 import Garment from '../../../thing/equipment/Garment';
 import Weapon from '../../../thing/equipment/Weapon';
 import Material from '../../../../lib/material/Material';
-import Movable from '../../../../lib/stuff/Movable';
+import Good from '../../../../lib/stuff/Good';
 import { Construction } from '../../../../lib/material/Construction';
 import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
@@ -127,7 +127,7 @@ describe('ResponseReading', () => {
 
   it('rejects a target with no construction', async () => {
     const { loc, me } = await room();
-    const rock = makeStuff(() => new Movable());
+    const rock = makeStuff(() => new Good());
     ContainmentApi.move(rock, loc);
 
     const reading = withRow(await StuffApi.create(() => new ResponseReading()), 'response');

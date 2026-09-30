@@ -17,14 +17,14 @@
  * `ownerPlayerId()` asks `this.getChattelId()` to tell a private booth from
  * a public one, so it is the one class in the immovable roster that the
  * narrowing could not move onto the bare `Thing` root — D13's test fires in
- * the affirmative and it stays on `Movable`. Whether that is RIGHT is a
+ * the affirmative and it stays on `Good`. Whether that is RIGHT is a
  * separate question worth asking: a booth bolted into a room is not carried
  * off, and ownership of a thing you cannot carry is normally real-property
  * TITLE (`docs/subsystems/parcel.md`), not chattel. Re-keying the booth's
  * owner onto the parcel is a design change, not a narrowing, so it is filed
  * rather than done.
  *
- * A `Movable`-tier fixture (Chattel identity rides the goods rung), with
+ * A `Good`-tier fixture (Chattel identity rides the goods rung), with
  * one persistent field:
  *
  *   - `linkedSandboxPath` (identity ref, a path string; `''` = unlinked): the
@@ -46,7 +46,7 @@
  */
 
 import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
-import Movable from '../../../lib/stuff/Movable';
+import Good from '../../../lib/stuff/Good';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { TemplatePaths } from '../../../lib/paths';
@@ -66,7 +66,7 @@ const DEFAULT_PASSAGE_DIRECTION = 'crossing';
  * ⭐ `PostRegistrationMixin` for one reason: the crossing's passage exit
  * is a clone of a row now, and a clone is async while `onMoved` is not.
  */
-const SandboxCrossingBase = PostRegistrationMixin(Movable);
+const SandboxCrossingBase = PostRegistrationMixin(Good);
 
 export default class SandboxCrossing extends SandboxCrossingBase {
   static fieldMeta: FieldMeta = {

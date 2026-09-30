@@ -10,7 +10,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../../lib/stuff/Location';
-import Movable from '../../../lib/stuff/Movable';
+import Good from '../../../lib/stuff/Good';
 import Floor from '../../../platform/thing/Floor';
 import Biome from '../../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
@@ -34,7 +34,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 import '../../../platform/idea/WorldClockRegistry';
 
 class TestRoom extends Location {}
-class TestOccupant extends HasInteractiveMixin(Movable) {
+class TestOccupant extends HasInteractiveMixin(Good) {
   static _mixinName = 'TestOccupantMoor';
 }
 
@@ -101,7 +101,7 @@ function dryFloor(room: TestRoom): Floor {
 }
 
 let occSeq = 0;
-async function occupy(room: TestRoom): Promise<Movable> {
+async function occupy(room: TestRoom): Promise<Good> {
   const n = occSeq++;
   const occupant = makeStuff(() => new TestOccupant());
   await ContainmentApi.move(occupant, room);
@@ -115,7 +115,7 @@ async function occupy(room: TestRoom): Promise<Movable> {
   return occupant;
 }
 
-const wetness = (t: Movable): number =>
+const wetness = (t: Good): number =>
   (t as unknown as { getWetness(): number }).getWetness();
 const surfaceL = (f: Floor): number => f.getBulkAmount('surface').rawValue();
 

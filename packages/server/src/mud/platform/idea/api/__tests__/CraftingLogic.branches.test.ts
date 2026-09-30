@@ -19,7 +19,7 @@ import { BulkableApi } from '../../../../api/bulk';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
-import Movable from '../../../../lib/stuff/Movable';
+import Good from '../../../../lib/stuff/Good';
 import Ingot from '../../../thing/Ingot';
 import Forge from '../../../thing/Forge';
 import Tool from '../../../thing/Tool';
@@ -51,15 +51,15 @@ class TestSmith extends ThermalMixin(ContainerMixin(NamedMixin(ContainableMixin(
   static _mixinName = 'TestSmithBranches';
 }
 /** The smithing output form — a Crafted Tangible (Thing composes Tangible). */
-class TestKnife extends CraftedMixin(Movable) {
+class TestKnife extends CraftedMixin(Good) {
   static _mixinName = 'TestKnifeBranches';
 }
 /** A sealable stock chest — the open-container gather rung. */
-class TestChest extends SealableMixin(ContainerMixin(Movable)) {
+class TestChest extends SealableMixin(ContainerMixin(Good)) {
   static _mixinName = 'TestChestBranches';
 }
 /** A fungible discrete foodstuff — the stack debit path. */
-class TestProduce extends StackableMixin(Movable) {
+class TestProduce extends StackableMixin(Good) {
   static _mixinName = 'TestProduceBranches';
 }
 
@@ -350,7 +350,7 @@ describe('the edible (cooking) branch', () => {
     return d;
   }
 
-  function stockKitchen(): { veg: TestProduce; meat: Movable } {
+  function stockKitchen(): { veg: TestProduce; meat: Good } {
     const veg = makeStuff(() => new TestProduce());
     veg.setQuantity(5);
     veg.setMass(Quantity.of(0.2, 'kg'));
@@ -358,7 +358,7 @@ describe('the edible (cooking) branch', () => {
       StuffApi.findByTemplatePath<Material>(VEG) as unknown as Material,
     );
     ContainmentApi.move(veg, room);
-    const meat = makeStuff(() => new Movable());
+    const meat = makeStuff(() => new Good());
     meat.setMass(Quantity.of(0.3, 'kg'));
     meat.setMaterial(
       StuffApi.findByTemplatePath<Material>(MEAT) as unknown as Material,

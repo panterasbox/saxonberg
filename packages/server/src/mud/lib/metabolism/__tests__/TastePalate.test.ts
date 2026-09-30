@@ -15,7 +15,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import { BulkableMixin, type BulkPayload } from '../../bulk/Bulkable';
 import { GradedMixin } from '../../craft/Graded';
@@ -40,12 +40,12 @@ import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
  * that is the point of this file's home. A bare Bulkable (a floor
  * puddle, a garden bed) has no palate, and the last test says so.
  */
-class TestDish extends PalatableMixin(GradedMixin(BulkableMixin(Movable))) {
+class TestDish extends PalatableMixin(GradedMixin(BulkableMixin(Good))) {
   static _mixinName = 'TestDishPalate';
 }
 
 /** A bulk holder that is NOT palatable — the floor, a bed, an air tank. */
-class TestPuddle extends BulkableMixin(Movable) {
+class TestPuddle extends BulkableMixin(Good) {
   static _mixinName = 'TestPuddlePalate';
 }
 

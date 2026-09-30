@@ -27,7 +27,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import Location from '../../lib/stuff/Location';
 
 async function bootRegistry(): Promise<void> {
@@ -70,9 +70,9 @@ async function setup(): Promise<{
   return { interactive, avatar, location, envelopes };
 }
 
-async function makeBrassThermometer(short: string): Promise<Movable> {
+async function makeBrassThermometer(short: string): Promise<Good> {
   return await StuffApi.create(() => {
-    const t = new Movable();
+    const t = new Good();
     t.setShortDescription(short);
     // ⚠ Keywords are AUTHORED. They used to fall out of the description
     // for free, which is how this fixture got a `primaryKeyword` without

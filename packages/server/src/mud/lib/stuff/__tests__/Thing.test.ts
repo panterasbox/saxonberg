@@ -79,13 +79,13 @@ describe('Thing', () => {
       expect(typeof thing.getContainer).toBe('function');
     });
 
-    // ⭐ The other half of `Movable.test.ts`. Until 2026-09-29 the root
+    // ⭐ The other half of `Good.test.ts`. Until 2026-09-29 the root
     // composed both of these, so every floor, hearth and yard wall in the
     // game carried surface claiming it could be OWNED and HIDDEN. They are
     // the two consequences of being carriable, so they moved one rung out
-    // to `Movable`. Neither this assertion nor its sibling means anything
+    // to `Good`. Neither this assertion nor its sibling means anything
     // alone — the pair is the claim.
-    it('is neither chattel nor concealable — that is Movable', () => {
+    it('is neither chattel nor concealable — that is Good', () => {
       expect(MixinApi.isChattel(thing)).toBe(false);
       expect(MixinApi.isConcealable(thing)).toBe(false);
     });

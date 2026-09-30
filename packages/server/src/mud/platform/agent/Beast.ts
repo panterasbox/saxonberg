@@ -1,7 +1,7 @@
 /**
  * Beast — **an animal: a body that acts, and is nobody.**
  *
- * Composition: `Behaved(PostRegistration(Animate))` — the `NPC` shape one
+ * Composition: `Behaved(PostRegistration(Actor))` — the `NPC` shape one
  * rung down, and without `Costumed`, because an animal is not dressed.
  *
  * A rangy grey wolf. A fox in the yard, a boar in the wood. It has a
@@ -26,17 +26,17 @@
  * (`trade-mining`) were each on the person rung by a different route;
  * *promote at the third consumer* is exactly this.
  *
- * What it claims about `Animate`'s other composers: nothing — `Beast` is
+ * What it claims about `Actor`'s other composers: nothing — `Beast` is
  * a leaf. What it claims about itself: `Behaved`, so `talk.yaml` still
  * affords `talk to wolf` and the refusal is the dialogue controller's,
  * which is diegetic, rather than the binder's, which is silent.
  */
 
-import { Animate } from '../../lib/creature/Animate';
+import { Actor } from '../../lib/creature/Actor';
 import { BehavedMixin } from '../../lib/behavior/Behaved';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 
-const BeastBase = BehavedMixin(PostRegistrationMixin(Animate));
+const BeastBase = BehavedMixin(PostRegistrationMixin(Actor));
 
 export class Beast extends BeastBase {}
 

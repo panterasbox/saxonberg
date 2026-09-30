@@ -6,7 +6,7 @@
  * `shortDescription` (the unidentified appearance).
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 
-export default class IdentifiableThing extends IdentifiableMixin(Movable) {}
+export default class IdentifiableThing extends IdentifiableMixin(Good) {}

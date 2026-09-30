@@ -9,14 +9,14 @@
  * `crumbs`; neither needs a row here.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /** The kinds a bait can be, and what each suits — see `FishingEngagement`. */
 export const BAIT_KINDS = ['worm', 'baitfish', 'crumbs', 'lure'] as const;
 export type BaitKind = (typeof BAIT_KINDS)[number];
 
-const BaitBase = Movable;
+const BaitBase = Good;
 
 export default class Bait extends BaitBase {
   static fieldMeta: FieldMeta = {

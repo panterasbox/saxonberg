@@ -21,7 +21,7 @@
  * the axis the terminal is the complicated half of.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { SlottedMixin } from '@saxonberg/server/mud/lib/slot/Slotted';
@@ -37,7 +37,7 @@ import { BATTERY_SLOT, ManaPoweredMixin } from '../lib/ManaPowered';
 const ManaLampBase = LightSourceMixin(
   SwitchableMixin(
     FixtureMixin(
-        ManaPoweredMixin(SlottedMixin(ChargedMixin(ReservedMixin(Movable)))),
+        ManaPoweredMixin(SlottedMixin(ChargedMixin(ReservedMixin(Good)))),
     ),
   ),
 );

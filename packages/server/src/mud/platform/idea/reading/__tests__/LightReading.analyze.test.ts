@@ -7,7 +7,7 @@ import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { LightSourceMixin } from '../../../../lib/perception/LightSource';
-import Movable from '../../../../lib/stuff/Movable';
+import Good from '../../../../lib/stuff/Good';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -31,7 +31,7 @@ import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests_
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 
 class AmbientLoc extends AmbientLitMixin(CartesianLocation) {}
-class Lamp extends LightSourceMixin(NamedMixin(Movable)) {}
+class Lamp extends LightSourceMixin(NamedMixin(Good)) {}
 
 // ⚠ `AdvancementMixin` is not decoration: `bandOf` narrows with
 // `MixinApi.isAdvancing`, so a fixture without it reads at the floor no

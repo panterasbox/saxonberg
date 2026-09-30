@@ -11,7 +11,7 @@
  * ⭐⭐ **Since the base-class narrowing (2026-09-29) this twin is bare
  * IMMOVABLE matter.** `Thing` no longer composes `Chattel`/`Concealable`;
  * a row wanting a bare *good* — an anvil, a folded hide, a stash pouch —
- * names `platform/thing/Movable` instead. The two twins are the same
+ * names `platform/thing/Good` instead. The two twins are the same
  * shape one rung apart, and which one a row names is the claim *can this
  * be carried off*.
  *

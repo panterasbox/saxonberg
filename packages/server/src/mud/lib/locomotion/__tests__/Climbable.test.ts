@@ -2,15 +2,15 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ClimbableMixin, CLIMBING_CAPABILITY_PROP } from '../Climbable';
 import { Idea } from '../../stuff/Idea';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { PropertiedMixin, Property } from '../../stuff/Propertied';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class Ladder extends ClimbableMixin(Idea) {}
-class Actor extends PropertiedMixin(Movable) {}
-class BareActor extends Movable {}
+class Actor extends PropertiedMixin(Good) {}
+class BareActor extends Good {}
 
 describe('ClimbableMixin', () => {
   describe('mixin marker', () => {

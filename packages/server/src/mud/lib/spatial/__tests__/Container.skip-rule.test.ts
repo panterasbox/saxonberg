@@ -16,7 +16,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
-import Movable from "../../stuff/Movable";
+import Good from "../../stuff/Good";
 import { ChattelApi } from "../../../api/chattel";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
@@ -40,7 +40,7 @@ const TORCH_PATH = "/obj/test/Torch";
 const ROOM_PATH = "/world/test/Room";
 const ALICE_PATH = "/platform/agent/Avatar/alice";
 
-class Torch extends Movable {}
+class Torch extends Good {}
 
 /** A room: a persistable container with no estate of its own. */
 class Room extends PersistableMixin(ContainerMixin(PostRegistrationMixin(Idea))) {

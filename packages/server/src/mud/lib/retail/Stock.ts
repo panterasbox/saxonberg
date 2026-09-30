@@ -7,7 +7,7 @@
  * shelf and the attend point.
  *
  * ⚠ **It used to be a `Vessel`, and that was one rung too far.** Since the
- * base-class narrowing (D14) `Vessel` sits on `Movable`, which composes
+ * base-class narrowing (D14) `Vessel` sits on `Good`, which composes
  * `Chattel` and `Concealable`. A shop counter is part of the shop: it is
  * nobody's chattel — the GOODS on it are, which is the whole point of
  * `stampChattel` at the sale — and you cannot hide it. The container

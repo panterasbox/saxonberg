@@ -11,7 +11,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { BulkableMixin } from '../Bulkable';
 import { CraftedMixin, type Crafted } from '../../craft/Crafted';
 import { GradedMixin } from '../../craft/Graded';
@@ -24,7 +24,7 @@ import {
 } from '../../security/__tests__/test-setup';
 
 /** A vat-like source / bottle-like target: graded AND markable. */
-class MarkedVessel extends CraftedMixin(BulkableMixin(Movable)) {
+class MarkedVessel extends CraftedMixin(BulkableMixin(Good)) {
   static _mixinName = 'GradeCarryMarkedVessel';
 }
 
@@ -38,12 +38,12 @@ function marked(v: MarkedVessel): Crafted {
 }
 
 /** Graded but not Crafted — band carries, no mark to hold. */
-class GradedVessel extends GradedMixin(BulkableMixin(Movable)) {
+class GradedVessel extends GradedMixin(BulkableMixin(Good)) {
   static _mixinName = 'GradeCarryGradedVessel';
 }
 
 /** Neither — the pre-seam vessel; transfers must be unchanged. */
-class PlainVessel extends BulkableMixin(Movable) {
+class PlainVessel extends BulkableMixin(Good) {
   static _mixinName = 'GradeCarryPlainVessel';
 }
 

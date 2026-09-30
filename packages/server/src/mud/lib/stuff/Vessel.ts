@@ -55,13 +55,13 @@
  */
 
 import { ContainerMixin } from '../spatial/Container';
-import Movable from './Movable';
+import Good from './Good';
 import type { FieldMeta } from '../mixin';
 
 // A Vessel is a Thing (matter — describable / Tangible / Wet / Containable)
 // that additionally holds things (Container). It traces the `Thing`
 // top-level branch, not its own.
-const VesselBase = ContainerMixin(Movable);
+const VesselBase = ContainerMixin(Good);
 
 export class Vessel extends VesselBase {
   /**

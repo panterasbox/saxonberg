@@ -10,11 +10,11 @@
  * same anti-grief sweep that evicts a stale lease.
  */
 
-import Movable from "../../lib/stuff/Movable";
+import Good from "../../lib/stuff/Good";
 import { VisibleMixin } from "../../lib/description/Visible";
 import type { FieldMeta } from "../../lib/mixin";
 
-const TicketBase = VisibleMixin(Movable);
+const TicketBase = VisibleMixin(Good);
 
 export default class Ticket extends TicketBase {
   static fieldMeta: FieldMeta = {

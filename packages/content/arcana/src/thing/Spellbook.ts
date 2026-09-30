@@ -55,7 +55,7 @@
  * which would announce what the book teaches (D34).
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { LabelledMixin } from '@saxonberg/server/mud/lib/description/Labelled';
 import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
@@ -71,7 +71,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 // and never its own. See `Detailed.detailRoot`.
 const SpellbookBase = CirculatingMixin(
   GradedMixin(
-    IdentifiableMixin(LabelledMixin(MarkedMixin(Movable))),
+    IdentifiableMixin(LabelledMixin(MarkedMixin(Good))),
   ),
 );
 

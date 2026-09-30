@@ -8,7 +8,7 @@ import { AtmosphericMixin } from '../../../../lib/biome/Atmospheric';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import CartesianZone from '../../location/CartesianZone';
 import Door from '../../../thing/Door';
-import Movable from '../../../../lib/stuff/Movable';
+import Good from '../../../../lib/stuff/Good';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import {
@@ -23,7 +23,7 @@ import { PerceptionApi } from '../../../../api/perception';
 const soundModality = (): SoundModality =>
   PerceptionApi.modalityByName('sound') as SoundModality;
 
-class Whistle extends SoundSourceMixin(Movable) {}
+class Whistle extends SoundSourceMixin(Good) {}
 class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
 
 describe('SoundModality.signalAt — propagation core', () => {

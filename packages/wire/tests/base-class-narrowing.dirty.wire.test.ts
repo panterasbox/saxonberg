@@ -715,7 +715,7 @@ suite('E — what is a GOOD, and what is part of the place', () => {
     // ⚠ CLASSES: the inverse answers by class past 40 rows, and Chattel
     // is the widest mixin in the game.
     expect(page, 'a bare good is a good somebody owns').toMatch(
-      /platform\/thing\/Movable/i,
+      /platform\/thing\/Good/i,
     );
     expect(page, 'and so is a kept animal, once it has a name').toMatch(
       /platform\/agent\/KeptAnimal/i,
@@ -751,7 +751,7 @@ suite('E — what is a GOOD, and what is part of the place', () => {
 
     expect(page, 'a trap is set to be missed').toMatch(/thing\/Trap/i);
     expect(page, 'and a bare good can be stashed — the delve cache is one').toMatch(
-      /platform\/thing\/Movable/i,
+      /platform\/thing\/Good/i,
     );
 
     expect(
@@ -768,7 +768,7 @@ suite('E — what is a GOOD, and what is part of the place', () => {
 
   it('⭐ the hidden cache is still hidden, still found, still taken', async () => {
     // ⚠⚠ THE checkpoint of part E. `hidden-cache` changed class in W0
-    // (`/platform/thing/Thing` → `/platform/thing/Movable`), and its
+    // (`/platform/thing/Thing` → `/platform/thing/Good`), and its
     // authored `concealment: hidden` lives on the mixin that moved with
     // it. If the band had been dropped in the move, the pouch would sit
     // in plain sight and no unit test in the tree would know.
@@ -785,7 +785,7 @@ suite('E — what is a GOOD, and what is part of the place', () => {
      * ⚠⚠ **What this leg proves, and where it stops.**
      *
      * The W0 claim is that `hidden-cache` changed class
-     * (`/platform/thing/Thing` → `/platform/thing/Movable`) and kept its
+     * (`/platform/thing/Thing` → `/platform/thing/Good`) and kept its
      * authored `concealment: hidden`, which lives on the mixin that
      * moved with it. **The assertion above is what proves that**: if the
      * band had been dropped in the move the pouch would be standing in
@@ -1120,11 +1120,11 @@ suite('G — a horse is not a person, and a wolf fights back', () => {
     );
   }, 180_000);
 
-  it('⭐⭐ the wolf fights back — Combatant survived the move to Animate', async () => {
+  it('⭐⭐ the wolf fights back — Combatant survived the move to Actor', async () => {
     // `AttackController` gates its TARGET on `Vitals && Engaged`, never
     // on `Combatant`, so the wolf could always be attacked. What the
     // move had to preserve is the half that ANSWERS: `Combatant` is on
-    // `Animate` now rather than on the person rung. If this fails, the
+    // `Actor` now rather than on the person rung. If this fails, the
     // wolf is taking the fight in silence.
     expectOk(await hunter.cmd('attack wolf'));
     await new Promise((r) => setTimeout(r, 8000));

@@ -21,7 +21,7 @@ import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
 import { PostRegistrationMixin } from "../../../../../lib/stuff/PostRegistration";
 import { ConsignmentShelfMixin } from "../../../../../lib/retail/Consignment";
 import StockBase from "../../../../../lib/retail/Stock";
-import Movable from "../../../../../lib/stuff/Movable";
+import Good from "../../../../../lib/stuff/Good";
 import { StackableMixin } from "../../../../../lib/stuff/Stackable";
 import BankCounter from "../../../../thing/BankCounter";
 import PaymentCard from "../../../../thing/PaymentCard";
@@ -101,10 +101,10 @@ class TestGiver extends SensorMixin(
   static _mixinName = "TestGiver";
 }
 
-class Torch extends Movable {}
+class Torch extends Good {}
 
 /** A fungible good — the shape a bolt of cloth has. */
-class Bale extends StackableMixin(Movable) {
+class Bale extends StackableMixin(Good) {
   static _mixinName = "Bale";
 }
 

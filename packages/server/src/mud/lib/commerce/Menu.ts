@@ -17,7 +17,7 @@
  * `read menu`, renders its offer, and prices it.
  */
 
-import Movable from '../stuff/Movable';
+import Good from '../stuff/Good';
 import { PricedOfferMixin } from './PricedOffer';
 import { MqlApi } from '../../api/mql';
 import type { CommandContext, CommandContributions } from '../../api/command';
@@ -26,7 +26,7 @@ import type { FieldMeta } from '../mixin';
 
 // Thing already composes Visible + Perceptible + Tangible + Containable;
 // PricedOfferMixin supplies the shared `prices` list + `priceFor`.
-const CommerceMenuBase = PricedOfferMixin(Movable);
+const CommerceMenuBase = PricedOfferMixin(Good);
 
 export default class CommerceMenu extends CommerceMenuBase {
   // `prices` rides in via PricedOfferMixin; only the offer list is local.

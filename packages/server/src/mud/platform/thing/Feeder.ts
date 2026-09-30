@@ -19,10 +19,10 @@
 import { FeederMixin } from '../../lib/husbandry/Feeder';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ContainerMixin } from '../../lib/spatial/Container';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 
 const FeederBase = FeederMixin(
-  BulkableMixin(ContainerMixin(Movable)),
+  BulkableMixin(ContainerMixin(Good)),
 );
 
 export class Feeder extends FeederBase {}

@@ -13,10 +13,10 @@
  * down the avenue is Gus's dialogue, not this object.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { WieldableMixin } from '../../lib/slot/Wieldable';
 import { SlottableMixin } from '../../lib/slot/Slottable';
 
-const PaddleBase = WieldableMixin(SlottableMixin(Movable));
+const PaddleBase = WieldableMixin(SlottableMixin(Good));
 
 export default class Paddle extends PaddleBase {}

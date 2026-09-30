@@ -513,7 +513,7 @@ scope and filed: `fold`/`unfold` (`slot.md`'s), `walk`/`swim`/`fly`/
 their evidence is the row keys and `MixinApi.hasMixin` in tests.
 (ii) `FloodedCell` is a Location class the coordinator's slice missed.
 (iii) `Lounge` and `Corridor` are minted many times from one row each,
-so their 1-row counts understate their live population. (iv) `Animate`'s
+so their 1-row counts understate their live population. (iv) `Actor`'s
 lesson holds: a class no row names (none here after L2 — `Bar` is gone
 and every other class has rows) would be invisible.
 

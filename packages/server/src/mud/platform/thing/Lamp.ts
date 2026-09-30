@@ -40,7 +40,7 @@
  * softens, ice melts) and is noted in `fire.md`.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { ReservedMixin } from '../../lib/reserve';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
@@ -64,7 +64,7 @@ const LAMP = {
 } as const;
 
 const LampBase = BurnerMixin(
-  LightSourceMixin(ReservedMixin(ThermalMixin(Movable))),
+  LightSourceMixin(ReservedMixin(ThermalMixin(Good))),
 );
 
 export default class Lamp extends LampBase {

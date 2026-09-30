@@ -28,10 +28,10 @@ threshold the Thing branch set.
 
 | wave | one line | ends at |
 |---|---|---|
-| **A0** | `lib/creature/Animate` = `Combatant(Perception(Mobile(Engaged(Sensor(Creature)))))`; `Character` re-bases onto it and drops those five from its own stack — behaviour-identical for every person | `build(narrowing A0)` |
-| **A1** | `platform/agent/Beast` = `Behaved(PostRegistration(Animate))`; `platform/agent/DraftAnimal` = `Mountable(Hauler(Beast))`; wolf → `Beast`, horse + pony → `DraftAnimal`; `HaulingCreature.ts`, `DraftHorse.ts`, `PitPony.ts` deleted | `build(narrowing A1)` |
+| **A0** | `lib/creature/Actor` = `Combatant(Perception(Mobile(Engaged(Sensor(Creature)))))`; `Character` re-bases onto it and drops those five from its own stack — behaviour-identical for every person | `build(narrowing A0)` |
+| **A1** | `platform/agent/Beast` = `Behaved(PostRegistration(Actor))`; `platform/agent/DraftAnimal` = `Mountable(Hauler(Beast))`; wolf → `Beast`, horse + pony → `DraftAnimal`; `HaulingCreature.ts`, `DraftHorse.ts`, `PitPony.ts` deleted | `build(narrowing A1)` |
 | **A2** | `Behaved.emoteFree` falls back to an `act.deed` peers scene on a host with no `Soul` — the horse's idle beats do not go silent; `lint:dispositions` gains the `kind: say` rule | `fix(narrowing A2)` |
-| **A3** | `KeptAnimal` re-bases onto `Animate` (the third consumer) | `build(narrowing A3)` |
+| **A3** | `KeptAnimal` re-bases onto `Actor` (the third consumer) | `build(narrowing A3)` |
 | **A4** | the naming pass: `Gus` and `TicketClerk` extend `Cast`; four stale docstrings; the `Livestock` line that says Chattel comes from `Creature` | `refactor(narrowing A4)` |
 | **A5** | docs: the branch diagram, `conveyance.md`, `behavior.md`, `combat.md`, `identity.md`, `pets.md`, `mining-slate.md`; wiki pages `hauler` / `combatant` / `employed` / `beast` / `draft-animal` | `docs(narrowing A5)` |
 | **A6** | the drive, part G | `drive(narrowing A6)` |
@@ -235,7 +235,7 @@ three:
 | tier | class | what it is | the test |
 |---|---|---|---|
 | **a body** | `Creature` | a living physical thing that can break, *with or without agency* (`Creature.ts:2-3`) — alive or dead, standing or hanging on a hook | it has vitals, mass, slots, a temperature; it can be looked at, carried, butchered, dressed |
-| **an animate body** | **`Animate`** (new, E2) | a body that ACTS: it moves, it receives the world, it can be engaged in something, it can fight back when hurt | it can be attacked (`AttackController.ts:57` — Vitals + Engaged) and can answer; it can walk through an exit; a hidden thing can be hidden FROM it |
+| **an animate body** | **`Actor`** (new, E2) | a body that ACTS: it moves, it receives the world, it can be engaged in something, it can fight back when hurt | it can be attacked (`AttackController.ts:57` — Vitals + Engaged) and can answer; it can walk through an exit; a hidden thing can be hidden FROM it |
 | **a person** | `Character` | an animate body that is *somebody or a role*: it types commands, speaks, emotes, holds a job, claims a narrative, keeps beliefs, casts, learns | it has a `CommandGiver` stack to afford verbs onto; the world can ask who answers for it |
 
 The mirror augmenter at `Character.ts:136-146` is the project's own
@@ -247,12 +247,12 @@ claims about every other composer of the host:**
 
 | mixin | goes | claim, and the reason |
 |---|---|---|
-| `Sensor` | **DOWN → `Animate`** | *every animate body receives the world* — witness triggers (`Behaved.ts:536`), scene receipt. `KeptAnimal` already composes it (`:84`); the haulage fixture does (`haulage-fixtures.ts:24`). A corpse does not receive. |
-| `Perception` | **DOWN → `Animate`** | *every animate body interprets what it senses* — the detection gate needs Sensor AND Perception (`PerceptionLogic.ts:437`). Without it a wolf never notices a hidden hunter, and the `wary` ambush brain cannot run on a beast. Claims a night-vision seam on a cat; that is true of a cat. |
-| `Engaged` | **DOWN → `Animate`** | *every animate body can be in the middle of something* — the attack target predicate (`AttackController.ts:57`), the respiration crisis drain (`Creature.ts:99-104`: *"the proof drownable is a Character"* — it becomes *is an Animate*), brain slot contention (`idles.ts:24`). A corpse is engaged in nothing. |
-| `Mobile` | **DOWN → `Animate`** | *every animate body can traverse* — `KeptAnimal:84`, the tow ripple, the ride. Claims a fish can walk: it claims it today via `KeptAnimal`, and the body plan's locomotion modes are what refuse (`LocomotionApi.defaultModeFor`), not the mixin. |
-| `Combatant` | **DOWN → `Animate`** | *every body that can be attacked can fight back* — the actor face should cover the target face (`AttackController.ts:57` vs `combatant.ts:40`). Today a cat, a canary, a fish and a collie can be attacked and cannot respond, silently. Claims combat terms on a canary; the terms are imposed on any NPC anyway (`Combatant.ts:400-407`). |
-| `Hauler` | **NOT to `Animate`; to `Character` (stays) and `DraftAnimal` (E5)** | its own docstring (`Hauler.ts:8-12`) and `Character.ts:69-72` are right: hauling is a fact about a person (every player self-hauls a handcart) and about a draft beast, not about a fish or a canary. Two hosts, deliberately; the second independent tell is `hitch.yaml:35` — the binder would accept `hitch cart to canary` and the refusal would move to breakaway physics, which is a worse place for it. |
+| `Sensor` | **DOWN → `Actor`** | *every animate body receives the world* — witness triggers (`Behaved.ts:536`), scene receipt. `KeptAnimal` already composes it (`:84`); the haulage fixture does (`haulage-fixtures.ts:24`). A corpse does not receive. |
+| `Perception` | **DOWN → `Actor`** | *every animate body interprets what it senses* — the detection gate needs Sensor AND Perception (`PerceptionLogic.ts:437`). Without it a wolf never notices a hidden hunter, and the `wary` ambush brain cannot run on a beast. Claims a night-vision seam on a cat; that is true of a cat. |
+| `Engaged` | **DOWN → `Actor`** | *every animate body can be in the middle of something* — the attack target predicate (`AttackController.ts:57`), the respiration crisis drain (`Creature.ts:99-104`: *"the proof drownable is a Character"* — it becomes *is an Actor*), brain slot contention (`idles.ts:24`). A corpse is engaged in nothing. |
+| `Mobile` | **DOWN → `Actor`** | *every animate body can traverse* — `KeptAnimal:84`, the tow ripple, the ride. Claims a fish can walk: it claims it today via `KeptAnimal`, and the body plan's locomotion modes are what refuse (`LocomotionApi.defaultModeFor`), not the mixin. |
+| `Combatant` | **DOWN → `Actor`** | *every body that can be attacked can fight back* — the actor face should cover the target face (`AttackController.ts:57` vs `combatant.ts:40`). Today a cat, a canary, a fish and a collie can be attacked and cannot respond, silently. Claims combat terms on a canary; the terms are imposed on any NPC anyway (`Combatant.ts:400-407`). |
+| `Hauler` | **NOT to `Actor`; to `Character` (stays) and `DraftAnimal` (E5)** | its own docstring (`Hauler.ts:8-12`) and `Character.ts:69-72` are right: hauling is a fact about a person (every player self-hauls a handcart) and about a draft beast, not about a fish or a canary. Two hosts, deliberately; the second independent tell is `hitch.yaml:35` — the binder would accept `hitch cart to canary` and the refusal would move to breakaway physics, which is a worse place for it. |
 | `Perceiver` | **UP (stays)** | the perception VERBS (`look`, `search`, `hide`…) — 0 narrowings, 16 `self` affordances (`Perceiver.ts:137-157`); meaningful only on a `CommandGiver`. Not a body property. |
 | `Vocal` | **UP** | speech. `KeptAnimal:59` refuses it and pets.md:65 names *"a sheepdog that … speaks"* as the objection. A horse blowing through its nose is not `say`. |
 | `Soul` | **UP** | the emote GRAMMAR, `introduce`, `react`, the ESP modality (`Soul.ts:298-318`). A beast's free-form beat is a body act seen by peers — A2 gives `Behaved` that path without `Soul`. |
@@ -267,28 +267,28 @@ claims about every other composer of the host:**
 | `Hiding` | **UP** | the actor-side `hide` verb is Perceiver-afforded; an authored lurking beast keeps `Concealable` from `Creature` (D3). |
 
 ⚠ **The DOWN moves are moves of the composition SITE, never removals.**
-`Character` extends `Animate` (E3), so every person keeps every one of
+`Character` extends `Actor` (E3), so every person keeps every one of
 the five; the only class that gains them is the one this plan creates
 for the beasts, plus `KeptAnimal` gaining `Combatant` and `Perception`
 (A3). No `isX` narrowing in the tree loses a host.
 
-## E2 — the rung: `lib/creature/Animate`
+## E2 — the rung: `lib/creature/Actor`
 
 ```ts
-// lib/creature/Animate.ts — substrate, no twin, no row names it
-const AnimateBase = CombatantMixin(
+// lib/creature/Actor.ts — substrate, no twin, no row names it
+const ActorBase = CombatantMixin(
   PerceptionMixin(
     MobileMixin(EngagedMixin(SensorMixin(Creature))),
   ),
 );
-export abstract class Animate extends AnimateBase {}
+export abstract class Actor extends ActorBase {}
 ```
 
 *An animate body: a `Creature` that moves, receives, can be engaged and
 can fight — and is nobody.* Named the way the Thing branch named
-`Movable`: the adjective for what the rung ADDS to the root, so that
-`Creature → Animate → Character` reads *a body · a body that acts · a
-body that is somebody*. `Beast` (E4) is the concrete word; `Animate` is
+`Good`: the adjective for what the rung ADDS to the root, so that
+`Creature → Actor → Character` reads *a body · a body that acts · a
+body that is somebody*. `Beast` (E4) is the concrete word; `Actor` is
 the substrate a person also stands on, and a class called `Beast` or
 `Animal` would be the wrong thing for `Character` to extend.
 
@@ -297,9 +297,9 @@ Sensor innermost (Perception and Combatant read through it);
 Combatant outermost of the five so its `onExchangeResolved` terminal
 sits above the body and `Character`'s override at `:272-275` still
 wins by being on the class. `Hiding` stays outer of `Creature`'s
-`Concealable` because `Character` is outer of `Animate`. `Perceiver`
+`Concealable` because `Character` is outer of `Actor`. `Perceiver`
 requires `Sensor` in its base (`Perceiver.ts:20-21`): satisfied,
-`Animate` is inner. None of the five defines `postRegister` (verified —
+`Actor` is inner. None of the five defines `postRegister` (verified —
 `Mobile.ts`'s only match is a comment about the source room), so
 `KeptAnimal`'s innermost `PostRegistration` (`:87-92`) and `NPC`'s
 shadow nothing new.
@@ -309,7 +309,7 @@ designation refuses (`PitPony.ts:13-16`), so nothing should clone it;
 `ExitableVessel`'s deferral is the precedent (`CLAUDE.md § Instanceable`).
 `lint:instanceable` invariant 1 holds by construction.
 
-## E3 — `Character` re-bases onto `Animate`
+## E3 — `Character` re-bases onto `Actor`
 
 `Character.ts:99-133` becomes
 
@@ -320,7 +320,7 @@ const CharacterBase = AdvancementMixin(
   CasterMixin(MemorizedMixin(SoulMixin(VocalMixin(
   PerceiverMixin(
   GenderedMixin(DispositionedMixin(PersonaMixin(StatusMixin(
-  BeliefStoreMixin(HidingMixin(EmployedMixin(Animate)))))))))))))));
+  BeliefStoreMixin(HidingMixin(EmployedMixin(Actor)))))))))))))));
 ```
 
 Fifteen layers over the rung instead of twenty over the body. `Hauler`
@@ -347,7 +347,7 @@ everything that acts extends.
 
 ```ts
 // platform/agent/Beast.ts — the concrete clone target
-export class Beast extends BehavedMixin(PostRegistrationMixin(Animate)) {}
+export class Beast extends BehavedMixin(PostRegistrationMixin(Actor)) {}
 ```
 
 The `NPC` shape (`NPC.ts:37-39`) one rung down, without `Costumed` (an
@@ -357,7 +357,7 @@ answers to nobody, it has no name and never will* (`lint:identity`
 rule 6 refuses `name:` on it). The wolf row names it. `Extra` is what
 its docstring says at `:2-3`, *a role, not a person* — and only that.
 
-What it claims about `Animate`'s other composers: nothing — `Beast` is
+What it claims about `Actor`'s other composers: nothing — `Beast` is
 a leaf. What it claims about itself: `Behaved`, so `talk.yaml:27`
 affords `talk to wolf` (as it does today on the horse) and the
 dialogue refusal is the controller's, not the binder's.
@@ -379,7 +379,7 @@ claimed the one thing it did not provide, and its only contribution
 (`Mountable`) is composed here directly (D14 generalised: *compose the
 one mixin you want*).
 
-- `Hauler` here, not on `Beast` or `Animate`: E1's row.
+- `Hauler` here, not on `Beast` or `Actor`: E1's row.
 - `Mountable` here, not on `Beast`: composing it MINTS a mount slot
   (`Mountable.ts:6-8`), so on `Beast` the binder would accept
   `mount wolf`. Two rows want it and both are also haulers; the ox you
@@ -396,10 +396,10 @@ one mixin you want*).
   packs go empty and are removed.
 - `Chattel` / `Branded` on it: **not composed** — E11.
 
-## E6 — `KeptAnimal` re-bases onto `Animate` (A3, its own wave)
+## E6 — `KeptAnimal` re-bases onto `Actor` (A3, its own wave)
 
 `KeptAnimal.ts:83-85` becomes
-`HandlingMixin(BeliefStoreMixin(NamedMixin(Animate)))`; the outer stack
+`HandlingMixin(BeliefStoreMixin(NamedMixin(Actor)))`; the outer stack
 (`:110-118`) is untouched. The cat, the collie, the canary and the fish
 gain `Combatant` and `Perception`; they lose nothing. This is the
 third-consumer promotion the Thing branch's rule requires and the one
@@ -487,7 +487,7 @@ silent** — the fail-closed-silent class, and A1 would ship it. A2:
 
 D2 defines chattel as *bought, consigned, lent, stolen, stamped with a
 chain of title* — the paradigm of which is a horse — and then
-enumerates its hosts as `Movable`, `KeptAnimal`, `Livestock` *"and by
+enumerates its hosts as `Good`, `KeptAnimal`, `Livestock` *"and by
 nothing else"*. That list was written when no draft-animal class
 existed. No stamp writer targets a horse today and the haulage rig
 `default`s one into existence rather than selling it
@@ -521,9 +521,9 @@ all of `Container` (the loadout), `Vitals`+`BodyPlanSlots` (the wound
 map), `Thermal` (algor mortis), `Attired` (it wears what it died in),
 `Postmortem` (the clock), `Perceptible` (`look body`), `Containable`
 (carried to the morgue). **The rung is the proof of its own line:** the
-five mixins A0 moves to `Animate` are exactly the five that would be
+five mixins A0 moves to `Actor` are exactly the five that would be
 false of a corpse, and `Corpse` is the class that shows the split is
-between `Creature` and `Animate`, not between `Creature` and
+between `Creature` and `Actor`, not between `Creature` and
 `Character`. `hanging-carcass.yaml:16` naming the same class for a
 dressed hog is right for the same reason. Nothing missing.
 
@@ -541,7 +541,7 @@ A head of stock cannot be attacked (no `Engaged`), cannot walk (no
 That may be right (*"the object is the transient thing here; the
 record is what persists"*, `:12-13`) and it may be why the `raids`
 brain narrates a fox against a herd rather than fighting a cow. After
-A0 moving it is a one-word change (`Animate` for `Creature`); this
+A0 moving it is a one-word change (`Actor` for `Creature`); this
 plan does not make it. Filed (A8).
 
 ## E16 — the abstract costume parent is an abstract-ROW concept, not a class
@@ -568,12 +568,12 @@ part G has no inverse panel to read the claim from (D16's reason).
 
 | host | carries | what composing it claims about everything on the host |
 |---|---|---|
-| `lib/creature/Creature` (unchanged) | the body: 25 layers | *everything on it is a body that can break.* No longer claims that every body can walk, be attacked, witness or fight — a corpse and a head of stock stop claiming those. ⚠ The test: **if a `Corpse` or `Livestock` reader ever needs `if (MixinApi.isMobile(this))` to behave, the mixin belongs on `Animate`, not on `Creature` with a guard.** |
-| `lib/creature/Animate` (new) | `Sensor` · `Engaged` · `Mobile` · `Perception` · `Combatant` | *everything on it acts: it can be attacked and answers, it walks, it perceives, it can be engaged.* Composers after this build: `Character` (every person), `Beast`, `DraftAnimal`, `KeptAnimal` (A3) and therefore `WorkingAnimal`, `Fish`. ⚠ The test: **if any composer needs a guard that says "but not this one" for one of the five, it is on the wrong host** — a fish that must not be attackable would be that finding. |
+| `lib/creature/Creature` (unchanged) | the body: 25 layers | *everything on it is a body that can break.* No longer claims that every body can walk, be attacked, witness or fight — a corpse and a head of stock stop claiming those. ⚠ The test: **if a `Corpse` or `Livestock` reader ever needs `if (MixinApi.isMobile(this))` to behave, the mixin belongs on `Actor`, not on `Creature` with a guard.** |
+| `lib/creature/Actor` (new) | `Sensor` · `Engaged` · `Mobile` · `Perception` · `Combatant` | *everything on it acts: it can be attacked and answers, it walks, it perceives, it can be engaged.* Composers after this build: `Character` (every person), `Beast`, `DraftAnimal`, `KeptAnimal` (A3) and therefore `WorkingAnimal`, `Fish`. ⚠ The test: **if any composer needs a guard that says "but not this one" for one of the five, it is on the wrong host** — a fish that must not be attackable would be that finding. |
 | `lib/character/Character` | the fifteen person mixins (E7) | *everything on it is somebody or a role.* Stops claiming it of the horse, the pony and the wolf. `Hauler` stays here: every person self-hauls. |
 | `platform/agent/Beast` (new) | `Behaved` · `PostRegistration` | *an animal with a brain, and nobody.* Leaf. |
 | `platform/agent/DraftAnimal` (new) | `Mountable` · `Hauler` | *a beast you hitch and ride.* Leaf. Claims a mount slot on every row that names it (two, both ridden). |
-| `lib/creature/KeptAnimal` (A3) | `Named` · `BeliefStore` · `Handling` · `Bonded` · `Status` · `Behaved` · `Chattel` · `Branded` · `Persistable` over `Animate` | *an animal kept for itself* — unchanged in meaning; gains that it fights back and perceives. |
+| `lib/creature/KeptAnimal` (A3) | `Named` · `BeliefStore` · `Handling` · `Bonded` · `Status` · `Behaved` · `Chattel` · `Branded` · `Persistable` over `Actor` | *an animal kept for itself* — unchanged in meaning; gains that it fights back and perceives. |
 | `lib/behavior/Behaved` (A2) | the `emoteFree` fallback | claims nothing new: a brain host with no `Soul` emits a deed to peers. |
 
 Mixins whose host does NOT change and why: every kernel mixin not in the
@@ -637,8 +637,8 @@ capability this plan moves:
 Verbs each move would break if done WITHOUT its pairing: taking
 `Hauler` off `Character` (not proposed) breaks self-haul `hitch cart`
 for every player; taking `Mobile`/`Engaged` off `Creature`'s
-descendants below `Animate` breaks nothing because nothing below
-`Animate` had them except `KeptAnimal`, which re-bases (A3) or keeps
+descendants below `Actor` breaks nothing because nothing below
+`Actor` had them except `KeptAnimal`, which re-bases (A3) or keeps
 its own (if A3 is dropped).
 
 ---
@@ -647,20 +647,20 @@ its own (if A3 is dropped).
 
 ### A0 — the rung, behaviour-identical
 
-1. `lib/creature/Animate.ts` per E2, docstring stating E1's three tiers
+1. `lib/creature/Actor.ts` per E2, docstring stating E1's three tiers
    and the host-placement claim.
 2. `lib/character/Character.ts:36-133`: imports for the five removed;
-   `Creature` → `Animate`; the composition per E3; the stack comment
+   `Creature` → `Actor`; the composition per E3; the stack comment
    rewritten (the `HaulerMixin` paragraph at `:69-74` becomes the
    statement that hauling is a person's and a draft animal's, the
-   `EngagedMixin`/`Mobile` paragraphs move to `Animate.ts`; the
-   `Respiration` line at `Creature.ts:99-104` says *Animate* where it
+   `EngagedMixin`/`Mobile` paragraphs move to `Actor.ts`; the
+   `Respiration` line at `Creature.ts:99-104` says *Actor* where it
    says *Character*).
-3. `platform/idea/api/StudioLogic.ts:83-98`: `Animate` in the palette
+3. `platform/idea/api/StudioLogic.ts:83-98`: `Actor` in the palette
    between `Creature` and `Character` (the panel and `describeClass`
-   read it; W0 did the same for `Movable`).
-4. Tests, new: `lib/creature/__tests__/Animate.test.ts` — `hasMixin`
-   for each of the five on `Animate`; `hasMixin(Animate, Mixins.CommandGiver) === false`
+   read it; W0 did the same for `Good`).
+4. Tests, new: `lib/creature/__tests__/Actor.test.ts` — `hasMixin`
+   for each of the five on `Actor`; `hasMixin(Actor, Mixins.CommandGiver) === false`
    and the same for `Persona`, `Employed`, `Vocal`, `Caster` (the
    fail-open invariant); `hasMixin(Corpse, Mixins.Mobile) === false`.
 5. Gates: `pnpm test:near`; `lint:family` (`lint:instanceable` sees a
@@ -672,7 +672,7 @@ its own (if A3 is dropped).
    `test:near` and regenerate any golden that pins composition ORDER
    (Test strategy below).
 
-Commit: `build(narrowing A0): Animate — a body that acts, between the body and the person`
+Commit: `build(narrowing A0): Actor — a body that acts, between the body and the person`
 
 ### A1 — the beasts leave the person rung
 
@@ -723,14 +723,14 @@ Commit: `fix(narrowing A2): a beast's idle beat is a deed peers see, not an ESP 
 ### A3 — the third consumer
 
 1. `lib/creature/KeptAnimal.ts:83-85` per E6; the docstring stack
-   (`:19-35`) redrawn with `Animate` at its base; `:59-62` unchanged
+   (`:19-35`) redrawn with `Actor` at its base; `:59-62` unchanged
    and still true.
 2. Tests: `KeptAnimal.postRegister.test.ts` unchanged (the chain still
-   terminates at its own `PostRegistration`); `Animate.test.ts` gains
+   terminates at its own `PostRegistration`); `Actor.test.ts` gains
    `hasMixin(KeptAnimal|Fish|WorkingAnimal, Mixins.Combatant) === true`.
 3. Gates: `trade-ranching`, `trade-fishing` vitest; `lint:kept-animals`.
 
-Commit: `build(narrowing A3): KeptAnimal stands on Animate — the cat can fight back`
+Commit: `build(narrowing A3): KeptAnimal stands on Actor — the cat can fight back`
 
 ### A4 — the naming pass
 
@@ -749,25 +749,25 @@ Commit: `refactor(narrowing A4): two classes that were Cast extend Cast, and fou
 ### A5 — the documentation and the wiki pages
 
 - `docs/architecture.md:878-925` — the branch passage redrawn:
-  `Agent → Creature → Animate → Character → Avatar`, `Beast` and
+  `Agent → Creature → Actor → Character → Avatar`, `Beast` and
   `DraftAnimal` as the animal clone targets, `KeptAnimal` over
-  `Animate`; the `Perception`/`Combatant` sentences move tiers.
+  `Actor`; the `Perception`/`Combatant` sentences move tiers.
 - `docs/subsystems/conveyance.md:193-199` — *"composes on `Character`
   and `DraftAnimal`"*; the `HaulingCreature` sentence replaced.
 - `docs/subsystems/behavior.md:388-420` — `Beast` beside `NPC` as the
   second brain-carrying rung.
-- `docs/subsystems/combat.md:628` — *"composed on `Animate`"*.
+- `docs/subsystems/combat.md:628` — *"composed on `Actor`"*.
 - `docs/subsystems/identity.md:108-109,130-144` — the wolf example
   leaves `Extra`; a line that `Beast` is the third clone target and
   is neither rung.
 - `docs/subsystems/pets.md:51-66` — still true; add that `KeptAnimal`
-  now stands on `Animate` and what that brings.
+  now stands on `Actor` and what that brings.
 - `docs/subsystems/vitals.md:48-58` — the three-tier sentence.
-- `docs/subsystems/perception.md` — viewer = `Animate`.
+- `docs/subsystems/perception.md` — viewer = `Actor`.
 - `docs/slates/builds/mining-slate.md:591` — `DraftAnimal`.
 - Wiki pages per E17.
 
-Commit: `docs(narrowing A5): the Animate rung in every doc that drew the agent branch`
+Commit: `docs(narrowing A5): the Actor rung in every doc that drew the agent branch`
 
 ### A6 — the drive, part G
 
@@ -800,7 +800,7 @@ G3  ⭐ `hitch handcart to wolf` — refused, and refused BY NAME
     ⚠ If the binder's refusal is SILENT (no text), that is the finding, not a pass:
       assert the text; do not weaken to "not ok".
 
-G4  ⭐⭐ the wolf fights back — Combatant on Animate, brain-driven
+G4  ⭐⭐ the wolf fights back — Combatant on Actor, brain-driven
     expectOk(hunter.cmd('attack wolf'))
     idle(hunter, 60)  // ~5 wall-seconds at 12×; the session beat is game-time
     the hunter's frames since the attack contain a scene whose ACTOR is the wolf
@@ -954,11 +954,11 @@ that shows.
 pinned in the Thing branch — `queryMixins` is IDENTITY,
 `getPersistenceContributors` is SERIALIZATION — arriving here as a
 limit rather than a defect. **The evidence for A0 and A3 is
-`Animate.test.ts` and `Beast.test.ts`, which read `MixinApi.hasMixin`;
+`Actor.test.ts` and `Beast.test.ts`, which read `MixinApi.hasMixin`;
 the census corroborates only the part that happens to persist.** Saying
 otherwise would be citing a number that cannot move.
 
-⚠ And the census sees only rows, so `Animate` itself — substrate no row
+⚠ And the census sees only rows, so `Actor` itself — substrate no row
 names — does not appear at all, exactly as `HaulingCreature` never did.
 
 ### A8 — the slate
@@ -976,7 +976,7 @@ to say what landed and what is left):
   yes, D2's host list says no; the owner decides.
 - **E12** — the `Staged` split (a `props:`-only rail for bodies); its
   four receipts (`Katie`, `Walter`, `Realtor`, `Gus`).
-- **E15** — `Livestock` over `Animate`: ranching's call, one word.
+- **E15** — `Livestock` over `Actor`: ranching's call, one word.
 - **E16** — the abstract costume parent (`student.yaml`): a row key,
   the templates subsystem's.
 - **E9** — `wolf.yaml` could author a `concealment` band (the lurking
@@ -1002,8 +1002,8 @@ Commit: `slate(narrowing A8): what the Agent pass found and did not decide`
 | any snapshot golden pinning `Character`'s layer ORDER | regenerated if it fires | composition order is not a contract anywhere in the tree (`mixins.md`); the golden that pins it is documenting an accident. Cite the file in the commit if this happens; if no golden fires, say so. |
 | `HitchController.test.ts`, `Hauler.test.ts`, `Mobile.tow.test.ts`, `LocomotionLogic.haulage.test.ts` | none | they build their own hauler from mixins (`haulage-fixtures.ts:24`) — which is why they were never evidence that a hauler must be a person |
 
-**Tests added:** `Animate.test.ts` (A0), `Beast.test.ts` (A1),
-`Behaved.emoteFree.test.ts` (A2), the `Animate.test.ts` additions (A3).
+**Tests added:** `Actor.test.ts` (A0), `Beast.test.ts` (A1),
+`Behaved.emoteFree.test.ts` (A2), the `Actor.test.ts` additions (A3).
 Every class-level assertion uses `MixinApi.hasMixin(Class, Mixins.X)`,
 the `Creature.chattel.test.ts:35-53` shape.
 
@@ -1014,7 +1014,7 @@ judged as a non-Cast; rule 6), `lint:kept-animals` (no new `Bonded`
 composer), `lint:mixin-names` (no new mixin, nothing to add),
 `lint:mass` (agent rows are exempt via `Creature.getMass` — unchanged),
 `lint:dispositions` (the A2 rule, ceiling 0), `lint:lib-statics` (no
-static on `Animate`), `lint:module-scope`, `lint:imports` (pack rows
+static on `Actor`), `lint:module-scope`, `lint:imports` (pack rows
 name kernel classes by path; no pack `src/` imports change).
 
 **`pnpm test` once**, before the MR returns to review; `test:near` and
@@ -1071,7 +1071,7 @@ kept animal … It still does"*). Part G reads:
    and the giver is always a person, so A1 cannot break it; A0's
    `test:near` over `platform/idea/cmd/movement` and G2 prove it.
 7. **The census's row-only blindness**: `HaulingCreature` had no row
-   and was invisible; after A1 `Animate` has no row and is invisible
+   and was invisible; after A1 `Actor` has no row and is invisible
    too, by design. A7 states both.
 
 ## Deferred seams

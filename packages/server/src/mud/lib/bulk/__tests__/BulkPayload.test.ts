@@ -9,7 +9,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { BulkableMixin, type BulkPayload } from '../Bulkable';
 import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
@@ -19,7 +19,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 
-class TestVessel extends BulkableMixin(Movable) {
+class TestVessel extends BulkableMixin(Good) {
   static _mixinName = 'TestVesselPayload';
 }
 

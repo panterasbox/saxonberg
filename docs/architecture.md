@@ -827,14 +827,14 @@ Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   ├── Thing         physical MATTER in a place (describable, addressable,
   │     │           Detailed, Tangible, Wet, Containable) — a floor, a
   │     │           hearth, a yard wall, a shop counter
-  │     └── Movable a GOOD: matter you can carry off, and therefore own
+  │     └── Good a GOOD: matter you can carry off, and therefore own
   │           │     and hide (Chattel + Concealable)
-  │           └── Vessel  a Movable that also holds things (Container) —
+  │           └── Vessel  a Good that also holds things (Container) —
   │                       matter outside, a place inside
   ├── Location      stationary place — pure space, NOT matter (not Tangible)
   ├── Agent         runtime active object
   │     └── Creature        a body (Corpse, Livestock)
-  │           └── Animate   a body that ACTS — moves, perceives, fights
+  │           └── Actor   a body that ACTS — moves, perceives, fights
   │                 ├── Beast      an animal: it has a brain, it is nobody
   │                 ├── KeptAnimal an animal somebody keeps
   │                 └── Character  a body that is SOMEBODY → Avatar
@@ -857,7 +857,7 @@ and yard wall in the game carried author surface claiming it could be
 in what the classes CLAIMED, which is the documented author surface and
 therefore exactly what `callable == visible == cared-about` is about.
 Those two mixins are the consequences of **portability**, so they moved
-to `lib/stuff/Movable`.
+to `lib/stuff/Good`.
 
 - **Immovable** iff all of: it is never taken, sold, consigned, lent,
   stolen or stamped as an instance; its ownership, when it has one, is
@@ -871,7 +871,7 @@ to `lib/stuff/Movable`.
   `Warehouse`, `DepotCounter`, `CheckRack`, `ConsignmentShelf`.
 - Two concrete twins, one rung apart: `platform/thing/Thing` (bare
   immovable matter — a toilet, a yard wall, a midden) and
-  `platform/thing/Movable` (bare goods — an anvil, a folded hide, a
+  `platform/thing/Good` (bare goods — an anvil, a folded hide, a
   handcart). Which one a row names IS the claim *can this be carried off*.
 
 ⭐ `DetailedMixin` sits on the root beside `Perceptible`, since the same
@@ -883,7 +883,7 @@ wrap it themselves and no longer do — a composition written
 
 Under `Agent` the hierarchy splits **body** from **agent** — and since
 the base-class narrowing (2026-09-30) there are **three** tiers, not two:
-`Agent → Creature → Animate → Character → Avatar`. `Creature` (`lib/creature/`)
+`Agent → Creature → Actor → Character → Avatar`. `Creature` (`lib/creature/`)
 is the body layer — a living physical thing that can break, with or
 without agency: it carries `PropertiedMixin` (innermost, just outer of
 `Agent` — the general dynamic per-instance property store, so every body
@@ -905,7 +905,7 @@ world long enough to be examined; inert on the living — see
 (creature masking, outer of `Visible`) + the anatomy-slot / posture /
 description / containment mixins. 
 
-⭐⭐ **`Animate` (`lib/creature/Animate.ts`) is the middle tier — *a body
+⭐⭐ **`Actor` (`lib/creature/Actor.ts`) is the middle tier — *a body
 that acts*:** `Combatant(Perception(Mobile(Engaged(Sensor(Creature)))))`.
 Substrate, no twin. It exists because the readers were already asking a
 narrower question than *is this a person*:
@@ -919,12 +919,12 @@ exactly the five that are false of a corpse.
 
 ⚠ `HaulerMixin` sits on `Character` and on `DraftAnimal` and on NEITHER
 rung between: `hitch.yaml` gates its target on it and is its only
-reader, so on `Animate` the binder would accept `hitch cart to canary`.
+reader, so on `Actor` the binder would accept `hitch cart to canary`.
 Three answers (every person, a draft animal, not a wolf) means it cannot
 live on one shared rung.
 
 `Character`
-extends `Animate` with the **person** mixins (commands, speech, souls,
+extends `Actor` with the **person** mixins (commands, speech, souls,
 hauling, a magical faculty, advancement) + the social-identity mixins
 (`PersonaMixin`, `GenderedMixin`) + the per-viewer concerns
 (`BeliefStoreMixin`, `StatusMixin`). The split exists because **vitals are
@@ -935,7 +935,7 @@ on Character). `Creature` is concrete, so a bare non-agent body (a frog,
 a corpse) is valid. ⭐ **`KeptAnimal`** (`lib/creature/`, twin
 `platform/agent/KeptAnimal`) is the other rung off `Creature` — *an
 animal kept for itself*: `Persistable(Behaved(Bonded(Status(
-PostRegistration(Handling(BeliefStore(Named(Animate)))))))))` — the cat,
+PostRegistration(Handling(BeliefStore(Named(Actor)))))))))` — the cat,
 the collie (`WorkingAnimal = HandledMixin(KeptAnimal)` in
 trade-ranching) and the canary all clone
 from it, and it deliberately composes no `Vocal` / `Soul` / `Persona` /
@@ -951,9 +951,9 @@ pit pony were `HaulingCreature = Mountable(PostRegistration(Character))`
 in its own docstring: `HaulingCreature`'s said *"the cart-pulling
 capability itself comes from `Character`"*, which is a class reaching
 for a rung to get one mixin. They are `platform/agent/Beast`
-(`Behaved(PostRegistration(Animate))`) and `platform/agent/DraftAnimal`
+(`Behaved(PostRegistration(Actor))`) and `platform/agent/DraftAnimal`
 (`Mountable(Hauler(Beast))`) now, and `KeptAnimal` composed three of
-`Animate`'s five by hand until it became the rung's third consumer.
+`Actor`'s five by hand until it became the rung's third consumer.
 See [pets.md](./subsystems/pets.md). `Character` has two leaf subclasses: `Avatar`
 (player-driven, in `platform/agent/`) and the thin `NPC` (`lib/npc/NPC.ts` =
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
@@ -1019,10 +1019,10 @@ points readers here.
 | Branch | Composition | Notes |
 |---|---|---|
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
-| `Thing` | `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))` | Physical MATTER: describable, addressable by keyword and therefore `Detailed`, `Tangible` (material + mass), `Wet` (can get wet), `Containable` ("I live somewhere"). ⚠ **Not `Concealable` and not `Chattel`** — those are what it means to be carried off, and they are `Movable`'s (the base-class narrowing; this row said otherwise until 2026-09-30, which is one line W4 of that build missed). |
+| `Thing` | `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))` | Physical MATTER: describable, addressable by keyword and therefore `Detailed`, `Tangible` (material + mass), `Wet` (can get wet), `Containable` ("I live somewhere"). ⚠ **Not `Concealable` and not `Chattel`** — those are what it means to be carried off, and they are `Good`'s (the base-class narrowing; this row said otherwise until 2026-09-30, which is one line W4 of that build missed). |
 | `Location` | `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(PostRegistration(Stuff))))))))` | A PLACE: contained-in-able, adornable, with air, light and an address — and since the narrowing describable, addressable by keyword and detailed, which every room class used to have to remember for itself. ⚠ Not `Exitable`: being a place you can walk BETWEEN is the next rung, and `Offstage` is the class that proves it. |
 | `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`CartesianLocation`, …) layer on coordinate / Visible / Exitable mixins. |
-| `Vessel` | `ContainerMixin(Movable)` | **Extends `Movable`** — a container-object that adds `Container` (holds things) on top of the goods rung. A describable container is a plain `Vessel` (the root carries `Detailed`). ⚠ An IMMOVABLE container — a shop counter, a teller's counter, a warehouse — composes `ContainerMixin(Thing)` in its own stack instead (D14): it is part of the premises, and the GOODS in it are the chattel. ⚠ It composed `Atmospheric` too until the base-class narrowing build — *a bag is not a place*; see `ExitableVessel`. |
+| `Vessel` | `ContainerMixin(Good)` | **Extends `Good`** — a container-object that adds `Container` (holds things) on top of the goods rung. A describable container is a plain `Vessel` (the root carries `Detailed`). ⚠ An IMMOVABLE container — a shop counter, a teller's counter, a warehouse — composes `ContainerMixin(Thing)` in its own stack instead (D14): it is part of the premises, and the GOODS in it are the chattel. ⚠ It composed `Atmospheric` too until the base-class narrowing build — *a bag is not a place*; see `ExitableVessel`. |
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 
@@ -1054,7 +1054,7 @@ both deliberately **without a new Api**: `ConcealableMixin`
 existing `PerceptionApi`/`PerceptionLogic` (no `DetectionApi`, since
 detection *is* concealment-gated perception); and `HazardMixin`
 (`lib/hazard/`, a **self-resolving** trap capability) plus the concrete
-`Trap = HazardMixin(Movable)` — with **no `HazardApi`/
+`Trap = HazardMixin(Good)` — with **no `HazardApi`/
 `HazardLogic`**, because a hazard owns its own state + resolution and the
 powerful steps it orchestrates (`ConditionApi.inflict`,
 `PerceptionApi.perceives`) are each already gated, so an orchestrator gate
@@ -1207,7 +1207,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/maturation/` | `MaturingMixin` | the durative transform (fermentation D1/D2): a VESSEL capability over `Bulkable` — reconcile-on-read over game-time (no far-past guard; windows segmented at seal/move events at the host's own `Thermal` read), profile-driven (`MaturationProfile` rows matched by the must's tags, roster self-warmed by `MaturationProfileCatalogue`), batch detected off the interior material path; strain/culture/lees (D14), the cellar CO₂ drain, the sensory augmenter. Grade rides the host's `Graded` face; the mark rides the W0 transfer seam. No Api (the queries are statics on `MaturationProfile`). See [maturation.md](./subsystems/maturation.md). |
 | `lib/thermal/` | `MeltableMixin` | the phase-change capability (fire build): a solid + a latent-heat accumulator; `ThermalApi.reconcilePhase` holds a latent-heat plateau then melts it to a molten `Bulkable` pool in the scope `Floor` (the reverse boils / solidifies a liquid). Reads its material's `meltingPoint`/`latentHeatOfFusion`; gated `ThermalLogic` is the single writer. Composed by `Ingot`/`Casting`. (⚠ the table read `Ingot`/`Casting`/`Candle`; `Candle` never composed `Meltable` — its own docstring said the wholesale melt was unsuitable — and the class is now retired, unrowed.) See [fire.md](./subsystems/fire.md). |
 | `lib/fire/` | `CombustibleMixin` | the combustion capability: a `'fuel'` `Reserve` + a `Burning` value-object active state; reads its material's `autoignitionTemperature`/`heatOfCombustion`, pins the flame temperature while aflame (generalized Campfire pin), reconcile-on-read fuel drain → char / structural burn-through. Gated `FireLogic` is the single Burning writer. Composed by `Firewood`. (`Candle` did, and is retired, unrowed — a candle is a `Lamp` row.) See [fire.md](./subsystems/fire.md). |
-| `lib/fire/` | `BurnerMixin` | *(was `FurnaceMixin` until the base-class narrowing, 2026-09-29 — a lamp, a candle and a campfire all compose it and none of them is a furnace)* the sustained-heat-source capability: a `Combustible`-fuelled appliance pinned hot (`burnTemperatureK × bellows`) while lit + fuelled, heating the Meltables in its scope (`heatContents`). Generalizes the Campfire pin (`Campfire` refactored onto it byte-identically); composed by `Forge`/`Oven`/`Hearth`/`Campfire` through `lib/fire/Firebox` (the four-mixin chain those six wrote out by hand), and by `Lamp`/`Still` over `Movable` — ⭐ a shared capability chain is not a shared RUNG, so a carried lamp writes the chain rather than extending the immovable class. (⚠ the table read `Candle`, which composed `Combustible` and not `Furnace`, and is now retired.) See [fire.md](./subsystems/fire.md). |
+| `lib/fire/` | `BurnerMixin` | *(was `FurnaceMixin` until the base-class narrowing, 2026-09-29 — a lamp, a candle and a campfire all compose it and none of them is a furnace)* the sustained-heat-source capability: a `Combustible`-fuelled appliance pinned hot (`burnTemperatureK × bellows`) while lit + fuelled, heating the Meltables in its scope (`heatContents`). Generalizes the Campfire pin (`Campfire` refactored onto it byte-identically); composed by `Forge`/`Oven`/`Hearth`/`Campfire` through `lib/fire/Firebox` (the four-mixin chain those six wrote out by hand), and by `Lamp`/`Still` over `Good` — ⭐ a shared capability chain is not a shared RUNG, so a carried lamp writes the chain rather than extending the immovable class. (⚠ the table read `Candle`, which composed `Combustible` and not `Furnace`, and is now retired.) See [fire.md](./subsystems/fire.md). |
 | `lib/magic/` | `CasterMixin` | the anatomical casting faculty (the magic build): the mana pool (an absolute avail/max `pt` `Reserve`, capacity from the species `facultyProfile`'s depth band), serenity-rate reconcile-on-read recovery (metabolism stamp guards), overchannel strain + hysteresis clear, the LIVE composure read (mental-resist substrate), the numbers-free `getFacultyView`, and the `cast`/`spells` affordance via `refreshCastingAffordance()` — the dynamic self-push at `Avatar.enter` (the `refreshConferrals` mirror; the self bucket collects class statics only, so a gated mixin cannot afford selectively any other way). Composed on `Character`, **gated** — active only when `Species.innateMixins` (or an augment) confers it (the `isActive` shape). Read the pool via `getMana()`/`getManaFraction()` (the contract surface; raw keyed reads skip the reconcile). See [magic.md](./subsystems/magic.md). |
 | `lib/magic/` | `ConduitMixin` | **the coupling an arcane reserve crosses to reach a shell** — the apparatus half of `recharge` (the magic-items build). Energy does not cross into a charged item by intent: it crosses through a coupling, and couplings have impedance, so a conduit's `couplingEfficiency` is one factor of `delivered = committed × coupling × competence`. ⚠ **Both factors are below 1 by construction** — the setter clamps and a nonsense value degrades to *crude*, because 1 τ ≡ 1 kJ against a conservation law and a lossless pump is a perpetual-motion machine. Deliberately NOT `potencyFactor`, whose competence term is a bonus `≥ 1`. A **tool**, not a magic item: it stores nothing, holds no working, has nothing to top up, and wears through the shipped `Durable.getCondition()`. Concrete class `/system/arcana/thing/Conduit` (the arcana pack). See [magic-items.md](./subsystems/magic-items.md). |
 | `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |

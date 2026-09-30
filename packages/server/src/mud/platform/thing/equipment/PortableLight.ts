@@ -1,7 +1,7 @@
 /**
  * PortableLight — a carried light you actually light: a torch, a lantern.
  *
- * `LightSourceMixin(SwitchableMixin(Movable))`. The shipped
+ * `LightSourceMixin(SwitchableMixin(Good))`. The shipped
  * `LightSourceMixin` emits its authored flux unconditionally (v1 has no
  * lit/unlit state), and `SwitchableMixin` alone would be a *fake* toggle —
  * so this class **couples** the two: `getEmittedFlux()` returns the authored
@@ -25,13 +25,13 @@
  * a dark realm made it matter.
  */
 
-import Movable from "../../../lib/stuff/Movable";
+import Good from "../../../lib/stuff/Good";
 import { LightSourceMixin } from "../../../lib/perception/LightSource";
 import { SwitchableMixin } from "../../../lib/boundary/Switchable";
 import { Quantity } from "../../../lib/quantity";
 
 const PortableLightBase = LightSourceMixin(
-  SwitchableMixin(Movable),
+  SwitchableMixin(Good),
 );
 
 export default class PortableLight extends PortableLightBase {

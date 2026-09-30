@@ -2,7 +2,7 @@
  * Fitting — a bare fixture things are placed on: a shelf, a counter, a
  * table, a rail, a hook, the bar's back-bar.
  *
- * `PlacingMixin(Movable)` — a `Thing` (Tangible/Visible/
+ * `PlacingMixin(Good)` — a `Thing` (Tangible/Visible/
  * Containable, so it lives in a room) that **holds placed items**
  * (`Placing`, not `Container` — it doesn't enclose). Items placed on it
  * via `ContainmentApi.place` keep `container = the room` and gain a
@@ -26,11 +26,11 @@
  * `fixedInPlace: false`.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import type { FieldMeta } from '../../lib/mixin';
 
-const FittingBase = PlacingMixin(Movable);
+const FittingBase = PlacingMixin(Good);
 
 export default class Fitting extends FittingBase {
   static fieldMeta: FieldMeta = {};

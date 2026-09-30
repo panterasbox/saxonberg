@@ -13,7 +13,7 @@
  * content**, so a second depot in a second town needs zero pack code.
  *
  * ⚠ **`ContainerMixin(Thing)`, not `Vessel`** (the base-class narrowing,
- * D14). `Vessel` sits on `Movable`, which composes `Chattel` and
+ * D14). `Vessel` sits on `Good`, which composes `Chattel` and
  * `Concealable`; this is part of the premises — nobody's chattel, and you
  * cannot hide it. The container behaviour it wants is one mixin, so it
  * composes that mixin. The GOODS it holds are the chattel.

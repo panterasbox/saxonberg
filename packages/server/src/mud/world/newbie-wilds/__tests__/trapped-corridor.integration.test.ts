@@ -38,7 +38,7 @@ import DisarmController from '../../../platform/idea/cmd/device/DisarmController
 import { Creature } from '../../../lib/creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Movable from '../../../lib/stuff/Movable';
+import Good from '../../../lib/stuff/Good';
 import Exit from '../../../lib/boundary/Exit';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { SensorMixin } from '../../../lib/message/Sensor';
@@ -179,7 +179,7 @@ class Delver extends AdvancementMixin(
 }
 
 // A steel-plate boot — a Constructed Wearable covering the feet.
-class DemoBoot extends WearableMixin(SlottableMixin(ConstructedMixin(Movable))) {
+class DemoBoot extends WearableMixin(SlottableMixin(ConstructedMixin(Good))) {
   static _mixinName = 'DemoTrapBoot';
 }
 
@@ -425,7 +425,7 @@ describe('The Sunken Delve — content discipline (the required invariant)', () 
       getContents(): Stuff[];
     })
       .getContents()
-      .find((c) => c instanceof Movable && !(c instanceof Trap))!;
+      .find((c) => c instanceof Good && !(c instanceof Trap))!;
     expect(PerceptionApi.perceives(m, reward)).toBe(true);
   });
 });

@@ -9,7 +9,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
@@ -31,7 +31,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 // A fully-composed flammable object: Combustible over Wet over Thermal over
 // Reserved (fuel) over Thing — the demonstrator shape.
 class Firewood extends CombustibleMixin(
-  WetMixin(ThermalMixin(ReservedMixin(Movable))),
+  WetMixin(ThermalMixin(ReservedMixin(Good))),
 ) {
   static _mixinName = 'Firewood';
 }
@@ -42,7 +42,7 @@ class Firewood extends CombustibleMixin(
  * outside*, it is nearly all water all the way through.
  */
 class Turf extends WaterActivityMixin(
-  CombustibleMixin(ThermalMixin(ReservedMixin(Movable))),
+  CombustibleMixin(ThermalMixin(ReservedMixin(Good))),
 ) {
   static _mixinName = 'TestTurf';
 }
@@ -154,7 +154,7 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
     // on Combustible/Burner, and the ignite verb's target predicate is
     // the isCombustible/isBurner narrow — a bare Thing never reaches
     // the driver.
-    const rock = makeStuff(() => new Movable());
+    const rock = makeStuff(() => new Good());
     expect(MixinApi.isCombustible(rock)).toBe(false);
     expect(MixinApi.isBurner(rock)).toBe(false);
   });
@@ -180,7 +180,7 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
 
   it('narrows Combustible via MixinApi', () => {
     expect(MixinApi.isCombustible(firewood({ massKg: 1 }))).toBe(true);
-    expect(MixinApi.isCombustible(makeStuff(() => new Movable()))).toBe(false);
+    expect(MixinApi.isCombustible(makeStuff(() => new Good()))).toBe(false);
   });
 });
 

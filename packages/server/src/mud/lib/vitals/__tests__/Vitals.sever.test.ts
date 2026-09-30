@@ -19,7 +19,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { SlottableMixin } from '../../slot/Slottable';
 import { ContainerMixin } from '../../spatial/Container';
 import { StuffApi } from '../../../api/stuff';
@@ -35,10 +35,10 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-const SlottableThingBase = SlottableMixin(Movable);
+const SlottableThingBase = SlottableMixin(Good);
 class SlottableThing extends SlottableThingBase {}
 
-const ContainerThingBase = ContainerMixin(Movable);
+const ContainerThingBase = ContainerMixin(Good);
 class Room extends ContainerThingBase {}
 
 /** A Creature with an arm, a hand under it, and a grip slot on the hand. */

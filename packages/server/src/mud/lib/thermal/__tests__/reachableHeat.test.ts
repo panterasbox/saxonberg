@@ -8,7 +8,7 @@
 import "../../../../test-bootstrap";
 import { ThermalMixin } from '../Thermal';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import Location from '../../stuff/Location';
 import Forge from '../../../platform/thing/Forge';
 import { FireApi } from '../../../api/fire';
@@ -20,7 +20,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class ReachRoom extends Location {}
-class ThermalThing extends ThermalMixin(Movable) {
+class ThermalThing extends ThermalMixin(Good) {
   static _mixinName = 'ReachThermalThing';
 }
 

@@ -21,14 +21,14 @@ import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import { Archetype } from '../../lib/archetype/Archetype';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
 import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import type { StoredDocument } from '../../lib/document/StoredDocument';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-class Bench extends PlacingMixin(Movable) {}
-class Tool extends ToolMixin(Movable) {}
+class Bench extends PlacingMixin(Good) {}
+class Tool extends ToolMixin(Good) {}
 
 function doc(path: string, data: Record<string, unknown>): StoredDocument {
   return { getPath: () => path, getData: () => data, getKind: () => path.includes('/recipes/') ? 'recipe' : 'archetype' } as unknown as StoredDocument;

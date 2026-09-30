@@ -12,7 +12,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ToolRack from '../ToolRack';
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { OrganismMixin } from '@saxonberg/server/mud/lib/species/Organism';
@@ -27,11 +27,11 @@ const SPADE = '/trade/farming/thing/spade';
 const SCYTHE = '/trade/farming/thing/scythe';
 
 /** A stand-in for the yard, and for a field somewhere else. */
-class Place extends ContainerMixin(Movable) {}
+class Place extends ContainerMixin(Good) {}
 /** A stand-in for a person holding a tool — an Organism, so it is HANDS. */
-class Hands extends OrganismMixin(ContainerMixin(ContainableMixin(Movable))) {}
+class Hands extends OrganismMixin(ContainerMixin(ContainableMixin(Good))) {}
 /** A stand-in tool. */
-class Tool extends ContainableMixin(Movable) {}
+class Tool extends ContainableMixin(Good) {}
 
 describe('the tool rack', () => {
   let minted: Array<Stuff & Containable>;

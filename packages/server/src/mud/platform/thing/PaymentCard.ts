@@ -11,12 +11,12 @@
  * bucket. The travel card is the sibling holder that affords nothing.
  */
 
-import Movable from "../../lib/stuff/Movable";
+import Good from "../../lib/stuff/Good";
 import { CredentialWalletMixin } from "../../lib/credential/CredentialWallet";
 import type { CredentialKind } from "../../lib/credential/Credential";
 import type { CommandContributions } from "../../api/command";
 
-export default class PaymentCard extends CredentialWalletMixin(Movable) {
+export default class PaymentCard extends CredentialWalletMixin(Good) {
   /** Born holding one (empty) payment credential record. */
   static defaultCredentialKinds: readonly CredentialKind[] = ["payment"];
 

@@ -10,7 +10,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Floor from '../../../platform/thing/Floor';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { VisibleMixin } from '../../description/Visible';
 import { SlottableMixin } from '../Slottable';
 import { SlottedMixin } from '../Slotted';
@@ -26,31 +26,31 @@ import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class ClothTunic extends WearableMixin(
-  SlottableMixin(VisibleMixin(Movable))
+  SlottableMixin(VisibleMixin(Good))
 ) {}
 
 class IronLongsword extends WieldableMixin(
-  SlottableMixin(VisibleMixin(Movable))
+  SlottableMixin(VisibleMixin(Good))
 ) {}
 
-class WoodenChair extends PosturedMixin(SlottedMixin(VisibleMixin(Movable))) {}
+class WoodenChair extends PosturedMixin(SlottedMixin(VisibleMixin(Good))) {}
 
-class FourPosterBed extends PosturedMixin(SlottedMixin(VisibleMixin(Movable))) {}
+class FourPosterBed extends PosturedMixin(SlottedMixin(VisibleMixin(Good))) {}
 
-class WoodenBench extends PosturedMixin(SlottedMixin(VisibleMixin(Movable))) {}
+class WoodenBench extends PosturedMixin(SlottedMixin(VisibleMixin(Good))) {}
 
 class Saddle extends DrivableMixin(
   MountableMixin(
-    SlottedMixin(WearableMixin(SlottableMixin(VisibleMixin(Movable))))
+    SlottedMixin(WearableMixin(SlottableMixin(VisibleMixin(Good))))
   )
 ) {}
 
 class Bicycle extends DrivableMixin(
-  MountableMixin(SlottedMixin(VisibleMixin(Movable)))
+  MountableMixin(SlottedMixin(VisibleMixin(Good)))
 ) {}
 
 class Car extends SeatedDrivableMixin(
-  DrivableMixin(SlottedMixin(ContainerMixin(VisibleMixin(Movable))))
+  DrivableMixin(SlottedMixin(ContainerMixin(VisibleMixin(Good))))
 ) {}
 
 describe('Composition smoke (§ 16)', () => {

@@ -26,7 +26,7 @@
  * through the operation `Stackable` already ships.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import { DyedMixin } from '@saxonberg/server/mud/lib/material/Dyed';
@@ -36,7 +36,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
 const ClothBoltBase = StackableMixin(
-  CraftedMixin(ConstructedMixin(DyedMixin(Movable))),
+  CraftedMixin(ConstructedMixin(DyedMixin(Good))),
 );
 
 export default class ClothBolt extends ClothBoltBase {

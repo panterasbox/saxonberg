@@ -30,7 +30,7 @@
  * anybody had recorded.
  */
 
-import Movable from '../../../lib/stuff/Movable';
+import Good from '../../../lib/stuff/Good';
 import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
@@ -39,7 +39,7 @@ import { WieldableMixin } from '../../../lib/slot/Wieldable';
 
 const ShieldBase = WieldableMixin(
   SlottableMixin(
-    CraftedMixin(DurableMixin(ConstructedMixin(Movable))),
+    CraftedMixin(DurableMixin(ConstructedMixin(Good))),
   ),
 );
 

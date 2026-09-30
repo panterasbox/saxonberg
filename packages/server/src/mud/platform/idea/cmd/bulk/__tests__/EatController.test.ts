@@ -14,7 +14,7 @@ import { Creature } from "../../../../../lib/creature/Creature";
 import { NamedMixin } from "../../../../../lib/description/Named";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
-import Movable from "../../../../../lib/stuff/Movable";
+import Good from "../../../../../lib/stuff/Good";
 import Location from "../../../../../lib/stuff/Location";
 import Material from "../../../../../lib/material/Material";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -55,7 +55,7 @@ function material(path: string, name: string, edible: boolean, nutrients: string
 
 function edibleItem(label: string, mat: Material): Stuff {
   return makeStuff(() => {
-    const t = new Movable();
+    const t = new Good();
     t.setShortDescription(label);
     t.setMaterial(mat);
     return t;

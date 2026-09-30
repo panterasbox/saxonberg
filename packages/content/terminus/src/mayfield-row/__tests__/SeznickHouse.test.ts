@@ -151,7 +151,7 @@ function seedDomain(): void {
     shortDescription: 'the Seznick House lobby',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
-  add('/world/test/lamp', '/platform/thing/Movable', {
+  add('/world/test/lamp', '/platform/thing/Good', {
     shortDescription: 'a tin lamp',
   });
 }

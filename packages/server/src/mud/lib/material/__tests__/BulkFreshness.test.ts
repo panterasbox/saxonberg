@@ -14,7 +14,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin } from '../../thermal/Thermal';
 import Material from '../../material/Material';
@@ -27,7 +27,7 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
-class TestPot extends ThermalMixin(BulkableMixin(Movable)) {
+class TestPot extends ThermalMixin(BulkableMixin(Good)) {
   static _mixinName = 'TestPotFreshness';
 }
 

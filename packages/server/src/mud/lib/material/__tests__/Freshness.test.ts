@@ -8,7 +8,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
 import Material from '../Material';
 import { Freshness } from '../Freshness';
@@ -61,9 +61,9 @@ function food(mat: Material, tempK = 293): Provision {
 }
 
 /** A bare `Thing` — ⚠ deliberately NOT Fresh. See the boundary test. */
-function bareThing(mat: Material): Movable {
+function bareThing(mat: Material): Good {
   return makeStuff(() => {
-    const t = new Movable();
+    const t = new Good();
     t.setMaterial(mat);
     return t;
   });

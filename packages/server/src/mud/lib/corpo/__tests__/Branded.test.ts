@@ -11,7 +11,7 @@ import CorpoCatalogue from "../../../platform/idea/CorpoCatalogue";
 import Corpo from "../../../platform/idea/corpo/Corpo";
 import Brand from "../../../platform/idea/corpo/Brand";
 import { BrandedMixin } from "../Branded";
-import Movable from "../../stuff/Movable";
+import Good from "../../stuff/Good";
 import { Stuff } from "../../stuff/Stuff";
 import { StuffApi } from "../../../api/stuff";
 import { ShadowApi } from "../../../api/shadow";
@@ -24,7 +24,7 @@ import {
 
 // The minimal branded object: the mixin over a bare Thing (no shipped class
 // exists for a mark-only bottle any more — libations phase 5 retired it).
-class BrandedBottle extends BrandedMixin(Movable) {}
+class BrandedBottle extends BrandedMixin(Good) {}
 
 type Loose = Record<string, unknown>;
 
@@ -109,20 +109,20 @@ describe("BrandedMixin", () => {
   });
 
   it("appends the derived corpo line to the long description", () => {
-    const viewer = makeStuff(() => new Movable()) as unknown as Stuff;
+    const viewer = makeStuff(() => new Good()) as unknown as Stuff;
     const out = bottle("volk").getMarkupLong(viewer);
     expect(out).toContain("A squat bottle.");
     expect(out).toContain("a product of Veshko");
   });
 
   it("renders the independent line for an independent brand", () => {
-    const viewer = makeStuff(() => new Movable()) as unknown as Stuff;
+    const viewer = makeStuff(() => new Good()) as unknown as Stuff;
     const out = bottle("crowsfoot-gin").getMarkupLong(viewer);
     expect(out).toContain("an independent label");
   });
 
   it("leaves the description untouched when unbranded", () => {
-    const viewer = makeStuff(() => new Movable()) as unknown as Stuff;
+    const viewer = makeStuff(() => new Good()) as unknown as Stuff;
     const out = bottle("").getMarkupLong(viewer);
     expect(out).not.toContain("a product of");
     expect(out).not.toContain("independent label");

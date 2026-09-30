@@ -11,7 +11,7 @@
  * Ships at `/trade/distilling/thing/Still`.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSource';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
@@ -19,7 +19,7 @@ import { BurnerMixin } from '@saxonberg/server/mud/lib/fire/Burner';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 
 const StillBase = BurnerMixin(
-  LightSourceMixin(ReservedMixin(ThermalMixin(ToolMixin(Movable)))),
+  LightSourceMixin(ReservedMixin(ThermalMixin(ToolMixin(Good)))),
 );
 
 export default class Still extends StillBase {

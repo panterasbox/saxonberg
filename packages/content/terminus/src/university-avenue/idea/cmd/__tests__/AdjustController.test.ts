@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AdjustController from '../AdjustController';
 import Watch from '../../../thing/Watch';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -109,7 +109,7 @@ describe('AdjustController', () => {
   });
 
   it('rejects a non-mechanical target', async () => {
-    const rock = makeStuff(() => new (class extends VisibleMixin(Movable) {})());
+    const rock = makeStuff(() => new (class extends VisibleMixin(Good) {})());
     const ctx = ctxFor(avatar, room);
     await makeStuff(() => new AdjustController()).execute(
       { target: one(rock, 'rock'), time: '4:00' } as CommandModel,

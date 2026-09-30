@@ -28,7 +28,7 @@ import "../../WorldClockRegistry";
 import SpellCatalogue from "../../SpellCatalogue";
 import Spell from "../../magic/Spell";
 import { LightSourceMixin } from "../../../../lib/perception/LightSource";
-import Movable from "../../../../lib/stuff/Movable";
+import Good from "../../../../lib/stuff/Good";
 import Condition from "../../Condition";
 import { Template } from "../../../../lib/stuff/Template";
 import { Character } from "../../../../lib/character/Character";
@@ -49,7 +49,7 @@ import {
 } from "../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
-class GlowlightOrb extends LightSourceMixin(Movable) {}
+class GlowlightOrb extends LightSourceMixin(Good) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 

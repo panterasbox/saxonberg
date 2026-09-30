@@ -22,7 +22,7 @@ import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { MixinApi } from '../mixin';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import Door from '../../platform/thing/Door';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../lib/location/CartesianLocation';
@@ -48,7 +48,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 class Actor extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {}
 
 /** An open-topped holder: a rack, a crate, a stock counter. No lid. */
-class Rack extends ContainerMixin(ContainableMixin(DetailedMixin(Movable))) {}
+class Rack extends ContainerMixin(ContainableMixin(DetailedMixin(Good))) {}
 
 /** Somebody: an actor who takes commands. Their pockets are their own. */
 class Person extends CommandGiverMixin(
@@ -57,7 +57,7 @@ class Person extends CommandGiverMixin(
 
 /** A holder with a lid — shut by default. */
 class Chest extends SealableMixin(
-  ContainerMixin(ContainableMixin(DetailedMixin(Movable))),
+  ContainerMixin(ContainableMixin(DetailedMixin(Good))),
 ) {}
 
 /**
@@ -67,11 +67,11 @@ class Chest extends SealableMixin(
  * something shut.
  */
 class Compartment extends PlacingMixin(
-  SealableMixin(ContainableMixin(DetailedMixin(Movable))),
+  SealableMixin(ContainableMixin(DetailedMixin(Good))),
 ) {}
 
 /** A plain shelf: a placement host with no lid at all. */
-class Shelf extends PlacingMixin(ContainableMixin(DetailedMixin(Movable))) {}
+class Shelf extends PlacingMixin(ContainableMixin(DetailedMixin(Good))) {}
 
 describe('PerceptionApi.canReach', () => {
   beforeEach(() => {
@@ -101,13 +101,13 @@ describe('PerceptionApi.canReach', () => {
   const s = (x: unknown): Stuff => x as unknown as Stuff;
 
   it('reaches what it carries', async () => {
-    const coin = makeStuff(() => new Movable());
+    const coin = makeStuff(() => new Good());
     ContainmentApi.move(coin, actor as unknown as never);
     expect(PerceptionApi.canReach(s(actor), s(coin))).toBe(true);
   });
 
   it('reaches what is in the room, and not what is elsewhere', async () => {
-    const lantern = makeStuff(() => new Movable());
+    const lantern = makeStuff(() => new Good());
     ContainmentApi.move(lantern, here as unknown as never);
     expect(PerceptionApi.canReach(s(actor), s(lantern))).toBe(true);
 
@@ -162,7 +162,7 @@ describe('PerceptionApi.canReach', () => {
   describe('one level into an open container', () => {
     it('reaches a coupe standing in an open rack in the room', () => {
       const rack = makeStuff(() => new Rack());
-      const coupe = makeStuff(() => new Movable());
+      const coupe = makeStuff(() => new Good());
       ContainmentApi.move(rack, here as unknown as never);
       ContainmentApi.move(coupe, rack as unknown as never);
       expect(PerceptionApi.canReach(s(actor), s(coupe))).toBe(true);
@@ -170,7 +170,7 @@ describe('PerceptionApi.canReach', () => {
 
     it('reaches into an open holder the actor is CARRYING', () => {
       const pouch = makeStuff(() => new Rack());
-      const coin = makeStuff(() => new Movable());
+      const coin = makeStuff(() => new Good());
       ContainmentApi.move(pouch, actor as unknown as never);
       ContainmentApi.move(coin, pouch as unknown as never);
       expect(PerceptionApi.canReach(s(actor), s(coin))).toBe(true);
@@ -178,7 +178,7 @@ describe('PerceptionApi.canReach', () => {
 
     it('does NOT reach into a shut chest — and does once it is opened', () => {
       const chest = makeStuff(() => new Chest());
-      const coupe = makeStuff(() => new Movable());
+      const coupe = makeStuff(() => new Good());
       ContainmentApi.move(chest, here as unknown as never);
       ContainmentApi.move(coupe, chest as unknown as never);
       chest.setOpen(false);
@@ -190,7 +190,7 @@ describe('PerceptionApi.canReach', () => {
     it("does NOT reach into somebody else's inventory, open or not", () => {
       const other = makeStuff(() => new Person());
       other.setName('Bob');
-      const coin = makeStuff(() => new Movable());
+      const coin = makeStuff(() => new Good());
       ContainmentApi.move(other, here as unknown as never);
       ContainmentApi.move(coin, other as unknown as never);
       expect(PerceptionApi.canReach(s(actor), s(coin))).toBe(false);
@@ -199,7 +199,7 @@ describe('PerceptionApi.canReach', () => {
     it('stops at ONE level — a box inside the crate is not reachable', () => {
       const crate = makeStuff(() => new Rack());
       const box = makeStuff(() => new Rack());
-      const gem = makeStuff(() => new Movable());
+      const gem = makeStuff(() => new Good());
       ContainmentApi.move(crate, here as unknown as never);
       ContainmentApi.move(box, crate as unknown as never);
       ContainmentApi.move(gem, box as unknown as never);
@@ -257,7 +257,7 @@ describe('PerceptionApi.canReach', () => {
       box.setPlacements(['in']);
       box.setOpen(true);
       ContainmentApi.move(box, here as unknown as never);
-      const steak = makeStuff(() => new Movable());
+      const steak = makeStuff(() => new Good());
       ContainmentApi.move(steak, here as unknown as never);
       ContainmentApi.place(steak, 'in', box);
 
@@ -283,7 +283,7 @@ describe('PerceptionApi.canReach', () => {
       box.setPlacements(['from']);
       box.setOpen(false);
       ContainmentApi.move(box, here as unknown as never);
-      const ham = makeStuff(() => new Movable());
+      const ham = makeStuff(() => new Good());
       ContainmentApi.move(ham, here as unknown as never);
       ContainmentApi.place(ham, 'from', box);
       // The hook is on the OUTSIDE of the shut box.
@@ -294,7 +294,7 @@ describe('PerceptionApi.canReach', () => {
       await warmMembers();
       const shelf = makeStuffAtPath(() => new Shelf(), '/test/reach-shelf');
       ContainmentApi.move(shelf, here as unknown as never);
-      const mug = makeStuff(() => new Movable());
+      const mug = makeStuff(() => new Good());
       ContainmentApi.move(mug, here as unknown as never);
       ContainmentApi.place(mug, 'on', shelf);
       expect(PerceptionApi.canReach(s(actor), s(mug))).toBe(true);

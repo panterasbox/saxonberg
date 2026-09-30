@@ -10,7 +10,7 @@ import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import Material from '../../lib/material/Material';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { Idea } from '../../lib/stuff/Idea';
 import { ShadowApi } from '../shadow';
 import { StuffApi } from '../stuff';
@@ -20,7 +20,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import type { FieldMeta } from '../../lib/mixin';
 
-class Axe extends DetailedMixin(VisibleMixin(NamedMixin(Movable))) {
+class Axe extends DetailedMixin(VisibleMixin(NamedMixin(Good))) {
   static _mixinName = 'Axe';
 }
 

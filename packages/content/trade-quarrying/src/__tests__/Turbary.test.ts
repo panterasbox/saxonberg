@@ -27,7 +27,7 @@ import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -130,9 +130,9 @@ beforeEach(() => {
   (zone as unknown as { deposit: string }).deposit = DEPOSIT;
   cellSeq = 0;
   seedColumn();
-  actor = makeStuff(() => new Movable()) as unknown as Stuff;
+  actor = makeStuff(() => new Good()) as unknown as Stuff;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async () =>
-    makeStuff(() => new Movable())) as never);
+    makeStuff(() => new Good())) as never);
   bank = makeBank();
 });
 

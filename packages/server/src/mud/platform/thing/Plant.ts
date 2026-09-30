@@ -28,7 +28,7 @@
  * See [docs/subsystems/husbandry.md].
  */
 
-import Movable from "../../lib/stuff/Movable";
+import Good from "../../lib/stuff/Good";
 import { ThermalMixin } from "../../lib/thermal/Thermal";
 import { OrganismMixin } from "../../lib/species/Organism";
 import { ReservedMixin } from "../../lib/reserve";
@@ -53,7 +53,7 @@ const PlantBase = PersistableMixin(
   PostRegistrationMixin(
     SlottableMixin(
       GrowingMixin(
-        ReservedMixin(OrganismMixin(ThermalMixin(Movable))),
+        ReservedMixin(OrganismMixin(ThermalMixin(Good))),
       ),
     ),
   ),

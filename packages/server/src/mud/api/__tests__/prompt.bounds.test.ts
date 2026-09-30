@@ -17,7 +17,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -68,8 +68,8 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
   it('under-min selection emits validation-failed; prompt stays alive', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const a = await StuffApi.create(() => new Movable());
-    const b = await StuffApi.create(() => new Movable());
+    const a = await StuffApi.create(() => new Good());
+    const b = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
 
     const p = interactive.promptMqlMany('Pick', [a, b], { min: 2, max: 2 });
@@ -99,9 +99,9 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
   it('over-max selection emits validation-failed', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const a = await StuffApi.create(() => new Movable());
-    const b = await StuffApi.create(() => new Movable());
-    const c = await StuffApi.create(() => new Movable());
+    const a = await StuffApi.create(() => new Good());
+    const b = await StuffApi.create(() => new Good());
+    const c = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
 
     const p = interactive.promptMqlMany('Pick', [a, b, c], { max: 2 });
@@ -124,7 +124,7 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
   it('malformed JSON emits validation-failed', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const a = await StuffApi.create(() => new Movable());
+    const a = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
 
     const p = interactive.promptMqlMany('Pick', [a]);
@@ -144,7 +144,7 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
   it('non-string-array payload emits validation-failed', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const a = await StuffApi.create(() => new Movable());
+    const a = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
 
     const p = interactive.promptMqlMany('Pick', [a]);
@@ -163,8 +163,8 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
   it('mqlMany without bounds opts accepts any size', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const a = await StuffApi.create(() => new Movable());
-    const b = await StuffApi.create(() => new Movable());
+    const a = await StuffApi.create(() => new Good());
+    const b = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
 
     const p = interactive.promptMqlMany('Pick', [a, b]);

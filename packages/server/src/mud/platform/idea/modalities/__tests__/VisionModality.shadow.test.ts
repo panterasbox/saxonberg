@@ -11,7 +11,7 @@ import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import CartesianZone from '../../location/CartesianZone';
 import { LightSourceMixin } from '../../../../lib/perception/LightSource';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
-import Movable from '../../../../lib/stuff/Movable';
+import Good from '../../../../lib/stuff/Good';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { PerceptionMixin } from '../../../../lib/perception/Perception';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -29,11 +29,11 @@ const vision = (): VisionModality =>
 
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 class TestObserver extends PerceptionMixin(
-  SensorMixin(ContainableMixin(Movable))
+  SensorMixin(ContainableMixin(Good))
 ) {
   handleMessage(): void {}
 }
-class Candle extends LightSourceMixin(Movable) {}
+class Candle extends LightSourceMixin(Good) {}
 
 class BlindfoldShadow extends Shadow {
   @Shadowing

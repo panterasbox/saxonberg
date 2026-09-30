@@ -26,11 +26,11 @@ import { SpawnTable } from '../SpawnTable';
 import type { SpawnCandidate } from '../SpawnTable';
 import { CirculatingMixin } from '../Circulating';
 import { ArcaneMixin } from '../../magic/Arcane';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestGood extends CirculatingMixin(ArcaneMixin(Movable)) {}
+class TestGood extends CirculatingMixin(ArcaneMixin(Good)) {}
 
 const __filename = fileURLToPath(import.meta.url);
 const MUD_ROOT = join(dirname(__filename), '../../..');

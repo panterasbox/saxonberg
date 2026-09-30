@@ -27,9 +27,9 @@ Corollary, stated plainly: **vitals are body-state, not agent-state.**
 
 ⭐ Since the base-class narrowing (2026-09-30) the branch says this in
 three tiers rather than two: `Creature` (a body — a corpse, a head of
-stock) → **`Animate`** (a body that ACTS: moves, perceives, can be
+stock) → **`Actor`** (a body that ACTS: moves, perceives, can be
 engaged, fights) → `Character` (a body that is somebody). ⚠ A corpse
-composes the whole of `Creature` and none of `Animate`'s five, which is
+composes the whole of `Creature` and none of `Actor`'s five, which is
 where the line was found — the five are exactly the five that are false
 of a corpse.
 Agency is gated separately (animacy / consciousness), so corpses,

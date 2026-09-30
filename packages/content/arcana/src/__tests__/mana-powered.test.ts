@@ -27,7 +27,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { SlottedMixin } from '@saxonberg/server/mud/lib/slot/Slotted';
@@ -54,7 +54,7 @@ import {
  * compile — which is a stronger statement than any assertion below.
  */
 class Widget extends ManaPoweredMixin(
-  SlottedMixin(ChargedMixin(ReservedMixin(Movable))),
+  SlottedMixin(ChargedMixin(ReservedMixin(Good))),
 ) {
   constructor() {
     super();

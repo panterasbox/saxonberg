@@ -625,7 +625,7 @@ initial seven per MR review — see [§ History](#history)):
   concedes.
 
 Both verbs are contributed by **`CombatantMixin`** (`lib/combat/Combatant.ts`,
-composed on **`lib/creature/Animate`** since the base-class narrowing —
+composed on **`lib/creature/Actor`** since the base-class narrowing —
 *a body that acts* — so a wolf and a cat fight back as well as a person)
 as static `self` affordances; ⚠ the affordances are `self`-bucket, so
 they are inert on anything that is not a `CommandGiver` — which no rung
@@ -1097,7 +1097,7 @@ Named at their sites; nothing inherited:
   (`WieldableMixin`), the missing `/platform/idea/ParcelRegistry` seed (a latent
   fresh-DB bootstrap failure), the silent-fight-end bug, and the flat
   narration. `CombatantMixin` was composed onto `Character` (it moved to
-  the `Animate` rung in 2026-09); `Weapon` gained
+  the `Actor` rung in 2026-09); `Weapon` gained
   `balanceFactor`; `act.combat` joined `REACTABLE_TOPICS`.
 - **Cycle 1, build 2** (`feature/combat-consequence`) — consequence &
   progression: `isSentient` (a `Species` flag + the three-case defeat),

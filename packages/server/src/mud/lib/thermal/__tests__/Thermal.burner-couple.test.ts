@@ -16,7 +16,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Movable from "../../stuff/Movable";
+import Good from "../../stuff/Good";
 import Location from "../../stuff/Location";
 import Material from "../../material/Material";
 import { ThermalMixin } from "../Thermal";
@@ -38,7 +38,7 @@ import { installV1QuantityMarshallers } from "../../persistence/__tests__/quanti
 /** The `Oven` composition: Burner over Thermal over Placing + Container. */
 class TestOven extends BurnerMixin(
   LightSourceMixin(
-    ReservedMixin(ThermalMixin(PlacingMixin(ContainerMixin(Movable)))),
+    ReservedMixin(ThermalMixin(PlacingMixin(ContainerMixin(Good)))),
   ),
 ) {
   static _mixinName = "TestOvenCouple";
@@ -46,12 +46,12 @@ class TestOven extends BurnerMixin(
 
 /** The `Campfire` composition, trimmed to what the couple needs. */
 class TestCampfire extends BurnerMixin(
-  LightSourceMixin(ReservedMixin(PlacingMixin(ThermalMixin(Movable)))),
+  LightSourceMixin(ReservedMixin(PlacingMixin(ThermalMixin(Good)))),
 ) {
   static _mixinName = "TestCampfireCouple";
 }
 
-class ThermalThing extends ThermalMixin(Movable) {
+class ThermalThing extends ThermalMixin(Good) {
   static _mixinName = "ThermalThingCouple";
 }
 class TestRoom extends Location {}

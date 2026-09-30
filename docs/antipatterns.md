@@ -2954,7 +2954,7 @@ expect(body.getOccupiedHost()).toBe(bed);   // true, and irrelevant
 
 ```typescript
 // The verb exists for the actor that must issue it...
-expect(PosedMixin(Movable).commandContributions.self)
+expect(PosedMixin(Good).commandContributions.self)
   .toContain('posture/lie.yaml');
 // ...and the actor satisfies the validator that gates it.
 expect(MixinApi.hasMixin(Creature, Mixins.Slottable)).toBe(true);
@@ -4607,7 +4607,7 @@ args:
 ```
 
 Raw stock has no wear axis — stock does not wear out, made things do — so
-`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Movable))` and
+`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Good))` and
 none composes `DurableMixin`. Every explicit `hammer <target>` in the game
 was refused at the **binder** with *"{} doesn't wear out"*, including
 `hammer ingot`, the worked example in that file's own help. Only bare

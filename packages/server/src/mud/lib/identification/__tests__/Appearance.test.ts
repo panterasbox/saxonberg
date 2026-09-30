@@ -38,7 +38,7 @@ import { BeliefStoreMixin, IDENTIFICATION } from '../../belief/BeliefStore';
 import { PerceptionMixin } from '../../perception/Perception';
 import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -51,7 +51,7 @@ class Flask extends LabelledMixin(
   IdentifiableMixin(StackableMixin(VisibleMixin(ContainableMixin(Idea)))),
 ) {}
 /** A charged item: continuous per-instance state, so it must NOT stack. */
-class Wand extends ChargedMixin(ReservedMixin(IdentifiableMixin(Movable))) {}
+class Wand extends ChargedMixin(ReservedMixin(IdentifiableMixin(Good))) {}
 
 const __filename = fileURLToPath(import.meta.url);
 const BANKS_DIR = join(

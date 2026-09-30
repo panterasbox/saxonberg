@@ -18,7 +18,7 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
-import Movable from '../../../../lib/stuff/Movable';
+import Good from '../../../../lib/stuff/Good';
 import Scrap from '../../../thing/Scrap';
 import Forge from '../../../thing/Forge';
 import Weapon from '../../../thing/equipment/Weapon';
@@ -168,7 +168,7 @@ describe('CraftingLogic.repair', () => {
     jerkin.setMass(Quantity.of(4, 'kg'));
     jerkin.setCondition(0.5);
     ContainmentApi.move(jerkin, room);
-    const hide = makeStuff(() => new Movable());
+    const hide = makeStuff(() => new Good());
     hide.setMaterial(mat(LEATHER));
     hide.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide, room);
@@ -191,7 +191,7 @@ describe('CraftingLogic.repair', () => {
     const machine = makeStuff(() => new Tool());
     machine.setCapabilities([{ kind: 'mending', rate: 3, control: 'fine' }]);
     ContainmentApi.move(machine, room);
-    const hide = makeStuff(() => new Movable());
+    const hide = makeStuff(() => new Good());
     hide.setMaterial(mat(LEATHER));
     hide.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide, room);
@@ -213,7 +213,7 @@ describe('CraftingLogic.repair', () => {
     heirloom.setCondition(0.5);
     graded(heirloom).setGradeBand('masterful');
     ContainmentApi.move(heirloom, room);
-    const hide2 = makeStuff(() => new Movable());
+    const hide2 = makeStuff(() => new Good());
     hide2.setMaterial(mat(LEATHER));
     hide2.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide2, room);
@@ -225,7 +225,7 @@ describe('CraftingLogic.repair', () => {
     const kit = makeStuff(() => new Tool());
     kit.setCapabilities(['mending']);
     ContainmentApi.move(kit, room);
-    const hide = makeStuff(() => new Movable());
+    const hide = makeStuff(() => new Good());
     hide.setMaterial(mat(LEATHER));
     hide.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide, room);

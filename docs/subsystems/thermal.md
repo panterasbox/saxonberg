@@ -209,7 +209,7 @@ it in the box.
 
 ## The thermos (`Flask`)
 
-`ThermalMixin(SealableMixin(BulkableMixin(Movable)))`. The vessel's Thermal
+`ThermalMixin(SealableMixin(BulkableMixin(Good)))`. The vessel's Thermal
 temperature IS its contents. Sealing is the barrier switch (vacuum vs
 air); seal toggles re-stamp. The bulk couplings ride a gated thermal tier
 on `BulkableApi.transfer`:
@@ -220,7 +220,7 @@ on `BulkableApi.transfer`:
 - **Mix** → same-material calorimetric blend (specific heats cancel →
   volume-weighted average), via `ThermalMixin.setContentsTemperature`.
 
-A plain `Receptacle` (`ThermalMixin(BulkableMixin(Movable))`) is the
+A plain `Receptacle` (`ThermalMixin(BulkableMixin(Good))`) is the
 non-sealable case (a mug): no barrier → it cools in minutes.
 
 ## Senses (`feel`, burn)

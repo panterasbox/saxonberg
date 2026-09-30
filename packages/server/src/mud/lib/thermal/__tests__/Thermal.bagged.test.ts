@@ -34,7 +34,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Movable from "../../stuff/Movable";
+import Good from "../../stuff/Good";
 import Material from "../../material/Material";
 import Biome from "../../biome/Biome";
 import Icebox from "../../../platform/thing/Icebox";
@@ -60,7 +60,7 @@ import { installV1QuantityMarshallers } from "../../persistence/__tests__/quanti
 const BIOME_K = 283;
 const INDOOR = "/stuff/idea/biome/_bagged/indoor";
 
-class Loaf extends ThermalMixin(Movable) {
+class Loaf extends ThermalMixin(Good) {
   static _mixinName = "BaggedLoaf";
 }
 /** A plain bag — post-narrowing, `Container(Thing)` and no air at all. */

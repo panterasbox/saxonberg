@@ -21,7 +21,7 @@
  * the arcane library's `ring-of-veil`.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
@@ -40,7 +40,7 @@ const RingBase = CirculatingMixin(
       BlessableMixin(
         IdentifiableMixin(
           LabelledMixin(
-            ChargedMixin(ReservedMixin(ArcaneMixin(Movable))),
+            ChargedMixin(ReservedMixin(ArcaneMixin(Good))),
           ),
         ),
       ),

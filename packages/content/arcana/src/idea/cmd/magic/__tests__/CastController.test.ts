@@ -37,7 +37,7 @@ import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable"
 import SpellCatalogue from "@saxonberg/server/mud/platform/idea/SpellCatalogue";
 import Spell from "@saxonberg/server/mud/platform/idea/magic/Spell";
 import { LightSourceMixin } from "@saxonberg/server/mud/lib/perception/LightSource";
-import Movable from "@saxonberg/server/mud/lib/stuff/Movable";
+import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { Template } from "@saxonberg/server/mud/lib/stuff/Template";
 import {
   makeStuff,
@@ -45,7 +45,7 @@ import {
 } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
-class GlowlightOrb extends LightSourceMixin(Movable) {}
+class GlowlightOrb extends LightSourceMixin(Good) {}
 /** Where the commons' spell rows live, and the class every one names (the catalogue warms BY CLASS). */
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';

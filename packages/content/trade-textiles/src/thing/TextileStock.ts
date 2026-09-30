@@ -18,13 +18,13 @@
  * they have no such thing.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
-const TextileStockBase = StackableMixin(CraftedMixin(Movable));
+const TextileStockBase = StackableMixin(CraftedMixin(Good));
 
 export default class TextileStock extends TextileStockBase {
   // ⚠ TS re-surface of the inner `GradedMixin`'s members: they are

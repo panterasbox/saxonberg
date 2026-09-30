@@ -1,7 +1,7 @@
 /**
  * AirTank — worn gear that carries a breathable-air supply: the
  * carried-supply / budget archetype of the respiration build (the scuba
- * loop). `WearableMixin(SlottableMixin(BulkableMixin(Movable)))` — worn
+ * loop). `WearableMixin(SlottableMixin(BulkableMixin(Good)))` — worn
  * gear with an `interior` bulk slot of compressed air.
  *
  * `Thing` contributes Visible / Perceptible / Tangible / Containable;
@@ -17,14 +17,14 @@
  * the supply-exhausted crisis (`cause: 'supply'`).
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { SlottableMixin } from '../../lib/slot/Slottable';
 import { WearableMixin } from '../../lib/slot/Wearable';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
-const AirTankBase = WearableMixin(SlottableMixin(BulkableMixin(Movable)));
+const AirTankBase = WearableMixin(SlottableMixin(BulkableMixin(Good)));
 
 export default class AirTank extends AirTankBase {
   /**

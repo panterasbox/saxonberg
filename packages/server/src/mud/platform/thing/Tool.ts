@@ -17,14 +17,14 @@
  * `Tool` is the class those 24 COULD collapse into later, and it stays
  * empty so the decision is still open.
  *
- * `ToolMixin(DurableMixin(Movable))` — a `Tangible` carrying tool
+ * `ToolMixin(DurableMixin(Good))` — a `Tangible` carrying tool
  * capabilities (ToolMixin) + a wear-on-use condition (DurableMixin, the
  * durable-good half). Backs the bar's shaker / mixing-glass (and any future
  * strainer / muddler); capabilities + condition are authored in each seed's
  * `data:`.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { DurableMixin } from '../../lib/material/Durable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
@@ -49,6 +49,6 @@ import { CraftedMixin } from '../../lib/craft/Crafted';
 // The attach point stays open and named: a `KitchenTool` the day a sieve or
 // a board genuinely needs to carry a load, the same way irrigation
 // contamination composes onto `WateringCan` when someone wants it.
-const ToolBase = CraftedMixin(ToolMixin(DurableMixin(Movable)));
+const ToolBase = CraftedMixin(ToolMixin(DurableMixin(Good)));
 
 export default class Tool extends ToolBase {}

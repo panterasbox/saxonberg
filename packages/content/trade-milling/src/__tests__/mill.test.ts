@@ -32,7 +32,7 @@ import Material from '@saxonberg/server/mud/lib/material/Material';
 import Sack from '@saxonberg/server/mud/platform/thing/Sack';
 import Crop from '@saxonberg/server/mud/platform/thing/Crop';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
@@ -93,7 +93,7 @@ class TestActor extends CommandGiverMixin(
 }
 
 /** A room sibling that answers the power shape — never a ControlStructure. */
-class FakeWheel extends Movable {
+class FakeWheel extends Good {
   generationW(flowM3S: number): number {
     return 1000 * 9.81 * 6 * flowM3S * 0.85;
   }
@@ -479,7 +479,7 @@ describe('the grind itself', () => {
     const q = quern();
     await ContainmentApi.move(q as never, room as never);
     const rock = makeStuff(() => {
-      const t = new Movable();
+      const t = new Good();
       t.setShortDescription('a rock');
       return t;
     });
@@ -501,7 +501,7 @@ describe('the grind itself', () => {
     // because the metal chain's stamp mill is its second consumer, in a
     // pack with no ancestor in common. A controller matching
     // `instanceof GristMill` would silently refuse it.
-    class StampBattery extends ComminutingMixin(ToolMixin(Movable)) {
+    class StampBattery extends ComminutingMixin(ToolMixin(Good)) {
       static _mixinName = 'TestStampBattery';
     }
     const battery = makeStuff(() => new StampBattery());

@@ -31,7 +31,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
-import Movable from '../../../../../lib/stuff/Movable';
+import Good from '../../../../../lib/stuff/Good';
 import Location from '../../../../../lib/stuff/Location';
 import { Character } from '../../../../../lib/character/Character';
 import Species from '../../../species/Species';
@@ -52,7 +52,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Garment extends WearableMixin(
-  SlottableMixin(ConstructedMixin(ContainableMixin(Movable))),
+  SlottableMixin(ConstructedMixin(ContainableMixin(Good))),
 ) {
   static _mixinName = 'Garment';
 }
@@ -68,13 +68,13 @@ class Wearer extends WardrobeMixin(
  * strap. The only object for which the invoked VERB is real input.
  */
 class Gauntlet extends WieldableMixin(
-  WearableMixin(SlottableMixin(ConstructedMixin(ContainableMixin(Movable)))),
+  WearableMixin(SlottableMixin(ConstructedMixin(ContainableMixin(Good)))),
 ) {
   static _mixinName = 'Gauntlet';
 }
 
 /** A plain box to dress out of — the wardrobe stand-in. */
-class Chest extends ContainerMixin(ContainableMixin(Movable)) {
+class Chest extends ContainerMixin(ContainableMixin(Good)) {
   static _mixinName = 'Chest';
 }
 

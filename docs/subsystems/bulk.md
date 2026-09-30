@@ -281,7 +281,7 @@ scale but unexercised until gas content lands.
 Within one affordance, bulk and discrete contents are **independent**: a
 `Container` holds its `contents` (a `Set<Containable>`) and its interior
 slot, and neither touches the other. `CraftVessel`
-(`Crafted(Thermal(Bulkable(Container(Movable))))`) is the shipped
+(`Crafted(Thermal(Bulkable(Container(Good))))`) is the shipped
 case — the olive is a `Containable` in `contents`, the martini is the
 interior slot; `drink` drains the slot and the garnish stays. `Feeder`,
 `PlantPot` and `GardenBed` compose the same pair. There is no constraint
@@ -558,7 +558,7 @@ from an air source — no new bulk machinery.
 
 - Materials: `coffee`, `water` (`seeds/lib/material/bulk/`).
 - Holders: one `Receptacle` class (`obj/Receptacle.ts` =
-  `BulkableMixin(Movable)`, fluid-only — not a discrete `Container`, and
+  `BulkableMixin(Good)`, fluid-only — not a discrete `Container`, and
   named to stay clear of the existing enterable-`Vessel`) backing four
   rows (`generic-objects/content/stuff/thing/vessel/`): the unbounded coffee `urn`, the portable
   `thermos`, the destination `mug`, and the `open`-closure `colander`.

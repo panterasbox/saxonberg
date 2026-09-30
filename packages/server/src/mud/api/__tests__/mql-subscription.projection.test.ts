@@ -18,7 +18,7 @@ import { StackableMixin } from '../../lib/stuff/Stackable';
 import Material from '../../lib/material/Material';
 import { Quantity } from '../../lib/quantity';
 import { Idea } from '../../lib/stuff/Idea';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { ShadowApi } from '../shadow';
 import { StuffApi } from '../stuff';
 import {
@@ -32,7 +32,7 @@ class PlainNamed extends NamedMixin(Idea) {
 }
 
 class FullThing extends StackableMixin(
-  DetailedMixin(VisibleMixin(NamedMixin(Movable))),
+  DetailedMixin(VisibleMixin(NamedMixin(Good))),
 ) {
   static _mixinName = 'FullThing';
 }

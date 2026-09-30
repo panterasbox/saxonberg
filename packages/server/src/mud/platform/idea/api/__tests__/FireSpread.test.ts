@@ -13,7 +13,7 @@ import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import Exit from '../../../../lib/boundary/Exit';
 import Door from '../../../thing/Door';
-import Movable from '../../../../lib/stuff/Movable';
+import Good from '../../../../lib/stuff/Good';
 import Material from '../../../../lib/material/Material';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { WetMixin } from '../../../../lib/wetness/Wet';
@@ -35,11 +35,11 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Firewood extends CombustibleMixin(
-  WetMixin(ThermalMixin(ReservedMixin(Movable))),
+  WetMixin(ThermalMixin(ReservedMixin(Good))),
 ) {
   static _mixinName = 'FirewoodSpread';
 }
-class TestOccupant extends HasInteractiveMixin(Movable) {
+class TestOccupant extends HasInteractiveMixin(Good) {
   static _mixinName = 'TestOccupantFire';
 }
 

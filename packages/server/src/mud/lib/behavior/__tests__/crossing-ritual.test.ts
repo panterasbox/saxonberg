@@ -52,7 +52,7 @@ import { Stuff as StuffClass } from '../../stuff/Stuff';
 import { BehavedMixin } from '../Behaved';
 import { brain as ritual } from '../crossing-ritual';
 import type { BrainContext } from '../brain';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { DetailedMixin } from '../../description/Detailed';
 import { TimekeepingMixin } from '../../time/Timekeeping';
 import { AudibleMixin } from '../../perception/Audible';
@@ -71,7 +71,7 @@ const GREETS = '/lib/behavior/greets';
  * over the University Avenue content classes (which have their own
  * tests beside their content).
  */
-class TestLog extends DetailedMixin(Movable) {
+class TestLog extends DetailedMixin(Good) {
   public marks: Array<number | null> = [];
   addMark(reading: number | null): void {
     this.marks.push(reading);
@@ -80,12 +80,12 @@ class TestLog extends DetailedMixin(Movable) {
     return this.marks;
   }
 }
-class TestWatch extends TimekeepingMixin(Movable) {
+class TestWatch extends TimekeepingMixin(Good) {
   override currentReading(): Time | null {
     return Time.ofMinutes(600);
   }
 }
-class TestWhistle extends AudibleMixin(Movable) {}
+class TestWhistle extends AudibleMixin(Good) {}
 
 class TestNPC extends BehavedMixin(
   EngagedMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea))))

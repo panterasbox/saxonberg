@@ -28,7 +28,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../idea/ChattelRegistry";
-import Movable from "../../lib/stuff/Movable";
+import Good from "../../lib/stuff/Good";
 import { ChattelApi } from "../../api/chattel";
 import { ParcelApi } from "../../api/parcel";
 import { StuffApi } from "../../api/stuff";
@@ -57,7 +57,7 @@ import type { Chattel } from '../../lib/chattel/Chattel';
 const TORCH_PATH = "/obj/test/Torch";
 
 /** A plain movable good — Chattel identity rides in via `Thing`. */
-class Torch extends Movable {}
+class Torch extends Good {}
 
 /** A persistable container host (an Avatar / chest stand-in). */
 class Vault extends PersistableMixin(

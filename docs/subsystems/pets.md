@@ -26,10 +26,10 @@ extends is not biology but that somebody could come to care about *this
 particular one*, and the world is willing to remember which one it was.
 Kernel, not a pack: its three composers have no common pack ancestor.
 
-⭐ **It stands on `lib/creature/Animate` since the base-class narrowing
+⭐ **It stands on `lib/creature/Actor` since the base-class narrowing
 (2026-09-30)** — *a body that acts* — and it was the rung's **third
 consumer**, which is the promotion threshold this project uses. It had
-been composing three of `Animate`'s five by hand (`Engaged`, `Mobile`,
+been composing three of `Actor`'s five by hand (`Engaged`, `Mobile`,
 `Sensor`, each with its own comment about why a pet needs it) while
 `Character` composed the same three for people; two composition sites of
 one set is the shape that says the host is a level up.

@@ -22,7 +22,7 @@
  * dark), `Arcane` says which cell it sits in, `Consumable` spends it.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
 import { ConsumableMixin } from '@saxonberg/server/mud/lib/magic/Consumable';
@@ -47,7 +47,7 @@ const ScrollBase = CirculatingMixin(
   BlessableMixin(
     IdentifiableMixin(
       LabelledMixin(
-        ConsumableMixin(ArcaneMixin(MarkedMixin(Movable))),
+        ConsumableMixin(ArcaneMixin(MarkedMixin(Good))),
       ),
     ),
   ),

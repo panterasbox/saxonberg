@@ -135,7 +135,7 @@ stamp, that survives the persistence round-trip. `ChattelMixin`
   item whose id is riding a snapshot, and its durable row survives the
   relog.
 
-Composed at the **`Movable`** rung — `lib/stuff/Movable` =
+Composed at the **`Good`** rung — `lib/stuff/Good` =
 `Chattel(Concealable(Thing))` — so every portable inanimate object gets
 per-instance identity for free (pets/apartments/ranching/retail all want
 it), and nothing else does.

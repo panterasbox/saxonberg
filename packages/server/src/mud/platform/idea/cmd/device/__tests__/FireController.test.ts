@@ -24,7 +24,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import FireController from '../FireController';
 import Oven from '../../../../thing/Oven';
-import Movable from '../../../../../lib/stuff/Movable';
+import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
 import { Reserve } from '../../../../../lib/reserve';
 import { Quantity } from '../../../../../lib/quantity';
@@ -83,8 +83,8 @@ function makeKiln(opts: { holdK: number; lit: boolean; bellows?: boolean }): Ove
 }
 
 /** A lump of something, by material path. */
-function lumpOf(path: string, kg = 5): Movable {
-  const t = makeStuff(() => new Movable());
+function lumpOf(path: string, kg = 5): Good {
+  const t = makeStuff(() => new Good());
   t.setMass(Quantity.of(kg, 'kg'));
   t.setMaterial(StuffApi.findByTemplatePath<Material>(path) as unknown as Material);
   return t;
@@ -178,7 +178,7 @@ beforeEach(async () => {
   const realClone = StuffApi.clone;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
     if (path === PRODUCT_ROW || path === OTHER_ROW) {
-      const p = makeStuff(() => new Movable());
+      const p = makeStuff(() => new Good());
       stampTemplatePathForTest(p, path);
       p.setMass(Quantity.of(2, 'kg'));
       p.setShortDescription(path === PRODUCT_ROW ? 'burnt thing' : 'other thing');

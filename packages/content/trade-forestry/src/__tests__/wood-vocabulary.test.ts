@@ -113,7 +113,7 @@ describe('the wood vocabulary — eight woods, eight trees, each naming the othe
     const timber = YAML.parse(
       readFileSync(join(CONTENT, 'trade-forestry', 'content', 'trade', 'forestry', 'thing', 'timber.yaml'), 'utf8'),
     ) as { class: string; data: { _materialPath: string; gradeBand?: string } };
-    expect(timber.class).toBe('/platform/thing/Movable');
+    expect(timber.class).toBe('/platform/thing/Good');
     expect(timber.data._materialPath).toMatch(/^\/stuff\/idea\/material\/wood\//);
     expect(timber.data.gradeBand).toBeUndefined();
     const recipe = YAML.parse(

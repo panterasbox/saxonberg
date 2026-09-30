@@ -15,7 +15,7 @@ import { SlottableMixin } from '../Slottable';
 import { SlottedMixin } from '../Slotted';
 import { ConstructedMixin } from '../../material/Constructed';
 import { ContainableMixin } from '../../spatial/Containable';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import { Construction } from '../../material/Construction';
 import { Creature } from '../../creature/Creature';
@@ -31,9 +31,9 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class TestGarment extends WearableMixin(
-  SlottableMixin(ContainableMixin(ConstructedMixin(Movable))),
+  SlottableMixin(ContainableMixin(ConstructedMixin(Good))),
 ) {}
-class Rack extends SlottedMixin(Movable) {}
+class Rack extends SlottedMixin(Good) {}
 
 let seq = 0;
 let planPath = '';
@@ -344,7 +344,7 @@ describe('the covering stack orders itself', () => {
 
   it('a non-Wearable slot occupant is not part of the covering', () => {
     const body = dressableBody();
-    const sheathed = makeStuff(() => new (class extends SlottableMixin(Movable) {})());
+    const sheathed = makeStuff(() => new (class extends SlottableMixin(Good) {})());
     body.occupy(sheathed, 'sheath');
     expect(body.coveringAt('body.torso')).toHaveLength(0);
   });

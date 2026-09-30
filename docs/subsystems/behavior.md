@@ -392,12 +392,12 @@ next-tick re-start, not a suspended-engagement resume.
 export class NPC extends BehavedMixin(PostRegistrationMixin(Character)) {}
 
 // platform/agent/Beast.ts — the same shape one rung down
-export class Beast extends BehavedMixin(PostRegistrationMixin(Animate)) {}
+export class Beast extends BehavedMixin(PostRegistrationMixin(Actor)) {}
 ```
 
 ⭐ **Two rungs carry a brain, not one** (base-class narrowing,
 2026-09-30). `NPC` is a *person* who decides things; `Beast` is an
-*animal* that does — the identical shape over `lib/creature/Animate`
+*animal* that does — the identical shape over `lib/creature/Actor`
 instead of `Character`, and without `Costumed`, because an animal is not
 dressed. The wolf, the draft horse and the pit pony were `NPC`-side
 until then, which is how a pit pony came to carry `CasterMixin` and

@@ -23,7 +23,7 @@
  * — and nothing else.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -68,7 +68,7 @@ const REFERENCE_MPA = 100;
 /** The Discipline splitting stone credits. */
 const QUARRYING = 'quarrying';
 
-const BlockBase = Movable;
+const BlockBase = Good;
 
 /** *"eight pieces in it yet"* / *"one piece left"* — appended on `look`. */
 function piecesAugmenter(text: string, host: Stuff, _viewer: Stuff): string {

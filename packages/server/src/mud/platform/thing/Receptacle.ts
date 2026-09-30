@@ -1,5 +1,5 @@
 /**
- * Receptacle — a fluid-only liquid holder: `BulkableMixin(Movable)`.
+ * Receptacle — a fluid-only liquid holder: `BulkableMixin(Good)`.
  *
  * `Thing` already contributes Visible (description), Perceptible
  * (keywords, so `fill thermos` resolves it by name), Tangible (wall
@@ -22,7 +22,7 @@
  * open colander); they differ only in authored data.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 
@@ -31,6 +31,6 @@ import { ThermalMixin } from '../../lib/thermal/Thermal';
 // so the coffee in any receptacle has a real, drifting temperature. An
 // open holder (a mug) has no sealing barrier → it cools in minutes; the
 // sealable Flask switches to a vacuum barrier when closed (τ in hours).
-const ReceptacleBase = ThermalMixin(BulkableMixin(Movable));
+const ReceptacleBase = ThermalMixin(BulkableMixin(Good));
 
 export default class Receptacle extends ReceptacleBase {}

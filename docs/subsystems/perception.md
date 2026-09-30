@@ -146,7 +146,7 @@ Perception splits into two orthogonal mixins:
 
 All viewer-aware query Apis take **`Stuff & Sensor & Perception`**
 as the viewer parameter. ⭐ Both are composed on
-**`lib/creature/Animate`** since the base-class narrowing (2026-09-30),
+**`lib/creature/Actor`** since the base-class narrowing (2026-09-30),
 so every animate body is a viewer — a person, a wolf, a horse, a cat —
 rather than only the ones that are somebody. That pair is one of the
 three readers the rung was derived from: `PerceptionLogic` asks for

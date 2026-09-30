@@ -1,7 +1,7 @@
 /**
  * SconceLamp — a light you hang on the wall.
  *
- * `AdornmentMixin(LightSourceMixin(SwitchableMixin(Movable)))`
+ * `AdornmentMixin(LightSourceMixin(SwitchableMixin(Good)))`
  * — the {@link NeonSign} shape with the brand taken off and a switch put
  * on, or equivalently `PortableLight` with `Adornment` composed over it.
  * Both readings are the point: a sconce is a light that happens to live
@@ -19,14 +19,14 @@
  * detaches it and hands it back.
  */
 
-import Movable from "@saxonberg/server/mud/lib/stuff/Movable";
+import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { AdornmentMixin } from "@saxonberg/server/mud/lib/boundary/Adornment";
 import { LightSourceMixin } from "@saxonberg/server/mud/lib/perception/LightSource";
 import { SwitchableMixin } from "@saxonberg/server/mud/lib/boundary/Switchable";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 
 const SconceLampBase = AdornmentMixin(
-  LightSourceMixin(SwitchableMixin(Movable)),
+  LightSourceMixin(SwitchableMixin(Good)),
 );
 
 export default class SconceLamp extends SconceLampBase {

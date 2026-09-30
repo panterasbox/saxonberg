@@ -4,7 +4,7 @@
 # A tree small enough to carry is carried whole: the Christmas-tree
 # case, and the honest inverse of the bole. Not fuel until somebody
 # splits it; nothing here does.
-class: /platform/thing/Movable
+class: /platform/thing/Good
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: felled sapling

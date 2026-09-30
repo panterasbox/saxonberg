@@ -5,7 +5,7 @@ import { Light } from '../../lib/perception/Light';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import CartesianZone from '../idea/location/CartesianZone';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { BoundaryApi } from '../../api/boundary';
 import { ContainmentApi } from '../../api/containment';
 import { VisionModality } from '../idea/modalities/VisionModality';
@@ -22,7 +22,7 @@ import { PerceptionApi } from '../../api/perception';
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
-class Candle extends LightSourceMixin(Movable) {}
+class Candle extends LightSourceMixin(Good) {}
 
 /**
  * Phase 4 critical integration tests. The propagation walk's

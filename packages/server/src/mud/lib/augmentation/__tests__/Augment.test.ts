@@ -1,13 +1,13 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { AugmentMixin } from '../Augment';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class BareAugment extends AugmentMixin(Movable) {}
+class BareAugment extends AugmentMixin(Good) {}
 
-class FooConferring extends AugmentMixin(Movable) {
+class FooConferring extends AugmentMixin(Good) {
   override confers(): readonly string[] {
     return ['FooMixin', 'BarMixin'];
   }
@@ -27,7 +27,7 @@ describe('AugmentMixin', () => {
   it('MixinApi.isAugment narrows', () => {
     const a = makeStuff(() => new BareAugment());
     expect(MixinApi.isAugment(a)).toBe(true);
-    const plain = makeStuff(() => new Movable());
+    const plain = makeStuff(() => new Good());
     expect(MixinApi.isAugment(plain)).toBe(false);
   });
 });

@@ -64,7 +64,7 @@ import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../lib/spatial/Container';
-import Movable from '../../../lib/stuff/Movable';
+import Good from '../../../lib/stuff/Good';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { NamedMixin } from '../../../lib/description/Named';
@@ -189,7 +189,7 @@ function stock(path: string, kw: string): Stock {
  * because they are open `Container`s, not because of any class the
  * kernel knows: hospitality's `GlassRack` ships in its own pack.
  */
-class TestRack extends ContainerMixin(Movable) {}
+class TestRack extends ContainerMixin(Good) {}
 
 describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and receives it", () => {
   let bar: Location;

@@ -26,7 +26,7 @@ import {
 } from "../CredentialWallet";
 import CredentialWalletUpdate from "../../../platform/idea/CredentialWalletUpdate";
 import PaymentCard from "../../../platform/thing/PaymentCard";
-import Movable from "../../stuff/Movable";
+import Good from "../../stuff/Good";
 import type { CredentialKind } from "../Credential";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
@@ -43,7 +43,7 @@ class TestWallet extends CredentialWalletMixin(Idea) {
  * `tpa` capability pack's (`/system/tpa/thing/TravelCard`), and a kernel
  * test proves the KERNEL over a synthetic fixture.
  */
-class TestTravelCard extends CredentialWalletMixin(Movable) {
+class TestTravelCard extends CredentialWalletMixin(Good) {
   static defaultCredentialKinds: readonly CredentialKind[] = ["travel"];
 }
 

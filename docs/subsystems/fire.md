@@ -145,7 +145,7 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   what the model integrates.
   ⚠⚠ **A LAMP does not compose it.** A lamp, a lantern and a
   `trade-distilling` `Still` are goods you carry, so they sit on
-  `Movable` and write the same four mixins themselves. **A shared
+  `Good` and write the same four mixins themselves. **A shared
   capability chain is not a shared rung** — the same conflation
   `Fitting`/`Station` resolved one wave earlier. Two consumers is not
   three, so a portable twin is declined until something forces it.
@@ -177,7 +177,7 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   (see *A fuelled appliance now casts light only while it burns*, below),
   which is what left it with nothing of its own.
   ⭐ **A candle is a `Lamp` row today** — `BurnerMixin(LightSource(
-  Reserved(Thermal(Movable))))`, which is a fuelled thing that
+  Reserved(Thermal(Good))))`, which is a fuelled thing that
   lights, burns its reserve and gates its flux on being lit. The general
   store's torch is already one. What no class offers is the wax pool, and
   that was deferred on the Candle too: the flame pins the whole body hot,

@@ -78,7 +78,7 @@ makes it *the* collier. See [presentation.md](./presentation.md).
 ⭐ **Two rungs, and a third thing that is neither.** `Cast` and `Extra`
 are both PEOPLE — somebody, and a role somebody fills. An **animal** is
 not on this ladder at all: it is `platform/agent/Beast`, one tier down
-the branch on `Animate`. ⚠ The newbie-wilds wolf was an `Extra` until
+the branch on `Actor`. ⚠ The newbie-wilds wolf was an `Extra` until
 the base-class narrowing (2026-09-30) and so composed `CasterMixin`,
 `EmployedMixin` and `PersonaMixin` — the tell was that this very table
 listed *a wolf* beside *a sentry* and *a sellsword*, and `Extra.ts` had

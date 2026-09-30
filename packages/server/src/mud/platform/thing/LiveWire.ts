@@ -15,13 +15,13 @@
  * See docs/subsystems/electricity.md.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { SwitchableMixin } from '../../lib/boundary/Switchable';
 import { EnergizedMixin } from '../../lib/electricity/Energized';
 
 const LiveWireBase = SwitchableMixin(
-  EnergizedMixin(VisibleMixin(Movable)),
+  EnergizedMixin(VisibleMixin(Good)),
 );
 
 export default class LiveWire extends LiveWireBase {}

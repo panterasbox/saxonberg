@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Block, { BLOCK_PIECES, PIECE_MASS_KG } from '../thing/Block';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -79,9 +79,9 @@ beforeEach(() => {
   vi.restoreAllMocks();
   vi.spyOn(console, 'error').mockImplementation(() => {});
   room = makeStuff(() => new CartesianLocation());
-  actor = makeStuff(() => new Movable()) as unknown as Stuff;
+  actor = makeStuff(() => new Good()) as unknown as Stuff;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async () => {
-    const p = makeStuff(() => new Movable());
+    const p = makeStuff(() => new Good());
     p.setMass(Quantity.of(PIECE_MASS_KG, 'kg'));
     p.setShortDescription('piece of stone');
     return p;

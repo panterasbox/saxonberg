@@ -19,7 +19,7 @@
  * conditions.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { SealableMixin } from '../../lib/spatial/Sealable';
@@ -37,7 +37,7 @@ import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 const VatBase = VesselKindMixin(
   MaturingMixin(
     CraftedMixin(
-      SealableMixin(ThermalMixin(BulkableMixin(Movable))),
+      SealableMixin(ThermalMixin(BulkableMixin(Good))),
     ),
   ),
 );

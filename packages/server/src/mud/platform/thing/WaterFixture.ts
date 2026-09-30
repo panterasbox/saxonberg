@@ -6,7 +6,7 @@
  * ⭐ **Composition: `UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)))`
  * — its own stack, not {@link UnboundedReceptacle}'s.** It used to extend
  * that class, which sits on `Receptacle`, which since the base-class
- * narrowing sits on `Movable`. A standpipe is plumbed into the ground: it is
+ * narrowing sits on `Good`. A standpipe is plumbed into the ground: it is
  * nobody's chattel and you cannot hide it, and the constructor below has
  * been saying exactly that with `fixedInPlace` since a live drive walked out
  * of Dave's Bar carrying the wash basin. The three mixins it actually wants

@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { OrganismMixin } from '../Organism';
 import Species from '../../../platform/idea/species/Species';
 import { Idea } from '../../stuff/Idea';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { MixinApi } from '../../../api/mixin';
@@ -15,11 +15,11 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 
-const OrganismThingBase = OrganismMixin(Movable);
+const OrganismThingBase = OrganismMixin(Good);
 class OrganismThing extends OrganismThingBase {}
 
 /** A body somebody PLAYS — the only thing that distinguishes the two. */
-const PlayedBodyBase = HasInteractiveMixin(OrganismMixin(Movable));
+const PlayedBodyBase = HasInteractiveMixin(OrganismMixin(Good));
 class PlayedBody extends PlayedBodyBase {}
 
 /** Stand a world clock up; ages are dates, so they need one. */

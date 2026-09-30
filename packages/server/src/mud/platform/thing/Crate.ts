@@ -11,13 +11,13 @@
  * a crate is a count of things at target.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { StagedMixin } from '../../lib/stuff/Staged';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
 
 const CrateBase = CirculatingMixin(
-  StagedMixin(ContainerMixin(Movable)),
+  StagedMixin(ContainerMixin(Good)),
 );
 
 export default class Crate extends CrateBase {

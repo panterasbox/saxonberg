@@ -8,7 +8,7 @@
  * gin stays attributable on the rail. Store-bought empties default to
  * an empty mark.
  *
- * `BrandedMixin(CraftedMixin(BulkableMixin(Movable)))` — a `Receptacle` that also
+ * `BrandedMixin(CraftedMixin(BulkableMixin(Good)))` — a `Receptacle` that also
  * has a grade, so the input's quality flows through a craft to the output
  * (`with <brand>` substitution → a better or worse result). Per-bottle
  * construction (material, capacity, amount, grade, brand) is authored in each
@@ -23,7 +23,7 @@
  * an unbranded working bottle (e.g. fresh-squeezed lime).
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { BrandedMixin } from '../../lib/corpo/Branded';
@@ -58,7 +58,7 @@ function verdictAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 // ⚠ `VesselKindMixin` is deliberately NOT added here: `Bottle` already
 // wraps it, and a double composition is the bug.
 const GradedReceptacleBase = ThermalMixin(
-  BrandedMixin(CraftedMixin(BulkableMixin(Movable))),
+  BrandedMixin(CraftedMixin(BulkableMixin(Good))),
 );
 
 export default class GradedReceptacle extends GradedReceptacleBase {

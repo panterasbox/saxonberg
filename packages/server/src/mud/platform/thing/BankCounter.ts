@@ -6,7 +6,7 @@
  * renders, resolves by keyword and answers a look-at without anything added.
  *
  * ⚠ **It used to be a `Vessel`, and that was one rung too far.** Since the
- * base-class narrowing (D14) `Vessel` sits on `Movable`, which composes
+ * base-class narrowing (D14) `Vessel` sits on `Good`, which composes
  * `Chattel` and `Concealable` — a teller's counter is bolted to the floor of
  * a bank: it is not somebody's chattel and you cannot hide it. The container
  * behaviour it actually wanted is one mixin, so it composes that mixin.

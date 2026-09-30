@@ -26,7 +26,7 @@ import { SlottedMixin } from '../../lib/slot/Slotted';
 import { MountableMixin } from '../../lib/slot/Mountable';
 import { DrivableMixin } from '../../lib/slot/Drivable';
 import { Idea } from '../../lib/stuff/Idea';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { buildAllModes, buildMode } from '../../lib/locomotion/__tests__/test-helpers';
@@ -40,7 +40,7 @@ class SwimZoneLocation extends SwimmableLoc {}
 const FlyableLoc = FlyableMixin(CartesianLocation);
 class FlyZoneLocation extends FlyableLoc {}
 
-const ClimbableLadderBase = ClimbableMixin(ContainableMixin(Movable));
+const ClimbableLadderBase = ClimbableMixin(ContainableMixin(Good));
 class Ladder extends ClimbableLadderBase {}
 
 const MoverBase = PropertiedMixin(MobileMixin(SlottableMixin(ContainableMixin(Idea))));

@@ -27,12 +27,12 @@ import '../../../platform/idea/WorldClockRegistry';
 import { Charge } from '../Charge';
 import { ChargedMixin, CHARGE_DEFAULTS } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { ReservedMixin } from '../../reserve';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestWand extends ChargedMixin(ReservedMixin(ArcaneMixin(Movable))) {}
+class TestWand extends ChargedMixin(ReservedMixin(ArcaneMixin(Good))) {}
 
 const SCALE = 12;
 let real = 0;

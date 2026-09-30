@@ -42,7 +42,7 @@ import { SlottableMixin } from '../../slot/Slottable';
 import { BlessableMixin } from '../Blessable';
 import { ChargedMixin } from '../Charged';
 import { ReservedMixin } from '../../reserve';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { Idea } from '../../stuff/Idea';
 import { Blessing } from '../Blessing';
 import { MagicEffects, EFFECT_KINDS } from '../Effect';
@@ -76,7 +76,7 @@ class Body extends SlottedMixin(Idea) {}
  * the live drive.
  */
 class Held extends BlessableMixin(
-  ChargedMixin(ReservedMixin(SlottableMixin(Movable))),
+  ChargedMixin(ReservedMixin(SlottableMixin(Good))),
 ) {}
 
 const __filename = fileURLToPath(import.meta.url);

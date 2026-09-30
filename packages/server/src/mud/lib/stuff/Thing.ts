@@ -12,14 +12,14 @@
  * later. A Thing whose `getLong` happens to return empty is still
  * structurally a Thing.
  *
- * ⭐⭐ **`Thing` is matter; a GOOD is `Movable`.** Until 2026-09-29 this
+ * ⭐⭐ **`Thing` is matter; a GOOD is `Good`.** Until 2026-09-29 this
  * root also composed `ChattelMixin` and `ConcealableMixin`, which made
  * every floor, hearth, counter and yard wall in the game claim it could
  * be *owned* and *hidden*. Those two are what it means to be **carried
- * off**, so they moved one rung out to `lib/stuff/Movable` — see its
+ * off**, so they moved one rung out to `lib/stuff/Good` — see its
  * docstring for the line. The test, and it is the project's own: **if an
  * immovable class needs a guard like `if (MixinApi.isChattel(this))` to
- * behave, it belongs on `Movable`** — that is a finding to write down,
+ * behave, it belongs on `Good`** — that is a finding to write down,
  * never a guard to add.
  *
  * The root's seven were measured against the owner's criterion — *strip

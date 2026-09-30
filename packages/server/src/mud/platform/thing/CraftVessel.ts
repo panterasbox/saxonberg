@@ -34,7 +34,7 @@
  * the Dwarf-Fortress quality verdict — never a number.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { BulkableMixin, type BulkAffordance } from '../../lib/bulk/Bulkable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
@@ -113,7 +113,7 @@ const CraftVesselBase = ContaminableMixin(
   ServiceableMixin(
   VesselKindMixin(
   CraftedMixin(
-    ThermalMixin(BulkableMixin(ContainerMixin(Movable))),
+    ThermalMixin(BulkableMixin(ContainerMixin(Good))),
   ),
   ),
   ),

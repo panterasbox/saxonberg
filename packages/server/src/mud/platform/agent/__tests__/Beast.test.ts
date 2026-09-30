@@ -17,7 +17,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../../lib/mixin';
-import { Animate } from '../../../lib/creature/Animate';
+import { Actor } from '../../../lib/creature/Actor';
 import { Character } from '../../../lib/character/Character';
 import Beast from '../Beast';
 import DraftAnimal from '../DraftAnimal';
@@ -42,7 +42,7 @@ const PERSON = [
 ] as const;
 
 describe('⭐⭐ Beast — an animal that is nobody', () => {
-  it('is Animate: it moves, fights, is engaged and receives scenes', () => {
+  it('is Actor: it moves, fights, is engaged and receives scenes', () => {
     for (const m of [
       Mixins.Sensor,
       Mixins.Engaged,
@@ -52,7 +52,7 @@ describe('⭐⭐ Beast — an animal that is nobody', () => {
     ]) {
       expect(MixinApi.hasMixin(Beast, m), `a beast should ${m}`).toBe(true);
     }
-    expect(Object.create(Beast.prototype)).toBeInstanceOf(Animate);
+    expect(Object.create(Beast.prototype)).toBeInstanceOf(Actor);
   });
 
   it('has a brain — `talk to wolf` stays afforded, and the refusal stays diegetic', () => {

@@ -27,11 +27,11 @@
  * `environment` bucket, exactly as a watering can affords `water`.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import type { CommandContributions } from '../../api/command';
 
-const LadderBase = ClimbableMixin(Movable);
+const LadderBase = ClimbableMixin(Good);
 
 const CLIMB = ['platform/cmd/movement/climb.yaml'];
 

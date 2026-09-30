@@ -9,7 +9,7 @@
  * - **a piece of furniture you BUY** — a table, a shelf, a rail. The
  *   general store's furnishings line stocks `/stuff/thing/fixture/table`
  *   and sells it, so it is somebody's chattel and `Fitting` rightly sits
- *   on `Movable`.
+ *   on `Good`.
  * - **a station built into the premises** — a smoke chimney, a salting
  *   trough, a bar's back-station. Nobody buys the flue; it is masonry,
  *   it is part of the shop, and its ownership is the PARCEL's.

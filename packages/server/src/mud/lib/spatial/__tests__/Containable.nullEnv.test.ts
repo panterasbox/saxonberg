@@ -14,7 +14,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { Character } from '../../character/Character';
 import { VisionModality } from '../../../platform/idea/modalities/VisionModality';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
@@ -44,7 +44,7 @@ describe('null-environment regressions', () => {
 
   it('VisionModality.canSee returns false for a detached target', () => {
     const viewer = makeStuff(() => new TestCharacter());
-    const detached = makeStuff(() => new Movable());
+    const detached = makeStuff(() => new Good());
     expect(detached.getContainer()).toBeNull();
     // Short-circuits on the env-null branch via canSeeOverride; the
     // default override returns the raw value (`false`).
@@ -53,7 +53,7 @@ describe('null-environment regressions', () => {
 
   it('MessageApi.messageContainer warns and returns for a detached source', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const detached = makeStuff(() => new Movable());
+    const detached = makeStuff(() => new Good());
     expect(detached.getContainer()).toBeNull();
     MessageApi.messageContainer(detached as never, {
       kind: 'narrate',
@@ -66,7 +66,7 @@ describe('null-environment regressions', () => {
   });
 
   it('ContainmentApi.move detached → null is a no-op (idempotent)', () => {
-    const detached = makeStuff(() => new Movable());
+    const detached = makeStuff(() => new Good());
     expect(() => ContainmentApi.move(detached, null)).not.toThrow();
     expect(detached.getContainer()).toBeNull();
   });

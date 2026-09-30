@@ -14,7 +14,7 @@ import Brand from "../../corpo/Brand";
 import { StuffApi } from "../../../../api/stuff";
 import { ShadowApi } from "../../../../api/shadow";
 import { Template } from "../../../../lib/stuff/Template";
-import Movable from "../../../../lib/stuff/Movable";
+import Good from "../../../../lib/stuff/Good";
 import { BrandedMixin } from "../../../../lib/corpo/Branded";
 import {
   makeStuff,
@@ -23,7 +23,7 @@ import {
 
 // The minimal branded object: the mixin over a bare Thing (no shipped class
 // exists for a mark-only bottle any more — libations phase 5 retired it).
-class BrandedBottle extends BrandedMixin(Movable) {}
+class BrandedBottle extends BrandedMixin(Good) {}
 
 type Loose = Record<string, unknown>;
 

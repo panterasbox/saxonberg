@@ -1,8 +1,8 @@
 /**
- * Animate — the rung between the body and the person.
+ * Actor — the rung between the body and the person.
  *
  * ⭐⭐ The claim is a PAIR, and neither half means anything alone: the
- * five moved mixins are on `Animate`, and the fifteen person mixins are
+ * five moved mixins are on `Actor`, and the fifteen person mixins are
  * NOT. A test that only checked the first would pass against the defect
  * this rung exists to remove — every one of the twenty was on
  * `Character` yesterday.
@@ -12,7 +12,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
-import { Animate } from '../Animate';
+import { Actor } from '../Actor';
 import { Creature } from '../Creature';
 import { Character } from '../../character/Character';
 import Corpse from '../../../platform/agent/Corpse';
@@ -36,10 +36,10 @@ const PERSON = [
   Mixins.Hauler,
 ] as const;
 
-describe('⭐⭐ Animate — a body that acts', () => {
+describe('⭐⭐ Actor — a body that acts', () => {
   it('composes the five that are true of anything that acts', () => {
     for (const m of ACTS) {
-      expect(MixinApi.hasMixin(Animate, m), `Animate should compose ${m}`).toBe(
+      expect(MixinApi.hasMixin(Actor, m), `Actor should compose ${m}`).toBe(
         true,
       );
     }
@@ -53,16 +53,16 @@ describe('⭐⭐ Animate — a body that acts', () => {
     // keeps the move from conferring verbs on a horse.
     for (const m of PERSON) {
       expect(
-        MixinApi.hasMixin(Animate, m),
-        `Animate must NOT compose ${m} — see Animate.ts § What this rung must NEVER compose`,
+        MixinApi.hasMixin(Actor, m),
+        `Actor must NOT compose ${m} — see Actor.ts § What this rung must NEVER compose`,
       ).toBe(false);
     }
   });
 
   it('is a Creature — the body is still underneath', () => {
-    expect(MixinApi.hasMixin(Animate, Mixins.Vitals)).toBe(true);
-    expect(MixinApi.hasMixin(Animate, Mixins.Organism)).toBe(true);
-    expect(Object.create(Animate.prototype)).toBeInstanceOf(Creature);
+    expect(MixinApi.hasMixin(Actor, Mixins.Vitals)).toBe(true);
+    expect(MixinApi.hasMixin(Actor, Mixins.Organism)).toBe(true);
+    expect(Object.create(Actor.prototype)).toBeInstanceOf(Creature);
   });
 });
 
@@ -94,7 +94,7 @@ describe('⭐ the line, read from both ends', () => {
 });
 
 describe('⭐ the third consumer — KeptAnimal stands on the rung', () => {
-  it('⭐⭐ a kept animal is Animate, and it composed three of the five BY HAND', () => {
+  it('⭐⭐ a kept animal is Actor, and it composed three of the five BY HAND', () => {
     // `Engaged`, `Mobile` and `Sensor` were written out in
     // `KeptAnimal.ts` with their own comments ("brain slot contention",
     // "it can walk", "witness triggers") while `Character` composed the
@@ -104,7 +104,7 @@ describe('⭐ the third consumer — KeptAnimal stands on the rung', () => {
     for (const m of ACTS) {
       expect(MixinApi.hasMixin(KeptAnimal, m), `a pet should ${m}`).toBe(true);
     }
-    expect(Object.create(KeptAnimal.prototype)).toBeInstanceOf(Animate);
+    expect(Object.create(KeptAnimal.prototype)).toBeInstanceOf(Actor);
   });
 
   it('⭐ the cat GAINS Combatant and loses nothing — it can fight back', () => {

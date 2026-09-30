@@ -7,7 +7,7 @@ import { StuffApi } from '../stuff';
 import Species from '../../platform/idea/species/Species';
 import Clade from '../../platform/idea/species/Clade';
 import { OrganismMixin } from '../../lib/species/Organism';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { Idea } from '../../lib/stuff/Idea';
 import {
   makeStuff,
@@ -15,7 +15,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-const OrganismThingBase = OrganismMixin(Movable);
+const OrganismThingBase = OrganismMixin(Good);
 class OrganismThing extends OrganismThingBase {}
 
 function withTemplatePath<T extends Stuff>(obj: T, path: string): T {

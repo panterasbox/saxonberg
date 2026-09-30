@@ -220,7 +220,7 @@ real objection rather than the plausible one.
 
 - **The agent chain** — ⭐ **ANSWERED IN PART by the Agent pass
   (2026-09-30).** The branch has three tiers now, not two:
-  `Creature` (a body) → **`Animate`** (a body that ACTS — `Combatant`,
+  `Creature` (a body) → **`Actor`** (a body that ACTS — `Combatant`,
   `Perception`, `Mobile`, `Engaged`, `Sensor`) → `Character` (a body
   that is somebody). ⭐ `Corpse` is the proof of the line: it composes
   the whole of `Creature` and none of those five, which are exactly the
@@ -256,7 +256,7 @@ real objection rather than the plausible one.
   split into a props-only rail for bodies — `Staged` bundles `props:`
   WITH `cast:`, so composing it on a person claims that person contains
   a cast. Four receipts. Gus becomes a ROW the day it lands.
-- **`Livestock` over `Animate`** (E15) — a head of stock cannot today
+- **`Livestock` over `Actor`** (E15) — a head of stock cannot today
   be attacked or walk. Ranching's call; one word after the rung landed.
 - **The clone gate reads backwards** — found by the Agent drive.
   `CloneController.ts:161-183`: a row with **no** live instance is

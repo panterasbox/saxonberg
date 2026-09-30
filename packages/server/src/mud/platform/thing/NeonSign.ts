@@ -2,7 +2,7 @@
  * NeonSign — a branded, light-emitting wall fixture: the corpo
  * battlefield made literal on the back-bar wall.
  *
- * `AdornmentMixin(BrandedMixin(LightSourceMixin(Movable)))`:
+ * `AdornmentMixin(BrandedMixin(LightSourceMixin(Good)))`:
  *   - `Adornment` — a non-portable fixture (lives in the room's
  *     `getFixtures()`, not its `getContents()`; you can't pocket the
  *     sign). Attached declaratively via the host's `adornments:` seed

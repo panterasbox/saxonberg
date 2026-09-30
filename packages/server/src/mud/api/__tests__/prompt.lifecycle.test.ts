@@ -16,7 +16,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -205,8 +205,8 @@ describe('PromptApi — mqlObject lifecycle', () => {
   it('mqlObject resolves with the picked Stuff via StuffApi.findById', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const sword1 = await StuffApi.create(() => new Movable());
-    const sword2 = await StuffApi.create(() => new Movable());
+    const sword1 = await StuffApi.create(() => new Good());
+    const sword2 = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
     const p = interactive.promptMqlObject('Which?', [sword1, sword2]);
     const id = envelopes[0]!.promptId!;
@@ -224,7 +224,7 @@ describe('PromptApi — mqlObject lifecycle', () => {
   it('mqlObject resolves with null for bogus stuffId', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const sword = await StuffApi.create(() => new Movable());
+    const sword = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
     const p = interactive.promptMqlObject('Which?', [sword]);
     const id = envelopes[0]!.promptId!;
@@ -238,7 +238,7 @@ describe('PromptApi — mqlObject lifecycle', () => {
   it('mqlObject resolves with null when picked Stuff is destroyed', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const sword = await StuffApi.create(() => new Movable());
+    const sword = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
     const p = interactive.promptMqlObject('Which?', [sword]);
     const id = envelopes[0]!.promptId!;
@@ -260,9 +260,9 @@ describe('PromptApi — mqlMany lifecycle', () => {
   it('mqlMany resolves with array of picked Stuffs', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const a = await StuffApi.create(() => new Movable());
-    const b = await StuffApi.create(() => new Movable());
-    const c = await StuffApi.create(() => new Movable());
+    const a = await StuffApi.create(() => new Good());
+    const b = await StuffApi.create(() => new Good());
+    const c = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
     const p = interactive.promptMqlMany('Pick', [a, b, c]);
     const id = envelopes[0]!.promptId!;
@@ -276,8 +276,8 @@ describe('PromptApi — mqlMany lifecycle', () => {
   it('mqlMany drops destroyed Stuffs from the resolved array', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
-    const a = await StuffApi.create(() => new Movable());
-    const b = await StuffApi.create(() => new Movable());
+    const a = await StuffApi.create(() => new Good());
+    const b = await StuffApi.create(() => new Good());
     const envelopes = captureEnvelopes(avatar);
     const p = interactive.promptMqlMany('Pick', [a, b]);
     const id = envelopes[0]!.promptId!;

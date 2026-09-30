@@ -700,7 +700,7 @@ cuts' age model exists to create.
 bar's default) `craftImpl` no longer clones the output: `claimGlass`
 takes the first reachable **clean, empty** vessel of the output's
 **kind** (the gather walk already descends open room containers, so a
-hospitality's `GlassRack` — an open `Container(Movable)` — is in the pool
+hospitality's `GlassRack` — an open `Container(Good)` — is in the pool
 scan; the kernel knows no rack class, only that the walk descends open
 containers); none → the diegetic decline **`no-glass`** ("no clean
 coupe").
@@ -1013,9 +1013,9 @@ homed by what they *are*:
   lane's richer `NPC`, which the add/add merge resolves to).
 - **Commons** → `platform/thing/` (content packs wave 4b — composition-only
   classes are commons, not content): `CraftVessel`
-  (`Crafted(Thermal(Bulkable(Container(Movable))))` since
+  (`Crafted(Thermal(Bulkable(Container(Good))))` since
   libations, `getLong()` appends the verdict), `Menu`, `GradedReceptacle`
-  (`BrandedMixin(GradedMixin(BulkableMixin(Movable)))`) and over it
+  (`BrandedMixin(GradedMixin(BulkableMixin(Good)))`) and over it
   `Bottle` (the stock vessel — [retail.md](./retail.md)), `Crate`,
   `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`. ⭐ A class
   named for ONE trade's fixture ships in that trade's pack, not here —
@@ -1148,7 +1148,7 @@ melt-down, the entropy sink): flatten the item's Material composition;
 each constituent above the dust floor yields `mass × fraction ×
 crafting.salvageRate` in its natural raw form — `metal` → a
 re-meltable `/stuff/thing/Casting`, anything else → an `/stuff/thing/Scrap` stack (a
-`StackableMixin(Movable)`, material-stamped, **quantity by mass** at
+`StackableMixin(Good)`, material-stamped, **quantity by mass** at
 0.1 kg units). Conservation asserted (Σ output ≤ input × rate, throw
 on breach); provenance, grade, and the chattel id die with the form
 (the shipped destruct release). Salvaging the forged knife yields less
@@ -1181,7 +1181,7 @@ the smith + cook 24/7, and since trades-and-labor each names the
 discipline it serves (`fulfills: [smithing]` / `[cooking]`) rather than a
 bare flag, because this house is precisely the one that runs two trades
 over both its rooms. See [employment.md](./employment.md). New graded-stock
-form: `/platform/thing/Provision` (`GradedMixin(Movable)`) — the
+form: `/platform/thing/Provision` (`GradedMixin(Good)`) — the
 discrete sibling of the graded bottle; a *fine* prime cut is what the
 fine-roast's `minGrade: fine` slot demands (the grade spread on solid
 stock).

@@ -12,7 +12,7 @@
  * so a marked lime still feeds the press while a marked knife never does.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ThermalDoseMixin } from '../../lib/thermal/ThermalDose';
 import { FreshnessMixin } from '../../lib/material/Freshness';
@@ -65,7 +65,7 @@ const ProvisionBase = SampledMixin(
     ComposedMixin(
       ContaminableMixin(
         WaterActivityMixin(
-          ThermalDoseMixin(FreshnessMixin(ThermalMixin(Movable))),
+          ThermalDoseMixin(FreshnessMixin(ThermalMixin(Good))),
         ),
       ),
     ),

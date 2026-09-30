@@ -115,11 +115,11 @@ for the kind (`CredentialByKind` map).
   an attunement host by `Avatar.installDefaultLoadout` (alongside comms +
   forums). `defaultCredentialKinds = ['payment', 'travel']`. Affords the
   payment verbs to its host via the `self` bucket; travel adds no holder-verbs.
-- **`PaymentCard`** (`lib/banking/PaymentCard.ts`, `CredentialWalletMixin(Movable)`)
+- **`PaymentCard`** (`lib/banking/PaymentCard.ts`, `CredentialWalletMixin(Good)`)
   — the carryable, losable, freezable 1:1 bearer instrument.
   `defaultCredentialKinds = ['payment']`; affords `pay`/`wallet` via the
   `inventory` bucket. Cloned per issue by `BankingApi.issueCard`.
-- **`TravelCard`** (`domain/common/tpa/TravelCard.ts`, `CredentialWalletMixin(Movable)`)
+- **`TravelCard`** (`domain/common/tpa/TravelCard.ts`, `CredentialWalletMixin(Good)`)
   — a carryable TPA card: a bearer **instrument**, never a clearance store (its
   floored `travel` record satisfies the instrument gate; authorization is
   identity-bound). `defaultCredentialKinds = ['travel']`; affords no
@@ -218,8 +218,8 @@ lib/credential/
 ├── CredentialWalletUpdate.ts  the born-with hosted wallet app
 └── __tests__/Credential.test.ts, CredentialWallet.test.ts
 
-lib/banking/PaymentCard.ts          CredentialWalletMixin(Movable), payment
-domain/common/tpa/TravelCard.ts     CredentialWalletMixin(Movable), travel
+lib/banking/PaymentCard.ts          CredentialWalletMixin(Good), payment
+domain/common/tpa/TravelCard.ts     CredentialWalletMixin(Good), travel
 ```
 
 Registry: `Mixins.CredentialWallet` (`lib/mixin.ts`),

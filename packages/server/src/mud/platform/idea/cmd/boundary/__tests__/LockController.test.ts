@@ -18,7 +18,7 @@ import { VisibleMixin } from '../../../../../lib/description/Visible';
 import { MobileMixin } from '../../../../../lib/spatial/Mobile';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Movable from '../../../../../lib/stuff/Movable';
+import Good from '../../../../../lib/stuff/Good';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import {
@@ -101,7 +101,7 @@ describe('LockController / UnlockController', () => {
   });
 
   it('rejects a non-lockable target', async () => {
-    const rock = makeStuff(() => new (class extends VisibleMixin(Movable) {})());
+    const rock = makeStuff(() => new (class extends VisibleMixin(Good) {})());
     const ctx = ctxFor(avatar, room, 'lock');
     await makeStuff(() => new LockController()).execute(
       { target: one(rock, 'rock') } as CommandModel,

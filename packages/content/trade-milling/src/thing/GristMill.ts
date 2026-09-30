@@ -25,7 +25,7 @@
  * August.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import { ComminutingMixin } from '@saxonberg/server/mud/lib/craft/Comminuting';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -48,7 +48,7 @@ interface FlowSource {
   flowAt(reach: string, nowS: number): Promise<{ m3s: number } | null>;
 }
 
-const GristMillBase = ComminutingMixin(ToolMixin(Movable));
+const GristMillBase = ComminutingMixin(ToolMixin(Good));
 
 export default class GristMill extends GristMillBase {
   /**

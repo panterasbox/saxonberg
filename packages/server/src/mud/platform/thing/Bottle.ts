@@ -2,7 +2,7 @@
  * Bottle — the stock vessel every floor product is a row over.
  *
  * `CirculatingMixin(SealableMixin(GradedReceptacle))` on
- * top of `Movable`'s own `Chattel`: a graded, branded bulk holder that
+ * top of `Good`'s own `Chattel`: a graded, branded bulk holder that
  * **keeps** when capped (`Sealable` — the pour verbs ask `isOpen()`),
  * that **counts** in the regional census (`Circulating` — the spawn
  * sweep is the sanctioned faucet a producer's floor stock stands at

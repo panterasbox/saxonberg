@@ -9,7 +9,7 @@
  * is the arcane library's `amulet-of-glowlight`.
  */
 
-import Movable from '@saxonberg/server/mud/lib/stuff/Movable';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
@@ -26,7 +26,7 @@ const AmuletBase = CirculatingMixin(
       BlessableMixin(
         IdentifiableMixin(
           LabelledMixin(
-            ChargedMixin(ReservedMixin(ArcaneMixin(Movable))),
+            ChargedMixin(ReservedMixin(ArcaneMixin(Good))),
           ),
         ),
       ),

@@ -20,10 +20,10 @@ import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { MixinApi } from '../../../api/mixin';
 import { ConduitMixin, COUPLING_GRADES } from '../Conduit';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class Coil extends ConduitMixin(Movable) {}
+class Coil extends ConduitMixin(Good) {}
 
 /** Mirrors `RechargeController.COMPETENCE_EFFICIENCY`. */
 const COMPETENCE_EFFICIENCY = [0.4, 0.55, 0.78, 0.86, 0.92];
@@ -83,7 +83,7 @@ describe('the coupling', () => {
 
   it('narrows through the mixin registry', () => {
     const coil = makeStuff(() => new Coil());
-    const plain = makeStuff(() => new Movable());
+    const plain = makeStuff(() => new Good());
     expect(MixinApi.isConduit(coil)).toBe(true);
     expect(MixinApi.isConduit(plain)).toBe(false);
   });

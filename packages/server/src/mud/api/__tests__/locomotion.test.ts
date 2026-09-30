@@ -12,7 +12,7 @@ import {
 } from '../../lib/locomotion/Swimmable';
 import { FlyableMixin } from '../../lib/locomotion/Flyable';
 import { Idea } from '../../lib/stuff/Idea';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import Location from '../../lib/stuff/Location';
 import { MobileMixin } from '../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../lib/spatial/Containable';
@@ -45,7 +45,7 @@ const FlyableLoc = FlyableMixin(Location);
 class FlyLocation extends FlyableLoc {}
 
 // A Climbable Thing — e.g., a ladder sitting in a Location.
-const ClimbableThingBase = ClimbableMixin(ContainableMixin(Movable));
+const ClimbableThingBase = ClimbableMixin(ContainableMixin(Good));
 class Ladder extends ClimbableThingBase {}
 
 // A mobile + containable + propertied actor (avatar-shaped).

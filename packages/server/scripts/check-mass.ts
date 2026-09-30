@@ -201,7 +201,7 @@ export function reaches(
    * reading only the `extends` clause resolves nothing.** Almost every
    * class in the tree is
    *
-   *     const FooBase = AMixin(BMixin(Movable));
+   *     const FooBase = AMixin(BMixin(Good));
    *     export default class Foo extends FooBase {}
    *
    * so the clause names a module-local `const`, not an import. Following

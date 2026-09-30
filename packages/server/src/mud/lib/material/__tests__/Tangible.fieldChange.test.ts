@@ -5,7 +5,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Material from '../Material';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import { Quantity } from '../../quantity';
 import { EventApi } from '../../../api/event';
 import { StuffApi } from '../../../api/stuff';
@@ -46,7 +46,7 @@ describe('TangibleMixin field change firing', () => {
     await bootRegistry();
     const iron = makeStuff(() => new Material());
     stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
-    const sword = makeStuff(() => new Movable());
+    const sword = makeStuff(() => new Good());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     const seen: Array<{ field: string }> = [];
     EventApi.on(FieldChangedEvent, (e) => {
@@ -61,7 +61,7 @@ describe('TangibleMixin field change firing', () => {
     await bootRegistry();
     const steel = makeStuff(() => new Material());
     stampTemplatePathForTest(steel, '/stuff/idea/material/steel');
-    const axe = makeStuff(() => new Movable());
+    const axe = makeStuff(() => new Good());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
     const seen: Array<{ field: string }> = [];
     EventApi.on(FieldChangedEvent, (e) => {
@@ -76,7 +76,7 @@ describe('TangibleMixin field change firing', () => {
     await bootRegistry();
     const iron = makeStuff(() => new Material());
     stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
-    const sword = makeStuff(() => new Movable());
+    const sword = makeStuff(() => new Good());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     sword.setMaterial(iron);
     await flushMicrotasks();
@@ -95,7 +95,7 @@ describe('TangibleMixin field change firing', () => {
     stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
     const steel = makeStuff(() => new Material());
     stampTemplatePathForTest(steel, '/stuff/idea/material/steel');
-    const axe = makeStuff(() => new Movable());
+    const axe = makeStuff(() => new Good());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
     axe.setMaterial(iron);
     axe.setMaterial(steel, 'head');
@@ -112,7 +112,7 @@ describe('TangibleMixin field change firing', () => {
 
   it('setMass fires FieldChangedEvent { field: "mass" }', async () => {
     await bootRegistry();
-    const sword = makeStuff(() => new Movable());
+    const sword = makeStuff(() => new Good());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     const seen: Array<{ field: string }> = [];
     EventApi.on(FieldChangedEvent, (e) => {
@@ -125,7 +125,7 @@ describe('TangibleMixin field change firing', () => {
 
   it('setMass with equal value noop-skips', async () => {
     await bootRegistry();
-    const sword = makeStuff(() => new Movable());
+    const sword = makeStuff(() => new Good());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     sword.setMass(Quantity.of(5, 'kg'));
     await flushMicrotasks();

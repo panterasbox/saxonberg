@@ -15,7 +15,7 @@ import { AetherMixin } from '../../lib/message/Aether';
 import { AugmentMixin } from '../../lib/augmentation/Augment';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { SlottableMixin } from '../../lib/slot/Slottable';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 // A species double exposing just the structural surface
@@ -25,14 +25,14 @@ function speciesDouble(innate: string[]) {
 }
 
 // Attuned-by-species: composes the gated AetherMixin, species confers it.
-class BornAttuned extends AetherMixin(Movable) {
+class BornAttuned extends AetherMixin(Good) {
   getSpecies() {
     return speciesDouble(['AetherMixin']);
   }
 }
 
 // Ordinary: composes the gated AetherMixin, species confers nothing.
-class Ordinary extends AetherMixin(Movable) {
+class Ordinary extends AetherMixin(Good) {
   getSpecies() {
     return speciesDouble([]);
   }
@@ -40,14 +40,14 @@ class Ordinary extends AetherMixin(Movable) {
 
 // An aether-conferring augment for the union case (Slottable so it can
 // occupy a slot).
-class AetherAug extends AugmentMixin(SlottableMixin(Movable)) {
+class AetherAug extends AugmentMixin(SlottableMixin(Good)) {
   override confers(): readonly string[] {
     return ['AetherMixin'];
   }
 }
 
 // Both an augment slot AND a conferring species.
-class UnionActor extends SlottedMixin(AetherMixin(Movable)) {
+class UnionActor extends SlottedMixin(AetherMixin(Good)) {
   override staticSlots = [
     { name: 'cranial', accepts: 'SlottableMixin' as const },
   ];

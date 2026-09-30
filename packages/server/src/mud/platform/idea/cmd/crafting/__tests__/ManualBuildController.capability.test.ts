@@ -33,14 +33,14 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { ManualBuildController } from '../ManualBuildController';
 import { ToolMixin } from '../../../../../lib/craft/Tooled';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
-import Movable from '../../../../../lib/stuff/Movable';
+import Good from '../../../../../lib/stuff/Good';
 import { StuffApi } from '../../../../../api/stuff';
 import type { MqlManyResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 
 /** A tool with one authored capability entry. */
-class Tool extends ToolMixin(ContainableMixin(Movable)) {
+class Tool extends ToolMixin(ContainableMixin(Good)) {
   static _mixinName = 'Tool';
 }
 

@@ -24,12 +24,12 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import Location from '../../lib/stuff/Location';
 import { ContainmentApi } from '../containment';
 import { NamedMixin } from '../../lib/description/Named';
 
-class TestSword extends NamedMixin(Movable) {
+class TestSword extends NamedMixin(Good) {
   static _mixinName = 'TestSword';
 }
 
@@ -48,7 +48,7 @@ async function setup(): Promise<{
   avatar: Avatar;
   interactive: Interactive;
   location: Location;
-  swords: Movable[];
+  swords: Good[];
   envelopes: Array<{ type: string; promptId?: string; outcome?: { notes: Array<{ kind: string; [k: string]: unknown }> } }>;
 }> {
   await bootRegistry();

@@ -33,7 +33,7 @@ re-arguing them. Every plan-level decision is tagged `THING-ONLY` or
 
 | wave | one line | ends at |
 |---|---|---|
-| **W0** | mint `lib/stuff/Movable` = `Chattel(Concealable(Thing))` + its `platform/thing/Movable` twin; `Thing` root = `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))`; sed every root importer (3 import shapes) onto `Movable`; 78 classes drop their own `DetailedMixin(` wrap; 9 bare rows → the `Movable` twin; `StudioLogic` palette | `build(narrowing W0)` |
+| **W0** | mint `lib/stuff/Good` = `Chattel(Concealable(Thing))` + its `platform/thing/Good` twin; `Thing` root = `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))`; sed every root importer (3 import shapes) onto `Good`; 78 classes drop their own `DetailedMixin(` wrap; 9 bare rows → the `Good` twin; `StudioLogic` palette | `build(narrowing W0)` |
 | **W1** | 16 kernel immovables back onto `Thing` (`Stock`/`BankCounter` compose `ContainerMixin(Thing)`; `WaterFixture` its own stack) | `build(narrowing W1)` |
 | **W2** | 29 pack immovables back onto `Thing`, each pack's vitest green | `build(narrowing W2)` |
 | **W3** | `Chattel` off `Creature`, onto `KeptAnimal` + `Livestock` | `build(narrowing W3)` |
@@ -205,7 +205,7 @@ Every fact below was taken by opening the file this cycle, at
   CI. So a class losing `Concealable` must have no row authoring
   `concealment`; `hidden-cache.yaml` does, and moves with the mixin.
 - Invariant 7 — every instanceable template sits under a branch
-  segment; a new twin at `/platform/thing/Movable` satisfies it.
+  segment; a new twin at `/platform/thing/Good` satisfies it.
 - The platform pack ships six `platform/thing/*.yaml` rows
   (`BoundaryAnchor`, `LightningStrike`, `Ticket`, `UnboundedReceptacle`,
   `reading-record`, `sandbox/*`) — rows that name kernel classes so a
@@ -241,7 +241,7 @@ D1.
 consigned, lent, stolen, and stamped with a chain of title.* It is
 carried by:
 
-- **movable goods** — the `Movable` rung this plan mints (D13);
+- **movable goods** — the `Good` rung this plan mints (D13);
 - **kept and herded animals** — `lib/creature/KeptAnimal` and
   ranching's `Livestock`, the two hosts `Branded` already landed on;
 
@@ -256,12 +256,12 @@ does not re-open it; the Location and Idea passes have nothing to do
 
 *Concealable is "its presence may be non-obvious to a viewer."* It is
 carried by what can be **placed out of sight** (a movable good — the
-`Movable` rung), what can **put itself out of sight** (a `Creature` —
+`Good` rung), what can **put itself out of sight** (a `Creature` —
 `Hiding.ts` writes the band), and what can be **a secret way** (`Exit`).
 It is **not** carried by immovable matter — *you cannot hide a floor, it
 is the room* — nor by any `Location`.
 
-⭐ On `Movable` the zero (5 of ~490 rows) is reading **2**, a content gap
+⭐ On `Good` the zero (5 of ~490 rows) is reading **2**, a content gap
 with a named mechanism gap behind it: no verb lets a player stash a
 good, so the only concealment a good can have is authored. That verb
 (`stash`/`bury`, the *player-placed concealment* `concealment.md:164`
@@ -364,7 +364,7 @@ Idea classes, 1106 rows; **four** compose `PerceptibleMixin`
 subclass that earns it — a material you can `analyze` by name — and
 nowhere else, and every row uses it. That is not luck; it is what a
 well-shaped base looks like, and it is the test the Agent and Location
-passes apply to their roots and that D13 applies to `Movable`: **not
+passes apply to their roots and that D13 applies to `Good`: **not
 "does some row author it" but "is this the subclass that earns it".**
 
 ⚠ **The one tension, proposed on, not resolved silently.** Read
@@ -419,7 +419,7 @@ owner did not rule on it. Argued on the concept, from
 portability: it belongs on the `Thing` root, beside `Tangible` whose
 material it modulates, and composes onto `Creature` for the same reason
 (`Creature.ts` stack; the Agent pass keeps it). It is **not** narrowed to
-`Movable` — that would make the yard bench dry in the rain and the
+`Good` — that would make the yard bench dry in the rain and the
 flooded floor an insulator — and not a capability a narrower set
 composes, because the writer (rain) cannot know which contents to skip
 without the guard that is this repo's tell for a wrong host. `Location`
@@ -453,18 +453,18 @@ default) · `Fixture` (`seatIn` is optional) · `Placing` · `Postured` ·
 `SpaceHeating` · `Wearable` on `CutPieces` (by design, `CutPieces.ts:4`) ·
 `Tool` on `WateringCan`/`Tap` (capabilities set by the class).
 
-### D13 — the `Movable` rung: `Thing` becomes the matter root (THING-ONLY, ⚠ flagged F1)
+### D13 — the `Good` rung: `Thing` becomes the matter root (THING-ONLY, ⚠ flagged F1)
 
 **The split.** `lib/stuff/Thing` keeps what its docstring says a Thing is,
 plus the one mixin the owner's rule pairs with `Perceptible` (D8) —
 `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))` —
 and stays the registered branch root. **F1 ruled 2026-09-29: this is the
-split; proceed.** A new `lib/stuff/Movable.ts`
+split; proceed.** A new `lib/stuff/Good.ts`
 composes `ChattelMixin(ConcealableMixin(Thing))`: *a thing that can be
 carried off, and therefore owned and hidden.* Every goods class re-bases
-onto `Movable`; every immovable class stays on `Thing`. The concrete
+onto `Good`; every immovable class stays on `Thing`. The concrete
 twins are `platform/thing/Thing` (bare immovable matter — a yard wall, a
-toilet, a midden) and a new `platform/thing/Movable` (bare goods — an
+toilet, a midden) and a new `platform/thing/Good` (bare goods — an
 anvil, a folded hide, a stash pouch).
 
 **The owner's criterion, and the root measured against it.** *Strip
@@ -503,7 +503,7 @@ registers by class identity, so an immovable class must trace through
 `lib/stuff/Thing`. Mixins cannot be removed by inheritance. Therefore
 the root must be the common denominator, and the goods rung is the
 subclass. This is also the honest reading: `Chattel.ts` says it is
-composed *"at the movable-good tier"* — that tier is what `Movable`
+composed *"at the movable-good tier"* — that tier is what `Good`
 names.
 
 **The line, for every class** — *immovable* iff **all** of: it is never
@@ -529,7 +529,7 @@ split and W0 proceeds as written.**
 
 ### D14 — `Vessel` is the carried container; immovable containers compose `ContainerMixin(Thing)` directly (THING-ONLY)
 
-`lib/stuff/Vessel` becomes `ContainerMixin(Movable)`. Its one own
+`lib/stuff/Vessel` becomes `ContainerMixin(Good)`. Its one own
 member, `transmissionFactor`, is read only while a vessel is carried or
 hauled (`Haulable.ts:69`, `LoadBearing.ts:176`), so an immovable
 container has no use for the class. `lib/retail/Stock`, `BankCounter`,
@@ -552,7 +552,7 @@ inherits it done.
 `wiki-starter/content/wiki/main/chattel.md`, `concealable.md` and
 `movable.md`, in the shape of `branded.md` (a `subject.kind: mixin` page
 carrying `<composition kind="mixin" of="…"/>`; `movable.md` is a
-template-kind page over `/platform/thing/Movable`). Without them the
+template-kind page over `/platform/thing/Good`). Without them the
 inverse panel has nothing to render from and part A of the drive cannot
 read the claim.
 
@@ -575,38 +575,38 @@ argued per cluster.
 
 | cluster (rows) | class-own layers with a list-A zero | reading | action |
 |---|---|---|---|
-| `Tool` (32) | `Detailed` 0 · `Graded` 0 (via `Crafted`) | 3 / 2 (D8, D10) | **Movable.** No new class. `pinch-bar` capabilities → slate |
-| `Provision` (32) | `Thermal` 0 · `Detailed` 0 | 3 (D4, D8) | **Movable.** `Crop` (10) follows |
-| `Plant` (25) | `Thermal` 0 · `Detailed` 0 · `Plant` 24/25 | 3 | **Movable** (a pot plant is carried; a standard in the ground is the `Wood`'s — the slot-plant, not an immovable) |
-| `Seed` (24) | `Detailed` 0 · `Tangible` 0 | 3 / **2** (D5) | **Movable.** Mass → `lint:mass` (W7) |
-| `Garment` (19) | `Dyed` 0 · `Detailed` 1 | 3 (D12) | **Movable** |
-| `Bottle` (18) | `Branded` 0 · `Thermal` 0 · `Detailed` 0 | 2 (D11) / 3 | **Movable** (via `GradedReceptacle`). Bottling stamp → slate |
+| `Tool` (32) | `Detailed` 0 · `Graded` 0 (via `Crafted`) | 3 / 2 (D8, D10) | **Good.** No new class. `pinch-bar` capabilities → slate |
+| `Provision` (32) | `Thermal` 0 · `Detailed` 0 | 3 (D4, D8) | **Good.** `Crop` (10) follows |
+| `Plant` (25) | `Thermal` 0 · `Detailed` 0 · `Plant` 24/25 | 3 | **Good** (a pot plant is carried; a standard in the ground is the `Wood`'s — the slot-plant, not an immovable) |
+| `Seed` (24) | `Detailed` 0 · `Tangible` 0 | 3 / **2** (D5) | **Good.** Mass → `lint:mass` (W7) |
+| `Garment` (19) | `Dyed` 0 · `Detailed` 1 | 3 (D12) | **Good** |
+| `Bottle` (18) | `Branded` 0 · `Thermal` 0 · `Detailed` 0 | 2 (D11) / 3 | **Good** (via `GradedReceptacle`). Bottling stamp → slate |
 | `Stock` (17) | `Detailed` 0 · `Tangible` 0 | 3 / 2 | **Immovable** — `ContainerMixin(Thing)` (D14). Material → `lint:mass` |
-| `Receptacle` (16) | `Thermal` 0 | 3 | **Movable** |
-| bare `Thing` (15) | `Concealable` 1/15 · `Tangible` 6/15 | **1 for six rows, 2 for nine** | **Split the rows**: `toilet`, `yard-wall`, `hay-barn`, `byre`, `midden`, `trough` stay `/platform/thing/Thing`; `anvil`, `hide-stock`, `reward`, `hidden-cache`, `gutter-litter`, `timber`, `felled-tree`, `piece`, campus `handcart` → `/platform/thing/Movable` |
-| `SpiritBottle` (15) | `Thermal` 0 · `Detailed` 0 · `Tangible` 0 | 3 / 2 | **Movable** (via `Bottle`) |
-| `Crate` (13) | `Detailed` 0 | 3 | **Movable** |
-| `ServingVessel` (11) | `Graded` 0 · `Thermal` 0 · `Detailed` 0 · `Tangible` 0 | 3 / 2 | **Movable** (via `CraftVessel`) |
-| `Vat` (11) | `Graded` 0 · `Thermal` 0 · `Detailed` 0 | 3 | **Movable** — a cask, a carboy, a culture jar are sold and carried; the 1000 L brewing vat is a trade fixture *in law* but nothing in the model distinguishes it, ⚠ see F3 |
-| `Weapon` (11) | `Detailed` 0 | 3 | **Movable** |
-| `Crop` (10) | as `Provision` | 3 | **Movable** |
+| `Receptacle` (16) | `Thermal` 0 | 3 | **Good** |
+| bare `Thing` (15) | `Concealable` 1/15 · `Tangible` 6/15 | **1 for six rows, 2 for nine** | **Split the rows**: `toilet`, `yard-wall`, `hay-barn`, `byre`, `midden`, `trough` stay `/platform/thing/Thing`; `anvil`, `hide-stock`, `reward`, `hidden-cache`, `gutter-litter`, `timber`, `felled-tree`, `piece`, campus `handcart` → `/platform/thing/Good` |
+| `SpiritBottle` (15) | `Thermal` 0 · `Detailed` 0 · `Tangible` 0 | 3 / 2 | **Good** (via `Bottle`) |
+| `Crate` (13) | `Detailed` 0 | 3 | **Good** |
+| `ServingVessel` (11) | `Graded` 0 · `Thermal` 0 · `Detailed` 0 · `Tangible` 0 | 3 / 2 | **Good** (via `CraftVessel`) |
+| `Vat` (11) | `Graded` 0 · `Thermal` 0 · `Detailed` 0 | 3 | **Good** — a cask, a carboy, a culture jar are sold and carried; the 1000 L brewing vat is a trade fixture *in law* but nothing in the model distinguishes it, ⚠ see F3 |
+| `Weapon` (11) | `Detailed` 0 | 3 | **Good** |
+| `Crop` (10) | as `Provision` | 3 | **Good** |
 | `FurnishableRoom` (10) | — | n/a | Location branch; not this plan |
 | `WaterFixture` (9) | `Thermal` 0 | 3 | **Immovable** — re-composes its own stack `UnboundedSource(Thermal(Bulkable(Thing)))` because `Receptacle` is now movable |
-| `Fitting` (8) | `Placing` 1/8 · `Detailed` 0 | 3 | **Movable** (a table, a workbench, racking — furniture; a meat-hook is hung) ⚠ F3 |
+| `Fitting` (8) | `Placing` 1/8 · `Detailed` 0 | 3 | **Good** (a table, a workbench, racking — furniture; a meat-hook is hung) ⚠ F3 |
 | `Floor` (8) | `Postured` 0 · `Detailed` 2 | 3 | **Immovable** |
 | `TpaTerminal` (7) | `Display` 0 · `Detailed` 0 · `Conduit` 0 · `Slotted` 0 · `Tangible` 0 | 3 / 2 | **Immovable** (self-fixing, `Fixture`, a network node) |
-| `Firewood` (6) | `Thermal` 0 | 3 | **Movable** |
-| `Menu` (6) | `Detailed` 0 · `Tangible` 0 | 3 / 2 | **Movable** (a card handed over) |
-| `Wand` (6) | `Labelled` 0 · `Detailed` 1 · `Tangible` 0 | 3 / 2 | **Movable** |
-| `Chair` (5) | `Detailed` 3 · `Slotted` 4 | authored | **Movable** (furniture; self-fixes for `get`) |
-| `Chest` (5) | `Detailed` 0 | 3 | **Movable** (a larder, a wardrobe, a pantry chest; ⚠ `necropolis/open-plot` is a grave modelled as a chest — F3) |
-| `CraftVessel` (5) | `Graded` 0 · `Thermal` 0 · `Detailed` 0 | 3 | **Movable** |
-| `Feeder` (5) | `Detailed` 0 | 3 | **Movable** (a trough you fill and drag) |
-| `Ingot` (5) | `Alloyed` 0 · `Thermal` 0 | 3 (D12) | **Movable** |
+| `Firewood` (6) | `Thermal` 0 | 3 | **Good** |
+| `Menu` (6) | `Detailed` 0 · `Tangible` 0 | 3 / 2 | **Good** (a card handed over) |
+| `Wand` (6) | `Labelled` 0 · `Detailed` 1 · `Tangible` 0 | 3 / 2 | **Good** |
+| `Chair` (5) | `Detailed` 3 · `Slotted` 4 | authored | **Good** (furniture; self-fixes for `get`) |
+| `Chest` (5) | `Detailed` 0 | 3 | **Good** (a larder, a wardrobe, a pantry chest; ⚠ `necropolis/open-plot` is a grave modelled as a chest — F3) |
+| `CraftVessel` (5) | `Graded` 0 · `Thermal` 0 · `Detailed` 0 | 3 | **Good** |
+| `Feeder` (5) | `Detailed` 0 | 3 | **Good** (a trough you fill and drag) |
+| `Ingot` (5) | `Alloyed` 0 · `Thermal` 0 | 3 (D12) | **Good** |
 | `Oven` (5) | `Thermal` 0 · `Placing` 0 | 3 | **Immovable** (a kiln, an oven — built) |
-| `Trap` (5) | `Concealable` 4/5 | **authored** — the one class that proves the mixin | **Movable** (armed from a kit, placed) |
+| `Trap` (5) | `Concealable` 4/5 | **authored** — the one class that proves the mixin | **Good** (armed from a kit, placed) |
 | `ConsignmentShelf` (5) | `Detailed` 0 | 3 | **Immovable** — `ContainerMixin(Thing)` |
-| `TextileStock` (5) | `Stackable` 0 · `Detailed` 0 | 3 | **Movable** |
+| `TextileStock` (5) | `Stackable` 0 · `Detailed` 0 | 3 | **Good** |
 
 **The long tail (≤4 rows, 150 classes)** carries no list-A zero that the
 table above has not already judged by mixin (every zero is `Detailed`,
@@ -638,7 +638,7 @@ the base split. The roster:
   · `trade-hospitality/{CheckRack,BarStation,Tap}` ·
   `generic-objects/SconceLamp`.
 
-**Movable — re-bases onto `Movable` (137 classes, ~487 rows):** every
+**Good — re-bases onto `Good` (137 classes, ~487 rows):** every
 other `lib/stuff/Thing` importer, including `Vessel` and through it
 `Pack`, `Handcart`, `TipJar`, `Footlocker`, `Coach`, `Barge`,
 `HaulageRig`; the furniture (`Chair`, `FoldingChair`, `Fitting`, `Chest`,
@@ -654,15 +654,15 @@ crop, tool, weapon, garment, container, plant and paper.
 
 | new thing | host | what composing it claims about everything else on that host |
 |---|---|---|
-| `lib/stuff/Movable` = `Chattel(Concealable(Thing))` | a new rung under the `Thing` root | *everything on it can be carried off — and therefore owned as an instance and hidden.* True of a seed, a coach and a bed (furniture is bought). Nothing composes onto `Movable` that could not be picked up or dragged by somebody with the strength; "can't pocket a ship" stays a mass gate (`Vessel.ts:6`). |
-| `lib/stuff/Thing` (narrowed, + `Detailed`) | the branch root | *everything on it is matter in a place: made of something, describable, addressable — and therefore has parts that can be named, felt and made of their own material (D8) — wettable, contained.* No longer claims ownership or hideability for a floor, a hearth or a counter. ⚠ The test from the project's rules: **if any immovable class needs a guard like `if (MixinApi.isChattel(this))` to behave, it belongs on `Movable`** — write that down as a finding, do not add the guard. |
-| `platform/thing/Movable` (twin) | the concrete twin, empty | *a bare good with no other concept* — the nine rows listed above. |
-| `lib/stuff/Vessel` = `Container(Movable)` | unchanged file, one import | *a container you can carry or haul.* Its `transmissionFactor` is only read in those two acts. |
+| `lib/stuff/Good` = `Chattel(Concealable(Thing))` | a new rung under the `Thing` root | *everything on it can be carried off — and therefore owned as an instance and hidden.* True of a seed, a coach and a bed (furniture is bought). Nothing composes onto `Good` that could not be picked up or dragged by somebody with the strength; "can't pocket a ship" stays a mass gate (`Vessel.ts:6`). |
+| `lib/stuff/Thing` (narrowed, + `Detailed`) | the branch root | *everything on it is matter in a place: made of something, describable, addressable — and therefore has parts that can be named, felt and made of their own material (D8) — wettable, contained.* No longer claims ownership or hideability for a floor, a hearth or a counter. ⚠ The test from the project's rules: **if any immovable class needs a guard like `if (MixinApi.isChattel(this))` to behave, it belongs on `Good`** — write that down as a finding, do not add the guard. |
+| `platform/thing/Good` (twin) | the concrete twin, empty | *a bare good with no other concept* — the nine rows listed above. |
+| `lib/stuff/Vessel` = `Container(Good)` | unchanged file, one import | *a container you can carry or haul.* Its `transmissionFactor` is only read in those two acts. |
 | `ContainerMixin(Thing)` in each immovable container's own stack | `lib/retail/Stock`, `BankCounter`, `DepotCounter`, `Warehouse`, `CheckRack`, `ConsignmentShelf` | *a container that is part of the place.* No shared class: the six share one mixin and nothing else. |
 | `WaterFixture` = `UnboundedSource(Thermal(Bulkable(Thing)))` | its own file | *an inexhaustible liquid source that is part of the place.* It no longer descends from `Receptacle`, which is a carried liquid holder. |
 | `ChattelMixin` (moved) | `lib/creature/KeptAnimal` + `trade-ranching/src/agent/Livestock` | *a kept or herded animal is somebody's property.* Off `Creature`, so `Character`, `Avatar`, `Cast`, `Extra`, `Shade`, `Corpse` stop advertising it. `Fish` and `WorkingAnimal` inherit through `KeptAnimal` — a caught fish is yours, which is what a keepnet says. |
-| `ConcealableMixin` | **unchanged** on `Creature` and `Exit`; on `Movable` for things | see D3. |
-| `PALETTE_BASE_CTORS.Movable` | `platform/idea/api/StudioLogic.ts:81` | *the studio can offer the goods base.* Not a host — a registry entry. |
+| `ConcealableMixin` | **unchanged** on `Creature` and `Exit`; on `Good` for things | see D3. |
+| `PALETTE_BASE_CTORS.Good` | `platform/idea/api/StudioLogic.ts:81` | *the studio can offer the goods base.* Not a host — a registry entry. |
 
 Nothing lands on `Stuff`, `Location`, `Idea`, `Agent` or `Character`.
 
@@ -672,18 +672,18 @@ Nothing lands on `Stuff`, `Location`, `Idea`, `Agent` or `Character`.
 
 Checked against the current tree, not recalled:
 
-- **Paths** — `lib/stuff/Movable.ts` is substrate (only inherited);
-  `platform/thing/Movable.ts` is the instanceable twin; rows at
-  `/platform/thing/Movable` for the nine bare goods. `<root>/<branch>/`
+- **Paths** — `lib/stuff/Good.ts` is substrate (only inherited);
+  `platform/thing/Good.ts` is the instanceable twin; rows at
+  `/platform/thing/Good` for the nine bare goods. `<root>/<branch>/`
   unchanged everywhere else. The immovable twin keeps the name `Thing`
   (sharing the base's name is the default, `CLAUDE.md § Instanceable`).
 - **Module categories** — one new Stuff class in `lib/`, one in
   `platform/thing/`. No Api, no logic singleton, no helper, no new
   category, no `eslint-disable`.
-- **Module scope declares** — `Movable.ts` is a `const` composition + a
+- **Module scope declares** — `Good.ts` is a `const` composition + a
   class; no statements. `Thing.ts` keeps its one sanctioned
   `_registerTopLevelBranch` tail.
-- **Import boundary** — packs import `@saxonberg/server/mud/lib/stuff/Movable`
+- **Import boundary** — packs import `@saxonberg/server/mud/lib/stuff/Good`
   by package specifier; the server `exports` map must expose it
   (check `packages/server/package.json` `exports` — the pattern
   `./mud/lib/*` is what `TpaTerminal.ts:31` already resolves through;
@@ -711,32 +711,32 @@ before the MR is re-opened for review.
 
 ### W0 — the rung, behaviour-identical
 
-Goal: `Movable` exists and every current composer sits on it, so nothing
+Goal: `Good` exists and every current composer sits on it, so nothing
 observable changes except the six bare-fabric rows.
 
-1. `lib/stuff/Movable.ts`: `const MovableBase = ChattelMixin(ConcealableMixin(Thing)); export default class Movable extends MovableBase { static fieldMeta: FieldMeta = {}; }`
+1. `lib/stuff/Good.ts`: `const GoodBase = ChattelMixin(ConcealableMixin(Thing)); export default class Good extends GoodBase { static fieldMeta: FieldMeta = {}; }`
    with the docstring stating D13's line and the two claims. Move the
    `Chattel`/`Concealable` comment block from `Thing.ts:47-56` with it.
 2. `lib/stuff/Thing.ts`: drop the two mixins and their imports; docstring
-   gains the split paragraph and points at `Movable`.
-3. `platform/thing/Movable.ts`: `export default class Movable extends MovableBase {}`
+   gains the split paragraph and points at `Good`.
+3. `platform/thing/Good.ts`: `export default class Good extends GoodBase {}`
    (the `platform/thing/Thing.ts` pattern). Update `platform/thing/Thing.ts`'s
    docstring: its rows are now only the fabric six.
 4. **The mechanical re-base**: every non-test importer of the root
-   (103) and every test importer (212) switches to `Movable`, including
+   (103) and every test importer (212) switches to `Good`, including
    the identifier in the composition. ⚠ **Three import shapes**, and the
    sed must cover all three: `lib/stuff/Thing` (package specifier),
    `'../stuff/Thing'` (inside `lib/`), and the platform twin (`'./Thing'`
    in `platform/thing/`, `platform/thing/Thing` in packs). The twin's
    movable extenders — `Ladder`, `trade-fishing/Bait`,
-   `trade-milling/GristMill` — move to `lib/stuff/Movable`; its immovable
+   `trade-milling/GristMill` — move to `lib/stuff/Good`; its immovable
    extenders — `Signpost`, `RateBoard`, `DeedDesk`, `Shore` — stay on the
    twin (now bare immovable matter). `lib/boundary/Boundary`,
    `BoundaryAnchor` and `platform/thing/Thing` itself are the three root
    importers that do NOT move. Then `tsc` + `lint:family`. ⚠ Keep the
-   import name `Movable`, not an aliased `Thing` — the whole point is
+   import name `Good`, not an aliased `Thing` — the whole point is
    that the file says what the class is.
-5. `StudioLogic.ts:81`: add `Movable` to `PALETTE_BASE_CTORS` between
+5. `StudioLogic.ts:81`: add `Good` to `PALETTE_BASE_CTORS` between
    `Thing` and `Vessel`.
 5a. **`Detailed` onto the root (D8):** `lib/stuff/Thing.ts` composes
    `DetailedMixin` immediately outside `PerceptibleMixin`; the 78
@@ -751,21 +751,21 @@ observable changes except the six bare-fabric rows.
    a bare `Thing` is NOT detailed was asserting the old shape — delete
    and say so.
 6. Rows: the nine goods rows named under *bare `Thing`* change `class:`
-   to `/platform/thing/Movable`.
-7. Tests: `lib/stuff/__tests__/Movable.test.ts` (composes the two, traces
+   to `/platform/thing/Good`.
+7. Tests: `lib/stuff/__tests__/Good.test.ts` (composes the two, traces
    the Thing branch, `MixinApi.isChattel`/`isConcealable` true);
    `Thing.test.ts` gains *"is neither chattel nor concealable"*.
-8. `pnpm -C packages/server composition-census` — `Movable` appears as a
+8. `pnpm -C packages/server composition-census` — `Good` appears as a
    layer on every goods class; `Thing`'s rows read six.
 
 Acceptance: `lint:family` green; `test:near` green; the census diff
 shows only the new layer. Commit:
-`build(narrowing W0): the Movable rung — Thing is matter, a good is what you can carry off`.
+`build(narrowing W0): the Good rung — Thing is matter, a good is what you can carry off`.
 
-**✅ W0 DONE.** `lib/stuff/Movable` + `platform/thing/Movable` exist;
+**✅ W0 DONE.** `lib/stuff/Good` + `platform/thing/Good` exist;
 `Thing` is `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))`.
 309 modules re-based, exactly 78 classes dropped their own `DetailedMixin(`
-wrap, 9 rows moved to the `Movable` twin and 6 stayed on `Thing` (the
+wrap, 9 rows moved to the `Good` twin and 6 stayed on `Thing` (the
 fabric six: toilet, yard-wall, trough, midden, byre, hay-barn). `tsc`
 clean, 57 gates green.
 
@@ -798,7 +798,7 @@ What it cost, and what a re-run should know:
   `ModuleApi.lookup(Thing) === '/lib/stuff/Thing'`; the sed renamed the
   identifier and (correctly) left the string literal alone, so the
   failure is the rename working, not breaking. Repointed at
-  `/lib/stuff/Movable`. ⚠ Every other `'/platform/thing/Thing'` string
+  `/lib/stuff/Good`. ⚠ Every other `'/platform/thing/Thing'` string
   in the suite is still right — that class still exists and is still
   instanceable; it is now bare IMMOVABLE matter.
 - **The census already shows the split**: `WetMixin` 563 rows / 94
@@ -821,7 +821,7 @@ need nothing — W0 left them on the root): switch the import back to
 `WaterFixture` composes `UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)))`
 directly and no longer imports `UnboundedReceptacle` (whose two rows —
 the urn and the formless vessel — stay movable). `lib/stuff/Vessel.ts`
-imports `Movable` (already done by W0's sed; verify).
+imports `Good` (already done by W0's sed; verify).
 
 Per class, before the edit, the build agent runs the D1 checks and cites
 them in the commit body: `grep -rn "stampChattel\|setConcealment" ` over
@@ -848,7 +848,7 @@ the affirmative.** `sandbox/SandboxCrossing.ownerPlayerId()` reads
 **its own** `getChattelId()` to tell a private booth from a public one,
 so the class does not merely compose the surface — it uses it. Under the
 plan's own rule that is *"write it down, do not add a guard"*, so it
-stays on `Movable` and the note is on the class. The question it raises
+stays on `Good` and the note is on the class. The question it raises
 is worth the slate: a booth bolted into a room is not carried off, and
 ownership of a thing you cannot carry is normally real-property TITLE
 (`parcel.md`), not chattel. **Re-keying it is a design change, not a
@@ -856,12 +856,12 @@ narrowing** — filed, not done.
 
 Two of the three re-stacked classes turned out to say the same thing
 twice. `BankCounter` and `Stock` were `Vessel`, and `Vessel` now sits on
-`Movable`: a teller's counter and a shop counter are part of the
+`Good`: a teller's counter and a shop counter are part of the
 premises, and the thing that is somebody's chattel is the GOODS on them
 (which is precisely what `stampChattel` does at the sale). Both now
 compose `ContainerMixin(Thing)` — the one behaviour they wanted.
 `WaterFixture` is the third and the loudest: it extended
-`UnboundedReceptacle → Receptacle → Movable`, and its own constructor has
+`UnboundedReceptacle → Receptacle → Good`, and its own constructor has
 been setting `fixedInPlace = true` ever since a live drive walked out of
 Dave's Bar carrying the wash basin. ⭐ **A constructor asserting
 `fixedInPlace` on a class descended from the goods rung is the tell the
@@ -903,11 +903,11 @@ roster had got wrong:
   `fixedInPlace = true`, exactly the tell that was decisive for
   `WaterFixture` in W1. **The store sells tables.** The tell is not
   sufficient: `fixedInPlace` says *no agent pockets it*, and a thing can
-  be both bought and bolted down. `Fitting` stays on `Movable`.
+  be both bought and bolted down. `Fitting` stays on `Good`.
 - **`/stuff/thing/fixture/sconce-lamp` (`SconceLamp`)** and
   **`/system/arcana/thing/mana-lamp` (`ManaLamp`)** — both on the plan's
   immovable roster, both stocked on the furnishings line. Reverted to
-  `Movable`. A lamp you buy is a good you own.
+  `Good`. A lamp you buy is a good you own.
 
 ⭐⭐ **And the conflation those failures exposed is the missing class this
 build was told to look for.** `Fitting` names two things: *furniture the
@@ -971,15 +971,15 @@ Goal: no doc describes a composition that is no longer true, and the
 drive has pages to read.
 
 - `docs/architecture.md:819-838` — the branch diagram gains the
-  `Movable` rung under `Thing` and `Vessel` moves under it; the
+  `Good` rung under `Thing` and `Vessel` moves under it; the
   space/matter paragraph says *matter* is the root and *goods* the rung.
-- `docs/subsystems/chattel.md:138` — *"Composed at the `Movable` tier"*;
+- `docs/subsystems/chattel.md:138` — *"Composed at the `Good` tier"*;
   the fixture-in-a-let-unit sentence at `:30-40` says *furniture*.
-- `docs/subsystems/concealment.md:124-137` — *"Composed onto `Movable`,
+- `docs/subsystems/concealment.md:124-137` — *"Composed onto `Good`,
   `Creature` and `Exit`"*, with D3's line written out.
 - The ~50 `(Thing)` / `extends Thing` composition mentions across the 24
   docs listed by `grep -rln "(Thing)\|extends Thing" docs/subsystems docs/architecture.md docs/antipatterns.md docs/standard-model.md`
-  — each becomes `(Movable)` where the class is a good and stays
+  — each becomes `(Good)` where the class is a good and stays
   `(Thing)` where it is immovable (`Floor`, `Hearth`, the counters).
   `CLAUDE.md` is left to the sweep (rule 5 — index files are swept, not
   raced).
@@ -990,7 +990,7 @@ drive has pages to read.
 Acceptance: `grep -rn "(Thing)" docs/subsystems` shows only immovable
 classes; `wiki chattel`, `wiki concealable`, `wiki movable` render a
 non-empty panel in a booted world. Commit:
-`docs(narrowing W4): the Movable rung in every doc that drew the tree`.
+`docs(narrowing W4): the Good rung in every doc that drew the tree`.
 
 **✅ W4 DONE.** 39 composition mentions rewritten across 20 docs; the
 remaining `(Thing)` hits are all genuinely immovable (`Boundary`,
@@ -1002,7 +1002,7 @@ actually cost this build time.
 
 ⚠ **Two edits per mention, not one.** A doc that wrote
 `SomeMixin(DetailedMixin(Thing))` needed BOTH the `Detailed` wrap dropped
-(D8 put it on the root) and `Thing` → `Movable` where the class is a good.
+(D8 put it on the root) and `Thing` → `Good` where the class is a good.
 Doing only the second leaves a composition that is still wrong, and it
 reads as correct.
 
@@ -1152,7 +1152,7 @@ append the delta to § Drive record: rows on classes carrying
 
 **✅ W6 DONE.** Full matrix before/after, same instrument, same corpus
 (`scratchpad/matrix.json` → `matrix-after.json`). 683 → **684** classes;
-one added (`/platform/thing/Movable`), **none dropped**.
+one added (`/platform/thing/Good`), **none dropped**.
 
 | mixin | rows before | rows after | classes before | classes after |
 |---|---:|---:|---:|---:|
@@ -1166,7 +1166,7 @@ one added (`/platform/thing/Movable`), **none dropped**.
 | `PerceptibleMixin` | 980 | 980 | 223 | 224 |
 
 The five that stayed are the five the owner's criterion kept on the
-root, and they moved by exactly the one class `Movable` adds. 58 classes
+root, and they moved by exactly the one class `Good` adds. 58 classes
 lost `Chattel`, 43 lost `Concealable`, **0 gained either** — a narrowing
 with no compensating widening anywhere.
 
@@ -1278,7 +1278,7 @@ Per new capability, the five links — verb · affordance · data · boot · arg
 
 | capability | verb | affordance | data | boot | arg gate |
 |---|---|---|---|---|---|
-| `Movable` rung | none (subtraction) | none | nine rows name `/platform/thing/Movable`; 137 classes extend it | `lint:instanceable` proves the class resolves | none |
+| `Good` rung | none (subtraction) | none | nine rows name `/platform/thing/Good`; 137 classes extend it | `lint:instanceable` proves the class resolves | none |
 | immovable `Thing` | none | none | six rows name `/platform/thing/Thing` | same | none |
 | `Chattel` on `KeptAnimal`/`Livestock` | `name`, `buy` (existing) | existing | cat, canary, livestock rows unchanged | — | `NameController:112` narrows `isChattel` — still true |
 | the wiki pages | `wiki chattel` etc. | — | three `wiki-starter` rows | the pack's `wiki` contribution kind installs them | — |
@@ -1311,7 +1311,7 @@ owner's ruling:
 
 ## Test & gate strategy
 
-- **Unit:** `Movable.test.ts`, `Thing.test.ts` (negative),
+- **Unit:** `Good.test.ts`, `Thing.test.ts` (negative),
   `Creature.chattel.test.ts`, the per-class tests W1/W2 touch. Each
   touched pack's own vitest.
 - **Lints:** `lint:family` at every wave (the roster is derived; the
@@ -1338,7 +1338,7 @@ owner's ruling:
   extending an undefined identifier fails at type-check, not at boot.
 - **A test that stamps chattel on a `class X extends Thing` fixture** —
   32 test files reference `stampChattel`/`setConcealment`/`isChattel`/
-  `isConcealable`; W0's sed moves every test importer to `Movable`, so
+  `isConcealable`; W0's sed moves every test importer to `Good`, so
   they keep passing. A test that then asserts something about a *bare*
   `Thing` being chattel is asserting the defect; delete and say so.
 - **`instanceof Vessel` on an immovable container** — none is carried or
@@ -1348,13 +1348,13 @@ owner's ruling:
   Cast was never stamped, so W3 is byte-identical for people. Asserted
   in `Creature.chattel.test.ts`.
 - **The furniture line (F3 — ruled: stays as planned).** Furniture and
-  trade equipment are `Movable`, posted boards and built structure are
+  trade equipment are `Good`, posted boards and built structure are
   `Thing`. The owner's reason is a system that does not exist yet
   (assembly/disassembly — § Deferred seams); the classes on the line are
   listed there so that conversation starts from a list.
 - **`Plant`** — an `oak-standard` in the `Wood` is a slot-plant of an
   immovable ground, but the *class* is what a pot plant is too. It stays
-  `Movable`; the ground's own persistence, not the plant's chattel stamp,
+  `Good`; the ground's own persistence, not the plant's chattel stamp,
   is what keeps a standard where it is (`forestry.md § the four
   representations`). If the Location pass finds a reader that needs a
   standard to be non-chattel, that is a `Wood` finding, not a `Plant`
@@ -1370,7 +1370,7 @@ owner's ruling:
 Each leaves as a line on `docs/slates/builds/base-class-narrowing-slate.md`
 at the sweep:
 
-- **`stash`/`bury` — player-placed concealment on a `Movable`** (D3).
+- **`stash`/`bury` — player-placed concealment on a `Good`** (D3).
   The mechanism (`setConcealment` + `PerceptionApi.hideLevelFor`) exists;
   the verb does not.
 - **The bottling stamp** (D11): the fill at a branded still or bottling
@@ -1380,7 +1380,7 @@ at the sweep:
   describable nor addressable (D13).
 - **A trade-fixture rung** — if the owner wants the brewing vat, the
   anvil and the loom to be *removable fixtures* (owned by the business,
-  never by a person), that is a `Movable` subclass or a chattel-owner
+  never by a person), that is a `Good` subclass or a chattel-owner
   rule, not a third root.
 - **The 362 rows with no details** (D8): content to write, class by
   class, for immersion — a content wave, not this build; the owner's
@@ -1405,7 +1405,7 @@ at the sweep:
   system on top of 'crafting' but we've only designed the latter. Once
   assembly ships it may make sense to make the assembled item unmovable
   but the pieces movable — and then we'd also need disassembly."* This
-  build keeps furniture and trade equipment on `Movable` (status quo,
+  build keeps furniture and trade equipment on `Good` (status quo,
   preempts nothing). The seam: an *assembled* thing may become immovable
   while its *pieces* stay movable, which is neither the root nor the
   rung but a state transition between them — and would revisit, at
@@ -1524,7 +1524,7 @@ the W8 fix, run over mixin *cores* rather than whole signatures.
 |---|---|---|---|---|
 | `Ingot` · `Casting` (+`Bloom`) | **two** — authored stock that is a by-hand build vessel vs the material-agnostic solid a pool leaves when it freezes | `Ingot.ts:1-19` (`ManualBuild`), `Casting.ts:1-13` (*"the generic, material-agnostic sibling of `Ingot`"*), `Bloom.ts` (*"Not `extends Ingot`. A bloom is not a bar"*) | names right | **no** — false twin (instrument); `Bloom` argues its own separateness |
 | `ServingVessel` · `Dish` (+`CraftVessel`) | **two** — what a portion reaches a mouth in vs the plated output form with honest macros | `ServingVessel.ts` (the palate is *"the whole content of this class"*), `Dish.ts` (*"NutritionLabel — that is the entire delta"*) | names right; the three-rung ladder `CraftVessel → ServingVessel → Dish` is the design | **no** — false twin |
-| `PlantPot` · `GardenBed` (+`Panel`) | **two, and only after D13** — both docstrings say the one structural difference is portability, and until this build it was a mass gate (`GardenBed.ts`: *"you cannot pick one up because it is heavy, not because of its class"*). With `PlantPot` on `Movable` and `GardenBed` on `Thing` the difference is now composed; the census will stop pairing them | `PlantPot.ts:1-10`, `GardenBed.ts:1-25`, `Panel.ts` | names right; the shared concept is already a mixin (`Cultivable`), so no superclass is missing | **no** |
+| `PlantPot` · `GardenBed` (+`Panel`) | **two, and only after D13** — both docstrings say the one structural difference is portability, and until this build it was a mass gate (`GardenBed.ts`: *"you cannot pick one up because it is heavy, not because of its class"*). With `PlantPot` on `Good` and `GardenBed` on `Thing` the difference is now composed; the census will stop pairing them | `PlantPot.ts:1-10`, `GardenBed.ts:1-25`, `Panel.ts` | names right; the shared concept is already a mixin (`Cultivable`), so no superclass is missing | **no** |
 | `Receptacle` · `UnboundedReceptacle` (+`WaterFixture`, `Potion`) | **two** — bounded vs inexhaustible; `Potion` is a preset (constructor defaults); `WaterFixture` leaves the family in W1 | `Receptacle.ts`, `UnboundedReceptacle.ts:1-12`, `Potion.ts:1-18` | ⚠ `Receptacle.ts:9-11` justifies its name against a description of `Vessel` (*"an enterable, portable-by-shape container — a boat / wagon"*) that has been false since the first phase (`Vessel` is a bag, a till, a coach); the docstring is corrected in W4, the name stays | **no** (docstring only) |
 | `Exit` · `SandboxCrossingExit` (twins of `lib/boundary/Exit`, `lib/sandbox/SandboxCrossingExit`) | **the platform-twin pattern**, not siblings — empty by construction (`CLAUDE.md § split it`) | `platform/idea/Exit.ts:1-12` | names right | **no** — the census should exclude a twin of a `lib/` base from the siblings list (W8) |
 | `SingletonCartesianLocation` · `CartesianLocation` | same — twins of `lib/` bases; the real pair differs by `SingletonMixin`, which the instrument cannot see | both `platform/location/*.ts` docstrings | names right (*the permissive holds the unmarked name*) | **no** |
@@ -1637,7 +1637,7 @@ a field a custom hydrator should own; the slate gets the list with the
   the persistence rule (`MineRoom.ts`: keyed instances over the
   permissive base), not a missing superclass.
 - **The platform twins** (`Exit`, `SandboxCrossingExit`,
-  `CartesianLocation`, `SingletonCartesianLocation`, `Thing`, `Movable`)
+  `CartesianLocation`, `SingletonCartesianLocation`, `Thing`, `Good`)
   — empty by construction; a census that lists them as siblings is
   reporting the pattern.
 - **`SpaceHeating` onto `BurnerMixin`** — `SpaceHeating.ts:16-21` says
@@ -1727,7 +1727,7 @@ a field a custom hydrator should own; the slate gets the list with the
   listed seven re-bases including *"`Lamp` (`Firebox` + dials)"* and
   *"`Still` (`Tool(Firebox)`)"*, with `Firebox` on `Thing`. But **a
   lamp, a lantern and a still are goods you carry** — they sit on
-  `Movable`, and a forge bolted to a smithy floor does not. Putting them
+  `Good`, and a forge bolted to a smithy floor does not. Putting them
   on a `Thing`-rooted `Firebox` would have undone W1 and W2 two waves
   later.
 
@@ -1738,7 +1738,7 @@ a field a custom hydrator should own; the slate gets the list with the
   (`SpaceHeating(Postured(Slotted(Placing(Firebox))))`),
   `SmeltingFurnace` (`Container(Forge)`) and `CharcoalPit`
   (`Container(Firebox)`). `Lamp` and `Still` write the four mixins
-  themselves over `Movable` and point at `Firebox` for the order. ⭐ Two
+  themselves over `Good` and point at `Firebox` for the order. ⭐ Two
   consumers is not three: a portable twin is **declined** under *promote
   at the third consumer*.
 

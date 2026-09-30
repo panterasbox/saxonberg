@@ -15,11 +15,11 @@
  * standing at, `teleport` is a general verb. The card is pure instrument.
  */
 
-import Movable from "@saxonberg/server/mud/lib/stuff/Movable";
+import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { CredentialWalletMixin } from "@saxonberg/server/mud/lib/credential/CredentialWallet";
 import type { CredentialKind } from "@saxonberg/server/mud/lib/credential/Credential";
 
-export default class TravelCard extends CredentialWalletMixin(Movable) {
+export default class TravelCard extends CredentialWalletMixin(Good) {
   /** Born holding one travel credential record (registered set + floor). */
   static defaultCredentialKinds: readonly CredentialKind[] = ["travel"];
 }

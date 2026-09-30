@@ -33,7 +33,7 @@
  * Runtime-only class (no MongoDB collection).
  */
 
-import { Animate } from '../creature/Animate';
+import { Actor } from '../creature/Actor';
 // ⚠ Still imported as a VALUE: `bodyAugmenter` below narrows with
 // `instanceof Creature`, which is the right test there — the body line
 // reads a reserve every body has, not a person's.
@@ -59,14 +59,14 @@ import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
 
-// Compose the PERSON mixins on top of the `Animate` rung.
+// Compose the PERSON mixins on top of the `Actor` rung.
 //
-// ⭐⭐ **Five mixins moved DOWN to `lib/creature/Animate` in the
+// ⭐⭐ **Five mixins moved DOWN to `lib/creature/Actor` in the
 // base-class narrowing (2026-09-30): `Sensor`, `Engaged`, `Mobile`,
 // `Perception`, `Combatant`.** They are true of anything that acts, and
 // composing them here made every animate body in the game reach for the
 // PERSON rung to get them — which is how a pit pony came to carry
-// `CasterMixin`, `EmployedMixin` and `PersonaMixin`. See `Animate.ts`
+// `CasterMixin`, `EmployedMixin` and `PersonaMixin`. See `Actor.ts`
 // for the three readers that were already asking the narrower question.
 // ⚠ This is behaviour-identical for every person by construction: the
 // same twenty mixins, five of them one rung lower.
@@ -74,11 +74,11 @@ import type { MarkupAugmenter } from '../../api/mml';
 // Order, for what remains:
 // - PerceiverMixin owns the perception VERB surface as a separate role
 //   from Sensor's "I receive scene output"; it requires Sensor in its
-//   base, which `Animate` supplies. It stays here because looking,
+//   base, which `Actor` supplies. It stays here because looking,
 //   scrying and locating are things a person does.
 // - HaulerMixin stays on Character, and is composed a second time on
 //   `platform/agent/DraftAnimal`. Position is free (it only holds the
-//   hitched-cart live ref). ⚠⚠ It is deliberately NOT on `Animate`:
+//   hitched-cart live ref). ⚠⚠ It is deliberately NOT on `Actor`:
 //   `hitch.yaml:35` gates on it, so putting it on the rung would make
 //   the binder accept `hitch cart to canary` and move the refusal from
 //   an honest arg gate to breakaway physics. Every person self-hauls;
@@ -86,7 +86,7 @@ import type { MarkupAugmenter } from '../../api/mml';
 //   LoadBearing (on Creature) reads its draft term dynamically via
 //   MixinApi.isHauling, so stack position doesn't matter.
 // - PersonaMixin + GenderedMixin (narrative + social identity) sit
-//   innermost on the person stack, above the Animate rung.
+//   innermost on the person stack, above the Actor rung.
 // - BeliefStoreMixin (per-viewer identity memory) sits innermost of
 //   all — it reads nothing from the other mixins, so position is free;
 //   placing it at the base of the person stack keeps every PC and NPC
@@ -112,7 +112,7 @@ const CharacterBase = AdvancementMixin(
             DispositionedMixin(
             PersonaMixin(
               StatusMixin(
-              BeliefStoreMixin(HidingMixin(EmployedMixin(Animate)))
+              BeliefStoreMixin(HidingMixin(EmployedMixin(Actor)))
               )
             )
             )

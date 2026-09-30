@@ -24,7 +24,7 @@
  *   ⚠ `hitch.yaml:35` gates its target on `HaulerMixin` — it is the
  *   ONLY reader (zero `MixinApi.isHauler` narrowings, zero affordance
  *   statics), so that arg gate is the whole of its reachability. On
- *   `Animate` the binder would accept `hitch cart to canary` and the
+ *   `Actor` the binder would accept `hitch cart to canary` and the
  *   refusal would move from an honest gate to breakaway physics. Every
  *   person self-hauls; a draft animal hauls; a wolf does not.
  * - **`Mountable` here, not on `Beast`.** Composing it MINTS a mount

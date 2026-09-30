@@ -4,7 +4,7 @@
  * One of the **five** top-level branches sitting on Stuff: `Thing`,
  * `Location`, `Idea`, `Agent`, `Shadow`. ⚠ This said SIX and listed
  * `Vessel`, which is not a branch and never was — it is a class on the
- * Thing branch (`Container(Movable)`), and saying otherwise here made
+ * Thing branch (`Container(Good)`), and saying otherwise here made
  * the one file that defines a branch disagree with
  * `Stuff._registerTopLevelBranch`, which allows exactly five.
  *
@@ -24,7 +24,7 @@
  * wants `Perceptible` on the base except Idea* — and it holds without
  * a rung to enforce it.
  *
- * Concrete in-world things use `Thing` (matter) / `Movable` (a good),
+ * Concrete in-world things use `Thing` (matter) / `Good` (a good),
  * `Location` (a place) or `Agent` (a body).
  *
  * See [docs/architecture.md § Top-level branches](../../../../../../docs/architecture.md).

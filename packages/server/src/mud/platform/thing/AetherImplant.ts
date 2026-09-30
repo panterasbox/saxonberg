@@ -25,7 +25,7 @@
  * universal default that lets Avatars send dms to one another.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { SlottableMixin } from '../../lib/slot/Slottable';
 import { TangibleMixin } from '../../lib/material/Tangible';
 import { AugmentMixin } from '../../lib/augmentation/Augment';
@@ -36,7 +36,7 @@ import { TemplatePaths } from '../../lib/paths';
 // that `Avatar.installDefaultLoadout` injects into the host alongside
 // the comms + forums updates. One conferrer, hosted updates carry the rest.
 const AetherImplantBase = AugmentMixin(
-  SlottableMixin(TangibleMixin(Movable)),
+  SlottableMixin(TangibleMixin(Good)),
 );
 
 export default class AetherImplant extends AetherImplantBase {

@@ -54,7 +54,7 @@
  * `_materialPath`, `constructionForm`, `gradeBand` and `mass`.
  */
 
-import Movable from '../../../lib/stuff/Movable';
+import Good from '../../../lib/stuff/Good';
 import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
@@ -65,7 +65,7 @@ import { WearableMixin } from '../../../lib/slot/Wearable';
 const GarmentBase = WearableMixin(
   SlottableMixin(
     CraftedMixin(
-      DurableMixin(ConstructedMixin(DyedMixin(Movable))),
+      DurableMixin(ConstructedMixin(DyedMixin(Good))),
     ),
   ),
 );

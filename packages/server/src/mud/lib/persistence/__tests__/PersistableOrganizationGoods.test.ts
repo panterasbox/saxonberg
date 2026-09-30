@@ -26,7 +26,7 @@ import PersistentHydrator from "../../../platform/idea/persistence/PersistentHyd
 import { PersistableMixin } from "../Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Idea } from "../../stuff/Idea";
-import Movable from "../../stuff/Movable";
+import Good from "../../stuff/Good";
 import type { Stuff } from "../../stuff/Stuff";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -58,7 +58,9 @@ class Counter extends PersistableMixin(
 class Hand extends ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))) {
   static fieldMeta: FieldMeta = {};
 }
-class Good extends Movable {}
+// ⭐ The local fixture was `class Good extends Movable {}` — this test
+// had been calling the rung a GOOD since before the class was named
+// that. The rename made the alias redundant; the base is used directly.
 
 const factories: Record<string, () => Stuff> = {
   [ROOM]: () => new Room(),

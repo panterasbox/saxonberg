@@ -1,7 +1,7 @@
 /**
- * Bandage — the canonical concrete **dressing**: `DressingMixin(Movable)`,
+ * Bandage — the canonical concrete **dressing**: `DressingMixin(Good)`,
  * a simple single-use consumable that `treat` spends to dress a bleed
- * (the `Coin = StackableMixin(Movable)`
+ * (the `Coin = StackableMixin(Good)`
  * precedent — a Thing plus one capability mixin). Any dressing-capable
  * item (gauze, a clean rag) qualifies for `treat` too; `treat` gates on
  * `MixinApi.isDressing`, not `instanceof Bandage`.
@@ -10,7 +10,7 @@
  * first-aid kits, sterility tiers) is out of scope — see harm.md.
  */
 
-import Movable from '../../lib/stuff/Movable';
+import Good from '../../lib/stuff/Good';
 import { DressingMixin } from '../../lib/vitals/Dressing';
 
-export default class Bandage extends DressingMixin(Movable) {}
+export default class Bandage extends DressingMixin(Good) {}

@@ -27,7 +27,7 @@ import { VisibleMixin } from '../../description/Visible';
 import { OrganismMixin } from '../../species/Organism';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
-import Movable from '../../stuff/Movable';
+import Good from '../../stuff/Good';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -45,7 +45,7 @@ class Wearer extends DisguisableMixin(
 // `isDisguiseBearing`, so a plain Slottable occupant exercises it
 // without the species/body-plan machinery Wearable.fitsSlot needs.)
 class Hood extends DisguiseBearingMixin(
-  SlottableMixin(VisibleMixin(NamedMixin(Movable))),
+  SlottableMixin(VisibleMixin(NamedMixin(Good))),
 ) {}
 
 // A viewer who can recognize the wearer.

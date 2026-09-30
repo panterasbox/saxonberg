@@ -13,7 +13,7 @@
  * See [docs/subsystems/husbandry.md].
  */
 
-import Movable from "../../lib/stuff/Movable";
+import Good from "../../lib/stuff/Good";
 import { PlantableMixin } from "../../lib/husbandry/Plantable";
 import type { FieldMeta } from "../../lib/mixin";
 
@@ -21,7 +21,7 @@ import type { FieldMeta } from "../../lib/mixin";
 // capability. A seed is the first plantable thing, not the definition of
 // one — a cutting / tuber / bulb composes the same mixin rather than
 // extending this class. See lib/husbandry/Plantable.ts.
-const SeedBase = PlantableMixin(Movable);
+const SeedBase = PlantableMixin(Good);
 
 export default class Seed extends SeedBase {
   static fieldMeta: FieldMeta = {
