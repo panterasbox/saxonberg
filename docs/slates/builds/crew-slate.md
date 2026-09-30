@@ -540,9 +540,16 @@ does: you accumulate regulars.** A reason to take a job and keep it, wholly
 emergent, nothing authored. **The strongest player-facing argument this
 build has.**
 
-⚠ To settle when it is specified: whether the relational leg sits above or
-below the capability leg. Above means your regular serves you *even if* they
-are worse at it, which is true to life and may be the point.
+⭐⭐⭐ **DECIDED 2026-09-30 — the relational leg sits ABOVE capability.**
+
+> **User: "above capability, your regular serves you for sure."**
+
+So **your regular serves you even when they are worse at it.** That is the
+line between a bar and an optimizer, and it is the decision that makes this
+allocation *hospitality* rather than a skill table. ⚠ It also means the
+competence leg is a **fallback**, not the primary rule — which inverts the
+chain this slate originally proposed, and is the second leg of that chain to
+fall (junior-first was the first).
 
 ### Three smaller transfers in
 
@@ -569,6 +576,66 @@ mid-shift has a **reason** not to drop everything, and a quest **asks
 rather than commands**. That is the difference between a world with people
 in it and a world with actors waiting for cues. See
 [brain-substrate-slate](brain-substrate-slate.md).
+
+## ⭐⭐ The name — it is a CALL, not a crew and not a troupe
+
+Asked 2026-09-30: the dramatic metaphor (`Staged`, `cast:`, `props:`,
+`costume:`, `Offstage`) wants **Troupe** where the fiction wants **Crew** —
+*"but it depends on what we're building exactly… which layer are we in?"*
+
+**The layer question answers it.** Look at how the metaphor is actually
+used: `props:`, `cast:` and `costume:` are **row keys an author writes**;
+`StagedMixin` is engine substrate; `Offstage` is a room whose *purpose* is a
+staging purpose. In the fiction, props are objects and cast are people —
+nobody in Terminus says "prop."
+
+> ⭐⭐ **The theatre metaphor names the AUTHORING and STAGING layer. The
+> fiction gets plain words.**
+
+So **Troupe** would be right for a company an author assembles, and **Crew**
+would be right for the group as the fiction sees it — and this design needs
+**neither**, because the redesign decided the set **derives** from the
+roster and is not modelled as a thing. What a house authors is a **rule**.
+⚠ Which means this slate is named after an object it decided not to build;
+the nouns actually shipped are a *policy*, a *resolver*, a *candidate* and
+an *arbiter*.
+
+### ⭐ And the metaphor already supplied the right word
+
+[balance-slate](balance-slate.md), the same week, reaching for exactly this:
+
+> *"**A stage manager**, by contrast, can tell you exactly **who is called
+> tonight**."* · *"a show has a **company** and a **tonight's cast list**,
+> and they are different sizes."* · *"the primary axis is **ON NIGHTLY
+> versus CALLED**."*
+
+| this design's concept | the word | layer |
+|---|---|---|
+| every seat-holder | the **company** | derived, never authored |
+| who is on right now | **called** — tonight's cast list | pass 3 |
+| how the house decides | the **call** | the authored rule |
+
+⭐⭐⭐ **"Calling" beats both crew and troupe because it names the ACT OF
+SELECTING**, which is the only thing this design builds — and it settles the
+layer exactly as `props:` does: Equity's vocabulary at the engine and
+authoring layer, plain words in the fiction.
+
+### The resolution
+
+- **"Crew" stays in prose** for the fiction. The bar has a crew; nothing
+  models it.
+- **The authored thing is a call policy** — *how this house calls*. Not a
+  group noun.
+- ⭐ **`Troupe` stays unspent.** If the mob, or a watch turning out, ever
+  needs a *group* noun at the authoring layer, the question bites then and
+  the word will still be there.
+- **The rename rides the requirements rewrite** (decided 2026-09-30) rather
+  than landing on its own: this slate is cross-referenced from
+  [brain-substrate-slate](brain-substrate-slate.md),
+  [crew-requirements](../../requirements/crew-requirements.md),
+  [party-slate](../tails/party-slate.md), [policing-slate](policing-slate.md)
+  and [employment.md](../../subsystems/employment.md), so it is a small sweep
+  and it is cheapest bundled with the rewrite that is coming anyway.
 
 ## Cross-references
 

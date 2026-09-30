@@ -1,5 +1,30 @@
 # Crew — requirements
 
+> ⚠⚠ **SUPERSEDED IN PART — pending rewrite (2026-09-30).** The routing
+> half of this doc is stale and must not be built as written. What changed,
+> after the brain-substrate pass and the casting pass on master:
+>
+> - ⛔ **The three-legged tie-break is gone.** `first-free → specialist →
+>   junior-first` has lost two of its three legs. **junior-first dissolved**
+>   (the senior's candidate simply reports a lower urgency band because they
+>   are mid-count, so the junior serves as a *consequence*, not a rule), and
+>   ⭐ **the relational leg now sits ABOVE capability** — *your regular
+>   serves you even when they are worse at it*. Competence is the fallback.
+> - ⛔ **`first-free` is unimplementable** against today's roster: 17 of 38
+>   brains declare no engagement slot, so a farmer working a field reads as
+>   idle.
+> - ⚠ **The selector may not survive at all.** If assignment is *a job
+>   posted to a named agent*, a crew is a **policy over claim order** on the
+>   job board that already ships.
+> - **The name is wrong.** This is a **call policy**, not a crew — see the
+>   slate. The rename lands with this rewrite.
+> - ✅ **The capability half stands unchanged and is still shippable on its
+>   own** — `order` consulting whether the maker knows the recipe is a seat
+>   and person fact that needs nothing from brains.
+>
+> Design of record: [crew-slate](../slates/builds/crew-slate.md) and
+> [brain-substrate-slate](../slates/builds/brain-substrate-slate.md).
+
 **Kind:** feature
 **Leads from:** kernel — first consumers are **every service point with a
 fulfilling seat** (ten businesses today: the Hearthworks, Dave's Bar, the
