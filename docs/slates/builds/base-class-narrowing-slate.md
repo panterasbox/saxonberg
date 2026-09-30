@@ -14,6 +14,27 @@
 > Rewritten 2026-09-27 from a full-tree census. Every number below was
 > taken against `edd318088` and every claim carries its evidence. The
 > measurements are the argument; re-take them if this sits.
+>
+> ⭐⭐ **And the argument the measurements cannot make:**
+> [lenses/93-the-nameless-quality.md](../../lenses/93-the-nameless-quality.md)
+> — *a wide class does not merely carry unused members, it makes a claim
+> about every thing an author builds with it.* **A census tells you how
+> many classes use a member; that lens tells you what it costs an author
+> when they do not**, and the two disagree in useful places.
+>
+> ⭐⭐⭐ **And its structural twin, added 2026-09-29:**
+> [lenses/28-the-state-machine.md](../../lenses/28-the-state-machine.md)
+> — Schell asks *what are the objects, what are their attributes, what
+> are their possible states, and what triggers the change*, and writes
+> the sentence this whole pass exists to answer: *“the right way to think
+> about something is whichever way is most useful **at the moment**.”*
+> **That rule has no time dimension, and the god class is it iterated** —
+> hanging a spoilage gauge on `Thing` for four rows was the most useful
+> framing at that moment. The entry also names the vocabulary the census
+> header needs and Schell lacks: an attribute has a **provenance**
+> (authored · stamped · derived), which is why *no row authors this* is
+> evidence of nothing on its own, and why **D1** is the reusable artifact
+> of the pass rather than any single carve.
 
 See also:
 

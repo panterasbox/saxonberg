@@ -17,23 +17,37 @@ product vision see [docs/vision.md](./docs/vision.md).
 The `docs/` tree is the source of truth for architecture and subsystem
 behavior. Read the relevant doc before editing in its area.
 
-- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE SIX
-  LENSES every high-level design is interrogated with**, and the
-  standing rule for any fork: 1 **pedagogy** (what Discipline does it
-  exercise; is the world derivable) · 2 **creative expression** (the
-  ordinary case with no code, the bespoke case without breaking) ·
-  3 **immersion & roleplay** (RP *emerges* from an honest sim — the GTA
-  property; never a gauge) · 4 **gamification & self-improvement**
-  (values, not knowledge: what choice does it force, and who confers
-  standing) · 5 **technology & magic** (the mechanism holds from ancient
-  Rome to New York; only the dynamics change — magic and future tech are
-  one axis) · 6 **economy & governance** (produces · consumes · who pays ·
-  was the demand there first · and when it judges a PERSON — name the
-  criterion and the appeal). A **scorecard, not a gate**: 1 and 2 decide forks, and
-  ⭐ **when they decide one, don't ask — pick it and say which limb
-  chose.** Run the pass at the slate and at requirements. ⚠ NOT
-  [docs/lenses/](./docs/lenses/README.md), which is the borrowed Schell
-  deck.
+- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE SEVEN
+  LENSES every high-level design is interrogated with** (six until
+  2026-09-29), and the standing rule for any fork: 1 **pedagogy** (what
+  Discipline does it exercise; is the world derivable) · 2 **creative
+  expression** (the ordinary case with no code, the bespoke case
+  without breaking; ⭐ personalization is a *derivative of supply-chain
+  depth*) · **3a immersion** (the fiction cannot betray itself) +
+  **3b participation** (⭐ not *roleplay a blacksmith* — the economy has
+  a blacksmith-shaped hole; measured by *can the polity do something we
+  did not want*) · 4 **values** (⭐⭐ lens 1 governs what has a derivable
+  right answer, 4 what has **none and must be decided anyway**; a gauge
+  converts an undecidable choice into a calculable one) ·
+  5 **continuity** (⭐ *not* "technology & magic" — does the capability
+  survive the epoch; test = **does the new object answer the same
+  commands**; it is lens 2's time axis and inherits its veto) ·
+  6 **economy** (produces · consumes · who pays · was the demand there
+  first) · 7 **governance** (⭐ split out of 6 — when it judges a PERSON,
+  name the criterion, the appeal, and the entrenchment tier). A
+  **scorecard, not a gate**: 1 and 2 decide forks, and ⭐ **when they
+  decide one, don't ask — pick it and say which limb chose.** Run the
+  pass at the slate and at requirements. ⭐⭐⭐ **Every answer has an
+  altitude — invariant · grain · title**: the middle is where most of
+  this design's values live, so answer *as if building the game the
+  platform is for* and say which answers are the **grain** (a default
+  an author may change) rather than the law; **neutrality is the
+  attention company's answer, not ours.** ⚠ NOT
+  [docs/lenses/](./docs/lenses/README.md) — the borrowed Schell deck,
+  **restarted 2026-09-29** (11 entries, indexed *by our lens*; the
+  previous 29 were retired to
+  [lens-deck-salvage.md](./docs/lens-deck-salvage.md), which holds the
+  slate checklist and the two ratified essence sentences).
 - [docs/architecture.md](./docs/architecture.md) — three-layer
   architecture, Manager vs Api, mixin organization, file structure
 - [docs/antipatterns.md](./docs/antipatterns.md) — patterns to avoid,

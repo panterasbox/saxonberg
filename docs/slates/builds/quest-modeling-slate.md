@@ -99,6 +99,106 @@ See also:
 
 ---
 
+## ⭐⭐ Framing — casting happens three times (2026-09-29)
+
+> ⭐ Companion: [lenses/86-character-function.md](../../lenses/86-character-function.md),
+> which is where this framing came from and which holds the craft
+> argument — **our cast surface validates that a binding is legal and
+> has nothing to say about whether it is good.**
+
+Walter Murch's claim about film is that a movie is made **three times**:
+once in the writing, once in the shooting, once in the edit. The same
+shape holds for casting here, and it is the most useful organizing
+device this slate has — because **most confusion about quests turns out
+to be a decision filed under the wrong pass.**
+
+| | Murch | ours | what gets cast |
+|---|---|---|---|
+| **1** | the script | **the code** | *which roles can exist at all* — a capability, a mixin, a seat shape. Nobody is cast; the **grammar** is. |
+| **2** | the shoot | **the content** | *who is nominated* — Dave is the bartender, «informant» binds to Dave. Literal casting, and the only pass a human performs deliberately. |
+| **3** | the edit | **runtime state** | *who is actually in the chair* — who holds the seat now, who a derived slot resolved to **for you**, whether Dave is even alive. |
+
+**Two properties carry over, and both are load-bearing:**
+
+⭐ **Each pass is bounded by the previous one's output and free within
+it.** An author cannot cast a smith if no smith capability shipped —
+that is the editor who cannot shoot new footage. (The one seam: a
+*generator* authorized at pass 2 produces individuals at pass 3 that
+nobody nominated — a shoot yielding footage the writer never specified.
+The [lineage backstop](./lineage-slate.md) is exactly this.)
+
+⭐⭐ **Pass 3 may override pass 2, and that is where n+1 lives.** Dave
+dies; the understudy steps in; a derived slot picks somebody else. Open
+question 7 is this seam, stated as a field.
+
+### ⭐⭐⭐ The edit pass is where meaning is made, not assembled
+
+The Kuleshov effect: the same shot of a face reads as hunger or grief
+depending on what it is cut against. **The edit creates meaning the
+shoot never contained, without changing a frame of substance.**
+
+That is spine point 4 — *the NPC is the membrane, **shared in substance,
+personal in relationship*** — arriving from film:
+
+> **The relation is not shot. It is cut.** Dave is cast at pass 2.
+> Whether being Dave lands as a betrayal or a transaction is made at
+> pass 3, out of fifty hours in his bar that nobody authored.
+
+Which sorts the three ways a dramatic relation can arise, so they stop
+looking like a menu and start looking like passes:
+
+| | arises | pass | prose | craft available |
+|---|---|---|---|---|
+| **established** | the quest *builds* it — beat 1 makes you owe Dave, beat 4 cashes it | **2** | specific | ⭐ full — the author controls the mismatch |
+| **inherited** | you already had it | **3** (the Kuleshov cut) | specific | none; the depth is luck, and occasionally enormous |
+| **derived** | the slot resolves against *your* ledger at quest start | **3** (choosing the take) | parametric only | ⭐⭐ systemic — see below |
+
+⚠ **The failure mode this frame diagnoses** — and it is the one that
+occasioned the section. **Reaching for pass-1 vocabulary to make a
+pass-2 decision.** A capability predicate (*anyone composing
+`SmithMixin`*) is a **grammar** constraint; used as a casting criterion
+it selects for competence and therefore produces the obvious pairing
+every time. That is allocation wearing casting's clothes, and it is
+exactly the lazy move Schell's Lens #86 exists to warn against — *the
+traditional thing would be to make Princess Mouse the hostage.*
+
+⭐⭐⭐ **A dramatic predicate is the opposite, and it is his craft made
+declarative.** «betrayer» = *the person whose regard for you is
+highest*. «informant» = *someone whose telling would cost them most*.
+He performs the against-type casting by hand, once, for one story; a
+relational predicate expresses the **rule** he is following. And
+because regard, belief and history are per-viewer, **the game can cast
+against type for each player specifically** — which no authored cast
+list can do, because the author does not know whose bar you drink in.
+
+### ⚠ Where the analogy breaks, and why the break matters
+
+Murch's passes are **sequential and each one ends.** Ours run
+concurrently and forever: content ships while the world runs, code
+changes under both, there is no lock and no wrap. And one editor makes
+one cut; we make **one cut per viewer, simultaneously.**
+
+The real break is the last one:
+
+> ⭐⭐ **There is no final cut.** Pass 3 never closes. The meaning of a
+> casting decision keeps being remade as the player's ledger grows — the
+> same binding reads differently at hour 5 and hour 500, with nobody
+> touching it.
+
+A film fixes meaning once, for everyone. This is a cut that keeps
+re-cutting itself, per person, out of material the player supplies by
+living. ⚠ Which also means **a quest cannot be "finished" in the sense
+a film is** — its meaning is still being made after the last beat
+fires, and any evaluation of whether a quest *worked* has to account for
+that.
+
+**The practical use: ask which pass a decision belongs to.** Specificity
+(Q7) is pass 2. The understudy is the 2→3 seam. Relational predicates
+are pass 3. Capability is pass 1 and does not belong in the casting
+conversation at all.
+
+---
+
 ## 1. The locus of change (the resolution to the paradox)
 
 Every narratable delta maps to a ledger we already keep. "Quest type" is
@@ -413,6 +513,61 @@ The model survives contact; where it bent is the durable learning:
 6. **Director embodiment when no NPC is present** — the invisible-
    director fallback for solo/ambient quests (the mystery has no host).
    What carries "what now" when there's no Limen?
+
+### Added 2026-09-29 (the casting pass — out of Schell's Lens #86)
+
+7. ⭐⭐⭐ **Slot specificity — the missing field, and it subsumes the
+   understudy problem.** *(A pass-2 decision; the understudy is the
+   2→3 seam — § Framing.)* §6 says slots carry *"constraints"*; it does
+   not say **how tight the binding is**. Three declarations, and the
+   author is already choosing between them silently:
+
+   | the author means | the slot declares | understudy | cost |
+   |---|---|---|---|
+   | *must be Morgan Vigosen* | an **identity** | ⛔ authored, or the beat breaks | a carve |
+   | *must be a smith* | a **predicate** — holds the seat, composes the mixin | ⭐ free: re-bind | crowd |
+   | *don't care* | the loosest predicate | free; may degrade to an `Extra` | crowd |
+
+   > ⭐⭐ **specificity = cost = fragility.** Tighter binding buys a
+   > particular experience, costs a carve, and needs an understudy.
+
+   ⭐ **"Don't care" is a declaration, not an absence** — which is what
+   lets the save gate tell an author who *chose* loosely from one who
+   forgot. **And the n+1 risk is structural, not per-quest:** `Cast` is
+   a singleton (*a second live clone throws*) and `Extra` is not (*two
+   sentries are the point*), so an `Extra`-bound slot can never have
+   this problem and a `Cast`-bound slot always can. The save gate
+   already type-checks the cast; flagging *an identity-bound slot with
+   no understudy* is one more predicate on a validation that exists.
+   ⚠ Casting is **authored**, not resolved at runtime — so the
+   understudy is an authoring artifact, not a fallback query.
+   *Lean: add the axis; it is one field and it makes three decisions
+   visible at the moment they are made.*
+
+8. ⚠ **The casting collision.** Dave as «informant» in one quest and
+   «captive» in another — a person with a life, or a scheduling
+   conflict? Note this is the *same shape* as one NPC holding two
+   economic seats (§ *every NPC doing two jobs is a vacancy we
+   deleted*), which suggests one rule covers both. Neither has one.
+
+9. ⭐ **The casting pool grew after this slate was written.** In June a
+   predicate-bound slot was a promise; the trades now ship a crowd that
+   actually satisfies predicates, so *anyone running the smith seat*
+   resolves to real people in real towns. **Predicate-bound casting got
+   dramatically cheaper and this slate does not know it**, which
+   probably shifts Q1's kernel lean toward the cheap tier. ⚠ It also
+   makes an unrelated char-gen decision load-bearing: the
+   [lineage backstop](./lineage-slate.md) is where predicate bindings
+   resolve in a thin town.
+
+10. ⭐⭐⭐ **Can a slot bind on a *dramatic* relation rather than a
+    capability?** § Framing argues it is the whole content of Lens #86
+    and that the substrate exists — regard, belief, recognition, traits,
+    the chronicle, all per-viewer. Open: the predicate vocabulary; and
+    ⚠ **whether a derived binding is pinned at quest start** so the
+    person cannot change under the player mid-quest as regard shifts.
+    *Lean: pinned, and the pin rides the progress cursor (Q2) rather
+    than becoming a second piece of state.*
 
 ## What this slate does NOT cover
 

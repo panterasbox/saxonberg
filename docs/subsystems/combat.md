@@ -1063,6 +1063,13 @@ Named at their sites; nothing inherited:
 - **Split** — connected-component recompute on edge removal spawning a
   second session; deferred (no criterion requires it) until fragmentation
   is real.
+- ⭐ **The no-presence-freeze seam has a lens.**
+  [lenses/27-time.md](../lenses/27-time.md) files it as one of the two
+  deliberate exceptions to *absence never costs a living player* — *you
+  can't rage-quit a fight* — and argues the answer to its cost is not a
+  blanket freeze but **player-authored disconnect behaviour** (disengage
+  or flee on standing instructions), which preserves the reason while
+  removing most of the bill.
 - **Known engine seams** — the `act.combat` topic wants a client
   font-register mapping. The beat loop has **no presence-freeze** — a fight
   ticks on against a linkdead combatant until `combat.maxBeats` forces a

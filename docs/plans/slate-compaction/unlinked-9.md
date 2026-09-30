@@ -302,7 +302,7 @@ decisions*.
 - `## The demo cluster` → 6 *Mobile-floor check* — the object of the check shipped (`client-shell.md § The phone's play surface`, `§ The mobile bar`), so *"shootable as-is or a scoped punch-list"* may already be answerable; nothing records the fight + forum phone session, so it stays
 - `## Adjacent backlog` → *the three extensibility bridges* — pieces shipped in different shapes: brains ship in packs via `src/behavior/` (`content-packs.md`), and the item-effect surface is `magic-items.md`'s `EffectContext` + the three item classes; a *vetted brain catalog* and a *scripted-behavior brain* (a brain that runs a `scripting.md` script) have no code. The bullet is an index line, kept whole
 - `## Adjacent backlog` → *Economy gym* — `test:gym` (`vitest.gym.config.ts`) is the combat balance bench, not an earn/spend simulation; still unbuilt
-- Overlaps for the cluster pass: item 2 (the aged demo world) ↔ `authored-vs-procedural-slate` and the guild slate's halls/porters; item 4 ↔ the medic vertical (`harm.md`); item 3 ↔ `lenses/moments.md`; item 1 ↔ the credential seam in `advancement.md`
+- Overlaps for the cluster pass: item 2 (the aged demo world) ↔ `authored-vs-procedural-slate` and the guild slate's halls/porters; item 4 ↔ the medic vertical (`harm.md`); item 3 ↔ `lens-deck-salvage.md`; item 1 ↔ the credential seam in `advancement.md`
 
 ### Handoff
 - none

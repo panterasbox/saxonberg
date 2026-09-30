@@ -5,8 +5,9 @@
 > interaction — not the educational game built on it. Saxonberg's
 > game-level essence ("learning as adventure," education at its core)
 > lives in [vision.md](./vision.md). The two layers are nested, not in
-> tension — reconciled in
-> [lenses/essential-experience.md](./lenses/essential-experience.md).
+> tension. ⚠ The entry that reconciled them was retired 2026-09-29;
+> **both ratified essence sentences survive** in
+> [lens-deck-salvage.md](./lens-deck-salvage.md) § 2.
 
 Companion to [design-philosophy.md](./design-philosophy.md). That doc
 argues how honestly the engine should *model* the world; this one

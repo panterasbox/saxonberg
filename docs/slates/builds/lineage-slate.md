@@ -130,6 +130,10 @@ migration**, and the same person can be referenced by a chronicle entry,
 a contract, and a wiki article without any of them caring whether she is
 simulated.
 
+⭐ **And § The backstop, below, is the first real argument for walking
+through that door** — a reason to realize them that is not about
+sentiment.
+
 ⭐⭐ **This generalizes past parents.** An *unrealized person record* is a
 primitive the world already needs — the dead, the absent, the historical,
 the merely mentioned — and none of them have anywhere to live today.
@@ -1490,6 +1494,131 @@ records and the UI**, not **the generator**. Nothing about pair
 plausibility, the balance weights, or the seeding surface is exercised.
 That is the correct cut — all three need the packs — but **phase 2 is
 still where the design risk lives.**
+
+---
+
+## ⭐⭐ The backstop — a reason to realize the parents (2026-09-29)
+
+> ⭐ Two lenses lean on this section:
+> [lenses/86-character-function.md](../../lenses/86-character-function.md)
+> — a predicate-bound quest slot needs a *population* to bind to, and in
+> a thin town this is where it resolves — and
+> [lenses/27-time.md](../../lenses/27-time.md), whose *relief principle*
+> is the same shape as the backstop's retirement clock.
+
+> **Status: CANDIDATE, not decided.** The cost is real — it front-loads
+> content at the single worst moment, char-gen — and the call is whether
+> the labor property is worth it. Recorded because the *reasoning* is
+> load-bearing either way, and because one of its rules is the kind that
+> a sensible-looking future edit would destroy.
+
+The realization path § *The parents are unrealized* leaves open has
+never had a motive. Here is one, and it is not about family:
+
+> **Realize the parents, house them, and let them be the labor market's
+> backstop.** Every industry needs seats filled when no player wants
+> them. A pool minted at char-gen **self-sizes** — it grows with the
+> player base instead of being fixed by however much roster anyone
+> authored.
+
+⭐ **It passes the demand test on the first try**, which is rare. The
+[positions model](../../subsystems/employment.md) *already* requires
+that unfilled seats get filled or the town stops working, so the demand
+existed long before this feature. Nothing here is a need invented to
+create a market ([vocations.md](../../vocations.md)).
+
+### ⭐⭐⭐ The invariant: a backstop has an infinite reservation wage
+
+The parents live off **retirement savings**, which is not flavour. It is
+the mechanism that makes them a backstop rather than a workforce:
+
+> **They are economically *inactive* by default, so they never bid
+> against players. They are pulled by DEMAND when a seat goes unfilled,
+> never pushed by NEED.**
+
+⚠⚠ **This is the rule a future edit will destroy while meaning well.**
+The obvious-looking humane change — *"if they run out of money, they go
+back to work"* — converts two NPCs per player into **permanent
+job-seekers**, and the backstop becomes the thing it was built to avoid:
+a standing labor supply competing with players for every seat. *(That
+exact proposal was made during this design pass and is the reason the
+rule is written down.)*
+
+⭐ Which gives the pool an unusual and correct shape: **a labor supply
+that shrinks when players show up.** Elastic, demand-pulled, invisible
+while the player economy is healthy, present when it is not.
+
+### ⭐⭐ The cull is what preserves that property
+
+Running out of money ends them. Not as tidiness — **without a cull,
+savings-depleted parents accumulate as a standing underclass that *does*
+need work**, which is exactly the competition the invariant forbids.
+
+⚠ **And the platform is not judging anybody here.** The criterion is not
+*poor, therefore removed*; it is **your child did not support you** — a
+player's decision, with arithmetic they can run in advance. Money in,
+money out. It is the most readable criterion in the design, which is the
+test [lens 7](../../design-lenses.md) actually applies.
+
+**"Killing off" is a chapter, not a delete.** The corpse is a forensic
+Creature; there is burial, cremation, post-life care, the shade, an
+estate, a residence that flows somewhere. A dead parent **generates**
+content rather than consuming it.
+
+⭐ **And the obvious exploit self-defeats.** *Mint parents, abandon them,
+harvest the estate* fails by construction: the trigger for death is
+**having nothing left**, so you inherit a depleted account. The only way
+to get anything out of them is to have kept them alive — which is the
+behaviour the design wanted anyway.
+
+### ⭐⭐⭐ What it actually is: lens 4's strongest instance
+
+This is **stewardship with the highest stakes the design can offer** —
+*a choice forced by something with a stake in it that is not you.* It
+has the properties [lens 4](../../design-lenses.md) wants and that
+almost nothing else in the tree has:
+
+- **Genuinely undecidable.** Money is finite and so is its alternative
+  use. There is no arithmetic that produces the right answer — which is
+  precisely the decidable/undecidable line between lenses 1 and 4.
+- **Unfarmable.** More money moves the frontier; it never dissolves the
+  trade-off.
+- ⭐ **Pedagogically real and still derivable** — retirement drawdown,
+  eldercare cost, the sandwich generation — and a player can compute how
+  long the savings last and choose with open eyes. The Andy Weir
+  property applied to a social fact instead of a physical one.
+
+> **The game does not tell you what to value. It makes the consequence
+> honest and lets you find out what you valued.** If a player cares,
+> they send the money. If they do not, that is the answer.
+
+### ⭐ It also feeds the casting model
+
+A standing pool of retirees who can be pulled into seats **is the cheap
+tier of [quest casting](./quest-modeling-slate.md)**. A predicate-bound
+slot — *anyone running the smith seat* — needs a population to bind to,
+and in a thin town there may not be one. The backstop is where those
+bindings resolve.
+
+### ⚠ The open questions
+
+1. **Is the front-load affordable?** The honest framing: what is minted
+   per player is the **rung**, not the carve. `identity.md` is explicit
+   that *"the difference between the rungs is entitlement to an
+   individual ledger"* and warns against making `Cast` rich — and a
+   parent who holds a job genuinely needs the ledger. **The dossier,
+   the lines, the illustration and the brain are the expensive part and
+   should stay just-in-time**, carved on contact. If that split holds,
+   the front-load is much smaller than it first reads.
+2. **Two per player, forever?** The pool grows monotonically with
+   accounts while the cull runs on savings depletion. Whether those two
+   rates balance is an arithmetic question nobody has done.
+3. **Does a pulled retiree compete after all?** Once *in* a seat they
+   occupy it. What releases them when a player finally wants that job —
+   and is being displaced by a player a dignified exit or a firing?
+4. **Adoption and the no-parents cases** interact with this: a player
+   whose gallery choice produced no living parents contributes nothing
+   to the pool, so the pool's size is a function of char-gen choices.
 
 ---
 

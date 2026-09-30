@@ -37,6 +37,18 @@ and the commissioner ↔ committee policy hook that makes the civics
 
 ## The enforcement-mode vocabulary (closed set)
 
+> ⭐⭐ **This table is the rubric's answer to a Schell lens.**
+> [#33 · Rules](../../lenses/33-rules.md) asks *who enforces the rules*
+> and treats code enforcement as an unalloyed win — *"what used to be a
+> rule now becomes a physical constraint of the game world"*, which is
+> `wall` mode and nothing else. The four-valued answer here, plus the
+> speed-camera doctrine below, is the correction: **the mode is a
+> political choice, not an engineering default**, and the frontier
+> deliberately stops short of `camera` for social rules. That entry also
+> pairs this axis (*who enforces*) against `measurement.md`'s tiers
+> (*who may amend*) and shows they had been conflated.
+
+
 A committee doesn't only write rules — it picks **how each rule is
 enforced**, and the mode is most of the politics:
 

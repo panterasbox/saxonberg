@@ -256,6 +256,11 @@ institution, and reading like one is honest. The same construction on
 
 #### ⭐⭐⭐ A collision is evidence, not an accident
 
+> ⭐ Read with [lenses/31-action.md](../lenses/31-action.md), which puts
+> this doctrine against Schell's argument that text adventures died of a
+> promise their vocabulary could not keep — *his parser's vocabulary was
+> hidden; ours is data.*
+
 The real objection is that **you cannot know a name will collide until it
 does** — and the answer is that you do not have to:
 
