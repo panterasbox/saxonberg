@@ -175,8 +175,14 @@ const LocationBase = AddressableMixin(
 );
 
 export default class Location extends LocationBase {
+// ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
+// `world/practicum/warded-cell.yaml:18` authors it and the field's own
+// docstring tells authors to ("Authored in room seeds"), so the Studio
+// was hiding a key the documentation advertises. The same inversion as
+// `CartesianLocation.coords`, in the same family, found in one pass.
+// ⚠ Kept OUTSIDE the object literal — see that file for why.
   static fieldMeta: FieldMeta = {
-    suppressesMagic: { persistent: true },
+    suppressesMagic: { persistent: true, authorable: true },
     floor: { persistent: true, authorable: true },
     noDefaultFloor: { persistent: true, authorable: true },
   };
