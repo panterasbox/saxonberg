@@ -1,8 +1,8 @@
 ---
 title: Movable
 subject:
-  kind: template
-  ref: /platform/thing/Movable
+  kind: mixin
+  ref: ChattelMixin
 tags:
 - substrate
 - trade
@@ -28,9 +28,12 @@ Matter that stays put has neither. A floor is not stolen, it is
 *trespassed on*; a forge is not hidden, it is *found*. Ownership
 of a thing you cannot carry belongs to whoever holds the land.
 
-## What a bare movable is made of {#composition}
+## What in this world can be carried off {#composed-by}
 
-<composition kind="template" of="/platform/thing/Movable"/>
+The two capabilities below are what a movable HAS, and a thing that
+has either has both — so the panel for one is the roster for the rung.
+
+<composition kind="mixin" of="ChattelMixin"/>
 
 ## The test {#the-test}
 
