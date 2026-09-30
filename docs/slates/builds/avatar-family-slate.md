@@ -1,13 +1,17 @@
 # Avatar family slate — three bodies, three kinds of state, and who may write
 
-> **Status: UNBUILT** — ⚠⚠ **and one live defect, independent of the rest:
-> `{ verb: 'shadow', mode: 'overlay' }` fails OPEN.** It is a value in the
-> `CollectionPolicy` union that no collection selects and no code
-> implements; `dispatchSave` and `deleteMany` both `break` past it into
-> the real write path, so any collection set to it would write and
-> bulk-delete **field rows from inside a circle, unstamped and silently**.
-> Fix that first and separately.
-> **Left:** `mode: 'overlay'` throws (the one-line fix) · **overlay mode
+> **Status: UNBUILT** — ✅ **except Sequencing 1, which shipped on its own
+> (2026-09-30): `{ verb: 'shadow', mode: 'overlay' }` now REFUSES at both
+> ends.** It was a value in the `CollectionPolicy` union that no
+> collection selects and no code implements, and all three write paths
+> (`dispatchSave`, `dispatchDelete`, `deleteMany`) `break`'d past it into
+> the real write — so any collection set to it would have written and
+> bulk-deleted **field rows from inside a circle, unstamped and
+> silently**. `SchemaDoc` now rejects it at author time and the three
+> paths throw `SandboxOverlayUnimplementedError`. ⭐ Building overlay
+> deletes both refusals, and the four pinning tests name the exact call
+> sites to change.
+> **Left:** **overlay mode
 > built** — `copy` first, `through` second · the **27 REFUSE collections
 > triaged** (9 stand, 17 move, 1 is a write-path defect) ·
 > `holder_snapshots` onto overlay, retiring `WireBody.shouldPersist()` as
@@ -430,9 +434,14 @@ lines needs Api surface, it stays kernel.
 
 ## Sequencing
 
-1. ⚠⚠ **`mode: 'overlay'` throws** in `dispatchSave` and `deleteMany`.
-   Independent of everything else, and the current state is a silent
-   sandbox escape.
+1. ✅ **DONE 2026-09-30 — `mode: 'overlay'` throws.** All three write
+   paths (`dispatchSave`, `dispatchDelete`, `deleteMany`) raise
+   `SandboxOverlayUnimplementedError`, and `SchemaDoc.#parseSandbox`
+   refuses the mode outright so the failure lands on the author at
+   `gen:schema` time rather than at runtime inside a circle.
+   ⭐ `PersistenceManager.sandbox-policy.test.ts` pins all three plus the
+   field-context control; step 2 starts by deleting those throws, and
+   that test block is the list of what has to replace them.
 2. **Build `mode: 'copy'`** — the read branch, the derived partial index,
    the discard set widened past `verb === 'stamp'`, and the copy step
    beside the park capture.

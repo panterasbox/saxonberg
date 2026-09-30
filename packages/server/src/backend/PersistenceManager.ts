@@ -205,6 +205,46 @@ export class SandboxWriteRefusedError extends Error {
 }
 
 /**
+ * ⚠⚠ **`{ verb: 'shadow', mode: 'overlay' }` is a declared policy that is
+ * not implemented, so it throws.**
+ *
+ * The `CollectionPolicy` union names two shadow modes; only `skip` is
+ * built. `overlay` was specified as a labeled attach point for a
+ * copy-on-write circle store and no collection selects it today — but
+ * *declared and unbuilt* is the dangerous state, not the harmless one:
+ * until this threw, all three write paths hit the `shadow` arm, found
+ * `mode !== 'skip'`, and **`break`'d straight out of the switch into the
+ * real write**. `dispatchSave` wrote an unstamped field row; `deleteMany`
+ * bulk-deleted with the caller's unscoped filter; and the read side made
+ * it invisible, because `SHADOW_COLLECTIONS` derives from
+ * `verb === 'shadow'` and so gave those real rows the field-only filter.
+ *
+ * ⭐ The contrast is the whole lesson. An **unclassified** collection
+ * already threw here, under a comment reading *"silence would be an
+ * escape hatch"* — and the classified-but-unimplemented mode walked
+ * straight past that instinct. A switch that is total over the VERB is
+ * not total over the policy, the same shape as an enumerated lint roster
+ * that reads as derived. **Fail closed on the mode too.**
+ *
+ * This is deliberately NOT a `SandboxWriteRefusedError`: that error says
+ * *this collection holds field-real state a sandbox may not mutate*,
+ * which is a policy decision about the collection. This one says *the
+ * engine cannot honour the policy you selected*, which is a defect in
+ * the engine. Building overlay deletes this class.
+ */
+export class SandboxOverlayUnimplementedError extends Error {
+  constructor(collection: string, scope: string, operation: string) {
+    super(
+      `PersistenceManager: ${operation} on '${collection}' from circle ` +
+        `scope '${scope}' selects \`{ verb: 'shadow', mode: 'overlay' }\`, ` +
+        `which is declared but NOT IMPLEMENTED. Refusing rather than ` +
+        `falling through to the real store.`
+    );
+    this.name = 'SandboxOverlayUnimplementedError';
+  }
+}
+
+/**
  * The sandbox write-disposition surface, defined in the mudlib
  * (`mud/lib/persistence/CollectionPolicy`) beside the collection
  * vocabulary it is total over. Re-exported here so the driver side keeps
@@ -700,7 +740,11 @@ export class PersistenceManager {
           break;
         case 'shadow':
           if (policy.mode === 'skip') return 0;
-          break;
+          throw new SandboxOverlayUnimplementedError(
+            collectionName,
+            scope,
+            'deleteMany'
+          );
         case 'pass':
           break;
       }
@@ -930,7 +974,11 @@ export class PersistenceManager {
                 ? String(document._id)
                 : new ObjectId().toString();
             }
-            break;
+            throw new SandboxOverlayUnimplementedError(
+              collectionName,
+              scope,
+              'save'
+            );
         }
       }
       // An unknown collection name (not in the enum) written from circle
@@ -1019,7 +1067,11 @@ export class PersistenceManager {
           break;
         case 'shadow':
           if (policy.mode === 'skip') return;
-          break;
+          throw new SandboxOverlayUnimplementedError(
+            collectionName,
+            scope,
+            'delete'
+          );
         case 'pass':
           break;
       }

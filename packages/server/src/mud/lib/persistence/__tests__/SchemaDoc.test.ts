@@ -78,6 +78,27 @@ describe('SchemaDoc.parse', () => {
     ).toEqual({ verb: 'shadow', mode: 'skip' });
   });
 
+  /*
+   * ⚠⚠ `overlay` is in the policy TYPE and not in the ENGINE. Refusing
+   * it here puts the failure on the author at `gen:schema` time instead
+   * of inside a circle session at runtime, where it used to fall
+   * straight through to a real, unstamped write.
+   * ⭐ When overlay is built, this assertion inverts — it is the
+   * doc-side half of the `SandboxOverlayUnimplementedError` pins in
+   * `PersistenceManager.sandbox-policy.test.ts`.
+   */
+  it('refuses the declared-but-unbuilt shadow/overlay mode', () => {
+    expect(() =>
+      parse({ sandbox: { verb: 'shadow', mode: 'overlay' } })
+    ).toThrow(/NOT IMPLEMENTED/);
+  });
+
+  it('still rejects a shadow mode that is not in the union at all', () => {
+    expect(() =>
+      parse({ sandbox: { verb: 'shadow', mode: 'sideways' } })
+    ).toThrow(/must be 'skip' or 'overlay'/);
+  });
+
   it('takes the wipe-except reset with its named derivation', () => {
     const doc = parse({
       reset: {
