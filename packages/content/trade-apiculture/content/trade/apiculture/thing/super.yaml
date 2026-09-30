@@ -7,7 +7,12 @@
 class: /trade/apiculture/thing/HiveBox
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  keywords: [super, box, "honey super", "hive box"]
+  # ⚠⚠ NOT `"hive box"`. Multi-word keywords tokenize, so `hive` matched
+  # a super as well as the hive itself and the binder asked *which
+  # target?* — and an unanswered prompt poisons a whole session. The
+  # drive found it; a keyword that contains another object's name in the
+  # same room is a collision, not a synonym.
+  keywords: [super, box, "honey super"]
   shortDescription: honey super
   register: indefinite
   longDescription: >-

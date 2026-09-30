@@ -79,6 +79,13 @@ const HiveBase = HandledMixin(
   ),
 );
 
+/**
+ * The topic every scene this trade sends rides on — an act somebody
+ * performed, which is what working a hive is. ⚠ `Scene.send()` THROWS
+ * without one.
+ */
+const APICULTURE_TOPIC = 'act.deed';
+
 /** Metres of wall a hive box has when its row does not say. */
 const HIVE_WALL_M = 0.019;
 
@@ -111,7 +118,19 @@ export default class Hive extends HiveBase implements Splittable {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['trade/apiculture/cmd/apiculture/rob.yaml'],
+    peers: [
+      'trade/apiculture/cmd/apiculture/rob.yaml',
+      // ⚠⚠ **`split` has to be AFFORDED, and the plan said it did not.**
+      // The reachability table read *"none needed — `requires: any`"*,
+      // which confuses the arg GATE with the affordance: `split.yaml`
+      // gates nothing, and `trade-quarrying`'s `Block` is the only thing
+      // in the game that offers the verb, from its own class static. So
+      // implementing `Splittable` bought the hive nothing at all until
+      // this line — `split hive` answered `unknown-verb`, which is the
+      // affordance link failing closed and silent, and the drive is the
+      // only instrument that reads it.
+      'platform/cmd/ground/split.yaml',
+    ],
     environment: [],
   };
 
@@ -325,7 +344,31 @@ export default class Hive extends HiveBase implements Splittable {
     this.setLifecycleState('alive');
     this._lastEvent = '';
     this.starvingSince = 0;
-    void StuffApi.destruct(thing);
+    this.consumeAfterMove(thing);
+  }
+
+  /**
+   * ⚠⚠ **Destruct AFTER the move, never inside it.**
+   *
+   * `onContainableAdded` fires from inside `ContainmentApi.move`, and
+   * destroying the thing the chokepoint is still mid-move on threw a
+   * `controller-error` out of `put` in a booted world — while the unit
+   * test, whose nucleus is a hand-built fixture rather than a
+   * chattel-stamped clone, passed happily. The plan said so in as many
+   * words (*"after the hook returns — never inside the move"*) and it
+   * still took the drive to catch.
+   *
+   * A microtask rather than a timer: `ScheduleApi` is for game-time, and
+   * this is "one turn of the event loop later", which is the smallest
+   * deferral that lets the move finish.
+   */
+  private consumeAfterMove(thing: Stuff): void {
+    void Promise.resolve()
+      .then(() => StuffApi.destruct(thing))
+      .catch(() => {
+        // A husk that outlives its colony is untidy and harmless; it is
+        // not worth failing an install over.
+      });
   }
 
   // ---------- the lid ----------
@@ -342,7 +385,19 @@ export default class Hive extends HiveBase implements Splittable {
     if (!actor) return;
     const report = this.disturb(actor);
     if (!report.prelude) return;
+    // ⚠⚠ **`.topic()` is REQUIRED before `.send()`** — `Scene.send()`
+    // throws `'Scene.send() requires a topic'` without one, and this
+    // send had none. The first time anybody opened a hive that actually
+    // had bees in it, `open` answered `controller-error`.
+    //
+    // ⭐⭐ And **not one unit test could see it**, because every one of
+    // them mocks `MessageApi.scene`. An empty hive stings nobody, so the
+    // scene is never composed and the throw never fires — it took a
+    // drive against a DIRTY world, where the previous run's occupied
+    // hive was still standing in the close, to open one with bees in it.
+    // `act.deed` is the topic: this is something somebody did.
     MessageApi.scene(actor)
+      .topic(APICULTURE_TOPIC)
       .toSelf(report.prelude.self)
       .toPeers(report.prelude.peers)
       .send();

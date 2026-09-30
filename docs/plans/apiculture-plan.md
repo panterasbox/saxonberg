@@ -1584,4 +1584,140 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+**`packages/wire/tests/apiculture.dirty.wire.test.ts` — 19/19, twelve
+rounds, 275 s on a freshly dropped database.**
+
+```
+Test Files  1 passed (1)
+     Tests  19 passed (19)
+  Duration  275.65s
+```
+
+⭐⭐ **Eleven rounds were red, and every single defect they found was
+invisible to a passing unit suite.** That is the whole argument for this
+phase, so the list is kept in full rather than summarised.
+
+### The defects in the BUILD's own code
+
+1. ⚠⚠⚠ **`Scene.send()` requires a topic, and `Hive.open()` sent one
+   without** — so the first time anybody opened a hive that actually had
+   bees in it, `open` answered `controller-error`. **No unit test in the
+   repo could see it: every one mocks `MessageApi.scene`.** An empty hive
+   stings nobody, so the scene is never composed and the throw never
+   fires; round 8 passed for exactly the wrong reason. It took a DIRTY
+   world — the previous round's occupied hive still standing in the close
+   — to open one with bees in it. Pinned by a mock that is *harsher* than
+   the usual one: it throws exactly where `Scene` throws. ⭐ A mock that
+   accepts what the real thing refuses is a test that proves the mock.
+2. ⚠⚠⚠ **The boot link: the honeybee species was never made resident**,
+   so a hive full of bees had no honey tap and `rob` declined
+   `no-such-tap` about the one product the trade exists for.
+   `ProducingMixin.taps()` is a SYNCHRONOUS species read, and a species
+   nothing stood up answers `null`. **This plan's reachability table said
+   *"species rows warm by path infix"* — they do not.** That is how
+   MATERIALS warm (`MaterialCatalogue`); there is no `SpeciesCatalogue`,
+   and what is eager at boot is declared by the pack that ships the row.
+   Fixed with a `boot:` entry at role `sync-read`.
+   ⭐ **Fourth recorded instance** of this exact failure in this codebase.
+3. ⚠⚠ **Destructing inside `ContainmentApi.move` threw out of `put`.**
+   `onContainableAdded` fires from inside the chokepoint and
+   `adoptColony` destroyed the nucleus the move was still working on.
+   **This plan said so in as many words** — *"never inside the move"* —
+   and the build did it anyway. The unit test passed because a hand-built
+   fixture is not a chattel-stamped clone. Now a microtask.
+4. ⚠⚠ **`split` has to be AFFORDED.** This plan's table read *"none
+   needed — `requires: any`"*, which confuses the arg GATE with the
+   affordance: `trade-quarrying`'s `Block` is the only thing in the game
+   that offers the verb, from its own class static. So implementing
+   `Splittable` bought the hive **nothing** — `split hive` answered
+   `unknown-verb`. One line on `commandContributions`.
+5. ⚠⚠ **Nine stock lines shipped UNPRICED.** `stockLines` and `prices`
+   are independent blocks on the counter and `lint:census` reads only the
+   first, so every `buy` answered `not-priced` — a shelf full of goods
+   nobody could buy, silently. A price is CONTENT, and the only
+   instrument that reads content is somebody trying to buy something.
+6. ⚠⚠ **`gradeBand: standard` is not a grade band** and took the server
+   down at boot — surfacing at `counting-houses/cash-and-carry`, nothing
+   to do with bees. *A cascade is not diagnostic.*
+7. ⚠⚠ **`"hive box"` on the super collided with `hive`.** Multi-word
+   keywords tokenize, so the binder asked *which target?* — and an
+   unanswered prompt poisons a whole session. A keyword containing
+   another object's name, in a room holding both, is a collision.
+
+### The defect in the PLATFORM the build walked into
+
+8. ⚠⚠⚠ **`PutController.isBody()` asked the wrong question.** It read
+   `MixinApi.isOrganism`, so ANY living container offered no region zero
+   and `put nucleus in hive` answered *"you can't put things in a hive"*
+   — the one act the whole acquisition ladder is built on. The honest
+   marker of a BODY is that it HAS one; narrowed to `isVitals`, which
+   excludes every real body by a STRONGER test (a player, an NPC, a head
+   of stock and a corpse are all `Creature`s with vitals) and admits the
+   narrow case of *a living thing that is also a vessel*. Nothing in the
+   game was that until this build, which is exactly why it could be
+   wrong indefinitely. Pinned by `PutController.test.ts`'s
+   `TestLivingVessel`.
+
+### What the DRIVE ITSELF got wrong (instrument lessons)
+
+9. ⚠⚠ **An unanswered foreground prompt poisons the session** — every
+   later command times out reporting the SAME stale prompt. And an
+   `mqlObject` prompt wants the **stuffId**, not an index: answering `1`
+   makes `findById` return null, the resolver never settles, and it looks
+   exactly like a wedged server. Nine checkpoints, twice.
+10. ⚠⚠ **The AC-2 checkpoint passed on an EMPTY hive.** It asserted only
+    *"no digits in the reading"* — and *"Nothing at the door at all."*
+    has no digits either. ⭐ **A regex a FAILURE satisfies is not a
+    checkpoint.** It now also requires the reading to name traffic.
+11. ⚠ **`prose()` calls `cmd()` underneath**, so wrapping one and not the
+    other lost the same nine checkpoints twice.
+12. ⚠ **Three invented verb names** — `conditions`, `equipment`, and a
+    `combat-started` note kind that does not exist. `assess me` and
+    `look me` are the readers. Every invented name is a checkpoint that
+    tests the invention.
+13. ⚠ **The world has NIGHTS** and a hand lantern on four acres reads
+    *"shapes and edges, no more"*. The valley's prose checkpoints moved
+    to BINDING (`here:i:cherry` matches three), which is
+    light-independent and still proves `Cultivable.applyProps` seated the
+    authored plants. ⭐ The clover line and the trees' *"in flower"* are
+    the BROWSER walk's to read, by daylight.
+14. ⚠ **`bank` is not afforded on a shop floor**; **dressing is
+    DURATIVE** (`wear gloves` answers `busy` until the veil is on); and
+    the veto's `ContainmentError` becomes an envelope shape a note-reader
+    misses — so that checkpoint observes the WORLD instead. *What is
+    solid is the world.*
+
+### ⭐ A finding about this plan's own script
+
+**The requirements' ordering is physically wrong.** It installs the
+colony at step 4 and opens the hive at step 8; a hive ships with its lid
+weighted down and you cannot put bees into a closed box. The drive opens
+first and keeps the `shut` refusal as a checkpoint of its own, because
+the refusal is the object telling you what to do first.
+
+### What the drive could NOT see, and where it is pinned instead
+
+No wire drive can advance the game clock (a game day is ~2 real hours),
+so **swarming, the winter burn, absconding, starvation, the fruit set
+climbing over a fill window, and a jar of honey fermenting over six
+days** are invisible to any test that finishes. They are pinned as
+arithmetic: `colony.test.ts` (22 cases over `_advanceForTesting`),
+`forage.test.ts` (9), `mead.test.ts` (8), `stings.test.ts` (10),
+`Growing.fruit-set.test.ts` (9). ⭐ What only the drive could see is
+everything else — and it found eight defects in it.
+
+### Two findings NOT this build's, reported not fixed
+
+- **`fishing.dirty` and `nutrition-fitness.dirty` are RED on master.**
+  Both call `reserve issue`, which the money write-off build retired;
+  `economic-bootstrap.dirty` asserts it is refused. Exactly the *"two
+  drives failing with nobody able to know"* pattern `docs/testing.md`
+  warns about. Fixing them means restructuring two other trades'
+  bootstraps.
+- **PackApi's "dead code in a pack" boot warning accuses honest
+  content** — every pack `lib/` mixin and every abstract controller trips
+  it, ~25 classes across 10 packs, and a pack mixin HAS no template row
+  by design. A finding for `content-packs.md`.
+- **A beehive reads as "someone" in dim light** — the degraded
+  presentation branches on being alive and the colony IS an `Organism`.
+  A finding for `presentation.md`: "someone" is the person register.

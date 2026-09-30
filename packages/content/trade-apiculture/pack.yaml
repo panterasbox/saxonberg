@@ -20,3 +20,20 @@ requires:
   # the Ministry of Trade, like every other placeless trade.
   title:
     - { extent: /trade/apiculture, holder: { organization: /compact/trade } }
+
+# ⭐⭐ **The honeybee has to be RESIDENT, and the drive is how we learned.**
+#
+# `ProducingMixin.taps()` is a SYNCHRONOUS read of the host's species —
+# `getSpecies()` is `StuffApi.findByTemplatePath(_speciesPath)`, and a
+# species nothing stood up answers `null`. So a hive with bees in it had
+# no taps, and `rob` declined `no-such-tap`: *"the hive does not give
+# that"*, about the one product the trade exists for.
+#
+# ⚠⚠ The plan's reachability table said *"species rows warm by path
+# infix"*. They do not — that is how MATERIALS warm
+# (`MaterialCatalogue`), and there is no `SpeciesCatalogue`. What is
+# eager at boot is declared by the pack that ships the row, and this
+# pack shipped none. ⭐ It is the **boot** link of the five, failing
+# closed and silent, for the fourth recorded time in this codebase.
+boot:
+  - { template: /stuff/idea/species/animalia/arthropoda/insecta/hymenoptera/apidae/apis/mellifera, role: sync-read, reason: "ProducingMixin.taps() resolves the colony's species synchronously — an inert species row is a hive with no honey tap" }

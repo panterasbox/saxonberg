@@ -24,7 +24,9 @@ class: /trade/farming/location/Field
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   fieldName: the close
-  shortDescription: the close
+  # ⚠ No article in the stem — `register: definite` below is what puts
+  # "the" on it, so the world can also say "the close's" and "the closes".
+  shortDescription: close
   keywords: [close, orchard, ley, clover, cherries, field]
   register: definite
   _address: terminus/hearts-delight/close

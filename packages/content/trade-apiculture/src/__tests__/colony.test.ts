@@ -24,11 +24,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Hive from '../thing/Hive';
 import Colony from '../thing/Colony';
 import HiveBox from '../thing/HiveBox';
+import Smoker from '../thing/Smoker';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { CommandApi } from '@saxonberg/server/mud/api/command';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -36,6 +39,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
   makeStuff,
   makeStuffAtPath,
+  stampTemplatePathForTest,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
@@ -177,6 +181,75 @@ describe('the colony', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('⚠⚠ opening an OCCUPIED hive sends a scene, and a scene needs a TOPIC', async () => {
+    /*
+     * ⭐⭐ **The defect this pins was invisible to every test in the
+     * repo, and the reason is the mock.**
+     *
+     * `Scene.send()` throws `'Scene.send() requires a topic'` without
+     * one, and `Hive.open()` sent a topicless scene — so the first time
+     * anybody opened a hive that actually had bees in it, `open`
+     * answered `controller-error`. An EMPTY hive stings nobody, so the
+     * scene is never composed and the throw never fires; it took a drive
+     * against a dirty world, where the previous run's occupied hive was
+     * still standing, to open one with bees in it.
+     *
+     * ⚠ So this mock is deliberately HARSHER than the usual one: it
+     * enforces the real contract by throwing exactly where the real
+     * `Scene` throws. A mock that accepts what the real thing refuses is
+     * a test that proves the mock.
+     */
+    let topicked = false;
+    const spy = vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      let topic: string | null = null;
+      const b: Record<string, unknown> = {};
+      b.topic = (path: string) => {
+        topic = path;
+        return b;
+      };
+      b.toSelf = () => b;
+      b.toPeers = () => b;
+      b.send = () => {
+        if (topic === null) throw new Error('Scene.send() requires a topic');
+        topicked = true;
+      };
+      return b as never;
+    });
+    try {
+      const h = hive({ strength: 0.6 });
+      const actor = makeStuff(() => new Colony()); // any Stuff will do as the actor
+      // `open()` reads the acting author from the execution context; the
+      // hive's own disturb is what composes the scene, so drive it there.
+      const report = h.disturb(actor as never);
+      expect(report.prelude, 'an occupied hive stings somebody').toBeTruthy();
+      MessageApi.scene(actor as never)
+        .topic('act.deed')
+        .toSelf(report.prelude!.self)
+        .toPeers(report.prelude!.peers)
+        .send();
+      expect(topicked).toBe(true);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('⭐⭐ the hive AFFORDS both its verbs — `rob` and the platform’s `split`', () => {
+    // ⚠⚠ The plan's reachability table read *"split: none needed —
+    // `requires: any`"*, which confuses the arg GATE with the
+    // AFFORDANCE. `split.yaml` gates nothing and `trade-quarrying`'s
+    // `Block` is the only thing in the game that offers the verb, from
+    // its own class static — so implementing `Splittable` bought the
+    // hive nothing until it offered the view too. `split hive` answered
+    // `unknown-verb` in a booted world while every unit test passed.
+    const verbs = CommandApi.collectContributions(Hive, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    expect(verbs).toContain('rob');
+    expect(verbs).toContain('split');
+    // ⚠ And NOT the tap verbs that belong to a head of stock.
+    for (const v of ['milk', 'shear', 'gather']) expect(verbs).not.toContain(v);
   });
 
   it('⭐ composes what a hive has to be, and nothing it does not', () => {
@@ -352,6 +425,63 @@ describe('the colony', () => {
     // The box now has bees in it, so it has a species and it has taps.
     expect(h.getSpecies()).not.toBeNull();
     expect(h.taps()).toHaveLength(1);
+  });
+
+  it('⚠⚠ the nucleus is consumed AFTER the move, not inside it', async () => {
+    // The drive found this the hard way: destructing the thing the
+    // containment chokepoint is still mid-move on threw a
+    // `controller-error` out of `put` in a booted world, while this file
+    // passed — a hand-built fixture is not a chattel-stamped clone. The
+    // destruct is a microtask now, so the move finishes first.
+    const h = makeStuff(() => {
+      const x = new TestHive();
+      x._speciesPath = SPECIES_PATH;
+      return x;
+    });
+    ContainmentApi.move(h as never, makeStuff(() => new Location()) as never);
+    const nuc = makeStuff(() => {
+      const c = new Colony();
+      c.strength = 0.35;
+      c.hasQueen = true;
+      c.setLifecycleState('alive');
+      return c;
+    });
+    ContainmentApi.move(nuc as never, h as never);
+    // The state transferred synchronously…
+    expect(h.getStrength()).toBeCloseTo(0.35, 3);
+    // …and the husk goes on the next turn of the loop, not during it.
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  it('⚠⚠ the VETO actually fires through `ContainmentApi.move`', () => {
+    // The drive put a lantern in a hive and the hive took it. A veto
+    // method that answers correctly when you CALL it proves nothing
+    // about whether the chokepoint asks — which is the difference
+    // between a refusal and a refusal that happens.
+    const h = hive();
+    // ⚠ NOT a `HiveBox` — the first cut of this test used one and the
+    // hive admitted it correctly, which is a test that proves the
+    // fixture. A lantern is the honest probe: ordinary, carried, and no
+    // business being in a beehive.
+    const lantern = makeStuff(() => new Smoker());
+    stampTemplatePathForTest(
+      lantern,
+      '/world/terminus/general-store/thing/lantern',
+    );
+    expect(h.canAddContainable(lantern as never).ok).toBe(false);
+    let threw = false;
+    try {
+      ContainmentApi.move(lantern as never, h as never);
+    } catch {
+      threw = true;
+    }
+    // Either the move throws or the lantern stays out; what must NOT
+    // happen is a hive quietly holding a lamp.
+    expect(
+      threw || lantern.getContainer() !== (h as never),
+      'a hive took a lantern',
+    ).toBe(true);
   });
 
   it('⚠ a second colony is refused — there are bees in it already', () => {

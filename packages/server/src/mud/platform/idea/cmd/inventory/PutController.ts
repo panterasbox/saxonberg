@@ -412,14 +412,37 @@ interface PutOffer {
 }
 
 /**
- * A container that is somebody is not a region you put things in —
- * the same three exclusions `MixinApi.isOpenContainer` makes, minus
- * the lid (a shut chest still offers region zero; it refuses at the
- * verb, with a reason).
+ * A container that is **somebody** is not a region you put things in —
+ * near enough the exclusions `MixinApi.isOpenContainer` makes, minus the
+ * lid (a shut chest still offers region zero; it refuses at the verb,
+ * with a reason).
+ *
+ * ⚠⚠ **`isVitals`, not `isOrganism`, and the difference is a live
+ * object.** The question this asks is *is this a BODY* — and the honest
+ * marker of a body is that it has one (vitals, a body plan, parts you
+ * could wound), not merely that it is alive. Being alive is a much
+ * bigger set: the apiculture build's beehive is an `Organism` (the
+ * colony IS the organism, and its species is where its taps and its
+ * temper are read from) **and** a `Container` you put a nucleus, a
+ * super and frames into, which is the whole design of the object.
+ * Reading it as a body made `put nucleus in hive` answer
+ * *"you can't put things in a hive"* — a refusal about the one act the
+ * trade's acquisition ladder is built on.
+ *
+ * ⭐ Every real body still excluded, and by a stronger test than before:
+ * a player, an NPC, a head of stock and a corpse are all `Creature`s and
+ * all compose `VitalsMixin`. What is admitted is the narrow and
+ * deliberate case of **a living thing that is also a vessel** — which
+ * until now nothing in the game was, which is exactly why the check
+ * could be wrong for a year and nobody could know.
+ *
+ * ⚠ No controller test could see this: `PutController` is the
+ * platform's, the hive is a pack class, and the two only meet in a
+ * booted world. The drive is the instrument that found it.
  */
 function isBody(target: Stuff): boolean {
   return (
-    MixinApi.isOrganism(target) ||
+    MixinApi.isVitals(target) ||
     MixinApi.isCommandGiver(target) ||
     MixinApi.isHasInteractive(target)
   );
