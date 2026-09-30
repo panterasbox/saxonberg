@@ -100,6 +100,33 @@ is the Feed's metric. The claim here is to measure whether it was any
 subject that values and the polity that imposes, and why **B8 forbids
 the engine from ever computing *how good is this person* itself.**
 
+### ⭐⭐ The other half of the answer: the synthesis is the moat
+
+Added 2026-09-29 from [lens #30 · Emergence](./lenses/30-emergence.md).
+Almost nothing here was invented — the RGO is Europa Universalis' concept
+applied to an MMO, the settlement model credits the colony sims by name,
+logistics credits Transport Fever and Manor Lords, crafting credits Dwarf
+Fortress and EVE. The claim is **not** that any one of them is better
+here; ⚠ each is deeper in its own game than it will ever be in ours, and
+the public frame should say so rather than imply otherwise.
+
+> **Europa Universalis' RGOs have no labour market with people in them.
+> Transport Fever's network has no polity deciding where the road goes. A
+> MUD has rooms and verbs and nothing underneath them. None of these
+> systems has ever had to coexist with the others in one world people
+> live in.**
+
+⭐⭐ **So the defensible thing is the combination, not any component** — a
+competitor has to copy a synthesis rather than a feature. Which is also
+the internal permission that makes the scope survivable: **borrow to the
+depth the combination needs, not the depth the source went.**
+
+⚠ **And the cost, which belongs with Part 0's gap:** a synthesis has no
+genre, so **the thing that makes the design interesting is the thing that
+makes it hard to describe.** *"A well-designed MUD"* is what a reader
+concludes when the interesting claim is about how six borrowed systems
+meet.
+
 ### ⭐⭐⭐ Which makes the freedom to decide badly load-bearing
 
 The consequence is not soft, and it is the sentence to reach for when

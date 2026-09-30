@@ -37,6 +37,23 @@ the [instrumentation](./slates/tails/instrumentation-slate.md) thesis.
 
 ## ⭐⭐ Four gap-finding methods, ranked
 
+> ⭐⭐⭐ **The chain walk is not only a gap-finder — it is this design's
+> emergence generator** (noted 2026-09-29 from
+> [lens #30 · Emergence](./lenses/30-emergence.md)). Schell's method is
+> additive: put more verbs and objects in, then *watch* for strategies and
+> nurture the ones that appear. **The chain walk runs it backwards — add
+> a consumer and the producers are derived**, so what is uncertain is
+> whether the derived work is *interesting*, never whether it is *needed*.
+> One venue is a demand-side census, and the trades are its output. That
+> is why the trade backlog is a roadmap rather than a content queue.
+>
+> ⚠ And it is why criterion 2 (*a gated capability — if anyone can do it,
+> it is a chore*) is load-bearing here rather than fussy: **a chain link
+> with no decision in it produces procedure, not emergence** — the same
+> brake [#31](./lenses/31-action.md) found on the verb surface, arriving
+> from the demand side.
+
+
 ### 1. The chain walk
 
 For each good: **extract → process → move → store → sell → use →
