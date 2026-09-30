@@ -748,9 +748,27 @@ pack suite green.
 
 Commit: `build(energy A1): lamp oil is a good with a unit`.
 
-#### A2 — the `/system/energy` pack scaffold, and the fuel store
+#### A2 — the `/system/energy` pack scaffold, and the fuel store ✅ DONE
 
 Implements D1 (the pack), D10 (`FuelStore`).
+
+> **Done (commit `build(energy A2)`).** New pack `packages/content/energy/`
+> (root `/system/energy`, group `energy`/prime-minister, title `/system/energy`),
+> boilerplate copied from `water/`; root `package.json` + `pnpm install`.
+> ⭐ **D10 composition refinement:** `FuelStore extends
+> PostRegistrationMixin(Holder)` — NOT `DetailedMixin(Holder)`: the narrowing put
+> `Detailed`/`Containable`/`Tangible` on `Thing` (so `Holder` already has them),
+> but `Holder` does NOT compose `PostRegistrationMixin`, which the locality
+> resolution needs. `FuelStore` implements `StreetLightingSupply` +
+> `SupplyReporting`: `lightStreets` covers as many streets as its oil allows (in
+> order) and burns `fuelPerStreetNight` litres each (resolved from the covering
+> locality at `postRegister`, default 2); `isServingNow` = true (oil is
+> committed at the settle — dryness shows at the next dusk); `supplyReport`
+> reports litres + nights + `dry`; `getDetail` on `oil`/`casks`. `content/settings/energy.yaml`
+> deferred to B0 (no dials yet). 5 pack tests green; all 58 lint gates pass
+> (the pack is discovered by `pack-roots.ts` with no list edit).
+> ⚠ A2 verify item (the `container:` self-placed singleton resolution) is
+> checked live at A4 when the row exists.
 
 Files:
 - `packages/content/energy/{package.json,tsconfig.json,vitest.config.ts,pack.yaml,README.md}`

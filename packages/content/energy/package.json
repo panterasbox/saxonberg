@@ -1,0 +1,23 @@
+{
+  "name": "@saxonberg/content-energy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Energy — the /system/energy pack: the grid mechanism (Feeder, GridCatalogue, GridPowered, ElectricLight, LineAccess), the town's fuel store, and the verbs that operate them.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}
