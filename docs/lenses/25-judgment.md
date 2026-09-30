@@ -68,6 +68,33 @@ jurisprudence it lands in — **rules versus standards**, where a clause
 is self-executing and rigid and prose needs a judge. When three
 different arguments reach one boundary, the boundary is probably real.
 
+### ⚠⚠ Corrected 2026-09-29 — it is a ratchet, not a partition
+
+The reading above states the allocation as a **line**, and
+[#33 · Rules](./33-rules.md) shows it is two things this entry
+conflates:
+
+- **Where the boundary sits moves.** *What can be enforced by code* is
+  bounded by what has been built and paid for, so the frontier advances
+  as engineering capacity allows. It is an **economic** boundary, not a
+  principled one — which means citing the allocation never settles
+  whether something *should* be automated *yet*.
+- **And it does not advance all the way.** Three pieces of doctrine stop
+  it: **A15**, the evidence firewall (*kernel omniscience never becomes
+  diegetic evidence* — *"a crime genuinely unseen is genuinely
+  unproven"*); the **speed-camera doctrine** (*"prevention reads as
+  physics; automated punishment reads as tyranny; witnessed process reads
+  as law"*); and the **enforcement modes** being a committee's choice
+  rather than an engineering default.
+
+⭐⭐ **So the honest form of the allocation is two rules, not one.**
+Where a rule protects **a claim the platform makes** — conservation,
+append-only, title, provenance — code enforcement is mandatory and the
+frontier should advance. Where it protects **a norm the polity holds**,
+over-enforcement is the failure, because there the *imperfection* of
+enforcement is the content. Implication 5 below still stands; it is the
+sentence after it that was missing.
+
 ⭐ **And it answers the appeal at the right altitude.** Lens 7 asks each
 feature to name its appeal, which is correct but incomplete: the general
 appeal is **institutional**, not per-mechanism. Courts and executive
@@ -184,7 +211,12 @@ list and a lint. Everywhere else it is a review habit.
    mechanical" **and** to "why is this not" — and it is currently known
    to the manifesto and the constitution while being absent from the
    design rubric that reviews features.
-6. **Pair permanently with [#37](./37-fairness.md)**, which is the
+6. ⭐⭐ **Cite the ratchet, not the partition.** Per the correction
+   above, *what can be enforced by code shall be* answers *why is this
+   mechanical* only together with *which kind of rule is this* — a claim
+   the platform makes, or a norm the polity holds. See
+   [#33](./33-rules.md).
+7. **Pair permanently with [#37](./37-fairness.md)**, which is the
    negative half: what Schell's deck calls *fairness* is not this at
    all, and the gap is why lens 7 had to be invented — and which holds
    the one judgment problem no code can reach.

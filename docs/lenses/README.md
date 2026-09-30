@@ -57,8 +57,8 @@ the unnumbered **#∞ Lens of Your Secret Purpose**. *(Corrected
 2026-09-29: an earlier count of 113 stopped one page short of the table's
 end and missed **#111 Responsibility** — "does my game help people,
 how?" — and **#112 the Raven** — "is making this game worth my time?")*
-✅ **Fourteen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
-`31` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
+✅ **Fifteen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
+`31` · `33` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
 see below.
 
 | Sharpens | Entry | What it is for |
@@ -71,6 +71,7 @@ see below.
 | **4 · Values** | ✅ [`46-reward.md`](./46-reward.md) | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
 | **4 · Values** | ✅ [`55-visible-progress.md`](./55-visible-progress.md) | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
 | **4 · Values** | ✅ [`91-character-transformation.md`](./91-character-transformation.md) | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
+| **7 · Governance · 1 · 2** | ✅ [`33-rules.md`](./33-rules.md) | ⭐⭐⭐ *"A game is not just defined by its rules; a game **is** its rules."* Brings **Parlett's taxonomy** — and the finding that his **house rule → law → official → written** feedback arrow, which every other game leaves outside the artifact, **is what the Compact promoted to a mechanic**. ⭐⭐⭐ Separates the two axes the docs conflated — *who may amend* (the tiers) vs *who enforces* (`wall · camera · witness · norm`) — and names the failure: **implementing a law must not entrench it.** ⭐⭐ The sandbox suspends every rule but the ones that make suspension affordable, and **those are Tier A**; ⚠⚠ but the foundational rules have **no legislature** — the ratifying act is a merge request. And the hole in Schell: his own definition names *the consequences of the actions* and his questions never ask, which yields **a rule with no stated damage is advisory.** |
 | **7 · Governance** | ✅ [`25-judgment.md`](./25-judgment.md) | Lens 7's only antecedent in the deck — and it stops at *do players feel it is fair*. |
 | **7 · Governance** | ✅ [`37-fairness.md`](./37-fairness.md) | Across 116 lenses **"fair" only ever means "even contest"** — the evidence lens 7 is unprecedented. ⚠ And the one contest we *do* have: wizards and players share a world, and the answer is constitutional, not technical. |
 | **2 · Expression · 3b** | ✅ [`86-character-function.md`](./86-character-function.md) | ⭐ Casting, not staffing — and **casting happens three times** (code · content · runtime). We built the pass-2 machinery and skipped the craft: the save gate knows *legal*, never *good*. The prize is **dramatic predicates** — his against-type casting made declarative, and per-player. |
@@ -94,7 +95,7 @@ files** — they are one argument seen three ways, and the levelling
 conversation is what they are for. Same for `25` + `37`, and `31` +
 `79`, which share one answer.
 
-**Second rank — real, not urgent:** `90-status.md` (Keith Johnstone's
+**Second rank — real, not urgent:** `95h-cheatability.md` (⭐ promoted 2026-09-29 — [`33`](./33-rules.md) asks to pair with it, and its claim that *the belief a game is cheatable destroys endogenous value even when false* is the general form of the wizard-asymmetry problem [`37`](./37-fairness.md) answered constitutionally; it also sits in the same section of the book as `33`) · `28-the-state-machine.md` and `30-emergence.md` (⭐ the rest of the game-mechanics chapter — `28`'s *object or attribute?* is the narrowing refactor's question in Schell's words, `30`'s *how many objects can each verb act on* is answered structurally by verb-over-interface) · `90-status.md` (Keith Johnstone's
 improv status — the one genuinely unused lens with real pull on the NPC
 and LLM work) · `34-skill.md` and `48-simplicity-complexity.md` (much of
 both is now inside lens 1) · `66-channels-and-dimensions.md` with
@@ -133,7 +134,7 @@ one:
 | NPCs · behaviour · dialogue | **#90 Status** | ⛔ |
 | onboarding · char-gen | **#19 The Player**, #69 Interest Curve | ⛔ — though [`17`](./17-the-toy.md) owns the *first thirty seconds* half of it |
 | the simulation itself | **#30 Emergence** | ⛔ |
-| moderation | **#99 Griefing** | ⛔ |
+| moderation · law · the tiers | **#33 Rules** ✅ · #99 Griefing ⛔ | ✅ — [`33`](./33-rules.md) covers enforcement, remedy and the advisory test; #99 still owns griefing itself |
 
 ⚠ **Several of those were entries, and were deleted in the restart.**
 That was right — they had rotted against content — but it left a hole
@@ -154,13 +155,14 @@ placed only where an entry makes a *substantive claim* about that doc:
 
 - **the rubric** — [design-lenses.md](../design-lenses.md) § *The
   borrowed instruments*, which is the index an agent running a pass hits
-- **doctrine** — [measurement.md](../measurement.md) (six entries) ·
+- **doctrine** — [measurement.md](../measurement.md) (seven entries) ·
   [uncertainty.md](../uncertainty.md) ·
-  [governance/draft-constitution.md](../governance/draft-constitution.md)
+  [governance/draft-constitution.md](../governance/draft-constitution.md) ·
+  [subsystems/sandbox.md](../subsystems/sandbox.md)
 - **subsystems** — `employment` · `command-spec` · `combat` ·
   `exertion` · `mortality`
 - **slates** — `quest-modeling` · `base-class-narrowing` · `lineage` ·
-  `alignment`
+  `alignment` · `prison` · `enforcement`
 
 ⚠ The list is short **because the entries are anchored to the rubric
 rather than to content**, which is the rule this restart adopted. The
