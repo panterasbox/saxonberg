@@ -1016,9 +1016,30 @@ ceiling.
 Commit: `build(energy B0): the parcel meters — a feeder citation and a
 power band; the posture census; storms reach what stands in them`.
 
-#### B1 — the feeder and the catalogue
+#### B1 — the feeder and the catalogue ✅ DONE
 
 Implements D3, D4, D8.
+
+> **Done (commit `build(energy B1)`).** `Feeder` data Idea (key · name · source ·
+> nodes[{name, at, buried}] · branchesFrom), rows at `/stuff/idea/Feeder`.
+> `GridCatalogue` (singleton Idea, `GRID_CATALOGUE_PATH`): lazy compile of every
+> Feeder row into `nodes`/`downstream`/`traceUp`/`nodeAt`/resolved `sources`;
+> `energizedAtSync` (source `isGenerating()` — sync flag — AND no cut on the
+> path), `energizedAt`, `isStreetEnergizedSync`, `supplyStateAt` (cut/dry),
+> `traceFrom` (names the first cut), `sever`/`splice`, and the
+> `StreetLightingSupply` (`lightStreets` = the energized subset; `isServingNow`
+> live) + `SupplyReporting`. 8 tests: trunk+spur, cut propagation across the
+> spur, splice, trace, source-down⇒dry, exit-verification-unreachable,
+> cut-survives-invalidate. ⚠ **Decisions:** (1) **cuts are IN-MEMORY/transient**
+> — a reboot re-energizes the grid (honest; durable cuts matter only to the
+> Tier-deferred lineman work-order economy) — recorded, persistence is a clean
+> refinement; (2) compile problems go to `console.warn` + a `problems[]` list,
+> **never a throw** (D3) — I skipped `DiagnosticsApi` (its shape wasn't quickly
+> pinnable and no pack uses it) as a refinement; (3) exit verification uses
+> `StuffApi.singleton(street).getExits().getDestinationTemplatePath()` (no
+> transport-pack dep, D3); (4) sever/splice are **ungated** on the catalogue —
+> the water `Conduit.setCut` posture; the legitimate caller is `LineAccess` (B2).
+> `epochOf` deferred to B2's `GridReading` (it needs address resolution).
 
 Files:
 - `energy/src/idea/Feeder.ts` — the data Idea (`key · name · source ·
