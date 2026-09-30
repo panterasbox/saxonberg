@@ -48,8 +48,10 @@ import {
 export const DIRTY_REASON =
   'clones two coaches and a brazier into a street and burns the ' +
   "brazier's fuel; takes the general store's ration pack into a bag and " +
-  'carries it to the cookhouse; lights the cookhouse hearth — none of it ' +
-  'produced again';
+  'carries it to the cookhouse; lights the cookhouse hearth; clones a ' +
+  'lantern per session and burns its oil; takes the delve corridor to ' +
+  'the point of searching it; stands a draft horse up in the goods yard ' +
+  'and leaves it there — none of it produced again';
 
 declareFile({
   file: 'base-class-narrowing.dirty.wire.test.ts',
@@ -229,7 +231,6 @@ function bandOf(said: string): string {
   for (const b of BANDS) if (new RegExp(`\\b${b}\\b`, 'i').test(said)) return b;
   return 'none';
 }
-const rank = (band: string): number => BANDS.indexOf(band);
 
 let founder: Session;
 let walker: Session;
@@ -361,8 +362,6 @@ suite('A — what the world CLAIMS', () => {
 /* ───────── B — a carried perishable is no longer frozen ───────── */
 
 suite('B — a carried perishable tracks the world', () => {
-  let coldBand = 'none';
-
   /*
    * ⚠⚠ **The requirements' drive says a WORN BAG, and the world has no
    * bag to wear.** `/stuff/thing/gear/backpack` is the only backpack row

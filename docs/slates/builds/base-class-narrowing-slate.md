@@ -1,15 +1,25 @@
 # Base-class narrowing slate — what a class claims, and what it uses
 
-> **Status: UNBUILT** — nothing here exists, and the slate's original
-> premise (2026-09-26, *"the classes are wide"*) was **measured and
-> falsified** the next day; see § The premise that died.
-> **Left:** the containment partition concept (⛔ **blocks everything
-> else** — its own slate) · `Atmospheric` off `Vessel` · `Branded` from
-> `Creature` down to `KeptAnimal` · the seven dead classes · the
-> `Concealable`-on-`Thing` boundary (the bullet-bite) · `Persona`'s 60
-> empty biographies · `Improvable`/`Registrar` · the `lint:object-verbs`
-> blind spot
-> **Size:** a build, after one design pass
+> **Status: PARTIAL** — shipped by MR !303 (2026-09-30); the four
+> passes (Thing · Agent · Location · Idea) built it. The slate's
+> original premise (2026-09-26, *"the classes are wide"*) was
+> **measured and falsified** the next day; see § The premise that died,
+> and what shipped instead was the narrower, evidence-led carve the
+> census argued for.
+> **What shipped:** `Atmospheric` off `Vessel` + the frozen-ambient
+> repair · `Branded` down to `KeptAnimal` · the seven dead classes ·
+> `Concealable`/`Chattel` off the `Thing` root onto the new
+> **`Good`** rung · the `Visible`/`Perceptible`/`Detailed` trio onto
+> the `Thing` and `Location` roots · the new rungs **`Good`**,
+> **`Holder`**, **`Actor`**, `Beast`, `DraftAnimal`, `Station`,
+> `Firebox` · one `Modality` twin for three empty subclasses · the
+> `lint:object-verbs` blind spot closed · `lint:mass` minted as the
+> 58th gate.
+> **Left:** everything under § Deferred, with destinations — chiefly
+> `Persona`'s 60 empty biographies, the `Extra` taxonomy, the
+> structure tier, the `Staged` split, and the two content burn-downs
+> (362 rows with no details; 38 species with no appearance).
+> **Size:** a build
 
 > Rewritten 2026-09-27 from a full-tree census. Every number below was
 > taken against `edd318088` and every claim carries its evidence. The
@@ -360,3 +370,147 @@ real objection rather than the plausible one.
   hand-maintained and has drifted. The replacement should be generated
   from the tree (`tools/slate-index` is the precedent) and must
   introspect at runtime, not parse source.
+
+### Filed by the Thing pass (the clusters plan, retired at the sweep)
+
+- **`stash` / `bury` — player-placed concealment on a `Good`** (D3).
+  The mechanism (`setConcealment` + `PerceptionApi.hideLevelFor`)
+  exists; the verb does not. → [concealment](../../subsystems/concealment.md).
+- **The bottling stamp** (D11): a fill at a branded still or bottling
+  line should write `_brandKey`. → [corpo](../../subsystems/corpo.md).
+- **The mass burn-down** — `lint:mass` shipped as a census-then-ratchet
+  at its measured ceiling (242 classes deriving mass by hand rather
+  than from material × volume), and `pinch-bar`'s capabilities are one
+  of them. The ratchet may only fall.
+- **`BoundaryAnchor` as an `Idea`** (D13) — the one `Thing` that is
+  neither describable nor addressable, which is what makes the
+  `Visible`/`Perceptible`/`Detailed` trio on the `Thing` root a claim
+  with one exception rather than none.
+- **A trade-fixture rung** — if the brewing vat, the anvil and the loom
+  should be *removable fixtures* (owned by the business, never by a
+  person), that is a `Good` subclass or a chattel-owner rule, **not a
+  third root**. ⭐ The owner's container-taxonomy rule from this build
+  applies: one new rung is fine, a half-dozen branches is not.
+- **The 362 rows with no `details`** (D8) — content to write, class by
+  class, for immersion. The owner's brief: *"most of the places that
+  don't author details we probably should be writing some in"*.
+- **`Detailed` on `Material`** (D8/F2b) — ruled OUT by the Idea pass
+  (I3) for now; revisit only if something starts reading a material's
+  parts.
+- ⭐ **N3 — an affordance that is DATA.** A command view declares
+  `affordedBy: capability:<kind>`; the `capabilities:` a `Tool` row
+  already authors (31 of 32) then confers the verbs, and the 24
+  static-only tool classes (`Anvil`, `Loom`, `Whetstone`, `SewingTool`,
+  `Muddler`, `Strainer`, `SoilKit`, `TimberSet`, `AssayKit`,
+  `ScutchingBoard`, `SpinningTool`, `CuttingTool`, `MendingTool`,
+  `Spade` ×2, `PrescriptionPad`, `Splint`, `SurgicalKit`, `SutureKit`,
+  `Syringe`, `SurveyInstrument`, …) become **rows over `Tool`**. The
+  five with a body (`Rod`, `Trap`, `AssayBench`, `LoadDevice`,
+  `HouseholdersKit`) survive as classes. Touches `CommandLogic`'s
+  collection walk (`api/command.ts:1437`) and the verb-collision
+  ladder. ⚠ Not asked for; the owner has it.
+- ⭐ **Assembly / disassembly — the fourth answer to movable/immovable**
+  (F3, owner 2026-09-29). *"We are going to want 'assembly' to be a
+  system on top of 'crafting' but we've only designed the latter. Once
+  assembly ships it may make sense to make the assembled item unmovable
+  but the pieces movable — and then we'd also need disassembly."* This
+  build kept furniture and trade equipment on `Good` (status quo,
+  preempts nothing). The seam: an *assembled* thing may become immovable
+  while its *pieces* stay movable — neither the root nor the rung but a
+  **state transition between them**. It would revisit at least
+  `Fitting` (table · counter · workbench · racking · bench), `Vat` (the
+  installed brewing/dye/retting vats vs a carboy), `Chest`, `AssayBench`
+  (whose city row already authors `fixedInPlace: true`), `Tariff`,
+  `Chair`/`Bed`/`Desk`, `Loom`, `Anvil`, `Still`, `GristMill`,
+  `ButcherBlock`, `DryingRack`. Start from that list and from
+  [crafting](../../subsystems/crafting.md).
+
+### Filed by the Location pass (the location plan, retired at the sweep)
+
+- **`staticSlots` is offered on every room and is dead there** (L3).
+  `Adornable` is built on `Slotted` and ignores the field; the Pattern C
+  surface is half-implemented (`getSlotNames` reads fixtures,
+  `getAllOccupants` reads an empty map; `PutController.openSlotFor`
+  sees every fixture slot as open). Two fixes, both
+  [slot.md](../../subsystems/slot.md)'s and the owner's: a declared
+  `authorable: false` (which would be the tree's first) or the Slotted
+  split giving `Adornable` a fixture map of its own. ⭐ This is the
+  **fourth reading of a zero authoring count** the build found — not
+  misrepresentation, not a content gap, not silent behaviour, but *the
+  offer itself is wrong*.
+- **`coords` / `coordinates`** (L4) — two storages of one fact on every
+  cartesian room, bridged by `setCoords`; the spherical pair authors the
+  tuple directly. `location.md:326-331` calls unification out of scope.
+  The day a third coordinate system arrives is the day to do it.
+  (This build moved `authorable` to the one the Hydrator actually
+  reads; it did not unify them.)
+- **A spherical venue cannot author `props:`** (L7) — `SphericalLocation`
+  composes no `Staged`; 0 rows want it; a one-line addition when one does.
+- **Ten verbs still afforded by nothing** (L9) — `fold`/`unfold`
+  ([slot.md](../../subsystems/slot.md)), `walk`/`swim`/`fly`/`dismount`
+  ([locomotion.md](../../subsystems/locomotion.md)). This build afforded
+  `hitch`/`unhitch` and `mount`/`ride`; the rest are their subsystems'.
+- **`alternateNames` × 45** — the next dead-key burn-down;
+  `turf-bank.yaml` is one of them.
+- **The lounge on plain `Location`** — D14-honest today. If
+  `lint:locations`'s *every location plots* rule ever wants the lounge's
+  satellites on the roster, the exemption is `WarrenMember`, not a class.
+
+### Filed by the Idea pass (the idea plan, retired at the sweep)
+
+- **Concealment's census cannot see an exit's band** (I4) — the
+  authoring surface is a Location row's `exits[*].concealment`, so a
+  census that reads rows by class reports the exit family dead. The fix
+  is an **instrument** change (`check-composition-census` reading inline
+  exit specs as authoring for `Exit`), not a class change.
+- **The reference-Idea family and the class it would earn** (I7) —
+  eight classes, one sentence, no body. The body that would mint the
+  rung is a clone refusal or a catalogue-warm gate
+  (`lint:reference-ideas`), which is the real fix for the *inert at
+  boot* defect this repo has now hit three times.
+- ⚠ **`lock`/`unlock` over `Lock` + `presentsKey`** (I9) — the
+  reconciliation `lib/boundary/Locked.ts:15-24` asks for; the boolean
+  mixin retires with it and the file is renamed then. ⭐ **Until that
+  lands the two views stay unafforded ON PURPOSE** — this build's
+  Location pass planned to wire them and reversed itself on the Idea
+  planner's evidence (`LockController` checks no key, no credential and
+  no title, and `Locked.ts` says in terms *"Do NOT grow this into a
+  second lock system"*). **The census is the census; the disposition is
+  per verb.** → [boundary](../../subsystems/boundary.md),
+  [credential](../../subsystems/credential.md).
+- **The unafforded twelve** (I10) — the list with the bucket each would
+  take: `Mobile.self` for the door pair once keyed; the locomotion
+  family and `Foldable` are `locomotion.md`'s and `slot.md`'s.
+- **Species' generic appearance** — 38 of 74 species author no
+  `longDescription`. A content gap (reading 2), the owner's brief:
+  *"write some in for immersion's sake"*.
+
+### Filed by the coordinator (the first narrowing plan, retired at the sweep)
+
+- **A passenger is a heat source.** A body emits ~100 W; a full coach is
+  warm. `SpaceHeating` on the agent chain is a host-placement decision
+  (lens 3 wants it; the agent chain is at the TypeScript instantiation
+  ceiling, which is what makes it a decision rather than a line).
+  → [thermal](../../subsystems/thermal.md).
+- **A shipped coach.** No locality places one; `passenger-conveyance`
+  waits on distance. Until then an `ExitableVessel` interior is provable
+  only by clone.
+- **Nested envelopes** — a coach in a coach-house; a room in a building.
+  The structure tier's, below.
+- **The holder read is immediate** — a bag in an icebox. The
+  frozen-ambient repair this build shipped steps outward through
+  non-atmospheric containers; a *holder* inside one is the next step.
+- **The inverse `<composition>` panel's cost**, and a memoized class
+  index. → [wiki](../../subsystems/wiki.md).
+- **`Chattel` on `Creature`** — the same test the census applied to
+  `Branded`. (This build took `Chattel` off `Creature` and off the
+  `Thing` root; whether a *kept* animal is chattel is the open half,
+  and it meets `Chattel`/`Branded` on `DraftAnimal` above.)
+- **`ColorTag`** — vocabulary with no user.
+- **The census's eighth and ninth channels** — a dead scan root in a
+  read-time panel; an exit count that does not know a seal is a door.
+  The seven-channel tool is `pnpm -C packages/server mixin-census`.
+- **The `Improvable` / `Registrar` rows stay struck** — register row 7,
+  falsified: both mixins are live, and the census missed them because
+  **the narrowing read is in the CONTROLLER, not in a view's
+  `requires:`**. That is the sixth necessity channel.

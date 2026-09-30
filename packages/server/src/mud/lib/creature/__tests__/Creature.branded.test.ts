@@ -44,8 +44,8 @@ describe('⭐⭐ Branded is on the animal rungs, not on every body', () => {
   it('⭐ and Chattel followed it off the base — see Creature.chattel.test.ts', () => {
     // It was left on `Creature` when `Branded` moved, on the reading that
     // ownable and marked are different questions. They are, but the HOST
-    // argument is identical, and W3 of the clusters plan finished the
-    // move: D98's chain of title is about an ANIMAL.
+    // argument is identical, and the base-class narrowing's Thing pass
+    // finished the move: D98's chain of title is about an ANIMAL.
     expect(MixinApi.hasMixin(Creature, Mixins.Chattel)).toBe(false);
   });
 });

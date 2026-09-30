@@ -13,7 +13,8 @@
  * ⚠ **`Tool` gains nothing here beyond the rename.** No static, no
  * capability→verb table, nothing that assumes the 24 static-only tool
  * classes have collapsed into it. That collapse needs affordance-as-data
- * (N3 of the clusters plan), which is a design and not this build;
+ * (filed on docs/slates/builds/base-class-narrowing-slate.md as N3),
+ * which is a design and not this build;
  * `Tool` is the class those 24 COULD collapse into later, and it stays
  * empty so the decision is still open.
  *
