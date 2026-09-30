@@ -785,7 +785,15 @@ export function fieldMetaEntries(source: string): Map<string, FieldRule> {
       else if (d === 1 && (ch === "{" || ch === "[" || ch === "(")) line += ch;
     }
     for (const km of line.matchAll(
-      /(?:^|[,{])\s*(?:\/\/[^\n]*\n\s*)*(?:['"]([^'"]+)['"]|([A-Za-z_$][\w$]*))\s*:/g,
+      // ⚠⚠ A `/** … */` block above an entry hid it completely. The
+      // comment skip only knew `//`, so `HandlingMixin`'s `handling:` —
+      // which carries a fourteen-line JSDoc about the spoiler split —
+      // was never read as a declared field, and ELEVEN shipped rows that
+      // author `handling:` were counted as orphan keys the Hydrator
+      // discards. They are not: the field is there and the gate could
+      // not see it. A blind spot in an inventory is worse than a gap in
+      // it, because the number looks like an answer.
+      /(?:^|[,{])\s*(?:(?:\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)\s*)*(?:['"]([^'"]+)['"]|([A-Za-z_$][\w$]*))\s*:/g,
     )) {
       out.set((km[1] ?? km[2])!, {});
     }
