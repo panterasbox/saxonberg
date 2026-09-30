@@ -1,7 +1,7 @@
 # Brain substrate slate — what a brain IS
 
 > **Status: IN CONVERSATION, opened 2026-09-25.** A design cycle, docs
-> only. It exists because the [crew](crew-slate.md) build turned out to be
+> only. It exists because the [crew](call-slate.md) build turned out to be
 > a layer of dynamism balanced on an undesigned one:
 >
 > > **User: "npc brains are the most dynamic to the point where we want to
@@ -522,7 +522,7 @@ as characterful casting. Character enters at pass 2 (the archetype's
 inclinations) and through the switch-prose, never through the comparison.
 
 ⭐⭐⭐ **And it dissolves a rule.** See
-[crew-slate](crew-slate.md) § *Blocked on the brain substrate*:
+[call-slate](call-slate.md) § *Blocked on the brain substrate*:
 junior-first was an authored tie-break justified by fiction. Under this
 design the senior's *serve-this-order* candidate simply reports a lower band
 because they are mid-count — **so junior-first is not a rule, it is a
@@ -582,7 +582,7 @@ leave**.
 
 - [behavior.md](../../subsystems/behavior.md) — the shipped model this interrogates
 - [npc-behavior-slate](npc-behavior-slate.md) — the feature backlog; ⚠ asks none of the above
-- [crew-slate](crew-slate.md) — the consumer that exposed the gap; the routing matrix
+- [call-slate](call-slate.md) — the consumer that exposed the gap; the routing matrix
 - [agent-coordination-requirements](../../requirements/agent-coordination-requirements.md) — ⭐ the build: the arbiter, the call and the capability gate as one
 - [llm-content-slate](llm-content-slate.md) — the LLM brain ambition, the other consumer
 - [advancement.md](../../subsystems/advancement.md) — 77 Disciplines, bands, and NPC/player symmetry

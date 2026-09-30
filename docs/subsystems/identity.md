@@ -81,9 +81,29 @@ makes it *the* collier. See [presentation.md](./presentation.md).
 | singleton | ✅ `SingletonMixin`; a second live clone **throws** | ❌ two sentries are the point |
 | dossier | ✅ | ⛔ a build error (`lint:identity`) |
 | proper name | ✅ `CastMixin` composes `NamedMixin` | ⛔ **structural** — the field is not there to fill in |
-| register | `proper` (named) or `definite` | `indefinite` |
+| register | ⚠ see below — **`register` is about the `shortDescription`, not the rung** | `indefinite` |
 | harm attributes to | the person **and** the institution | the institution only |
 | personality | ✅ | ✅ — a role is a mask, not a life, so it never changes |
+
+⚠⚠ **`register` describes the `shortDescription`, not the rung — and this
+table has misled at least one reader into a 22-row sweep.** It is the
+article that short description takes, nothing more:
+
+| | `shortDescription` | `register` | reads as |
+|---|---|---|---|
+| Dave | `Dave the Barkeep` | `proper` | *Dave the Barkeep* |
+| the collier | `collier, black to the elbow` | `definite` | *the collier…* |
+| ⭐ **Mara** | `steady, watchful dwarf tending bar` | **`indefinite`** | *a steady, watchful dwarf tending bar* |
+
+⭐ **A named `Cast` with `register: indefinite` is CORRECT and is the normal
+case** — 22 rows do it, including the whole bar. Mara *has* a name; the
+name is what you **learn**, and until you do she is *a dwarf tending bar*.
+Recognition is [belief.md](./belief.md)'s job, not `register`'s.
+
+⭐ **Which is why `lint:identity` rule 2 guards on `!name`:** a **nameless**
+Cast cannot present indefinitely, because there is nothing to learn — *"a
+hewer on tutwork"* really is just a role. A **named** one can. That guard is
+the point, not a hole.
 
 ⚠ **An `Extra` keeps its OWN identity.** It is not anonymous and it does
 not project onto its institution: two dead sentries must not collapse

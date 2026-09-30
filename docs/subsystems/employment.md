@@ -344,7 +344,7 @@ and be credited with `cooking`.
 `CraftingLogic.resolveMaker` breaks ties on the lowest identity path,
 which is predictable rather than right — two cooks in one kitchen wants a
 queue. That is arbitration and belongs to the crew substrate
-([crew-slate](../slates/builds/crew-slate.md)).
+([call-slate](../slates/builds/call-slate.md)).
 
 ### ⚠ What this replaced, and why
 

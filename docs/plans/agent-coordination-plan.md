@@ -10,7 +10,7 @@ kernel** — first consumers Dave's Bar and the Hearthworks; the market bakery
 and one goods-yard outfit are the world-didn't-break check.
 
 Seeds: [brain-substrate-slate](../slates/builds/brain-substrate-slate.md)
-(the arbiter) · [crew-slate](../slates/builds/crew-slate.md) (the call).
+(the arbiter) · [call-slate](../slates/builds/call-slate.md) (the call).
 
 ---
 
@@ -583,9 +583,20 @@ kitchen work as candidates) rostered on `kitchen-hand` `[0..6] 11–19`
 (overlapping Odo's 6–19). `call: regulars` on the bar; `call: rota` on the
 Hearthworks; every other Business with a `fulfills` seat (the three
 fermenting outfits, the bakery, any Hearts-Delight house the gate finds)
-gets `call: rota`. The mojito: Mara's `mixology` becomes `expert`
-(*"counted these bottles ten thousand times"*; the alternative, lowering the
-mojito to `standard`, hides the only hard cocktail on the menu). Exact
+gets `call: rota`. ⭐⭐ **The mojito stays unmakeable** (user, 2026-09-30).
+Nobody at the bar can make the menu's only `hard` cocktail, and **that is
+the finding, not a defect to tune away**. Promoting Mara to `expert` would be
+rewriting a dossier to make a number go green — the exact move the
+requirements' Collisions section forbids (*"if the bands do not produce
+sensible behaviour, the derivation is wrong, not the people"*) — and lowering
+the mojito hides the only hard drink on the rail. ⭐ A bar offering a drink
+none of its staff can make is a **standing vacancy for a skilled
+mixologist**, which is lens 3b's whole mechanism and the clearest thing this
+build can show. **So `MENU_STAFF_SHORTFALL_CEILING` does NOT reach 0 in W6:**
+it falls to exactly the mojito's count, and the gate's job is to keep saying
+so. W6's acceptance is *the ceiling falls to the mojito and no further*, and
+the drive gains a checkpoint: **order the mojito and be told nobody here can
+make it, and that nobody could.** Exact
 row lists are the gate's output, not this plan's guess.
 
 ---
@@ -1073,13 +1084,13 @@ Clean attach points, each with the slate it leaves as:
   `BrainStatics`) — the kernel's one generic sentence serves until a
   brain wants its own. → brain-substrate-slate.
 - **A `critical` need that refuses a call** — importance flows one way
-  (D1); the reverse needs a criterion and an appeal. → crew-slate (lens 7
+  (D1); the reverse needs a criterion and an appeal. → call-slate (lens 7
   question already recorded there).
 - **The addressed posting** — `claimMode` gains `addressed`; the
-  resolver already takes a handed-in set. → crew-slate § the board
+  resolver already takes a handed-in set. → call-slate § the board
   unification.
 - **The push-at-range column** (dispatch, turnout, hue and cry) — the
-  caller hands a different candidate set. → crew-slate + policing-slate.
+  caller hands a different candidate set. → call-slate + policing-slate.
 - **A Cast earning a chronicle deed by acting** (the formidable rung for
   NPCs) — the by-hand verbs through `forceCommand` from a brain. →
   npc-behavior-slate.
@@ -1087,7 +1098,7 @@ Clean attach points, each with the slate it leaves as:
   declarations; `vocations.md` derived. → vocations register.
 - **The senior seat, the inventory duty, the shift hand-off** →
   daves-bar-slate.
-- **`Troupe`** stays unspent. → crew-slate § the name.
+- **`Troupe`** stays unspent. → call-slate § the name.
 
 ---
 

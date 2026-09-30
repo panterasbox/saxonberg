@@ -293,7 +293,7 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
    credited with a trade they do not practise. Ties beyond the discipline
    fall to the lowest identity path, which is predictable rather than
    right: two equally-qualified cooks wants a queue, which is the crew
-   substrate's ([crew-slate](../slates/builds/crew-slate.md)).
+   substrate's ([call-slate](../slates/builds/call-slate.md)).
 
    ⭐ **An open question this inherited.** Retiring the maker marker made
    a PLAYER on shift in a `fulfills` seat a resolvable maker — the seam

@@ -44,7 +44,7 @@ player who takes a seat takes **every** order by path-sort, so replacement is
 not legible, it is total. **This build is what makes the claim true.**
 
 Seeds: [brain-substrate-slate](../slates/builds/brain-substrate-slate.md)
-(the arbiter) · [crew-slate](../slates/builds/crew-slate.md) (the call) ·
+(the arbiter) · [call-slate](../slates/builds/call-slate.md) (the call) ·
 [daves-bar-slate](../slates/builds/daves-bar-slate.md) and
 [livelihood-slate](../slates/builds/livelihood-slate.md) §5.4 (what stays
 behind) · [balance-slate](../slates/builds/balance-slate.md) §the NPC
@@ -219,7 +219,7 @@ authored overlap that any of it happens with no player in the room.
 - **`actsAsOne` — a set that turns as one.** ⚠ No pack exists in the realm:
   the one wolf stands alone, the sentry is a singleton. A consumer-less half
   pays the full verification bill for nothing. →
-  [crew-slate](../slates/builds/crew-slate.md).
+  [call-slate](../slates/builds/call-slate.md).
 - ⛔ **The board unification — an assignment posted to a named agent.** ⚠
   **Cut at plan grounding, 2026-09-30.** `GigSpec` has no assignee field and
   `ContractRecord.claimant` fills only on `claim()`, because *every actor is
@@ -233,21 +233,21 @@ authored overlap that any of it happens with no player in the room.
   out to catch. ⭐ Kept as **the grain** rather than the code: the substrate
   *is* for boss-chooses assignment, the attach point is recorded
   (`claimMode` gains an addressed member; the resolver already takes a
-  handed-in candidate set), and no field ships. → crew-slate.
+  handed-in candidate set), and no field ships. → call-slate.
 - **Dispatch, the turnout, the hue and cry.** The substrate stops blocking
   them (the resolver is handed its candidates, so out-of-reach is the
   caller's question) but **no caller is built** — there is no constable brain
-  and no watch department. → crew-slate + the policing build.
+  and no watch department. → call-slate + the policing build.
 - **The LLM arbiter.** The seam ships (the arbiter is swappable, the
   candidate list is the prompt shape); no model is wired. →
   [llm-content-slate](../slates/builds/llm-content-slate.md).
 - **The senior seat, its reporting chain and the inventory duty.** Its value
   is the succession story and the stock count, which belong with the
-  clipboard and the till. → daves-bar-slate + crew-slate.
+  clipboard and the till. → daves-bar-slate + call-slate.
 - **The register, the safe, the shift hand-off, dismissal.** →
   daves-bar-slate §the ritual; livelihood-slate §5.4 for firing.
 - **Archetype and temperament rows.** ⚠ **A correction to an earlier note in
-  crew-slate:** the archetype is a *generator* of a person's `behaviors:`
+  call-slate:** the archetype is a *generator* of a person's `behaviors:`
   list, and the list already exists on every row — so pass 2 is already
   supplied and the archetype half is **not** on the critical path. →
   [cast-archetype-slate](../slates/builds/cast-archetype-slate.md).
@@ -255,9 +255,9 @@ authored overlap that any of it happens with no player in the room.
   *whether* they can. → [crafting.md](../subsystems/crafting.md)'s deferred
   skill seam.
 - **A pipeline** — one order, several actors in sequence (prep → cook →
-  plate). A different primitive that no selector produces. → crew-slate.
+  plate). A different primitive that no selector produces. → call-slate.
 - **Cohesion — a set that moves together.** Nothing in the game has it;
-  building it would be invention. → crew-slate.
+  building it would be invention. → call-slate.
 - **Triage** — a request whose priority reorders the queue. Demand-side, and
   `AttendantMixin` already has a `reception` discipline. → attendant.md.
 - **Any change to the by-hand steps.** `muddle`/`strain`/`garnish` are the
@@ -760,7 +760,7 @@ first member.
 ## Cross-references
 
 - [brain-substrate-slate](../slates/builds/brain-substrate-slate.md) — the arbiter's design, the measurement, the prior-art survey, what is left
-- [crew-slate](../slates/builds/crew-slate.md) — the call, the matrix, the quest relation, everything deferred
+- [call-slate](../slates/builds/call-slate.md) — the call, the matrix, the quest relation, everything deferred
 - [behavior.md](../subsystems/behavior.md) — the model this replaces
 - [activity.md](../subsystems/activity.md) — engagement slots and `AbortReason`, the seam importance rides
 - [crafting.md](../subsystems/crafting.md) — the ladder, the five gated verbs, the three ungated ones, the deferred skill seam
