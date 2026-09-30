@@ -24,6 +24,8 @@
 
 import Holder from '@saxonberg/server/mud/lib/stuff/Holder';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
+import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
+import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -42,7 +44,12 @@ const DEFAULT_LITRES_PER_STREET = 2;
 /** The tag a cask's interior must carry to count as burnable oil. */
 const OIL_TAG = 'lamp-oil';
 
-const FuelStoreBase = PostRegistrationMixin(Holder);
+// ⭐ One store per town (`SingletonMixin` — a distinct templatePath per
+// locality, so `StuffApi.singleton(<store path>)` resolves it reliably from
+// the settle and the props once-guard is safe); `StagedMixin` so a row can
+// declare its founding casks (`props:`); `PostRegistrationMixin` for the
+// locality-rate resolution.
+const FuelStoreBase = PostRegistrationMixin(StagedMixin(SingletonMixin(Holder)));
 
 export default class FuelStore
   extends FuelStoreBase

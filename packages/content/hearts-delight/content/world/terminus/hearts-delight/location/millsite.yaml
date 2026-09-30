@@ -11,9 +11,18 @@
 # the city, with no grain within a day of them. A grain mill goes where
 # the grain is — von Thünen, and the reason every valley in Europe had
 # its own mill rather than one big one.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Street
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Lit by the valley's oil after dusk (energy build). Seniority 3 — the
+  # JUNIOR way, the FIRST to stand cold when the store runs short: a lamp at
+  # the fall matters less than a lamp at the gate, and the order is recorded
+  # in advance so nobody is judged at the moment of refusal.
+  publicLighting:
+    flux: 300
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 3
   shortDescription: millsite
   keywords: [millsite, mill, wheel, weir, fall]
   register: definite

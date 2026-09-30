@@ -1,0 +1,35 @@
+# The Heart's Delight Parish — ⭐ **the first town in the game to fund a
+# public service and pay for it.**
+#
+# Where Hinkley Hills is a survey with an opinion (no treasury, no seats),
+# the valley lights its ways after dark, and lighting costs oil, and oil
+# costs money — so it needs the three things a service needs: a **treasury**
+# (its public-works department's house account, filled by the local share of
+# the sales tax on trade in the valley), a **department** that runs the
+# service, and a **seat** whose holder answers for it. It is a parish-scale
+# government, not a chartered municipality — one department, one seat — but it
+# is a real one, because it does a real thing.
+#
+# ⚠ The Locality shipped with `_governmentKey: null` ("who governs the valley
+# is a live question"). The energy build answers it, narrowly: the valley now
+# governs its own lamps. Everything else about how the valley is governed is
+# still open.
+class: /platform/idea/Government
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: hearts-delight
+  displayName: the Heart's Delight Parish
+  description: >-
+    A parish government of the valley, thin but real: it keeps the ways lit
+    after dark, funds the oil from a budget the valley's own trade fills, and
+    answers for the service through a single seat — the Warden of the Ways.
+  charter: ""
+  # The treasury IS the public-works department's house account (energy D12).
+  treasury: /world/terminus/hearts-delight/public-works/idea/department
+  departments:
+    - /world/terminus/hearts-delight/public-works/idea/department
+  seats:
+    - key: public-works
+      label: Warden of the Ways
+      department: /world/terminus/hearts-delight/public-works/idea/department
+      positionKey: warden

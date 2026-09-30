@@ -837,9 +837,28 @@ resolves; live: the hand consigns casks onto the cash-and-carry counter
 Commit: `build(energy A3): the oil works — a producer that is not a
 retailer`.
 
-#### A4 — Heart's Delight is gas-lit
+#### A4 — Heart's Delight is gas-lit ✅ DONE
 
 Implements D10, D11 (the gas-lit half), D12 (seat, contract).
+
+> **Done (commit `build(energy A4)`).** The valley now lights, burns and pays
+> for its own lamps. A parish `Government` row (world-seed) with a treasury (the
+> public-works department's account), a department, and the Warden of the Ways
+> seat; the Locality gains `_governmentKey` + `_publicLighting { fuelPerStreetNight:
+> 2, supply: <store> }`. valley-gate/bench-lane/millsite become `/platform/location/Street`
+> with lamps (seniority 1/2/3 — millsite darkens first). A public-works yard
+> (works-board + receiving-bench, the warden), the oil `store` (a `FuelStore`
+> self-placed by `container:`, six founding casks via `props: count`), the
+> `department` Business (warden `purchases: true`, `parLines` naming lamp-oil
+> from the distributor), and the warden Cast (`restocks` → bounty → the store's
+> shelf). ⭐ **FuelStore composition finalized:** `PostRegistrationMixin(StagedMixin(SingletonMixin(Holder)))`
+> — Staged for the founding `props:`, Singleton so `StuffApi.singleton(<store>)`
+> resolves it (the A2 verify item) and the props once-guard holds. Findings:
+> **region = zone** (`Census.regionOf`), so HD's store casks don't suppress the
+> Terminus oilworks spawn — regionTarget stays 4. The `_wheelPassable` default
+> is **true**, so the carter reaches the valley (verify item resolved). Dropped
+> the yard's `alternateNames` (a `lint:instanceable` orphan key the location
+> chain doesn't declare). All content lints green; live lighting is the A5 drive.
 
 Files:
 - `packages/content/world-seed/content/stuff/idea/Government/hearts-delight.yaml`

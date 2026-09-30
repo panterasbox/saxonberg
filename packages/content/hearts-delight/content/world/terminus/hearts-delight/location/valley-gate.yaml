@@ -4,9 +4,18 @@
 # yards and the peach-can tower are the valley's own build; what ships
 # here is the one road a grain chain needs and the prose that says the
 # rest is there.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Street
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ The valley lights this way (energy build) — gas lamps on standards,
+  # burning the town's oil after dusk. A PROPERTY of the street, nothing
+  # minted; whether they burn is derived (funded ∧ dark ∧ oil in the store).
+  # Seniority 1: the entrance is the LAST to go dark when the oil runs short.
+  publicLighting:
+    flux: 300
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 1
   shortDescription: valley gate
   keywords: [gate, valley, road, entrance]
   register: definite
@@ -31,6 +40,10 @@ data:
       destination: /world/terminus/hearts-delight/location/bench-lane
       media: [ground]
       edgeMinutes: 9
+    east:
+      destination: /world/terminus/hearts-delight/public-works/location/yard
+      media: [ground]
+      edgeMinutes: 1
   details:
     orchards:
       keywords: [orchards, orchard, trees, fruit, flats]
