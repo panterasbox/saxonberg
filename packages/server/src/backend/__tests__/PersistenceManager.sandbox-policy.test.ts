@@ -12,6 +12,7 @@ import {
   Collections,
   COLLECTION_POLICIES,
   SandboxWriteRefusedError,
+  SandboxOverlayUnimplementedError,
 } from '../PersistenceManager';
 
 const SCOPE = '/home/test-player';
@@ -281,4 +282,73 @@ describe('PersistenceManager sandbox policy seam', () => {
       expect(state.bulkDeletes).toEqual([{ circleScope: SCOPE }]);
     });
   });
+
+/*
+ * ⚠⚠ The declared-but-unbuilt mode. No collection selects
+ * `{ verb: 'shadow', mode: 'overlay' }`, so the only way to pin the
+ * refusal is to select it — which is the point: the defect was that
+ * nothing could ever have noticed. Until 2026-09-30 every one of these
+ * three assertions would have found a REAL WRITE instead of a throw.
+ *
+ * ⭐ This is the test that outlives the fix. When overlay is built the
+ * throws go, and this block is what tells whoever removes them exactly
+ * which three call sites have to start doing something instead.
+ */
+describe('SHADOW(overlay) — declared, unbuilt, and refused at all three write paths', () => {
+  // A cache collection whose real policy is shadow/skip; we flip the
+  // mode for the duration and put it back.
+  const VICTIM = Collections.BankAccounts;
+  let original: unknown;
+
+  beforeEach(() => {
+    pm.setScopeResolver(() => SCOPE);
+    const table = COLLECTION_POLICIES as unknown as Record<string, unknown>;
+    original = table[VICTIM];
+    table[VICTIM] = { verb: 'shadow', mode: 'overlay' };
+  });
+
+  afterEach(() => {
+    const table = COLLECTION_POLICIES as unknown as Record<string, unknown>;
+    table[VICTIM] = original;
+  });
+
+  it('save refuses instead of writing an unstamped field row', async () => {
+    const state = installFakeCollection(pm);
+    await expect(pm.save(VICTIM, { accountId: 'a1' })).rejects.toThrow(
+      SandboxOverlayUnimplementedError
+    );
+    expect(state.inserts).toEqual([]);
+    expect(state.upserts).toEqual([]);
+  });
+
+  it('delete refuses instead of deleting a real row', async () => {
+    const state = installFakeCollection(pm);
+    await expect(pm.delete(VICTIM, '0'.repeat(24))).rejects.toThrow(
+      SandboxOverlayUnimplementedError
+    );
+    expect(state.deletes).toEqual([]);
+  });
+
+  it("deleteMany refuses instead of bulk-deleting on the caller's unscoped filter", async () => {
+    const state = installFakeCollection(pm);
+    await expect(pm.deleteMany(VICTIM, { accountId: 'a1' })).rejects.toThrow(
+      SandboxOverlayUnimplementedError
+    );
+    expect(state.bulkDeletes).toEqual([]);
+  });
+
+  it('and it is NOT a SandboxWriteRefusedError — the engine is at fault, not the collection', async () => {
+    installFakeCollection(pm);
+    await expect(pm.save(VICTIM, { accountId: 'a1' })).rejects.not.toThrow(
+      SandboxWriteRefusedError
+    );
+  });
+
+  it('a FIELD context is untouched — the refusal is circle-scoped only', async () => {
+    pm.setScopeResolver(() => null);
+    const state = installFakeCollection(pm);
+    await pm.save(VICTIM, { accountId: 'a1' });
+    expect(state.inserts).toEqual([{ accountId: 'a1' }]);
+  });
+});
 });

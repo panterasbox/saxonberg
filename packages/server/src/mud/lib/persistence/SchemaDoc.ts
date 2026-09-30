@@ -286,6 +286,19 @@ export class SchemaDoc {
       if (map.mode !== 'skip' && map.mode !== 'overlay') {
         return fail("`sandbox.mode` must be 'skip' or 'overlay'");
       }
+      // ⚠⚠ `overlay` is in the TYPE and not in the ENGINE. Refuse it
+      // here so the failure lands at `gen:schema` / `lint:schema` time,
+      // on the author who selected it, rather than at runtime inside a
+      // circle session. `PersistenceManager` throws on it too (that is
+      // the fail-closed backstop); this is the one that names the fix.
+      // Delete both when overlay is built — see the avatar-family slate.
+      if (map.mode === 'overlay') {
+        return fail(
+          "`sandbox: { verb: shadow, mode: overlay }` is declared in the " +
+            'policy type but NOT IMPLEMENTED — no collection may select ' +
+            "it yet. Use 'skip', 'stamp' or 'refuse'."
+        );
+      }
       return { verb: 'shadow', mode: map.mode };
     }
     return { verb: verb as 'stamp' | 'refuse' };
