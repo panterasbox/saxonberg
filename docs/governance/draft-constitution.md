@@ -258,6 +258,21 @@ unamendable except by founding anew (Article X §4).
 7. **Human enforcement** is reserved for matters of judgment that code cannot
    decide; it is bounded, recorded, recusal-gated, and subject to review. No
    enforcement is arbitrary or selective.
+
+   > ⚠⚠ **§6–7 describe a boundary that MOVES, and that is deliberate**
+   > (noted 2026-09-29 from [lens #33 · Rules](../lenses/33-rules.md)).
+   > *Mechanically applicable* is bounded by what has been built and paid
+   > for, so the line advances toward code as capacity allows — an
+   > **economic** frontier, not a principled one. But it does not advance
+   > all the way: the **evidence firewall** (`measurement.md` A15 —
+   > *kernel omniscience never becomes diegetic evidence*; a crime
+   > genuinely unseen is genuinely unproven) and the **speed-camera
+   > doctrine** (*prevention reads as physics; automated punishment reads
+   > as tyranny; witnessed process reads as law*) both stop it. ⭐⭐ So
+   > §6 binds rules that protect **a claim the platform makes**, and reads
+   > as a ceiling rather than a floor for rules that protect **a norm the
+   > polity holds** — where the enforcement *mode* is itself the
+   > legislature's choice ([enforcement-slate](../slates/builds/enforcement-slate.md)).
 8. The executive shall **provide and maintain a structured deliberation
    surface** for bills before the legislature — one whose organization is the
    argument's own structure, not a ranking of persons or contributions by user

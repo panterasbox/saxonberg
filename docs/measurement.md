@@ -525,6 +525,37 @@ otherwise?* If yes, it is not layer 3.
 Three tiers, by **who can change it** — and the tiers are what make the
 "amendable" claim survivable.
 
+### ⭐⭐⭐ These tiers are ONE axis — the other is who *enforces*
+
+Added 2026-09-29 from [lens #33 · Rules](./lenses/33-rules.md), which
+found the two being conflated wherever the enforcement mandate is cited:
+
+| axis | asks | values |
+|---|---|---|
+| **amendment** — this Part | who may **change** the rule | Tier **A** · **B** · **C** |
+| **enforcement** | who **executes** it | **wall · camera · witness · norm** ([enforcement-slate](./slates/builds/enforcement-slate.md)) |
+
+They are orthogonal, and the common, correct case is a **Tier C** rule
+enforced by **wall**: the polity sets a rate, the engine collects it.
+
+> ⭐⭐⭐ **Which names a failure mode nothing here currently guards:
+> implementing a law must not entrench it.** The engine gains the ability
+> to enforce; the polity keeps the ability to repeal. A code-enforced
+> Tier C rule stays **parameterized by the law** and is never compiled
+> into the substrate — otherwise automation promotes C to B and nobody
+> voted for it. ⚠ There is no lint and no review question for this; it is
+> census-then-ratchet shaped and the census is unwritten.
+
+⚠⚠ **And the enforcement frontier does not advance all the way.** It
+moves toward code as engineering capacity allows — an *economic*
+boundary — but **A15** (the evidence firewall, below), the
+**speed-camera doctrine** and the mode being a committee's choice all
+stop it. The honest form is two rules: where a rule protects **a claim
+the platform makes** (conservation, append-only, title, provenance) code
+enforcement is mandatory; where it protects **a norm the polity holds**,
+over-enforcement is the failure, because there the *imperfection* of
+enforcement is the content.
+
 ## Tier A — Integrity invariants · amendable by **nobody**
 
 The test: **violating it would let someone lie to a player, and no

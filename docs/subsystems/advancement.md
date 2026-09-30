@@ -180,6 +180,24 @@ away because the STOCK does. See [exertion.md](./exertion.md).
 
 `Competence` (`lib/advancement/Competence.ts`) is a **pure, stateless
 value-object**: `Competence.derive(evidence)` folds a Discipline's
+> ⭐⭐⭐ **Why the band and not the number — the `bands-not-theta`
+> argument** (written 2026-09-29 in
+> [lens #28 · The State Machine](../lenses/28-the-state-machine.md);
+> its previous justification was retired when `measurement.md` Part 6.3
+> was scoped to declared standards). Three legs:
+> **epistemic** — a derived value's precision belongs to the *formula*,
+> not the *evidence*, and `theta` over six transcript rows prints to any
+> number of decimals without one of them being warranted;
+> **cognitive** — *too many states confuse and overwhelm*, so the band is
+> state compression at the **presentation** layer while the model keeps
+> everything; and the load-bearing one,
+> **structural** — **a band is not a rounding of `theta`. `theta` is the
+> estimator and the band is the attribute**, because if competence is
+> derived then the state space this design actually declares is the band
+> vocabulary and `theta` is how you decide which band you are in.
+> ⚠ None of this makes `theta` secret — B3 stands and it may be read (see
+> below). It settles which one is **the modelled state.**
+
 Transcript rows (in `when` order) into `{theta, band}`. **Nothing is
 stored** — unlike renown's materialized `RenownStanding`, there is no
 aggregate collection and no recompute schedule. Drop nothing, replay the

@@ -15,6 +15,23 @@ one policy lookup per PM write).
 
 ## Doctrine — two channels, two gates
 
+> ⭐⭐ **Read alongside [lens #33 · Rules](../lenses/33-rules.md)**, which
+> reframes the circle as the place where **rules** are suspended rather
+> than merely where damage is contained: *the sandbox suspends every rule
+> except the ones that make suspension affordable — and those are
+> **Tier A***, specifically **A9** (content-write never grants code
+> execution) and **A14** (the symmetric boundary). Same construct as the
+> eternity clauses, one scale down.
+>
+> ⚠⚠ It also records the limit of the drafting story, from the *one
+> honest edge* below: the circle is a **drafting chamber for content** and
+> only a **rehearsal room for code.** A player cannot draft a mechanism in
+> a circle and petition to have it published — so **the foundational
+> rules have no legislature**, Tier B being amendable by whoever ships the
+> code with a merge request as the ratifying act. Whether that should
+> change is that entry's open ask.
+
+
 Every durable mutation is either governed (the published field — real,
 lawful, accountable, with receipts) or discarded (the wire — real while
 inside, void at the boundary). Cheating on the governed channel is

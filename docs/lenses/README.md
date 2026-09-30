@@ -57,8 +57,8 @@ the unnumbered **#∞ Lens of Your Secret Purpose**. *(Corrected
 2026-09-29: an earlier count of 113 stopped one page short of the table's
 end and missed **#111 Responsibility** — "does my game help people,
 how?" — and **#112 the Raven** — "is making this game worth my time?")*
-✅ **Fourteen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
-`31` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
+✅ **Seventeen written** (2026-09-29): `2` · `7` · `17` · `25` · `27` ·
+`28` · `30` · `31` · `33` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
 see below.
 
 | Sharpens | Entry | What it is for |
@@ -66,16 +66,19 @@ see below.
 | **all seven** | ✅ [`2-essential-experience.md`](./2-essential-experience.md) | ⭐⭐⭐ The lens that asks what the seven are *for*. Two challenges — he assumes one game **and one kind of participant** (*player* where he means *consumer*; we have consumers, labour and capital). The seven reduce to **the world does not lie · what you do persists**, which the ratified head already says. And the engine/transmission split: *without the Compact, a world you can live in; with it, a world you can change.* |
 | **4 · Values · 7** | ✅ [`110-transformation.md`](./110-transformation.md) | ⭐⭐⭐ Paired with **#111 Responsibility** (*Kipling's iron ring — "it doesn't come off"*). We are not holding the dial: **the incentives are pencil, not ink.** So **Tier A is the responsibility statement**, and the hedge is values *instantiated in content*. ⚠⚠ Carries the premise — *the game believes people are basically good* — and the case that defeats its filter: **the unfilterable harm is the one that motivated the project.** |
 | **1 · Pedagogy · 2** | ✅ [`17-the-toy.md`](./17-the-toy.md) | ⭐⭐⭐ *GTA "was designed as a medium… a living, breathing city"* — the deck's own words for this project, and **we have already taken his braver way**. Q2 is the **enterability gap verbatim** (third sighting). And *GTA came from Pac-Man*: deriving the world may not oblige deriving the game. |
+| **6 · Economy · 2** | ✅ [`30-emergence.md`](./30-emergence.md) | ⭐⭐⭐ Why the trade backlog is a **roadmap** rather than a content queue. His most powerful tip — *verbs that act on many objects*, **"possibly the single most powerful thing you can do"** — is a content budget in a hand-built game and **architecture** here, so **emergence has a supply chain**: a pack author's row raises the strategic-action count of verbs written months earlier. ⭐⭐⭐ And the **chain walk is his method run backwards** — he adds verbs and watches; **we add a consumer and derive the producers.** Carries the synthesis rule: **borrow to the depth the combination needs, not the depth the source went** — and the finding that the RGO credits nobody. |
 | **6 · Economy · 4** | ✅ [`7-endogenous-value.md`](./7-endogenous-value.md) | ⭐⭐ **The roulette test**: *if the game needs the credential to be worth playing, it is roulette.* His Q2 is one our doctrine forbids us answering. ⭐⭐⭐ And the Goodhart shape: **our best-instrumented value is the one we least want optimised, and the value we promise — understanding — is the least instrumented thing in the design.** |
 | **6 · Economy · 3a** | ✅ [`27-time.md`](./27-time.md) | ⭐ **His chapter is about escaping time; ours about being subject to it** — rewind and speed-up refused, but ⭐ **the pause exists and is better than his**: *you cannot pause the world; the world agrees not to charge you for your absence.* Q1 unanswered — and untestable except **relatively**, which is a third ask for the gym pattern. |
 | **4 · Values** | ✅ [`46-reward.md`](./46-reward.md) | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
 | **4 · Values** | ✅ [`55-visible-progress.md`](./55-visible-progress.md) | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
 | **4 · Values** | ✅ [`91-character-transformation.md`](./91-character-transformation.md) | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
+| **7 · Governance · 1 · 2** | ✅ [`33-rules.md`](./33-rules.md) | ⭐⭐⭐ *"A game is not just defined by its rules; a game **is** its rules."* Brings **Parlett's taxonomy** — and the finding that his **house rule → law → official → written** feedback arrow, which every other game leaves outside the artifact, **is what the Compact promoted to a mechanic**. ⭐⭐⭐ Separates the two axes the docs conflated — *who may amend* (the tiers) vs *who enforces* (`wall · camera · witness · norm`) — and names the failure: **implementing a law must not entrench it.** ⭐⭐ The sandbox suspends every rule but the ones that make suspension affordable, and **those are Tier A**; ⚠⚠ but the foundational rules have **no legislature** — the ratifying act is a merge request. And the hole in Schell: his own definition names *the consequences of the actions* and his questions never ask, which yields **a rule with no stated damage is advisory.** |
 | **7 · Governance** | ✅ [`25-judgment.md`](./25-judgment.md) | Lens 7's only antecedent in the deck — and it stops at *do players feel it is fair*. |
 | **7 · Governance** | ✅ [`37-fairness.md`](./37-fairness.md) | Across 116 lenses **"fair" only ever means "even contest"** — the evidence lens 7 is unprecedented. ⚠ And the one contest we *do* have: wizards and players share a world, and the answer is constitutional, not technical. |
 | **2 · Expression · 3b** | ✅ [`86-character-function.md`](./86-character-function.md) | ⭐ Casting, not staffing — and **casting happens three times** (code · content · runtime). We built the pass-2 machinery and skipped the craft: the save gate knows *legal*, never *good*. The prize is **dramatic predicates** — his against-type casting made declarative, and per-player. |
 | **2 · Expression** | ✅ [`31-action.md`](./31-action.md) | The sharpest attack in the book on our medium — text adventures died because *for every hundred verbs there were thousands they did not have.* ⭐ **His parser's vocabulary was hidden; ours is data** — affordance, refusal, prompting, the collision ladder, an LLM front-end. Adopts the **basic:strategic ratio** question. |
 | **2 · Expression · 3a** | ✅ [`79-freedom.md`](./79-freedom.md) | ⭐ **Freedom here is a political question in a design question's clothes.** Two regimes — a sandbox that is maximal and a shared world the polity grants — and exactly one platform-level class, the wizard flag. |
+| **2 · Expression · 1 · Pedagogy** | ✅ [`28-the-state-machine.md`](./28-the-state-machine.md) | ⭐⭐⭐ **His lens is a designer's private instrument; here it is a player-facing surface** — the inspection card renders the object's mixin composition as chips and the source calls it *a teaching surface*, so *is the world derivable* has a literal implementation. ⭐⭐⭐ **The vocabulary is public, an instance's composition is perceptual, and the withholding is invisible** (filtering means deletion; a concealed mixin is absent, never flagged) — and the composition is **itself derived per viewer**, so his frame has neither a time nor an observer dimension. The **structural** half of `93` — not *can an author make something with the quality* but **is the substrate telling the truth about what its objects are.** ⚠⚠ Carries the one piece of advice in the deck that is wrong for this artifact: *"the right way to think about something is whichever way is most useful **at the moment**"* — which has no time dimension, and **the god class is that rule iterated.** ⭐⭐⭐ Names the vocabulary A3 needs and Schell lacks: an attribute has a **provenance** (authored · stamped · derived), so *what are its possible states* presumes a stored state a derived attribute does not have, and *what triggers the change* is **that you looked.** ⭐⭐⭐ And it writes the **`bands-not-theta`** warrant [`55`](./55-visible-progress.md) asked for. |
 | **2 · Expression · 3a** | ✅ [`93-the-nameless-quality.md`](./93-the-nameless-quality.md) | ⭐ Not *does the world feel alive* — **can an author make something that does, or does the substrate prevent them?** The aesthetic half of the narrowing argument; *not-separateness* as 3a's positive form; charm as a budget denominated in carves. |
 
 ⛔ **`92-inner-contradiction.md` — written 2026-09-29, deleted the same
@@ -94,7 +97,7 @@ files** — they are one argument seen three ways, and the levelling
 conversation is what they are for. Same for `25` + `37`, and `31` +
 `79`, which share one answer.
 
-**Second rank — real, not urgent:** `90-status.md` (Keith Johnstone's
+**Second rank — real, not urgent:** `95h-cheatability.md` (⭐ promoted 2026-09-29 — [`33`](./33-rules.md) asks to pair with it, and its claim that *the belief a game is cheatable destroys endogenous value even when false* is the general form of the wizard-asymmetry problem [`37`](./37-fairness.md) answered constitutionally; it also sits in the same section of the book as `33`) · `26-functional-space.md` and `32-goals.md` (the two remaining mechanics lenses; `26` wants a claim that our six spatial representations are one model, which nobody has checked) · `90-status.md` (Keith Johnstone's
 improv status — the one genuinely unused lens with real pull on the NPC
 and LLM work) · `34-skill.md` and `48-simplicity-complexity.md` (much of
 both is now inside lens 1) · `66-channels-and-dimensions.md` with
@@ -132,8 +135,9 @@ one:
 | the cockpit · cards · client | **#62 Transparency**, #66 Channels | ⛔ |
 | NPCs · behaviour · dialogue | **#90 Status** | ⛔ |
 | onboarding · char-gen | **#19 The Player**, #69 Interest Curve | ⛔ — though [`17`](./17-the-toy.md) owns the *first thirty seconds* half of it |
-| the simulation itself | **#30 Emergence** | ⛔ |
-| moderation | **#99 Griefing** | ⛔ |
+| backing classes · mixins · what an object IS | **#28 The State Machine** | ✅ — [`28`](./28-the-state-machine.md); pairs with [`93`](./93-the-nameless-quality.md) |
+| the simulation itself | **#30 Emergence** | ✅ — [`30`](./30-emergence.md), which also carries the **positive** test for when to simulate at all |
+| moderation · law · the tiers | **#33 Rules** ✅ · #99 Griefing ⛔ | ✅ — [`33`](./33-rules.md) covers enforcement, remedy and the advisory test; #99 still owns griefing itself |
 
 ⚠ **Several of those were entries, and were deleted in the restart.**
 That was right — they had rotted against content — but it left a hole
@@ -154,13 +158,20 @@ placed only where an entry makes a *substantive claim* about that doc:
 
 - **the rubric** — [design-lenses.md](../design-lenses.md) § *The
   borrowed instruments*, which is the index an agent running a pass hits
-- **doctrine** — [measurement.md](../measurement.md) (six entries) ·
+- **doctrine** — [measurement.md](../measurement.md) (seven entries) ·
   [uncertainty.md](../uncertainty.md) ·
-  [governance/draft-constitution.md](../governance/draft-constitution.md)
+  [governance/draft-constitution.md](../governance/draft-constitution.md) ·
+  [subsystems/sandbox.md](../subsystems/sandbox.md)
 - **subsystems** — `employment` · `command-spec` · `combat` ·
   `exertion` · `mortality`
+- **advancement** — [subsystems/advancement.md](../subsystems/advancement.md),
+  which gains the `bands-not-theta` argument
+- **the register** — [vocations.md](../vocations.md), whose **chain walk**
+  turns out to be the emergence generator
+- **messaging** — [positioning.md](../positioning.md), for the synthesis
+  claim
 - **slates** — `quest-modeling` · `base-class-narrowing` · `lineage` ·
-  `alignment`
+  `alignment` · `prison` · `enforcement` · `field-substrate`
 
 ⚠ The list is short **because the entries are anchored to the rubric
 rather than to content**, which is the rule this restart adopted. The

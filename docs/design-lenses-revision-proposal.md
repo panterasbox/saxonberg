@@ -569,7 +569,8 @@ possible than at making them startable.**
 **Q1 ✅ RESOLVED — "nine ledgers, almost none rendered."** Answered
 2026-09-29 by the `measurement.md` amendment (B4 scoped to declared
 standards; Part 6.4 added). ⚠ **Note what that did to the roster:**
-[#92](./lenses/92-inner-contradiction.md) was put on it *for this
+**#92** (no entry; deleted the day it was written, see
+[lenses/README.md](./lenses/README.md)) was put on it *for this
 finding*, and the finding was fixed before the entry was written — so
 the entry backfilled a general audit to justify its slot. By this
 directory's own bar (*a lens earns an entry only if we have something
