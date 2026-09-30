@@ -553,6 +553,9 @@ importers:
       '@saxonberg/content-terminus':
         specifier: workspace:*
         version: link:../terminus
+      '@saxonberg/content-trade-apiculture':
+        specifier: workspace:*
+        version: link:../trade-apiculture
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
@@ -783,6 +786,9 @@ importers:
       '@saxonberg/content-tpa':
         specifier: workspace:*
         version: link:../tpa
+      '@saxonberg/content-trade-apiculture':
+        specifier: workspace:*
+        version: link:../trade-apiculture
       '@saxonberg/content-trade-baking':
         specifier: workspace:*
         version: link:../trade-baking
