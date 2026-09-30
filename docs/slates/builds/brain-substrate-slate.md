@@ -417,6 +417,120 @@ the crew's refusal text). That is answering a question, not a gauge. What
 stays refused either way is a **list of an NPC's candidates with their
 bands**.
 
+## ⭐⭐⭐ What the casting pass on master (2026-09-29/30) does to this design
+
+Two design merges landed while this slate was open, and between them they
+supply the **measurement** this redesign lacked and the **frame** it was
+missing: [balance-slate](balance-slate.md) § *What an NPC declaration is
+DENOMINATED in* and [quest-modeling-slate](quest-modeling-slate.md)
+§ *casting happens three times*, with
+[lenses/86-character-function.md](../../lenses/86-character-function.md)
+behind them.
+
+### The measurement — and it is an independent confirmation
+
+Balance measured what this slate had only argued:
+
+> ⭐⭐⭐ **A cadence trigger costs `1/period`, always, whether anybody is
+> there or not. A witness trigger costs nothing until somebody looks.**
+> That is the dominant cost axis in the entire NPC layer, it is authored
+> per-NPC in content today, and **it had never been read as a budget.**
+
+**65 authored rows, nobody logged in: 257.2 brain invocations per minute —
+370,401 per day.** `sellsword` alone is 91,482/day; the top three rows are
+43% of all idle load; **60 of 65 rows tick on a clock.**
+
+⭐⭐ **That is this redesign's justification restated as a number, arrived
+at independently.** One beat per *agent* instead of one timer per *spec*
+collapses N cadences into 1 — Remy's 14.8/min across eight brains becomes a
+single beat. The two-layer split is the same finding from the other side:
+**the reflex layer is the witness layer, which costs nothing when nobody is
+watching.**
+
+⚠ **Sequencing consequence.** Balance proposes the census as a
+`lint:*` on the repo's *census-then-ratchet* pattern — sum `60/period` over
+every `trigger: cadence:<n>` in every row, pin today's total as a ceiling
+that may fall and never rise. **That gate should land BEFORE this build**,
+so the redesign's win is measured rather than asserted.
+
+### ⭐ `presenceGated` was the Equity axis all along
+
+Balance's conclusion on the primary axis:
+
+> ⭐⭐⭐ **The primary axis is ON NIGHTLY versus CALLED.** Not *does it
+> speak*, not *is it named*. **Does this thing act when nobody is in the
+> room?**
+
+That is `presenceGated`, which ships, and which this slate already flagged
+as *"the one place these lenses were respected on purpose."* Nobody had
+read it as a budget. ⭐ **So the deliberation beat must be presence-gated by
+default** — an agent with no audience deliberates rarely or not at all —
+and the flag stops being a pacing nicety and becomes the declaration.
+
+And the stage vocabulary is the declaration vocabulary this design needs
+for its own beats: **principal · ensemble (on nightly) · understudy (covers
+in addition to their own track) · swing (covers several, not in the show
+nightly) · standby.** ⭐ *"Equity has the concept SAG lacks: a performer
+paid while not appearing… availability is the service. That is exactly what
+a cadence brain is — an NPC paid to tick."*
+
+### ⭐⭐⭐ The three passes place every piece of this design
+
+Quest's frame — a thing is cast three times: **pass 1 the code** (which
+roles can exist at all; the *grammar*), **pass 2 the content** (who is
+nominated), **pass 3 runtime state** (who is actually in the chair). And
+*"most confusion turns out to be a decision filed under the wrong pass."*
+
+This design sorts cleanly against it, which is the strongest evidence it is
+cut in the right places:
+
+| this design's piece | pass |
+|---|---|
+| a brain's `kind` · `discipline` · `requires` · `produces`/`consumes` | **1** — the grammar of what a task *is* |
+| a row's `behaviors:` list; the seat's tasks-owed; the archetype's inclinations | **2** — who is nominated for what |
+| the **arbiter's choice this beat**, the urgency band, the switch-prose | **3** — who is actually in the chair |
+
+⭐ **And the band is a pass-3 quantity by construction**, which is why it
+could never have been authored: it is made out of the world's current state,
+per agent, continuously. *"There is no final cut."*
+
+### ⚠⚠ The diagnosis that lands on the crew's tie-break
+
+Quest names the failure mode precisely:
+
+> **Reaching for pass-1 vocabulary to make a pass-2 decision.** A
+> capability predicate (*anyone composing `SmithMixin`*) is a **grammar**
+> constraint; used as a casting criterion it selects for competence and
+> therefore **produces the obvious pairing every time. That is allocation
+> wearing casting's clothes.**
+
+⭐ **For work, allocation is the honest answer** — you *do* want the better
+mixologist on the cocktail, and a rail is not a story. But the frame forces
+this design to **say so**: the arbiter allocates, and it must never be sold
+as characterful casting. Character enters at pass 2 (the archetype's
+inclinations) and through the switch-prose, never through the comparison.
+
+⭐⭐⭐ **And it dissolves a rule.** See
+[crew-slate](crew-slate.md) § *Blocked on the brain substrate*:
+junior-first was an authored tie-break justified by fiction. Under this
+design the senior's *serve-this-order* candidate simply reports a lower band
+because they are mid-count — **so junior-first is not a rule, it is a
+consequence.** One derived comparison replaces a three-legged authored
+chain.
+
+### The understudy is `covers`, generalized
+
+Quest's open n+1 — *"Pass 3 may override pass 2, and that is where n+1
+lives. Dave dies; the understudy steps in"* — is the same question as the
+shipped `covers` brain (the proprietor filling a gap) and the same question
+as a crew whose rostered member is absent. ⭐ **Three slates had it
+separately; it is one seam**, and it is a pass-2→3 override.
+
+⚠ And one finding from balance that bears on crews directly: **six
+identical goods-yard `hand` rows**, each named, each `Cast`, each
+cadence-only with zero witness brains. Six one-person businesses that are
+six copies of the same person — the crew that isn't.
+
 ## Open questions — what is still open
 
 **Closed by the 2026-09-25 pass:** (1) reflex vs candidate → **both, two

@@ -438,6 +438,42 @@ balanced on an undesigned one. What that pass changes here:
   nothing from brains. It stays shippable on its own
   ([crew-requirements](../../requirements/crew-requirements.md)).
 
+## ⭐⭐⭐ The casting pass (master, 2026-09-29/30) collapses the tie-break
+
+[quest-modeling-slate](quest-modeling-slate.md) § *casting happens three
+times* names the failure this slate's proposed rule was committing:
+
+> **Reaching for pass-1 vocabulary to make a pass-2 decision.** A
+> capability predicate used as a casting criterion **selects for competence
+> and therefore produces the obvious pairing every time. That is allocation
+> wearing casting's clothes.**
+
+**Two consequences, and the second is a real simplification:**
+
+1. ⭐ **Name it allocation.** The rail is not a story, and *"the better
+   specialist gets the cocktail"* is the honest answer for work. But it must
+   never be sold as characterful — character enters through the archetype
+   (pass 2) and the switch-prose, never through the comparison.
+2. ⭐⭐⭐ **`junior-first` dissolves.** It was an authored third leg
+   justified by fiction (*the senior is counting stock*). Under
+   [brain-substrate-slate](brain-substrate-slate.md)'s urgency bands the
+   senior's *serve-this-order* candidate simply reports a **lower band**
+   because they are mid-count — so the junior serves as a **consequence,
+   not a rule**. The three-legged chain
+   (`first-free → specialist → junior`) becomes one derived comparison, and
+   the crew stops authoring a preference it cannot justify.
+
+**And arbitration is a pass-3 question**, which retrospectively explains
+this slate's census confusion: *"arbitration is live nowhere"* was measuring
+pass 2 (authored rosters, all singletons) and concluding something about
+pass 3. ⭐ Pass 3 cannot be authored — which is why a **player** is the only
+actor who makes it fire, and why the fairness stakes are what they are.
+
+⭐ **The understudy is one seam, not three.** Quest's open n+1 (*"Dave dies;
+the understudy steps in"*), the shipped `covers` brain (the proprietor
+filling a gap), and a crew whose rostered member is absent are the same
+pass-2→3 override. Three slates were holding it separately.
+
 ## Cross-references
 
 - [party.md](../../subsystems/party.md) — the crew standup, already deferred there
