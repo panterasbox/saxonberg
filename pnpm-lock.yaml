@@ -566,6 +566,9 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-energy':
+        specifier: workspace:*
+        version: link:../energy
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
@@ -581,6 +584,12 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-trade-fuel':
+        specifier: workspace:*
+        version: link:../trade-fuel
+      '@saxonberg/content-trade-haulage':
+        specifier: workspace:*
+        version: link:../trade-haulage
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling

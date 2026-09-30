@@ -50,6 +50,12 @@ data:
   cast:
     - /world/terminus/hearts-delight/agent/miller
   details:
+    # ⭐ The static detail MQL binds `look lamps` to; PublicLightingMixin
+    # appends the live state. Seniority 3 — the first to stand cold.
+    lamps:
+      keywords: [lamps, lamp, standards, lighting]
+      description: |
+        A single gaslamp standard by the mill door, iron post and glass head, fed from the valley's oil store — the junior lamp of the three, and the first to go dark when the oil runs low.
     weir:
       keywords: [weir, dam, race, millrace, ledge, fall]
       description: |

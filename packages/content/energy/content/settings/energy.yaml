@@ -1,0 +1,6 @@
+# energy — application settings shipped by the energy pack (the `settings`
+# kind: merge-missing). The dials themselves (band watts, storm fault rate) are
+# declared in the kernel `AppSettingKeys` and retuned here by the B0 wave; until
+# then the pack ships an empty settings block so it has a content tree to
+# install from.
+settings: []

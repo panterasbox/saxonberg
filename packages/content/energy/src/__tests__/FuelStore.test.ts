@@ -92,9 +92,9 @@ describe('the fuel store', () => {
     expect(report.state).toBe('dry');
   });
 
-  it('reads as burning the town\'s oil, and serves live once lit', async () => {
+  it('reads as fed from the town\'s oil store, and serves live once lit', async () => {
     const store = storeHolding(10);
-    expect(store.lightingSourceLabel()).toBe("burning the town's oil");
+    expect(store.lightingSourceLabel()).toBe("fed from the town's oil store");
     expect(store.isServingNow(A)).toBe(true);
     const report = await store.supplyReport(0);
     expect(report.state).toBeNull();

@@ -133,7 +133,7 @@ export default class FuelStore
   }
 
   public lightingSourceLabel(): string {
-    return "burning the town's oil";
+    return "fed from the town's oil store";
   }
 
   // ── SupplyReporting ──

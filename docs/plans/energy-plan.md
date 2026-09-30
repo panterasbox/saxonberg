@@ -911,7 +911,35 @@ reward, the distributor is paid, the oil works is paid on resale.
 Commit: `build(energy A4): Heart's Delight is gas-lit — a warden, a store,
 a bounty, a bill the town pays`.
 
-#### A5 — the Stage A drive
+#### A5 — the Stage A drive ✅ DONE
+
+> **Done (commit `build(energy A5)` / `drive(energy A)`).** `packages/wire/tests/energy.dirty.wire.test.ts`
+> — the gas-lamp half, 2/2 green. What the drive FOUND (tests build state, they
+> never use it):
+> 1. **the `energy` pack had no `content/` dir** → PackApi ENOENT'd it at boot;
+>    created `content/settings/energy.yaml` (`settings: []`).
+> 2. **the capability rung** — `hearts-delight` names `energy`'s `FuelStore`
+>    (and `trade-fuel`'s cask, `trade-haulage`'s board/bench) but didn't depend
+>    on them; added the three deps + `pnpm install`.
+> 3. **the `lamps` detail wasn't authored** — `look lamps` returned "you don't
+>    see any lamps": MQL binds a detail via `getDetailIds()` (the authored map),
+>    NOT by probing the dynamic `getDetail`. The shipped streets (mayfield,
+>    crossing) author a static `lamps` detail that `PublicLightingMixin`
+>    augments; my HD streets didn't. Added it to all three.
+> 4. ⭐ **finding (recorded, not fixed): the boot settle races the async pack
+>    install.** The 60-game-second post-boot settle fires ~5 real-s in, before a
+>    ~100s install resolves each street's covering-locality path — so a
+>    midnight-booted wire world reads *stand cold* and the FuelStore never stands
+>    up (confirmed: no store snapshot). The **live game recovers at the next
+>    sunset** (the daily settle, everything installed by then), so this is a
+>    wire-harness limitation, not a product break — the same wall envelope hit
+>    (it could only ever assert "stand cold"). → offered to the envelope/platform
+>    tail. The drive therefore asserts the WIRING (the detail binds + renders a
+>    coherent, epoch-correct state, "fed from the valley's own oil", never
+>    "broken"); the LIT/drawdown/money behaviour is unit-proven
+>    (`FuelStore.test.ts`, `Locality.lighting.test.ts`, `oilworks.test.ts`,
+>    `BankingLogic`). Also: the FuelStore source label read awkwardly ("burning,
+>    burning the town's oil") → changed to "fed from the town's oil store".
 
 `packages/wire/tests/energy.dirty.wire.test.ts` (dirty: burns oil, spends
 a treasury). Checkpoints = requirements drive steps 1–3 + the treasury
