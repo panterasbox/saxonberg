@@ -29,6 +29,7 @@ import { Blueprint } from '../../../lib/studio/Blueprint';
 import { Idea } from '../../../lib/stuff/Idea';
 import Thing from '../../../lib/stuff/Thing';
 import Movable from '../../../lib/stuff/Movable';
+import { Animate } from '../../../lib/creature/Animate';
 import { Vessel } from '../../../lib/stuff/Vessel';
 import Location from '../../../lib/stuff/Location';
 import { Agent } from '../../../lib/stuff/Agent';
@@ -84,7 +85,8 @@ const PALETTE_BASE_CTORS: Record<string, AnyConstructor> = {
   // directly; Agent = TangibleMixin(Stuff); Thing/Location are composed
   // roots; Movable = Thing + Chattel/Concealable, the goods rung;
   // Vessel = a container-object that extends Movable;
-  // Creature→Character specialize Agent). `Idea` is the bare-Stuff base, so
+  // Creature→Animate→Character specialize Agent — a body, a body that
+  // ACTS, a body that is somebody). `Idea` is the bare-Stuff base, so
   // `Stuff` itself isn't offered. Abstract bases (Character/Shadow) are fine
   // — only prototype-walked, never instantiated. Vessel is kept in the
   // palette as its own describable base even though it now extends Thing.
@@ -95,6 +97,7 @@ const PALETTE_BASE_CTORS: Record<string, AnyConstructor> = {
   Location: Location as unknown as AnyConstructor,
   Agent: Agent as unknown as AnyConstructor,
   Creature: Creature as unknown as AnyConstructor,
+  Animate: Animate as unknown as AnyConstructor,
   Character: Character as unknown as AnyConstructor,
   Shadow: Shadow as unknown as AnyConstructor,
 };

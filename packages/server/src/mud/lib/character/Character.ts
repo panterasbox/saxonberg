@@ -33,26 +33,25 @@
  * Runtime-only class (no MongoDB collection).
  */
 
+import { Animate } from '../creature/Animate';
+// ⚠ Still imported as a VALUE: `bodyAugmenter` below narrows with
+// `instanceof Creature`, which is the right test there — the body line
+// reads a reserve every body has, not a person's.
 import { Creature } from '../creature/Creature';
 import { GenderedMixin } from './Gendered';
 import { PersonaMixin } from './Persona';
 import { DispositionedMixin } from '../trait/Dispositioned';
-import { MobileMixin } from '../spatial/Mobile';
 import { HaulerMixin } from '../slot/Hauler';
-import { SensorMixin } from '../message/Sensor';
 import { PerceiverMixin } from '../description/Perceiver';
-import { PerceptionMixin } from '../perception/Perception';
 import { VocalMixin } from '../message/Vocal';
 import { SoulMixin } from '../social/Soul';
 import { CommandGiverMixin } from '../command/CommandGiver';
 import { AdvancementMixin } from '../advancement/Advancement';
-import { EngagedMixin } from '../activity/Engaged';
 import { CasterMixin } from '../magic/Caster';
 import { MemorizedMixin } from '../magic/Memorized';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
 import { StatusMixin } from '../status/Status';
 import { EmployedMixin } from '../employment/Employed';
-import { CombatantMixin } from '../combat/Combatant';
 import { HidingMixin } from '../concealment/Hiding';
 import type { FieldMeta } from '../mixin';
 import type { CombatHookContext } from '../combat/CombatHookContext';
@@ -60,32 +59,37 @@ import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
 
-// Compose the agency mixins on top of the Creature body layer.
-// Order matters:
-// - PerceiverMixin sits directly above SensorMixin (it requires
-//   Sensor for output routing) and owns the perception verb surface
-//   as a separate role from Sensor's "I receive scene output."
-//   Sensor + Perception together = the full perceiver substrate.
-// - HaulerMixin sits between Mobile and Engaged. Position is free (it
-//   only holds the hitched-cart live ref); placing it on Character gives
-//   every PC and NPC-character the ability to pull a cart, while keeping
-//   it off the broad Creature base (a frog / corpse never hauls).
+// Compose the PERSON mixins on top of the `Animate` rung.
+//
+// ⭐⭐ **Five mixins moved DOWN to `lib/creature/Animate` in the
+// base-class narrowing (2026-09-30): `Sensor`, `Engaged`, `Mobile`,
+// `Perception`, `Combatant`.** They are true of anything that acts, and
+// composing them here made every animate body in the game reach for the
+// PERSON rung to get them — which is how a pit pony came to carry
+// `CasterMixin`, `EmployedMixin` and `PersonaMixin`. See `Animate.ts`
+// for the three readers that were already asking the narrower question.
+// ⚠ This is behaviour-identical for every person by construction: the
+// same twenty mixins, five of them one rung lower.
+//
+// Order, for what remains:
+// - PerceiverMixin owns the perception VERB surface as a separate role
+//   from Sensor's "I receive scene output"; it requires Sensor in its
+//   base, which `Animate` supplies. It stays here because looking,
+//   scrying and locating are things a person does.
+// - HaulerMixin stays on Character, and is composed a second time on
+//   `platform/agent/DraftAnimal`. Position is free (it only holds the
+//   hitched-cart live ref). ⚠⚠ It is deliberately NOT on `Animate`:
+//   `hitch.yaml:35` gates on it, so putting it on the rung would make
+//   the binder accept `hitch cart to canary` and move the refusal from
+//   an honest arg gate to breakaway physics. Every person self-hauls;
+//   a draft animal hauls; a wolf does not.
 //   LoadBearing (on Creature) reads its draft term dynamically via
 //   MixinApi.isHauling, so stack position doesn't matter.
-// - EngagedMixin sits immediately below MobileMixin so the body-slot
-//   engagement (source of truth for `Mobile.getEngagedMode`) can be
-//   read without forward references. Engagement is orthogonal to
-//   mobility — a stationary forge-bound creature is Engaged but not
-//   Mobile — but co-composing on Character gets both surfaces on
-//   every PC and NPC in one shot.
-// - ContainableMixin (on Creature) is inner of MobileMixin (which
-//   uses setContainer/getContainer) — preserved inner→outer across
-//   the body/agency boundary.
 // - PersonaMixin + GenderedMixin (narrative + social identity) sit
-//   innermost on the agency stack, above the Creature body.
+//   innermost on the person stack, above the Animate rung.
 // - BeliefStoreMixin (per-viewer identity memory) sits innermost of
 //   all — it reads nothing from the other mixins, so position is free;
-//   placing it at the base of the agency stack keeps every PC and NPC
+//   placing it at the base of the person stack keeps every PC and NPC
 //   (the viewer types) carrying it.
 // - EmployedMixin carries "who answers for you" (`institutionPath`) as
 //   well as the employment records — the harm ledger's `killerFor` /
@@ -97,37 +101,27 @@ import type { MarkupAugmenter } from '../../api/mml';
 //   needs CommandGiver's surface (pushCommandSource/popCommandSource) in
 //   its base.
 const CharacterBase = AdvancementMixin(
-  CombatantMixin(
   CommandGiverMixin(
-  MobileMixin(
-    HaulerMixin(
-    EngagedMixin(
-      CasterMixin(
-      MemorizedMixin(
-      SoulMixin(
-        VocalMixin(
-          PerceptionMixin(
-            PerceiverMixin(
-              SensorMixin(
-                GenderedMixin(
-                  DispositionedMixin(
-                  PersonaMixin(
-                    StatusMixin(
-                    BeliefStoreMixin(HidingMixin(EmployedMixin(Creature)))
-                  )
-                  )
-                  )
-                )
+  HaulerMixin(
+    CasterMixin(
+    MemorizedMixin(
+    SoulMixin(
+      VocalMixin(
+        PerceiverMixin(
+          GenderedMixin(
+            DispositionedMixin(
+            PersonaMixin(
+              StatusMixin(
+              BeliefStoreMixin(HidingMixin(EmployedMixin(Animate)))
               )
+            )
             )
           )
         )
       )
-      )
-      )
     )
     )
-  )
+    )
   )
   )
 );
