@@ -237,20 +237,29 @@ a code one.)
    refusal); the autarkist's hearth vs the convenience-and-dependence of the
    main; who is served and who is paid, made legible. Standing is conferred on
    the producer who keeps the town lit and the seat-holder who runs it well.
-5. **Epochs** — the build's strongest lens: only the *source* changes across
-   prehistory→future (fire → fuel → grid → mana at the frontier); the delivery,
-   the meter and the consumer are invariant. The gaslight→electric migration of
-   the *same* street-lighting service is the arc made literal, and it is
-   measurable.
-6. **Economy & governance** — produces: light, power, a fuel vocation, a public
-   service. Consumes: fuel, money, capital. Who pays: the town, from use-based
-   tax, into a private supply contract — a transfer, never a mint; money never
-   reaches standing. The demand was there first (the calibrated lighting bill
-   is already running). When it judges a person: *which streets go dark* (a
-   seniority criterion recorded in advance, with the budget the appeal), *who
-   wins the supply contract* (price/reliability, the contract board the
-   appeal), and *the tax rate* (a polity decision, amendable). Named and
-   answerable.
+5. **Continuity** (reframed 2026-09-28 from "Technology & magic": *does the new
+   epoch's object answer the same commands?*) — the build's strongest lens. Only
+   the *source* changes across prehistory→future (fire → fuel → grid → mana at
+   the frontier); the delivery, the meter and the consumer answer the **same
+   commands** throughout. ⭐ The gaslight→electric migration of the *same*
+   street-lighting service — same `look`, same civic funding, the source swapped
+   — is literally the lens's own worked-example shape; and no energy verb leaks
+   epoch-specifically onto the common interface (`sever`/`splice` live on the
+   grid-specific `LineAccess`, not the shared surface).
+6. **Economy** — produces: light, power, a fuel vocation, a public service.
+   Consumes: fuel, money, capital. Who pays: the town, from use-based tax, into a
+   private supply contract — a transfer, never a mint; money never reaches
+   standing. The demand was there first (the calibrated lighting bill is already
+   running — a market to price, not to invent).
+7. **Governance** (split out of lens 6, 2026-09-28) — when it judges a person,
+   name the criterion, the appeal, and the entrenchment tier: *which streets go
+   dark* (criterion = seniority recorded in advance; appeal = the budget /
+   committee; **tier C** — the polity sets the order); *who wins the supply
+   contract* (criterion = price / reliability; appeal = the contract board;
+   **tier C**); *the tax rate* (`localTaxShare`, **tier C** — a `config` dial
+   the polity moves). ⭐ `lint:power-posture` judges a parcel *declaration*, not a
+   person (a build lint), so it raises no governance bar; and no bare-count
+   permanent gate exists anywhere in the build.
 
 ## The drive
 

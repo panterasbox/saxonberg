@@ -174,8 +174,11 @@ named here). Paths are absolute under `/home/bobalu/play/saxonberg/build-4`.
 ### The fuel chain
 
 - `packages/content/trade-fuel/` — root `/trade/fuel`, title held by
-  `/compact/trade`; `src/thing/CharcoalPit.ts` (Furnace + Container +
-  Reserved + Thermal over Thing; affords `char` through
+  `/compact/trade`; `src/thing/CharcoalPit.ts` (post-narrowing
+  `ContainerMixin(Firebox)`, where `Firebox` =
+  `BurnerMixin(LightSource(Reserved(Thermal(Thing))))` — `lib/fire/Firebox.ts`;
+  we copy only its affordance + `CharController` shape, unchanged; affords
+  `char` through
   `static commandContributions`, the `Anvil` shape); `CharController.ts`
   (a watched `ManualBuildStep` on the `attention` slot); rows: material
   `content/stuff/idea/material/organic/charcoal.yaml`, good
@@ -192,10 +195,11 @@ named here). Paths are absolute under `/home/bobalu/play/saxonberg/build-4`.
   (coal/wood tar, naphtha, coal oil) is **its own unbuilt build**; no tar
   or oil material exists.
 - Materials: `lib/material/Material.ts` carries `heatOfCombustion`
-  (`MJ/kg`, line 387) and `autoignitionTemperature`; `Furnace.ts` line 274
-  burns `fuelBurnRatePerMin` % of an abstract reserve;
-  `SpaceHeating.ts` lines 33–34 name deriving watts from mass ×
-  `heatOfCombustion` as a deferred seam. A bulk liquid material row:
+  (`MJ/kg`, line 387) and `autoignitionTemperature`; ⚠ narrowing W9 renamed
+  `FurnaceMixin`→`BurnerMixin` (`lib/fire/Burner.ts`, `fuelBurnRatePerMin` at
+  172/275 — there is no `Furnace` class any more); `SpaceHeating.ts`
+  (`lib/thermal/`, UNCHANGED, `heatOutputW` line 78) names deriving watts from
+  mass × `heatOfCombustion` as a deferred seam (line 34). A bulk liquid material row:
   `water/content/stuff/idea/material/bulk/fouled-water.yaml`. A filled
   bulk good: `trade-distilling/content/trade/distilling/thing/gin.yaml`
   (`interiorBulk · interiorCapacity · interiorMaterial · interiorAmount ·
@@ -298,14 +302,20 @@ named here). Paths are absolute under `/home/bobalu/play/saxonberg/build-4`.
   '/idea/reading/'`; a pack's `content/<root>/idea/reading/<x>.yaml` row
   is the channel; `subjectRequires` carries the per-channel arg gate.
 
-### Lint roster (55 gates, `pnpm -C packages/server lint:family --list`)
+### Lint roster (58 gates, `pnpm -C packages/server lint:family --list`)
 
+⚠ Narrowing added **`lint:mass`** (the 58th; the roster was 55 at plan time).
 The gates this build must satisfy or extend are named in § Test & gate
-strategy. Two whose clauses touch this build directly:
+strategy. Three whose clauses touch this build directly:
 `lint:light-sources` clause (e) refuses any class named
 `*Lamppost* / *StreetLamp* / *StreetLight*` (script line 204);
 `lint:unconsumed-seams` counts unread `fieldMeta` keys on data Ideas —
-this build **reads** `Government.treasury` and lowers the count.
+this build **reads** `Government.treasury` and lowers the count; and
+**`lint:mass`** (`scripts/check-mass.ts`, census-then-ratchet, CEILING 242
+across 83 classes, FROZEN) fails any row whose class reaches `TangibleMixin`
+and declares neither `mass` nor `_materialPath` — so **every new Thing row
+this build adds must carry one** (see § Convention conformance). This build's
+own `lint:power-posture` (B0) becomes the 59th gate.
 
 ---
 
@@ -545,10 +555,10 @@ re-narrows the host set means the host is wrong.**
 | `byFeeder` index, `parcelsOnFeeder`, `citeFeeder`, `powerOf` | `ParcelRegistry` + `ParcelApi` | the meter resolves the way title does. | — |
 | `Feeder` (data Idea) | `/system/energy/idea/Feeder`, rows `/stuff/idea/Feeder/<key>` | *a line exists whether or not anyone draws from it.* | rows in the commons so the realm's pack edits its own grid (the `Watercourse` rule) |
 | `GridCatalogue` (singleton Idea) | `/system/energy/idea/GridCatalogue` | the compile and the one state slot (`cuts`). `canEvict`/`canDestruct` veto; HMR invalidates. | — |
-| `GridPoweredMixin` | pack `lib/GridPowered.ts`; composed on `ElectricLight` (and the later fridge) | *this thing works only while its premises' meter is live.* Composed only by things that draw grid power; nothing else needs a guard. | ⚠ **not** on `Thing`, `LightSource`, `Switchable` or `Furnace` — any of those would claim the hearth, the lantern and the glowcap draw from a wire. `Freshness off every Thing` is the shape refused. |
-| `ElectricLight` | `/system/energy/thing/ElectricLight` — `GridPowered(LightSource(Switchable(Detailed(Thing))))` | a switchable light that emits only while on **and** powered (the `PortableLight` coupling, plus the meter). Name passes `lint:light-sources` (e). | not a subclass of platform `Lamp` (that is a furnace) · not `PortableLight` (that is a fungus jar) |
+| `GridPoweredMixin` | pack `lib/GridPowered.ts`; composed on `ElectricLight` (and the later fridge) | *this thing works only while its premises' meter is live.* Composed only by things that draw grid power; nothing else needs a guard. | ⚠ **not** on `Thing`, `LightSource`, `Switchable` or `BurnerMixin` (narrowing's rename of `Furnace`) — any of those would claim the hearth, the lantern and the glowcap draw from a wire. `Freshness off every Thing` is the shape refused, and narrowing W6 ("58 classes stopped claiming to be property") makes this house style. |
+| `ElectricLight` | `/system/energy/thing/ElectricLight` — `GridPowered(LightSource(Switchable(Detailed(Thing))))` | a switchable light that emits only while on **and** powered (the `PortableLight` coupling, plus the meter). Name passes `lint:light-sources` (e). | not a subclass of platform `Lamp` (which composes `BurnerMixin` — a lamp burns fuel; narrowing W9 made this exclusion sharper) · not `PortableLight` (that is a fungus jar) |
 | `LineAccess` | `/system/energy/thing/LineAccess`, rows per street (`pole`, `manhole`) | *here is where a person reaches the line.* Cites `nodeRef`; affords `sever`/`splice`; answers `onStormExposure` only when its node is overhead; `look` detail reports the line's state. | not one object per feeder node by default — a row only where content wants the line reachable (the forestry four-representations rule) |
-| `FuelStore` | `/system/energy/thing/FuelStore` — `Container + Detailed` over `Thing`, `fixedInPlace`, self-placed by its row's `container:` | *the town's oil is here; a settle draws from it.* Implements `StreetLightingSupply` + `SupplyReporting`. | not a `Stock` (nothing is priced or sold here) · not on `Locality` (a stock is matter, in a room) |
+| `FuelStore` | `/system/energy/thing/FuelStore` — `DetailedMixin(Holder)` (narrowing's `lib/stuff/Holder.ts` immovable-container rung — *"the next immovable container extends this class"*), `fixedInPlace`, self-placed by its row's `container:` | *the town's oil is here; a settle draws from it.* Implements `StreetLightingSupply` + `SupplyReporting`. | not a `Stock` (nothing is priced or sold here) · not on `Locality` (a stock is matter, in a room) |
 | `GridReading` | `/system/energy/idea/reading/GridReading`, row `grid.yaml` | the instrumentation split: the stanza is the platform's `analyze`, the channel is the pack's. | not a second `analyze` view (shadows) |
 | `StormExposed` duck | `lib/weather/WeatherType.ts` | *a thing standing in a storm may answer to it.* | not a mixin (one consumer; a shape suffices — the `Discharging` precedent) |
 | `lamp-oil`, `oil-cask`, `lamp-oil-cask` | `trade-fuel` content | the fuel trade makes lamp oil. | material in the commons path, pack-owned (the charcoal precedent) |
@@ -583,7 +593,10 @@ Checked against the current tree, not recalled.
   `/platform/location/Street` (singleton outdoor public ways); the
   public-works yard is a `SingletonCartesianLocation`; the oilworks floor
   copies the goods-yards floor rows. No `FurnishableRoom` (nobody furnishes
-  these). `lint:locations` enumerates FurnishableRoom, derives zones.
+  these). `lint:locations` enumerates FurnishableRoom, derives zones. ⭐
+  Narrowing L0 added `Visible`/`Perceptible`/`Detailed` to the `Location` root,
+  so these get the detail line free (additive; `Street`/`PublicLightingMixin`
+  is unchanged).
 - **`<root>/<branch>/` path pattern** — pack classes at
   `/system/energy/{idea,thing,lib}/…`, controllers at
   `/system/energy/idea/cmd/energy/<Name>Controller`, views at
@@ -614,6 +627,14 @@ Checked against the current tree, not recalled.
 - **No new Mongo collection** — the catalogue's `cuts` rides the
   `FisheryRegistry` state pattern (the self-persistence spine); parcels
   ride `parcels` (existing).
+- **`lint:mass` (new since plan time)** — every new Thing row/class declares
+  `mass` or `_materialPath`, or it grows the frozen ceiling and fails:
+  `ElectricLight`, the `LineAccess` poles/manholes, `FuelStore` + its founding
+  cask props, `oil-cask`, `lamp-oil-cask`. ⚠ The `gin.yaml`/`SpiritBottle`
+  shape copied for `lamp-oil-cask` is itself a ceiling offender (lacks mass),
+  so `lamp-oil-cask` must add `mass`/`_materialPath` explicitly — do not
+  inherit the gap. The `lamp-oil` material row is exempt (an Idea, not
+  `Tangible`).
 - **`_mixinName` widened to `string`**; `GridPoweredMixin` is
   pack-registered at discovery (`lint:mixin-names` checks the name is
   unique — verified: only `ManaPowered` exists nearby).
@@ -1084,8 +1105,9 @@ seams.
   (the catalogue reads rows by class, never the world), `lint:whole-table`,
   `lint:schema` (`parcels.yaml`), `lint:unconsumed-seams` (falls:
   `Government.treasury` gains a reader), `lint:test-bootstrap`,
-  `lint:drive-scripts` (the drive is a wire file), and the new
-  `lint:power-posture`.
+  `lint:drive-scripts` (the drive is a wire file), **`lint:mass`** (every new
+  Thing row declares `mass`/`_materialPath` — ⚠ the `SpiritBottle`/`gin.yaml`
+  shape is a ceiling offender), and the new `lint:power-posture`.
 - ⚠ `pnpm test` runs **twice**: before the MR opens and at `/finalize`.
   Everything between is `test:near` + each touched pack's own vitest +
   `lint:family`.
@@ -1149,6 +1171,13 @@ literally spell out, and the places to stop and ask.
     pack's channel (duck-typed). A world without water installed has no
     `analyze power`; `analyze grid` is the pack's own read and covers the
     drive.
+12. **`lint:mass` + the `SpiritBottle` copy (narrowing W7, mechanical).** New
+    Thing rows must carry `mass`/`_materialPath` (§ Convention conformance);
+    the `gin.yaml` shape copied for `lamp-oil-cask` lacks mass, so add it. Also
+    `Holder`'s docstring floats a future `Vessel`→`Receptacle` rename for
+    poured/bulk holders; our casks stay `Vessel` (matches shipped `gin.yaml`;
+    narrowing files the rename "not done"), so a narrowing-steeped reviewer may
+    ask — the answer is *Vessel is the precedented choice today.*
 
 ---
 
@@ -1172,8 +1201,9 @@ Clean attach points; each leaves as a slate note, never a stub.
   gas kitchen; the `StreetLightingSupply` shape already lets a gasworks
   cover streets. → `power-utility-slate`.
 - **Fuel as mass.** `lamp-oil.heatOfCombustion` is authored now, so
-  `Furnace`/`SpaceHeating` can derive watts from mass × MJ/kg when someone
-  needs it. → `hearth-and-larder-design-pack` / `fire.md` note.
+  `BurnerMixin` (`lib/fire/Burner.ts`) / `SpaceHeating` can derive watts from
+  mass × MJ/kg when someone needs it. → `hearth-and-larder-design-pack` /
+  `fire.md` note.
 - **The lineman market.** `sever`/`splice` exist and the catalogue mints
   the fact; outage work orders (a gig whose condition is "node N spliced")
   need the contract substrate's NPC-claiming or a `--bounty` on splice.
