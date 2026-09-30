@@ -1,7 +1,7 @@
 # A pick head — the forged half, before it is hafted. ⭐ The chain closes
 # HERE: this is what a smith makes from copper somebody dug, and what a
 # miner buys to swing at the ground it came out of.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [pick-head, head, forged, pick]

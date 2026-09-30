@@ -20,7 +20,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SelfHeatingMixin, SAFE_MOISTURE, DANGEROUS_MOISTURE } from '../SelfHeating';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -29,7 +29,7 @@ import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRe
 
 const DAY = 86_400;
 
-class TestRick extends SelfHeatingMixin(Thing) {}
+class TestRick extends SelfHeatingMixin(Good) {}
 
 describe('a rick', () => {
   let clock: ReturnType<typeof vi.spyOn>;

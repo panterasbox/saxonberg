@@ -22,7 +22,7 @@ import {
   type ModelData,
 } from '../../../../api/command';
 import type Interactive from '../../Interactive';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import MeasureController from '../../cmd/perception/MeasureController';
 import AnalyzeController from '../../cmd/perception/AnalyzeController';

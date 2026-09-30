@@ -10,9 +10,9 @@
  *
  * ⚠⚠ **The `ContainerMixin` is not decoration.** `smelt` reads the ore
  * and the fuel out of the furnace's own contents and pours the product
- * back into it; a bare {@link Forge} is a `Furnace` and not a
+ * back into it; a bare {@link Forge} is a `Burner` and not a
  * `Container`, so the shipped controller's own guard
- * (`isFurnace && isContainer`) could never have passed against one. A
+ * (`isBurner && isContainer`) could never have passed against one. A
  * furnace you cannot put anything into is a hearth.
  *
  * ⚠ Why a pack class and not a `commandContributions` edit on the

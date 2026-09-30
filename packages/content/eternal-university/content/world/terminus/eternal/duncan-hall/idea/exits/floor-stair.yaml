@@ -1,0 +1,8 @@
+# Duncan Hall's stairs, one floor up. A floor with no provisioned units
+# is impassable — the class says so; the stairwell's own sound is here.
+class: /world/terminus/eternal/duncan-hall/idea/FloorStairExit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageOut: "{{ mover }} climbs the stairs."
+  messageIn: "{{ mover }} comes up the stairwell."
+  wheelPassable: false

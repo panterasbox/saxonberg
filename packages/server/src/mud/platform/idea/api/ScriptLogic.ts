@@ -49,9 +49,13 @@ const ScriptApiCallers = SecurityPolicies.FromModule("/api/script#ScriptApi");
  * singleton — e.g. `EvalScript` stamping `/home/<id>/_eval`"); it just
  * had no Api to be called from.
  *
- * `create` (not `clone`): the scratch is a per-jurisdiction dynamic
- * unique — destruct-and-replace on each new code body, backed by
- * nothing, gone at restart.
+ * ⭐ A CLONE with a minted identity (user's call, 2026-09-25). It was
+ * argued as a `create` exception on the strength of "backed by nothing,
+ * gone at restart" — which is a statement about the scratch's LIFETIME,
+ * and the doctrine is about whether a person could author the thing.
+ * The lineage is `/platform/idea/EvalScript`; the identity is the
+ * jurisdiction's. Only the code is patched on, and the code is the one
+ * thing nobody authors here.
  */
 async function mintEvalScratchImpl(
   path: string,
@@ -59,9 +63,11 @@ async function mintEvalScratchImpl(
 ): Promise<EvalScript> {
   const existing = StuffApi.findByTemplatePath<EvalScript>(path);
   if (existing) StuffApi.destruct(existing);
-  const scratch = await StuffApi.create(() => new EvalScript());
-  // The setter re-keys `byTemplatePath` for us — no manual index work.
-  scratch.setTemplatePath(path);
+  const scratch = await StuffApi.clone<EvalScript>(
+    '/platform/idea/EvalScript',
+    undefined,
+    { asIdentityPath: path },
+  );
   scratch.setCode(code);
   return scratch;
 }

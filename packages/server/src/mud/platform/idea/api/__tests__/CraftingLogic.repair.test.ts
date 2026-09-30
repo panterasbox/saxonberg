@@ -18,12 +18,12 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import Scrap from '../../../thing/Scrap';
 import Forge from '../../../thing/Forge';
 import Weapon from '../../../thing/equipment/Weapon';
 import Garment from '../../../thing/equipment/Garment';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../../lib/reserve';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -168,7 +168,7 @@ describe('CraftingLogic.repair', () => {
     jerkin.setMass(Quantity.of(4, 'kg'));
     jerkin.setCondition(0.5);
     ContainmentApi.move(jerkin, room);
-    const hide = makeStuff(() => new Thing());
+    const hide = makeStuff(() => new Good());
     hide.setMaterial(mat(LEATHER));
     hide.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide, room);
@@ -177,7 +177,7 @@ describe('CraftingLogic.repair', () => {
     const bare = await repairAs(jerkin);
     expect(bare).toMatchObject({ ok: false, reason: 'missing-tool', detail: 'mending' });
 
-    const kit = makeStuff(() => new ToolItem());
+    const kit = makeStuff(() => new Tool());
     kit.setCapabilities(['mending']);
     ContainmentApi.move(kit, room);
     const outcome = await repairAs(jerkin);
@@ -188,10 +188,10 @@ describe('CraftingLogic.repair', () => {
   });
 
   it('a control-bearing mender floors the repaired grade; never lowers it', async () => {
-    const machine = makeStuff(() => new ToolItem());
+    const machine = makeStuff(() => new Tool());
     machine.setCapabilities([{ kind: 'mending', rate: 3, control: 'fine' }]);
     ContainmentApi.move(machine, room);
-    const hide = makeStuff(() => new Thing());
+    const hide = makeStuff(() => new Good());
     hide.setMaterial(mat(LEATHER));
     hide.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide, room);
@@ -213,7 +213,7 @@ describe('CraftingLogic.repair', () => {
     heirloom.setCondition(0.5);
     graded(heirloom).setGradeBand('masterful');
     ContainmentApi.move(heirloom, room);
-    const hide2 = makeStuff(() => new Thing());
+    const hide2 = makeStuff(() => new Good());
     hide2.setMaterial(mat(LEATHER));
     hide2.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide2, room);
@@ -222,10 +222,10 @@ describe('CraftingLogic.repair', () => {
   });
 
   it('a plain (control-less) mender leaves the grade untouched', async () => {
-    const kit = makeStuff(() => new ToolItem());
+    const kit = makeStuff(() => new Tool());
     kit.setCapabilities(['mending']);
     ContainmentApi.move(kit, room);
-    const hide = makeStuff(() => new Thing());
+    const hide = makeStuff(() => new Good());
     hide.setMaterial(mat(LEATHER));
     hide.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide, room);
@@ -273,7 +273,7 @@ describe('CraftingLogic.repair', () => {
   it('the restored condition immediately reverses the wear producers', async () => {
     ContainmentApi.move(makeHotForge(), room);
     ContainmentApi.move(makeIronScrap(10), room);
-    const shaker = makeStuff(() => new ToolItem());
+    const shaker = makeStuff(() => new Tool());
     shaker.setCapabilities(['shaker']);
     shaker.setMaterial(mat(IRON));
     shaker.setMass(Quantity.of(0.3, 'kg'));

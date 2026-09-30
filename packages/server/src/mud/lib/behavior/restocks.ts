@@ -428,8 +428,8 @@ async function unpackBench(
 
   // A bench is a surface if it is one, and a container otherwise —
   // whichever it is, what a hauler put down is what comes off it.
-  const landed: Stuff[] = MixinApi.isSurfaced(bench)
-    ? [...bench.getResting()]
+  const landed: Stuff[] = MixinApi.isPlacing(bench)
+    ? [...bench.getPlaced()]
     : MixinApi.isContainer(bench)
       ? (bench.getContents() as Stuff[])
       : [];

@@ -6,7 +6,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach  } from 'vitest';
 import { type Attachment } from '../Warren';
 import { InnerWarren } from '../InnerWarren';
 import { WarrenMemberMixin } from '../WarrenMember';
@@ -20,7 +20,9 @@ import type { Container } from '../../spatial/Container';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 
 // ── Test fixtures ────────────────────────────────────────────────
 
@@ -91,6 +93,10 @@ function makeOccupant(): TestOccupant {
 }
 
 describe('Warren base mechanism', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let warren: TestOverflowWarren;
   beforeEach(() => {
     warren = makeWarren();

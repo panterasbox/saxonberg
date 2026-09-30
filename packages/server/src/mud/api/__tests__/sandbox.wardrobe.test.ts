@@ -7,7 +7,8 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { seedKernelContentStore } from '../../lib/security/__tests__/test-setup';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -117,6 +118,30 @@ function wardrobeExitOf(room: CartesianLocation): SandboxCrossingExit {
   expect(exit).toBeInstanceOf(SandboxCrossingExit);
   return exit as SandboxCrossingExit;
 }
+
+beforeEach(() => {
+  seedKernelContentStore([
+    // The seeding aperture copies this one.
+    {
+      path: '/obj/sandbox-test/trinket',
+      class: '/platform/thing/Thing',
+      data: {},
+    },
+    // The sandbox stands up a circle floor and a wire body — both
+    // clones of rows now.
+    {
+      path: '/platform/location/sandbox/CircleFloor',
+      class: '/platform/location/sandbox/CircleFloor',
+      data: {},
+    },
+    {
+      path: '/platform/agent/sandbox/WireBody',
+      class: '/platform/agent/sandbox/WireBody',
+      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+      data: { wirePlayerId: '' },
+    },
+  ]);
+});
 
 describe('the wardrobe door (Wave 4)', () => {
   beforeEach(async () => {
@@ -290,35 +315,9 @@ describe('the seeding aperture (Wave 4)', () => {
   it('refuses outside a circle, refuses the unowned, copies the owned', async () => {
     const { avatar } = await makeRig();
 
-    // Fake template store so StuffApi.clone can mint the copy.
-    const pm = PersistenceManager.get();
-    vi.spyOn(pm, 'isConnected').mockReturnValue(true);
-    const templateRows = [
-      {
-        _id: { toString: () => 't1' },
-        path: '/obj/sandbox-test/trinket',
-        class: '/platform/thing/Thing',
-        data: {},
-      },
-    ];
-    vi.spyOn(pm, 'getCollection').mockImplementation(() => {
-      return {
-        find: (query: Record<string, unknown>) => {
-          const rows = templateRows.filter(
-            (r) => query.path === undefined || r.path === query.path
-          );
-          const cursor = {
-            sort: () => cursor,
-            limit: () => cursor,
-            toArray: async () => rows,
-          };
-          return cursor;
-        },
-        findOne: async () => null,
-        insertOne: async () => ({ insertedId: { toString: () => 'x' } }),
-        deleteMany: async () => ({ deletedCount: 0 }),
-      } as unknown as ReturnType<PersistenceManager['getCollection']>;
-    });
+    // ⭐ The trinket row is seeded with the kernel rows below, not
+    // behind a bespoke `getCollection` mock — there is one store per
+    // test now, and the kernel's exit rows live in it too.
 
     // A trinket the avatar CARRIES (own-body ownership), with instance
     // state worth copying.

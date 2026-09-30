@@ -42,7 +42,7 @@ the model does not believe. See
 ## The object
 
 `platform/thing/equipment/Garment` =
-`Wearable(Slottable(Crafted(Durable(Constructed(Dyed(Detailed(Thing)))))))`.
+`Wearable(Slottable(Crafted(Durable(Constructed(Dyed(Good))))))`.
 
 | composed | buys |
 |---|---|

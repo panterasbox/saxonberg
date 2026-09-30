@@ -7,7 +7,7 @@
  * end of the smithing recipe ladder are reachable ONLY with the bellows).
  * Live-drive gap closed: the mechanic shipped with the fire build but
  * the tests worked the bellows programmatically — this is the player's
- * handle on it. Narrows with `MixinApi.isFurnace`; a furnace with no
+ * handle on it. Narrows with `MixinApi.isBurner`; a furnace with no
  * bellows (`bellowsMultiplier ≤ 1`) declines diegetically, as does
  * pumping an unlit or unfuelled one (working a cold bellows moves air,
  * not heat).
@@ -47,7 +47,7 @@ export default class PumpController extends CommandController<PumpModel> {
       });
       return;
     }
-    if (!MixinApi.isFurnace(target)) {
+    if (!MixinApi.isBurner(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${Mml.thing(target)} has no bellows to work.`)

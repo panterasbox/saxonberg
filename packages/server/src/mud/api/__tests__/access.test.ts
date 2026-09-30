@@ -23,7 +23,9 @@ import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { SecurityError } from '../../lib/security/errors';
 import { ModuleApi } from '../module';
 import { AccessLogic } from '../../platform/idea/api/AccessLogic';
-import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
+import { makeStuffAtPath,
+  EXIT_KIND_TEST_ROWS,
+} from '../../lib/security/__tests__/test-setup';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -34,7 +36,11 @@ interface Doc extends Record<string, unknown> {
 }
 
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row and every boundary's anchor
+  // pair is a clone too, so a store with no rows cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
 
   const save = vi.fn(async (_collection: string, doc: Doc) => {
     const copy = { ...doc };
@@ -87,7 +93,7 @@ describe('AccessApi facade', () => {
     StuffApi.clearAll();
   });
 
-  it('AccessApi is module-stamped as /api/access#AccessApi', () => {
+  it('AccessApi is module-stamped as /api/access#AccessApi', async () => {
     // The FromModule policy on the Registry's methods keys on this
     // exact module id; the encapsulation contract depends on it.
     expect(ModuleApi.lookup(AccessApi)).toBe('/api/access#AccessApi');

@@ -8,6 +8,10 @@
  */
 
 import { describe, it, expect } from "vitest";
+import {
+  effectiveRow,
+  inheritanceIndex,
+} from '../../../../../scripts/pack-roots';
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
@@ -48,10 +52,17 @@ function brandKeys(): Set<string> {
 }
 
 describe("Dave's Bar — the rail is bought, never populated (libations D14)", () => {
-  const populates = (): string[] =>
-    ((loadLounge("location/bar.yaml").data?.props ?? []) as (string | { template: string })[]).map(
+  // ⭐ The EFFECTIVE props. Dave's Bar `extends`
+  // `/trade/hospitality/location/bar`, so the stations, the tools and
+  // the stools come from the parent and this row states five lines.
+  // Reading the raw row here would assert the bar had no glass rack.
+  const INHERIT = inheritanceIndex();
+  const populates = (): string[] => {
+    const eff = effectiveRow('/world/lounge/location/bar', INHERIT.rows, INHERIT.rules);
+    return ((eff.data.props ?? []) as (string | { template: string })[]).map(
       (p) => (typeof p === "string" ? p : p.template),
     );
+  };
 
   it("no bottle rides `props` — the keeper's restocks beat stocks the rail by ORDERING", () => {
     for (const t of populates()) expect(t, t).not.toMatch(/bottle|keg|crate/);
@@ -68,10 +79,14 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
   });
 
   it("the house tablet is the lounge's own row, signed in as the bar's business, on the back-bar", () => {
-    const entry = (loadLounge("location/bar.yaml").data?.props as { template?: string; onto?: string }[]).find(
+    // ⭐ The key IS the placement member's name (placement build, D9):
+    // `on:` for a surface, `from:` for a hook, and a member a pack
+    // ships tomorrow with no kernel change. It was `onto:`, which named
+    // a PREPOSITION rather than a relation.
+    const entry = (loadLounge("location/bar.yaml").data?.props as { template?: string; on?: string }[]).find(
       (p) => typeof p === "object" && p.template === "/world/lounge/thing/house-tablet",
     );
-    expect(entry?.onto).toBe("/trade/hospitality/thing/back-bar");
+    expect(entry?.on).toBe("/trade/hospitality/thing/back-bar");
     const tablet = loadLounge("thing/house-tablet.yaml");
     expect(tablet.class).toBe("/platform/thing/Tablet");
     expect(tablet.data?.pairing).toBe("staff");

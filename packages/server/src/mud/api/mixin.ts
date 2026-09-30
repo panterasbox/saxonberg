@@ -25,7 +25,8 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
-import type { Surfaced } from '../lib/spatial/Surfaced';
+import type { Placing } from '../lib/spatial/Placing';
+import type { Coolbox } from '../lib/thermal/Coolbox';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
@@ -111,7 +112,7 @@ import type { Feeder } from "../lib/husbandry/Feeder";
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
-import type { Furnace } from '../lib/fire/Furnace';
+import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
@@ -949,8 +950,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Containable);
   }
 
-  public static isSurfaced(obj: Stuff): obj is Stuff & Surfaced {
-    return this.hasMixin(obj, Mixins.Surfaced);
+  public static isPlacing(obj: Stuff): obj is Stuff & Placing {
+    return this.hasMixin(obj, Mixins.Placing);
+  }
+
+  public static isCoolbox(
+    obj: Stuff,
+  ): obj is Stuff & Coolbox & Container & Thermal & Sealable {
+    return this.hasMixin(obj, Mixins.Coolbox);
   }
 
   public static isMobile(obj: Stuff): obj is Stuff & Mobile {
@@ -1444,8 +1451,8 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Meltable);
   }
 
-  public static isFurnace(obj: Stuff): obj is Stuff & Furnace {
-    return this.hasMixin(obj, Mixins.Furnace);
+  public static isBurner(obj: Stuff): obj is Stuff & Burner {
+    return this.hasMixin(obj, Mixins.Burner);
   }
 
   /**

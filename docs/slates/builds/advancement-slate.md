@@ -25,7 +25,7 @@
 > four primitives); this slate is the **game** that advancement is, the
 > thing that has to feel like learning even when nobody's plugged a
 > classroom into it yet. Premise: [vision.md](../../vision.md). Motivation
-> science: [lenses/motivation.md](../../lenses/motivation.md) (SDT). The
+> science: [lens-deck-salvage.md](../../lens-deck-salvage.md) (SDT). The
 > in-world ability channels it leans on are
 > [capability-magic-slate](./capability-magic-slate.md)
 > (conditioning / skill / knowledge); the social-structure side is

@@ -191,7 +191,7 @@ async function resolveDestination(path: string): Promise<Stuff | null> {
  * Find a **delivered** matching item at the destination — a bounded
  * viewer-blind containment read (never a world scan): the destination's
  * contents (recursive, skipping Creatures — a carried item is not
- * delivered) plus, for a Surfaced fixture, the items resting on it. Each
+ * delivered) plus, for a Placing fixture, the items placed on it. Each
  * candidate is confirmed with the authoritative `Condition.holdsFor`.
  */
 /**
@@ -217,8 +217,8 @@ function countDeliveredItemsAt(
   depth = 0,
 ): number {
   let found = 0;
-  if (MixinApi.isSurfaced(dest)) {
-    for (const item of dest.getResting()) {
+  if (MixinApi.isPlacing(dest)) {
+    for (const item of dest.getPlaced()) {
       if (
         new Condition(condition).matchesItem(item) &&
         new Condition(condition).holdsFor(item)
@@ -356,8 +356,8 @@ function findDeliveredItemAt(
   condition: ConditionData,
   depth = 0,
 ): Stuff | null {
-  if (MixinApi.isSurfaced(dest)) {
-    for (const item of dest.getResting()) {
+  if (MixinApi.isPlacing(dest)) {
+    for (const item of dest.getPlaced()) {
       if (
         new Condition(condition).matchesItem(item) &&
         new Condition(condition).holdsFor(item)
@@ -582,7 +582,7 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
 
   // The destination must resolve to somewhere a delivery can land.
   const dest = await resolveDestination(spec.condition.destinationPath);
-  if (!dest || !(MixinApi.isContainer(dest) || MixinApi.isSurfaced(dest))) {
+  if (!dest || !(MixinApi.isContainer(dest) || MixinApi.isPlacing(dest))) {
     return { ok: false, reason: "the destination can't receive a delivery" };
   }
 

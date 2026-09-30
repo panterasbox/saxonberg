@@ -1,0 +1,7 @@
+# The gate onto a lot, off the lane. The departure line names the
+# direction, so the class still writes that one; the arrival line is
+# the same wherever the gate stands, so it lives here.
+class: /system/residence/idea/LotGateExit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageIn: "{{ mover }} comes in from the lane."

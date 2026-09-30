@@ -98,11 +98,27 @@ export interface Satisfaction {
  * - `heatK` — a furnace whose held temperature reaches `n` K.
  * - `bulkSource` — a bulk holder of the material (a tag, keyword or
  *   path): an unbounded source (a tap) or a stocked holder.
- * - `surface` — a `Surfaced` work surface.
+ * - `surface` — a `Placing` host that offers `on`: a work surface. ⚠ The
+ *   `on` is load-bearing — a compartment is a `Placing` host too, and
+ *   it is not something you can work on.
  * - `seating` — at least `n` posture-bearing fixtures.
- * - `coldStorage` — somewhere cold: the VENUE itself when it is cool
- *   (a cellar, a walk-in — cold storage is a property of a SPACE), or an
- *   insulated, sealable holder in it (`Thermal` + `Sealable`).
+ * - `coldStorage` — somewhere cold, and ⭐ **cold is the word that
+ *   matters on both rungs**: the VENUE itself when its own air is at or
+ *   below `COLD_K` (a cellar, a walk-in — cold storage is a property of
+ *   a SPACE), or an insulated, sealable HOLDER OF THINGS in it
+ *   (`Thermal` + `Sealable` + `Container`) whose interior is that cold.
+ *
+ *   ⚠⚠ Both rungs were wrong until 2026-09-28, in opposite directions,
+ *   and both silently. The space rung asked whether the room was
+ *   `Thermal` and **no Location is** — a room carries an `Atmospheric`
+ *   air, not a thermal body — so a 279 K brewing cold store authored
+ *   for exactly this satisfied nothing, forever. The holder rung asked
+ *   only *insulated and closable*, with **no temperature test at all**,
+ *   so every `Bottle`, `Flask` and `Thermos` in the game was "cold
+ *   storage" and Dave's Bar reported its cold capability MET on the
+ *   strength of an EMPTY ice bin at room temperature. A capability that
+ *   answers wrongly is worse than one that is missing: a missing check
+ *   is silent, a wrong one is confidently misleading.
  * - `rest` — a posture-bearing `lie` slot whose `restQuality` reaches
  *   `n`. What makes a bedroom a bedroom, and it is a real read: a body
  *   that sleeps on it recovers by `posture × restQuality`.
@@ -511,7 +527,7 @@ function satisfyingItem(
   if ('heatK' in need) {
     const want = need.heatK;
     const hit = pool.find(
-      (i) => MixinApi.isFurnace(i) && i.getHeldTemperatureK() >= want,
+      (i) => MixinApi.isBurner(i) && i.getHeldTemperatureK() >= want,
     );
     return hit ? hit.getPresentation() : null;
   }
@@ -520,7 +536,12 @@ function satisfyingItem(
     return hit ? hit.getPresentation() : null;
   }
   if ('surface' in need) {
-    const hit = pool.find((i) => MixinApi.isSurfaced(i));
+    // ⚠ `on`, specifically. A compartment is a `Placing` host and is
+    // not a work surface; a hook is a `Placing` host and is not one
+    // either. What a bench claims is that you can set things ON it.
+    const hit = pool.find(
+      (i) => MixinApi.isPlacing(i) && i.getPlacements().includes('on'),
+    );
     return hit ? hit.getPresentation() : null;
   }
   if ('seating' in need) {
@@ -561,13 +582,27 @@ function satisfyingItem(
     return hit ? hit.getPresentation() : null;
   }
   // coldStorage — a property of a SPACE first (a cellar, a walk-in), and
-  // only then of a holder in it (insulated AND closable).
+  // only then of a holder in it. See the header: BOTH rungs read cold.
   for (const sp of spaces) {
-    if (MixinApi.isThermal(sp) && sp.getTemperature().rawValue() <= COLD_K) {
-      return sp.getPresentation();
-    }
+    // ⭐ A space's temperature is its AIR — `Atmospheric`, authored or
+    // integrated — not a thermal body. No Location composes
+    // `ThermalMixin`, and asking for one is why this rung answered
+    // never.
+    if (!MixinApi.isAtmospheric(sp)) continue;
+    const airK = sp.getOwnTemperatureK();
+    if (airK !== null && airK <= COLD_K) return sp.getPresentation();
   }
-  const box = pool.find((i) => MixinApi.isThermal(i) && MixinApi.isSealable(i));
+  // ⭐ A holder of THINGS (`Container`) — a bottle holds bulk, not
+  // provisions, and was never cold storage however cold it got — that
+  // is insulated (`Thermal`), closable (`Sealable`), and actually COLD
+  // inside. An empty icebox in a warm kitchen is a box, not a larder.
+  const box = pool.find(
+    (i) =>
+      MixinApi.isThermal(i) &&
+      MixinApi.isSealable(i) &&
+      MixinApi.isContainer(i) &&
+      i.getContentsTemperature().rawValue() <= COLD_K,
+  );
   return box ? box.getPresentation() : null;
 }
 

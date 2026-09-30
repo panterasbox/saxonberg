@@ -3,16 +3,15 @@
  * (invariant, respawned from template), seeded into each `DormRoom` via its `props:` data (the spine's
  * seed-once). A work surface; no `Named`.
  *
- *   Surfaced → Detailed → Thing
+ *   Placing → Detailed → Thing
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
-import { SurfacedMixin } from '@saxonberg/server/mud/lib/spatial/Surfaced';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
+import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const DeskBase = SurfacedMixin(DetailedMixin(Thing));
+const DeskBase = PlacingMixin(Good);
 
 export default class Desk extends DeskBase {
   static fieldMeta: FieldMeta = {};

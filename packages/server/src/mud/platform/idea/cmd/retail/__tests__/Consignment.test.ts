@@ -21,7 +21,7 @@ import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
 import { PostRegistrationMixin } from "../../../../../lib/stuff/PostRegistration";
 import { ConsignmentShelfMixin } from "../../../../../lib/retail/Consignment";
 import StockBase from "../../../../../lib/retail/Stock";
-import Thing from "../../../../../lib/stuff/Thing";
+import Good from "../../../../../lib/stuff/Good";
 import { StackableMixin } from "../../../../../lib/stuff/Stackable";
 import BankCounter from "../../../../thing/BankCounter";
 import PaymentCard from "../../../../thing/PaymentCard";
@@ -47,6 +47,7 @@ import Provision from "../../../../thing/Provision";
 import Material from "../../../../../lib/material/Material";
 import { Freshness } from "../../../../../lib/material/Freshness";
 import { Creature } from "../../../../../lib/creature/Creature";
+import { KeptAnimal } from "../../../../../lib/creature/KeptAnimal";
 import { WorldClockApi } from "../../../../../api/worldclock";
 import WorldClockRegistry from "../../../WorldClockRegistry";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
@@ -100,10 +101,10 @@ class TestGiver extends SensorMixin(
   static _mixinName = "TestGiver";
 }
 
-class Torch extends Thing {}
+class Torch extends Good {}
 
 /** A fungible good — the shape a bolt of cloth has. */
-class Bale extends StackableMixin(Thing) {
+class Bale extends StackableMixin(Good) {
   static _mixinName = "Bale";
 }
 
@@ -303,8 +304,13 @@ describe("Consignment — sell loop over real ownership", () => {
       const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
       ContainmentApi.move(alice as never, loc as never);
 
+      // ⭐ A `KeptAnimal`, not a bare `Creature`. Chattel came off the
+      // creature base in the base-class narrowing (D15) — `Creature` is
+      // also the base of every player, Cast member, Extra, Shade and
+      // corpse, and a person is nobody's property. A fish somebody caught
+      // and is selling is exactly what `KeptAnimal` names.
       const fish = makeStuffAtPath(() => {
-        const c = new Creature();
+        const c = new KeptAnimal();
         c.setKeywords(["fish"]);
         c.setMaterial(flesh());
         return c;
@@ -316,7 +322,7 @@ describe("Consignment — sell loop over real ownership", () => {
       expect(fish.getContainer()).toBe(shelf);
 
       const dead = makeStuffAtPath(() => {
-        const c = new Creature();
+        const c = new KeptAnimal();
         c.setKeywords(["fish"]);
         c.setMaterial(flesh());
         return c;

@@ -16,13 +16,13 @@
  * `Oven` and `Kiln` do not, and the envelope narrows a room's contents
  * with `MixinApi.isSpaceHeating` without ever naming a class.
  *
- * Composition: `SpaceHeating + Furnace + LightSource + Reserved +
- * Thermal + Surfaced` over a `Thing`.
+ * Composition: `SpaceHeating + Burner + LightSource + Reserved +
+ * Thermal + Placing` over a `Thing`.
  *
  *  - **`SpaceHeatingMixin` outermost**, so it can read the furnace face:
  *    a fire that has gone out warms nothing, and that should not take a
  *    second flag to say.
- *  - **`SurfacedMixin`**, because a pot stands ON a hearth. ⚠ NOT
+ *  - **`PlacingMixin`**, because a pot stands ON a hearth. ⚠ NOT
  *    `Container`: a hearth is not a chamber you put things inside, and
  *    that is the whole difference between it and an oven.
  *
@@ -34,12 +34,8 @@
  * A commons object: a second inn's fireplace is a ROW.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { SurfacedMixin } from '../../lib/spatial/Surfaced';
-import { ReservedMixin } from '../../lib/reserve';
-import { LightSourceMixin } from '../../lib/perception/LightSource';
-import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { FurnaceMixin } from '../../lib/fire/Furnace';
+import Firebox from '../../lib/fire/Firebox';
+import { PlacingMixin } from '../../lib/spatial/Placing';
 import { SpaceHeatingMixin } from '../../lib/thermal/SpaceHeating';
 
 /**
@@ -55,15 +51,15 @@ const HEARTH = {
   BURN_RATE_PER_MIN: 0.25,
 } as const;
 
-const HearthBase = SpaceHeatingMixin(
-  FurnaceMixin(
-    LightSourceMixin(ReservedMixin(ThermalMixin(SurfacedMixin(Thing)))),
-  ),
-);
+// ⭐ A firebox that warms the ROOM — `SpaceHeating` composed OUTSIDE
+// the chain, which is exactly the difference between a hearth and a
+// forge: a lit forge heats what you put in it, a lit hearth heats the
+// air. The difference is composed, not dialled.
+const HearthBase = SpaceHeatingMixin(PlacingMixin(Firebox));
 
 export default class Hearth extends HearthBase {
   /**
-   * ⚠ `FurnaceMixin.lit` defaults **true**, which is right for the
+   * ⚠ `BurnerMixin.lit` defaults **true**, which is right for the
    * Campfire seed it was written for and wrong for a hearth in an empty
    * room. A hearth ships cold; `lint:light-sources` clause (g) makes
    * every row say which it means anyway.

@@ -106,7 +106,7 @@ more words and with no code citations.
   formula (§3); *Extinguish surface* → "the three extinguishers" (§3);
   *Phase-change representation* → D7 (bidirectional `reconcilePhase`,
   molten pool as `Bulkable`, `Casting` clone on solidify); *Furnace
-  generalization* → D8 (`FurnaceMixin`, `Campfire` refactored onto it
+  generalization* → D8 (`BurnerMixin`, `Campfire` refactored onto it
   byte-identically, `Forge`/`Kiln`/`Oven`); *heat-as-crafting-control
   seam* → D9, **consumed**, not merely confirmed-inert. Two
   sub-questions remain genuinely open at bare-name fidelity — see

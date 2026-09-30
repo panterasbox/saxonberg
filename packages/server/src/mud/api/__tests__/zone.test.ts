@@ -7,8 +7,10 @@ import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import Thing from '../../lib/stuff/Thing';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import Good from '../../lib/stuff/Good';
+import { makeStuff,
+  EXIT_KIND_TEST_ROWS,
+} from '../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../lib/stuff/Stuff';
 
 type Doc = Record<string, unknown> & {
@@ -19,7 +21,11 @@ type Doc = Record<string, unknown> & {
 };
 
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row and every boundary's anchor
+  // pair is a clone too, so a store with no rows cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
 
   const save = vi.fn(async (_collection: string, doc: Doc) => {
     const copy = { ...doc };
@@ -209,7 +215,7 @@ describe('Zone is set at clone time, not on move', () => {
     // Item created without a zone — `ContainmentApi.move` does NOT
     // back-fill it. Zone identity belongs to whichever template
     // spawned the item; runtime placement leaves it alone.
-    const sword = await StuffApi.create(() => new Thing());
+    const sword = await StuffApi.create(() => new Good());
     expect(sword.getZone()).toBeNull();
 
     ContainmentApi.move(sword, park);

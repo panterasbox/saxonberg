@@ -9,7 +9,7 @@
  * CLAUDE.md test for substrate), and the verb it affords must be ONE
  * verb.
  *
- * `extends ToolItem`: Crafted (a smith's mark and grade), Tool
+ * `extends Tool`: Crafted (a smith's mark and grade), Tool
  * (`capabilities: [load]` is what satisfies the archetype), Durable (a
  * broken bar offers nothing — `hasCapability` is false on a broken
  * Durable). Four authorable fields say what the device can be loaded to
@@ -22,13 +22,13 @@
  * dorm corner a gym. `LiftController` reads the range and the body.
  */
 
-import ToolItem from './ToolItem';
+import Tool from './Tool';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
 
 const LIFT = ['platform/cmd/device/lift.yaml'];
 
-export default class LoadDevice extends ToolItem {
+export default class LoadDevice extends Tool {
   static commandContributions: CommandContributions = {
     environment: LIFT,
     peers: LIFT,

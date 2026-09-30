@@ -6,7 +6,7 @@
  * dispatches the controller. So nothing noticed that the verb was
  * afforded by no class, that the furnace row was a bare `Forge` and
  * therefore not a `Container`, and that the controller's own guard
- * (`isFurnace && isContainer`) could not have passed against one. The
+ * (`isBurner && isContainer`) could not have passed against one. The
  * smelt could not have run in a booted world, and the metal chain's
  * four-business loop has never closed.
  *
@@ -21,7 +21,7 @@ import Bloom from '../../../../thing/Bloom';
 import Ore from '@saxonberg/content-trade-mining/src/thing/Ore';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -112,8 +112,8 @@ function bar(materialPath: string, kg = 0.5, carbon = 0): Ingot {
 }
 
 /** A basket of charcoal — a Tangible whose material is fuel + carbon. */
-function basket(): Thing {
-  const b = makeStuff(() => new Thing());
+function basket(): Good {
+  const b = makeStuff(() => new Good());
   b.setMass(Quantity.of(8, 'kg'));
   b.setMaterial(
     StuffApi.findByTemplatePath<Material>(CHARCOAL_M) as unknown as Material,
@@ -131,7 +131,7 @@ function basket(): Thing {
  * hold 2130 K and every ferrous run would pour — which is exactly the
  * bug the retune fixes, so the fixture must not paper over it.
  */
-function makeFurnace(bellows: boolean): SmeltingFurnace {
+function makeBurner(bellows: boolean): SmeltingFurnace {
   return makeStuff(() => {
     const f = new SmeltingFurnace();
     f.setBurnTemperatureK(1420);
@@ -231,7 +231,7 @@ beforeEach(async () => {
       return i as never;
     }
     if (path === SLAG_ROW) {
-      const s = makeStuff(() => new Thing());
+      const s = makeStuff(() => new Good());
       stampTemplatePathForTest(s, SLAG_ROW);
       return s as never;
     }
@@ -295,7 +295,7 @@ beforeEach(async () => {
     `/platform/agent/Avatar/smelterman-${seq++}`,
   );
   ContainmentApi.move(actor, room);
-  furnace = makeFurnace(false);
+  furnace = makeBurner(false);
   ContainmentApi.move(furnace, room);
 });
 
@@ -308,7 +308,7 @@ afterEach(() => {
 
 describe('the furnace the smelt needs', () => {
   it('⚠⚠ is a CONTAINER — the shipped bare Forge was not, so the guard could never pass', () => {
-    expect(MixinApi.isFurnace(furnace)).toBe(true);
+    expect(MixinApi.isBurner(furnace)).toBe(true);
     expect(MixinApi.isContainer(furnace)).toBe(true);
   });
 
@@ -433,7 +433,7 @@ describe('⭐⭐ the ferrous ladder — the charge decides the metal', () => {
     // game said got you nowhere, and the act that helps (`light`) was
     // named by neither.
     //
-    // ⚠ Every other test in this file uses `makeFurnace`, which is LIT.
+    // ⚠ Every other test in this file uses `makeBurner`, which is LIT.
     // That is why the whole unlit branch had no coverage at all, and why
     // it took hammering at a furnace in a browser to find.
     furnace.douse();
@@ -600,8 +600,8 @@ describe('⭐⭐ the flux and the sulfur (extraction)', () => {
   }
 
   /** A lump of limestone — a Tangible whose material carries `flux`. */
-  function limestone(): Thing {
-    const l = makeStuff(() => new Thing());
+  function limestone(): Good {
+    const l = makeStuff(() => new Good());
     l.setMass(Quantity.of(8, 'kg'));
     l.setMaterial(
       StuffApi.findByTemplatePath<Material>(LIMESTONE_M) as unknown as Material,
@@ -610,8 +610,8 @@ describe('⭐⭐ the flux and the sulfur (extraction)', () => {
   }
 
   /** A lump of raw coal — fuel AND carbon AND sulfurous. */
-  function coal(): Thing {
-    const c = makeStuff(() => new Thing());
+  function coal(): Good {
+    const c = makeStuff(() => new Good());
     c.setMass(Quantity.of(8, 'kg'));
     c.setMaterial(StuffApi.findByTemplatePath<Material>(COAL_M) as unknown as Material);
     return c;
@@ -637,7 +637,7 @@ describe('⭐⭐ the flux and the sulfur (extraction)', () => {
       (plain as unknown as { getSlagFraction?(): number }).getSlagFraction?.() ?? 0;
 
     // A fresh furnace, and this time with limestone in it.
-    furnace = makeFurnace(true);
+    furnace = makeBurner(true);
     ContainmentApi.move(furnace, room);
     chargeIron(3, 2);
     ContainmentApi.move(limestone(), furnace);

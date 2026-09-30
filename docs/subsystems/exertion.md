@@ -1,5 +1,11 @@
 # Exertion
 
+> ⭐ **The lens that names this shape:**
+> [lenses/27-time.md](../lenses/27-time.md) — Schell's *"innings are not
+> timed, but if the game goes on too long it can exhaust the pitcher"* is
+> this subsystem exactly. **Time as a cost rather than a limit** is the
+> honest form, and it is the form a simulation reaches naturally.
+
 The exertion subsystem is **what working does to a body** — one event,
 every producer, four readers. It is the producer side that metabolism,
 encumbrance and locomotion each half-owned before the nutrition-and-
@@ -214,7 +220,7 @@ first treadmill lands (one line then). Reported, never enforced: a bar
 dropped on any floor makes the room meet the load slot with no code and
 no second archetype.
 
-`platform/thing/LoadDevice extends ToolItem` — Crafted, Tool
+`platform/thing/LoadDevice extends Tool` — Crafted, Tool
 (`capabilities: [load]`), Durable — with `loadMinKg / loadMaxKg /
 wattsPerKg / setDurationS`, and `commandContributions` in the
 **environment** bucket: the bar on the floor of the room affords

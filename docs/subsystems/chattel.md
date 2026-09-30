@@ -135,9 +135,21 @@ stamp, that survives the persistence round-trip. `ChattelMixin`
   item whose id is riding a snapshot, and its durable row survives the
   relog.
 
-Composed at the **`Thing`** tier (the movable-good tier), so every
-portable inanimate object gets per-instance identity for free
-(pets/apartments/ranching/retail all want it).
+Composed at the **`Good`** rung — `lib/stuff/Good` =
+`Chattel(Concealable(Thing))` — so every portable inanimate object gets
+per-instance identity for free (pets/apartments/ranching/retail all want
+it), and nothing else does.
+
+⚠⚠ **It was on the `Thing` root until the base-class narrowing
+(2026-09-29), and on `Creature` until the same build.** Between them those
+two lines declared that a floor, a hearth, a shop counter, a yard wall —
+and every player Avatar, Cast member, Extra, Shade and corpse in the game
+— were somebody's chattel. Nothing ever stamped one, so nothing failed:
+the defect was entirely in what the classes CLAIMED, which is the
+documented author surface. **Ownership of a thing you cannot carry off is
+the PARCEL's** (`parcel.md`), and a person is nobody's property. On the
+agent side it now composes on `KeptAnimal` and ranching's `Livestock` —
+the two hosts D22 and D98's argument actually pointed at.
 
 ### Discrete goods only — and what a LOT is
 

@@ -12,7 +12,6 @@
 import Location from '../../lib/stuff/Location';
 import { SphericalCoordinatesMixin } from '../../lib/location/SphericalCoordinates';
 import { ExitableMixin } from '../../lib/boundary/Exitable';
-import { VisibleMixin } from '../../lib/description/Visible';
 import { Quantity } from '../../lib/quantity';
 import type SphericalZone from '../idea/location/SphericalZone';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -30,7 +29,7 @@ import type { FieldMeta } from '../../lib/mixin';
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
 const SphericalLocationBase =
-  ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)));
+  ExitableMixin(SphericalCoordinatesMixin(Location));
 
 export default class SphericalLocation extends SphericalLocationBase {
   /**

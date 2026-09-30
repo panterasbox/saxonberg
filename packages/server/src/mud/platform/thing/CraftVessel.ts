@@ -34,10 +34,9 @@
  * the Dwarf-Fortress quality verdict — never a number.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { BulkableMixin, type BulkAffordance } from '../../lib/bulk/Bulkable';
 import { ContainerMixin } from '../../lib/spatial/Container';
-import { DetailedMixin } from '../../lib/description/Detailed';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CraftedMixin, type Crafted } from '../../lib/craft/Crafted';
 import type { FieldMeta } from '../../lib/mixin';
@@ -114,7 +113,7 @@ const CraftVesselBase = ContaminableMixin(
   ServiceableMixin(
   VesselKindMixin(
   CraftedMixin(
-    ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+    ThermalMixin(BulkableMixin(ContainerMixin(Good))),
   ),
   ),
   ),

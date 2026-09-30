@@ -8,10 +8,9 @@
 # sound and smell of a wood. Light is not the biome's — each room says
 # its own daylight against its own cell.
 class: /platform/idea/SkyExposedBiome
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+extends: /stuff/idea/biome/outdoor/baseline
 data:
   name: woodland
-  _extendsBiomePath: /stuff/idea/biome/outdoor/baseline
   _defaultHumidity: { value: 70, unit: "%" }
   _defaultWind: { value: 2, unit: "m/s" }
   _ambientSoundMml: "<markup>birdsong high up, and the small sounds of leaf-litter</markup>"

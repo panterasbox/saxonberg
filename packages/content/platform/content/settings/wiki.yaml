@@ -15,8 +15,19 @@ settings:
   - key: wiki.render.maxComponents
     value: "100"
 
+  # ⚠⚠ 5000, raised from 2000 by the base-class narrowing build. The
+  # `<composition kind="mixin">` inverse answers *what in this world has
+  # this capability* by scanning every template there is (1922 rows over
+  # 684 backing classes today), which lands at ~1.2–2.3 s — so the widest
+  # mixins sat on the old bound and crossed it intermittently.
+  #
+  # ⭐ A component that exceeds its budget renders its FAILURE into the
+  # page, and to a reader that is indistinguishable from *nothing
+  # composes this*. A bound that fires on legitimate work is not a safety
+  # rail; it is a source of quiet wrong answers. See the matching note in
+  # `RenderBudget.DEFAULTS`.
   - key: wiki.render.componentTimeoutMs
-    value: "2000"
+    value: "5000"
 
   - key: wiki.render.maxOutputChars
     value: "200000"

@@ -30,7 +30,7 @@ Cross-references:
 |---|---|---|
 | `Exit` | concrete `Idea` | One-way passage between two `Container & Exitable` endpoints. Carries direction, lazy-resolvable destination, optional door, traversal flags, custom messages. |
 | `ExitableMixin` | mixin | Explicit exit map + zone-delegated lookup; `addExit` wires `Door.attachedTo` and (for doored exits) `BoundaryApi.attachExistingBoundary`. |
-| `ExitableVessel` | concrete class | A Vessel you can enter. `DoorBearingMixin(ExitableMixin(VisibleMixin(AdornableMixin(Vessel))))` — it composes `Adornable` itself (the fixture surface the Door→`BoundaryAnchor` retrofit needs), since the bare `Vessel` base no longer does. Synthesizes `'in'`/`'out'` exits. Migrates the `(vessel, environment)` Boundary anchor pair on `setDoor` / `onMoved`. |
+| `ExitableVessel` | concrete class | A Vessel you can enter. `PostRegistrationMixin(DoorBearingMixin(ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)))))` — it composes `Adornable` itself (the fixture surface the Door→`BoundaryAnchor` retrofit needs), since the bare `Vessel` base no longer does, and ⭐ **`Atmospheric` too, since the base-class narrowing build: a thing you can go inside is a place with air** (see [biome.md](./biome.md)). Carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` + `openExteriorOpenings` because a room's version of each is wrong about a vehicle. Synthesizes `'in'`/`'out'` exits. Migrates the `(vessel, environment)` Boundary anchor pair on `setDoor` / `onMoved`, and resets the weather-locality memo there — a place that goes places has a new address. |
 | `DoorBearingMixin` | mixin | Adds a `door: Door | null` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `Door` | concrete `Thing` subclass | `LockableMixin(SealableMixin(Boundary))`. Shared open/closed **and** locked/unlocked state referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
 | `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` / `toggle` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
@@ -41,7 +41,7 @@ Cross-references:
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TS interface | Channel-shape: `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit`. Boundary subclasses implement (a subset of) these via `getConduits()`. |
-| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight + SmellConduit + SoundConduit`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open` gate all four channels. Declarative `attachedHosts: [string, string]` identity refs; `setAttachedHosts` resolves hosts lazily and installs anchors. |
+| `Window` | concrete `Boundary` subclass (⚠ **no row names it** — see § Window) | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight + SmellConduit + SoundConduit`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open` gate all four channels. Declarative `attachedHosts: [string, string]` identity refs; `setAttachedHosts` resolves hosts lazily and installs anchors. |
 | `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
 
 ## Locks & keys (`lib/lock/`)
@@ -332,7 +332,33 @@ destination isn't loaded the getter throws — async-aware
 callers (`Mobile.traverse`) `await
 exit.resolveDestination()` first.
 
-## Exit-kind templates (`/stuff/idea/exits/<kind>`)
+## Exit-kind templates (`<root>/idea/exits/<kind>`)
+
+⭐⭐ **Every exit in the world is a clone of a kind row.** There is no
+`new Exit(...)` branch left anywhere in the tree — an entry that names
+no `kind:` clones the platform's **`/platform/idea/exits/passage`**, a
+bare passage that authors nothing. That is the point: an exit built in
+TypeScript could say nothing an author had written, and the code that
+built one kept apologising for it in comments.
+
+⚠ `passage` authors an EMPTY `media` deliberately. An exit with no
+media admits the ground pace family (walk / sneak / run) with no
+modality lookup; writing `media: [ground]` out loud would make every
+unremarkable doorway depend on the mode roster being warm.
+
+**`Exitable.installExit(kindOrExit, opts, configure?)` is the ONE
+install path** for a code-minted exit: clone the kind row, run
+`configure` (whatever the subclass's constructor used to take — a floor
+number, a unit key, a warren reference), `bind` it to this edge,
+install. The ROOM must be the caller, because `bind` is
+participant-gated to a room party to the edge.
+
+Passing an existing exit instead of a kind path RE-installs it — the
+case of **an exit that moves with its host**: a vessel's `in`/`out`
+pair and a sandbox crossing's passage are minted once at
+`postRegister` and rebound as the host travels. That is what
+`Exit.rebind(opts)` exists for, and it is the only sanctioned way past
+`bind`'s "already bound" refusal.
 
 An **exit kind** is an authored template a room's `exits:` entry
 references via `kind:` — the authorable *nature of the passage*
@@ -344,6 +370,7 @@ exits:
   north:
     destination: /world/terminus/counting-houses/circle-parlor
     kind: /stuff/idea/exits/archway        # authored defaults for this edge
+                                           # (absent → /platform/idea/exits/passage)
     messageOut: "{{ mover }} ducks under the arch."   # per-site override
 ```
 
@@ -690,8 +717,25 @@ not unify.
 
 ## Window
 
-`lib/boundary/Window.ts`. The first concrete Boundary user
-beyond Door. `SealableMixin(Boundary)`. Implements `LightConduit
+`platform/thing/Window.ts`. The first concrete Boundary user beyond Door.
+
+> ⚠⚠ **Authorable, and unauthored.** In the whole life of the class
+> **no content row has ever named it**, and nothing outside its own
+> tests imports it. This doc, `light.md` and `roadmap.md` all read as
+> though the game has windows in it; it does not. Corrected by the
+> base-class narrowing build, which considered deleting the class and
+> **kept it deliberately** (plan D11) for three reasons: an author's
+> only one-line way to put a window between two rooms; the only
+> exerciser of partial and directional conduit transmissivity (`Door`'s
+> is binary, 0 or 1); and the only end-to-end proof of the Hydrator's
+> **async singleton-resolving `set<Field>` applier**, which
+> `PersistentHydrator.ts` names `setAttachedHosts` as the example of.
+>
+> ⭐ So the honest sentence is *the substrate is shipped and proven, and
+> the world has no window in it yet* — which is a content task, not a
+> code one: a row, two host paths, and it exists.
+
+ `SealableMixin(Boundary)`. Implements `LightConduit
 + LineOfSight` via wrapper objects from `getConduits()`.
 
 Persistent state (per the [persistence.md](./persistence.md)
@@ -719,7 +763,7 @@ The structured runtime API `getDirectionalOverrides()` /
 A templated Window declares the two host paths in its YAML:
 
 ```yaml
-class: /lib/boundary/Window
+class: /platform/thing/Window
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   baseTransmissivity: 0.9
@@ -806,7 +850,7 @@ unless their identity is tied to an Exit.
 `canSeeThrough(from, to)` — `transmissivity(from, to) > 0`.
 
 Template authoring: Window is template-loadable like Door
-(`class: '/lib/boundary/Window'`,
+(`class: '/platform/thing/Window'`,
 `hydratorClass: '/platform/idea/persistence/PersistentHydrator'`). Seed
 code calls `BoundaryApi.attachExistingBoundary` to install on
 two rooms.
@@ -833,7 +877,7 @@ class: `switch beacon on`, `switch lamp off`, or `toggle lamp` to flip to
 the opposite of its current state.
 
 The shipped consumer is the crossing's `Beacon` (`obj/Beacon.ts`, a
-`Switchable(Propertied(Detailed(Thing)))` pedestrian signal — on = WALK,
+`Switchable(Propertied(Thing))` pedestrian signal — on = WALK,
 off = STOP, the walk/stop meaning is prose over the on/off state; the
 beacon gates nothing). The build's lamppost was later cut to prose, so
 `Beacon` is the sole live Switchable.

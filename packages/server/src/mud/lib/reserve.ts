@@ -43,7 +43,7 @@
  * | `vitamin-c` | `%` | Creature + `MetabolicMixin` (basal drain, the `vitamin-c` tag) | `Creature.getVitaminC()`; the years clock — full to empty over `body.vitaminCDrainDays` of active play; floor effect `scurvy` off the shipped cascade |
  * | `alcohol-tolerance` | `%` | Creature + `MetabolicMixin` (fed at alcohol absorption; half-life decay) | keyed read inside `lib/metabolism` only; the `alcohol-tolerance` Discipline's band is a threshold over it |
  * | `marrow` | `%` | Creature + `MetabolicMixin` (slow regrowth) + `VitalsMixin` (`drawBlood` spends it) | `Creature.getMarrow()`; the donation reserve — how much lost blood the body can still make good. Read as pallor in the mirror, never a number; `bleed` refuses below the donation floor |
- * | `fuel` | `%` | `CombustibleMixin` / `FurnaceMixin` (theme `combustion`) | `getFuelRemaining()` |
+ * | `fuel` | `%` | `CombustibleMixin` / `BurnerMixin` (theme `combustion`) | `getFuelRemaining()` |
  * | `air` | `%` | an enclosed scope's Location (fire chemistry) | `FireLogic`-internal (no external reader) |
  * | `mana` | `pt` | `CasterMixin` (theme `arcane`; capacity from the depth band) | `getMana()` / `getManaFraction()` — raw keyed reads SKIP the recovery reconcile, never use them outside `lib/magic` |
  *

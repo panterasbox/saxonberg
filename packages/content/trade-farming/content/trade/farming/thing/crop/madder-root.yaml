@@ -12,5 +12,5 @@ data:
   register: indefinite
   longDescription: |
     Knotted red-brown roots, scrubbed and snapped short. They stain the hands of anyone who handles them, which is the entire point of them.
-  material: /trade/farming/idea/material/madder
+  _materialPath: /trade/farming/idea/material/madder
   mass: 0.8

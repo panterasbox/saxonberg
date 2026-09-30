@@ -5,7 +5,7 @@
  * the active and the dose count; spent by `administer`.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { PrescriptionMixin } from '../../lib/vitals/Prescription';
 
-export default class Prescription extends PrescriptionMixin(Thing) {}
+export default class Prescription extends PrescriptionMixin(Good) {}

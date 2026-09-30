@@ -146,8 +146,8 @@ identity — the chattel precedent). `holdsFor` is the authoritative
 check: a bounded **upward** containment walk comparing ancestor
 `templatePath`s to the destination (a crate in a chest in Dave's Bar
 delivers), **refusing any Creature ancestor** — *strict possession*:
-still-carried is not delivered — plus the `restingOn` surface leg
-(`placeOn` puts an item in the *room* with a `restingOn` pointer;
+still-carried is not delivered — plus the **placement** leg
+(`place` puts an item in the *room* with a placement pair naming the host;
 without this leg "deliver to the counter" could never hold).
 
 ## The lifecycle + storage

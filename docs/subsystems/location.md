@@ -9,7 +9,7 @@ the area.
 
 `lib/location/` carves the room/coordinate/zone geometry out of what was
 `lib/spatial/`; `lib/spatial/` now holds only the containment/movement
-substrate (Container, Containable, Mobile, Surfaced, Sealable — see
+substrate (Container, Containable, Mobile, Placing, Sealable — see
 [spatial.md](./spatial.md)). The base Zone hierarchy (`Zone` /
 `SpatialZone` / `FolderZone`) lives in `lib/zone/` (see
 [zone.md](./zone.md)); only the concrete coordinate zones
@@ -69,16 +69,34 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   No restrictions on `addExit` direction labels — spherical zones
   have no implicit adjacency, so semantic labels are the only way to
   author exits.
-- **`PersistentCartesianLocation`** = `Persistable(CartesianLocation)` —
-  the durable singleton coordinate room: one row, one room, in a zone's
-  grid, whose `props:` write back to `holder_snapshots`
-  (`StuffApi.singleton` is its establishing context — restore-or-seed,
-  the venue-`Stock` seam; cast rides `cast:` as anywhere). For the
-  bespoke stateful venue: a hand-authored farm whose beds must keep
-  their soil state (`captureHostOf` walks to the nearest persistable
-  ancestor, and a plain `CartesianLocation` gives it none). The keyed
-  multi-instance interior unit remains `FurnishableRoom`; a spherical
-  twin is derived when a spherical venue first needs one.
+- ⭐ **The durable singleton coordinate room is a SHAPE, not a class.**
+  One row, one room, in a zone's grid, whose `props:` write back to
+  `holder_snapshots` — for the bespoke stateful venue: a hand-authored
+  farm whose beds must keep their soil state (`captureHostOf` walks to
+  the nearest persistable ancestor, and a plain `CartesianLocation`
+  gives it none). The shape is
+
+      PersistableMixin( … SingletonCartesianLocation)
+
+  with `Persistable` **outermost** (its `cleanupOnDestruct` must fire
+  before the inner `Container` evacuates, and its `applyProps`/`applyCast`
+  wrap `Staged`), and over `SingletonCartesianLocation` rather than the
+  permissive base — ⚠⚠ **a durable room over the permissive base would
+  silently share ONE `holder_snapshots` scope across every mint.**
+  `StuffApi.singleton` is the establishing context (restore-or-seed, the
+  venue-`Stock` seam); cast rides `cast:` as anywhere.
+
+  The shipped example is forestry's `Wood`
+  ([forestry.md](./forestry.md)), which is this shape with two mixins
+  inside the outermost `Persistable`. ⚠ A one-line
+  `PersistentCartesianLocation` class existed for this cell of the
+  taxonomy and **no row ever named it** — the one real consumer could not
+  extend it anyway, because it needed mixins inside the outermost layer.
+  It was retired by the base-class narrowing build; the RULE is what was
+  load-bearing, and it is written here now instead of being inferred from
+  a class nobody instanced. The keyed multi-instance interior unit
+  remains `FurnishableRoom`; the spherical twin is derived the same way
+  when a spherical venue first needs one.
 
 Both compose `VisibleMixin` so a `look` on the room returns its
 description; `NamedMixin` is opt-in for rooms that take proper names
@@ -249,6 +267,13 @@ reading `this.zone` during `postRegister` sees the right value
 
 #### Field inheritance via `Zone.lookupField`
 
+⭐ **One of two inheritance mechanisms, and not the row one.** A zone
+field answers *what is true everywhere inside here*, at READ time,
+walking the path tree; a row's `extends:` parent answers *what this
+thing is like*, at CLONE time, walking the `extends` chain. They stay
+two mechanisms deliberately — see [zone.md § Zone field lookup and row
+parenting](./zone.md) and [templates.md § Inheritance](./templates.md).
+
 For zone-carried defaults that should inherit through the template
 tree, `zone.lookupField<T>(fieldName)` walks ancestry nearest-first
 and returns the first non-null value defined on any ancestor Zone.
@@ -362,7 +387,6 @@ mirrors it):**
 |---|---|
 | `location/Lounge.ts` | The one room template every lounge instance clones from. |
 | `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `props:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus the menu) and its troupe via `cast:` (Dave and the lounge cast). |
-| `location/GlassAlley.ts` | The alley. |
 | `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
 | `idea/LoungeWarren.ts` | Concrete singleton **`InnerWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `OuterWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |

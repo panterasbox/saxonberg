@@ -17,23 +17,37 @@ product vision see [docs/vision.md](./docs/vision.md).
 The `docs/` tree is the source of truth for architecture and subsystem
 behavior. Read the relevant doc before editing in its area.
 
-- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE SIX
-  LENSES every high-level design is interrogated with**, and the
-  standing rule for any fork: 1 **pedagogy** (what Discipline does it
-  exercise; is the world derivable) · 2 **creative expression** (the
-  ordinary case with no code, the bespoke case without breaking) ·
-  3 **immersion & roleplay** (RP *emerges* from an honest sim — the GTA
-  property; never a gauge) · 4 **gamification & self-improvement**
-  (values, not knowledge: what choice does it force, and who confers
-  standing) · 5 **technology & magic** (the mechanism holds from ancient
-  Rome to New York; only the dynamics change — magic and future tech are
-  one axis) · 6 **economy & governance** (produces · consumes · who pays ·
-  was the demand there first · and when it judges a PERSON — name the
-  criterion and the appeal). A **scorecard, not a gate**: 1 and 2 decide forks, and
-  ⭐ **when they decide one, don't ask — pick it and say which limb
-  chose.** Run the pass at the slate and at requirements. ⚠ NOT
-  [docs/lenses/](./docs/lenses/README.md), which is the borrowed Schell
-  deck.
+- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE SEVEN
+  LENSES every high-level design is interrogated with** (six until
+  2026-09-29), and the standing rule for any fork: 1 **pedagogy** (what
+  Discipline does it exercise; is the world derivable) · 2 **creative
+  expression** (the ordinary case with no code, the bespoke case
+  without breaking; ⭐ personalization is a *derivative of supply-chain
+  depth*) · **3a immersion** (the fiction cannot betray itself) +
+  **3b participation** (⭐ not *roleplay a blacksmith* — the economy has
+  a blacksmith-shaped hole; measured by *can the polity do something we
+  did not want*) · 4 **values** (⭐⭐ lens 1 governs what has a derivable
+  right answer, 4 what has **none and must be decided anyway**; a gauge
+  converts an undecidable choice into a calculable one) ·
+  5 **continuity** (⭐ *not* "technology & magic" — does the capability
+  survive the epoch; test = **does the new object answer the same
+  commands**; it is lens 2's time axis and inherits its veto) ·
+  6 **economy** (produces · consumes · who pays · was the demand there
+  first) · 7 **governance** (⭐ split out of 6 — when it judges a PERSON,
+  name the criterion, the appeal, and the entrenchment tier). A
+  **scorecard, not a gate**: 1 and 2 decide forks, and ⭐ **when they
+  decide one, don't ask — pick it and say which limb chose.** Run the
+  pass at the slate and at requirements. ⭐⭐⭐ **Every answer has an
+  altitude — invariant · grain · title**: the middle is where most of
+  this design's values live, so answer *as if building the game the
+  platform is for* and say which answers are the **grain** (a default
+  an author may change) rather than the law; **neutrality is the
+  attention company's answer, not ours.** ⚠ NOT
+  [docs/lenses/](./docs/lenses/README.md) — the borrowed Schell deck,
+  **restarted 2026-09-29** (11 entries, indexed *by our lens*; the
+  previous 29 were retired to
+  [lens-deck-salvage.md](./docs/lens-deck-salvage.md), which holds the
+  slate checklist and the two ratified essence sentences).
 - [docs/architecture.md](./docs/architecture.md) — three-layer
   architecture, Manager vs Api, mixin organization, file structure
 - [docs/antipatterns.md](./docs/antipatterns.md) — patterns to avoid,
@@ -50,8 +64,8 @@ behavior. Read the relevant doc before editing in its area.
   ROW is a hydration source for authored content only — minted
   identities back onto `holder_snapshots` / a purpose Document /
   nothing, and a per-instance `domain` row is the anti-pattern, the
-  legacy per-player Avatar row's retirement being tracked work;
-  template inheritance does not exist)
+  legacy per-player Avatar row's retirement being tracked work; a row
+  may `extends:` one parent — resolved at read, never flattened)
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/arcane-science.md](./docs/arcane-science.md) — the invented-but-
   honest science of magic (one postulate, the laws, the price list) +
@@ -117,7 +131,7 @@ behavior. Read the relevant doc before editing in its area.
   operators, filters, pronouns, examples)
 - Subsystem references in `docs/subsystems/`. Each doc is the source
   of truth for its area — read it before editing. Map entries are ONE-LINE pointers by design — a build that grows a subsystem expands the DOC, never this blurb.
-  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant
+  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant, `extends:` row inheritance
   - [persistence.md](./docs/subsystems/persistence.md) — Document vs Templates→Stuff, PersistenceManager, hooks; the self-persistence spine (PersistableMixin → `holder_snapshots`)
   - [record-layer.md](./docs/subsystems/record-layer.md) — what the server remembers for you: the per-player frame store, `recall` over three corpora, the nightly reset policy
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
@@ -170,7 +184,7 @@ behavior. Read the relevant doc before editing in its area.
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), resolver map, cardinality policy
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins, `_mixinName`, Mixins registry, MixinApi predicates, composition order
   - [zone.md](./docs/subsystems/zone.md) — Zone/SpatialZone/FolderZone roots, resolveZoneForPath, field inheritance
-  - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Surfaced/Sealable, vessels
+  - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Placing/Sealable, vessels; **Placement** — where inside its container a thing sits (`on`·`in`·`from`, a row-extensible vocabulary), and the two composition refusals
   - [location.md](./docs/subsystems/location.md) — room/coordinate/zone geometry, the Warren elastic graph, lounge content, `startLocation`
   - [boundary.md](./docs/subsystems/boundary.md) — exits/doors/Adornable, exit-kind templates, DeferredDestinationExit, Switchable/Lockable/Bistate, locks & keys
   - [bulk.md](./docs/subsystems/bulk.md) — continuous matter and NOTHING else: Bulkable slots, transfer/drain-through, measure grammar, fill/pour/drink; the vessel kind is `VesselKindMixin`, and `BulkPayload` carries only what cannot derive (subsystems declare their own fields onto it)
@@ -233,7 +247,7 @@ behavior. Read the relevant doc before editing in its area.
   - [pets.md](./docs/subsystems/pets.md) — an animal kept for itself: `KeptAnimal` as a rung, the bond as regard × handling (*difficult, not feral*), feeding as a ladder the species declares, ⭐ the offer as a moment the animal decides (`offerRung` + `OfferEngagement`), the ask, naming as the promotion, and the residency pin — what loads a pet
   - [mining.md](./docs/subsystems/mining.md) — ground you cut: the Deposit field (seeded, never drawn), WorkingMixin's four reads, MineWarren carve/shore/promote, the damps + the canary, grade end-to-end to the smelt
   - [spoilage.md](./docs/subsystems/spoilage.md) — food that goes off, and the food that hurts you: ⭐⭐ **spoilage is a CLOCK, contamination is an EVENT** — the microbial LOAD (`μ = μ_max · f_T · f_aw`) with FreshnessMixin on `Provision`, the bands, the kill as an Arrhenius RATE held for a recipe's `holdS`; the per-instance water state (`WaterActivityMixin` — `a_w = base · moisture · (1 − solute)`, hurdles that stack, drying reverses and curing does not); and the SILENT second population (`ContaminableMixin` — event-seeded, no sense reports it, its own kill curve + spore floor, `infect` vs `intoxicate`) with butchering as its one source; `lint:perishable` + `lint:pathogens`
-  - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
+  - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation; the **Coolbox** cold twin of the furnace couple (⚠ a solid melts because it is WARM — `reconcilePhase` had no ambient driver until 2026-09-28)
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi
   - [shell-author.md](./docs/subsystems/shell-author.md) — AuthorMixin lifecycle + code-execution verbs, the EvalScript sandbox
@@ -256,7 +270,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, cadence/witness triggers, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
-  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `ToolItem`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
+  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `Tool`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
   - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ the article defect (`greedy: true`) and a required arg with no default both fail closed and SILENT
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
@@ -865,10 +879,11 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Ten exist. **Seven
+absorbs the clones, and templates name that. Twelve exist. **Nine
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
-`platform/thing/Thing`, `platform/thing/Vessel`,
+`platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
+`platform/idea/modalities/Modality`,
 `platform/location/CartesianLocation`,
 `platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
 `platform/idea/material/Material`, `platform/idea/Biome`. **Three are
@@ -884,6 +899,18 @@ nothing (there is no prop concept anywhere in the tree) and read as
 "generic object nobody cares about" — so nobody defended it, and a
 spoilage gauge got hung on it to serve four rows that belonged on
 `Provision`.
+
+⭐⭐ **A class name that is an ADJECTIVE is the same mistake.** Every
+`-able`/`-ible` name in the kernel is a mixin, except `Workable`, which
+is an interface — so the suffix *means* mixin-or-interface and a class
+wearing one reads as a category error. The base-class narrowing shipped
+`Movable` and `Animate` for one build each before this was noticed, and
+`Movable` was also FALSE: it composed nothing that makes a thing
+movable (`fixedInPlace` is `Containable`'s, on the parent), and `Chair`
+and `Fitting` are both fixed-in-place `Movable`s. They are
+`Good` and `Actor` now. ⭐ **Name a class for what it IS, and check the
+prose you already wrote** — every docstring about that rung said *"a
+good"* and none said *"a movable"*.
 
 **Placement within `platform/<branch>/`:** flat at `platform/<branch>/<Name>.ts` by default. A
 `platform/<branch>/<cluster>/` directory only where 3+ cohesive classes land together
@@ -905,8 +932,14 @@ classes live elsewhere — that is fine and pre-existing.
 — `BoundaryAnchor`, `SandboxCrossingExit`, `LightningStrike` — stay.
 The test is *does an instance carry a template-path stamp*, not *is it
 ever `new`'d*. `Shadow` stays for a different reason: it is a framework
-attachment, riding any Stuff, never template-backed. `ExitableVessel`
-is deferred until a consumer needs a concrete class.
+attachment, riding any Stuff, never template-backed. ⚠ `ExitableVessel`
+was *"deferred until a consumer needs a concrete class"* — the coach is
+that consumer and has been since the transport pack shipped; it is a
+`lib/` resident with a row-bearing subclass now, not a deferral.
+⭐ `lib/stuff/Holder` and `lib/creature/Actor` are the two rungs the
+base-class narrowing added with NO twin, deliberately: nothing should
+clone a bare holder or a bare acting body, and `lint:instanceable`
+invariant 1 holds by construction.
 
 `hydratorClass:` is a **template path**, not a module path, despite
 looking like one. It is optional; when absent **no hydration runs**, so
@@ -1063,7 +1096,8 @@ orchestration cases:
 | `obj.destroy()` | `StuffApi.destruct(obj)` |
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
 | `item.setContainer(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
-| `ContainmentApi.move(item, room); item._setRestingOn(desk)` (manual on-surface placement) | `ContainmentApi.placeOn(item, desk)` — single primitive; resolves the surface's environment, runs `canRest`, moves, restamps `restingOn`. `_setRestingOn` is `FromContainmentApi`-gated; direct calls throw. |
+| `ContainmentApi.move(item, room); item._setPlacement(desk, 'on')` (manual placement) | `ContainmentApi.place(item, 'on', desk)` — single primitive; resolves the host's environment, runs `canPlace`, moves, restamps the pair, and re-`restamp()`s a Thermal item (⚠ `move` is a NO-OP inside one container, so nothing else would). `_setPlacement` is `FromContainmentApi`-gated; direct calls throw. ⭐ The member name is a `Placement` ROW, not an enum. |
+| `ContainmentApi.looseContents(items)` | `container.getLooseContents(items?)` — it reads one container's own list, so it is a method. ⭐ And MQL may not own it: [architecture.md § MQL is a VIEW over the model](./docs/architecture.md) — anything expressible in MQL must also be expressible by function call. |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
 | `obj.fullName ?? obj.name ?? 'something'` | `obj.getPresentation()` |
 | `creature.move(loc)` (raw containment) | `LocomotionApi.traverseWithDefault(actor, exit)` (default-mode dispatch via `defaultModeFor` chain) or `LocomotionApi.engageAround(actor, mode, exit, action)` (known mode + engagement bookkeeping) |

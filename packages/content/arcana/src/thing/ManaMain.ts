@@ -23,7 +23,6 @@
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
@@ -32,7 +31,7 @@ import type { SupplyState } from '@saxonberg/server/mud/lib/supply/SupplyState';
 
 const ManaMainBase = SingletonMixin(
   PostRegistrationMixin(
-    FixtureMixin(DetailedMixin(ChargedMixin(ReservedMixin(Thing)))),
+    FixtureMixin(ChargedMixin(ReservedMixin(Thing))),
   ),
 );
 

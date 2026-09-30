@@ -18,14 +18,20 @@
  */
 
 import '../../../test-bootstrap';
-import { describe, it, expect } from 'vitest';
+import {
+  effectiveRow,
+  inheritanceIndex,
+} from '../../../../scripts/pack-roots';
+import { describe, it, expect , beforeEach } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, sep, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { Recipe } from '../../lib/craft/Recipe';
 import { MixinApi } from '../../api/mixin';
-import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 import Crate from '../../platform/thing/Crate';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 
@@ -81,6 +87,8 @@ function walk(dir: string): string[] {
 }
 
 /** Every template row every shipped pack carries (recipes excluded). */
+const INHERIT = inheritanceIndex();
+
 function allRows(): Row[] {
   const rows: Row[] = [];
   for (const pack of readdirSync(PACKS)) {
@@ -89,9 +97,17 @@ function allRows(): Row[] {
     for (const file of walk(root)) {
       const rel = relative(root, file);
       if (rel.startsWith('recipes/') || rel.startsWith('settings/') || rel.startsWith('archetypes/')) continue;
-      const raw = parse(readFileSync(file, 'utf8')) as { class?: string; data?: Record<string, unknown> } | null;
-      if (!raw || typeof raw.class !== 'string') continue;
-      rows.push({ pack, path: '/' + rel.replace(/\.yaml$/, ''), class: raw.class, data: raw.data ?? {} });
+      const raw = parse(readFileSync(file, 'utf8')) as { class?: string; extends?: string; data?: Record<string, unknown> } | null;
+      if (!raw) continue;
+      // ⚠⚠ The EFFECTIVE row. A CHILD states no `class:`, so requiring
+      // one here dropped `can-of-cola` the moment it started extending
+      // the can — and the count assertion below went 32 → 31 with no
+      // hint of why. This is the "a gate that skips a class-less row
+      // silently" failure, in a test.
+      const path = '/' + rel.replace(/\.yaml$/, '');
+      const eff = effectiveRow(path, INHERIT.rows, INHERIT.rules);
+      if (eff.error || !eff.class) continue;
+      rows.push({ pack, path, class: eff.class, data: eff.data });
     }
   }
   return rows;
@@ -110,6 +126,10 @@ const floorRows = annexRows.filter(
 );
 
 describe('libations annexes — the floor rows fit the faucet', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   it('the faucet stubs and the two corpo yards each ship floor product; no corpo pack ships any', () => {
     // Winemaking and brewing DE-STUBBED (fermentation W8): their floor
     // faucets are retired — every bottle and keg is brain-made now —
@@ -162,7 +182,10 @@ describe('libations annexes — the floor rows fit the faucet', () => {
   it('every bottle row holds a shipped material whose tags carry a recipe category; every crate populates a shipped item', () => {
     for (const r of floorRows) {
       if (r.class === '/platform/thing/Crate') {
-        const items = r.data.props as string[];
+        // ⭐ An entry is a bare path or `{ template, count }` — the crates
+        // say twelve limes in one line now, which is what `count:` is for.
+        const items = (r.data.props as Array<string | { template: string }>)
+          .map((e) => (typeof e === 'string' ? e : e.template));
         expect(items.length, r.path).toBeGreaterThan(0);
         const item = byPath.get(items[0]!);
         expect(item, `${r.path} populates ${items[0]}`).toBeDefined();

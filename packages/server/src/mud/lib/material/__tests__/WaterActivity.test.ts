@@ -11,7 +11,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
 import Material from '../Material';
 import { Freshness } from '../Freshness';
@@ -21,7 +21,7 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import CartesianLocation from '../../location/CartesianLocation';
-import { SurfacedMixin } from '../../spatial/Surfaced';
+import { PlacingMixin } from '../../spatial/Placing';
 import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
@@ -238,7 +238,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
 
   it('⚠ a bare `Thing` carries no water state — a plank is not food (yet)', () => {
     const plank = makeStuff(() => {
-      const t = new Thing();
+      const t = new Good();
       t.setMaterial(material(0));
       return t;
     });
@@ -281,7 +281,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     });
   }
 
-  class TestRack extends SurfacedMixin(Thing) {}
+  class TestRack extends PlacingMixin(Good) {}
 
   function rackIn(where: CartesianLocation, exposure = 1): TestRack {
     const rack = makeStuff(() => {
@@ -299,7 +299,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     // common case by a wide margin and it must stay free.
     const cut = food(material(MEAT_EA));
     const box = makeStuff(() => {
-      const t = new Thing();
+      const t = new Good();
       t.setMass(Quantity.of(5, 'kg'));
       return t;
     });
@@ -317,7 +317,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const cookhouse = room(40, 2);
     const cut = food(material(MEAT_EA));
     const rack = rackIn(cookhouse);
-    ContainmentApi.placeOn(cut as never, rack as never);
+    ContainmentApi.place(cut as never, 'on', rack as never);
     setNow(0);
     void cut.getWaterState(); // starts the clock
     expect(cut.waterClockStamp).toBeGreaterThan(0);
@@ -334,7 +334,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const steamy = room(100, 3, 300);
     const cut = food(material(MEAT_EA));
     const rack = rackIn(steamy);
-    ContainmentApi.placeOn(cut as never, rack as never);
+    ContainmentApi.place(cut as never, 'on', rack as never);
     setNow(0);
     void cut.getWaterState();
     expect(cut.waterClockStamp).toBe(0);
@@ -353,7 +353,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     racked.setWaterState({ moisture: 0.4, solute: 0 });
     sacked.setWaterState({ moisture: 0.4, solute: 0 });
     const rack = rackIn(cellar);
-    ContainmentApi.placeOn(racked as never, rack as never);
+    ContainmentApi.place(racked as never, 'on', rack as never);
     setNow(0);
     void racked.getWaterState();
     void sacked.getWaterState();
@@ -376,8 +376,8 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const cellarMat = material(MEAT_EA, AW);
     const inLoft = food(loftMat);
     const inCellar = food(cellarMat);
-    ContainmentApi.placeOn(inLoft as never, rackIn(dryLoft) as never);
-    ContainmentApi.placeOn(inCellar as never, rackIn(dampCellar) as never);
+    ContainmentApi.place(inLoft as never, 'on', rackIn(dryLoft) as never);
+    ContainmentApi.place(inCellar as never, 'on', rackIn(dampCellar) as never);
     setNow(0);
     void inLoft.getWaterState();
     void inCellar.getWaterState();
@@ -392,7 +392,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
 
   it('(f) ⭐⭐ the SAME cut on a rack and on the floor DIVERGE', () => {
     // The pin the lens pass added, and the one the rack existed without:
-    // before this, `ContainmentApi.placeOn` moved the item into the
+    // before this, `ContainmentApi.place` moved the item into the
     // surface's ROOM, so a ham on the cookhouse rack and a ham dropped on
     // the cookhouse floor had the same container and the same air, and the
     // rack was arithmetically inert. Drying is surface-limited; the support
@@ -400,7 +400,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const yard = room(35, 4);
     const racked = food(material(MEAT_EA));
     const dropped = food(material(MEAT_EA));
-    ContainmentApi.placeOn(racked as never, rackIn(yard) as never);
+    ContainmentApi.place(racked as never, 'on', rackIn(yard) as never);
     ContainmentApi.move(dropped as never, yard as never);
     setNow(0);
     void racked.getWaterState();
@@ -424,8 +424,8 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     const shed = room(35, 4);
     const airy = food(material(MEAT_EA));
     const stifled = food(material(MEAT_EA));
-    ContainmentApi.placeOn(airy as never, rackIn(shed, 1) as never);
-    ContainmentApi.placeOn(stifled as never, rackIn(shed, 0.2) as never);
+    ContainmentApi.place(airy as never, 'on', rackIn(shed, 1) as never);
+    ContainmentApi.place(stifled as never, 'on', rackIn(shed, 0.2) as never);
     setNow(0);
     void airy.getWaterState();
     void stifled.getWaterState();

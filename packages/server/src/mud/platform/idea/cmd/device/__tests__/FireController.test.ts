@@ -24,7 +24,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import FireController from '../FireController';
 import Oven from '../../../../thing/Oven';
-import Thing from '../../../../../lib/stuff/Thing';
+import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
 import { Reserve } from '../../../../../lib/reserve';
 import { Quantity } from '../../../../../lib/quantity';
@@ -73,7 +73,7 @@ function makeKiln(opts: { holdK: number; lit: boolean; bellows?: boolean }): Ove
       new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
     );
     o.setBellowsActive(opts.bellows ?? false);
-    // ⚠ `lit` defaults to TRUE on `FurnaceMixin` (a campfire seed starts
+    // ⚠ `lit` defaults to TRUE on `BurnerMixin` (a campfire seed starts
     // lit), so the unlit case has to be set explicitly — which is exactly
     // why the smelt's unlit branch had no coverage for three builds: every
     // fixture in the tree happened to be lit by accident.
@@ -83,8 +83,8 @@ function makeKiln(opts: { holdK: number; lit: boolean; bellows?: boolean }): Ove
 }
 
 /** A lump of something, by material path. */
-function lumpOf(path: string, kg = 5): Thing {
-  const t = makeStuff(() => new Thing());
+function lumpOf(path: string, kg = 5): Good {
+  const t = makeStuff(() => new Good());
   t.setMass(Quantity.of(kg, 'kg'));
   t.setMaterial(StuffApi.findByTemplatePath<Material>(path) as unknown as Material);
   return t;
@@ -178,7 +178,7 @@ beforeEach(async () => {
   const realClone = StuffApi.clone;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
     if (path === PRODUCT_ROW || path === OTHER_ROW) {
-      const p = makeStuff(() => new Thing());
+      const p = makeStuff(() => new Good());
       stampTemplatePathForTest(p, path);
       p.setMass(Quantity.of(2, 'kg'));
       p.setShortDescription(path === PRODUCT_ROW ? 'burnt thing' : 'other thing');
@@ -282,7 +282,7 @@ describe('the chamber, the charge and the heat', () => {
 
   it('⭐⭐ the affordance: the APPLIANCE carries `fire`, beside its own five', () => {
     // ⭐ The doctrine this verb rides, and it was already written on
-    // `FurnaceMixin`: *"the fire-appliance verbs are afforded by the
+    // `BurnerMixin`: *"the fire-appliance verbs are afforded by the
     // appliance."* Five verbs hung off it; firing a loaded chamber is the
     // sixth. ⚠ The plan had it afforded by an open WORKING instead, which
     // would have meant a potter's shed needed its own class to fire a pot.

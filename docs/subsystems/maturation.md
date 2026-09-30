@@ -86,7 +86,7 @@ rack = `pour`, seal = `close`, bottle = `fill`, pitch/feed = `pour`.
 
 `MaturingMixin` composes on a Bulkable host (composition-validated)
 — bulk matter has no identity, vessels do (the pot-as-bed precedent).
-`Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Detailed(Thing))))))`;
+`Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Good)))))`;
 a carboy, a conditioning bottle and the cask are ROWS over it (sizes
 are data). The vat's `category` defaults `'vat'` (rows depart).
 

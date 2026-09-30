@@ -155,13 +155,59 @@ dossier, 2026-09).
 
 ## Content, templates & vocabulary
 
-- **`lint:instanceable`** — **nothing instances `/lib/`.** Six
+- **`lint:instanceable`** — **nothing instances `/lib/`.** Twelve
   invariants over every template: no `class:` resolves under `/lib/`,
   no template path lives there, every `class:` resolves to a real
   module + export, every `hydratorClass:` to a real row, no redundant
   `hydratorClass`, and no orphaned `data` (a data block with no
   hydrator, whose keys `clone()` silently discards). No exemption list,
   by design.
+
+  Template inheritance added two, and re-aimed three:
+
+  - **11 — a row clones into SOMETHING.** It states a `class:` or names
+    a parent with `extends:` whose chain resolves (no missing parent, no
+    cycle, within the depth cap 32) and states one.
+  - ⭐ **12 — no ORPHAN DATA KEY.** Every key in a row's *effective*
+    `data` is a field its *effective* class declares. The Hydrator
+    discards a key no composed field declares, **silently**; authored
+    alone that hurts one row, but **inherited, one junk key reaches
+    every descendant** — a consumer written when the input was small,
+    arriving from the authoring side. Census-then-ratchet: ceiling
+    **438** at the census, and it prints the list (`--orphans`) because
+    the inventory is the point. Applies only under the standard
+    hydrator — a custom hydrator's appliers are its own business and
+    `fieldMeta` is not the universe there.
+  - **5, 6 and 7 now read the EFFECTIVE row**, and 5 gained a second
+    shape: a child restating the hydrator its parent already supplies.
+
+  ⚠⚠ **The migration that mattered more than either new invariant.**
+  Fifteen gates selected rows by `raw.class`, each through its own local
+  YAML walk. A child row states no class, so **every one of them would
+  have skipped it without a word** — and a gate that reports "nothing to
+  check" is indistinguishable from a gate that checked. They now share
+  one reader (`scripts/pack-roots.ts`: `templateRows`, `effectiveRow`,
+  `effectiveDoc`), applied as a single line at each parse site.
+  `check-template-census`'s cast clause was reading the `class:` *line*
+  with a regex and had the same hole.
+
+  ⚠ The shared reader's merge is **shallow** — a child key wins whole,
+  a list replaces. A gate that reasons about list ENTRIES reads `raw`
+  and says so. Mirroring the runtime's per-field `inherit` algebra in a
+  script would mean two implementations of one rule.
+- ⭐ **`lint:create-sites`** — **every object in the world is born from
+  a ROW**, and the exceptions are ENUMERATED. Ceiling **5**, and the
+  allowlist in the script carries a reason per survivor: the connection
+  layer (`Interactive`, `Login`), a framework seam that takes a factory
+  from its caller (`BoundaryApi.create`, the shadow follower), and one
+  class introspection (`StudioLogic.readClassDefault`). See
+  [antipatterns.md § `StuffApi.create()` Instead of a Template](./antipatterns.md).
+
+  ⚠ Worth reading its `stripNonCode`: the first cut's string scanner
+  ran away on an apostrophe and ate 85% of `StudioLogic.ts`, so the
+  gate cheerfully reported that file as minting nothing. **A stripper
+  that over-strips is a gate that passes** — the failure mode this
+  family exists to prevent, produced by the gate itself.
 - **`lint:census`** — every template-path-valued field in every shipped
   row resolves to a real row, and `clone()`'s `asTemplatePath` channel
   stays retired. A path naming no row cannot be edited, addressed or
@@ -760,7 +806,7 @@ rooms floorless and nothing else goes wrong. Six of the Location family's
 overrides had no `super` call before the ground build. The kernel's roster
 test covers the kernel's classes; a pack's cannot be imported by a kernel
 test, so the gate covers those. ⚠ Its first draft asked *does the FILE
-mention `Location`?* and flagged `CommandGiver`, `CardRegistry` and `Screen`,
+mention `Location`?* and flagged `CommandGiver`, `CardRegistry` and a wall-screen class,
 none of which is a room — the honest test is the class walk
 (`composesMixin(classPath, 'Location')`).
 
@@ -874,6 +920,41 @@ configured**.
   rots — which is right, and is not spoilage: a LIVING thing's tissue is
   not yet dead matter, so a class composing `GrowingMixin` is exempt by
   rule, not by list. The clock starts at the harvest, which is a `Crop`.
+- **`lint:mass`** — ⭐ **a thing made of nothing, counted and capped**
+  (base-class narrowing, 2026-09-29). Every row whose class reaches
+  `TangibleMixin` is matter, and mass drives carry capacity, thermal
+  capacity, the fist, the tailor's girth and the haulage cost surface
+  while material drives resistance, burning, rotting and worth. A row
+  stating **neither** `mass` nor `_materialPath` is matter made of
+  nothing, weighing nothing — and it fails closed and silent: `getMass()`
+  answers 0 kg and no test anywhere says a word. Census-then-ratchet,
+  **ceiling 242** across 83 classes (`Seed` 24, `Stock` 17, `Receptacle`
+  15, `SpiritBottle` 15, `Crate` 12, `Bottle` 11); writing the masses is
+  content work row by row, and what the gate buys is that the number
+  cannot grow while nobody has time for it.
+  **Exempt:** a class that DERIVES one of the two — exactly one does,
+  `Creature.getMass()` seeding from `species → baseMass`
+  (`lib/creature/Creature.ts:549`). ⚠ The plan named `OrganismMixin` for
+  that exemption and it derives nothing; the check the plan itself asked
+  for came back empty, and the exemption follows the **verified**
+  deriver rather than the plausible one.
+  ⚠⚠ **It shipped fail-OPEN for one afternoon and the census caught it.**
+  The first version reused `check-perishable`'s textual walk, which
+  follows only IMPORTS out of an `extends` clause — but
+  `const FooBase = AMixin(Base); class Foo extends FooBase {}` is the
+  dominant shape in this tree, so the clause names a module-local
+  binding and the walk stopped dead. It found **5 of 684** classes
+  reaching `TangibleMixin` where the composition census finds 203, and
+  reported **9** offenders instead of 242. ⭐ **A gate that counts
+  offenders fails OPEN on a miss, and the same walker in
+  `check-perishable` fails CLOSED** — identical defect, opposite
+  consequence, which is why it survived in the older gate until a second
+  consumer arrived. Both expand local `const` bases now.
+  ⚠ What it cannot see: a runtime `setMass`/`setMaterial`; a body's
+  MATERIAL (`Creature` derives mass and not material, so what a body is
+  made of is still unstated by every creature row — the body plan's
+  question, filed not gated); and whether a stated mass is RIGHT
+  (0.0001 kg passes — it asks whether anybody said anything at all).
 - **`lint:kept-animals`** — the kept-animal triangle closes (pets build,
   2026-09): a species dial the kernel cannot read (`handlingRange`,
   `biddability`, `feedingStyle` on a row whose class is not `Species`);
@@ -961,7 +1042,7 @@ list (`UNDECLARED_INTERIOR_AMBIENT`) opened at **50** and reached
 Two clauses paid for the gate on their first runs:
 
 - **(g)** — a furnace row must author `lit:`, because
-  `FurnaceMixin.lit` defaults **true**. It found four rows relying on
+  `BurnerMixin.lit` defaults **true**. It found four rows relying on
   that default, and **two of them shipped lit against their own prose**
   (*"the firebox swept and ready"*) and their own class docstring
   (*"lit with `ignite`"*). Nothing observable depended on it — they

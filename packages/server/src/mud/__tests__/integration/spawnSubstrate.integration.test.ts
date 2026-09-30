@@ -8,6 +8,7 @@
  */
 
 import "../../../test-bootstrap";
+import { EXIT_KIND_TEST_ROWS } from '../../../mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { fileURLToPath } from 'url';
 import { Idea } from '../../lib/stuff/Idea';
@@ -34,7 +35,11 @@ type Doc = Record<string, unknown> & {
 };
 
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row and every boundary's anchor
+  // pair is a clone too, so a store with no rows cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
 
   const save = vi.fn(async (_c: string, doc: Doc) => {
     const copy = { ...doc };

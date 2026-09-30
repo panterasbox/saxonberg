@@ -75,7 +75,7 @@ Sibling docs cover related ground without overlap:
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed-door state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TypeScript interface | Channel-shape — `LightConduit`, `LineOfSight`, `MovementConduit`, `SoundConduit`, `SmellConduit`. Boundary subclasses implement (a subset of) these. |
-| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements `LightConduit` + `LineOfSight` + `SmellConduit` + `SoundConduit`. Configurable `baseTransmissivity`, optional one-way overrides, optional `colorTint`. Shutters via `Sealable.open` (predicate `isOpen()`). |
+| `Window` | concrete `Boundary` subclass (⚠ **no row names it** — the substrate is proven, the world has no window in it; see [boundary.md § Window](./boundary.md)) | `SealableMixin(Boundary)`. Implements `LightConduit` + `LineOfSight` + `SmellConduit` + `SoundConduit`. Configurable `baseTransmissivity`, optional one-way overrides, optional `colorTint`. Shutters via `Sealable.open` (predicate `isOpen()`). |
 | `Door` (retrofitted) | concrete `Boundary` subclass | `SealableMixin(Boundary)`. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SoundConduit`, `SmellConduit`, all gated on `isOpen()`. Closed Door now blocks light, not just movement. |
 | `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
 
@@ -629,6 +629,12 @@ overlap; do not unify them.
 
 ## `Window`
 
+> ⚠ **The class is authorable and nothing authors it** — no window row
+> has ever existed. See [boundary.md § Window](./boundary.md) for why it
+> is kept anyway (it is the only exerciser of partial and directional
+> conduit transmissivity, and of the Hydrator's async
+> singleton-resolving applier).
+
 The first concrete Boundary user. Composition: `SealableMixin(Boundary)`.
 It implements four conduits — `LightConduit`, `LineOfSight`,
 `SmellConduit`, `SoundConduit` — all gated on its shutter state.
@@ -657,7 +663,7 @@ The structured runtime API `getDirectionalOverrides()` /
 pattern Light value objects use, applied to the per-side overrides.
 
 Template authoring: Window is template-loadable like Door
-(`class: '/lib/boundary/Window'`,
+(`class: '/platform/thing/Window'`,
 `hydratorClass: '/platform/idea/persistence/PersistentHydrator'`). Seed code
 calls `BoundaryApi.attachExistingBoundary({ boundary: clonedWindow,
 hostA: roomA, hostB: roomB })` to install on two rooms — mirrors
@@ -905,10 +911,12 @@ and run out of.
   in the envelope build** — see above.
 - ~~Fire mechanics — `Combustible`, `Lightable`, `Burning` all
   deferred.~~ Shipped (the combustion build); a fuelled light is
-  `platform/thing/Lamp`, a `FurnaceMixin` over a `LightSource`.
+  `platform/thing/Lamp`, a `BurnerMixin` over a `LightSource`.
 - `Switchable` and other generic state mixins.
 - ~~Light-source archetypes (no canonical `Candle` / `Lamp`).~~ `Lamp`
-  and `Hearth` both ship.
+  and `Hearth` both ship — and `Lamp` is what a candle is, which is why
+  the `Candle` class was retired unrowed (see
+  [fire.md](./fire.md)).
 - Schedule integration — except `civic:lighting`, the nightly settle.
 - Sound conduit / `Audible` mixin / sound propagation.
 - Eager cache invalidation; v1 is fully lazy.

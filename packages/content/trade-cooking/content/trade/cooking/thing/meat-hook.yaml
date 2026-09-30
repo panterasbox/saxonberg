@@ -1,0 +1,33 @@
+# The meat hook — ⭐ the first thing in the game you hang something FROM.
+#
+# A bare `Fitting` offering one placement member, `from`, and that is
+# the whole of it: no class, no controller, no kernel change. The
+# engine's own note on `airExposure` said "a drying rack, a meat hook,
+# a cheese shelf, a turf stack, a wire line and a bad drying shed all
+# come out of rows" — and the meat hook was the one that could not,
+# because you do not put a ham ON a hook.
+#
+# ⭐ `airExposure: 1` — a hung ham is in the air on every side, which
+# is the most exposed a thing can be. A ham laid flat on a slab dries
+# on top and goes off underneath; that is the same number turned down.
+#
+# ⚠ It affords NOTHING, deliberately. The drying rack beside it affords
+# `dry`, and a hung ham dries with no verb at all — `WaterActivity`
+# reads this hook's exposure straight off the placement. A hook that
+# conferred a verb would be the `wash`-on-the-urn mistake.
+#
+# ⚠ Keyword `hook`/`meat-hook` only, NOT `hooks` — the drying rack's
+# keywords already carry that, and two things answering to one word in
+# one room is a disambiguation prompt nobody asked for.
+class: /platform/thing/Fitting
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: meat hook
+  keywords: [hook, meat-hook]
+  register: indefinite
+  longDescription: |
+    A single iron hook on a short chain, bolted into the beam where the air moves coldest. It turns very slowly when the door opens.
+  placements: [from]
+  airExposure: 1
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 2

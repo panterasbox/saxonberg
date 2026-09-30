@@ -13,7 +13,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 class GradedHost extends GradedMixin(Idea) {
   static _mixinName = 'GradedHost';
 }
-// A ToolItem composes both: capabilities (ToolMixin) + wear (DurableMixin).
+// A Tool composes both: capabilities (ToolMixin) + wear (DurableMixin).
 class ToolHost extends ToolMixin(DurableMixin(Idea)) {
   static _mixinName = 'ToolHost';
 }

@@ -9,7 +9,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import Location from '../../stuff/Location';
 import Material from '../../material/Material';
 import Floor from '../../../platform/thing/Floor';
@@ -25,7 +25,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class Ingot extends MeltableMixin(ThermalMixin(Thing)) {
+class Ingot extends MeltableMixin(ThermalMixin(Good)) {
   static _mixinName = 'IngotTest';
 }
 class TestRoom extends Location {}

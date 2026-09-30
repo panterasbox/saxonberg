@@ -37,7 +37,7 @@ import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
 import ButcherBlock from '../../../../thing/ButcherBlock';
 import BoningKnife from '../../../../thing/BoningKnife';
 import KitchenTool from '../../../../thing/KitchenTool';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import { Contamination } from '@saxonberg/server/mud/lib/material/Contaminable';
@@ -298,7 +298,7 @@ describe('butchery — the act, over the shipped rows', () => {
 
   it('⭐ a kitchen tool can hold a load; a mining tool cannot', () => {
     const sieve = makeStuff(() => new KitchenTool());
-    const shovel = makeStuff(() => new ToolItem());
+    const shovel = makeStuff(() => new Tool());
     expect(MixinApi.isContaminable(sieve)).toBe(true);
     expect(MixinApi.isContaminable(shovel)).toBe(false);
     // …and the craft offers the load to BOTH; only one can take it, which

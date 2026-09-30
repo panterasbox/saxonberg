@@ -1,0 +1,7 @@
+# The way BACK from a circle. Its destination is bound at install time
+# (the circle's caller knows where back is), never authored here.
+class: /platform/idea/SandboxCrossingExit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  messageOut: "{{ mover }} steps back out."
+  messageIn: "{{ mover }} steps back in."

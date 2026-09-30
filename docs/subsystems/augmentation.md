@@ -204,7 +204,7 @@ The Wave 1 implant template:
 ```ts
 // lib/augmentation/AetherImplant.ts
 export class AetherImplant
-  extends AugmentMixin(SlottableMixin(TangibleMixin(Thing)))
+  extends AugmentMixin(SlottableMixin(TangibleMixin(Good)))
 {
   static readonly TEMPLATE_PATH = '/stuff/thing/AetherImplant';
 

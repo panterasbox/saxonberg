@@ -27,7 +27,7 @@ import YAML from 'yaml';
 import Wood from '../location/Wood';
 import Bole from '../thing/Bole';
 import Panel from '../thing/Panel';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
@@ -68,7 +68,7 @@ describe('fell.yaml — the arg gates', () => {
     const axe = args().find((a) => a.name === 'axe')!;
     expect(axe.default).toBe('reachable:[capability.felling]');
     expect([axe.requires].flat()).toEqual(['ToolMixin']);
-    expect(MixinApi.hasMixin(ToolItem, Mixins.Tool)).toBe(true);
+    expect(MixinApi.hasMixin(Tool, Mixins.Tool)).toBe(true);
   });
   it('the affordance: a Wood’s occupants have `fell`; a plain room’s do not; a Panel’s neighbours do; a bole itself does', () => {
     const verbs = (ctor: unknown, bucket: 'self' | 'inventory' | 'environment' | 'peers'): string[] =>
@@ -109,7 +109,7 @@ type Drive =
 describe('fell.yaml through the whole binder', () => {
   let room: Wood;
   let giver: TestGiver;
-  let axe: ToolItem;
+  let axe: Tool;
 
   beforeEach(() => {
     StuffApi.clearAll();
@@ -123,7 +123,7 @@ describe('fell.yaml through the whole binder', () => {
     giver.setName('Tam');
     ContainmentApi.move(giver, room);
     axe = makeStuffAtPath(() => {
-      const t = new ToolItem();
+      const t = new Tool();
       t.setShortDescription('felling axe');
       t.setKeywords(['axe', 'felling']);
       t.setCapabilities(['felling', 'cutting']);
@@ -202,7 +202,7 @@ describe('fell.yaml through the whole binder', () => {
 
   it('`fell oak with billhook` names the instrument (a ToolMixin), and the controller judges it', async () => {
     const hook = makeStuffAtPath(() => {
-      const t = new ToolItem();
+      const t = new Tool();
       t.setShortDescription('billhook');
       t.setKeywords(['billhook', 'hook']);
       t.setCapabilities(['cutting']);

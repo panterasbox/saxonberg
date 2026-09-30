@@ -17,6 +17,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TitleController from '@saxonberg/server/mud/platform/idea/cmd/civics/TitleController';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -176,6 +177,15 @@ function installStore(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows plus the residence exit kinds.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    domain.push({ _id: `d-${++idCounter}`, ...row });
+  }
+  add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
+  add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
+  add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
+  add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
+
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     floorplan: [{ leaf: 'yard', room: YARD_ROW, entry: true }],
     upkeepTerm: 'owner-all',

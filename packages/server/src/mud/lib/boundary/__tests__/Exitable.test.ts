@@ -1,5 +1,5 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import SphericalLocation from '../../../platform/location/SphericalLocation';
@@ -9,12 +9,16 @@ import Door from '../../../platform/thing/Door';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import {
-  makeStuff,
-  makeStuffAtPath,
+  makeStuff,  makeStuffAtPath,
+  seedKernelContentStore,
 } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 
 describe('ExitableMixin', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   let zone: CartesianZone;
   let locA: CartesianLocation;
   let locB: CartesianLocation;
@@ -105,9 +109,9 @@ describe('ExitableMixin', () => {
   });
 
   it('getExitDoors collects doors from obvious exits', async () => {
-    const oak = makeStuff(() => new Door());
+    const oak = await StuffApi.create(() => new Door());
     oak.setShortDescription('oak door');
-    const iron = makeStuff(() => new Door());
+    const iron = await StuffApi.create(() => new Door());
     iron.setShortDescription('iron gate');
     const withDoor = makeStuff(() => new Exit({
       direction: 'up',
@@ -144,7 +148,7 @@ describe('ExitableMixin', () => {
   });
 
   it('addBidirectionalExit infers the opposite direction for cardinals', async () => {
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('heavy gate');
     await locA.addBidirectionalExit(locC, 'up', { door });
 
@@ -327,7 +331,7 @@ describe('ExitableMixin.verifyOutboundExits', () => {
     expect(east.getInverse()).toBe(wiredInverse);
   });
 
-  it('skips non-cardinal directions (semantic exits)', () => {
+  it('skips non-cardinal directions (semantic exits)', async () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
 

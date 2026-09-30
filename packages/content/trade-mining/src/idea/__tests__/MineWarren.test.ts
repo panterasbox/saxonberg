@@ -14,6 +14,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import MineWarren from '../MineWarren';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
@@ -21,7 +22,7 @@ import MineRoom from '../../location/MineRoom';
 import type { Working } from '../../lib/Working';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
 import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
@@ -72,6 +73,10 @@ function seedContent(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     content.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   content.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows — every exit is a clone of a kind row now.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    content.push({ _id: `d-${++idCounter}`, ...row });
+  }
   for (const [kind, path] of Object.entries(TYPE_ROWS)) {
     add(path, WORKING_CLASS, {
       shortDescription: `a ${kind}`,
@@ -248,7 +253,7 @@ describe('the mine — reads on the space, mutation on the warren', () => {
     expect(spanned.value).toBeLessThan(alone.value);
 
     // Set timber: support recovers it, and a DECAYED set is worth less.
-    const set = makeStuff(() => new ToolItem());
+    const set = makeStuff(() => new Tool());
     set.capabilities = ['timber-set'];
     ContainmentApi.move(set as unknown as Stuff & Containable, room as unknown as Stuff & Container);
     const shored = await room.stabilityAt();

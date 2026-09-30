@@ -495,11 +495,11 @@ Three rungs, and between them they keep the store sparse:
 | the host is… | exposure | what happens |
 |---|---|---|
 | in a sack, a chest, a pack, a pot — anything whose immediate container is **not a `Location`** | `0` | **nothing dries.** A ham in a closed sack does not dry, which is honest, and this is the common case for nearly every good in the world. |
-| resting on a **support** | the support's own `Surfaced.getAirExposure()`, default `1` | a rack, a hook, a slatted shelf. An author turns the number down for a close surface. |
+| **placed** on a host | the host's own `Placing.getAirExposure()`, default `1` | a rack, a meat hook, a slatted shelf. ⭐ A ham HUNG from a hook (`from`, exposure `1`) is in the air on every side; an author turns the number down for a close surface. |
 | lying on **bare ground** | the `cure.groundExposure` dial, `0.35` | one face to the air and nothing underneath — which is exactly why turf is built into an openwork lattice and cheese sits on slatted shelves. |
 
-⚠ `ContainmentApi.placeOn` moves an item into **the surface's container**
-and *then* stamps `restingOn`, so a ham on the cookhouse rack and a ham
+⚠ `ContainmentApi.place` moves an item into **the host's container**
+and *then* stamps the placement pair, so a ham on the cookhouse rack and a ham
 dropped on the cookhouse floor share a container and share the air.
 `getRestingOn()` is the only thing that tells them apart, which is why the
 exposure fraction hangs on the **support** and not on the room.
@@ -547,7 +547,7 @@ stack.
 content was `cure: { moisture: 0.35 }`) is **deleted**: an instant constant
 is not a treatment, it is a lookup table dressed as physics. `dry <thing>
 [on <rack>]` now does what hanging a ham actually is — it puts the thing
-where the air can reach it (`ContainmentApi.placeOn`) — and narrates the
+where the air can reach it (`ContainmentApi.place`) — and narrates the
 **prospect in words** (*"In this air it will take about a week or so."* ·
 *"Nothing will dry in this air."*), never a figure, because the weather is
 free to make any figure a lie. The drying is then the thing's own clock.
@@ -575,7 +575,7 @@ of the cooking trade's own:
 ⚠ Not `Cutlery`, which touches a mouth rather than a carcass.
 
 ⚠⚠ **And deliberately NOT the two kernel classes those last two descend
-from.** `ContaminableMixin` was composed on `Weapon` and on `ToolItem` for
+from.** `ContaminableMixin` was composed on `Weapon` and on `Tool` for
 one build, on the argument that *"this can carry pathogens between things"*
 is true of a clasp knife and a kitchen sieve. It is — and it was the wrong
 question, because it is false of most of both host sets: a mace, a flail, a

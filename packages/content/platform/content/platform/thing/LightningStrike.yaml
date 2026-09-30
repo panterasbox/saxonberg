@@ -1,0 +1,14 @@
+# A lightning strike — the transient the storm mints, conducts, and
+# reaps inside one call.
+#
+# ⭐ It has a row for the reason everything does now: *the template is
+# the base, the factory is the patch.* The voltage is settings-derived
+# and patched on after the clone; everything a person could ever read
+# about a strike is here.
+class: /platform/thing/LightningStrike
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: lightning strike
+  register: indefinite
+  keywords: [lightning, strike, bolt]
+  longDescription: A stroke of lightning, gone before the eye finishes it.

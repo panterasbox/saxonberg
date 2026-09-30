@@ -1,4 +1,5 @@
 import "../../../../test-bootstrap";
+import { EXIT_KIND_TEST_ROWS } from '../../../../mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Template } from '../Template';
 import { ZoneTemplate } from '../ZoneTemplate';
@@ -17,7 +18,11 @@ type Doc = Record<string, unknown> & {
 };
 
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
-  const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
+  // ⭐ Every exit is a clone of a kind row and every boundary's anchor
+  // pair is a clone too, so a store with no rows cannot build one.
+  const store: Doc[] = [...(EXIT_KIND_TEST_ROWS as unknown as Doc[]), ...initial].map(
+    (d, i) => ({ ...d, _id: String(i + 1) }),
+  );
 
   const find = vi.fn(async (collection: string, query: Record<string, unknown>) => {
     if (collection !== Collections.Content) return [];
@@ -107,7 +112,9 @@ describe('Template subclass dispatch (Phase Z2)', () => {
   });
 
   it('loadById dispatches into the right subclass', async () => {
-    installInMemoryStore([
+    // ⚠ Ids are positional in this store and the kernel rows now come
+    // first, so the ids are read back rather than assumed.
+    const store = installInMemoryStore([
       {
         path: '/narnia',
         class: '/platform/idea/location/SphericalZone',
@@ -119,8 +126,10 @@ describe('Template subclass dispatch (Phase Z2)', () => {
         data: {},
       },
     ]);
-    const folder = await Template.loadById('1');
-    const leaf = await Template.loadById('2');
+    const idOf = (path: string): string =>
+      String(store.find((d) => d.path === path)!._id);
+    const folder = await Template.loadById(idOf('/narnia'));
+    const leaf = await Template.loadById(idOf('/narnia/plaza'));
     expect(folder).toBeInstanceOf(ZoneTemplate);
     expect(leaf).toBeInstanceOf(LeafTemplate);
   });

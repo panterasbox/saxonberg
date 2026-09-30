@@ -36,12 +36,17 @@ function shippedFile(path: string): string | null {
 
 describe('the hearthworks venue pack props/cast rows the packs ship at those paths', () => {
   const venues = walk(VENUE);
-  it('ships thirteen rows under branch subdirs', () => {
+  it('ships fourteen rows under branch subdirs', () => {
     expect(venues.map((f) => f.slice(VENUE.length + 1)).sort()).toEqual([
       'agent/cook.yaml', 'agent/smith.yaml', 'idea/business.yaml',
       'location/cellar.yaml', 'location/cookhouse.yaml', 'location/offstage.yaml', 'location/smithy.yaml', 'location/woodshed.yaml',
       'thing/forge-floor.yaml', 'thing/kitchen-menu.yaml', 'thing/pantry-chest.yaml', 'thing/smithy-menu.yaml',
       'thing/smithy-tariff.yaml',
+      // ⭐ The cookhouse's cold store: `extends:` the generic icebox
+      // plus one `props:` line, because ice left LOOSE in a warm
+      // kitchen is gone in game-minutes and a venue that keeps ice
+      // keeps it in the box. (Placement build, D25.)
+      'thing/stocked-icebox.yaml',
     ]);
   });
   it('every props:/cast: path is a shipped template file (trade-smithing, generic-objects, the venue itself)', () => {
@@ -73,6 +78,7 @@ describe('the hearthworks venue pack props/cast rows the packs ship at those pat
       '/world/terminus/hearthworks/agent/cook', '/world/terminus/hearthworks/agent/smith',
       '/world/terminus/hearthworks/thing/kitchen-menu', '/world/terminus/hearthworks/thing/pantry-chest', '/world/terminus/hearthworks/thing/smithy-menu',
       '/world/terminus/hearthworks/thing/smithy-tariff',
+      '/world/terminus/hearthworks/thing/stocked-icebox',
     ]);
   });
 });

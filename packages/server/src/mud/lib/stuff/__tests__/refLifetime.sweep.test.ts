@@ -8,7 +8,8 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import Holder from '../Holder';
+import { describe, it, expect, beforeEach  } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
@@ -22,24 +23,31 @@ import { ExitableMixin } from '../../boundary/Exitable';
 import { DoorBearingMixin } from '../../boundary/DoorBearing';
 import { AdornableMixin } from '../../boundary/Adornable';
 import { AdornmentMixin } from '../../boundary/Adornment';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 
-class Box extends ContainerMixin(Thing) {}
+class Box extends Holder {}
 class ExitRoom extends ExitableMixin(Location) {}
 class Bearer extends DoorBearingMixin(ExitableMixin(Location)) {}
-class Wall extends AdornableMixin(ContainerMixin(Thing)) {}
+class Wall extends AdornableMixin(Holder) {}
 class Fixture extends AdornmentMixin(Thing) {}
 
 const asStuff = (x: unknown): Stuff => x as Stuff;
 
 describe('reference-lifetime sweep (W7)', () => {
   beforeEach(() => {
+    seedKernelContentStore();
+  });
+
+  beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
   });
 
   describe('Exit.inverse — was HALF-symmetric', () => {
-    it("destructing one exit clears its partner's back-ref", () => {
+    it("destructing one exit clears its partner's back-ref", async () => {
       const a = makeStuff(() => new ExitRoom());
       const b = makeStuff(() => new ExitRoom());
       const east = makeStuff(
@@ -78,9 +86,9 @@ describe('reference-lifetime sweep (W7)', () => {
   });
 
   describe('DoorBearing.door — the mixin had no destruct hook at all', () => {
-    it('a destroyed door reads as null', () => {
+    it('a destroyed door reads as null', async () => {
       const bearer = makeStuff(() => new Bearer());
-      const door = makeStuff(() => new Door());
+      const door = await StuffApi.create(() => new Door());
       bearer.setDoor(door);
       expect(bearer.getDoor()).toBe(door);
 

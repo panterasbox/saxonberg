@@ -19,6 +19,6 @@ data:
   longDescription: >-
     A squared-off mass of stone, rough on five faces and split clean on the
     sixth. Far too much for any one back.
-  material: /stuff/idea/material/rock/granite
+  _materialPath: /stuff/idea/material/rock/granite
   mass: 1375
   piecesLeft: 8

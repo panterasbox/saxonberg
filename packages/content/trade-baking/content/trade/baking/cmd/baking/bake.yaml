@@ -30,7 +30,7 @@ args:
   # ovens becomes addressable (`bake at the big oven`), which a
   # controller-side default never was.
   #
-  # ⚠ The query is `FurnaceMixin`, and the controller narrows from there
+  # ⚠ The query is `BurnerMixin`, and the controller narrows from there
   # into the state it actually needs: lit, fuelled, and a CHAMBER you can
   # put something in. That split is deliberate and follows `buy`'s own
   # note — one arg finds every fire, and the controller decides which of
@@ -40,6 +40,6 @@ args:
     type: object
     required: false
     prepositions: [at, in, on]
-    default: "reachable:[mixin.FurnaceMixin]"
+    default: "reachable:[mixin.BurnerMixin]"
     scope: ["reachable"]
-    requires: [FurnaceMixin]
+    requires: [BurnerMixin]

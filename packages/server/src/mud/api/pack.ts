@@ -203,7 +203,17 @@ export interface PackConflict {
   baselineHash: string;
   dbHash: string;
   packHash: string;
-  reason: 'both-changed' | 'deleted-vs-edited' | 'wiki-cas' | 'title';
+  reason:
+    | 'both-changed'
+    | 'deleted-vs-edited'
+    | 'deleted-vs-extended'
+    | 'wiki-cas'
+    | 'title';
+  /**
+   * A human sentence the reason alone cannot carry — today, which rows
+   * still extend a parent the pack wanted to reap.
+   */
+  detail?: string;
 }
 
 /**

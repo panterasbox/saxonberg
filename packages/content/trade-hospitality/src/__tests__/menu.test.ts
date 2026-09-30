@@ -260,7 +260,7 @@ afterAll(() => {
 });
 
 describe('trade-hospitality — the classes', () => {
-  it('IceBin is an insulated, sealable ice holder; Tap is a Surfaced fixture that is a `tap` tool', () => {
+  it('IceBin is an insulated, sealable ice holder; Tap is a Placing fixture that is a `tap` tool', () => {
     const bin = makeStuff(() => new IceBin());
     expect(MixinApi.isThermal(bin)).toBe(true);
     expect(MixinApi.isSealable(bin)).toBe(true);
@@ -268,7 +268,7 @@ describe('trade-hospitality — the classes', () => {
     expect(bin.getBarrier()).toBe('vacuum');
     const tap = makeStuff(() => new Tap());
     expect(MixinApi.isTool(tap)).toBe(true);
-    expect(MixinApi.isSurfaced(tap)).toBe(true);
+    expect(MixinApi.isPlacing(tap)).toBe(true);
     expect(tap.getCapabilities()).toEqual(['tap']);
     expect(ModuleApi.lookup(IceBin)).toBe(`${ROOT}/thing/IceBin`);
     expect(ModuleApi.lookup(Tap)).toBe(`${ROOT}/thing/Tap`);

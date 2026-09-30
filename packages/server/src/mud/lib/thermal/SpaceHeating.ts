@@ -2,7 +2,7 @@
  * SpaceHeatingMixin — ⭐⭐ **this fire exists to warm where you stand.**
  *
  * The one distinction the envelope build turns on, and the reason it is
- * a mixin rather than a field on `FurnaceMixin`:
+ * a mixin rather than a field on `BurnerMixin`:
  *
  * > *A forge heats what you put IN it; a hearth heats where you stand.*
  *
@@ -13,7 +13,7 @@
  * the other kind of object: a hearth, a stove, a brazier, whose entire
  * purpose IS the room.
  *
- * ⚠ **Never compose this on `FurnaceMixin`.** That would claim it of
+ * ⚠ **Never compose this on `BurnerMixin`.** That would claim it of
  * the forge, the oven and the kiln, and the only way back would be a
  * guard asking *is this a forge* — which is precisely the shape
  * `docs/antipatterns.md` calls the tell of a mixin on the wrong host.
@@ -37,7 +37,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Furnace } from '../fire/Furnace';
+import type { Burner } from '../fire/Burner';
 
 /** Public shape added by SpaceHeatingMixin. */
 export interface SpaceHeating {
@@ -86,13 +86,13 @@ export function SpaceHeatingMixin<TBase extends MixinConstructor<Stuff>>(
 
     /**
      * ⭐ Zero unless it is actually burning. Reads the furnace face
-     * through the host cast (the `Furnace.furnaceHost` shape) — every
-     * composer of this mixin composes `FurnaceMixin` below it, and a
+     * through the host cast (the `Burner.burnerHost` shape) — every
+     * composer of this mixin composes `BurnerMixin` below it, and a
      * host that somehow does not is treated as out rather than crashing
      * a room's temperature read.
      */
     public spaceHeatOutputW(): number {
-      const host = this as unknown as Partial<Furnace>;
+      const host = this as unknown as Partial<Burner>;
       if (typeof host.isLit !== 'function') return 0;
       if (typeof host.fuelRemaining !== 'function') return 0;
       if (!host.isLit() || host.fuelRemaining() <= 0) return 0;

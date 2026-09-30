@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { SlottableMixin } from '../../slot/Slottable';
 import { StuffApi } from '../../../api/stuff';
 import {
@@ -18,7 +18,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-const SlottableThingBase = SlottableMixin(Thing);
+const SlottableThingBase = SlottableMixin(Good);
 class SlottableThing extends SlottableThingBase {}
 
 /** A Creature whose species has a small anatomical body plan. */

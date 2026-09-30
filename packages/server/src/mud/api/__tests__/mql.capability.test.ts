@@ -15,7 +15,7 @@
 
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
@@ -40,7 +40,7 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
  * filter. These shapes mirror `fixtures/mql-world.ts`.
  */
 class TestTool extends ToolMixin(
-  VisibleMixin(NamedMixin(PerceptibleMixin(Thing))),
+  VisibleMixin(NamedMixin(PerceptibleMixin(Good))),
 ) {
   static _mixinName = 'TestToolCapability';
 }
@@ -128,7 +128,7 @@ describe('[capability.X] narrows a set to what can do the job', () => {
     // So `[capability.X]` is safe over a mixed set — which is the normal
     // case, since a room holds furniture and people as well as tools.
     const rock = makeStuff(() => {
-      const r = new Thing();
+      const r = new Good();
       r.setShortDescription('rock');
       return r;
     });

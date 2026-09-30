@@ -160,6 +160,17 @@ unamendable except by founding anew (Article X §4).
 
 1. The legislature comprises **three co-equal chambers**: the Producer House,
    the Capital House, and the Consumer House.
+
+   > ⚠⚠ **A known limit of two-of-three, recorded 2026-09-29** —
+   > [lenses/110-transformation.md](../lenses/110-transformation.md). The
+   > three-house requirement filters harm that falls **outside** the
+   > classes and **does not** filter a class choosing its own harm while
+   > the others profit. Worked case: tobacco in 1955 America — smokers
+   > want them, tobacco workers need the jobs, capital sees a bull
+   > market; **all three houses align, two of three trivially.** ⭐ That
+   > is the Feed's exact shape, so **the one harm this structure cannot
+   > filter is the one the project was built against.** Nothing
+   > currently addresses it.
 2. **How influence is held and spent.** Influence is not a one-time grant but
    a **stock**: each kind sits in a **reservoir** whose ceiling is set by the
    member's *lifetime* contribution and which **regenerates** with continued
@@ -247,6 +258,21 @@ unamendable except by founding anew (Article X §4).
 7. **Human enforcement** is reserved for matters of judgment that code cannot
    decide; it is bounded, recorded, recusal-gated, and subject to review. No
    enforcement is arbitrary or selective.
+
+   > ⚠⚠ **§6–7 describe a boundary that MOVES, and that is deliberate**
+   > (noted 2026-09-29 from [lens #33 · Rules](../lenses/33-rules.md)).
+   > *Mechanically applicable* is bounded by what has been built and paid
+   > for, so the line advances toward code as capacity allows — an
+   > **economic** frontier, not a principled one. But it does not advance
+   > all the way: the **evidence firewall** (`measurement.md` A15 —
+   > *kernel omniscience never becomes diegetic evidence*; a crime
+   > genuinely unseen is genuinely unproven) and the **speed-camera
+   > doctrine** (*prevention reads as physics; automated punishment reads
+   > as tyranny; witnessed process reads as law*) both stop it. ⭐⭐ So
+   > §6 binds rules that protect **a claim the platform makes**, and reads
+   > as a ceiling rather than a floor for rules that protect **a norm the
+   > polity holds** — where the enforcement *mode* is itself the
+   > legislature's choice ([enforcement-slate](../slates/builds/enforcement-slate.md)).
 8. The executive shall **provide and maintain a structured deliberation
    surface** for bills before the legislature — one whose organization is the
    argument's own structure, not a ranking of persons or contributions by user

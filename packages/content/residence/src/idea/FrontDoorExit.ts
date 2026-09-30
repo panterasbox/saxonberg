@@ -26,31 +26,25 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 export default class FrontDoorExit extends DeferredDestinationExit {
   /** The owning institution — held as a PATH (an identity ref; the
    *  singleton is process-lifetime but a torn-down test world isn't). */
-  private warrenPath: string;
+  private warrenPath = '';
   /** The holding's parcel extent — the admit key + the keyway key. */
-  private holdingKey: string;
-  private lockTech: LockType;
+  private holdingKey = '';
+  private lockTech: LockType = 'pin-tumbler';
 
-  constructor(
-    source: Stuff & Container,
+  /**
+   * ⭐ What the constructor used to take, as a set-once step. The prose
+   * moved to the ROW (`/system/residence/idea/exits/front-door`) — it
+   * was two `setMessage*` calls in TypeScript, which is exactly the
+   * thing an author could never edit.
+   */
+  public configureFrontDoor(
     warren: OuterWarren,
     holdingKey: string,
-    direction: string,
-    entryRowPath: string,
     opts: { lockTech?: LockType } = {},
-  ) {
-    super({
-      direction,
-      source,
-      // The ENTRY ROOM'S ROW — accurate + eager (D17: a real row, so
-      // the edge reads honestly before it's been walked).
-      destinationTemplatePath: entryRowPath,
-    });
+  ): void {
     this.warrenPath = warren.getTemplatePath() ?? '';
     this.holdingKey = holdingKey;
     this.lockTech = opts.lockTech ?? 'pin-tumbler';
-    this.setMessageOut('{{ mover }} goes in through the door.');
-    this.setMessageIn('{{ mover }} comes in from outside.');
   }
 
   public getHoldingKey(): string {

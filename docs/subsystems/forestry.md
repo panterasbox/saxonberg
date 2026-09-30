@@ -33,12 +33,15 @@ PersistableMixin(StandMixin(SoilMixin(ReservedMixin(SingletonCartesianLocation))
 
 - **`SingletonCartesianLocation`**, not the permissive base: an authored
   clearing is ONE row at a coordinate in its wood's zone, reached by an
-  exit — the singleton cell. `PersistentCartesianLocation` states the
-  rule for the durable version (*a durable room over the permissive base
-  would silently share ONE `holder_snapshots` scope across every mint*);
-  the Wood is that class's shape with two mixins inside the outermost
-  `Persistable`, which is why it cannot `extend` it. No `WarrenMember`: a
-  clearing lives in a zone, not a holding.
+  exit — the singleton cell. [location.md](./location.md) states the rule
+  for the durable version (*a durable room over the permissive base would
+  silently share ONE `holder_snapshots` scope across every mint*); the
+  Wood is that shape with two mixins inside the outermost `Persistable`.
+  ⭐ **The Wood is the shipped example of it** — there was a
+  `PersistentCartesianLocation` class stating the same rule and no row
+  ever named it (the Wood could not `extend` it, for exactly the reason
+  above), so the narrowing build retired the class and moved the rule to
+  the doc. No `WarrenMember`: a clearing lives in a zone, not a holding.
 - **`SoilMixin(ReservedMixin(…))`** — the ground half, named first as an
   intermediate (inference through nested mixin factories collapses to
   `never`). The DERIVED half of soil only: the seeded `GroundCharacter`
@@ -157,7 +160,7 @@ STAND_MIXIN)` — the mining trade's `workingOf` shape.
 
 ⭐⭐ **Bigness — the bole.** A standard oak is tonnes, and a tree is the
 first Thing whose product exceeds a body. Felling drops **one bole** on
-the room floor (`/trade/forestry/thing/Bole` — `DetailedMixin(Thing)`
+the room floor (`/trade/forestry/thing/Bole` — `Good`
 with `lengthsLeft`; mass = the species' wood density × 0.9 m³, oak ≈
 675 kg; *can't-budge is emergent from mass, never a flag* — `get bole`
 refuses `too-heavy-to-lift`), four logs off the crown beside it

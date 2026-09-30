@@ -4,7 +4,7 @@
  *
  * Until this build there was no way to say it. No `wears:`, no `worn:`,
  * no `outfit:` on any NPC class, any archetype or any row in the tree,
- * and `props:` places a thing onto a `Surfaced` host rather than onto a
+ * and `props:` places a thing onto a `Placing` host rather than onto a
  * person — so **every authored person in the realm was naked**. It
  * never showed because every interior was 21 °C by decree and a naked
  * body survives 21 °C. The envelope build removes the decree.
@@ -30,12 +30,14 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { NPC } from '../NPC';
 import { StuffApi } from '../../../api/stuff';
 import { ProxyApi } from '../../../api/proxy';
 import { MixinApi } from '../../../api/mixin';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { CostumedMixin } from '../../stuff/Staged';
 import { Template } from '../../stuff/Template';
@@ -85,6 +87,10 @@ function spyOnDressing(n: NPC): { calls: string[][] } {
 }
 
 describe('NPC costume — the third designation', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => {
     vi.restoreAllMocks();
@@ -173,7 +179,7 @@ describe('NPC costume — the third designation', () => {
     const meta = (CostumedMixin(Object as never) as unknown as {
       fieldMeta: Record<string, unknown>;
     }).fieldMeta;
-    expect(meta.costume).toEqual({ instruction: true, authorable: true });
+    expect(meta.costume).toMatchObject({ instruction: true, authorable: true });
     expect(meta._costumeWorn).toEqual({
       persistent: true,
       runtimeState: true,

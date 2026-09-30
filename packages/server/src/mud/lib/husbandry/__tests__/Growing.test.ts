@@ -8,7 +8,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { GrowingMixin, type GrowthProfileData } from '../Growing';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../Cultivable';
 import { ReservedMixin, Reserve } from '../../reserve';
@@ -32,7 +32,7 @@ import '../../../platform/idea/WorldClockRegistry';
  * storage move: the fixtures move, the assertions do not. The bed's own
  * drain/competition behaviour is proven separately in GardenBed.test.ts.
  */
-class GrowFixture extends GrowingMixin(ReservedMixin(Thing)) {
+class GrowFixture extends GrowingMixin(ReservedMixin(Good)) {
   /** Test lever for the light window (no perception substrate here). */
   public luxOverride = 0;
   /** Test lever for the pot seam (null = unpotted). */
@@ -121,7 +121,7 @@ class CountingFixture extends GrowFixture {
 }
 
 class LinkdeadFixture extends GrowingMixin(
-  ReservedMixin(HasInteractiveMixin(Thing)),
+  ReservedMixin(HasInteractiveMixin(Good)),
 ) {
   protected override sampleLux(): number {
     return 0;

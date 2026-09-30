@@ -31,6 +31,9 @@ import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export { TemplateError } from '../lib/stuff/TemplateError';
+export type { TemplateSpec, TemplateOwn } from '../lib/stuff/Template';
+
+import type { TemplateSpec } from '../lib/stuff/Template';
 
 const LOGIC_PATH = '/platform/idea/api/template';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -52,8 +55,10 @@ function logic(): TemplateLogic {
 export class TemplateApi {
   /**
    * Upsert a Template at `path`. Looks up an existing Template at the
-   * same path (so the underlying upsert reuses its `_id`), populates
-   * the four fields, and saves through `Document.save()`. The
+   * same path (so the underlying upsert reuses its `_id`), writes the
+   * RAW row (`class` / `hydratorClass` / `extends` / `data` exactly as
+   * the author stated them — a save never flattens an inherited value),
+   * and saves through `Document.save()`. The
    * folder/leaf invariant fires through `DomainHook` against the PM
    * chokepoint — direct `template.save()` is equivalent.
    *
@@ -69,11 +74,18 @@ export class TemplateApi {
    */
   public static async saveTemplate(
     path: string,
-    classPath: string,
-    data: Record<string, unknown>,
-    hydratorClassPath?: string
+    spec: TemplateSpec,
   ): Promise<string> {
-    return logic().saveTemplate(path, classPath, data, hydratorClassPath);
+    return logic().saveTemplate(path, spec);
+  }
+
+  /**
+   * The paths of every row naming `path` as its parent — the read the
+   * delete refusal is built on, and the read a future go-live fan-out
+   * would iterate (legibility-slate).
+   */
+  public static async findExtenders(path: string): Promise<string[]> {
+    return logic().findExtenders(path);
   }
 
   /**

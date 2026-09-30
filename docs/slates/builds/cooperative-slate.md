@@ -61,13 +61,13 @@ See also:
   value/content without printing inflation — and the **government
   reserve** below closes it (appropriation = legislative, execution =
   executive; a governed faucet, not a free one).
-- [docs/lenses/endogenous-value.md](../../lenses/endogenous-value.md) —
+- [docs/lens-deck-salvage.md](../../lens-deck-salvage.md) —
   the membrane this slate lives or dies on. Effort-anchored real worth
   vs pure-play arbitrary value is the *same* line as **stake-is-not-
   stock**: governance/recognition value (legitimate, arbitrary, never
   cashes out) vs financial value (the thing you must never sell). The
   Goodhart seam, one level up.
-- [docs/lenses/community.md](../../lenses/community.md) — the social
+- [docs/lens-deck-salvage.md](../../lens-deck-salvage.md) — the social
   body the cooperative formalizes.
 - [docs/slates/tails/auth-providers-slate.md](../tails/auth-providers-slate.md)
   — **the keystone the funding ledger rides.** Generalizing the

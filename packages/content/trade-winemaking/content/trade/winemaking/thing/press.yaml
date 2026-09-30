@@ -3,7 +3,7 @@
 # grapes + press, wherever they are). Capability `press` is what the
 # crush recipes demand; the homebrew kit's small press is the same row
 # idea at carry weight.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: basket wine press

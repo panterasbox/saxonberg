@@ -298,7 +298,7 @@ walking the actor's surroundings and narrowing by type.
 ```typescript
 // BAD — the controller re-deriving what the binder already resolves
 const mill = room.getContents().find((c) => c instanceof GristMill);
-const oven = room.getContents().find((c) => MixinApi.isFurnace(c));
+const oven = room.getContents().find((c) => MixinApi.isBurner(c));
 ```
 
 **INSTEAD** — declare it on the view and read it off the model:
@@ -341,7 +341,7 @@ atom exists for exactly this — see
 ```
 
 ⚠ It is fine for the controller to narrow further on **state** the
-predicate cannot express: `bake` resolves on `FurnaceMixin` and then
+predicate cannot express: `bake` resolves on `BurnerMixin` and then
 checks *lit, fuelled, and a chamber*, because no mixin means "lit".
 
 ⭐⭐ **And when one arg cannot carry it, reach for a PLURAL — not a
@@ -485,24 +485,45 @@ stay a review judgment, because no regex can make them.
 CMS-editable, pack-shippable, hot-rehydratable; a raw `create` opts
 the object out of all of that.
 
-`create`/`createSync` are ONLY for objects a template genuinely cannot
-describe ahead of time. The recognized categories (the whole current
-population — audited 2026-07):
+⭐⭐ **The rule, in the user's words: *the template is the base, the
+factory is the patch.*** A factory that builds from RUNTIME state is a
+real pattern — but it should still CLONE a row and patch what the row
+cannot know, doing as much as possible in the template. A code-minted
+object can say nothing an author wrote: no prose, no keywords, no
+detail. The coat-check ticket carried a comment reading *"a
+runtime-minted thing has no row to author them in"*, and that comment
+was the finding, not the justification.
 
-- **Live-ref relational** — the object binds specific live instances
-  (an `Exit`'s source/destination, a `BoundaryAnchor`, a `Login`/
-  `Interactive` holding a live connection). A static template cannot
-  hold a live ref.
-- **Dynamically-minted uniques** — identity paths minted at runtime
-  (`Party` at `/platform/idea/party/<uuid>`, the per-player `_eval` scratch).
-- **Transient single-use vessels** — minted, used, and reaped inside
-  one call (`LightningStrike`); a template would be a seed row
-  nothing ever edits.
-- **Framework fallbacks / introspection** — a test-harness registry
-  lazy-mint, `StudioLogic`'s read-a-class-default throwaway.
+⚠ **Three of the four categories this section used to list are
+retired** (template inheritance, 2026-09-25), because each was an
+argument about an object's LIFETIME rather than about whether a person
+could author it:
+
+- ~~Live-ref relational~~ — an `Exit` is a clone of a kind row and the
+  live refs arrive through `bind`; a `BoundaryAnchor` is a clone its
+  boundary mints at `postRegister`.
+- ~~Dynamically-minted uniques~~ — that is the `asIdentityPath`
+  channel, not a reason to skip the row: `Party` clones
+  `/platform/idea/Party` with `/platform/idea/party/<uuid>` as its
+  identity, exactly as an Avatar does. So does the eval scratch.
+- ~~Transient single-use vessels~~ — *"a template would be a seed row
+  nothing ever edits"* was the strike's defence. A row nobody edits is
+  still a row somebody CAN.
+
+**What survives, enumerated and gated** (`pnpm lint:create-sites`,
+ceiling 5):
+
+- **The connection layer** — per-socket objects with no world identity
+  (`Interactive`, `Login`).
+- **A framework seam that takes a FACTORY from its caller** —
+  `BoundaryApi.create`, `PersistableLogic`'s shadow follower. There is
+  no path to look up, because the caller supplies the class.
+- **Introspection of a CLASS** — `StudioLogic.readClassDefault`
+  constructs an instance to ask the class what its defaults are, so a
+  row would be answering a question about itself.
 
 Anything else — a fixture, an item, an NPC, a room — gets a template
-and a seed. When in doubt, it's a template.
+and a clone. When in doubt, it's a template.
 
 **Not an exception: an object derived from another object.** "This
 instance's state comes from a live source, not from authored data" is not
@@ -2066,8 +2087,8 @@ const t = await this.getTemperature(detailKey);   // delegates to BiomeApi
   compose `AtmosphericMixin`. The Api handles this; inline walks
   often stop at the wrong ancestor.
 - **Biome-ancestry walk** (chain step 4). A biome leaf inherits
-  un-set defaults by following its explicit `_extendsBiomePath`
-  refs up to the root. Inline walks usually consult only the leaf.
+  un-set defaults by following its row's `extends:` links up to the
+  root. Inline walks usually consult only the leaf.
 - **Spatial-zone fallback** (chain step 5). `Zone.lookupField` is
   async and reads via `atmosphere.<field>`; inline walks routinely
   skip the step.
@@ -2933,7 +2954,7 @@ expect(body.getOccupiedHost()).toBe(bed);   // true, and irrelevant
 
 ```typescript
 // The verb exists for the actor that must issue it...
-expect(PosedMixin(Thing).commandContributions.self)
+expect(PosedMixin(Good).commandContributions.self)
   .toContain('posture/lie.yaml');
 // ...and the actor satisfies the validator that gates it.
 expect(MixinApi.hasMixin(Creature, Mixins.Slottable)).toBe(true);
@@ -3674,7 +3695,7 @@ isn't a player.
 Mounted is not immovable. The tell is a veto whose reason is a *fact
 about the object* (`'mounted'`, `'bolted down'`, `'too heavy'`) rather
 than about the operation: a fact about the object is state, and state
-belongs in a field the row can author. `Screen.canMove` was the tree's
+belongs in a field the row can author. A retired wall-screen class's `canMove` was the tree's
 only production override, found in the libations review; `canMove` now
 has no production users and stays for genuine class invariants. See
 [spatial.md](./subsystems/spatial.md) § *`canMove` is a class invariant*.
@@ -3702,7 +3723,7 @@ capabilities:
 
 ```ts
 // RIGHT — one record: the class of the thing that performs the act.
-export default class Strainer extends ToolItem {
+export default class Strainer extends Tool {
   static commandContributions: CommandContributions = {
     environment: [STRAIN], peers: [STRAIN],
   };
@@ -4586,7 +4607,7 @@ args:
 ```
 
 Raw stock has no wear axis — stock does not wear out, made things do — so
-`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Thing))` and
+`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Good))` and
 none composes `DurableMixin`. Every explicit `hammer <target>` in the game
 was refused at the **binder** with *"{} doesn't wear out"*, including
 `hammer ingot`, the worked example in that file's own help. Only bare

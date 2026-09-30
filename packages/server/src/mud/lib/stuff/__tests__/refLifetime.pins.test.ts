@@ -41,7 +41,8 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import Holder from '../Holder';
+import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
@@ -55,26 +56,28 @@ import { Boundary } from '../../boundary/Boundary';
 import { SpawnerMixin } from '../Spawner';
 import { SpawnedMixin } from '../Spawned';
 import { ContainerMixin } from '../../spatial/Container';
-import { SurfacedMixin } from '../../spatial/Surfaced';
+import { PlacingMixin } from '../../spatial/Placing';
 import { WarrenMemberMixin } from '../../location/WarrenMember';
 import { ExitableMixin } from '../../boundary/Exitable';
 import { AdornableMixin } from '../../boundary/Adornable';
 import { AdornmentMixin } from '../../boundary/Adornment';
 import { AetherMixin } from '../../message/Aether';
 import { AetherHostedMixin } from '../../augmentation/AetherHosted';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 import { cart, haulingBearer } from '../../slot/__tests__/haulage-fixtures';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 // ── Fixtures ────────────────────────────────────────────────────────
 
-class Box extends ContainerMixin(Thing) {}
-class Desk extends SurfacedMixin(ContainerMixin(Thing)) {}
+class Box extends Holder {}
+class Desk extends PlacingMixin(Holder) {}
 class Nest extends SpawnerMixin(Idea) {}
 class Hatchling extends SpawnedMixin(Idea) {}
 class MemberRoom extends WarrenMemberMixin(Location) {}
 class ExitRoom extends ExitableMixin(Location) {}
-class Wall extends AdornableMixin(ContainerMixin(Thing)) {}
+class Wall extends AdornableMixin(Holder) {}
 class Fixture extends AdornmentMixin(Thing) {}
 class Implant extends AetherMixin(Thing) {}
 class Update extends AetherHostedMixin(Thing) {}
@@ -82,6 +85,10 @@ class Update extends AetherHostedMixin(Thing) {}
 const asStuff = (x: unknown): Stuff => x as Stuff;
 
 describe('reference-lifetime pins', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
@@ -121,18 +128,18 @@ describe('reference-lifetime pins', () => {
       expect((item as unknown as { environment: unknown }).environment).toBeNull();
     });
 
-    it('Containable._restingOn — getRestingOn() heals a destroyed surface', () => {
+    it('Containable._placementHost — getPlacement() heals a destroyed host', () => {
       const room = makeStuff(() => new Box());
       const desk = makeStuff(() => new Desk());
       const mug = makeStuff(() => new Thing());
       ContainmentApi.move(desk, room);
       ContainmentApi.move(mug, room);
-      ContainmentApi.placeOn(mug, desk);
-      expect(mug.getRestingOn()).toBe(desk);
+      ContainmentApi.place(mug, 'on', desk);
+      expect((mug.getPlacement()?.host ?? null)).toBe(desk);
 
       StuffApi.destruct(desk);
-      expect(mug.getRestingOn()).toBeNull();
-      expect((mug as unknown as { _restingOn: unknown })._restingOn).toBeNull();
+      expect((mug.getPlacement()?.host ?? null)).toBeNull();
+      expect((mug as unknown as { _placementHost: unknown })._placementHost).toBeNull();
     });
 
     it('Spawned._spawner — getSpawner() heals a destroyed spawner', () => {
@@ -175,7 +182,7 @@ describe('reference-lifetime pins', () => {
       expect((c as unknown as { _hauledBy: unknown })._hauledBy).toBeNull();
     });
 
-    it('WarrenMember._warren — getWarren() heals a destroyed warren', () => {
+    it('WarrenMember._warren — getWarren() heals a destroyed warren', async () => {
       const room = makeStuff(() => new MemberRoom());
       // A plain Stuff stands in for the Warren: the self-heal branch
       // only asks `isDestroyed()`. Same stand-in the sibling

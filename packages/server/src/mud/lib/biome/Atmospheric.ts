@@ -144,6 +144,20 @@ export interface Atmospheric {
    */
   resolveWeatherLocality(): Promise<void>;
 
+  /**
+   * ⚠⚠ **Forget the memoized locality — my address changed.**
+   *
+   * The memo above resolves ONCE and is right for a room, which never
+   * moves. An `ExitableVessel` is a place that goes places: a coach that
+   * leaves one locality for the next would otherwise keep reporting the
+   * first one's weather forever, having correctly resolved it at a stop
+   * it is no longer at.
+   *
+   * Public on the mixin because the memo is the mixin's private state.
+   * A `Location` never calls it; `ExitableVessel.onMoved` does.
+   */
+  resetWeatherLocality(): void;
+
   // ---------- derived geometry ----------
 
   /**
@@ -222,6 +236,20 @@ export interface Atmospheric {
 
   /** The room's temperature as last integrated, WITHOUT integrating. */
   envelopeTemperatureLast(): number | null;
+
+  /**
+   * ⭐ **This space's own air, synchronously, in K** — the authored
+   * override when a row states one (a cellar at 279 K, a cave), else
+   * the last integrated envelope, else `null` for a space that simply
+   * takes the chain's word for it.
+   *
+   * A getter over the two fields that already exist, so a reader can
+   * ask *how cold is it in here* without reaching into
+   * `_temperature` — which is a field, and fields are not the
+   * contract between Stuff. Sync because the archetype survey and the
+   * thermal reconcile both ask on a hot path.
+   */
+  getOwnTemperatureK(): number | null;
 
   /** Why the room is the temperature it is — what `feel` says out loud. */
   envelopeCause(): {
@@ -381,7 +409,7 @@ export function AtmosphericMixin<
      *
      * `reconcileEnvelope` walks the room's contents asking each
      * `SpaceHeating` source for its output. `spaceHeatOutputW()` asks
-     * `isLit()`, which runs `reconcileFurnaceFuel()`, whose burnout
+     * `isLit()`, which runs `reconcileBurnerFuel()`, whose burnout
      * edge calls `restampHeated()` → `ThermalMixin.restamp()` →
      * `effectiveAmbient()` → `BiomeApi.resolveTemperatureFor(container)`
      * → **this room's envelope again**.
@@ -987,6 +1015,13 @@ export function AtmosphericMixin<
       return this.envelopeTemperatureK;
     }
 
+    /** See the interface docstring — authored first, else integrated. */
+    public getOwnTemperatureK(): number | null {
+      const authored = this._temperature;
+      if (authored !== null) return authored.rawValue();
+      return this.envelopeTemperatureLast();
+    }
+
 
     // ──────── the weather locality cache (extraction build) ─────────
     // ⭐ Disjoint from the envelope block above: that one integrates a
@@ -1016,6 +1051,21 @@ export function AtmosphericMixin<
      */
     private _weatherLocalityPromise: Promise<void> | null = null;
 
+    /**
+     * ⚠ Bumped by {@link resetWeatherLocality}. A walk that started
+     * before a reset must not land its stale answer on top of it —
+     * `walkWeatherLocality` captures this and writes only if it still
+     * matches. Without it, a vessel that moves mid-walk memoizes the
+     * locality it just LEFT, permanently, and nothing ever looks again.
+     */
+    private _weatherLocalityGeneration = 0;
+
+    public resetWeatherLocality(): void {
+      this._weatherLocalityGeneration += 1;
+      this._weatherLocalityPath = null;
+      this._weatherLocalityResolved = false;
+    }
+
     public weatherLocality(): Locality | null {
       if (!this._weatherLocalityResolved) {
         // Kick the walk and answer "not yet". The next read has it.
@@ -1038,9 +1088,14 @@ export function AtmosphericMixin<
 
     /** The walk itself; {@link resolveWeatherLocality} owns the coalescing. */
     private async walkWeatherLocality(): Promise<void> {
+      const generation = this._weatherLocalityGeneration;
       try {
         const self = this as unknown as Stuff & Container;
         const locality = await AddressApi.resolveLocalityFor(self);
+        // A reset landed while we were walking: the answer is about an
+        // address this scope no longer has. Drop it; the reset already
+        // left the memo unresolved, so the next read walks again.
+        if (generation !== this._weatherLocalityGeneration) return;
         this._weatherLocalityPath = locality?.getTemplatePath() ?? null;
         this._weatherLocalityResolved = true;
       } catch {
@@ -1094,7 +1149,7 @@ function capitalize(s: string): string {
 
 /**
  * Game-time now, or `null` when no world clock is registered. The
- * `furnaceNowSeconds` shape: without the registry the envelope simply
+ * `burnerNowSeconds` shape: without the registry the envelope simply
  * does not integrate, which is the right degradation for a unit fixture
  * and for the window before boot finishes.
  */

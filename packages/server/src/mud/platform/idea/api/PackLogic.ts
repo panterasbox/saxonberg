@@ -104,8 +104,13 @@ interface ResolvedPack {
 interface DomainFile {
   /** Derived template path (`/trade/distilling/idea/material/gin`). */
   path: string;
-  /** Backing class path. */
-  class: string;
+  /**
+   * Backing class path — ABSENT on a child row, which takes its parent's.
+   * A file states a class or an `extends`; neither is a throw.
+   */
+  class?: string;
+  /** The parent row's path, when this row states only what differs. */
+  extends?: string;
   hydratorClass?: string;
   data: Record<string, unknown>;
   /** Pack-relative file path, for diagnostics. */
@@ -933,14 +938,19 @@ function readContent(pack: ResolvedPack): PackContent {
       );
     }
     const doc = parsed as Record<string, unknown>;
-    if (typeof doc.class !== 'string') {
+    // ⭐ A row states a `class` OR names a parent with `extends:` — a
+    // child states only what differs, and that is exactly the row a
+    // protowizard may author. Neither is still a throw.
+    if (typeof doc.class !== 'string' && typeof doc.extends !== 'string') {
       throw new Error(
-        `PackApi: pack '${pack.manifest.id}': content at ${file} is missing a string 'class'`,
+        `PackApi: pack '${pack.manifest.id}': content at ${file} is missing ` +
+          `a string 'class' (or an 'extends' naming a parent row)`,
       );
     }
     domain.push({
       path: fileToTemplatePath(pack.contentRoot, file),
-      class: doc.class,
+      class: typeof doc.class === 'string' ? doc.class : undefined,
+      extends: typeof doc.extends === 'string' ? doc.extends : undefined,
       hydratorClass:
         typeof doc.hydratorClass === 'string' ? doc.hydratorClass : undefined,
       data:
@@ -1165,7 +1175,7 @@ async function assertClassesResolve(
   const packId = pack.manifest.id;
   const classes = new Map<string, string>(); // classPath -> first relFile
   for (const f of rp.content.domain) {
-    if (!classes.has(f.class)) classes.set(f.class, f.relFile);
+    if (f.class && !classes.has(f.class)) classes.set(f.class, f.relFile);
     if (f.hydratorClass && !classes.has(f.hydratorClass)) {
       classes.set(f.hydratorClass, f.relFile);
     }
@@ -1216,6 +1226,55 @@ async function assertClassesResolve(
     origins.set(classPath, res);
   }
   return origins;
+}
+
+/**
+ * ⭐ Every `extends:` names a row this pack ships, or a row shipped by a
+ * pack it **`dependsOn`** — the same rule classes obey, for the same
+ * reason: the `package.json` line that lets you reach it is the line
+ * that orders the install.
+ *
+ * ⚠ So a parent in a pack filtered out by `SAXONBERG_PACKS` is a THROWN
+ * ERROR naming it, not a dangling link that resolves to nothing at the
+ * first clone. Packs reconcile in topological order, so by the time a
+ * child's rows are written its parent is already in the DB.
+ */
+function assertParentsResolve(rp: ReadPack, set: InstallSet): void {
+  const { pack } = rp;
+  const packId = pack.manifest.id;
+  const own = new Set(rp.content.domain.map((f) => f.path));
+  for (const f of rp.content.domain) {
+    if (!f.extends) continue;
+    if (f.extends === f.path) {
+      throw new Error(
+        `PackApi: pack '${packId}': ${f.relFile} extends itself.`,
+      );
+    }
+    if (own.has(f.extends)) continue;
+    let owner: string | undefined;
+    for (const [id, paths] of set.shipped) {
+      if (id !== packId && paths.has(f.extends)) {
+        owner = id;
+        break;
+      }
+    }
+    if (owner === undefined) {
+      throw new Error(
+        `PackApi: pack '${packId}': ${f.relFile} extends '${f.extends}', ` +
+          `which no pack in this install set ships. A parent row must be ` +
+          `installed before its children — check the path, or check that ` +
+          `the pack that ships it is installed (SAXONBERG_PACKS).`,
+      );
+    }
+    if (!pack.manifest.dependsOn.includes(owner)) {
+      throw new Error(
+        `PackApi: pack '${packId}': ${f.relFile} extends '${f.extends}', ` +
+          `which pack '${owner}' ships, but '${packId}' does not depend on ` +
+          `it — add "@saxonberg/content-${owner}" to ${packId}'s ` +
+          `package.json dependencies.`,
+      );
+    }
+  }
 }
 
 function unresolvedClass(packId: string, classPath: string, relFile: string, cause: unknown): Error {
@@ -1296,7 +1355,7 @@ async function reportUnreferencedClasses(read: ReadPack[]): Promise<void> {
   const named = new Set<string>();
   for (const rp of read) {
     for (const f of rp.content.domain) {
-      named.add(f.class);
+      if (f.class) named.add(f.class);
       if (f.hydratorClass) named.add(f.hydratorClass);
       // ⚠ A BRAIN is named in `data.behaviors[].brain`, not in `class:`,
       // so a pack that ships one read as dead code until this line
@@ -1501,7 +1560,8 @@ interface KindStrategy<F> {
 interface DomainRow extends Record<string, unknown> {
   _id?: string;
   path: string;
-  class: string;
+  class?: string;
+  extends?: string;
   hydratorClass?: string;
   data: Record<string, unknown>;
   sourcePack: string;
@@ -1524,21 +1584,27 @@ const domainStrategy: KindStrategy<DomainFile> = {
   rowOf: (f, packId) => {
     const row: DomainRow = {
       path: f.path,
-      class: f.class,
       data: f.data,
       sourcePack: packId,
     };
+    if (f.class) row.class = f.class;
+    if (f.extends) row.extends = f.extends;
     if (f.hydratorClass) row.hydratorClass = f.hydratorClass;
     return row;
   },
+  // `JSON.stringify` drops `undefined`, so adding `extends` changed no
+  // existing row's hash: an absent key hashes exactly as it did before.
   canonicalBody: (r) =>
     canonical({
-      class: r.class,
+      class: r.class ?? undefined,
+      extends: r.extends ?? undefined,
       hydratorClass: r.hydratorClass ?? undefined,
       data: r.data ?? {},
     }),
   exportBody: (r) => {
-    const out: Record<string, unknown> = { class: r.class };
+    const out: Record<string, unknown> = {};
+    if (r.class) out.class = r.class;
+    if (r.extends) out.extends = r.extends;
     if (r.hydratorClass) out.hydratorClass = r.hydratorClass;
     out.data = r.data ?? {};
     return out;
@@ -2474,6 +2540,41 @@ async function computeKindPlan<F>(
     }
     const dbBody = strategy.canonicalBody(r);
     const dbHash = hashOf(dbBody);
+    // ⭐⭐ A row another row extends may not be reaped out from under it.
+    // The delete hook refuses it at the chokepoint anyway; planning it as
+    // a CONFLICT instead is the three-way model's *never block* rule —
+    // the author gets a diagnostic naming the dependents, the row stays,
+    // and the boot finishes.
+    const extenders =
+      strategy.kind === 'domain'
+        ? (
+            (await PersistApi.find(Collections.Content, {
+              extends: key,
+            })) as Record<string, unknown>[]
+          )
+            .map((d) => d.path)
+            .filter((p): p is string => typeof p === 'string')
+        : [];
+    if (extenders.length > 0) {
+      actions.push({
+        op: 'conflict',
+        key,
+        _id: r._id,
+        conflict: {
+          path: key,
+          kind: kindLabel(strategy as KindStrategy<unknown>),
+          detectedAt: now,
+          baselineHash: baseline?.hash ?? '',
+          dbHash,
+          packHash: '',
+          reason: 'deleted-vs-extended',
+          detail:
+            `still extended by ${extenders.slice(0, 5).join(', ')}` +
+            (extenders.length > 5 ? ` and ${extenders.length - 5} more` : ''),
+        },
+      });
+      continue;
+    }
     if (!baseline || dbHash === baseline.hash) {
       actions.push({ op: 'delete', key, _id: r._id });
     } else {
@@ -2907,6 +3008,7 @@ async function gatePack(
   let origins: Map<string, ClassResolution>;
   try {
     origins = await assertClassesResolve(rp, set);
+    assertParentsResolve(rp, set);
     gateRequires(rp, set.manifests, set.shipped);
   } catch (err) {
     throw new PackStepError('requires-kernel', (err as Error).message);

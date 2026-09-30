@@ -24,7 +24,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import { ChattelApi } from "../../../api/chattel";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
@@ -57,7 +57,7 @@ const ROOM_PATH = "/world/test/Room";
 const ALICE_PATH = "/platform/agent/Avatar/alice";
 const BOB_PATH = "/platform/agent/Avatar/bob";
 
-class Chair extends Thing {}
+class Chair extends Good {}
 class Room extends PersistableMixin(ContainerMixin(PostRegistrationMixin(Idea))) {
   static fieldMeta: FieldMeta = {};
 }

@@ -1,5 +1,5 @@
 import "../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach , beforeEach } from 'vitest';
 import Door from '../thing/Door';
 import Exit from '../../lib/boundary/Exit';
 import CartesianZone from '../idea/location/CartesianZone';
@@ -8,7 +8,10 @@ import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  seedKernelContentStore,
+} from '../../lib/security/__tests__/test-setup';
 
 /**
  * Door has a no-arg constructor — fields are populated either by the
@@ -19,16 +22,20 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
  */
 
 describe('Door', () => {
-  it('constructs with sensible defaults', () => {
-    const door = makeStuff(() => new Door());
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
+  it('constructs with sensible defaults', async () => {
+    const door = await StuffApi.create(() => new Door());
     expect(door.getShortDescription()).toBe('');
     expect(door.getLongDescription()).toBe('');
     expect(door.getKeywords()).toEqual([]);
     expect(door.isOpen()).toBe(false);
   });
 
-  it('accepts post-construction field assignment', () => {
-    const door = makeStuff(() => new Door());
+  it('accepts post-construction field assignment', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('heavy oak door');
     door.setLongDescription('An iron-banded slab of oak.');
     door.setKeywords(['portal']);
@@ -40,8 +47,8 @@ describe('Door', () => {
     expect(door.getKeywords()).toContain('portal');
   });
 
-  it('normalizes keywords assigned via the setter (lowercase, trim, dedupe)', () => {
-    const door = makeStuff(() => new Door());
+  it('normalizes keywords assigned via the setter (lowercase, trim, dedupe)', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('heavy oak door');
     door.setKeywords(['Oak', '  ', 'OLD', 'oak']);
 
@@ -54,22 +61,22 @@ describe('Door', () => {
     expect(kw.filter((k) => k === 'oak')).toHaveLength(1);
   });
 
-  it('setOpen rejects non-boolean values with TypeError', () => {
-    const door = makeStuff(() => new Door());
+  it('setOpen rejects non-boolean values with TypeError', async () => {
+    const door = await StuffApi.create(() => new Door());
     expect(() => door.setOpen(1 as unknown as boolean)).toThrow(TypeError);
     expect(() => door.setOpen('true' as unknown as boolean)).toThrow(TypeError);
     expect(door.isOpen()).toBe(false);
   });
 
-  it('keywords setter rejects non-arrays with TypeError', () => {
-    const door = makeStuff(() => new Door());
+  it('keywords setter rejects non-arrays with TypeError', async () => {
+    const door = await StuffApi.create(() => new Door());
     expect(() => {
       (door as unknown as { keywords: unknown }).keywords = 'oak';
     }).toThrow(TypeError);
   });
 
-  it('open() and close() flip state idempotently', () => {
-    const door = makeStuff(() => new Door());
+  it('open() and close() flip state idempotently', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('gate');
     door.open();
     expect(door.isOpen()).toBe(true);
@@ -81,8 +88,8 @@ describe('Door', () => {
     expect(door.isOpen()).toBe(false);
   });
 
-  it('getKeywords() merges explicit keywords with shortDescription tokens', () => {
-    const door = makeStuff(() => new Door());
+  it('getKeywords() merges explicit keywords with shortDescription tokens', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('Heavy Oak Door');
     door.setKeywords(['portal']);
 
@@ -93,8 +100,8 @@ describe('Door', () => {
     expect(kw).toContain('door');
   });
 
-  it('composes the expected mixins', () => {
-    const door = makeStuff(() => new Door());
+  it('composes the expected mixins', async () => {
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('gate');
     expect(MixinApi.isSealable(door)).toBe(true);
     expect(MixinApi.isPerceptible(door)).toBe(true);
@@ -118,7 +125,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
 
     await a.addBidirectionalExit(b, 'north', { door });
@@ -135,7 +142,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     await a.addBidirectionalExit(b, 'north', { door });
 
@@ -156,7 +163,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     await a.addBidirectionalExit(b, 'north', { door });
 
@@ -176,7 +183,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 1, 0, 0);
 
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     await a.addBidirectionalExit(b, 'north', { door });
     expect(door.getAttachedExits().size).toBe(2);
@@ -198,7 +205,7 @@ describe('Door attachedTo back-reference + break/install', () => {
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
-    const door = makeStuff(() => new Door());
+    const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
 
     const exit = makeStuff(() => new Exit({

@@ -29,6 +29,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
+import { Mixins } from '../lib/mixin';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MUD = resolve(HERE, '..');
@@ -110,20 +111,42 @@ describe('shipped wiki subjects (the wiki-starter pack)', () => {
     expect(broken).toEqual([]);
   });
 
-  it('⭐ every `<composition of="…">` in a body names a real template', () => {
+  it('⭐ every `<composition of="…">` in a body names a real subject', () => {
     // The frontmatter subject and the in-body panel are separate refs
     // and can disagree — the panel is what the reader actually sees.
+    //
+    // ⚠ Two KINDS of ref, and this gate checked only one. It read every
+    // `of=` as a template path, which was true while the starter pack
+    // shipped nothing but template panels; the first `kind="mixin"` page
+    // failed it for naming a mixin correctly. A mixin ref is checked
+    // against the mixin registry instead, which is the same guarantee
+    // for the same reason: a ref nothing resolves renders as
+    // "(nothing yet)", and an empty panel is indistinguishable from a
+    // true one.
     const known = templatePaths();
+    const mixinNames = new Set(Object.values(Mixins).map(String));
     const broken: string[] = [];
     for (const page of seededPages()) {
       const body = String(
         (page as unknown as { body?: string }).body ?? '',
       );
       for (const m of body.matchAll(/<composition\b[^>]*\bof="([^"]+)"/g)) {
-        if (!known.has(m[1]!)) broken.push(`${page.page} → ${m[1]}`);
+        const ref = m[1]!;
+        const ok = ref.startsWith('/')
+          ? known.has(ref)
+          : ref.endsWith('Mixin') && mixinNames.has(ref);
+        if (!ok) broken.push(`${page.page} → ${ref}`);
       }
     }
     expect(broken).toEqual([]);
+  });
+
+  it('⚠ the mixin half of that gate is not vacuous either', () => {
+    // A typo'd mixin name renders an empty panel, exactly like a typo'd
+    // template path. Prove the check can fail.
+    const mixinNames = new Set(Object.values(Mixins).map(String));
+    expect(mixinNames.has('AtmosphericMixin')).toBe(true);
+    expect(mixinNames.has('AtmosfericMixin')).toBe(false);
   });
 
   it('the enumeration finds the tree at all — the guard is not vacuous', () => {

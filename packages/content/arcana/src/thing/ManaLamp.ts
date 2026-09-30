@@ -21,11 +21,10 @@
  * the axis the terminal is the complicated half of.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { SlottedMixin } from '@saxonberg/server/mud/lib/slot/Slotted';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
 import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
 import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSource';
@@ -38,9 +37,7 @@ import { BATTERY_SLOT, ManaPoweredMixin } from '../lib/ManaPowered';
 const ManaLampBase = LightSourceMixin(
   SwitchableMixin(
     FixtureMixin(
-      DetailedMixin(
-        ManaPoweredMixin(SlottedMixin(ChargedMixin(ReservedMixin(Thing)))),
-      ),
+        ManaPoweredMixin(SlottedMixin(ChargedMixin(ReservedMixin(Good)))),
     ),
   ),
 );

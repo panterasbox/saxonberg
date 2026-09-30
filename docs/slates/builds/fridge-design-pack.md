@@ -2,16 +2,20 @@
 
 > **Status: PARTIAL** — its one hard dependency shipped: spoilage as two
 > populations plus curing → [spoilage.md](../../subsystems/spoilage.md)
-> **Left:** the cold-container substrate (`CoolboxMixin` + atmosphere on
-> `Container`) · the icebox · `ClimateControl` + `Powered` over the
-> power-utility ref (the appliance/energy build) · the COP fork · the
-> fridge/freezer rows · the mirror inbound channel (Part 4) · the civic
-> "better resident" extension (Part 5 — needs its own pass) · the partner
-> surface (Part 6, bracketed)
+> ⭐ **And the passive rung shipped 2026-09-28** (the placement build,
+> MR !302): `CoolboxMixin`, `platform/thing/Icebox`, the cold-source
+> couple in `Thermal.ts`, the melt clock → [thermal.md](../../subsystems/thermal.md).
+> **Left:** ⭐⭐ **`Chamber`** — the compartment with its own air, and
+> the `AtmosphericMixin` widening it needs; the spec is below, written
+> against the shipped tree and executable cold · `ClimateControl` +
+> `Powered` over the power-utility ref (the appliance/energy build) ·
+> the COP fork · the fridge/freezer rows · the mirror inbound channel
+> (Part 4) · the civic "better resident" extension (Part 5 — needs its
+> own pass) · the partner surface (Part 6, bracketed)
 > **Size:** a build
 
 See also — substrate: [thermal](../../subsystems/thermal.md) (`ThermalMixin`,
-`FurnaceMixin`, `AtmosphericMixin`, phase change) ·
+`BurnerMixin`, `AtmosphericMixin`, phase change) ·
 [preservation-slate](../tails/preservation-slate.md) (**spoilage — the reason a
 fridge exists**) · [furnishing](../../subsystems/furnishing.md) (the
 fridge is owned chattel placed in a room) · [boundary](../../subsystems/boundary.md)
@@ -51,7 +55,7 @@ so its contents read cold, so their `Freshness` decays slowly.** Everything
 else is composition.
 
 > ⭐ The fridge is not a new mechanism — it is the **cold twin of the shipped
-> `FurnaceMixin`** (which holds its scope toward a *hot* setpoint), placed on
+> `BurnerMixin`** (which holds its scope toward a *hot* setpoint), placed on
 > a container, drawing power to run.
 
 ### 2. Composition (the mixin stack)
@@ -66,7 +70,7 @@ Fridge  =  Powered( ClimateControl( Sealable( Atmospheric( Container(
 | `Container` | holds discrete food items | ✅ ship |
 | `Atmospheric` | the **interior climate** (temp + humidity) contents resolve against | ✳ **update — decouple from `Vessel`** (below) |
 | `Sealable` | the **door**: closed → high-R barrier, cold held; open → collapses to the air term, warms | ✅ ship (the thermos uses it) |
-| `ClimateControl` | drives the interior atmosphere **toward a held setpoint** while powered | ⭐ **new — generalize `FurnaceMixin`** |
+| `ClimateControl` | drives the interior atmosphere **toward a held setpoint** while powered | ⭐ **new — generalize `BurnerMixin`** |
 | `Powered` | consumes premises power to run; unpowered → stops driving, drifts to ambient | ⭐ **new — appliance draw over the supply-ref** |
 | `Surfaced` | you can set a thing on top (a plant, a magnet) — LOD-optional | ✅ ship |
 | `Chattel` + `Persistable` | owned, persists with its owner via `place` | ✅ ship (furnishing) |
@@ -93,8 +97,8 @@ box" is a `Container` with an atmosphere.
   reintroduce the cost the skip avoided. Likely fine — the walk already stops
   at the first override.
 
-**⭐ New #2 — `ClimateControlMixin` (generalize `FurnaceMixin`).**
-`FurnaceMixin` already *"heats the Meltables in its scope toward its held
+**⭐ New #2 — `ClimateControlMixin` (generalize `BurnerMixin`).**
+`BurnerMixin` already *"heats the Meltables in its scope toward its held
 temperature."* Generalize it on two axes: **direction** (heat *or* cool) and
 **target** (the scope's **atmosphere**, via the `AtmosphericMixin` override,
 not only Meltables). Then:
@@ -250,7 +254,7 @@ cold, and every other system reacts through its own honest model — none of the
 knows "a fridge" exists.**
 
 - **Thermal (native) — the fridge is a *restamp source*.** ClimateControl *is*
-  generalized `FurnaceMixin`; Coolbox composes `Meltable`+`Thermal`; contents
+  generalized `BurnerMixin`; Coolbox composes `Meltable`+`Thermal`; contents
   read the interior via the biome walk. Putting food in (`onMoved`), opening the
   door (`Sealable` seal-toggle), the ice melting, the compressor cycling all
   fire the **restamp seam thermal already ships** for the thermos. No new
@@ -455,7 +459,7 @@ active + mirror halves wait on two designed-but-unbuilt substrates.
    proves update #1 + the cold→Freshness loop, and is a stewardship object by
    construction. The powered fridge waits on the appliance/energy build anyway.
 2. **`ClimateControl` scope — atmosphere only, or Meltables too?** Generalizing
-   `FurnaceMixin` must keep its Meltable-heating behavior (the forge) while
+   `BurnerMixin` must keep its Meltable-heating behavior (the forge) while
    adding atmosphere-driving (the fridge/oven). Confirm one mixin serves both
    without special-casing.
 3. **Does `AtmosphericMixin`-on-`Container` reintroduce the walk cost the
@@ -470,3 +474,86 @@ active + mirror halves wait on two designed-but-unbuilt substrates.
 6. **The density minimum for the kitchen** (mirror-slate's unquantified
    threshold, per domain). How many of the four kitchen signals before a payout
    is safe from faking.
+
+---
+
+## ⭐⭐ `Chamber` and the `Atmospheric` widening
+
+Graduated out of the placement build's plan at its sweep (2026-09-28),
+because deferred design does not live in a plan and that plan is
+retired. **Written against the shipped tree and verified by opening
+the files** — line references are from 2026-09-27 and the shapes are
+current as of MR !302.
+
+⚠ Deferred by the project owner's explicit decision, not by omission:
+with the icebox a plain insulated `Container`, nothing in that build
+would have composed `Chamber`, and *a class with no composer plus a
+kernel widening with no reader* is the `feel`/`taste`-shipped-without-
+running failure. **The freezer compartment of a fridge is its first
+honest composer** — which is this pack.
+
+The type finding cross-references
+[base-class-narrowing-slate](./base-class-narrowing-slate.md)
+finding #1. Kept in full because it is the most expensive thing here
+to rediscover.
+
+- **The design as written does not compile.** The partition slate's
+  `Chamber = Atmospheric(Placing(Detailed(Thing)))` fails on
+  `AtmosphericMixin<TBase extends MixinConstructor<Stuff & Container>>`
+  (`lib/biome/Atmospheric.ts:261-263`), and `BiomeApi.resolveTemperatureFor`
+  / `BiomeLogic`'s walk are typed `Stuff & Container` throughout
+  (`:256`, `:921`, `:994`, `:1129`, `:683`, `:815`). The walk itself
+  needs nothing of a Container: `stepOutward` is `isContainable →
+  getContainer()`, `outermost.getZone()` is on any Stuff, and
+  `syncChainWalk` reads an Atmospheric cursor's own `_temperature` on
+  its first step — so a Containable, Atmospheric, non-Container thing
+  with an authored `_temperature` resolves correctly the moment the
+  types admit it. **The design is right; the types are wrong.**
+- **The fix is a widening plus one seam, never a branch on Placing.**
+  `AtmosphericMixin<MixinConstructor<Stuff>>`; the eleven
+  `as unknown as Stuff & Container` casts become `Stuff`; the three
+  `getContents()` walks (`:455` `restampThermalContents`, `:786`, `:936`
+  — the last two inside the envelope integration, which never runs for
+  a Thing because `getVolume()` is null) call a new
+  `protected occupants(): readonly Stuff[]` whose default is
+  `MixinApi.isContainer(self) ? self.getContents() : []`, and **`Chamber`
+  overrides it** to `this.getPlaced('in')`. The class whose air is a
+  placement is the class that says so; an `isPlacing` branch inside the
+  mixin would be the wrong-host tell (a guard re-narrowing the host
+  set). `BiomeLogic`'s `resolveTemperatureFor`, `outsideTemperatureFor`,
+  `resolveEnvelopeTemperature`, `runChainWalk`, `syncChainWalk`,
+  `stepOutward`, `outermostZonePathOf`, `skyExposedWalk`, `outsideKFor`
+  and the `BiomeApi` facade retype `scope`/`cursor` to `Stuff` and
+  `Stuff & Container & Atmospheric` to `Stuff & Atmospheric`. Semantics
+  unchanged. The widening is a claim about every Atmospheric composer
+  — none may assume `getContents()` on `this` — and the compiler
+  enforces it; `lint:envelope` is untouched. About a dozen signature
+  retypes; review for casts, not logic.
+- **`Chamber` itself**: `platform/thing/Chamber.ts` =
+  `AtmosphericMixin(PlacingMixin(DetailedMixin(Thing)))`, class default
+  `placements = ['in']`, `fixedInPlace = true`, `occupants()` →
+  `getPlaced('in')`. A thing placed in it has `container = the outer
+  holder` and `getEnclosingScope() = the chamber`; `Thermal.restamp`
+  resolves the chamber's own air on the chain walk's first step. Tests:
+  registers (both composition refusals silent); `occupants()`; a
+  `Provision` placed `in` a Chamber authored at 281 K restamps to 281
+  while one `on` a `Fitting` in the same room reads the room's.
+- **Why not now**: with the icebox a plain insulated container (D10)
+  nothing in this build would compose it, and a class with no composer
+  plus a kernel widening with no reader is the *feel/taste shipped
+  without ever running* failure. `in` keeps its reader through `put`'s
+  region zero (D17).
+
+### What the placement build left ready for it
+
+- `PlacingMixin` exists, with `placements: string[]` and the two
+  composition refusals enforced at registration.
+- The `in` member **ships as a row** (`encloses: true`) with a reader
+  already — `put`'s region zero takes its words and prose from it — so
+  the vocabulary is warm and `lint:unconsumed-seams` is honest.
+- `Containable.getEnclosingScope()` is the seam, read by `Thermal`'s
+  ambient resolution on both sides and by `PerceptionLogic.canReach`.
+- ⭐ A `Sealable` placement host is already **fixture-tested**: the
+  `shut` clause on `canPlace` and the reach refusal both have tests
+  against a `TestCompartment` composing `Placing + Sealable`, so the
+  first shipped class lands on proven ground rather than new ground.

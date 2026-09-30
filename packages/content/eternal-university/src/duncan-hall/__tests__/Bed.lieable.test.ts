@@ -5,7 +5,7 @@
  * residence every player currently has — so a dorm bed you cannot lie on
  * would have shipped the mechanic somewhere nobody could reach it.
  *
- * `Surfaced` is KEPT, not replaced: the two are orthogonal. `Surfaced` is
+ * `Placing` is KEPT, not replaced: the two are orthogonal. `Placing` is
  * what rests ON the bed; the posture slot is who rests IN it.
  */
 
@@ -22,12 +22,12 @@ import { Mixins } from "@saxonberg/server/mud/lib/mixin";
 import { makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { PosedMixin } from "@saxonberg/server/mud/lib/character/Posed";
 import { SlottableMixin } from "@saxonberg/server/mud/lib/slot/Slottable";
-import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
+import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Slotted } from "@saxonberg/server/mud/lib/slot/Slotted";
 import type { Slottable } from "@saxonberg/server/mud/lib/slot/Slottable";
 
-class Body extends PosedMixin(SlottableMixin(Thing)) {}
+class Body extends PosedMixin(SlottableMixin(Good)) {}
 
 const BED_PATH = "/world/terminus/eternal/duncan-hall/thing/bed";
 
@@ -53,8 +53,8 @@ beforeEach(() => {
 });
 
 describe("the dorm bed", () => {
-  it("keeps Surfaced AND gains Postured — orthogonal, not a swap", () => {
-    expect(MixinApi.hasMixin(Bed, Mixins.Surfaced)).toBe(true);
+  it("keeps Placing AND gains Postured — orthogonal, not a swap", () => {
+    expect(MixinApi.hasMixin(Bed, Mixins.Placing)).toBe(true);
     expect(MixinApi.hasMixin(Bed, Mixins.Postured)).toBe(true);
     expect(MixinApi.hasMixin(Bed, Mixins.Slotted)).toBe(true);
   });
@@ -88,7 +88,7 @@ describe("the dorm bed", () => {
  * and this pins why, so a future "tidy-up" reads the reason first.
  */
 describe("the dorm fixtures earn their classes", () => {
-  it("Desk is a Surface PLUS an affordance carrier and a theme discriminant", async () => {
+  it("Desk is a Fitting PLUS an affordance carrier and a theme discriminant", async () => {
     const { default: Desk } = await import("../thing/Desk");
     // 1. It affords `remodel` to the room's occupants. A container does not
     //    afford its own verbs — a co-located sibling does (the
@@ -99,7 +99,7 @@ describe("the dorm fixtures earn their classes", () => {
     ).toContain("world/terminus/eternal/duncan-hall/cmd/remodel.yaml");
     // 2. DormThemes.roleOf discriminates on `instanceof` to pick which
     //    theme prose slot a fixture fills.
-    expect(MixinApi.hasMixin(Desk, Mixins.Surfaced)).toBe(true);
+    expect(MixinApi.hasMixin(Desk, Mixins.Placing)).toBe(true);
   });
 
   it("the tap has no bespoke class at all — it is a generic water fixture", () => {

@@ -21,6 +21,19 @@
 > space in between rooms actually has properties, and those properties
 > reveal themselves when you carve new positive space."*
 >
+> ⭐⭐ **Why the RGO law is worth graduating** (added 2026-09-29 from
+> [lens #30 · Emergence](../../lenses/30-emergence.md)): Schell's fifth
+> generator of emergent gameplay is *side effects that change
+> constraints* — *"every move changes the very nature of the game space,
+> whether or not you intended it to."* **A reservoir with a recharge law,
+> drawn by an act, is that in its purest form**, and stronger than his own
+> example: checkers' constraint changes are per-move and reversible, while
+> *depletion is recharge = 0* means the space can be changed
+> **permanently, by somebody else, before you got there.** That entry also
+> takes tip 5 as the **positive** test for when to simulate at all — *does
+> this side effect change somebody else's constraint?* — which the tree
+> has never had, only the two rules for when NOT to.
+>
 > **Status: pattern recognition, not a build.** Nothing here is new
 > mechanism. It names a shape the codebase has already built **twice**,
 > adds the one case that genuinely inverts it, and sets the guidelines so

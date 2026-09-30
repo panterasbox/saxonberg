@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import CartesianLocation from "../../location/CartesianLocation";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import { AdornmentMixin } from "../Adornment";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
@@ -16,7 +16,7 @@ import { makeStuff } from "../../security/__tests__/test-setup";
  * covered by the lounge integration tests.
  */
 
-class TestFixture extends AdornmentMixin(Thing) {}
+class TestFixture extends AdornmentMixin(Good) {}
 
 describe("AdornableMixin.applyAdornments", () => {
   afterEach(() => {
@@ -61,7 +61,7 @@ describe("AdornableMixin.applyAdornments", () => {
 
   it("throws when a template does not compose AdornmentMixin", async () => {
     const loc = makeStuff(() => new CartesianLocation());
-    const notFixture = makeStuff(() => new Thing());
+    const notFixture = makeStuff(() => new Good());
     vi.spyOn(StuffApi, "clone").mockResolvedValue(notFixture as never);
 
     await expect(loc.applyAdornments(["/test/plain"])).rejects.toThrow(

@@ -4,7 +4,7 @@
 # one kind of *ore-bearing* from another — and because the `grade`
 # channel caps the naked eye at `novice`, this is the only thing that
 # lets a practised prospector's practice show at a face.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folding hand lens

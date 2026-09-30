@@ -280,7 +280,7 @@ need a kernel list edit**.
 |---|---|---|
 | `HaulageRig` | `Bulkable(Haulable(Vessel))` | **towed** — and deliberately NOT `Mobile`. A wagon is pulled, and the shipped tow already carries it and its cargo as a unit. |
 | `Barge` | `Bulkable(Drivable(Slotted(Mobile(Vessel))))` | self-propelled |
-| `Coach` | `Drivable(Sealable(Mobile(ExitableVessel)))` | ⭐ the consumer `ExitableVessel` had been waiting for since the boundary build |
+| `Coach` | `Drivable(Sealable(Mobile(ExitableVessel)))` | ⭐ the consumer `ExitableVessel` had been waiting for since the boundary build — and, since the base-class narrowing build, **the only thing in the game with air of its own that is not a room**: its row authors `interiorVolume: 5` |
 
 ⭐ **Perception out of a vehicle needs no code at all.** Passengers are
 *contents*, and `MixinApi.isOpenContainer` is the single rule `canReach`,

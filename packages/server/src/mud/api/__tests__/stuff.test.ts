@@ -368,9 +368,7 @@ describe('StuffApi', () => {
           if (path === '/platform/idea/persistence/PersistentHydrator') {
             const t = new LeafTemplate();
             t.path = path;
-            t.class = '/platform/idea/persistence/PersistentHydrator';
-            t.hydratorClass = '/platform/idea/persistence/PersistentHydrator';
-            t.data = {};
+            t.setOwn({ class: '/platform/idea/persistence/PersistentHydrator', hydratorClass: '/platform/idea/persistence/PersistentHydrator', data: {} });
             return t;
           }
           return null;
@@ -405,9 +403,7 @@ describe('StuffApi', () => {
             await new Promise((r) => setTimeout(r, 5));
             const t = new LeafTemplate();
             t.path = path;
-            t.class = '/platform/thing/Thing';
-            t.hydratorClass = HYDRATOR;
-            t.data = {};
+            t.setOwn({ class: '/platform/thing/Thing', hydratorClass: HYDRATOR, data: {} });
             return t;
           }
           if (path === HYDRATOR) {
@@ -430,8 +426,7 @@ describe('StuffApi', () => {
             }
             const t = new LeafTemplate();
             t.path = path;
-            t.class = HYDRATOR;
-            t.data = {};
+            t.setOwn({ class: HYDRATOR, data: {} });
             return t;
           }
           return null;

@@ -130,6 +130,15 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // what the class actually extends. An allowlist of roots would make a
   // pack's own channel unreachable, which is the inert-roster trap.
   { site: "platform/idea/ReadingCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // `PlacementCatalogue.warm` keeps a row whose class IS or extends
+  // `Placement` — the same infix-across-every-root selection, for the
+  // same reason: a WAY OF SITTING is a row any pack may ship
+  // (`/trade/x/idea/Placement/behind`), and an allowlist of roots would
+  // make a pack's own member unreachable, which is the inert-roster
+  // trap. ⚠ It carries the `cls === Placement` clause the `Fabric` one
+  // does, because `Placement` is a concrete class rows name directly
+  // rather than a `lib/` abstract with a thin twin.
+  { site: "platform/idea/PlacementCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // `MaturationProfileCatalogue.postRegister` keeps a row by
   // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).
@@ -178,6 +187,16 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   },
   {
     site: "lib/stuff/Staged.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
+  // ⭐ Template inheritance: `Template._materialize` resolves the
+  // EFFECTIVE class only to read its `fieldMeta`, so the merge algebra
+  // can ask each field how it inherits. Transitive-safe by the same
+  // reasoning as every other row-to-row reference: the class it resolves
+  // is the one the row's own `class:` gate already passed, and a child
+  // that states none inherits a parent that did.
+  {
+    site: "lib/stuff/Template.ts::loadClassByPath",
     classification: "transitive-safe",
   },
   // ⭐ Wiki component resolution. The tag name comes from

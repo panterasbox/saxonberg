@@ -2,7 +2,7 @@
  * Lamp — a light that **burns fuel**: a lantern, a torch, an oil lamp.
  *
  * ⭐ A lamp is a small furnace with a light on it, and composing it that
- * way is the whole design. `FurnaceMixin` already owns everything a
+ * way is the whole design. `BurnerMixin` already owns everything a
  * fuelled light needs and owns it once: a `'fuel'` Reserve that drains
  * against game time, reconcile-on-read so an unattended lamp burns down
  * correctly with nobody watching, the burnout edge that sets `lit=false`
@@ -10,8 +10,8 @@
  * envelope build — the gate that makes `getEmittedFlux()` answer zero
  * while it is out. None of that is written here.
  *
- * Composition: `Furnace + LightSource + Detailed + Reserved + Thermal`
- * over a `Thing`. **Order is load-bearing**: `FurnaceMixin` outermost,
+ * Composition: `Burner + LightSource + Detailed + Reserved + Thermal`
+ * over a `Thing`. **Order is load-bearing**: `BurnerMixin` outermost,
  * so its `getEmittedFlux` override wraps `LightSourceMixin`'s and a
  * doused lamp is dark.
  *
@@ -40,12 +40,11 @@
  * softens, ice melts) and is noted in `fire.md`.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Good from '../../lib/stuff/Good';
 import { ReservedMixin } from '../../lib/reserve';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { FurnaceMixin } from '../../lib/fire/Furnace';
+import { BurnerMixin } from '../../lib/fire/Burner';
 
 /**
  * Lamp dials. Playtest-tuned, not plan decisions.
@@ -64,13 +63,13 @@ const LAMP = {
   BURN_RATE_PER_MIN: 0.15,
 } as const;
 
-const LampBase = FurnaceMixin(
-  LightSourceMixin(DetailedMixin(ReservedMixin(ThermalMixin(Thing)))),
+const LampBase = BurnerMixin(
+  LightSourceMixin(ReservedMixin(ThermalMixin(Good))),
 );
 
 export default class Lamp extends LampBase {
   /**
-   * ⚠ `FurnaceMixin.lit` defaults **true** and `burnTemperatureK`
+   * ⚠ `BurnerMixin.lit` defaults **true** and `burnTemperatureK`
    * defaults to 800 K — both right for a forge and wrong for a lantern
    * on a shop shelf. A Lamp therefore ships **cold and out**, and a row
    * that wants otherwise says so.

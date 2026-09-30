@@ -61,7 +61,7 @@ persuaded by anything said afterward.
 
 So the unit of a video is not a feature, a subsystem, or a value
 proposition — it is **an experience the player has**, in Schell's
-sense ([lenses/essential-experience.md](./lenses/essential-experience.md):
+sense ([lens-deck-salvage.md](./lens-deck-salvage.md):
 decide the felt experience first; mechanics, story, and world are
 only the means). Each video:
 
@@ -99,7 +99,7 @@ line-class as load-bearing.)
 The design lenses ([docs/lenses/](./lenses/README.md)) are the
 analysis toolkit: each video's brief names the two or three lenses
 that govern its experience, and the script is checked against them.
-[Transformation](./lenses/transformation.md) applies to *every* video
+[Transformation](./lens-deck-salvage.md) applies to *every* video
 in this track — both essences are recognition-of-effort, so "is this
 good for the learner" is a property of the experience itself (this is
 the high-stakes guardrail from the strategy doc, lens-shaped).
@@ -163,7 +163,7 @@ structure exists to make that depth *felt* as successive reveals.
 
 The game stands alone as an educational game — campus, majors, its
 own subject taxonomy (the internal/external split ratified in
-[lenses/essential-experience.md](./lenses/essential-experience.md)).
+[lens-deck-salvage.md](./lens-deck-salvage.md)).
 An external learning platform is the optional enrichment that turns
 the standalone game into a vertical product:
 
@@ -675,12 +675,12 @@ these; until then they rotate as written.
 
 ### Load-bearing lenses for the track (the ed-tech frame)
 
-[Fantasy](./lenses/fantasy.md) (the wish: be who you're becoming),
-[curiosity](./lenses/curiosity.md) (Rico: obligation→personal
-question), [motivation](./lenses/motivation.md) (wanna/hafta; the
-high-stakes guardrail), [endogenous-value](./lenses/endogenous-value.md)
+[Fantasy](./lens-deck-salvage.md) (the wish: be who you're becoming),
+[curiosity](./lens-deck-salvage.md) (Rico: obligation→personal
+question), [motivation](./lens-deck-salvage.md) (wanna/hafta; the
+high-stakes guardrail), [endogenous-value](./lens-deck-salvage.md)
 (the roulette floor-test; anchored value),
-[cheatability](./lenses/cheatability.md) (assessment as the
+[cheatability](./lens-deck-salvage.md) (assessment as the
 anti-cheat), plus the craft quartet (resonance / moments /
 interest-curve / the-pitch). **One load-bearing lens remains unread
 in the fresh pass: #110 Transformation** — the ethics-of-change lens
@@ -689,9 +689,9 @@ every entry defers to; read it before scripts lock.
 ## Video craft rules (from the lens pass, 2026-07-28)
 
 Four lenses read specifically for this track
-([resonance](./lenses/resonance.md) / [moments](./lenses/moments.md)
-/ [interest-curve](./lenses/interest-curve.md) /
-[the-pitch](./lenses/the-pitch.md)) yield the working rules:
+([resonance](./lens-deck-salvage.md) / [moments](./lens-deck-salvage.md)
+/ [interest-curve](./lens-deck-salvage.md) /
+[the-pitch](./lens-deck-salvage.md)) yield the working rules:
 
 - **Every script writes its thesis line FIRST** (added 2026-07-29,
   after the V2 miss): one sentence — *what this teaches, and why

@@ -16,7 +16,7 @@ data:
     with ash from every fire before this one. A hob at one side takes a
     pot; a low wall in front of it takes a person, which is rather the
     point of the whole arrangement.
-  # ⚠ `FurnaceMixin.lit` defaults TRUE. A hearth in an empty room is out.
+  # ⚠ `BurnerMixin.lit` defaults TRUE. A hearth in an empty room is out.
   lit: false
   reserves:
     fuel:

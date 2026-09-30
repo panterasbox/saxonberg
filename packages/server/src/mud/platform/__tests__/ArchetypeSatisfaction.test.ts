@@ -38,14 +38,15 @@ import YAML from 'yaml';
 import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Chair from '../thing/Chair';
 import Oven from '../thing/Oven';
-import Thing from '../thing/Thing';
+import Good from '../thing/Thing';
 import UnboundedReceptacle from '../thing/UnboundedReceptacle';
 // ⚠ Both Things are in view here: the SUBSTRATE (composed with mixins to
 // build the fixtures below) and its concrete twin (what a bare row names).
 // Aliasing the base is the convention every other split-the-base class
 // uses inside its own file.
-import ThingBase from '../../lib/stuff/Thing';
-import { SurfacedMixin } from '../../lib/spatial/Surfaced';
+import ThingBase from '../../lib/stuff/Good';
+import { PlacingMixin } from '../../lib/spatial/Placing';
+import { Quantity } from '../../lib/quantity';
 import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { SealableMixin } from '../../lib/spatial/Sealable';
@@ -55,11 +56,29 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 
-class Board extends SurfacedMixin(ThingBase) {}
+class Board extends PlacingMixin(ThingBase) {}
 /** The same surface, made to go on a wall. */
-class WallShelf extends AdornmentMixin(SurfacedMixin(ThingBase)) {}
-/** A cold box: insulated AND closable — the two halves of cold storage. */
+class WallShelf extends AdornmentMixin(PlacingMixin(ThingBase)) {}
+/**
+ * A cold box: insulated, closable, and a holder of THINGS — the three
+ * halves of cold storage. ⚠ It is not cold storage until it is COLD;
+ * see the `coldStorage` block below, which is the repair.
+ */
 class ColdBox extends ThermalMixin(SealableMixin(ContainerMixin(ThingBase))) {}
+
+/** A bottle: insulated and closable, and it holds bulk, not provisions. */
+class Flask extends ThermalMixin(SealableMixin(ThingBase)) {}
+
+/**
+ * A cold box standing at `k`. The box's own `Thermal` IS its interior
+ * (`getContentsTemperature` reads the body), which is the thermos model
+ * `CoolboxMixin` builds on.
+ */
+function coldBoxAt(k: number): ColdBox {
+  const box = makeStuff(() => new ColdBox());
+  box.setStampedTemperatureK(k);
+  return box;
+}
 
 /** The four shipped ROOM archetypes, read off the generic-objects pack. */
 const ARCHETYPE_DIR = fileURLToPath(
@@ -162,8 +181,8 @@ function tap(): UnboundedReceptacle {
   t.setShortDescription('a cold tap');
   return t;
 }
-function toilet(): Thing {
-  const p = makeStuff(() => new Thing());
+function toilet(): Good {
+  const p = makeStuff(() => new Good());
   p.setShortDescription('a toilet');
   p.setPrimaryKeyword('toilet');
   p.setKeywords(['toilet', 'lavatory']);
@@ -243,7 +262,9 @@ describe('archetype satisfaction', () => {
     put(hotplate(), r);
     put(makeStuff(() => new Board()), r);
     put(tap(), r);
-    const cold = makeStuff(() => new ColdBox());
+    // ⚠ The box has to be COLD now, not merely insulated — which is
+    // the repair. An empty box at room temperature satisfies nothing.
+    const cold = coldBoxAt(273);
     put(cold, r);
 
     const v = verdict('kitchen', r as unknown as Stuff & Container);
@@ -263,7 +284,7 @@ describe('archetype satisfaction', () => {
     expect(v.satisfied).toBe(false);
     const short = v.rows.filter((row) => !row.satisfied).map((row) => row.key);
     // ⭐ `surface` used to be short here too. The grain-chain build gave
-    // `Oven` a `SurfacedMixin` (D28) — a range is a firebox you put a
+    // `Oven` a `PlacingMixin` (D28) — a range is a firebox you put a
     // loaf in AND a plate you stand a pot on, which the shipped
     // kitchen-range row's own prose already promised. So the hotplate
     // this fixture stands up now satisfies the work surface, exactly as a
@@ -418,5 +439,81 @@ describe('the fermentation venue archetypes', () => {
     (bottle as unknown as { category: string }).category = 'wine-bottle';
     ContainmentApi.move(bottle as never, room2 as never);
     expect(archetype.satisfies(room2).satisfied).toBe(false);
+  });
+
+  /**
+   * ⭐⭐ `coldStorage` — the repair (placement build, D18).
+   *
+   * Both rungs were wrong until 2026-09-28, in OPPOSITE directions, and
+   * both silently. These are the four cases that pin them, run against
+   * the real shipped `kitchen` row rather than a fixture archetype,
+   * because the defect was never in the row.
+   */
+  describe('coldStorage — cold is the word that matters', () => {
+    it('⚠ a WARM insulated box is not cold storage — the false positive', () => {
+      const r = room();
+      put(hotplate(), r);
+      put(tap(), r);
+      // Insulated, closable, a container — every structural test the
+      // shipped check made — and 293 K. Before the repair this
+      // satisfied `cold`, which is how Dave's Bar reported cold storage
+      // MET on an EMPTY ice bin at room temperature.
+      put(coldBoxAt(293), r);
+      const v = verdict('kitchen', r as unknown as Stuff & Container);
+      const short = v.rows.filter((row) => !row.satisfied).map((row) => row.key);
+      expect(short).toContain('cold');
+    });
+
+    it('⭐ the same box with something cold in it DOES satisfy it', () => {
+      const r = room();
+      put(hotplate(), r);
+      put(tap(), r);
+      const box = coldBoxAt(273);
+      put(box, r);
+      const v = verdict('kitchen', r as unknown as Stuff & Container);
+      expect(v.satisfied).toBe(true);
+      const by = new Map(v.rows.map((row) => [row.key, row.by]));
+      expect(by.get('cold')).not.toBeNull();
+    });
+
+    it('⚠ a bottle is never cold storage, however cold — it holds bulk, not things', () => {
+      const r = room();
+      put(hotplate(), r);
+      put(tap(), r);
+      const flask = makeStuff(() => new Flask());
+      flask.setStampedTemperatureK(250);
+      put(flask, r);
+      const v = verdict('kitchen', r as unknown as Stuff & Container);
+      const short = v.rows.filter((row) => !row.satisfied).map((row) => row.key);
+      // Frozen solid and still not a larder: a bag of ice lying on the
+      // floor is not what a kitchen means by somewhere cold.
+      expect(short).toContain('cold');
+    });
+
+    it('⭐⭐ a COLD SPACE satisfies it — the rung that had never once fired', () => {
+      const r = room();
+      put(hotplate(), r);
+      put(tap(), r);
+      put(makeStuff(() => new Board()), r);
+      // A cellar authored at 279 K. The old rung asked whether the room
+      // was `Thermal`; no Location is, so a space authored for exactly
+      // this satisfied nothing, forever — and the brewing cold store's
+      // own row says `coldStorage` reads the SPACE.
+      r.setTemperature(Quantity.of(279, 'K'));
+      const v = verdict('kitchen', r as unknown as Stuff & Container);
+      expect(v.satisfied).toBe(true);
+      const by = new Map(v.rows.map((row) => [row.key, row.by]));
+      expect(by.get('cold')).not.toBeNull();
+    });
+
+    it('a merely COOL space (285 K, a cellar under a bar) does not', () => {
+      const r = room();
+      put(hotplate(), r);
+      put(tap(), r);
+      r.setTemperature(Quantity.of(285, 'K'));
+      const v = verdict('kitchen', r as unknown as Stuff & Container);
+      const short = v.rows.filter((row) => !row.satisfied).map((row) => row.key);
+      expect(short).toContain('cold');
+    });
   });
 });

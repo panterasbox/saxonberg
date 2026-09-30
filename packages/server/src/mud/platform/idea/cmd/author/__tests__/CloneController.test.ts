@@ -314,4 +314,77 @@ describe('CloneController.execute — hydrate-first', () => {
     expect(tells.length).toBe(1);
     expect(tells[0]).toMatch(/overrode template's container/);
   });
+
+  /**
+   * ⭐⭐ **A row nothing has instanced yet is still clonable.**
+   *
+   * The access check resolves title through a live REPRESENTATIVE at the
+   * source path. With no live instance there is none, so `zoneOf(null)`
+   * gave the empty path, `ownerOf('')` gave null, and the clone was
+   * refused to everybody — **a row was not clonable until somebody had
+   * already cloned it**, which is a bootstrap nobody can perform.
+   *
+   * It was not hypothetical. `/system/transport/thing/coach` is a
+   * shipped row that no locality places, so no player in the game could
+   * stand up a coach. Found by the base-class narrowing drive, which
+   * needed one.
+   */
+  describe('⭐⭐ a template with no live instance', () => {
+    it('asks the PATH question instead, and a titled path answers', async () => {
+      const loc = makeStuff(() => new Location());
+      const giver = makeStuff(() => new TestGiver());
+      ContainmentApi.move(giver, loc);
+
+      // No instance of `/test/coach` exists anywhere — which is the
+      // whole case.
+      const can = vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+      const canAtPath = vi
+        .spyOn(AccessApi, 'canAtPath')
+        .mockResolvedValue(true);
+
+      const child = makeStuffAtPath(() => {
+        const t = new TestContainable();
+        t.setName('coach');
+        return t;
+      }, '/test/coach-instance');
+      stubClone(() => {
+        ContainmentApi.move(child, loc);
+        return child;
+      });
+
+      const controller = makeStuff(() => new CloneController());
+      await controller.execute(
+        makeModel({ template: '/test/coach', here: true }),
+        makeContext(giver, loc),
+      );
+
+      expect(
+        canAtPath,
+        'with no representative, the path-targeted gate is the question',
+      ).toHaveBeenCalledWith(giver, 'clone', '/test/coach');
+      expect(can, 'and the representative gate is not consulted').not.toHaveBeenCalled();
+      expect(child.getContainer()).toBe(loc);
+    });
+
+    it('⚠ and untitled STILL fails closed — this is not a hole', async () => {
+      const loc = makeStuff(() => new Location());
+      const giver = makeStuff(() => new TestGiver());
+      ContainmentApi.move(giver, loc);
+      vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+      vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(false);
+
+      let cloned = false;
+      stubClone(() => {
+        cloned = true;
+        return makeStuff(() => new TestContainable());
+      });
+
+      const controller = makeStuff(() => new CloneController());
+      await controller.execute(
+        makeModel({ template: '/test/nowhere', here: true }),
+        makeContext(giver, loc),
+      );
+      expect(cloned, 'an untitled path clones nothing').toBe(false);
+    });
+  });
 });

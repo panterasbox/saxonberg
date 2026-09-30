@@ -19,12 +19,12 @@
  * figure for one bar.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { MeltableMixin } from '../../lib/thermal/Meltable';
 import { ManualBuildMixin } from '../../lib/craft/ManualBuild';
 import { AlloyedMixin } from '../../lib/material/Alloyed';
 
-const IngotBase = AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Thing))));
+const IngotBase = AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good))));
 
 export default class Ingot extends IngotBase {}

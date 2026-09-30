@@ -29,9 +29,11 @@ import {
   beforeAll,
   beforeEach,
   afterEach,
-} from 'vitest';
+ } from 'vitest';
 import type { MessageFrame } from '@saxonberg/types';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff,
+  seedKernelContentStore,
+} from '../../security/__tests__/test-setup';
 import { Idea } from '../../stuff/Idea';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -50,7 +52,7 @@ import { Stuff as StuffClass } from '../../stuff/Stuff';
 import { BehavedMixin } from '../Behaved';
 import { brain as ritual } from '../crossing-ritual';
 import type { BrainContext } from '../brain';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { DetailedMixin } from '../../description/Detailed';
 import { TimekeepingMixin } from '../../time/Timekeeping';
 import { AudibleMixin } from '../../perception/Audible';
@@ -69,7 +71,7 @@ const GREETS = '/lib/behavior/greets';
  * over the University Avenue content classes (which have their own
  * tests beside their content).
  */
-class TestLog extends DetailedMixin(Thing) {
+class TestLog extends DetailedMixin(Good) {
   public marks: Array<number | null> = [];
   addMark(reading: number | null): void {
     this.marks.push(reading);
@@ -78,12 +80,12 @@ class TestLog extends DetailedMixin(Thing) {
     return this.marks;
   }
 }
-class TestWatch extends TimekeepingMixin(Thing) {
+class TestWatch extends TimekeepingMixin(Good) {
   override currentReading(): Time | null {
     return Time.ofMinutes(600);
   }
 }
-class TestWhistle extends AudibleMixin(Thing) {}
+class TestWhistle extends AudibleMixin(Good) {}
 
 class TestNPC extends BehavedMixin(
   EngagedMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea))))
@@ -147,6 +149,24 @@ function makeGus(withWhistle = false): { gus: Stuff; log: TestLog } {
   }
   return { gus, log };
 }
+
+beforeEach(() => {
+  seedKernelContentStore([
+    // The sandbox stands up a circle floor and a wire body — both
+    // clones of rows now.
+    {
+      path: '/platform/location/sandbox/CircleFloor',
+      class: '/platform/location/sandbox/CircleFloor',
+      data: {},
+    },
+    {
+      path: '/platform/agent/sandbox/WireBody',
+      class: '/platform/agent/sandbox/WireBody',
+      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+      data: { wirePlayerId: '' },
+    },
+  ]);
+});
 
 describe('crossing-ritual brain (unit — tally decoupling + batch)', () => {
   beforeEach(() => {

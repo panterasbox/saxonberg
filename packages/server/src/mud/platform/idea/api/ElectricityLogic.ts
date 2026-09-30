@@ -267,7 +267,7 @@ function groundContactInsulated(body: Stuff): boolean {
  * lifting it out of the floor medium? */
 function restsOnRaised(body: Stuff, graph: ConductiveGraph): boolean {
   if (!MixinApi.isContainable(body)) return false;
-  const on = body.getRestingOn();
+  const on = body.getPlacement()?.host ?? null;
   // The Floor is an Adornment, never a discrete resting surface — so any
   // non-null restingOn is a step/stool/chair that lifts the body off the
   // floor medium (out of a pool).

@@ -148,7 +148,13 @@ Two surfaces beyond the accessors:
   by `Mml.augment`.
 
 `Branded` is general (any Stuff can be marked — a bottle, later a venue or an
-`Adornment`). The working bottle is `/platform/thing/Bottle` (a Graded,
+`Adornment`) — ⚠ **general, but never universal.** It is composed
+deliberately, one host at a time; the hosts today are the shipped branded
+Things, the kernel's `KeptAnimal` and ranching's `Livestock`. It is
+**not** on `Creature`: a mark says whose work or whose herd a thing is,
+which is not a question about a person. (It was on `Creature` between the
+ranching and base-class-narrowing builds — see
+[ranching.md](./ranching.md).) The working bottle is `/platform/thing/Bottle` (a Graded,
 Bulkable, Sealable, Circulating receptacle — libations); its `_brandKey`
 is the mark. The mark-only `BrandedBottle` proof class and its two demo
 rows were retired in the libations drain — every shipped branded thing

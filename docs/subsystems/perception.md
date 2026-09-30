@@ -145,11 +145,17 @@ Perception splits into two orthogonal mixins:
 | `Perception` | **interpretation** | `perceivedBandModifier(raw, loc)`, `canSeeOverride(target, detail, raw)`, `getVisionProfile()`, future `perceivedVolumeModifier` / `canHearOverride` / `getHearingProfile`. The seams query Apis dispatch through when the framework asks "what does this entity perceive?" Identity defaults pass the raw answer through; Shadows on the host modulate. | Anything *queryable as a viewer* — entities with subjective experience to be asked about. |
 
 All viewer-aware query Apis take **`Stuff & Sensor & Perception`**
-as the viewer parameter. Avatars and Characters compose both for
-free through the Character chain. A passive recording device might
+as the viewer parameter. ⭐ Both are composed on
+**`lib/creature/Actor`** since the base-class narrowing (2026-09-30),
+so every animate body is a viewer — a person, a wolf, a horse, a cat —
+rather than only the ones that are somebody. That pair is one of the
+three readers the rung was derived from: `PerceptionLogic` asks for
+`Sensor && Perception` and has never asked whether the viewer is a
+person. A passive recording device might
 compose only Sensor (it receives, but isn't queryable for
 subjective experience). Inert Stuff (rooms, items) composes
-neither.
+neither, and so does a **corpse** — it is a body, not a body that
+acts.
 
 **Why split.** The original framing tried to unify both axes under
 Sensor — "Sensor IS the perceiver type" — and put the

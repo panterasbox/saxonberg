@@ -8,12 +8,12 @@
  * why the ladder above this is rows rather than code.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const WEAVE = ['trade/textiles/cmd/textiles/weave.yaml'];
 
-export default class Loom extends ToolItem {
+export default class Loom extends Tool {
   static commandContributions: CommandContributions = {
     environment: WEAVE,
     peers: WEAVE,

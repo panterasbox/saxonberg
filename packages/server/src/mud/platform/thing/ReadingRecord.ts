@@ -23,12 +23,11 @@
  * referent is a Discipline while a score's referent is nothing.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
+import Good from '../../lib/stuff/Good';
 import { Mml } from '../../api/mml';
 import type { FieldMeta } from '../../lib/mixin';
 
-const ReadingRecordBase = DetailedMixin(Thing);
+const ReadingRecordBase = Good;
 
 export default class ReadingRecord extends ReadingRecordBase {
   static override fieldMeta: FieldMeta = {

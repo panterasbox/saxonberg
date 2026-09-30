@@ -4,7 +4,7 @@ The hospitality trade — a **capability pack** (it ships `src/`). Root
 `/trade/hospitality`.
 
 - `src/thing/IceBin.ts` — the insulated ice holder (a Thermos whose interior is ice; a recipe's `ice:` draws from it).
-- `src/thing/Tap.ts` — the dispensing station: a `Surfaced` fixture that is a `tap` tool; the keg it draws from rests beside it in the room, where the gather walk already sees it.
+- `src/thing/Tap.ts` — the dispensing station: a `Placing` fixture that is a `tap` tool; the keg it draws from rests beside it in the room, where the gather walk already sees it.
 - `content/trade/hospitality/thing/` — the tools, the stations, the nine glasses (`category:` is the glassware par key), the house tablet.
 - `content/trade/hospitality/idea/material/` — the house-made juices the press yields.
 - `content/recipes/` — the menu (21 lines here; the pint, the three wines and the soft drink ride their trades) and the four `press-*` recipes.

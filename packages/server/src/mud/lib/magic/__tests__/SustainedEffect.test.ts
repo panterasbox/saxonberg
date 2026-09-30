@@ -10,7 +10,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Character } from "../../character/Character";
 import Species from "../../../platform/idea/species/Species";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import { LightSourceMixin } from "../../perception/LightSource";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
@@ -29,7 +29,7 @@ import type { MagicProvenance } from "../Grid";
 const DREAD_PATH = "/platform/idea/Condition/magic/dread";
 
 class TestCharacter extends Character {}
-class TestOrb extends LightSourceMixin(Thing) {
+class TestOrb extends LightSourceMixin(Good) {
   static _mixinName = "TestOrbMagic";
 }
 

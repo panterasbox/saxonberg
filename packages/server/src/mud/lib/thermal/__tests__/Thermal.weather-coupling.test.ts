@@ -17,7 +17,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import Location from '../../stuff/Location';
 import Material from '../../material/Material';
 import Biome from '../../biome/Biome';
@@ -45,12 +45,12 @@ import {
   WEATHER_DEFAULTS,
 } from '../../weather/WeatherType';
 
-class ThermalThing extends ThermalMixin(Thing) {
+class ThermalThing extends ThermalMixin(Good) {
   static _mixinName = 'ThermalThingWeather';
 }
 class TestRoom extends Location {}
 /** A Containable occupant carrying the connection surface (isLinkdead etc.). */
-class TestOccupant extends HasInteractiveMixin(Thing) {
+class TestOccupant extends HasInteractiveMixin(Good) {
   static _mixinName = 'TestOccupantWeather';
 }
 
@@ -104,7 +104,7 @@ async function skyRoomWithBody(): Promise<{
 }> {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/stuff/idea/biome/universe';
+    b.setExtendsBiomePath('/stuff/idea/biome/universe');
     return b;
   }, '/stuff/idea/biome/outdoor/field');
   const room = makeStuff(() => new TestRoom());

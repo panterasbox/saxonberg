@@ -9,7 +9,9 @@
  * powerful steps a spring orchestrates (`ConditionApi.inflict`,
  * `PerceptionApi.perceives`, the metabolism / locomotion / posture Apis)
  * are each **already gated**, so wrapping them in one more gate buys
- * nothing. This generalizes `GlassAlley.onEntered` exactly — a plain Stuff
+ * nothing. This generalized the lounge's `GlassAlley.onEntered` exactly (that
+ * one-off room class is since retired, its loop proven by
+ * `injury.wire.test.ts`) — a plain Stuff
  * method calling the gated `inflict` seam, now made reusable content.
  *
  * The taxonomy (pit / spiked-pit / dart / scythe / deadfall / snare /

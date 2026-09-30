@@ -13,7 +13,18 @@
  * exactly this reason, so a turbolift installs an exit called
  * "turbolift" rather than one called "wardrobe".
  *
- * A `Thing`-tier fixture (Chattel identity rides the Thing base), with
+ * ⚠⚠ **W1's one finding: this fixture reads its OWN chattel owner.**
+ * `ownerPlayerId()` asks `this.getChattelId()` to tell a private booth from
+ * a public one, so it is the one class in the immovable roster that the
+ * narrowing could not move onto the bare `Thing` root — D13's test fires in
+ * the affirmative and it stays on `Good`. Whether that is RIGHT is a
+ * separate question worth asking: a booth bolted into a room is not carried
+ * off, and ownership of a thing you cannot carry is normally real-property
+ * TITLE (`docs/subsystems/parcel.md`), not chattel. Re-keying the booth's
+ * owner onto the parcel is a design change, not a narrowing, so it is filed
+ * rather than done.
+ *
+ * A `Good`-tier fixture (Chattel identity rides the goods rung), with
  * one persistent field:
  *
  *   - `linkedSandboxPath` (identity ref, a path string; `''` = unlinked): the
@@ -34,9 +45,11 @@
  *     new fixture may carry the same path — doors are concurrent).
  */
 
-import Thing from '../../../lib/stuff/Thing';
+import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
+import Good from '../../../lib/stuff/Good';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import { TemplatePaths } from '../../../lib/paths';
 import { ChattelApi } from '../../../api/chattel';
 import { SandboxApi } from '../../../api/sandbox';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -49,7 +62,13 @@ import type { Chattel } from '../../../lib/chattel/Chattel';
 /** Fallback exit label when a skin declares none. */
 const DEFAULT_PASSAGE_DIRECTION = 'crossing';
 
-export default class SandboxCrossing extends Thing {
+/**
+ * ⭐ `PostRegistrationMixin` for one reason: the crossing's passage exit
+ * is a clone of a row now, and a clone is async while `onMoved` is not.
+ */
+const SandboxCrossingBase = PostRegistrationMixin(Good);
+
+export default class SandboxCrossing extends SandboxCrossingBase {
   static fieldMeta: FieldMeta = {
     linkedSandboxPath: { persistent: true, runtimeState: true },
     passageDirection: { persistent: true },
@@ -76,8 +95,25 @@ export default class SandboxCrossing extends Thing {
     this.passageDirection = value;
   }
 
-  /** The installed passage exit (runtime-only; re-minted per placement). */
+  /**
+   * The crossing's own passage exit — a clone of
+   * `/platform/idea/exits/sandbox-crossing`, minted once at
+   * `postRegister` and rebound into each room the fixture lands in.
+   * Runtime-only.
+   */
   private passage: SandboxCrossingExit | null = null;
+
+  /** Mint the passage exit. See {@link onMoved}. */
+  public override async postRegister(context?: unknown): Promise<void> {
+    await super.postRegister(context);
+    this.passage ??= await StuffApi.clone<SandboxCrossingExit>(
+      TemplatePaths.sandboxCrossingExit,
+    );
+    // Already placed (the fixture was moved before it registered): wire
+    // the passage into where it is.
+    const env = this.getContainer() as (Stuff & Container) | null;
+    if (env) this.onMoved(null, env);
+  }
 
   public getLinkedSandboxPath(): string {
     return this.linkedSandboxPath;
@@ -148,25 +184,36 @@ export default class SandboxCrossing extends Thing {
   ): void {
     this.teardownPassage(from);
     if (to && MixinApi.isExitable(to)) {
-      // Constructor-form identity (the same shape addBidirectionalExit
-      // builds with): `bind()` is participant-gated to Exitable rooms,
-      // and the fixture is the installer here.
-      const exit = StuffApi.createSync(
-        () =>
-          new SandboxCrossingExit({
-            direction: this.getPassageDirection(),
-            source: to,
-            // The real destination is the crossing itself; the path is
-            // presentation-level only (an unlinked door names the wire).
-            destinationPath: this.linkedSandboxPath || '/home',
-            oneWay: true,
-            messageOut: '{{ mover }} steps into {{ exit }} and is gone.',
-          })
+      // ⭐ ONE exit, minted at `postRegister` and REBOUND — the same
+      // shape a vessel's `in`/`out` pair uses, and for the same reason:
+      // this exit MOVES WITH ITS HOST. The fixture is carried from room
+      // to room and its doorway goes along.
+      //
+      // ⚠ It was going to be a fresh clone per placement, which made
+      // this sync witness async and left `this.passage` unset for a
+      // tick — six sandbox tests read it immediately and found
+      // `undefined`. Pre-minting keeps the witness honest.
+      const exit = this.passage;
+      if (!exit) return;
+      // ⚠ The ROOM installs, not the fixture: `bind` is gated on the
+      // caller being party to the edge, and a crossing is a Thing, not
+      // an Exitable. Binding it from here was refused outright.
+      void to.installExit<SandboxCrossingExit>(
+        exit,
+        {
+          direction: this.getPassageDirection(),
+          source: to,
+          // The real destination is the crossing itself; the path is
+          // presentation-level only (an unlinked door names the wire).
+          destinationPath: this.linkedSandboxPath || '/home',
+          oneWay: true,
+          messageOut: '{{ mover }} steps into {{ exit }} and is gone.',
+        },
+        (e) => {
+          e.setCrossingDirection('enter');
+          e.setCrossing(this);
+        },
       );
-      exit.setCrossingDirection('enter');
-      exit.setCrossing(this);
-      void to.addExit(exit);
-      this.passage = exit;
     }
   }
 
@@ -197,13 +244,17 @@ export default class SandboxCrossing extends Thing {
     if (room && MixinApi.isExitable(room)) {
       room.removeExit(this.getPassageDirection());
     }
-    if (!this.passage.isDestroyed()) {
-      try {
-        StuffApi.destruct(this.passage as unknown as Stuff);
-      } catch {
-        // best-effort teardown; the exit is unreachable once removed
-      }
-    }
-    this.passage = null;
+    // ⭐ The exit SURVIVES the move. It is this crossing's own passage,
+    // minted once at `postRegister` and rebound into each room the
+    // fixture lands in — the same lifecycle a vessel's `in`/`out` pair
+    // has, and the reason `Exit.rebind` exists.
+    //
+    // ⚠ It used to be destructed here and re-minted by the next
+    // placement, which is impossible now: a clone is async and this
+    // runs inside a sync containment witness. (Destructing it also
+    // meant the FIRST move — from nowhere into a room — threw the
+    // freshly-minted passage away before it was ever installed.)
+    // The crossing's own destruct still takes it: the exit is
+    // `{ ref: 'instance' }` on a field the destruct cascade walks.
   }
 }

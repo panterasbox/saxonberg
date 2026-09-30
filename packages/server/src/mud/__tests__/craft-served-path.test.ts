@@ -24,7 +24,7 @@ import Condition from '../platform/idea/Condition';
 import type { ToxinBehavior } from '../lib/metabolism/Metabolic';
 import { Creature } from '../lib/creature/Creature';
 import GradedReceptacle from '../platform/thing/GradedReceptacle';
-import ToolItem from '../platform/thing/ToolItem';
+import Tool from '../platform/thing/Tool';
 import CraftVessel from '../platform/thing/CraftVessel';
 import Menu from '../platform/thing/Menu';
 import RecipeCatalogue from '../platform/idea/RecipeCatalogue';
@@ -193,7 +193,7 @@ beforeEach(async () => {
   (coupe as unknown as { interiorBulk: boolean }).interiorBulk = true;
   coupe.setInteriorCapacity(Quantity.of(0.3, 'L'));
   ContainmentApi.move(coupe, room);
-  const tool = makeStuff(() => new ToolItem());
+  const tool = makeStuff(() => new Tool());
   tool.setCapabilities(['mixing-glass']);
   ContainmentApi.move(tool, room);
   menu = makeStuff(() => new Menu());

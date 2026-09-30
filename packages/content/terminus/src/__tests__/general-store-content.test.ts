@@ -168,7 +168,7 @@ describe("general-store content integrity", () => {
     // burns nothing (the glowcap jar and its fixture, which are a
     // fungus). The lantern and the torch moved to `Lamp`.
     "/platform/thing/equipment/PortableLight",
-    // ⭐ A light that burns fuel — `FurnaceMixin` over a `LightSource`,
+    // ⭐ A light that burns fuel — `BurnerMixin` over a `LightSource`,
     // so it has a reserve, a burn rate and a burnout edge for free.
     "/platform/thing/Lamp",
     "/platform/thing/equipment/Weapon",
@@ -192,7 +192,7 @@ describe("general-store content integrity", () => {
     // carries the Audible rasp AND its own carried-only `sharpen`, and
     // lives in the smithing pack so the kernel never names a trade's
     // view. The ingot a Meltable Thing — all discrete, none Stackable.
-    "/platform/thing/ToolItem",
+    "/platform/thing/Tool",
     "/platform/thing/MendingTool",
     "/trade/smithing/thing/Whetstone",
     "/platform/thing/Ingot",
@@ -215,7 +215,7 @@ describe("general-store content integrity", () => {
     // The furnishings line (residences D7/D11), likewise stocked from the
     // shared `/stuff/thing/fixture/` rows: `Chair` is the reusable
     // posture-bearing class (a bed and an armchair differ only in their
-    // authored slot and rest quality), `Surface` the table, `Chest` the
+    // authored slot and rest quality), `Fitting` the table, `Chest` the
     // wardrobe, and `SconceLamp` the one class the line needed — a light
     // that goes on a WALL rather than in a pocket.
     // ⭐⭐ The haulage line (logistics W5/W6). A `Handcart` is the
@@ -229,10 +229,10 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/Handcart",
     "/system/transport/thing/HaulageRig",
     "/platform/thing/Chair",
-    "/platform/thing/Surface",
+    "/platform/thing/Fitting",
     "/platform/thing/Chest",
     "/generic-objects/thing/SconceLamp",
-    // The householder's kit — a `ToolItem` subclass in the residence
+    // The householder's kit — a `Tool` subclass in the residence
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.
     "/system/residence/thing/HouseholdersKit",
@@ -245,10 +245,10 @@ describe("general-store content integrity", () => {
     "/platform/thing/Crate",
     "/platform/thing/Bottle",
     // The tackle line (fishing B6): a rod and a pot/net are
-    // `ToolItem` subclasses in the fishing pack (the instrument affords
+    // `Tool` subclasses in the fishing pack (the instrument affords
     // the verb), a worm a bare Detailed Thing, the bowl a `Feeder` and
     // the fish food a `Provision` — all discrete, none Stackable.
-    // The clinical-medicine instruments (blood + operations): ToolItem
+    // The clinical-medicine instruments (blood + operations): Tool
     // subclasses that afford the acts; the blood bag is a Receptacle.
     "/trade/medicine/thing/Syringe",
     "/trade/medicine/thing/SutureKit",
@@ -356,7 +356,7 @@ describe("general-store content integrity", () => {
       const light = load(STORE_DIR, `thing/${f}.yaml`);
       expect(light.class).toBe("/platform/thing/Lamp");
       expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
-      // ⚠ `FurnaceMixin.lit` defaults TRUE — a row that forgets this
+      // ⚠ `BurnerMixin.lit` defaults TRUE — a row that forgets this
       // ships alight on a shop shelf with its fuel draining.
       expect(light.data?.lit).toBe(false);
       const fuel = (light.data?.reserves as Record<string, { currentValue?: number }> | undefined)?.fuel;

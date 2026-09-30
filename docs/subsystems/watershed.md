@@ -880,7 +880,7 @@ working.
 
 The extend-before-inventing check found a home for everything else;
 `boil` had none, and it is `crafting` — it transforms matter with heat,
-like the shipped `heat`. The **fire affords it** (`FurnaceMixin`'s
+like the shipped `heat`. The **fire affords it** (`BurnerMixin`'s
 contributions), because you cannot boil without one and there is no
 separate kettle to own.
 

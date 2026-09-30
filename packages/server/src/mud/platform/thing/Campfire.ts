@@ -1,8 +1,8 @@
 /**
- * Campfire — the demo combustion fixture, now a thin {@link FurnaceMixin}
+ * Campfire — the demo combustion fixture, now a thin {@link BurnerMixin}
  * instance (the pinned-hot-while-fuelled pattern it seeded is generalized).
  *
- * Composition: `Furnace + LightSource + Postured(warming log-seats) +
+ * Composition: `Burner + LightSource + Postured(warming log-seats) +
  * Reserved(fuel) + Thermal` over a `Thing`. A content-theme `fuel` reserve
  * (`theme: 'combustion'`) depletes lazily against game-time; while lit + fuel
  * remains `getTemperature()` is **pinned** at the furnace's held temperature
@@ -20,17 +20,13 @@
  * of the few objects that delivers both.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { SurfacedMixin } from '../../lib/spatial/Surfaced';
+import Firebox from '../../lib/fire/Firebox';
+import { PlacingMixin } from '../../lib/spatial/Placing';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { PosturedMixin } from '../../lib/slot/Postured';
-import { ReservedMixin } from '../../lib/reserve';
-import { LightSourceMixin } from '../../lib/perception/LightSource';
-import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { FurnaceMixin } from '../../lib/fire/Furnace';
 import { SpaceHeatingMixin } from '../../lib/thermal/SpaceHeating';
 
-// ⭐ `SurfacedMixin`: a pot rests ON a fire. What rests on a lit campfire
+// ⭐ `PlacingMixin`: a pot rests ON a fire. What rests on a lit campfire
 // takes its held temperature as its ambient (`ThermalMixin.restamp`).
 //
 // ⭐⭐ `SpaceHeatingMixin` (the envelope build): an open fire is FOR
@@ -39,14 +35,11 @@ import { SpaceHeatingMixin } from '../../lib/thermal/SpaceHeating';
 // here — but a campfire lit inside four walls now warms the walls, which
 // is what an open fire does. The practicum's brazier is a Campfire row,
 // and it is in a cell.
+// ⭐ A firebox that warms the room AND seats you round it — the log
+// seats are `Postured` + `Slotted`, and they are the only thing that
+// makes a campfire not a hearth outdoors.
 const CampfireBase = SpaceHeatingMixin(
-  FurnaceMixin(
-    LightSourceMixin(
-      ReservedMixin(
-        PosturedMixin(SlottedMixin(SurfacedMixin(ThermalMixin(Thing)))),
-      ),
-    ),
-  ),
+  PosturedMixin(SlottedMixin(PlacingMixin(Firebox))),
 );
 
 export default class Campfire extends CampfireBase {}

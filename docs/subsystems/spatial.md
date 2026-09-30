@@ -3,7 +3,7 @@
 How Stuff relates spatially: the **containment** chokepoint, **surface**
 placement, and the **locomotion** that moves actors between rooms — the
 substrate now in `lib/spatial/` (Container, Containable, Mobile,
-Surfaced, Sealable). The room/coordinate/zone **geometry** that used to
+Placing, Sealable). The room/coordinate/zone **geometry** that used to
 live here has moved to `lib/location/` — see the sibling doc below.
 
 Sibling docs cover related ground without overlap:
@@ -45,10 +45,12 @@ substrate in `lib/spatial/`:
 
 | Type | Kind | Role |
 |---|---|---|
-| `Vessel` | top-level branch | A *container-object* — a thing that holds things, at any scale (bag → cart → ship). Carries Thing's describable-physical baseline directly (`Visible` + `Perceptible` + `Tangible`) so a describable container needs no re-added `Visible`, plus Container + Containable + `Atmospheric` ([biome.md](./biome.md)) — but is **not** a `Thing` subtype (a ship isn't pocketable); carry/drag/ride is emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
+| `Holder` | `lib/stuff/Holder` | ⭐ **A thing that holds things and is itself held** — `ContainerMixin(Thing)` and nothing else. Minted by the base-class narrowing (2026-09-30) as the rung `Vessel` had been standing in for: the container chain is a **chain, not a fork** — `Location` (holds, is not held) → **`Holder`** (holds, is held) → `Vessel` (…and is ownable and concealable) → `ExitableVessel` (…and has air and a door). An immovable container — `Stock`, `BankCounter`, `DepotCounter`, `CheckRack`, `ConsignmentShelf`, `TpaTerminal` — extends `Holder`, not `Vessel`, because it is not a good. ⚠ Deliberately **twin-less**: nothing should clone a bare holder. Boundary vs `Receptacle`: a holder takes DISCRETE things, a receptacle takes BULK ([bulk.md](./bulk.md)). |
+| `Vessel` | `lib/stuff/Vessel` | A *container-object* — a thing that holds things, at any scale (bag → cart → ship). Carries Thing's describable-physical baseline directly (`Visible` + `Perceptible` + `Tangible`) so a describable container needs no re-added `Visible`, plus Container + Containable — ⭐⭐ **and NOT `Atmospheric`: a bag is not a place.** The mixin composed here until the base-class narrowing build, giving a backpack, a till, a jar, a rack, a footlocker, a handcart, a bank counter and a barge each their own temperature, pressure, humidity, wind and biome; 37 rows over 15 composers, and none ever authored one of those fields. It is on `ExitableVessel` now ([biome.md](./biome.md)) — *a thing you can go inside is a place with air* — which is also the only place anybody's `context.location` can ever be a vessel, since a rider occupies a SLOT and stands in the room. A plain vessel is now a transparent step in the outward biome walk, exactly like a Box. ⭐ Since the base-class narrowing it is `ChattelMixin(ConcealableMixin(Holder))` — **a vessel is a holder that is also a GOOD**, so it carries exactly the two mixins that came off the `Thing` root, and `ContainerMixin(Good)` and `Vessel` are now the same mixin set. (An older reading of this row called it a top-level branch and *not* a `Thing` subtype; it traces through `Thing` and always did — *you can't pocket a ship* is a mass gate, not a type gate.) Carry/drag/ride stays emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
-| `SurfacedMixin` | mixin | Surface placement: the auxiliary `restingOn` pointer + `canRest`. |
+| `PlacingMixin` | mixin | **Placement**: the members this host offers (`placements`), the lazy `getPlaced` read, and the `canPlace` veto. Was `SurfacedMixin` until 2026-09-28. |
+| `Placement` | singleton Idea | A **way of sitting**, as a row: `on` · `in` · `from`. Rows under any root; warmed by `PlacementCatalogue`. |
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
 | `SealableMixin` | mixin | Binary `open` state (predicate `isOpen()`). Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Generic, stays in `lib/spatial/`. |
 | `ContainmentApi` | static API | The single public surface for moving Stuff between containers. |
@@ -66,13 +68,15 @@ Stuff (one of seven top-level branches — see architecture.md)
   ├── Idea
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
   ├── Location                      (Adornable + Container — the container host; concrete rooms in location.md)
-  ├── Thing                         (ContainableMixin(Stuff))
+  ├── Thing                         (Wet + Visible + Detailed + Perceptible + Tangible + Containable)
+  │     ├── Good                    (Chattel + Concealable)            ← portable matter: owned, hidden
   │     ├── Boundary                (Visible + Perceptible)            ← see light.md
   │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` identity refs)
   │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
-  │     └── BoundaryAnchor          (Adornment)                         ← see light.md
-  ├── Vessel                        (Tangible + Atmospheric + Container + Containable)
-  │     └── ExitableVessel          (DoorBearing + Exitable + Visible + Adornable)
+  │     ├── BoundaryAnchor          (Adornment)                         ← see light.md
+  │     └── Holder                  (Container) — holds, and is held
+  │           └── Vessel            (Chattel + Concealable) — a holder that is a Good
+  │                 └── ExitableVessel  (Atmospheric + DoorBearing + Exitable + Adornable)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
 
@@ -80,9 +84,13 @@ The fundamental split for spatial relationships:
 
 - **Locations are containers but not containables** (rooms don't
   live anywhere).
-- **Things are containables but not containers** (or, in Vessel-light
-  cases, both — a chest *could* be modeled as a Thing-with-Container,
-  but anything with navigable interior is a Vessel).
+- **Things are containables but not containers** — until they extend
+  `Holder`, which is the rung that adds `Container` and is where a chest,
+  a counter or a shelf belongs. ⭐ The chain does not fork: a thing with a
+  navigable interior is an `ExitableVessel`, which is a `Vessel`, which is
+  a `Holder`. ⚠ And the taxonomy is deliberately NARROW — four rungs, each
+  adding exactly one claim. A fifth container branch is a design
+  conversation, not a convenience.
 - **Vessels are both** — that's their distinguishing trait. Mobile
   places.
 - **Doors are Things** with an attach/detach relationship to Exits,
@@ -255,109 +263,229 @@ field — covered in the [containment](#containment) section's
 [Hydrator contract](../subsystems/templates.md#the-hydrator-contract)
 cross-reference.
 
-## Surfaced and surface placement
+## Placement — where inside its container a thing sits
 
-`SurfacedMixin` (`lib/spatial/Surfaced.ts`) is the sibling-marker
-mixin for Stuffs that support items resting on them — tables,
-shelves, the surface of a floor when authored as such. The
-on-vs-in distinction is structurally modeled (an apple on a desk
-and an apple in a chest live in different relationships) without
-conflating with the existing Container's interior contents.
+⭐⭐ **A container's contents are partitioned by where inside it a
+thing sits, and the partition is named by the preposition a player
+types.** A mug is **on** a desk; a steak is **in** a compartment with
+its own air; a ham hangs **from** a hook. One relation, one
+vocabulary, and the word IS the name — which is what lets somebody
+who has learned `on` use `from` with no explanation.
 
-### The auxiliary-pointer model
+`PlacingMixin` (`lib/spatial/Placing.ts`) is the host side: a Stuff
+that offers one or more **placements**. `ContainableMixin` carries the
+item side: the host it sits on and the member it sits under.
 
-Containment stays hierarchical and exclusive: every Containable
-has exactly one `container` (or none). "Resting on" is an
-**orthogonal optional pointer** on the item, not a replacement.
-An apple on a desk in a room has `container = room` AND
-`restingOn = desk` — both relationships are real, neither is
-conjured by the other.
+⚠ This was called `SurfacedMixin` until 2026-09-28 and modelled only
+the `on` case (`restingOn` + `canRest`). The rename is not cosmetic —
+the model had one instance of a general relation and no word for the
+relation, so the second instance could not be expressed at all. See
+the history note at the foot of this doc.
 
-| Scenario | `container` | `restingOn` |
+### The auxiliary-pair model
+
+Containment stays hierarchical and exclusive: every Containable has
+exactly one `container` (or none). A placement is an **orthogonal
+optional pair** on the item, not a replacement. An apple on a desk in
+a room has `container = room` AND `placement = { host: desk, name:
+'on' }` — both relationships are real, neither is conjured by the
+other.
+
+| Scenario | `container` | `getPlacement()` |
 |---|---|---|
-| Apple on a desk in a room | the room | the desk |
-| Apple in a chest in a room | the chest | null |
-| Apple on the floor in a room (Surfaced floor) | the room | the floor |
-| Apple in inventory | the actor | null |
-| Apple on a desk inside a chest | the chest | the desk |
+| Apple on a desk in a room | the room | `{ desk, 'on' }` |
+| Apple in a chest in a room | the chest | `null` |
+| Apple on the floor in a room (a Placing floor) | the room | `{ floor, 'on' }` |
+| Apple in inventory | the actor | `null` |
+| Apple on a desk inside a chest | the chest | `{ desk, 'on' }` |
+| Ham hanging from a hook in a room | the room | `{ hook, 'from' }` |
 
-The "apple in the room" intuition is preserved — the room's
-`getContents()` includes the apple directly, not through any
-indirect "items on items in here" walk. The fact that a desk is
-supporting it is auxiliary information.
+⭐ **The host is always a SIBLING in the same contents list** — that is
+the structural insight the whole design rests on, and it is why the
+persisted form is an *index into the container's own slice*
+(`ContentPlacement`, below) rather than a reference.
 
-A desk-with-drawer composes BOTH `Container` (for the drawer-
-as-part, with `container = desk`) AND `Surfaced` (for the apples
-on top, with `container = room` and `restingOn = desk`). The two
-collections are independent and non-overlapping.
+The "apple in the room" intuition is preserved: the room's
+`getContents()` includes the apple directly, not through any indirect
+walk. That a desk is holding it is auxiliary.
 
-### `Containable.restingOn`
+A desk-with-drawer composes BOTH `Container` (the drawer-as-part,
+`container = desk`) AND `Placing` (the apples on top, `container =
+room`). The two collections are independent and non-overlapping.
 
-`Containable` carries `_restingOn: (Stuff & Surfaced) | null`
-as a **runtime-only instance ref**. The accessor
-`getRestingOn()` returns the ref with an R2.3 self-heal (clear
-on destructed supporter); the privileged setter
-`_setRestingOn(surface)` is gated by
-`@CallSecurity(FromContainmentApi) @Final @Unshadowable` —
-reachable only from `ContainmentApi.placeOn` /
-`ContainmentApi.move`.
+### ⚠⚠ Two composition refusals, enforced at registration
 
-Not persisted: on server restart, an apple's container is
-preserved (the apple is still in the room) but the on-surface
-relationship resets. The tradeoff is intentional. An identity-ref
-templatePath stamping would persist cross-restart, but only
-resolves unambiguously for singleton supporters — which
-constrains the natural sandbox case of multiple identical
-chairs / tables authored in a single area. The cross-restart
-loss is small (items reappear in their container, just without
-on-surface precision); when content earns persistent
-on-surface state, that build picks the right shape (likely
-an instance ref with stuffId stamping at save time).
+`PlacingMixin.__validateComposition__` throws on first registration of
+a concrete class (`assertComposable`, dispatched from
+`StuffApi.register`) — never from the types, because the types cannot
+express "not this mixin" and a refusal asserted from them is a refusal
+that never runs. Both are proven by registering a class and catching
+the throw, with a control class that must register cleanly.
 
-### `ContainmentApi.placeOn(item, surface)`
+1. **A Placing host MUST compose `ContainableMixin`.** The host has to
+   live somewhere for the lazy `getPlaced()` walk to have an
+   environment. ⭐ This is what keeps `Location` out: a room is not a
+   thing you put things on — its floor is.
+2. **A Placing host must NOT compose `ExitableMixin`.** A thing you can
+   go inside cannot also be something you put things on, because
+   *which exits does each region afford* is a question the model
+   refuses to answer. Put a `Fitting` or a `Chamber` in its contents
+   instead (that is how a boot works), or write the class.
 
-The on-surface analogue of `move`. Resolves the surface's
-container as the target environment, runs `canRest`, calls
-`move(item, env)`, then stamps the auxiliary `restingOn`
-pointer:
+### The `Placement` vocabulary — a member is a ROW
+
+`platform/idea/Placement.ts`, warmed by `PlacementCatalogue` (the
+`ReadingCatalogue` self-warming shape, boot entry in the platform
+pack). Rows live at `<root>/idea/Placement/<name>` under **any** root,
+so a capability pack ships a way of sitting with no kernel edit.
+
+| field | read by |
+|---|---|
+| `name` | the catalogue index; `PlacingMixin.getPlacements()` |
+| `prepositions` (primary first) | `resolvePlacement`, `put`'s offers |
+| `encloses` | `Containable.getEnclosingScope`, `canPlace` |
+| `prose` (one Liquid template) | `put`, `dry` |
+| `heading` | the `look` / `sense` drill-in |
+
+Three ship: `on` (`[on, onto]`), `in` (`[in, into]`, **`encloses:
+true`** — the only one), `from` (`[from, on]`).
+
+⭐ **`from` lists `on` as a SECONDARY word**, which is how `put ham on
+hook` reaches a `from`-only host and gets told *"You hang the ham from
+the hook"* — the world teaching the word without a tutorial. A
+member's PRIMARY word always wins its own key
+(`lint:placement-words` refuses two members claiming one primary).
+
+⚠ **A cold catalogue degrades to the shipped behaviour, never to
+silence.** A member with no live row answers to its own name
+everywhere, so the worst case is *the model before the vocabulary*
+rather than an unaddressable host. The consequence: a member's
+SECONDARY words are its row's claim, so `put ham on hook` needs the
+roster warm.
+
+### The cost of a new way of sitting
+
+> **One row, plus one word on every verb whose argument accepts a
+> placement host.**
+
+Today that is `put` and `dry`, and
+`pnpm -C packages/server lint:placement-words --list` prints the
+roster — which arguments accept a placement host, which members each
+accepts, and which it does not. ⚠ The roster matters as much as the
+gate: a verb that *should* accept a member and silently does not
+refuses every such target **at the binder**, which no controller test
+can see.
+
+The gate holds the three things that are always wrong: a member with
+no preposition, two members claiming one primary word, and `put` — the
+universal placement verb — not accepting a member's primary word. It
+deliberately does NOT check that every preposition on such an argument
+is a member: `butcher <carcass> at <block>` says *where you do it*,
+not *how it sits*, and there is no way to tell a verb's own grammar
+from a stale placement word by inspection.
+
+### `Containable`'s side: the pair, and the enclosing scope
+
+`_placementHost` is an **instance (live) ref** (`{ ref: 'instance',
+lifetime: 'weak' }`), so the R2.3 self-heal runs in the proxy get
+trap: a host destructed since the last set reads as no placement at
+all, whatever `_placementName` says. An identity ref by templatePath
+was rejected because it resolves unambiguously only for singleton
+hosts, which would constrain several identical tables in one hall.
+
+- `getPlacement(): { host, name } | null` — normalises the pair.
+- `_setPlacement(host, name?)` — gated
+  `@CallSecurity(FromContainmentApi) @Final @Unshadowable`; reachable
+  only from `ContainmentApi.place` / `.move`.
+- ⭐ `getEnclosingScope(): Stuff | null` — **what stands between me
+  and my container, for air, sight and reach.** The placement host
+  when the member `encloses`, else the container. Read by
+  `PerceptionLogic.canReach`, by `Thermal`'s **holder** read
+  (`ambientScopeOf` → `enclosingCoolbox`: what you are IN outranks the
+  room), and as the **step** of `Thermal`'s **air** walk.
+
+⭐ Its two readers ask different questions, and the difference is one
+step:
+
+- *what holds me* — `Thermal.ambientScopeOf`, one hop, no walk;
+- *what air reaches me* — `Thermal.airScopeOf`, which steps outward
+  through this method until something is `Atmospheric`.
+
+They were one call until `AtmosphericMixin` left `Vessel` in the
+base-class narrowing build and a bag stopped pretending to be weather.
+⚠⚠ A **worn** bag's container is the wearer (a `Creature` is a
+`Container`), so bag → carrier → room is two hops — which is why the air
+read is a walk and not a second step. See
+[thermal.md](./thermal.md) § *Two questions, one step apart*.
+
+**The pair IS persisted**, by the container's slice.
+`ContentPlacement { hostIndex?, placement? }` in
+`lib/persistence/PersistenceSlice.ts` records the host's **index
+within the same contents list** plus the member name;
+`PersistableLogic`'s placement pass re-`place`s on restore. (An older
+version of this doc said the relation reset on restart. That stopped
+being true when the slice learned to record it.)
+
+### `ContainmentApi.place(item, name, host)`
+
+The placement analogue of `move`, and it **calls** `move` — the
+dependency runs one way.
 
 ```typescript
-ContainmentApi.placeOn(apple, desk);
+ContainmentApi.place(apple, 'on', desk);
 // internally:
-//   1. targetEnv = desk.getContainer()         // the room
-//   2. assert desk.canRest(apple)              // host gate
-//   3. ContainmentApi.move(apple, targetEnv)   // ordinary move
-//   4. apple._setRestingOn(desk)               // restamp
+//   1. targetEnv = desk.getContainer()          // the room
+//   2. desk.canPlace(apple, 'on')               // host veto → reason
+//   3. ContainmentApi.move(apple, targetEnv)    // ordinary move
+//   4. apple._setPlacement(desk, 'on')          // restamp
+//   5. if Thermal, restamp()                    // see below
 ```
 
-`move`'s own contract is unchanged. The hidden invariant `move`
-enforces: when the container actually changes, any existing
-`restingOn` is cleared. So picking an apple up off a desk (a
-move into the actor's inventory) clears `restingOn`
-automatically; the on-surface state isn't carried into
-inventory.
+⚠ **`move`'s signature and meaning are unchanged.** It takes no
+member, picks no default, and has no options bag. The one thing it
+does with placement is the invariant it always had: when the container
+actually changes, the pair clears. Picking an apple up off a desk into
+inventory clears it automatically.
 
-`placeOn` throws on programmatic-contract violations (surface
-has no environment; surface rejects via `canRest`). User-input
-failures are handled upstream by the `mustBeSurfaced` /
-`mustBePutTarget` validators and the `PutController`'s
-pre-flight `canRest` check (which produces friendly prose).
+⭐ **Step 5 is not optional.** `move` is a no-op when the container is
+unchanged (a mug moving from one desk to another in the same room), so
+nothing would restamp — and a member that encloses means the thing's
+ambient scope just changed.
 
-### `Surfaced.getResting()`
+`place` throws `ContainmentError` on programmatic-contract violations
+(no environment; `canPlace` vetoes). User-input failures are handled
+upstream by `PutController`, which reads the veto's `reason` into
+prose.
 
-Lazy walk; no maintained forward collection. The surface walks
-its own environment's contents and filters by
-`getRestingOn() === this`. For typical room sizes the walk is
-cheap; surfaces with very many resting items are content design
-that hasn't earned a forward index yet.
+### `Placing.getPlaced(name?)`
 
-### `Surfaced.userFacingDetail`
+Lazy walk; no maintained forward collection. The host walks its own
+environment's contents and filters on `getPlacement()`. With a `name`,
+only that member's items. For typical room sizes the walk is cheap;
+hosts with very many placed items are content design that hasn't
+earned a forward index.
 
-MQL keyword bridge, mirroring `SlotSpec.userFacingDetail` on
-the slot subsystem. An author declares `userFacingDetail:
-tabletop` on a Surfaced host and `put apple on tabletop`
-resolves "tabletop" to the host via the Detailed-keyword path.
-Pure MQL plumbing; surfaces don't gain Slotted semantics.
+### `Placing.canPlace(item, name): VetoResult`
+
+Per-host gate, replacing the old boolean `canRest`. Default body, in
+order: the name is not offered → `no-such-placement`; the member
+`encloses` and the host is a closed `Sealable` → `shut`; else ok.
+Authors override for shape-specific gates (a fragile shelf rejects
+heavy items, a wax tabletop rejects hot ones). ⭐ The `reason` is what
+the verb reads into its refusal, so name it for a player.
+
+Item-side gates intentionally don't exist — the authoring intuition is
+host-side (*"this host refuses X"*), not item-side.
+
+### `Placing.userFacingDetail`
+
+MQL keyword bridge, mirroring `SlotSpec.userFacingDetail`. An author
+declares `userFacingDetail: tabletop` and `put apple on tabletop`
+resolves the keyword to the host via the Detailed-keyword path. Pure
+MQL plumbing; placement hosts don't gain Slotted semantics.
+
+⚠ Nothing reads it today beyond that bridge — `lib/ground/Floor.ts`
+authors it and no consumer exists. Recorded on the narrowing slate.
 
 ### Affordances live on Stuffs, not Details
 
@@ -367,53 +495,69 @@ never itself an object a verb can target. **A sub-part that needs a
 verb that DOES something — accepts things, holds things, can be picked
 up — earns its own Stuff.** `userFacingDetail` (above) is the one
 sanctioned bridge: it lets MQL resolve a keyword against the affording
-host's real mixin (`Surfaced`, and `Slotted`'s own field of the same
+host's real mixin (`Placing`, and `Slotted`'s own field of the same
 name); the Detail never gains the capability itself. A bookshelf with
-several genuine shelves is several `Surfaced` Stuffs, one per shelf —
-not one Detail-with-its-own-Surfaced — keeping the substrate honest
+several genuine shelves is several `Placing` Stuffs, one per shelf —
+not one Detail-with-its-own-Placing — keeping the substrate honest
 about which sub-parts are actually interactive (graduated from the
 affordance-verb slate, 2026-09).
 
-### `Surfaced.canRest(item)`
+### Presentation: `Container.getLooseContents(items?)`
 
-Per-host veto. Defaults to `true`; authors override for shape-
-specific gates (fragile shelf rejects heavy items, sloped
-surface rejects round items, wax tabletop rejects hot items).
-Item-side gates intentionally don't exist — the authoring
-intuition is host-side ("this surface rejects X") not item-side
-("this item refuses Y").
+Items appear in their enclosing container's contents naturally (the
+apple is in the room). But a room *listing* shouldn't repeat an item
+already represented by the host it sits on — the back-bar's bottles
+read "on the back-bar", not as loose clutter beside the patrons.
 
-### Surface-resting presentation: `ContainmentApi.looseContents`
+`getLooseContents` drops any item whose placement host is itself in
+the set. Three callers share it so the rule is uniform: `look`,
+`sense`, and the inspection card (`Container.contents`).
 
-Items appear in their enclosing container's contents listing
-naturally (the apple is in the room; `room.getContents()`
-includes it). But a room-contents *listing* shouldn't repeat an
-item that's already represented by the surface it rests on — the
-back-bar's bottles read "on the back-bar," not as loose room
-clutter beside the patrons.
+⭐ **It is a METHOD, not an Api static, and that is the rule not an
+accident**: it reads one container's own list and nothing else, and
+the inspection card is a FIELD PROJECTION rather than a query, so the
+rule has to be callable without MQL. See
+[architecture.md § MQL is a VIEW over the model](../architecture.md) —
+*anything expressible in MQL must also be expressible by function
+call.* A `:loose` predicate is welcome as one line that calls this;
+it may not replace it.
 
-`ContainmentApi.looseContents(items)` is the shared presentation
-filter: given a contents snapshot, it drops any item whose
-`getRestingOn()` is itself in the set. It's a pure static (no
-mutation of the walk) applied by **three** callers so the rule is
-uniform: `look` and `sense` (the room branch) and the inspection
-card (`Container.contents`).
+⚠ One clause of it is filed as a question rather than defended: the
+`ids.has(host)` guard is set-relative and fires only when the caller
+hands in a snapshot that already dropped a host while keeping its
+contents — damage control for a lossy perception filter, not a
+containment rule. →
+[mql-predicate-parity](../slates/tails/mql-predicate-parity-slate.md).
 
-The complementary half is the **drill-in**: examining a
-`Surfaced` host (`look back-bar` / `sense back-bar`) reveals what
-rests on it via an "── On it:" line built from
-`Surfaced.getResting()`. So the resting items are out of the room
-view but one examination away — the discovery path that keeps the
-stock reachable without cluttering the room. (The earlier
-count-aware "a desk, with a red apple on it" inline suffix —
-once a dead `DescribeApi` helper — remains unbuilt; this is the
-listing-partition shape that actually shipped, driven by the
-crafting build's back-bar. See [crafting.md](./crafting.md).)
+### The drill-in
 
-A concrete **`Surface`** class (`lib/spatial/Surface.ts`,
-`SurfacedMixin(DetailedMixin(Thing))`) is the generic fixture you
-set things on — a shelf, counter, table, or the bar's back-bar —
-the first authored consumer of the surface substrate.
+Examining a placement host lists what is on it, **one line per member
+it offers**, with the heading off the member's own row:
+
+```
+── On it: a shaker, a muddler and a strainer.
+── Hanging from it: a prime cut of meat.
+```
+
+So a hook says *Hanging from it* where a shelf says *On it*, with
+nothing in `look` or `sense` knowing the difference. A member with no
+live row falls back to `With it`.
+
+### The concrete hosts
+
+**`Fitting`** (`platform/thing/Fitting.ts`,
+`PlacingMixin(Good)`, `fixedInPlace = true`) is the
+bare fixture things are placed on — a shelf, counter, table, rail,
+hook, the bar's back-bar. ⭐ A row decides WHICH member it offers
+(`placements: [from]` for a hook) and how airy it is, so a drying
+rack, a meat hook, a cheese shelf and a wire line are all this class.
+
+⚠ It was `Surface` until 2026-09-28; the rename is because the class
+is no longer only about surfaces.
+
+`Oven`, `Hearth` and `Campfire` compose `PlacingMixin` directly — a
+range is a firebox you put a loaf IN and a plate you stand a pot ON,
+and both limbs feed the same thermal couple.
 
 ### ⭐ `ContainmentApi.reachableFrom(actor)`
 
@@ -444,13 +588,32 @@ hand](../antipatterns.md).
 
 ### Verbs: `put`, `give`
 
-`put X in Y` calls `ContainmentApi.move`. `put X on Y` calls
-`placeOn`. The verb's YAML carries `prepositions: [in, on]` on
-the target arg; the preposition lands on `model.target.prep` and
-the controller branches on it. With no preposition, the
-controller infers from target capability (`Container` only →
-`in`; `Surfaced` only → `on`); ambiguous (composes both) rejects
-with a "put it in or on X?" prompt.
+⭐ **`put` resolves over N OFFERS**, not two branches. The controller
+builds the ways this target can be put into or onto, in listing
+order:
+
+- **region zero** — the container's own interior — when the target is
+  a plain Container and not a body. It is NOT a member (a chest has no
+  compartments, it just holds things), but it borrows its words and
+  its prose from the `in` row when the catalogue has one. That is what
+  makes *one region and many regions are the same thing* literal.
+- **one per member** the target's row offers (`placements:`).
+
+A typed preposition matches a member's PRIMARY word first, then any
+secondary — which is how `put ham on hook` resolves `from`. No match
+names what the host does take; two matches ask which. With no word,
+a single offer is taken and several ask.
+
+Dispatch: region zero → `ContainmentApi.move`; a member →
+`ContainmentApi.place(item, name, target)`. ⚠ A shut container is
+refused **at the verb** with reason `shut`, never in `move` — brains
+and restocks legitimately move goods into closed cupboards — and the
+target stays BOUND, because a region you can name and be refused from
+teaches, while one that vanishes from the parser reads as a bug.
+
+The sentence is the MEMBER's: one Liquid template on its row,
+rendered per audience, so `from` says *hang* with nothing in the
+controller knowing the difference.
 
 `give X to Y` is inter-Agent transfer via `ContainmentApi.move`
 into the recipient's general Container. Items don't land in a
@@ -825,19 +988,77 @@ One intentional non-persistent:
 
 ---
 
-## `airExposure` on `SurfacedMixin` (extraction W1)
+## `airExposure` on `PlacingMixin` (extraction W1)
 
 A persistent, authorable fraction (default `1`) with `getAirExposure()` /
-`setAirExposure()` — **how much of a thing lying on this support the air
+`setAirExposure()` — **how much of a thing placed on this host the air
 actually reaches.** Read by the two-way arm of the per-instance water state
 ([spoilage.md § The water state](./spoilage.md)), never by anything spatial.
 
 Three rungs decide it: **enclosed is `0`** (a thing whose immediate container is
 not a Location exchanges nothing — a sack, a chest, a pack, a pot), else the
-support's own number, else `cure.groundExposure` (`0.35`) for bare ground.
+host's own number (read off `getPlacement()`), else
+`cure.groundExposure` (`0.35`) for bare ground.
 
 ⭐ Drying is **surface-limited**, and that one dial is the whole reason cheese
 sits on slatted shelves and turf is built into a lattice: a ham on a stone floor
-dries on top and goes off underneath. ⚠ The enclosed rung is also what keeps the
+dries on top and goes off underneath — and a ham HUNG from a hook
+(`airExposure: 1`, the shipped meat-hook row) is in the air on every
+side, which is the case the number existed for before anything could
+express it. ⚠ The enclosed rung is also what keeps the
 store sparse — *a read that would change nothing writes nothing*, so the common
 case (a ration in a pack) never starts a clock.
+
+---
+
+## History — `Surfaced` → `Placing` (the placement build, MR !302)
+
+`f9107486f..f28eff91d`, 2026-09-28. Recorded because the rename is a
+model change wearing a rename's clothes, and because two of the things
+it turned up were older than the build.
+
+**What moved.** `SurfacedMixin` → `PlacingMixin`; `_restingOn` → the
+pair `(_placementHost, _placementName)`; `canRest(item): boolean` →
+`canPlace(item, name): VetoResult`; `getResting()` → `getPlaced(name?)`;
+`ContainmentApi.placeOn(item, host)` → `place(item, name, host)`;
+`platform/thing/Surface` → `Fitting`; the persisted struct `Placement`
+→ `ContentPlacement` (the name freed for the vocabulary Idea, and
+distinct from combat's own `type Placement`).
+
+⭐ **`ContainmentApi.looseContents` became `Container.getLooseContents()`.**
+A free Api function reading one container's own list, twelve lines
+below that file's own comment saying the read-wrappers were removed
+*"because those reads live on the objects themselves."* It is a method
+now, and [architecture.md § MQL is a VIEW over the model](../architecture.md)
+is the rule that came out of arguing about where it belongs.
+
+**Two shipped defects the build's drive surfaced**, neither reachable
+by any test:
+
+- ⚠⚠ **Nothing in the world melted from being warm.**
+  `Thermal.reconcilePhase()` had three callers — a lit `Furnace`, two
+  spell endpoints, and tests — so a block of ice on a hot floor sat at
+  its melting point forever with the latent accumulator untouched. The
+  phase engine was complete and had no ambient driver.
+  `reconcileThermal` drives it now, narrowed to `Meltable` hosts.
+- ⚠⚠ **The `coldStorage` archetype satisfier was wrong on both rungs,
+  in opposite directions.** The space rung asked whether a room was
+  `Thermal` — no `Location` is, so a 279 K cold store authored for
+  exactly that satisfied nothing, ever. The holder rung asked only
+  *insulated and closable* with no temperature test, so Dave's Bar
+  reported cold storage MET on an empty ice bin. Both rungs are
+  repaired and `Archetype.ts`'s own docstring now states the bar.
+
+**And a gap that is not spatial's**, filed rather than fixed: a body
+could not author its own temperature (a *space* always could), so a
+row shipping a block of ice minted one at room temperature.
+`ThermalMixin.stampedTemperatureK` is authorable now — see
+[thermal.md](./thermal.md).
+
+`Chamber` — a compartment with its own air, the first honest composer
+of the `in` member — was deferred by the project owner rather than
+built. Its full specification, including the `AtmosphericMixin`
+widening it needs (the mixin's base constraint is `Stuff & Container`
+and a compartment is not a Container), was graduated into
+[fridge-design-pack](../slates/builds/fridge-design-pack.md) at this
+build's sweep — written against the shipped tree and executable cold.

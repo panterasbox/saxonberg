@@ -1,7 +1,7 @@
 /**
  * Sack — a graded, marked, kinded, thermal bulk holder for **dry goods**.
  *
- * `VesselKindMixin(DetailedMixin(GradedReceptacle))`. The four things it
+ * `VesselKindMixin(GradedReceptacle)`. The four things it
  * needs and where each comes from:
  *
  *   - **bulk** (`GradedReceptacle` → `BulkableMixin`) — a sack holds a
@@ -29,11 +29,10 @@
  */
 
 import GradedReceptacle from './GradedReceptacle';
-import { DetailedMixin } from '../../lib/description/Detailed';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 import { Quantity } from '../../lib/quantity';
 
-const SackBase = VesselKindMixin(DetailedMixin(GradedReceptacle));
+const SackBase = VesselKindMixin(GradedReceptacle);
 
 export default class Sack extends SackBase {
   constructor() {

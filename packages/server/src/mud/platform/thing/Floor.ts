@@ -32,7 +32,7 @@
  *
  * Surface-bulk: the floor composes `BulkableMixin` so a spilled,
  * over-poured, or drained-through liquid pools as the floor's
- * **surface** bulk slot (a puddle). This is independent of `Surfaced`
+ * **surface** bulk slot (a puddle). This is independent of `Placing`
  * — the floor stays an `Adornment` fixture (excluded from the room's
  * enumerated contents), NOT a discrete-resting surface; discrete
  * containment is untouched. A puddle is the floor's attribute, not a
@@ -41,7 +41,6 @@
 
 import Thing from '../../lib/stuff/Thing';
 import { VisibleMixin } from '../../lib/description/Visible';
-import { DetailedMixin } from '../../lib/description/Detailed';
 import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { PosturedMixin } from '../../lib/slot/Postured';
@@ -54,9 +53,27 @@ import { FloorMixin } from '../../lib/ground/Floor';
 const FloorBase = FloorMixin(
   BulkableMixin(
     PosturedMixin(
-      SlottedMixin(AdornmentMixin(DetailedMixin(VisibleMixin(Thing)))),
+      SlottedMixin(AdornmentMixin(VisibleMixin(Thing))),
     )
   )
 );
 
-export default class Floor extends FloorBase {}
+export default class Floor extends FloorBase {
+  constructor() {
+    super();
+    // ⭐⭐ **Fixed in place, because it is the place.** Found by the
+    // base-class narrowing's own drive: `get floor` answered *"You pick
+    // up a featureless plain floor"* and put the ground of the room into
+    // the player's hands. Every locality's floor is minted at
+    // `postRegister` and none of them said this, so it was true of every
+    // room in the game.
+    //
+    // ⚠ Note what did NOT catch it. `AdornmentMixin`'s not-portable
+    // invariant only fires when `adornedTo` is non-null, and a minted
+    // floor is contained, not hung — so the one guard on the stack was
+    // structurally unable to see this. `fixedInPlace` is the field that
+    // says *no agent pockets it*, and `place` and a remodel still move
+    // it, which is what a floor needs.
+    this.fixedInPlace = true;
+  }
+}

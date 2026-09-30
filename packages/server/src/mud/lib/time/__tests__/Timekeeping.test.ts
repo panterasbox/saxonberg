@@ -7,12 +7,12 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { Time } from '../Time';
 import { TimekeepingMixin } from '../Timekeeping';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class TestClock extends TimekeepingMixin(Thing) {}
+class TestClock extends TimekeepingMixin(Good) {}
 
 describe('Time', () => {
   it('formats as zero-padded HH:MM', () => {
@@ -53,7 +53,7 @@ describe('TimekeepingMixin', () => {
 
   it('is registered and narrows via MixinApi.isTimekeeping', () => {
     const clock = makeStuff(() => new TestClock());
-    const plain = makeStuff(() => new Thing());
+    const plain = makeStuff(() => new Good());
     expect(MixinApi.isTimekeeping(clock as never)).toBe(true);
     expect(MixinApi.isTimekeeping(plain as never)).toBe(false);
   });

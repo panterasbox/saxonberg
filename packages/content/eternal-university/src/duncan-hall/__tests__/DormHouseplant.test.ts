@@ -20,6 +20,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -151,6 +152,18 @@ const SNAKE_SPECIES =
  */
 function seedDomain(): void {
   col('content').push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  // ⭐ The engine's own rows plus the hall's exit kinds — every exit in
+  // the world is a clone of a kind row now.
+  for (const row of KERNEL_CONTENT_ROWS) {
+    col('content').push({ _id: `d-${++idCounter}`, ...row });
+  }
+  for (const [path, cls] of [
+    ['/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit'],
+    ['/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor'],
+    ['/stuff/idea/exits/stair', '/platform/idea/Exit'],
+  ] as const) {
+    col('content').push({ _id: `d-${++idCounter}`, path, class: cls, data: {} });
+  }
 
   addSeed(DormWarren.WARREN_PATH, `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-warren.yaml`);
   // D16 step 2: the unit's degenerate one-room programme row.
@@ -553,8 +566,8 @@ describe('the dorm houseplant — content and placement', () => {
     expect(pot!.getContents()).toContain(plant);
     expect(plant!.getBed()).toBe(pot);
 
-    // Resting on the desk (the `onto:` populate spec).
-    expect(pot!.getRestingOn()).toBe(desk);
+    // Resting on the desk (the `on:` placement key).
+    expect((pot!.getPlacement()?.host ?? null)).toBe(desk);
 
     // A real peace lily: species resolved, alive, healthy, and its own host.
     expect(plant!.getSpecies()?.getBinomial()).toBe('Spathiphyllum wallisii');
@@ -863,7 +876,7 @@ describe('the dorm houseplant — durability', () => {
     expect(pot2!.getSoilVolume()).toBeCloseTo(before.soil, 6);
     expect(pot2!.getOccupant(PLANT_SLOT)).toBe(plant2);
     expect(pot2!.getContents()).toContain(plant2);
-    expect(pot2!.getRestingOn()).toBe(deskIn(reborn));
+    expect((pot2!.getPlacement()?.host ?? null)).toBe(deskIn(reborn));
     // Its growth state, and its own record key.
     expect(plant2!.getSoilMoisture()).toBeCloseTo(before.moisture, 4);
     expect(plant2!.getVigor()).toBeCloseTo(before.vigor, 4);

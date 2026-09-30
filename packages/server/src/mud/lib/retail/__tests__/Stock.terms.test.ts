@@ -11,7 +11,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import StockBase from "../Stock";
-import Thing from "../../../platform/thing/Thing";
+import Good from "../../../platform/thing/Good";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
 import Location from "../../stuff/Location";
 import { Idea } from "../../stuff/Idea";
@@ -37,7 +37,7 @@ const TORCH = "/test/stock-terms/thing/torch";
 const SUPPLIER = "/test/stock-terms/idea/farm";
 
 class Stock extends StockBase {}
-class Crate extends Thing {}
+class Crate extends Good {}
 class Party extends NamedMixin(Idea) {
   static _mixinName = "StockTermsParty";
 }

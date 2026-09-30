@@ -2053,7 +2053,7 @@ async function evaluateAffordance(
 
     // ⚠⚠ A refusal aimed at an UNBOUND operand is not a refusal.
     // `put`'s `target` field declares `requires: [VisibleMixin,
-    // ContainerMixin|SurfacedMixin]`, and with no container picked yet
+    // ContainerMixin|PlacingMixin]`, and with no container picked yet
     // the whole chain runs against `undefined` — which without this
     // branch reports `put` flatly unavailable on every object in the
     // game. The only honest reading is "you have not chosen the other
@@ -2815,7 +2815,7 @@ const CLASS_REQUIREMENTS: Record<
  *
  * The grammar is two characters wide: **the list is AND, `|` inside an
  * entry is OR.** `[VisibleMixin, ContainableMixin]` means both;
- * `CombustibleMixin|FurnaceMixin` means either. `'any'` parses to no
+ * `CombustibleMixin|BurnerMixin` means either. `'any'` parses to no
  * terms at all, which is how "deliberately unconstrained" ends up
  * costing nothing at dispatch.
  *
@@ -2837,7 +2837,7 @@ const CLASS_REQUIREMENTS: Record<
  *
  * An alternation reports its FIRST member's phrase: the alternation
  * exists because the members are the same idea from two directions
- * (`ignite` takes a Combustible or a Furnace; "won't burn" is true of
+ * (`ignite` takes a Combustible or a Burner; "won't burn" is true of
  * failing both), so listing every branch's sentence would be worse copy,
  * not more information.
  *

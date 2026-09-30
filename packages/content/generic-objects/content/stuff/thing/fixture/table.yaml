@@ -1,13 +1,13 @@
 # A table — the second work surface, and the one a HOME wants.
 #
-# `/platform/thing/Surface` is the shipped generic (shelf, counter,
-# table): items placed on it via `placeOn` keep `container = the room`
+# `/platform/thing/Fitting` is the shipped generic (shelf, counter,
+# table): items placed on it via `place` keep `container = the room`
 # and gain `restingOn = this`, so a meal set out on the table reads as
 # on the table rather than as clutter on the floor.
 #
 # Not a built-in — the kitchen archetype's `surface` need is satisfied
 # by the built-in counter; this is the good you buy to eat at.
-class: /platform/thing/Surface
+class: /platform/thing/Fitting
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: plain deal table

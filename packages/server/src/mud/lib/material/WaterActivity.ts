@@ -184,16 +184,16 @@ function waterAugmenter(
  *     body's inventory, a sack, a chest, a pot. A ham in a closed sack
  *     does not dry, which is honest and is what keeps the store sparse
  *     for every carried and stored good in the world.
- *   - **on a support** — the support's own {@link Surfaced.getAirExposure}
+ *   - **on a support** — the support's own {@link Placing.getAirExposure}
  *     (default `1`). A rack, a hook, a slatted shelf; an author turns it
  *     down for a close surface.
  *   - **on bare ground** — the `cure.groundExposure` dial (`0.35`): one
  *     face to the air and nothing underneath, which is exactly why turf
  *     is built into an openwork lattice rather than heaped.
  *
- * ⚠ `ContainmentApi.placeOn` moves an item into **the surface's
+ * ⚠ `ContainmentApi.place` moves an item into **the host's
  * container** and then stamps `restingOn`, so the container is the room
- * either way and `getRestingOn()` is the only thing that tells a racked
+ * either way and `getPlacement()` is the only thing that tells a racked
  * thing from a dropped one. That is why this reads the support and not
  * the container.
  */
@@ -205,7 +205,7 @@ function exposureOf(host: Stuff): number {
   // Atmospheric too, and the question here is "is this the open world or
   // the inside of something". The `Display.ts` precedent.
   if (!(where instanceof Location)) return 0;
-  const support = host.getRestingOn();
+  const support = host.getPlacement()?.host ?? null;
   if (support !== null) return clamp01(support.getAirExposure());
   return clamp01(
     dial(AppSettingKeys.cureGroundExposure, WATER_DEFAULTS.GROUND_EXPOSURE),

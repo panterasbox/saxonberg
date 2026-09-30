@@ -95,7 +95,8 @@ export type TreeAction =
   | 'install'
   | 'read'
   | 'broadcast'
-  | 'teleport';
+  | 'teleport'
+  | 'clone';
 
 export class AccessApi {
   /**

@@ -58,9 +58,6 @@
 import Location from "../../lib/stuff/Location";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { StagedMixin } from "../../lib/stuff/Staged";
-import { VisibleMixin } from "../../lib/description/Visible";
-import { PerceptibleMixin } from '../../lib/description/Perceptible';
-import { DetailedMixin } from "../../lib/description/Detailed";
 import { ExitableMixin } from "../../lib/boundary/Exitable";
 import { ReservedMixin } from "../../lib/reserve";
 import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
@@ -123,9 +120,8 @@ const FurnishableRoomBase = PersistableMixin(
         // content asserts a field the class does not declare, the class
         // is wrong, not the content. Found by `lint:presentation`
         // clause (d) the day the clause existed.
-        DetailedMixin(
-          VisibleMixin(PerceptibleMixin(ReservedMixin(StagedMixin(Location)))),
-        ),
+        
+          ReservedMixin(StagedMixin(Location)),
       ),
   ),
 );

@@ -331,7 +331,7 @@ instrument read it — a claim about a thing that may since have broken).
 | `Drivable` | `_vehicularModePath` | `getVehicularMode()` / `setVehicularMode(value)` |
 | `BodyPlan` | `defaultLocomotionMode` (short-name variant; no `_xxxPath`, no leading slash) | `getDefaultLocomotionMode()` / `setDefaultLocomotionMode(value)` |
 | `Atmospheric` | `_biomePath` | `getBiome()` / `setBiome(value)` ([biome.md](./subsystems/biome.md)) |
-| `Biome` | `_extendsBiomePath` | `getExtendsBiome()` / `setExtendsBiome(value)` / `getExtendsBiomePath()` (raw — consumed by `BiomeApi`'s ancestry walker) |
+| `Biome` | the ROW's `extends:` (cached at `postRegister`; the `_parentOverride` slot is a live override, not authored) | `getExtendsBiome()` / `setExtendsBiome(value)` / `setExtendsBiomePath(path)` / `getExtendsBiomePath()` (raw — consumed by `BiomeApi`'s ancestry walker) |
 | `Party` | `formationPath` (raw-path variant — the holder **never resolves**: the party side stores/returns the string only and never imports `lib/combat`; the consumer (combat) resolves path → `CombatFormation` Idea on its own side of the one-way dep, via the total `PartyApi.formationPathOf` chain) | `getFormationPath()` / `setFormationPath(value)` |
 | `Character` | `_domicileAddress` (ADDRESS-namespace path, not templatePath — the raw-path variant: the holder never resolves; `GovernmentApi.residentOf` resolves address → jurisdiction chain on the civics side; setter enforces persists-until-replaced) | `getDomicileAddress()` / `setDomicileAddress(value)` ([civics.md](./subsystems/civics.md)) |
 | `Locality` | `_governmentKey` (durable-`key` join variant, the `_brandKey` shape — resolves on read through `GovernmentCatalogue`) | `getGovernmentKey()` / `setGovernmentKey(value)` ([civics.md](./subsystems/civics.md)) |
@@ -561,7 +561,7 @@ for the static-shape convention.
 |---|---|---|---|
 | `Container` | `contents` | R2.4 (Container side) | Runtime-only; evacuates on destruct |
 | `Containable` | `environment` | R2.3 (declared) + R2.4 (held side) | `{ ref: 'instance', lifetime: 'weak' }` + framework cleanup |
-| `Containable` | `_restingOn` | R2.3 (declared) | `{ ref: 'instance', lifetime: 'weak' }`; a destroyed surface reads null |
+| `Containable` | `_placementHost` | R2.3 (declared) | `{ ref: 'instance', lifetime: 'weak' }`; a destroyed host reads as no placement at all, whatever `_placementName` says |
 | `Slotted` | `slots` | R2.4 (holder side) | Runtime-only; active vacate fires `onSlotReleased` |
 | `Slottable` | (none — held side) | R2.4 | Static cleanup walks every host |
 | `Adornable` | `fixtureSlots` | `owned` (declared) | Holder destructs each fixture |
@@ -921,10 +921,18 @@ blur together, now named separately:
   (pre-spine); its retirement is tracked work, and no new code should
   copy it.
 
-**Template inheritance does not exist.** The near-precedents are
-path-*ancestry* as taxonomy (species clades read the path chain, not
-field data) and `Zone.lookupField` (field inheritance through the
-*zone* tree). A child template does NOT inherit a parent template's
-fields — don't author as if it does, and don't fake it locally; if
-real template-data inheritance is ever wanted, it's a deliberate
-platform feature, not a per-subsystem hack.
+**Template inheritance EXISTS, and is `extends:` — one mechanism, in
+the kernel.** A row names one parent and states only what differs;
+`Template` resolves the chain when it materializes and every reader
+sees the effective row. The rule this paragraph used to carry still
+holds in its important half: **don't fake it locally.** A subsystem
+that wants "like that one, but different" uses `extends:`, never a
+per-subsystem parent field — which is exactly what biome's private
+`_extendsBiomePath` was, and it is gone.
+
+Two neighbours remain genuinely distinct and are not it: path-*ancestry*
+as taxonomy (species clades read the path chain, not field data), and
+`Zone.lookupField` (field inheritance through the *zone* tree, resolved
+per read — *what is true everywhere inside here*, versus `extends`'
+*what this thing is like*). See
+[templates.md § Inheritance](./subsystems/templates.md).

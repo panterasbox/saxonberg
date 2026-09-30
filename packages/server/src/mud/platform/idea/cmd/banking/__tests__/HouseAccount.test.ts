@@ -27,7 +27,7 @@ import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
 import { PostRegistrationMixin } from "../../../../../lib/stuff/PostRegistration";
 import { ConsignmentShelfMixin } from "../../../../../lib/retail/Consignment";
-import Thing from "../../../../../lib/stuff/Thing";
+import Good from "../../../../../lib/stuff/Good";
 import Coin from "../../../../thing/Coin";
 import BankCounter from "../../../../thing/BankCounter";
 import PaymentCard from "../../../../thing/PaymentCard";
@@ -90,7 +90,7 @@ class TestGiver extends EmployedMixin(
   static _mixinName = "TestGiver";
 }
 
-class Torch extends Thing {}
+class Torch extends Good {}
 
 function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
   return withRootContext(null, "house-account.test", () => {

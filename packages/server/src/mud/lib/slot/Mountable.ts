@@ -11,6 +11,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
@@ -27,6 +28,22 @@ export function MountableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class MountableMixin extends Base {
     static _mixinName = 'MountableMixin';
+
+    /*
+     * ⭐⭐ **`mount` and `ride` were afforded by NOTHING** — the same
+     * finding as `hitch` on the cart side, found in the same drive
+     * minute. View, controller and arg gate all shipped; nothing named
+     * the files, so `mount horse` answered *"I don't understand
+     * 'mount'."* for every player since conveyance shipped.
+     *
+     * `peers`: a horse stands beside you, not around you.
+     */
+    static commandContributions: CommandContributions = {
+      peers: [
+        'platform/cmd/movement/mount.yaml',
+        'platform/cmd/movement/ride.yaml',
+      ],
+    };
     static fieldMeta: FieldMeta = {
       mountSlot: { persistent: true, authorable: true },
     };

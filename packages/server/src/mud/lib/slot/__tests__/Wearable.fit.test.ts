@@ -13,7 +13,7 @@ import { WearableMixin } from '../Wearable';
 import { SlottableMixin } from '../Slottable';
 import { ConstructedMixin } from '../../material/Constructed';
 import { ContainableMixin } from '../../spatial/Containable';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import { Construction } from '../../material/Construction';
 import { Creature } from '../../creature/Creature';
@@ -28,7 +28,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class TestGarment extends WearableMixin(
-  SlottableMixin(ContainableMixin(ConstructedMixin(Thing))),
+  SlottableMixin(ContainableMixin(ConstructedMixin(Good))),
 ) {}
 
 let seq = 0;
@@ -190,7 +190,7 @@ describe('the measurement pair', () => {
   it('an unmeasurable wearer yields the neutral reading, never a throw', () => {
     const { planPath } = body({ massKg: 70, statureM: 1.75 });
     const g = garment(planPath);
-    const rock = makeStuff(() => new Thing());
+    const rock = makeStuff(() => new Good());
     const fit = g.fitOn(rock);
     expect(fit.measurable).toBe(false);
     expect(fit.distance).toBe(0);

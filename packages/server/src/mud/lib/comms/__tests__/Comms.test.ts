@@ -15,7 +15,7 @@ import { AetherMixin, type AetherHost } from '../../message/Aether';
 import { SensorMixin } from '../../message/Sensor';
 import { NamedMixin } from '../../description/Named';
 import { SlottedMixin } from '../../slot/Slotted';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import AetherImplant from '../../../platform/thing/AetherImplant';
 import CommsUpdate from '../../../platform/idea/CommsUpdate';
 import { InactiveCapabilityError } from '../../security/RequiresActive';
@@ -31,7 +31,7 @@ import type { FieldMeta } from '../../mixin';
 // An attuned, embodied actor: Slotted (carries the implant) + Aether
 // (the host) + Sensor (hears its own self frame) + Named + Organism.
 class AttunedActor extends SlottedMixin(
-  AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Thing)))),
+  AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good)))),
 ) {
   static fieldMeta: FieldMeta = {};
   override staticSlots = [

@@ -3,7 +3,7 @@
 Saxonberg's first "physics of places" subsystem. Biomes are leaf
 Idea templates carrying atmospheric defaults (temperature / pressure
 / humidity / gravity / atmosphere) plus ambient sensory texture
-(sound + smell MML); Locations and Vessels compose `AtmosphericMixin`
+(sound + smell MML); Locations and **enterable vessels** compose `AtmosphericMixin`
 to override those defaults at their own scope or per-Detail;
 `BiomeApi.resolveXFor` walks innermost-container-outward through
 containment ancestors, then the spatial zone, then the root universe
@@ -51,13 +51,13 @@ the `Biome` template:
 | Tree | Role | Where it lives | Mechanism |
 |---|---|---|---|
 | **Admin tree** | Ownership / write-access scoping ("biome team") | `FolderZone` templates at `/stuff/idea/biome/`, `/stuff/idea/biome/outdoor/`, `/stuff/idea/biome/indoor/`, etc. | templatePath organization |
-| **Inheritance tree** | Atmospheric defaults inherited from parent biomes | `Biome` leaf templates with `_extendsBiomePath` refs | explicit Pattern-A ref (independent of path) |
+| **Inheritance tree** | Atmospheric defaults inherited from parent biomes | `Biome` leaf rows with `extends:` | explicit Pattern-A ref (independent of path) |
 
 Biomes are **leaves** in the admin tree — they're not folders; they
 don't extend `Zone`. They're reference data, like `Material` and
 `Species`. The inheritance tree they form is independent of where
 they happen to live in the templatePath: a biome at one path can
-extend a parent at any other path via its `_extendsBiomePath` ref.
+extend a parent at any other path via its row-level `extends:`.
 
 Concretely, the shipped roster is deliberately slim — a handful of
 demonstrative templates, parallel to how `Material` and `Species`
@@ -87,7 +87,7 @@ admin tree (FolderZones — ownership/write-access):
 > "the root universe biome that boot would seed" — and boot did not.
 
 ```
-inheritance tree (Biome._extendsBiomePath — independent of paths):
+inheritance tree (the row's `extends:` — independent of paths):
 
    universe
    ├── outdoor/baseline (SkyExposedBiome)
@@ -117,7 +117,7 @@ constrain its inheritance.
 
 ## Organizing the inheritance tree — the spine
 
-The `_extendsBiomePath` tree is the *mechanism*; this is the *principle* for
+The `extends:` tree is the *mechanism*; this is the *principle* for
 **where a biome sits** in it. **Order by atmospheric dominance** — each level
 down is the next-biggest determiner of what a biome exists to carry (temp /
 humidity / pressure / light / medium). Coarse → fine:
@@ -152,17 +152,40 @@ resolve chain above the biome — see *The override chain*). Two
 genuinely-atmospheric axes with no dominant (coastal-urban) → a combined leaf,
 or let the zone carry one; rare, per-case.
 
+## ⭐⭐ The parent link is the TEMPLATE's, the resolver is still biome's
+
+Until 2026-09-25 a biome named its parent with a private persistent
+field, `_extendsBiomePath` — a second inheritance mechanism beside the
+engine's. Template inheritance made the row's own `extends:` the one
+way a row says *like that one, but different*, so the private field is
+gone and the rows carry a top-level `extends:`.
+
+⚠⚠ **What did NOT move is the resolution.** `BiomeApi.resolve*For`
+still walks the chain per READ and reports which ancestor supplied each
+value, which is what `trace atmosphere` prints. So **every `Biome`
+field declares `inherit: 'never'`**: if the generic clone-time merge
+copied a parent's `_defaultTemperature` onto a child's row, the walk
+would find the value on the CHILD and name the wrong ancestor — the
+reading still right, its provenance a lie, which is the worse failure.
+
+The row link unifies. The resolution does not, and should not: biome is
+answering *where does this value come from, for a reader standing here*,
+which is a question about the world, not about the row.
+
 ## `Biome` class
 
 A leaf `extends Idea`. Nine persistent fields:
 
 - `name: string` (e.g., `'universe'`, `'temperate-baseline'`,
   `'quad'`)
-- `_extendsBiomePath: string | null` — an identity ref to the parent
-  biome; `null` on the root. `getExtendsBiome()` /
-  `setExtendsBiome(value)` resolve via
+- ⭐ **The parent is the ROW's `extends:`** (2026-09-25 — the private
+  `_extendsBiomePath` field is retired; see below). `Biome` composes
+  `PostRegistrationMixin` and caches its row's parent at
+  `postRegister`. `getExtendsBiome()` resolves it via
   `StuffApi.findByTemplatePath` (HMR-safe); `getExtendsBiomePath()`
-  exposes the raw string for the chain walker.
+  exposes the raw string for the chain walker;
+  `setExtendsBiome(value)` / `setExtendsBiomePath(path)` write a live
+  OVERRIDE that wins when set — *set wins, otherwise the row wins*.
 - `_defaultTemperature: Quantity<'K'> | null`
 - `_defaultPressure: Quantity<'Pa'> | null`
 - `_defaultHumidity: Quantity<'%'> | null`
@@ -200,9 +223,64 @@ TypeError on mismatch.
 
 ## `AtmosphericMixin`
 
-Composed onto **both** `Location` and `Vessel` base classes. Pure
-containers (Box, Backpack, treasure chest) do NOT compose it and
-are atmospherically transparent (skipped by the chain walk).
+Composed onto **`Location`** and **`ExitableVessel`**. Pure containers
+(Box, Backpack, treasure chest) do NOT compose it and are atmospherically
+transparent — skipped by the chain walk.
+
+> ⭐⭐ **A bag is not a place.** It composed on `Vessel` until the
+> base-class narrowing build, which meant a backpack, a till, a jar, a
+> rack, a footlocker, a handcart, a bank counter and a barge each had a
+> temperature, a pressure, a humidity, a wind and a biome of their own.
+> **Thirty-seven rows over fifteen composers, and not one ever authored a
+> single atmospheric field** — that measurement is what moved it.
+>
+> The line it moved to is *a thing you can go inside is a place with
+> air*, and it is the same line as *whose `context.location` can this
+> be*: a driver or a rider occupies a SLOT and stands in the room
+> (`Mobile` ripples only an occupant standing OUTSIDE the mover), so the
+> only way to be inside a vessel is `go <vessel>` through
+> `ExitableVessel.getEntryExit()`. The four sense reads that key off
+> `isAtmospheric(context.location)` — `feel`, `smell`, `listen`,
+> `trace atmosphere` — were therefore only ever reached inside something
+> enterable. **Moving the mixin changed what the world claims, not what
+> it does.** A plain vessel is now a transparent step, exactly like a Box.
+>
+> ⭐ Two things the move exposed, because the shipped predicates are
+> written for a room and a vehicle is not one — both overridden on
+> `ExitableVessel`:
+>
+>  - **`envelopeApplies`'s sky walk.** It walks outward to the nearest
+>    atmospheric ancestor with a biome, so a coach parked in a street
+>    inherits the street's sky-exposed biome and the envelope would
+>    **never run, volume or no volume**. A carriage under the open sky
+>    still has a roof, so a vessel is roofed by declaration: it has an
+>    envelope iff its row states an `interiorVolume`.
+>  - **`openExteriorOpenings` and the seal.** It counts obvious exits
+>    onto the sky whose door, if any, stands open. A coach synthesizes
+>    one `out` exit and authors no `door:` — it authors `open: false` on
+>    `SealableMixin` — so the base reads a shut carriage as standing wide
+>    open. For a vessel the seal IS the door: shut ⇒ zero.
+>
+> And one the move required: `resetWeatherLocality()`, because the
+> weather-locality memo resolves ONCE, which is right for a room and
+> wrong for a place that goes places. `ExitableVessel.onMoved` calls it.
+
+### `interiorVolume` — how much air is in here
+
+An `ExitableVessel` has no geometry to derive a volume from (a
+`Location` gets one from its zone's cell size), so the interior is an
+**authored** `Quantity<'m³'>` on the class, default `null`.
+
+⭐ **Unset is how a row DECLINES an interior, and declining is honest
+rather than silent.** The mixin stays, so all four sense reads still
+answer inside — with the outside's air, walked up the chain, weather
+included. What is absent is an envelope of its own: no `derived: volume`
+line, no cause sentence. An open boat is not a cabin, and it says so by
+saying nothing.
+
+⚠ **Not `interiorCapacity`** — that name is `Bulkable`'s liquid capacity
+and the barge authors `interiorCapacity: 12000`. A tank is what you pour
+in; a cabin is what you breathe. See [bulk.md](./bulk.md).
 
 Eleven persistent fields per host (sparse storage):
 
@@ -216,9 +294,12 @@ _detailAtmospheres
 ```
 
 `null` slots persist as absent; empty maps mean "no per-detail
-overrides." A Vessel composing the mixin but setting nothing costs
+overrides." A scope composing the mixin but setting nothing costs
 five `null` fields + five empty objects and otherwise reads
-identically to a non-composing pure container.
+identically to a non-composing pure container — ⚠ which is exactly why
+the mixin sat on `Vessel` for so long without anyone noticing: it cost
+nothing and did nothing, and the only surface that would have SHOWN it
+(`wiki atmospheric`'s *composed by* panel) was scanning a dead root.
 
 ### ⚠⚠ `getBiome()` is a REGISTRY read, and the roster must be warmed
 
@@ -292,7 +373,7 @@ For any `(scope, detailKey?)` pair where `scope` is the innermost
      (longest-prefix-first walk — `hearth.embers` checks
      `hearth.embers` then `hearth`) — innermost scope only.
    - **(c)** Room-scope (bulk) override on this ancestor.
-   - **(d)** Biome default with `_extendsBiomePath` walk on this
+   - **(d)** Biome default with the `extends:` walk on this
      ancestor's biome (if it has one): walks the explicit ref
      chain, consulting each biome for the field; first non-null
      value wins. Cycle-guarded (visited set + depth cap of 32).
@@ -353,7 +434,10 @@ resolveAtmosphereFor(vessel) → 'vacuum'              (source: 'room')
 resolveTemperatureFor(vessel) → 310 K                (source: 'room' on the OUTER room)
 ```
 
-### Vessel cases (sparse storage falls out)
+### Enterable-vessel cases (sparse storage falls out)
+
+⚠ *Vessel* below means an **enterable** one — a coach, a cabin. A plain
+`Vessel` (a bag, a till, a barge) is the **Transparent** case now.
 
 - **Porous** — vessel composes the mixin but sets no overrides.
   Every field is `null`; the chain walks straight through to the
@@ -441,7 +525,7 @@ narrows the biome via `MixinApi.isSkyExposed(biome)`. Returns
 
 The atrium-in-cafeteria scenario authors a sibling biome
 `/stuff/idea/biome/indoor/social/cafeteria-atrium` that extends
-`SkyExposedBiome` and `_extendsBiomePath`-refs the cafeteria —
+`SkyExposedBiome` and `extends:` the cafeteria —
 inheriting all of the cafeteria's profile while adding the
 sky-exposed trait. The biome chain inherits shared defaults; the
 sibling overrides only the trait.
@@ -558,7 +642,7 @@ module) overrides the same way.
 > were six `Thing` **classes** under `/stuff/thing/instrument/`, each
 > contributing `measure.yaml` and each owning a `measure <x>` subcommand.
 > There are no such classes now: an instrument is a **row over
-> `/platform/thing/ToolItem`** declaring a capability, and the channel it
+> `/platform/thing/Tool`** declaring a capability, and the channel it
 > serves is a `Reading` row. See
 > [instrumentation.md](./instrumentation.md).
 
@@ -644,7 +728,7 @@ cross-cutting setting alongside sound's.
   shape; the receiving-surface area divisor is now derived from
   `cellSize²`.
 - [docs/ref-shapes.md](../ref-shapes.md) — the identity ref for the
-  `_biomePath` and `_extendsBiomePath` refs.
+  `_biomePath` and `extends:` row links.
 - [docs/subsystems/shell-environment.md](./shell-environment.md) —
   the universe defaults are NOT settings; the chain's terminal
   step reads from the root biome at `/stuff/idea/biome/universe`.
@@ -659,7 +743,7 @@ Three substantive design shifts during the biome substrate build
    with templatePath-walking inheritance. MR review surfaced that
    this stretched Zone's meaning beyond its original "admin /
    ownership scope" intent. The refactor moved Biome to a leaf
-   Idea with explicit `_extendsBiomePath` parent refs, and
+   Idea whose rows name their parent with `extends:`, and
    introduced `FolderZone` templates under `/stuff/idea/biome/` for the
    biome team's admin tree. Inheritance is now decoupled from
    templatePath organization. (Commits `2cc46c2` → `44ada01`.)
@@ -681,7 +765,7 @@ Three substantive design shifts during the biome substrate build
    C showcase) — parallel to Material's 10-leaf and Species's
    8-template demonstrative rosters. (Commit `3650011`.)
 
-The `_extendsBiomePath` ref-walk + `FolderZone` separation is the
+The `extends:` walk + `FolderZone` separation is the
 shape that survives. Future biome content authoring extends from
 `/stuff/idea/biome/universe` (or any other biome) via the explicit ref;
 the path tree organizes ownership, not inheritance.
