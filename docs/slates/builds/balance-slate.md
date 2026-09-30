@@ -1346,6 +1346,116 @@ and every parcel declares maximum. That makes the compute quota
 load-bearing for balance — a real coupling, and the reason the firewall
 above has to be structural rather than a convention.
 
+### ⭐⭐⭐ What an NPC declaration is DENOMINATED in — and the vocabulary is SAG's
+
+**Captured 2026-09-30.** The mechanism above is complete about *incentives*
+and silent about *units*, and the units are where a declaration actually
+fails. **Nobody can honestly declare “I will use 4.2 compute units.”** A
+line producer, by contrast, writes *“12 background, 3 under-fives, 2 day
+players, 1 series regular”* before a frame is shot — and it converts to a
+number by a published rate table.
+
+> ⭐⭐ **So the scalar should be DERIVED from a cast breakdown, never
+> authored directly.** SAG's categories are worth borrowing not because
+> NPCs need paying but because **they are a countable unit of budget a
+> non-technical author can commit to in advance**, which is the one thing a
+> declaration has to be.
+
+#### ⭐⭐⭐ The declaration mostly already exists
+
+Every NPC row carries a `behaviors:` block of
+`BehaviorSpec = { brain, trigger, config }`, where the trigger is
+`{ source: 'cadence' | 'witness' }`
+([behavior.md](../../subsystems/behavior.md)):
+
+```yaml
+- { brain: /lib/behavior/shifts, trigger: cadence:60s,  … }
+- { brain: /lib/behavior/idles,  trigger: cadence:300s, … }
+- { brain: /lib/behavior/greets, trigger: arrival,      … }
+```
+
+> ⭐⭐⭐ **A cadence trigger costs `1/period`, always, whether anybody is
+> there or not. A witness trigger costs nothing until somebody looks.**
+> That is the dominant cost axis in the entire NPC layer, it is authored
+> per-NPC in content today, and **it has never been read as a budget.**
+
+And it is why SAG is a source rather than an analogy:
+
+> ⭐⭐⭐ **Cadence-versus-witness IS background-versus-principal.** A
+> background actor does not act unless the camera is on them; a
+> witness-triggered brain literally does not think until it is perceived.
+> The same economics, arrived at independently, a century apart.
+
+#### The categories, against real cost drivers
+
+| SAG | there | here | cost |
+|---|---|---|---|
+| **background** | present, no lines, not individuated | no brains or **witness-only**, no dialogue, evictable, no ledger | ~0 idle; scales with traffic |
+| **silent bit** / special business | does something identifiable, still silent | one **witness** brain (`arrival`, greets) | traffic-proportional |
+| **under-5** | a few lines | a small authored dialogue tree | bounded per conversation |
+| **day player** | a scene's work | full tree **+ cadence brains** | ⚠ **always-on** — the first real cost |
+| **series regular** | recurring, tracked, has an arc | resident (eviction-exempt), ledgered, a transcript, **LLM dialogue** | the expensive rung |
+
+Ordering that matters: **cadence > witness · LLM > tree · resident >
+evictable · ledgered > not.**
+
+⚠ **LLM dialogue is designed and unshipped**, so that rung is currently
+theoretical — which is the argument for declaring it **now**, before it
+becomes the thing every author reaches for first.
+
+#### ⭐⭐⭐ The audit needs no meter — it counts violations
+
+The second property SAG has, and the one that makes it fit this slate's
+existing mechanism rather than bolt onto it: **its categories are defined
+by observable behaviour.**
+
+> ⭐⭐⭐ **You audit a declaration by counting CATEGORY VIOLATIONS, not
+> FLOPs.** Did an NPC declared *background* speak? Then it was not
+> background. Did a declared *under-5* get an LLM conversation? Then it was
+> a day player. **That is a fact, not a judgment** — which is exactly what
+> § *Why the honest declaration is the optimum* requires, since *“the
+> machine never has to decide whether you were honest.”*
+
+⭐ And SAG supplies the overrun's semantics as well as its detection. Its
+**upgrade rule** — a background performer who speaks is reclassified as a
+principal, retroactively, and the production pays principal scale — is the
+same event as a parcel exceeding its declaration, with the same remedy
+shape: **report, then throttle.** A union has defended that boundary for a
+century; the interesting part is that it is enforced by *what happened*,
+never by an intention.
+
+#### Two cautions
+
+⚠ **Ride [attestation-slate](./attestation-slate.md), do not duplicate
+it.** It exists because *“is a parcel's power declaration honest?”* turned
+out to be the general problem. A compute declaration is that problem with
+a different unit, and it should be one mechanism.
+
+⚠⚠ **The categories price the WORK, never the author.** That is SAG's own
+founding principle — *background is a category of work, not a lesser
+performer* — and it matches
+[identity.md](../../subsystems/identity.md)'s insistence that an `Extra`
+keeps its own identity and is not anonymous. It also keeps the vocabulary
+clear of the gauge problem: a declaration is about a **parcel**, not a
+person, and it must stay written that way so that *“how many regulars does
+this author run”* never reads as a score.
+
+#### What this does NOT need
+
+No new declaration field, no metering infrastructure, and **no change to
+the `Cast` / `Extra` rungs.** The rung stays binary — *entitlement to an
+individual ledger* — and the SAG category is a property of the
+**engagement**, which is what SAG says too and what the `behaviors:` block
+already encodes. ⭐ The original question was whether SAG informs our NPC
+*taxonomy*; the answer is that it informs the **declaration vocabulary**
+and leaves the taxonomy alone.
+
+⚠ **Pointers owed** (deferred 2026-09-30 — both docs are held by
+`build/narrowing`): [behavior.md](../../subsystems/behavior.md) should note
+that the `behaviors:` block is the compute declaration, and
+[identity.md](../../subsystems/identity.md) that SAG's rungs price the
+engagement and leave the two rungs untouched.
+
 ## ⭐⭐⭐⭐ The shape of the stock decides which lever exists
 
 Money, gear and advancement are not three subsystems needing three
@@ -1588,3 +1698,20 @@ exists precisely so no one has to price a sword.
     benefit. *Leans: time-boxed and published, so it is a visible
     standing invitation to legislate rather than a quiet carve-out* —
     but this is the sharpest unresolved tension in Part 8.
+16. ⭐⭐ **Who publishes the NPC rate table, and at what tier?** The cast
+    breakdown above converts to a scalar only against a published
+    per-category cost. Measuring the cost is the engine's (a cadence
+    period is arithmetic); **deciding what a category is worth against a
+    parcel's allowance is a policy**, which puts the table in Tier C and
+    the measurement in B. *Leans: the engine publishes the measured cost
+    per category and the polity sets the allowance* — the same
+    measure/value split as
+    [measurement.md](../../measurement.md), one subject over.
+17. ⚠ **Is the SAG category derived or declared?** Both are defensible and
+    they fail differently. **Derived** from the `behaviors:` block (a
+    cadence brain ⇒ at least day player) cannot be lied to and cannot be
+    committed to in advance. **Declared** beside the block is a promise
+    the sweep checks — which is what makes it a *prediction* in Part 8's
+    sense, and therefore the one that fits the mechanism. *Leans:
+    declared, with the derived value shown next to it at authoring time
+    so the gap is visible before the save.*
