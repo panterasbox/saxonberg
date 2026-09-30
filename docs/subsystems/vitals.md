@@ -24,6 +24,14 @@ differentiation is the product, so the substrate stays honest and the
 familiar bar is a projection.
 
 Corollary, stated plainly: **vitals are body-state, not agent-state.**
+
+⭐ Since the base-class narrowing (2026-09-30) the branch says this in
+three tiers rather than two: `Creature` (a body — a corpse, a head of
+stock) → **`Animate`** (a body that ACTS: moves, perceives, can be
+engaged, fights) → `Character` (a body that is somebody). ⚠ A corpse
+composes the whole of `Creature` and none of `Animate`'s five, which is
+where the line was found — the five are exactly the five that are false
+of a corpse.
 Agency is gated separately (animacy / consciousness), so corpses,
 unconscious patients, and anesthetized patients are all just bodies with
 full vital/anatomy state and reduced or zero agency — no special-casing.

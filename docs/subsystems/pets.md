@@ -21,10 +21,28 @@ not the owner's*, and that is a choice the sim must force, not a sentence.
 
 **A `KeptAnimal` is a rung, not a kind.** One kernel class the cat, the
 collie (`WorkingAnimal = HandledMixin(KeptAnimal)` in trade-ranching) and
-the canary all clone from. What separates it from the `Creature` it
+the canary all clone from. What separates it from the body it
 extends is not biology but that somebody could come to care about *this
 particular one*, and the world is willing to remember which one it was.
 Kernel, not a pack: its three composers have no common pack ancestor.
+
+⭐ **It stands on `lib/creature/Animate` since the base-class narrowing
+(2026-09-30)** — *a body that acts* — and it was the rung's **third
+consumer**, which is the promotion threshold this project uses. It had
+been composing three of `Animate`'s five by hand (`Engaged`, `Mobile`,
+`Sensor`, each with its own comment about why a pet needs it) while
+`Character` composed the same three for people; two composition sites of
+one set is the shape that says the host is a level up.
+
+⭐⭐ **The cat gained `Combatant` and `Perception` in the move, and that
+corrected an asymmetry rather than promoting anything.**
+`AttackController` gates its target on `Vitals && Engaged`, so a pet
+could always be ATTACKED — what it lacked was the half that answers. A
+cat that can fight back is the honest reading of an animal you can
+corner. ⚠ It still composes no `Vocal`, `Soul`, `Persona`, `Employed`,
+`Caster` or `CommandGiver`: a pet is not a person, which is the whole
+objection to building it on `Character`, and a test asserts the absence
+as a pair with the gain.
 
 The stack, outer → inner (and ⚠ the order is load-bearing — see
 *PostRegistration is innermost*):

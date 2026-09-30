@@ -192,12 +192,28 @@ side's `onDestruct` clears the back-ref. The ref is runtime-only (a
 reloaded hauler wakes unhitched). See [ref-shapes.md](../ref-shapes.md).
 
 **Where the capability lands.** `HaulerMixin` composes on **`Character`**
-(every PC + NPC-character can pull a cart) — **not** the broad `Creature`
-base (a frog / corpse never hauls; the "compose the mixin, not the class
-tree" rule). The cart side is `Handcart = HaulableMixin(Vessel)`
-(`lib/equipment/`). Draft beasts use **`HaulingCreature`** =
-`MountableMixin(PostRegistration(Character))` — a rideable creature that
-inherits hauling from `Character` and adds the rider slot.
+(every PC + NPC-character can pull a cart) and, since the base-class
+narrowing (2026-09-30), a second time on **`platform/agent/DraftAnimal`**
+— **not** on `Creature`, and ⚠⚠ **not on the `Animate` rung between
+them either.** Three answers to *can this pull a cart* — every person,
+a draft animal, not a wolf — is exactly why it cannot live on one shared
+rung. ⭐ And the reason it matters is that `hitch.yaml:35` gates its
+target on this mixin and is its **only** reader (zero `MixinApi.isHauler`
+narrowings, zero affordance statics): put it on `Animate` and the binder
+accepts `hitch cart to canary`, moving the refusal from an honest arg
+gate to breakaway physics on a hill.
+
+The cart side is `Handcart = HaulableMixin(Vessel)` (`lib/equipment/`).
+
+⚠ Draft beasts used **`HaulingCreature`** =
+`MountableMixin(PostRegistration(Character))` — *"a rideable creature
+that inherits hauling from `Character`"*, which is a class reaching for
+the whole PERSON rung to get one mixin. The cost was that the draft
+horse and the pit pony composed `CasterMixin`, `MemorizedMixin`,
+`EmployedMixin` and `PersonaMixin`: a pony that could cast a spell and
+hold a job. It is **`platform/agent/DraftAnimal` = `Mountable(Hauler(
+Beast))`** now, `HaulingCreature` is deleted, and a second draft animal
+is a ROW.
 
 **The tow** rides the **conveyance ripple region of `Mobile.traverse`**
 (alongside the slot-occupant ripple, but keyed separately — the cart is a

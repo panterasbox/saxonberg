@@ -75,9 +75,19 @@ nameless `Cast` is still `Cast`: it carries the name FIELD (that is the
 rung's claim) and leaves it empty, and its `register: definite` is what
 makes it *the* collier. See [presentation.md](./presentation.md).
 
+⭐ **Two rungs, and a third thing that is neither.** `Cast` and `Extra`
+are both PEOPLE — somebody, and a role somebody fills. An **animal** is
+not on this ladder at all: it is `platform/agent/Beast`, one tier down
+the branch on `Animate`. ⚠ The newbie-wilds wolf was an `Extra` until
+the base-class narrowing (2026-09-30) and so composed `CasterMixin`,
+`EmployedMixin` and `PersonaMixin` — the tell was that this very table
+listed *a wolf* beside *a sentry* and *a sellsword*, and `Extra.ts` had
+grown the sentence *"An animal answers to nobody forever"*: a line
+about animals living in a class about people.
+
 | | `Cast` | `Extra` |
 |---|---|---|
-| is | somebody — Odile, Dave, *the* collier | a role — *a* sentry, *a* sellsword, a wolf |
+| is | somebody — Odile, Dave, *the* collier | a role — *a* sentry, *a* sellsword |
 | singleton | ✅ `SingletonMixin`; a second live clone **throws** | ❌ two sentries are the point |
 | dossier | ✅ | ⛔ a build error (`lint:identity`) |
 | proper name | ✅ `CastMixin` composes `NamedMixin` | ⛔ **structural** — the field is not there to fill in |
@@ -254,7 +264,9 @@ still a guard the watch lost. See
 The crime rule is the terms-free `!consented && sentient`. So if hurting
 something is a crime, the victim must be *someone*: either `Cast`, or
 institutionally answerable. A wolf is fine forever — `sentient: false`,
-and nobody is to blame for a wolf.
+and nobody is to blame for a wolf. ⭐ It is also a `Beast` now rather
+than an `Extra`, so the question does not arise structurally: the rung
+carries no `EmployedMixin` to answer with.
 
 The shipped watchpost sentry was exactly this case, and its own row
 documented the behaviour at risk: *"a player who ambushes the sentry

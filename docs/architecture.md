@@ -832,7 +832,12 @@ Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   │           └── Vessel  a Movable that also holds things (Container) —
   │                       matter outside, a place inside
   ├── Location      stationary place — pure space, NOT matter (not Tangible)
-  ├── Agent         runtime active object (Creature → Character → Avatar)
+  ├── Agent         runtime active object
+  │     └── Creature        a body (Corpse, Livestock)
+  │           └── Animate   a body that ACTS — moves, perceives, fights
+  │                 ├── Beast      an animal: it has a brain, it is nobody
+  │                 ├── KeptAnimal an animal somebody keeps
+  │                 └── Character  a body that is SOMEBODY → Avatar
   └── Shadow        function-shadowing host — see call-security.md
 ```
 
@@ -876,8 +881,9 @@ wrap it themselves and no longer do — a composition written
 `SomeMixin(DetailedMixin(Thing))` in an older doc is now just
 `SomeMixin(Thing)`.
 
-Under `Agent` the hierarchy splits **body** from **agent**:
-`Agent → Creature → Character → Avatar`. `Creature` (`lib/creature/`)
+Under `Agent` the hierarchy splits **body** from **agent** — and since
+the base-class narrowing (2026-09-30) there are **three** tiers, not two:
+`Agent → Creature → Animate → Character → Avatar`. `Creature` (`lib/creature/`)
 is the body layer — a living physical thing that can break, with or
 without agency: it carries `PropertiedMixin` (innermost, just outer of
 `Agent` — the general dynamic per-instance property store, so every body
@@ -897,11 +903,31 @@ forensic readability, and the `canEvict` veto that keeps a corpse in the
 world long enough to be examined; inert on the living — see
 [mortality.md](./subsystems/mortality.md)) + `DisguisableMixin`
 (creature masking, outer of `Visible`) + the anatomy-slot / posture /
-description / containment mixins. `Character`
-extends it with the **agency** mixins (commands, perception, speech,
-movement, engagement) + the social-identity mixins (`PersonaMixin`,
-`GenderedMixin`) + the per-viewer concerns (`BeliefStoreMixin`,
-`StatusMixin`). The split exists because **vitals are
+description / containment mixins. 
+
+⭐⭐ **`Animate` (`lib/creature/Animate.ts`) is the middle tier — *a body
+that acts*:** `Combatant(Perception(Mobile(Engaged(Sensor(Creature)))))`.
+Substrate, no twin. It exists because the readers were already asking a
+narrower question than *is this a person*:
+`AttackController` refuses a target that is not `Vitals && Engaged`
+(**not** `Combatant`), `Combatant` returns silently for a non-combatant
+host, and `PerceptionLogic` requires a VIEWER to be
+`Sensor && Perception`. ⭐ **A `Corpse` is the proof of the line**: it
+composes the whole of `Creature` — vitals, respiration, postmortem,
+because it is a forensic body — and none of these five, which are
+exactly the five that are false of a corpse.
+
+⚠ `HaulerMixin` sits on `Character` and on `DraftAnimal` and on NEITHER
+rung between: `hitch.yaml` gates its target on it and is its only
+reader, so on `Animate` the binder would accept `hitch cart to canary`.
+Three answers (every person, a draft animal, not a wolf) means it cannot
+live on one shared rung.
+
+`Character`
+extends `Animate` with the **person** mixins (commands, speech, souls,
+hauling, a magical faculty, advancement) + the social-identity mixins
+(`PersonaMixin`, `GenderedMixin`) + the per-viewer concerns
+(`BeliefStoreMixin`, `StatusMixin`). The split exists because **vitals are
 body-state, not agent-state** (a corpse / sessile animal is a body with
 reduced agency) — see [vitals.md](./subsystems/vitals.md). The identity
 line is sex (body, `SexedMixin` on Creature) vs. gender/persona (social,
@@ -909,12 +935,25 @@ on Character). `Creature` is concrete, so a bare non-agent body (a frog,
 a corpse) is valid. ⭐ **`KeptAnimal`** (`lib/creature/`, twin
 `platform/agent/KeptAnimal`) is the other rung off `Creature` — *an
 animal kept for itself*: `Persistable(Behaved(Bonded(Status(
-PostRegistration(Handling(BeliefStore(Engaged(Mobile(Sensor(Named(
-Creature)))))))))))` — the cat, the collie (`WorkingAnimal =
-HandledMixin(KeptAnimal)` in trade-ranching) and the canary all clone
+PostRegistration(Handling(BeliefStore(Named(Animate)))))))))` — the cat,
+the collie (`WorkingAnimal = HandledMixin(KeptAnimal)` in
+trade-ranching) and the canary all clone
 from it, and it deliberately composes no `Vocal` / `Soul` / `Persona` /
 `Advancement`: an animal does not speak, hold a job or carry a
 transcript, which is the whole objection to building it on `Character`.
+
+⚠⚠ **That objection was written here, and three animals were built on
+`Character` anyway.** The newbie-wilds wolf was an `Extra` (*"a
+character who is a role, not a person"*), and the draft horse and the
+pit pony were `HaulingCreature = Mountable(PostRegistration(Character))`
+— so all three carried `Caster`, `Memorized`, `Employed`, `Persona`,
+`CommandGiver`, `Soul` and `Vocal`. ⭐ Each class had written the reason
+in its own docstring: `HaulingCreature`'s said *"the cart-pulling
+capability itself comes from `Character`"*, which is a class reaching
+for a rung to get one mixin. They are `platform/agent/Beast`
+(`Behaved(PostRegistration(Animate))`) and `platform/agent/DraftAnimal`
+(`Mountable(Hauler(Beast))`) now, and `KeptAnimal` composed three of
+`Animate`'s five by hand until it became the rung's third consumer.
 See [pets.md](./subsystems/pets.md). `Character` has two leaf subclasses: `Avatar`
 (player-driven, in `platform/agent/`) and the thin `NPC` (`lib/npc/NPC.ts` =
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
