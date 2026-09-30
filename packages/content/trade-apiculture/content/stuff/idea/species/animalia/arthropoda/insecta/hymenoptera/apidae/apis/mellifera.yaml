@@ -7,10 +7,13 @@
 # aggregate stands alone it is a real thing rather than a compression
 # trick.
 #
-# ⚠ The row ships here; the hive, the pollination coupling and swarming
-# are the cuttable wave's, and the row is inert without them. It is
-# authored now because the coupling would be painful to retrofit and the
-# species is a fact about the world either way.
+# ⚠⚠ **The file moved into `trade-apiculture`; the template path did
+# NOT.** The row it needs to name — `yieldRow: /trade/apiculture/thing/comb`
+# — is the apiculture pack's, and leaving the file in `trade-ranching`
+# would point the ranching pack's content at apiculture, which is the
+# dependency arrow backwards. The path stays `/stuff/idea/species/…`
+# because a honeybee is a fact about the world and belongs in the commons;
+# quarrying ships `/stuff/thing/clay-pot` the same way.
 class: /platform/idea/species/Species
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -22,8 +25,35 @@ data:
   lifecycleStates: ["alive", "dead"]
   sexDeterminationSystem: haplodiploid
   reproductiveMode: sexual
-  lifespanMin: 0
-  lifespanMax: 1
+  # ⭐ **The QUEEN's lifespan**, because she is the one individual a
+  # colony has. The row said 0–1 days, which is nothing's lifespan; a
+  # worker lives about six weeks and is below the resolution anything in
+  # this game acts at. Two to five years is the queen, and the colony's
+  # own continuity is the population record, not a lifespan.
+  lifespanMin: 720
+  lifespanMax: 1800
+  # ⭐ How a colony takes being worked, floor to ceiling. A hive is never
+  # as biddable as a dog and never as wild as an unhandled bull: worked
+  # regularly and with smoke it settles, and left alone it goes back to
+  # being something that comes up at you.
+  handlingRange:
+    floor: 0.15
+    ceiling: 0.9
+  # One bee. ⚠ The MASS is the individual's even though the colony is the
+  # organism, because mass is what a body plan measures — and nothing in
+  # the game weighs a colony by its species.
+  adultMass: 0.0001
+  # ⭐⭐ **The tap, and the ceiling here is deliberately absurd.** The real
+  # ceiling is the HIVE's `combCapacityKg()` — how many boxes are on it —
+  # because the constraint on honey is the room you gave them, not
+  # anything about the species. So the species authors a window long
+  # enough never to bind and the box does the work.
+  production:
+    - key: honey
+      yieldRow: /trade/apiculture/thing/comb
+      perGameDay: 0.5
+      behaviour: accrue
+      windowDays: 400
   circadianBand: diurnal
   diet: herbivore
   longDescription: >-

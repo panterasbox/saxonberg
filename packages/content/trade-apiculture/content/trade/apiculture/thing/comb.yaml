@@ -1,0 +1,23 @@
+# A frame of capped comb — ⭐ **what `rob` actually takes.**
+#
+# Honey is not milk: you do not draw it off, you take the comb away and
+# get the honey out of it afterwards, two different ways with two
+# different residues (AC 11). So the yield of the tap is this, and the
+# honey is a recipe's output rather than the take's.
+#
+# ⚠ A `Provision`, which is what makes it work: `lint:perishable` requires
+# a Freshness host for a material that spoils, and `ComposedMixin` — also
+# Provision's — is what carries WHAT THE BEES FORAGED into the jar. That
+# is why clover honey and cherry-blossom honey taste different with no row
+# authored for either.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: frame of capped comb
+  keywords: [comb, honeycomb, frame, honey]
+  register: indefinite
+  longDescription: >-
+    A frame heavy with sealed comb, every cell capped over in pale wax and
+    the whole slab smelling of warm flowers.
+  _materialPath: /trade/apiculture/idea/material/honey
+  mass: 1

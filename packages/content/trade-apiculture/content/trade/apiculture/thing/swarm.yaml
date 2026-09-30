@@ -1,0 +1,32 @@
+# A swarm — ⭐ **free bees, hanging where they left**, and the one place in
+# the game where being present is worth money.
+#
+# Minted by a colony that swarmed, into the hive's own location, so a
+# keeper who is there catches their own swarm and one who is not loses
+# half a colony to the woods. It hangs for a day.
+#
+# ⚠ It has a queen (the old one went with them) and no stores: a swarm is
+# carrying what it ate before it left, which is why it is urgent.
+class: /trade/apiculture/thing/Colony
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [swarm, bees, cluster, colony]
+  shortDescription: hanging swarm of bees
+  register: indefinite
+  longDescription: >-
+    A brown cone of bees the size of a rugby ball hanging off a branch,
+    shifting slowly over itself and humming on one note.
+  # ⚠⚠ **No `_materialPath`, deliberately.** A LIVE colony is not meat:
+  # authoring flesh on it would put a rotting material on a class that
+  # composes no Freshness, which `lint:perishable` catches and is right to
+  # — a colony of bees does not go off. The species' own default material
+  # answers, exactly as it does for every head of stock.
+  _speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/hymenoptera/apidae/apis/mellifera
+  mass: 2
+  lifecycleState: alive
+  strength: 0.4
+  hasQueen: true
+  pollenKg: 0
+  # ⚠ Wild. A swarm has never been handled by anybody, and it is also the
+  # quietest bees ever get — full of honey and nothing to defend.
+  handling: 0.3

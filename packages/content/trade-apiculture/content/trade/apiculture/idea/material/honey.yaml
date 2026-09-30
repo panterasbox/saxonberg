@@ -1,0 +1,38 @@
+# Honey — ⭐⭐ **the product, and it is NOT sugar.**
+#
+# ⚠ It carries the tags `honey` and `sweetener` and deliberately **not
+# `sugar`**: `trade-cooking`'s sugar row owns that tag, and giving honey
+# the same one would make every recipe that wants sugar accept honey
+# silently and vice versa. They are different sweeteners with different
+# chemistries and different supply chains, and the tag is what keeps the
+# chains apart.
+#
+# ⭐ **Water activity 0.60 is why honey keeps forever**, and it is the
+# same number the whole preservation lesson turns on: at or under the
+# floor nothing microbial grows. Salt, sugar, drying, smoking and honey
+# are ONE mechanism (`docs/subsystems/spoilage.md`), and honey is the
+# limiting case — food that preserves itself. Dilute it and the hurdle
+# comes down, which is exactly what mead is.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: honey
+  keywords: [honey]
+  appearance: "thick amber honey"
+  density: 1420
+  thermalConductivity: 0.5
+  specificHeat: 2300
+  edibility: true
+  tastes: [sweet]
+  # Steeply answering to warmth, and it does not matter: the water
+  # activity is at the floor, so the rate is multiplied by nothing.
+  spoilActivationEnergy: 80000
+  waterActivity: 0.60
+  nutrients: ["sugar"]
+  nutrientAmounts:
+    sugar: 16000
+    water: 3500
+  toxicity: []
+  tags: ["honey", "sweetener", "food", "edible"]
+  composition: []
+  biologicalSource: null

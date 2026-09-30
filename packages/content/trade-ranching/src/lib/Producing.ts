@@ -89,6 +89,14 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
   return class ProducingMixin extends Base implements Producing {
     static _mixinName = PRODUCING_MIXIN;
 
+    /**
+     * ⚠ The refusal `rob`, `milk`, `shear` and `gather` give a target
+     * that has no taps. A pack mixin declares its own phrase beside its
+     * name (`lint:arg-kinds` refuses one with none, which is right — the
+     * generic sentence tells a player nothing).
+     */
+    static _mixinRefusal = "{} does not give anything";
+
     /*
      * ⭐⭐ **The taps used to afford the tap verbs from HERE, and the
      * argument was right — but the seam does not exist yet.**

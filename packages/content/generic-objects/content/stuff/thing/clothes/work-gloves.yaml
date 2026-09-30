@@ -1,0 +1,26 @@
+# Work gloves — ⭐ leather over your hands, and the bees notice.
+#
+# Nothing bee-specific about them. They are the second half of the answer
+# to being stung (the first is smoke), and they are useful for every other
+# reason gloves are useful.
+#
+# ⚠ They cost you dexterity in reality and nothing here models that yet —
+# the seam, when somebody wants it, is the covering stack's own encumbrance
+# axis rather than anything in this trade.
+class: /platform/thing/equipment/Garment
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: pair of work gloves
+  keywords: [gloves, "work gloves", gauntlets]
+  register: indefinite
+  longDescription: >
+    Long leather gloves with canvas cuffs that come up past the wrist,
+    stiff across the knuckles and shiny where they have been gripped.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [hands]
+  _materialPath: /stuff/idea/material/organic/leather
+  # ⭐ `hide` — the kernel covering form for leather, and the honest one:
+  # what stops a sting is the thickness of the skin, not a weave.
+  constructionForm: hide
+  gradeBand: standard
+  mass: 0.4
