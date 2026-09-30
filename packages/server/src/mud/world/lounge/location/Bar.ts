@@ -14,9 +14,6 @@
 
 import Location from '../../../lib/stuff/Location';
 import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordinates';
-import { VisibleMixin } from '../../../lib/description/Visible';
-import { PerceptibleMixin } from '../../../lib/description/Perceptible';
-import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import { StagedMixin } from '../../../lib/stuff/Staged';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
@@ -52,7 +49,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 const BarBase = SingletonMixin(
   StagedMixin(
     CartesianCoordinatesMixin(
-      ExitableMixin(DetailedMixin(VisibleMixin(PerceptibleMixin(Location)))),
+      ExitableMixin(Location),
     ),
   ),
 );

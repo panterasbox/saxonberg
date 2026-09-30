@@ -29,8 +29,6 @@ import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 import { WarrenMemberMixin, type WarrenMember } from '@saxonberg/server/mud/lib/location/WarrenMember';
-import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -45,7 +43,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 // room's floor.
 const DormRoomBase = PersistableMixin(
   WarrenMemberMixin(
-    ExitableMixin(DetailedMixin(VisibleMixin(StagedMixin(Location)))),
+    ExitableMixin(StagedMixin(Location)),
   ),
 );
 

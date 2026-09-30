@@ -17,8 +17,6 @@
 
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
@@ -28,7 +26,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 // above the base would SWALLOW `Location.postRegister`, and with it the
 // room's floor.
 const CorridorBase = ExitableMixin(
-  DetailedMixin(VisibleMixin(Location)),
+  Location,
 );
 
 export default class Corridor extends CorridorBase {

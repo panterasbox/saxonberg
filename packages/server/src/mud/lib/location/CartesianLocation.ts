@@ -22,9 +22,6 @@
 import Location from '../stuff/Location';
 import { CartesianCoordinatesMixin } from './CartesianCoordinates';
 import { ExitableMixin } from '../boundary/Exitable';
-import { VisibleMixin } from '../description/Visible';
-import { PerceptibleMixin } from '../description/Perceptible';
-import { DetailedMixin } from '../description/Detailed';
 import { StagedMixin } from '../stuff/Staged';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
@@ -63,11 +60,11 @@ import type { FieldMeta } from '../mixin';
 // `platform/location/Street` now, which is what a town lights.
 const CartesianLocationBase =
   StagedMixin(
-    DetailedMixin(
-      PerceptibleMixin(
-        ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
-      )
-    )
+    
+      
+        ExitableMixin(CartesianCoordinatesMixin(Location))
+      
+    
   );
 
 export default class CartesianLocation extends CartesianLocationBase {
