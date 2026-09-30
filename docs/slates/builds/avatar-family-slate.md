@@ -709,3 +709,127 @@ the overrides exist **only to normalize a copy that should not have been
 made**. Legitimately different: Shade's `getConferredMixinNames`,
 `mergeSlice_Embodiment`, `onDestruct`; WireBody's
 `announceSessionPresence`, `onLinkdead`.
+
+---
+
+## ⭐⭐⭐ The four vessels — and the corpse is the inverse case
+
+*Captured 2026-09-30 from the design conversation. The mechanics were
+already written down ([mortality.md § The corpse](../../subsystems/mortality.md),
+§ Part 3 above); **this framing was not**, and it is the thing that makes
+the class question answerable.*
+
+A player's state at any moment lives in one of four vessels, and sorting
+them on two axes is what shows the shape:
+
+| vessel | identity | material state | of record? | own clock |
+|---|---|---|---|---|
+| **`Avatar`** | **is** the identity | yours, live | ✅ persists, holds the `PlayerApi` slot | — |
+| **`Shade`** | borrows the real one | none — incorporeal | ⛔ | — |
+| **`WireBody`** | borrows the real one | baseline mint, no gear | ⛔ | — |
+| **`Corpse`** | ⛔ **none** | ✅ **stamped with yours** | ✅ (a `Creature`, cloned from a row) | ✅ its own decay machine |
+
+⭐ **Three of the four keep your identity and discard your material
+state. The corpse does the exact opposite.** That is why it never felt
+like part of this family and why it kept getting filed elsewhere — it is
+the same design question answered the other way round, not a different
+question.
+
+⚠⚠ **And the inversion has a live consequence: your material state at
+death is written down TWICE, and the copy nobody reads is the one the
+way back needs.**
+
+- The **corpse** receives it through the gated `adoptMaterialState`
+  (`ConditionLogic.ts:639`), for forensics. Decay degrades it on
+  purpose — *the examiner reads signs and can be wrong; the stamp is the
+  answer key.*
+- The **fork slices** `Anatomy` / `Trauma` / `CauseOfDeath` capture the
+  same facts separately, mint-only, **and are read by nothing** (§ Part 3).
+- ⭐ **`reembody` never reads the corpse**, deliberately and correctly
+  (`mortality.md:474`): a corpse decays, can be destroyed and does not
+  survive a restart, so a route that consulted one would strand whoever
+  came back too late — *"the bricking failure mode in a third costume."*
+
+**So the captured spec is the only honest route back, and it is inert.**
+That is Sequencing 7 (*the death spec consumed by `reembody` as a mint
+parameter*) restated with the reason it cannot be shortcut by reading
+the corpse instead.
+
+### What this says about the class question
+
+⭐ The differences between `Avatar`, `Shade` and `WireBody` are **not
+kinds of thing — they are one policy answered twice.**
+`WireBody`'s own docstring enumerates what differs, and every item is
+the same axis: *backed by nothing · not the registry body · identity
+thread returns the REAL identity · baseline mint · reaped wholesale.*
+`Shade` is that list again plus incorporeality.
+
+**Is this the body of record, or a stand-in for it?** That question
+absorbs six of the eight duplicated overrides
+(`shouldPersist`, `startAutoSave`, `getPlayerId`, `getIdentityPath`,
+the reaping, `announceSessionPresence`), which is the case for an
+intermediary rung **even though nothing branches above it** — the
+`Holder` / `Actor` precedent from the narrowing build, where a
+twin-less rung exists to name a responsibility.
+
+```
+Avatar                    abstract — a human's handle in the world
+├── <the body of record>  persists · holds the PlayerApi slot · owns the estate
+└── <a stand-in vessel>   never persists · borrows the identity · is reaped
+    ├── Shade             incorporeal; ends at re-embody
+    └── WireBody          corporeal, circle-scoped; ends at the door
+```
+
+⚠ **The inheritance is defensible; the overrides are not.**
+`WireBody.ts:5-9` gives the real reason for subclassing — *"the crossing
+must preserve the whole verb surface… re-deriving it as a parallel stack
+would be drift by construction"* — which argues for a **shared base**
+and says nothing in favour of answering one policy on two sibling
+leaves.
+
+### Where the Avatar-only mixins fall out
+
+Measured by whether the two vessels mention them at all:
+
+| mixin | Shade | WireBody | belongs on |
+|---|---|---|---|
+| `Calendar` · `SubjectSubscriber` · `NotifyPolicy` · `PartyMember` | 0 | 0 | **the body of record** — inherited and inert on a vessel |
+| `Wardrobe` | 0 | 1 | the body of record (a shade has nothing to dress) |
+| `Estate` | 3 | 1 | the body of record — it is the *succession* concern, which is why `escheatedAt`/`beneficiary` sit beside it |
+| `Contacts` | 0 | 1 | ⭐ **abstract `Avatar`** — the one thing that legitimately crosses every phase, and the only two-way fork slice in the system |
+| `Aether` | 3 | 2 | ⚠ contested — `Shade` re-grants it via `getConferredMixinNames`, i.e. **activation already doing a rung's job**, and the only existing proof these differences can be data |
+
+### The naming axis — still open
+
+*"They are all Avatars, just for different phases of the game"* — the
+word **phase** was reached for first (phases of matter, of the moon, of
+a waveform) and nobody is attached to it. What the names must express is
+**how the avatar is used in the game**, not what it is made of. Three
+candidate axes, undecided:
+
+- **permanence** — the one that lasts vs the ones that do not (this is
+  the axis the code actually branches on today);
+- **agency** — what you can do from it;
+- **phase of play** — living / dead / rehearsing, with permanence
+  falling out as a consequence.
+
+⚠ `Corpse` is a fourth vessel on this picture but ⛔ **not a fourth
+Avatar** — it has no identity, no driver and its own clock. Whether it
+should move from the Agent branch to Thing stays the narrowing slate's
+question; this table is the argument that it is *related to* the avatar
+family without *being* one.
+
+### `Login` — considered, and not renamed
+
+Not a phase and does not join the family: **`Avatar` is your handle in
+the game world, and `Login` is not in the world yet.** It is a menu
+system wearing an agent because it needs the command bus; making it
+`CommandGiverMixin(Idea)` instead of an Agent is arguable and low-stakes.
+
+⭐ **The one thing it constrains:** it composes `HasInteractiveMixin`,
+so whatever the connection half becomes must keep working for a thing
+that is **not an Avatar at all** and deliberately composes almost
+nothing. It is the test case that stops the connection mixin from
+quietly becoming avatar plumbing — and the reason the `cockpit` verb
+tree riding on that mixin is a real constraint on the split, not a
+detail.
