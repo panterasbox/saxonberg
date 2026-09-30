@@ -15,9 +15,12 @@
  *  - the **act affordances**, because they belong to the animal you are
  *    standing next to.
  *
- * ⭐ Ownership and chain-of-title it inherits from `Creature`, which
- * gained `ChattelMixin` in this same wave — which is why a stolen animal
- * cannot be sold cleanly (D98).
+ * ⭐ Ownership and chain-of-title are composed HERE — see the
+ * `ChattelMixin` note beneath. ⚠ This paragraph used to say it was
+ * inherited from `Creature`, which was true until the base-class
+ * narrowing moved `Chattel` off the creature base (a person is nobody's
+ * property) and onto the two animal rungs. A stolen animal still cannot
+ * be sold cleanly (D98); what changed is where the claim lives.
  *
  * ⚠ **Branding is composed HERE, not inherited.** It arrived on
  * `Creature` in the same wave and on the same argument — *branding

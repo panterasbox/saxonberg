@@ -7,7 +7,11 @@
  *
  * **Composed where it's earned, not on the `Creature` base** — on the
  * player `Character` stack (every player self-hauls a handcart) and on
- * the dedicated `HaulingCreature` class (draft beasts). Most creatures
+ * the dedicated `platform/agent/DraftAnimal` class (draft beasts).
+ * ⚠ `hitch.yaml:35` gates its target on this mixin and is its ONLY
+ * reader — zero `MixinApi.isHauler` narrowings, zero affordance statics
+ * — so that arg gate is the whole of its reachability, and a host that
+ * loses it loses `hitch` silently at the binder. Most creatures
  * never haul, so the base stays clean (the encumbrance doc's "compose the
  * mixin, not the class tree" rule).
  *
