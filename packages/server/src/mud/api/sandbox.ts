@@ -26,11 +26,9 @@ import { SandboxLogic } from '../platform/idea/api/SandboxLogic';
 import type { SandboxSession } from '../platform/idea/api/SandboxLogic';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Avatar from '../lib/character/Avatar';
-import { TemplatePathPrefixes } from '../lib/paths';
 import type Interactive from '../platform/idea/Interactive';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
-import { ExecutionContextApi } from './execution-context';
 
 export type { SandboxSession } from '../platform/idea/api/SandboxLogic';
 
@@ -104,48 +102,28 @@ export class SandboxApi {
     targetScope?: string
   ): Promise<SandboxSession> {
     const session = await logic().enter(actor, targetScope);
-    // Stamp the vessel's identity path (Decision C:
-    // `/platform/agent/Avatar/<playerId>/wire`, a minted-singleton identity under
-    // the avatar's own branch, backed by NOTHING — no domain row).
-    //
-    // It matters because half the engine asks "is this an avatar?" by
-    // the `/platform/agent/Avatar/` templatePath PREFIX (`PlayerApi.isAvatarStuff`,
-    // and through it `AccessApi.isWizard`). An unstamped vessel isn't
-    // avatar-shaped, so a player loses their own powers the moment they
-    // step into their own circle — no `eval`, no `clone` (found live).
-    // `getIdentityPath()` still reports the REAL identity, so authority
-    // membership and the epistemic ledgers key on the person, not the
-    // vessel.
-    //
-    // Stamped HERE rather than in the logic singleton because
-    // `setTemplatePath` is `ApiOnly`-gated — an Api class is exactly
-    // the sanctioned caller.
-    const playerId = actor.getPlayerId();
-    const vessel = playerId ? logic().activeBodyFor(playerId) : null;
-    // ⚠ The condition used to be `getTemplatePath() === null`, which
-    // held because the vessel was `create`d and carried no stamp. It is
-    // a CLONE now, so it arrives stamped with its lineage
-    // (`/platform/agent/sandbox/SandboxAvatar`) and the stamp below was
-    // skipped — quietly costing the player their own powers inside
-    // their own circle, which is the exact failure this comment already
-    // describes. The vessel path is re-stamped whenever it is not
-    // already the wire path.
-    const wirePath = `${TemplatePathPrefixes.avatar}${playerId}/wire`;
-    if (vessel && vessel.getTemplatePath() !== wirePath) {
-      // Under the CIRCLE's root: `enter` is called from the field (the
-      // wardrobe exit's traverse), and the vessel is circle-born — a
-      // field-context write against a circle-scoped receiver is exactly
-      // what Layer 4 exists to deny. The stamp is the crossing's own
-      // bookkeeping, so it belongs on the far side of the boundary.
-      ExecutionContextApi.runRoot(
-        SandboxApi,
-        'enter.stampVessel',
-        () => {
-          vessel.setTemplatePath(wirePath);
-        },
-        { circleScope: session.scope }
-      );
-    }
+    /*
+     * ⭐⭐ **No lineage restamp any more, and that is the point.**
+     *
+     * This used to re-stamp the vessel's `templatePath` to
+     * `/platform/agent/Avatar/<playerId>/wire` — a path backed by no
+     * row — for exactly one reason: `PlayerApi.isAvatarStuff` asked
+     * *"is this an avatar?"* by PREFIX-TESTING that string, and
+     * `AccessApi.isWizard` rides on it. An unstamped vessel was not
+     * avatar-shaped, so a player lost their own powers the moment they
+     * stepped into their own circle — no `eval`, no `clone`, found
+     * live and then patched here with a fake stamp.
+     *
+     * `isAvatarStuff` is `instanceof Avatar` now, so a vessel is
+     * recognised for what it IS and keeps its honest lineage
+     * (`/platform/agent/sandbox/SandboxAvatar`). The identity path was
+     * never touched by any of this: it still reports the REAL identity,
+     * so authority membership and the epistemic ledgers key on the
+     * person rather than the vessel.
+     *
+     * ⚠ Nothing in production ever read the `/wire` path — one writer
+     * (here) and one reader (a test pinning it).
+     */
     return session;
   }
 

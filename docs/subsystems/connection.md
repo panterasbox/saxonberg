@@ -105,9 +105,9 @@ Provider OAuth ──▶ /auth/{provider}/callback
               Application.findOrCreateUserFromProvider(provider, …)
                   ├─ findOrCreateProfile(provider)  (google_profiles | twitch_profiles | kick_profiles)
                   └─ findOrCreateUser(provider, …)  (users)
-                       └─ first time? → createDefaultAvatarTemplate
-                                         (forks /platform/agent/Avatar/seed →
-                                          /platform/agent/Avatar/<new playerId>)
+                       └─ a user with an empty roster; no character is
+                          minted here (char-gen does it, at `embody
+                          confirm`)
                           │
                           ▼
                   Passport serializes { id, authProvider } into session
@@ -250,11 +250,21 @@ rotated tokens, which re-encrypts them through the marshaller. (The relay
 that *spends* the tokens is a downstream build; this build only stores
 them and proves the write-back.)
 
-`createDefaultAvatarTemplate` forks from the seed avatar at
-`Avatar.SEED_TEMPLATE_PATH` (`/platform/agent/Avatar/seed`), generates a fresh
-`playerId` via `nanoid()`, overlays the user's `name`/`surname`, and
-persists the new template via `TemplateApi.saveTemplate`. **If the
-seed is missing it throws** — the platform pack must have installed at boot.
+⚠⚠ **`createDefaultAvatarTemplate` does not exist.** This paragraph
+described it as the live signup path until 2026-10-01 and it is gone
+from the code entirely — as is `SeederManager`, and as is the whole
+scheme of **forking a per-player template row**. Nothing mints a
+character at auth time: a new user arrives with an empty roster and
+char-gen mints the body at `embody confirm`.
+
+A played body is cloned from the single authored row
+`/platform/agent/PrimaryAvatar` (`PrimaryAvatar.ROW_TEMPLATE_PATH`),
+with the per-player identity supplied as `asIdentityPath` and the state
+living in `holder_snapshots` through the persistence spine. ⭐ **No row
+is ever written per player**, so `/platform/agent/Avatar/` holds no rows
+at all — it is purely the identity namespace. The row sat at
+`/platform/agent/Avatar/seed` (a reserved fake playerId) long after the
+scheme that needed it was deleted.
 
 Passport serializes `{ id: userId }` into the session
 (`PassportConfig.ts § serializeUser`). At this point the persistent state is

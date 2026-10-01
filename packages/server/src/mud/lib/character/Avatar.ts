@@ -605,20 +605,6 @@ export default abstract class Avatar extends AvatarBase {
    */
   static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.avatar;
 
-  /**
-   * Reserved playerId for the seed avatar at
-   * `/platform/agent/Avatar/seed` — the orphan template every new user's
-   * avatar is forked from. 4 chars; nanoids are 21, so it can't
-   * collide with a real playerId.
-   */
-  static readonly SEED_PLAYER_ID = "seed";
-
-  /**
-   * Convenience: the seed avatar's template path.
-   */
-  static readonly SEED_TEMPLATE_PATH =
-    Avatar.TEMPLATE_PATH_PREFIX + Avatar.SEED_PLAYER_ID;
-
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
   }
@@ -900,7 +886,8 @@ export default abstract class Avatar extends AvatarBase {
         `Avatar.enter: ${this.getFullName()} has no container. ` +
           `The avatar seed must declare a spawn via 'data.startLocation' ` +
           `(a room or a Warren) or 'data.container'; the seed at ` +
-          `'${Avatar.SEED_TEMPLATE_PATH}' sets the default the embody/guest ` +
+          `the '/platform/agent/PrimaryAvatar' row sets the default the ` +
+          `embody/guest ` +
           `overlay clones from (no per-player template row exists).`,
       );
     }

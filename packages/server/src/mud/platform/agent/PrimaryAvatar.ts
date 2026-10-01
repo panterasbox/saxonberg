@@ -35,11 +35,37 @@
  */
 
 import Avatar, { type AvatarInitContext } from '../../lib/character/Avatar';
+import { TemplatePaths } from '../../lib/paths';
 import { PlayerApi } from '../../api/player';
 import { PersistableApi } from '../../api/persistable';
 import { RecordApi } from '../../api/record';
 
 export default class PrimaryAvatar extends Avatar {
+  /**
+   * ⭐ The ONE authored row every played body is cloned from.
+   *
+   * It mirrors this class, as its two siblings' rows mirror theirs
+   * (`/platform/agent/ShadeAvatar`,
+   * `/platform/agent/sandbox/SandboxAvatar`).
+   *
+   * ⚠⚠ It lived at `/platform/agent/Avatar/seed` until 2026-10-01, and
+   * both halves of that were fossils of a mechanism that no longer
+   * exists. Back when a signup FORKED this row into a per-player row at
+   * `/platform/agent/Avatar/<playerId>`, the namespace held rows and
+   * `seed` was a reserved fake playerId guarding against colliding with
+   * a real one. Writebacks are `holder_snapshots` now (the generalized
+   * persistence spine), nothing forks anything, and
+   * `/platform/agent/Avatar/` holds **no rows at all** — it is purely
+   * the identity namespace. So the row was parked inside a namespace of
+   * identities, wearing a fake id to avoid colliding with rows that
+   * cannot exist.
+   *
+   * ⭐ The identity prefix itself is unchanged and stays
+   * `/platform/agent/Avatar/<playerId>`: class is lineage, identity
+   * path is identity, and the namespace is named for the FAMILY.
+   */
+  static readonly ROW_TEMPLATE_PATH = TemplatePaths.primaryAvatar;
+
   /**
    * Post-registration for **the body of record** — the only body that
    * claims the player's registry slot and the only one that writes a

@@ -2,7 +2,7 @@
 title: Avatar
 subject:
   kind: template
-  ref: /platform/agent/Avatar/seed
+  ref: /platform/agent/PrimaryAvatar
 tags:
 - substrate
 - identity
@@ -74,7 +74,7 @@ was removed from ghosts. The refusal is the thing you can read.
 
 ### Primary
 
-<composition kind="template" of="/platform/agent/Avatar/seed"/>
+<composition kind="template" of="/platform/agent/PrimaryAvatar"/>
 
 ### Shade
 

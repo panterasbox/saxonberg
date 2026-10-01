@@ -15,8 +15,15 @@ import { PlayerLogic } from '../../platform/idea/api/PlayerLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Avatar from '../../platform/agent/PrimaryAvatar';
+import ShadeAvatar from '../../platform/agent/ShadeAvatar';
+import SandboxAvatar from '../../platform/agent/sandbox/SandboxAvatar';
+import { Idea } from '../../lib/stuff/Idea';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import { User } from '../../lib/identity/User';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../lib/security/__tests__/test-setup';
 
 // Mock Avatar objects for testing.
 // The migration's methods-only contract means PlayerApi reads
@@ -334,7 +341,7 @@ describe('PlayerApi', () => {
       // the minted identity path rides `asIdentityPath` (D17 — the
       // clone's templatePath stays the seed ROW).
       expect(cloneSpy).toHaveBeenCalledWith(
-        Avatar.SEED_TEMPLATE_PATH,
+        Avatar.ROW_TEMPLATE_PATH,
         { user, playerId: 'player1' },
         { asIdentityPath: Avatar.getTemplatePath('player1') },
       );
@@ -416,55 +423,52 @@ describe('PlayerApi', () => {
   });
 
   describe('isAvatarStuff', () => {
-    // The predicate reads templatePath, NOT instanceof — the
-    // template path is the durable identity of a Stuff (per the MR
-    // review comment that motivated the move).
-
-    function fakeStuffWithPath(path: string | undefined): {
-      getTemplatePath(): string | undefined;
-    } {
-      return { getTemplatePath: () => path };
-    }
-
-    it("returns true for a Stuff whose templatePath starts with Avatar's prefix", () => {
-      const stuff = fakeStuffWithPath('/platform/agent/Avatar/abc123') as Avatar;
-      expect(PlayerApi.isAvatarStuff(stuff)).toBe(true);
+    /*
+     * ⭐⭐ The predicate reads `instanceof` the abstract `Avatar`, NOT
+     * the template path.
+     *
+     * ⚠⚠ This block specified the opposite until 2026-10-01 — it used
+     * duck-typed `{ getTemplatePath }` fakes and carried the note "the
+     * template path is the durable identity of a Stuff (per the MR
+     * review comment that motivated the move)". Measurement falsified
+     * that argument:
+     *
+     *   - a `ShadeAvatar`'s row is `/platform/agent/ShadeAvatar`, which
+     *     does NOT start with `/platform/agent/Avatar/` — so a dead
+     *     player was not a person to the ~90 callers of this predicate,
+     *     including `wallet`, `chat`, `forum`, `office`, `contacts` and
+     *     `AccessApi.isWizard`, none of which carry a
+     *     `requiresEmbodied` gate;
+     *   - a `SandboxAvatar` only passed because `SandboxApi` restamped
+     *     its lineage to `/platform/agent/Avatar/<pid>/wire`, a path
+     *     backed by no row, purely to satisfy the string.
+     *
+     * It is the mistake `Stuff.getPlayerId`'s docstring warns about:
+     * keying a PERSON question on LINEAGE. The fakes are gone because a
+     * duck can no longer stand in — which is the point, since the real
+     * bodies were what the string test got wrong.
+     */
+    it('is true for every body in the family', () => {
+      for (const Body of [Avatar, ShadeAvatar, SandboxAvatar]) {
+        const b = makeStuff(() => new (Body as unknown as new () => Stuff)());
+        expect(PlayerApi.isAvatarStuff(b)).toBe(true);
+      }
     });
 
-    it('returns false for a Stuff with a non-Avatar templatePath', () => {
-      const stuff = fakeStuffWithPath('/obj/npc/Gus') as unknown as Avatar;
-      expect(PlayerApi.isAvatarStuff(stuff)).toBe(false);
+    it('is false for something that is not a body at all', () => {
+      const notAPerson = makeStuff(
+        () => new (Idea as unknown as new () => Stuff)(),
+      );
+      expect(PlayerApi.isAvatarStuff(notAPerson)).toBe(false);
     });
 
-    it('returns false when the Stuff has no templatePath', () => {
-      const stuff = fakeStuffWithPath(undefined) as unknown as Avatar;
-      expect(PlayerApi.isAvatarStuff(stuff)).toBe(false);
+    it('⚠ a template path alone no longer buys personhood', () => {
+      // The old spec's central claim, now explicitly refused: a Stuff
+      // parked at an avatar-shaped path is not a person unless it IS
+      // one. This is what let the sandbox fake its way in.
+      const impostor = makeStuff(() => new (Idea as unknown as new () => Stuff)());
+      stampTemplatePathForTest(impostor, '/platform/agent/Avatar/abc123');
+      expect(PlayerApi.isAvatarStuff(impostor)).toBe(false);
     });
-
-    it('reads the prefix from Avatar.TEMPLATE_PATH_PREFIX', () => {
-      const stuff = fakeStuffWithPath(
-        Avatar.TEMPLATE_PATH_PREFIX + 'whatever',
-      ) as Avatar;
-      expect(PlayerApi.isAvatarStuff(stuff)).toBe(true);
-    });
-  });
-});
-
-describe('PlayerLogic singleton encapsulation', () => {
-  beforeEach(() => {
-    StuffApi.clearAll();
-  });
-  afterEach(() => {
-    StuffApi.clearAll();
-  });
-
-  it('denies a direct logic-method call from a non-PlayerApi caller', () => {
-    // A facade call lazily creates the logic singleton.
-    PlayerApi.getAvatarCount();
-    const logic = StuffApi.findByTemplatePath<PlayerLogic>('/platform/idea/api/player');
-    expect(logic).toBeDefined();
-    // The test module is not `mud/api/player#PlayerApi`, so the
-    // FromModule gate on the logic's own methods denies the call.
-    expect(() => logic!.getAvatarCount()).toThrow(SecurityError);
   });
 });

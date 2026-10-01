@@ -22,6 +22,7 @@ import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
 import { PersistenceManager, Collections } from '../PersistenceManager';
 import Avatar from '../../mud/lib/character/Avatar';
+import PrimaryAvatar from '../../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
 import { User } from '../../mud/lib/identity/User';
@@ -429,7 +430,7 @@ describe('Application', () => {
         }),
       } as never);
       vi.spyOn(Template, 'findByPath').mockResolvedValue({
-        path: Avatar.SEED_TEMPLATE_PATH,
+        path: PrimaryAvatar.ROW_TEMPLATE_PATH,
         class: '/platform/agent/Avatar',
         data: { species: 'human' },
         hydratorClass: '/platform/idea/persistence/PersistentHydrator',

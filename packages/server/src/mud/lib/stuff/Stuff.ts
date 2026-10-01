@@ -549,7 +549,7 @@ export abstract class Stuff {
    *
    * ⚠⚠ This paragraph said `getTemplatePath()` until 2026-09-08, and that
    * was FALSE after D17 split identity from lineage: a player Avatar is
-   * cloned from `Avatar.SEED_TEMPLATE_PATH` with the per-player path
+   * cloned from `PrimaryAvatar.ROW_TEMPLATE_PATH` with the per-player path
    * supplied as `asIdentityPath`, so **every player shares one
    * `templatePath`** and only `getIdentityPath()` tells them apart.
    * Banking and the work-contract substrate followed this comment and

@@ -21,7 +21,9 @@ import RecordBody from '../../../platform/agent/PrimaryAvatar';
 import ShadeAvatar from '../../../platform/agent/ShadeAvatar';
 import SandboxAvatar from '../../../platform/agent/sandbox/SandboxAvatar';
 import { StuffApi } from '../../../api/stuff';
+import { Idea } from '../../stuff/Idea';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { PlayerApi } from '../../../api/player';
 import type { Stuff } from '../../stuff/Stuff';
 
 describe('⭐⭐ the Avatar family', () => {
@@ -83,6 +85,63 @@ describe('⭐⭐ the Avatar family', () => {
         'claimsRegistrySlot' in
           ((C as unknown as { prototype: object }).prototype as object),
       ).toBe(false);
+    }
+  });
+
+  /*
+   * ⭐⭐ The predicate ~90 call sites use to ask "is this a person?"
+   *
+   * ⚠⚠ It was a `templatePath` PREFIX TEST until 2026-10-01 and it was
+   * wrong for two of the three bodies. A `ShadeAvatar`'s row is
+   * `/platform/agent/ShadeAvatar`, which does not start with
+   * `/platform/agent/Avatar/` — so a DEAD PLAYER WAS NOT A PERSON to
+   * `wallet`, `chat`, `forum`, `office`, `contacts` and
+   * `AccessApi.isWizard`, none of which carry a `requiresEmbodied`
+   * gate. And a `SandboxAvatar` only passed because `SandboxApi`
+   * restamped its lineage to a path backed by no row, purely to
+   * satisfy the string.
+   *
+   * `requiresEmbodied`'s own docstring states the doctrine this
+   * violated: death "costs embodied agency and the price of coming
+   * back; it never costs a seat as a person."
+   */
+  it('⭐⭐ all three bodies are a PERSON to isAvatarStuff', () => {
+    for (const Body of [RecordBody, ShadeAvatar, SandboxAvatar]) {
+      const b = makeStuff(() => new (Body as unknown as new () => Stuff)());
+      expect(
+        PlayerApi.isAvatarStuff(b),
+        `${(Body as unknown as { name: string }).name} must count as a ` +
+          'person — it IS one. A lineage string is not the question.',
+      ).toBe(true);
+    }
+  });
+
+  it('⚠ and a non-avatar body is not', () => {
+    // The predicate must still DISCRIMINATE — an instanceof that is
+    // true of everything would pass the test above vacuously.
+    const notAPerson = makeStuff(() => new (Idea as unknown as new () => Stuff)());
+    expect(PlayerApi.isAvatarStuff(notAPerson)).toBe(false);
+  });
+
+  it('⭐ the record body\'s row mirrors its class, like its siblings', () => {
+    // ⚠ It was `/platform/agent/Avatar/seed` — a fossil of the scheme
+    // that forked a per-player ROW at `/platform/agent/Avatar/<pid>`.
+    // Nothing forks anything now (holder_snapshots is the spine), so
+    // the row was parked inside a namespace of IDENTITIES wearing a
+    // reserved fake playerId to avoid colliding with rows that cannot
+    // exist.
+    expect(RecordBody.ROW_TEMPLATE_PATH).toBe('/platform/agent/PrimaryAvatar');
+    // ⭐ And the identity prefix is untouched: class is lineage,
+    // identity path is identity, and the namespace is the FAMILY's.
+    expect(Avatar.TEMPLATE_PATH_PREFIX).toBe('/platform/agent/Avatar/');
+    expect(Avatar.getTemplatePath('abc')).toBe('/platform/agent/Avatar/abc');
+  });
+
+  it('⛔ nothing reintroduces the seed statics', () => {
+    for (const C of [Avatar, RecordBody]) {
+      const c = C as unknown as Record<string, unknown>;
+      expect('SEED_TEMPLATE_PATH' in c).toBe(false);
+      expect('SEED_PLAYER_ID' in c).toBe(false);
     }
   });
 });

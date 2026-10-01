@@ -37,6 +37,7 @@ import { PlayerApi } from '../mud/api/player';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/lib/character/Avatar';
+import PrimaryAvatar from '../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
 
@@ -234,10 +235,10 @@ export class TestHooks {
     surname?: string,
     startLocation?: string
   ): Promise<string> {
-    const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
+    const seed = await Template.findByPath(PrimaryAvatar.ROW_TEMPLATE_PATH);
     if (!seed) {
       throw new Error(
-        `TestHooks: no seed at '${Avatar.SEED_TEMPLATE_PATH}'. Did the ` +
+        `TestHooks: no seed at '${PrimaryAvatar.ROW_TEMPLATE_PATH}'. Did the ` +
           `platform pack install?`
       );
     }
@@ -255,7 +256,7 @@ export class TestHooks {
     if (surname) data.surname = surname;
     const { StuffApi } = await import('../mud/api/stuff');
     const avatar = await StuffApi.clone<Avatar>(
-      Avatar.SEED_TEMPLATE_PATH,
+      PrimaryAvatar.ROW_TEMPLATE_PATH,
       { user, playerId },
       { dataOverlay: data, asIdentityPath: path }
     );

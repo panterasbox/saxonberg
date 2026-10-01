@@ -24,6 +24,7 @@
  */
 
 import { SecurityApi } from "../../api/security";
+import { TemplatePaths } from "../../lib/paths";
 import { Idea } from "../../lib/stuff/Idea";
 import { StuffApi } from "../../api/stuff";
 import { AppApi } from "../../api/app";
@@ -257,7 +258,7 @@ export default class Login extends LoginBase {
       "./cmd/charactergen/EmbodyController"
     );
     const cfg = EmbodyController.loadConfig();
-    const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
+    const seed = await Template.findByPath(TemplatePaths.primaryAvatar);
     if (!seed) {
       throw new Error("Login.mintRandomGuestAvatar: no Avatar seed template.");
     }
@@ -303,7 +304,7 @@ export default class Login extends LoginBase {
     // row to write and delete (the identity doctrine: rows are for
     // authored content; a throwaway guest gets none).
     const avatar = await StuffApi.clone<Avatar>(
-      Avatar.SEED_TEMPLATE_PATH,
+      TemplatePaths.primaryAvatar,
       { user, isGuest: true },
       { dataOverlay: data, asIdentityPath: path },
     );

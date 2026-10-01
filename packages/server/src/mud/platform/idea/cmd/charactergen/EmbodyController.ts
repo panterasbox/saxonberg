@@ -19,6 +19,7 @@
  */
 
 import { SecurityApi } from "../../../../api/security";
+import { TemplatePaths } from "../../../../lib/paths";
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MessageApi } from "../../../../api/message";
@@ -671,7 +672,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     //    authored content only; a character's durable state is its
     //    persistence-spine snapshot, captured in `postRegister` right
     //    after this clone).
-    const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
+    const seed = await Template.findByPath(TemplatePaths.primaryAvatar);
     if (!seed) {
       throw new Error(`EmbodyController.commit: no Avatar seed template.`);
     }
@@ -718,7 +719,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     //    picks and minting the identity path (postRegister stamps +
     //    installs the baseline implant + captures the first snapshot).
     const avatar = await StuffApi.clone<Avatar>(
-      Avatar.SEED_TEMPLATE_PATH,
+      TemplatePaths.primaryAvatar,
       { user, playerId },
       { dataOverlay: overlay, asIdentityPath: path },
     );

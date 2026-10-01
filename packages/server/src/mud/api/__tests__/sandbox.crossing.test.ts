@@ -313,9 +313,9 @@ describe('sandbox crossing', () => {
    * ⚠⚠ **Issue #42, and the reason it stayed invisible.**
    *
    * The accountability ledger keyed on `getTemplatePath()` while every
-   * other ledger keyed on `getIdentityPath()`. A `SandboxAvatar` is stamped
-   * `/platform/agent/Avatar/<playerId>/wire` — a vessel path, backed by
-   * nothing — while *projecting* the player's real identity. So an
+   * other ledger keyed on `getIdentityPath()`. A `SandboxAvatar` carries
+   * its own lineage — `/platform/agent/sandbox/SandboxAvatar` — while
+   * *projecting* the player's real identity. So an
    * in-circle harm filed under the **vessel**: invisible to
    * `blameFor(realIdentity)`, and unreachable by the one reader that
    * cares.
@@ -335,8 +335,18 @@ describe('sandbox crossing', () => {
     const vessel = SandboxApi.activeBodyFor(PLAYER)!;
     // The premise: the vessel's template path is its OWN, and it is not
     // the person. If these two ever converge, this test is lying.
+    //
+    // ⭐ The premise got STRONGER on 2026-10-01. This used to read
+    // `${Avatar.getTemplatePath(PLAYER)}/wire` — a synthetic path
+    // backed by no row, which `SandboxApi` restamped onto the vessel
+    // for one reason: `isAvatarStuff` asked "is this an avatar?" by
+    // prefix-testing `/platform/agent/Avatar/`, and an honest vessel
+    // failed it, costing the player their own powers inside their own
+    // circle. The predicate is `instanceof Avatar` now, so the vessel
+    // keeps its real lineage and the premise is a fact rather than a
+    // stamp someone had to remember to apply.
     expect(vessel.getTemplatePath()).toBe(
-      `${Avatar.getTemplatePath(PLAYER)}/wire`,
+      '/platform/agent/sandbox/SandboxAvatar',
     );
     expect(vessel.getIdentityPath()).toBe(Avatar.getTemplatePath(PLAYER));
 

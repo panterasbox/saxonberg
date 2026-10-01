@@ -1261,6 +1261,88 @@ Read first, in this order:
 
 ---
 
+### ✅ W7 — the seed fossil, and the predicate holding it in place — DONE
+
+Added in review, on the owner's question: *"why is the template still
+`avatar/seed.yaml`? that whole seed thing was when we were doing
+writebacks directly into the content collection but now it's all
+powered by that holders collection. I thought all that was gone."*
+Correct, and the fossil ran deeper than the filename.
+
+**What `seed` was.** A signup used to FORK the row into a real
+per-player row at `/platform/agent/Avatar/<playerId>`, so that
+namespace held rows and `seed` was a reserved FAKE playerId guarding
+against colliding with a real one. Measured: `seed.yaml` was the only
+one in the content tree, `Application.createDefaultAvatarTemplate`
+**exists nowhere in the code**, `SeederManager` is gone, and guests mint
+no row either (`asIdentityPath`, with the code comment to say so). So
+`/platform/agent/Avatar/` held **no rows at all** — the row was parked
+inside a namespace of identities, wearing a fake id to avoid colliding
+with rows that cannot exist.
+
+**Why it could not just be renamed — and the defect that hid under it.**
+`PlayerApi.isAvatarStuff` answered *"is this a person?"* by
+prefix-testing `templatePath.startsWith('/platform/agent/Avatar/')`,
+with ~90 call sites including `AccessApi.isWizard`. Measured:
+
+| body | prefix test |
+|---|---|
+| `PrimaryAvatar` | ✅ (only via `.../Avatar/seed`) |
+| `ShadeAvatar` | ⛔ **false** |
+| `SandboxAvatar` | ✅ only because `SandboxApi` **restamped** its lineage to `/platform/agent/Avatar/<pid>/wire`, a path backed by no row |
+
+⚠⚠ `wallet`, `chat`, `forum`, `office` and `contacts` carry **no
+`requiresEmbodied` gate**, so this predicate was the only thing
+deciding — and **a dead player was not a person.** That is the bug class
+`Stuff.getPlayerId`'s own docstring warns about (keying a PERSON
+question on LINEAGE), the one that cost a shared bank account.
+`requiresEmbodied`'s docstring states the doctrine it broke: death
+*"never costs a seat as a person."*
+
+**Landed:**
+
+- `isAvatarStuff` → `instanceof Avatar` (the abstract W3 created).
+- The sandbox's fake lineage restamp **deleted** — one writer, one
+  reader (a test pinning it), nothing in production.
+- The row → `/platform/agent/PrimaryAvatar`, mirroring its class like
+  its two siblings. `SEED_PLAYER_ID` / `SEED_TEMPLATE_PATH` retired;
+  the path lives in `TemplatePaths.primaryAvatar`, because `lib/paths.ts`
+  is a leaf and importing the concrete class from `Login` /
+  `EmbodyController` closes a module cycle (`Class extends value
+  undefined` — which is why `PlayerLogic` lazy-imports it).
+- ⭐ The identity prefix is **unchanged** (D13): class is lineage,
+  identity path is identity.
+- **A shade cannot spend** (owner's call): `bank deposit` / `withdraw`
+  / `transfer` tagged `requiresEmbodied` per-subcommand — cash across a
+  counter needs hands. `pay` and `draw` were already tagged. Reads stay
+  open. `bank borrow` deliberately NOT tagged — taking on debt is not
+  spending, and whether a ghost may is left to its own lens pass.
+  `bank.yaml` is the first MIXED view and graduates out of
+  `embodied-tagging.test.ts`'s whole-file `READ_ONLY_IN_MATERIAL` set.
+
+**⚠ Three suites were exploiting the hole**, all with the same shape: a
+lightweight `Creature`/`TestGiver` stand-in parked at an avatar path,
+read as a player for free. They now declare themselves
+(`contract-lifecycle`, `HouseAccount`, terminus `stall`). ⭐ The new
+`player.test.ts` case refuses that explicitly — *a template path alone
+no longer buys personhood* — which is the same hole the sandbox was
+walking through.
+
+**⚠⚠ And one of those hid behind an unawaited promise.** `HouseAccount`
+fire-and-forgets a payment-card issue; with the predicate fixed it took
+the non-player branch and threw **seven unhandled rejections** while
+every test still reported PASSING and the run exited non-zero. A green
+test list is not a green run.
+
+⭐ A side benefit worth naming: `DocumentLogic` and `ContractLogic`
+prefix-test the identity namespace to recognise a player *identity*.
+With the row out of that namespace those reads lose a class of false
+positive — `/platform/agent/Avatar/seed` would have answered yes.
+
+**Commit.** `build(avatar-family W7): the seed fossil goes, and the predicate that pinned it`
+
+---
+
 ## Drive record — run 2026-09-30, `WIRE_BOOT=1 WIRE_PORT=2014`
 
 `packages/wire/tests/avatar-family.dirty.wire.test.ts` — **6 passed**.

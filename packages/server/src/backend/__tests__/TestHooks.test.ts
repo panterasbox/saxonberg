@@ -8,6 +8,7 @@ import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestHooks } from '../TestHooks';
 import Avatar from '../../mud/lib/character/Avatar';
+import PrimaryAvatar from '../../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
 import EmbodyController from '../../mud/platform/idea/cmd/charactergen/EmbodyController';
@@ -25,7 +26,7 @@ function stubSeedClone() {
   // The hook reads the seed row first (and refuses loudly when the
   // platform pack has not installed it), so the read is stubbed too.
   vi.spyOn(Template, 'findByPath').mockResolvedValue({
-    path: Avatar.SEED_TEMPLATE_PATH,
+    path: PrimaryAvatar.ROW_TEMPLATE_PATH,
     class: '/platform/agent/Avatar',
     data: {},
     hydratorClass: '/platform/idea/persistence/PersistentHydrator',
@@ -107,7 +108,7 @@ describe('TestHooks.provisionCharacter', () => {
       unknown,
       { dataOverlay: Record<string, unknown>; asIdentityPath: string },
     ];
-    expect(seedPath).toBe(Avatar.SEED_TEMPLATE_PATH);
+    expect(seedPath).toBe(PrimaryAvatar.ROW_TEMPLATE_PATH);
     expect(opts.asIdentityPath).toBe(
       Avatar.getTemplatePath(user.playerIds[0]!),
     );

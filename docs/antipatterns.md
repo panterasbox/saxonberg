@@ -4820,7 +4820,7 @@ it is, the branch adds nothing and the whole thing collapses.
 
 **Every player Avatar shares one `templatePath`.** Since D17 split
 identity from lineage, an Avatar is cloned from
-`Avatar.SEED_TEMPLATE_PATH` with its per-player path supplied as
+`PrimaryAvatar.ROW_TEMPLATE_PATH` with its per-player path supplied as
 `asIdentityPath`, and `StuffApi.clone` stamps the two **separately**
 (`_stampTemplatePath` then `_stampIdentityPath`). So the template path
 is the LINEAGE — the same string for every player alive — and only
