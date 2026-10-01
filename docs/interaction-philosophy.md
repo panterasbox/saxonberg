@@ -357,6 +357,35 @@ deferred to a future **scripting slate**.
 
 ---
 
+## ⭐⭐ Primality — the cost, and where it is paid
+
+Added 2026-09-30 from
+[lens #65 · Primality](./lenses/65-primality.md). Schell's test for an
+interface that needs no learning is *“is it something that **animals can
+do**”* — touch being 300–400 million years old where tool use is three
+million. **By that test reading scores zero**, and the downside below is
+the honest half of it.
+
+> ⭐⭐⭐ **The answer is this doc's own distinction, one level up: the
+> simulation is FOUNDATIONAL and primality is DECORATIONAL.** We did not
+> choose a non-primal game; we shipped the **least** primal client first,
+> because it is cheapest to build, reaches any device, has a ceiling set by
+> imagination rather than an art budget, and is the channel a language
+> model already speaks. **A primal client — voxel, touch, VR — is a
+> renderer, and server authority (A8) is what makes it possible.**
+
+⚠⚠ **The model ports; the interaction does not.** Per
+[positioning.md](./positioning.md), a 3D or voxel client *“needs its own
+affordance layer, and porting that is real work”* — so a primal client is
+not a skin, it is a second interaction design. ⭐ And the mitigations
+listed below are **primality** features: hearing predates reading by a
+very long way, which makes AI narration the cheapest primality available
+without touching the interaction model at all.
+
+⭐ One on-ramp already ships and reads as a convenience: **clickables
+preview their command.** A click is touch, touch is primal, and the
+preview **teaches the text** by showing what it would have typed.
+
 ## The honest downsides
 
 Text earns its place, but the argument owns its costs.
