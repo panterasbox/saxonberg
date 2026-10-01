@@ -558,10 +558,13 @@ no `tpa` lane.*
 **28 NPCs. Total. In the whole game.** 8 Terminus, 7 Rejection, 5 Lounge,
 4 wilds, 2 Hearthworks, 2 university. Not hundreds.
 
-And **the mechanism already ships.** `lib/behavior/shifts` is a two-state
-machine driven off the employment roster: `on-shift` → the workplace,
-`off-shift` → `Offstage`, a **no-exit holding room**, moved by `teleport`.
-Six NPCs run it today.
+And **the mechanism already ships.** ⚠ *Updated 2026-09-30:* it is no longer
+a brain — the agent-coordination build moved it onto the **roster tick**
+(`offstage:` on the Business, `station?` on the seat), because presence is a
+consequence of employment state and `shifts` was polling every 30 s to
+notice an hourly flip. Same two states, same `Offstage` no-exit holding
+room, same `teleport`; the schedule and the move now live together. See
+[employment.md](../../subsystems/employment.md) § Presence and cover.
 
 Now read what an `Offstage` room already says
 (`hearthworks/location/offstage.yaml`):
