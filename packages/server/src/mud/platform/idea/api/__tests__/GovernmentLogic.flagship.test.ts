@@ -166,10 +166,17 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     await expect(
       GovernmentApi.holdsSeat(clerk, "terminus-city", "magistrate")
     ).resolves.toBe(true);
-    // And the registrar's counter, the double-hat.
+    // And the registrar's counter, the double-hat. ⭐ The energy build added
+    // a second, deliberately VACANT seat — Commissioner of Works, the office
+    // the polity can fill to run the city's grid and lamps — so the city now
+    // carries two seats: the magistrate the clerk holds, and public-works
+    // held by nobody.
     const seats = await GovernmentApi.seatsOf("terminus-city");
-    expect(seats).toHaveLength(1);
-    expect(seats[0]!.holder).toBe(CLERK_PATH);
+    expect(seats).toHaveLength(2);
+    const magistrate = seats.find((s) => s.seat.key === "magistrate")!;
+    expect(magistrate.holder).toBe(CLERK_PATH);
+    const works = seats.find((s) => s.seat.key === "public-works")!;
+    expect(works.holder).toBeNull();
   });
 
   it("the clerk's authored domicile resolves [city, realm]", () => {

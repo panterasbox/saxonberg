@@ -64,7 +64,10 @@ describe('the shipped packs (real discovery, no install)', () => {
     // 47 → 48: fishing adds `trade-fishing`; 48 → 50: TWO builds landed a
     // pack in the same window — `trade-shopkeeping` (trades-and-labor) and
     // `ground` (the system pack the column and the surface character moved
-    // OUT of two trades into); 50 → 51: extraction adds `trade-quarrying`.
+    // OUT of two trades into); 50 → 51: extraction adds `trade-quarrying`;
+    // 51 → 52: energy adds `energy` (the `/system/energy` pack — the feeder
+    // grid, the parcel meter, the oil store), installed after the kernel and
+    // before the localities that migrate their street lighting onto it.
     //
     // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
     // git merged the two comment blocks as a CONFLICT while merging the
@@ -73,7 +76,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(51);
+    expect(ids).toHaveLength(52);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
@@ -217,5 +220,15 @@ describe('the shipped packs (real discovery, no install)', () => {
     // locality's, so Terminus installs after the trade whose counter and
     // shed it stands.
     expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-haulage'));
+    // ⭐ The energy cut: the `/system/energy` pack ships the feeder grid, the
+    // parcel meter and the oil store (the `FuelStore`, `ElectricLight`,
+    // `LineAccess`, `GridCatalogue` classes). Terminus migrated its street
+    // lighting onto the grid and props the poles and the lobby light;
+    // world-seed ships the feeder rows; hearts-delight is gas-lit from a
+    // store — so each names the energy pack's classes and installs after it.
+    // The mechanism is the system's; a town's lamps are the realm's.
+    for (const namer of ['world-seed', 'terminus', 'hearts-delight']) {
+      expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('energy'));
+    }
   });
 });

@@ -251,7 +251,13 @@ describe('libations annexes — the hands name the host', () => {
     // Winemaking and brewing retired their consigns beats with their
     // faucets (the W8 switchover — the cellars beats consign what they
     // MAKE); the faucet annexes and the yards still run them.
-    expect(hands.length).toBe(ANNEXES.length - 2 + DISTILLING_FLOORS.length);
+    // ⭐ +1: the energy build's OIL WORKS hand. The oil works stands in the
+    // goods yards (so `isYardRow` nets it) and runs the same consigns beat —
+    // carrying lamp-oil casks to the distributor counter AS the works. It is
+    // not a libations floor, but it is the identical pattern, so the per-hand
+    // invariants below (names the counter, homes every key it stocks, holds a
+    // purchasing seat) hold for it unchanged.
+    expect(hands.length).toBe(ANNEXES.length - 2 + DISTILLING_FLOORS.length + 1);
     for (const hand of hands) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
         (b) => b.brain === '/trade/shopkeeping/behavior/consigns',
