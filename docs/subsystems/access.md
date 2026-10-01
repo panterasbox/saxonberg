@@ -451,7 +451,7 @@ tree mode, etc.) we revisit.
 | `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (eval is TS execution). |
 | `StreamController` | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
 | `WizardController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
-| `CloneController` | `can(giver, 'clone', sourceResource)` — slice walk on source path. |
+| `CloneController` | `can(giver, 'clone', sourceResource)` — slice walk on the source path's live REPRESENTATIVE — **or, when the row has no live instance anywhere, `canAtPath(giver, 'clone', path)`**. ⚠⚠ Without that fallback `zoneOf(null)` resolved the empty path and the clone was refused to everybody: **a row was not clonable until somebody had already cloned it.** `/system/transport/thing/coach` is a shipped row no locality places, so no player could stand up a coach; found by the base-class narrowing drive. Untitled still fails closed. |
 | `ReloadController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice. |
 | `WriteController` content | Zone target: `canMutateZone(giver, target)`. Else: `can(giver, 'write', target)`. |
 | `WriteController` source/mirror | `isWizard(giver)` AND `can(giver, 'write', resolveSourceFolderZone(path))`. |

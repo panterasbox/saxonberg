@@ -18,7 +18,7 @@ data:
   longDescription: >-
     A cut brick of black peat, fibrous at the broken edge and heavy with the
     water still in it. It smells of the bank it came out of.
-  material: /stuff/idea/material/organic/peat
+  _materialPath: /stuff/idea/material/organic/peat
   mass: 4
   reserves:
     fuel:

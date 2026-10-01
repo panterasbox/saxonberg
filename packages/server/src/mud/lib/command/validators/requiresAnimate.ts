@@ -2,7 +2,7 @@
  * requiresAnimate — verb-level precondition. Rejects the command when
  * the giver isn't currently animate.
  *
- * "Animate" means the giver is a living/active organism (or
+ * "Actor" means the giver is a living/active organism (or
  * powered-on Constructa) capable of acting in the world. Dead
  * Animalia, unpowered Constructa, plants, and non-Organism givers all
  * fail this check.

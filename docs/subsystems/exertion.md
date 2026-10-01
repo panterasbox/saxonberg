@@ -220,7 +220,7 @@ first treadmill lands (one line then). Reported, never enforced: a bar
 dropped on any floor makes the room meet the load slot with no code and
 no second archetype.
 
-`platform/thing/LoadDevice extends ToolItem` — Crafted, Tool
+`platform/thing/LoadDevice extends Tool` — Crafted, Tool
 (`capabilities: [load]`), Durable — with `loadMinKg / loadMaxKg /
 wattsPerKg / setDurationS`, and `commandContributions` in the
 **environment** bucket: the bar on the floor of the room affords

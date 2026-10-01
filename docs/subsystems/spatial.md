@@ -45,7 +45,8 @@ substrate in `lib/spatial/`:
 
 | Type | Kind | Role |
 |---|---|---|
-| `Vessel` | top-level branch | A *container-object* — a thing that holds things, at any scale (bag → cart → ship). Carries Thing's describable-physical baseline directly (`Visible` + `Perceptible` + `Tangible`) so a describable container needs no re-added `Visible`, plus Container + Containable + `Atmospheric` ([biome.md](./biome.md)) — but is **not** a `Thing` subtype (a ship isn't pocketable); carry/drag/ride is emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
+| `Holder` | `lib/stuff/Holder` | ⭐ **A thing that holds things and is itself held** — `ContainerMixin(Thing)` and nothing else. Minted by the base-class narrowing (2026-09-30) as the rung `Vessel` had been standing in for: the container chain is a **chain, not a fork** — `Location` (holds, is not held) → **`Holder`** (holds, is held) → `Vessel` (…and is ownable and concealable) → `ExitableVessel` (…and has air and a door). An immovable container — `Stock`, `BankCounter`, `DepotCounter`, `CheckRack`, `ConsignmentShelf`, `TpaTerminal` — extends `Holder`, not `Vessel`, because it is not a good. ⚠ Deliberately **twin-less**: nothing should clone a bare holder. Boundary vs `Receptacle`: a holder takes DISCRETE things, a receptacle takes BULK ([bulk.md](./bulk.md)). |
+| `Vessel` | `lib/stuff/Vessel` | A *container-object* — a thing that holds things, at any scale (bag → cart → ship). Carries Thing's describable-physical baseline directly (`Visible` + `Perceptible` + `Tangible`) so a describable container needs no re-added `Visible`, plus Container + Containable — ⭐⭐ **and NOT `Atmospheric`: a bag is not a place.** The mixin composed here until the base-class narrowing build, giving a backpack, a till, a jar, a rack, a footlocker, a handcart, a bank counter and a barge each their own temperature, pressure, humidity, wind and biome; 37 rows over 15 composers, and none ever authored one of those fields. It is on `ExitableVessel` now ([biome.md](./biome.md)) — *a thing you can go inside is a place with air* — which is also the only place anybody's `context.location` can ever be a vessel, since a rider occupies a SLOT and stands in the room. A plain vessel is now a transparent step in the outward biome walk, exactly like a Box. ⭐ Since the base-class narrowing it is `ChattelMixin(ConcealableMixin(Holder))` — **a vessel is a holder that is also a GOOD**, so it carries exactly the two mixins that came off the `Thing` root, and `ContainerMixin(Good)` and `Vessel` are now the same mixin set. (An older reading of this row called it a top-level branch and *not* a `Thing` subtype; it traces through `Thing` and always did — *you can't pocket a ship* is a mass gate, not a type gate.) Carry/drag/ride stays emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
 | `PlacingMixin` | mixin | **Placement**: the members this host offers (`placements`), the lazy `getPlaced` read, and the `canPlace` veto. Was `SurfacedMixin` until 2026-09-28. |
@@ -67,13 +68,15 @@ Stuff (one of seven top-level branches — see architecture.md)
   ├── Idea
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
   ├── Location                      (Adornable + Container — the container host; concrete rooms in location.md)
-  ├── Thing                         (ContainableMixin(Stuff))
+  ├── Thing                         (Wet + Visible + Detailed + Perceptible + Tangible + Containable)
+  │     ├── Good                    (Chattel + Concealable)            ← portable matter: owned, hidden
   │     ├── Boundary                (Visible + Perceptible)            ← see light.md
   │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` identity refs)
   │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
-  │     └── BoundaryAnchor          (Adornment)                         ← see light.md
-  ├── Vessel                        (Tangible + Atmospheric + Container + Containable)
-  │     └── ExitableVessel          (DoorBearing + Exitable + Visible + Adornable)
+  │     ├── BoundaryAnchor          (Adornment)                         ← see light.md
+  │     └── Holder                  (Container) — holds, and is held
+  │           └── Vessel            (Chattel + Concealable) — a holder that is a Good
+  │                 └── ExitableVessel  (Atmospheric + DoorBearing + Exitable + Adornable)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
 
@@ -81,9 +84,13 @@ The fundamental split for spatial relationships:
 
 - **Locations are containers but not containables** (rooms don't
   live anywhere).
-- **Things are containables but not containers** (or, in Vessel-light
-  cases, both — a chest *could* be modeled as a Thing-with-Container,
-  but anything with navigable interior is a Vessel).
+- **Things are containables but not containers** — until they extend
+  `Holder`, which is the rung that adds `Container` and is where a chest,
+  a counter or a shelf belongs. ⭐ The chain does not fork: a thing with a
+  navigable interior is an `ExitableVessel`, which is a `Vessel`, which is
+  a `Holder`. ⚠ And the taxonomy is deliberately NARROW — four rungs, each
+  adding exactly one claim. A fifth container branch is a design
+  conversation, not a convenience.
 - **Vessels are both** — that's their distinguishing trait. Mobile
   places.
 - **Doors are Things** with an attach/detach relationship to Exits,
@@ -392,14 +399,24 @@ hosts, which would constrain several identical tables in one hall.
   only from `ContainmentApi.place` / `.move`.
 - ⭐ `getEnclosingScope(): Stuff | null` — **what stands between me
   and my container, for air, sight and reach.** The placement host
-  when the member `encloses`, else the container. Read by `Thermal`'s
-  ambient resolution (both the pull and the push side, through one
-  `ambientScopeOf`) and by `PerceptionLogic.canReach`.
+  when the member `encloses`, else the container. Read by
+  `PerceptionLogic.canReach`, by `Thermal`'s **holder** read
+  (`ambientScopeOf` → `enclosingCoolbox`: what you are IN outranks the
+  room), and as the **step** of `Thermal`'s **air** walk.
 
-⚠ Stepping *further* outward — through a non-atmospheric container
-until a scope answers — is NOT this; see
-[base-class-narrowing-slate](../slates/builds/base-class-narrowing-slate.md)
-finding #2.
+⭐ Its two readers ask different questions, and the difference is one
+step:
+
+- *what holds me* — `Thermal.ambientScopeOf`, one hop, no walk;
+- *what air reaches me* — `Thermal.airScopeOf`, which steps outward
+  through this method until something is `Atmospheric`.
+
+They were one call until `AtmosphericMixin` left `Vessel` in the
+base-class narrowing build and a bag stopped pretending to be weather.
+⚠⚠ A **worn** bag's container is the wearer (a `Creature` is a
+`Container`), so bag → carrier → room is two hops — which is why the air
+read is a walk and not a second step. See
+[thermal.md](./thermal.md) § *Two questions, one step apart*.
 
 **The pair IS persisted**, by the container's slice.
 `ContentPlacement { hostIndex?, placement? }` in
@@ -529,7 +546,7 @@ live row falls back to `With it`.
 ### The concrete hosts
 
 **`Fitting`** (`platform/thing/Fitting.ts`,
-`PlacingMixin(DetailedMixin(Thing))`, `fixedInPlace = true`) is the
+`PlacingMixin(Good)`, `fixedInPlace = true`) is the
 bare fixture things are placed on — a shelf, counter, table, rail,
 hook, the bar's back-bar. ⭐ A row decides WHICH member it offers
 (`placements: [from]` for a hook) and how airy it is, so a drying

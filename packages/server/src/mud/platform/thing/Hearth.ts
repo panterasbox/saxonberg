@@ -16,7 +16,7 @@
  * `Oven` and `Kiln` do not, and the envelope narrows a room's contents
  * with `MixinApi.isSpaceHeating` without ever naming a class.
  *
- * Composition: `SpaceHeating + Furnace + LightSource + Reserved +
+ * Composition: `SpaceHeating + Burner + LightSource + Reserved +
  * Thermal + Placing` over a `Thing`.
  *
  *  - **`SpaceHeatingMixin` outermost**, so it can read the furnace face:
@@ -34,12 +34,8 @@
  * A commons object: a second inn's fireplace is a ROW.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Firebox from '../../lib/fire/Firebox';
 import { PlacingMixin } from '../../lib/spatial/Placing';
-import { ReservedMixin } from '../../lib/reserve';
-import { LightSourceMixin } from '../../lib/perception/LightSource';
-import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { FurnaceMixin } from '../../lib/fire/Furnace';
 import { SpaceHeatingMixin } from '../../lib/thermal/SpaceHeating';
 
 /**
@@ -55,15 +51,15 @@ const HEARTH = {
   BURN_RATE_PER_MIN: 0.25,
 } as const;
 
-const HearthBase = SpaceHeatingMixin(
-  FurnaceMixin(
-    LightSourceMixin(ReservedMixin(ThermalMixin(PlacingMixin(Thing)))),
-  ),
-);
+// ⭐ A firebox that warms the ROOM — `SpaceHeating` composed OUTSIDE
+// the chain, which is exactly the difference between a hearth and a
+// forge: a lit forge heats what you put in it, a lit hearth heats the
+// air. The difference is composed, not dialled.
+const HearthBase = SpaceHeatingMixin(PlacingMixin(Firebox));
 
 export default class Hearth extends HearthBase {
   /**
-   * ⚠ `FurnaceMixin.lit` defaults **true**, which is right for the
+   * ⚠ `BurnerMixin.lit` defaults **true**, which is right for the
    * Campfire seed it was written for and wrong for a hearth in an empty
    * room. A hearth ships cold; `lint:light-sources` clause (g) makes
    * every row say which it means anyway.

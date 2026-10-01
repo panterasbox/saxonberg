@@ -1,12 +1,26 @@
 # Zone subsystem
 
 The `lib/zone/` subsystem holds the **Zone-hierarchy roots** — the
-abstract scope abstraction (`Zone`), the abstract spatial-coordinate
-base (`SpatialZone`), and the generic organizational `FolderZone`.
-Concrete spatial-coordinate zones (`CartesianZone`, `SphericalZone`)
-live in `lib/spatial/`; non-spatial taxonomy zones (`Clade`,
-`HomeZone`) live in their own domain folders. All of them extend
-`Zone`.
+abstract scope abstraction (`Zone`) and the abstract
+spatial-coordinate base (`SpatialZone`). Those two, and only those two,
+are `lib/`: they are never instanced.
+
+⚠⚠ **Every concrete zone is `platform/idea/`, and this paragraph said
+`lib/spatial/` until 2026-09-30** — a directory that holds no zone and
+never has:
+
+| class | where it actually lives |
+|---|---|
+| `Zone`, `SpatialZone` | `lib/zone/` (abstract) |
+| `CartesianZone`, `SphericalZone` | `platform/idea/location/` |
+| `FolderZone`, `WikiNamespaceZone`, `HomeZone` | `platform/idea/` |
+| `Clade` | `platform/idea/species/` |
+
+⭐ That is the `<root>/<branch>/` rule working exactly as written — **a
+`Zone` is an `Idea`** (`Zone extends Idea`), so an instanceable one
+lives under `platform/idea/`, and `FolderZone` is instanceable (9 rows)
+rather than a root. The doc had been describing a layout the rule
+retired. All of them extend `Zone`.
 
 `Biome` deliberately does NOT extend `Zone` ([biome.md](./biome.md))
 — biomes are leaf Ideas whose ROWS name their parent with `extends:`
@@ -19,10 +33,10 @@ biome inheritance lives independently in the leaf data.
 `Zone` is not a spatial concept — it's the common parent of every
 folder-shaped scope in the template tree, spatial and non-spatial.
 `SpatialZone` is the abstract base for coordinate-bearing zones, but
-its identity isn't a coordinate frame itself. Carving them out of
-`lib/spatial/` makes the semantic boundary honest: zone-hierarchy
-concerns live in `lib/zone/`; only the spatial-coordinate-bearing
-subclasses stay under `lib/spatial/`.
+its identity isn't a coordinate frame itself. Carving them out makes
+the semantic boundary honest: the two ABSTRACT zone-hierarchy roots
+live in `lib/zone/`, and every instanceable zone is `platform/idea/`
+like any other instanceable Idea.
 
 ## ⚠ What belongs on `Zone` itself
 
@@ -63,13 +77,12 @@ class that can mean something by it.**
                  /   |   \
                 /    |    \
                /     |     \
-   SpatialZone    FolderZone   non-spatial Zone subclasses
-   (lib/zone/    (lib/zone/    (in their own folders):
-   SpatialZone)  FolderZone)     - HomeZone   (lib/home/)
-   /     \                       - Clade      (lib/species/)
-  /       \
+   SpatialZone    FolderZone   non-spatial Zone subclasses:
+   (lib/zone/)    (platform/     - HomeZone  (platform/idea/)
+   /     \         idea/)        - Clade     (platform/idea/species/)
+  /       \                      - WikiNamespaceZone (platform/idea/)
 CartesianZone  SphericalZone
-(lib/spatial/) (lib/spatial/)
+(platform/idea/location/, both)
 ```
 
 - **`Zone`** — bare scope abstraction. Carries a name and the
@@ -384,7 +397,8 @@ recommendations.
 
 ## History
 
-The Zone subsystem was carved out of `lib/spatial/` as part of the
+The Zone subsystem was carved out of `lib/spatial/` (the historical
+home, retired) as part of the
 spatial+boundary substrate build that shipped declarative-content
 field shapes (`coords`, `focus`, `exits`, `attachedHosts`). The
 field-inheritance walk was drafted as `ZoneApi.resolveZoneField` in

@@ -22,7 +22,7 @@ data:
       theme: combustion
       floorEffect: null
   # Light — authored glow (flicker comes for free from the light layer).
-  # ⭐ A campfire row ships ALIGHT, and now says so. `FurnaceMixin.lit`
+  # ⭐ A campfire row ships ALIGHT, and now says so. `BurnerMixin.lit`
   # defaults true, so this was the shipped behaviour already — the
   # envelope build's `lint:light-sources` clause (g) only makes it a
   # sentence somebody wrote instead of a default nobody chose. It is

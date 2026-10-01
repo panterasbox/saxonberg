@@ -21,7 +21,7 @@ data:
   longDescription: >-
     Chalk-white and startlingly light for its size, and it takes the moisture
     off your palm where you hold it.
-  material: /stuff/idea/material/caustic/quicklime
+  _materialPath: /stuff/idea/material/caustic/quicklime
   # ⭐ ~0.56 of the limestone that went in, by mass: the rest went up the
   # throat as carbon dioxide. Two stones in, one lump out, and lighter.
   mass: 4.5

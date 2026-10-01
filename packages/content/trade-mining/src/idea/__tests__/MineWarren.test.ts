@@ -22,7 +22,7 @@ import MineRoom from '../../location/MineRoom';
 import type { Working } from '../../lib/Working';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
 import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
@@ -253,7 +253,7 @@ describe('the mine — reads on the space, mutation on the warren', () => {
     expect(spanned.value).toBeLessThan(alone.value);
 
     // Set timber: support recovers it, and a DECAYED set is worth less.
-    const set = makeStuff(() => new ToolItem());
+    const set = makeStuff(() => new Tool());
     set.capabilities = ['timber-set'];
     ContainmentApi.move(set as unknown as Stuff & Containable, room as unknown as Stuff & Container);
     const shored = await room.stabilityAt();

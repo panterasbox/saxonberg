@@ -1,15 +1,15 @@
 /**
  * Syringe — the carried instrument behind `bleed` / `transfuse` / `test`
- * (blood build D5). The `SurgicalKit` shape: a `ToolItem` whose
+ * (blood build D5). The `SurgicalKit` shape: a `Tool` whose
  * `phlebotomy` capability those views ask for by name, contributed
  * outward to whoever carries it.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-const SyringeBase = AudibleMixin(ToolItem);
+const SyringeBase = AudibleMixin(Tool);
 
 export default class Syringe extends SyringeBase {
   static commandContributions: CommandContributions = {

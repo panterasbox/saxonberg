@@ -8,12 +8,12 @@
  * verb list on, back when a row could name verbs at all.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const STRAIN = ['trade/hospitality/cmd/crafting/strain.yaml'];
 
-export default class Strainer extends ToolItem {
+export default class Strainer extends Tool {
   static commandContributions: CommandContributions = {
     environment: STRAIN,
     peers: STRAIN,

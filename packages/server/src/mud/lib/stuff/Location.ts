@@ -25,6 +25,9 @@ import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { AtmosphericMixin } from '../biome/Atmospheric';
 import { AddressableMixin } from '../address/Addressable';
+import { VisibleMixin } from '../description/Visible';
+import { PerceptibleMixin } from '../description/Perceptible';
+import { DetailedMixin } from '../description/Detailed';
 import { AmbientLitMixin } from '../perception/AmbientLit';
 import { PostRegistrationMixin } from './PostRegistration';
 import { Suppressions, type MagicSuppression } from '../magic/Suppression';
@@ -119,7 +122,7 @@ export interface FloorDefaults {
 // second composition anywhere above the base SWALLOWS the base's hook: the
 // ten Location classes that used to compose it individually
 // (`CartesianLocation`, `SphericalLocation`, `FurnishableRoom`, `Offstage`,
-// `CircleFloor`, `Lounge`, `Bar`, `GlassAlley`, and the university's
+// `CircleFloor`, `Lounge`, `Bar`, and the university's
 // `Corridor` + `DormRoom`) each dropped it, and every `postRegister`
 // override in the family now chains `super`. Inert by default, exactly as
 // `AmbientLitMixin` above it is: a Location with nothing to do at
@@ -129,17 +132,57 @@ export interface FloorDefaults {
 // ENTIRE Location tree depends on base-level `postRegister`. A hydration
 // build that changes how the hook is composed or invoked has one more
 // consumer, at the root of the biggest class family in the game.
+// ⭐⭐ **`Visible`, `Perceptible` and `Detailed` joined the root in the
+// base-class narrowing (2026-09-30), and the finding was already
+// written down three times.** `Offstage.ts:20-24`, `Bar.ts:40-44` and
+// `Lounge.ts:33-37` each carry the same sentence — *"`PerceptibleMixin`
+// … is composed per class because `Location` does NOT carry it, so
+// every room class built directly on `Location` has to remember"* —
+// with the note that those rows *"were authoring `primaryKeyword` into
+// a void until 2026-09-11"*.
+//
+// ⚠⚠ Two classes did not remember. `Corridor` and `DormRoom` compose
+// `Visible` and `Detailed` and **not** `Perceptible`, and their rows
+// author `keywords:` that nothing reads; the Hush gallery
+// (`SingletonSphericalLocation`) authors `primaryKeyword`, `keywords`
+// AND `details` into the same void. A mixin every composer has to
+// remember is a mixin on the wrong host — that is the project's rule,
+// and here the rule and the recurrence agree.
+//
+// ⭐ The owner's criterion settles it from the other side: `Visible` is
+// authored by 141 of 144 rows and `Perceptible` by 140 of 140 that can.
+// Mandatory by the branch's own vote. `Detailed` follows `Perceptible`
+// wherever it goes (D8) — a place addressable by keyword has parts
+// addressable the same way.
+//
+// ⚠ `Offstage` is where this root ENDS, and it is the branch's proof of
+// the line, the way `Corpse` was the Agent branch's: it composes all
+// three description mixins and none of `Exitable`/`Staged`/coordinates.
+// A location is *a place you can see, name and point at*; being a place
+// you can walk BETWEEN is the next rung out.
 const LocationBase = AddressableMixin(
   AmbientLitMixin(
     AtmosphericMixin(
-      AdornableMixin(ContainerMixin(PostRegistrationMixin(Stuff))),
+      AdornableMixin(
+        ContainerMixin(
+          VisibleMixin(
+            DetailedMixin(PerceptibleMixin(PostRegistrationMixin(Stuff))),
+          ),
+        ),
+      ),
     ),
   ),
 );
 
 export default class Location extends LocationBase {
+// ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
+// `world/practicum/warded-cell.yaml:18` authors it and the field's own
+// docstring tells authors to ("Authored in room seeds"), so the Studio
+// was hiding a key the documentation advertises. The same inversion as
+// `CartesianLocation.coords`, in the same family, found in one pass.
+// ⚠ Kept OUTSIDE the object literal — see that file for why.
   static fieldMeta: FieldMeta = {
-    suppressesMagic: { persistent: true },
+    suppressesMagic: { persistent: true, authorable: true },
     floor: { persistent: true, authorable: true },
     noDefaultFloor: { persistent: true, authorable: true },
   };

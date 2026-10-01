@@ -98,25 +98,38 @@ the docs are right.
 | **STAMP** | `bank_ledger`, `transcripts`, `renown_events`, `participation_events`, `disposition_events` | Write proceeds with `circleScope` stamped; field reads exclude; circle reads compose global ∪ own-scope; exit/sweeper discards. The material gameplay ledgers — the game genuinely runs, then reverts. |
 | **PASS (mark)** | `chronicles`, `beliefs`, `authoring_events`, `accountability_events`, `diagnostics` | Identity-real; persists with the epistemic wire mark (`circleScope` recorded, never filtered). What happened to *you* stays yours; readers may lens the mark. |
 | **PASS (unmarked)** | `domain`, `documents`, `holder_snapshots`, `wiki`, `wiki_revisions` | Authored truth + the mechanism's own stores — the deliberate save is the product. |
-| **SHADOW (skip)** | `bank_accounts`, `bank_supply`, `renown`, `participation`, `producer` | Rebuildable caches: the terminal cache write silently no-ops from circle context; in-circle reads derive from events (banking: the per-scope overlay). Overlay mode is specified as the labeled attach point, not built — no collection needs it. |
+| **SHADOW (skip)** | `bank_accounts`, `bank_supply`, `renown`, `participation`, `producer` | Rebuildable caches: the terminal cache write silently no-ops from circle context; in-circle reads derive from events (banking: the per-scope overlay). Overlay mode is the labeled attach point and is **not built** — no collection may select it, and both ends refuse it (below). |
 
-> ⚠⚠ **`mode: 'overlay'` FAILS OPEN today** (found 2026-09-30,
-> [avatar-family-slate](../slates/builds/avatar-family-slate.md)). It is a
-> value in the `CollectionPolicy` union that nothing selects and nothing
-> implements, and **both write paths `break` past it into the real write
-> path**: `dispatchSave` writes a field row unstamped, and `deleteMany`
-> runs with the caller's unscoped filter. Reads are consistent with those
-> unstamped writes (`SHADOW_COLLECTIONS` derives from the verb), which is
-> what makes it invisible — **a collection set to overlay behaves as PASS,
-> with delete powers, silently.** And `discardScopeImpl` iterates
-> `STAMP_COLLECTIONS` only, so scoped overlay rows would never be swept,
-> though its comment claims *"total by construction: the collection list
-> derives from the policy table"* — **it derives from one verb.**
+> ✅ **`mode: 'overlay'` REFUSES, at both ends** (fixed 2026-09-30,
+> ahead of the build that will implement it —
+> [avatar-family-slate](../slates/builds/avatar-family-slate.md) § Sequencing 1).
+> `SchemaDoc.#parseSandbox` rejects a schema doc that selects it, so the
+> failure lands on the author at `gen:schema` / `lint:schema` time; and
+> all three `PersistenceManager` write paths — `dispatchSave`,
+> `dispatchDelete`, `deleteMany` — throw
+> `SandboxOverlayUnimplementedError` as the fail-closed backstop.
 >
-> ⚠ Note the contrast: an *unclassified* collection throws, with a comment
-> saying *"silence would be an escape hatch."* The
-> classified-but-unimplemented mode walks past that instinct. **Make it
-> throw**, independently of building it.
+> ⚠⚠ **What it did before, because the shape is the lesson.** It was a
+> value in the `CollectionPolicy` union that nothing selected and nothing
+> implemented, and **every write path `break`'d past it into the real
+> write**: `dispatchSave` wrote a field row unstamped, `dispatchDelete`
+> deleted a real row, and `deleteMany` ran with the caller's unscoped
+> filter. Reads were *consistent* with those unstamped writes
+> (`SHADOW_COLLECTIONS` derives from the verb), which is what made it
+> invisible — **a collection set to overlay behaved as PASS, with delete
+> powers, silently.**
+>
+> ⚠ Note the contrast, which is why this shipped on its own: an
+> *unclassified* collection already threw, under a comment reading
+> *"silence would be an escape hatch"* — and the
+> classified-but-unimplemented mode walked straight past that instinct.
+> ⭐⭐ **A switch that is total over the VERB is not total over the
+> POLICY.** Same shape as `discardScopeImpl`'s claim that it is *"total by
+> construction: the collection list derives from the policy table"* when
+> **it derives from one verb** — and the same shape as an enumerated lint
+> roster that reads as derived. That one is still open, and is harmless
+> only while no collection selects overlay, which is now enforced rather
+> than merely true.
 >
 > ⭐⭐ **And it now has a first consumer.** The slate argues overlay is
 > **two** modes — `copy` (eager copy at the crossing; plain

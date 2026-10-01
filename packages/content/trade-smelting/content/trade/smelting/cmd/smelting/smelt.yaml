@@ -26,9 +26,9 @@ args:
     type: object
     required: false
     prepositions: [at, in]
-    default: "reachable:[mixin.FurnaceMixin]"
+    default: "reachable:[mixin.BurnerMixin]"
     scope: ["reachable"]
-    requires: [FurnaceMixin]
+    requires: [BurnerMixin]
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

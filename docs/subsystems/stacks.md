@@ -69,7 +69,7 @@ A class declares a (possibly empty) subset of its `fieldMeta`'s persistent entri
 that defines stack identity:
 
 ```ts
-class Coin extends StackableMixin(Thing) {
+class Coin extends StackableMixin(Good) {
   static fieldMeta: FieldMeta = {
     tarnished: { persistent: true },
     denomination: { persistent: true },

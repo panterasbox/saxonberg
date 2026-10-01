@@ -542,13 +542,13 @@ export const Mixins = {
   // meltingPoint (a latent-heat plateau), flowing to a Bulkable liquid.
   // Driven by heat (the host reconcilePhase), not fire-specific.
   Meltable: 'MeltableMixin',
-  // Furnace — a Combustible-fuelled sustained heat source (forge/kiln/oven/
+  // Burner — a Combustible-fuelled sustained heat source (forge/kiln/oven/
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
   // Meltables in its scope. Generalizes the Campfire pin.
-  Furnace: 'FurnaceMixin',
+  Burner: 'BurnerMixin',
   // ⭐⭐ SpaceHeating — "this fire exists to warm where you stand". The
   // hearth / stove / brazier half of the fire family, and deliberately
-  // NOT on `FurnaceMixin`: a forge heats what you put IN it, and that
+  // NOT on `BurnerMixin`: a forge heats what you put IN it, and that
   // rule is kept by composition rather than by a guard asking what
   // something is. The envelope reads it off a room's contents.
   SpaceHeating: 'SpaceHeatingMixin',
@@ -720,11 +720,15 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   HazardMixin: "{} isn't a trap",
 
   // Fire & heat. ⚠ `CombustibleMixin`'s phrase carries the whole
-  // `CombustibleMixin|FurnaceMixin` alternation `ignite` declares — an
+  // `CombustibleMixin|BurnerMixin` alternation `ignite` declares — an
   // alternation reports its FIRST member's phrase, and "won't burn" is
   // the true sentence for both halves.
   CombustibleMixin: "{} won't burn",
-  FurnaceMixin: "{} isn't a furnace",
+  // ⚠ Not "isn't a furnace" — the mixin was renamed from `Furnace` to
+  // `Burner` precisely because a lamp, a candle and a campfire compose
+  // it and none of them is a furnace. The refusal names what the
+  // capability IS: a thing that holds a fire and burns fuel.
+  BurnerMixin: "{} won't hold a fire",
   SpaceHeatingMixin: "{} doesn't warm a room",
   PublicLightingMixin: "{} isn't a street the town lights",
 

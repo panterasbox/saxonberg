@@ -30,7 +30,7 @@
  * thing.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { MeltableMixin } from '@saxonberg/server/mud/lib/thermal/Meltable';
 import { ManualBuildMixin } from '@saxonberg/server/mud/lib/craft/ManualBuild';
@@ -44,7 +44,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 
-const BloomBase = AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Thing))));
+const BloomBase = AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good))));
 
 /** The two bars a consolidated bloom can become, and the slag it leaves. */
 const IRON_BAR = '/trade/smithing/thing/iron-ingot';

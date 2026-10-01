@@ -7,13 +7,13 @@
  * *possible*, and how well it does that is its whole spec.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ConduitMixin } from '@saxonberg/server/mud/lib/magic/Conduit';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 
 // `Durable`: a conduit is a tool and tools wear — the shipped condition
 // axis, not a second clock of its own (the resource the implements
 // slate exists to avoid).
-const ConduitBase = DurableMixin(ConduitMixin(Thing));
+const ConduitBase = DurableMixin(ConduitMixin(Good));
 
 export default class Conduit extends ConduitBase {}

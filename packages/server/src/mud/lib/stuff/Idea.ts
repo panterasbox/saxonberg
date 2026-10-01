@@ -1,13 +1,31 @@
 /**
  * Idea - Top-level branch for incorporeal identity.
  *
- * One of the six top-level branches sitting on Stuff (Thing,
- * Location, Idea, Agent, Vessel, Shadow). Idea is the
- * branch for things that have identity and state but no physical
- * presence in the world — `Exit`, `Login`, `Zone`, command-staging
- * Stuff, etc. Concrete in-world things use `Thing` (item-scale
- * movable), `Location` (stationary place), `Vessel` (mobile place),
- * or `Agent` (sentient actor).
+ * One of the **five** top-level branches sitting on Stuff: `Thing`,
+ * `Location`, `Idea`, `Agent`, `Shadow`. ⚠ This said SIX and listed
+ * `Vessel`, which is not a branch and never was — it is a class on the
+ * Thing branch (`Container(Good)`), and saying otherwise here made
+ * the one file that defines a branch disagree with
+ * `Stuff._registerTopLevelBranch`, which allows exactly five.
+ *
+ * `Idea` is the branch for things that have identity and state but no
+ * physical presence — a zone, a material, a species, a spell, an exit,
+ * a login, a controller. ⭐ It composes **nothing**: alone of the five
+ * roots it adds no mixin to `Stuff`, which is why the base-class
+ * narrowing found nothing to strip here. What a descendant needs, it
+ * composes.
+ *
+ * ⚠⚠ And nothing on this branch is addressable by KEYWORD. An exit is
+ * addressed by direction as a feature of the ROOM; a spell, a topic, a
+ * reading and a discipline by a string key through their catalogue;
+ * `Material` is the one Idea composing `Perceptible` and it LENDS its
+ * keywords to the good made of it (`race.md`: *"material keywords never
+ * leak into room scope"*). That is the owner's rule — *every branch
+ * wants `Perceptible` on the base except Idea* — and it holds without
+ * a rung to enforce it.
+ *
+ * Concrete in-world things use `Thing` (matter) / `Good` (a good),
+ * `Location` (a place) or `Agent` (a body).
  *
  * See [docs/architecture.md § Top-level branches](../../../../../../docs/architecture.md).
  */

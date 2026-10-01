@@ -34,7 +34,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { CommandApi, type CommandContext, type CommandModel } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -615,7 +615,7 @@ describe('the maintenance act (D4/D5)', () => {
     // durable in the room ever loses condition to the calendar, the
     // economy's second law is broken and everything a player owns rots.
     const { holding, hall, clock } = await wornHolding();
-    const tool = makeStuffAtPath(() => new ToolItem(), '/world/prog-test/spanner');
+    const tool = makeStuffAtPath(() => new Tool(), '/world/prog-test/spanner');
     ContainmentApi.move(tool as unknown as Stuff & Containable, hall);
     const before = tool.getCondition();
 

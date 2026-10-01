@@ -4,19 +4,19 @@
  *
  * Before this build a lit oven was hot and its contents were not: nothing in
  * the ambient chain read a furnace (`BiomeLogic.resolveTemperatureFor` walks
- * `Atmospheric` ancestors, and a `Furnace` deliberately is not one — a lit
+ * `Atmospheric` ancestors, and a `Burner` deliberately is not one — a lit
  * forge must not warm the room it stands in). The couple is therefore read on
  * the body being heated, in `ThermalMixin.restamp()`: a heat source that holds
  * you outranks the biome.
  *
- * ⭐ The firebox stays PINNED (`FurnaceMixin.getTemperature`) — what climbs is
+ * ⭐ The firebox stays PINNED (`BurnerMixin.getTemperature`) — what climbs is
  * what is inside it, over its own `tau = R*C`. That is the whole distinction
  * the drive's step 21 observes.
  */
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Thing from "../../stuff/Thing";
+import Good from "../../stuff/Good";
 import Location from "../../stuff/Location";
 import Material from "../../material/Material";
 import { ThermalMixin } from "../Thermal";
@@ -24,7 +24,7 @@ import { ReservedMixin, Reserve } from "../../reserve";
 import { LightSourceMixin } from "../../perception/LightSource";
 import { ContainerMixin } from "../../spatial/Container";
 import { PlacingMixin } from "../../spatial/Placing";
-import { FurnaceMixin } from "../../fire/Furnace";
+import { BurnerMixin } from "../../fire/Burner";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../platform/idea/WorldClockRegistry";
@@ -35,23 +35,23 @@ import {
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 
-/** The `Oven` composition: Furnace over Thermal over Placing + Container. */
-class TestOven extends FurnaceMixin(
+/** The `Oven` composition: Burner over Thermal over Placing + Container. */
+class TestOven extends BurnerMixin(
   LightSourceMixin(
-    ReservedMixin(ThermalMixin(PlacingMixin(ContainerMixin(Thing)))),
+    ReservedMixin(ThermalMixin(PlacingMixin(ContainerMixin(Good)))),
   ),
 ) {
   static _mixinName = "TestOvenCouple";
 }
 
 /** The `Campfire` composition, trimmed to what the couple needs. */
-class TestCampfire extends FurnaceMixin(
-  LightSourceMixin(ReservedMixin(PlacingMixin(ThermalMixin(Thing)))),
+class TestCampfire extends BurnerMixin(
+  LightSourceMixin(ReservedMixin(PlacingMixin(ThermalMixin(Good)))),
 ) {
   static _mixinName = "TestCampfireCouple";
 }
 
-class ThermalThing extends ThermalMixin(Thing) {
+class ThermalThing extends ThermalMixin(Good) {
   static _mixinName = "ThermalThingCouple";
 }
 class TestRoom extends Location {}

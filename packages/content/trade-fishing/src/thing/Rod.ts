@@ -20,11 +20,11 @@
 export const RIG_LAYERS = ['surface', 'mid', 'bottom'] as const;
 export type RigLayer = (typeof RIG_LAYERS)[number];
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-export default class Rod extends ToolItem {
+export default class Rod extends Tool {
   static commandContributions: CommandContributions = {
     self: [],
     // `environment` = whoever HOLDS it (the container chain outward); a

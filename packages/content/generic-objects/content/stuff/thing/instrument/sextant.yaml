@@ -5,13 +5,13 @@
 # arm of `measure altitude` checked `instanceof Sextant`, so that arm was
 # dead for everybody. It is `measure elevation` now, and this is the
 # thing that takes it.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass sextant
   keywords: [sextant, arc, mirror]
   register: indefinite
-  long: >-
+  longDescription: >-
     A heavy brass frame with a graduated arc, a shaded index mirror and
     a small telescope. Bring the sun down to the horizon, clamp the
     index, and read the angle off the vernier.

@@ -6,6 +6,14 @@ converts* — the husbandry SHAPE (reconcile lazily on read, staged, no
 far-past guard, no linkdead freeze) with a different equation: the mass
 is already present and what changes is what it IS.
 
+> ⚠⚠ **This gauge has the longest horizon in the tree, and it samples its
+> driver once** (2026-09-30). `Maturing` reads `getTemperature()` at
+> reconcile and rates the whole elapsed span from it, so a cellar that
+> warmed for a day reconciles a three-month batch at whatever the
+> thermometer reads on the day somebody visits — and grade, mark and strain
+> all ride the outcome. ⭐ The fix is the **restamp** `ThermalDose` already
+> uses. [uncertainty.md § The second abstraction law](../uncertainty.md) · [reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md)
+
 ## ⭐⭐ Which failure is it? (`stalled` / `killed`)
 
 A ferment fails in three ways that feel completely different to whoever
@@ -86,7 +94,7 @@ rack = `pour`, seal = `close`, bottle = `fill`, pitch/feed = `pour`.
 
 `MaturingMixin` composes on a Bulkable host (composition-validated)
 — bulk matter has no identity, vessels do (the pot-as-bed precedent).
-`Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Detailed(Thing))))))`;
+`Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Good)))))`;
 a carboy, a conditioning bottle and the cask are ROWS over it (sizes
 are data). The vat's `category` defaults `'vat'` (rows depart).
 

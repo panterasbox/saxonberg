@@ -37,8 +37,8 @@ args:
     type: object
     required: false
     prepositions: [in, at]
-    default: "reachable:[mixin.FurnaceMixin]"
+    default: "reachable:[mixin.BurnerMixin]"
     scope: ["reachable"]
-    requires: [FurnaceMixin]
+    requires: [BurnerMixin]
     validators:
       - /lib/command/validators/canReach

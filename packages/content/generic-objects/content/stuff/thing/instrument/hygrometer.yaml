@@ -1,6 +1,6 @@
 # Hygrometer — handheld humidity instrument for reading it.
 #
-# ⭐⭐ A ROW over `/platform/thing/ToolItem`, not a class of its own.
+# ⭐⭐ A ROW over `/platform/thing/Tool`, not a class of its own.
 #
 # Every one of these instruments used to be an empty `Thing` subclass
 # whose only content was `commandContributions` — it put the whole
@@ -15,17 +15,17 @@
 #      composes none of that — so a fine instrument and a shoddy one read
 #      identically forever.
 #
-# As a `ToolItem` it is graded, durable and wears on use, and the channel
+# As a `Tool` it is graded, durable and wears on use, and the channel
 # row names the CAPABILITY below rather than this file. The affordance
 # moved to the Avatar: everyone can type `measure`, and what an
 # instrument buys is the reading, not the verb.
-class: /platform/thing/ToolItem
+class: /platform/thing/Tool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: calibrated hygrometer
   keywords: [hygrometer, calibrated]
   register: indefinite
-  long: A small instrument with a hair-tension dial that registers relative humidity as a percentage.
+  longDescription: A small instrument with a hair-tension dial that registers relative humidity as a percentage.
   capabilities: [hygrometry]
   mass: 0.3
   _materialPath: /stuff/idea/material/alloy/bronze

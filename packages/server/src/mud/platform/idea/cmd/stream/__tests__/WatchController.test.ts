@@ -28,7 +28,12 @@ import { StuffApi } from '../../../../../api/stuff';
 import { MessageApi } from '../../../../../api/message';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { WatchTarget } from '@saxonberg/types';
-import Screen from '../../../../thing/Screen';
+// ⭐ `Tablet` is the shipped `Display` — the lounge's and
+// trade-hospitality's house tablets are rows over it. `Screen`, the
+// wall-TV class these cases used to reach through, had no row anywhere
+// and was retired by the base-class narrowing build; a display is a
+// display, and `watch … on <screen>` binds on the mixin.
+import Tablet from '../../../../thing/Tablet';
 import { ContainmentApi } from '../../../../../api/containment';
 
 class TestActor extends HasInteractiveMixin(
@@ -179,7 +184,7 @@ describe('WatchController', () => {
 
   describe('watch … on <screen> — a shared display', () => {
     it('an open screen in the room shows the stream to the room; watch off on it clears', async () => {
-      const tv = await StuffApi.create(() => new Screen());
+      const tv = await StuffApi.create(() => new Tablet());
       tv.setPairing('open');
       tv.setShortDescription('the booth TV');
       ContainmentApi.move(tv, location);
@@ -195,7 +200,7 @@ describe('WatchController', () => {
     });
 
     it('a remote-paired screen refuses a driver without the remote', async () => {
-      const tv = await StuffApi.create(() => new Screen());
+      const tv = await StuffApi.create(() => new Tablet());
       tv.setPairing('remote');
       tv.setRemote('/stuff/test/remote');
       ContainmentApi.move(tv, location);

@@ -26,10 +26,10 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { GrowingMixin, type GrowthProfileData } from '../Growing';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class TestPlant extends GrowingMixin(Thing) {
+class TestPlant extends GrowingMixin(Good) {
   /** Stand in for the ground: happy on every other axis. */
   protected override soilMoisture(): number | null {
     return 1;

@@ -16,19 +16,18 @@
  * so a working might alter FASTER but never FURTHER.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { WearableMixin } from '@saxonberg/server/mud/lib/slot/Wearable';
 import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
 const CutPiecesBase = WearableMixin(
   SlottableMixin(
-    StackableMixin(CraftedMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    StackableMixin(CraftedMixin(ConstructedMixin(Good))),
   ),
 );
 

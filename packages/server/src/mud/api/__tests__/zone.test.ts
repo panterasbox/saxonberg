@@ -7,7 +7,7 @@ import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { makeStuff,
   EXIT_KIND_TEST_ROWS,
 } from '../../lib/security/__tests__/test-setup';
@@ -215,7 +215,7 @@ describe('Zone is set at clone time, not on move', () => {
     // Item created without a zone — `ContainmentApi.move` does NOT
     // back-fill it. Zone identity belongs to whichever template
     // spawned the item; runtime placement leaves it alone.
-    const sword = await StuffApi.create(() => new Thing());
+    const sword = await StuffApi.create(() => new Good());
     expect(sword.getZone()).toBeNull();
 
     ContainmentApi.move(sword, park);

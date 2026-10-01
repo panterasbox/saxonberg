@@ -80,6 +80,20 @@ data:
 ```
 
 A **behavior spec** (`BehaviorSpec`) is `{ brain, trigger, config }` —
+
+> ⭐⭐⭐ **That block is also the parcel's COMPUTE DECLARATION** (2026-09-30).
+> A **cadence** trigger costs `1/period`, always, whether anybody is in the
+> room or not; a **witness** trigger costs nothing until somebody looks.
+> Measured across the 65 authored NPC rows: **370,401 brain invocations a
+> day with nobody logged in**, 43% of it in three rows, and **60 of 65 tick
+> on a clock.** ⚠ And the expensive rows are not careless — `sellsword`'s
+> two `cadence:2s` brains are a *latency requirement expressed as a poll*,
+> because `cadence` was the only tool on the shelf. ⭐ **An event should
+> push; a brain should not poll**, so the first thing this measurement asks
+> for is a **richer witness-trigger vocabulary** (`ally-engaged`,
+> `combat-started`), after which the author writes *less*. See
+> [balance-slate § What an NPC declaration is denominated in](../slates/builds/balance-slate.md).
+
 the brain is a *path* to a code module, the trigger names *when*, the
 config is the brain's data. The list is a persistent field on
 `BehavedMixin`; at `postRegister` the mixin reads it, path-resolves each
@@ -385,12 +399,33 @@ resumes on the next tick once the beat completes. The default is
 **witness-preempts-cadence**, with no priority numbers; resume is
 next-tick re-start, not a suspended-engagement resume.
 
-## The `NPC` class
+## The `NPC` class — and `Beast`, the other one
 
 ```ts
 // lib/npc/NPC.ts
 export class NPC extends BehavedMixin(PostRegistrationMixin(Character)) {}
+
+// platform/agent/Beast.ts — the same shape one rung down
+export class Beast extends BehavedMixin(PostRegistrationMixin(Actor)) {}
 ```
+
+⭐ **Two rungs carry a brain, not one** (base-class narrowing,
+2026-09-30). `NPC` is a *person* who decides things; `Beast` is an
+*animal* that does — the identical shape over `lib/creature/Actor`
+instead of `Character`, and without `Costumed`, because an animal is not
+dressed. The wolf, the draft horse and the pit pony were `NPC`-side
+until then, which is how a pit pony came to carry `CasterMixin` and
+`EmployedMixin`.
+
+⚠⚠ **A brain on a beast can say less, and it fails SILENTLY.**
+`BrainContext.say` is guarded by `MixinApi.isVocal` and `.emote` by
+`isSoul`, and both **no-op** on a host that lacks the mixin — invisible
+while every brained thing in the game was a `Character`. `emoteFree`
+now falls back to an `act.deed` scene for a soulless host (which is the
+more honest render anyway: `Soul.emoteFree` sends on `emotive-esp`, so a
+horse shifting its weight was a frame implantless bystanders drop), and
+`lint:dispositions` rule 4 fails the build on a pool entry whose `kind:`
+names a channel its class cannot speak on.
 
 Composition order is load-bearing. `clone` only invokes `postRegister`
 on a host that composes `PostRegistrationMixin` (the marker), so `NPC`

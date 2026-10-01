@@ -6,13 +6,12 @@
  *   Placing → Detailed → Thing
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-const DeskBase = PlacingMixin(DetailedMixin(Thing));
+const DeskBase = PlacingMixin(Good);
 
 export default class Desk extends DeskBase {
   static fieldMeta: FieldMeta = {};

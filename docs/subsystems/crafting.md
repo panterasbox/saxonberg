@@ -132,7 +132,7 @@ the Hydrator; per-field invariants ride accessor pairs.
   "tool"); narrow via `MixinApi.isDurable`. Its fast-cycling sibling is
   **`KeenMixin`** (`lib/material/Keen.ts`) — the edge axis, on `Weapon`.
 - **`ToolMixin`** (`Tooled.ts`) — the crafting **capabilities** layer:
-  `capabilities: string[]` a recipe requires by kind. A `ToolItem` composes
+  `capabilities: string[]` a recipe requires by kind. A `Tool` composes
   `ToolMixin(DurableMixin(…))` — a tool is a durable good that *also* offers
   capabilities; the durability lives on `DurableMixin`, not here.
 - **`SteepableMixin`** (`Steepable.ts`) — the general **infusion**
@@ -387,7 +387,7 @@ still deferred — not faked.
 ## The offer: `CommerceMenu` + the venue subclasses
 
 The venue-neutral base is **`lib/commerce/Menu.ts`** (`CommerceMenu`, a
-`PricedOfferMixin(DetailedMixin(Thing))` object — a `Tangible` you
+`PricedOfferMixin(Thing)` object — a `Tangible` you
 `read`/`order` from, **not** a place capability and **not** a mixin).
 It owns the offer machinery: `offeredRecipes: string[]`,
 `resolveOrder(keyword)` (gates on the **offer**, not craftability),
@@ -424,7 +424,7 @@ used to be a single list copied verbatim onto two rows:
 | hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
 | hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
 | cooking `cook`, `plate`, platform `heat` | the POT | `/trade/cooking/thing/CookPot` |
-| platform `boil` | the FURNACE — you cannot boil without a heat source | `FurnaceMixin` (oven, kiln, forge) |
+| platform `boil` | the FURNACE — you cannot boil without a heat source | `BurnerMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
 | tailoring `cut` | the SHEARS — and the bench is the same class, faster | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) |
@@ -519,7 +519,7 @@ are `trade-smithing`'s — each a capability pack with its controllers in
 and the cook-pot row are cooking's too (the bundle collects the
 trade's instruments).
 
-`FurnaceMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
+`BurnerMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
 — an appliance mixin, not a `Tooled` host — and `make` is innate on
 `Avatar` (knowledge-driven, no instrument). Capability entries are
 **parameterized**: `{ kind, rate?, control?, technique? }` (a bare
@@ -700,7 +700,7 @@ cuts' age model exists to create.
 bar's default) `craftImpl` no longer clones the output: `claimGlass`
 takes the first reachable **clean, empty** vessel of the output's
 **kind** (the gather walk already descends open room containers, so a
-hospitality's `GlassRack` — an open `Container(Thing)` — is in the pool
+hospitality's `GlassRack` — an open `Container(Good)` — is in the pool
 scan; the kernel knows no rack class, only that the walk descends open
 containers); none → the diegetic decline **`no-glass`** ("no clean
 coupe").
@@ -1006,16 +1006,16 @@ No bar-specific classes — content composes general mixins. Classes are
 homed by what they *are*:
 
 - **Building blocks** → `lib/`: `Surface` (`lib/spatial/`, a
-  `PlacingMixin` fixture), `ToolItem` (`lib/craft/`), `Crafter`
+  `PlacingMixin` fixture), `Tool` (`lib/craft/`), `Crafter`
   (`lib/character/`, `MakerMixin(NPC)` — ⚠ both retired by
   trades-and-labor), `NPC` (`lib/character/`, the
   minimal concrete `Character` — shares its path with the npc-behavior
   lane's richer `NPC`, which the add/add merge resolves to).
 - **Commons** → `platform/thing/` (content packs wave 4b — composition-only
   classes are commons, not content): `CraftVessel`
-  (`Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))` since
+  (`Crafted(Thermal(Bulkable(Container(Good))))` since
   libations, `getLong()` appends the verdict), `Menu`, `GradedReceptacle`
-  (`BrandedMixin(GradedMixin(BulkableMixin(Thing)))`) and over it
+  (`BrandedMixin(GradedMixin(BulkableMixin(Good)))`) and over it
   `Bottle` (the stock vessel — [retail.md](./retail.md)), `Crate`,
   `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`. ⭐ A class
   named for ONE trade's fixture ships in that trade's pack, not here —
@@ -1148,7 +1148,7 @@ melt-down, the entropy sink): flatten the item's Material composition;
 each constituent above the dust floor yields `mass × fraction ×
 crafting.salvageRate` in its natural raw form — `metal` → a
 re-meltable `/stuff/thing/Casting`, anything else → an `/stuff/thing/Scrap` stack (a
-`StackableMixin(Thing)`, material-stamped, **quantity by mass** at
+`StackableMixin(Good)`, material-stamped, **quantity by mass** at
 0.1 kg units). Conservation asserted (Σ output ≤ input × rate, throw
 on breach); provenance, grade, and the chattel id die with the form
 (the shipped destruct release). Salvaging the forged knife yields less
@@ -1181,7 +1181,7 @@ the smith + cook 24/7, and since trades-and-labor each names the
 discipline it serves (`fulfills: [smithing]` / `[cooking]`) rather than a
 bare flag, because this house is precisely the one that runs two trades
 over both its rooms. See [employment.md](./employment.md). New graded-stock
-form: `/platform/thing/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the
+form: `/platform/thing/Provision` (`GradedMixin(Good)`) — the
 discrete sibling of the graded bottle; a *fine* prime cut is what the
 fine-roast's `minGrade: fine` slot demands (the grade spread on solid
 stock).

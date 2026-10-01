@@ -10,12 +10,11 @@
  * the capability. The reusable seat kind the whole campus wants.
  */
 
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import { PosturedMixin } from '../../lib/slot/Postured';
 import { SlottedMixin } from '../../lib/slot/Slotted';
-import { DetailedMixin } from '../../lib/description/Detailed';
 
-const ChairBase = PosturedMixin(SlottedMixin(DetailedMixin(Thing)));
+const ChairBase = PosturedMixin(SlottedMixin(Good));
 
 export default class Chair extends ChairBase {
   constructor() {

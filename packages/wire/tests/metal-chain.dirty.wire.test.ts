@@ -157,7 +157,7 @@ suite('the chain — the fuel yard and the smelter are PLACES', () => {
    * ⭐ Now a `SmeltingFurnace` affords it, and the fuel yard is one
    * passable exit from the smelter — which is exactly the reach `peers`
    * has and the reach the anvil has always had. So the verb arrives,
-   * finds the charcoal clamp (a Furnace AND a Container, like any
+   * finds the charcoal clamp (a Burner AND a Container, like any
    * chargeable furnace), and declines for a reason about what a clamp
    * IS: a heap kept deliberately starving of air. That is a better
    * answer than "I don't understand 'smelt'", and it is the

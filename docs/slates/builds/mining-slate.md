@@ -588,7 +588,7 @@ genuinely is one:
 | **pest** | delve-rats | breeding pressure; desperation meat |
 | **grazer** | pale grazer | herdable — husbandry again |
 | **predator** | pale crawler | the concealment game, by vibration |
-| **working** | pit pony | `HaulingCreature`, shipped |
+| **working** | pit pony | `platform/agent/DraftAnimal`, shipped (was `HaulingCreature` until the base-class narrowing) |
 | **working** | canary | the atmosphere instrument |
 
 **Five of seven ride substrates that already exist.** Each costs a Species

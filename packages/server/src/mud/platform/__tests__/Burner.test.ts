@@ -8,7 +8,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import Location from '../../lib/stuff/Location';
 import Material from '../../lib/material/Material';
 import Floor from '../thing/Floor';
@@ -24,7 +24,7 @@ import { Quantity } from '../../lib/quantity';
 import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-class Ingot extends MeltableMixin(ThermalMixin(Thing)) {
+class Ingot extends MeltableMixin(ThermalMixin(Good)) {
   static _mixinName = 'ForgeIngotTest';
 }
 class TestRoom extends Location {}
@@ -61,7 +61,7 @@ describe('the furnace family — held temperature', () => {
 
   it('a lit, fuelled furnace pins its held temperature', () => {
     const f = forge(1300);
-    expect(MixinApi.isFurnace(f)).toBe(true);
+    expect(MixinApi.isBurner(f)).toBe(true);
     expect(f.isLit()).toBe(true); // constructed lit by default (the Campfire seed)
     expect(f.getTemperature().rawValue()).toBe(1300);
   });
@@ -99,10 +99,11 @@ describe('the furnace family — a burnt-out fire casts no light', () => {
   /**
    * ⭐⭐ The shipped defect this closes. `LightSourceMixin` emits its
    * authored flux unconditionally and lit-gating was done per CLASS —
-   * `isOn()` on `PortableLight`, `isBurning()` on `Candle`. `Campfire`,
+   * `isOn()` on `PortableLight`, and `isBurning()` on a since-retired
+   * `Candle` class. `Campfire`,
    * `Forge`, `Oven` and `Kiln` have empty class bodies and therefore no
    * gate at all, so a campfire that burnt out an hour ago kept casting
-   * its full 120 lumens. Every composer puts `FurnaceMixin` outside
+   * its full 120 lumens. Every composer puts `BurnerMixin` outside
    * `LightSourceMixin`, so the gate belongs there and fixes all of them
    * at once.
    */

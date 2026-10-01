@@ -10,5 +10,5 @@ data:
   register: indefinite
   longDescription: |
     A tied armful of spindly stems gone straw-coloured, the seed pods still on. It looks exactly like a weed somebody could not be bothered to pull, and it is.
-  material: /trade/farming/idea/material/weld
+  _materialPath: /trade/farming/idea/material/weld
   mass: 0.5

@@ -44,7 +44,7 @@ behavior. Read the relevant doc before editing in its area.
   an author may change) rather than the law; **neutrality is the
   attention company's answer, not ours.** ⚠ NOT
   [docs/lenses/](./docs/lenses/README.md) — the borrowed Schell deck,
-  **restarted 2026-09-29** (11 entries, indexed *by our lens*; the
+  **restarted 2026-09-29** (17 entries, indexed *by our lens*; the
   previous 29 were retired to
   [lens-deck-salvage.md](./docs/lens-deck-salvage.md), which holds the
   slate checklist and the two ratified essence sentences).
@@ -270,7 +270,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, cadence/witness triggers, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
-  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `ToolItem`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
+  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `Tool`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
   - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ the article defect (`greedy: true`) and a required arg with no default both fail closed and SILENT
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
@@ -879,10 +879,11 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Ten exist. **Seven
+absorbs the clones, and templates name that. Twelve exist. **Nine
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
-`platform/thing/Thing`, `platform/thing/Vessel`,
+`platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
+`platform/idea/modalities/Modality`,
 `platform/location/CartesianLocation`,
 `platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
 `platform/idea/material/Material`, `platform/idea/Biome`. **Three are
@@ -898,6 +899,18 @@ nothing (there is no prop concept anywhere in the tree) and read as
 "generic object nobody cares about" — so nobody defended it, and a
 spoilage gauge got hung on it to serve four rows that belonged on
 `Provision`.
+
+⭐⭐ **A class name that is an ADJECTIVE is the same mistake.** Every
+`-able`/`-ible` name in the kernel is a mixin, except `Workable`, which
+is an interface — so the suffix *means* mixin-or-interface and a class
+wearing one reads as a category error. The base-class narrowing shipped
+`Movable` and `Animate` for one build each before this was noticed, and
+`Movable` was also FALSE: it composed nothing that makes a thing
+movable (`fixedInPlace` is `Containable`'s, on the parent), and `Chair`
+and `Fitting` are both fixed-in-place `Movable`s. They are
+`Good` and `Actor` now. ⭐ **Name a class for what it IS, and check the
+prose you already wrote** — every docstring about that rung said *"a
+good"* and none said *"a movable"*.
 
 **Placement within `platform/<branch>/`:** flat at `platform/<branch>/<Name>.ts` by default. A
 `platform/<branch>/<cluster>/` directory only where 3+ cohesive classes land together
@@ -919,8 +932,14 @@ classes live elsewhere — that is fine and pre-existing.
 — `BoundaryAnchor`, `SandboxCrossingExit`, `LightningStrike` — stay.
 The test is *does an instance carry a template-path stamp*, not *is it
 ever `new`'d*. `Shadow` stays for a different reason: it is a framework
-attachment, riding any Stuff, never template-backed. `ExitableVessel`
-is deferred until a consumer needs a concrete class.
+attachment, riding any Stuff, never template-backed. ⚠ `ExitableVessel`
+was *"deferred until a consumer needs a concrete class"* — the coach is
+that consumer and has been since the transport pack shipped; it is a
+`lib/` resident with a row-bearing subclass now, not a deferral.
+⭐ `lib/stuff/Holder` and `lib/creature/Actor` are the two rungs the
+base-class narrowing added with NO twin, deliberately: nothing should
+clone a bare holder or a bare acting body, and `lint:instanceable`
+invariant 1 holds by construction.
 
 `hydratorClass:` is a **template path**, not a module path, despite
 looking like one. It is optional; when absent **no hydration runs**, so

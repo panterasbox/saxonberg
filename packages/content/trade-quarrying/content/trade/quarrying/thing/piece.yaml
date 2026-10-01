@@ -6,7 +6,7 @@
 #
 # ⚠ The material is restamped from the block it came off, so one row serves
 # every stone.
-class: /platform/thing/Thing
+class: /platform/thing/Good
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [piece, stone, block]
@@ -15,5 +15,5 @@ data:
   longDescription: >-
     A squared piece of stone about as much as a man can carry, one face
     split fresh and bright.
-  material: /stuff/idea/material/rock/granite
+  _materialPath: /stuff/idea/material/rock/granite
   mass: 25

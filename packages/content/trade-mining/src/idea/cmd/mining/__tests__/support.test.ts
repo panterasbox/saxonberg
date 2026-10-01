@@ -19,7 +19,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ShoreController from '../ShoreController';
 import HewController from '../HewController';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import DriveController from '../DriveController';
 import TimberSet from '../../../../thing/TimberSet';
 import MineWarren from '../../../MineWarren';
@@ -102,7 +102,7 @@ function room(cell: Cell): MineRoom {
  */
 function pick(): { raw: string; stuff: Stuff } {
   const t = makeStuff(() => {
-    const item = new ToolItem();
+    const item = new Tool();
     item.capabilities = ['winning', 'striking'];
     return item;
   }) as unknown as Stuff;

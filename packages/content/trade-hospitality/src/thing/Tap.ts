@@ -12,11 +12,10 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 
-const TapBase = PlacingMixin(ToolMixin(DetailedMixin(Thing)));
+const TapBase = PlacingMixin(ToolMixin(Thing));
 
 export default class Tap extends TapBase {
   constructor() {

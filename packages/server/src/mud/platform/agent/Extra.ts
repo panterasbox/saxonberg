@@ -1,7 +1,7 @@
 /**
  * Extra — a character who is **a role, not a person.**
  *
- * *A* sentry. *A* sellsword. *A* hewer on tutwork. A rangy grey wolf.
+ * *A* sentry. *A* sellsword. *A* hewer on tutwork.
  * Somebody fills the post; which somebody is not a fact the world keeps,
  * and nothing pretends otherwise: an Extra carries no proper name and no
  * written history, and asking for one says so plainly rather than
@@ -13,7 +13,15 @@
  * attribution its harms carry (`EmployedMixin.institutionPath`), and a
  * sentient Extra that answers to nobody is a build error
  * (`lint:identity`): if hurting something is a crime, the victim must be
- * *someone*. An animal answers to nobody forever.
+ * *someone*.
+ *
+ * ⚠⚠ **An ANIMAL is not an Extra**, and until the base-class narrowing
+ * (2026-09-30) the newbie-wilds wolf was one. This docstring had grown
+ * the sentence *"An animal answers to nobody forever"* and listed *a
+ * rangy grey wolf* among the roles — a line about animals living in a
+ * class about people, there only because a wolf was standing on it. An
+ * `Extra` is a role a PERSON fills; a wolf fills no post. The animal
+ * rung is `platform/agent/Beast`.
  *
  * ⚠ **A role-filler still has a personality**, and it reads the same as
  * anyone's — `dispositions:` stays on `BehavedMixin`, which both rungs

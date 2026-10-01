@@ -45,7 +45,6 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -57,7 +56,7 @@ import HerdRegistry, {
   DEFAULT_FOUNDING_MEAN_AGE_DAYS,
 } from '../idea/HerdRegistry';
 
-const HerdbookBase = PostRegistrationMixin(FixtureMixin(DetailedMixin(Thing)));
+const HerdbookBase = PostRegistrationMixin(FixtureMixin(Thing));
 
 /** The registry singleton's identity path. */
 const HERD_REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';

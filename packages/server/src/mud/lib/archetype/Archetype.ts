@@ -527,7 +527,7 @@ function satisfyingItem(
   if ('heatK' in need) {
     const want = need.heatK;
     const hit = pool.find(
-      (i) => MixinApi.isFurnace(i) && i.getHeldTemperatureK() >= want,
+      (i) => MixinApi.isBurner(i) && i.getHeldTemperatureK() >= want,
     );
     return hit ? hit.getPresentation() : null;
   }

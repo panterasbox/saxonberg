@@ -211,7 +211,7 @@ export default class SmeltController extends CommandController<SmeltModel> {
     // a fire you can CHARGE — a container, not a forge — stays here,
     // because no mixin says "you can put ore in this".
     const furnace = model.furnace?.stuff ?? null;
-    if (!furnace || !MixinApi.isFurnace(furnace) || !MixinApi.isContainer(furnace)) {
+    if (!furnace || !MixinApi.isBurner(furnace) || !MixinApi.isContainer(furnace)) {
       this.decline(context, Mml.compose`There is no furnace here to charge.`, 'no-furnace');
       return;
     }

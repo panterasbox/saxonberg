@@ -1,6 +1,6 @@
 /**
  * Muddler — the bar tool that muddles: it affords `muddle`, and that is
- * the whole reason it is a class rather than a row over `ToolItem`.
+ * the whole reason it is a class rather than a row over `Tool`.
  *
  * ⭐ A verb an object affords is a property of what the object IS, so it
  * is declared exactly once, on the class, as `static
@@ -13,12 +13,12 @@
  * name a trade's vocabulary.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const MUDDLE = ['trade/hospitality/cmd/crafting/muddle.yaml'];
 
-export default class Muddler extends ToolItem {
+export default class Muddler extends Tool {
   static commandContributions: CommandContributions = {
     environment: MUDDLE,
     peers: MUDDLE,

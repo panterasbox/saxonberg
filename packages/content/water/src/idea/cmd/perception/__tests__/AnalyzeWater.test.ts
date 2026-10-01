@@ -33,7 +33,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
@@ -53,7 +53,7 @@ class TestActor extends CommandGiverMixin(
 }
 
 /** A thing that answers the supply SHAPE — no water-pack import here. */
-class FakeSupply extends Thing {
+class FakeSupply extends Good {
   public asked = 0;
   public async supplyReport(
     nowS: number,
@@ -134,7 +134,7 @@ describe('pointed at a thing, it goes over the SHAPE', () => {
 
   it('a thing that carries no water declines in its own words', async () => {
     const rock = makeStuff(() => {
-      const t = new Thing();
+      const t = new Good();
       t.setShortDescription('a rock');
       return t;
     });

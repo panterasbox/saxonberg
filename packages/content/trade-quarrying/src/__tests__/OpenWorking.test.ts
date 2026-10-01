@@ -29,8 +29,8 @@ import { LIFT_M, OPEN_WORKING_MIXIN, type OpenWorking } from '../lib/Working';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -125,7 +125,7 @@ function working(opts?: {
 /** A tool offering exactly the capabilities named. */
 function tool(...capabilities: string[]): Stuff & Tooled {
   const t = makeStuff(() => {
-    const item = new ToolItem();
+    const item = new Tool();
     item.capabilities = capabilities;
     return item;
   }) as unknown as Stuff;
@@ -150,11 +150,11 @@ beforeEach(() => {
   zone.setCellSize(10);
   (zone as unknown as { deposit: string }).deposit = DEPOSIT;
   column = seedColumn();
-  actor = makeStuff(() => new Thing()) as unknown as Stuff;
+  actor = makeStuff(() => new Good()) as unknown as Stuff;
   // The won goods are cloned; a bare harness has no rows, so the mint is
   // stubbed to a plain Thing. What the tests are about is the LEDGER.
   vi.spyOn(StuffApi, 'clone').mockImplementation((async () =>
-    makeStuff(() => new Thing())) as never);
+    makeStuff(() => new Good())) as never);
 });
 
 describe('the wall is a section through the ground', () => {

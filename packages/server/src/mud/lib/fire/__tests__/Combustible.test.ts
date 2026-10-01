@@ -9,7 +9,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
@@ -31,7 +31,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 // A fully-composed flammable object: Combustible over Wet over Thermal over
 // Reserved (fuel) over Thing — the demonstrator shape.
 class Firewood extends CombustibleMixin(
-  WetMixin(ThermalMixin(ReservedMixin(Thing))),
+  WetMixin(ThermalMixin(ReservedMixin(Good))),
 ) {
   static _mixinName = 'Firewood';
 }
@@ -42,7 +42,7 @@ class Firewood extends CombustibleMixin(
  * outside*, it is nearly all water all the way through.
  */
 class Turf extends WaterActivityMixin(
-  CombustibleMixin(ThermalMixin(ReservedMixin(Thing))),
+  CombustibleMixin(ThermalMixin(ReservedMixin(Good))),
 ) {
   static _mixinName = 'TestTurf';
 }
@@ -151,12 +151,12 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
 
   it('a non-flammable object has no combustion face at all', () => {
     // Since the F1 move the refusal is structural: ignite()/douse() live
-    // on Combustible/Furnace, and the ignite verb's target predicate is
-    // the isCombustible/isFurnace narrow — a bare Thing never reaches
+    // on Combustible/Burner, and the ignite verb's target predicate is
+    // the isCombustible/isBurner narrow — a bare Thing never reaches
     // the driver.
-    const rock = makeStuff(() => new Thing());
+    const rock = makeStuff(() => new Good());
     expect(MixinApi.isCombustible(rock)).toBe(false);
-    expect(MixinApi.isFurnace(rock)).toBe(false);
+    expect(MixinApi.isBurner(rock)).toBe(false);
   });
 
   it('a spent (no-fuel) object will not ignite', () => {
@@ -180,7 +180,7 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
 
   it('narrows Combustible via MixinApi', () => {
     expect(MixinApi.isCombustible(firewood({ massKg: 1 }))).toBe(true);
-    expect(MixinApi.isCombustible(makeStuff(() => new Thing()))).toBe(false);
+    expect(MixinApi.isCombustible(makeStuff(() => new Good()))).toBe(false);
   });
 });
 

@@ -7,7 +7,7 @@
 > ships**, 31 channels, competence resolving detail and never access, the
 > instrument as a ceiling, the seeded bracket, `SampledMixin` provenance,
 > and the bench that keeps nothing of yours. The eleven instrument
-> CLASSES are gone — an instrument is a row over `ToolItem` declaring a
+> CLASSES are gone — an instrument is a row over `Tool` declaring a
 > capability — and the `strike`/`dip` platform-view stanzas retired with
 > them.
 > **Left:** ⭐ **the implant rung** (Wave 2+ — carried upgradeable,
@@ -495,7 +495,7 @@ you walk away.
   content: the `time` channel ships with `instrument: ""` and the reason
   written into its `stakes`. A timepiece is a row when content wants one.
 - **#6 — instrument crafting.** Moot as a blocker: the ten platform
-  instruments are **rows over `ToolItem`** now, not classes, so crafting
+  instruments are **rows over `Tool`** now, not classes, so crafting
   one is the ordinary recipe question rather than a kernel one.
 
 **Still open and untouched:** **#3** (attunement vs. mount capacity),

@@ -135,7 +135,9 @@ describe('GetController — bareword path (no quantity)', () => {
     expect(sword.getContainer()).toBe(giver);
   });
 
-  // ⭐ The narrow test that replaced `Screen.canMove`. A bolted-down
+  // ⭐ The narrow test that replaced a wall screen's `canMove` veto (the
+  // `Screen` class is since retired; `fixedInPlace` is the row's word and
+  // any Containable can set it). A bolted-down
   // thing refuses *an agent taking it* and nothing else: the same object
   // still moves through `ContainmentApi.move`, which is what a remodel,
   // a `place` and an author rearranging scenery all use.

@@ -27,12 +27,26 @@
  *                         postRegister is a terminal no-op (see below)
  *       BeliefStore  its opinion of you — the bond's first factor
  *       Handling     how tractable it is — the second       ⟵ SIBLINGS
- *         Engaged    brain slot contention
- *         Mobile     it can walk: follows / homes need this
- *         Sensor     witness triggers — it notices you leave
- *           Named    ⭐ a pet HAS a name
+ *         Named      ⭐ a pet HAS a name
+ *           Actor  it moves, it notices you leave, it can be engaged,
+ *                    it perceives — and it fights back
  *             Creature
  * ```
+ *
+ * ⭐⭐ **`Engaged`, `Mobile` and `Sensor` used to be composed right here,
+ * by hand**, with the comments *"brain slot contention"*, *"it can walk:
+ * follows / homes need this"* and *"witness triggers — it notices you
+ * leave"*. They were on `Character` too, for people. Two composition
+ * sites of the same mixins is the shape that says the host is one level
+ * up: the base-class narrowing (2026-09-30) put them on
+ * `lib/creature/Actor` — *a body that acts* — and this class is the
+ * third consumer, which is the threshold the project's own rule names.
+ *
+ * ⭐ The cat, the collie, the canary and the fish GAIN `Combatant` and
+ * `Perception` in the move and lose nothing. A cat that can fight back
+ * is right: `AttackController` already gated its target on
+ * `Vitals && Engaged`, so they could always be attacked — what they
+ * lacked was the half that answers.
  *
  * ⚠ `BeliefStore` and `Handling` are composed **side by side**, never
  * nested: `BondedMixin` narrows to both with `MixinApi` rather than
@@ -62,11 +76,8 @@
  * on `Character`.
  */
 
-import { Creature } from './Creature';
+import { Actor } from './Actor';
 import { NamedMixin } from '../description/Named';
-import { SensorMixin } from '../message/Sensor';
-import { MobileMixin } from '../spatial/Mobile';
-import { EngagedMixin } from '../activity/Engaged';
 import { HandlingMixin } from '../husbandry/Handling';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
 import { StatusMixin } from '../status/Status';
@@ -74,12 +85,14 @@ import { BondedMixin } from '../husbandry/Bonded';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { BehavedMixin } from '../behavior/Behaved';
 import { PersistableMixin } from '../persistence/Persistable';
+import { ChattelMixin } from '../chattel/Chattel';
+import { BrandedMixin } from '../corpo/Branded';
 
 // Named beneath the agency layers so the stack reads outermost-first and
 // inference does not collapse across this many nested factories in one
 // expression (the PlantPot lesson).
 const KeptAnimalBody = HandlingMixin(
-  BeliefStoreMixin(EngagedMixin(MobileMixin(SensorMixin(NamedMixin(Creature))))),
+  BeliefStoreMixin(NamedMixin(Actor)),
 );
 
 // ⚠⚠ `PostRegistrationMixin` INNERMOST. Its `postRegister` is a terminal
@@ -88,8 +101,31 @@ const KeptAnimalBody = HandlingMixin(
 // never ran on a live animal — no home seeded, no species warmed — and
 // nothing above the fixtures could see it. `Creature` carries no
 // `postRegister`, so the chain terminates here harmlessly.
+// ⭐ `BrandedMixin` INSIDE `Persistable`, for the reason above it: the
+// outermost layer is `Persistable` on purpose (`pinsResidency`), so
+// anything added goes within it.
+//
+// It lived on `Creature` until the base-class narrowing build, where it
+// also marked every player, Cast member, Extra, Shade and corpse. A mark
+// says *whose work, or whose herd, this is* — which is true of a kept
+// animal and of ranching's `Livestock` (which composes it itself: it
+// extends `Creature`, not this class), and is not true of a person.
+//
+// ⭐⭐ `ChattelMixin` beside `Branded`, and it came off `Creature` in the
+// same wave and for the same reason. Per-instance ownership with chain of
+// title is what D22 and D98 wanted, and it is true of an animal somebody
+// keeps — a stolen one keeps its provenance and cannot be sold cleanly.
+// It was NOT true of the player Avatar, the Cast member, the Extra, the
+// Shade and the Corpse that also descend from `Creature`. A person is
+// nobody's property.
 const KeptAnimalBase = PersistableMixin(
-  BehavedMixin(BondedMixin(StatusMixin(PostRegistrationMixin(KeptAnimalBody)))),
+  ChattelMixin(
+    BrandedMixin(
+      BehavedMixin(
+        BondedMixin(StatusMixin(PostRegistrationMixin(KeptAnimalBody))),
+      ),
+    ),
+  ),
 );
 
 export class KeptAnimal extends KeptAnimalBase {

@@ -26,18 +26,17 @@
  * through the operation `Stackable` already ships.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import { DyedMixin } from '@saxonberg/server/mud/lib/material/Dyed';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
 const ClothBoltBase = StackableMixin(
-  CraftedMixin(ConstructedMixin(DyedMixin(DetailedMixin(Thing)))),
+  CraftedMixin(ConstructedMixin(DyedMixin(Good))),
 );
 
 export default class ClothBolt extends ClothBoltBase {

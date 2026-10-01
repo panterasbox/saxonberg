@@ -43,8 +43,21 @@ import { Collections } from './Collections';
  *     on the row (the epistemic wire mark) without ever filtering reads.
  *   - `shadow` — rebuildable caches. `mode: 'skip'` silently skips the
  *     terminal write from circle context (readers derive live from their
- *     event ledgers in-circle). `mode: 'overlay'` is specified as the
- *     labeled attach point but not built — no collection needs it today.
+ *     event ledgers in-circle).
+ *
+ * ⚠⚠ **`mode: 'overlay'` is a labeled attach point that is NOT BUILT, and
+ * both ends now refuse it.** `SchemaDoc` rejects a schema doc that
+ * selects it (so the failure lands on the author, at `gen:schema` time),
+ * and all three `PersistenceManager` write paths throw
+ * `SandboxOverlayUnimplementedError` if one ever reaches them. Until
+ * 2026-09-30 they did neither: the `shadow` arm tested only for
+ * `skip` and `break`'d out of the switch, so an overlay collection
+ * would have written **real, unstamped rows from inside a circle** and
+ * bulk-deleted with the caller's unscoped filter — invisibly, because the
+ * read side gives every `verb === 'shadow'` collection the field-only
+ * filter. ⭐ Declared-and-unbuilt is the dangerous state: a switch total
+ * over the VERB is not total over the POLICY. Building overlay deletes
+ * both refusals.
  */
 export type CollectionPolicy =
   | { verb: 'stamp' }

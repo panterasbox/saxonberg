@@ -11,7 +11,7 @@
  * was offered none either. The kit and the machine carried the
  * capability; the table carried the affordance; neither carried both.
  *
- * ⭐ **Extends `MendingTool` rather than `ToolItem`**, so a tailor's
+ * ⭐ **Extends `MendingTool` rather than `Tool`**, so a tailor's
  * needle-case affords `repair` and `salvage` too and carries the
  * `mending` capability the sew step already resolves. A thing that can
  * sew a coat together can obviously also mend one, and saying so in the

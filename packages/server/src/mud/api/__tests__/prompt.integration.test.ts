@@ -21,7 +21,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -97,8 +97,8 @@ describe('PromptApi — integration', () => {
 
   it('4. mqlObject pass-through resolves with picked Stuff', async () => {
     const { interactive, envelopes } = await setup();
-    const sword1 = await StuffApi.create(() => new Thing());
-    const sword2 = await StuffApi.create(() => new Thing());
+    const sword1 = await StuffApi.create(() => new Good());
+    const sword2 = await StuffApi.create(() => new Good());
     const p = interactive.promptMqlObject('Which?', [sword1, sword2]);
     const id = envelopes[0]!.promptId!;
     interactive.handlePromptResponse({
@@ -110,7 +110,7 @@ describe('PromptApi — integration', () => {
 
   it('5. mqlObject bogus stuffId resolves null (substrate is pass-through)', async () => {
     const { interactive, envelopes } = await setup();
-    const sword = await StuffApi.create(() => new Thing());
+    const sword = await StuffApi.create(() => new Good());
     const p = interactive.promptMqlObject('Which?', [sword]);
     const id = envelopes[0]!.promptId!;
     interactive.handlePromptResponse({
@@ -122,9 +122,9 @@ describe('PromptApi — integration', () => {
 
   it('6. mqlMany bounds: in-range resolves with array', async () => {
     const { interactive, envelopes } = await setup();
-    const a = await StuffApi.create(() => new Thing());
-    const b = await StuffApi.create(() => new Thing());
-    const c = await StuffApi.create(() => new Thing());
+    const a = await StuffApi.create(() => new Good());
+    const b = await StuffApi.create(() => new Good());
+    const c = await StuffApi.create(() => new Good());
     const p = interactive.promptMqlMany('Pick', [a, b, c], { min: 1, max: 3 });
     const id = envelopes[0]!.promptId!;
     interactive.handlePromptResponse({
@@ -136,8 +136,8 @@ describe('PromptApi — integration', () => {
 
   it('7. mqlMany out-of-bounds → validation-failed, prompt alive', async () => {
     const { interactive, envelopes } = await setup();
-    const a = await StuffApi.create(() => new Thing());
-    const b = await StuffApi.create(() => new Thing());
+    const a = await StuffApi.create(() => new Good());
+    const b = await StuffApi.create(() => new Good());
     const p = interactive.promptMqlMany('Pick', [a, b], { min: 2, max: 2 });
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;

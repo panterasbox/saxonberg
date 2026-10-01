@@ -99,8 +99,8 @@ export async function instrumentWith(
   capability: string,
   opts: { grade?: string; condition?: number } = {},
 ): Promise<Stuff> {
-  const ToolItem = (await import('../../../thing/ToolItem')).default;
-  const tool = await StuffApi.create(() => new ToolItem());
+  const Tool = (await import('../../../thing/Tool')).default;
+  const tool = await StuffApi.create(() => new Tool());
   tool.setCapabilities([capability]);
   // ⭐ The grade/condition pair IS the instrument's ceiling — a fine dial
   // in an untrained hand still reads coarsely, and a worn one caps an

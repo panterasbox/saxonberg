@@ -59,7 +59,27 @@ export class RenderBudget {
     snippetDepth: 8,
     maxSnippets: 200,
     maxComponents: 100,
-    componentTimeoutMs: 2000,
+    // ⚠⚠ **5 s, raised from 2 s by the base-class narrowing build.**
+    // `<composition kind="mixin">`'s inverse view answers *what in this
+    // world has this capability*, and answering it honestly means
+    // scanning every template there is — 1922 rows over 684 backing
+    // classes today. That lands at ~1.2–2.3 s, so the widest mixins
+    // (`Chattel`, `Concealable`, `Wet`) sat on the old bound and crossed
+    // it intermittently.
+    //
+    // ⭐ What made that worse than slow: a component that exceeds its
+    // budget renders its FAILURE into the page, and to a reader that is
+    // indistinguishable from *nothing composes this* — the same
+    // false-negative the `/obj` scan root produced for the whole life of
+    // the component. A bound that fires on legitimate work is not a
+    // safety rail, it is a source of quiet wrong answers.
+    //
+    // The alternative — memoizing the class index across renders — was
+    // declined: there is no hot-reload invalidation hook to hang it on,
+    // and a wiki panel that has gone stale is exactly the lie this
+    // component exists to make impossible. The per-render prototype-walk
+    // cache in `composition.ts` took the real waste out instead.
+    componentTimeoutMs: 5000,
     maxOutputChars: 200_000,
   };
 

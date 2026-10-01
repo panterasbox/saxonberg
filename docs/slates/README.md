@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**254 slates.** 60 greenfield · 89 continuations · 57 waves · 48 tails.
+**255 slates.** 60 greenfield · 90 continuations · 57 waves · 48 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (60)
 
@@ -51,7 +51,7 @@ respect.
 | [api-normalization](./builds/api-normalization-slate.md) | ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`, `worldclock`) plus 19 Apis with no singleton at all; mechanical, no boundary ruling needed · ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s surface is two test hooks · answer *where a system-less utility lives* before deleting `array`/`path-pattern` … |
 | [attestation](./builds/attestation-slate.md) | the `attestation_events` collection (Q1: its own, or a facet of `authoring_events`) · the closed assertion vocabulary (`approves`/`objects`/`notes` — `objects` non-blocking by default; superseded, never retracted) · the go-live predicate on the CMS save/publish split · the per-group policy grammar (data, not code — Q2) … |
 | [authored-vs-procedural](./builds/authored-vs-procedural-slate.md) | the design pass itself · what a hand-placed ecology member IS (the glowcap: table member or furniture) · a `forage` verb, and whether it differs from `harvest` (`gather` is taken by ranching) · *cultivated* as a category (husbandry.md uses the word only for the durability rule) … |
-| [base-class-narrowing](./builds/base-class-narrowing-slate.md) | the containment partition concept (⛔ **blocks everything else** — its own slate) · `Atmospheric` off `Vessel` · `Branded` from `Creature` down to `KeptAnimal` · the seven dead classes … |
+| [avatar-family](./builds/avatar-family-slate.md) | **overlay mode built** — `copy` first, `through` second · the **27 REFUSE collections triaged** (9 stand, 17 move, 1 is a write-path defect) · `holder_snapshots` onto overlay, retiring `WireBody.shouldPersist()` as the cheat guard · `shouldPersist(): boolean` → a **per-mixin capture allowlist** on the epistemic/material line the fork allowlist already draws … |
 | [blood](./builds/blood-slate.md) | the genotype/phenotype endowment (`untested` until tested, per-`Species` allele frequencies + the provenance stamp) · the compatibility cost curve (non-hierarchical across species · graded failure · the volume-expander floor) … |
 | [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens invariant · nearest-wins + self-amendment … |
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
@@ -105,7 +105,7 @@ respect.
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (89)
+## ⭐ Continuations — substrate shipped, a build's worth remains (90)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -118,6 +118,7 @@ are the named remainders.
 | [auction](./builds/auction-slate.md) | the `auction` + `bid` verbs · the lot-as-contract mapping · silent (sealed) mode first, then the live auctioneer `SustainedEngagement` with reset-on-bid · proxy/absentee maxima … |
 | [authoring-intelligence](./builds/authoring-intelligence-slate.md) | the platform-semantic model (template-path completion, reference validation, mixin-composition rules + their declared source, scope awareness over the titled extent) · the LSP server · the VS Code extension · the engine `.d.ts` pipeline … |
 | [balance](./builds/balance-slate.md) | the jurisdiction stamp (#0a plant the parcel extent at the command root · #0b `actingParcelKey()` + delete `opts.locality` · #0c title/jurisdiction congruence) · the cross-jurisdiction enumeration … |
+| [base-class-narrowing](./builds/base-class-narrowing-slate.md) | everything under § Deferred, with destinations — chiefly `Persona`'s 60 empty biographies, the `Extra` taxonomy, the structure tier, the `Staged` split, and the two content burn-downs (362 rows with no details; 38 species with no appearance). |
 | [bathroom](./builds/bathroom-slate.md) | the washing/cleanliness state · the mirror self-recognition read · the interior lock as a consequence · the closed restroom archetype set + district skins … |
 | [biome-normalization](./builds/biome-normalization-slate.md) | the granularity doctrine (what a biome is a claim about, and the test that decides it) · splitting the three jobs — atmospheric field · sky exposure · sensory dressing … |
 | [campus-grounds](./builds/campus-grounds-slate.md) | the four labs (assay · fermentation · agronomy · medical) + the observatory … |

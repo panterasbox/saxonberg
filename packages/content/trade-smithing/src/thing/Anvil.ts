@@ -8,7 +8,7 @@
  * the mass and the working — never a verb list.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const SMITHING = [
@@ -19,7 +19,7 @@ const SMITHING = [
   'platform/cmd/crafting/salvage.yaml',
 ];
 
-export default class Anvil extends ToolItem {
+export default class Anvil extends Tool {
   static commandContributions: CommandContributions = {
     environment: SMITHING,
     peers: SMITHING,

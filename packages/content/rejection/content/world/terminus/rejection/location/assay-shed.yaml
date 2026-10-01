@@ -42,7 +42,7 @@ data:
     # ⭐ The field kit, where a prospector picks it up on the way out.
     # Neither reads a number; what they buy is telling one kind of
     # *ore-bearing* from another, which is the rung between a naked eye
-    # and a bench. Rows only — both are `ToolItem` over a capability.
+    # and a bench. Rows only — both are `Tool` over a capability.
     - /trade/mining/thing/hand-lens
     - /trade/mining/thing/streak-plate
   cast:

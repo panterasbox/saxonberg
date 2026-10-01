@@ -32,7 +32,7 @@ import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Spell from '../../../platform/idea/magic/Spell';
 import { LightSourceMixin } from '../../perception/LightSource';
 import { Template } from '../../stuff/Template';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
 import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
@@ -51,13 +51,13 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
-class GlowlightOrb extends LightSourceMixin(Thing) {}
+class GlowlightOrb extends LightSourceMixin(Good) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 /** A magic item: `Thing` + the grid footprint + a tank to spend from. */
 class TestWand extends IdentifiableMixin(
-  ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
+  ChargedMixin(ReservedMixin(ArcaneMixin(Good))),
 ) {}
 // The competence read runs ON the caster since the OO sweep; this
 // pins the band per test (credits no-op — PM is disconnected here).

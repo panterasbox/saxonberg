@@ -1,7 +1,7 @@
 /**
  * Lamp — a light that burns fuel, and therefore a light that GOES OUT.
  *
- * ⭐ The whole class is a composition decision: `FurnaceMixin` over
+ * ⭐ The whole class is a composition decision: `BurnerMixin` over
  * `LightSourceMixin` gives a lantern a real reserve, a drain against
  * game time, reconcile-on-read so it burns down unattended, the burnout
  * edge, and `ignite`/`douse` — none of it written in `Lamp.ts`. What is
@@ -61,7 +61,7 @@ describe("Lamp — a small furnace with a light on it", () => {
     WorldClockApi._resetForTesting();
     real = 100_000;
     WorldClockApi._setNowProviderForTesting(() => real);
-    // ⚠ `furnaceNowSeconds()` returns null unless the clock registry
+    // ⚠ `burnerNowSeconds()` returns null unless the clock registry
     // singleton is REGISTERED at its template path — importing the
     // module is not enough. Without it the fuel reconcile is a silent
     // no-op and a burn test passes by measuring nothing.
@@ -78,12 +78,12 @@ describe("Lamp — a small furnace with a light on it", () => {
   });
 
   it("⚠ ships OUT, against the mixin default", () => {
-    // `FurnaceMixin.lit` defaults TRUE — right for a forge, wrong for a
+    // `BurnerMixin.lit` defaults TRUE — right for a forge, wrong for a
     // lantern on a shop shelf, where it would burn its fuel away with
     // nobody there. The class overrides it; `lint:light-sources` clause
     // (g) makes every row say which it means anyway.
     const l = lamp();
-    expect(MixinApi.isFurnace(l)).toBe(true);
+    expect(MixinApi.isBurner(l)).toBe(true);
     expect(l.isLit()).toBe(false);
     expect(l.getEmittedFlux().rawValue()).toBe(0);
   });
@@ -101,10 +101,10 @@ describe("Lamp — a small furnace with a light on it", () => {
   it("⭐ burns down over a game night, unattended, and then is dark", () => {
     const l = lamp();
     l.ignite();
-    l.reconcileFurnaceFuel(); // seed the clock stamp
+    l.reconcileBurnerFuel(); // seed the clock stamp
     expect(l.getEmittedFlux().rawValue()).toBeGreaterThan(0);
 
-    // ⚠⚠ In game-HOUR steps throughout, because `reconcileFurnaceFuel`
+    // ⚠⚠ In game-HOUR steps throughout, because `reconcileBurnerFuel`
     // drops any gap over `MAX_REASONABLE_GAP_SEC` (four hours) as a
     // logout rather than integrating it — a lamp does not burn down
     // while the server is off. The first draft of this test jumped six
@@ -113,7 +113,7 @@ describe("Lamp — a small furnace with a light on it", () => {
     // guard working and the test measuring nothing.
     const burnAnHour = (): void => {
       advance(3600);
-      l.reconcileFurnaceFuel();
+      l.reconcileBurnerFuel();
     };
 
     // Half a night: burning, and visibly down on fuel.

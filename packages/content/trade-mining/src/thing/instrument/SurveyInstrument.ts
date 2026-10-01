@@ -17,10 +17,10 @@
  * list of them, and a capability entry names no verbs.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class SurveyInstrument extends ToolItem {
+export default class SurveyInstrument extends Tool {
   static commandContributions: CommandContributions = {
     self: [],
   };

@@ -922,7 +922,7 @@ The single entry point for "what is this Organism, biologically?":
 forwarders — a lifecycle-state read belongs to the one object, not an Api
 hop. `isInKingdom` went the same way; use `getKingdom(o)` and compare.)
 
-| Kingdom | Animate when |
+| Kingdom | Actor when |
 |---|---|
 | Animalia | `lifecycleState ∈ {alive, undead}` |
 | Constructa | `lifecycleState === 'powered'` |

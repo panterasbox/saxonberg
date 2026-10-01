@@ -26,10 +26,10 @@ import { BulkableApi } from '../../../../api/bulk';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
-import Thing from '../../../../lib/stuff/Thing';
+import Good from '../../../../lib/stuff/Good';
 import Dish from '../../../thing/Dish';
 import CraftVessel from '../../../thing/CraftVessel';
-import ToolItem from '../../../thing/ToolItem';
+import Tool from '../../../thing/Tool';
 import Oven from '../../../thing/Oven';
 import PersistentHydrator from '../../persistence/PersistentHydrator';
 import RecipeCatalogue from '../../RecipeCatalogue';
@@ -95,8 +95,8 @@ function hearth(): Oven {
   });
 }
 
-function meat(): Thing {
-  const t = makeStuff(() => new Thing());
+function meat(): Good {
+  const t = makeStuff(() => new Good());
   t.setMass(Quantity.of(0.3, 'kg'));
   t.setMaterial(StuffApi.findByTemplatePath<Material>(MEAT) as unknown as Material);
   ContainmentApi.move(t, room);

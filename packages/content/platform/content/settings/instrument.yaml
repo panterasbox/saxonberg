@@ -4,7 +4,7 @@
 # touched).
 settings:
   # Instrumentation — condition worn off an instrument per reading taken.
-  # An instrument is a `ToolItem`: graded, durable, and wearing. At 0.002
+  # An instrument is a `Tool`: graded, durable, and wearing. At 0.002
   # a shop-bought dial gives roughly five hundred readings before it is
   # past reading with, which is a season of real use and a running cost a
   # working prospector can feel without it becoming the game.

@@ -48,7 +48,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
 
     const ignitable = MqlApi.effectiveTarget(
       target,
-      (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isFurnace(s),
+      (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isBurner(s),
     );
     if (!ignitable) {
       MessageApi.scene(commandGiver)

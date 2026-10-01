@@ -71,8 +71,8 @@
  *       silently wrong for every room it does not describe. Envelope D1;
  *       `CelestialLogic.profileFor` throws at runtime, and this is the
  *       build-time half.
- *   (g) ⚠ a row whose class composes `FurnaceMixin` authors `lit:`.
- *       `FurnaceMixin.lit` defaults **true**, so a lantern row that
+ *   (g) ⚠ a row whose class composes `BurnerMixin` authors `lit:`.
+ *       `BurnerMixin.lit` defaults **true**, so a lantern row that
  *       forgets it ships burning, with its fuel draining, on a shelf in a
  *       shop.
  *
@@ -264,15 +264,15 @@ function contentRows(): Map<string, Row> {
 
 const atmosphericCache = new Map<string, boolean>();
 const skyBiomeCache = new Map<string, boolean>();
-const furnaceCache = new Map<string, boolean>();
+const burnerCache = new Map<string, boolean>();
 
 /** A scope that can carry an atmosphere — a Location or a Vessel. */
 function isAtmosphericRow(row: Row, sources: readonly PackSource[]): boolean {
   return composesMixin(row.class, "AtmosphericMixin", sources, atmosphericCache);
 }
 
-function isFurnaceRow(row: Row, sources: readonly PackSource[]): boolean {
-  return composesMixin(row.class, "FurnaceMixin", sources, furnaceCache);
+function isBurnerRow(row: Row, sources: readonly PackSource[]): boolean {
+  return composesMixin(row.class, "BurnerMixin", sources, burnerCache);
 }
 
 /**
@@ -615,12 +615,12 @@ function lint(): void {
   // (g) ⚠ a furnace row that forgets `lit:` ships burning
   let furnaceRows = 0;
   for (const row of rows.values()) {
-    if (!isFurnaceRow(row, sources)) continue;
+    if (!isBurnerRow(row, sources)) continue;
     furnaceRows++;
     if (row.data.lit === undefined) {
       failures.push(
         `${row.file}: a furnace row with no \`lit:\`. ⚠ ` +
-          `\`FurnaceMixin.lit\` defaults TRUE, so this ships alight with ` +
+          `\`BurnerMixin.lit\` defaults TRUE, so this ships alight with ` +
           `its fuel draining — a lantern burning on a shop shelf nobody ` +
           `lit. Author \`lit: false\` (or \`true\`, and mean it).`,
       );

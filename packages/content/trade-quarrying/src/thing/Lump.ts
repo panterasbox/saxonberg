@@ -15,7 +15,7 @@
  * nothing reads.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 
-export default class Lump extends StackableMixin(Thing) {}
+export default class Lump extends StackableMixin(Good) {}

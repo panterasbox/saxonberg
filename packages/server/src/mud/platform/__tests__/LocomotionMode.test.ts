@@ -13,18 +13,28 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 describe('LocomotionMode', () => {
   describe('class shape', () => {
-    it('extends Idea via SingletonMixin (and PropertiedMixin)', () => {
+    it('⭐ extends Idea via SingletonMixin, and is NOT Propertied', () => {
+      /*
+       * ⚠ Inverted by the base-class narrowing (2026-09-30), and not a
+       * weakening — it pinned a composition, never a behaviour.
+       * `Propertied` is a per-INSTANCE bag and a `LocomotionMode` is a
+       * SINGLETON: one `walk` for the whole world, so a prop set on it
+       * is a global. Every `setProp`/`getProp` receiver in the tree is
+       * a person, an actor, a slot occupant or `EventRegistry`; none is
+       * a reference singleton.
+       */
       const mode = makeStuff(() => new LocomotionMode());
       expect(mode).toBeInstanceOf(Idea);
       expect(MixinApi.hasMixin(mode, Mixins.Singleton)).toBe(true);
-      expect(MixinApi.hasMixin(mode, Mixins.Propertied)).toBe(true);
+      expect(MixinApi.hasMixin(mode, Mixins.Propertied)).toBe(false);
     });
 
     // This assertion used to read the class's OWN `persistentFields`
-    // static. `getAllPersistentFields` aggregates the whole chain, so
-    // it also answers `savedProps` / `savedPropMarshallers` from
-    // `PropertiedMixin` — the two are not the same question. Both are
-    // asserted, which makes the test stricter than it was.
+    // static. `getAllPersistentFields` aggregates the whole chain.
+    // ⭐ It used to answer `savedProps` / `savedPropMarshallers` too,
+    // from `PropertiedMixin`; that mixin came off in the narrowing, so
+    // the aggregate is now exactly the class's own twelve — which is
+    // the cleanest possible statement of what a reference singleton is.
     const OWN = [
       'name',
       'speed',
@@ -51,11 +61,7 @@ describe('LocomotionMode', () => {
       // `PersistentHydrator` Phase 1 applies fields in this order, and
       // `getAllFieldMeta` collects keys concrete-class-first. That the
       // class's own twelve lead, in declared order, is the guarantee.
-      expect(MixinApi.getAllPersistentFields(LocomotionMode)).toEqual([
-        ...OWN,
-        'savedProps',
-        'savedPropMarshallers',
-      ]);
+      expect(MixinApi.getAllPersistentFields(LocomotionMode)).toEqual(OWN);
     });
 
     it('default field values', () => {

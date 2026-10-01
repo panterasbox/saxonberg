@@ -17,7 +17,7 @@ import BodyPlan from '../../platform/idea/species/BodyPlan';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { AetherMixin } from '../../lib/message/Aether';
 import { SlottedMixin } from '../../lib/slot/Slotted';
-import Thing from '../../lib/stuff/Thing';
+import Good from '../../lib/stuff/Good';
 import AetherImplant from '../../platform/thing/AetherImplant';
 import {
   makeStuff,
@@ -26,7 +26,7 @@ import {
 import { buildAllModalities } from '../../lib/perception/modalities/__tests__/test-helpers';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-class AvatarLike extends SlottedMixin(AetherMixin(OrganismMixin(Thing))) {
+class AvatarLike extends SlottedMixin(AetherMixin(OrganismMixin(Good))) {
   static fieldMeta: FieldMeta = {};
   // staticSlots is consulted by Slotted to know what slot names exist.
   // The test's cranial slot accepts SlottableMixin (the AetherImplant

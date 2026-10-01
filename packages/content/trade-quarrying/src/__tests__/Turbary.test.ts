@@ -26,8 +26,8 @@ import Turbary from '../location/Turbary';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -105,7 +105,7 @@ function makeBank(opts?: { floorDepthM?: number; subsidenceM?: number }): Turbar
 
 const spade = (): Stuff & Tooled =>
   makeStuff(() => {
-    const i = new ToolItem();
+    const i = new Tool();
     i.capabilities = ['digging'];
     return i;
   }) as unknown as Stuff & Tooled;
@@ -130,9 +130,9 @@ beforeEach(() => {
   (zone as unknown as { deposit: string }).deposit = DEPOSIT;
   cellSeq = 0;
   seedColumn();
-  actor = makeStuff(() => new Thing()) as unknown as Stuff;
+  actor = makeStuff(() => new Good()) as unknown as Stuff;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async () =>
-    makeStuff(() => new Thing())) as never);
+    makeStuff(() => new Good())) as never);
   bank = makeBank();
 });
 

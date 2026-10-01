@@ -124,7 +124,32 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   re-meltable content object, material/mass/prose stamped per freeze; not a raw
   construction). Bidirectional — **ice → water → steam falls out of one water
   material**.
-- **The furnace family (D8).** `FurnaceMixin` generalizes the Campfire pin — a
+- ⭐⭐ **It is `BurnerMixin`, and it was `FurnaceMixin` until the
+  base-class narrowing (2026-09-29).** A lamp, a lantern, a candle and a
+  campfire all compose it, and **none of them is a furnace** — the name
+  came from the first consumer instead of the capability, so the arg
+  refusal a player read was *"a candle isn't a furnace"*. It is *"{} won't
+  hold a fire"* now. A burner is a thing that holds a fire and burns fuel
+  to keep it; how hot, whether it encloses, and whether it warms the room
+  are dials and other mixins.
+- ⭐⭐ **`lib/fire/Firebox` — a BUILT-IN fire**, and the class the six
+  hand-written copies of one chain turned out to be:
+  `Burner(LightSource(Reserved(Thermal(Thing))))`. `Forge` IS that chain
+  and nothing else; `Oven` adds `Container` + `Placing` (it encloses what
+  it heats); `Hearth` adds `SpaceHeating` + `Placing` (it warms the air,
+  which a forge does not); `Campfire` adds `Postured` + `Slotted` (it
+  seats you); `SmeltingFurnace` is `Container(Forge)`; `CharcoalPit` is
+  `Container(Firebox)`. ⚠ The composition ORDER is load-bearing and the
+  suites know it: `Burner` outermost so ignite/douse see the composed
+  answers through `super`, `Thermal` innermost because the fuel's heat is
+  what the model integrates.
+  ⚠⚠ **A LAMP does not compose it.** A lamp, a lantern and a
+  `trade-distilling` `Still` are goods you carry, so they sit on
+  `Good` and write the same four mixins themselves. **A shared
+  capability chain is not a shared rung** — the same conflation
+  `Fitting`/`Station` resolved one wave earlier. Two consumers is not
+  three, so a portable twin is declined until something forces it.
+- **The furnace family (D8).** `BurnerMixin` generalizes the Campfire pin — a
   `Combustible`-fuelled appliance holding a `burnTemperatureK × bellows`
   temperature while lit + fuelled, releasing to embers on burnout, and
   **heating the Meltables in its scope** (`heatContents`) toward that
@@ -132,7 +157,7 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   K, guarded by its own suite). `Forge`/`Kiln`/`Oven` compose it with different
   fuel + bellows dials — **smelting heat (iron's 1811 K) reachable only with the
   bellows**. `ignite()`/`douse()` light/extinguish a furnace (the same face rides
-  `FurnaceMixin`).
+  `BurnerMixin`).
 
   ⚠⚠ **`getHeldTemperatureK()` is the PIN, not the reading.** It is
   `burnTemperatureK × bellows` and consults neither `lit` nor fuel — the
@@ -143,14 +168,21 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   without fire moves nothing."* Check `isLit()` first; the accessor
   will not do it for you. (Found by charging a furnace in a browser,
   2026-09-16; every unit fixture had lit it first.)
-- **The Candle** — the convergence fixture: `LightSource + Combustible +
-  Thermal + Reserved(wax)` over a `Thing`'s `Wet` wick. A dry wick lights (the
-  wet-wick gate refuses a soaked one, keyed on the wick material's water
-  absorption) → it emits light (flux gated on `isBurning`) and burns its wax;
-  snuff/douse darkens it; under a sealed (air-limited) jar it self-smothers.
-  *(The wax phase-change pool is deferred — the flame pins the whole body hot,
-  so the wholesale `Meltable` melt is unsuitable; a gradual candle-specific drip
-  is the follow-on.)*
+- ~~**The Candle**~~ — ⚠ **retired, unrowed, by the base-class narrowing
+  build.** It was the convergence fixture (`LightSource + Combustible +
+  Thermal + Reserved(wax)` over a `Thing`'s `Wet` wick) and it was a
+  fixture in the literal sense: **no content row ever named it**, in the
+  whole life of the class, and nothing but its own test imported it. Its
+  per-class `isBurning()` lit-gate is the thing `BurnerMixin` took over
+  (see *A fuelled appliance now casts light only while it burns*, below),
+  which is what left it with nothing of its own.
+  ⭐ **A candle is a `Lamp` row today** — `BurnerMixin(LightSource(
+  Reserved(Thermal(Good))))`, which is a fuelled thing that
+  lights, burns its reserve and gates its flux on being lit. The general
+  store's torch is already one. What no class offers is the wax pool, and
+  that was deferred on the Candle too: the flame pins the whole body hot,
+  so the wholesale `Meltable` melt is unsuitable and a gradual drip is
+  still the follow-on.
 
 ### The crafting seam (D9) — **consumed**
 
@@ -205,7 +237,8 @@ self-contained fire zone (teleport-reachable, the substation precedent) with a
 CO/ventilation lesson), and a **smithy** (a bellows-fed `Forge` melting an
 `Ingot` to a molten pool). `obj/Firewood` (a Combustible log), `obj/Ingot` (a
 Meltable metal bar), `obj/Casting` (the re-meltable frozen-pool cast),
-`obj/Forge`/`Kiln`/`Oven`, `obj/Candle`.
+`obj/Forge`/`Kiln`/`Oven`. ⚠ The list used to end `obj/Candle`; there was
+never a candle row, and the class is retired — see the bullet above.
 
 ## Deferred
 
@@ -236,7 +269,7 @@ heating. It added a different KIND of object. `SpaceHeatingMixin`
 `spaceHeatOutputW()`, which is zero the moment the fire is out or out of
 fuel, and it is composed **outermost** so it can read the furnace face.
 
-⚠ **Never on `FurnaceMixin`.** That would claim it of the forge, the
+⚠ **Never on `BurnerMixin`.** That would claim it of the forge, the
 oven and the kiln, and the only way back would be a guard asking *is
 this a forge* — the tell of a mixin on the wrong host. `Hearth` and
 `Campfire` compose it; `Forge`, `Oven` and `Kiln` do not; the envelope
@@ -270,17 +303,17 @@ honest at that temperature (wax softens, ice melts).
 ### ⚠⚠ A fuelled appliance now casts light only while it burns
 
 `LightSourceMixin` emits its authored flux unconditionally, and
-lit-gating was done per class — `isOn()` on `PortableLight`,
-`isBurning()` on `Candle`. **`Campfire`, `Forge`, `Oven` and `Kiln` have
+lit-gating was done per class — `isOn()` on `PortableLight`, and
+`isBurning()` on the since-retired `Candle`. **`Campfire`, `Forge`, `Oven` and `Kiln` have
 empty class bodies and therefore no gate at all**, so a campfire that
 burnt out an hour ago went on casting its full 120 lumens. Nobody caught
 it because until this build nowhere was dark enough for it to matter.
 
-Every composer puts `FurnaceMixin` *outside* `LightSourceMixin`, so the
-gate lives in `FurnaceMixin.getEmittedFlux()` and fixes all of them at
+Every composer puts `BurnerMixin` *outside* `LightSourceMixin`, so the
+gate lives in `BurnerMixin.getEmittedFlux()` and fixes all of them at
 once — and cannot come back for the next composer either.
 
-⚠ `FurnaceMixin.lit` defaults **true** (the Campfire seed it was written
+⚠ `BurnerMixin.lit` defaults **true** (the Campfire seed it was written
 for). `lint:light-sources` clause (g) makes every furnace row say which
 it means. On its first run it found four: the campfire and the practicum
 brazier mean it, and **both still rows shipped lit against their own
@@ -303,7 +336,7 @@ prose** (*"the firebox swept and ready"*) and their own class docstring
 ## ⭐ `fire` — a chamber you load, and the charge decides the product (extraction W4)
 
 `platform/cmd/device/fire.yaml`, `verbs: [fire, burn]`, afforded on
-**`FurnaceMixin.commandContributions.peers`** beside the five already there.
+**`BurnerMixin.commandContributions.peers`** beside the five already there.
 `FireController` is the **platform's**, and nothing in it names lime, clay or
 glass.
 
@@ -330,7 +363,7 @@ puts a kiln on the **oven** side. The generic row is retargeted onto `Oven` and
 says why in its own header: **a kiln that cannot hold a charge cannot be fired,
 which is why that row stood nowhere in the world for its whole life.**
 
-⚠ A fixture note worth keeping: **`lit` defaults to TRUE on `FurnaceMixin`**,
+⚠ A fixture note worth keeping: **`lit` defaults to TRUE on `BurnerMixin`**,
 which is exactly why the smelt's unlit branch had no coverage for three builds.
 
 ### ⚠ Still unpriced: nothing refuels a furnace

@@ -1,7 +1,7 @@
 /**
  * AssayBench — ⭐⭐ **the water mill's shape, applied to a reading.**
  *
- * A fixed `ToolItem` with a queue. You leave samples on it, it works
+ * A fixed `Tool` with a queue. You leave samples on it, it works
  * through them over game-time, and it **holds nothing of yours**: no
  * engagement, no `AttendantMixin`, no lease. Walk out, log off, come
  * back — the papers are on the bench.
@@ -28,7 +28,7 @@
  * because the samples are still on it.
  */
 
-import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -45,7 +45,7 @@ export interface AssayBatch {
   readonly seconds: number;
 }
 
-export default class AssayBench extends ToolItem {
+export default class AssayBench extends Tool {
   /**
    * ⭐ The bench contributes the verb where the bench IS. The carried
    * kit contributes it on `inventory` (see `assay-kit.yaml`), so a
@@ -60,7 +60,7 @@ export default class AssayBench extends ToolItem {
   };
 
   static override fieldMeta: FieldMeta = {
-    ...ToolItem.fieldMeta,
+    ...Tool.fieldMeta,
     setupS: { persistent: true, authorable: true },
     perSampleS: { persistent: true, authorable: true },
     fee: { persistent: true, authorable: true },

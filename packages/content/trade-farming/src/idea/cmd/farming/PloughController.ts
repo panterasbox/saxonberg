@@ -2,7 +2,7 @@
  * PloughController — `plough`, and ⭐⭐ **draught power is body mass.
  * There is no new mechanism** (D40).
  *
- * `PitPony` is the shipped precedent and its own doc says it: carry
+ * `DraftAnimal` is the shipped precedent and its own doc says it: carry
  * capacity derives from body mass in the encumbrance substrate, *"the
  * pony is better at hauling because it is heavier, which is the actual
  * reason, and the engine already knew it."* Ploughing asks the same

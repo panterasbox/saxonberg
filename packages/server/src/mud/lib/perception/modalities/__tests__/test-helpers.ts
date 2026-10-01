@@ -20,9 +20,10 @@ import { VisionModality } from '../../../../platform/idea/modalities/VisionModal
 import { SmellModality } from '../../../../platform/idea/modalities/SmellModality';
 import { SoundModality } from '../../../../platform/idea/modalities/SoundModality';
 import { TouchModality } from '../../../../platform/idea/modalities/TouchModality';
-import { TasteModality } from '../../../../platform/idea/modalities/TasteModality';
-import { VerbalESPModality } from '../../../../platform/idea/modalities/VerbalESPModality';
-import { EmotiveESPModality } from '../../../../platform/idea/modalities/EmotiveESPModality';
+// ⭐ One twin for the three that add no behaviour — taste, verbal-ESP
+// and emotive-ESP were each an empty `extends Modality {}` in a file of
+// their own. The four that override `signalAt` keep their classes.
+import { Modality as PlainModality } from '../../../../platform/idea/modalities/Modality';
 import { PerceptionApi } from '../../../../api/perception';
 
 function registerAtPath<T extends Stuff>(factory: () => T, path: string): T {
@@ -46,9 +47,9 @@ const MODALITY_SPECS: readonly ModalitySpec[] = [
   { name: 'smell', family: 'field', modality: 'smell', factory: () => new SmellModality() },
   { name: 'sound', family: 'field', modality: 'hearing', factory: () => new SoundModality() },
   { name: 'touch', family: 'contact', modality: 'touch', factory: () => new TouchModality() },
-  { name: 'taste', family: 'contact', modality: 'taste', factory: () => new TasteModality() },
-  { name: 'verbal-esp', family: 'field', modality: 'verbal-esp', factory: () => new VerbalESPModality() },
-  { name: 'emotive-esp', family: 'field', modality: 'emotive-esp', factory: () => new EmotiveESPModality() },
+  { name: 'taste', family: 'contact', modality: 'taste', factory: () => new PlainModality() },
+  { name: 'verbal-esp', family: 'field', modality: 'verbal-esp', factory: () => new PlainModality() },
+  { name: 'emotive-esp', family: 'field', modality: 'emotive-esp', factory: () => new PlainModality() },
 ];
 
 /**

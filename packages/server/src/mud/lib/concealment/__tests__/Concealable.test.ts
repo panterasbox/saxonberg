@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
-import Thing from '../../stuff/Thing';
+import Good from '../../stuff/Good';
 import { ConcealableMixin } from '../Concealable';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -49,7 +49,7 @@ describe('ConcealableMixin', () => {
   });
 
   it('Thing composes ConcealableMixin (every loose object can carry a level)', () => {
-    const t = makeStuff(() => new Thing());
+    const t = makeStuff(() => new Good());
     expect(MixinApi.isConcealable(t)).toBe(true);
     expect(t.getConcealment()).toBe('obvious');
   });

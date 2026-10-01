@@ -305,7 +305,7 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
     expect(
       reason,
       '`fire` did not reach the controller at the pit — check that ' +
-        'FurnaceMixin affords `platform/cmd/device/fire.yaml` on `peers`',
+        'BurnerMixin affords `platform/cmd/device/fire.yaml` on `peers`',
     ).toBeTruthy();
     // Empty, or cold, or nothing in it that wants heat — all three are the
     // chamber answering rather than the verb not existing.
