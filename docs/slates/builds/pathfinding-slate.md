@@ -6,6 +6,9 @@
 > [logistics.md § Routing](../../subsystems/logistics.md) holds the
 > standing decision *no general pathfinding Api yet — promote the walk
 > when a second edge set needs search*.
+> ⭐ **Partly superseded 2026-10-01** — [location-graph-slate](./location-graph-slate.md)
+> answers question 3 (*where it lives*) and supplies the graph, the cost
+> field (`edgeMinutes`, already on 85 edges) and a third consumer.
 > **Left:** ⭐⭐ decide whether a shared pathfinder should exist at all
 > (the pets build concluded *not for animals*; the economic bootstrap
 > concluded *not for a shopkeeper crossing her own street* — see the
@@ -144,6 +147,22 @@ Three things this adds to the questions below:
    — the graph is made of rooms, so the node owning the question is
    defensible — or a value object in `lib/`, which then meets the
    `lint:lib-statics` ceiling.
+
+   > ⭐⭐⭐ **ANSWERED, 2026-10-01, by
+   > [location-graph-slate](./location-graph-slate.md).** A persisted exit
+   > index is keyed on **paths — strings, not Stuff** — so
+   > `NavigationApi.routeBetween(a, b)` is **not subject-first and the lint
+   > never fires.** `NavigationApi` is already the string-keyed direction
+   > table over a hot-reloadable logic singleton. The blocker was an
+   > artifact of searching the *live* graph; searching an *index* dissolves
+   > it.
+   >
+   > ⭐⭐ And it adds a **third consumer** — the map — which is the first one
+   > that wants the whole graph rather than a local walk, and so bears
+   > directly on question 5 below. It also hands level-1 search for free:
+   > the index's `{crossesZone: true}` set **is** the inter-zone skeleton
+   > (HPA\*), because our world is localities with authored both-sided
+   > boundaries.
 4. **Cost at runtime.** A per-beat search across a live world is a very
    different bill from a compiled adjacency set consulted once.
    Transport compiles its lanes for exactly this reason.

@@ -64,9 +64,9 @@ See also:
   [fast-travel-slate.md](../tails/fast-travel-slate.md) — **discovery / fog-of-war**
   for the game minimap (show only what the player has perceived/discovered);
   wayfinding.
-- [docs/slates/access-slate.md](../tails/access-slate.md) — the editor map reads
-  templates **through the draft overlay**; the data arrives over the CMS
-  transport.
+- [docs/slates/access-slate.md](../tails/access-slate.md) — the data arrives
+  over the CMS transport. ⚠ The *"through the draft overlay"* this line used
+  to claim is **unbuilt and deferred** (`cms.md` § Deferral boundary).
 
 ---
 
@@ -100,16 +100,35 @@ See also:
 - **2D minimap** — a player-centered slice of the grid (nearby rooms), the
   in-game HUD companion to the prose.
 
-### Two data sources, one renderer
+### Data sources, one renderer
 
-The same renderer draws from either source, via an adapter:
+⚠⚠ **Corrected 2026-10-01 — this said TWO sources and both were wrong in
+part.** See [location-graph-slate](./location-graph-slate.md).
 
-- **Editor / authoring:** reads **templates** (the content tree) through the
-  **draft overlay** — so you see the zone *as authored / as it will be*.
-- **Game:** reads **live Stuff** (the player's surroundings) — and is
-  **discovery-filtered** (fog-of-war: only rooms the player has perceived;
-  see senses/fast-travel). What the renderer draws differs by source; how it
-  draws is one component.
+- ⛔⛔ **There is no draft overlay.** `cms.md`'s deferral boundary:
+  *"Drafts / staging / changeset overlay + atomic publish → later (depends
+  on the versioning/changeset model)."* The CMS "draft" is an editor-local
+  dirty buffer — *"a save adopts the draft as the new persisted
+  baseline"* — so a save writes through to the real template. The editor
+  adapter reads **live templates**, or waits on the changeset model.
+- ⛔⛔ **Live Stuff cannot answer a whole-world map.** Everything is
+  lazy-loaded, so runtime state is only *what players have visited and
+  what has not been reaped.* Good enough for a player-centred minimap;
+  useless for a zone view, a route, or a publish gate.
+
+**So there are three sources, and the third is the one that makes the
+whole-world modes possible:**
+
+- **Editor / authoring** — **templates**, read live (no overlay exists).
+- **Game minimap** — **live Stuff**, player-centred, discovery-filtered.
+- ⭐⭐⭐ **Everything else** — the **persisted location-graph index**: a
+  derived projection of every location and its exits, keyed on
+  `getIdentityPath()`, indexed by zone and by reverse edge, with a
+  `PlatPlan` expansion for the elastic half. This is what a zone view, a
+  route, a reachability check and the offline boundary read. See
+  [location-graph-slate](./location-graph-slate.md).
+
+What the renderer draws differs by source; how it draws is one component.
 
 ### Three consumers
 
@@ -173,10 +192,15 @@ pair, `distance(center₁, center₂) ≥ r₁ + r₂` (focus + radius, so posit
    seam.
 5. **3D polish budget / timing** — when demo-quality matters (an investor
    demo?) vs the functional render.
-6. **Elastic graphs** — do `Warren` (lounge/dungeon) runtime graphs get
-   rendered too (they're ephemeral, live-Stuff-sourced), or is the map for
-   authored zones? *Lean: the live-Stuff adapter handles them for free in the
-   game minimap; the editor map is authored zones.*
+6. ~~**Elastic graphs**~~ ⭐⭐⭐ **ANSWERED 2026-10-01** — and the lean was
+   half wrong. Warrens split in two: a **planned** warren's topology is
+   *authored and persisted* in `PlatPlan` (roads, segments, `heading`,
+   frontages, stable slot ids, and `routeOf()` already implemented), so it
+   **renders without minting a single room**. Only an **occupancy** warren
+   — the lounge's satellites, which exist because somebody is standing in
+   them — is genuinely shapeless, and there the honest render is *"a space
+   through this door, shape unknown."* See
+   [location-graph-slate § 4](./location-graph-slate.md).
 7. **3D editing, ever?** — or permanently 2D-edit / 3D-view.
 
 ---
@@ -222,8 +246,11 @@ This slate boils down to:
 
 - **One renderer, many modes** (2D grid / 2D node-graph / 3D box-render /
   minimap), all **procedural from the coordinate data** — no art pipeline.
-- **Two data-source adapters** — templates-through-the-draft-overlay
-  (editor) and live-Stuff-discovery-filtered (game) — one renderer.
+- ⚠ **Three data-source adapters** — live templates (editor; **there is no
+  draft overlay** — see above), live-Stuff-discovery-filtered (game
+  minimap), and the **persisted location-graph index**
+  ([location-graph-slate](./location-graph-slate.md)) for every whole-world
+  mode — one renderer.
 - **Three consumers** — game minimap/spatial-view, zone-editor canvas/view,
   demo flythrough.
 - **2D edits, 3D views**; **layered presentation for space** (the honest
@@ -232,6 +259,9 @@ This slate boils down to:
 - The toolkit (SVG/canvas + graph-layout lib for 2D; three.js / r3f +
   `InstancedMesh` for 3D) and the cost curve (2D easy → 3D functional
   moderate → 3D demo-quality real).
+- ⭐ **Reachability becomes computable** — the check this slate owes for
+  Spherical zones is a graph question, and the location-graph index is what
+  can answer it as a lint rather than at render time.
 - **Spatial validity is surfaced, not owned**: the map prevents/flags
   overlapping or unreachable placement (the 3D view makes overlaps visible),
   but the invariant — Cartesian unique-coords + the **owed `SphericalZone`
