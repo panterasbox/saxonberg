@@ -115,6 +115,13 @@ and they may well should — it must be on their own argument (**false
 precision**: a derived band claims only what the evidence supports,
 where a decimal claims more than it can), not on this one.
 
+> ⭐ **And the general mechanism was there all along** (noted 2026-09-30,
+> [#66](./66-channels-and-dimensions.md)): `Quantity.tag()` + scales +
+> `<quantity>` markup is the standing bridge between the numbers doctrine
+> and the letters one — *“scales are RENDERING choices, not type
+> distinctions”* — and **`bands-not-theta` is one application of it**, not a
+> lone seam.
+
 > ✅ **Written 2026-09-29 —
 > [#28 · The State Machine](./28-the-state-machine.md).** Three legs, and
 > the third is the one that makes the rule structural rather than a

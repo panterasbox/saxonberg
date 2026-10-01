@@ -425,6 +425,15 @@ renderer, nothing more.**"* Today cockpit layout state is baked into the
 mixin that models *having a driver*, so the claim holds of the protocol
 and not of the code.
 
+⭐⭐⭐ **And the third argument, which says what the split is FOR**
+(2026-09-30, [lens #65 · Primality](../../lenses/65-primality.md)): cockpit
+modes, arrangements, layouts and portrait live inside the mixin that models
+*having a driver*, **so a Minecraft or voxel renderer would inherit our
+arrangement model.** Split them and a primal client becomes buildable by
+somebody who is not us — **the split is the precondition for ever having
+one.** Two arguments were tidiness and an honest public claim; this one is
+the product.
+
 `SaxonbergClient` is **a mixin** (decided). Whether it also moves into a
 pack is open and decidable by one check: **a pack may ship `lib/`
 substrate but never an Api or a logic singleton**, so if any of those ~200
