@@ -125,8 +125,20 @@ is scenery, explicitly *"never fellable."*
 > the host, and it is the limb the slate had already chosen.
 
 ⭐ And mature trees without waiting a decade are already precedented:
-Heart's Delight's close ships three individually-identified cherry
-trees (`as: cherry-north / cherry-middle / cherry-south`).
+Heart's Delight's close ships three mature cherry standards as separate
+`props:` entries.
+
+⚠⚠ **Corrected at plan time:** an earlier draft called those three
+*"individually-identified"* on the strength of their `as:` keys. **`as`
+is a `by-entry` MERGE IDENTITY, not a keyword** (`lib/stuff/Template.ts`
+— *"the entry's IDENTITY is `as` when stated… which is the whole reason
+`as` exists"*), so all three answer the same keywords and the binder
+prompts: the apiculture wire file had to say `look first cherry` and
+records that an ambiguous `look cherry` *"cost this file fifteen
+checkpoints on run 4."* ⭐ So the drive's `tap birch-north` only works if
+the sugarbush's trees carry **distinct keywords** — which is the plan's
+D13 (six rows `extends:`-ing the trade's standards), and is a real
+requirement rather than a detail.
 
 ### The boil, which is built
 
@@ -241,8 +253,14 @@ Everything else is a row, a tag or a deletion.
 - **Syrup is a sweetener four shipped cocktails accept**, with the
   sweetener vocabulary settled once across sugar · honey · syrup.
 - **A sugarbush is a planted panel**, so a second one anywhere is rows.
-- **Wool reaches a spinner** — the binder gate is closed and the fleece
-  row's claim becomes true.
+- **Wool reaches a spinner** — the fleece row's claim becomes true.
+  ⚠⚠ **Corrected at plan time: there are THREE gates, not one.** Behind
+  the `requires: StackableMixin` binder gate sits
+  `SpinController.isSpinnable()`, a **template-path suffix test** for
+  `/line` or `/tow` — so making the fleece `Stackable` would have fixed
+  nothing and failed just as silently, one layer deeper where no lint
+  and no binder can see it. ⭐ A controller-internal predicate is a
+  **sixth** reachability link this doc did not know about.
 - **Eggs have one consumer**, so no tap in the family is a source with
   no sink except the one deliberately deferred.
 - **A seasonal mechanism can be observed from inside the game**, so this
@@ -307,7 +325,7 @@ Everything else is a row, a tag or a deletion.
 | piece | where | why |
 |---|---|---|
 | the window predicate on `TapSpec` | **kernel** | `Species.production[]` is already kernel; the engine already holds a tap as a species fact |
-| the tap substrate (`ProducingMixin`) | **kernel**, promoted out of `trade-ranching` | ⚠ **The promotion trigger already fired.** `trade-apiculture` imports it from `@saxonberg/content-trade-ranching/src/lib/Producing` and carries the cattle pack as a dependency *for that mixin alone*. Tapping is the third consumer in the third pack. CLAUDE.md: *substrate goes to the kernel when its composers have no common pack ancestor* |
+| the tap substrate (`ProducingMixin`) | **kernel**, promoted out of `trade-ranching` | ⚠ **The promotion trigger already fired.** `trade-apiculture` imports it from `@saxonberg/content-trade-ranching/src/lib/Producing`, and tapping is the third consumer in the third pack. ⚠ **Corrected at plan time:** the package dependency does **not** come out — `Colony.ts` and `Hive.ts` also import `HandledMixin`/`HandleReport` and `RobController` imports `TapController`, so apiculture legitimately depends on ranching for `Handled`. What leaves is the `Producing` import. CLAUDE.md: *substrate goes to the kernel when its composers have no common pack ancestor* |
 | the take-as-an-act substrate | **kernel** | shared by three packs' verbs |
 | the standing-instruction relief | **kernel** | it is the general shape of `#27`'s third relief, not a trade's |
 | the clock-advance seam | **kernel** | operator/code-trust surface, not content |
