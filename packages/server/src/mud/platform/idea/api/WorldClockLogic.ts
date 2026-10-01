@@ -177,6 +177,12 @@ export class WorldClockLogic extends ApiLogic {
     await resolveRegistry().shutdown();
   }
 
+  /** See {@link WorldClockApi.advance}. */
+  @CallSecurity(WorldClockApiCallers)
+  public advance(by: Quantity<'s'> | string): void {
+    resolveRegistry().advance(by);
+  }
+
   /* ──────────────────── scheduling primitives ──────────────────── */
 
   /** See {@link WorldClockApi.after}. */

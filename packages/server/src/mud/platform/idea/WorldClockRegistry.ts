@@ -420,11 +420,58 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
   public _advanceForTesting(realMs: number): void {
     const target = this.nowMs() + realMs;
     this.nowMs = () => target;
+    this.drainDue('_advanceForTesting');
+  }
+
+  /**
+   * Move world-time forward by `by` game-seconds, firing every schedule
+   * the skipped interval contains.
+   *
+   * See {@link WorldClockApi.advance} for the contract. This is the
+   * in-world seam (the `eval` sandbox reaches it), NOT a test seam:
+   * `_advanceForTesting` moves the injected real clock, while this
+   * moves the game-time anchor and leaves the real clock alone.
+   */
+  @CallSecurity(WorldClockApiCallers)
+  public advance(by: Quantity<'s'> | string): void {
+    const gameS = this.parseDelayToSeconds(by);
+    if (gameS < 0) {
+      throw new Error(
+        `WorldClockApi.advance: time only runs forward (got ${gameS}s)`,
+      );
+    }
+    if (gameS === 0) return;
+    // ⚠ A paused clock cannot DRAIN — `onHeartbeat` returns immediately
+    // while paused — so a jump taken here would bank the game-time and
+    // strand every schedule in the skipped interval, which is exactly
+    // the silent skip the drain exists to prevent. Refuse instead:
+    // `resume()` then `advance()` is the honest sequence.
+    if (this.paused) {
+      throw new Error(
+        'WorldClockApi.advance: the clock is paused — nothing in the ' +
+          'skipped interval could fire. Resume first.',
+      );
+    }
+    // Re-anchor first so the elapsed real interval is banked at the old
+    // scale, then jump the anchor. `anchorRealMs` is untouched by the
+    // jump, so live time keeps running from the new game-time.
+    this.reanchor();
+    this.anchorGameTimeS += gameS;
+    this.drainDue('advance');
+    this.rearmHeartbeat();
+  }
+
+  /**
+   * Fire every schedule whose deadline now sits in the past, in order,
+   * until nothing is due. `onHeartbeat` itself catches an interval
+   * schedule up one missed period at a time, so this loop only has to
+   * re-ask after each pass.
+   */
+  private drainDue(who: string): void {
     let guard = 0;
     for (;;) {
       if (this.paused) break;
-      const now = this.currentGameSeconds();
-      const deadline = now + FIRE_EPSILON_S;
+      const deadline = this.currentGameSeconds() + FIRE_EPSILON_S;
       const anyDue = [...this.schedules.values()].some(
         (s) => s.nextFireAtS !== null && s.nextFireAtS <= deadline,
       );
@@ -432,7 +479,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       this.onHeartbeat();
       if (++guard > 1_000_000) {
         throw new Error(
-          'WorldClockApi._advanceForTesting: heartbeat did not settle ' +
+          `WorldClockApi.${who}: heartbeat did not settle ` +
             '(runaway schedule?)',
         );
       }

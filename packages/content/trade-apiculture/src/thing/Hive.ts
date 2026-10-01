@@ -31,7 +31,8 @@ import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { SealableMixin } from '@saxonberg/server/mud/lib/spatial/Sealable';
 import { OrganismMixin } from '@saxonberg/server/mud/lib/species/Organism';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
-import { ProducingMixin } from '@saxonberg/content-trade-ranching/src/lib/Producing';
+import { ProducingMixin } from '@saxonberg/server/mud/lib/husbandry/Producing';
+import type { TapTake } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import { HandledMixin } from '@saxonberg/content-trade-ranching/src/lib/Handled';
 import type { HandleReport } from '@saxonberg/content-trade-ranching/src/lib/Handled';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -267,11 +268,11 @@ export default class Hive extends HiveBase implements Splittable {
    * that is what makes crushing and spinning genuinely different (AC 11)
    * and it is state, not a rule.
    */
-  public override takeFrom(key: string): number {
+  public override takeFrom(key: string): TapTake {
     if (key !== 'honey') return super.takeFrom(key);
     this.reconcileProduction();
     const state = this.tapState['honey'];
-    if (!state || state.standing <= 0) return 0;
+    if (!state || state.standing <= 0) return { units: 0, worst: 1 };
     const taken = Math.min(state.standing, this.superCapacityKg);
     this.tapState = {
       ...this.tapState,
@@ -282,7 +283,11 @@ export default class Hive extends HiveBase implements Splittable {
       },
     };
     this.combDrawn = 0;
-    return taken;
+    // ⚠ A partial take, so the clutch/brood state a full take would
+    // clear is deliberately left alone — honey authors no
+    // `broodAfterDays` and `worst` is a `continuous` record, so neither
+    // applies to a hive. `worst: 1` is "no quality record", not "best".
+    return { units: taken, worst: 1 };
   }
 
   // ---------- what goes in it ----------

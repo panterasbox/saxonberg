@@ -16,6 +16,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { parse } from 'yaml';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
+import { ProducingMixin } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -131,11 +132,16 @@ describe('⭐⭐ a working animal is not livestock', () => {
     // `Livestock` used to promise a sheepdog `shear`. So the flat list
     // is `Livestock`'s (its only other composer — nothing shipped
     // changed) and a host that taps something else affords its own verb.
-    const raw = readFileSync(
-      fileURLToPath(new URL('../lib/Producing.ts', import.meta.url)),
-      'utf8',
-    );
-    expect(raw).not.toContain('cmd/ranching/milk.yaml');
+    // ⭐ Asserted through the mechanism rather than the file's text (the
+    // mixin is the KERNEL's now — `lib/husbandry/Producing`): a bare
+    // producer affords none of the three ranching views.
+    class BareProducer extends ProducingMixin(Creature) {}
+    const bare = CommandApi.collectContributions(BareProducer, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    for (const v of ['milk', 'shear', 'gather']) {
+      expect(bare).not.toContain(v);
+    }
   });
 
   it('and a head of stock still offers its taps — the move cost nothing', () => {

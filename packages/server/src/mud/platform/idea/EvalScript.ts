@@ -29,6 +29,7 @@ import { StuffApi } from '../../api/stuff';
 import { MqlApi } from '../../api/mql';
 import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
+import { WorldClockApi } from '../../api/worldclock';
 import type { FieldMeta } from '../../lib/mixin';
 
 /**
@@ -40,12 +41,20 @@ import type { FieldMeta } from '../../lib/mixin';
  * Start narrow: enough to do useful authoring (`StuffApi`, `MqlApi`,
  * `ContainmentApi`, `MixinApi`), with `console` for output. Tighten
  * or expand based on what playtesting actually wants.
+ *
+ * `WorldClockApi` is here because a world whose slow systems are
+ * reconcile-on-read cannot be DRIVEN without moving time, and the
+ * code-trust axis is already the right gate for it: `setScale` was
+ * always reachable from here, `advance` is the same authority stated
+ * honestly. `shutdown` stays `SystemRoot`, so an eval still cannot
+ * freeze the world.
  */
 const SANDBOX_NAMES = [
   'StuffApi',
   'MqlApi',
   'ContainmentApi',
   'MixinApi',
+  'WorldClockApi',
   'console',
 ] as const;
 
@@ -62,6 +71,7 @@ function buildSandbox(receiver: Stuff): Record<string, unknown> {
     MqlApi,
     ContainmentApi,
     MixinApi,
+    WorldClockApi,
     console,
     // The eval'd script's `this` binding — the `--on` target (or the
     // avatar by default). Exposed both as a bare `this` (via the

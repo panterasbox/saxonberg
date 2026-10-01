@@ -701,6 +701,44 @@ Every wave lands independently at one commit; `pnpm test:near` + every
 touched pack's vitest + `pnpm -C packages/server lint:family` gate each.
 Kernel waves first (the build leads from the kernel).
 
+### ✅ W0 · The clock seam and the promotion — DONE `build(taps W0+W1)`
+
+> **Landed together with W1** in one commit. `Producing.ts`'s *move* is
+> W0 and its *rewrite* is W1, so the two could not be split by file
+> without a commit that lies about what it contains. Everything else in
+> both waves is separable and was verified separately.
+>
+> **What changed beyond the plan:**
+> - `WorldClockApi.advance` **throws while the clock is paused.** A
+>   paused clock fires nothing, so a jump taken there would bank the
+>   game-time and strand every schedule in the skipped interval — the
+>   exact silent skip the drain exists to prevent. Decided by D12's own
+>   contract (*"drains rather than skips"*). `resume()` then `advance()`
+>   is the honest sequence.
+> - The drain loop is shared with `_advanceForTesting`
+>   (`WorldClockRegistry.drainDue`), so the two seams cannot diverge.
+> - ⚠ **A cascade does not catch up through a jump.** A callback that
+>   re-arms off `now` lands *after* the jumped time, because that is
+>   where `now` is. An `every` catches up (once per missed period) and a
+>   chained `after` does not. Pinned as a test — the intuition goes the
+>   other way.
+> - `working-animals.test.ts`'s "the tap views are not on the mixin"
+>   case read `../lib/Producing.ts` **as file text**. It now asserts
+>   through `CommandApi.collectContributions` on a bare
+>   `ProducingMixin(Creature)`, which is both portable across the move
+>   and a better test — it checks the mechanism rather than the source.
+> - ⚠ Found while moving the suite: the *"an animal with nothing to give
+>   gives nothing"* assertion was **vacuous**. The wasted beast was
+>   created *after* the advance, so its own elapsed interval was zero and
+>   it read `0` whatever the arithmetic did. Seeded before the advance
+>   now, plus a positive assertion on the thin one.
+> - ⚠ `productionStamp === 0` is the "never stamped" sentinel, so a world
+>   sitting at game-second **zero** takes the seeding branch on every
+>   read and never accrues. Left as-is (a fresh world's first reconcile
+>   defers by one read, and the alternative is a second persistent
+>   field), but the kernel suite now runs where every shipped world
+>   actually is — past second zero, stated at `T0`.
+
 ### W0 · The clock seam and the promotion — `build(taps W0): the clock can move; ProducingMixin is kernel`
 
 Implements D1, D12.
@@ -755,6 +793,61 @@ Implements D4–D9 (the mechanism half).
   `always` is the default.
 - Acceptance: all shipped rows still parse (no row edited yet — every
   new field is optional and the defaults are today's behaviour).
+
+### ✅ W1 · `TapSpec` v2 and the per-tap states — DONE `build(taps W0+W1)`
+
+30 kernel cases green (`lib/husbandry/__tests__/Producing.test.ts`),
+`tsc` clean, the full derived lint roster green, ranching 59/59 and
+apiculture 69/69.
+
+> **⚠⚠ D6 was WRONG and `TapState.vigour` is DELETED.** The single
+> biggest finding of the build so far, and it is structural rather than
+> arithmetic:
+>
+> `ceiling = perGameDay × windowDays`, so **a cow fills to her ceiling
+> exactly as her window closes** (the shipped row: 22 × 0.6). The region
+> where she sits full and suppresses her own synthesis is therefore
+> *empty by construction* — it begins precisely where the neglect cliff
+> already fires. The curve could not bite at any dial setting without
+> redefining what `windowDays` means. The W1 test caught it twice: first
+> as "the bands are unreachable" (τ saturating at one window), then, with
+> τ widened, as "she dries off on day 2 before the curve can act".
+>
+> ⭐ And it was the **plan re-inventing something the requirements had
+> deliberately removed.** Milk's agreed answer is *no judgment at the
+> act*: a take always empties her, so what the player trades is
+> **attendance against her rate** — labour — and the W4 relief is the
+> answer to that, not a second mechanism. AC 8 (*going off is visible
+> before it is lost*) is met by `productionRead` **banding the window
+> clock that already exists** — in full milk · heavy and wants milking ·
+> overdue and will dry off · dried off — which holds no state at all.
+> That is strictly better than a stored curve, and it is the design the
+> requirements actually settled.
+>
+> **Other departures from the plan:**
+> - ⭐ **`tapWindow` reconciles first.** `brooding` and `driedOff` are
+>   both derived from elapsed game-time, so answering off a stale state
+>   reported a broody hen as still laying for as long as nobody happened
+>   to read her standing. Safe against the reconcile's own call — the
+>   reentry guard makes the inner one a no-op, which is the
+>   sampled-at-the-read semantics D4 asked for anyway.
+> - ⚠⚠ **`fullSince` is stamped when she ACTUALLY filled**, inside the
+>   interval, not at its end. Stamping it at `nowS` meant a single
+>   reconcile spanning both the filling and the brooding could never
+>   detect the brooding — and in a reconcile-on-read system long single
+>   steps are the common case, not the edge. The first version passed
+>   only because the test happened to read her twice.
+> - ⚠ **`Creature` composes `ThermalMixin`**, so it is NOT the
+>   no-temperature host the tri-state rule needed. The rule is now
+>   pinned two ways: a thermal host IS gated (`cold`/`warm`), and a host
+>   whose temperature read comes back empty is gated by daylength alone.
+> - `seasonSide` turns a closed photoperiod/weather band into
+>   `before-season` vs `after-season` by which side of the opener we are
+>   on — which is what makes the curtain sentence land at the right
+>   moment rather than reading "not yet" in November.
+> - `takeFrom` returns `TapTake {units, worst}`. Callers updated:
+>   `Hive.takeFrom` (one box-worth, `worst: 1` = *no quality record*),
+>   ranching's `TapController` (replaced wholesale in W2).
 
 ### W2 · The take as an act — `build(taps W2): taking from a tap is an engagement with a vessel, on one kernel base`
 

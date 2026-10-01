@@ -327,6 +327,24 @@ export interface HandlingRange {
  * ⚠⚠ **A tap fills from the PRODUCTION SLICE of the energy budget** and
  * mints nothing. Copy `Stock`'s reset *sweep*; never its `par`
  * semantics, which is a faucet shape and would make matter from nothing.
+ *
+ * ## ⭐⭐⭐ The feedback law — what the taps build found (2026-09-30)
+ *
+ * The three behaviours say what NEGLECT costs. They do not say the thing
+ * that actually distinguishes these products, which is **whether the act
+ * of taking feeds back on the RATE**:
+ *
+ * | | does the take change the rate? | the judgment that follows |
+ * |---|---|---|
+ * | **milk** | ⭐ **yes, directly** — lactation is demand-driven, so removal stimulates synthesis and residual suppresses it | ⚠ and therefore **nothing to decide at the act**: a take always empties her. The trade is **attendance against her rate** — i.e. labour — which is why the relief is milk's whole answer, and why milk adds no field here |
+ * | **eggs** | ⭐ **yes, through a state the act PREVENTS** — a hen is an indeterminate layer, so a clutch left standing makes her brood and stop | the choice is *take the clutch or let her sit on it* |
+ * | **wool · honey · sap** | **no** | nothing to decide at the act; what varies is the QUALITY the year put in, read at the take |
+ *
+ * ⚠ An earlier draft of this design asserted the opposite — that all
+ * three were one mechanism with different dials ("make it work like
+ * honey"). They are not, and the biology is what says so. The fields
+ * below exist because of that table, and each one is read by exactly
+ * one behaviour.
  */
 export interface TapSpec {
   /** What comes out — the key the verbs and the register speak. */
@@ -342,7 +360,99 @@ export interface TapSpec {
    * season, or an `accrue` tap starts losing what is standing.
    */
   windowDays: number;
+  /**
+   * ⭐ **When the tap is OPEN at all.** Absent means
+   * `{kind: 'always'}` — a legal opener, and what every shipped row
+   * meant before this field existed. A closed window stops the fill;
+   * ⚠ it never discards what is already standing, and it is never a
+   * failure (see `TapClosedReason`).
+   */
+  window?: TapWindowSpec;
+  /**
+   * What a take produces, and therefore **whether a vessel is needed** —
+   * derived from the shape, never a second flag.
+   *
+   * - `mass` (the default) — one object, its mass set from the units.
+   * - `volume` — litres poured into a bound vessel; the take refuses
+   *   without one. ⚠ For a `volume` tap `yieldRow` names the
+   *   **material**, not a thing row: the vessel is the object.
+   * - `count` — `floor(standing)` clones of `yieldRow`, the fraction
+   *   left standing. The Rob frame precedent.
+   */
+  yieldShape?: 'mass' | 'volume' | 'count';
+  /**
+   * ⭐ A ceiling on a `continuous` tap's standing. Past it the growth is
+   * simply lost (a fleece that has shed), and `look` says so. Absent
+   * means unbounded, which is what wool meant before the cap existed.
+   */
+  capUnits?: number;
+  /**
+   * ⭐ **Eggs only, and the whole of the clutch choice.** Game-days a
+   * full `accrue` tap may sit at its ceiling before the bird goes
+   * broody: accrual stops, the window answers `brooding`, and taking the
+   * clutch clears it. Absent means the tap never broods — honey authors
+   * none and is unaffected.
+   */
+  broodAfterDays?: number;
+  /**
+   * How long the take itself occupies the hands, in real milliseconds.
+   * Absent means by shape (see `TapActController`). ⚠ `0` is a
+   * meaningful value — an instant take.
+   */
+  takeMs?: number;
 }
+
+/**
+ * ⭐⭐ **When a tap is open** — declared data, evaluated by
+ * `ProducingMixin`, so a new season is a row and not a code path.
+ *
+ * ⚠ The tri-state rule: a term this world does not model yet reads as
+ * OPEN rather than closed. A birch whose host answers no temperature is
+ * gated by daylength alone — not silently dead.
+ */
+export type TapWindowSpec =
+  /** Always open. The default when `window` is absent. */
+  | { kind: 'always' }
+  /**
+   * Opened by an event and closed by one: `freshen()` opens, drying off
+   * closes. Milk's own shape — a lactation is not a season.
+   */
+  | { kind: 'event' }
+  /**
+   * Open while daylength sits inside a band, as a fraction of the
+   * rotation. A wrapping band is legal (`breedsAtDaylight`'s shape).
+   */
+  | { kind: 'photoperiod'; daylightFrom: number; daylightTo: number }
+  /** The HOST answers — a hive's forage radius. `biomeWindowOpen`. */
+  | { kind: 'biome' }
+  /**
+   * Daylength AND the host's own temperature — the sap opener. ⭐
+   * `rising` discriminates spring from autumn, which cross the same
+   * daylength band and are not the same season for a tree.
+   */
+  | {
+      kind: 'weather';
+      daylightFrom: number;
+      daylightTo: number;
+      rising?: boolean;
+      minK: number;
+      maxK: number;
+    };
+
+/**
+ * Why a tap is shut. ⭐ **None of these is a failure** — the first four
+ * are the calendar and the weather, `dried-off` is a consequence already
+ * spent, and `brooding` is a bird's own decision. The controller notes
+ * them as information, never in the rejected voice.
+ */
+export type TapClosedReason =
+  | 'before-season'
+  | 'after-season'
+  | 'cold'
+  | 'warm'
+  | 'dried-off'
+  | 'brooding'
+  | 'no-forage';
 
 /**
  * ⭐ **Breeding: a photoperiod SEASON, not a date** (D26, D11).

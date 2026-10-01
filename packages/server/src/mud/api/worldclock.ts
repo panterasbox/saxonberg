@@ -136,6 +136,32 @@ export class WorldClockApi {
     return logic().isPaused();
   }
 
+  /**
+   * Move world-time forward by `by`, firing every schedule the skipped
+   * interval contains — one-shots once, an `every` once per missed
+   * period, in deadline order.
+   *
+   * This is the seam that makes a slow world drivable from inside it: a
+   * sap run, a lactation curve and a fleece's year are reconcile-on-read
+   * and need nothing from the clock, but a scheduled act does, so the
+   * jump drains rather than skips. Reachable from the `eval` sandbox,
+   * which is the code-trust axis — not a test seam
+   * (`_advanceForTesting` is that, and moves the injected real clock
+   * instead of the game-time anchor).
+   *
+   * ⚠ A jump of years is a loop of thousands of fires. Jump a season at
+   * a time. ⚠ And it **throws while the clock is paused** — a paused
+   * clock cannot fire, so a jump there would strand every schedule in
+   * the interval.
+   *
+   * @param by game-time to skip, as a `Quantity<'s'>` or a duration
+   *   string in the same format `after()` accepts (`'3 days'`,
+   *   `'5 minutes'`).
+   */
+  public static advance(by: Quantity<'s'> | string): void {
+    logic().advance(by);
+  }
+
   /* ──────────────────── persistence (own-thing model) ──────────────────── */
 
   public static snapshot(): WorldClockSnapshot {

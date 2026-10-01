@@ -95,7 +95,7 @@ export abstract class TapController extends CommandController<TapModel> {
       return;
     }
 
-    const taken = animal.takeFrom(key);
+    const taken = animal.takeFrom(key).units;
     const got = await this.mint(tap, taken, giver);
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)

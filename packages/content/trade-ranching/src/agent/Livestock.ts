@@ -42,7 +42,7 @@ import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
 import { ChattelMixin } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import { BrandedMixin } from '@saxonberg/server/mud/lib/corpo/Branded';
 import { HandledMixin } from '../lib/Handled';
-import { ProducingMixin } from '../lib/Producing';
+import { ProducingMixin } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
