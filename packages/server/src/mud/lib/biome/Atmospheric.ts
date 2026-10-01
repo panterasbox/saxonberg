@@ -233,11 +233,11 @@ export interface Atmospheric {
   temperatureTrajectory(fromS: number, toS: number): Piecewise;
 
   /**
-   * ⭐ `@hook` A driven heat term (W) folded into the envelope budget,
-   * at the current interior temperature; `0` unless a cooler/heater
-   * drives this scope (`ClimateControlMixin`).
+   * ⭐ `@hook` A driven heat term (W) folded into the envelope budget, at
+   * the current interior temperature and the segment's supply state; `0`
+   * unless a cooler/heater drives this scope (`ClimateControlMixin`).
    */
-  envelopeDriveW(interiorK: number): number;
+  envelopeDriveW(interiorK: number, powered: boolean): number;
 
   /** ⭐ The setpoint a driven scope clamps toward, else `null`. */
   climateSetpointK(): number | null;
@@ -841,36 +841,65 @@ export function AtmosphericMixin<
           heatW += occupant.spaceHeatOutputW();
         }
 
-        // ⭐ A driven term — a cooler or heater the scope hosts
-        // (`ClimateControlMixin` answers a negative capacity while
-        // supplied; the base is 0). Folded into the heat budget so the
-        // envelope needs no second time constant.
-        const driveW = this.envelopeDriveW(this.envelopeTemperatureK);
         const tau = coeff.capacityJPerK / coeff.uWperK;
-        let steadyState = outside + (heatW + driveW) / coeff.uWperK;
-        // ⭐ A thermostat does not undershoot its dial: a cooling drive
-        // (negative) clamps the steady state at the setpoint it is driving
-        // toward, so an over-strong pump holds the setpoint rather than
-        // sailing past it. Only a cooling drive clamps, and only from
-        // above (a heater clamps nothing here).
         const setpoint = this.climateSetpointK();
-        if (driveW < 0 && setpoint !== null && steadyState < setpoint) {
-          steadyState = setpoint;
+        const ring = new TrajectoryLog(this.envelopeLog);
+        const startStamp = now - elapsed;
+
+        // Integrate one segment of the gap under a fixed supply state,
+        // recording a breakpoint so bodies can read the curve back.
+        const integrateSegment = (
+          powered: boolean,
+          segStartS: number,
+          segDur: number,
+        ): void => {
+          // ⭐ A driven term — a cooler/heater the scope hosts
+          // (`ClimateControlMixin` answers a negative capacity while
+          // supplied and above setpoint; the base is 0). Folded into the
+          // heat budget so the envelope needs no second time constant.
+          const driveW = this.envelopeDriveW(
+            this.envelopeTemperatureK as number,
+            powered,
+          );
+          let steadyState = outside + (heatW + driveW) / coeff.uWperK;
+          // ⭐ A thermostat does not sail past its dial: a cooling drive
+          // clamps the steady state from below, a heating drive from above,
+          // so an over-strong unit HOLDS the setpoint rather than
+          // overshooting it.
+          if (setpoint !== null) {
+            if (driveW < 0 && steadyState < setpoint) steadyState = setpoint;
+            if (driveW > 0 && steadyState > setpoint) steadyState = setpoint;
+          }
+          ring.record(
+            segStartS,
+            this.envelopeTemperatureK as number,
+            steadyState,
+            tau,
+          );
+          this.envelopeTemperatureK = Decay.toward(
+            this.envelopeTemperatureK as number,
+            steadyState,
+            segDur,
+            tau,
+          );
+        };
+
+        // ⭐ If the scope draws a supply that can be cut (a `ColdStore` /
+        // `ColdRoom`), segment the gap by the supply's 0/1 trajectory — so
+        // the warm-up that began at the cut and the pull-down that began at
+        // the splice are separate closed-form stretches, even if nobody
+        // observed the gap. A plain room has no supply and integrates once.
+        const supply = poweredTrajectoryOf(self, startStamp, now);
+        if (supply !== null) {
+          for (const st of supply.stretches) {
+            const segDur = st.toS - st.fromS;
+            if (!(segDur > 0)) continue;
+            const powered = (st.startValue + st.target) / 2 > 0.5;
+            integrateSegment(powered, st.fromS, segDur);
+          }
+        } else {
+          integrateSegment(false, startStamp, elapsed);
         }
-        this.envelopeTemperatureK = Decay.toward(
-          this.envelopeTemperatureK,
-          steadyState,
-          elapsed,
-          tau,
-        );
-        // Record the segment just integrated so the scope can publish its
-        // trajectory to the bodies that read it.
-        new TrajectoryLog(this.envelopeLog).record(
-          this.envelopeClockStamp - elapsed,
-          this.envelopeTemperatureK,
-          steadyState,
-          tau,
-        );
       } finally {
         this._envelopeReconciling = false;
       }
@@ -885,9 +914,11 @@ export function AtmosphericMixin<
      * driven term without knowing the class that supplies it.
      *
      * @hook Override on a scope that actively drives its own air. Default
-     *   returns 0.
+     *   returns 0. `powered` is the supply state for the segment being
+     *   integrated (so a cut gap drives nothing even if the appliance is
+     *   live now).
      */
-    public envelopeDriveW(_interiorK: number): number {
+    public envelopeDriveW(_interiorK: number, _powered: boolean): number {
       return 0;
     }
 
@@ -919,13 +950,16 @@ export function AtmosphericMixin<
       if (!this.envelopeApplies()) {
         return flat(authored ?? this.envelopeTemperatureLast() ?? 293);
       }
-      // ⚠ Do NOT force an integration here — a body PEEKING its scope must
-      // not advance the scope's clock (the same reason the scalar pull
-      // reads `envelopeTemperatureLast()`, not `...Sync()`). Reconstruct
-      // from the ring the scope's own reconciles populated; a ring with no
-      // breakpoints covering the gap degrades to a flat line at the
-      // scope's last-known air — which is the old pull-side behaviour, and
-      // still correct for a scope whose air is not currently moving.
+      // ⚠ A plain room must NOT re-integrate on a body's peek (the scalar
+      // pull reads `envelopeTemperatureLast()`, not `...Sync()`, so a peek
+      // never advances the scope's clock). But a DRIVEN scope (a ColdStore
+      // whose supply can be cut) must be brought current so its cut history
+      // is in the ring — one reconcile, segmented by the supply, reconstructs
+      // the whole outage even if nobody watched it. The discriminator is the
+      // supply: a plain room has none.
+      if (poweredTrajectoryOf(this as unknown as Stuff, fromS, toS) !== null) {
+        this.envelopeTemperatureSync();
+      }
       const fallback = this.envelopeTemperatureLast() ?? authored ?? 293;
       return new TrajectoryLog(this.envelopeLog).window(fromS, toS, fallback);
     }
@@ -1260,6 +1294,25 @@ function envelopeNowSeconds(): number | null {
     return null;
   }
   return WorldClockApi.getNow().rawValue();
+}
+
+/**
+ * ⭐ The supply trajectory of a scope that draws one (a `Powered` host), or
+ * `null` for a plain room. A **structural probe** — the kernel envelope
+ * cannot import the energy pack, and a pack's `GridPoweredMixin` implements
+ * `Powered` structurally — so the one legitimate cross is a method check.
+ */
+function poweredTrajectoryOf(
+  host: Stuff,
+  fromS: number,
+  toS: number,
+): Piecewise | null {
+  const h = host as unknown as {
+    poweredTrajectory?: (fromS: number, toS: number) => Piecewise;
+  };
+  return typeof h.poweredTrajectory === 'function'
+    ? h.poweredTrajectory(fromS, toS)
+    : null;
 }
 
 /** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */

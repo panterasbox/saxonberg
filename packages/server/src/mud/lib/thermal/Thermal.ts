@@ -59,6 +59,18 @@ import {
   type Breakpoint,
 } from "../Trajectory";
 
+// ⭐ The latent-heat accumulator for a freezing bulk pool, declared from the
+// folder that owns the phase engine (the five-extender pattern — `ThermalDose`
+// adds `dose`, `Freshness` adds `freshness`). A pool at/below its melting
+// point banks the heat removed here and does not solidify until it equals
+// `mass × latentHeatOfFusion` — the plateau the melt path already honours,
+// now mirrored for the freeze.
+declare module "../bulk/Bulkable" {
+  interface BulkPayload {
+    latentRemovedJ?: number;
+  }
+}
+
 /**
  * Every thermal dial as a module const-object (the `METABOLIC_DEFAULTS`
  * / `LOAD_BEARING_DEFAULTS` precedent). Magnitudes are defensible
@@ -1248,26 +1260,66 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
 
   const mp = mat.getMeltingPoint().rawValue();
   if (mp > 0 && temp <= mp) {
-    // Freeze — the liquid solidifies into a cast solid of the same material,
-    // mass derived back from the pooled volume. The casting is a **clone of the
-    // `/stuff/thing/Casting` template** (a re-meltable content object), not a raw
-    // construction — its material / mass / prose are stamped per freeze.
+    // ⭐⭐ **Freezing honours its latent heat, the mirror of melting.** A
+    // pool below its melting point does not solidify on the instant: it
+    // PLATEAUS at `mp` while the undershoot `(mp − T)·C` is banked into the
+    // latent accumulator, and only when the bank reaches `mass ×
+    // latentHeatOfFusion` does the pool actually solidify. (Boil above was
+    // left a flip — no boiling feature rides this build; the asymmetry is
+    // noted in thermal.md.)
     const massKg = (amount / 1000) * mat.getDensity().rawValue();
+    const specificHeat = mat.getSpecificHeat().rawValue();
+    const capacityJ = massKg * specificHeat;
+    const undershootJ = (mp - temp) * capacityJ;
+    const payload = v.getBulkPayload(aff);
+    let removed = payload?.latentRemovedJ ?? 0;
+    if (undershootJ > 0) {
+      removed += undershootJ;
+      v.setBulkPayload(aff, { ...(payload ?? {}), latentRemovedJ: removed });
+      v.setContentsTemperature(mp); // clamp — the plateau
+    }
+    const need = massKg * mat.getLatentHeatOfFusion().rawValue();
+    if (!(need > 0) || removed < need) return; // still on the plateau
+
+    // ⭐ The ruin edge: a material freezing ruins (blood hemolyses) mints no
+    // cast. The pool stays liquid at `mp`, its freshness load is stamped
+    // ruined (reads *rotten*; `transfuse` refuses *spoiled*), and the
+    // accumulator clears so a thaw does not re-trigger the ruin.
+    if (mat.isRuinedByFreezing()) {
+      const cleared = v.getBulkPayload(aff);
+      v.setBulkPayload(aff, {
+        ...(cleared ?? {}),
+        latentRemovedJ: 0,
+        freshness: { load: 1, stamp: freezeNowSeconds() },
+      });
+      return;
+    }
+
+    // Solidify — the liquid becomes a cast solid of the same material, a
+    // clone of the material's `castTemplate` (water → ice-block; a metal →
+    // the generic `/stuff/thing/Casting`), mass derived back from the pool.
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
+    v.setBulkPayload(aff, null);
     const scope = (v as unknown as { getContainer(): Stuff | null })
       .getContainer();
-    void StuffApi.clone(CASTING_TEMPLATE_PATH).then((cast) => {
+    void StuffApi.clone(mat.getCastTemplate()).then((cast) => {
       const c = cast as unknown as Stuff & {
         setShortDescription(s: string): void;
         setKeywords(k: string[]): void;
         setMaterial(m: Material): void;
         setMass(q: Quantity<'kg'>): void;
+        getMaterial?(): Material | null;
       };
-      c.setShortDescription(`cast lump of ${mat.getName()}`);
-      // ⚠ Authored keywords — the pool no longer derives from the prose.
-      c.setKeywords(['lump', 'cast', ...mat.getName().split(/\s+/)]);
-      c.setMaterial(mat);
+      // Stamp mass always; stamp material/prose/keywords only when the clone
+      // authored no material of its own (the generic cast) — ice-block rows
+      // ship their own material + prose.
+      const authored = typeof c.getMaterial === 'function' ? c.getMaterial() : null;
+      if (!authored) {
+        c.setShortDescription(`cast lump of ${mat.getName()}`);
+        c.setKeywords(['lump', 'cast', ...mat.getName().split(/\s+/)]);
+        c.setMaterial(mat);
+      }
       c.setMass(Quantity.of(massKg, 'kg'));
       if (scope && MixinApi.isContainer(scope)) {
         void ContainmentApi.move(
@@ -1275,12 +1327,19 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
           scope as Stuff & Container,
         );
       }
+    }).catch(() => {
+      // A missing/!resolvable cast template must not crash the reconcile —
+      // the pool has already emptied; the cast simply does not appear. In a
+      // booted world the template is present (water → ice-block).
     });
   }
 }
 
-/** The template a frozen molten pool clones into (a re-meltable cast lump). */
-const CASTING_TEMPLATE_PATH = '/stuff/thing/Casting';
+/** Game-seconds for a freeze-ruin freshness stamp, or 0 before boot. */
+function freezeNowSeconds(): number {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return 0;
+  return WorldClockApi.getNow().rawValue();
+}
 
 /** The scope's puddle-bearing `Floor` — a surface-bulk fixture / content (the
  * WeatherLogic.findRoomFloor precedent). */

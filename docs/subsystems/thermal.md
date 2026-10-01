@@ -695,6 +695,80 @@ them. The call sits outside the reentry guard so the plateau's own
 ⭐ It is one line on the lazy read path, and it is the reason an
 icebox has a clock at all.
 
+### ⭐⭐ The active twin — ClimateControl (Thing ≡ Location)
+
+The cold-storage build (2026-10-01) added the **active** cooler/heater.
+Where a furnace pins a *body* at a fuelled temperature,
+**`ClimateControlMixin`** (`lib/thermal/ClimateControl.ts`) drives an
+**air** — the `Atmospheric` envelope — toward a `setpointK` while its
+supply is live, and lets it drift when cut. Because it drives the envelope
+and not a lumped body, the **same mixin** composes on a Thing (a fridge, a
+freezer, an iced cabinet) and on a Location (a walk-in cold room, an AC'd
+hall): both run the same `reconcileEnvelope`, the same `envelopeDriveW`
+hook, the same supply segments, and a thing inside either reads its air by
+the same `airScopeOf`. ⭐ That is the Thing≡Location promise, delivered —
+a two-fixture unit test runs one assertion set over both and asserts they
+land on the same temperature.
+
+- It composes over `Stuff & Container & Atmospheric & Powered`. **Powered**
+  is a kernel shape (`lib/supply/Powered.ts`) the energy pack's
+  `GridPoweredMixin` implements structurally (the `TravelNode`↔`tpa`
+  pattern); the kernel reads it through a **structural probe**, never an
+  import.
+- Two authored CAUSES: `setpointK` (the dial) and `coolingCapacityW` (the
+  nameplate — **positive cools, negative heats**, the sign of `capW − leak`
+  deciding, no direction flag). The pull-down time is the envelope's own
+  `C/U`; a thermostat **holds at** the setpoint (the steady-state clamp)
+  and does not sail past it.
+- The drive is folded into the envelope budget through `envelopeDriveW(T,
+  powered)` — `−capW` while supplied and on the wrong side of the setpoint,
+  `0` otherwise. `reconcileEnvelope` **segments the gap by the supply's
+  `poweredTrajectory`**, so a cut mid-outage and a splice after it are
+  separate closed-form stretches even if nobody watched — the warm-up is
+  read correctly however you look.
+- After the air integrates, ClimateControl **drives the phase of what it
+  holds** (`Bulkable & Thermal` contents) — the freezer freezes the water
+  in its ice pan. Guarded against the reentry a content's own reconcile
+  would cause.
+
+⭐ The narrowing test holds: nothing reads `isClimateControl` in `Thermal`,
+`Atmospheric` or the archetype — the body reads the scope, the envelope
+reads the hook, the `coldStorage` satisfier reads a temperature (its holder
+rung gained one clause: an Atmospheric sealable container at `≤ 283 K` is
+cold storage too, reading its own air, not a class).
+
+**Heat rejection is a documented abstraction**: a real fridge rejects
+`capW·(1 + 1/COP)` into its kitchen, but COP is the billing build's one new
+quantity, so no waste heat ships on either host (a running fridge does not
+warm its kitchen this build). The attach point is exact — the Thing
+composer answers `spaceHeatOutputW()` the day COP exists; a walk-in's
+condenser is outdoors and answers nothing.
+
+### ⭐⭐ Phase change both ways — the freeze honours its latent heat too
+
+The melt plateau always honoured latent heat; the **freeze** used to be a
+threshold flip (zero the pool, mint a cast the instant `T ≤ mp`). The
+cold-storage build made it the mirror: a pool at/below its melting point
+**plateaus at `mp`** while the undershoot `(mp − T)·C` is banked into
+`BulkPayload.latentRemovedJ`, and only solidifies once the bank reaches
+`mass × latentHeatOfFusion` — real ice-tray time (a 4 L pan at 255 K is a
+few game-hours). The frozen pool clones the **material's `castTemplate`**
+(water → `/stuff/thing/ice-block`; a metal → the generic
+`/stuff/thing/Casting`), mass stamped always, material/prose only when the
+clone authored none.
+
+⚠ **Boil is still a flip** — no boiling feature rides this build, so steam
+is a disappearance (the pool clears; no steam cloud / burn / pressure). The
+asymmetry is deliberate and noted; `thermal-slate` carries boil-as-a-plateau.
+
+⭐ **Freezing RUINS some materials.** `Material.ruinedByFreezing` (blood):
+at the solidify edge no cast is minted — the pool stays liquid at `mp`, its
+freshness load is stamped ruined (reads *rotten*; `transfuse` refuses
+*spoiled*), and the accumulator clears so a thaw does not re-trigger. Only
+the powered cold source drives a `Bulkable` freeze (the ClimateControl
+content pass); a jug of water in a cold weather room does not freeze this
+build (`thermal-slate`).
+
 ### ⭐ A body may author its own starting temperature
 
 `ThermalMixin.stampedTemperatureK` is `authorable` (2026-09-28). A

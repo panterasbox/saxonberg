@@ -406,6 +406,10 @@ export const Mixins = {
   Palatable: 'PalatableMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
+  // ⭐ Active cooling/heating of an Atmospheric interior toward a setpoint
+  // while supplied — the one mixin a fridge (Thing) and a walk-in (Location)
+  // both compose.
+  ClimateControl: 'ClimateControlMixin',
   // ⭐ One exertion event, every producer — what working does to a body.
   Exerting: 'ExertingMixin',
   Respiration: 'RespirationMixin',

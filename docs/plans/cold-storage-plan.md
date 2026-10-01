@@ -682,7 +682,45 @@ remainder salvaged to `thermal-slate`.
 **Commit.** `build(cold-storage W2): every gauge that read a rate reads
 its trajectory — Freshness, Contaminable, Maturing, Growing, ThermalDose`.
 
-#### W3 — ClimateControl, Powered, the honest freeze (D1, D2, D5)
+#### W3 — ClimateControl, Powered, the honest freeze (D1, D2, D5) — ✅ DONE
+
+**Done note.** `lib/supply/Powered.ts` (kernel shape); `lib/thermal/
+ClimateControl.ts` over `Stuff & Container & Atmospheric & Powered`
+(setpointK/coolingCapacityW; `envelopeDriveW(T, powered)` folded into the
+envelope; the content phase pass guarded against reentry; positive cools /
+negative heats). `AtmosphericMixin.reconcileEnvelope` now **segments the gap
+by the supply's `poweredTrajectory`** (the cut/splice read correctly across
+an unobserved gap) with a symmetric setpoint clamp; `envelopeDriveW` gained
+the `powered` flag; a structural `poweredTrajectoryOf` probe keeps the
+kernel free of the energy import; `temperatureTrajectory` reconciles the
+scope **only for a Powered scope** (so a ColdStore's cut history is current
+while a plain room is not re-integrated on a peek). `MixinApi.isClimateControl`
++ registry + refusal. Archetype holder-rung gained the Atmospheric-sealable
+clause (reads its own air). `Material.castTemplate`/`ruinedByFreezing`. The
+freeze plateau in `reconcileBulkPhase` (`BulkPayload.latentRemovedJ`, the
+cast clones the material's `castTemplate`, the ruin edge stamps freshness
+load 1).
+
+**Decisions:** (a) the `thermal.climate.capacityW` AppSettings dial was
+NOT added — the authorable `coolingCapacityW` field IS the knob (an
+appliance's nameplate per row); a dial for the default-of-the-default adds
+plumbing for no behaviour. (b) Boil stays a flip (no boiling feature rides
+this build; noted in thermal.md + deferred to thermal-slate).
+
+**Surprises re-planned in place:** the Meltable freeze test expected an
+instant flip — updated to a deep undershoot (the plateau is the point); the
+async cast-clone now has a `.catch` (a missing template must not crash a
+reconcile). The ClimateControl open-door test needed a weak fixture cooler
+(50 W) — a strong one overpowers even an open door via the clamp, which is
+correct physics, not a bug.
+
+Tests: `ClimateControl.test.ts` (6 — Thing+Location parity, pull-down, the
+hold-at-setpoint clamp, cut-drift, the AC, the open door, one-mixin
+detection), `Thermal.freeze.test.ts` (3 — plateau, solidify, blood ruin).
+All 660 affected lib tests green; type-clean. Docs: thermal.md (the active
+twin + phase-both-ways), architecture.md (the mixin + Powered).
+
+
 
 **Files.**
 - `lib/supply/Powered.ts`; `lib/thermal/ClimateControl.ts` (D2);
