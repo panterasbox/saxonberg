@@ -86,10 +86,14 @@ same bad answer: **a number somebody typed.**
   retuned against measurement, and capped at what shivering can actually
   do.
 
-⚠ Deliberately NOT here: piped supply, metering, and an energy
-*industry*. What this built is the **demand** — the reason an energy
-trade will have customers when it ships. ⭐ Street lighting's **missing
-goods leg** is that demand written down as a bill, in
+⚠ Deliberately NOT here (in the fire/thermal build): piped supply,
+metering, and an energy *industry*. What that built is the **demand** —
+the reason an energy trade would have customers when it shipped. ✅ **The
+energy build then shipped it** — the goods leg (lamp oil, a producer, a
+depleting store, a civic bill) and the electric grid (a feeder network, a
+parcel meter, `analyze grid`'s derived epoch), both epochs at once. See
+[energy.md](./subsystems/energy.md); the remaining tiers (interior
+circuits, metered billing, gas) stay in
 [power-utility-slate](./slates/builds/power-utility-slate.md).
 
 ⭐ **And three things the review and the sweep changed, each worth its

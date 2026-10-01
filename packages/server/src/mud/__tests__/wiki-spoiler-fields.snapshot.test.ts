@@ -116,6 +116,13 @@
  *     town's street lighting comes from (*fed from the town's oil store*,
  *     *drawn from the grid*). It exists to be shown; it is the civic
  *     fact the derived-epoch read is about.
+ *
+ * **The NamedMixin unification (−2 fields).** The energy build's review also
+ * folded `Government` and `Brand` onto `NamedMixin` (the one proper-name
+ * surface), so `Government.displayName` and `Brand.name` left the snapshot:
+ * the name is `NamedMixin.name` now, already tracked here via the other
+ * composers. Both were level 0; nothing is newly surfaced, two lines are
+ * simply gone.
  */
 
 import { describe, it, expect } from 'vitest';
