@@ -12,4 +12,4 @@
 class: /platform/agent/Shade
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shadePlayerId: ""
+  playerId: ""

@@ -27,13 +27,28 @@ import { SaxonbergClientMixin } from '../SaxonbergClient';
 import { Idea } from '../../stuff/Idea';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-/** The host our client renders — the whole tower. */
+/**
+ * The host our client renders — the whole tower.
+ *
+ * ⭐ The observation seam is deliberate: `clientStateSchemaFor` is
+ * `protected` (it is the walk's own cache read, not external surface),
+ * so each fixture exposes it rather than the test reaching past the
+ * modifier.
+ */
 class ClientHostFixture extends SaxonbergClientMixin(
   ClientStateMixin(HasInteractiveMixin(Idea)),
-) {}
+) {
+  public walkedSchema(): ClientStateSchemaEntry[] {
+    return this.clientStateSchemaFor();
+  }
+}
 
 /** A host with the mechanism and no client. */
-class BareStateHost extends ClientStateMixin(HasInteractiveMixin(Idea)) {}
+class BareStateHost extends ClientStateMixin(HasInteractiveMixin(Idea)) {
+  public walkedSchema(): ClientStateSchemaEntry[] {
+    return this.clientStateSchemaFor();
+  }
+}
 
 /** Every key our client declares. */
 const DECLARED = [
@@ -63,24 +78,19 @@ const TRANSIENT = ['cockpit.inputModes', 'cockpit.watch', 'cockpit.tuned'];
  * exists for: the outermost declaration SHADOWS the inner ones on
  * plain property access while the walk unions them.
  */
-const walked = (ctor: object): ClientStateSchemaEntry[] =>
-  (
-    makeStuff(
-      () => new (ctor as new () => object)(),
-    ) as unknown as {
-      clientStateSchemaFor(): ClientStateSchemaEntry[];
-    }
-  ).clientStateSchemaFor();
+const walked = (
+  host: { walkedSchema(): ClientStateSchemaEntry[] },
+): ClientStateSchemaEntry[] => host.walkedSchema();
 
 describe('⭐ the client-state schema', () => {
   it('our client declares exactly the fifteen keys', () => {
-    expect(walked(ClientHostFixture).map((e) => e.key).sort()).toEqual(
+    expect(walked(makeStuff(() => new ClientHostFixture())).map((e) => e.key).sort()).toEqual(
       [...DECLARED].sort(),
     );
   });
 
   it('three keys are transient and the rest persist', () => {
-    const transient = walked(ClientHostFixture)
+    const transient = walked(makeStuff(() => new ClientHostFixture()))
       .filter((e) => e.transient === true)
       .map((e) => e.key)
       .sort();
@@ -88,18 +98,18 @@ describe('⭐ the client-state schema', () => {
   });
 
   it('every declared key carries a default', () => {
-    for (const entry of walked(ClientHostFixture)) {
+    for (const entry of walked(makeStuff(() => new ClientHostFixture()))) {
       expect(entry).toHaveProperty('defaultValue');
     }
   });
 
   it('no key is declared twice', () => {
-    const keys = walked(ClientHostFixture).map((e) => e.key);
+    const keys = walked(makeStuff(() => new ClientHostFixture())).map((e) => e.key);
     expect(new Set(keys).size).toBe(keys.length);
   });
 
   it('⭐⭐ the MECHANISM declares nothing — the vocabulary is the client\'s', () => {
-    expect(walked(BareStateHost)).toEqual([]);
+    expect(walked(makeStuff(() => new BareStateHost()))).toEqual([]);
   });
 
   it('a host with no client cannot read a client key — it throws, it does not default', () => {

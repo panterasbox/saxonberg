@@ -6,4 +6,4 @@
 class: /platform/agent/sandbox/WireBody
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  wirePlayerId: ""
+  playerId: ""

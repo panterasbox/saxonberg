@@ -499,7 +499,7 @@ one class that registers.
 
 ## Waves
 
-### W0 — Pin what must not change
+### ✅ W0 — Pin what must not change — DONE (`dafc87df0`)
 
 **Goal.** Tests that fail if any later wave changes an observable this
 build promises to preserve. Written against the current code, green
@@ -522,7 +522,21 @@ before W1.
 **Acceptance.** `pnpm test:near` green; `lint:family` green.
 **Commit.** `build(avatar-family W0): pin the verb set, the schema, the fork census and the identity thread`
 
-### W1 — `HasInteractive` becomes three mixins (D2–D8)
+> **Note for the reader who has forgotten.** Three pins written, not
+> four: the two vessel identity-thread assertions already existed
+> (`Shade.composition.test.ts:90`, `sandbox.crossing.test.ts:155,328`).
+>
+> ⚠ **The grounding was wrong about the fork census.** It named six
+> slices; there are **ten** — `Vitals`, `Anatomy`, `Trauma` and
+> `CauseOfDeath` ride in from the body mixins. Measured, not recalled,
+> and the test records the measured set. It is also the right answer:
+> a circle body forks a whole body state, which is what *"you can act
+> fully inside"* means in the code.
+>
+> Also fixed a pre-existing `lint:test-bootstrap` failure inherited
+> from the overlay fix (!308).
+
+### ✅ W1 — `HasInteractive` becomes three mixins (D2–D8) — DONE (`3c98aa850`)
 
 **Goal.** COCKPIT → CS → CONN as three files, acyclic, with `Login` and
 `Avatar` composing the tower and every reader narrowed to the mixin it
@@ -581,7 +595,44 @@ is empty; `grep -n "interactives" lib/connection/SaxonbergClient.ts` is
 empty (no back-edge to CONN except through CS methods).
 **Commit.** `build(avatar-family W1): HasInteractive is three mixins — the connection set, the client-state mechanism, SaxonbergClient`
 
-### W2 — One `playerId`, one identity thread (D10, D11)
+> **Note for the reader who has forgotten.** 1,168 → 204 lines on
+> `HasInteractive.ts`; `ClientState.ts` and `SaxonbergClient.ts` are
+> new. The back-edge is gone (D4 as planned: override + `super`), the
+> schema is a memoized chain walk (D3), the fork slice moved with a
+> test on BOTH halves (D5), `Login` composes the tower (D6), and the
+> two cockpit-mode readers became one.
+>
+> **Three things the plan did not decide, decided here:**
+>
+> 1. ⭐ **The interfaces extend downward** — `SaxonbergClient extends
+>    ClientState extends HasInteractive`. Not cosmetic: without it
+>    `MixinApi.isSaxonbergClient` narrowed to a type with no
+>    `getClientState`, so every controller would have declared three
+>    host types instead of one. It is also simply true — our
+>    vocabulary needs the mechanism that stores it, and the mechanism
+>    needs the connection set it pushes down.
+> 2. ⚠ **The type bound does not thread `this`.** A class-factory
+>    mixin's `this` does **not** carry the base's members through
+>    `TBase extends MixinConstructor<X>` — TS resolves `extends Base`
+>    for a generic `Base` without them. (Verified with a minimal
+>    probe; it is not a mistake in our composition.) The repo has two
+>    answers: an explicit `this:` parameter (`Postured.ts`) and a
+>    local cast. `SaxonbergClient.ts` uses a local
+>    `const self = this as unknown as ClientHost`, because the
+>    legacy-layout migration needs the RAW stores — a distinction
+>    `getClientState` deliberately collapses — and no interface
+>    exposes a field (correctly: the inter-Stuff contract is methods).
+> 3. **`card-birth-path`'s census** moves the arrangement mint site
+>    from `Avatar.ts` to `SaxonbergClient.ts`. A pushed card is
+>    protocol any client renders; *which* cards an arrangement opens
+>    is one client's answer.
+>
+> **Surprises:** none in the coupling — the survey's COCKPIT → CS →
+> CONN with one back-edge held exactly. The only unplanned work was
+> the three TypeScript facts above, all found by `tsc` rather than at
+> runtime, which is the split being mechanically checkable.
+
+### ✅ W2 — One `playerId`, one identity thread (D10, D11) — DONE
 
 **Goal.** No field carried under three names; no getter overridden to
 undo a copy; the two dead species slots gone.
@@ -618,6 +669,42 @@ undo a copy; the two dead species slots gone.
 `lint:instanceable` invariant 12 unchanged in count; `test:near` +
 `lint:family` green.
 **Commit.** `build(avatar-family W2): one playerId, one identity thread — the copies and their four overrides go`
+
+> **Note for the reader who has forgotten.** The two private copies,
+> the two dead species slots and the four overrides are gone;
+> `getIdentityPath()` is one implementation on `Avatar`. Rows and the
+> seven fixtures carry `playerId`.
+>
+> ⚠⚠ **A real regression, caught by the new round-trip test, and the
+> most important thing in this wave.** Both vessels suppressed
+> registration by stripping `playerId` from the CONTEXT. That worked
+> only while each carried its own private copy — the base genuinely
+> saw an empty `playerId`. **With one field the strip suppresses
+> nothing**, and a shade claimed the `PlayerApi` slot of the body
+> still being drained. Nothing else in the suite would have said so.
+>
+> Bridged with `Avatar.claimsRegistrySlot()` — a protected predicate,
+> `false` on both vessels, **⛔ explicitly marked as scaffolding that
+> W3 deletes.** It is a boolean the subclasses flip, which D9 calls
+> *an enum wearing a method*; it exists only because `playerId` became
+> one field one wave before registration moved off the shared base.
+> ⭐ **W3 must delete it** — if it survives, the wave did not do its
+> job.
+>
+> ⭐ **A second, benign behaviour change worth knowing.** The
+> persistence spine now resolves its key from `playerId` instead of
+> depending on a template stamp having landed first. Production is
+> unaffected (`PlayerLogic` always mints `asIdentityPath` before
+> register), but six sandbox fixtures stamped the path *after*
+> `StuffApi.create`, so the spine now engages where it used to no-op.
+> They wire `Document.setMarshallerResolver` the way a booted world
+> does. The new behaviour is the better one: the spine key is the
+> identity, and the identity is the playerId.
+>
+> Also: `lint:instanceable` invariant 12 briefly read 404/402 —
+> **not** a real orphan. `fieldMetaEntries` tolerates a `//` comment
+> before a key but not a JSDoc block, and I had put one there. The
+> note moved above the static rather than the gate being weakened.
 
 ### W3 — The abstract root and three concrete bodies (D9, D12, D13)
 

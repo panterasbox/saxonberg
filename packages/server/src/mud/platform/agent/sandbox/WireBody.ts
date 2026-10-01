@@ -33,9 +33,7 @@
  */
 
 import Avatar, { type AvatarInitContext } from '../Avatar';
-import type { FieldMeta } from '../../../lib/mixin';
 import { SandboxApi } from '../../../api/sandbox';
-import type Species from '../../idea/species/Species';
 
 /** Init context for a wire body: the projected identity. */
 export interface WireBodyInitContext extends AvatarInitContext {
@@ -44,92 +42,36 @@ export interface WireBodyInitContext extends AvatarInitContext {
 }
 
 export default class WireBody extends Avatar {
-  /** The projected identity's playerId (never registered under it). */
-  /**
-   * ⭐ Declared, and public, so the clone's `dataOverlay` can land it:
-   * hydration Phase 1 runs BEFORE `postRegister`, which is the ordering
-   * the constructor argument used to guarantee. A key no field declares
-   * is discarded by the Hydrator silently.
-   */
-  public wirePlayerId: string = '';
-
-  static fieldMeta: FieldMeta = {
-    wirePlayerId: { persistent: true, runtimeState: true },
-  };
-
-  /**
-   * The projected identity's species, applied before the loadout.
-   * ⚠ No longer a constructor argument: the species arrives as
-   * `_speciesPath` in the same clone overlay, which `OrganismMixin`
-   * already declares, so `postRegister` reads it off the field.
-   */
-  private wireSpecies: Species | null = null;
-
-  /**
-   * Identity and species are CONSTRUCTOR arguments, not context
-   * threaded through `postRegister`, because everything downstream
-   * keys on them.
-   *
-   * `playerId`: authority (wizard / author-scope membership), parcel
-   * title, the epistemic ledgers. A vessel that finishes construction
-   * without one is an anonymous body that silently loses its player's
-   * powers inside their own circle.
-   *
-   * `species`: anatomy. `Avatar.postRegister` installs the default
-   * loadout, and that walks the body plan to find the cranial slot the
-   * aether implant occupies. A speciesless vessel has no body plan, so
-   * the occupy throws, the loadout swallows it, and the implant ends up
-   * loose in inventory with no comms update hosted — the player can
-   * *receive* a channel message inside their circle but cannot send
-   * one ("You have no way to send a thought"). The fork carries species
-   * too, but the fork runs after `postRegister`, which is exactly too
-   * late. Same reasoning as `playerId`, and the same conclusion: make
-   * it impossible to build one by accident (the `Interactive`
-   * precedent for runtime-only objects).
-   */
   public override async postRegister(
     context?: WireBodyInitContext,
   ): Promise<void> {
-    // Anatomy FIRST — `super.postRegister` runs the default loadout,
-    // which needs a body plan to slot the implant into.
-    if (this.wireSpecies) {
-      this.setSpecies(this.wireSpecies);
-      // Then LET GO. `OrganismMixin` stores species as `_speciesPath`
-      // and re-resolves through `findByTemplatePath` on every read, so
-      // that field — not this one — is the durable reference. Holding
-      // the live `Species` for the vessel's whole life would shadow the
-      // authoritative path with an instance ref that a hot reload can
-      // strand. The ctor slot is a hand-off, and this is the hand-off
-      // completing; ref-shapes.md's A.4 carve-out for it only holds
-      // while it is genuinely transient.
-      this.wireSpecies = null;
-    }
-    // Run the Avatar lifecycle WITHOUT a playerId: PlayerApi
-    // registration is keyed on it (the parked avatar keeps the slot),
-    // and the spine is gated off by shouldPersist() anyway. The
-    // default-loadout floor (implant + aether apps) still installs —
-    // minted under the circle root, so it is circle-born.
+    // ⚠ Run the Avatar lifecycle WITHOUT a playerId in the CONTEXT:
+    // `PlayerApi` registration is keyed on it and the PARKED avatar
+    // keeps that slot, so a vessel must never claim it. The spine is
+    // gated off by `shouldPersist()` anyway, and the default-loadout
+    // floor (implant + aether apps) still installs — minted under the
+    // circle root, so it is circle-born.
     //
-    // `wirePlayerId` needs no merge with `context.playerId`: the
-    // constructor now requires it, so it is already authoritative
-    // before this runs.
+    // The field itself is already set: `playerId` arrives in the clone
+    // overlay (hydration Phase 1), before this hook. W3 moves
+    // registration onto the one class that registers and this strip
+    // goes with it.
     await super.postRegister({ ...context, playerId: undefined });
+  }
+
+  /**
+   * ⛔ SCAFFOLDING — W3 deletes this (see `Avatar.claimsRegistrySlot`).
+   *
+   * A vessel never registers: the PARKED avatar keeps the player's
+   * slot for the whole crossing.
+   */
+  protected override claimsRegistrySlot(): boolean {
+    return false;
   }
 
   /** A vessel persists nothing — the guest gate, verbatim. */
   public override shouldPersist(): boolean {
     return false;
-  }
-
-  public override getPlayerId(): string {
-    return this.wirePlayerId;
-  }
-
-  /** The identity thread (Decision C): acts attribute to the player. */
-  public override getIdentityPath(): string | null {
-    return this.wirePlayerId
-      ? Avatar.getTemplatePath(this.wirePlayerId)
-      : super.getIdentityPath();
   }
 
   /** Vessels never install the periodic-save backstop. */
@@ -166,6 +108,6 @@ export default class WireBody extends Avatar {
   }
 
   public override toString(): string {
-    return `[WireBody for playerId=${this.wirePlayerId}]`;
+    return `[WireBody for playerId=${this.playerId}]`;
   }
 }

@@ -34,6 +34,7 @@ import SandboxCrossingExit from '../../SandboxCrossingExit';
 import type { Containable } from '../../../spatial/Containable';
 import type { Container } from '../../../spatial/Container';
 import type { Mobile } from '../../../spatial/Mobile';
+import { Document } from '../../../../lib/persistence/Document';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
@@ -143,6 +144,18 @@ describe('sandbox-escape: the round-trip criterion', () => {
   let store: Map<string, FakeRow[]>;
 
   beforeEach(async () => {
+    /*
+     * ⭐ A body whose `playerId` is known now resolves its own
+     * identity path, so the persistence spine engages at
+     * `postRegister` instead of waiting for a template stamp that
+     * these fixtures apply afterwards. Production always minted the
+     * identity first, so nothing changed there — but the spine is
+     * live here now and wants the resolver a booted world wires.
+     */
+    Document.setMarshallerResolver(
+      () => undefined,
+      async () => undefined,
+    );
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
@@ -165,7 +178,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
         path: '/platform/agent/sandbox/WireBody',
         class: '/platform/agent/sandbox/WireBody',
         hydratorClass: '/platform/idea/persistence/PersistentHydrator',
-        data: { wirePlayerId: '' },
+        data: { playerId: '' },
       } as unknown as FakeRow,
     ]);
     pm.setScopeResolver(() => {

@@ -31,6 +31,7 @@ import SandboxCrossingExit from '../../lib/sandbox/SandboxCrossingExit';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
 import type { Mobile } from '../../lib/spatial/Mobile';
+import { Document } from '../../lib/persistence/Document';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
@@ -138,13 +139,25 @@ beforeEach(() => {
       path: '/platform/agent/sandbox/WireBody',
       class: '/platform/agent/sandbox/WireBody',
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
-      data: { wirePlayerId: '' },
+      data: { playerId: '' },
     },
   ]);
 });
 
 describe('the wardrobe door (Wave 4)', () => {
   beforeEach(async () => {
+    /*
+     * ⭐ A body whose `playerId` is known now resolves its own
+     * identity path, so the persistence spine engages at
+     * `postRegister` instead of waiting for a template stamp that
+     * these fixtures apply afterwards. Production always minted the
+     * identity first, so nothing changed there — but the spine is
+     * live here now and wants the resolver a booted world wires.
+     */
+    Document.setMarshallerResolver(
+      () => undefined,
+      async () => undefined,
+    );
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();

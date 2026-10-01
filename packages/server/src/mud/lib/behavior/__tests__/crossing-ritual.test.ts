@@ -163,7 +163,7 @@ beforeEach(() => {
       path: '/platform/agent/sandbox/WireBody',
       class: '/platform/agent/sandbox/WireBody',
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
-      data: { wirePlayerId: '' },
+      data: { playerId: '' },
     },
   ]);
 });

@@ -349,7 +349,7 @@ async function enterImpl(
           // is a projection of the person, not a person of its own.
           asIdentityPath: actor.getIdentityPath() ?? undefined,
           dataOverlay: {
-            wirePlayerId: playerId,
+            playerId,
             ...(actorSpecies?.getTemplatePath()
               ? { _speciesPath: actorSpecies.getTemplatePath() }
               : {}),

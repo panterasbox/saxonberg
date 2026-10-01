@@ -25,6 +25,7 @@ import CartesianLocation from '../../lib/location/CartesianLocation';
 import SandboxCrossing from '../../platform/thing/sandbox/SandboxCrossing';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
+import { Document } from '../../lib/persistence/Document';
 
 /*
  * ⚠ **20 s, not vitest's 5 s default.** Every sandbox test stands up a
@@ -68,13 +69,25 @@ beforeEach(() => {
     path: '/platform/agent/sandbox/WireBody',
     class: '/platform/agent/sandbox/WireBody',
     hydratorClass: '/platform/idea/persistence/PersistentHydrator',
-    data: { wirePlayerId: '' },
+    data: { playerId: '' },
   },
   ]);
 });
 
 describe('go wardrobe (the real command path)', () => {
   beforeEach(async () => {
+    /*
+     * ⭐ A body whose `playerId` is known now resolves its own
+     * identity path, so the persistence spine engages at
+     * `postRegister` instead of waiting for a template stamp that
+     * these fixtures apply afterwards. Production always minted the
+     * identity first, so nothing changed there — but the spine is
+     * live here now and wants the resolver a booted world wires.
+     */
+    Document.setMarshallerResolver(
+      () => undefined,
+      async () => undefined,
+    );
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();

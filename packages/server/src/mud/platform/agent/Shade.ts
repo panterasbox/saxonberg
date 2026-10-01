@@ -36,10 +36,8 @@
  */
 
 import Avatar, { type AvatarInitContext } from './Avatar';
-import type Species from '../idea/species/Species';
 import { IncorporealMixin } from '../../lib/mortality/Incorporeal';
 import { PlayerApi } from '../../api/player';
-import type { FieldMeta } from '../../lib/mixin';
 
 /** Init context for a shade: the identity it stands in for. */
 export interface ShadeInitContext extends AvatarInitContext {
@@ -48,51 +46,32 @@ export interface ShadeInitContext extends AvatarInitContext {
 }
 
 export default class Shade extends IncorporealMixin(Avatar) {
-  /**
-   * The identity's playerId. Registered under it — see the class doc.
-   *
-   * ⭐ Declared so the clone's `dataOverlay` can land it: hydration
-   * Phase 1 runs BEFORE `postRegister`, which is exactly the ordering
-   * the constructor argument used to guarantee. (A key no field
-   * declares is discarded by the Hydrator SILENTLY — `lint:instanceable`
-   * invariant 12 is the gate that now counts those.)
-   */
-  public shadePlayerId = '';
-
-  static fieldMeta: FieldMeta = {
-    shadePlayerId: { persistent: true, runtimeState: true },
-  };
-
-  /**
-   * The deceased's species, applied before the Avatar lifecycle runs.
-   * ⚠ Not a constructor argument any more: the species arrives as
-   * `_speciesPath` in the same overlay, which `OrganismMixin` already
-   * declares, so `postRegister` reads it off the field.
-   */
-  private shadeSpecies: Species | null = null;
-
   public override async postRegister(
     context?: ShadeInitContext,
   ): Promise<void> {
-    if (this.shadeSpecies) {
-      this.setSpecies(this.shadeSpecies);
-      // Then LET GO — same reasoning as `WireBody`. `OrganismMixin`
-      // keeps species as `_speciesPath` and re-resolves on every read;
-      // retaining the live `Species` here would shadow that
-      // authoritative field with an instance ref for the shade's whole
-      // life. The ctor slot exists to survive until `setSpecies`, and
-      // no longer.
-      this.shadeSpecies = null;
-    }
-    // Run the Avatar lifecycle WITHOUT a playerId: registration happens
-    // in the death choreography, deliberately AFTER the old body has been
-    // unregistered and destructed. Registering here would collide with
-    // the body that is still being drained.
+    // ⚠ Run the Avatar lifecycle WITHOUT a playerId in the CONTEXT:
+    // registration happens in the death choreography, deliberately
+    // AFTER the old body has been unregistered and destructed.
+    // Registering here would collide with the body still being drained.
     //
-    // No merge with `context.playerId`: `shadePlayerId` arrives in the
-    // clone overlay before this hook runs, so it is authoritative.
+    // The field itself is already set — `playerId` arrives in the clone
+    // overlay (hydration Phase 1) before this hook runs — so stripping
+    // the context key suppresses the registration without losing the
+    // identity. W3 moves registration off the shared base and this
+    // strip goes with it.
     await super.postRegister({ ...context, playerId: undefined });
     this.setLifecycleState('undead');
+  }
+
+  /**
+   * ⛔ SCAFFOLDING — W3 deletes this (see `Avatar.claimsRegistrySlot`).
+   *
+   * Registration happens in the death choreography, deliberately AFTER
+   * the old body has been unregistered and destructed. Claiming it here
+   * would collide with the body still being drained.
+   */
+  protected override claimsRegistrySlot(): boolean {
+    return false;
   }
 
   /** A shade persists nothing — the arc lives on the identity. */
@@ -103,17 +82,6 @@ export default class Shade extends IncorporealMixin(Avatar) {
   /** Nothing to save, so no periodic-save backstop. */
   public override startAutoSave(): void {
     // no-op
-  }
-
-  public override getPlayerId(): string {
-    return this.shadePlayerId;
-  }
-
-  /** The identity thread — acts attribute to the player, not the vessel. */
-  public override getIdentityPath(): string | null {
-    return this.shadePlayerId
-      ? Avatar.getTemplatePath(this.shadePlayerId)
-      : super.getIdentityPath();
   }
 
   /**
@@ -177,6 +145,6 @@ export default class Shade extends IncorporealMixin(Avatar) {
   }
 
   public override toString(): string {
-    return `[Shade for playerId=${this.shadePlayerId}]`;
+    return `[Shade for playerId=${this.playerId}]`;
   }
 }

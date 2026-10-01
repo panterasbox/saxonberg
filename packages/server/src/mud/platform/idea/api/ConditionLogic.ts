@@ -680,7 +680,7 @@ async function mintShadeFrom(
     {
       asIdentityPath: `/platform/agent/Shade/${avatar.getPlayerId()}`,
       dataOverlay: {
-        shadePlayerId: avatar.getPlayerId(),
+        playerId: avatar.getPlayerId(),
         ...(species?.getTemplatePath()
           ? { _speciesPath: species.getTemplatePath() }
           : {}),

@@ -304,8 +304,21 @@ export default class Avatar extends AvatarBase {
    * **only** durable record that a player is dead. Deliberately NOT
    * `lifecycleState: 'dead'` on the body: see [MortalArc](../lib/mortality/MortalArc.ts)
    * for why those two behave oppositely.
+   *
+   * ⭐⭐ `playerId` is declared here, once, for the whole family.
+   * Declared (rather than merely held) so a clone's `dataOverlay` can
+   * land it: hydration Phase 1 runs BEFORE `postRegister`, which is
+   * exactly the ordering the two vessels' private copies
+   * (`shadePlayerId`, `wirePlayerId`) existed to guarantee — and the
+   * reason each then overrode `getPlayerId()` to undo its own copy and
+   * `getIdentityPath()` to rebuild the same string.
+   *
+   * ⚠ A key no composed field declares is discarded by the Hydrator
+   * SILENTLY; `lint:instanceable` invariant 12 is what counts them.
    */
   static fieldMeta: FieldMeta = {
+    // ⭐ ONE playerId for the whole family — see the note above.
+    playerId: { persistent: true, runtimeState: true },
     mortalArc: { persistent: true },
     lastSeen: { persistent: true },
     escheatedAt: { persistent: true },
@@ -654,16 +667,67 @@ export default class Avatar extends AvatarBase {
 
   /**
    * Character slot id (key under `/platform/agent/Avatar/<playerId>` and in `User.playerIds`).
-   * Runtime-only: the template path encodes it, so it does not need to be
-   * mirrored into the doc. Stamped by `postRegister` from the clone
-   * context, or seeded by the test/direct-construction data blob.
+   *
+   * ⭐ Public because the Hydrator reflects into persistent fields by
+   * name; external readers still use `getPlayerId()` (the inter-Stuff
+   * contract is methods). Landed from a clone overlay before
+   * `postRegister`, or stamped there from the context.
    */
-  protected playerId: string = "";
+  public playerId: string = "";
   public override getPlayerId(): string {
     return this.playerId;
   }
   public setPlayerId(value: string): void {
     this.playerId = value;
+  }
+
+  /**
+   * ⭐⭐ The identity thread, for the whole family and in one place.
+   *
+   * Every body belonging to a player answers under
+   * `/platform/agent/Avatar/<playerId>`, so a deed done as a shade or
+   * inside a circle attributes to the person, not to the vessel. The
+   * two vessels each carried their own copy of this before, over their
+   * own copy of the field.
+   *
+   * ⚠ The class is lineage and the identity path is identity: this is
+   * NOT the template stamp. A shade keeps its own
+   * `/platform/agent/Shade/<pid>` template path, so
+   * `findByTemplatePath` still tells the bodies apart.
+   *
+   * Falls through for a guest (`playerId === ''`) to whatever minted
+   * path it was given, exactly as before.
+   */
+  /**
+   * ⛔ SCAFFOLDING — W3 deletes this.
+   *
+   * Does this body take the player's `PlayerApi` registry slot at
+   * `postRegister`? True for the body of record; false for both
+   * vessels, each for its own reason — a shade is registered LATER by
+   * the death choreography, after the drained body has been
+   * unregistered, and a circle body never registers at all because the
+   * parked avatar keeps the slot.
+   *
+   * ⚠ It exists only because `playerId` became one field before
+   * registration moved off the shared base. The two vessels used to
+   * suppress this by stripping `playerId` from the CONTEXT, which
+   * worked while each carried its own private copy of the field — the
+   * base genuinely saw an empty `playerId`. With one field the strip
+   * suppresses nothing, and a shade would claim the slot of the body
+   * still being drained.
+   *
+   * W3 puts registration on the one concrete class that registers, and
+   * this predicate goes with it — a boolean the subclasses flip is an
+   * enum wearing a method, and the plan's D9 says so.
+   */
+  protected claimsRegistrySlot(): boolean {
+    return true;
+  }
+
+  public override getIdentityPath(): string | null {
+    return this.playerId
+      ? Avatar.getTemplatePath(this.playerId)
+      : super.getIdentityPath();
   }
 
   /**
@@ -703,13 +767,16 @@ export default class Avatar extends AvatarBase {
     context?: AvatarInitContext,
   ): Promise<void> {
     if (context?.user) this.user = context.user;
+    // ⚠ Only when GIVEN. An overlay-borne `playerId` (the two vessels'
+    // mint path) lands in hydration Phase 1, before this hook, and an
+    // absent context key must not overwrite it.
     if (context?.playerId) this.playerId = context.playerId;
     if (context?.isGuest) this.isGuest = true;
 
     // Guests have no playerId and are not registered — they're
     // throwaway and looked up by nothing. (A guest's reserved-word name
     // comes from its transient template data, set by the Hydrator.)
-    if (this.playerId) {
+    if (this.playerId && this.claimsRegistrySlot()) {
       PlayerApi.registerAvatar(this);
     }
 
