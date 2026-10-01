@@ -10,6 +10,19 @@ different sides: *who is reading* and *what does this sentence need*.
 
 ---
 
+> ⭐⭐ **Read as an interface decision, this doc is a DIMENSION system**
+> ([lens #66](../lenses/66-channels-and-dimensions.md), 2026-09-30). In a
+> one-medium game almost every interface choice is a choice of *axis within
+> text* rather than of channel — and two of the axes here are unusually
+> load-bearing: ⭐⭐⭐ **the article carries the ontology** (the identity
+> rungs are *defined* by `the` vs `a`, and the field sits on `VisibleMixin`
+> because 480 of the 611 articled rows are things with no rung at all), and
+> **§ 2's “who” column is a dimension→surface map** — Schell's *“which
+> channels are most appropriate for which data”*, answered for naming.
+> ⚠ Note the collision: “register” here is grammatical, while
+> [message-rendering.md](./message-rendering.md)'s font-by-register
+> “register” is typographic. Both are real.
+
 ## 1 · The noun phrase
 
 `lib/description/NounPhrase.ts` — a value object: **a stem, a register,

@@ -361,6 +361,19 @@ they stayed red.
 - ⚠ **`combat-gym — the parry seam is dead` is still red**, and its name
   remains the finding. See defect 1 above for the mechanism.
 
+> ⚠⚠ **The emergent clock is also the interface's hardest problem**
+> (noted 2026-09-30, [lens #62](../lenses/62-transparency.md)). Schell
+> asks whether players *“continue to use the interface well in stressful
+> situations, or start fumbling”* — and a typed interface against a tempo
+> accumulator is fumbling by construction: a gamepad player mis-presses, a
+> typist mis-**spells**. ⭐⭐⭐ The design's answer is not a faster
+> interface but **moving the input out of the pressure window**: a
+> **gambit** is a standing instruction, **terms** are agreed in advance,
+> and a [formation](./combat-formations.md) is a policy picked from
+> presets. Three features, one idea — *decide now, execute later*.
+> ⚠ The residual exposure is the **unanticipated** moment, which a gambit
+> by definition does not cover.
+
 ## Tempo — emergent cadence
 
 `lib/combat/Tempo.ts` — **no attacks-per-round scalar**. Each combatant
