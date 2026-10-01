@@ -26,23 +26,30 @@
  * `Session.openAtRoster` was added for this step. It is the only way
  * to reach the pre-world verb set on a live socket.
  *
- * ## ⚠⚠ What this drive CANNOT do, and the finding that is
+ * ## ⚠⚠ Steps 5–7 (the shade arc) are not driven HERE — and my first
+ * reason for that was WRONG
  *
- * **Nothing in this game can kill a player through the socket.** The
- * eval sandbox exposes four Apis (`StuffApi`, `MqlApi`,
- * `ContainmentApi`, `MixinApi`) and `ConditionApi` is not one of them;
- * no verb kills; the shipped hazards are not reliably lethal in a
- * single run. So the **death → shade → `passage` arc has never been
- * driven end to end by anything**, not by this file and not by any of
- * the twenty-odd wire files before it.
+ * ⛔ **I recorded "nothing in this game can kill a player through the
+ * socket". That is false.** I checked the eval sandbox's Api allowlist
+ * (`StuffApi`, `MqlApi`, `ContainmentApi`, `MixinApi` — no
+ * `ConditionApi`) and looked for a kill verb, found neither, and
+ * concluded the arc was unreachable. The route I missed is the body's
+ * OWN method through the eval receiver:
  *
- * Steps 5–7 of the requirements' script are therefore **recorded as
- * not driveable on the wire** rather than skipped quietly, and the
- * properties they would have checked are proven by unit round trips
- * instead (`Avatar.playerId.roundtrip.test.ts`,
- * `Shade.composition.test.ts`, `Avatar.family.test.ts`). ⭐ That the
- * ghost phase is unreachable from a socket is a gap worth closing —
- * filed, not fixed here.
+ *     eval --parcel /world/lounge this.beginDying("exsanguination", 1)
+ *
+ * `self`/`target` IS the avatar, so every public method on it is
+ * callable. `e2e/tests/mortality.spec.ts` has driven the arc this way
+ * all along. ⭐ The lesson: an ALLOWLIST OF APIS is not the surface —
+ * the receiver is, and it carries the whole class.
+ *
+ * The shade arc is therefore driven in the browser instead, where the
+ * thing worth checking actually lives:
+ * `e2e/tests/avatar-family.spec.ts` kills a player, becomes a shade,
+ * and asserts it is still a PERSON (listed by `who`, not refused as
+ * "not a player") while still being refused at `bank deposit`. That is
+ * the predicate fix's whole claim, and a socket cannot see it — the
+ * ~90 callers are controllers.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';

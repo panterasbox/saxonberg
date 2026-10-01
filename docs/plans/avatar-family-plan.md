@@ -1377,12 +1377,16 @@ step keeps a LIVE assertion (it checks the fork for real the moment a
 door exists) and asserts the refusal is the *known* one, so a different
 refusal fails.
 
-**2. Nothing in this game can kill a player through the socket.** The
-eval sandbox exposes four Apis and `ConditionApi` is not one; no verb
-kills; the shipped hazards are not reliably lethal in one run. The
-**death → shade → `passage` arc has never been driven end to end**.
-Steps 5–7 are recorded as not driveable and their properties are
-proven by unit round trips instead.
+**2. ⛔ RETRACTED — a player CAN be killed through the socket.** I
+wrote that nothing could, on the strength of the eval sandbox's Api
+allowlist (`StuffApi`, `MqlApi`, `ContainmentApi`, `MixinApi` — no
+`ConditionApi`) plus the absence of a kill verb. The route I missed is
+the body's **own method through the eval receiver**:
+`eval --parcel <p> this.beginDying("exsanguination", 1)`. `self`/
+`target` IS the avatar, so its whole public surface is callable, and
+`e2e/tests/mortality.spec.ts` has driven the arc that way all along.
+⭐ **An allowlist of Apis is not the surface — the receiver is.** The
+shade arc is driven in the browser instead (§ Live drive record).
 
 **3. The estate's succession state has no reachable read surface.**
 `wallet` answers *"no active account yet"* (the beneficiary is a field
@@ -1402,3 +1406,70 @@ the three bodies. The two code-level surprises of the whole build
 (`claimsRegistrySlot`'s necessity in W2, and `captureSlice` shadowing
 `fieldMeta` in W4) were both caught by **unit** tests on their first
 run, before the drive.
+
+---
+
+## Live drive record — browser, 2026-10-01 (Playwright)
+
+`e2e/tests/avatar-family.spec.ts`, Chromium against the real client
+(`:5173`) and server (`:2010`). **3 passed.** Driven with Playwright
+rather than the Chrome MCP, which another session holds.
+
+| step | result |
+|---|---|
+| ⭐⭐ a shade is still a PERSON | ✅ Killed via `eval … this.beginDying(…)`, became a shade, and `who` does **not** refuse it as "not a player" — the predicate fix's whole claim, which a socket cannot see because the ~90 callers are controllers. |
+| ⭐ and still cannot spend | ✅ `bank deposit coins` does not deposit; `bank` (the read) is **not** refused. The per-subcommand split holds live. |
+| ⭐ a new character mints and spawns | ✅ The row move did not break the mint: a fresh body enters and carries its aether implant. |
+| ⭐ cockpit state survives a full RELOAD | ✅ Not just a reconnect — a reload re-requests the welcome snapshot, so this exercises the memoized chain walk across all three mixins. |
+| ⛔ the crossing | **not driveable** — see below. |
+
+### ⚠⚠ The e2e suite is NOT a usable instrument, and I proved it before using it
+
+A first pass ran `smoke`/`cockpit`/`chargen`/`mortality`/`sandbox`/`shelf`
+and got **18 failed, 5 passed** — including *all twelve* sandbox
+crossing tests. That looks exactly like this build breaking the world.
+It is not:
+
+- this branch changes **zero** client files;
+- `tests/sandbox.spec.ts` crosses from the **lounge**, and
+  `8b51b682f fix(sandbox): a circle's door belongs at your home, not in
+  a commons` moved the wardrobe out of the lounge on **2026-09-01** —
+  already on master, **29 days before this branch's first commit**;
+- `chargen` wants a `chargen-detail-pane` testid that no longer exists;
+  `shelf` asserts stale row counts.
+
+⭐ The suite has been red on master for a month. Same decay as the five
+retired one-off drive scripts, two of which turned out to have been
+failing on master with nobody able to know. **A cascade is not
+diagnostic** — the instrument got validated first.
+
+### ⛔ Why the crossing is undriveable, precisely
+
+Both routes to a sandbox door are closed to a drive:
+
+1. **The shipped doors live in bedrooms** (that same 2026-09-01 commit),
+   so reaching one means holding a home — the residence flow. The
+   Seznick bedroom is additionally unlit, so the keyword resolves to
+   nothing. The dorm is a keyed residence whose `props:` a
+   `startLocation` does not stand up.
+2. **The row cannot be cloned.** `clone /platform/thing/sandbox/wardrobe
+   --here` answers *"you don't have permission to clone that"* **even
+   for a wizard** — only rows under a TITLED root are clonable and
+   `/platform` is covered by no parcel. The same title gap the
+   base-class-narrowing build filed.
+
+⚠⚠ **And my first attempt misread this as a crossing failure.** The
+guard I wrote (`/sandbox boundary denied|hold no authority|no targets
+matched/`) did not match the clone refusal, and the `look` that
+followed matched the word *wardrobe* in the **echoed command** rather
+than in the room. A too-narrow guard plus a command echo is a false
+green in both directions — the same shape as the e2e suite's own
+warning about a spec that "passed" while both its evals were being
+refused.
+
+⭐ What retiring the lineage restamp actually needed verified **is**
+verified, just not through a door: it mattered only because
+`isAvatarStuff` had to keep accepting a vessel, and
+`lib/character/__tests__/Avatar.family.test.ts` asserts that for
+`SandboxAvatar` directly. The crossing's own logic carries 11 unit
+tests plus the escape suite.
