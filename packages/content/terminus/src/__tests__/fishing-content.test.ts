@@ -73,7 +73,11 @@ describe('the fisher', () => {
       expect(b.trigger, b.brain).toBeTruthy();
     }
     const fishes = d.behaviors.find((b) => b.brain === '/trade/fishing/behavior/fishes')!;
-    expect(fishes.trigger).toMatch(/^cadence:/);
+    // ⭐ A candidate, not a cadence: `fishes` declares an `urgency` now, so it
+    // joins the fisher's ONE deliberation beat instead of running a timer of
+    // its own. Pacing is the `behavior.beat*Ms` dial, not a number in this
+    // row — which is what took the realm from 263.2 fires/min to 17.
+    expect(fishes.trigger).toBe('candidate');
     expect(rowExists(fishes.config!.shore as string)).toBe(true);
     const reads = d.behaviors.find((b) => b.brain === '/trade/fishing/behavior/reads-water')!;
     expect(reads.trigger).toBe('engage');
