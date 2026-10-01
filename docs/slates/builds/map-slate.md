@@ -6,11 +6,17 @@
 > client build.**
 > ⭐⭐⭐ **Resolved: SVG for 2D, not canvas and not the box model** — the
 > `viewBox` is the lattice and the camera. three.js for 3D, **lazy-loaded**.
-> **Left:** the SVG grid + the pinned `map` card · ⭐ **the annotation
-> surface (pins, markup, notes) — which is the actual feature** · the
-> three-tier provenance render + the conflict badge · the 2D node-graph for
-> zone level · the stacked-floor isometric · the 3D mode behind
-> `React.lazy` · `SphericalZone.canPlace` non-overlap
+> ⭐⭐⭐ **And it is a ZONE NAVIGATION card, not a map card** — the grid, a
+> **compass rose** (an input surface, and the refusal doctrine rendered), a
+> **named list for interzone exits** (the same widget as the departures
+> board), and a **zone honest-state panel**.
+> **Left:** the SVG grid + up/down corner glyphs + the pinned card · the
+> **compass rose** and its state vocabulary · the **interzone list** · the
+> **zone metadata panel** · ⭐ **the annotation surface (pins, markup,
+> notes) — which is the actual feature** · the three-tier provenance render
+> + the conflict badge · the 2D node-graph for zone level · the
+> stacked-floor isometric · the 3D mode behind `React.lazy` ·
+> `SphericalZone.canPlace` non-overlap
 > **Size:** a build — and ⭐ the annotation half is the half that matters
 
 Working slate for **the map** — how the world's spatial structure gets
@@ -356,6 +362,99 @@ Two kinds of editing, and they separate cleanly:
 > where the tradeable good actually gets made.** The renderer is
 > infrastructure; the annotation surface is the feature.
 
+## ⭐⭐⭐ It is a ZONE NAVIGATION card, not a map card
+
+The reframe that scopes the whole thing: this is **an input surface**, not a
+map viewer. Four things in one card, and only the first is the map.
+
+### 1. The grid — with up/down as a corner glyph
+
+⭐ **Decided: vertical exits are a corner glyph per cell** (`▲` / `▼` / both).
+Cheap in SVG (a `<use>` of a symbol), unambiguous, and it does not look
+provisional while the stacked-floor isometric waits for wave 3.
+
+### 2. ⭐⭐⭐ A compass rose — and it is the refusal doctrine rendered
+
+The map answers *"where am I in this zone."* **The rose answers *"what can
+I do from here"*** — a different question, and the one a text player
+currently has to re-read a paragraph or type `exits` to get.
+
+Eight cardinals plus up and down, each in a **state**, and the state
+vocabulary is the point:
+
+| state | reads |
+|---|---|
+| **available** | lit, clickable |
+| **a closed door** | lit, marked — the wire already carries `open` |
+| ⭐ **locked / blocked** | **present and refused** |
+| ⭐ **refused by covenant** | present, refused, **with the reason** |
+| ⭐ **TPA, not registered** | present, refused, *"not yet registered"* |
+| **concealed & undiscovered** | ⛔ **absent** — see below |
+
+> ⭐⭐⭐ **A rose that renders *locked* differently from *no exit* IS the
+> standing rule — the refusal is the progression UI.** *"If something lifts
+> it, the verb must EXIST so you can be told."* This is that rule as
+> pixels, and it is the same instinct as a ghost visibly losing verbs
+> rather than getting *"that command doesn't exist."*
+
+⭐ And per the clickables rule, each arm **previews the command it will
+run** (`go north`, `teleport <keyword>`), so the rose is an affordance over
+the command line rather than a parallel input path.
+
+### 3. ⭐⭐⭐ Interzone exits need a LIST, not a rose
+
+Because **they leave the map.** The grid cannot show where you are going —
+the destination is in another coordinate frame with no shared origin
+(see the zone-level section above). So a cardinal arm is the wrong
+affordance even when the exit *is* cardinal.
+
+> ⭐⭐⭐ **Ways out, named, with their destinations — which is the same widget
+> as the TPA departures board.** One component: *"from here you can reach…"*
+> with a fare and a timetable where the edge is a TPA route and neither
+> where it is a road. **The interzone affordance and the departures board
+> are one thing**, and `renderDepartures` already shapes it.
+
+### 4. ⭐⭐⭐ Zone metadata — the honest-state panel
+
+What rules apply *here*:
+
+- the **locality / zone name** and the address
+- **biome, weather, light, time of day**
+- ⭐⭐⭐ **the epoch ceiling** — *what may I use here*
+- ⭐ **coverage** — surveyed / partial / unmapped
+- **who holds title** (the parcel)
+- ⚠ **published state**, for an author
+
+> ⭐⭐⭐ **This is the other half of a problem the content-declaration slate
+> left open.** It concluded that *"variable enforcement needs the terms
+> visible to players, or two adjacent localities have different rules and no
+> way to tell"* — and answered it with EotL's **sign at the gate**, which is
+> diegetic and in-fiction. **The zone card is the honest-state half**, and
+> both should exist: the plaque is how you meet the rule, the panel is how
+> you check it.
+>
+> And it is on-thesis rather than a concession — lens 62, *transparency is
+> the absence of opacity*, and `client-shell.md` already ships **the
+> honest-state primitives.**
+
+### ⭐⭐ What is already on the wire, and what is not
+
+The client **already receives** `exits: StuffExitRecord[]` —
+`{ direction, door?: { stuffId, displayName, open, primaryKeyword } }` —
+documented as *"**Obvious** exits for Exitable hosts: what `look` would
+surface."*
+
+> ⭐⭐⭐ **So the rose's geometry is free today, and it is already
+> perception-gated** — a concealed exit is not in the list, so the rose
+> inherits the x-ray guard
+> ([location-graph-slate § 8](./location-graph-slate.md)) **without anyone
+> adding a check.**
+
+⚠ **What the state vocabulary needs added:** the destination (so an arm can
+be labelled), `blocked` / locked / covenant-refused as distinct from
+*absent*, and whether an exit **crosses a zone** (so it routes to the list
+rather than the rose). All of it reads off the index.
+
 ## The card integration is already decided by doctrine
 
 `card-surface.md` has four body sources, and the minimap is a **`client`**
@@ -406,10 +505,15 @@ undetected for a whole build with five green tests over it.
    through this door, shape unknown."* See
    [location-graph-slate § 4](./location-graph-slate.md).
 7. **3D editing, ever?** — or permanently 2D-edit / 3D-view. *Lean: never.*
-8. ⚠ **Up/down in the 2D grid.** Vertical exits are not in the plane. A
-   corner glyph (`▲`/`▼`) per cell, or the stacked-floor isometric, or both.
-   The glyph is wave 1 and the isometric is wave 3, so wave 1 needs an
-   answer that does not look provisional.
+8. ~~**Up/down in the 2D grid**~~ ⭐ **DECIDED** — a **corner glyph per
+   cell** (`▲`/`▼`/both). The stacked isometric still lands in wave 3 as the
+   richer view, but the glyph is the wave-1 answer and it is not
+   provisional.
+10. ⚠ **Does the rose show a covenant refusal's REASON inline, or on
+   hover?** Inline is honest and gets noisy fast with ten arms; hover hides
+   the most interesting thing on the card. Probably a marker inline and the
+   reason on focus — but it is the one place the rose could become
+   unreadable.
 9. ⭐ **Does the zone-level graph expose the composition inconsistency to
    players, or only to the lint?** A realm whose zones cannot be laid out
    consistently is a genuine fact about the world; showing it is either
@@ -423,11 +527,18 @@ undetected for a whole build with five green tests over it.
 [location-graph index](./location-graph-slate.md) has to exist. There is
 nothing to render until it does, and the data contract above is its API.
 
-**Wave 1 — the SVG grid and the pinned card.** `viewBox` in cell units,
-rects + lines, `d3-zoom` for pan/zoom, the `map` card pushed by the `map`
-command as a `client` body. Locality-scoped. The three provenance tiers and
-the conflict badge land here because they are *render classes*, not
-features.
+**Wave 1 — the zone navigation card.** `viewBox` in cell units, rects +
+lines, **up/down corner glyphs**, `d3-zoom` for pan/zoom, pushed by a
+command as a `client` body. Locality-scoped. Plus the **compass rose** —
+whose geometry is free off the existing `exits` wire record — the
+**interzone list**, and the **zone metadata panel.** The three provenance
+tiers and the conflict badge land here too, because they are *render
+classes* rather than features.
+
+⭐ **The rose is worth shipping even before the index exists**, since
+`StuffExitRecord` already carries direction + door state and is already
+perception-gated. It is the one part of this card that is **not blocked on
+wave 0.**
 
 ⭐⭐⭐ **Wave 2 — annotation. The feature.** Pins, markup, notes, written
 into the player's map document. This is what makes a map a tradeable good
