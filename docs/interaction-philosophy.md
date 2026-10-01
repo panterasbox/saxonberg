@@ -357,6 +357,65 @@ deferred to a future **scripting slate**.
 
 ---
 
+## ⭐⭐ Primality — the cost, and where it is paid
+
+Added 2026-09-30 from
+[lens #65 · Primality](./lenses/65-primality.md). Schell's test for an
+interface that needs no learning is *“is it something that **animals can
+do**”* — touch being 300–400 million years old where tool use is three
+million. **By that test reading scores zero**, and the downside below is
+the honest half of it.
+
+> ⭐⭐⭐ **The answer is this doc's own distinction, one level up: the
+> simulation is FOUNDATIONAL and primality is DECORATIONAL.** We did not
+> choose a non-primal game; we shipped the **least** primal client first,
+> because it is cheapest to build, reaches any device, has a ceiling set by
+> imagination rather than an art budget, and is the channel a language
+> model already speaks. **A primal client — voxel, touch, VR — is a
+> renderer, and server authority (A8) is what makes it possible.**
+
+⚠⚠ **The model ports; the interaction does not.** Per
+[positioning.md](./positioning.md), a 3D or voxel client *“needs its own
+affordance layer, and porting that is real work”* — so a primal client is
+not a skin, it is a second interaction design. ⭐ And the mitigations
+listed below are **primality** features: hearing predates reading by a
+very long way, which makes AI narration the cheapest primality available
+without touching the interaction model at all.
+
+⭐ One on-ramp already ships and reads as a convenience: **clickables
+preview their command.** A click is touch, touch is primal, and the
+preview **teaches the text** by showing what it would have typed.
+
+## ⭐⭐⭐ Why prose quality is engineering
+
+Added 2026-09-30 from [lens #64 · Juiciness](./lenses/64-juiciness.md).
+Schell's **second-order motion** is *motion derived from the action of the
+player* — and read properly it is **amplification, not decoration**, which
+means this engine has more of it than any graphical game: one verb moves
+derived state in a dozen places at once.
+
+⚠⚠ **And almost none of it is rendered.** Derive-on-read gives a cascade
+no moment to be announced at, so **we are mechanically juicy and
+presentationally dry** — which is Schell's own *“inner contradictions and
+a self-defeating experience if you put a dry interface on a fun game”*,
+arrived at from the opposite side: his fear is a dry skin on a thin game,
+and ours would be a dry skin on a very deep one.
+
+> ⭐⭐⭐ **Which makes this an economy question, not a polish one.** *“The
+> difference between work and play is one of attitude… the feedback it
+> gives is so powerful that it **changes work into play**.”* **Our economy
+> is work** — trades, shifts, wages, hauling — so **a dry interface over
+> an economy of labour is a job.** If the product is *learning as the side
+> effect of a life you are choosing to lead*, the feedback is what
+> converts the work into the life.
+
+⚠ The medium's constraint, and it is the one a graphical designer never
+meets: **juice is parallel in graphics and serial in text.** The budget is
+*time*, so the question is never *what else can we say* but **what one
+line carries the most change** — and
+[reactions.md](./subsystems/reactions.md)'s *aggregate-and-flush* is the
+only shipped way through.
+
 ## The honest downsides
 
 Text earns its place, but the argument owns its costs.

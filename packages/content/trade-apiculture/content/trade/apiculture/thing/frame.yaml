@@ -1,0 +1,16 @@
+# A frame — ⭐ **comb tells you brood.**
+#
+# The one object in the trade that describes its container rather than
+# itself: pull a frame out of a working hive and you read what that
+# colony is doing. On a bench it is a frame on a bench.
+class: /trade/apiculture/thing/Frame
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [frame, comb, wire]
+  shortDescription: hive frame
+  register: indefinite
+  longDescription: >-
+    A rectangle of thin pine strung across with wire, with a starter strip
+    of wax along the top bar.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 0.5

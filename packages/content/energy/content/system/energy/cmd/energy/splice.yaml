@@ -1,0 +1,19 @@
+verbs: [splice]
+controller: /system/energy/idea/cmd/energy/SpliceController
+description: "Splice a cut distribution line back together"
+help: |
+  `splice` repairs the feeder line at the pole or manhole you are standing
+  at. If nothing above it is still cut and the source is up, the line and
+  everything downstream of it come back on at once.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: line
+    type: object
+    required: false
+    prepositions: [at]
+    default: "reachable:[class.LineAccess]"
+    scope: ["reachable"]
+    requires: [DetailedMixin]

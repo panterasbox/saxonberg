@@ -51,6 +51,14 @@ export class Idea extends Stuff {
   public toString(): string {
     return `[Idea ${this.stuffId}${this.isDestroyed() ? ' (destroyed)' : ''}]`;
   }
+
+  /**
+   * Yes. See {@link Stuff.isAgent} for why the four branch predicates
+   * are methods on `Stuff` rather than `instanceof` checks.
+   */
+  public override isIdea(): boolean {
+    return true;
+  }
 }
 
 

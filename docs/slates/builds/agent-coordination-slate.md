@@ -1,6 +1,27 @@
 # Agent coordination slate — who acts, at every scale
 
-> **Status: STAGE 1 IN BUILD · STAGE 2 IN CONVERSATION.** Opened 2026-09-25
+> **Status: PARTIAL** — Stage 1 shipped 2026-10-01 (MR !316) →
+> [behavior.md](../../subsystems/behavior.md) ·
+> [employment.md](../../subsystems/employment.md) ·
+> [crafting.md](../../subsystems/crafting.md).
+> **Left:** the whole of Stage 2 — § *What we mean by INTELLIGENCE*, the
+> declared faculty profile and its three axes (no code was written for any of
+> it) · the LLM arbiter behind `_deliberate`'s one `_arbitrate` seam · a
+> brain-specific break-off sentence (`breaksOff?` on `BrainStatics`; the
+> kernel's generic one serves until a brain wants its own) · a Cast earning a
+> chronicle deed by acting (the formidable rung for NPCs) ·
+> `produces`/`consumes` consumed by a chain walk, with `vocations.md`
+> derived from it.
+> **Size:** a design cycle, then a build.
+>
+> ⭐ **What Stage 1 actually shipped:** one deliberation beat per agent (ONE
+> timer), `Urgency` as four bands with five `TaskKind`s breaking ties *within*
+> a band, the switch narrated as an act with a stated cause and only on the
+> switch, `interruptibleBy` read for the first time since it was written, and
+> **263.2 → 17 behaviour fires/min with zero authored `cadence:` specs left in
+> the content tree** behind `lint:idle-cadence`.
+>
+> Opened 2026-09-25
 > as *"the brain substrate slate — what a brain IS"* and renamed 2026-09-30,
 > because the mechanism was never the subject:
 >
@@ -35,7 +56,6 @@
 > a **declared, reviewable faculty profile**, three axes, and a pass against
 > Campbell. ⚠ **None of that part is in the coordination build**; see its
 > last heading for the two things the build must not contradict.
-> **Size:** a design cycle, then a build.
 
 ---
 
@@ -60,10 +80,11 @@ doc serves one rung.
 ## How to read the rest of this doc
 
 **Part 1 — §§ *The measurement* → *the casting pass*.** The case that today's
-model is broken, and the redesign. ⭐ **This is now
-[agent-coordination-requirements](../../requirements/agent-coordination-requirements.md)
-and its D1–D13 / W0–W7 plan** — stage 1, agreed and planned. Nothing here is
-open; it retires at that build's sweep. Its three pieces that would otherwise
+model is broken, and the redesign. ✅ **This SHIPPED as stage 1** — MR !316,
+D1–D21 over W0–W8; the requirements and plan retired at its sweep and the
+truth now lives in [behavior.md](../../subsystems/behavior.md),
+[employment.md](../../subsystems/employment.md) and
+[crafting.md](../../subsystems/crafting.md). Nothing here is open. Its three pieces that would otherwise
 strand are already rehomed: the board unification and the crew consequences
 to [call-slate](call-slate.md), the LLM seam to
 [llm-content-slate](llm-content-slate.md).
@@ -270,8 +291,8 @@ downstream of every decision here.
   (`order` consulting whether the maker knows the recipe) is a **seat and
   person** fact, not a brain fact — so it *could* ship alone. ⚠ It does not:
   it touches the same code path and the same drive venues, so the *no cheap
-  paths* rule folded it in. See
-  [agent-coordination-requirements](../../requirements/agent-coordination-requirements.md).
+  paths* rule folded it in. ✅ Shipped that way in MR !316 →
+  [crafting.md](../../subsystems/crafting.md).
 
 ## ⭐⭐ Two things already in the code that this design lands on
 
@@ -841,7 +862,7 @@ the two profiles `mask` implies.
 
 ## ⚠⚠ What of this is in the coordination build, and what is not
 
-**In** ([agent-coordination](../../requirements/agent-coordination-requirements.md)):
+**In** (shipped, MR !316 → [behavior.md](../../subsystems/behavior.md)):
 the five economic kinds as `TASK_KINDS` with their order, the urgency band,
 and the reflex/candidate split. **Not in:** the faculty declaration, the
 four-mode axis, the open function tags, `mask`, `manifest`, `cued`.
@@ -986,7 +1007,7 @@ player's body carrying an urgency band. Both are refused above.
 - [behavior.md](../../subsystems/behavior.md) — the shipped model this interrogates
 - [npc-behavior-slate](npc-behavior-slate.md) — the feature backlog; ⚠ asks none of the above
 - [call-slate](call-slate.md) — the consumer that exposed the gap; the routing matrix
-- [agent-coordination-requirements](../../requirements/agent-coordination-requirements.md) — ⭐ the build: the arbiter, the call and the capability gate as one
+- [behavior.md](../../subsystems/behavior.md) · [employment.md](../../subsystems/employment.md) · [crafting.md](../../subsystems/crafting.md) — ⭐ where stage 1 landed: the arbiter, the call and the capability gate as one build (MR !316)
 - [llm-content-slate](llm-content-slate.md) — the LLM brain ambition, the other consumer
 - [advancement.md](../../subsystems/advancement.md) — 77 Disciplines, bands, and NPC/player symmetry
 - [vocations.md](../../vocations.md) — the register that is maintained by hand because (1) is missing

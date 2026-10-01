@@ -24,6 +24,10 @@ data:
   exits:
     out:
       destination: /world/terminus/mayfield-row/street
+  props:
+    # ⭐ The residential consumer the grid readies (energy build) — lit because
+    # the line reaches this premises, dark when a cut upstream takes it.
+    - /world/terminus/mayfield-row/seznick-house/thing/hall-light
   cast:
     - /world/terminus/mayfield-row/agent/walter
   details:

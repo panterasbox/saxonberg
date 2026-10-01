@@ -1,0 +1,25 @@
+# The valley's oil store — a `FuelStore`, the goods leg of Heart's Delight's
+# street-lighting bill. It holds casks of lamp oil and, at each dusk settle,
+# burns `fuelPerStreetNight` litres per street it can cover, in seniority
+# order, until it runs dry — so a store the warden has let run low darkens the
+# millsite first, then the bench lane, and the gate last.
+#
+# ⭐ It ships with a FOUNDING stock (six casks — the props once-guard means a
+# go-live re-hydrate never mints a second set); thereafter the warden refills
+# it from the market (`restocks` → a bounty → the carter/a player buys casks
+# at the cash-and-carry). It self-places into the yard by `container:`.
+#
+# ⚠ `_materialPath` (oak, the shed's timber) is stated on the ROW so the store
+# carries mass — a `FuelStore` reaches `TangibleMixin` (lint:mass).
+class: /system/energy/thing/FuelStore
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: oil store
+  keywords: [store, oil, shed, casks]
+  register: definite
+  longDescription: |
+    A timber shed of racked casks and the sharp clean smell of lamp oil. This is what the valley burns after dark; when the racks stand empty the lamps go out, from the mill up.
+  _materialPath: /stuff/idea/material/wood/oak
+  container: /world/terminus/hearts-delight/public-works/location/yard
+  props:
+    - { template: /trade/fuel/thing/lamp-oil-cask, count: 6 }

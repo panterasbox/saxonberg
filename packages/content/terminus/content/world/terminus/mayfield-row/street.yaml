@@ -57,6 +57,11 @@ data:
     # answer differs at each end of it.
     tailor:
       destination: /world/terminus/mayfield-row/tailor/location/shop
+  props:
+    # ⭐ The Mayfield spur's manhole (energy build) — the residential turning's
+    # access to its BURIED branch of the main (storm-safe; the overhead/buried
+    # contrast to the avenue pole).
+    - /world/terminus/mayfield-row/thing/manhole
   details:
     lamps:
       keywords: [lamps, lamp, standards, lighting]

@@ -319,6 +319,13 @@ reissue).
   `consignment` `PnlCategory` leg) while the store keeps the commission as
   its taxable revenue (`remitDemoTax` on the commission only) — the store
   fronts no coin, conservation holds.
+  - ⭐ **The local share** (energy build): `remitDemoTax` now splits a
+    `banking.localTaxShare` fraction of the tax to the sale's **covering
+    locality's own treasury** (resolved by address), so a town's budget fills
+    from its own trade rather than only a realm-wide placeholder — the funding
+    side of the street-lighting bill. Paired with `appropriate(to, amount, memo,
+    { fromOwnerPath })`, which sources an appropriation from a named owner's
+    treasury (a locality's) instead of the demo float. See [energy.md](./energy.md).
 - **The P&L** — `BankingApi.profitAndLoss(account)`: a derive-on-read
   categorized read (per-category signed net + running balance) — the
   deficit-as-target instrument, red by design. `house pnl` (operator-gated)

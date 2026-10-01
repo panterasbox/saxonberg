@@ -1,0 +1,30 @@
+# Spin comb — ⭐ **more honey, no wax, and the comb comes back.**
+#
+# A drum and a crank throw the honey out of the cells and leave the comb
+# standing, so you get a third again as much honey AND drawn comb to put
+# straight back in the hive — which is a colony that does not have to
+# spend a flow rebuilding what you took.
+#
+# ⚠ The extractor is the whole difference, and it is the only thing that
+# mints the `extracting` capability: a tool nothing asks for fails the
+# gate, and rightly.
+recipeId: spin-comb
+name: Spin comb
+keywords: [spin, extract, comb, honey]
+discipline: apiculture
+difficulty: standard
+inputSlots:
+- slot: comb
+  kind: item
+  category: honey
+  minGrade: poor
+  count: 1
+toolCapabilities: [extracting]
+outputApplication: bulk
+outputTemplate: /trade/apiculture/thing/honey-jar
+outputMaterial: /trade/apiculture/idea/material/honey
+outputPortionL: 0.72
+outputAppearance: clear honey, run off bright
+outputResidue:
+  template: /trade/apiculture/thing/drawn-comb
+  count: 1

@@ -1,0 +1,43 @@
+# Odell Rourke — the Warden of the Ways, Heart's Delight. Holds the
+# public-works department's `warden` seat (`purchases: true`): dealt the house
+# card at hire, then the `restocks` brain reads the department's par sheet,
+# `wallet use house` and `job post`s a bounty for lamp oil when the store runs
+# short, and racks onto the store's shelf whatever the carter leaves on the
+# receiving bench. The seat is the authority; every act is a literal verb.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Odell Rourke
+  keywords: [warden, odell, rourke, ways, lamplighter]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: ["odell", "rourke"]
+  shortDescription: "warden of the ways, a lamp-key on his belt"
+  register: indefinite
+  longDescription: |
+    A spare, weathered man with a brass lamp-key on his belt and a ledger under his arm. He keeps the valley's lamps lit and its oil bought, and he knows to the litre how many nights are left in the shed.
+  dispositions:
+    - { disposition: diligence, valence: 65 }
+  competence:
+    - { discipline: colliery, asserting: novice }
+  archetype: building-super
+  behaviors:
+    # The roster (his department's rosterSlot) puts him on shift 6–20; the
+    # `restocks` beat runs while he is on it. No `shifts` brain: the yard is
+    # his post, not a public street that must empty when he is off.
+    # ⭐ The procurement loop: read the par sheet, post the shortfall on the
+    # works board, and rack what the carter leaves on the bench into the store.
+    - brain: /lib/behavior/restocks
+      trigger: cadence:15m
+      config:
+        shelf: /world/terminus/hearts-delight/public-works/thing/store
+        board: /trade/haulage/thing/works-board
+        bench: /trade/haulage/thing/receiving-bench
+        reward: 30
+    - brain: /lib/behavior/idles
+      trigger: cadence:47s
+      config:
+        pool:
+          - { kind: free, value: "checks the oil in the shed and marks his ledger." }
+          - { kind: free, value: "sights down the lane at the standards, counting them." }

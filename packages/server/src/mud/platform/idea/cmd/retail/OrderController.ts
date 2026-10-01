@@ -444,7 +444,11 @@ export default class OrderController extends CraftController<OrderModel> {
         return null; // no funds at all — the bar floats it
       }
     }
-    await BankingApi.remitDemoTax(venueAccount, Money.of(price, BankingApi.compactCurrency()));
+    await BankingApi.remitDemoTax(
+      venueAccount,
+      Money.of(price, BankingApi.compactCurrency()),
+      context.location ?? undefined,
+    );
     return receipt.corpoKey
       ? `(${Money.of(price, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
       : `(${Money.of(price, BankingApi.compactCurrency()).render()})`;

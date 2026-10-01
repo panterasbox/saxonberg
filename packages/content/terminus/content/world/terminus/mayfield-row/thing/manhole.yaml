@@ -1,0 +1,16 @@
+# A manhole over the Mayfield spur — where a lineman reaches the BURIED branch
+# of the main to `sever` or `splice` it. Buried, so a storm cannot fell it
+# (dig-to-reach is its cost); the overhead/buried contrast to the avenue pole.
+class: /system/energy/thing/LineAccess
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: iron manhole cover
+  keywords: [manhole, cover, hatch, line, cable, access, grid]
+  register: indefinite
+  longDescription: >-
+    A heavy cast-iron cover set flush in the paving, CITY OF TERMINUS raised
+    around its rim, with a lifting slot a lineman's bar hooks into — the way
+    down to the spur's buried cable.
+  mass: 60
+  nodeRef: terminus-mayfield:mayfield
+  buried: true

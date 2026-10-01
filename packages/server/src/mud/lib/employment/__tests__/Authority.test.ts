@@ -175,7 +175,7 @@ async function warmGovernment(): Promise<void> {
           path: `${Government.TEMPLATE_PATH_PREFIX}terminus-city`,
           data: {
             key: 'terminus-city',
-            displayName: 'the City of Terminus',
+            name: 'the City of Terminus',
             seats: [
               {
                 key: 'magistrate',

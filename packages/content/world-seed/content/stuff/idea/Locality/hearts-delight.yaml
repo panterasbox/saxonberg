@@ -29,9 +29,11 @@
 # which is the whole of its water politics and none of this build's
 # business.
 #
-# ⚠ No `_governmentKey`. Who governs the valley is a live question the
-# valley's own build should answer, and `null` is a normal state of the
-# world rather than a gap.
+# ⭐ `_governmentKey` was `null` ("who governs the valley is a live question").
+# The energy build answers it narrowly: the valley now governs — and pays for —
+# its own street lighting, through the Heart's Delight Parish (a treasury, a
+# public-works department, a Warden of the Ways). Everything else about the
+# valley's governance is still open.
 class: /platform/idea/Locality
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -41,3 +43,12 @@ data:
   # The worked ground the valley itself sheds: orchards on the flats,
   # thin arable on the bench, and the yards between them.
   _catchmentKm2: 40
+  _governmentKey: hearts-delight
+  # ⭐⭐ The valley is GAS-LIT (energy build). It burns real lamp oil from its
+  # own store — `fuelPerStreetNight` litres per lit street, drawn nightly — and
+  # a store run dry darkens the junior streets, the way a short treasury does.
+  # No `costPerStreetNight`, no `supplier`: the town pays for the oil through
+  # procurement (the warden buys casks), not through the settle's money leg.
+  _publicLighting:
+    fuelPerStreetNight: 2
+    supply: /world/terminus/hearts-delight/public-works/thing/store

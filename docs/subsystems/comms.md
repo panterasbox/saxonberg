@@ -278,6 +278,22 @@ directed path, and the `dm`/`tell` implant primitive. The
 [comms slate](../slates/tails/comms-slate.md) retains the rest of the
 design space. Designed but **not yet built**:
 
+- ⭐⭐⭐ **Carriers other than the implant** — the ESP channel's modality
+  (`verbal-esp`) never changes; only the **coupling** does, and any
+  carrier reaches any other. Three sources, not one: the implant, an
+  intrinsic species trait, and a **portable device**, conferred the way
+  `augmentation.md` confers any mixin. ⭐ The ladder's axis is
+  **portability, not sophistication** — prehistory a *place* you go to,
+  medieval an *object* you carry (the sympathetic needle), industrial a
+  *device* you operate (an aether-radio, pre-transistor but off the EM
+  band), modern an *organ*. ⛔⛔ **Communication is never a regulated act**
+  — an epoch covenant restricts the instrument bound to a *regulated*
+  act and never asks what you are carrying, which is what keeps
+  *never cut players off from their peers* structural rather than an
+  exception. What epoch may flavour is privacy, latency, length, cost
+  and attribution — *strange, not silent*. Design:
+  [content-declaration-slate § 5](../slates/builds/content-declaration-slate.md).
+
 - **Dynamic-reach shout** — shout currently stamps a flat 90 dB. The
   designed extension makes output dB scale with a **voice-projection
   attribute** (and clarity degrade with distance via acoustic

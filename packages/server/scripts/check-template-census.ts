@@ -165,6 +165,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // a bare room at the path and park the realm's cast in a place no
     // author ever wrote, which looks exactly like working.
     'offstage',
+    // ⭐ `source` (the energy build) — a `Feeder` row's generator: the
+    // `ControlStructure` whose `isGenerating()` powers the whole feeder tree.
+    // Resolved live at the grid compile, and a rowless one is a feeder that
+    // energizes nothing with no author-findable reason.
+    'source',
   ] as const) {
     push(f, data[f]);
   }

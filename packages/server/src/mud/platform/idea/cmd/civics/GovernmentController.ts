@@ -97,7 +97,7 @@ export default class GovernmentController extends CommandController<CommandModel
     } else {
       lines.push('You are a resident of, most local first:');
       for (const government of chain) {
-        lines.push(`  ${Mml.escape(government.displayName).toString()}`);
+        lines.push(`  ${Mml.escape(government.name).toString()}`);
       }
     }
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
@@ -107,7 +107,7 @@ export default class GovernmentController extends CommandController<CommandModel
   private async renderGovernment(
     government: GovernmentDescriptor,
   ): Promise<string> {
-    const lines = [Mml.strong(government.displayName).toString()];
+    const lines = [Mml.strong(government.name).toString()];
     if (government.description.length > 0) {
       lines.push(`  ${Mml.escape(government.description).toString()}`);
     }

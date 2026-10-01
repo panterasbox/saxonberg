@@ -1,0 +1,18 @@
+# Dip a candle — ⭐ wax into light, and it is the reason to crush rather
+# than spin.
+recipeId: candle
+name: Dip a candle
+keywords: [candle, dip, taper]
+discipline: apiculture
+difficulty: easy
+inputSlots:
+- slot: wax
+  kind: item
+  category: wax
+  minGrade: poor
+  count: 1
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /stuff/thing/candle
+outputMaterial: /stuff/idea/material/organic/beeswax
+outputAppearance: a hand-dipped taper of pale wax

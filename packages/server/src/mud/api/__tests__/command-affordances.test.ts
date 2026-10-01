@@ -19,6 +19,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeAll } from 'vitest';
 import { CommandApi } from '../command';
 import { Idea } from '../../lib/stuff/Idea';
+import { Agent } from '../../lib/stuff/Agent';
 import { CommandGiverMixin, type CommandGiver } from '../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
@@ -72,11 +73,16 @@ function animalSpecies(): Species {
   return s;
 }
 
+// ⭐ On the `Agent` branch, because `MixinApi.isOpenContainer` asks the
+// BRANCH now (`Stuff.isAgent`) rather than three mixin proxies for it.
+// A command giver that extended `Idea` passed the old `isCommandGiver`
+// check and would now be a transparent container — its pockets public.
+// The fixture models a person, so it belongs on the branch people are on.
 const ViewerBase = CommandGiverMixin(
   BeliefStoreMixin(
     OrganismMixin(
       PerceptionMixin(
-        SensorMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
+        SensorMixin(ContainerMixin(ContainableMixin(NamedMixin(Agent)))),
       ),
     ),
   ),

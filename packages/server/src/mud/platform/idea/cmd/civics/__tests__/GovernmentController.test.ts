@@ -39,12 +39,12 @@ const BUSINESS = "/world/terminus/registry/business";
 const GOVERNMENTS: Loose[] = [
   {
     key: "narnia-gov",
-    displayName: "the Realm of Narnia",
+    name: "the Realm of Narnia",
     description: "the old crown",
   },
   {
     key: "castle-gov",
-    displayName: "the Castle Seneschalsy",
+    name: "the Castle Seneschalsy",
     charter: "/charters/castle",
     seats: [
       {

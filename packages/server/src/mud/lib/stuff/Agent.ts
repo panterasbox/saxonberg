@@ -28,6 +28,15 @@ export class Agent extends AgentBase {
     super();
   }
 
+  /**
+   * ⭐ Yes — and this override is the whole of the Agent/Thing answer.
+   * See {@link Stuff.isAgent} for the three call sites that ask it and
+   * why it is a method rather than an `instanceof`.
+   */
+  public override isAgent(): boolean {
+    return true;
+  }
+
   // No `onDestruct()` default — the destruct witness pair is optional;
   // subclasses (or shadows) define `onDestruct()` if they need cleanup.
 }

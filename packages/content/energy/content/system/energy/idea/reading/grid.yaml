@@ -1,0 +1,20 @@
+# grid — what the grid is doing where you stand, or up the line from a pole.
+#
+# ⭐ A `/system/` channel: the grid obeys its laws whether or not anybody is
+# drawing on it. The pack ships the row and the class; the platform names
+# neither. Bare = the premises + the locality's derived epoch; on a LineAccess =
+# the trace back to the source, naming the first cut.
+class: /system/energy/idea/reading/GridReading
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  channel: grid
+  kind: fact
+  scope: [subject]
+  subjectRequires: [DetailedMixin]
+  discipline: physics
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    which way the dark stretch traces, and where the break is
+  stakes: >-
+    a lineman who splices the wrong pole and leaves the town dark

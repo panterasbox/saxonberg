@@ -329,7 +329,16 @@ export default class BuyController extends CommandController<BuyModel> {
         return null;
       }
     }
-    if (taxable > 0) await BankingApi.remitDemoTax(account, Money.of(taxable, BankingApi.compactCurrency()));
+    if (taxable > 0) {
+      // ⭐ Pass the venue fixture so the tax splits to the sale's covering
+      // locality (energy build D12) — its budget fills from real trade.
+      const venueFixture = StuffApi.findByTemplatePath(venuePath) ?? undefined;
+      await BankingApi.remitDemoTax(
+        account,
+        Money.of(taxable, BankingApi.compactCurrency()),
+        venueFixture,
+      );
+    }
     const tail = receipt.corpoKey
       ? `(${Money.of(amount, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
       : `(${Money.of(amount, BankingApi.compactCurrency()).render()})`;

@@ -109,6 +109,14 @@ export default class Thing extends ThingBase {
   constructor() {
     super();
   }
+
+  /**
+   * Yes. See {@link Stuff.isAgent} for why the four branch predicates
+   * are methods on `Stuff` rather than `instanceof` checks.
+   */
+  public override isThing(): boolean {
+    return true;
+  }
 }
 
 // Self-register as a top-level branch (the one sanctioned module-scope

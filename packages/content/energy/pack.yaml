@@ -1,0 +1,22 @@
+id: energy
+version: 0.1.0          # reserved; nothing reads/enforces it
+root: /system/energy
+description: >-
+  Energy — the power pack: the grid mechanism, as distinct from the
+  physics. The kernel owns what every pack's content is already subject to
+  (the supply vocabulary, the parcel's power band and feeder citation, the
+  street-lighting settle); this pack owns what other packs' content NAMES —
+  the `Feeder` a locality's grid is authored as, the `GridCatalogue` that
+  compiles it to a reachability set and holds the one cut, the
+  `GridPowered` a consuming thing composes, the `ElectricLight` that emits
+  only while its premises is live, the `LineAccess` a lineman severs and
+  splices, and the `FuelStore` a gas-lit town burns oil out of. Nothing
+  here is specific to one town: a class or row that exists for Terminus
+  alone belongs to Terminus. Electric now, gas later.
+requires:
+  groups:
+    - name: energy
+      purpose: the energy pack's own body — the grid's works
+      owner: { office: prime-minister }
+  title:
+    - { extent: /system/energy, holder: { group: energy } }

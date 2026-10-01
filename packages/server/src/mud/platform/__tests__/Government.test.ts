@@ -21,7 +21,7 @@ describe("Government", () => {
   it("defaults to an empty node", () => {
     const g = newGovernment();
     expect(g.getKey()).toBe("");
-    expect(g.getDisplayName()).toBe("");
+    expect(g.getName()).toBe("");
     expect(g.getDescription()).toBe("");
     expect(g.getCharter()).toBe("");
     expect(g.getTreasury()).toBe("");
@@ -32,12 +32,12 @@ describe("Government", () => {
   it("round-trips its authored fields", () => {
     const g = newGovernment();
     g.setKey("terminus-city");
-    g.setDisplayName("the City of Terminus");
+    g.setName("the City of Terminus");
     g.setDescription("the young retrofit administration");
     g.setCharter("/charters/terminus-city");
     g.setTreasury("/world/terminus/budget");
     expect(g.getKey()).toBe("terminus-city");
-    expect(g.getDisplayName()).toBe("the City of Terminus");
+    expect(g.getName()).toBe("the City of Terminus");
     expect(g.getDescription()).toBe("the young retrofit administration");
     expect(g.getCharter()).toBe("/charters/terminus-city");
     expect(g.getTreasury()).toBe("/world/terminus/budget");
@@ -50,9 +50,16 @@ describe("Government", () => {
     expect(g.getKey()).toBe("terminus-realm");
   });
 
-  it("setDisplayName rejects an empty name", () => {
+  it("name is NamedMixin's — it round-trips and does not guard empty", () => {
+    // ⭐ `name` comes from NamedMixin now (the one proper-name surface),
+    // not a hand-rolled displayName pair. NamedMixin.setName accepts any
+    // string; the empty-name safety net is the catalogue, which defaults a
+    // missing/empty name to the key (see GovernmentCatalogue "defaults a
+    // missing name to the key"). So an empty name no longer throws here.
     const g = newGovernment();
-    expect(() => g.setDisplayName("")).toThrow(TypeError);
+    expect(() => g.setName("")).not.toThrow();
+    g.setName("the City of Terminus");
+    expect(g.getName()).toBe("the City of Terminus");
   });
 
   it("getDepartments returns a defensive copy", () => {

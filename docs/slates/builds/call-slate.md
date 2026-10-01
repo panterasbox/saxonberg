@@ -1,6 +1,22 @@
-# Crew slate — a set of NPCs that acts as one, and the rule that says who acts
+# Call slate — who comes over, and the rule that says who acts
 
-> **Status: UNBUILT, RESCOPED 2026-09-25** — nothing coordinates a set of
+> **Status: PARTIAL** — the call shipped 2026-10-01 (MR !316) →
+> [employment.md § The call](../../subsystems/employment.md). A house now
+> carries `call: regulars | rota` and answers `callFor({patron, candidates})`
+> over four legs — capability, your regular, the freest, then a monotonic
+> rotation ticket — so *who comes over* is the house's authored rule rather
+> than a sort on identity paths. The capability gate shipped with it
+> (`canMake` → `seededBandFor`, the refusal that names).
+> **Left:** the whole push-at-range column (dispatch, the turnout, the hue
+> and cry) and the brain-fact eligibility it needs · the addressed posting
+> (`claimMode` gains `addressed`; the resolver already takes a handed-in
+> set) · a `critical` need that REFUSES a call — importance flows one way
+> today and the reverse needs a criterion and an appeal (the lens 7 question
+> below) · the mob's rule, if it turns out to need one (§ *the mob is an
+> employer*) · `actsAsOne` · `Troupe`, still unspent (§ *the name*).
+> **Size:** a build.
+>
+> Originally: nothing coordinates a set of
 > NPCs outside combat, and a census that day found the reason is deeper
 > than the missing rule: see § *The census* and § *The capability
 > correction*. ⭐⭐ **The concept was renamed by the pass: a crew is a
@@ -8,16 +24,11 @@
 > required answer-size, name who is told to act, and say honestly when
 > the answer is nobody.* It does not move anybody, sequence work, decide
 > what the set does once fighting, or remember anything.
-> **The build (requirements written 2026-09-30):**
-> [agent-coordination-requirements](../../requirements/agent-coordination-requirements.md)
-> — the arbiter, the call and the capability gate as ONE build. ⭐ They were
-> three until the *no cheap paths* rule was applied: same code path, same
-> drive venues, same verification bill, so splitting paid it three times.
-> **Left after it:** the whole push-at-range column (dispatch, the
-> turnout, the hue and cry) and the brain-fact eligibility it needs · the
-> mob's rule, if it turns out to need one (§ *the mob is an employer*) ·
-> `actsAsOne`.
->
+> ⭐ **The build was the arbiter, the call and the capability gate as ONE** —
+> they were three until the *no cheap paths* rule was applied: same code path,
+> same drive venues, same verification bill, so splitting paid it three times.
+> Shipped together in MR !316.
+
 > What exists and is NOT this: `GroupApi` + its four
 > `GroupProvider`s answer *membership* →
 > [grouping.md](../../subsystems/grouping.md); `Party` answers *who is
@@ -27,7 +38,6 @@
 > [combat-formations.md](../../subsystems/combat-formations.md);
 > `AttendantMixin` queues the **customers** at a counter →
 > [attendant.md](../../subsystems/attendant.md).
-> **Size:** a build, now two — see the carve above.
 
 ---
 
@@ -437,8 +447,9 @@ balanced on an undesigned one. What that pass changes here:
   for free, instead of a boolean free/busy.
 - **What is NOT blocked:** the capability half — `order` consulting whether
   the maker knows the recipe — is a **seat and person** fact and needs
-  nothing from brains. It stays shippable on its own
-  ([agent-coordination-requirements](../../requirements/agent-coordination-requirements.md)).
+  nothing from brains. ✅ It shipped on its own terms in MR !316 —
+  `canMake` → `seededBandFor`, the refusal that names →
+  [crafting.md](../../subsystems/crafting.md).
 
 ## ⭐⭐⭐ The casting pass (master, 2026-09-29/30) collapses the tie-break
 
@@ -634,7 +645,6 @@ authoring layer, plain words in the fiction.
 - **The rename rides the requirements rewrite** (decided 2026-09-30) rather
   than landing on its own: this slate is cross-referenced from
   [agent-coordination-slate](agent-coordination-slate.md),
-  [agent-coordination-requirements](../../requirements/agent-coordination-requirements.md),
   [party-slate](../tails/party-slate.md), [policing-slate](policing-slate.md)
   and [employment.md](../../subsystems/employment.md), so it is a small sweep
   and it is cheapest bundled with the rewrite that is coming anyway.

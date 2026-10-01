@@ -37,8 +37,16 @@ that shapes every slate.
 > draft/return, the taps, body condition as a stock, and the university
 > teaching farm bound from archetypes with **zero pack code**. See
 > [soil.md](./subsystems/soil.md) + [ranching.md](./subsystems/ranching.md).
-> ⚠ Cut and recorded rather than half-shipped: **bees/pollination** and
-> **foraging**; breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/builds/towns-slate.md) D27 +
+>    ⭐⭐ **BEES/POLLINATION then shipped 2026-09-30** (MR !310) — cut from
+> the farmstead build rather than half-shipped, and taken whole a cycle
+> later: the colony as the animal, wintering by the hive's own walls,
+> swarm · abscond · starve, hefting with no number in it, and ⭐ the
+> first RGO whose reservoir is *somebody else's land* — a colony forages
+> a radius it does not own and leaves a fruit set behind, so two keepers
+> on one valley find each other out with no ledger telling them. See
+> [apiculture.md](./subsystems/apiculture.md).
+> ⚠ Still cut and recorded rather than half-shipped: **foraging**;
+> breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/builds/towns-slate.md) D27 +
 > [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md) V11.
 > ⭐⭐ **Phase 5's first half — PETS — shipped 2026-09-17** (MR !257): the
 > kept animal as a rung, the bond as regard × handling, feeding as a
@@ -86,10 +94,14 @@ same bad answer: **a number somebody typed.**
   retuned against measurement, and capped at what shivering can actually
   do.
 
-⚠ Deliberately NOT here: piped supply, metering, and an energy
-*industry*. What this built is the **demand** — the reason an energy
-trade will have customers when it ships. ⭐ Street lighting's **missing
-goods leg** is that demand written down as a bill, in
+⚠ Deliberately NOT here (in the fire/thermal build): piped supply,
+metering, and an energy *industry*. What that built is the **demand** —
+the reason an energy trade would have customers when it shipped. ✅ **The
+energy build then shipped it** — the goods leg (lamp oil, a producer, a
+depleting store, a civic bill) and the electric grid (a feeder network, a
+parcel meter, `analyze grid`'s derived epoch), both epochs at once. See
+[energy.md](./subsystems/energy.md); the remaining tiers (interior
+circuits, metered billing, gas) stay in
 [power-utility-slate](./slates/builds/power-utility-slate.md).
 
 ⭐ **And three things the review and the sweep changed, each worth its

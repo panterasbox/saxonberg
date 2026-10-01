@@ -251,7 +251,13 @@ describe('libations annexes — the hands name the host', () => {
     // Winemaking and brewing retired their consigns beats with their
     // faucets (the W8 switchover — the cellars beats consign what they
     // MAKE); the faucet annexes and the yards still run them.
-    expect(hands.length).toBe(ANNEXES.length - 2 + DISTILLING_FLOORS.length);
+    // ⭐ +1: the energy build's OIL WORKS hand. The oil works stands in the
+    // goods yards (so `isYardRow` nets it) and runs the same consigns beat —
+    // carrying lamp-oil casks to the distributor counter AS the works. It is
+    // not a libations floor, but it is the identical pattern, so the per-hand
+    // invariants below (names the counter, homes every key it stocks, holds a
+    // purchasing seat) hold for it unchanged.
+    expect(hands.length).toBe(ANNEXES.length - 2 + DISTILLING_FLOORS.length + 1);
     for (const hand of hands) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
         (b) => b.brain === '/trade/shopkeeping/behavior/consigns',
@@ -294,10 +300,22 @@ describe('libations annexes — the serving recipes and the zone', () => {
       // assertion about the annexes' own serving recipes, which is what
       // it is for — a name list here means every cooking recipe added
       // anywhere breaks a libations test for no reason.
+      // ⚠⚠ …and the name list below is the PRODUCTION roster, which has
+      // now grown for the second time: apiculture's `honey-must` is a
+      // winemaking production recipe (honey diluted three-to-one, the
+      // preservation hurdle run backwards) and pours into a must bucket
+      // rather than a glass. The comment above says a name list is the
+      // wrong shape and it is right — *any* trade adding a production
+      // recipe to an annex breaks a libations test for no reason. The
+      // honest fix is to ask the recipe what it IS; it is left as a
+      // finding rather than taken here, because narrowing this
+      // assertion is libations' call and not apiculture's.
     }).filter(
       (f) =>
         !f.includes(`${sep}trade-cooking${sep}`) &&
-        !/(crush|white-crush|mash|dry-vermouth|sweet-vermouth)\.yaml$/.test(f),
+        !/(crush|white-crush|mash|dry-vermouth|sweet-vermouth|honey-must)\.yaml$/.test(
+          f,
+        ),
     );
     expect(files.length).toBe(1 + 3 + 1);
     for (const f of files) {

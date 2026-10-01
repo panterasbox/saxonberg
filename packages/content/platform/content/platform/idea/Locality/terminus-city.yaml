@@ -16,14 +16,18 @@ data:
   # and whatever else addresses `terminus/city/...` without a finer
   # locality claiming it.
   #
-  # ⚠ The money comes from the REALM treasury, not this extent's: there
-  # is one treasury per currency and no Locality holds an account yet. So
-  # v1 reads as "the realm appropriates for Terminus's lamps". The
-  # PREFERENCE here is the town's, as designed; a locality treasury is a
-  # named deferred seam (livelihood-slate §7, credit-slate Q8).
+  # ⭐⭐ The city is ELECTRIC (energy build): its street lighting draws from the
+  # GRID, not the fuel market. The settle asks the grid catalogue which of its
+  # streets are energized and lights those; a cut on a feeder darkens the lamps
+  # downstream the same second (the migration — same civic service, the source
+  # swapped from the general store's oil to the Wharfside line). No per-night
+  # money leg: a municipal utility bills its own lamps nothing (Tier C metering
+  # is a non-goal), so `costPerStreetNight: 0` and no `supplier`. The general
+  # store's placeholder role ends here.
   _publicLighting:
-    costPerStreetNight: 4
-    supplier: /world/terminus/general-store/business
+    costPerStreetNight: 0
+    supplier: null
+    supply: /system/energy/idea/GridCatalogue
   # Display name "Terminus", same as the realm root — the Rome-metonymy
   # made literal. The departures board names a destination by its
   # COVERING Locality, which for the arrival gate is now this city tier;

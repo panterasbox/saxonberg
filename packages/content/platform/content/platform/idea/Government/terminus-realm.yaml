@@ -8,7 +8,7 @@ class: /platform/idea/Government
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: terminus-realm
-  displayName: the Realm of Terminus
+  name: the Realm of Terminus
   description: >-
     The young chartered order of the basin realm — heir to a lapsed
     administration of manors and marches, seated in Terminus city, facing

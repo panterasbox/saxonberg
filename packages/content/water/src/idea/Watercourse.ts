@@ -43,6 +43,7 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /**
@@ -159,12 +160,18 @@ export interface WatercourseDescriptor {
   water?: WatercourseWater;
 }
 
-export default class Watercourse extends Idea {
+/**
+ * ⭐ The course's **display name** ("the Kestrel") comes from `NamedMixin` —
+ * the one general-purpose "something a person named" surface, reused rather
+ * than reinvented. A course uses only `name`; honorific/surname/suffix ride
+ * along unused (the mixin's opt-out posture). `getAllFieldMeta` merges the
+ * mixin's `name` meta with the block below property-by-property.
+ */
+export default class Watercourse extends NamedMixin(Idea) {
   /** See {@link WATERCOURSE_PATH_PREFIX}. */
   static readonly TEMPLATE_PATH_PREFIX = WATERCOURSE_PATH_PREFIX;
 
   static fieldMeta: FieldMeta = {
-    name: { persistent: true, authorable: true },
     key: { persistent: true, authorable: true },
     basin: { persistent: true, authorable: true },
     nodes: { persistent: true, authorable: true },
@@ -172,19 +179,11 @@ export default class Watercourse extends Idea {
     water: { persistent: true, authorable: true },
   };
 
-  protected name = '';
   protected key = '';
   protected basin = '';
   protected nodes: WatercourseNode[] = [];
   protected branchesFrom: string | null = null;
   protected water: WatercourseWater | null = null;
-
-  public getName(): string {
-    return this.name;
-  }
-  public setName(value: string): void {
-    this.name = value;
-  }
 
   public getKey(): string {
     return this.key;

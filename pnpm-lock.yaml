@@ -35,6 +35,9 @@ importers:
       '@saxonberg/content-distribution':
         specifier: workspace:*
         version: link:packages/content/distribution
+      '@saxonberg/content-energy':
+        specifier: workspace:*
+        version: link:packages/content/energy
       '@saxonberg/content-eternal-university':
         specifier: workspace:*
         version: link:packages/content/eternal-university
@@ -80,6 +83,9 @@ importers:
       '@saxonberg/content-tpa':
         specifier: workspace:*
         version: link:packages/content/tpa
+      '@saxonberg/content-trade-apiculture':
+        specifier: workspace:*
+        version: link:packages/content/trade-apiculture
       '@saxonberg/content-trade-baking':
         specifier: workspace:*
         version: link:packages/content/trade-baking
@@ -391,6 +397,31 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/energy:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
   packages/content/eternal-university:
     dependencies:
       '@saxonberg/content-arcana':
@@ -538,6 +569,9 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-energy':
+        specifier: workspace:*
+        version: link:../energy
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
@@ -550,9 +584,18 @@ importers:
       '@saxonberg/content-terminus':
         specifier: workspace:*
         version: link:../terminus
+      '@saxonberg/content-trade-apiculture':
+        specifier: workspace:*
+        version: link:../trade-apiculture
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-trade-fuel':
+        specifier: workspace:*
+        version: link:../trade-fuel
+      '@saxonberg/content-trade-haulage':
+        specifier: workspace:*
+        version: link:../trade-haulage
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling
@@ -765,6 +808,9 @@ importers:
       '@saxonberg/content-distribution':
         specifier: workspace:*
         version: link:../distribution
+      '@saxonberg/content-energy':
+        specifier: workspace:*
+        version: link:../energy
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
@@ -780,6 +826,9 @@ importers:
       '@saxonberg/content-tpa':
         specifier: workspace:*
         version: link:../tpa
+      '@saxonberg/content-trade-apiculture':
+        specifier: workspace:*
+        version: link:../trade-apiculture
       '@saxonberg/content-trade-baking':
         specifier: workspace:*
         version: link:../trade-baking
@@ -865,6 +914,40 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-apiculture:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
+      '@saxonberg/content-trade-ranching':
+        specifier: workspace:*
+        version: link:../trade-ranching
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -1647,6 +1730,9 @@ importers:
 
   packages/content/world-seed:
     dependencies:
+      '@saxonberg/content-energy':
+        specifier: workspace:*
+        version: link:../energy
       '@saxonberg/content-ground':
         specifier: workspace:*
         version: link:../ground

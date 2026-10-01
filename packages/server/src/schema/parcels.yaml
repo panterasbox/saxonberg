@@ -19,6 +19,15 @@ purpose: |
   parcels citing it), and it lives here rather than being derived from
   the address tree because a room's content path and its `_address` are
   independent by design. See docs/subsystems/watershed.md.
+
+  ⭐ The electric twins of `reach` (energy build): `feeder` — the grid
+  node metering this ground, or `''` for ground no line reaches — and
+  `powerBand` — the electric posture this premises declares (`off-grid`
+  / `domestic` / `commercial` / `industrial`, or `null` to inherit the
+  covering parcel's). A consuming thing asks whether its covering
+  parcel's feeder node is energized; it never walks the interior. Same
+  reasoning as `reach`: title-gated field data, not derivable content.
+  See docs/subsystems/energy.md.
 invariants:
   - >-
     Title is stored apart from the content it gates — never in the same

@@ -562,6 +562,30 @@ file.
 - [Future work](#future-work) — the deferred design surface (was the
   now-retired world-clock slate).
 
+## ⚠⚠ Nothing in the game can advance the clock
+
+Found by the apiculture build's browser walk (2026-09-30). There is **no
+clock verb in any category**, and the `eval` sandbox allowlist is
+`StuffApi · MqlApi · ContainmentApi · MixinApi · console · self · target`
+— so no in-world instrument, not even a wizard's, can move game time.
+Only `_advanceForTesting` reaches it, and that is unit-test surface.
+
+⭐⭐ **The consequence is a whole class of mechanism being unobservable
+rather than merely slow.** A game day is ~2 real hours, so every
+subsystem whose behaviour is *seasonal or multi-day* can be proven only
+by arithmetic in a unit test: apiculture's swarming, winter burn,
+absconding, starvation and fruit set; maturation's cellar; spoilage's
+clocks; husbandry's growth. Apiculture's requirements drive even had a
+step — *"run the year forward"* — that **no instrument could perform**,
+and the drive had to pin it as arithmetic instead.
+
+⚠ This is a gap, not a decision: nothing in this doc or in
+[uncertainty.md](../uncertainty.md) argues that game time should be
+unmovable by an officeholder or a wizard. Whoever picks it up should
+decide **who** may move it (an office? the code-trust axis?) before
+deciding what the verb looks like — a clock is a shared resource and
+moving it is not a private act.
+
 ## Future work
 
 ~~Celestial → ambient-light wiring (deferred until `perception`

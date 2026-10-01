@@ -103,6 +103,14 @@ export default class Livestock extends LivestockBase {
       'trade/ranching/cmd/ranching/return.yaml',
       'trade/ranching/cmd/ranching/butcher.yaml',
       'trade/ranching/cmd/ranching/breed.yaml',
+      // ⭐ The three tap verbs are back here, and `Producing`'s header
+      // says why: a mixin static is still a CLASS answer, and a hive
+      // composes `ProducingMixin` too. `Livestock` is the only other
+      // composer, so nothing shipped changes — and an animal with no
+      // taps still declines exactly as it did, from the controller.
+      'trade/ranching/cmd/ranching/milk.yaml',
+      'trade/ranching/cmd/ranching/shear.yaml',
+      'trade/ranching/cmd/ranching/gather.yaml',
     ],
     environment: [],
   };

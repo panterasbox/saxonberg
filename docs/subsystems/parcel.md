@@ -45,8 +45,19 @@ class ParcelRecord extends Document {
   area: number;                 // declared ground area, m²; 0 = undeclared
   storeys: number;              // how many floors stand on it (default 1)
   reach: string;                // the reach this land fronts; '' = not on water
+  feeder: string;               // the grid node metering this land; '' = no line
+  powerBand: PowerBand | null;  // electric posture; null = inherit
 }
 ```
+
+⭐ **`feeder` + `powerBand` are the ENERGY meter** (energy build) — the same
+citation shape as `reach`, for the same reason. `ParcelApi.powerOf(path)` →
+`{ band, feeder, parcel }` (longest-prefix then inherit) is the consumption
+boundary: a thing draws power because its covering parcel's line is live, never
+by walking the interior. `ParcelRegistry.byFeeder` indexes them;
+`parcelsOnFeeder`/`citeFeeder` round it out. `off-grid` is a first-class
+declaration and `lint:power-posture` catches a premises that declares nothing.
+See [energy.md](./energy.md) for the grid the feeder node names.
 
 ⭐ **`reach` is a citation, not a derivation** (water build). Riparian
 right belongs to land that *fronts* water, and the obvious way to find

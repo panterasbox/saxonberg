@@ -14,8 +14,10 @@
 > utilization penalty · breeding (gestation · birth · heredity; nothing
 > writes `bornAt`, no `dam` column; the husbandry-wide genome, also kept
 > in farming-slate) · the nutrients coupling's byre half — muck → midden
-> → field (owned by `return-leg-requirements.md`) · bees — the hive,
-> pollination, forage range, swarming (AC 14 unmet) · the training/skill
+> → field (owned by `return-leg-requirements.md`) · **bees — moved out to
+> [apiculture-slate](./apiculture-slate.md)** (AC 14 still unmet) · **the
+> dairy — moved out to [dairy-slate](./dairy-slate.md)** (nothing consumes
+> milk) · the training/skill
 > axis (working-animal transcripts; beside pets) · disease (owned by
 > disease-slate — the husbandry-is-immunity coupling) · herd UX (what
 > `look` shows for a herd; count, split, pen) · the Tier 3 criteria (AC
@@ -663,3 +665,42 @@ shipped price list, which is what D75–D78 asked for.
 read-side prefix check shipped (`HerdRegistry.ts`); the archetype is reported,
 never enforced (`archetypes/byre.yaml`); bees were cut in the predicted order.
 Tier 3's forward obligations are the criteria above.*
+
+---
+
+## ⭐ 2026-09-25 — two halves carved out, and the taps turn out to be shared
+
+A design conversation after the extraction build merged took two things out
+of this slate and gave each its own:
+
+- **[apiculture-slate](./apiculture-slate.md)** — the hive, the drafted queen,
+  the beekeeping year, forage range over the flowering census, honey and wax,
+  the sting (and the allergy seam it unblocks), and mead. It is the **last
+  RGO family**, and the census's one genuinely new shape: yield from a
+  neighbourhood you do not own. AC 14 is still the follow-on's first item.
+- **[dairy-slate](./dairy-slate.md)** — because **nothing in the game consumes
+  milk** (verified: zero recipes), which is the exact failure
+  `design-lenses.md` uses as its own worked example of a bad economy. The
+  `milk.yaml` row already states the fix.
+
+Three findings that belong to *this* slate rather than either of those:
+
+1. ⭐⭐⭐ **The tap is a shared primitive, and `ProducingMixin` is in the
+   wrong place.** It lives in this pack's `src/lib/`, and three consumers are
+   now real: ranching (milk · eggs · wool), forestry (maple sap · rubber
+   latex — in design 2026-09-25), apiculture (honey). All three fit the
+   shipped three-behaviour table (`expire` · `accrue` · `continuous`) without
+   extending it. Promotion is tracked in
+   [rgo-unification-slate](./rgo-unification-slate.md).
+2. ⭐⭐⭐ **The dairy is the first business that cannot be run alone.** At 12×,
+   twice-daily milking is **every real hour** — so the dairy is the game's
+   first genuine *forcing function* for employment rather than an opportunity
+   for it. The shipped tap semantics already soften it correctly (milk
+   expires: *"a large slope, not a cliff"*), so the cost of being human is
+   money, not a dead animal. NPC hands are sanctioned (user, 2026-09-25) with
+   one rule: ⭐ **delegate the throughput, never the judgment.**
+3. ⚠ **The goat gap** — there is no `capra` species row, and the goat is the
+   smallholder's dairy animal and the on-ramp below a cow.
+
+⭐ And the **paddock move** in the Left block above is now unblocked: the
+enclosure work on `design/envelope` is what a fence is made of.

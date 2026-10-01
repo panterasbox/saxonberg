@@ -1,0 +1,38 @@
+# A smoker — ⭐⭐ **the most effective thing in the trade, and it is not a
+# mechanism.**
+#
+# Smoke makes a colony think there is a fire coming and settle down to
+# eat. A lit smoker in your hand takes the stings from most of a dozen to
+# nearly none — and the colony reads your HANDS, so a smoker in your pack
+# is a smoker you did not use, and one that has gone out is a tin.
+#
+# ⚠ No verb, no capability word. It is lit with the platform's `ignite`
+# and it burns out when the fuel does, exactly as a lantern does.
+class: /trade/apiculture/thing/Smoker
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [smoker, bellows, tin, smoke]
+  shortDescription: bee smoker
+  register: indefinite
+  longDescription: >-
+    A tin canister with a spout and a leather bellows riveted to its side,
+    scorched black inside and smelling permanently of burnt sacking.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 1.4
+  # ⭐ One hand — the other one is lifting frames. `hand:right` is the
+  # one-handed convention every shipped tool and weapon uses.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⚠ Ships COLD and out (`lint:light-sources` refuses a Burner row that
+  # omits it, and rightly — a thing that arrives already alight is a thing
+  # nobody decided to light).
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  # It smoulders rather than burns — that is the whole point of it.
+  burnTemperatureK: 330

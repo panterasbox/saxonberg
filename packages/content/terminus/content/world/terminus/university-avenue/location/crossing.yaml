@@ -102,6 +102,10 @@ data:
       keywords: [lamp, lamppost, lamp-post, post, iron, light]
       description: |
         A cast-iron lamppost leans a little at the kerb, fluted and old, dark by day. Come dusk it will find its own light without anyone asking — the one bit of the street that keeps a schedule as faithfully as Gus does.
+    line:
+      keywords: [line, lines, wire, wires, cable, cables, feeder, overhead, grid]
+      description: |
+        Feeder cables run the crossing overhead, strung corner to corner above the traffic — the city main reaching the far end of its run up the avenue.
   # Realized Stuff is kept DELIBERATELY sparse — only things a player would
   # reach out and touch that also carry the room's flavor (the curation pass,
   # 2026-07-13). The generic municipal furniture (a bench, a lamppost, a litter
