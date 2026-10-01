@@ -73,7 +73,26 @@ export type CraftDeclineReason =
   | 'insufficient-input'
   | 'insufficient-heat'
   | 'no-glass'
-  | 'no-output';
+  | 'no-output'
+  /**
+   * ⭐⭐ Somebody IS tending, and none of them knows this one. A different
+   * answer from `no-maker`, and the difference is the whole mechanism: a
+   * house offering what its staff cannot make is a standing vacancy, so the
+   * refusal names who could have (`detail`).
+   */
+  | 'not-learned'
+  /**
+   * The house authored no rule for who among the able is called, so it
+   * declines rather than quietly serving the first member. ⚠ A build-time
+   * gate (`lint:menu-staff`) is what keeps a player from ever meeting this.
+   */
+  | 'no-call-policy'
+  /**
+   * Two houses operate this room and both have an able hand on shift, so
+   * there is no one rule to apply. Declining beats routing the call to
+   * whichever candidate the container happened to yield first.
+   */
+  | 'ambiguous-house';
 
 export interface CraftSuccess {
   ok: true;
@@ -296,6 +315,24 @@ export class CraftingApi {
   /** The display views for a `Menu`'s offered recipes. */
   public static async offeredRecipes(menu: Stuff): Promise<RecipeView[]> {
     return logic().offeredRecipes(menu);
+  }
+
+  /**
+   * ⭐⭐ **Can the acting author make this?** The one read behind every
+   * knowledge gate in the crafting family, applied to a player and an NPC
+   * identically.
+   *
+   * True when they have **made it before** (a chronicle deed — the only way
+   * a player ever earns it), or when their **authored dossier** licensed
+   * work of that difficulty in its Discipline (a `claim`-kind Transcript
+   * fold, structurally unavailable to a player).
+   *
+   * ⚠ Takes a recipe REF, not a world object: the actor comes from the
+   * execution context, the `craft` shape. A ref naming no shipped recipe
+   * passes — it is somebody's own `def`.
+   */
+  public static async canMake(recipeRef: string): Promise<boolean> {
+    return logic().canMake(recipeRef);
   }
 
   // ---------- what a blend IS ----------

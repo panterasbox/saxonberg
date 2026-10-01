@@ -77,6 +77,7 @@ import { EXITED_STATUSES, Employment, type EmploymentData, type EmploymentStatus
 import type { OrganizationStuff, BusinessStuff } from '../../api/employment';
 // eslint-disable-next-line no-restricted-imports -- the F4 actor face: an employee's quitJob()/buysFor()/cover verbs forward into the employment logic singleton exactly as the api/employment facade does (the Combustible/Energized precedent)
 import { EmploymentLogic } from '../../platform/idea/api/EmploymentLogic';
+import { TemplatePaths } from '../paths';
 
 /**
  * A stored record as it may actually be on disk: pre-split rows carry
@@ -87,6 +88,50 @@ import { EmploymentLogic } from '../../platform/idea/api/EmploymentLogic';
 type StoredEmployment = EmploymentData & { businessPath?: string };
 
 /** The counterparty key of a stored record, whichever name it was written under. */
+/**
+ * ⭐⭐ Does a seat listing `serves` fulfil work in `discipline`?
+ *
+ * ⚠⚠ This was an exact `serves.includes(discipline)`, and the requirements
+ * doc asserted the opposite — *"mixology already specializes bartending, so
+ * seat eligibility is untouched"* — which was false against the shipped
+ * code. The moment the cocktails moved to `mixology`, **every bartender
+ * seat in the realm stopped fulfilling every cocktail**, because the seat
+ * says `bartending` and the recipe said `mixology`.
+ *
+ * So the walk: a seat listing a discipline fulfils that discipline **and
+ * every specialization of it**. A `bartending` seat covers mixology; ⭐ a
+ * `mixology` seat does NOT cover bartending, because specialization runs
+ * one way — the specialist is hired for the harder thing and the house
+ * still has to say if it wants the easier one too.
+ *
+ * The catalogue is read duck-typed, the `Advancement.ts` pattern: `lib/`
+ * does not import the platform class.
+ */
+function fulfils(serves: readonly string[], discipline: string): boolean {
+  if (serves.includes(discipline)) return true;
+  const cat = StuffApi.findByTemplatePath(
+    TemplatePaths.disciplineCatalogue,
+  ) as unknown as {
+    getSpecializes?(key: string): readonly string[];
+  } | null;
+  if (!cat?.getSpecializes) return false;
+  // Walk UP from the recipe's discipline: does any ancestor appear on the
+  // seat? Bounded by `seen` so a mis-authored cycle cannot hang a read
+  // that happens on every order.
+  const seen = new Set<string>([discipline]);
+  const queue = [discipline];
+  while (queue.length) {
+    const key = queue.shift()!;
+    for (const parent of cat.getSpecializes(key) ?? []) {
+      if (seen.has(parent)) continue;
+      if (serves.includes(parent)) return true;
+      seen.add(parent);
+      queue.push(parent);
+    }
+  }
+  return false;
+}
+
 function recordKey(record: StoredEmployment): string {
   return record.organizationPath ?? record.businessPath ?? '';
 }
@@ -403,7 +448,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (!organization || !MixinApi.isOrganization(organization)) continue;
         const serves = organization.getPosition(e.positionKey)?.fulfills ?? [];
         if (serves.length === 0) continue;
-        if (discipline !== undefined && !serves.includes(discipline)) continue;
+        if (discipline !== undefined && !fulfils(serves, discipline)) continue;
         // ⚠ The "here" leg. A house with no operating locations at all
         // fulfils nowhere — which is what an organization that keeps no
         // premises honestly means.

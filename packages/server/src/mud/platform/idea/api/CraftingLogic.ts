@@ -14,6 +14,10 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { Grade } from '../../../lib/craft/Grade';
 import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
+import { Competence } from '../../../lib/advancement/Competence';
+import type { Organization } from '../../../lib/employment/Organization';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
 import {
   DIFFICULTIES,
   type Difficulty,
@@ -48,6 +52,7 @@ import type { Tooled } from '../../../lib/craft/Tooled';
 import type {
   CraftRequest,
   CraftOutcome,
+  CraftDeclineReason,
   RecipeView,
   MakerMode,
   BuildMintRequest,
@@ -193,14 +198,75 @@ function toView(recipe: Recipe): RecipeView {
  * kitchen-hand never does. Predictable beats arbitrary; neither is
  * right.
  */
-function resolveMaker(mode: MakerMode, discipline?: string): Stuff | null {
-  const giver = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
-  if (!giver) return null;
-  if (mode === 'self') return giver;
-  // fulfilling-bartender: the giver is the patron; find a present maker.
-  if (!MixinApi.isContainable(giver)) return null;
+/**
+ * What `resolveMaker` answers: a maker, or a reason the craft declines —
+ * carrying, for `not-learned`, who *could* have made it.
+ */
+type MakerResolution =
+  | { ok: true; maker: Stuff }
+  | { ok: false; reason: CraftDeclineReason; detail?: string };
+
+/**
+ * ⭐⭐⭐ **Can this maker make this thing?** One read, applied to a player
+ * and an NPC identically — which is the property that makes it honest.
+ *
+ * Two ways to be able, and they are different kinds of thing:
+ *
+ *  1. **The lived deed** — a chronicle row saying you have made this
+ *     before. A player earns this by making it by hand, once, and it is
+ *     the only way a player ever earns it. *The hands learn.*
+ *  2. **The seeded deed** — your authored dossier licensed work of this
+ *     difficulty in this Discipline. Only a dossier writes `claim`-kind
+ *     Transcript rows, so this leg is **structurally unavailable to a
+ *     player**: twenty hand-built gin-tonics raise a player's lived band
+ *     and license nothing by assertion.
+ *
+ * ⭐ That split is what lets Mara mix a Manhattan the first time anybody
+ * orders one — *a person who has tended this bar for years has made one
+ * before* — without handing a player a shortcut past the same work.
+ *
+ * ⚠ `formidable` is reachable by no dossier at all (`seedRunFor` tops out
+ * at `hard`), so the hardest recipes in the realm are hand-only, for
+ * everybody. That is a statement, not an oversight.
+ */
+async function canMakeImpl(maker: Stuff, recipe: Recipe): Promise<boolean> {
+  const recipeId = recipe.getRecipeId();
+  if (
+    recipeId &&
+    MixinApi.isPersona(maker) &&
+    (await maker.hasDone(RecipeKnowledge.madeKey(recipeId)))
+  ) {
+    return true;
+  }
+  const discipline = recipe.getDiscipline();
+  const difficulty = recipe.getDifficulty();
+  // A recipe with no ladder placement gates on nothing — the serving rows
+  // (a pint is poured, not mixed) and a player's own `def`.
+  if (!discipline || !difficulty) return true;
+  // ⚠ A maker that cannot hold competence at all is NOT gated. The gate
+  // asks *has this person learned it*, and a thing that cannot learn is not
+  // failing to have learned — a vending machine is not ignorant. Returning
+  // false here would silently disable any future non-character maker, which
+  // is the quiet kind of wrong.
+  if (!MixinApi.isAdvancing(maker)) return true;
+  const band = await maker.seededBandFor(discipline);
+  const run = Competence.seedRunFor(band);
+  if (!run || run.count <= 0) return false;
+  return (
+    DIFFICULTIES.indexOf(difficulty as Difficulty) <=
+    DIFFICULTIES.indexOf(run.difficulty)
+  );
+}
+
+/**
+ * The present, on-shift, seat-eligible makers in the giver's room — the
+ * walk that used to live inside `resolveMaker`, now the caller's so the
+ * set can be filtered by capability before anybody is chosen.
+ */
+function presentFulfillers(giver: Stuff, discipline?: string): Stuff[] {
+  if (!MixinApi.isContainable(giver)) return [];
   const loc = giver.getContainer();
-  if (!loc || !MixinApi.isContainer(loc)) return null;
+  if (!loc || !MixinApi.isContainer(loc)) return [];
   const able: Stuff[] = [];
   for (const c of loc.getContents()) {
     if (c === giver) continue;
@@ -208,13 +274,105 @@ function resolveMaker(mode: MakerMode, discipline?: string): Stuff | null {
     if (!c.isFulfilling(discipline)) continue;
     able.push(c);
   }
-  if (able.length === 0) return null;
-  if (able.length === 1) return able[0]!;
-  return [...able].sort((a, b) =>
-    (a.getIdentityPath() ?? a.stuffId).localeCompare(
-      b.getIdentityPath() ?? b.stuffId,
-    ),
-  )[0]!;
+  return able;
+}
+
+/** The house a fulfilling candidate is on shift for, or null. */
+function houseOf(candidate: Stuff): (Stuff & Organization) | null {
+  if (!MixinApi.isEmployed(candidate)) return null;
+  for (const e of candidate.getActiveEmployments()) {
+    const org = StuffApi.findByTemplatePath(e.organizationPath);
+    if (org && MixinApi.isOrganization(org)) return org;
+  }
+  return null;
+}
+
+/**
+ * Resolve the maker. ⭐ `'self'` is the giver (mix/serve — you are the
+ * one making it). `'fulfilling-bartender'` hands the able set to the
+ * **house's own call rule** and lets it say who comes over.
+ *
+ * ⚠⚠ **What this replaced**: `[...able].sort(by identity path)[0]`. Every
+ * player Avatar's identity path begins `/platform/` and every NPC's
+ * `/world/`, so the player won every tie forever — and between two NPCs,
+ * one of them served every order of the bar's life while the other stood
+ * there. See `lib/employment/CallPolicy.ts`.
+ */
+async function resolveMaker(
+  mode: MakerMode,
+  recipe: Recipe,
+): Promise<MakerResolution> {
+  const giver = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
+  if (!giver) return { ok: false, reason: 'no-maker' };
+  if (mode === 'self') {
+    return { ok: true, maker: giver };
+  }
+
+  const discipline = recipe.getDiscipline() || undefined;
+  const fulfilling = presentFulfillers(giver, discipline);
+  if (fulfilling.length === 0) return { ok: false, reason: 'no-maker' };
+
+  const able: Stuff[] = [];
+  for (const c of fulfilling) {
+    if (await canMakeImpl(c, recipe)) able.push(c);
+  }
+
+  // ⭐⭐ Somebody is tending the bar and NONE of them knows this drink. That
+  // is a different answer from "nobody is here", and the difference is the
+  // whole of lens 3b: a house offering something its staff cannot make is a
+  // standing vacancy, and the refusal has to say so by name.
+  if (able.length === 0) {
+    return {
+      ok: false,
+      reason: 'not-learned',
+      detail: couldHave(fulfilling, recipe),
+    };
+  }
+
+  // ⚠ One house per call. Every shipped venue has one house per room, but a
+  // shared room with two fulfilling houses must DECLINE rather than route
+  // the call to whichever candidate `getContents()` happened to yield
+  // first — which is the defect this whole wave retires, wearing a
+  // different hat.
+  const houses = new Set<Stuff>();
+  for (const c of able) {
+    const h = houseOf(c);
+    if (h) houses.add(h as unknown as Stuff);
+  }
+  if (houses.size === 0) return { ok: false, reason: 'no-maker' };
+  if (houses.size > 1) {
+    return { ok: false, reason: 'ambiguous-house' };
+  }
+  const house = [...houses][0] as unknown as Stuff & Organization;
+  const verdict = house.callFor({ patron: giver, candidates: able });
+  if (!verdict.ok) {
+    return {
+      ok: false,
+      reason: verdict.reason === 'no-call-policy' ? 'no-call-policy' : 'no-maker',
+    };
+  }
+  return { ok: true, maker: verdict.chosen };
+}
+
+/**
+ * Who *could* have made it, for the refusal's `detail`. ⭐ Present able
+ * makers first, then the house's roster holders who can, then nobody —
+ * because "come back at two, Remy can make that" is a different and much
+ * better answer than "no".
+ */
+function couldHave(fulfilling: readonly Stuff[], recipe: Recipe): string {
+  const house = fulfilling.length ? houseOf(fulfilling[0]!) : null;
+  if (!house) return '';
+  const names: string[] = [];
+  for (const assignment of house.getRoster().getAssignments()) {
+    const who = StuffApi.findByTemplatePath(assignment.assignee);
+    if (!who) continue;
+    const serves = house.getPosition(assignment.positionKey)?.fulfills ?? [];
+    const discipline = recipe.getDiscipline();
+    if (discipline && !serves.includes(discipline)) continue;
+    names.push(who.getPresentation());
+  }
+  return names.join(', ');
 }
 
 /**
@@ -2069,9 +2227,39 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     catalogue.findByKeyword(req.recipeRef) ?? catalogue.getRecipe(req.recipeRef);
   if (!recipe) return { ok: false, reason: 'no-recipe', detail: req.recipeRef };
 
-  const maker = resolveMaker(req.makerMode, recipe.getDiscipline() || undefined);
-  if (!maker) return { ok: false, reason: 'no-maker' };
+  const resolution = await resolveMaker(req.makerMode, recipe);
+  if (!resolution.ok) {
+    return resolution.detail
+      ? { ok: false, reason: resolution.reason, detail: resolution.detail }
+      : { ok: false, reason: resolution.reason };
+  }
+  const maker = resolution.maker;
   if (!MixinApi.isContainable(maker)) return { ok: false, reason: 'no-maker' };
+  // ⭐⭐ The called maker sets down whatever yields to being called, and the
+  // break-off is narrated as one act so the patron sees the person come
+  // over rather than a drink appearing. `interruptibleBy` is read for real
+  // here — the first thing in the engine's history to read it.
+  if (
+    req.makerMode !== 'self' &&
+    MixinApi.hasMixin(maker.constructor as never, 'BehavedMixin' as never)
+  ) {
+    const behaved = maker as unknown as {
+      preemptFor(reason: 'called'): boolean;
+      requestBeat(): void;
+    };
+    if (behaved.preemptFor('called')) {
+      MessageApi.scene(maker)
+        .topic('act.deed')
+        .toPeers(
+          Mml.compose`${Mml.actor(maker)} sets aside what they were doing and comes over.`,
+        )
+        .send();
+    }
+    // Re-decide the moment the drink is served, rather than at the next
+    // scheduled beat: being called is exactly the kind of event that
+    // should wake an agent.
+    behaved.requestBeat();
+  }
   const location = maker.getContainer();
   if (!location) {
     return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
@@ -2665,6 +2853,21 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async offeredRecipes(menu: Stuff): Promise<RecipeView[]> {
     return offeredImpl(menu);
+  }
+
+  /** See {@link CraftingApi.canMake}. */
+  @CallSecurity(CraftingApiCallers)
+  public async canMake(recipeRef: string): Promise<boolean> {
+    const catalogue = await requireCatalogue();
+    const recipe =
+      catalogue.findByKeyword(recipeRef) ?? catalogue.getRecipe(recipeRef);
+    // ⚠ A ref that resolves to no recipe passes: it is a player's own `def`,
+    // which they wrote, and gating what somebody authored on whether they
+    // have done it would be a lock with no key.
+    if (!recipe) return true;
+    const actor = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
+    if (!actor) return false;
+    return canMakeImpl(actor, recipe);
   }
 
   // ---------- what a blend IS, read back off the recipe ----------

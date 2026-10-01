@@ -471,6 +471,36 @@ author's `asserting:` — the assert-vs-derive check, possible only because
 the estimator is a pure function of its evidence. See
 [identity.md](./identity.md).
 
+## ⭐⭐⭐ `seededBandFor` — what an author wrote down, kept separate
+
+Two reads on `AdvancementMixin`, and they are deliberately **different
+questions**:
+
+| read | question | folds |
+|---|---|---|
+| `competenceBandFor` | what can you currently express | every Transcript row you own, `suppressed()` by a recovering body |
+| `seededBandFor` | what did your **dossier** license | `kind: 'claim'` rows only, **not** suppressed |
+
+⚠⚠ **Only the dossier writes `claim` rows** (`CastMixin._seedDossier`), which
+is what makes the authored shortcut structurally unavailable to a player
+rather than merely withheld from them. An authored barkeep can mix a standard
+cocktail the first time anybody orders one; a player who has hand-built
+twenty drinks still reads the FLOOR here, because nobody authored them.
+
+⭐ `seededBandFor` is **not** `suppressed()`, and that is a decision: a
+recovering body expresses less than it knows, which is right for
+`competenceBandFor` and wrong here — *what an author wrote down does not get
+worse because the character is hurt.*
+
+Nothing adds the two together. The crafting gate reads whichever leg applies
+and stops: the lived deed, or the seeded band. See
+[crafting.md](./crafting.md) § `canMake`.
+
+⚠ A future academy/LMS faucet that minted `claim` rows would license recipes
+at its band too. That is arguably right — an attested course licenses what it
+taught — but it is a consequence worth meeting on purpose rather than
+discovering.
+
 ## Disciplines the food-safety build added
 
 - **`butchery`** — `specializes: cooking`. Two things answer to it and

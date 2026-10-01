@@ -2,7 +2,7 @@
 recipeId: whiskey-sour
 name: Whiskey sour
 keywords: [whiskey-sour, sour]
-discipline: bartending
+discipline: mixology
 difficulty: standard
 inputSlots:
 - { slot: base, category: whiskey, minGrade: fair, measureL: 0.06 }

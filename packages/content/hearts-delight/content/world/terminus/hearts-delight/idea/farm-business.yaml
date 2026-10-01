@@ -5,6 +5,10 @@ data:
   appointingAuthority:
     kind: entity
     path: /world/terminus/hearts-delight/agent/farmer
+  # Who comes over: `rota` — the least-recently-called able hand. No
+  # relational leg, because a floor has no regulars and should not pretend
+  # to. See docs/subsystems/employment.md.
+  call: rota
   positions:
     - key: farmer
       noun: farmer

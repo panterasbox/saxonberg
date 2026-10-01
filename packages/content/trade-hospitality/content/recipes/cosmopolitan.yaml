@@ -2,7 +2,7 @@
 recipeId: cosmopolitan
 name: Cosmopolitan
 keywords: [cosmopolitan, cosmo]
-discipline: bartending
+discipline: mixology
 difficulty: standard
 inputSlots:
 - { slot: base, category: vodka, minGrade: fair, measureL: 0.045 }

@@ -1160,3 +1160,54 @@ resolve*. `apply` and `clock` shipped with their views, their affordances
 and fifteen green controller tests, and died on dispatch — found on the
 third checkpoint of a live drive. This is the **data** link of the
 reachability chain, and it had no gate until now.
+
+### `lint:idle-cadence` — what the realm costs when nobody is looking
+
+⭐⭐ Σ **60 000/interval** over every `trigger: cadence:` spec in the content
+tree, plus one nightly beat per row that arms one. **Nothing had ever added
+it up**, and a row dropping a `cadence:2s` on a brain nobody watches was
+indistinguishable from a row doing the right thing.
+
+Census-then-ratchet: **263.2 → 17 fires/min** across the agent-coordination
+build, which moved every deliberative brain onto one beat per agent. All 17
+is now the beat itself (34 agents × the 120 s nightly dial), and **zero
+authored `cadence:` specs remain** — so the realm's idle cost is one number
+an operator turns.
+
+It also gates the brain declarations a `candidate` spec needs: `kind` in the
+vocabulary, a `summary` that is not the filename, `claims` on any
+work/body/threat brain, a `discipline` that resolves to a shipped row, a
+`candidate` spec whose brain declares `urgency`, and (the other direction) a
+brain declaring `urgency` still wired on a `cadence:` of its own.
+
+⚠ **Its first run found five shipped specs with no `trigger:` at all** —
+`_parseTrigger(undefined)` throws, the spec is skipped with a warning, and so
+nobody in the Terminus infirmary had ever been nursed.
+
+⚠⚠ And a gate bug worth copying the fix from: the Discipline walk was first
+rooted at `packages/content`, which descends into every pack's
+`node_modules`, where the workspace symlinks make it unbounded — **the gate
+hung rather than failing**, which is the worst way for a gate to be wrong.
+Walk each pack's `content/` subtree only.
+
+### `lint:menu-staff` — can the house make what the house offers?
+
+⭐⭐ A menu is a promise. For every offered recipe, is there somebody on this
+house's roster holding a seat that fulfils the recipe's Discipline (through
+the `specializes` walk) whose **authored dossier** licenses work of that
+difficulty? The derivation runs `Competence.seedRunFor` for real — the same
+arithmetic the runtime gate applies — which is the only reason a promise
+about people can be checked at build time at all.
+
+⚠⚠ **It is not expected to reach zero, and that is the design.** Dave's Bar
+offers one `hard` cocktail nobody on the rail can mix; a bar offering a drink
+none of its staff can make is a **standing vacancy for a skilled
+mixologist**, which is the mechanism, not a defect. The gate's job is to keep
+saying so. Today's eleven: the mojito, a `hard` roast at the Hearthworks, a
+tailoring line on a *smithy's* menu, and seven fermenting/distilling lines
+whose yard hands are `novice` or carry no claim in the discipline at all.
+
+It also gates, at ceiling zero: a recipe `difficulty` outside `DIFFICULTIES`,
+a `call:` outside `CALL_POLICIES`, and ⭐ **a house with a `fulfills` seat and
+no `call:`** — which would decline every order it ever received.
+

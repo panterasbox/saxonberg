@@ -2,7 +2,7 @@
 recipeId: moscow-mule
 name: Moscow mule
 keywords: [moscow-mule, mule]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: base, category: vodka, minGrade: fair, measureL: 0.05 }

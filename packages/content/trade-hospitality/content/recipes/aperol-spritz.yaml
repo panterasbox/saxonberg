@@ -2,7 +2,7 @@
 recipeId: aperol-spritz
 name: Aperol spritz
 keywords: [spritz, aperol-spritz]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: bitter, category: aperitivo, minGrade: fair, measureL: 0.06 }

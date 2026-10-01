@@ -2,7 +2,7 @@
 recipeId: gimlet
 name: Gimlet
 keywords: [gimlet]
-discipline: bartending
+discipline: mixology
 difficulty: standard
 inputSlots:
 - { slot: base, category: gin, minGrade: fair, measureL: 0.06 }

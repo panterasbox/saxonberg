@@ -2,7 +2,7 @@
 recipeId: daiquiri
 name: Daiquiri
 keywords: [daiquiri]
-discipline: bartending
+discipline: mixology
 difficulty: standard
 inputSlots:
 - { slot: base, category: rum, minGrade: fair, measureL: 0.06 }

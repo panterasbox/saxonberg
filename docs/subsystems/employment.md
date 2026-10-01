@@ -461,6 +461,79 @@ wage-out loop. The budget Business stands up **lazily** — derived from its own
 the gate) — no `TicketClerk`/`Bar.postRegister` clone. See
 [fasttravel.md](./fasttravel.md) § Terminus.
 
+## ⭐⭐⭐ The call — who comes over
+
+Somebody orders a drink. Two bartenders are on the rail and both can make
+it. **Which one comes over?**
+
+Until 2026-09-30 the answer was `CraftingLogic.resolveMaker`'s tie-break:
+sort the able by identity path, take the first. ⚠⚠ Every player Avatar's
+identity path begins `/platform/` and every NPC's `/world/` — **so the
+player won every tie, forever**; and between two NPCs, one of them served
+every order of the bar's life while the other stood there. *Predictable
+beats arbitrary; neither is right.*
+
+`call:` is a field on **`OrganizationMixin`**, not on the trading half: a
+watch or a registry with two clerks needs a rule the day it has two, and
+putting it beside `banksAt` would make the watch a Business again to get
+one — the exact conflation the organizations build undid.
+
+| policy | the house | the legs |
+|---|---|---|
+| `regulars` | Dave's Bar | capability → **your regular** → freest → rotation |
+| `rota` | the Hearthworks kitchen, three yards, the bakery, two Hearts-Delight houses | capability → freest → rotation |
+
+⭐ A closed vocabulary with **a shipped consumer for each member**. A third
+policy with no house behind it would be a word that cannot be wrong.
+
+The legs, and why each is there:
+
+1. **capability** — applied by the caller, which knows what was asked for;
+   the house does not.
+2. **your regular** (`regulars` only) — among candidates who `recognizes`
+   the patron, the highest `regardFor`. ⭐ This is the leg that lets a
+   patron *predict* who comes over, which is the whole point. ⚠ Only among
+   candidates who know you: being fond of a stranger is not a thing.
+3. **the freest** — somebody holding no engagement beats somebody
+   mid-something.
+4. **rotation** — least recently called, by a **monotonic ticket** rather
+   than a clock (the rotation needs an *order*, and a ticket cannot be
+   confused by a paused world clock or two calls in one game-second).
+   ⭐ Never-called sorts first, so **a new hire's first order is their own**.
+
+⚠⚠ **No leg anywhere reads insertion, authored or identity order.** That is
+the invariant worth protecting.
+
+**A house with no rule declines.** `callFor` answers
+`{ok: false, reason: 'no-call-policy'}` and the order is refused, rather
+than quietly serving the first member — because a fallback would make the
+whole mechanism optional, which is how the identity sort survived this long.
+`lint:menu-staff` refuses a row with a `fulfills` seat and no `call:`, so an
+author meets the refusal at build time and a player never does. ⭐ `''` is
+legal on a house with no fulfilling seat: a chart that calls nobody needs no
+rule.
+
+⚠ The method is **`callFor(request)`**, not `call(request)` — `call` is the
+authored field and a field and a method cannot share a name. The field is
+the rule; the method is the act.
+
+### Being called breaks off what you were doing
+
+The chosen maker's `preemptFor('called')` cuts whatever yields to being
+called, the break-off is narrated as **one act** (*"Mara sets aside what she
+was doing and comes over."*) and `requestBeat()` wakes them to re-decide the
+moment the drink is served. ⚠ Importance flows one way: a call preempts a
+task, and a task never defers a call. A `critical` body need that should
+beat a call is deferred design, in `call-slate`.
+
+### Two houses in one room
+
+`resolveMaker` declines `ambiguous-house` when the able candidates belong to
+different houses, rather than routing the call to whichever one
+`getContents()` happened to yield first. Every shipped venue has one house
+per room; the refusal is there so the first shared room is a conversation
+rather than a silent coin-flip.
+
 ## Presence and cover — on the roster tick
 
 Presence is a **consequence** of employment state, so it belongs to the

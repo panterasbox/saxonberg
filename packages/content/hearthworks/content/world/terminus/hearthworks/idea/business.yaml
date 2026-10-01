@@ -18,6 +18,10 @@ data:
   appointingAuthority:
     kind: entity
     path: /world/terminus/hearthworks/agent/smith
+  # Who comes over: `rota` — the least-recently-called able hand. No
+  # relational leg, because a floor has no regulars and should not pretend
+  # to. See docs/subsystems/employment.md.
+  call: rota
   positions:
     - key: smith
       noun: smith
@@ -79,6 +83,13 @@ data:
         # parks off-shift cast in the venue's Offstage, so the street
         # genuinely empties.
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 19] }
+    # ⭐ The second cook. Overlaps Odo's 6–19 from 11, so the midday is
+    # two-handed and the call rule has somebody to choose between.
+    - positionKey: kitchen-hand
+      assignee: /world/terminus/hearthworks/agent/cookhand
+      station: /world/terminus/hearthworks/location/cookhouse
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [11, 19] }
   # ⭐⭐ **The par sheet, and why it is here** (trades-and-labor D16).
   # Eleven works boards shipped empty: par lines existed in exactly ONE
   # file in the whole realm, so the only house ordering anything was the

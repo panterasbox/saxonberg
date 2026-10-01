@@ -2,7 +2,7 @@
 recipeId: tom-collins
 name: Tom Collins
 keywords: [tom-collins, collins]
-discipline: bartending
+discipline: mixology
 difficulty: standard
 inputSlots:
 - { slot: base, category: gin, minGrade: fair, measureL: 0.05 }

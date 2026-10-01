@@ -1090,9 +1090,56 @@ from WARN to ERROR and lowers the ceiling to the post-migration census.
   re-declared as candidates`; closing commit `build(agent-coordination
   W4): the declaration arms are gates`.
 
-### W5 — the call and the capability gate
+### W5 — the call and the capability gate ✅ DONE
 
 *Implements D1, D2, D3, D11, D12.*
+
+> **W5 note.** `lib/employment/CallPolicy.ts` (the vocabulary, the request,
+> the verdict); `OrganizationMixin` gained the `call` field, `setCall` in
+> the throw-loudly idiom, and `callFor(request)` with the four legs;
+> `AdvancementMixin.seededBandFor`; `CraftingLogic.canMakeImpl` +
+> `CraftingApi.canMake`; `resolveMaker` is **async and hands the able set
+> to the house**; `isFulfilling` walks `specializes`; `mix`/`serve` are
+> gated; the 20 cocktails are `mixology`.
+>
+> **Five decisions the plan did not make:**
+>
+> 1. ⚠ **The method is `callFor(request)`, not `call(request)`.** `call` is
+>    the authored field (`call: regulars` in the row, which is how it should
+>    read), and a field and a method cannot share a name. The field is the
+>    rule; the method is the act.
+> 2. ⭐ **The rotation stamp is a monotonic TICKET, not a clock read.** The
+>    rotation needs an *order*, and a ticket cannot be confused by a paused
+>    world clock or by two calls inside one game-second.
+> 3. ⭐⭐ **`ambiguous-house` is implemented, not deferred** (§ Risks item
+>    5 said the build *should* decline it; it does). Two houses operating
+>    one room with able hands on shift in both ⇒ decline, rather than
+>    routing to whichever candidate `getContents()` yielded first — which
+>    is the same defect this wave retires, wearing a different hat.
+> 4. ⭐ **`seededBandFor` is NOT `suppressed()`.** A recovering body
+>    expresses less than it knows, which is right for `competenceBandFor`
+>    and wrong here: *what an author wrote down does not get worse because
+>    the character is hurt.*
+> 5. **`not-learned`'s prose names somebody** — *"Nobody here knows how to
+>    make that. Mara could."* A bar whose whole staff cannot make a listed
+>    drink is a standing job advertisement, and that is the thing worth
+>    saying out loud.
+>
+> ⚠⚠ **D11 was load-bearing and the requirements had it backwards.** The
+> requirements said *"mixology already specializes bartending, so seat
+> eligibility is untouched"*; the shipped code did an exact
+> `serves.includes`. Without the walk, moving the cocktails to `mixology`
+> would have made **every bartender seat in the realm stop fulfilling every
+> cocktail** — `order` answering *"There's no one on hand to make that"* in
+> a bar with four barkeeps in it. The walk is bounded by a `seen` set so a
+> mis-authored cycle cannot hang a read that runs on every order.
+>
+> ⚠ **A near-vacuous test, caught:** `seededBandFor` and
+> `competenceBandFor` both short-circuit to the FLOOR when the persistence
+> store is not connected — which is honest in production and makes every
+> assertion in a unit test pass for the wrong reason. The test mocks
+> `PersistApi.isConnected`; without it, *the weakest evidence producing the
+> strongest claim*.
 
 - `lib/employment/CallPolicy.ts`: `CallPolicy = 'regulars' | 'rota'`,
   `CALL_POLICIES`, `CallRequest { patron: Stuff; candidates: readonly
@@ -1145,9 +1192,58 @@ from WARN to ERROR and lowers the ceiling to the post-migration census.
 - Commit: `build(agent-coordination W5): the call — a house's authored
   rule, and the can-make gate on order/mix/serve`.
 
-### W6 — the realm rosters its consumers
+### W6 — the realm rosters its consumers ✅ DONE
 
 *Implements D13.*
+
+> **W6 note.** The three roster edits (Remy 12–22 for the lunch overlap,
+> Sloane `[5,6] 0–6`, Augie `[5,6] 6–24`): ⭐⭐⭐ **every one of the 168
+> hours of the week now has a non-proprietor bartender on the bar**, proved
+> by `roster-coverage.test.ts` over `Roster.evaluate`. The weekend
+> 00:00–10:00 hole is closed — for ten hours of every Saturday and Sunday
+> the only person who could serve anybody had been Dave, covering his own
+> bar unpaid on the graveyard shift, because the cover reconcile has no
+> idea it is being imposed on.
+>
+> `call: regulars` on the bar; `call: rota` on the **seven** other houses
+> the gate named (the plan guessed at the list; the gate produced it).
+>
+> **Nev, the Hearthworks kitchen hand** (`agent/cookhand.yaml`), rostered
+> `[0..6] 11–19` with `station: …/cookhouse`, `cast:` on the cookhouse row.
+> ⭐ She exists because until she did, *"two or more people work one shift
+> and the work is shared"* had **nowhere in the realm to happen**: Odo was
+> alone, so the call rule could only ever have one candidate and `rota` was
+> unobservable. ⚠ Her seat was authored by the trades-and-labor build with
+> `headcount: 1` and `requires: {gigs: 2}` and then rostered to **nobody** —
+> an opening that advertised itself and was never filled.
+> ⭐ `cooking: competent`, not proficient, deliberately: she and Odo differ
+> in what they can make with no second menu authored, so *who comes over*
+> has a visible consequence the first time somebody orders the wrong thing.
+> Named `Nev` with `register: proper` — `lint:identity` rule 2 refuses
+> `indefinite` on a nameless Cast, and rightly: a nameless Cast is *the*
+> cookhand, the only one, and this one works beside somebody.
+>
+> **Two decisions the plan did not make, both following the user's mojito
+> call to its conclusion:**
+>
+> 1. ⛔ **Mara is NOT promoted to `mixology: expert`** — the W6 bullet list
+>    still said so, a leftover from before D13's amendment. Promoting her
+>    would be rewriting a dossier to make a number go green, which the
+>    requirements' Collisions section forbids in so many words.
+> 2. ⭐⭐ **`MENU_STAFF_SHORTFALL_CEILING` stays at 11, not the mojito's
+>    1.** The gate's first run found that the mojito is *one of eleven* —
+>    `fine-roast` (cooking · hard) at the Hearthworks, `leather-jerkin`
+>    (tailoring · hard) on the **smithy** menu where no seat fulfils
+>    tailoring at all, and seven fermenting/distilling lines whose yard
+>    hands are `novice` or carry no claim in the discipline. **These are
+>    the same finding as the mojito in work clothes**, so the user's
+>    reasoning applies to all eleven: *a house offering what its staff
+>    cannot make is a standing vacancy, and the gate's job is to keep
+>    saying so.* Each is offered to its owning trade as a finding in the MR
+>    rather than tuned away here. ⚠ Two of the eleven are structurally odd
+>    rather than vacancies and are called out separately: the crowsfoot
+>    hand holds a `fermenting` seat and asserts **no claim in fermenting at
+>    all**, and `leather-jerkin` is a tailoring line on a smithy's menu.
 
 - Bar: the three roster edits; `call: regulars`; Mara `mixology: expert`.
 - Hearthworks: `agent/cookhand.yaml` (a `Cast`; `lint:identity` rule 2
@@ -1163,7 +1259,7 @@ from WARN to ERROR and lowers the ceiling to the post-migration census.
 - Commit: `build(agent-coordination W6): two on the rail, a cookhand at
   the hearth, the weekend staffed; every house calls`.
 
-### W7 — the drive and the docs
+### W7 — the drive and the docs ✅ DONE (drive record below)
 
 - `packages/wire/tests/agent-coordination.dirty.wire.test.ts` (dirty:
   appoints a newcomer to the bar's `bartender` seat and earns them a deed;

@@ -158,6 +158,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // nothing. The stand's own `mix[].woodMaterialPath` / `seedPath` /
     // `speciesPath` are read below, the `props:` way.
     'standardMaterialPath',
+    // ⭐ `offstage` (the agent-coordination build) — where a house parks its
+    // cast off shift, resolved live by the roster tick with
+    // `singletonOrClone`. Read here rather than ignored because a rowless
+    // one does something worse than nothing: `singletonOrClone` would mint
+    // a bare room at the path and park the realm's cast in a place no
+    // author ever wrote, which looks exactly like working.
+    'offstage',
   ] as const) {
     push(f, data[f]);
   }

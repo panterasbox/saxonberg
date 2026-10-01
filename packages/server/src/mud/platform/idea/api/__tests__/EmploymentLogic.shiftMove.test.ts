@@ -16,6 +16,12 @@
  *
  * The clock harness is `EmploymentLogic.tick.test.ts`'s.
  */
+/**
+ * ⚠ Paths are synthetic (`/test/**`). A kernel test proves the KERNEL, so it
+ * must not name shipped content — a test of real rows lives beside them
+ * (`src/mud/world/**`). `lint:test-content` enforces it, and caught these
+ * four on their first run.
+ */
 
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -35,12 +41,12 @@ import { ContainmentApi } from '../../../../api/containment';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
-const BUSINESS = '/world/lounge/idea/business';
-const MARA = '/world/lounge/agent/mara';
-const DAVE = '/world/lounge/agent/dave';
-const BAR = '/world/lounge/location/bar';
-const CELLAR = '/world/lounge/location/cellar';
-const OFFSTAGE = '/world/lounge/location/offstage';
+const BUSINESS = '/test/idea/house';
+const MARA = '/test/agent/rostered';
+const DAVE = '/test/agent/proprietor';
+const BAR = '/test/location/floor';
+const CELLAR = '/test/location/back';
+const OFFSTAGE = '/test/location/offstage';
 
 class Worker extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'Worker';

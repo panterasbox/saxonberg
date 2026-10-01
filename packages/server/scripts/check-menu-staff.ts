@@ -78,7 +78,7 @@ export const MENU_STAFF_HIGH_WATER = 11;
  * census the realm before the field exists.
  */
 const CALL_POLICIES = ['regulars', 'rota'];
-const CALL_FIELD_SHIPPED = false;
+const CALL_FIELD_SHIPPED = true;
 
 let _inheritIdx: InheritanceIndex | null = null;
 function inheritIdx(): InheritanceIndex {

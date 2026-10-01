@@ -51,12 +51,13 @@ export abstract class CraftController<
     const giver = context.commandGiver;
     const view = await CraftingApi.lookupRecipe(recipeRef);
     if (!view) return true;
-    if (
-      MixinApi.isPersona(giver) &&
-      (await giver.hasDone(RecipeKnowledge.madeKey(view.recipeId)))
-    ) {
-      return true;
-    }
+    // ⭐ ONE read, shared with the served path. This used to be the chronicle
+    // deed alone, inline — so `order` (which never called this) and `make`
+    // answered two different questions about the same person. An NPC never
+    // types these verbs and a player has no seeded band, so nothing
+    // observable changes for a player here; what changes is that there is
+    // now one definition of "can make it".
+    if (await CraftingApi.canMake(recipeRef)) return true;
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

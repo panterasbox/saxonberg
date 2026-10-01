@@ -436,3 +436,28 @@ folded into `EmployedMixin` in review: a mixin whose composers are
 exactly one class is the mixin-on-the-wrong-host tell, and both shipped
 tiers are authored-or-employment. Split it back out if a third tier over
 ground title lands, or if a non-employable host ever needs fielding.
+
+## ⭐ The dossier's third consumer — what a claim LICENSES
+
+The `competence:` block was seeded evidence read by two things: the
+`chronicle` verb, and `competenceBandFor`. From the agent-coordination build
+it has a third reader, and it is the one with teeth:
+`AdvancementMixin.seededBandFor` folds **`claim`-kind rows only**, and
+`CraftingApi.canMake` uses the result to decide what an authored person can
+make without ever having been watched making it.
+
+So a dossier line is no longer only a *description*. `mixology: proficient`
+on Mara's row is what lets her mix a Manhattan the first time anybody orders
+one — and `competent` on Nev's row is what makes her and Odo differ in what
+they can cook, with no second menu authored anywhere.
+
+⚠⚠ **Which means a dossier may not be tuned to make a number go green.** The
+build found that nobody at Dave's Bar can make the menu's one `hard`
+cocktail, and the answer was to leave it: promoting Mara to `expert` would be
+rewriting a history to fix an outcome, and the outcome *is the finding* — a
+standing vacancy for a mixologist. `lint:menu-staff` reports it; it does not
+demand it be closed.
+
+⭐ And the asymmetry is the point: **only a dossier writes claims**, so this
+licence does not exist for players. A player earns a recipe by making it,
+every time. See [advancement.md](./advancement.md) § `seededBandFor`.

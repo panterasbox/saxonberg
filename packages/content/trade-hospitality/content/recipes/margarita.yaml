@@ -2,7 +2,7 @@
 recipeId: margarita
 name: Margarita
 keywords: [margarita]
-discipline: bartending
+discipline: mixology
 difficulty: standard
 inputSlots:
 - { slot: base, category: tequila, minGrade: fair, measureL: 0.05 }

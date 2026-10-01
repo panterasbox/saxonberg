@@ -223,6 +223,103 @@ picks and consigns are named only by that pack's grounds and stalls),
 whose suite travels with it under `src/behavior/__tests__/`. Substrate
 proof: `lib/behavior/__tests__/pack-brain.test.ts`.
 
+## ⭐⭐⭐ The deliberation beat — one timer per agent, one decision, one act
+
+Until 2026-09-30 a Behaved host armed **one timer per behaviour spec**, and
+each one fired in ignorance of the others. Two consequences, and the second
+is the one that mattered:
+
+1. **Cost.** Σ 60 000/interval across the content tree was **263.2 fires a
+   minute** with nobody watching, and nothing anywhere added it up. Two
+   `sellsword` rows alone paid 60 of it on `cadence:2s`.
+2. ⭐⭐ **An agent could not have a priority.** `nurses` carried a private
+   `triageRank` — dying first, then open bleeds — and `idles` carried
+   nothing, so **the physician could be out-shouted by her own idle
+   chatter**: two timers, no arbiter, and the one that happened to fire won.
+
+So a host with `candidate` specs arms **one** beat. Each beat it asks every
+candidate brain `urgency(ctx)`, sorts, and runs **exactly one** winner.
+
+| rung | what the arbiter does with it |
+|---|---|
+| `idle` | not a candidate this beat at all |
+| `wanted` | runs if nothing outranks it |
+| `pressing` | beats every `wanted`, whatever KIND it is |
+| `critical` | beats everything, **preempts a running interruptible task**, and wakes the agent early |
+
+⭐ Four bands because each is a **distinct arbiter behaviour** — that is the
+test a band vocabulary has to pass, and it is why there is no fifth.
+Competence has five and light has six; those are estimator thresholds and
+physical magnitudes, not a reason to copy a count. `TaskKind` (`threat ·
+body · work · social · filler`) breaks ties **within** a band only, so a
+pressing meal never loses to a wanted fight.
+
+### The switch prose
+
+⭐⭐ `Urgency.because` is **the sentence a watcher reads when the agent
+changes its mind** — third person, no subject, so the framework puts the
+actor in front of it: *"glances at the near-empty gin bottle and heads for
+the cellar"*. There is no second string anywhere; a brain that cannot say
+why it wants the beat is a brain that should not have asked.
+
+⚠ It fires **only on a switch**. An agent carrying on says nothing, which is
+what makes the line informative when it comes.
+
+### Ordering, and the tie-break that matters
+
+Band → kind → **hysteresis** (keep doing what you were doing) → declaration
+order. ⚠⚠ The hysteresis rung exists so that **an exact tie is never broken
+by authored order**. Every ordering on insertion, authored or identity
+position is a *stable wrong answer*, and a stable wrong answer survives for
+a year because nothing ever looks arbitrary — see `CraftingLogic`'s retired
+identity-path sort.
+
+### Preemption, and the field nothing had ever read
+
+`host.preemptFor(reason)` cuts every engagement whose `interruptibleBy`
+contains `reason`, and says whether anything was cut. The two behavioural
+reasons are **`called`** (somebody with a claim on your attention asked) and
+**`outranked`** (your own next beat found something that matters more).
+
+⚠⚠ **`interruptibleBy` was consulted by nothing before this.** Every
+engagement in the tree declared a set and `SchedulerRegistry.cancel`
+cancelled unconditionally. So an empty set now genuinely means *nothing
+interrupts this* — which is why `tree-dialogue` declares `[]` on purpose: an
+NPC that walked off mid-sentence because its own beat found something better
+would be the arbiter leaking into the fiction.
+
+### Cost, and what an operator turns
+
+Three dials in `settings/behavior.yaml`: `behavior.beatMs` (20 s, watched),
+`behavior.beatNightlyMs` (120 s, unwatched) and `behavior.beatMinGapMs`
+(3 s, the early-wake debounce). ⭐ When nobody is watching, **only candidates
+whose brain declares `presenceGated = false` are consulted at all**, and an
+agent with none skips the beat's body entirely.
+
+`lint:idle-cadence` meters exactly this. After the migration the content
+tree holds **zero `cadence:` specs** and the realm's whole idle cost is
+**17 fires/min** — 34 agents × one nightly beat. From 263.2.
+
+### The early wake
+
+`requestBeat()` pulls the next beat forward, debounced. Fired by a perceived
+`act.combat*`/`speech.` frame and by being called — ⭐ because a `critical`
+candidate can only *become* critical through something the host perceived or
+something on a clock it already reads.
+
+### What a brain declares now
+
+`kind` · `summary` · `discipline?` · `produces?` · `consumes?` ·
+`requires?` · `interruptibleBy?` · `urgency?(ctx)`, all optional on
+`BrainStatics` so an un-migrated brain type-checks, and all **gated for a
+`candidate` brain** by `lint:idle-cadence`.
+
+⭐⭐ `summary` exists because **38 brains shipped with `label` repeating the
+filename** — so the author palette could tell you the name of a thing you
+had already typed, and nothing else. And `claims` is mandatory for any
+`work`/`body`/`threat` brain, because *"it does not do two things at once"*
+is only true if the act says which hands it is using.
+
 ## Triggers: cadence + witness — no new events
 
 A trigger is a thin selector over **two sources**. State conditions ("at
