@@ -157,6 +157,20 @@ weaver is a player is not the secret; *which* player is.
 here, and in `RecognitionLogic.strangerStem` as the same rungs minus two,
 kept in step by hand. The first change to touch one broke the other.
 
+⭐⭐ **Rung 5 is the `Agent`/`Thing` split, and nothing else.**
+`RecognitionLogic.obscured` asks `target.isAgent()` — one of the four
+branch predicates on `Stuff` (see
+[architecture.md § Top-level branches](../architecture.md)) — so a
+person and a cow read *"someone"*, and a plant, a beehive and a crate
+read *"something"*. It asked **`isOrganism`** until 2026-09-30, which
+means *alive*: every plant in the game read as "someone" in the dark,
+and apiculture made it loud because a colony IS the organism (`drop hive`
+answered *"You drop someone."*). ⚠ The two narrower mixin predicates both
+fail too — `isVitals` makes a person with no vitals a *something*, and
+`isPersona` makes a **cow** one. "Someone" is not *alive*, not *has a
+body* and not *is a person*: it is *is an actor*, which is what the
+branch says outright.
+
 ---
 
 ## 3 · The handle

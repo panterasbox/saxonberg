@@ -875,6 +875,31 @@ to `lib/stuff/Good`.
   `platform/thing/Good` (bare goods — an anvil, a folded hide, a
   handcart). Which one a row names IS the claim *can this be carried off*.
 
+⭐⭐ **Four predicates on `Stuff` answer which branch** — `isAgent()` ·
+`isThing()` · `isIdea()` · `isLocation()`, each `false` on the root and
+overridden exactly once in its own branch file. So nothing anywhere has
+to import a branch class to ask the question, which matters because
+`api/**` and `lib/mixin.ts` sit *below* the branch classes: an
+`instanceof Agent` in `api/mixin.ts` closes the cycle
+`mixin → Agent → Stuff → … → mixin`, leaves `Stuff` undefined at
+class-evaluation time, and takes 176 test files down with
+`Class extends value undefined`. Measured, not theorized.
+
+`Shadow` deliberately has none — a framework attachment riding another
+Stuff is not a world object anything asks about — and **no lower rung
+gets one**: four is the whole set, because the branches are the one
+classification that is total, closed and never changes. Asking *is this
+a `Creature`* is a mixin question (`MixinApi.isVitals`), not a branch
+one.
+
+⭐ Today's three callers all ask the same thing — *am I an active
+presence, or am I matter* — and all three used to ask `isOrganism`, or a
+proxy for it, and were wrong: `RecognitionLogic.obscured` (so every
+PLANT read as *"someone"* in the dark), `MixinApi.isOpenContainer` (so a
+beehive, whose colony IS the organism, was excluded from its own
+contents) and `PutController`, which kept a drifted private copy of the
+second. "someone" vs "something" IS the `Agent`/`Thing` split.
+
 ⭐ `DetailedMixin` sits on the root beside `Perceptible`, since the same
 build: a thing addressable by keyword has PARTS addressable the same way,
 and `Detailed` is the access path to their metadata. 78 classes used to

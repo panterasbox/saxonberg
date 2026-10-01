@@ -1721,3 +1721,113 @@ everything else — and it found eight defects in it.
 - **A beehive reads as "someone" in dim light** — the degraded
   presentation branches on being alive and the colony IS an `Organism`.
   A finding for `presentation.md`: "someone" is the person register.
+
+## ⭐⭐ W12 — the browser walk, and the branch predicates it forced
+
+The wire drive was 19/19 when a live browser walk (Playwright, `e2e/`,
+because a sibling session held the chrome-devtools profile) found what it
+could not. Three findings not this build's are recorded under
+`docs/plans/apiculture-handoff.md` (the dark-room `look` card, the unlit
+general store, and ⚠ **nothing in the game can advance the world clock** —
+so apiculture's whole seasonal half is unobservable by any in-game
+instrument). The fourth finding was this build's, and it was structural.
+
+### The finding
+
+**"someone" vs "something" is the `Agent`/`Thing` split**, and three
+separate call sites were asking `isOrganism` — or a proxy for it —
+instead:
+
+1. `RecognitionLogic.obscured` — so **every plant in the game read as
+   "someone" in the dark.** Apiculture made it loud, because a colony IS
+   the organism: `drop hive` answered *"You drop someone."*
+2. `MixinApi.isOpenContainer` — so the hive was **excluded from its own
+   contents**. `look in hive` printed nothing, nothing inside was
+   reachable, and the MQL `peers` walk would not enter it.
+3. `PutController.isBody` — a **drifted private copy** of (2), whose own
+   docstring admitted it was *"near enough the exclusions
+   isOpenContainer makes, minus the lid."*
+
+⭐ Deleting the copy is the point: fixing (3) alone earlier in the session
+made (2) and (3) **disagree**, which is what broke reach-into-hive.
+
+### The three wrong fixes, and why the branch is the right one
+
+| attempt | what it gets wrong |
+|---|---|
+| `isOrganism` | a plant is "someone" ✗ |
+| `isVitals` | caught by `describeFor.test.ts`'s own person fixture — a Persona with no vitals reads "something" ✗ |
+| `isPersona` | **a cow reads "something"** ✗ — a cow is an actor |
+| `obj.isAgent()` | plant, hive, person and cow all correct ✓ |
+
+### D14 — four branch predicates on `Stuff`, not `instanceof`
+
+`isAgent()` · `isThing()` · `isIdea()` · `isLocation()`, each defaulting
+`false` on `Stuff` and overridden exactly once in its own branch file. So
+**nothing anywhere needs to import a branch class to ask which branch
+something is.** The user's call, and the reason is measured rather than
+stylistic:
+
+⚠⚠ `instanceof Agent` in `api/mixin.ts` closes the cycle
+`mixin → Agent → Stuff → … → mixin`, leaves `Stuff` undefined at
+class-evaluation time, and fails **176 test files** with
+`Class extends value undefined is not a constructor or null`. That cycle
+is almost certainly why the three-predicate proxy existed in the first
+place. Asking the object needs no import at all — which is also the
+project's own rule (*methods are the contract between Stuff*).
+
+The fifth branch, `Shadow`, deliberately gets none: it is a framework
+attachment riding another Stuff, not a world object anything asks about.
+No lower rung gets one either — four is the whole set, because the
+branches are the one classification that is total, closed and never
+changes.
+
+### Blast radius, measured
+
+Exactly **two classes** change behaviour under `isOpenContainer`:
+`Creature` (an Agent → still excluded, so a pack animal's panniers stay
+private, which is the reason the original docstring gave for `isOrganism`
+being there at all) and `Hive` (a Thing → newly admitted).
+
+One test changed: `describeFor.test.ts`'s `Being` fixture extended `Idea`
+and now extends `Agent`. ⭐ The fixture's own comment had already written
+the lesson for the rung below — *"a fixture that models a person must
+compose the thing that makes one; faking the shape passes only until the
+rule gets stricter"* — and it got stricter. A new `Growth` fixture (an
+`Organism` with no `Persona`) pins the plant case that started this.
+
+### W12 verification
+
+- `npx tsc --noEmit -p packages/server/tsconfig.json` — clean.
+- `lint:family` — **58/58**, all gates pass.
+- The eight suites that ask the changed rule (`lib/belief`,
+  `lib/concealment`, `lib/perception`, `platform/idea/api/__tests__`,
+  `platform/idea/cmd/inventory`, `api/mql`, `lib/spatial`,
+  `platform/idea/modalities`) — **178 files / 1605 tests green**, after
+  the two fixtures named above.
+- The **apiculture wire drive re-run** — **15/19**, and the decisive
+  observation is green: checkpoint 10, `put super in hive` followed by
+  `look in first hive` matching `/super|box|frame/`, is **a hive listing
+  its own contents** — the half of the finding no unit test reaches.
+  ⚠ The four failures are the file's **own declared dirtiness**, not a
+  regression: every one is downstream of *"…including the ONE line that
+  mints life: a nucleus of bees"*, which answered `empty-result[item]`
+  because the par-1 nucleus had already been bought by the 19/19 run on
+  the same database. `DIRTY_REASON` says so in as many words. ⭐ A dirty
+  drive is only re-runnable against a world that has regenerated what it
+  consumed, and nothing regenerates this one — which is exactly the
+  finding the sweep is supposed to hand to the owning trade: **the
+  valley has no colony supplier, deliberately, so the second run of the
+  drive has no bees.**
+- A live browser walk confirmed the other half at the binder:
+  `put frame in hive` now answers **"a pine beehive is shut"** — the lid
+  rule — where before the branch predicate it answered *"you can't put
+  things in a hive"*. The refusal moved from the wrong question to the
+  right one.
+
+⚠ Two **pre-existing** parser defects surfaced during the walk and are
+not this build's: `open` and `put` take a non-greedy target arg, so
+`open double-walled beehive` and `put frame in first hive` both answer
+*"That doesn't match any known command shape"* while `look in first
+hive` (greedy) resolves fine. The same `greedy: true` family
+`instrumentation.md` already warns about.
