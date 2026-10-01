@@ -27,6 +27,7 @@ import Door from '../../platform/thing/Door';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import { Idea } from '../../lib/stuff/Idea';
+import { Agent } from '../../lib/stuff/Agent';
 import { NamedMixin } from '../../lib/description/Named';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { CommandGiverMixin } from '../../lib/command/CommandGiver';
@@ -44,15 +45,20 @@ import { makeStuff,
 } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
+// ⭐ On the `Agent` branch, because `MixinApi.isOpenContainer` asks the
+// BRANCH now (`Stuff.isAgent`) rather than three mixin proxies for it.
+// A command giver that extended `Idea` passed the old `isCommandGiver`
+// check and would now be a transparent container — its pockets public.
+// The fixture models a person, so it belongs on the branch people are on.
 /** An actor that can hold things and be somewhere. */
-class Actor extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {}
+class Actor extends ContainerMixin(ContainableMixin(NamedMixin(Agent))) {}
 
 /** An open-topped holder: a rack, a crate, a stock counter. No lid. */
 class Rack extends ContainerMixin(ContainableMixin(DetailedMixin(Good))) {}
 
 /** Somebody: an actor who takes commands. Their pockets are their own. */
 class Person extends CommandGiverMixin(
-  ContainerMixin(ContainableMixin(NamedMixin(Idea))),
+  ContainerMixin(ContainableMixin(NamedMixin(Agent))),
 ) {}
 
 /** A holder with a lid — shut by default. */

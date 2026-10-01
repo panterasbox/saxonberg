@@ -378,7 +378,21 @@ export default class PutController extends CommandController<PutModel> {
    */
   private static offersFor(target: Stuff): PutOffer[] {
     const offers: PutOffer[] = [];
-    if (MixinApi.isContainer(target) && !isBody(target)) {
+    // ⭐⭐ **One question, asked once.** *Is this an actor, whose insides
+    // are its own?* is the `Agent` branch, and `MixinApi.isOpenContainer`
+    // is documented in four files as the single rule everything that
+    // means "you can reach or see one level into that" asks. This used
+    // to be a local `isBody` copy whose own docstring admitted it was
+    // *"near enough the exclusions isOpenContainer makes, minus the
+    // lid"* — and the copy drifted: apiculture narrowed it and left the
+    // canonical rule wrong, so `put nucleus in hive` worked while
+    // nothing inside a hive was reachable. A second copy of a predicate
+    // is a second place to be wrong in.
+    //
+    // ⚠ Minus the lid, still: a SHUT chest offers region zero and
+    // refuses at the verb with a reason, which is a better sentence than
+    // pretending it has no inside.
+    if (MixinApi.isContainer(target) && !target.isAgent()) {
       const member = ContainmentApi.placement('in');
       const words = member?.getPrepositions() ?? ['in'];
       offers.push({ kind: 'zero', name: 'in', words: [...words] });
@@ -411,42 +425,7 @@ interface PutOffer {
   words: string[];
 }
 
-/**
- * A container that is **somebody** is not a region you put things in —
- * near enough the exclusions `MixinApi.isOpenContainer` makes, minus the
- * lid (a shut chest still offers region zero; it refuses at the verb,
- * with a reason).
- *
- * ⚠⚠ **`isVitals`, not `isOrganism`, and the difference is a live
- * object.** The question this asks is *is this a BODY* — and the honest
- * marker of a body is that it has one (vitals, a body plan, parts you
- * could wound), not merely that it is alive. Being alive is a much
- * bigger set: the apiculture build's beehive is an `Organism` (the
- * colony IS the organism, and its species is where its taps and its
- * temper are read from) **and** a `Container` you put a nucleus, a
- * super and frames into, which is the whole design of the object.
- * Reading it as a body made `put nucleus in hive` answer
- * *"you can't put things in a hive"* — a refusal about the one act the
- * trade's acquisition ladder is built on.
- *
- * ⭐ Every real body still excluded, and by a stronger test than before:
- * a player, an NPC, a head of stock and a corpse are all `Creature`s and
- * all compose `VitalsMixin`. What is admitted is the narrow and
- * deliberate case of **a living thing that is also a vessel** — which
- * until now nothing in the game was, which is exactly why the check
- * could be wrong for a year and nobody could know.
- *
- * ⚠ No controller test could see this: `PutController` is the
- * platform's, the hive is a pack class, and the two only meet in a
- * booted world. The drive is the instrument that found it.
- */
-function isBody(target: Stuff): boolean {
-  return (
-    MixinApi.isVitals(target) ||
-    MixinApi.isCommandGiver(target) ||
-    MixinApi.isHasInteractive(target)
-  );
-}
+
 
 /** `a`, `a or b`, `a, b or c` — the roster in a refusal. */
 function joinOr(words: readonly string[]): string {

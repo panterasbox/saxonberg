@@ -68,10 +68,42 @@ function mostNotableWorn(target: Stuff): string | null {
 
 /**
  * The maximally-obscured form for a target the viewer can't perceive —
- * "someone" for a living being, "something" otherwise. Never a name.
+ * "someone" for an **Agent**, "something" for matter. Never a name.
+ *
+ * ⭐⭐ **It is a BRANCH question, and the branch is the answer.** This is
+ * the Agent/Thing split and nothing else: an Agent is *an active presence
+ * in the world* and a Thing is *matter*, which is precisely what
+ * "someone" and "something" are trying to say. Every case falls out —
+ * a player, a Cast member, an Extra, a Shade, a CORPSE, a head of stock,
+ * a pet and a fish are all `Creature`s and therefore `Agent`s; a plant, a
+ * beehive, a lantern and a rock are `Thing`s.
+ *
+ * ⚠⚠ **It asked `isOrganism`, and that was wrong for every PLANT in the
+ * game.** `Organism` means *alive*, which is a much bigger set than
+ * *somebody*: a `Plant` composes it, so a wheat stalk, a cherry tree and
+ * a houseplant have always announced themselves as a person in the dark.
+ * Apiculture made it loud by adding a beehive — the colony IS the
+ * organism — so a box of bees answered `drop` with *"You drop someone."*
+ *
+ * ⚠ And two mixin predicates were tried before the branch, both wrong in
+ * the other direction: `isVitals` (this file's own `Being` fixture is a
+ * person with no vitals, and it caught it) and `isPersona` (only
+ * `Character` composes it, so **a cow would have read "something"** —
+ * a cow is an actor, and in the dark it is somebody moving about).
+ * The branch is the only one of the four that gets a plant, a hive, a
+ * person AND a cow right at the same time.
+ *
+ * ⭐ Asked as a METHOD on the object (`Stuff.isAgent`), which is both the
+ * project's own inter-Stuff contract and a hard necessity at the other
+ * call site: `MixinApi` sits below the branch classes and importing
+ * `Agent` there is an import cycle.
+ *
+ * ⚠ Found by a live browser walk: three cherry trees in a dim close
+ * offered themselves to the binder as *someone (1) · someone (2) ·
+ * someone (3)*.
  */
 function obscured(target: Stuff): string {
-  return MixinApi.isOrganism(target) ? 'someone' : 'something';
+  return target.isAgent() ? 'someone' : 'something';
 }
 
 /**

@@ -14,6 +14,7 @@ import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { Idea } from '../../../lib/stuff/Idea';
+import { Agent } from '../../../lib/stuff/Agent';
 import { NamedMixin } from '../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { VisibleMixin } from '../../../lib/description/Visible';
@@ -43,10 +44,15 @@ class TestThing extends ContainableMixin(
 // the giver (LookController's `Scene.toSelf` in particular) work
 // out of the box. Doesn't change the surface seen by tests that
 // don't use messaging.
+// ⭐ On the `Agent` branch, because `MixinApi.isOpenContainer` asks the
+// BRANCH now (`Stuff.isAgent`) rather than three mixin proxies for it.
+// A command giver that extended `Idea` passed the old `isCommandGiver`
+// check and would now be a transparent container — its pockets public.
+// The fixture models a person, so it belongs on the branch people are on.
 class TestGiver extends ContainerMixin(
   ContainableMixin(
     SensorMixin(
-      FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Idea))))
+      FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Agent))))
     )
   )
 ) {}
