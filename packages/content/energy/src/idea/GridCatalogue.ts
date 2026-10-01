@@ -168,6 +168,11 @@ export default class GridCatalogue
     return ref !== undefined && this.energizedAtSync(ref);
   }
 
+  /** Force the compile (so later sync reads answer live). Idempotent. */
+  public async ensureCompiled(): Promise<void> {
+    await this.index();
+  }
+
   /** Async: energization of the node standing on `streetPath` (compiles first). */
   public async energizedAt(streetPath: string): Promise<boolean> {
     const grid = await this.index();

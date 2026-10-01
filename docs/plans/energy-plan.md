@@ -1074,9 +1074,31 @@ Files:
 Commit: `build(energy B1): the feeder is a row, the reach is a set, the
 cut is the one state`.
 
-#### B2 — the consumer, the light, the pole, the verbs, the reading
+#### B2 — the consumer, the light, the pole, the verbs, the reading ✅ DONE
 
 Implements D7, D13 (the pole side), D14.
+
+> **Done (commit `build(energy B2)`).** `GridPoweredMixin` (pack `lib/`;
+> resolves the covering parcel's band + feeder node once at `postRegister`,
+> caches the catalogue + warms the compile; `isPowered()` sync =
+> `band !== off-grid && energizedAtSync(node)`; `availablePowerW` = the band's
+> watts duck). `ElectricLight` (`GridPowered(LightSource(Switchable(PostReg(
+> Thing))))` — flux only while on AND powered; getDetail's three states).
+> `LineAccess` (the pole: `nodeRef` + `buried`; `sever`/`splice` → catalogue;
+> `onStormExposure` cuts an overhead line on a roll, a buried one never — the
+> B0 storm duck, tested here; `supplyReport`; getDetail). `SeverController`/
+> `SpliceController` + their rows + `sever.yaml`/`splice.yaml` views (validators
+> animate/conscious/embodied; `default: reachable:[class.LineAccess]`,
+> `requires: [DetailedMixin]`). `GridReading` + `grid.yaml` (bare = premises +
+> **derived epoch** off the locality's lighting supply; on a `LineAccess` = the
+> trace naming the first cut). Tests: ElectricLight flux coupling (6),
+> LineAccess sever/splice/storm (5). ⚠ **D14 fix:** `requires: [DetailedMixin]`
+> trips `lint:arg-kinds` (no refusal phrase, and none of Thing's mixins have
+> one) → added a `DetailedMixin` refusal to kernel `lib/mixin.ts` (a weak
+> general gate; the class-default does the real narrowing). ⚠ The controller +
+> GridReading PROSE (scene/binder-heavy; controller tests skip the binder) are
+> exercised live by the B4 drive; their core logic (sever/splice→catalogue,
+> traceFrom, flux coupling) is unit-tested. All 59 gates pass.
 
 Files:
 - `energy/src/lib/GridPowered.ts` — `GridPoweredMixin` (per D7; `static
