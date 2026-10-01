@@ -1,10 +1,17 @@
 # Map / spatial-visualization slate (working doc)
 
-> **Status: UNBUILT** — no renderer exists on either data source
-> **Left:** the 2D per-floor grid + the player minimap · the 2D
-> node-graph · the 3D procedural box render · the draft-template and
-> live-Stuff adapters · `SphericalZone.canPlace` non-overlap
-> **Size:** a build
+> **Status: UNBUILT — design resolved 2026-10-01, ⛔ BLOCKED on
+> [location-graph-slate](./location-graph-slate.md).** The renderer has
+> nothing to read until the index exists; once it does, **this is 100% a
+> client build.**
+> ⭐⭐⭐ **Resolved: SVG for 2D, not canvas and not the box model** — the
+> `viewBox` is the lattice and the camera. three.js for 3D, **lazy-loaded**.
+> **Left:** the SVG grid + the pinned `map` card · ⭐ **the annotation
+> surface (pins, markup, notes) — which is the actual feature** · the
+> three-tier provenance render + the conflict badge · the 2D node-graph for
+> zone level · the stacked-floor isometric · the 3D mode behind
+> `React.lazy` · `SphericalZone.canPlace` non-overlap
+> **Size:** a build — and ⭐ the annotation half is the half that matters
 
 Working slate for **the map** — how the world's spatial structure gets
 *shown*. The engine already models space honestly (a `CartesianZone` is a
@@ -179,17 +186,214 @@ pair, `distance(center₁, center₂) ≥ r₁ + r₂` (focus + radius, so posit
 
 ---
 
+## ⭐⭐⭐ The rendering decision — SVG for 2D, and why CSS failed
+
+**Resolved 2026-10-01.** An attempt to build this with CSS *"failed to give
+something that rendered nicely with the rules it could engineer"*, and the
+cause is structural rather than a skill gap:
+
+> ⛔ **A map is absolute positions on a lattice with arbitrary connectors.
+> The box model is for flow layout.** Doing it with `div`s means
+> absolute-positioning everything anyway — all of CSS's pain, none of a
+> vector surface's benefits.
+>
+> ⭐⭐⭐ **SVG's `viewBox` *is* a lattice coordinate system.** Declare the
+> view in **cell units**, draw at room coordinates, and the browser does
+> every pixel.
+
+```svg
+<svg viewBox="-1 -1 9 7" preserveAspectRatio="xMidYMid meet">
+  <g class="edges"><line x1="0" y1="0" x2="1" y2="0"/>…</g>
+  <g class="rooms"><rect x="-.4" y="-.4" width=".8" height=".8" rx=".12"/>…</g>
+  <g class="here"><circle r=".18"/></g>
+</svg>
+```
+
+Rooms at `0.8` with a `0.2` gutter so connectors read; `<line>` between
+cell centres; **8-way diagonals free.** Resizing the card is one attribute.
+
+### Four reasons SVG beats canvas here — and the last is near-disqualifying
+
+1. The scene is tiny: a zone view is **tens of cells**, not thousands.
+2. ⭐ **Hit testing is free** — a room is a `<rect>` with an `onClick`.
+   Canvas needs hand-rolled hit detection.
+3. ⭐ **CSS styles it**, so it plugs into the existing theme/overlay cascade
+   ([message-rendering.md](../../subsystems/message-rendering.md)).
+4. ⭐⭐⭐ **Every room is a real DOM node.** `<title>` gives a tooltip *and*
+   a screen-reader label. **Canvas is invisible to assistive tech — in a
+   text game.**
+
+### ⭐⭐⭐ And SVG is what makes *our* map possible, not just prettier
+
+Everything the location-graph slate designed — **provenance on every
+line** — is a *styling* problem, and SVG is a styling surface:
+
+| the claim | render | mechanism |
+|---|---|---|
+| recorded 40 days ago | **fades** | `opacity` bound to age |
+| recorded by **echo**, not sight | **dashed outline** | `stroke-dasharray` |
+| *"searched here, nothing found"* | a distinct glyph | `<use>` of a symbol |
+| ⭐⭐⭐ **two sources disagree** | **both, badged** | two `<rect>`s + a marker |
+| somebody else's survey | a different hue | a CSS class per source |
+
+One class and one attribute per element. In canvas it is a redraw function
+somebody maintains by hand.
+
+### Pan and zoom
+
+> **The `viewBox` is the camera.** Zoom = change `w`/`h`; pan = change
+> `minX`/`minY`. No projection matrix.
+
+⭐⭐ And **better than a camera for us because it is serializable**:
+`{minX, minY, w, h}` lives in the store, survives a reload, goes in a URL.
+A three.js camera is a position + quaternion + fov to marshal by hand.
+
+⚠ **Gotcha worth knowing before it looks like a bug:** scaling the viewBox
+scales **stroke widths**, so zooming 4× fattens every connector 4×. Fix is
+one attribute — `vector-effect="non-scaling-stroke"`.
+
+### Libraries and the bundle budget
+
+```
+2D grid        NOTHING — viewBox + rects + lines
+pan/zoom       d3-zoom  (~3KB)   wheel+pinch+drag+double-tap is where the day goes
+node-graph     dagre    (~50KB)  elkjs is better and 500KB+; not worth it under ~100 nodes
+3D             three + @react-three/fiber (+drei)   ≈ 600KB gzipped
+```
+
+⚠⚠ **three.js is larger than the entire current client** (React, zustand,
+styled-components, Monaco aside). **3D must be `React.lazy`'d behind the
+mode switch** so a 2D user never downloads it. A hard requirement, not a
+nicety.
+
+## ⭐⭐⭐ How deep the map goes — the grid bottoms out at the ROOM
+
+What is "inside" a location? **Relations, not coordinates.**
+[spatial.md](../../subsystems/spatial.md) models **Placement** — `on` ·
+`in` · `from`, a row-extensible vocabulary — plus details, adornments and
+slots. **There is no `(x,y)` inside a room.**
+
+> ⛔ **So rendering a room's interior as a grid would be *inventing*
+> spatial truth** — which breaks this slate's own Principle 2 (*procedural
+> from honest data; no art pipeline*). We would be making up a floor plan.
+
+And the drill-in already exists: `card-surface.md` ships **ONE inspection
+card laid out by `StuffKind`.**
+
+> ⭐⭐⭐ **Click a room → push its inspection card.** The map is a
+> **navigator for the card surface**, not a deeper viewport.
+>
+> **The map is spatial down to the room; the card is relational below it** —
+> two representations meeting at the room boundary, each honest about what
+> it models, and both halves already built.
+
+⭐ Per the standing client rule that **clickables preview their command**, a room click should **preview the
+command** it will run (`look <room>`, or `go north` when adjacent) — so the
+map is an affordance surface over the command line rather than a parallel
+UI.
+
+## ⭐⭐⭐ Zone level — a node graph, not a grid, and misclosure lives here
+
+`CartesianZone` carries `cellSize` and a `grid` and **no origin, no offset,
+and no position relative to any other zone.** Every zone is its own frame
+from its own `(0,0,0)`, and `cellSize` varies per zone.
+
+> ⛔ **So zones cannot be placed on a lattice.** Two touching zones share a
+> **direction** on their crossing edge and nothing else — and with differing
+> `cellSize`, composed directions are steps of different lengths.
+
+So the zone view **is** the node-graph mode: `{crossesZone: true}` (the
+level-1 skeleton from
+[location-graph-slate § 3](./location-graph-slate.md)) laid out by dagre,
+with crossing directions as edge labels.
+
+⭐⭐⭐ **But a global frame could be *derived* by composing cross-zone edges —
+and that is dead reckoning at the zone level.** Across independently
+authored frames, with different scales, and no survey:
+
+> **Two routes between the same pair of zones can imply contradictory
+> relative positions.** With no shared origin that is not a bug, it is
+> *guaranteed* — and resolving it is a **surveyor's** job, which is where
+> the discipline finally has something real to do.
+
+⭐⭐ **And it is a lint.** North from A to B, north from B to C, and C has a
+south exit back to A → the realm's geometry is inconsistent. Nothing checks
+that today and it is computable from the index.
+
+## ⭐⭐ The provenance UI — clean by default, provenance on demand
+
+Rooms the player knows **but has not visited** must render (bought surveys,
+told directions), or the map market has no interface. Three tiers:
+
+| | render |
+|---|---|
+| **visited by me** | solid fill |
+| ⭐ **known from a source** | **outline only, no fill** — *I know it is there; I have not been* |
+| **unknown** | absent |
+
+And then:
+
+- **hover / focus** → `<title>` plus a detail strip: *"recorded 40 days ago
+  · Faradhi · by sight · awareness 5"*
+- ⭐⭐⭐ **a provenance overlay toggle** → the whole map recolours by age or
+  by source. **Provenance is one of the overlays, not permanent clutter.**
+- ⚠ **Conflicts are always on.** A badge on the cell — because **a stale
+  claim is information and a contradiction is a hazard**, and those deserve
+  different treatment.
+
+## ⭐⭐⭐ Annotation is in scope — and it is the product
+
+Two kinds of editing, and they separate cleanly:
+
+| | |
+|---|---|
+| ⭐⭐⭐ **editing YOUR map** — pins, markup, notes | **in scope** |
+| **the map as an authoring tool** for rooms and content (the CMS zone builder) | **deferred** |
+
+> ⭐⭐⭐ **Which makes this a bigger build than "a minimap."**
+> [location-graph-slate § 17](./location-graph-slate.md) concludes that a
+> map's value is its **annotations**, not its geometry — so **the client is
+> where the tradeable good actually gets made.** The renderer is
+> infrastructure; the annotation surface is the feature.
+
+## The card integration is already decided by doctrine
+
+`card-surface.md` has four body sources, and the minimap is a **`client`**
+body: *"the body is the client's own transport (Monaco, the git panel, the
+Studio catalogue). The **server** still owns the card's existence,
+identity, lifetime and pinned-ness; only the body is the client's."*
+
+> **`map` · source `client` · `pinned: ✓` · `noProse`** — exactly like
+> `cms`.
+
+⚠ And it must be **pushed by a command** (`map`), because *the wire cannot
+name a card*: there is **one birth path**, and a missing push once went
+undetected for a whole build with five green tests over it.
+
+**Data contract** — cheaper than expected:
+
+- entering a new locality → **one read** of that locality's slice of *your*
+  map document
+- moving within it → **the move frame already says where you are.** No new
+  transport
+- your map growing → a small delta
+
 ## Open questions
 
-1. **Game minimap discovery model** — fog-of-war (discovered rooms only) vs
-   full; ties to senses/exploration. *Lean: discovery-filtered.*
+1. ~~**Game minimap discovery model**~~ ⭐⭐⭐ **ANSWERED** — three tiers, not
+   two: **visited by me** (solid) · **known from a source** (outline only) ·
+   **unknown** (absent). Rooms you know but have not been *must* render, or
+   the map market has no interface. Provenance detail is an **overlay**;
+   conflicts are **always on**.
 2. **2D node-graph layout** — auto (force/dagre/elk) vs hand-positioned vs
    hybrid (auto + manual nudge).
 3. **Spherical 3D** — worth a 3D force-graph, or 3D is Cartesian-only and
    Spherical stays 2D?
-4. **Data-source adapter** — one renderer with template-adapter (editor,
-   draft-aware) + live-Stuff-adapter (game, discovery-filtered); confirm the
-   seam.
+4. ~~**Data-source adapter**~~ ⭐⭐ **ANSWERED** — three sources, and the one
+   this build reads is **the player's map document** via the location-graph
+   index. One read per locality transition; position comes from the existing
+   move frame; growth is a delta. ⚠ The editor adapter stays blocked on the
+   absent draft overlay.
 5. **3D polish budget / timing** — when demo-quality matters (an investor
    demo?) vs the functional render.
 6. ~~**Elastic graphs**~~ ⭐⭐⭐ **ANSWERED 2026-10-01** — and the lean was
@@ -201,27 +405,59 @@ pair, `distance(center₁, center₂) ≥ r₁ + r₂` (focus + radius, so posit
    them — is genuinely shapeless, and there the honest render is *"a space
    through this door, shape unknown."* See
    [location-graph-slate § 4](./location-graph-slate.md).
-7. **3D editing, ever?** — or permanently 2D-edit / 3D-view.
+7. **3D editing, ever?** — or permanently 2D-edit / 3D-view. *Lean: never.*
+8. ⚠ **Up/down in the 2D grid.** Vertical exits are not in the plane. A
+   corner glyph (`▲`/`▼`) per cell, or the stacked-floor isometric, or both.
+   The glyph is wave 1 and the isometric is wave 3, so wave 1 needs an
+   answer that does not look provisional.
+9. ⭐ **Does the zone-level graph expose the composition inconsistency to
+   players, or only to the lint?** A realm whose zones cannot be laid out
+   consistently is a genuine fact about the world; showing it is either
+   fascinating or alarming.
 
 ---
 
 ## Build order
 
-**Wave 1 — the 2D renderer.** The per-floor **grid** + the player
-**minimap**, from coordinate data; the zone editor's edit canvas and the
-game minimap panel. (The functional, foundational 2D — what unblocks the
-zone editor's visual mode.)
+⛔ **Wave 0 — not this build.** The
+[location-graph index](./location-graph-slate.md) has to exist. There is
+nothing to render until it does, and the data contract above is its API.
 
-**Wave 2 — the 2D node-graph.** Spherical/semantic zones + cross-zone
-connectivity views; the layout algorithm.
+**Wave 1 — the SVG grid and the pinned card.** `viewBox` in cell units,
+rects + lines, `d3-zoom` for pan/zoom, the `map` card pushed by the `map`
+command as a `client` body. Locality-scoped. The three provenance tiers and
+the conflict badge land here because they are *render classes*, not
+features.
 
-**Wave 3 — the 3D procedural render.** Boxes-from-coordinates (three.js /
-r3f, instanced) — the view/navigate/demo mode; then the **polish pass** for
-demo-quality (lighting/materials).
+⭐⭐⭐ **Wave 2 — annotation. The feature.** Pins, markup, notes, written
+into the player's map document. This is what makes a map a tradeable good
+rather than a HUD, and everything in the market design depends on it.
 
-**Far future.** 3D editing; fancy isometric/stylized views; Spherical 3D.
+**Wave 3 — the zone-level node graph.** dagre over `{crossesZone: true}`,
+crossing directions as edge labels. ⭐ Plus the **stacked-floor isometric**,
+which is one transform and gets most of "see the whole z-axis" for free.
 
----
+**Wave 4 — 3D, behind `React.lazy`.** The unified z-axis, **spherical zones
+(the only honest way to show focus+radius)**, and the marketing flythrough.
+⭐ Utility is explicitly not the goal here; the polish pass is its own
+distinct work.
+
+**Deferred, with reasons:**
+
+- ⭐ **A browsable whole-realm map.** Shape unknown — *"I don't really know
+  how shallow or deep and how balanced that tree is going to end up
+  being."* **Designing a realm navigator now would be designing for a guess
+  about a tree nobody has grown.** It wants a full-window route rather than
+  a card, and so does 3D; both wait for content to tell us what they need.
+- **The CMS zone-building tool** (the map as a *content authoring* surface,
+  editable rather than viewable). ⚠ Also still half-blocked: there is **no
+  draft overlay** (see above).
+- **3D editing.** Permanently 2D-edit / 3D-view unless something changes.
+
+⚠ **For the plan, not this slate:** annotation transport needs an
+**optimization pass** — each pin is a document write, and a map-edit session
+must not be fifty REST calls. Batch-and-flush is the obvious shape; the
+consistency cost is a planning decision.
 
 ## What this slate does NOT cover
 
