@@ -8,8 +8,9 @@
 > ids and `routeOf()` is already implemented, so the warren hole is far
 > smaller than it looks.
 > ⛔⛔⛔ **And it surfaced a live defect by reading: `Exit.getDiscoveryKey()`
-> collides across every clone of a shared room template (§16) — the same bug
-> class that cost a shared bank account.**
+> keys on LINEAGE unconditionally, while three minted-identity schemes exist
+> above it (§5, §16) — the same bug class that cost a shared bank account.
+> Traced, not executed; the test is specified in §16.**
 > **Left:** the node projection + its five indexes · the boot rebuild +
 > write-chokepoint maintenance · `PlatPlan` expansion as a graph source ·
 > occupancy-warren reflection at query time · **TPA routes as time-varying
@@ -269,17 +270,29 @@ host *instance* goes stale the first time a host dies.
 and that is the exact shape of the bug that cost a shared bank account
 (see [antipatterns.md](../../antipatterns.md)).
 
-⛔⛔⛔ **But `getIdentityPath()` is not sufficient today, and this slate said
-it was.** It *"falls back to `getTemplatePath()` for anything with no
-minted identity"* — and **nothing mints an identity for a warren member.**
-Only `Shade` and `WireBody` override it. So a dorm room's identity path
-**is** the shared `DormRoom` template path, and the collision survives.
+⭐⭐⭐ **And minted identities already exist — in TWO schemes.** An earlier
+draft of this slate said *"nothing mints an identity for a warren member"*
+and proposed an override. **Both were wrong: the override is already
+implemented.** Traced 2026-10-01:
 
-> ⭐⭐⭐ **The fix is one override, and it pays for itself twice.** A warren
-> member projects its slot — `<warrenPath>#<slot>` — which the **plan
-> already computes** (`nodeOfSlot`, `lot-<n>`, `f<floor>-r<pos>`). Same
-> shape as `Shade`/`WireBody` projecting an identity, and it fixes **both**
-> the graph key here **and** the live discovery-key collision in §16.
+```
+scheme 1   OuterWarren:499    asIdentityPath: `${parentExtent}/${nodeId}`
+                              ← circulation nodes, keyed on the PLAN's node id
+scheme 2   PlatWarren         "(scope = the row, key = <lotExtent>/<leaf>)"
+                              ← house rooms. "The old identityFor mint and
+                                 the asIdentityPath channel are GONE"
+scheme 3   Warren.spawnMember  nothing
+                              ← lounge satellites; ephemeral by design
+```
+
+`CartesianLocation`'s own doc is honest about it: *"Use this for a row that
+describes a **kind** of place minted many times… Each instance carries its
+own coordinates and **its own minted identity (`asIdentityPath`, D17)** —
+which is also what makes them distinguishable in the registry."*
+
+> ⭐ **So scheme 1 IS the `<warrenPath>#<slot>` override this slate
+> proposed**, computed from the plan, already shipped. Nothing to build
+> here. ⚠ **What remains is that §16's defect does not READ any of it.**
 
 ⭐ **`stuffId`'s job here is specific:** `DeferredDestinationExit` caches
 its destination as a within-session live ref and *"re-materialize[s] after
@@ -754,26 +767,47 @@ public override getDiscoveryKey(): string | undefined {
 }
 ```
 
-**The comment's intent is that a shared multi-clone room yields
-`undefined`. The code only yields `undefined` when `getTemplatePath()` is
-*null*** — and a clone **is** stamped with its template path, shared across
-every clone of it.
+⭐⭐⭐ **The sharp statement, after tracing it properly (2026-10-01): it
+never consults identity at all.** Three identity schemes exist above it
+(§5) and **it reads lineage unconditionally in every case** — so it collides
+even for rooms that DO carry a distinct minted identity, which are exactly
+the ones that exist in numbers.
 
-> ⚠⚠⚠ **So finding a secret door in one dorm unit's north wall keys on
-> `…/DormRoom#exit:north`, which reads as discovered in EVERY dorm room for
-> that player.** Same bug class as the shared bank account: **keying on
-> lineage where identity was meant.**
+> ⚠⚠⚠ **Finding a secret door in one instance keys on
+> `<shared template>#exit:<dir>`, which reads as discovered in EVERY
+> instance for that player.** Same bug class as the shared bank account:
+> **keying on lineage where identity was meant.** And `Stuff.ts`'s own
+> comment is the warning — the two prior instances of this class were
+> *"found by **driving the world, not by the suite**."*
 
-⚠ **Not executed — found by reading.** Worth confirming against a running
-world before anyone fixes it, because the alternative reading is that
-multi-clone rooms somehow carry no template path, in which case the code is
-right and the comment is merely confusing.
+### ⚠ And the fix is not one word
 
-⭐⭐⭐ **The fix is the §5 override and it pays for itself twice:** a warren
-member projects `<warrenPath>#<slot>` from the plan it already computes,
-`Exit.getDiscoveryKey()` keys on `source.getIdentityPath()` instead of
-`getTemplatePath()`, and **both the graph node key and the discovery
-collision are resolved by one method.**
+Switching to `getIdentityPath()` fixes schemes 1 and 2. But scheme 3 has no
+minted identity and `getIdentityPath()` is `#identityPath ?? getTemplatePath()`
+— **so it falls back to the colliding path and hides that it did.**
+
+> The comment's stated intent — *"`undefined` when the source has no durable
+> templatePath"* — needs a way to ask for **the minted identity
+> specifically, null when absent.** That accessor does not exist, which is
+> plausibly why the author reached for `getTemplatePath()` and wrote the
+> comment they wished were true.
+>
+> ⭐ And `undefined` is the **right** answer for scheme 3: a secret found in
+> a lounge satellite — *"gone on restart, recreated on the next
+> first-landing"* — should not stick.
+
+### ⚠⚠ Not executed
+
+**This is a code trace, not a run.** No test covers the `Exit` multi-clone
+case today (`Hiding.test.ts` covers only *"not sticky while hiding"*), and
+the bug class has escaped the suite twice before.
+
+**The test to write**, in a build worktree:
+
+> Clone two instances of one multi-instance location row. Hide an exit in A,
+> record a discovery for a viewer against it, then assert
+> `hasDiscovered(viewer, B's exit)` is **false**. Expectation today:
+> **true**, because both exits compute the same key.
 
 ## 17. ⭐⭐⭐ What quality a map actually has — the market design
 
