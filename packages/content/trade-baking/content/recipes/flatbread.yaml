@@ -22,5 +22,5 @@ outputMaterial: /stuff/idea/material/food/bread
 requiresHeatK: 480
 maxHeatK: 560
 holdS: 300
-difficulty: simple
+difficulty: easy
 discipline: baking

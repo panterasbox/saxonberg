@@ -3,7 +3,7 @@ recipeId: martini
 name: Martini
 keywords: [martini, gin-martini]
 discipline: bartending
-difficulty: moderate
+difficulty: standard
 inputSlots:
 - { slot: base, category: gin, minGrade: fair, measureL: 0.06 }
 - { slot: modifier, category: dry-vermouth, minGrade: fair, measureL: 0.01 }

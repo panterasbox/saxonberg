@@ -686,9 +686,46 @@ Every wave lands green on `pnpm test:near` + every touched pack's vitest +
 `pnpm -C packages/server lint:family`, and ends at the named commit.
 `pnpm test` runs once, before the MR.
 
-### W0 — the two gates as census, and the difficulty vocabulary closed
+### W0 — the two gates as census, and the difficulty vocabulary closed ✅ DONE
 
 *Implements D9 (census half), the 18-row fix.*
+
+> **W0 note.** Both gates landed and `lint:family` is green with them in
+> the derived roster (61 gates). The censuses came in at
+> `IDLE_CADENCE_CEILING_PER_MIN = 263.2` (the plan predicted 257.2 — the
+> difference is two specs the gate *revived*, below) and
+> `MENU_STAFF_SHORTFALL_CEILING = 11`. Both carry a `*_HIGH_WATER`
+> constant beside the ceiling, the `check-mass` shape, so a lowering is
+> not a failing test and the past cannot be edited down.
+>
+> ⚠⚠ **The idle-cadence gate's FIRST RUN found five shipped behaviour
+> specs with no `trigger:` at all** — `/world/terminus/infirmary/agent/
+> {nurse,physician}.yaml` and `/world/terminus/necropolis/agent/
+> undertaker.yaml`. `_parseTrigger(undefined)` throws, the spec is
+> skipped with a `_warn`, and so: **nobody in that infirmary had ever
+> been nursed**, and none of the three had ever gone off shift. The
+> `nurses` specs also carried a spec-level `cadenceMs: 20000` the engine
+> never reads — configuration of nothing, which is what made the missing
+> trigger look deliberate. Fixed: the `nurses` specs get
+> `trigger: cadence:20s`; the three trigger-less `shifts` specs are
+> **removed** rather than given a trigger, because they carried no
+> `config.behindBar`/`offstage` either and so could never have moved
+> anybody — W3's roster tick is what actually gives those three houses
+> the move, and it must now cover the infirmary and the necropolis too
+> (added to W3's row list).
+>
+> ⭐ The menu-staff census is more interesting than the plan guessed: **11
+> shortfalls, only one of them the mojito.** `fine-roast` (cooking ·
+> hard) at the Hearthworks with a `proficient` cook; `leather-jerkin`
+> (tailoring · hard) on the smithy menu where **no seat fulfils
+> tailoring at all**; and seven fermenting/distilling lines
+> (`wash-mash`, `distil`, `compound-gin`, `brandy`, `grappa`,
+> `lager-mash`, both vermouths) whose yard hands are `novice` or carry no
+> claim in the discipline at all. These are the same finding as the
+> mojito wearing work clothes — a house offering what its staff cannot
+> make — so W6 weighs each as content rather than driving the ceiling to
+> the mojito alone. The `call:` arms report **8 houses** with a
+> `fulfills` seat and no rule; WARN until W5 (`CALL_FIELD_SHIPPED`).
 
 - `packages/server/scripts/check-idle-cadence.ts` + `lint:idle-cadence`
   in `package.json`: today's Σ 60/period as `IDLE_CADENCE_CEILING_PER_MIN`

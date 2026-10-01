@@ -3,7 +3,7 @@ recipeId: sweet-vermouth
 name: Sweet vermouth
 keywords: [sweet-vermouth, vermouth]
 discipline: fermenting
-difficulty: moderate
+difficulty: standard
 inputSlots:
 - slot: wine
   category: red

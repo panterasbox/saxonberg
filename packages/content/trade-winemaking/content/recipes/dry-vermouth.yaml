@@ -6,7 +6,7 @@ recipeId: dry-vermouth
 name: Dry vermouth
 keywords: [dry-vermouth, vermouth]
 discipline: fermenting
-difficulty: moderate
+difficulty: standard
 inputSlots:
 - slot: wine
   category: white
