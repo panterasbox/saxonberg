@@ -7,13 +7,20 @@
 > already authored** — `PlatPlan` is persisted topology with stable node
 > ids and `routeOf()` is already implemented, so the warren hole is far
 > smaller than it looks.
+> ⛔⛔⛔ **And it surfaced a live defect by reading: `Exit.getDiscoveryKey()`
+> collides across every clone of a shared room template (§16) — the same bug
+> class that cost a shared bank account.**
 > **Left:** the node projection + its five indexes · the boot rebuild +
 > write-chokepoint maintenance · `PlatPlan` expansion as a graph source ·
 > occupancy-warren reflection at query time · **TPA routes as time-varying
 > edges** · ⭐ the player's map as a **document-tree artifact** (not a view,
-> not a collection — §6) · the four **reveal channels** (§9) · `published`
-> on the parcel + the one-directional lint · the eviction path for
-> offlined content · **coverage** as a derived per-locality fact (§11)
+> not a collection — §6) · **claims carrying modality + awareness band, not
+> one date per document** (§17) · a **disagreement renderer, not a merge
+> algorithm** (§17) · the four **reveal channels** (§9) · `published` on the
+> parcel + the one-directional lint · the eviction path for offlined content
+> · **coverage** as a derived per-locality fact (§11) · ⭐⭐⭐ **the warren
+> `getIdentityPath()` override that fixes the node key and the discovery
+> collision at once** (§5, §16)
 > **Size:** **a build.** The lint is the cheapest wave and worth shipping
 > first on its own.
 
@@ -260,9 +267,19 @@ host *instance* goes stale the first time a host dies.
 
 ⚠⚠ **Never key a node on `templatePath`** — many warren rooms share one,
 and that is the exact shape of the bug that cost a shared bank account
-(see [antipatterns.md](../../antipatterns.md)). `getIdentityPath()` *"falls
-back to `getTemplatePath()` for anything with no minted identity, so it is
-safe everywhere."*
+(see [antipatterns.md](../../antipatterns.md)).
+
+⛔⛔⛔ **But `getIdentityPath()` is not sufficient today, and this slate said
+it was.** It *"falls back to `getTemplatePath()` for anything with no
+minted identity"* — and **nothing mints an identity for a warren member.**
+Only `Shade` and `WireBody` override it. So a dorm room's identity path
+**is** the shared `DormRoom` template path, and the collision survives.
+
+> ⭐⭐⭐ **The fix is one override, and it pays for itself twice.** A warren
+> member projects its slot — `<warrenPath>#<slot>` — which the **plan
+> already computes** (`nodeOfSlot`, `lot-<n>`, `f<floor>-r<pos>`). Same
+> shape as `Shade`/`WireBody` projecting an identity, and it fixes **both**
+> the graph key here **and** the live discovery-key collision in §16.
 
 ⭐ **`stuffId`'s job here is specific:** `DeferredDestinationExit` caches
 its destination as a within-session live ref and *"re-materialize[s] after
@@ -623,6 +640,231 @@ disagreement with the templates is a bug rather than a state, and it must
 be droppable and rebuildable at any moment. Precedent: `Collections` /
 `COLLECTION_POLICIES` are generated artifacts with a do-not-edit banner.
 
+## 16. ⭐⭐⭐ The perception framework — and a live defect
+
+This is where the design either coheres or falls apart, and it mostly
+coheres: **most of what a map needs is already shipped, in the right place.**
+
+### ⚠ Correction: `DISCOVERY` already exists, and already covers exits
+
+§6 said no discovery state exists. **Wrong for concealed things.**
+[concealment.md](../../subsystems/concealment.md):
+
+> *"A find is a **per-viewer world-fact**, so it lands in the belief store
+> as a new realm… `BeliefStore` exports `const DISCOVERY = 'discovery'`…
+> `recordDiscovery` calls `viewer.know(DISCOVERY, referent, {found:true})`…
+> The referent key comes from `target.getDiscoveryKey()` (**the `Exit`
+> synthetic handle**)."*
+>
+> *"`perceives` short-circuits `true`… for anything **already discovered**
+> (the per-viewer belief sticks — **you never re-resolve a found
+> secret**)."*
+
+### ⭐⭐⭐ And the split that falls out is better than one store
+
+| | `beliefs` / `DISCOVERY` | the map document |
+|---|---|---|
+| what it is | **knowledge that cannot be un-known** | **a record that rots** |
+| shape | binary, sticky, never re-resolved | dated claims, per field |
+| scope | a per-viewer world-fact | an artifact you own, trade, lose |
+
+> ⭐⭐⭐ **A map of a secret is a search HINT, not a key.** Reading someone's
+> map that says *"hidden door, north wall"* does **not** write `DISCOVERY`
+> into your belief store. It tells you **where to look.** You still have to
+> be good enough to find it.
+
+**That is the spoiler valve for concealed content, and the strongest one we
+have.** The index can leak, the wiki can tell you, you can buy a master's
+survey — **and you still have to find the door yourself.** Which is exactly
+our stance (*optional; you are cheating yourself*) with the
+functional-UI objection answered: **the function a map provides is narrowing
+a search space, never bypassing a gate.**
+
+### ⭐⭐⭐ Pace is the recording effort — already shipped, no new friction
+
+`effectivePerception` sums `capacity` + `attention` + `conditions`, and the
+middle term is *"the passive baseline, or an **active-search bonus**, or a
+**care↔speed mode modifier**."* `sneak` / `walk` / `run` already exist as
+pace modes.
+
+> ⭐⭐⭐ **You do not record a room — you choose how carefully you move
+> through it, and the map follows.** Running through a locality yields a
+> thin map; a careful traverse yields a rich one, **from identical
+> perception code.**
+
+⭐⭐ And it prices the trade honestly: **a surveyor is slow, and slow is
+dangerous.** The cost of a good map is the risk of having stood still long
+enough to make it. ⚠ This replaces the *"recording is a separate action"*
+idea — that was friction on plumbing; this is a mode you set once.
+
+### ⭐⭐⭐ Four field-walking modalities, four kinds of map
+
+`Modality.ts`: only four override `signalAt` — *"Vision, sound, smell and
+touch each do — they read light, an acoustic field, a diffusion."*
+
+| modality | what it can map | |
+|---|---|---|
+| **vision** | shape, exits, detail | ⚠ **gated on light** — `conditions` is a light term |
+| ⭐ **sound** | **volume and material** — an echo says big/small, stone/wood | **works in the dark** |
+| ⭐⭐ **smell** | **connectivity** — you smell the bakery two rooms off, so a path exists | multi-room, through exits |
+| **touch** | **adjacency** — what you contact | one cell; NetHack's blind mapping |
+
+> ⭐⭐⭐ **A map made in the dark is honest and *different*, not just worse** —
+> no details, but volumes and materials from echo and topology from
+> diffusion. And because modalities are warmed **per anatomy**, a species
+> without vision produces a **real map of another kind.**
+>
+> ⭐⭐ Which earns the Marshall Islands wave charts and the Inuit tactile
+> maps as substrate rather than flavour: **a chart of wave refraction is a
+> map in a non-visual modality.**
+
+⭐ So a claim should carry **which modality produced it** — a trust
+property. *"Recorded by echo"* is a different warranty from *"seen in
+daylight."*
+
+### ⭐⭐⭐ Negative information — what a map can hold and `beliefs` cannot
+
+`DISCOVERY` records finds. It records **no failures** — a failed search
+leaves no trace, which is why you may search again.
+
+> ⭐⭐⭐ ***"I searched this wall thoroughly and there is nothing"* is a claim
+> only a map can carry**, and it is worth real money, because it is how a
+> buyer avoids re-searching eleven walls.
+>
+> ⭐⭐ And it is **falsifiable in the right way**: the claim carries the
+> recorder's **`awareness` band.** *"Nothing here — surveyed at band 4."*
+> Someone at band 6 may find something anyway, which makes the negative
+> **honest rather than authoritative.**
+
+⭐ **A survey's value is as much in its negatives as its positives**, and
+the negatives are unspoofable because they are stamped with the capability
+that produced them.
+
+### ⛔⛔⛔ The live defect — `getDiscoveryKey()` collides across clones
+
+```ts
+// the comment says:
+//   `undefined` when the source has no durable templatePath
+//   (a shared multi-clone room — the deferred player-placed-concealment case)
+
+public override getDiscoveryKey(): string | undefined {
+  if (!this.source) return undefined;
+  const src = this.source.getTemplatePath();
+  return src ? `${src}#exit:${this.direction}` : undefined;  // ← tests NULL, not SHARED
+}
+```
+
+**The comment's intent is that a shared multi-clone room yields
+`undefined`. The code only yields `undefined` when `getTemplatePath()` is
+*null*** — and a clone **is** stamped with its template path, shared across
+every clone of it.
+
+> ⚠⚠⚠ **So finding a secret door in one dorm unit's north wall keys on
+> `…/DormRoom#exit:north`, which reads as discovered in EVERY dorm room for
+> that player.** Same bug class as the shared bank account: **keying on
+> lineage where identity was meant.**
+
+⚠ **Not executed — found by reading.** Worth confirming against a running
+world before anyone fixes it, because the alternative reading is that
+multi-clone rooms somehow carry no template path, in which case the code is
+right and the comment is merely confusing.
+
+⭐⭐⭐ **The fix is the §5 override and it pays for itself twice:** a warren
+member projects `<warrenPath>#<slot>` from the plan it already computes,
+`Exit.getDiscoveryKey()` keys on `source.getIdentityPath()` instead of
+`getTemplatePath()`, and **both the graph node key and the discovery
+collision are resolved by one method.**
+
+## 17. ⭐⭐⭐ What quality a map actually has — the market design
+
+⚠ **The earlier draft of this slate had a hole**: if the minimap is perfect
+for where you have been, then the recording is perfect, and **the market
+floods with perfect maps.** Completion was solved and quality was
+undefined.
+
+**The resolution is that a map is a projection, not a copy.** Making one is
+choosing what to discard.
+
+| | lossy because | market |
+|---|---|---|
+| **geometry** | it isn't | ⛔ **commodity, near-worthless** — street layouts are near-free in reality too |
+| ⭐⭐⭐ **annotation** | **it is a choice** — you wrote what you thought mattered | ⭐⭐⭐ the whole thing |
+| ⭐⭐⭐ **completeness** | the recorder **did not find everything** | ⭐⭐ real — §16 |
+| ⭐⭐ **resolution / extent** | **a projection has a capacity** | ⭐⭐ real |
+
+> **Ordnance Survey and a tourist map of the same city have identical
+> street geometry and are not the same product.** The geometry was never
+> the good.
+
+⭐⭐ **Resolution is an honest capacity limit, and Minecraft got there
+first**: a map is locked to a **region and a scale**, and you build a
+composite from several. An overview and a block-level survey are **two
+goods with two buyers**, and the constraint is a projection decision rather
+than a punishment.
+
+### ⭐⭐⭐ Do not merge. Render the disagreement.
+
+An automatic merge needs a universal quality metric, which does not exist,
+and it turns the player's map back into a derived view — which deletes the
+ownership that made it interesting.
+
+> **A map you acquire sits *beside* yours.** The client layers them with
+> attribution and **renders where they disagree**:
+>
+> *"You recorded no exit east. Marked east → the mill — recorded 40 days
+> ago by Faradhi, by sight, at awareness band 5."*
+
+**A disagreement renderer, not a merge algorithm.** No rules to design, the
+conflict is the interesting artifact, and it is how real maps work — you do
+not merge a tourist map into your A–Z, you carry both.
+
+### ⭐⭐⭐ And "who was there more recently" dissolves, because a map is not one document with one date
+
+```
+geometry — a wall is a wall          half-life: ~never
+a door's seasonal schedule           half-life: a season
+a ford's passability                 half-life: a day
+who is standing there                half-life: minutes
+```
+
+> **A five-year-old map's geometry is perfect and its intel is worthless** —
+> true of real maps, and it answers the question without a rule: **take
+> geometry from the oldest reliable source and state from the newest.**
+
+⭐⭐ Which is a concrete data-structure requirement: **the map document holds
+*claims*, each with its own `recordedAt`, `recordedBy`, **modality** and
+**awareness band** — not one timestamp per document.** The UI then sorts by
+field rather than by file and nobody adjudicates anything.
+
+### ⚠ And the dependency this creates
+
+**Annotation has to matter mechanically or the whole market collapses.** If
+*"the ford floods in spring"* is flavour text, nobody buys a map for it. It
+has to be **what the router reads** — a route planner that knows about the
+ford because your map says so, and does not because it does not.
+
+> ⭐⭐⭐ **That is what makes annotation the product rather than decoration**,
+> and it is a hard dependency on the router (§10, rung four).
+
+### ⭐⭐ The usability answer, stated plainly
+
+⚠ The earlier draft degraded the minimap — misclosure on your own map,
+recording as an action, stopping to read. **All withdrawn.** Our players
+have Google Maps; *"why doesn't it just work"* is a fair question and the
+answer is:
+
+> **It does work. For where you have been.** The minimap is a pinned card:
+> instant, auto-updating, frictionless, exact. Google Maps does not feel
+> magical because the map is clever — **it feels magical because a
+> corporation surveyed the planet and sold your attention to pay for it.**
+> In this world there is no such corporation, **so the survey is a job**,
+> and that is the only thing being withheld.
+
+⭐ Misclosure survives, relocated: **your own map of where you walked is
+exact; a survey you SELL has a measurable precision.** Competence grades the
+**good** instead of taxing the player — and a stated precision is a
+**falsifiable claim**, which is what `quantities.md` asks of a real unit.
+
 ## Open questions
 
 1. **Does the occupancy warren ever get indexed live?** Possible, but it
@@ -660,7 +902,18 @@ be droppable and rebuildable at any moment. Precedent: `Collections` /
    departure window, or refuse to route through scheduled edges and let the
    player read the board. ⭐ The last one is cheapest and arguably the most
    honest — **it is what a traveller actually does.**
-8. **Does `edgeMinutes` survive as the cost field,** given §12 says cost is
+8. ⛔⛔ **Confirm the `getDiscoveryKey()` collision against a running
+   world** (§16). Found by reading, not executed. If it holds it is a live
+   bug independent of this build and should be fixed on its own.
+9. ⚠⚠ **Does annotation reach the router?** (§17.) If *"the ford floods in
+   spring"* is flavour text rather than something a route planner reads,
+   **the map market has no product** and this whole design collapses to
+   geometry nobody will pay for. It is the one hard dependency here.
+10. ⭐⭐ **Do claims carry a modality?** (§16.) *"Recorded by echo"* is a
+   different warranty from *"seen in daylight"*, and a non-visual map is
+   honest rather than deficient — but it is a field on every claim and a
+   render decision on every line.
+11. **Does `edgeMinutes` survive as the cost field,** given §12 says cost is
    an objective function rather than a number? It is on 85 edges and it is
    a *duration*; a fare is coin, a haul is mass×grade. Probably `edgeMinutes`
    stays as one term and the index carries the others beside it.
