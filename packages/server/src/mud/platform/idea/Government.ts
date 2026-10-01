@@ -27,6 +27,7 @@
  */
 
 import { Idea } from "../../lib/stuff/Idea";
+import { NamedMixin } from "../../lib/description/Named";
 import { TemplatePathPrefixes } from "../../lib/paths";
 import type { FieldMeta } from "../../lib/mixin";
 
@@ -53,7 +54,8 @@ export interface GovernmentSeat {
  */
 export interface GovernmentDescriptor {
   key: string;
-  displayName: string;
+  /** Display name (e.g. `'the City of Terminus'`); `NamedMixin.name`. */
+  name: string;
   description: string;
   /** Document-store path of the charter (pointer only in v1). */
   charter: string;
@@ -69,14 +71,21 @@ export interface GovernmentDescriptor {
   seats: GovernmentSeat[];
 }
 
-export default class Government extends Idea {
+/**
+ * ⭐ The government's **display name** ("the City of Terminus") comes from
+ * `NamedMixin` — the one general-purpose "something a person named" surface,
+ * reused rather than reinvented (it was a hand-rolled `displayName` /
+ * `getDisplayName` pair before). A government uses only `name`;
+ * honorific/surname/suffix ride along unused (the mixin's opt-out posture).
+ * `getAllFieldMeta` merges the mixin's `name` meta with the block below
+ * property-by-property.
+ */
+export default class Government extends NamedMixin(Idea) {
   /** Per-instance template path prefix: `<root>/idea/Government/<key>`. */
   static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.government;
 
   /** Durable join key (e.g. `'terminus-city'`). Non-empty. */
   public key: string = "";
-  /** Friendly display name (e.g. `'the City of Terminus'`). Non-empty. */
-  public displayName: string = "";
   /** Authored prose description. */
   public description: string = "";
   /** Document-store path of the charter (pointer only in v1). */
@@ -90,7 +99,6 @@ export default class Government extends Idea {
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true },
-    displayName: { persistent: true },
     description: { persistent: true },
     charter: { persistent: true },
     treasury: { persistent: true },
@@ -106,16 +114,6 @@ export default class Government extends Idea {
       throw new TypeError("Government.key must be a non-empty string");
     }
     this.key = value;
-  }
-
-  public getDisplayName(): string {
-    return this.displayName;
-  }
-  public setDisplayName(value: string): void {
-    if (typeof value !== "string" || value.length === 0) {
-      throw new TypeError("Government.displayName must be a non-empty string");
-    }
-    this.displayName = value;
   }
 
   public getDescription(): string {

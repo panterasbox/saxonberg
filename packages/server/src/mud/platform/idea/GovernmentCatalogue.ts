@@ -176,10 +176,8 @@ function buildGovernmentDescriptor(
   }
   return {
     key: d.key,
-    displayName:
-      typeof d.displayName === "string" && d.displayName.length > 0
-        ? d.displayName
-        : d.key,
+    name:
+      typeof d.name === "string" && d.name.length > 0 ? d.name : d.key,
     description: str(d.description),
     charter: str(d.charter),
     treasury: str(d.treasury),

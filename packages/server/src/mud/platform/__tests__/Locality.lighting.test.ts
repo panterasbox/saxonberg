@@ -253,7 +253,7 @@ describe('the locality treasury', () => {
     vi.spyOn(GovernmentApi, 'governmentChainAt').mockReturnValue([
       {
         key: 'testtown',
-        displayName: 'Testtown',
+        name: 'Testtown',
         description: '',
         charter: '',
         treasury: '/test/town-budget',

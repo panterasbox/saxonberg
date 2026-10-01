@@ -11,7 +11,7 @@ class: /platform/idea/Government
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: terminus-city
-  displayName: the City of Terminus
+  name: the City of Terminus
   description: >-
     The municipal corporation of Terminus — a young administration
     chartered by the realm and retrofitted onto a city built by people

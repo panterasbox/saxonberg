@@ -18,7 +18,7 @@ class: /platform/idea/Government
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: hearts-delight
-  displayName: the Heart's Delight Parish
+  name: the Heart's Delight Parish
   description: >-
     A parish government of the valley, thin but real: it keeps the ways lit
     after dark, funds the oil from a budget the valley's own trade fills, and

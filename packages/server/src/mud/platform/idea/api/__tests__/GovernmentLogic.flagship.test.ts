@@ -129,7 +129,7 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
       "terminus-city",
       "terminus-realm",
     ]);
-    expect(chain.map((g) => g.displayName)).toEqual([
+    expect(chain.map((g) => g.name)).toEqual([
       "the Eternal University",
       "the City of Terminus",
       "the Realm of Terminus",
