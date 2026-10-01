@@ -851,53 +851,108 @@ step is recorded as *not driveable on the wire*, not skipped silently.
 
 ## ✅ Naming — DECIDED 2026-09-30 (requirements D2, D5)
 
-> **The owner chose the PHASE set, and replaced `Typist` with `Shell`.**
->
-> ```
-> Character  →  Shell  →  Avatar  →  Incarnation   (the record body)
->                                 →  Shade         (the dead body)
->                                 →  Understudy    (the circle body)
-> ```
->
-> - **`Avatar`** — abstract root; a human's handle in the world. Keeps
->   the name because the identity namespace `/platform/agent/Avatar/`
->   stays the family's (D13).
-> - **`Incarnation`** — the record body. ⭐ Permanence falls out of the
->   phase rather than being asserted: an incarnation is by nature the one
->   that lasts.
-> - **`Shade`** — unchanged, keeping its shipped name and all its prose
->   in `mortality.md` and `passage.yaml`.
-> - **`Understudy`** — the circle body. Says *rehearsing in someone's
->   workshop* more precisely than *wire* or *circle* does.
-> - **`Shell`** — the command-line rung (was `ShelledCharacter`). ⭐ *A
->   `Shell` is a Character with a command line; an `Avatar` is a `Shell`
->   with a human driving it.* Lands in `lib/shell/` beside `Alias`,
->   `Workspace`, `Environment` and `Focused`, and the codebase already
->   uses *shell* for exactly this sense (`shell` command category,
->   `shell.result`, `shell.parser`).
->
-> **Why the phase set:** it is the only one of the three where all three
-> concrete names answer the **same question** — *what part of play is
-> this?* That is the property `Movable` and `Animate` lacked, which is
-> why they read as category errors rather than as poor word choices.
->
-> ⚠ **The one cost, recorded:** *shelled* can mean husked, so a reader
-> might hear "empty vessel" — which is `Shade`'s territory. The
-> computing sense is judged to win overwhelmingly in this codebase's
-> context. If a reviewer hears the other one first, that is the reason
-> to revisit.
->
-> **Rejected, with reasons:** `Typist` (describes the human, not the
-> class) · `Console` (clashes with SaxonbergClient's own keyspace —
-> `console.tabs`, `console.routing`, `console.activeTab`) · `Terminal`
-> (reads against `TpaTerminal`) · `Pilot` (*driving* is
-> `HasInteractive`'s notion, one rung up) · `Scribe` (reads as a
-> **vocation**, and vocations are Cast rows — the exact confusion the
-> Extra audit is about) · `Steward` (does not say command line) ·
-> `Operant` (adjective-shaped; banned by the class-naming convention).
->
-> ⭐ **W6 is unblocked.** The sets below are kept as the record of what
-> was weighed.
+```
+Character  →  Shell  →  Avatar  (abstract)
+                        ├── PrimaryAvatar    the one you play
+                        ├── ShadeAvatar      the dead one
+                        └── SandboxAvatar    the rehearsal one
+```
+
+### ⭐⭐ The axis is TWO axes, which is why no single word fit
+
+| | acts are **canon** | can **fully act** |
+|---|---|---|
+| **`PrimaryAvatar`** | ✅ | ✅ |
+| **`ShadeAvatar`** | ✅ — deeds persist, **tagged as having happened while ghosted** | ⛔ cannot advance |
+| **`SandboxAvatar`** | ⛔ a transaction that is rolled back at the door | ✅ |
+
+⭐ **Each non-primary body gives up exactly one, and a different one.**
+That is the structure, and it is why `Living`, `Incarnation` and `Canon`
+each felt almost-right and then lied about the third body: every one of
+them named a single axis.
+
+**`PrimaryAvatar`** is therefore the body that gives up *nothing*, and
+the other two are each one qualification of it. ⚠ Not a ranking —
+a shade is not a lesser avatar, it is one whose acts cannot accrue.
+
+### ⚠⚠ "Wire" means three things, so it cannot be a class name
+
+The rejected `WireAvatar` reads, to anyone who has not read
+`sandbox.md`, as *the avatar over the websocket* — which is every
+avatar. In this repo **wire** is:
+
+1. **the protocol** — `packages/wire` (the whole wire-test package),
+   "wire tests", the wire shapes in `@saxonberg/types`, *"appeared on
+   the wire as in-flight"* (`activity.md`). The dominant meaning.
+2. **the sandbox fiction** — *"step onto the wire"*, the wire namespaces.
+3. **the epistemic wire mark** — `circleScope` on a `pass(mark)` row.
+
+⭐ **The vocabulary sorts cleanly once you see it:**
+
+| word | what it actually names | where it belongs |
+|---|---|---|
+| **sandbox** | the FEATURE — `SandboxApi`, `SandboxLogic`, `SandboxCrossingExit`, `sandbox.md`, the policy table, `platform/agent/sandbox/` | **the code** |
+| **circle** | the SCOPE — `circleScope`, `discardScope`, the namespace | the persistence seam |
+| **wire** | the fiction a player meets at the door | **the fiction, and nowhere else in code** |
+
+`CircleAvatar` was considered and is better than `WireAvatar`, but
+*circle* names **the fence, not the workshop**. `SandboxAvatar` is the
+only candidate where the class, its directory
+(`platform/agent/sandbox/`), its Api and its subsystem doc all say one
+word. The bare name `Sandbox` is free.
+
+⚠ **The fiction does not change.** The crossing still says *"step onto
+the wire"*; that is good prose and players never read a class name.
+This makes the CODE side consistent, where it is currently half-and-half
+(`WireBody` already lives in `sandbox/` and already writes `circleScope`).
+
+### The rung, and the root
+
+- **`Avatar`** — abstract root, a human's handle in the world. Keeps the
+  name: the identity namespace `/platform/agent/Avatar/` stays the
+  family's (D13).
+- **`Shell`** (was `ShelledCharacter`) — *a `Shell` is a Character with a
+  command line; an `Avatar` is a `Shell` with a human driving it.* Lands
+  in `lib/shell/` beside `Alias`, `Workspace`, `Environment`, `Focused`.
+  ⚠ Cost recorded: *shelled* can mean husked.
+
+### Everything rejected, with its reason
+
+| candidate | why not |
+|---|---|
+| `WireAvatar` | ⚠⚠ three meanings (above); reads as *over the websocket* |
+| `CircleAvatar` | names the fence, not the workshop |
+| `Understudy` | ⛔ reserved — casting vocabulary, belongs to the Extra/Cast work |
+| `Incarnation` | vague; states nothing about why this body matters |
+| `LivingAvatar` | separates from `Shade` but not from the sandbox body, which is also a living self |
+| `CanonAvatar` | ⛔ **false** — a shade's deeds persist too, tagged as ghosted. Canon separates the sandbox body only |
+| `MortalAvatar` | a body can die inside a circle too (it leaves a circle-scoped corpse) |
+| `FieldAvatar` | *field* names the sandbox axis only; sits oddly against `Shade` |
+| `Typist` | describes the human, not the class |
+| `Console` | clashes with the SaxonbergClient keyspace (`console.tabs`, `console.routing`, `console.activeTab`) |
+| `Terminal` | reads against `TpaTerminal` |
+| `Pilot` | *driving* is `HasInteractive`'s notion, one rung up |
+| `Scribe` | reads as a **vocation**, and vocations are Cast rows |
+| `Steward` | does not say command line |
+| `Operant` · `Movable`-shaped names | adjective-shaped; banned by the class-naming convention |
+
+### ⭐⭐ A constraint this naming pass surfaced — for the ghost content pack
+
+A shade **cannot advance**, and that is the half of its definition that
+is a *rule* rather than a consequence. ⚠ **It may be aspiration rather
+than shipped behaviour:** `AdvancementMixin` holds no host state at all
+(Competence is derive-on-read, the Transcript is identity-keyed
+Documents), so there is no structural barrier to a shade accruing. The
+build checks which it is.
+
+⭐ **And it must end up a DECLARED, LIFTABLE property, not an accidental
+absence.** The owner wants the option of a ghost content pack — an
+underworld quest, Orpheus — which is by definition *a ghost doing things
+that matter*. A hardcoded absence blocks that pack before it is
+designed; a declared refusal lets the pack lift it. Same lesson as the
+retired verb conferral: **the refusal must exist in order to be lifted.**
+
+W6 is unblocked.
 
 ## The three sets as offered (superseded by the decision above)
 

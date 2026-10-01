@@ -173,21 +173,28 @@ classes whose names say how the avatar is USED in the game.**
 ### D2 — ✅ The names, decided 2026-09-30 after the decomposition
 
 ```
-Character → Shell → Avatar → Incarnation · Shade · Understudy
+Character → Shell → Avatar → PrimaryAvatar · ShadeAvatar · SandboxAvatar
 ```
 
-`Avatar` stays the abstract root (the identity namespace is the
-family's). **`Incarnation`** is the record body, **`Shade`** keeps its
-shipped name, **`Understudy`** is the circle body, and **`Shell`** is
-the command-line rung that was `ShelledCharacter` — *a `Shell` is a
-Character with a command line; an `Avatar` is a `Shell` with a human
-driving it.*
+⭐⭐ **It is two axes, not one** — *are your acts canon* and *can you
+fully act*. `PrimaryAvatar` gives up neither; `ShadeAvatar` is canon
+(deeds persist, tagged as ghosted) but **cannot advance**;
+`SandboxAvatar` can do anything and is **rolled back at the door**. Each
+non-primary body gives up exactly one, and a different one — which is
+why no single word ever fit.
 
-⭐ The **phase of play** axis won because it is the only one of three
-where all three concrete names answer the same question — *what part of
-play is this?* — which is the property `Movable` and `Animate` lacked.
-⚠ The recorded cost: *shelled* can also mean husked. Full rejection
-list and reasoning in the plan's § Naming.
+`Avatar` stays the abstract root (the identity namespace is the
+family's). **`Shell`** is the command-line rung that was
+`ShelledCharacter` — *a `Shell` is a Character with a command line; an
+`Avatar` is a `Shell` with a human driving it.*
+
+⚠⚠ **`Wire` was rejected because it means three things** (the protocol
+`packages/wire`, the sandbox fiction, the epistemic mark); `Circle`
+names the fence rather than the workshop. **`sandbox` is the code's own
+word** — the Api, the logic singleton, the crossing exit, the subsystem
+doc and the directory the class already lives in. The player-facing
+fiction still says *"step onto the wire"* and does not change.
+Full rejection list in the plan's § Naming.
 
 **The original decision, kept because the reasoning still governs any
 future rename:**
