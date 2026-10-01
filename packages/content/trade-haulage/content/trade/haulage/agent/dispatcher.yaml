@@ -40,7 +40,7 @@ data:
     - { disposition: diligence, valence: 70 }
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:44s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "rules a line under something and does not write anything under it." }

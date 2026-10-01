@@ -51,7 +51,7 @@ data:
     # prices, and two people on two wage rates buy different bread on the
     # same morning with nothing anywhere labelling either of them.
     - brain: /lib/behavior/eats
-      trigger: cadence:90s
+      trigger: candidate
       config:
         counter: /world/terminus/market/thing/bread-counter
         fromHour: 6
@@ -86,7 +86,7 @@ data:
           - "Don't lean on that, it's not dry."
           - "Help you with something?"
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "thumps a sack to settle it." }

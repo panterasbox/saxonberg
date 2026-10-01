@@ -77,7 +77,7 @@ data:
     # Kernel-commons `enforces` brain (any barkeep reuses it); config binds
     # it to this house's geography and records.
     - brain: /lib/behavior/enforces
-      trigger: cadence:20s
+      trigger: candidate
       config:
         alertness: 5
         shoutLine: "Hey! Break it up — not in my house."
@@ -93,7 +93,7 @@ data:
         # it, while the wizard `lounge` group keeps the whole parcel.
         recordsPath: /world/lounge/location/bar/records/eighty-six
     - brain: /lib/behavior/idles
-      trigger: cadence:15s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "polishes a glass that didn't need polishing." }

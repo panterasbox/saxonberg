@@ -36,7 +36,7 @@
  * relevant mixins (`Sensor` for witness triggers, `Engaged` for slots).
  */
 
-import type { MessageFrame } from '@saxonberg/types';
+import type { AbortReason, MessageFrame } from '@saxonberg/types';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
@@ -65,12 +65,41 @@ import {
   WITNESS_TOPIC,
   BRAIN_EXPORT,
 } from './brain';
-import { BehaviorBeat } from './BehaviorBeat';
+import { BehaviorBeat, BEHAVIOR_BEAT_TYPE } from './BehaviorBeat';
+import { Urgency, URGENCY_BANDS, type TaskKind } from './Urgency';
+
+/** Code defaults for the beat dials — identity when app-settings is unwarmed. */
+const DEFAULT_BEAT_MS = 20_000;
+const DEFAULT_BEAT_NIGHTLY_MS = 120_000;
+const DEFAULT_BEAT_MIN_GAP_MS = 3_000;
 
 /** ± jitter applied to every cadence interval (anti-lockstep). */
 const JITTER_FRACTION = 0.25;
 /** How long a witness brain's slot `claims` are held (ms). */
 const BEAT_MS = 2500;
+
+/**
+ * What the agent decided it is doing, and why. ⭐ Runtime only — a reboot
+ * re-decides at the first beat, which is honest, and a host with no prior
+ * intention narrates no switch, so a reboot produces no spurious act.
+ */
+export interface Intention {
+  /** The winning brain's path. */
+  readonly brain: string;
+  readonly band: string;
+  /** The sentence a watcher read when this became the intention. */
+  readonly because: string;
+  /** `Date.now()` when it became the intention. */
+  readonly since: number;
+}
+
+/** One candidate's answer, with the wiring that produced it. */
+interface Candidate {
+  wiring: BehaviorWiring;
+  descriptor: BrainStatics;
+  urgency: Urgency;
+  kind: TaskKind;
+}
 
 interface BehaviorWiring {
   spec: BehaviorSpec;
@@ -100,6 +129,25 @@ export interface Behaved {
    * and all. False when no live wiring names that brain.
    */
   fireBeat(brainPath: string): Promise<boolean>;
+  /** What this agent decided it is doing, and why. Null before its first beat. */
+  getIntention(): Intention | null;
+  /**
+   * ⭐ Pull the next deliberation beat forward — because something was
+   * perceived, or because somebody called. Debounced to
+   * `behavior.beatMinGapMs`: a noisy room must not be an unbounded
+   * deliberation loop.
+   */
+  requestBeat(): void;
+  /**
+   * ⭐⭐ Cut whatever this agent is doing that yields to `reason`, and say
+   * whether anything was actually cut.
+   *
+   * This is the **first consumer of `interruptibleBy`** in the engine's
+   * history: every engagement in the tree declared a set and nothing ever
+   * read one. A beat that declares neither `called` nor `outranked`
+   * genuinely cannot be interrupted by either now.
+   */
+  preemptFor(reason: AbortReason): boolean;
 }
 
 export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
@@ -143,6 +191,15 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
     /** Players currently in the room (movement delta baseline). */
     private _seenPlayers: Set<string> = new Set();
     private _behaviorsLive = false;
+    /** The ONE beat handle — per agent, not per spec. */
+    private _beatHandle?: ScheduleHandle;
+    private _intention: Intention | null = null;
+    private _lastBeatAt = 0;
+    private _beatPending = false;
+
+    public getIntention(): Intention | null {
+      return this._intention;
+    }
 
     public getBehaviors(): readonly BehaviorSpec[] {
       return this.behaviors;
@@ -162,9 +219,17 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         (w) => w.live && w.spec.brain === brainPath
       );
       if (!wiring) return Promise.resolve(false);
+      // ⭐ A candidate brain has no beat of its own — firing it means
+      // running the agent's DELIBERATION, which is the honest seam: a
+      // drive that could run one candidate's act directly would be
+      // testing something the world never does.
+      const run =
+        wiring.parsed.source === 'candidate'
+          ? () => this._deliberate()
+          : () => this._fireCadence(wiring);
       return new Promise<boolean>((resolve) => {
         ScheduleApi.schedule(1, () => {
-          this._fireCadence(wiring).then(
+          run().then(
             () => resolve(true),
             () => resolve(true)
           );
@@ -251,6 +316,21 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
           this._warn(`unresolvable brain '${spec.brain}' — skipping`);
           continue;
         }
+        // ⚠ A brain wired onto a host that cannot run it is a spec that
+        // does nothing, forever, with nothing anywhere to say so — the
+        // same shape as the five trigger-less specs `lint:idle-cadence`
+        // found. Fail at wire time like a bad trigger does.
+        const needs = (warm as BrainStatics).requires?.mixins ?? [];
+        const missing = needs.filter(
+          (m) => !MixinApi.hasMixin(this.constructor as never, m as never)
+        );
+        if (missing.length) {
+          this._warn(
+            `brain '${spec.brain}' requires ${missing.join(', ')}, which ` +
+              `this host does not compose — skipping`
+          );
+          continue;
+        }
         const wiring: BehaviorWiring = {
           spec,
           parsed,
@@ -263,11 +343,21 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         if (parsed.source === 'cadence') {
           this._scheduleJittered(wiring, parsed.intervalMs);
         }
+        // ⭐ A `candidate` wiring gets NO timer of its own — see below.
         // Witness wirings need no schedule — handleMessage dispatches.
       }
+      // ⭐⭐ ONE beat for the whole agent, armed once, however many
+      // candidates it has to choose between. This is the line that turns
+      // N timers per NPC into one.
+      if (this._candidates().length) this._scheduleBeat();
     }
 
     private _teardownBehaviors(): void {
+      if (this._beatHandle) {
+        ScheduleApi.cancel(this._beatHandle);
+        this._beatHandle = undefined;
+      }
+      this._intention = null;
       for (const w of this._wiring) {
         w.live = false;
         if (w.handle) {
@@ -331,6 +421,195 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       await this._runAct(descriptor, wiring, undefined, 'cadence');
     }
 
+    // ───────── the deliberation beat ─────────
+
+    /** The live `candidate` wirings, in declaration order. */
+    private _candidates(): BehaviorWiring[] {
+      return this._wiring.filter(
+        (w) => w.live && w.parsed.source === 'candidate'
+      );
+    }
+
+    /** One of the three beat dials, with its code default. */
+    private _beatSetting(key: string, fallback: number): number {
+      try {
+        const v = Number(AppApi.setting(key));
+        if (Number.isFinite(v) && v > 0) return v;
+      } catch {
+        // app-settings unwarmed (tests) — the code default.
+      }
+      return fallback;
+    }
+
+    /**
+     * The beat period right now: the watched dial when somebody is here,
+     * the nightly one when nobody is. ⭐ The ambient pacing dial still
+     * applies when the agent's current intention is ambient chatter, so
+     * the documented "nothing unprompted faster than the floor" budget
+     * survives the move from N cadences to one beat.
+     */
+    private _beatPeriod(): number {
+      const base = this._hasAudience()
+        ? this._beatSetting(AppSettingKeys.behaviorBeatMs, DEFAULT_BEAT_MS)
+        : this._beatSetting(
+            AppSettingKeys.behaviorBeatNightlyMs,
+            DEFAULT_BEAT_NIGHTLY_MS
+          );
+      const current = this._intention
+        ? this._wiring.find((w) => w.spec.brain === this._intention?.brain)
+        : undefined;
+      return this._effectiveCadence(base, current?.ambient ?? false);
+    }
+
+    private _scheduleBeat(): void {
+      if (!this._behaviorsLive) return;
+      if (this._beatHandle) return;
+      const base = this._beatPeriod();
+      const jitter = 1 + (Math.random() * 2 - 1) * JITTER_FRACTION;
+      const delay = Math.max(1, Math.round(base * jitter));
+      this._beatHandle = ScheduleApi.schedule(delay, () => {
+        this._beatHandle = undefined;
+        if (!this._behaviorsLive) return;
+        void this._deliberate().finally(() => this._scheduleBeat());
+      });
+    }
+
+    public requestBeat(): void {
+      if (!this._behaviorsLive || this._beatPending) return;
+      if (!this._candidates().length) return;
+      const gap = this._beatSetting(
+        AppSettingKeys.behaviorBeatMinGapMs,
+        DEFAULT_BEAT_MIN_GAP_MS
+      );
+      if (Date.now() - this._lastBeatAt < gap) return;
+      this._beatPending = true;
+      ScheduleApi.schedule(1, () => {
+        this._beatPending = false;
+        if (!this._behaviorsLive) return;
+        void this._deliberate();
+      });
+    }
+
+    public preemptFor(reason: AbortReason): boolean {
+      const host = this as unknown as Stuff;
+      if (!MixinApi.isEngaged(host)) return false;
+      const engaged = host as Stuff & Engaged;
+      const doomed = engaged
+        .getEngagements()
+        .filter((e) => e.interruptibleBy.has(reason));
+      if (!doomed.length) return false;
+      SchedulerApi.cancelByPredicate(
+        engaged,
+        (e) => e.interruptibleBy.has(reason),
+        reason
+      );
+      // The intention died with its beat — say nothing; the next beat
+      // decides, and a switch from nothing narrates nothing.
+      if (
+        this._intention &&
+        doomed.some((e) => e.type === BEHAVIOR_BEAT_TYPE)
+      ) {
+        this._intention = null;
+      }
+      return true;
+    }
+
+    /**
+     * ⭐⭐⭐ **One beat, one decision, one act.**
+     *
+     * Ask every candidate how much it wants this beat, run exactly one
+     * winner, and — only when the winner CHANGES — say why out loud. The
+     * prose is the brain's own `because`; there is no second string
+     * anywhere, which is what keeps the 38 sentences honest.
+     */
+    private async _deliberate(): Promise<void> {
+      if (!AppApi.isWorldOpen()) return;
+      this._lastBeatAt = Date.now();
+      const candidates = this._candidates();
+      if (!candidates.length) return;
+      const watched = this._hasAudience();
+
+      // ⭐ Unwatched, only the brains that declare they run unwatched are
+      // even CONSULTED — so an agent whose whole candidate list is ambient
+      // costs one timer and nothing else while the room is empty.
+      const asked: Candidate[] = [];
+      for (const wiring of candidates) {
+        const descriptor = this._resolveBrain(wiring.spec.brain);
+        if (!descriptor) continue;
+        if (descriptor.presenceGated !== false && !watched) continue;
+        if (typeof descriptor.urgency !== 'function') continue;
+        if (this._blocked(descriptor.requiresFree)) continue;
+        const ctx = this._context(wiring, undefined, 'candidate');
+        let urgency: Urgency;
+        try {
+          urgency = await descriptor.urgency(ctx);
+        } catch (e) {
+          this._warn(`brain '${wiring.spec.brain}' urgency threw: ${asMsg(e)}`);
+          continue;
+        }
+        if (!urgency || !urgency.isCandidate()) continue;
+        asked.push({
+          wiring,
+          descriptor,
+          urgency,
+          kind: descriptor.kind ?? 'filler',
+        });
+      }
+      if (!asked.length) return;
+
+      // ⚠ Hysteresis before declaration order: an exact tie is broken by
+      // *what the agent was already doing*, never by which row came first.
+      // Ordering on authored position is the defect `resolveMaker` shipped.
+      const current = this._intention;
+      const winner = asked.reduce((best, c) => {
+        if (c.urgency.outranks(best.urgency, c.kind, best.kind)) return c;
+        if (best.urgency.outranks(c.urgency, best.kind, c.kind)) return best;
+        if (current?.brain === c.wiring.spec.brain) return c;
+        return best;
+      });
+
+      const changed = current?.brain !== winner.wiring.spec.brain;
+      if (changed) {
+        // `critical` preempts; a merely higher band waits for the slot to
+        // free on its own (the beat is 2.5 s, so it will).
+        if (
+          winner.urgency.band === 'critical' ||
+          (current &&
+            winner.urgency.rank() >
+              URGENCY_BANDS.indexOf(current.band as never))
+        ) {
+          this.preemptFor('outranked');
+        }
+        if (watched && winner.urgency.because) {
+          this._context(winner.wiring, undefined, 'candidate').emoteFree(
+            winner.urgency.because
+          );
+        }
+        this._intention = {
+          brain: winner.wiring.spec.brain,
+          band: winner.urgency.band,
+          because: winner.urgency.because,
+          since: Date.now(),
+        };
+      }
+
+      if (
+        winner.descriptor.claims?.length &&
+        MixinApi.isEngaged(this as unknown as Stuff)
+      ) {
+        this._startBeat(
+          winner.descriptor.claims,
+          winner.descriptor.interruptibleBy
+        );
+      }
+      await this._runAct(
+        winner.descriptor,
+        winner.wiring,
+        undefined,
+        'candidate'
+      );
+    }
+
     // ───────── witness (perception) ─────────
 
     protected handleMessage(frame: MessageFrame): void {
@@ -339,6 +618,14 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       ).handleMessage;
       if (typeof sup === 'function') sup.call(this, frame);
       if (!this._behaviorsLive) return;
+      // ⭐ Early wake. A `critical` candidate can only BECOME critical
+      // because of something the host perceived or something on a clock it
+      // already reads — so a fight or a voice in the room is exactly when
+      // re-deciding is worth it. Debounced inside `requestBeat`.
+      const topicRaw = frame.topic ?? '';
+      if (topicRaw.startsWith('act.combat') || topicRaw.startsWith('speech.')) {
+        this.requestBeat();
+      }
       const witnesses = this._wiring.filter(
         (w) => w.live && w.parsed.source === 'witness'
       );
@@ -425,7 +712,7 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       descriptor: BrainStatics,
       wiring: BehaviorWiring,
       perceived: BrainContext['perceived'],
-      source: 'cadence' | 'witness'
+      source: 'cadence' | 'witness' | 'candidate'
     ): Promise<void> {
       // ⭐ The cast holds still while the world is closed. Brains are
       // wired at `postRegister` — the host must exist before it can
@@ -443,10 +730,29 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         descriptor.claims.length &&
         MixinApi.isEngaged(this as unknown as Stuff)
       ) {
-        this._startBeat(descriptor.claims);
+        this._startBeat(descriptor.claims, descriptor.interruptibleBy);
       }
+      const ctx = this._context(wiring, perceived, source);
+      try {
+        await descriptor.act(ctx);
+      } catch (e) {
+        this._warn(`brain '${wiring.spec.brain}' threw: ${asMsg(e)}`);
+      }
+    }
+
+    /**
+     * Assemble the `BrainContext` for one wiring — shared by `_runAct`
+     * and the deliberation beat, because ⭐ **a brain must be asked how
+     * much it wants the beat through exactly the context it will act in.**
+     * Two builders would let `urgency` read a world `act` cannot.
+     */
+    private _context(
+      wiring: BehaviorWiring,
+      perceived: BrainContext['perceived'],
+      source: 'cadence' | 'witness' | 'candidate'
+    ): BrainContext {
       const host = this as unknown as Stuff;
-      const ctx: BrainContext = {
+      return {
         host,
         config: wiring.spec.config ?? {},
         state: wiring.state,
@@ -493,11 +799,6 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
             .send();
         },
       };
-      try {
-        await descriptor.act(ctx);
-      } catch (e) {
-        this._warn(`brain '${wiring.spec.brain}' threw: ${asMsg(e)}`);
-      }
     }
 
     private _resolveBrain(path: string): BrainStatics | null {
@@ -525,19 +826,30 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       // `talk` controller, warm the brain at wire time, and mark the host
       // conversational. The brain is reached only via `open`.
       if (trimmed === 'engage') return { source: 'engage' };
+      // ⭐ `candidate` wires no timer. The brain joins the host's ONE
+      // deliberation beat and is asked `urgency(ctx)` each time it runs,
+      // so pacing stops being the row's business and becomes the agent's.
+      if (trimmed === 'candidate') return { source: 'candidate' };
       const kind = trimmed as WitnessKind;
       if (kind in WITNESS_TOPIC) return { source: 'witness', kind };
       throw new Error(
         `unrecognized trigger '${raw}' (expected 'cadence:<N>[ms|s|m]', ` +
-          `'engage', or one of ${Object.keys(WITNESS_TOPIC).join('/')})`
+          `'candidate', 'engage', or one of ` +
+          `${Object.keys(WITNESS_TOPIC).join('/')})`
       );
     }
 
-    private _startBeat(slots: readonly EngagementSlot[]): void {
+    private _startBeat(
+      slots: readonly EngagementSlot[],
+      interruptibleBy?: readonly AbortReason[],
+      durationMs: number = BEAT_MS
+    ): void {
       const host = this as unknown as Stuff & Engaged;
       // StartResult on conflict is a no-op return (no throw) — a beat
       // that can't claim simply doesn't.
-      SchedulerApi.start(new BehaviorBeat(host, slots, BEAT_MS));
+      SchedulerApi.start(
+        new BehaviorBeat(host, slots, durationMs, interruptibleBy)
+      );
     }
 
     // ───────── slot / presence helpers ─────────

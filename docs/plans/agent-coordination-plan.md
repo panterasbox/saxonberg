@@ -749,9 +749,66 @@ Every wave lands green on `pnpm test:near` + every touched pack's vitest +
 - Commit: `build(agent-coordination W0): idle-cadence + menu-staff census
   gates; recipe difficulty closed`.
 
-### W1 — the contract: bands, kinds, reasons, the declarations
+### W1 — the contract: bands, kinds, reasons, the declarations ✅ DONE
 
 *Implements D5, D6 (the shape), the registry population.*
+
+> **W1 note.** `lib/behavior/Urgency.ts` ships the four bands, the five
+> kinds and the tie-break; `brain.ts` carries the `called`/`outranked`
+> augmentation, `BEHAVIOR_ABORT_REASONS`,
+> `DEFAULT_BEAT_INTERRUPTIBLE` and the seven new optional statics;
+> `BehaviorBeat` takes `interruptibleBy` from its brain;
+> `_parseTrigger` accepts `candidate`; and `_wireBehaviors` now fails
+> loudly on a `requires: {mixins}` the host does not compose.
+> 24 kernel brains re-declared. **Nothing behavioural changed** — no row
+> says `candidate` yet.
+>
+> **Six decisions the plan did not make:**
+>
+> 1. ⭐⭐ **`tree-dialogue` declares `interruptibleBy: []`** — *nothing*
+>    interrupts a conversation with a player, not even a call. An NPC
+>    that walked off mid-sentence because its own next beat found
+>    something better would be the arbiter leaking into the fiction
+>    (lens 3a, *the fiction cannot betray itself*). This is the first
+>    non-empty use of a field nothing had ever read, and it is a
+>    deliberate empty.
+> 2. ⚠⚠ **`homes.urgency` writes the trail, and has to.** The trail is
+>    written by *noticing where you are standing*, and it must be written
+>    on a beat this brain LOSES — an animal carried through a room while
+>    it was eating still passed through that room. Leaving the note in
+>    `act` would mean an animal that never wins a beat has no way home at
+>    all, which is the exact failure the trail exists to prevent. It is
+>    the one urgency with a side effect and it is commented as such.
+> 3. ⚠⚠ **`feeds.urgency` must not read metabolism.** A metabolism read
+>    RECONCILES, so asking *am I hungry* once a beat per candidate is
+>    what starves the lane's unowned cat in an afternoon of uptime (the
+>    guard the brain already carries, multiplied by the beat). Its
+>    urgency asks the free question — *is there anything to eat* — and
+>    leaves *will it eat* inside the beat it won, where the refusal reads
+>    as a refusal.
+> 4. **`arms` and `backs-up` factored their reads into one module
+>    function each** (`firstWieldable`, `alliedFighter`) shared by
+>    `urgency` and `act`. Deciding to pick up a knife and picking it up
+>    ask the same question, and two copies of that walk would drift.
+> 5. **`prints` declares no `discipline`** — the realm ships no
+>    journalism Discipline row. The gate's own arm caught the invented
+>    key on its first run, which is the arm working.
+> 6. **Four slotless brains gained `claims`** — `enforces`
+>    (`attention`), `cellars`/`restocks`/`eats` (`hands`+`body`). "Does
+>    not do two things at once" is only true if the act says which hands
+>    it is using, so the contract test makes `claims` mandatory for any
+>    `work`/`body`/`threat` brain.
+>
+> The gate gained the declaration arms (WARN behind
+> `DECLARATIONS_ARE_GATES = false`, ERROR in W4): **121 findings**, which
+> *is* W2's and W4's migration list — every row wiring a brain that now
+> declares `urgency` on a `cadence:` of its own.
+>
+> ⚠ One gate bug worth the note: the Discipline walk was first rooted at
+> `packages/content`, which descends into every pack's `node_modules`,
+> where the workspace symlinks make it unbounded — **the gate hung
+> rather than failing**, which is the worst way for a gate to be wrong.
+> It walks each pack's `content/` subtree only.
 
 - `lib/behavior/Urgency.ts`: `UrgencyBand`, `URGENCY_BANDS` (ascending),
   `TaskKind`, `TASK_KINDS`, `TASK_KIND_ORDER`, `class Urgency { constructor
@@ -786,9 +843,57 @@ Every wave lands green on `pnpm test:near` + every touched pack's vitest +
 - Commit: `build(agent-coordination W1): the brain declarations — kind,
   summary, urgency, interruptibleBy; called/outranked reasons`.
 
-### W2 — the deliberation beat
+### W2 — the deliberation beat ✅ DONE
 
 *Implements D6, D7, D8; kernel-brain rows migrate.*
+
+> **W2 note.** ⭐⭐⭐ **263.2 → 40.2 fires/min.** The realm's idle cost
+> fell 85% in one wave: 75 specs across 52 rows became
+> `trigger: candidate`, so 15 kernel brains stopped running timers of
+> their own and joined their agent's one beat.
+> `IDLE_CADENCE_CEILING_PER_MIN` ratcheted to 40.2 (28 cadence specs
+> left, all pack brains — W4 — plus `shifts`/`covers`, W3).
+>
+> `_deliberate()` asks each candidate once, sorts by band → kind →
+> hysteresis, preempts on `critical`, emotes the winner's `because`
+> **only on a switch**, claims the winner's slots and runs one act. Early
+> wake on a perceived `act.combat*`/`speech.` frame, debounced.
+> `fireBeat` on a candidate brain runs the agent's **deliberation**, not
+> that brain — a drive that could run one candidate's act directly would
+> test something the world never does.
+>
+> **Two decisions the plan did not make:**
+>
+> 1. ⭐ **`cancelByPredicate` gained an optional `reason`** (threaded
+>    through `SchedulerApi` → `SchedulerLogic` → `SchedulerRegistry`). It
+>    hardcoded `'cancelled'`, which was invisible while nothing selected
+>    on a reason at all; an `onAbort` told `'cancelled'` when it was in
+>    fact `'called'` is the same class of dishonesty as a field nothing
+>    reads. Not a new Api — one existing gated method, one optional arg.
+> 2. **The context builder moved out of `_runAct` into `_context()`**,
+>    shared with the beat: ⭐ a brain must be asked how much it wants the
+>    beat **through exactly the context it will act in**, or `urgency`
+>    could read a world `act` cannot.
+>
+> ⚠⚠ **A finding from writing the tests:** starting a `BehaviorBeat`
+> under test needs the **EventRegistry singleton** bootstrapped (the
+> registry subscribes to `Events.StuffDestructed` for any engagement with
+> a host) — and nothing in the behaviour suite had ever started a
+> durative engagement. `Behaved.test.ts`'s slot-contention test hand-rolls
+> a plain `Engagement` with no `duration`, which takes a different path
+> through `register`. **So the witness beat's own machinery had never run
+> under test**, in the subsystem whose whole contention story rests on
+> it. `deliberation.test.ts` mirrors
+> `SchedulerApi.hostDestruction.test.ts`'s `makeRegistry`.
+>
+> ⚠ And a test-writing trap worth recording: a preemption test must drive
+> the beat through `requestBeat`/`fireBeat`, never the timer. A
+> `BehaviorBeat` holds its slots for 2.5 s and the beat PERIOD is 20 s, so
+> advancing a full period means the thing you meant to interrupt already
+> finished — the first version passed while asserting nothing.
+>
+> `trade-ranching`'s `working-animals` row assertion widened to accept
+> `candidate`; it was the only pack test pinning the trigger vocabulary.
 
 - `BehavedMixin`: `_beatHandle`, `_intention: Intention | null`,
   `_lastBeatAt`; `_wireBehaviors` collects `candidate` wirings and arms

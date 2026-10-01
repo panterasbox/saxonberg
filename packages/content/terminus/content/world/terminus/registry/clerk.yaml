@@ -68,7 +68,7 @@ data:
           - "\"Mind the wet ink,\" Odile says, not looking up."
           - "Odile marks her place with one finger. \"The city's listening. Briefly.\""
     - brain: /lib/behavior/idles
-      trigger: cadence:23s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "rules a fresh line in the ledger with a small steel straightedge." }

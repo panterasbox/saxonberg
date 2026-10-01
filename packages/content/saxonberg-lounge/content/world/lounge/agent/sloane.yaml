@@ -54,14 +54,14 @@ data:
         railStool: /world/lounge/location/bar
         offstage: /world/lounge/location/offstage
     - brain: /lib/behavior/idles
-      trigger: cadence:14s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "wipes the same spot on the bar, slowly." }
           - { kind: free, value: "watches the door without seeming to." }
           - { kind: free, value: "pours a measure with unhurried precision." }
     - brain: /lib/behavior/random-chatter
-      trigger: cadence:53s
+      trigger: candidate
       config:
         lines:
           - "Rough one?"
@@ -75,7 +75,7 @@ data:
           - "Take your time."
     # Trait-aware chatter: Sloane's deep reserve keeps this near-silent.
     - brain: /lib/behavior/converses
-      trigger: cadence:19s
+      trigger: candidate
       config:
         chatty:
           - "You came back."

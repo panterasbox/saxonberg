@@ -53,7 +53,7 @@ data:
     # is the board a new arrival reads, and makes this shop the realm's
     # second poster.
     - brain: /lib/behavior/restocks
-      trigger: cadence:90s
+      trigger: candidate
       config:
         # The cutting table is where a bolt lands.
         shelf: /trade/tailoring/thing/cutting-table

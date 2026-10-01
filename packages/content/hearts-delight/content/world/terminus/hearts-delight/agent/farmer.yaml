@@ -42,7 +42,7 @@ data:
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/idles
-      trigger: cadence:40s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "looks at the sky, then at the bench, then at the sky again." }

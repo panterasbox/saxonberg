@@ -51,7 +51,7 @@ data:
         railStool: /world/lounge/location/bar
         offstage: /world/lounge/location/offstage
     - brain: /lib/behavior/idles
-      trigger: cadence:9s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "spins a coaster across the bar and catches it." }
@@ -59,7 +59,7 @@ data:
           - { kind: say, value: "— so anyway, there I was." }
           - { kind: say, value: "You hear about the corpo lot up the avenue?" }
     - brain: /lib/behavior/random-chatter
-      trigger: cadence:23s
+      trigger: candidate
       config:
         lines:
           - "Good to see a friendly face!"
@@ -80,7 +80,7 @@ data:
           - { respond: "Now you're talking." }
     # Trait-aware chatter: Remy's gregarious sociability keeps this loud.
     - brain: /lib/behavior/converses
-      trigger: cadence:17s
+      trigger: candidate
       config:
         chatty:
           - "So get this — you'll love this one."

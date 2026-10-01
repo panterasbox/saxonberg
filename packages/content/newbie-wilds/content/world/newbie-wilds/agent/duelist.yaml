@@ -72,10 +72,10 @@ data:
   behaviors:
     # Take up the knife on the duelling-stone and keep it in hand.
     - brain: /lib/behavior/arms
-      trigger: cadence:2s
+      trigger: candidate
     # Ambient menace between bouts.
     - brain: /lib/behavior/idles
-      trigger: cadence:19s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "turns the knife once in his gloved hand, watching the light run down it." }

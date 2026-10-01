@@ -75,7 +75,7 @@ data:
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/idles
-      trigger: cadence:27s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "totals a column of figures without writing anything down, and nods to herself." }

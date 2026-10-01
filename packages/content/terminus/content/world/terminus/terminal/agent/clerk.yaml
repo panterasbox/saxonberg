@@ -63,7 +63,7 @@ data:
           - "\"Window's open,\" Tootie says. \"Speak up, I don't bite before noon.\""
     # Small-business idle: the texture of a working ticket window.
     - brain: /lib/behavior/idles
-      trigger: cadence:20s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "franks a form with a decisive thump." }

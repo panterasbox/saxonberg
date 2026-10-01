@@ -43,7 +43,7 @@ data:
     - { disposition: curiosity, valence: -50 }
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:50s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "reads a docket back to somebody, word for word, without inflection." }

@@ -43,7 +43,7 @@ data:
     # switchover retired the keg faucet: every keg on the counter is
     # now a batch these beats brewed.
     - brain: /lib/behavior/cellars
-      trigger: cadence:120s
+      trigger: candidate
       config:
         home: /world/terminus/goods-yards/brewing/location/floor
         counterRoom: /trade/distribution/location/cash-and-carry
@@ -62,7 +62,7 @@ data:
           ale: 12
           "cask ale": 14
     - brain: /lib/behavior/cellars
-      trigger: cadence:150s
+      trigger: candidate
       config:
         home: /world/terminus/goods-yards/brewing/location/cold-store
         counterRoom: /trade/distribution/location/cash-and-carry
@@ -81,7 +81,7 @@ data:
           - "Watch yourself — that pipe's hot."
           - "Aye? Speak up, it's loud in here."
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "rolls a keg into line with one boot." }

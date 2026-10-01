@@ -58,7 +58,7 @@ data:
           - "Come for the good stuff, have you?"
           - "Mind the cases — I've got them just so."
     - brain: /lib/behavior/idles
-      trigger: cadence:47s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "turns a case so the red label faces out." }

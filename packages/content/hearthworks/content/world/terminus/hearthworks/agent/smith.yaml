@@ -50,7 +50,7 @@ data:
         behindBar: /world/terminus/hearthworks/location/smithy
         offstage: /world/terminus/hearthworks/location/offstage
     - brain: /lib/behavior/idles
-      trigger: cadence:20s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "dresses a coal bed with the rake, not looking up." }

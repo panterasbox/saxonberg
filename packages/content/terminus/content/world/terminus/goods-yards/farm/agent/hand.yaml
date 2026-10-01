@@ -79,7 +79,7 @@ data:
           - "Everything out front's today's."
           - "Mind the crates."
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "halves a lime and sniffs it." }

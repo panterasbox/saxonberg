@@ -45,7 +45,7 @@ data:
         behindBar: /world/terminus/market/square
         offstage: /world/terminus/market/offstage
     - brain: /lib/behavior/idles
-      trigger: cadence:45s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "sluices the slab down and the water runs pink into the gutter." }

@@ -57,7 +57,7 @@ data:
     # than the road can answer — the carter's beat is 4 m and the gig
     # window is six game-hours.
     - brain: /lib/behavior/restocks
-      trigger: cadence:90s
+      trigger: candidate
       config:
         # The scrubbed table down the middle: where receipts land.
         shelf: /stuff/thing/fixture/table
@@ -65,7 +65,7 @@ data:
         bench: /trade/haulage/thing/receiving-bench
         reward: 30
     - brain: /lib/behavior/idles
-      trigger: cadence:20s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "lifts the pot lid, sniffs, and nods to himself." }

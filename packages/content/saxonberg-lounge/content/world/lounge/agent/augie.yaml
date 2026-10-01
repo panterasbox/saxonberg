@@ -54,14 +54,14 @@ data:
         railStool: /world/lounge/location/bar
         offstage: /world/lounge/location/offstage
     - brain: /lib/behavior/idles
-      trigger: cadence:13s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "polishes a glass and holds it up, satisfied." }
           - { kind: free, value: "hums something old and tuneless." }
           - { kind: say, value: "Now, the fella who used to own this place..." }
     - brain: /lib/behavior/random-chatter
-      trigger: cadence:31s
+      trigger: candidate
       config:
         lines:
           - "No rush in here, friend."

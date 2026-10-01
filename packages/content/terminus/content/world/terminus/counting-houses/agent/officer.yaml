@@ -70,7 +70,7 @@ data:
           - "Halloran is on his feet before you've fully entered. \"There you are — come in, come in. Coffee?\""
           - "\"Sit, sit,\" Halloran says, pulling out a chair. \"Let's get you set up.\""
     - brain: /lib/behavior/idles
-      trigger: cadence:23s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "refills a cup nobody emptied." }

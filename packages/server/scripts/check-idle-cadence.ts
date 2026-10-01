@@ -57,7 +57,7 @@ const CONTENT = join(REPO_ROOT, 'packages/content');
  * tree. Lower it whenever a wave moves rows off their own timers; never
  * raise it. A new row that wants a timer of its own has to make room.
  */
-export const IDLE_CADENCE_CEILING_PER_MIN = 263.2;
+export const IDLE_CADENCE_CEILING_PER_MIN = 40.2;
 
 /**
  * ⚠ A fact about the past: the census the day the gate landed. Never edit
@@ -73,6 +73,23 @@ export const IDLE_CADENCE_HIGH_WATER = 263.2;
  * reads the authored default from the settings row when it is present.
  */
 const BEAT_NIGHTLY_MS_DEFAULT = 120_000;
+
+/**
+ * ⚠ WARN until the migration lands: the declaration arms (`kind`,
+ * `summary`, `urgency`, `claims`) are reported but not fatal while the
+ * waves are in flight, and become ERROR in W4's closing commit. A gate
+ * that fails on work nobody has done yet is a gate somebody turns off.
+ */
+const DECLARATIONS_ARE_GATES = false;
+
+/** ⚠ Mirrors `TASK_KINDS` in `lib/behavior/Urgency.ts`. */
+const TASK_KINDS = ['threat', 'body', 'work', 'social', 'filler'];
+
+/** The kinds whose acts must say which hands they are using. */
+const MUST_CLAIM = new Set(['threat', 'body', 'work']);
+
+/** The two brains leaving the rail in W3 — deliberately un-declared. */
+const LEAVING = new Set(['shifts', 'covers']);
 
 /** The witness topics `Behaved._parseTrigger` accepts. */
 const WITNESS_TRIGGERS = ['arrival', 'departure', 'emote', 'speech'];
@@ -185,6 +202,98 @@ export function cadenceMs(trigger: string): number | null {
   return unit === 'ms' ? n : unit === 'm' ? n * 60_000 : n * 1000;
 }
 
+interface BrainDecl {
+  name: string;
+  file: string | null;
+  kind: string | null;
+  summary: string | null;
+  discipline: string | null;
+  claims: string[];
+  declaresUrgency: boolean;
+}
+
+/**
+ * What a brain declares, read from its SOURCE.
+ *
+ * ⭐ Regex over the file rather than an `import()`: a brain module pulls
+ * the Api graph behind it, and a build-time gate that boots half the
+ * engine to read five statics is a gate that becomes too slow to run.
+ * The declarations are literals by contract (`satisfies BrainStatics`
+ * with explicit annotations), so the text IS the value.
+ */
+const declCache = new Map<string, BrainDecl>();
+function brainDecl(brainPath: string): BrainDecl {
+  const cached = declCache.get(brainPath);
+  if (cached) return cached;
+  const name = brainPath.split('/').pop() ?? brainPath;
+  const file = brainFile(brainPath);
+  const decl: BrainDecl = {
+    name,
+    file,
+    kind: null,
+    summary: null,
+    discipline: null,
+    claims: [],
+    declaresUrgency: false,
+  };
+  if (file) {
+    const src = readFileSync(file, 'utf8');
+    decl.kind = /static kind[^=]*=\s*['"]([a-z-]+)['"]/.exec(src)?.[1] ?? null;
+    decl.summary =
+      /static summary[^=]*=\s*(['"`])/.test(src) ? 'declared' : null;
+    decl.discipline =
+      /static discipline[^=]*=\s*['"]([a-z-]+)['"]/.exec(src)?.[1] ?? null;
+    const claims = /static claims[^=]*=\s*\[([^\]]*)\]/.exec(src)?.[1] ?? '';
+    decl.claims = [...claims.matchAll(/['"]([a-z]+)['"]/g)].map((m) => m[1]!);
+    decl.declaresUrgency = /static (async )?urgency\s*\(/.test(src);
+  }
+  declCache.set(brainPath, decl);
+  return decl;
+}
+
+/**
+ * Every shipped Discipline key, read from the rows. A brain crediting a
+ * Discipline nothing ships writes evidence nothing can read back.
+ *
+ * ⚠ Walks each pack's `content/` subtree ONLY. A walk rooted at
+ * `packages/content` descends into every pack's `node_modules`, where the
+ * workspace's symlinks make it effectively unbounded — the gate HANGS
+ * rather than failing, which is the worst way for a gate to be wrong.
+ */
+let _disciplines: Set<string> | null = null;
+function disciplines(): Set<string> {
+  if (_disciplines) return _disciplines;
+  const out = new Set<string>();
+  if (!existsSync(CONTENT)) return (_disciplines = out);
+  for (const pack of readdirSync(CONTENT)) {
+    const root = join(CONTENT, pack, 'content');
+    if (!existsSync(root) || !statSync(root).isDirectory()) continue;
+    for (const abs of yamlFiles(root)) {
+      let doc: unknown;
+      try {
+        doc = YAML.parse(readFileSync(abs, 'utf8'));
+      } catch {
+        continue;
+      }
+      const row = doc as Record<string, unknown> | null;
+      if (!row || row.class !== '/platform/idea/Discipline') continue;
+      const key = (row.data as Record<string, unknown> | undefined)?.key;
+      if (typeof key === 'string') out.add(key);
+    }
+  }
+  return (_disciplines = out);
+}
+
+/** Every `.yaml` under `dir`, recursively. */
+function yamlFiles(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir)) {
+    const abs = join(dir, entry);
+    if (statSync(abs).isDirectory()) yamlFiles(abs, out);
+    else if (entry.endsWith('.yaml')) out.push(abs);
+  }
+  return out;
+}
+
 /** Does the brain source declare it runs with nobody watching? */
 const unwatchedCache = new Map<string, boolean>();
 function runsUnwatched(brainPath: string): boolean {
@@ -216,6 +325,8 @@ function main(): void {
   const report = process.argv.includes('--report');
   const rows = contentRows();
   const failures: string[] = [];
+  const declArms: string[] = [];
+  const namedBrains = new Set<string>();
   const nightly = nightlyBeatMs();
 
   let total = 0;
@@ -234,6 +345,7 @@ function main(): void {
         failures.push(`${row.file}: a behaviour spec with no 'trigger:'.`);
         continue;
       }
+      if (spec.brain) namedBrains.add(spec.brain);
       const ms = cadenceMs(trigger);
       if (ms === null) {
         if (
@@ -253,6 +365,25 @@ function main(): void {
           if (spec.brain && runsUnwatched(spec.brain)) {
             hasUnwatchedCandidate = true;
           }
+          if (spec.brain) {
+            const d = brainDecl(spec.brain);
+            if (!d.file) {
+              failures.push(
+                `${row.file}: candidate brain '${spec.brain}' resolves to ` +
+                  `no source file.`,
+              );
+            } else if (!d.declaresUrgency) {
+              // ⚠ A `candidate` spec over a brain with no `urgency` is
+              // skipped at wire time with a warning: the row looks wired
+              // and the brain never runs.
+              failures.push(
+                `${row.file}: '${spec.brain}' is wired as a candidate but ` +
+                  `declares no 'urgency' — the spec is skipped at wire ` +
+                  `time and the brain never runs.`,
+              );
+            }
+          }
+          continue;
         }
         continue;
       }
@@ -262,6 +393,17 @@ function main(): void {
           `${row.file}: brain '${spec.brain}' resolves to no source file. ` +
             `It is wired with a warning and then does nothing, forever.`,
         );
+      } else if (spec.brain) {
+        // ⭐ A brain that knows how much it wants the beat should not be
+        // running its own timer: the whole point of the arbiter is that
+        // one agent decides once, rather than N timers deciding N times.
+        const d = brainDecl(spec.brain);
+        if (d.declaresUrgency) {
+          declArms.push(
+            `${row.file}: '${spec.brain}' declares 'urgency' but is wired ` +
+              `on '${trigger}' — it should be 'trigger: candidate'.`,
+          );
+        }
       }
       const perMin = 60_000 / ms;
       rowTotal += perMin;
@@ -276,6 +418,56 @@ function main(): void {
     }
     if (rowTotal > 0) perRow.set(row.file, rowTotal);
     total += rowTotal;
+  }
+
+  // ── the declaration audit, over every brain any row names ──────────
+  for (const brainPath of [
+    ...new Set([...perBrain.keys(), ...namedBrains]),
+  ].sort()) {
+    if (!brainPath || brainPath === '(the beat)') continue;
+    const d = brainDecl(brainPath);
+    if (!d.file || LEAVING.has(d.name)) continue;
+    if (!d.kind) {
+      declArms.push(`${brainPath}: declares no 'kind'.`);
+    } else if (!TASK_KINDS.includes(d.kind)) {
+      failures.push(
+        `${brainPath}: kind '${d.kind}' is not a task kind ` +
+          `(${TASK_KINDS.join(' · ')}).`,
+      );
+    }
+    if (!d.summary) {
+      // ⚠ 38 brains shipped with `label` repeating the filename, so the
+      // author palette could say the name of a thing and nothing else.
+      declArms.push(
+        `${brainPath}: declares no 'summary' — the author palette can say ` +
+          `its name and nothing about what it does.`,
+      );
+    }
+    if (d.kind && MUST_CLAIM.has(d.kind) && d.claims.length === 0) {
+      declArms.push(
+        `${brainPath}: kind '${d.kind}' with no 'claims' — "it does not do ` +
+          `two things at once" is only true if the act says which hands ` +
+          `it is using.`,
+      );
+    }
+    if (d.discipline && !disciplines().has(d.discipline)) {
+      failures.push(
+        `${brainPath}: discipline '${d.discipline}' has no shipped ` +
+          `Discipline row, so nothing it credits can be read back.`,
+      );
+    }
+  }
+
+  if (declArms.length) {
+    if (DECLARATIONS_ARE_GATES) failures.push(...declArms);
+    else {
+      console.warn(
+        `\n⚠ lint:idle-cadence — ${declArms.length} declaration finding(s) ` +
+          `(WARN until the migration lands):\n`,
+      );
+      for (const w of declArms) console.warn(`  ${w}`);
+      console.warn('');
+    }
   }
 
   const rounded = Math.round(total * 10) / 10;

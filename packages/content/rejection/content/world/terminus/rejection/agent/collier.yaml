@@ -39,7 +39,7 @@ data:
     - { disposition: diligence, valence: 75 }
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:38s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "puts an ear to the turf, moves three feet along, and does it again." }

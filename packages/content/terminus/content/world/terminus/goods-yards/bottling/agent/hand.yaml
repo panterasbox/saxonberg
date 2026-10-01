@@ -68,7 +68,7 @@ data:
           - "Line's running. Shout if you need someone."
           - "With you in a tick."
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "shrink-wraps a pallet with a hiss." }

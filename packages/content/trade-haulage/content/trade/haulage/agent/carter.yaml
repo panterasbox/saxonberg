@@ -72,7 +72,7 @@ data:
         # be teleporting in all but name.
         batch: 1
     - brain: /lib/behavior/idles
-      trigger: cadence:60s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "checks a strap that did not need checking." }

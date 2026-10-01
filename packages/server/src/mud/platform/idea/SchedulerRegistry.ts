@@ -339,10 +339,11 @@ export default class SchedulerRegistry extends Idea {
   public cancelByPredicate(
     actor: Stuff & Engaged,
     pred: (e: Engagement) => boolean,
+    reason: AbortReason = 'cancelled',
   ): void {
     const snapshot = actor.getEngagements();
     for (const e of snapshot) {
-      if (pred(e)) this.terminate(e, 'cancelled');
+      if (pred(e)) this.terminate(e, reason);
     }
   }
 

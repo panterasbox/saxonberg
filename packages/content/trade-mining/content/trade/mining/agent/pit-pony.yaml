@@ -39,7 +39,7 @@ data:
   mass: 320
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:55s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "shifts its weight and blows out through its nose." }

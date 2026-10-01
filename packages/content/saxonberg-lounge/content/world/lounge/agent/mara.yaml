@@ -68,7 +68,7 @@ data:
       # a beat posts what is short and clears the bench, and the road
       # decides when the goods actually come. Ordering faster than the
       # road can answer would just pile up dockets.
-      trigger: cadence:15m
+      trigger: candidate
       config:
         shelf: /trade/hospitality/thing/back-bar
         rack: /trade/hospitality/thing/glass-rack
@@ -86,7 +86,7 @@ data:
         # labor market's SECOND rung — the producer leg needs no capital
         # at all, and this one needs enough to front a load.
     - brain: /lib/behavior/idles
-      trigger: cadence:11s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "runs a cloth slowly down the rail." }
@@ -94,7 +94,7 @@ data:
           - { kind: free, value: "straightens a row of bottles without looking." }
           - { kind: say, value: "Mm." }
     - brain: /lib/behavior/random-chatter
-      trigger: cadence:41s
+      trigger: candidate
       config:
         lines:
           - "What'll it be."
@@ -110,7 +110,7 @@ data:
     # Trait-aware chatter: Mara's reserved sociability keeps this sparse —
     # mostly silence, the occasional clipped word.
     - brain: /lib/behavior/converses
-      trigger: cadence:19s
+      trigger: candidate
       config:
         chatty:
           - "Good to have you in."

@@ -34,7 +34,7 @@ data:
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/idles
-      trigger: cadence:45s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "puts a hand flat on the bedstone, listening to it through her palm." }
