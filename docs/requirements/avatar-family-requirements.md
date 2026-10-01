@@ -326,9 +326,18 @@ the shape of an honest refactor drive, and the two exceptions are named.
    loadout. `enter()` still does all of it.
 3. **Ada:** `cockpit`, set a layout, save an arrangement, log out, log
    back in → **the arrangement is still there.**
-4. **Ada:** into her circle through the wardrobe, change a cockpit
-   preference, come back out → ⚠ **the preference survived.** This is
-   D4's silent-failure check.
+4. **Ada:** set a cockpit preference, THEN go into her circle through
+   the wardrobe → ⚠ **the preference came with her.** This is D4's
+   silent-failure check, and it drives the **fork** direction only.
+   ⛔ **Corrected at plan time — an earlier draft of this step asserted
+   that a preference changed INSIDE the circle survives coming out. It
+   does not, today or after this build:** `ClientState` is fork-only in
+   practice (`HasInteractive.ts:735-737`), because
+   `EPISTEMIC_MERGE_ALLOWLIST = ['Contacts']` is the whole allowlist and
+   nothing else merges back from anywhere. Adding merge-back is
+   avatar-family slate § Sequencing 6, not this build. ⭐ The check that
+   matters here is unchanged in force: the fork is what fails **silently**
+   if the slice moves to a mixin a host does not compose.
 5. **Ada:** in the circle, `score` → **the same player** as outside.
    Then die, become a shade, `score` again → **still the same player.**
    One `playerId` read from three bodies.
@@ -351,8 +360,9 @@ the shape of an honest refactor drive, and the two exceptions are named.
 
 - **The character-select prompt affords exactly what it did before.**
 - **A new player still arrives with their loadout.**
-- **A cockpit arrangement survives a logout, and survives a round trip
-  through a circle.**
+- **A cockpit arrangement survives a logout**, and **travels into a
+  circle with the body**. ⚠ Not out of one — nothing merges back from a
+  circle except contacts, by design.
 - **A player reads as the same person from all three bodies**, and their
   money follows them through death and back.
 - **A shade has lost and kept exactly the verbs it did before.**
