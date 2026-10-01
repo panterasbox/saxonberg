@@ -1635,3 +1635,33 @@ Docs: `crafting.md` (the stale *lowest identity path* tie-break passage
 replaced with `callFor` + the self-last rule), `lint-family.md` (rule 6, and
 the menu-staff census rewritten around the 11 → 3 ratchet), `advancement.md`
 (what makes `seededBandFor` checkable at build time).
+
+### Re-drive after W8 — 13/13 again (2026-10-01)
+
+`pnpm --filter @saxonberg/server reset:db` then `WIRE_BOOT=1 pnpm wire
+tests/agent-coordination.dirty.wire.test.ts` on a fresh realm: world up in
+261.6 s, **13 passed (13)**, EXIT=0. The source changed after the first
+record (three fix commits plus W8's gate and the self-last maker), so the
+record was re-earned rather than cited.
+
+⚠ Checkpoint 1 and 3 (`order gin-tonic`) and checkpoint 4b (the standard
+cocktail) only pass **on a fresh realm** — the earlier red run was the
+dirtiness this file's `DIRTY_REASON` names, not a defect. ⭐ And the suite
+needs `WIRE_BOOT=1` when nothing is listening on 2010; without it the runner
+declines rather than booting, which reads as `Tests no tests` and is easy to
+misfile as a collection failure.
+
+The realm is dirty again now: a `reset:db` is owed before the next full run.
+
+### Full suite, post-W8
+
+`pnpm test` → **EXIT=0**. 34 packages, zero failures:
+`packages/server` 12 119 passed · 1 skipped file · 2 skipped · 2 todo;
+`packages/client` 1 003 passed; every content pack green.
+
+⚠ The run *before* it aborted in `packages/content/arcana` with
+`[vitest-worker]: Timeout calling "fetch"` and 0 tests collected after 147 s
+of transform — arcana passes alone in 9.5 s, so it was a concurrency
+transform timeout. ⭐ But `pnpm test` **aborts at the first failing package**,
+so the thirty packs after arcana had not run at all: the fix was to re-run to
+completion, not to re-run arcana and call the suite green.
