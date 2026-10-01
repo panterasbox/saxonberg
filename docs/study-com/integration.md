@@ -815,7 +815,9 @@ could return, so:
 - **Provenance tag vocabulary** — ratify the §4 ladder as the `tags`
   vocabulary on claim rows, and set the estimator's evidence weights per
   tag (§6.4).
-- **Overjustification guard** (advancement.md:800-802) — once real
+- **Overjustification guard** ([advancement-slate](../slates/builds/advancement-slate.md) § the
+  motivation lens's standing warning — ⚠ **corrected 2026-09-30**: this was
+  cited as `advancement.md:800-802`, a 610-line file that never mentions it) — once real
   coursework is the signal, keep verifying the reward is *chosen
   capability*, not a carrot. The high-stakes reconciliation (strategy
   doc) is the governing constraint: the avatar borrows its stakes and has
