@@ -46,6 +46,8 @@ import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { ForkableMixin } from "../../lib/persistence/Forkable";
 import { PersistableApi } from "../../api/persistable";
 import { HasInteractiveMixin } from "../../lib/connection/HasInteractive";
+import { ClientStateMixin } from "../../lib/connection/ClientState";
+import { SaxonbergClientMixin } from "../../lib/connection/SaxonbergClient";
 import { AetherMixin } from "../../lib/message/Aether";
 import { ContactsMixin } from "../../lib/social/Contacts";
 import { WardrobeMixin } from "../../lib/slot/Wardrobe";
@@ -164,7 +166,9 @@ const AvatarBase = PersistableMixin(
   EstateMixin(
     ForkableMixin(
       PostRegistrationMixin(
-        HasInteractiveMixin(
+        SaxonbergClientMixin(
+          ClientStateMixin(
+            HasInteractiveMixin(
           AetherMixin(
             // ⭐ A played person keeps a personal calendar (D12) — dated
             // reminders on the implant. Inside PersistableMixin, so the
@@ -198,6 +202,8 @@ const AvatarBase = PersistableMixin(
             ),
           ),
         ),
+      ),
+      ),
       ),
     ),
   ),
@@ -1052,7 +1058,7 @@ export default class Avatar extends AvatarBase {
 
     /*
      * ⭐⭐ **Apply the mode's arrangement on LOGIN, not only on a
-     * `cockpit mode` / `cockpit layout` switch.**
+     * mode or layout switch.**
      *
      * `applyArrangement` was called from those two controllers alone,
      * which meant a player who logged straight into `build` — or into
@@ -1072,10 +1078,7 @@ export default class Avatar extends AvatarBase {
      * log in at all.
      */
     try {
-      const mode = this.getCockpitMode();
-      interactive.applyCardArrangement(
-        this.arrangementCards(mode, this.getCockpitArrangement(mode)),
-      );
+      this.openArrangement(interactive);
     } catch (err) {
       console.warn(
         `Avatar.enter: could not apply the ${this.getPlayerId()} ` +

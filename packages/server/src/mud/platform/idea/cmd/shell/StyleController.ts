@@ -37,7 +37,8 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Avatar from '../../../agent/Avatar';
-import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
+import type { ClientState } from '../../../../lib/connection/ClientState';
+import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import type {
   StyleOverlay,
   StyleTreatment,
@@ -57,7 +58,7 @@ const STYLE_KEY = 'style.overlay';
  */
 const KNOWN_THEMES = new Set(['ink', 'marble', 'high-contrast']);
 
-type StyleHost = Stuff & HasInteractive;
+type StyleHost = Stuff & ClientState & SaxonbergClient;
 
 /**
  * Positional slots under `cockpit style`. The style tree is two levels
@@ -80,9 +81,9 @@ const STYLE_SUBS = ['show', 'theme', 'channel', 'mention', 'plain', 'reset'];
 export default class StyleController extends CommandController<StyleModel> {
   execute(model: StyleModel, context: CommandContext): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isHasInteractive(giver)) {
+    if (!MixinApi.isSaxonbergClient(giver)) {
       throw new Error(
-        'StyleController: command giver lacks HasInteractive',
+        'StyleController: command giver lacks the client mixin',
       );
     }
     const host = giver as StyleHost;

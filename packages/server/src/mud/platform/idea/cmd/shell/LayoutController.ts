@@ -36,14 +36,15 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Avatar from '../../../agent/Avatar';
-import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
+import type { ClientState } from '../../../../lib/connection/ClientState';
+import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import type { ArrangementSpec, CockpitMode, CardId } from '@saxonberg/types';
 
 const LAYOUT_KEY = 'cockpit.layout';
 const ARRANGEMENTS_KEY = 'cockpit.arrangements';
 const SAVED_KEY = 'cockpit.savedArrangements';
 
-type LayoutHost = Stuff & HasInteractive;
+type LayoutHost = Stuff & ClientState & SaxonbergClient;
 
 interface LayoutModel extends CommandModel {
   /** Either an arrangement name, or one of `save` / `list` / `forget`. */
@@ -55,10 +56,10 @@ interface LayoutModel extends CommandModel {
 export default class LayoutController extends CommandController<LayoutModel> {
   execute(model: LayoutModel, context: CommandContext): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isHasInteractive(giver)) {
-      throw new Error('LayoutController: command giver lacks HasInteractive');
+    if (!MixinApi.isSaxonbergClient(giver)) {
+      throw new Error('LayoutController: command giver lacks the client mixin');
     }
-    // `isHasInteractive` above narrows `giver` to `Stuff & HasInteractive`.
+    // `isSaxonbergClient` above narrows `giver` to `Stuff & ClientState & SaxonbergClient`.
     const host: LayoutHost = giver;
     const mode = host.getCockpitMode();
 

@@ -29,7 +29,7 @@ import type {
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
 import { BroadcastFeed } from './BroadcastFeed';
-import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
+import { setClientStateUpdatePush } from '../mud/lib/connection/ClientState';
 import type Interactive from '../mud/platform/idea/Interactive';
 import Login from '../mud/platform/idea/Login';
 import { ReactionApi } from '../mud/api/reaction';
@@ -135,7 +135,7 @@ export class Application {
     // HasInteractiveMixin can reach Application without importing
     // it (import cycle would break Login's module-eval-time
     // `HasInteractiveMixin(Idea)` call). See setClientStateUpdatePush
-    // in `mud/lib/connection/HasInteractive.ts`.
+    // in `mud/lib/connection/ClientState.ts`.
     setClientStateUpdatePush((interactive, key, value) =>
       this.sendClientStateUpdateToInteractive(interactive, key, value),
     );

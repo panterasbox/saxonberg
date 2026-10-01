@@ -260,6 +260,8 @@ export const Mixins = {
   AroundDeleteHook: 'AroundDeleteHookMixin',
   PostRegistration: 'PostRegistrationMixin',
   HasInteractive: 'HasInteractiveMixin',
+  ClientState: 'ClientStateMixin',
+  SaxonbergClient: 'SaxonbergClientMixin',
   Environment: 'EnvironmentMixin',
   Alias: 'AliasMixin',
   Singleton: 'SingletonMixin',

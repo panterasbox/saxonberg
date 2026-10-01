@@ -15,6 +15,8 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { HasInteractiveMixin } from '../HasInteractive';
+import { ClientStateMixin } from '../ClientState';
+import { SaxonbergClientMixin } from '../SaxonbergClient';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -25,7 +27,7 @@ import {
   type LayoutName,
 } from '@saxonberg/types';
 
-class TestHost extends HasInteractiveMixin(Idea) {}
+class TestHost extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(Idea))) {}
 
 /**
  * A host that played before the mode axis existed: a stored

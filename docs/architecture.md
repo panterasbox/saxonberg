@@ -384,7 +384,7 @@ set. Two kinds are recognized:
   `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
-  fills at boot. Today: `lib/connection/HasInteractive.ts#setClientStateUpdatePush`.
+  fills at boot. Today: `lib/connection/ClientState.ts#setClientStateUpdatePush`.
 - **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
   logic singletons in one subsystem that must reference each other's class
   *identity* for a framework allowlist, which the facade can't broker.
@@ -1184,7 +1184,9 @@ registry) lives in `lib/mixin.ts`.
 | `lib/stuff/` | `PostRegistrationMixin` | opt-in `postRegister(context?)` lifecycle hook |
 | `lib/persistence/` | `AroundSaveHookMixin` | middleware-style PM save hook |
 | `lib/persistence/` | `AroundDeleteHookMixin` | middleware-style PM delete hook |
-| `lib/connection/` | `HasInteractiveMixin` | "this Stuff has connected `Interactive`s" — `add`/`remove`/`getInteractives`/`isConnected`/`isLinkdead`. Composed by `Avatar` (multiplexing) and `Login` (singleton). |
+| `lib/connection/` | `HasInteractiveMixin` | ⭐ "a human may be on the other side of this" — `add`/`remove`/`getInteractives`/`isConnected`/`isLinkdead`, the witness hooks, the residency veto, `presenceStatus`, `getPortraitUrl`. **No UI vocabulary.** Composed by `Avatar` (multiplexing) and `Login` (singleton). |
+| `lib/connection/` | `ClientStateMixin` | The client-state MECHANISM and **zero keys**: the two stores, `get`/`set`/`snapshot`/`push`, the `clientStateSchema` chain walk, the `ClientState` fork slice, and the backend→mudlib push DI seam. Requires `HasInteractive`. |
+| `lib/connection/` | `SaxonbergClientMixin` | ⭐⭐ **Our client's vocabulary, and nothing else** — the fifteen `console.*`/`cards.*`/`style.*`/`cockpit.*` schema entries, the nine cockpit methods, `refreshDisplays`, `openArrangement`, the `cockpit` verb tree. The line a second client is written against (see [connection.md](./subsystems/connection.md) § *What a second client implements*). Requires `ClientState`. |
 | `lib/activity/` | `EngagedMixin` | actor-side engagement slot map (`body`/`hands`/`attention`/`voice`); runtime-only. `_setEngagement` / `_clearEngagement` are ApiOnly-gated; only `SchedulerApi` may mutate. Composed by `Character`. Provides the `cancel` verb and `stop` default alias. |
 | `lib/biome/` | `AtmosphericMixin` | biome ref + atmospheric overrides (temperature/pressure/humidity/gravity/atmosphere) at room or per-Detail scope. Composed by `Location` and **`ExitableVessel`** (⚠ it was `Vessel` until the base-class narrowing build, which gave every bag and till its own weather; *a thing you can go inside is a place with air*). `ExitableVessel` also carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` (a vessel's roof is its declaration, not the sky above it) and `openExteriorOpenings` (for a vessel the seal IS the door). See [biome.md](./subsystems/biome.md). |
 | `lib/biome/` | `SkyExposedMixin` | trait stamp for biomes whose Locations look out on the open sky. Composed by `SkyExposedBiome`. ⚠ Reached through `BiomeApi.isSkyExposed`, which walks outward to the nearest Atmospheric ancestor **with a biome** and answers `false` when none resolves — so it is only as live as the roster `BiomeCatalogue` warms. |

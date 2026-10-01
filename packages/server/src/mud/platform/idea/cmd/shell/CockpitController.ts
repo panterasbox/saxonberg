@@ -30,7 +30,8 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
+import type { ClientState } from '../../../../lib/connection/ClientState';
+import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import {
   SHELF_ROW_IDS,
   DEFAULT_SHELF,
@@ -41,15 +42,15 @@ const MODES_KEY = 'cockpit.inputModes';
 const STYLE_KEY = 'style.overlay';
 const SHELF_KEY = 'cockpit.shelf';
 
-type CockpitHost = Stuff & HasInteractive;
+type CockpitHost = Stuff & ClientState & SaxonbergClient;
 
 export default class CockpitController extends CommandController<CommandModel> {
   execute(_model: CommandModel, context: CommandContext): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isHasInteractive(giver)) {
-      throw new Error('CockpitController: command giver lacks HasInteractive');
+    if (!MixinApi.isSaxonbergClient(giver)) {
+      throw new Error('CockpitController: command giver lacks the client mixin');
     }
-    // `isHasInteractive` above narrows `giver` to `Stuff & HasInteractive`.
+    // `isSaxonbergClient` above narrows `giver` to `Stuff & ClientState & SaxonbergClient`.
     const host: CockpitHost = giver;
 
     // Mode and arrangement come from the resolving readers, not raw

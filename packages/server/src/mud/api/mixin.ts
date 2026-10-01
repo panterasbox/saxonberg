@@ -62,6 +62,8 @@ import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
 import type { PostRegistration } from '../lib/stuff/PostRegistration';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
+import type { ClientState } from '../lib/connection/ClientState';
+import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
 import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
 import type { Singleton } from '../lib/stuff/Singleton';
@@ -1121,6 +1123,28 @@ export class MixinApi {
 
   public static isHasInteractive(obj: Stuff): obj is Stuff & HasInteractive {
     return this.hasMixin(obj, Mixins.HasInteractive);
+  }
+
+  /**
+   * Narrows to *this host carries client state* — the mechanism, with
+   * no claim about which keys exist. Reach for it when you only
+   * get/set/push a key whose declaration you do not own.
+   */
+  public static isClientState(obj: Stuff): obj is Stuff & ClientState {
+    return this.hasMixin(obj, Mixins.ClientState);
+  }
+
+  /**
+   * Narrows to *our client renders this host*. ⭐ The right narrow for
+   * any reader of the `cockpit.*` / `console.*` / `cards.*` keyspace:
+   * those keys are one client's vocabulary, so a host without this
+   * mixin genuinely does not have them and `getClientState` would
+   * throw rather than return a default.
+   */
+  public static isSaxonbergClient(
+    obj: Stuff,
+  ): obj is Stuff & SaxonbergClient {
+    return this.hasMixin(obj, Mixins.SaxonbergClient);
   }
 
   public static isEnvironment(obj: Stuff): obj is Stuff & Environment {

@@ -31,13 +31,14 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Avatar from '../../../agent/Avatar';
-import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
+import type { ClientState } from '../../../../lib/connection/ClientState';
+import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import { COCKPIT_MODES, type CockpitMode } from '@saxonberg/types';
 
 const MODE_KEY = 'cockpit.mode';
 const ARRANGEMENTS_KEY = 'cockpit.arrangements';
 
-type ModeHost = Stuff & HasInteractive;
+type ModeHost = Stuff & ClientState & SaxonbergClient;
 
 interface CockpitModeModel extends CommandModel {
   name?: string;
@@ -53,12 +54,12 @@ interface CockpitModeModel extends CommandModel {
 export default class CockpitModeController extends CommandController<CockpitModeModel> {
   execute(model: CockpitModeModel, context: CommandContext): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isHasInteractive(giver)) {
+    if (!MixinApi.isSaxonbergClient(giver)) {
       throw new Error(
-        'CockpitModeController: command giver lacks HasInteractive',
+        'CockpitModeController: command giver lacks the client mixin',
       );
     }
-    // `isHasInteractive` above narrows `giver` to `Stuff & HasInteractive`.
+    // `isSaxonbergClient` above narrows `giver` to `Stuff & ClientState & SaxonbergClient`.
     const host: ModeHost = giver;
 
     const name = model.name?.trim();

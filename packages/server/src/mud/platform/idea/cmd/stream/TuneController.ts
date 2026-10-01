@@ -62,7 +62,7 @@ export default class TuneController extends CommandController<TuneModel> {
    * tune. Logout is covered because the key is transient.
    */
   private async publishTuned(actor: Stuff): Promise<void> {
-    if (!MixinApi.isHasInteractive(actor)) return;
+    if (!MixinApi.isSaxonbergClient(actor)) return;
     try {
       const channels = await StreamApi.tunedTargetsFor(actor as never);
       const rows: TunedTarget[] = channels.map((c) => ({

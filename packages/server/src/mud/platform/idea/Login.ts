@@ -39,6 +39,8 @@ import { MixinApi } from "../../api/mixin";
 import { InfluenceApi } from "../../api/influence";
 import { Template } from "../../lib/stuff/Template";
 import { HasInteractiveMixin } from "../../lib/connection/HasInteractive";
+import { ClientStateMixin } from "../../lib/connection/ClientState";
+import { SaxonbergClientMixin } from "../../lib/connection/SaxonbergClient";
 import { SensorMixin } from "../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../lib/command/CommandGiver";
 import { GoogleProfile } from "../../lib/identity/GoogleProfile";
@@ -96,14 +98,33 @@ export interface CharacterDraft {
   suggestion?: { name: string; surname?: string };
 }
 
-const LoginBase = CommandGiverMixin(SensorMixin(HasInteractiveMixin(Idea)));
+/*
+ * ⭐ Login composes the whole client tower, and the claim it makes is
+ * true: our client draws character-select and char-gen with a command
+ * bar and pushes client state at them.
+ *
+ * ⚠ It is also mechanically required. `CommandGiver` reads
+ * `cockpit.inputModes` for any giver whose command carries a `barId`,
+ * the char-gen bar carries one, and `getClientState` THROWS on a key
+ * no schema declares — a Login without the client mixin would fail
+ * every char-gen command. The `cockpit` verb tree rides the client
+ * mixin's `commandContributions` now, so composing it is also what
+ * keeps Login's verb set identical (pinned by Login.verbs.test.ts).
+ */
+const LoginBase = CommandGiverMixin(
+  SensorMixin(
+    SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(Idea))),
+  ),
+);
 
 export default class Login extends LoginBase {
   /**
    * Verb allowlist for the pre-world phase. The recency stack IS the
    * sandbox — no world verbs (go/say/take) leak because Login composes
-   * none of the mixins that contribute them. (`style` rides along from
-   * HasInteractiveMixin; harmless.)
+   * none of the mixins that contribute them. (`cockpit` rides along
+   * from `SaxonbergClientMixin` — deliberately: the character-select
+   * and char-gen screens are drawn by our client and are configurable
+   * from them.)
    */
   static commandContributions: CommandContributions = {
     self: ["platform/cmd/charactergen/embody.yaml", "platform/cmd/charactergen/play.yaml"],
