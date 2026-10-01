@@ -74,7 +74,7 @@ hand rather than assuming.
 class: /lib/npc/NPC
 data:
   behaviors:
-    - { brain: /lib/behavior/shifts, trigger: cadence:60s,  config: { behindBar, offstage } }
+    - { brain: /lib/behavior/restocks, trigger: candidate }
     - { brain: /lib/behavior/idles,  trigger: cadence:300s, config: { pool: [...] } }
     - { brain: /lib/behavior/greets, trigger: arrival,      config: { lines: [...] } }
 ```
@@ -207,7 +207,7 @@ types by package specifier (`@saxonberg/server/mud/lib/behavior/brain`).
 
 **The class rule:** *a brain lives in the pack whose content is the only
 thing that names it.* A generic economy brain (`restocks`, `cellars`,
-`shifts`, `covers`, `enforces`) is kernel.
+`restocks`, `cellars`, `enforces`) is kernel.
 
 ⚠ **`stocks` and `consigns` moved out** with the trades-and-labor build:
 they are the shopkeeper's beats — one walks to a supplier and buys a
@@ -226,7 +226,7 @@ proof: `lib/behavior/__tests__/pack-brain.test.ts`.
 ## Triggers: cadence + witness — no new events
 
 A trigger is a thin selector over **two sources**. State conditions ("at
-night", "my shift") are **guards inside brain code** (e.g. `shifts`
+night", "my shift") are **guards inside brain code** (e.g. `eats`
 reads `WorldClockApi`), never a third source. Crucially, the trigger
 surface emits **zero new global events and subscribes to zero global
 event buses of its own** — everything an NPC reacts to, it already
@@ -359,7 +359,7 @@ unit tests keep their fast cadences.
 
 **Scope: the dial touches only ambient cadence.** A brain is ambient by
 default; a **functional poller** whose timing is load-bearing sets
-`static ambient = false` (today `shifts` reading roster state, `covers`
+`static ambient = false` (today `restocks` reading the par sheet, `wary`
 checking for an absent maker) so its authored interval is honored exactly.
 Witness triggers are never scaled — responsiveness is never throttled.
 
@@ -466,8 +466,6 @@ the seen-set) is runtime-only and re-installed from the persisted
 | `patrols` | cadence | `body` | `attention` | traverse the next route direction (index in `state`) | `{ route: string[] }` |
 | `greets` | `arrival` | `attention` | — | greet the arriver (directed) | `{ lines: string[] }` |
 | `reacts` | `emote` | `attention` | — | emote/speak back at the perceived actor | `{ reactions: {to?,emote?,respond?}[] }` |
-| `shifts` | cadence | — | — | migrate by employment shift state (teleport) | `{ behindBar, offstage, railStool? }` |
-| `covers` | cadence | — | — | proprietor covers when no on-shift maker is present (`beginCover`/`endCover`) | `{}` |
 | `enforces` | cadence (not ambient, not presence-gated) | — | — | the house's own peace, kept by hand (bar-fight build; kernel commons — any barkeep reuses it): a fight gets the shout, then hands-first (`subdue` the **believed** aggressor — the read-the-room heuristic, the one *winning*, never the ledger — so he can be wrong), then the office taser only under real threat (a weapon out, or 3+ parties; a real fetch round-trip); a visibly-armed patron (`CombatApi.visibleArms`) gets a warning, then the 86 (a `DocumentApi` record in the venue's document-tree slice) + ordered out + bum-rushed. The cadence scan IS the witnessing; the belief lives in `ctx.state` for the episode | `{ alertness?, shoutLine?, warnLine?, orderLine?, ejectDirection?, officeDirection?, officeReturn?, taserKeyword?, recordsPath? }` |
 | `follows` | `departure` | `body` | — | goes with a person it is bonded to (`bondWith ≥ 0.5`), and **records that it did** — following somebody home is what earns the right to name it. ⚠ At a threshold whose room holds an armed `Hazard` it balks with one fixed line that names the ACT and never the cause: an animal that says *why* is a trap detector, one that just balks is an animal. `waiting` holds it | — |
 | `feeds` | cadence (not ambient, not presence-gated) | `body` | — | eats from a `Feeder` or off the floor, through the same ingest bridge a person's meal uses. ⚠⚠ **Returns before reading metabolism** when there is nothing in reach and nobody owns the animal — a metabolism read reconciles, and for a stamped animal it integrates the whole absence, so the beat itself would starve an unowned stray. ⭐ One refusal sentence for four reasons (not hungry · turned · a nose finding what yours cannot); a bowl meal credits **nobody** and advances where home is, a hand meal credits the hand | — |
@@ -484,19 +482,18 @@ in [trait.md](./trait.md).) The speech/idle cadence brains declare
 mid-conversation (a `DialogueConversation` holds both slots) — the spoken
 dialogue isn't muddied by ambient chatter.
 
-`shifts` reads the host's shift state from the **employment engine**
-(`EmploymentApi.shiftStateOf`, a sync read of the roster-maintained
-`Employment.status`) and migrates the NPC to `behindBar` (on-shift) or
-`offstage` (off-shift) — presence is now a *consequence* of employment
-state, not a clock read (the schedule lives on the Business roster; see
-[employment.md](./employment.md)). `railStool` is a reserved config key for
-the deferred off-shift-at-the-rail presence. It is **not** presence-gated (it
-must run unwatched to move off-stage cast). The sibling **`covers`** brain is
-the proprietor's cover-driver: on a presence-gated cadence, if no other
-active on-shift maker is present it `beginCover`s a transient unpaid
-transient shift on the house's first `fulfills` seat so an `order` still finds a fulfiller. This is
-presence/migration only — the in-room shift-*change* ritual (count-out,
-reconcile, hand-off) is a later scripting wave.
+⛔ **`shifts` and `covers` were retired (2026-09-30).** Presence and cover
+are the **roster tick's**, not a brain's — `offstage:` on the Business,
+`station:` on the seat, the move on each shift transition, and the cover
+reconciled at the end of `tickBusiness` (so also on the first `order`). See
+[employment.md](./employment.md) § Presence and cover.
+
+⭐⭐ Worth keeping as the lesson: both brains **polled every 30 seconds to
+notice an hourly flip** — 22 timer fires a minute across eleven rows to
+catch up with a state that changes at most once per game hour. The flip is
+the event. A poll in front of an event you already own is latency wearing a
+brain's clothes, and the test for it is *who writes the state* — if the
+answer is "the thing I am polling", the work belongs there.
 
 ⭐ **The roster is the schedule, and that makes opening hours a business
 strategy.** There is no NPC scheduling system and none is planned: a
@@ -573,7 +570,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehavedMixin` + `Behaved` | `lib/behavior/Behaved.ts` | Reads `behaviors:`, wires triggers, re-resolves brains, runs slot contention |
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
-| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers,enforces,follows,feeds,homes}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
+| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,enforces,follows,feeds,homes,…}.ts` | Path-resolved strategy modules. ⚠ `shifts`/`covers` retired 2026-09-30 — presence and cover are the roster tick's; see [employment.md](./employment.md) |
 | `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype — **substrate**; rows name a rung, not this |
 | `CastMixin` / `Cast` / `Extra` | `lib/npc/Cast.ts`, `platform/agent/` | The identity rungs ([identity.md](./identity.md)) |
 | `StuffApi.resolveExport` / `resolveExportSync` | `api/stuff.ts` | Path → fs → hot-reload registry brain-export seam |
@@ -593,7 +590,7 @@ dangling brain path is caught at author time, not silently at spawn.
 - [reactions.md](./reactions.md) — `ReactionApi.actInfo` speaker-recover
   used to resolve the subject of a witnessed emote/speech.
 - [time.md](./time.md) — `WorldClockApi` + `DefaultCalendar`, the
-  game-clock guard `shifts` reads.
+  game-clock guard `eats` and `prints` read.
 - [cms.md](./cms.md) — the content surface NPC templates are authored in;
   the deferred holodeck / sandbox / publish gate.
 - Seeding slate: [npc-behavior-slate.md](../slates/builds/npc-behavior-slate.md)

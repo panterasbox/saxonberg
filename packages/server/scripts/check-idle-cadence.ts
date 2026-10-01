@@ -57,7 +57,7 @@ const CONTENT = join(REPO_ROOT, 'packages/content');
  * tree. Lower it whenever a wave moves rows off their own timers; never
  * raise it. A new row that wants a timer of its own has to make room.
  */
-export const IDLE_CADENCE_CEILING_PER_MIN = 40.2;
+export const IDLE_CADENCE_CEILING_PER_MIN = 17;
 
 /**
  * ⚠ A fact about the past: the census the day the gate landed. Never edit
@@ -80,7 +80,7 @@ const BEAT_NIGHTLY_MS_DEFAULT = 120_000;
  * waves are in flight, and become ERROR in W4's closing commit. A gate
  * that fails on work nobody has done yet is a gate somebody turns off.
  */
-const DECLARATIONS_ARE_GATES = false;
+const DECLARATIONS_ARE_GATES = true;
 
 /** ⚠ Mirrors `TASK_KINDS` in `lib/behavior/Urgency.ts`. */
 const TASK_KINDS = ['threat', 'body', 'work', 'social', 'filler'];

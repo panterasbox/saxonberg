@@ -25,7 +25,7 @@ data:
   # say so. Both halves are fixed now.
   behaviors:
     - brain: /trade/ranching/behavior/herds
-      trigger: cadence:300s
+      trigger: candidate
       config: {}
     # ⭐ And the collie is a companion as well as a worker: it follows the
     # person it is bonded to, eats what it is given, and makes its own way

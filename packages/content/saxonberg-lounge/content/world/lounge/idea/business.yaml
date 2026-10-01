@@ -83,6 +83,11 @@ data:
   banksAt: goodkin
   operatingLocations:
     - /world/lounge/location/bar
+  # ⭐ Where the cast wait when they are off shift. One fact on the HOUSE,
+  # where it used to be the same path repeated in four people's `shifts`
+  # config — the shape that lets one of them say something different by
+  # accident. The roster tick moves them; no brain polls for it.
+  offstage: /world/lounge/location/offstage
 
   # The par manifest — what the house means to keep on hand, and where it
   # buys it. Every line is bought from the one distributor (distribution's cash-and-carry, where every producer outfit consigns). Spirits,

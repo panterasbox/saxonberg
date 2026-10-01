@@ -40,7 +40,7 @@ data:
     - { discipline: retail-sales, asserting: novice }
   behaviors:
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/farm/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter

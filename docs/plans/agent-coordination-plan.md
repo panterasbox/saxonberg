@@ -939,9 +939,58 @@ Every wave lands green on `pnpm test:near` + every touched pack's vitest +
 - Commit: `build(agent-coordination W2): one deliberation beat per agent —
   the arbiter, the switch prose, the early wake`.
 
-### W3 — `shifts` and `covers` leave the brain rail
+### W3 — `shifts` and `covers` leave the brain rail ✅ DONE
 
 *Implements D4.*
+
+> **W3 note.** Two brains retired; **24.2 fires/min** (from 40.2). Presence
+> is a consequence of employment state, so it moved to the thing that owns
+> the state: `offstage:` on `BusinessMixin`, `station?` on a
+> `rosterSlot`, `moveForShift` on each transition inside `tickBusiness`,
+> and `reconcileCover` at the end of it — which means **cover is also
+> reconciled by `ensureOperatorAt`**, so the proprietor steps behind an
+> empty bar *when somebody orders* rather than up to a game-hour later.
+>
+> **Three decisions the plan did not make:**
+>
+> 1. ⭐⭐ **Cover asks the question of the HOUSE, not the room.** The old
+>    brain asked *is another on-shift maker in MY room*, which made cover a
+>    question about where the proprietor happened to be standing — a
+>    proprietor in the back office concluded the bar was unattended.
+>    `reconcileCover` asks whether any rostered holder of a `fulfills` seat
+>    is on shift anywhere the house operates, and moves the covering
+>    proprietor to the station. A cover is a shift: stand where the work is.
+> 2. **A house with no `fulfills` seat is never covered** — there is
+>    nothing to cover, so the reconcile returns before touching the
+>    proprietor. (The old brain would have begun a cover on
+>    `positions[0]`.)
+> 3. **The market's fishmonger gained `station: …/market/square`** — her
+>    retired `shifts` config said `behindBar: …/square` while the house's
+>    `operatingLocations[0]` is `…/stalls`, so the default would have moved
+>    her somewhere she had never stood. Same for the Hearthworks cook
+>    (`…/cookhouse` against a smithy default). ⭐ **That pair is the whole
+>    argument for `station`.**
+>
+> ⚠ The infirmary and the necropolis (whose trigger-less `shifts` specs W0
+> removed) are left with **no `offstage:`** — they never had one, no such
+> location row exists, and the honest result is that the tick moves nobody
+> there, exactly as before. Inventing two rooms to make a field look used
+> would be the opposite of the finding.
+>
+> Tests: the behaviour moved to
+> `platform/idea/api/__tests__/EmploymentLogic.shiftMove.test.ts` (7 cases
+> over the real tick); the two venue `offstage.test.ts` files kept their
+> **content** assertions, re-pointed at the fields' new home, and gained
+> *"no cast row names a retired brain"*. `Offstage.test.ts` (which existed
+> only to drive the brain) is deleted.
+>
+> ⚠⚠ **A finding from the new test:** `isFulfilling` asks whether the actor
+> stands in one of the house's `operatingLocations`, which is a comparison
+> against `getTemplatePath()`. An **unstamped** room reads as *"nowhere
+> this house operates"* — so a covering proprietor standing right behind
+> the bar serves nobody, silently. The test's rooms are
+> `makeStuffAtPath`'d for exactly that reason, and it is worth knowing for
+> any future venue minted at runtime rather than cloned from a row.
 
 - `lib/employment/Roster.ts`: `RosterAssignment.station?: string`.
   `platform/idea/Business.ts`: `offstage` field (`fieldMeta` persistent +
@@ -972,9 +1021,52 @@ Every wave lands green on `pnpm test:near` + every touched pack's vitest +
 - Commit: `build(agent-coordination W3): shifts and cover on the roster
   tick — two brains retired, cover on demand`.
 
-### W4 — the nine packs re-declare their brains
+### W4 — the nine packs re-declare their brains ✅ DONE
 
 *Implements D10; the lint arms go ERROR.*
+
+> **W4 note.** ⭐⭐⭐ **263.2 → 17 fires/min, and ZERO authored cadence
+> specs left in the content tree.** All 17 is the beat itself — 34 agents
+> × one nightly beat at the dial's 120 s. The realm's entire idle cost is
+> now one number an operator can turn.
+>
+> Ten packs, **14 brains** declared (the plan said nine packs; `residence`
+> plus nine trades is ten), 20 more rows migrated to `candidate`, and
+> `DECLARATIONS_ARE_GATES` flipped to `true` — every arm (`kind` in the
+> vocabulary, a `summary` that is not the filename, `claims` on
+> work/body/threat, a `discipline` that resolves to a shipped row, a
+> `candidate` spec whose brain declares `urgency`, and a brain declaring
+> `urgency` still wired on `cadence:`) is now fatal, and the gate is clean.
+>
+> **Two decisions the plan did not make:**
+>
+> 1. ⭐⭐ **`nurses`' smuggled priority became its `urgency` verbatim.** The
+>    private `triageRank` (400 dying · 300+ open bleed · 100+ wound ·
+>    infection) was always a priority function — it was simply invisible
+>    above the brain, so **the physician could be out-shouted by her own
+>    idle chatter** because nothing could see that a dying patient outranks
+>    a wiped counter. Same arithmetic, same determinism: ≥400 ⇒
+>    `critical` (preempts, wakes early), ≥300 ⇒ `pressing`, else `wanted`.
+>    ⭐ And the reason **names the patient** — *"goes straight to the
+>    collier"* — so a watcher can see who she crossed the room for.
+> 2. **`reads-water` gets `kind` + `summary` but no `urgency`** — it is an
+>    `engage` responder reached only through `open`, like `tree-dialogue`.
+>    A brain that never runs on a beat should not claim it wants one.
+>
+> ⭐ Fixed in passing (the plan flagged it): `tailors.claims` was typed
+> `string[]`, the one brain of 38 whose slot list was not an
+> `EngagementSlot[]` — so a misspelt slot would have type-checked and then
+> matched nothing in the engagement map.
+>
+> ⚠ `shifts.employment.test.ts` also had to go with W3's brains (the plan
+> named only `Offstage.test.ts`), and `brains.test.ts` lost its one
+> `shifts` case.
+>
+> ⚠ **A flake worth naming, not a defect:** running three pack suites plus
+> `test:near` concurrently timed out four `terminus-standup` integration
+> cases at the 5 s limit; the file is green alone in **2.4 s**. The pack
+> suites are CPU-bound at collect time (408 s of transform for terminus
+> alone), so they must be run one at a time to mean anything.
 
 Per pack, in this order (each pack's own vitest green before the next):
 residence (`maintains`), trade-shopkeeping (`stocks`, `consigns` — 8 rows),
@@ -1208,7 +1300,18 @@ the user rather than absorbed.
    winning candidate is `ambient !== false`, and should tune `beatMs`
    against the pacing table in behavior.md § Ambient pacing budget before
    the drive.
-10. **The cookhand's register.** `lint:identity` rule 2 refuses
+10. ⭐⭐ **Relative pacing between two agents is no longer authorable
+    (found in W4).** `trade-textiles`' mill test asserted the spinner's
+    cadence ran *ahead of the consigning beat's 120 s, or the cart arrives
+    to an empty shelf* — a chain invariant bought with two ordered numbers
+    in two rows. Under the beat both agents run at the same dial, so that
+    ordering is gone. The degradation is benign (a carrier beat that finds
+    an empty shelf does nothing and retries), and it is **named in the
+    test rather than hidden**. If it ever matters the mechanism is the
+    **urgency band** — a maker that knows its shelf is empty should answer
+    `pressing` — not a cadence. Nothing in this build needs it.
+
+11. **The cookhand's register.** `lint:identity` rule 2 refuses
     `indefinite` on a nameless Cast; either name the cookhand or use
     `definite` (*the* cookhand). The build decides; both are legal.
 

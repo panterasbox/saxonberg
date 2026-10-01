@@ -41,11 +41,10 @@ data:
       trigger: arrival
     # Presence follows the roster: on shift at the post, off shift in the
     # venue's offstage room (the lounge's precedent — one Offstage, two venues).
-    - brain: /lib/behavior/shifts
-      trigger: cadence:30s
-      config:
-        behindBar: /world/terminus/hearthworks/location/cookhouse
-        offstage: /world/terminus/hearthworks/location/offstage
+    # ⚠ The `shifts` and `covers` specs used to sit here. Presence is a
+    # CONSEQUENCE of employment state, so the move belongs to the roster
+    # tick that owns the state — `offstage:` on the house, `station:` on
+    # the seat. See docs/subsystems/employment.md.
     # ⭐ He ORDERS the shortfall and RECEIVES what a hauler leaves on the
     # bench — he does not go and get it (logistics D11). Each short par
     # line becomes a carriage bounty on the TERMINAL HALL's noticeboard,

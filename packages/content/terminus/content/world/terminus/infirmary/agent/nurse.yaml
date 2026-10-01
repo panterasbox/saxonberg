@@ -27,4 +27,4 @@ data:
     # that the engine never reads, so `_parseTrigger(undefined)` threw and
     # the spec was skipped with a warning at every wire: nobody in this
     # infirmary has ever been nursed. `lint:idle-cadence` found it.
-    - { brain: /trade/medicine/behavior/nurses, trigger: cadence:20s }
+    - { brain: /trade/medicine/behavior/nurses, trigger: candidate }

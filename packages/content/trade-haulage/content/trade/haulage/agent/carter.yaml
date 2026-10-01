@@ -55,7 +55,7 @@ data:
     # carter finds nothing, which is exactly what AC15e asks for and
     # costs no coordination at all.
     - brain: /trade/haulage/behavior/hauls
-      trigger: cadence:4m
+      trigger: candidate
       config:
         boards:
           - /trade/haulage/thing/works-board

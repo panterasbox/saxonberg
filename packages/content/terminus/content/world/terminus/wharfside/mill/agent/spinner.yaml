@@ -53,7 +53,7 @@ data:
     - { discipline: textiles, asserting: competent }
   behaviors:
     - brain: /trade/textiles/behavior/weaves
-      trigger: cadence:90s
+      trigger: candidate
       config:
         floor: /world/terminus/wharfside/mill/location/floor
         stock: /world/terminus/wharfside/mill/thing/stock

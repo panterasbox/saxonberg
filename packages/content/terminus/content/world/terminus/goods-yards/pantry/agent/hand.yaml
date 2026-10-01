@@ -58,7 +58,7 @@ data:
         toHour: 10
         spendFraction: 0.25
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/pantry/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter

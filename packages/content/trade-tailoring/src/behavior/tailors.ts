@@ -25,12 +25,27 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 const TOPIC = 'social.remark';
 
 export const brain = class TailorsBrain {
   static label = 'tailors';
-  static claims: string[] = ['voice'];
+  static kind: TaskKind = 'work';
+  static summary =
+    'Cuts and makes up a garment to a customer order, then hands it over.';
+  static discipline = 'tailoring';
+  static produces: readonly string[] = ['garment'];
+  static consumes: readonly string[] = ['cloth'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'picks up the shears and finds the chalk line');
+  }
+  // ⚠ Typed `string[]` until the agent-coordination build — the one brain
+  // of 38 whose slot list was not an `EngagementSlot[]`, so a misspelt slot
+  // would have type-checked and then matched nothing in the engagement map.
+  static claims: readonly EngagementSlot[] = ['voice'];
   static requiresFree: string[] = [];
 
   /**

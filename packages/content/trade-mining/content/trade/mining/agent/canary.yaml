@@ -29,5 +29,5 @@ data:
   mass: 0.02
   behaviors:
     - brain: /trade/mining/behavior/reads-air
-      trigger: cadence:20s
+      trigger: candidate
       config: {}

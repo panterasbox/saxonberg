@@ -109,7 +109,7 @@ Four value objects + two mixins + the concrete entity:
   { positionKey, assignee /* templatePath */, schedule: ShiftEntry[] }`;
   `ShiftEntry { days: number[], hours: [start, end) }`. `evaluate(assignment,
   date)` is the pure day/hour-window match lifted verbatim from what the
-  `shifts` brain read inline before this build.
+  the retired `shifts` brain read inline before this build.
 - **`OrganizationMixin`** (`lib/employment/Organization.ts`, marker
   `_mixinName='OrganizationMixin'`) — the chart. Persistent fields
   `appointingAuthority`, `proprietorPath` (the legacy hydration slot),
@@ -461,46 +461,69 @@ wage-out loop. The budget Business stands up **lazily** — derived from its own
 the gate) — no `TicketClerk`/`Bar.postRegister` clone. See
 [fasttravel.md](./fasttravel.md) § Terminus.
 
-## The `shifts` + `covers` brains
+## Presence and cover — on the roster tick
 
-Presence is a **consequence** of employment state, kept in brains so it
-stays hot-swappable:
+Presence is a **consequence** of employment state, so it belongs to the
+thing that owns the state. ⭐⭐ Until the agent-coordination build it lived
+in two brains (`shifts`, `covers`) polling every 30 seconds to notice an
+**hourly** flip — 22 timer fires a minute across eleven rows to catch up
+with something that changes at most once a game hour. **The flip is the
+event; a poll in front of it was only ever latency.** Both brains are
+retired.
 
-- **`shifts`** — reads `host.shiftState()` (sync) and
-  teleports on-shift → `config.behindBar`, off-shift → `config.offstage`.
-  The game-clock schedule match is **gone** (the schedule lives on the
-  Business roster now). Not presence-gated (off-stage cast must move out
-  before a player arrives). config: `{ behindBar, offstage, railStool? }` —
-  `railStool` is a reserved key for the deferred off-shift-at-the-rail
-  presence (v1 presence is binary). `config.offstage` names the venue's
-  own **`Offstage`** row (below); both shipped venues park through it.
+- **The move** — `tickBusiness` teleports an assignee on each transition:
+  off→on to the seat's **`station`** (a new optional field on a
+  `rosterSlot`), defaulting to the house's first `operatingLocations`
+  entry; on→off to the house's **`offstage`** (a new `BusinessMixin`
+  field). A house that authors no `offstage` moves nobody off, which is
+  exactly what every house without the old brain did.
+  ⭐ `station` exists because a house may operate two rooms: the
+  Hearthworks default is the smithy, so the **cook's seat** says
+  `station: …/cookhouse`. A cook sent to the forge is the silent wrongness
+  the field prevents.
+  ⚠ It is a field on the **employer**, not config on each person's row. It
+  used to be the same two paths repeated in every cast member's `shifts`
+  config — four rows all saying `offstage: /world/lounge/location/offstage`
+  — which is the shape that lets one of them say something different by
+  accident.
 - **`Offstage`** — the off-shift parking role (content packs wave 4b,
   graduated out of the lounge): `OffstageMixin` in `lib/employment/`
   (a marker + the one invariant — never `Exitable`; `Mixins.Offstage`,
   `MixinApi.isOffstage`) and the clonable `platform/location/Offstage`
   (singleton per template path, Visible/Detailed for the operator who
   teleports in) that every venue's `offstage` row names —
-  `/world/lounge/location/offstage`, `/world/terminus/hearthworks/location/offstage`.
+  `/world/lounge/location/offstage`,
+  `/world/terminus/hearthworks/location/offstage`,
+  `/world/terminus/market/offstage`.
   The world conserves identity: an off-duty NPC is relocated, never
   destroyed and respawned, so each venue with a scheduled cast needs
-  somewhere for that cast to *be*. Materialized on demand by `shifts`
-  (`StuffApi.singletonOrClone`). The hearthworks roster is 24/7, so its
-  parking never fires in shipped hours; the room exists so a shortened
-  schedule parks Berta and Odo somewhere rather than nowhere. Tests:
-  `lib/employment/__tests__/Offstage.test.ts` (two venues, no bleed)
-  and one per venue beside its content (`world/<venue>/__tests__/offstage.test.ts`).
-- **`covers`** — the proprietor covers gaps. On a presence-gated cadence, if
-  **no other active on-shift maker is present** in the proprietor's location,
-  `self.beginCovering(business)` upserts a **transient, on-shift**
-  Employment against the first **`fulfills`** Position (falling back to
-  `positions[0]`) — reusing the whole on-shift path, so the covering
-  proprietor serves an `order` and a customer still finds a fulfiller.
+  somewhere for that cast to *be*. Materialized on demand
+  (`StuffApi.singletonOrClone`).
+- **Cover, on demand** — `reconcileCover` runs at the **end** of
+  `tickBusiness`, which means it also runs on `ensureOperatorAt`: ⭐⭐ **the
+  proprietor steps behind an empty bar when somebody orders**, not up to a
+  game-hour later. That is what the retired brain's presence-gating was
+  approximating, and it is why the move off a 30 s poll onto a game-hour
+  tick costs nothing.
+  It asks the question **of the house**: is any rostered holder of a
+  `fulfills` seat on shift anywhere this house operates? ⚠ The old brain
+  asked *is another on-shift maker in MY room*, which made cover a question
+  about where the proprietor happened to be standing — a proprietor in the
+  back office concluded the bar was unattended. If nobody is tending,
+  `business.beginCover(proprietor, now)` upserts a **transient, on-shift**
+  Employment against the first **`fulfills`** Position, and the proprietor
+  is moved to that seat's station. A cover is a shift: stand where the
+  work is.
   ⭐ The seat a cover covers is a fulfilling one: a proprietor steps behind
-  the bar to serve, not into the bookkeeping. Unpaid by construction (the wage settlement skips a
-  proprietor-held Employment, and the tick never governs the proprietor).
-  `endCover` drops it when a real bartender is back. v1 = clause-unheld only
-  (demand has no measure yet); `beginCover` does **not** verify
-  proprietorship — the brain gates on `businessOfProprietor`.
+  the bar to serve, not into the bookkeeping. Unpaid by construction (the
+  wage settlement skips a proprietor-held Employment, and the tick never
+  governs the proprietor). `endCover` drops it when a rostered bartender is
+  back on. A house with **no** fulfilling seat is never covered — there is
+  nothing to cover.
+  Tests: `platform/idea/api/__tests__/EmploymentLogic.shiftMove.test.ts`
+  (the move, the station, the missing `offstage`, cover both ways), plus
+  one content test per venue beside its rows
+  (`world/<venue>/__tests__/offstage.test.ts`).
 - **`restocks`** (libations) — the keeper reads the par sheet and buys
   the shortfall; **`consigns`** — a producer's floor hand carries stock
   to a distributor's counter and consigns it as the business. Both are
@@ -679,7 +702,8 @@ the actor stands in), not a scan.
 ## Cast (`domain/lounge/`)
 
 Dave → pure **proprietor** (the `proprietorPath` edge on the Business seed;
-`covers` brain, no `shifts` schedule). The four staff (Mara/Remy/Sloane/
+no roster slot — the tick's cover reconcile is what puts him behind the
+bar when nobody rostered is tending). The four staff (Mara/Remy/Sloane/
 Augie) → roster **assignees** (schedules lifted verbatim from the old NPC
 seeds, incl. Sloane's midnight-wrap two-window shift); each keeps
 `class: /platform/agent/Cast` — ⭐ plain `Cast` since the maker marker
@@ -761,7 +785,8 @@ two-beat turn-in) lives in [contract.md](./contract.md).
   *player* maker — craft it yourself, or the engine crafts as you — is
   crafting.md's question, not this one's.
 - **Hire/fire drivers** beyond Dave's cover (a fuller management brain) — the
-  `hire`/`fire` Api exists; v1 driver is seed authoring + `covers`.
+  `hire`/`fire` Api exists; v1 driver is seed authoring + the tick's cover
+  reconcile.
 - **The `patronize`/recirculation loop** — off-shift staff at the rail
   ordering/paying/tipping; restores the three-way presence (`railStool`).
 - **Shift-change ritual** (count-out / reconcile / handoff), **per-drink tip

@@ -39,11 +39,10 @@ data:
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival
-    - brain: /lib/behavior/shifts
-      trigger: cadence:30s
-      config:
-        behindBar: /world/terminus/market/square
-        offstage: /world/terminus/market/offstage
+    # ⚠ The `shifts` and `covers` specs used to sit here. Presence is a
+    # CONSEQUENCE of employment state, so the move belongs to the roster
+    # tick that owns the state — `offstage:` on the house, `station:` on
+    # the seat. See docs/subsystems/employment.md.
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

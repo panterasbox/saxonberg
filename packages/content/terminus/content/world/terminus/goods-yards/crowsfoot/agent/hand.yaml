@@ -76,7 +76,7 @@ data:
           grappa: 11
           brandy: 14
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/crowsfoot/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter

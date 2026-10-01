@@ -3,7 +3,7 @@
  * stateless strategy: given a `BrainContext`, it emits through the
  * context's helpers. We drive `act()` with a fake context whose
  * `say`/`emote`/`emoteFree` are spies, so brain logic is tested without
- * a live host. Movement brains (wanders/patrols/shifts) guard on the
+ * a live host. Movement brains (wanders/patrols) guard on the
  * host's mixins and no-op against a plain fake host — their traversal is
  * covered in Behaved.test.ts with a real host.
  */
@@ -24,7 +24,6 @@ import { brain as greets } from '../greets';
 import { brain as reacts } from '../reacts';
 import { brain as wanders } from '../wanders';
 import { brain as patrols } from '../patrols';
-import { brain as shifts } from '../shifts';
 import type { Stuff } from '../../stuff/Stuff';
 
 function fakeCtx(
@@ -143,9 +142,7 @@ describe('movement brains guard on host mixins', () => {
     expect(patrols.requiresFree).toEqual(['attention']);
   });
 
-  it('shifts is not presence-gated and no-ops without Mobile', () => {
-    const ctx = fakeCtx({ schedule: [] });
-    shifts.act(ctx);
-    expect(shifts.presenceGated).toBe(false);
-  });
+  // ⛔ `shifts` retired 2026-09-30 — presence and cover are the roster
+  // tick's (`EmploymentLogic.shiftMove.test.ts`). It polled every 30 s to
+  // notice an hourly flip.
 });

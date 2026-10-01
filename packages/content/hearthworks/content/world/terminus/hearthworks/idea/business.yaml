@@ -68,6 +68,10 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 19] }
     - positionKey: cook
       assignee: /world/terminus/hearthworks/agent/cook
+      # ⭐ `station:` because this house operates TWO rooms and the default
+      # (operatingLocations[0]) is the smithy. A shift is somewhere, and
+      # which somewhere is the seat's business, not the person's.
+      station: /world/terminus/hearthworks/location/cookhouse
       schedule:
         # ⭐ Real hours (envelope S8). This authored `[0, 24]` — a house
         # staffed around the clock — which was never true of it and made
@@ -94,3 +98,6 @@ data:
   operatingLocations:
     - /world/terminus/hearthworks/location/smithy
     - /world/terminus/hearthworks/location/cookhouse
+  # Where the cast wait off shift — one fact on the house (see
+  # docs/subsystems/employment.md). The roster tick moves them.
+  offstage: /world/terminus/hearthworks/location/offstage

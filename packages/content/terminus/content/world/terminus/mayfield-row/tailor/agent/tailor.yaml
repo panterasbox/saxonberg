@@ -46,7 +46,7 @@ data:
     - { discipline: textiles, asserting: competent }
   behaviors:
     - brain: /trade/tailoring/behavior/tailors
-      trigger: cadence:180s
+      trigger: candidate
     # ⭐ She ORDERS the shortfall and RECEIVES what a hauler leaves on the
     # bench (logistics D11) — she does not go and get it. Each short par
     # line becomes a carriage bounty on the TERMINAL HALL's board, which

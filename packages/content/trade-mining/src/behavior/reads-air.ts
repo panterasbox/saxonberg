@@ -30,6 +30,9 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 /** The bands the bird's behaviour reports, worst first. */
 const BANDS: ReadonlyArray<{ below: number; line: string }> = [
@@ -42,6 +45,13 @@ const BANDS: ReadonlyArray<{ below: number; line: string }> = [
 
 export const brain = class {
   static label = 'reads-air';
+  static kind: TaskKind = 'body';
+  static summary =
+    'Sings in good air, goes quiet as it thins, and stops before a person feels anything — an instrument that happens to be alive.';
+  static claims: readonly EngagementSlot[] = ['body'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'shifts on its perch');
+  }
   // The reading is load-bearing, not chatter: it must run whether or not
   // somebody happens to be watching, so the bird is already quiet when
   // you walk in on it.
