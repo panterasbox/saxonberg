@@ -2,131 +2,76 @@
  * HandleController — `handle <animal>`, and ⭐⭐ **precision costs an
  * act** (D24).
  *
- * Two things happen, and the design is that they are the same act:
+ * ⭐⭐ **The controller is machinery; the ANIMAL owns the act.** What
+ * working a beast does to it and tells you lives on
+ * `HandledMixin.workedOver` — see `../../../lib/Handled` for the whole
+ * argument, the rail-slam hazard and the flesh score. This file resolves
+ * the target, sends the scene the animal composed, and credits the deed.
  *
- *  1. **You work the animal**, which raises its handling — earned by
- *     contact, lost by neglect, with a diminishing return so the first
- *     session is cheap and the twentieth is not.
- *  2. **You get a precise body-condition score**, because real body
- *     condition scoring *is* palpation of spine and ribs. By eye you get
- *     a band; with your hands you get a number.
- *
- * ⭐ That the two are one act is the whole point: the person who handles
- * their stock is the person who knows what condition they are in, and
- * neither is bought separately. Nobody has to be told to handle their
- * animals.
- *
- * ⚠ **And it is where the risk is** (D46). A flighty animal is dangerous
- * to work, which is why quiet stock handling exists in the real world.
- * The hazard wave reads `handlingRisk()`; this act is where it will
- * bite, and the refusal here already names it.
+ * ⚠ It stayed a controller rather than becoming two: `lint:verb-collisions`
+ * refuses a second view claiming `handle`, correctly, and a
+ * `typeof target.colonyReading === 'function'` branch here would have been
+ * the guard that tells you the host is wrong.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { RANCHING_TOPIC } from './DraftController';
+import type { HandleReport } from '../../../lib/Handled';
 import type Livestock from '../../../agent/Livestock';
 
 /** The Discipline handling stock credits. */
 export const STOCKMANSHIP = 'stockmanship';
 
-/**
- * Risk above which working an animal actually hurts you.
- *
- * ⚠ It sits well up the scale on purpose: a `wary` animal — which is
- * most farm stock most of the time — never hurts anybody, and the
- * ordinary act stays ordinary. What gets you is the one nobody has
- * worked with.
- */
-const HURT_THRESHOLD = 0.45;
-
 interface HandleModel extends CommandModel {
   target?: MqlOneResult;
 }
 
+/** What the controller needs of any handled thing. */
+type Handleable = Livestock & { workedOver(actor: unknown): HandleReport };
+
 export default class HandleController extends CommandController<HandleModel> {
   async execute(model: HandleModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const target = model.target?.stuff as Livestock | undefined;
-    if (!target || typeof target.getHandling !== 'function') {
+    const target = model.target?.stuff as Handleable | undefined;
+    if (
+      !target ||
+      typeof target.getHandling !== 'function' ||
+      typeof target.workedOver !== 'function'
+    ) {
       this.decline(context, Mml.compose`That is not an animal you can work with.`, 'not-handleable');
       return;
     }
 
-    const before = target.getHandling();
-    const flesh = target.getReserve('flesh');
+    const report = target.workedOver(giver);
 
-    // ⭐⭐ **D46 — a badly handled animal is a HAZARD, not an
-    // inconvenience.** Quiet stock handling exists in the real world
-    // because flighty animals injure people: crushing against a gate,
-    // kicks, trampling in a race. Cattle are the most dangerous thing on
-    // a farm.
-    //
-    // ⚠ The risk is the SQUARE of the complement of tractability, so it
-    // is near zero across the whole quiet end and climbs steeply at the
-    // wild end — which is how handling injuries actually distribute, and
-    // why this is a reason to handle stock properly rather than a tax on
-    // doing so. And it fires BEFORE the handling improves, because the
-    // animal you are about to work is the animal you have.
-    const risk = target.handlingRisk();
-    if (risk > HURT_THRESHOLD) {
-      const mass = target.getMass().rawValue();
-      ConditionApi.inflict(giver, {
-        mechanism: 'blunt',
-        site: 'body.torso',
-        // ⭐ The energy is the ANIMAL's: a hen cannot hurt you and a cow
-        // can break your ribs against a gate, and the difference is mass
-        // rather than a table.
-        energy: mass * risk * 0.6,
-      });
+    // The beat BEFORE the handling, when there was one — a separate
+    // event, so a separate send.
+    if (report.prelude) {
       MessageApi.scene(giver)
         .topic(RANCHING_TOPIC)
-        .toSelf(
-          Mml.compose`It swings hard into you before you have a hand on it and you go into the rail.`,
-        )
-        .toPeers(
-          Mml.compose`One of the animals slams ${Mml.actor(giver)} into the rail and is away across the yard.`,
-        )
+        .toSelf(report.prelude.self)
+        .toPeers(report.prelude.peers)
         .send();
     }
 
-    const after = target.handle(1);
-
-    // ⭐ The precise score — the thing you paid an act for. Everything
-    // else about this animal is a band.
-    const score = flesh
-      ? `${Math.round(flesh.current.rawValue())} out of 100`
-      : 'nothing you can feel through the coat';
-
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
-      .toSelf(
-        before < 0.25
-          ? Mml.compose`You get a hand on it, barely, and it is away again before you have finished. What you did feel: ${score}. ${target.handlingPhrase()}.`
-          : Mml.compose`You run a hand down the spine and over the ribs and hips. ${score}. ${target.handlingPhrase()}.`,
-      )
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} works quietly around one of the animals, hands on it.`,
-      )
+      .toSelf(report.self)
+      .toPeers(report.peers)
       .send();
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({
-        discipline: STOCKMANSHIP,
-        // ⚠ Difficulty is the ANIMAL's, read at the moment of the act: a
-        // wild one is a hard check and a quiet one is trivial, so the
-        // estimator's own anti-grind property does the work.
-        difficulty: before < 0.25 ? 'hard' : before < 0.6 ? 'standard' : 'trivial',
+        discipline: report.discipline ?? STOCKMANSHIP,
+        difficulty: report.difficulty,
         outcome: 'success',
       });
     }
-    void after;
   }
 
   protected decline(

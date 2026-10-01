@@ -1141,6 +1141,73 @@ export abstract class Stuff {
   }
 
   /**
+   * ⭐⭐ **Am I an active presence, or am I matter?** — the `Agent`/`Thing`
+   * split, answered by the object rather than classified from outside.
+   *
+   * This is what "someone" and "something" are actually trying to say,
+   * and it is the one question behind three separate call sites:
+   * `RecognitionLogic`'s obscured form (a who or a what), and
+   * `MixinApi.isOpenContainer`'s actor exclusion (*you cannot reach into
+   * another actor's pockets*), which `PutController` used to keep a
+   * drifted copy of.
+   *
+   * ⚠⚠ **It is a METHOD, not an `instanceof`, for a hard reason.**
+   * `MixinApi` sits below the branch classes; importing `Agent` into it
+   * closes the cycle `mixin → Agent → Stuff → … → mixin`, leaves `Stuff`
+   * undefined at class-evaluation time and fails 176 test files with
+   * `Class extends value undefined`. Asking the object needs no import at
+   * all — which is also the project's own rule: methods are the contract
+   * between Stuff.
+   *
+   * ⚠ Those sites used to ask `isCommandGiver || isHasInteractive ||
+   * isOrganism` — three mixin PROXIES for this one question, and the
+   * third over-reached: `Organism` means *alive*, so every plant read as
+   * "someone" in the dark and a beehive (whose colony IS the organism)
+   * was excluded from its own contents.
+   *
+   * ⭐ One of **four** branch predicates — `isAgent` · `isThing` ·
+   * `isIdea` · `isLocation` — so no caller anywhere has to import a
+   * branch class to ask which branch something is. The fifth branch,
+   * `Shadow`, deliberately has none: it is a framework attachment that
+   * rides another Stuff rather than a world object anything asks about,
+   * and no call site wants it. Lower rungs do NOT get one; four is the
+   * whole set, because the branches are the one classification that is
+   * total, closed and never changes.
+   *
+   * @hook Overridden once, by `Agent`. Nothing else should.
+   */
+  public isAgent(): boolean {
+    return false;
+  }
+
+  /**
+   * Am I matter? — true on the `Thing` branch and nowhere else.
+   *
+   * @hook Overridden once, by `Thing`. Nothing else should.
+   */
+  public isThing(): boolean {
+    return false;
+  }
+
+  /**
+   * Am I an abstraction? — true on the `Idea` branch and nowhere else.
+   *
+   * @hook Overridden once, by `Idea`. Nothing else should.
+   */
+  public isIdea(): boolean {
+    return false;
+  }
+
+  /**
+   * Am I a place? — true on the `Location` branch and nowhere else.
+   *
+   * @hook Overridden once, by `Location`. Nothing else should.
+   */
+  public isLocation(): boolean {
+    return false;
+  }
+
+  /**
    * Check if this object has been destroyed.
    *
    * `@Unshadowable`: the destroyed-state read is a framework invariant —

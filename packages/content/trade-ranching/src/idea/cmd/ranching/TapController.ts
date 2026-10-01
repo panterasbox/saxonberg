@@ -43,6 +43,18 @@ export abstract class TapController extends CommandController<TapModel> {
   /** What the actor sees when there is nothing standing. */
   protected abstract emptyPhrase(animal: Livestock): ReturnType<typeof Mml.compose>;
 
+  /**
+   * Which Discipline the take exercises. ⭐ A hook rather than a
+   * constant because a fourth product may belong to a different trade
+   * entirely — robbing a hive is apiculture, not stockmanship — and the
+   * whole point of this base class is that the fourth product is a row
+   * and a short subclass.
+   */
+  protected discipline(animal: Livestock): string {
+    void animal;
+    return STOCKMANSHIP;
+  }
+
   /** What the actor sees on a successful take. */
   protected abstract takePhrase(
     animal: Livestock,
@@ -95,7 +107,7 @@ export abstract class TapController extends CommandController<TapModel> {
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({
-        discipline: STOCKMANSHIP,
+        discipline: this.discipline(animal),
         // The animal decides how hard it was, at the moment of the act.
         difficulty: animal.getHandling() < 0.35 ? 'hard' : 'standard',
         outcome: 'success',

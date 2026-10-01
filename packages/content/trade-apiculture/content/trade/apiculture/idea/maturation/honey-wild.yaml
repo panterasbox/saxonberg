@@ -1,0 +1,30 @@
+# Wild honey — ⭐⭐ **AC 15, and it is ONE mechanism used twice.**
+#
+# Honey left **open** somewhere warm ferments by itself; honey deliberately
+# diluted and fermented becomes mead. Same microbial clock, same row shape,
+# once as a defect and once as a product — and what tells them apart is
+# that somebody meant one of them.
+#
+# ⚠⚠ **Honest limit, recorded rather than pretended at.** The criterion
+# wanted *"somewhere it can take up damp"*, and the shipped microbial clock
+# reads temperature and openness, not ambient humidity. Honey left open IS
+# how honey takes up damp, so *open* is the honest form of the same fact
+# rather than a weaker one. A humidity term on `spontaneousLagDays` is a
+# maturation follow-on, not this build's.
+#
+# ⚠ Slower than mead (6 days against 4) and with no `turnedMaterial`:
+# fermented honey does not go on to become vinegar, it just stays
+# disappointing.
+class: /platform/idea/maturation/MaturationProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: honey-wild
+  mechanism: microbial
+  inputCategory: honey
+  stallBelowK: 287
+  happyK: 295
+  damageAboveK: 305
+  killK: 335
+  ratePerDay: 0.03
+  productMaterial: /trade/apiculture/idea/material/fermented-honey
+  spontaneousLagDays: 6

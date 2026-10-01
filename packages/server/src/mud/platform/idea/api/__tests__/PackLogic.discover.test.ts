@@ -64,7 +64,8 @@ describe('the shipped packs (real discovery, no install)', () => {
     // 47 → 48: fishing adds `trade-fishing`; 48 → 50: TWO builds landed a
     // pack in the same window — `trade-shopkeeping` (trades-and-labor) and
     // `ground` (the system pack the column and the surface character moved
-    // OUT of two trades into); 50 → 51: extraction adds `trade-quarrying`.
+    // OUT of two trades into); 50 → 51: extraction adds `trade-quarrying`;
+    // 51 → 52: apiculture adds `trade-apiculture`.
     //
     // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
     // git merged the two comment blocks as a CONFLICT while merging the
@@ -73,7 +74,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(51);
+    expect(ids).toHaveLength(52);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }

@@ -1,0 +1,24 @@
+# A super — ⭐ a box of frames that goes on top, and the ONLY thing that
+# stops a strong colony swarming (AC 6).
+#
+# ⚠ Ordinary contents. `put super in hive` is the supering act because the
+# hive sums what its contents declare; nothing here is a mechanism, and
+# neither is the act.
+class: /trade/apiculture/thing/HiveBox
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # ⚠⚠ NOT `"hive box"`. Multi-word keywords tokenize, so `hive` matched
+  # a super as well as the hive itself and the binder asked *which
+  # target?* — and an unanswered prompt poisons a whole session. The
+  # drive found it; a keyword that contains another object's name in the
+  # same room is a collision, not a synonym.
+  keywords: [super, box, "honey super"]
+  shortDescription: honey super
+  register: indefinite
+  longDescription: >-
+    A shallow pine box holding ten frames on their runners, each one
+    strung with wire and waiting to be drawn out.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 6
+  volumeM3: 0.04
+  combCapacityKg: 12

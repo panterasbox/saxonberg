@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**255 slates.** 60 greenfield · 90 continuations · 57 waves · 48 tails.
+**260 slates.** 63 greenfield · 90 continuations · 58 waves · 49 tails.
 
-## ⭐ Greenfield — nothing shipped yet (60)
+## ⭐ Greenfield — nothing shipped yet (63)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -60,6 +60,7 @@ respect.
 | [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
+| [dairy](./builds/dairy-slate.md) | the dairy as a business (the hourly tap and the hired hand) · pasteurization on the shipped kill curve · cheese as a maturation profile with whey as the lees · butter and cream as mechanical process … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
 | [destructive-distillation](./builds/destructive-distillation-slate.md) | the retort as the clamp's capitalised sibling · the condenser and the volatile fraction · wood tar → pitch · **coal tar** and its cuts … |
@@ -91,9 +92,11 @@ respect.
 | [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) … |
 | [prison](./builds/prison-slate.md) | `PrisonMixin` (a locality you cannot leave — the boundary + the custody book, and nothing else) · the three enforcement tiers in content · cells as provisioned shelters on the residence spine · interior law as the prison's own jurisdiction (no `securityLevel`) … |
 | [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the cast surface (typed slot binding, save-gate validated, the two authoring tiers) · one genre cast end-to-end (Mystery, against the forensic win) … |
+| [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
 | [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization + the single-writer append discipline · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
 | [rendering](./builds/rendering-slate.md) | the knacker (dead stock — a `Corpse` yields nothing) · the tanner (tannin is the dyeing trade's) · the chandler · `soap` / `candle` … |
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
+| [rgo-unification](./builds/rgo-unification-slate.md) | ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`, copied 3×) · the **sweetener vocabulary** decided once across sugar, honey and maple · and — **held deliberately** — the derived-field interface, which waits for foraging |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
 | [rubber](./builds/rubber-slate.md) | latex as a tap (→ tapping-slate) · sulfur as a deposit row + material · the **crosslinking `Law`** and its honest evaluator · `vulcanize` as a recipe gated on that law … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
@@ -127,7 +130,7 @@ are the named remainders.
 | [clinical-medicine](./builds/clinical-medicine-slate.md) | the blood-BANK economy → blood-slate; cold storage → cold-chain-slate; the full surgery build → surgery-specialty-slate; the diagnostic |
 | [cms](./builds/cms-slate.md) | `domain_history` op-log versioning · the draft/changeset overlay + atomic publish · the law==code review gate (the forums `mature` consumer) · the per-type content editors (room … |
 | [cms-connectors](./builds/cms-connectors-slate.md) | scoped personal access tokens (content-vs-source scope) · the MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over `source` + `document` · read-only WebDAV over `content` … |
-| [cold-chain](./builds/cold-chain-slate.md) | cold PRODUCTION (a powered freezer on the electricity tier; the seasonal ice-house and ⚠ **who SELLS ice** — the icebox consumes a good nobody makes, which is this slate's sharpest open) · CARRIED cold (an iced cooler a medic walks with; the shipped `Icebox` is `fixedInPlace`) · a cold ROOM as a place rather than a box · the `Chamber` compartment (a fridge's freezer half → fridge-design-pack) … |
+| [cold-chain](./builds/cold-chain-slate.md) | cold PRODUCTION (a powered freezer on the electricity tier; the seasonal ice-house and ⚠ **who SELLS ice** — the icebox consumes a good nobody makes, which is this slate's sharpest open) · CARRIED cold (an iced cooler a medic walks with; the shipped `Icebox` is `fixedInPlace`) · a cold ROOM as a place rather than a box · the `Chamber` compartment (a fridge's freezer half → fridge-design-pack, and ⚠ see chambered-vessels-slate, written 2026-09-25 for the same problem — **possible duplicate ground**) … |
 | [combat](./builds/combat-slate.md) | pursuit / the chase (⚠ contradicts the shipped single-step disengage — see ledger) · rout & rally retreat · the `guards` intervention brain (⚠ content riding substrate that does not exist — see intervention-slate.md) · the client `CombatCard` (+ the terms-handshake render) … |
 | [combat-experience](./builds/combat-experience-slate.md) | T1 doctrine (kept for the deferred aftermath work it still frames) · T5 composure/luck (`traits-stress`; `g(composure)` is inert) · T7's composition rules + T8 loadout-as-chemistry (no combos built) · T11 aftermath (minus the body pipeline, covered by mortality.md) … |
 | [content-packs](./builds/content-packs-slate.md) | the unbuilt trades of the Part 6 roster (butchery · fishing · foraging · quarrying … |
@@ -203,7 +206,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (57)
+## Waves — rides another build (58)
 
 | slate | left |
 |---|---|
@@ -213,6 +216,7 @@ are the named remainders.
 | [argument-map](./tails/argument-map-slate.md) | claim dedup / canonicalization · integrity-grade map-summarization · automated convergence-detection (+ the anti-railroad floor) · mass-scale moderation of claim quality … |
 | [augmentation](./tails/augmentation-slate.md) | the medical install/remove procedure · the char-gen augment loadout · translation, prosthetic, sensor, motor and cognitive augments (only the baseline `AetherImplant`/cranial-slot form ships) · the failure and hacking modes … |
 | [bulkable](./tails/bulkable-slate.md) | mixing/solutions · the `sealed` gas level + the phase→closure map (granular → `open`) · universal reception on surfaces + the auto-compose wiring · regenerating sources … |
+| [chambered-vessels](./tails/chambered-vessels-slate.md) | `ChamberedMixin` (`lib/spatial/`) — the chamber declaration, the `postRegister` mint, the destruct cascade, the **no-loose-contents** invariant, the part flag · ⭐ **a describer that speaks a host's declared parts AS parts** (the whole UX question) · ⚠ **part-transparency** in `scope-walk` + `PerceptionApi.canReach` together, bounded at one level · slots-vs-contents for where a chamber sits |
 | [chat](./tails/chat-slate.md) | the role overlay (projected rank + stored overlay; only `owner` gates today) · the channel config block (`editPolicy` · per-channel `retention` · `postPermission` … |
 | [client](./tails/client-slate.md) | output logging / clips / attestation (owned by attestation-slate) · the lounge's content half (owned by lounge-slate) · the open MML vocabulary questions (what `msg` is for · `communicative` on the wire … |
 | [client-cockpit](./tails/client-cockpit-slate.md) | the `study` and `classroom` modes + their diegetic `mode-changed` trigger (⚠ contradicts cockpit.md's no-auto-switch rule; this is the *Educational* row of client-shell-slate's use-case matrix, tracked only here since the cluster pass) · the content surface (video + transcript payloads, diegetic triggers, completion events) · the live-tutor / classroom shape · the `<mql>` / `mudq:` sleeper, still inert by design … |
@@ -265,13 +269,14 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (48)
+## Tails — small and opportunistic (49)
 
 | slate | left |
 |---|---|
 | [absent-body](./tails/absent-body-slate.md) | the autonomic-defense stance itself · brain-mechanism vs pure-stance · the grace/duration question · the interaction with `combat.maxBeats` … |
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — denies + `forceX` uses → `MudlogApi`, which is unwired) · action-level `can()` for non-staff verbs (chat gag-as-deny, channel post/moderate roles, guild kick, field masks) + deny-wins composition · the location/context source · the lease-vs-quota design question, which should not ride the audit sink's cycle |
-| [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled) and its parse wiring (Q3–Q5) · extra `put` prepositions (Q2) · the `Receiving` mixin (NPC consent for `give`) |
+| [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled — and ⭐ the prefix is an **MQL string**, 2026-09-25) and its parse wiring (Q3–Q5) · extra `put` prepositions (Q2) · the `Receiving` mixin (NPC consent for `give`) · ⭐⭐ **the collision-resolution ladder** (below) |
+| [apiculture](./tails/apiculture-slate.md) | **foulbrood** via `Contaminable` on the comb (varroa still deferred) · robbing between colonies · persistent-disturbance absconding · honey character + mad honey … |
 | [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script (no `script` verb) detaches · a per-actor async concurrency cap · a generic cancel-my-running-async-command verb (engagement owns cancel today) |
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · YouTube as a linkable/login provider (a `@`-seed still rejects `character-youtube`) · LLM name-refraction |
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |

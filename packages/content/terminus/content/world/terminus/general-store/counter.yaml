@@ -108,6 +108,36 @@ data:
     - { itemTemplatePath: /trade/farming/thing/seed/mint, par: 3 }
     - { itemTemplatePath: /trade/farming/thing/seed/cranberry, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/grape, par: 2 }
+    # ⭐⭐ **The beekeeper's kit — and it is HERE rather than in the
+    # valley, deliberately.**
+    #
+    # A general store's job IS importing: that is what a Stock counter is
+    # for, and it is the right home for a faucet. Putting it on Quist's
+    # farm instead would have made one NPC the farmer, the landowner, the
+    # pollination beneficiary, the honey buyer AND the woodenware seller
+    # — five roles, in the build whose whole thesis is that a beekeeper is
+    # a SECOND PARTY on land they do not own. And hives, frames and
+    # supers are CARPENTRY, so the trade creates a woodenware-maker-shaped
+    # hole; filling it with a par on a farm would delete the vacancy the
+    # build just made.
+    #
+    # ⭐⭐ So the valley has no supplier at all, and that is the point: the
+    # hole is visible and takeable, and the trip to town is real.
+    - { itemTemplatePath: /trade/apiculture/thing/hive, par: 2 }
+    - { itemTemplatePath: /trade/apiculture/thing/thick-hive, par: 1 }
+    - { itemTemplatePath: /trade/apiculture/thing/super, par: 3 }
+    - { itemTemplatePath: /trade/apiculture/thing/frame, par: 6 }
+    - { itemTemplatePath: /trade/apiculture/thing/smoker, par: 2 }
+    - { itemTemplatePath: /trade/apiculture/thing/extractor, par: 1 }
+    - { itemTemplatePath: /trade/apiculture/thing/honey-jar, par: 4 }
+    - { itemTemplatePath: /stuff/thing/clothes/bee-veil, par: 2 }
+    - { itemTemplatePath: /stuff/thing/clothes/work-gloves, par: 3 }
+    # ⚠⚠ **ONE labelled faucet: the bees themselves.** A new beekeeping
+    # district really does start by importing a colony, and after the
+    # first one splits and swarms supply themselves — so this is one line
+    # at par 1 rather than a par on every product, it is in a shop where
+    # importing belongs, and this comment is what it is.
+    - { itemTemplatePath: /trade/apiculture/thing/nuc, par: 1 }
     - { itemTemplatePath: /trade/farming/thing/seed/juniper, par: 2 }
     # ⭐ The fibre and dye line (textiles B1). Flax is the chain's whole
     # left edge; the three dyestuffs are what makes cloth worth
@@ -318,3 +348,33 @@ data:
     /trade/fishing/thing/leger-rod: 14
     /trade/fishing/thing/spoon: 4
     /trade/fishing/thing/keepnet: 6
+    # ⭐⭐ **The beekeeper's ladder**, against the same anchors (stipend
+    # 20, wages 4–6 per game-hour). The shape is the claim, and there are
+    # two claims in it:
+    #
+    #   1. **the box is cheap and the bees are not.** A hive is
+    #      woodenware — six boards and a lid, so it sits beside a
+    #      waterskin — and the nucleus is the dear one, because live bees
+    #      are somebody's whole spring's work and this is the one line
+    #      that mints life. A beginner buys the box and then has to find
+    #      the money, catch a swarm, or be given a split.
+    #   2. **the extractor is a BUSINESS**, priced with the net and the
+    #      dray rather than with the tackle: it is the thing you buy once
+    #      you are selling honey, and until then you crush.
+    #
+    # ⚠ The thick hive is roughly double the plain one, which is the
+    # honest price of twice the timber — and whether it repays itself
+    # depends on how cold the winters are where you keep bees. That
+    # judgement is the mechanism; the price is just wood.
+    /trade/apiculture/thing/hive: 12
+    /trade/apiculture/thing/thick-hive: 25
+    /trade/apiculture/thing/super: 5
+    /trade/apiculture/thing/frame: 1
+    /trade/apiculture/thing/smoker: 6
+    /trade/apiculture/thing/extractor: 55
+    /trade/apiculture/thing/honey-jar: 2
+    /stuff/thing/clothes/bee-veil: 5
+    /stuff/thing/clothes/work-gloves: 4
+    # ⚠ The one faucet, and the dearest thing on the shelf under the
+    # musket. Bees are cheap to keep and expensive to start.
+    /trade/apiculture/thing/nuc: 45

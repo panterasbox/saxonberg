@@ -35,3 +35,9 @@ data:
     # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
     fruitSetCount: 12
     fruitFillDays: 25
+
+    # ⭐ Insect-pollinated (apiculture D4): HALF a crop with nothing
+    # working the bloom, the full authored set when something does.
+    # Citrus sets a fair crop on its own and a much better one when something works the blossom.
+    # Authors author the CAUSE; nothing here asks who pollinated it.
+    pollinationBaseline: 0.5

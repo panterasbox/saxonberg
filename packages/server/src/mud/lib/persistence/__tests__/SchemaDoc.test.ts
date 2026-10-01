@@ -13,7 +13,12 @@
  * is `fs`, not the mudlib's `SourceTreeApi`.
  */
 
-import "../../../../test-bootstrap";
+// ⚠ `lint:test-bootstrap` — anything touching the wired runtime imports
+// this, and a redundant import is free because the bootstrap is
+// once-guarded. Added by the apiculture build: the gate was RED on
+// master, which is the same class as *a gate ships broken and silently
+// passes*, only louder.
+import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';

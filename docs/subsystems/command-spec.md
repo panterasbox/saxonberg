@@ -226,6 +226,16 @@ options:                      # optional; verb-scoped
 A zero-arg verb (e.g. `inventory`, `ping`) has neither `args` nor
 `subcommands` — that's fine.
 
+> ⭐⭐ **The collision doctrine is a TRANSPARENCY rule, not only a
+> tidiness one** ([lens #62](../lenses/62-transparency.md), 2026-09-30).
+> *“Simple enough that with practice players use it without thinking”* is
+> better read as **consistent enough to become fluent** — nobody claims
+> `git` is transparent, yet an expert stops thinking about it — and
+> **inconsistency is precisely what blocks fluency.** ⚠ It also gives the
+> ladder a budget: **the verb is diegetic, the syntax is not**, so every
+> sigil and flag is transparency spent, and `source::verb` should say what
+> it buys.
+
 ### ⭐⭐ Choosing between them — and what a collision is telling you
 
 The mechanical rule above (`args` **or** `subcommands`, never both) says

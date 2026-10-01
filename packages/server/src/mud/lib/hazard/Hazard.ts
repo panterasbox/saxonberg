@@ -381,11 +381,26 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       return medium === 'air' || medium === 'water';
     }
 
-    /** Inflict the delivery's wound (armor mitigates free) + inject toxin. */
+    /**
+     * Inflict the delivery's wound (armor mitigates free) + inject toxin.
+     *
+     * ⭐⭐ **The venom rides the WOUND.** The dose is gated on
+     * `InflictOutcome.afflicted`, which is true iff the target was a
+     * wound-able body and the trauma actually landed — so a covering the
+     * channel cannot breach, a body with no resolvable site, and a
+     * conferred immunity that refuses the wound each refuse the dose as
+     * well. The shipped step-dart's own text already said *"a boot
+     * mitigates"*; until 2026-09-30 the toxin landed unconditionally,
+     * even when there was no `spec` at all.
+     */
     private deliverHarm(mover: Stuff): void {
       const spec = this.delivery.toInflictSpec(mover);
-      if (spec) ConditionApi.inflict(mover, spec);
-      if (this.delivery.hasToxin() && MixinApi.isMetabolic(mover)) {
+      const outcome = spec ? ConditionApi.inflict(mover, spec) : null;
+      if (
+        outcome?.afflicted &&
+        this.delivery.hasToxin() &&
+        MixinApi.isMetabolic(mover)
+      ) {
         const toxin = this.delivery.getToxin();
         if (toxin) mover.introduceToxin(toxin.type, toxin.amount);
       }

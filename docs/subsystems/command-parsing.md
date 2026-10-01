@@ -219,6 +219,30 @@ interface ParsedPipeline {
 greedy positional binder needs to slice the original input; without
 them, greedy fields would lose interior whitespace runs.
 
+## ⚠ A non-greedy target arg cannot be disambiguated by phrase
+
+Found by the apiculture build's browser walk (2026-09-30). `open` and
+`put` take a **non-greedy** target argument, so a multi-word phrase never
+reaches the binder:
+
+```
+open double-walled beehive   → "That doesn't match any known command shape: open."
+put frame in first hive      → "That doesn't match any known command shape: put."
+look in first hive           → resolves (look's arg is greedy)
+```
+
+⭐⭐ **The cost is that an ambiguity becomes unresolvable**, not merely
+awkward. With three hives in one room there is no phrase that names one:
+the ordinal and the distinguishing adjective are both unspeakable, and
+the only way through is to carry the object somewhere that holds no
+sibling. A player with two of anything in a room meets this.
+
+⚠ Same family as the `greedy: true` article defect
+[instrumentation.md](./instrumentation.md) records, and the fix is
+presumably the same one-key change per view — but *which* verbs should be
+greedy is a judgement about each verb's arg shape, so it is recorded here
+rather than swept blind.
+
 ## Cross-references
 
 - [command-routing.md](./command-routing.md) — what happens after

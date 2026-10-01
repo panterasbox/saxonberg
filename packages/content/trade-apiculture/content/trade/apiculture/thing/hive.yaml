@@ -1,0 +1,39 @@
+# A hive — ⭐⭐ **the base row, and the epoch ladder is its children.**
+#
+# What a winter costs a colony is the wall it is living behind, and the
+# wall is two numbers: what it is made of and how thick it is. So every
+# hive in the game is this row plus a different `enclosure`, and a player
+# who works out that the thicker box needs less honey has worked out
+# something physically true rather than read a tooltip.
+#
+# ⚠ `interiorCapacity` is NOT authored: that is `Bulkable`'s liquid
+# capacity and a hive holds no fluid. The interior the envelope uses is
+# `broodVolumeM3` plus whatever supers are in it — derived from contents,
+# so `put super in hive` is the supering act and there is no verb for it.
+class: /trade/apiculture/thing/Hive
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [hive, beehive, box, "bee hive"]
+  shortDescription: pine beehive
+  register: indefinite
+  longDescription: >-
+    A square pine box on a low stand, with a slot of an entrance along the
+    bottom board and a flat lid weighted down with a stone. The boards are
+    thin enough to knock on.
+  _materialPath: /stuff/idea/material/wood/pine
+  _speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/hymenoptera/apidae/apis/mellifera
+  mass: 14
+  # Shipped EMPTY. A hive you buy is a box; the bees are a separate
+  # purchase, a caught swarm or a split, which is AC 1's three costs.
+  strength: 0
+  hasQueen: false
+  lifecycleState: ""
+  open: false
+  broodVolumeM3: 0.045
+  broodCombKg: 8
+  superCapacityKg: 12
+  combDrawn: 1
+  # ⭐ Thin pine — the ordinary box, and the one a beginner buys.
+  enclosure:
+    material: /stuff/idea/material/wood/pine
+    thicknessM: 0.019

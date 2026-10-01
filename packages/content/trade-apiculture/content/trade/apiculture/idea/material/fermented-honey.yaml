@@ -1,0 +1,28 @@
+# Fermented honey — ⭐⭐ **the spoilage and the product are the same
+# event**, and this row is the spoilage end of it.
+#
+# Honey left open takes up damp, its water activity climbs off the floor,
+# and the wild yeasts that were in it all along start working. It is not
+# poisonous and it is not mead: it is honey that fizzed, which is a real
+# thing that happens to badly stored honey and a real disappointment.
+#
+# ⚠ Deliberately worse than mead rather than the same: what distinguishes
+# the product from the defect is that somebody meant it.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: fermented honey
+  keywords: [honey, fermented, spoiled]
+  appearance: "honey gone pale and frothy, with a rim of foam at the glass"
+  density: 1300
+  thermalConductivity: 0.5
+  specificHeat: 2600
+  edibility: true
+  tastes: [sweet, sour]
+  nutrients: ["sugar", "alcohol"]
+  nutrientAmounts:
+    sugar: 9000
+    alcohol: 2000
+  tags: ["liquid", "food", "fermented-honey"]
+  composition: []
+  biologicalSource: null

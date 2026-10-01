@@ -10,6 +10,19 @@ different sides: *who is reading* and *what does this sentence need*.
 
 ---
 
+> ⭐⭐ **Read as an interface decision, this doc is a DIMENSION system**
+> ([lens #66](../lenses/66-channels-and-dimensions.md), 2026-09-30). In a
+> one-medium game almost every interface choice is a choice of *axis within
+> text* rather than of channel — and two of the axes here are unusually
+> load-bearing: ⭐⭐⭐ **the article carries the ontology** (the identity
+> rungs are *defined* by `the` vs `a`, and the field sits on `VisibleMixin`
+> because 480 of the 611 articled rows are things with no rung at all), and
+> **§ 2's “who” column is a dimension→surface map** — Schell's *“which
+> channels are most appropriate for which data”*, answered for naming.
+> ⚠ Note the collision: “register” here is grammatical, while
+> [message-rendering.md](./message-rendering.md)'s font-by-register
+> “register” is typographic. Both are real.
+
 ## 1 · The noun phrase
 
 `lib/description/NounPhrase.ts` — a value object: **a stem, a register,
@@ -156,6 +169,20 @@ weaver is a player is not the secret; *which* player is.
 `'stranger'` skips rungs 1 and 2. ⚠ That ladder used to exist **twice** —
 here, and in `RecognitionLogic.strangerStem` as the same rungs minus two,
 kept in step by hand. The first change to touch one broke the other.
+
+⭐⭐ **Rung 5 is the `Agent`/`Thing` split, and nothing else.**
+`RecognitionLogic.obscured` asks `target.isAgent()` — one of the four
+branch predicates on `Stuff` (see
+[architecture.md § Top-level branches](../architecture.md)) — so a
+person and a cow read *"someone"*, and a plant, a beehive and a crate
+read *"something"*. It asked **`isOrganism`** until 2026-09-30, which
+means *alive*: every plant in the game read as "someone" in the dark,
+and apiculture made it loud because a colony IS the organism (`drop hive`
+answered *"You drop someone."*). ⚠ The two narrower mixin predicates both
+fail too — `isVitals` makes a person with no vitals a *something*, and
+`isPersona` makes a **cow** one. "Someone" is not *alive*, not *has a
+body* and not *is a person*: it is *is an actor*, which is what the
+branch says outright.
 
 ---
 

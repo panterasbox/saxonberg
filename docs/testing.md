@@ -606,6 +606,27 @@ silently reduces it to `expect([]).toEqual([])`.
 > scratch copy to reach panels behind a step. Reading the source is a
 > supplement, never the audit (graduated from the client slate, 2026-09).
 
+## ⚠ A 5s budget on an integration standup reads as assertion failures
+
+Measured 2026-09-30 during the apiculture sweep. `terminus`'s
+`terminus-standup.integration.test.ts` boots real seeds inside the
+default **5-second** `testTimeout`. With four worktrees on one box
+(load average 34 on 8 cores) it reported **4 failed tests** — *"boots the
+four terminals"*, *"seats each terminal"*, *"wires the cross-branch
+exit"*, *"declares every intra-zone connection"* — which reads exactly
+like a content regression.
+
+⭐ **The tell is the message, and it is one line down:** `Error: Test
+timed out in 5000ms`, with no `AssertionError` anywhere. Re-run with
+`--testTimeout=120000` the same file passes, and the same file passed in
+the full suite minutes earlier.
+
+⚠⚠ **So before believing a standup failure, check two things:** whether
+the failure is a timeout rather than an assertion, and what the load
+average was. ⭐ And remember the standing rule that pulls the other way —
+*an unnamed failure is NOT a flake*: "the box was busy" only counts once
+you have shown the test passes with a budget it can actually meet.
+
 ## ⭐⭐ Two tiers: WIRE and RENDER
 
 Testing splits in two, and the split is about what a test is entitled to

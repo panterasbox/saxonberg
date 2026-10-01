@@ -880,6 +880,31 @@ to `lib/stuff/Good`.
   `platform/thing/Good` (bare goods — an anvil, a folded hide, a
   handcart). Which one a row names IS the claim *can this be carried off*.
 
+⭐⭐ **Four predicates on `Stuff` answer which branch** — `isAgent()` ·
+`isThing()` · `isIdea()` · `isLocation()`, each `false` on the root and
+overridden exactly once in its own branch file. So nothing anywhere has
+to import a branch class to ask the question, which matters because
+`api/**` and `lib/mixin.ts` sit *below* the branch classes: an
+`instanceof Agent` in `api/mixin.ts` closes the cycle
+`mixin → Agent → Stuff → … → mixin`, leaves `Stuff` undefined at
+class-evaluation time, and takes 176 test files down with
+`Class extends value undefined`. Measured, not theorized.
+
+`Shadow` deliberately has none — a framework attachment riding another
+Stuff is not a world object anything asks about — and **no lower rung
+gets one**: four is the whole set, because the branches are the one
+classification that is total, closed and never changes. Asking *is this
+a `Creature`* is a mixin question (`MixinApi.isVitals`), not a branch
+one.
+
+⭐ Today's three callers all ask the same thing — *am I an active
+presence, or am I matter* — and all three used to ask `isOrganism`, or a
+proxy for it, and were wrong: `RecognitionLogic.obscured` (so every
+PLANT read as *"someone"* in the dark), `MixinApi.isOpenContainer` (so a
+beehive, whose colony IS the organism, was excluded from its own
+contents) and `PutController`, which kept a drifted private copy of the
+second. "someone" vs "something" IS the `Agent`/`Thing` split.
+
 ⭐ `DetailedMixin` sits on the root beside `Perceptible`, since the same
 build: a thing addressable by keyword has PARTS addressable the same way,
 and `Detailed` is the access path to their metadata. 78 classes used to
@@ -1275,6 +1300,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/husbandry/` | `GrowingMixin` | the living-world growth model (husbandry phase 1): a cultivated thing's condition as a pure function of `(profile, clock stamp, water, light, root room, interventions)`, reconciled on read over game-time with **no far-past guard and no linkdead freeze** (an owned thing lives the full absence — bounded by a step cap, never a time cap). Three satisfactions combined by the **minimum** (Liebig); a floored root curve makes a pot-bound plant stall AND hold a band; banded `thriving/healthy/stressed/failing/dead` with a separate plain-language cause line. Since phase 2 water lives in the SOIL, so the mixin declares SEVEN host seams (`rootRoom` / `soilMoisture` / `meanSoilMoisture` / `nutrientLevel` / `waterTheSoil` / `onFloweringLatched` / `sampleLux`), takes a **fourth** min() argument (`satNutrient`, `null` → 1, so a pot is unaffected), and records `_worstLimiting` — a monotone minimum that harvest quality reads, which is what makes farming reward your worst moment. Also owns the **harvest + rooting surface** — `harvestTemplatePath`, `nutrientDraw`, `isHarvestable()`, `getBed()`, `transplantDifficulty()` — moved off the `Plant` class, because `harvest` and `repot` declared `requires: GrowingMixin` while their controllers refused `instanceof Plant`: two predicates for one gate. Every one of those is expressed purely in terms of what this mixin already owns, so the class was never the right home; `Plant` was simply the only composer. Composed by `Plant`. No Api. See [husbandry.md](./subsystems/husbandry.md) and [smallholding.md](./subsystems/smallholding.md). |
 | `lib/husbandry/` | `SoilMixin` | **ground as a ledger** (farmstead W1): four reserves — `moisture`, `nitrogen`, `organicMatter`, `structure` — plus the reconcile window and the **sky edge** (rain, daylight, season), lifted out of `Cultivable` so a pot, a bed and a four-hundred-square-metre field are one substrate at three scales. Host constraint `Stuff & Reserved`; hooks `soilWaterDemandPerGameDay` / `soilCatchmentAreaM2` / `soilLeachRate`. ⚠ `static _mixinName: string` is annotated on purpose — `Mixins` is `as const`, so an inferred literal type intersects to `never` down a deep chain. Composed by `Cultivable` (kernel), by `trade-farming`'s `Field` and by `trade-forestry`'s `Wood` (a LOCATION that is ground, whose `StandMixin` — a pack mixin in the pack's own `lib/`, the sward's shape — is what drinks it). No Api. See [soil.md](./subsystems/soil.md) + [forestry.md](./subsystems/forestry.md). |
 | `lib/husbandry/` | `HandlingMixin` | how easy an animal is to work with — bands wild→quiet, `handlingRisk()` = `(1−h)²`, decay toward a floor. The individual axis for an animal that must NOT have pet-love, and the answer to *what makes it dangerous*. ⚠ The **affordance** for `handle` is not here: the kernel cannot name a pack's command view, so `trade-ranching`'s `HandledMixin` carries it and the two compose side by side. See [ranching.md](./subsystems/ranching.md). |
+| `/trade/apiculture` `lib/` | `ColonyMixin` | **a colony of bees as the animal, and the hive as its weather** (apiculture, 2026-09-30). The one RGO mixin whose reservoir is *not the host's own ground*: `forage` is a radius walk over real exits, so a colony eats a bloom it does not own and leaves a fruit set behind — two keepers on one valley find each other out with no ledger telling them. Wintering is the hive's envelope, not a dial — `U = A/(t/k + R_films)` off `AtmosphericMixin`, which the `Hive` composes **itself** because it is the honest counter-case (you cannot go inside one, and the interior climate IS the mechanism). State is `strength` · `pollenKg` · `hasQueen` · `queenlessSince`, reconciled on read; the three endings — swarm · abscond · starve — are all **derived from crowding and stores**, never drawn. ⭐ The base constraint is the composition requirement: `ColonyBase = Stuff & { getSpecies(): Species | null }`, so a colony that could not name its species would not compile. Host also composes `HandlingMixin` (the temper of the bees you installed) — narrowed with `MixinApi.isHandling`, never duck-typed. Exposes `Colonial`, whose `seedFromSplit` is **the one write another Stuff makes to a colony**, because the state fields are public only for the Hydrator. Composed by `Hive` and `Colony`. No Api. See [apiculture.md](./subsystems/apiculture.md). |
 | `lib/husbandry/` | `BondedMixin` | ⭐ **an animal somebody could come to care about** (pets build): the bond as `regard/100 × handling` (never a new number; regard never decays, handling does — *difficult, not feral*), `wouldComply` / `wouldEat` / `offerRung` / `feelsSafeToEatAmong` as deterministic thresholds over measured state with closed outcomes, home + the trail (memory, not navigation), the ask (`askingOf`), and **the five verbs' affordance** as a static (`commandContributions.peers`). Narrows to `BeliefStore` and `Handling` as siblings rather than demanding them. See [pets.md](./subsystems/pets.md). |
 | `lib/husbandry/` | `FeederMixin` | a vessel an animal eats from — `feederKind` (`bowl` / `trough` / `hopper`), `offerings()`, `lastFilledBy`; the species' `feedingStyle` says which kinds it will use. Composed on `platform/thing/Feeder`. |
 | `lib/husbandry/` | `OfferEngagement` *(a `DurativeActivity`, not a mixin)* | the `approach` rung of an offer: the offerer's `hands` for `APPROACH_MS`; at completion the animal decides on the world as it is then. The `SearchActivity` shape. |

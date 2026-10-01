@@ -1,0 +1,16 @@
+# A cake of beeswax — ⭐ the crush's residue, and the start of the candle.
+#
+# ⚠ Conservation: crushing comb does not make the wax appear, it separates
+# what was already there. The honey goes in the jar and this is the rest
+# of the comb.
+class: /platform/thing/Thing
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [wax, beeswax, cake, block]
+  shortDescription: cake of beeswax
+  register: indefinite
+  longDescription: >-
+    A pale yellow disc of rendered wax, still smelling faintly of honey and
+    slightly sticky where a thumb has been on it.
+  _materialPath: /stuff/idea/material/organic/beeswax
+  mass: 0.15

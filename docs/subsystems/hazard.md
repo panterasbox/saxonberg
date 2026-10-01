@@ -289,3 +289,33 @@ constants are dials. (The concealment/detection dials — including the
   the `sneak`/`run` care↔speed modes.
 - [activity.md](./activity.md) — `HazardActivity` (pin / disarm) and
   `SearchActivity`.
+
+---
+
+## ⭐⭐ Venom rides the WOUND (apiculture W1, 2026-09-30)
+
+`HazardMixin.deliverHarm` injected a delivery's toxin **unconditionally**:
+whenever one was authored and the mover was metabolic, the dose landed —
+even when the covering stack had fully attenuated the blow, and even when
+`toInflictSpec` had answered `null` because the mover has no body part
+the delivery's `siteSelector` names. The shipped step-dart's own text says
+*"a boot mitigates"*; for the venom it did not.
+
+The dose is now gated on `InflictOutcome.afflicted`, which is true iff the
+target was a wound-able body and the trauma was actually afflicted. So a
+covering the channel cannot breach, a missing site, and a body veto each
+refuse the dose as well as the wound.
+
+⭐ A colony of bees applies the same rule from the same value object
+without composing `HazardMixin` at all — it builds a `HazardDelivery`,
+calls `ConditionApi.inflict`, and doses only on `afflicted`. That is what
+makes a veil work: cloth over the place bees go for, resolved by the
+shipped covering stack, with no mitigation table anywhere. See
+[apiculture.md § The sting](./apiculture.md).
+
+⚠ Calibrating it surfaced an honest limit worth knowing: **steel plate
+does not turn a `point` channel** at low energy (a spike punches through
+plate at severity 0.35), and `CLOTH_PROFILE` is poor/poor/poor — no cloth
+resists a point at all. The dart's "a boot mitigates" is therefore true of
+some coverings and not others, which is the materials grid being right
+rather than a defect.

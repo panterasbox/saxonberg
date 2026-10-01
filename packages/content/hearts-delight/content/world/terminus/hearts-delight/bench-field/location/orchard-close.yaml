@@ -1,0 +1,74 @@
+# The close — ⭐⭐ **where the fruit and the ley are**, and the reason the
+# bees have anything to work.
+#
+# Cut off the bench's lower corner, where the ground gets deeper before it
+# drops to the yard. Quist sowed clover under his cherries, which is what
+# an orchard floor IS: it keeps the weeds down, it fixes nitrogen, and it
+# is the best forage a bee ever gets. One decision, three consequences,
+# and nobody authored the connection anywhere.
+#
+# ⚠⚠ **The upper bench keeps its character.** It is thin, stony, and has
+# never had clover on it — and it stays that way. The temptation when a
+# build needs a flowering field is to sow the one that already exists;
+# what that costs is the bench's whole identity as the poor relation of
+# the fruit. So this is a new corner, small, and it is deliberately
+# nothing like the bench above it.
+#
+# ⭐ And the bees are NOT here. Nothing in this pack keeps bees, sells
+# bees, or sells a hive: the valley has an apiary-shaped hole in it and a
+# grower who would be better off if somebody filled it. That vacancy is
+# the build's own finding — a beekeeper is a SECOND PARTY on land they do
+# not own, and you cannot be a second party to a farm that already keeps
+# its own hives.
+class: /trade/farming/location/Field
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  fieldName: the close
+  # ⚠ No article in the stem — `register: definite` below is what puts
+  # "the" on it, so the world can also say "the close's" and "the closes".
+  shortDescription: close
+  keywords: [close, orchard, ley, clover, cherries, field]
+  register: definite
+  _address: terminus/hearts-delight/close
+  longDescription: |
+    A third of an acre of the best ground on this side of the valley, walled on two sides and hedged on the third, with three old cherry trees standing well apart in it and clover thick as a carpet underneath them. Somebody has kept the grass off it for years.
+
+    In flower the whole close hums, and it is loud enough that you notice it before you have got the gate shut.
+  coords: { x: -20, y: 3, z: 6 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  groundSpotX: 9
+  groundSpotY: 4
+  areaM2: 1200
+  # ⭐ A clover ley under the trees — the one authored number this whole
+  # forage read rests on, and it is authored because nothing writes it.
+  legumeFraction: 0.4
+  exits:
+    up:
+      destination: /world/terminus/hearts-delight/bench-field/location/upper-bench
+      media: [ground]
+      edgeMinutes: 2
+    down:
+      destination: /world/terminus/hearts-delight/location/farmstead-yard
+      media: [ground]
+      edgeMinutes: 3
+  # ⭐ Three beds, each with a cherry in it. `Cultivable.applyProps` seats
+  # a Slottable arrival with no host into a free plant slot, so an authored
+  # plant in a bed needs no code at all.
+  # ⭐ Three beds, each with a cherry in it. `Cultivable.applyProps` seats
+  # a Slottable arrival with no host into a free plant slot, so an
+  # authored plant in a bed needs no code at all.
+  #
+  # ⚠ Each entry carries an `as:` identity rather than being the same path
+  # three times: a pure repeat is `count: 3` written longhand, and it is
+  # an entry no child row could ever replace. These trees are individuals
+  # — one of them will be the one that sets a crop and one will be the one
+  # that does not.
+  props:
+    - { template: /trade/farming/thing/bed/garden, as: bed-north }
+    - { template: /trade/farming/thing/bed/garden, as: bed-middle }
+    - { template: /trade/farming/thing/bed/garden, as: bed-south }
+    - { template: /trade/farming/thing/plant/cherry, as: cherry-north }
+    - { template: /trade/farming/thing/plant/cherry, as: cherry-middle }
+    - { template: /trade/farming/thing/plant/cherry, as: cherry-south }
