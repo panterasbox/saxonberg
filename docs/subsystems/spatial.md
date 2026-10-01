@@ -487,6 +487,33 @@ MQL plumbing; placement hosts don't gain Slotted semantics.
 ⚠ Nothing reads it today beyond that bridge — `lib/ground/Floor.ts`
 authors it and no consumer exists. Recorded on the narrowing slate.
 
+### Rung 1: the containment read reaches the wire (cold-storage build)
+
+The model has always known how each item sits and whether it is itself
+a holder; the client was sent only `{ displayName, quantity,
+primaryKeyword }` per contained item and threw the rest away, so a
+fridge-with-a-freezer read as two anonymous boxes. Rung 1 stops the
+discard. **Rung 2 — the recursive nesting view — is the next build; this
+is the honest bytes plus a flat per-item read, no expand tree.**
+
+Three subscribable fields carry it (the projection seam is
+`MqlSubscriptionApi.projectFields`, § [card-surface.md](./card-surface.md)):
+
+| field | mixin | on | read |
+|---|---|---|---|
+| `placement` | `Containable` | `REF_FIELDS` | the member name (`on`/`in`/`from`) this item sits under, or omitted when loose |
+| `holds` | `Container` **and** `Placing` | `REF_FIELDS` | `true` — this thing is itself a holder. A capability, not a count (`static`, never fires), true for an empty container; a thing composing both reads one `holds` |
+| `placed` | `Placing` | `DETAIL_FIELDS` | the items placed on this host, grouped by member with the member's own `Placement.getHeading()` — the card half of `look`'s drill-in prose |
+
+`placement` is name-keyed on the field bus, so `ContainmentApi.place`
+fires a `placement` `FieldChangedEvent` after `_setPlacement` (and the
+`move` invariant fires it on the clear). `Container.contents`
+`dependsOnFields: ['contents', 'placement']` so a placement change
+inside an unchanged container still wakes the open container card, which
+re-projects its children with the fresh placement. ⭐ `Chest` composes
+`PlacingMixin` for a lid — so `look chest` reads *on the lid* (`placed`)
+vs *in the box* (`contents`) rather than one flat list.
+
 ### Affordances live on Stuffs, not Details
 
 `DetailedMixin` gives a Stuff addressable sub-parts for *description

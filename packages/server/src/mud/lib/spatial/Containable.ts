@@ -49,7 +49,10 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -237,6 +240,24 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       environment: { ref: 'instance', lifetime: 'weak' },
       _placementHost: { ref: 'instance', lifetime: 'weak' },
     };
+
+    /**
+     * ⭐ Rung 1 of the containment read: a ref record carries HOW this
+     * thing sits in its host — the placement member name (`on` / `in` /
+     * `from`), or omitted when the thing is merely loose. Name-keyed on
+     * the bus and woken by the `placement` fire in `ContainmentLogic.place`
+     * (and the clear on move), which also wakes the host container's
+     * `contents` projection (it `dependsOnFields: ['contents','placement']`).
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'placement',
+        read: (stuff) => {
+          const p = (stuff as Stuff & Containable).getPlacement();
+          return p ? p.name : undefined;
+        },
+      },
+    ];
 
     /**
      * Framework cleanup (R2.4 collection-symmetric). When a

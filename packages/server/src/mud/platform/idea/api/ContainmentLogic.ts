@@ -13,6 +13,7 @@ import type { VetoResult } from '../../../lib/errors';
 import type { Warren } from '../../../lib/location/Warren';
 import { CommandApi } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
+import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentError } from '../../../api/containment';
 import PlacementCatalogue, {
@@ -141,6 +142,17 @@ export class ContainmentLogic extends ApiLogic {
     // go straight to the placement update.
     this.move(item, targetEnv);
     item._setPlacement(host, name);
+    // ⭐ Rung 1: the placement member just changed. Name-keyed on the
+    // bus, so this one fire wakes every open container card showing this
+    // item (its `contents` dependsOn `placement`) and the host's `placed`
+    // detail — including the within-same-container case where `move` was
+    // a no-op and fired nothing.
+    MqlSubscriptionApi.fireFieldChange(
+      item as unknown as Stuff,
+      'placement',
+      '',
+      name,
+    );
     // ⭐ `move` is a NO-OP when the container is unchanged (a mug moving
     // from one desk to another in the same room), so nothing would
     // restamp — and a member that encloses means the thing's ambient
@@ -262,6 +274,13 @@ function moveCore(
   // re-stamps after this move() call, so the placed case is unaffected.
   if (from !== to && item.getPlacement() !== null) {
     item._setPlacement(null);
+    // Rung 1: the placement is gone — wake the cards that showed it.
+    MqlSubscriptionApi.fireFieldChange(
+      item as unknown as Stuff,
+      'placement',
+      'on',
+      '',
+    );
   }
 
   // Recency-stack bookkeeping. Runs BEFORE the on-hooks so anything
