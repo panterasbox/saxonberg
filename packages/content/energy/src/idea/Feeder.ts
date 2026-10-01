@@ -33,6 +33,7 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /**
@@ -79,20 +80,27 @@ export interface FeederDescriptor {
   branchesFrom: string | null;
 }
 
-export default class Feeder extends Idea {
+/**
+ * ⭐ The feeder's **display name** ("the Terminus main") comes from
+ * `NamedMixin` — the one general-purpose "something a person named" surface,
+ * reused rather than reinvented. A feeder uses only `name`; the honorific /
+ * surname / suffix / alternate-name fields ride along unused, which is the
+ * mixin's intended opt-out posture (opt out of fields, don't fork the method).
+ */
+export default class Feeder extends NamedMixin(Idea) {
   /** See {@link FEEDER_PATH_PREFIX}. */
   static readonly TEMPLATE_PATH_PREFIX = FEEDER_PATH_PREFIX;
 
+  // `name` + its fieldMeta come from NamedMixin; getAllFieldMeta merges this
+  // block with the mixin's property-by-property.
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
-    name: { persistent: true, authorable: true },
     source: { persistent: true, authorable: true },
     nodes: { persistent: true, authorable: true },
     branchesFrom: { persistent: true, authorable: true },
   };
 
   protected key = '';
-  protected name = '';
   protected source: string | null = null;
   protected nodes: FeederNode[] = [];
   protected branchesFrom: string | null = null;
@@ -102,13 +110,6 @@ export default class Feeder extends Idea {
   }
   public setKey(value: string): void {
     this.key = value;
-  }
-
-  public getName(): string {
-    return this.name;
-  }
-  public setName(value: string): void {
-    this.name = value;
   }
 
   public getSource(): string | null {
