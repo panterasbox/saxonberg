@@ -431,6 +431,102 @@ Generalized past markets:
 | **Insurance with a named underwriter + an adjuster who goes and looks** | both parties | ✅ |
 | **"Crop insurance, 5%, buy it now," auto-paying on a trigger** | nobody | ❌ |
 
+## ⭐⭐⭐⭐ The second abstraction law — a rate that reads a rate
+
+**Captured 2026-09-30.** The law above asks *who pays*. This one asks
+**when did you look**, and it is the one **reconcile-on-read** breaks.
+
+**The worked case.** Food spoils at `μ = μ_max · f_T(T) · f_aw(a_w)`, and
+`f_T` is Arrhenius — exponential in temperature. The food is in a fridge;
+the power goes out. Neither gauge advances until somebody reads it. A week
+later you open the door:
+
+- the food reconciles → asks the fridge its temperature → the fridge
+  reconciles → **21 °C** → the food integrates the entire week *at 21 °C*,
+  as though it had never been cold. It insta-spoils.
+- ⚠⚠ **And the opposite is worse.** If the power came back before anyone
+  looked, the fridge reads **4 °C** and the food integrates the whole
+  outage at 4 °C. **It under-spoils, silently** — and for
+  `ContaminableMixin`, whose entire design is a population *no sense
+  reports*, silent is the only way it can fail.
+
+> ⭐⭐⭐⭐ **Reconcile-on-read is exact when the driver is constant, or when
+> its trajectory is reconstructible from stored state. It is a GUESS
+> whenever the driver moved in a way the two endpoints do not reveal.**
+
+⭐⭐⭐ **And that makes it an A3 problem rather than a physics nit.**
+*Derive, don't track* promises the derived answer does not depend on when
+you look. A sampled driver breaks exactly that promise: **the same week of
+outage yields different spoilage depending on whether somebody happened to
+open the fridge during it.** Observation-dependence is the thing
+derive-on-read exists to prevent.
+
+### The four answers — all of them already in the tree
+
+| # | when the driver is… | the answer | exemplar |
+|---|---|---|---|
+| 1 | **a pure function of time** | compute the **exact integral** over the interval; no reconcile needed | ⭐ `Soil.integrateRainfall` against the **stateless procedural** weather field — *"the sky edge's own checkpoint … the thing that makes the back-fill **exact**"*, and [watershed.md](./subsystems/watershed.md)'s *"exact precipitation integral **shared** by soil and river"* |
+| 2 | **stateful, smooth, known shape** | **restamp**: store the driver at your last reconcile, integrate along the trajectory between the two samples | `ThermalDose` — *"**It integrates, it does not sample.** … runs **Simpson** along `Decay.toward` between the two samples. **A rectangle from the start reads zero; from the end, half again too much.**"* |
+| 3 | **stateful but FAST** | a single sample, **and say why**: justify it by the time-constant ratio | `Staling` — *"a loaf's thermal time constant is minutes and staling runs over days, **so the rectangle rule is exact at that ratio**."* |
+| 4 | **stateful and STEPPED** | ⚠ none of the above suffices — see below | *(the fridge; unbuilt)* |
+
+⭐⭐ **“Restamp” is the tree's own word for answer 2**, and it is already
+A-tier vocabulary: **A16** reads *"every reconcile-on-read consumer
+tolerates a backward clock — **re-stamp**, integrate nothing."*
+`ThermalMixin.restamp` established the shape and `Growing` copied it.
+
+### ⚠⚠ Answer 4 — a step is not reconstructible from two endpoints
+
+Even answer 2 fails the fridge, because **the driver did not move smoothly,
+it stepped.** The true trajectory is *“4 °C until the outage, then Newton
+toward ambient”*, and two endpoint samples of 4 °C and 4 °C are equally
+consistent with *nothing happened* and with *six hours at 21 °C*.
+
+> ⭐⭐⭐ **The cure is to make the driver reconstructible, not to record its
+> history.** If a `Coolbox` stores **when its supply last changed and to
+> what**, its temperature at any `t` is closed-form and every consumer can
+> integrate it exactly. **One field, not a ledger** — which converts a
+> stateful driver back into answer 1, locally. It is why weather never had
+> this problem: it is a pure function of time by construction.
+
+**Store the step, not the history.**
+
+### ⚠ The audit — 27 time-integrating gauges, checked 2026-09-30
+
+| gauge | horizon | driver(s) | answer | |
+|---|---|---|---|---|
+| `Soil` | seasons | precipitation | **1 — exact integral** | ✅ |
+| `ThermalDose` | minutes–hours | temperature | **2 — Simpson along the trajectory** | ✅ |
+| `Staling` | days | temperature | **3 — sample, justified by τ ratio** | ✅ |
+| `Growing` | days–seasons | ambient, soil, light | restamps `_lastAmbientK`, then rates from the **stored** value | ⚠ rectangle from the **start** |
+| `Freshness` | days–weeks | temperature **and** `a_w` | rectangle from the **end**, unjustified | ⛔ |
+| `Contaminable` | days–weeks | temperature, `a_w` | rectangle from the **end** | ⛔ **and silent by design** |
+| `Maturing` | **weeks–months** | cellar temperature | rectangle from the **end** | ⛔ **the longest horizon in the tree** |
+| `WaterActivity` | hours–days | ambient humidity | relaxation toward the driver | ⚠ **and it is itself a driver** |
+
+⭐⭐⭐ **The tree contains every rectangle choice and both true integrals.**
+`Growing` rectangles from the start, the spoilage family from the end, and
+`ThermalDose`'s docstring says in as many words why both are wrong.
+
+⚠⚠ **And the dependencies chain.** `Freshness` reads
+`getWaterActivity()`, which is *itself* a reconcile-on-read gauge relaxing
+toward ambient humidity — so `μ` is a function of two sampled drivers, one
+of them sampled from another sample. **Errors compound down the chain, and
+nothing anywhere declares the chain exists.**
+
+### What is actually missing
+
+Not a mechanism — **a rule and a gate.** `ThermalDose` and `Staling` each
+made the call and wrote down why; `Freshness`, `Contaminable` and
+`Maturing` made it by default. There is no review question and no lint.
+
+⭐ The natural instrument has a precedent: **`pnpm formulae`** found six
+copies of one exponential and produced `lib/Decay.ts`. The
+same shape applies here — **a census of *gauges whose rate reads another
+reconcile-on-read quantity, and which of the four answers they use*** —
+and then **census-then-ratchet**. See
+[reconcile-chains-slate](./slates/builds/reconcile-chains-slate.md).
+
 ## ⭐⭐ What is insurable — derived from Part 1
 
 The provenance codex answers this directly, which is the best evidence
