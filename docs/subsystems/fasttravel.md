@@ -727,6 +727,22 @@ Two things found by driving the Hinkley Hills commute route
   other was that `getSelectedDestination()` falls back to the first route
   and is therefore never null, so the `if (!ref)` arm that rendered the
   board was dead code from the day it was written.
+- ⭐⭐⭐ **The board is node-local; there is no network view and nothing
+  takeable.** `renderDepartures` renders *this* node's routes, which is
+  correct for a departures board at a gate — but it means a player can only
+  learn a destination exists by standing somewhere that already goes there.
+  **The ancestor solved this with a prop, not a verb**: EotL's
+  `zone/null/toys/tpa/schedule.c` is a free, takeable, *disposable*
+  pamphlet (drop it and *"a gust of wind picks up the schedule and blows it
+  away"*) rendering an **origin-destination fare matrix** reflowed to the
+  reader's terminal width, plus per-station detail that prints **the
+  destination's own room description** and its normalised timetable — so
+  you learn what a place is, costs, and looks like *before you have ever
+  been*. ⭐⭐ It is also the **adoption incentive**: an entry object buys
+  traffic from one room, a station buys a line in every schedule in the
+  game. Design + the EotL reading:
+  [content-declaration-slate § 6.3](../slates/builds/content-declaration-slate.md).
+
 - **⚠ A stale terminal row silently deletes a route, and the refusal
   lies.** A terminal row that the pack reconcile leaves alone (a locally
   edited row is a *conflict*, never an overwrite — `pack status` names it)
