@@ -262,6 +262,30 @@ async function canMakeImpl(maker: Stuff, recipe: Recipe): Promise<boolean> {
  * The present, on-shift, seat-eligible makers in the giver's room — the
  * walk that used to live inside `resolveMaker`, now the caller's so the
  * set can be filtered by capability before anybody is chosen.
+ *
+ * ⭐⭐ **Somebody else if anybody else; otherwise yourself.** The giver is a
+ * candidate **only when nobody else able is present**, which is the one
+ * reading that is honest in both directions:
+ *
+ * - a patron in a staffed bar is never served by themselves, because
+ *   somebody was asked and somebody came;
+ * - the only able person in the room, asked for something, is the answer.
+ *
+ * ⚠⚠ **This is why a producer beat could never work.** `cellars` — the
+ * fermenting floor's whole crush leg — has the hand force `order <recipe>`
+ * off its own work board, and `order` resolves `fulfilling-bartender`. The
+ * giver was excluded unconditionally, and every yard outfit rosters exactly
+ * ONE hand, so the order declined `no-maker` every time: the hand stood on
+ * its own floor, in its own seat, asking a room containing nobody else. No
+ * test drove the leg, so nothing said so. ⭐ Self-last rather than
+ * self-never fixes it without weakening the staffed case at all — the
+ * fallback cannot fire while a second able body is standing there.
+ *
+ * ⚠ It does mean a player holding a fulfilling seat, alone at the rail, can
+ * `order` and be served by themselves. That is correct and carries no
+ * loophole: `canMake` refuses them on exactly the terms it refuses an NPC,
+ * and `order` still settles the house's charge — so the bartender pays the
+ * bar for the drink they poured themselves, which is what a till is for.
  */
 function presentFulfillers(giver: Stuff, discipline?: string): Stuff[] {
   if (!MixinApi.isContainable(giver)) return [];
@@ -274,7 +298,12 @@ function presentFulfillers(giver: Stuff, discipline?: string): Stuff[] {
     if (!c.isFulfilling(discipline)) continue;
     able.push(c);
   }
-  return able;
+  if (able.length) return able;
+  // The fallback: nobody else able is here, so the asker may answer.
+  if (MixinApi.isEmployed(giver) && giver.isFulfilling(discipline)) {
+    return [giver];
+  }
+  return [];
 }
 
 /** The house a fulfilling candidate is on shift for, or null. */

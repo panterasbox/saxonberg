@@ -62,8 +62,22 @@ const CONTENT = join(REPO_ROOT, 'packages/content');
  * ⭐ **Census-then-ratchet**, and ⚠ **not a burn-down to zero.** See rule 1:
  * the residue is the realm's standing vacancies, and they are content the
  * build means to keep.
+ *
+ * ⭐ Ratcheted 11 → 3 once `lint:dossiers` rule 6 went in: eight of the
+ * eleven turned out to be the same authoring omission read from the other
+ * side — a hand seated to a trade with no claim in it, or a claim too low
+ * for the only difficulty its own board offers. A yard that cannot run its
+ * own still is a defect; the three that remain are not:
+ *
+ *   · `fine-roast` (cooking · hard) — the Hearthworks has no expert cook,
+ *     and an opening for one is the point.
+ *   · `leather-jerkin` (tailoring · hard) — no seat there fulfils tailoring
+ *     at all; the smithy offers it and means to hire for it.
+ *   · `mojito` (mixology · hard) — ruled deliberately unmakeable: the bar
+ *     offers a drink nobody on the rail can mix, which is what makes the
+ *     refusal that names a criterion worth reading.
  */
-export const MENU_STAFF_SHORTFALL_CEILING = 11;
+export const MENU_STAFF_SHORTFALL_CEILING = 3;
 
 /**
  * ⚠ A fact about the past: the shortfall the day the gate landed. Never

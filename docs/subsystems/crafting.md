@@ -286,25 +286,38 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
    discipline** (`isFulfilling(discipline)`) in the patron's location.
    Never off the wire.
 
-   ⚠⚠ **The discipline leg is load-bearing and the tie-break is not.** A
-   venue can run two trades off one business (the Hearthworks: a smith and
-   a cook over both its rooms), and a recipe's discipline is **credited,
-   never gated** — so a wrongly-picked maker crafts successfully and is
-   credited with a trade they do not practise. Ties beyond the discipline
-   fall to the lowest identity path, which is predictable rather than
-   right: two equally-qualified cooks wants a queue, which is the crew
-   substrate's ([call-slate](../slates/builds/call-slate.md)).
+   ⚠⚠ **The discipline leg is load-bearing, and so is the tie-break now.**
+   A venue can run two trades off one business (the Hearthworks: a smith
+   and a cook over both its rooms), so the discipline leg decides *who is
+   even able*. The agent-coordination build then handed the able set to the
+   **house**: `organization.callFor({patron, candidates})` picks by its own
+   `call:` policy (`regulars` · `rota`) rather than by sorting identity
+   paths. ⚠ Until that shipped, ties fell to the **lowest identity path** —
+   predictable rather than right, and in practice one bartender on a rail
+   of four was served forever while every other seat was decorative. A
+   maker with no resolvable house is now refused rather than served; see
+   [employment.md § The call](./employment.md).
 
-   ⭐ **An open question this inherited.** Retiring the maker marker made
-   a PLAYER on shift in a `fulfills` seat a resolvable maker — the seam
-   employment.md had deferred as *player tending*. What `order` should
-   then ask of a player maker is undecided: today the engine crafts as
-   them, exactly as it does for an NPC, which is the least surprising
-   default and arguably the wrong one. The alternatives are *you craft it
-   yourself with the verbs* (real work, real friction, and a customer
-   waiting on a human's attention) or *a hybrid — the engine crafts, the
-   grade reads your competence*. Nobody has chosen; the default was
-   inherited rather than decided.
+   ⭐⭐ **Somebody else if anybody else; otherwise yourself.** The able set
+   is *other people in the room first*, and the asker only when nobody else
+   able is present. Both halves matter: a patron in a staffed bar is never
+   served by themselves, and **the lone hand on its own floor, in its own
+   seat, asking a room containing nobody else, is the answer** — which is
+   what makes a one-hand yard able to work its own station at all. Until
+   2026-10-01 the asker was excluded outright, so the distilling yard's own
+   crush leg answered *"there's no one on hand to make that"* and could
+   never have worked. The player case carries no loophole: `canMake`
+   applies identically, and `order` still settles the house's charge.
+
+   ⭐ **A player maker.** Retiring the maker marker made a PLAYER on shift
+   in a `fulfills` seat a resolvable maker — the seam employment.md had
+   deferred as *player tending*. Today the engine crafts as them, exactly
+   as it does for an NPC, which is the least surprising default and
+   arguably the wrong one. The alternatives are *you craft it yourself with
+   the verbs* (real work, real friction, and a customer waiting on a
+   human's attention) or *a hybrid — the engine crafts, the grade reads
+   your competence*. Nobody has chosen; the default was inherited rather
+   than decided.
 3. **Gather reachable matter** (`gatherMatter`) — the walk's real
    shape: the room's direct contents (surface-resting items already
    have `container = the room`), **the maker's own inventory** (held

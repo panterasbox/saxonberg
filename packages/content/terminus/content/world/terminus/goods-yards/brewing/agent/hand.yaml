@@ -33,7 +33,11 @@ data:
   archetype: hand
   competence:
     - { discipline: brewing, asserting: novice }
-    - { discipline: fermenting, asserting: novice }
+    # ⭐ The board's mashes are STANDARD and only `proficient` licenses
+    # standard work; at `novice` this hand could not mash on its own
+    # board. The trade band stays `novice` — this is a hand, not a
+    # master — but the step it is SEATED to must be reachable.
+    - { discipline: fermenting, asserting: proficient }
   behaviors:
     # The producing beats (fermentation W5). The brewhouse beat mashes
     # off the board, pitches the house barm, kegs finished ale and

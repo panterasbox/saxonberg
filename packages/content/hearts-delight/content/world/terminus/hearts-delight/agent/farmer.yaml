@@ -33,6 +33,11 @@ data:
     - "Has watched the ditch line creep down the hill his whole life."
   competence:
     - { discipline: agriculture, asserting: proficient }
+    # ⭐ The farm's `farmer` seat fulfils `cooking` — the farm feeds you
+    # off its own ground — and he claimed nothing in it, so every order
+    # at the bench refused. `competent` licenses the easy end, which is
+    # the whole of what a farm kitchen offers. (lint:dossiers rule 6.)
+    - { discipline: cooking, asserting: competent }
     - { discipline: soil-science, asserting: competent }
   dispositions:
     - { disposition: sociability, valence: -20 }

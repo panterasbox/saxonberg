@@ -1565,3 +1565,73 @@ somebody is on, never `no-call-policy` anywhere. ⭐ The lesson is general:
    produced no output at all. `pnpm dev:clean`, then one run.
 2. Boot is **~220 s** before a single checkpoint runs, so a drive that
    polls for a cadence beat should poll in seconds, not minutes.
+
+## ⭐⭐ W8 — two calls made in review conversation ✅ DONE
+
+Both from the user's reply to the authoring question *"do we need to make a
+paperclip business and cast an open position for a paperclip maker?"* —
+**"yeah add the gate, and let the npc be its own maker."**
+
+### D20 — the competence-reach gate is `lint:dossiers` **rule 6**, not a new gate
+
+The question *"does this person claim anything in the trade their seat
+promises?"* is the same object (the dossier) and the adjacent question to
+rule 4's assert-vs-derive, so it folded into the existing gate and reuses its
+row walk, Discipline key set and ratchet machinery rather than minting a
+second dossier gate.
+
+**Seats, and only seats.** The first cut also read `behaviors[].brain` for a
+`static discipline` and found **ten more rows** — including a **farm dog**
+flagged for claiming no stockmanship. Verified and dropped: a brain's
+`discipline` is the channel its act *credits*, and every pack path that reads
+a band reads `competenceBandFor` (the whole Transcript, deeds included), so a
+brain with no seeded claim still works and still earns. A **seat** is
+different in kind — the house's promise to a patron — and `isFulfilling` →
+`canMake` → `seededBandFor` is that promise tested against the dossier alone.
+Exact keys, never through `specializes`.
+
+**Censused at 3, fixed to 0 in the same commit:**
+
+| row | the promise | what it claimed |
+|---|---|---|
+| crowsfoot `hand` | a seat fulfilling `[distilling, fermenting]` | no `fermenting` claim **at all**, and `distilling: novice` against a book that is entirely `standard` |
+| hearts-delight `farmer` | the farm's seat fulfils `cooking` | nothing in cooking |
+| hearts-delight `miller` | the mill's seat fulfils `baking` | nothing in baking |
+
+⭐ Each read as **a staffed seat** from every direction except the only one
+that mattered. The crowsfoot yard could not crush its own wash *or* run its
+own still; `lint:menu-staff` had been saying so from the offer side for the
+whole build and the two halves had not been put together.
+
+⭐ **`MENU_STAFF_SHORTFALL_CEILING` ratcheted 11 → 3.** Eight of the eleven
+were this same omission, not vacancies. The three that remain are the real
+ones and stay: `fine-roast` (no expert cook at the Hearthworks),
+`leather-jerkin` (no tailoring seat on a smithy's roster), and the **mojito**
+(ruled deliberately unmakeable). ⚠ The line that tells them apart: *a
+producer that cannot run its own still is a defect; a venue offering work it
+means to hire for is the mechanism.* `MENU_STAFF_HIGH_WATER` stays 11.
+
+### D21 — the asker is the **last** fulfiller, not an excluded one
+
+`presentFulfillers` excluded the giver outright. That read as modest and was
+a dead end: a lone hand, stood on its own floor, in its own seat, asking a
+room containing nobody else, got *"there's no one on hand to make that"* — so
+**`cellars`' crush leg could never have worked**, which also recast several
+`lint:menu-staff` lines as already-dead production paths rather than standing
+vacancies.
+
+Now: **somebody else if anybody else; otherwise yourself.** Others are
+returned when any are present, and the asker only as the fallback. Both
+halves are load-bearing — a patron in a staffed bar is still never served by
+themselves — and both are asserted in
+`src/mud/__tests__/craft-served-path.test.ts`. No player loophole: `canMake`
+applies identically and `order` still settles the house's charge.
+
+### Verification
+
+`lint:family` — **all 60 gates pass**. `tsc --noEmit` clean.
+`scripts/__tests__` 325 passed. `craft-served-path` 3/3 (two new).
+Docs: `crafting.md` (the stale *lowest identity path* tie-break passage
+replaced with `callFor` + the self-last rule), `lint-family.md` (rule 6, and
+the menu-staff census rewritten around the 11 → 3 ratchet), `advancement.md`
+(what makes `seededBandFor` checkable at build time).

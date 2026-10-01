@@ -34,7 +34,15 @@ data:
   # is a content pass of its own before go-live.
   archetype: hand
   competence:
-    - { discipline: distilling, asserting: novice }
+    # ⭐ The bands are what the STILL BOOK asks for, not decoration.
+    # `distil`/`compound-gin`/`brandy`/`grappa` are all STANDARD, and only
+    # `proficient` licenses standard work — at `novice` this yard's own
+    # hand could not run this yard's own still, and the refusal arrived
+    # with the seat still reading as staffed. `fermenting` was absent
+    # altogether, so the easy `wash-mash` refused too and there was
+    # nothing for the still to take. (lint:dossiers rule 6.)
+    - { discipline: distilling, asserting: proficient }
+    - { discipline: fermenting, asserting: competent }
   behaviors:
     # The producing beat (fermentation W6): mash bought malt off the
     # still book, ferment the wash, RUN THE STILL when a back finishes
