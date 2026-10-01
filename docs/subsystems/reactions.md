@@ -5,6 +5,20 @@ diegetic lines into one batched, attributed counter — without forking
 the emote path. This doc is the source of truth for the area; read it
 before editing.
 
+> ⭐⭐ **This pattern is the only known way to put PARALLEL juice through
+> a SERIAL channel** (noted 2026-09-30,
+> [lens #64 · Juiciness](../lenses/64-juiciness.md)). A graphical game
+> stacks screen-shake, particles, sound and a number-pop so they land at
+> once; **text can only land one line after another**, so our juiciness
+> budget is *time* rather than attention. *“N diegetic lines into one
+> batched, attributed counter”* is simultaneity compressed into a single
+> emission — **aggregate the simultaneous, emit once.**
+>
+> ⭐ It is solved here for emotes and **nothing does it for consequence
+> cascades**, which is where the juice actually is: one `fell` moves the
+> bole, the stamp, the capture, the deed and the stand's cover, and the
+> player hears about almost none of it.
+
 ## The model
 
 **A reaction is an ordinary emote carrying one extra scope:
