@@ -136,6 +136,22 @@ overwrote A, and A's edit is still gone.
 
 ---
 
+> ⭐⭐⭐ **This table is the whole project's transparency doctrine in
+> miniature** (noted 2026-09-30,
+> [lens #62 · Transparency](../lenses/62-transparency.md)). **Capability
+> deletes; appetite tags** — and the mechanisms differ *because the
+> failures differ*: a capability leak is a security failure, so it never
+> reaches the wire, while an appetite “leak” is **you deciding to look**,
+> which is a preference and one click. ⭐ It is the same rule as the
+> affordance envelope's *filtering means deletion*
+> ([#28](../lenses/28-the-state-machine.md)), applied to prose.
+>
+> ⭐⭐ And it is the layer of the stack that is easiest to get wrong in the
+> flattering direction: a game that hid spoilers *by permission* would be
+> claiming the player cannot be trusted with its own fiction. **The
+> Compact needs the opposite** — a polity that cannot read what it governs
+> cannot govern it.
+
 ## ⭐ The reveal model — two axes, one gate
 
 Every fragment carries an **effective spoiler level**, checked against

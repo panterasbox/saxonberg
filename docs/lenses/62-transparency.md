@@ -188,14 +188,76 @@ subject is how things work.
 
 ## The verdict
 
-⭐⭐ **An alternative on the central claim, adopt on the questions.**
+⭐⭐⭐ **An alternative, and the word means the opposite of what he means
+by it.**
 
-*The ideal interface becomes invisible* is the wrong target for this
-design, and the reason is structural rather than contrarian: **our
-interface is made of the same material as our world**, so it cannot be
-looked through — only read. What it can be is **fluent** (the vocabulary)
-and **absent** (the chrome), and those are two separate disciplines with
-two separate tests.
+Schell's transparency is **opacity you stop noticing** — the interface is
+still there, you have simply been trained past it. Ours is **the absence
+of opacity**, and it is not a style preference:
+
+> ⭐⭐⭐ **This game is inspectable all the way down, and the Compact is
+> why.** A constitution over people who cannot see what they govern is
+> theatre. **You cannot amend Tier C if you cannot read Tier C** — so
+> inspectability is a *precondition of self-government*, which is **B3
+> (*any measurement the platform makes of you is one you can read*)
+> generalised from measurements to the whole machine.**
+
+The stack, and every layer of it is shipped or doctrinal:
+
+| layer | how it is inspectable |
+|---|---|
+| **the interface** | `affordances` · `errors` · harvested `help` — ask the game where the confusion is |
+| **the model** | the card's mixin chips; the source calls it *a teaching surface* ([#28](./28-the-state-machine.md)) |
+| **the measurements** | **B3** — any measurement of you is one you can read |
+| **the content** | anyone authors; *"an author tier is a category error"*; **authoring is free and only publish is gated** |
+| **the code** | **B7**, AGPL — and the fork right is Tier B's own check on itself |
+| **the spoilers** | ⭐⭐ **capability DELETES, appetite TAGS** ([wiki.md](../subsystems/wiki.md)) — *"does this reader **want** to be spoiled?"* is **a preference, and one click** |
+| **the roles** | wizard **by approval**, not by employment |
+
+⭐⭐ **And the two-axis reveal model is the whole doctrine in miniature.**
+Capability is *deleted server-side, never serialised, never on the wire*;
+appetite is *kept and tagged* for the client to collapse. **The mechanisms
+differ because the failures differ** — a capability leak is a security
+failure, and an appetite "leak" is you deciding to look. That is the same
+rule as [#28](./28-the-state-machine.md)'s affordance filtering (*filtering
+means deletion*), applied to prose.
+
+### ⚠⚠ With one deliberate exception, which is what makes it a design
+
+**The fiction keeps its secrets.** `measurement.md`'s **A15** — *kernel
+omniscience never becomes diegetic evidence*, because *"a crime genuinely
+unseen is genuinely unproven, and that is a feature"* — and
+[concealment.md](../subsystems/concealment.md)'s honest fog, and
+[#29 Secrets](./README.md)' private-to-one-player category.
+
+> ⭐⭐⭐ **The schema is public; the token is private.** The *machine* is
+> shared between the people who build it and the people who live in it.
+> The *world* still has fog. Confusing the two would either break the
+> game's secrets or make the constitution unexercisable, and the design
+> refuses both.
+
+### ⭐ And the honest version of "nobody else does this"
+
+The parts all exist separately, and saying so is what keeps the claim
+checkable:
+
+- **MUDs shared the world** — and [#37](./37-fairness.md) records that
+  this is exactly what got them criticised, wizards being able to cheat.
+  **Our answer was constitutional rather than technical**, which is the
+  difference, not the sharing.
+- **NetHack shared its source** and made spoilers a culture — the
+  accretion thesis in
+  [lens-deck-salvage.md](../lens-deck-salvage.md).
+- **DAOs have governance** with no world worth governing
+  ([positioning.md](../positioning.md)).
+- **Roblox and Minecraft** give creators economics and *"never
+  authority."*
+
+> ⭐⭐ **Nobody has the combination**, and the combination is the claim —
+> which is [#30](./30-emergence.md)'s synthesis argument arriving in a
+> second domain. *Developers and players inhabit the same environment and
+> abide by the same constraints* is true here and it is true **because the
+> Compact needs it to be**, not because open source is a virtue.
 
 ⭐⭐⭐ **And the one-birth-path rule is the deck's best example of a lens
 answered in a protocol rather than a layout.** Worth citing whenever
@@ -239,7 +301,19 @@ overload warning arriving from a different door.
 5. ⭐ **Price the alias trade.** A per-character rename is good; an
    unteachable interface is not. Clickables showing the canonical verb is
    the existing mitigation and should be stated as one.
-6. **Pair with [#66](./66-channels-and-dimensions.md)** — `66` is what
+6. ⭐⭐⭐ **Write the inspectability stack down as one claim.** Interface
+   · model · measurements · content · code · spoilers · roles are seven
+   layers of one property, documented in seven places, and the reason they
+   are all true is **the Compact needs them to be.** *A constitution over
+   people who cannot see what they govern is theatre* belongs in
+   [positioning.md](../positioning.md) next to the substrate claim — it
+   is a better answer to *“why is the engine open source”* than the licence
+   is.
+7. ⭐ **Keep the “nobody else does this” claim in its checkable form.**
+   MUDs shared the world; NetHack shared the source; DAOs have
+   governance. **The combination is the claim**, and guardrail 3 in
+   `positioning.md` requires it be stated that way.
+8. **Pair with [#66](./66-channels-and-dimensions.md)** — `66` is what
    the interface carries, `62` is how much of it the player should have
    to notice.
 
