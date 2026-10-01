@@ -758,7 +758,31 @@ and ruins blood`.
 
 ### Stage B — the pack, the content, the drive
 
-#### W4 — the plug, the two classes, the rows (D1, D3, D5.5, D6, D10)
+#### W4 — the plug, the two classes, the rows (D1, D3, D5.5, D6, D10) — ✅ DONE
+
+**Done note.** `GridCatalogue` now timestamps cuts (`cutSince` + a bounded
+`outages` ring) and publishes `poweredTrajectory(node, fromS, toS)` (the
+0/1 cut-complement over the node + its upstream). `GridPowered implements
+Powered` (adds `poweredTrajectory`; `resolveRoomPath` returns a Location's
+own path). `ColdStore` (energy/thing) + `ColdRoom` (energy/location) over
+`ClimateControlMixin(GridPoweredMixin(...))`, with the coach overrides +
+state-line markupAugmenters. Rows: `ice-pan` + `cooler` (generic-objects);
+`blood-fridge` (ships a `freezer-box` which ships the `ice-pan`) + the
+walk-in `cold-room` (+ shop-floor north exit, a prime-cut twin on each
+side) in terminus; `water.castTemplate` → ice-block; `blood.ruinedByFreezing`.
+
+**Decision folded here (kernel):** `ClimateControlMixin.envelopeDriveW` now
+gates on the `powered` segment flag ALONE, not `availablePowerW() > 0` — the
+supply trajectory is the real "is the meter live" signal, and gating on the
+band-watt dial coupled cooling to a seeded dial (the ColdStore test caught
+it). `availablePowerW` stays the analyze/billing figure.
+
+Tests: `ColdStore.test.ts` (4 — both compose ClimateControl+Powered,
+pull-down, off-grid holds warm, cut warms); `GridCatalogue` trajectory test
+(1·0·1 across a sever→splice). All energy (29) + generic-objects (28) pack
+tests green. Docs: energy.md.
+
+
 
 - `energy/src/idea/GridCatalogue.ts` — the cut log as a `TrajectoryLog`
   of 0/1 per node (`recordOutage(node, fromS, toS|null)`; `sever`/`splice`

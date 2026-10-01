@@ -104,11 +104,12 @@ export function ClimateControlMixin<
      * the envelope's steady-state clamp then holds the setpoint.
      */
     public envelopeDriveW(interiorK: number, powered: boolean): number {
-      // `Powered` is composed on the host but not in the static `Base` type
-      // (the pack's `GridPoweredMixin` provides it) — the runtime proxy
-      // unifies it, so the cast is load-bearing, not cosmetic.
-      const supply = this as unknown as Powered;
-      if (!powered || supply.availablePowerW() <= 0) return 0;
+      // ⭐ `powered` is the supply state for the segment being integrated —
+      // the real "is the meter live" signal, off the supply trajectory. It
+      // is the whole gate: the band's wattage ceiling (`availablePowerW`) is
+      // the analyze/billing figure, not a boolean on whether the compressor
+      // runs, and gating on it would couple cooling to a seeded dial.
+      if (!powered) return 0;
       const cap = this.coolingCapacityW;
       if (cap > 0) return interiorK > this.setpointK ? -cap : 0;
       if (cap < 0) return interiorK < this.setpointK ? -cap : 0;

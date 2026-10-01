@@ -36,6 +36,8 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { Piecewise, type Stretch } from '@saxonberg/server/mud/lib/Trajectory';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -50,6 +52,18 @@ import { FEEDER_PATH_PREFIX, type FeederDescriptor, type FeederNode } from './Fe
 
 /** The catalogue singleton's own template path — its row ships with the pack. */
 export const GRID_CATALOGUE_PATH = '/system/energy/idea/GridCatalogue';
+
+/** How many resolved outages to keep per catalogue (a bounded ring). */
+const OUTAGE_HISTORY_CAP = 64;
+
+/** Game-seconds now, or 0 before the clock is up. */
+function gridNowSeconds(): number {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return 0;
+  }
+}
 
 /** A node ref — `<feederKey>:<nodeName>`. */
 export type NodeRef = string;
@@ -94,6 +108,10 @@ export default class GridCatalogue
 
   /** ⚠ In-memory, transient — see the class docstring. Node refs cut open. */
   private cuts = new Set<NodeRef>();
+  /** Game-second each CURRENT cut began — for `poweredTrajectory`. */
+  private cutSince = new Map<NodeRef, number>();
+  /** Resolved (spliced) outages: a node was cut over `[fromS, toS]`. Bounded. */
+  private outages: Array<{ node: NodeRef; fromS: number; toS: number }> = [];
 
   /** A system singleton is never culled by the self-eviction sweep. */
   public canEvict(_context: EvictionContext): VetoResult {
@@ -233,12 +251,81 @@ export default class GridCatalogue
    * `Conduit.setCut` posture); the legitimate caller is `LineAccess`.
    */
   public sever(nodeRef: NodeRef): void {
-    this.cuts.add(nodeRef);
+    if (!this.cuts.has(nodeRef)) {
+      this.cuts.add(nodeRef);
+      this.cutSince.set(nodeRef, gridNowSeconds());
+    }
   }
 
   /** Splice the line at `nodeRef` back together — the lineman's `splice`. */
   public splice(nodeRef: NodeRef): void {
-    this.cuts.delete(nodeRef);
+    if (this.cuts.delete(nodeRef)) {
+      const from = this.cutSince.get(nodeRef);
+      this.cutSince.delete(nodeRef);
+      if (from !== undefined) {
+        this.outages.push({ node: nodeRef, fromS: from, toS: gridNowSeconds() });
+        // Bound the history the way a TrajectoryLog ring is bounded.
+        if (this.outages.length > OUTAGE_HISTORY_CAP) this.outages.shift();
+      }
+    }
+  }
+
+  /**
+   * ⭐ The supply at `nodeRef` over `[fromS, toS]` as a 0/1 {@link Piecewise}
+   * (1 = powered) — the complement of every cut that affected this node
+   * (itself or any node upstream of it) during the window. The {@link Powered}
+   * contract the parcel meter publishes so the envelope can integrate a cut
+   * that happened mid-gap. ⚠ Source generation is read as-now (a hydro source
+   * that stopped is not in this history — documented; the cut is the state
+   * that matters to a fridge).
+   */
+  public poweredTrajectory(
+    nodeRef: NodeRef,
+    fromS: number,
+    toS: number,
+  ): Piecewise {
+    const end = toS > fromS ? toS : fromS;
+    const grid = this.loadedGrid();
+    const affects = (cut: NodeRef): boolean =>
+      cut === nodeRef || grid?.downstream.get(cut)?.has(nodeRef) === true;
+    const now = gridNowSeconds();
+    // Collect the unpowered intervals affecting this node, clamped to [from,end].
+    const dark: Array<[number, number]> = [];
+    const add = (a: number, b: number): void => {
+      const lo = Math.max(a, fromS);
+      const hi = Math.min(b, end);
+      if (hi > lo) dark.push([lo, hi]);
+    };
+    for (const o of this.outages) if (affects(o.node)) add(o.fromS, o.toS);
+    for (const cut of this.cuts) {
+      if (affects(cut)) add(this.cutSince.get(cut) ?? fromS, now);
+    }
+    if (dark.length === 0) {
+      return new Piecewise([
+        { fromS, toS: end, startValue: 1, target: 1, tau: 0 },
+      ]);
+    }
+    // Merge overlapping dark intervals, then stitch 1/0 stretches across the
+    // window.
+    dark.sort((p, q) => p[0] - q[0]);
+    const merged: Array<[number, number]> = [];
+    for (const iv of dark) {
+      const last = merged[merged.length - 1];
+      if (last && iv[0] <= last[1]) last[1] = Math.max(last[1], iv[1]);
+      else merged.push([iv[0], iv[1]]);
+    }
+    const stretches: Stretch[] = [];
+    let cursor = fromS;
+    const flat = (a: number, b: number, v: number): void => {
+      if (b > a) stretches.push({ fromS: a, toS: b, startValue: v, target: v, tau: 0 });
+    };
+    for (const [a, b] of merged) {
+      flat(cursor, a, 1); // powered up to the cut
+      flat(a, b, 0); // dark through the outage
+      cursor = b;
+    }
+    flat(cursor, end, 1); // powered after the last splice
+    return new Piecewise(stretches);
   }
 
   /** Whether `nodeRef` is currently cut. */
