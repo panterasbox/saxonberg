@@ -18,11 +18,29 @@ feels designed is not the sting — it is that *"nothing warns you when to
 stop."* You take a box, the colony needs stores to winter, and the
 choice is yours and unscored.
 
-> ⭐⭐⭐ **The thesis: a tap is a choice between what you take now and
-> what the organism can give later.** Every tap has that choice in it.
-> Only the hive currently makes you make it. This build makes the other
-> four do what the hive already does, and adds the one tap that has a
-> season which *ends*.
+> ⭐⭐⭐ **The thesis: taps differ in whether the ACT FEEDS BACK on the
+> RATE, and that is what decides where the judgment lives.**
+>
+> | | the feedback | taps |
+> |---|---|---|
+> | **positive** | taking more gets you more | **milk**, alone |
+> | **through a state the act prevents** | taking keeps her laying | **eggs**, alone |
+> | **none** | the rate is set by something else entirely | **wool** (the year's nutrition) · **honey** (the colony's forage) · **sap** (the weather) |
+>
+> So **two taps have a judgment at the moment of taking and three do
+> not** — their judgment is displaced backwards in time (wool), into a
+> stock (honey), or across a deadline (sap). The build gives each tap
+> the act its own science demands, and shares substrate only where the
+> substrate is genuinely shared.
+
+⚠⚠ **An earlier draft of this doc asserted the opposite** — that every
+tap is a now-versus-later choice in its own currency, and that the fix
+was to make the other four behave like the hive. That was pattern
+matching: derived from noticing the hive felt better, not from asking
+what each organism actually does. It got **milk exactly backwards** and
+**picked the wrong mechanism for eggs**. Both corrections are in Surface
+decisions, and the shape of the error is worth keeping: *five products
+that look alike in a table are not alike in a body.*
 
 Seeded by [tapping-slate](../slates/builds/tapping-slate.md), with the
 tap audit and the unification frame agreed in conversation 2026-09-30.
@@ -58,6 +76,20 @@ costs:
 | `expire` | **the season** — she dries off for that lactation | milk |
 | `accrue` | **the surplus** — past a clutch, they spoil in the nest | eggs, honey |
 | `continuous` | **the quality** — a matted fleece and a hot sheep | wool |
+
+⚠ Two problems with it, both found by asking the biology rather than
+reading the table:
+
+1. **`accrue`'s stated neglect is wrong for eggs.** A clean unwashed egg
+   keeps for weeks — its cuticle is a preservative. Nothing spoils in
+   the nest. What actually happens is **broodiness**, and it is a far
+   better mechanic (Surface decisions).
+2. ⭐⭐ **`expire` conflates two opposite things.** Milk's expiry is *you
+   neglected it and lost the season* — punitive, your fault. Sap's is
+   *the year moved on and the run is over* — nobody's fault, and it is
+   the **curtain**, the good thing. Same enum value, opposite meanings.
+   The window predicate is what separates them, and once separated
+   **"the window closed" must never read as a failure.**
 
 ### The vocabulary, which is already kernel and already species-shaped
 
@@ -189,16 +221,16 @@ Everything else is a row, a tag or a deletion.
   vessel where the yield genuinely needs one, and it is interruptible
   without the world changing (the `planWork`/`completeWork` discipline
   extraction already shipped).
-- **Every tap presents a now-versus-later choice**, in its own currency,
-  and the game does not score it:
+- **Each tap's judgment sits where its own biology puts it**, and the
+  game scores none of them:
 
-  | tap | what you trade |
+  | tap | the judgment, and where it lives |
   |---|---|
-  | milk | today's litres ↔ the length of the lactation |
-  | wool | shear early — less, clean, a cool sheep ↔ late — more, matted, second cuts, a sheep that overheats |
-  | honey | ⭐ ships — a box now ↔ the colony's winter stores |
-  | sap | another spile now ↔ the stem's girth and next year's run |
-  | eggs | ⭐ deliberately the lightest — see Surface decisions |
+  | **milk** | ⭐ **none at the act** — complete, frequent removal *sustains* the rate; milk left in her suppresses it. The real choice is the **dry-off date**, the breeding cycle's, deferred |
+  | **eggs** | ⭐ **at the clutch** — take them and she keeps laying; leave them and she goes **broody** and stops. Eggs or chicks, never both |
+  | **wool** | ⭐ **a year earlier** — quality records her **worst** stretch, not her average. Plus, at the act, fast-and-rough versus slow-and-clean |
+  | **honey** | ⭐ ships — **a stock judgment**: a box now against what the colony needs to winter on |
+  | **sap** | ⭐ **allocation under a deadline** — N days, M stems, one evaporator, finite firewood |
 
 - **An obligation you cannot meet is discharged, not lost.** A player
   sets standing instructions and their character keeps the round. ⚠ It
@@ -241,9 +273,14 @@ Everything else is a row, a tag or a deletion.
   is not this build's shape.
 - ⛔ **Closing the `sugar` root.** → **`farming-slate`** (cane, beet).
   This build produces `syrup`, not `sugar`, and says so.
-- ⛔ **Incubation, setting and hatching.** → the breeding follow-on
-  named in `ranching.md`. It is why eggs keep the lightest judgment
-  rather than the most honest one.
+- ⛔ **Incubation, setting and hatching** — the chicks themselves. → the
+  breeding follow-on named in `ranching.md`. ⭐ **Broodiness is in scope
+  and does not need them**: *"leave the clutch and she stops laying"* is
+  a complete mechanic on one state flag, and the chicks are an optional
+  second half.
+- ⛔ **The dry-off decision** — when to stop milking before she calves
+  again. → the same breeding follow-on. It is milk's only real judgment
+  and it is named rather than invented here.
 - ⛔ **A sugar-work / candy ladder, and syrup grading.** →
   **`cooking-slate`**, which owns it explicitly.
 - ⛔ **Tapping a wild tree in a stand.** Nowhere, deliberately: a stand
@@ -382,21 +419,93 @@ own slate.
 limbs are recorded because they disagree and the disagreement is the
 interesting part.)*
 
-### Eggs deliberately keep the lightest judgment
+### ⚠ REVERSED — eggs get the clutch choice, because the science made it cheap
 
-The honest currency for a hen is *take the clutch ↔ leave eggs to set*,
-and **setting is not built** — no incubation anywhere, and gestation is
-explicitly the breeding follow-on's.
+An earlier draft deferred this, reasoning that the honest currency
+(*take the clutch ↔ leave eggs to set*) needed the unbuilt breeding
+system, and that an on-ramp should anyway be the tap with the least to
+weigh. **The first half was simply wrong.**
 
-Rather than pull breeding in, eggs stay the forgiving tap **on purpose**,
-and the design says so: `ranching.md` already calls hens *"the on-ramp —
-laying stops in short days, photoperiod teaches itself on day one."* An
-on-ramp should be the tap with the least to weigh. The accrue ceiling
-already supplies a mild version (take them or lose the surplus), and the
-photoperiod window is the lesson.
+A hen is an **indeterminate layer**: remove the eggs and she keeps
+laying; leave a clutch to accumulate and she goes **broody** — sits, and
+stops laying altogether. That is the reason humans keep chickens, and it
+is **the cleanest now-versus-later in the family.**
 
-⭐ Recorded as a **decision, not a gap** — and the clutch choice is named
-in the breeding follow-on so it is not lost.
+> ⭐⭐ It costs **one state**, not an incubator. *"Leave the clutch and
+> she stops laying"* is complete and honest on its own. Chicks are an
+> optional second half and stay deferred.
+
+So eggs are not the lightest judgment — they are one of only **two**
+taps whose judgment is at the act at all. The photoperiod window stays
+the on-ramp's first lesson (`ranching.md`: *"laying stops in short days
+— photoperiod teaches itself on day one"*); broodiness is its second.
+
+⚠ And the shipped `accrue` spoilage goes: a clean unwashed egg keeps for
+weeks.
+
+### ⚠ CORRECTED — milk has no judgment at the act, and that is the finding
+
+An earlier draft proposed *"today's litres against the length of the
+lactation — strip her out, or leave her and keep her in milk longer."*
+**That is backwards.**
+
+Lactation is **demand-driven**. Removing milk stimulates synthesis; milk
+left in the udder accumulates a local inhibitor that suppresses it.
+Incomplete or infrequent milking is precisely what dries a cow off, and
+complete frequent milking is what sustains and extends the lactation.
+
+> ⭐⭐⭐ **Milk is the only tap where taking more gets you more.** There
+> is no now-versus-later in it. The trade is **your attendance against
+> her rate** — which is not a judgment, it is **labour.**
+
+That is *why* the dairy cow is a tyrant, and it means the right answer
+for milk is the **relief** and nothing else: the obligation is real, it
+cannot be designed away without lying about the animal, and so it must
+be **dischargeable** — standing instructions, or somebody you pay.
+
+⭐ Milk's real judgment exists and is elsewhere: **when to dry her off**
+before calving again, trading this lactation's tail against the next
+one's health. A breeding-cycle decision — named here, deferred, not
+invented.
+
+### ⭐⭐ Wool's judgment is a year earlier — the break
+
+Wool grows continuously from the follicle regardless of anything done at
+shearing time, so there is no choice at the act worth calling one. The
+real mechanism is the **break**: a stretch of poor nutrition leaves a
+weak point along *every* fibre, and the whole fleece is downgraded.
+
+> **Quality records her worst stretch, not her average.**
+
+⭐⭐⭐ And this is the build's strongest unification, because it is **not
+invented** — the identical shape already ships on the plant side.
+`husbandry.md`'s `_worstLimiting` holds *"the worst limiting stretch over
+THIS cycle"* as **one scalar** and resets when the crop sets. A fleece's
+break is the same scalar over the wool year, resetting at shearing — and
+`flesh` is already the right stock to read, being the slow one
+(*"`satiation` is hours; `flesh` is months"*).
+
+⭐ A genuine unification **across the plant/animal horizontal**, derived
+from shipped precedent, and worth more than making four verbs look
+alike.
+
+**Plus a second, smaller judgment that IS at the act:** shear fast and
+risk second cuts — short fibres that downgrade the clip — or shear slow
+and clean. A real shearer's tradeoff.
+
+**Is a cost that lands a year later fair?** Yes, and
+[#63 Feedback](../lenses/63-feedback.md) is why — not lens 4, and not
+[#37 Fairness](../lenses/37-fairness.md), which is about symmetry
+between players and is the wrong instrument. The Swiffer problem is
+*"less feedback = dirtier floor"*: the dirt is visible only on the cloth
+at the end, and that is fine because *"the user comes to anticipate
+it."* **The fleece is the dirt on the cloth** — the one feedback moment
+in a year-long activity, and the thing that makes a year of shepherding
+feel like it mattered. Removing it would make the activity feel futile.
+
+⭐ Fair on two conditions, both in scope: the player **knows** the fleece
+will report the year, and the condition it will report is **readable
+during** the year. Anticipated, never sprung.
 
 ### Resin waits, and its demand case is written down now
 
@@ -446,12 +555,26 @@ the *current* taps score two passes, one half-pass and four empties —
 which is what motivated the build.
 
 **1 · Pedagogy.** Disciplines: `silviculture` (the tap, the boil's
-tending) and `stockmanship` (the animal taps), both shipped, neither
-new. ⭐ The derivable lesson is the one the taps have never taught: **a
-renewable yield is a rate, and drawing it faster than it recharges costs
-you the rate.** That is the RGO law made personal, and it is the first
-time a player meets it in a body rather than in a ledger. Sugaring adds
-a real second lesson — **a season is a budget you cannot roll over.**
+tending) and `stockmanship` (the animal taps), both shipped, neither new.
+
+⭐⭐⭐ **The lens pays off only if the five taps are allowed to stay
+different — and then it pays off hard: five taps, five distinct and
+non-obvious true lessons.**
+
+| tap | the lesson |
+|---|---|
+| **milk** | **demand-driven production.** Taking more gets you more, and neglect does not merely cost today — it ends the season |
+| **eggs** | **removing the product IS the husbandry.** The clutch is the choice: eggs or chicks, never both |
+| **wool** | ⭐⭐ **quality records your worst week, not your average** — the most transferable economic lesson in the build |
+| **honey** | **do not eat your seed corn** — a stock you must leave, with nothing warning you |
+| **sap** | **a budget that cannot roll over**, and allocation under a deadline |
+
+⚠ This is the entry the earlier draft **failed while appearing to
+pass.** Under *"every tap is a now-versus-later choice"* all five taught
+**the same lesson five times**, which reads as a strong lens 1 and is in
+fact the lens being defeated. ⭐ The test worth keeping: **if the lesson
+is the same in every row, the design has flattened something the world
+does differently.**
 
 **2 · Creative expression.** Already the taps' strongest lens and it
 stays: a sixth product is a `production:` row on a species plus a short
@@ -535,9 +658,30 @@ without having been pointed at them.
   answered on purpose; ⭐ this build declines, and names the pacing-gym
   ask it declines in favour of — the relative measurement, not the
   absolute.
-- ⚠ **The now-versus-later choice is Schell's meaningful-choice
-  territory and the deck has no entry for it.** Recorded as an ask: the
-  deck wants one.
+- ⚠ **The meaningful-choice question is Schell's territory and the deck
+  has no entry for it.** Recorded as an ask: the deck wants one.
+
+### Schell — #63, the Lens of Feedback
+
+Reached for to decide whether wool's year-late cost is fair; it turned
+out to govern the whole family.
+
+- ⭐⭐⭐ **The Swiffer answer.** *"Less feedback = dirtier floor"* — the
+  dirt shows only on the cloth, at the end, and that is fine because
+  *"the user comes to anticipate it."* **A fleece is the dirt on the
+  cloth.** So a delayed cost is not a gotcha; the condition for fairness
+  is **anticipation**, not immediacy.
+- ⭐⭐ **The taps have five different feedback CADENCES**, an axis
+  nothing had named: milk reports every round · eggs every day or two ·
+  sap across a week · honey across a season · wool **once a year.** #63
+  asks *"what do players need to know at this moment"* — and the answer
+  differs per tap because the cadence does. ⚠ The slowest cadence needs
+  the most in-progress reading, which is exactly why wool needs a
+  during-the-year read and milk does not.
+- **Feedback is *"judgment, reward, instruction, encouragement, and
+  challenge"*** — and a tap today supplies only the first, as a
+  Discipline credit. The scene text after a take is where the other four
+  have to live.
 
 ---
 
@@ -623,12 +767,13 @@ year**. ⭐ The curtain.
 **15. Milk a cow, as an act.** At a byre: `milk cow` without a vessel,
 then with one.
 → Without: refused, naming the pail. With: the act **takes time**, and
-the scene says what you chose — stripped out, or left in milk.
+the scene reports how completely she was milked out.
 
-**16. Make the now-versus-later choice visible.** Milk her out hard, then
-again next round.
-→ The second take is smaller in a way the first act's wording predicted.
-⚠ No number anywhere; a read in words.
+**16. Milk her out completely twice running; then leave some in her.**
+→ ⭐ The complete takes **sustain** her; the incomplete one visibly
+starts her off. ⚠ If a player comes away believing they should spare
+her, the fiction has taught the opposite of the biology — that is the
+checkpoint.
 
 **17. See the slope before the cliff.** Leave her unmilked toward the
 window's end and `look` at her.
@@ -640,10 +785,15 @@ keep the round, then disconnect for longer than the window.
 → On return the round was kept, the yield is **there and unsold**, and
 she is still in milk. ⚠ Confirm nothing was earned on your behalf.
 
-**19. Shear a sheep early, and shear one late.**
-→ Two different fleeces, two different readings, and the late one says
-what it cost. ⚠ And a sheep left far too long has **lost** wool, not
-banked 29 kilos of it.
+**19. Shear two sheep that had different years** — one fed through the
+lean stretch, one not.
+→ ⭐⭐ Two different fleeces, and the poor one's reading names **the
+break**: the bad stretch, a year ago, in words. Then confirm the
+condition was **readable during** that year and not only now. ⚠ And a
+sheep left far too long has **lost** wool, not banked 29 kilos of it.
+
+**19b. Shear one fast and one carefully.**
+→ The hurried clip shows second cuts and grades lower.
 
 **20. Spin the fleece.** `spin fleece` at a wheel.
 → ⭐⭐ **It binds.** This is today's silent arg-gate failure, observed
@@ -652,6 +802,12 @@ fixed — the one checkpoint that proves a shipped claim became true.
 **21. Gather eggs, and bake with them.** `gather hen`, then use them in
 the new recipe.
 → Eggs arrive **counted**, not weighed, and a baker takes them.
+
+**21b. Leave a clutch, and lose the laying.** Stop gathering for long
+enough, then `look` at her.
+→ ⭐ She goes **broody** — sits the clutch and **stops laying.** Take the
+clutch away and she returns to lay. The read names what she is doing,
+and ⚠ nothing has spoiled.
 
 **22. Rob a hive, and confirm nothing changed.** `rob hive`.
 → Apiculture behaves exactly as it shipped. ⚠ The exemplar must not have
@@ -675,8 +831,13 @@ Observable from outside the code. No criterion below names a test.
    interrupted take leaves the world exactly as it was.
 5. A tap that needs a vessel refuses without one and says so. A tap that
    does not need one never asks.
-6. For four of the five taps, taking more now visibly costs the player
-   later, and **nothing in the interface tells them the right answer.**
+6. Each tap's judgment is where its own biology puts it, and **nothing
+   in the interface tells the player the right answer**: a player who
+   milks completely and often is *rewarded with more milk* and is never
+   led to think sparing her helps; a player who stops gathering sees a
+   hen go **broody and stop laying**, and brings her back by taking the
+   clutch; and for wool, honey and sap the choice is found a year back,
+   in a stock, and across a deadline respectively.
 7. A player can instruct their character to keep a round in their
    absence, return to find it kept, and find that nothing was sold,
    banked or earned for them.
