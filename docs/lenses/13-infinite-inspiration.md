@@ -79,6 +79,120 @@ Secondarily **lens 1 · pedagogy**, and in an uncomfortable direction —
 ⚠ our pedagogy *supplies subject matter*, which is the most convincing
 possible substitute for inspiration.
 
+## ⭐⭐⭐ Why this is the lens that fits — we are not building an MMO
+
+The owner's reason for wanting it back, and it reframes the instrument:
+
+> *"We're not really building an MMO. I mean yes I'm calling it a MUD and
+> MMOs are just modern MUDs, but **it doesn't play like any of those
+> games.** We're really building a **multiplayer life sim.**"*
+>
+> ⭐⭐⭐ *"When you're building a life sim, then **life is your inspiration**,
+> and if life is your inspiration then really **everything is your
+> inspiration.**"*
+
+Which does something no other entry in this deck does to its lens:
+
+> **For most designers #13 is a corrective** — a reminder to stop looking
+> at games, to be applied against the pull of the genre. **For a life sim
+> it is not a corrective, it is a description of the work.** *Look
+> everywhere else* is where the subject matter already is.
+>
+> **The lens collapses into the genre**, and that is why it reads as the
+> favourite one: it is the lens that most directly licenses the thing
+> already being done.
+
+### ⚠⚠ But a lens that is automatically satisfied has no teeth
+
+This is the counterweight, and it is the reason to keep the entry honest
+rather than celebratory.
+
+> **If everything is inspiration, nothing is.** The juggler's advice has
+> force *because it is hard to follow.* *"Life is my inspiration"* as the
+> answer to every question is indistinguishable from having no answer.
+
+⭐⭐⭐ **And the lens anticipates it, in the grammar of its own questions.**
+Not *what is life like* — ***what is an experience I have had.*** Singular,
+first-person, specific.
+
+> **The genre makes the library infinite. It does not make the selection
+> automatic — and selection is the entire act.** A life sim has *less*
+> constraint to push against than a shooter, not more, so the discipline
+> this lens asks for gets **harder** here rather than redundant.
+
+### ⭐⭐ A worked datum — and why citing games is legitimate here
+
+The owner's own reference points, given alongside the reframe: **Nivalis**
+(the studio's follow-up to Cloudpunk) — *"takes the stardew formula and
+puts it in a cyberpunk setting and also gives it a real narrative"* — and
+before it:
+
+> *"I played **Cloudpunk** and **the little story that plays out in that
+> game was my favorite thing about it.** I started the DLC but it didn't
+> quite have that."*
+
+⚠ That is citing games, under a lens that says do not. **It is fine, and
+the distinction matters:**
+
+> ⭐⭐⭐ **The lens says do not take your moves from other jugglers. It does
+> not say juggling is not part of your life.** *"The little story that
+> plays out was my favourite thing"* is **an experience somebody had**, and
+> an experience had while playing a game is still an experience. That is
+> question 1, answered legitimately.
+>
+> **What is forbidden is copying the move without the feeling** — which is
+> exactly what the DLC note is reporting: the same shape, the feeling
+> absent. ***It just looked dumb. Something was missing.***
+
+⭐ It is also the most specific statement of content intent in the
+project's record: **a life-sim loop with a small, strong narrative running
+through it, carried by the incidental people you deal with.** Worth noting
+precisely because the content-vision doc is otherwise unwritten.
+
+## ⭐⭐⭐ Game design = life design — gamification, inverted
+
+The owner's second claim, and it is about the book rather than the lens:
+
+> *"One of the central themes to Schell's book, even though it's a
+> textbook, is that **game design = life design** — so if you can figure
+> out how to make games good you can figure out how to make life good.
+> **That's the gamification lens on different terms.**"*
+
+The inversion is the precise part:
+
+| | direction |
+|---|---|
+| **gamification, as practised** | take game **mechanics** and apply them to life — points for exercise, streaks for habits |
+| ⭐⭐⭐ **Schell's thesis** | the skill of making a good **game** *is* the skill of making a good **life** — the same **design**, not the same mechanisms |
+
+> **We refuse the first and are built on the second**, and the docs already
+> say so without naming the distinction: `measurement.md`'s no-gauge rules,
+> **B5** (no variable-ratio reinforcement), the overjustification guard,
+> and [`64`](./64-juiciness.md)'s *a dry interface over an economy of
+> labour is a job.* ⭐ Every one of those refuses **mechanisms** while
+> keeping the **method.**
+
+### ⭐⭐⭐ And the proof is our own rubric
+
+The seven lenses are **pedagogy · creative expression · immersion &
+participation · values · continuity · economy · governance.**
+
+> **Those are not game-design categories. They are civics.** Education,
+> art, belonging, ethics, history, work, law. **Nobody derives that list
+> from game design** — it is a list of the things that make a *life* good,
+> which is the owner's claim arriving as evidence rather than assertion.
+
+⭐⭐ And the deck has already **measured** the gap from the other side:
+[`37-fairness.md`](./37-fairness.md) read all 116 lenses and found that
+*"fair" only ever means "even contest"* — **there is no antecedent for
+lens 7 anywhere in the book.** [`25`](./25-judgment.md) stops at *do
+players feel it is fair.*
+
+> ⭐⭐⭐ **So the book that argues game design is life design has no lens
+> for governance, and we have one because the genre forced it.** That is
+> the strongest available confirmation of this lens's thesis: **we did not
+> derive our rubric from games, and it shows.**
+
 ## ⚠⚠ The conflict this lens has with our stated strategy
 
 We have a declared method, and it is the thing the juggler is warning
