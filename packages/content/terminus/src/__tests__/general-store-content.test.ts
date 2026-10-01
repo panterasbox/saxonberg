@@ -65,6 +65,9 @@ const FISHING_DIR = fileURLToPath(
 const MEDICINE_DIR = fileURLToPath(
   new URL("../../../trade-medicine/content/trade/medicine/", import.meta.url),
 );
+const APICULTURE_DIR = fileURLToPath(
+  new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url),
+);
 
 /**
  * ⭐ Where a stocked good's row lives, by the prefix of its template
@@ -88,6 +91,10 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/medicine/", dir: () => MEDICINE_DIR },
+  // ⭐ The beekeeper's kit. It is stocked HERE rather than in the valley
+  // because a general store's job IS importing — and the one line that
+  // mints life (the nucleus) belongs in a shop for the same reason.
+  { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
   // The commons — the generic-objects pack, and the fallback.
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
@@ -232,6 +239,21 @@ describe("general-store content integrity", () => {
     "/platform/thing/Fitting",
     "/platform/thing/Chest",
     "/generic-objects/thing/SconceLamp",
+    // ⭐⭐ The beekeeper's line (apiculture). A `Hive` is a `Vessel` that
+    // is ALSO alive — the colony is the organism — which is the first
+    // thing in the game to be both, and a `Colony` (the nucleus) is bees
+    // with no box: a Thing you carry and `put` into a hive. The `Smoker`
+    // is a `Burner` you hold, the `HiveBox` a super, the `Frame` a frame.
+    // All discrete, none Stackable: you own a hive, you do not carry
+    // hives as a quantity.
+    //
+    // ⚠ The honey JAR is a `Vat` (already above): bulk honey needs a
+    // sealable, maturing holder, because honey left open ferments.
+    "/trade/apiculture/thing/Hive",
+    "/trade/apiculture/thing/Colony",
+    "/trade/apiculture/thing/HiveBox",
+    "/trade/apiculture/thing/Frame",
+    "/trade/apiculture/thing/Smoker",
     // The householder's kit — a `Tool` subclass in the residence
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.

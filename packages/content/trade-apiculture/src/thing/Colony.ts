@@ -17,7 +17,7 @@
  * behind it. It is not a `Hive`: no volume, no lid, no comb.
  */
 
-import Thing from '@saxonberg/server/mud/platform/thing/Thing';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { OrganismMixin } from '@saxonberg/server/mud/lib/species/Organism';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
@@ -31,8 +31,15 @@ import { ColonyMixin, APICULTURE } from '../lib/Colony';
 // ⭐ `HandledMixin` and `HandlingMixin` side by side, never nested —
 // nesting a factory inside a factory collapses TypeScript's inference
 // through the chain, which ranching's own header warns about.
+// ⚠⚠ **`Good`, not `Thing` — a good you BUY has to be ownable.** The
+// general-store standup asserts every stocked line is
+// chattel-stampable, and `platform/thing/Thing` is not: `ChattelMixin`
+// arrives with `Good` (`Chattel(Concealable(Thing))`). A super, a frame
+// and a nucleus are all things somebody buys, carries and owns, so the
+// chain of title is the point rather than an incidental. Found by the
+// terminus standup the moment the shelf started stocking them.
 const ColonyThingBase = HandledMixin(
-  HandlingMixin(ColonyMixin(OrganismMixin(DetailedMixin(Thing)))),
+  HandlingMixin(ColonyMixin(OrganismMixin(DetailedMixin(Good)))),
 );
 
 export default class Colony extends ColonyThingBase {

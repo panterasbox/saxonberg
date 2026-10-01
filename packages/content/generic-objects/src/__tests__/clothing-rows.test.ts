@@ -49,8 +49,19 @@ const ARMOUR = rows(ARMOR);
 const ALL = [...CLOTHING, ...ARMOUR];
 
 describe("every worn row is a real physical object", () => {
-  it("there are nine clothing rows and six armor rows", () => {
-    expect(CLOTHING).toHaveLength(9);
+  it("there are eleven clothing rows and six armor rows", () => {
+    // ⚠ 9 → 11: apiculture adds a bee veil and work gloves, which are
+    // ORDINARY CLOTHING — that is the whole design of them. A veil works
+    // because it is woven cloth over the place bees go for, resolved by
+    // the shipped covering stack, so it belongs here beside the hood and
+    // the field jacket rather than in a trade.
+    //
+    // ⚠⚠ A COUNT is the one assertion a three-way merge cannot reconcile,
+    // and this one breaks for every row anybody adds. What earns its keep
+    // is the per-row battery below (`it.each`) — that every worn row
+    // carries a material, a form, a grade and a mass. The count is a
+    // census; keep it, and expect to bump it.
+    expect(CLOTHING).toHaveLength(11);
     expect(ARMOUR).toHaveLength(6);
   });
 
