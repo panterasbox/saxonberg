@@ -10,7 +10,7 @@
  * connection drops.
  */
 
-import { ShelledCharacter } from "../shell/ShelledCharacter";
+import { Shell } from "../shell/Shell";
 import { NamedMixin } from "../description/Named";
 import { PlayerApi } from "../../api/player";
 import { SandboxApi } from "../../api/sandbox";
@@ -193,7 +193,7 @@ const AvatarBase = PersistableMixin(
                       // TRIP — embody → `holder_snapshots` → reconnect. A
                       // missing field hydrates as empty and the banner
                       // reads "Welcome, ." with nothing thrown.
-                      NamedMixin(ShelledCharacter),
+                      NamedMixin(Shell),
                     ),
                   ),
                 ),
@@ -220,10 +220,10 @@ const AvatarBase = PersistableMixin(
  * holds that.
  *
  * ```
- * Character  →  ShelledCharacter  →  Avatar  (abstract, here)
+ * Character  →  Shell  →  Avatar  (abstract, here)
  *                                    ├── the body of record
- *                                    ├── Shade        (the dead one)
- *                                    └── WireBody     (the circle one)
+ *                                    ├── ShadeAvatar        (the dead one)
+ *                                    └── SandboxAvatar     (the circle one)
  * ```
  *
  * ⚠⚠ **`instanceof Avatar` always means THIS class.** A site left on
@@ -693,7 +693,7 @@ export default abstract class Avatar extends AvatarBase {
    *
    * ⚠ The class is lineage and the identity path is identity: this is
    * NOT the template stamp. A shade keeps its own
-   * `/platform/agent/Shade/<pid>` template path, so
+   * `/platform/agent/ShadeAvatar/<pid>` template path, so
    * `findByTemplatePath` still tells the bodies apart.
    *
    * Falls through for a guest (`playerId === ''`) to whatever minted

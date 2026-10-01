@@ -20,7 +20,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../execution-context';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import { Document } from '../../lib/persistence/Document';
 
 /*
@@ -85,8 +85,8 @@ beforeEach(() => {
     data: {},
   },
   {
-    path: '/platform/agent/sandbox/WireBody',
-    class: '/platform/agent/sandbox/WireBody',
+    path: '/platform/agent/sandbox/SandboxAvatar',
+    class: '/platform/agent/sandbox/SandboxAvatar',
     hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     data: { playerId: '' },
   },

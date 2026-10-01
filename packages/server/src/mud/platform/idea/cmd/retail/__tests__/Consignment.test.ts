@@ -306,7 +306,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
       // ⭐ A `KeptAnimal`, not a bare `Creature`. Chattel came off the
       // creature base in the base-class narrowing (D15) — `Creature` is
-      // also the base of every player, Cast member, Extra, Shade and
+      // also the base of every player, Cast member, Extra, ShadeAvatar and
       // corpse, and a person is nobody's property. A fish somebody caught
       // and is selling is exactly what `KeptAnimal` names.
       const fish = makeStuffAtPath(() => {

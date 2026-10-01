@@ -2318,7 +2318,7 @@ function collectAugmentConferralNames(stuff: Stuff): Set<string> {
   }
   // ⭐ Per-HOST intrinsic conferral: a host that answers
   // `getConferredMixinNames()` names mixins it carries by its own nature
-  // rather than by species or by implant. The one consumer is `Shade`,
+  // rather than by species or by implant. The one consumer is `ShadeAvatar`,
   // which is attuned with no implant and no slot — species `innateMixins`
   // would be the obvious home but is shared reference data a shade cannot
   // write without corrupting the species. Same structural soft-lookup, no

@@ -325,7 +325,7 @@ async function enterImpl(
   // Mint the vessel + fork the slices INSIDE the circle-scoped root —
   // the induction stamps everything (the vessel, its implant floor, the
   // shadow followers) circle-born.
-  const { default: WireBody } = await import('../../agent/sandbox/WireBody');
+  const { default: SandboxAvatar } = await import('../../agent/sandbox/SandboxAvatar');
   // Read the field body's species HERE, in field context: the mint
   // below runs under the circle root, where reading the parked avatar
   // is the cross-boundary dispatch the layers deny. Species is
@@ -342,7 +342,7 @@ async function enterImpl(
       // slots the implant into a body plan) and exactly what the
       // constructor arguments were guaranteeing.
       const body = await StuffApi.clone<Stuff>(
-        '/platform/agent/sandbox/WireBody',
+        '/platform/agent/sandbox/SandboxAvatar',
         // ⚠ No `playerId` in the CONTEXT — it rides the overlay below,
         // which lands in hydration Phase 1, before `postRegister`.
         // Passing it here as well was harmless but said the wrong
@@ -408,7 +408,7 @@ async function enterImpl(
   // client needs its connection-established payload (it re-binds cards
   // to the new body) and an auto-sense of the circle. Without this the
   // player types `go wardrobe` and the screen simply doesn't change.
-  // Presence stays silent — `WireBody.announceSessionPresence` is a
+  // Presence stays silent — `SandboxAvatar.announceSessionPresence` is a
   // no-op, so nobody hears a login that didn't happen.
   for (const interactive of moved) {
     await ExecutionContextApi.runRootGuarded(

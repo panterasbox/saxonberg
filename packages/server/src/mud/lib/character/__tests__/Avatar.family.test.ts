@@ -17,9 +17,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Avatar from '../Avatar';
-import RecordBody from '../../../platform/agent/Avatar';
-import Shade from '../../../platform/agent/Shade';
-import WireBody from '../../../platform/agent/sandbox/WireBody';
+import RecordBody from '../../../platform/agent/PrimaryAvatar';
+import ShadeAvatar from '../../../platform/agent/ShadeAvatar';
+import SandboxAvatar from '../../../platform/agent/sandbox/SandboxAvatar';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
@@ -30,7 +30,7 @@ describe('⭐⭐ the Avatar family', () => {
   });
 
   it('all three bodies ARE Avatars', () => {
-    for (const Body of [RecordBody, Shade, WireBody]) {
+    for (const Body of [RecordBody, ShadeAvatar, SandboxAvatar]) {
       const b = makeStuff(() => new (Body as unknown as new () => Stuff)());
       expect(b).toBeInstanceOf(Avatar);
     }
@@ -54,10 +54,10 @@ describe('⭐⭐ the Avatar family', () => {
     // ACTIVATE differently, they do not COMPOSE differently. A verb
     // that exists for one exists for all three; the refusal is what
     // varies, and a refusal you can be told about is the progression UI.
-    expect(names(Shade as unknown as new () => Stuff)).toEqual(
+    expect(names(ShadeAvatar as unknown as new () => Stuff)).toEqual(
       expect.arrayContaining(record),
     );
-    expect(names(WireBody as unknown as new () => Stuff)).toEqual(
+    expect(names(SandboxAvatar as unknown as new () => Stuff)).toEqual(
       expect.arrayContaining(record),
     );
   });
@@ -67,7 +67,7 @@ describe('⭐⭐ the Avatar family', () => {
     // override that says no, simply nothing to inherit. Proven by
     // absence: neither declares `postRegister` beyond its own concern.
     expect(
-      Object.prototype.hasOwnProperty.call(WireBody.prototype, 'postRegister'),
+      Object.prototype.hasOwnProperty.call(SandboxAvatar.prototype, 'postRegister'),
     ).toBe(false);
     expect(
       Object.prototype.hasOwnProperty.call(RecordBody.prototype, 'postRegister'),
@@ -78,7 +78,7 @@ describe('⭐⭐ the Avatar family', () => {
     // `claimsRegistrySlot` was a boolean the subclasses flipped, added
     // in W2 to bridge one wave and explicitly marked for deletion
     // here. If it comes back, D9's argument has been lost.
-    for (const C of [Avatar, RecordBody, Shade, WireBody]) {
+    for (const C of [Avatar, RecordBody, ShadeAvatar, SandboxAvatar]) {
       expect(
         'claimsRegistrySlot' in
           ((C as unknown as { prototype: object }).prototype as object),

@@ -14,7 +14,7 @@ import { GroupApi } from '../../../../api/group';
 import { CompactApi } from '../../../../api/compact';
 import { MudlogApi } from '../../../../api/mudlog';
 import { StuffApi } from '../../../../api/stuff';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../agent/PrimaryAvatar';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 

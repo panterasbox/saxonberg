@@ -477,7 +477,7 @@ export class PlayerLogic extends ApiLogic {
   private async standUpForEstate(identityPath: string): Promise<Avatar | null> {
     const playerId = identityPath.slice(AVATAR_IDENTITY_PREFIX.length);
     if (!playerId) return null;
-    const { default: AvatarClass } = await import('../../agent/Avatar');
+    const { default: AvatarClass } = await import('../../agent/PrimaryAvatar');
     try {
       return await StuffApi.clone<Avatar>(
         (AvatarClass as unknown as AvatarClassRef).SEED_TEMPLATE_PATH,
@@ -513,7 +513,7 @@ export class PlayerLogic extends ApiLogic {
     // deliberately does not statically depend on — see
     // [architecture.md § Backend → mudlib import discipline] row 4.
     // Lazy-load to honor that discipline.
-    const { default: AvatarClass } = await import('../../agent/Avatar');
+    const { default: AvatarClass } = await import('../../agent/PrimaryAvatar');
     const avatars: Avatar[] = [];
     for (const playerId of user.playerIds) {
       // Reuse if already in-world (multiplexing).

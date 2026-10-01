@@ -27,7 +27,7 @@ import {
 } from '../../../../../backend/PersistenceManager';
 import EventRegistry from '../../../../platform/idea/EventRegistry';
 import Interactive from '../../../../platform/idea/Interactive';
-import Avatar from '../../../../platform/agent/Avatar';
+import Avatar from '../../../../platform/agent/PrimaryAvatar';
 import CartesianLocation from '../../../location/CartesianLocation';
 import SandboxCrossing from '../../../../platform/thing/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../SandboxCrossingExit';
@@ -175,8 +175,8 @@ describe('sandbox-escape: the round-trip criterion', () => {
         data: {},
       } as unknown as FakeRow,
       {
-        path: '/platform/agent/sandbox/WireBody',
-        class: '/platform/agent/sandbox/WireBody',
+        path: '/platform/agent/sandbox/SandboxAvatar',
+        class: '/platform/agent/sandbox/SandboxAvatar',
         hydratorClass: '/platform/idea/persistence/PersistentHydrator',
         data: { playerId: '' },
       } as unknown as FakeRow,

@@ -371,7 +371,7 @@ async function dieImpl(
     // No shade, no arc, no snapshot: minting a real body from inside a
     // circle is exactly the boundary the sandbox exists to hold. The
     // discriminator is the receiver's circle stamp rather than
-    // `instanceof WireBody`, so a future circle vessel of another class
+    // `instanceof SandboxAvatar`, so a future circle vessel of another class
     // behaves identically without being enumerated here.
     if (player && host.getCircleScope() !== null) {
       host.setCauseOfDeath(cause);
@@ -675,10 +675,10 @@ async function mintShadeFrom(
   // lands BEFORE `postRegister`, which is the ordering the constructor
   // existed to guarantee.
   const shade = await StuffApi.clone<Stuff>(
-    '/platform/agent/Shade',
+    '/platform/agent/ShadeAvatar',
     undefined,
     {
-      asIdentityPath: `/platform/agent/Shade/${avatar.getPlayerId()}`,
+      asIdentityPath: `/platform/agent/ShadeAvatar/${avatar.getPlayerId()}`,
       dataOverlay: {
         playerId: avatar.getPlayerId(),
         ...(species?.getTemplatePath()

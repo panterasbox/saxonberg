@@ -11,7 +11,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PackController from '../PackController';
 import { PackApi } from '../../../../../api/pack';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../agent/PrimaryAvatar';
 import type Interactive from '../../../Interactive';
 import { MessageApi } from '../../../../../api/message';
 import { Idea } from '../../../../../lib/stuff/Idea';

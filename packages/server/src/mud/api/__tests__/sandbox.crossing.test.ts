@@ -19,8 +19,8 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../execution-context';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
-import WireBody from '../../platform/agent/sandbox/WireBody';
+import Avatar from '../../platform/agent/PrimaryAvatar';
+import SandboxAvatar from '../../platform/agent/sandbox/SandboxAvatar';
 import { Events } from '../../lib/events';
 import { OMNI_SCOPE } from '../execution-context';
 import { ScheduleApi } from '../schedule';
@@ -102,8 +102,8 @@ beforeEach(() => {
       data: {},
     },
     {
-      path: '/platform/agent/sandbox/WireBody',
-      class: '/platform/agent/sandbox/WireBody',
+      path: '/platform/agent/sandbox/SandboxAvatar',
+      class: '/platform/agent/sandbox/SandboxAvatar',
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { playerId: '' },
     },
@@ -153,7 +153,7 @@ describe('sandbox crossing', () => {
     expect(session.occupants.size).toBe(1);
 
     const wireBody = SandboxApi.activeBodyFor(PLAYER)!;
-    expect(wireBody).toBeInstanceOf(WireBody);
+    expect(wireBody).toBeInstanceOf(SandboxAvatar);
     // circle-born, in the circle's entry room
     expect(wireBody.getCircleScope()).toBe(SCOPE);
     asSystem(() => {
@@ -313,7 +313,7 @@ describe('sandbox crossing', () => {
    * ⚠⚠ **Issue #42, and the reason it stayed invisible.**
    *
    * The accountability ledger keyed on `getTemplatePath()` while every
-   * other ledger keyed on `getIdentityPath()`. A `WireBody` is stamped
+   * other ledger keyed on `getIdentityPath()`. A `SandboxAvatar` is stamped
    * `/platform/agent/Avatar/<playerId>/wire` — a vessel path, backed by
    * nothing — while *projecting* the player's real identity. So an
    * in-circle harm filed under the **vessel**: invisible to

@@ -11,7 +11,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BroadcastController from '../BroadcastController';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../agent/PrimaryAvatar';
 import SingletonCartesianLocation from '../../../../location/SingletonCartesianLocation';
 import { AccessApi } from '../../../../../api/access';
 import { ParcelApi } from '../../../../../api/parcel';

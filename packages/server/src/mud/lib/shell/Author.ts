@@ -1,13 +1,13 @@
 /**
  * AuthorMixin — object-lifecycle and code-execution verbs on
- * `ShelledCharacter`.
+ * `Shell`.
  *
  * The mixin owns no state v1: the verbs are universal in capability,
  * gated by permission (deferred), and the per-target witness seams
  * (`canClone` / `canReload` / `canDestruct` / `canTeleport`) live on
  * the targets themselves rather than as actor-side configuration.
  *
- * Composition: applied to `ShelledCharacter` after `WorkspaceMixin`
+ * Composition: applied to `Shell` after `WorkspaceMixin`
  * and `AliasMixin`.
  */
 
@@ -107,7 +107,7 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // READ — the news, and the command that opens the news card —
         // so contributing it only here made the news a surface an
         // ordinary player could not ask for. It is contributed by
-        // `ShelledCharacter` now, and its publishing SUBCOMMANDS carry
+        // `Shell` now, and its publishing SUBCOMMANDS carry
         // `requiresPublisher` for themselves.
         // Banking operator surface — the central-bank faucet (mint subsidy),
         // wage payment, and the P&L read. Afforded on the operator command

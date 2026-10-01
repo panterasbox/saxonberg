@@ -16,7 +16,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeRegistry from '../idea/OfficeRegistry';
-import Avatar from '../agent/Avatar';
+import Avatar from '../agent/PrimaryAvatar';
 import { CompactApi } from '../../api/compact';
 import { StuffApi } from '../../api/stuff';
 import { Document } from '../../lib/persistence/Document';

@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import AccessRegistry from '@saxonberg/server/mud/platform/idea/AccessRegistry';
-import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
+import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import Katie from '../Katie';
 import ProvisionController from '../../idea/cmd/ProvisionController';
 import { CompactApi } from '@saxonberg/server/mud/api/compact';

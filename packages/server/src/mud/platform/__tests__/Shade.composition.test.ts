@@ -20,7 +20,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Shade from '../agent/Shade';
+import ShadeAvatar from '../agent/ShadeAvatar';
 import Avatar from '../../lib/character/Avatar';
 import Species from '../idea/species/Species';
 import Clade from '../idea/species/Clade';
@@ -60,18 +60,18 @@ function species(): Species {
   return s;
 }
 
-async function shadeFor(playerId: string): Promise<Shade> {
+async function shadeFor(playerId: string): Promise<ShadeAvatar> {
   // The constructor arguments moved into the clone's `dataOverlay`
   // (hydration Phase 1, which lands before `postRegister`); here the
   // fields are set directly, which is the same ordering.
-  const sh = makeStuff(() => new Shade());
+  const sh = makeStuff(() => new ShadeAvatar());
   sh.playerId = playerId;
   sh.setSpecies(species());
   await sh.postRegister();
   return sh;
 }
 
-describe('Shade — activations differ, composition does not', () => {
+describe('ShadeAvatar — activations differ, composition does not', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
@@ -190,7 +190,7 @@ describe('⭐ the reaping is the family\'s, not a shade\'s', () => {
   afterEach(() => StuffApi.clearAll());
 
   /*
-   * `Shade.onDestruct` used to stop the autosave, unregister and
+   * `ShadeAvatar.onDestruct` used to stop the autosave, unregister and
    * detach — and then call `super`, which does those same three itself.
    * Six lines that changed nothing. Deleting an override is only safe
    * if something proves the behaviour it duplicated still happens, so

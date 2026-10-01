@@ -525,7 +525,7 @@ export abstract class Stuff {
    * chattel stamps and snapshot owners attribute to. The stamped
    * instance identity when one was minted (`asIdentityPath` — D17),
    * else `getTemplatePath()` (byte-identical for every ordinary
-   * object); a projection vessel (the sandbox `WireBody`) overrides
+   * object); a projection vessel (the sandbox `SandboxAvatar`) overrides
    * the METHOD to return the real identity's path
    * (`/platform/agent/Avatar/<playerId>`), so in-circle derive-on-read
    * composes the player's real history ∪ scoped appends and PASS rows

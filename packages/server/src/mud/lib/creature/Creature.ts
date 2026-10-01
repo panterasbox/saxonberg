@@ -108,7 +108,7 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // and one composition line gave it out of shipped code. The argument was
 // right and the host was one level too high: `Creature` is the base of
 // `Character`, so it also declared that **every player Avatar, every Cast
-// member, every Extra, every Shade and every Corpse is somebody's
+// member, every Extra, every ShadeAvatar and every Corpse is somebody's
 // property**. A person is nobody's chattel, and a corpse is evidence, not
 // stock.
 //
@@ -126,7 +126,7 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // with the same argument — *branding livestock is what marks were
 // invented for* — but `Creature` is the base of `Character`, so it also
 // put a maker's mark on every player Avatar, every Cast member, every
-// Extra, every Shade and every Corpse in the game. Nothing on this stack
+// Extra, every ShadeAvatar and every Corpse in the game. Nothing on this stack
 // ever read it. It now composes where the argument actually pointed:
 // `KeptAnimal` (kernel) and ranching's `Livestock`. A person is not
 // somebody's product; a corpse is not somebody's stock.

@@ -9,7 +9,7 @@
 # ⚠ The `hydratorClass` is load-bearing precisely because of that: a row
 # with no hydrator runs NO hydration, so the overlay would be discarded
 # in silence.
-class: /platform/agent/Shade
+class: /platform/agent/ShadeAvatar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   playerId: ""

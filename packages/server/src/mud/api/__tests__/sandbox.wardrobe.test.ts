@@ -24,7 +24,7 @@ import {
 } from '../../../backend/PersistenceManager';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import SandboxCrossing from '../../platform/thing/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../lib/sandbox/SandboxCrossingExit';
@@ -136,8 +136,8 @@ beforeEach(() => {
       data: {},
     },
     {
-      path: '/platform/agent/sandbox/WireBody',
-      class: '/platform/agent/sandbox/WireBody',
+      path: '/platform/agent/sandbox/SandboxAvatar',
+      class: '/platform/agent/sandbox/SandboxAvatar',
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { playerId: '' },
     },

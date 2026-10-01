@@ -20,7 +20,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi, OMNI_SCOPE } from '../execution-context';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import SandboxCrossing from '../../platform/thing/sandbox/SandboxCrossing';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -66,8 +66,8 @@ beforeEach(() => {
     data: {},
   },
   {
-    path: '/platform/agent/sandbox/WireBody',
-    class: '/platform/agent/sandbox/WireBody',
+    path: '/platform/agent/sandbox/SandboxAvatar',
+    class: '/platform/agent/sandbox/SandboxAvatar',
     hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     data: { playerId: '' },
   },

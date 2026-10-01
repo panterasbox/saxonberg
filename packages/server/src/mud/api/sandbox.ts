@@ -125,7 +125,7 @@ export class SandboxApi {
     // ⚠ The condition used to be `getTemplatePath() === null`, which
     // held because the vessel was `create`d and carried no stamp. It is
     // a CLONE now, so it arrives stamped with its lineage
-    // (`/platform/agent/sandbox/WireBody`) and the stamp below was
+    // (`/platform/agent/sandbox/SandboxAvatar`) and the stamp below was
     // skipped — quietly costing the player their own powers inside
     // their own circle, which is the exact failure this comment already
     // describes. The vessel path is re-stamped whenever it is not

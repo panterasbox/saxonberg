@@ -1,5 +1,5 @@
 /**
- * WireBody — the disposable projection vessel a player wears inside a
+ * SandboxAvatar — the disposable projection vessel a player wears inside a
  * circle (docs/subsystems/sandbox.md, Decision C).
  *
  * An Avatar SUBCLASS, deliberately: the crossing must preserve the
@@ -36,12 +36,12 @@ import Avatar, { type AvatarInitContext } from '../../../lib/character/Avatar';
 import { SandboxApi } from '../../../api/sandbox';
 
 /** Init context for a wire body: the projected identity. */
-export interface WireBodyInitContext extends AvatarInitContext {
+export interface SandboxAvatarInitContext extends AvatarInitContext {
   /** Marks the vessel (beside `isGuest`); set by `SandboxLogic.enter`. */
   wire?: boolean;
 }
 
-export default class WireBody extends Avatar {
+export default class SandboxAvatar extends Avatar {
   /** A vessel persists nothing — the guest gate, verbatim. */
   public override shouldPersist(): boolean {
     return false;
@@ -81,6 +81,6 @@ export default class WireBody extends Avatar {
   }
 
   public override toString(): string {
-    return `[WireBody for playerId=${this.playerId}]`;
+    return `[SandboxAvatar for playerId=${this.playerId}]`;
   }
 }

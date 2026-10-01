@@ -19,7 +19,7 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { MessageFrame } from '@saxonberg/types';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import Interactive from '../../platform/idea/Interactive';
 import { User } from '../../lib/identity/User';
 import { RecordApi } from '../record';

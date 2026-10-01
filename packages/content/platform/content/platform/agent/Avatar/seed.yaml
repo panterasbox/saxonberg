@@ -19,7 +19,7 @@
 # existing players are unaffected by either path because their
 # per-user templates were forked at signup with the defaults in
 # effect at that moment.
-class: /platform/agent/Avatar
+class: /platform/agent/PrimaryAvatar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   pronouns: they

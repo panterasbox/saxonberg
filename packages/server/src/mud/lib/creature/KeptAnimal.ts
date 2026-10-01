@@ -106,7 +106,7 @@ const KeptAnimalBody = HandlingMixin(
 // anything added goes within it.
 //
 // It lived on `Creature` until the base-class narrowing build, where it
-// also marked every player, Cast member, Extra, Shade and corpse. A mark
+// also marked every player, Cast member, Extra, ShadeAvatar and corpse. A mark
 // says *whose work, or whose herd, this is* — which is true of a kept
 // animal and of ranching's `Livestock` (which composes it itself: it
 // extends `Creature`, not this class), and is not true of a person.
@@ -116,7 +116,7 @@ const KeptAnimalBody = HandlingMixin(
 // title is what D22 and D98 wanted, and it is true of an animal somebody
 // keeps — a stolen one keeps its provenance and cannot be sold cleanly.
 // It was NOT true of the player Avatar, the Cast member, the Extra, the
-// Shade and the Corpse that also descend from `Creature`. A person is
+// ShadeAvatar and the Corpse that also descend from `Creature`. A person is
 // nobody's property.
 const KeptAnimalBase = PersistableMixin(
   ChattelMixin(

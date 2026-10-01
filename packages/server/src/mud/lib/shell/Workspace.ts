@@ -32,7 +32,7 @@
  * one of them has to be canonical). Players in mirror mode can
  * still cross over per-call with `-s` / `-c`.
  *
- * Composition: applied to `ShelledCharacter` after `EnvironmentMixin`
+ * Composition: applied to `Shell` after `EnvironmentMixin`
  * and `AliasMixin` (so the `workspace.*` settings register through
  * EnvironmentMixin's schema-on-mixin walk).
  */
@@ -76,7 +76,7 @@ export interface TreeFlags {
  * through these accessors.
  *
  * Extends `Environment` because Workspace always co-composes with
- * `EnvironmentMixin` on `ShelledCharacter`. The interface extension
+ * `EnvironmentMixin` on `Shell`. The interface extension
  * lets controllers narrow once via `MixinApi.isWorkspace(giver)`
  * and reach Environment's `getSetting` / `setSetting` surface
  * without a second narrow.

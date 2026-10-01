@@ -30,7 +30,7 @@ import EventRegistry from "../idea/EventRegistry";
 // class so EventApi.#subs() can lazy-create it (listener delivery needs it).
 import "../idea/EventSubscriptions";
 import Interactive from "../idea/Interactive";
-import Avatar from "../agent/Avatar";
+import Avatar from "../agent/PrimaryAvatar";
 import type { ReactionDeltaEnvelope } from "@saxonberg/types";
 
 async function bootEventRegistry(): Promise<void> {

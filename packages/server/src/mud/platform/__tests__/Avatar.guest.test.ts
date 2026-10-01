@@ -1,6 +1,6 @@
 import "../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
-import Avatar from "../agent/Avatar";
+import Avatar from "../agent/PrimaryAvatar";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
 
 function makeAvatar(): Avatar {

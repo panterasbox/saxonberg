@@ -160,8 +160,8 @@ beforeEach(() => {
       data: {},
     },
     {
-      path: '/platform/agent/sandbox/WireBody',
-      class: '/platform/agent/sandbox/WireBody',
+      path: '/platform/agent/sandbox/SandboxAvatar',
+      class: '/platform/agent/sandbox/SandboxAvatar',
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { playerId: '' },
     },

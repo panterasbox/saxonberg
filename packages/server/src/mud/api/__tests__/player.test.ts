@@ -14,7 +14,7 @@ import { PlayerApi } from '../player';
 import { PlayerLogic } from '../../platform/idea/api/PlayerLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import { User } from '../../lib/identity/User';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 

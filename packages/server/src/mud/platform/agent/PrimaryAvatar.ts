@@ -5,7 +5,7 @@
  * ([lib/character/Avatar](../../lib/character/Avatar)). It is what the
  * seed row's `class:` names, what `PlayerApi` registers, what
  * `holder_snapshots` holds, and what the estate escheats. Its two
- * siblings — `Shade` and `WireBody` — are the same person in another
+ * siblings — `ShadeAvatar` and `SandboxAvatar` — are the same person in another
  * phase of play, and each borrows this one's identity without taking
  * its place.
  *
@@ -29,17 +29,17 @@
  * and this one would carry two members after the identity work —
  * `shouldPersist` and `startAutoSave` — and the two vessels are about
  * to disagree about the first (the sandbox-overlay build deletes
- * `WireBody`'s and keeps `Shade`'s). A rung holding a boolean its
+ * `SandboxAvatar`'s and keeps `ShadeAvatar`'s). A rung holding a boolean its
  * subclasses flip is an enum wearing a class, which is the `Movable`
  * mistake in a new costume.
  */
 
-import AvatarBase, { type AvatarInitContext } from '../../lib/character/Avatar';
+import Avatar, { type AvatarInitContext } from '../../lib/character/Avatar';
 import { PlayerApi } from '../../api/player';
 import { PersistableApi } from '../../api/persistable';
 import { RecordApi } from '../../api/record';
 
-export default class Avatar extends AvatarBase {
+export default class PrimaryAvatar extends Avatar {
   /**
    * Post-registration for **the body of record** — the only body that
    * claims the player's registry slot and the only one that writes a

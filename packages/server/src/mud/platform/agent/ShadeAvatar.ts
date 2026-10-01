@@ -1,5 +1,5 @@
 /**
- * Shade — what a player is between bodies.
+ * ShadeAvatar — what a player is between bodies.
  *
  * An `Avatar` SUBCLASS, deliberately, and for the reason the sandbox
  * already wrote down about its own vessel: the whole verb surface has to
@@ -11,7 +11,7 @@
  *     of a death lives on the IDENTITY (`Avatar.mortalArc`), never as a
  *     dead lifecycle on a body. A shade that captured would put the
  *     bricking defect straight back.
- *   - **holds the registry slot**: unlike `WireBody`, a shade IS
+ *   - **holds the registry slot**: unlike `SandboxAvatar`, a shade IS
  *     registered with `PlayerApi`. The wire body's rationale is that the
  *     parked field avatar keeps the slot — but in death there is no field
  *     avatar; it was destructed. Unregistered, a dead player would fall
@@ -39,12 +39,12 @@ import Avatar, { type AvatarInitContext } from '../../lib/character/Avatar';
 import { IncorporealMixin } from '../../lib/mortality/Incorporeal';
 
 /** Init context for a shade: the identity it stands in for. */
-export interface ShadeInitContext extends AvatarInitContext {
+export interface ShadeAvatarInitContext extends AvatarInitContext {
   /** Marks the vessel; set by the death choreography. */
   shade?: boolean;
 }
 
-export default class Shade extends IncorporealMixin(Avatar) {
+export default class ShadeAvatar extends IncorporealMixin(Avatar) {
   /**
    * ⭐ The whole override, and all it says is *a shade is undead*.
    *
@@ -55,7 +55,7 @@ export default class Shade extends IncorporealMixin(Avatar) {
    * the body of record alone, so a shade has nothing to say no to.
    */
   public override async postRegister(
-    context?: ShadeInitContext,
+    context?: ShadeAvatarInitContext,
   ): Promise<void> {
     await super.postRegister(context);
     this.setLifecycleState('undead');
@@ -129,6 +129,6 @@ export default class Shade extends IncorporealMixin(Avatar) {
    */
 
   public override toString(): string {
-    return `[Shade for playerId=${this.playerId}]`;
+    return `[ShadeAvatar for playerId=${this.playerId}]`;
   }
 }

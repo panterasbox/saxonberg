@@ -12,7 +12,7 @@ import { PackApi } from '../../../../api/pack';
 import { AccessApi } from '../../../../api/access';
 import { DiagnosticApi } from '../../../../api/diagnostics';
 import { ExecutionContextApi } from '../../../../api/execution-context';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../agent/PrimaryAvatar';
 import { makeStuffAtPath, withRootContext } from '../../../../lib/security/__tests__/test-setup';
 import {
   stubPersist,

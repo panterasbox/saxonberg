@@ -1,5 +1,5 @@
 /**
- * ShelledCharacter — Character + the shell mixin suite.
+ * Shell — Character + the shell mixin suite.
  *
  * The msh shell isn't one mixin; it's a small composition of
  * substrate mixins that together give a host the surface for
@@ -25,7 +25,7 @@
  * schema-on-mixin walk, and its verb contributions are discovered
  * alongside the other shell verbs.
  *
- * Avatar extends ShelledCharacter rather than Character so the
+ * Avatar extends Shell rather than Character so the
  * composition lives in one place. NPCs that don't run a shell
  * extend Character directly and stay scriptable without dragging
  * in aliases, environment overrides, drill state, a workspace, or
@@ -39,8 +39,8 @@ import { FocusedMixin } from '../command/Focused';
 import { WorkspaceMixin } from './Workspace';
 import { AuthorMixin } from './Author';
 
-const ShelledCharacterBase = AuthorMixin(
+const ShellBase = AuthorMixin(
   WorkspaceMixin(AliasMixin(EnvironmentMixin(FocusedMixin(Character)))),
 );
 
-export abstract class ShelledCharacter extends ShelledCharacterBase {}
+export abstract class Shell extends ShellBase {}

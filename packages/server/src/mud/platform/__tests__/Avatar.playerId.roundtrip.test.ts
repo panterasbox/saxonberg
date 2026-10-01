@@ -20,9 +20,9 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Avatar from '../agent/Avatar';
-import Shade from '../agent/Shade';
-import WireBody from '../agent/sandbox/WireBody';
+import Avatar from '../agent/PrimaryAvatar';
+import ShadeAvatar from '../agent/ShadeAvatar';
+import SandboxAvatar from '../agent/sandbox/SandboxAvatar';
 import Species from '../idea/species/Species';
 import BodyPlan from '../idea/species/BodyPlan';
 import PersistentHydrator from '../idea/persistence/PersistentHydrator';
@@ -143,7 +143,7 @@ describe('⭐⭐ one playerId, one identity thread', () => {
   });
 
   it('a shade answers under the player, from the one field', async () => {
-    const sh = makeStuff(() => new Shade());
+    const sh = makeStuff(() => new ShadeAvatar());
     sh.playerId = 'pid-rt-3';
     sh.setSpecies(species());
     await sh.postRegister();
@@ -153,7 +153,7 @@ describe('⭐⭐ one playerId, one identity thread', () => {
   });
 
   it('a circle body answers under the player, from the one field', async () => {
-    const wb = makeStuff(() => new WireBody());
+    const wb = makeStuff(() => new SandboxAvatar());
     wb.playerId = 'pid-rt-4';
     wb.setSpecies(species());
     await wb.postRegister();
@@ -163,7 +163,7 @@ describe('⭐⭐ one playerId, one identity thread', () => {
   });
 
   it('⚠ neither vessel claims the registry slot — the parked body keeps it', async () => {
-    const sh = makeStuff(() => new Shade());
+    const sh = makeStuff(() => new ShadeAvatar());
     sh.playerId = 'pid-rt-5';
     sh.setSpecies(species());
     await sh.postRegister();

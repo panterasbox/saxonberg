@@ -3,7 +3,7 @@
  * pronoun memory, and the `focus` verb.
  *
  * Decoration on top of `CommandGiverMixin`. Avatars compose it via
- * `ShelledCharacter`; NPCs that script commands but don't need
+ * `Shell`; NPCs that script commands but don't need
  * drill state or pronoun stash leave it off.
  *
  * Owns:

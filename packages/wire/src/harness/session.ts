@@ -288,6 +288,58 @@ export class Session {
   }
 
   /**
+   * ⭐ STOP AT THE ROSTER — `open` minus `enterWorld`.
+   *
+   * A session parked on the character-select layer, still driven by
+   * `Login` rather than by a body. `cmd` works; world verbs do not,
+   * because `Login` composes none of the mixins that contribute them.
+   *
+   * ⚠ This is the only way to probe the PRE-WORLD verb set on a live
+   * socket, and that set is an invariant the avatar-family build had
+   * to preserve: `cockpit` rides the client mixin's
+   * `commandContributions`, so a `Login` that stopped composing that
+   * mixin would silently lose the verb — and lose char-gen with it,
+   * since `CommandGiver` reads `cockpit.inputModes` for any bar
+   * submission and `getClientState` throws on an undeclared key.
+   *
+   * Returns the session and the playerId the roster offered, so a
+   * caller can hand off with `play <playerId>` when it wants to.
+   */
+  static async openAtRoster(
+    handle: string,
+    opts: { startLocation?: string; wizard?: boolean } = {}
+  ): Promise<{ session: Session; playerId: string }> {
+    await assertPacksPresent();
+    const cookie = await login(handle, opts);
+    const s = new Session();
+    s.handle = handle;
+    s.ws = new WebSocket(WS_URL(), { headers: { cookie } });
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error(`wire: socket never opened at ${WS_URL()}`)),
+        FRAME_TIMEOUT_MS
+      );
+      s.ws.once('open', () => {
+        clearTimeout(timer);
+        resolve();
+      });
+      s.ws.once('error', (err) => {
+        clearTimeout(timer);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      });
+    });
+    s.ws.on('message', (data) => s.receive(String(data)));
+    const playerId = await s.awaitRoster();
+    return { session: s, playerId };
+  }
+
+  /** Hand a roster-parked session off into the world. */
+  async play(playerId: string): Promise<void> {
+    await this.enterWorld(playerId);
+    this.proseFrames.length = 0;
+  }
+
+  /**
    * ⭐ ARRIVE: log in with NO character and walk char-gen itself —
    * `embody species …`, `embody name …`, `embody pronouns …`,
    * `embody aspiration …`, `embody confirm` — the way a real newcomer
