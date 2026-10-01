@@ -794,6 +794,19 @@ long gaps are wizard `eval` rewinds on the object, never a clock scale.
 - **F4 — cooling capacity is an authored cause (`coolingCapacityW`)**, not
   a derived heat pump; the pull-down time is the envelope's own `C/U`.
   COP and rejection wait for billing.
+  - ⭐ **Each cold-store row MUST author its enclosure/insulation** (the
+    `enclosure:` material + thickness, via `Enclosed` on `AtmosphericMixin`
+    — there is no `EnclosedMixin`; it is an interface Atmospheric
+    implements). The enclosure IS the envelope's leak (`U·A`) and, with the
+    ceiling `heightM` → volume, the whole `C/U` the pull-down and the
+    drift-when-cut ride on. A row left on the universe default is a
+    poorly-insulated box that warms in minutes — so the `ColdStore` /
+    `ColdRoom` class `enclosureDefaults()` sets an insulated-panel / cold-wall
+    default (one of the W3 coach overrides), and the fridge / freezer /
+    walk-in rows author real insulation (a thick walk-in holds longer than a
+    thin fridge, for free). A thin or absent enclosure is the first thing to
+    check if the drive finds a fridge warming too fast — raise the row, not
+    the code.
 - **F5 — the far-past guard narrowing** (every Thermal thing integrates
   gaps longer than four game-hours): corpses cool across absences
   (wanted), thermoses cool (correct). Grep the thermal suites for tests
