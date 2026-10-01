@@ -849,7 +849,57 @@ step is recorded as *not driveable on the wire*, not skipped silently.
 
 ---
 
-## ⛔ Naming — proposed, not picked (requirements D2, D5)
+## ✅ Naming — DECIDED 2026-09-30 (requirements D2, D5)
+
+> **The owner chose the PHASE set, and replaced `Typist` with `Shell`.**
+>
+> ```
+> Character  →  Shell  →  Avatar  →  Incarnation   (the record body)
+>                                 →  Shade         (the dead body)
+>                                 →  Understudy    (the circle body)
+> ```
+>
+> - **`Avatar`** — abstract root; a human's handle in the world. Keeps
+>   the name because the identity namespace `/platform/agent/Avatar/`
+>   stays the family's (D13).
+> - **`Incarnation`** — the record body. ⭐ Permanence falls out of the
+>   phase rather than being asserted: an incarnation is by nature the one
+>   that lasts.
+> - **`Shade`** — unchanged, keeping its shipped name and all its prose
+>   in `mortality.md` and `passage.yaml`.
+> - **`Understudy`** — the circle body. Says *rehearsing in someone's
+>   workshop* more precisely than *wire* or *circle* does.
+> - **`Shell`** — the command-line rung (was `ShelledCharacter`). ⭐ *A
+>   `Shell` is a Character with a command line; an `Avatar` is a `Shell`
+>   with a human driving it.* Lands in `lib/shell/` beside `Alias`,
+>   `Workspace`, `Environment` and `Focused`, and the codebase already
+>   uses *shell* for exactly this sense (`shell` command category,
+>   `shell.result`, `shell.parser`).
+>
+> **Why the phase set:** it is the only one of the three where all three
+> concrete names answer the **same question** — *what part of play is
+> this?* That is the property `Movable` and `Animate` lacked, which is
+> why they read as category errors rather than as poor word choices.
+>
+> ⚠ **The one cost, recorded:** *shelled* can mean husked, so a reader
+> might hear "empty vessel" — which is `Shade`'s territory. The
+> computing sense is judged to win overwhelmingly in this codebase's
+> context. If a reviewer hears the other one first, that is the reason
+> to revisit.
+>
+> **Rejected, with reasons:** `Typist` (describes the human, not the
+> class) · `Console` (clashes with SaxonbergClient's own keyspace —
+> `console.tabs`, `console.routing`, `console.activeTab`) · `Terminal`
+> (reads against `TpaTerminal`) · `Pilot` (*driving* is
+> `HasInteractive`'s notion, one rung up) · `Scribe` (reads as a
+> **vocation**, and vocations are Cast rows — the exact confusion the
+> Extra audit is about) · `Steward` (does not say command line) ·
+> `Operant` (adjective-shaped; banned by the class-naming convention).
+>
+> ⭐ **W6 is unblocked.** The sets below are kept as the record of what
+> was weighed.
+
+## The three sets as offered (superseded by the decision above)
 
 What each class is responsible for, after W3:
 

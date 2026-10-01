@@ -170,7 +170,29 @@ phases, which inheritance guarantees and a field does not.
 So: an abstract `Avatar` nothing instances, and **three concrete
 classes whose names say how the avatar is USED in the game.**
 
-### D2 — ⭐ The names are deliberately NOT decided here
+### D2 — ✅ The names, decided 2026-09-30 after the decomposition
+
+```
+Character → Shell → Avatar → Incarnation · Shade · Understudy
+```
+
+`Avatar` stays the abstract root (the identity namespace is the
+family's). **`Incarnation`** is the record body, **`Shade`** keeps its
+shipped name, **`Understudy`** is the circle body, and **`Shell`** is
+the command-line rung that was `ShelledCharacter` — *a `Shell` is a
+Character with a command line; an `Avatar` is a `Shell` with a human
+driving it.*
+
+⭐ The **phase of play** axis won because it is the only one of three
+where all three concrete names answer the same question — *what part of
+play is this?* — which is the property `Movable` and `Animate` lacked.
+⚠ The recorded cost: *shelled* can also mean husked. Full rejection
+list and reasoning in the plan's § Naming.
+
+**The original decision, kept because the reasoning still governs any
+future rename:**
+
+### D2 (as written) — the names were deliberately NOT decided up front
 
 `Avatar` · `Shade` · `WireBody` read as three unrelated nouns and will
 change. **What they change to is decided after the decomposition is
