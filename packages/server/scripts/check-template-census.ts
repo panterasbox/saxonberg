@@ -158,6 +158,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // nothing. The stand's own `mix[].woodMaterialPath` / `seedPath` /
     // `speciesPath` are read below, the `props:` way.
     'standardMaterialPath',
+    // ⭐ `source` (the energy build) — a `Feeder` row's generator: the
+    // `ControlStructure` whose `isGenerating()` powers the whole feeder tree.
+    // Resolved live at the grid compile, and a rowless one is a feeder that
+    // energizes nothing with no author-findable reason.
+    'source',
   ] as const) {
     push(f, data[f]);
   }

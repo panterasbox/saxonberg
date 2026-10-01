@@ -1,0 +1,34 @@
+# the oil works' floor — the yard: the outfit's Stock (the cask rows' home
+# `container:` — the sweep stands them at target here) and the hand whose
+# `consigns` beat carries them to the cash-and-carry. It has a DOOR onto the
+# goods yards so a hauler can reach what the hand crated. An ordinary location,
+# not a FurnishableRoom (that class is the furnishing archetypes' base); the
+# floor's durability lives on its persistable fixtures (the Stock), and the
+# consigned casks ride those, respawning each boot.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — the only way an authored row
+  # joins its zone (the oilworks sub-zone beside it).
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "oil works floor"
+  keywords: [floor, oil, works, still]
+  register: definite
+  longDescription: |
+    A flagged floor dark with spilled oil, a squat retort standing cold in the corner (the crafted route is a later build), and racks of casks waiting for the cart.
+  exits:
+    # The back door onto the goods yards — a hauler comes in this way to
+    # collect what the hand crated, and the hand walks out this way to the
+    # cash-and-carry and back.
+    southeast:
+      destination: /world/terminus/goods-yards/yard
+      media: [ground]
+      edgeMinutes: 2
+  props:
+    - /trade/haulage/thing/works-board
+    - /world/terminus/goods-yards/oilworks/thing/stock
+  cast:
+    - /world/terminus/goods-yards/oilworks/agent/hand

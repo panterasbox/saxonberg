@@ -23,6 +23,7 @@
  */
 
 import { Idea } from "../../../lib/stuff/Idea";
+import { NamedMixin } from "../../../lib/description/Named";
 import { TemplatePathPrefixes } from "../../../lib/paths";
 import type { FieldMeta } from "../../../lib/mixin";
 
@@ -41,14 +42,19 @@ export interface BrandDescriptor {
   descriptor: string;
 }
 
-export default class Brand extends Idea {
+/**
+ * ⭐ The brand's **display name** ("Volk") comes from `NamedMixin` — the one
+ * general-purpose "something a person named" surface, reused rather than
+ * reinvented. A brand uses only `name`; honorific/surname/suffix ride along
+ * unused (the mixin's opt-out posture). `getAllFieldMeta` merges the mixin's
+ * `name` meta with the block below property-by-property.
+ */
+export default class Brand extends NamedMixin(Idea) {
   /** Per-instance template path prefix: `/stuff/idea/corpo/Brand/<key>`. */
   static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.brand;
 
   /** Durable join key (e.g. `'volk'`). Non-empty. */
   public key: string = "";
-  /** Display name (e.g. `'Volk'`). Non-empty. */
-  public name: string = "";
   /** Owning Corpo `key`, or `''` = independent (no corpo mark). */
   public owner: string = "";
   /** Honest product category (e.g. `'vodka'`, `'gin'`, `'whiskey'`). */
@@ -60,7 +66,6 @@ export default class Brand extends Idea {
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true },
-    name: { persistent: true },
     owner: { persistent: true },
     category: { persistent: true },
     positioning: { persistent: true },
@@ -75,16 +80,6 @@ export default class Brand extends Idea {
       throw new TypeError("Brand.key must be a non-empty string");
     }
     this.key = value;
-  }
-
-  public getName(): string {
-    return this.name;
-  }
-  public setName(value: string): void {
-    if (typeof value !== "string" || value.length === 0) {
-      throw new TypeError("Brand.name must be a non-empty string");
-    }
-    this.name = value;
   }
 
   /** The owning Corpo `key`, or `''` for an independent. */

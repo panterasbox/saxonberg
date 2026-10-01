@@ -1,0 +1,39 @@
+# A cask of lamp oil — the fuel trade's product for the street-lighting
+# market, and the good a town's public-works department buys and burns.
+#
+# A `Bottle` preset (the stock vessel a floor product is a row over) filled
+# with 40 L of lamp oil. `CategoryMeasure` tallies its litres by the
+# `lamp-oil` tag, which is what a `supply` gig's condition counts and what
+# `FuelStore` drains a street-night at a time.
+#
+# ⚠ `_materialPath` (oak, the cask body) is stated on the ROW on purpose: the
+# `SpiritBottle`/`gin.yaml` shape this copies states neither `mass` nor
+# `_materialPath` and is a `lint:mass` ceiling offender — this row does not
+# inherit that gap. The oil is the INTERIOR bulk, separate from the cask body.
+#
+# ⭐ `container:` is the oil works' floor stock — the ONLY faucet: the spawn
+# sweep stands casks at target there, and the works' hand consigns them to the
+# cash-and-carry, where a town's public-works department buys them.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: cask of lamp oil
+  keywords: [cask, oil-cask, lamp-oil, oil]
+  register: indefinite
+  longDescription: >-
+    A liquid-tight oak cask, iron-hooped, its bung sealed with wax. It sloshes
+    heavily — forty litres of pale burning oil, enough to keep a town's lamps
+    lit for the better part of a week.
+  category: oil-cask
+  _materialPath: /stuff/idea/material/wood/oak
+  interiorBulk: true
+  interiorCapacity: 40
+  interiorMaterial: /stuff/idea/material/bulk/lamp-oil
+  interiorAmount: 40
+  gradeBand: fair
+  censusKey: fuel:lamp-oil
+  materialTags: [lamp-oil, fuel]
+  # A week of a gas-lit town's demand as buffer (6 L/night × 7 ≈ one cask a
+  # week); the sweep keeps a few on the floor for the public-works buyer.
+  regionTarget: 4
+  container: /world/terminus/goods-yards/oilworks/thing/stock

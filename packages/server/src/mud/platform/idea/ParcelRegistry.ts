@@ -45,6 +45,7 @@ import {
 } from "../../lib/parcel/ParcelRecord";
 import { ParcelEvent } from "../../lib/parcel/ParcelEvent";
 import { LandUses, type LandUse } from "../../lib/parcel/LandUse";
+import type { PowerBand } from "../../lib/parcel/PowerBand";
 import type { Quantity } from "../../lib/quantity";
 import type { VetoResult } from "../../lib/errors";
 import type { Stuff } from "../../lib/stuff/Stuff";
@@ -125,6 +126,51 @@ export default class ParcelRegistry extends ParcelRegistryBase {
       record = this.coverage.exact(parent)[0] ?? null;
     }
     return "wild";
+  }
+
+  /**
+   * ⭐ **The meter read**: the power band and feeder node metering the ground
+   * at `path` — the longest-prefix resolve, then the `parentParcel` walk
+   * upward for the first row that declares each (a band and a feeder may
+   * inherit from different levels — a district declares the feeder, a lot the
+   * band). Ground nothing claims, or claims without a band, reads `off-grid`;
+   * without a feeder, `''` (no line). Both fail-closed, exactly as `landUseOf`
+   * answers `wild`.
+   *
+   * A consuming thing (a lamp, later a fridge) resolves this ONCE at its
+   * `postRegister` and asks the energy pack's catalogue whether the feeder
+   * node is energized — it never walks the interior. A read; no mutation.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public powerOf(
+    path: string,
+  ): { band: PowerBand; feeder: string; parcel: ParcelRecord | null } {
+    const parcel = this.coveringImpl(path);
+    let band: PowerBand | null = null;
+    let feeder = "";
+    let record: ParcelRecord | null = parcel;
+    const seen = new Set<string>();
+    while (record) {
+      if (band === null) band = record.getPowerBand();
+      if (feeder === "") feeder = record.getFeeder();
+      if (band !== null && feeder !== "") break;
+      const parent = record.getParentParcel();
+      if (parent === null || seen.has(parent)) break;
+      seen.add(parent);
+      record = this.coverage.exact(parent)[0] ?? null;
+    }
+    return { band: band ?? "off-grid", feeder, parcel };
+  }
+
+  /**
+   * Every parcel row citing feeder node `feederRef` — the meter's twin of
+   * {@link parcelsOnReach}. A keyed read; the feeder index is maintained
+   * beside the coverage trie.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async parcelsOnFeeder(feederRef: string): Promise<ParcelRecord[]> {
+    if (!feederRef) return [];
+    return [...(this.byFeeder.get(feederRef) ?? [])];
   }
 
   /**
@@ -341,6 +387,8 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     record.parentParcel = claim.parentParcel ?? null;
     record.setLandUse(claim.landUse ?? null);
     record.setReach(claim.reach ?? "");
+    record.setFeeder(claim.feeder ?? "");
+    record.setPowerBand(claim.powerBand ?? null);
     record.area = typeof claim.areaM2 === "number" ? claim.areaM2 : 0;
     await record.save();
     await this.appendEvent("grant", claim.extent, null, claim.holder);
@@ -363,6 +411,28 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     }
     record.setReach(reach);
     await record.save();
+    return record;
+  }
+
+  /** See {@link ParcelApi.citeFeeder}. The meter's twin of {@link citeReach}. */
+  @CallSecurity(ParcelApiCallers)
+  public async citeFeeder(
+    extent: string,
+    feeder: string,
+  ): Promise<ParcelRecord | null> {
+    SecurityApi.assertFieldMutation(this, 'citeFeeder');
+    let record = this.coverage.exact(extent)[0] ?? null;
+    if (!record) {
+      record = await ParcelRecord.findByExtent(extent);
+      if (!record) return null;
+    }
+    record.setFeeder(feeder);
+    await record.save();
+    // Reindex AFTER the write so `byFeeder` reflects the new citation — the
+    // read is a keyed index, not a scan (⚠ unlike `citeReach`, which only
+    // reindexes a freshly-loaded record; its `byReach` can go stale on a
+    // re-cite of an already-covered row — a latent gap, not this build's).
+    this.reindex(extent, record);
     return record;
   }
 
@@ -736,6 +806,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     this.coverage.clear();
     this.byOwner.clear();
     this.byReach.clear();
+    this.byFeeder.clear();
     for (const record of await ParcelRecord.findAll()) {
       const extent = record.getExtent();
       if (extent.length > 0) this.coverage.insert(extent, record);
@@ -758,6 +829,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     { owner: ParcelOwner; extents: Set<string> }
   >();
   private byReach = new Map<string, Set<ParcelRecord>>();
+  private byFeeder = new Map<string, Set<ParcelRecord>>();
 
   /** The owner index's key. `''` for a row with no resolvable holder. */
   private ownerKeyOf(owner: ParcelOwner): string {
@@ -786,6 +858,12 @@ export default class ParcelRegistry extends ParcelRegistryBase {
       if (bucket) bucket.add(record);
       else this.byReach.set(reach, new Set([record]));
     }
+    const feeder = record.getFeeder();
+    if (feeder.length > 0) {
+      const bucket = this.byFeeder.get(feeder);
+      if (bucket) bucket.add(record);
+      else this.byFeeder.set(feeder, new Set([record]));
+    }
   }
 
   /** Drop everything `extent` contributed to the owner/reach indexes. */
@@ -800,6 +878,12 @@ export default class ParcelRegistry extends ParcelRegistryBase {
         if (record.getExtent() === extent) bucket.delete(record);
       }
       if (bucket.size === 0) this.byReach.delete(reach);
+    }
+    for (const [feeder, bucket] of this.byFeeder) {
+      for (const record of bucket) {
+        if (record.getExtent() === extent) bucket.delete(record);
+      }
+      if (bucket.size === 0) this.byFeeder.delete(feeder);
     }
   }
 }

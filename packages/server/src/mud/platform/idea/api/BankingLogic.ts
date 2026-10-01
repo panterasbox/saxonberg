@@ -32,6 +32,7 @@ import type {
   SettlementReceipt,
 } from "../../../lib/banking/Charge";
 import { AppApi } from "../../../api/app";
+import { AddressApi } from "../../../api/address";
 // The own-Api self-import (the PressLogic precedent): a free function
 // here has no dispatched frame, so it re-enters through the face to
 // acquire one before the registry-wide read.
@@ -738,12 +739,30 @@ async function appropriateImpl(
   toOwnerKey: string,
   amount: Money,
   memo: string,
+  opts?: { fromOwnerPath?: string },
 ): Promise<string> {
   if (amount.minor <= 0) {
     throw new Error("BankingLogic.appropriate: amount must be positive");
   }
-  await reconcilePerpetualImpl(amount.currency);
-  const treasury = await treasuryAccountIdImpl(amount.currency);
+  // ⭐ Source from a named owner's primary account (a locality's own budget)
+  // when asked, else the realm treasury (the default). The realm path still
+  // reconciles the perpetual first; a locality's own budget does not draw on
+  // the perpetual, so it is a plain transfer from what it holds.
+  let treasury: string;
+  const from = opts?.fromOwnerPath?.trim();
+  if (from && from !== TREASURY_PATH) {
+    const src = await accountsOfImpl(from);
+    const srcAcct = (src.find((a) => a.isPrimary) ?? src[0])?.accountId ?? null;
+    if (!srcAcct) {
+      throw new Error(
+        `BankingLogic.appropriate: ${from} has no account to spend from`,
+      );
+    }
+    treasury = srcAcct;
+  } else {
+    await reconcilePerpetualImpl(amount.currency);
+    treasury = await treasuryAccountIdImpl(amount.currency);
+  }
   const owned = await accountsOfImpl(toOwnerKey);
   const to = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId ?? null;
   if (!to) {
@@ -1705,6 +1724,7 @@ function demoTaxConfig(): { rate: number } {
 async function remitDemoTaxImpl(
   sellerAccountId: string,
   saleAmount: Money,
+  at?: Stuff,
 ): Promise<Money> {
   const { rate } = demoTaxConfig();
   if (rate <= 0) return Money.zero(BankingApi.compactCurrency());
@@ -1712,17 +1732,64 @@ async function remitDemoTaxImpl(
   if (tax <= 0) return Money.zero(BankingApi.compactCurrency());
   // ⭐ To the treasury's real account — `/compact/treasury`'s, at the CB
   // (economic bootstrap D9) — never a raw string id nobody owns.
-  const treasury = await treasuryAccountIdImpl(saleAmount.currency);
-  await postTransaction("tax", [
-    {
-    currency: saleAmount.currency,
+  const realmTreasury = await treasuryAccountIdImpl(saleAmount.currency);
+
+  // ⭐ The split (energy build D12): when the sale's covering locality holds
+  // its own treasury, `banking.localTaxShare` of the tax lands there and the
+  // rest at the realm — two `tax` legs, both from the seller (conserving). No
+  // `at`, or a locality with no treasury of its own → the whole tax to the
+  // realm, one leg, as before.
+  let localAcct: string | null = null;
+  if (at) {
+    try {
+      localAcct = await AddressApi.localityOwnTreasuryAccountId(
+        at,
+        saleAmount.currency,
+      );
+    } catch {
+      localAcct = null;
+    }
+  }
+
+  const legs: LedgerLeg[] = [];
+  if (localAcct && localAcct !== realmTreasury) {
+    const share = Math.min(
+      1,
+      dialNumber(AppSettingKeys.bankingLocalTaxShare),
+    );
+    const localTax = Math.floor(tax * share);
+    const realmTax = tax - localTax;
+    if (localTax > 0) {
+      legs.push({
+        currency: saleAmount.currency,
+        from: sellerAccountId,
+        to: localAcct,
+        amount: localTax,
+        category: "tax",
+        memo: "sales tax (local)",
+      });
+    }
+    if (realmTax > 0) {
+      legs.push({
+        currency: saleAmount.currency,
+        from: sellerAccountId,
+        to: realmTreasury,
+        amount: realmTax,
+        category: "tax",
+        memo: "sales tax",
+      });
+    }
+  } else {
+    legs.push({
+      currency: saleAmount.currency,
       from: sellerAccountId,
-      to: treasury,
+      to: realmTreasury,
       amount: tax,
       category: "tax",
       memo: "sales tax",
-    },
-  ]);
+    });
+  }
+  await postTransaction("tax", legs);
   return Money.of(tax, BankingApi.compactCurrency());
 }
 
@@ -2459,8 +2526,9 @@ export class BankingLogic extends ApiLogic {
     toOwnerKey: string,
     amount: Money,
     memo: string,
+    opts?: { fromOwnerPath?: string },
   ): Promise<string> {
-    return appropriateImpl(toOwnerKey, amount, memo);
+    return appropriateImpl(toOwnerKey, amount, memo, opts);
   }
 
   /** See {@link BankingApi.disburse}. */
@@ -2894,8 +2962,9 @@ export class BankingLogic extends ApiLogic {
   public async remitDemoTax(
     sellerAccountId: string,
     saleAmount: Money,
+    at?: Stuff,
   ): Promise<Money> {
-    return remitDemoTaxImpl(sellerAccountId, saleAmount);
+    return remitDemoTaxImpl(sellerAccountId, saleAmount, at);
   }
 
   /** See {@link BankingApi.issueCash}. The central-bank physical cash faucet. */

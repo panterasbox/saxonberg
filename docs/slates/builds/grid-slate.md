@@ -94,6 +94,53 @@ holder's own affair."*
 **And it is how utilities are actually regulated:** the utility answers to
 the meter, never to your lamp.
 
+## ⭐⭐ The meter is a triple boundary — and consumption is scale-free (2026-09-24)
+
+The three public edges are the three real stages: **generation →
+transmission/distribution (the street parcel) → consumption (the connected
+premises).** Real infrastructure steps voltage *down* at the meter (shared
+high-voltage infra on the street side, private low-voltage on the premises
+side), so **the meter is one line doing three jobs at once**: the voltage
+step-down, the economic boundary (the utility bills the meter, never your
+lamp), and the physics-model boundary ([electricity.md](../../subsystems/electricity.md)'s
+*"one law, two scales"* — the two scales are the two voltages). Collapsing
+transmission and distribution into "the street" is deliberate: a player never
+acts on that distinction.
+
+> ⭐⭐⭐ **The consistency invariant: a consuming fixture resolves its supply
+> to its COVERING PARCEL's meter, by longest-prefix — never by walking the
+> interior.** The fridge's question is identical everywhere: *"is the parcel I
+> sit on connected, and is that connection live?"* — a three-edge walk (my
+> parcel's meter → the street → generation) that stops at the meter. It never
+> asks about the room, the building type, or how many locations the premises
+> has.
+
+Because parcel coverage is longest-prefix (like `ownerOf` /
+`coveringParcelOf` already), the story is **the same for a detailed home (a
+fridge deep in a nested kitchen), a single-room shop (the range in the one
+room that IS the business), and an industrial works (a furnace in a smelting
+hall)** — residential, commercial, industrial, one room or fifty, all resolve
+to the covering parcel. This is why the meter attaches to the **parcel**, not
+to a (still-unbuilt) structure object: the parcel already spans every building
+type and every level of interior detail.
+
+## Deferred: the low-voltage INTERIOR (past the meter)
+
+⭐ **Modelling both sides of the meter teaches different things, and the
+interior side is real richness** — circuits, breakers, sub-metering, a room
+you can individually cut, load-balancing (ONI spends half its game here). That
+is a whole pedagogy on the LV side. **It is explicitly NOT needed for "the
+fridge comes online,"** which is the cold-chain → blood chain's actual demand.
+
+So v1 models the interior as **premises-as-a-unit** (a connected+live parcel
+powers everything inside it, zero internal modelling — what lets a single-room
+business express broadly), and leaves a clean seam: a detailed premises MAY
+later **opt in** to internal distribution via the cascade (a sub-parcel with
+its own quota under the premises parcel — the same `subdivide` mechanism), and
+a fixture that finds no sub-circuit just resolves to the premises meter. The
+invariant lives at the meter, so the interior can be unmodelled or richly
+modelled without changing the fridge's question. ⇒ **its own deferred build.**
+
 ---
 
 # Part 2 — ⭐⭐⭐ Streets: subdivision and DEDICATION
@@ -306,3 +353,370 @@ down.
    > issues.**
 5. ⚠ **Do the newbie wilds have a grid?** Deliberately open; it is the first
    real consumer of the declaration process.
+
+---
+
+# Part 5 — the end-to-end design (2026-09-24 scoping pass)
+
+Scoped in conversation while `design/envelope` and `design/instrumentation`
+are in flight; **the energy build starts after they merge** (envelope owns
+the premises/atmosphere boundary + the `Street` class + the public-lighting
+funding pattern energy reuses; instrumentation owns the `Reading` substrate
+the power meter registers on). This part records the whole chain, the lens
+pass, the shippable tiers, and the integration with envelope's shipped work.
+
+## The chain — seven phases
+
+```
+0 PRIMARY SOURCE → 1 GENERATION → 2 TRANSMISSION → 3 DISTRIBUTION
+   → 4 [THE METER] → 5 INTERIOR CIRCUITS → 6 CONSUMPTION
+                              ( 7 FAILURE & MAINTENANCE cross-cuts 2–5 )
+```
+
+The whole chain is **one physics** end to end; the meter is the only
+discontinuity (voltage step-down + economic boundary + physics-model boundary
++ the contiguous↔abstract boundary, all one line).
+
+## Lens pass — the whole chain
+
+1. **Pedagogy** — physics (Ohm's law, `P=VI`, `I²R` line loss, the
+   transformer ratio), electrical engineering (circuit capacity,
+   load-balancing, breakers), thermodynamics (generation), economics (natural
+   monopoly, marginal cost), civil/law (rights-of-way, dedication,
+   easement/holdout). Derivable end to end: watts sum, an overloaded circuit
+   trips, the fault is the dark segment. ⭐ Interior circuits (Phase 5) are the
+   single richest cell.
+2. **Expression** — generation, consumer and circuit are all **rows that
+   answer a method** (`generationW`, `availablePowerW`, a draw); a second
+   plant / neighborhood / appliance needs **zero pack code**; the bespoke
+   circuit layout is where players play.
+3. **Immersion** — *coverage is legal, connection is physical*; the cut
+   darkens only what's downstream; unlit interiors are pitch black; the fridge
+   warms and the blood spoils. No gauge — you read power by what works.
+4. **Values** — overload-to-save vs wire-it-right; redlining the poor ward;
+   autarky (hearth) vs dependence (the main); standing = the electrician /
+   lineman competence you can *see*.
+5. **Epochs** — ⭐⭐ the triumph: **only Phase 0 changes** across
+   prehistory→future (waterwheel → coal → hydro → fusion → mana); everything
+   downstream is invariant. Magic is the frontier generation tier
+   (anywhere-expensive), and *a community's development arc is the replacement
+   of magic by infrastructure* — measurable.
+6. **Economy & governance** — natural monopoly, rate-regulated; **meter on
+   USE, never connection** (Law 2); billing is a `payment`/`appropriate` leg
+   in Compact currency (no scrip → no truck system); connect/disconnect judges
+   a person → the **seniority quota** (recorded in advance) is the criterion,
+   and it is arithmetic not a judgement at the moment of refusal.
+
+## Per-phase highlights (full per-phase lens pass done in the scoping conversation)
+
+| phase | teaches / does | standout lens |
+|---|---|---|
+| 0 primary source | energy provenance; `ρgΔhQη`, heat of combustion, τ | 5 — the only phase that changes across epochs |
+| 1 generation | source → watts; `generationW` shipped (hydro) | 6 — cheap hydro = the city's industrial identity |
+| 2 transmission | `I²R` loss ⇒ high voltage; falls → city | 1 (why HV exists) · 6 (the holdout problem) |
+| 3 distribution | the street graph, follows the road (RoW) | 3 (directional outage) · 6 (natural monopoly) |
+| 4 the meter | step-down + billing + physics boundary | 6 (meter on use) · 4 (it judges a person) |
+| 5 interior circuits | capacity, load-balance, breaker, transformer | 1 (highest pedagogy) · 4 (a daily choice) |
+| 6 consumption | `P×t`; the fridge maintains ΔT vs leak | 3 (the felt payoff — cold blood, banished dark) |
+| 7 failure & maintenance | trace the dark segment; mint work orders | 3 (storm contract gets real) · 6 (the lineman gig) |
+
+## ⭐⭐ Shippable tiers — build the whole chain, but meter-first and independently landable
+
+- **Tier A — "the fridge comes online."** Phases 1–4 + 6 at
+  **premises-as-a-unit**: the public network + parcel meter + a powered
+  consumer. This is what blood / cold-chain needs, and it stands alone.
+- **Tier B — the ONI tier.** Phase 5: interior circuits, breakers,
+  load-balancing, the transformer. **Highest lens-1 value**; rides Tier A's
+  meter as the cascade boundary; its own build. In scope for the *design*, not
+  for the first shippable slice.
+- **Tier C — the metered economy.** Phase 4's use-metering + billing + Phase 7
+  in full: draw, cycle, the invoice loop, the lineman market.
+
+## Contiguity — public contiguous, private abstract; the meter is the boundary
+
+**Yes, power is traceable on the public side; abstract past the meter.** This
+resolves the "three edges vs full walk" tension (Part 1):
+
+- **Public side (generation→transmission→distribution): contiguous.** Service
+  is an attribute on the **street graph's exit edges**, so you can walk from
+  your street back through connected streets to the substation to the
+  generation parcel. **That walk IS the fault-finding gameplay** — an outage
+  is a cut edge; you diagnose it by tracing to the dark segment. This is what
+  makes failure local and directional.
+- **Private side (past the meter): abstract.** You do NOT trace wires to your
+  fridge; the premises is the cascade (unit, or opt-in circuits).
+- **Three edges = the economic/title view** (who generates, who owns the
+  street, who connects); **the walk = the physical view**; the meter is where
+  they meet (the last physical node + the billing boundary).
+- **Performance = the watercourse pattern**: compile a reachability SET per
+  source once (`WatercourseCatalogue` precedent — `compare` is one `Set.has`),
+  so a premises' live-check is Set-membership + the cut flags on the path; the
+  explicit trace is the rarer diagnosis act.
+
+## Overhead vs underground — a cosmetic + failure-profile attribute, not a layer
+
+Generalizes the shipped ruling (*"underground is a manhole, not a world"*):
+overhead-vs-buried is an **attribute on the service edge**, expressed in
+exactly two places and only there:
+
+1. **The repair-access point** — a buried fault is reached through a manhole
+   (an ordinary exit); an overhead fault is at the pole. Where the lineman goes.
+2. **Storm vulnerability** — overhead lines go down in a storm (feeds the
+   storm contract); buried lines are storm-safe but dig-to-reach.
+
+⭐ Lens-5 ladder: overhead (cheap/fast/vulnerable, industrial) → buried
+(dear/robust, modern). Default overhead; burying is an upgrade. Same edge, no
+new topology.
+
+## Epoch by locality — Terminus electric, Heart's Delight gaslamp, Hinkley off-grid
+
+The map supports this natively and **the epoch is DERIVED, not flagged**. A
+locality is *electric* iff a connected parcel → street → generation source
+traces; *gaslamp* iff its streets run envelope's public-lighting fuel service
+with no electric distribution; *off-grid* iff neither.
+
+- **Terminus** — electric grid (traces to the highland hydro; the developed core).
+- **Heart's Delight** — gaslamp + hearth (envelope's `Street` /
+  `PublicLightingMixin` fuel service; no electric distribution reaches it).
+- **Hinkley** — off-grid, hearth + the magic frontier tier (the slate's own
+  canonical "an unpowered shack, legal in Hinkley Hills").
+
+Same code everywhere; only content differs per locality (which streets carry
+which service, which parcels connect). **No "tech level" flag** — the epoch is
+what the ground's infrastructure can trace to. (Generation is upstream at the
+falls, so *being electric means a transmission line reached you* — which is
+why the rural localities aren't, and extending the line to them is a future
+political act.)
+
+## ⭐⭐ Integration with envelope's `Street` + public lighting (shipping ahead of us)
+
+Envelope minted `platform/location/Street.ts` (`SingletonCartesianLocation` +
+`PublicLightingMixin`) — a **location subtype for outdoor public ways**, NOT a
+grid-topology object (the "no `Street.ts`" doctrine was about grid *topology*;
+service stays an exit attribute). Its lamps run a **civic FUEL service billed
+to a treasury** — lit-now is derived from (service declared + dark enough +
+*the extent paid for this street tonight*), and `Locality.settleStreetLighting`
+lights streets in **seniority order** for `n × fuel` via the shipped
+`BankingApi.appropriate`. It hands energy four reusable patterns:
+
+1. **Property-over-object** — a utility the town runs is a property of the
+   place; an object is minted only where someone acts on it (the object-vs-
+   property test: *is it the target of a verb?*).
+2. **Appropriation billing** — a civic service is paid by a `BankingApi.
+   appropriate` leg. That's Tier-C billing, already shipped.
+3. **Seniority-quota rationing** — going short is arithmetic decided in
+   advance (the watershed quota rule) → the lens-6 "name the criterion, name
+   the appeal", already solved.
+4. **The object-vs-property test** — decides whether a fixture is a thing or a
+   detail.
+
+⭐ And the **lens-5 gift**: public street lighting is *utility #1*; when the
+grid lands it becomes a **consumer** of utility #2 — **gaslight → electric
+streetlight is the same civic service with the source migrated from a fuel
+appropriation to an electricity draw.** That is the development arc made
+literal, and the cleanest first proof the meter/consumer model works. Energy's
+distribution rides envelope's `Street` locations as the host.
+
+## ⭐⭐ The overhead question — resolved: detail = optional subdivision depth
+
+The abstraction supports both "just keep the lights on" content and the ONI
+household because **the circuit layer is invisible unless authored, and detail
+is depth in one cascade**:
+
+- **Zero-depth (broad)** — the parcel is one implicit circuit at its declared
+  service band; power is on/off with the street; **a fixture that finds no
+  circuit resolves straight to the premises meter.** Resident, author and
+  parcel-manager pay ZERO cognitive overhead (default connected; the author
+  does nothing; the resident never thinks about it).
+- **N-depth (the ONI household)** — the author opts in by subdividing the
+  premises into circuits with quotas; load-balancing, breakers and trips go
+  live. Only for content that wants it.
+
+Same cascade, two resolutions: **the parcel's declared power band = the
+premises' total capacity = the implicit-circuit ceiling; subdivision
+partitions it.** Stays honest (lens 1): the broad case still has a real
+ceiling (a frontier shack's small band can be exceeded), set high enough that
+ordinary use never trips — an abstraction, not a lie (lens-6 abstraction law).
+⭐ Envelope's lamps validated the identical principle: *the town runs a service
+broadly (property); a lamp becomes an object only where the fiction acts on
+it.* "Some buildings just need lights, some are ONI" IS "property vs object."
+
+## Open questions — updated 2026-09-24
+
+Closed this pass: **contiguity** (public contiguous / private abstract);
+**poles vs underground** (edge attribute, expressed at repair-access + storm
+only); **epoch by locality** (derived from traceable infrastructure, not a
+flag); **the overhead/two-content-types question** (optional subdivision
+depth); **metering unit** (the parcel, not a structure object).
+
+Still open for requirements:
+1. Q1 (band vs quantity) — leans band, unchanged.
+2. What an energy source *composes* — reconcile with `electricity.md`'s
+   deferred-seam claim ("Ohm's-law scaled up, never a second abstraction"):
+   is a generator an `EnergizedMixin` node, a `Conduit`-shaped delivery
+   object, or both at different scales? (Physics inside the meter, economic
+   conduit outside — but the source object's mixin needs deciding.)
+3. Does public street lighting migrate to an electricity draw in Tier A or
+   Tier C? (It's the ideal first consumer, but the migration touches
+   envelope's shipped `settleStreetLighting`.)
+4. Locality treasury — envelope's lighting bill is on `/compact/treasury`
+   pending a locality treasury; energy billing inherits the same deferred seam.
+
+## ⭐⭐ The inherited streetlight bill (from envelope's finalize, 2026-09-25)
+
+Envelope shipped street lighting with a **MONEY leg and NO GOODS leg** — flagged,
+not fixed, and handed to build-4 explicitly (envelope-plan § *"the lamplighter as
+a trade … THIS IS THE BILL IT INHERITS"*). This refines the treasury note above
+with the precise payer/payee/goods split:
+
+- `settleStreetLighting` → `BankingApi.appropriate(supplier, n × costPerStreetNight)`.
+  **Money only.**
+- **PAYER** = the treasury (`/compact/treasury` today, pending a locality treasury).
+- **PAYEE / `supplier`** = Terminus's **general store** — a *labelled placeholder*
+  at `PublicLightingFunding.supplier`. This is the "streetlights run by the general
+  store" tell: the store is a **retailer**, so it produces nothing; the fuel chain
+  (`trade-fuel` collier/clamp, extraction peat/coal) sees none of this demand —
+  demand **absorbed instead of creating a market**, the `vocations.md` violation
+  street lighting was best placed to avoid.
+- **No lamp-oil good exists** — a lantern's `fuel` is an abstract `%` reserve
+  (`theme: combustion`), not a commodity.
+
+⭐ **The demand is already LIVE and CALIBRATED** — `costPerStreetNight` × lit
+streets, nightly, against a treasury whose shortfall already darkens streets by
+seniority. **Energy inherits a market to price, not a number to invent.** Envelope
+deliberately did NOT half-build it (one producer + no chain = worse fiction than
+an honest placeholder).
+
+**What energy adds, in order (envelope's own list):**
+
+1. **A lamp-oil GOOD with a unit**, so a quantity can be consumed. ⭐ The field
+   name `fuelPerStreetNight` was deliberately **freed for us** — the money figure
+   was renamed `costPerStreetNight` at review (2026-09-25) precisely so a later
+   build can add `fuelPerStreetNight` beside it and trust the name.
+2. **A PRODUCER that is not a retailer** — wire the demand to the real fuel chain
+   (`trade-fuel` / extraction), replacing the general-store placeholder.
+3. **Depleting STOCK**, so a short supply goes dark the way a short treasury
+   already does. The refusal path exists and is proven; only the goods arm is missing.
+
+⭐⭐ **This reframes the remit and the first slice.** "Energy" is not only
+electricity — it is the whole energy economy, and **combustion is the first
+epoch**: the streetlight is a Phase-6 consumer whose Phase-0/1 is the fuel
+producer. So the smallest COMPLETE, high-value first market is the **gaslamp fuel
+goods-leg** (lamp-oil good + real producer + depleting stock, connected to the
+already-calibrated streetlight demand) — it needs envelope's shipped streetlight
+demand + the shipped fuel chain, and **not** the electric grid. The electric grid
+(Tier A, "the fridge comes online") is the next epoch, and the streetlight then
+**migrates** from lamp oil to electric draw (the gaslight → electric proof
+recorded above). ⇒ a candidate **new first tier, ahead of Tier A**.
+
+Also inherited as deferred seams (envelope names them): who decides which streets
+go dark first (seniority today → the extent's committee, `institutions-slate`); a
+locality-level treasury (`BankingApi.ensureVenueAccount` mints one for any owner
+path; income via the seller-collected demo sales tax).
+
+⚠ Envelope is still FINALIZING (2026-09-25) — re-verify `PublicLightingFunding`,
+`costPerStreetNight` / the freed `fuelPerStreetNight` name, and
+`settleStreetLighting` against final merged master before building.
+
+## ⭐⭐ Placement — trade-fuel stays a trade; energy mints a `/system/` root (2026-09-25)
+
+**Decided by the five-axis doctrine** (CLAUDE.md § the five namespace axes; the
+`/system/` test = *a system is true whether or not anyone is participating*).
+Renaming `trade-fuel → trade-energy` would be a category error — it collapses the
+*"who makes"* axis into the *"how the world works"* axis.
+
+- **`/trade/fuel` STAYS a trade.** It is the collier's craft (coppice, burn,
+  charcoal — `pack.yaml`: *"the coppice, the burn and the charcoal"*): practised,
+  quittable, produces a good. It may grow siblings (an oil-presser, a gas-works),
+  but "fuel" is the right name for the *production* trade — there is no
+  "energy-maker" vocation, only colliers, coal-miners, oil-pressers and linemen.
+- **The energy GRID is a `/system/` root** (new, this build), mirroring
+  `/system/water` bolt-for-bolt (precedent roots: `arcana · ground · residence ·
+  tpa · transport · water`). The grid obeys its laws with nobody participating,
+  so it passes the `/system/` test. Generation ref, conduit, meter, `SupplyState`
+  consumption live here.
+- **The utility** that *runs* the system is a business/office/corpo employing
+  linemen (`power-utility-slate` ownership fork) — the "who owns" axis, distinct
+  from both the trade and the system.
+- **Everything feeds/rides the system**: `trade-fuel` (charcoal), extraction
+  (coal, peat), `arcana` (the mana charge economy), water (hydro's
+  `ControlStructure`). Energy UNIFIES these into one economy by minting the
+  system root they feed — NOT by swelling one trade to swallow the concept.
+  Water shows the pattern: `/system/water` is the system, and the trades that use
+  water were never renamed into it.
+
+⚠ **Open for requirements (does NOT affect trade-fuel's name either way):** what
+to call the root — `/system/power` vs `/system/energy` — and whether it
+**generalizes the commodity-generic supply layer** the power-utility-slate wants
+(power · gas · water on one `Conduit`/`SupplyState` spine, already half-built in
+water and the kernel). Leans `/system/energy` if the root is to house the whole
+economy (combustion + electric + mana) rather than electricity alone.
+
+## ⭐⭐ The economic proposal — how the streetlight/public-works bill is paid (2026-09-25)
+
+The answer to *"who pays for the lamps, and who runs it?"* — and it **reuses
+shipped substrate end to end; no new primitives.**
+
+### Budget — the city gets a treasury (not the realm)
+
+Envelope's `/compact/treasury` payer is a labelled placeholder (*"the realm
+appropriates for Terminus's lamps"*). Fix, all shipped:
+- **A locality treasury account** — `BankingApi.ensureVenueAccount(/world/terminus, …)`
+  mints one for any owner path.
+- **Funded by a use-based local tax** — a local share of the sales tax that
+  already flows seller-collected via `remitDemoTax` (from `buy`/`order`). Law-2
+  clean (a tax on *transacting*, not on holding), and a **transfer, never a
+  mint** (conservation holds — CB is the only faucet). ⇒ *Terminus pays its own
+  bill.*
+
+### Org — a SEAT, not a new class
+
+Public works is a **seat in the locality's existing government** (governance.md
+Office substrate + civics.md Locality-declared jurisdiction), NOT a bespoke
+`PublicWorksDept`. Exact shipped precedent: `trade-fuel`'s `pack.yaml` —
+its mechanism is *"held by the Ministry of Trade — **a seat, never a
+committee**."* The seat is the power; minting an org would invent a rule where a
+seat suffices (*title is the only power; the rest is theater — and the theater is
+the product*).
+
+### The split — public service, private supply
+
+The general store is wrong on the *supply* side; the realm treasury is wrong on
+the *funding* side. They are two different fixes:
+- **The service is public** — the government owns and runs lighting on its own
+  public ways, funded by the local treasury, allocation (the seniority quota) set
+  by the seat/committee. How gas-lit cities actually worked.
+- **The supply is private** — the government **contracts** a real fuel producer
+  (trade-fuel's collier, or a fuel merchant sourcing extraction's coal/peat)
+  through the shipped **contract.md** board + custodian rule. This replaces the
+  general-store placeholder (a retailer producing nothing) and turns the
+  already-calibrated demand into a real market — the vocations.md win.
+
+**Money flow (every leg shipped):** local tax → locality treasury → nightly
+`settleStreetLighting` appropriation → the producer's account under a procurement
+contract.
+
+### Lens-6 governance — criterion + appeal, named
+
+- **Which streets go dark** — the seniority quota, *recorded in advance* →
+  already honest (nobody judged at the moment of refusal).
+- **Who wins the fuel contract** — a decision about a business: criterion =
+  price/reliability, mechanism = the contract board, appeal = its dispute path.
+  Policy tier C (the polity's).
+- **The tax rate** — a governance decision, amendable by the polity
+  (measurement.md layer 3-C).
+
+### ⚠ The one real fork (owner's call)
+
+Whether the service is **municipal (a government seat) · a corpo concession · a
+co-op** is the power-utility-slate's open ownership fork. **Recommendation for
+street lighting: municipal by default** — a public good on the government's own
+streets, cleanest as "public service + private supply contract." The co-op/corpo
+models fit the *electric utility* better later (bigger capital, sharper ownership
+question). Left explicitly open.
+
+### Source-agnostic (lens 5 again)
+
+When the grid arrives: same seat, same treasury, same tax — the streetlight's
+**supply contract** switches from lamp oil to an electricity draw from the
+utility. The governance/budget shape does not change; only Phase 0 does.

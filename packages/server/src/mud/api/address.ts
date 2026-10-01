@@ -97,6 +97,20 @@ export class AddressApi {
     return logic().resolveFor(scope);
   }
 
+  /**
+   * ⭐ The **own** treasury account of the locality covering `at`, or `null`
+   * when it holds none (the realm's does not count). The sales-tax split asks
+   * this: a locality with a treasury of its own takes a share of the tax on
+   * sales within it. `at` is any located world object (the venue fixture, the
+   * room the sale happened in).
+   */
+  public static async localityOwnTreasuryAccountId(
+    at: Stuff,
+    currency: string,
+  ): Promise<string | null> {
+    return logic().localityOwnTreasuryAccountId(at, currency);
+  }
+
   /** The `trace address` provenance variant — full trace. */
   public static async traceResolveFor(
     scope: Stuff & Container,

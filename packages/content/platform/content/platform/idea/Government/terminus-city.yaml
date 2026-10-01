@@ -11,7 +11,7 @@ class: /platform/idea/Government
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: terminus-city
-  displayName: the City of Terminus
+  name: the City of Terminus
   description: >-
     The municipal corporation of Terminus — a young administration
     chartered by the realm and retrofitted onto a city built by people
@@ -27,3 +27,12 @@ data:
       label: Magistrate of Terminus
       department: /world/terminus/registry/business
       positionKey: magistrate
+    # ⭐ Public works (energy build): the seat that answers for the city's grid
+    # and lamps, on the municipal budget Business. The founder default holds it
+    # vacant — the seat EXISTS so the office is a thing the polity can fill;
+    # Terminus's electric utility is municipal by default (ownership is the
+    # polity's in-world call, deliberately not pre-decided).
+    - key: public-works
+      label: Commissioner of Works
+      department: /world/terminus/budget
+      positionKey: works-foreman

@@ -1,0 +1,17 @@
+# The lobby hall light — an electric fixture wired to the Mayfield spur. ⭐ The
+# residential consumer that proves the grid reaches a home: it is lit because
+# its covering parcel (seznick-house) cites the live feeder node
+# terminus-mayfield:mayfield, and it goes dark the second a cut upstream, a dead
+# source, or an off-grid declaration takes the power away.
+class: /system/energy/thing/ElectricLight
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: hall light
+  keywords: [light, lamp, bulb, fixture, hall-light]
+  register: indefinite
+  longDescription: >-
+    A frosted glass shade on a brass fitting over the stairs, wired into the
+    house. It burns steadily when the line is live.
+  mass: 2
+  emittedIntensity: 800
+  on: true

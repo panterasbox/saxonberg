@@ -54,6 +54,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CelestialApi } from '../../api/celestial';
 import { AddressApi } from '../../api/address';
+import { StuffApi } from '../../api/stuff';
 
 /**
  * What a street says about the service the town runs on it.
@@ -195,13 +196,35 @@ export function PublicLightingMixin<TBase extends MixinConstructor<Stuff>>(
       if (!spec || id !== spec.detail || !visual) {
         return base;
       }
-      const live =
-        CelestialApi.skyFactorNow() >= CelestialApi.lampDuskFactor()
-          ? 'The lamps are out; it is daylight.'
-          : this.isPubliclyLitNow()
-            ? 'The lamps are burning.'
-            : 'The lamps stand cold — nobody has lit them tonight.';
+      let live: string;
+      if (CelestialApi.skyFactorNow() >= CelestialApi.lampDuskFactor()) {
+        live = 'The lamps are out; it is daylight.';
+      } else if (this.isPubliclyLitNow()) {
+        // ⭐ The epoch, derived off a lamp: "burning the town's oil" /
+        // "fed from the Wharfside line", set on the covering locality by the
+        // last settle. No flag anywhere.
+        const source = this.lightingSourceLabel();
+        live = source
+          ? `The lamps are burning, ${source}.`
+          : 'The lamps are burning.';
+      } else {
+        live = 'The lamps stand cold — nobody has lit them tonight.';
+      }
       return base ? `${base} ${live}` : live;
+    }
+
+    /**
+     * The covering locality's derived source label, or `null`. Read on the
+     * `look at lamps` path only (not the vision walk), so a registry lookup
+     * per render is fine.
+     */
+    private lightingSourceLabel(): string | null {
+      const lp = this._lightingLocalityPath;
+      if (!lp) return null;
+      const loc = StuffApi.findByTemplatePath(lp) as
+        | (Stuff & { getLightingSourceLabel?: () => string | null })
+        | null;
+      return loc?.getLightingSourceLabel?.() ?? null;
     }
   };
 }

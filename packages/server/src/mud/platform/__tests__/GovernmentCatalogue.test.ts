@@ -37,12 +37,12 @@ async function warm(governments: Loose[]): Promise<GovernmentCatalogue> {
 const GOVERNMENTS: Loose[] = [
   {
     key: "terminus-realm",
-    displayName: "the Realm of Terminus",
+    name: "the Realm of Terminus",
     description: "the young chartered order",
   },
   {
     key: "terminus-city",
-    displayName: "the City of Terminus",
+    name: "the City of Terminus",
     treasury: "/world/terminus/budget",
     departments: ["/world/terminus/registry/business"],
     seats: [
@@ -54,7 +54,7 @@ const GOVERNMENTS: Loose[] = [
       },
     ],
   },
-  { key: "eternal-university", displayName: "the Eternal University" },
+  { key: "eternal-university", name: "the Eternal University" },
 ];
 
 describe("GovernmentCatalogue", () => {
@@ -69,23 +69,23 @@ describe("GovernmentCatalogue", () => {
 
   it("warms the roster keyed by `key`", async () => {
     const cat = await warm(GOVERNMENTS);
-    expect(cat.getGovernment("terminus-city")?.displayName).toBe(
+    expect(cat.getGovernment("terminus-city")?.name).toBe(
       "the City of Terminus"
     );
     expect(cat.hasGovernment("terminus-realm")).toBe(true);
     expect(cat.allGovernments()).toHaveLength(3);
   });
 
-  it("defaults a missing displayName to the key", async () => {
+  it("defaults a missing name to the key", async () => {
     const cat = await warm([{ key: "terminus-realm" }]);
-    expect(cat.getGovernment("terminus-realm")?.displayName).toBe(
+    expect(cat.getGovernment("terminus-realm")?.name).toBe(
       "terminus-realm"
     );
   });
 
   it("drops malformed rows (no key) and malformed seats", async () => {
     const cat = await warm([
-      { displayName: "no key" },
+      { name: "no key" },
       {
         key: "terminus-city",
         seats: [

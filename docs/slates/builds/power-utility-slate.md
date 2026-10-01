@@ -230,3 +230,15 @@ one producer and no chain behind it is a worse fiction than an honest
 placeholder, and the placeholder is labelled as one at
 `PublicLightingFunding.supplier` and in
 [civics.md](../../subsystems/civics.md).
+
+⭐ **The end-to-end design that answers this bill, and its requirements + plan,
+live in [grid-slate § Part 5](./grid-slate.md#part-5--the-end-to-end-design-2026-09-24-scoping-pass)**
++ `docs/requirements/energy-requirements.md` + `docs/plans/energy-plan.md` — the
+seven-phase chain, the **A/B/C tiers** (A "the fridge comes online"; B the ONI
+interior circuits; C the metered economy), contiguity, epoch by locality
+(Terminus electric · Heart's Delight gaslamp · Hinkley off-grid), the placement
+(`trade-fuel` stays a trade; energy mints `/system/energy`), and the **economic
+proposal** (a locality treasury from use-based tax → a public-works **seat** → a
+private supply **contract** replacing the general-store placeholder). The
+**kitchen/fridge is Tier A's residential consumer**; **street lighting is the
+first consumer**, migrating gaslight → electric when the grid lands.

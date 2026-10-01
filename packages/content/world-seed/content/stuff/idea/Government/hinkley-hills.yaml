@@ -16,7 +16,7 @@ class: /platform/idea/Government
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: hinkley-hills
-  displayName: the Hinkley Hills Improvement District
+  name: the Hinkley Hills Improvement District
   description: >-
     A subdivision at the city's western edge, laid out by a surveyor who
     was paid by the lot and drew accordingly. The District exists on
