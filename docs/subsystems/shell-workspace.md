@@ -17,7 +17,7 @@ The two trees:
 "Templates are code too" — the older `template` / `code` split was
 lossy, so the substrate uses content / source.
 
-Composition: applied to `ShelledCharacter` after `EnvironmentMixin`
+Composition: applied to `Shell` after `EnvironmentMixin`
 and `AliasMixin`.
 
 ## State

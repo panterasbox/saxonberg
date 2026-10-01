@@ -14,7 +14,7 @@
 > **Left:** **overlay mode
 > built** — `copy` first, `through` second · the **27 REFUSE collections
 > triaged** (9 stand, 17 move, 1 is a write-path defect) ·
-> `holder_snapshots` onto overlay, retiring `WireBody.shouldPersist()` as
+> `holder_snapshots` onto overlay, retiring `SandboxAvatar.shouldPersist()` as
 > the cheat guard · `shouldPersist(): boolean` → a **per-mixin capture
 > allowlist** on the epistemic/material line the fork allowlist already
 > draws · a **phase axis** beside `circleScope` so ghost-written records
@@ -72,7 +72,7 @@ are yours, the gear they reference goes to the corpse); and
 **`Environment`**, which is genuinely split — mostly driver, except
 `movement.defaultMode`, which is a body preference.
 
-⭐⭐ **`ShelledCharacter` is a driver-shaped package bolted to a body.**
+⭐⭐ **`Shell` is a driver-shaped package bolted to a body.**
 46 lines, an **empty class body**, five mixins, and exactly **one
 consumer**. It is not a layer; it is a name for a composition — so logic
 does not go *on* it, and the honest question is whether the shell suite
@@ -247,7 +247,7 @@ not apply to overlay, where the circle has one store that is definitionally
 the one you read while inside.
 
 > ⛔ **Today the only thing between a wire body and your player record is
-> `WireBody.shouldPersist() → false`** — one boolean on one subclass,
+> `SandboxAvatar.shouldPersist() → false`** — one boolean on one subclass,
 > guarding a collection that is explicitly **`sandbox: pass`**. Overlay
 > makes the guard structural and lets the boolean go.
 
@@ -298,9 +298,9 @@ append-only (A2).
 
 Verified, because none of it was tested:
 
-- `Shade.shouldPersist() → false` (*"a shade persists nothing"*),
+- `ShadeAvatar.shouldPersist() → false` (*"a shade persists nothing"*),
   `startAutoSave()` no-op.
-- `WireBody.shouldPersist() → false` (*"the guest gate, verbatim"*),
+- `SandboxAvatar.shouldPersist() → false` (*"the guest gate, verbatim"*),
   `startAutoSave()` no-op.
 - **Sandbox driver state already round-trips** — `SandboxLogic` forks in
   at 359 and **merges out at 456 with the epistemic allowlist**, so an
@@ -349,8 +349,8 @@ is free to be better than it."*
 
 ⭐ One object, three readers: the **corpse** decays it, **reembody**
 recovers from it, **autopsy** reads it. That satisfies *promote at the
-third consumer* on its own. It also retires `Shade.shadeSpecies` and
-`WireBody.wireSpecies`, which are the same object stashed twice by hand.
+third consumer* on its own. It also retires `ShadeAvatar.shadeSpecies` and
+`SandboxAvatar.wireSpecies`, which are the same object stashed twice by hand.
 
 ⚠ **Out of scope, named:** whether `Corpse` should move from the Agent
 branch to Thing. It is `class Corpse extends Creature {}` today and
@@ -365,7 +365,7 @@ pass, not here.
 
 ### The overrides, re-diagnosed
 
-`Shade` and `WireBody` are near-identical piles of the same five
+`ShadeAvatar` and `SandboxAvatar` are near-identical piles of the same five
 overrides. Sorted honestly:
 
 | override | verdict |
@@ -395,7 +395,7 @@ resemble each other. And both are reachable without touching composition:
 > — *"not declared: augments, implants, species innates and on-shift
 > conferral all change it at runtime."* So **deactivation already produces
 > the drastic feel**: fewer chips, fewer afforded verbs, stable
-> composition underneath. `Shade.getConferredMixinNames() → ['AetherMixin']`
+> composition underneath. `ShadeAvatar.getConferredMixinNames() → ['AetherMixin']`
 > is the *additive* half of that seam already in use (the "intrinsically
 > attuned species"). ⭐ **What is missing is the subtractive twin** — a
 > body can gain activations wholesale and can only lose them one validator
@@ -445,7 +445,7 @@ lines needs Api surface, it stays kernel.
 2. **Build `mode: 'copy'`** — the read branch, the derived partial index,
    the discard set widened past `verb === 'stamp'`, and the copy step
    beside the park capture.
-3. **`holder_snapshots` → `copy`**, retiring `WireBody.shouldPersist()` as
+3. **`holder_snapshots` → `copy`**, retiring `SandboxAvatar.shouldPersist()` as
    the cheat guard.
 4. **The 17 re-tiered** — `copy` where the row set is session-scoped.
 5. **Capture allowlist** replaces `shouldPersist(): boolean`, on the
@@ -541,7 +541,7 @@ round-trips either**, from a circle or from death.
 | `Environment` | `lib/shell/Environment.ts:274,279` | ⛔ |
 | `ClientState` | `lib/connection/HasInteractive.ts:739,748` | ⛔ |
 | `Presentation` | **`Avatar.ts:1590,1631`** — not on `Named` | ⛔ |
-| `Embodiment` | **`Avatar.ts:1613,1622`**; `Shade.ts:144` overrides merge | ⛔ |
+| `Embodiment` | **`Avatar.ts:1613,1622`**; `ShadeAvatar.ts:144` overrides merge | ⛔ |
 | `Vitals`/`Trauma`/`CauseOfDeath`/`Anatomy` | `lib/vitals/Vitals.ts:1127+` | mint-only by construction |
 
 ⚠ The two slices that most look like mixin state — `Presentation` and
@@ -613,7 +613,7 @@ substrate. Seven have exactly one non-player second composer (`Named`
 `PartyMember` → `Mercenary`; `Hauler` → `DraftAnimal`;
 `Status`/`BeliefStore` → `KeptAnimal`).
 
-⭐ **`ShelledCharacter`'s five are ALL n=1** — 46 lines, empty class
+⭐ **`Shell`'s five are ALL n=1** — 46 lines, empty class
 body, one consumer. The single most movable unit in the stack.
 
 ⚠ **Eight mixins hold no state at all**: `Forkable`, `PostRegistration`,
@@ -691,9 +691,9 @@ Nothing in this slate surveyed the class body. 1,649 lines:
 as class fields.** The mixin holds the behaviour and the class holds the
 state. (Its `_estate` map is transient, rebuilt by `restoreSlice`.)
 
-**⛔ `Shade` and `WireBody` are the same eight overrides twice:**
+**⛔ `ShadeAvatar` and `SandboxAvatar` are the same eight overrides twice:**
 
-| Shade | WireBody | what it is |
+| ShadeAvatar | SandboxAvatar | what it is |
 |---|---|---|
 | `shadePlayerId` :60 | `wirePlayerId` :54 | ⛔ `Avatar.playerId` under two more names, **each a persistent field** |
 | `shadeSpecies` :72 | `wireSpecies` :66 | ⛔ the same slot twice |
@@ -704,10 +704,10 @@ state. (Its `_estate` map is transient, rebuilt by `restoreSlice`.)
 | `postRegister` :74 | `postRegister` :90 | ceremony |
 | `toString` :179 | `toString` :168 | trivial |
 
-**Eight of Shade's eleven members and eight of WireBody's ten.** Four of
+**Eight of ShadeAvatar's eleven members and eight of SandboxAvatar's ten.** Four of
 the overrides exist **only to normalize a copy that should not have been
-made**. Legitimately different: Shade's `getConferredMixinNames`,
-`mergeSlice_Embodiment`, `onDestruct`; WireBody's
+made**. Legitimately different: ShadeAvatar's `getConferredMixinNames`,
+`mergeSlice_Embodiment`, `onDestruct`; SandboxAvatar's
 `announceSessionPresence`, `onLinkdead`.
 
 ---
@@ -725,8 +725,8 @@ them on two axes is what shows the shape:
 | vessel | identity | material state | of record? | own clock |
 |---|---|---|---|---|
 | **`Avatar`** | **is** the identity | yours, live | ✅ persists, holds the `PlayerApi` slot | — |
-| **`Shade`** | borrows the real one | none — incorporeal | ⛔ | — |
-| **`WireBody`** | borrows the real one | baseline mint, no gear | ⛔ | — |
+| **`ShadeAvatar`** | borrows the real one | none — incorporeal | ⛔ | — |
+| **`SandboxAvatar`** | borrows the real one | baseline mint, no gear | ⛔ | — |
 | **`Corpse`** | ⛔ **none** | ✅ **stamped with yours** | ✅ (a `Creature`, cloned from a row) | ✅ its own decay machine |
 
 ⭐ **Three of the four keep your identity and discard your material
@@ -757,12 +757,12 @@ the corpse instead.
 
 ### What this says about the class question
 
-⭐ The differences between `Avatar`, `Shade` and `WireBody` are **not
+⭐ The differences between `Avatar`, `ShadeAvatar` and `SandboxAvatar` are **not
 kinds of thing — they are one policy answered twice.**
-`WireBody`'s own docstring enumerates what differs, and every item is
+`SandboxAvatar`'s own docstring enumerates what differs, and every item is
 the same axis: *backed by nothing · not the registry body · identity
 thread returns the REAL identity · baseline mint · reaped wholesale.*
-`Shade` is that list again plus incorporeality.
+`ShadeAvatar` is that list again plus incorporeality.
 
 **Is this the body of record, or a stand-in for it?** That question
 absorbs six of the eight duplicated overrides
@@ -776,12 +776,12 @@ twin-less rung exists to name a responsibility.
 Avatar                    abstract — a human's handle in the world
 ├── <the body of record>  persists · holds the PlayerApi slot · owns the estate
 └── <a stand-in vessel>   never persists · borrows the identity · is reaped
-    ├── Shade             incorporeal; ends at re-embody
-    └── WireBody          corporeal, circle-scoped; ends at the door
+    ├── ShadeAvatar             incorporeal; ends at re-embody
+    └── SandboxAvatar          corporeal, circle-scoped; ends at the door
 ```
 
 ⚠ **The inheritance is defensible; the overrides are not.**
-`WireBody.ts:5-9` gives the real reason for subclassing — *"the crossing
+`SandboxAvatar.ts:5-9` gives the real reason for subclassing — *"the crossing
 must preserve the whole verb surface… re-deriving it as a parallel stack
 would be drift by construction"* — which argues for a **shared base**
 and says nothing in favour of answering one policy on two sibling
@@ -791,13 +791,13 @@ leaves.
 
 Measured by whether the two vessels mention them at all:
 
-| mixin | Shade | WireBody | belongs on |
+| mixin | ShadeAvatar | SandboxAvatar | belongs on |
 |---|---|---|---|
 | `Calendar` · `SubjectSubscriber` · `NotifyPolicy` · `PartyMember` | 0 | 0 | **the body of record** — inherited and inert on a vessel |
 | `Wardrobe` | 0 | 1 | the body of record (a shade has nothing to dress) |
 | `Estate` | 3 | 1 | the body of record — it is the *succession* concern, which is why `escheatedAt`/`beneficiary` sit beside it |
 | `Contacts` | 0 | 1 | ⭐ **abstract `Avatar`** — the one thing that legitimately crosses every phase, and the only two-way fork slice in the system |
-| `Aether` | 3 | 2 | ⚠ contested — `Shade` re-grants it via `getConferredMixinNames`, i.e. **activation already doing a rung's job**, and the only existing proof these differences can be data |
+| `Aether` | 3 | 2 | ⚠ contested — `ShadeAvatar` re-grants it via `getConferredMixinNames`, i.e. **activation already doing a rung's job**, and the only existing proof these differences can be data |
 
 ### The naming axis — still open
 

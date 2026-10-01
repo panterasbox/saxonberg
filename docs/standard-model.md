@@ -190,7 +190,7 @@ Under `Agent`:
 
 - **`Character`** — abstract sentient being (PC or NPC).
 - **`Avatar`** — a player character bound to an interactive connection.
-- **`ShelledCharacter`** — a character carrying the authoring shell
+- **`Shell`** — a character carrying the authoring shell
   (workspace + alias + author).
 
 Under `Idea`:

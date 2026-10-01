@@ -1882,7 +1882,7 @@ caused by any user command).
 ### BAD (raw Node timer)
 
 ```ts
-class Avatar extends ShelledCharacter {
+class Avatar extends Shell {
   private _periodicSaveHandle: ReturnType<typeof setInterval> | null = null;
 
   startAutoSave(): void {
@@ -1912,7 +1912,7 @@ show up in any introspection / debug surface that wraps
 ```ts
 import { ScheduleApi, type ScheduleHandle } from '../api/schedule';
 
-class Avatar extends ShelledCharacter {
+class Avatar extends Shell {
   private _periodicSaveHandle: ScheduleHandle | null = null;
 
   startAutoSave(): void {

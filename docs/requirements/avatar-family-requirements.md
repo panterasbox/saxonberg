@@ -2,7 +2,7 @@
 
 **Kind:** refactor/sweep
 **Leads from:** kernel — first consumers are the three shipped bodies a
-player already passes through (`Avatar`, `Shade`, `WireBody`) and the
+player already passes through (`Avatar`, `ShadeAvatar`, `SandboxAvatar`) and the
 one non-Avatar that shares their connection surface (`Login`). No new
 content; no new capability. Every line of this build is about what the
 existing classes CLAIM.
@@ -21,9 +21,9 @@ The build has one thesis, and it is the owner's own framing:
 > more modular than an override, because everything else in this game
 > composes.**
 
-⭐ And the naming half is not cosmetic: `Avatar`, `Shade` and `WireBody`
+⭐ And the naming half is not cosmetic: `Avatar`, `ShadeAvatar` and `SandboxAvatar`
 read as three unrelated nouns. **They are one thing in different phases
-of play**, and the code agrees — `WireBody`'s own docstring opens *"An
+of play**, and the code agrees — `SandboxAvatar`'s own docstring opens *"An
 Avatar SUBCLASS, deliberately."*
 
 Seeded by [avatar-family-slate](../slates/builds/avatar-family-slate.md),
@@ -44,27 +44,27 @@ Measured at `89c75417c`; detail on the slate.
   cockpit is **~620 lines** once the `clientStateSchema` entries are
   counted. Composed by `Avatar` and by **`Login`**, which is not an
   Avatar at all.
-- **`ShelledCharacter`** — 46 lines, empty body, abstract, **one**
+- **`Shell`** — 46 lines, empty body, abstract, **one**
   consumer, five mixins that are **all n=1**: `Author`, `Workspace`,
   `Alias`, `Environment`, `Focused`. The most movable unit in the tree,
   and it already means exactly one thing.
 - **`Avatar`** — 13 mixins, and eight of them have no composer but
   `Avatar`. `enter()` is 210 lines. ⚠ `EstateMixin` declares **zero
   fields** while `Avatar` carries `escheatedAt` and `beneficiary`.
-- **`Shade` / `WireBody`** — eight duplicated overrides, of which
+- **`ShadeAvatar` / `SandboxAvatar`** — eight duplicated overrides, of which
   ⭐ **six answer one question**: *is this the body of record?*
   (`shouldPersist`, `startAutoSave`, `getPlayerId`, `getIdentityPath`,
   the reaping, `announceSessionPresence`.) Two of the eight
   (`shouldPersist`/`startAutoSave`) are gated elsewhere; see Non-goals.
 - ⛔ **`playerId` exists under three names** — `Avatar.playerId`,
-  `Shade.shadePlayerId`, `WireBody.wirePlayerId`, the latter two
+  `ShadeAvatar.shadePlayerId`, `SandboxAvatar.wirePlayerId`, the latter two
   **persistent fields in their own right**, each with two overrides to
   normalize them back.
 - **The precedent for a rung that does not branch** — the narrowing
   build minted `Holder` and `Actor` as deliberately twin-less rungs
   whose only job is to name a responsibility.
 - ⭐ **The precedent for a difference expressed as data** —
-  `Shade.getConferredMixinNames() → ['AetherMixin']`. The only place in
+  `ShadeAvatar.getConferredMixinNames() → ['AetherMixin']`. The only place in
   the family where a capability difference is *conferred* rather than
   *composed*, and the existing proof that these differences can be data.
 
@@ -80,7 +80,7 @@ notions, and one honest home for a policy currently answered twice.
   the connection set and the client-state mechanism, and the code says
   so rather than the protocol doc saying so.
 - **The three bodies read as one family in different phases**, by name.
-- ⭐ **No policy is answered twice.** Where `Shade` and `WireBody` give
+- ⭐ **No policy is answered twice.** Where `ShadeAvatar` and `SandboxAvatar` give
   the same answer to the same question, there is one place that answers
   it — and it is a rung or a capability, not a copied override.
 - **One value has one name.** No field carried under three names, no
@@ -101,10 +101,10 @@ notions, and one honest home for a policy currently answered twice.
 - **`Persona`'s 14 affordances and its fields** → the same slate. They
   matter to `Character`, which this build does not re-sort.
 - **The sandbox overlay** → `docs/plans/sandbox-overlay-plan.md`,
-  written and unbuilt. ⚠ It retires `WireBody.shouldPersist()`
+  written and unbuilt. ⚠ It retires `SandboxAvatar.shouldPersist()`
   structurally in its W3; this build must not collide with that — see D6.
 - **The per-mixin capture allowlist** (which is what would retire
-  `shouldPersist` for `Shade` too) → avatar-family slate § Sequencing 5.
+  `shouldPersist` for `ShadeAvatar` too) → avatar-family slate § Sequencing 5.
 - **The death spec joined to `reembody`** → same slate, § Sequencing 7.
   ⚠ The slate now records *why the shortcut is barred*: `reembody` may
   never read the corpse, so the captured-and-inert fork slices are the
@@ -185,7 +185,7 @@ why no single word ever fit.
 
 `Avatar` stays the abstract root (the identity namespace is the
 family's). **`Shell`** is the command-line rung that was
-`ShelledCharacter` — *a `Shell` is a Character with a command line; an
+`Shell` — *a `Shell` is a Character with a command line; an
 `Avatar` is a `Shell` with a human driving it.*
 
 ⚠⚠ **`Wire` was rejected because it means three things** (the protocol
@@ -201,7 +201,7 @@ future rename:**
 
 ### D2 (as written) — the names were deliberately NOT decided up front
 
-`Avatar` · `Shade` · `WireBody` read as three unrelated nouns and will
+`Avatar` · `ShadeAvatar` · `SandboxAvatar` read as three unrelated nouns and will
 change. **What they change to is decided after the decomposition is
 visible, not before** — the candidate axes are *permanence* (the one
 that lasts vs the ones that do not; the axis the code branches on
@@ -249,7 +249,7 @@ behaviour the method was written to fix.
 **This is the highest-risk edit in the build** and it gets the test that
 pins the half of the move nobody would otherwise check.
 
-### D5 — `ShelledCharacter` keeps its meaning and gets a name that says it
+### D5 — `Shell` keeps its meaning and gets a name that says it
 
 *You have a full command line an NPC would not normally have* — aliases,
 scripting, a workspace, settings, a focus. That is a real notion and it
@@ -270,10 +270,10 @@ CLASS or a capability on the abstract `Avatar` is the plan's to decide**,
 and the test is this project's own: *if a guard is needed to re-narrow
 the host set, the host is wrong.* Both have precedent in the tree — the
 twin-less rung (`Holder`, `Actor`) and conferral-over-composition
-(`Shade.getConferredMixinNames`).
+(`ShadeAvatar.getConferredMixinNames`).
 
 ⚠ Two of the eight are **not** in scope: `shouldPersist` and
-`startAutoSave` are gated on the capture allowlist, and `WireBody`'s
+`startAutoSave` are gated on the capture allowlist, and `SandboxAvatar`'s
 half is already claimed by the sandbox overlay build. The honest end
 state is stated so nobody expects empty subclasses: **each body keeps
 only what actually differs about it.**
@@ -418,4 +418,4 @@ the shape of an honest refactor drive, and the two exceptions are named.
 - [positioning.md](../positioning.md) — *a different client is a
   different renderer, nothing more*, which D3 makes true of the code.
 - `docs/plans/sandbox-overlay-plan.md` — the parked sibling build that
-  claims `WireBody.shouldPersist()`.
+  claims `SandboxAvatar.shouldPersist()`.

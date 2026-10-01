@@ -256,7 +256,10 @@ exist on every Stuff regardless of mixins.
 - **Multiplexing**: multiple Interactives can connect to the same
   Avatar. Routing is via `ConnectionApi.transfer(interactive, target)`
   / `detach(interactive)`; the connection storage lives on
-  `HasInteractiveMixin` (composed by both `Avatar` and `Login`).
+  the connection tower — `SaxonbergClientMixin(ClientStateMixin(
+  HasInteractiveMixin(…)))`, composed by both `Avatar` and `Login`.
+  ⭐ The storage and the key VOCABULARY are deliberately on different
+  mixins; see [connection.md § Client state](./connection.md).
   Interactive itself knows nothing about Avatars — see
   [architecture.md](../architecture.md) for the HasInteractive vs Avatar
   distinction.

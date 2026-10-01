@@ -7,7 +7,7 @@ is the circle every player already has and the shipped verbs that throw
 inside it. The build gives the policy table a fifth disposition,
 `overlay/copy` (a scoped store that starts empty and is deleted at the
 door), moves nine collections plus `holder_snapshots` onto it, retires
-`WireBody.shouldPersist()` as the guard on the player's own record,
+`SandboxAvatar.shouldPersist()` as the guard on the player's own record,
 makes every surviving refusal one in-fiction sentence, and moves the
 money after the refusal in `buy` and `title buy`.
 
@@ -126,12 +126,12 @@ time.
   super`). `Avatar.save` :843–854 — guest-guarded, then `capture(this,
   identityPath)`. `Avatar.onDestruct` :1442 — `void this.save()`,
   fire-and-forget. `Avatar.onLinkdead` :1478–1518 — saves.
-- `sandbox/WireBody.ts` — `postRegister` runs `super.postRegister({…,
+- `sandbox/SandboxAvatar.ts` — `postRegister` runs `super.postRegister({…,
   playerId: undefined})` :117; `shouldPersist() → false` :121;
   `getIdentityPath()` → the real identity :130; `startAutoSave` no-op
   :136; `onLinkdead` :159 routes to the session machinery and does
   **not** save.
-- `Shade.ts:99` — `shouldPersist() → false`. **Not touched.**
+- `ShadeAvatar.ts:99` — `shouldPersist() → false`. **Not touched.**
 - `lib/persistence/Persistable.ts:215` — `shouldPersist(): !this._reverting`;
   `markForRevert()` (:150 doc) flips it; `cleanupOnDestruct` :359–370
   captures if `shouldPersist()`. **Not touched** beyond what W3 states.
@@ -372,7 +372,7 @@ is no third phase in the crossing choreography. The requirements'
 "hook the copy needs" (the park capture) stays a field-context capture
 of the real row and is untouched.
 
-**D5 — `WireBody.shouldPersist()` is retired; the reap is circle work.**
+**D5 — `SandboxAvatar.shouldPersist()` is retired; the reap is circle work.**
 - Delete the override. The vessel's `postRegister` then runs
   `hasRecord` under the circle root (scoped read → false) →
   `installDefaultLoadout` → `capture` → **the one scoped row**, minted
@@ -538,7 +538,7 @@ host that already owns the concern.
 | `circleScope` on `holder_snapshots` rows | the row (stamped by PM) — **no field on `PersistedRecord`** | the record class does not know about circles; the store does. The unique index widens; the class does not change |
 
 **What is deliberately NOT placed:** nothing on `Avatar`, nothing on
-`Persistable`, nothing on `Shade`, no `Mixins` entry, no new Note kind,
+`Persistable`, nothing on `ShadeAvatar`, no `Mixins` entry, no new Note kind,
 no new collection, no schema-doc field. ⭐ The test from the rules: the
 one narrowing this plan adds — `assertUniqueKey` comparing circle
 scope — narrows the *invariant's key*, not a host set; if the builder
@@ -712,7 +712,7 @@ regeneration; `test:near` + `lint:family` green.
 
 ### W3 — The snapshot behind the store
 
-**Goal.** `holder_snapshots` is `overlay/copy`; `WireBody.shouldPersist()`
+**Goal.** `holder_snapshots` is `overlay/copy`; `SandboxAvatar.shouldPersist()`
 is gone; Ada's real row cannot be reached by the vessel.
 
 **Implements.** D4, D5, D6.
@@ -723,7 +723,7 @@ is gone; Ada's real row cannot be reached by the vessel.
   `{ scope: 1, owner: 1, circleScope: 1 }` with a `why` that names the
   two meanings of "scope"; the PASS invariant sentence is replaced by
   the copy one; `purpose` gets the disambiguation. `pnpm gen:schema`.
-- `packages/server/src/mud/platform/agent/sandbox/WireBody.ts` —
+- `packages/server/src/mud/platform/agent/sandbox/SandboxAvatar.ts` —
   delete `shouldPersist()` (:120–123) and the comment at :107–109 that
   says the spine is gated off by it. `startAutoSave` stays.
 - `PersistableLogic.ts` `assertUniqueKey` / `liveKeyed` — compare
@@ -743,10 +743,10 @@ is gone; Ada's real row cannot be reached by the vessel.
   not collide and in the same scope still throw.
 
 **Acceptance.** The tests above; `test:near` + `lint:family` green;
-`grep -n shouldPersist packages/server/src/mud/platform/agent/sandbox/WireBody.ts`
+`grep -n shouldPersist packages/server/src/mud/platform/agent/sandbox/SandboxAvatar.ts`
 is empty.
 
-**Commit.** `build(sandbox-overlay W3): the snapshot behind the store — WireBody.shouldPersist retired`
+**Commit.** `build(sandbox-overlay W3): the snapshot behind the store — SandboxAvatar.shouldPersist retired`
 
 ### W4 — Docs and the drive
 
@@ -875,7 +875,7 @@ Clean attach points, each with the slate it leaves as:
   registries overlay (requirements D3) → the same slate, one line.
 - **The capture allowlist replacing `shouldPersist()`** (guest gate,
   revert flag, shade) → avatar-family-slate § Sequencing 5 — this build
-  leaves `Shade` and `Avatar` overrides untouched and `startAutoSave`
+  leaves `ShadeAvatar` and `Avatar` overrides untouched and `startAutoSave`
   a no-op on the vessel, and says so there.
 - **`promoteAdHocToManaged` in a circle** → sandbox-slate (tails), one
   line: ad-hoc channels are runtime-global and were not partitioned.
@@ -905,7 +905,7 @@ Read in this order.
    :280–520.
 6. `packages/server/src/mud/platform/idea/api/PersistableLogic.ts`
    :136–170, :890–960; `packages/server/src/mud/platform/agent/Avatar.ts`
-   :685–860, :1440–1520; `…/agent/sandbox/WireBody.ts`.
+   :685–860, :1440–1520; `…/agent/sandbox/SandboxAvatar.ts`.
 7. `packages/server/src/mud/platform/idea/SubjectCatalogue.ts`,
    `ChannelCatalogue.ts`; `packages/server/src/mud/platform/idea/api/BankingLogic.ts`
    :100–135, :2495–2500 (the overlay precedent).

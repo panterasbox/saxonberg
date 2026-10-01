@@ -450,7 +450,7 @@ same as anyone's — it simply never changes. A role is a mask, not a life.
 
 `Behaved` is **branch-agnostic** — composable on any `Stuff`. Wave 1
 puts it only on `NPC`, which keeps automated behavior **off player
-Avatars** (they extend `ShelledCharacter`, not `NPC`) and off base
+Avatars** (they extend `Shell`, not `NPC`) and off base
 `Character`. Reactive scenery (a murmuring door, a bubbling fountain) is
 the same mixin on a `Thing`/`Location` host later; live wiring (timers,
 the seen-set) is runtime-only and re-installed from the persisted

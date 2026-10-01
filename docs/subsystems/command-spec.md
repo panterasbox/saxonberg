@@ -694,7 +694,7 @@ session did not loop, it went silent. See
 [prompt.md](./prompt.md).
 
 Only meaningful when the giver is `Focused` (Avatars composing
-`ShelledCharacter`). NPCs without `FocusedMixin` ignore the field.
+`Shell`). NPCs without `FocusedMixin` ignore the field.
 
 ### `prepositions:` — leading boundary markers
 

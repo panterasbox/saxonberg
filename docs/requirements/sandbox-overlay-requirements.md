@@ -122,7 +122,7 @@ of the read-through mode the mutable registries will need.
   **guest** gate (`!this.isGuest`), and the **revert** flag
   (`markForRevert`, `OuterWarren`). Only the first is a partition; the
   other two mean *capture nothing at all*, which an allowlist cannot
-  say. This build retires `WireBody`'s override only.
+  say. This build retires `SandboxAvatar`'s override only.
 - **The phase axis, the death spec, and the class layering** (Sequencing
   6–9) → the same slate; a second requirements doc.
 - **Changing what a `holder_snapshots` record CONTAINS** →
@@ -202,7 +202,7 @@ that a player could not already see there.
 
 ⭐ The direction that matters goes the other way. **Today the only thing
 between a wire body and a player's real record is
-`WireBody.shouldPersist() → false`** — one boolean, on one subclass,
+`SandboxAvatar.shouldPersist() → false`** — one boolean, on one subclass,
 guarding a collection explicitly marked `sandbox: pass`. Delete the
 override and the wire body writes the identity's snapshot. After this
 build the guard is the store itself: the write has nowhere to land but

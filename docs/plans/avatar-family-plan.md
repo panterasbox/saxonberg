@@ -2,7 +2,7 @@
 
 Executes [avatar-family-requirements](../requirements/avatar-family-requirements.md).
 **Kind:** refactor/sweep. **Lead end:** kernel — the first consumers are
-the three shipped bodies (`Avatar`, `Shade`, `WireBody`) and `Login`.
+the three shipped bodies (`Avatar`, `ShadeAvatar`, `SandboxAvatar`) and `Login`.
 No new capability, no new content except one wiki page the drive reads.
 
 What is being built: `HasInteractive` is cut into three mixins along
@@ -105,7 +105,7 @@ cockpit method touches `interactives` except `pushClientStateUpdate`
 ### The family
 
 - `platform/agent/Avatar.ts` (1,649 lines). Composition :163–204 —
-  thirteen mixins over `NamedMixin(ShelledCharacter)`;
+  thirteen mixins over `NamedMixin(Shell)`;
   `HasInteractiveMixin` at :167. `fieldMeta` :302–308 declares
   `mortalArc`, `lastSeen`, **`escheatedAt`, `beneficiary`** (:305–306;
   fields + accessors :316–340). `playerId` :655 is `protected`,
@@ -118,7 +118,7 @@ cockpit method touches `interactives` except `pushClientStateUpdate`
   `onDestruct` :1442–1465. `onLinkdead` :1478–1518. `canEvict` :1575
   (parked veto, chains). Fork slices :1590–1644 (`Presentation`,
   `Embodiment` — hand-written on Avatar, not on `Named`).
-- `platform/agent/Shade.ts` (182 lines): `shadePlayerId` :60 with
+- `platform/agent/ShadeAvatar.ts` (182 lines): `shadePlayerId` :60 with
   `fieldMeta` :62–64; `shadeSpecies` :72 — ⚠ **dead**: `private`, not in
   `fieldMeta`, never assigned (no constructor), so `postRegister`'s
   `if (this.shadeSpecies)` :77 never fires. `postRegister` :74–96 strips
@@ -128,7 +128,7 @@ cockpit method touches `interactives` except `pushClientStateUpdate`
   **redundant**: repeats `stopAutoSave`/`unregister`/`detach` then calls
   `super.onDestruct()`, which does the same three (and the save/belief
   flush) itself. `getConferredMixinNames` :135 → `['AetherMixin']`.
-- `platform/agent/sandbox/WireBody.ts` (170 lines): `wirePlayerId` :54,
+- `platform/agent/sandbox/SandboxAvatar.ts` (170 lines): `wirePlayerId` :54,
   `wireSpecies` :66 (dead, same way); a stale comment at :68–70 says
   *"the constructor now requires it"* — there is no constructor.
   `getIdentityPath` :129–133 returns `Avatar.getTemplatePath(wirePlayerId)`,
@@ -139,7 +139,7 @@ cockpit method touches `interactives` except `pushClientStateUpdate`
   differences. `shouldPersist` :119–121 is **claimed by
   `docs/plans/sandbox-overlay-plan.md` W3** (:713–749 there) — this
   build does not touch it, nor `startAutoSave` :135.
-- `lib/shell/ShelledCharacter.ts` (46 lines): abstract, empty body, five
+- `lib/shell/Shell.ts` (46 lines): abstract, empty body, five
   mixins, one consumer. 31 references in 22 files, 21 of them docs or
   comments; code references: `Avatar.ts:13`, `lib/npc/NPC.ts`,
   `lib/command/validators/requiresPublisher.ts`, `lib/command/Focused.ts`,
@@ -150,22 +150,22 @@ cockpit method touches `interactives` except `pushClientStateUpdate`
   at :504–505 says *"`style` rides along … harmless"* — stale, the verb
   is `cockpit`. No `save()`; `clientState.ts:20` refuses writes for it.
 - **Mint sites:** `platform/idea/api/ConditionLogic.ts:676–690` clones
-  `/platform/agent/Shade` with `asIdentityPath: /platform/agent/Shade/<pid>`
+  `/platform/agent/ShadeAvatar` with `asIdentityPath: /platform/agent/ShadeAvatar/<pid>`
   and `dataOverlay.shadePlayerId`; registration happens later at :728
   (`PlayerApi.registerAvatar(shade)`), after the drained body is
   destructed :726. `SandboxLogic.ts:344–357` clones
-  `/platform/agent/sandbox/WireBody` with context `{ playerId, wire: true }`
+  `/platform/agent/sandbox/SandboxAvatar` with context `{ playerId, wire: true }`
   and `dataOverlay.wirePlayerId`. `PlayerLogic.ts:555–566` clones the
   **seed row** `Avatar.SEED_TEMPLATE_PATH` with context `{ user, playerId }`
   and `asIdentityPath`; **the row's `class:` decides the concrete class.**
-- **Rows:** `content/platform/content/platform/agent/{Avatar/seed,Shade,sandbox/WireBody}.yaml`.
+- **Rows:** `content/platform/content/platform/agent/{Avatar/seed,ShadeAvatar,sandbox/SandboxAvatar}.yaml`.
   The two vessel rows carry `data: { shadePlayerId: "" }` /
   `data: { wirePlayerId: "" }` so the overlay key is declared
-  (`lint:instanceable` invariant 12). Six unit tests seed the WireBody
+  (`lint:instanceable` invariant 12). Six unit tests seed the SandboxAvatar
   row with `data: { wirePlayerId: '' }` (`api/__tests__/sandbox.{crossing,wardrobe,guests,go-wardrobe}.test.ts`,
   `lib/sandbox/__tests__/escape/{crossing.escape,round-trip}.test.ts`,
   `lib/behavior/__tests__/crossing-ritual.test.ts`);
-  `platform/__tests__/Shade.composition.test.ts:68` sets `shadePlayerId`.
+  `platform/__tests__/ShadeAvatar.composition.test.ts:68` sets `shadePlayerId`.
 - **Identity namespace:** `TemplatePathPrefixes.avatar = "/platform/agent/Avatar/"`
   (`lib/paths.ts:163`), `AVATAR_IDENTITY_PREFIX` (`lib/character/Estate.ts:24`),
   `Avatar.getTemplatePath` :602; **76 production sites** build or test
@@ -349,10 +349,10 @@ after D10 and D11 below:
 |---|---|
 | `getPlayerId` ×2 | gone — one field (D10) |
 | `getIdentityPath` ×2 | gone — one implementation on the abstract root (D11) |
-| `shouldPersist` ×2 | **stay**, out of scope by requirement; `WireBody`'s is the overlay build's |
+| `shouldPersist` ×2 | **stay**, out of scope by requirement; `SandboxAvatar`'s is the overlay build's |
 | `startAutoSave` ×2 | **stay**, same |
-| the reaping | `Shade.onDestruct` deleted as redundant; `WireBody.onLinkdead` is a genuine routing difference and stays |
-| `announceSessionPresence` | `WireBody` only — a shade **is** announced; not a shared answer |
+| the reaping | `ShadeAvatar.onDestruct` deleted as redundant; `SandboxAvatar.onLinkdead` is a genuine routing difference and stays |
+| `announceSessionPresence` | `SandboxAvatar` only — a shade **is** announced; not a shared answer |
 
 What survives as a shared answer is registration timing (neither vessel
 registers at `postRegister`), and even that is not one policy: a shade
@@ -365,12 +365,12 @@ what actually differs. The project's test applies cleanly — no guard
 re-narrows any host set anywhere in the result.
 
 *The losing case, fairly:* the slate's tree (`Avatar → <record> /
-<stand-in> → Shade, WireBody`) reads well on the composition panel, has
+<stand-in> → ShadeAvatar, SandboxAvatar`) reads well on the composition panel, has
 the `Holder`/`Actor` precedent, and would give D10 a rung to point at.
 It loses on two facts. First, after D10/D11 a stand-in rung would carry
 exactly two members — `shouldPersist` and `startAutoSave` — and
-`sandbox-overlay-plan.md` W3 deletes `WireBody`'s `shouldPersist` while
-`Shade`'s stays: the two vessels **diverge on the rung's only content
+`sandbox-overlay-plan.md` W3 deletes `SandboxAvatar`'s `shouldPersist` while
+`ShadeAvatar`'s stays: the two vessels **diverge on the rung's only content
 within one build**, which is the `Movable` failure in a new costume.
 Second, `Holder` and `Actor` name responsibilities with *composition*
 behind them; a rung holding a boolean is an enum wearing a class.
@@ -390,8 +390,8 @@ are deleted as dead code (never assigned). Mint sites overlay
 For the record body it equals the minted identity path by construction
 (`PlayerLogic.ts:559`); for a guest (`playerId === ''`) it falls to the
 guest's minted path exactly as today; for both vessels it is what their
-overrides return. `Shade`'s mint keeps `asIdentityPath:
-/platform/agent/Shade/<pid>` as its **template stamp** — this build does
+overrides return. `ShadeAvatar`'s mint keeps `asIdentityPath:
+/platform/agent/ShadeAvatar/<pid>` as its **template stamp** — this build does
 not change what `findByTemplatePath` returns for a shade.
 
 **D12 — The abstract root lives in `lib/`, the record body is the
@@ -447,8 +447,8 @@ the owner. Nothing in W0–W5 renames a class.
 | `SaxonbergClientMixin` (fifteen schema entries, nine cockpit methods, `refreshDisplays`, `openArrangement`, `commandContributions: cockpit.yaml`) | `Login`, abstract `Avatar` | *our client renders this host*. Composing it on `Login` is what keeps its verb set identical; on the abstract root it is inherited identically by all three bodies, which is what mortality.md's *composition does not differ* requires. |
 | abstract `Avatar` (`lib/character/Avatar.ts`): the thirteen-mixin composition, `playerId`, `user`, `isGuest`, `getIdentityPath`, `enter()` and its steps, `installDefaultLoadout`, `save`/`restore`/`startAutoSave`/`stopAutoSave`, `onDestruct`, `onLinkdead`, parking, the fork slices, `commandContributions`, `settings`, `subscribableFields`, the three path statics | nothing instances it | *a human's handle in the world, in some phase*. Everything a shade and a wire body must keep is here. |
 | record body `platform/agent/Avatar.ts` (placeholder name): `postRegister` = stamp + register + spine choreography (:696–766 minus the context stamping), `reconcileMortalState`, `shouldPersist` (guest gate) | the seed row's `class:` | *the identity's body of record: it registers itself and writes the snapshot*. The only concrete class that carries the spine drive. |
-| `Shade`: `postRegister` = `super` + `undead`; `shouldPersist`, `startAutoSave`, `getConferredMixinNames`, `mergeSlice_Embodiment`, `toString` | the Shade row | unchanged claims; five fewer members. |
-| `WireBody`: `shouldPersist`, `startAutoSave`, `announceSessionPresence`, `onLinkdead`, `toString` | the WireBody row | unchanged claims; `postRegister` and the two identity overrides gone. |
+| `ShadeAvatar`: `postRegister` = `super` + `undead`; `shouldPersist`, `startAutoSave`, `getConferredMixinNames`, `mergeSlice_Embodiment`, `toString` | the ShadeAvatar row | unchanged claims; five fewer members. |
+| `SandboxAvatar`: `shouldPersist`, `startAutoSave`, `announceSessionPresence`, `onLinkdead`, `toString` | the SandboxAvatar row | unchanged claims; `postRegister` and the two identity overrides gone. |
 | `playerId` field | abstract `Avatar` | *every body knows whose it is*, landable by overlay or context. |
 | `escheatedAt`, `beneficiary` | `EstateMixin` | *an estate has a succession clock and an heir*. One composer; nothing else acquires the claim. |
 | `refreshDisplays`, `cockpit.watch` | `SaxonbergClientMixin` | *a screen this host sees projects into this client*. A host without the mixin is not projected to. |
@@ -515,7 +515,7 @@ before W1.
 - `lib/persistence/__tests__/Forkable.census.test.ts` — an `Avatar`
   fixture's `collectForkSlices()` keys are exactly
   `Presentation, Embodiment, ClientState, Contacts, Alias, Environment`.
-- Extend `platform/__tests__/Shade.composition.test.ts` and
+- Extend `platform/__tests__/ShadeAvatar.composition.test.ts` and
   `api/__tests__/sandbox.crossing.test.ts` with one assertion each:
   `getIdentityPath()` of the vessel equals `Avatar.getTemplatePath(pid)`.
 
@@ -524,7 +524,7 @@ before W1.
 
 > **Note for the reader who has forgotten.** Three pins written, not
 > four: the two vessel identity-thread assertions already existed
-> (`Shade.composition.test.ts:90`, `sandbox.crossing.test.ts:155,328`).
+> (`ShadeAvatar.composition.test.ts:90`, `sandbox.crossing.test.ts:155,328`).
 >
 > ⚠ **The grounding was wrong about the fork census.** It named six
 > slices; there are **ten** — `Vitals`, `Anatomy`, `Trauma` and
@@ -643,20 +643,20 @@ undo a copy; the two dead species slots gone.
   accessors stay); add `getIdentityPath()` (D11); `postRegister` :699–701
   stamps from context only when given (an overlay-borne value must not
   be overwritten by an absent context key).
-- `platform/agent/Shade.ts` — delete :52–72 (`shadePlayerId`, its
+- `platform/agent/ShadeAvatar.ts` — delete :52–72 (`shadePlayerId`, its
   `fieldMeta`, `shadeSpecies`), :77–86, :98–117 (`getPlayerId`,
   `getIdentityPath`), the `playerId: undefined` strip at :94 becomes a
   plain `super.postRegister(context)` **guarded by W3's registration
   move** — until W3 lands, keep the strip (the base still registers on
   `playerId`); `toString` reads `this.playerId`.
-- `platform/agent/sandbox/WireBody.ts` — delete :48–70, :90–105,
+- `platform/agent/sandbox/SandboxAvatar.ts` — delete :48–70, :90–105,
   :124–133; same note on the strip; fix/delete the stale constructor
   comment.
 - `platform/idea/api/ConditionLogic.ts:683` — `playerId: avatar.getPlayerId()`.
 - `platform/idea/api/SandboxLogic.ts:352` — `playerId`.
-- Rows: `Shade.yaml:15`, `sandbox/WireBody.yaml:9` — `playerId: ""`.
+- Rows: `ShadeAvatar.yaml:15`, `sandbox/SandboxAvatar.yaml:9` — `playerId: ""`.
 - Fixtures: the six `data: { wirePlayerId: '' }` sites and
-  `Shade.composition.test.ts:68`.
+  `ShadeAvatar.composition.test.ts:68`.
 - `lib/persistence/__tests__/persistence-spine.test.ts` (or a new
   `Avatar.playerId.roundtrip.test.ts` beside it): **the store proof** —
   a record body captured under its identity path, materialized into a
@@ -709,7 +709,7 @@ undo a copy; the two dead species slots gone.
 ### ✅ W3 — The abstract root and three concrete bodies (D9, D12, D13) — DONE
 
 **Goal.** `Avatar` is abstract in `lib/`; the record body is its twin;
-each vessel carries only what differs; `Shade.onDestruct` is gone.
+each vessel carries only what differs; `ShadeAvatar.onDestruct` is gone.
 
 **Files.**
 - `lib/character/Avatar.ts` (new) — `export abstract class Avatar`
@@ -726,10 +726,10 @@ each vessel carries only what differs; `Shade.onDestruct` is gone.
   override does **not** call the abstract's loadout line twice — write
   the abstract as `stampContext(context)` + `super.postRegister` and let
   the record body call `stampContext` itself, then its own sequence.
-- `platform/agent/Shade.ts` — `postRegister` = `await super.postRegister(context); this.setLifecycleState('undead')`;
+- `platform/agent/ShadeAvatar.ts` — `postRegister` = `await super.postRegister(context); this.setLifecycleState('undead')`;
   delete `onDestruct` :170–177 (redundant; a test asserts destructing a
-  shade still unregisters and detaches — `Shade.composition.test.ts`).
-- `platform/agent/sandbox/WireBody.ts` — no `postRegister`. Drop
+  shade still unregisters and detaches — `ShadeAvatar.composition.test.ts`).
+- `platform/agent/sandbox/SandboxAvatar.ts` — no `postRegister`. Drop
   `playerId` from the clone context at `SandboxLogic.ts:346` (it is
   overlay-borne; leaving it is harmless but says the wrong thing).
 - Importers that mean the family switch to the abstract:
@@ -747,7 +747,7 @@ each vessel carries only what differs; `Shade.onDestruct` is gone.
   shade` table (the identity row), `sandbox.md` (the vessel's identity
   field) — one-line updates each; the rest is W5.
 
-**Acceptance.** `Shade.composition.test.ts`, the sandbox tests, the
+**Acceptance.** `ShadeAvatar.composition.test.ts`, the sandbox tests, the
 crossing escape tests, `Avatar.test.ts` green; W0 pins green; a new
 test that `new (class extends Avatar {})` is the only way to instance
 the family (`lint:instanceable` covers rows; the test covers code);
@@ -765,8 +765,8 @@ the family (`lint:instanceable` covers rows; the test covers code);
 > ⭐ **The W2 scaffolding is deleted, and the deletion is the point.**
 > `claimsRegistrySlot` is gone, and so is the *reason* for it: with
 > registration on the one class that registers, neither vessel has
-> anything to say no to. `Shade.postRegister` is now two lines that
-> say only *a shade is undead*, and `WireBody` has no `postRegister`
+> anything to say no to. `ShadeAvatar.postRegister` is now two lines that
+> say only *a shade is undead*, and `SandboxAvatar` has no `postRegister`
 > at all. The context strip — `{ ...context, playerId: undefined }` —
 > is gone from both. ⭐ That is the shape D9 was arguing for: not an
 > override that refuses, but nothing to inherit.
@@ -781,9 +781,9 @@ the family (`lint:instanceable` covers rows; the test covers code);
 > chain, and the record body reaches it on its own terms. One
 > sentence, one method, no boolean.
 >
-> `Shade.onDestruct` deleted: six lines that stopped the autosave,
+> `ShadeAvatar.onDestruct` deleted: six lines that stopped the autosave,
 > unregistered and detached, then called `super`, which does those
-> same three itself. `Shade.composition.test.ts` now proves the
+> same three itself. `ShadeAvatar.composition.test.ts` now proves the
 > reaping still happens with no shade-specific code doing it.
 >
 > `SandboxLogic` no longer passes `playerId` in the clone CONTEXT —
@@ -838,7 +838,7 @@ protected; the `@hook` on `announceSessionPresence` intact; `test:near`
 > author to declare a field beside a slice gets no warning at all.
 > ⭐ Census-then-ratchet shape; left as a finding for `lint-family`.
 
-### W5 — The seam sentence, the docs, the panel page, the drive
+### ✅ W5 — The seam sentence, the docs, the panel page, the drive — DONE
 
 **Files.**
 - `docs/subsystems/connection.md` — § *Client state* rewritten as three
@@ -853,7 +853,7 @@ protected; the `@hook` on `announceSessionPresence` intact; `test:near`
   numbers stale after avatar-family; grep `shouldPersist`*.
 - `packages/content/wiki-starter/content/wiki/main/avatar.md` (new) —
   *the avatar family*, three `<composition kind="template" of=…/>`
-  panels (the seed, the Shade row, the WireBody row). Content the
+  panels (the seed, the ShadeAvatar row, the SandboxAvatar row). Content the
   drive reads; D10 of the requirements names the panel as the
   acceptance surface, and no page exists for any body today.
 - `packages/wire/src/harness/session.ts` — `Session.openAtRoster(handle)`:
@@ -864,26 +864,72 @@ protected; the `@hook` on `announceSessionPresence` intact; `test:near`
 
 **Acceptance.** The drive record appended below with the run's output;
 `pnpm test` once, before the MR.
+
+> **Note for the reader who has forgotten.** `connection.md` carries
+> the D1 seam sentence in its own § *What a second client implements*,
+> and § *Client state* is rewritten as three mixins with the chain
+> walk and the throws-on-unknown-key warning. `architecture.md` has
+> the family table and the hierarchy diagram down to the three bodies.
+> `sandbox.md` has the **sandbox · circle · wire** vocabulary table
+> and why `WireBody` was renamed. `mortality.md` carries the
+> ghost-pack constraint (below). `cockpit.md`, `display.md` and
+> `state-model.md` have one-line host corrections.
+>
+> ⭐⭐ **`mortality.md` now records the measured truth about a
+> shade:** its deeds DO persist (so `Canon` was a false name), and
+> *"cannot advance"* has **no mechanism at all** — `AdvancementMixin`
+> holds no host state, Competence is derive-on-read, the Transcript is
+> identity-keyed. It is an absence, not a refusal. That must become a
+> declared, liftable property before an underworld pack can be
+> designed, for the same reason the retired verb conferral taught:
+> **the refusal must exist in order to be lifted.** Filed, not built.
+>
+> New: `wiki-starter`'s `avatar.md` — the two-axis table in a
+> player's words, and three `<composition>` panels the drive reads.
+> New: `Session.openAtRoster` + `Session.play`, without which drive
+> step 1 cannot be written at all.
+>
+> ⚠ **One sweep item deliberately left for `/finalize`:** CLAUDE.md
+> § *Instanceable lives in platform/* says *"Three are real renames
+> because they are real concepts"* and there are now **four** —
+> `PrimaryAvatar` joins `Corpse`, `Extra` and `Cast`. CLAUDE.md is a
+> SWEPT index file (§ Worktrees rule 5), so the line is the sweep's,
+> not a build's.
 **Commit.** `drive(avatar-family): <what driving found>` (plus a
 `docs(avatar-family): …` commit if the doc sweep stands alone).
 
-### W6 — ⛔ NAMES PENDING — the rename wave (D16; requirements D2, D5)
+### ✅ W6 — the rename wave — DONE (`e8e932378`)
 
-Blocked until the owner chooses a set from § Naming. Then, mechanically:
+Done. The owner settled the set (§ Naming); the rename was mechanical
+and landed in a commit that changes no behaviour.
+
+> **Note for the reader who has forgotten.** `ShelledCharacter → Shell`,
+> `platform/agent/Avatar → PrimaryAvatar`, `Shade → ShadeAvatar`,
+> `WireBody → SandboxAvatar`; the two vessel rows and the seed row's
+> `class:` follow. The abstract root KEEPS the name `Avatar` and the
+> identity prefix is untouched (D13) — so no DB drop and none of the 76
+> prefix sites moved.
+>
+> ⚠ Done **before** W5 rather than after, deliberately: writing the
+> docs first and then renaming would have meant writing them twice. The
+> wave is still behaviour-free, which is the property the ordering
+> existed to protect.
+
+The mechanical list, for the record:
 
 - Record body: `platform/agent/Avatar.ts` → `platform/agent/<Record>.ts`;
   the seed row's `class:` (`Avatar/seed.yaml:22`); `PlayerLogic.ts:523`
   lazy import; the twin's own tests.
-- `Shade` → `<Dead>` if renamed: file, row (`Shade.yaml:12` + path),
+- `ShadeAvatar` → `<Dead>` if renamed: file, row (`ShadeAvatar.yaml:12` + path),
   `ConditionLogic.ts:678, 681` (the row path and the template stamp
-  prefix `/platform/agent/Shade/`), `TemplatePaths` if one is added,
-  `Shade.composition.test.ts`, mortality.md.
-- `WireBody` → `<Circle>` if renamed: file, row path + `class:`,
+  prefix `/platform/agent/ShadeAvatar/`), `TemplatePaths` if one is added,
+  `ShadeAvatar.composition.test.ts`, mortality.md.
+- `SandboxAvatar` → `<Circle>` if renamed: file, row path + `class:`,
   `SandboxLogic.ts:328, 345`, the six fixtures, `sandbox.md`,
   **`sandbox-overlay-plan.md` W3's file path**.
-- `ShelledCharacter` → `<Shell>`: `lib/shell/ShelledCharacter.ts`,
+- `Shell` → `<Shell>`: `lib/shell/Shell.ts`,
   `Avatar` import, the 21 doc/comment mentions
-  (`grep -rn ShelledCharacter docs packages`).
+  (`grep -rn Shell docs packages`).
 - The identity prefix: **unchanged** under D13 unless the owner takes
   the alternative, in which case `lib/paths.ts:163`,
   `lib/character/Estate.ts:24`, `PresenceLogic.rosterHandleFor`, and
@@ -932,7 +978,7 @@ Nothing in the requirements' acceptance list is unmapped.
   the W2 store round trip (D10 — *proved through the store*, as the
   requirement demands); the W3 shade-destruct test; the W4 estate round
   trip. Existing suites touched: the twelve tower fixtures, the seven
-  overlay-key fixtures, `Avatar.test.ts`, `Shade.composition.test.ts`.
+  overlay-key fixtures, `Avatar.test.ts`, `ShadeAvatar.composition.test.ts`.
 - **Only the drive can prove:** step 1 (the roster layer's verb set on a
   live socket), step 4 (the fork through a real crossing), steps 5–7
   (death through the real choreography), step 9 (the rendered panel).
@@ -958,7 +1004,7 @@ Two sessions: **Ada** (`Session.embody`) and **Fen**
 | 4 Fork through the door (corrected — see Grounding) | `cockpit shelf pin coin` outside; walk to the dorm (or Fen `goto`s Ada); `go wardrobe`; `cockpit shelf list` inside; `cockpit shelf unpin coin` inside; `go out`; `cockpit shelf list` | pinned inside (the fork fired); still pinned outside (fork-only, unchanged) |
 | 5 Same person, three bodies | `chronicle` self-read outside, inside the circle, and as a shade | the first-arrival deed reads back from all three (identity-keyed, derive-on-read) |
 | 6 Money follows | `bank open`; `bank deposit coins`; note the balance; die; `passage`; `bank` | the balance is hers |
-| 7 Shade verbs | as a shade: `take`/`get` refused (`requiresEmbodied`), `say` ok, `who` lists her, `passage` afforded; after `passage`, `passage` is unknown | matches the list W0 pins from `embodied-tagging.test.ts` |
+| 7 ShadeAvatar verbs | as a shade: `take`/`get` refused (`requiresEmbodied`), `say` ok, `who` lists her, `passage` afforded; after `passage`, `passage` is unknown | matches the list W0 pins from `embodied-tagging.test.ts` |
 | 8 Estate clock | ⚠ cannot wait `estate.dormantAfterDays` in a run. Equivalent: `wallet beneficiary <fen>` → `close()` → `open` → `wallet` shows the beneficiary; Fen `config estate.escheatAfterDays` unchanged. The clock itself is `PlayerLogic`'s unit tests. | the two fields round-trip on their new host |
 | 9 The panel | `wiki avatar` | three panels; the mixin lists are **identical**; each names the family root in its class line |
 | 10 On paper | `connection.md § What a second client implements` exists | the sentence names CONN + CS and no `cockpit.*` key |
@@ -990,9 +1036,9 @@ step is recorded as *not driveable on the wire*, not skipped silently.
    (mixins.md). Controllers typed `Stuff & HasInteractive` today become
    `Stuff & SaxonbergClient`; TypeScript will find every one.
 5. **Sibling plan collision.** `sandbox-overlay-plan.md` (unbuilt, same
-   branch) owns `WireBody.shouldPersist()`, `holder_snapshots.yaml`,
+   branch) owns `SandboxAvatar.shouldPersist()`, `holder_snapshots.yaml`,
    `PersistableLogic.assertUniqueKey`, `SandboxLogic.exitImpl`. This
-   build touches `WireBody.ts` and `SandboxLogic.ts:344–357` and nothing
+   build touches `SandboxAvatar.ts` and `SandboxLogic.ts:344–357` and nothing
    else of that list; its line references go stale and W5 says so in
    that plan.
 6. **Two live objects at one identity path** (parked body + wire body)
@@ -1059,14 +1105,14 @@ word. The bare name `Sandbox` is free.
 ⚠ **The fiction does not change.** The crossing still says *"step onto
 the wire"*; that is good prose and players never read a class name.
 This makes the CODE side consistent, where it is currently half-and-half
-(`WireBody` already lives in `sandbox/` and already writes `circleScope`).
+(`SandboxAvatar` already lives in `sandbox/` and already writes `circleScope`).
 
 ### The rung, and the root
 
 - **`Avatar`** — abstract root, a human's handle in the world. Keeps the
   name: the identity namespace `/platform/agent/Avatar/` stays the
   family's (D13).
-- **`Shell`** (was `ShelledCharacter`) — *a `Shell` is a Character with a
+- **`Shell`** (was `Shell`) — *a `Shell` is a Character with a
   command line; an `Avatar` is a `Shell` with a human driving it.* Lands
   in `lib/shell/` beside `Alias`, `Workspace`, `Environment`, `Focused`.
   ⚠ Cost recorded: *shelled* can mean husked.
@@ -1079,10 +1125,10 @@ This makes the CODE side consistent, where it is currently half-and-half
 | `CircleAvatar` | names the fence, not the workshop |
 | `Understudy` | ⛔ reserved — casting vocabulary, belongs to the Extra/Cast work |
 | `Incarnation` | vague; states nothing about why this body matters |
-| `LivingAvatar` | separates from `Shade` but not from the sandbox body, which is also a living self |
+| `LivingAvatar` | separates from `ShadeAvatar` but not from the sandbox body, which is also a living self |
 | `CanonAvatar` | ⛔ **false** — a shade's deeds persist too, tagged as ghosted. Canon separates the sandbox body only |
 | `MortalAvatar` | a body can die inside a circle too (it leaves a circle-scoped corpse) |
-| `FieldAvatar` | *field* names the sandbox axis only; sits oddly against `Shade` |
+| `FieldAvatar` | *field* names the sandbox axis only; sits oddly against `ShadeAvatar` |
 | `Typist` | describes the human, not the class |
 | `Console` | clashes with the SaxonbergClient keyspace (`console.tabs`, `console.routing`, `console.activeTab`) |
 | `Terminal` | reads against `TpaTerminal` |
@@ -1134,9 +1180,9 @@ called, so the root should keep `Avatar`.
 
 | axis | root | record | dead | circle | shell rung | notes |
 |---|---|---|---|---|---|---|
-| **phase of play** — living / dead / rehearsing | `Avatar` | `Incarnation` | `Shade` | `Understudy` | `Typist` | permanence falls out (an incarnation is the one that lasts). `Shade` keeps its shipped name and prose. `Understudy` says *rehearsing in someone's workshop* better than *circle*. |
-| **permanence** — the axis the code branches on | `Avatar` | `Mortal` | `Shade` | `Puppet` | `Operator` | `Mortal` names the body that can die and is written down; `Puppet` is the WireBody row's own word (*"the puppet a player wears"*). ⚠ `Operator` collides with the platform-operator sense in deployment docs. |
-| **agency** — what you can do from it | `Avatar` | `Body` | `Ghost` | `Effigy` | `Console` | the plainest words; ⚠ `Body` is close to `body`/`PlayerBody` in `ConditionLogic` and `Ghost` retires the shipped `Shade` vocabulary across mortality.md and `passage.yaml` prose. |
+| **phase of play** — living / dead / rehearsing | `Avatar` | `Incarnation` | `ShadeAvatar` | `Understudy` | `Typist` | permanence falls out (an incarnation is the one that lasts). `ShadeAvatar` keeps its shipped name and prose. `Understudy` says *rehearsing in someone's workshop* better than *circle*. |
+| **permanence** — the axis the code branches on | `Avatar` | `Mortal` | `ShadeAvatar` | `Puppet` | `Operator` | `Mortal` names the body that can die and is written down; `Puppet` is the SandboxAvatar row's own word (*"the puppet a player wears"*). ⚠ `Operator` collides with the platform-operator sense in deployment docs. |
+| **agency** — what you can do from it | `Avatar` | `Body` | `Ghost` | `Effigy` | `Console` | the plainest words; ⚠ `Body` is close to `body`/`PlayerBody` in `ConditionLogic` and `Ghost` retires the shipped `ShadeAvatar` vocabulary across mortality.md and `passage.yaml` prose. |
 
 Recommendation withheld by design; one observation the owner asked
 for: the **phase** set is the only one where all three concrete names
@@ -1172,8 +1218,8 @@ Read first, in this order:
 2. `packages/server/src/mud/lib/connection/HasInteractive.ts` (all of it).
 3. `packages/server/src/mud/platform/agent/Avatar.ts` :163–204, :302–340,
    :655–766, :901–1139, :1442–1518, :1575–1644.
-4. `platform/agent/Shade.ts`, `platform/agent/sandbox/WireBody.ts`,
-   `platform/idea/Login.ts:498–531`, `lib/shell/ShelledCharacter.ts`.
+4. `platform/agent/ShadeAvatar.ts`, `platform/agent/sandbox/SandboxAvatar.ts`,
+   `platform/idea/Login.ts:498–531`, `lib/shell/Shell.ts`.
 5. `lib/persistence/Forkable.ts:39–52`; `platform/idea/api/SandboxLogic.ts:90, 328–470`;
    `platform/idea/api/ConditionLogic.ts:660–800`; `platform/idea/api/PlayerLogic.ts:130–200, 545–566`.
 6. `lib/command/CommandGiver.ts:670–700`; `lib/display/Display.ts:290–390`;
@@ -1188,6 +1234,62 @@ Read first, in this order:
 
 ---
 
-## Drive record
+## Drive record — run 2026-09-30, `WIRE_BOOT=1 WIRE_PORT=2014`
 
-*(appended at build time)*
+`packages/wire/tests/avatar-family.dirty.wire.test.ts` — **6 passed**.
+
+| step | result |
+|---|---|
+| 1 pre-world verb set | ✅ a roster-parked `Login` answers `cockpit`, refuses `look`, offers a playerId. Needed the new `Session.openAtRoster`. |
+| 2 loadout | ✅ char-gen completes; the body carries its aether implant. |
+| 3 arrangement survives logout | ✅ `cockpit mode build` → close → reopen → still `build`. |
+| 4 fork through the door | ⚠ **the door is unreachable — named, not skipped** (below). |
+| 5–7 the shade arc | ⚠ **not driveable on the wire at all** (below). |
+| 8 estate succession | ⚠ write accepted; **read surface unreachable — named** (below). |
+| 9 the panel | ✅ three panels, all three bodies named, and `SaxonbergClient` / `HasInteractive` / `Estate` each appear ≥3 times — *composition does not differ*, rendered. |
+
+### ⚠⚠ Three gaps the drive FOUND, and none of them is this build's
+
+**1. There is no sandbox door a drive handle can reach.** Only two
+rooms in the shipped world hold `/platform/thing/sandbox/wardrobe`:
+
+- the Duncan Hall **dorm room** — a KEYED residence. A `startLocation`
+  stands the room up but **not its `props:`**, so `here:c` is EMPTY,
+  there is no wardrobe object and therefore no crossing exit:
+  `go wardrobe` answers `locomotion-gate-failed / exit-mode / walk`.
+  The fixtures arrive with provisioning (Katie), which is the residence
+  flow.
+- the **Seznick house bedroom** — unlit, so pitch dark; the keyword
+  resolves to nothing.
+
+⭐ So **the sandbox crossing has never been driven on the wire by
+anything** — not by this file and not by the twenty-odd before it. The
+step keeps a LIVE assertion (it checks the fork for real the moment a
+door exists) and asserts the refusal is the *known* one, so a different
+refusal fails.
+
+**2. Nothing in this game can kill a player through the socket.** The
+eval sandbox exposes four Apis and `ConditionApi` is not one; no verb
+kills; the shipped hazards are not reliably lethal in one run. The
+**death → shade → `passage` arc has never been driven end to end**.
+Steps 5–7 are recorded as not driveable and their properties are
+proven by unit round trips instead.
+
+**3. The estate's succession state has no reachable read surface.**
+`wallet` answers *"no active account yet"* (the beneficiary is a field
+ON the wallet); `bank open` needs a teller the start location lacks;
+`eval … --on me` throws in the controller. The round trip is proven
+through the store by `Estate.succession-state.test.ts`; the wire proves
+only that the write is accepted. ⭐ A `wallet` that cannot report your
+heir until you open a bank account is a read gap **a player would hit
+too** — offered to the credit/banking slate.
+
+### What the drive did NOT find
+
+No defect in anything this build changed. Every preserved observable it
+could reach was preserved: the pre-world verb set, the loadout, the
+client-state round trip across a logout, the composition identity of
+the three bodies. The two code-level surprises of the whole build
+(`claimsRegistrySlot`'s necessity in W2, and `captureSlice` shadowing
+`fieldMeta` in W4) were both caught by **unit** tests on their first
+run, before the drive.

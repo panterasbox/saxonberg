@@ -239,7 +239,7 @@ was a defect.** `BrandedMixin` was Things-only and the argument for
 moving it was the right one — *branding livestock is what marks were
 invented for* — but it was composed on `Creature`, which is the base of
 `Character`. That put a maker's mark on every player Avatar, every Cast
-member, every Extra, every Shade and every corpse in the game. Nothing
+member, every Extra, every ShadeAvatar and every corpse in the game. Nothing
 on that stack ever read it, so nothing failed; the one surface that
 would have shown it, `wiki branded`'s *composed by* panel, was reading a
 scan root that has never held a row.
