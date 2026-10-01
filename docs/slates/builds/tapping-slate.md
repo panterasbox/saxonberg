@@ -15,6 +15,16 @@
 > **Size:** a build — it is one verb, one declared shape, two data
 > blocks and four rows, but it amends a kernel interface and touches a
 > shipped trade, so it wants a cycle rather than a tail.
+>
+> ⭐⭐ **IN FLIGHT 2026-09-30 as the TAPS build** —
+> [taps-requirements](../../requirements/taps-requirements.md), branch
+> `design/2026-09-30-tapping`. It takes the act (`tap`, the window
+> predicate, the `ProducingMixin` promotion, the sugarbush and the
+> sugarhouse) **and grows past this slate**: adding a fifth source to a
+> family whose demand side had been built once would have made the
+> problem worse, so the build reshapes `milk` · `shear` · `gather` onto
+> the same act. ⚠ **Resin stays here** — its demand is **light**, and
+> that is a build (see the section below).
 
 Opened 2026-09-25, out of a question that started somewhere else: *we
 shipped forestry without ever discussing maple syrup or rubber — is that
@@ -392,6 +402,88 @@ delivery mechanism was conferral, and conferral is retired. See
 [inquiry-slate § From law to technology](./inquiry-slate.md).
 **Latex remains tapping's mechanism exactly**, so this slate still
 carries rubber's supply side.
+
+---
+
+## ⭐⭐⭐ Resin's demand, found 2026-09-30: it is LIGHT
+
+Deferred out of the **taps build**
+([taps-requirements](../../requirements/taps-requirements.md)) after the
+question was asked properly — *not* "what ships that uses resin" (nothing,
+obviously) but **what do players and the economy NEED that uses it.** The
+answer is strong enough that it should not be re-derived.
+
+**Light here is not cosmetic.** Unlit interiors are **pitch black**, not
+dim — the tell is every object in the room reading as *"something"* — and
+the mine, the delve, the cellar, the turbary and the brine floor are all
+dark. Light is the difference between a room you can play in and one you
+cannot.
+
+**And the torch already burns down.** `general-store/thing/torch.yaml` is
+a `Lamp` with a fuel reserve: *"twice a lantern's burn rate for a third of
+its light, which is the whole trade — a torch is what you buy when you are
+not coming back."* So light is a **consumable with recurring,
+non-substitutable demand** — and the economy has almost none of those.
+Food and fuel, and that is the list.
+
+> ⭐⭐⭐ **The product is a LIGHT LADDER, and resin is its bottom rung.**
+> resin-dipped brand → tallow → **beeswax candle (shipped MR !310)** →
+> oil lamp → gas → electric.
+
+That is lens 5's epoch spine running through the one consumable every
+player needs every session, and the bottom two rungs are both
+forest/animal byproducts the realm now produces. ⭐ A trade ladder whose
+rungs are *already* separate technologies is rare and it is free here.
+
+**The rest of resin's demand, in priority order:**
+
+1. ⭐⭐ **A reason to grow pine.** Scots pine ships as a species row and
+   its own comment admits *"no venue stands it yet."* It is the only
+   softwood in the vocabulary. Resin gives softwood a purpose distinct
+   from hardwood — which turns the wood contest from one contested pile
+   into real silvicultural choice: *what do I plant, and for whom.*
+2. **Waterproofing.** Weather ships (rain, wetness, puddles) so being wet
+   is a real cost, and textiles' covering walk *"asks the material and the
+   form and never asks what class they are"* — so a pitched cloak resolves
+   nearly free, the same trick as the rubber boot.
+3. **Hafting and fletching.** `felling-axe.yaml` already has a `haft` slot
+   taking `category: wood`; ranged ships arrows. Pitch is how a head stays
+   on a handle.
+4. **Medicine.** Pine tar salve is historically exact, `trade-medicine`
+   ships, and the game has wounds.
+5. ⚠ **Cask lining is NOT a demand** — `trade-brewing/thing/cask.yaml`
+   exists but nothing models a cask leaking, so lining one fixes no
+   problem. Listed to stop it being re-proposed.
+
+### ⭐⭐ And the epoch pairing, which dissolves the apparent collision
+
+This slate previously recorded `destructive-distillation-slate` as a
+direct collision, quoting it: *"it disrupts the naval-stores tapper."*
+**That is the two slates being an epoch pair, not a conflict:**
+
+> **Tapping is the MEDIEVAL supply of pitch. The retort is the INDUSTRIAL
+> one.** Same product, two technologies, the second replaces the first,
+> and the player watches it happen.
+
+⭐ Which is lens 5 working exactly as written — *does the capability
+survive the epoch; does the new object answer the same commands* — and it
+is a better story than either slate has alone. ⚠ Note also that the
+feedstocks genuinely differ: the retort makes tar from **wood**, the
+tapper makes pitch and rosin from **resin**. The competition is real and
+it is economic, not architectural.
+
+### Why it still waits
+
+**None of this is free.** Resin's demand is a **light build** — the
+ladder, the lamp rungs, the dark places that need them — and tapping is
+its supply. Shipping the resin tap alone would be a source with no sink,
+which is the failure `design-lenses.md` uses as its own worked example.
+
+⭐ **Resin was worth thinking about now. It was not worth smuggling in
+now.** The taps build takes the act (`tap`, the window predicate, the
+`ProducingMixin` promotion), so when the light build comes, resin is a
+`production:` block on a species row that already ships, and nothing
+else.
 
 ---
 
