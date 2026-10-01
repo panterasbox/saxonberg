@@ -1,6 +1,17 @@
 # Avatar family slate — three bodies, three kinds of state, and who may write
 
-> **Status: UNBUILT** — ✅ **except Sequencing 1, which shipped on its own
+> **Status: UNBUILT** — ✅ **except Sequencing 1 and 9.**
+>
+> ⭐ **Sequencing 9 shipped 2026-10-01 (MR !315): the class layering.**
+> One `playerId` on an abstract `Avatar` root over three named bodies
+> (`PrimaryAvatar` / `ShadeAvatar` / `SandboxAvatar`); `HasInteractive`
+> cut into the connection set + `ClientStateMixin` + `SaxonbergClient`;
+> the estate's succession state onto `EstateMixin`; `enter()`
+> decomposed; the one authored row out of the identity namespace. ⚠
+> **Driver state is NOT off the body** — that and the rest of the
+> deferred seams are listed in their own section below.
+>
+> ✅ **Sequencing 1 shipped on its own
 > (2026-09-30): `{ verb: 'shadow', mode: 'overlay' }` now REFUSES at both
 > ends.** It was a value in the `CollectionPolicy` union that no
 > collection selects and no code implements, and all three write paths
@@ -20,9 +31,7 @@
 > draws · a **phase axis** beside `circleScope` so ghost-written records
 > are filterable · the **death spec** (`Anatomy`/`Trauma`/`CauseOfDeath`,
 > captured today and read by nothing) consumed by `reembody` as a **mint
-> parameter, never a merge** · `HasInteractive` split into the connection
-> set + **`SaxonbergClient`** · driver state off the body · the identity
-> field de-triplicated
+> parameter, never a merge** · driver state off the body
 > **Size:** a build for the overlay half (§ Sequencing 1–4), a build for
 > the rest — every override this slate exists to remove is load-bearing
 > until the step above it lands
@@ -464,12 +473,73 @@ lines needs Api surface, it stays kernel.
 7. **The death spec** consumed by `reembody` as a mint parameter.
 8. **`mode: 'through'`** for the registries — declared identity keys and
    tombstones.
-9. **The class layering**: one identity field on a shared base, the
-   `HasInteractive` / `SaxonbergClient` split, driver state off the body.
+9. ✅ **DONE 2026-10-01 (MR !315) — the class layering.** One
+   `playerId` on the abstract root (the two private copies and their
+   four overrides gone); `HasInteractive` cut into
+   `HasInteractiveMixin` / `ClientStateMixin` / `SaxonbergClientMixin`;
+   `Avatar` made an abstract family root over `PrimaryAvatar` /
+   `ShadeAvatar` / `SandboxAvatar`; the estate's succession state moved
+   onto `EstateMixin`; `enter()` decomposed; and the one authored row
+   moved out of the identity namespace to `/platform/agent/PrimaryAvatar`.
+   ⭐ Driver state is NOT off the body — see the seams below.
 
 ⭐ The order is not preference. **Every override this slate was started to
 remove is load-bearing until the thing above it lands** — which is why the
 class shuffling is last.
+
+## ⛔ Deferred seams — salvaged from the retired plan (2026-10-01)
+
+Clean attach points the layering build left, each with where it goes:
+
+- **Merge-back of shell state at exit and reembody.** The
+  `ClientState` slice is fork-only and
+  `SandboxLogic.EPISTEMIC_MERGE_ALLOWLIST` is `['Contacts']`, so a
+  preference changed inside a circle discards with it. Sequencing 6
+  above; attach at `SandboxLogic.ts:90` and
+  `ConditionLogic.reembodyImpl`.
+- **The capture allowlist replacing `shouldPersist()`** — Sequencing 5.
+  The two remaining no-op `startAutoSave` overrides die with it.
+- **Record-only mixins** (`Calendar`, `Wardrobe`, `Estate`,
+  `PartyMember`, `SubjectSubscriber`, `NotifyPolicy` inert on a
+  vessel). Forbidden by *composition does not differ*; the argument
+  lives in § *Where the Avatar-only mixins fall out*.
+- **`SaxonbergClient` as a pack.** Needs a sixth namespace axis (*how
+  the world is seen*, `/client/<name>`) plus a way for the platform's
+  own `cockpit.yaml` and its six controllers to leave the platform
+  pack. A namespace design, not a refactor.
+- **`Login` as `CommandGiverMixin(Idea)`** without the Agent branch —
+  the owner's own aside; nothing in the layering build moves it.
+- ⭐⭐ **"A shade cannot advance" must become a DECLARED, LIFTABLE
+  property.** It is an absence, not a refusal: `AdvancementMixin`
+  holds no host state, so nothing stops a shade accruing. Blocks an
+  underworld/Orpheus content pack before it is designed. Recorded in
+  [mortality.md](../../subsystems/mortality.md).
+- ⭐ **What else a shade should be refused.** The owner's framing:
+  *mostly functional, with considerations for immersion and
+  exploitability — a shade can't be hurt and can't fight, so it
+  probably shouldn't reach certain content.* `bank borrow` is
+  deliberately untagged pending this (debt is not spending). Wants its
+  own lens pass.
+
+## ⚠ Three gaps the drives could not close (2026-10-01)
+
+Not this build's, but it is the build that measured them:
+
+1. **No sandbox door is reachable by a drive.** The shipped wardrobes
+   live in bedrooms (`8b51b682f`, 2026-09-01), so reaching one needs
+   the residence flow; and `/platform` is covered by no parcel, so
+   `clone /platform/thing/sandbox/wardrobe` is refused **even for a
+   wizard**. ⭐ The sandbox crossing has therefore never been driven
+   end-to-end by anything.
+2. **The estate's succession state has no reachable READ surface.**
+   `wallet` reports nothing without an account, and `bank open` needs
+   a teller the start location lacks. ⭐ A wallet that cannot name your
+   heir until you open a bank account is a gap a PLAYER would hit —
+   offered to the banking/credit slate.
+3. **"Money follows you through death" is unverified end-to-end.** It
+   is really about the identity-keyed bank account — exactly the
+   ledger the old lineage-keyed predicate collapsed — and observing it
+   needs an account, a teller, a death and a `passage`.
 
 ## Open questions
 

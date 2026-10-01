@@ -1075,6 +1075,32 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
 
 ## History
 
+- **The Avatar family (avatar-family build, 2026-10, MR !315;
+  `dafc87df0..`).** `HasInteractiveMixin` was 1,168 lines holding six
+  concerns and was cut into three — `HasInteractiveMixin` (the
+  connection set, 204 lines, **no UI vocabulary**), `ClientStateMixin`
+  (the mechanism, **zero keys**) and `SaxonbergClientMixin` (our
+  client's words). The `clientStateSchema` became a memoized
+  prototype-chain walk; the one back-edge (`snapshotClientState`
+  hard-coding `cockpit.*`) became an override calling `super`. ⭐ The
+  deliverable is § *What a second client implements*, which the split
+  makes a checkable sentence rather than an aspiration.
+
+  `Avatar` became an **abstract family root** (`lib/character/Avatar`)
+  over three named bodies — `PrimaryAvatar`, `ShadeAvatar`,
+  `SandboxAvatar`. ⚠⚠ `instanceof Avatar` now always means the
+  abstract: a site left on the concrete record body silently excludes
+  shades and circle bodies, which are the same person.
+
+  ⚠⚠ **`PlayerApi.isAvatarStuff` was keying personhood on a lineage
+  PREFIX**, so a dead player was not a person to ~90 call sites — none
+  of `wallet`/`chat`/`forum`/`office`/`contacts` carries a
+  `requiresEmbodied` gate, so that predicate was the only thing
+  deciding. It is `instanceof` now, and `SandboxApi`'s fake lineage
+  restamp (invented to get vessels past the same string) is deleted.
+  See [antipatterns.md § Keying a PERSON on
+  `getTemplatePath()`](../antipatterns.md).
+
 - **Multi-provider auth (auth-providers build, 2026-06).** The
   Google-only spine was generalized to be provider-parameterized and
   Twitch added as a co-equal login provider: `handleAuthenticationSuccess`

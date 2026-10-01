@@ -61,11 +61,18 @@ import {
   expectOk,
 } from '../src/harness';
 
+/*
+ * ⚠ Kept honest against what the steps ACTUALLY do. An earlier version
+ * of this string claimed a shelf pin and a circle crossing; step 4 was
+ * rewritten (the door is unreachable) and the shelf pin went with it,
+ * so both had become false. A dirty reason nobody re-reads is how a
+ * reset gets owed for the wrong thing.
+ */
 export const DIRTY_REASON =
-  'mints two characters through char-gen and leaves them in the world; ' +
-  'pins a shelf card and names a beneficiary on one of them; crosses ' +
-  'into a dorm circle and back, which consumes one circle mint — none ' +
-  'of it produced again';
+  'mints four characters (two through char-gen) and leaves them in the ' +
+  'world; opens a bank account for one and names another as its ' +
+  'beneficiary — none of it produced again. ⭐ No circle is consumed: ' +
+  'the crossing step cannot reach a door (see the file header).';
 
 declareFile({
   file: 'avatar-family.dirty.wire.test.ts',

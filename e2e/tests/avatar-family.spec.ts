@@ -52,6 +52,25 @@ test.describe('the Avatar family, in a browser', () => {
     try {
       await sendUntil(page, 'look', page.getByText(/bar/i).first());
 
+      /*
+       * ⛔ "Money follows them through death and back" is NOT closed
+       * here, and the attempt is worth recording so nobody repeats it.
+       *
+       * I tried to observe it via the Arrival Note — money you HOLD,
+       * needing no bank. But the Note is written at `embody confirm`,
+       * and `openWorldAs` authenticates through test-login, which
+       * provisions a character WITHOUT walking char-gen. So this
+       * fixture never had one.
+       *
+       * ⚠ The criterion is really about the identity-keyed BANK
+       * ACCOUNT — which is the point, since that is exactly the ledger
+       * the old lineage-keyed predicate collapsed (every player sharing
+       * one account). Observing it needs an account, a teller, a death
+       * and a `passage`: a chain the bar cannot assemble. Left
+       * unverified end-to-end and reported, rather than asserted
+       * through something that only looks like money.
+       */
+
       // ---- become a shade ------------------------------------------
       // ⚠ The kill path is the body's OWN method through the eval
       // receiver — NOT `ConditionApi`, which the eval sandbox does not

@@ -880,21 +880,26 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Twelve exist. **Nine
+absorbs the clones, and templates name that. Thirteen exist. **Nine
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
 `platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
 `platform/idea/modalities/Modality`,
 `platform/location/CartesianLocation`,
 `platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
-`platform/idea/material/Material`, `platform/idea/Biome`. **Three are
+`platform/idea/material/Material`, `platform/idea/Biome`. **Four are
 real renames because they are real concepts**: `platform/agent/Corpse`
-(← `Creature`), and ⭐ `platform/agent/Extra` + `platform/agent/Cast`,
+(← `Creature`); ⭐ `platform/agent/Extra` + `platform/agent/Cast`,
 where the concrete twin **split into two things** — `lib/npc/NPC`'s two
 identity rungs, a role and a person (`platform/agent/NPC` retired; see
-[docs/subsystems/identity.md](./docs/subsystems/identity.md)). ⭐ Sharing
-the name is the DEFAULT — a twin that renames is claiming to be a
-different thing, and had better be one.
+[docs/subsystems/identity.md](./docs/subsystems/identity.md)); and
+⭐ `platform/agent/PrimaryAvatar` (← abstract `lib/character/Avatar`),
+the body of record among three named bodies — the root keeps `Avatar`
+because the identity namespace `/platform/agent/Avatar/<playerId>` is
+the FAMILY's (see
+[docs/subsystems/connection.md](./docs/subsystems/connection.md)).
+⭐ Sharing the name is the DEFAULT — a twin that renames is claiming to
+be a different thing, and had better be one.
 `platform/thing/Thing` was called `Prop` until 2026-09-03, which named
 nothing (there is no prop concept anywhere in the tree) and read as
 "generic object nobody cares about" — so nobody defended it, and a
