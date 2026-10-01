@@ -53,9 +53,12 @@ describe("Brand", () => {
     expect(b.isIndependent()).toBe(true);
   });
 
-  it("setKey and setName reject empty values", () => {
+  it("setKey rejects an empty key; name is NamedMixin's and does not guard empty", () => {
     const b = newBrand();
     expect(() => b.setKey("")).toThrow(TypeError);
-    expect(() => b.setName("")).toThrow(TypeError);
+    // ⭐ `name` comes from NamedMixin now (the one proper-name surface), not a
+    // hand-rolled accessor — NamedMixin.setName accepts any string, so an
+    // empty name no longer throws. `key` keeps its own non-empty guard.
+    expect(() => b.setName("")).not.toThrow();
   });
 });

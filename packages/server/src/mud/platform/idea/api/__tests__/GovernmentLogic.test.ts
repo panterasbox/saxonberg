@@ -31,11 +31,11 @@ class TestLocation extends Location {}
 const BUSINESS = "/world/terminus/registry/business";
 
 const GOVERNMENTS: Loose[] = [
-  { key: "narnia-gov", displayName: "the Realm of Narnia" },
-  { key: "castle-gov", displayName: "the Castle Seneschalsy" },
+  { key: "narnia-gov", name: "the Realm of Narnia" },
+  { key: "castle-gov", name: "the Castle Seneschalsy" },
   {
     key: "terminus-city",
-    displayName: "the City of Terminus",
+    name: "the City of Terminus",
     seats: [
       {
         key: "magistrate",
@@ -298,7 +298,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
   });
 
   it("descriptor getters read the warmed catalogue", () => {
-    expect(GovernmentApi.getGovernment("narnia-gov")?.displayName).toBe(
+    expect(GovernmentApi.getGovernment("narnia-gov")?.name).toBe(
       "the Realm of Narnia"
     );
     expect(GovernmentApi.getGovernment("nope")).toBeNull();

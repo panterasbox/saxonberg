@@ -100,6 +100,10 @@ data:
       keywords: [lamps, lamp, standards, lighting]
       description: |
         Squat iron bollards along the edge of the quay, each capped with a thick glass lens — low enough not to blind a bargeman, bright enough to show him where the water starts.
+    line:
+      keywords: [line, lines, wire, wires, cable, cables, feeder, overhead, grid]
+      description: |
+        The city main leaves the Wharfside generation here, feeder cables lifting off the works onto cross-arms and running east up the quay — the head of the line the whole grid hangs from.
     river:
       keywords: [river, kestrel, water, confluence, delight]
       description: |

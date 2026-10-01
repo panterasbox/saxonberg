@@ -1,0 +1,43 @@
+# Marn Hesk — the oil works' hand. Holds the outfit's `hand` position
+# (`purchases: true`): dealt the house card at hire, then the `consigns` brain
+# drives the literal verbs — `get`, `wallet use house`, `consign … --ask` —
+# carrying casks to the cash-and-carry counter and consigning them AS the oil
+# works. The counter path is this config's, never the trade's.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Marn Hesk
+  keywords: [hand, marn, hesk, cooper, oil, works]
+  pronouns: they
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: ["marn", "hesk"]
+  shortDescription: "broad-handed oil works hand smelling of the still"
+  register: indefinite
+  longDescription: |
+    A broad-handed hand with oil worked permanently into the creases, who rolls a full cask the way most people push a barrow.
+  dispositions:
+    - { disposition: diligence, valence: 55 }
+  archetype: hand
+  competence:
+    - { discipline: colliery, asserting: novice }
+  behaviors:
+    - brain: /trade/shopkeeping/behavior/consigns
+      trigger: cadence:4m
+      config:
+        stock: /world/terminus/goods-yards/oilworks/thing/stock
+        shelf: /world/terminus/counting-houses/distributor/thing/counter
+        # A cask is heavy — a few to a walk, not a dozen loose goods.
+        batch: 4
+        ask:
+          # ⭐ Priced so a night of a gas-lit town's lighting (6 L at ~2/L)
+          # costs about what envelope's calibrated 4 × 3 streets did (12):
+          # a 40 L cask at 80 is 2 credits the litre, and the demand
+          # survives as a market price rather than a constant.
+          fuel:lamp-oil: 80
+    - brain: /lib/behavior/idles
+      trigger: cadence:41s
+      config:
+        pool:
+          - { kind: free, value: "sounds a cask with two knuckles and listens." }
+          - { kind: free, value: "wipes the oil off both hands onto an apron already black with it." }

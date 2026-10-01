@@ -26,6 +26,15 @@ data:
       noun: clerk
       label: staffing the ticket office
       wageRate: 4
+    # ⭐ The public-works commissioner (energy build): the Government's
+    # public-works seat points here. Vacant by default; the seat exists so the
+    # polity can fill it. `purchases` so a holder can run city works on the
+    # house card, like the valley's warden.
+    - key: works-foreman
+      noun: commissioner
+      label: keeping the city's grid and lamps
+      wageRate: 4
+      purchases: true
   # A BOUNDED daily shift (not [0,24]): the wage settles at the on->off
   # boundary, so the shift must close for the payout to fire. Weekdays 0-based;
   # hours a half-open [start, end) window.

@@ -1,0 +1,15 @@
+# The Oil Works — a fuel-trade producer's premises IN THE CITY (economic
+# bootstrap D6): the floor, the stock, the outfit and its hand sit under the
+# `goods-yards` district, where the committee that holds the ground is liable
+# when the outfit fails. The MECHANISM — the lamp-oil material and the cask —
+# stays with the fuel trade (`/trade/fuel`); these rows name it by path.
+# ⭐ This is the PRODUCER the street-lighting market was missing: it makes lamp
+# oil (spawned floor stock in this build; the crafted retort route is the
+# destructive-distillation build) and consigns casks to the cash-and-carry,
+# where a town's public-works department buys them. A sub-zone of its own so
+# the floor keeps its authored coords; the district zone is its parent.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Oil Works
+  cellSize: 3.0

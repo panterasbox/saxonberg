@@ -1,0 +1,43 @@
+# the Heart's Delight public works — the department that runs the valley's
+# street lighting, and (energy D12) the parish's TREASURY: its house account is
+# what the Government row names, filled by the local share of the sales tax on
+# trade in the valley, and spent buying lamp oil.
+#
+# A Business with one seat — the Warden of the Ways, `purchases: true` (dealt
+# the house card at hire, so `restocks` buys casks AS the department). Its
+# `parLines` name lamp oil in litres from the cash-and-carry distributor; the
+# warden posts the shortfall on the works board, and the carter or a player
+# fills it. Private supply, public service, the board the appeal.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the Heart's Delight public works"
+  # The committee over the valley's ground appoints the warden (as the city
+  # committee staffs the terminal). The roster pre-assigns the seat, so the
+  # warden is on shift regardless of who could appoint.
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus/hearts-delight
+  positions:
+    - key: warden
+      noun: warden
+      label: keeping the valley's ways lit
+      wageRate: 3
+      purchases: true
+  rosterSlots:
+    - positionKey: warden
+      assignee: /world/terminus/hearts-delight/public-works/agent/warden
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  # The valley keeps ~160 L of lamp oil on hand (four casks), bought from the
+  # cash-and-carry where the oil works consigns it.
+  parLines:
+    - category: lamp-oil
+      unit: L
+      level: 160
+      supplier: /world/terminus/counting-houses/distributor/idea/business
+      exemplar: /trade/fuel/thing/lamp-oil-cask
+  operatingLocations:
+    - /world/terminus/hearts-delight/public-works/location/yard
+    - /world/terminus/hearts-delight/public-works/thing/store

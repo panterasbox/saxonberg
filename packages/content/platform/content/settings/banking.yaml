@@ -19,6 +19,14 @@ settings:
   - key: banking.salesTaxRate
     value: "0.08"
 
+  # ⭐ Banking — the share of the sales tax that goes to the sale's covering
+  # LOCALITY (when it holds a treasury of its own) rather than the realm; the
+  # rest goes to the realm. This is what fills a town budget from real trade so
+  # the town can pay its own lighting bill (energy build D12). A dial the polity
+  # can move (governance tier C). 0 sends the whole tax to the realm.
+  - key: banking.localTaxShare
+    value: "0.5"
+
   # ⭐ No onboarding stipend (economic bootstrap D10): a newcomer ARRIVES
   # on their Arrival Note — `treasury.arrivalPrincipal`, advanced from the
   # treasury's account against a promise, not minted as a grant.

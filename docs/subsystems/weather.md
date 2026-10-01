@@ -551,6 +551,13 @@ for any new consumer: prefer the pull side, as wetness does.
   at all, not a harmless-but-heard one** — `runStormFanout`, like the
   boundary fan-out, is seeded from live Interactives, so an unvisited
   scope is never iterated and no `LightningStrike` is ever minted there.
+- **Storm-exposed occupants.** `runStormFanout` also calls `onStormExposure`
+  on each occupant of a stormed scope that composes the `StormExposed` duck
+  (`lib/weather/WeatherType.ts`) — the energy build's first consumer: an
+  **overhead** `LineAccess` pole rolls `energy.stormFaultRate` and severs its
+  feeder node on a hit, a **buried** manhole answers nothing. Same presence
+  gate as the strike: an empty scope's lines never fault. See
+  [energy.md](./energy.md).
 - **Light.** `AmbientLit` carries a transient cached **weather dim
   factor** (the `lastAmbientK` cache-invalidation precedent); the boundary
   fan-out stamps `1 - cloudDimFactor·cloud` onto SkyExposed AmbientLit

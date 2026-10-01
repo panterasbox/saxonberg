@@ -101,6 +101,28 @@
  *     same class as density and hardness (named above as not
  *     spoilers): a property of the thing, readable by handling it, and
  *     telling a good icebox from a bad one is the point of owning one.
+ *
+ * **Energy (3 fields).** All level 0, and the answer is that every one
+ * is PUBLIC INFRASTRUCTURE a person reads off the world or the record:
+ *
+ *   - `ParcelRecord.feeder` / `ParcelRecord.powerBand` — which grid node
+ *     meters a parcel and what electric posture it holds (off-grid /
+ *     domestic / commercial / industrial). This is the opposite of a
+ *     secret: `analyze grid` prints both to anyone standing in the
+ *     premises, and the whole epoch read (electric vs gas-lit) is built
+ *     to be derivable, never hidden. A line reaching your ground is a
+ *     thing you can see.
+ *   - `Locality._lightingSourceLabel` — the plain-words label for where a
+ *     town's street lighting comes from (*fed from the town's oil store*,
+ *     *drawn from the grid*). It exists to be shown; it is the civic
+ *     fact the derived-epoch read is about.
+ *
+ * **The NamedMixin unification (−2 fields).** The energy build's review also
+ * folded `Government` and `Brand` onto `NamedMixin` (the one proper-name
+ * surface), so `Government.displayName` and `Brand.name` left the snapshot:
+ * the name is `NamedMixin.name` now, already tracked here via the other
+ * composers. Both were level 0; nothing is newly surfaced, two lines are
+ * simply gone.
  */
 
 import { describe, it, expect } from 'vitest';

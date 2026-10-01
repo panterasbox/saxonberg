@@ -38,7 +38,7 @@ requires:
     # Under the realm root (economic bootstrap D5): the campus sits inside
     # the city, so its parcels' parent is the realm's committee.
     - { extent: /world/terminus/eternal/duncan-hall,       parentParcel: /world/terminus, holder: { group: duncan-hall } }
-    - { extent: /world/terminus/eternal/duncan-hall/dorms, parentParcel: /world/terminus/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
+    - { extent: /world/terminus/eternal/duncan-hall/dorms, parentParcel: /world/terminus/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential, powerBand: off-grid }
     # The campus farm and the home field (economic bootstrap, retrofit
     # step 3): the University's ground, held by its one group today — a
     # `campus` group is a rename the Compact can make.

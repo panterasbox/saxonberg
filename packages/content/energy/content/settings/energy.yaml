@@ -1,0 +1,18 @@
+# energy — application settings shipped by the energy pack (the `settings`
+# kind: merge-missing). The dial KEYS are declared in the kernel
+# `AppSettingKeys`; these seed their default values.
+settings:
+  # Watts a connected premises draws at each band — the kernel closes the band
+  # vocabulary, these price it. A feeder is `overdrawn` when the sum of its
+  # connected premises' ceilings exceeds its source's generation.
+  - key: energy.band.domesticW
+    value: "3000"
+  - key: energy.band.commercialW
+    value: "12000"
+  - key: energy.band.industrialW
+    value: "60000"
+
+  # The chance an overhead line faults when a storm is over the scope it stands
+  # in (presence-gated; buried lines are storm-safe and roll nothing).
+  - key: energy.stormFaultRate
+    value: "0.2"

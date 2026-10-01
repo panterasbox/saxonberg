@@ -14,6 +14,7 @@ import {
   type TitleGrantOutcome,
 } from "../../../lib/parcel/ParcelRecord";
 import type { LandUse } from "../../../lib/parcel/LandUse";
+import type { PowerBand } from "../../../lib/parcel/PowerBand";
 import type { GroupRef } from "../../../lib/social/GroupProvider";
 import type ParcelRegistry from "../ParcelRegistry";
 
@@ -74,6 +75,17 @@ export class ParcelLogic extends ApiLogic {
     return reg ? reg.landUseOf(path) : "wild";
   }
 
+  /** See {@link ParcelApi.powerOf}. */
+  @CallSecurity(ParcelApiCallers)
+  public powerOf(
+    path: string,
+  ): { band: PowerBand; feeder: string; parcel: ParcelRecord | null } {
+    const reg = lookupRegistry();
+    return reg
+      ? reg.powerOf(path)
+      : { band: "off-grid", feeder: "", parcel: null };
+  }
+
   /** See {@link ParcelApi.resolveOwnerRef}. */
   @CallSecurity(ParcelApiCallers)
   public async resolveOwnerRef(owner: ParcelOwner): Promise<GroupRef | null> {
@@ -102,6 +114,18 @@ export class ParcelLogic extends ApiLogic {
       );
     }
     return reg.parcelsOnReach(reachRef);
+  }
+
+  /** See {@link ParcelApi.parcelsOnFeeder}. */
+  @CallSecurity(ParcelApiCallers)
+  public async parcelsOnFeeder(feederRef: string): Promise<ParcelRecord[]> {
+    const reg = lookupRegistry();
+    if (!reg) {
+      return (await ParcelRecord.findAll()).filter(
+        (r) => r.getFeeder() === feederRef,
+      );
+    }
+    return reg.parcelsOnFeeder(feederRef);
   }
 
   /** See {@link ParcelApi.subdivide}. */
@@ -163,6 +187,16 @@ export class ParcelLogic extends ApiLogic {
   ): Promise<ParcelRecord | null> {
     const reg = lookupRegistry();
     return reg ? reg.citeReach(extent, reach) : null;
+  }
+
+  /** See {@link ParcelApi.citeFeeder}. */
+  @CallSecurity(ParcelApiCallers)
+  public async citeFeeder(
+    extent: string,
+    feeder: string,
+  ): Promise<ParcelRecord | null> {
+    const reg = lookupRegistry();
+    return reg ? reg.citeFeeder(extent, feeder) : null;
   }
 
   /** See {@link ParcelApi.grantUse}. */

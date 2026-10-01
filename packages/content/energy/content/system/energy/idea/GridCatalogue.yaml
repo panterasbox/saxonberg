@@ -1,0 +1,6 @@
+# The grid catalogue — the singleton that compiles every Feeder row into the
+# reachability set and holds the cuts. Resolved by `StuffApi.singleton`; carries
+# no authored data (everything derives from the Feeder rows). No hydratorClass:
+# there is nothing to hydrate.
+class: /system/energy/idea/GridCatalogue
+data: {}

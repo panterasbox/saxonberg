@@ -39,7 +39,7 @@ The meta-side committee concept lives on **`CompactApi`**
 ref:
 
 - `key` (the durable join — a `Locality` declares its government by
-  key), `displayName`, `description`;
+  key), `name` (the display name, from `NamedMixin`), `description`;
 - `charter` — a document-store path (pointer only in v1: nothing reads
   it yet, no StoredDocument is seeded — deferred);
 - `treasury` — a bank-account key (the city points at the shipped

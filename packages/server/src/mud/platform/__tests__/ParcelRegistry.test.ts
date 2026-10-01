@@ -109,6 +109,8 @@ function seedParcel(entry: {
   parentParcel?: string | null;
   landUse?: LandUse | null;
   areaM2?: number;
+  feeder?: string;
+  powerBand?: string | null;
 }): void {
   col("parcels").push({
     _id: `seed-${++idCounter}`,
@@ -120,6 +122,8 @@ function seedParcel(entry: {
     allowance: null,
     landUse: entry.landUse ?? null,
     area: entry.areaM2 ?? 0,
+    feeder: entry.feeder ?? "",
+    powerBand: entry.powerBand ?? null,
   });
 }
 
@@ -717,6 +721,127 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
     expect(ParcelApi.landUseOf("/world/terminus/general-store")).toBe(
       "commercial",
     );
+  });
+});
+
+describe("ParcelApi.powerOf — the meter read (energy build)", () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  it("answers a parcel's own band and feeder", async () => {
+    seedParcel({
+      extent: "/world/terminus/mayfield-row",
+      owner: { kind: "group", name: "terminus" },
+      landUse: "residential",
+      feeder: "terminus-main:mayfield",
+      powerBand: "domestic",
+    });
+    await boot();
+
+    const p = ParcelApi.powerOf("/world/terminus/mayfield-row");
+    expect(p.band).toBe("domestic");
+    expect(p.feeder).toBe("terminus-main:mayfield");
+  });
+
+  it("⭐ inherits the band and feeder from a covering parcel", async () => {
+    seedParcel({
+      extent: "/world/terminus/mayfield-row",
+      owner: { kind: "group", name: "terminus" },
+      landUse: "residential",
+      feeder: "terminus-main:mayfield",
+      powerBand: "domestic",
+    });
+    await boot();
+
+    // A room inside the parcel with no row of its own.
+    const p = ParcelApi.powerOf("/world/terminus/mayfield-row/seznick-house/lobby");
+    expect(p.band).toBe("domestic");
+    expect(p.feeder).toBe("terminus-main:mayfield");
+  });
+
+  it("⭐ a band and a feeder may inherit from DIFFERENT levels", async () => {
+    // The district cites the feeder; the lot declares the band.
+    seedParcel({
+      extent: "/world/terminus/mayfield-row",
+      owner: { kind: "group", name: "terminus" },
+      feeder: "terminus-main:mayfield",
+    });
+    seedParcel({
+      extent: "/world/terminus/mayfield-row/seznick-house",
+      owner: { kind: "group", name: "terminus" },
+      parentParcel: "/world/terminus/mayfield-row",
+      powerBand: "domestic",
+    });
+    await boot();
+
+    const p = ParcelApi.powerOf("/world/terminus/mayfield-row/seznick-house");
+    expect(p.band).toBe("domestic"); // its own
+    expect(p.feeder).toBe("terminus-main:mayfield"); // the district's
+  });
+
+  it("⚠ ground nothing reaches or declares reads off-grid with no line", async () => {
+    await boot();
+    const p = ParcelApi.powerOf("/world/nowhere");
+    expect(p.band).toBe("off-grid");
+    expect(p.feeder).toBe("");
+  });
+
+  it("off-grid is a first-class declaration, not the absence of one", async () => {
+    seedParcel({
+      extent: "/world/terminus/hinkley-hills",
+      owner: { kind: "group", name: "hinkley" },
+      landUse: "residential",
+      powerBand: "off-grid",
+    });
+    await boot();
+    expect(ParcelApi.powerOf("/world/terminus/hinkley-hills/lot-1").band).toBe(
+      "off-grid",
+    );
+  });
+
+  it("⭐ parcelsOnFeeder indexes the citing rows", async () => {
+    seedParcel({
+      extent: "/world/terminus/mayfield-row",
+      owner: { kind: "group", name: "terminus" },
+      feeder: "terminus-main:mayfield",
+    });
+    seedParcel({
+      extent: "/world/terminus/counting-houses",
+      owner: { kind: "group", name: "terminus" },
+      feeder: "terminus-main:mayfield",
+    });
+    seedParcel({
+      extent: "/world/terminus/wharfside",
+      owner: { kind: "group", name: "terminus" },
+      feeder: "terminus-main:bank",
+    });
+    await boot();
+
+    const on = await ParcelApi.parcelsOnFeeder("terminus-main:mayfield");
+    expect(on.map((r) => r.getExtent()).sort()).toEqual([
+      "/world/terminus/counting-houses",
+      "/world/terminus/mayfield-row",
+    ]);
+  });
+
+  it("citeFeeder writes and reindexes", async () => {
+    seedParcel({
+      extent: "/world/terminus/registry",
+      owner: { kind: "group", name: "terminus" },
+    });
+    await boot();
+
+    await withRootContext(null, "test", () =>
+      ParcelApi.citeFeeder("/world/terminus/registry", "terminus-main:square"),
+    );
+    expect(ParcelApi.powerOf("/world/terminus/registry").feeder).toBe(
+      "terminus-main:square",
+    );
+    const on = await ParcelApi.parcelsOnFeeder("terminus-main:square");
+    expect(on).toHaveLength(1);
   });
 });
 

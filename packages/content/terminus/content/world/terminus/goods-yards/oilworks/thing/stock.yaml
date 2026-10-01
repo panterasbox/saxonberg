@@ -1,0 +1,21 @@
+# the oil works' stock — the Stock the floor product (lamp-oil casks) spawns
+# INTO (the cask row's `container:`). No `stockLines` (the spawn sweep is the
+# faucet, never a reset), no prices (nothing is sold here — the hand carries
+# the casks to the cash-and-carry and consigns them).
+class: /trade/shopkeeping/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "oil works stock"
+  keywords: [stock, casks, oil, pallet]
+  register: definite
+  longDescription: "Rows of iron-hooped casks on their sides in a rack, and the sharp clean smell of the still."
+  # A heavy oak cask-rack (states a material so it carries mass — lint:mass;
+  # the older Stock rows predate the gate and are its ceiling).
+  _materialPath: /stuff/idea/material/wood/oak
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /world/terminus/goods-yards/oilworks/idea/outfit
+  stockLines: []
+  prices: {}

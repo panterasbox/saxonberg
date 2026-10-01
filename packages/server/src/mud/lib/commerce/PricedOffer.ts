@@ -146,7 +146,7 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
           return { paid: false, note: null };
         }
       }
-      await BankingApi.remitDemoTax(venueAccount, money);
+      await BankingApi.remitDemoTax(venueAccount, money, venue ?? undefined);
       return {
         paid: true,
         note: receipt.corpoKey

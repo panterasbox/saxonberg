@@ -6,6 +6,9 @@
 > [logistics.md § Routing](../../subsystems/logistics.md) holds the
 > standing decision *no general pathfinding Api yet — promote the walk
 > when a second edge set needs search*.
+> ⭐ **Partly superseded 2026-10-01** — [location-graph-slate](./location-graph-slate.md)
+> answers question 3 (*where it lives*) and supplies the graph, the cost
+> field (`edgeMinutes`, already on 85 edges) and a third consumer.
 > **Left:** ⭐⭐ decide whether a shared pathfinder should exist at all
 > (the pets build concluded *not for animals*; the economic bootstrap
 > concluded *not for a shopkeeper crossing her own street* — see the
@@ -127,6 +130,47 @@ Three things this adds to the questions below:
 
 ---
 
+## ⭐⭐⭐ Read at `c60280b5e` (2026-10-01) — `planRoute` is to be REPLACED
+
+> **User: "planRoute is garbage I want to replace all of that."**
+
+So this slate is no longer *"should a shared pathfinder exist"* — one of the
+three census entries is being rewritten regardless. What the read turned up,
+in full at
+[location-graph-slate § 18](./location-graph-slate.md):
+
+**⛔ Why it needs replacing:**
+
+| | |
+|---|---|
+| ⛔⛔ **single-lane only** | `planRoute(from, to, **laneKey**)` resolves one lane and refuses if `from` is not on it. **It cannot plan a journey that changes lanes** |
+| ⛔ **no cost function** | plain BFS, shortest in **legs**. `edgeMinutesBetween` exists, is a separate method for *reporting*, and **the search never consults it** — so question 2 below is not partly done, it is **not started** |
+| ⛔⛔⛔ **omniscient** | it plans against **the world's** conditions, which makes it a **spoiler** — live intel nobody earned |
+| ⚠ | **no admission predicate in the search.** `canTraverse` is consulted at the *traverse*, never at the *plan* |
+
+**⭐ What must survive it:**
+
+1. ⭐⭐⭐ **Conditions reach a router by GRAPH RECOMPILATION, not in-search
+   checks.** `FordExit` sets `blocked` from a cached water reading and *"the
+   lane compile **drops the edge**"*. An unweighted search over a *current*
+   graph is correct; a condition-checking search is the wrong shape.
+2. ⭐⭐⭐ **`refreshCrossing()` is a by-shape refresh protocol** — the compile
+   calls it on *"any exit that has one"*, so a seasonal pass or a tidal
+   causeway plugs in with **zero router changes.** This is the extension
+   seam and it already works.
+3. ⭐⭐ **`FordExit`'s restraint** — it invents nothing, asks watershed for
+   *"the same number `measure` reads"*, and reads the water pack **by shape,
+   never by import** (no water pack → the ford is simply always passable).
+4. ⭐ **"The number belongs to the ground"** — `edgeMinutes` lives on the
+   **exit**, not the lane, *"because two lanes share edges — the towpath is
+   walked and barged."*
+
+**⭐⭐⭐ And the requirement the replacement must meet:** it must be able to
+plan from **the player's map** rather than from the world — otherwise it is
+a spoiler and map annotation is pointless. ⭐⭐ *"The route states its
+assumptions"* then costs nothing: **the assumption list is the diff between
+the two plans.**
+
 ## If it is built anyway — the questions it must answer
 
 1. **Which graph.** Rooms-via-exits and the compiled lane network are
@@ -144,6 +188,22 @@ Three things this adds to the questions below:
    — the graph is made of rooms, so the node owning the question is
    defensible — or a value object in `lib/`, which then meets the
    `lint:lib-statics` ceiling.
+
+   > ⭐⭐⭐ **ANSWERED, 2026-10-01, by
+   > [location-graph-slate](./location-graph-slate.md).** A persisted exit
+   > index is keyed on **paths — strings, not Stuff** — so
+   > `NavigationApi.routeBetween(a, b)` is **not subject-first and the lint
+   > never fires.** `NavigationApi` is already the string-keyed direction
+   > table over a hot-reloadable logic singleton. The blocker was an
+   > artifact of searching the *live* graph; searching an *index* dissolves
+   > it.
+   >
+   > ⭐⭐ And it adds a **third consumer** — the map — which is the first one
+   > that wants the whole graph rather than a local walk, and so bears
+   > directly on question 5 below. It also hands level-1 search for free:
+   > the index's `{crossesZone: true}` set **is** the inter-zone skeleton
+   > (HPA\*), because our world is localities with authored both-sided
+   > boundaries.
 4. **Cost at runtime.** A per-beat search across a live world is a very
    different bill from a compiled adjacency set consulted once.
    Transport compiles its lanes for exactly this reason.
