@@ -391,6 +391,14 @@ vocabulary is the point:
 | ⭐ **TPA, not registered** | present, refused, *"not yet registered"* |
 | **concealed & undiscovered** | ⛔ **absent** — see below |
 
+> ⭐ **Decided: marker inline, reason on focus.** Every arm carries its
+> **state marker always**, so *refused* is never mistaken for *absent* —
+> that distinction is the whole value of the rose and it cannot be behind a
+> hover. The **sentence** (*"the gate is for the gown"* · *"nothing later
+> than medieval"* · *"not yet registered"*) arrives **on focus**, which
+> keeps ten arms readable and is reachable by keyboard rather than
+> mouse-only.
+
 > ⭐⭐⭐ **A rose that renders *locked* differently from *no exit* IS the
 > standing rule — the refusal is the progression UI.** *"If something lifts
 > it, the verb must EXIST so you can be told."* This is that rule as
@@ -509,11 +517,11 @@ undetected for a whole build with five green tests over it.
    cell** (`▲`/`▼`/both). The stacked isometric still lands in wave 3 as the
    richer view, but the glyph is the wave-1 answer and it is not
    provisional.
-10. ⚠ **Does the rose show a covenant refusal's REASON inline, or on
-   hover?** Inline is honest and gets noisy fast with ten arms; hover hides
-   the most interesting thing on the card. Probably a marker inline and the
-   reason on focus — but it is the one place the rose could become
-   unreadable.
+10. ~~**Does the rose show a refusal's reason inline or on hover?**~~
+   ⭐ **DECIDED — marker inline, reason on focus.** The arm carries a state
+   marker always (so *refused* is never mistaken for *absent*); the sentence
+   arrives on focus. Keeps ten arms legible and keeps the refusal
+   un-hideable.
 9. ⭐ **Does the zone-level graph expose the composition inconsistency to
    players, or only to the lint?** A realm whose zones cannot be laid out
    consistently is a genuine fact about the world; showing it is either
