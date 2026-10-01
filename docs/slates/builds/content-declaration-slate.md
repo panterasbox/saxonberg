@@ -8,7 +8,9 @@
 > **Left:** the declaration schema itself (the field list) · the
 > **covenant row** (per-locality restriction + its enforcement mode) ·
 > `Epoch`'s first reader · **drift measurement** as a mirror · the
-> aether-carrier ladder · the solvability check
+> aether-carrier ladder · ⭐ the **network schedule as a takeable prop**
+> (§6.3 — the one squarely buildable item here) · night as a **shift
+> change** rather than a description (§1) · the solvability check
 > **Size:** several builds; the covenant row is the smallest useful one
 
 **Captured 2026-10-01**, out of a long reading of the EotL corpus
@@ -72,6 +74,72 @@ doctrine pointed at content. **Drift is information before it is an
 offence.**
 
 ---
+
+### ⛔⛔⛔ The opposite failure — deriving something that was never derivable
+
+**Night is the worked example, and it is ours, not EotL's.**
+
+EotL offered authors a `night_long` field — a whole second room
+description — and **89% left it blank** (1,851 against `day_long`'s
+16,609). We removed the field and derive the night from light, weather and
+biome. ⚠ **That was first written up here as "the one place we are
+unambiguously ahead by design," and that claim is withdrawn.**
+
+> ⛔⛔⛔ **Deriving prose from physics will only ever produce physics.** You
+> cannot derive *"a certain element comes out"* from a lux reading, because
+> the element coming out is **a decision by a population**, not a property
+> of the illumination.
+
+The owner's argument, which is the correction: *"the light levels,
+temperature, those things you can read off a meter are not the most
+interesting parts of night time. It's that the world actually changes from
+day to night **culturally and sociologically**. When the sun goes down
+businesses close, people go home, a certain element comes out. If you've
+ever watched a protest turn into a riot it always happens when the sun goes
+down. **Why? People could just as easily riot during the day, they just
+don't.**"*
+
+**The mistake was a category move**: night got relocated from the narrative
+layer to the sensor layer and the relocation was scored as an upgrade.
+`night_long` was mostly unused, but it pointed at the **right layer** —
+which is a better failure than pointing at the wrong one.
+
+**Three layers, and the middle one is the one we have machinery for and use
+for nothing:**
+
+| | layer | where it lives |
+|---|---|---|
+| 1 | **physics** — light, temperature, weather, visibility | **derived.** We have this and it is right |
+| 2 | ⭐⭐⭐ **population and commerce** | **derived from institutions, not from the sky** |
+| 3 | ⭐⭐ **a prose delta** — one authored clause, never a second description | `prose.md`'s templating; no convention yet |
+
+⭐⭐⭐ **Layer 2 is the answer.** *"Businesses close at night"* is a property
+of **the business**, not the street — [employment.md](../../subsystems/employment.md)
+has shifts and rosters, so **give a shift hours and the avenue derives
+"the doors along it are shut and dark" for free, and the author wrote hours
+rather than prose.** *"A certain element comes out"* is a **night cadence**
+([behavior.md](../../subsystems/behavior.md)) moving NPCs into the street —
+and room rendering already shows contents, so **a different night
+population reads differently with no authored word.**
+
+⭐⭐⭐ **And the danger is emergent rather than declared.**
+[concealment.md](../../subsystems/concealment.md)'s bands are keyed to
+light; [accountability.md](../../subsystems/accountability.md) derives
+blame **from witnesses.** Fewer people plus worse visibility is a thinner
+witness record — **which is why it actually happens after dark.** The
+sociology falls out of the epistemics.
+
+> **Night is not a description. It is a shift change.** Authored at the
+> institution, where it is cheap and non-redundant — which also explains
+> the 89%: the field asked for a **duplicate paragraph** when what changes
+> is **who is there**.
+
+⚠ **What none of that gets you is the cultural fact itself** — that *this*
+town's nightfall means something particular, that the gown goes in and
+something else comes out. That stays authored, and it belongs on the
+**locality**, not the room: **one declaration about what nightfall means
+here**, from which the shifts and cadences follow. ⭐ A declaration-form
+field nobody had thought of.
 
 ## 2. Boundary conditions — the five shapes, and which two to use
 
@@ -319,6 +387,125 @@ on/off. *Detail, not access*, one more time.
 
 ---
 
+## 6. ⭐⭐⭐ Getting players to new content — the publishing politics
+
+**EotL's hub problem, in the owner's words:** Eternal City was the default
+start location and most players never changed it, so a wizard wanted their
+area attached to the hub. There are only so many spokes. After that you
+either teleport the player or attach somewhere else off the hub — and
+*"most wizards want their areas as accessible as possible, especially when
+they're first published."*
+
+> ⚠ *"It's actually a little bit of a poison pill. I feel like new content
+> should be more organic and if that means discovery takes a while in the
+> general player base that's the cost of admission. **But that doesn't
+> really work** — what would happen here is committees would start
+> negotiating with each other for inter-zone connections between their
+> content, and the popular content committees have leverage. **Maybe all
+> this is a feature not a bug; our game is after all inherently very
+> political.**"*
+
+**Publishing new content is a workflow we are establishing by design, so
+this needs its own conversation.** What is decided already:
+
+### 6.1 ⛔⛔ No portable teleporters
+
+An object you carry that teleports you to a location: **(1)** breaks
+immersion, **(2)** doubles as an **escape vector when in peril**, and
+**(3)** cheapens what the TPA offers. **Teleporting happens between fixed
+locations.** The one exception is **spells**, which travel with you by
+design — and the kernel already forks that way (*free-in-your-extent and
+the anchored spell are kernel forks*; see
+[fasttravel.md](../../subsystems/fasttravel.md)).
+
+⭐ This is the historical reason the TPA exists at all: old Eternal City
+accumulated dozens of fixed teleport objects plus portable ones that crept
+in, and the TPA was designed as the **general solution to entry objects for
+new content.**
+
+### 6.2 ⭐⭐⭐ Discovery and authorisation are two problems, not one
+
+The TPA's apparent bootstrap — *you must reach a node by normal locomotion
+and scan to register before you can teleport there* — reads as a
+chicken-and-egg only if the two are merged. EotL solved them separately:
+
+| | mechanism | requires locomotion |
+|---|---|---|
+| **discovery** | a **carried document** — free, weightless, the whole network | **no** |
+| **authorisation** | scan your card at the **arrival** console | **yes, always** |
+
+> **And the second one is correct.** The first trip to anywhere is supposed
+> to be a journey. **The schedule is what makes you want to make it.**
+>
+> ⚠ Note this forecloses a pre-authorising "ticket": our clearance is
+> **identity-bound by design** (*"the card is an instrument, not a
+> passport… confers no clearance they didn't already hold on their own
+> identity"*), which is right — otherwise travel access is lootable. If a
+> pre-authorisation is ever wanted, it must be **a grant written onto an
+> identity by an authority** — named, recorded, revocable — not a bearer
+> token.
+
+### 6.3 ⭐⭐⭐ The gap: a network schedule, as a takeable thing
+
+We have a **departures board** (`renderDepartures`: this node's routes,
+viewer-aware, fares, now-boarding, "not yet registered"). We have the
+principle — ***a timetable is public; a ticket is not***. **We do not have
+the artifact.**
+
+EotL's `zone/null/toys/tpa/schedule.c` is a **takeable pamphlet**
+(`gettable`, weight 20, value 10) with two modes:
+
+- **`schedule`** — an **origin-destination fare matrix**: departure
+  stations as rows, arrival stations as two-letter columns, the price in
+  each cell, `--` where no route exists, under a legend mapping codes to
+  names. ⭐⭐ **It reflows to the reader's terminal width**
+  (`perpage = (width - dwidth - 2) / 3`), paginating the columns.
+- **`schedule <station>`** — that station's detail: **its own room
+  description** (`ROOMDAEMON->format_long(room->query("day_long"))`), every
+  fare from it, and its timetable — normalised so a cyclic schedule reads
+  as a day (wraps `2400`→`0`, prepends the previous day's tail when the
+  first entry is not midnight).
+
+⭐ `fix_prices` re-reads every fare through `TPAServer->get_real_price()`,
+so the pamphlet shows the **true** price after the arrival station's
+reserve floor — **a departure console cannot lie to it.**
+
+⭐⭐ And `drop()` → *"A gust of wind picks up the schedule and blows it
+away."* then destructs. **Free, takeable, disposable, unhoardable, and the
+world never fills with litter.**
+
+> ⭐⭐⭐ **You learn that a place exists, what it costs, what it looks like
+> when you arrive, and when the console swings to it — before you have ever
+> been.** That is the discovery half, solved by a prop.
+
+**Everything it needs already exists** on our side: routes, fares,
+`departures` timetables, `boardLabel`, `advanceMode`. **Left:** the
+network-wide read (today's board is node-local), the fare matrix
+rendering, per-station detail including the destination's own description,
+and the disposable-prop lifecycle.
+
+### 6.4 ⭐⭐⭐ And the schedule is the adoption incentive the TPA never had
+
+EotL's TPA shipped **20 station objects, ~16 destinations** — the owner's
+recollection of *"a dozen or two at the most"* was exact — against dozens
+of bespoke entry objects. `tpa.doc` says why: *"that station should be
+added to **an array of autoloaded stations in the TPA server**… Another
+object, such as a room, could theoretically be responsible for loading the
+console, but then **the station would be offline until the room was loaded
+by a wandering mortal.**"*
+
+> ⛔⛔ **Joining the network cost a kernel list edit. An entry object cost
+> nothing.** The general solution was more expensive to adopt than the thing
+> it replaced, and it arrived late on top of that.
+>
+> ⭐⭐⭐ **But an entry object buys traffic from one room; a station buys a
+> line in every schedule in the game**, permanently, in everyone's pocket.
+> **The pamphlet was the carrot and `TPAStations` was the stick.** Our pack
+> doctrine already bans the stick (*a pack must never need a kernel list
+> edit*), so the warm-roster problem is ours to solve — and **we need the
+> carrot, or station adoption loses to whatever the cheap alternative turns
+> out to be.**
+
 ## Open questions
 
 1. ⭐⭐⭐ **What is on the declaration form?** First guess at the
@@ -345,3 +532,17 @@ on/off. *Detail, not access*, one more time.
    obtainable inside it?* Morpheus asked volunteers for it in 1999 because
    no tool existed; it is the difference between Riddler's Quest and the
    Snipe Hunt, and we do not have it either.
+6. ⭐⭐⭐ **What does publishing new content look like, politically?** §6 has
+   the decisions and not the workflow. The owner's own framing is that
+   committees will negotiate inter-zone connections and **the popular
+   committees have leverage** — and that this may be *"a feature not a
+   bug."* The question is whether placement is a **grant** (somebody with
+   standing decides), a **market** (connections are traded), or a
+   **commons** (anyone may join the network and the schedule does the
+   rest). ⭐ §6.4 argues the third is cheapest *if* joining costs nothing,
+   which is the opposite of how EotL priced it.
+7. ⭐⭐ **Does a locality declare what nightfall means there?** §1 argues
+   layers 1 and 2 derive and only the cultural fact is authored. If so it
+   is a form field — and the first one discovered by finding the
+   derive/declare line drawn in the *wrong* place rather than the right
+   one.
