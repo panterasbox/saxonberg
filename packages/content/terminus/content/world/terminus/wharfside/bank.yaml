@@ -93,6 +93,8 @@ data:
     # ⭐ The river's edge — the water pack's `Shore`, and what makes the
     # bank fishable: the city's Locality declares no reach (fishing D15).
     - /world/terminus/wharfside/thing/river-edge
+    # ⭐ The grid's first pole off the Wharfside generation (energy build).
+    - /world/terminus/wharfside/thing/pole
   cast:
     - /world/terminus/wharfside/agent/fisher
   details:

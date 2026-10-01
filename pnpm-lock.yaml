@@ -802,6 +802,9 @@ importers:
       '@saxonberg/content-distribution':
         specifier: workspace:*
         version: link:../distribution
+      '@saxonberg/content-energy':
+        specifier: workspace:*
+        version: link:../energy
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
@@ -1684,6 +1687,9 @@ importers:
 
   packages/content/world-seed:
     dependencies:
+      '@saxonberg/content-energy':
+        specifier: workspace:*
+        version: link:../energy
       '@saxonberg/content-ground':
         specifier: workspace:*
         version: link:../ground

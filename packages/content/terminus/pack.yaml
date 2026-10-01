@@ -35,25 +35,25 @@ requires:
     # a player's estate escheats UP it, so every district names this as
     # its parent. The realm committee and the city committee are one
     # group until the Compact subdivides — deliberately.
-    - { extent: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: commercial, feeder: terminus-main:square }
     # The Terminus municipality's ground.
-    - { extent: /world/terminus/terminal,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
-    - { extent: /world/terminus/counting-houses, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
-    - { extent: /world/terminus/general-store,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/terminal,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:crossing }
+    - { extent: /world/terminus/counting-houses, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
+    - { extent: /world/terminus/general-store,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
     # The farmers market — the produce square off the counting-houses.
-    - { extent: /world/terminus/market,          parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
-    - { extent: /world/terminus/registry,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/market,          parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:square }
+    - { extent: /world/terminus/registry,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue }
     # University Avenue — the city street the campus gate fronts. Civic
     # like every other public street the municipality keeps.
-    - { extent: /world/terminus/university-avenue, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/university-avenue, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:crossing }
     # Mayfield Row (residences D9): the municipality holds the street;
     # the private landlord holds the building the units subdivide under.
-    - { extent: /world/terminus/mayfield-row, parentParcel: /world/terminus, holder: { group: terminus }, landUse: residential }
-    - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential }
+    - { extent: /world/terminus/mayfield-row, parentParcel: /world/terminus, holder: { group: terminus }, landUse: residential, powerBand: domestic, feeder: terminus-mayfield:mayfield }
+    - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential, powerBand: domestic, feeder: terminus-mayfield:mayfield }
     # The land agents' shopfront (residences D14). Commercial, and the
     # municipality's like the rest of the built city — the office SELLS
     # ground, it does not own the ground it sells.
-    - { extent: /world/terminus/realty, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/realty, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
     # ⭐ The two corridors (logistics D18/D20): a road corridor is
     # SUBDIVIDED AS ITS OWN PARCEL, so the road across somebody's flats
     # is the road's ground and not theirs — which is what makes
@@ -64,7 +64,7 @@ requires:
     # `civic` — "offices, parks and THE COMMONS" — is the public highway.
     # The estuary towpath is the city's own working waterfront and is
     # kept by the municipality like any other street.
-    - { extent: /world/terminus/estuary, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/estuary, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
     # ⚠ `wild` — "unserviced ground: PASSAGE and gathering only" — is the
     # Delight road, which crosses ground nobody's municipality maintains.
     # The civic/wild split IS the toll-versus-obstruction distinction
@@ -77,10 +77,10 @@ requires:
     # workshop district (the mill and the dyehouse); the goods yards hold
     # the producers' floors; the infirmary and the necropolis are the
     # city's civic ground.
-    - { extent: /world/terminus/wharfside,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial }
-    - { extent: /world/terminus/goods-yards, parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial }
-    - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
-    - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/wharfside,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
+    - { extent: /world/terminus/goods-yards, parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
+    - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue }
+    - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
 boot:
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
   - { template: /world/terminus/mayfield-row/idea/agency, role: producer, reason: "Mayfield Holdings — the letting agency; lease/unlease ask whether the actor holds its agent position, read off the authored roster" }

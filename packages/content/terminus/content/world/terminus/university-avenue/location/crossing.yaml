@@ -120,5 +120,6 @@ data:
     - /world/terminus/university-avenue/thing/camp-chair
     - /world/terminus/university-avenue/thing/beacon
     - /world/terminus/university-avenue/thing/gutter-litter
+    - /world/terminus/university-avenue/location/thing/pole
   cast:
     - /world/terminus/university-avenue/agent/gus

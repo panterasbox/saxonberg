@@ -1133,9 +1133,26 @@ Acceptance: `lint:verb-collisions`, `lint:arg-kinds`, `lint:binder-models`,
 Commit: `build(energy B2): a thing is powered because its parcel's line is
 live; the pole where the lineman goes; analyze grid`.
 
-#### B3 — Terminus goes electric; every premises declares
+#### B3 — Terminus goes electric; every premises declares ✅ DONE
 
 Implements D5 (rows), D11, D15 (ratchet to zero).
+
+> **Done (commit `build(energy B3)`).** `Feeder` rows (world-seed):
+> `terminus-main` (source = the Wharfside aqueduct-house; nodes bank→square→
+> avenue→crossing, all directly exit-adjacent — verified) + `terminus-mayfield`
+> spur (branchesFrom `terminus-main:avenue`). Five `LineAccess` poles propped in
+> those streets. The 15 Terminus premises claims gained `powerBand` + `feeder`
+> (root `commercial`/`terminus-main:square`; wharfside/goods-yards `industrial`/
+> `:bank`; mayfield/seznick `domestic`/`terminus-mayfield:mayfield`; estuary/
+> necropolis `off-grid`). Hinkley (2) + eternal dorms → `off-grid`. The
+> `seznick-house/lobby` hall-light (`ElectricLight`, on, flux 800). terminus-city
+> Locality `_publicLighting` migrated to `supply: GridCatalogue, cost 0` (the
+> general-store placeholder role ends); a `public-works` seat on the budget +
+> a vacant `works-foreman` position. ⭐ **`lint:power-posture` ceiling → 0**
+> (census was 18). ⚠ **lint:census needed teaching:** Feeder's `source` is a new
+> path field `refsOf` didn't read — added it (so the generator path is verified).
+> deps: world-seed + terminus now depend on content-energy (the capability rung).
+> All 59 gates green; energy + terminus suites green. **Live verification is B4.**
 
 Files:
 - `world-seed/content/stuff/idea/Feeder/terminus-main.yaml` — `source:

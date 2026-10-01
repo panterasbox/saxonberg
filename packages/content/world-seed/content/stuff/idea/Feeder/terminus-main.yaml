@@ -1,0 +1,16 @@
+# The Terminus main — the radial feeder from the Wharfside generation down
+# through the city. Source-first; a cut at a node darkens it and everything
+# below. Each consecutive pair stands on streets a direct exit joins (the
+# compile verifies it): bank↔square, square↔avenue, avenue↔crossing.
+class: /system/energy/idea/Feeder
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: terminus-main
+  name: the Terminus main
+  source: /world/terminus/wharfside/thing/aqueduct-house
+  branchesFrom: null
+  nodes:
+    - { name: bank, at: /world/terminus/wharfside/bank }
+    - { name: square, at: /world/terminus/market/square }
+    - { name: avenue, at: /world/terminus/counting-houses/avenue-block }
+    - { name: crossing, at: /world/terminus/university-avenue/location/crossing }

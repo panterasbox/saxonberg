@@ -102,5 +102,9 @@ data:
   # the index (economic bootstrap D20). A declared designation: the troupe
   # rides `cast:`, and the room is a `boot:` producer so she prints with
   # nobody reading.
+  props:
+    # ⭐ The avenue pole (energy build) — the lineman's access to the main's
+    # busiest node; severing here darkens the crossing, Mayfield and the lamps.
+    - /world/terminus/counting-houses/thing/pole
   cast:
     - /world/terminus/gazette/agent/editor

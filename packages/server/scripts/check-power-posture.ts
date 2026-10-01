@@ -36,7 +36,7 @@ import YAML from 'yaml';
  * ⚠⚠ The ratchet. Set to the census count when this gate landed (B0). It may
  * FALL — re-pin it in the same commit — and it may never rise. B3 drives it to 0.
  */
-export const POWER_POSTURE_CEILING = 18;
+export const POWER_POSTURE_CEILING = 0;
 
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');
