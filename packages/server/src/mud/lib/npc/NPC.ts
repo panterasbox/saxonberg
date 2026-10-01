@@ -6,7 +6,7 @@
  *
  * Keeping `Behaved` on this subclass — rather than on base `Character` —
  * keeps automated behavior **off player Avatars** (which extend
- * `Shell`, not `NPC`) and off the base. Cast templates set
+ * `ShelledCharacter`, not `NPC`) and off the base. Cast templates set
  * `class: /lib/npc/NPC` and compose behavior entirely as data; no
  * per-NPC subclass is needed (see docs/subsystems/behavior.md).
  *

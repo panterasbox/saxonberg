@@ -838,7 +838,7 @@ Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   │                 ├── Beast      an animal: it has a brain, it is nobody
   │                 ├── KeptAnimal an animal somebody keeps
   │                 └── Character  a body that is SOMEBODY
-  │                       └── Shell      + a full command line
+  │                       └── ShelledCharacter  + a command line
   │                             └── Avatar   (abstract) a human drives it
   │                                   ├── PrimaryAvatar  the one you play
   │                                   ├── ShadeAvatar    the dead one
@@ -965,10 +965,24 @@ See [pets.md](./subsystems/pets.md). `Character` has two branches: the
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
 which keeps `Behaved` off players.
 
-⭐⭐ **The Avatar family** is `Character → Shell → Avatar`, with three
-concrete bodies. `Shell` (`lib/shell/Shell.ts`, was `ShelledCharacter`)
-is the command-line rung — *aliases, settings, focus, a workspace,
-authoring*: things an NPC has no use for. `Avatar`
+⭐⭐ **The Avatar family** is `Character → ShelledCharacter → Avatar`,
+with three concrete bodies. `ShelledCharacter`
+(`lib/shell/ShelledCharacter.ts`) is the command-line rung — *aliases,
+settings, focus, a workspace, authoring*: things an NPC has no use for.
+
+⚠ **It keeps its name, and the near-miss is worth recording.** The
+avatar-family build renamed it `Shell` for one wave and reverted:
+*shell* is a capability bundle, not a kind of body, so a bare `Shell`
+reads as a mixin — and the class composes **five**. It also collided
+three ways: with `lib/shell/`, the directory of mixins it lives in;
+with `ShellApi`, which is the settings facade and NOT this class's Api
+despite the mirror convention; and with
+[holding.md](./subsystems/holding.md)'s **closed** vocabulary, where a
+*shell* is a dwelling's structure (`shellCondition`, `shellStamp`,
+`landlord-shell`). ⭐ Exactly the three-meanings problem that got
+`WireBody` renamed, one rung up. `ShelledCharacter` was already
+conformant — an adjectival modifier on a noun, like
+`SingletonCartesianLocation` — and it says what an instance IS. `Avatar`
 (`lib/character/Avatar.ts`) is **abstract** and adds *a human is on the
 other side*; nothing instances it.
 

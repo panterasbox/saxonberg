@@ -105,7 +105,7 @@ cockpit method touches `interactives` except `pushClientStateUpdate`
 ### The family
 
 - `platform/agent/Avatar.ts` (1,649 lines). Composition :163–204 —
-  thirteen mixins over `NamedMixin(Shell)`;
+  thirteen mixins over `NamedMixin(ShelledCharacter)`;
   `HasInteractiveMixin` at :167. `fieldMeta` :302–308 declares
   `mortalArc`, `lastSeen`, **`escheatedAt`, `beneficiary`** (:305–306;
   fields + accessors :316–340). `playerId` :655 is `protected`,
@@ -139,7 +139,7 @@ cockpit method touches `interactives` except `pushClientStateUpdate`
   differences. `shouldPersist` :119–121 is **claimed by
   `docs/plans/sandbox-overlay-plan.md` W3** (:713–749 there) — this
   build does not touch it, nor `startAutoSave` :135.
-- `lib/shell/Shell.ts` (46 lines): abstract, empty body, five
+- `lib/shell/ShelledCharacter.ts` (46 lines): abstract, empty body, five
   mixins, one consumer. 31 references in 22 files, 21 of them docs or
   comments; code references: `Avatar.ts:13`, `lib/npc/NPC.ts`,
   `lib/command/validators/requiresPublisher.ts`, `lib/command/Focused.ts`,
@@ -903,7 +903,7 @@ protected; the `@hook` on `announceSessionPresence` intact; `test:near`
 Done. The owner settled the set (§ Naming); the rename was mechanical
 and landed in a commit that changes no behaviour.
 
-> **Note for the reader who has forgotten.** `ShelledCharacter → Shell`,
+> **Note for the reader who has forgotten.**
 > `platform/agent/Avatar → PrimaryAvatar`, `Shade → ShadeAvatar`,
 > `WireBody → SandboxAvatar`; the two vessel rows and the seed row's
 > `class:` follow. The abstract root KEEPS the name `Avatar` and the
@@ -927,9 +927,8 @@ The mechanical list, for the record:
 - `SandboxAvatar` → `<Circle>` if renamed: file, row path + `class:`,
   `SandboxLogic.ts:328, 345`, the six fixtures, `sandbox.md`,
   **`sandbox-overlay-plan.md` W3's file path**.
-- `Shell` → `<Shell>`: `lib/shell/Shell.ts`,
-  `Avatar` import, the 21 doc/comment mentions
-  (`grep -rn Shell docs packages`).
+- ⛔ `ShelledCharacter` — **NOT renamed.** Tried as `Shell` and
+  reverted; see § Naming.
 - The identity prefix: **unchanged** under D13 unless the owner takes
   the alternative, in which case `lib/paths.ts:163`,
   `lib/character/Estate.ts:24`, `PresenceLogic.rosterHandleFor`, and
@@ -1053,7 +1052,7 @@ step is recorded as *not driveable on the wire*, not skipped silently.
 ## ✅ Naming — DECIDED 2026-09-30 (requirements D2, D5)
 
 ```
-Character  →  Shell  →  Avatar  (abstract)
+Character  →  ShelledCharacter  →  Avatar  (abstract)
                         ├── PrimaryAvatar    the one you play
                         ├── ShadeAvatar      the dead one
                         └── SandboxAvatar    the rehearsal one
@@ -1112,10 +1111,37 @@ This makes the CODE side consistent, where it is currently half-and-half
 - **`Avatar`** — abstract root, a human's handle in the world. Keeps the
   name: the identity namespace `/platform/agent/Avatar/` stays the
   family's (D13).
-- **`Shell`** (was `Shell`) — *a `Shell` is a Character with a
-  command line; an `Avatar` is a `Shell` with a human driving it.* Lands
-  in `lib/shell/` beside `Alias`, `Workspace`, `Environment`, `Focused`.
-  ⚠ Cost recorded: *shelled* can mean husked.
+- ⛔ **`ShelledCharacter` keeps its name.** It was renamed `Shell` for
+  one wave and reverted on the owner's objection, which was right and
+  is worth recording in full because it is the `wire` lesson again,
+  one rung up.
+
+  *Shell* names a **capability bundle, not a kind of body** — so a
+  bare `Shell` reads as a mixin, and this class composes **five**
+  (`Alias`, `Environment`, `Focused`, `Workspace`, `Author`). The
+  file's own docstring already said so: *"The msh shell isn't one
+  mixin; it's a small composition of substrate mixins."*
+
+  And it collided three ways:
+
+  | collision | why it matters |
+  |---|---|
+  | `lib/shell/` | the class would be named for the directory it sits in — a directory whose every other resident is a mixin |
+  | `ShellApi` (`api/shell.ts`) | by the mirror convention `FooApi` is `Foo`'s Api surface. `ShellApi` is the settings/alias resolution facade and has nothing to do with this class, so the name manufactures a false pairing |
+  | `holding.md` | ⭐ *shell* is **closed kernel vocabulary** there for a dwelling's structure — `shellCondition`, `shellStamp`, `landlord-shell`, *"a shell weathers on the passage of days"* |
+
+  ⭐⭐ **`ShelledCharacter` was already conformant and nobody asked for
+  it to change.** An adjectival modifier on a noun is fine —
+  `SingletonCartesianLocation`, `FurnishableRoom`, `DraftAnimal` — and
+  it says what an instance IS: a Character that is shelled. The owner's
+  rename complaint named `WireBody`, `Shade` and `Avatar`; they used
+  `ShelledCharacter` approvingly, as the established term the design
+  was built on.
+
+  ⚠ **The mistake to not repeat:** the rename was justified by how it
+  read in a sentence (*"an Avatar is a Shell with a human driving
+  it"*) — naming for the prose rather than for the instance, which is
+  the inverse of the rule being cited.
 
 ### Everything rejected, with its reason
 
@@ -1136,6 +1162,7 @@ This makes the CODE side consistent, where it is currently half-and-half
 | `Scribe` | reads as a **vocation**, and vocations are Cast rows |
 | `Steward` | does not say command line |
 | `Operant` · `Movable`-shaped names | adjective-shaped; banned by the class-naming convention |
+| `Shell` for the command-line rung | ⛔ **tried and reverted** — a capability bundle, not a kind of body; collides with `lib/shell/`, `ShellApi` and holding.md's closed *shell* vocabulary (above) |
 
 ### ⭐⭐ A constraint this naming pass surfaced — for the ghost content pack
 
@@ -1219,7 +1246,7 @@ Read first, in this order:
 3. `packages/server/src/mud/platform/agent/Avatar.ts` :163–204, :302–340,
    :655–766, :901–1139, :1442–1518, :1575–1644.
 4. `platform/agent/ShadeAvatar.ts`, `platform/agent/sandbox/SandboxAvatar.ts`,
-   `platform/idea/Login.ts:498–531`, `lib/shell/Shell.ts`.
+   `platform/idea/Login.ts:498–531`, `lib/shell/ShelledCharacter.ts`.
 5. `lib/persistence/Forkable.ts:39–52`; `platform/idea/api/SandboxLogic.ts:90, 328–470`;
    `platform/idea/api/ConditionLogic.ts:660–800`; `platform/idea/api/PlayerLogic.ts:130–200, 545–566`.
 6. `lib/command/CommandGiver.ts:670–700`; `lib/display/Display.ts:290–390`;

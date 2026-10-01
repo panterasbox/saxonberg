@@ -3,7 +3,7 @@
  *
  * The shell isn't a single mixin; it's a suite (`EnvironmentMixin`,
  * `FocusedMixin`, future `AliasMixin` / `HistoryMixin` / `PromptMixin`)
- * composed onto `Shell`. ShellApi is the cross-cutting
+ * composed onto `ShelledCharacter`. ShellApi is the cross-cutting
  * static surface those mixins and the matcher reach into.
  *
  * v1 surface:

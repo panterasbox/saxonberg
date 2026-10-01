@@ -10,7 +10,7 @@
  * connection drops.
  */
 
-import { Shell } from "../shell/Shell";
+import { ShelledCharacter } from "../shell/ShelledCharacter";
 import { NamedMixin } from "../description/Named";
 import { PlayerApi } from "../../api/player";
 import { SandboxApi } from "../../api/sandbox";
@@ -193,7 +193,7 @@ const AvatarBase = PersistableMixin(
                       // TRIP — embody → `holder_snapshots` → reconnect. A
                       // missing field hydrates as empty and the banner
                       // reads "Welcome, ." with nothing thrown.
-                      NamedMixin(Shell),
+                      NamedMixin(ShelledCharacter),
                     ),
                   ),
                 ),
@@ -220,7 +220,7 @@ const AvatarBase = PersistableMixin(
  * holds that.
  *
  * ```
- * Character  →  Shell  →  Avatar  (abstract, here)
+ * Character  →  ShelledCharacter  →  Avatar  (abstract, here)
  *                                    ├── the body of record
  *                                    ├── ShadeAvatar        (the dead one)
  *                                    └── SandboxAvatar     (the circle one)

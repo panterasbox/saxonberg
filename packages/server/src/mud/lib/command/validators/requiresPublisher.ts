@@ -12,7 +12,7 @@
  * capability is title over a resource, and publishing is a position.
  *
  * The affordance was never the barrier — `AuthorMixin` rides
- * `Shell`, so every Avatar already carries the verb
+ * `ShelledCharacter`, so every Avatar already carries the verb
  * contribution. The **validator** was.
  *
  * ## Why it is not the banned helper

@@ -4,7 +4,7 @@
  * Sibling of `EnvironmentMixin` in the shell substrate: same two-store
  * pattern (persistent + session), same composition-driven static-data
  * defaults pattern (`static defaultAliases` walked via
- * `MixinApi.queryMixins`). Composed onto `Shell`; NPCs
+ * `MixinApi.queryMixins`). Composed onto `ShelledCharacter`; NPCs
  * without an interactive shell don't carry it.
  *
  * The lookup chain on `getAlias(name)`:
