@@ -1,19 +1,20 @@
 # Apiculture slate — the last RGO family, and the one that gives to the commons
 
-> **Status: UNBUILT** — the `Apis mellifera` species row and clover ship
-> (farmstead authored them and then cut the wave);
-> [ranching.md § ⚠ Not built: bees (D34–D39)](../../subsystems/ranching.md)
-> records the cut and states that **AC 14 is not met and is the follow-on's
-> first item**.
-> **Left:** the colony record + the drafted queen · the hive as a stack of
-> boxes · the beekeeping year and the supering deadline · the acquisition
-> ladder (rob · catch a swarm · buy a nuc · split) · forage range over the
-> flowering census, and the crowding read · honey character + mad honey ·
-> wax and its consumer · temperament and queen rearing · the sting (trauma +
-> burden, the crisis shape, the suit) · the allergy seam · mead ·
-> **thermoregulation as the winter equation** · **foulbrood** (varroa
-> deferred) · **robbing and absconding**
-> **Size:** a build
+> **Status: PARTIAL** — the build shipped 2026-09-30 (MR !310) →
+> [apiculture.md](../../subsystems/apiculture.md). The colony as the
+> animal, the drafted queen, the hive as a stack of boxes, wintering by
+> the hive's own walls, swarm · abscond · starve, the acquisition ladder
+> (rob · swarm · nuc · split), forage over the flowering census and the
+> crowding read, the sting with veil and smoke, crush-vs-spin, wax and
+> the candle, mead, and Quist's close.
+> **Left:** **foulbrood** via `Contaminable` on the comb (varroa still
+> deferred) · robbing between colonies · persistent-disturbance
+> absconding · honey character + mad honey · queen rearing · the allergy
+> seam (→ pharma) · pollination as a *contract* (N hives over a bloom
+> window) · and three open tails the build recorded below — ⚠ the drive's
+> non-regenerating nucleus, the unlit shop, and the one browser
+> observation it never got.
+> **Size:** a tail
 
 > **Captured 2026-09-25**, in the design conversation after the extraction
 > build merged (MR !291). Extraction took three of the four remaining RGO
@@ -805,9 +806,10 @@ first.
 The rubric was reviewed on master (lens 3 split into immersion and
 participation; economy and governance carved apart; and an **altitude** rule —
 `invariant` · `grain` · `title` — with the finding that a pass omitting the
-grain is worse than one that mis-levels). **The canonical re-run lives in
-[apiculture-requirements.md](../../requirements/apiculture-requirements.md) §
-Lens pass**; it is not duplicated here. What it changed:
+grain is worse than one that mis-levels). ⭐ **The canonical re-run lives BELOW**, graduated here when the
+requirements doc was retired at the sweep — the slate is the kept design
+artifact, so a pointer at a deleted doc would have taken the whole pass
+with it. What it changed:
 
 - ⭐⭐⭐ **Lens 3b killed the bee-board.** *"Every NPC-held seat is a standing
   vacancy"* and *"every NPC doing two jobs is a vacancy we deleted"* — the plan
@@ -834,6 +836,211 @@ Lens pass**; it is not duplicated here. What it changed:
 6. Sugar syrup feeds bees, so the two chains are each other's customer.
 7. Forage stays a commons, but crowding must be perceivable.
 8. The queen is **drafted** (lenses 1 and 4 agreed).
+
+### Lens pass
+
+⚠ **Re-run 2026-09-30 against the reviewed rubric** (seven lenses; lens 3 split
+into immersion and participation; economy and governance carved apart). ⭐ Each
+answer is **levelled** — `invariant` binds every game built here, `grain` binds
+nothing but is what the substrate is *for*, `title` binds only this one —
+because the rubric holds that a pass omitting the grain is worse than one that
+mis-levels.
+
+**1 · Pedagogy.** `apiculture` is minted, by the roster's rule that every
+resource trade ships one; it is the **dominant** Discipline, with horticulture
+second-order through pollination. The derivable core is one sentence: **a colony
+stores a surplus, and the surplus is what the winter did not need** — and winter
+demand follows from the weather and the hive's own walls, so a player who
+understands it can predict it and be right. *Is deriving the fun?* Yes: the
+winter decision **is** the game. ⚠ `invariant` — swarming is **derived from
+crowding, never drawn**; rolling what your action did is banned platform-wide.
+The only legal uncertainty is epistemic: you do not know the queen until you
+read her brood.
+
+**2 · Expression.** ⭐ *Objects per verb, never more verbs* — the ban on
+enumeration is what the take decomposition obeys: no new branch in a shipped
+verb, two new **objects** (a comb, a spinner) and two recipes. What a player
+makes theirs is **their own honey**, whose character derives from what was in
+flower in range, so an author who adds a flowering plant gets a new honey with
+**no row written for it**. The chain: forage → comb → honey and wax → candle
+and mead. ⚠ **Provenance is stated** (plan D6): authored clover share × derived
+standing sward × derived season — and the build **deletes** the shipped
+docstring claiming the clover share is derived when nothing writes it. `grain` —
+the hive rows use `extends:`, so the technology ladder is two inherited rows.
+
+**3a · Immersion.** ⭐ **You heft the hive.** Weight tells you stores, traffic
+tells you strength, comb tells you brood, and **no number appears anywhere in a
+colony's reading**. The betrayal risk is a hive that reads as a spreadsheet; the
+answer is that every read is a perception. `grain` — no-numbers ships **per
+host**, so the shipped livestock score is untouched and an author could change
+ours. That is the rubric's honest form: a default somebody departs from on
+purpose.
+
+**3b · Participation.** ⭐⭐⭐ **The lens that changed the build.** The role it
+opens is the **beekeeper**, and the valley is deliberately left with **nobody
+selling bees or woodenware** — a visible, takeable hole, with a chandler and a
+meadmaker derived beside it. ⚠ Before this pass one NPC held five seats
+(farmer, landowner, pollination beneficiary, honey buyer, kit seller), which is
+*a vacancy we deleted* — in the one build whose thesis is that a beekeeper is a
+**second party** on land they do not own. *Can the polity refuse us?* Yes, at
+placement: a landholder may say no, and an apiary is a locally-unwanted land use
+whose siting rule is the polity's (tier C).
+
+**4 · Values.** The undecidable choice is **how much honey to take** — the
+consequence a season away, and nothing warns you. Then crush against spin, and
+how many hives to crowd onto one range. ⭐ This build **refuses variable
+reward**, and the price is paid by **the swarm**: a windfall arriving out of
+somebody's under-supered hive rather than out of a die. Standing is conferred by
+the growers who have you back, not by throughput. `grain` — the surplus norm is
+a recommendation; nothing stops an author shipping bees that never starve.
+
+**5 · Continuity.** The same commands answer in every epoch: rob a wild nest →
+a straw skep whose comb must be destroyed → movable frames and a spinner →
+hives hauled to orchards for hire. Only **whether the comb survives the
+harvest** changes, and that is a field on a hive row. ⭐ Under the reviewed
+rubric this lens inherits lens 2's veto rather than holding its own, and it
+passes for the reason that matters: the ladder is **rows**, so another epoch
+costs an author no code.
+
+**6 · Economy.** **Produces** honey, wax, colonies as capital, information about
+forage, and **pollination**, which lands on somebody else's land. **Consumes**
+time, woodenware, and sugar in a dearth. **Who pays:** whoever buys the honey,
+and the beekeeper pays a shop in town for the kit. **Was the demand there
+first?** Three ways, all verifiable: three shipped player-facing surfaces
+already promise bees, lighting prices a candle nothing in the game makes, and
+fruiting crops exist with nothing to pollinate them. ⭐ **The roulette test
+passes** — honey is worth having without the Discipline, so the credential is
+not propping up the play. ⭐⭐ **The chain walk** (*add a consumer, derive the
+producers*) is what caught the board: a candle derives a chandler, honey a
+meadmaker, and a hive a **woodenware maker** — so the build leaves that hole
+open instead of filling it with par.
+
+**7 · Governance.** Three criteria with appeals, and one absence on purpose:
+
+| the wrong | the criterion | the appeal | tier |
+|---|---|---|---|
+| placement refused | **title** | the owner's word, readable | B |
+| pollination unpaid | **the clause**, verifiable | the contract board | B |
+| bees stinging by a road | **none in code** — the cultivation rules have nothing to say about a hive, which grows nothing | a polity ordinance | **C** |
+| **crowded out of a range** | **none** | **none** | `grain` |
+
+⚠ *Implementing a law must not entrench it* — so if a bee ordinance ever ships,
+it ships amendable. And the fourth row wants reading twice: forage is rivalrous
+and untitled **because that is the lesson**, which makes it `grain` and not
+`invariant` — an author could title forage and the substrate would not stop
+them; we recommend they do not. ⚠⚠ Which is exactly why **crowding must be
+perceivable**: an unappealable loss that is also invisible is not a lesson, it
+is a hidden penalty.
+
+#### What the two passes changed
+
+From the original six-lens pass: `apiculture` is its own Discipline; swarming is
+derived; hefting is the read; the candle is **required** because wax with no
+consumer fails lens 2; crush-vs-spin **is** the epoch ladder so the skep ships
+first; forage stays a commons but crowding must be perceivable; and the queen is
+drafted.
+
+From the 2026-09-30 re-run:
+
+- ⭐⭐⭐ **the bee-board is gone** — lens 3b and the chain walk condemned it
+  independently for deleting the vacancy the build creates. The kit is Terminus's
+  general store's, where importing is a shop's job; the valley has no supplier,
+  and one labelled line (a nucleus, par 1, in a shop) is the only place life is
+  minted from nothing;
+- **the forage read declares its provenance**, and the false docstring is deleted
+  rather than computed on;
+- **every answer is levelled**, and two that read as doctrine turn out to be
+  `grain`: the no-numbers rule, and forage having no title.
+
+## ⚠ Open tail — the one observation the browser never got, and the route for it
+
+**A hive listing its CONTENTS was never seen rendered in a browser.** It
+is proven at the wire tier — checkpoint 10 asserts `put super in hive`
+then `look in first hive` matching `/super|box|frame/`, over the real
+socket and therefore through the real binder and arg gate, for a target
+the harness names. What a browser adds on top is the *rendering*, and
+that was observed for `look in <hive>` (the inspection card came back
+with the hive's prose and mass) — just never for a hive that had
+something in it.
+
+Three things blocked it, and the first two are findings in their own
+right:
+
+1. ⚠ **`open` and `put` take a non-greedy target arg.** With three hives
+   on the general-store floor, *no phrase can name one*: `open
+   double-walled beehive` and `put frame in first hive` both answer
+   *"That doesn't match any known command shape"*, while `look in first
+   hive` (greedy) resolves. So the hive has to be carried to a room that
+   holds no other hive before it can be opened at all.
+2. ⚠ **The par-1 nucleus does not regenerate**, so the dirty drive's
+   bees are gone after one run and the valley has no supplier — by
+   design (the trade ships with a supplier-shaped hole). A second run of
+   the drive has no colony.
+3. ⚠⚠ **Port 2010 is shared across worktrees and `dev:server`'s
+   preflight KILLS a sibling's server.** Mid-walk, build-4 claimed 2010
+   and terminated this worktree's world. The way round is to skip the
+   preflight entirely — `PORT=2013 AUTH_MODE=test
+   FOUNDER_GOOGLE_EMAIL=founder@e2e.local npx tsx src/preload.js` plus
+   `VITE_SERVER_URL=http://localhost:2013 npx vite --port 5174`, then
+   point Playwright at both with `E2E_SERVER_URL` / `E2E_CLIENT_URL`
+   (its `reuseExistingServer` then leaves the sibling alone). A
+   fresh-DB boot after that is the expensive part and did not finish
+   inside this session on a box that was also booting another worktree.
+
+⭐ **The route, for whoever picks it up** — and it is deliberately an
+ORDINARY player rather than the founder, because a hive is 12 and a
+frame is 1 against the 20-credit arrival stipend, so the whole walk is
+inside what a new character can afford (the founder cannot do it at all:
+`reserve override … to founder` answers *"founder has no account to
+receive into"*):
+
+```
+start /world/terminus/general-store/shop-floor
+buy hive · buy frame · south · drop hive · open hive
+put frame in hive · look in hive
+```
+
+`south` is what makes it work: the avenue holds no other hive, so the
+non-greedy arg can finally resolve one.
+
+## ⚠⚠ Open tail — the drive's dirty reason is a producer-shaped hole
+
+`apiculture.dirty.wire.test.ts` declares that it *"buys the general
+store's one nucleus (par 1 — the only line in the trade that mints
+life)"*, and the sweep's rule is that **every dirty reason is a question
+for the owning trade: a producer that should be producing.** Here the
+answer is uncomfortable and worth keeping:
+
+⭐ **Nothing in the valley sells bees, on purpose** — the trade ships
+with a supplier-shaped hole so that catching a swarm, splitting a hive
+and *being* the person who sells nucs are all takeable. The par-1 shop
+line is the single import faucet, in a town, where importing belongs.
+
+⚠⚠ **The consequence is that the drive is not re-runnable against the
+same world.** Measured 2026-09-30: a second run answered
+`empty-result[item]` at the purchase and took three downstream
+checkpoints with it (15/19), because the first run had bought the only
+nucleus and nothing regenerates one. ⭐ So *the drive requires a
+`reset:db`*, which is a real cost and not a flake — and the general
+lesson is **a dirty drive is only re-runnable against a world that has
+regenerated what it consumed.**
+
+The fork, when somebody takes this: either a keeper NPC who splits and
+sells (which fills the hole and deletes the vacancy — lens 3b says
+don't), or the drive buys its bees from a **fixture** rather than the
+shop. The second keeps the hole and is probably right.
+
+## ⚠ Open tail — the shop you cannot see to shop in
+
+Found by the build's browser walk (2026-09-30), kept here because it is
+Terminus content rather than this trade's. **The general store is unlit**,
+so the whole kit list is bought blind — and the lantern that would fix it
+is itself on the dark shelf. ⭐ The apiculture kit is the first purchase
+that makes this bite: a hive, a super, six frames, a veil, gloves and a
+smoker is a *list*, and reading a list in the dark is not shopping.
+
+Not fixed in the apiculture build because lighting a shipped shop is a
+content decision belonging to whoever owns that room.
 
 ## Pollination — the coupling, and where it attaches
 

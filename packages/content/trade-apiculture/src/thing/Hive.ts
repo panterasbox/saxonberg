@@ -57,6 +57,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SWARD_MIXIN } from '@saxonberg/content-trade-farming/src/lib/Sward';
 import type Field from '@saxonberg/content-trade-farming/src/location/Field';
 import { ColonyMixin, APICULTURE } from '../lib/Colony';
+import type { Colonial } from '../lib/Colony';
 import HiveBox from './HiveBox';
 
 /**
@@ -327,20 +328,23 @@ export default class Hive extends HiveBase implements Splittable {
 
   /** Take the loose colony's state into the box, then consume it. */
   private adoptColony(thing: Stuff): void {
-    const loose = thing as unknown as {
-      getStrength?(): number;
-      hasLiveQueen?(): boolean;
-      getPollenKg?(): number;
-      getHandling?(): number;
-    };
-    this.strength = clamp01(loose.getStrength?.() ?? 0);
-    this.hasQueen = loose.hasLiveQueen?.() ?? false;
-    this.pollenKg = loose.getPollenKg?.() ?? 0;
+    // ⚠ The caller has already proved `ColonyMixin`, so these reads are
+    // NOT optional — an optional call here would have answered 0 and
+    // `false` for a colony that was simply missing a method, installing
+    // a dead hive and saying nothing.
+    const loose = thing as unknown as Colonial;
+    this.strength = clamp01(loose.getStrength());
+    this.hasQueen = loose.hasLiveQueen();
+    this.pollenKg = loose.getPollenKg();
     this.queenlessSince = this.hasQueen ? 0 : this.nowGameSeconds() ?? 0;
     // `handling` is `HandlingMixin`'s own field, and this is the host
     // writing its own state at install — the temper of the bees you put
     // in is the temper of the hive.
-    this.handling = clamp01(loose.getHandling?.() ?? 0.4);
+    // ⭐ `getHandling` is `HandlingMixin`'s, not the colony's, so it is
+    // narrowed separately — a loose swarm need not carry a temper.
+    this.handling = clamp01(
+      MixinApi.isHandling(thing) ? thing.getHandling() : 0.4,
+    );
     this.setLifecycleState('alive');
     this._lastEvent = '';
     this.starvingSince = 0;
@@ -583,16 +587,13 @@ export default class Hive extends HiveBase implements Splittable {
       made = null;
     }
     if (made) {
-      const half = made as unknown as {
-        strength?: number;
-        hasQueen?: boolean;
-        queenlessSince?: number;
-      };
-      half.strength = taken;
-      // ⚠ NO queen. They raise their own in three weeks, which is the
-      // real cost of a split and the reason it is not free bees.
-      half.hasQueen = false;
-      half.queenlessSince = this.nowGameSeconds() ?? 0;
+      // ⚠ Through a METHOD, not three field writes: the colony's state
+      // fields are public for the Hydrator, and the inter-stuff contract
+      // is methods. ⭐ The nuc comes out QUEENLESS by construction —
+      // `seedFromSplit` takes no queen argument, because they raise their
+      // own in about three weeks and that is the real cost of a split.
+      const half = made as unknown as Colonial;
+      half.seedFromSplit(taken, this.nowGameSeconds() ?? 0);
       if (MixinApi.isContainer(by)) {
         ContainmentApi.move(
           made as Stuff & Containable,
@@ -694,8 +695,13 @@ export default class Hive extends HiveBase implements Splittable {
           if (
             MixinApi.hasMixin(item.constructor as never, 'ColonyMixin' as never)
           ) {
-            const other = item as unknown as { getStrength?(): number };
-            if ((other.getStrength?.() ?? 0) > 0) hives += 1;
+            // ⚠ `hasMixin` is the only narrowing a pack has for its OWN
+            // mixin — `MixinApi.isX` predicates are kernel source and
+            // `Mixins` is a kernel const — so the cast is to the pack's
+            // own `Colonial` interface, and the call is NOT optional:
+            // `hasMixin` already proved it is there.
+            const other = item as unknown as Colonial;
+            if (other.getStrength() > 0) hives += 1;
           }
         }
       }

@@ -34,9 +34,10 @@ export default class Frame extends DetailedMixin(Good) {
     (text: string, host: unknown, viewer: unknown) => string
   > = [
     (text: string, host: unknown): string => {
+      // ⭐ No cast: a `Frame` is a `Good`, so `Containable`'s
+      // `getContainer()` is simply on it.
       const frame = host as Frame;
-      const env = (frame as unknown as Stuff & { getContainer?(): Stuff | null })
-        .getContainer?.();
+      const env = frame.getContainer();
       if (!(env instanceof Hive)) return text;
       const line = env.frameReading();
       return line === '' ? text : `${text}\n\n${line}`;

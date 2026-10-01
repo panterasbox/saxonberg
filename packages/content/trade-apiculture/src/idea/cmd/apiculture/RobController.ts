@@ -77,9 +77,12 @@ export default class RobController extends TapController {
       } catch {
         return last;
       }
-      (comb as unknown as { setMass?(q: Quantity<'kg'>): void }).setMass?.(
-        Quantity.of(round2(mass), 'kg'),
-      );
+      // ⭐ `setMass` is `TangibleMixin`'s, and the predicate says so —
+      // an optional call would have swallowed a comb row that forgot to
+      // be matter.
+      if (MixinApi.isTangible(comb)) {
+        comb.setMass(Quantity.of(round2(mass), 'kg'));
+      }
       // ⭐⭐ **What the bees foraged rides the comb.** `Comb` is a
       // `Provision`, so it composes `ComposedMixin`; the crafting core
       // already sums an item input's composition into a bulk output's

@@ -111,6 +111,15 @@ export type ColonyEvent = '' | 'swarmed' | 'absconded' | 'starved' | 'requeened'
 /** The public surface a colony offers. */
 export interface Colonial {
   reconcileColony(): void;
+  /**
+   * ⭐ Seed a freshly split colony — **the one write another Stuff makes
+   * to a colony**, and it is a METHOD because the inter-stuff contract is
+   * methods: the state fields are `public` only so the Hydrator can
+   * reflect into them, which is not the same as being external surface.
+   * Queenlessness is not a parameter — a split starts without one by
+   * construction, and raising a new one is the real cost of splitting.
+   */
+  seedFromSplit(strength: number, nowS: number): void;
   getStrength(): number;
   getPollenKg(): number;
   hasLiveQueen(): boolean;
@@ -241,6 +250,13 @@ export function ColonyMixin<TBase extends MixinConstructor<ColonyBase>>(
     }
 
     // ---------- the reads ----------
+
+    /** See {@link Colonial.seedFromSplit}. */
+    public seedFromSplit(strength: number, nowS: number): void {
+      this.strength = clamp01(strength);
+      this.hasQueen = false;
+      this.queenlessSince = nowS;
+    }
 
     public getStrength(): number {
       this.reconcileColony();
@@ -547,9 +563,14 @@ export function ColonyMixin<TBase extends MixinConstructor<ColonyBase>>(
         return;
       if (forage <= this.dial('apiculture.swarmFlowFloor', 0.3)) return;
 
-      const handling = (
-        this as unknown as { getHandling?(): number }
-      ).getHandling?.() ?? 0.4;
+      // ⭐ Narrowed, not duck-typed: `HandlingMixin` is the kernel's and
+      // `MixinApi.isHandling` threads its interface, so the fallback is a
+      // stated default for a host that does not compose it rather than an
+      // optional call that would answer `undefined` just as quietly.
+      const self = this as unknown as Stuff;
+      const handling = MixinApi.isHandling(self)
+        ? self.getHandling()
+        : 0.4;
       // Half of them go with the old queen; the rest raise a new one.
       this.strength = this.strength * 0.5;
       this.hasQueen = false;
@@ -649,8 +670,8 @@ export function ColonyMixin<TBase extends MixinConstructor<ColonyBase>>(
       if (this.strength <= 0) return { landed: 0, smoked: false };
 
       const smoked = this.workingWithSmoke(actor);
-      const risk =
-        (this as unknown as { handlingRisk?(): number }).handlingRisk?.() ?? 0.3;
+      const host = this as unknown as Stuff;
+      const risk = MixinApi.isHandling(host) ? host.handlingRisk() : 0.3;
       const cold = this.outsideK() < this.dial('apiculture.crossK', 285);
       const attempts = Math.round(
         this.dial('apiculture.stingBase', 6) *

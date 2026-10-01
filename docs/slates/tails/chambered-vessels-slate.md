@@ -32,7 +32,7 @@ Substrate: [spatial.md](../../subsystems/spatial.md) ·
 [perception.md](../../subsystems/perception.md) ·
 [presentation.md](../../subsystems/presentation.md) ·
 [cold-chain-slate](../builds/cold-chain-slate.md) (the fridge) ·
-[apiculture-slate](../builds/apiculture-slate.md) (the hive).
+[apiculture-slate](../tails/apiculture-slate.md) (the hive).
 
 ---
 
