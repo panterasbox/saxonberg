@@ -1399,6 +1399,39 @@ it. `utensilKind` on `CutleryMixin` is the one that is, and `eat` now
 narrows on `isCutlery` + `isServiceable`.
 
 
+## ⭐⭐ The sweetener vocabulary — and why `sweetener` gates nothing
+
+Written by the taps build, which added the third sweetener and found the
+question had never been settled.
+
+**Four tags, and only three of them are recipe tags:**
+
+| tag | what carries it | who may match on it |
+|---|---|---|
+| `sugar` | cooking's granulated sugar | a recipe that wants sugar |
+| `honey` | apiculture's honey | a recipe that wants honey |
+| `syrup` | hospitality's simple syrup, forestry's birch and maple syrup | a recipe that wants syrup |
+| **`sweetener`** | **all of them** | ⛔ **nothing, by design** |
+
+⛔ **No recipe may slot `category: sweetener`.** It is the FAMILY tag —
+useful for a read, a label, a `taste`, a shelf — and matching on it
+would mean a cocktail accepting granulated sugar and a dough accepting
+honey, which is not a distinction any cook would recognise. The three
+specific tags are what a slot asks for.
+
+⭐ The practical payoff, and the reason the vocabulary was worth writing
+down: **a new sweetener is a tag, never a recipe edit.** Forestry's two
+syrups are accepted by the Lounge's four shipped cocktails (all of which
+slot `category: syrup`) with **zero lines changed in
+`trade-hospitality`** — which is the demand checkpoint the whole
+sugaring vertical rests on, and is what made it worth boiling anything.
+
+⚠ `honey.yaml`'s header already records the half of this it got right on
+its own: *deliberately not `sugar`*. What it could not know was whether
+the family tag was load-bearing. It is not.
+
+---
+
 ## ⭐ The textile chain — three trades over one substrate
 
 `trade-textiles` · `trade-dyeing` · `trade-tailoring` ship as

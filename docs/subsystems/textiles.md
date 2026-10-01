@@ -15,6 +15,39 @@ seams. The three trades that feed it live in their own packs.
 
 ---
 
+## ⭐⭐ The fleece — and `spin fleece` had FOUR gates (2026-10-01)
+
+`wool.yaml` shipped in the commons with `biologicalSource: null` and
+this trade's scutching controller was written so that *naming a flax row
+in it would be the one line that stops wool.* The ranching build gave it
+an animal. ⚠ And `spin fleece` **still could not run**, for a whole
+cycle, behind four stacked gates — each failing closed and silent, with
+34 green controller tests behind them:
+
+1. the view's `stock` arg declares `requires: StackableMixin`, and
+   `fleece.yaml` was a `/platform/thing/Provision`. ⚠ **Dead at the
+   BINDER**, which no controller test can see.
+2. the class the row named therefore had to change — it is
+   `/trade/textiles/thing/TextileStock` now: ⭐ **ranching's ROW,
+   textiles' CLASS.** The producer owns the yield row (the comb
+   precedent) and the consumer owns the class a spinner can read.
+3. `isSpinnable()` was a **template-path** test (`endsWith('/line') ||
+   endsWith('/tow')`), so a stackable fleece still died in the
+   controller. It reads the material's `fibre` tag now — the rule this
+   doc already states: **the distinction is the material** — so a new
+   fibre is a tag and not an edit.
+4. ⚠⚠ and that alone would have let you **spin yarn into yarn**, because
+   yarn's material is linen and carries `fibre` too (the old path test
+   refused it by accident). The honest discriminant is `yarnCount > 0`:
+   a **construction** fact, which is why no material tag could ever have
+   carried it.
+
+⭐ `TextileStock` also brings `CraftedMixin`, which is what lets the
+shears stamp the year onto the fleece's grade band — `TapState.worst`
+leaves with the take and nothing can read it afterwards, so the band is
+set at the shearing or never. See [taps.md](./taps.md).
+
+
 ## ⭐⭐ The governing idea: a garment's purpose is which channel it intercepts
 
 Nobody authors *"this is a lab coat."* You author white, cheap, woven

@@ -20,6 +20,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../../../api/execution-context';
 
 const DAY_S = 86_400;
 
@@ -129,5 +133,27 @@ describe('WorldClockApi.advance', () => {
     WorldClockApi.resume();
     WorldClockApi.advance('1 day');
     expect(fired).toBe(1);
+  });
+
+  it('⚠⚠ the drain fires under the WORLD\u2019s scope, not the caller\u2019s', () => {
+    // ⭐⭐ **A live drive found this one, and it crashed the server.** A
+    // bare `onHeartbeat()` inherits the caller's execution context, so
+    // an `advance` run from inside the `eval` sandbox fired a world
+    // schedule in the EVAL's circle scope, hit the sandbox boundary on
+    // an ordinary world object, and took the process down with an
+    // unhandled rejection.
+    //
+    // A drained schedule belongs to the world, not to whoever moved the
+    // clock — which is what the live heartbeat already does in
+    // `rearmHeartbeat`. ⚠ This test cannot see a circle scope directly,
+    // so what it pins is the observable half: the callback runs under a
+    // root attributed to the clock rather than under whatever frame
+    // called `advance`.
+    let sawScope: string | null | undefined;
+    WorldClockApi.after(Quantity.of(60, 's'), () => {
+      sawScope = ExecutionContextApi.getCircleScope();
+    });
+    WorldClockApi.advance('1 day');
+    expect(sawScope).toBe(OMNI_SCOPE);
   });
 });

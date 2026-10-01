@@ -476,7 +476,29 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
         (s) => s.nextFireAtS !== null && s.nextFireAtS <= deadline,
       );
       if (!anyDue) break;
-      this.onHeartbeat();
+      // ⚠⚠ **Re-rooted under OMNI scope, and a live drive is what proved
+      // it necessary.** A drained schedule belongs to the WORLD, not to
+      // whoever happened to move the clock — but a bare
+      // `this.onHeartbeat()` inherits the caller's execution context, so
+      // an `advance` run from inside the `eval` sandbox fired the
+      // street-lighting tick *in the eval's circle scope*. It hit the
+      // sandbox boundary (`getPublicLighting` — context scope
+      // `/home/<player>` vs receiver scope `field`), threw an unhandled
+      // rejection, and **took the server process down.**
+      //
+      // ⭐ The live heartbeat already does exactly this in
+      // `rearmHeartbeat`; the drain simply has to agree with it. (And
+      // `_advanceForTesting` shares this loop, so it is fixed too — it
+      // never showed the bug only because a test has no circle scope to
+      // leak.)
+      ExecutionContextApi.runRoot(
+        WorldClockApi,
+        who,
+        () => {
+          this.onHeartbeat();
+        },
+        { circleScope: OMNI_SCOPE },
+      );
       if (++guard > 1_000_000) {
         throw new Error(
           `WorldClockApi.${who}: heartbeat did not settle ` +

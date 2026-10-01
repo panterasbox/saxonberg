@@ -1,22 +1,40 @@
 # Tapping slate — the yield that does not kill the organism
 
-> **Status: UNBUILT** — every piece it needs ships, in three separate
-> places that do not know about each other: the tap vocabulary
-> (`TapSpec` on `Species.production[]`, **kernel**), the worked-act
-> protocol (`lib/ground/Workable.ts`, kernel, extraction MR !291), and
-> the evaporative maturation mechanism + its two vessels (`salt-pan` as
-> a `Vat` row, `brine-hearth` as an `Oven` row, `trade-quarrying`).
-> **Left:** the `Tappable` shape + the `tap` verb · `TapSpec`'s window
-> predicate · `ProducingMixin`'s promotion out of `trade-ranching` ·
-> a `production:` block on Scots pine (resin, **the species row already
-> ships**) · one new species row for the sap tree · the sap → syrup
-> maturation profile + the sugarhouse's two rows · the spile and the
-> hung vessel · the stand-level tappable-stem read.
-> **Size:** a build — it is one verb, one declared shape, two data
-> blocks and four rows, but it amends a kernel interface and touches a
-> shipped trade, so it wants a cycle rather than a tail.
+> **Status: ⭐ SAP SHIPPED 2026-10-01 · RESIN UNBUILT** — the taps build
+> took the whole mechanism and the sap vertical;
+> [taps.md](../../subsystems/taps.md) is the subsystem doc.
 >
-> ⭐⭐ **IN FLIGHT 2026-09-30 as the TAPS build** —
+> **What shipped:** `ProducingMixin` promoted to `lib/husbandry/`
+> (three packs compose it) · `TapSpec`'s **window predicate** as
+> declared data (`always · event · photoperiod · biome · weather`, with
+> `rising` to tell spring from autumn) · the `Tappable` shape as a
+> sibling of `Workable` · the take as an **engagement** over one kernel
+> base (`EngagedActController` → `TapActController`) · `yieldShape`
+> (`mass · volume · count`) deciding whether a vessel is needed · the
+> three per-tap judgments the biology asked for · `WorldClockApi.advance`
+> · `SapStandard` + birch and maple · the sap → syrup evaporative
+> profiles and the sugarhouse's two rows · the spile · the sugarbush at
+> Rejection · and two shipped defects closed (`spin fleece`, eggs with
+> no sink).
+>
+> **Left:**
+> - ⭐ **RESIN** — a `production:` block on `pinus/sylvestris` (the
+>   species row already ships) with `yieldShape: mass` and a `weather`
+>   opener, on `SapStandard`. **Nothing in the kernel changes**, which
+>   is the test that the mechanism was built at the right altitude. The
+>   demand section below is what it is waiting for, and it is LIGHT.
+> - **The stand-level tappable-stem read** — a `Wood` saying how many
+>   of its standards are big enough to tap. Deferred: the sugarbush is
+>   named stems in a panel, so nothing needed it yet.
+> - **Maple's freeze–thaw window** — blocked on a realm with a real
+>   winter, which is now [climate-slate](./climate-slate.md) and this is
+>   its first consumer.
+> - **The relief** (`instruct keep`) — specified and not shipped; its
+>   host is build-3's `lib/character/Avatar`. Goes to the dairy build.
+>
+> **Size:** resin alone is a tail.
+
+> ⭐⭐ **BUILT 2026-10-01 as the TAPS build** —
 > [taps-requirements](../../requirements/taps-requirements.md), branch
 > `design/2026-09-30-tapping`. It takes the act (`tap`, the window
 > predicate, the `ProducingMixin` promotion, the sugarbush and the

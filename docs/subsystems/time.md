@@ -13,6 +13,49 @@ captured in [Future work](#future-work) below).
 
 ---
 
+## ⭐⭐ `WorldClockApi.advance` — moving time from inside the game
+
+Added by the taps build (2026-10-01), and the reason is one sentence:
+**a world whose slow systems are reconcile-on-read cannot be DRIVEN
+without moving time.** A game day is two real hours, so every seasonal
+behaviour the game has shipped — a lactation curve, a fleece's year, a
+nectar flow, a sap run — was invisible to any test or drive that
+finished. `taps.dirty.wire.test.ts` is the first drive in the repo that
+walks a season.
+
+```
+WorldClockApi.advance(by: Quantity<'s'> | string): void
+```
+
+⭐⭐ **It DRAINS the skipped interval rather than skipping it.** Every
+schedule whose deadline now sits in the past fires, in deadline order:
+a one-shot once, an `every` **once per missed period**. A jump that
+silently dropped them would make the clock a liar, which is the whole
+reason the method exists rather than a bare anchor bump.
+
+- **Reachable from the `eval` sandbox**, which is the code-trust axis —
+  `WorldClockApi` is on `SANDBOX_NAMES`. `setScale` was always reachable
+  from there, so this is the same authority stated honestly. ⛔ No new
+  verb and no `isWizard` check; `shutdown` stays `SystemRoot`, so an
+  eval still cannot freeze the world.
+- ⚠ **It throws while the clock is PAUSED.** A paused clock fires
+  nothing, so a jump there would bank the game-time and strand every
+  schedule in the interval — the exact silent skip the drain prevents.
+  `resume()` then `advance()` is the honest sequence.
+- ⚠ **A cascade does not catch up.** A callback that re-arms off `now`
+  lands *after* the jumped time, because that is where `now` is. An
+  `every` catches up; a chained `after` does not. The intuition goes the
+  other way, so it is pinned as a test.
+- ⚠ A jump of years is a loop of thousands of fires. Jump a season at a
+  time; the TSDoc says so.
+
+**Distinct from `_advanceForTesting`**, which moves the injected REAL
+clock and is `assertTestOnly`. `advance` moves the game-time anchor and
+leaves the real clock alone, which is what makes it usable from a
+running world. ⭐ Both share one `drainDue` loop, so the two seams
+cannot diverge.
+
+
 ## Layer 1 — Time axis (`WorldClockApi`, `api/worldclock.ts`)
 
 The single global authority for "what time is it in the world." A

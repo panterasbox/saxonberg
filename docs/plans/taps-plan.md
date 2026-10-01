@@ -1506,7 +1506,140 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)* — the output of running
-`packages/wire/tests/taps.dirty.wire.test.ts` against the running game:
-the command, the count, each checkpoint's result, and what each failure
-was. Precedent: `farming-plan.md § Checkpoint A`.
+`packages/wire/tests/taps.dirty.wire.test.ts`, run with
+`WIRE_BOOT=1 WIRE_PORT=2013 WIRE_FRAME_TIMEOUT=60000`. ⭐⭐ **The first
+drive in the repo that walks a season** — which is the whole reason W0's
+clock seam exists.
+
+### ⭐ What it proved, and only it could
+
+- **The sugarbush installed and the six trees seated.** `look
+  birch-north` came back in full: *"A big birch at the north end of the
+  hollow, the bark peeling white and the crown thin and restless. Two
+  spiles' worth of trunk, with the old holes healed over at waist
+  height. … It is fully grown. It looks healthy. There is no spile in
+  it."* ⭐ That one read proves the `extends:` row, the
+  `SapStandard` class, the species link, the spile augmenter AND
+  `productionRead` — four links at once.
+- **`tap` is afforded in the sugarbush and reaches a real controller** —
+  neither `unknown-verb` nor `controller-error`. ⚠ The second is what it
+  would have answered *every time, for everybody, forever* if
+  `lint:controller-rows` had not caught the missing template row.
+- **`spin` likewise**, which is the shipped claim that became true.
+- **At the treeline neither `tap` nor `fell` is afforded** — the parity
+  the design rests on.
+- **`instruct` is `unknown-verb`**, which is W4's severance recorded as
+  an assertion rather than a sentence.
+- **The counter stocks AND prices the kit** — `not-on-shelf` is
+  distinguishable from the till's own refusal, so a stocked-and-priced
+  line is provably different from an absent one.
+
+### ⚠⚠ What it FOUND — and two of them are not this build's code
+
+1. ⚠⚠ **`BuyController` reports `insufficient-funds` when the SHOP
+   cannot take money.** `settleSale` returns `null` for three different
+   reasons — no venue path, no business operator, **or no operating
+   account** — and all three surface as the buyer being broke. The
+   account was funded (asserted at setup, >30 against an 18-piece
+   auger) and every `buy` at Rejection's provisioning counter answered
+   `insufficient-funds`; `provisioning-business` authors `banksAt:
+   goodkin` and lists the room in `operatingLocations`, so the row looks
+   right. **A shop that cannot sell tells the buyer to check their
+   wallet**, which sends them to look in exactly the wrong place. →
+   retail / the Rejection venue, not taps. Recorded as an assertion in
+   the drive so that fixing it fails the test and the drive goes back to
+   buying its own kit.
+2. ⚠⚠ **The Hanging Wood is PITCH DARK half the time**, and the tell is
+   every object reading *"something"*. Correct behaviour (a woodland has
+   no light of its own) and the apiculture drive learned it first — but
+   ⚠ Rejection's light is the **glowcap jar**, not a lantern: `buy
+   lantern` there answers `not-on-shelf`.
+3. ⚠⚠ **`eval` denied for jurisdiction does not land on the note a
+   drive reads.** Run 4 passed `--parcel /world/terminus/market` (copied
+   from the fishing drive, which evals ON objects in a parcel it holds)
+   and every call answered *you hold no authority over…* — in PROSE,
+   with no `controller-rejected` note — so it looked like an `eval` that
+   neither ran nor complained, and cascaded into fourteen failures.
+   ⭐ `EvalController` defaults the jurisdiction to `/home/<playerKey>`,
+   which **passes by the pure rule**, so the right answer was to pass no
+   parcel at all. The drive now asserts on the prose.
+
+### ⚠ Two premises of my own the drive corrected
+
+- **A verb is known only where something AFFORDS it.** The first
+  reachability suite asserted `milk`/`shear`/`gather`/`rob` resolve
+  anywhere; they are `unknown-verb` in a sugarbush with no animals in
+  it, because `milk` comes from `Livestock.peers`. ⭐ That is the
+  affordance model working, so the suite asserts it in the falsifiable
+  direction now: if one of them ever becomes globally known, something
+  has started promising a verb it cannot satisfy.
+- ⚠ **Never run `pnpm test` while an owned wire world is up.** They
+  share the worktree's one database and the server exited with code 1
+  mid-run. My error, and the reason run 5 has no result.
+
+### Run log
+
+| run | result | what it cost |
+|---|---|---|
+| 1 | 3/14 | the dark; `reserve override` not landing; `eval` parcel |
+| 2 | suite error | `reserve issue` is retired — `unknown-subcommand` |
+| 3 | 4/20 | same, plus `buy lantern` → `not-on-shelf` |
+| 4 | 7/22 | the till finding isolated; `eval` still denied |
+| 5 | aborted | I ran the full suite against the same DB |
+| 6 | crashed | ⭐⭐ **the drain leaked the eval's circle scope** — a real W0 defect, fixed |
+| 7 | 4/… then crashed | the sandbox correctly refuses cloning world content in a quarantined eval — ⚠ as an unhandled rejection that kills the process |
+| 8 | 5/… | the kit was dropped in the DARK, where nothing can be picked up |
+| 9 | 11/15, then wedged | ⭐⭐⭐ **checkpoint 7 PASSED** — a year walked, the season opened, a spile set. Then the session stopped answering |
+| **10** | ⭐⭐ **15/15** | the final shape |
+
+### ⭐⭐ Run 10 — 15/15
+
+```
+✓ 0.  the clock moves from inside the game, and refuses backwards
+✓ 1.  ⚠ the till FINDING · the counter stocks AND prices the kit
+✓ 2.  the road up into the Hanging Wood is real
+✓ 3.  in the WOOD, `tap oak` is refused — and the stand says why
+✓ 4.  at the TREELINE neither verb is afforded — the parity
+✓ 5.  the sugarbush names each stem, and says how big it is
+✓ 6.  out of season the TREE says so — no number, no date
+✓ 7.  ⭐⭐⭐ advance to the run, bore a hole, and `tap` SETS A SPILE
+      as an engagement                                      (41.6 s)
+✓     ⚠⚠ RECORDED GAP: the second spile, the take, the curtain
+✓ 15. `tap` is afforded in the sugarbush and reaches a real controller
+✓ 20. ⭐ `milk`/`shear`/`gather`/`rob` are NOT — the model working
+✓ 22. `instruct` is absent — W4's severance, asserted
+      Tests  15 passed (15)
+```
+
+⭐⭐⭐ **Checkpoint 7 is the build.** The clock walked the year, the
+weather window opened on the rising limb, `tap birch-north with auger`
+planned, engaged on the hands and completed, and a spile went into a
+persisted tree. Nothing short of a live drive could have shown that, and
+until W0 nothing in the repo could walk a season at all.
+
+### ⚠⚠ Two more findings, from runs 6 and 7
+
+5. ⚠⚠⚠ **W0's drain leaked the caller's circle scope — and it crashed
+   the server.** A bare `onHeartbeat()` inherits the caller's execution
+   context, so an `advance` run from inside the `eval` sandbox fired the
+   street-lighting tick *in the eval's quarantined scope*: it hit the
+   sandbox boundary (`getPublicLighting` — *context scope `/home/<player>`
+   vs receiver scope `field`*), threw an unhandled rejection, and took
+   the process down. ⭐ **Fixed**: the drain re-roots under `OMNI_SCOPE`,
+   which is exactly what the live heartbeat already does in
+   `rearmHeartbeat` — a drained schedule belongs to the world, not to
+   whoever moved the clock. `_advanceForTesting` shares the loop and is
+   fixed with it; it never showed the bug only because a test has no
+   circle scope to leak. Pinned as a case.
+6. ⚠ **A denied sandbox op in an async tail kills the process.**
+   `StuffApi.clone` of real content inside a quarantined `/home/…` eval
+   is correctly refused — that is what quarantine is for — but the
+   denial surfaces in a hydrate tail as an unhandled rejection rather
+   than a refused command. Same family as (5), not this build's code.
+   → sandbox / eval.
+7. ⚠ **A clock jump COSTS.** Each advance drains every world schedule in
+   the interval; run 9 wedged the session after a year of thirty-day
+   jumps (`look` stopped answering inside 60 s). The TSDoc's *"jump a
+   season at a time"* is a limit, not advice — the drive walks in 20-day
+   steps now.
+
