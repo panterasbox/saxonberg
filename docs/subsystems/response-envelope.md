@@ -87,6 +87,22 @@ producer-side framework.
 wire contract, but no producer ships it. The prompt-stack slate
 plugs into it.
 
+> ⛔⛔ **This vocabulary types bad news richly and good news not at all**
+> (found 2026-09-30, [lens #63 · Feedback](../lenses/63-feedback.md)).
+> **16 of the 29 `Note` kinds are failures, partials or declines, and each
+> carries a `reason` or a `detail`** — because
+> [#31](../lenses/31-action.md)'s doctrine demanded that a refusal say what
+> would lift it. **Nothing ever demanded the same of success:**
+> `EngagementCompletedNote` — the one kind that says *a thing you were
+> doing has finished* — is `{ kind, engagementId }`. An identifier, no
+> outcome, no evidence.
+>
+> ⭐⭐⭐ Schell's list of what feedback is for is **judgment, reward,
+> instruction, encouragement and challenge**. This envelope serves
+> *instruction* superbly and *encouragement* not at all. The fix is not a
+> score: **show the dirt, never the score** — `engagement-completed`
+> should be able to carry **what changed**.
+
 ### Notes
 
 Notes are the structured failure / partial-success / informational

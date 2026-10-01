@@ -57,8 +57,8 @@ the unnumbered **#∞ Lens of Your Secret Purpose**. *(Corrected
 2026-09-29: an earlier count of 113 stopped one page short of the table's
 end and missed **#111 Responsibility** — "does my game help people,
 how?" — and **#112 the Raven** — "is making this game worth my time?")*
-✅ **Twenty written**: `2` · `7` · `17` · `25` · `27` ·
-`28` · `30` · `31` · `33` · `62` · `65` · `66` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
+✅ **Twenty-one written**: `2` · `7` · `17` · `25` · `27` ·
+`28` · `30` · `31` · `33` · `62` · `63` · `65` · `66` · `37` · `46` · `55` · `79` · `86` · `91` · `93` · `110`. ⛔ **`92` was written and then deleted** —
 see below.
 
 | Sharpens | Entry | What it is for |
@@ -69,6 +69,7 @@ see below.
 | **6 · Economy · 2** | ✅ [`30-emergence.md`](./30-emergence.md) | ⭐⭐⭐ Why the trade backlog is a **roadmap** rather than a content queue. His most powerful tip — *verbs that act on many objects*, **"possibly the single most powerful thing you can do"** — is a content budget in a hand-built game and **architecture** here, so **emergence has a supply chain**: a pack author's row raises the strategic-action count of verbs written months earlier. ⭐⭐⭐ And the **chain walk is his method run backwards** — he adds verbs and watches; **we add a consumer and derive the producers.** Carries the synthesis rule: **borrow to the depth the combination needs, not the depth the source went** — and the finding that the RGO credits nobody. |
 | **6 · Economy · 4** | ✅ [`7-endogenous-value.md`](./7-endogenous-value.md) | ⭐⭐ **The roulette test**: *if the game needs the credential to be worth playing, it is roulette.* His Q2 is one our doctrine forbids us answering. ⭐⭐⭐ And the Goodhart shape: **our best-instrumented value is the one we least want optimised, and the value we promise — understanding — is the least instrumented thing in the design.** |
 | **6 · Economy · 3a** | ✅ [`27-time.md`](./27-time.md) | ⭐ **His chapter is about escaping time; ours about being subject to it** — rewind and speed-up refused, but ⭐ **the pause exists and is better than his**: *you cannot pause the world; the world agrees not to charge you for your absence.* Q1 unanswered — and untestable except **relatively**, which is a third ask for the gym pattern. |
+| **4 · Values · 1** | ✅ [`63-feedback.md`](./63-feedback.md) | ⭐⭐⭐ **The Swiffer settles the argument `55` had with itself.** *“Less feedback = dirtier floor”* — withholding evidence of progress does not purify the player, **it makes them do the thing less often**, which is the owner's workout objection proved by somebody selling mops. ⭐⭐⭐ And the form is the lesson: **the Swiffer does not gauge you, it shows you the dirt** — the no-gauge rule's *positive* form. ⛔ Of his five jobs (judgment · reward · instruction · encouragement · challenge) **encouragement is the one with no doctrine in the platform docs** — and the finding is worse than an absence, it is a **misfiling**: *the reward is chosen capability, not a carrot* and the **anti-pointsification test** are written, in a slate and two vertical pitch docs, while every prohibition sits in `measurement.md`. ⛔ Plus a dangling citation twice over (`advancement.md:800-802`, in a 610-line file that never says it). **Proof in the type system:** 16 of the 29 `Note` kinds are typed failures carrying a reason; `engagement-completed` carries an id and nothing else. ⭐⭐⭐ And the buildable answer already ships — *“quick wins” → “deep learning”* is `Quantity.tag(scale)` over one competency band: **same value, two renderings, never “you suck at this one.”** |
 | **4 · Values** | ✅ [`46-reward.md`](./46-reward.md) | ⭐ The refusal of variable-ratio reward, stated as a cost we have not paid: XP arrives **unbidden**, the mirror only on **pull**. |
 | **4 · Values** | ✅ [`55-visible-progress.md`](./55-visible-progress.md) | It is a *puzzle* lens, and we do not ban it — the mirror answers it. `measurement.md` forbids **ambient** progress, not visible progress. |
 | **4 · Values** | ✅ [`91-character-transformation.md`](./91-character-transformation.md) | The gap: we have an asset-accumulation story, not a character-change one. *"ARE"* is the ledger that is not online. |
@@ -134,7 +135,7 @@ one:
 | activities · scheduler · contracts · quests | **#27 Time** | ✅ |
 | the economy | **#7 Endogenous Value** ✅ · #52 Economy | ✅ |
 | combat · trade difficulty | **#21 Flow**, #38 Challenge | ⛔ |
-| the response envelope · messaging | **#63 Feedback**, #64 Juiciness | ⛔ |
+| the response envelope · messaging | **#63 Feedback** ✅ · #64 Juiciness ⛔ | ✅ — [`63`](./63-feedback.md), which finds the envelope serves *instruction* superbly and *encouragement* not at all |
 | the cockpit · cards · client | **#66 Channels and Dimensions** ✅ · **#62 Transparency** ✅ | ✅ — [`66`](./66-channels-and-dimensions.md) is what the interface carries, [`62`](./62-transparency.md) is how much of it a player should have to notice |
 | NPCs · behaviour · dialogue | **#90 Status** | ⛔ |
 | onboarding · char-gen | **#19 The Player**, #69 Interest Curve | ⛔ — though [`17`](./17-the-toy.md) owns the *first thirty seconds* half of it |

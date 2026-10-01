@@ -70,7 +70,7 @@ never stops running.**
 ## 3. The signal Saxonberg emits
 
 Per learner, per node with fresh evidence (schema in
-[spec §2](./study-com-integration-spec.md#2-the-two-wire-schemas)):
+[spec §2](./integration-spec.md#2-the-two-wire-schemas)):
 
 ```typescript
 interface CompetencySignal {
@@ -202,7 +202,9 @@ service. That raises bars the inbound direction does not:
   `CompetencySignal` is deliberately narrow (§3); it is the *entire*
   outbound surface. The theta firewall (§3.1) is also a privacy control —
   a band leaks far less about a person than a scalar.
-- **The overjustification guard** (advancement.md:800-802). Once real
+- **The overjustification guard** ([advancement-slate](../slates/builds/advancement-slate.md) § the
+  motivation lens's standing warning — ⚠ **corrected 2026-09-30**: this was
+  cited as `advancement.md:800-802`, a 610-line file that never mentions it). Once real
   coursework is the signal *and* play feeds instruction, keep verifying
   the reward is **chosen capability**, not a carrot — the governing
   high-stakes reconciliation (strategy doc): the avatar borrows its
