@@ -1,0 +1,72 @@
+verbs: [tap]
+controller: /trade/forestry/idea/cmd/forestry/TapController
+description: "Set a spile in a sap tree, or draw what has run"
+help: |
+  `tap birch` sets a spile in a birch, and `tap birch` again draws what
+  has run into the pail under it. ⭐ One verb for both halves, because
+  that is one act to a person: you go to the tree, and what happens
+  depends on what is in it.
+
+  Setting one needs an auger and a spile, and the spile stays in the
+  tree. A stem takes one spile when it is established and two when it is
+  mature, and no more — the refusal is the GIRTH, which is something you
+  can see by looking at it.
+
+  Drawing needs something to catch it in. Bring a pail.
+
+  ⚠ It only runs in the spring, on the way UP: the sap climbs as the
+  days lengthen and the ground warms, and it stops at bud break. Out of
+  season the tree says so, and that is information rather than a
+  refusal — there is nothing wrong and nothing to fix, it is just not
+  the season.
+
+  What comes out is almost water. Two per cent sugar for birch, four for
+  maple, which is why sugaring is a boiling trade: fill a pan, light the
+  arch, and stand there. A full pan of birch sap makes about
+  three-quarters of a litre of syrup.
+examples:
+  - cmd: tap birch with auger
+    note: Bore a hole and drive a spile in
+  - cmd: tap birch into pail
+    note: Draw what has run
+  - cmd: tap north birch
+    note: One particular tree, by name
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠ POLYMORPHIC, so `requires: any` — DECLARED, and it gates nothing
+  # (the `fell.yaml` shape, and `lint:arg-kinds`' own word for it).
+  # Two things can stand in this slot: a `SapStandard` in a panel, or a
+  # bare species word that binds NOTHING because the STAND is the room
+  # — `tap oak` in a wood lands as `{ stuff: null, raw: 'oak' }` and the
+  # wood answers it. Naming a mixin would refuse the second at the
+  # binder, which is exactly where the refusal would teach nothing.
+  - name: target
+    type: object
+    required: false
+    scope: [reachable]
+    requires: any
+  # ⭐ WHICH AUGER — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over the first reachable thing offering
+  # `boring`; an axe bound by name is refused in words by the tree.
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.boring]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # ⭐ WHAT YOU CATCH IT IN. Whether it is needed derives from the tap's
+  # `yieldShape` (`volume`), never from a flag here — and the refusal is
+  # the tree's, so a player with no pail is told what to bring.
+  - name: vessel
+    type: object
+    required: false
+    prepositions: [into, in]
+    default: "me:i:[mixin.BulkableMixin]"
+    scope: ["inventory", "reachable"]
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustHaveBulkSlot

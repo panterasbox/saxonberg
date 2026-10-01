@@ -1,0 +1,45 @@
+# ⭐⭐ Birch sap → syrup — **the saltern again, with a fire under it.**
+#
+# The second consumer of the `evaporative` mechanism, and that is the
+# argument for having built it as a mechanism: nothing in the kernel
+# changed to make sugaring work. ⭐⭐ **Before designing a mechanism,
+# look for the shipped one with a different feedstock** — the brine pan
+# IS the sap pan, and what differs is three numbers and where the heat
+# comes from.
+#
+# ⚠⚠ What differs, and it is the whole trade: a saltern waits for the
+# SUN and a sugarhouse builds a FIRE. `happyK: 370` is a rolling boil,
+# not a warm afternoon, so the rate is only reached under the arch —
+# which is why the fuel is the cost and the hours are the work. A pan
+# left out in the open evaporates at the ambient rate, which is to say
+# at nearly nothing, and reads stalled rather than reading *starting*.
+#
+# ⭐ `productFraction: 0.02` is 50:1 by volume — the real ratio, and
+# the number the whole economy of the trade rests on. A 40 L pan yields
+# about three-quarters of a litre; that is not a disappointing dial, it is what sugaring IS, and it
+# is why a sugarbush is worth a season's fuel and a day's gathering is
+# worth a jar.
+#
+# ⚠ `stallBelowK: 273` is ice. `damageAboveK: 400` is the one way to
+# ruin a batch: boiled dry and burnt, which is the scorch an untended
+# fire gives you and the reason somebody has to stand there.
+#
+# ⚠⚠ And it authors **no strain** — `requiresFlora` absent. Nothing
+# lives in a boiling pan, and two shipped profiles were silently frozen
+# by the strain gate once already.
+class: /platform/idea/maturation/MaturationProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: birch-sap
+  # The tag the sap material already carries.
+  inputCategory: birch-sap
+  mechanism: evaporative
+  stallBelowK: 273
+  happyK: 370
+  damageAboveK: 400
+  ratePerDay: 6
+  productMaterial: /trade/forestry/idea/material/birch-syrup
+  productFraction: 0.02
+  turnedMaterial: null
+  sealedOnly: false
+  leesFraction: 0

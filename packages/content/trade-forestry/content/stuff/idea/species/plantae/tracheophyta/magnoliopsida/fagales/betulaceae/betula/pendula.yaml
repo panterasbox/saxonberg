@@ -1,0 +1,76 @@
+# Betula pendula — the silver birch, and ⭐⭐ **the tree that proves the
+# tap.**
+#
+# Fast, short-lived and a pioneer: it takes bare ground nothing else
+# wants, grows in a third of an oak's time, and is gone again in eighty
+# years. The timber is poor (it rots the moment it is wet, which is why
+# nobody posts with it), so what a birch is FOR is its sap — and that is
+# the point of putting it in first.
+#
+# ⭐⭐⭐ **It is in the game because maple is not buildable here yet.**
+# Sugar maple runs on freeze–thaw: the sap climbs when nights drop below
+# freezing and days come above it, and the pressure that drives it is
+# literally ice. This realm's temperature floor is about 276 K — the
+# weather field's annual and diurnal deviation never reaches 273 — so a
+# freeze–thaw opener would never fire once, in any season, anywhere.
+# Birch does NOT need the freeze: its run is driven by root pressure as
+# the soil warms, so a daylength-plus-warmth window is an honest model
+# of a real birch rather than a compromise. ⚠ Maple ships beside it with
+# the band it CAN have, and the freeze–thaw row it should have is the
+# climate slate's first consumer.
+#
+# The living tree is plant tissue; what is felled is
+# `/stuff/idea/material/wood/birch`, and the two rows name each other.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Betula pendula
+  commonNames: ["birch", "silver birch", "white birch"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 80
+  circadianBand: aperiodic
+  diet: photosynthesis
+  production:
+    # ⭐⭐ Sap is a VOLUME, so `yieldRow` names the MATERIAL and the
+    # vessel is the object — exactly like milk. There is no "bucket of
+    # sap" row, because minting the bucket with the sap would be the
+    # faucet shape for containers.
+    #
+    # ⭐ `perGameDay: 3` is PER SPILE (`productionFactor` multiplies by
+    # the spiles set), so a two-spile mature birch runs about six litres
+    # a game day at full vigour — a pail a day, which is roughly honest
+    # for a real birch in full run and is a playable number at a 40 L
+    # pan and 2% yield.
+    #
+    # ⭐⭐⭐ `rising: true` is the load-bearing term. Spring and autumn
+    # CROSS THE SAME DAYLENGTH BAND and are not the same season for a
+    # tree: sap runs on the way up and not on the way down. Without it a
+    # birch would run twice a year, which is the kind of wrongness
+    # nothing in the game would ever have reported.
+    #
+    # ⚠ The temperature band barely gates in this climate (spring here
+    # sits near 291–299 K) — the daylength does the work, and the band is
+    # there so that a realm with a real winter needs no code change. It
+    # is the honest shape, under-exercised rather than wrong.
+    - key: sap
+      yieldRow: /stuff/idea/material/food/birch-sap
+      perGameDay: 3
+      behaviour: accrue
+      windowDays: 4
+      yieldShape: volume
+      window:
+        kind: weather
+        daylightFrom: 0.40
+        daylightTo: 0.50
+        rising: true
+        minK: 278
+        maxK: 300
+  longDescription: >-
+    A slender birch with papery white bark peeling in ribbons and a
+    crown of small restless leaves.

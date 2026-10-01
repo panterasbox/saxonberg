@@ -1,0 +1,48 @@
+# Birch syrup — ⭐ **what birch sap becomes, at 50:1.**
+#
+# Boiled down until it is two-thirds sugar by weight, at which point it
+# keeps: the water activity drops far enough that nothing much grows in
+# it, which is the same hurdle honey sits behind and the reason both are
+# storable where the raw material is not.
+#
+# ⭐⭐ Tagged `syrup` and `sweetener` and ⛔ **NOT `sugar`.** The three
+# recipe tags are `sugar`, `honey` and `syrup`; `sweetener` is the
+# FAMILY and gates nothing by design. A recipe that asked for
+# `sweetener` would accept honey in a gimlet and syrup in a mead, which
+# is not the distinction any cook makes — see the sweetener vocabulary
+# in `crafting.md`. The practical consequence is the demand checkpoint:
+# the Lounge's four cocktails all slot `category: syrup`, so this is
+# accepted there **with no recipe edited**.
+#
+# ⚠ `nutrientAmounts.sugar` is high and that number is load-bearing
+# twice: it drives fermentable sugar (so syrup is a mead/wine feedstock)
+# and it is what makes the boil worth doing at all.
+#
+# ⭐ In the TRADE rather than the commons, unlike the sap: sap is a fact
+# about a tree and syrup is a thing somebody made.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: birch syrup
+  keywords: [birch-syrup, syrup, birch]
+  appearance: dark as treacle, almost savoury at the edge
+  density: 1330
+  specificHeat: 2800
+  thermalConductivity: 0.40
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  tastes: [sweet]
+  # Steeply answering to warmth, and it barely matters: the water
+  # activity sits low enough that the rate is multiplied by almost
+  # nothing. The honey argument, for the same reason.
+  spoilActivationEnergy: 78000
+  waterActivity: 0.70
+  nutrients: ["sugar", "water"]
+  nutrientAmounts: { sugar: 660000, water: 320000 }
+  toxicity: []
+  tags: ["liquid", "food", "syrup", "birch-syrup", "sweetener", "edible"]
+  composition: []
+  biologicalSource: null

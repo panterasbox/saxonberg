@@ -1,0 +1,51 @@
+# The sugarbush — a hollow of birch and maple off the ride, and ⭐ the
+# first consumer of the tap substrate.
+#
+# ⚠ NOT a `/trade/forestry/location/Wood`, deliberately. A `Wood` is a
+# STAND: a derived count of trees you fell by the species word, and its
+# `look` would append *"nothing stands here worth the axe"* over six
+# standards a player can see and touch. The sugarbush is the other
+# representation — named individual trees in a panel — so it is a plain
+# singleton location with the woodland biome, exactly like the treeline.
+# ⭐ That is the fifth representation of a tree arriving in forestry.md
+# and it is the right one here: you do not tap a stand, you tap a stem.
+#
+# ⚠ So there is no `fell` here either, which is honest: these trees are
+# kept for their sap and felling one would be the end of it. (A player
+# who wants timber walks fifty yards back to the ride.)
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: sugarbush
+  keywords: [sugarbush, bush, hollow, birch, maple, sugarhouse]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/woodland
+  # Half-lit: a hollow, but the canopy here is thin and the arch is open.
+  ambientIntensity: 3000
+  ambientColorTemperature: 5600
+  longDescription: |
+    A shallow hollow off the east side of the ride where the oak gives out and something lighter has come in: birch first, white-barked and thin, and behind them three maples with trunks you could get both arms round. The ground between is open, trodden, and littered with the ends of old brash.
+
+    At the low end of the hollow stands the arch — a long low fire-bed of stone and brick, open at both ends, roofed with brash against the rain, with a pan the length of it set across iron bars. The stone above the bars is burnt white and the ground either side is beaten flat and black with ash.
+  coords: { x: 1, y: 1, z: 0 }
+  exits:
+    west:
+      destination: /world/terminus/rejection/hanging-wood/ride
+      edgeMinutes: 3
+  props:
+    - /world/terminus/rejection/hanging-wood/thing/sugarbush-panel
+    - /trade/forestry/thing/sap-pan
+    - /trade/forestry/thing/evaporator
+  details:
+    arch:
+      keywords: [arch, evaporator, hearth, fire, "fire-bed", stone, brick]
+      description: |
+        Fieldstone at the base and brick above it, laid dry and bedded in ash, with four iron bars across the top set just wide enough to take the pan. You could get a day's cordwood into it and it would want more.
+    hollow:
+      keywords: [hollow, ground, brash, ends, litter]
+      description: |
+        Trodden bare in a rough circle round the arch, and brash piled along the upper edge where it has been thrown out of the way year after year.
+    bark:
+      keywords: [bark, birch, ribbons, white]
+      description: |
+        Peeling off the birches in papery ribbons, white outside and pink underneath, and it will take a flame soaking wet.

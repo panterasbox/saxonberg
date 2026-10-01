@@ -1,0 +1,37 @@
+# Maple — hard, close-grained, and it takes a surface nothing else does.
+#
+# Dense and very hard for a broadleaf (near oak, harder than beech) with
+# a grain so fine it finishes glassy — a butcher's block, a plane body, a
+# floor, the back of an instrument. It has no decay resistance worth the
+# name, so like birch it is an indoor wood.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at; `hardness` / `toughness` →
+# materials-response; `waterAbsorptionCapacity` → wetness;
+# `autoignitionTemperature` + `heatOfCombustion` → the fire driver;
+# `thermalConductivity` / `specificHeat` → thermal.
+#
+# ⚠ As with birch, the wood is not the point of the tree: the sap is
+# (`/stuff/idea/material/food/maple-sap`), and that is the species row's.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: maple
+  keywords: [maple]
+  density: 705
+  specificHeat: 1900
+  thermalConductivity: 0.16
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 35
+  autoignitionTemperature: 560
+  heatOfCombustion: 17.5
+  hardness: 45
+  toughness: 70
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/sapindaceae/acer/saccharum
+    tissueType: wood

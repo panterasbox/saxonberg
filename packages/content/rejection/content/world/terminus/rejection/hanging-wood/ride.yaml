@@ -54,6 +54,14 @@ data:
     west:
       destination: /world/terminus/rejection/hanging-wood/hazel-cant
       edgeMinutes: 2
+    # ⭐ The sugarbush, added by the taps build. A hollow off the east
+    # side where the oak gives out: NOT a stand, so there is no `fell`
+    # there and no `tap` here — the two verbs are legible from where
+    # they are afforded, which is the whole point of the three-way
+    # contest.
+    east:
+      destination: /world/terminus/rejection/hanging-wood/sugarbush
+      edgeMinutes: 3
   details:
     litter:
       keywords: [litter, "leaf-litter", leaves, ground, earth]

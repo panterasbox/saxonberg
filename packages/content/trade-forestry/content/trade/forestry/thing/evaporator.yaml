@@ -1,0 +1,51 @@
+# An evaporator — ⭐ the brine hearth with a roof over it, which is what
+# a sugarhouse arch is.
+#
+# A long open-sided fire-bed built to take a pan the length of it, fed
+# with cordwood and run hard: the trade's one piece of plant, and the
+# reason sugaring is a PLACE rather than a thing you do in a kitchen.
+#
+# ⚠⚠ `burnTemperatureK: 390` sits deliberately BETWEEN the profile's
+# `happyK` (370 — a rolling boil) and its `damageAboveK` (400 — burnt).
+# A lit arch therefore drives the boil at full rate and **cannot scorch
+# a batch by temperature alone**, which is the honest shape: a sugarhouse
+# fire is not what ruins syrup.
+#
+# ⭐ What ruins it is BOILING DRY — leaving a finished pan on the fire
+# until there is nothing left but burnt scale — and that is the
+# evaporative mechanism's own `damageSat` path, not a heat setting. So
+# the thing a sugarer actually watches for is the pan getting LOW, which
+# is what a sugarer actually watches for.
+#
+# ⚠ The first draft of this row said 480, and the W5 test caught it: an
+# arch above `damageAboveK` would have scorched every batch in the game
+# regardless of who was standing there, which would have made attention
+# worthless rather than valuable.
+#
+# ⭐ It burns WOOD, and the wood comes out of the same stand the sap
+# does — which is the first time in the game a trade's fuel and its
+# feedstock are the same acre. Nothing enforces that; it is just where
+# the arch is.
+class: /platform/thing/Oven
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: sugaring arch
+  keywords: [evaporator, arch, hearth, fire, "sugaring arch"]
+  register: definite
+  longDescription: >-
+    A long low arch of fieldstone and brick, open at both ends and roofed
+    with brash against the rain, with iron bars across the top set to
+    take a pan the length of it. The stone above the bars is burnt white
+    and the ground either side is beaten flat and black with ash.
+  burnTemperatureK: 390
+  bellowsMultiplier: 1
+  fuelBurnRatePerMin: 0.8
+  lit: false
+  mass: 1600
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

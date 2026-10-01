@@ -27,6 +27,13 @@ data:
     - { itemTemplatePath: /trade/mining/thing/timber-set, par: 8 }
     - { itemTemplatePath: /trade/mining/thing/compass, par: 1 }
     - { itemTemplatePath: /world/terminus/rejection/thing/glowcap-jar, par: 6 }
+    # ⭐ The sugaring kit, added by the taps build. The valley has no
+    # supplier of its own, so the kit comes from town — the apiculture
+    # lesson applied: a new trade's instruments go on the shelf people
+    # already buy from, not on a bespoke one.
+    - { itemTemplatePath: /trade/forestry/thing/auger, par: 2 }
+    - { itemTemplatePath: /trade/forestry/thing/spile, par: 12 }
+    - { itemTemplatePath: /stuff/thing/vessel/pail, par: 4 }
   # ⚠ The field is `prices:` — a path→figure MAP, not an `offers:` list.
   # It was authored as a list first and every `buy` answered *"isn't for
   # sale"*: a `Stock` with stock lines and no prices holds the goods and
@@ -46,3 +53,11 @@ data:
     # dies in a month. A small recurring cost rather than a gate — which
     # is what makes losing your light disabling rather than ruinous.
     /world/terminus/rejection/thing/glowcap-jar: 4
+    # ⭐⭐ The spile is the cheapest thing on the slate and it is
+    # CONSUMED by setting a tap — twelve of them is a season. That is
+    # what makes over-tapping a decision with a price on it rather than
+    # a free action, and it is the only recurring cost in the trade
+    # besides the fuel.
+    /trade/forestry/thing/auger: 18
+    /trade/forestry/thing/spile: 1
+    /stuff/thing/vessel/pail: 5

@@ -1,0 +1,40 @@
+# Maple sap — ⭐ **almost water, and that is the whole economy.**
+#
+# Two per cent sugar for birch and four for maple: a pail of sap is a
+# spoonful of syrup, which is why sugaring is a BOILING trade and not a
+# gathering one. Every number downstream — the pan, the fuel, the hours
+# — follows from that ratio being this bad, and it is the real ratio.
+#
+# ⚠ It SOURS, fast. `waterActivity` 0.99 and a modest activation energy:
+# raw sap is sugar-water at ambient temperature and is a culture medium
+# within a day or two. That is the true reason a sugarer boils the same
+# day they tap, and it is modelled rather than asserted.
+#
+# ⭐ In the COMMONS rather than under `/trade/forestry`, for the milk
+# argument: a birch gives sap whether or not anybody is sugaring. The
+# SYRUP is the trade's, because somebody has to make it.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: maple sap
+  keywords: [maple-sap, sap, maple]
+  appearance: clear and thin, with the barest sweetness
+  density: 1010
+  specificHeat: 4100
+  thermalConductivity: 0.58
+  electricalConductivity: 0.3
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  tastes: [sweet]
+  spoilActivationEnergy: 55000
+  waterActivity: 0.99
+  nutrients: ["sugar", "water"]
+  nutrientAmounts: { sugar: 40000, water: 970000 }
+  toxicity: []
+  tags: ["liquid", "food", "sap", "maple-sap", "perishable", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/sapindaceae/acer/saccharum
+    tissueType: sap

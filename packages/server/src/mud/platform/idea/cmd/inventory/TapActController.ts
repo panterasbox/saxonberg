@@ -67,8 +67,18 @@ export abstract class TapActController<
   /** Which tap this verb draws. The only thing a subclass must say. */
   protected abstract tapKey(model: M): string;
 
-  /** What to say when nothing here answers this verb. */
-  protected abstract nothingHere(model: M): ReturnType<typeof Mml.compose>;
+  /**
+   * What to say when nothing here answers this verb.
+   *
+   * ⭐ Takes the GIVER as well as the model, because the honest answer
+   * can depend on where you are standing: `tap` with nothing bound means
+   * *a stand is not a stem* in a wood and *nothing here takes a spile*
+   * anywhere else, and the controller has no other way to know which.
+   */
+  protected abstract nothingHere(
+    model: M,
+    giver: Stuff,
+  ): ReturnType<typeof Mml.compose>;
 
   /** The reason filed when nothing answers. */
   protected nothingHereReason(): string {
@@ -97,7 +107,11 @@ export abstract class TapActController<
     const giver = context.commandGiver;
     const subject = await this.subjectOf(model, giver);
     if (subject === null) {
-      this.decline(context, this.nothingHere(model), this.nothingHereReason());
+      this.decline(
+        context,
+        this.nothingHere(model, giver),
+        this.nothingHereReason(),
+      );
       return;
     }
 

@@ -1195,6 +1195,70 @@ Content only (no `src/`).
 - Acceptance: a booted world shows the bush, the trees answer `look`
   by name, `buy auger` works.
 
+### ✅ W5 · The tappable tree, the sap, the boil — DONE `build(taps W5)`
+### ✅ W6 · The sugarbush at Rejection — DONE (same commit)
+
+forestry 120/120, `tsc` clean, lint roster green. Landed together
+because W6 is rows over W5's classes and neither suite separates.
+
+> **W5 — what landed**
+> - Commons: `betula/pendula` + `acer/saccharum` species (both carrying
+>   a `weather` tap with `rising: true`), `wood/{birch,maple}` materials,
+>   `food/{birch,maple}-sap`. The wood vocabulary is **ten** now — and
+>   both joined for their SAP rather than their timber, which is the
+>   first time a tree earned its way in for something other than what it
+>   is made of.
+> - Trade: `src/thing/SapStandard.ts` = `ProducingMixin(Plant)`; the two
+>   standard rows + two seed rows; `auger`/`spile`/`sap-pan`/`evaporator`;
+>   `{birch,maple}-syrup` materials; `{birch,maple}-sap` maturation
+>   profiles; `cmd/forestry/tap.yaml` + `TapController` (+ its template
+>   row); `Stand.ts` affords `tap` in order to refuse it.
+>
+> **⚠⚠ The evaporator was WRONG and the sugaring test caught it.**
+> `burnTemperatureK: 480` sits ABOVE the profile's `damageAboveK: 400`,
+> so a lit arch would have scorched **every batch in the game regardless
+> of who was standing there** — which makes attention worthless rather
+> than valuable, the exact inverse of the design. It is 390 now:
+> deliberately between `happyK` (370, a rolling boil) and 400, so a lit
+> arch drives the boil at full rate and *cannot scorch by temperature at
+> all*. ⭐ What ruins syrup is **boiling dry**, which is the evaporative
+> mechanism's own `damageSat` path — so the thing a sugarer watches for
+> is the pan getting low, which is what a sugarer actually watches for.
+> Risks §5 asked for this calibration; this is it, and it moved a number
+> rather than the mechanism.
+>
+> **W6 — what landed**
+> - `hanging-wood/sugarbush.yaml` (a `SingletonCartesianLocation`, ⚠ NOT
+>   a `Wood` — a stand's derived reading would say *"nothing stands here
+>   worth the axe"* over six stems a player can touch), east off the ride
+>   both ways, its own cell.
+> - `thing/sugarbush-panel.yaml` + **six named tree rows** using
+>   `extends:`.
+> - The store stocks AND prices auger/spile/pail — both halves, because a
+>   `Stock` with lines and no prices answers *isn't for sale*, which was
+>   found by driving apiculture.
+>
+> **⭐ `extends:` RESOLVED (Risks §7).** It works, and the keyword
+> question was the wrong worry: whether a child's `keywords` replaces or
+> merges does not matter, because the DISTINCT keyword (`birch-north`) is
+> unique to the row either way. ⚠ What did bite is the opposite —
+> `lint:instanceable` flags a child that re-states `class:` or
+> `hydratorClass:`: *a child states only what differs*. The six rows are
+> six lines of data each now, so the fallback-to-full-rows the plan
+> budgeted for was not needed.
+>
+> **Other gate findings**
+> - `lint:controller-rows` — `TapController` had **no template row**. A
+>   `controller:` is a template path, so the verb would have answered
+>   `controller-error` *every time, for everybody, forever*, with its
+>   controller tests green. One two-line file.
+> - `lint:mass` — the two new seed rows stated no mass. The shipped
+>   acorn and ash key are grandfathered under the ratchet; a new row
+>   pays the rule.
+> - `lint:instanceable` — `chemistry: null` on the two wood materials is
+>   an orphan key (`Material` declares no such field) even though beech
+>   carries it. Dropped; the ratchet is back at 393.
+
 ### W7 · The drive, the docs, the slate — `drive(taps): <what driving found>` + `docs(taps): subsystem doc + climate slate`
 
 - `packages/wire/tests/taps.dirty.wire.test.ts` (`DIRTY_REASON`: buys

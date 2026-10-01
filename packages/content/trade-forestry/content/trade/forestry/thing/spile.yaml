@@ -1,0 +1,23 @@
+# A spile — the little tube that goes in the hole, and ⭐ **the thing a
+# tap COSTS.**
+#
+# Setting a tap consumes one: it stays in the tree until the run is over
+# and whoever tapped it is the person who has to buy another. ⚠ That is
+# the whole reason over-tapping is a real decision rather than a free
+# action — a stem takes two at most, and each one is a thing you had to
+# have with you.
+#
+# ⭐ Elder, because the pith pushes out and leaves a tube: a real spile
+# before anybody drew one in metal, and the kind of detail that makes a
+# trade feel like it was practised rather than designed.
+class: /platform/thing/Thing
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [spile, spout, tap, "sap spile"]
+  shortDescription: spile
+  register: indefinite
+  longDescription: >-
+    A short length of elder with the pith pushed out of it, whittled to a
+    taper at one end and notched at the other to hang a pail from.
+  mass: 0.05
+  _materialPath: /stuff/idea/material/wood/elm

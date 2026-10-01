@@ -1,0 +1,39 @@
+# Birch — pale, even-grained, and it rots the moment it is wet.
+#
+# Light and tough for its weight (a tool haft, a bowl, a chair back) but
+# with almost no decay resistance, which is why nobody has ever made a
+# fence post of it and why a birch wood is a wood you cut young. It
+# burns hot and fast with the bark alight even wet — the fire-lighting
+# wood, and the one thing it is unambiguously best at.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at (forestry's `fell`); `hardness` /
+# `toughness` → materials-response; `waterAbsorptionCapacity` →
+# wetness; `autoignitionTemperature` + `heatOfCombustion` → the fire
+# driver; `thermalConductivity` / `specificHeat` → thermal.
+#
+# ⚠ The WOOD is not what a birch is for. Its sap is
+# (`/stuff/idea/material/food/birch-sap`), which is a fact about the
+# living tree and lives on the species row.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: birch
+  keywords: [birch]
+  density: 640
+  specificHeat: 1900
+  thermalConductivity: 0.14
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 45
+  autoignitionTemperature: 550
+  heatOfCombustion: 18
+  hardness: 30
+  toughness: 60
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/betula/pendula
+    tissueType: wood

@@ -1,0 +1,25 @@
+# A tapping auger — ⭐ what bores the hole a spile goes in.
+#
+# The `boring` capability, minted here because `tap.yaml` consumes it
+# and nothing else does (`lint:capabilities`: a kind exists iff it is
+# asked for). ⚠ An axe does NOT offer it: you cannot chop a tap hole,
+# and the refusal naming the auger is where the object says what the act
+# needs.
+#
+# `epoch: medieval` is the stamp the land-use covenant's predicate
+# reads — a parcel that admits augers and refuses drills asks the
+# INSTRUMENT, never the player.
+class: /platform/thing/Tool
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [auger, bit, brace, "tapping auger"]
+  shortDescription: tapping auger
+  register: indefinite
+  longDescription: >-
+    A spoon-bit auger with a cross handle, the bit about the thickness of
+    your little finger and polished bright from use. It cuts a clean hole
+    sloping slightly upward, which is the way a tap hole wants to go.
+  mass: 0.9
+  capabilities: ["boring"]
+  epoch: medieval
+  _materialPath: /stuff/idea/material/element/iron

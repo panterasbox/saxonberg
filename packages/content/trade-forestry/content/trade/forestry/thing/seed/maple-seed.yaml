@@ -1,0 +1,19 @@
+# A maple key — the winged samara, and it spins when it falls. Plant
+# it in a panel and it grows into
+# `/trade/forestry/thing/plant/maple-standard`: ten game years to a
+# tappable stem.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: maple key
+  keywords: [key, seed, maple, "maple key", samara]
+  register: indefinite
+  longDescription: |
+    A paired winged key, one half heavier than the other so it spins as it goes down.
+  # ⚠ Stated, because `lint:mass` counts a tangible row that does not.
+  # (The shipped acorn and ash key are grandfathered under the ratchet;
+  # a new row pays the rule.) A winged seed weighs next to nothing, and
+  # that is the point of the wing.
+  mass: 0.0008
+  growsIntoPath: /trade/forestry/thing/plant/maple-standard
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/sapindaceae/acer/saccharum
