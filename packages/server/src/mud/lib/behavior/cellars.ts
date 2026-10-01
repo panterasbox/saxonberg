@@ -48,6 +48,9 @@ import type { Maturing } from '../maturation/Maturing';
 import { CommandApi } from '../../api/command';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import type { EngagementSlot } from '../activity/Engaged';
+import type { TaskKind } from './Urgency';
+import { Urgency } from './Urgency';
 
 const DEFAULT_BATCH = 4;
 const DEFAULT_ASK = 10;
@@ -124,6 +127,18 @@ function askFor(config: Record<string, unknown>, vessel: Stuff): number {
 
 export const brain = class {
   static label = 'cellars';
+  static kind: TaskKind = 'work';
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static summary =
+    'Works the fermenting floor: bottles and consigns a finished vat, ' +
+    'crushes into an idle one, and buys inputs when the floor is clear.';
+  static produces: readonly string[] = ['bottled-drink'];
+  static consumes: readonly string[] = ['fermentables'];
+  // The floor's own state decides WHICH leg; that a floor exists decides
+  // that there is work. The hand is paid to be here.
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'turns to the vats');
+  }
   static presenceGated = false;
   // A functional poller (works the cellar, moves stock), not chatter.
   static ambient = false;

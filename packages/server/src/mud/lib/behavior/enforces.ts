@@ -46,6 +46,9 @@ import type { Stuff } from '../stuff/Stuff';
 import type { CommandGiver } from '../command/CommandGiver';
 import type { BrainContext } from './brain';
 import type { Combatant } from '../combat/Combatant';
+import type { EngagementSlot } from '../activity/Engaged';
+import type { TaskKind } from './Urgency';
+import { Urgency } from './Urgency';
 
 const BAND_ORDER = [
   'healthy',
@@ -159,6 +162,40 @@ async function recordEightySix(path: string, subjectKey: string): Promise<void> 
 
 export const brain = class {
   static label = 'enforces';
+  static kind: TaskKind = 'threat';
+  static claims: readonly EngagementSlot[] = ['attention'];
+  static summary =
+    "Keeps the house's peace: shouts a fight down, wades in hands-first, " +
+    'fetches the taser under a real threat, and 86s a visibly-armed patron.';
+  /**
+   * ⭐⭐ The band ladder IS the escalation ladder, which is the clearest
+   * case in the realm for four bands rather than a number:
+   *
+   * - a fight on the floor ⇒ `critical`: it preempts whatever the
+   *   proprietor was doing and wakes him early (the beat does not wait
+   *   for its next tick while two patrons swing at each other);
+   * - a visibly-armed patron ⇒ `pressing`: it beats the round and the
+   *   paperwork, and waits for a fight;
+   * - a quiet floor ⇒ `wanted`: he walks it anyway.
+   */
+  static urgency(ctx: BrainContext): Urgency {
+    const host = ctx.host;
+    if (!MixinApi.isCommandGiver(host)) return new Urgency("idle");
+    const alertness = num(ctx.config.alertness, 4);
+    const occupants = occupantsAround(host);
+    if (occupants.some((o) => CombatApi.sessionFor(o))) {
+      return new Urgency('critical', 'is already moving toward the fight');
+    }
+    const armed = occupants.some(
+      (o) =>
+        MixinApi.isCombatant(o) &&
+        o.visibleArmsFor(host, alertness).length > 0,
+    );
+    if (armed) {
+      return new Urgency('pressing', 'fixes on the blade and starts over');
+    }
+    return new Urgency('wanted', 'takes a slow look round the house');
+  }
   static presenceGated = false; // the house is kept even in an empty bar
   static ambient = false;
 

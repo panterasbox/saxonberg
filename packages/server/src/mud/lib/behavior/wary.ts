@@ -33,6 +33,8 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Engaged } from '../activity/Engaged';
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
+import type { TaskKind } from './Urgency';
+import { Urgency } from './Urgency';
 
 /** Default active attention a sentry brings to the concealment gate. */
 const DEFAULT_ALERTNESS = 4;
@@ -74,6 +76,17 @@ function attack(host: Stuff, intruder: Stuff): void {
 
 export const brain = class {
   static label = 'wary';
+  static kind: TaskKind = 'threat';
+  static summary =
+    'Watches the room and challenges anybody it newly detects — a lax ' +
+    'sentry misses a decent hide, a sharp one sees through a poor one.';
+  // ⭐ Watching is never urgent IN ITSELF — it is what an attentive
+  // person does with a beat nobody else wants. The reaction to a
+  // detection happens inside the same beat, so there is nothing for a
+  // higher band to express.
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'sweeps the room with a careful eye');
+  }
   static claims: readonly EngagementSlot[] = ['attention'];
   // A functional poller (its cadence is the watch interval), not ambient
   // chatter — honor the authored interval exactly.

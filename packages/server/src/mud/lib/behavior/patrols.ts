@@ -16,9 +16,16 @@ import type { Containable } from '../spatial/Containable';
 import type { Exitable } from '../boundary/Exitable';
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
+import { Urgency } from './Urgency';
+import type { TaskKind } from './Urgency';
 
 export const brain = class {
   static label = 'patrols';
+  static kind: TaskKind = 'work';
+  static summary = 'Walks an authored route of directions, one step a beat, cycling.';
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'picks up the round again');
+  }
   static claims: readonly EngagementSlot[] = ['body'];
   static requiresFree: readonly EngagementSlot[] = ['attention'];
 
