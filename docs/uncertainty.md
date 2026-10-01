@@ -511,11 +511,11 @@ consistent with *nothing happened* and with *six hours at 21 °C*.
 | `Soil` | seasons | precipitation | **1 — exact integral** | ✅ |
 | `ThermalDose` | minutes–hours | temperature | **2 — Simpson along the trajectory** | ✅ |
 | `Staling` | days | temperature | **3 — sample, justified by τ ratio** | ✅ |
-| `Growing` | days–seasons | ambient, soil, light | restamps `_lastAmbientK`, then rates from the **stored** value | ⚠ rectangle from the **start** |
-| `Freshness` | days–weeks | temperature **and** `a_w` | rectangle from the **end**, unjustified | ⛔ |
-| `Contaminable` | days–weeks | temperature, `a_w` | rectangle from the **end** | ⛔ **and silent by design** |
-| `Maturing` | **weeks–months** | cellar temperature | rectangle from the **end** | ⛔ **the longest horizon in the tree** |
-| `WaterActivity` | hours–days | ambient humidity | relaxation toward the driver | ⚠ **and it is itself a driver** |
+| `Growing` | days–seasons | ambient, soil, light | per-window MEANS of all four factors (incl. warmth), sub-stepped | ✅ answer 3 — factors do not turn inside a step (by design) |
+| `Freshness` | days–weeks | temperature **and** `a_w` | **folds the logistic over `temperatureTrajectory`**; `a_w` an end sample | ✅ (2026-10-01) |
+| `Contaminable` | days–weeks | temperature, `a_w` | **folds over `temperatureTrajectory`**; `a_w` an end sample | ✅ (2026-10-01) |
+| `Maturing` | **weeks–months** | cellar temperature | **conversion folds over `temperatureTrajectory`**; peak/worst over samples | ✅ (2026-10-01) |
+| `WaterActivity` | hours–days | ambient humidity | relaxation toward the driver (exposed arm already walks air segments) | ✅ answer 2/3 — `@samples` on the enclosed arm |
 
 ⭐⭐⭐ **The tree contains every rectangle choice and both true integrals.**
 `Growing` rectangles from the start, the spoilage family from the end, and

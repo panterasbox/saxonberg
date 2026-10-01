@@ -55,11 +55,13 @@ const REPO_ROOT = join(MUD, '../../../..');
 /**
  * ⭐ **The ceiling. It may fall; it may never rise.**
  *
- * W1's census: the gauges that still sample a stepped temperature over
- * their gap. W2 migrates each to integrate `temperatureTrajectory` and
- * drives this to 0.
+ * W1's census was 8; W2 migrated Freshness, Contamination, Maturing and
+ * ThermalDose to integrate `temperatureTrajectory`, marked Staling
+ * `@samples` (justified by its τ-ratio), and the rest never integrated a
+ * stepped temperature at all — so the ratchet is now **0**. A new
+ * `reconcile*` that samples a stepped temperature over its gap fails.
  */
-export const RECONCILE_CHAINS_CEILING = 8;
+export const RECONCILE_CHAINS_CEILING = 0;
 
 const SAMPLING_TOKENS = [
   'getTemperature(',
@@ -109,14 +111,16 @@ function reconcileMethods(source: string): { name: string; body: string }[] {
       }
     }
     if (end === -1) continue;
-    // Include the preceding JSDoc block so a `@samples` marker is in scope.
-    const before = source.slice(0, m.index);
-    const docStart = before.lastIndexOf('/**');
-    const docEnd = before.lastIndexOf('*/');
-    const docPrefix =
-      docStart !== -1 && docEnd !== -1 && docEnd > docStart
-        ? source.slice(docStart, m.index)
-        : '';
+    // Include ONLY the JSDoc immediately above the method (nothing but
+    // whitespace between its `*/` and the declaration) so a `@samples`
+    // marker is in scope — without swallowing a preceding sibling method's
+    // body, which would import its `getTemperature()` as a false positive.
+    const before = source.slice(0, m.index).replace(/\s*$/, '');
+    let docPrefix = '';
+    if (before.endsWith('*/')) {
+      const docStart = before.lastIndexOf('/**');
+      if (docStart !== -1) docPrefix = source.slice(docStart, m.index);
+    }
     out.push({ name, body: docPrefix + source.slice(open, end + 1) });
   }
   return out;

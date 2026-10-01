@@ -158,7 +158,38 @@ const CONTAMINATION_DEFAULTS = {
   SECONDS_PER_HOUR: 3600,
   GAS_CONSTANT: 8.314,
   AMBIENT_K: 293,
+  /** Midpoint samples per trajectory stretch when integrating over a gap. */
+  SUB_STEPS: 8,
 } as const;
+
+/**
+ * ⭐ Advance pathogen loads across `[stampS, nowS]`, integrating over the
+ * host's TEMPERATURE TRAJECTORY. Like freshness the growth/death are
+ * multiplicative in the odds, so folding `Contamination.advanceAll` across
+ * the trajectory's midpoint samples is exact for a piecewise-constant rate.
+ * Water activity stays an end sample (justified — no stepped state exists
+ * for an enclosed slot's humidity). Not a class static (the ratchet is at
+ * its ceiling); the module's own fold.
+ */
+function advanceContaminationOverHost(
+  host: Stuff | null,
+  loads: PathogenLoads,
+  stampS: number,
+  nowS: number,
+  aw: number,
+): PathogenLoads {
+  if (host !== null && MixinApi.isThermal(host)) {
+    const pw = host.temperatureTrajectory(stampS, nowS);
+    let acc = loads;
+    for (const s of pw.samples(CONTAMINATION_DEFAULTS.SUB_STEPS)) {
+      acc = Contamination.advanceAll(acc, s.durationS, s.value, aw);
+    }
+    return acc;
+  }
+  const tempK =
+    host !== null ? Contamination.hostTemperatureK(host) : CONTAMINATION_DEFAULTS.AMBIENT_K;
+  return Contamination.advanceAll(loads, nowS - stampS, tempK, aw);
+}
 
 function clamp01(x: number): number {
   return x < 0 ? 0 : x > 1 ? 1 : x;
@@ -525,10 +556,11 @@ export class Contamination {
       return { ...loads };
     }
     const holder = this.slot.getHolder();
-    const next = Contamination.advanceAll(
+    const next = advanceContaminationOverHost(
+      holder,
       loads,
-      nowS - stamp,
-      Contamination.hostTemperatureK(holder),
+      stamp,
+      nowS,
       Contamination.slotWaterActivity(this.slot),
     );
     this.slot.setPayload({ ...payload, pathogens: next, pathogenStamp: nowS });
@@ -701,10 +733,11 @@ export function ContaminableMixin<TBase extends MixinConstructor<Stuff>>(
       this._reconcilingContamination = true;
       try {
         const self = this as unknown as Stuff;
-        this._pathogenLoads = Contamination.advanceAll(
+        this._pathogenLoads = advanceContaminationOverHost(
+          self,
           this._pathogenLoads,
-          elapsed,
-          Contamination.hostTemperatureK(self),
+          this.pathogenClockStamp,
+          nowS,
           Contamination.hostWaterActivity(self),
         );
         this.pathogenClockStamp = nowS;

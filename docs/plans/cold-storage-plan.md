@@ -621,7 +621,38 @@ its ceiling of 6).
 trajectory — Thermal and the envelope keep a ring; a nested envelope
 drifts toward its room`.
 
-#### W2 — the dependents integrate (D7)
+#### W2 — the dependents integrate (D7) — ✅ DONE
+
+**Done note.** Every stepped-temperature gauge now integrates over the
+host's `temperatureTrajectory`, folded per midpoint sample (exact for the
+multiplicative logistic/exponential): `Freshness` + `Contaminable` (mixin
+AND slot gauge, via module-private `advance*OverHost` folds — no new
+statics, ratchet at ceiling), `Maturing.reconcileFerment` (the conversion
+integral + peak/worst over samples; culture/evaporative keep a
+time-weighted mean), `ThermalDose.reconcileDose` (integrates the body's
+published trajectory stretch-by-stretch, reusing the exact scalar
+`integrate`/`scorchOver` per stretch → identical numbers for a constant
+ambient). `Staling` got a `@samples` marker (τ-ratio justified).
+`lint:reconcile-chains` **driven to 0** (and the gate's doc-prefix
+extraction fixed — it was swallowing a preceding sibling method's body as a
+false positive, which cleared `reconcileBurning`/`reconcileBurnerFuel`/
+`reconcileCellarAir`, none of which integrate a stepped temperature).
+
+**Decision — Growing stays as-is (F6 → no-change).** `reconcileGrowth` is
+NOT gate-flagged (it reads `_lastAmbientK`, not the sampling tokens), and
+its four limiting factors are per-window MEANS by explicit design (the code
+comments: *"the season does not turn inside one integration step"*) —
+answer-3, not endpoint sampling. Migrating warmth alone to a trajectory
+would be inconsistent with light/water/nutrient and risk a shipped
+subsystem for no gate requirement. The intent reads as deliberate, so F6's
+sanctioned no-change applies.
+
+Tests: `Freshness.outage.test.ts` (warm-then-cool reads ABOVE the
+cold-endpoint sample and within 1% of an independent fold; a cold week
+stays fresh while a warm counter spoils). All 528 lib tests + baking green;
+type-clean. Docs: spoilage.md, uncertainty.md (the audit table), thermal.md.
+
+
 
 **Files.** `lib/material/Freshness.ts`, `Contaminable.ts` (mixin + slot
 gauge: read `temperatureTrajectory(stamp, now)` off the host/holder, fold
